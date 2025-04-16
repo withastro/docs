@@ -4,8 +4,8 @@ description: >-
   ビュートランジションを使用して、Astroでページ間のシームレスなナビゲーションを実現する。
 i18nReady: true
 ---
-
 import Since from '~/components/Since.astro'
+import { Steps } from '@astrojs/starlight/components'
 
 Astroでは、**オプトイン式ページ単位のビュートランジション**を数行のコードで実現できます。ビュートランジションは、ブラウザがナビゲーション時に通常おこなうページ全体の更新なしでページコンテンツを更新し、ページ間のシームレスなアニメーションを提供します。
 
@@ -80,7 +80,6 @@ Astroは、旧ページと新ページの両方に存在する対応する要素
 - `transition:animate`: アニメーションの種類を指定することで、旧要素を新要素で置き換える際のAstroのデフォルトのアニメーションをオーバーライドできます。Astroの[組み込みのアニメーションディレクティブ](#組み込みのアニメーションディレクティブ)を使用するか、[独自のトランジションアニメーションを作成](#アニメーションをカスタマイズする)します。
 - `transition:persist`: 旧要素を新要素で置き換えるAstroのデフォルトの挙動をオーバーライドし、[別のページに移動した際にコンポーネントとHTML要素を保持](#状態を保持する)します。
 
-
 ### トランジションに名前を付ける
 
 場合によっては、対応するビュートランジション要素を自分で特定したい、または特定する必要があるかもしれません。`transition:name`ディレクティブを使用して、要素のペアに名前を付けることができます。
@@ -133,6 +132,16 @@ Astroは、旧ページと新ページの両方に存在する対応する要素
 <video controls="" autoplay="" transition:persist="media-player">
 ```
 
+#### `transition:persist-props`
+
+<Since v="4.5.0" />
+
+`transition:persist-props`ディレクティブを使うと、アイランドのprops（プロパティ）をページ遷移時に保持するかどうかを制御できます。
+
+デフォルトでは、`transition:persist`をアイランドに追加すると状態は保持されますが、propsは新しい値で再レンダリングされます。たとえば、ページごとに異なる`title`などをpropsとして受け取る場合に便利です。
+
+`transition:persist-props`を`transition:persist`と併用すると、この動作は上書きされます。アイランドのpropsは保持され、再レンダリングされなくなり、既存の状態が保持されます。
+
 ### 組み込みのアニメーションディレクティブ
 
 Astroには、デフォルトの`fade`トランジションをオーバーライドするための組み込みのアニメーションがいくつか用意されています。`transition:animate`ディレクティブを各要素に追加して、特定のトランジションの動作をカスタマイズできます。
@@ -140,7 +149,6 @@ Astroには、デフォルトの`fade`トランジションをオーバーライ
 - `fade`（デフォルト）: 独自のクロスフェードアニメーションです。旧コンテンツがフェードアウトし、新コンテンツがフェードインします。
 - `initial`: Astroの独自のクロスフェードアニメーションを無効にし、ブラウザのデフォルトのスタイルを使用します。
 - `slide`: 旧コンテンツが左にスライドアウトし、新コンテンツが右からスライドインするアニメーションです。戻る場合のナビゲーションでは、アニメーションは逆になります。
-- `fade`: 旧コンテンツがフェードアウトし、新コンテンツがフェードインするクロスフェードです。
 - `none`: ブラウザのデフォルトのアニメーションを無効にします。ページの`<html>`要素で使用すると、ページ内のすべての要素のデフォルトのフェードを無効にします。
 
 ページのアニメーションを完全に制御するには、ディレクティブを組み合わせます。`<html>`要素でページのデフォルト値を設定し、必要に応じて個々の要素でオーバーライドしてください。
@@ -206,39 +214,87 @@ export interface TransitionDirectionalAnimations {
 }
 ```
 
-以下の例は、独自の`fade`アニメーションを定義するために必要なすべてのプロパティを示しています。
+カスタムアニメーション`bump`をルートレイアウトファイルの`<style is:global>`タグ内で定義するために必要な全てのプロパティは以下の通りです。
 
-```astro
+```astro title="src/layouts/Layout.astro"
+---
+import { ClientRouter } from "astro:transitions";
+---
+<html lang="ja">
+  <head>
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+アニメーションの挙動は、アニメーションを使用する各コンポーネントのフロントマターで定義する必要があります。
+
+```astro title="src/pages/index.astro"
 ---
 const anim = {
   old: {
-    name: 'fadeIn',
-    duration: '0.2s',
-    easing: 'linear',
-    fillMode: 'forwards',
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in",
+    direction: "reverse",
   },
   new: {
-    name: 'fadeOut',
-    duration: '0.3s',
-    easing: 'linear',
-    fillMode: 'backwards',
-  }
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in-out",
+  },
 };
 
-const myFade = {
-	forwards: anim,
-	backwards: anim,
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
 };
 ---
-
-<header transition:animate={myFade}> ... </header>
+<header transition:animate={customTransition}> ... </header>
 ```
 
-## クライアントサイドナビゲーションの防止
+カスタムアニメーションを定義はとても柔軟に行えます。目的の動作を実現するために、進む・戻るで異なるオブジェクトを使ったり、old/newで別々のキーフレームアニメーションを指定したりといった工夫もできます。
+
+## ルーター制御
+
+`<ClientRouter />`ルーターは、以下のイベントでナビゲーションを制御します。
+
+- `<a>`要素のクリック
+- 戻る・進むのナビゲーションイベント
+
+さらに、以下の属性や関数で挙動を細かく制御できます。
+
+- `data-astro-reload`: `<a>`や`<form>`タグに付与すると、クライアントサイドナビゲーションを強制的に無効化し、フルページ遷移にします。
+- `data-astro-history="auto | push | replace"`: `<a>`タグに付与すると、ブラウザの履歴の扱いを制御できます。
+- `navigate(href, options)`: クライアントスクリプトやフレームワークコンポーネントからナビゲーションをトリガーできます。
+
+### クライアントサイドナビゲーションの防止
 
 `<ClientRouter />`コンポーネントを追加してページでクライアントサイドルーティングを有効にすると、サイト内の別のページにリンクするページ内のすべてのアンカーは、クライアントサイドルーティングによってナビゲートされます。ただ、クライアントサイドルーティングでナビゲートしたくないような場合もあります。たとえば、`public/`フォルダ内のPDFや、画像を生成するAPIルートなどの非ページへのリンクです。
 
 こうした場合、`data-astro-reload`属性を使用して、リンクごとにクライアントサイドルーティングをオプトアウトできます。
+
+以下の例は、ホームページから記事に移動する際にクライアントサイドルーティングを防止する方法です。同様に、記事一覧ページから同じページに移動する場合のように、ヒーロー画像などの共有要素にアニメーションを適用することも可能です。
 
 ```html
 <a href="/quarterly-earnings.pdf" data-astro-reload>
@@ -246,9 +302,130 @@ const myFade = {
 
 これらのリンクはルーターによって無視され、フルページのナビゲーションが発生します。
 
+
+### ナビゲーションのトリガー
+
+`astro:transitions/client`モジュールの`navigate`関数を使うと、通常のリンク以外のイベントでもクライアントサイドナビゲーションを発生させられます用できます。
+
+```astro title="components/Form.astro"
+<script>
+  import { navigate } from "astro:transitions/client";
+  document.querySelector("select").onchange = (event) => {
+    let href = event.target.value;
+    navigate(href);
+  };
+</script>
+<select>
+  <option value="/play">Play</option>
+  <option value="/blog">Blog</option>
+  <option value="/about">About</option>
+  <option value="/contact">Contact</option>
+</select>
+```
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/Form.astro";
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+	<head>
+		<ClientRouter />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
+
+クライアントディレクティブでハイドレートされたフレームワークコンポーネント内でも`navigate`を使用できます。
+```js title="src/components/Form.jsx"
+import { navigate } from "astro:transitions/client";
+
+export default function Form() {
+  return (
+    <select onChange={(e) => navigate(e.target.value)}>
+      <option value="/play">Play</option>
+      <option value="/blog">Blog</option>
+      <option value="/about">About</option>
+      <option value="/contact">Contact</option>
+    </select>
+  );
+}
+```
+
+この`<Form />` コンポーネントは、`<ClientRouter />` ルーターを使用するAstroページに、クライアントディレクティブを使用してレンダリングできます。
+
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/Form.jsx";
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+	<head>
+		<ClientRouter />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
+```
+
+`navigate`は以下のオプションを受け取ります。
+
+- `href`（必須）: 遷移先のURL
+- `options`: 
+  - `history`: `"push"` | `"replace"` | `"auto"` 
+    - `push`: 「history.pushState」を使用して、ブラウザの履歴に新しいエントリを作成します。
+    - `replace`: 「history.replaceState」を使用して、現在の履歴を上書きします。
+    - `auto`（デフォルト）: ルーターは 'history.pushState' を試みますが、URL が遷移可能なものでない場合、現在の URL はブラウザの履歴を変更せずに残ります。
+  - `formData`: POSTリクエストを送信するための[`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData)オブジェクト。
+
+ブラウザの履歴を使った「戻る」「進む」ナビゲーションには、`navigate()`と組み合わせて、ブラウザ組み込みの`history.back()`、`history.forward()`、`history.go()`関数を利用できます。なお、`navigate()`がコンポーネントのサーバーサイドレンダリング中に呼び出された場合は、何も起こりません。
+
+### 履歴の置き換え
+
+通常、ナビゲーションごとにブラウザの履歴に新しいエントリが追加されますが、`data-astro-history`属性を`<a>`タグに付与することで、履歴の追加方法を制御できます。
+
+- `push`: `history.pushState`で新しい履歴エントリを追加
+- `replace`: `history.replaceState`で現在の履歴を上書き
+- `auto`（デフォルト）: 遷移可能な場合は`pushState`、そうでなければ履歴は変更されません
+
+```astro title="pages/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+### フォームでのトランジション
+
+<Since v="4.0.0" />
+
+`<form>`要素でもクライアントサイドトランジションが利用できます（GET/POST両対応）。
+
+デフォルトで`POST`時は`multipart/form-data`で送信されます。通常のブラウザと同じ`application/x-www-form-urlencoded`で送信したい場合は`enctype`属性を指定してください。
+
+```astro title="components/Form.astro"
+<form action="/contact" method="POST" enctype="application/x-www-form-urlencoded">
+```
+
+`data-astro-reload`属性を付与すると、そのフォームだけクライアントサイドトランジションを無効化できます。
+
+```astro title="components/Form.astro"
+<form action="/contact" data-astro-reload>
+```
+
 ## フォールバックの制御
 
-`<ClientRouter />`ルーターは、ビュートランジションをサポートするブラウザ（すなわちChromiumブラウザ）で最も有効に機能しますが、他のブラウザに対するデフォルトのフォールバックサポートも含んでいます。ブラウザがView Transitions APIをサポートしていなくても体験を損なわないように、Astroはフォールバックオプションのいずれかを使用してブラウザ内でのナビゲーションを提供します。
+`<ClientRouter />`ルーターは、ビュートランジションをサポートするブラウザ（すなわちChromium系ブラウザ）で最も有効に機能しますが、他のブラウザにもデフォルトのフォールバックサポートが含まれています。ブラウザがView Transitions APIをサポートしていない場合でも、Astroのクライアントルーターはフォールバックオプションのいずれかを使ってブラウザ内ナビゲーションを提供できます。
+
+サポート状況によっては、すべてのブラウザで同等の体験を得るために、アニメーションさせたい要素に`name`や`animate`の[トランジションディレクティブ](#トランジションディレクティブ)を明示的に設定する必要があります。
+
+```astro title="src/pages/about.astro"
+---
+import Layout from "../layouts/LayoutUsingClientRouter.astro";
+---
+<title transition:animate="fade">このサイトについて</title>
+```
 
 `<ClientRouter />`コンポーネントに`fallback`プロパティを追加し、`swap`または`none`に設定することで、Astroのデフォルトのフォールバックサポートをオーバーライドできます。
 
@@ -273,185 +450,291 @@ import { ClientRouter } from 'astro:transitions';
 
 `<ClientRouter />`ルーターを使用すると、以下の流れでAstroのクライアントサイドナビゲーションが実行されます。
 
-1. サイト訪問者が以下のいずれかのアクションを実行し、ナビゲーションがトリガーされる。
-    - サイト内の別のページへ内部リンクする`<a>`タグをクリックする。
-    - 戻るボタンをクリックする。
-    - 進むボタンをクリックする。
-2. ルーターが次のページの取得を開始する。
-3. ルーターが、`'forward'`または`'back'`の値をもつ`data-astro-transition`属性をHTML要素に追加する。
-4. ルーターが`document.startViewTransition`をコールする。これにより、ブラウザの[view transition process](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#the_view_transition_process)がトリガーされる。重要なこととして、ブラウザはページの現在の状態をスクリーンショットする。
-5. `startViewTransition`コールバック内で、ルーターが**swap**を実行する。これは以下の一連のイベントから構成される。
+<Steps>
+1. サイト訪問者が以下のいずれかのアクションを実行し、ナビゲーションが実行されます。
+    - サイト内の別のページへ内部リンクする`<a>`タグをクリックします。
+    - 戻るボタンをクリックします。
+    - 進むボタンをクリックします。
+2. ルーターが次のページの取得を開始します。
+3. ルーターが、`'forward'`または`'back'`の値をもつ`data-astro-transition`属性をHTML要素に追加します。
+4. ルーターが`document.startViewTransition`をコールします。これにより、ブラウザの[view transition process](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#the_view_transition_process)がトリガーされます。重要なこととして、ブラウザはページの現在の状態をスクリーンショットします。
+5. `startViewTransition`コールバック内で、ルーターが**swap**を実行します。これは以下の一連のイベントから構成されます。
 
-    - `<head>`のコンテンツが、いくつかの要素を残して入れ替わる。
-        - FOUCを防止するために、スタイルシートのDOMノードが新しいページに存在する場合は残される。
-        - 新しいページにスクリプトが存在する場合は残される。
-        - 新しいページに対応する要素がある場合、`transition:persist`をもつ他のhead要素は残される。
+    - `<head>`のコンテンツが、いくつかの要素を残して入れ替わります。
+        - FOUCを防止するために、スタイルシートのDOMノードが新しいページに存在する場合は残されます。
+        - 新しいページにスクリプトが存在する場合は残されます。
+        - 新しいページに対応する要素がある場合、`transition:persist`をもつ他のhead要素は残されます。
 
-    - `<body>`は、新しいページのbodyに完全に置き換えられる。
+    - `<body>`は、新しいページのbodyに完全に置き換えられます。
 
-    - `transition:persist`とマークされた要素が新しいページに存在する場合、新しいDOMに移動する。
+    - `transition:persist`とマークされた要素が新しいページに存在する場合、新しいDOMに移動します。
 
-    - 必要に応じてスクロール位置が復元される。
+    - 必要に応じてスクロール位置が復元されます。
 
-    - `astro:after-swap`イベントが`document`でトリガーされる。これが**swap**プロセスの終わりとなる。
+    - `astro:after-swap`イベントが`document`でトリガーされます。これが**swap**プロセスの終わりとなります。
 
-6. ルーターが、トランジションを解決する前に新しいスタイルシートのロードを待つ。
-7. ルーターが、ページに追加された新しいスクリプトを実行する。
-8. `astro:page-load`イベントが発火する。これがナビゲーションプロセスの終わりとなる。
+6. ルーターが、トランジションを解決する前に新しいスタイルシートのロードを待ちます。
+7. ルーターが、ページに追加された新しいスクリプトを実行します。
+8. `astro:page-load`イベントが発火します。これがナビゲーションプロセスの終わりとなります。
+</Steps>
 
 ## ページナビゲーション中のスクリプトの動作
 
-`<ClientRouter />`コンポーネントを使用してページ間をナビゲートする際、ブラウザの動作に合わせてスクリプトが順に実行されます。
+`<ClientRouter />`コンポーネントを使ってページ間を遷移する場合、スクリプトはブラウザの挙動に合わせて順番に実行されます。
 
-グローバルな状態を設定しているコードがある場合は、そのスクリプトが複数回実行される可能性があることを考慮する必要があります。`<script>`タグでグローバルな状態をチェックし、可能な限り条件付きでコードを実行してください。
+- Astroのバンドル済みモジュールスクリプトは1度だけ実行され、再遷移時は無視されます。
+- インラインスクリプトは、ページを再訪した場合や、同じスクリプトが含まれるページに戻った場合に再実行されることがあります。
+
+スクリプトを確実に再実行したい場合は、ライフサイクルイベント（後述）でラップしてください。
+
+### スクリプトの順序
+
+`<ClientRouter />`コンポーネントを使用してページ間を遷移する場合、スクリプトはブラウザの挙動に合わせて順番に実行されます。
+
+### スクリプトの再実行
+
+[バンドル済みモジュールスクリプト](/ja/guides/client-side-scripts/#スクリプトの処理)（Astroのデフォルトスクリプト）は、初回実行後は再遷移時に無視されます。同じスクリプトが新しいページに含まれていても再実行されません。
+
+一方で、[インラインスクリプト](/ja/guides/client-side-scripts/#処理の対象外にする)は、訪問者が複数回同じページを訪れた場合や、スクリプトが含まれるページに戻った場合に再実行される可能性があります。
+
+ビュートランジションを使用すると、ページ遷移後に一部のスクリプトがフルページリフレッシュ時のように再実行されなくなる場合があります。クライアントサイドルーティング中に発生する[イベント](#ライフサイクルイベント)をリッスンし、適切なタイミングでスクリプトを実行することができます。
+
+以下の例では、モバイル用の「ハンバーガーメニュー」のスクリプトを`astro:page-load`イベントリスナーでラップし、ページ遷移後にクリックに反応するようにしています。このイベントはページ遷移の終了時に発火します。
+
+```js title="src/scripts/menu.js" ins={1,5}
+document.addEventListener("astro:page-load", () => {
+  document.querySelector(".hamburger").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("expanded");
+  });
+});
+```
+
+次の例は、`astro:after-swap`イベントに応答して実行される関数を示しています。このイベントは、新しいページが古いページを置き換えた直後、DOM要素が画面に描画される前に発生します。これにより、ページ遷移後にライトモードが一瞬表示されるのを防ぐために、ダークモードのテーマを確認し、必要に応じて設定します。
+
+```astro title="src/components/ThemeToggle.astro"
+<script is:inline>
+  function applyTheme() {
+    localStorage.theme === "dark"
+      ? document.documentElement.classList.add("dark")
+      : document.documentElement.classList.remove("dark");
+  }
+
+  document.addEventListener("astro:after-swap", applyTheme);
+  applyTheme(); 
+</script>
+```
+
+#### `data-astro-rerun`
+
+<Since v="4.5.0" />
+
+インラインスクリプトに`data-astro-rerun`属性を付与すると、ページ遷移ごとに必ず再実行されます。
+
+```astro
+<script is:inline data-astro-rerun>...</script>
+```
+
+グローバルな状態を設定する場合は、スクリプトが複数回実行される可能性を考慮し、`window`などで状態を判定してください。
 
 ```astro
 <script is:inline>
-  if(!window.SomeGlobal) {
-    window.SomeGlobal = {} // ....
+  if (!window.SomeGlobal) {
+    window.SomeGlobal = {};
   }
 </script>
 ```
 
 モジュールスクリプトは、ブラウザがロード済みのモジュールを追跡しているため、常に1回だけ実行されます。これらのスクリプトでは再実行の心配は必要ありません。
 
-### `astro:page-load`
+## ライフサイクルイベント
 
-新しいページがユーザーに表示され、ブロッキングスタイルとスクリプトがロードされたあとの、ページナビゲーションの最後に発生するイベントです。`document`でこのイベントをリッスンできます。
+`<ClientRouter />` ルーターは、ナビゲーション中に `document` 上で複数のイベントを発火します。これらのイベントは、ナビゲーションのライフサイクルにフックし、新しいページのローディングインジケーターの表示や、デフォルト動作の上書き、ナビゲーション完了時の状態復元などに利用できます。
 
-`<ClientRouter />`コンポーネントは、初回のページナビゲーション（MPA）と、その後の進む・戻るのナビゲーションの両方でこのイベントを発生させます。
+ナビゲーションプロセスは、**準備フェーズ**（新しいコンテンツの読み込み）、**DOMスワップフェーズ**（古いページの内容が新しいページの内容に置き換えられる）、**完了フェーズ**（スクリプトの実行やローディング完了の通知、クリーンアップなど）で構成されます。
 
-このイベントを使用すると、すべてのページナビゲーションでコードを実行したり、あるいは1度だけ実行したりできます。
+AstroのView Transition APIのライフサイクルイベントは、以下の順で発火します：
 
-```astro "{ once: true }"
-<script>
-  document.addEventListener('astro:page-load', () => {
-    // これは1度だけ実行されます。
-    setupStuff();
-  }, { once: true });
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
+
+:::tip
+`before-`イベントはこれから実行されるアクションに介入・変更でき、`after-`イベントはそのフェーズが完了したことを通知します。
+:::
+
+一部のアクションはどのイベントでも実行できますが、ローディングスピナーの表示や、スワップ前のアニメーションペアの上書きなど、特定のイベントでのみ最適に実行できるタスクもあります。
+
+### `astro:before-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+ナビゲーションが開始された直後（例：リンククリック直後）、コンテンツの読み込み前に発火するイベントです。
+
+このイベントは以下の用途で使えます：
+
+- ローディング開始前にスピナーを表示するなどの処理
+- 外部URLではなくテンプレートで定義したコンテンツを読み込むなど、ローディング処理の変更
+- カスタムアニメーションのためにナビゲーションの`direction`（通常は`forward`または`backward`）を変更
+
+以下は、`astro:before-preparation`イベントでスピナーを表示し、ローディング完了後に停止する例です。`loader`コールバックを使うことで非同期処理が可能です。
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-preparation", (event) => {
+    const originalLoader = event.loader;
+    event.loader = async function () {
+      const { startSpinner } = await import("./spinner.js");
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
 </script>
 ```
 
-### `astro:after-swap`
+### `astro:after-preparation`
 
-旧ページが新ページに置き換わった直後に発生するイベントです。`document`でこのイベントをリッスンできます。
+<p><Since v="3.6.0" /></p>
 
-このイベントは、新しいページに引き継ぐ必要があるDOM上の状態を復元するのに役立ちます。
+新しいページのコンテンツが読み込まれ、ドキュメントとしてパースされた後、ビュー遷移フェーズの直前に発火するイベントです。
 
-たとえばダークモードのサポートを実装している場合、このイベントを使用してページロード間で状態を復元できます。
+以下は、`astro:before-preparation`でローディングインジケーターを表示し、`astro:after-preparation`で非表示にする例です：
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-preparation", () => {
+    document.querySelector("#loading").classList.add("show");
+  });
+  document.addEventListener("astro:after-preparation", () => {
+    document.querySelector("#loading").classList.remove("show");
+  });
+</script>
+```
+
+上記は、すべての処理が同期的に実行できる場合のシンプルな例です。`loader`コールバックを使う必要はありません。
+
+### `astro:before-swap`
+
+<p><Since v="3.6.0" /></p>
+
+準備フェーズで生成された新しいドキュメントが、現在のドキュメントに置き換わる直前に発火します。このイベントはビュー遷移中に発生し、ユーザーはまだ古いページのスナップショットを見ています。
+
+このイベントでは、スワップ前に変更を加えることができます。`event.newDocument`プロパティは、これから表示される新しいドキュメントを表します。以下は、`localStorage`のダークモード設定を新しいページにも適用する例です：
+
+```astro
+<script is:inline>
+  function setDarkMode(document) {
+    let theme = localStorage.darkMode ? "dark" : "light";
+    document.documentElement.dataset.theme = theme;
+  }
+  
+  setDarkMode(document);
+  
+  document.addEventListener("astro:before-swap", (event) => {
+    // 新しいドキュメントにもテーマを適用
+    setDarkMode(event.newDocument);
+  });
+</script>
+```
+
+`astro:before-swap`イベントでは、スワップの*実装*自体も変更できます。デフォルトのスワップ実装は、headの内容の差分適用、__persistent__要素の移動、body全体の置き換えを行います。
+
+このタイミングで、独自のスワップ実装（例：既存ドキュメント全体の差分適用）を定義することも可能です：
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-swap", (event) => {
+    event.swap = () => {
+      diff(document, event.newDocument);
+    };
+  });
+</script>
+```
+
+#### カスタムスワップ関数の作成
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client`モジュールの`swapFunctions`オブジェクトは、ドキュメント属性やページ要素、スクリプト実行など、スワップ関連のタスクを処理する5つのユーティリティ関数を提供します。これらを使って独自のスワップ実装を定義できます。
+
+以下は、Astroの組み込みスワップ実装を再現する例です：
 
 ```astro
 <script>
-	const setDarkMode = () => {
-		if (localStorage.darkMode) {
-			document.documentElement.dataset.dark = '';
-		}
-	};
-
-  // 初回のナビゲーションで実行される
-	setDarkMode();
-  // ビュートランジションのナビゲーションで実行される
-	document.addEventListener('astro:after-swap', setDarkMode);
-</script>
-```
-
-## `prefers-reduced-motion`
-
-Astroの`<ClientRouter />`コンポーネントにはCSSメディアクエリが含まれており、[`prefer-reduced-motion`](https://developer.mozilla.org/ja/docs/Web/CSS/@media/prefers-reduced-motion)の設定が検出された場合、フォールバックアニメーションを含む*すべての*ビュートランジションアニメーションが無効になります。代わりに、ブラウザはアニメーションなしでDOM要素を単純に入れ替えます。
-
-## v2.xからv3.0へのアップグレード
-
-Astro v3.0では、ビュートランジションを使うために実験的なフラグは不要となりました。
-
-Astro 2.xでこの実験的なフラグを有効にしていなかった場合、プロジェクトへの破壊的な変更はありません。新しいビュートランジションAPIは、既存のコードに影響を与えません。
-
-実験的なビュートランジションを使用していた場合、以前のバージョンからAstroプロジェクトをアップグレードする際に、いくつかの破壊的な変更が発生する可能性があります。
-
-**`experimental.ClientRouter: true`が設定されたAstro v2.xプロジェクト**をv3.0にアップグレードするためには、以下の手順に従ってください。
-
-### `experimental.ClientRouter`からのアップグレード
-
-ビュートランジションの実験的なフラグを有効にしていた場合、Astro v3.0ではデフォルトでビュートランジションが有効になっているため、プロジェクトを更新する必要があります。
-
-#### `experimental.ClientRouter`フラグの削除
-
-実験的なフラグを削除します。
-
-```js title="astro.config.mjs" del={4-6}
-import { defineConfig } from 'astro/config';
-
-export default defineConfig({
-  experimental: {
-    ClientRouter: true
+  import { swapFunctions } from "astro:transitions/client";
+  
+  // `window.document`を`doc`で置き換え
+  function mySwap(doc: Document) {
+    swapFunctions.deselectScripts(doc);
+    swapFunctions.swapRootAttributes(doc);
+    swapFunctions.swapHeadElements(doc);
+    const restoreFocusFunction = swapFunctions.saveFocus();
+    swapFunctions.swapBodyElement(doc.body, document.body);
+    restoreFocusFunction();
   }
-});
-```
-
-#### インポートソースの更新
-
-`<ClientRouter />`コンポーネントは`astro:components`から`astro:transitions`に移動しました。プロジェクト内のすべてのインポートソースを更新してください。
-
-```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
----
-import { ClientRouter } from "astro:components astro:transitions"
----
-<html lang="ja">
-  <head>
-    <title>私のホームページ</title>
-    <ClientRouter />
-  </head>
-  <body>
-    <h1>私のウェブサイトへようこそ！</h1>
-  </body>
-</html>
-```
-
-#### `transition:animate`ディレクティブの更新
-
-**変更:** `transition:animate`の値`morph`は`initial`へとリネームされました。また、これはデフォルトのアニメーションではなくなりました。`transition:animate`ディレクティブが指定されていない場合、アニメーションはデフォルトで`fade`になります。
-
-1. `morph`アニメーションを`initial`にリネームします。
-    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
-    <div transition:name="name" transition:animate="morph initial" />
-    ```
-2. デフォルトの`morph`を使っていたアニメーションを維持するには、`transition:animate="initial"`を明示的に追加します。
-
-    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
-    <div transition:name="name" transition:animate="initial" />
-    ```
-3. 明示的に`fade`に設定されていたアニメーションは安全に削除できます。これは現在デフォルトの動作となりました。
-
-    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
-    <div transition:name="name" transition:animate="fade" />
-    ```
-
-**追加:** Astroは`transition:animate`の値として新たに`none`をサポートしました。この値をページの`<html>`要素に使用すると、ページ全体のアニメーションを無効にできます。これにより、アニメーションディレクティブをもたないページ要素のデフォルトのアニメーションがオーバーライドされます。個々の要素にアニメーションを設定することはでき、指定したアニメーションが実行されます。
-
-4. 個々のページでデフォルトのトランジションをすべて無効にし、`transition:animate`ディレクティブを明示的に使用している要素のアニメーションだけを有効化できます。
-
-    ```astro ins="transition:animate=\"none\""
-    <html transition:animate="none">
-      <head></head>
-      <body>
-        <h1>Hello world!</h1>
-      </body>
-    </html>
-    ```
-
-#### イベント名の更新
-
-`astro:load`イベントは`astro:page-load`にリネームされました。プロジェクト内でこのイベント名を使っているすべての箇所をリネームしてください。
-
-```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+  
+  event.swap = () => mySwap(event.newDocument);
 <script>
-document.addEventListener('astro:load astro:page-load', runSetupLogic);
+```
+
+カスタムスワップ実装はこのテンプレートをベースに、必要に応じて個別のステップを追加・置換できます。
+
+### `astro:after-swap`
+
+新しいページが古いページを置き換えた直後に発火します。`document`上でこのイベントをリッスンし、新しいページのDOM要素が描画され、スクリプトが実行される前にアクションを実行できます。
+
+このイベントは**遷移元ページ**でリッスンすることで、新しいページに引き継ぐ必要のあるDOM上の状態を渡したり復元したりするのに便利です。
+
+このタイミングは、例えばダークモード用のクラス名（`<html class="dark-mode">`）を追加するのに安全な最後のポイントです（より早いイベントで行っても構いません）。
+
+`astro:after-swap`イベントは、ブラウザの履歴が更新され、スクロール位置が復元された直後に発生します。
+そのため、履歴ナビゲーション時のデフォルトのスクロール復元を上書きする用途にも使えます。以下は、ナビゲーションごとにページの左上にスクロールをリセットする例です：
+
+```js
+document.addEventListener("astro:after-swap", () =>
+  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+);
+```
+
+### `astro:page-load`
+
+ページナビゲーションの終了時、新しいページがユーザーに表示され、ブロッキングスタイルやスクリプトが読み込まれた後に発火します。`document`上でこのイベントをリッスンできます。
+
+`<ClientRouter />`コンポーネントは、プリレンダされたページの初回ナビゲーション時と、その後のすべてのナビゲーション（進む・戻る含む）でこのイベントを発火します。
+
+このイベントを使って、ナビゲーションごとに毎回実行したいコード（例：イベントリスナーの再設定など）を記述できます。
+
+```astro
+<script>
+  document.addEventListener("astro:page-load", () => {
+    // 初回ページロードとすべてのナビゲーション後に実行されます。
+    setupStuff(); // 例：イベントリスナーの追加
+  });
 </script>
 ```
 
-`astro:beforeload`イベントは`astro:after-swap`にリネームされました。プロジェクト内でこのイベント名を使っているすべての箇所をリネームしてください。
+## アクセシビリティ
 
-```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
-<script>
-document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
-</script>
-```
+クライアントサイドルーティングやページ遷移アニメーションの有効化にはアクセシビリティ上の課題も伴いますが、AstroはView Transitionsを利用するサイトがデフォルトでアクセシブルになるよう配慮しています。
+
+### ルートアナウンス
+
+<p><Since v="3.2.0" /></p>
+
+`<ClientRouter />`コンポーネントは、クライアントサイドルーティング時のページナビゲーションにルートアナウンサーを含みます。
+
+アクセシビリティ機能は、ナビゲーション後に新しいページタイトルをアナウンスすることで、ページが変わったことを利用者に伝えます。サーバーサイドルーティング（フルページリフレッシュ）ではこれが自動で行われますが、クライアントサイドルーティングでは`<ClientRouter />`がこの役割を担います。
+
+ルートアナウンスのため、コンポーネントは新しいページに`aria-live="assertive"`属性を持つ要素を追加します。これによりアクセシビリティツールが以下の優先順位にしたがって、アナウンスします。
+
+- `<title>`が存在すればその内容
+- 最初に見つかった`<h1>`
+- ページの`pathname`
+
+アクセシビリティ向上のため、各ページには必ず`<title>`を含めるようにしてください。
+
+### `prefers-reduced-motion`
+
+Astroの`<ClientRouter />`コンポーネントは、[`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion)設定が検出された場合、フォールバックアニメーションを含む*すべて*のビュートランジションアニメーションを無効化するCSSメディアクエリを含みます。代わりに、ブラウザはアニメーションなしでDOM要素を単純にスワップします。
