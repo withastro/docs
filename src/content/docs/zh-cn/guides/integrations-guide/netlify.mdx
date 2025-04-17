@@ -94,6 +94,29 @@ netlify deploy
 
 这篇 [Netlify 博客文章](https://www.netlify.com/blog/how-to-deploy-astro/) 和 [Netlify 文档](https://docs.netlify.com/integrations/frameworks/astro/) 提供了更多关于如何使用这个集成部署到 Netlify 的信息。
 
+### 在 Netlify Edge Functions 上运行 Astro 中间件
+
+任何 Astro 中间件都会在构建时应用于预渲染页面，在运行时应用于按需渲染页面。
+
+要在预渲染页面上实现重定向、访问控制或自定义响应头，请通过启用 [`edgeMiddleware` 选项](/zh-cn/reference/adapter-reference/#edgemiddleware) 在 Netlify Edge Functions 上运行你的中间件：
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+当 `edgeMiddleware` 启用时，边缘函数将为所有请求执行你的中间件代码，包括静态资源、预渲染页面和按需渲染页面。
+
+对于按需渲染的页面，`context.locals` 对象会被 JSON 序列化并通过标头发送给无服务器函数，由该函数执行渲染。作为安全措施，除非请求来自生成的边缘函数，否则无服务器函数将拒绝服务，并返回 `403 Forbidden` 响应。
+
 ### 从你的站点访问 edge 上下文
 
 Netlify Edge Functions 提供了一个 [context 对象](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object)，其中包含有关请求的元数据，例如用户的 IP、地理位置数据和 cookie。
@@ -123,29 +146,6 @@ declare namespace App {
 ```
 
 这不适用于预渲染的页面。
-
-### 在 Netlify Edge Functions 上运行 Astro 中间件
-
-任何 Astro 中间件都会在构建时应用于预渲染页面，在运行时应用于按需渲染页面。
-
-要在预渲染页面上实现重定向、访问控制或自定义响应头，请通过启用 [`edgeMiddleware` 选项](/zh-cn/reference/adapter-reference/#edgemiddleware) 在 Netlify Edge Functions 上运行你的中间件：
-
-```js title="astro.config.mjs" ins={8}
-import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
-
-export default defineConfig({
-  // ...
-  output: 'server',
-  adapter: netlify({
-    edgeMiddleware: true,
-  }),
-});
-```
-
-当 `edgeMiddleware` 启用时，边缘函数将为所有请求执行你的中间件代码，包括静态资源、预渲染页面和按需渲染页面。
-
-对于按需渲染的页面，`context.locals` 对象会被 JSON 序列化并通过标头发送给无服务器函数，由该函数执行渲染。作为安全措施，除非请求来自生成的边缘函数，否则无服务器函数将拒绝服务，并返回 `403 Forbidden` 响应。
 
 ### Netlify 图片 CDN 支持
 
@@ -208,6 +208,12 @@ export default defineConfig({
 :::note
 你仍然可以包含一个 `public/_redirects` 文件来手动重定向。你在重定向配置中指定的任何重定向都会被追加到你自己的重定向的末尾。
 :::
+
+### Sessions
+
+Astro [Session API](/zh-cn/guides/sessions/) 允许你在请求间，轻松地存储用户数据。该功能可用于用户数据和偏好选项，购物车内容，资格鉴权。不同于 cookie 存储，这里不存在对数据大小的限制，并且可以将其存储在不同的设备上。
+
+当使用 Netlify 适配器时，Astro 将自动配置 [Netlify Blobs](https://docs.netlify.com/blobs/overview/) 用于会话（session）存储。如果你更倾向于使用其他的会话存储驱动，你可以在 Astro config 中指定。更多细节请参见 [`session` 配置参考](/zh-cn/reference/configuration-reference/#sessiondriver)。
 
 ### 缓存页面
 
