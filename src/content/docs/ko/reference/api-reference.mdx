@@ -821,6 +821,199 @@ true인 경우 쿠키는 https 사이트에만 설정됩니다.
 
 쿠키가 직렬화되는 방식을 사용자 지정할 수 있습니다.
 
+### `session`
+
+<p>
+
+**타입:** `AstroSession`
+
+<Since v="5.7.0" />
+
+</p>
+
+[요청 시 렌더링되는 라우트](/ko/guides/on-demand-rendering/)에 대해 요청 간 데이터를 저장할 수 있게 해주는 객체가 바로 `session`입니다. 세션 자체의 데이터는 쿠키에 저장되지 않고, 세션 ID만 담고 있는 쿠키와 연결됩니다.
+
+세션은 처음 사용될 때 생성되며, 세션 쿠키는 자동으로 설정됩니다. 세션 스토리지가 구성되지 않았거나 현재 라우트가 사전 렌더링된 경우에는 `session` 객체가 `undefined`가 되며, 이를 사용하려고 하면 오류가 기록됩니다.
+
+Astro 프로젝트에서 세션을 사용하는 방법에 대한 더 자세한 내용은 [세션 가이드](/ko/guides/sessions/)를 참조하세요.
+
+#### `get()`
+
+<p>
+
+**타입**: `(key: string) => Promise<any>`
+
+</p>
+
+세션에서 주어진 키에 해당하는 값을 반환합니다. 해당 키가 존재하지 않으면 `undefined`를 반환합니다.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/components/Cart.astro" "Astro.session?.get('cart')"
+    ---
+    const cart = await Astro.session?.get('cart');
+    ---
+    <button>🛒 {cart?.length}</button>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/cart.ts" "session.get('cart')"
+    import type { APIContext } from 'astro';
+
+    export async function GET({ session }: APIContext) {
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `set()`
+
+<p>
+
+**타입**: `(key: string, value: any, options?: { ttl: number }) => void`
+
+</p>
+
+세션에서 주어진 키에 해당하는 값을 설정합니다. 값은 직렬화 가능한 어떤 타입이든 가능합니다. 이 메서드는 동기적이며, 설정된 값은 즉시 검색할 수 있지만, 요청이 끝날 때까지 백엔드에 저장되지는 않습니다.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/products/[slug].astro" "Astro.session?.set('lastViewedProduct', slug)"
+    ---
+    const { slug } = Astro.params;
+    Astro.session?.set('lastViewedProduct', slug);
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session, request }: APIContext) {
+      const cart = await session.get('cart');
+      const newItem = await request.json();
+      cart.push(newItem);
+      // 업데이트된 장바구니를 세션에 저장합니다.
+      session.set('cart', cart);
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `regenerate()`
+
+<p>
+
+**타입**: `() => void`
+
+</p>
+
+세션 ID를 갱신합니다. 세션 고정 공격을 방지하기 위해 사용자가 로그인하거나 권한이 상승했을 때 호출하세요.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/welcome.astro" "Astro.session?.regenerate()"
+    ---
+    Astro.session?.regenerate();
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/login.ts" "session.regenerate()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      // 사용자를 인증합니다...
+      doLogin();
+      // 세션 고정 공격을 방지하기 위해 세션 ID를 갱신합니다.
+      session.regenerate();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `destroy()`
+
+<p>
+
+**타입**: `() => void`
+
+</p>
+
+세션을 파기합니다. 쿠키와 백엔드에 있는 객체를 모두 삭제합니다. 사용자가 로그아웃하거나 세션이 무효화되었을 때 호출하세요.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/logout.astro" "Astro.session?.destroy()"
+    ---
+    Astro.session?.destroy();
+    return Astro.redirect('/login');
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/logout.ts" "session.destroy()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      session.destroy();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `load()`
+
+<p>
+
+**타입**: `(id: string) => Promise<void>`
+</p>
+
+ID를 사용하여 세션을 로드합니다. 일반적인 사용 환경에서는 요청 쿠키로부터 세션이 자동으로 로드됩니다. 이 메서드는 다른 ID의 세션을 로드해야 할 때 사용합니다. 세션 ID를 직접 관리하거나, 쿠키를 사용하지 않고 세션을 추적하고 싶을 때 유용합니다.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
+    ---
+    // 헤더에서 쿠키 대신 세션을 로드합니다.
+    const sessionId = Astro.request.headers.get('x-session-id');
+    await Astro.session?.load(sessionId);
+    const cart = await Astro.session?.get('cart');
+    ---
+    <h1>Your cart</h1>
+    <ul>
+      {cart?.map((item) => (
+        <li>{item.name}</li>
+      ))}
+    </ul>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
+    import type { APIRoute } from 'astro';
+
+    export const GET: APIRoute = async ({ session, request }) => {
+      // 헤더에서 쿠키 대신 세션을 로드합니다.
+      const sessionId = request.headers.get('x-session-id');
+      await session.load(sessionId);
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    };
+    ```
+
+  </TabItem>
+
+</Tabs>
+
 
 ### 더 이상 사용되지 않는 객체 속성
 

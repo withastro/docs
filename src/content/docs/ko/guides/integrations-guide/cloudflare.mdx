@@ -11,6 +11,8 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
 이 어댑터를 사용하면 Astro가 [요청 시 렌더링되는 라우트](/ko/guides/on-demand-rendering/)를 [Cloudflare](https://www.cloudflare.com/)에 배포할 수 있습니다.
 
@@ -81,6 +83,19 @@ export default defineConfig({
 ```
 
 ## 옵션
+
+Cloudflare 어댑터는 다음 옵션을 허용합니다.
+
+### `cloudflareModules`
+
+<p>
+**타입:** `true | false`<br />
+**기본값:** `true`
+</p>
+
+[`.wasm`, `.bin`, `.txt` 모듈의 가져오기](#cloudflare-모듈-가져오기)를 활성화합니다.
+
+이 기능은 기본적으로 활성화되어 있습니다. 비활성화하려면 `cloudflareModules: false`로 설정하세요.
 
 ### imageService
 
@@ -211,17 +226,22 @@ export default defineConfig({
 });
 ```
 
-### `cloudflareModules`
-
+### sessionKVBindingName
 <p>
-
-**타입:** `true | false`<br />
-**기본값:** `true`
+**타입:** `string`<br />
+**기본값:** `SESSION`
+<Since v="5.6.0" />
 </p>
 
-[`.wasm`, `.bin`, `.txt` 모듈 가져오기](#cloudflare-모듈-가져오기)를 활성화합니다.
+`sessionKVBindingName` 옵션을 사용하면 세션 스토리지에 사용되는 KV 바인딩의 이름을 지정할 수 있습니다. 기본적으로 `SESSION`으로 설정되어 있지만, 사용자 정의 KV 바인딩 이름과 일치하도록 변경할 수 있습니다. 자세한 내용은 [세션](#세션)을 참조하세요.
 
-이 기능은 기본적으로 활성화되어 있습니다. 비활성화하려면 `cloudflareModules: false`를 설정하세요.
+```js title="astro.config.mjs" "MY_SESSION_BINDING"
+export default defineConfig({
+  adapter: cloudflare({
+    sessionKVBindingName: 'MY_SESSION_BINDING',
+  }),
+});
+```
 
 ## Cloudflare 런타임
 
@@ -364,6 +384,61 @@ Cloudflare Pages의 [라우팅](https://developers.cloudflare.com/pages/platform
 어댑터 구성에서 [따라야 하는 추가 라우팅 패턴을 지정](#routesextend)하거나, 사용자 정의 `_routes.json` 파일을 만들어 자동 생성을 완전히 덮어쓸 수 있습니다.
 
 사용자 정의 `public/_routes.json`파일을 생성하면 자동 생성이 재정의됩니다. 자세한 내용은 [사용자 지정 `_routes.json` 생성에 대한 Cloudflare 문서](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file)를 참조하세요.
+
+## 세션
+
+[Astro 세션 API](/ko/guides/sessions/)를 사용하면 요청 간에 사용자 데이터를 쉽게 저장할 수 있습니다. 이는 사용자 데이터 및 환경 설정, 쇼핑 카트, 인증 자격 증명과 같은 용도로 활용될 수 있습니다. 쿠키 저장소와는 달리 데이터 크기에 제한이 없으며, 다른 기기에서도 복원할 수 있습니다.
+
+Cloudflare 어댑터를 사용하는 경우 Astro는 세션 스토리지를 위해 [Workers KV](https://developers.cloudflare.com/kv/)를 자동으로 구성합니다. 세션을 사용하기 전에 데이터를 저장할 KV 네임스페이스를 생성하고 Wrangler 구성 파일에 KV 바인딩을 설정해야 합니다. 기본적으로 Astro는 KV 바인딩 이름이 `SESSION`일 것으로 예상하지만, 어댑터 구성에서 [`sessionKVBindingName`](#sessionkvbindingname) 옵션을 설정하여 원하는 다른 이름을 선택할 수 있습니다.
+
+<Steps>
+
+1. Wrangler CLI를 사용하여 KV 네임스페이스를 생성하고 새 네임스페이스의 ID를 기록해 두세요.
+
+   ```sh
+   npx wrangler kv namespace create "SESSION"
+   ```
+
+2. Wrangler 구성에서 KV 네임스페이스를 선언하고, 네임스페이스 ID를 이전 명령에서 반환된 ID로 설정합니다.
+
+    <Tabs>
+      <TabItem label="wrangler.json">
+        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+        {
+          "kv_namespaces": [
+            {
+              "binding": "SESSION",
+              "id": "<KV_NAMESPACE_ID>"
+            }
+          ]
+        }
+        ```
+      </TabItem>
+      <TabItem label="wrangler.toml">
+        ```toml title="wrangler.toml" "<KV_NAMESPACE_ID>"
+        kv_namespaces = [
+          { binding = "SESSION", id = "<KV_NAMESPACE_ID>" }
+        ]
+        ```
+      </TabItem>
+    </Tabs>
+
+3. 그러면 서버 코드에서 세션을 사용할 수 있습니다.
+
+    ```astro title="src/components/CartButton.astro" "Astro.session?.get('cart')"
+    ---
+    export const prerender = false;
+    const cart = await Astro.session?.get('cart');
+    ---
+
+    <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+    ```
+
+</Steps>
+
+:::note
+Cloudflare KV에 쓰는 작업은 리전 간에 [최종 일관성을 보장](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency)합니다. 즉, 동일한 리전 내에서는 변경 사항이 즉시 반영되지만, 전역적으로 전파되는 데 최대 60초가 걸릴 수 있습니다. 대부분의 사용자는 요청 간에 리전을 전환할 가능성이 낮으므로 이에 영향을 받지 않겠지만, VPN 사용자 등 일부 사용 사례에서는 고려해야 할 사항일 수 있습니다.
+:::
 
 ## Cloudflare 모듈 가져오기
 
