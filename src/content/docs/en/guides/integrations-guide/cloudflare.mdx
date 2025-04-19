@@ -11,6 +11,9 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
 
 This adapter allows Astro to deploy your [on-demand rendered routes](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/).
 
@@ -83,6 +86,19 @@ export default defineConfig({
 
 ## Options
 
+The Cloudflare adapter accepts the following options:
+
+### `cloudflareModules`
+
+<p>
+**Type:** `true | false`<br />
+**Default:** `true`
+</p>
+
+Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
+
+This functionality is enabled by default. If you'd like to disable it, set `cloudflareModules: false`.
+
 ### imageService
 
 <p>
@@ -131,15 +147,15 @@ The `enabled` property allows you to enable the Cloudflare runtime in `astro dev
 **Default:** `{ configPath: 'wrangler.toml' }`
 </p>
 
-The `configPath` allows you to define your Wrangler configuration file, relative to the root of your Astro project. 
+The `configPath` property allows you to define your Wrangler configuration file, relative to the root of your Astro project. 
 
-#### platformProxy.experimentalJsonConfig
+#### platformProxy.environment
 <p>
-**Type:** `{ experimentalJsonConfig?: boolean }`<br />
-**Default:** `{ experimentalJsonConfig?: false }`
+**Type:** `{ environment?: string }`<br />
+**Default:** `{ environment: undefined }`
 </p>
 
-The `experimentalJsonConfig` property defines whether the utility reads a JSON config file (e.g. `wrangler.json`).
+The `environment` property allows you to define which [environment configuration](https://developers.cloudflare.com/workers/wrangler/environments/) in your Wrangler configuration to use.
 
 #### platformProxy.persist
 <p>
@@ -153,7 +169,7 @@ The `persist` property defines if and where the bindings data is persistent. `tr
 `wrangler`'s `--persist-to` option adds a sub directory called `v3` under the hood while the `@astrojs/cloudflare` `persist` property does not. For example, to reuse the same location as running `wrangler dev --persist-to ./my-directory`, you must specify: `persist: { path: "./my-directory/v3" }`.
 :::
 
-The following configuration shows an example of enabling the Cloudflare runtime when running the development server, as well as using a `wrangler.json` config file (experimental). It also specifies a custom location for persisting data to the filesystem:
+The following configuration shows an example of enabling the Cloudflare runtime when running the development server, as well as using a `wrangler.json` config file. It also specifies a custom location for persisting data to the filesystem:
 
 
 ```js
@@ -165,7 +181,6 @@ export default defineConfig({
 		platformProxy: {
 			enabled: true,
 			configPath: 'wrangler.json',
-			experimentalJsonConfig: true,
 			persist: {
 				path: './.cache/wrangler/v3'
 			},
@@ -212,16 +227,22 @@ export default defineConfig({
 });
 ```
 
-### `cloudflareModules`
-
+### sessionKVBindingName
 <p>
-**Type:** `true | false`<br />
-**Default:** `true`
+**Type:** `string`<br />
+**Default:** `SESSION`
+<Since v="5.6.0" />
 </p>
 
-Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
+The `sessionKVBindingName` option allows you to specify the name of the KV binding used for session storage. By default, this is set to `SESSION`, but you can change it to match your own KV binding name. See [Sessions](#sessions) for more information.
 
-This functionality is enabled by default. If you'd like to disable it, set `cloudflareModules: false`.
+```js title="astro.config.mjs" "MY_SESSION_BINDING"
+export default defineConfig({
+  adapter: cloudflare({
+    sessionKVBindingName: 'MY_SESSION_BINDING',
+  }),
+});
+```
 
 ## Cloudflare runtime
 
@@ -364,6 +385,62 @@ You can [specify additional routing patterns to follow](#routesextend) in your a
 
 
 Creating a custom `public/_routes.json` will override the automatic generation. See [Cloudflare's documentation on creating a custom `_routes.json`](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) for more details.
+
+## Sessions
+
+The Astro [Sessions API](/en/guides/sessions/) allows you to easily store user data between requests. This can be used for things like user data and preferences, shopping carts, and authentication credentials. Unlike cookie storage, there are no size limits on the data, and it can be restored on different devices. 
+
+Astro automatically configures [Workers KV](https://developers.cloudflare.com/kv/) for session storage when using the Cloudflare adapter. Before using sessions, you need to create a KV namespace to store the data and configure a KV binding in your Wrangler config file. By default, Astro expects the KV binding to be named `SESSION`, but you can choose a different name if you prefer by setting the [`sessionKVBindingName`](#sessionkvbindingname) option in the adapter config.
+
+<Steps>
+
+1. Create a KV namespace using the Wrangler CLI and make note of the ID of the new namespace:
+
+   ```sh
+   npx wrangler kv namespace create "SESSION"
+   ```
+
+2. Declare the KV namespace in your Wrangler config, setting the namespace ID to the one returned by the previous command:
+
+    <Tabs>
+      <TabItem label="wrangler.json">
+        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+        {
+          "kv_namespaces": [
+            {
+              "binding": "SESSION",
+              "id": "<KV_NAMESPACE_ID>"
+            }
+          ]
+        }
+        ```
+      </TabItem>
+      <TabItem label="wrangler.toml">
+        ```toml title="wrangler.toml" "<KV_NAMESPACE_ID>"
+        kv_namespaces = [
+          { binding = "SESSION", id = "<KV_NAMESPACE_ID>" }
+        ]
+        ```
+      </TabItem>
+    </Tabs>
+
+3. You can then use sessions in your server code:
+
+    ```astro title="src/components/CartButton.astro" "Astro.session?.get('cart')"
+    ---
+    export const prerender = false;
+    const cart = await Astro.session?.get('cart');
+    ---
+
+    <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+    ```
+
+</Steps>
+
+:::note
+Writes to Cloudflare KV are [eventually consistent](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency) between regions. This means that changes are available immediately within the same region but may take up to 60 seconds to propagate globally. This won't affect most users as they are unlikely to switch regions between requests, but it may be a consideration for some use cases, such as VPN users.
+:::
+
 
 ## Cloudflare Module Imports
 
