@@ -7,6 +7,7 @@ import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
 import { makeLocalesConfig } from './config/locales';
+import { starlightPluginLlmsTxt } from './config/plugins/llms-txt';
 import { starlightPluginAutolinkHeadings } from './config/plugins/rehype-autolink';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
@@ -21,7 +22,7 @@ export default defineConfig({
 	site,
 	integrations: [
 		devServerFileWatcher([
-			'./config/*', // Custom plugins and integrations
+			'./config/**', // Custom plugins and integrations
 			'./astro.sidebar.ts', // Sidebar configuration file
 			'./src/content/nav/*.ts', // Sidebar labels
 		]),
@@ -69,7 +70,7 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
-			plugins: [starlightPluginAutolinkHeadings()],
+			plugins: [starlightPluginAutolinkHeadings(), starlightPluginLlmsTxt()],
 		}),
 		sitemap(),
 	],
