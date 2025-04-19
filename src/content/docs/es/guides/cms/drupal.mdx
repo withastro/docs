@@ -1,0 +1,570 @@
+---
+title: Drupal & Astro
+description: Agrega contenido a tu proyecto Astro usando Drupal como CMS
+sidebar:
+  label: Drupal
+type: cms
+service: Drupal
+i18nReady: true
+stub: true
+---
+
+import { FileTree, Steps, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[Drupal](https://www.drupal.org/) es una herramienta de gestión de contenido de código abierto.
+
+## Prerrequisitos
+
+Para comenzar, necesitarás tener lo siguiente:
+
+1.  **Un proyecto Astro** - Si aún no tienes un proyecto Astro, nuestra [guía de instalación](/es/install-and-setup/) te pondrá en marcha en poco tiempo.
+
+2.  **Un sitio Drupal** - Si no has configurado un sitio Drupal, puedes seguir las directrices oficiales [Instalación de Drupal](https://www.drupal.org/docs/getting-started/installing-drupal).
+
+## Integración de Drupal con Astro
+
+### Instalación del módulo JSON:API de Drupal
+
+Para poder obtener contenido de Drupal, necesitas habilitar el [módulo JSON:API de Drupal](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module).
+
+1.  Navega a la página Extender `admin/modules` a través del menú administrativo Administrar.
+2.  Localiza el módulo JSON:API y marca la casilla junto a él.
+3.  Haz clic en Instalar para instalar el nuevo módulo.
+
+Ahora puedes hacer solicitudes `GET` a tu aplicación Drupal a través de JSON:API.
+
+### Agregar la URL de Drupal en `.env`
+
+Para agregar tu URL de Drupal a Astro, crea un archivo `.env` en la raíz de tu proyecto (si aún no existe) y agrega la siguiente variable:
+
+```ini title=".env"
+DRUPAL_BASE_URL="[https://drupal.ddev.site/](https://drupal.ddev.site/)"
+```
+
+Reinicia el servidor de desarrollo para usar esta variable de entorno en tu proyecto Astro.
+
+### Configuración de credenciales
+
+De forma predeterminada, el punto de conexión JSON:API de Drupal es accesible para solicitudes de obtención de datos externas sin requerir autenticación. Esto te permite obtener datos para tu proyecto Astro sin credenciales, pero no permite a los usuarios modificar tus datos o la configuración del sitio.
+
+Sin embargo, si deseas restringir el acceso y requerir autenticación, Drupal proporciona [varios métodos de autenticación](https://www.drupal.org/docs/contributed-modules/api-authentication) que incluyen:
+
+- [Autenticación básica](https://www.drupal.org/docs/contributed-modules/api-authentication/setup-basic-authentication)
+- [Autenticación basada en clave API](https://www.drupal.org/docs/contributed-modules/api-authentication/api-key-authentication)
+- [Autenticación basada en token de acceso/OAuth](https://www.drupal.org/docs/contributed-modules/api-authentication/setup-access-token-oauth-based-authentication)
+- [Autenticación basada en token JWT](https://www.drupal.org/docs/contributed-modules/api-authentication/jwt-authentication)
+- [Autenticación de token de proveedor de terceros](https://www.drupal.org/docs/contributed-modules/api-authentication/rest-api-authentication-using-external-identity-provider)
+
+Puedes agregar tus credenciales a tu archivo `.env`.
+
+```ini title=".env"
+DRUPAL_BASIC_USERNAME="editor"
+DRUPAL_BASIC_PASSWORD="editor"
+DRUPAL_JWT_TOKEN="abc123"
+...
+```
+
+<ReadMore>Lee más sobre [el uso de variables de entorno](/es/guides/environment-variables/) y archivos `.env` en Astro.</ReadMore>
+
+Tu directorio raíz ahora debería incluir estos nuevos archivos:
+
+<FileTree title="Estructura del proyecto">
+-   **.env**
+-   astro.config.mjs
+-   package.json
+</FileTree>
+
+### Instalación de dependencias
+
+Las solicitudes y respuestas JSON:API a menudo pueden ser complejas y estar profundamente anidadas. Para simplificar el trabajo con ellas, puedes usar dos paquetes npm que agilizan tanto las solicitudes como el manejo de respuestas:
+
+- [`JSONA`](https://www.npmjs.com/package/jsona): Serializador y deserializador de la especificación JSON API v1.0 para usar en el servidor y en el navegador.
+- [`Drupal JSON-API Params`](https://www.npmjs.com/package/drupal-jsonapi-params): Este módulo proporciona una clase auxiliar para crear la consulta requerida. Al hacerlo, también intenta optimizar la consulta utilizando la forma abreviada, siempre que sea posible.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install jsona drupal-jsonapi-params
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add jsona drupal-jsonapi-params
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add jsona drupal-jsonapi-params
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Obtención de datos de Drupal
+
+Tu contenido se obtiene de una URL JSON:API.
+
+### Estructura de la URL JSON:API de Drupal
+
+La estructura básica de la URL es: `/jsonapi/{entity_type_id}/{bundle_id}`
+
+La URL siempre está prefijada por `jsonapi`.
+
+- El `entity_type_id` se refiere al Tipo de entidad, como nodo, bloque, usuario, etc.
+- El `bundle_id` se refiere a los Paquetes de entidad. En el caso de un tipo de entidad Nodo, el paquete podría ser artículo.
+- En este caso, para obtener la lista de todos los artículos, la URL será `[DRUPAL_BASE_URL]/jsonapi/node/article`.
+
+Para recuperar una entidad individual, la estructura de la URL será `/jsonapi/{entity_type_id}/{bundle_id}/{uuid}`, donde uuid es el UUID de la entidad. Por ejemplo, la URL para obtener un artículo específico será de la forma `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e`.
+
+#### Recuperación de ciertos campos solamente
+
+Recupera ciertos campos solamente agregando el campo Cadena de consulta a la solicitud.
+
+GET: `/jsonapi/{entity_type_id}/{bundle_id}?field[entity_type]=field_list`
+
+Ejemplos:
+
+- `/jsonapi/node/article?fields[node--article]=title,created`
+- `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e?fields[node--article]=title,created,body`
+
+#### Filtrado
+
+Agrega un filtro a tu solicitud agregando la Cadena de consulta de filtro.
+
+El filtro más simple y común es un filtro de clave-valor:
+
+GET: `/jsonapi/{entity_type_id}/{bundle_id}?filter[field_name]=value&filter[field_other]=value`
+
+Ejemplos:
+
+- `/jsonapi/node/article?filter[title]=Testing JSON:API&filter[status]=1`
+- `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e?fields[node--article]=title&filter[title]=Testing JSON:API`
+
+Puedes encontrar más opciones de consulta en la [Documentación de JSON:API](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module).
+
+### Construcción de una consulta de Drupal
+
+Los componentes Astro pueden obtener datos de tu sitio Drupal utilizando el paquete `drupal-jsonapi-params` para construir la consulta.
+
+El siguiente ejemplo muestra un componente con una consulta para un tipo de contenido "artículo" que tiene un campo de texto para un título y un campo de texto enriquecido para el contenido:
+
+```astro
+---
+import { Jsona } from "jsona";
+import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+// Obtener la URL base de Drupal
+export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+// Generar la consulta JSON:API. Obtener todos los títulos y cuerpos de los artículos publicados.
+const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+params.addFields("node--article", ["title", "body"]).addFilter("status", "1");
+// Genera la cadena de consulta.
+const path: string = params.getQueryString();
+const url: string = baseUrl + "/jsonapi/node/article?" + path;
+
+// Obtener los artículos
+const request: Response = await fetch(url);
+const json: string | TJsonApiBody = await request.json();
+// Iniciar Jsona.
+const dataFormatter: Jsona = new Jsona();
+// Deserializar la respuesta.
+const articles = dataFormatter.deserialize(json);
+---
+
+<body>
+  {
+    articles?.length ? (
+      articles.map((article: any) => (
+        <section>
+          <h2>{article.title}</h2>
+          <article set:html={article.body.value} />
+        </section>
+      ))
+    ) : (
+      <div>
+        <h1>No se encontró contenido</h1>
+      </div>
+    )
+  }
+</body>
+```
+
+Puedes encontrar más opciones de consulta en la [Documentación de JSON:API de Drupal](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/jsonapi)
+
+## Creación de un blog con Astro y Drupal
+
+Con la configuración anterior, ahora puedes crear un blog que use Drupal como CMS.
+
+### Prerrequisitos
+
+1.  **Un proyecto Astro** con [`JSONA`](https://www.npmjs.com/package/jsona) y [`Drupal JSON-API Params`](https://www.npmjs.com/package/drupal-jsonapi-params) instalados.
+
+2.  **Un sitio Drupal con al menos una entrada** - Para este tutorial, recomendamos comenzar con un nuevo sitio Drupal con instalación estándar.
+
+    En la sección **Contenido** de tu sitio Drupal, crea una nueva entrada haciendo clic en el botón **Agregar**. Luego, elige Artículo y completa los campos:
+
+    - **Título:** `¡Mi primer artículo para Astro!`
+    - **Alias:** `/articles/first-article-for astro`
+    - **Descripción:** `¡Este es mi primer artículo de Astro! ¡Veamos cómo se verá!`
+
+    Haz clic en **Guardar** para crear tu primer Artículo. Siéntete libre de agregar tantos artículos como desees.
+
+### Visualización de una lista de artículos
+
+<Steps>
+
+1.  Crea `src/types.ts` si aún no existe y agrega dos nuevas interfaces llamadas `DrupalNode` y `Path` con el siguiente código. Estas interfaces coincidirán con los campos de tu tipo de contenido de artículo en Drupal y los campos Path. Las usarás para tipar tu respuesta de entradas de artículo.
+
+    ```ts title="src/types.ts"
+    export interface Path {
+      alias: string;
+      pid: number;
+      langcode: string;
+    }
+
+    export interface DrupalNode extends Record<string, any> {
+      id: string;
+      type: string;
+      langcode: string;
+      status: boolean;
+      drupal_internal__nid: number;
+      drupal_internal__vid: number;
+      changed: string;
+      created: string;
+      title: string;
+      default_langcode: boolean;
+      sticky: boolean;
+      path: Path;
+    }
+    ```
+
+    Tu directorio src ahora debería incluir el nuevo archivo:
+
+    <FileTree title="Estructura del proyecto">
+    -   .env
+    -   astro.config.mjs
+    -   package.json
+    -   src/
+    		-   **types.ts**
+    </FileTree>
+
+2.  Crea un nuevo archivo llamado `drupal.ts` en `src/api` y agrega el siguiente código:
+
+    ```ts title="src/api/drupal.ts"
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { DrupalNode } from "../types.ts";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    // Obtener la URL base de Drupal.
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+    ```
+
+    Esto importará las bibliotecas requeridas, como `Jsona` para deserializar la respuesta, `DrupalJsonApiParams` para formatear la URL de la solicitud y los tipos Node y Jsona. También obtendrá el `baseUrl` del archivo `.env`.
+
+    Tu directorio src/api ahora debería incluir el nuevo archivo:
+
+    <FileTree title="Estructura del proyecto">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+    	-  api/
+    		- **drupal.ts**
+    	- types.ts
+    </FileTree>
+
+3.  En ese mismo archivo, crea la función `fetchUrl` para realizar la solicitud de obtención y deserializar la respuesta.
+
+    ```ts title="src/api/drupal.ts" ins={9-23}
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { DrupalNode } from "../types.ts";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    // Obtener la URL base de Drupal.
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+    /**
+     * Obtener url de Drupal.
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
+     */
+    export const fetchUrl = async (url: string): Promise<any> => {
+      const request: Response = await fetch(url);
+      const json: string | TJsonApiBody = await request.json();
+      const dataFormatter: Jsona = new Jsona();
+      return dataFormatter.deserialize(json);
+    };
+    ```
+
+4.  Crea la función `getArticles()` para obtener todos los artículos publicados.
+
+    ```ts title="src/api/drupal.ts" ins={23-40}
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { DrupalNode } from "../types.ts";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    // Obtener la URL base de Drupal.
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+    /**
+     * Obtener url de Drupal.
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
+     */
+    export const fetchUrl = async (url: string): Promise<any> => {
+      const request: Response = await fetch(url);
+      const json: string | TJsonApiBody = await request.json();
+      const dataFormatter: Jsona = new Jsona();
+      return dataFormatter.deserialize(json);
+    };
+
+    /**
+     * Obtener todos los artículos publicados.
+     *
+     * @return Promise<DrupalNode[]>
+     */
+    export const getArticles = async (): Promise<DrupalNode[]> => {
+      const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+      params.addFields("node--article", ["title", "path", "body", "created"]).addFilter("status", "1");
+      const path: string = params.getQueryString();
+      return await fetchUrl(baseUrl + "/jsonapi/node/article?" + path);
+    };
+    ```
+
+Ahora puedes usar la función `getArticles()` en un componente `.astro` para obtener todos los artículos publicados con datos para cada título, cuerpo, ruta y fecha de creación.
+
+5.  Ve a la página Astro donde obtendrás datos de Drupal. El siguiente ejemplo crea una página de inicio de artículos en `src/pages/articles/index.astro`.
+
+    Importa las dependencias necesarias y obtén todas las entradas de Drupal con un tipo de contenido de `article` usando `getArticles()`, mientras pasas la interfaz `DrupalNode` para tipar tu respuesta.
+
+    ```astro title="src/pages/articles/index.astro"
+    ---
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import { getArticles } from "../../api/drupal";
+
+    // Obtener todos los artículos publicados.
+    const articles = await getArticles();
+    ---
+    ```
+
+    Esta llamada de obtención usando getArticles() devolverá una matriz tipada de entradas que se pueden usar en tu plantilla de página.
+
+    Tu directorio `src/pages/` ahora debería incluir el nuevo archivo, si usaste el mismo archivo de página:
+    <FileTree title="Estructura del proyecto">
+
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - drupal.ts
+      - pages/
+        - articles/
+          - **index.astro**
+      - types.ts
+        </FileTree>
+
+6.  Agrega contenido a tu página, como un título. Usa `articles.map()` para mostrar tus entradas de Drupal como elementos de línea en una lista.
+
+    ```astro title="src/pages/articles/index.astro" ins={12-29}
+    ---
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../types";
+    import { getArticles } from "../api/drupal";
+
+    // Obtener todos los artículos publicados.
+    const articles = await getArticles();
+    ---
+
+    <html lang="en">
+      <head>
+        <title>My news site</title>
+      </head>
+      <body>
+        <h1>My news site</h1>
+        <ul>
+          {
+            articles.map((article: DrupalNode) => (
+              <li>
+                <a href={article.path.alias.replace("internal:en/", "")}>
+                  <h2>{article.title}</h2>
+                  <p>Published on {article.created}</p>
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </body>
+    </html>
+    ```
+
+</Steps>
+
+### Generación de publicaciones de blog individuales
+
+Usa el mismo método para obtener tus datos de Drupal como arriba, pero esta vez, en una página que creará una ruta de página única para cada artículo.
+
+Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archivo de página de enrutamiento dinámico](/es/guides/routing/%23rutas-dinámicas) con la función `getStaticPaths()`. Esta función se llamará en tiempo de compilación para generar la lista de rutas que se convierten en páginas.
+
+<Steps>
+
+1.  Crea un nuevo archivo `src/pages/articles/[path].astro` e importa la interfaz `DrupalNode` y `getArticle()` desde `src/api/drupal.ts`. Obtén tus datos dentro de una función `getStaticPaths()` para crear rutas para tu blog.
+
+    ```astro title="src/pages/articles/[path].astro"
+    ---
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import { getArticles } from "../../api/drupal";
+
+    // Obtener todos los artículos publicados.
+    export async function getStaticPaths() {
+      const articles = await getArticles();
+    }
+    ---
+    ```
+
+    Tu directorio src/pages/articles ahora debería incluir el nuevo archivo:
+    <FileTree title="Estructura del proyecto">
+
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - drupal.ts
+      - pages/
+        - articles/
+          - index.astro
+          - **[path].astro**
+      - types.ts
+        </FileTree>
+
+2.  En el mismo archivo, asigna cada entrada de Drupal a un objeto con una propiedad `params` y `props`. La propiedad `params` se utilizará para generar la URL de la página y los valores `props` se pasarán al componente de la página como props.
+
+    ```astro title="src/pages/articles/[path].astro" ins={12-33}
+    ---
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import { getArticles } from "../../api/drupal";
+
+    // Obtener todos los artículos publicados.
+    export async function getStaticPaths() {
+      const articles = await getArticles();
+      return articles.map((article: DrupalNode) => {
+        return {
+          params: {
+            // Elige `path` para que coincida con el valor de enrutamiento `[path]`
+            path: article.path.alias.split("/")[2],
+          },
+          props: {
+            title: article.title,
+            body: article.body,
+            date: new Date(article.created).toLocaleDateString("es-ES", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+          },
+        };
+      });
+    }
+    ---
+    ```
+
+    La propiedad dentro de `params` debe coincidir con el nombre de la ruta dinámica. Dado que el nombre del archivo es `[path].astro`, el nombre de la propiedad pasada a `params` debe ser `path`.
+
+    En nuestro ejemplo, el objeto `props` pasa tres propiedades a la página:
+
+    - `title`: una cadena, que representa el título de tu publicación.
+    - `body`: una cadena, que representa el contenido de tu entrada.
+    - `date`: una marca de tiempo, basada en la fecha de creación de tu archivo.
+
+3.  Usa los `props` de la página para mostrar tu publicación de blog.
+
+    ```astro title="src/pages/articles/[path].astro" ins={30, 32-42}
+    ---
+    import { Jsona } from "jsona";
+    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
+    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import { getArticles } from "../../api/drupal";
+
+    // Obtener todos los artículos publicados.
+    export async function getStaticPaths() {
+      const articles = await getArticles();
+      return articles.map((article: DrupalNode) => {
+        return {
+          params: {
+            path: article.path.alias.split("/")[2],
+          },
+          props: {
+            title: article.title,
+            body: article.body,
+            date: new Date(article.created).toLocaleDateString("es-ES", {
+              day: "numeric",
+              month: "long",
+              year: "numeric",
+            }),
+          },
+        };
+      });
+    }
+
+    const { title, date, body } = Astro.props;
+    ---
+
+    <html lang="en">
+      <head>
+        <title>{title}</title>
+      </head>
+      <body>
+        <h1>{title}</h1>
+        <time>{date}</time>
+        <article set:html={body.value} />
+      </body>
+    </html>
+    ```
+
+4.  Navega a la vista previa de tu servidor de desarrollo y haz clic en una de tus publicaciones para asegurarte de que tu ruta dinámica esté funcionando.
+
+</Steps>
+
+### Publicación de tu sitio
+
+Para desplegar tu sitio web, visita nuestras [guías de despliegue](/es/guides/deploy/) y sigue las instrucciones para tu proveedor de alojamiento preferido.
+
+## Recursos de la comunidad
+
+<CardGrid>
+
+<LinkCard title="Crea una aplicación web con Astro y Drupal" href="https://www.linkedin.com/pulse/create-web-application-astrojs-website-generator-using-gambino-kx6cf"/>
+
+</CardGrid>
+
+:::note[¿Tienes un recurso para compartir?]
+Si encontraste (¡o hiciste\!) un video o una publicación de blog útil sobre el uso de Drupal con Astro, [agrégalo a esta lista](https://github.com/withastro/docs/edit/main/src/content/docs/es/guides/cms/drupal.mdx)\!
+:::
