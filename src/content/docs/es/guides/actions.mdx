@@ -1,0 +1,702 @@
+---
+title: Acciones
+description: Aprende a crear funciones de servidor con seguridad de tipos que puedes llamar desde cualquier lugar.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Las Acciones de Astro te permiten definir y llamar a funciones de backend con seguridad de tipos. Las acciones realizan la búsqueda de datos, el análisis JSON y la validación de entrada por ti. Esto puede reducir significativamente la cantidad de código repetitivo necesario en comparación con el uso de un [punto de conexión API](/es/guides/endpoints/).
+
+Usa acciones en lugar de puntos de conexión API para una comunicación fluida entre tu código de cliente y servidor y para:
+
+- Validar automáticamente las entradas de datos JSON y de formularios utilizando la [validación de Zod](https://zod.dev/?id=primitives).
+- Generar funciones con seguridad de tipos para llamar a tu backend desde el cliente e incluso [desde acciones de formularios HTML](#llamar-a-acciones-desde-una-acción-de-formulario-html). No necesitas llamadas manuales a `fetch()`.
+- Estandarizar errores de backend con el objeto [`ActionError`](/es/reference/modules/astro-actions/#actionerror).
+
+## Uso básico
+
+Las acciones se definen en un objeto `server` exportado desde `src/actions/index.ts`:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+Tus acciones están disponibles como funciones desde el módulo `astro:actions`. Importa `actions` y llámalas del lado del cliente dentro de un [componente de framework de interfaz de usuario](/es/guides/framework-components/), [una solicitud POST de formulario](#llamar-a-acciones-desde-una-accion-de-formulario-html), o usando una etiqueta `<script>` en un componente Astro.
+
+Cuando llamas a una acción, devuelve un objeto con `data` conteniendo el resultado serializado en JSON, o `error` conteniendo los errores lanzados.
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### Escribe tu primera acción
+
+Sigue estos pasos para definir una acción y llamarla en una etiqueta `script` en tu página Astro.
+
+<Steps>
+1. Crea un archivo `src/actions/index.ts` y exporta un objeto `server`.
+
+```ts title="src/actions/index.ts"
+export const server = {
+  // declaraciones de acciones
+}
+```
+
+2.  Importa la utilidad `defineAction()` desde `astro:actions` y el objeto `z` desde `astro:schema`.
+
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      // declaraciones de acciones
+    }
+    ```
+
+3.  Usa la utilidad `defineAction()` para definir una acción `getGreeting`. La propiedad `input` se utilizará para validar los parámetros de entrada con un esquema [Zod](https://zod.dev) y la función `handler()` incluye la lógica de backend para ejecutarse en el servidor.
+
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Hello, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4.  Crea un componente Astro con un botón que buscará un saludo usando tu acción `getGreeting` al hacer clic.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Mostrar alerta emergente con saludo de la acción
+    });
+    </script>
+    ```
+
+5.  Para usar tu acción, importa `actions` desde `astro:actions` y luego llama a `actions.getGreeting()` en el controlador de clic. La opción `name` se enviará a la función `handler()` de tu acción en el servidor y, si no hay errores, el resultado estará disponible como la propiedad `data`.
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Mostrar alerta emergente con saludo de la acción
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>Consulta la documentación completa de la API de Acciones para obtener detalles sobre [`defineAction()`](/es/reference/modules/astro-actions/#defineaction) y sus propiedades.</ReadMore>
+
+## Organización de acciones
+
+Todas las acciones en tu proyecto deben exportarse desde el objeto `server` en el archivo `src/actions/index.ts`. Puedes definir acciones en línea o puedes mover las definiciones de acciones a archivos separados e importarlas. Incluso puedes agrupar funciones relacionadas en objetos anidados.
+
+Por ejemplo, para colocar todas tus acciones de usuario, puedes crear un archivo `src/actions/user.ts` y anidar las definiciones de `getUser` y `createUser` dentro de un solo objeto `user`.
+
+```ts
+// src/actions/user.ts
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+Luego, puedes importar este objeto `user` a tu archivo `src/actions/index.ts` y agregarlo como una clave de nivel superior al objeto `server` junto con cualquier otra acción:
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+Ahora, todas tus acciones de usuario son invocables desde el objeto `actions.user`:
+
+  - `actions.user.getUser()`
+  - `actions.user.createUser()`
+
+## Manejo de datos devueltos
+
+Las acciones devuelven un objeto que contiene `data` con el valor de retorno con seguridad de tipos de tu `handler()`, o un `error` con cualquier error de backend. Los errores pueden provenir de errores de validación en la propiedad `input` o errores lanzados dentro de `handler()`.
+
+Las acciones devuelven un formato de datos personalizado que puede manejar Fechas, Mapas, Conjuntos y URLs [usando la biblioteca Devalue](https://github.com/Rich-Harris/devalue). Por lo tanto, no puedes inspeccionar fácilmente la respuesta de la red como lo harías con JSON normal. Para la depuración, puedes inspeccionar el objeto `data` devuelto por las acciones.
+
+<ReadMore>[Consulta la referencia de la API de `handler()`](/es/reference/modules/astro-actions/#handler-property) para obtener detalles completos.</ReadMore>
+
+### Verificación de errores
+
+Es mejor verificar si hay un `error` presente antes de usar la propiedad `data`. Esto te permite manejar los errores por adelantado y garantiza que `data` esté definido sin una verificación de `undefined`.
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // manejar casos de error
+  return;
+}
+// usar `data`
+```
+
+### Acceso directo a `data` sin una verificación de errores
+
+Para omitir el manejo de errores, por ejemplo, durante la creación de prototipos o el uso de una biblioteca que detectará errores por ti, usa la propiedad `.orThrow()` en tu llamada de acción para lanzar errores en lugar de devolver un `error`. Esto devolverá directamente la `data` de la acción.
+
+Este ejemplo llama a una acción `likePost()` que devuelve el número actualizado de "me gusta" como un `number` desde el `handler` de la acción:
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//  ^ tipo: number
+```
+
+### Manejo de errores de backend en tu acción
+
+Puedes usar el `ActionError` proporcionado para lanzar un error desde el `handler()` de tu acción, como "no encontrado" cuando falta una entrada de la base de datos, o "no autorizado" cuando un usuario no ha iniciado sesión. Esto tiene dos beneficios principales sobre devolver `undefined`:
+
+  - Puedes establecer un código de estado como `404 - No encontrado` o `401 - No autorizado`. Esto mejora la depuración de errores tanto en desarrollo como en producción al permitirte ver el código de estado de cada solicitud.
+
+  - En el código de tu aplicación, todos los errores se pasan al objeto `error` en un resultado de acción. Esto evita la necesidad de comprobaciones `undefined` en los datos y te permite mostrar comentarios específicos al usuario dependiendo de lo que salió mal.
+
+#### Creación de un `ActionError`
+
+Para lanzar un error, importa la clase `ActionError()` desde el módulo `astro:actions`. Pásale un `code` de estado legible por humanos (por ejemplo, `"NOT_FOUND"` o `"BAD_REQUEST"`) y un `message` opcional para proporcionar más información sobre el error.
+
+Este ejemplo lanza un error desde una acción `likePost` cuando un usuario no ha iniciado sesión, después de verificar una hipotética cookie "user-session" para la autenticación:
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // De lo contrario, dale "me gusta" a la publicación
+    },
+  }),
+};
+```
+
+#### Manejo de un `ActionError`
+
+Para manejar este error, puedes llamar a la acción desde tu aplicación y verificar si hay una propiedad `error` presente. Esta propiedad será de tipo `ActionError` y contendrá tu `code` y `message`.
+
+En el siguiente ejemplo, un componente `LikeButton.tsx` llama a la acción `likePost()` cuando se hace clic. Si ocurre un error de autenticación, se utiliza el atributo `error.code` para determinar si se debe mostrar un enlace de inicio de sesión:
+
+```tsx title=src/components/LikeButton.tsx ins="if (error.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Log in to like a post.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // Retorno temprano para errores inesperados
+        else if (error) return;
+        // actualizar "me gusta"
+      }}>
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+### Manejo de redirecciones del cliente
+
+Al llamar a acciones desde el cliente, puedes integrarte con una biblioteca del lado del cliente como `react-router`, o puedes usar la función [`navigate()` de Astro](/es/guides/view-transitions/#activar-la-navegacion) para redirigir a una nueva página cuando una acción tiene éxito.
+
+Este ejemplo navega a la página de inicio después de que una acción `logout` se devuelve con éxito:
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Logout
+    </button>
+  );
+}
+```
+
+## Aceptación de datos de formulario desde una acción
+
+Las acciones aceptan datos JSON de forma predeterminada. Para aceptar datos de formulario desde un formulario HTML, establece `accept: 'form'` en tu llamada `defineAction()`:
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### Validación de datos de formulario
+
+Las acciones analizarán los datos del formulario enviados a un objeto, utilizando el valor del atributo `name` de cada entrada como las claves del objeto. Por ejemplo, un formulario que contiene `<input name="search">` se analizará a un objeto como `{ search: 'entrada del usuario' }`. El esquema `input` de tu acción se utilizará para validar este objeto.
+
+Para recibir el objeto `FormData` sin procesar en el controlador de tu acción en lugar de un objeto analizado, omite la propiedad `input` en la definición de tu acción.
+
+El siguiente ejemplo muestra un formulario de registro de boletín validado que acepta el correo electrónico de un usuario y requiere una casilla de verificación de acuerdo de "términos de servicio".
+
+<Steps>
+1. Crea un componente de formulario HTML con atributos `name` únicos en cada entrada:
+
+```astro title="src/components/Newsletter.astro" /name="\w+"/
+<form>
+  <label for="email">E-mail</label>
+  <input id="email" required type="email" name="email" />
+  <label>
+    <input required type="checkbox" name="terms">
+    I agree to the terms of service
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+2.  Define una acción `newsletter` para manejar el formulario enviado. Valida el campo `email` usando el validador `z.string().email()`, y la casilla de verificación `terms` usando `z.boolean()`:
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>Consulta la [referencia de la API de `input`](/es/reference/modules/astro-actions/#input-validator) para todos los validadores de formulario disponibles.</ReadMore>
+
+3.  Agrega un `<script>` al formulario HTML para enviar la entrada del usuario. Este ejemplo anula el comportamiento de envío predeterminado del formulario para llamar a `actions.newsletter()` y redirige a `/confirmation` usando la función `navigate()`:
+
+    ```astro title=src/components/Newsletter.astro ins={12-23} collapse={2-8}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>Consulta [“Llamar a acciones desde una acción de formulario HTML”](#llamar-a-acciones-desde-una-accion-de-formulario-html) para conocer una forma alternativa de enviar datos de formulario.</ReadMore>
+
+</Steps>
+
+### Visualización de errores de entrada de formulario
+
+Puedes validar las entradas de formulario antes del envío utilizando [atributos de validación de formularios HTML nativos](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) como `required`, `type="email"` y `pattern`. Para una validación `input` más compleja en el backend, puedes usar la función de utilidad [`isInputError()`](/es/reference/modules/astro-actions/#isinputerror) proporcionada.
+
+Para recuperar los errores de entrada, usa la utilidad `isInputError()` para verificar si un error fue causado por una entrada no válida. Los errores de entrada contienen un objeto `fields` con mensajes para cada nombre de entrada que no se pudo validar. Puedes usar estos mensajes para solicitar al usuario que corrija su envío.
+
+El siguiente ejemplo verifica el error con `isInputError()`, luego verifica si el error está en el campo de correo electrónico, antes de finalmente crear un mensaje a partir de los errores. Puedes usar la manipulación del DOM de JavaScript o tu framework de interfaz de usuario preferido para mostrar este mensaje a los usuarios.
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // Manejar errores de entrada.
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
+
+## Llamar a acciones desde una acción de formulario HTML
+
+:::note
+Las páginas deben renderizarse bajo demanda al llamar a acciones usando una acción de formulario. [Asegúrate de que la pre-renderización esté deshabilitada en la página](/es/guides/on-demand-rendering/#habilitacion-del-renderizado-bajo-demanda) antes de usar esta API.
+:::
+
+Puedes habilitar envíos de formularios sin JS con atributos estándar en cualquier elemento `<form>`. Los envíos de formularios sin JavaScript del lado del cliente pueden ser útiles como respaldo cuando JavaScript no se carga, o si prefieres manejar los formularios completamente desde el servidor.
+
+Llamar a [Astro.getActionResult()](/es/reference/api-reference/#getactionresult) en el servidor devuelve el resultado de tu envío de formulario (`data` o `error`) y se puede usar para redirigir dinámicamente, manejar errores de formulario, actualizar la interfaz de usuario y más.
+
+Para llamar a una acción desde un formulario HTML, agrega `method="POST"` a tu `<form>`, luego establece el atributo `action` del formulario usando tu acción, por ejemplo, `action={actions.logout}`. Esto establecerá el atributo `action` para usar una cadena de consulta que el servidor maneja automáticamente.
+
+Por ejemplo, este componente Astro llama a la acción `logout` cuando se hace clic en el botón y vuelve a cargar la página actual:
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+### Redirigir en caso de éxito de la acción
+
+Si necesitas redirigir a una nueva ruta en caso de éxito, puedes usar el resultado de una acción en el servidor. Un ejemplo común es crear un registro de producto y redirigir a la página del nuevo producto, por ejemplo, `/products/[id]`.
+
+Por ejemplo, supongamos que tienes una acción `createProduct` que devuelve el id del producto generado:
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Puedes recuperar el resultado de la acción desde tu componente Astro llamando a `Astro.getActionResult()`. Esto devuelve un objeto que contiene las propiedades `data` o `error` cuando se llama a una acción, o `undefined` si la acción no se llamó durante esta solicitud.
+
+Usa la propiedad `data` para construir una URL para usar con `Astro.redirect()`:
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  </form>
+```
+
+### Manejar errores de acción de formulario
+
+Llamar a `Astro.getActionResult()` en el componente Astro que contiene tu formulario te da acceso a los objetos `data` y `error` para el manejo de errores personalizado.
+
+El siguiente ejemplo muestra un mensaje de falla general cuando falla una acción `newsletter`:
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+Para una mayor personalización, puedes [usar la utilidad `isInputError()`](#visualizacion-de-errores-de-entrada-de-formulario) para verificar si un error es causado por una entrada no válida.
+
+El siguiente ejemplo representa un banner de error debajo del campo de entrada `email` cuando se envía un correo electrónico no válido:
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
+</form>
+```
+
+#### Conservar valores de entrada en caso de error
+
+Las entradas se borrarán cada vez que se envíe un formulario. Para conservar los valores de entrada, puedes [habilitar transiciones de vista](/es/guides/view-transitions/#agregar-transiciones-de-vista-a-una-pagina) en la página y aplicar la directiva `transition:persist` a cada entrada:
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### Actualizar la interfaz de usuario con el resultado de una acción de formulario
+
+Para usar el valor de retorno de una acción para mostrar una notificación al usuario en caso de éxito, pasa la acción a `Astro.getActionResult()`. Usa la propiedad `data` devuelta para representar la interfaz de usuario que deseas mostrar.
+
+Este ejemplo utiliza la propiedad `productName` devuelta por una acción `addToCart` para mostrar un mensaje de éxito.
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Added {result.data.productName} to cart</p>
+)}
+
+```
+
+### Avanzado: Conservar resultados de acciones con una sesión
+
+<p><Since v="5.0.0" /></p>
+
+Los resultados de las acciones se muestran como un envío POST. Esto significa que el resultado se restablecerá a `undefined` cuando un usuario cierre y vuelva a visitar la página. El usuario también verá un cuadro de diálogo "¿confirmar el reenvío del formulario?" si intenta actualizar la página.
+
+Para personalizar este comportamiento, puedes agregar middleware para manejar el resultado de la acción manualmente. Puedes optar por conservar el resultado de la acción usando una cookie o el almacenamiento de sesión.
+
+Comienza por [crear un archivo de middleware](/es/guides/middleware/) e importar [la utilidad `getActionContext()`](/es/reference/modules/astro-actions/#getactioncontext) desde `astro:actions`. Esta función devuelve un objeto `action` con información sobre la solicitud de acción entrante, incluido el controlador de acción y si la acción se llamó desde un formulario HTML. `getActionContext()` también devuelve las funciones `setActionResult()` y `serializeActionResult()` para establecer programáticamente el valor devuelto por `Astro.getActionResult()`:
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... manejar el resultado de la acción
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+Una práctica común para conservar los resultados de los formularios HTML es el [patrón POST / Redirigir / GET](https://en.wikipedia.org/wiki/Post/Redirect/Get). Esta redirección elimina el cuadro de diálogo "¿confirmar el reenvío del formulario?" cuando se actualiza la página y permite que los resultados de las acciones se conserven durante la sesión del usuario.
+
+Este ejemplo aplica el patrón POST / Redirigir / GET a todos los envíos de formularios utilizando el almacenamiento de sesión con el [adaptador de servidor Netlify](/es/guides/integrations-guide/netlify/) instalado. Los resultados de las acciones se escriben en un almacén de sesión utilizando [Netlify Blob](https://docs.netlify.com/blobs/overview/) y se recuperan después de una redirección utilizando un ID de sesión:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Omitir solicitudes para páginas pre-renderizadas
+  if (context.isPrerendered) return next();
+
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Crear un almacén Blob para conservar los resultados de las acciones con Netlify Blob
+  const actionStore = getStore("action-session");
+
+  // Si un resultado de acción se reenvió como una cookie, establece el resultado
+  // para que sea accesible desde `Astro.getActionResult()`
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+
+    // Opcional: elimina la sesión después de que se renderice la página.
+    // Siéntete libre de implementar tu propia estrategia de persistencia
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+
+  // Si se llamó a una acción desde una acción de formulario HTML,
+  // llama al controlador de la acción y redirige a la página de destino
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+
+    // Conservar el resultado de la acción utilizando el almacenamiento de sesión
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+
+    // Pasa el ID de sesión como una cookie
+    // para recuperarlo después de redirigir a la página
+    context.cookies.set("action-session-id", sessionId);
+
+    // Redirige a la página anterior en caso de error
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // Redirige a la página de destino en caso de éxito
+    return context.redirect(context.originPathname);
+  }
+
+  return next();
+});
+```
+
+## Seguridad al usar acciones
+
+Se puede acceder a las acciones como puntos de conexión públicos según el nombre de la acción. Por ejemplo, se podrá acceder a la acción `blog.like()` desde `/_actions/blog.like`. Esto es útil para probar los resultados de las acciones unitariamente y depurar errores de producción. Sin embargo, esto significa que **debes** usar las mismas comprobaciones de autorización que considerarías para los puntos de conexión API y las páginas renderizadas bajo demanda.
+
+### Autorizar usuarios desde un controlador de acciones
+
+Para autorizar solicitudes de acciones, agrega una verificación de autenticación a tu controlador de acciones. Es posible que desees usar [una biblioteca de autenticación](/es/guides/authentication/) para manejar la gestión de sesiones y la información del usuario.
+
+Las acciones exponen el objeto `APIContext` completo para acceder a las propiedades pasadas desde el middleware utilizando `context.locals`. Cuando un usuario no está autorizado, puedes generar un `ActionError` con el código `UNAUTHORIZED`:
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
+
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* datos en caso de éxito */ };
+    }
+  })
+}
+```
+
+### Acciones de puerta desde middleware
+
+<p><Since v="5.0.0" /></p>
+
+Astro recomienda autorizar las sesiones de usuario desde el controlador de tu acción para respetar los niveles de permiso y la limitación de velocidad por acción. Sin embargo, también puedes bloquear las solicitudes a todas las acciones (o a un subconjunto de acciones) desde el middleware.
+
+Usa la función `getActionContext()` desde tu middleware para recuperar información sobre las solicitudes de acciones entrantes. Esto incluye el nombre de la acción y si esa acción se llamó usando una función de llamada a procedimiento remoto (RPC) del lado del cliente (por ejemplo, `actions.blog.like()`) o un formulario HTML.
+
+El siguiente ejemplo rechaza todas las solicitudes de acciones que no tienen un token de sesión válido. Si falla la verificación, se devuelve una respuesta "Prohibido". Nota: este método garantiza que las acciones solo sean accesibles cuando hay una sesión presente, pero **no** sustituye la autorización segura.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // Verifica si se llamó a la acción desde una función del lado del cliente
+  if (action?.calledFrom === 'rpc') {
+    // Si es así, busca un token de sesión de usuario
+    if (!context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+
+  context.cookies.set('user-session', /* token de sesión */);
+  return next();
+});
+```
+
+## Llamar a acciones desde componentes Astro y puntos de conexión del servidor
+
+Puedes llamar a acciones directamente desde los scripts de componentes Astro usando el contenedor `Astro.callAction()` (o `context.callAction()` cuando usas un [punto de conexión del servidor](/es/guides/endpoints/#puntos-de-conexion-de-servidor-rutas-api)). Esto es común para reutilizar la lógica de tus acciones en otro código de servidor.
+
+Pasa la acción como primer argumento y cualquier parámetro de entrada como segundo argumento. Esto devuelve los mismos objetos `data` y `error` que recibes al llamar a acciones en el cliente:
+
+```astro title="src/pages/products.astro" {6}
+---
+import { actions } from 'astro:actions';
+
+const searchQuery = Astro.url.searchParams.get('search');
+if (searchQuery) {
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
+  // manejar resultado
+}
+---
