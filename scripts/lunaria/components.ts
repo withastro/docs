@@ -7,7 +7,10 @@ import {
 } from '@lunariajs/core';
 import { BaseStyles, CustomStyles } from './styles';
 
-export function html(strings: TemplateStringsArray, ...values: (string | string[])[]) {
+export function html(
+	strings: TemplateStringsArray,
+	...values: ((string | number) | (string | number)[])[]
+) {
 	const treatedValues = values.map((value) => (Array.isArray(value) ? value.join('') : value));
 
 	return String.raw({ raw: strings }, ...treatedValues);
