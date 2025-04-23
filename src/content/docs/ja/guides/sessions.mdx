@@ -40,3 +40,83 @@ const cart = await Astro.session?.get('cart');
 <ReadMore>
   ストレージドライバーの設定方法やその他の設定項目の詳細については、[session設定オプション](/ja/reference/configuration-reference/#session-options)を参照してください。
 </ReadMore>
+
+## セッションデータを操作する
+
+[`session` オブジェクト](/ja/reference/api-reference/#session) を使うと、保存されているユーザー状態（例：ショッピングカートへの商品の追加）やセッションID（例：ログアウト時にセッションID Cookieを削除）を操作できます。このオブジェクトはAstroのコンポーネントおよびページでは`Astro.session`として、API エンドポイント・ミドルウェア・アクションでは`context.session`として利用できます。
+
+セッションは初回利用時に自動生成され、[`session.regenerate()`](/ja/reference/api-reference/#regenerate) でいつでも再生成でき、[`session.destroy()`](/ja/reference/api-reference/#destroy) で破棄できます。
+
+ほとんどの場合は、[`session.get()`](/ja/reference/api-reference/#get) と [`session.set()`](/ja/reference/api-reference/#set) の2つだけで十分です。
+
+<ReadMore>
+  詳しくは [Sessions APIリファレンス](/ja/reference/api-reference/#session)を参照してください。
+</ReadMore>
+
+### Astro コンポーネントとページ
+
+`.astro` コンポーネントやページでは、グローバル `Astro` オブジェクト経由でセッションにアクセスできます。たとえば、ショッピングカート内の商品数を表示する例です。
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // 'server'出力の場合は不要
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} 点</a>
+```
+
+### API エンドポイント
+
+APIエンドポイントでは、セッションは`context`オブジェクト上で利用できます。たとえば、ショッピングカートに商品を追加する例です。
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+  const data = await context.request.json<{ item: string }>();
+  if (!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### アクション
+
+アクション内でも、`context`オブジェクト上でセッションにアクセスできます。たとえば、ショッピングカートに商品を追加する例です。
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### ミドルウェア
+
+:::注意点
+エッジミドルウェアでは、現在セッションはサポートされていません。
+:::
+
+ミドルウェア内では、`context`オブジェクト上でセッションにアクセスできます。たとえば、セッションに最終訪問した時刻を保存する例です。
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
