@@ -120,3 +120,40 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return next();
 });
 ```
+
+## セッションデータの型
+
+デフォルトではセッションデータに型はなく、任意のキーに好きなデータを保存できます。値のシリアライズ／デシリアライズには、コンテンツコレクションやアクションでも使われている [devalue](https://github.com/Rich-Harris/devalue) が使用されます。そのため、文字列・数値・`Date`・`Map`・`Set`・`URL`・配列・プレーンオブジェクトなど、同じ型がサポートされています。
+
+必要に応じて、`src/env.d.ts` ファイルを作成し、`App.SessionData` 型を宣言することでセッションデータに TypeScript の型を付けることもできます。
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+これにより、エディター上で型チェックと補完を受けながらセッションデータにアクセスできます。
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::注意点
+これは型チェック専用であり、実行時のセッション動作には影響しません。ユーザーのセッションに既にデータが保存されている状態で型を変更すると、実行時エラーが発生する可能性があるため注意してください。
+:::
