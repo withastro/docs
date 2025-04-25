@@ -91,15 +91,15 @@ L'adaptateur Cloudflare accepte les options suivantes :
 ### `cloudflareModules`
 
 <p>
-**Type :** `true | false`<br />
+**Type :** `boolean`<br />
 **Par défaut :** `true`
 </p>
 
 Active [les importations des modules `.wasm`, `.bin` et `.txt`](#importations-de-modules-cloudflare).
 
-Cette fonctionnalité est activée par défaut. Si vous souhaitez la désactiver, utilisez `cloudflareModules: false`.
+Cette fonctionnalité est activée par défaut. Si vous souhaitez la désactiver, définissez `cloudflareModules` sur `false`.
 
-### imageService
+### `imageService`
 
 <p>
 **Type :** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
@@ -114,7 +114,7 @@ Détermine quel service d'image est utilisé par l'adaptateur. L'adaptateur util
 * **`custom` :** Utilise toujours le service d'image configuré dans les [options d'images](/fr/reference/configuration-reference/#options-dimages). **Cette option ne vérifiera pas si le service d'image configuré fonctionne dans le moteur d'exécution `workerd` de Cloudflare.**
 
 ```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
@@ -125,7 +125,7 @@ export default defineConfig({
 })
 ```
 
-### platformProxy
+### `platformProxy`
 
 Détermine si et comment le moteur d'exécution Cloudflare est ajouté à `astro dev`. Il contient des proxys vers les liaisons `workerd` locales et des émulations de valeurs spécifiques à Cloudflare, permettant l'émulation du moteur d'exécution dans le processus de développement Node.js. En savoir plus sur le [moteur d'exécution de Cloudflare](#moteur-dexécution-de-cloudflare).
 
@@ -133,37 +133,41 @@ Détermine si et comment le moteur d'exécution Cloudflare est ajouté à `astro
 Les proxys fournis par ce système constituent une émulation au mieux de la production réelle. Bien qu'ils soient conçus pour être aussi proches que possible de la réalité, il peut y avoir de légères différences et incohérences entre les deux.
 :::
 
-#### platformProxy.enabled
+#### `platformProxy.enabled`
 <p>
-**Type :** `{ enabled?: boolean }`<br />
-**Par défaut :** `{ enabled: false }`
+**Type :** `boolean`<br />
+**Par défaut :** `true`
 </p>
 
-La propriété `enabled` vous permet d'activer le moteur d'exécution de Cloudflare dans `astro dev`.
+Détermine s'il faut activer le moteur d'exécution de Cloudflare en mode développement.
 
-#### platformProxy.configPath
+#### `platformProxy.configPath`
 <p>
-**Type :** `{ configPath?: string }`<br />
-**Par défaut :** `{ configPath: 'wrangler.toml' }`
+**Type :** `string`<br />
+**Par défaut :** `undefined`
 </p>
 
-La propriété `configPath` vous permet de définir votre fichier de configuration Wrangler, relatif à la racine de votre projet Astro.
+Définit le chemin d'accès au fichier de configuration Wrangler. Si aucune valeur n'est définie, il recherche un fichier `wrangler.toml`, `wrangler.json` ou `wrangler.jsonc` à la racine du projet.
 
-#### platformProxy.environment
+#### `platformProxy.environment`
 <p>
-**Type :** `{ environment?: string }`<br />
-**Par défaut :** `{ environment: undefined }`
+**Type :** `string`<br />
+**Par défaut :** `undefined`
 </p>
 
-La propriété `environment` vous permet de définir quelle [configuration d'environnement](https://developers.cloudflare.com/workers/wrangler/environments/) utiliser dans votre configuration Wrangler.
+Définit l'[environnement Cloudflare](https://developers.cloudflare.com/workers/wrangler/environments/) à utiliser. Vous devez sélectionner un environnement défini dans le fichier de configuration Wrangler, sinon une erreur se produit.
 
-#### platformProxy.persist
+#### `platformProxy.persist`
 <p>
-**Type :** `{ persist?: boolean | { path: string } }`<br />
-**Par défaut :** `{ persist: true }`
+**Type :** `boolean | { path: string }`<br />
+**Par défaut :** `true`
 </p>
 
-La propriété `persist` définit si et où les données de liaison sont persistantes. `true` correspond par défaut à l'emplacement utilisé par Wrangler, ce qui permet le partage des données entre les deux. Si `false`, aucune donnée n'est conservée ni lue sur le système de fichiers.
+Définit si et où enregistrer les données de liaison localement sur le système de fichiers.
+
+- Si définie avec `true`, les données de liaison sont stockées dans `.wrangler/state/v3/`. Ce paramètre est identique à celui par défaut de Wrangler.
+- Si définie avec `false`, les données de liaison ne sont pas stockées dans le système de fichiers.
+- Si définie avec `{ path: string }`, les données de liaison sont stockées dans le chemin spécifié.
 
 :::note
 L'option `--persist-to` de `wrangler` ajoute un sous-répertoire appelé `v3` sous le capot tandis que la propriété `persist` de `@astrojs/cloudflare` ne le fait pas. Par exemple, pour réutiliser le même emplacement qu'en lançant `wrangler dev --persist-to ./mon-dossier`, vous devez spécifier : `persist: { path: "./mon-dossier/v3" }`.
@@ -188,7 +192,7 @@ export default defineConfig({
 	}),
 });
 ```
-### routes.extend
+### `routes.extend`
 
 Avec Cloudflare Workers, cette option n'est pas applicable. Consultez la section [Routage sur Cloudflare Workers](#routage-sur-cloudflare-workers) pour plus d'informations.
 
@@ -196,16 +200,16 @@ Avec Cloudflare Pages, cette option vous permet d'ajouter ou d'exclure des motif
 
 Plus d'informations sur les modèles de route personnalisés sont disponibles dans la [documentation sur le routage de Cloudflare](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes). Les routes spécifiées ne sont pas automatiquement dédupliquées et seront ajoutées telles quelles aux routes existantes.
 
-#### routes.extend.include
+#### `routes.extend.include`
 
 <p>
 **Type :** `{ pattern: string }[]`<br />
 **Par défaut :** `undefined`
 </p>
 
-Configurez des routes supplémentaires qui seront générées à la demande par l'adaptateur Cloudflare dans le tableau `routes.extend.include`.
+Configure des routes supplémentaires à générer à la demande par l'adaptateur Cloudflare dans le tableau `routes.extend.include`.
 
-#### routes.extend.exclude
+#### `routes.extend.exclude`
 
 <p>
 **Type :** `{ pattern: string }[]`<br />
@@ -227,7 +231,7 @@ export default defineConfig({
 });
 ```
 
-### sessionKVBindingName
+### `sessionKVBindingName`
 <p>
 **Type :** `string`<br />
 **Par défaut :** `SESSION`
@@ -448,7 +452,7 @@ Le moteur d'exécution `workerd` de Cloudflare prend en charge les importations 
 
 - `.wasm` ou `.wasm?module` : exporte un [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) qui peut ensuite être instancié.
 - `.bin` : exporte un [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) du contenu binaire brut du fichier
-- `.txt` : Exporte une chaîne de caractères du contenu du fichier
+- `.txt` : exporte une chaîne de caractères du contenu du fichier
 
 Tous les types de modules exportent une seule valeur par défaut. Les modules peuvent être importés à partir de pages rendues côté serveur ou de pages pré-rendues pour la génération de sites statiques.
 
@@ -484,7 +488,7 @@ import { Buffer } from 'node:buffer';
 Vous devrez également modifier la configuration `vite` dans votre configuration Astro pour autoriser la syntaxe d'importation `node:*` :
 
 ```js title="astro.config.mjs" ins={7-11}
-import {defineConfig} from "astro/config";
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
