@@ -1,0 +1,284 @@
+---
+title: オンデマンドレンダリング
+description: アダプターを使用してルートやページをリクエスト時にサーバーレンダリングします。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astroプロジェクトのコードはウェブに表示するために**HTMLにレンダリング**される必要があります。
+
+デフォルトでは、Astroのページ、ルート、APIエンドポイントはビルド時に静的ページとして事前レンダリングされます。しかし、リクエストがあったときにサーバーで一部やすべてのルートをオンデマンドレンダリングすることもできます。
+
+オンデマンドレンダリングされたページとルートはアクセスごとに生成され、ユーザーごとにカスタマイズできます。たとえば、オンデマンドレンダリングされたページでログインユーザーのアカウント情報を表示したり、サイト全体を再ビルドせずに最新データを取得して表示できます。
+
+リクエスト時にサーバーで行うオンデマンドレンダリングは**サーバーサイドレンダリング(SSR)**とも呼ばれます。 
+
+## サーバーアダプター
+
+任意のページをオンデマンドレンダリングするには**アダプター**を追加します。アダプターは、Astroが特定の**ランタイム**(NetlifyやCloudflareなど)上でプロジェクトを実行するスクリプトを出力できるようにします。ランタイムはリクエスト時にページを生成するサーバー環境です。
+
+サイトが完全に静的でオンデマンドレンダリングを行わない場合でも、アダプターを追加する価値があります。たとえば[Netlifyアダプター](/en/guides/integrations-guide/netlify/)はNetlifyのImageCDNを有効にし、[サーバーアイランド](/en/guides/server-islands/)で`server:defer`を使うにはアダプターのインストールが必須です。
+
+<IntegrationsNav category="adapter" />
+
+Astro公式アダプターは[Node.js](https://nodejs.org/)、[Netlify](https://www.netlify.com/)、[Vercel](https://vercel.com/)、[Cloudflare](https://www.cloudflare.com/)用が提供されています。[公式およびコミュニティ製のアダプター一覧](https://astro.build/integrations/?search=&categories%5B%5D=adapters)から、[デプロイ環境](/en/guides/deploy/)に合ったものを選んでください。
+
+### アダプターを追加する
+
+[Astroが保守する公式アダプター](/en/guides/integrations-guide/#official-integrations)は、以下の`astro add`コマンドで追加できます。このコマンドはアダプターのインストールと`astro.config.mjs`への設定変更を一度に行います。
+
+例としてNetlifyアダプターをインストールする場合:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+[アダプターを手動で追加](/en/guides/integrations-guide/#installing-an-npm-package)し、`astro.config.mjs`を自分で更新することもできます(例:`@astrojs/netlify`)。
+
+アダプターによっては独自の設定が必要な場合があります。各アダプターのドキュメントを確認し、必要な設定を`astro.config.mjs`に追加してください。
+
+## オンデマンドレンダリングを有効にする
+
+**デフォルトではサイト全体が事前レンダリング**され、静的HTMLがブラウザに送信されます。たとえば、クッキーをチェックしてパーソナライズしたコンテンツを表示するページなど、サーバーレンダリングが必要なルートだけ事前レンダリングを無効化できます。
+
+まず、オンデマンドレンダリングを有効にするために[アダプターを追加](#アダプターを追加する)します。  
+
+次に、オンデマンドレンダリングしたいページやエンドポイントの先頭に`export const prerender = false`を追加します。その他のページは静的サイトのままです。
+
+```astro title="src/pages/page-rendered-on-demand.astro" ins={2}
+---
+export const prerender = false
+---
+<html>
+<!--
+このコンテンツはリクエスト時にサーバーレンダリングされます！
+サーバーランタイム用アダプターを追加するだけ！
+他のページはビルド時に静的生成されます！
+-->
+<html>
+```
+
+以下は、事前レンダリングを無効にして、毎回ランダムな数値を返すエンドポイントの例です。
+
+```js title="src/pages/randomnumber.js" ins={1}
+export const prerender = false;
+
+export async function GET() {
+  const number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `ランダムな数字はこちら:${number}`,
+    }),
+  );
+}
+```
+
+### `'server'`モード
+
+**動的なアプリ**の場合は、アダプターを追加したあとビルド出力を`output: 'server'`に設定すると、**すべてのページがデフォルトでサーバーサイドレンダリング**されます。これは、各ページで事前レンダリングをオフにするのと同じ効果です。
+
+そのうえで、プライバシーポリシーや会社概要ページなど、サーバーを介さずともよいページだけを個別に事前レンダリングできます。
+
+```astro title="src/pages/about-my-app.astro" ins={2}
+---
+export const prerender = true
+---
+<html>
+<!--
+`output: 'server'`を設定していますが、このページは静的です！
+他のページはオンデマンドレンダリングです！
+-->
+<html>
+```
+
+ページやルートを静的生成したい場合は`export const prerender = true`を追加します。
+
+```js title="src/pages/myendpoint.js" ins={1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `これは静的エンドポイントです`,
+    }),
+  );
+}
+```
+
+:::tip
+まずはデフォルトの`'static'`モードで始め、**ほとんどまたは全ページ**をオンデマンドレンダリングしたいと確信できるまで切り替えないことをおすすめします。これにより、静的コンテンツをレンダリングするだけのためにサーバー関数を呼び出す必要がなく、パフォーマンスを最大限に引き出せます。
+
+`'server'`モードは機能追加ではなく、レンダリング方式のデフォルトを切り替えるだけです。
+:::
+
+<ReadMore>設定リファレンスの[`output`設定](/en/reference/configuration-reference/#output)を参照してください。</ReadMore>
+
+## オンデマンドレンダリングの機能
+
+### HTMLストリーミング
+
+HTMLストリーミングでは、ドキュメントをチャンクに分割し順番に送信・描画します。Astroはオンデマンドレンダリング時にコンポーネントごとにストリーミングを行い、描画された部分から即座にユーザーに表示します。これにより可能な限り速くHTMLを表示できますが、大きいドキュメントではネットワーク状況によりダウンロードが遅くなる場合や、データフェッチ待ちで描画がブロックされる場合があります。
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]} />
+
+:::caution
+[Responseヘッダー](https://developer.mozilla.org/en-US/docs/Glossary/Response_header)を変更する機能は**ページレベル**でのみ利用できます。コンポーネント(レイアウトを含む)内部では使用できません。コンポーネントコードが実行される時点ではResponseヘッダーはすでに送信されているため、変更できないからです。
+:::
+
+### クッキー
+
+オンデマンドレンダリングされたページやAPIエンドポイントでは、クッキーの確認・設定・取得・削除ができます。
+
+以下の例はページビューのカウンターとしてクッキー値を更新しています。
+
+```astro title="src/pages/index.astro" {6,7,12}
+---
+export const prerender = false; // 'server'モードでは不要
+
+let counter = 0
+
+if (Astro.cookies.has('counter')) {
+  const cookie = Astro.cookies.get('counter')
+  const value = cookie?.number()
+  if (value !== undefined && !isNaN(value)) counter = value + 1
+}
+
+Astro.cookies.set('counter', String(counter))
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+[`Astro.cookies`と`AstroCookie`型](/en/reference/api-reference/#cookies)についてはAPIリファレンスを参照してください。
+
+### `Response`
+
+[`Astro.response`](/en/reference/api-reference/#response)は標準の[`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options)オブジェクトで、ステータスやヘッダーを設定できます。
+
+次の例は商品が存在しない場合にステータスを設定しています。
+
+```astro title="src/pages/product/[id].astro" {10,11}
+---
+export const prerender = false; // 'server'モードでは不要
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 商品が存在しない
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- ページ内容 -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+`Astro.response.headers`でヘッダーを設定できます。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 'server'モードでは不要
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- ページ内容 -->
+</html>
+```
+
+#### `Response`オブジェクトを返す
+
+オンデマンドレンダリングを使用するページでは、[Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)オブジェクトを直接返すこともできます。手動で返すか、[`Astro.redirect`](/en/reference/api-reference/#redirect)を使用します。
+
+```astro title="src/pages/product/[id].astro" {10-13,18}
+---
+export const prerender = false; // 'server'モードでは不要
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 商品が存在しない
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+
+// 販売終了
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
+---
+<html>
+  <!-- ページ内容 -->
+</html>
+```
+
+### `Request`
+
+`Astro.request`は標準の[Request](https://developer.mozilla.org/en-US/docs/Web/API/Request)オブジェクトで、`url`、`headers`、`method`、ボディなどを取得できます。静的生成されないページで追加情報を取得する際に利用します。
+
+#### `Astro.request.headers`
+
+リクエストヘッダーは`Astro.request.headers`で取得します。これはブラウザの[`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers)と同じく[Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers)オブジェクトです。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 'server'モードでは不要
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- ページ内容 -->
+</html>
+```
+
+#### `Astro.request.method`
+
+HTTPメソッドは`Astro.request.method`で取得できます。ブラウザの[`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method)と同様で、文字列で返されます。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 'server'モードでは不要
+
+console.log(Astro.request.method) // ブラウザ遷移時はGET
+---
+```
+
+[`Astro.request`](/en/reference/api-reference/#request)について詳しくはAPIリファレンスを参照してください。
+
+### サーバーエンドポイント
+
+サーバーエンドポイント(**APIルート**とも呼ばれます)は、`src/pages/`フォルダー内の`.js`または`.ts`ファイルからエクスポートされる特殊な関数です。オンデマンドのサーバーサイドレンダリングにおける強力な機能で、安全にサーバー上でコードを実行できます。
+
+この関数は[エンドポイントコンテキスト](/en/reference/api-reference/)を受け取り、[Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)を返します。
+
+詳しくは[Endpointsガイド](/en/guides/endpoints/#server-endpoints-api-routes)を参照してください。
