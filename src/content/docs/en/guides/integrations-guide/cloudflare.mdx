@@ -11,6 +11,9 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
 
 This adapter allows Astro to deploy your [on-demand rendered routes](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/).
 
@@ -83,7 +86,20 @@ export default defineConfig({
 
 ## Options
 
-### imageService
+The Cloudflare adapter accepts the following options:
+
+### `cloudflareModules`
+
+<p>
+**Type:** `boolean`<br />
+**Default:** `true`
+</p>
+
+Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
+
+This functionality is enabled by default. If you'd like to disable, set `cloudflareModules` to `false`.
+
+### `imageService`
 
 <p>
 **Type:** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
@@ -98,7 +114,7 @@ Determines which image service is used by the adapter. The adapter will default 
 * **`custom`:** Always uses the image service configured in [Image Options](/en/reference/configuration-reference/#image-options). **This option will not check to see whether the configured image service works in Cloudflare's `workerd` runtime.**
 
 ```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
@@ -109,7 +125,7 @@ export default defineConfig({
 })
 ```
 
-### platformProxy
+### `platformProxy`
 
 Determines whether and how the Cloudflare runtime is added to `astro dev`. It contains proxies to local `workerd` bindings and emulations of Cloudflare specific values, allowing the emulation of the runtime in the Node.js dev process. Read more about the [Cloudflare Runtime](#cloudflare-runtime).
 
@@ -117,43 +133,47 @@ Determines whether and how the Cloudflare runtime is added to `astro dev`. It co
 Proxies provided by this are a best effort emulation of the real production. Although they are designed to be as close as possible to the real thing, there might be a slight differences and inconsistencies between the two.
 :::
 
-#### platformProxy.enabled
+#### `platformProxy.enabled`
 <p>
-**Type:** `{ enabled?: boolean }`<br />
-**Default:** `{ enabled: false }`
+**Type:** `boolean`<br />
+**Default:** `true`
 </p>
 
-The `enabled` property allows you to enable the Cloudflare runtime in `astro dev`.
+Determines whether to enable the Cloudflare runtime in development mode.
 
-#### platformProxy.configPath
+#### `platformProxy.configPath`
 <p>
-**Type:** `{ configPath?: string }`<br />
-**Default:** `{ configPath: 'wrangler.toml' }`
+**Type:** `string`<br />
+**Default:** `undefined`
 </p>
 
-The `configPath` allows you to define your Wrangler configuration file, relative to the root of your Astro project. 
+Defines the path to the Wrangler configuration file. If no value is set, it tracks `wrangler.toml`, `wrangler.json`, and `wrangler.jsonc` in the project root.
 
-#### platformProxy.experimentalJsonConfig
+#### `platformProxy.environment`
 <p>
-**Type:** `{ experimentalJsonConfig?: boolean }`<br />
-**Default:** `{ experimentalJsonConfig?: false }`
+**Type:** `string`<br />
+**Default:** `undefined`
 </p>
 
-The `experimentalJsonConfig` property defines whether the utility reads a JSON config file (e.g. `wrangler.json`).
+Sets the [Cloudflare environment](https://developers.cloudflare.com/workers/wrangler/environments/) to use. You must select an environment defined in the Wrangler configuration file, otherwise an error occurs.
 
-#### platformProxy.persist
+#### `platformProxy.persist`
 <p>
-**Type:** `{ persist?: boolean | { path: string } }`<br />
-**Default:** `{ persist: true }`
+**Type:** `boolean | { path: string }`<br />
+**Default:** `true`
 </p>
 
-The `persist` property defines if and where the bindings data is persistent. `true` defaults to the same location used by Wrangler so data can be shared between the two. If `false`, no data is persisted to or read from the filesystem.
+Sets whether and where to save binding data locally to the file system.
+
+- If set to `true`, binding data is stored in `.wrangler/state/v3/`. It is the same as the default setting for wrangler.
+- If set to `false`, binding data is not stored in file system.
+- If set to `{ path: string }`, binding data is stored in the specified path.
 
 :::note
 `wrangler`'s `--persist-to` option adds a sub directory called `v3` under the hood while the `@astrojs/cloudflare` `persist` property does not. For example, to reuse the same location as running `wrangler dev --persist-to ./my-directory`, you must specify: `persist: { path: "./my-directory/v3" }`.
 :::
 
-The following configuration shows an example of enabling the Cloudflare runtime when running the development server, as well as using a `wrangler.json` config file (experimental). It also specifies a custom location for persisting data to the filesystem:
+The following configuration shows an example of enabling the Cloudflare runtime when running the development server, as well as using a `wrangler.json` config file. It also specifies a custom location for persisting data to the filesystem:
 
 
 ```js
@@ -165,7 +185,6 @@ export default defineConfig({
 		platformProxy: {
 			enabled: true,
 			configPath: 'wrangler.json',
-			experimentalJsonConfig: true,
 			persist: {
 				path: './.cache/wrangler/v3'
 			},
@@ -173,7 +192,7 @@ export default defineConfig({
 	}),
 });
 ```
-### routes.extend
+### `routes.extend`
 
 On Cloudflare Workers, this option is not applicable. Refer to [Routing on Cloudflare Workers](#routing-on-cloudflare-workers) for more information.
 
@@ -181,30 +200,30 @@ On Cloudflare Pages, this option allows you to add or exclude custom patterns (e
 
 More information about the custom route patterns can be found in [Cloudflare's routing docs](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes). Any routes specified are not automatically deduplicated and will be appended to the existing routes as is.
 
-#### routes.extend.include
+#### `routes.extend.include`
 
 <p>
 **Type:** `{ pattern: string }[]`<br />
 **Default:** `undefined`
 </p>
 
-Configure additional routes to be generated on demand by the Cloudflare adapter in the `routes.extend.include` array.
+Configures additional routes to be generated on demand by the Cloudflare adapter in the `routes.extend.include` array.
 
-#### routes.extend.exclude
+#### `routes.extend.exclude`
 
 <p>
 **Type:** `{ pattern: string }[]`<br />
 **Default:** `undefined`
 </p>
 
-Configure routes to be excluded from on-demand rendering in the `routes.extend.exclude` array. These routes will be prerendered and served statically instead, and will not invoke the SSR function. Additionally you can use this option to serve any static asset (e.g. images, fonts, css, js, html, txt, json, etc.) files directly without routing the request through the SSR function.
+Configures routes to be excluded from on-demand rendering in the `routes.extend.exclude` array. These routes will be prerendered and served statically instead, and will not invoke the SSR function. Additionally you can use this option to serve any static asset (e.g. images, fonts, css, js, html, txt, json, etc.) files directly without routing the request through the SSR function.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   adapter: cloudflare({
     routes: {
       extend: {
-        include: [{ pattern: '/static' }], // Route a prerended page to the SSR function for on-demand rendering
+        include: [{ pattern: '/static' }], // Routes a prerended page to the SSR function for on-demand rendering
         exclude: [{ pattern: '/pagefind/*' }], // Use Starlight's pagefind search, which is generated statically at build time
       }
     },
@@ -212,16 +231,22 @@ export default defineConfig({
 });
 ```
 
-### `cloudflareModules`
-
+### `sessionKVBindingName`
 <p>
-**Type:** `true | false`<br />
-**Default:** `true`
+**Type:** `string`<br />
+**Default:** `SESSION`
+<Since v="5.6.0" />
 </p>
 
-Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
+The `sessionKVBindingName` option allows you to specify the name of the KV binding used for session storage. By default, this is set to `SESSION`, but you can change it to match your own KV binding name. See [Sessions](#sessions) for more information.
 
-This functionality is enabled by default. If you'd like to disable it, set `cloudflareModules: false`.
+```js title="astro.config.mjs" "MY_SESSION_BINDING"
+export default defineConfig({
+  adapter: cloudflare({
+    sessionKVBindingName: 'MY_SESSION_BINDING',
+  }),
+});
+```
 
 ## Cloudflare runtime
 
@@ -365,13 +390,69 @@ You can [specify additional routing patterns to follow](#routesextend) in your a
 
 Creating a custom `public/_routes.json` will override the automatic generation. See [Cloudflare's documentation on creating a custom `_routes.json`](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) for more details.
 
+## Sessions
+
+The Astro [Sessions API](/en/guides/sessions/) allows you to easily store user data between requests. This can be used for things like user data and preferences, shopping carts, and authentication credentials. Unlike cookie storage, there are no size limits on the data, and it can be restored on different devices. 
+
+Astro automatically configures [Workers KV](https://developers.cloudflare.com/kv/) for session storage when using the Cloudflare adapter. Before using sessions, you need to create a KV namespace to store the data and configure a KV binding in your Wrangler config file. By default, Astro expects the KV binding to be named `SESSION`, but you can choose a different name if you prefer by setting the [`sessionKVBindingName`](#sessionkvbindingname) option in the adapter config.
+
+<Steps>
+
+1. Create a KV namespace using the Wrangler CLI and make note of the ID of the new namespace:
+
+   ```sh
+   npx wrangler kv namespace create "SESSION"
+   ```
+
+2. Declare the KV namespace in your Wrangler config, setting the namespace ID to the one returned by the previous command:
+
+    <Tabs>
+      <TabItem label="wrangler.json">
+        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+        {
+          "kv_namespaces": [
+            {
+              "binding": "SESSION",
+              "id": "<KV_NAMESPACE_ID>"
+            }
+          ]
+        }
+        ```
+      </TabItem>
+      <TabItem label="wrangler.toml">
+        ```toml title="wrangler.toml" "<KV_NAMESPACE_ID>"
+        kv_namespaces = [
+          { binding = "SESSION", id = "<KV_NAMESPACE_ID>" }
+        ]
+        ```
+      </TabItem>
+    </Tabs>
+
+3. You can then use sessions in your server code:
+
+    ```astro title="src/components/CartButton.astro" "Astro.session?.get('cart')"
+    ---
+    export const prerender = false;
+    const cart = await Astro.session?.get('cart');
+    ---
+
+    <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+    ```
+
+</Steps>
+
+:::note
+Writes to Cloudflare KV are [eventually consistent](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency) between regions. This means that changes are available immediately within the same region but may take up to 60 seconds to propagate globally. This won't affect most users as they are unlikely to switch regions between requests, but it may be a consideration for some use cases, such as VPN users.
+:::
+
+
 ## Cloudflare Module Imports
 
 The Cloudflare `workerd` runtime supports imports of some [non-standard module types](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules). Most additional file types are also available in Astro:
 
 - `.wasm` or `.wasm?module`: exports a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) that can then be instantiated
 - `.bin`: exports an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) of the raw binary contents of the file
-- `.txt`: Exports a string of the file contents
+- `.txt`: exports a string of the file contents
 
 All module types export a single default value. Modules can be imported both from server-side rendered pages, or from prerendered pages for static site generation.
 
@@ -407,7 +488,7 @@ import { Buffer } from 'node:buffer';
 You'll also need to modify the `vite` configuration in your Astro config to allow for the `node:*` import syntax:
 
 ```js title="astro.config.mjs" ins={7-11}
-import {defineConfig} from "astro/config";
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
