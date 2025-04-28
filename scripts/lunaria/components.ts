@@ -7,7 +7,10 @@ import {
 } from '@lunariajs/core';
 import { BaseStyles, CustomStyles } from './styles';
 
-export function html(strings: TemplateStringsArray, ...values: (string | string[])[]) {
+export function html(
+	strings: TemplateStringsArray,
+	...values: ((string | number) | (string | number)[])[]
+) {
 	const treatedValues = values.map((value) => (Array.isArray(value) ? value.join('') : value));
 
 	return String.raw({ raw: strings }, ...treatedValues);
@@ -360,3 +363,72 @@ export const TitleParagraph = html`
 		to learn about our translation process and how you can get involved.
 	</p>
 `;
+
+/**
+ * Build an SVG file showing a summary of each language’s translation progress.
+ */
+export const SvgSummary = (config: LunariaConfig, status: LunariaStatus): string => {
+	const localeHeight = 56; // Each locale’s summary is 56px high.
+	const svgHeight = localeHeight * Math.ceil(config.locales.length / 2);
+	return html`<svg
+		xmlns="http://www.w3.org/2000/svg"
+		viewBox="0 0 400 ${svgHeight}"
+		font-family="ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, 'Noto Sans', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji'"
+	>
+		${config.locales
+			.map((locale) => SvgLocaleSummary(status, locale))
+			.sort((a, b) => b.progress - a.progress)
+			.map(
+				({ svg }, index) =>
+					html`<g transform="translate(${(index % 2) * 215} ${Math.floor(index / 2) * 56})"
+						>${svg}</g
+					>`
+			)}
+	</svg>`;
+};
+
+function SvgLocaleSummary(
+	status: LunariaStatus,
+	{ label, lang }: Locale
+): { svg: string; progress: number } {
+	const missingFiles = status.filter(
+		(file) =>
+			file.localizations.find((localization) => localization.lang === lang)?.status === 'missing'
+	);
+	const outdatedFiles = status.filter((file) => {
+		const localization = file.localizations.find((localization) => localization.lang === lang);
+		if (!localization || localization.status === 'missing') {
+			return false;
+		} else if (file.type === 'dictionary') {
+			return 'missingKeys' in localization ? localization.missingKeys.length > 0 : false;
+		} else {
+			return (
+				localization.status === 'outdated' ||
+				('missingKeys' in localization && localization.missingKeys.length > 0)
+			);
+		}
+	});
+
+	const doneLength = status.length - outdatedFiles.length - missingFiles.length;
+	const barWidth = 184;
+	const doneFraction = doneLength / status.length;
+	const outdatedFraction = outdatedFiles.length / status.length;
+	const doneWidth = (doneFraction * barWidth).toFixed(2);
+	const outdatedWidth = ((outdatedFraction + doneFraction) * barWidth).toFixed(2);
+
+	return {
+		progress: doneFraction,
+		svg: html`<text x="0" y="12" font-size="11" font-weight="600" fill="#999"
+				>${label} (${lang})</text
+			>
+			<text x="0" y="26" font-size="9" fill="#999">
+				${missingFiles.length == 0 && outdatedFiles.length == 0
+					? '100% complete, amazing job! 🎉'
+					: html`${doneLength} done, ${outdatedFiles.length} outdated, ${missingFiles.length}
+						missing`}
+			</text>
+			<rect x="0" y="34" width="${barWidth}" height="8" fill="#999" opacity="0.25"></rect>
+			<rect x="0" y="34" width="${outdatedWidth}" height="8" fill="#fb923c"></rect>
+			<rect x="0" y="34" width="${doneWidth}" height="8" fill="#c084fc"></rect>`,
+	};
+}
