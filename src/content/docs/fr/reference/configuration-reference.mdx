@@ -396,35 +396,6 @@ La vérification de l'en-tête « origin » est exécutée uniquement pour les p
 
 Si l'en-tête « origin » ne correspond pas au chemin d'accès de la requête (`pathname`), Astro renverra un code d'état 403 et n'affichera pas la page.
 
-### session
-
-<p>
-
-**Type :** `SessionConfig`<br />
-<Since v="5.3.0" />
-</p>
-
-Configure la prise en charge de session expérimentale en spécifiant un pilote de stockage (`driver`) ainsi que toutes les `options` associées.
-Vous devez activer l'option `experimental.session` pour utiliser cette fonctionnalité.
-Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration.
-
-Vous pouvez spécifier [n'importe quel pilote d'Unstorage](https://unstorage.unjs.io/drivers) ou fournir une configuration personnalisée qui remplacera la valeur par défaut de votre adaptateur.
-
-Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations.
-
-```js title="astro.config.mjs"
-  {
-    session: {
-      // Obligatoire : le nom du pilote Unstorage
-      driver: 'redis',
-      // Les options requises dépendent du pilote
-      options: {
-        url: process.env.REDIS_URL,
-      },
-    }
-  }
-```
-
 ### vite
 
 <p>
@@ -743,6 +714,25 @@ Si le port donné est déjà utilisé, Astro essaiera automatiquement le prochai
 }
 ```
 
+### server.allowedHosts
+
+<p>
+
+**Type :** `Array<string> | true`<br />
+**Par défaut :** `[]`<br />
+<Since v="5.4.0" />
+</p>
+
+Liste des noms d'hôtes auxquels Astro est autorisé à répondre. Lorsque la valeur est définie sur `true`, tous les noms d'hôtes sont autorisés.
+
+```js
+{
+  server: {
+  	allowedHosts: ['staging.example.com', 'qa.example.com']
+  }
+}
+```
+
 ### server.open
 
 <p>
@@ -772,6 +762,143 @@ Passez une URL complète (par exemple `"http://example.com"`) ou un chemin d'acc
 </p>
 
 Définit les en-têtes de réponse HTTP personnalisés à envoyer dans `astro dev` et `astro preview`.
+
+## Options des sessions
+
+<p>
+
+<Since v="5.7.0" />
+</p>
+
+Configure le stockage de session pour votre projet Astro. Ceci permet de stocker les données de session de manière persistante, afin qu'elles soient accessibles lors de différentes requêtes.
+Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration.
+
+Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations.
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // Le nom du pilote Unstorage
+      driver: 'redis',
+      // Les options requises dépendent du pilote
+      options: {
+        url: process.env.REDIS_URL,
+      },
+      ttl: 3600, // 1 heure
+    }
+  }
+```
+
+### session.driver
+
+<p>
+
+**Type :** `string | undefined`<br />
+<Since v="5.7.0" />
+</p>
+
+Le pilote Unstorage à utiliser pour le stockage de session. Les adaptateurs [Node](/fr/guides/integrations-guide/node/#sessions), [Cloudflare](/fr/guides/integrations-guide/cloudflare/#sessions) et [Netlify](/fr/guides/integrations-guide/netlify/#sessions) configurent automatiquement un pilote par défaut, mais vous pouvez spécifier le vôtre si vous le souhaitez ou si vous utilisez un adaptateur qui n'en fournit pas.
+
+La valeur est le « Nom du pilote » disponible dans la [documentation du pilote Unstorage](https://unstorage.unjs.io/drivers).
+
+```js title="astro.config.mjs" ins={4}
+{
+  adapter: vercel(),
+  session: {
+    driver: "redis",
+  },
+}
+```
+:::note
+Certains pilotes peuvent nécessiter l'installation de paquets supplémentaires, ainsi que la définition de variables d'environnement ou d'identifiants. Voir la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations.
+:::
+
+### session.options
+
+<p>
+
+**Type :** `Record<string, unknown> | undefined`<br />
+**Par défaut :** `{}`<br />
+<Since v="5.7.0" />
+</p>
+
+Options spécifiques au pilote à utiliser pour le stockage des sessions. Ces options dépendent du pilote utilisé. Consultez la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations sur les options disponibles pour chaque pilote.
+
+```js title="astro.config.mjs" ins={4-6}
+{
+   session: {
+     driver: "redis",
+     options: {
+       url: process.env.REDIS_URL
+     },
+   }
+}
+```
+
+### session.cookie
+
+<p>
+
+**Type :** `string | AstroCookieSetOptions | undefined`<br />
+**Par défaut :** `{ name: "astro-session", sameSite: "lax", httpOnly: true, secure: true }`<br />
+<Since v="5.7.0" />
+</p>
+
+Configuration du cookie de session. Si cette valeur est une chaîne de caractères, elle sera utilisée comme nom de cookie.
+Alternativement, vous pouvez transmettre un objet avec des options supplémentaires. Celles-ci seront fusionnées avec les valeurs par défaut.
+
+```js title="astro.config.mjs" ins={3-4}
+{
+ session: {
+   // Si défini avec une chaîne de caractères, elle sera utilisée comme nom de cookie.
+   cookie: "mon-cookie-de-session",
+ }
+}
+
+```
+
+```js title="astro.config.mjs" ins={4-8}
+{
+ session: {
+   // Si un objet est utilisé, il définira les options du cookie.
+   cookie: {
+     name: "mon-cookie-de-session",
+     sameSite: "lax",
+     secure: true,
+   }
+ }
+}
+```
+
+### session.ttl
+
+<p>
+
+**Type :** `number | undefined`<br />
+**Par défaut :** {Infinity}<br />
+<Since v="5.7.0" />
+</p>
+
+Une période d'expiration de durée de vie par défaut facultative pour les valeurs de session, en secondes.
+
+Par défaut, les valeurs de session persistent jusqu'à ce qu'elles soient supprimées ou que la session soit détruite, et n'expirent pas automatiquement car un certain laps de temps s'est écoulé.
+Définissez `session.ttl` pour ajouter une période d'expiration par défaut pour vos valeurs de session. Passer une option `ttl` à [`session.set()`](/fr/reference/api-reference/#set) remplacera la valeur globale par défaut pour cette entrée individuelle.
+
+```js title="astro.config.mjs" ins={3-4}
+{
+ session: {
+   // Définir une période d'expiration par défaut de 1 heure (3 600 secondes)
+   ttl: 3600,
+ }
+}
+```
+:::note
+La définition d'une valeur pour `ttl` ne supprime pas automatiquement la valeur du stockage une fois le délai écoulé.
+
+Les valeurs stockées ne seront supprimées qu'en cas de tentative d'accès après l'expiration de la période `ttl`. À ce moment, la valeur de session sera indéfinie et ce n'est qu'à ce moment-là qu'elle sera supprimée.
+
+Les pilotes individuels peuvent également prendre en charge une option `ttl` qui supprimera automatiquement les sessions après l'heure spécifiée. Consultez la documentation du pilote choisi pour plus d'informations.
+:::
 
 ## Options de la barre d'outils de développement
 
