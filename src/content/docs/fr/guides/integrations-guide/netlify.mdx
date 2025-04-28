@@ -95,6 +95,29 @@ netlify deploy
 
 Le [blog de Netlify sur Astro](https://www.netlify.com/blog/how-to-deploy-astro/) et la [documentation de Netlify](https://docs.netlify.com/integrations/frameworks/astro/) fournissent plus d'informations sur la manière d'utiliser cette intégration pour déployer vers Netlify.
 
+### Exécution du middleware Astro sur les fonctions Netlify Edge
+
+Tout middleware Astro est appliqué aux pages pré-rendues au moment de la création, et aux pages pré-rendues au moment de l'exécution.
+
+Pour implémenter des redirections, des contrôles d'accès ou des en-têtes de réponse personnalisés pour les pages pré-rendues, exécutez votre middleware sur les fonctions Edge de Netlify en activant l'option [`edgeMiddleware`](/fr/reference/adapter-reference/#edgemiddleware) :
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  output: 'server',
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+Lorsque `edgeMiddleware` est activé, une fonction edge exécutera votre code middleware pour toutes les requêtes, y compris les actifs statiques, les pages pré-rendues et les pages rendues à la demande.
+
+Pour les pages rendues à la demande, l'objet `context.locals` est sérialisé en utilisant du JSON et envoyé dans un en-tête pour la fonction serverless, qui effectue le rendu. Comme mesure de sécurité, la fonction serverless refusera de servir les requêtes avec une réponse `403 Forbidden` à moins qu'elles ne proviennent de la fonction edge générée.
+
 ### Accès au contexte Edge depuis votre site
 
 Les fonctions Netlify Edge fournissent un [objet de contexte](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object) qui comprend des métadonnées sur la demande, telles que l'IP de l'utilisateur, les données de géolocalisation et les cookies.
@@ -124,29 +147,6 @@ declare namespace App {
 ```
 
 Ceci n'est pas disponible sur les pages pré-rendues.
-
-### Exécution du middleware Astro sur les fonctions Netlify Edge
-
-Tout middleware Astro est appliqué aux pages pré-rendues au moment de la création, et aux pages pré-rendues au moment de l'exécution.
-
-Pour implémenter des redirections, des contrôles d'accès ou des en-têtes de réponse personnalisés pour les pages pré-rendues, exécutez votre middleware sur les fonctions Edge de Netlify en activant l'option [`edgeMiddleware`](/fr/reference/adapter-reference/#edgemiddleware) :
-
-```js title="astro.config.mjs" ins={8}
-import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
-
-export default defineConfig({
-  // ...
-  output: 'server',
-  adapter: netlify({
-    edgeMiddleware: true,
-  }),
-});
-```
-
-Lorsque `edgeMiddleware` est activé, une fonction edge exécutera votre code middleware pour toutes les requêtes, y compris les actifs statiques, les pages pré-rendues et les pages rendues à la demande.
-
-Pour les pages rendues à la demande, l'objet `context.locals` est sérialisé en utilisant du JSON et envoyé dans un en-tête pour la fonction serverless, qui effectue le rendu. Comme mesure de sécurité, la fonction serverless refusera de servir les requêtes avec une réponse `403 Forbidden` à moins qu'elles ne proviennent de la fonction edge générée.
 
 ### Support du CDN d'images Netlify
 
@@ -211,6 +211,12 @@ Une fois que vous avez lancé `astro build`, il y aura un fichier `dist/_redirec
 :::note
 Vous pouvez toujours inclure un fichier `public/_redirects` pour les redirections manuelles. Toutes les redirections que vous spécifiez dans la configuration des redirections sont ajoutées à la fin de la vôtre.
 :::
+
+### Sessions
+
+L'[API Sessions](/fr/guides/sessions/) d'Astro vous permet de stocker facilement les données utilisateur entre chaque requête. Ceci peut être utilisé pour des éléments tels que les données et préférences utilisateur, les paniers d'achat et les identifiants d'authentification. Contrairement au stockage des cookies, la taille des données est illimitée et elles peuvent être restaurées sur différents appareils.
+
+Astro configure automatiquement [Netlify Blobs](https://docs.netlify.com/blobs/overview/) pour le stockage de session lors de l'utilisation de l'adaptateur Netlify. Si vous préférez utiliser un autre pilote de stockage de session, vous pouvez le spécifier dans votre configuration Astro. Consultez [la référence de configuration `session`](/fr/reference/configuration-reference/#sessiondriver) pour plus de détails.
 
 ### Mise en cache des pages
 
