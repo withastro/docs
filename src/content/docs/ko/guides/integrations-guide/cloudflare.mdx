@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/cloudflare'
-description: '@astrojs/cloudflare SSR 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
+description: '@astrojs/cloudflare 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
 sidebar:
   label: Cloudflare
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
@@ -14,7 +14,7 @@ import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
-이 어댑터를 사용하면 Astro가 [요청 시 렌더링되는 라우트](/ko/guides/on-demand-rendering/)를 [Cloudflare](https://www.cloudflare.com/)에 배포할 수 있습니다.
+이 어댑터를 사용하면 Astro가 [서버 아일랜드](/ko/guides/server-islands/), [액션](/ko/guides/actions/), [세션](/ko/guides/sessions/)을 포함하여 [요청 시 렌더링되는 라우트 및 기능](/ko/guides/on-demand-rendering/)을 [Cloudflare](https://www.cloudflare.com/)에 배포할 수 있습니다.
 
 Astro를 정적 사이트 빌더로 사용하는 경우 어댑터가 필요하지 않습니다.
 
@@ -28,7 +28,7 @@ Cloudflare [개발자 플랫폼](https://developers.cloudflare.com/)을 사용�
 
 Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
 
-Astro 프로젝트에서 SSR을 활성화하려면 `astro add` 명령을 사용하여 Cloudflare 어댑터를 추가하세요. 그러면 `@astrojs/cloudflare`가 설치되고 `astro.config.mjs` 파일이 한 번에 적절하게 변경됩니다.
+Astro 프로젝트의 서버 렌더링을 활성화하려면 `astro add` 명령을 사용하여 Cloudflare 어댑터를 추가하세요. 그러면 `@astrojs/cloudflare`가 설치되고 `astro.config.mjs` 파일이 한 번에 적절하게 변경됩니다.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -47,6 +47,8 @@ Astro 프로젝트에서 SSR을 활성화하려면 `astro add` 명령을 사용�
   ```
   </Fragment>
 </PackageManagerTabs>
+
+이제 [페이지별로 요청 시 렌더링](/ko/guides/on-demand-rendering/#요청-시-렌더링-활성화)을 활성화하거나, [기본적으로 모든 페이지를 서버 렌더링](/ko/guides/on-demand-rendering/#server-모드)하도록 빌드 출력 구성을 `output: 'server'`로 설정할 수 있습니다.
 
 ### 수동 설치
 
@@ -70,14 +72,13 @@ Astro 프로젝트에서 SSR을 활성화하려면 `astro add` 명령을 사용�
   </Fragment>
 </PackageManagerTabs>
 
-그런 다음 어댑터와 원하는 [요청 시 렌더링 모드](/ko/guides/on-demand-rendering/)를 `astro.config.mjs` 파일에 추가하세요.
+그런 다음 `astro.config.mjs` 파일에 어댑터를 추가합니다.
 
-```js title="astro.config.mjs" ins={2,5-6}
+```js title="astro.config.mjs" ins={2,5}
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  output: 'server',
   adapter: cloudflare(),
 });
 ```
@@ -108,7 +109,7 @@ Cloudflare 어댑터는 다음 옵션을 허용합니다.
 
 * **`cloudflare`:** [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) 서비스를 사용합니다.
 * **`passthrough`:** 기존 [`noop`](/ko/guides/images/#무작동-패스스루-서비스-구성) 서비스를 사용합니다.
-* **`compile`:** Astro의 기본 서비스 (sharp)를 사용하지만 빌드 시 사전 렌더링된 경로에서만 사용됩니다. 주문형 렌더링 페이지에 대한 SSR 중에는 모든 `astro:assets` 기능이 비활성화됩니다.
+* **`compile`:** Astro의 기본 서비스 (sharp)를 사용하지만 빌드 시 사전 렌더링된 경로에서만 사용됩니다. 요청 시 렌더링되는 페이지의 경우 모든 `astro:assets` 기능이 비활성화됩니다.
 * **`custom`:** 항상 [이미지 옵션](/ko/reference/configuration-reference/#이미지-옵션)에 구성된 이미지 서비스를 사용합니다. **이 옵션은 구성된 이미지 서비스가 Cloudflare의 `workerd` 런타임에서 작동하는지 확인하지 않습니다.**
 
 
@@ -120,7 +121,6 @@ export default defineConfig({
   adapter: cloudflare({
      imageService: 'cloudflare'
   }),
-  output: 'server'
 })
 ```
 
@@ -214,14 +214,14 @@ Cloudflare 어댑터가 요청 시 생성할 추가 경로를 `routes.extend.inc
 **기본값:** `undefined`
 </p>
 
-주문형 렌더링에서 제외할 경로를 `routes.extend.exclude` 배열에 구성합니다. 대신 이러한 경로는 사전 렌더링되어 정적으로 제공되며 SSR 함수를 호출하지 않습니다. 또한 이 옵션을 사용하면 SSR 함수를 통해 요청을 라우팅하지 않고도 정적 자산 (예: 이미지, 글꼴, CSS, js, html, txt, json 등) 파일을 직접 제공할 수 있습니다.
+주문형 렌더링에서 제외할 경로를 `routes.extend.exclude` 배열에 구성합니다. 대신 이러한 경로는 사전 렌더링되어 정적으로 제공되며 서버 함수를 호출하지 않습니다. 또한 이 옵션을 사용하면 서버 함수를 통해 요청을 라우팅하지 않고도 정적 자산 (예: 이미지, 글꼴, CSS, js, html, txt, json 등) 파일을 직접 제공할 수 있습니다.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   adapter: cloudflare({
     routes: {
       extend: {
-        include: [{ pattern: '/static' }], // 주문형 렌더링을 위해 사전 렌더링된 페이지를 SSR 함수로 라우팅합니다.
+        include: [{ pattern: '/static' }], // 주문형 렌더링을 위해 사전 렌더링된 페이지를 서버 함수로 라우팅합니다.
         exclude: [{ pattern: '/pagefind/*' }], // 빌드 시 정적으로 생성되는 Starlight의 pagefind 검색을 사용합니다.
       }
     },
@@ -370,7 +370,7 @@ Astro가 빌드한 자산은 모두 해시로 이름이 지정되므로 긴 캐�
 ### Routes
 #### Cloudflare Workers의 라우팅
 
-정적 자산 라우팅은 빌드 디렉터리 (예: `./dist`)의 파일 구조를 기반으로 합니다. 일치하는 항목이 없으면 SSR을 위해 Worker로 대체됩니다. [Cloudflare Workers를 사용한 정적 자산 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/)에 대해 자세히 알아보세요.
+정적 자산 라우팅은 빌드 디렉터리 (예: `./dist`)의 파일 구조를 기반으로 합니다. 일치하는 항목이 없으면 요청 시 렌더링을 수행하기 위해 Worker로 대체됩니다. [Cloudflare Workers를 사용한 정적 자산 라우팅](https://developers.cloudflare.com/workers/static-assets/routing/)에 대해 자세히 알아보세요.
 
 [Cloudflare Pages](#cloudflare-pages의-라우팅)와 달리 Workers에서는 `_routes.json` 파일이 필요하지 않습니다.
 
@@ -484,13 +484,12 @@ import { Buffer } from 'node:buffer';
 
 또한 `node:*` import 구문을 허용하려면 Astro 구성에서 `vite` 구성을 수정해야 합니다.
 
-```js title="astro.config.mjs" ins={7-11}
+```js title="astro.config.mjs" ins={6-10}
 import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({}),
-  output: 'server',
   vite: {
 		ssr: {
 			external: ['node:buffer'],
@@ -527,10 +526,9 @@ Pages를 사용하는 경우:
 
 현재 Wrangler에서 애플리케이션을 실행하는 동안 발생하는 오류는 코드 축소로 인해 그다지 유용하지 않습니다. 더 나은 디버깅을 위해 `astro.config.mjs` 파일에 `vite.build.minify = false` 설정을 추가할 수 있습니다.
 
-```js title="astro.config.mjs" ins={4-8}
+```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
   adapter: cloudflare(),
-  output: 'server',
   vite: {
     build: {
       minify: false,
