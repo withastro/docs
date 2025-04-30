@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/cloudflare'
-description: Learn how to use the @astrojs/cloudflare SSR adapter to deploy your Astro project.
+description: Learn how to use the @astrojs/cloudflare adapter to deploy your Astro project.
 sidebar:
   label: Cloudflare
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
@@ -15,9 +15,9 @@ import Since from '~/components/Since.astro';
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
 
-This adapter allows Astro to deploy your [on-demand rendered routes](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/).
+This adapter allows Astro to deploy your [on-demand rendered routes and features](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/), including [server islands](/en/guides/server-islands/), [actions](/en/guides/actions/), and [sessions](/en/guides/sessions/).
 
-If you're using Astro as a static site builder, you don't need an adapter to deploy to Cloudflare.
+If you're using Astro as a static site builder, you don't need an adapter.
 
 Learn how to deploy your Astro site in our [Cloudflare deployment guide](/en/guides/deploy/cloudflare/).
 
@@ -30,7 +30,7 @@ Cloudflare's [Developer Platform](https://developers.cloudflare.com/) lets you d
 
 Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](#manual-install) instead.
 
-Add the Cloudflare adapter to enable SSR in your Astro project with the `astro add` command. This will install `@astrojs/cloudflare` and make the appropriate changes to your `astro.config.mjs` file in one step.
+Add the Cloudflare adapter to enable server-rendering in your Astro project with the `astro add` command. This will install `@astrojs/cloudflare` and make the appropriate changes to your `astro.config.mjs` file in one step.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -49,6 +49,8 @@ Add the Cloudflare adapter to enable SSR in your Astro project with the `astro a
   ```
   </Fragment>
 </PackageManagerTabs>
+
+Now, you can enable [on-demand rendering per page](/en/guides/on-demand-rendering/#enabling-on-demand-rendering), or set your build output configuration to `output: 'server'` to [server-render all your pages by default](/en/guides/on-demand-rendering/#server-mode).
 
 ### Manual Install
 
@@ -72,14 +74,13 @@ First, add the `@astrojs/cloudflare` adapter to your project's dependencies usin
   </Fragment>
 </PackageManagerTabs>
 
-Then, add the adapter and your desired [on-demand rendering mode](/en/guides/on-demand-rendering/) to your `astro.config.mjs` file:
+Then, add the adapter to your `astro.config.mjs` file:
 
-```js title="astro.config.mjs" ins={2,5-6}
+```js title="astro.config.mjs" ins={2,5}
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  output: 'server',
   adapter: cloudflare(),
 });
 ```
@@ -91,15 +92,15 @@ The Cloudflare adapter accepts the following options:
 ### `cloudflareModules`
 
 <p>
-**Type:** `true | false`<br />
+**Type:** `boolean`<br />
 **Default:** `true`
 </p>
 
 Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
 
-This functionality is enabled by default. If you'd like to disable it, set `cloudflareModules: false`.
+This functionality is enabled by default. If you'd like to disable, set `cloudflareModules` to `false`.
 
-### imageService
+### `imageService`
 
 <p>
 **Type:** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
@@ -110,22 +111,21 @@ Determines which image service is used by the adapter. The adapter will default 
 
 * **`cloudflare`:** Uses the [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) service.
 * **`passthrough`:** Uses the existing [`noop`](/en/guides/images/#configure-no-op-passthrough-service) service.
-* **`compile`:** Uses Astro's default service (sharp), but only on pre-rendered routes at build time. During SSR for pages rendered on-demand, all `astro:assets` features are disabled.
+* **`compile`:** Uses Astro's default service (sharp), but only on pre-rendered routes at build time. For pages rendered on-demand, all `astro:assets` features are disabled.
 * **`custom`:** Always uses the image service configured in [Image Options](/en/reference/configuration-reference/#image-options). **This option will not check to see whether the configured image service works in Cloudflare's `workerd` runtime.**
 
 ```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({
      imageService: 'cloudflare'
   }),
-  output: 'server'
 })
 ```
 
-### platformProxy
+### `platformProxy`
 
 Determines whether and how the Cloudflare runtime is added to `astro dev`. It contains proxies to local `workerd` bindings and emulations of Cloudflare specific values, allowing the emulation of the runtime in the Node.js dev process. Read more about the [Cloudflare Runtime](#cloudflare-runtime).
 
@@ -133,43 +133,47 @@ Determines whether and how the Cloudflare runtime is added to `astro dev`. It co
 Proxies provided by this are a best effort emulation of the real production. Although they are designed to be as close as possible to the real thing, there might be a slight differences and inconsistencies between the two.
 :::
 
-#### platformProxy.enabled
+#### `platformProxy.enabled`
 <p>
-**Type:** `{ enabled?: boolean }`<br />
-**Default:** `{ enabled: false }`
+**Type:** `boolean`<br />
+**Default:** `true`
 </p>
 
-The `enabled` property allows you to enable the Cloudflare runtime in `astro dev`.
+Determines whether to enable the Cloudflare runtime in development mode.
 
-#### platformProxy.configPath
+#### `platformProxy.configPath`
 <p>
-**Type:** `{ configPath?: string }`<br />
-**Default:** `{ configPath: 'wrangler.toml' }`
+**Type:** `string`<br />
+**Default:** `undefined`
 </p>
 
-The `configPath` allows you to define your Wrangler configuration file, relative to the root of your Astro project. 
+Defines the path to the Wrangler configuration file. If no value is set, it tracks `wrangler.toml`, `wrangler.json`, and `wrangler.jsonc` in the project root.
 
-#### platformProxy.experimentalJsonConfig
+#### `platformProxy.environment`
 <p>
-**Type:** `{ experimentalJsonConfig?: boolean }`<br />
-**Default:** `{ experimentalJsonConfig?: false }`
+**Type:** `string`<br />
+**Default:** `undefined`
 </p>
 
-The `experimentalJsonConfig` property defines whether the utility reads a JSON config file (e.g. `wrangler.json`).
+Sets the [Cloudflare environment](https://developers.cloudflare.com/workers/wrangler/environments/) to use. You must select an environment defined in the Wrangler configuration file, otherwise an error occurs.
 
-#### platformProxy.persist
+#### `platformProxy.persist`
 <p>
-**Type:** `{ persist?: boolean | { path: string } }`<br />
-**Default:** `{ persist: true }`
+**Type:** `boolean | { path: string }`<br />
+**Default:** `true`
 </p>
 
-The `persist` property defines if and where the bindings data is persistent. `true` defaults to the same location used by Wrangler so data can be shared between the two. If `false`, no data is persisted to or read from the filesystem.
+Sets whether and where to save binding data locally to the file system.
+
+- If set to `true`, binding data is stored in `.wrangler/state/v3/`. It is the same as the default setting for wrangler.
+- If set to `false`, binding data is not stored in file system.
+- If set to `{ path: string }`, binding data is stored in the specified path.
 
 :::note
 `wrangler`'s `--persist-to` option adds a sub directory called `v3` under the hood while the `@astrojs/cloudflare` `persist` property does not. For example, to reuse the same location as running `wrangler dev --persist-to ./my-directory`, you must specify: `persist: { path: "./my-directory/v3" }`.
 :::
 
-The following configuration shows an example of enabling the Cloudflare runtime when running the development server, as well as using a `wrangler.json` config file (experimental). It also specifies a custom location for persisting data to the filesystem:
+The following configuration shows an example of enabling the Cloudflare runtime when running the development server, as well as using a `wrangler.json` config file. It also specifies a custom location for persisting data to the filesystem:
 
 
 ```js
@@ -181,7 +185,6 @@ export default defineConfig({
 		platformProxy: {
 			enabled: true,
 			configPath: 'wrangler.json',
-			experimentalJsonConfig: true,
 			persist: {
 				path: './.cache/wrangler/v3'
 			},
@@ -189,7 +192,7 @@ export default defineConfig({
 	}),
 });
 ```
-### routes.extend
+### `routes.extend`
 
 On Cloudflare Workers, this option is not applicable. Refer to [Routing on Cloudflare Workers](#routing-on-cloudflare-workers) for more information.
 
@@ -197,30 +200,30 @@ On Cloudflare Pages, this option allows you to add or exclude custom patterns (e
 
 More information about the custom route patterns can be found in [Cloudflare's routing docs](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes). Any routes specified are not automatically deduplicated and will be appended to the existing routes as is.
 
-#### routes.extend.include
+#### `routes.extend.include`
 
 <p>
 **Type:** `{ pattern: string }[]`<br />
 **Default:** `undefined`
 </p>
 
-Configure additional routes to be generated on demand by the Cloudflare adapter in the `routes.extend.include` array.
+Configures additional routes to be generated on demand by the Cloudflare adapter in the `routes.extend.include` array.
 
-#### routes.extend.exclude
+#### `routes.extend.exclude`
 
 <p>
 **Type:** `{ pattern: string }[]`<br />
 **Default:** `undefined`
 </p>
 
-Configure routes to be excluded from on-demand rendering in the `routes.extend.exclude` array. These routes will be prerendered and served statically instead, and will not invoke the SSR function. Additionally you can use this option to serve any static asset (e.g. images, fonts, css, js, html, txt, json, etc.) files directly without routing the request through the SSR function.
+Configures routes to be excluded from on-demand rendering in the `routes.extend.exclude` array. These routes will be prerendered and served statically instead, and will not invoke the server function. Additionally you can use this option to serve any static asset (e.g. images, fonts, css, js, html, txt, json, etc.) files directly without routing the request through the server function.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   adapter: cloudflare({
     routes: {
       extend: {
-        include: [{ pattern: '/static' }], // Route a prerended page to the SSR function for on-demand rendering
+        include: [{ pattern: '/static' }], // Route a prerended page to the server function for on-demand rendering
         exclude: [{ pattern: '/pagefind/*' }], // Use Starlight's pagefind search, which is generated statically at build time
       }
     },
@@ -228,7 +231,7 @@ export default defineConfig({
 });
 ```
 
-### sessionKVBindingName
+### `sessionKVBindingName`
 <p>
 **Type:** `string`<br />
 **Default:** `SESSION`
@@ -368,7 +371,7 @@ This is available on Cloudflare Workers and Pages.
 ### Routes
 #### Routing on Cloudflare Workers
 
-Routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for SSR. Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
+Routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for on-demand rendering. Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
 
 Unlike [Cloudflare Pages](#routing-on-cloudflare-pages), with Workers, you do not need a `_routes.json` file. 
 
@@ -449,7 +452,7 @@ The Cloudflare `workerd` runtime supports imports of some [non-standard module t
 
 - `.wasm` or `.wasm?module`: exports a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) that can then be instantiated
 - `.bin`: exports an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) of the raw binary contents of the file
-- `.txt`: Exports a string of the file contents
+- `.txt`: exports a string of the file contents
 
 All module types export a single default value. Modules can be imported both from server-side rendered pages, or from prerendered pages for static site generation.
 
@@ -484,13 +487,12 @@ import { Buffer } from 'node:buffer';
 
 You'll also need to modify the `vite` configuration in your Astro config to allow for the `node:*` import syntax:
 
-```js title="astro.config.mjs" ins={7-11}
+```js title="astro.config.mjs" ins={6-10}
 import {defineConfig} from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({}),
-  output: 'server',
   vite: {
 		ssr: {
 			external: ['node:buffer'],
@@ -527,10 +529,9 @@ Developing with [`wrangler`](https://developers.cloudflare.com/workers/wrangler/
 
 Currently, errors during running your application in Wrangler are not very useful, due to the minification of your code. For better debugging, you can add `vite.build.minify = false` setting to your `astro.config.mjs`.
 
-```js title="astro.config.mjs" ins={4-8}
+```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
   adapter: cloudflare(),
-  output: 'server',
   vite: {
     build: {
       minify: false,

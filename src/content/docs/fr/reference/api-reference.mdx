@@ -826,6 +826,199 @@ Si c'est vrai, le cookie n'est défini que sur les sites https.
 
 Permet de personnaliser la façon dont le cookie est sérialisé.
 
+### `session`
+
+<p>
+
+**Type :** `AstroSession`
+
+<Since v="5.7.0" />
+
+</p>
+
+`session` est un objet qui permet de stocker des données entre les requêtes pour [les routes rendues à la demande](/fr/guides/on-demand-rendering/). Il est associé à un cookie qui contient uniquement l'ID de session : les données elles-mêmes ne sont pas stockées dans le cookie.
+
+La session est créée lors de la première utilisation et le cookie de session est automatiquement défini. L'objet `session` a pour valeur `undefined` si aucun stockage de session n'a été configuré, ou si la route actuelle est pré-rendue, et enregistrera une erreur si vous essayez de l'utiliser.
+
+Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations sur la façon d'utiliser les sessions dans votre projet Astro.
+
+#### `get()`
+
+<p>
+
+**Type** : `(key: string) => Promise<any>`
+
+</p>
+
+Renvoie la valeur de la clé donnée dans la session. Si la clé n'existe pas, la fonction renvoie `undefined`.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/components/Cart.astro" "Astro.session?.get('cart')"
+    ---
+    const cart = await Astro.session?.get('cart');
+    ---
+    <button>🛒 {cart?.length}</button>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/cart.ts" "session.get('cart')"
+    import type { APIContext } from 'astro';
+
+    export async function GET({ session }: APIContext) {
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `set()`
+
+<p>
+
+**Type** : `(key: string, value: any, options?: { ttl: number }) => void`
+
+</p>
+
+Définit la valeur de la clé donnée dans la session. Cette valeur peut être de tout type sérialisable. Cette méthode est synchrone et la valeur est immédiatement disponible pour récupération, mais elle n'est enregistrée dans le backend qu'à la fin de la requête.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/products/[slug].astro" "Astro.session?.set('lastViewedProduct', slug)"
+    ---
+    const { slug } = Astro.params;
+    Astro.session?.set('lastViewedProduct', slug);
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session, request }: APIContext) {
+      const cart = await session.get('cart');
+      const newItem = await request.json();
+      cart.push(newItem);
+      // Enregistrer le panier mis à jour dans la session
+      session.set('cart', cart);
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `regenerate()`
+
+<p>
+
+**Type** : `() => void`
+
+</p>
+
+Régénère l'ID de session. Appelez cette fonction lorsqu'un utilisateur se connecte ou augmente ses privilèges, afin d'éviter les attaques par fixation de session.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/welcome.astro" "Astro.session?.regenerate()"
+    ---
+    Astro.session?.regenerate();
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/login.ts" "session.regenerate()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      // Authentifier l'utilisateur...
+      doLogin();
+      // Régénérer l'ID de session pour empêcher les attaques de fixation de session
+      session.regenerate();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `destroy()`
+
+<p>
+
+**Type** : `() => void`
+
+</p>
+
+Détruit la session en supprimant le cookie et l'objet du backend. Appelez cette fonction lorsqu'un utilisateur se déconnecte ou que sa session est invalidée.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/logout.astro" "Astro.session?.destroy()"
+    ---
+    Astro.session?.destroy();
+    return Astro.redirect('/login');
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/logout.ts" "session.destroy()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      session.destroy();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `load()`
+
+<p>
+
+**Type** : `(id: string) => Promise<void>`
+</p>
+
+Charge une session par identifiant. En utilisation normale, une session est chargée automatiquement à partir du cookie de requête. Utilisez cette méthode pour charger une session à partir d'un identifiant différent. Ceci est utile si vous gérez vous-même l'identifiant de session ou si vous souhaitez suivre une session sans utiliser de cookies.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
+    ---
+    // Charger la session à partir d'un en-tête au lieu de cookies
+    const sessionId = Astro.request.headers.get('x-session-id');
+    await Astro.session?.load(sessionId);
+    const cart = await Astro.session?.get('cart');
+    ---
+    <h1>Votre panier</h1>
+    <ul>
+      {cart?.map((item) => (
+        <li>{item.name}</li>
+      ))}
+    </ul>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
+    import type { APIRoute } from 'astro';
+
+    export const GET: APIRoute = async ({ session, request }) => {
+      // Charger la session à partir d'un en-tête au lieu de cookies
+      const sessionId = request.headers.get('x-session-id');
+      await session.load(sessionId);
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    };
+    ```
+
+  </TabItem>
+
+</Tabs>
+
 
 ### Propriétés d'objet obsolètes
 
