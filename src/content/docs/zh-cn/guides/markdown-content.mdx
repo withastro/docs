@@ -12,7 +12,7 @@ import RecipeLinks from "~/components/RecipeLinks.astro";
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-[Markdown](https://daringfireball.net/projects/markdown/) 通常用于创作文本繁重的内容，如博客文章和文档。Astro 包括对 Markdown 文件的内置支持，这些文件还可以包括 [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) 来定义自定义属性，例如标题、描述和标签。
+[Markdown](https://daringfireball.net/projects/markdown/) 通常用于创作文本繁重的内容，如博客文章和文档。Astro 包括对 Markdown 文件的内置支持，这些文件还可以包括 [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f)（或 [TOML](https://toml.io)）来定义自定义属性，例如标题、描述和标签。
 
 在 Astro 中，你可以在 [GitHub 风格的 Markdown](https://github.github.com/gfm/) 中创作内容，然后在 `.astro` 组件中渲染它。它结合了为内容设计熟悉的书写格式、 Astro 组件语法以及架构的灵活性。
 
@@ -22,11 +22,17 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## 组织 Markdown 文件
 
-你的本地 Markdown 文件可以保存在 `src/` 目录中的任何位置。要将单个本地的 Markdown 文件的导入到 `.astro` 组件，可以使用 `import` 语句来实现，而要想一次性查询多个文件，则可以使用 Vite 的 [`import.meta.glob()`](/zh-cn/guides/imports/#importmetaglob)。
+你的本地 Markdown 文件可以保存在 `src/` 目录中的任何位置。在 `src/pages/` 目录下的 Markdown 文件将会自动生成 [Markdown 页面于你的网页上](#单独的-markdown-页面)。
+
+你的 Markdown 内容和 frontmatter 属性都可以通过 [本地文件导入](#导入-markdown) 来在组件中加以使用，或者当 [使用内容集合助手函数来查询和渲染数据请求](#来自内容集合查询的-markdown) 时也能使用。
+
+### 文件导入 vs 内容集合查询
+
+要将单个本地的 Markdown 文件的导入到 `.astro` 组件，可以使用 `import` 语句来实现，而要想一次性查询多个文件，则可以使用 Vite 的 [`import.meta.glob()`](/zh-cn/guides/imports/#importmetaglob)。[从这些 Markdown 文件中导出的数据](#导入-markdown) 都可以在 `.astro` 组件中使用。
 
 如果你有一组相关的 Markdown 文件，可以考虑 [将它们定义为集合](/zh-cn/guides/content-collections/)。这将为你提供一些便利，其中包括了能够将 Markdown 文件存储在文件系统上的任何位置或使用远程存储。
 
-集合还允许你使用专注于内容的优化 API 来查询和呈现你的内容。集合适用于共享相同结构的数据集，例如博客文章或产品项。当你在 schema 中定义集合时，还可以在编辑器中获得验证、类型安全和智能提示。
+集合使用专注于内容的优化 API 来 [查询和渲染你的 Markdown 内容](#来自内容集合查询的-markdown)，这种方式代替了文件导入。集合适用于共享相同结构的数据集，例如博客文章或产品项。当你在 schema 中定义集合时，还可以在编辑器中获得验证、类型安全和智能提示。
 
 <ReadMore>了解更多有关 [什么时候使用内容集合](/zh-cn/guides/content-collections/#何时创建集合) 来代替文件导入。</ReadMore>
 
@@ -34,7 +40,7 @@ import { Steps } from '@astrojs/starlight/components';
 
 导入或查询 Markdown 文件后，你可以在 `.astro` 组件中编写包含 frontmatter 数据和正文内容的动态 HTML 模板。
 
-```md title="src/posts/great-post.md"
+```md title="src/pages/posts/great-post.md"
 ---
 title: '有史以来最好的文章'
 author: 'Ben'
@@ -45,8 +51,8 @@ author: 'Ben'
 
 ```astro title="src/pages/my-posts.astro"
 ---
-import * as greatPost from '../posts/great-post.md';
-const posts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
 ---
 
 <p>{greatPost.frontmatter.title}</p>
@@ -60,11 +66,14 @@ const posts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
 
 ### 可用属性
 
-#### 查询集合
+#### 来自内容集合查询的 Markdown
 
-当通过辅助函数从集合中获取数据时，Markdown 的 frontmatter 属性在 `data` 对象（例如 `post.data.title`）上可用。此外，`body` 包含了 Markdown 的正文内容，这部分内容是原始的、未编译的字符串类型。
+当你从自己的集合使用助手函数 `getCollection()` 或 `getEntry()` 来请求数据时，你的 Markdown 的 frontmatter 属性都在一个可用的 `data` 对象之中（例如 `post.data.title`）。此外，`body` 包含了 Markdown 的正文内容，这部分内容是原始的、未编译的字符串类型。
 
-<ReadMore>请参阅完整的 [集合条目类型](/zh-cn/reference/modules/astro-content/#collectionentry)。</ReadMore>
+[`render()`](/zh-cn/reference/modules/astro-content/#render) 函数将返回你的 Markdown 正文内容、生成的标题列表，以及应用了 remark 或 rehype 插件修改之后的 frontmatter 对象。
+
+
+<ReadMore>详细了解 [使用集合查询返回的内容](/zh-cn/guides/content-collections/#在-astro-模板中使用内容)。</ReadMore>
 
 #### 导入 Markdown
 
@@ -146,7 +155,7 @@ Astro 基于 `github-slugger` 生成标题 `id`。你可以在 [github-slugger �
 
 ### 标题 ID 与插件
 
-Astro 将 `id` 属性注入到 Markdown 和 MDX 文件中的所有标题元素（`<h1>` 到 `<h6>`）中，并提供 `getHeadings()` 工具函数来检索 [Markdown 导出属性](#可用属性) 中的这些 ID。
+Astro 将 `id` 属性注入到 Markdown 和 MDX 文件中的所有标题元素（`<h1>` 到 `<h6>`）中。当你通过文件导入的方式来 [导出 Markdown 的属性](#可用属性) 时，或者在 [使用从内容集合查询返回的 Markdown 内容](#来自内容集合查询的-markdown) 时，你都可以从 `getHeadings()` 工具中检索到这些数据。
 
 你可以通过添加注入 `id` 属性的 rehype 插件（例如 `rehype-slug`）来自定义这些标题 ID。你的自定义 ID 将替代 Astro 的默认 ID，反映在 HTML 输出和 `getHeadings()` 返回的数组中。
 

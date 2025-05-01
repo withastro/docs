@@ -17,14 +17,14 @@ import ReadMore from "~/components/ReadMore.astro"
 Astro 5.0 引入了内容层（Content Layer）API，用于定义和查询内容集。这个高性能、可扩展的 API 为本地集合提供了内置的内容加载器（content loaders）。对于远程内容，你可以使用第三方和社区构建的加载器，或者创建自己的自定义加载器，从任何来源拉取数据。
 
 :::note
-项目可以继续使用 Astro v2.0 中引入的传统内容集合 API。但是，我们鼓励尽可能 [更新任何现有集合](/zh-cn/guides/upgrade-to/v5/#legacy-v20-content-collections-api)。
+项目可以继续使用 Astro v2.0 中引入的传统内容集合 API。但是，我们鼓励尽可能 [更新任何现有集合](/zh-cn/guides/upgrade-to/v5/#旧版v20-内容集合-api)。
 :::
 
 ## 什么是内容集合？
 
 你可以从结构相似的数据集中定义一个**集合**。这可以是一个博客文章的目录，一个产品项目的 JSON 文件，或者任何代表相同形状的多个项目的数据。
 
-本地存储在项目中或文件系统上的集合可以包含 Markdown、MDX、Markdoc 或 JSON 文件的条目：
+本地存储在项目中或文件系统上的集合可以包含 Markdown、MDX、Markdoc、YAML 或 JSON 文件的条目：
 
 <FileTree>
 - src/
@@ -85,11 +85,11 @@ export const collections = { blog, dogs };
 
 #### 内置的加载器
 
-Astro 提供了两个内置的加载器函数（`glob()` 和 `file()`）用于获取本地内容，也可以通过 API 来构建自己的加载器并请求远程数据。
+Astro 提供了 [两个内置的加载器函数（`glob()` 和 `file()`）](/zh-cn/reference/content-loader-reference/#内置的加载器) 用于获取本地内容，也可以通过 API 来构建自己的加载器并请求远程数据。
 
-`glob()` 加载器可以从文件系统的任何地方创建 Markdown、MDX、Markdoc 或 JSON 文件的目录条目。它接受一个匹配条目文件的 `pattern`，以及你的文件所在的 `base` 文件路径。每个条目的 `id` 将从其文件名自动生成。当每个条目对应一个文件时，请使用此加载器。
+[`glob()` 加载器](/zh-cn/reference/content-loader-reference/#glob-加载器) 可以从文件系统的任何地方创建 Markdown、MDX、Markdoc、JSON 或 YAML 文件的目录条目。它基于 [micromatch](https://github.com/micromatch/micromatch#matching-features) 的 glob 模式支持来接受一个匹配条目文件的 `pattern`，以及你的文件所在的 `base` 文件路径。每个条目的 `id` 将从其文件名自动生成。当每个条目对应一个文件时，请使用此加载器。
 
-`file()` 加载器从单个本地文件创建多个条目。文件中的每个条目必须有一个唯一的 `id` 键属性。它接受一个 相对你的文件的 `base` 文件路径，以及一个可选的 [`parser` 函数](#parser-函数) 用于它无法自动解析的数据文件。当你的数据文件可以解析为对象数组时，请使用此加载器。
+[`file()` 加载器](/zh-cn/reference/content-loader-reference/#file-加载器) 从单个本地文件创建多个条目。文件中的每个条目必须有一个唯一的 `id` 键属性。它接受一个 相对你的文件的 `base` 文件路径，以及一个可选的 [`parser` 函数](#parser-函数) 用于它无法自动解析的数据文件。当你的数据文件可以解析为对象数组时，请使用此加载器。
 
 ```ts  title="src/content.config.ts" {5,9}
 import { defineCollection, z } from 'astro:content';
@@ -97,12 +97,11 @@ import { glob, file } from 'astro/loaders'; // 不适用于旧版 API
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
-  schema: /* ... */ 
+  schema: /* ... */
 });
 const dogs = defineCollection({
   loader: file("src/data/dogs.json"),
-  schema: /* ... */ 
-  }),
+  schema: /* ... */
 });
 
 const probes = defineCollection({
@@ -298,12 +297,13 @@ defineCollection({
 
 集合条目还可以“引用”其他相关条目。这对于在集合模式中定义属性引用其他集合的条目非常有用。
 
-使用集合 API 中的 `reference()` 函数，你可以将集合模式中的属性定义为来自另一个集合的条目。例如，你可以要求每个 `space-shuttle` 条目都包含一个 `pilot` 属性，该属性使用 `pilot` 集合自己的模式进行类型检查、自动补全和验证。
+使用集合 API 中的 [`reference()` 函数](/zh-cn/reference/modules/astro-content/#reference)，你可以将集合模式中的属性定义为来自另一个集合的条目。例如，你可以要求每个 `space-shuttle` 条目都包含一个 `pilot` 属性，该属性使用 `pilot` 集合自己的模式进行类型检查、自动补全和验证。
 
 一个常见的例子是一个引用存储为 JSON 的可重用作者配置文件的博客文章，或者存储在同一集合中的相关文章 URL：
 
 ```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
@@ -338,6 +338,8 @@ relatedPosts:
 - my-year-in-review # references `src/data/blog/my-year-in-review.md`
 ---
 ```
+
+这些引用将被转换为包含 `collection` 键和 `id` 键的对象，使你可以轻松地[在模板中查询它们](/zh-cn/guides/content-collections/#访问引用数据)。
 
 ### 定义自定义 ID
 
@@ -403,13 +405,17 @@ const posts = await getCollection('blog');
 ```
 #### 渲染正文内容
 
-查询后，你可以使用 `render()` 函数属性将 Markdown 和 MDX 条目渲染为 HTML。调用此函数将使你可以访问渲染的 HTML 内容，包括 `<Content />` 组件和所有已渲染标题的列表。
+查询后，你可以使用 [`render()`](/zh-cn/reference/modules/astro-content/#render) 函数属性将 Markdown 和 MDX 条目渲染为 HTML。调用此函数将使你可以访问渲染的 HTML 内容，包括 `<Content />` 组件和所有已渲染标题的列表。
 
 ```astro title="src/pages/blog/post-1.astro" {5,8}
 ---
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('blog', 'post-1');
+if (!entry) {
+  // 处理错误，例如：
+  throw new Error('Could not find blog post 1');
+}
 const { Content, headings } = await render(entry);
 ---
 <p>Published on: {entry.data.published.toDateString()}</p>
@@ -470,7 +476,7 @@ const englishDocsEntries = await getCollection('docs', ({ id }) => {
 
 ### 访问引用数据
 
-首次查询集合条目后，必须单独查询 [模式中定义的任何引用](/zh-cn/guides/content-collections/#定义集合引用)。你可以使用 `getEntry()` 函数返回单个引用项，或者使用 `getEntries()` 从返回的 `data` 对象中检索多个引用条目。
+首次查询集合条目后，必须单独查询 [模式中定义的任何引用](/zh-cn/guides/content-collections/#定义集合引用)。由于 [`reference()` 函数](/zh-cn/reference/modules/astro-content/#reference) 将一个引用转换为包含 `collection` 和 `id` 作为键的对象，你可以使用 `getEntry()` 函数返回单个引用项，或者使用 `getEntries()` 从返回的 `data` 对象中检索多个引用条目。
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -478,9 +484,10 @@ import { getEntry, getEntries } from 'astro:content';
 
 const blogPost = await getEntry('blog', 'welcome');
 
-// 解析单一引用
+// 解析单一引用(例如：`{collection: "authors", id: "ben-holmes"}`)
 const author = await getEntry(blogPost.data.author);
 // 解析引用数组
+// (例如：`[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ---
 

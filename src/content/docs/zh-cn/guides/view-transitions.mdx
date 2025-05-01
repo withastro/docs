@@ -1,16 +1,14 @@
 ---
 title: 视图过渡动画
-description: >-
-  在 Astro 中通过视图过渡动画实现页面之间的无缝导航。
+description: 在 Astro 中通过视图过渡动画实现页面之间的无缝导航。
 i18nReady: true
 ---
-
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
-Astro 仅需几行代码就可以支持**可选择的，每个页面的视图过渡动画**。视图过渡动画可以在不刷新浏览器的情况下更新页面内容，并在页面之间提供无缝的动画效果。
+Astro 仅需几行代码就可以支持视图过渡动画。视图过渡动画可以在不刷新浏览器的情况下更新页面内容，并在页面之间提供无缝的动画效果。而那些对 [View Transition API 缺少支持的浏览器](https://developer.mozilla.org/zh-CN/docs/Web/API/View_Transition_API#浏览器兼容性)，Astro 允许你 [控制回退策略](#回退控制)，来为所有访客提供最佳的体验。
 
-Astro 提供了一个 `<ViewTransitions />` 路由组件，可以添加到单个页面的 `<head>` 中，以控制页面在导航到另一个页面时的过渡效果。它提供了一个轻量级的客户端路由器，[拦截导航](#客户端导航流程) 并允许你自定义页面之间的过渡效果。
+Astro 提供了一个 `<ClientRouter />` 路由组件，可以添加到单个页面的 `<head>` 中，以控制页面在导航到另一个页面时的过渡效果。它提供了一个轻量级的客户端路由器，[拦截导航](#客户端导航流程) 并允许你自定义页面之间的过渡效果。
 
 将此组件添加到一个可复用的 `.astro` 组件中，例如公共头部或布局组件，以便 [在整个站点上实现动画页面过渡（SPA 模式）](#整站视图过渡动画spa-模式)。
 
@@ -23,23 +21,22 @@ Astro 的视图过渡动画支持由新的 [View Transitions](https://developer.
 - 对于尚未支持视图过渡动画 API 的浏览器，可以 [控制回退行为](#回退控制)。
 - 自动支持 [`prefers-reduced-motion`](#prefers-reduced-motion)。
 
-
 :::note
 默认情况下，每个页面都将使用常规的、全页的浏览器导航。你必须选择视图过渡动画，并且可以在每个页面或整个站点上使用它们。
 :::
 
 ## 向页面添加视图过渡动画
 
-通过在每个页面的 `<head>` 中导入和添加 `<ViewTransitions />` 路由组件，可以选择在单个页面上使用视图过渡动画。
+通过在每个页面的 `<head>` 中导入和添加 `<ClientRouter />` 路由组件，可以选择在单个页面上使用视图过渡动画。
 
 ```astro title="src/pages/index.astro" ins={2,7}
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from "astro:transitions";
 ---
 <html lang="en">
   <head>
     <title>我的主页</title>
-    <ViewTransitions />
+    <ClientRouter />
   </head>
   <body>
     <h1>欢迎来到我的网站！</h1>
@@ -49,13 +46,13 @@ import { ViewTransitions } from 'astro:transitions';
 
 ## 整站视图过渡动画（SPA 模式）
 
-导入 `<ViewTransitions />` 组件并将其添加到公共 `<head>` 或共享布局组件中。Astro 将根据旧页面和新页面之间的相似之处创建默认的页面动画，并为不支持的浏览器提供回退行为。
+导入 `<ClientRouter />` 组件并将其添加到公共 `<head>` 或共享布局组件中。Astro 将根据旧页面和新页面之间的相似之处创建默认的页面动画，并为不支持的浏览器提供回退行为。
 
 下面的示例显示了如何通过导入和添加此组件到 `<CommonHead />` Astro 组件中，为不支持的浏览器提供默认的页面导航动画，包括默认的回退控制选项，从而在整个站点上添加 Astro 的默认页面导航动画：
 
 ```astro title="src/components/CommonHead.astro" ins={2,12}
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from "astro:transitions";
 ---
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
@@ -65,7 +62,7 @@ import { ViewTransitions } from 'astro:transitions';
 <meta name="title" content={title} />
 <meta name="description" content={description} />
 
-<ViewTransitions />
+<ClientRouter />
 ```
 
 无需其他配置即可启用 Astro 的默认客户端导航！
@@ -105,8 +102,11 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 例如，以下 `<video>` 元素在你导航到包含相同视频元素的另一个页面时仍然会继续播放。这适用于前进和后退导航。
 
 ```astro title="src/components/Video.astro" "transition:persist"
-<video controls="" autoplay="" transition:persist>
-	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+<video controls muted autoplay transition:persist>
+  <source
+    src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4"
+    type="video/mp4"
+  />
 </video>
 ```
 
@@ -124,21 +124,34 @@ Astro 会自动为在旧页面和新页面中找到的相应元素并分配一�
 
 如果岛屿（或元素）在两个页面之间位于不同的组件中，你也可以[手动标识相应的元素](#命名过渡动画)。
 
-```astro title="src/pages/old-page.astro" "Video" 'transition:name="media-player"'
-<Video controls="" autoplay="" transition:name="media-player" transition:persist />
+```astro title="src/pages/old-page.astro" "video" 'transition:name="media-player"'
+<video
+  controls
+  muted
+  autoplay
+  transition:name="media-player"
+  transition:persist
+/>
 ```
 
 ```astro title="src/pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
-<MyVideo controls="" autoplay="" transition:name="media-player" transition:persist />
+<MyVideo
+  controls
+  muted
+  autoplay
+  transition:name="media-player"
+  transition:persist
+/>
 ```
 
 作为一种便捷的方式，`transition:persist` 还可以将过渡动画名称作为值传入。
 
-```astro title="src/pages/index.astro" '="media-player"'
-<video controls="" autoplay="" transition:persist="media-player">
+```astro title="src/pages/index.astro" 'transition:persist="media-player"'
+<video controls muted autoplay transition:persist="media-player">
 ```
 
 #### `transition:persist-props`
+
 <p><Since v="4.5.0" /></p>
 
 这允许你控制在导航时是否应该保持岛屿的 props。
@@ -162,7 +175,7 @@ Astro 提供了一些内置的动画选项，用于覆盖默认的 `fade` 过渡
 
 ```astro
 ---
-import CommonHead from '../components/CommonHead.astro';
+import CommonHead from "../components/CommonHead.astro";
 ---
 
 <html transition:name="root" transition:animate="none">
@@ -191,10 +204,9 @@ import CommonHead from '../components/CommonHead.astro';
 
 ```astro
 ---
-import { fade } from 'astro:transitions';
+import { fade } from "astro:transitions";
 ---
-
-<header transition:animate={fade({ duration: '0.4s' })}>
+<header transition:animate={fade({ duration: "0.4s" })}>
 ```
 
 你还可以通过定义前进和后退行为以及新旧页面来为 `transition:animate` 定义自己的动画，具体类型如下所示：
@@ -224,11 +236,11 @@ export interface TransitionDirectionalAnimations {
 
 ```astro title="src/layouts/Layout.astro"
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from "astro:transitions";
 ---
 <html lang="en">
   <head>
-    <ViewTransitions />
+    <ClientRouter />
   </head>
   <body>
     <slot />
@@ -258,15 +270,15 @@ import { ViewTransitions } from 'astro:transitions';
 ---
 const anim = {
   old: {
-    name: 'bump',
-    duration: '0.5s',
-    easing: 'ease-in',
-    direction: 'reverse',
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in",
+    direction: "reverse",
   },
   new: {
-    name: 'bump',
-    duration: '0.5s',
-    easing: 'ease-in-out',
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in-out",
   },
 };
 const customTransition = {
@@ -281,7 +293,7 @@ const customTransition = {
 
 ## 路由器控制
 
-`<ViewTransitions />` 路由器通过监听以下事件来处理导航：
+`<ClientRouter />` 路由器通过监听以下事件来处理导航：
 
 - 点击 `<a>` 元素。
 - 后退和前进导航事件。
@@ -294,9 +306,9 @@ const customTransition = {
 
 ### 阻止客户端导航
 
-只有关联的两个页面都使用了 `<ViewTransitions />` 路由器才能通过客户端路由进行导航，防止重新加载全页面。你可能也不希望在每次导航更改时都使用客户端路由，而是更希望在特定路由上进行传统的页面导航。
+只有关联的两个页面都使用了 `<ClientRouter />` 路由器才能通过客户端路由进行导航，防止重新加载全页面。你可能也不希望在每次导航更改时都使用客户端路由，而是更希望在特定路由上进行传统的页面导航。
 
-你可以通过将 `data-astro-reload` 属性添加到任何 `<a>` 或 `<form>` 标签中，为单个链接选择不使用客户端路由器。此属性将覆盖任何现有的 `<ViewTransitions />` 组件，而是在导航期间触发浏览器刷新。
+你可以通过将 `data-astro-reload` 属性添加到任何 `<a>` 或 `<form>` 标签中，为单个链接选择不使用客户端路由器。此属性将覆盖任何现有的 `<ClientRouter />` 组件，而是在导航期间触发浏览器刷新。
 
 以下示例显示了仅从主页导航到文章时如何阻止客户端路由器。这样，当从文章列表页面导航到同一页面时，仍然可以对共享元素（例如主视觉图）进行动画处理：
 
@@ -312,14 +324,15 @@ const customTransition = {
 
 ### 触发导航
 
-你还可以使用 `navigate` 方法在通常不被 `<ViewTransitions />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
+你还可以使用 `navigate` 方法在通常不被 `<ClientRouter />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
 
 下面的示例展示了一个当访客选择菜单中的选项时导航到另一个页面的 Astro 组件：
+
 ```astro title="src/components/Form.astro"
 <script>
-  import { navigate } from 'astro:transitions/client';
+  import { navigate } from "astro:transitions/client";
   // 自动导航到所选选项
-  document.querySelector('select').onchange = (event) => {
+  document.querySelector("select").onchange = (event) => {
     let href = event.target.value;
     navigate(href);
   };
@@ -331,14 +344,15 @@ const customTransition = {
   <option value="/contact">Contact</option>
 </select>
 ```
+
 ```astro title="src/pages/index.astro"
 ---
 import Form from "../components/Form.astro";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 ---
 <html>
 	<head>
-		<ViewTransitions />
+		<ClientRouter />
 	</head>
 	<body>
 		<Form />
@@ -362,16 +376,17 @@ export default function Form() {
   );
 }
 ```
-这个 `<Form />` 组件可以在使用 `<ViewTransitions />` 路由器的 Astro 页面上带着客户端指令渲染：
+
+这个 `<Form />` 组件可以在使用 `<ClientRouter />` 路由器的 Astro 页面上带着客户端指令渲染：
 
 ```astro title="src/pages/index.astro"
 ---
 import Form from "../components/Form.jsx";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 ---
 <html>
 	<head>
-		<ViewTransitions />
+		<ClientRouter />
 	</head>
 	<body>
 		<Form client:load />
@@ -383,11 +398,11 @@ import { ViewTransitions } from "astro:transitions";
 
 -  `href`（必需项）- 要导航到的新页面。
 -  `options` - 一个可选的对象，具有以下属性：
-	- `history`: `'push'` | `'replace'` | `'auto'`
-		- `'push'`: 路由器将使用 `history.pushState` 在浏览器历史中创建一个新条目。
-		- `'replace'`: 路由器将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
-		- `'auto'`（默认）: 路由器将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
-  - `formData`: 一个 `POST` 请求的 FormData 对象。
+	- `history`: `"push"` | `"replace"` | `"auto"`
+		- `"push"`: 路由器将使用 `history.pushState` 在浏览器历史中创建一个新条目。
+		- `"replace"`: 路由器将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
+		- `"auto"`（默认）: 路由器将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
+  - `formData`: 一个 `POST` 请求的 [`FormData`](https://developer.mozilla.org/zh-CN/docs/Web/API/FormData) 对象。
 
 要想通过浏览器的历史记录进行后退和前进导航，你可以将 `navigate()` 与浏览器内置的 `history.back()`、`history.forward()` 和 `history.go()` 等函数结合使用。如果 `navigate()` 在服务器渲染时被调用，它不会有任何效果。
 
@@ -395,11 +410,12 @@ import { ViewTransitions } from "astro:transitions";
 
 通常情况下，你每次导航时都会在浏览器的历史记录中写入一个新条目。这样可以使用浏览器的 `back` 和 `forward` 按钮在页面之间导航。
 
-`<ViewTransitions />` 路由器器允许你通过向任何单独的 `<a>` 标签添加 `data-astro-history` 属性来覆盖历史记录条目。
+`<ClientRouter />` 路由器器允许你通过向任何单独的 `<a>` 标签添加 `data-astro-history` 属性来覆盖历史记录条目。
 
-`data-astro-history` 属性可以设置为与 [`navigate()` 函数的 `history` 选项](#触发导航) 相同的三个值：
+`data-astro-history` 属性可以设置为与 [`navigate()` 函数的 `history` 选项](#触发导航)相同的三个值：
 
-`data-astro-history`: `'push'` | `'replace'` | `'auto'`
+`data-astro-history`: `"push"` | `"replace"` | `"auto"`
+
 -  `'push'`：路由器将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
 -  `'replace'`：路由器将使用 `history.replaceState` 更新 URL 而不添加新的导航条目。
 -  `'auto'`（默认值）：路由器将尝试使用 `history.pushState`，但是如果 URL 不能进行过渡，则当前 URL 将保持不变，并且浏览器历史记录也不会发生任何变更。
@@ -416,41 +432,50 @@ import { ViewTransitions } from "astro:transitions";
 
 <p><Since v="4.0.0" /></p>
 
-`<ViewTransitions />` 路由器将从 `<form>` 元素触发页面内的转换，支持 `GET` 和 `POST` 请求。
+`<ClientRouter />` 路由器将从 `<form>` 元素触发页面内的转换，支持 `GET` 和 `POST` 请求。
 
 默认情况下，当你的 `method` 设置为 `POST` 时，Astro 会将表单数据提交为 `multipart/form-data`。如果你想要匹配浏览器的默认行为，请使用 `enctype` 属性将你的数据编码为 `application/x-www-form-urlencoded`：
 
 ```astro title="src/components/Form.astro"
-<form action="/contact" method="POST" enctype="application/x-www-form-urlencoded">
-  <!-- -->
-</form>
+<form
+  action="/contact"
+  method="POST"
+  enctype="application/x-www-form-urlencoded"
+>
 ```
 
 你可以使用 `data-astro-reload` 属性在任何单独的表单上选择退出路由器视图过渡动画：
 
 ```astro title="src/components/Form.astro"
 <form action="/contact" data-astro-reload>
-  <!-- -->
-</form>
 ```
 
 ## 回退控制
 
-`<ViewTransitions />` 路由器在支持视图过渡动画的浏览器（如 Chromium 浏览器）中表现最佳，但也包含了对其他浏览器的默认回退支持。即当浏览器不支持视图过渡动画 API 时，Astro 仍将提供基于浏览器的导航，使用其中一种回退选项来实现类似的效果。
+`<ClientRouter />` 路由器在支持视图过渡动画的浏览器（如 Chromium 浏览器）中表现最佳，但也包含了对其他浏览器的默认回退支持。即使当浏览器不支持视图过渡动画 API 时，Astro 的客户端路由仍然可以使用其中一个回退选项提供来浏览器导航。
 
-你可以通过在 `<ViewTransitions />` 组件上添加一个名为 `fallback` 的属性，并将其设置为 `swap` 或 `none`，来覆盖 Astro 的默认回退支持：
+根据浏览器的支持情况，你可能需要在元素上明确的设置 `name` 或者 `animate`、[`transition` 指令](#过渡动画指令) 以便在所有浏览器中获得相近的动画体验。
 
--  `animate`（默认，推荐使用）- Astro 将在更新页面内容之前使用自定义属性模拟视图过渡动画。
--  `swap` - Astro 不会尝试进行页面动画效果。相反，旧页面将立即被新页面替换。
--  `none` - Astro 将不进行任何页面过渡动画。在不支持的浏览器中，你将获得全量的页面导航。
+```astro title="src/pages/about.astro"
+---
+import Layout from "../layouts/LayoutUsingClientRouter.astro";
+---
+<title transition:animate="fade">关于我的网站</title>
+```
+
+你可以通过在 `<ClientRouter />` 组件上添加一个名为 `fallback` 的属性，并将其设置为 `swap` 或 `none`，来覆盖 Astro 的默认回退支持：
+
+-  `animate`（默认，推荐使用）：Astro 将在更新页面内容之前使用自定义属性模拟视图过渡动画。
+-  `swap` ：Astro 不会尝试进行页面动画效果。相反，旧页面将立即被新页面替换。
+-  `none` ：Astro 将不进行任何页面过渡动画。在不支持的浏览器中，你将获得全量的页面导航。
 
 ```astro
 ---
-import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from "astro:transitions";
 ---
 <title>My site</title>
 
-<ViewTransitions fallback="swap" />
+<ClientRouter fallback="swap" />
 ```
 
 :::note[已知限制]
@@ -459,7 +484,7 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 ## 客户端导航流程
 
-当 `<ViewTransitions />` 路由器被使用时，以下步骤将会产生 Astro 的客户端导航：
+当 `<ClientRouter />` 路由器被使用时，以下步骤将会产生 Astro 的客户端导航：
 
 <Steps>
 1. 一个访客通过以下任何操作触发导航：
@@ -467,14 +492,14 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
     - 点击后退按钮。
     - 点击前进按钮。
 2. 路由器开始获取下一个页面。
-3. 路由器将 `data-astro-transition` 属性添加到 HTML 元素中，并将其值设置为 `'forward'` 或 `'back'`。
-4. 路由器调用 `document.startViewTransition`。这将触发浏览器自己的 [视图过渡动画流程](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API#the_view_transition_process)。重要的是，浏览器会对页面的当前状态进行截图。
+3. 路由器将 `data-astro-transition` 属性添加到 HTML 元素中，并将其值设置为 `"forward"` 或 `"back"`。
+4. 路由器调用 `document.startViewTransition`。这将触发浏览器自己的 [视图过渡动画流程](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#the_view_transition_process)。重要的是，浏览器会对页面的当前状态进行截图。
 5. 在 `startViewTransition` 回调中，路由器执行 __swap__，包括以下事件序列：
-    
+
     - `<head>` 的内容被交换，其中一些元素被保留：
-        - 如果新页面上存在，则保留样式表 DOM 节点，以防止 FOUC。
-        - 如果新页面上存在，则保留脚本。
-        - 如果新页面上存在对应的元素，则保留任何其他带有 `transition:persist` 的 head 元素。
+      - 如果新页面上存在，则保留样式表 DOM 节点，以防止 FOUC。
+      - 如果新页面上存在，则保留脚本。
+      - 如果新页面上存在对应的元素，则保留任何其他带有 `transition:persist` 的 head 元素。
     
     - `<body>` 被新页面的 `<body>` 完全替换。
     
@@ -495,7 +520,7 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 ### 脚本顺序
 
-在使用 `<ViewTransitions />` 组件导航页面时，脚本将按顺序运行以匹配浏览器行为。
+在使用 `<ClientRouter />` 组件导航页面时，脚本将按顺序运行以匹配浏览器行为。
 
 
 ### 脚本的重新执行
@@ -506,13 +531,27 @@ Astro 不会模拟 `initial` 浏览器动画。因此，任何使用此动画的
 
 通过视图过渡，某些脚本可能不再像浏览器整页刷新那样，在页面导航后重新运行。你可以监听多个 [客户端路由期间的事件](#生命周期事件)，并在事件发生时触发事件。你可以将现有脚本包装在事件监听器中，以确保它在导航周期中的正确时间运行。
 
-```js title="src/scripts/menu.js" ins={2,6}
-<script>
-document.addEventListener('astro:page-load', () => {
-  document.querySelector('.hamburger').addEventListener('click', () => {
-    document.querySelector('.nav-links').classList.toggle('expanded');
+以下示例将一个会动的 "汉堡" 菜单的脚本包装在了 `astro:page-load` 的事件监听器中，该事件监听器在页面导航结束时运行，以使菜单响应导航到新页面后的点击：
+
+```js title="src/scripts/menu.js" ins={1,5}
+document.addEventListener("astro:page-load", () => {
+  document.querySelector(".hamburger").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("expanded");
   });
 });
+```
+
+以下示例展示了一个响应 `astro:after-swap` 事件来运行的函数，该事件在新页面替换旧页面之后、DOM 元素绘制到屏幕之前立即触发。该示例通过在渲染新页面之前检查并设置暗色主题（如果有需要的话），来避免页面导航到亮色主题后出现屏闪的问题：
+
+```astro title="src/components/ThemeToggle.astro"
+<script is:inline>
+  function applyTheme() {
+    localStorage.theme === "dark"
+      ? document.documentElement.classList.add("dark")
+      : document.documentElement.classList.remove("dark");
+  }
+  document.addEventListener("astro:after-swap", applyTheme);
+  applyTheme(); 
 </script>
 ```
 
@@ -530,22 +569,22 @@ document.addEventListener('astro:page-load', () => {
 
 如果你有在内联脚本中设置了全局状态的代码，那么这个状态需要考虑到脚本可能会被执行多次的情况。在你的 `<script>` 标签中检查全局状态，并在可能的情况下有条件地执行你的代码。这是因为 `window` 对象是被保留的。
 
-
 ```astro
 <script is:inline>
   if (!window.SomeGlobal) {
-    window.SomeGlobal = {} // ....
+    window.SomeGlobal = {};
   }
 </script>
 ``` 
 
 ## 生命周期事件
 
-`<ViewTransition />` 路由器在导航期间在 `document` 上触发了许多事件。这些事件提供了导航生命周期的钩子，允许你做一些事情，例如显示新页面正在加载的指示器、覆盖默认行为以及在导航完成时恢复状态。
+`<ClientRouter />` 路由器在导航期间在 `document` 上触发了许多事件。这些事件提供了导航生命周期的钩子，允许你做一些事情，例如显示新页面正在加载的指示器、覆盖默认行为以及在导航完成时恢复状态。
 
 导航过程包括一个**准备**阶段，在此阶段加载新内容；一个**DOM 交换**阶段，在此阶段旧页面的内容被新页面的内容替换；以及一个**完成**阶段，在此阶段执行脚本，报告加载完成，并进行清理工作。
 
 Astro 的视图过渡动画 API 生命周期事件顺序如下：
+
 - [`astro:before-preparation`](#astrobefore-preparation)
 - [`astro:after-preparation`](#astroafter-preparation)
 - [`astro:before-swap`](#astrobefore-swap)
@@ -570,14 +609,14 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 - 更改加载内容，例如从模板中加载而不是从外部 URL 加载。
 - 在加载时更改 `direction`（通常为 `forward` 或 `backward`）以进行自定义动画。
 
-以下示例展示了如何在内容加载前使用 `astro:before-preparation` 事件加载一个加载指示器，并在加载完成后立即停止它。请注意，以这种方式使用加载器回调允许异步执行代码。
+以下示例展示了如何在内容加载前使用 `astro:before-preparation` 事件加载一个加载指示器，并在加载完成后立即停止它。请注意，以这种方式使用 `loader` 回调允许异步执行代码。
 
-```js
+```astro
 <script is:inline>
-  document.addEventListener('astro:before-preparation', event => {
+  document.addEventListener("astro:before-preparation", (event) => {
     const originalLoader = event.loader;
-    event.loader = async function() {
-      const { startSpinner } = await import('./spinner.js');
+    event.loader = async function () {
+      const { startSpinner } = await import("./spinner.js");
       const stop = startSpinner();
       await originalLoader();
       stop();
@@ -596,14 +635,15 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-preparation', () => {
-    document.querySelector('#loading').classList.add('show');
+  document.addEventListener("astro:before-preparation", () => {
+    document.querySelector("#loading").classList.add("show");
   });
-  document.addEventListener('astro:after-preparation', () => {
-    document.querySelector('#loading').classList.remove('show');
+  document.addEventListener("astro:after-preparation", () => {
+    document.querySelector("#loading").classList.remove("show");
   });
 </script>
 ```
+
 这是一个比上面显示的加载 spinner 更简单的版本：如果所有监听器的代码都可以同步执行，则无需进行加载器的回调。
 
 ### `astro:before-swap`
@@ -617,13 +657,13 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 ```astro
 <script is:inline>
   function setDarkMode(document) {
-    let theme = localStorage.darkMode ? 'dark' : 'light';
+    let theme = localStorage.darkMode ? "dark" : "light";
     document.documentElement.dataset.theme = theme;
   }
-
+  
   setDarkMode(document);
-
-  document.addEventListener('astro:before-swap', event => {
+  
+  document.addEventListener("astro:before-swap", (event) => {
     // 传入新文档以设置主题
     setDarkMode(event.newDocument);
   });
@@ -636,7 +676,7 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```astro
 <script is:inline>
-  document.addEventListener('astro:before-swap', event => {
+  document.addEventListener("astro:before-swap", (event) => {
     event.swap = () => {
       diff(document, event.newDocument);
     };
@@ -654,23 +694,22 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 ```astro
 <script>
-import { swapFunctions } from 'astro:transitions/client';
-
-// 用 doc 替换 window.document
-function mySwap(doc: Document) {
-  swapFunctions.deselectScripts(doc);
-  swapFunctions.swapRootAttributes(doc);
-  swapFunctions.swapHeadElements(doc);
-  const restoreFocusFunction = swapFunctions.saveFocus();
-  swapFunctions.swapBodyElement(doc.body, document.body);
-  restoreFocusFunction();
-};
-
-...
+  import { swapFunctions } from "astro:transitions/client";
+  
+  // 用 `doc` 替换 `window.document`
+  function mySwap(doc: Document) {
+    swapFunctions.deselectScripts(doc);
+    swapFunctions.swapRootAttributes(doc);
+    swapFunctions.swapHeadElements(doc);
+    const restoreFocusFunction = swapFunctions.saveFocus();
+    swapFunctions.swapBodyElement(doc.body, document.body);
+    restoreFocusFunction();
+  }
+  
   event.swap = () => mySwap(event.newDocument);
-...
 <script>
 ```
+
 自定义交换实现可以从这个模板开始，并根据需要添加或替换单个步骤的自定义逻辑。
 
 ### `astro:after-swap`
@@ -684,22 +723,23 @@ function mySwap(doc: Document) {
 `astro:after-swap` 事件发生在浏览器历史记录已更新并设置了滚动位置之后。因此，可以使用此事件的一个用途是覆盖默认的历史记录导航滚动恢复。以下示例将水平和垂直滚动位置重置为页面的左上角：
 
 ```js
-document.addEventListener('astro:after-swap', 
-  () => window.scrollTo({ left: 0, top: 0, behavior: 'instant' }))
+document.addEventListener("astro:after-swap", () =>
+  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+);
 ```
 
 ### `astro:page-load`
 
 在页面导航结束时触发的事件，在新页面对用户可见且阻塞样式和脚本加载完成后。你可以在 `document` 上监听此事件。
 
-`<ViewTransitions />` 组件在预渲染页面的初始页面导航以及任何后续导航（向前或向后）时都会触发此事件。
+`<ClientRouter />` 组件在预渲染页面的初始页面导航以及任何后续导航（向前或向后）时都会触发此事件。
 
 你可以使用此事件在每次页面导航时运行代码，或者只运行一次：
 
 ```astro "{ once: true }"
 <script>
-  document.addEventListener('astro:page-load', () => {
-    // This only runs once.
+  document.addEventListener("astro:page-load", () => {
+    // 仅运行一次。
     setupStuff();
   }, { once: true });
 </script>
@@ -713,9 +753,9 @@ document.addEventListener('astro:after-swap',
 
 <p><Since v="3.2.0" /></p>
 
-`<ViewTransitions />` 组件包含一个用于在客户端路由间进行页面导航的路由读出器。你无需配置或操作即可启用此功能。
+`<ClientRouter />` 组件包含一个用于在客户端路由间进行页面导航的路由读出器。你无需配置或操作即可启用此功能。
 
-辅助技术通过在导航后读出新页面标题来告知访客页面已被更改。在使用传统的全页面浏览器刷新服务端路由时，则会默认在新页面加载后执行此操作。而在客户端路由中，则由 `<ViewTransitions />` 组件执行此操作。
+辅助技术通过在导航后读出新页面标题来告知访客页面已被更改。在使用传统的全页面浏览器刷新服务端路由时，则会默认在新页面加载后执行此操作。而在客户端路由中，则由 `<ClientRouter />` 组件执行此操作。
 
 为在客户端路由中添加路由读出，该组件会向新页面添加一个带有 `aria-live` 属性设置为 `assertive` 的元素。这告诉 AT（assistive technology，辅助技术）立即读出。该组件还按照优先顺序检查以下内容来确定读出的文本：
 
@@ -727,4 +767,4 @@ document.addEventListener('astro:after-swap',
 
 ### `prefers-reduced-motion`
 
-Astro 的 `<ViewTransitions />` 组件包含一个 CSS 媒体查询，当检测到 [`prefer-reduced-motion`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@media/prefers-reduced-motion) 设置时，禁用所有视图过渡动画，包括回退动画。相反，浏览器将不使用动画，简单直接的切换 DOM 元素。
+Astro 的 `<ClientRouter />` 组件包含一个 CSS 媒体查询，当检测到 [`prefer-reduced-motion`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@media/prefers-reduced-motion) 设置时，禁用所有视图过渡动画，包括回退动画。相反，浏览器将不使用动画，简单直接的切换 DOM 元素。

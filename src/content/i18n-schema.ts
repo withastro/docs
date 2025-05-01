@@ -11,6 +11,7 @@ export const AstroDocsI18nSchema = z
 		'footer.community': z.string(),
 		'footer.contribute': z.string(),
 		'footer.translatePage': z.string(),
+		'footer.sponsor': z.string(),
 		// Used in `<Since>`: Added in: v0.24.0 [NEW]
 		'since.addedIn': z.string(),
 		'since.new': z.string(),
@@ -57,24 +58,6 @@ export const AstroDocsI18nSchema = z
 		'tutorial.unit': z.string(),
 		// Tutorial
 		'tutorial.getReady': z.string(),
-		// Feedback Fish widget
-		'feedback.button': z.string(),
-		'feedback.a11yLabel': z.string(),
-		'feedback.formTitle': z.string(),
-		'feedback.categoryGroupLabel': z.string(),
-		'feedback.issue': z.string(),
-		'feedback.createIssue': z.string(),
-		'feedback.createIssue.description': z.string(),
-		'feedback.sendFeedback': z.string(),
-		'feedback.sendFeedback.description': z.string(),
-		'feedback.idea': z.string(),
-		'feedback.other': z.string(),
-		'feedback.messageA11yLabel': z.string(),
-		'feedback.placeholder': z.string(),
-		'feedback.submit': z.string(),
-		'feedback.close': z.string(),
-		'feedback.success': z.string(),
-		'feedback.privacyPolicy': z.string(),
 		// Code snippet vocabulary
 		'expressiveCode.terminalWindowFallbackTitle': z.string(),
 		'expressiveCode.copyButtonTooltip': z.string(),
@@ -86,6 +69,8 @@ export const AstroDocsI18nSchema = z
 		'starlight.description': z.string(),
 		// `<StudioHeading>` component
 		'studioHeading.label': z.string(),
+		// Upgrade guide
+		'upgrade.implementationPR': z.string(),
 
 		// DocSearch component strings
 		// These two keys are Astro Docs-specific and apply to the search box in the header.

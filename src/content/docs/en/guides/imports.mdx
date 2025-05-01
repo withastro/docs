@@ -265,7 +265,7 @@ Markdown files loaded with `import.meta.glob()` return the following `MarkdownIn
 
 ```ts
 export interface MarkdownInstance<T extends Record<string, any>> {
-  /* Any data specified in this file's YAML frontmatter */
+  /* Any data specified in this file's YAML/TOML frontmatter */
 	frontmatter: T;
   /* The absolute file path of this file */
 	file: string;
@@ -273,7 +273,7 @@ export interface MarkdownInstance<T extends Record<string, any>> {
 	url: string | undefined;
   /* Astro Component that renders the contents of this file */
 	Content: AstroComponentFactory;
-  /** (Markdown only) Raw Markdown file content, excluding layout HTML and YAML frontmatter */
+  /** (Markdown only) Raw Markdown file content, excluding layout HTML and YAML/TOML frontmatter */
 	rawContent(): string;
   /** (Markdown only) Markdown file compiled to HTML, excluding layout HTML */
 	compiledContent(): string;
@@ -361,21 +361,24 @@ Astro supports loading WASM files directly into your application using the brows
 
 ## Node Builtins
 
-We encourage Astro users to avoid Node.js builtins (`fs`, `path`, etc.) whenever possible. Astro is compatible with multiple runtimes using [adapters](/en/guides/on-demand-rendering/). This includes [Deno](https://github.com/denoland/deno-astro-adapter) and [Cloudflare Workers](/en/guides/integrations-guide/cloudflare/) which do not support Node builtin modules such as `fs`.
+Astro supports Node.js built-ins, with some limitations, using Node’s newer `node:` prefix. There may be differences between development and production, and some features may be incompatible with on-demand rendering. Some [adapters](/en/guides/on-demand-rendering/) may also be incompatible with these built-ins modules or require configuration to support a subset (e.g., [Cloudflare Workers](/en/guides/integrations-guide/cloudflare/) or [Deno](https://github.com/denoland/deno-astro-adapter)).
 
-Our aim is to provide Astro alternatives to common Node.js builtins. However, no such alternatives exist today. So, if you _really_ need to use these builtin modules we don't want to stop you. Astro supports Node.js builtins using Node’s newer `node:` prefix. If you want to read a file, for example, you can do so like this:
+The following example imports the `util` module from Node to parse a media type (MIME):
 
 ```astro title="src/components/MyComponent.astro"
 ---
-// Example: import the "fs/promises" builtin from Node.js
-import fs from 'node:fs/promises';
+// Example: import the "util" built-in from Node.js
+import util from 'node:util';
 
-const url = new URL('../../package.json', import.meta.url);
-const json = await fs.readFile(url, 'utf-8');
-const data = JSON.parse(json);
+export interface Props {
+  mimeType: string,
+}
+
+const mime = new util.MIMEType(Astro.props.mimeType)
 ---
 
-<span>Version: {data.version}</span>
+<span>Type: {mime.type}</span>
+<span>SubType: {mime.subtype}</span>
 ```
 
 ## Extending file type support

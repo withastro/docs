@@ -144,7 +144,7 @@ Renvoie une `Promise` qui se résout une fois que toutes les demandes en attente
 
 <p>
 
-**Type :** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+**Type :** `(inlineConfig: AstroInlineConfig, options?: BuildOptions) => Promise<void>`
 </p>
 
 Similaire à [`astro build`](/fr/reference/cli-reference/#astro-build), il construit votre site pour le déploiement.
@@ -156,6 +156,39 @@ await build({
   root: "./my-project",
 });
 ```
+
+### `BuildOptions`
+
+```ts
+export interface BuildOptions {
+	devOutput?: boolean;
+	teardownCompiler?: boolean;
+}
+```
+
+#### `devOutput`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`
+<Since v="5.4.0" />
+</p>
+
+Génère une version basée sur le développement similaire au code transformé avec `astro dev`. Cela peut être utile pour tester les problèmes de version uniquement avec des informations de débogage supplémentaires incluses.
+
+#### `teardownCompiler`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+<Since v="5.4.0" />
+</p>
+
+Supprime l'instance WASM du compilateur après la construction. Cela peut améliorer les performances lors d'une construction unique, mais peut entraîner une baisse des performances en cas de construction plusieurs fois de suite.
+
+Lors de la création de plusieurs projets dans la même exécution (par exemple pendant les tests), la désactivation de cette option peut augmenter considérablement les performances et réduire l'utilisation maximale de la mémoire au détriment d'une utilisation soutenue de la mémoire plus élevée.
 
 ## `preview()`
 
@@ -246,4 +279,96 @@ import { sync } from "astro";
 await sync({
   root: "./mon-projet",
 });
+```
+
+## `mergeConfig()`
+
+<p>
+
+**Type :** `<T extends AstroConfig | AstroInlineConfig>(config: T, overrides: DeepPartial<T>) => T`
+<Since v="5.4.0" />
+</p>
+
+Importé depuis `astro/config`, fusionne une configuration Astro partielle avec une configuration Astro existante et valide.
+
+`mergeConfig()` accepte un objet de configuration Astro et une configuration partielle (tout ensemble d'options de configuration Astro valides) et renvoie une configuration Astro valide combinant les deux valeurs telles que :
+
+- Les tableaux sont concaténés (y compris les intégrations et les plugins Remark).
+- Les objets sont fusionnés de manière récursive.
+- Les options de Vite sont fusionnées à l'aide de [la fonction `mergeConfig` de Vite](https://vite.dev/guide/api-javascript#mergeconfig) avec l'option `isRoot` par défaut.
+- Les options qui peuvent être fournies sous forme de fonctions sont encapsulées dans de nouvelles fonctions qui fusionnent de manière récursive les valeurs de retour des deux configurations avec ces mêmes règles.
+- Toutes les autres options remplacent la configuration existante.
+
+```ts
+import { mergeConfig } from "astro/config";
+
+mergeConfig(
+  {
+    output: 'static',
+    site: 'https://example.com',
+    integrations: [partytown()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
+  },
+  {
+    output: 'server',
+    base: '/astro',
+    integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
+  }
+);
+
+// Le résultat est équivalent à :
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [partytown(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
+```
+
+## `validateConfig()`
+
+<p>
+
+**Type :** `(userConfig: any, root: string, cmd: string): Promise<AstroConfig>`
+<Since v="5.4.0" />
+</p>
+
+Importé depuis `astro/config`, valide un objet comme s'il était exporté depuis `astro.config.mjs` et importé par Astro.
+
+
+Il accepte les arguments suivants :
+- La configuration à valider.
+- Le répertoire racine du projet.
+- La commande Astro en cours d'exécution (`build`, `dev`, `sync`, etc.)
+
+La promesse renvoyée correspond à la configuration validée, remplie avec toutes les valeurs par défaut appropriées pour la commande Astro donnée.
+
+```ts
+import { validateConfig } from "astro/config";
+
+const config = await validateConfig({
+  integrations: [partytown()],
+}, "./my-project", "build");
+
+// les valeurs par défaut sont appliquées
+await rm(config.outDir, { recursive: true, force: true });
 ```
