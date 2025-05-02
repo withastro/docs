@@ -1,65 +1,158 @@
-# 📖 Glossaire
+# Guide de traduction de la version française d'Astro Docs
 
-Le glossaire est là pour définir les mots, traductions et orientations concernant la traduction française de la documentation d'Astro.
+Ce guide est destiné aux personnes souhaitant participer à la traduction en français de la documentation d'Astro.
 
-Certains mots jugés comme "inhérents" à Astro n'auront pas de traduction, car étant une part conséquente de son environnement.
+Son objectif est d'aider à maintenir une traduction homogène au sein de la documentation et de l'écosystème d'Astro (par exemple [Starlight](https://starlight.astro.build/)).
 
-## 🔄️ Mots ne nécessitant pas de traductions
+## 🧩 Participer à la traduction
 
-> 💡 Ces mots sont considérés comme des noms propres dû à leurs origines anglaises, prenant toujours une majuscule :
+N'hésitez-pas à rejoindre le [serveur Discord officiel d'Astro](https://astro.build/chat), et notamment le fil [`i18n-fr`](https://discord.com/channels/830184174198718474/971729943786561556), pour obtenir de l'aide, demander des conseils et vous coordonner avec les autres traducteurs.
 
-| Mot concerné                                                            | Définition                                                                                                                                                                                            | Utilisation                                                                                                                                                                        |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| Template                                                                | Mise en page / construction d'un composant Astro                                                                                                                                                      | Dans le contexte de “Templating” ou “Template” d'un composant                                                                                                                      |
-| Composant Layout                                                        | Composant inhérent à la logique d'Astro, servant de modèle pour une page Astro, simplifiant sa syntaxe                                                                                                | Utilisé quand on parle d'un Composant Layout d'Astro, cela peut s'avérer utile de le mettre entre “crochets”                                                                       |
-| Composant Page                                                          | Composant Astro situé dans `src/pages` contenant une syntaxe `<html></html>` complète, sert de fondation pour le routage de base d'Astro                                                              | Utilisé dans le contexte d'un "Composant Page Astro" à ne pas confondre avec une “page HTML” qui ne prendra pas de majuscule, car venant du français                               |
-| Slot                                                                    | `<slot/>` ou emplacement, ce mot est souvent utilisé dans le code pour spécifier où doit se placer un contenu dans le contexte d'héritage ou dans des Frameworks / environnements orientés composants | Peut être spécifié sous cette forme ou sous sa version HTML `<slot/>`. Utilisé pour son utilisation par tous les Frameworks supportés par Astro en plus de lui-même                |
-| Framework                                                               | Mot couramment dans le code pour spécifier un logiciel ou un “Package” utilisant une syntaxe spécifique à son utilisation (ex: `React`, `Vue`, `Svelte`, etc...)                                      | Utilisé dans le cadre des intégrations fournies par Astro intégrant de nombreux environnements différents.                                                                         |
-| Node Built-in                                                           | Intégrations construites nativement dans le gestionnaire de paquets Node (ex: `node:fs`, `node:path`, etc...)                                                                                         | Les intégrations natives à Astro n'ont pas à utiliser cela, utilisé seulement pour node, étant une syntaxe courante pour cet environnement                                         |
-| Frontmatter                                                             | Aussi utilisé sous le nom de “Script du Composant”, c'est le code JavaScript placé entre les tirets `---` dans tous les composants Astro                                                              | Peut être utilisé sous le nom de “Script du Composant” si spécifié, utilisé seulement dans le contexte d'Astro (et les pages markdown d'Astro)                                     |
-| Fragment                                                                | Concept lié au code, le plus souvent dans le web ou dans les interfaces, c'est un élément éphémère utilisé pour regrouper plusieurs éléments ensembles                                                | Est souvent écrit sous sa forme HTML (`<Fragment> </Fragment>` ou `<> </>`) mais peut être spécifié comme tel dans le texte                                                        |
-| Package                                                                 | Peut être traduit par “Module” ou “Librairie” par certains, en parlant d'un packet NPM, n'a pas besoin de traduction, car couramment utilisé dans le code                                             | Utilisé en parlant d'un paquet NPM ou d'une installation à effectuer pour une intégration Astro                                                                                    |
-| Build                                                                   | Dans le contexte d'un langage utilisant une étape de compilation, on parle de compilation / transpilation                                                                                             | Ce mot est à utiliser lorsqu'on parle de l'étape de compilation via la commande `astro build` servant à produire un résultat compatible pour les navigateurs et optimisé par Astro |
-| Frontend                                                                |                                                                                                                                                                                                       |                                                                                                                                                                                    |
-| Backend                                                                 |                                                                                                                                                                                                       |                                                                                                                                                                                    |
-| Middleware                                                              |                                                                                                                                                                                                       |                                                                                                                                                                                    |
-| Markdown, Astro, JavaScript, TypeScript, React, Vue, Svelte, Lit, Solid | Tous les noms de packages / langages prennent une majuscule, car considérés comme des noms propres à ces environnements                                                                               | Utilisé partout sur la doc de façon universelle, doit toujours porter une majuscule                                                                                                |
-| Framework UI                                                            | Mot couramment dans le code pour spécifier un logiciel ou un “Package” utilisant une syntaxe spécifique à son utilisation, mais ciblé sur l'UI.                                                       | Utilisé partotu sur la documentation, et doit être toujours écrit de la même façon avec les majuscules                                                                             |
+## 📖 Glossaire
 
-> Et non je ne parlerai pas du mot “Cadriciel”.
+Le glossaire permet d'établir une liste des traductions convenues et des mots ne nécessitant pas de traduction parce que considérés comme propre à Astro ou globalement acceptés.
 
-## 📚 Traductions courantes
+> [!WARNING]
+> Ce glossaire est vivant : n'hésitez pas à l'enrichir quand le besoin se fait sentir !
 
-Certains mots dans la traduction ont un équivalent français utilisé uniformément dans les différentes traductions :
+### 🔄️ Mots ne nécessitant pas de traductions
 
-| Anglais                      | Français                                     |
-|------------------------------|----------------------------------------------|
-| Server-side-rendering        | Rendu Coté Serveur                           |
-| Client-side                  | Sur le navigateur / Coté client              |
-| Runtime                      | Exécution / Code Exécuté                     |
-| CLI / Command line interface | ILC / Interface de ligne de commande         |
-| Routing                      | Routage                                      |
-| UI components                | Composants d'interface / Composants UI       |
-| Code fences (`---`)          | Barres de code / Triples tirets              |
-| Imports                      | Imports / Importer / Inclure                 |
-| Exports                      | Exports / Exporter                           |
-| Render / Rendering           | Rendu / Affichage / Sortie                   |
-| Re-render                    | Rafraîchir / Effectuer à nouveau un rendu    | 
-| Component Script             | Script du composant                          |
-| Component Template           | Template du composant                        |
-| Bundle / Bundled             | Regroupé / Groupé / Compacté                 |
-| Processed                    | Optimisé / Transpilé                         |
-| Process                      | Optimise / Processus / Exécute               |
-| Wrap                         | Englober / Entourer                          |
-| Slot (verbe *to slot*)       | Inclure / Injecter / Insérer                 |
-| Fetch                        | Importer / Récupérer / Chercher              |
-| Endpoint                     | Point de terminaison                         |
-| Island architecture          | Architecture Isolée                          |
-| Partial Hydration            | Hydratation Partielle                        |
-| Scope / Scoped               | Limité / Délimité                            |
-| Astro Islands                | Îles Astro                                   |
-| Recipes                      | Méthodes                                     |
-| Upgrade                      | Mise à niveau                                |
-| View Transitions             | Transitions de Vue / Transitions d'Affichage |
+Les mots se référant à des technologies ne devraient pas être traduits, qu'il s'agisse de langages, de bibliothèques ou de frameworks (p. ex. Markdown, Typescript, React, Svelte, Intellisense, etc.).
 
-> ⚠️ Ce glossaire est encore en travaux, merci de contribuer à la traduction française en lui apportant des suggestions !
+#### Concepts d'Astro
+
+| Terme | Condition | Explications/Référence (facultatif) |
+|-------|-----------|-------------------------------------|
+| Fragment | Lorsqu'il fait référence aux balises `<Fragment> </Fragment>` ou `<> </>`. | La balise ne peut pas être traduite. |
+| frontmatter | Tout le temps. | Peut être considéré comme l'en-ête du fichier (Astro ou Markdown), délimité par trois tirets (`---`). Il ne semble pas être traduit ailleurs. |
+| props | Lorsqu'il fait référence aux propriétés/attributs d'un composant. | « props » est un terme courant dans la Jamstack, pour faciliter la migration nous avons choisi de ne pas le traduire (ref. [discussion sur Discord](https://discord.com/channels/830184174198718474/971729943786561556/1286078277810782289)). |
+| slot | Lorsqu'il est employé en tant que nom et qu'il fait référence à la balise `<slot/>`. | La balise ne peut pas être traduite. |
+
+#### Autres mots non traduits
+
+Il existe d'autres mots ne possédant pas de traduction officielle ou dont le terme recommandé ne fait pas consensus et est peu utilisé ailleurs. Dans ces cas-là, il est préférable de garder le mot anglais qui sera sans doute plus compréhensible.
+
+| Terme | Définition | Explications/Référence (facultatif) |
+|-------|------------|-------------------------------------|
+| framework | Fait référence à une infrastructure logicielle permettant la conception d'applications (p. ex. : `Angular`, `Vue`, `Svelte`, etc…) | Bien que « cadriciel » soit la traduction officielle, elle est rarement utilisée ailleurs. |
+| front-end | Fait référence à l'interface utilisateur d'une application. | Bien que « frontal » soit une traduction possible, elle est rarement utilisée ailleurs. |
+| back-end | Fait référence à la partie serveur d'une application. | Bien que « dorsal » soit une traduction possible, elle est rarement utilisée ailleurs. |
+| middleware | Désigne un logiciel qui permet de coordonner le fonctionnement de plusieurs logiciels. | Bien que « logiciel médiateur » et « intergiciel » soient les traductions recommandées, elles sont rarement utilisées ailleurs. |
+
+###  🔤 Traductions courantes
+
+#### Concepts et API d'Astro
+
+| Anglais | Français | Explications/Référence (facultatif) |
+|---------|----------|-------------------------------------|
+| Astro Islands | Îles Astro | |
+| Content Collections | Collections de contenu | |
+| Content Layer | Couche de contenu | |
+| Fonts | Polices ou Polices d'écriture | |
+| Island architecture | Architecture en îles | |
+| Sessions | Sessions | |
+
+#### Langage courant
+
+Certains mots ont un équivalent français qui devrait être utilisé uniformément dans les différentes traductions.
+
+| Anglais | Français | Explications/Référence (facultatif) |
+|---------|----------|-------------------------------------|
+| build | Suivant le contexte : création / construction / compilation | |
+| bundle | regroupement | |
+| changelog | journal des modifications | |
+| (the) CLI / (the) command line interface | (la) CLI / (l')interface en ligne de commande | |
+| client-side | côté client | |
+| code fences (`---`) | barrières de code | |
+| endpoint | point de terminaison | |
+| export | exportation | |
+| feedback | retour / réaction / commentaire | |
+| footer | pied de page | |
+| header | en-tête | |
+| heading | titre ou en-tête | Nous n'avons pas de consensus (« titre » dans Astro Docs et « en-tête » dans Starlight). Précédente discussion : https://github.com/withastro/starlight/pull/2884#discussion_r1957379942 |
+| headless | sans-tête | |
+| hook | crochet | |
+| import | importation | |
+| issue | problème ou, en référence à la fonctionnalité de Github, ticket | [MDN](https://developer.mozilla.org/fr/docs/MDN/Community/Issues) utilise également « ticket » pour décrire la fonctionnalité de Github |
+| layout | mise en page | |
+| on-demand rendering | rendu à la demande | |
+| package | paquet | |
+| placeholder | paramètre fictif | |
+| preset | préréglage | « préconfiguration » pourrait convenir mais dans certains cas la formulation devient lourde. Discuté dans https://github.com/withastro/starlight/pull/3126#discussion_r2046673972 |
+| prop | propriété | |
+| props | props ou propriétés | En référence à un composant privilégiez « props », autrement utilisez « propriétés » (voir [Concepts d'Astro](#concepts-dastro)) |
+| output | sortie ou affichage | |
+| re-render | rafraîchir / effectuer un nouveau rendu | |
+| recipes | recettes | |
+| renderer | moteur de rendu | |
+| rendering | rendu / affichage / restitution | |
+| repository | dépôt | |
+| routing | routage | |
+| runtime | Suivant le contexte : moteur d'exécution / environnement d'exécution / au moment de l'exécution | |
+| scope | limité / délimité | |
+| scoped | à portée limitée | |
+| server-side | coté serveur | |
+| template | modèle | |
+| to build | Suivant le contexte : créer / construire / compiler | |
+| to bundle | regrouper | |
+| to export | exporter | |
+| to fetch | récupérer | |
+| to import | importer | |
+| to render | rendre / afficher / restituer | |
+| to slot | inclure / injecter / insérer | |
+| to style | mettre en forme / appliquer des styles | |
+| to wrap | englober / envelopper | |
+| type safe | sûreté du typage | |
+| UI | UI | |
+| update | mise à jour | |
+| upgrade | mise à niveau | |
+| view transitions | transitions de vue | |
+
+> [!NOTE]
+> Ces traductions sont des recommandations. Il est parfois acceptable d'utiliser une autre traduction : elle plus adaptée au contexte ou elle rend la lecture plus fluide en évitant des répétitions.
+
+> [!TIP]
+> Il est parfois utile pour faciliter la recherche d'un concept de proposer à certains endroits, avec parcimonie, deux versions couramment utilisées. Par exemple : `a headless CMS` pourrait être traduit de la façon suivante `un CMS sans-tête (ou « headless »)`.
+
+## 📝 Conseils stylistiques
+
+### Les titres
+
+Certains guides de style anglais préconisent l'utilisation de majuscules pour chaque mot d'un titre. Ces règles ne s'appliquent pas en français. Il est donc recommandé de n'utiliser une majuscule qu'en début de titre, à l'exception des noms propres et des composants.
+
+### Les guillemets
+
+Bien que difficilement accessibles sur un clavier, privilégiez les guillements francophones (`«»`) aux guillemets doubles (`""`).
+
+Mémo Unicode :
+* `«` : <kbd>U+00ab</kbd>
+* `»` : <kbd>U+00bb</kbd>
+
+### Code en ligne utilisé comme mot dans une phrase
+
+Dans la version anglaise, vous verrez régulièrement des mots entre accents graves `` ` ``. Cette syntaxe n'a pas toujours de sens en français, il est donc parfois préférable de remplacer le code par un mot français et, si besoin, de rajouter la version code à côté.
+
+**Par exemple :** ``The file `path`...`` devrait être traduit par `Le chemin du fichier...` ou ``Le chemin du fichier (`path`)...``.
+
+### Liens
+
+#### Internes
+
+Tous les liens doivent rediriger vers la version française, pensez donc à remplacer `/en/` par `/fr/` même si la page de destination n'est pas encore traduite. Vous devez également pensez à traduire la partie après `#`, quand elle existe : elle correspond a l'id généré pour un titre sur la page. Vous pouvez utiliser le serveur de développement pour vérifier l'id généré.
+
+#### Externes
+
+* L'ancre du lien est toujours traduit.
+* Le lien ne change pas sauf s'il existe une version française. Il est donc préférable de vérifier le lien au moment de la traduction.
+* S'il n'existe pas de version française, il peut être utile de rajouter le code du langage (p. ex. `(en)`, à adapter suivant la langue) après le lien pour informer le lecteur que la page de destination est dans une autre langue.
+
+### Les exemples
+
+Pour que l'exemple reste compréhensible pour les moins anglophones des lecteurs, il est important de traduire les commentaires. Il peut également être intéressant d'adapter les chemins et les noms des variables si vous jugez que ça facilite la compréhension.
+
+Lorsque vous modifiez un exemple, pensez à vérifier les arguments passés au bloc de code pour également [mettre à jour la mise en évidence](https://expressive-code.com/key-features/text-markers/#usage-in-markdown--mdx) si besoin.
+
+## 📚 Ressources
+
+* En cas de doute pour une traduction, n'hésitez pas à consulter ce qui est fait dans d'autres documentations (MDN, React, Vue, etc.).
+* [Vitrine linguistique de l'Office québécois](https://vitrinelinguistique.oqlf.gouv.qc.ca/) : Bien que destiné aux québecois, les recommandations françaises sont souvent affichées. En utilisant les « termes privilégiés », vous devriez trouver une traduction pouvant convenir à tout le monde.
