@@ -1,0 +1,544 @@
+---
+type: integration
+title: '@astrojs/cloudflare'
+description: "@astrojs/cloudflareアダプターの使い方 – Astroプロジェクトをデプロイする方法"
+sidebar:
+  label: Cloudflare
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
+category: adapter
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+
+この **[Astroインテグレーション][astro-integration]** を使うことで、[Cloudflare](https://www.cloudflare.com/)の[サーバーアイランド](/ja/guides/server-islands/)や[actions](/ja/guides/actions/)、[セッション](/ja/guides/sessions/)などの機能を含む、[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)を有効にできます。
+
+Astroを静的サイトジェネレーターとして使用している場合、このアダプターは必要ありません。
+
+Astroサイトのデプロイ方法については、[Cloudflareデプロイガイド](/ja/guides/deploy/cloudflare/)をご覧ください。
+
+## Astro Cloudflareを選ぶ理由
+
+Cloudflareの[開発者プラットフォーム](https://developers.cloudflare.com/)を使うと、ストレージやAIなどのリソースにアクセスできるフルスタックアプリケーションを簡単に開発できます。開発したアプリは、そのままグローバルエッジネットワークへデプロイできます。
+
+
+## インストール
+
+Astroには、公式インテグレーションを自動でセットアップする`astro add`コマンドが用意されています。これを使わない場合は、[手動インストール](#手動インストール)もできます。
+
+`astro add`コマンドでCloudflareアダプターを追加して、Astroプロジェクトでサーバサイドレンダリングを有効にします。これにより、`@astrojs/cloudflare`がインストールされ、`astro.config.mjs`ファイルに適切な変更が1ステップで行われます。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+これで、[ページごとのオンデマンドレンダリング](/ja/guides/on-demand-rendering/#enabling-on-demand-rendering)を有効にしたり、あるいはビルド設定で`output: 'server'`を指定することで、[全てのページでサーバサイドレンダリングを有効にする](/ja/guides/on-demand-rendering/#server-mode)ことができるようになります。
+
+### 手動インストール
+
+まず、お好みのパッケージマネージャーを使用して、プロジェクトの依存関係に`@astrojs/cloudflare`アダプターを追加します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、`astro.config.mjs`ファイルにアダプターを追加します。
+
+```js title="astro.config.mjs" ins={2,5}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare(),
+});
+```
+
+## オプション
+
+Cloudflareアダプターは、次のオプションをサポートしています。
+
+### `cloudflareModules`
+
+<p>
+**データ型:** `true | false`<br />
+**デフォルト値:** `true`
+</p>
+
+['.wasm'、'.bin'、および '.txt' モジュールのインポート](#モジュールのインポート) を有効にします。
+
+この機能はデフォルトで有効になっています。無効にする場合は、`cloudflareModules: false`を設定します。
+
+### `imageService`
+
+<p>
+**データ型:** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
+**デフォルト:** `'compile'`
+</p>
+
+アダプターが使用する画像サービスを決定します。アダプターは、互換性のない画像サービスが構成されている場合、`compile`モードをデフォルトとして使用します。それ以外の場合は、グローバルに構成された画像サービスを使用します。
+
+* **`cloudflare`:** [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/)サービスを使用します。
+* **`passthrough`:** 既存の ['noop'](/ja/guides/images/#no-opパススルーサービスの設定) サービスを使用します。
+* **`compile`:** Astroのデフォルトサービス(sharp)を使用しますが、ビルド時に事前にレンダリングされたルートでのみ使用されます。オンデマンドレンダリングされるページ中では、すべての`astro:assets`機能が無効になります。
+* **`custom`:** [Image Options](/ja/reference/configuration-reference/#画像のオプション)で設定したイメージサービスを常に使用します。 **このオプションでは、設定された画像サービスがCloudflareの`workerd`ランタイムで動作するかどうかは確認されません。**
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+     imageService: 'cloudflare'
+  }),
+})
+```
+
+### `platformProxy`
+
+Cloudflareランタイムを`astro dev`に追加するかどうか、またどのように追加するかを指定します。これはローカルのworkerdバインディングへのプロキシとCloudflare固有の値のエミュレーションを含んでおり、Node.jsの開発プロセスでランタイムをエミュレートすることができます。[Cloudflare Runtime](#cloudflareランタイム)の詳細については、こちらをご覧ください。
+
+:::note
+このプロキシは本番環境の最適なエミュレーションを提供するためのものです。できるだけ実際の環境に近づけるよう設計されていますが、若干の差異や不一致が存在する可能性があります。
+:::
+
+#### `platformProxy.enabled`
+<p>
+**データ型:** `{ enabled?: boolean }`<br />
+**デフォルト値:** `{ enabled: false }`
+</p>
+
+有効にすると`astro dev`でCloudflareランタイムを有効にできます。
+
+#### `platformProxy.configPath`
+<p>
+**データ型:** `{ configPath?: string }`<br />
+**デフォルト値:** `{ configPath: 'wrangler.toml' }`
+</p>
+
+Astroプロジェクトのルートを基準にして、Wrangler設定ファイルを定義できます。
+
+#### `platformProxy.environment`
+<p>
+**データ型:** `{ environment?: string }`<br />
+**デフォルト値:** `{ environment: undefined }`
+</p>
+
+Wrangler設定のどの[環境設定](https://developers.cloudflare.com/workers/wrangler/environments/)を使用するかを定義できます。
+
+#### `platformProxy.persist`
+<p>
+**データ型:** `{ persist?: boolean | { path: string } }`<br />
+**デフォルト値:** `{ persist: true }`
+</p>
+
+`persist`プロパティは、バインディングデータを永続化するかどうか、およびその保存先を定義します。
+
+`true`に設定すると、Wranglerと同じ場所にデータが保存され、両者間でデータを共有できます。
+`false`の場合、データはファイルシステムに永続化されず、読み込みも行われません。
+指定したパスにバインディングデータを保存したい場合は`{ path: string }`を使用します。
+
+:::note
+`wrangler`の`--persist-to`オプションは内部的に`v3`というサブディレクトリを追加しますが、`@astrojs/cloudflare`の`persist`プロパティはそれを行いません。例えば、`wrangler dev --persist-to ./my-directory`と同じ場所を再利用するには、`persist: { path: "./my-directory/v3" }`と指定する必要があります。
+:::
+
+以下の設定は、開発サーバー実行時にCloudflareランタイムを有効にする例と、`wrangler.json`設定ファイルを使用する例を示しています。また、ファイルシステムにデータを永続化するためのカスタムの場所も指定しています。
+
+
+```js
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		platformProxy: {
+			enabled: true,
+			configPath: 'wrangler.json',
+			persist: {
+				path: './.cache/wrangler/v3'
+			},
+		},
+	}),
+});
+```
+### `routes.extend`
+
+CloudflareのWorkersでは、このオプションは適用されません。詳細については[Cloudflare Workersでのルーティング](#cloudflare-workersでのルーティング)をご覧ください。
+
+CloudflareのPagesでは、このオプションを使用して、オンデマンドで生成されるルートを決定する`_routes.json`ファイルにカスタムパターン（例：`/fonts/*`）を追加したり除外したりできます。これは、自動的に生成できないルートパターンを追加する場合や、事前レンダリングされたルートを除外する場合に便利です。
+
+カスタムルートパターンの詳細については、[Cloudflareのルーティングドキュメント](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes)をご覧ください。指定されたルートは自動的に重複排除されず、既存のルートにそのまま追加されます。
+
+#### `routes.extend.include`
+
+<p>
+**データ型:** `{ pattern: string }[]`<br />
+**デフォルト値:** `undefined`
+</p>
+
+Cloudflareアダプターでオンデマンド生成される追加ルートを`routes.extend.include`配列で設定できます。
+
+#### `routes.extend.exclude`
+
+<p>
+**データ型:** `{ pattern: string }[]`<br />
+**デフォルト値:** `undefined`
+</p>
+
+`routes.extend.exclude`配列に定義したルートは、オンデマンドレンダリングから除外されます。これらのルートは事前レンダリングされて静的に提供され、サーバ関数を呼び出しません。また、このオプションを使用して静的アセット（画像、フォント、CSS、JS、HTML、TXT、JSONなど）をサーバー関数を経由せずに直接提供することもできます。
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  adapter: cloudflare({
+    routes: {
+      extend: {
+        include: [{ pattern: '/static' }], // 静的ページをオンデマンドレンダリング用のサーバー関数にルーティング
+        exclude: [{ pattern: '/pagefind/*' }], // Starlight のページ検索は、ビルド時に静的に生成
+      }
+    },
+  }),
+});
+```
+
+### `sessionKVBindingName`
+<p>
+**データ型:** `string`<br />
+**デフォルト値:** `SESSION`
+<Since v="5.6.0" />
+</p>
+
+`sessionKVBindingName` オプションを使用すると、セッションストレージに使用するKVバインディングの名前を指定できます。デフォルトでは `SESSION` に設定されていますが、独自のKVバインディング名に変更することができます。詳細については[セッション](#セッション)をご覧ください。
+
+```js title="astro.config.mjs" "MY_SESSION_BINDING"
+export default defineConfig({
+  adapter: cloudflare({
+    sessionKVBindingName: 'MY_SESSION_BINDING',
+  }),
+});
+```
+
+## Cloudflareランタイム
+
+### 使用方法
+
+Cloudflareランタイムでは、環境変数やCloudflareリソースへのバインディングにアクセスできます。
+Cloudflareランタイムは、`wrangler.toml`/`wrangler.json`設定ファイルに定義されたバインディングを使用します。
+
+バインディングには Astro.locals.runtime からアクセスできます。
+
+```astro title="src/pages/index.astro"
+---
+const { env } = Astro.locals.runtime;
+---
+```
+API エンドポイントからは、`context.locals`を介してアクセスできます。
+
+```js title="src/pages/api/someFile.js"
+export function GET(context) {
+  const runtime = context.locals.runtime;
+
+  return new Response('Some body');
+}
+```
+
+サポートされている全てのバインディングについては、Cloudflareのドキュメントにある[バインディング一覧](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings)をご覧ください。
+
+
+### 環境変数とシークレット
+
+Cloudflareランタイムでは、環境変数はバインディングの一種として扱われます。
+
+たとえば、以下のように[環境変数](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler)を`wrangler.json`に定義できます。
+
+```json title="wrangler.json"
+{
+  "vars" : {
+    "MY_VARIABLE": "test"
+  }
+}
+```
+
+シークレットは、暗号化されたテキスト値を`Workers`に渡すための特殊な環境変数です。値があとから表示されないよう、通常の環境変数とは別の手順で定義します。
+
+`secrets`を定義するには、設定ファイルではなく、[Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/)を使用します。
+
+```bash
+npx wrangler secret put <KEY>
+```
+
+ローカル開発用にシークレットを設定したい場合、`.dev.vars`ファイルをプロジェクトのルートに追加する必要があります。
+
+```ini title=".dev.vars"
+DB_PASSWORD=myPassword
+```
+
+これで、`Astro.locals.runtime`の`env`オブジェクトから環境変数やシークレットにアクセスできます。
+
+```astro title="src/pages/index.astro"
+---
+const { env } = Astro.locals.runtime;
+const myVariable = env.MY_VARIABLE;
+const secret = env.DB_PASSWORD;
+---
+```
+
+Cloudflareの環境変数とシークレットは[`astro:env` API](/ja/guides/environment-variables/)と互換性があります。
+
+### 型
+
+`wrangler`はバインディングに使用するTypeScriptの型を生成するための`types`コマンドを提供します。これにより、手動で型を指定することなく`locals`オブジェクトを型付けできます。詳細については、[Cloudflareのドキュメント](https://developers.cloudflare.com/workers/wrangler/commands/#types)を参照してください。
+
+毎回、設定ファイル（例：`wrangler.toml`、`.dev.vars`）を変更するたびに、`wrangler types`を実行する必要があります。
+
+:::note
+pnpmスクリプトを作成して、他のコマンドの前に`wrangler types`を自動的に実行できます。
+
+```json title="package.json"
+{
+  "scripts": {
+    "dev": "wrangler types && astro dev",
+    "start": "wrangler types && astro dev",
+    "build": "wrangler types && astro check && astro build",
+    "preview": "wrangler types && astro preview",
+    "astro": "astro"
+  }
+}
+```
+:::
+
+`runtime`オブジェクトには`Runtime`を使用して入力できます。
+
+```ts title="src/env.d.ts"
+type Runtime = import('@astrojs/cloudflare').Runtime<Env>;
+
+declare namespace App {
+  interface Locals extends Runtime {
+    otherLocals: {
+      test: string;
+    };
+  }
+}
+```
+
+## Cloudflareプラットフォーム
+
+### ヘッダー
+
+プロジェクトの`public/`フォルダに`_headers`ファイルを追加することで、レスポンスに[カスタムヘッダー](https://developers.cloudflare.com/pages/platform/headers/)を追加できます。このファイルはビルド出力ディレクトリにコピーされます。
+
+Cloudflare WorkersとPagesで利用できます。
+
+### アセット
+Astroによるアセットのビルドはすべてハッシュ付きの名前が付けられているため、長いキャッシュヘッダーを付けることができます。デフォルトでは、CloudflareでのAstroはこれらのファイルにそのようなヘッダーを追加します。
+
+### リダイレクト
+
+プロジェクトの`public/`フォルダに`_redirects`ファイルを追加することで、[custom redirects](https://developers.cloudflare.com/pages/platform/redirects/)を使用してリクエストを別のURLにリダイレクトできます。このファイルはビルド出力ディレクトリにコピーされます。
+
+この機能はCloudflare WorkersとPagesで利用可能です。
+
+### ルーティング
+#### Cloudflare Workersでのルーティング
+
+静的アセットのルーティングは、ビルドディレクトリ（例：`./dist`）のファイル構造に基づいています。マッチが見つからない場合、オンデマンドレンダリングのためにWorkerにフォールバックします。より詳しい情報はCloudflare Workersの[静的アセットのルーティング](https://developers.cloudflare.com/workers/static-assets/routing/)もご覧ください。
+
+[Cloudflare Pages](#cloudflare-pagesでのルーティング)とは異なり、Workersでは`_routes.json`ファイルは必要ありません。
+
+現在、Cloudflareアダプターは常にこのファイルを生成します。これを回避するには、`public/`フォルダに`.assetsignore`ファイルを作成し、以下の行を追加してください。
+  ```txt title="public/.assetsignore"
+  _worker.js
+  _routes.json
+  ```
+
+#### Cloudflare Pagesでのルーティング
+
+Cloudflare Pagesでは、[ルーティング](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes)に`_routes.json`ファイルを使用して、どのリクエストがサーバー関数にルーティングされ、どのリクエストが静的アセットとして提供されるかを決定します。デフォルトでは、プロジェクトのファイルと設定に基づいて`_routes.json`ファイルが自動的に生成されます。
+
+アダプターの設定で[追加のルーティングパターンを指定](#routesextend)したり、独自のカスタム`_routes.json`ファイルを作成して自動生成を完全に上書きしたりすることもできます。
+
+
+カスタム`public/_routes.json`を作成すると、自動生成が上書きされます。詳細については[カスタム`_routes.json`ファイル作成に関するCloudflareのドキュメント](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file)をご覧ください。
+
+## セッション
+
+Astroの[セッションAPI](/ja/guides/sessions/)を使用すると、リクエスト間でユーザーデータを簡単に保存できます。これはユーザーデータや設定、ショッピングカート、認証情報などの保存に使用できます。Cookieストレージとは異なり、データサイズに制限がなく、異なるデバイスでも復元できます。
+
+Astroは、Cloudflareアダプターを使用する際に、セッションストレージ用の[Workers KV](https://developers.cloudflare.com/kv/)を自動的に設定します。セッションを使用する前に、データを保存するためのKVネームスペースを作成し、Wrangler設定ファイルでKVバインディングを構成する必要があります。デフォルトでは、AstroはKVバインディングが`SESSION`という名前であることを想定していますが、アダプター設定の[`sessionKVBindingName`](#sessionkvbindingname)オプションを設定することで、別の名前を選択することもできます。
+
+<Steps>
+
+1. Wrangler CLI を使用して KV 名前空間を作成し、新しい名前空間の ID をメモする。
+
+   ```sh
+   npx wrangler kv namespace create "SESSION"
+   ```
+
+2. Wrangler の設定で KV 名前空間を宣言し、名前空間 ID を前のコマンドで返されたものに設定する。
+
+    <Tabs>
+      <TabItem label="wrangler.json">
+        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+        {
+          "kv_namespaces": [
+            {
+              "binding": "SESSION",
+              "id": "<KV_NAMESPACE_ID>"
+            }
+          ]
+        }
+        ```
+      </TabItem>
+      <TabItem label="wrangler.toml">
+        ```toml title="wrangler.toml" "<KV_NAMESPACE_ID>"
+        kv_namespaces = [
+          { binding = "SESSION", id = "<KV_NAMESPACE_ID>" }
+        ]
+        ```
+      </TabItem>
+    </Tabs>
+
+3. サーバーサイドのコードでセッションを使用する。
+
+    ```astro title="src/components/CartButton.astro" "Astro.session?.get('cart')"
+    ---
+    export const prerender = false;
+    const cart = await Astro.session?.get('cart');
+    ---
+
+    <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+    ```
+
+</Steps>
+
+:::note
+Cloudflare KVへの書き込みは、リージョン間で[結果整合性](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency)を持っています。つまり、変更は同じリージョン内ですぐに利用可能になりますが、グローバルに伝播するには最大60秒かかる場合があります。これはほとんどのユーザーには影響しませんが、VPNユーザーなど、リクエスト間でリージョンを切り替える可能性がある場合には考慮すべき点かもしれません。
+:::
+
+
+## モジュールのインポート
+
+Cloudflareの`workerd`ランタイムは、一部の[非標準モジュールタイプ](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules)のインポートをサポートしています。ほとんどの追加ファイルタイプはAstroでも利用できます。
+
+- `.wasm` / `.wasm?module`: [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module)をエクスポートし、インスタンス化。
+- `.bin`: ファイルの生のバイナリ内容の[`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)をエクスポート。
+- `.txt`: ファイル内容の文字列をエクスポート。
+
+すべてのモジュールタイプはデフォルト値を1つエクスポートします。モジュールは、サーバーサイドレンダリングのページからでも、静的サイト生成用の事前レンダリングのページからでもインポートできます。
+
+以下は、Wasmモジュールをインポートして、リクエストの数値パラメータを足し合わせて応答する例です。
+
+```js title="pages/add/[a]/[b].js"
+// WebAssembly モジュールのインポート
+import mod from '../util/add.wasm';
+
+// 最初にインスタンス化しておく
+const addModule: any = new WebAssembly.Instance(mod);
+
+export async function GET(context) {
+  const a = Number.parseInt(context.params.a);
+  const b = Number.parseInt(context.params.b);
+  return new Response(`${addModule.exports.add(a, b)}`);
+}
+```
+
+これは単純な例ですが、Wasmは、画像処理ライブラリの埋め込みや、読み取り専用データセットの検索用にインデックス付けされた小さなデータベースの埋め込みなど、大きなI/Oを伴わない計算集約型の処理を高速化するのに使用できます。
+
+## Node.jsとの互換性
+
+CloudflareはデフォルトではNode.jsランタイムAPIをサポートしていません。ただし、設定によってNode.jsランタイムAPIのサブセットをサポートすることができます。サポートされているNode.jsランタイムAPIについては、Cloudflareの[ドキュメント](https://developers.cloudflare.com/workers/runtime-apis/nodejs)を参照してください。
+
+これらのAPIを使用するには、ページまたはエンドポイントがサーバーサイドレンダリングされる必要があり（事前レンダリングではなく）、`import {} from 'node:*'`のインポート構文を使用する必要があります。
+
+```js title="pages/api/endpoint.js"
+export const prerender = false;
+import { Buffer } from 'node:buffer';
+```
+
+また、Astroの設定で`vite`設定を変更して、`node:*`インポート構文を許可する必要があります。
+
+```js title="astro.config.mjs" ins={6-10}
+import { defineConfig } from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({}),
+  vite: {
+		ssr: {
+			external: ['node:buffer'],
+		},
+	},
+})
+```
+
+また、サポートを有効にするには、Cloudflareのドキュメントに従う必要があります。詳細については、[Node.js互換性を有効にするためのCloudflareドキュメント](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)を参照してください。
+
+:::note[パッケージの互換性への影響]
+プロジェクトがNode.jsランタイムAPIを使用するパッケージをサーバーにインポートすると、Cloudflareへのデプロイ時に問題が発生する可能性があります。この問題は、`node:*`インポート構文を使用していないパッケージで発生します。パッケージの作者に連絡して、上記のインポート構文をサポートしているかどうかを確認することをお勧めします。パッケージがこれをサポートしていない場合は、別のパッケージを使用する必要があるかもしれません。
+:::
+
+## Wranglerによるプレビュー
+
+[wrangler](https://developers.cloudflare.com/workers/wrangler/)を使用して、アプリケーションをローカルで実行するには、プレビュースクリプトを更新します。
+
+<Tabs>
+  <TabItem label="Worker">
+    ```json title="package.json"
+    "preview": "wrangler dev ./dist"
+    ```
+  </TabItem>
+  <TabItem label="Pages">
+  ```json title="package.json"
+  "preview": "wrangler pages dev ./dist"
+  ```
+  </TabItem>
+</Tabs>
+
+[`wrangler`](https://developers.cloudflare.com/workers/wrangler/)を使用した開発では、[Cloudflareバインディング](https://developers.cloudflare.com/pages/platform/functions/bindings)、[環境変数](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables)、および[cfオブジェクト](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties)にアクセスできます。AstroのDEVサーバーのホットリロードをWranglerで動作させるには、カスタムセットアップが必要になる場合があります。詳しくは[コミュニティのサンプル](https://github.com/withastro/roadmap/discussions/590)をご覧ください。
+
+### エラーメッセージの説明
+
+現在、Wranglerでアプリケーションを実行中に発生するエラーは、コードが縮小化されているため、あまり役立ちません。デバッグをしやすくするために、`astro.config.mjs`に`vite.build.minify = false`設定を追加することができます。
+
+```js title="astro.config.mjs" ins={3-7}
+export default defineConfig({
+  adapter: cloudflare(),
+  vite: {
+    build: {
+      minify: false,
+    },
+  },
+});
+```
+
+[astro-integration]: /ja/guides/integrations-guide/
