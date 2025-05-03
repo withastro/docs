@@ -1,0 +1,132 @@
+---
+title: Actions
+description: 型安全なサーバー関数をどこからでも呼び出す方法を学びます。
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astroアクションを使うと、型安全なバックエンド関数を定義し、どこからでも呼び出せます。データ取得やJSON解析、入力バリデーションを自動で行うため、[APIエンドポイント](/ja/guides/endpoints/)を使う場合に比べてボイラープレートを大幅に削減できます。
+
+APIエンドポイントの代わりにアクションを使うと、クライアントとサーバーコード間の通信がシームレスになり、次のメリットがあります。
+
+* [Zodバリデーション](https://zod.dev/?id=primitives)でJSONやフォームデータを自動検証。
+* バックエンドを呼び出す型安全な関数を自動生成。さらに[HTMLフォームの`action`属性](#)からも呼び出せます。手動で`fetch()`を書く必要はありません。
+* [`ActionError`](/ja/reference/modules/astro-actions/#actionerror)でバックエンドエラーを標準化。
+
+## 基本的な使い方
+
+アクションは`src/actions/index.ts`で`server`オブジェクトとしてエクスポートします。
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+定義したアクションは`astro:actions`モジュールから関数として利用できます。[UIフレームワークコンポーネント](/en/guides/framework-components/)内、[フォームのPOSTリクエスト](#call-actions-from-an-html-form-action)、またはAstroコンポーネント内の`<script>`タグで呼び出してください。
+
+アクションを呼び出すと、`data`（JSON直列化された結果）または`error`（スローされたエラー）が入ったオブジェクトが返ります。
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### 最初のアクションを書いてみる
+
+以下の手順でアクションを定義し、Astroページの`script`タグから呼び出します。
+
+<Steps>
+
+1. `src/actions/index.ts`を作成し、`server`オブジェクトをエクスポートします。
+
+   ```ts title="src/actions/index.ts"
+   export const server = {
+     // アクションをここに宣言
+   }
+   ```
+
+2. `defineAction()`ユーティリティを`astro:actions`から、`z`オブジェクトを`astro:schema`からインポートします。
+
+   ```ts ins={1-2} title="src/actions/index.ts"
+   import { defineAction } from 'astro:actions';
+   import { z } from 'astro:schema';
+
+   export const server = {
+     // アクションをここに宣言
+   }
+   ```
+
+3. `defineAction()`で`getGreeting`アクションを定義します。`input`プロパティは[Zod](https://zod.dev)スキーマで入力を検証し、`handler()`がサーバーで実行されるバックエンドロジックです。
+
+   ```ts ins={5-12} title="src/actions/index.ts"
+   import { defineAction } from 'astro:actions';
+   import { z } from 'astro:schema';
+
+   export const server = {
+     getGreeting: defineAction({
+       input: z.object({
+         name: z.string(),
+       }),
+       handler: async (input) => {
+         return `Hello, ${input.name}!`
+       }
+     })
+   }
+   ```
+
+4. ボタンをクリックすると`getGreeting`アクションで挨拶を取得するAstroコンポーネントを作成します。
+
+   ```astro title="src/pages/index.astro"
+   ---
+   ---
+
+   <button>Get greeting</button>
+
+   <script>
+   const button = document.querySelector('button');
+   button?.addEventListener('click', async () => {
+     // アクションから取得した挨拶を表示
+   });
+   </script>
+   ```
+
+5. `actions`を`astro:actions`からインポートし、クリックハンドラ内で`actions.getGreeting()`を呼び出します。`name`オプションがサーバー側の`handler()`に渡され、エラーがなければ結果が`data`として返ります。
+
+   ```astro title="src/pages/index.astro" ins={7, 12-13}
+   ---
+   ---
+
+   <button>Get greeting</button>
+
+   <script>
+   import { actions } from 'astro:actions';
+
+   const button = document.querySelector('button');
+   button?.addEventListener('click', async () => {
+    // アクションから挨拶を取得してアラート表示
+     const { data, error } = await actions.getGreeting({ name: "Houston" });
+     if (!error) alert(data);
+   })
+   </script>
+   ```
+
+</Steps>
+
+<ReadMore>[`defineAction()`](/ja/reference/modules/astro-actions/#)の全プロパティはAPIリファレンスを参照してください。</ReadMore>
