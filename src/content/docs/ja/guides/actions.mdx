@@ -285,9 +285,6 @@ export function LogoutButton() {
 }
 ```
 
-Thought for 11 seconds
-
-
 ## アクションでフォームデータを受け取る
 
 アクションはデフォルトでJSONデータを受け取ります。HTMLフォームのデータを扱いたい場合は、`defineAction()`で`accept: 'form'`を指定します。
@@ -400,4 +397,234 @@ if (isInputError(error)) {
     const message = error.fields.email.join(', ');
   }
 }
+```
+
+## HTMLフォームの`action`からアクションを呼び出す
+
+:::note
+フォームの`action`でアクションを呼び出すページはオンデマンドレンダリングが必要です。このAPIを使用する前に、[そのページで事前レンダリングを無効化してください](/ja/guides/on-demand-rendering/)。
+:::
+
+任意の`<form>`要素に標準属性を追加するだけで、ゼロJS（JavaScript不要）のフォーム送信を実現できます。クライアント側JavaScriptが読み込まれなかった場合のフォールバックとして、あるいはフォーム処理を完全にサーバーに任せたい場合に便利です。
+
+サーバーで[Astro.getActionResult()](/ja/reference/api-reference/)を呼び出すと、フォーム送信の結果（`data`または`error`）を取得できます。これを使ってリダイレクトやエラーハンドリング、UI更新などを動的に行えます。
+
+HTMLフォームからアクションを呼び出すには、`<form>`に`method="POST"`を追加し、`action`属性にアクションを設定します。たとえば`action={actions.logout}`とすると、サーバー側で自動処理されるクエリ文字列が`action`属性へ設定されます。
+
+次のAstroコンポーネントは、ボタンをクリックすると`logout`アクションを呼び出し、現在のページを再読み込みします。
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+### アクション成功時にリダイレクトする
+
+アクション成功後に新しいルートへリダイレクトしたい場合は、サーバー側でアクション結果を利用します。よくある例として、商品レコードを作成した後に`/products/[id]`へリダイレクトするパターンがあります。
+
+たとえば、生成された商品IDを返す`createProduct`アクションがあるとします。
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Astroコンポーネントで`Astro.getActionResult()`を呼び出してアクション結果を取得します。アクションが呼び出されていない場合は`undefined`、呼び出されていれば`data`または`error`を含むオブジェクトが返ります。
+
+`data`プロパティを使ってURLを作成し、`Astro.redirect()`でリダイレクトします。
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### フォーム`action`のエラーを処理する
+
+フォームを含むAstroコンポーネント内で`Astro.getActionResult()`を呼び出すと、カスタムエラーハンドリング用に`data`と`error`へアクセスできます。
+
+次の例では、`newsletter`アクションが失敗したときに一般的なエラーメッセージを表示します。
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+より細かい制御を行う場合は、[ `isInputError()`ユーティリティ](#displaying-form-input-errors)を使って入力不正が原因かどうかを判定できます。
+
+次の例は、無効なメールアドレスが送信されたときに`email`入力欄の下へエラーバナーを表示します。
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
+</form>
+```
+
+#### エラー時に入力値を保持する
+
+フォーム送信時、入力値はクリアされます。値を保持したい場合は、ページで[ビュートランジションを有効化](/en/guides/view-transitions/#adding-view-transitions-to-a-page)し、各入力に`transition:persist`ディレクティブを追加します。
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### フォームアクション結果でUIを更新する
+
+アクションの戻り値を用いて成功時に通知を表示するには、アクションを`Astro.getActionResult()`へ渡し、返された`data`で必要なUIをレンダリングします。
+
+次の例では、`addToCart`アクションが返す`productName`を使い、成功メッセージを表示しています。
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Added {result.data.productName} to cart</p>
+)}
+
+<!--...-->
+```
+
+### 上級編: セッションにアクション結果を保持する
+
+<p><Since v="5.0.0" /></p>
+
+アクション結果はPOST送信として表示されるため、ユーザーがページを閉じて再訪問すると結果は`undefined`に戻ります。また、ページをリロードしようとすると「フォームの再送信を確認しますか？」ダイアログが表示されます。
+
+この挙動をカスタマイズするには、ミドルウェアを追加してアクション結果を手動で処理します。Cookieやセッションストレージを用いて結果を保持する方法を選択できます。
+
+まず[ミドルウェアファイルを作成](/ja/guides/middleware/)し、`astro:actions`の[getActionContext()](/ja/reference/modules/astro-actions/#getactioncontext)ユーティリティをインポートします。この関数はアクションハンドラーや呼び出し元（HTMLフォームかどうか）などの情報を含む`action`オブジェクトを返します。また、`setActionResult()`と`serializeActionResult()`を返し、`Astro.getActionResult()`で参照する値をプログラム的に設定できます。
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... アクション結果を処理
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+HTMLフォーム結果を保持する一般的な手法は[POST / Redirect / GETパターン](https://en.wikipedia.org/wiki/Post/Redirect/Get)です。これによりリロード時の再送信ダイアログが消え、アクション結果をセッション全体で維持できます。
+
+以下の例では、[Netlifyサーバーアダプター](/ja/guides/integrations-guide/netlify/)を使用し、セッションストレージにPOST / Redirect / GETを適用しています。アクション結果を[Netlify Blob](https://docs.netlify.com/blobs/overview/)へ保存し、リダイレクト後にセッションIDで取得しています。
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // プリレンダーページのリクエストはスキップ
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Netlify Blobでアクション結果を保持するストアを作成
+  const actionStore = getStore("action-session");
+  
+  // Cookie経由で結果が渡された場合、Astro.getActionResult()で参照できるよう設定
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, { type: "json" })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+    // 必要なら描画後にセッションを削除
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // HTMLフォームのactionから呼び出された場合
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // アクション結果をセッションストレージへ保持
+    const newSessionId = randomUUID();
+    await actionStore.setJSON(newSessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // リダイレクト後に取得できるようCookieへセッションIDを設定
+    context.cookies.set("action-session-id", newSessionId);
+  
+    // エラー時は前のページへリダイレクト
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // 成功時は現在のパスへリダイレクト
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
 ```
