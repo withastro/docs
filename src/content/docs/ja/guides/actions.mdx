@@ -162,3 +162,242 @@ export const server = {
 
 * `actions.user.getUser()`
 * `actions.user.createUser()`
+
+
+## 返り値の扱い
+
+アクションは`handler()`の型安全な戻り値を持つ`data`、またはバックエンドエラーを持つ`error`を返します。`error`は`input`のバリデーションエラーや`handler()`内でスローされたエラーです。
+
+アクションはDates、Maps、Sets、URLsを扱える独自フォーマットで返します（[Devalueライブラリ](https://github.com/Rich-Harris/devalue)使用）。そのため通常のJSONのようにネットワークレスポンスを簡単に検査できません。デバッグ時はアクションが返す`data`オブジェクトを確認してください。
+
+<ReadMore>[`handler()`のAPIリファレンス](/en/reference/modules/astro-actions/#handler-property)を参照。</ReadMore>
+
+### エラーの有無を確認
+
+`data`を使う前に`error`があるか確認するのがベストです。これにより事前にエラーを処理でき、`data`の`undefined`チェックが不要になります。
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // エラー処理
+  return;
+}
+// dataを利用
+```
+
+### エラーチェックを行わずに`data`へ直接アクセスする
+
+プロトタイピング中、またはエラーを自動的に捕捉してくれるライブラリを使用している場合など、エラー処理を省きたい場合は、アクション呼び出しに`.orThrow()`プロパティを付与します。`error`を返す代わりに例外をスローし、アクションの`data`を直接返します。
+
+以下の例では`likePost()`アクションを呼び出し、ハンドラーから返された更新後のいいね数を`number`型として受け取ります。
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ 型: number
+```
+
+### アクション内でバックエンドエラーを処理する
+
+データベースエントリが存在しない場合の"not found"や、ユーザーがログインしていない場合の"unauthorized"など、アクションの`handler()`からエラーをスローするには、`ActionError`を使用します。`undefined`を返す方法と比べて、次の2点がメリットです。
+
+
+- `404 - Not found`や`401 - Unauthorized`のようにステータスコードを設定できます。これにより開発環境・本番環境の両方でリクエストごとのステータスを確認しやすくなります。
+
+- アプリケーション側では、すべてのエラーがアクション結果の`error`オブジェクトにまとめられるため、`undefined`チェックが不要になり、原因に応じたフィードバックをユーザーに表示できます。
+
+#### `ActionError`を作成する
+
+エラーをスローするには、`astro:actions`モジュールから`ActionError`クラスをインポートします。人が読める`code`（例:`"NOT_FOUND"`や`"BAD_REQUEST"`）と、任意で詳細を示す`message`を渡します。
+
+次の例では、認証用Cookie「user-session」が存在しない場合に、`likePost`アクションから`UNAUTHORIZED`エラーをスローしています。
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // ここで投稿に「いいね」を付与
+    },
+  }),
+};
+```
+
+#### `ActionError`を処理する
+
+アプリケーションからアクションを呼び出し、`error`プロパティの有無をチェックします。このプロパティは`ActionError`型で、`code`と`message`を含みます。
+
+次の例では`LikeButton.tsx`コンポーネントがクリック時に`likePost()`を呼び出し、認証エラーならログインリンクを表示します。
+
+```tsx title=src/components/LikeButton.tsx ins="if (error.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Log in to like a post.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // 予期しないエラーは早期リターン
+        else if (error) return;
+        // いいね数を更新
+      }}>
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+### クライアントリダイレクトを処理する
+
+クライアント側からアクションを呼び出す場合、`react-router`のようなライブラリと連携するか、Astroの[`navigate()`関数](/en/guides/view-transitions/#trigger-navigation)を使用して、アクション成功時に新しいページへリダイレクトできます。
+
+以下の例では、`logout`アクションが成功した後、ホームページへ遷移します。
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Logout
+    </button>
+  );
+}
+```
+
+Thought for 11 seconds
+
+
+## アクションでフォームデータを受け取る
+
+アクションはデフォルトでJSONデータを受け取ります。HTMLフォームのデータを扱いたい場合は、`defineAction()`で`accept: 'form'`を指定します。
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### フォームデータのバリデーション
+
+アクションは送信されたフォームデータを、各入力の`name`属性をキーとするオブジェクトへ変換します。たとえば`<input name="search">`を含むフォームは`{ search: 'user input' }`のように解析されます。このオブジェクトはアクションの`input`スキーマで検証されます。
+
+ハンドラーで生の`FormData`オブジェクトを扱いたい場合は、アクション定義から`input`プロパティを省略してください。
+
+以下は、メールアドレス入力と「利用規約に同意」チェックボックスを検証するニュースレター登録フォームの例です。
+
+<Steps>
+
+1. 各入力に一意の`name`属性を持つHTMLフォームコンポーネントを作成します。
+
+   ```astro title="src/components/Newsletter.astro" /name="\w+"/
+   <form>
+     <label for="email">E-mail</label>
+     <input id="email" required type="email" name="email" />
+     <label>
+       <input required type="checkbox" name="terms">
+       I agree to the terms of service
+     </label>
+     <button>Sign up</button>
+   </form>
+   ```
+
+2. 送信されたフォームを処理する`newsletter`アクションを定義します。`email`フィールドは`z.string().email()`で、`terms`チェックボックスは`z.boolean()`で検証します。
+
+   ```ts title="src/actions/index.ts" ins={5-12}
+   import { defineAction } from 'astro:actions';
+   import { z } from 'astro:schema';
+
+   export const server = {
+     newsletter: defineAction({
+       accept: 'form',
+       input: z.object({
+         email: z.string().email(),
+         terms: z.boolean(),
+       }),
+       handler: async ({ email, terms }) => { /* ... */ },
+     })
+   }
+   ```
+
+   <ReadMore>`input`で利用できるすべてのフォームバリデータは[`input` APIリファレンス](/en/reference/modules/astro-actions/#input-validator)を参照してください。</ReadMore>
+
+3. フォームに`<script>`を追加し、ユーザー入力を送信します。この例ではフォームの既定の送信動作を上書きして`actions.newsletter()`を呼び出し、成功時に`/confirmation`へリダイレクトします。
+
+   ```astro title=src/components/Newsletter.astro ins={12-23} collapse={2-8}
+   <form>
+     <label for="email">E-mail</label>
+     <input id="email" required type="email" name="email" />
+     <label>
+       <input required type="checkbox" name="terms">
+       I agree to the terms of service
+     </label>
+     <button>Sign up</button>
+   </form>
+
+   <script>
+     import { actions } from 'astro:actions';
+     import { navigate } from 'astro:transitions/client';
+
+     const form = document.querySelector('form');
+     form?.addEventListener('submit', async (event) => {
+       event.preventDefault();
+       const formData = new FormData(form);
+       const { error } = await actions.newsletter(formData);
+       if (!error) navigate('/confirmation');
+     })
+   </script>
+   ```
+
+   <ReadMore>フォームデータを送信する別の方法は[「HTMLフォームの`action`からアクションを呼び出す」](#call-actions-from-an-html-form-action)を参照してください。</ReadMore>
+
+</Steps>
+
+### フォーム入力エラーを表示する
+
+`required`、`type="email"`、`pattern`などの[ネイティブHTMLフォームバリデーション属性](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation)で送信前に検証できます。バックエンドでより複雑な`input`検証を行う場合は、[`isInputError()`](/en/reference/modules/astro-actions/#isinputerror)ユーティリティを使用します。
+
+入力エラーを取得するには、`isInputError()`でエラー原因が入力不正か確認します。入力エラーは`fields`オブジェクトに検証に失敗した各入力名のメッセージを持ちます。これらのメッセージを使ってユーザーに修正を促せます。
+
+次の例では`isInputError()`でエラーを確認し、メールフィールドにエラーがあるかをチェックしてメッセージを生成しています。DOM操作や任意のUIフレームワークでユーザーに表示してください。
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // 入力エラーを処理
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
