@@ -628,3 +628,75 @@ export const onRequest = defineMiddleware(async (context, next) => {
   return next();
 });
 ```
+
+## アクション利用時のセキュリティ
+
+アクションはアクション名に基づくパブリックエンドポイントとして公開されます。たとえば`blog.like()`アクションは`/_actions/blog.like`からアクセス可能です。これはユニットテストや本番エラーのデバッグに便利ですが、**APIエンドポイントやオンデマンドレンダリングページと同じ認可チェックを必ず実装する必要があります。**
+
+### アクションハンドラー内でユーザーを認可する
+
+アクションリクエストを認可するには、アクションの`handler()`に認証チェックを追加します。セッション管理やユーザー情報の取得には[認証ライブラリ](/en/guides/authentication/)の利用を検討してください。
+
+アクションではミドルウェアから渡された値にアクセスできる`APIContext`全体が利用できます。ユーザーが認可されていない場合は、`UNAUTHORIZED`コードで`ActionError`をスローします。
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
+
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* 成功時のデータ */ };
+    }
+  })
+}
+```
+
+### ミドルウェアでアクションを制限する
+
+<p><Since v="5.0.0" /></p>
+
+Astroでは、各アクションの`handler()`内でユーザーセッションを認可し、パーミッションやレート制限をアクションごとに設定することを推奨しています。しかし、ミドルウェアから一括で（または一部の）アクションリクエストを制御することも可能です。
+
+ミドルウェアで`getActionContext()`を使用して、受信したアクションリクエストの情報（アクション名や呼び出し元がRPCかHTMLフォームかなど）を取得します。
+
+次の例では、有効なセッショントークンがないすべてのアクションリクエストを拒否します。チェックに失敗すると`403 Forbidden`を返します。**この方法はセッションが存在する場合のみアクセスを許可しますが、安全な認可の代替にはなりません。**
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // クライアントサイドRPCから呼び出されたアクションか確認
+  if (action?.calledFrom === 'rpc') {
+    // セッショントークンをチェック
+    if (!context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* セッショントークン */);
+  return next();
+});
+```
+
+## Astroコンポーネントやサーバーエンドポイントからアクションを呼び出す
+
+`Astro.callAction()`（サーバーエンドポイントでは`context.callAction()`）ラッパーを使用して、Astroコンポーネント内のスクリプトや他のサーバーコードからアクションを直接呼び出せます。アクションのロジックを再利用する際によく使われます。
+
+第1引数にアクション、第2引数に入力パラメータを渡します。返り値はクライアント側と同様に`data`と`error`を含むオブジェクトです。
+
+```astro title="src/pages/products.astro" {6}
+---
+import { actions } from 'astro:actions';
+
+const searchQuery = Astro.url.searchParams.get('search');
+if (searchQuery) {
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
+  // 結果を処理
+}
+---
+```
