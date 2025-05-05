@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/netlify'
-description: "Apprenez à utiliser l'adaptateur SSR @astrojs/netlify pour déployer votre projet Astro."
+description: "Apprenez à utiliser l'adaptateur @astrojs/netlify pour déployer votre projet Astro."
 sidebar:
   label: Netlify
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
@@ -11,11 +11,11 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
 
-Cet adaptateur permet à Astro de déployer vos [routes rendues à la demande](/fr/guides/on-demand-rendering/) sur [Netlify](https://www.netlify.com/).
+Cet adaptateur permet à Astro de déployer vos [routes et fonctionnalités rendues à la demande](/fr/guides/on-demand-rendering/) sur [Netlify](https://www.netlify.com/), y compris [les îles de serveurs](/fr/guides/server-islands/), les [actions](/fr/guides/actions/) et les [sessions](/fr/guides/sessions/).
 
-Si vous utilisez Astro en tant que constructeur de site statique, vous n'avez pas besoin d'adaptateur.
+Si vous utilisez Astro comme constructeur de site statique, vous n'avez besoin de cet adaptateur que si vous utilisez des services Netlify supplémentaires qui nécessitent un serveur (p. ex. [CDN d'images de Netlify](#support-du-cdn-dimages-netlify)). Sinon, vous n’avez pas besoin d’un adaptateur pour déployer votre site statique.
 
-Apprenez à déployer votre site Astro dans notre [Guide de déploiement Netlify](/fr/guides/deploy/netlify/).
+Apprenez à déployer votre site Astro dans notre [guide de déploiement Netlify](/fr/guides/deploy/netlify/).
 
 ## Pourquoi Astro Netlify
 
@@ -25,7 +25,7 @@ Apprenez à déployer votre site Astro dans notre [Guide de déploiement Netlify
 
 Astro inclut une commande `astro add` pour automatiser l'installation des intégrations officielles. Si vous préférez, vous pouvez [installer les intégrations manuellement](#installation-manuelle) à la place.
 
-Ajoutez l'adaptateur Netlify pour activer SSR dans votre projet Astro avec la commande `astro add`.
+Ajoutez l'adaptateur Netlify pour activer le rendu à la demande dans votre projet Astro avec la commande `astro add`.
 Cela installera `@astrojs/netlify` et apportera les changements appropriés à votre fichier `astro.config.mjs` en une seule étape.
 
 <PackageManagerTabs>
@@ -45,6 +45,8 @@ Cela installera `@astrojs/netlify` et apportera les changements appropriés à v
   ```
   </Fragment>
 </PackageManagerTabs>
+
+Désormais, vous pouvez activer [le rendu à la demande par page](/fr/guides/on-demand-rendering/#activation-du-rendu-à-la-demande) ou définir la configuration de sortie de votre construction sur `output: 'server'` pour [restituer toutes vos pages par défaut sur le serveur](/fr/guides/on-demand-rendering/#mode-server).
 
 ### Installation manuelle
 
@@ -68,15 +70,14 @@ Tout d'abord, installez l'adaptateur Netlify dans les dépendances de votre proj
   </Fragment>
 </PackageManagerTabs>
 
-Ensuite, ajoutez l'adaptateur et votre [mode de rendu à la demande](/fr/guides/on-demand-rendering/) à votre fichier `astro.config.*` :
+Ensuite, ajoutez l'adaptateur à votre fichier `astro.config.*` :
 
-   ```js title="astro.config.mjs" ins={2, 6-7}
+   ```js title="astro.config.mjs" ins={2, 6}
     import { defineConfig } from 'astro/config';
     import netlify from '@astrojs/netlify';
 
     export default defineConfig({
        // ...
-       output: 'server',
        adapter: netlify(),
     });
    ```
@@ -101,13 +102,12 @@ Tout middleware Astro est appliqué aux pages pré-rendues au moment de la créa
 
 Pour implémenter des redirections, des contrôles d'accès ou des en-têtes de réponse personnalisés pour les pages pré-rendues, exécutez votre middleware sur les fonctions Edge de Netlify en activant l'option [`edgeMiddleware`](/fr/reference/adapter-reference/#edgemiddleware) :
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     edgeMiddleware: true,
   }),
@@ -155,13 +155,12 @@ Il est implémenté en utilisant un [Astro Image Service](/fr/reference/image-se
 
 Pour ne pas utiliser l'optimisation d'image à distance du CDN de Netlify, utilisez l'option `imageCDN` :
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     imageCDN: false,
   }),
@@ -170,13 +169,12 @@ export default defineConfig({
 
 Si vous utilisez des images hébergées sur un autre domaine, vous devez autoriser les chaînes de domaines ou d'URL en utilisant les options de configuration [`image.domains`](/fr/reference/configuration-reference/#imagedomains) ou [`image.remotePatterns`](/fr/reference/configuration-reference/#imageremotepatterns) :
 
-```js title="astro.config.mjs" ins={8-10}
+```js title="astro.config.mjs" ins={7-9}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
     // ...
-    output: 'server',
     adapter: netlify(),
     image: {
       domains: ['exemple.com'],
@@ -223,10 +221,9 @@ Astro configure automatiquement [Netlify Blobs](https://docs.netlify.com/blobs/o
 Les pages rendues à la demande sans contenu dynamique peuvent être mises en cache pour améliorer les performances et réduire l'utilisation des ressources.
 L'activation de l'option `cacheOnDemandPages` dans l'adaptateur mettra en cache toutes les pages rendues par le serveur pour une durée maximale d'un an :
 
-```ts title="astro.config.mjs"
+```ts title="astro.config.mjs" ins={4}
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     cacheOnDemandPages: true,
   }),
@@ -270,13 +267,12 @@ La propriété `includeFiles` vous permet de spécifier explicitement des fichie
 
 Fournissez un tableau de fichiers supplémentaires à inclure avec les chemins de fichiers relatifs à la [racine (`root`)](/fr/reference/configuration-reference/#root) de votre projet. Les chemins absolus peuvent ne pas fonctionner comme prévu.
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     includeFiles: ['./my-data.json'], // chemin relatif à `root`
   }),
@@ -298,13 +294,12 @@ Vous pouvez utiliser la propriété `excludeFiles` pour empêcher le regroupemen
 
 Fournissez un tableau de fichiers spécifiques à exclure avec des chemins de fichiers relatifs à la [racine (`root`)](/fr/reference/configuration-reference/#root) de votre projet. Les chemins absolus peuvent ne pas fonctionner comme prévu.
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     excludeFiles: ['./src/some_big_file.jpg'], // chemin relatif à `root`
   }),
@@ -315,12 +310,11 @@ export default defineConfig({
 
 `includeFiles` et `excludeFiles` prennent en charge les [modèles glob](/fr/guides/imports/#patterns-globaux) pour faire correspondre plusieurs fichiers :
 
-```js title="astro.config.mjs" ins={8, 11-12}
+```js title="astro.config.mjs" ins={7, 10-11}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
-  output: 'server',
   adapter: netlify({
     includeFiles: [
       './data/**/*.json'
