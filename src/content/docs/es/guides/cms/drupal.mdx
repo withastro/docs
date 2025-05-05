@@ -215,7 +215,7 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
 ### Visualización de una lista de artículos
 
 <Steps>
-1.  Crea `src/types.ts` si aún no existe y agrega dos nuevas interfaces llamadas `DrupalNode` y `Path` con el siguiente código. Estas interfaces coincidirán con los campos de tu tipo de contenido de artículo en Drupal y los campos Path. Las usarás para tipar tu respuesta de entradas de artículo.
+1. Crea `src/types.ts` si aún no existe y agrega dos nuevas interfaces llamadas `DrupalNode` y `Path` con el siguiente código. Estas interfaces coincidirán con los campos de tu tipo de contenido de artículo en Drupal y los campos Path. Las usarás para tipar tu respuesta de entradas de artículo.
 
     ```ts title="src/types.ts"
     export interface Path {
@@ -223,7 +223,7 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
       pid: number;
       langcode: string;
     }
-    
+
     export interface DrupalNode extends Record<string, any> {
       id: string;
       type: string;
@@ -239,7 +239,7 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
       path: Path;
     }
     ```
-    
+
     Tu directorio src ahora debería incluir el nuevo archivo:
 
     <FileTree title="Estructura del proyecto">
@@ -250,22 +250,22 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
       - **types.ts**
     </FileTree>
 
-2.  Crea un nuevo archivo llamado `drupal.ts` en `src/api` y agrega el siguiente código:
+2. Crea un nuevo archivo llamado `drupal.ts` en `src/api` y agrega el siguiente código:
 
     ```ts title="src/api/drupal.ts"
     import { Jsona } from "jsona";
     import { DrupalJsonApiParams } from "drupal-jsonapi-params";
     import type { DrupalNode } from "../types.ts";
     import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
-    
+
     // Obtener la URL base de Drupal.
     export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
     ```
 
     Esto importará las bibliotecas requeridas, como `Jsona` para deserializar la respuesta, `DrupalJsonApiParams` para formatear la URL de la solicitud y los tipos Node y Jsona. También obtendrá el `baseUrl` del archivo `.env`.
-    
+
     Tu directorio src/api ahora debería incluir el nuevo archivo:
-    
+
     <FileTree title="Estructura del proyecto">
     - .env
     - astro.config.mjs
@@ -276,24 +276,24 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
       - types.ts
     </FileTree>
 
-3.  En ese mismo archivo, crea la función `fetchUrl` para realizar la solicitud de obtención y deserializar la respuesta.
+3. En ese mismo archivo, crea la función `fetchUrl` para realizar la solicitud de obtención y deserializar la respuesta.
 
     ```ts title="src/api/drupal.ts" ins={9-23}
     import { Jsona } from "jsona";
     import { DrupalJsonApiParams } from "drupal-jsonapi-params";
     import type { DrupalNode } from "../types.ts";
     import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
-    
+
     // Obtener la URL base de Drupal.
     export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
-    
+
     /**
      * Obtener url de Drupal.
-     *
-     * @param url
-     *
-     * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
-     */
+      *
+      * @param url
+      *
+      * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
+      */
     export const fetchUrl = async (url: string): Promise<any> => {
       const request: Response = await fetch(url);
       const json: string | TJsonApiBody = await request.json();
@@ -302,36 +302,36 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
     };
     ```
 
-4.  Crea la función `getArticles()` para obtener todos los artículos publicados.
+4. Crea la función `getArticles()` para obtener todos los artículos publicados.
 
     ```ts title="src/api/drupal.ts" ins={23-40}
     import { Jsona } from "jsona";
     import { DrupalJsonApiParams } from "drupal-jsonapi-params";
     import type { DrupalNode } from "../types.ts";
     import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
-    
+
     // Obtener la URL base de Drupal.
     export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
-    
+
     /**
      * Obtener url de Drupal.
-     *
-     * @param url
-     *
-     * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
-     */
+      *
+      * @param url
+      *
+      * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
+      */
     export const fetchUrl = async (url: string): Promise<any> => {
       const request: Response = await fetch(url);
       const json: string | TJsonApiBody = await request.json();
       const dataFormatter: Jsona = new Jsona();
       return dataFormatter.deserialize(json);
     };
-    
+
     /**
      * Obtener todos los artículos publicados.
-     *
-     * @return Promise<DrupalNode[]>
-     */
+      *
+      * @return Promise<DrupalNode[]>
+      */
     export const getArticles = async (): Promise<DrupalNode[]> => {
       const params: DrupalJsonApiParams = new DrupalJsonApiParams();
       params.addFields("node--article", ["title", "path", "body", "created"]).addFilter("status", "1");
@@ -340,9 +340,9 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
     };
     ```
 
-Ahora puedes usar la función `getArticles()` en un componente `.astro` para obtener todos los artículos publicados con datos para cada título, cuerpo, ruta y fecha de creación.
+    Ahora puedes usar la función `getArticles()` en un componente `.astro` para obtener todos los artículos publicados con datos para cada título, cuerpo, ruta y fecha de creación.
 
-5.  Ve a la página Astro donde obtendrás datos de Drupal. El siguiente ejemplo crea una página de inicio de artículos en `src/pages/articles/index.astro`.
+5. Ve a la página Astro donde obtendrás datos de Drupal. El siguiente ejemplo crea una página de inicio de artículos en `src/pages/articles/index.astro`.
 
     Importa las dependencias necesarias y obtén todas las entradas de Drupal con un tipo de contenido de `article` usando `getArticles()`, mientras pasas la interfaz `DrupalNode` para tipar tu respuesta.
     
@@ -377,7 +377,7 @@ Ahora puedes usar la función `getArticles()` en un componente `.astro` para obt
       - types.ts
     </FileTree>
 
-6.  Agrega contenido a tu página, como un título. Usa `articles.map()` para mostrar tus entradas de Drupal como elementos de línea en una lista.
+6. Agrega contenido a tu página, como un título. Usa `articles.map()` para mostrar tus entradas de Drupal como elementos de línea en una lista.
 
     ```astro title="src/pages/articles/index.astro" ins={12-29}
     ---
@@ -422,7 +422,7 @@ Usa el mismo método para obtener tus datos de Drupal como arriba, pero esta vez
 Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archivo de página de enrutamiento dinámico](/es/guides/routing/%23rutas-dinámicas) con la función `getStaticPaths()`. Esta función se llamará en tiempo de compilación para generar la lista de rutas que se convierten en páginas.
 
 <Steps>
-1.  Crea un nuevo archivo `src/pages/articles/[path].astro` e importa la interfaz `DrupalNode` y `getArticle()` desde `src/api/drupal.ts`. Obtén tus datos dentro de una función `getStaticPaths()` para crear rutas para tu blog.
+1. Crea un nuevo archivo `src/pages/articles/[path].astro` e importa la interfaz `DrupalNode` y `getArticle()` desde `src/api/drupal.ts`. Obtén tus datos dentro de una función `getStaticPaths()` para crear rutas para tu blog.
 
     ```astro title="src/pages/articles/[path].astro"
     ---
@@ -456,7 +456,7 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
       - types.ts
     </FileTree>
 
-2.  En el mismo archivo, asigna cada entrada de Drupal a un objeto con una propiedad `params` y `props`. La propiedad `params` se utilizará para generar la URL de la página y los valores `props` se pasarán al componente de la página como props.
+2. En el mismo archivo, asigna cada entrada de Drupal a un objeto con una propiedad `params` y `props`. La propiedad `params` se utilizará para generar la URL de la página y los valores `props` se pasarán al componente de la página como props.
 
     ```astro title="src/pages/articles/[path].astro" ins={12-33}
     ---
@@ -499,7 +499,7 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
     - `body`: una cadena, que representa el contenido de tu entrada.
     - `date`: una marca de tiempo, basada en la fecha de creación de tu archivo.
 
-3.  Usa los `props` de la página para mostrar tu publicación de blog.
+3. Usa los `props` de la página para mostrar tu publicación de blog.
 
     ```astro title="src/pages/articles/[path].astro" ins={30, 32-42}
     ---
@@ -546,7 +546,7 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
     </html>
     ```
 
-4.  Navega a la vista previa de tu servidor de desarrollo y haz clic en una de tus publicaciones para asegurarte de que tu ruta dinámica esté funcionando.
+4. Navega a la vista previa de tu servidor de desarrollo y haz clic en una de tus publicaciones para asegurarte de que tu ruta dinámica esté funcionando.
 </Steps>
 
 ### Publicación de tu sitio
