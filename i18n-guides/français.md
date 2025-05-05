@@ -144,7 +144,7 @@ Tous les liens doivent rediriger vers la version française, pensez donc à remp
 
 * L'ancre du lien est toujours traduit.
 * Le lien ne change pas sauf s'il existe une version française. Il est donc préférable de vérifier le lien au moment de la traduction.
-* S'il n'existe pas de version française, il peut être utile de rajouter le code du langage (p. ex. `(en)`, à adapter suivant la langue) après le lien pour informer le lecteur que la page de destination est dans une autre langue.
+* S'il n'existe pas de version française, il peut être utile de rajouter la langue après le lien (p. ex. `texte du lien (Anglais)`) pour informer le lecteur que la page de destination est dans une autre langue.
 
 ### Les exemples
 
