@@ -61,6 +61,12 @@ Join our i18n gang on Discord or jump into the PRs to help with reviewing existi
 
 Check out the dedicated [i18n guide](https://contribute.docs.astro.build/guides/i18n/) for more details.
 
+### Translation progress
+
+<a href="https://i18n.docs.astro.build/">
+  <img alt="Details of each language’s progress translating the Astro Docs" width="600" src="https://i18n.docs.astro.build/summary.svg" />
+</a>
+
 ## Next Steps
 
 - [Read the docs](https://docs.astro.build/)
