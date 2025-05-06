@@ -7,6 +7,7 @@ i18nReady: true
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
+import { Steps } from '@astrojs/starlight/components';
 import RecipeLinks from "~/components/RecipeLinks.astro";
 
 
@@ -29,12 +30,12 @@ Les règles CSS définies dans la balise `<style>` d'Astro disposent automatique
 Ce CSS:
 ```astro title="src/pages/index.astro"
 <style>
-  h1 { 
-    color: red; 
+  h1 {
+    color: red;
   }
 
-  .text { 
-    color: blue; 
+  .text {
+    color: blue;
   }
 </style>
 ```
@@ -213,7 +214,7 @@ import 'package-name/styles.css';
 <html><!-- Votre page ici --></html>
 ```
 
-Si votre paquet **ne suggère pas l'utilisation d'une extension de fichier** (c'est-à-dire `nom-du-paquet/styles`), vous devrez d'abord mettre à jour votre configuration Astro ! 
+Si votre paquet **ne suggère pas l'utilisation d'une extension de fichier** (c'est-à-dire `nom-du-paquet/styles`), vous devrez d'abord mettre à jour votre configuration Astro !
 
 Disons que vous importez un fichier CSS depuis `nom-du-paquet` appelé `normalize` (avec l'extension de fichier omise). Pour s'assurer que nous pouvons rendre votre page correctement, ajoutez `nom-du-paquet` au [tableau `vite.ssr.noExternal`](https://vite.dev/config/ssr-options.html#ssr-noexternal) :
 
@@ -303,7 +304,9 @@ Les règles CSS Astro sont évaluées dans cet ordre d'apparition :
 
 ### Styles à portée limitée
 
-L'utilisation de [styles à portée limitée](#styles-à-portée-limitée) n'augmente pas la _spécificité_ de votre CSS, mais ils viendront toujours en dernier dans l'_ordre d'apparition_. Ils auront donc la priorité sur les autres styles de même spécificité. Par exemple, si vous importez une feuille de style qui entre en conflit avec un style à portée limitée, c'est la valeur du style à portée limitée qui s'appliquera :
+En fonction de la valeur choisie pour [`scopedStyleStrategy`](/fr/reference/configuration-reference/#scopedstylestrategy), les styles à portée limitée peuvent ou non augmenter la [spécificité de la colonne CLASS](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity#class_column).
+
+Cependant, les [styles à portée limitée](#styles-à-portée-limitée) apparaissent toujours en dernier. Ces derniers auront donc la priorité sur les autres styles de même spécificité. Par exemple, si vous importez une feuille de style qui entre en conflit avec un style à portée limitée, c'est la valeur du style à portée limitée qui s'appliquera :
 
 ```css title="src/components/make-it-purple.css"
 h1 {
@@ -324,10 +327,10 @@ import "./make-it-purple.css"
 </div>
 ```
 
-Si vous rendez le style importé _plus spécifique_, il aura une priorité plus élevée que le style à portée limitée :
+Les styles à portée limitée seront écrasés si le style importé est plus spécifique. Le style le plus spécifique aura la priorité sur le style à portée limitée :
 
 ```css title="src/components/make-it-purple.css"
-div > h1 {
+#intro {
   color: purple;
 }
 ```
@@ -339,7 +342,7 @@ import "./make-it-purple.css"
   h1 { color: red }
 </style>
 <div>
-  <h1>
+  <h1 id="intro">
     Cette en-tête sera mauve !
   </h1>
 </div>
@@ -434,7 +437,9 @@ Astro prend en charge l'ajout de bibliothèques, d'outils et de frameworks CSS p
 
 ### Tailwind
 
-La prise en charge de Tailwind dans Astro est fournie par un plugin Vite. Pour installer le plugin dans Astro `>=5.2.0`, utilisez la commande `astro add tailwind` de votre gestionnaire de paquets. Pour les versions antérieures d'Astro, suivez les instructions pour [installer manuellement le plugin officiel de Vite][tailwind].
+Vous pouvez ajouter la prise en charge de Tailwind 4 à votre projet avec une commande CLI ou installer manuellement les anciennes dépendances pour [prendre en charge Tailwind 3](#prise-en-charge-héritée-de-tailwind-3).
+
+Dans Astro `>=5.2.0`, utilisez la commande `astro add tailwind` de votre gestionnaire de paquets pour installer le plugin Vite officiel pour Tailwind. Cela fournit la prise en charge de Tailwind `>=4.0.0`. Pour ajouter la prise en charge de Tailwind 4 aux versions antérieures d'Astro, [suivez les instructions dans la documentation de Tailwind][tailwind] pour ajouter ce plugin Vite manuellement.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -467,6 +472,77 @@ Importez ce fichier dans les pages où vous souhaitez appliquer Tailwind. Cette 
 import "../styles/global.css";
 ---
 ```
+
+#### Prise en charge héritée de Tailwind 3
+
+Pour ajouter (ou conserver) la prise en charge de Tailwind 3, vous devrez installer à la fois `tailwindcss@3` et l'intégration officielle d'Astro pour Tailwind `@astrojs/tailwind`. L'installation manuelle de ces dépendances est uniquement destinée à la compatibilité avec Tailwind 3 et n'est pas requise pour Tailwind 4. Vous aurez également besoin d'une [ancienne configuration Tailwind](https://v3.tailwindcss.com/docs/configuration#creating-your-configuration-file) :
+
+<Steps>
+1. Installez Tailwind et l'intégration Astro Tailwind sur les dépendances de votre projet à l'aide de votre gestionnaire de paquets préféré :
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Importez l'intégration dans votre fichier `astro.config.mjs` et ajoutez-la à votre tableau `integrations[]` :
+
+    ```js title="astro.config.mjs" ins={2} ins="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+3. Créez un fichier `tailwind.config.mjs` dans le répertoire racine de votre projet. Vous pouvez utiliser la commande suivante pour générer un fichier de configuration de base :
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm dlx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn dlx tailwindcss init
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+4. Ajoutez la configuration de base suivante à votre fichier `tailwind.config.mjs` :
+
+    ```ts title="tailwind.config.mjs" ins={3}
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    };
+    ```
+</Steps>
 
 <RecipeLinks slugs={["fr/recipes/tailwind-rendered-markdown"]}/>
 

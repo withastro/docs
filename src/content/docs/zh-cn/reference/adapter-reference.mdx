@@ -214,10 +214,10 @@ const response = await app.render(request);
 
 <p>
 
-**类型：** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; routeData?: RouteData;}`
+**类型：** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-`app.render()` 方法接受一个必填的 `request` 参数，以及一个可选的 `RenderOptions` 对象，用于 [`addCookieHeader`](#addcookieheader)、[`clientAddress`](#clientaddress)、[`locals`](#locals) 和 [`routeData`](#routedata)。
+`app.render()` 方法接受一个必填的 `request` 参数，以及一个可选的 `RenderOptions` 对象，用于 [`addCookieHeader`](#addcookieheader)、[`clientAddress`](#clientaddress)、[`locals`](#locals)、[`prerenderedErrorPageFetch`](#prerenderederrorpagefetch) 和 [`routeData`](#routedata)。
 
 ###### `addCookieHeader`
 
@@ -276,6 +276,42 @@ try {
     const response = await app.render(request, { locals });
 }
 ```
+
+###### `prerenderedErrorPageFetch`
+
+<p>
+
+**类型：** `(url: ErrorPagePath) => Promise<Response>`<br />
+**默认值：** `fetch`<br />
+<Since v="5.6.0" />
+</p>
+
+该函数允许你提供自定义的实现过程，用以获取预渲染的报错页面。
+
+这可用于覆盖默认的 `fetch()` 行为，例如：当 `fetch()` 不可用时，又或是当你无法自行调用服务器时。
+
+以下示例读取了磁盘中的 `500.html` 和 `404.html`，而不是执行 HTTP 调用：
+
+```js "prerenderedErrorPageFetch"
+return app.render(request, {
+  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+      return new Response(content, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+});
+```
+
+如果未提供，Astro 将回退至其默认行为，以获取报错页面。
 
 ###### `routeData`
 

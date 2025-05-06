@@ -8,7 +8,11 @@ import RecipeLinks from "~/components/RecipeLinks.astro";
 import { Steps } from '@astrojs/starlight/components';
 import ReadMore from '~/components/ReadMore.astro';
 
-Astro 为你提供了多种在网站上使用图像的方法，无论它们是本地存储在你的项目内，还是链接到外部 URL，或者在 CMS 或 CDN 中管理的！
+Astro 为你提供了多种在网站上使用图像的方法，无论它们是本地存储在你的项目内，还是链接到外部 URL，或者在 CMS 或 CDN 中管理的。
+
+Astro 提供 [image](#使用-image--组件显示优化后的图像) 和 [picture](#使用-picture--组件创建响应式图像) 组件，[Markdown 图像语法](#markdown-文件中的图像) 处理，[SVG 组件](#svg-组件)，以及 [图像生成函数](#使用-getimage-生成图像) 来优化和/或转换你的图像。
+
+在 `.astro` 或 Markdown 文件中，你可以选择使用原生 HTML 元素或 SVG 文件来引用图片，或者根据文件类型使用标准方式（例如在 MDX 和 JSX 中使用 `<img />`）。然而，Astro 不会对这些图片进行任何处理或优化。
 
 <ReadMore>请参阅 [`<Image />`](/zh-cn/reference/modules/astro-assets/#image-) 和 [`<Picture />`](/zh-cn/reference/modules/astro-assets/#picture-) 组件的完整 API 参考。</ReadMore>
 
@@ -63,7 +67,7 @@ import localBirdImage from '../../images/subfolder/localBirdImage.png';
 
 - 来自授权来源的 [配置的远程图像](#授权远程图像)
 
-`<Image />` 可以转换本地或授权的远程图像的尺寸、文件类型和质量，以便控制显示的图像。生成的 `<img>` 标签包括 `alt`、`loading` 和 `decoding` 属性，并推断图像尺寸以避免累积布局偏移（CLS）。
+`<Image />` 可以转换本地或授权的远程图像的尺寸、文件类型和质量，以便控制显示的图像。对于预渲染页面来说，这种转换发生在构建时。而对于按需渲染页面来说，这种转换则发生在查看页面的一瞬间。生成的 `<img>` 标签包括 `alt`、`loading` 和 `decoding` 属性，并推断图像尺寸以避免累积布局偏移（CLS）。
 
 :::note[什么是累积布局偏移（Cumulative Layout Shift）？]
 [累积布局偏移 Cumulative Layout Shift (CLS)](https://web.dev/cls/) 是一种用于测量页面加载过程中内容移动量的核心 Web 指标。`<Image />` 组件通过自动为你的图像设置正确的 `width` 和 `height` 来优化 CLS。
@@ -81,7 +85,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 ```
 
 ```html
-<!-- 输出 -->
+<!-- 预渲染输出 -->
 <!-- 优化图像，强制实施适当的属性 -->
 <img
   src="/_astro/my_image.hash.webp"
@@ -90,6 +94,13 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
   decoding="async"
   loading="lazy"
   alt="A description of my image."
+/>
+
+<!-- 按需渲染输出 -->
+<!-- src 属性将使用按需生成的端点 -->
+<img
+  src="/_image?href=%2F_astro%2Fmy_image.hash.webp&amp;w=1600&amp;h=900&amp;f=webp"
+  <!-- ... -->
 />
 ```
 
@@ -108,7 +119,7 @@ import myImage from '../assets/my_image.png';
 ```
 
 ```html 'class="my-class"'
-<!-- 输出 -->
+<!-- 预渲染输出 -->
 <img
   src="/_astro/my_image.hash.webp"
   width="1600"
@@ -130,7 +141,7 @@ import myImage from '../assets/my_image.png';
 
 <p><Since v="3.3.0" /></p>
 
-使用内置的 `<Picture />` Astro 组件来显示具有多种格式和/或尺寸的响应式图像。
+使用内置的 `<Picture />` Astro 组件来显示具有多种格式和/或尺寸的响应式图像。就像 [`<Image />` 组件](#使用-image--组件显示优化后的图像)一样，对于预渲染页面来说，这种转换发生在构建时。而对于按需渲染页面来说，这种转换则发生在查看页面的一瞬间。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -142,7 +153,7 @@ import myImage from '../assets/my_image.png'; // 图像分辨率为 1600x900
 ```
 
 ```html
-<!-- 输出 -->
+<!-- 预渲染输出 -->
 <picture>
   <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
   <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
@@ -188,6 +199,7 @@ import myDog from '../../images/pets/local-dog.jpg';
 ```
 
 #### `public/` 中的图像
+
 对于位于 `public/` 中的图像，请使用图像相对于 public 文件夹的文件路径作为 `src` 值：
 
 ```astro '"/images/public-cat.jpg"'
@@ -259,6 +271,36 @@ export default defineConfig({
     remotePatterns: [{ protocol: "https" }],
   }
 });
+```
+
+## SVG 组件
+
+<p><Since v="5.7.0" /></p>
+
+Astro 允许你导入 SVG 文件并将其作为 Astro 组件来使用。Astro 会将 SVG 内容内联到你的 HTML 输出中。
+
+请引用任意本地 `.svg` 文件的默认导入。由于此导入会被视为 Astro 组件，因此必须使用与 [使用动态标签](/zh-cn/reference/astro-syntax/#动态标签) 时相同的约定（例如：大写）。
+
+```astro title="src/components/MyAstroComponent.astro"
+---
+import Logo from './path/to/svg/file.svg';
+---
+
+<Logo />
+```
+
+你的 SVG 组件，例如 `<Image />` 或是其他 Astro 组件，无法直接在 UI 框架组件中使用，但可以在 `.astro` 组件中通过 [传递到框架组件](#框架组件中的图像) 的方式实现。
+
+### SVG 组件属性
+
+你可以传入诸如 `width`、`height`、`fill`、`stroke` 这样的属性，以及任何 [原生的 `<svg>` 元素](https://developer.mozilla.org/zh-CN/docs/Web/SVG/Element/svg) 接受的其他属性。这些属性将自动应用于底层的 `<svg>` 元素。如果原有的 `.svg` 文件中已有某个将要传递给组件的属性，那么这个原有值将会被传入值覆盖。
+
+```astro
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo width={64} height={64} fill="currentColor" />
 ```
 
 ## 使用 CMS 或 CDN 中的图像
