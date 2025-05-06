@@ -38,6 +38,7 @@ Il existe d'autres mots ne possédant pas de traduction officielle ou dont le te
 | front-end | Fait référence à l'interface utilisateur d'une application. | Bien que « frontal » soit une traduction possible, elle est rarement utilisée ailleurs. |
 | back-end | Fait référence à la partie serveur d'une application. | Bien que « dorsal » soit une traduction possible, elle est rarement utilisée ailleurs. |
 | middleware | Désigne un logiciel qui permet de coordonner le fonctionnement de plusieurs logiciels. | Bien que « logiciel médiateur » et « intergiciel » soient les traductions recommandées, elles sont rarement utilisées ailleurs. |
+| hook | Désigne un point d'ancrage permettant à l'utilisateur d'exécuter du code à un endroit précis du code source. | « crochet » n'apporte pas suffisamment de sens et il est rarement traduit ailleurs. Précédente discussion : https://github.com/withastro/docs/pull/11593#discussion_r2074976678 |
 
 ###  🔤 Traductions courantes
 
@@ -71,7 +72,6 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | header | en-tête | |
 | heading | titre ou en-tête | Nous n'avons pas de consensus (« titre » dans Astro Docs et « en-tête » dans Starlight). Précédente discussion : https://github.com/withastro/starlight/pull/2884#discussion_r1957379942 |
 | headless | sans-tête | |
-| hook | crochet | |
 | import | importation | |
 | issue | problème ou, en référence à la fonctionnalité de Github, ticket | [MDN](https://developer.mozilla.org/fr/docs/MDN/Community/Issues) utilise également « ticket » pour décrire la fonctionnalité de Github |
 | layout | mise en page | |
