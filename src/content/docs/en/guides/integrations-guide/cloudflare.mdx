@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/cloudflare'
-description: Learn how to use the @astrojs/cloudflare SSR adapter to deploy your Astro project.
+description: Learn how to use the @astrojs/cloudflare adapter to deploy your Astro project.
 sidebar:
   label: Cloudflare
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
@@ -15,9 +15,9 @@ import Since from '~/components/Since.astro';
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
 
-This adapter allows Astro to deploy your [on-demand rendered routes](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/).
+This adapter allows Astro to deploy your [on-demand rendered routes and features](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/), including [server islands](/en/guides/server-islands/), [actions](/en/guides/actions/), and [sessions](/en/guides/sessions/).
 
-If you're using Astro as a static site builder, you don't need an adapter to deploy to Cloudflare.
+If you're using Astro as a static site builder, you don't need an adapter.
 
 Learn how to deploy your Astro site in our [Cloudflare deployment guide](/en/guides/deploy/cloudflare/).
 
@@ -30,7 +30,7 @@ Cloudflare's [Developer Platform](https://developers.cloudflare.com/) lets you d
 
 Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](#manual-install) instead.
 
-Add the Cloudflare adapter to enable SSR in your Astro project with the `astro add` command. This will install `@astrojs/cloudflare` and make the appropriate changes to your `astro.config.mjs` file in one step.
+Add the Cloudflare adapter to enable server-rendering in your Astro project with the `astro add` command. This will install `@astrojs/cloudflare` and make the appropriate changes to your `astro.config.mjs` file in one step.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -49,6 +49,8 @@ Add the Cloudflare adapter to enable SSR in your Astro project with the `astro a
   ```
   </Fragment>
 </PackageManagerTabs>
+
+Now, you can enable [on-demand rendering per page](/en/guides/on-demand-rendering/#enabling-on-demand-rendering), or set your build output configuration to `output: 'server'` to [server-render all your pages by default](/en/guides/on-demand-rendering/#server-mode).
 
 ### Manual Install
 
@@ -72,14 +74,13 @@ First, add the `@astrojs/cloudflare` adapter to your project's dependencies usin
   </Fragment>
 </PackageManagerTabs>
 
-Then, add the adapter and your desired [on-demand rendering mode](/en/guides/on-demand-rendering/) to your `astro.config.mjs` file:
+Then, add the adapter to your `astro.config.mjs` file:
 
-```js title="astro.config.mjs" ins={2,5-6}
+```js title="astro.config.mjs" ins={2,5}
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  output: 'server',
   adapter: cloudflare(),
 });
 ```
@@ -110,7 +111,7 @@ Determines which image service is used by the adapter. The adapter will default 
 
 * **`cloudflare`:** Uses the [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) service.
 * **`passthrough`:** Uses the existing [`noop`](/en/guides/images/#configure-no-op-passthrough-service) service.
-* **`compile`:** Uses Astro's default service (sharp), but only on pre-rendered routes at build time. During SSR for pages rendered on-demand, all `astro:assets` features are disabled.
+* **`compile`:** Uses Astro's default service (sharp), but only on pre-rendered routes at build time. For pages rendered on-demand, all `astro:assets` features are disabled.
 * **`custom`:** Always uses the image service configured in [Image Options](/en/reference/configuration-reference/#image-options). **This option will not check to see whether the configured image service works in Cloudflare's `workerd` runtime.**
 
 ```js title="astro.config.mjs" ins={6}
@@ -121,7 +122,6 @@ export default defineConfig({
   adapter: cloudflare({
      imageService: 'cloudflare'
   }),
-  output: 'server'
 })
 ```
 
@@ -216,14 +216,14 @@ Configures additional routes to be generated on demand by the Cloudflare adapter
 **Default:** `undefined`
 </p>
 
-Configures routes to be excluded from on-demand rendering in the `routes.extend.exclude` array. These routes will be prerendered and served statically instead, and will not invoke the SSR function. Additionally you can use this option to serve any static asset (e.g. images, fonts, css, js, html, txt, json, etc.) files directly without routing the request through the SSR function.
+Configures routes to be excluded from on-demand rendering in the `routes.extend.exclude` array. These routes will be prerendered and served statically instead, and will not invoke the server function. Additionally you can use this option to serve any static asset (e.g. images, fonts, css, js, html, txt, json, etc.) files directly without routing the request through the server function.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   adapter: cloudflare({
     routes: {
       extend: {
-        include: [{ pattern: '/static' }], // Routes a prerended page to the SSR function for on-demand rendering
+        include: [{ pattern: '/static' }], // Route a prerended page to the server function for on-demand rendering
         exclude: [{ pattern: '/pagefind/*' }], // Use Starlight's pagefind search, which is generated statically at build time
       }
     },
@@ -371,7 +371,7 @@ This is available on Cloudflare Workers and Pages.
 ### Routes
 #### Routing on Cloudflare Workers
 
-Routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for SSR. Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
+Routing for static assets is based on the file structure in the build directory (e.g. `./dist`). If no match is found, this will fall back to the Worker for on-demand rendering. Read more about [static asset routing with Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
 
 Unlike [Cloudflare Pages](#routing-on-cloudflare-pages), with Workers, you do not need a `_routes.json` file. 
 
@@ -487,13 +487,12 @@ import { Buffer } from 'node:buffer';
 
 You'll also need to modify the `vite` configuration in your Astro config to allow for the `node:*` import syntax:
 
-```js title="astro.config.mjs" ins={7-11}
-import { defineConfig } from "astro/config";
+```js title="astro.config.mjs" ins={6-10}
+import {defineConfig} from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({}),
-  output: 'server',
   vite: {
 		ssr: {
 			external: ['node:buffer'],
@@ -530,10 +529,9 @@ Developing with [`wrangler`](https://developers.cloudflare.com/workers/wrangler/
 
 Currently, errors during running your application in Wrangler are not very useful, due to the minification of your code. For better debugging, you can add `vite.build.minify = false` setting to your `astro.config.mjs`.
 
-```js title="astro.config.mjs" ins={4-8}
+```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
   adapter: cloudflare(),
-  output: 'server',
   vite: {
     build: {
       minify: false,
