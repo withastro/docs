@@ -78,6 +78,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | on-demand rendering | rendu à la demande | |
 | package | paquet | |
 | placeholder | paramètre fictif | |
+| plugin | module d'extension | |
 | preset | préréglage | « préconfiguration » pourrait convenir mais dans certains cas la formulation devient lourde. Discuté dans https://github.com/withastro/starlight/pull/3126#discussion_r2046673972 |
 | prop | propriété | |
 | props | props ou propriétés | En référence à un composant privilégiez « props », autrement utilisez « propriétés » (voir [Concepts d'Astro](#concepts-dastro)) |
