@@ -130,9 +130,9 @@ Mémo Unicode :
 
 ### Code en ligne utilisé comme mot dans une phrase
 
-Dans la version anglaise, vous verrez régulièrement des mots entre accents graves `` ` ``. Cette syntaxe n'a pas toujours de sens en français, il est donc parfois préférable de remplacer le code par un mot français et, si besoin, de rajouter la version code à côté.
+Dans la version anglaise, vous verrez régulièrement des mots entre accents graves `` ` ``. Cette syntaxe n'a pas toujours de sens en français, il est donc parfois préférable de remplacer le code par un mot français et de rajouter la version code à côté.
 
-**Par exemple :** ``The file `path`...`` devrait être traduit par `Le chemin du fichier...` ou ``Le chemin du fichier (`path`)...``.
+**Par exemple :** ``The file `path`...`` devrait être traduit par ``Le chemin du fichier (`path`)...``.
 
 ### Liens
 
