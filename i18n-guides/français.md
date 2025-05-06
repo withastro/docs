@@ -45,7 +45,7 @@ Il existe d'autres mots ne possédant pas de traduction officielle ou dont le te
 
 | Anglais | Français | Explications/Référence (facultatif) |
 |---------|----------|-------------------------------------|
-| Astro Islands | Îles Astro | |
+| Astro Islands | Îlots Astro | Précédente discussion : https://github.com/withastro/docs/pull/11593/files#r2074910929 |
 | Content Collections | Collections de contenu | |
 | Content Layer | Couche de contenu | |
 | Fonts | Polices ou Polices d'écriture | |
@@ -58,12 +58,12 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 
 | Anglais | Français | Explications/Référence (facultatif) |
 |---------|----------|-------------------------------------|
-| build | Suivant le contexte : création / construction / compilation | |
+| build | Suivant le contexte : création / construction / compilation. En référence à `astro build`, on privilégiera le terme compilation.  | |
 | bundle | regroupement | |
 | changelog | journal des modifications | |
 | (the) CLI / (the) command line interface | (la) CLI / (l')interface en ligne de commande | |
 | client-side | côté client | |
-| code fences (`---`) | barrières de code | |
+| code fences (`---`) | délimitateur de code | |
 | endpoint | point de terminaison | |
 | export | exportation | |
 | feedback | retour / réaction / commentaire | |
@@ -122,7 +122,7 @@ Certains guides de style anglais préconisent l'utilisation de majuscules pour c
 
 ### Les guillemets
 
-Bien que difficilement accessibles sur un clavier, privilégiez les guillements francophones (`«»`) aux guillemets doubles (`""`).
+Bien que difficilement accessibles sur un clavier, privilégiez les guillements francophones (`« texte »`) aux guillemets doubles (`"texte"`).
 
 Mémo Unicode :
 * `«` : <kbd>U+00ab</kbd>
