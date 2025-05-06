@@ -155,4 +155,5 @@ Lorsque vous modifiez un exemple, pensez à vérifier les arguments passés au b
 ## 📚 Ressources
 
 * En cas de doute pour une traduction, n'hésitez pas à consulter ce qui est fait dans d'autres documentations (MDN, React, Vue, etc.).
+* [FranceTerme](https://www.culture.fr/franceterme)
 * [Vitrine linguistique de l'Office québécois](https://vitrinelinguistique.oqlf.gouv.qc.ca/) : Bien que destiné aux québecois, les recommandations françaises sont souvent affichées. En utilisant les « termes privilégiés », vous devriez trouver une traduction pouvant convenir à tout le monde.
