@@ -99,7 +99,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | to export | exporter | |
 | to fetch | récupérer | |
 | to import | importer | |
-| to render | rendre / afficher / restituer | |
+| to render | afficher / générer / effectuer un rendu / restituer | |
 | to slot | inclure / injecter / insérer | |
 | to style | mettre en forme / appliquer des styles | |
 | to wrap | englober / envelopper | |
