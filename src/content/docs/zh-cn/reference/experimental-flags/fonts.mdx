@@ -1,0 +1,729 @@
+---
+title: 实验性字体 API
+sidebar:
+  label: 字体
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+
+**类型：** `FontFamily[]`<br />
+<Since v="5.7.0" />
+</p>
+
+此实验性功能允许你通过统一、完全可定制且类型安全的 API，来使用这些来源的字体：本地文件系统，字体提供商（例如：Google、Fontsource、Bunny）。
+
+网络字体会影响网页在加载时间和渲染时的性能。此 API 将通过自动化的 [网页字体优化](https://web.dev/learn/performance/optimize-web-fonts)，包括预加载、自定义回退内容和强约定的默认配置来帮助你维持网站的高性能表现，同时规避常见问题，如下载不必要的字体文件。
+
+要启用该功能，请在 `experimental.fonts` 对象中，配置至少一个字体：
+
+```js title="astro.config.mjs" ins={5-9} ins=" fontProviders "
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: fontProviders.google(),
+            name: "Roboto",
+            cssVariable: "--font-roboto"
+        }]
+    }
+});
+```
+
+接着，在 `<head>` 部分，添加 `<Font />` 组件并运用于全站样式：
+
+```astro title="src/components/Head.astro" ins={2,5,8-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable='--font-roboto' preload />
+
+<style>
+body {
+    font-family: var(--font-roboto);
+}
+</style>
+```
+
+## 使用方法
+
+<Steps>
+
+1. `experimental.fonts` 接受以数组类型传入字体对象。每个字体，必须指定 `provider`（提供商）、`name`（字体名称）并定义 `cssVaruable` 来指向所使用的字体。
+
+    - [`provider`](#provider)：你可以从 [内置的远程提供商](#可用的远程字体提供商) 列表中挑选，构建你个人的 [自定义字体提供商](#创建自己的字体提供商)，或是使用 [本地提供商](#本地字体-variants) 来注册本地字体文件。
+    - [`name`](#name)：选择一个提供商所支持的字体。
+    - [`cssVariable`](#cssvariable-1)：必须是一个有效的、以 CSS 变量形式的 [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident)（标识符）。
+
+    下面示例配置了 [Google Fonts 中的 "Roboto" 字体](https://fonts.google.com/specimen/Roboto)：
+
+    ```js title="astro.config.mjs" ins={4-10} ins="fontProviders"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      experimental: {
+        fonts: [{
+          provider: fontProviders.google(),
+          name: "Roboto",
+          cssVariable: "--font-roboto"
+        }]
+      }
+    });
+    ```
+
+    更多可用的配置选项，例如定义 [回退字体](#fallbacks) 和 下载哪种 [`weights`](#weights) 以及 [`styles`](#styles)，将会基于你所选定的提供商有所不同。
+    
+    查看完整的 [配置参考](#字体配置参考)，以了解更多。
+
+2. 使用 `<Font />` 组件来应用样式。该组件必须引入并添加到你页面的 `<head>` 部分。你需要提供字体的 [`cssVariable`](#cssvariable)，也可以选择性的 [输出预加载链接](#preload)：
+
+    ```astro title="src/components/Head.astro" ins={2, 5}
+    ---
+    import { Font } from 'astro:assets';
+    ---
+
+    <Font cssVariable="--font-roboto" preload />
+    ```
+
+    这通常在组件中完成，而这些组件又嵌套在通用页面布局中，例如 `Head.astro`。
+
+    <ReadMore>查看完整的 [`<Font>` 组件参考](#font--组件参考)，以获取更多信息。</ReadMore>
+
+    因为 `<Font />` 组件会生成带有字体声明的 CSS，因此你可以使用 `cssVariable` 来引用该字体：
+
+    <Tabs>
+
+    <TabItem label="CSS">
+
+    ```css ins={3}
+    <style>
+    body {
+        font-family: var(--font-roboto);
+    }
+    </style>
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import 'tailwindcss';
+
+    @theme inline {
+        --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+    content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+    theme: {
+        extend: {},
+        fontFamily: {
+            sans: ["var(--font-roboto)"]
+        }
+    },
+    plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+</Steps>
+
+## 可用的远程字体提供商
+
+Astro 重新导出了大部分 [unifont](https://github.com/unjs/unifont/) 的字体提供商模块。以下为内置支持的提供商：
+
+- [Adobe](https://fonts.adobe.com/)
+- [Bunny](https://fonts.bunny.net/)
+- [Fontshare](https://www.fontshare.com/)
+- [Fontsource](https://fontsource.org/)
+- [Google](https://fonts.google.com/)
+
+要使用内置的远程提供商，请为你所选定的字体提供商选择合适的值，来配置 `provider`：
+
+<Tabs>
+
+<TabItem label="Adobe">
+
+```js
+provider: fontProviders.adobe({ id: process.env.ADOBE_ID })
+```
+
+</TabItem>
+
+<TabItem label="Bunny">
+
+```js
+provider: fontProviders.bunny()
+```
+
+</TabItem>
+
+<TabItem label="Fontshare">
+
+```js
+provider: fontProviders.fontshare()
+```
+
+</TabItem>
+
+<TabItem label="Fontsource">
+
+```js
+provider: fontProviders.fontsource()
+```
+
+</TabItem>
+
+<TabItem label="Google">
+
+```js
+provider: fontProviders.google()
+```
+
+另外，`google()` 字体提供商接受 [unifont Google `ProviderOption`](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26) 的所有可用选项：
+
+```js
+provider: fontProviders.google({
+	glyphs: {
+		Roboto: ["a"]
+	}
+})
+```
+
+</TabItem>
+
+</Tabs>
+
+你也可以使用任意的 unifont 提供商 [创建自定义 Astro 字体提供商](#创建自己的字体提供商)。
+
+## `<Font />` 组件参考
+
+该组件输出样式标签，并且能够选择性的为给定字体输出预加载链接。
+
+该组件必须导入并添加到你页面的 `<head>` 部分。这通常在组件中完成，而这些组件又嵌套在例如 `Head.astro` 这样的通用页面布局中，从而可以全局使用，但如有需要，它也能被导入到单个页面来使用。
+
+利用该组件，你可以控制哪些字体被运用在哪些页面，以及哪些字体需要预加载。
+
+### cssVariable
+
+<p>
+
+**示例类型：** `"--font-roboto" | "--font-comic-sans" | ...`
+</p>
+
+在 Astro 配置中注册的 [`cssVariable`](#cssvariable-1)：
+
+```astro title="src/components/Head.astro" "cssVariable"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" />
+```
+
+### preload
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`
+</p>
+
+是否输出 [预加载链接](https://web.dev/learn/performance/optimize-web-fonts#preload)：
+
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+## 字体配置参考
+
+所有的字体属性都必须在 Astro 配置文件中进行配置。有些属性对于远程和本地字体来说是通用的，而其他属性则根据你选择的字体提供商提供。
+
+### 通用属性
+
+下列属性对于远程和本地字体来说均可用。`provider`、`name` 和 `cssVariable` 是必要属性。
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### provider
+
+<p>
+
+**类型：** `AstroFontProvider | "local"`
+</p>
+
+字体文件的来源。你可以使用 [内置提供商](#可用的远程字体提供商) 来编写你自己的 [自定义提供商](#创建自己的字体提供商)，或者是通过将该项设置为 `"local"` 来使用本地字体文件：
+
+```js title="astro.config.mjs" {6}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### name
+
+<p>
+
+**类型：** `string`
+</p>
+
+字体名称，由字体提供商所确定：
+
+```js
+name: "Roboto"
+```
+
+#### cssVariable
+
+<p>
+
+**类型：** `string`
+</p>
+
+一个有效的、由你选定的、以 CSS 变量形式的 [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident)（例如：通常以 `--` 开头）：
+
+```js
+cssVariable: "--font-roboto"
+```
+
+#### fallbacks
+
+<p>
+
+**类型：** `string[]`<br />
+**默认值：** `["sans-serif"]`
+</p>
+
+一个包含字体的数组，用以在选定字体不可用时进行加载。回退字体将会按照列表顺序被选用。第一个可用的字体将会被使用：
+
+```js
+fallbacks: ["CustomFont", "serif"]
+```
+
+要彻底禁用回退字体，可配置一个空数组：
+
+```js
+fallbacks: []
+```
+
+如果 `fallbacks` 数组中最后的一个字体是 [通用字体族名](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-family#generic-name)，Astro 将会尝试使用字体度量（font metrics）来生成 [优化后的字体回退](https://developer.chrome.com/blog/font-fallbacks)。要禁用这种优化过程，可将 `optimizedFallbacks` 设置为 false。
+
+#### optimizedFallbacks
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`
+</p>
+
+当生成回退字体时，是否启用 Astro 默认的优化过程。你可以禁用该默认的优化过程，以实现对 [`fallbacks`](#fallbacks) 生成过程的完全掌控：
+
+```js
+optimizedFallbacks: false
+```
+
+### 远程字体属性
+
+远程字体可使用进一步配置选项来进行配置。通过设置这些选项来自定义这些由 [字体提供商](#可用的远程字体提供商) 所加载的数据，例如仅下载特定的字重和字体样式。
+
+在底层实现中，这些选项均由 [unifont](https://github.com/unjs/unifont/) 处理。部分属性可能不被某些字体提供商所支持，而不同提供商对同一属性的实现方式也可能不同。
+
+#### weights
+
+<p>
+
+**类型：** `(number | string)[]`<br />
+**默认值：** `[400]`
+</p>
+
+一个包含 [字重](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-weight) 的数组。若未在配置中指定该属性，则默认仅包含字重 `400`，以避免下载未使用的字体文件。如需使用其他字重，必须显式声明此属性：
+
+```js
+weights: [200, "400", "bold"]
+```
+
+如果所关联的字体为 [可变字体](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)，那么你可以指定字重的范围：
+
+```js
+weights: ["100 900"]
+```
+
+#### styles
+
+<p>
+
+**类型：** `("normal" | "italic" | "oblique")[]`<br />
+**默认值：** `["normal", "italic"]`
+</p>
+
+一个包含 [字体样式](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-style) 的数组：
+
+```js
+styles: ["normal", "oblique"]
+```
+
+#### subsets
+
+<p>
+
+**类型：** `string[]`<br />
+**默认值：** `["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"]`
+</p>
+
+定义 [字体子集](https://knaap.dev/posts/font-subsetting/)，用以预加载。
+
+```js
+subsets: ["latin"]
+```
+
+#### display
+
+<p>
+
+**类型：** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
+**默认值：** `"swap"`
+</p>
+
+定义 [字体显示方式](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face/font-display)，根据字体文件下载和准备就绪的时间，控制渲染行为：
+
+```js
+display: "block"
+```
+
+#### unicodeRange
+
+<p>
+
+**类型：** `string[]`<br />
+**默认值：** `undefined`
+</p>
+
+指定一个特定的 [Unicode 字符集范围](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range)，用以在字体中使用：
+
+```js
+unicodeRange: ["U+26"]
+```
+
+#### stretch
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `undefined`
+</p>
+
+[字体拉伸](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch)：
+
+```js
+stretch: "condensed"
+```
+
+#### featureSettings
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `undefined`
+</p>
+
+用以控制 [字体排印特性](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings)（例如：连字，小型大写字母，或是花体字）：
+
+```js
+featureSettings: "'smcp' 2"
+```
+
+#### variationSettings
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `undefined`
+</p>
+
+字体的 [可变设置](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-variation-settings)：
+
+```js
+variationSettings: "'xhgt' 0.7"
+```
+
+### 本地字体 `variants`
+
+<p>
+
+**类型：** `LocalFontFamily["variants"]`
+</p>
+
+当使用本地字体文件时，`variants` 属性是必要的。每个 Variant 就相当于一个 [`@font-face` 声明](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face)，并且需要对应的 `weight`、`style` 和 `src` 值。
+
+此外，可以在每个 Variant 中指定 [远程字体的某些其他属性](#其他属性) 。
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Custom",
+            cssVariable: "--font-custom",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-400.woff2"]
+                },
+                {
+                    weight: 700,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-700.woff2"]
+                }
+                // ...
+            ]
+        }]
+    }
+});
+```
+
+#### weight
+
+<p>
+
+**类型：** `number | string`
+</p>
+
+[字重](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-weight)：
+
+```js
+weight: 200
+```
+
+如果所关联的字体为 [可变字体](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)，那么你可以指定字重的范围：
+
+```js
+weight: "100 900"
+```
+
+#### style
+
+<p>
+
+**类型：** `"normal" | "italic" | "oblique"`
+</p>
+
+[字体样式](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-style)：
+
+```js
+style: "normal"
+```
+
+#### src
+
+<p>
+
+**类型：** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+字体 [来源](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face/src)。它可以是一条相对于根目录的相对路径，也可以来自于包的导入或是一个 URL。如果你是通过集成来注入本地字体，则 URL 特别有用：
+
+<Tabs>
+
+<TabItem label="Relative path">
+
+```js
+src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./custom.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="Package import">
+
+```js
+src: ["my-package/SomeFont.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+我们不推荐将字体文件存放在 [`public/` 目录](/zh-cn/reference/configuration-reference/#publicdir) 中。因为 Astro 会在构建时将这些文件拷贝到其中，这将会导致构建输出的结果产生重复文件。更好的做法是将其存放在项目中的其他位置，例如放置在 [`src/`](/zh-cn/reference/configuration-reference/#srcdir) 中。
+:::
+
+你也可以通过提供对象，来指定一个 [tech](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face/src#tech)：
+
+```js
+src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
+```
+
+#### 其他属性
+
+下列来自于远程字体的可用选项，也可用于本地字体的 Variant 中：
+
+- [display](#display)
+- [unicodeRange](#unicoderange)
+- [stretch](#stretch)
+- [featureSettings](#featuresettings)
+- [variationSettings](#variationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Custom",
+            cssVariable: "--font-custom",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-400.woff2"],
+                    display: "block"
+                }
+            ]
+        }]
+    }
+});
+```
+
+## 创建自己的字体提供商
+
+如果你不想局限于使用任一的 [内置提供商](#可用的远程字体提供商)（例如：你想使用第三方 unifont 提供商，或是创建一些运用于私人仓库的内容），那么你便可以创建自己的字体提供商。
+
+每一个 Astro 字体提供商都是由两个部分所构成：配置对象（config object）和实际实现（actual implementation）。
+
+<Steps>
+
+1. 使用 `defineAstroFontProvider()` 类型助手函数，创建一个函数用于返回字体提供商的配置对象所含的内容：
+
+    - `entrypoint`：可以是 URL，一个相对于根目录的相对路径，或是一个包的导入。
+    - `config`：一个可选的序列化对象，它会被传入 unifont 提供商。
+
+    <Tabs>
+
+    <TabItem label="Without config">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    export function myProvider() {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url)
+        });
+    };
+    ```
+
+    </TabItem>
+
+    <TabItem label="With config">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    interface Config {
+        // ...
+    };
+
+    export function myProvider(config: Config) {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url),
+            config
+        });
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+2. 创建第二个文件，用以导入 unifont `provider` 实现：
+
+    ```ts title="implementation.ts"
+    import { defineFontProvider } from "unifont";
+
+    export const provider = defineFontProvider("my-provider", async (options, ctx) => {
+        // 获取/定义你的自定义字体
+        // ...
+    });
+    ```
+
+    :::tip
+
+    你可以翻阅 [unifont 提供商们的源码](https://github.com/unjs/unifont/blob/main/src/providers/)，从而了解如何创建一个 unifont 提供商。
+
+    :::
+
+3. 向你的字体配置文件中，添加你自定义的提供商。
+
+    ```js title="astro.config.mjs" ins="myProvider()"
+    fonts: [{
+      provider: fontProviders.myProvider(),
+      name: "Custom Font",
+      cssVariable: "--font-custom"
+     }]
+    ```
+
+</Steps>
+
+## 缓存
+
+字体 API 的缓存实现，旨在保证开发环境的实用性和生产环境的高效率。在构建阶段，字体文件会被拷贝到 `_astro/fonts` 输出目录，因此他们可以从静态资源的 HTTP 缓存中受益（通常为一年时间）。
+
+想清理开发环境中的缓存，可删除 `.astro/fonts` 目录。想清理构建时产生的缓存，可删除 `node_modules/.astro/fonts` 目录。
+
+## 延伸阅读
+
+有关此实验性 API 的全部详细信息或需提供反馈，请参见 [字体 RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md)。
