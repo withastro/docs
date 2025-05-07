@@ -47,7 +47,7 @@ Il existe d'autres mots ne possédant pas de traduction officielle ou dont le te
 
 | Anglais | Français | Explications/Référence (facultatif) |
 |---------|----------|-------------------------------------|
-| Astro Islands | Îlots Astro | Précédente discussion : https://github.com/withastro/docs/pull/11593/files#r2074910929 |
+| Astro Islands | Îlots Astro | Précédente discussion : https://github.com/withastro/docs/pull/11593#discussion_r2074910929 |
 | Content Collections | Collections de contenu | |
 | Content Layer | Couche de contenu | |
 | Fonts | Polices ou Polices d'écriture | |
