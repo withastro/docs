@@ -113,7 +113,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 > Ces traductions sont des recommandations. Il est parfois acceptable d'utiliser une autre traduction si elle est plus adaptée au contexte ou elle rend la lecture plus fluide en évitant des répétitions.
 
 > [!TIP]
-> Il est parfois utile pour faciliter la recherche d'un concept de proposer à certains endroits, avec parcimonie, deux versions couramment utilisées. Par exemple : `a headless CMS` pourrait être traduit de la façon suivante `un CMS sans-tête (ou « headless »)`.
+> Il est parfois utile pour faciliter la recherche ou la compréhension d'un concept de proposer à certains endroits, avec parcimonie, deux versions. Par exemple : `the component props` pourrait être traduit de la façon suivante `les props (ou « propriétés ») du composant`.
 
 ## 📝 Conseils stylistiques
 
