@@ -77,7 +77,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | layout | mise en page | |
 | on-demand rendering | rendu à la demande | |
 | package | paquet | |
-| placeholder | paramètre fictif | |
+| placeholder | mot + par défaut / réservé / substituable / fictif | La traduction dépend fortement du contexte, les propositions précédentes ne sont que des exemples possibles. Précédente discussion : https://github.com/withastro/docs/pull/11593#discussion_r2071856903 |
 | plugin | module d'extension | |
 | preset | préréglage | « préconfiguration » pourrait convenir mais dans certains cas la formulation devient lourde. Discuté dans https://github.com/withastro/starlight/pull/3126#discussion_r2046673972 |
 | prop | propriété | |
