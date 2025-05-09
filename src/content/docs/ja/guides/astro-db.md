@@ -128,15 +128,15 @@ const Comment = defineTable({
 });
 ```
 
-## Seed your database for development
+## 開発用データベースのシード
 
-In development, Astro will use your DB config to generate local types according to your schemas. These will be generated fresh from your seed file each time the dev server is started, and will allow you to query and work with the shape of your data with type safety and autocompletion.
+開発環境では、AstroはDB設定を使用してスキーマに基づいたローカル型を生成します。これらの型は開発サーバー起動時に毎回シードファイルから新しく生成され、型安全性とオートコンプリート付きでデータのクエリや操作ができます。
 
-You will not have access to production data during development unless you [connect to a remote database](#connecting-to-remote-databases) during development. This protects your data while allowing you to test and develop with a working database with type-safety.
+開発中に[リモートデータベースへ接続](#リモートデータベースへの接続)しない限り、本番データへアクセスすることはできません。これによりデータを保護しつつ、型安全性のある動作データベースを用いたテスト・開発が可能になります。
 
-To seed development data for testing and debugging into your Astro project, create a `db/seed.ts` file. Import both the `db` object and your tables defined in `astro:db`. `insert` some initial data into each table. This development data should match the form of both your database schema and production data.
+テストやデバッグ用の開発データをAstroプロジェクトにシードするには、`db/seed.ts`ファイルを作成します。`astro:db`から定義済みの`db`オブジェクトやテーブルをインポートし、各テーブルに初期データを`insert`します。この開発用データは、データベーススキーマおよび本番データの形式と一致させる必要があります。
 
-The following example defines two rows of development data for a `Comment` table, and an `Author` table:
+以下の例では、`Comment`テーブルと`Author`テーブルにそれぞれ2行の開発用データを定義しています。
 
 ```ts title="db/seed.ts"
 import { db, Comment, Author } from 'astro:db';
@@ -154,70 +154,69 @@ export default async function() {
 }
 ```
 
-Your development server will automatically restart your database whenever this file changes, regenerating your types and seeding this development data from `seed.ts` fresh each time.
+開発サーバーはこのファイルの変更を検知すると自動的にデータベースを再起動し、型を再生成し、`seed.ts`から新たに開発データをシードします。
 
-## Connect a libSQL database for production
+## 本番用のlibSQLデータベースに接続する
 
-Astro DB can connect to any local libSQL database or to any server that exposes the libSQL remote protocol, whether managed or self-hosted.
+Astro DBは、ローカルのlibSQLデータベース、またはlibSQLリモートプロトコルを公開しているマネージド・セルフホスト型サーバーのどちらにも接続できます。
 
-To connect Astro DB to a libSQL database, set the following environment variables obtained from your database provider:
+Astro DBをlibSQLデータベースに接続するには、データベースプロバイダーから取得した以下の環境変数を設定します。
 
-- `ASTRO_DB_REMOTE_URL`: the connection URL to the location of your local or remote libSQL DB. This may include [URL configuration options](#remote-url-configuration-options) such as sync and encryption as parameters.
-- `ASTRO_DB_APP_TOKEN`: the auth token to your libSQL server. This is required for remote databases, and not needed for [local DBs like files or in-memory](#url-scheme-and-host) databases
+- `ASTRO_DB_REMOTE_URL`: ローカルまたはリモートlibSQL DBの接続URL。このURLには、同期や暗号化などの[URL設定オプション](#リモートurl設定オプション)をパラメータとして含めることができます。
+- `ASTRO_DB_APP_TOKEN`: libSQLサーバーの認証トークン。これはリモートデータベースに必要であり、[ローカルDB（ファイルまたはメモリ内）](#urlスキームとホスト)には不要です。
 
-Depending on your service, you may have access to a CLI or web UI to retrieve these values. The following section will demonstrate connecting to Turso and setting these values as an example, but you are free to use any provider. 
+サービスによってはCLIやWeb UIを使ってこれらの値を取得できます。以下では、例としてTursoを使用し、この値を設定する手順を示しますが、他のプロバイダーも自由に利用できます。
 
-### Getting started with Turso
+### Tursoの始め方
 
-Turso is the company behind [libSQL](https://github.com/tursodatabase/libsql), the open-source fork of SQLite that powers Astro DB. They provide a fully managed libSQL database platform and are fully compatible with Astro.
+Tursoは、Astro DBを支えるオープンソースのSQLiteフォーク[libSQL](https://github.com/tursodatabase/libsql)の開発元です。完全管理型のlibSQLデータベースプラットフォームを提供し、Astroと完全互換です。
 
-The steps below will guide you through the process of installing the Turso CLI, logging in (or signing up), creating a new database, getting the required environmental variables, and pushing the schema to the remote database.
+以下の手順では、Turso CLIのインストール、ログイン（またはサインアップ）、新しいデータベースの作成、必要な環境変数の取得、スキーマのリモートデータベースへのプッシュ方法を案内します。
 
 <Steps>
 
-1. Install the [Turso CLI](https://docs.turso.tech/cli/installation).
+1. [Turso CLI](https://docs.turso.tech/cli/installation)をインストールします。
 
-2. [Log in or sign up](https://docs.turso.tech/cli/authentication) to Turso.
+2. Tursoに[ログインまたはサインアップ](https://docs.turso.tech/cli/authentication)します。
 
-3. Create a new database. In this example the database name is `andromeda`.
+3. 新しいデータベースを作成します。例として、データベース名を`andromeda`とします。
 
    ```sh "andromeda"
    turso db create andromeda
    ```
 
-4. Run the `show` command to see information about the newly created database:
+4. `show`コマンドを実行して、新しく作成したデータベースの情報を確認します。
 
    ```sh "andromeda"
    turso db show andromeda
    ```
 
-   Copy the `URL` value and set it as the value for `ASTRO_DB_REMOTE_URL`.
-   
+   出力される`URL`値をコピーし、`ASTRO_DB_REMOTE_URL`に設定します。
 
    ```dotenv title=".env" "libsql://andromeda-houston.turso.io"
    ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
    ```
 
-5. Create a new token to authenticate requests to the database:
+5. データベースへのリクエストを認証する新しいトークンを作成します。
 
    ```sh "andromeda"
    turso db tokens create andromeda
    ```
 
-   Copy the output of the command and set it as the value for `ASTRO_DB_APP_TOKEN`.
+   コマンド出力をコピーし、`ASTRO_DB_APP_TOKEN`に設定します。
 
    ```dotenv title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
    ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
    ASTRO_DB_APP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
    ```
 
-6. Push your DB schema and metadata to the new Turso database.
+6. DBスキーマとメタデータを新しいTursoデータベースにプッシュします。
 
    ```sh
    astro db push --remote
    ```
 
-7. Congratulations, now you have a database connected! Give yourself a break. 👾
+7. 接続が完了しました！少し休憩しましょう。👾
 
    ```sh
    turso relax
@@ -225,7 +224,7 @@ The steps below will guide you through the process of installing the Turso CLI, 
 
 </Steps>
 
-To explore more features of Turso, check out the [Turso docs](https://docs.turso.tech).
+Tursoの詳細機能については、[Tursoドキュメント](https://docs.turso.tech)を参照してください。
 
 ### Connecting to remote databases
 
