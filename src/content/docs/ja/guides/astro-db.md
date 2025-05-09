@@ -309,9 +309,9 @@ ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
 ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
 ```
 
-## Query your database
+## データベースをクエリする
 
-You can query your database from any [Astro page](/en/basics/astro-pages/#astro-pages), [endpoint](/en/guides/endpoints/), or [action](/en/guides/actions/) in your project using the provided `db` ORM and query builder.
+プロジェクト内の任意の[Astroページ](/ja/basics/astro-pages/#astro-pages)、[エンドポイント](/ja/guides/endpoints/)、または[アクション](/ja/guides/actions/)から、提供されている`db` ORMおよびクエリビルダーを使用してデータベースをクエリできます。
 
 ### Drizzle ORM
 
@@ -319,11 +319,11 @@ You can query your database from any [Astro page](/en/basics/astro-pages/#astro-
 import { db } from 'astro:db';
 ```
 
-Astro DB includes a built-in [Drizzle ORM](https://orm.drizzle.team/) client. There is no setup or manual configuration required to use the client. The Astro DB `db` client is automatically configured to communicate with your database (local or remote) when you run Astro. It uses your exact database schema definition for type-safe SQL queries with TypeScript errors when you reference a column or table that doesn't exist.
+Astro DBには組み込みの[Drizzle ORM](https://orm.drizzle.team/)クライアントが含まれています。クライアントを使うために特別なセットアップや手動設定は不要です。Astroを実行すると、Astro DBの`db`クライアントはローカル・リモート両方のデータベースと通信するよう自動的に設定されます。データベーススキーマ定義を基に、存在しない列やテーブルを参照した際にはTypeScriptエラーを出す型安全なSQLクエリが実行されます。
 
-### Select 
+### Select
 
-The following example selects all rows of a `Comment` table. This returns the complete array of seeded development data from `db/seed.ts` which is then available for use in your page template:
+次の例は`Comment`テーブルの全行を選択します。これは`db/seed.ts`からシードされた開発データの完全な配列を返し、ページテンプレート内で使用できます。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -344,13 +344,13 @@ const comments = await db.select().from(Comment);
 }
 ```
 
-<ReadMore>See the [Drizzle `select()` API reference](https://orm.drizzle.team/docs/select) for a complete overview.</ReadMore>
+<ReadMore>[Drizzleの`select()` APIリファレンス](https://orm.drizzle.team/docs/select)を参照してください。</ReadMore>
 
-### Insert
+### インサート
 
-To accept user input, such as handling form requests and inserting data into your remote hosted database, configure your Astro project for [on-demand rendering](/en/guides/on-demand-rendering/) and [add an adapter](/en/guides/on-demand-rendering/#add-an-adapter) for your deployment environment.
+フォームリクエストの処理やリモートデータベースへのデータ挿入など、ユーザー入力を受け付けるには、Astroプロジェクトを[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)用に設定し、[デプロイ環境に応じたアダプター](/ja/guides/on-demand-rendering/#add-an-adapter)を追加します。
 
-This example inserts a row into a `Comment` table based on a parsed form POST request:
+次の例は、パースされたフォームのPOSTリクエストに基づき`Comment`テーブルに行を挿入する例です。
 
 ```astro
 ---
@@ -358,17 +358,14 @@ This example inserts a row into a `Comment` table based on a parsed form POST re
 import { db, Comment } from 'astro:db';
 
 if (Astro.request.method === 'POST') {
-  // Parse form data
   const formData = await Astro.request.formData();
   const author = formData.get('author');
   const body = formData.get('body');
   if (typeof author === 'string' && typeof body === 'string') {
-    // Insert form data into the Comment table
     await db.insert(Comment).values({ author, body });
   }
 }
 
-// Render the new list of comments on each request
 const comments = await db.select().from(Comment);
 ---
 
@@ -382,10 +379,10 @@ const comments = await db.select().from(Comment);
 	<button type="submit">Submit</button>
 </form>
 
-<!-- Render `comments` -->
+<!-- `comments`をレンダリング -->
 ```
 
-You can also use [Astro actions](/en/guides/actions/) to insert data into an Astro DB table. The following example inserts a row into a `Comment` table using an action:
+また、[Astroアクション](/ja/guides/actions/)を使用してAstro DBテーブルにデータを挿入することもできます。次の例はアクションを使用して`Comment`テーブルに行を挿入する例です。
 
 ```ts
 // src/actions/index.ts
@@ -395,8 +392,6 @@ import { z } from 'astro:schema';
 
 export const server = {
   addComment: defineAction({
-    // Actions include type safety with Zod, removing the need
-    // to check if typeof {value} === 'string' in your pages
     input: z.object({
       author: z.string(),
       body: z.string(),
@@ -405,22 +400,18 @@ export const server = {
       const updatedComments = await db
         .insert(Comment)
         .values(input)
-        .returning(); // Return the updated comments
+        .returning();
       return updatedComments;
     },
   }),
 };
 ```
 
-<ReadMore>
-
-See the [Drizzle `insert()` API reference](https://orm.drizzle.team/docs/insert) for a complete overview.
-
-</ReadMore>
+<ReadMore>[Drizzleの`insert()` APIリファレンス](https://orm.drizzle.team/docs/insert)を参照してください。</ReadMore>
 
 ### Delete
 
-You can also query your database from an API endpoint. This example deletes a row from a `Comment` table by the `id` parameter:
+APIエンドポイントからデータベースをクエリすることもできます。次の例は、`id`パラメータに基づいて`Comment`テーブルから行を削除する例です。
 
 ```ts
 // src/pages/api/comments/[id].ts
@@ -433,18 +424,13 @@ export const DELETE: APIRoute = async (ctx) => {
 }
 ```
 
-<ReadMore>
+<ReadMore>[Drizzleの`delete()` APIリファレンス](https://orm.drizzle.team/docs/delete)を参照してください。</ReadMore>
 
-See the [Drizzle `delete()` API reference](https://orm.drizzle.team/docs/delete) for a complete overview.
+### フィルタリング
 
-</ReadMore>
+特定のプロパティに基づいてテーブル結果をクエリするには、[Drizzleの部分選択用オプション](https://orm.drizzle.team/docs/select#partial-select)を使用します。たとえば、`select()`クエリに[`.where()`呼び出し](https://orm.drizzle.team/docs/select#filtering)を追加し、比較条件を渡します。
 
-### Filtering
-
-To query for table results by a specific property, use [Drizzle options for partial selects](https://orm.drizzle.team/docs/select#partial-select). For example, add [a `.where()` call](https://orm.drizzle.team/docs/select#filtering) to your `select()` query and pass the comparison you want to make. 
-
-The following example queries for all rows in a `Comment` table that contain the phrase "Astro DB." Use [the `like()` operator](https://orm.drizzle.team/docs/operators#like) to check if a phrase is present within the `body`:
-
+以下の例では、`Comment`テーブル内の`body`に"Astro DB"というフレーズを含む全行をクエリしています。[`like()`演算子](https://orm.drizzle.team/docs/operators#like)を使用して、フレーズが含まれているかを確認します。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -456,23 +442,23 @@ const comments = await db.select().from(Comment).where(
 ---
 ```
 
-### Drizzle utilities
+### Drizzleユーティリティ
 
-All Drizzle utilities for building queries are exposed from the `astro:db` module. This includes:
+クエリ構築用のすべてのDrizzleユーティリティは`astro:db`モジュールから提供されます。これには以下が含まれます。
 
-- [Filter operators](https://orm.drizzle.team/docs/operators) like `eq()` and `gt()`
-- [Aggregation helpers](https://orm.drizzle.team/docs/select#aggregations-helpers) like `count()`
-- [The `sql` helper](https://orm.drizzle.team/docs/sql) for writing raw SQL queries
+- `eq()`や`gt()`のような[フィルタ演算子](https://orm.drizzle.team/docs/operators)
+- `count()`のような[集約ヘルパー](https://orm.drizzle.team/docs/select#aggregations-helpers)
+- 生のSQLクエリを書くための[`sql`ヘルパー](https://orm.drizzle.team/docs/sql)
 
 ```ts
 import { eq, gt, count, sql } from 'astro:db';
 ```
 
-### Relationships
+### リレーション
 
-You can query related data from multiple tables using a SQL join. To create a join query, extend your `db.select()` statement with a join operator. Each function accepts a table to join with and a condition to match rows between the two tables.
+SQLのjoinを使って複数のテーブルから関連データをクエリできます。joinクエリを作成するには、`db.select()`ステートメントにjoin演算子を追加します。各関数は結合するテーブルと、2つのテーブル間で行を一致させる条件を受け取ります。
 
-This example uses an `innerJoin()` function to join `Comment` authors with their related `Author` information based on the `authorId` column. This returns an array of objects with each `Author` and `Comment` row as top-level properties:
+以下の例では、`innerJoin()`関数を使用し、`Comment`の著者と、それに関連する`Author`情報を`authorId`列を基に結合しています。これにより、各`Author`および`Comment`行がトップレベルのプロパティとして含まれるオブジェクトの配列が返されます。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -495,17 +481,13 @@ const comments = await db.select()
 }
 ```
 
-<ReadMore>
+<ReadMore>[Drizzleのjoinリファレンス](https://orm.drizzle.team/docs/joins#join-types)ですべての利用可能なjoin演算子や設定オプションを確認できます。</ReadMore>
 
-See the [Drizzle join reference](https://orm.drizzle.team/docs/joins#join-types) for all available join operators and config options.
+### バッチトランザクション
 
-</ReadMore>
+すべてのリモートデータベースクエリはネットワークリクエストとして行われます。大量のクエリをまとめて単一のトランザクションにまとめたい場合や、クエリの一部が失敗した際に自動ロールバックを行いたい場合があります。
 
-### Batch Transactions
-
-All remote database queries are made as a network request. You may need to "batch" queries together into a single transaction when making a large number of queries, or to have automatic rollbacks if any query fails.
-
-This example seeds multiple rows in a single request using the `db.batch()` method:
+以下の例では、`db.batch()`メソッドを使って単一のリクエストで複数の行をシードしています。
 
 ```ts
 // db/seed.ts
@@ -513,8 +495,6 @@ import { db, Author, Comment } from 'astro:db';
 
 export default async function () {
   const queries = [];
-  // Seed 100 sample comments into your remote database
-  // with a single network request.
   for (let i = 0; i < 100; i++) {
     queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
   }
@@ -522,11 +502,7 @@ export default async function () {
 }
 ```
 
-<ReadMore>
-
-See the [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) docs for more details.
-
-</ReadMore>
+<ReadMore>[Drizzleの`db.batch()`ドキュメント](https://orm.drizzle.team/docs/batch-api)で詳細を確認してください。</ReadMore>
 
 ## Pushing changes to your database
 
