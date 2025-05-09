@@ -504,15 +504,15 @@ export default async function () {
 
 <ReadMore>[Drizzleの`db.batch()`ドキュメント](https://orm.drizzle.team/docs/batch-api)で詳細を確認してください。</ReadMore>
 
-## Pushing changes to your database
+## データベースへの変更をプッシュする
 
-You can push changes made during development to your database.
+開発中に行った変更をデータベースにプッシュできます。
 
-### Pushing table schemas
+### テーブルスキーマをプッシュする
 
-Your table schema may change over time as your project grows. You can safely test configuration changes locally and push to your remote database when you deploy.
+プロジェクトが成長するにつれて、テーブルスキーマは変化する可能性があります。設定変更をローカルで安全にテストし、デプロイ時にリモートデータベースへプッシュできます。
 
-You can push your local schema changes to your remote database via the CLI using the `astro db push --remote` command:
+ローカルのスキーマ変更をリモートデータベースにプッシュするには、CLIで`astro db push --remote`コマンドを使用します。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -532,17 +532,13 @@ You can push your local schema changes to your remote database via the CLI using
   </Fragment>
 </PackageManagerTabs>
 
-This command will verify that your local changes can be made without data loss and, if necessary, suggest how to safely make changes to your schema in order to resolve conflicts.
+このコマンドは、ローカルの変更がデータ損失なしに適用できるか検証し、必要に応じて安全にスキーマ変更を行う方法を提案します。
 
-#### Pushing breaking schema changes
+#### 互換性のないスキーマ変更をプッシュする
 
-:::caution
-__This will destroy your database__. Only perform this command if you do not need your production data.
-:::
+リモートデータベース上の既存データと互換性のない形でテーブルスキーマを変更する場合は、本番データベースをリセットする必要があります。
 
-If you must change your table schema in a way that is incompatible with your existing data hosted on your remote database, you will need to reset your production database.
-
-To push a table schema update that includes a breaking change, add the `--force-reset` flag to reset all production data:
+互換性のないスキーマ更新をプッシュするには、`--force-reset`フラグを追加して本番データをすべてリセットします。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -562,75 +558,81 @@ To push a table schema update that includes a breaking change, add the `--force-
   </Fragment>
 </PackageManagerTabs>
 
-### Renaming tables
+### テーブルの名前変更
 
-It is possible to rename a table after pushing your schema to your remote database.
+スキーマをリモートデータベースにプッシュした後でもテーブル名を変更できます。
 
-If you **do not have any important production data**, then you can [reset your database](#pushing-breaking-schema-changes) using the `--force-reset` flag. This flag will drop all of the tables in the database and create new ones so that it matches your current schema exactly.
+**重要な本番データがない場合**は、`--force-reset`フラグを使用して[データベースをリセット](#互換性のないスキーマ変更をプッシュする)できます。このフラグはデータベース内のすべてのテーブルを削除し、新しいスキーマに基づいて再作成します。
 
-To rename a table while preserving your production data, you must perform a series of non-breaking changes to push your local schema to your remote database safely.
+本番データを保持したままテーブル名を変更する場合は、非破壊的な変更を段階的に行う必要があります。
 
-The following example renames a table from `Comment` to `Feedback`:
+以下は`Comment`テーブルを`Feedback`に名前を変え、古いテーブルを非推奨にする例です。
 
 <Steps>
 
-1. In your database config file, add the `deprecated: true` property to the table you want to rename:
+1. データベース設定ファイル内で、リネーム対象のテーブルに`deprecated: true`プロパティを追加します。
 
-    ```ts title="db/config.ts" ins={2}
-    const Comment = defineTable({
-      deprecated: true,
-    	columns: {
-    		author: column.text(),
-    		body: column.text(),
-  		}
-    });
-    ```
+   ```ts title="db/config.ts" ins={2}
+   const Comment = defineTable({
+     deprecated: true,
+   	columns: {
+   		author: column.text(),
+   		body: column.text(),
+   	}
+   });
+   ```
 
-2. Add a new table schema (matching the existing table's properties exactly) with the new name:
+2. 既存テーブルのプロパティと完全に一致する新しい名前のテーブルスキーマを追加します。
 
-	  ```ts title="db/config.ts" ins={8-14}
-    const Comment = defineTable({
-        deprecated: true,
-    	columns: {
-    		author: column.text(),
-    		body: column.text(),
-  		}
-    });
-	  const Feedback = defineTable({
-        columns: {
-          author: column.text(),
-          body: column.text(),
-        }
-    });
-    ```
+   ```ts title="db/config.ts" ins={8-14}
+   const Comment = defineTable({
+     deprecated: true,
+     columns: {
+     	author: column.text(),
+     	body: column.text(),
+     }
+   });
+   const Feedback = defineTable({
+     columns: {
+       author: column.text(),
+       body: column.text(),
+     }
+   });
+   ```
 
-3. [Push to your remote database](#pushing-table-schemas) with `astro db push --remote`. This will add the new table and mark the old as deprecated.
-4. Update any of your local project code to use the new table instead of the old table. You might need to migrate data to the new table as well.
-5. Once you are confident that the old table is no longer used in your project, you can remove the schema from your `config.ts`:
-		```ts title="db/config.ts" del={1-7}
-    const Comment = defineTable({
-          deprecated: true,
-    	  columns: {
-    		  author: column.text(),
-    		  body: column.text(),
-  		  }
-    });
+3. `astro db push --remote`で[リモートデータベースへプッシュ](#テーブルスキーマをプッシュする)します。これにより、新しいテーブルが追加され、古いテーブルが非推奨としてマークされます。
 
-	  const Feedback = defineTable({
-          columns: {
-            author: column.text(),
-            body: column.text(),
-          }
-    });
-    ```
-6. Push to your remote database again with `astro db push --remote`. The old table will be dropped, leaving only the new, renamed table.
-</Steps>
+4. プロジェクト内のコードをすべて新しいテーブルを使用するよう更新します。必要に応じてデータ移行も行います。
 
-### Pushing table data 
+5. 古いテーブルがプロジェクト内で完全に使用されなくなったことを確認したら、`config.ts`からスキーマを削除します。
+   \`\`\`ts title="db/config.ts" del={1-7}
+   const Comment = defineTable({
+   deprecated: true,
+   columns: {
+   author: column.text(),
+   body: column.text(),
+   }
+   });
 
-You may need to push data to your remote database for seeding or data migrations. You can author a `.ts` file with the `astro:db` module to write type-safe queries. Then, execute the file against your remote database using the command `astro db execute <file-path> --remote`:
+   const Feedback = defineTable({
+   columns: {
+   author: column.text(),
+   body: column.text(),
+   }
+   });
 
-The following Comments can be seeded using the command `astro db execute db/seed.ts --remote`:
+   ```
+   ```
+
+6. 再度`astro db push --remote`でリモートデータベースにプッシュします。古いテーブルは削除され、新しい名前のテーブルだけが残ります。
+
+   </Steps>
+
+### テーブルデータをプッシュする
+
+シードやデータマイグレーションのためにリモートデータベースにデータをプッシュする必要がある場合があります。`astro:db`モジュールを使って型安全なクエリを記述した`.ts`ファイルを作成し、`astro db execute <ファイルパス> --remote`コマンドで実行します。
+
+以下のコメントは、`astro db execute db/seed.ts --remote`コマンドでシードできます。
 
 ```ts
 // db/seed.ts
@@ -644,18 +646,13 @@ export default async function () {
 }
 ```
 
-<ReadMore>
+<ReadMore>[CLIリファレンス](/ja/guides/integrations-guide/db/)ですべてのコマンドを確認できます。</ReadMore>
 
-See the [CLI reference](/en/guides/integrations-guide/db/#astro-db-cli-reference) for a complete list of commands.
+## Astro DBインテグレーションを構築する
 
-</ReadMore>
+[Astroインテグレーション](/ja/reference/integrations-reference/)を使って、追加のAstro DBテーブルやシードデータをユーザープロジェクトに拡張できます。
 
-## Building Astro DB integrations
-
-[Astro integrations](/en/reference/integrations-reference/) can extend user projects with additional Astro DB tables and seed data.
-
-Use the `extendDb()` method in the `astro:db:setup` hook to register additional Astro DB config and seed files.
-The `defineDbIntegration()` helper provides TypeScript support and auto-complete for the `astro:db:setup` hook.
+`astro:db:setup`フック内の`extendDb()`メソッドを使用して、追加のAstro DB設定やシードファイルを登録します。`defineDbIntegration()`ヘルパーを使うと、`astro:db:setup`フック内でTypeScriptサポートとオートコンプリートが利用できます。
 
 ```js {8-13}
 // my-integration/index.ts
@@ -671,20 +668,18 @@ export default function MyIntegration() {
           seedEntrypoint: '@astronaut/my-package/seed',
         });
       },
-      // Other integration hooks...
     },
   });
 }
 ```
 
-Integration [config](#define-your-database) and [seed](#seed-your-database-for-development) files follow the same format as their user-defined equivalents.
+インテグレーションの[設定](#データベースを定義する)および[シード](#開発用データベースのシード)ファイルは、ユーザー定義のものと同じ形式です。
 
-### Type safe operations in integrations
+### インテグレーション内の型安全な操作
 
-While working on integrations, you may not be able to benefit from Astro’s generated table types exported from `astro:db`.
-For full type safety, use the `asDrizzleTable()` utility to create a table reference object you can use for database operations.
+インテグレーション開発中は、`astro:db`からエクスポートされるAstro生成のテーブル型を利用できない場合があります。完全な型安全性を確保するためには、`asDrizzleTable()`ユーティリティを使い、データベース操作用のテーブル参照オブジェクトを作成します。
 
-For example, given an integration setting up the following `Pets` database table:
+たとえば、以下のように`Pets`データベーステーブルをセットアップするインテグレーションの場合:
 
 ```js
 // my-integration/config.ts
@@ -700,7 +695,7 @@ export const Pets = defineTable({
 export default defineDb({ tables: { Pets } });
 ```
 
-The seed file can import `Pets` and use `asDrizzleTable()` to insert rows into your table with type checking:
+シードファイルでは`Pets`をインポートし、`asDrizzleTable()`を使って型チェック付きで行を挿入できます。
 
 ```js {2,7} /typeSafePets(?! )/
 // my-integration/seed.ts
@@ -718,11 +713,7 @@ export default async function() {
 }
 ```
 
-The value returned by `asDrizzleTable('Pets', Pets)` is equivalent to `import { Pets } from 'astro:db'`, but is available even when Astro’s type generation can’t run.
-You can use it in any integration code that needs to query or insert into the database.
-
-
-
+`asDrizzleTable('Pets', Pets)`で返される値は`import { Pets } from 'astro:db'`と同等ですが、Astroの型生成が実行できない場合でも利用可能です。データベースへのクエリや挿入が必要なインテグレーションコード内で使用できます。
 
 ## Migrate from Astro Studio to Turso
 
