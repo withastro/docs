@@ -715,38 +715,45 @@ export default async function() {
 
 `asDrizzleTable('Pets', Pets)`で返される値は`import { Pets } from 'astro:db'`と同等ですが、Astroの型生成が実行できない場合でも利用可能です。データベースへのクエリや挿入が必要なインテグレーションコード内で使用できます。
 
-## Migrate from Astro Studio to Turso
+## Astro StudioからTursoへの移行
 
 <Steps>
 
-1. In the [Studio dashboard](https://studio.astro.build/), navigate to the project you wish to migrate. In the settings tab, use the "Export Database" button to download a dump of your database.
-2. Follow the official instructions to [install the Turso CLI](https://docs.turso.tech/cli/installation) and [sign up or log in](https://docs.turso.tech/cli/authentication) to your Turso account.
-3. Create a new database on Turso using the `turso db create` command.
+1. [Studioダッシュボード](https://studio.astro.build/)で、移行したいプロジェクトに移動します。設定タブ内の「Export Database」ボタンを使い、データベースのダンプをダウンロードします。
+2. 公式手順に従って[Turso CLIをインストール](https://docs.turso.tech/cli/installation)し、Tursoアカウントに[サインアップまたはログイン](https://docs.turso.tech/cli/authentication)します。
+3. `turso db create`コマンドを使用してTurso上に新しいデータベースを作成します。
+
    ```sh
    turso db create [database-name]
    ```
-4. Fetch the database URL using the Turso CLI, and use it as the environment variable `ASTRO_DB_REMOTE_URL`.
+4. Turso CLIを使ってデータベースURLを取得し、それを環境変数`ASTRO_DB_REMOTE_URL`として設定します。
+
    ```sh
    turso db show [database-name]
    ```
+
    ```dotenv
    ASTRO_DB_REMOTE_URL=[your-database-url]
    ```
-5. Create a token to access your database, and use it as the environment variable `ASTRO_DB_APP_TOKEN`.
+5. データベースへアクセスするためのトークンを作成し、それを環境変数`ASTRO_DB_APP_TOKEN`として設定します。
+
    ```sh
    turso db tokens create [database-name]
    ```
+
    ```dotenv
    ASTRO_DB_APP_TOKEN=[your-app-token]
    ```
-6. Push your DB schema and metadata to the new Turso database.
+6. データベーススキーマとメタデータを新しいTursoデータベースにプッシュします。
+
    ```sh
    astro db push --remote
    ```
-7. Import the database dump from step 1 into your new Turso DB.
+7. ステップ1でダウンロードしたデータベースダンプを新しいTurso DBにインポートします。
+
    ```sh
    turso db shell [database-name] < ./path/to/dump.sql
    ```
-8. Once you have confirmed your project connects to the new database, you can safely delete the project from Astro Studio.
+8. プロジェクトが新しいデータベースに正常に接続されていることを確認したら、Astro Studioからプロジェクトを安全に削除できます。
 
 </Steps>
