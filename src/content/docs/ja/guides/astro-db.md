@@ -226,17 +226,13 @@ Tursoは、Astro DBを支えるオープンソースのSQLiteフォーク[libSQL
 
 Tursoの詳細機能については、[Tursoドキュメント](https://docs.turso.tech)を参照してください。
 
-### Connecting to remote databases
+## リモートデータベースへの接続
 
-Astro DB allows you to connect to both local and remote databases. By default, Astro uses a local database file for `dev` and `build` commands, recreating tables and inserting development seed data each time.
+Astro DBでは、ローカルおよびリモートのデータベースへの接続が可能です。デフォルトでは、Astroは`dev`および`build`コマンド用にローカルデータベースファイルを使用し、毎回テーブルを再作成して開発用のシードデータを挿入します。
 
-To connect to a hosted remote database, use the `--remote` flag. This flag enables both readable and writable access to your remote database, allowing you to [accept and persist user data](#insert) in production environments.
+ホスティングされたリモートデータベースに接続するには、`--remote`フラグを使用します。このフラグにより、リモートデータベースへの読み取りおよび書き込みアクセスが有効化され、本番環境で[ユーザーデータを受け取り、永続化](#インサート)できます。
 
-:::note
-While remote connections are generally possible with any deployment platform using static or server rendering mode, there are currently some limitations. Non-Node runtimes like Cloudflare and Deno don't currently support DB on server-rendered routes when using libSQL. Support for these platforms is planned for future implementation.
-:::
-
-Configure your build command to use the `--remote` flag:
+ビルドコマンドに`--remote`フラグを追加して構成します。
 
 ```json title="package.json" "--remote"
 {
@@ -246,56 +242,46 @@ Configure your build command to use the `--remote` flag:
 }
 ```
 
-You can also use the flag directly in the command line:
+また、コマンドラインで直接フラグを使用することもできます。
 
 ```bash
-# Build with a remote connection
+# リモート接続でビルド
 astro build --remote
 
-# Develop with a remote connection
+# リモート接続で開発
 astro dev --remote
 ```
 
-:::caution
-Be careful when using `--remote` in development. This connects to your live production database, and all changes (inserts, updates, deletions) will be persisted.
-:::
+`--remote`フラグは、ローカルのビルド中およびサーバー上の両方でリモートDBへの接続を使用します。ローカル開発環境とデプロイメントプラットフォームの両方に必要な環境変数を必ず設定してください。
 
-The `--remote` flag uses the connection to the remote DB both locally during the build and on the server. Ensure you set the necessary environment variables in both your local development environment and your deployment platform.
+Astro DBプロジェクトをデプロイする際は、デプロイメントプラットフォームのビルドコマンドを`npm run build`（または使用するパッケージマネージャーの同等のコマンド）に設定し、`package.json`内で構成済みの`--remote`フラグを利用できるようにしてください。
 
-When deploying your Astro DB project, make sure your deployment platform's build command is set to `npm run build` (or the equivalent for your package manager) to utilize the `--remote` flag configured in your `package.json`.
+### リモートURL設定オプション
 
-### Remote URL configuration options
+`ASTRO_DB_REMOTE_URL`環境変数は、データベースの場所および同期や暗号化などの他のオプションを構成します。
 
-The `ASTRO_DB_REMOTE_URL` environment variable configures the location of your database as well as other options like sync and encryption. 
+#### URLスキームとホスト
 
-#### URL scheme and host
+libSQLは、リモートサーバー用のトランスポートプロトコルとしてHTTPおよびWebSocketの両方をサポートしています。また、ローカルファイルやインメモリDBの使用も可能です。これらは接続URL内の以下のスキームで構成できます。
 
-libSQL supports both HTTP and WebSockets as the transport protocol for a remote server. It also supports using a local file or an in-memory DB. Those can be configured using the following URL schemes in the connection URL:
+- `memory:` → インメモリDBを使用（この場合ホストは空）。
+- `file:` → ローカルファイルを使用（ホストはファイルへのパス例：`file:path/to/file.db`）。
+- `libsql:` → ライブラリが推奨するプロトコルでリモートサーバーを使用（バージョンによって異なる場合あり）。ホストはサーバーのアドレス（例：`libsql://your.server.io`）。
+- `http:` → HTTP経由でリモートサーバーを使用。`https:`を使用するとセキュアな接続が可能。ホストは`libsql:`と同じ。
+- `ws:` → WebSocket経由でリモートサーバーを使用。`wss:`を使用するとセキュアな接続が可能。ホストは`libsql:`と同じ。
 
-- `memory:` will use an in-memory DB. The host must be empty in this case.
-- `file:` will use a local file. The host is the path to the file (`file:path/to/file.db`).
-- `libsql:` will use a remote server through the protocol preferred by the library (this might be different across versions). The host is the address of the server (`libsql://your.server.io`).
-- `http:` will use a remote server through HTTP. `https:` can be used to enable a secure connection. The host is the same as for `libsql:`.
-- `ws:` will use a remote server through WebSockets. `wss:` can be used to enable a secure connection. The host is the same as for `libsql:`.
+libSQL接続の詳細（例：暗号化キー、レプリケーション、同期間隔）は、リモート接続URL内のクエリパラメータとして構成できます。
 
-Details of the libSQL connection (e.g. encryption key, replication, sync interval) can be configured as query parameters in the remote connection URL.
-
-For example, to have an encrypted local file work as an embedded replica to a libSQL server, you can set the following environment variables:
+たとえば、暗号化されたローカルファイルをlibSQLサーバーの埋め込みレプリカとして使用する場合、以下の環境変数を設定します。
 
 ```dotenv title=".env"
 ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
 ASTRO_DB_APP_TOKEN=token-to-your-remote-url
 ```
 
-:::caution
-Using a database file is an advanced feature, and care should be taken when deploying to prevent overriding your database and losing your production data.
-
-Additionally, this method will not work in serverless deployments, as the file system is not persisted in those environments.
-:::
-
 #### `encryptionKey`
 
-libSQL has native support for encrypted databases. Passing this search parameter will enable encryption using the given key:
+libSQLは暗号化データベースをネイティブにサポートしています。この検索パラメータを渡すことで、指定したキーを使用して暗号化が有効になります。
 
 ```dotenv title=".env"
 ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
@@ -303,11 +289,11 @@ ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
 
 #### `syncUrl`
 
-Embedded replicas are a feature of libSQL clients that creates a full synchronized copy of your database on a local file or in memory for ultra-fast reads. Writes are sent to a remote database defined on the `syncUrl` and synchronized with the local copy.
+埋め込みレプリカは、libSQLクライアントの機能で、ローカルファイルまたはインメモリ上に完全に同期されたデータベースのコピーを作成し、超高速読み取りを実現します。書き込みは`syncUrl`で定義されたリモートデータベースに送信され、ローカルコピーと同期されます。
 
-Use this property to pass a separate connection URL to turn the database into an embedded replica of another database. This should only be used with the schemes `file:` and `memory:`. The parameter must be URL encoded.
+このプロパティを使用して、別のデータベースの埋め込みレプリカに変換するための接続URLを渡します。使用できるのは`file:`および`memory:`スキームのみです。パラメータはURLエンコードする必要があります。
 
-For example, to have an in-memory embedded replica of a database on `libsql://your.server.io`, you can set the connection URL as such:
+たとえば、`libsql://your.server.io`上のデータベースのインメモリ埋め込みレプリカを作成する場合、次のように接続URLを設定します。
 
 ```dotenv title=".env"
 ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
@@ -315,9 +301,9 @@ ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
 
 #### `syncInterval`
 
-Interval between embedded replica synchronizations in seconds. By default it only synchronizes on startup and after writes.
+埋め込みレプリカの同期間隔（秒単位）。デフォルトでは起動時と書き込み後のみ同期されます。
 
-This property is only used when `syncUrl` is also set. For example, to set an in-memory embedded replica to synchronize every minute set the following environment variable:
+このプロパティは`syncUrl`が設定されている場合のみ使用されます。たとえば、1分ごとに同期するインメモリ埋め込みレプリカを設定するには、次の環境変数を指定します。
 
 ```dotenv title=".env"
 ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
