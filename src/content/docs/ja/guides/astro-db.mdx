@@ -6,9 +6,9 @@ i18nReady: true
 ---
 
 import { FileTree } from '@astrojs/starlight/components';
-import PackageManagerTabs from '~~/components/tabs/PackageManagerTabs.astro';
-import ReadMore from '~~/components/ReadMore.astro';
-import Since from '\~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 import { Steps } from '@astrojs/starlight/components';
 
 Astro DBは、Astroエコシステム向けに設計された完全管理型のSQLデータベースです。Astro内でローカル開発を行い、libSQL互換のデータベースへデプロイできます。
@@ -74,7 +74,7 @@ export default defineDb({
 })
 ```
 
-<ReadMore>[テーブル設定リファレンス](/ja/guides/integrations-guide/db/#table-configuration-reference)を参照してください。</ReadMore>
+<ReadMore>[テーブル構成](/ja/guides/integrations-guide/db/#テーブル構成の参照)を参照してください。</ReadMore>
 
 ### 列（カラム）
 
@@ -99,7 +99,7 @@ const Comment = defineTable({
 });
 ```
 
-<ReadMore>[テーブル列リファレンス](/ja/guides/integrations-guide/db/#table-configuration-reference)も参照してください。</ReadMore>
+<ReadMore>[テーブル構成](/ja/guides/integrations-guide/db/#テーブル構成の参照)を参照してください。</ReadMore>
 
 ### テーブル参照
 
@@ -311,7 +311,7 @@ ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=6
 
 ## データベースをクエリする
 
-プロジェクト内の任意の[Astroページ](/ja/basics/astro-pages/#astro-pages)、[エンドポイント](/ja/guides/endpoints/)、または[アクション](/ja/guides/actions/)から、提供されている`db` ORMおよびクエリビルダーを使用してデータベースをクエリできます。
+プロジェクト内の任意の[Astroページ](/ja/basics/astro-pages/#astroページ)、[エンドポイント](/ja/guides/endpoints/)、または[アクション](/ja/guides/actions/)から、提供されている`db` ORMおよびクエリビルダーを使用してデータベースをクエリできます。
 
 ### Drizzle ORM
 
@@ -348,7 +348,7 @@ const comments = await db.select().from(Comment);
 
 ### インサート
 
-フォームリクエストの処理やリモートデータベースへのデータ挿入など、ユーザー入力を受け付けるには、Astroプロジェクトを[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)用に設定し、[デプロイ環境に応じたアダプター](/ja/guides/on-demand-rendering/#add-an-adapter)を追加します。
+フォームリクエストの処理やリモートデータベースへのデータ挿入など、ユーザー入力を受け付けるには、Astroプロジェクトを[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)用に設定し、[デプロイ環境に応じたアダプター](/ja/guides/on-demand-rendering/#アダプターを追加する)を追加します。
 
 次の例は、パースされたフォームのPOSTリクエストに基づき`Comment`テーブルに行を挿入する例です。
 
@@ -358,14 +358,18 @@ const comments = await db.select().from(Comment);
 import { db, Comment } from 'astro:db';
 
 if (Astro.request.method === 'POST') {
+  // POSTリクエストのフォームデータを解析します。
   const formData = await Astro.request.formData();
   const author = formData.get('author');
   const body = formData.get('body');
+  
   if (typeof author === 'string' && typeof body === 'string') {
+    // Commentテーブルに行を挿入します。
     await db.insert(Comment).values({ author, body });
   }
 }
 
+// 新しいコメントリストを各リクエストでレンダリングします。
 const comments = await db.select().from(Comment);
 ---
 
@@ -392,6 +396,8 @@ import { z } from 'astro:schema';
 
 export const server = {
   addComment: defineAction({
+    // Zodを使用して型安全性を提供します。
+    // Astroページでtypeof {value} === 'string'をチェックする必要がありません。
     input: z.object({
       author: z.string(),
       body: z.string(),
@@ -400,7 +406,7 @@ export const server = {
       const updatedComments = await db
         .insert(Comment)
         .values(input)
-        .returning();
+        .returning(); // 更新されたコメントを返します。
       return updatedComments;
     },
   }),
@@ -495,6 +501,8 @@ import { db, Author, Comment } from 'astro:db';
 
 export default async function () {
   const queries = [];
+  // 100件のサンプルコメントをリモートデータベースにシードします。
+  // これは単一のネットワークリクエストで行われます。
   for (let i = 0; i < 100; i++) {
     queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
   }
@@ -562,7 +570,7 @@ export default async function () {
 
 スキーマをリモートデータベースにプッシュした後でもテーブル名を変更できます。
 
-**重要な本番データがない場合**は、`--force-reset`フラグを使用して[データベースをリセット](#互換性のないスキーマ変更をプッシュする)できます。このフラグはデータベース内のすべてのテーブルを削除し、新しいスキーマに基づいて再作成します。
+**重要な本番データがない場合**は、`--force-reset`フラグを使用して[データベースをリセット](#データベースへの変更をプッシュする)できます。このフラグはデータベース内のすべてのテーブルを削除し、新しいスキーマに基づいて再作成します。
 
 本番データを保持したままテーブル名を変更する場合は、非破壊的な変更を段階的に行う必要があります。
 
@@ -605,7 +613,7 @@ export default async function () {
 4. プロジェクト内のコードをすべて新しいテーブルを使用するよう更新します。必要に応じてデータ移行も行います。
 
 5. 古いテーブルがプロジェクト内で完全に使用されなくなったことを確認したら、`config.ts`からスキーマを削除します。
-   \`\`\`ts title="db/config.ts" del={1-7}
+   ```ts title="db/config.ts" del={1-7}
    const Comment = defineTable({
    deprecated: true,
    columns: {
@@ -620,13 +628,11 @@ export default async function () {
    body: column.text(),
    }
    });
-
-   ```
    ```
 
 6. 再度`astro db push --remote`でリモートデータベースにプッシュします。古いテーブルは削除され、新しい名前のテーブルだけが残ります。
 
-   </Steps>
+</Steps>
 
 ### テーブルデータをプッシュする
 
@@ -635,7 +641,7 @@ export default async function () {
 以下のコメントは、`astro db execute db/seed.ts --remote`コマンドでシードできます。
 
 ```ts
-// db/seed.ts
+// db/seed.ts g
 import { Comment } from 'astro:db';
 
 export default async function () {
@@ -646,7 +652,7 @@ export default async function () {
 }
 ```
 
-<ReadMore>[CLIリファレンス](/ja/guides/integrations-guide/db/)ですべてのコマンドを確認できます。</ReadMore>
+<ReadMore>[CLIリファレンス](/ja/guides/integrations-guide/db/#astro-db-cli-レファレンス)ですべてのコマンドを確認できます。</ReadMore>
 
 ## Astro DBインテグレーションを構築する
 
@@ -668,6 +674,7 @@ export default function MyIntegration() {
           seedEntrypoint: '@astronaut/my-package/seed',
         });
       },
+      // その他のインテグレーションフック...
     },
   });
 }
@@ -719,7 +726,7 @@ export default async function() {
 
 <Steps>
 
-1. [Studioダッシュボード](https://studio.astro.build/)で、移行したいプロジェクトに移動します。設定タブ内の「Export Database」ボタンを使い、データベースのダンプをダウンロードします。
+1. [Studioダッシュボード](https://studio.astro.build/)で、移行したいプロジェクトに移動します。設定タブ内の"Export Database"ボタンを使い、データベースのダンプをダウンロードします。
 2. 公式手順に従って[Turso CLIをインストール](https://docs.turso.tech/cli/installation)し、Tursoアカウントに[サインアップまたはログイン](https://docs.turso.tech/cli/authentication)します。
 3. `turso db create`コマンドを使用してTurso上に新しいデータベースを作成します。
 
