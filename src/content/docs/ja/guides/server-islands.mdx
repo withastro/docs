@@ -1,0 +1,115 @@
+---
+title: サーバーアイランド
+description: 高速な静的HTMLと動的なサーバーレンダリングコンテンツを組み合わせる。
+i18nReady: true
+---
+
+サーバーアイランドは、ページ全体のパフォーマンスを犠牲にせず、動的またはパーソナライズされた"アイランド"を個別にオンデマンドでレンダリングできます。
+
+これにより、訪問者はページの最重要部分をより早く表示でき、メインコンテンツはより積極的にキャッシュできるため、パフォーマンスが向上します。
+
+## サーバーアイランドコンポーネント
+
+サーバーアイランドは、通常のサーバーレンダリングされた[Astroコンポーネント](/ja/basics/astro-components/)であり、そのコンテンツが利用可能になるまでレンダリングを遅延させるよう指示されます。
+
+ページは、[プレースホルダーとして指定されたフォールバックコンテンツ](#サーバーアイランドのフォールバックコンテンツ)を含め、すぐにレンダリングされます。その後、コンポーネント独自のコンテンツがクライアント側で取得され、利用可能になった時点で表示されます。
+
+[インストール済みのアダプター](/ja/guides/on-demand-rendering/#サーバーアダプター)で遅延レンダリングを実行する場合、ページ内の任意のコンポーネントに[`server:defer`ディレクティブ](/ja/reference/directives-reference/#サーバーディレクティブ)を追加すると、そのコンポーネントを独立したアイランドにできます。
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+これらのコンポーネントは、アダプターを使用することで、コンテンツの取得やCookieへのアクセスなど、[オンデマンドレンダリングページで通常行えること](/ja/guides/on-demand-rendering/#オンデマンドレンダリングの機能)がすべて可能です。
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="User avatar" src={avatarURL} />
+```
+
+## サーバーアイランドのフォールバックコンテンツ
+
+`server:defer`属性を使ってコンポーネントのレンダリングを遅延させる場合、組み込みの`"fallback"`という名前のスロットを使って、デフォルトの読み込みコンテンツを"スロット挿入"できます。
+
+フォールバックコンテンツは、ページ読み込み時に他のコンテンツと一緒にレンダリングされ、コンポーネントのコンテンツが利用可能になったときに置き換えられます。
+
+フォールバックコンテンツを追加するには、サーバーアイランドコンポーネントに渡す子コンポーネントやHTML要素に`slot="fallback"`を指定します。
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+フォールバックコンテンツの例は次の通りです。
+
+- ユーザー固有のアバターの代わりの汎用アバター
+- カスタムメッセージなどのプレースホルダーUI
+- スピナーなどの読み込みインジケーター
+
+## 仕組み
+
+サーバーアイランドの実装は、主にビルド時に行われ、コンポーネントのコンテンツが小さなスクリプトに置き換えられます。
+
+`server:defer`が付いた各アイランドは、専用の特別なルートに分割され、実行時にスクリプトが取得します。Astroがサイトをビルドすると、コンポーネントは省略され、代わりにスクリプトと`slot="fallback"`でマークされたコンテンツが注入されます。
+
+ブラウザでページが読み込まれると、これらのコンポーネントは特別なエンドポイントにリクエストされ、HTMLが返されます。このため、ユーザーはページの最重要部分を即座に表示できます。フォールバックコンテンツは短時間表示され、その後、動的アイランドが読み込まれます。
+
+各アイランドは他と独立してロードされます。つまり、遅いアイランドがあっても、他のパーソナライズされたコンテンツの表示を遅らせることはありません。
+
+このレンダリングパターンは、あらゆるホスティング環境で動作するように設計されています。Node.jsサーバー（Dockerコンテナ内）から任意のサーバーレスプロバイダーまで、サーバーインフラに依存しません。
+
+## キャッシュ
+
+サーバーアイランドのデータは、URLクエリ内の暗号化された文字列としてpropsを渡す`GET`リクエストで取得されます。これにより、標準の[`Cache-Control`HTTPヘッダー](https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Cache-Control)を使用して、`Cache-Control`ディレクティブによるデータキャッシュが可能です。
+
+ただし、[ブラウザにはURL長の実用的な上限（2048バイト）が存在します](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length)。この制限を超えると、Astroは代わりにprops全体を本文に含めた`POST`リクエストを送信します。
+
+`POST`リクエストはデータ送信用に使われ、データの完全性やセキュリティ上の理由からブラウザによってキャッシュされません。そのため、プロジェクト内の既存のキャッシュロジックは動作しなくなります。可能な限り、必要最小限のpropsのみをサーバーアイランドに渡し、クエリサイズを小さく保つようにしてください。
+
+## サーバーアイランド内でページURLにアクセスする
+
+通常、サーバーアイランドコンポーネントは、他のコンポーネントと同じように[propsを渡す](/ja/basics/astro-components/#コンポーネントのprops)ことで、レンダリングするページに関する情報を取得できます。
+
+しかし、サーバーアイランドはページリクエストの外側にある独立したコンテキストで実行されます。そのため、サーバーアイランドコンポーネント内での`Astro.url`や`Astro.request.url`は、現在のブラウザのページURLではなく、`/_server-islands/Avatar`のようなURLを返します。さらに、ページをプリレンダリングしている場合、クエリパラメーターなどの情報にアクセスできないため、propsとして渡せません。
+
+ページURLの情報を取得するには、[Referer](https://developer.mozilla.org/ja/docs/Web/HTTP/Headers/Referer)ヘッダーを確認できます。これには、ブラウザでアイランドを読み込んでいるページのアドレスが含まれています。
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## 暗号化キーの再利用
+
+Astroは、propsが秘密情報を誤って漏洩しないよう、サーバーアイランドに渡すpropsを暗号化します。この暗号化は、ビルド時に生成されたキーを使って行われます。
+
+ほとんどのホスティング環境では、これは透過的に処理され、開発者が特別な対応をする必要はありません。しかし、Kubernetesのようなローリングデプロイ環境では、フロントエンドとバックエンドが一時的に同期せず、キーが一致しない問題が発生する可能性があります。
+
+これを解決するには、Astro CLIでキーを作成し、それをすべてのデプロイで再利用します。これにより、各ユーザーのフロントエンドが正しいキーを持つバックエンドと通信できるようになります。
+
+`astro create-key`を使ってキーを生成します。
+
+```shell
+astro create-key
+```
+
+これにより、ホスティング環境で必要な場所（たとえば`.env`ファイル）に設定できるキーが作成されます。
+
+```ini title=".env"
+ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
+```
