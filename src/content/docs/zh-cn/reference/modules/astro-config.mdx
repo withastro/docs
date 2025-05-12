@@ -1,0 +1,119 @@
+---
+title: 配置导入 API 参考
+sidebar:
+  label: 'astro:config'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+
+<p><Since v="5.7.0" /></p>
+
+虚拟模块 `astro:config` 暴露了 Astro 配置的非完整、可序列化、类型安全的版本。它通过两个子模块提供了不同维度的配置访问：[`/client`] 和 [`/server`]。
+
+所有可用的配置值都可以通过 `astro:config/server` 来获取。但是，在客户端执行的代码，仅通过 `astro:config/client` 暴露客户端可用的安全配置。这种客户端受限访问的方法，可以避免你的敏感信息泄露。
+
+## 从 `astro:config/client` 导入
+
+```js
+import {
+  i18n, 
+  trailingSlash,
+  base,
+  build,
+  site,
+} from "astro:config/client";
+```
+
+使用该子模块用于客户端代码：
+
+```js title="src/utils.js" ins={1} ins="trailingSlash"
+import { trailingSlash } from "astro:config/client";
+
+function addForwardSlash(path) {
+  if (trailingSlash === "always") {
+    return path.endsWith("/") ? path : path + "/"
+  } else {
+    return path
+  }
+}
+```
+
+查看从 `astro:config/client` 导入的更多可用配置：
+
+- [`i18n`](/zh-cn/reference/configuration-reference/#i18n)
+- [`trailingSlash`](/zh-cn/reference/configuration-reference/#trailingslash)
+- [`base`](/zh-cn/reference/configuration-reference/#base)
+- [`build.format`](/zh-cn/reference/configuration-reference/#buildformat)
+- [`site`](/zh-cn/reference/configuration-reference/#site)
+
+## 从 `astro:config/server` 导入
+
+```js
+import {
+  i18n, 
+  trailingSlash,
+  base,
+  build,
+  site,
+  srcDir,
+  cacheDir,
+  outDir,
+  publicDir,
+  root,
+} from "astro:config/server";
+```
+
+这些内容包括了从 `astro:config/client` 中可用的所有导入，其中也包含了更多额外的敏感信息，例如本地文件配置项这种不便暴露给客户端的内容。
+
+使用该子模块用于服务器端代码：
+
+```js title="astro.config.mjs"
+import { integration } from "./integration.mjs";
+
+export default defineConfig({
+    integrations: [
+      integration(),
+    ]
+});
+```
+
+```js title="integration.mjs" ins={1} ins="outDir"
+import { outDir } from "astro:config/server";
+import { writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
+export default function() {
+  return {
+    name: "internal-integration",
+    hooks: {
+      "astro:build:done": () => {
+        let file = new URL("result.json", outDir);
+        // generate data from some operation
+        let data = JSON.stringify([]);
+        writeFileSync(fileURLToPath(path), data, "utf-8");
+      }
+    }
+  }
+}
+```
+
+查看从 `astro:config/server` 导入的更多可用配置：
+
+- [`i18n`](/zh-cn/reference/configuration-reference/#i18n)
+- [`trailingSlash`](/zh-cn/reference/configuration-reference/#trailingslash)
+- [`base`](/zh-cn/reference/configuration-reference/#base)
+- [`build.format`](/zh-cn/reference/configuration-reference/#buildformat)
+- [`build.client`](/zh-cn/reference/configuration-reference/#buildclient)
+- [`build.server`](/zh-cn/reference/configuration-reference/#buildserver)
+- [`build.serverEntry`](/zh-cn/reference/configuration-reference/#buildserverentry)
+- [`build.assetsPrefix`](/zh-cn/reference/configuration-reference/#buildassetsprefix)
+- [`site`](/zh-cn/reference/configuration-reference/#site)
+- [`srcDir`](/zh-cn/reference/configuration-reference/#srcdir)
+- [`cacheDir`](/zh-cn/reference/configuration-reference/#cachedir)
+- [`outDir`](/zh-cn/reference/configuration-reference/#outdir)
+- [`publicDir`](/zh-cn/reference/configuration-reference/#publicdir)
+- [`root`](/zh-cn/reference/configuration-reference/#root)
