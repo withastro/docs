@@ -1,0 +1,608 @@
+---
+title: Gatsbyからの移行
+description: GatsbyプロジェクトをAstroに移行するためのガイド
+sidebar:
+  label: Gatsby
+type: migration
+stub: false
+framework: Gatsby
+i18nReady: true
+---
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+ここでは、移行を始める際に役立つ主要な概念と移行戦略を紹介します。詳しくはドキュメント全体や[Discordコミュニティ](https://astro.build/chat)をご活用ください。
+
+## GatsbyとAstroの類似点
+
+GatsbyとAstroには、プロジェクト移行を容易にするいくつかの共通点があります:
+
+- [`.astro`ファイルの構文はJSXとよく似ています](/ja/reference/astro-syntax/)。Astroの記法は馴染みがあるはずです。
+
+- Astroには[Markdown](/ja/guides/markdown-content/)のネイティブサポートがあり、MDXを利用するインテグレーションも用意されています。既存のMarkdownプラグインの多くをそのまま利用できます。
+
+- Astroには[Reactコンポーネントを利用する公式インテグレーション](/ja/guides/integrations-guide/react/)があります。AstroではReactファイルの拡張子を`.jsx`または`.tsx`にする**必要があります**。
+
+- Astroは[インストールNPMパッケージ](/ja/guides/imports/)をサポートしており、Reactライブラリも含まれます。多くの既存の依存関係はAstroでも正常に動作します。
+
+- Gatsbyと同様に、AstroプロジェクトもSSGを選択できるほか、[ページ単位の事前レンダリングを伴うSSR](/ja/guides/on-demand-rendering/)に対応しています。
+
+## GatsbyとAstroの主な相違点
+
+GatsbyサイトをAstroで再構築する際には、次のような重要な違いに気付くでしょう。
+
+- GatsbyプロジェクトはReactの単一ページアプリケーションで、`index.js`をプロジェクトのルートとして使用します。Astroプロジェクトはマルチページサイトで、`index.astro`はホームページです。
+
+- [Astroコンポーネント](/ja/basics/astro-components/)は、ページテンプレートを返すようにexportされた関数で書かれていません。代わりに、コードフェンス（`---`）でJavaScriptコードを区切って、生成するHTMLのためのコードを分けます。
+
+- [ローカルファイルデータ](/ja/guides/imports/)の取得: GatsbyはGraphQLを使用してプロジェクトファイルからデータを取得します。AstroではESMインポートとトップレベル`await`関数(例: [`import.meta.glob()`](/ja/guides/imports/)、[`getCollection()`](/ja/guides/content-collections/))でファイルからデータをインポートします。必要ならAstroプロジェクトにGraphQLを手動で追加できますが、デフォルトでは含まれていません。
+
+## GatsbyプロジェクトをAstroに変換する
+
+各プロジェクトの移行手順は様々ですが、GatsbyからAstroへ変換する際に共通して行う作業があります。
+
+### 新しいAstroプロジェクトの作成する
+パッケージマネージャで`create astro`コマンドを実行してAstroのCLIウィザードを起動するか、[Astro Theme Showcase](https://astro.build/themes)からコミュニティテーマを選択します。
+
+`create astro`コマンドに`--template`引数を渡すと、公式スターター（例:`docs`、`blog`、`portfolio`）のいずれかで新しいAstroプロジェクトを作成できます。また、[GitHub上の既存Astroリポジトリから新規プロジェクトを開始](/ja/install-and-setup/)することも可能です。
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    # Astro CLIウィザードを実行
+    npm create astro@latest
+
+    # 公式スターターを指定して作成
+    npm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    # Astro CLIウィザードを実行 
+    pnpm create astro@latest
+
+    # 公式スターターを指定して作成
+    pnpm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    # Astro CLIウィザードを起動 
+    yarn create astro@latest
+
+    # 実際のスターターテンプレートを使用して新しいプロジェクトを開始
+    yarn create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+次に、既存のGatsbyプロジェクトのファイルを**srcの外側**にある別フォルダーへコピーし、新しいAstroプロジェクトへ移行します。
+
+:::tip
+公式スターターテンプレートの一覧は[公式スターターテンプレート](https://astro.new)を参照してください。IDX、StackBlitz、CodeSandbox、またはGitpodで新規プロジェクトを開くためのリンクもあります。
+:::
+
+### インテグレーションのインストールする（任意）
+
+GatsbyプロジェクトをAstroへ変換する際、以下のような[Astroのオプションインテグレーション](/ja/guides/integrations-guide/)が役立つことがあります。
+
+- **@astrojs/react**: 新規Astroサイトで既存のReact UIコンポーネントを再利用するか、Reactコンポーネントで書き続けることができます。
+
+- **@astrojs/mdx**: Gatsbyプロジェクトの既存のMDXファイルを持ち込むか、新規AstroサイトでMDXを使用することができます。
+
+### ソースコードを`src`に配置する
+
+[Astroのプロジェクト構造](/ja/basics/project-structure/)に従って、次の手順でファイルを整理します。
+
+<Steps>
+1. **削除** Gatsbyの`public/`フォルダ。
+    
+    Gatsbyはビルド出力を`public/`ディレクトリに生成しますが、Astroはデフォルトで`dist/`を使用します。そのため`public/`は安全に削除できます。
+
+2. **リネーム** Gatsbyの`static/`フォルダを`public/`、そしてAstroの`public/`フォルダとして使用してください。
+
+    Astroは静的アセット用に`public/`フォルダーを使用します。既存のAstro`public/`へ`static/`の内容をコピーしても構いません。
+
+3. **コピーまたは移動** Gatsbyの`components`、`pages`などの他のファイルとフォルダを、必要に応じてAstroの`src/`フォルダへ配置してください。[Astroのプロジェクト構造](/ja/basics/project-structure/)を遵守して、ソースコードを`src`に配置してください。
+
+    Astroの`src/pages/`フォルダは、`.astro`、`.md`、`.mdx`ファイルからサイトのページと記事を生成するための特殊なフォルダです。Astro、Markdown、MDXファイルのルーティングを設定する必要はありません。
+
+    その他のフォルダは任意のため、`src/`フォルダの内容をどのように配置するかは任意です。Astroプロジェクトで一般的なフォルダには`src/layouts/`、`src/components`、`src/styles`、`src/scripts`があります。
+</Steps>
+
+### ヒント：JSXファイルから`.astro`ファイルへの変換する
+
+ここでは、Gatsbyの`.js`コンポーネントを`.astro`コンポーネントに変換するためのいくつかの手順を説明します。
+
+1. 既存Gatsbyコンポーネントの`return()`部分のみをHTMLテンプレートとして使用してください。
+
+2. `<Link to="">`・`{children}`・`className`など[Gatsby/JSX構文をAstro構文](#参考-astro構文への変換する)またはHTML標準に変換してください。
+
+3. `import`文を含んだ必要なJavaScriptは["コードフェンス" (`---`)](/ja/basics/astro-components/)内へ移動してください。注意: [条件付きレンダリング用のJavaScript](/ja/reference/astro-syntax/)は、AstroではHTMLテンプレート内に直接書くことが多いです。
+
+4. [`Astro.props`](/ja/reference/api-reference/)を使用して、以前にGatsby関数に渡された追加のpropsを参照してください。
+
+5. インポート済みコンポーネントをAstroに変換するか検討してください。公式Reactインテグレーションを使えば[Astroファイル内](/ja/guides/framework-components/)で既存Reactコンポーネントを利用できますが、インタラクティブ性が不要なら`.astro`へ変換して軽量化できます。
+
+6. GraphQLクエリは削除し、`import`や[import.meta.glob()](/ja/guides/imports/)でローカルファイルを読み込ます。
+
+[Gatsby Blogスターターを段階的に変換した例](#ガイド付き例gatsbyレイアウトをastroへ変換する)も参照してください。
+
+#### `.jsx`と`.astro`の比較する
+
+以下のGatsbyコンポーネントと対応するAstroコンポーネントを比較してください:
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="component.jsx"
+    import * as React from "react"
+    import { useStaticQuery, graphql } from "gatsby"
+    import Header from "./header"
+    import Footer from "./footer"
+    import "./layout.css"
+
+    const Component = ({ message, children }) => {
+      const data = useStaticQuery(graphql`
+        query SiteTitleQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      return (
+        <>
+          <Header siteTitle={data.site.siteMetadata.title} />
+          <div style={{ margin: `0`, maxWidth: `960`}}>{message}</div>
+          <main>{children}</main>
+          <Footer siteTitle={data.site.siteMetadata} />
+        </>
+      )
+    }
+
+    export default Component
+    ```
+  </Fragment>
+
+  <Fragment slot="astro">
+    ```astro title="component.astro"
+    ---
+    import Header from "./Header.astro"
+    import Footer from "./Footer.astro"
+    import "../styles/stylesheet.css"
+    import { site } from "../data/siteMetaData.js"
+    const { message } = Astro.props
+    ---
+    <Header siteTitle={site.title} />
+      <div style="margin: 0; max-width: 960;">{message}</div>
+      <main>
+        <slot />
+      </main>
+    <Footer siteTitle={site.title} />
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### レイアウトファイル移行する
+
+レイアウトファイルを[Astroレイアウトコンポーネント](/ja/basics/layouts/)に変換するには、Gatsbyのレイアウトやテンプレートから始めてみてください。
+
+Astroの各ページには必ず `<html>`・`<head>`・`<body>` タグが必要なため、複数ページで同じレイアウトファイルを再利用するのが一般的です。Astroではページコンテンツ差し込みに Reactの `{children}` ではなく [`<slot />`](/ja/basics/astro-components/) を使用し、`import`文も不要です。Gatsbyの`layout.js`やテンプレートにはこれらが含まれていません。
+
+標準的なHTMLテンプレートと`<head>`タグへの直接アクセスする例:  
+
+```astro title="src/layouts/Layout.astro" "slot"
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro</title>
+  </head>
+  <body>
+    <!-- 既存のレイアウトテンプレートで`<slot />`要素を囲んでください。-->
+    <slot />
+  </body>
+</html>
+```
+
+追加でサイトメタデータを含めたい場合は、Gatsbyの`src/components/seo.js`のコードを再利用できます。注意: Astroでは`<Helmet>`や`<Header>`を使わずに`<head>`を直接記述します。ページコンテンツを分離して整理するには、コンポーネントを`<head>`内でインポートして使用することができます。
+
+### ページと投稿の移行する
+
+Gatsbyでは [ページや投稿](/ja/basics/astro-pages/) が`src/pages/`内、または`content`など`src`の外に置かれている場合があります。Astroでは **[コンテンツコレクション](/ja/guides/content-collections/)** を使わない限り、すべてのページコンテンツを`src/`内に配置する必要があります。
+
+#### Reactページ
+
+既存のGatsby JSX（`.js`）ページは[JSXファイルから.astroページへ変換](#ヒントjsxファイルからastroファイルへの変換する)する必要があります。AstroではJSXページファイルをそのまま使用できません。
+
+変換した[.astroページ](/ja/basics/astro-pages/)は`src/pages/`に置き、ファイルパスに基づいてページルートが自動生成されます。
+
+#### MarkdownとMDXページ
+
+AstroはMarkdownをネイティブサポートし、MDX用のオプション統合も提供しています。既存の[MarkdownとMDXファイル](/ja/guides/markdown-content/)を再利用できますが、フロントマターに[Astro専用の`layout`プロパティ](/ja/basics/layouts/)を追加するなどの調整が必要な場合があります。これらのファイルも`src/pages/`に置けば自動的にファイルベースルーティングを利用できます。
+
+あるいはAstroの[コンテンツコレクション](/ja/guides/content-collections/)を使ってコンテンツを管理し、自分で取得して[動的にページを生成](/ja/guides/content-collections/)することもできます。
+
+### テストの移行する
+
+Astroは生のHTMLを出力するため、ビルド後の出力を使用したE2Eテストができます。旧Gatsbyサイトのマークアップが再現できれば、既存のエンドツーエンドテストがそのまま動作する場合があります。JestやReact Testing LibraryなどをインポートしてReactコンポーネントをテストできます。
+
+詳しくは[テストガイド](/ja/guides/testing/)を参照してください。
+
+### 設定ファイルの再利用する
+
+Gatsbyにはルーティングやメタデータを含むトップレベル設定ファイルが複数あり、ルーティングに使用されます。Astroではこれらの`gatsby-*.js`ファイルを使用しませんが、内容を再利用できる場合があります。
+
+- `gatsby-config.js`: `src/data/siteMetadata.js`（または`siteMetadata.json`）に`siteMetadata: {}`を移動して、ページレイアウトにサイト（タイトル、説明、ソーシャルアカウントなど）に関するデータをインポートします。
+
+- `gatsby-browser.js`: ここで使用されているものは、[主要レイアウト](#レイアウトファイル移行する)の`<head>`タグに直接追加することを考慮してください。
+
+- `gatsby-node.js`: Astroでは独自のノードを作成する必要はありませんが、このファイルのスキーマを確認して、Astroプロジェクトで型を定義するのに役立つかもしれません。
+
+- `gatsby-ssr.js`: AstroでSSRを使用する場合、`astro.config.mjs`に直接[SSRアダプター](/ja/guides/on-demand-rendering/)を追加して構成してください。
+
+## 参考: Astro構文への変換する
+
+以下はGatsby特有の構文をAstroに変換するいくつかの例です。Astroコンポーネントの書き方における[AstroとJSXの違い](/ja/reference/astro-syntax/)も参照してください。
+
+### Gatsby LinksをAstroに変換する
+
+Gatsbyの`<Link to="">`、`<NavLink>`などのコンポーネントをHTMLの`<a href="">`タグに変換します。
+
+```astro del={1} ins={2}
+<Link to="/blog">Blog</Link>
+<a href="/blog">Blog</a>
+```
+
+Astroにはリンク専用のコンポーネントはありませんが、独自の`<Link>`コンポーネントを作ってもかまいません。`<Link>`を他のコンポーネントのようにインポートして使用することができます。
+
+```astro title="src/components/Link.astro"
+---
+const { to } = Astro.props
+---
+<a href={to}><slot /></a>
+```
+
+### Gatsby ImportsをAstroに変換する
+
+必要に応じて、[ファイルのインポート](/ja/guides/imports/)を相対ファイルパスで正確に参照するように変更します。これには[インポートエイリアス](/ja/guides/typescript/)を使用したり、相対パスを完全に書くこともできます。
+
+注意: `.astro`など一部のファイルは拡張子を省略できません。
+
+```astro title="src/pages/authors/Fred.astro" ".astro"
+---
+import Card from `../../components/Card.astro`;
+---
+<Card />
+```
+
+### Gatsbyの`{children}`をAstroに変換する
+
+Gatsbyの`{children}`をAstroの`<slot />`に変換します。Astroは`{children}`を関数プロップとして受け取る必要なく、子要素を`<slot />`で自動的にレンダリングします。
+
+```astro title="src/components/MyComponent" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+Reactコンポーネントが複数の子要素を渡す場合は、[named slots](/ja/basics/astro-components/)を使用してAstroコンポーネントに移行できます。
+
+[特定の`<slot />`の使用方法](/ja/basics/astro-components/)に関する詳しい説明は[特定の`<slot />`の使用方法](/ja/basics/astro-components/)を参照してください。
+
+### スタイリングを変換する
+
+必要に応じて、[CSS-in-JSライブラリ](https://github.com/withastro/astro/issues/4432)（例：styled-components）をAstroで使用できるCSSオプションに置き換える必要があります。
+
+必要なら、インラインスタイルオブジェクト（`style={{ fontWeight: "bold" }}`）をインラインHTMLスタイル属性（`style="font-weight:bold;"`）に変換するか、[Astroの`<style>`タグ](/ja/guides/styling/)を使用してスコープCSSスタイルを記述します。
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwindは[Tailwind Viteプラグイン](/ja/guides/styling/)をインストールすればサポートされます。既存のTailwindコードは変更する必要はありません。
+
+Gatsbyでは`gatsby-browser.js`でCSSインポートを使用してグローバルスタイリングを適用します。Astroでは、主なレイアウトコンポーネントに`.css`ファイルを直接インポートしてグローバルスタイリングを適用します。
+
+詳しくは[Styling in Astro](/ja/guides/styling/)を参照してください。
+
+### 画像プラグインを置き換える
+
+Gatsbyの`<StaticImage />`と`<GatsbyImage />`コンポーネントを[Astroの独自の画像統合コンポーネント](/ja/guides/images/)に変換するか、または適切なReactコンポーネントで[標準HTMLの`<img>`/JSXの`<img />`](/ja/guides/images/)タグへ変換します。
+
+```astro title="src/pages/index.astro"
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+---
+<Image src={rocket} alt="A rocketship in space." />
+<img src={rocket.src} alt="A rocketship in space.">
+```
+
+Astroの`<Image />`コンポーネントは`.astro`と`.mdx`ファイルのみで動作します。[完全なコンポーネント属性のリスト](/ja/reference/modules/astro-assets/)を確認し、いくつかはGatsbyの属性と異なります。
+
+[Markdownファイル（`.md`）で画像を使用](/ja/guides/images/)を続ける場合は、標準のMarkdown構文（`![]()`）を使用することができます。HTMLの`<img>`タグを直接使用することは、ローカル画像の`.md`ファイルではサポートされていません。そのため、それをMarkdown構文に変換する必要があります。
+
+```md
+<!-- src/pages/post-1.md -->
+
+# Markdown ページ
+
+<!-- src/assets/stars.png をローカル画像として保存 -->
+![A starry night sky.](../assets/stars.png)
+
+```
+
+Reactコンポーネント（`.jsx`）で画像を使用する場合は、標準のJSX画像構文（`<img />`）を使用することができます。Astroはこれらの画像を最適化しませんが、NPMパッケージをインストールして使用することでより柔軟な選択肢を提供できます。
+
+詳しくは[Astroの画像ガイド](/ja/guides/images/)を参照してください。
+
+### Gatsby GraphQLをAstroに変換する
+
+GraphQLクエリへの参照をすべて削除し、代わりにローカルファイルのデータにアクセスするには[`import.meta.glob()`](/ja/guides/imports/)を使用してください。
+
+あるいは、コンテンツコレクションを使用している場合は、MarkdownやMDXファイルを[`getEntry()`および`getCollection()`](/ja/guides/content-collections/)でクエリしてください。
+
+これらのデータリクエストは、Astroコンポーネントのフロントマター内で行われます。
+
+
+```astro title="src/pages/index.astro" del={2,12-28}
+---
+import { getCollection } from 'astro:content';
+
+// `src/content/blog/` エントリを全て取得する
+const allBlogPosts = await getCollection('blog');
+
+// `src/pages/posts/` エントリを全て取得する
+const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
+---
+
+export const pageQuery = graphql`
+  {
+    allMarkdownRemark(sort: { frontmatter: { date: DESC } }) {
+      nodes {
+        excerpt
+        fields {
+          slug
+        }
+        frontmatter {
+          date(formatString: "MMMM DD, YYYY")
+          title
+          description
+        }
+      }
+    }
+  }
+`
+```
+
+## ガイド付き例:GatsbyレイアウトをAstroへ変換する
+
+この例では、Gatsbyのブログスターターや`layout.js`を`src/layouts/Layout.astro`に変換します。
+
+ホームページでは1つ目のヘッダーを表示し、それ以外のページでは「Home」へのリンク付きヘッダーを表示します。
+
+<Steps>
+1. `return()`のJSXを特定する 
+
+    ```jsx {21-29} title="layout.js"
+    import * as React from "react"
+    import { Link } from "gatsby"
+    const Layout = ({ location, title, children }) => {
+      const rootPath = `${__PATH_PREFIX__}/`
+      const isRootPath = location.pathname === rootPath
+      let header
+      if (isRootPath) {
+        header = (
+          <h1 className="main-heading">
+            <Link to="/">{title}</Link>
+          </h1>
+        )
+      } else {
+        header = (
+          <Link className="header-link-home" to="/">
+            Home
+          </Link>
+        )
+      }
+      return (
+        <div className="global-wrapper" data-is-root-path={isRootPath}>
+          <header className="global-header">{header}</header>
+          <main>{children}</main>
+          <footer>
+            © {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.gatsbyjs.com">Gatsby</a>
+          </footer>
+        </div>
+      )
+    }
+    export default Layout
+    ```
+
+2. `Layout.astro`を作成して、この`return`値を[Astro構文に変換](#参考-astro構文への変換する)します。
+
+    注意点:
+
+    - `{new Date().getFullYear()}`はそのまま動作 🎉
+    - `{children}`は`<slot />`に変換 🦥
+    - `className`は`class`に変換 📛
+    - `Gatsby`は`Astro`に変換 🚀
+
+    ```astro title="src/layouts/Layout.astro" "<slot />" "class" "Astro" "astro.build"
+    ---
+    ---
+    <div class="global-wrapper" data-is-root-path={isRootPath}>
+      <header class="global-header">{header}</header>
+      <main><slot /></main>
+      <footer>
+        © {new Date().getFullYear()}, Built with
+        {` `}
+        <a href="https://www.astro.build">Astro</a>
+      </footer>
+    </div>
+    ```
+
+3. レイアウトがHTMLドキュメントに必要な要素を各ページに提供できるように、ページシェルを追加します：
+
+    ```astro title="src/layouts/Layout.astro" ins={3-10,22-23}
+    ---
+    ---
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <div class="global-wrapper" data-is-root-path={isRootPath}>
+          <header class="global-header">{header}</header>
+          <main>
+            <slot />
+          </main>
+          <footer>
+            &#169; {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.astro.build">Astro</a>
+          </footer>
+        </div>
+      </body>
+    </html>
+    ```
+
+4. 必要なインポート、props、JavaScriptを追加します
+
+    Astroでページルートとタイトルに基づいてヘッダーを条件付きでレンダリングするには：
+
+    - `Astro.props`経由でpropsを提供します。（注：Astroのテンプレートでは、関数に渡すのではなく、フロントマターからpropsにアクセスします）
+    - 三項演算子を使用して、ホームページの場合は1つの見出し、それ以外の場合は別の見出しを表示します
+    - `{header}`と`{isRootPath}`の変数は不要になったため削除します
+    - Gatsbyの`<Link/>`タグを`<a>`アンカータグに置き換えます
+    - `className`の代わりに`class`を使用します
+    - クラス名を有効にするために、プロジェクトからローカルのスタイルシートをインポートします
+
+    ```astro title="src/layouts/Layout.astro" ins={2-3, 15, 16, 20, 24} "class" "<a" "</a>"
+    ---
+    import '../styles/style.css';
+    const { title, pathname } = Astro.props
+    ---
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <div class="global-wrapper">
+          <header class="global-header">
+            { pathname === "/" 
+            ? 
+              <h1 class="main-heading">
+              <a href="/">{title}</a>
+              </h1>
+            : 
+              <h1 class="main-heading">
+              <a class="header-link-home" href="/">Home</a>
+              </h1>
+            }  
+          </header>
+          <main>
+            <slot />
+          </main>
+          <footer>
+            &#169; {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.astro.build">Astro</a>
+          </footer>
+        </div>
+      </body>
+    </html>
+    ```
+
+5. `index.astro`を更新して、この新しいレイアウトを使用して、必要な`title`と`pathname` propsを渡します:
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    const pagePathname = Astro.url.pathname
+    ---
+    <Layout title="Home Page" pathname={pagePathname}>
+        <p>Astro</p>
+    </Layout>
+    ```
+    :::tip
+    現在のページのパスは[`Astro.url`](/ja/reference/api-reference/)で取得できます。
+    :::
+
+6. 条件付きヘッダーをテストするには、同じパターンを使用して2番目のページ、`about.astro`を作成します:
+
+    ```astro title="src/pages/about.astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    const pagePathname = Astro.url.pathname
+    ---
+    <Layout title="About" pathname={pagePathname}>
+        <p>About</p>
+    </Layout>
+    ```
+
+    Aboutページでは「Home」へのリンクが表示され、ホームページでは表示されません。
+</Steps>
+
+## コミュニティリソース
+
+<CardGrid>
+<LinkCard title="Migrating from Gatsby to Astro" href="https://loige.co/migrating-from-gatsby-to-astro/" 
+description="How and why I migrated this blog from Gatsby to Astro and what I learned in the process." />
+
+<LinkCard title="Migrating to Astro was EZ" href="https://joelhooks.com/migrating-to-astro-was-ez" 
+description="This is about the process of migrating from Gatsby to Astro, and why I chose Astro." />
+
+<LinkCard title="My Switch from Gatsby to Astro" href="https://www.joshfinnie.com/blog/my-switch-from-gatsby-to-astro/" 
+description="The switch to Astro is definitely worth a blog post! It’s revolutionizing the static web development scene for the better."/>
+
+<LinkCard title="Why I moved to Astro from Gatsby" href="https://dev.to/askrodney/why-i-moved-to-astro-from-gatsby-3fck" 
+description="Taking a quick look at what made me want to switch and why Astro was a good fit." />
+
+<LinkCard title="Another Migration: From Gatsby to Astro" href="https://logarithmicspirals.com/blog/migrating-from-gatsby-to-astro/" 
+description="Learn about how I transitioned my personal website from Gatsby to Astro as I share insights and experiences from the migration process."/>
+
+<LinkCard title="From Gatsby gridlock to Astro bliss: my personal site redesign" href="https://jwn.gr/posts/migrating-from-gatsby-to-astro/" 
+description="Gatsby has shown its age and I found myself seeking a modern alternative. Enter Astro — a framework that has breathed some new life into this site."/>
+
+<LinkCard title="Why and how I moved my blog away from Gatsby and React to Astro Js and Preact" href="https://www.helmerdavila.com/blog/en/why-and-how-i-moved-my-blog-away-from-gatsby-and-react-to-astro-js-and-preact" 
+description="All is about simplicity and power at the same time." />
+
+<LinkCard title="How I rewrote my HUGE Gatsby site in Astro and learned to love it in the process" href="https://dunedinsound.com/blog/how_i_rewrote_my_huge_gatsby_site_in_astro_and_learned_to_love_it_in_the_process/" 
+description="Everything is faster. Happier. More productive."/>
+
+<LinkCard title="How I switched from Gatsby to Astro (While Keeping Drupal in the Mix)" href="https://albert.skibinski.nl/en/blog/how-i-switched-gatsby-astro-while-keeping-drupal-mix/" 
+description="I came across the relatively new Astro, which ticked all the boxes."/>
+
+<LinkCard title="Migrating my website from Gatsby to Astro" href="https://dev.to/flashblaze/migrating-my-website-from-gatsby-to-astro-2ej5" 
+description="Astro has entered the chat." />
+
+<LinkCard title="Gatsby to Astro" href="https://alvin.codes/writing/gatsby-to-astro" 
+description="Why and how I migrated this website from Gatsby to Astro."/>
+
+</CardGrid>
+
+:::注意[共有したいリソースはありますか？]
+GatsbyサイトをAstroに移行する方法について、参考になる動画やブログ記事を見つけた（または作成した）場合は、[このリスト](https://github.com/withastro/docs/edit/main/src/content/docs/ja/guides/migrate-to-astro/from-gatsby.mdx)に追加してください！
+:::
