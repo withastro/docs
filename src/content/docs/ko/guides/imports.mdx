@@ -268,7 +268,7 @@ const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPos
 
 ```ts
 export interface MarkdownInstance<T extends Record<string, any>> {
-  /* 이 파일의 YAML 프런트매터에 지정된 모든 데이터 */
+  /* 이 파일의 YAML/TOML 프런트매터에 지정된 모든 데이터 */
 	frontmatter: T;
   /* 이 파일의 절대 경로 */
 	file: string;
@@ -276,7 +276,7 @@ export interface MarkdownInstance<T extends Record<string, any>> {
 	url: string | undefined;
   /* 이 파일의 내용을 렌더링하는 Astro 컴포넌트 */
 	Content: AstroComponentFactory;
-  /** (Markdown만 해당) 레이아웃 HTML과 YAML 프런트매터를 제외한 원시 Markdown 파일 내용 */
+  /** (Markdown만 해당) 레이아웃 HTML과 YAML/TOML 프런트매터를 제외한 원시 Markdown 파일 내용 */
 	rawContent(): string;
   /** (Markdown만 해당) HTML로 컴파일된 Markdown 파일, 레이아웃 HTML 제외 */
 	compiledContent(): string;
@@ -362,23 +362,26 @@ const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
 
 Astro는 브라우저의 [`WebAssembly`](https://developer.mozilla.org/ko/docs/WebAssembly/JavaScript_interface) API를 사용하여 WASM 파일을 애플리케이션에 직접 로드하는 것을 지원합니다.
 
-## Node 내장
+## Node 내장 기능
 
-Astro 사용자는 가능하면 Node.js 내장 기능(`fs`, `path` 등)을 피하는 것이 좋습니다. Astro는 [어댑터](/ko/guides/on-demand-rendering/)를 사용하여 여러 런타임과 호환됩니다. 여기에는 `fs`와 같은 노드 내장 모듈을 지원하지 않는 [Deno](https://github.com/denoland/deno-astro-adapter) 및 [Cloudflare Workers](/ko/guides/integrations-guide/cloudflare/)가 포함됩니다.
+Astro는 몇 가지 제한 사항과 함께 Node의 최신 `node:` 접두사를 사용하여 Node.js 내장 기능을 지원합니다. 개발 환경과 프로덕션 환경 간에 차이가 있을 수 있으며, 일부 기능은 요청 시 렌더링과 호환되지 않을 수 있습니다. 일부 [어댑터](/ko/guides/on-demand-rendering/)는 이러한 내장 모듈과 호환되지 않거나, 일부 하위 집합을 지원하기 위해 구성이 필요할 수 있습니다. (예: [Cloudflare Workers](/ko/guides/integrations-guide/cloudflare/) 또는 [Deno](https://github.com/denoland/deno-astro-adapter))
 
-우리의 목표는 일반적인 Node.js 내장 기능에 대한 Astro 대안을 제공하는 것입니다. 그러나 오늘날에는 그러한 대안이 존재하지 않습니다. 따라서 이러한 내장 모듈을 _반드시_ 사용해야 하는 경우에도 우리는 여러분을 막고 싶지 않습니다. Astro는 Node의 최신 `node:` 접두사를 사용하여 Node.js 내장 기능을 지원합니다. 예를 들어 파일을 읽으려면 다음과 같이 할 수 있습니다.
+다음 예시는 미디어 유형 (MIME)을 파싱하기 위해 Node의 `util` 모듈을 가져오는 방법을 보여줍니다.
 
 ```astro title="src/components/MyComponent.astro"
 ---
-// 예: Node.js에서 내장된 "fs/promises" 가져오기
-import fs from 'node:fs/promises';
+// 예: Node.js에 내장된 "util"을 가져옵니다.
+import util from 'node:util';
 
-const url = new URL('../../package.json', import.meta.url);
-const json = await fs.readFile(url, 'utf-8');
-const data = JSON.parse(json);
+export interface Props {
+  mimeType: string,
+}
+
+const mime = new util.MIMEType(Astro.props.mimeType)
 ---
 
-<span>버전: {data.version}</span>
+<span>타입: {mime.type}</span>
+<span>하위 타입: {mime.subtype}</span>
 ```
 
 ## 파일 형식 지원 확장

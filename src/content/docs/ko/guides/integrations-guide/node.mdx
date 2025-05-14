@@ -1,17 +1,17 @@
 ---
 type: integration
 title: '@astrojs/node'
-description: '@astrojs/node SSR 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
+description: '@astrojs/node 어댑터를 사용하여 Astro 프로젝트를 배포하는 방법을 알아보세요.'
 sidebar:
   label: Node
-githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/node/'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 category: adapter
 i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-이 어댑터를 사용하면 Astro가 [요청 시 렌더링되는 라우트](/ko/guides/on-demand-rendering/)를 Node 대상에 배포할 수 있습니다.
+이 어댑터를 사용하면 Astro가 [서버 아일랜드](/ko/guides/server-islands/), [액션](/ko/guides/actions/), [세션](/ko/guides/sessions/)을 포함하여 [요청 시 렌더링되는 라우트 및 기능](/ko/guides/on-demand-rendering/)을 Node 대상에 배포할 수 있습니다.
 
 Astro를 정적 사이트 빌더로 사용하는 경우에는 어댑터가 필요하지 않습니다.
 
@@ -23,7 +23,7 @@ Astro를 정적 사이트 빌더로 사용하는 경우에는 어댑터가 필�
 
 Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함되어 있습니다. 원하는 경우 대신 [통합을 수동으로 설치](#수동-설치)할 수 있습니다.
 
-`astro add` 명령을 사용하여 Astro 프로젝트에서 SSR을 활성화하려면 Node 어댑터를 추가하세요.
+`astro add` 명령을 사용하여 Astro 프로젝트에서 요청 시 렌더링을 활성화하려면 Node 어댑터를 추가하세요.
 그러면 `@astrojs/node`가 설치되고 `astro.config.*` 파일이 한 번에 적절하게 변경됩니다.
 
 <PackageManagerTabs>
@@ -43,6 +43,8 @@ Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함
   ```
   </Fragment>
 </PackageManagerTabs>
+
+이제 [페이지별로 요청 시 렌더링](/ko/guides/on-demand-rendering/#요청-시-렌더링-활성화)을 활성화하거나, [기본적으로 모든 페이지를 서버 렌더링](/ko/guides/on-demand-rendering/#server-모드)하도록 빌드 출력 구성을 `output: 'server'`로 설정할 수 있습니다.
 
 ### 수동 설치
 
@@ -66,14 +68,13 @@ Astro에는 공식 통합 설정을 자동화하는 `astro add` 명령이 포함
   </Fragment>
 </PackageManagerTabs>
 
-그런 다음 어댑터와 원하는 [요청 시 렌더링 모드](/ko/guides/on-demand-rendering/)를 `astro.config.*` 파일에 추가하세요.
+그런 다음 `astro.config.*` 파일에 어댑터를 추가합니다.
 
-```js title="astro.config.mjs" ins={2,5-8}
+```js title="astro.config.mjs" ins={2,5-7}
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 
 export default defineConfig({
-  output: 'server',
   adapter: node({
     mode: 'standalone',
   }),
@@ -84,25 +85,26 @@ export default defineConfig({
 
 @astrojs/node는 옵션을 어댑터 함수에 전달하여 구성할 수 있습니다. 다음 옵션을 사용할 수 있습니다.
 
-### 모드
+### `mode`
+<p>
+**타입:** `'middleware' | 'standalone'` <br />
+</p>
 
 어댑터가 `middleware` 또는 `standalone` 모드로 빌드되는지 여부를 제어합니다.
 
 * `middleware` 모드를 사용하면 빌드된 출력을 Express.js 또는 Fastify와 같은 다른 Node.js 서버의 미들웨어로 사용할 수 있습니다.
+* `standalone` 모드는 진입점 모듈이 실행될 때 자동으로 시작되는 서버를 빌드합니다. 이를 통해 추가 코드 없이 빌드 결과를 호스트에 더 쉽게 배포할 수 있습니다.
 
-  ```js title="astro.config.mjs"
-  import { defineConfig } from 'astro/config';
-  import node from '@astrojs/node';
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
 
-  export default defineConfig({
-    output: 'server',
-    adapter: node({
-      mode: 'middleware',
-    }),
-  });
-  ```
-
-* `standalone` 모드는 항목 모듈이 실행되면서 자동으로 시작되는 서버에 빌드됩니다. 이를 통해 추가 코드 없이 빌드를 호스트에 더 쉽게 배포할 수 있습니다.
+export default defineConfig({
+  adapter: node({
+    mode: 'middleware',
+  }),
+});
+```
 
 ## 사용하기
 
@@ -219,3 +221,9 @@ standalone 모드에서는 `dist/client/` 폴더의 자산이 standalone 서버�
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
+
+## 세션
+
+[Astro 세션 API](/ko/guides/sessions/)를 사용하면 요청 간에 사용자 데이터를 쉽게 저장할 수 있습니다. 이는 사용자 데이터 및 설정, 쇼핑 카트, 인증 자격 증명 등에 활용될 수 있습니다. 쿠키 저장소와 달리 데이터 크기에 제한이 없으며, 다른 기기에서도 복원할 수도 있습니다.
+
+Node 어댑터를 사용하는 경우 Astro는 세션 스토리지를 위해 로컬 파일 시스템을 사용합니다. 다른 세션 스토리지 드라이버를 사용하려면 Astro 구성에서 지정할 수 있습니다. 자세한 내용은 [`session` 구성 참조](/ko/reference/configuration-reference/#sessiondriver)를 확인하세요.

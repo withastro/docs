@@ -141,21 +141,22 @@ Astro 5.0 引入了一个采用 Content Layer API 的新版内容集合，它带
     });
     ```
 
-3. **将引用的 `slug` 更改为 `id`**。Content layer 集合不再保留 `slug` 字段。相反的，所有更新后的集合将会有一个 `id`。你可能还需要更新动态路由的文件名，以匹配更新后的 getStaticPaths() 参数：
+3. **将引用的 `slug` 更改为 `id`**。Content layer 集合不再保留 `slug` 字段。取而代之的是，所有更新后的集合将会有一个 `id`。
 
     ```astro ins={7} del={6}
-    // src/pages/[id].astro
+    // src/pages/[slug].astro
     ---
     export async function getStaticPaths() {
       const posts = await getCollection('blog');
       return posts.map((post) => ({
         params: { slug: post.slug },
-        params: { id: post.id },
+        params: { slug: post.id },
         props: post,
       }));
     }
     ---
     ```
+    你可能还需要更新动态路由的文件名，以匹配更新后的 `getStaticPaths()` 参数的值。
 
 4. **切换到新的 `render()` 函数**。条目不再具有 `render()` 方法，因为他们现在是可序列化的简单对象。相反的，应该从 `astro:content` 导入 `render()` 函数。
 
@@ -529,13 +530,28 @@ Astro v5.0 删除了这个实验性标志，并使其成为 Astro 中新的默�
 
 <SourcePR number="11791" title="Make directRenderScript the default"/>
 
-在 Astro v4.x 中，`experimental.directRenderScript` 是一个可选标志，用于直接渲染 `.astro` 文件中声明的 `<scripts>`（包括 TypeScript、导入 `node_modules` 和去重脚本等现有功能）。此策略可防止脚本在未使用的地方执行。
+在 Astro v4.x 中，`experimental.directRenderScript` 是一个可选标志，用于直接渲染 `.astro` 文件中声明的 `<scripts>`（包括 TypeScript、导入 `node_modules` 和去重脚本等现有功能）。此策略可防止脚本在未使用的地方执行。另外，以前的条件渲染脚本已被隐式内联，类似于向脚本添加了 `is:inline` 指令。
 
-Astro 5.0 删除了这个实验性标志，并使其成为 Astro 中新的默认行为：脚本不再被提升到 `<head>`，页面上的多个脚本也不再被一起打包，并且 `<script>` 标签可能会干扰 CSS 样式。
+Astro 5.0 删除了这个实验性标志，并使其成为 Astro 中新的默认行为：脚本不再被提升到 `<head>`，页面上的多个脚本也不再被一起打包，并且 `<script>` 标签可能会干扰 CSS 样式。另外，条件渲染脚本不再被隐式内联了。
 
 #### 我应该做什么？
 
 请检查你的 `<script>` 标签并确保它们的行为符合预期。
+
+如果你之前有条件渲染的 `<script>` 标签，那么现在你需要向其添加 `is:inline` 属性以保留与以前相同的行为：
+
+```astro title="src/components/MyComponent.astro" ins="is:inline"
+---
+type Props = {
+  showAlert: boolean
+}
+
+const { showAlert } = Astro.props;
+---
+{
+  showAlert && <script is:inline>alert("Some very important code!!")</script>
+}
+```
 
 <ReadMore>详细了解 [在 Astro 中使用 `script` 标签](/zh-cn/guides/client-side-scripts/#在-astro-中使用-script)。</ReadMore>
 
@@ -1134,15 +1150,15 @@ Astro 5.0 完全移除了这种选项，转而采用当前的对象结构来定�
 如果你之前使用了已弃用的结构，请将你的开发工具栏应用更新为使用新的结构：
 
 ```js title="my-integration.mjs" del={1-2} ins={4-10}
-// Old shape
-addDevToolbarApp("./my-app.js");
+// 旧结构
+addDevToolbarApp("./my-dev-toolbar-app.mjs");
 
-// New shape
+// 新结构
 addDevToolbarApp({
   id: "my-app",
   name: "My App",
   icon: "<svg>...</svg>",
-  entrypoint: "./my-app.js",
+  entrypoint: "./my-dev-toolbar-app.mjs",
 });
 ```
 

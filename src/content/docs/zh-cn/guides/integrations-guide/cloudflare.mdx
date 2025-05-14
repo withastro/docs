@@ -1,31 +1,34 @@
 ---
 type: integration
 title: '@astrojs/cloudflare'
-description: 了解如何使用 @astrojs/cloudflare SSR 适配器来部署你的 Astro 项目。
+description: 了解如何使用 @astrojs/cloudflare 适配器来部署你的 Astro 项目。
 sidebar:
   label: Cloudflare
-githubIntegrationURL: 'https://github.com/withastro/adapters/tree/main/packages/cloudflare/'
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
 category: adapter
 i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
 
-此适配器允许 Astro 将你的[按需渲染路由](/zh-cn/guides/on-demand-rendering/)部署到[Cloudflare](https://www.cloudflare.com/).
+此适配器允许 Astro 将你的 [按需渲染路由及其功能](/zh-cn/guides/on-demand-rendering/)部署到 [Cloudflare](https://www.cloudflare.com/)，包括 [服务器群岛](/zh-cn/guides/server-islands/)，[actions](/zh-cn/guides/actions/) 以及 [sessions](/zh-cn/guides/sessions/)。
 
-如果你使用 Astro 作为静态站点构建器，则不需要适配器。
+如果你只是将 Astro 作为静态的站点构建器，则不需要适配器。
 
-在我们的 [Cloudflare Pages部署指南](/zh-cn/guides/deploy/cloudflare/) 中了解如何部署Astro站点。
+在我们的 [Cloudflare Pages 部署指南](/zh-cn/guides/deploy/cloudflare/) 中了解如何部署 Astro 站点。
 
 ## 为什么选择 Astro Cloudflare
 
-[Cloudflare](https://www.cloudflare.com/)提供 CDN、网络安全和其他服务。该适配器增强了 Astro 构建过程，为你的项目通过 Cloudflare 进行部署做好准备。
+Cloudflare 的 [开发者平台](https://developers.cloudflare.com/) 为用户提供存储、AI 等资源支持，助力开发全栈应用，并部署至全球边缘网络。此适配器专为 Astro 项目设计，可将其构建为符合 Cloudflare 部署要求的格式。
 
 ## 安装
 
-Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，可以改为[手动安装集成](#手动安装)。
+Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，可以改为 [手动安装集成](#手动安装)。
 
-在你的 Astro 项目中使用 `astro add` 命令添加 Cloudflare 适配器，以启用SSR。这将安装`@astrojs/cloudflare` 并一步到位地对你的 `astro.config.mjs` 文件进行相应的更改。
+在你的 Astro 项目中使用 `astro add` 命令添加 Cloudflare 适配器，以启用服务器端渲染。这将安装 `@astrojs/cloudflare` 并一步到位地对你的 `astro.config.mjs` 文件进行相应的更改。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -44,6 +47,8 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   ```
   </Fragment>
 </PackageManagerTabs>
+
+现在，你可以启用 [对每个页面的按需渲染](/zh-cn/guides/on-demand-rendering/#启用按需渲染)，或者将你的构建输出配置设置为 `output: 'server'` 从而 [默认对所有页面都进行服务器端渲染](/zh-cn/guides/on-demand-rendering/#server-模式)。
 
 ### 手动安装
 
@@ -67,21 +72,33 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   </Fragment>
 </PackageManagerTabs>
 
-然后，将适配器和所需的[按需渲染模式](/zh-cn/guides/on-demand-rendering/)添加到 `astro.config.mjs` 文件中：
+然后，将适配器添加到 `astro.config.mjs` 文件中：
 
-```js title="astro.config.mjs" ins={2,5-6}
+```js title="astro.config.mjs" ins={2,5}
 import { defineConfig } from 'astro/config';
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
-  output: 'server',
   adapter: cloudflare(),
 });
 ```
 
 ## 选项
 
-### imageService
+Cloudflare 适配器接受以下选项：
+
+### `cloudflareModules`
+
+<p>
+**类型：** `boolean`<br />
+**默认值：** `true`
+</p>
+
+启用对 [`.wasm`、`.bin` 以及 `.txt` 模块的导入](#cloudflare-模块导入)。
+
+该功能默认启用。如果你想禁用它，设置 `cloudflareModules` 为 `false`。
+
+### `imageService`
 
 <p>
 **类型：** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
@@ -92,22 +109,21 @@ export default defineConfig({
 
 * **`cloudflare`：** 使用 [Cloudflare 图像调整](https://developers.cloudflare.com/images/image-resizing/) 服务。
 * **`passthrough`：** 使用现有的 [`noop`](/zh-cn/guides/images/#配置-no-op-透传服务) 服务。
-* **`compile`：** 使用 Astro 的默认服务（sharp），但仅在构建时对预渲染的路由有效。在服务端渲染（SSR）中，对按需渲染的页面，所有 `astro:assets` 功能都将被禁用。
+* **`compile`：** 使用 Astro 的默认服务（sharp），但仅在构建时对预渲染的路由有效。对按需渲染的页面，所有 `astro:assets` 功能都将被禁用。
 * **`custom`：** 总是使用在 [Image 选项](/zh-cn/reference/configuration-reference/#image-选项) 中配置的图像服务。**此选项不会检查配置的图像服务是否在 Cloudflare 的 `workerd` 运行时中工作。**
 
 ```js title="astro.config.mjs" ins={6}
-import {defineConfig} from "astro/config";
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({
      imageService: 'cloudflare'
   }),
-  output: 'server'
 })
 ```
 
-### platformProxy
+### `platformProxy`
 
 决定是否以及如何将 Cloudflare 运行时添加到 `astro dev` 中。它包含对本地 `workerd` 绑定和 Cloudflare 特定值的代理和模拟，允许在 Node.js 开发过程中模拟运行时。阅读更多关于 [Cloudflare 运行时](#cloudflare-运行时) 的信息。
 
@@ -115,45 +131,48 @@ export default defineConfig({
 此处提供的代理尽最大努力模拟真实生产环境。虽然它们旨在尽可能接近真实情况，但两者之间可能存在轻微的差异和不一致。
 :::
 
-#### platformProxy.enabled
+#### `platformProxy.enabled`
 <p>
-**类型：** `{ enabled?: boolean }`<br />
-**默认值：** `{ enabled: false }`
+**类型：** `boolean`<br />
+**默认值：** `true`
 </p>
 
-`enabled` 属性允许你在 `astro dev` 中启用 Cloudflare 运行时。
+用于决定是否在开发模式下启用 Cloudflare 运行时。
 
 #### platformProxy.configPath
 <p>
-**类型：** `{ configPath?: string }`<br />
-**默认值：** `{ configPath: 'wrangler.toml' }`
+**类型：** `string`<br />
+**默认值：** ``undefined``
 </p>
 
-`configPath` 允许你定义你的 Wrangler 配置文件，相对于你的 Astro 项目的根目录。
+用于定义 Wrangler 配置文件的路径。如果该项留空，那么它会在项目根目录下寻找 `wrangler.toml`、`wrangler.json` 和 `wrangler.jsonc`。
 
-#### platformProxy.experimentalJsonConfig
+#### `platformProxy.environment`
 <p>
-**类型：** `{ experimentalJsonConfig?: boolean }`<br />
-**默认值：** `{ experimentalJsonConfig?: false }`
+**类型：** `string`<br />
+**默认值：** `undefined`
 </p>
 
-`experimentalJsonConfig` 属性定义了该工具是否读取 JSON 配置文件（例如 `wrangler.json`）。
+用于设置使用的 [Cloudflare 环境](https://developers.cloudflare.com/workers/wrangler/environments/)。你必须在 Wrangler 配置文件中选择一项环境，否则将会引发错误。
 
-#### platformProxy.persist
+#### `platformProxy.persist`
 
 <p>
-**类型：** `{ persist?: boolean | { path: string } }`<br />
-**默认值：** `{ persist: true }`
+**类型：** `boolean | { path: string }`<br />
+**默认值：** `true`
 </p>
 
-`persist` 属性定义了绑定数据是否持久化以及持久化的位置。`true` 默认与 Wrangler 使用的位置相同，因此数据可以在两者之间共享。如果是 `false`，则不会向文件系统持久化或从文件系统读取任何数据。
+用于设置是否在本地存储绑定数据，以及将绑定数据存储在本地文件系统中的何处。
+
+- 如果设置为 `true`，绑定数据会被存储在 `.wrangler/state/v3/`。该位置与 wrangler 的默认设置相同。
+- 如果设置为 `false`，绑定数据将不会被存储在本地文件系统中。
+- 如果设置为 `{ path: string }`，绑定数据将会存储在指定的路径下。
 
 :::note
 `wrangler` 的 `--persist-to` 选项会在底层添加一个名为 `v3` 的子目录，而 `@astrojs/cloudflare` 的 `persist` 属性则不会。例如，要重用与运行 `wrangler dev --persist-to ./my-directory` 相同的位置，你必须指定：`persist: { path: "./my-directory/v3" }`。
 :::
 
-以下配置展示了在运行开发服务器时启用 Cloudflare 运行时的示例，以及使用 `wrangler.json` 配置文件（实验性的）。它还指定了一个自定义位置，用于将数据持久化到文件系统中：
-
+以下配置展示了在运行开发服务器时启用 Cloudflare 运行时的示例，以及使用 `wrangler.json` 配置文件。它还指定了一个自定义位置，用于将数据持久化到文件系统中：
 
 ```js
 import cloudflare from '@astrojs/cloudflare';
@@ -163,7 +182,6 @@ export default defineConfig({
 		platformProxy: {
 			enabled: true,
 			configPath: 'wrangler.json',
-			experimentalJsonConfig: true,
 			persist: {
 				path: './.cache/wrangler/v3'
 			},
@@ -171,13 +189,16 @@ export default defineConfig({
 	}),
 });
 ```
-### routes.extend
 
-此选项允许你添加或排除自定义模式（例如 `/fonts/*`）到生成的 [`_routes.json`](#自定义-_routesjson) 文件中，该文件决定了哪些路由是按需生成的。如果你需要添加无法自动生成的路由模式，或排除预渲染的路由，这会很有用。
+### `routes.extend`
+
+在 Cloudflare Workers 中，该选项不适用。请参考 [Cloudflare Workers 路由](#cloudflare-workers-路由) 以获取更多信息。
+
+在 Cloudflare Pages 中，此选项允许你添加或排除自定义模式（例如 `/fonts/*`）到生成的 `_routes.json` 文件中，该文件决定了哪些路由是按需生成的。如果你需要添加无法自动生成的路由模式，或排除预渲染的路由，这会很有用。
 
 关于自定义路由模式的更多信息，可以在 [Cloudflare 的路由文档](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes)中找到。指定的任何路由都不会自动去重，将会按原样添加到现有路由中。
 
-#### routes.extend.include
+#### `routes.extend.include`
 
 <p>
 **类型：** `{ pattern: string }[]`<br />
@@ -186,14 +207,14 @@ export default defineConfig({
 
 在 `routes.extend.include` 数组中配置 Cloudflare 适配器按需生成的其他路由。
 
-#### routes.extend.exclude
+#### `routes.extend.exclude`
 
 <p>
 **类型：** `{ pattern: string }[]`<br />
 **默认值：** `undefined`
 </p>
 
-在 `routes.extend.exclude` 数组中配置要从按需渲染中排除的路由。这些路由将预先渲染并以静态方式提供，而不会调用服务端渲染（SSR）函数。此外，你还可以使用这个选项直接提供任何静态资源（例如：图片、字体、css、js、html、txt、json 等）文件，无需通过 SSR 函数路由请求。
+在 `routes.extend.exclude` 数组中配置要从按需渲染中排除的路由。这些路由将预先渲染并以静态方式提供，而不会调用服务端函数。此外，你还可以使用这个选项直接提供任何静态资源（例如：图片、字体、css、js、html、txt、json 等）文件，无需通过服务端函数路由请求。
 
 ```js title="astro.config.mjs"
 
@@ -201,7 +222,7 @@ export default defineConfig({
   adapter: cloudflare({
     routes: {
       extend: {
-        include: [{ pattern: '/static' }], // 将预渲染的页面路由到服务端渲染函数以实现按需渲染
+        include: [{ pattern: '/static' }], // 将预渲染的页面路由到服务端函数以实现按需渲染
         exclude: [{ pattern: '/pagefind/*' }], // 使用 Starlight 的 pagefind 搜索，该搜索在构建时静态生成
       }
     },
@@ -209,37 +230,33 @@ export default defineConfig({
 });
 ```
 
-### `cloudflareModules`
+### `sessionKVBindingName`
 
 <p>
-**类型：** `true | false`<br />
-**默认值：** `true`
+**类型：** `string`<br />
+**默认值：** `SESSION`
+<Since v="5.6.0" />
 </p>
 
-启用 [`.wasm`、`.bin` 和 `.txt` 模块的导入](#cloudflare-模块导入)。
+`sessionKVBindingName` 选项允许你指定用于会话存储的 KV 绑定的名称。默认情况下，该选项会被设置为 `SESSION`，但你能够将其改变为匹配你个人 KV 绑定的名称。更多内容请参阅 [Sessions](#sessions)。
 
-此功能默认启用。如果你想禁用它，请设置 `cloudflareModules: false`。
+```js title="astro.config.mjs" "MY_SESSION_BINDING"
+export default defineConfig({
+  adapter: cloudflare({
+    sessionKVBindingName: 'MY_SESSION_BINDING',
+  }),
+});
+```
 
 ## Cloudflare 运行时
 
-Cloudflare 运行时允许你访问环境变量和 Cloudflare 绑定。
-Cloudflare 运行时利用在 `wrangler` 和 `.dev.vars` 配置文件中找到的绑定。
-
 ### 用例
 
-例如，如果你在 `wrangler.toml` 中设置了[环境变量](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler)的配置：
+Cloudflare 运行时允许你访问环境变量并绑定 Cloudflare 资源。
 
-```toml title="wrangler.toml"
-[vars]
-MY_VARIABLE = "test"
-```
+Cloudflare 运行时使用在 `wrangler.toml`/`wrangler.json` 配置文件中找到的绑定。
 
-如果你还需要定义 `secrets` 以外的环境变量，你需要在 Astro 项目的根目录下添加一个 `.dev.vars` 文件：
-
-```ini title=".dev.vars"
-DB_PASSWORD=myPassword
-```
-你可以像这样使用 Astro locals 来访问这些绑定的值：
+你可以从 `Astro.locals.runtime` 中访问绑定：
 
 ```astro title="src/pages/index.astro"
 ---
@@ -256,7 +273,37 @@ export function GET(context) {
 }
 ```
 
-要访问 `MY_VARIABLE` 绑定的值，请在你的代码中添加以下内容：
+请查看 Cloudflare 文档中的 [所有支持的绑定列表](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings)。
+
+### 环境变量与私密环境变量
+
+CloudFlare 运行时将环境变量视为一种绑定。
+
+例如，你可以在 `wrangler.json` 中对 [环境变量](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) 进行如下定义：
+
+```json title="wrangler.json"
+{
+  "vars" : {
+    "MY_VARIABLE": "test"
+  }
+}
+```
+
+私密环境变量（Secrets）是一种特殊类型的环境变量，它允许你将加密的文本值附加至 Cloudflare Worker。为确保设置后其内容不可见，私密环境变量需通过专用方式定义。
+
+要定义 `secrets`，请通过 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) 来完成添加，而不是在 Wrangler 配置文件中添加。
+
+```bash
+npx wrangler secret put <KEY>
+```
+
+要为本地开发设置私密环境变量，你还需要在 Astro 项目根目录中添加一个 `.dev.vars` 文件：
+
+```ini title=".dev.vars"
+DB_PASSWORD=myPassword
+```
+
+接下来你就可以访问环境变量，包括私密环境变量了，它们可以在 `Astro.locals.runtime` 的 `env` 对象中被找到：
 
 ```astro title="src/pages/index.astro"
 ---
@@ -265,7 +312,7 @@ const myVariable = env.MY_VARIABLE;
 ---
 ```
 
-请查看 Cloudflare 文档中的[所有支持的绑定列表](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings)。
+Cloudflare 的环境变量和私密环境变量与 [`astro:env` API](/zh-cn/guides/environment-variables/#类型安全的环境变量) 相兼容。
 
 ### 类型定义
 
@@ -307,7 +354,9 @@ declare namespace App {
 
 ### 标头
 
-你可以通过在 Astro 项目的 `public/` 文件夹中添加一个 `_headers` 文件来附加 [自定义头部](https://developers.cloudflare.com/pages/platform/headers/) 到你的响应中，该文件将被复制到构建输出目录中。
+你可以通过在 Astro 项目的 `public/` 文件夹中添加一个 `_headers` 文件来附加 [自定义标头](https://developers.cloudflare.com/pages/platform/headers/) 到你的响应中，该文件将被复制到构建输出目录中。
+
+该方法也可以用于 Cloudflare Workers 和 Cloudflare Pages 中。
 
 ### 资源
 
@@ -315,25 +364,93 @@ declare namespace App {
 
 ### 重定向
 
-你可以使用 Cloudflare Pages 来声明 [自定义重定向](https://developers.cloudflare.com/pages/platform/redirects/)。这允许你将请求重定向到不同的 URL。你可以在 Astro 项目的 `public/` 文件夹中添加一个 `_redirects` 文件，该文件将被复制到构建输出目录。
+你可以声明一个 [自定义重定向](https://developers.cloudflare.com/pages/platform/redirects/) 从而将请求重定向到不同的 URL。为此，请在 Astro 项目的 `public/` 文件夹中添加一个 `_redirects` 文件，该文件将被复制到构建输出目录。
+
+该方法也可以用于 Cloudflare Workers 和 Cloudflare Pages 中。
 
 ### 路由
 
-[Cloudflare 路由](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) 使用 `_routes.json` 文件来确定哪些请求被路由到 SSR 功能，哪些请求作为静态资产提供。默认情况下，`_routes.json` 文件将根据项目的文件和配置自动生成。
+#### Cloudflare Workers 路由
 
-你可以在适配器配置中 [指定要遵循的其他路由模式](#routesextend)，或者创建你自己的自定义 `_routes.json` 文件以完全覆盖自动生成。
+静态资源的路由是基于构建目录（例如 `./dist`）的文件结构的。如果不匹配，将会回退至按需渲染的 Worker。更多内容详见 [Cloudflare Workers 静态资源路由](https://developers.cloudflare.com/workers/static-assets/routing/)。
 
-#### 自定义 `_routes.json`
+不同于 [Cloudflare Pages](#cloudflare-pages-路由)，使用 Workers 时，无需 `_routes.json` 文件。
+
+目前，Cloudflare 适配器始终会生成该文件。为了解决这个问题，可在你的 `public/` 文件夹中创建一个 `.assetsignore` 文件，并向其添加以下内容：
+  ```txt title="public/.assetsignore"
+  _worker.js
+  _routes.json
+  ```
+
+#### Cloudflare Pages 路由
+
+在 Cloudflare Pages 中，[路由规则](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) 通过 `_routes.json` 文件定义，用于决定哪些请求应路由至服务端函数（Server Function）处理，哪些应作为静态资源直接返回。默认情况下，系统会根据项目文件结构及配置自动生成此文件。
+
+你可以通过在适配器配置文件中 [指定额外的路由规则](#routesextend)，或创建自定义的 `_routes.json` 文件来覆盖自动生成的结果。
 
 创建自定义的 `public/_routes.json` 将覆盖这种自动生成的文件。参阅 [Cloudflare 关于创建自定义 `_routes.json` 的文档](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) 了解更多细节。
 
+## Sessions
+
+Astro [Session API](/zh-cn/guides/sessions/) 允许你在请求间，轻松地存储用户数据。该功能可用于用户数据和偏好选项，购物车内容，资格鉴权。不同于 cookie 存储，这里不存在对数据大小的限制，并且可以将其存储在不同的设备上。
+
+当使用 Cloudflare 适配器时，Astro 会自动配置用于会话（session）存储的 [Workers KV](https://developers.cloudflare.com/kv/)。但在使用会话前，你还需要创建一个 KV 命名空间来存储数据并在你的 Wrangler 配置文件中对 KV 绑定进行配置。默认绑定名需为 `SESSION`，若需自定义名称，请通过适配器配置文件中的 [`sessionKVBindingName`](#sessionkvbindingname) 选项来指定。
+
+<Steps>
+
+1. 使用 Wrangler CLI 创建一个 KV 命名空间并记录下新命名空间的 ID：
+
+   ```sh
+   npx wrangler kv namespace create "SESSION"
+   ```
+
+2. 在你的 Wrangler 配置文件中，声明 KV 命名空间，ID 是运行上一个命令时所返回的内容：
+
+    <Tabs>
+      <TabItem label="wrangler.json">
+        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+        {
+          "kv_namespaces": [
+            {
+              "binding": "SESSION",
+              "id": "<KV_NAMESPACE_ID>"
+            }
+          ]
+        }
+        ```
+      </TabItem>
+      <TabItem label="wrangler.toml">
+        ```toml title="wrangler.toml" "<KV_NAMESPACE_ID>"
+        kv_namespaces = [
+          { binding = "SESSION", id = "<KV_NAMESPACE_ID>" }
+        ]
+        ```
+      </TabItem>
+    </Tabs>
+
+3. 接下来你就可以在你的服务器代码中使用会话了：
+
+    ```astro title="src/components/CartButton.astro" "Astro.session?.get('cart')"
+    ---
+    export const prerender = false;
+    const cart = await Astro.session?.get('cart');
+    ---
+    <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+    ```
+
+</Steps>
+
+:::note
+对 Cloudflare KV 的写入操作在跨区域时遵循 [最终一致性原则](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency)。这意味着：在同一区域内，数据变更会立即生效，而跨区域同步的变更可能需要最多 60 秒才能完成全球节点同步。这对大多数用户来说是无感的，因为常规用户不会在连续请求间切换地理区域，但是仍有部分用例会受影响，例如那些 VPN 用户。
+:::
+
 ## Cloudflare 模块导入
 
-Cloudflare worker 运行时支持导入一些[非标准模块类型](https://developers.cloudflare.com/pages/functions/module-support/)。大多数额外的文件类型在 astro 中也是可用的：
+Cloudflare `workerd` 运行时支持导入一些 [非标准模块类型](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules)。大多数额外的文件类型在 Astro 中也是可用的：
 
 - `.wasm` 或 `.wasm?module`：导出一个可以实例化的 [`WebAssembly.Module`](https://developer.mozilla.org/zh-CN/docs/WebAssembly/JavaScript_interface/Module)
-- `.bin`：导出一个文件的原始二进制内容的 [`ArrayBuffer`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
-- `.txt`：导出文件内容的字符串
+- `.bin`：导出文件的原始二进制内容，类型为 [`ArrayBuffer`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
+- `.txt`：导出文件内容的字符串形式
 
 所有模块类型都导出一个默认值。模块既可以从服务器端渲染的页面导入，也可以从预渲染的页面导入，以生成静态站点。
 
@@ -366,15 +483,14 @@ export const prerender = false;
 import { Buffer } from 'node:buffer';
 ```
 
-你还需要修改你的 astro 配置中的 `vite` 配置，以允许使用 `node:*` 导入语法：
+你还需要修改你的 Astro 配置中的 `vite` 配置，以允许使用 `node:*` 导入语法：
 
-```js title="astro.config.mjs" ins={7-11}
-import {defineConfig} from "astro/config";
+```js title="astro.config.mjs" ins={6-10}
+import { defineConfig } from "astro/config";
 import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({}),
-  output: 'server',
   vite: {
 		ssr: {
 			external: ['node:buffer'],
@@ -383,7 +499,7 @@ export default defineConfig({
 })
 ```
 
-此外，你还需要遵循 Cloudflare 的文档来启用支持。具体指导，请参考 [Cloudflare 关于启用 Node.js 兼容性的文档](https://developers.cloudflare.com/workers/runtime-apis/nodejs#enable-nodejs-with-pages-functions)。
+此外，你还需要遵循 Cloudflare 的文档来启用支持。具体指导，请参考 [Cloudflare 关于启用 Node.js 兼容性的文档](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)。
 
 :::note[包兼容性的影响]
 如果一个项目将一个包导入到服务器中，而该包使用了 Node.js 运行时 API，这在部署到 Cloudflare 时可能会引起问题。这个问题出现在不使用 `node:*` 导入语法的包上。建议你联系包的作者，以确定该包是否支持上述导入语法。如果该包不支持这种语法，你可能需要使用另一个包。
@@ -393,20 +509,27 @@ export default defineConfig({
 
 为了使用 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) 在本地运行你的应用程序，请更新预览脚本：
 
+对于 Workers：
+
+```json title="package.json"
+"preview": "wrangler dev ./dist"
+```
+
+对于 Pages：
+
 ```json title="package.json"
 "preview": "wrangler pages dev ./dist"
 ```
 
-[`wrangler`](https://developers.cloudflare.com/workers/wrangler/) 能让你访问 [Cloudflare 绑定](https://developers.cloudflare.com/pages/platform/functions/bindings)、[环境变量](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables) 和 [cf 对象](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties)。要让热重载或 Astro 开发服务器与 Wrangler 工作，可能需要进行自定义设置。请参阅 [社区示例](https://github.com/withastro/roadmap/discussions/590)。
+使用 [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) 部署能让你访问 [Cloudflare 绑定](https://developers.cloudflare.com/pages/platform/functions/bindings)、[环境变量](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables) 和 [cf 对象](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties)。要让热重载或 Astro 开发服务器与 Wrangler 工作，可能需要进行自定义设置。请参阅 [社区示例](https://github.com/withastro/roadmap/discussions/590)。
 
 ### 有意义的错误消息
 
 目前，在 Wrangler 中运行应用程序时由于代码被压缩，错误消息并不是很有用。为了更好地进行调试，你可以将 `vite.build.minify = false` 添加到你的 `astro.config.js` 文件中。
 
-```js title="astro.config.mjs" ins={4-8}
+```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
   adapter: cloudflare(),
-  output: 'server',
   vite: {
     build: {
       minify: false,

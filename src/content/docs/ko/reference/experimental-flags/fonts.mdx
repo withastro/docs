@@ -1,0 +1,738 @@
+---
+title: 실험적 글꼴 API
+sidebar:
+  label: 글꼴
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+
+**타입:** `FontFamily[]`<br />
+<Since v="5.7.0" />
+</p>
+
+이 실험적인 기능을 사용하면 통합되고 완전히 사용자 정의 가능하며 타입 안전한 API를 통해 파일 시스템 및 다양한 글꼴 제공업체 (예: Google, Fontsource, Bunny)의 글꼴을 사용할 수 있습니다.
+
+웹 글꼴은 페이지 로드 시간과 렌더링 시간 모두에서 페이지 성능에 영향을 미칠 수 있습니다. 이 API는 불필요한 글꼴 파일 다운로드와 같은 일반적인 문제를 방지하기 위한 프리로드 링크, 최적화된 대체 글꼴, 의견이 있는 기본값을 포함한 자동 [웹 글꼴 최적화](https://web.dev/learn/performance/optimize-web-fonts)를 통해 사이트 성능을 유지하는 데 도움이 됩니다.
+
+이 기능을 활성화하려면 하나 이상의 글꼴로 `experimental.fonts` 객체를 구성하세요.
+
+```js title="astro.config.mjs" ins={5-9} ins=" fontProviders "
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: fontProviders.google(),
+            name: "Roboto",
+            cssVariable: "--font-roboto"
+        }]
+    }
+});
+```
+
+그런 다음 `<head>`에 `<Font />` 컴포넌트와 사이트 전체 스타일링을 추가하세요.
+
+```astro title="src/components/Head.astro" ins={2,5,8-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable='--font-roboto' preload />
+
+<style>
+body {
+    font-family: var(--font-roboto);
+}
+</style>
+```
+
+## 사용법
+
+<Steps>
+
+1. `experimental.fonts`는 글꼴 객체의 배열을 허용합니다. 각 글꼴에 대해 `provider`, 패밀리 `name`을 지정하고 글꼴을 참조할 `cssVariable`을 정의해야 합니다.
+    
+    - [`provider`](#provider): [내장된 원격 제공자](#사용-가능한-원격-글꼴-제공자) 목록에서 선택하거나, [사용자 정의 글꼴 제공자](#나만의-글꼴-제공자-구축하기)를 직접 만들거나, [로컬 제공자](#로컬-글꼴의-variants)를 사용하여 로컬 글꼴 파일을 등록할 수 있습니다.
+    - [`name`](#name): 제공자가 지원하는 글꼴 패밀리를 선택합니다.
+    - [`cssVariable`](#cssvariable-1): CSS 변수 형식의 유효한 [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident)여야 합니다.
+    
+    다음 예시는 [Google Fonts에서 "Roboto" 글꼴 패밀리](https://fonts.google.com/specimen/Roboto)를 구성합니다.
+
+    ```js title="astro.config.mjs" ins={4-10} ins="fontProviders"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      experimental: {
+        fonts: [{
+          provider: fontProviders.google(),
+          name: "Roboto",
+          cssVariable: "--font-roboto"
+        }]
+      }
+    });
+    ```
+    
+    [대체 글꼴 패밀리](#fallbacks) 정의, 다운로드할 [`weights`](#weights) 및 [`styles`](#styles)와 같은 더 많은 구성 옵션을 사용할 수 있으며, 일부는 선택한 제공자에 따라 다릅니다.
+        
+    자세한 내용은 전체 [구성 참조](#글꼴-구성-참조)를 확인하세요.
+
+2. `<Font />` 컴포넌트를 사용하여 스타일을 적용합니다. 이 컴포넌트를 가져와 페이지의 `<head>`에 추가해야 합니다. 글꼴의 [`cssVariable`](#cssvariable)을 제공하는 것은 필수이며, 선택적으로 [프리로드 링크를 출력](#preload)할 수 있습니다.
+
+    ```astro title="src/components/Head.astro" ins={2, 5}
+    ---
+    import { Font } from 'astro:assets';
+    ---
+
+    <Font cssVariable="--font-roboto" preload />
+    ```
+    
+    이는 일반적으로 공통 사이트 레이아웃에서 사용되는 `Head.astro`와 같은 컴포넌트에서 수행됩니다.
+    
+    <ReadMore>자세한 내용은 전체 [`<Font>` 컴포넌트 참조](#font--컴포넌트-참조)를 확인하세요.</ReadMore>
+    
+    `<Font />` 컴포넌트는 글꼴 선언을 포함한 CSS를 생성하므로, `cssVariable`을 사용하여 글꼴 패밀리를 참조할 수 있습니다.
+
+    <Tabs>
+
+    <TabItem label="CSS">
+
+    ```css ins={3}
+    <style>
+    body {
+        font-family: var(--font-roboto);
+    }
+    </style>
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import 'tailwindcss';
+
+    @theme inline {
+        --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+    content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+    theme: {
+        extend: {},
+        fontFamily: {
+            sans: ["var(--font-roboto)"]
+        }
+    },
+    plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+</Steps>
+
+## 사용 가능한 원격 글꼴 제공자
+
+Astro는 대부분의 [unifont](https://github.com/unjs/unifont/) 제공자를 다시 내보냅니다. 다음은 기본적으로 지원되는 제공자입니다.
+
+- [Adobe](https://fonts.adobe.com/)
+- [Bunny](https://fonts.bunny.net/)
+- [Fontshare](https://www.fontshare.com/)
+- [Fontsource](https://fontsource.org/)
+- [Google](https://fonts.google.com/)
+
+내장된 원격 제공자를 사용하려면 `provider`를 선택한 글꼴 제공자에 해당하는 값으로 구성하세요.
+
+<Tabs>
+
+<TabItem label="Adobe">
+
+```js
+provider: fontProviders.adobe({ id: process.env.ADOBE_ID })
+```
+
+</TabItem>
+
+<TabItem label="Bunny">
+
+```js
+provider: fontProviders.bunny()
+```
+
+</TabItem>
+
+<TabItem label="Fontshare">
+
+```js
+provider: fontProviders.fontshare()
+```
+
+</TabItem>
+
+<TabItem label="Fontsource">
+
+```js
+provider: fontProviders.fontsource()
+```
+
+</TabItem>
+
+<TabItem label="Google">
+
+```js
+provider: fontProviders.google()
+```
+
+또한, `google()` 글꼴 제공자는 [unifont Google `ProviderOption`](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26)에서 사용 가능한 모든 옵션들을 허용합니다.
+
+```js
+provider: fontProviders.google({
+	glyphs: {
+		Roboto: ["a"]
+	}
+})
+```
+
+</TabItem>
+
+</Tabs>
+
+어떤 unifont 제공자에 대해서든 [사용자 정의 Astro 글꼴 제공자](#나만의-글꼴-제공자-구축하기)를 만들 수도 있습니다.
+
+## `<Font />` 컴포넌트 참조
+
+이 컴포넌트는 스타일 태그를 출력하며, 선택적으로 주어진 글꼴 패밀리에 대한 프리로드 링크를 출력할 수 있습니다.
+
+반드시 페이지에서 가져와 `<head>`에 추가해야 합니다. 이는 일반적으로 전역적으로 사용하기 위해 공통 사이트 레이아웃에 사용되는 `Head.astro`와 같은 컴포넌트에서 수행되지만, 필요에 따라 개별 페이지에 추가할 수도 있습니다.
+
+이 컴포넌트를 사용하면 어떤 페이지에 어떤 글꼴 패밀리를 사용할지, 그리고 어떤 글꼴을 미리 로드할지 제어할 수 있습니다.
+
+### cssVariable
+
+<p>
+
+**예시 타입:** `"--font-roboto" | "--font-comic-sans" | ...`
+</p>
+
+Astro 구성에 등록된 [`cssVariable`](#cssvariable-1)입니다.
+
+```astro title="src/components/Head.astro" "cssVariable"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" />
+```
+
+### preload
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`
+</p>
+
+[프리로드 링크](https://web.dev/learn/performance/optimize-web-fonts#preload)를 출력할지 여부를 결정합니다.
+
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+## 글꼴 구성 참조
+
+글꼴의 모든 속성은 Astro 구성에서 설정해야 합니다. 일부 속성은 원격 및 로컬 글꼴 모두에 공통적이며, 다른 속성은 선택한 글꼴 제공자에 따라 사용할 수 있습니다.
+
+### 공통 속성
+
+다음 속성은 원격 및 로컬 글꼴 모두에 사용할 수 있습니다. `provider`, `name`, `cssVariable`은 필수 속성입니다.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### provider
+
+<p>
+
+**타입:** `AstroFontProvider | "local"`
+</p>
+
+글꼴 파일의 출처입니다. [내장된 제공자](#사용-가능한-원격-글꼴-제공자)를 사용하거나, [사용자 정의 제공자](#나만의-글꼴-제공자-구축하기)를 직접 작성하거나, 로컬 글꼴 파일을 사용하기 위해 `"local"`로 설정할 수 있습니다.
+
+```js title="astro.config.mjs" {6}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### name
+
+<p>
+
+**타입:** `string`
+</p>
+
+글꼴 제공자가 식별하는 글꼴 패밀리 이름입니다.
+
+```js
+name: "Roboto"
+```
+
+#### cssVariable
+
+<p>
+
+**타입:** `string`
+</p>
+
+CSS 변수 형식 (즉, `--`로 시작)으로 사용자가 선택한 유효한 [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident)입니다.
+
+```js
+cssVariable: "--font-roboto"
+```
+
+#### fallbacks
+
+<p>
+
+**타입:** `string[]`<br />
+**기본값:** `["sans-serif"]`
+</p>
+
+선택한 글꼴을 사용할 수 없거나 로드 중일 때 사용할 글꼴의 배열입니다. 대체 글꼴은 나열된 순서대로 선택됩니다. 사용 가능한 첫 번째 글꼴이 사용됩니다.
+
+```js
+fallbacks: ["CustomFont", "serif"]
+```
+
+대체 글꼴을 완전히 비활성화하려면 빈 배열을 구성하세요.
+
+```js
+fallbacks: []
+```
+
+`fallbacks` 배열의 마지막 글꼴이 [일반적인 글꼴 패밀리 이름](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name)인 경우, Astro는 글꼴 메트릭을 사용하여 [최적화된 대체 글꼴](https://developer.chrome.com/blog/font-fallbacks) 생성을 시도합니다. 이 최적화를 비활성화하려면 `optimizedFallbacks`를 false로 설정하세요.
+
+#### optimizedFallbacks
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`
+</p>
+
+대체 글꼴을 생성할 때 Astro의 기본 최적화를 활성화할지 여부입니다. [`fallbacks`](#fallbacks)가 생성되는 방식을 완전히 제어하기 위해 이 기본 최적화를 비활성화할 수 있습니다.
+
+```js
+optimizedFallbacks: false
+```
+
+### 원격 글꼴 속성
+
+원격 글꼴에 대한 추가 구성 옵션을 사용할 수 있습니다. 예를 들어 특정 글꼴 두께나 스타일만 다운로드하는 등, [글꼴 제공자](#사용-가능한-원격-글꼴-제공자)로부터 로드되는 데이터를 사용자 정의하려면 이러한 옵션을 설정하세요.
+
+내부적으로 이러한 옵션은 [unifont](https://github.com/unjs/unifont/)에 의해 처리됩니다. 일부 속성은 일부 제공업체에서 지원되지 않을 수 있으며, 각 제공업체에서 다르게 처리될 수 있습니다.
+
+#### weights
+
+<p>
+
+**타입:** `(number | string)[]`<br />
+**기본값:** `[400]`
+</p>
+
+[글꼴 두께](https://developer.mozilla.org/ko/docs/Web/CSS/font-weight)의 배열입니다. 구성에 값이 지정되지 않은 경우 불필요한 다운로드를 방지하기 위해 기본적으로 두께 `400`만 포함됩니다. 다른 글꼴 두께를 사용하려면 이 속성을 포함해야 합니다.
+
+```js
+weights: [200, "400", "bold"]
+```
+
+연결된 글꼴이 [가변 글꼴](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)인 경우, 두께의 범위를 지정할 수 있습니다.
+
+```js
+weights: ["100 900"]
+```
+
+#### styles
+
+<p>
+
+**타입:** `("normal" | "italic" | "oblique")[]`<br />
+**기본값:** `["normal", "italic"]`
+</p>
+
+[글꼴 스타일](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style)의 배열입니다.
+
+```js
+styles: ["normal", "oblique"]
+```
+
+#### subsets
+
+<p>
+
+**타입:** `string[]`<br />
+**기본값:** `["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"]`
+</p>
+
+미리 로드할 [글꼴 하위 집합](https://knaap.dev/posts/font-subsetting/) 목록을 정의합니다.
+
+```js
+subsets: ["latin"]
+```
+
+#### display
+
+<p>
+
+**타입:** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
+**기본값:** `"swap"`
+</p>
+
+글꼴이 다운로드되어 사용할 준비가 되었을 때 [표시되는 방식](https://developer.mozilla.org/ko/docs/Web/CSS/@font-face/font-display)을 정의합니다.
+
+```js
+display: "block"
+```
+
+#### unicodeRange
+
+<p>
+
+**타입:** `string[]`<br />
+**기본값:** `undefined`
+</p>
+
+지정된 [유니코드 문자 범위](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range)에 따라 글꼴이 다운로드되어 사용되어야 하는 시점을 결정합니다. 페이지의 문자가 구성된 범위와 일치하면 브라우저는 해당 글꼴을 다운로드하여 페이지에서 모든 문자를 사용할 수 있게 됩니다. 단일 글꼴에 대해 사전 로드된 문자의 하위 집합을 구성하려면 [subsets](#subsets) 속성을 참조하세요.
+
+이는 웹사이트의 특정 부분이 다른 알파벳을 사용하고 별도의 글꼴로 표시될 때 불필요한 글꼴 다운로드를 방지하는 현지화에 유용할 수 있습니다. 예를 들어, 영어 및 일본어 버전을 모두 제공하는 웹사이트는 `unicodeRange`에 제공된 일본어 문자를 포함하지 않는 영어 버전의 페이지에서 브라우저가 일본어 글꼴을 다운로드하는 것을 방지할 수 있습니다.
+
+```js
+unicodeRange: ["U+26"]
+```
+
+#### stretch
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `undefined`
+</p>
+
+[글꼴의 폭](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch)을 설정합니다.
+
+```js
+stretch: "condensed"
+```
+
+#### featureSettings
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `undefined`
+</p>
+
+[타이포그래피 글꼴 기능](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings) (예: 합자, 작은 대문자, 스와시 등)을 제어합니다.
+
+```js
+featureSettings: "'smcp' 2"
+```
+
+#### variationSettings
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `undefined`
+</p>
+
+글꼴의 [변형을 설정](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-variation-settings)합니다.
+
+```js
+variationSettings: "'xhgt' 0.7"
+```
+
+
+### 로컬 글꼴의 `variants`
+
+<p>
+
+**타입:** `LocalFontFamily["variants"]`
+</p>
+
+로컬 글꼴 파일을 사용하는 경우 `variants` 속성은 필수입니다. 각 variant는 [`@font-face` 선언](https://developer.mozilla.org/ko/docs/Web/CSS/@font-face)을 나타내며 `weight`, `style`, `src` 값을 필요로 합니다.
+
+그리고 [원격 글꼴의 일부 다른 속성](#기타-속성)들은 각 variant에서 지정될 수 있습니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Custom",
+            cssVariable: "--font-custom",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-400.woff2"]
+                },
+                {
+                    weight: 700,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-700.woff2"]
+                }
+                // ...
+            ]
+        }]
+    }
+});
+```
+
+#### weight
+
+<p>
+
+**타입:** `number | string`<br />
+**기본값:** `undefined`
+</p>
+
+[글꼴의 두께](https://developer.mozilla.org/ko/docs/Web/CSS/font-weight)를 설정합니다.
+
+```js
+weight: 200
+```
+
+연결된 글꼴이 [가변 글꼴](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)인 경우, 두께의 범위를 지정할 수 있습니다.
+
+```js
+weight: "100 900"
+```
+
+값이 설정되지 않으면 Astro는 기본적으로 첫 번째 [`source`](#src)를 기반으로 값을 추론하려고 시도합니다.
+
+#### style
+
+<p>
+
+**타입:** `"normal" | "italic" | "oblique"`<br />
+**기본값:** `undefined`
+</p>
+
+[글꼴 스타일](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style)을 설정합니다.
+
+```js
+style: "normal"
+```
+
+값이 설정되지 않으면 Astro는 기본적으로 첫 번째 [`source`](#src)를 기반으로 값을 추론하려고 시도합니다.
+
+#### src
+
+<p>
+
+**타입:** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+글꼴의 [소스](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src)입니다. 루트를 기준으로 하는 상대 경로, 패키지 가져오기 또는 URL이 될 수 있습니다. 특히 URL은 통합을 통해 로컬 글꼴을 삽입하는 경우에 유용합니다.
+
+<Tabs>
+
+<TabItem label="상대 경로">
+
+```js
+src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./custom.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="패키지 가져오기">
+
+```js
+src: ["my-package/SomeFont.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+글꼴 파일을 [`public/` 디렉터리](/ko/reference/configuration-reference/#publicdir)에 두는 것은 권장되지 않습니다. Astro는 빌드 시 이러한 파일들을 해당 폴더로 복사하므로 빌드 결과에 중복된 파일이 생성됩니다. 대신, 프로젝트의 다른 위치 (예: [`src/`](/ko/reference/configuration-reference/#srcdir))에 저장하세요.
+:::
+
+객체를 제공하여 [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech)를 지정할 수도 있습니다.
+
+```js
+src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
+```
+
+#### 기타 속성
+
+원격 글꼴 패밀리의 다음 옵션들은 variant의 로컬 글꼴 패밀리에도 사용할 수 있습니다.
+
+- [display](#display)
+- [unicodeRange](#unicoderange)
+- [stretch](#stretch)
+- [featureSettings](#featuresettings)
+- [variationSettings](#variationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Custom",
+            cssVariable: "--font-custom",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-400.woff2"],
+                    display: "block"
+                }
+            ]
+        }]
+    }
+});
+```
+
+## 나만의 글꼴 제공자 구축하기
+
+[내장된 제공자](#사용-가능한-원격-글꼴-제공자) 중 하나를 사용하고 싶지 않다면 (예: 타사 unifont 제공자를 사용하거나 개인 레지스트리를 위해 무언가를 구축하려는 경우) 직접 구축할 수 있습니다.
+
+Astro 글꼴 제공자는 구성 객체와 실제 구현의 두 부분으로 구성됩니다.
+
+<Steps>
+
+1. `defineAstroFontProvider()` 타입 헬퍼를 사용하여, 다음을 포함하는 글꼴 제공자 구성 객체를 반환하는 함수를 만듭니다.
+
+    - `entrypoint`: URL, 루트를 기준으로 하는 상대 경로 또는 패키지 가져오기입니다.
+    - `config`: unifont 제공자에게 전달되는 선택적인 직렬화 가능한 객체입니다.
+
+    <Tabs>
+
+    <TabItem label="config 없이 사용">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    export function myProvider() {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url)
+        });
+    };
+    ```
+
+    </TabItem>
+
+    <TabItem label="config와 함께 사용">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    interface Config {
+        // ...
+    };
+
+    export function myProvider(config: Config) {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url),
+            config
+        });
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+2. 두 번째 파일을 만들어 unifont `provider` 구현을 내보냅니다.
+
+    ```ts title="implementation.ts"
+    import { defineFontProvider } from "unifont";
+
+    export const provider = defineFontProvider("my-provider", async (options, ctx) => {
+        // 사용자 정의 글꼴을 가져오거나 정의합니다.
+        // ...
+    });
+    ```
+
+    :::tip
+    
+    unifont 제공자를 만드는 방법에 대해 더 자세히 알아보려면 [unifont 제공자의 소스 코드](https://github.com/unjs/unifont/blob/main/src/providers/)를 확인하세요.
+
+    :::
+
+3. 글꼴 구성에 사용자 정의 제공자를 추가합니다.
+
+    ```js title="astro.config.mjs" ins="myProvider()"
+    fonts: [{
+      provider: fontProviders.myProvider(),
+      name: "Custom Font",
+      cssVariable: "--font-custom"
+     }]
+    ```
+
+</Steps>
+
+## 캐싱
+
+글꼴 API 캐싱 구현은 개발 환경에서는 실용적이고, 프로덕션 환경에서는 효율적이도록 설계되었습니다. 빌드 과정에서 글꼴 파일은 `_astro/fonts` 출력 디렉터리로 복사되므로, 정적 자산의 HTTP 캐싱 (일반적으로 1년)의 이점을 누릴 수 있습니다.
+
+개발 환경에서 캐시를 지우려면 `.astro/fonts` 디렉터리를 삭제하세요. 빌드 캐시를 지우려면 `node_modules/.astro/fonts` 디렉터리를 삭제하세요.
+
+## 더 읽을거리
+
+이 실험적인 API에 대한 자세한 내용과 피드백을 제공하려면 [글꼴 RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md)를 참조하세요.

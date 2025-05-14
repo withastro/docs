@@ -9,7 +9,11 @@ import RecipeLinks from "~/components/RecipeLinks.astro";
 import { Steps } from '@astrojs/starlight/components'
 import ReadMore from '~/components/ReadMore.astro';
 
-Astro vous propose plusieurs façons d'utiliser les images sur votre site, qu'elles soient stockées localement dans votre projet, liées à une URL externe, ou gérées dans un CMS ou un CDN !
+Astro vous propose plusieurs façons d'utiliser des images sur votre site, qu'elles soient stockées localement dans votre projet, liées à une URL externe ou gérées dans un CMS ou un CDN.
+
+Astro fournit des composants [Image](#afficher-des-images-optimisées-avec-le-composant-image-) et [Picture](#créez-des-images-adaptatives-avec-le-composant-picture-), le traitement de la [syntaxe d'image Markdown](#images-dans-les-fichiers-markdown), [des composants SVG](#composants-svg) et [une fonction de génération d'images](#générer-des-images-avec-getimage) pour optimiser et/ou transformer vos images.
+
+Vous pouvez toujours choisir d'utiliser des images et des fichiers SVG en utilisant des éléments HTML natifs dans les fichiers `.astro` ou Markdown, ou la manière standard pour votre type de fichier (par exemple `<img />` dans MDX et JSX). Cependant, Astro n'effectue aucun traitement ni optimisation de ces images.
 
 <ReadMore>Consultez la référence complète de l'API des composants [`<Image />`](/fr/reference/modules/astro-assets/#image-) et [`<Picture />`](/fr/reference/modules/astro-assets/#picture-).</ReadMore>
 
@@ -36,20 +40,20 @@ Dans les fichiers `.astro`, une image locale doit être importée depuis son che
 
 Les images distantes et celles dans `public/` ne nécessitent pas d'importation, mais nécessitent à la place une URL (chemin complet ou relatif à votre site) pour `src`.
 
-Importez et utilisez les composants [`<Image />`](#afficher-des-images-optimisées-avec-le-composant-image-) et [`<Picture />`](#créez-des-images-réactives-avec-le-composant-picture-) natifs d'Astro pour des images optimisées. La syntaxe Astro prend également en charge [l'écriture directe d'une balise HTML `<img>`](#afficher-les-images-non-traitées-avec-la-balise-html-img), ce qui évite le traitement de l'image.
+Importez et utilisez les composants [`<Image />`](#afficher-des-images-optimisées-avec-le-composant-image-) et [`<Picture />`](#créez-des-images-adaptatives-avec-le-composant-picture-) natifs d'Astro pour des images optimisées. La syntaxe Astro prend également en charge [l'écriture directe d'une balise HTML `<img>`](#afficher-les-images-non-traitées-avec-la-balise-html-img), ce qui évite le traitement de l'image.
 
 ```astro title="src/pages/blog/my-images.astro"
 ---
 import { Image } from 'astro:assets';
 import localBirdImage from '../../images/subfolder/localBirdImage.png';
 ---
-<Image src={localBirdImage} alt="A bird sitting on a nest of eggs." />
-<Image src="/images/bird-in-public-folder.jpg" alt="A bird." width="50" height="50" />
-<Image src="https://example.com/remote-bird.jpg" alt="A bird." width="50" height="50" />
+<Image src={localBirdImage} alt="Un oiseau assis sur un nid d'œufs." />
+<Image src="/images/bird-in-public-folder.jpg" alt="Un oiseau." width="50" height="50" />
+<Image src="https://example.com/remote-bird.jpg" alt="Un oiseau." width="50" height="50" />
 
-<img src={localBirdImage.src} alt="A bird sitting on a nest of eggs.">
-<img src="/images/bird-in-public-folder.jpg" alt="A bird.">
-<img src="https://example.com/remote-bird.jpg" alt="A bird.">
+<img src={localBirdImage.src} alt="Un oiseau assis sur un nid d'œufs.">
+<img src="/images/bird-in-public-folder.jpg" alt="Un oiseau.">
+<img src="https://example.com/remote-bird.jpg" alt="Un oiseau.">
 ```
 
 <ReadMore>Consultez la référence complète de l'API des composants [`<Image />`](/fr/reference/modules/astro-assets/#image-) et [`<Picture />`](/fr/reference/modules/astro-assets/#picture-).</ReadMore>
@@ -63,7 +67,7 @@ Utilisez le composant Astro intégré `<Image />` pour afficher des versions opt
 - de vos images locales situées dans le dossier `src/`
 - d'[images distantes configurées](#autoriser-les-images-distantes) provenant de sources autorisées
 
-`<Image />` peut transformer les dimensions, le type de fichier et la qualité d'une image locale ou distante autorisée pour contrôler l'image affichée. La balise `<img>` résultante inclut les attributs `alt`, `loading` et `decoding` et déduit les dimensions de l'image pour éviter le décalage cumulatif de mise en page (« Cumulative Layout Shift » en anglais ou CLS).
+`<Image />` peut transformer les dimensions, le type de fichier et la qualité d'une image locale ou distante autorisée pour contrôler l'image affichée. Cette transformation s'effectue lors de la création des pages pré-rendues. Si votre page est rendue à la demande, elle s'effectue à la volée lors de son affichage. La balise `<img>` résultante inclut les attributs `alt`, `loading` et `decoding` et déduit les dimensions de l'image pour éviter le décalage cumulatif de mise en page (« Cumulative Layout Shift » en anglais ou CLS).
 
 :::note[Qu'est-ce que le décalage cumulatif de la mise en page ?]
 [Cumulative Layout Shift (CLS)](https://web.dev/cls/) est une mesure de Core Web Vital qui permet d'évaluer le décalage du contenu de votre page pendant le chargement. Le composant `<Image />` optimise le CLS en définissant automatiquement la bonne `largeur` et la bonne `hauteur` pour vos images locales.
@@ -81,7 +85,7 @@ import myImage from '../assets/my_image.png'; // Image est en 1600x900
 ```
 
 ```html
-<!-- Rendu -->
+<!-- Résultat du pré-rendu -->
 <!-- L'image est optimisée, les attributs appropriés sont appliqués -->
 <img
   src="/_astro/my_image.hash.webp"
@@ -90,6 +94,13 @@ import myImage from '../assets/my_image.png'; // Image est en 1600x900
   decoding="async"
   loading="lazy"
   alt="La description de mon image."
+/>
+
+<!-- Résultat du rendu à la demande -->
+<!-- src utilisera un point de terminaison généré à la demande -->
+<img
+  src="/_image?href=%2F_astro%2Fmy_image.hash.webp&amp;w=1600&amp;h=900&amp;f=webp"
+  <!-- ... -->
 />
 ```
 
@@ -108,7 +119,7 @@ import myImage from '../assets/my_image.png';
 ```
 
 ```html 'class="my-class"'
-<!-- Sortie -->
+<!-- Résultat du pré-rendu -->
 <img
   src="/_astro/my_image.hash.webp"
   width="1600"
@@ -118,6 +129,7 @@ import myImage from '../assets/my_image.png';
   class="my-class"
   alt=""
 />
+
 ```
 
 :::tip
@@ -125,11 +137,11 @@ Vous pouvez également utiliser le composant `<Image />` pour les images du doss
 
 Cependant, l'utilisation du composant Image pour toutes les images offre une expérience de création cohérente et empêche le décalage de mise en page cumulé (CLS), même pour vos images non optimisées.
 :::
-### Créez des images réactives avec le composant `<Picture />`
+### Créez des images adaptatives avec le composant `<Picture />`
 
 <p><Since v="3.3.0" /></p>
 
-Utilisez le composant Astro intégré `<Picture />` pour afficher une image réactive avec plusieurs formats et/ou tailles.
+Utilisez le composant Astro intégré `<Picture />` pour afficher une image adaptative avec plusieurs formats et/ou tailles. Comme pour le [composant `<Image />`](#afficher-des-images-optimisées-avec-le-composant-image-), les images sont traitées au moment de la construction des pages pré-rendues. Lorsque votre page est rendue à la demande, le traitement s'effectue à la volée lors de son affichage.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -142,7 +154,7 @@ import myImage from '../assets/my_image.png'; // Image est de 1600x900
 ```
 
 ```html
-<!-- Rendu -->
+<!-- Résultat du pré-rendu -->
 <picture>
   <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
   <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
@@ -202,7 +214,7 @@ Pour les images distantes, utilisez l'URL complète de l'image comme valeur pour
 <img src="https://example.com/remote-cat.jpg" alt="Un chat qui dort." >
 ```
 
-### Choisir `<Image />` vs `<img>`
+### Choisir entre `<Image />` et `<img>`
 
 Le composant `<Image />` optimise votre image et déduit la largeur et la hauteur (pour les images qu'il peut traiter) en se basant sur le rapport hauteur/largeur d'origine afin d'éviter le CLS. C'est la manière à privilégier pour utiliser des images dans les fichiers `.astro` chaque fois que cela est possible.
 
@@ -261,6 +273,36 @@ export default defineConfig({
 });
 ```
 
+## Composants SVG
+<p><Since v="5.7.0" /></p>
+
+Astro vous permet d'importer des fichiers SVG et de les utiliser comme composants Astro. Astro intègre le contenu SVG dans votre sortie HTML.
+
+Référencez l'importation par défaut de tout fichier `.svg` local. Cette importation étant traitée comme un composant Astro, vous devez utiliser les mêmes conventions (par exemple, la casse) que pour l'[utilisation de balises dynamiques](/fr/reference/astro-syntax/#balises-dynamiques).
+
+```astro title="src/components/MonComposantAstro.astro"
+---
+import Logo from './chemin/vers/un/fichier.svg';
+---
+
+<Logo />
+```
+
+Votre composant SVG, comme `<Image />` ou tout autre composant Astro, n'est pas disponible dans les composants de framework UI, mais peut [être transmis à un composant du framework](#images-dans-les-composants-framework-ui) dans un composant `.astro`.
+
+### Attributs des composants SVG
+
+Vous pouvez transmettre des props tels que `width`, `height`, `fill`, `stroke` et tout autre attribut accepté par l'[élément natif `<svg>`](https://developer.mozilla.org/fr/docs/Web/SVG/Reference/Element/svg). Ces attributs seront automatiquement appliqués à l'élément `<svg>` sous-jacent. Si une propriété est présente dans le fichier `.svg` d'origine et transmise au composant, la valeur transmise au composant remplacera la valeur d'origine.
+
+
+```astro title="src/components/MonComposantAstro.astro"
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo width={64} height={64} fill="currentColor" />
+```
+
 ## Utilisation d'images provenant d'un CMS ou d'un CDN
 
 Les CDN d'images fonctionnent avec [toutes les options d'images d'Astro](#images-dans-les-fichiers-astro). Utilisez l'URL complète d'une image comme attribut `src` dans le composant `<Image />`, une balise `<img>`, ou dans la notation Markdown. Pour l'optimisation des images distantes, il faut également [configurer les domaines autorisés ou les modèles d'URL](#autoriser-les-images-distantes).
@@ -271,7 +313,7 @@ Alternativement, le CDN peut fournir ses propres SDK pour s'intégrer plus facil
 
 ## Images dans les fichiers Markdown
 
-Utilisez la syntaxe Markdown standard `![alt](src)` dans vos fichiers `.md`. Cette syntaxe fonctionne avec l'[API du Service d'images](/fr/reference/image-service-reference/) d'Astro pour optimiser vos images locales et les images distantes autorisées.
+Utilisez la syntaxe Markdown standard `![alt](src)` dans vos fichiers `.md`. Cette syntaxe fonctionne avec l'[API du Service d'images](/fr/reference/image-service-reference/) d'Astro pour optimiser vos images locales stockées dans `src/` et les images distantes. Les images stockées dans le dossier `public/` ne sont jamais optimisées.
 
 ```md
 <!-- src/pages/post-1.md -->
@@ -291,9 +333,9 @@ Utilisez la syntaxe Markdown standard `![alt](src)` dans vos fichiers `.md`. Cet
 ![Astro](https://example.com/images/remote-image.png)
 ```
 
-La balise `<img>` n'est pas prise en charge pour les images locales et les composants `<Image />` et `<Picture />` ne sont pas disponibles dans les fichiers `.md`.
+La balise HTML `<img>` peut également être utilisée pour afficher des images stockées dans `public/` ou des images distantes sans aucune optimisation ou traitement d'image. Cependant, `<img>` n'est pas prise en charge pour vos images locales dans `src`.
 
-Si vous avez besoin de plus de contrôle sur les attributs de votre image, nous vous recommandons d'utiliser [l'intégration MDX d'Astro](/fr/guides/integrations-guide/mdx/) pour ajouter la prise en charge du format de fichier `.mdx`. MDX permet d'ajouter des composants à Markdown et il existe des [options d'image supplémentaires disponibles dans MDX](#images-dans-les-fichiers-mdx).
+Les composants `<Image />` et `<Picture />` ne sont pas disponibles dans les fichiers `.md`. Si vous avez besoin de plus de contrôle sur les attributs de votre image, nous vous recommandons d'utiliser [l'intégration MDX d'Astro](/fr/guides/integrations-guide/mdx/) pour ajouter la prise en charge du format de fichier `.mdx`. MDX permet d'utiliser des [options d'image supplémentaires disponibles dans MDX](#images-dans-les-fichiers-mdx), y compris la combinaison de composants avec la syntaxe Markdown.
 
 ## Images dans les fichiers MDX
 
@@ -303,7 +345,7 @@ De plus, il y a un support pour [la syntaxe standard Markdown `![alt](src)`](#im
 
 ```mdx title="src/pages/post-1.mdx"
 ---
-title: Ma Page titre
+title: Le titre de ma page
 ---
 import { Image } from 'astro:assets';
 import rocket from '../assets/rocket.png';
@@ -341,7 +383,7 @@ En outre, vous pouvez déclarer une image associée à une entrée de la collect
 ```md title="src/content/blog/my-post.md" {3}
 ---
 title: "Mon premier article de blog"
-cover: "./firstpostcover.jpeg" # will resolve to "src/content/blog/firstblogcover.jpeg"
+cover: "./firstpostcover.jpeg" # se résoudra en "src/content/blog/firstblogcover.jpeg"
 coverAlt: "Photographie d'un coucher de soleil derrière une chaîne de montagnes."
 ---
 

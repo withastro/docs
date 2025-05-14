@@ -114,13 +114,13 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
             ```astro
             //src/pages/[lang]/blog/[...slug].astro
             ---
-            import { getCollection } from 'astro:content';
-    
+            import { getCollection, render } from 'astro:content';
+
             export async function getStaticPaths() {
               const pages = await getCollection('blog');
     
               const paths = pages.map(page => {
-                const [lang, ...slug] = page.slug.split('/');
+                const [lang, ...slug] = page.id.split('/');
                 return { params: { lang, slug: slug.join('/') || undefined }, props: page };
               });
     
@@ -130,8 +130,7 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
             const { lang, slug } = Astro.params;
             const page = Astro.props;
             const formattedDate = page.data.date.toLocaleString(lang);
-    
-            const { Content } = await page.render();
+            const { Content } = await render(page);
             ---
             <h1>{page.data.title}</h1>
             <p>by {page.data.author} • {formattedDate}</p>
@@ -145,7 +144,7 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
             ```astro
             //src/pages/[lang]/blog/[...slug].astro
             ---
-            import { getEntry } from 'astro:content';
+            import { getEntry, render } from 'astro:content';
     
             const { lang, slug } = Astro.params;
             const page = await getEntry('blog', `${lang}/${slug}`);
@@ -155,7 +154,7 @@ Si vous préférez que la langue par défaut ne soit pas visible dans l'URL cont
             }
     
             const formattedDate = page.data.date.toLocaleString(lang);
-            const { Content, headings } = await page.render();
+            const { Content, headings } = await render(page);
             ---
             <h1>{page.data.title}</h1>
             <p>by {page.data.author} • {formattedDate}</p>
@@ -502,16 +501,19 @@ Traduisez les routes de vos pages pour chaque langue.
     ---
     // src/components/LanguagePicker.astro
     import { languages } from '../i18n/ui';
-    import { getRouteFromUrl } from '../i18n/utils';
+    import { getRouteFromUrl, useTranslatedPath } from '../i18n/utils';
 
     const route = getRouteFromUrl(Astro.url);
     ---
     <ul>
-      {Object.entries(languages).map(([lang, label]) => (
-        <li>
-          <a href={translatePath(`/${route ? route : ''}`, lang)}>{label}</a>
-        </li>
-      ))}
+      {Object.entries(languages).map(([lang, label]) => {
+        const translatePath = useTranslatedPath(lang);
+        return (
+          <li>
+            <a href={translatePath(`/${route ? route : ''}`)}>{label}</a>
+          </li>
+        )
+      })}
     </ul>
     ```
 </Steps>

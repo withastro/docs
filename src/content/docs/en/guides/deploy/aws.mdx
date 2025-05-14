@@ -6,6 +6,7 @@ sidebar:
 type: deploy
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
@@ -15,7 +16,11 @@ Deploying your project to AWS requires using the [AWS console](https://aws.amazo
 
 ## AWS Amplify 
 
-AWS Amplify is a set of purpose-built tools and features that lets frontend web and mobile developers quickly and easily build full-stack applications on AWS. 
+AWS Amplify is a set of purpose-built tools and features that lets frontend web and mobile developers quickly and easily build full-stack applications on AWS. You can either deploy your Astro project as a static site, or as a server-rendered site.
+
+### Static Site
+
+Your Astro project is a static site by default.
 
 <Steps>
 1. Create a new Amplify Hosting project.
@@ -91,6 +96,127 @@ AWS Amplify is a set of purpose-built tools and features that lets frontend web 
 </Steps>
 
 Amplify will automatically deploy your website and update it when you push a commit to your repository.
+
+### Adapter for on-demand rendering
+
+In order to deploy your project as a server-rendered site, you will need to use the third-party, [community-maintained AWS Amplify adapter](https://github.com/alexnguyennz/astro-aws-amplify) and make some changes to your config.
+
+First, install the Amplify adapter.
+
+<PackageManagerTabs>
+  <Fragment slot="pnpm">
+  ```
+  pnpm install astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="npm">
+  ```
+  npm install astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```
+  yarn add astro-aws-amplify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then, in your `astro.config.*` file, add the adapter and set the output to `server`.
+
+```js title="astro.config.mjs" ins={2, 6, 7}
+  import { defineConfig } from 'astro/config';
+  import awsAmplify from 'astro-aws-amplify';
+
+  export default defineConfig({
+      // ...
+      output: "server",
+      adapter: awsAmplify(),
+  });
+  ```
+
+Once the adapter has been installed, you can set up your Amplify project.
+
+<Steps>
+1. Create a new Amplify Hosting project.
+
+2. Connect your repository to Amplify.
+
+3. Modify your build settings to match the adapter's build process by either editing the build settings in the AWS console, or by adding an `amplify.yaml` in the root of your project.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --cache .npm --prefer-offline
+        build:
+          commands:
+            - npm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .npm/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify will automatically deploy your website and update it when you push a commit to your repository.
+
+<ReadMore>
+  See [AWS's Astro deployment guide](https://docs.aws.amazon.com/amplify/latest/userguide/get-started-astro.html) for more info.
+</ReadMore>
 
 ## S3 static website hosting
 
@@ -231,3 +357,4 @@ There are many ways to set up continuous deployment for AWS. One possibility for
 - [Deploy Astro to AWS Amplify](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
 - [Deploy Astro to AWS Elastic Beanstalk](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
 - [Deploy Astro to Amazon ECS on AWS Fargate](https://www.launchfa.st/blog/deploy-astro-aws-fargate)
+- [Troubleshooting SSR Amplify Deployments](https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html)

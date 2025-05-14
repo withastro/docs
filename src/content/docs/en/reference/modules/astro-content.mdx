@@ -24,6 +24,7 @@ import {
   getEntry,
   getEntries,
   reference,
+  render
  } from 'astro:content';
 ```
 ### `defineCollection()`
@@ -87,7 +88,8 @@ A `loader` is either an object or a function that allows you to load data from a
 <Since v="2.5.0" />
 </p>
 
-The `reference()` function is used in the content config to define a relationship, or "reference," from one collection to another. This accepts a collection name and validates the entry identifier(s) specified in your content frontmatter or data file.
+The `reference()` function is used in the content config to define a relationship, or "reference," from one collection to another. This accepts a collection name and transforms the reference into an object containing the collection name and the reference id.
+
 
 This example defines references from a blog author to the `authors` collection and an array of related posts to the same `blog` collection:
 
@@ -111,6 +113,12 @@ const authors = defineCollection({
 });
 
 export const collections = { blog, authors };
+```
+Validation of referenced entries happens at runtime when using `getEntry()` or `getEntries()`:
+
+```astro title="src/pages/[posts].astro"
+// if a referenced entry is invalid, this will return undefined.
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ```
 
 [See the `Content Collection` guide](/en/guides/content-collections/#defining-collection-references) for example usage.
@@ -184,7 +192,7 @@ See the `Content Collections` guide for examples of [querying collection entries
 
 ```astro
 ---
-import { getEntries } from 'astro:content';
+import { getEntries, getEntry } from 'astro:content';
 
 const enterprisePost = await getEntry('blog', 'enterprise');
 
@@ -197,7 +205,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**Type:** `() => Promise<RenderedEntry>`
+**Type:** `(entry: CollectionEntry) => Promise<RenderedEntry>`
 <Since v="5.0.0" />
 </p>
 
@@ -242,14 +250,14 @@ Query functions including [`getCollection()`](#getcollection), [`getEntry()`](#g
 import type { CollectionEntry } from 'astro:content';
 ```
 
-`CollectionEntry` is a generic type. Use it with the name of the collection you’re querying.
+`CollectionEntry` is a generic type. Use it with the name of the collection you're querying.
 For example, an entry in your `blog` collection would have the type `CollectionEntry<'blog'>`.
 
 Each `CollectionEntry` is an object with the following values:
 
 #### `id`
 
-**Example Type:** `'author-1' | 'author-2' | ...`
+**Type:** `string`
 
 A unique ID. Note that all IDs from Astro's built-in `glob()` loader are slugified.
 
@@ -275,13 +283,15 @@ A string containing the raw, uncompiled body of the Markdown or MDX document.
 
 <p><Since v="3.1.0" /></p>
 
-A string union of all collection names defined in your `src/content.config.*` file. This type can be useful when defining a generic function that accepts any collection name.
+A string union of all collection names defined in your `src/content.config.*` file. This type can be useful when defining a generic function wrapping the built-in `getCollection()`.
 
 ```ts
 import { type CollectionKey, getCollection } from 'astro:content';
 
-async function getCollection(collection: CollectionKey) {
-  return getCollection(collection);
+async function queryCollection(collection: CollectionKey) {
+  return getCollection(collection, ({ data }) => {
+    return data.draft !== true;
+  });
 }
 ```
 
@@ -294,7 +304,7 @@ This includes the following property:
 - `image` - The `image()` schema helper that allows you [to use local images in Content Collections](/en/guides/images/#images-in-content-collections)
 
 ```ts
-import type { SchemaContext } from 'astro:content';
+import { defineCollection, z, type SchemaContext } from "astro:content";
 
 export const imageSchema = ({ image }: SchemaContext) =>
     z.object({

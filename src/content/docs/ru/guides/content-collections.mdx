@@ -1,244 +1,262 @@
 ---
 title: Коллекции контента
 description: >-
-  Коллекции контента помогают упорядочить Markdown и проверить тип вашего frontmatter с помощью схем.
+  Организуйте свой контент с использованием типобезопасности.
 i18nReady: true
 ---
-import { FileTree } from '@astrojs/starlight/components';
+import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro'
 import RecipeLinks from "~/components/RecipeLinks.astro"
 import Badge from "~/components/Badge.astro"
+import ReadMore from "~/components/ReadMore.astro"
 
 <p><Since v="2.0.0" /></p>
 
-**Коллекции контента** - это лучший способ управления и создания авторского контента в любом проекте Astro. Коллекции помогают упорядочивать документы, проверять frontmatter и обеспечивают автоматическую безопасность типов TypeScript для всего содержимого.
+**Коллекции контента** — это лучший способ управления наборами контента в любом проекте на Astro. Коллекции помогают организовывать и запрашивать ваши документы, обеспечивают поддержку IntelliSense и проверку типов в вашем редакторе, а также предоставляют автоматическую типобезопасность TypeScript для всего вашего контента.
+Astro v5.0 представил API Content Layer для определения и запроса коллекций контента. Этот производительный и масштабируемый API предоставляет встроенные загрузчики контента для ваших локальных коллекций. Для удалённого контента вы можете использовать загрузчики, созданные сообществом или сторонними разработчиками, либо создать собственный загрузчик и получать данные из любого источника.
+
+:::note
+Проекты могут продолжать использовать устаревший API Content Collections, представленный в Astro v2.0. Однако мы рекомендуем [обновить существующие коллекции](/ru/guides/upgrade-to/v5/#устаревшее-api-коллекций-контента-v20) при первой возможности.
+:::
 
 ## Что такое коллекции контента?
 
-**Коллекция контента** - это любая директория верхнего уровня внутри зарезервированной директории проекта `src/content`, например, `src/content/newsletter` и `src/content/authors`. Внутри директории `src/content` разрешено создавать только коллекции контента. Эта директория не может быть использована для чего-либо еще.
+Вы можете определить **коллекцию** из набора данных, которые имеют схожую структуру. Это может быть каталог записей блога, JSON-файл с товарами или любые данные, представляющие несколько элементов одного типа.
 
-**Запись коллекции** - это любая часть контента, хранящаяся в директории коллекции контента. Записи могут использовать форматы создания контента, включая Markdown (`.md`) и MDX (`.mdx` с помощью интеграции [MDX](/ru/guides/integrations-guide/mdx/)) или один из двух поддерживаемых форматов данных: YAML (`.yaml`) и JSON (`.json`). Мы рекомендуем использовать согласованную схему именования (нижний регистр, тире вместо пробелов) для ваших файлов, чтобы облегчить поиск и организацию содержимого, но это не обязательно. Вы также можете [исключить записи из сборки](/ru/guides/routing/#исключение-страниц), добавив к имени файла знак подчеркивания (`_`).
-
-<FileTree>
-- src/content/
-  - **newsletter/** the "newsletter" collection
-    - week-1.md a collection entry
-    - week-2.md a collection entry
-    - week-3.md a collection entry
-</FileTree>
-
-Как только вы создадите коллекцию, вы сможете начать [запрашивать содержимое](#запрос-к-коллекциям), используя встроенные API содержимого Astro.
-
-### Каталог ".astro"
-
-Astro хранит важные метаданные для коллекций контента в директории `.astro` в вашем проекте. От вас не требуется никаких действий для поддержания или обновления этого каталога. Вам рекомендуется полностью игнорировать его во время работы над проектом.
-
-Каталог `.astro` будет обновляться автоматически при выполнении команд [`astro dev`](/ru/reference/cli-reference/#astro-dev), [`astro build`](/ru/reference/cli-reference/#astro-build). Вы можете в любое время выполнить команду [`astro sync`](/ru/reference/cli-reference/#astro-sync), чтобы обновить каталог `.astro` вручную.
-
-:::tip
-Если вы используете Git для контроля версий, мы рекомендуем игнорировать директорию `.astro`, добавив `.astro` в `.gitignore`. Это позволит Git'у игнорировать эту директорию и все файлы в ней.
-
-```bash
-echo "\n.astro" >> .gitignore
-```
-:::
-
-
-
-### Упорядочивание с помощью нескольких коллекций 
-
-Если два файла представляют разные типы контента (например, запись в блоге и профиль автора), то, скорее всего, они будут находиться в разных коллекциях. Это важно, поскольку многие функции (валидация frontmatter, автоматическая безопасность типов TypeScript) требуют, чтобы все записи в коллекции имели схожую структуру.
-
-Если вы работаете с разными типами контента, вам следует создать несколько коллекций для представления каждого типа. Вы можете создать столько различных коллекций в своем проекте, сколько захотите.
+Коллекции, хранящиеся локально в вашем проекте или в вашей файловой системе, могут содержать записи в формате Markdown, MDX, Markdoc, YAML или JSON:
 
 <FileTree>
-- src/content/
-  - **newsletter/** 
-    - week-1.md
-    - week-2.md
-  - **blog/**
-    - post-1.md
-    - post-2.md
-  - **authors/**
-    - grace-hopper.json
-    - alan-turing.json
+- src/
+- **newsletter/** коллекция «newsletter»
+  - week-1.md запись коллекции
+  - week-2.md запись коллекции
+  - week-3.md запись коллекции
+- **authors/** коллекция «author»
+  - authors.json один файл, содержащий все записи коллекции
 </FileTree>
 
+С помощью подходящего загрузчика коллекций вы можете получать удалённые данные из любого внешнего источника, например, CMS, базы данных или платёжной системы без привязки к интерфейсу.
 
-### Организация с помощью подкаталогов
+### Конфигурация TypeScript для коллекций
 
-Коллекция контента - это всегда папка верхнего уровня внутри каталога `src/content/`. Вы не можете вложить одну коллекцию в другую. Однако вы можете использовать подкаталоги для организации содержимого внутри коллекции.
+Коллекции контента полагаются на TypeScript для предоставления Zod-валидации, IntelliSense и проверки типов в вашем редакторе. Если вы не используете одну из `strict` или `strictest` настроек TypeScript в Astro, вам нужно убедиться, что в вашем `tsconfig.json` установлены следующие параметры `compilerOptions`:
 
-Например, вы можете использовать следующую структуру каталогов для организации переводов i18n в рамках одной коллекции `docs`. При запросе к этой коллекции вы сможете отфильтровать результаты по языку, используя путь к файлу. 
-
-<FileTree>
-- src/content/
-  - docs/ this collection uses subdirectories to organize by language
-    - **en/**
-    - **es/**
-    - **de/**
-</FileTree>
-
-## Определение коллекций
-
-:::note
-Файл `src/content/config.ts` является необязательным. Однако отказ от определения коллекций приведет к отключению некоторых из их преимуществ, таких как проверка схемы frontmatter или автоматическая типизация TypeScript. 
-:::
-
-Чтобы получить максимальную отдачу от коллекций контента, создайте в проекте файл `src/content/config.ts` (поддерживаются также расширения `.js` и `.mjs`). Это специальный файл, который Astro будет автоматически загружать и использовать для настройки коллекций контента.
-
-
-```ts
-// src/content/config.ts
-// 1. Импортируйте утилиты из astro:content
-import { defineCollection } from 'astro:content';
-// 2. Определите вашу коллекцию(и)
-const blogCollection = defineCollection({ /* ... */ });
-// 3. Экспортируйте единственный объект collections, чтобы зарегистрировать вашу коллекцию(и)
-// Этот ключ должен совпадать с именем вашего каталога коллекций в "src/content"
-export const collections = {
-  'blog': blogCollection,
-};
-```
-
-
-### Настройка TypeScript
-
-Если вы **еще не** расширили рекомендуемые Astro настройки TypeScript `strict` или `strictest` в вашем файле `tsconfig.json`, вам может потребоваться обновить ваш `tsconfig.json`, чтобы включить `strictNullChecks`.
-
-```json title="tsconfig.json" ins={5}
+```json title="tsconfig.json" ins={5} {6}
 {
-  // Примечание: Не нужно ничего менять, если вы используете "astro/tsconfigs/strict" или "astro/tsconfigs/strictest"
+  // Включено в "astro/tsconfigs/strict" или "astro/tsconfigs/strictest"
   "extends": "astro/tsconfigs/base",
   "compilerOptions": {
-    "strictNullChecks": true
+    "strictNullChecks": true, // добавьте, если используете шаблон `base`
+    "allowJs": true // обязательно, включено во всех шаблонах Astro
   }
 }
 ```
 
-Если вы используете файлы `.js` или `.mjs` в проекте Astro, вы можете включить IntelliSense и проверку типов в вашем редакторе, включив `allowJs` в вашем `tsconfig.json`:
+### Определение коллекций
 
-```json title="tsconfig.json" ins={6}
-{
-  // Примечание: Не нужно ничего менять, если вы используете "astro/tsconfigs/strict" или "astro/tsconfigs/strictest"
-  "extends": "astro/tsconfigs/base",
-  "compilerOptions": {
-    "strictNullChecks": true,
-    "allowJs": true
-  }
-}
-```
+Отдельные коллекции используют `defineCollection()` для настройки:
+- `loader` для источника данных (обязательно)
+- `schema` для обеспечения типобезопасности (необязательно, но настоятельно рекомендуется!)
 
-### Определение схемы коллекции
+### Файл конфигурации коллекции
 
-Схемы обеспечивают согласованность данных frontmatter или записей в коллекции. Схема **гарантирует** существование этих данных в предсказуемой форме, когда вам нужно будет ссылаться на них или запрашивать. Если какой-либо файл нарушает схему коллекции, Astro выдаст предупреждение об ошибке.
+Чтобы определить коллекции, необходимо создать файл `src/content.config.ts` в вашем проекте (также поддерживаются расширения `.js` и `.mjs`). Это специальный файл, который Astro будет использовать для настройки ваших коллекций контента на основе следующей структуры:
 
-Схемы также позволяют Astro автоматически создавать типы TypeScript для вашего контента. Когда вы определяете схему для своей коллекции, Astro автоматически генерирует и применяет к ней интерфейс TypeScript. В результате вы получите полную поддержку TypeScript при запросе коллекции, включая автодополнение свойств и проверку типов. 
-
-Чтобы определить свою первую коллекцию, создайте файл `src/content/config.ts`, если он еще не существует (поддерживаются также расширения `.js` и `.mjs`). Этот файл должен:
-
-1. **Импортировать соответствующие утилиты** из `astro:content`. 
-2. **Определить каждую коллекцию, которую вы хотите проверить**. Это включает `type` (появилось в Astro v2.5.0), указывающий, содержит ли коллекция форматы для создания контента, такие как Markdown (`type: 'content'`), или форматы данных, такие как JSON или YAML (`type: 'data'`). Он также включает в себя `схему`, которая определяет форму вашего frontmatter или входных данных.
-3. **Экспортируйте один объект `collections`** для регистрации ваших коллекций.
-
-```ts
-// src/content/config.ts
+```ts title="src/content.config.ts"
 // 1. Импортируйте утилиты из `astro:content`
-import { z, defineCollection } from 'astro:content';
+import { defineCollection, z } from 'astro:content';
 
-// 2. Определите `type` и `schema` для каждой коллекции
-const blogCollection = defineCollection({
-  type: 'content', // v2.5.0 and later
+// 2. Импортируйте загрузчик(и)
+import { glob, file } from 'astro/loaders';
+
+// 3. Определите свои коллекции
+const blog = defineCollection({ /* ... */ });
+const dogs = defineCollection({ /* ... */ });
+
+// 4. Экспортируйте объект `collections` для регистрации ваших коллекций
+export const collections = { blog, dogs };
+```
+
+### Определение `loader` для коллекции
+
+API Content Layer позволяет вам получать ваш контент (будь то локально в вашем проекте или удалённо) и использует свойство `loader` для извлечения ваших данных.
+
+#### Встроенные загрузчики
+
+Astro предоставляет [две встроенные функции загрузки](/ru/reference/content-loader-reference/#built-in-loaders) (`glob()` и `file()`) для получения локального контента, а также доступ к API для создания собственного загрузчика и получения удалённых данных.
+
+Загрузчик [`glob()`](/ru/reference/content-loader-reference/#glob-loader) создает записи из каталогов файлов Markdown, MDX, Markdoc, JSON или YAML, находящихся в любом месте файловой системы. Он принимает `pattern` для сопоставления файлов с использованием шаблонов glob, поддерживаемых [micromatch](https://github.com/micromatch/micromatch#matching-features), и базовый путь к файлам. `id` каждой записи автоматически генерируется из имени файла. Используйте этот загрузчик, если у вас один файл на запись.
+
+Загрузчик [`file()`](/ru/reference/content-loader-reference/#file-loader) создает несколько записей из одного локального файла. Каждая запись в файле должна иметь уникальное свойство `id`. Он принимает базовый путь к файлу и, при необходимости, функцию [`parser`](#функция-parser) для файлов данных, которые не могут быть автоматически обработаны. Используйте этот загрузчик, если ваш файл данных может быть обработан как массив объектов.
+
+```ts  title="src/content.config.ts" {5,9}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // Недоступно с устаревшим API
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: /* ... */
+});
+
+const probes = defineCollection({
+  // `loader` может принимать как массив из нескольких шаблонов, так и строковые шаблоны
+  // Загружаем все markdown-файлы в каталоге space-probes, за исключением тех, которые начинаются с «voyager-»
+  loader: glob({ pattern: ['*.md', '!voyager-*'], base: 'src/data/space-probes' }),
   schema: z.object({
-    title: z.string(),
-    tags: z.array(z.string()),
-    image: z.string().optional(),
+    name: z.string(),
+    type: z.enum(['Space Probe', 'Mars Rover', 'Comet Lander']),
+    launch_date: z.date(),
+    status: z.enum(['Active', 'Inactive', 'Decommissioned']),
+    destination: z.string(),
+    operator: z.string(),
+    notable_discoveries: z.array(z.string()),
   }),
 });
 
-// 3. Экспортируйте один объект `collections` для регистрации вашей коллекции (коллекций)
-export const collections = {
-  'blog': blogCollection,
-};
+export const collections = { blog, dogs, probes };
 ```
 
-### Определение нескольких коллекций
+##### Функция `parser`
 
-Вы можете использовать `defineCollection()` столько раз, сколько хотите, чтобы создать несколько схем.  Все коллекции должны быть экспортированы из одного объекта `collections`.
+Загрузчик `file()` принимает второй аргумент, который определяет функцию `parser`. Это позволяет вам указать пользовательский парсер (например, `toml.parse` или `csv-parse`) для создания коллекции из содержимого файла.
 
-```ts
-// src/content/config.ts
-const blogCollection = defineCollection({
-  type: 'content',
-  schema: z.object({ /* ... */ })
-});
-const newsletter = defineCollection({
-  type: 'content',
-  schema: z.object({ /* ... */ })
-});
-const authors = defineCollection({
-  type: 'data',
-  schema: z.object({ /* ... */ })
-});
+Загрузчик `file()` автоматически определяет и парсит массив объектов из файлов JSON и YAML (на основе их расширения) без необходимости использования `parser`, если у вас нет [вложенного JSON-документа](#вложенные-json-документы). Для работы с другими файлами, такими как `.toml` и `.csv`, вам нужно будет создать функцию парсера.
 
-export const collections = {
-  'blog': blogCollection,
-  'newsletter': newsletter,
-  'authors': authors,
-};
+Следующий пример определяет коллекцию контента `dogs` с использованием файла `.toml`:
+
+```toml title="src/data/dogs.toml"
+[[dogs]]
+id = "..."
+age = "..."
+
+[[dogs]]
+id = "..."
+age = "..."
 ```
 
-По мере роста проекта вы также можете реорганизовать кодовую базу и перенести логику из файла `src/content/config.ts`. Раздельное определение схем может быть полезно для повторного использования схем в нескольких коллекциях и совместного использования схем в других частях проекта.
+После импорта парсера TOML вы можете загрузить коллекцию `dogs` в ваш проект, передав путь к файлу и функцию `parser` в загрузчик `file()`. Аналогичный процесс можно использовать для определения коллекции `cats` из файла `.csv`:
 
-```ts
-// src/content/config.ts
-// 1. Импортируйте ваши утилиты и схемы
-import { defineCollection } from 'astro:content';
-import { blogSchema, authorSchema } from '../schemas';
+```typescript title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+import { parse as parseToml } from "toml";
+import { parse as parseCsv } from "csv-parse/sync";
 
-// 2. Определите ваши коллекции
-const blogCollection = defineCollection({
-  type: 'content',
-  schema: blogSchema,
+const dogs = defineCollection({
+  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
+  schema: /* ... */
+})
+
+const cats = defineCollection({
+  loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
 });
-const authorCollection = defineCollection({
-  type: 'data',
-  schema: authorSchema,
-});
-
-// 3. Экспортируйте несколько коллекций, чтобы зарегистрировать их
-export const collections = {
-  'blog': blogCollection,
-  'authors': authorCollection,
-};
 ```
 
-### Использование сторонних схем коллекций
+###### Вложенные `.json` документы
 
-Вы можете импортировать схемы коллекций откуда угодно, в том числе из внешних пакетов npm. Это может быть полезно при работе с темами и библиотеками, которые предоставляют свои собственные схемы коллекций для использования.
+Аргумент `parser` также позволяет загрузить одну коллекцию из вложенного JSON-документа. Например, этот JSON-файл содержит несколько коллекций:
 
-
-```ts
-// src/content/config.ts
-import { blogSchema } from 'my-blog-theme';
-const blogCollection = defineCollection({ type: 'content', schema: blogSchema });
-
-// Экспортируйте коллекцию блогов, используя внешнюю схему из 'my-blog-theme'
-export const collections = {
-  'blog': blogCollection,
-};
+```json title="src/data/pets.json"
+{"dogs": [{}], "cats": [{}]}
 ```
 
+Вы можете разделить эти коллекции, передав пользовательский `parser` в загрузчик `file()` для каждой коллекции:
+
+```typescript title="src/content.config.ts"
+const dogs = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
+});
+const cats = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).cats })
+});
+```
+
+#### Создание пользовательского загрузчика
+
+Вы можете создать пользовательский загрузчик для получения удалённого контента из любого источника данных, такого как CMS, база данных или API эндпойнт.
+
+Использование загрузчика для получения данных автоматически создаст коллекцию из ваших удалённых данных. Это дает вам все преимущества локальных коллекций, такие как API-хелперы, специфичные для коллекций (например, `getCollection()` и `render()`), для запросов и отображения данных, а также валидацию схемы.
+
+:::tip
+Найдите загрузчики, созданные сообществом и сторонними разработчиками, в [каталоге интеграций Astro](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
+:::
+
+##### Встроенные загрузчики
+
+Вы можете определить загрузчик встроенным, внутри вашей коллекции, как асинхронную функцию, которая возвращает массив записей.
+
+Это полезно для загрузчиков, которым не нужно вручную контролировать, как данные загружаются и хранятся. Каждый раз, когда загрузчик вызывается, он очищает хранилище и перезагружает все записи.
+
+```ts title="src/content.config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // Должен возвращать массив записей со свойством `id` или объект, где ключи — это ID, а значения — записи
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+Возвращенные записи сохраняются в коллекции и могут быть запрошены с помощью функций `getCollection()` и `getEntry()`.
+
+##### Объекты загрузчиков
+
+Для большего контроля над процессом загрузки вы можете использовать API Content Loader для создания объекта загрузчика. Например, имея доступ к методу `load`, вы можете создать загрузчик, который позволяет обновлять записи постепенно или очищает хранилище только при необходимости.
+
+Подобно созданию интеграции Astro или плагина Vite, вы можете [распространять ваш загрузчик как NPM-пакет](/ru/reference/publish-to-npm/), который другие смогут использовать в своих проектах.
+
+<ReadMore>Ознакомьтесь с полным [API Content Loader](/ru/reference/content-loader-reference/) и примерами создания собственного загрузчика.</ReadMore>
+
+### Определение схемы коллекции
+
+Схемы обеспечивают согласованность метаданных или записей в коллекции через валидацию Zod. Схема **гарантирует**, что эти данные существуют в предсказуемой форме, когда вам нужно ссылаться на них или запрашивать их. Если какой-либо файл нарушает схему коллекции, Astro предоставит полезное сообщение об ошибке.
+
+Схемы также обеспечивают автоматическую генерацию TypeScript-типов для вашего контента. Когда вы определяете схему для своей коллекции, Astro автоматически создает и применяет TypeScript-интерфейс к ней. В результате вы получаете полную поддержку TypeScript при запросе коллекции, включая автодополнение свойств и проверку типов.
+
+Каждое свойство метаданных или данных ваших записей коллекции должно быть определено с использованием типа данных Zod:
+
+```ts title="src/content.config.ts" {6-11,15-19}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // Недоступно с устаревшим API
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
 
 ### Определение типов данных с помощью Zod
 
-Astro использует [Zod](https://github.com/colinhacks/zod) для работы со схемами контента. С помощью Zod Astro может проверять frontmatter каждого файла в коллекции *и* предоставлять автоматические типы TypeScript, когда вы запрашиваете содержимое из проекта.
+Astro использует [Zod](https://github.com/colinhacks/zod) для работы со схемами контента. С помощью Zod Astro может проверять данные каждого файла в коллекции *и* предоставлять автоматические TypeScript-типы при запросе контента внутри вашего проекта.
 
-Чтобы использовать Zod в Astro, импортируйте утилиту `z` из `"astro:content"`. Это реэкспорт библиотеки Zod, и она поддерживает все возможности Zod. Смотрите [README](https://github.com/colinhacks/zod) для получения полной документации о том, как работает Zod и какие функции доступны.
-
+Чтобы использовать Zod в Astro, импортируйте утилиту `z` из `"astro:content"`. Это реэкспорт библиотеки Zod, и она поддерживает все функции Zod.
 
 ```ts
-// Пример: Таблица с описанием многих распространенных типов данных Zod
+// Пример: Таблица с описанием многих распространённых типов данных Zod
 import { z, defineCollection } from 'astro:content';
 
 defineCollection({
@@ -253,33 +271,40 @@ defineCollection({
     author: z.string().default('Anonymous'),
     language: z.enum(['en', 'es']),
     tags: z.array(z.string()),
-    // Необязательное свойство frontmatter. Очень общее!
     footnote: z.string().optional(),
-    // В frontmatter даты, написанные без кавычек вокруг них, интерпретируются как объекты Date.
+
+    // В разметке YAML даты, записанные без кавычек, интерпретируются как объекты Date
     publishDate: z.date(),
-    // Кроме того, вы можете преобразовать строку даты (например, "2022-07-08") в объект Date
-    // publishDate: z.string().transform((str) => new Date(str)),
-    // Дополнительно: Проверяем, что строка также является электронной почтой
+
+    // Преобразование строки с датой (например, "2022-07-08") в объект Date
+    updatedDate: z.string().transform((str) => new Date(str)),
+
     authorContact: z.string().email(),
-    // Дополнительно: Проверка того, что строка также является URL-адресом
     canonicalURL: z.string().url(),
   })
 })
 ```
 
+<ReadMore>Подробную документацию о работе Zod и доступных функциях можно найти в [README Zod](https://github.com/colinhacks/zod).</ReadMore>
+
+##### Методы схем Zod
+
+Все [методы схем Zod](https://zod.dev/?id=schema-methods) (например, `.parse()`, `.transform()`) доступны, но с некоторыми ограничениями. В частности, выполнение пользовательских проверок валидации для изображений с использованием `image().refine()` не поддерживается.
+
 ### Определение ссылок на коллекции
 
-Элементы коллекции также могут "ссылаться" на другие связанные элементы. 
+Элементы коллекции также могут «ссылаться» на другие связанные элементы.
 
-С помощью функции `reference()` из Collections API вы можете определить свойство в схеме коллекции как запись из другой коллекции. Например, вы можете потребовать, чтобы каждая запись `space-shuttle` включала свойство `pilot`, которое использует собственную схему коллекции `pilot` для проверки типа, автозаполнения и валидации.
+С помощью функции [`reference()`](/ru/reference/modules/astro-content/#reference) из Collections API вы можете определить свойство в схеме коллекции как запись из другой коллекции. Например, вы можете потребовать, чтобы каждая запись `space-shuttle` включала свойство `pilot`, которое использует собственную схему коллекции `pilot` для проверки типа, автозаполнения и валидации.
 
 Частым примером является запись в блоге, которая ссылается на многократно используемые профили авторов, хранящиеся в виде JSON, или URL-адреса связанных записей, хранящиеся в той же коллекции:
 
-```ts
+```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
-  type: 'content',
+  loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
   schema: z.object({
     title: z.string(),
     // Ссылка на одного автора из коллекции `authors` по `id`
@@ -290,7 +315,7 @@ const blog = defineCollection({
 });
 
 const authors = defineCollection({
-  type: 'data',
+  loader: glob({ pattern: '**/[^_]*.json', base: "./src/data/authors" }),
   schema: z.object({
     name: z.string(),
     portfolio: z.string().url(),
@@ -300,151 +325,110 @@ const authors = defineCollection({
 export const collections = { blog, authors };
 ```
 
-В этом примере записи в блоге указываются `slug` связанных постов и `id` автора поста:
+Этот пример записи блога указывает `id` связанных записей и `id` автора записи:
 
-```yaml title="src/content/blog/welcome.md"
+```yaml title="src/data/blog/welcome.md"
 ---
-title: "Welcome to my blog"
-author: ben-holmes # references `src/content/authors/ben-holmes.json`
+title: "Приветствую в моем блоге"
+author: ben-holmes # ссылка на `src/data/authors/ben-holmes.json` 
 relatedPosts:
-- about-me # references `src/content/blog/about-me.md`
-- my-year-in-review # references `src/content/blog/my-year-in-review.md`
+- about-me # ссылка на `src/data/blog/about-me.md`
+- my-year-in-review # ссылка на `src/data/blog/my-year-in-review.md`
 ---
 ```
 
-### Определение пользовательских slug'ов
+Эти ссылки будут преобразованы в объекты, содержащие ключ `collection` и ключ `id`, что позволит вам легко [запрашивать их в ваших шаблонах](/ru/guides/content-collections/#доступ-к-данным-по-ссылкам).
 
-При использовании `type: 'content'` каждая запись контента генерирует свойство `slug`, удобное для URL, из своего [file `id`](/ru/reference/api-reference/#id). Slug используется для запроса записи непосредственно из вашей коллекции. Он также полезен при создании новых страниц и URL-адресов из вашего контента.
+### Определение пользовательских идентификаторов
 
-Вы можете переопределить сгенерированный `slug` записи, добавив собственное свойство `slug` в файл frontmatter. Это похоже на функцию "permalink" в других веб-фреймворках. `"slug"` - это специальное, зарезервированное имя свойства, которое не допускается в `schema` вашей пользовательской коллекции и не будет отображаться в свойстве `data` вашей записи. 
+При использовании загрузчика `glob()` с файлами Markdown, MDX, Markdoc или JSON, каждый [`id`](/ru/reference/modules/astro-content/#id) записи контента автоматически генерируется в формате, удобном для URL, на основе имени файла. `id` используется для прямого запроса записи из вашей коллекции. Это также полезно при создании новых страниц и URL-адресов из вашего контента.
+
+Вы можете переопределить сгенерированный `id` записи, добавив собственное свойство `slug` в метаданных файла или объект данных для JSON-файлов. Это похоже на функцию «permalink» в других веб-фреймворках.
 
 ```md {3}
 ---
-title: My Blog Post
+title: Мой пост в блоге
 slug: my-custom-slug/supports/slashes
 ---
-Your blog post content here.
+Здесь контент вашего поста в блоге.
+```
+
+```json title="src/categories/1.json" {3}
+{
+  "title": "Моя категория",
+  "slug": "my-custom-id/supports/slashes",
+  "description": "Здесь описание вашей категории."
+}
 ```
 
 ## Запрос к коллекциям
 
-Astro предоставляет две функции для запроса коллекции и возврата одной (или нескольких) записей содержимого: [`getCollection()`](/ru/reference/api-reference/#getcollection) и [`getEntry()`](/ru/reference/api-reference/#getentry).
+Astro предоставляет вспомогательные функции для запроса коллекции и возврата одной (или нескольких) записей контента.
+
+- [`getCollection()`](/ru/reference/modules/astro-content/#getcollection) извлекает всю коллекцию и возвращает массив записей.
+- [`getEntry()`](/ru/reference/modules/astro-content/#getentry) извлекает одну запись из коллекции.
+
+Эти функции возвращают записи с уникальным `id`, объектом `data`, содержащим все определённые свойства, а также `body`, содержащий необработанный, несобранный текст документа Markdown, MDX или Markdoc.
 
 ```js
 import { getCollection, getEntry } from 'astro:content';
 
 // Получение всех записей из коллекции.
 // Требуется имя коллекции в качестве аргумента.
-// Пример: получить `src/content/blog/**`
 const allBlogPosts = await getCollection('blog');
 
 // Получение одной записи из коллекции.
-// Требуется имя коллекции и либо.
-// запись `slug` (коллекции контента) или `id` (коллекции данных)
-// Пример: получить `src/content/authors/grace-hopper.json`
-const graceHopperProfile = await getEntry('authors', 'grace-hopper');
+// Требуется имя коллекции и `id`
+const poodleData = await getEntry('dogs', 'poodle');
+
 ```
 
-Обе функции возвращают записи содержимого, определенные типом [`CollectionEntry`](/ru/reference/api-reference/#тип-элемента-коллекции).
-
-### Доступ к данным по ссылкам
-
-Любые [ссылки, определенные в вашей схеме](#определение-ссылок-на-коллекции), должны запрашиваться отдельно после первого запроса к элементу коллекции. Вы можете повторно использовать функцию `getEntry()` или `getEntries()`, чтобы получить ссылающуюся запись из возвращаемого объекта `data`. 
-
-```astro title="src/pages/blog/welcome.astro"
----
-import { getEntry, getEntries } from 'astro:content';
-
-const blogPost = await getEntry('blog', 'welcome');
-
-// Единичная запись
-const author = await getEntry(blogPost.data.author);
-// Массив записей
-const relatedPosts = await getEntries(blogPost.data.relatedPosts);
----
-
-<h1>{blogPost.data.title}</h1>
-<p>Author: {author.data.name}</p>
-
-<!-- ... -->
-
-<h2>You might also like:</h2>
-{relatedPosts.map(p => (
-  <a href={p.slug}>{p.data.title}</a>
-))}
-```
-
-### Фильтрация запросов к коллекции
-
-`getCollection()` принимает необязательный коллбэк "filter", который позволяет фильтровать запрос на основе свойств `id` или `data` (frontmatter) элемента. Для коллекций `type: 'content'` вы также можете фильтровать по `slug`.
-
-:::note
-Свойство `slug` специфично для коллекций контента и не будет доступно при фильтрации коллекций JSON или YAML.
-:::
-
-Вы можете использовать это для фильтрации по любым критериям содержимого, которые вам нравятся. Например, вы можете фильтровать по таким свойствам, как `draft`, чтобы предотвратить публикацию черновиков в блоге:
-
-```js
-// Пример: Отфильтруйте записи содержимого с `draft: true`
-import { getCollection } from 'astro:content';
-const publishedBlogEntries = await getCollection('blog', ({ data }) => {
-  return data.draft !== true;
-});
-```
-
-Вы также можете создавать черновые страницы, которые будут доступны при работе с dev-сервером, но не будут созданы в продакшене:
-
-```js
-// Пример: Отфильтровывайте записи с `draft: true` только при сборке для продакшена
-import { getCollection } from 'astro:content';
-const blogEntries = await getCollection('blog', ({ data }) => {
-  return import.meta.env.PROD ? data.draft !== true : true;
-});
-```
-
-Аргумент filter также поддерживает фильтрацию по вложенным каталогам внутри коллекции. Поскольку `id` включает в себя полный путь вложенного каталога, вы можете фильтровать по началу каждого `id`, чтобы возвращать элементы только из определенного вложенного каталога:
-
-```js
-// Пример: Фильтр записей по подкаталогу в коллекции
-import { getCollection } from 'astro:content';
-const englishDocsEntries = await getCollection('docs', ({ id }) => {
-  return id.startsWith('en/');
-});
-```
+<ReadMore>Ознакомьтесь с полным списком свойств, возвращаемых типом [`CollectionEntry`](/ru/reference/modules/astro-content/#collectionentry).</ReadMore>
 
 ### Использование содержимого в шаблонах Astro
 
-После того как вы запросили записи коллекции, вы можете получить доступ к каждой записи непосредственно в шаблоне компонента Astro. Это позволит вам отобразить HTML для таких вещей, как ссылки на ваш контент (с помощью свойства `slug`) или информация о вашем контенте (с помощью свойства `data`).
+После того как вы запросили записи коллекции, вы можете получить доступ к каждой записи непосредственно в шаблоне компонента Astro. Например, вы можете создать список ссылок на записи вашего блога, отображая информацию из метаданных вашей записи с использованием свойства `data`.
 
-Информацию о рендеринге контента в HTML см. в разделе [Рендеринг контента в HTML](#рендеринг-контента-в-html) ниже.
-
-```astro
+```astro title="src/pages/index.astro"
 ---
-// src/pages/index.astro
 import { getCollection } from 'astro:content';
-const blogEntries = await getCollection('blog');
+const posts = await getCollection('blog');
 ---
+<h1>Мои посты</h1>
 <ul>
-  {blogEntries.map(blogPostEntry => (
-    <li>
-      <a href={`/my-blog-url/${blogPostEntry.slug}`}>{blogPostEntry.data.title}</a>
-      <time datetime={blogPostEntry.data.publishedDate.toISOString()}>
-        {blogPostEntry.data.publishedDate.toDateString()}
-      </time>
-    </li>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
   ))}
 </ul>
 ```
 
+#### Рендеринг содержимого body
+
+После запроса вы можете преобразовать записи Markdown и MDX в HTML с использованием свойства функции [`render()`](/ru/reference/modules/astro-content/#render). Вызов этой функции дает вам доступ к отрендеренному HTML-контенту, включая компонент `<Content />` и список всех отрендеренных заголовков.
+
+```astro title="src/pages/blog/post-1.astro" {5,8}
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('blog', 'post-1');
+if (!entry) {
+  // Обработка ошибки, например:
+  throw new Error('Не удалось найти первую запись блога');
+}
+const { Content, headings } = await render(entry);
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
 ### Передача содержимого в качестве свойства
 
-Компонент также может передавать в качестве свойства целую запись содержимого. 
+Компонент также может передавать в качестве свойства целую запись содержимого.
 
-В этом случае вы можете использовать утилиту [`CollectionEntry`](/ru/reference/api-reference/#тип-элемента-коллекции) для корректного задания свойств компонента с помощью TypeScript.  Эта утилита принимает строковый аргумент, соответствующий имени схемы вашей коллекции, и наследует все свойства схемы этой коллекции.
+В этом случае вы можете использовать утилиту [`CollectionEntry`](/ru/reference/modules/astro-content/#collectionentry) для корректного задания свойств компонента с помощью TypeScript. Эта утилита принимает строковый аргумент, соответствующий имени схемы вашей коллекции, и наследует все свойства схемы этой коллекции.
 
-```astro /CollectionEntry(?:<.+>)?/
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
 ---
-// src/components/BlogCard.astro
 import type { CollectionEntry } from 'astro:content';
 interface Props {
   post: CollectionEntry<'blog'>;
@@ -455,54 +439,102 @@ const { post } = Astro.props;
 ---
 ```
 
-### Рендеринг контента в HTML
+### Фильтрация запросов к коллекции
 
-После запроса вы можете рендерить записи Markdown и MDX в HTML, используя свойство функции записи `render()`. Вызов этой функции дает вам доступ к рендерингу содержимого и метаданным, включая компонент `<Content />` и список всех отрендеренных заголовков.
+`getCollection()` принимает необязательный коллбэк «filter», который позволяет фильтровать запрос на основе свойств `id` или `data` элемента.
 
-```astro {5}
----
-// src/pages/render-example.astro
-import { getEntry } from 'astro:content';
-const entry = await getEntry('blog', 'post-1');
-const { Content, headings } = await entry.render();
----
-<p>Published on: {entry.data.published.toDateString()}</p>
-<Content />
+Вы можете использовать это для фильтрации по любым критериям содержимого, которые вам нравятся. Например, вы можете фильтровать по таким свойствам, как `draft`, чтобы предотвратить публикацию черновиков в блоге:
+
+```js
+// Пример: фильтруем записи с `draft: true`
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
 ```
 
+Вы также можете создавать черновики, которые будут доступны при работе с dev-сервером, но не будут созданы в продакшене:
+
+```js
+// Пример: фильтруем записи с `draft: true` только при сборке для продакшена
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+Аргумент `filter` также поддерживает фильтрацию по вложенным каталогам внутри коллекции. Поскольку `id` включает в себя полный путь вложенного каталога, вы можете фильтровать по началу каждого `id`, чтобы возвращать элементы только из определённого вложенного каталога:
+
+```js
+// Пример: фильтруем записи по подкаталогу в коллекции
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+### Доступ к данным по ссылкам
+
+Любые [ссылки, определённые в вашей схеме](/ru/guides/content-collections/#определение-схемы-коллекции), должны быть запрошены отдельно после первоначального запроса записи коллекции. Поскольку функция [`reference()`](/ru/reference/modules/astro-content/#reference) преобразует ссылку в объект с ключами `collection` и `id`, вы можете использовать функцию `getEntry()` для возврата одного связанного элемента или `getEntries()` для получения нескольких связанных записей из возвращённого объекта `data`.
+
+```astro title="src/pages/blog/welcome.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+const blogPost = await getEntry('blog', 'welcome');
+
+// Обрабатываем одиночную ссылку (например: `{collection: "authors", id: "ben-holmes"}`)
+const author = await getEntry(blogPost.data.author);
+// Обрабатываем массив ссылок
+// (например: `[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>Автор: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>Также вам может понравиться:</h2>
+{relatedPosts.map(post => (
+  <a href={post.id}>{post.data.title}</a>
+))}
+```
 
 ## Генерация маршрутов из контента
 
-Коллекции контента хранятся вне каталога `src/pages/`. Это означает, что по умолчанию для элементов коллекции не генерируются маршруты. Вам нужно вручную создать новый [динамический маршрут](/ru/guides/routing/#динамические-маршруты), чтобы генерировать HTML-страницы из записей вашей коллекции. Ваш динамический маршрут будет отображать входящий параметр запроса (например, `Astro.params.slug` в `src/pages/blog/[...slug].astro`) для получения нужной записи в коллекции.
+Коллекции контента хранятся вне каталога `src/pages/`. Это означает, что по умолчанию для элементов коллекции не генерируются маршруты.
 
-Точный метод генерации маршрутов зависит от режима сборки [`output`](/ru/reference/configuration-reference/#output): 'static' (по умолчанию) или 'server' (для SSR).
+Вам нужно вручную создать новый [динамический маршрут](/ru/guides/routing/#динамические-маршруты), чтобы генерировать HTML-страницы из записей вашей коллекции. Ваш динамический маршрут будет отображать входящий параметр запроса (например, `Astro.params.slug` в `src/pages/blog/[...slug].astro`) для получения нужной записи в коллекции.
+
+Точный метод генерации маршрутов будет зависеть от того, являются ли ваши страницы предварительно отрендеренными (по умолчанию) или рендерятся по запросу на сервере.
 
 ### Сборка для статического вывода (по умолчанию)
 
-Если вы создаете статический веб-сайт (поведение Astro по умолчанию), вы можете использовать функцию [`getStaticPaths()`](/ru/reference/api-reference/#getstaticpaths) для создания нескольких страниц из одного компонента `src/pages/` во время сборки.
+Если вы создаете статический веб-сайт (поведение Astro по умолчанию), вы можете использовать функцию [`getStaticPaths()`](/ru/reference/routing-reference/#getstaticpaths) для создания нескольких страниц из одного компонента `src/pages/` во время сборки.
 
-Вызовите `getCollection()` внутри `getStaticPaths()` для [запроса коллекции контента или данных](/ru/guides/content-collections/#запрос-к-коллекциям). Затем создайте новые URL-пути, используя свойство `slug` (коллекции контента) или свойство `id` (коллекции данных) каждой записи контента.
+Вызовите `getCollection()` внутри `getStaticPaths()`, чтобы данные вашей коллекции были доступны для построения статических маршрутов. Затем создайте отдельные URL-пути, используя свойство `id` каждой записи контента. Каждая страница получает всю запись коллекции в качестве пропса для [использования в вашем шаблоне страницы](#использование-содержимого-в-шаблонах-astro).
 
-```astro "{ slug: entry.slug }"
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
 ---
-// src/pages/posts/[...slug].astro
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 // 1. Создайте новый путь для каждого элемента коллекции
 export async function getStaticPaths() {
-  const blogEntries = await getCollection('blog');
-  return blogEntries.map(entry => ({
-    params: { slug: entry.slug }, props: { entry },
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { id: post.id },
+    props: { post },
   }));
 }
 // 2. Для вашего шаблона вы можете получить запись непосредственно из свойства
-const { entry } = Astro.props;
-const { Content } = await entry.render();
+const { post } = Astro.props;
+const { Content } = await render(post);
 ---
-<h1>{entry.data.title}</h1>
+<h1>{post.data.title}</h1>
 <Content />
 ```
 
-Это создаст новую страницу для каждой записи в коллекции `blog`. Например, запись в `src/content/blog/hello-world.md` будет иметь slug `hello-world`, и поэтому ее конечный URL будет `/posts/hello-world/`.
+Это создаст новую страницу для каждой записи в коллекции `blog`. Например, запись в `src/blog/hello-world.md` будет иметь `id` `hello-world`, и поэтому её конечный URL будет `/posts/hello-world/`.
 
 :::note
 Если ваши пользовательские slug содержат символ `/` для создания URL с несколькими сегментами пути, вы должны использовать [rest-параметр (`[...slug]`)](/ru/guides/routing/#rest-параметры) в имени файла `.astro` для этой страницы динамической маршрутизации.
@@ -510,85 +542,58 @@ const { Content } = await entry.render();
 
 ### Сборка для вывода на сервер (SSR)
 
-Если вы создаете динамический веб-сайт (используя поддержку SSR в Astro), не стоит заранее генерировать пути во время сборки. Вместо этого ваша страница должна исследовать запрос (с помощью `Astro.request` или `Astro.params`), чтобы найти `slug по требованию, а затем получить его с помощью [`getEntry()`](/ru/reference/api-reference/#getentry).
+Если вы создаете динамический веб-сайт (используя поддержку SSR в Astro), не стоит заранее генерировать пути во время сборки. Вместо этого ваша страница должна исследовать запрос (с помощью `Astro.request` или `Astro.params`), чтобы найти `slug по требованию, а затем получить его с помощью [`getEntry()`](/ru/reference/modules/astro-content/#getentry).
 
 
-```astro
+```astro title="src/pages/posts/[id].astro"
 ---
-// src/pages/posts/[...slug].astro
-import { getEntry } from "astro:content";
-// 1. Получение slug из входящего запроса сервера
-const { slug } = Astro.params;
-if (slug === undefined) {
-	throw new Error("Slug is required");
-}
-// 2. Запросите запись напрямую, используя slug запроса
-const entry = await getEntry("blog", slug);
-// 3. Перенаправление, если запись не существует
-if (entry === undefined) {
+import { getEntry, render } from "astro:content";
+// 1. Получение id из входящего запроса сервера
+const { id } = Astro.params;
+if (id === undefined) {
 	return Astro.redirect("/404");
 }
+// 2. Запросите запись напрямую, используя id из запроса
+const post = await getEntry("blog", id);
+// 3. Перенаправление, если запись не существует
+if (post === undefined) {
+  return Astro.redirect("/404");
+}
 // 4. (Необязательно) Верните запись в HTML в шаблоне
-const { Content } = await entry.render();
+const { Content } = await render(post);
 ---
+<h1>{post.data.title}</h1>
+<Content />
 ```
 
-## Переход от маршрутизации на основе файлов
-
-Если у вас есть существующий проект Astro, например блог, в котором используются файлы Markdown или MDX во вложенных папках внутри `src/pages/`, рассмотрите возможность переноса связанного контента или файлов данных в коллекции контента. 
- 
-Посмотрите, как преобразовать базовый пример блога из `src/pages/posts/` в `src/content/posts` в нашем [пошаговом руководстве](/ru/tutorial/6-islands/4/), которое использует кодовую базу из [готового проекта учебного пособия Создать Блог](https://github.com/withastro/blog-tutorial-demo).
-
-## Модификация Frontmatter с помощью Remark
-
-:::caution
-**Не рекомендуется.** Плагины Remark и rehype обращаются к _сырому_ frontmatter Markdown или MDX-документа. Это означает, что frontmatter `remarkPluginFrontmatter` обрабатывается отдельно от вашей безопасной для типов `схемы`, и не будет отражать никаких изменений или настроек по умолчанию, примененных через Astro. Используйте на свой страх и риск!
+:::tip
+Изучите папку `src/pages/` в [демонстрационном коде руководства по созданию блогу на GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages), чтобы увидеть полные примеры создания страниц из ваших коллекций для таких функций блога, как список записей, страницы тегов и многое другое!
 :::
 
-Astro поддерживает плагины remark или rehype, которые [изменяют ваш frontmatter напрямую](/ru/guides/markdown-content/#программное-изменение-frontmatter). Вы можете получить доступ к этому измененному frontmatter внутри записи контента, используя свойство `remarkPluginFrontmatter`, возвращаемое из `render()`:
+## Когда создавать коллекцию
 
-```astro "{ remarkPluginFrontmatter }"
----
-import { getEntry } from 'astro:content';
-const blogPost = await getEntry('blog', 'post-1');
-const { remarkPluginFrontmatter } = await blogPost.render();
----
-<p>{blogPost.data.title} — {remarkPluginFrontmatter.readingTime}</p>
-```
+Вы можете [создать коллекцию](#определение-коллекций) в любой момент, когда у вас есть группа связанных данных или контента, имеющего общую структуру.
 
-<RecipeLinks slugs={["ru/recipes/reading-time" ]}/>
+Большая часть преимуществ использования коллекций заключается в следующем:
 
-Конвейеры remark и rehype запускаются только после рендеринга содержимого, что объясняет, почему `remarkPluginFrontmatter` доступен только после вызова `render()` для записи содержимого. В отличие от этого, `getCollection()` и `getEntry()` не могут возвращать эти значения напрямую, потому что они не рендерят ваш контент.
+- Определение общей структуры данных для проверки того, что отдельная запись является «правильной» или «полной», что позволяет избежать ошибок в продакшене.
+- API, ориентированные на контент, разработанные для интуитивного запроса (например, `getCollection()` вместо `import.meta.glob()`), при импорте и рендеринге контента на ваших страницах.
+- [Content Loader API](/ru/reference/content-loader-reference/) для получения вашего контента, который предоставляет как встроенные загрузчики, так и доступ к низкоуровневому API. Доступно несколько загрузчиков, созданных сообществом и сторонними разработчиками, и вы можете создать собственный загрузчик для получения данных из любого источника.
+- Производительность и масштабируемость. API Content Layer позволяет кэшировать данные между сборками и подходит для десятков тысяч записей контента.
 
-## Работа с датами во frontmatter
+[Определяйте ваши данные](#определение-коллекций) как коллекцию, когда:
 
-В коллекциях контента возможны несколько форматов дат, но схема вашей коллекции должна соответствовать формату, используемому во фронтматере Markdown или MDX YAML.
+- У вас есть несколько файлов или данных для организации, которые имеют одинаковую общую структуру (например, записи блога, написанные в Markdown, которые имеют одинаковые свойства метаданных).
+- У вас есть существующий контент, хранящийся удалённо, например, в CMS, и вы хотите воспользоваться преимуществами вспомогательных функций коллекций и API Content Layer вместо использования `fetch()` или SDK.
+- Вам нужно получить (десятки) тысяч связанных данных, и требуется метод запроса и кэширования, который работает в масштабе.
 
-YAML использует стандарт [ISO-8601](https://www.iso.org/iso-8601-date-and-time-format.html) для выражения дат. Используйте формат `yyy-mm-dd` (например, `2021-07-28`) вместе с типом схемы `z.date()`:
+### Когда не стоит создавать коллекцию
 
-```markdown title="src/pages/posts/example-post.md"
----
-title: My Blog Post
-pubDate: 2021-07-08
----
-```
+Коллекции обеспечивают отличную структуру, безопасность и организацию, когда у вас есть **несколько элементов контента, которые должны иметь одинаковые свойства**.
 
-Если не указан часовой пояс, формат даты будет указан в UTC. Если необходимо указать часовой пояс, можно использовать формат [ISO 8601](https://ru.wikipedia.org/wiki/ISO_8601). 
+Коллекции **могут не подойти**, если:
 
-```markdown title="src/pages/posts/example-post.md"
----
-title: My Blog Post
-pubDate: 2021-07-08T12:00:00-04:00
----
-```
-
-Чтобы вывести только `ГГГ-ММ-ДД` из полной временной метки UTC, используйте метод JavaScript `slice` для удаления временной метки:
-
-```astro title="src/layouts/ExampleLayout.astro"
----
-const { frontmatter } = Astro.props;
----
-<h1>{frontmatter.title}</h1>
-<p>{frontmatter.pubDate.toString().slice(0,10)}</p>
-```
-Пример использования `toLocaleDateString` для форматирования дня, месяца и года можно посмотреть в компоненте [`<FormattedDate />`](https://github.com/withastro/astro/blob/latest/examples/blog/src/components/FormattedDate.astro) в официальном шаблоне блога Astro. 
+- У вас есть только одна или небольшое количество разных страниц. Вместо этого рассмотрите возможность [создания отдельных компонентов страниц](/ru/basics/astro-pages/), таких как `src/pages/about.astro`, с вашим контентом напрямую.
+- Вы отображаете файлы, которые не обрабатываются Astro, например PDF. Разместите эти статические ресурсы в каталоге [`public/`](/ru/basics/project-structure/#public) вашего проекта.
+- Ваш источник данных имеет собственный SDK/клиентскую библиотеку для импорта, которая несовместима с загрузчиком контента или не предоставляет его, и вы предпочитаете использовать её напрямую.
+- Вы используете API, которые должны обновляться в реальном времени. Коллекции контента обновляются только во время сборки, поэтому, если вам нужны актуальные данные, используйте другие методы [импорта файлов](/ru/guides/imports/#import-statements) или [получения данных](/ru/guides/data-fetching/) с [рендерингом по запросу](/ru/guides/on-demand-rendering/).
