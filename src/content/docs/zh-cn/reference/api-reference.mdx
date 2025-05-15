@@ -827,6 +827,199 @@ cookie 的原始字符串值。
 
 允许自定义 cookie 序列化为值的方式。
 
+### `session`
+
+<p>
+
+**类型：** `AstroSession`
+
+<Since v="5.7.0" />
+
+</p>
+
+`session` 是一个允许在 [按需渲染路由](/zh-cn/guides/on-demand-rendering/) 的多个请求间存储数据的对象。其通过一个仅包含会话 ID 的 Cookie 实现关联，数据本身并不存储于 Cookie 中。
+
+会话（session）会在首次被使用时自动创建，并设置对应的会话 Cookie。如果未配置会话存储，又或者是当前路由为预渲染模式，`session` 对象都会是 `undefined`，当你尝试访问时，日志将会记录错误。
+
+有关如何在你的 Astro 项目中使用会话，请参阅 [会话指南](/zh-cn/guides/sessions/) 以获取更多信息。
+
+#### `get()`
+
+<p>
+
+**类型：** `(key: string) => Promise<any>`
+
+</p>
+
+返回会话中给定键的值。如果该键不存在，则返回 `undefined`。
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/components/Cart.astro" "Astro.session?.get('cart')"
+    ---
+    const cart = await Astro.session?.get('cart');
+    ---
+    <button>🛒 {cart?.length}</button>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/cart.ts" "session.get('cart')"
+    import type { APIContext } from 'astro';
+
+    export async function GET({ session }: APIContext) {
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `set()`
+
+<p>
+
+**类型：** `(key: string, value: any, options?: { ttl: number }) => void`
+
+</p>
+
+设置会话中给定键的值。该值可以是任何可序列化类型。该方法是同步的，该值可立即用于检索，但是直到请求结束之前，该方法才能保存到后端。
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/products/[slug].astro" "Astro.session?.set('lastViewedProduct', slug)"
+    ---
+    const { slug } = Astro.params;
+    Astro.session?.set('lastViewedProduct', slug);
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session, request }: APIContext) {
+      const cart = await session.get('cart');
+      const newItem = await request.json();
+      cart.push(newItem);
+      // 保存更新后的购物车至会话
+      session.set('cart', cart);
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `regenerate()`
+
+<p>
+
+**类型：** `() => void`
+
+</p>
+
+重新生成会话 ID。最佳实践是在用户登录或升级权限时调用此方法，以防止会话固定攻击。
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/welcome.astro" "Astro.session?.regenerate()"
+    ---
+    Astro.session?.regenerate();
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/login.ts" "session.regenerate()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      // 对用户进行身份验证...
+      doLogin();
+      // 重新生成会话 ID 以防止会话固定攻击
+      session.regenerate();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `destroy()`
+
+<p>
+
+**类型：** `() => void`
+
+</p>
+
+销毁会话，从后端删除 Cookie 和对象。当用户退出登录或会话无效时应调用此方法。
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/logout.astro" "Astro.session?.destroy()"
+    ---
+    Astro.session?.destroy();
+    return Astro.redirect('/login');
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/logout.ts" "session.destroy()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      session.destroy();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `load()`
+
+<p>
+
+**类型：** `(id: string) => Promise<void>`
+</p>
+
+通过 ID 来加载会话。在正常使用中，会话将自动从请求 Cookie 加载，但该方法可用于从其他 ID 来加载会话。如果你打算自己处理会话 ID，又或者你想在不使用 cookie 的情况下跟踪会话，该方法非常有效。
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
+    ---
+    // 从请求头而不是 Cookie 加载会话
+    const sessionId = Astro.request.headers.get('x-session-id');
+    await Astro.session?.load(sessionId);
+    const cart = await Astro.session?.get('cart');
+    ---
+    <h1>你的购物车</h1>
+    <ul>
+      {cart?.map((item) => (
+        <li>{item.name}</li>
+      ))}
+    </ul>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
+    import type { APIRoute } from 'astro';
+
+    export const GET: APIRoute = async ({ session, request }) => {
+      // 从请求头而不是 Cookie 加载会话
+      const sessionId = request.headers.get('x-session-id');
+      await session.load(sessionId);
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    };
+    ```
+
+  </TabItem>
+
+</Tabs>
+
 ### 废弃的对象属性
 
 #### `Astro.glob()`
