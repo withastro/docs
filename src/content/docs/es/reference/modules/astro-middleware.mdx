@@ -1,0 +1,118 @@
+---
+title: Referencia de la API de Middleware
+sidebar:
+  label: "astro:middleware"
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.6.0" /></p>
+
+El middleware te permite interceptar solicitudes y respuestas e inyectar comportamientos dinámicamente cada vez que una página o endpoint está a punto de renderizarse. Para obtener ejemplos de características y uso, [consulta nuestra guía de middleware](/es/guides/middleware/).
+
+## Importaciones de `astro:middleware`
+
+```js
+import {
+  sequence,
+  createContext,
+  trySerializeLocals,
+  defineMiddleware,
+} from "astro:middleware";
+```
+
+### `defineMiddleware()`
+
+Puedes importar y utilizar la función de utilidad `defineMiddleware()` para aprovechar la seguridad de tipos:
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` y `next` se tipan automáticamente
+export const onRequest = defineMiddleware((context, next) => {});
+```
+
+### `sequence()`
+
+<p>
+**Tipo:** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
+
+Una función que acepta funciones de middleware como argumentos y las ejecutará en el orden en que se pasan.
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+<p>
+**Tipo:** `(context: CreateContext) => APIContext`<br />
+<Since v="2.8.0" />
+</p>
+
+Una API de bajo nivel para crear un [`APIContext`](/es/reference/api-reference/) para pasar a una función `onRequest()` del middleware de Astro.
+
+Esta función puede ser utilizada por integraciones/adaptadores para ejecutar programáticamente el middleware de Astro.
+
+### `trySerializeLocals()`
+
+<p>
+**Tipo:** `(value: unknown) => string`<br />
+<Since v="2.8.0" />
+</p>
+
+Una API de bajo nivel que toma cualquier valor e intenta devolver una versión serializada (una cadena) del mismo. Si el valor no se puede serializar, la función lanzará un error de tiempo de ejecución.
+
+## Exportaciones de Middleware
+
+Al definir el middleware de tu proyecto en `src/middleware.js`, exporta las siguientes funciones definidas por el usuario:
+
+### `onRequest()`
+
+**Tipo:** `(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+
+Una función exportada requerida de `src/middleware.js` que se llamará antes de renderizar cada página o ruta de API. Recibe dos argumentos: [contexto](#context) y [next()](#next). `onRequest()` debe devolver una `Response`: ya sea directamente o llamando a `next()`.
+
+```js title="src/middleware.js"
+export function onRequest(context, next) {
+  // interceptar datos de respuesta de una solicitud
+  // opcionalmente, transformar la respuesta
+  // devolver una Response directamente, o el resultado de llamar a `next()`
+  return next();
+}
+```
+
+Tu función `onRequest()` será llamada con los siguientes argumentos:
+
+#### `context`
+
+<p>
+**Tipo:** `APIContext`
+</p>
+
+El primer argumento de `onRequest()` es un objeto de contexto. Refleja muchas de las propiedades globales de `Astro`.
+
+<ReadMore>Consulta [Contextos de Endpoint](/es/reference/api-reference/) para obtener más información sobre el objeto de contexto.</ReadMore>
+
+#### `next()`
+
+<p>
+**Tipo:** `(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+</p>
+
+El segundo argumento de `onRequest()` es una función que llama a todos los middlewares subsiguientes en la cadena y devuelve una `Response`. Por ejemplo, otro middleware podría modificar el cuerpo HTML de una respuesta y esperar el resultado de `next()` permitiría a tu middleware responder a esos cambios.
+
+Desde Astro v4.13.0, `next()` acepta un parámetro de ruta URL opcional en forma de cadena, `URL` o `Request` para [reescribir](/es/guides/routing/#reescrituras) la solicitud actual sin volver a desencadenar una nueva fase de renderizado.
