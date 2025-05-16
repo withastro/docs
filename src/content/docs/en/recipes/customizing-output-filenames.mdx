@@ -1,0 +1,169 @@
+---
+title: Customizing Output File Names
+description: Learn how to change the default naming pattern for your built assets like JavaScript, CSS, and images in Astro using Vite's Rollup options.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro uses Vite for its build process, and Vite, in turn, uses Rollup as its bundler. By default, Astro (via Vite/Rollup) outputs built assets like JavaScript and CSS files into an `_astro` directory with hashed filenames (e.g., `_astro/index.DRf8L97S.js`). These hashes are excellent for long-term caching.
+
+However, you might want to customize the output directory structure and naming convention for your built assets. For example, you might want to organize JavaScript files into a `js/` directory, CSS into a `css/` directory, and other assets into an `assets/` directory, all while retaining cache-busting hashes.
+
+This recipe shows you how to configure Vite's Rollup options in your `astro.config.mjs` file to achieve a custom output file structure.
+
+## Goal
+
+In this recipe, we aim to configure Astro to output built assets with the following structure and naming pattern:
+-   JavaScript entry files: `dist/js/[name]-[hash].js`
+-   JavaScript code-split chunks: `dist/js/chunks/[name]-[hash].js`
+-   Other assets (CSS, images, fonts, etc.): `dist/static/[name]-[hash][extname]` (e.g. `dist/static/styles-a1b2c3d4.css`, `dist/static/logo-e5f6g7h8.svg`)
+
+## Recipe
+
+<Steps>
+1.  **Locate your Astro Configuration File**
+
+    You'll be making changes to your `astro.config.mjs` (or `.js`, `.ts`) file located at the root of your project.
+
+2.  **Add Vite Rollup Output Options**
+
+    Modify your `astro.config.mjs` to include the `vite.build.rollupOptions.output` configuration. This is where you'll define the custom naming patterns for your assets.
+
+    ```javascript title="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // Your other Astro config options...
+      vite: {
+        build: {
+          rollupOptions: {
+            output: {
+              // For JavaScript entry files
+              entryFileNames: 'js/[name]-[hash].js',
+              // For JavaScript code-split chunks
+              chunkFileNames: 'js/chunks/[name]-[hash].js',
+              // For other assets like CSS, images, fonts
+              assetFileNames: 'static/[name]-[hash][extname]',
+            },
+          },
+        },
+      },
+    });
+    ```
+
+3.  **Understanding the Configuration**
+
+    -   `entryFileNames`: Defines the naming pattern for your main JavaScript entry files (e.g., scripts directly associated with your pages or layouts).
+    -   `chunkFileNames`: Defines the naming pattern for JavaScript chunks created by code-splitting (e.g., dynamically imported components or shared modules).
+    -   `assetFileNames`: Defines the naming pattern for all other assets that Vite/Rollup processes, such as CSS files, images imported in your JavaScript/CSS, and fonts.
+
+    **Common Placeholders:**
+    *   `[name]`: The original name of the file (without the extension and path).
+    *   `[hash]`: A content-based hash generated for the file, crucial for cache busting. You can also specify a length, e.g., `[hash:8]`.
+    *   `[extname]`: The original file extension, including the leading dot (e.g., `.js`, `.css`, `.svg`).
+    *   `[ext]`: The original file extension, without the leading dot.
+
+    <ReadMore>
+    For a full list of available placeholders and advanced pattern options, refer to the [Rollup `output.entryFileNames` documentation](https://rollupjs.org/configuration-options/#output-entryfilenames) (the same placeholders apply to `chunkFileNames` and `assetFileNames`).
+    </ReadMore>
+
+    :::tip[Advanced Asset Naming]
+    The `assetFileNames` option can also accept a function if you need more granular control, for example, to place different asset types into different subdirectories within `static/`:
+
+    ```javascript title="astro.config.mjs" ins={11-29}
+    // ...
+    vite: {
+      build: {
+        rollupOptions: {
+          output: {
+            // For JavaScript entry files - This was likely fine
+            entryFileNames: "js/[name]-[hash].js",
+            // For JavaScript code-split chunks - This was likely fine
+            chunkFileNames: "js/chunks/[name]-[hash].js",
+            // For other assets like CSS, images, fonts
+            assetFileNames: (assetInfo) => {
+              const sourceFileName =
+                assetInfo.originalFileNames?.[0] || assetInfo.names?.[0];
+              if (sourceFileName) {
+                const lowerSourceFileName = sourceFileName.toLowerCase();
+                // Check for common image types
+                if (
+                  /\.(png|jpe?g|gif|svg|webp|avif|ico)$/.test(lowerSourceFileName)
+                ) {
+                  return `img/[name]-[hash][extname]`;
+                }
+                // Check for font files
+                if (/\.(woff2?|eot|ttf|otf)$/.test(lowerSourceFileName)) {
+                  return `fonts/[name]-[hash][extname]`;
+                }
+              }
+              // Fallback for any other asset types, or if sourceFileName couldn't be determined
+              return `static_assets/[name]-[hash][extname]`;
+            },
+          },
+        },
+      },
+    },
+    // ...
+    ```
+    This example configuration will output images to `img/`, fonts to `fonts/` and any other assets to `static_assets/`.
+    :::
+
+4.  **Build Your Project and Verify**
+
+    Run your project's build command:
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run build
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm build
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn build
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    After the build completes, inspect your output directory (usually `dist/`). You should find your assets organized according to the new patterns.
+
+    For the main example configuration, your `dist/` folder might look something like this:
+
+    <FileTree>
+    - dist/
+      - js/
+        - index-a1b2c3d4.js      // Entry file
+        - chunks/
+          - common-e5f6g7h8.js   // Code-split chunk
+      - img/                       // Images are now here
+        - logo-i9j0k1l2.png
+      - fonts/                     // Fonts would be here (if any were processed)
+        - myfont-q2w3e4r5.woff2  // Example font file
+      - static_assets/             // Other assets (like CSS) are now here
+        - styles-m3n4o5p6.css
+      - index.html
+      - about/
+        - index.html
+      - ... (other HTML files and public assets)
+    </FileTree>
+
+    Note: Files from your `public/` directory are copied directly to the output directory and are not affected by these Rollup naming options.
+
+</Steps>
+
+## Important Considerations
+
+*   **Cache Busting:** It's highly recommended to always include `[hash]` (or a variant like `[contenthash]`) in your filenames. This ensures that when you update an asset, the filename changes, forcing browsers to download the new version instead of serving a stale cached version.
+*   **Path Relativity:** The paths specified in `entryFileNames`, `chunkFileNames`, and `assetFileNames` are relative to your project's configured `outDir` (which defaults to `dist`).
+*   **Development vs. Build:** These filename customizations apply to the production build output (`astro build`). The filenames you see during development (`astro dev`) may differ as Vite uses different strategies for serving assets in dev mode.
+
+By customizing these Rollup output options, you gain more control over your project's build structure, allowing you to meet specific organizational or deployment requirements.
