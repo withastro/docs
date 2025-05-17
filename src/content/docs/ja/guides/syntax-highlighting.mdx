@@ -1,0 +1,235 @@
+---
+title: シンタックスハイライト
+description: Astroでコードブロックにハイライトを適用する方法を学びます。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astroには、[Shiki](https://shiki.style/)と[Prism](https://prismjs.com/)の組み込みサポートがあります。これにより、次の要素にシンタックスハイライトが適用されます。
+
+- MarkdownまたはMDXファイル内で使用されるすべての[コードフェンス（\`\`\`）](#markdownコードブロック)
+- `.astro`ファイル内の[組み込み`<Code />`コンポーネント](#code-)（Shikiを使用）
+- `.astro`ファイル内の[`<Prism />`コンポーネント](#prism-)（Prismを使用）
+
+さらに、[Expressive Codeなどのコミュニティ製インテグレーション](https://astro.build/integrations/?search=syntax+highlight)を追加すると、コードブロックに対してより多彩な装飾やアノテーションを行えます。
+
+## Markdownコードブロック
+
+Markdownのコードブロックは、前後を3つのバッククォート(\`\`\`)で囲むことで表します。開始側のバッククォート直後にプログラミング言語を指定すると、コードを読みやすい色分けで表示できます。
+
+````markdown
+```js
+// JavaScriptコードの例
+var fun = function lang(l) {
+  dateformat.i18n = require('./lang/' + l);
+  return true;
+};
+```
+``````
+
+AstroのMarkdownコードブロックは、デフォルトでShikiの`github-dark`テーマを使用してスタイルされます。出力はインライン`style`のみで、不要なCSSクラスやスタイルシート、クライアントサイドJSは含まれません。
+
+[`markdown.syntaxHighlight`](/ja/reference/configuration-reference/#markdownsyntaxhighlight)設定を使って、[Prismのスタイルシートを追加しPrismハイライトに切り替える](#prismスタイルシートを追加する)ことや、ハイライト機能自体を無効化することもできます。
+
+<ReadMore>Shiki使用時に利用できるすべてのオプションは[`markdown.shikiConfig`](/ja/reference/configuration-reference/#markdownshikiconfig)を参照してください。</ReadMore>
+
+### デフォルトShikiテーマの設定
+
+Astro設定で任意の[Shiki組み込みテーマ](https://shiki.style/themes)を指定できます。
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      theme: 'dracula',
+    },
+  },
+});
+```
+
+<ReadMore>Shikiの設定全体は[Shiki構成リファレンス](/ja/reference/configuration-reference/#markdownshikiconfig)を参照してください。</ReadMore>
+
+### ライトモードとダークモードのテーマを設定する
+
+ライトモード・ダークモードの両方に別テーマを指定できます。
+
+```js title="astro.config.mjs" {6-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+
+その後、[Shikiのダークモード用CSS変数をメディアクエリやクラスで適用](https://shiki.style/guide/dual-themes#query-based-dark-mode)して、すべてのMarkdownコードブロックに反映します。Shikiの例では`.shiki`クラスを使っていますが、Astroでは`.astro-code`に置き換えてください。
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* フォントスタイルを変更したい場合のみ */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+```
+
+### 独自Shikiテーマを追加する
+
+事前定義済みテーマの代わりに、ローカルファイルからカスタムShikiテーマを読み込めます。
+
+```js title="astro.config.mjs" ins={2,7}
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      theme: customTheme,
+    },
+  },
+});
+```
+
+### Shikiテーマのカスタマイズ
+
+より詳細なカスタマイズは[Shikiテーマのドキュメント](https://shiki.style/themes)を参照してください。ライト／ダーク切り替えや[CSS変数によるスタイル](https://shiki.style/guide/theme-colors#css-variables-theme)も利用できます。
+
+Astroで使用する場合は次に注意します。
+
+- `.shiki`クラスではなく`.astro-code`クラスを使用する  
+- `css-variables`テーマではCSSカスタムプロパティのプレフィックスを`--shiki-`から`--astro-code-`に変更する  
+
+## コードブロック用コンポーネント
+
+`.astro`および`.mdx`ファイル内では、次の2つのコンポーネントでコードブロックを表示できます。
+
+- [`<Code />`](#code-)（Shikiベース）
+- [`<Prism />`](#prism-)（Prismベース）
+
+各コンポーネントの`Props`は[`ComponentProps`型](/ja/guides/typescript/#componentprops型)で参照できます。
+
+### `<Code />`
+
+`<Code />`はShikiを使用し、ほぼすべてのテーマと言語をサポートします。カスタムテーマ・言語・[transformers](#transformers)・デフォルトカラーも指定可能です。設定は`theme`、`lang`、`transformers`、`defaultColor`の各属性で渡します。Markdownの`shikiConfig`設定は引き継がれません。
+
+```astro
+---
+import { Code } from 'astro:components';
+---
+<!-- JavaScriptコードをハイライト -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- テーマをカスタマイズ -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- 折り返しを有効化 -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- インラインコードとして表示 -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  がインラインで表示されます。
+</p>
+<!-- デフォルトカラーを無効化 -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+#### Transformers
+
+<p><Since v="4.11.0" /></p>
+
+[Shiki transformers](https://shiki.style/packages/transformers#shikijs-transformers)を`transformers`プロパティに配列で渡して適用できます。Astro v4.14.0以降では、[Shikiの`meta`属性](https://shiki.style/guide/transformers#meta)を文字列で渡してオプション指定も可能です。
+
+`transformers`はクラスを付与するのみのため、スタイルは独自にCSSで指定してください。
+
+```astro title="src/pages/index.astro" {12-13}
+---
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers';
+import { Code } from 'astro:components';
+
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`;
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}"
+/>
+
+<style is:global>
+  pre.has-focused .line:not(.focused) {
+    filter: blur(1px);
+  }
+</style>
+```
+
+### `<Prism />`
+
+`<Prism />`はPrismのCSSクラスを適用してコードをハイライトします。表示には[Prismのスタイルシートを追加](#prismスタイルシートを追加する)する必要があります。
+
+まず`@astrojs/prism`をインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+
+  ```shell
+  npm install @astrojs/prism
+  ```
+
+  </Fragment>
+  <Fragment slot="pnpm">
+
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+
+  </Fragment>
+  <Fragment slot="yarn">
+
+  ```shell
+  yarn add @astrojs/prism
+  ```
+
+  </Fragment>
+</PackageManagerTabs>
+
+インストール後、通常のコンポーネントと同様にインポートして使用できます。
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+[Prismがサポートする言語一覧](https://prismjs.com/#supported-languages)に加えて、`lang="astro"`でAstroコードもハイライトできます。
+
+## Prismスタイルシートを追加する
+
+Prismを使用する場合（`markdown.syntaxHighlight: 'prism'`を設定するか`<Prism />`コンポーネントを利用する場合）、ShikiではなくPrismのCSSクラスが適用されます。シンタックスハイライトを表示するには、CSSスタイルシートを追加してください。
+
+<Steps>
+1. [Prism Themes](https://github.com/PrismJS/prism-themes)からお好みのスタイルシートを選択します。  
+2. そのスタイルシートをプロジェクトの[`public/`ディレクトリ](/ja/basics/project-structure/#public)に配置します。  
+3. [レイアウトコンポーネント](/ja/basics/layouts/)の`<head>`内で`<link>`タグを使って読み込みます。（[Prism基本使用法](https://prismjs.com/#basic-usage)も参照）
+</Steps>
+
+使用可能な言語やオプションについては、[Prismの言語サポート一覧](https://prismjs.com/#supported-languages)もご覧ください。
