@@ -1,0 +1,159 @@
+---
+title: Sesiones
+description: Comparte datos entre solicitudes para páginas renderizadas bajo demanda.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+Las sesiones se utilizan para compartir datos entre solicitudes para [páginas renderizadas bajo demanda](/es/guides/on-demand-rendering/).
+
+A diferencia de las [`cookies`](/es/guides/on-demand-rendering/#cookies), las sesiones se almacenan en el servidor, por lo que puedes almacenar grandes cantidades de datos sin preocuparte por límites de tamaño o problemas de seguridad. Son útiles para almacenar cosas como datos de usuario, carritos de compra y estados de formularios, y funcionan sin ningún JavaScript del lado del cliente:
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // No es necesario con la salida 'server'
+const cart = await Astro.session.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} artículos</a>
+````
+
+## Configuración de sesiones
+
+Las sesiones requieren un controlador de almacenamiento para guardar los datos de la sesión. Los adaptadores de [Node](/es/guides/integrations-guide/node/#sessions), [Cloudflare](/es/guides/integrations-guide/cloudflare/#sessions) y [Netlify](/es/guides/integrations-guide/netlify/#sessions) configuran automáticamente un controlador predeterminado para ti, pero otros adaptadores actualmente requieren que [especifiques un controlador manualmente](/es/reference/configuration-reference/#sessiondriver).
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+<ReadMore>
+  Consulta [la opción de configuración `session`](/es/reference/configuration-reference/#session-options) para obtener más detalles sobre cómo configurar un controlador de almacenamiento y otras opciones configurables.
+</ReadMore>
+
+## Interacción con datos de sesión
+
+El [`objeto session`](/es/reference/api-reference/#session) te permite interactuar con el estado de usuario almacenado (por ejemplo, agregar artículos a un carrito de compras) y el ID de sesión (por ejemplo, eliminar la cookie del ID de sesión al cerrar sesión). El objeto es accesible como `Astro.session` en tus componentes y páginas de Astro y como el objeto `context.session` en endpoints de API, middleware y acciones.
+
+La sesión se genera automáticamente cuando se usa por primera vez y se puede regenerar en cualquier momento con [`session.regenerate()`](/es/reference/api-reference/#regenerate) o destruir con [`session.destroy()`](/es/reference/api-reference/#destroy).
+
+Para muchos casos de uso, solo necesitarás usar [`session.get()`](/es/reference/api-reference/#get) y [`session.set()`](/es/reference/api-reference/#set).
+
+<ReadMore>
+Consulta [la referencia de la API de Sesiones](/es/reference/api-reference/#session) para obtener más detalles.
+</ReadMore>
+
+### Componentes y páginas de Astro
+
+En componentes y páginas `.astro`, puedes acceder al objeto de sesión a través del objeto global `Astro`. Por ejemplo, para mostrar el número de artículos en un carrito de compras:
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // No es necesario con la salida 'server'
+const cart = await Astro.session.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} artículos</a>
+```
+
+### Endpoints de API
+
+En endpoints de API, el objeto de sesión está disponible en el objeto `context`. Por ejemplo, para agregar un artículo a un carrito de compras:
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session.get('cart') || [];
+  const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Artículo requerido', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### Acciones
+
+En acciones, el objeto de sesión está disponible en el objeto `context`. Por ejemplo, para agregar un artículo a un carrito de compras:
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session.get('cart');
+      cart.push(input.productId);
+      await context.session.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### Middleware
+
+:::note
+Las sesiones no son compatibles actualmente en middleware de borde.
+:::
+
+En middleware, el objeto de sesión está disponible en el objeto `context`. Por ejemplo, para establecer la última hora de visita en la sesión:
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Tipos de datos de sesión
+
+De forma predeterminada, los datos de sesión no están tipados y puedes almacenar datos arbitrarios en cualquier clave. Los valores se serializan y deserializan utilizando [devalue](https://github.com/Rich-Harris/devalue), que es la misma biblioteca utilizada en colecciones de contenido y acciones. Esto significa que los tipos admitidos son los mismos e incluyen cadenas, números, `Date`, `Map`, `Set`, `URL`, matrices y objetos planos.
+
+Opcionalmente, puedes definir tipos de TypeScript para tus datos de sesión creando un archivo `src/env.d.ts` y agregando una declaración para el tipo `App.SessionData`:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+Esto te permitirá acceder a los datos de la sesión con verificación de tipos y autocompletado en tu editor:
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session.get('something');
+// const something: any
+
+Astro.session.set('user', { id: 1, name: 'Houston' });
+// Error: El argumento de tipo '{ id: number; name: string }' no se puede asignar al parámetro de tipo '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+Esto solo se utiliza para la verificación de tipos y no afecta el comportamiento en tiempo de ejecución de la sesión. Ten mucho cuidado si cambias el tipo cuando los usuarios tienen datos almacenados en la sesión, ya que esto podría causar errores en tiempo de ejecución.
+:::
