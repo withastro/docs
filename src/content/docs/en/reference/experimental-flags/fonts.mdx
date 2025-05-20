@@ -20,7 +20,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 This experimental feature allows you to use fonts from your filesystem and various font providers (eg. Google, Fontsource, Bunny) through a unified, fully customizable, and type-safe API.
 
-Web fonts can impact page performance at both load time and rendering time. This API helps you keep your site performant with automatic [web font optimizations](https://web.dev/learn/performance/optimize-web-fonts) including preload links, optimized fallbacks, and opinionated defaults to avoid common problems such as downloading unnecessary font files.
+Web fonts can impact page performance at both load time and rendering time. This API helps you keep your site performant with automatic [web font optimizations](https://web.dev/learn/performance/optimize-web-fonts) including preload links, optimized fallbacks, and opinionated defaults. [See common usage examples](#usage-examples).
 
 To enable this feature, configure an `experimental.fonts` object with at least one font:
 
@@ -116,10 +116,10 @@ body {
 
     <TabItem label="Tailwind CSS 4.0">
 
-    ```css title="src/styles/global.css" ins={4}
+    ```css title="src/styles/global.css" ins={4} ins="inline"
     @import 'tailwindcss';
 
-    @theme {
+    @theme inline {
         --font-sans: var(--font-roboto);
     }
     ```
@@ -200,11 +200,85 @@ provider: fontProviders.fontsource()
 provider: fontProviders.google()
 ```
 
+Additionally, the `google()` font provider accepts all options available for the [unifont Google `ProviderOption`](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26):
+
+```js
+provider: fontProviders.google({
+	glyphs: {
+		Roboto: ["a"]
+	}
+})
+```
+
 </TabItem>
 
 </Tabs>
 
 You can also [make a custom Astro font provider](#build-your-own-font-provider) for any unifont provider.
+
+## Usage examples
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--font-roboto"
+        provider: fontProviders.google(),
+        // Default included:
+        // weights: [400] ,
+        // styles: ["normal", "italics"],
+        // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+        // fallbacks: ["sans-serif"], 
+      },
+      {
+        name: "Inter",
+        cssVariable: "--font-inter",
+        provider: fontProviders.fontsource(),
+        // Specify weights that are actually used
+        weights: [400, 500, 600, 700],
+        // Specify styles that are actually used
+        styles: ["normal"],
+        // Download only font files for characters used on the page
+        subsets: ["cyrillic"],
+      },
+      {
+        name: "JetBrains Mono",
+        cssVariable: "--font-jetbrains-mono",
+        provider: fontProviders.fontsource(),
+        // Download only font files for characters used on the page
+        subsets: ["latin"],
+        // Use a fallback font family matching the intended appearance
+        fallbacks: ["monospace"],
+      },
+      {
+        name: "Poppins",
+        cssVariable: "--font-poppins",
+        provider: "local",
+        // Weight and style are not specified so Astro
+        // will try to infer them for each variant
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    ],
+  }
+});
+```
 
 ## `<Font />` component reference
 
@@ -340,7 +414,7 @@ To disable fallback fonts completely, configure an empty array:
 fallbacks: []
 ```
 
-If the last font in the `fallbacks` array is a [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name), Astro will attempt to generate [optimized fallbacks](https://developer.chrome.com/blog/font-fallbacks) using font metrics. To disable this optimization, set `optimizedFallbacks` to false.
+Specify at least a [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name) matching the intended appearance of your font. Astro will then attempt to generate [optimized fallbacks](https://developer.chrome.com/blog/font-fallbacks) using font metrics. To disable this optimization, set `optimizedFallbacks` to false.
 
 #### optimizedFallbacks
 
@@ -432,7 +506,9 @@ display: "block"
 **Default:** `undefined`
 </p>
 
-Determines the specific [range of unicode characters](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range) to be used from a font:
+Determines when a font must be downloaded and used based on a specific [range of unicode characters](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range). If a character on the page matches the configured range, the browser will download the font and all characters will be available for use on the page. To configure a subset of characters preloaded for a single font, see the [subsets](#subsets) property instead.
+
+This can be useful for localization to avoid unnecessary font downloads when a specific part of your website uses a different alphabet and will be displayed with a separate font. For example, a website that offers both English and Japanese versions can prevent the browser from downloading the Japanese font on English versions of the page that do not contain any of the Japanese characters provided in `unicodeRange`.
 
 ```js
 unicodeRange: ["U+26"]
@@ -523,7 +599,8 @@ export default defineConfig({
 
 <p>
 
-**Type:** `number | string`
+**Type:** `number | string`<br />
+**Default:** `undefined`
 </p>
 
 A [font weight](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight):
@@ -538,11 +615,14 @@ If the associated font is a [variable font](https://developer.mozilla.org/en-US/
 weight: "100 900"
 ```
 
+When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
+
 #### style
 
 <p>
 
-**Type:** `"normal" | "italic" | "oblique"`
+**Type:** `"normal" | "italic" | "oblique"`<br />
+**Default:** `undefined`
 </p>
 
 A [font style](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
@@ -550,6 +630,8 @@ A [font style](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
 ```js
 style: "normal"
 ```
+
+When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
 
 #### src
 
@@ -587,6 +669,10 @@ src: ["my-package/SomeFont.ttf"]
 </TabItem>
 
 </Tabs>
+
+:::caution
+We recommend not putting your font files in [the `public/` directory](/en/reference/configuration-reference/#publicdir). Since Astro will copy these files into that folder at build time, this will result in duplicated files in your build output. Instead, store them somewhere else in your project, such as in [`src/`](/en/reference/configuration-reference/#srcdir).
+:::
 
 You can also specify a [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech) by providing objects:
 

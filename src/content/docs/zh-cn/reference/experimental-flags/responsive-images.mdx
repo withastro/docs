@@ -16,6 +16,14 @@ import Since from '~/components/Since.astro'
 
 启用以在你的项目中支持自动化响应式图像。
 
+[响应式图片](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Guides/Responsive_images)，该术语是指在不同的设备上，都能得到良好展示效果的图片。响应式图片能够根据他们的容器来重新调整大小，并且能适配各个设备不同的屏幕尺寸与分辨率。
+
+尽管存在诸多额外属性可用于控制图像的显示方式，但手动处理这些属性可能较为复杂。若处理不当，可能会导致图片下载慢、展示效果异常。此类问题是 Core Web Vitals 和 Lighthouse 性能分数较低的最常见原因之一。
+
+当该标志启用时，Astro 将会自动生成图片所需的 `srcset` 和 `sizes` 值，并应用正确的方式以确保图片准确地调整尺寸。这些行为既可以全局配置，又可以在单个图像的基础上配置。
+
+要启用该功能，首先请在 `astro.config.mjs` 文件中，添加 `responsiveImages` 标志：
+
 ```js title="astro.config.mjs"
 {
   experimental: {
@@ -24,7 +32,9 @@ import Since from '~/components/Since.astro'
 }
 ```
 
-启用此标志后，你可以访问另外的 [`image` 配置设置](#响应式图像配置设置) 来控制 Astro 处理和优化的所有图像的默认行为：
+启用此标志后，不会对默认值进行更改，但是响应式图片接下来便可以通过 [图像布局](#图像布局) 进行全局、或是单个图像进行配置了。
+
+要进行配置，你需要访问另外的 [`image` 配置设置](#配置设置) 来控制 Astro 处理和优化所有图像的默认行为：
 
 - 使用 [Markdown `![]()` 语法](/zh-cn/guides/images/#markdown-文件中的图像)的本地和远程图像。
 - [`<Image />`](/zh-cn/guides/images/#使用-image--组件显示优化后的图像) 和 [`<Picture />`](/zh-cn/guides/images/#使用-picture--组件创建响应式图像) 组件。
@@ -33,22 +43,39 @@ import Since from '~/components/Since.astro'
 
 你的 `public/` 文件夹中的图像永远不会被优化，且不支持响应式图像。
 
-## 响应式图像配置设置
+:::note
+启用响应式图片将会为所有受影响的图片生成额外的图像尺寸。对于预渲染页面来说，这一步发生在构建阶段，因此可能会增加项目的构建时间，尤其是当图片数量较多时，这一点格外明显。
 
-通过设置 [`image.experimentalLayout`](/zh-cn/reference/configuration-reference/#imageexperimentallayout) 指定默认布局 (`responsive`，`fixed`，或 `full-width`) 以在整个项目中启用响应式图像。
+对于按需渲染页面来说，图片也会按需生成，因此对构建时间没什么影响，但可能会增加图像处理的次数。根据你使用的图像服务，可能产生额外的开销。
+:::
+
+## 图像布局
+
+为了生成准确的 `srcset` 和 `size` 属性，`<Image />` 与 `<Picture />` 组件需要知道在容器尺寸发生更改时，图像应该如何变换。这个问题是由设置 `layout` 属性，或是 `image.experimentalLayout` 来默认处理。该属性支持的值有：
+
+- `constrained` - 图像按原始宽高比在容器内缩放，但不会超过指定的 `width` 和 `height` 以及图像的原始尺寸。此选项适用于需要适应较小屏幕尺寸的图像。该属性会在使用 Tailwind 时，为图像匹配默认的行为。如果你不确定你需要选哪种布局，那么此布局也许正是你应该选择的。
+- `full-width` - 图像宽度始终填满容器，并保持原始宽高比。此选项适用于主图，或是其他需要占据整个页面宽度的图片。
+- `fixed` - 图片保持指定的尺寸不变，不会随容器尺寸调整大小。生成 `srcset` 以支持高精度适配，但不会为不同屏幕生成其他比例的适配。此选项适用于固定比例图片，例如那些小于屏幕宽度的图标与 Logo，或是一些在固定容器尺寸中的图片。
+- `none` - 图像不会有响应式变化。不会自动生成 `srcset` 或 `sizes`，也不会应用不同的方式。此选项适用于在你启用了默认的布局，但是需要为特定的图片禁用响应式变化的情况。
+
+所选定的 `layout` 将会用于为图像生成准确的 `srcset` 和 `sizes` 属性，并为 `<img>` 标签定义默认的应用样式。
+
+## 配置设置
+
+通过将 [`image.experimentalLayout`](/zh-cn/reference/configuration-reference/#imageexperimentallayout) 设置为默认值，以在整个项目中启用响应式图像。
 
 如果未配置此值，仍然可以为任何 `<Image />` 或 `<Picture />` 组件传递 `layout` 属性以创建响应式图像。但是，Markdown 图像将不会是响应式的。
 
-此外，可以配置 [`image.experimentalObjectFit`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectfit) 和 [`image.experimentalObjectPosition`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectposition) ，这将默认应用于所有处理后的图像。
+此外，可以配置 [`image.experimentalObjectFit`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectfit) 和 [`image.experimentalObjectPosition`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectposition)，这将默认应用于所有处理后的图像。
 
-每项设置都能通过属性在单个的 `<Image />` 或 `<Picture />` 组件上被覆盖，但是所有 Markdown 图像将始终使用默认设置。
+每项设置都能通过属性在单个的 `<Image />` 或 `<Picture />` 组件上被覆盖，但是 Markdown 图像将始终使用默认设置。
 
 ```js title="astro.config.mjs"
 {
   image: {
     // 用于所有 Markdown 图像，不可按图像配置
     // 用于所有 `<Image />` 和 `<Picture />` 组件，除非通过属性覆盖
-    experimentalLayout: 'responsive',
+    experimentalLayout: 'constrained',
   },
   experimental: {
     responsiveImages: true,
@@ -60,37 +87,37 @@ import Since from '~/components/Since.astro'
 
 当启用响应式图像时，有这些可用于 `<Image />` 和 `<Picture />` 组件的附加属性：
 
-- `layout`：图像的布局类型。可设置为 `responsive`、`fixed`、`full-width` 或 `none`。默认为 [`image.experimentalLayout`](/zh-cn/reference/configuration-reference/#imageexperimentallayout) 的值。
+- `layout`：[图像布局] 的类型。可设置为 `constrained`、`fixed`、`full-width` 或 `none`。如果设置为 `none`，该图像的响应式行为将会被禁用，且所有其他选项都会被忽略。如果进行设置，其默认为 `none` 或 [`image.experimentalLayout`](/zh-cn/reference/configuration-reference/#imageexperimentallayout) 的值。
 - `fit`：定义在宽高比更改时应如何裁剪图像。该值与 CSS `object-fit` 的值匹配。默认为 `cover` 或 [`image.experimentalObjectFit`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectfit) 的值（如果设置）。
 - `position`：定义宽高比更改时图像裁剪的位置。该值与 CSS `object-position` 的值匹配。默认为 `center` 或 [`image.experimentalObjectPosition`](/zh-cn/reference/configuration-reference/#imageexperimentalobjectposition)（如果设置）。
 - `priority`：如果设置该项，则立即加载图像。否则图像将被懒加载。可将其用于最大的首屏图像。默认为 `false`。
 
-`widths` 和 `sizes` 属性是基于图像的尺寸和布局类型自动生成的，大部分情况下不应手动设置。针对于 `responsive` 和 `full-width` 图像而生成的 `sizes` 属性是基于这样的假设：当视口小于图像的宽度时，图像以接近屏幕的全宽显示。如果明显不同时（例如，如果它在小屏幕上采用多列布局），你可能需要手动调整 `size` 属性以获得最佳结果。
+`widths` 和 `sizes` 属性是基于图像的尺寸和布局类型自动生成的，大部分情况下不应手动设置。针对于 `constrained` 和 `full-width` 图像而生成的 `sizes` 属性是基于这样的假设：当视口小于图像的宽度时，图像以接近屏幕的全宽显示。如果明显不同时（例如，如果它在小屏幕上采用多列布局），你可能需要手动调整 `size` 属性以获得最佳结果。
 
 `densities` 属性无法与响应式图像兼容，如果设置则会被忽略。
 
-例如，将 `responsive` 设置为默认布局后，你可以覆盖任何单个图像的 `layout` 属性：
+例如，将 `constrained` 设置为默认布局后，你可以覆盖任何单个图像的 `layout` 属性：
 
 ```astro
 ---
 import { Image } from 'astro:assets';
 import myImage from '../assets/my_image.png';
 ---
-<Image src={myImage} alt="将会使用 responsive 布局" width={800} height={600} />
+<Image src={myImage} alt="将会使用 constrained 布局" width={800} height={600} />
 <Image src={myImage} alt="将会使用 full-width 布局" layout="full-width" />
 <Image src={myImage} alt="将会禁用响应式图像" layout="none" />
 ```
 
 ## 生成的响应式图像 HTML 输出
 
-设置布局（layout）后，图像会根据图像的尺寸和布局类型自动生成 `srcset` 和 `size` 属性。具有 `responsive` 和 `full-width` 布局属性的图像将应用样式，以确保它们根据容器来调整大小。
+设置布局（layout）后，图像会根据图像的尺寸和布局类型自动生成 `srcset` 和 `size` 属性。具有 `constrained` 和 `full-width` 布局属性的图像将应用样式，以确保它们根据容器来调整大小。
 
 ```astro title=MyComponent.astro
 ---
 import { Image, Picture } from 'astro:assets';
 import myImage from '../assets/my_image.png';
 ---
-<Image src={myImage} alt="A description of my image." layout='responsive' width={800} height={600} />
+<Image src={myImage} alt="A description of my image." layout='constrained' width={800} height={600} />
 <Picture src={myImage} alt="A description of my image." layout='full-width' formats={['avif', 'webp', 'jpeg']} />
 ```
 
@@ -113,31 +140,32 @@ import myImage from '../assets/my_image.png';
   fetchpriority="auto"
   width="800"
   height="600"
-  style="--w: 800; --h: 600; --fit: cover; --pos: center;"
-  data-astro-image="responsive"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
 >
 ```
 
-为确保图像正确地调整大小将会采用以下样式：
+## 覆盖图像样式
+
+响应式图片组件会应用少量默认样式，以确保其在不同布局模式下正确调整尺寸。这些样式根据布局类型自动适配，旨在与生成的 `srcset` 和 `sizes` 属性协同工作，实现最佳显示效果。以下是默认样式：
 
 ```css title="Responsive Image Styles"
-[data-astro-image] {
-  width: 100%;
-  height: auto;
-  object-fit: var(--fit);
-  object-position: var(--pos);
-  aspect-ratio: var(--w) / var(--h)
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
 }
-
-[data-astro-image=responsive] {
-  max-width: calc(var(--w) * 1px);
-  max-height: calc(var(--h) * 1px)
+:where([data-astro-image='full-width']) {
+	width: 100%;
 }
-
-[data-astro-image=fixed] {
-  width: calc(var(--w) * 1px);
-  height: calc(var(--h) * 1px)
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
 }
 ```
+
+你可以在 `<Image />` 或 `<Picture />` 组件中，通过设置 `fit` 和 `position` 属性来覆盖 `object-fit` 和 `object-position` 样式。
+
+使用 [`:where()` 伪类](https://developer.mozilla.org/zh-CN/docs/Web/CSS/:where) 的样式，它的 [优先级](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_cascade/Specificity) 为 0，这意味着他可以轻松地被你个人的样式所覆盖。任何类样式或标签名都会具有比 `:where()` 更高的优先级，所以你可以轻松地为图像添加类名或标签名，以实现新样式的覆盖。
+
+Tailwind 4 是个特例，因为他使用了 [层叠层](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@layer)，这意味着 Tailwind 的 CSS 规则优先级始终低于未使用层叠层的规则。由于 Astro 需要兼容不支持层叠层的浏览器，因此其图片组件无法使用此特性。这导致：若需通过 Tailwind 4 覆盖 Astro 图片默认样式，必须使用 [!important 修饰符](https://tailwindcss.com/docs/styling-with-utility-classes#using-the-important-modifier)。
 
 有关完整概述以及提供有关此实验性 API 的反馈，请参阅 [响应式图像 RFC](https://github.com/withastro/roadmap/blob/responsive-images/proposals/0053-responsive-images.md)。
