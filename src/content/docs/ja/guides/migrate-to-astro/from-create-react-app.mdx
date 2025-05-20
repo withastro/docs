@@ -2,17 +2,17 @@
 title: Create React Appからの移行
 description: Create React AppプロジェクトをAstroに移行するためのガイド
 sidebar:
-label: Create React App
-type: migration
-stub: false
+  label: Create React App
+  type: migration
+stub: true
 framework: Create React App
 i18nReady: true
 ---
-import AstroJSXTabs from '~~/components/tabs/AstroJSXTabs.astro';
-import PackageManagerTabs from '~~/components/tabs/PackageManagerTabs.astro';
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { FileTree } from '@astrojs/starlight/components';
-import ReadMore from '~~/components/ReadMore.astro';
-import Badge from '~~/components/Badge.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Badge from '~/components/Badge.astro';
 import { LinkCard, CardGrid } from '@astrojs/starlight/components';
 
 Astroの[Reactインテグレーション](/ja/guides/integrations-guide/react/)を使うと、Create React App (CRA) の**Reactアプリ全体**をAstroコンポーネント内で再利用できます。
@@ -34,16 +34,16 @@ import App from '../cra-project/App.jsx';
 
 ## CRAとAstroの類似点
 
-- [`.astro`ファイルの構文はJSXに近い`](/ja/reference/astro-syntax/)。Astroの記法は馴染みがあるはずです。
+- [`.astro`ファイルの構文はJSXとよく似ています](/ja/reference/astro-syntax/)。Astroの記法は馴染みがあるはずです。
 - Astroはファイルベースのルーティングを採用し、[動的ルート](/ja/guides/routing/#dynamic-routes)もファイル名で定義できます。
 - Astroは[コンポーネントベース](/ja/basics/astro-components/)です。マークアップ構造は移行前後で大きく変わりません。
-- React・Preact・Solid用の[公式インテグレーション](/ja/guides/integrations-guide/react/)があり、既存JSXをそのまま利用できます(拡張子は`.jsx`または`.tsx`が必須)。
-- Astroは[インストールNPMパッケージ](/ja/guides/imports/)をサポートしており、Reactライブラリも含まれます。多くの既存の依存関係はAstroでも動作します。
+- React・Preact・Solid用の[公式インテグレーション](/ja/guides/integrations-guide/react/)があり、既存JSXをそのまま利用できます。ただし、ファイルの拡張子を`.jsx`または`.tsx`にする**必要があります**。
+- Astroは[インストールNPMパッケージ](/ja/guides/imports/)をサポートしており、Reactライブラリも含まれます。多くの既存の依存関係はAstroでも正常に動作します。
 
 ## CRAとAstroの主な相違点
 
-- CRAは`index.js`をエントリとするシングルページアプリですが、Astroはマルチページサイトで`index.astro`がホームページです。
-- [Astroコンポーネント](/ja/basics/astro-components/)はexportされた関数ではなく、`---`のコードフェンス内にJavaScript、その下にHTMLテンプレートを記述します。
+- CRAは単一ページアプリケーションで、`index.js`をプロジェクトのルートとして使用します。Astroプロジェクトはマルチページサイトで、`index.astro`はホームページです。
+- [Astroコンポーネント](/ja/basics/astro-components/)は、ページテンプレートを返すようにexportされた関数で書かれていません。代わりに、コードフェンス（`---`）でJavaScriptコードを区切って、生成するHTMLのためのコードを分けます。
 - Astroは**コンテンツドリブン**な設計です。既存CRAが高いクライアント側インタラクティビティを前提にしている場合、ダッシュボードなどはAstroアイランドやクライアントディレクティブで再現します。
 
 ## CRAプロジェクトをAstroに組み込む
@@ -72,7 +72,7 @@ import App from '../cra-project/App.jsx';
   </Fragment>
 </PackageManagerTabs>
 
-### インテグレーションのインストールする（任意）
+### インテグレーションをインストールする（任意）
 
 Reactインテグレーションを`astro add`で導入します。他にTailwindやMDXが必要なら同時に指定できます。
 
@@ -129,28 +129,56 @@ import App from '../cra-project/App.jsx';
 <App client:load />
 ```
 
-## CRAプロジェクトをAstroに変換する
+:::note[クライアントディレクティブ]
+アプリにインタラクティビティを持たせるには、[クライアントディレクティブ](/ja/reference/directives-reference/#client-directives)の指定が必要です。AstroはReactアプリをまず静的HTMLとして描画し、`client:～`が付いたコンポーネントだけをブラウザで実行します。
 
-既存アプリを動かしながら、少しずつAstroコンポーネントへ置き換えられます。AstroはReactコンポーネントをインポートできますが、**ReactコンポーネントからAstroをインポートすることはできません**。必要であれば、Reactを1つのAstroコンポーネント内にまとめてネストします。
+`client:load`はサーバーレンダリングしたあと直ちにクライアントで起動します。`client:only="react"`は、サーバーレンダリングを行わず、完全にクライアント側のみで実行します。
+:::
 
-```astro title="src/pages/nested-components.astro"
+## CRAをAstroに変換する
+
+[既存アプリをAstroに追加](#cra-プロジェクトを-astro-に組み込む)したら、次はアプリ自体をAstroへ変換したくなるでしょう。
+
+基本構造には[Astro HTMLテンプレートコンポーネント](/ja/basics/astro-components/)を使って同じようなコンポーネントベースの設計を再現し、インタラクティブなアイランド用に個別のReactコンポーネント（単体でアプリになる場合もあります！）をインポートして配置します。
+
+移行の形はプロジェクトごとに異なりますが、動作中のアプリを中断することなく段階的に進められます。無理のないペースで部分ごとに変換し、時間をかけてアプリのより多くをAstroコンポーネントで動かしましょう。
+
+Reactアプリを変換する際には、どのReactコンポーネントを[Astroコンポーネントとして書き直すか](#jsx-ファイルから-astro-ファイルへの変換する)を決めます。制約は一つだけです。AstroコンポーネントはReactコンポーネントをインポートできますが、Reactコンポーネントは他のReactコンポーネントのみをインポートする必要があります。
+
+```astro title="src/pages/static-components.astro" ins={2,7}
 ---
-import Sidebar from '../components/Sidebar.jsx';
-import FancyButton from '../components/FancyButton.jsx';
+import MyReactComponent from '../components/MyReactComponent.jsx';
 ---
-<Sidebar>
-  <p>テキストとボタンを含むサイドバー例です。</p>
-  <div slot="actions">
-    <FancyButton client:idle />
-  </div>
-</Sidebar>
+<html>
+  <body>
+    <h1>Use React components directly in Astro!</h1>
+    <MyReactComponent />
+  </body>
+</html>
 ```
+
+AstroコンポーネントをReactコンポーネントにインポートする代わりに、単一のAstroコンポーネント内にReactコンポーネントをネストする方法もあります。
+
+```astro title="src/pages/nested-components.astro" {2,3,5,8,10}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+---
+<MyReactSidebar>
+  <p>Here is a sidebar with some text and a button.</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+
+CRAをAstroプロジェクトとして再構築する前に、[Astroアイランド](/ja/concepts/islands/)と[Astroコンポーネント](/ja/basics/astro-components/)について学んでおくと役立ちます。
 
 ### `.jsx`と`.astro`の比較
 
 <AstroJSXTabs>
   <Fragment slot="jsx">
-    ```jsx title="StarCount.jsx"
+  ```jsx title="StarCount.jsx"
     import React, { useState, useEffect } from 'react';
     import Header from './Header';
     import Footer from './Footer';
