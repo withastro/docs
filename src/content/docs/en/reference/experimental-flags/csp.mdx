@@ -3,6 +3,9 @@ title: Experimental Content Security Policy
 sidebar:
   label: Content Security Policy
 i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
 ---
 
 import Since from '~/components/Since.astro'
@@ -14,9 +17,13 @@ import Since from '~/components/Since.astro'
   <Since v="5.9.0" />
 </p>
 
-Enables support for [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) of the Astro built-in features.
+Enables support for [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) to help minimize certain types of security threats by controlling which resources a document is allowed to load. This provides additional protection against [cross-site scripting (XSS)](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) attacks.
 
-```js title="astro.config.mjs"
+Enabling this feature adds additional security to Astro's handling of processed and bundled scripts and styles by default, and is further configurable for more control over these, and additional, content types.
+
+To enable this feature, add the experimental flag in your Astro config:
+
+```js title="astro.config.mjs" ins={4-6}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
@@ -26,7 +33,9 @@ export default defineConfig({
 });
 ```
 
-When enabled, Astro will add a `<meta>` element inside the `<head>` element of each page. The element will have the `http-equiv="content-security-policy"` attribute, and `content` attribute will change based on the script and styles used in the page.
+When enabled, Astro will add a `<meta>` element inside the `<head>` element of each page.
+
+This element will have the `http-equiv="content-security-policy"` attribute, and the `content` attribute will provide values for the `script-src` and `style-src` [directives](#directives) based on the script and styles used in the page.
 
 ```html
 <head>
@@ -41,11 +50,19 @@ When enabled, Astro will add a `<meta>` element inside the `<head>` element of e
 
 ## Configuration
 
-It's possible to customize the `<meta>` tag with the configuration.
+You can further customize the `<meta>` tag by enabling this feature with a configuration object that includes additional options.
 
-### Default algorithm
+### `algorithm`
 
-Astro uses the `SHA-256` algorithm to generate the hashes of all the styles and scripts generated. It's possible to change it via configuration, and the variants supported are `SHA-256`, `SHA-512` and `SHA-384`:
+<p>
+
+**Type:** `'SHA-256' | 'SHA-512' | 'SHA-384' `<br />
+**Default:** `'SHA-256'`<br />
+<Since v="5.9.0" />
+</p>
+
+The [hash function](https://developer.mozilla.org/en-US/docs/Glossary/Hash_function) to use to generate the hashes of the styles and scripts.
+
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -59,9 +76,18 @@ export default defineConfig({
 });
 ```
 
-### Custom directives
+### `directives`
 
-While Astro needs to control the `script-src` and `style-src` directives, it's possible to control other directives using the `csp.diretives` field. These directives are added to all pages. It accepts a list of type-safe directives:
+<p>
+
+**Type:** `[]` <br />
+**Default:** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+A list of [CSP directives](https://content-security-policy.com/#directive) that defines valid sources for specific content types.
+
+While Astro needs to control the `script-src` and `style-src` directives, it is possible to control other CSP directives using the `csp.directives` field. These directives are added to all pages. It accepts a list of type-safe directives:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -78,7 +104,7 @@ export default defineConfig({
 });
 ```
 
-After the build, the `<meta>` element will look something like the following:
+After the build, the `<meta>` element will add your directives into the `content` value alongside Astro's default directives:
 
 ```html
 <meta
@@ -91,11 +117,33 @@ After the build, the `<meta>` element will look something like the following:
 >
 ```
 
-### Custom resources
+### `stylesDirective` and `scriptsDirective`
 
-As mentioned before, Astro needs to control the `script-src` and `style-src` directives, and by default it uses `'self'` resource, which means that scripts and styles can only be downloaded by the current host (usually the current website).
+<p>
 
-It's possible to **override** the resources via configuration. You can provide a list of resources, and Astro will use them instead of `'self'`. These resources are added to all pages:
+**Type:** `CspDirective` <br />
+**Default:** `{}`<br />
+<Since v="5.9.0" />
+</p>
+
+Configuration objects that allow you to override the default sources for the `style-src` and `script-src` directives with the [`resources`](#resources) property, or to provide additional [hashes](#hashes) to be rendered.
+
+These properties are added to all pages and **completeley override Astro's defaults**, not add to them. Therefore, you must explicitly specify any default values that you want to be included.
+
+#### `resources`
+
+<p>
+
+**Type:** `[]` <br />
+**Default:** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+A list of valid sources for the `script-src` and `style-src` directives.
+
+The `script-src` and `style-src` directives are handled by Astro by default, and use the `'self'` resource. This means that scripts and styles can only be downloaded by the current host (usually the current website).
+
+To override the default source, you can provide a list of resources instead. This will not include `'self'` by default, and must be included in this list if you wish to keep it. These resources are added to all pages.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -119,7 +167,7 @@ export default defineConfig({
 });
 ```
 
-After the build, the `<meta>` element will look something like the following:
+After the build, the `<meta>` element will instead apply your sources to the `style-src` and `script-src` directives:
 
 ```html
 <head>
@@ -132,9 +180,18 @@ After the build, the `<meta>` element will look something like the following:
 </head>
 ```
 
-### Custom hashes
+#### `hashes`
 
-If you have external scripts or styles that aren't generated by Astro, or some inline script, the configuration allows you to provide additional hashes to be rendered. 
+<p>
+
+**Type:** `[]` <br />
+**Default:** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+A list of additional hashes to be rendered.
+
+If you have external scripts or styles that aren't generated by Astro, or inline scripts, this configuration option allows you to provide additional hashes to be rendered. 
 
 You must provide hashes that start with `sha384-`, `sha512-` or `sha256-`. Other values will cause a validation error. These hashes are added to all pages.
 
@@ -164,7 +221,7 @@ export default defineConfig({
 });
 ```
 
-After the build, the `<meta>` element will look something like the following:
+After the build, the `<meta>` element will include your additional hashes in the `script-src` and `style-src` directives:
 
 ```html
 <meta
@@ -178,16 +235,16 @@ After the build, the `<meta>` element will look something like the following:
 
 ## Runtime APIs
 
-Additionally, it's possible to customize the `<meta>` element, **per page**, via runtime APIs. The following APIs are available 
-from the `Astro` global inside `.astro` component, or the `APIContext` type. 
+You can customize the `<meta>` element per page via runtime APIs available from the `Astro` global inside `.astro` component, or the `APIContext` type in endpoints and middleware.
 
 ### `addDirective`
 
 <p>
   **Type:** `(directive: CspDirective) => void`<br />
+  <Since v="5.9.0" />
 </p>
 
-Adds a single directive to the current page. You can call this method multiple times, to add additional directives.
+Adds a single directive to the current page. You can call this method multiple times to add additional directives.
 
 ```astro
 ---
@@ -196,7 +253,7 @@ Astro.addDirective("img-src 'self' 'https://images.cdn.example.com'");
 ---
 ```
 
-After the build, the `<meta>` element will look something like the following:
+After the build, the `<meta>` element for this individual page will add your directives to the included `style-src` and `script-src` directives:
 
 ```html
 <meta
@@ -213,15 +270,18 @@ After the build, the `<meta>` element will look something like the following:
 
 <p>
   **Type:** `(resource: string) => void`<br />
+  <Since v="5.9.0" />
 </p>
 
-Insert a new resource to be used for the `style-src` directive.
+Inserts a new resource to be used for the `style-src` directive.
 
 ```astro
 ---
 Astro.insertStyleResource("'https://styles.cdn.example.com'");
 ---
 ```
+
+After the build, the `<meta>` element for this individual page will add your source to the default `style-src` directive:
 
 ```html
 <meta
@@ -237,6 +297,7 @@ Astro.insertStyleResource("'https://styles.cdn.example.com'");
 
 <p>
   **Type:** `(hash: CspHash) => void`<br />
+  <Since v="5.9.0" />
 </p>
 
 Adds a new hash to the `style-src` directive.
@@ -246,6 +307,8 @@ Adds a new hash to the `style-src` directive.
 Astro.addStyleHash("sha512-styleHash");
 ---
 ```
+
+After the build, the `<meta>` element for this individual page will add your hash to the default `style-src` directive:
 
 ```html
 <meta
@@ -261,9 +324,10 @@ Astro.addStyleHash("sha512-styleHash");
 
 <p>
   **Type:** `(resource: string) => void`<br />
+  <Since v="5.9.0" />
 </p>
 
-Insert a new resource to be used for the `script-src` directive.
+Inserts a new valid source to be used for the `script-src` directive.
 
 
 ```astro
@@ -271,6 +335,8 @@ Insert a new resource to be used for the `script-src` directive.
 Astro.insertScriptResource("'https://scripts.cdn.example.com'");
 ---
 ```
+
+After the build, the `<meta>` element for this individual page will add your source to the default `script-src` directive:
 
 ```html
 <meta
@@ -285,7 +351,9 @@ Astro.insertScriptResource("'https://scripts.cdn.example.com'");
 
 <p>
   **Type:** `(hash: CspHash) => void`<br />
+  <Since v="5.9.0" />
 </p>
+
 Adds a new hash to the `script-src` directive.
 
 
@@ -294,6 +362,8 @@ Adds a new hash to the `script-src` directive.
 Astro.addScriptHash("sha512-scriptHash");
 ---
 ```
+
+After the build, the `<meta>` element for this individual page will add your hash to the default `script-src` directive:
 
 ```html
 <meta
@@ -305,5 +375,5 @@ Astro.addScriptHash("sha512-scriptHash");
 ```
 
 :::caution
-Due to the nature of the vite dev server, this feature isn't supported in `dev`. It's recommended to test Astro application using `build` and `preview`
+Due to the nature of the Vite dev server, this feature isn't supported while working in `dev` mode. Instead, you can test this in your Astro project using `build` and `preview`.
 :::
