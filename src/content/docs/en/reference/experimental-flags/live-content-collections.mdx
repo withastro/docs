@@ -75,9 +75,9 @@ const { entry: productBySlug } = await getLiveEntry('products', { slug: Astro.pa
 ---
 ```
 
-## When to use live content loaders
+## When to use live content collections
 
-Live content loaders are designed for data that changes frequently and needs to be up-to-date when a page is requested. Consider using them when:
+Live content collections are designed for data that changes frequently and needs to be up-to-date when a page is requested. Consider using them when:
 
 - **Your data updates frequently** (e.g., product inventory, prices, availability)
 - **You need to pass dynamic filters** to your data source based on user input or request parameters
@@ -85,7 +85,7 @@ Live content loaders are designed for data that changes frequently and needs to 
 - **You need real-time information** (e.g., user-specific data, current stock levels)
 - **You want to avoid frequent rebuilds** for content that changes often
 
-In contrast, use regular content loaders when:
+In contrast, use regular content collections when:
 
 - **Performance is critical** and you want to pre-render data at build time
 - **Your data is relatively static** (e.g., blog posts, documentation, product descriptions)
@@ -93,9 +93,9 @@ In contrast, use regular content loaders when:
 - **You need to process MDX** or perform image optimization
 - **Your data can be fetched once and reused** across multiple builds
 
-## Using loaders
+## Using live collections
 
-You can define your own loaders for your site, or you can use community loaders distributed as npm packages. Here's how you could use example CMS and e-commerce loaders:
+You can define your own live loaders for your site, or you can use community loaders distributed as npm packages. Here's how you could use example CMS and e-commerce loaders:
 
 ```ts title="src/live.config.ts"
 import { defineCollection } from 'astro:content';
@@ -323,7 +323,7 @@ Loaders can be defined in your site or as a separate npm package. If you want to
 
 ## Type safety
 
-Like regular content loaders, live loaders can be typed to ensure type safety in your data. Unlike regular content loaders, live loaders can be typed without using Zod if preferred, by passing generic types to the `LiveLoader` interface.
+Like regular content collections, live collections can be typed to ensure type safety in your data. Unlike regular content collections, live loaders can define types for their collections without using Zod if preferred, by passing generic types to the `LiveLoader` interface.
 You can define the types for your collection and entry data, as well as custom filter types for querying, and custom error types for error handling.
 
 ### Type-safe data
@@ -461,9 +461,10 @@ if (error) {
 }
 ---
 ```
+
 ## Using Zod schemas
 
-You can use Zod schemas with live loaders to validate and transform data at runtime. When you define a schema, it takes precedence over the loader's types when you query the collection:
+You can use Zod schemas with live collections to validate and transform data at runtime. When you define a schema, it takes precedence over the loader's types when you query the collection:
 
 ```ts title="src/live.config.ts"
 import { z, defineCollection } from 'astro:content';
@@ -472,19 +473,21 @@ import { apiLoader } from './loaders/api-loader';
 const products = defineCollection({
   type: 'live',
   loader: apiLoader({ endpoint: process.env.API_URL }),
-  schema: z.object({
-    id: z.string(),
-    name: z.string(),
-    price: z.number(),
-    // Transform the API's category format
-    category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
-    // Coerce the date to a Date object
-    createdAt: z.coerce.date(),
-  }).transform((data) => ({
-    ...data,
-    // Add a formatted price field
-    displayPrice: `$${data.price.toFixed(2)}`, 
-  })),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transform the API's category format
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Coerce the date to a Date object
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Add a formatted price field
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
 });
 
 export const collections = { products };
@@ -562,6 +565,7 @@ if (cacheHint) {
   Astro.response.headers.set('Cache-Control', `s-maxage=${cacheHint.maxAge}`);
 }
 ---
+
 <h1>{entry.data.name}</h1>
 <p>{entry.data.description}</p>
 ```
@@ -572,16 +576,16 @@ Cache hints are advisory, and currently do not automatically cause the response 
 
 ## Limitations
 
-Live content loaders have some limitations compared to build-time loaders:
+Live content collections have some limitations compared to build-time collections:
 
 - **No MDX support**: MDX cannot be rendered at runtime
 - **No image optimization**: Images cannot be processed at runtime
 - **Performance considerations**: Data is fetched on each request (unless cached)
 - **No data store persistence**: Data is not saved to the content layer data store
 
-## Migration from regular loaders
+## Migration from regular collections
 
-Live loaders use a different API than regular content loaders. Key differences:
+Live collections use a different API than regular content collections. Key differences include:
 
 1. **File location**: Use `src/live.config.ts` instead of `src/content.config.ts`
 2. **Collection type**: Set `type: "live"` in `defineCollection`
@@ -590,4 +594,4 @@ Live loaders use a different API than regular content loaders. Key differences:
 5. **Execution time**: Runs at request time instead of build time
 6. **User-facing functions**: Use `getLiveCollection`/`getLiveEntry` instead of `getCollection`/`getEntry`
 
-For a complete overview and to give feedback on this experimental API, see the [Live Content Loaders RFC](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md).
+For a complete overview and to give feedback on this experimental API, see the [Live Content collections RFC](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md).
