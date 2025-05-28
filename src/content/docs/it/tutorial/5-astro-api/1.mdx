@@ -1,0 +1,251 @@
+---
+type: tutorial
+title: Crea un archivio di articoli del blog
+description: |-
+  Tutorial: Crea il tuo primo blog Astro —
+  Usa import.meta.glob() per accedere ai dati dai file nel tuo progetto
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Ora che hai alcuni articoli del blog a cui collegarti, è il momento di configurare la pagina Blog per creare automaticamente un elenco di essi!
+
+<PreCheck>
+  - Accedi ai dati da tutti i tuoi articoli contemporaneamente usando `import.meta.glob()`
+  - Visualizza un elenco di articoli generato dinamicamente sulla tua pagina Blog
+  - Esegui il refactoring per usare un componente `<BlogPost />` per ogni voce di elenco
+</PreCheck>
+
+## Visualizza dinamicamente un elenco di articoli
+
+<Steps>
+1. Aggiungi il seguente codice a `blog.astro` per restituire informazioni su tutti i tuoi file Markdown. `import.meta.glob()` restituirà un array di oggetti, uno per ogni articolo del blog.
+
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+    const pageTitle = "Il mio Blog di apprendimento di Astro";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>Questo è dove pubblicherò sul mio percorso di apprendimento di Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1/">Articolo 1</a></li>
+        <li><a href="/posts/post-2/">Articolo 2</a></li>
+        <li><a href="/posts/post-3/">Articolo 3</a></li>
+      </ul>
+    </BaseLayout>
+      ```
+
+
+2. Per generare l'intero elenco di articoli dinamicamente, usando i titoli e gli URL degli articoli, sostituisci i tuoi singoli tag `<li>` con il seguente codice Astro:
+
+    ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro'
+    const allPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+    const pageTitle = "Il mio Blog di apprendimento di Astro";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>Questo è dove pubblicherò sul mio percorso di apprendimento di Astro.</p>
+      <ul>
+        <li><a href="/posts/post-1/">Articolo 1</a></li>
+        <li><a href="/posts/post-2/">Articolo 2</a></li>
+        <li><a href="/posts/post-3/">Articolo 3</a></li>
+
+        {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+    Il tuo intero elenco di articoli del blog viene ora generato dinamicamente usando il supporto TypeScript integrato di Astro, mappando sull'array restituito da `import.meta.glob()`.
+
+3. Aggiungi un nuovo articolo del blog creando un nuovo file `post-4.md` in `src/pages/posts/` e aggiungendo un po' di contenuto Markdown. Assicurati di includere almeno le proprietà frontmatter usate qui sotto.
+
+    ```markdown
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: Il mio quarto articolo del blog
+    author: Studente Astro
+    description: "Questo articolo apparirà da solo!"
+    image:
+        url: "https://docs.astro.build/default-og-image.png"
+        alt: "La parola astro su un'illustrazione di pianeti e stelle."
+    pubDate: 2022-08-08
+    tags: ["astro", "successi"]
+    ---
+    Questo articolo dovrebbe apparire con gli altri miei articoli del blog, perché `import.meta.glob()` sta restituendo un elenco di tutti i miei articoli per creare il mio elenco.
+    ```
+
+4. Visita di nuovo la tua pagina blog nell'anteprima del tuo browser su `http://localhost:4321/blog` e cerca un elenco aggiornato con quattro elementi, incluso il tuo nuovo articolo del blog!
+</Steps>
+
+<Box icon="puzzle-piece">
+
+## Sfida: Crea un componente BlogPost
+
+Prova da solo ad apportare tutte le modifiche necessarie al tuo progetto Astro in modo da poter invece usare il seguente codice per generare il tuo elenco di articoli del blog:
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+<ul>
+  {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+</ul>
+```
+
+<details>
+<summary>Espandi per vedere i passaggi</summary>
+
+<Steps>
+1. Crea un nuovo componente in `src/components/`.
+
+    <details>
+    <summary>Mostra il nome del file</summary>
+    ```
+    BlogPost.astro
+    ```
+    </details>
+
+2. Scrivi la riga di codice nel tuo componente in modo che sia in grado di ricevere un `title` e `url` come `Astro.props`.
+
+    <details>
+    <summary>Mostra il codice</summary>
+    ```astro
+    ---
+    // src/components/BlogPost.astro
+    const { title, url } = Astro.props;
+    ---
+    ```
+    </details>
+
+3. Aggiungi il templating usato per creare ogni elemento nel tuo elenco di articoli del blog.
+
+    <details>
+    <summary>Mostra il codice</summary>
+    ```astro
+    <!-- src/components/BlogPost.astro -->
+    <li><a href={url}>{title}</a></li>
+    ```
+    </details>
+
+4. Importa il nuovo componente nella tua pagina Blog.
+
+    <details>
+    <summary>Mostra il codice</summary>
+    ```astro title="src/pages/blog.astro" ins={3}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
+    const pageTitle = "Il mio Blog di apprendimento di Astro";
+    ---
+    ```
+    </details>
+
+5. Controlla te stesso: vedi il codice del componente finito.
+
+    <details>
+    <summary>Mostra il codice</summary>
+    ```astro title="src/components/BlogPost.astro"
+    ---
+    const { title, url } = Astro.props
+    ---
+    <li><a href={url}>{title}</a></li>
+    ```
+    ```astro title="src/pages/blog.astro" ins={3,10}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import BlogPost from '../components/BlogPost.astro';
+    const allPosts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
+    const pageTitle = "Il mio Blog di apprendimento di Astro"
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>Questo è dove pubblicherò sul mio percorso di apprendimento di Astro.</p>
+      <ul>
+        {allPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+      </ul>
+    </BaseLayout>
+    ```
+    </details>
+</Steps>
+</details>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### Metti alla prova le tue conoscenze
+
+Se il tuo componente Astro contiene la seguente riga di codice:
+
+```astro
+---
+const myPosts = Object.values(import.meta.glob('./posts/*.md', { eager:  true }));
+---
+```
+
+Scegli la sintassi che potresti scrivere per rappresentare:
+
+1. Il titolo del tuo terzo articolo del blog.
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option isCorrect>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>Primo Articolo!!</a>`
+      </Option>
+    </MultipleChoice>
+
+2. Un link all'URL del tuo primo articolo del blog.
+
+    <MultipleChoice>
+      <Option>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option isCorrect>
+        `<a href={myPosts[0].url}>Primo Articolo!!</a>`
+      </Option>
+    </MultipleChoice>
+
+3. Un componente per ogni articolo, che visualizza la data dell'ultimo aggiornamento.
+
+    <MultipleChoice>
+      <Option isCorrect>
+        `myPosts.map((post) => <LastUpdated date={post.frontmatter.pubDate} />)`
+      </Option>
+      <Option>
+        `myPosts[2].frontmatter.title`
+      </Option>
+      <Option>
+        `<a href={myPosts[0].url}>Primo Articolo!!</a>`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+## Checklist
+
+<Box icon="check-list">
+
+<Checklist>
+- [ ] Posso interrogare i dati dai miei file locali.
+- [ ] Posso visualizzare un elenco di tutti i miei articoli del blog.
+</Checklist>
+</Box>
+
+### Risorse
+
+- [Importazione di pattern glob in Astro](/it/guides/imports/#importmetaglob)

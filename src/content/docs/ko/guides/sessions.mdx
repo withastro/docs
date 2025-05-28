@@ -1,0 +1,160 @@
+---
+title: 세션
+description: 요청 시 렌더링되는 페이지에 대한 요청 간에 데이터를 공유합니다.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+세션은 [요청 시 렌더링되는 페이지](/ko/guides/on-demand-rendering/)에 대한 요청 간에 데이터를 공유하는 데 사용됩니다.
+
+[`cookies`](/ko/guides/on-demand-rendering/#쿠키)와는 달리 세션은 서버에 저장되므로 크기 제한이나 보안 문제에 대한 걱정 없이 더 많은 양의 데이터를 저장할 수 있습니다. 사용자 데이터, 장바구니, 양식 상태와 같은 것들을 저장하는 데 유용하며, 클라이언트 측 JavaScript 없이 작동합니다.
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // 'server' 출력에는 필요하지 않습니다.
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+## 세션 구성
+
+세션 데이터를 저장하기 위해 스토리지 드라이버가 필요합니다. [Node](/ko/guides/integrations-guide/node/#세션), [Cloudflare](/ko/guides/integrations-guide/cloudflare/#세션) 및 [Netlify](/ko/guides/integrations-guide/netlify/#세션) 어댑터는 자동으로 기본 드라이버를 구성하지만, 현재 다른 어댑터를 사용하기 위해서는 [드라이버를 수동으로 지정](/ko/reference/configuration-reference/#sessiondriver)해야 합니다.
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+<ReadMore>
+  스토리지 드라이버 설정 및 기타 구성 가능한 옵션에 대한 자세한 내용은 [`session` 구성 옵션](/ko/reference/configuration-reference/#세션-옵션)을 참조하세요.
+</ReadMore>
+
+
+## 세션 데이터와 상호작용
+
+[`session` 객체](/ko/reference/api-reference/#session)를 사용하면 저장된 사용자 상태(예: 장바구니에 항목 추가) 및 세션 ID(예: 로그아웃 시 세션 ID 쿠키 삭제)와 상호 작용할 수 있습니다. 이 객체는 Astro 컴포넌트 및 페이지에서는 `Astro.session`으로, API 엔드포인트, 미들웨어 및 액션에서는 `context.session` 객체로 접근할 수 있습니다.
+
+세션은 처음 사용될 때 자동으로 생성되며, [`session.regenerate()`](/ko/reference/api-reference/#regenerate)를 사용하여 언제든지 재생성하거나 [`session.destroy()`](/ko/reference/api-reference/#destroy)를 사용하여 파괴할 수 있습니다.
+
+대부분의 사용 사례에서는 [`session.get()`](/ko/reference/api-reference/#get)과 [`session.set()`](/ko/reference/api-reference/#set)만 사용하면 됩니다.
+
+<ReadMore>
+자세한 내용은 [세션 API 참조](/ko/reference/api-reference/#session)를 확인하세요.
+</ReadMore>
+
+### Astro 컴포넌트 및 페이지
+
+`.astro` 컴포넌트 및 페이지에서는 전역 `Astro` 객체를 통해 세션 객체에 접근할 수 있습니다. 예를 들어, 장바구니에 담긴 상품의 수를 표시하려면 다음과 같이 할 수 있습니다.
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // 'server' 출력에는 필요하지 않습니다.
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### API 엔드포인트
+
+API 엔드포인트에서는 `context` 객체에서 세션 객체를 사용할 수 있습니다. 예를 들어, 장바구니에 항목을 추가하려면 다음과 같이 할 수 있습니다.
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+	const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### 액션
+
+액션에서는 `context` 객체에서 세션 객체를 사용할 수 있습니다. 예를 들어, 장바구니에 항목을 추가하려면 다음과 같이 할 수 있습니다.
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### 미들웨어
+
+:::note
+현재 에지 미들웨어에서는 세션이 지원되지 않습니다.
+:::
+
+미들웨어에서는 `context` 객체에서 세션 객체를 사용할 수 있습니다. 예를 들어, 세션에 마지막 방문 시간을 설정하려면 다음과 같이 할 수 있습니다.
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## 세션 데이터 타입
+
+기본적으로 세션 데이터는 타입이 지정되지 않으며, 어떤 키든 임의의 데이터를 저장할 수 있습니다. 값은 콘텐츠 컬렉션 및 액션에서 사용되는 것과 동일한 라이브러리인 [devalue](https://github.com/Rich-Harris/devalue)를 사용하여 직렬화 및 역직렬화됩니다. 이는 지원되는 타입이 동일하며, 문자열, 숫자, `Date`, `Map`, `Set`, `URL`, 배열 및 일반 객체를 포함한다는 의미입니다.
+
+선택적으로 `src/env.d.ts` 파일을 만들고 `App.SessionData` 타입 선언을 추가하여 세션 데이터의 TypeScript 타입을 정의할 수 있습니다.
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+이렇게 하면 편집기에서 타입 검사 및 자동 완성 기능을 사용하여 세션 데이터에 접근할 수 있습니다.
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+이것은 타입 검사에만 사용되며 세션의 런타임 동작에는 영향을 미치지 않습니다. 사용자가 세션에 데이터를 저장한 상태에서 타입을 변경하면 런타임 오류가 발생할 수 있으므로 각별히 주의하세요.
+:::
