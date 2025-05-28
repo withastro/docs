@@ -338,6 +338,50 @@ Astroコンポーネント内のスタイルをスコープするための戦略
 
 `'class'`を使用すると、Astroコンポーネント内の要素セレクターが（たとえばグローバルスタイルシートの）グローバルスタイルのデフォルトを上書きすることを保証できます。`'where'`を使用すると、詳細度をより細かく制御できますが、より高い詳細度のセレクター、レイヤー、その他のツールを使用して、適用されるセレクターを制御する必要があります。`'attribute'`を使用すると、要素の`class`属性を操作し、自分のスタイルロジックとAstroの適用するスタイルとの間の競合を回避する必要がある場合に便利です。
 
+### security
+
+<p>
+
+**データ型:** `Record<"checkOrigin", boolean> | undefined`<br />
+**デフォルト値:** `{checkOrigin: true}`<br />
+<Since v="4.9.0" />
+</p>
+
+Astroウェブサイトのセキュリティ対策を有効にします。
+
+これらの機能は、`server`モードを使用してオンデマンドでレンダリング（SSR）されるページ、または`static`モードでプリレンダリングをオプトアウトするページでのみ有効です。
+
+デフォルトでは、Astroはオンデマンドレンダリングされるページで各リクエストによって送信されるURLと"origin"ヘッダーが一致するかを自動的にチェックします。`checkOrigin`を`false`に設定することで、この動作を無効にできます。
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: false
+  }
+})
+```
+
+#### security.checkOrigin
+
+<p>
+
+**データ型:** `boolean`<br />
+**デフォルト値:** `true`<br />
+<Since v="4.9.0" />
+</p>
+
+すべてのモダンブラウザによって自動的に渡される"origin"ヘッダーが、各`Request`によって送信されるURLと一致するかをチェックします。これはクロスサイトリクエストフォージェリ（CSRF）保護を提供するために使用されます。
+
+"origin"チェックは、オンデマンドでレンダリングされるページでのみ実行され、次の`content-type`ヘッダーのいずれかを持つ`POST`、`PATCH`、`DELETE`、`PUT`リクエストのみが対象です：
+
+- `'application/x-www-form-urlencoded'`
+- `'multipart/form-data'`
+- `'text/plain'`
+
+"origin"ヘッダーがリクエストの`pathname`と一致しない場合、Astroは403ステータスコードを返し、ページをレンダリングしません。
+
 ### vite
 
 <p>
@@ -489,6 +533,25 @@ Astroが生成したアセットへのリンクのプレフィックスを指定
 }
 ```
 
+<p>
+<Since v="4.5.0" />
+</p>
+
+`assetsPrefix`にオブジェクトを渡して、各ファイルタイプに異なるドメインを指定することもできます。この場合、`fallback`プロパティが必要で、他のすべてのファイルのデフォルトとして使用されます。
+
+```js
+{
+  build: {
+    assetsPrefix: {
+      'js': 'https://js.cdn.example.com',
+      'mjs': 'https://js.cdn.example.com',
+      'css': 'https://css.cdn.example.com',
+      'fallback': 'https://cdn.example.com'
+    }
+  }
+}
+```
+
 ### build.serverEntry
 
 <p>
@@ -552,6 +615,34 @@ SSRのビルド時のサーバーエントリーポイントのファイル名�
 }
 ```
 
+### build.concurrency
+
+<p>
+
+**データ型:** `number`<br />
+**デフォルト値:** `1`<br />
+<Since v="4.16.0" />
+</p>
+
+並列でビルドするページ数です。
+
+**ほとんどの場合、デフォルト値の`1`を変更すべきではありません。**
+
+このオプションは、全体的なレンダリング時間を短縮する他の試み（フェッチ呼び出しやデータアクセスなどの長時間実行されるタスクのバッチ処理やキャッシュなど）が不可能または不十分な場合にのみ使用してください。
+数値が高すぎると、メモリリソースが不足し、JSがシングルスレッドであるため、ページレンダリングが遅くなる可能性があります。
+
+```js
+{
+  build: {
+    concurrency: 2
+  }
+}
+```
+
+:::caution[破壊的変更の可能性]
+この機能は安定しており、実験的とは見なされていません。ただし、この機能は困難なパフォーマンスの問題に対処することのみを目的としており、このオプションを可能な限りパフォーマンスを保つために[マイナーリリース](/ja/upgrade-astro/#セマンティックバージョニング)で破壊的変更が発生する可能性があります。この機能を使用している場合は、すべてのマイナーリリースで[Astro CHANGELOG](https://github.com/withastro/astro/blob/refs/heads/next/packages/astro/CHANGELOG.md)を確認してください。
+:::
+
 ## サーバーのオプション
 
 `astro dev`と`astro preview`の両方で使用される、Astroの開発サーバーをカスタマイズします。
@@ -603,6 +694,25 @@ localhost以外のIPなど、サーバーがリッスンするネットワーク
 }
 ```
 
+### server.allowedHosts
+
+<p>
+
+**データ型:** `Array<string> | true`<br />
+**デフォルト値:** `[]`<br />
+<Since v="5.4.0" />
+</p>
+
+Astroが応答を許可するホスト名のリストです。値が`true`に設定されている場合、任意のホスト名が許可されます。
+
+```js
+{
+  server: {
+    allowedHosts: ['staging.example.com', 'qa.example.com']
+  }
+}
+```
+
 ### server.open
 
 <p>
@@ -632,6 +742,143 @@ localhost以外のIPなど、サーバーがリッスンするネットワーク
 </p>
 
 `astro dev`と`astro preview`で送信されるカスタムHTTPレスポンスヘッダーを設定します。
+
+## セッションのオプション
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+Astroプロジェクトのセッションストレージを設定します。これは、セッションデータを永続的な方法で保存し、異なるリクエスト間でアクセスできるようにするために使用されます。
+一部のアダプターはデフォルトのセッションドライバーを提供する場合がありますが、独自の設定で上書きできます。
+
+詳細については、[セッションガイド](/ja/guides/sessions/)を参照してください。
+
+```js title="astro.config.mjs"
+{
+  session: {
+    // Unstorageドライバーの名前
+    driver: 'redis',
+    // 必要なオプションはドライバーによって異なります
+    options: {
+      url: process.env.REDIS_URL,
+    },
+    ttl: 3600, // 1時間
+  }
+}
+```
+
+### session.driver
+
+<p>
+
+**データ型:** `string | undefined`<br />
+<Since v="5.7.0" />
+</p>
+
+セッションストレージに使用するUnstorageドライバーです。[Node](/ja/guides/integrations-guide/node/#sessions)、[Cloudflare](/ja/guides/integrations-guide/cloudflare/#sessions)、[Netlify](/ja/guides/integrations-guide/netlify/#sessions)アダプターは自動的にデフォルトドライバーを設定しますが、希望する場合や、提供しないアダプターを使用している場合は、独自のドライバーを指定できます。
+
+`driver`には[Unstorageドライバードキュメント](https://unstorage.unjs.io/drivers)に記載されている「Driver name」を値として指定します。
+
+```js title="astro.config.mjs" ins={4}
+{
+  adapter: vercel(),
+  session: {
+    driver: "redis",
+  },
+}
+```
+
+:::note
+一部のドライバーは追加のパッケージのインストールが必要な場合があります。また、環境変数や認証情報の設定が必要な場合もあります。詳細については、[Unstorageドキュメント](https://unstorage.unjs.io/drivers)を参照してください。
+:::
+
+### session.options
+
+<p>
+
+**データ型:** `Record<string, unknown> | undefined`<br />
+**デフォルト値:** `{}`<br />
+<Since v="5.7.0" />
+</p>
+
+セッションストレージに使用するドライバー固有のオプションです。オプションは使用するドライバーによって異なります。各ドライバーで利用可能なオプションの詳細については、[Unstorageドキュメント](https://unstorage.unjs.io/drivers)を参照してください。
+
+```js title="astro.config.mjs" ins={4-6}
+{
+  session: {
+    driver: "redis",
+    options: {
+      url: process.env.REDIS_URL
+    },
+  }
+}
+```
+
+### session.cookie
+
+<p>
+
+**データ型:** `string | AstroCookieSetOptions | undefined`<br />
+**デフォルト値:** `{ name: "astro-session", sameSite: "lax", httpOnly: true, secure: true }`<br />
+<Since v="5.7.0" />
+</p>
+
+セッションクッキーの設定です。文字列を設定すると、クッキー名として使用されます。追加のオプションを含むオブジェクトを渡すこともできます。これらはデフォルトとマージされます。
+
+```js title="astro.config.mjs" ins={3-4}
+{
+  session: {
+    // 文字列を設定すると、クッキー名として使用されます。
+    cookie: "my-session-cookie",
+  }
+}
+```
+
+```js title="astro.config.mjs" ins={4-8}
+{
+  session: {
+    // オブジェクトを設定すると、クッキーオプションとして使用されます。
+    cookie: {
+      name: "my-session-cookie",
+      sameSite: "lax",
+      secure: true,
+    }
+  }
+}
+```
+
+### session.ttl
+
+<p>
+
+**データ型:** `number | undefined`<br />
+**デフォルト値:** {Infinity}<br />
+<Since v="5.7.0" />
+</p>
+
+セッション値のデフォルト有効期限（秒単位）です。
+
+`session.ttl`を指定しない場合、セッション値は削除されるかセッションが破棄されるまで持続し、時間経過によって自動的に期限切れになることはありません。
+
+セッション値にデフォルトの有効期限を追加するには、`session.ttl`を設定します。[`session.set()`](/ja/reference/api-reference/#set)に`ttl`オプションを渡すと、その個別のエントリのグローバルデフォルトを上書きします。
+
+```js title="astro.config.mjs" ins={3-4}
+{
+  session: {
+    // デフォルトの有効期限を1時間（3600秒）に設定
+    ttl: 3600,
+  }
+}
+```
+
+:::note
+`ttl`の値を設定しても、制限時間が経過した後にストレージから値が自動的に削除されるわけではありません。
+
+ストレージからの値は、`ttl`期間が経過した後にアクセスしようとした場合にのみ削除されます。この時点で、セッション値は未定義になり、その時点で値が削除されます。
+
+個別のドライバーは、指定された時間後にセッションを自動的に削除する`ttl`オプションもサポートしている場合があります。詳細については、選択したドライバーのドキュメントを参照してください。
+:::
 
 ## 開発ツールバーのオプション
 
@@ -835,6 +1082,50 @@ Sharp画像サービスが処理する画像サイズを制限するかどうか
   - すべてのサブルートを許可するには、'/**'で終わります（'startsWith'を使う）。
   - 1つの階層のサブルートのみを許可するには、'/*'で終わります。
 
+### image.experimentalLayout
+
+<p>
+**データ型:** `ImageLayout`<br />
+**デフォルト値:** `undefined`<br />
+</p>
+
+レスポンシブ画像のデフォルトレイアウトタイプです。画像コンポーネントの`layout`プロパティで上書きできます。`experimental.responsiveImages`フラグを有効にする必要があります。
+
+- `constrained` - 画像はアスペクト比を維持しながらコンテナに合わせてスケールしますが、指定された寸法を超えることはありません。
+- `fixed` - 画像は元の寸法を維持します。
+- `full-width` - 画像はアスペクト比を維持しながらコンテナに合わせてスケールします。
+
+### image.experimentalObjectFit
+
+<p>
+**データ型:** `ImageFit`<br />
+**デフォルト値:** `"cover"`<br />
+</p>
+
+レスポンシブ画像のデフォルトobject-fit値です。画像コンポーネントの`fit`プロパティで上書きできます。`experimental.responsiveImages`フラグを有効にする必要があります。
+
+### image.experimentalObjectPosition
+
+<p>
+**データ型:** `string`<br />
+**デフォルト値:** `"center"`<br />
+</p>
+
+レスポンシブ画像のデフォルトobject-position値です。画像コンポーネントの`position`プロパティで上書きできます。`experimental.responsiveImages`フラグを有効にする必要があります。
+
+### image.experimentalBreakpoints
+
+<p>
+**データ型:** `Array<number>`<br />
+**デフォルト値:** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`<br />
+</p>
+
+レスポンシブ画像の生成に使用されるブレークポイントです。`experimental.responsiveImages`フラグを有効にする必要があります。
+
+すべてのブレークポイントが使用されるわけではなく、通常はソースと出力サイズに応じてフィルタリングされます。使用されるデフォルト値は、ローカルまたはリモートの画像サービスが使用されるかによって異なります。
+
+リモートサービスの場合、必要なサイズのみが生成されるため、より包括的なリストが使用されます。ローカルサービスの場合、生成される画像の数を減らすためにリストが短くなります。
+
 ## マークダウンのオプション
 
 ### markdown.shikiConfig
@@ -866,6 +1157,42 @@ Shiki の設定項目です。使い方は[マークダウンの設定のドキ�
     syntaxHighlight: 'prism',
   }
 }
+```
+
+シンタックスハイライトをより詳細に制御するには、代わりに以下にリストされたプロパティを持つ設定オブジェクトを指定できます。
+
+#### markdown.syntaxHighlight.type
+
+<p>
+
+**データ型:** `'shiki' | 'prism'`<br />
+**デフォルト値:** `shiki`
+</p>
+
+マークダウンのコードブロックに適用するデフォルトのCSSクラスです。（他のシンタックスハイライト設定が不要な場合は、代わりに`markdown.syntaxHighlight`を直接`shiki`、`prism`、または`false`に設定できます。）
+
+#### markdown.syntaxHighlight.excludeLangs
+
+<p>
+
+**データ型:** `Array<string>`<br />
+**デフォルト値:** `['math']`
+</p>
+
+`markdown.syntaxHighlight.type`で指定されたデフォルトのシンタックスハイライトから除外する言語の配列です。これは、Mermaid.jsやD2などのマークダウンのコードブロックから図を作成するツールを使用する場合に便利です。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math'],
+    },
+  },
+});
 ```
 
 ### markdown.remarkPlugins
@@ -1037,6 +1364,32 @@ export default defineConfig({
 
 サイトのURLを決定するためのルーティング戦略を制御します。デフォルト言語のフォルダ/URLのパス設定を元に設定してください。
 
+```js
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+      prefixDefaultLocale: false,
+      redirectToDefaultLocale: true,
+      fallbackType: "redirect",
+    }
+  }
+})
+```
+
+4.6.0以降、このオプションは`manual`に設定することもできます。このルーティング戦略が有効になると、Astroはi18nミドルウェアを**無効化**し、他の`routing`オプション（例：`prefixDefaultLocale`）は設定できません。独自のルーティングロジックを記述するか、独自のものと並行してAstroのi18nミドルウェアを手動で実行する必要があります。
+
+```js
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: "manual"
+  }
+})
+```
+
 #### i18n.routing.prefixDefaultLocale
 
 <p>
@@ -1049,6 +1402,18 @@ export default defineConfig({
 `false`の場合、デフォルト以外の言語でのみ言語プリフィックスが表示されます。`defaultLocale`では、言語プリフィックスとローカライズされたフォルダに存在しないコンテンツファイルは表示されません。URLの形式は、デフォルト以外のすべての言語では`example.com/[lang]/content/`になりますが、デフォルトのロケールでは`example.com/content/`になります。
 
 `true`の場合、すべてのURLに言語プリフィックスが表示されます。URLの形式は、デフォルト言語も含めて、すべてのルーティングで`example.com/[lang]/content/`になります。ローカライズされたフォルダが、デフォルト言語も含めてすべての言語で使用されます。
+
+```js
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+    routing: {
+      prefixDefaultLocale: true,
+    }
+  }
+})
+```
 
 #### i18n.routing.redirectToDefaultLocale
 
@@ -1074,6 +1439,192 @@ i18n:{
       redirectToDefaultLocale: false
   }
 }
+})
+```
+
+#### i18n.routing.fallbackType
+
+<p>
+
+**データ型:** `"redirect" | "rewrite"`<br />
+**デフォルト値:** `"redirect"`<br />
+</p>
+
+[`i18n.fallback`](#i18nfallback)が設定され、存在しないページルートに対して404ページの表示を回避する場合、このオプションはフォールバックページに[リダイレクト](/ja/guides/routing/#redirects)するか、フォールバックページのコンテンツをその場で[リライト](/ja/guides/routing/#rewrites)するかを制御します。
+
+デフォルトでは、Astroのi18nルーティングは、フォールバック設定に基づいて訪問者を新しい宛先にリダイレクトするページを作成します。ブラウザは更新され、URLバーに宛先アドレスが表示されます。
+
+`i18n.routing.fallbackType: "rewrite"`が設定されている場合、Astroは元のリクエストされたURLでフォールバックページのコンテンツをレンダリングするページを作成します。
+
+以下の設定では、`src/pages/en/about.astro`ファイルがあるが`src/pages/fr/about.astro`がない場合、`astro build`コマンドは`dist/en/about.html`ページと同じコンテンツで`dist/fr/about.html`を生成します。サイト訪問者は`https://example.com/fr/about/`で英語版のページを見ることになり、リダイレクトされません。
+
+```js
+//astro.config.mjs
+export default defineConfig({
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+      prefixDefaultLocale: false,
+      fallbackType: "rewrite",
+    },
+    fallback: {
+      fr: "en",
+    }
+  },
+})
+```
+
+### i18n.domains
+
+<p>
+
+**データ型:** `Record<string, string>`<br />
+**デフォルト値:** `{}`<br />
+<Since v="4.3.0" />
+</p>
+
+サポートされている言語のURLパターンについて、カスタムドメイン（またはサブドメイン）を使用するように設定します。
+
+ロケールがドメインにマッピングされると、`/[locale]/`パスプレフィックスは使用されません。 ただし、設定された`defaultLocale`を含めて、`src/pages/`内のローカライズされたフォルダは依然として必要です。
+
+設定されていない他のすべてのロケールは、`prefixDefaultLocale`戦略に従って、デフォルトでローカライズされたパスベースのURL（例：`https://example.com/[locale]/blog`）になります。
+
+```js
+//astro.config.mjs
+export default defineConfig({
+  site: "https://example.com",
+  output: "server", // 必須、プリレンダリングされたページはなし
+  adapter: node({
+    mode: 'standalone',
+  }),
+  i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+    prefixDefaultLocale: false,
+    domains: {
+      fr: "https://fr.example.com",
+      es: "https://example.es"
+    }
+  },
+})
+```
+
+構築されたページルートと、`astro:i18n`ヘルパー関数[`getAbsoluteLocaleUrl()`](/ja/reference/modules/astro-i18n/#getabsolutelocaleurl)および[`getAbsoluteLocaleUrlList()`](/ja/reference/modules/astro-i18n/#getabsolutelocaleurllist)によって返されるURLの両方が、`i18n.domains`で設定されたオプションを使用します。
+
+詳細については、この機能の制限を含めて[国際化ガイド](/ja/guides/internationalization/#domains)を参照してください。
+
+## env
+
+<p>
+
+**データ型:** `object`<br />
+**デフォルト値:** `{}`<br />
+<Since v="5.0.0" />
+</p>
+
+型安全な環境変数の設定オプションです。
+
+詳細については、[Astroにおける環境変数](/ja/guides/environment-variables/)のガイドを参照してください。
+
+### env.schema
+
+<p>
+
+**データ型:** `EnvSchema`<br />
+**デフォルト値:** `{}`<br />
+<Since v="5.0.0" />
+</p>
+
+`envField`を使用して、環境変数のデータ型とプロパティを定義します。指定できるオプションは以下の通りです。
+
+- `context`: `"client"`か`"server"`か
+- `access`: `"public"`か`"secret"`か
+- `default`: 環境変数のデフォルト値
+- `optional`: 環境変数が必須かどうか（デフォルトは`false`）
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+`envField`はstring、number、enum、booleanの4つのデータ型をサポートします。`context`と`access`はすべてのデータ型で必須のプロパティです。以下は各データ型で利用可能なプロパティの完全なリストです：
+
+```js
+import { envField } from "astro/config"
+
+envField.string({
+  // context & access
+  optional: true,
+  default: "foo",
+  max: 20,
+  min: 1,
+  length: 13,
+  url: true,
+  includes: "oo",
+  startsWith: "f",
+  endsWith: "o",
+})
+
+envField.number({
+  // context & access
+  optional: true,
+  default: 15,
+  gt: 2,
+  min: 1,
+  lt: 3,
+  max: 4,
+  int: true,
+})
+
+envField.boolean({
+  // context & access
+  optional: true,
+  default: true,
+})
+
+envField.enum({
+  // context & access
+  values: ['foo', 'bar', 'baz'], // 必須
+  optional: true,
+  default: 'baz',
+})
+```
+
+### env.validateSecrets
+
+<p>
+
+**データ型:** `boolean`<br />
+**デフォルト値:** `false`<br />
+<Since v="5.0.0" />
+</p>
+
+開発サーバーの起動時またはビルド実行時に、サーバー上でシークレットを検証するかどうかを設定します。
+
+デフォルトでは、開発サーバーの起動時またはビルド時にサーバー上でパブリック変数のみが検証され、プライベート変数は実行時にのみ検証されます。`validateSecrets`を`true`にすると、プライベート変数も起動時にチェックされます。これは、デプロイ前にすべてのシークレットが正しく設定されていることを確認するために、一部の継続的インテグレーション（CI）パイプラインで有用です。
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    },
+    validateSecrets: true
+  }
 })
 ```
 
