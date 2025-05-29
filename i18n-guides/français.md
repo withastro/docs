@@ -109,7 +109,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | to export | exporter | |
 | to fetch | récupérer | |
 | to import | importer | |
-| to push | transférer / envoyer | |
+| to push | publier / envoyer / transférer | |
 | to render | afficher / générer / effectuer un rendu / restituer | |
 | to slot | inclure / injecter / insérer | |
 | to store | stocker / enregistrer / sauvegarder / conserver | |
