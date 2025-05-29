@@ -360,29 +360,24 @@ export function feedLoader({ url }): Loader {
 
 Renders a Markdown string to HTML, returning a `RenderedContent` object. This allows the entry to be rendered in a page using the [`render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content). To enable this, assign the rendered content to the [`rendered`](#rendered) field of the [`DataEntry`](#dataentry) object.
 
-```ts title=loader.ts {21-22}
-import type { Loader } from "astro/loaders";
-import { loadFeed } from "./feed.js";
-export function feedLoader({ url }): Loader {
-  const feedUrl = new URL(url);
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
   return {
-    name: "feed-loader",
-    load: async ({ store, logger, parseData, renderMarkdown }) => {
-      logger.info("Loading posts");
-      const feed = loadFeed(feedUrl);
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
       store.clear();
 
-      for (const item of feed.items) {
-        const data = await parseData({
-          id: item.guid,
-          data: item,
-        });
-
-        store.set({
-          id,
-          data,
-          // Render the Markdown content to HTML
-          rendered: await renderMarkdown(data.content),
+      for (const entry of entries) {
+        store.set(entry.id, {
+          id: entry.id,
+          data: entry,
+          // Assume each entry has a 'content' field with markdown content
+          rendered: await renderMarkdown(entry.content),
         });
       }
     },
