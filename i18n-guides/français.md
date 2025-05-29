@@ -40,7 +40,7 @@ Il existe d'autres mots ne possédant pas de traduction officielle ou dont le te
 | middleware | Désigne un logiciel qui permet de coordonner le fonctionnement de plusieurs logiciels. | Bien que « logiciel médiateur » et « intergiciel » soient les traductions recommandées, elles sont rarement utilisées ailleurs. |
 | hook | Désigne un point d'ancrage permettant à l'utilisateur d'exécuter du code à un endroit précis du code source. | « crochet » n'apporte pas suffisamment de sens et il est rarement traduit ailleurs. Précédente discussion : https://github.com/withastro/docs/pull/11593#discussion_r2074976678 |
 | headless | Désigne une architecture où le front-end et le back-end sont proposés séparément (p ex. un CMS pour gérer les contenus et une application Astro pour l'afficher). | Il n'existe pas de traduction officielle et nous pensons que « sans-tête » n'est pas suffisamment porteur de sens. Précédente discussion : https://github.com/withastro/docs/pull/11593#discussion_r2074967636 |
-| glob / globbing | Désigne une fonction ou processus permettant de faire correspondre des motifs à des noms de répertoire ou de fichier en utilisant des caractères géneriques (aussi connu sous le nom de « [appariement de formes](https://www.culture.fr/franceterme/terme/INFO82) ») | Nous n'avons pas de traduction officielle pour ce terme et utiliser « global » serait une erreur de traduction. |
+| glob / globbing | Désigne une fonction ou processus permettant de faire correspondre des motifs à des noms de répertoire ou de fichier en utilisant des caractères géneriques (aussi connu sous le nom de « [appariement de formes](https://www.culture.fr/franceterme/terme/INFO82) ») | Nous n'avons pas de traduction officielle pour ce terme et utiliser « global » serait une erreur de traduction. Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112787624 |
 
 ###  🔤 Traductions courantes
 
@@ -62,7 +62,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | Anglais | Français | Explications/Référence (facultatif) |
 |---------|----------|-------------------------------------|
 | assets | ressources | « actif » vient du [monde de la finance](https://www.culture.fr/franceterme/Resultats-de-recherche?q=asset&domaine=0). Il est préférable d'utiliser « [ressource](https://fr.wiktionary.org/wiki/asset) ». |
-| breaking changes | changements non rétrocompatibles / changements avec rupture de compatibilité | « changements majeurs » est acceptable pour éviter les répétitions tant qu'on garde la notion que quelque chose peut « casser » dans le titre/texte.|
+| breaking changes | changements non rétrocompatibles / changements avec rupture de compatibilité | « changements majeurs » est acceptable pour éviter les répétitions tant qu'on garde la notion que quelque chose peut « casser » dans le titre/texte. Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112817635 |
 | build | Suivant le contexte : création / construction / compilation. En référence à `astro build`, on privilégiera le terme compilation.  | |
 | bundle | regroupement | |
 | changelog | journal des modifications | |
@@ -78,14 +78,14 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | header | en-tête | |
 | heading | titre ou en-tête | Nous n'avons pas de consensus (« titre » dans Astro Docs et « en-tête » dans Starlight). Précédente discussion : https://github.com/withastro/starlight/pull/2884#discussion_r1957379942 |
 | import | importation | |
-| inline | au sein de / dans le corps / intégré à | La traduction dépend fortement du contexte, les propositions précédentes ne sont que des exemples possibles. Il est préférable de trouver une alternative à « en ligne » dans la majorité des cas. |
+| inline | au sein de / dans le corps / intégré à | La traduction dépend fortement du contexte, les propositions précédentes ne sont que des exemples possibles. Il est préférable de trouver une alternative à « en ligne » dans la majorité des cas. Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112802152 |
 | issue | problème ou, en référence à la fonctionnalité de Github, ticket | [MDN](https://developer.mozilla.org/fr/docs/MDN/Community/Issues) utilise également « ticket » pour décrire la fonctionnalité de Github |
 | layout | mise en page | |
 | live | en ligne / opérationnel | « live » est généralement utilisé pour différencier développement/production donc « en direct » est rarement la bonne traduction. Il peut être préférable d'omettre ce mot si le contexte est clair. |
 | on-demand rendering | rendu à la demande | |
 | overlay | par superposition / (fenêtre) superposée | |
 | package | paquet | |
-| pattern | modèle / (en référence aux expressions régulières et à glob) motif ou formule | D'autres traductions peuvent être acceptables en fonction du contexte. Par exemple, « formule » semblait plus appropriée [dans le tutoriel](https://docs.astro.build/fr/tutorial/2-pages/3/#analyser-la-formule). |
+| pattern | modèle / (en référence aux expressions régulières et à glob) motif ou formule | D'autres traductions peuvent être acceptables en fonction du contexte. Par exemple, « formule » semblait plus appropriée [dans le tutoriel](https://docs.astro.build/fr/tutorial/2-pages/3/#analyser-la-formule). Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112789565 |
 | placeholder | mot + par défaut / réservé / substituable / fictif | La traduction dépend fortement du contexte, les propositions précédentes ne sont que des exemples possibles. Précédente discussion : https://github.com/withastro/docs/pull/11593#discussion_r2071856903 |
 | plugin | module d'extension | |
 | preset | préréglage | « préconfiguration » pourrait convenir mais dans certains cas la formulation devient lourde. Discuté dans https://github.com/withastro/starlight/pull/3126#discussion_r2046673972 |
@@ -109,13 +109,13 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | to export | exporter | |
 | to fetch | récupérer | |
 | to import | importer | |
-| to push | publier / envoyer / transférer | |
+| to push | publier / envoyer / transférer | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112807722 |
 | to render | afficher / générer / effectuer un rendu / restituer | |
 | to slot | inclure / injecter / insérer | |
 | to store | stocker / enregistrer / sauvegarder / conserver | |
 | to style | mettre en forme / appliquer des styles | |
-| to support (quelque chose) | prendre en charge / être compatible avec / fonctionner sous | |
-| to support (une personne) | assister | |
+| to support (quelque chose) | prendre en charge / être compatible avec / fonctionner sous | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112812611 |
+| to support (une personne) | assister | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112812611 |
 | to type | écrire / saisir / (en référence à Typescript) définir un type | |
 | to wrap | englober / envelopper | |
 | type safe | sûreté du typage | |
