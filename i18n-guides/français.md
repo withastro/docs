@@ -114,7 +114,8 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | to slot | inclure / injecter / insérer | |
 | to store | stocker / enregistrer / sauvegarder / conserver | |
 | to style | mettre en forme / appliquer des styles | |
-| to support | prendre en charge | |
+| to support (quelque chose) | prendre en charge / être compatible avec / fonctionner sous | |
+| to support (une personne) | assister | |
 | to type | écrire / saisir / (en référence à Typescript) définir un type | |
 | to wrap | englober / envelopper | |
 | type safe | sûreté du typage | |
