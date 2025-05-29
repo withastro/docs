@@ -62,7 +62,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | Anglais | Français | Explications/Référence (facultatif) |
 |---------|----------|-------------------------------------|
 | assets | ressources | « actif » vient du [monde de la finance](https://www.culture.fr/franceterme/Resultats-de-recherche?q=asset&domaine=0). Il est préférable d'utiliser « [ressource](https://fr.wiktionary.org/wiki/asset) ». |
-| breaking (changes) | (changements/modifications) avec rupture de compatibilité / cassants / de rupture | « changements majeurs » est acceptable pour éviter les répétitions tant qu'on garde la notion que quelque chose peut « casser » dans le titre/texte.|
+| breaking changes | changements non rétrocompatibles / changements avec rupture de compatibilité | « changements majeurs » est acceptable pour éviter les répétitions tant qu'on garde la notion que quelque chose peut « casser » dans le titre/texte.|
 | build | Suivant le contexte : création / construction / compilation. En référence à `astro build`, on privilégiera le terme compilation.  | |
 | bundle | regroupement | |
 | changelog | journal des modifications | |
