@@ -78,7 +78,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | header | en-tête | |
 | heading | titre ou en-tête | Nous n'avons pas de consensus (« titre » dans Astro Docs et « en-tête » dans Starlight). Précédente discussion : https://github.com/withastro/starlight/pull/2884#discussion_r1957379942 |
 | import | importation | |
-| inline | au sein de / dans / intégré à | La traduction dépend fortement du contexte, les propositions précédentes ne sont que des exemples possibles. Il est préférable de trouver une alternative à « en ligne » dans la majorité des cas. |
+| inline | au sein de / dans le corps / intégré à | La traduction dépend fortement du contexte, les propositions précédentes ne sont que des exemples possibles. Il est préférable de trouver une alternative à « en ligne » dans la majorité des cas. |
 | issue | problème ou, en référence à la fonctionnalité de Github, ticket | [MDN](https://developer.mozilla.org/fr/docs/MDN/Community/Issues) utilise également « ticket » pour décrire la fonctionnalité de Github |
 | layout | mise en page | |
 | live | en ligne / opérationnel | « live » est généralement utilisé pour différencier développement/production donc « en direct » est rarement la bonne traduction. Il peut être préférable d'omettre ce mot si le contexte est clair. |
