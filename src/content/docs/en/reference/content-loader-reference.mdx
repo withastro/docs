@@ -351,6 +351,45 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
+#### `renderMarkdown`
+
+<p>
+**Type**: `(markdown: string) => Promise<RenderedContent>`
+</p>
+<Since v="5.9.0" />
+
+Renders a Markdown string to HTML, returning a `RenderedContent` object. This allows the entry to be rendered in a page using the [`render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content). To enable this, assign the rendered content to the [`rendered`](#rendered) field of the [`DataEntry`](#dataentry) object.
+
+```ts title=loader.ts {21-22}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, renderMarkdown }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+
+        store.set({
+          id,
+          data,
+          // Render the Markdown content to HTML
+          rendered: await renderMarkdown(data.content),
+        });
+      }
+    },
+  };
+}
+```
+
 #### `generateDigest`
 
 <p>
@@ -618,7 +657,7 @@ The format of the `RenderedContent` object is:
 	/** Rendered HTML string. If present then `render(entry)` will return a component that renders this HTML. */
 	html: string;
 	metadata?: {
-		/** Any images that are present in this entry. Relative to the {@link DataEntry} filePath. */
+		/** Any images that are present in this entry. Relative to the DataEntry filePath. */
 		imagePaths?: Array<string>;
 		/** Any headings that are present in this file. Returned as `headings` from `render()` */
 		headings?: MarkdownHeading[];
@@ -629,3 +668,5 @@ The format of the `RenderedContent` object is:
 	};
 }
 ```
+
+If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
