@@ -107,6 +107,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | to build | Suivant le contexte : créer / construire / compiler | |
 | to bundle | regrouper | |
 | to commit | valider | Il s'agit de la traduction utilisée dans l'interface française de VS Code. |
+| to deprecate | déprécier | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2114666199 |
 | to export | exporter | |
 | to fetch | récupérer | |
 | to import | importer | |
