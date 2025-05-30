@@ -248,6 +248,92 @@ export default defineConfig({
 });
 ```
 
+### `entryfilePath`
+<p>
+**Type:** `string`
+</p>
+
+The `entryfilePath` option allows you to specify the path to a custom entry file. By default, the adapter uses a generic entry file, which only supports the `fetch` handler, but you can change it to support other [Cloudflare invocation handlers](https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs) as well. This is useful if you want to use e.g. Durable Objects, Cloudflare Queues, Scheduled Invocations, etc.
+
+```js title="astro.config.mjs" "src/worker.ts"
+export default defineConfig({
+  adapter: cloudflare({
+    entryfilePath: 'src/worker.ts'
+  }),
+});
+```
+
+The custom entry file must export the `createExports` function, with a `default` export including all the handlers. As an template you can use the following example:
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				return handle(manifest, app, request, env, ctx);
+			},
+      async scheduled(controller, env, ctx) {
+        ctx.waitUntil(doSomeTaskOnASchedule());
+      },
+			async queue(batch, _env) {
+				let messages = JSON.stringify(batch.messages);
+    		console.log(`consumed from our queue: ${messages}`);
+			},
+		} satisfies ExportedHandler<Env>
+	}
+}
+```
+
+### `entryfileExports`
+<p>
+**Type:** `string[]`
+</p>
+
+The `entryfileExports` option allows you to specify the exports from a custom entry file. By default, the adapter uses `["default"]`. If you have defined named exports in your custom entry file, you can specify them here. This is useful if you want to use e.g. Durable Objects, RPC, etc.
+
+```js title="astro.config.mjs" "'DurableObject', 'RPC'"
+export default defineConfig({
+  adapter: cloudflare({
+    entryfileExports: ['MyDurableObject', 'RPC']
+  }),
+});
+```
+
+The custom entry file must export the `createExports` function, with any named export. As an template you can use the following example:
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    // Required, as we're extending the base class.
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				return handle(manifest, app, request, env, ctx);
+			},
+		} satisfies ExportedHandler<Env>,
+    MyDurableObject: MyDurableObject,
+	}
+}
+```
+
 ## Cloudflare runtime
 
 ### Usage
