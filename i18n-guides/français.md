@@ -69,6 +69,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | (the) CLI / (the) command line interface | (la) CLI / (l')interface en ligne de commande | |
 | client-side | côté client | |
 | code fences (`---`) | délimitateur de code | |
+| deprecation | dépréciation | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2114666199 |
 | docs | documentation | |
 | endpoint | point de terminaison | |
 | export | exportation | |
