@@ -191,9 +191,11 @@ const { title, text } = Astro.props;
 </html>
 ```
 
-### サーバー（SSR）モード
+## オンデマンド動的ルート
 
-[SSR](/ja/guides/on-demand-rendering/)モードでも、動的ルートは同じように定義されます。つまり、任意の文字列やパスにマッチさせるために、ファイル名に`[param]`や`[...path]`などのブラケットを含められます。しかし、各ルートは事前にビルドされないため、マッチしたすべてのルートに対してページが提供されます。これらは「静的」ルートではないため、`getStaticPaths`は使用できません。
+[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)では、動的ルートは同じように定義されます。つまり、任意の文字列やパスにマッチさせるために、ファイル名に`[param]`や`[...path]`などのブラケットを含められます。しかし、各ルートは事前にビルドされないため、マッチしたすべてのルートに対してページが提供されます。これらは「静的」ルートではないため、`getStaticPaths`は使用できません。
+
+オンデマンドレンダリングされるルートでは、ファイル名にスプレッド記法を使用したレストパラメーターは1つだけ使用できます（例：`src/pages/[locale]/[...slug].astro`または`src/pages/[...locale]/[slug].astro`は可能ですが、`src/pages/[...locale]/[...slug].astro`は不可です）。
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
@@ -207,7 +209,7 @@ const { resource, id } = Astro.params;
 
 #### `[...slug]`の例をSSR用に変更する
 
-SSRページでは`getStaticPaths()`を使用できないため、propsを受け取れません。しかし、オブジェクト内の`slug`パラメーターの値を参照することで、[前の例](#複数レベルの動的ページの例)をSSRモードにも対応させられます。"/"に対応するルートの場合、スラグパラメーターは`undefined`になります。値がオブジェクトに存在しない場合は、404ページにリダイレクトします。
+SSRページでは`getStaticPaths()`を使用できないため、propsを受け取れません。しかし、オブジェクト内の`slug`パラメーターの値を参照することで、[前の例](#複数レベルの動的ページの例)をSSRモードにも対応させられます。ルートが"/"の場合、`slug`パラメーターは`undefined`になります。以下の例では値がオブジェクトに存在しない場合は、404ページにリダイレクトしています。
 
 ```astro title="src/pages/[...slug].astro"
 ---
@@ -270,7 +272,9 @@ export default defineConfig({
 });
 ```
 
-このリダイレクトは、ファイルベースルーティングと同じルールに従います。たとえば、新しいルートと古いルートの両方に同じパラメーターが含まれていれば、動的ルートも可能です。
+これらのリダイレクトは[ファイルベースのルートと同じ優先順位ルール](#ルーティングの優先順位)に従い、プロジェクト内に同じ名前の既存のページファイルがある場合は常に優先順位が低くなります。たとえば、プロジェクトに`src/pages/old-page.astro`ファイルが含まれている場合、`/old-page`は`/new-page`にリダイレクトされません。
+
+新しいルートと古いルートの両方に同じパラメーターが含まれていれば、動的ルートも可能です。
 
 ```js
 {
@@ -316,9 +320,6 @@ if (!isLoggedIn(cookie)) {
   return Astro.redirect('/login');
 }
 ---
-<html>
-  <!-- ページの内容... -->
-</html>
 ```
 
 ## リライト
@@ -467,32 +468,11 @@ const { page } = Astro.props;
 
 ### `page` プロパティ
 
-`paginate()`関数を使用すると、各ページのデータは`page`プロパティで渡されます。`page`プロパティは多くの便利なプロパティを持っていますが、ここではそのうち重要なものを紹介します。
-- **page.data** - `paginate()`関数に渡された、ページのスライスデータを含む配列です
-- **page.url.next** - セット内の次のページへのリンクです
-- **page.url.prev** - セット内の前のページへのリンクです
-
-```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next))?/
----
-// src/pages/astronauts/[page].astro
-// 前の例と同じように、{ astronaut } オブジェクトのリストをページネーションします
-export async function getStaticPaths({ paginate }) { /* ... */ }
-const { page } = Astro.props;
----
-<h1>{page.currentPage}ページ</h1>
-<ul>
-  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
-</ul>
-{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
-{page.url.next ? <a href={page.url.next}>Next</a> : null}
-```
-
-
-#### 完全なAPIリファレンス
+`paginate()`関数を使用すると、各ページのデータは`page`プロパティで渡されます。`page`プロパティは多くの便利なプロパティを持っています。
 
 ```ts
 interface Page<T = any> {
-	/** 結果 */
+	/** paginate() 関数に渡されたページのデータを含む配列 */
 	data: T[];
 	/** メタデータ */
 	/** 0から始まる、ページ上の最初のアイテムのインデックス */
@@ -503,7 +483,7 @@ interface Page<T = any> {
 	total: number;
 	/** 1から始まる、現在のページ番号 */
 	currentPage: number;
-	/** 1ページあたりのアイテム数（デフォルトは25） */
+	/** 1ページあたりのアイテム数（デフォルトは10） */
 	size: number;
 	/** 最終ページ番号 */
 	lastPage: number;
@@ -514,9 +494,34 @@ interface Page<T = any> {
 		prev: string | undefined;
 		/** 次のページのURL（もしあれば） */
 		next: string | undefined;
+		/** 最初のページのURL（現在のページが最初のページでない場合） */
+		first: string | undefined;
+		/** 最後のページのURL（現在のページが最後のページでない場合） */
+		last: string | undefined;
 	};
 }
 ```
+
+以下の例では、ページの現在の情報とページ間を移動するためのリンクを表示しています：
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
+---
+// src/pages/astronauts/[page].astro
+// 前の例と同じように、{ astronaut } オブジェクトのリストをページネーションします
+export function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>{page.currentPage}ページ</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.first ? <a href={page.url.first}>最初</a> : null}
+{page.url.prev ? <a href={page.url.prev}>前へ</a> : null}
+{page.url.next ? <a href={page.url.next}>次へ</a> : null}
+{page.url.last ? <a href={page.url.last}>最後</a> : null}
+```
+
+<ReadMore>[ページネーションの`page`](/ja/reference/routing-reference/#the-pagination-page-prop)についてもっと学ぶ。</ReadMore>
 
 ### ネストされたページネーション
 
