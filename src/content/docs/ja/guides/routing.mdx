@@ -16,6 +16,9 @@ Astroでは、ルート間の移動に標準的なHTMLの[`<a>`要素](https://d
 
 ```astro title="src/pages/index.astro"
 <p>Astroの<a href="/about/">概要</a>についてもっと読む！</p>
+
+<!-- `base: "/docs"`が設定されている場合 -->
+<p><a href="/docs/reference/">リファレンス</a>セクションでもっと学びましょう！</p> 
 ```
 
 ## 静的ルーティング
@@ -86,6 +89,22 @@ const { lang, version } = Astro.params;
 パラメーターはパス内の異なる部分に設定できます。たとえば、上と同じ`getStaticPaths()`をもつ`src/pages/[lang]/[version]/info.astro`ファイルは、`/en/v1/info`と`/fr/v2/info`のルートを生成します。
 
 <ReadMore>[`getStaticPaths()`](/ja/reference/routing-reference/#getstaticpaths)についてもっと学ぶ。</ReadMore>
+
+#### `params`のデコード
+
+`getStaticPaths()`関数に提供される`params`はデコードされていません。パラメーター値をデコードする必要がある場合は、[`decodeURI`](https://developer.mozilla.org/ja/docs/Web/JavaScript/Reference/Global_Objects/decodeURI)関数を使用してください。
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") }}, // "[page]"にデコードされます
+  ]
+}
+---
+```
+
+<ReadMore>[`getStaticPaths`](/ja/reference/routing-reference/#getstaticpaths)についてもっと詳しく見る。</ReadMore>
 
 <RecipeLinks slugs={["ja/recipes/i18n"]} />
 
@@ -178,6 +197,7 @@ const { title, text } = Astro.props;
 
 ```astro title="src/pages/resources/[resource]/[id].astro"
 ---
+export const prerender = false; // 'server'モードでは不要
 const { resource, id } = Astro.params;
 ---
 <h1>{resource}: {id}</h1>
@@ -235,14 +255,17 @@ Astroの設定で、[永久的に移動したページにユーザーをリダ�
 
 <p><Since v="2.9.0" /></p>
 
-`redirects`値を使用して、Astroの設定から永久的なリダイレクトのマッピングを指定できます。ほとんどのリダイレクトでは、これは古いルートから新しいルートへのマッピングとなります。
+`redirects`値を使用して、Astroの設定から永久的なリダイレクトのマッピングを指定できます。
 
-```js title="astro.config.mjs" {4-6}
+サイト内のリダイレクトを定義する場合、これは古いルートから新しいルートへのマッピングとなります。Astro v5.2.0以降では、`http`または`https`で始まる[解析可能](https://developer.mozilla.org/ja/docs/Web/API/URL/canParse_static)な外部URLへのリダイレクトも可能です：
+
+```js title="astro.config.mjs" {4-7}
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   redirects: {
-    '/old-page': '/new-page'
+    '/old-page': '/new-page',
+    '/blog': 'https://example.com/blog'
   }
 });
 ```
@@ -265,6 +288,10 @@ export default defineConfig({
     '/old-page': {
       status: 302,
       destination: '/new-page'
+    },
+    '/news': {
+      status: 302,
+      destination: 'https://example.com/news'
     }
   }
 });
@@ -294,6 +321,68 @@ if (!isLoggedIn(cookie)) {
 </html>
 ```
 
+## リライト
+
+<p><Since v="4.13.0" /></p>
+
+リライトを使用すると、ブラウザが別ページにリダイレクトすることなく、異なるルートを提供できます。ブラウザのURLバーには元のアドレスが表示されますが、実際には[`Astro.rewrite()`](/ja/reference/api-reference/#rewrite)に提供されたURLのコンテンツが表示されます。
+
+::::tip
+永続的に移動したコンテンツや、ユーザーを異なるページに誘導したい場合（ログイン後のユーザーダッシュボードなど）には、代わりに[リダイレクト](#リダイレクト)を使用してください。
+::::
+
+リライトは、複数のパスで同じコンテンツを表示する場合（例：`/products/shoes/men/`と`/products/men/shoes/`）に便利で、2つの異なるソースファイルを別々にメンテナンスする必要がなくなります。
+
+リライトはSEOの目的やユーザー体験のためにも役立ちます。訪問者を別のページにリダイレクトする必要がある場合や、404ステータスを返す場合に、コンテンツを表示できます。リライトの一般的な使用例は、言語の異なるバリアントに対して同じローカライズされたコンテンツを表示することです。
+
+次の例では、`/es-CU/`（キューバスペイン語）ページが訪問された際に、`/es/`バージョンのページをレンダリングするためにリライトを使用しています。訪問者が`/es-cu/articles/introduction`というURLにアクセスすると、Astroは`src/pages/es/articles/introduction.astro`ファイルによって生成されたコンテンツをレンダリングします。
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction");
+---
+```
+
+エンドポイントファイルで`context.rewrite()`を使用して、別のページにルーティングできます：
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/");
+  }
+}
+```
+
+`Astro.rewrite()`に渡されたURLが実行時エラーを発生させる場合、Astroは開発環境ではオーバーレイエラーを表示し、本番環境では500ステータスコードを返します。URLがプロジェクトに存在しない場合は、404ステータスコードが返されます。
+
+意図的にリライトを使って`/404`ページをレンダリングすることもできます。例えば、eコマースショップの商品が利用できなくなったことを示す場合：
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+
+if (!itemExists(item)) {
+  return Astro.rewrite("/404");
+}
+---
+``` 
+
+HTTPレスポンスステータスに基づいて条件付きでリライトすることもできます。例えば、存在しないURLにアクセスした際にサイトの特定のページを表示する場合：
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+指定されたリライトパスからコンテンツを表示する前に、`Astro.rewrite()`関数は新しい完全なレンダリングフェーズをトリガーします。これにより、新しいルート/リクエストに対するミドルウェアが再実行されます。
+
+<ReadMore>[`Astro.rewrite()`APIリファレンス](/ja/reference/api-reference/#rewrite)についてもっと詳しく見る。</ReadMore>
+
 ## ルーティングの優先順位
 
 複数のルートが同じURLパスをビルドする可能性があります。たとえば、これらのルートはすべて`/posts/create`をビルドできます。
@@ -310,11 +399,13 @@ if (!isLoggedIn(cookie)) {
 
 Astroは、ページをビルドするためにどのルートを使用すべきかを知る必要があります。そのために、以下のルールを順に適用してルートの順番を決定します。
 
+- Astroの[予約ルート](#予約ルート)
 - より多くのパスセグメントを持つルートが、詳細度が低いルートよりも優先される。上の例では、`/posts/`配下のすべてのルートが、`/[...slug].astro`よりも優先される。
 - パスパラメーターを持たない静的ルートは、動的ルートより優先される。例えば、`/posts/create.astro`は、他のすべてのルートよりも優先される。
 - 名前付きパラメーターを使用する動的ルーティングは、レストパラメーターよりも優先される。例えば、`/posts/[page].astro`は`/posts/[...slug].astro`よりも優先される。
 - 事前レンダリングされた動的ルートは、サーバーの動的ルートよりも優先される。
 - エンドポイントはページよりも優先される。
+- ファイルベースのルートはリダイレクトよりも優先される。
 - ルートを上記のルールで解決できない場合、Nodeのデフォルトロケールに基づいてアルファベット順に解決される。
 
 上記のようにファイルが配置されている場合に、リクエストされたURLと、HTMLをビルドするために使用されるルートがどのようにマッチングされるかの例をいくつか見てみましょう。
@@ -324,6 +415,14 @@ Astroは、ページをビルドするためにどのルートを使用すべき
 - `pages/posts/[page].astro` - `/posts/1`、`/posts/2`などをビルドします。しかし、`/posts/create`、`/posts/abc`、`/posts/xyz`はビルドしません
 - `pages/posts/[...slug].astro` - `/posts/1/2`、`/posts/a/b/c`などをビルドします。しかし、`/posts/create`、`/posts/1`、`/posts/abc`などはビルドしません
 - `pages/[...slug].astro` - `/abc`、`/xyz`、`/abc/xyz`などをビルドします。しかし、`/posts/create`、`/posts/1`、`/posts/abc`などはビルドしません
+
+### 予約ルート
+
+内部ルートは、Astroの機能を正しく動作させるため、ユーザー定義またはインテグレーション定義のルートよりも優先されます。以下はAstroの予約ルートです：
+
+- `_astro/`：CSS文書、バンドルされたクライアントスクリプト、最適化された画像、およびその他のViteアセットなど、すべての静的アセットをクライアントに提供します。
+- `_server_islands/`：[サーバーアイランド](/ja/guides/server-islands/)で遅延実行される動的コンポーネントを提供します。
+- `_actions/`：定義された[アクション](/ja/guides/actions/)を提供します。
 
 ## ページネーション
 
