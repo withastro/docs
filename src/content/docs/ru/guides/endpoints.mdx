@@ -1,0 +1,241 @@
+---
+title: Эндпоинты
+description: Узнайте, как создавать эндпоинты для работы с любыми типами данных
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+Astro позволяет создавать пользовательские эндпоинты для работы с любыми типами данных. Вы можете использовать их для генерации изображений, предоставления RSS-документов или в качестве API-маршрутов для построения полноценного API вашего сайта.
+
+На статически генерируемых сайтах пользовательские эндпоинты вызываются во время сборки для создания статических файлов. При включении режима [SSR](/ru/guides/on-demand-rendering/) эндпоинты работают на сервере и обрабатывают запросы в реальном времени. Хотя статические и SSR-эндпоинты определяются одинаково, SSR-эндпоинты предоставляют больше возможностей.
+
+## Эндпоинты для статических файлов
+
+Чтобы создать пользовательский эндпоинт, добавьте файл `.js` или `.ts` в директорию `/pages`. Расширение `.js` или `.ts` будет удалено в процессе сборки, поэтому включите в имя файла расширение данных, которые вы хотите создать. Например, файл `src/pages/data.json.ts` сгенерирует эндпоинт `/data.json`.
+
+Эндпоинты экспортируют функцию `GET` (которая может быть асинхронной), принимающую [объект контекста](/ru/reference/api-reference/) со свойствами, аналогичными глобальному объекту `Astro`. Функция возвращает объект [`Response`](https://developer.mozilla.org/ru/docs/Web/API/Response) с полями `name` и `url`. Astro вызовет эту функцию во время сборки и использует тело ответа для генерации файла.
+
+```ts title="src/pages/builtwith.json.ts"
+// Результат: /builtwith.json
+export function GET({ params, request }) {
+  return new Response(
+    JSON.stringify({
+      name: "Astro",
+      url: "https://astro.build/",
+    }),
+  );
+}
+```
+
+Начиная с Astro v3.0, в возвращаемом объекте `Response` больше не нужно указывать свойство `encoding`. Например, для генерации бинарного изображения `.png`:
+
+```ts title="src/pages/astro-logo.png.ts" {6}
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  
+  return new Response(await response.arrayBuffer());
+}
+```
+
+Вы также можете указать тип для функций эндпоинтов, используя тип `APIRoute`:
+
+```ts
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ params, request }) => {...}
+```
+
+### `params` и динамическая маршрутизация
+
+Эндпоинты поддерживают те же возможности [динамической маршрутизации](/ru/guides/routing/#динамические-маршруты), что и страницы. Назовите файл, используя параметр в квадратных скобках, и экспортируйте функцию [`getStaticPaths()`](/ru/reference/routing-reference/#getstaticpaths). После этого вы получите доступ к параметру через свойство `params` функции эндпоинта:
+
+```ts title="src/pages/api/[id].json.ts"
+import type { APIRoute } from "astro";
+
+const usernames = ["Саша", "Кристина", "Ян", "Эльдар"];
+
+export const GET: APIRoute = ({ params, request }) => {
+  const id = params.id;
+  
+  return new Response(
+    JSON.stringify({
+      name: usernames[id],
+    }),
+  );
+};
+
+export function getStaticPaths() {
+  return [
+    { params: { id: "0" } },
+    { params: { id: "1" } },
+    { params: { id: "2" } },
+    { params: { id: "3" } },
+  ];
+}
+```
+
+Это сгенерирует четыре JSON-эндпоинта во время сборки: `/api/0.json`, `/api/1.json`, `/api/2.json` и `/api/3.json`. Динамическая маршрутизация эндпоинтов работает так же, как и для страниц, но поскольку эндпоинт — это функция, а не компонент, [props](/ru/reference/routing-reference/#data-passing-with-props) не поддерживаются.
+
+### `request`
+
+Все эндпоинты имеют свойство `request`, но в статическом режиме доступно только `request.url`. Оно возвращает полный URL текущего эндпоинта и работает так же, как [Astro.request.url](/ru/reference/api-reference/#request) для страниц.
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      path: new URL(request.url).pathname,
+    }),
+  );
+};
+```
+
+## Серверные эндпоинты (API-маршруты)
+
+Все описанные возможности статических эндпоинтов также работают в режиме SSR: вы можете экспортировать функцию `GET`, которая принимает [объект контекста](/ru/reference/api-reference/) со свойствами, аналогичными глобальному объекту `Astro`.
+
+Однако, в отличие от статического режима, при включении рендеринга по запросу эндпоинт генерируется в момент обращения к нему. Это открывает доступ к новым возможностям, недоступным при статической сборке, и позволяет создавать API-маршруты, которые обрабатывают запросы и безопасно выполняют код на сервере в реальном времени.
+
+В режиме `server` маршруты по умолчанию обрабатываются по запросу. В режиме `static` для каждого пользовательского эндпоинта нужно явно отключить предварительный рендеринг, указав `export const prerender = false`.
+
+<RecipeLinks slugs={["ru/recipes/call-endpoints" ]}/>
+
+:::note
+Перед запуском примеров [включите режим рендеринга по запросу](/ru/guides/on-demand-rendering/) и отключите предварительный рендеринг в режиме `static`.
+:::
+
+Серверные эндпоинты могут обращаться к `params` без экспорта `getStaticPaths` и возвращать объект `Response` для настройки статус-кодов и заголовков:
+
+```js title="src/pages/[id].json.js"
+import { getProduct } from "../db";
+
+export async function GET({ params }) {
+  const id = params.id;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Не найдено",
+    });
+  }
+
+  return new Response(JSON.stringify(product), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+```
+
+Этот эндпоинт обрабатывает любой запрос, соответствующий динамическому маршруту. Например, при обращении к `/helmet.json` параметр `params.id` будет равен `helmet`. Если `helmet` существует в тестовой базе данных продуктов, эндпоинт вернёт JSON-ответ с успешным [HTTP статус-кодом](https://developer.mozilla.org/ru/docs/Web/API/Response/status). В противном случае будет возвращён ответ с кодом `404`.
+
+В режиме SSR некоторые провайдеры требуют заголовок `Content-Type` для корректной передачи изображений. В этом случае используйте объект `Response` для указания свойства `headers`. Например, для создания бинарного изображения `.png`:
+
+```ts title="src/pages/astro-logo.png.ts"
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  const buffer = Buffer.from(await response.arrayBuffer());
+  
+  return new Response(buffer, {
+    headers: { "Content-Type": "image/png" },
+  });
+}
+```
+
+### HTTP методы
+
+Кроме функции `GET` можно экспортировать функцию с именем любого [HTTP-метода](https://developer.mozilla.org/ru/docs/Web/HTTP/Methods). При получении запроса Astro определяет его метод и вызывает соответствующую функцию.
+
+Также можно экспортировать функцию `ALL` для обработки методов, не имеющих отдельных обработчиков. При получении запроса с неподдерживаемым методом произойдёт перенаправление на [страницу 404](/ru/basics/astro-pages/#пользовательская-страница-ошибки-404) вашего сайта.
+
+```ts title="src/pages/methods.json.ts"
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "Это был GET-запрос!",
+    }),
+  );
+};
+
+export const POST: APIRoute = ({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "Это был POST-запрос!",
+    }),
+  );
+};
+
+export const DELETE: APIRoute = ({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "Это был DELETE-запрос!",
+    }),
+  );
+};
+
+export const ALL: APIRoute = ({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: `Это был ${request.method}!`,
+    }),
+  );
+};
+```
+
+При наличии функции `GET` и отсутствии функции `HEAD` Astro автоматически обрабатывает `HEAD`-запросы, вызывая функцию `GET` и отделяя тело ответа от заголовков.
+
+<RecipeLinks slugs={["ru/recipes/captcha", "ru/recipes/build-forms-api" ]}/>
+
+### `request`
+
+В режиме SSR свойство `request` предоставляет полнофункциональный объект [`Request`](https://developer.mozilla.org/ru/docs/Web/API/Request) для работы с текущим запросом. С его помощью можно получать данные и проверять заголовки:
+
+```ts title="src/pages/test-post.json.ts"
+export const POST: APIRoute = async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    
+    return new Response(
+      JSON.stringify({
+        message: "Ваше имя: " + name,
+      }),
+      {
+        status: 200,
+      },
+    );
+  }
+  
+  return new Response(null, { status: 400 });
+};
+```
+
+### Перенаправления
+
+В контексте эндпоинта доступна утилита `redirect()`, работающая аналогично `Astro.redirect`:
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from "../db";
+
+export async function GET({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Не найдено",
+    });
+  }
+
+  return redirect(link, 307);
+}
+```
