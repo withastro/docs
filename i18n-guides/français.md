@@ -68,7 +68,7 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | changelog | journal des modifications | |
 | (the) CLI / (the) command line interface | (la) CLI / (l')interface en ligne de commande | |
 | client-side | côté client | |
-| code fences (`---`) | délimitateur de code | |
+| code fences (`---`) | délimiteur de code | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2114303905 |
 | deprecation | dépréciation | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2114666199 |
 | docs | documentation | |
 | endpoint | point de terminaison | |
