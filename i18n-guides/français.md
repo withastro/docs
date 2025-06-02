@@ -111,7 +111,8 @@ Certains mots ont un équivalent français qui devrait être utilisé uniformém
 | to export | exporter | |
 | to fetch | récupérer | |
 | to import | importer | |
-| to push | publier / envoyer / transférer | Précédente discussion : https://github.com/withastro/docs/pull/11795#discussion_r2112807722 |
+| to prefetch | précharger | |
+| to prerender | prégénérer | |
 | to render | afficher / générer / effectuer un rendu / restituer | |
 | to slot | inclure / injecter / insérer | |
 | to store | stocker / enregistrer / sauvegarder / conserver | |
