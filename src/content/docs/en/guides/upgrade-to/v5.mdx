@@ -364,6 +364,54 @@ An adapter is still required to deploy an Astro project with any server-rendered
 
 <ReadMore>Learn more about [on-demand rendering in Astro](/en/guides/on-demand-rendering/).</ReadMore>
 
+### Removed: support for dynamic `prerender` values in routes
+
+<SourcePR number="11824" title="Merge output:hybrid and output:static" />
+
+In Astro 4.x, environment variables could be used to dynamically set the value of `prerender` exports in routes, for example `export const prerender =  import.meta.env.SOME_VAR`.
+
+Astro v5.0 removes support for dynamic values in `prerender` exports. Only the static values `true` and `false` are supported.
+
+#### What should I do?
+
+<Steps>
+
+1. Remove any dynamic `prerender` exports in your routes:
+
+    ```astro title="src/pages/blog/[slug].astro" del={2}
+    ---
+    export const prerender = import.meta.env.SOME_VAR;
+    ---
+    ```
+
+2. Use an Astro integration in your `astro.config.mjs` file to set `prerender` values that need to be dynamic in the `"astro:route:setup"` hook:
+
+    ```js title="astro.config.mjs" {6-19}
+    import { defineConfig } from 'astro/config';
+    import { loadEnv } from 'vite';
+
+    export default defineConfig({
+      integrations: [
+        {
+          name: 'set-prerender',
+          hooks: {
+            'astro:route:setup': ({ route }) => {
+              // Load environment variables from .env files (if needed)
+              const { PRERENDER } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+              // Find routes matching the expected filename.
+              if (route.component.endsWith('/blog/[slug].astro')) {
+                // Set the prerender value on routes as needed.
+                route.prerender = PRERENDER;
+              }
+            },
+          },
+        }
+      ],
+    });
+    ```
+
+</Steps>
+
 ### Removed: Squoosh image service
 
 <SourcePR number="11770" title="remove the squoosh image service"/>
