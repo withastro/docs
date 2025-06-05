@@ -351,6 +351,45 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
+#### `renderMarkdown`
+
+<p>
+
+**Type**: `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+Renders a Markdown string to HTML, returning a `RenderedContent` object.
+
+This allows allows you to render Markdown content directly within your loaders using the same Markdown processing as Astro's built-in `glob` loader and provides access to the `render()` function and `<Content />` component for [rendering body content](/en/guides/content-collections/#rendering-body-content).
+
+Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content).
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set(entry.id, {
+          id: entry.id,
+          data: entry,
+          // Assume each entry has a 'content' field with markdown content
+          rendered: await renderMarkdown(entry.content),
+        });
+      }
+    },
+  };
+}
+```
+
 #### `generateDigest`
 
 <p>
@@ -618,7 +657,7 @@ The format of the `RenderedContent` object is:
 	/** Rendered HTML string. If present then `render(entry)` will return a component that renders this HTML. */
 	html: string;
 	metadata?: {
-		/** Any images that are present in this entry. Relative to the {@link DataEntry} filePath. */
+		/** Any images that are present in this entry. Relative to the DataEntry filePath. */
 		imagePaths?: Array<string>;
 		/** Any headings that are present in this file. Returned as `headings` from `render()` */
 		headings?: MarkdownHeading[];
@@ -629,3 +668,5 @@ The format of the `RenderedContent` object is:
 	};
 }
 ```
+
+If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
