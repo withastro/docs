@@ -364,6 +364,54 @@ Un adaptateur est toujours nécessaire pour déployer un projet Astro avec des p
 
 <ReadMore>En savoir plus sur [le rendu à la demande dans Astro](/fr/guides/on-demand-rendering/).</ReadMore>
 
+### Supprimé : prise en charge des valeurs dynamiques pour `prerender` dans les routes
+
+<SourcePR number="11824" title="Fusionner output:hybrid et output:static" />
+
+Dans Astro 4.x, les variables d'environnement pouvaient être utilisées pour définir dynamiquement la valeur des exportations `prerender` dans les routes, par exemple `export const prerender = import.meta.env.SOME_VAR`.
+
+Astro v5.0 supprime la prise en charge des valeurs dynamiques dans les exportations `prerender`. Seules les valeurs statiques `true` et `false` sont prises en charge.
+
+#### Que dois-je faire ?
+
+<Steps>
+
+1. Supprimez toutes les exportations dynamiques `prerender` dans vos routes :
+
+    ```astro title="src/pages/blog/[slug].astro" del={2}
+    ---
+    export const prerender = import.meta.env.SOME_VAR;
+    ---
+    ```
+
+2. Utilisez une intégration Astro dans votre fichier `astro.config.mjs` pour définir les valeurs `prerender` qui doivent être dynamiques dans le hook `"astro:route:setup"` :
+
+    ```js title="astro.config.mjs" {6-19}
+    import { defineConfig } from 'astro/config';
+    import { loadEnv } from 'vite';
+
+    export default defineConfig({
+      integrations: [
+        {
+          name: 'set-prerender',
+          hooks: {
+            'astro:route:setup': ({ route }) => {
+              // Charger les variables d'environnement à partir des fichiers .env (si nécessaire)
+              const { PRERENDER } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+              // Rechercher les routes correspondant au nom de fichier attendu.
+              if (route.component.endsWith('/blog/[slug].astro')) {
+                // Définir la valeur de prerender par route selon vos besoins.
+                route.prerender = PRERENDER;
+              }
+            },
+          },
+        }
+      ],
+    });
+    ```
+
+</Steps>
+
 ### Supprimé : Service d'images Squoosh
 
 <SourcePR number="11770" title="supprimer le service d'image squoosh"/>
