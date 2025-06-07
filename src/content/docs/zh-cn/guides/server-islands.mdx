@@ -97,20 +97,16 @@ const productId = url.searchParams.get('product');
 
 ## 复用加密密钥
 
-Astro 使用 [cryptography](https://developer.mozilla.org/zh-CN/docs/Glossary/Cryptography) 来加密传递给服务器岛屿的 prop，以防止私密意外泄露。prop 使用构建期间生成的密钥进行加密。
+Astro 使用 [加密技术](https://developer.mozilla.org/zh-CN/docs/Glossary/Cryptography) 来加密传入到服务器群岛的 prop，防止敏感数据意外泄露。该加密机制依赖于每次构建时生成的随机密钥，该密钥会嵌入到服务端包中。
 
-对于大多数主机来说，过程都是透明的，而作为开发者来说，你也不需要做任何事情。如果你在 Kubernetes 等环境中使用滚动部署，则可能会遇到前端和后端暂时不同步且密钥不匹配的问题。
+大多数部署托管平台会自动保持前端与后端的同步。但在滚动部署、多区域托管、缓存含服务端岛屿页面的 CDN 这些场景中，你可能需要使用固定的加密密钥。
 
-要解决此问题，你可以使用 Astro CLI 创建一个密钥，然后将其用于所有部署。这可确保每个用户的前端都与具有正确密钥的后端通信。
+在滚动部署（例如：Kubernetes）的环境中，前端资源（负责加密 prop）和后端函数（负责解密 prop）可能会临时使用不同的密钥，又或者是 CDN 可能仍在分发用旧密钥构建的页面，导致传递给服务端岛屿的加密 prop 无法被解密。
 
-使用` astro create-key` 生成密钥：
+在这些情况下，使用 Astro CLI 生成可复用的加密密钥，并在构建环境中，设置你的环境变量：
 
 ```shell
 astro create-key
 ```
 
-该步骤将创建一个密钥，你可以在托管环境需要的任何位置（例如在 `.env` 文件中）将其设置为 `ASTRO_KEY` 环境变量：
-
-```ini title=".env"
-ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
-```
+将该值配置到 `ASTRO_KEY` 环境变量中（如在 `.env` 文件中）并包含在 CI/CD 或主机的构建设置中。这能确保构建时始终使用同一密钥，保持加密与解密同步。
