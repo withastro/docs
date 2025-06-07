@@ -350,6 +350,46 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
+
+#### `renderMarkdown`
+
+<p>
+
+**类型：** `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+用于将 Markdown 字符串渲染为 HTML，返回一个 `RenderedContent` 对象。
+
+该功能允许你在加载器中直接渲染 Markdown 内容，其处理逻辑与 Astro 内置的 `glob` 加载器完全一致，该功能可以调用 `render()` 函数处理原始内容，并使用 `<Content />` 组件 [渲染正文内容](/zh-cn/guides/content-collections/#渲染正文内容)。
+
+将该对象分配给 [DataEntry](#dataentry) 对象的 [rendered](#rendered) 字段，以允许用户 [在页面中渲染内容](/zh-cn/guides/content-collections/#渲染正文内容)。
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set(entry.id, {
+          id: entry.id,
+          data: entry,
+          // 假设每个条目都包含一个带有 markdown 内容的 'content' 字段
+          rendered: await renderMarkdown(entry.content),
+        });
+      }
+    },
+  };
+}
+```
+
 #### `generateDigest`
 
 <p>
@@ -617,7 +657,7 @@ const existingEntry = store.get("my-entry");
 	/** 渲染的 HTML 字符串。如果存在，则 `render(entry)` 将会返回渲染该 HTML 的组件。 */
 	html: string;
 	metadata?: {
-		/** 此条目中存在的任何图像。相对于 {@link DataEntry} 文件路径。 */
+		/** 此条目中存在的任何图像。相对于 DataEntry 文件路径。 */
 		imagePaths?: Array<string>;
 		/** 此文件中存在的任何标题。从 `render()` 中作为 `headings` 返回。 */
 		headings?: MarkdownHeading[];
@@ -628,3 +668,5 @@ const existingEntry = store.get("my-entry");
 	};
 }
 ```
+
+如果条目含有 Markdown 内容，那么你就可以使用 [`renderMarkdown()`](#rendermarkdown) 函数从 Markdown 字符串中生成该对象。
