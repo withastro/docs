@@ -248,6 +248,62 @@ export default defineConfig({
 });
 ```
 
+### `workerEntryPoint`
+<p>
+**Type:** `{path: string | URL, exports: string[]}`
+**Default:** `{ path: '@astrojs/cloudflare/entrypoints/server.js', exports: ['default'] }`
+<Since v="12.6.0" />
+</p>
+
+The `workerEntryPoint.path` option allows you to specify the path to a custom entry file. By default, the adapter uses a generic entry file, which only supports the `fetch` handler, but you can change it to support other [Cloudflare invocation handlers](https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs). This is useful if you want to use features that require other handlers (e.g. Durable Objects, Cloudflare Queues, Scheduled Invocations). The `workerEntryPoint.exports` option allows you to specify the exports from a custom entry file. By default, the adapter uses `["default"]`. If you have defined named exports in your custom entry file, you can specify them here. This is useful if you want to use (e.g. Durable Objects, RPC)
+
+The custom entry file must export the `createExports` function, with a `default` export including all the handlers you need. The following example entry file exports all the necessary handlers required for a custom `console.log`:
+
+```js title="astro.config.mjs"
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		workerEntryPoint: {
+			path: 'src/worker.ts',
+			exports: ['default','MyDurableObject']
+		}
+	}),
+});
+```
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				await env.MY_QUEUE.send("log");
+				return handle(manifest, app, request, env, ctx);
+			},
+			async queue(batch, _env) {
+				let messages = JSON.stringify(batch.messages);
+    		console.log(`consumed from our queue: ${messages}`);
+			}
+		} satisfies ExportedHandler<Env>,
+		MyDurableObject: MyDurableObject,
+	}
+}
+```
+
 ## Cloudflare runtime
 
 ### Usage
