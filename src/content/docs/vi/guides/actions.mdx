@@ -1,0 +1,720 @@
+---
+title: Actions
+description: Học cách tạo các hàm server type-safe mà bạn có thể gọi từ bất kỳ đâu.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astro Actions cho phép bạn định nghĩa và gọi các hàm backend với type-safety. Actions thực hiện việc lấy dữ liệu, phân tích JSON và xác thực đầu vào cho bạn. Điều này có thể giảm đáng kể lượng boilerplate code cần thiết so với việc sử dụng [API endpoint](/en/guides/endpoints/).
+
+Sử dụng actions thay vì API endpoints để giao tiếp liền mạch giữa client và server code và để:
+
+- Tự động xác thực đầu vào JSON và form data bằng [Zod validation](https://zod.dev/?id=primitives).
+- Tạo các hàm type-safe để gọi backend từ client và thậm chí [từ HTML form actions](#call-actions-from-an-html-form-action). Không cần gọi `fetch()` thủ công.
+- Chuẩn hóa lỗi backend với object [`ActionError`](/en/reference/modules/astro-actions/#actionerror).
+
+## Cách sử dụng cơ bản
+
+Actions được định nghĩa trong object `server` được export từ `src/actions/index.ts`:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+Actions của bạn có sẵn dưới dạng các hàm từ module `astro:actions`. Import `actions` và gọi chúng ở phía client trong [UI framework component](/en/guides/framework-components/), [form POST request](#call-actions-from-an-html-form-action), hoặc bằng cách sử dụng thẻ `<script>` trong Astro component.
+
+Khi bạn gọi một action, nó trả về một object với `data` chứa kết quả được JSON-serialized, hoặc `error` chứa các lỗi được throw.
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### Viết action đầu tiên của bạn
+
+Làm theo các bước này để định nghĩa một action và gọi nó trong thẻ `script` trong trang Astro của bạn.
+
+<Steps>
+
+1. Tạo file `src/actions/index.ts` và export một object `server`.
+
+    ```ts title="src/actions/index.ts"
+    export const server = {
+      // khai báo actions
+    }
+    ```
+
+2. Import utility `defineAction()` từ `astro:actions`, và object `z` từ `astro:schema`.
+
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      // khai báo actions
+    }
+    ```
+
+3. Sử dụng utility `defineAction()` để định nghĩa action `getGreeting`. Thuộc tính `input` sẽ được sử dụng để xác thực các tham số đầu vào với schema [Zod](https://zod.dev) và hàm `handler()` bao gồm logic backend để chạy trên server.
+
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Hello, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4. Tạo một Astro component với một button sẽ lấy lời chào bằng action `getGreeting` của bạn khi được click.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Hiển thị alert pop-up với lời chào từ action
+    });
+    </script>
+    ```
+
+5. Để sử dụng action của bạn, import `actions` từ `astro:actions` và sau đó gọi `actions.getGreeting()` trong click handler. Tùy chọn `name` sẽ được gửi đến `handler()` của action trên server và, nếu không có lỗi, kết quả sẽ có sẵn dưới dạng thuộc tính `data`.
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Hiển thị alert pop-up với lời chào từ action
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>Xem tài liệu API Actions đầy đủ để biết chi tiết về [`defineAction()`](/en/reference/modules/astro-actions/#defineaction) và các thuộc tính của nó.</ReadMore>
+
+## Tổ chức actions
+
+Tất cả actions trong dự án của bạn phải được export từ object `server` trong file `src/actions/index.ts`. Bạn có thể định nghĩa actions inline hoặc bạn có thể di chuyển định nghĩa actions sang các file riêng biệt và import chúng. Bạn thậm chí có thể nhóm các hàm liên quan trong các object lồng nhau.
+
+Ví dụ, để đặt tất cả user actions cùng nhau, bạn có thể tạo file `src/actions/user.ts` và lồng các định nghĩa của cả `getUser` và `createUser` bên trong một object `user` duy nhất.
+
+```ts
+// src/actions/user.ts
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+Sau đó, bạn có thể import object `user` này vào file `src/actions/index.ts` và thêm nó như một key cấp cao nhất vào object `server` cùng với bất kỳ actions nào khác:
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+Bây giờ, tất cả user actions của bạn có thể gọi được từ object `actions.user`:
+
+- `actions.user.getUser()`
+- `actions.user.createUser()`
+
+## Xử lý dữ liệu trả về
+
+Actions trả về một object chứa `data` với giá trị trả về type-safe từ `handler()` của bạn, hoặc `error` với bất kỳ lỗi backend nào. Lỗi có thể đến từ lỗi xác thực trên thuộc tính `input` hoặc lỗi được throw trong `handler()`.
+
+Actions trả về định dạng dữ liệu tùy chỉnh có thể xử lý Dates, Maps, Sets và URLs [sử dụng thư viện Devalue](https://github.com/Rich-Harris/devalue). Do đó, bạn không thể dễ dàng kiểm tra response từ network như bạn có thể với JSON thông thường. Để debug, bạn có thể kiểm tra object `data` được trả về bởi actions thay thế.
+
+<ReadMore>[Xem tài liệu tham khảo API `handler()`](/en/reference/modules/astro-actions/#handler-property) để biết chi tiết đầy đủ.</ReadMore>
+
+### Kiểm tra lỗi
+
+Tốt nhất là kiểm tra xem `error` có tồn tại không trước khi sử dụng thuộc tính `data`. Điều này cho phép bạn xử lý lỗi trước và đảm bảo `data` được định nghĩa mà không cần kiểm tra `undefined`.
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // xử lý các trường hợp lỗi
+  return;
+}
+// sử dụng `data`
+```
+
+### Truy cập `data` trực tiếp mà không kiểm tra lỗi
+
+Để bỏ qua việc xử lý lỗi, ví dụ trong khi tạo prototype hoặc sử dụng thư viện sẽ catch lỗi cho bạn, sử dụng thuộc tính `.orThrow()` trên lời gọi action của bạn để throw lỗi thay vì trả về `error`. Điều này sẽ trả về `data` của action trực tiếp.
+
+Ví dụ này gọi action `likePost()` trả về số lượt like đã cập nhật dưới dạng `number` từ `handler` của action:
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ type: number
+```
+
+### Xử lý lỗi backend trong action của bạn
+
+Bạn có thể sử dụng `ActionError` được cung cấp để throw lỗi từ `handler()` của action, chẳng hạn như "not found" khi thiếu entry database, hoặc "unauthorized" khi user chưa đăng nhập. Điều này có hai lợi ích chính so với việc trả về `undefined`:
+
+- Bạn có thể đặt status code như `404 - Not found` hoặc `401 - Unauthorized`. Điều này cải thiện việc debug lỗi cả trong development và production bằng cách cho phép bạn thấy status code của mỗi request.
+
+- Trong application code của bạn, tất cả lỗi được truyền đến object `error` trên kết quả action. Điều này tránh cần kiểm tra `undefined` trên data, và cho phép bạn hiển thị phản hồi có mục tiêu cho user tùy thuộc vào những gì đã xảy ra sai.
+
+#### Tạo `ActionError`
+
+Để throw lỗi, import class `ActionError()` từ module `astro:actions`. Truyền cho nó một `code` status có thể đọc được bởi con người (ví dụ: `"NOT_FOUND"` hoặc `"BAD_REQUEST"`), và một `message` tùy chọn để cung cấp thêm thông tin về lỗi.
+
+Ví dụ này throw lỗi từ action `likePost` khi user chưa đăng nhập, sau khi kiểm tra cookie "user-session" giả định để xác thực:
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // Nếu không, like bài post
+    },
+  }),
+};
+```
+
+#### Xử lý `ActionError`
+
+Để xử lý lỗi này, bạn có thể gọi action từ application và kiểm tra xem thuộc tính `error` có tồn tại không. Thuộc tính này sẽ có kiểu `ActionError` và sẽ chứa `code` và `message` của bạn.
+
+Trong ví dụ sau, component `LikeButton.tsx` gọi action `likePost()` khi được click. Nếu xảy ra lỗi xác thực, thuộc tính `error.code` được sử dụng để xác định có hiển thị link đăng nhập hay không:
+
+```tsx title=src/components/LikeButton.tsx ins="if (error?.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Log in to like a post.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // Return sớm cho các lỗi không mong đợi
+        else if (error) return;
+        // cập nhật likes
+      }}>
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+### Xử lý client redirects
+
+Khi gọi actions từ client, bạn có thể tích hợp với thư viện phía client như `react-router`, hoặc bạn có thể sử dụng hàm [`navigate()`](/en/guides/view-transitions/#trigger-navigation) của Astro để redirect đến trang mới khi action thành công.
+
+Ví dụ này navigate đến homepage sau khi action `logout` trả về thành công:
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Logout
+    </button>
+  );
+}
+```
+
+## Chấp nhận form data từ action
+
+Actions chấp nhận JSON data theo mặc định. Để chấp nhận form data từ HTML form, đặt `accept: 'form'` trong lời gọi `defineAction()` của bạn:
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### Xác thực form data
+
+Actions sẽ phân tích form data đã submit thành object, sử dụng giá trị thuộc tính `name` của mỗi input làm key của object. Ví dụ, một form chứa `<input name="search">` sẽ được phân tích thành object như `{ search: 'user input' }`. Schema `input` của action sẽ được sử dụng để xác thực object này.
+
+Để nhận object `FormData` thô trong action handler của bạn thay vì object đã phân tích, bỏ qua thuộc tính `input` trong định nghĩa action của bạn.
+
+Ví dụ sau đây cho thấy form đăng ký newsletter đã được xác thực chấp nhận email của user và yêu cầu checkbox đồng ý "terms of service".
+
+<Steps>
+
+1. Tạo HTML form component với thuộc tính `name` duy nhất trên mỗi input:
+
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+    ```
+
+2. Định nghĩa action `newsletter` để xử lý form đã submit. Xác thực trường `email` bằng validator `z.string().email()`, và checkbox `terms` bằng `z.boolean()`:
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>Xem [tài liệu tham khảo API `input`](/en/reference/modules/astro-actions/#input-validator) để biết tất cả validators form có sẵn.</ReadMore>
+
+3. Thêm `<script>` vào HTML form để submit user input. Ví dụ này ghi đè hành vi submit mặc định của form để gọi `actions.newsletter()`, và redirect đến `/confirmation` bằng hàm `navigate()`:
+
+    ```astro title=src/components/Newsletter.astro ins={11-22} collapse={2-8}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>Xem ["Gọi actions từ HTML form action"](#call-actions-from-an-html-form-action) để biết cách khác submit form data.</ReadMore>
+
+</Steps>
+
+### Hiển thị lỗi form input
+
+Bạn có thể xác thực form inputs trước khi submit bằng [thuộc tính xác thực form HTML native](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) như `required`, `type="email"`, và `pattern`. Để xác thực `input` phức tạp hơn trên backend, bạn có thể sử dụng hàm utility [`isInputError()`](/en/reference/modules/astro-actions/#isinputerror) được cung cấp.
+
+Để lấy input errors, sử dụng utility `isInputError()` để kiểm tra xem lỗi có do input không hợp lệ gây ra không. Input errors chứa object `fields` với messages cho mỗi input name không xác thực được. Bạn có thể sử dụng các messages này để nhắc user sửa submission của họ.
+
+Ví dụ sau kiểm tra lỗi với `isInputError()`, sau đó kiểm tra xem lỗi có trong trường email không, trước khi tạo message từ lỗi. Bạn có thể sử dụng JavaScript DOM manipulation hoặc UI framework ưa thích để hiển thị message này cho users.
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // Xử lý input errors.
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
+
+## Gọi actions từ HTML form action
+
+:::note
+Pages phải được render on-demand khi gọi actions bằng form action. [Đảm bảo prerendering bị tắt trên trang](/en/guides/on-demand-rendering/#enabling-on-demand-rendering) trước khi sử dụng API này.
+:::
+
+Bạn có thể kích hoạt form submissions không cần JS với các thuộc tính tiêu chuẩn trên bất kỳ element `<form>` nào. Form submissions mà không có JavaScript phía client có thể hữu ích cả như fallback khi JavaScript không load được, hoặc nếu bạn thích xử lý forms hoàn toàn từ server.
+
+Gọi [Astro.getActionResult()](/en/reference/api-reference/#getactionresult) trên server trả về kết quả form submission của bạn (`data` hoặc `error`), và có thể được sử dụng để redirect động, xử lý form errors, cập nhật UI, và nhiều hơn nữa.
+
+Để gọi action từ HTML form, thêm `method="POST"` vào `<form>` của bạn, sau đó đặt thuộc tính `action` của form sử dụng action của bạn, ví dụ `action={actions.logout}`. Điều này sẽ đặt thuộc tính `action` để sử dụng query string được xử lý bởi server tự động.
+
+Ví dụ, Astro component này gọi action `logout` khi button được click và reload trang hiện tại:
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+Các thuộc tính bổ sung trên element `<form>` có thể cần thiết để xác thực schema đúng với Zod. Ví dụ, để bao gồm file uploads, thêm `enctype="multipart/form-data"` để đảm bảo files được gửi ở định dạng được nhận dạng đúng bởi `z.instanceof(File)`:
+
+```astro title="src/components/FileUploadForm.astro"
+---
+import { actions } from 'astro:actions';
+---
+<form method="POST" action={actions.upload} enctype="multipart/form-data" >
+  <label for="file">Upload File</label>
+  <input type="file" id="file" name="file" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+### Redirect khi action thành công
+
+Nếu bạn cần redirect đến route mới khi thành công, bạn có thể sử dụng kết quả của action trên server. Một ví dụ phổ biến là tạo product record và redirect đến trang của product mới, ví dụ `/products/[id]`.
+
+Ví dụ, giả sử bạn có action `createProduct` trả về id product đã tạo:
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Bạn có thể lấy kết quả action từ Astro component bằng cách gọi `Astro.getActionResult()`. Điều này trả về object chứa thuộc tính `data` hoặc `error` khi action được gọi, hoặc `undefined` nếu action không được gọi trong request này.
+
+Sử dụng thuộc tính `data` để xây dựng URL để sử dụng với `Astro.redirect()`:
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### Xử lý form action errors
+
+Gọi `Astro.getActionResult()` trong Astro component chứa form của bạn cung cấp cho bạn quyền truy cập vào objects `data` và `error` để xử lý lỗi tùy chỉnh.
+
+Ví dụ sau hiển thị message lỗi chung khi action `newsletter` thất bại:
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+Để tùy chỉnh nhiều hơn, bạn có thể [sử dụng utility `isInputError()`](#displaying-form-input-errors) để kiểm tra xem lỗi có do input không hợp lệ gây ra không.
+
+Ví dụ sau render error banner dưới trường input `email` khi email không hợp lệ được submit:
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
+</form>
+```
+
+#### Bảo toàn giá trị input khi lỗi
+
+Inputs sẽ bị xóa bất cứ khi nào form được submit. Để duy trì giá trị input, bạn có thể [bật view transitions](/en/guides/view-transitions/#adding-view-transitions-to-a-page) trên trang và áp dụng directive `transition:persist` cho mỗi input:
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### Cập nhật UI với kết quả form action
+
+Để sử dụng giá trị trả về của action để hiển thị thông báo cho user khi thành công, truyền action đến `Astro.getActionResult()`. Sử dụng thuộc tính `data` được trả về để render UI bạn muốn hiển thị.
+
+Ví dụ này sử dụng thuộc tính `productName` được trả về bởi action `addToCart` để hiển thị success message.
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Added {result.data.productName} to cart</p>
+)}
+
+<!--...-->
+```
+
+### Nâng cao: Bảo toàn kết quả action với session
+
+<p><Since v="5.0.0" /></p>
+
+Kết quả action được hiển thị dưới dạng POST submission. Điều này có nghĩa là kết quả sẽ được reset về `undefined` khi user đóng và truy cập lại trang. User cũng sẽ thấy dialog "confirm form resubmission?" nếu họ cố gắng refresh trang.
+
+Để tùy chỉnh hành vi này, bạn có thể thêm middleware để xử lý kết quả action thủ công. Bạn có thể chọn bảo toàn kết quả action bằng cookie hoặc session storage.
+
+Bắt đầu bằng [tạo middleware file](/en/guides/middleware/) và import [utility `getActionContext()`](/en/reference/modules/astro-actions/#getactioncontext) từ `astro:actions`. Hàm này trả về object `action` với thông tin về incoming action request, bao gồm action handler và liệu action có được gọi từ HTML form hay không. `getActionContext()` cũng trả về các hàm `setActionResult()` và `serializeActionResult()` để đặt giá trị được trả về bởi `Astro.getActionResult()` một cách lập trình:
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... xử lý kết quả action
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+Một practice phổ biến để bảo toàn kết quả HTML form là [pattern POST / Redirect / GET](https://en.wikipedia.org/wiki/Post/Redirect/Get). Redirect này loại bỏ dialog "confirm form resubmission?" khi trang được refresh, và cho phép kết quả action được bảo toàn trong suốt session của user.
+
+Ví dụ này áp dụng pattern POST / Redirect / GET cho tất cả form submissions bằng session storage với [Netlify server adapter](/en/guides/integrations-guide/netlify/) được cài đặt. Kết quả action được ghi vào session store bằng [Netlify Blob](https://docs.netlify.com/blobs/overview/), và được lấy sau redirect bằng session ID:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Bỏ qua requests cho các trang prerendered
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Tạo Blob store để bảo toàn kết quả action với Netlify Blob
+  const actionStore = getStore("action-session");
+  
+  // Nếu kết quả action được forward dưới dạng cookie, đặt kết quả
+  // để có thể truy cập từ `Astro.getActionResult()`
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // Tùy chọn: xóa session sau khi trang được render.
+    // Thoải mái implement chiến lược persistence của riêng bạn
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // Nếu action được gọi từ HTML form action,
+  // gọi action handler và redirect đến trang đích
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // Bảo toàn kết quả action bằng session storage
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // Truyền session ID dưới dạng cookie
+    // để được lấy sau khi redirect đến trang
+    context.cookies.set("action-session-id", sessionId);
+  
+    // Redirect về trang trước đó khi lỗi
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // Redirect đến trang đích khi thành công
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## Bảo mật khi sử dụng actions
+
+Actions có thể truy cập dưới dạng public endpoints dựa trên tên của action. Ví dụ, action `blog.like()` sẽ có thể truy cập từ `/_actions/blog.like`. Điều này hữu ích để unit testing kết quả action và debug lỗi production. Tuy nhiên, điều này có nghĩa là bạn **phải** sử dụng cùng các kiểm tra authorization mà bạn sẽ cân nhắc cho API endpoints và các trang được render on-demand.
+
+### Authorize users từ action handler
+
+Để authorize action requests, thêm kiểm tra authentication vào action handler của bạn. Bạn có thể muốn sử dụng [thư viện authentication](/en/guides/authentication/) để xử lý session management và thông tin user.
+
+Actions expose object `APIContext` đầy đủ để truy cập các thuộc tính được truyền từ middleware bằng `context.locals`. Khi user không được authorize, bạn có thể raise `ActionError` với code `UNAUTHORIZED`:
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
+
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* data on success */ };
+    }
+  })
+}
+```
+
+### Gate actions từ middleware
+
+<p><Since v="5.0.0" /></p>
+
+Astro khuyến nghị authorize user sessions từ action handler của bạn để tôn trọng permission levels và rate-limiting trên basis mỗi action. Tuy nhiên, bạn cũng có thể gate requests đến tất cả actions (hoặc subset của actions) từ middleware.
+
+Sử dụng hàm `getActionContext()` từ middleware của bạn để lấy thông tin về bất kỳ inbound action requests nào. Điều này bao gồm action name và liệu action đó có được gọi bằng client-side remote procedure call (RPC) function (ví dụ: `actions.blog.like()`) hay HTML form.
+
+Ví dụ sau reject tất cả action requests không có valid session token. Nếu kiểm tra thất bại, response "Forbidden" được trả về. Lưu ý: phương pháp này đảm bảo actions chỉ có thể truy cập khi có session, nhưng _không phải_ là thay thế cho authorization bảo mật.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // Kiểm tra xem action có được gọi từ client-side function không
+  if (action?.calledFrom === 'rpc') {
+    // Nếu vậy, kiểm tra user session token
+    if (!context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* session token */);
+  return next();
+});
+```
+
+## Gọi actions từ Astro components và server endpoints
+
+Bạn có thể gọi actions trực tiếp từ Astro component scripts bằng wrapper `Astro.callAction()` (hoặc `context.callAction()` khi sử dụng [server endpoint](/en/guides/endpoints/#server-endpoints-api-routes)). Điều này phổ biến để tái sử dụng logic từ actions của bạn trong server code khác.
+
+Truyền action làm argument đầu tiên và bất kỳ input parameters nào làm argument thứ hai. Điều này trả về cùng objects `data` và `error` mà bạn nhận được khi gọi actions trên client:
+
+```astro title="src/pages/products.astro" {6}
+---
+import { actions } from 'astro:actions';
+
+const searchQuery = Astro.url.searchParams.get('search');
+if (searchQuery) {
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
+  // xử lý kết quả
+}
+---
+```

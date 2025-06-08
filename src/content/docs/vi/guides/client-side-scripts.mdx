@@ -1,0 +1,250 @@
+---
+title: Scripts và xử lý sự kiện
+description: >-
+  Cách thêm tính tương tác phía client vào các component Astro bằng cách sử dụng
+  các API JavaScript gốc của trình duyệt.
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+Bạn có thể thêm tính tương tác vào các component Astro mà không cần [sử dụng UI framework](/en/guides/framework-components/) như React, Svelte, Vue, v.v. bằng cách sử dụng thẻ `<script>` HTML tiêu chuẩn. Điều này cho phép bạn gửi JavaScript để chạy trong trình duyệt và thêm chức năng vào các component Astro của bạn.
+
+## Scripts Phía Client
+
+Scripts có thể được sử dụng để thêm event listeners, gửi dữ liệu analytics, phát animations và mọi thứ khác mà JavaScript có thể làm trên web.
+
+```astro
+<!-- src/components/ConfettiButton.astro -->
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // Import các npm modules.
+  import confetti from 'canvas-confetti';
+
+  // Tìm DOM component của chúng ta trên trang.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // Thêm event listeners để bắn confetti khi button được click.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+Mặc định, Astro xử lý và bundle các thẻ `<script>`, thêm hỗ trợ để import npm modules, viết TypeScript, và nhiều hơn nữa.
+
+## Sử dụng `<script>` trong Astro
+
+Trong các file `.astro`, bạn có thể thêm JavaScript phía client bằng cách thêm một (hoặc nhiều) thẻ `<script>`.
+
+Trong ví dụ này, việc thêm component `<Hello />` vào một trang sẽ log một thông điệp ra browser console.
+
+```astro title="src/components/Hello.astro"
+<h1>Welcome, world!</h1>
+
+<script>
+  console.log('Welcome, browser console!');
+</script>
+```
+
+### Xử lý Script
+
+Mặc định, các thẻ `<script>` được xử lý bởi Astro.
+
+- Bất kỳ imports nào sẽ được bundled, cho phép bạn import các file local hoặc Node modules.
+- Script đã được xử lý sẽ được inject tại nơi nó được khai báo với [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- TypeScript được hỗ trợ đầy đủ, bao gồm cả việc import các file TypeScript.
+- Nếu component của bạn được sử dụng nhiều lần trên một trang, script chỉ được include một lần.
+
+```astro title="src/components/Example.astro"
+<script>
+  // Đã được xử lý! Đã được bundled! Hỗ trợ TypeScript!
+  // Import local scripts và Node modules hoạt động tốt.
+</script>
+```
+
+Thuộc tính `type="module"` làm cho trình duyệt coi script như một JavaScript module. Điều này có một số lợi ích về hiệu năng:
+- Rendering không bị chặn. Trình duyệt tiếp tục xử lý phần còn lại của HTML trong khi module script và các dependencies của nó load.
+- Trình duyệt đợi HTML được xử lý trước khi thực thi module scripts. Bạn không cần lắng nghe sự kiện "load".
+- Các thuộc tính `async` và `defer` không cần thiết. Module scripts luôn được deferred.
+
+:::note
+Thuộc tính `async` có giá trị đối với các script thông thường vì nó ngăn chúng chặn rendering. Tuy nhiên, module scripts đã có hành vi này. Thêm `async` vào module script sẽ khiến nó thực thi trước khi trang được load hoàn toàn. Điều này có lẽ không phải là những gì bạn muốn.
+:::
+
+### Opt out khỏi processing
+
+Để ngăn Astro xử lý một script, thêm directive `is:inline`.
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // Sẽ được render vào HTML chính xác như đã viết!
+  // Local imports không được resolve và sẽ không hoạt động.
+  // Nếu trong một component, lặp lại mỗi khi component được sử dụng.
+</script>
+```
+
+:::note
+Astro sẽ không xử lý các thẻ script của bạn trong một số tình huống. Cụ thể, việc thêm `type="module"` hoặc bất kỳ thuộc tính nào khác ngoài `src` vào thẻ `<script>` sẽ khiến Astro coi thẻ đó như thể nó có directive `is:inline`.
+:::
+
+<ReadMore>Xem trang [tham khảo directives](/en/reference/directives-reference/#script--style-directives) của chúng tôi để biết thêm thông tin về các directives có sẵn trên thẻ `<script>`.</ReadMore>
+
+### Include JavaScript files trên trang của bạn
+
+Bạn có thể muốn viết scripts của mình như các file `.js`/`.ts` riêng biệt hoặc cần tham chiếu đến một external script trên server khác. Bạn có thể làm điều này bằng cách tham chiếu chúng trong thuộc tính `src` của thẻ `<script>`.
+
+#### Import local scripts
+
+**Khi nào sử dụng:** khi script của bạn nằm trong `src/`.
+
+Astro sẽ build, optimize và add các scripts này vào trang cho bạn, tuân theo [quy tắc xử lý script](#script-processing) của nó.
+
+```astro title="src/components/LocalScripts.astro"
+<!-- đường dẫn tương đối đến script tại `src/scripts/local.js` -->
+<script src="../scripts/local.js"></script>
+
+<!-- cũng hoạt động cho các file TypeScript local -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### Load external scripts
+
+**Khi nào sử dụng:** khi file JavaScript của bạn nằm trong `public/` hoặc trên CDN.
+
+Để load scripts bên ngoài thư mục `src/` của project, include directive `is:inline`. Cách tiếp cận này bỏ qua JavaScript processing, bundling và optimizations được cung cấp bởi Astro khi bạn import scripts như mô tả ở trên.
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- đường dẫn tuyệt đối đến script tại `public/my-script.js` -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- URL đầy đủ đến script trên remote server -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## Các pattern script phổ biến
+
+### Xử lý `onclick` và các events khác
+
+Một số UI frameworks sử dụng syntax tùy chỉnh để xử lý events như `onClick={...}` (React/Preact) hoặc `@click="..."` (Vue). Astro tuân theo HTML tiêu chuẩn chặt chẽ hơn và không sử dụng syntax tùy chỉnh cho events.
+
+Thay vào đó, bạn có thể sử dụng [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) trong thẻ `<script>` để xử lý user interactions.
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">Click me!</button>
+
+<script>
+  // Tìm tất cả buttons có class `alert` trên trang.
+  const buttons = document.querySelectorAll('button.alert');
+
+  // Xử lý clicks trên mỗi button.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('Button was clicked!');
+    });
+  });
+</script>
+```
+
+:::note
+Nếu bạn có nhiều component `<AlertButton />` trên một trang, Astro sẽ không chạy script nhiều lần. Scripts được bundled và chỉ included một lần mỗi trang. Sử dụng `querySelectorAll` đảm bảo rằng script này attach event listener vào mọi button có class `alert` được tìm thấy trên trang.
+:::
+
+### Web components với custom elements
+
+Bạn có thể tạo các HTML elements riêng với hành vi tùy chỉnh bằng cách sử dụng Web Components standard. Định nghĩa một [custom element](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) trong component `.astro` cho phép bạn build các interactive components mà không cần UI framework library.
+
+Trong ví dụ này, chúng ta định nghĩa một HTML element `<astro-heart>` mới để theo dõi số lần bạn click nút trái tim và cập nhật `<span>` với số đếm mới nhất.
+
+```astro title="src/components/AstroHeart.astro"
+<!-- Wrap các component elements trong custom element "astro-heart" của chúng ta. -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // Định nghĩa hành vi cho loại HTML element mới của chúng ta.
+  class AstroHeart extends HTMLElement {
+    connectedCallback() {
+      let count = 0;
+
+      const heartButton = this.querySelector('button');
+      const countSpan = this.querySelector('span');
+
+      // Mỗi khi button được clicked, cập nhật count.
+			heartButton.addEventListener('click', () => {
+        count++;
+        countSpan.textContent = count.toString();
+      });
+		}
+  }
+
+  // Nói với trình duyệt sử dụng class AstroHeart của chúng ta cho các elements <astro-heart>.
+  customElements.define('astro-heart', AstroHeart);
+</script>
+```
+
+Có hai lợi ích khi sử dụng custom element ở đây:
+
+1. Thay vì tìm kiếm toàn bộ trang bằng `document.querySelector()`, bạn có thể sử dụng `this.querySelector()`, chỉ tìm kiếm trong custom element instance hiện tại. Điều này giúp làm việc với chỉ các children của một component instance tại một thời điểm dễ dàng hơn.
+
+2. Mặc dù `<script>` chỉ chạy một lần, trình duyệt sẽ chạy method `connectedCallback()` của custom element mỗi khi nó tìm thấy `<astro-heart>` trên trang. Điều này có nghĩa là bạn có thể an toàn viết code cho một component tại một thời điểm, ngay cả khi bạn dự định sử dụng component này nhiều lần trên một trang.
+
+<ReadMore>Bạn có thể tìm hiểu thêm về custom elements trong [hướng dẫn Reusable Web Components của web.dev](https://web.dev/custom-elements-v1/) và [giới thiệu về custom elements của MDN](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).</ReadMore>
+
+### Truyền frontmatter variables vào scripts
+
+Trong các component Astro, code trong [frontmatter](/en/basics/astro-components/#the-component-script) giữa các `---` fences chạy trên server và không có sẵn trong trình duyệt. Để gửi variables từ server đến client, chúng ta cần một cách để lưu trữ các variables và sau đó đọc chúng khi JavaScript chạy trong trình duyệt.
+
+Một cách để làm điều này là sử dụng [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) để lưu trữ giá trị của variables trong HTML output của bạn. Scripts, bao gồm custom elements, sau đó có thể đọc các attributes này bằng thuộc tính `dataset` của element một khi HTML của bạn load trong trình duyệt.
+
+Trong component ví dụ này, một prop `message` được lưu trữ trong thuộc tính `data-message`, vì vậy custom element có thể đọc `this.dataset.message` và lấy giá trị của prop trong trình duyệt.
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'Welcome, world!' } = Astro.props;
+---
+
+<!-- Lưu trữ message prop như một data attribute. -->
+<astro-greet data-message={message}>
+  <button>Say hi!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    connectedCallback() {
+      // Đọc message từ data attribute.
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button.addEventListener('click', () => {
+        alert(message);
+      });
+		}
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+Bây giờ chúng ta có thể sử dụng component nhiều lần và được chào bằng một thông điệp khác nhau cho mỗi lần.
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- Sử dụng thông điệp mặc định: "Welcome, world!" -->
+<AstroGreet />
+
+<!-- Sử dụng thông điệp tùy chỉnh được truyền như props. -->
+<AstroGreet message="Lovely day to build components!" />
+<AstroGreet message="Glad you made it! 👋" />
+```
+
+:::tip[Bạn có biết không?]
+Đây thực sự là những gì Astro làm phía sau khi bạn truyền props vào một component được viết bằng UI framework như React! Đối với các components có directive `client:*`, Astro tạo một custom element `<astro-island>` với thuộc tính `props` lưu trữ server-side props của bạn trong HTML output.
+:::
+
+### Kết hợp scripts và UI Frameworks
+
+Các elements được render bởi UI framework có thể chưa có sẵn khi thẻ `<script>` thực thi. Nếu script của bạn cũng cần xử lý [UI framework components](/en/guides/framework-components/), việc sử dụng custom element được khuyến nghị.

@@ -1,0 +1,395 @@
+---
+title: Xác thực
+description: Giới thiệu về xác thực trong Astro
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Xác thực (Authentication) và ủy quyền (Authorization) là hai quy trình bảo mật quản lý quyền truy cập vào trang web hoặc ứng dụng của bạn. Xác thực xác minh danh tính của người truy cập, trong khi ủy quyền cấp quyền truy cập vào các khu vực và tài nguyên được bảo vệ.
+
+Xác thực cho phép bạn tùy chỉnh các khu vực của trang web cho những người đã đăng nhập và cung cấp sự bảo vệ tốt nhất cho thông tin cá nhân hoặc riêng tư. Các thư viện xác thực (ví dụ: [Auth.js](https://authjs.dev/), [Clerk](https://clerk.com)) cung cấp các tiện ích cho nhiều phương thức xác thực như đăng nhập bằng email và các nhà cung cấp OAuth.
+
+:::tip
+Không có giải pháp xác thực chính thức nào cho Astro, nhưng bạn có thể tìm thấy [các tích hợp "auth" của cộng đồng](https://astro.build/integrations/?search=auth) trong thư mục tích hợp.
+:::
+
+<ReadMore>Xem cách [thêm xác thực với Supabase](/en/guides/backend/supabase/#adding-authentication-with-supabase) hoặc [thêm xác thực với Firebase](/en/guides/backend/google-firebase/#adding-authentication-with-firebase) trong các hướng dẫn chuyên dụng cho các dịch vụ backend này.</ReadMore>
+
+## Auth.js
+
+Auth.js là một giải pháp xác thực không phụ thuộc vào framework. Một adapter framework cộng đồng [`auth-astro`](https://www.npmjs.com/package/auth-astro) có sẵn cho Astro.
+
+### Cài đặt
+
+Sử dụng lệnh `astro add` cho trình quản lý gói ưa thích của bạn để thêm tích hợp `auth-astro`.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add auth-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add auth-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Cài đặt thủ công
+
+Để cài đặt `auth-astro` thủ công, hãy cài đặt gói cần thiết cho trình quản lý gói của bạn:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add auth-astro @auth/core@^0.18.6
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Sau đó, áp dụng tích hợp vào tệp `astro.config.*` của bạn bằng thuộc tính `integrations`:
+
+```ts title="astro.config.mjs" ins={2,6}
+import { defineConfig } from 'astro/config';
+import auth from 'auth-astro';
+
+export default defineConfig({
+  // ...
+  integrations: [auth()],
+});
+```
+
+### Cấu hình
+
+Tạo tệp `auth.config.ts` trong thư mục gốc của dự án. Thêm bất kỳ [nhà cung cấp](https://authjs.dev/getting-started/providers) hoặc phương thức xác thực nào bạn muốn hỗ trợ, cùng với các biến môi trường mà chúng yêu cầu.
+
+```ts title="auth.config.ts"
+import GitHub from '@auth/core/providers/github';
+import { defineConfig } from 'auth-astro';
+
+export default defineConfig({
+	providers: [
+		GitHub({
+			clientId: import.meta.env.GITHUB_CLIENT_ID,
+			clientSecret: import.meta.env.GITHUB_CLIENT_SECRET,
+		}),
+	],
+});
+```
+
+Tạo tệp `.env` trong thư mục gốc của dự án nếu chưa tồn tại. Thêm hai biến môi trường sau. `AUTH_SECRET` phải là một chuỗi riêng tư có tối thiểu 32 ký tự.
+
+```sh title=".env"
+AUTH_TRUST_HOST=true
+AUTH_SECRET=<my-auth-secret>
+```
+
+### Sử dụng
+
+Bạn có thể thêm các nút đăng nhập và đăng xuất bằng module `auth-astro/client` trong thẻ script hoặc component framework phía client.
+
+```astro title="src/pages/index.astro" {9}
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Đăng nhập</button>
+  <button id="logout">Đăng xuất</button>
+
+  <script>
+    const { signIn, signOut } = await import("auth-astro/client")
+    document.querySelector("#login").onclick = () => signIn("github")
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+Bạn có thể lấy phiên của người dùng bằng phương thức `getSession`.
+
+```astro title="src/pages/index.astro" {3,5}
+---
+import Layout from 'src/layouts/Base.astro';
+import { getSession } from 'auth-astro/server';
+
+const session = await getSession(Astro.request);
+---
+<Layout>
+  {
+    session ? (
+      <p>Chào mừng {session.user?.name}</p>
+    ) : (
+      <p>Chưa đăng nhập</p>
+    )
+  }
+</Layout>
+```
+
+### Các bước tiếp theo
+
+- [`auth-astro` trên GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
+- [Tài liệu Auth.js](https://authjs.dev/)
+
+## Better Auth
+
+Better Auth là một framework xác thực (và ủy quyền) không phụ thuộc vào framework cho TypeScript. Nó cung cấp một bộ tính năng toàn diện ngay từ đầu và bao gồm một hệ sinh thái plugin giúp đơn giản hóa việc thêm các chức năng nâng cao.
+
+Nó hỗ trợ Astro ngay từ đầu, và bạn có thể sử dụng nó để thêm xác thực vào dự án Astro của mình.
+
+### Cài đặt
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Để biết hướng dẫn cài đặt chi tiết, hãy xem [Hướng dẫn Cài đặt Better Auth](https://www.better-auth.com/docs/installation).
+
+### Cấu hình
+
+Cấu hình bảng cơ sở dữ liệu của bạn để lưu trữ dữ liệu người dùng và các phương thức xác thực ưa thích như được mô tả trong [Hướng dẫn Cài đặt Better Auth](https://www.better-auth.com/docs/installation#configure-database). Sau đó, bạn sẽ cần gắn kết handler Better Auth trong dự án Astro của mình.
+
+```ts title="src/pages/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // import instance Better Auth của bạn
+import type { APIRoute } from "astro";
+ 
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+Theo dõi [Hướng dẫn Better Auth Astro](https://www.better-auth.com/docs/integrations/astro) để tìm hiểu thêm.
+
+### Sử dụng
+
+Better Auth cung cấp helper `createAuthClient` cho nhiều framework khác nhau, bao gồm Vanilla JS, React, Vue, Svelte và Solid.
+
+Ví dụ, để tạo client cho React, import helper từ `'better-auth/react'`:
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+Khi client của bạn được thiết lập, bạn có thể sử dụng nó để xác thực người dùng trong các component Astro hoặc bất kỳ tệp nào dành riêng cho framework. Ví dụ sau thêm khả năng đăng nhập hoặc đăng xuất với các hàm `signIn()` và `signOut()` đã cấu hình của bạn.
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Đăng nhập</button>
+  <button id="logout">Đăng xuất</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+Sau đó bạn có thể sử dụng đối tượng `auth` để lấy dữ liệu phiên của người dùng trong mã phía server. Ví dụ sau cá nhân hóa nội dung trang bằng cách hiển thị tên của người dùng đã xác thực:
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../../../lib/auth"; // import instance Better Auth của bạn
+ 
+const session = await auth.api.getSession({
+	headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+Bạn cũng có thể sử dụng đối tượng `auth` để bảo vệ các route của mình bằng middleware. Ví dụ sau kiểm tra xem người dùng cố gắng truy cập route dashboard đã đăng nhập có được xác thực hay không, và chuyển hướng họ đến trang chủ nếu không.
+
+```ts title="src/middleware.ts"
+import { auth } from "../../../auth"; // import instance Better Auth của bạn
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+	const isAuthed = await auth.api
+		.getSession({
+			headers: context.request.headers,
+		})
+	if (context.url.pathname === "/dashboard" && !isAuthed) {
+		return context.redirect("/");
+	}
+	return next();
+});
+```
+
+### Các bước tiếp theo
+
+- [Hướng dẫn Better Auth Astro](https://www.better-auth.com/docs/integrations/astro)
+- [Ví dụ Better Auth Astro](https://github.com/better-auth/better-auth/tree/main/examples/astro-example)
+- [Tài liệu Better Auth](https://www.better-auth.com/docs)
+- [Kho GitHub Better Auth](https://github.com/better-auth/better-auth)
+
+## Clerk
+
+Clerk là một bộ UI có thể nhúng hoàn chỉnh, API linh hoạt và dashboard quản trị để xác thực và quản lý người dùng của bạn. Một [SDK Clerk chính thức cho Astro](https://clerk.com/docs/references/astro/overview) có sẵn.
+
+### Cài đặt
+
+Cài đặt `@clerk/astro` bằng trình quản lý gói mà bạn lựa chọn.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Cấu hình
+
+Theo dõi [hướng dẫn Quickstart Astro của Clerk](https://clerk.com/docs/quickstarts/astro) để thiết lập tích hợp Clerk và middleware trong dự án Astro của bạn.
+
+### Sử dụng
+
+Clerk cung cấp các component cho phép bạn kiểm soát khả năng hiển thị của các trang dựa trên trạng thái xác thực của người dùng. Hiển thị nút đăng nhập cho người dùng đã đăng xuất thay vì nội dung có sẵn cho người dùng đã đăng nhập:
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+---
+
+<Layout>
+    <SignedIn>
+        <UserButton />
+    </SignedIn>
+    <SignedOut>
+        <SignInButton />
+    </SignedOut>
+</Layout>
+```
+
+Clerk cũng cho phép bạn bảo vệ các route trên server bằng middleware. Chỉ định route nào được bảo vệ và nhắc nhở người dùng chưa xác thực đăng nhập:
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/forum(.*)',
+]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (!auth().userId && isProtectedRoute(context.request)) {
+    return auth().redirectToSignIn();
+  }
+});
+```
+
+### Các bước tiếp theo
+
+- Đọc [tài liệu chính thức `@clerk/astro`](https://clerk.com/docs/references/astro/overview)
+- Bắt đầu từ một template với [dự án Clerk + Astro Quickstart](https://github.com/clerk/clerk-astro-quickstart)
+
+## Lucia
+
+[Lucia](https://lucia-auth.com/) là một tài nguyên để triển khai xác thực dựa trên phiên trong một số framework, bao gồm Astro.
+
+### Hướng dẫn
+
+<Steps>
+
+1. Tạo một [API phiên cơ bản](https://lucia-auth.com/sessions/basic-api/) với cơ sở dữ liệu đã chọn của bạn.
+2. Thêm [cookie phiên](https://lucia-auth.com/sessions/cookies/astro) sử dụng endpoint và middleware.
+3. Triển khai [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro) sử dụng các API bạn đã triển khai.
+
+</Steps>
+
+### Ví dụ
+
+- [Ví dụ GitHub OAuth trong Astro](https://github.com/lucia-auth/example-astro-github-oauth)
+- [Ví dụ Google OAuth trong Astro](https://github.com/lucia-auth/example-astro-google-oauth)
+- [Ví dụ Email và mật khẩu với 2FA trong Astro](https://github.com/lucia-auth/example-astro-email-password-2fa)
+- [Ví dụ Email và mật khẩu với 2FA và WebAuthn trong Astro](https://github.com/lucia-auth/example-astro-email-password-webauthn)
+
+## Tài nguyên Cộng đồng
+
+- [Sử dụng Microsoft Entra Id EasyAuth với Astro và Azure Static Web App](https://agramont.net/blog/entra-id-easyauth-with-astro/)
