@@ -1,0 +1,257 @@
+---
+type: integration
+title: '@astrojs/db'
+description: Learn how to use the @astrojs/db integration in your Astro project.
+sidebar:
+  label: DB
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+category: other
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro DB is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy to any [libSQL-compatible database](/en/guides/astro-db/).
+
+With Astro DB you have a powerful, local, type-safe tool to query and model content as a relational database.
+
+<ReadMore>See the [Astro DB guide](/en/guides/astro-db/) for full usage and examples.</ReadMore>
+
+## Installation
+
+Astro includes an `astro add` command to automate the setup of official integrations. If you prefer, you can [install integrations manually](#manual-installation) instead.
+
+Run one of the following commands in a new terminal window.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+ </PackageManagerTabs>
+
+#### Manual Installation 
+
+If you prefer to set things up from scratch yourself, skip `astro add` and follow these instructions to install Astro DB yourself.
+
+##### 1. Install the integration from npm via a package manager
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/db
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+##### 2. Add the integration to `astro.config.mjs`
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import db from '@astrojs/db';
+
+    export default defineConfig({
+      integrations: [
+       db()
+      ]
+    });
+    ```
+
+##### 3. Configure your database 
+
+Create a `db/config.ts` file at the root of your project. This is a special file that Astro will automatically load and use to configure your database tables.
+
+```ts
+// db/config.ts
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: {},
+})
+```
+
+## Table configuration reference
+
+### `columns`
+
+Table columns are configured using the `columns` object:
+
+```ts
+import { defineTable, column, NOW } from 'astro:db';
+
+const Comment = defineTable({
+	columns: {
+		id: column.number({ primaryKey: true }),
+		author: column.text(),
+		content: column.text({ optional: true }),
+		published: column.date({ default: NOW }),
+	},
+});
+```
+
+Columns are configured using the `column` utility. `column` supports the following types:
+
+- **`column.text(...)`** - store either plain or rich text content
+- **`column.number(...)`** - store integer and floating point values
+- **`column.boolean(...)`** - store true / false values
+- **`column.date(...)`** - store `Date` objects, parsed as ISO strings for data storage
+- **`column.json(...)`** - store arbitrary JSON blobs, parsed as stringified JSON for data storage
+
+There are a few shared configuration values across all columns:
+
+- `primaryKey` - Set a `number` or `text` column as the unique identifier.
+- `optional` - Astro DB uses `NOT NULL` for all columns by default. Set `optional` to `true` to allow null values.
+- `default` - Set the default value for newly inserted entries. This accepts either a static value or a string of `sql` for generated values like timestamps.
+- `unique` - Mark a column as unique. This prevents duplicate values across entries in the table.
+- `references` - Reference a related table by column. This establishes a foreign key constraint, meaning each column value must have a matching value in the referenced table.  
+
+### `indexes`
+
+Table indexes are used to improve lookup speeds on a given column or combination of columns. The `indexes` property accepts an array of configuration objects specifying the columns to index:
+
+```ts title="db/config.ts" {9-11}
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number(),
+    published: column.date(),
+    body: column.text(),
+  },
+  indexes: [
+    { on: ["authorId", "published"], unique: true },
+  ]
+});
+```
+
+This will generate a unique index on the `authorId` and `published` columns with the name `Comment_authorId_published_idx`.
+
+The following configuration options are available for each index:
+
+- `on`: `string | string[]` - A single column or array of column names to index.
+- `unique`: `boolean` - Set to `true` to enforce unique values across the indexed columns.
+- `name`: `string` (optional) - A custom name for the unique index. This will override Astro's generated name based on the table and column names being indexed (e.g. `Comment_authorId_published_idx`). Custom names are global, so ensure index names do not conflict between tables.
+
+### `foreignKeys`
+
+:::tip
+
+`foreignKeys` is an advanced API for relating multiple table columns. If you only need to reference a single column, try using [the column `references` property.](#columns)
+
+:::
+
+Foreign keys are used to establish a relationship between two tables. The `foreignKeys` property accepts an array of configuration objects that may relate one or more columns between tables:
+
+```ts title="db/config.ts" {12-20}
+import { defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
+});
+
+const Comment = defineTable({
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
+  foreignKeys: [
+    {
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
+    },
+  ],
+});
+```
+
+Each foreign key configuration object accepts the following properties:
+
+- `columns`: `string[]` - An array of column names to relate to the referenced table.
+- `references`: `() => Column[]` - A function that returns an array of columns from the referenced table.
+
+## Astro DB CLI reference
+
+Astro DB includes a set of CLI commands to interact with your local and libSQL-compatible database. 
+
+These commands are called automatically when using a GitHub CI action, and can be called manually using the `astro db` CLI. 
+
+### `astro db push`
+
+**Flags:**
+
+- `--force-reset` Reset all production data if a breaking schema change is required.
+
+Safely push database configuration changes to your project database. This will check for any risk of data loss and guide you on any recommended migration steps. If a breaking schema change must be made, use the `--force-reset` flag to reset all production data.
+
+### `astro db verify`
+
+Check for any differences between your local and remote database configurations. This is automatically run by `astro db push`. `verify` will compare your local `db/config.ts` file with the remote database and warn if changes are detected.
+
+### `astro db execute <file-path>`
+
+**Flags:**
+
+- `--remote` Run against your libSQL-compatible database. Omit to run against your development server.
+
+Execute a `.ts` or `.js` file to read or write to your database. This accepts a file path as an argument, and supports usage of the `astro:db` module to write type-safe queries. Use the `--remote` flag to run against your libSQL-compatible database, or omit the flag to run against your development server. See how to [seed development data](/en/guides/astro-db/#seed-your-database-for-development) for an example file.
+
+### `astro db shell --query <sql-string>`
+
+**Flags:**
+
+- `--query` Raw SQL query to execute.
+- `--remote` Run against your libSQL-compatible database. Omit to run against your development server.
+
+Execute a raw SQL query against your database. Use the `--remote` flag to run against your libSQL-compatible database, or omit the flag to run against your development server.
+
+## Astro DB utility reference
+
+### `isDbError()`
+
+The `isDbError()` function checks if an error is a libSQL database exception. This may include a foreign key constraint error when using references, or missing fields when inserting data. You can combine `isDbError()` with a try / catch block to handle database errors in your application:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```

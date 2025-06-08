@@ -1,0 +1,795 @@
+---
+title: 'Astro DB'
+description: Tìm hiểu cách sử dụng Astro DB, một cơ sở dữ liệu SQL được quản lý hoàn toàn được thiết kế độc quyền cho Astro.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Astro DB là một cơ sở dữ liệu SQL được quản lý hoàn toàn được thiết kế cho hệ sinh thái Astro. Phát triển cục bộ trong Astro và triển khai đến bất kỳ cơ sở dữ liệu tương thích libSQL nào.
+
+Astro DB là một giải pháp hoàn chỉnh để cấu hình, phát triển và truy vấn dữ liệu của bạn. Một cơ sở dữ liệu cục bộ được tạo trong `.astro/content.db` bất cứ khi nào bạn chạy `astro dev` để quản lý dữ liệu của bạn mà không cần Docker hoặc kết nối mạng.
+
+## Cài đặt
+
+Cài đặt tích hợp [`@astrojs/db`](/en/guides/integrations-guide/db/) bằng lệnh `astro add` tích hợp sẵn:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Định nghĩa cơ sở dữ liệu của bạn
+
+Cài đặt `@astrojs/db` với lệnh `astro add` sẽ tự động tạo một tệp `db/config.ts` trong dự án của bạn nơi bạn sẽ định nghĩa các bảng cơ sở dữ liệu:
+
+```ts title="db/config.ts"
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: { },
+})
+```
+
+### Bảng
+
+Dữ liệu trong Astro DB được lưu trữ bằng các bảng SQL. Bảng cấu trúc dữ liệu của bạn thành các hàng và cột, trong đó các cột thực thi kiểu của mỗi giá trị hàng.
+
+Định nghĩa các bảng của bạn trong tệp `db/config.ts` bằng cách cung cấp cấu trúc của dữ liệu trong cơ sở dữ liệu libSQL hiện có của bạn, hoặc dữ liệu bạn sẽ thu thập trong cơ sở dữ liệu mới. Điều này sẽ cho phép Astro tạo một giao diện TypeScript để truy vấn bảng đó từ dự án của bạn. Kết quả là hỗ trợ TypeScript đầy đủ khi bạn truy cập dữ liệu với tự động hoàn thành thuộc tính và kiểm tra kiểu.
+
+Để cấu hình một bảng cơ sở dữ liệu, import và sử dụng các tiện ích `defineTable()` và `column` từ `astro:db`. Sau đó, định nghĩa một tên (phân biệt chữ hoa chữ thường) cho bảng của bạn và kiểu dữ liệu trong mỗi cột.
+
+Ví dụ này cấu hình một bảng `Comment` với các cột văn bản bắt buộc cho `author` và `body`. Sau đó, làm cho nó có sẵn cho dự án của bạn thông qua export `defineDb()`.
+
+```ts title="db/config.ts" "Comment"
+import { defineDb, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDb({
+  tables: { Comment },
+})
+```
+
+<ReadMore>Xem [tham chiếu cấu hình bảng](/en/guides/integrations-guide/db/#table-configuration-reference) để có tham chiếu đầy đủ về các tùy chọn bảng.</ReadMore>
+
+### Cột
+
+Astro DB hỗ trợ các kiểu cột sau:
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // Một chuỗi văn bản.
+    author: column.text(),
+    // Một giá trị số nguyên.
+    likes: column.number(),
+    // Một giá trị true hoặc false.
+    flagged: column.boolean(),
+    // Giá trị ngày/giờ được truy vấn dưới dạng đối tượng Date JavaScript.
+    published: column.date(),
+    // Một đối tượng JSON không có kiểu.
+    metadata: column.json(),
+  }
+});
+```
+
+<ReadMore>Xem [tham chiếu cột bảng](/en/guides/integrations-guide/db/#table-configuration-reference) để biết thêm chi tiết.</ReadMore>
+
+### Tham chiếu bảng
+
+Mối quan hệ giữa các bảng là một mẫu phổ biến trong thiết kế cơ sở dữ liệu. Ví dụ, một bảng `Blog` có thể có liên quan chặt chẽ với các bảng khác của `Comment`, `Author`, và `Category`.
+
+Bạn có thể định nghĩa các mối quan hệ này giữa các bảng và lưu chúng vào lược đồ cơ sở dữ liệu của bạn bằng **cột tham chiếu**. Để thiết lập một mối quan hệ, bạn sẽ cần:
+
+- Một **cột định danh** trên bảng được tham chiếu. Đây thường là một cột `id` với thuộc tính `primaryKey`.
+- Một cột trên bảng cơ sở để **lưu trữ `id` được tham chiếu**. Điều này sử dụng thuộc tính `references` để thiết lập một mối quan hệ.
+
+Ví dụ này cho thấy cột `authorId` của bảng `Comment` tham chiếu đến cột `id` của bảng `Author`.
+
+```ts title="db/config.ts" {3, 10}
+const Author = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number({ references: () => Author.columns.id }),
+    body: column.text(),
+  }
+});
+```
+
+## Seed cơ sở dữ liệu cho phát triển
+
+Trong phát triển, Astro sẽ sử dụng cấu hình DB của bạn để tạo các kiểu cục bộ theo lược đồ của bạn. Chúng sẽ được tạo mới từ tệp seed của bạn mỗi khi máy chủ dev được khởi động, và sẽ cho phép bạn truy vấn và làm việc với hình dạng dữ liệu của bạn với an toàn kiểu và tự động hoàn thành.
+
+Bạn sẽ không có quyền truy cập vào dữ liệu sản xuất trong quá trình phát triển trừ khi bạn [kết nối với cơ sở dữ liệu từ xa](#connecting-to-remote-databases) trong quá trình phát triển. Điều này bảo vệ dữ liệu của bạn trong khi cho phép bạn kiểm tra và phát triển với cơ sở dữ liệu hoạt động với an toàn kiểu.
+
+Để seed dữ liệu phát triển cho việc kiểm tra và gỡ lỗi vào dự án Astro của bạn, hãy tạo một tệp `db/seed.ts`. Import cả đối tượng `db` và các bảng được định nghĩa trong `astro:db`. `insert` một số dữ liệu ban đầu vào mỗi bảng. Dữ liệu phát triển này phải khớp với cả lược đồ cơ sở dữ liệu và dữ liệu sản xuất.
+
+Ví dụ sau định nghĩa hai hàng dữ liệu phát triển cho bảng `Comment` và bảng `Author`:
+
+```ts title="db/seed.ts"
+import { db, Comment, Author } from 'astro:db';
+
+export default async function() {
+  await db.insert(Author).values([
+    { id: 1, name: "Kasim" },
+    { id: 2, name: "Mina" },
+  ]);
+
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!'},
+  ])
+}
+```
+
+Máy chủ phát triển của bạn sẽ tự động khởi động lại cơ sở dữ liệu bất cứ khi nào tệp này thay đổi, tái tạo các kiểu của bạn và seeding dữ liệu phát triển này từ `seed.ts` mới mỗi lần.
+
+## Kết nối cơ sở dữ liệu libSQL cho sản xuất
+
+Astro DB có thể kết nối với bất kỳ cơ sở dữ liệu libSQL cục bộ nào hoặc với bất kỳ máy chủ nào hiển thị giao thức từ xa libSQL, dù được quản lý hay tự lưu trữ.
+
+Để kết nối Astro DB với cơ sở dữ liệu libSQL, đặt các biến môi trường sau được lấy từ nhà cung cấp cơ sở dữ liệu của bạn:
+
+- `ASTRO_DB_REMOTE_URL`: URL kết nối đến vị trí của libSQL DB cục bộ hoặc từ xa của bạn. Điều này có thể bao gồm [tùy chọn cấu hình URL](#remote-url-configuration-options) như đồng bộ hóa và mã hóa dưới dạng tham số.
+- `ASTRO_DB_APP_TOKEN`: token xác thực cho máy chủ libSQL của bạn. Điều này được yêu cầu cho cơ sở dữ liệu từ xa, và không cần thiết cho [DB cục bộ như tệp hoặc trong bộ nhớ](#url-scheme-and-host).
+
+Tùy thuộc vào dịch vụ của bạn, bạn có thể có quyền truy cập vào CLI hoặc giao diện web để lấy các giá trị này. Phần sau sẽ trình bày việc kết nối với Turso và đặt các giá trị này làm ví dụ, nhưng bạn có thể tự do sử dụng bất kỳ nhà cung cấp nào.
+
+### Bắt đầu với Turso
+
+Turso là công ty đằng sau [libSQL](https://github.com/tursodatabase/libsql), fork mã nguồn mở của SQLite cung cấp năng lượng cho Astro DB. Họ cung cấp một nền tảng cơ sở dữ liệu libSQL được quản lý hoàn toàn và hoàn toàn tương thích với Astro.
+
+Các bước dưới đây sẽ hướng dẫn bạn qua quá trình cài đặt Turso CLI, đăng nhập (hoặc đăng ký), tạo cơ sở dữ liệu mới, lấy các biến môi trường cần thiết, và đẩy lược đồ đến cơ sở dữ liệu từ xa.
+
+<Steps>
+
+1. Cài đặt [Turso CLI](https://docs.turso.tech/cli/installation).
+
+2. [Đăng nhập hoặc đăng ký](https://docs.turso.tech/cli/authentication) vào Turso.
+
+3. Tạo một cơ sở dữ liệu mới. Trong ví dụ này tên cơ sở dữ liệu là `andromeda`.
+
+   ```sh "andromeda"
+   turso db create andromeda
+   ```
+
+4. Chạy lệnh `show` để xem thông tin về cơ sở dữ liệu mới được tạo:
+
+   ```sh "andromeda"
+   turso db show andromeda
+   ```
+
+   Sao chép giá trị `URL` và đặt nó làm giá trị cho `ASTRO_DB_REMOTE_URL`.
+   
+
+   ```dotenv title=".env" "libsql://andromeda-houston.turso.io"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ```
+
+5. Tạo một token mới để xác thực các yêu cầu đến cơ sở dữ liệu:
+
+   ```sh "andromeda"
+   turso db tokens create andromeda
+   ```
+
+   Sao chép đầu ra của lệnh và đặt nó làm giá trị cho `ASTRO_DB_APP_TOKEN`.
+
+   ```dotenv title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ASTRO_DB_APP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
+   ```
+
+6. Đẩy lược đồ DB và metadata của bạn đến cơ sở dữ liệu Turso mới.
+
+   ```sh
+   astro db push --remote
+   ```
+
+7. Chúc mừng, giờ bạn đã có một cơ sở dữ liệu được kết nối! Hãy nghỉ ngơi một chút. 👾
+
+   ```sh
+   turso relax
+   ```
+
+</Steps>
+
+Để khám phá thêm các tính năng của Turso, hãy xem [tài liệu Turso](https://docs.turso.tech).
+
+### Kết nối với cơ sở dữ liệu từ xa
+
+Astro DB cho phép bạn kết nối với cả cơ sở dữ liệu cục bộ và từ xa. Mặc định, Astro sử dụng một tệp cơ sở dữ liệu cục bộ cho các lệnh `dev` và `build`, tái tạo các bảng và chèn dữ liệu seed phát triển mỗi lần.
+
+Để kết nối với cơ sở dữ liệu từ xa được lưu trữ, sử dụng flag `--remote`. Flag này cho phép cả quyền truy cập đọc và ghi vào cơ sở dữ liệu từ xa của bạn, cho phép bạn [chấp nhận và duy trì dữ liệu người dùng](#insert) trong môi trường sản xuất.
+
+:::note
+Trong khi kết nối từ xa thường có thể với bất kỳ nền tảng triển khai nào sử dụng chế độ kết xuất tĩnh hoặc máy chủ, hiện tại có một số hạn chế. Các runtime không phải Node như Cloudflare và Deno hiện tại không hỗ trợ DB trên các tuyến kết xuất máy chủ khi sử dụng libSQL. Hỗ trợ cho các nền tảng này được lên kế hoạch cho việc triển khai trong tương lai.
+:::
+
+Cấu hình lệnh build của bạn để sử dụng flag `--remote`:
+
+```json title="package.json" "--remote"
+{
+  "scripts": {
+    "build": "astro build --remote"
+  }
+}
+```
+
+Bạn cũng có thể sử dụng flag trực tiếp trong dòng lệnh:
+
+```bash
+# Build với kết nối từ xa
+astro build --remote
+
+# Phát triển với kết nối từ xa
+astro dev --remote
+```
+
+:::caution
+Hãy cẩn thận khi sử dụng `--remote` trong phát triển. Điều này kết nối với cơ sở dữ liệu sản xuất trực tiếp của bạn, và tất cả các thay đổi (chèn, cập nhật, xóa) sẽ được duy trì.
+:::
+
+Flag `--remote` sử dụng kết nối đến DB từ xa cả cục bộ trong quá trình build và trên máy chủ. Đảm bảo bạn đặt các biến môi trường cần thiết trong cả môi trường phát triển cục bộ và nền tảng triển khai của bạn.
+
+Khi triển khai dự án Astro DB của bạn, hãy đảm bảo lệnh build của nền tảng triển khai được đặt thành `npm run build` (hoặc tương đương cho trình quản lý gói của bạn) để sử dụng flag `--remote` được cấu hình trong `package.json` của bạn.
+
+### Các tùy chọn cấu hình URL từ xa
+
+Biến môi trường `ASTRO_DB_REMOTE_URL` cấu hình vị trí của cơ sở dữ liệu của bạn cũng như các tùy chọn khác như đồng bộ hóa và mã hóa.
+
+#### Lược đồ URL và host
+
+libSQL hỗ trợ cả HTTP và WebSockets làm giao thức vận chuyển cho máy chủ từ xa. Nó cũng hỗ trợ sử dụng tệp cục bộ hoặc DB trong bộ nhớ. Những điều này có thể được cấu hình bằng các lược đồ URL sau trong URL kết nối:
+
+- `memory:` sẽ sử dụng DB trong bộ nhớ. Host phải trống trong trường hợp này.
+- `file:` sẽ sử dụng tệp cục bộ. Host là đường dẫn đến tệp (`file:path/to/file.db`).
+- `libsql:` sẽ sử dụng máy chủ từ xa thông qua giao thức được thư viện ưa thích (điều này có thể khác nhau giữa các phiên bản). Host là địa chỉ của máy chủ (`libsql://your.server.io`).
+- `http:` sẽ sử dụng máy chủ từ xa thông qua HTTP. `https:` có thể được sử dụng để bật kết nối an toàn. Host giống như cho `libsql:`.
+- `ws:` sẽ sử dụng máy chủ từ xa thông qua WebSockets. `wss:` có thể được sử dụng để bật kết nối an toàn. Host giống như cho `libsql:`.
+
+Chi tiết kết nối libSQL (ví dụ: khóa mã hóa, sao chép, khoảng thời gian đồng bộ) có thể được cấu hình dưới dạng tham số truy vấn trong URL kết nối từ xa.
+
+Ví dụ, để có một tệp cục bộ được mã hóa hoạt động như một bản sao nhúng đến máy chủ libSQL, bạn có thể đặt các biến môi trường sau:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+:::caution
+Sử dụng tệp cơ sở dữ liệu là một tính năng nâng cao, và cần cẩn thận khi triển khai để tránh ghi đè cơ sở dữ liệu của bạn và mất dữ liệu sản xuất.
+
+Ngoài ra, phương pháp này sẽ không hoạt động trong các triển khai serverless, vì hệ thống tệp không được duy trì trong các môi trường đó.
+:::
+
+#### `encryptionKey`
+
+libSQL có hỗ trợ gốc cho cơ sở dữ liệu được mã hóa. Truyền tham số tìm kiếm này sẽ bật mã hóa bằng khóa đã cho:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+#### `syncUrl`
+
+Bản sao nhúng là một tính năng của máy khách libSQL tạo một bản sao được đồng bộ hoàn toàn của cơ sở dữ liệu của bạn trên tệp cục bộ hoặc trong bộ nhớ để đọc cực nhanh. Các thao tác ghi được gửi đến cơ sở dữ liệu từ xa được định nghĩa trên `syncUrl` và được đồng bộ hóa với bản sao cục bộ.
+
+Sử dụng thuộc tính này để truyền URL kết nối riêng biệt để biến cơ sở dữ liệu thành bản sao nhúng của cơ sở dữ liệu khác. Điều này chỉ nên được sử dụng với các lược đồ `file:` và `memory:`. Tham số phải được mã hóa URL.
+
+Ví dụ, để có một bản sao nhúng trong bộ nhớ của cơ sở dữ liệu trên `libsql://your.server.io`, bạn có thể đặt URL kết nối như sau:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+#### `syncInterval`
+
+Khoảng thời gian giữa các đồng bộ hóa bản sao nhúng tính bằng giây. Mặc định nó chỉ đồng bộ hóa khi khởi động và sau các thao tác ghi.
+
+Thuộc tính này chỉ được sử dụng khi `syncUrl` cũng được đặt. Ví dụ, để đặt bản sao nhúng trong bộ nhớ đồng bộ hóa mỗi phút, hãy đặt biến môi trường sau:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
+
+## Truy vấn cơ sở dữ liệu của bạn
+
+Bạn có thể truy vấn cơ sở dữ liệu từ bất kỳ [trang Astro](/en/basics/astro-pages/#astro-pages), [endpoint](/en/guides/endpoints/), hoặc [action](/en/guides/actions/) nào trong dự án của bạn bằng cách sử dụng ORM `db` và query builder được cung cấp.
+
+### Drizzle ORM
+
+```ts
+import { db } from 'astro:db';
+```
+
+Astro DB bao gồm một máy khách [Drizzle ORM](https://orm.drizzle.team/) tích hợp sẵn. Không cần thiết lập hoặc cấu hình thủ công để sử dụng máy khách. Máy khách Astro DB `db` được tự động cấu hình để giao tiếp với cơ sở dữ liệu của bạn (cục bộ hoặc từ xa) khi bạn chạy Astro. Nó sử dụng định nghĩa lược đồ cơ sở dữ liệu chính xác của bạn cho các truy vấn SQL an toàn kiểu với lỗi TypeScript khi bạn tham chiếu một cột hoặc bảng không tồn tại.
+
+### Select 
+
+Ví dụ sau chọn tất cả các hàng của bảng `Comment`. Điều này trả về mảng đầy đủ của dữ liệu phát triển được seed từ `db/seed.ts` sau đó có sẵn để sử dụng trong template trang của bạn:
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ author, body }) => (
+    <article>
+      <p>Author: {author}</p>
+      <p>{body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>Xem [tham chiếu API Drizzle `select()`](https://orm.drizzle.team/docs/select) để có cái nhìn tổng quan đầy đủ.</ReadMore>
+
+### Insert
+
+Để chấp nhận đầu vào người dùng, như xử lý yêu cầu form và chèn dữ liệu vào cơ sở dữ liệu từ xa được lưu trữ của bạn, hãy cấu hình dự án Astro của bạn cho [kết xuất theo nhu cầu](/en/guides/on-demand-rendering/) và [thêm một adapter](/en/guides/on-demand-rendering/#add-an-adapter) cho môi trường triển khai của bạn.
+
+Ví dụ này chèn một hàng vào bảng `Comment` dựa trên yêu cầu form POST được phân tích:
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // Phân tích dữ liệu form
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const body = formData.get('body');
+  if (typeof author === 'string' && typeof body === 'string') {
+    // Chèn dữ liệu form vào bảng Comment
+    await db.insert(Comment).values({ author, body });
+  }
+}
+
+// Kết xuất danh sách comments mới trên mỗi yêu cầu
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+	<label for="author">Author</label>
+	<input id="author" name="author" />
+
+	<label for="body">Body</label>
+	<textarea id="body" name="body"></textarea>
+
+	<button type="submit">Submit</button>
+</form>
+
+<!-- Kết xuất `comments` -->
+```
+
+Bạn cũng có thể sử dụng [Astro actions](/en/guides/actions/) để chèn dữ liệu vào bảng Astro DB. Ví dụ sau chèn một hàng vào bảng `Comment` bằng một action:
+
+```ts
+// src/actions/index.ts
+import { db, Comment } from 'astro:db';
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addComment: defineAction({
+    // Actions bao gồm an toàn kiểu với Zod, loại bỏ nhu cầu
+    // kiểm tra if typeof {value} === 'string' trong các trang của bạn
+    input: z.object({
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async (input) => {
+      const updatedComments = await db
+        .insert(Comment)
+        .values(input)
+        .returning(); // Trả về các comments đã cập nhật
+      return updatedComments;
+    },
+  }),
+};
+```
+
+<ReadMore>
+
+Xem [tham chiếu API Drizzle `insert()`](https://orm.drizzle.team/docs/insert) để có cái nhìn tổng quan đầy đủ.
+
+</ReadMore>
+
+### Delete
+
+Bạn cũng có thể truy vấn cơ sở dữ liệu từ một API endpoint. Ví dụ này xóa một hàng từ bảng `Comment` bằng tham số `id`:
+
+```ts
+// src/pages/api/comments/[id].ts
+import type { APIRoute } from "astro";
+import { db, Comment, eq } from 'astro:db';
+
+export const DELETE: APIRoute = async (ctx) => {
+  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
+  return new Response(null, { status: 204 });
+}
+```
+
+<ReadMore>
+
+Xem [tham chiếu API Drizzle `delete()`](https://orm.drizzle.team/docs/delete) để có cái nhìn tổng quan đầy đủ.
+
+</ReadMore>
+
+### Lọc
+
+Để truy vấn kết quả bảng theo một thuộc tính cụ thể, sử dụng [tùy chọn Drizzle cho select từng phần](https://orm.drizzle.team/docs/select#partial-select). Ví dụ, thêm [một cuộc gọi `.where()`](https://orm.drizzle.team/docs/select#filtering) vào truy vấn `select()` của bạn và truyền so sánh bạn muốn thực hiện.
+
+Ví dụ sau truy vấn tất cả các hàng trong bảng `Comment` có chứa cụm từ "Astro DB." Sử dụng [toán tử `like()`](https://orm.drizzle.team/docs/operators#like) để kiểm tra xem một cụm từ có tồn tại trong `body`:
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment, like } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+### Tiện ích Drizzle
+
+Tất cả các tiện ích Drizzle để xây dựng truy vấn được hiển thị từ mô-đun `astro:db`. Điều này bao gồm:
+
+- [Toán tử lọc](https://orm.drizzle.team/docs/operators) như `eq()` và `gt()`
+- [Helpers tổng hợp](https://orm.drizzle.team/docs/select#aggregations-helpers) như `count()`
+- [Helper `sql`](https://orm.drizzle.team/docs/sql) để viết truy vấn SQL thô
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+### Mối quan hệ
+
+Bạn có thể truy vấn dữ liệu liên quan từ nhiều bảng bằng cách sử dụng SQL join. Để tạo truy vấn join, mở rộng câu lệnh `db.select()` của bạn với toán tử join. Mỗi hàm chấp nhận một bảng để join và một điều kiện để khớp các hàng giữa hai bảng.
+
+Ví dụ này sử dụng hàm `innerJoin()` để join các tác giả `Comment` với thông tin `Author` liên quan dựa trên cột `authorId`. Điều này trả về một mảng các đối tượng với mỗi hàng `Author` và `Comment` làm thuộc tính cấp cao nhất:
+
+```astro title="src/pages/index.astro"
+---
+import { db, eq, Comment, Author } from 'astro:db';
+
+const comments = await db.select()
+  .from(Comment)
+  .innerJoin(Author, eq(Comment.authorId, Author.id));
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ Author, Comment }) => (
+    <article>
+      <p>Author: {Author.name}</p>
+      <p>{Comment.body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>
+
+Xem [tham chiếu join Drizzle](https://orm.drizzle.team/docs/joins#join-types) cho tất cả các toán tử join có sẵn và tùy chọn cấu hình.
+
+</ReadMore>
+
+### Giao dịch hàng loạt
+
+Tất cả các truy vấn cơ sở dữ liệu từ xa được thực hiện dưới dạng yêu cầu mạng. Bạn có thể cần "gộp" các truy vấn lại với nhau thành một giao dịch duy nhất khi thực hiện một số lượng lớn truy vấn, hoặc để có rollback tự động nếu bất kỳ truy vấn nào thất bại.
+
+Ví dụ này seeds nhiều hàng trong một yêu cầu duy nhất bằng phương thức `db.batch()`:
+
+```ts
+// db/seed.ts
+import { db, Author, Comment } from 'astro:db';
+
+export default async function () {
+  const queries = [];
+  // Seed 100 comments mẫu vào cơ sở dữ liệu từ xa của bạn
+  // với một yêu cầu mạng duy nhất.
+  for (let i = 0; i < 100; i++) {
+    queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
+  }
+  await db.batch(queries);
+}
+```
+
+<ReadMore>
+
+Xem tài liệu [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) để biết thêm chi tiết.
+
+</ReadMore>
+
+## Đẩy thay đổi lên cơ sở dữ liệu của bạn
+
+Bạn có thể đẩy các thay đổi được thực hiện trong quá trình phát triển lên cơ sở dữ liệu của bạn.
+
+### Đẩy lược đồ bảng
+
+Lược đồ bảng của bạn có thể thay đổi theo thời gian khi dự án của bạn phát triển. Bạn có thể kiểm tra an toàn các thay đổi cấu hình cục bộ và đẩy lên cơ sở dữ liệu từ xa khi bạn triển khai.
+
+Bạn có thể đẩy các thay đổi lược đồ cục bộ lên cơ sở dữ liệu từ xa qua CLI bằng lệnh `astro db push --remote`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lệnh này sẽ xác minh rằng các thay đổi cục bộ của bạn có thể được thực hiện mà không mất dữ liệu và, nếu cần thiết, đề xuất cách thực hiện an toàn các thay đổi lược đồ của bạn để giải quyết xung đột.
+
+#### Đẩy thay đổi lược đồ phá vỡ
+
+:::caution
+__Điều này sẽ phá hủy cơ sở dữ liệu của bạn__. Chỉ thực hiện lệnh này nếu bạn không cần dữ liệu sản xuất.
+:::
+
+Nếu bạn phải thay đổi lược đồ bảng theo cách không tương thích với dữ liệu hiện có được lưu trữ trên cơ sở dữ liệu từ xa của bạn, bạn sẽ cần reset cơ sở dữ liệu sản xuất.
+
+Để đẩy cập nhật lược đồ bảng bao gồm thay đổi phá vỡ, thêm flag `--force-reset` để reset tất cả dữ liệu sản xuất:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Đổi tên bảng
+
+Có thể đổi tên bảng sau khi đẩy lược đồ của bạn lên cơ sở dữ liệu từ xa.
+
+Nếu bạn **không có dữ liệu sản xuất quan trọng nào**, thì bạn có thể [reset cơ sở dữ liệu](#pushing-breaking-schema-changes) bằng flag `--force-reset`. Flag này sẽ drop tất cả các bảng trong cơ sở dữ liệu và tạo bảng mới để nó khớp chính xác với lược đồ hiện tại của bạn.
+
+Để đổi tên bảng trong khi bảo tồn dữ liệu sản xuất của bạn, bạn phải thực hiện một loạt các thay đổi không phá vỡ để đẩy lược đồ cục bộ lên cơ sở dữ liệu từ xa một cách an toàn.
+
+Ví dụ sau đổi tên bảng từ `Comment` thành `Feedback`:
+
+<Steps>
+
+1. Trong tệp cấu hình cơ sở dữ liệu của bạn, thêm thuộc tính `deprecated: true` vào bảng bạn muốn đổi tên:
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+    ```
+
+2. Thêm lược đồ bảng mới (khớp chính xác với thuộc tính của bảng hiện có) với tên mới:
+
+	  ```ts title="db/config.ts" ins={8-14}
+    const Comment = defineTable({
+        deprecated: true,
+    	columns: {
+    		author: column.text(),
+    		body: column.text(),
+  		}
+    });
+	  const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+
+3. [Đẩy lên cơ sở dữ liệu từ xa](#pushing-table-schemas) với `astro db push --remote`. Điều này sẽ thêm bảng mới và đánh dấu bảng cũ là deprecated.
+4. Cập nhật bất kỳ mã dự án cục bộ nào để sử dụng bảng mới thay vì bảng cũ. Bạn có thể cần di chuyển dữ liệu sang bảng mới.
+5. Khi bạn tin rằng bảng cũ không còn được sử dụng trong dự án của bạn, bạn có thể xóa lược đồ khỏi `config.ts`:
+		```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+    	  columns: {
+    		  author: column.text(),
+    		  body: column.text(),
+  		  }
+    });
+
+	  const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. Đẩy lên cơ sở dữ liệu từ xa lần nữa với `astro db push --remote`. Bảng cũ sẽ bị drop, chỉ còn lại bảng mới được đổi tên.
+</Steps>
+
+### Đẩy dữ liệu bảng 
+
+Bạn có thể cần đẩy dữ liệu lên cơ sở dữ liệu từ xa để seeding hoặc di chuyển dữ liệu. Bạn có thể tạo một tệp `.ts` với mô-đun `astro:db` để viết các truy vấn an toàn kiểu. Sau đó, thực thi tệp đối với cơ sở dữ liệu từ xa bằng lệnh `astro db execute <file-path> --remote`:
+
+Các Comments sau có thể được seed bằng lệnh `astro db execute db/seed.ts --remote`:
+
+```ts
+// db/seed.ts
+import { Comment } from 'astro:db';
+
+export default async function () {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!' },
+  ])
+}
+```
+
+<ReadMore>
+
+Xem [tham chiếu CLI](/en/guides/integrations-guide/db/#astro-db-cli-reference) để có danh sách đầy đủ các lệnh.
+
+</ReadMore>
+
+## Xây dựng tích hợp Astro DB
+
+[Tích hợp Astro](/en/reference/integrations-reference/) có thể mở rộng các dự án người dùng với các bảng Astro DB và dữ liệu seed bổ sung.
+
+Sử dụng phương thức `extendDb()` trong hook `astro:db:setup` để đăng ký các tệp cấu hình và seed Astro DB bổ sung.
+Helper `defineDbIntegration()` cung cấp hỗ trợ TypeScript và tự động hoàn thành cho hook `astro:db:setup`.
+
+```js {8-13}
+// my-integration/index.ts
+import { defineDbIntegration } from '@astrojs/db/utils';
+
+export default function MyIntegration() {
+  return defineDbIntegration({
+    name: 'my-astro-db-powered-integration',
+    hooks: {
+      'astro:db:setup': ({ extendDb }) => {
+        extendDb({
+          configEntrypoint: '@astronaut/my-package/config',
+          seedEntrypoint: '@astronaut/my-package/seed',
+        });
+      },
+      // Các hook tích hợp khác...
+    },
+  });
+}
+```
+
+Các tệp [config](#define-your-database) và [seed](#seed-your-database-for-development) tích hợp tuân theo cùng định dạng với các tương đương do người dùng định nghĩa.
+
+### Thao tác an toàn kiểu trong tích hợp
+
+Trong khi làm việc trên tích hợp, bạn có thể không có lợi từ các kiểu bảng được tạo bởi Astro được export từ `astro:db`.
+Để có an toàn kiểu đầy đủ, sử dụng tiện ích `asDrizzleTable()` để tạo đối tượng tham chiếu bảng bạn có thể sử dụng cho các thao tác cơ sở dữ liệu.
+
+Ví dụ, cho một tích hợp thiết lập bảng cơ sở dữ liệu `Pets` sau:
+
+```js
+// my-integration/config.ts
+import { defineDb, defineTable, column } from 'astro:db';
+
+export const Pets = defineTable({
+  columns: {
+    name: column.text(),
+    species: column.text(),
+  },
+});
+
+export default defineDb({ tables: { Pets } });
+```
+
+Tệp seed có thể import `Pets` và sử dụng `asDrizzleTable()` để chèn hàng vào bảng của bạn với kiểm tra kiểu:
+
+```js {2,7} /typeSafePets(?! )/
+// my-integration/seed.ts
+import { asDrizzleTable } from '@astrojs/db/utils';
+import { db } from 'astro:db';
+import { Pets } from './config';
+
+export default async function() {
+  const typeSafePets = asDrizzleTable('Pets', Pets);
+
+  await db.insert(typeSafePets).values([
+    { name: 'Palomita', species: 'cat' },
+    { name: 'Pan', species: 'dog' },
+  ]);
+}
+```
+
+Giá trị được trả về bởi `asDrizzleTable('Pets', Pets)` tương đương với `import { Pets } from 'astro:db'`, nhưng có sẵn ngay cả khi tạo kiểu của Astro không thể chạy.
+Bạn có thể sử dụng nó trong bất kỳ mã tích hợp nào cần truy vấn hoặc chèn vào cơ sở dữ liệu.
+
+## Di chuyển từ Astro Studio sang Turso
+
+<Steps>
+
+1. Trong [Studio dashboard](https://studio.astro.build/), điều hướng đến dự án bạn muốn di chuyển. Trong tab settings, sử dụng nút "Export Database" để tải xuống một bản dump của cơ sở dữ liệu của bạn.
+2. Làm theo hướng dẫn chính thức để [cài đặt Turso CLI](https://docs.turso.tech/cli/installation) và [đăng ký hoặc đăng nhập](https://docs.turso.tech/cli/authentication) vào tài khoản Turso của bạn.
+3. Tạo một cơ sở dữ liệu mới trên Turso bằng lệnh `turso db create`.
+   ```sh
+   turso db create [database-name]
+   ```
+4. Lấy URL cơ sở dữ liệu bằng Turso CLI, và sử dụng nó làm biến môi trường `ASTRO_DB_REMOTE_URL`.
+   ```sh
+   turso db show [database-name]
+   ```
+   ```dotenv
+   ASTRO_DB_REMOTE_URL=[your-database-url]
+   ```
+5. Tạo một token để truy cập cơ sở dữ liệu của bạn, và sử dụng nó làm biến môi trường `ASTRO_DB_APP_TOKEN`.
+   ```sh
+   turso db tokens create [database-name]
+   ```
+   ```dotenv
+   ASTRO_DB_APP_TOKEN=[your-app-token]
+   ```
+6. Đẩy lược đồ DB và metadata của bạn lên cơ sở dữ liệu Turso mới.
+   ```sh
+   astro db push --remote
+   ```
+7. Import bản dump cơ sở dữ liệu từ bước 1 vào Turso DB mới của bạn.
+   ```sh
+   turso db shell [database-name] < ./path/to/dump.sql
+   ```
+8. Khi bạn đã xác nhận dự án của bạn kết nối với cơ sở dữ liệu mới, bạn có thể xóa an toàn dự án khỏi Astro Studio.
+
+</Steps>

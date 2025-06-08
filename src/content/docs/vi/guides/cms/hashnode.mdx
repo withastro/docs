@@ -1,0 +1,361 @@
+---
+title: Hashnode & Astro
+description: Add content to your Astro project using Hashnode as a CMS
+sidebar:
+  label: Hashnode
+type: cms
+stub: false
+service: Hashnode
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+
+[Hashnode](https://hashnode.com/) is a hosted CMS that allows you to create a blog or publication.
+
+## Integrating with Astro
+The [Hashnode Public API](https://apidocs.hashnode.com/) is a GraphQL API that allows you to interact with Hashnode. This guide uses [`graphql-request`](https://github.com/jasonkuhrt/graphql-request), a minimal GraphQL client that works well with Astro, to bring your Hashnode data into your Astro project.
+
+### Prerequisites
+To get started you will need to have the following: 
+
+1. **An Astro project** - If you don't have an Astro project yet, our [Installation guide](/en/install-and-setup/) will get you up and running in no time.
+
+2. **A Hashnode site** - You can create free personal site by visiting [Hashnode](https://hashnode.com/).
+
+### Installing dependencies
+
+Install the `graphql-request` package using the package manager of your choice:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add graphql-request
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Making a blog with Astro and Hashnode
+
+This guide uses [`graphql-request`](https://github.com/jasonkuhrt/graphql-request), a minimal GraphQL client that works well with Astro, to bring your Hashnode data into your Astro project.
+
+### Prerequisites
+
+1. A Hashnode Blog 
+2. An Astro project integrated with the [graphql-request](https://github.com/jasonkuhrt/graphql-request) package installed.
+
+This example will create an index page that lists posts with links to dynamically-generated individual post pages.
+
+### Fetching Data
+
+<Steps>
+1. To fetch your site's data with the `graphql-request` package, make a `src/lib` directory and create two new files `client.ts` & `schema.ts`:
+
+    <FileTree title="Project Structure">
+    - src/
+      - lib/
+        - **client.ts**
+        - **schema.ts**
+      - pages/
+        - index.astro
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. Initialize an API instance with the GraphQLClient using the URL from your Hashnode Website.
+
+    ```ts title="src/lib/client.ts" "astroplayground.hashnode.dev"
+
+    import { gql, GraphQLClient } from "graphql-request";
+    import type { AllPostsData, PostData } from "./schema";
+
+    export const getClient = () => { 
+      return new GraphQLClient("https://gql.hashnode.com") 
+    }
+
+    const myHashnodeURL = "astroplayground.hashnode.dev";
+
+    export const getAllPosts = async () => {
+      const client = getClient();
+
+      const allPosts = await client.request<AllPostsData>(
+        gql`
+          query allPosts {
+            publication(host: "${myHashnodeURL}") {
+              id
+              title
+              posts(first: 20) {
+                pageInfo{
+                  hasNextPage
+                  endCursor
+                }
+                edges {
+                  node {
+                    id
+                    author{
+                      name
+                      profilePicture
+                    }
+                    title
+                    subtitle
+                    brief
+                    slug
+                    coverImage {
+                      url
+                    }
+                    tags {
+                      name
+                      slug
+                    }
+                    publishedAt
+                    readTimeInMinutes
+                  }
+                }
+              }
+            }
+          }
+        `
+      );
+
+      return allPosts;
+    };
+
+
+    export const getPost = async (slug: string) => {
+      const client = getClient();
+
+      const data = await client.request<PostData>(
+        gql`
+          query postDetails($slug: String!) {
+            publication(host: "${myHashnodeURL}") {
+              id
+              post(slug: $slug) {
+                id
+                author{
+                  name
+                  profilePicture
+                }
+                publishedAt
+                title
+                subtitle
+                readTimeInMinutes
+                content{
+                  html
+                }
+                tags {
+                  name
+                  slug
+                }
+                coverImage {
+                  url
+                }
+              }
+            }
+          }
+        `,
+        { slug: slug }
+      );
+          
+      return data.publication.post;
+    };
+
+    ```
+
+3. Configure `schema.ts` to define the shape of the data returned from the Hashnode API.
+
+    ```ts title="src/lib/schema.ts"
+
+    import { z } from "astro/zod";
+
+    export const PostSchema = z.object({
+        id: z.string(),
+        author: z.object({
+            name: z.string(),
+            profilePicture: z.string(),
+            }),
+        publishedAt: z.string(),
+        title: z.string(),
+        subtitle: z.string(),
+        brief: z.string(),
+        slug: z.string(),
+        readTimeInMinutes: z.number(),
+        content: z.object({
+            html: z.string(),
+        }),
+        tags: z.array(z.object({
+            name: z.string(),
+            slug: z.string(),
+        })),
+        coverImage: z.object({
+            url: z.string(),
+        }),
+    })
+
+    export const AllPostsDataSchema = z.object({
+        id: z.string(),
+        publication: z.object({
+            title: z.string(),
+            posts: z.object({
+                pageInfo: z.object({
+                    hasNextPage: z.boolean(),
+                    endCursor: z.string(),
+                }),
+                edges: z.array(z.object({
+                    node: PostSchema,
+                })),
+            }),
+        }),
+    })
+
+    export const PostDataSchema = z.object({
+        id: z.string(),
+        publication: z.object({
+            title: z.string(),
+            post: PostSchema,
+        }),
+    })
+
+    export type Post = z.infer<typeof PostSchema>
+    export type AllPostsData = z.infer<typeof AllPostsDataSchema>
+    export type PostData = z.infer<typeof PostDataSchema>
+
+    ```
+</Steps>
+
+### Displaying a list of posts
+
+Fetching via `getAllPosts()` returns an array of objects containing the properties for each post such as:
+- `title` - the title of the post
+- `brief` - the HTML rendering of the content of the post
+- `coverImage.url` - the source URL of the featured image of the post
+- `slug` - the slug of the post
+
+Use the `posts` array returned from the fetch to display a list of blog posts on the page.
+
+```astro title="src/pages/index.astro"
+---
+import { getAllPosts } from '../lib/client';
+
+const data = await getAllPosts();
+const allPosts = data.publication.posts.edges;
+
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Hashnode</title>
+    </head>
+    <body>
+
+        {
+            allPosts.map((post) => (
+                <div>
+                    <h2>{post.node.title}</h2>
+                    <p>{post.node.brief}</p>
+                    <img src={post.node.coverImage.url} alt={post.node.title} />
+                    <a href={`/post/${post.node.slug}`}>Read more</a>
+                </div>
+            ))
+        }
+    </body>
+</html>
+```
+
+### Generating pages
+
+<Steps>
+1. Create the page `src/pages/post/[slug].astro` to [dynamically generate a page](/en/guides/routing/#dynamic-routes) for each post.
+
+    <FileTree title="Project Structure">
+    - src/
+      - lib/
+        - client.ts
+        - schema.ts
+      - pages/
+        - index.astro
+        - post/
+          - **[slug].astro**
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. Import and use `getAllPosts()` and `getPost()` to fetch the data from Hashnode and generate individual page routes for each post.
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    ```
+
+3. Create the template for each page using the properties of each `post` object. The example below shows the post title and reading time, then the full post content:
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <title>{post.title}</title>
+        </head>
+        <body>
+            <img src={post.coverImage.url} alt={post.title} />
+
+            <h1>{post.title}</h1>
+            <p>{post.readTimeInMinutes} min read</p>
+
+            <Fragment set:html={post.content.html} />
+        </body>
+    </html>
+    ```
+    :::note
+    `<Fragment />` is a built-in Astro component which allows you to avoid an unnecessary wrapper element. This can be especially useful when fetching HTML from a CMS (e.g. Hashnode or [WordPress](/en/guides/cms/wordpress/)).
+    :::
+</Steps>
+
+### Publishing your site
+To deploy your site visit our [deployment guide](/en/guides/deploy/) and follow the instructions for your preferred hosting provider.
+
+## Community Resources 
+
+- [`astro-hashnode`](https://github.com/matthiesenxyz/astro-hashnode) on GitHub
