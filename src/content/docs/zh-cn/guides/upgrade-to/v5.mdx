@@ -363,6 +363,54 @@ export default defineConfig({
 
 <ReadMore>了解有关 [Astro 中的按需渲染](/zh-cn/guides/on-demand-rendering/)的更多信息。</ReadMore>
 
+### 移除：支持在路由中使用动态的 `prerender` 值
+
+<SourcePR number="11824" title="Merge output:hybrid and output:static" />
+
+在 Astro 4.x 版本中，环境变量可用于动态设置路由中的 `prerender` 导出，例如 `export const prerender =  import.meta.env.SOME_VAR`。
+
+在 Astro 5.0 版本中，移除了在 `prerender` 导出中使用动态值的支持。目前仅有静态值 `true` 和 `false` 是支持的。
+
+#### 我应该做什么？
+
+<Steps>
+
+1. 移除动态路由中，所有的 `prerender` 导出语句：
+
+    ```astro title="src/pages/blog/[slug].astro" del={2}
+    ---
+    export const prerender = import.meta.env.SOME_VAR;
+    ---
+    ```
+
+2. 使用 `astro.config.mjs` 文件中的 Astro 集成来设置 `prerender` 值，该值需要在 `"astro:route:setup"` 钩子中设置为动态的值：
+
+    ```js title="astro.config.mjs" {6-19}
+    import { defineConfig } from 'astro/config';
+    import { loadEnv } from 'vite';
+
+    export default defineConfig({
+      integrations: [
+        {
+          name: 'set-prerender',
+          hooks: {
+            'astro:route:setup': ({ route }) => {
+              // （如有需要）可从 .env 文件中加载环境变量
+              const { PRERENDER } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+              // 搜索与预期文件名相匹配的路由。
+              if (route.component.endsWith('/blog/[slug].astro')) {
+                // 根据需要，设置路由上的 Prerender 的值。
+                route.prerender = PRERENDER;
+              }
+            },
+          },
+        }
+      ],
+    });
+    ```
+
+</Steps>
+
 ### 移除：Squoosh 图像服务
 
 <SourcePR number="11770" title="remove the squoosh image service"/>
