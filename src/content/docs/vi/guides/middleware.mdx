@@ -1,78 +1,78 @@
 ---
 title: Middleware
-description: Learn how to use middleware in Astro.
+description: Tìm hiểu cách sử dụng middleware trong Astro.
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro';
 
-**Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. This rendering occurs at build time for all prerendered pages, but occurs when the route is requested for pages rendered on demand, making [additional SSR features like cookies and headers](/en/guides/on-demand-rendering/#on-demand-rendering-features) available.
+**Middleware** cho phép bạn chặn các yêu cầu và phản hồi cũng như thêm hành vi động mỗi khi một trang hoặc endpoint sắp được hiển thị. Việc hiển thị này xảy ra tại thời điểm xây dựng cho tất cả các trang được hiển thị trước, nhưng xảy ra khi route được yêu cầu cho các trang được hiển thị theo yêu cầu, giúp [các tính năng SSR bổ sung như cookies và headers](/en/guides/on-demand-rendering/#on-demand-rendering-features) trở nên khả dụng.
 
-Middleware also allows you to set and share request-specific information across endpoints and pages by mutating a `locals` object that is available in all Astro components and API endpoints. This object is available even when this middleware runs at build time.
+Middleware cũng cho phép bạn thiết lập và chia sẻ thông tin cụ thể cho yêu cầu giữa các endpoint và trang bằng cách biến đổi một đối tượng `locals` có sẵn trong tất cả các thành phần Astro và API endpoint. Đối tượng này có sẵn ngay cả khi middleware chạy tại thời điểm xây dựng.
 
-## Basic Usage
+## Cách sử dụng cơ bản
 
 <Steps>
-1. Create `src/middleware.js|ts` (Alternatively, you can create `src/middleware/index.js|ts`.)
+1. Tạo `src/middleware.js|ts` (Hoặc bạn có thể tạo `src/middleware/index.js|ts`.)
 
-2. Inside this file, export an [`onRequest()`](/en/reference/modules/astro-middleware/#onrequest) function that can be passed a [`context` object](#the-context-object) and `next()` function. This must not be a default export.
+2. Trong file này, export một hàm [`onRequest()`](/en/reference/modules/astro-middleware/#onrequest) có thể nhận một [đối tượng `context`](#đối-tượng-context) và hàm `next()`. Đây không được là default export.
 
     ```js title="src/middleware.js"
     export function onRequest (context, next) {
-        // intercept data from a request
-        // optionally, modify the properties in `locals`
-        context.locals.title = "New title";
+        // chặn dữ liệu từ một yêu cầu
+        // tùy chọn, thay đổi các thuộc tính trong `locals`
+        context.locals.title = "Tiêu đề mới";
 
-        // return a Response or the result of calling `next()`
+        // trả về một Response hoặc kết quả của việc gọi `next()`
         return next();
     };
     ```
 
-3. Inside any `.astro` file, access response data using `Astro.locals`.
+3. Bên trong bất kỳ file `.astro` nào, truy cập dữ liệu phản hồi bằng `Astro.locals`.
 
     ```astro title="src/components/Component.astro"
     ---
     const data = Astro.locals;
     ---
     <h1>{data.title}</h1>
-    <p>This {data.property} is from middleware.</p>
+    <p>Thuộc tính {data.property} này đến từ middleware.</p>
     ```
 </Steps>
 
-### The `context` object
+### Đối tượng `context`
 
-The [`context`](/en/reference/api-reference/) object includes information to be made available to other middleware, API routes and `.astro` routes during the rendering process.
+Đối tượng [`context`](/en/reference/api-reference/) bao gồm thông tin sẽ được cung cấp cho các middleware khác, API routes và `.astro` routes trong quá trình hiển thị.
 
-This is an optional argument passed to `onRequest()` that may contain the `locals` object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
+Đây là một tham số tùy chọn được truyền cho `onRequest()` có thể chứa đối tượng `locals` cũng như bất kỳ thuộc tính bổ sung nào được chia sẻ trong quá trình hiển thị. Ví dụ, đối tượng `context` có thể bao gồm cookies được sử dụng trong xác thực.
 
-### Storing data in `context.locals`
+### Lưu trữ dữ liệu trong `context.locals`
 
-`context.locals` is an object that can be manipulated inside the middleware.
+`context.locals` là một đối tượng có thể được thao tác bên trong middleware.
 
-This `locals` object is forwarded across the request handling process and is available as a property to [`APIContext`](/en/reference/api-reference/#locals) and [`AstroGlobal`](/en/reference/api-reference/#locals). This allows data to be shared between middlewares, API routes, and `.astro` pages. This is useful for storing request-specific data, such as user data, across the rendering step.
+Đối tượng `locals` này được chuyển tiếp qua quá trình xử lý yêu cầu và có sẵn như một thuộc tính cho [`APIContext`](/en/reference/api-reference/#locals) và [`AstroGlobal`](/en/reference/api-reference/#locals). Điều này cho phép dữ liệu được chia sẻ giữa các middleware, API routes và trang `.astro`. Điều này hữu ích để lưu trữ dữ liệu cụ thể cho yêu cầu, chẳng hạn như dữ liệu người dùng, qua bước hiển thị.
 
-:::tip[Integration properties]
-[Integrations](/en/guides/integrations-guide/) may set properties and provide functionality through the `locals` object. If you are using an integration, check its documentation to ensure you are not overriding any of its properties or doing unnecessary work.
+:::tip[Thuộc tính integration]
+[Integrations](/en/guides/integrations-guide/) có thể thiết lập thuộc tính và cung cấp chức năng thông qua đối tượng `locals`. Nếu bạn đang sử dụng một integration, hãy kiểm tra tài liệu của nó để đảm bảo bạn không ghi đè bất kỳ thuộc tính nào của nó hoặc thực hiện công việc không cần thiết.
 :::
 
-You can store any type of data inside `locals`: strings, numbers, and even complex data types such as functions and maps.
+Bạn có thể lưu trữ bất kỳ loại dữ liệu nào bên trong `locals`: chuỗi, số và thậm chí các loại dữ liệu phức tạp như hàm và map.
 
 ```js title="src/middleware.js"
 export function onRequest (context, next) {
-    // intercept data from a request
-    // optionally, modify the properties in `locals`
+    // chặn dữ liệu từ một yêu cầu
+    // tùy chọn, thay đổi các thuộc tính trong `locals`
     context.locals.user.name = "John Wick";
     context.locals.welcomeTitle = () => {
-        return "Welcome back " + locals.user.name;
+        return "Chào mừng trở lại " + locals.user.name;
     };
 
-    // return a Response or the result of calling `next()`
+    // trả về một Response hoặc kết quả của việc gọi `next()`
     return next();
 };
 ```
 
-Then you can use this information inside any `.astro` file with `Astro.locals`.
+Sau đó bạn có thể sử dụng thông tin này bên trong bất kỳ file `.astro` nào với `Astro.locals`.
 
 ```astro title="src/pages/orders.astro"
 ---
@@ -81,23 +81,23 @@ const orders = Array.from(Astro.locals.orders.entries());
 const data = Astro.locals;
 ---
 <h1>{title}</h1>
-<p>This {data.property} is from middleware.</p>
+<p>Thuộc tính {data.property} này đến từ middleware.</p>
 <ul>
     {orders.map(order => {
-        return <li>{/* do something with each order */}</li>;
+        return <li>{/* làm gì đó với mỗi order */}</li>;
     })}
 </ul>
 ```
 
-`locals` is an object that lives and dies within a single Astro route; when your route page is rendered, `locals` won't exist anymore and a new one will be created. Information that needs to persist across multiple page requests must be stored elsewhere.
+`locals` là một đối tượng tồn tại và mất đi trong một Astro route duy nhất; khi trang route của bạn được hiển thị, `locals` sẽ không còn tồn tại nữa và một cái mới sẽ được tạo. Thông tin cần tồn tại qua nhiều yêu cầu trang phải được lưu trữ ở nơi khác.
 
 :::note
-The value of `locals` cannot be overridden at run time. Doing so would risk wiping out all the information stored by the user.  Astro performs checks and will throw an error if `locals` are overridden.
+Giá trị của `locals` không thể được ghi đè tại thời điểm chạy. Làm như vậy sẽ có nguy cơ xóa tất cả thông tin được lưu trữ bởi người dùng. Astro thực hiện kiểm tra và sẽ ném lỗi nếu `locals` bị ghi đè.
 :::
 
-## Example: redacting sensitive information
+## Ví dụ: che giấu thông tin nhạy cảm
 
-The example below uses middleware to replace "PRIVATE INFO" with the word "REDACTED" to allow you to render modified HTML on your page:
+Ví dụ dưới đây sử dụng middleware để thay thế "PRIVATE INFO" bằng từ "REDACTED" để cho phép bạn hiển thị HTML đã sửa đổi trên trang của mình:
 
 ```js title="src/middleware.js"
 export const onRequest = async (context, next) => {
@@ -112,34 +112,34 @@ export const onRequest = async (context, next) => {
 };
 ```
 
-## Middleware types
+## Loại middleware
 
-You can import and use the utility function `defineMiddleware()` to take advantage of type safety:
+Bạn có thể import và sử dụng hàm tiện ích `defineMiddleware()` để tận dụng type safety:
 
 ```ts
 // src/middleware.ts
 import { defineMiddleware } from "astro:middleware";
 
-// `context` and `next` are automatically typed
+// `context` và `next` được tự động typing
 export const onRequest = defineMiddleware((context, next) => {
 
 });
 ```
 
-Instead, if you're using JsDoc to take advantage of type safety, you can use `MiddlewareHandler`:
+Thay vào đó, nếu bạn đang sử dụng JsDoc để tận dụng type safety, bạn có thể sử dụng `MiddlewareHandler`:
 
 ```js
 // src/middleware.js
 /**
  * @type {import("astro").MiddlewareHandler}
  */
-// `context` and `next` are automatically typed
+// `context` và `next` được tự động typing
 export const onRequest = (context, next) => {
 
 };
 ```
 
-To type the information inside `Astro.locals`, which gives you autocompletion inside `.astro` files and middleware code, declare a global namespace in the `env.d.ts` file:
+Để type thông tin bên trong `Astro.locals`, giúp bạn có autocompletion bên trong các file `.astro` và code middleware, hãy khai báo một global namespace trong file `env.d.ts`:
 
 ```ts title="src/env.d.ts"
 type User = {
@@ -157,11 +157,11 @@ declare namespace App {
 }
 ```
 
-Then, inside the middleware file, you can take advantage of autocompletion and type safety.
+Sau đó, bên trong file middleware, bạn có thể tận dụng autocompletion và type safety.
 
-## Chaining middleware
+## Chuỗi middleware
 
-Multiple middlewares can be joined in a specified order using [`sequence()`](/en/reference/modules/astro-middleware/#sequence):
+Nhiều middleware có thể được kết hợp theo thứ tự được chỉ định bằng [`sequence()`](/en/reference/modules/astro-middleware/#sequence):
 
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
@@ -190,7 +190,7 @@ async function greeting(_, next) {
 export const onRequest = sequence(validation, auth, greeting);
 ```
 
-This will result in the following console order:
+Điều này sẽ dẫn đến thứ tự console như sau:
 
 ```sh
 validation request
@@ -205,17 +205,17 @@ validation response
 
 <p><Since v="4.13.0" /></p>
 
-The `APIContext` exposes a method called `rewrite()` which works the same way as [Astro.rewrite](/en/guides/routing/#rewrites).
+`APIContext` hiển thị một phương thức được gọi là `rewrite()` hoạt động giống như [Astro.rewrite](/en/guides/routing/#rewrites).
 
-Use `context.rewrite()` inside middleware to display a different page's content without [redirecting](/en/guides/routing/#dynamic-redirects) your visitor to a new page. This will trigger a new rendering phase, causing any middleware to be re-executed.
+Sử dụng `context.rewrite()` bên trong middleware để hiển thị nội dung của một trang khác mà không [chuyển hướng](/en/guides/routing/#dynamic-redirects) khách truy cập của bạn đến một trang mới. Điều này sẽ kích hoạt một giai đoạn hiển thị mới, khiến bất kỳ middleware nào được thực thi lại.
 
 ```js title="src/middleware.js"
 import { isLoggedIn } from "~/auth.js"
 export function onRequest (context, next) {
   if (!isLoggedIn(context)) {
-    // If the user is not logged in, update the Request to render the `/login` route and
-    // add header to indicate where the user should be sent after a successful login.
-    // Re-execute middleware.
+    // Nếu người dùng chưa đăng nhập, cập nhật Request để hiển thị route `/login` và
+    // thêm header để chỉ ra nơi người dùng nên được gửi đến sau khi đăng nhập thành công.
+    // Thực thi lại middleware.
     return context.rewrite(new Request("/login", {
       headers: {
         "x-redirect-to": context.url.pathname
@@ -227,15 +227,15 @@ export function onRequest (context, next) {
 };
 ```
 
-You can also pass the `next()` function an optional URL path parameter to rewrite the current `Request` without retriggering a new rendering phase. The location of the rewrite path can be provided as a string, URL, or `Request`:
+Bạn cũng có thể truyền cho hàm `next()` một tham số đường dẫn URL tùy chọn để rewrite `Request` hiện tại mà không kích hoạt lại giai đoạn hiển thị mới. Vị trí của đường dẫn rewrite có thể được cung cấp dưới dạng string, URL hoặc `Request`:
 
 ```js title="src/middleware.js"
 import { isLoggedIn } from "~/auth.js"
 export function onRequest (context, next) {
   if (!isLoggedIn(context)) {
-    // If the user is not logged in, update the Request to render the `/login` route and
-    // add header to indicate where the user should be sent after a successful login.
-    // Return a new `context` to any following middlewares.
+    // Nếu người dùng chưa đăng nhập, cập nhật Request để hiển thị route `/login` và
+    // thêm header để chỉ ra nơi người dùng nên được gửi đến sau khi đăng nhập thành công.
+    // Trả về một `context` mới cho bất kỳ middleware nào sau đó.
     return next(new Request("/login", {
       headers: {
         "x-redirect-to": context.url.pathname
@@ -247,37 +247,37 @@ export function onRequest (context, next) {
 };
 ```
 
-The `next()` function accepts the same payload of [the `Astro.rewrite()` function](/en/reference/api-reference/#rewrite). The location of the rewrite path can be provided as a string, URL, or `Request`.
+Hàm `next()` chấp nhận cùng payload của [hàm `Astro.rewrite()`](/en/reference/api-reference/#rewrite). Vị trí của đường dẫn rewrite có thể được cung cấp dưới dạng string, URL hoặc `Request`.
 
-When you have multiple middleware functions chained via [sequence()](#chaining-middleware), submitting a path to `next()` will rewrite the `Request` in place and the middleware will not execute again. The next middleware function in the chain will receive the new `Request` with its updated `context`:
+Khi bạn có nhiều hàm middleware được chuỗi qua [sequence()](#chuỗi-middleware), việc gửi một đường dẫn tới `next()` sẽ rewrite `Request` tại chỗ và middleware sẽ không thực thi lại. Hàm middleware tiếp theo trong chuỗi sẽ nhận `Request` mới với `context` đã được cập nhật:
 
-Calling `next()` with this signature will create a new `Request` object using the old `ctx.request`. This means that trying to consume `Request.body`, either before or after this rewrite, will throw a runtime error. This error is often raised with [Astro Actions that use HTML forms](/en/guides/actions/#call-actions-from-an-html-form-action). In these cases, we recommend handling rewrites from your Astro templates using `Astro.rewrite()` instead of using middleware.    
+Gọi `next()` với chữ ký này sẽ tạo một đối tượng `Request` mới sử dụng `ctx.request` cũ. Điều này có nghĩa là việc cố gắng tiêu thụ `Request.body`, trước hoặc sau rewrite này, sẽ ném lỗi runtime. Lỗi này thường được gây ra với [Astro Actions sử dụng HTML forms](/en/guides/actions/#call-actions-from-an-html-form-action). Trong những trường hợp này, chúng tôi khuyên bạn nên xử lý rewrite từ các template Astro bằng `Astro.rewrite()` thay vì sử dụng middleware.
 
 ```js title="src/middleware.js"
-// Current URL is https://example.com/blog
+// URL hiện tại là https://example.com/blog
 
-// First middleware function
+// Hàm middleware đầu tiên
 async function first(_, next) {
-  console.log(context.url.pathname) // this will log "/blog"
-  // Rewrite to a new route, the homepage 
-  // Return updated `context` which is passed to next function
+  console.log(context.url.pathname) // này sẽ log "/blog"
+  // Rewrite đến một route mới, trang chủ 
+  // Trả về `context` đã cập nhật được truyền cho hàm tiếp theo
   return next("/")
 }
 
-// Current URL is still https://example.com/blog
+// URL hiện tại vẫn là https://example.com/blog
 
-// Second middleware function
+// Hàm middleware thứ hai
 async function second(context, next) {
-  // Receives updated `context`
-  console.log(context.url.pathname) // this will log  "/"    
+  // Nhận `context` đã được cập nhật
+  console.log(context.url.pathname) // này sẽ log "/"    
   return next()
 }
 
 export const onRequest = sequence(first, second);
 ```
 
-## Error pages
+## Trang lỗi
 
-Middleware will attempt to run for all on-demand rendered pages, even when a matching route cannot be found. This includes Astro's default (blank) 404 page and any custom 404 pages. However, it is up to the [adapter](/en/guides/on-demand-rendering/) to decide whether that code runs. Some adapters may serve a platform-specific error page instead.
+Middleware sẽ cố gắng chạy cho tất cả các trang được hiển thị theo yêu cầu, ngay cả khi không thể tìm thấy route phù hợp. Điều này bao gồm trang 404 mặc định (trống) của Astro và bất kỳ trang 404 tùy chỉnh nào. Tuy nhiên, việc [adapter](/en/guides/on-demand-rendering/) sẽ quyết định liệu code đó có chạy hay không. Một số adapter có thể phục vụ trang lỗi cụ thể của nền tảng thay thế.
 
-Middleware will also attempt to run before serving a 500 error page, including a custom 500 page, unless the server error occurred in the execution of the middleware itself. If your middleware does not run successfully, then you will not have access to `Astro.locals` to render your 500 page.
+Middleware cũng sẽ cố gắng chạy trước khi phục vụ trang lỗi 500, bao gồm trang 500 tùy chỉnh, trừ khi lỗi máy chủ xảy ra trong việc thực thi middleware. Nếu middleware của bạn không chạy thành công, thì bạn sẽ không có quyền truy cập vào `Astro.locals` để hiển thị trang 500 của mình.
