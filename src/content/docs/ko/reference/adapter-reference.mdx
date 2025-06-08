@@ -26,12 +26,12 @@ Astro는 서버 측 렌더링(SSR)으로 알려진 요청 시 렌더링을 위�
 ```js title="my-adapter.mjs"
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
               staticOutput: 'stable'
           }  
@@ -69,6 +69,7 @@ export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'd
 export type AdapterSupportWithMessage = {
 	support: Exclude<AdapterSupportsKind, 'stable'>;
 	message: string;
+	suppress?: 'default' | 'all';
 };
 
 export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
@@ -145,12 +146,12 @@ export function createExports(manifest) {
 ```js title="my-adapter.mjs" ins={9}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           exports: ['handler'],
         });
       },
@@ -367,22 +368,22 @@ Astro가 `404.astro` 파일을 제공하면 404를 처리하기 때문에 일반
 Astro 기능은 어댑터가 Astro에 기능을 지원할 수 있는지 여부와 어댑터의 지원 수준을 알려주는 방법입니다.
 
 이러한 속성을 사용할 때 Astro는 다음을 수행합니다.
-- 특정 검증을 실행합니다.
-- 로그에 대한 상황에 맞는 정보를 내보냅니다.
+- 특정 유효성 검사를 실행합니다.
+- 로그에 컨텍스트 정보를 내보냅니다.
 
-이러한 작업은 지원되거나 지원되지 않는 기능, 지원 수준 및 사용자가 사용하는 구성을 기반으로 실행됩니다.
+이러한 작업은 기능의 지원 여부, 지원 수준, [원하는 로깅의 양](#suppress), 사용자의 자체 구성에 따라 다르게 실행됩니다.
 
 다음 구성은 이 어댑터가 Sharp 기반의 내장 이미지 서비스에 대한 실험적 지원을 가지고 있음을 Astro에 알려줍니다.
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
             sharpImageService: 'experimental'
           } 
@@ -396,9 +397,9 @@ export default function createIntegration() {
 Sharp 이미지 서비스가 사용되는 경우, Astro는 어댑터의 지원 상태에 따라 터미널에 경고와 오류를 기록할 것입니다.
 
 ```
-[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
+[@example/my-adapter] The feature is experimental and subject to issues or changes.
 
-[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+[@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
 ```
 
 사용자에게 더 많은 맥락을 제공하기 위해 추가적인 메시지를 제공할 수 있습니다:
@@ -406,16 +407,76 @@ Sharp 이미지 서비스가 사용되는 경우, Astro는 어댑터의 지원 �
 ```js title="my-adapter.mjs" ins={9-14}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
             sharpImageService: {
               support: 'limited',
-              message: 'This adapter has limited support for Sharp, certain features may not work as expected.'
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+### `suppress`
+
+<p>
+
+  **타입:** `'default' | 'all'`<br />
+  <Since v="5.9.0" />
+</p>
+
+어댑터의 기능 지원 여부에 대한 로그 메시지 중 일부 또는 전부를 표시하지 않도록 설정하는 옵션입니다.
+
+Astro의 기본 로그 메시지가 사용자 지정 `message`와 함께 사용될 때 중복되거나 혼란을 줄 수 있다면, `suppress: "default"` 옵션을 사용하여 기본 메시지를 숨기고 사용자 지정 메시지만 로깅할 수 있습니다.
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'The adapter has limited support for Sharp. It will be used for images during build time, but will not work at runtime.',
+              suppress: 'default' // 사용자 지정 메시지는 기본값보다 더 상세합니다.
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+또한 `suppress: "all"`을 사용하여 기능 지원 관련 메시지를 모두 표시하지 않을 수도 있습니다. 이 옵션은 해당 기능을 사용하지 않는 구성 설정이 있는 경우와 같이 이러한 메시지가 사용자에게 도움이 되지 않는 특정 상황에 유용합니다. 예를 들어, 어댑터에서 Sharp 지원에 대한 메시지를 기록하지 않도록 선택할 수 있습니다.
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.',
+              suppress: 'all'
             }
           } 
         });
@@ -443,12 +504,12 @@ export default function createIntegration() {
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
               edgeMiddleware: true
           } 
@@ -464,12 +525,12 @@ export default function createIntegration() {
 ```js title="my-adapter.mjs" ins={15-20}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
               edgeMiddleware: true
           } 
@@ -505,12 +566,12 @@ function createEdgeMiddleware(middlewareEntryPoint) {
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
             envGetSecret: 'stable'
           } 
@@ -579,12 +640,12 @@ export function createExports(manifest: SSRManifest) {
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
             buildOutput: 'static'
           } 
