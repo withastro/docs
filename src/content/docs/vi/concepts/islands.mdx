@@ -1,0 +1,134 @@
+---
+title: Kiến trúc Islands
+description: Tìm hiểu về cách kiến trúc islands của Astro giúp các trang web hoạt động nhanh chóng.
+i18nReady: true
+---
+
+import IslandsDiagram from '~/components/IslandsDiagram.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro đã góp phần tiên phong và phổ biến một mô hình kiến trúc frontend mới được gọi là **Kiến trúc Islands.** Kiến trúc Islands hoạt động bằng cách render phần lớn trang của bạn thành HTML tĩnh nhanh với các "islands" JavaScript nhỏ hơn được thêm vào khi cần tương tác hoặc cá nhân hóa trên trang (ví dụ như carousel hình ảnh). Điều này tránh được những gói JavaScript nguyên khối làm chậm tốc độ phản hồi của nhiều framework JavaScript web hiện đại khác.
+
+## Lịch sử ngắn gọn
+
+Thuật ngữ "component island" lần đầu tiên được đặt ra bởi kiến trúc sư frontend của Etsy [Katie Sylor-Miller](https://sylormiller.com/) vào năm 2019. Ý tưởng này sau đó được mở rộng và ghi chép trong [bài viết này](https://jasonformat.com/islands-architecture/) của Jason Miller - người tạo ra Preact vào ngày 11 tháng 8 năm 2020.
+
+> Ý tưởng chung của kiến trúc "Islands" có vẻ đơn giản một cách lừa đảo: render các trang HTML trên server, và chèn các placeholders hoặc slots xung quanh các vùng có tính năng động cao [...] sau đó có thể được "hydrated" trên client thành các widgets tự chứa nhỏ, tái sử dụng HTML đã render từ server ban đầu.
+> — Jason Miller, Người tạo ra Preact
+
+Kỹ thuật mà mô hình kiến trúc này dựa trên cũng được biết đến như **partial** hoặc **selective hydration.**
+
+Ngược lại, hầu hết các web framework dựa trên JavaScript hydrate & render toàn bộ website như một ứng dụng JavaScript lớn (còn được gọi là single-page application, hoặc SPA). SPAs cung cấp sự đơn giản và sức mạnh nhưng gặp phải vấn đề về hiệu suất tải trang do sử dụng JavaScript nặng ở phía client.
+
+SPAs có vị trí của chúng, thậm chí [được nhúng bên trong một trang Astro](/en/guides/migrate-to-astro/from-create-react-app/). Nhưng, SPAs thiếu khả năng hydrate một cách có chọn lọc và chiến lược, khiến chúng trở thành lựa chọn quá nặng nề cho hầu hết các dự án trên web ngày nay.
+
+Astro trở nên phổ biến như framework JavaScript web chính thống đầu tiên với selective hydration được tích hợp sẵn, sử dụng cùng mô hình component islands mà Sylor-Miller đầu tiên đặt ra. Từ đó chúng tôi đã mở rộng và phát triển dựa trên công việc ban đầu của Sylor-Miller, điều này đã giúp truyền cảm hứng cho một cách tiếp cận component island tương tự để render nội dung động từ server.
+
+## Island là gì?
+
+Trong Astro, một island là một UI component được nâng cao trên một trang HTML tĩnh.
+
+Một [**client island**](#client-islands) là một UI component JavaScript tương tác được hydrated riêng biệt khỏi phần còn lại của trang, trong khi một [**server island**](#server-islands) là một UI component server-render nội dung động của nó riêng biệt khỏi phần còn lại của trang.
+
+Cả hai loại islands đều chạy các quy trình đắt đỏ hoặc chậm một cách độc lập, trên từng component, để tối ưu hóa việc tải trang.
+
+## Các thành phần Island
+
+Các thành phần Astro là khối xây dựng của template trang của bạn. Chúng render thành HTML tĩnh không có runtime phía client.
+
+Hãy nghĩ về client island như một widget tương tác nổi trong biển HTML tĩnh, nhẹ, được render từ server. Server islands có thể được thêm vào cho các phần tử được cá nhân hóa hoặc động được render từ server, chẳng hạn như ảnh hồ sơ của khách truy cập đã đăng nhập.
+
+<IslandsDiagram>
+  <Fragment slot="headerApp">Header (interactive island)</Fragment>
+  <Fragment slot="sidebarApp">Sidebar (static HTML)</Fragment>
+  <Fragment slot="main">
+    Nội dung tĩnh như văn bản, hình ảnh, v.v.
+  </Fragment>
+  <Fragment slot="carouselApp">Image carousel (interactive island)</Fragment>
+  <Fragment slot="footer">Footer (static HTML)</Fragment>
+  <Fragment slot="source">Nguồn: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+
+Một island luôn chạy cô lập khỏi các islands khác trên trang, và nhiều islands có thể tồn tại trên một trang. Các client islands vẫn có thể chia sẻ state và giao tiếp với nhau, ngay cả khi chúng chạy trong các ngữ cảnh component khác nhau.
+
+Tính linh hoạt này cho phép Astro hỗ trợ nhiều UI frameworks như [React](https://react.dev/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), và [SolidJS](https://www.solidjs.com/). Vì chúng độc lập, bạn thậm chí có thể trộn lẫn nhiều frameworks trên mỗi trang.
+
+:::tip
+Mặc dù hầu hết các developers sẽ dính với chỉ một UI framework, Astro hỗ trợ nhiều frameworks trong cùng một dự án. Điều này cho phép bạn:
+
+- Chọn framework tốt nhất cho mỗi component.
+- Học một framework mới mà không cần bắt đầu một dự án mới.
+- Cộng tác với những người khác ngay cả khi làm việc với các frameworks khác nhau.
+- Chuyển đổi một trang web hiện có sang framework khác một cách từ từ mà không có thời gian chết.
+:::
+
+## Client Islands
+
+Theo mặc định, Astro sẽ tự động render mọi UI component chỉ thành HTML & CSS, **tự động loại bỏ tất cả JavaScript phía client.**
+
+```astro title="src/pages/index.astro"
+<MyReactComponent />
+```
+
+Điều này có thể nghe có vẻ nghiêm ngặt, nhưng hành vi này là điều giúp các trang web Astro nhanh theo mặc định và bảo vệ developers khỏi việc vô tình gửi JavaScript không cần thiết hoặc không mong muốn có thể làm chậm trang web của họ.
+
+Việc biến bất kỳ UI component tĩnh nào thành một island tương tác chỉ cần một directive `client:*`. Astro sau đó tự động build và bundle JavaScript phía client của bạn để có hiệu suất tối ưu.
+
+```astro title="src/pages/index.astro" ins="client:load"
+<!-- Component này bây giờ tương tác trên trang! 
+     Phần còn lại của trang web của bạn vẫn tĩnh. -->
+<MyReactComponent client:load />
+```
+
+Với islands, JavaScript phía client chỉ được tải cho các thành phần tương tác rõ ràng mà bạn đánh dấu bằng các directives `client:*`.
+
+Và vì tương tác được cấu hình ở cấp độ component, bạn có thể xử lý các ưu tiên tải khác nhau cho mỗi component dựa trên cách sử dụng của nó. Ví dụ, `client:idle` yêu cầu một component tải khi trình duyệt trở nên rảnh rỗi, và `client:visible` yêu cầu một component chỉ tải khi nó vào viewport.
+
+<h3>Lợi ích của client islands</h3>
+
+Lợi ích rõ ràng nhất của việc xây dựng với Astro Islands là hiệu suất: phần lớn trang web của bạn được chuyển đổi thành HTML tĩnh nhanh và JavaScript chỉ được tải cho các thành phần riêng lẻ cần nó. JavaScript là một trong những tài nguyên chậm nhất mà bạn có thể tải trên mỗi byte, vì vậy mỗi byte đều quan trọng.
+
+Một lợi ích khác là tải song song. Trong hình minh họa ví dụ ở trên, island "image carousel" có ưu tiên thấp không cần chặn island "header" có ưu tiên cao. Cả hai tải song song và hydrate riêng biệt, có nghĩa là header trở nên tương tác ngay lập tức mà không phải chờ carousel nặng hơn ở phía dưới trang.
+
+Thậm chí tốt hơn, bạn có thể yêu cầu Astro chính xác cách và khi nào render mỗi component. Nếu image carousel đó thực sự đắt đỏ để tải, bạn có thể đính kèm một [client directive](/en/reference/directives-reference/#client-directives) đặc biệt yêu cầu Astro chỉ tải carousel khi nó hiển thị trên trang. Nếu người dùng không bao giờ nhìn thấy nó, nó không bao giờ tải.
+
+Trong Astro, tùy thuộc vào bạn với tư cách là developer để nói rõ ràng với Astro những components nào trên trang cũng cần chạy trong trình duyệt. Astro sẽ chỉ hydrate chính xác những gì cần thiết trên trang và để phần còn lại của trang web của bạn như HTML tĩnh.
+
+**Client islands là bí mật cho câu chuyện hiệu suất nhanh theo mặc định của Astro!**
+
+<ReadMore>Đọc thêm về [sử dụng các thành phần JavaScript framework](/en/guides/framework-components/) trong dự án của bạn.</ReadMore>
+
+## Server islands
+
+Server islands là một cách để di chuyển code phía server đắt đỏ hoặc chậm ra khỏi quy trình render chính, giúp dễ dàng kết hợp HTML tĩnh hiệu suất cao và các thành phần động được tạo từ server.
+
+Thêm directive [`server:defer`](/en/reference/directives-reference/#server-directives) vào bất kỳ thành phần Astro nào trên trang của bạn để biến nó thành server island riêng của nó:
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from "../components/Avatar.astro";
+---
+<Avatar server:defer />
+```
+
+Điều này chia nhỏ trang của bạn với các khu vực nhỏ hơn của nội dung được render từ server mà mỗi khu vực tải song song.
+
+Nội dung chính của trang của bạn có thể được render ngay lập tức với nội dung placeholder, chẳng hạn như avatar chung cho đến khi nội dung riêng của island có sẵn. Với server islands, việc có các thành phần nhỏ của nội dung được cá nhân hóa không làm trì hoãn việc render của một trang tĩnh.
+
+Mô hình render này được xây dựng để có thể di chuyển. Nó không phụ thuộc vào bất kỳ hạ tầng server nào vì vậy nó sẽ hoạt động với bất kỳ host nào, từ server Node.js trong container Docker đến nhà cung cấp serverless mà bạn chọn.
+
+<h3>Lợi ích của server islands</h3>
+
+Một lợi ích của server islands là khả năng render các phần có tính năng động cao hơn của trang của bạn một cách tức thì. Điều này cho phép shell bên ngoài và nội dung chính được cache một cách tích cực hơn, cung cấp hiệu suất nhanh hơn.
+
+Một lợi ích khác là cung cấp trải nghiệm khách truy cập tuyệt vời. Server islands được tối ưu hóa và tải nhanh chóng, thường thậm chí trước khi trình duyệt vẽ trang. Nhưng trong thời gian ngắn cần thiết để islands của bạn render, bạn có thể hiển thị nội dung fallback tùy chỉnh và ngăn chặn bất kỳ layout shift nào.
+
+Một ví dụ về trang web hưởng lợi từ server islands của Astro là cửa hàng thương mại điện tử. Mặc dù nội dung chính của các trang sản phẩm ít thay đổi, những trang này thường có một số phần động:
+
+- Avatar của người dùng trong header.
+- Ưu đãi và giảm giá đặc biệt cho sản phẩm.
+- Đánh giá của người dùng.
+
+Sử dụng server islands cho những phần tử này, khách truy cập của bạn sẽ thấy phần quan trọng nhất của trang, sản phẩm của bạn, ngay lập tức. Avatars chung, spinners tải, và thông báo cửa hàng có thể được hiển thị như nội dung fallback cho đến khi các phần được cá nhân hóa có sẵn.
+
+<ReadMore>Đọc thêm về [sử dụng server islands](/en/guides/server-islands/) trong dự án của bạn.</ReadMore>
