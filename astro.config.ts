@@ -32,7 +32,6 @@ export default defineConfig({
 			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
-				Head: './src/components/starlight/Head.astro',
 				Hero: './src/components/starlight/Hero.astro',
 				MarkdownContent: './src/components/starlight/MarkdownContent.astro',
 				MobileTableOfContents: './src/components/starlight/MobileTableOfContents.astro',
