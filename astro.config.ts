@@ -53,10 +53,10 @@ export default defineConfig({
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar,
-			social: {
-				github: 'https://github.com/withastro/astro',
-				discord: 'https://astro.build/chat',
-			},
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/astro' },
+				{ icon: 'discord', label: 'Discord', href: 'https://astro.build/chat' },
+			],
 			pagefind: false,
 			head: [
 				// Add ICO favicon fallback for Safari.
