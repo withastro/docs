@@ -25,12 +25,12 @@ __必须__ 通过在 `astro:config:done` 钩子中调用 `setAdapter` API 来使
 ```js title="my-adapter.mjs"
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
               staticOutput: 'stable'
           }
@@ -70,6 +70,7 @@ export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'd
 export type AdapterSupportWithMessage = {
 	support: Exclude<AdapterSupportsKind, 'stable'>;
 	message: string;
+  suppress?: 'default' | 'all';
 };
 
 export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
@@ -115,9 +116,9 @@ export type AstroAdapterFeatureMap = {
 
 Astro 的适配器 API 尝试适配多种类型的托管方，并提供了灵活的配置方式。
 
-#### Exports 
+#### Exports
 
-一些无服务架构的托管方会希望你导出一个`handler`函数：
+一些无服务架构的托管方会希望你导出一个 `handler` 函数：
 
 ```js
 export function handler(event, context) {
@@ -146,12 +147,12 @@ export function createExports(manifest) {
 ```js title="my-adapter.mjs" ins={9}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           exports: ['handler'],
         });
       },
@@ -363,8 +364,6 @@ if(app.match(request)) {
 
 当[将适配器发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) 后，执行 `astro add example` 命令，即可安装适配器以及在 `package.json` 文件中指定的对等依赖。我们将指导用户手动更新他们的项目配置。
 
-
-
 ## Astro features
 
 <p><Since v="3.0.0" /></p>
@@ -373,21 +372,21 @@ Astro features 是适配器告诉 Astro 它们是否能够支持某个特性的�
 
 当使用这些属性时，Astro 将：
 - 运行特定的验证；
-- 抛出（emit）上下文日志；
+- 向日志抛出（emit）上下文信息；
 
-这些操作是基于支持或不支持的特性、支持程度以及用户使用的配置来运行的。
+这些操作是基于支持或不支持的特性、支持程度、[所需的记录量](#suppress) 以及用户使用的配置来运行的。
 
 以下配置告诉 Astro，该适配器对 Sharp 提供的内置图像服务有实验性支持：
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
             sharpImageService: 'experimental'
           } 
@@ -401,9 +400,9 @@ export default function createIntegration() {
 如果使用 Sharp 图像服务，Astro 将根据适配器的支持程度向终端输出警告和错误：
 
 ```
-[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
+[@example/my-adapter] The feature is experimental and subject to issues or changes.
 
-[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+[@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
 ```
 
 还可以提供一条消息，以便为用户提供更多上下文：
@@ -411,16 +410,76 @@ export default function createIntegration() {
 ```js title="my-adapter.mjs" ins={9-14}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
             sharpImageService: {
               support: 'limited',
               message: 'This adapter has limited support for Sharp, certain features may not work as expected.'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+### `suppress`
+
+<p>
+
+**类型：** `'default' | 'all'`<br />
+<Since v="5.9.0" />
+</p>
+
+该选项是用于阻止在日志内容中，展示有关适配器对特性支持情况的部分或全部信息。
+
+如果 Astro 的默认日志信息已经多余，甚至与用户自定义的 `message` 部分混杂在一起，从而导致使用过程中的困惑，那么你可以使用 `suppress: "default"` 来仅显示自定义消息，同时抑制默认日志输出：
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'The adapter has limited support for Sharp. It will be used for images during build time, but will not work at runtime.',
+              suppress: 'default' // 自定义信息相较于默认信息会更加详尽
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+你还可通过 `suppress: "all"` 配置完全抑制该功能的所有相关日志信息。这在特定场景下尤为实用，例如当用户通过配置项明确禁用某功能时，相关提示信息反而会造成干扰。以屏蔽 Sharp 图像处理库的日志为例：
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.',
+              suppress: 'all'
             }
           } 
         });
@@ -448,12 +507,12 @@ export default function createIntegration() {
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
               edgeMiddleware: true
           } 
@@ -469,12 +528,12 @@ export default function createIntegration() {
 ```js title="my-adapter.mjs" ins={15-19}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
               edgeMiddleware: true
           } 
@@ -511,12 +570,12 @@ function createEdgeMiddleware(middlewareEntryPoint) {
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
               envGetSecret: 'stable'
           } 
@@ -586,12 +645,12 @@ export function createExports(manifest: SSRManifest) {
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
   return {
-    name: '@matthewp/my-adapter',
+    name: '@example/my-adapter',
     hooks: {
       'astro:config:done': ({ setAdapter }) => {
         setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
           adapterFeatures: {
             buildOutput: 'static'
           } 
