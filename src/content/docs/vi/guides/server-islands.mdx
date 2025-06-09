@@ -1,20 +1,20 @@
 ---
 title: Server islands
-description: Combine high performance static HTML with dynamic server-rendered content.
+description: Kết hợp HTML tĩnh hiệu suất cao với nội dung động được render trên server.
 i18nReady: true
 ---
 
-Server islands allow you to on-demand render dynamic or personalized "islands" individually, without sacrificing the performance of the rest of the page.
+Server islands cho phép bạn render các "đảo" động hoặc được cá nhân hóa theo yêu cầu một cách riêng lẻ, mà không làm giảm hiệu suất của phần còn lại của trang.
 
-This means your visitor will see the most important parts of your page sooner, and allows your main content to be more aggressively cached, providing faster performance.
+Điều này có nghĩa là khách truy cập sẽ thấy những phần quan trọng nhất của trang nhanh hơn và cho phép nội dung chính được cache mạnh mẽ hơn, mang lại hiệu suất nhanh hơn.
 
-## Server island components
+## Các component server island
 
-A server island is a normal server-rendered [Astro component](/en/basics/astro-components/) that is instructed to delay rendering until its contents are available.
+Một server island là một [component Astro](/en/basics/astro-components/) được render trên server bình thường được chỉ dẫn để trì hoãn việc render cho đến khi nội dung của nó có sẵn.
 
-Your page will be rendered immediately with any specified [fallback content as a placeholder](#server-island-fallback-content). Then, the component's own contents are fetched on the client and displayed when available.
+Trang của bạn sẽ được render ngay lập tức với bất kỳ [nội dung fallback được chỉ định làm placeholder](#server-island-fallback-content). Sau đó, nội dung riêng của component sẽ được fetch trên client và hiển thị khi có sẵn.
 
-With [an adapter installed](/en/guides/on-demand-rendering/#server-adapters) to perform the delayed rendering, add the [`server:defer` directive](/en/reference/directives-reference/#server-directives) to any component on your page to turn it into its own island:
+Với [adapter được cài đặt](/en/guides/on-demand-rendering/#server-adapters) để thực hiện việc render trì hoãn, thêm [directive `server:defer`](/en/reference/directives-reference/#server-directives) vào bất kỳ component nào trên trang để biến nó thành island riêng của nó:
 
 ```astro title="src/pages/index.astro" "server:defer"
 ---
@@ -23,7 +23,7 @@ import Avatar from '../components/Avatar.astro';
 <Avatar server:defer />
 ```
 
-These components can do [anything you normally would in an on-demand rendered page](/en/guides/on-demand-rendering/#on-demand-rendering-features) using an adapter, such as fetch content, and access cookies:
+Những component này có thể làm [bất cứ điều gì bạn thường làm trong trang được render theo yêu cầu](/en/guides/on-demand-rendering/#on-demand-rendering-features) khi sử dụng adapter, chẳng hạn như fetch nội dung và truy cập cookies:
 
 ```astro title="src/components/Avatar.astro"
 ---
@@ -34,13 +34,13 @@ const avatarURL = await getUserAvatar(userSession);
 <img alt="User avatar" src={avatarURL} />
 ```
 
-## Server island fallback content
+## Nội dung fallback của server island
 
-When using the `server:defer` attribute on a component to delay its rendering, you can "slot" in default loading content using the included named `"fallback"` slot.
+Khi sử dụng thuộc tính `server:defer` trên một component để trì hoãn việc render của nó, bạn có thể "slot" vào nội dung loading mặc định sử dụng slot có tên `"fallback"` được bao gồm.
 
-Your fallback content will be rendered along with the rest of the page initially on page load and will be replaced with your component's content when available.
+Nội dung fallback của bạn sẽ được render cùng với phần còn lại của trang ban đầu khi tải trang và sẽ được thay thế bằng nội dung component khi có sẵn.
 
-To add fallback content, add `slot="fallback"` on a child (other components or HTML elements) passed to your server island component:
+Để thêm nội dung fallback, thêm `slot="fallback"` trên một child (các component khác hoặc phần tử HTML) được truyền cho component server island của bạn:
 
 ```astro
 ---
@@ -52,40 +52,39 @@ import GenericAvatar from '../components/GenericAvatar.astro';
 </Avatar>
 ```
 
-This fallback content can be things like:
+Nội dung fallback này có thể bao gồm những thứ như:
 
-- A generic avatar instead of the user's own.
-- Placeholder UI such as custom messages.
-- Loading indicators such as spinners.
+- Avatar chung thay vì avatar riêng của người dùng.
+- UI placeholder như các thông báo tùy chỉnh.
+- Chỉ báo loading như spinner.
 
+## Cách thức hoạt động
 
-## How it works
+Việc triển khai server island diễn ra chủ yếu tại thời điểm build nơi nội dung component được hoán đổi cho một script nhỏ.
 
-Server island implementation happens mostly at build-time where component content is swapped out for a small script.
+Mỗi island được đánh dấu với `server:defer` được tách ra thành route đặc biệt riêng mà script fetch tại thời gian chạy. Khi Astro build site của bạn, nó sẽ bỏ qua component và inject một script thay thế, và bất kỳ nội dung nào bạn đã đánh dấu với `slot="fallback"`.
 
-Each of the islands marked with `server:defer` is split off into its own special route which the script fetches at run time. When Astro builds your site it will omit the component and inject a script in its place, and any content you’ve marked with `slot="fallback"`.
+Khi trang load trong trình duyệt, những component này sẽ được yêu cầu đến một endpoint đặc biệt để render chúng và trả về HTML. Điều này có nghĩa là người dùng sẽ thấy những phần quan trọng nhất của trang ngay lập tức. Nội dung fallback sẽ hiển thị trong một thời gian ngắn trước khi các island động được load.
 
-When the page loads in the browser, these components will be requested to a special endpoint that renders them and returns the HTML. This means that users will see the most critical parts of the page instantly. Fallback content will be visible for a short amount of time before the dynamic islands are then loaded.
+Mỗi island được load độc lập với phần còn lại. Điều này có nghĩa là một island chậm sẽ không làm trì hoãn phần còn lại của nội dung được cá nhân hóa có sẵn.
 
-Each island is loaded independently from the rest. This means a slower island won't delay the rest of your personalized content from being available.
-
-This rendering pattern was built to be portable. It does not depend on any server infrastructure so it will work with any host you have, from a Node.js server in a Docker container to the serverless provider of your choice.
+Pattern render này được xây dựng để có tính di động. Nó không phụ thuộc vào bất kỳ hạ tầng server nào nên nó sẽ hoạt động với bất kỳ host nào bạn có, từ server Node.js trong container Docker đến nhà cung cấp serverless theo lựa chọn của bạn.
 
 ## Caching
 
-The data for server islands is retrieved via a `GET` request, passing props as an encrypted string in the URL query. This allows caching data with the [`Cache-Control` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) using standard `Cache-Control` directives.
+Dữ liệu cho server islands được lấy thông qua yêu cầu `GET`, truyền props dưới dạng chuỗi được mã hóa trong URL query. Điều này cho phép cache dữ liệu với [HTTP header `Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) sử dụng các directive `Cache-Control` tiêu chuẩn.
 
-However, [the browser limits URLs to a maximum length of 2048 bytes](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) for practical reasons and to avoid causing denial-of-service problems. If your query string causes your URL to exceed this limit, Astro will instead send a `POST` request that contains all props in the body.
+Tuy nhiên, [trình duyệt giới hạn URL ở độ dài tối đa 2048 byte](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) vì lý do thực tế và để tránh gây ra các vấn đề denial-of-service. Nếu query string của bạn khiến URL vượt quá giới hạn này, Astro sẽ thay vào đó gửi yêu cầu `POST` chứa tất cả props trong body.
 
-`POST` requests are not cached by browsers because they are used to submit data, and could cause data integrity or security issues. Therefore, any existing caching logic in your project will break. Whenever possible, pass only necessary props to your server islands and avoid sending entire data objects and arrays to keep your query small.
+Yêu cầu `POST` không được cache bởi trình duyệt vì chúng được sử dụng để gửi dữ liệu và có thể gây ra các vấn đề về tính toàn vẹn dữ liệu hoặc bảo mật. Do đó, bất kỳ logic caching hiện có nào trong dự án của bạn sẽ bị hỏng. Bất cứ khi nào có thể, chỉ truyền các props cần thiết cho server islands của bạn và tránh gửi toàn bộ các đối tượng dữ liệu và mảng để giữ query nhỏ gọn.
 
-## Accessing the page URL in a server island
+## Truy cập URL trang trong server island
 
-In most cases you, your server island component can get information about the page rendering it by [passing props](/en/basics/astro-components/#component-props) like in normal components.
+Trong hầu hết các trường hợp, component server island của bạn có thể lấy thông tin về trang render nó bằng cách [truyền props](/en/basics/astro-components/#component-props) như trong các component bình thường.
 
-However, server islands run in their own isolated context outside of the page request. `Astro.url` and `Astro.request.url` in a server island component both return a URL that looks like `/_server-islands/Avatar` instead of the current page's URL in the browser. Additionally, if you are prerendering the page you will not have access to information such as query parameters in order to pass as props.
+Tuy nhiên, server islands chạy trong ngữ cảnh riêng biệt bên ngoài yêu cầu trang. `Astro.url` và `Astro.request.url` trong component server island đều trả về URL trông giống như `/_server-islands/Avatar` thay vì URL trang hiện tại trong trình duyệt. Ngoài ra, nếu bạn đang prerender trang, bạn sẽ không có quyền truy cập vào thông tin như query parameters để truyền dưới dạng props.
 
-To access information from the page's URL, you can check the [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) header, which will contain the address of the page that is loading the island in the browser:
+Để truy cập thông tin từ URL của trang, bạn có thể kiểm tra header [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer), sẽ chứa địa chỉ của trang đang load island trong trình duyệt:
 
 ```astro
 ---
@@ -95,18 +94,18 @@ const productId = url.searchParams.get('product');
 ---
 ```
 
-## Reusing the encryption key
+## Tái sử dụng encryption key
 
-Astro uses [cryptography](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography) to encrypt props passed to server islands, protecting sensitive data from accidental exposure. This encryption relies on a new, random key that is generated on each build and embedded in the server bundle.
+Astro sử dụng [cryptography](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography) để mã hóa props được truyền cho server islands, bảo vệ dữ liệu nhạy cảm khỏi việc tiết lộ tình cờ. Việc mã hóa này dựa vào một key ngẫu nhiên mới được tạo ra trong mỗi lần build và được nhúng trong server bundle.
 
-Most deploy hosts will handle keeping your front end and back end in sync automatically. However, you may need a constant encryption key if you are using rolling deployments, multi-region hosting or a CDN that caches pages containing server islands.
+Hầu hết các deploy host sẽ tự động xử lý việc giữ cho frontend và backend của bạn đồng bộ. Tuy nhiên, bạn có thể cần một encryption key không đổi nếu bạn đang sử dụng rolling deployments, multi-region hosting hoặc CDN cache các trang chứa server islands.
 
-In environments with rolling deployments (e.g., Kubernetes) where your frontend assets (which encrypt props) and your backend functions (which decrypt props) may be temporarily using different keys, or when a CDN is still serving pages built with an old key, encrypted props passed to your server island cannot be decrypted.
+Trong môi trường với rolling deployments (ví dụ: Kubernetes) nơi frontend assets của bạn (mã hóa props) và backend functions (giải mã props) có thể tạm thời sử dụng các key khác nhau, hoặc khi CDN vẫn đang phục vụ các trang được build với key cũ, các props được mã hóa truyền cho server island không thể được giải mã.
 
-In these situations, use the Astro CLI to generate a reusable, encoded encryption key to set as an environment variable in your build environment:
+Trong những tình huống này, sử dụng Astro CLI để tạo một encryption key có thể tái sử dụng, được mã hóa để đặt làm biến môi trường trong build environment của bạn:
 
 ```shell
 astro create-key
 ```
 
-Use this value to configure the `ASTRO_KEY` environment variable (e.g. in a `.env` file) and include it in your CI/CD or host's build settings. This ensures the same key is always reused in the generated bundle so that encryption and decryption remain in sync.
+Sử dụng giá trị này để cấu hình biến môi trường `ASTRO_KEY` (ví dụ: trong file `.env`) và bao gồm nó trong cài đặt build của CI/CD hoặc host. Điều này đảm bảo cùng một key luôn được tái sử dụng trong bundle được tạo để mã hóa và giải mã vẫn đồng bộ.

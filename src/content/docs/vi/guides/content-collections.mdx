@@ -1,7 +1,7 @@
 ---
 title: Content collections
 description: >-
-  Manage your content with type safety.
+  Quản lý nội dung với type safety.
 i18nReady: true
 ---
 import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
@@ -12,86 +12,87 @@ import ReadMore from "~/components/ReadMore.astro"
 
 <p><Since v="2.0.0" /></p>
 
-**Content collections** are the best way to manage sets of content in any Astro project. Collections help to organize and query your documents, enable Intellisense and type checking in your editor, and provide automatic TypeScript type-safety for all of your content.
-Astro v5.0 introduced the Content Layer API for defining and querying content collections. This performant, scalable API provides built-in content loaders for your local collections. For remote content, you can use third-party and community-built loaders or create your own custom loader and pull in your data from any source.
+**Content collections** là cách tốt nhất để quản lý tập hợp nội dung trong bất kỳ dự án Astro nào. Collections giúp tổ chức và truy vấn tài liệu, kích hoạt Intellisense và type checking trong editor, đồng thời cung cấp tự động type-safety TypeScript cho toàn bộ nội dung của bạn.
+
+Astro v5.0 đã giới thiệu Content Layer API để định nghĩa và truy vấn content collections. API hiệu suất cao và có khả năng mở rộng này cung cấp các content loader tích hợp cho các collection cục bộ. Đối với nội dung từ xa, bạn có thể sử dụng loader của bên thứ ba và cộng đồng hoặc tạo loader tùy chỉnh để kéo dữ liệu từ bất kỳ nguồn nào.
 
 :::note
-Projects may continue using the legacy Content Collections API introduced in Astro v2.0. However, we encourage you to [update any existing collections](/en/guides/upgrade-to/v5/#legacy-v20-content-collections-api) when you are able.
+Các dự án có thể tiếp tục sử dụng legacy Content Collections API được giới thiệu trong Astro v2.0. Tuy nhiên, chúng tôi khuyến khích bạn [cập nhật các collection hiện có](/en/guides/upgrade-to/v5/#legacy-v20-content-collections-api) khi có thể.
 :::
 
-## What are Content Collections?
+## Content Collections là gì?
 
-You can define a **collection** from a set of data that is structurally similar. This can be a directory of blog posts, a JSON file of product items, or any data that represents multiple items of the same shape.
+Bạn có thể định nghĩa một **collection** từ một tập hợp dữ liệu có cấu trúc tương tự. Đây có thể là một thư mục các bài blog, một file JSON chứa các sản phẩm, hoặc bất kỳ dữ liệu nào đại diện cho nhiều mục có cùng hình dạng.
 
-Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, YAML, or JSON files:
+Collections được lưu trữ cục bộ trong dự án hoặc trên hệ thống file có thể có các entry là file Markdown, MDX, Markdoc, YAML, hoặc JSON:
 
 <FileTree>
 - src/
-- **newsletter/** the "newsletter" collection
-  - week-1.md a collection entry
-  - week-2.md a collection entry
-  - week-3.md a collection entry
-- **authors/** the "author" collection
-  - authors.json a single file containing all collection entries
+- **newsletter/** collection "newsletter"
+  - week-1.md một entry collection
+  - week-2.md một entry collection
+  - week-3.md một entry collection
+- **authors/** collection "author"
+  - authors.json một file chứa tất cả entry collection
 </FileTree>
 
-With an appropriate collection loader, you can fetch remote data from any external source, such as a CMS, database, or headless payment system.
+Với loader collection phù hợp, bạn có thể tải dữ liệu từ xa từ bất kỳ nguồn bên ngoài nào, như CMS, database, hoặc hệ thống thanh toán headless.
 
-## TypeScript configuration for collections
+## Cấu hình TypeScript cho collections
 
-Content collections rely on TypeScript to provide Zod validation, Intellisense and type checking in your editor. If you are not extending one of Astro's  `strict` or `strictest` TypeScript settings, you will need to ensure the following `compilerOptions` are set in your `tsconfig.json`:
+Content collections dựa vào TypeScript để cung cấp validation Zod, Intellisense và type checking trong editor. Nếu bạn không mở rộng một trong các cài đặt TypeScript `strict` hoặc `strictest` của Astro, bạn sẽ cần đảm bảo các `compilerOptions` sau được thiết lập trong `tsconfig.json`:
 
 ```json title="tsconfig.json" ins={5} {6}
 {
-  // Included with "astro/tsconfigs/strict" or "astro/tsconfigs/strictest"
+  // Bao gồm với "astro/tsconfigs/strict" hoặc "astro/tsconfigs/strictest"
   "extends": "astro/tsconfigs/base",
   "compilerOptions": {
-    "strictNullChecks": true, // add if using `base` template
-    "allowJs": true // required, and included with all Astro templates
+    "strictNullChecks": true, // thêm nếu sử dụng template `base`
+    "allowJs": true // bắt buộc, và được bao gồm trong tất cả template Astro
   }
 }
 ```
 
-## Defining Collections
+## Định nghĩa Collections
 
-Individual collections use `defineCollection()` to configure:
-- a `loader` for a data source (required)
-- a `schema` for type safety (optional, but highly recommended!) 
+Các collection riêng lẻ sử dụng `defineCollection()` để cấu hình:
+- một `loader` cho nguồn dữ liệu (bắt buộc)
+- một `schema` để đảm bảo type safety (tùy chọn, nhưng rất khuyến nghị!)
 
-### The collection config file
+### File cấu hình collection
 
-To define collections, you must create a `src/content.config.ts` file in your project (`.js` and `.mjs` extensions are also supported.) This is a special file that Astro will use to configure your content collections based on the following structure:
+Để định nghĩa collections, bạn phải tạo file `src/content.config.ts` trong dự án (cũng hỗ trợ extension `.js` và `.mjs`). Đây là file đặc biệt mà Astro sẽ sử dụng để cấu hình content collections dựa trên cấu trúc sau:
 
 ```ts title="src/content.config.ts"
-// 1. Import utilities from `astro:content`
+// 1. Import utilities từ `astro:content`
 import { defineCollection, z } from 'astro:content';
 
 // 2. Import loader(s)
 import { glob, file } from 'astro/loaders';
 
-// 3. Define your collection(s)
+// 3. Định nghĩa collection(s)
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. Export a single `collections` object to register your collection(s)
+// 4. Export một object `collections` duy nhất để đăng ký collection(s)
 export const collections = { blog, dogs };
 ```
 
-### Defining the collection `loader`
+### Định nghĩa `loader` collection
 
-The Content Layer API allows you to fetch your content (whether stored locally in your project or remotely) and uses a `loader` property to retrieve your data. 
+Content Layer API cho phép bạn tải nội dung (dù được lưu trữ cục bộ trong dự án hay từ xa) và sử dụng thuộc tính `loader` để lấy dữ liệu.
 
 #### Built-in loaders
 
-Astro provides [two built-in loader functions](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
+Astro cung cấp [hai hàm loader tích hợp](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` và `file()`) để tải nội dung cục bộ, cũng như quyền truy cập API để xây dựng loader riêng và tải dữ liệu từ xa.
 
-The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, or YAML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
+[`glob()` loader](/en/reference/content-loader-reference/#glob-loader) tạo entries từ các thư mục chứa file Markdown, MDX, Markdoc, JSON, hoặc YAML từ bất cứ đâu trên filesystem. Nó chấp nhận một `pattern` các file entry để khớp bằng glob patterns được hỗ trợ bởi [micromatch](https://github.com/micromatch/micromatch#matching-features), và một đường dẫn file base nơi các file được đặt. `id` của mỗi entry sẽ được tự động tạo từ tên file. Sử dụng loader này khi bạn có một file cho mỗi entry.
 
-The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
+[`file()` loader](/en/reference/content-loader-reference/#file-loader) tạo nhiều entries từ một file cục bộ duy nhất. Mỗi entry trong file phải có thuộc tính key `id` duy nhất. Nó chấp nhận đường dẫn file `base` đến file của bạn và tùy chọn một [hàm `parser`](#parser-function) cho các file dữ liệu mà nó không thể parse tự động. Sử dụng loader này khi file dữ liệu có thể được parse thành một mảng các object.
 
 ```ts  title="src/content.config.ts" {5,9}
 import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // Not available with legacy API
+import { glob, file } from 'astro/loaders'; // Không khả dụng với legacy API
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -103,8 +104,8 @@ const dogs = defineCollection({
 });
 
 const probes = defineCollection({
-  // `loader` can accept an array of multiple patterns as well as string patterns
-  // Load all markdown files in the space-probes directory, except for those that start with "voyager-"
+  // `loader` có thể chấp nhận một mảng nhiều patterns cũng như string patterns
+  // Tải tất cả file markdown trong thư mục space-probes, ngoại trừ những file bắt đầu với "voyager-"
   loader: glob({ pattern: ['*.md', '!voyager-*'], base: 'src/data/space-probes' }),
   schema: z.object({
     name: z.string(),
@@ -120,13 +121,13 @@ const probes = defineCollection({
 export const collections = { blog, dogs, probes };
 ```
 
-##### `parser` function
+##### Hàm `parser`
 
-The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `toml.parse` or `csv-parse`) to create a collection from a file's contents.
+`file()` loader chấp nhận đối số thứ hai định nghĩa hàm `parser`. Điều này cho phép bạn chỉ định parser tùy chỉnh (ví dụ: `toml.parse` hoặc `csv-parse`) để tạo collection từ nội dung file.
 
-The `file()` loader will automatically detect and parse a single array of objects from JSON and YAML files (based on their file extension) with no need for a `parser` unless you have a [nested JSON document](#nested-json-documents). To use other files, such as `.toml` and `.csv`, you will need a to create a parser function.
+`file()` loader sẽ tự động phát hiện và parse một mảng object duy nhất từ file JSON và YAML (dựa trên extension file) mà không cần `parser` trừ khi bạn có [tài liệu JSON lồng nhau](#nested-json-documents). Để sử dụng các file khác như `.toml` và `.csv`, bạn sẽ cần tạo hàm parser.
 
-The following example defines a content collection `dogs` using a `.toml` file:
+Ví dụ sau định nghĩa content collection `dogs` sử dụng file `.toml`:
 
 ```toml title="src/data/dogs.toml"
 [[dogs]]
@@ -138,7 +139,7 @@ id = "..."
 age = "..."
 ```
 
-After importing TOML's parser, you can load the `dogs` collection into your project by passing both a file path and `parser` function to the `file()` loader. A similar process can be used to define a `cats` collection from a `.csv` file:
+Sau khi import parser của TOML, bạn có thể tải collection `dogs` vào dự án bằng cách truyền cả đường dẫn file và hàm `parser` cho `file()` loader. Quy trình tương tự có thể được sử dụng để định nghĩa collection `cats` từ file `.csv`:
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
@@ -156,15 +157,15 @@ const cats = defineCollection({
 });
 ```
 
-###### Nested `.json` documents
+###### Tài liệu `.json` lồng nhau
 
-The `parser` argument also allows you to load a single collection from a nested JSON document. For example, this JSON file contains multiple collections:
+Đối số `parser` cũng cho phép bạn tải một collection duy nhất từ tài liệu JSON lồng nhau. Ví dụ, file JSON này chứa nhiều collections:
 
 ```json title="src/data/pets.json"
 {"dogs": [{}], "cats": [{}]}
 ```
 
-You can separate these collections by passing a custom `parser` to the `file()` loader for each collection:
+Bạn có thể tách các collections này bằng cách truyền `parser` tùy chỉnh cho `file()` loader cho mỗi collection:
 
 ```typescript title="src/content.config.ts"
 const dogs = defineCollection({
@@ -175,28 +176,28 @@ const cats = defineCollection({
 });
 ```
 
-#### Building a custom loader 
+#### Xây dựng loader tùy chỉnh
 
-You can build a custom loader to fetch remote content from any data source, such as a CMS, a database, or an API endpoint.
+Bạn có thể xây dựng loader tùy chỉnh để tải nội dung từ xa từ bất kỳ nguồn dữ liệu nào, như CMS, database, hoặc API endpoint.
 
-Using a loader to fetch your data will automatically create a collection from your remote data. This gives you all the benefits of local collections, such as collection-specific API helpers such as `getCollection()` and `render()` to query and display your data, as well as schema validation.
+Sử dụng loader để tải dữ liệu sẽ tự động tạo collection từ dữ liệu từ xa. Điều này mang lại tất cả lợi ích của collections cục bộ, như các API helper dành riêng cho collection như `getCollection()` và `render()` để truy vấn và hiển thị dữ liệu, cũng như validation schema.
 
 :::tip
-Find community-built and third-party loaders in the [Astro integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
+Tìm các loader do cộng đồng và bên thứ ba xây dựng trong [thư mục integrations Astro](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
 :::
 
 ##### Inline loaders
 
-You can define a loader inline, inside your collection, as an async function that returns an array of entries.
+Bạn có thể định nghĩa loader inline, bên trong collection, như một hàm async trả về một mảng entries.
 
-This is useful for loaders that don't need to manually control how the data is loaded and stored. Whenever the loader is called, it will clear the store and reload all the entries.
+Điều này hữu ích cho các loader không cần kiểm soát thủ công cách dữ liệu được tải và lưu trữ. Mỗi khi loader được gọi, nó sẽ xóa store và tải lại tất cả entries.
 
 ```ts title="src/content.config.ts"
 const countries = defineCollection({
   loader: async () => {
     const response = await fetch("https://restcountries.com/v3.1/all");
     const data = await response.json();
-    // Must return an array of entries with an id property, or an object with IDs as keys and entries as values
+    // Phải trả về một mảng entries với thuộc tính id, hoặc một object với ID làm key và entries làm value
     return data.map((country) => ({
       id: country.cca3,
       ...country,
@@ -206,27 +207,27 @@ const countries = defineCollection({
 });
 ```
 
-The returned entries are stored in the collection and can be queried using the `getCollection()` and `getEntry()` functions.
+Các entries được trả về được lưu trong collection và có thể được truy vấn bằng các hàm `getCollection()` và `getEntry()`.
 
 ##### Loader objects
 
-For more control over the loading process, you can use the Content Loader API to create a loader object. For example, with access to the `load` method directly, you can create a loader that allows entries to be updated incrementally or clears the store only when necessary.
+Để kiểm soát nhiều hơn quá trình loading, bạn có thể sử dụng Content Loader API để tạo loader object. Ví dụ, với quyền truy cập trực tiếp phương thức `load`, bạn có thể tạo loader cho phép entries được cập nhật dần dần hoặc chỉ xóa store khi cần thiết.
 
-Similar to creating an Astro integration or Vite plugin, you can [distribute your loader as an NPM package](/en/reference/publish-to-npm/) that others can use in their projects.
+Tương tự như tạo Astro integration hoặc Vite plugin, bạn có thể [phân phối loader như NPM package](/en/reference/publish-to-npm/) để người khác sử dụng trong dự án của họ.
 
-<ReadMore>See the full [Content Loader API](/en/reference/content-loader-reference/) and examples of how to build your own loader.</ReadMore>
+<ReadMore>Xem đầy đủ [Content Loader API](/en/reference/content-loader-reference/) và ví dụ về cách xây dựng loader riêng.</ReadMore>
 
-### Defining the collection schema
+### Định nghĩa schema collection
 
-Schemas enforce consistent frontmatter or entry data within a collection through Zod validation. A schema **guarantees** that this data exists in a predictable form when you need to reference or query it. If any file violates its collection schema, Astro will provide a helpful error to let you know.
+Schemas thực thi dữ liệu frontmatter hoặc entry nhất quán trong collection thông qua validation Zod. Schema **đảm bảo** rằng dữ liệu này tồn tại ở dạng có thể dự đoán khi bạn cần tham chiếu hoặc truy vấn nó. Nếu bất kỳ file nào vi phạm schema collection, Astro sẽ cung cấp lỗi hữu ích để thông báo cho bạn.
 
-Schemas also power Astro's automatic TypeScript typings for your content. When you define a schema for your collection, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your collection, including property autocompletion and type-checking.
+Schemas cũng hỗ trợ typing TypeScript tự động của Astro cho nội dung. Khi bạn định nghĩa schema cho collection, Astro sẽ tự động tạo và áp dụng interface TypeScript cho nó. Kết quả là hỗ trợ TypeScript đầy đủ khi bạn truy vấn collection, bao gồm autocompletion thuộc tính và type-checking.
 
-Every frontmatter or data property of your collection entries must be defined using a Zod data type:
+Mọi thuộc tính frontmatter hoặc data của collection entries phải được định nghĩa bằng kiểu dữ liệu Zod:
 
 ```ts title="src/content.config.ts" {6-11,15-19}
 import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // Not available with legacy API
+import { glob, file } from 'astro/loaders'; // Không khả dụng với legacy API
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -249,14 +250,14 @@ const dogs = defineCollection({
 export const collections = { blog, dogs };
 ```
 
-#### Defining datatypes with Zod
+#### Định nghĩa datatypes với Zod
 
-Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's data within a collection *and* provide automatic TypeScript types when you go to query content from inside your project.
+Astro sử dụng [Zod](https://github.com/colinhacks/zod) để hỗ trợ content schemas. Với Zod, Astro có thể validate dữ liệu của mọi file trong collection *và* cung cấp kiểu TypeScript tự động khi bạn truy vấn nội dung từ bên trong dự án.
 
-To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod. 
+Để sử dụng Zod trong Astro, import utility `z` từ `"astro:content"`. Đây là re-export của thư viện Zod, và nó hỗ trợ tất cả tính năng của Zod.
 
 ```ts
-// Example: A cheatsheet of many common Zod datatypes
+// Ví dụ: Cheatsheet của nhiều kiểu dữ liệu Zod phổ biến
 import { z, defineCollection } from 'astro:content';
 
 defineCollection({
@@ -273,10 +274,10 @@ defineCollection({
     tags: z.array(z.string()),
     footnote: z.string().optional(),
 
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(), // e.g. 2024-09-17
+    // Trong YAML, ngày được viết không có dấu ngoặc kép sẽ được hiểu là Date objects
+    publishDate: z.date(), // ví dụ: 2024-09-17
 
-    // Transform a date string (e.g. "2022-07-08") to a Date object
+    // Transform một chuỗi ngày (ví dụ: "2022-07-08") thành Date object
     updatedDate: z.string().transform((str) => new Date(str)),
 
     authorContact: z.string().email(),
@@ -285,19 +286,19 @@ defineCollection({
 })
 ```
 
-<ReadMore>See [Zod's README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.</ReadMore>
+<ReadMore>Xem [Zod's README](https://github.com/colinhacks/zod) để có tài liệu đầy đủ về cách Zod hoạt động và các tính năng khả dụng.</ReadMore>
 
-##### Zod schema methods
+##### Phương thức Zod schema
 
-All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
+Tất cả [phương thức Zod schema](https://zod.dev/?id=schema-methods) (ví dụ: `.parse()`, `.transform()`) đều khả dụng, với một số hạn chế. Đáng chú ý, việc thực hiện kiểm tra validation tùy chỉnh trên hình ảnh bằng `image().refine()` không được hỗ trợ.
 
-#### Defining collection references
+#### Định nghĩa collection references
 
-Collection entries can also "reference" other related entries. 
+Collection entries cũng có thể "tham chiếu" các entries liên quan khác.
 
-With the [`reference()` function](/en/reference/modules/astro-content/#reference) from the Collections API, you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
+Với [hàm `reference()`](/en/reference/modules/astro-content/#reference) từ Collections API, bạn có thể định nghĩa một thuộc tính trong schema collection như một entry từ collection khác. Ví dụ, bạn có thể yêu cầu mọi entry `space-shuttle` bao gồm thuộc tính `pilot` sử dụng schema riêng của collection `pilot` để type checking, autocomplete, và validation.
 
-A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
+Ví dụ phổ biến là bài blog tham chiếu các profile tác giả có thể tái sử dụng được lưu dưới dạng JSON, hoặc các URL bài viết liên quan được lưu trong cùng collection:
 
 ```ts title="src/content.config.ts"
 import { defineCollection, reference, z } from 'astro:content';
@@ -307,9 +308,9 @@ const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
   schema: z.object({
     title: z.string(),
-    // Reference a single author from the `authors` collection by `id`
+    // Tham chiếu một tác giả duy nhất từ collection `authors` bằng `id`
     author: reference('authors'),
-    // Reference an array of related posts from the `blog` collection by `slug`
+    // Tham chiếu một mảng bài viết liên quan từ collection `blog` bằng `slug`
     relatedPosts: z.array(reference('blog')),
   })
 });
@@ -325,86 +326,85 @@ const authors = defineCollection({
 export const collections = { blog, authors };
 ```
 
-This example blog post specifies the `id`s of related posts and the `id` of the post author:
+Bài blog ví dụ này chỉ định `id` của các bài viết liên quan và `id` của tác giả bài viết:
 
 ```yaml title="src/data/blog/welcome.md"
 ---
 title: "Welcome to my blog"
-author: ben-holmes # references `src/data/authors/ben-holmes.json` 
+author: ben-holmes # tham chiếu `src/data/authors/ben-holmes.json` 
 relatedPosts:
-- about-me # references `src/data/blog/about-me.md`
-- my-year-in-review # references `src/data/blog/my-year-in-review.md`
+- about-me # tham chiếu `src/data/blog/about-me.md`
+- my-year-in-review # tham chiếu `src/data/blog/my-year-in-review.md`
 ---
 ```
 
-These references will be transformed into objects containing a `collection` key and an `id` key, allowing you to easily [query them in your templates](/en/guides/content-collections/#accessing-referenced-data).
+Các tham chiếu này sẽ được transform thành objects chứa key `collection` và key `id`, cho phép bạn dễ dàng [truy vấn chúng trong templates](/en/guides/content-collections/#accessing-referenced-data).
 
-### Defining custom IDs
+### Định nghĩa ID tùy chỉnh
 
-When using the `glob()` loader with Markdown, MDX, Markdoc, or JSON files, every content entry [`id`](/en/reference/modules/astro-content/#id) is automatically generated in an URL-friendly format based on the content filename. The `id` is used to query the entry directly from your collection. It is also useful when creating new pages and URLs from your content.
+Khi sử dụng `glob()` loader với file Markdown, MDX, Markdoc, hoặc JSON, mọi [`id`](/en/reference/modules/astro-content/#id) của content entry được tự động tạo ở định dạng thân thiện với URL dựa trên tên file nội dung. `id` được sử dụng để truy vấn entry trực tiếp từ collection. Nó cũng hữu ích khi tạo trang và URL mới từ nội dung.
 
-You can override an entry’s generated `id` by adding your own `slug` property to the file frontmatter or data object for JSON files. This is similar to the “permalink” feature of other web frameworks.
+Bạn có thể ghi đè `id` được tạo của entry bằng cách thêm thuộc tính `slug` riêng vào frontmatter file hoặc data object cho file JSON. Điều này tương tự như tính năng "permalink" của các web framework khác.
 
 ```md title="src/blog/1.md" {3}
 ---
 title: My Blog Post
 slug: my-custom-id/supports/slashes
 ---
-Your blog post content here.
+Nội dung bài blog của bạn ở đây.
 ```
 
 ```json title="src/categories/1.json" {3}
 {
   "title": "My Category",
   "slug": "my-custom-id/supports/slashes",
-  "description": "Your category description here."
+  "description": "Mô tả danh mục của bạn ở đây."
 }
 ```
 
-## Querying Collections
+## Truy vấn Collections
 
-Astro provides helper functions to query a collection and return one (or more) content entries.
+Astro cung cấp các hàm helper để truy vấn collection và trả về một (hoặc nhiều) content entries.
 
-- [`getCollection()`](/en/reference/modules/astro-content/#getcollection) fetches an entire collection and returns an array of entries.
-- [`getEntry()`](/en/reference/modules/astro-content/#getentry) fetches a single entry from a collection.
+- [`getCollection()`](/en/reference/modules/astro-content/#getcollection) tải toàn bộ collection và trả về một mảng entries.
+- [`getEntry()`](/en/reference/modules/astro-content/#getentry) tải một entry duy nhất từ collection.
 
-These return entries with a unique `id`, a `data` object with all defined properties, and will also return a `body` containing the raw, uncompiled body of a Markdown, MDX, or Markdoc document.
+Chúng trả về entries với `id` duy nhất, object `data` với tất cả thuộc tính được định nghĩa, và cũng sẽ trả về `body` chứa nội dung thô, chưa được compile của tài liệu Markdown, MDX, hoặc Markdoc.
 
 ```js
 import { getCollection, getEntry } from 'astro:content';
 
-// Get all entries from a collection.
-// Requires the name of the collection as an argument.
+// Lấy tất cả entries từ một collection.
+// Yêu cầu tên của collection làm đối số.
 const allBlogPosts = await getCollection('blog');
 
-// Get a single entry from a collection.
-// Requires the name of the collection and `id`
+// Lấy một entry duy nhất từ collection.
+// Yêu cầu tên collection và `id`
 const poodleData = await getEntry('dogs', 'poodle');
-
-
 ```
-<ReadMore>See the full list of properties returned by the [`CollectionEntry` type](/en/reference/modules/astro-content/#collectionentry).</ReadMore>
 
-### Using content in Astro templates
+<ReadMore>Xem danh sách đầy đủ các thuộc tính được trả về bởi [kiểu `CollectionEntry`](/en/reference/modules/astro-content/#collectionentry).</ReadMore>
 
-After querying your collections, you can access each entry's content directly inside of your Astro component template. For example, you can create a list of links to your blog posts, displaying information from your entry's frontmatter using the `data` property.
+### Sử dụng nội dung trong template Astro
 
+Sau khi truy vấn collections, bạn có thể truy cập nội dung của mỗi entry trực tiếp bên trong template component Astro. Ví dụ, bạn có thể tạo danh sách liên kết đến các bài blog, hiển thị thông tin từ frontmatter của entry bằng thuộc tính `data`.
 
 ```astro title="src/pages/index.astro"
 ---
 import { getCollection } from 'astro:content';
 const posts = await getCollection('blog');
 ---
-<h1>My posts</h1>
+<h1>Bài viết của tôi</h1>
 <ul>
   {posts.map(post => (
     <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
   ))}
 </ul>
 ```
-#### Rendering body content 
 
-Once queried, you can render Markdown and MDX entries to HTML using the [`render()`](/en/reference/modules/astro-content/#render) function property. Calling this function gives you access to rendered HTML content, including both a `<Content />` component and a list of all rendered headings.
+#### Render nội dung body
+
+Sau khi được truy vấn, bạn có thể render các entry Markdown và MDX thành HTML bằng thuộc tính hàm [`render()`](/en/reference/modules/astro-content/#render). Gọi hàm này cho phép bạn truy cập nội dung HTML được render, bao gồm cả component `<Content />` và danh sách tất cả heading được render.
 
 ```astro title="src/pages/blog/post-1.astro" {5,8}
 ---
@@ -412,20 +412,20 @@ import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('blog', 'post-1');
 if (!entry) {
-  // Handle Error, for example:
-  throw new Error('Could not find blog post 1');
+  // Xử lý lỗi, ví dụ:
+  throw new Error('Không thể tìm thấy bài blog 1');
 }
 const { Content, headings } = await render(entry);
 ---
-<p>Published on: {entry.data.published.toDateString()}</p>
+<p>Được đăng vào: {entry.data.published.toDateString()}</p>
 <Content />
 ```
 
-#### Passing content as props
+#### Truyền nội dung như props
 
-A component can also pass an entire collection entry as a prop.
+Một component cũng có thể truyền toàn bộ collection entry như một prop.
 
-You can use the [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) utility to correctly type your component's props using TypeScript. This utility takes a string argument that matches the name of your collection schema and will inherit all of the properties of that collection's schema.
+Bạn có thể sử dụng utility [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) để type đúng props của component bằng TypeScript. Utility này nhận đối số chuỗi khớp với tên schema collection và sẽ kế thừa tất cả thuộc tính của schema collection đó.
 
 ```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
 ---
@@ -434,48 +434,48 @@ interface Props {
   post: CollectionEntry<'blog'>;
 }
 
-// `post` will match your 'blog' collection schema type
+// `post` sẽ khớp với kiểu schema collection 'blog'
 const { post } = Astro.props;
 ---
 ```
 
-### Filtering collection queries
+### Lọc truy vấn collection
 
-`getCollection()` takes an optional "filter" callback that allows you to filter your query based on an entry's `id` or `data` properties.
+`getCollection()` nhận callback "filter" tùy chọn cho phép bạn lọc truy vấn dựa trên thuộc tính `id` hoặc `data` của entry.
 
-You can use this to filter by any content criteria you like. For example, you can filter by properties like `draft` to prevent any draft blog posts from publishing to your blog:
+Bạn có thể sử dụng điều này để lọc theo bất kỳ tiêu chí nội dung nào bạn thích. Ví dụ, bạn có thể lọc theo thuộc tính như `draft` để ngăn bất kỳ bài blog nháp nào được xuất bản lên blog:
 
 ```js
-// Example: Filter out content entries with `draft: true`
+// Ví dụ: Lọc ra các entry nội dung có `draft: true`
 import { getCollection } from 'astro:content';
 const publishedBlogEntries = await getCollection('blog', ({ data }) => {
   return data.draft !== true;
 });
 ```
 
-You can also create draft pages that are available when running the dev server, but not built in production:
+Bạn cũng có thể tạo các trang nháp khả dụng khi chạy dev server, nhưng không được build trong production:
 
 ```js
-// Example: Filter out content entries with `draft: true` only when building for production
+// Ví dụ: Lọc ra các entry nội dung có `draft: true` chỉ khi build cho production
 import { getCollection } from 'astro:content';
 const blogEntries = await getCollection('blog', ({ data }) => {
   return import.meta.env.PROD ? data.draft !== true : true;
 });
 ```
 
-The filter argument also supports filtering by nested directories within a collection. Since the `id` includes the full nested path, you can filter by the start of each `id` to only return items from a specific nested directory:
+Đối số filter cũng hỗ trợ lọc theo thư mục lồng nhau trong collection. Vì `id` bao gồm đường dẫn lồng nhau đầy đủ, bạn có thể lọc theo phần đầu của mỗi `id` để chỉ trả về các mục từ thư mục lồng nhau cụ thể:
 
 ```js
-// Example: Filter entries by sub-directory in the collection
+// Ví dụ: Lọc entries theo thư mục con trong collection
 import { getCollection } from 'astro:content';
 const englishDocsEntries = await getCollection('docs', ({ id }) => {
   return id.startsWith('en/');
 });
 ```
 
-### Accessing referenced data
+### Truy cập dữ liệu được tham chiếu
 
-Any [references defined in your schema](/en/guides/content-collections/#defining-collection-references) must be queried separately after first querying your collection entry. Since the [`reference()` function](/en/reference/modules/astro-content/#reference) transforms a reference to an object with `collection` and `id` as keys, you can use the `getEntry()` function to return a single referenced item, or `getEntries()` to retrieve multiple referenced entries from the returned `data` object.
+Bất kỳ [tham chiếu nào được định nghĩa trong schema](/en/guides/content-collections/#defining-collection-references) phải được truy vấn riêng biệt sau khi truy vấn collection entry đầu tiên. Vì [hàm `reference()`](/en/reference/modules/astro-content/#reference) transform một tham chiếu thành object với `collection` và `id` là keys, bạn có thể sử dụng hàm `getEntry()` để trả về một mục được tham chiếu duy nhất, hoặc `getEntries()` để lấy nhiều entries được tham chiếu từ object `data` được trả về.
 
 ```astro title="src/pages/blog/welcome.astro"
 ---
@@ -483,42 +483,42 @@ import { getEntry, getEntries } from 'astro:content';
 
 const blogPost = await getEntry('blog', 'welcome');
 
-// Resolve a singular reference (e.g. `{collection: "authors", id: "ben-holmes"}`)
+// Resolve một tham chiếu duy nhất (ví dụ: `{collection: "authors", id: "ben-holmes"}`)
 const author = await getEntry(blogPost.data.author);
-// Resolve an array of references
-// (e.g. `[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
+// Resolve một mảng tham chiếu
+// (ví dụ: `[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ---
 
 <h1>{blogPost.data.title}</h1>
-<p>Author: {author.data.name}</p>
+<p>Tác giả: {author.data.name}</p>
 
 <!-- ... -->
 
-<h2>You might also like:</h2>
+<h2>Bạn cũng có thể thích:</h2>
 {relatedPosts.map(post => (
   <a href={post.id}>{post.data.title}</a>
 ))}
 ```
 
-## Generating Routes from Content
+## Tạo Routes từ Content
 
-Content collections are stored outside of the `src/pages/` directory. This means that no pages or routes are generated for your collection items by default.
+Content collections được lưu trữ bên ngoài thư mục `src/pages/`. Điều này có nghĩa là không có trang hoặc routes nào được tạo cho các mục collection của bạn theo mặc định.
 
-You will need to manually create a new [dynamic route](/en/guides/routing/#dynamic-routes) if you want to generate HTML pages for each of your collection entries, such as individual blog posts. Your dynamic route will map the incoming request param (e.g. `Astro.params.slug` in `src/pages/blog/[...slug].astro`) to fetch the correct entry for each page.
+Bạn sẽ cần tự tạo một [dynamic route](/en/guides/routing/#dynamic-routes) mới nếu muốn tạo trang HTML cho mỗi entry collection, như các bài blog riêng lẻ. Dynamic route sẽ ánh xạ tham số request đến (ví dụ: `Astro.params.slug` trong `src/pages/blog/[...slug].astro`) để tải entry đúng cho mỗi trang.
 
-The exact method for generating routes will depend on whether your pages are prerendered (default) or rendered on demand by a server.
+Phương pháp chính xác để tạo routes sẽ phụ thuộc vào việc các trang của bạn được prerender (mặc định) hay render theo yêu cầu bởi server.
 
-### Building for static output (default)
+### Building cho static output (mặc định)
 
-If you are building a static website (Astro's default behavior), use the [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths) function to create multiple pages from a single page component (e.g. `src/pages/[slug]`) during your build.
+Nếu bạn đang xây dựng website tĩnh (hành vi mặc định của Astro), sử dụng hàm [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths) để tạo nhiều trang từ một page component duy nhất (ví dụ: `src/pages/[slug]`) trong quá trình build.
 
-Call `getCollection()` inside of `getStaticPaths()` to have your collection data available for building static routes. Then, create the individual URL paths using the `id` property of each content entry. Each page is passed the entire collection entry as a prop for [use in your page template](#using-content-in-astro-templates).
+Gọi `getCollection()` bên trong `getStaticPaths()` để có dữ liệu collection khả dụng cho việc xây dựng static routes. Sau đó, tạo các đường dẫn URL riêng lẻ bằng thuộc tính `id` của mỗi content entry. Mỗi trang được truyền toàn bộ collection entry như một prop để [sử dụng trong page template](#using-content-in-astro-templates).
 
 ```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
 ---
 import { getCollection, render } from 'astro:content';
-// 1. Generate a new path for every collection entry
+// 1. Tạo đường dẫn mới cho mọi collection entry
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
   return posts.map(post => ({
@@ -526,7 +526,7 @@ export async function getStaticPaths() {
     props: { post },
   }));
 }
-// 2. For your template, you can get the entry directly from the prop
+// 2. Đối với template, bạn có thể lấy entry trực tiếp từ prop
 const { post } = Astro.props;
 const { Content } = await render(post);
 ---
@@ -534,32 +534,31 @@ const { Content } = await render(post);
 <Content />
 ```
 
-This will generate a page route for every entry in the `blog` collection. For example, an entry at `src/blog/hello-world.md` will have an `id` of `hello-world`, and therefore its final URL will be `/posts/hello-world/`.
+Điều này sẽ tạo một page route cho mọi entry trong collection `blog`. Ví dụ, một entry tại `src/blog/hello-world.md` sẽ có `id` là `hello-world`, và do đó URL cuối cùng sẽ là `/posts/hello-world/`.
 
 :::note
-If your custom slugs contain the `/` character to produce URLs with multiple path segments, you must use a [rest parameter (e.g. `[...slug]`)](/en/guides/routing/#rest-parameters) in the `.astro` filename for this dynamic routing page.
+Nếu custom slugs của bạn chứa ký tự `/` để tạo URL với nhiều path segments, bạn phải sử dụng [rest parameter (ví dụ: `[...slug]`)](/en/guides/routing/#rest-parameters) trong tên file `.astro` cho trang dynamic routing này.
 :::
 
-### Building for server output (SSR)
+### Building cho server output (SSR)
 
-If you are building a dynamic website (using Astro's SSR support), you are not expected to generate any paths ahead of time during the build. Instead, your page should examine the request (using `Astro.request` or `Astro.params`) to find the `slug` on-demand, and then fetch it using [`getEntry()`](/en/reference/modules/astro-content/#getentry).
-
+Nếu bạn đang xây dựng website động (sử dụng hỗ trợ SSR của Astro), bạn không cần tạo bất kỳ đường dẫn nào trước thời gian trong quá trình build. Thay vào đó, trang của bạn nên kiểm tra request (sử dụng `Astro.request` hoặc `Astro.params`) để tìm `slug` theo yêu cầu, sau đó tải nó bằng [`getEntry()`](/en/reference/modules/astro-content/#getentry).
 
 ```astro title="src/pages/posts/[id].astro"
 ---
 import { getEntry, render } from "astro:content";
-// 1. Get the slug from the incoming server request
+// 1. Lấy slug từ server request đến
 const { id } = Astro.params;
 if (id === undefined) {
 	return Astro.redirect("/404");
 }
-// 2. Query for the entry directly using the request slug
+// 2. Truy vấn entry trực tiếp bằng request slug
 const post = await getEntry("blog", id);
-// 3. Redirect if the entry does not exist
+// 3. Redirect nếu entry không tồn tại
 if (post === undefined) {
 	return Astro.redirect("/404");
 }
-// 4. Render the entry to HTML in the template
+// 4. Render entry thành HTML trong template
 const { Content } = await render(post);
 ---
 <h1>{post.data.title}</h1>
@@ -567,33 +566,33 @@ const { Content } = await render(post);
 ```
 
 :::tip
-Explore the `src/pages/` folder of the [blog tutorial demo code on GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) to see full examples of creating pages from your collections for blog features like a list of blog posts, tags pages, and more!
+Khám phá thư mục `src/pages/` của [blog tutorial demo code trên GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) để xem ví dụ đầy đủ về việc tạo trang từ collections cho các tính năng blog như danh sách bài blog, trang tags, và nhiều hơn nữa!
 :::
 
-## When to create a collection
+## Khi nào tạo collection
 
-You can [create a collection](#defining-collections) any time you have a group of related data or content that shares a common structure.
+Bạn có thể [tạo collection](#defining-collections) bất cứ khi nào bạn có một nhóm dữ liệu hoặc nội dung liên quan chia sẻ cấu trúc chung.
 
-Much of the benefit of using collections comes from:
+Phần lớn lợi ích của việc sử dụng collections đến từ:
 
-- Defining a common data shape to validate that an individual entry is "correct" or "complete", avoiding errors in production.
-- Content-focused APIs designed to make querying intuitive (e.g. `getCollection()` instead of `import.meta.glob()`) when importing and rendering content on your pages.
-- A [Content Loader API](/en/reference/content-loader-reference/) for retrieving your content that provides both built-in loaders and access to the low-level API. There are several third-party and community-built loaders available, and you can build your own custom loader to fetch data from anywhere.
-- Performance and scalability. The Content Layer API allows data to be cached between builds and is suitable for tens of thousands of content entries.
+- Định nghĩa hình dạng dữ liệu chung để validate rằng một entry riêng lẻ là "đúng" hoặc "hoàn chỉnh", tránh lỗi trong production.
+- API tập trung vào nội dung được thiết kế để làm cho việc truy vấn trực quan (ví dụ: `getCollection()` thay vì `import.meta.glob()`) khi import và render nội dung trên các trang.
+- Một [Content Loader API](/en/reference/content-loader-reference/) để lấy nội dung cung cấp cả built-in loaders và quyền truy cập API cấp thấp. Có một số loader của bên thứ ba và cộng đồng khả dụng, và bạn có thể xây dựng loader tùy chỉnh để tải dữ liệu từ bất cứ đâu.
+- Hiệu suất và khả năng mở rộng. Content Layer API cho phép dữ liệu được cache giữa các builds và phù hợp với hàng chục nghìn content entries.
 
-[Define your data](#defining-collections) as a collection when:
+[Định nghĩa dữ liệu](#defining-collections) như một collection khi:
 
-- You have multiple files or data to organize that share the same overall structure (e.g. blog posts written in Markdown which all have the same frontmatter properties).
-- You have existing content stored remotely, such as in a CMS, and want to take advantage of the collections helper functions and Content Layer API instead of using `fetch()` or SDKs.
-- You need to fetch (tens of) thousands of related pieces of data, and need a querying and caching method that handles at scale.
+- Bạn có nhiều file hoặc dữ liệu để tổ chức chia sẻ cùng cấu trúc tổng thể (ví dụ: bài blog được viết bằng Markdown đều có cùng thuộc tính frontmatter).
+- Bạn có nội dung hiện tại được lưu trữ từ xa, như trong CMS, và muốn tận dụng các hàm helper collections và Content Layer API thay vì sử dụng `fetch()` hoặc SDKs.
+- Bạn cần tải (hàng chục) nghìn phần dữ liệu liên quan và cần phương pháp truy vấn và caching xử lý ở quy mô.
 
-### When not to create a collection
+### Khi không tạo collection
 
-Collections provide excellent structure, safety, and organization when you have **multiple pieces of content that must share the same properties**.
+Collections cung cấp cấu trúc, an toàn và tổ chức tuyệt vời khi bạn có **nhiều phần nội dung phải chia sẻ cùng thuộc tính**.
 
-Collections **may not be your solution** if:
+Collections **có thể không phải giải pháp của bạn** nếu:
 
-- You have only one or a small number of different pages. Consider [making individual page components](/en/basics/astro-pages/) such as `src/pages/about.astro` with your content directly instead.
-- You are displaying files that are not processed by Astro, such as PDFs. Place these static assets in the [`public/` directory](/en/basics/project-structure/#public) of your project instead.
-- Your data source has its own SDK/client library for imports that is incompatible with or does not offer a content loader and you prefer to use it directly.
-- You are using APIs that need to be updated in real time. Content collections are only updated at build time, so if you need live data, use other methods of [importing files](/en/guides/imports/#import-statements) or [fetching data](/en/guides/data-fetching/) with [on-demand rendering](/en/guides/on-demand-rendering/).
+- Bạn chỉ có một hoặc số lượng nhỏ các trang khác nhau. Hãy xem xét [tạo các page components riêng lẻ](/en/basics/astro-pages/) như `src/pages/about.astro` với nội dung trực tiếp thay thế.
+- Bạn đang hiển thị các file không được xử lý bởi Astro, như PDFs. Đặt các static assets này trong [thư mục `public/`](/en/basics/project-structure/#public) của dự án thay thế.
+- Nguồn dữ liệu của bạn có SDK/client library riêng cho imports không tương thích hoặc không cung cấp content loader và bạn muốn sử dụng trực tiếp.
+- Bạn đang sử dụng API cần được cập nhật thời gian thực. Content collections chỉ được cập nhật tại thời điểm build, vì vậy nếu bạn cần dữ liệu trực tiếp, hãy sử dụng các phương pháp khác của [importing files](/en/guides/imports/#import-statements) hoặc [fetching data](/en/guides/data-fetching/) với [on-demand rendering](/en/guides/on-demand-rendering/).
