@@ -351,6 +351,45 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
+#### `renderMarkdown`
+
+<p>
+
+**Type** : `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+Restitue une chaîne Markdown en HTML, renvoyant un objet `RenderedContent`.
+
+Cela vous permet de restituer le contenu Markdown directement dans vos chargeurs en utilisant le même traitement Markdown que le chargeur `glob` intégré d'Astro et donne accès à la fonction `render()` et au composant `<Content />` pour [la restitution du contenu](/fr/guides/content-collections/#restitution-du-contenu).
+
+Affecter cet objet au champ [renderer](#rendered) de l'objet [DataEntry](#dataentry) pour permettre aux utilisateurs d'[afficher le contenu dans une page](/fr/guides/content-collections/#restitution-du-contenu).
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set(entry.id, {
+          id: entry.id,
+          data: entry,
+          // Suppose que chaque entrée possède un champ `content` avec du contenu Markdown
+          rendered: await renderMarkdown(entry.content),
+        });
+      }
+    },
+  };
+}
+```
+
 #### `generateDigest`
 
 <p>
@@ -618,7 +657,7 @@ Le format de l'objet `RenderedContent` est :
 	/** Chaîne HTML rendue. Si elle est présente, `render(entry)` renverra un composant qui restitue ce code HTML. */
 	html: string;
 	metadata?: {
-		/** Toutes les images présentes dans cette entrée. Par rapport au chemin d'accès au fichier {@link DataEntry}. */
+		/** Toutes les images présentes dans cette entrée. Relatives au chemin d'accès au fichier DataEntry. */
 		imagePaths?: Array<string>;
 		/** Tous les titres présents dans ce fichier. Renvoyé comme `headings` par `render()` */
 		headings?: MarkdownHeading[];
@@ -629,3 +668,5 @@ Le format de l'objet `RenderedContent` est :
 	};
 }
 ```
+
+Si l'entrée contient du contenu Markdown, vous pouvez utiliser la fonction [`renderMarkdown()`](#rendermarkdown) pour générer cet objet à partir de la chaîne Markdown.
