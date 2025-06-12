@@ -136,7 +136,6 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
-					'reference/experimental-flags/responsive-images',
 					'reference/experimental-flags/fonts',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
