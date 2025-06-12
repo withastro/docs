@@ -363,6 +363,54 @@ export default defineConfig({
 
 <ReadMore>[Astro의 요청 시 렌더링](/ko/guides/on-demand-rendering/)에 대해 자세히 알아보세요.</ReadMore>
 
+### 제거됨: 라우트에서 동적 `prerender` 값 지원
+
+<SourcePR number="11824" title="Merge output:hybrid and output:static" />
+
+Astro 4.x에서는 환경 변수를 사용하여 라우트의 `prerender` 내보내기 값을 동적으로 설정할 수 있었습니다. (예: `export const prerender = import.meta.env.SOME_VAR`)
+
+Astro v5.0에서는 `prerender` 내보내기의 동적 값 지원이 제거되었습니다. 정적 값인 `true` 및 `false`만 사용할 수 있습니다.
+
+#### 무엇을 해야 하나요?
+
+<Steps>
+
+1. 라우트에서 모든 동적 `prerender` 내보내기를 제거합니다.
+
+    ```astro title="src/pages/blog/[slug].astro" del={2}
+    ---
+    export const prerender = import.meta.env.SOME_VAR;
+    ---
+    ```
+
+2. 동적이어야 하는 `prerender` 값을 설정하기 위해 `astro.config.mjs` 파일에서 Astro 통합의 `"astro:route:setup"` 훅을 사용합니다.
+
+    ```js title="astro.config.mjs" {6-19}
+    import { defineConfig } from 'astro/config';
+    import { loadEnv } from 'vite';
+
+    export default defineConfig({
+      integrations: [
+        {
+          name: 'set-prerender',
+          hooks: {
+            'astro:route:setup': ({ route }) => {
+              // .env 파일에서 환경 변수를 로드합니다. (필요한 경우)
+              const { PRERENDER } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+              // 파일 이름과 일치하는 라우트를 찾습니다.
+              if (route.component.endsWith('/blog/[slug].astro')) {
+                // 필요에 따라 라우트에 prerender 값을 설정합니다.
+                route.prerender = PRERENDER;
+              }
+            },
+          },
+        }
+      ],
+    });
+    ```
+
+</Steps>
+
 ### 제거됨: Squoosh 이미지 서비스
 
 <SourcePR number="11770" title="remove the squoosh image service"/>
