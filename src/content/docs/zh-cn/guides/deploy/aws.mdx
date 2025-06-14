@@ -6,6 +6,7 @@ sidebar:
 type: deploy
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
@@ -15,7 +16,11 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 ## AWS Amplify
 
-AWS Amplify 是一套专为前端 Web 和移动开发人员设计的工具和功能，可以让你在 AWS 上快速轻松地构建全栈应用程序。
+AWS Amplify 是一套专为前端 Web 和移动开发人员设计的工具和功能，可以让你在 AWS 上快速轻松地构建全栈应用程序。你可以将 Astro 项目作为静态站点来部署，亦或是作为服务端渲染站点来部署。
+
+### 静态站点
+
+在默认情况下，Astro 项目会作为静态站点来部署。
 
 <Steps>
 1. 创建一个新的 Amplify Hosting 项目。
@@ -91,6 +96,127 @@ AWS Amplify 是一套专为前端 Web 和移动开发人员设计的工具和功
 </Steps>
 
 之后 Amplify 将自动部署你的网站，并在你向仓库推送提交时进行更新。
+
+### 按需渲染适配器
+
+为了将项目作为服务端站点来进行渲染，你需要使用第三方的、[由社区维护的 AWS Amplify 适配器](https://github.com/alexnguyennz/astro-aws-amplify)，并在配置文件中进行一些小改动。
+
+首先，安装 Amplify 适配器。
+
+<PackageManagerTabs>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro-aws-amplify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+然后，在 `astro.config.*` 文件中，添加适配器并将 output 设置为 `server`。
+
+```js title="astro.config.mjs" ins={2, 6, 7}
+import { defineConfig } from 'astro/config';
+import awsAmplify from 'astro-aws-amplify';
+
+export default defineConfig({
+  // ...
+  output: "server",
+  adapter: awsAmplify(),
+});
+```
+
+当适配器安装完成后，你就可以创建 Amplify 项目了。
+
+<Steps>
+1. 创建一个新的 Amplify Hosting 项目。
+
+2. 将你的仓库链接至 Amplify。
+
+3. 修改构建设置以匹配适配器的构建过程，你可以通过在 AWS 控制台中编辑构建设置，或者通过在项目的根部中添加 `amplify.yaml` 来实现。
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --cache .npm --prefer-offline
+        build:
+          commands:
+            - npm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .npm/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify 将会自动部署网站，并在你推送提交到仓库时主动更新。
+
+<ReadMore>
+参阅 [AWS 的 Astro 部署指南](https://docs.aws.amazon.com/amplify/latest/userguide/get-started-astro.html) 以获取更多信息。
+</ReadMore>
 
 ## S3 静态网站托管
 
@@ -231,3 +357,4 @@ CloudFront 是一个提供内容分发网络 (CDN) 功能的 Web 服务。它用
 - [将 Astro 部署到 AWS Amplify](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
 - [将 Astro 部署到 AWS Elastic Beanstalk](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
 - [将 Astro 部署到 AWS Fargate 上的 Amazon ECS](https://www.launchfa.st/blog/deploy-astro-aws-fargate)
+- [SSR Amplify 部署故障排除](https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html)
