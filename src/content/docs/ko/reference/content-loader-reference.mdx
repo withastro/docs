@@ -349,6 +349,45 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
+#### `renderMarkdown`
+
+<p>
+
+**타입**: `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+`RenderedContent` 객체를 반환하면서 Markdown 문자열을 HTML로 렌더링합니다.
+
+이 기능을 사용하면 Astro의 내장 `glob` 로더와 동일한 Markdown 처리 방식을 사용하여 로더에서 Markdown 콘텐츠를 직접 렌더링할 수 있습니다. 또한 [본문 콘텐츠를 렌더링](/ko/guides/content-collections/#본문-콘텐츠-렌더링)하기 위한 `render()` 함수와 `<Content />` 컴포넌트에 접근할 수도 있습니다.
+
+사용자가 [페이지에서 콘텐츠를 렌더링](/ko/guides/content-collections/#본문-콘텐츠-렌더링)할 수 있도록 이 객체를 [DataEntry](#dataentry) 객체의 [rendered](#rendered) 필드에 할당하세요.
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set(entry.id, {
+          id: entry.id,
+          data: entry,
+          // 각 항목에 Markdown 콘텐츠를 나타내는 'content' 필드가 있다고 가정합니다.
+          rendered: await renderMarkdown(entry.content),
+        });
+      }
+    },
+  };
+}
+```
+
 #### `generateDigest`
 
 <p>
@@ -616,7 +655,7 @@ ID로 항목이 스토어에 존재하는지 확인합니다.
 	/** 렌더링된 HTML 문자열입니다. 존재하는 경우 `render(entry)`는 이 HTML을 렌더링하는 컴포넌트를 반환합니다. */
 	html: string;
 	metadata?: {
-		/** 이 항목에 존재하는 모든 이미지입니다. {@link DataEntry} filePath를 기준으로 합니다. */
+		/** 이 항목에 존재하는 모든 이미지입니다. DataEntry의 filePath를 기준으로 합니다. */
 		imagePaths?: Array<string>;
 		/** 이 파일에 존재하는 모든 제목입니다. `render()`에서 `headings`로 반환됩니다 */
 		headings?: MarkdownHeading[];
@@ -627,3 +666,5 @@ ID로 항목이 스토어에 존재하는지 확인합니다.
 	};
 }
 ```
+
+항목에 Markdown 콘텐츠가 있는 경우 [`renderMarkdown()`](#rendermarkdown) 함수를 사용하여 Markdown 문자열에서 이 객체를 생성할 수 있습니다.
