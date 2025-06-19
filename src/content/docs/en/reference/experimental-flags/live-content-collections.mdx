@@ -179,7 +179,7 @@ Here's a basic example:
 
 ```ts title="myloader.ts"
 import type { LiveLoader } from 'astro/loaders';
-import { fetchFromCMS } from './cms-client';
+import { fetchFromCMS } from './cms-client.js';
 
 interface Article {
   id: string;
@@ -242,7 +242,8 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
 
 ### Rendering content
 
-A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages.
+A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages. 
+If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
 
 ```ts title="myloader.ts" {16-19}
 // ...
@@ -276,14 +277,14 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
 }
 ```
 
-You can then render both content and metadata from live collection entries in pages using the same method as built-time collections. You also have access to any [error returned by the live loader](#error-handling-in-loaders), for example, to redirect to a 404 page when content cannot be displayed:
+You can then render both content and metadata from live collection entries in pages using the same method as built-time collections. You also have access to any [error returned by the live loader](#error-handling-in-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
 
 ```astro "render(entry)" "<Content />"
 ---
 import { getLiveEntry, render } from 'astro:content';
 const { entry, error } = await getLiveEntry('articles', Astro.params.id);
 if (error) {
-  return Astro.redirect('/404');
+  return Astro.rewrite('/404');
 }
 
 const { Content } = await render(entry);
@@ -292,8 +293,6 @@ const { Content } = await render(entry);
 <h1>{entry.data.title}</h1>
 <Content />
 ```
-
-If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
 
 ### Error handling in loaders
 
@@ -465,7 +464,7 @@ if (error) {
   } else {
     console.error(`Unexpected error: ${error.message}`);
   }
-  return Astro.redirect('/500');
+  return Astro.rewrite('/500');
 }
 ---
 ```
@@ -505,17 +504,18 @@ When using Zod schemas, validation errors are automatically caught and returned 
 
 ```astro
 ---
-import { getLiveEntry } from 'astro:content';
+import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
 
 const { entry, error } = await getLiveEntry('products', '123');
-if (error) {
-  // This could be a network error, not found error, or Zod validation error
+
+// You can handle validation errors specifically
+if (LiveCollectionValidationError.is(error)) {
   console.error(error.message);
-  return Astro.redirect('/500');
+  return Astro.rewrite('/500');
 }
 
 // TypeScript knows entry.data matches your Zod schema, not the loader's type
-console.log(entry.data.displayPrice); // e.g., "$29.99"
+console.log(entry?.data.displayPrice); // e.g., "$29.99"
 ---
 ```
 
@@ -533,6 +533,11 @@ export function myLoader(config): LiveLoader<MyData> {
         entries: data.map((item) => ({
           id: item.id,
           data: item,
+          // You can optionally provide cache hints for each entry
+          // These are merged with the collection's cache hint
+          cacheHint: {
+            tags: [`product-${item.id}`, `category-${item.category}`],
+          },
         })),
         cacheHint: {
           tags: ['products'],
