@@ -142,6 +142,7 @@ export const sidebar = [
 					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
 					'reference/experimental-flags/csp',
+					'reference/experimental-flags/live-content-collections',
 				],
 			}),
 			'reference/legacy-flags',
