@@ -41,14 +41,14 @@ export function remarkFallbackLang(): Plugin<[], Root> {
 	};
 }
 
-export function mdFilePathToUrl(mdFilePath: string, pageSourceDir: string, baseUrl: string) {
+function mdFilePathToUrl(mdFilePath: string, pageSourceDir: string, baseUrl: string) {
 	const pathBelowRoot = path.relative(pageSourceDir, mdFilePath);
 	const pathname = pathBelowRoot.replace(/\\/g, '/').replace(/\.mdx?$/i, '/');
 
 	return new URL(pathname, baseUrl);
 }
 
-export function getLanguageCodeFromPathname(pathname: string) {
+function getLanguageCodeFromPathname(pathname: string) {
 	// Assuming that `pathname` always starts with a `/`, retrieve the first path part,
 	// which is usually the language code
 	const firstPathPart = pathname.split('/')[1];
@@ -70,7 +70,7 @@ export function getLanguageCodeFromPathname(pathname: string) {
  *
  * If no existing file is found, returns `undefined`.
  */
-export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
+function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
 	const possibleSourceFilePaths = [
 		path.join(pageSourceDir, pathname, '.') + '.md',
 		path.join(pageSourceDir, pathname, 'index.md'),
