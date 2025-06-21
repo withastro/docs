@@ -1,0 +1,631 @@
+---
+title: Experimental live content collections
+sidebar:
+  label: Live content collections
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+
+<Since v="5.10.0" />
+</p>
+
+Enables support for live content collections in your project.
+
+Live content collections are a new type of [content collection](/en/guides/content-collections/) that fetch their data at runtime rather than build time. This allows you to access frequently updated data from CMSs, APIs, databases, or other sources using a unified API, without needing to rebuild your site when the data changes.
+
+## Basic usage
+
+To enable the feature, make sure you have an adapter configured for [on-demand rendering](/en/guides/on-demand-rendering/) and add the `experimental.liveContentCollections` flag to your `astro.config.mjs` file:
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    liveContentCollections: true,
+  },
+}
+```
+
+Then create a new `src/live.config.ts` file (alongside your `src/content.config.ts` if you have one) to define your live collections with a [live loader](#creating-a-live-loader) and optionally a [schema](#using-zod-schemas) using the new `defineLiveCollection()` function from the `astro:content` module.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+export const collections = { products };
+```
+
+You can then use the dedicated `getLiveCollection()` and `getLiveEntry()` functions to access your live data:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// Get all products
+const { entries: allProducts, error } = await getLiveCollection('products');
+if (error) {
+  // Handle error appropriately
+  console.error(error.message);
+}
+
+// Get products with a filter (if supported by your loader)
+const { entries: electronics } = await getLiveCollection('products', { category: 'electronics' });
+
+// Get a single product by ID (string syntax)
+const { entry: product, error: productError } = await getLiveEntry('products', Astro.params.id);
+if (productError) {
+  return Astro.redirect('/404');
+}
+
+// Get a single product with a custom query (if supported by your loader) using a filter object
+const { entry: productBySlug } = await getLiveEntry('products', { slug: Astro.params.slug });
+---
+```
+
+## When to use live content collections
+
+Live content collections are designed for data that changes frequently and needs to be up-to-date when a page is requested. Consider using them when:
+
+- **You need real-time information** (e.g. user-specific data, current stock levels)
+- **You want to avoid constant rebuilds** for content that changes often
+- **Your data updates frequently** (e.g. up-to-the-minute product inventory, prices, availability)
+- **You need to pass dynamic filters** to your data source based on user input or request parameters
+- **You're building preview functionality** for a CMS where editors need to see draft content immediately
+
+In contrast, use build-time content collections when:
+
+- **Performance is critical** and you want to pre-render data at build time
+- **Your data is relatively static** (e.g., blog posts, documentation, product descriptions)
+- **You want to benefit from build-time optimization** and caching
+- **You need to process MDX** or perform image optimization
+- **Your data can be fetched once and reused** across multiple builds
+
+See the [limitations of experimental live collections](#live-collection-limitations) and [key differences from build-time collections](#differences-from-build-time-collections) for more details on choosing between live and preloaded collections.
+
+## Using live collections
+
+You can [create your own live loaders](#creating-a-live-loader) for your data source, or you can use community loaders distributed as npm packages. Here's how you could use example CMS and e-commerce loaders:
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { cmsLoader } from '@example/cms-astro-loader';
+import { productLoader } from '@example/store-astro-loader';
+
+const articles = defineLiveCollection({
+  type: 'live',
+  loader: cmsLoader({
+    apiKey: process.env.CMS_API_KEY,
+    contentType: 'article',
+  }),
+});
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: productLoader({
+    apiKey: process.env.STORE_API_KEY,
+  }),
+});
+
+export const collections = { articles, authors };
+```
+
+You can then get content from both loaders with a unified API:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// Use loader-specific filters
+const { entries: draftArticles } = await getLiveCollection('articles', {
+  status: 'draft',
+  author: 'john-doe',
+});
+
+// Get a specific product by ID
+const { entry: product } = await getLiveEntry('products', Astro.params.slug);
+---
+```
+
+### Error handling
+
+Live loaders can fail due to network issues, API errors, or validation problems. The API is designed to make error handling explicit.
+
+When you call `getLiveCollection()` or `getLiveEntry()`, the error will be one of:
+
+- The error type defined by the loader (if it returned an error)
+- A `LiveEntryNotFoundError` if the entry was not found
+- A `LiveCollectionValidationError` if the collection data does not match the expected schema
+- A `LiveCollectionCacheHintError` if the cache hint is invalid
+- A `LiveCollectionError` for other errors, such as uncaught errors thrown in the loader
+
+These errors have a static `is()` method that you can use to check the type of error at runtime:
+
+```astro "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry, LiveEntryNotFoundError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  if (LiveEntryNotFoundError.is(error)) {
+    console.error(`Product not found: ${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`Error loading product: ${error.message}`);
+    return Astro.redirect('/500');
+  }
+}
+---
+```
+
+## Creating a live loader
+
+A live loader is an object with two methods: `loadCollection()` and `loadEntry()`. These methods should handle errors gracefully and return either data or an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) object.
+
+The standard pattern is to export a function that returns this loader object, allowing you to pass configuration options like API keys or endpoints.
+
+Here's a basic example:
+
+```ts title="myloader.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load articles: ${error.message}`),
+        };
+      }
+    },
+    loadEntry: async ({ filter }) => {
+      try {
+        // filter will be { id: "some-id" } when called with a string
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('Article not found'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load article: ${error.message}`),
+        };
+      }
+    },
+  };
+}
+```
+
+### Rendering content
+
+A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages. 
+If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
+
+```ts title="myloader.ts" {16-19}
+// ...
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadEntry: async ({ filter }) => {
+      try {
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        return {
+          id: article.id,
+          data: article,
+          rendered: {
+            // Assuming the CMS returns HTML content
+            html: article.htmlContent,
+          },
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load article: ${error.message}`),
+        };
+      }
+    },
+    // ...
+  };
+}
+```
+
+You can then render both content and metadata from live collection entries in pages using the same method as built-time collections. You also have access to any [error returned by the live loader](#error-handling-in-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
+
+```astro "render(entry)" "<Content />"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry, render } from 'astro:content';
+const { entry, error } = await getLiveEntry('articles', Astro.params.id);
+if (error) {
+  return Astro.rewrite('/404');
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+### Error handling in loaders
+
+Loaders should handle all errors and return an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) subclass for errors. You can create custom error types and use them for more specific error handling if needed. If an error is thrown in the loader, it will be caught and returned, wrapped in a `LiveCollectionError`. You can also create [custom error types](#custom-error-types) for proper typing.
+
+Astro will generate some errors itself, depending on the response from the loader:
+
+- If `loadEntry` returns `undefined`, Astro will return a `LiveEntryNotFoundError` to the user.
+- If a schema is defined for the collection and the data does not match the schema, Astro will return a `LiveCollectionValidationError`.
+- If the loader returns an invalid cache hint, Astro will return a `LiveCollectionCacheHintError`. The `cacheHint` field is optional, so if you do not have valid data to return, you can simply omit it.
+
+```ts title="my-loader.ts" {9-11}
+import type { LiveLoader } from 'astro/loaders';
+import { MyLoaderError } from './errors.js';
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Return your custom error type
+      return {
+        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+### Distributing your loader
+
+Loaders can be defined in your site or as a separate npm package. If you want to share your loader with the community, you can [publish it to NPM with the `astro-component` and `astro-loader` keywords](/en/reference/publish-to-npm/#packagejson-data).
+
+The loader should export a function that returns the `LiveLoader` object, allowing users to configure it with their own settings.
+
+## Type safety
+
+Like regular content collections, live collections can be typed to ensure type safety in your data. [Using Zod schemas](#using-zod-schemas) is supported, but not required to define types for live collections. Unlike preloaded collections defined at build time, live loaders can instead choose to pass generic types to the `LiveLoader` interface.
+You can define the types for your collection and entry data, as well as custom filter types for querying, and custom error types for error handling.
+
+### Type-safe data
+
+Live loaders can define types for the data they return. This allows TypeScript to provide type checking and autocompletion when working with the data in your components.
+
+```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+export function storeLoader(): LiveLoader<Product> {
+  // ...
+}
+```
+
+When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer the types based on the loader's definition:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+const { entry: product } = await getLiveEntry('products', '123');
+// TypeScript knows product.data is of type Product
+console.log(product?.data.name);
+---
+```
+
+### Type-safe filters
+
+Live loaders can define custom filter types for both `getLiveCollection()` and `getLiveEntry()`. This enables type-safe querying that matches your API's capabilities, making it easier for users to discover available filters and ensure they are used correctly. If you include JSDoc comments in your filter types, the user will see these in their IDE as hints when using the loader.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** Minimum price to filter products */
+  minPrice?: number;
+  /** Maximum price to filter products */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** Alias for `sku` */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'product-loader',
+    loadCollection: async ({ filter }) => {
+      // filter is typed as CollectionFilter
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // filter is typed as EntryFilter | { id: string }
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('Product not found'),
+        };
+      }
+      return {
+        id: product.sku,
+        entry: product,
+      };
+    },
+  };
+}
+```
+
+### Custom error types
+
+You can create custom error types for [errors returned by your loader](#error-handling-in-loaders) and pass them as a generic to get proper typing:
+
+```ts title="my-loader.ts"
+class MyLoaderError extends Error {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Return your custom error type
+      return {
+        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer the custom error type, allowing you to handle it appropriately:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+if (error) {
+  if (error.name === 'MyLoaderError') {
+    console.error(`Loader error: ${error.message} (code: ${error.code})`);
+  } else {
+    console.error(`Unexpected error: ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+## Using Zod schemas
+
+Just like with build-time collections, you can use [Zod schemas](/en/guides/content-collections/#defining-the-collection-schema) with live collections to validate and transform data at runtime. When you define a schema, it takes precedence over [the loader's types](#type-safe-data) when you query the collection:
+
+```ts title="src/live.config.ts"
+import { z, defineLiveCollection } from 'astro:content';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transform the API's category format
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Coerce the date to a Date object
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Add a formatted price field
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+When using Zod schemas, validation errors are automatically caught and returned as `AstroError` objects:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// You can handle validation errors specifically
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript knows entry.data matches your Zod schema, not the loader's type
+console.log(entry?.data.displayPrice); // e.g., "$29.99"
+---
+```
+
+## Cache hints
+
+Live loaders can provide cache hints to help with response caching. You can use this data to send HTTP cache headers or otherwise inform your caching strategy.
+
+```ts title="my-loader.ts"
+export function myLoader(config): LiveLoader<MyData> {
+  return {
+    name: 'cached-loader',
+    loadCollection: async ({ filter }) => {
+      // ... fetch data
+      return {
+        entries: data.map((item) => ({
+          id: item.id,
+          data: item,
+          // You can optionally provide cache hints for each entry
+          // These are merged with the collection's cache hint
+          cacheHint: {
+            tags: [`product-${item.id}`, `category-${item.category}`],
+          },
+        })),
+        cacheHint: {
+          tags: ['products'],
+          maxAge: 300, // 5 minutes
+        },
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // ... fetch single item
+      return {
+        id: item.id,
+        data: item,
+        cacheHint: {
+          tags: [`product-${item.id}`, `category-${item.category}`],
+          maxAge: 3600, // 1 hour
+        },
+      };
+    },
+  };
+}
+```
+
+You can then use these hints in your pages:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+// Apply cache hints to response headers
+if (cacheHint) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+  Astro.response.headers.set('Cache-Control', `s-maxage=${cacheHint.maxAge}`);
+}
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+:::note
+Cache hints only provide values that can be used in other parts of your project and do not automatically cause the response to be cached by Astro. You can use them to create your own caching strategy, such as setting HTTP headers or using a CDN.
+:::
+
+## Live collection limitations
+
+Live content collections have some limitations compared to build-time collections:
+
+- **No MDX support**: MDX cannot be rendered at runtime
+- **No image optimization**: Images cannot be processed at runtime
+- **Performance considerations**: Data is fetched on each request (unless cached)
+- **No data store persistence**: Data is not saved to the content layer data store
+
+## Differences from build-time collections
+
+Live collections use a different API than current preloaded content collections. Key differences include:
+
+1. **Execution time**: Run at request time instead of build time
+2. **Configuration file**: Use `src/live.config.ts` instead of `src/content.config.ts`
+3. **Collection definition**: Use `defineLiveCollection()` instead of `defineCollection()`
+4. **Collection type**: Set `type: "live"` in collection definition
+5. **Loader API**: Implement `loadCollection` and `loadEntry` methods instead of the `load` method
+6. **Data return**: Return data directly instead of storing in the data store
+7. **User-facing functions**: Use `getLiveCollection`/`getLiveEntry` instead of `getCollection`/`getEntry`
+
+For a complete overview and to give feedback on this experimental API, see the [Live Content collections RFC](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md).
