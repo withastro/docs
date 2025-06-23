@@ -552,12 +552,16 @@ export function myLoader(config): LiveLoader<MyData> {
           id: item.id,
           data: item,
           // You can optionally provide cache hints for each entry
-          // These are merged with the collection's cache hint
           cacheHint: {
             tags: [`product-${item.id}`, `category-${item.category}`],
           },
         })),
         cacheHint: {
+          // All fields are optional, and are combined with each entry's cache hints
+          // tags are merged from all entries
+          // maxAge is the shortest maxAge of all entries and the collection
+          // lastModified is the most recent lastModified of all entries and the collection
+          lastModified: new Date(item.lastModified),
           tags: ['products'],
           maxAge: 300, // 5 minutes
         },
@@ -569,6 +573,7 @@ export function myLoader(config): LiveLoader<MyData> {
         id: item.id,
         data: item,
         cacheHint: {
+          lastModified: new Date(item.lastModified),
           tags: [`product-${item.id}`, `category-${item.category}`],
           maxAge: 3600, // 1 hour
         },
@@ -593,9 +598,14 @@ if (error) {
 }
 
 // Apply cache hints to response headers
-if (cacheHint) {
+if (cacheHint?.tags) {
   Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.maxAge) {
   Astro.response.headers.set('Cache-Control', `s-maxage=${cacheHint.maxAge}`);
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
 }
 ---
 
