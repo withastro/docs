@@ -248,6 +248,97 @@ export default defineConfig({
 });
 ```
 
+### `workerEntryPoint`
+<p>
+
+**Type:** `{ path: string | URL, namedExports: string[] }`<br />
+**Default:** `{ path: '@astrojs/cloudflare/entrypoints/server.js', namedExports: [] }`<br />
+<Since v="12.6.0" pkg="@astrojs/cloudflare"/>
+</p>
+
+
+A configuration object to specify the [workerEntryPoint](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/rpc/) for your Cloudflare Worker when you use the `astro build` command.
+
+It allows you to optionally specify both a custom file `path` and `namedExports`:
+
+```js title="astro.config.mjs"
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		workerEntryPoint: {
+			path: 'src/worker.ts',
+			namedExports: ['MyDurableObject']
+		}
+	}),
+});
+```
+
+#### `workerEntryPoint.path`
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `@astrojs/cloudflare/entrypoints/server.js`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+The path to the entry file. This should be a relative path from the root of your Astro project.
+
+By default, the adapter uses a generic entry file, which only supports the `fetch` handler.
+
+To support other [Cloudflare invocation handlers](https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs), you can create a custom file to use as the entry point. This is useful if you want to use features that require other handlers (e.g. Durable Objects, Cloudflare Queues, Scheduled Invocations).
+
+#### `workerEntryPoint.namedExports` 
+
+<p>
+
+**Type:** `[]`<br />
+**Default:** `['default']`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+An array of named exports to use for the entry file.
+
+Provide any additional defined named exports of your [custom entry file](#creating-a-custom-cloudflare-worker-entry-file) (e.g. `DurableObject`). If not provided, only default exports will be included.
+
+#### Creating a custom Cloudflare Worker entry file
+
+The custom entry file must export the `createExports()` function with a `default` export including all the handlers you need.
+
+The following example entry file registers a Durable Object and a queue handler:
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				await env.MY_QUEUE.send("log");
+				return handle(manifest, app, request, env, ctx);
+			},
+			async queue(batch, _env) {
+				let messages = JSON.stringify(batch.messages);
+				console.log(`consumed from our queue: ${messages}`);
+			}
+		} satisfies ExportedHandler<Env>,
+		MyDurableObject: MyDurableObject,
+	}
+}
+```
+
 ## Cloudflare runtime
 
 ### Usage
