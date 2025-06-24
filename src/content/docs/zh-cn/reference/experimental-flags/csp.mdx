@@ -1,0 +1,413 @@
+---
+title: 实验性内容安全策略 (CSP)
+sidebar:
+  label: 内容安全策略
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**类型：** `boolean | object`<br />
+**默认值：** `false`<br />
+<Since v="5.9.0" />
+</p>
+
+启用对[内容安全策略 (CSP)](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Guides/CSP) 的支持，通过控制文档允许加载哪些资源来帮助最大限度地减少某些类型的安全威胁。这为防范[跨站脚本 (XSS)](https://developer.mozilla.org/zh-CN/docs/Glossary/Cross-site_scripting) 攻击提供了额外的保护。
+
+默认情况下，启用此功能会为 **Astro 处理和打包的脚本和样式**增加额外的安全性，并允许你进一步配置这些以及其他内容类型。
+
+这个实验性的 CSP 功能有一些限制。内联脚本不被原生支持，但你可以为外部和内联脚本[提供自己的哈希值](#hashes)。不支持使用 `<ClientRouter />` 的 [Astro 视图过渡](/zh-cn/guides/view-transitions/)，但如果你没有使用 Astro 对原生视图过渡和导航 API 的增强功能，你可以[考虑迁移到浏览器原生的视图过渡 API](https://events-3bg.pages.dev/jotter/astro-view-transitions/)。
+
+:::note
+由于 Vite 开发服务器的特性，此功能在 `dev` 模式下不受支持。你可以在 Astro 项目中使用 `build` 和 `preview` 命令来测试此功能。
+:::
+
+要启用此功能，请在你的 Astro 配置文件中添加实验性标志：
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  }
+});
+```
+
+启用后，Astro 会在每个页面的 `<head>` 元素内添加一个 `<meta>` 元素。
+
+此元素将具有 `http-equiv="content-security-policy"` 属性，并且 `content` 属性将根据页面中使用的脚本和样式为 `script-src` 和 `style-src` [指令](#directives)提供值。
+
+```html
+<head>
+  <meta 
+    http-equiv="content-security-policy" 
+    content="
+      script-src 'self' 'sha256-somehash'; 
+      style-src 'self' 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+## 配置
+
+你可以通过使用包含附加选项的配置对象来启用此功能，从而进一步自定义 `<meta>` 元素。
+
+### `algorithm`
+
+<p>
+
+**类型：** `'SHA-256' | 'SHA-512' | 'SHA-384'`<br />
+**默认值：** `'SHA-256'`<br />
+<Since v="5.9.0" />
+</p>
+
+在生成 Astro 输出的样式和脚本的哈希值时使用的[哈希函数](https://developer.mozilla.org/zh-CN/docs/Glossary/Hash_function)。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      algorithm: 'SHA-512'
+    }
+  }
+});
+```
+
+### `directives`
+
+<p>
+
+**类型：** `CspDirective[]`<br />
+**默认值：** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+一个 [CSP 指令](https://content-security-policy.com/#directive)列表，用于定义特定内容类型的有效来源。
+
+虽然 Astro 需要控制 `script-src` 和 `style-src` 指令，但可以使用 `csp.directives` 字段控制其他 CSP 指令。这些指令会添加到所有页面。它接受一个类型安全的指令列表：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' https://images.cdn.example.com"
+      ]
+    }
+  }
+});
+```
+
+构建后，`<meta>` 元素会将你的指令与 Astro 的默认指令一起添加到 `content` 值中：
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    default-src 'self';
+    img-src 'self' 'https://images.cdn.example.com';
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `styleDirective` 和 `scriptDirective`
+
+<p>
+
+**类型：** `object`<br />
+**默认值：** `{}`<br />
+<Since v="5.9.0" />
+</p>
+
+配置对象，允许你使用 [`resources`](#resources) 属性覆盖 `style-src` 和 `script-src` 指令的默认来源，或提供额外[哈希值](#hashes)以供渲染。
+
+这些属性会被添加到所有页面，并且会**完全覆盖 Astro 的默认资源**，而不是添加到它们之中。因此，你必须显式指定任何你希望保留的默认值。
+
+#### `resources`
+
+<p>
+
+**类型：** `string[]`<br />
+**默认值：** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+`script-src` 和 `style-src` 指令的有效来源列表。
+
+默认情况下，`script-src` 和 `style-src` 指令由 Astro 处理，并使用 `'self'` 资源。这意味着脚本和样式只能由当前主机（通常是当前网站）下载。
+
+要覆盖默认来源，你可以提供一个资源列表。此列表默认不包含 `'self'`，如果你希望保留它，则必须将其包含在此列表中。这些资源会被添加到所有页面。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "'self'",
+          "https://styles.cdn.example.com"
+        ]
+      },
+      scriptDirective: {
+        resources: [
+          "https://cdn.example.com"
+        ]
+      }
+    }
+  }
+});
+```
+
+构建后，`<meta>` 元素将应用你的来源到 `style-src` 和 `script-src` 指令：
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+      script-src https://cdn.example.com 'sha256-somehash'; 
+      style-src 'self' https://styles.cdn.example.com 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+#### `hashes`
+
+<p>
+
+**类型：** `CspHash[]`<br />
+**默认值：** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+要渲染的额外哈希值列表。
+
+如果你有不是由 Astro 生成的外部脚本、样式，或者内联脚本，此配置项允许你提供额外的哈希值以供渲染。
+
+你必须提供以 `sha384-`、`sha512-` 或 `sha256-` 开头的哈希值。其他值将导致验证错误。这些哈希值会添加到所有页面。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        hashes: [
+          "sha384-styleHash",
+          "sha512-styleHash",
+          "sha256-styleHash"
+        ]
+      },
+      scriptDirective: {
+        hashes: [
+          "sha384-scriptHash",
+          "sha512-scriptHash",
+          "sha256-scriptHash"
+        ]
+      }
+    }
+  }
+});
+```
+
+构建后，`<meta>` 元素将在 `script-src` 和 `style-src` 指令中包含你的额外哈希值：
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha384-scriptHash' 'sha512-scriptHash' 'sha256-scriptHash' 'sha256-generatedByAstro';
+    style-src 'self' 'sha384-styleHash' 'sha512-styleHash' 'sha256-styleHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
+#### `strictDynamic`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="5.9.0" />
+</p>
+
+启用 [`strict-dynamic` 关键字](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP#the_strict-dynamic_keyword)以支持脚本的动态注入。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      scriptDirective: {
+        strictDynamic: true
+      }
+    }
+  }
+});
+```
+
+## 运行时 API
+
+你可以通过 `.astro` 组件内部的 `Astro` 全局变量，或在端点和中间件中的 `APIContext` 类型，来为每个页面自定义 `<meta>` 元素。
+
+### `insertDirective`
+
+<p>
+
+**类型：** `(directive: CspDirective) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+向当前页面添加单个指令。你可以多次调用此方法以添加多个指令。
+
+```astro
+---
+Astro.insertDirective("default-src 'self'");
+Astro.insertDirective("img-src 'self' https://images.cdn.example.com");
+---
+```
+
+构建后，此单个页面的 `<meta>` 元素将把你的附加指令与现有的 `script-src` 和 `style-src` 指令合并。
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    default-src 'self'; 
+    img-src 'self' https://images.cdn.example.com;
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `insertStyleResource`
+
+<p>
+
+**类型：** `(resource: string) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+为 `style-src` 指令插入一个新的资源。
+
+```astro
+---
+Astro.insertStyleResource("https://styles.cdn.example.com");
+---
+```
+
+构建后，此单个页面的 `<meta>` 元素会将你的来源添加到默认的 `style-src` 指令中：
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha256-somehash';
+    style-src https://styles.cdn.example.com 'sha256-somehash';
+  "
+>
+```
+
+### `insertStyleHash`
+
+<p>
+
+**类型：** `(hash: CspHash) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+向 `style-src` 指令添加一个新哈希值。
+
+```astro
+---
+Astro.insertStyleHash("sha512-styleHash");
+---
+```
+
+构建后，此单个页面的 `<meta>` 元素会将你的哈希添加到默认的 `style-src` 指令中：
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
+### `insertScriptResource`
+
+<p>
+
+**类型：** `(resource: string) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+为 `script-src` 指令插入一个新的有效来源。
+
+```astro
+---
+Astro.insertScriptResource("https://scripts.cdn.example.com");
+---
+```
+
+构建后，此单个页面的 `<meta>` 元素会将你的来源添加到默认的 `script-src` 指令中：
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src https://scripts.cdn.example.com 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `insertScriptHash`
+
+<p>
+
+**类型：** `(hash: CspHash) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+向 `script-src` 指令添加一个新哈希。
+
+```astro
+---
+Astro.insertScriptHash("sha512-scriptHash");
+---
+```
+
+构建后，此单个页面的 `<meta>` 元素会将你的哈希添加到默认的 `script-src` 指令中：
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha256-somehash' 'sha512-styleHash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
