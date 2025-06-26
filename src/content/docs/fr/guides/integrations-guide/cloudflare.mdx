@@ -248,6 +248,98 @@ export default defineConfig({
 });
 ```
 
+### `workerEntryPoint`
+<p>
+
+**Type :** `{ path: string | URL, namedExports: string[] }`<br />
+**Par défaut :** `{ path: '@astrojs/cloudflare/entrypoints/server.js', namedExports: [] }`<br />
+<Since v="12.6.0" pkg="@astrojs/cloudflare"/>
+</p>
+
+
+Un objet de configuration pour spécifier le [point d'entrée (`workerEntryPoint`)](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/rpc/) pour votre Cloudflare Worker lorsque vous utilisez la commande `astro build`.
+
+It allows you to optionally specify both a custom file `path` and `namedExports`:
+Il vous permet de spécifier éventuellement à la fois le chemin d'un fichier personnalisé (`path`) et le nom des exportations (`namedExports`) :
+
+```js title="astro.config.mjs"
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		workerEntryPoint: {
+			path: 'src/worker.ts',
+			namedExports: ['MyDurableObject']
+		}
+	}),
+});
+```
+
+#### `workerEntryPoint.path`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `@astrojs/cloudflare/entrypoints/server.js`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+Le chemin vers le fichier d'entrée. Celui-ci devrait être un chemin relatif à partir de la racine de votre projet Astro.
+
+Par défaut, l'adaptateur utilise un fichier d'entrée générique, qui ne prend en charge que le gestionnaire `fetch`.
+
+Pour prendre en charge d'autres gestionnaires d'invocation Cloudflare (https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs), vous pouvez créer un fichier personnalisé comme point d'entrée. Ceci est utile pour utiliser des fonctionnalités nécessitant d'autres gestionnaires (par exemple, les objets durables, les files d'attente Cloudflare ou les invocations planifiées).
+
+#### `workerEntryPoint.namedExports` 
+
+<p>
+
+**Type :** `[]`<br />
+**Par défaut :** `['default']`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+Un tableau d’exportations nommées à utiliser pour le fichier d’entrée.
+
+Fournissez tous les noms des exportations supplémentaires définies dans votre [fichier d'entrée personnalisé](#création-dun-fichier-dentrée-cloudflare-worker-personnalisé) (par exemple `DurableObject`). Si elles ne sont pas fournies, seules les exportations par défaut seront incluses.
+
+#### Création d'un fichier d'entrée Cloudflare Worker personnalisé
+
+Le fichier d'entrée personnalisé doit exporter la fonction `createExports()` avec une exportation par défaut (`default`) incluant tous les gestionnaires dont vous avez besoin.
+
+L'exemple de fichier d'entrée suivant enregistre un objet durable et un gestionnaire de file d'attente :
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				await env.MY_QUEUE.send("log");
+				return handle(manifest, app, request, env, ctx);
+			},
+			async queue(batch, _env) {
+				let messages = JSON.stringify(batch.messages);
+				console.log(`consommé depuis notre file d'attente : ${messages}`);
+			}
+		} satisfies ExportedHandler<Env>,
+		MyDurableObject: MyDurableObject,
+	}
+}
+```
+
 ## Environnement d'exécution Cloudflare
 
 ### Utilisation
