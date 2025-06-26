@@ -18,8 +18,6 @@ const site = NETLIFY_PREVIEW_SITE || 'https://docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
-	// TODO(HiDeoo) Remove this, only used to avoid screenshoting the dev toolbar.
-	devToolbar: { enabled: false },
 	site,
 	integrations: [
 		devServerFileWatcher([
