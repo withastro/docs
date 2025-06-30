@@ -1,0 +1,641 @@
+---
+title: Collections de contenu en ligne expérimentales
+sidebar:
+  label: Collections de contenu en ligne
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+
+<Since v="5.10.0" />
+</p>
+
+Active la prise en charge des collections de contenu en ligne dans votre projet.
+
+Les collections de contenu en ligne sont un nouveau type de [collection de contenu](/fr/guides/content-collections/) qui récupèrent leurs données au moment de l'exécution plutôt qu'au moment de la compilation. Cela vous permet d'accéder à des données fréquemment mises à jour à partir de CMS, d'API, de bases de données ou d'autres sources à l'aide d'une API unifiée, sans avoir besoin de recompiler votre site lorsque les données changent.
+
+## Utilisation de base
+
+Pour activer la fonctionnalité, assurez-vous d'avoir un adaptateur configuré pour le [rendu à la demande](/fr/guides/on-demand-rendering/) et ajoutez l'option `experimental.liveContentCollections` à votre fichier `astro.config.mjs` :
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    liveContentCollections: true,
+  },
+}
+```
+
+Créez ensuite un nouveau fichier `src/live.config.ts` (à côté de `src/content.config.ts` si vous en avez un) pour définir vos collections en ligne avec un [chargeur en ligne](#création-dun-chargeur-en-ligne) et éventuellement un [schéma](#utilisation-des-schémas-zod) en utilisant la nouvelle fonction `defineLiveCollection()` du module `astro:content`.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+export const collections = { products };
+```
+
+Vous pouvez ensuite utiliser les fonctions dédiées `getLiveCollection()` et `getLiveEntry()` pour accéder à vos données en ligne :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// Obtenir tous les produits
+const { entries: allProducts, error } = await getLiveCollection('produits');
+if (error) {
+  // Gérer les erreurs de manière appropriée
+  console.error(error.message);
+}
+
+// Obtenir des produits à l'aide d'un filtre (si pris en charge par votre chargeur)
+const { entries: electronics } = await getLiveCollection('produits', { category: 'électronique' });
+
+// Obtenir un seul produit par ID (syntaxe de chaîne de caractères)
+const { entry: product, error: productError } = await getLiveEntry('produits', Astro.params.id);
+if (productError) {
+  return Astro.redirect('/404');
+}
+
+// Obtenir un produit unique avec une requête personnalisée (si prise en charge par votre chargeur) à l'aide d'un objet de filtre
+const { entry: productBySlug } = await getLiveEntry('produits', { slug: Astro.params.slug });
+---
+```
+
+## Quand utiliser les collections de contenu en ligne
+
+Les collections de contenu en ligne sont conçues pour les données qui changent fréquemment et doivent être mises à jour lorsqu'une page est demandée. Pensez à les utiliser lorsque :
+
+- **Vous avez besoin d'informations en temps réel** (par exemple, des données spécifiques à l'utilisateur, des niveaux de stock actuels)
+- **Vous souhaitez éviter les recompilations constantes** pour le contenu qui change souvent
+- **Vos données sont mises à jour fréquemment** (par exemple, inventaire de produits rafraîchi, prix, disponibilité)
+- **Vous devez transmettre des filtres dynamiques** à votre source de données en fonction des entrées utilisateur ou des paramètres de demande
+- **Vous créez une fonctionnalité d'aperçu** pour un CMS où les éditeurs doivent voir immédiatement le contenu du brouillon
+
+En revanche, utilisez des collections de contenu générées au moment de la compilation lorsque :
+
+- **Les performances sont essentielles** et vous souhaitez pré-générer les données au moment de la compilation
+- **Vos données sont relativement statiques** (par exemple, articles de blog, documentation, descriptions de produits)
+- **Vous souhaitez bénéficier de l'optimisation du temps de compilation** et de la mise en cache
+- **Vous devez traiter MDX** ou effectuer l'optimisation des images
+- **Vos données peuvent être récupérées une fois et réutilisées** sur plusieurs compilations
+
+Consultez les [limitations des collections en ligne expérimentales](#limitations-des-collections-en-ligne) et les [différences clés par rapport aux collections générées au moment de la compilation](#différences-par-rapport-aux-collections-générées-au-moment-de-la-compilation) pour vous aider à choisir entre les collections en ligne et celles préchargées.
+
+## Utilisation des collections en ligne
+
+Vous pouvez [créer vos propres chargeurs en ligne](#création-dun-chargeur-en-ligne) pour votre source de données, ou vous pouvez utiliser des chargeurs communautaires distribués sous forme de paquets npm. Voici comment utiliser des exemples de chargeurs pour les CMS et sites d'e-commerce :
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { cmsLoader } from '@example/cms-astro-loader';
+import { productLoader } from '@example/store-astro-loader';
+
+const articles = defineLiveCollection({
+  type: 'live',
+  loader: cmsLoader({
+    apiKey: process.env.CMS_API_KEY,
+    contentType: 'article',
+  }),
+});
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: productLoader({
+    apiKey: process.env.STORE_API_KEY,
+  }),
+});
+
+export const collections = { articles, authors };
+```
+
+Vous pouvez ensuite obtenir du contenu à partir des deux chargeurs avec une API unifiée :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// Utiliser des filtres spécifiques au chargeur
+const { entries: draftArticles } = await getLiveCollection('articles', {
+  status: 'brouillon',
+  author: 'john-doe',
+});
+
+// Obtenir un produit spécifique par ID
+const { entry: product } = await getLiveEntry('produits', Astro.params.slug);
+---
+```
+
+### Gestion des erreurs
+
+Les chargeurs en ligne peuvent échouer en raison de problèmes de réseau, d'erreurs d'API ou de problèmes de validation. L'API est conçue pour rendre la gestion des erreurs explicite.
+
+Lorsque vous appelez `getLiveCollection()` ou `getLiveEntry()`, l'erreur sera l'une des suivantes :
+
+- Le type d'erreur défini par le chargeur (s'il a renvoyé une erreur)
+- Une erreur `LiveEntryNotFoundError` si l'entrée n'a pas été trouvée
+- Une erreur `LiveCollectionValidationError` si les données de la collection ne correspondent pas au schéma attendu
+- Une erreur `LiveCollectionCacheHintError` si l'indication de cache n'est pas valide
+- Une erreur `LiveCollectionError` pour les autres erreurs, telles que celles non détectées générées dans le chargeur
+
+Ces erreurs ont une méthode statique `is()` que vous pouvez utiliser pour vérifier le type d'erreur au moment de l'exécution :
+
+```astro "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry, LiveEntryNotFoundError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  if (LiveEntryNotFoundError.is(error)) {
+    console.error(`Produit non trouvé : ${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`Erreur lors du chargement du produit : ${error.message}`);
+    return Astro.redirect('/500');
+  }
+}
+---
+```
+
+## Création d'un chargeur en ligne
+
+Un chargeur en ligne est un objet avec deux méthodes : `loadCollection()` et `loadEntry()`. Ces méthodes doivent gérer les erreurs par elles-mêmes et renvoyer soit des données, soit un objet [Error](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Error).
+
+Le modèle standard consiste à exporter une fonction qui renvoie cet objet chargeur, vous permettant de transmettre des options de configuration telles que des clés API ou des points de terminaison.
+
+Voici un exemple de base :
+
+```ts title="monchargeur.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'chargeur-articles',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Échec du chargement des articles : ${error.message}`),
+        };
+      }
+    },
+    loadEntry: async ({ filter }) => {
+      try {
+        // le filtre sera { id: "un-id" } lorsqu'il est appelé avec une chaîne de caractères
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('Article non trouvé'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Échec du chargement de l'article : ${error.message}`),
+        };
+      }
+    },
+  };
+}
+```
+
+### Restitution du contenu
+
+Un chargeur peut ajouter la prise en charge du contenu rendu directement en renvoyant [une propriété `rendered`](/fr/reference/content-loader-reference/#rendered) dans l'entrée. Cela vous permet d'utiliser [la fonction `render()` et le composant `<Content />`](/fr/guides/content-collections/#restitution-du-contenu) pour restituer le contenu directement dans vos pages.
+Si le chargeur ne renvoie pas de propriété `rendered` pour une entrée, le composant `<Content />` n'affichera rien.
+
+```ts title="monchargeur.ts" {16-19}
+// ...
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'chargeur-articles',
+    loadEntry: async ({ filter }) => {
+      try {
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        return {
+          id: article.id,
+          data: article,
+          rendered: {
+            // En supposant que le CMS renvoie du contenu HTML
+            html: article.htmlContent,
+          },
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Échec du chargement de l'article : ${error.message}`),
+        };
+      }
+    },
+    // ...
+  };
+}
+```
+
+Vous pouvez ensuite restituer à la fois le contenu et les métadonnées des entrées de collection en ligne dans les pages en utilisant la même méthode que les collections créées au moment de la compilation. Vous avez également accès à toute [erreur renvoyée par le chargeur en ligne](#gestion-des-erreurs-dans-les-chargeurs), par exemple, pour réécrire sur une page 404 lorsque le contenu ne peut pas être affiché :
+
+```astro "render(entry)" "<Content />"
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry, render } from 'astro:content';
+const { entry, error } = await getLiveEntry('articles', Astro.params.id);
+if (error) {
+  return Astro.rewrite('/404');
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+### Gestion des erreurs dans les chargeurs
+
+Les chargeurs doivent gérer toutes les erreurs et renvoyer une sous-classe [Error](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Error) pour les erreurs. Vous pouvez créer des types d'erreur personnalisés et les utiliser pour une gestion plus spécifique des erreurs si nécessaire. Si une erreur est générée dans le chargeur, elle sera interceptée et renvoyée, enveloppée dans une erreur `LiveCollectionError`. Vous pouvez également créer des [types d'erreur personnalisés](#types-derreurs-personnalisés) pour un typage correct.
+
+Astro générera lui-même certaines erreurs, en fonction de la réponse du chargeur :
+
+- Si `loadEntry` renvoie `undefined`, Astro renverra une erreur `LiveEntryNotFoundError` à l'utilisateur.
+- Si un schéma est défini pour la collection et que les données ne correspondent pas au schéma, Astro renverra une erreur `LiveCollectionValidationError`.
+- Si le chargeur renvoie une indication de cache non valide, Astro renverra une erreur `LiveCollectionCacheHintError`. Le champ `cacheHint` est facultatif ; si vous n'avez pas de données valides à renvoyer, vous pouvez simplement l'omettre.
+
+```ts title="mon-chargeur.ts" {9-11}
+import type { LiveLoader } from 'astro/loaders';
+import { MyLoaderError } from './errors.js';
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'mon-chargeur',
+    loadCollection: async ({ filter }) => {
+      // Renvoyer votre type d'erreur personnalisé
+      return {
+        error: new MyLoaderError('Échec du chargement', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+### Distribution de votre chargeur
+
+Les chargeurs peuvent être définis dans votre site ou en tant que paquet npm distinct. Si vous souhaitez partager votre chargeur avec la communauté, vous pouvez [le publier sur NPM avec les mots-clés `astro-component` et `astro-loader`](/fr/reference/publish-to-npm/#données-du-fichier-packagejson).
+
+Le chargeur doit exporter une fonction qui renvoie l'objet `LiveLoader`, permettant aux utilisateurs de le configurer avec leurs propres paramètres.
+
+## Sûreté du typage
+
+Comme les collections de contenu classiques, les collections en ligne peuvent être typées pour garantir la sécurité des types dans vos données. [L'utilisation des schémas Zod](#utilisation-des-schémas-zod) est prise en charge, mais n'est pas requise pour définir les types de collections en ligne. Contrairement aux collections préchargées définies au moment de la compilation, les chargeurs en ligne peuvent plutôt choisir de transmettre des types génériques à l'interface `LiveLoader`.
+Vous pouvez définir les types de vos collections et données d'entrée, ainsi que des types de filtres personnalisés pour les requêtes et des types d'erreur personnalisés pour la gestion des erreurs.
+
+### Données avec sûreté du typage
+
+Les chargeurs en ligne peuvent définir des types pour les données qu'ils renvoient. Cela permet à TypeScript de fournir une vérification de type et une saisie semi-automatique lorsque vous travaillez avec les données de vos composants.
+
+```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+export function storeLoader(): LiveLoader<Product> {
+  // ...
+}
+```
+
+Lorsque vous utilisez `getLiveCollection()` ou `getLiveEntry()`, TypeScript déduira les types en fonction de la définition du chargeur :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry } from 'astro:content';
+const { entry: product } = await getLiveEntry('produits', '123');
+// TypeScript sait que product.data est de type Product
+console.log(product?.data.name);
+---
+```
+
+### Filtres avec sûreté du typage
+
+Les chargeurs en ligne peuvent définir des types de filtres personnalisés pour `getLiveCollection()` et `getLiveEntry()`. Cela permet des requêtes avec sûreté du typage qui correspondent aux capacités de votre API, ce qui permet aux utilisateurs de découvrir plus facilement les filtres disponibles et de s'assurer qu'ils sont utilisés correctement. Si vous incluez des commentaires JSDoc dans vos types de filtres, l'utilisateur les verra dans son IDE comme des conseils lors de l'utilisation du chargeur.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** Prix minimum pour filtrer les produits */
+  minPrice?: number;
+  /** Prix maximum pour filtrer les produits */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** Alias pour `sku` */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'chargeur-produits',
+    loadCollection: async ({ filter }) => {
+      // filter est défini avec le type CollectionFilter
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // filter est défini avec le type EntryFilter | { id: string }
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('Produit non trouvé'),
+        };
+      }
+      return {
+        id: product.sku,
+        entry: product,
+      };
+    },
+  };
+}
+```
+
+### Types d'erreurs personnalisés
+
+Vous pouvez créer des types d'erreur personnalisés pour les [erreurs renvoyées par votre chargeur](#gestion-des-erreurs-dans-les-chargeurs) et les transmettre en tant que générique pour obtenir un typage correct :
+
+```ts title="mon-chargeur.ts"
+class MyLoaderError extends Error {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'mon-chargeur',
+    loadCollection: async ({ filter }) => {
+      // Renvoyer votre type d'erreur personnalisé
+      return {
+        error: new MyLoaderError('Échec du chargement', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+Lorsque vous utilisez `getLiveCollection()` ou `getLiveEntry()`, TypeScript déduira le type d'erreur personnalisé, vous permettant de le gérer de manière appropriée :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('produits', '123');
+
+if (error) {
+  if (error.name === 'MyLoaderError') {
+    console.error(`Erreur du chargeur : ${error.message} (code : ${error.code})`);
+  } else {
+    console.error(`Erreur inattendue : ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+## Utilisation des schémas Zod
+
+Tout comme avec les collections au moment de la compilation, vous pouvez utiliser des [schémas Zod](/fr/guides/content-collections/#définition-dun-schéma-de-collection) avec des collections en ligne pour valider et transformer les données au moment de l'exécution. Lorsque vous définissez un schéma, il a la priorité sur [les types du chargeur](#données-avec-sûreté-du-typage) lorsque vous interrogez la collection :
+
+```ts title="src/live.config.ts"
+import { z, defineLiveCollection } from 'astro:content';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transformer le format de catégorie de l'API
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Contraindre la date à un objet Date
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Ajouter un champ de prix formaté
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+Lors de l'utilisation de schémas Zod, les erreurs de validation sont automatiquement détectées et renvoyées sous forme d'objets `AstroError` :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('produits', '123');
+
+// Vous pouvez gérer les erreurs de validation de manière spécifique
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript sait que entry.data correspond à votre schéma Zod, pas au type du chargeur
+console.log(entry?.data.displayPrice); // p. ex. "29,99€"
+---
+```
+
+## Indications de cache
+
+Les chargeurs en ligne peuvent fournir des indications de cache pour aider à la mise en cache des réponses. Vous pouvez utiliser ces données pour envoyer des en-têtes de cache HTTP ou optimiser votre stratégie de mise en cache.
+
+```ts title="mon-chargeur.ts"
+export function myLoader(config): LiveLoader<MyData> {
+  return {
+    name: 'cached-loader',
+    loadCollection: async ({ filter }) => {
+      // ... récupérer des données
+      return {
+        entries: data.map((item) => ({
+          id: item.id,
+          data: item,
+          // Vous pouvez éventuellement fournir des indications de cache pour chaque entrée
+          cacheHint: {
+            tags: [`produit-${item.id}`, `categorie-${item.category}`],
+          },
+        })),
+        cacheHint: {
+          // Tous les champs sont facultatifs et sont combinés avec les indications de cache de chaque entrée
+          // les étiquettes sont fusionnées à partir de toutes les entrées
+          // maxAge est l'âge maximal le plus court de toutes les entrées et de la collection
+          // lastModified est la dernière modification la plus récente de toutes les entrées et de la collection
+          lastModified: new Date(item.lastModified),
+          tags: ['produits'],
+          maxAge: 300, // 5 minutes
+        },
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // ... récupérer un seul élément
+      return {
+        id: item.id,
+        data: item,
+        cacheHint: {
+          lastModified: new Date(item.lastModified),
+          tags: [`produit-${item.id}`, `categorie-${item.category}`],
+          maxAge: 3600, // 1 heure
+        },
+      };
+    },
+  };
+}
+```
+
+Vous pouvez ensuite utiliser ces indications dans vos pages :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('produits', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+// Appliquer des indications de cache aux en-têtes de réponse
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.maxAge) {
+  Astro.response.headers.set('Cache-Control', `s-maxage=${cacheHint.maxAge}`);
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+:::note
+Les indications de cache fournissent uniquement des valeurs utilisables dans d'autres parties de votre projet et ne provoquent pas automatiquement la mise en cache de la réponse par Astro. Vous pouvez les utiliser pour créer votre propre stratégie de mise en cache, comme la définition d'en-têtes HTTP ou l'utilisation d'un CDN.
+:::
+
+## Limitations des collections en ligne
+
+Les collections de contenu en ligne présentent certaines limitations par rapport aux collections générées au moment de la compilation :
+
+- **Pas de prise en charge MDX** : MDX ne peut pas être rendu au moment de l'exécution
+- **Aucune optimisation d'image** : les images ne peuvent pas être traitées au moment de l'exécution
+- **Considérations relatives aux performances** : les données sont récupérées à chaque requête (sauf si elles sont mises en cache)
+- **Pas de persistance du magasin de données** : les données ne sont pas enregistrées dans le magasin de données de la couche de contenu
+
+## Différences par rapport aux collections générées au moment de la compilation
+
+Les collections en ligne utilisent une API différente de celle des collections de contenu préchargées actuelles. Les principales différences sont les suivantes :
+
+1. **Moment de l'exécution** : elles s'exécutent au moment de la demande plutôt qu'au moment de la compilation
+2. **Fichier de configuration** : elles utilisent `src/live.config.ts` au lieu de `src/content.config.ts`
+3. **Définition de collection** : elles utilisent `defineLiveCollection()` au lieu de `defineCollection()`
+4. **Type de collection** : elles définissent `type: "live"` dans la définition de la collection
+5. **API du chargeur** : elles implémentent les méthodes `loadCollection` et `loadEntry` au lieu de la méthode `load`
+6. **Retour de données** : elles renvoient les données directement au lieu de les enregistrer dans le magasin de données
+7. **Fonctions exposées à l'utilisateur** : elles utilisent `getLiveCollection`/`getLiveEntry` au lieu de `getCollection`/`getEntry`
+
+Pour un aperçu complet et pour donner votre avis sur cette API expérimentale, consultez le [RFC des collections de contenu en ligne](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md).
