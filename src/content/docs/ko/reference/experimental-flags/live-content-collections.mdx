@@ -1,0 +1,643 @@
+---
+title: 실험적 라이브 콘텐츠 컬렉션
+sidebar:
+  label: 라이브 콘텐츠 컬렉션
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+
+<Since v="5.10.0" />
+</p>
+
+프로젝트에서 라이브 콘텐츠 컬렉션을 지원할 수 있습니다.
+
+라이브 콘텐츠 컬렉션은 빌드 시점이 아닌 런타임에 데이터를 가져오는 새로운 유형의 [콘텐츠 컬렉션](/ko/guides/content-collections/)입니다. 이를 통해 데이터가 변경될 때 사이트를 다시 빌드할 필요 없이 통합 API를 사용하여 CMS, API, 데이터베이스 또는 기타 소스의 자주 업데이트되는 데이터에 액세스할 수 있습니다.
+
+## 사용법
+
+이 기능을 사용하기 위해서는 [요청 시 렌더링](/ko/guides/on-demand-rendering/)을 사용하기 위해 구성된 어댑터가 필요합니다. 그리고 `astro.config.mjs` 파일에 `experimental.liveContentCollections` 플래그를 추가해야 합니다.
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    liveContentCollections: true,
+  },
+}
+```
+
+그런 다음, [라이브 로더](#라이브-로더-만들기)를 사용하여 라이브 컬렉션을 정의하기 위해 `src/live.config.ts` 파일을 생성합니다. (`src/content.config.ts` 파일이 이미 존재하는 경우, 두 파일을 함께 사용합니다.) 또한, 선택적으로 `astro:content` 모듈의 `defineLiveCollection()` 함수를 사용하여 [스키마](#zod-스키마-사용하기)를 정의할 수도 있습니다.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+export const collections = { products };
+```
+
+그러면 `getLiveCollection()` 및 `getLiveEntry()` 함수를 사용하여 라이브 데이터에 접근할 수 있습니다.
+
+```astro
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// 모든 제품을 가져옵니다.
+const { entries: allProducts, error } = await getLiveCollection('products');
+if (error) {
+  // 오류를 적절히 처리합니다.
+  console.error(error.message);
+}
+
+// 필터를 사용하여 제품을 가져옵니다. (로더가 지원하는 경우)
+const { entries: electronics } = await getLiveCollection('products', { category: 'electronics' });
+
+// ID를 사용하여 단일 제품을 가져옵니다. (문자열)
+const { entry: product, error: productError } = await getLiveEntry('products', Astro.params.id);
+if (productError) {
+  return Astro.redirect('/404');
+}
+
+// 필터 객체를 사용하여 사용자 정의 쿼리로 단일 제품을 가져옵니다. (로더가 지원하는 경우)
+const { entry: productBySlug } = await getLiveEntry('products', { slug: Astro.params.slug });
+---
+```
+
+## 라이브 콘텐츠 컬렉션 사용 시점
+
+라이브 콘텐츠 컬렉션은 페이지 요청 시 자주 변경되고 최신 상태여야 하는 데이터를 위해 설계되었습니다. 다음과 같은 경우에 사용을 고려해 보세요.
+
+* **실시간 정보가 필요한 경우** (예: 사용자별 데이터, 현재 재고 수준)
+* 자주 변경되는 콘텐츠에 대해 **지속적인 재빌드를 피하고 싶은 경우**
+* **데이터가 자주 업데이트되는 경우** (예: 최신 제품 재고, 가격, 가용성)
+* 데이터 소스에 사용자 입력 또는 요청 매개변수에 따라 달라지는 **동적 필터를 전달해야 하는 경우**
+* 편집자가 초안 콘텐츠를 즉시 확인해야 하는 CMS의 **미리보기 기능을 빌드하는 경우**
+
+반면, 빌드 타임 콘텐츠 컬렉션은 다음과 같은 경우에 사용합니다.
+
+* **성능이 중요하고** 빌드 시점에 데이터를 미리 렌더링하고 싶을 때
+* **데이터가 비교적 정적일 때** (예: 블로그 게시물, 문서, 제품 설명)
+* **빌드 타임 최적화** 및 캐싱의 이점을 얻고 싶을 때
+* **MDX를 처리하거나** 이미지 최적화를 수행해야 할 때
+* **데이터를 한 번 가져와 여러 빌드에서 재사용하고 싶을 때**
+
+라이브 컬렉션과 미리 로드되는 컬렉션 중 하나를 선택하는 방법에 대한 자세한 내용은 [실험적 라이브 컬렉션의 제한 사항](#라이브-컬렉션-제한-사항) 및 [빌드 타임 컬렉션과의 주요 차이점](#빌드-타임-컬렉션과의-차이점)을 참조하세요.
+
+## 라이브 컬렉션 사용하기
+
+데이터 소스에 대한 [나만의 라이브 로더](#라이브-로더-만들기)를 만들 수 있으며, npm 패키지로 배포된 커뮤니티 로더를 사용할 수도 있습니다. 다음은 CMS 및 전자 상거래를 위한 로더를 사용하는 방법입니다.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { cmsLoader } from '@example/cms-astro-loader';
+import { productLoader } from '@example/store-astro-loader';
+
+const articles = defineLiveCollection({
+  type: 'live',
+  loader: cmsLoader({
+    apiKey: process.env.CMS_API_KEY,
+    contentType: 'article',
+  }),
+});
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: productLoader({
+    apiKey: process.env.STORE_API_KEY,
+  }),
+});
+
+export const collections = { articles, authors };
+```
+
+그런 다음, 통합 API를 사용하여 두 로더에서 콘텐츠를 가져올 수 있습니다.
+
+```astro
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// 로더별 필터를 사용합니다.
+const { entries: draftArticles } = await getLiveCollection('articles', {
+  status: 'draft',
+  author: 'john-doe',
+});
+
+// ID를 사용하여 특정 제품을 가져옵니다.
+const { entry: product } = await getLiveEntry('products', Astro.params.slug);
+---
+```
+
+### 오류 처리
+
+라이브 로더는 네트워크 문제, API 오류, 유효성 검사 문제로 인해 실패할 수 있습니다. API는 오류 처리가 명시적으로 이루어지도록 설계되었습니다.
+
+`getLiveCollection()` 또는 `getLiveEntry()`를 호출할 때 발생할 수 있는 오류는 다음과 같습니다.
+
+- 로더에 의해 정의된 오류 타입 - 오류를 반환한 경우
+- `LiveEntryNotFoundError` - 항목을 찾을 수 없는 경우
+- `LiveCollectionValidationError` - 컬렉션 데이터가 예상 스키마와 일치하지 않는 경우
+- `LiveCollectionCacheHintError` - 캐시 힌트가 유효하지 않은 경우
+- `LiveCollectionError` - 로더에서 발생한 잡히지 않는 오류 (Uncaught Errors)와 같은 기타 오류가 발생한 경우
+
+이러한 오류들은 정적 `is()` 메서드를 가지고 있습니다. 런타임 오류의 타입을 확인하기 위해 이 메서드를 사용할 수 있습니다.
+
+```astro "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveEntry, LiveEntryNotFoundError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  if (LiveEntryNotFoundError.is(error)) {
+    console.error(`제품을 찾을 수 없습니다: ${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`제품 로드 중 오류 발생: ${error.message}`);
+    return Astro.redirect('/500');
+  }
+}
+---
+```
+
+## 라이브 로더 만들기
+
+라이브 로더는 두 가지 메서드인 `loadCollection()`과 `loadEntry()`를 가진 객체입니다. 이 메서드들은 오류를 적절히 처리하고, 데이터 또는 [Error](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Error) 객체를 반환해야 합니다.
+
+표준 패턴은 이 로더 객체를 반환하는 함수를 내보내는 것입니다. 이 함수에는 API 키 또는 엔드포인트와 같은 구성 옵션을 전달할 수 있습니다.
+
+다음은 기본적인 예시입니다.
+
+```ts title="myloader.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error(`게시물 로드 실패: ${error.message}`),
+        };
+      }
+    },
+    loadEntry: async ({ filter }) => {
+      try {
+        // 필터를 문자열로 호출하면 { id: "some-id" }가 됩니다.
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('게시물을 찾을 수 없습니다.'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+        };
+      } catch (error) {
+        return {
+          error: new Error(`게시물 로드 실패: ${error.message}`),
+        };
+      }
+    },
+  };
+}
+```
+
+### 콘텐츠 렌더링
+
+로더는 항목에서 [`rendered` 속성](/ko/reference/content-loader-reference/#rendered)을 반환하여 직접 렌더링되는 콘텐츠에 대한 지원을 추가할 수 있습니다. 이를 통해 [`render()` 함수와 `<Content />` 컴포넌트](/ko/guides/content-collections/#본문-콘텐츠-렌더링)를 사용하여 페이지에 콘텐츠를 직접 렌더링할 수 있습니다.
+만약 로더가 항목에 대한 `rendered` 속성을 반환하지 않으면, `<Content />` 컴포넌트는 아무것도 렌더링하지 않습니다.
+
+```ts title="myloader.ts" {16-19}
+// ...
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadEntry: async ({ filter }) => {
+      try {
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        return {
+          id: article.id,
+          data: article,
+          rendered: {
+            // CMS가 HTML 콘텐츠를 반환한다고 가정합니다.
+            html: article.htmlContent,
+          },
+        };
+      } catch (error) {
+        return {
+          error: new Error(`게시물 로드 실패: ${error.message}`),
+        };
+      }
+    },
+    // ...
+  };
+}
+```
+
+그러면 빌드 타임 컬렉션과 동일한 방법을 사용하여 라이브 컬렉션 항목의 콘텐츠와 메타데이터를 모두 페이지에 렌더링할 수 있습니다. 또한, [라이브 로더가 반환하는 오류](#로더-오류-처리)에 접근할 수 있습니다. 예를 들어, 콘텐츠를 표시할 수 없을 때 URL을 404 페이지로 재작성 (Rewrite)할 수 있습니다.
+
+```astro "render(entry)" "<Content />"
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveEntry, render } from 'astro:content';
+const { entry, error } = await getLiveEntry('articles', Astro.params.id);
+if (error) {
+  return Astro.rewrite('/404');
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+### 로더 오류 처리
+
+로더는 모든 오류를 처리하고 오류 발생 시 [Error](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Error) 서브클래스를 반환해야 합니다. 필요하다면 사용자 정의 오류 타입을 생성하여 더 구체적인 오류 처리에 사용할 수 있습니다. 로더에서 오류가 발생하면, 해당 오류는 잡혀서 `LiveCollectionError`로 래핑되어 반환됩니다. 적절한 유형을 지정하기 위해 [사용자 정의 오류 타입](#사용자-정의-오류-타입)을 생성할 수도 있습니다.
+
+Astro는 로더의 응답에 따라 일부 오류를 생성합니다.
+
+- `loadEntry`가 `undefined`를 반환하는 경우, Astro는 사용자에게 `LiveEntryNotFoundError`를 반환합니다.
+- 컬렉션의 스키마가 정의되어 있고 데이터가 스키마와 일치하지 않는 경우, Astro는 `LiveCollectionValidationError`를 반환합니다.
+- 로더가 유효하지 않은 캐시 힌트를 반환하는 경우, Astro는 `LiveCollectionCacheHintError`를 반환합니다. `cacheHint` 필드는 선택적이며, 반환할 유효한 데이터가 없는 경우에는 생략할 수 있습니다.
+
+```ts title="my-loader.ts" {9-11}
+import type { LiveLoader } from 'astro/loaders';
+import { MyLoaderError } from './errors.js';
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // 사용자 정의 오류 타입을 반환합니다.
+      return {
+        error: new MyLoaderError('로드 실패', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+### 로더 배포하기
+
+로더는 사이트에 정의하거나 별도의 npm 패키지로 정의할 수 있습니다. 로더를 커뮤니티에 공유하기 위해 [`astro-component` 및 `astro-loader` 키워드를 포함하여 NPM에 게시](/ko/reference/publish-to-npm/#packagejson-데이터)할 수 있습니다.
+
+로더는 `LiveLoader` 객체를 반환하는 함수를 내보내야 하며, 이를 통해 사용자는 자신만의 설정으로 로더를 구성할 수 있습니다.
+
+## 타입 안전성
+
+일반 콘텐츠 컬렉션과 마찬가지로 라이브 컬렉션도 데이터의 타입 안전성을 보장하기 위해 타입을 지정할 수 있습니다. [Zod 스키마를 사용](#zod-스키마-사용하기)할 수 있지만, 라이브 컬렉션의 타입을 정의하는 데 필수는 아닙니다. 빌드 시점에 정의되는 프리로드 컬렉션과 달리, 라이브 로더는 `LiveLoader` 인터페이스에 제네릭 타입을 전달하도록 선택할 수 있습니다.
+컬렉션 및 항목 데이터에 대한 타입은 물론, 쿼리용 사용자 정의 필터 타입과 오류 처리를 위한 사용자 정의 오류 타입도 정의할 수 있습니다.
+
+### 타입 안전 데이터
+
+라이브 로더는 반환하는 데이터의 타입을 정의할 수 있습니다. 이를 통해 컴포넌트에서 데이터를 사용할 때 TypeScript가 타입 검사 및 자동 완성 기능을 제공합니다.
+
+```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+export function storeLoader(): LiveLoader<Product> {
+  // ...
+}
+```
+
+`getLiveCollection()` 또는 `getLiveEntry()`를 사용할 때, TypeScript는 로더 정의를 기반으로 타입을 추론합니다.
+
+```astro
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveEntry } from 'astro:content';
+const { entry: product } = await getLiveEntry('products', '123');
+// TypeScript는 product.data가 Product 타입이라는 것을 알고 있습니다.
+console.log(product?.data.name);
+---
+```
+
+### 타입 안전 필터
+
+라이브 로더는 `getLiveCollection()`과 `getLiveEntry()`를 위한 사용자 정의 필터 타입을 정의할 수 있습니다. 이를 통해 API 기능과 일치하는 타입 안전 쿼리가 가능해지며, 사용자가 사용 가능한 필터를 쉽게 찾고 올바르게 사용하도록 돕습니다. 필터 타입에 JSDoc 주석을 포함하면, 사용자는 로더를 사용할 때 IDE에서 이를 힌트로 볼 수 있습니다.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** 제품 필터를 위한 최저 가격 */
+  minPrice?: number;
+  /** 제품 필터를 위한 최고 가격 */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** `sku`의 별칭 */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'product-loader',
+    loadCollection: async ({ filter }) => {
+      // 필터의 타입은 CollectionFilter입니다.
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // 필터의 타입은 EntryFilter | { id: string }입니다.
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('제품을 찾을 수 없습니다.'),
+        };
+      }
+      return {
+        id: product.sku,
+        entry: product,
+      };
+    },
+  };
+}
+```
+
+### 사용자 정의 오류 타입
+
+[로더가 반환하는 오류](#로더-오류-처리)를 위한 사용자 정의 오류 타입을 만들어 제네릭으로 전달하여 올바른 타입을 얻을 수 있습니다.
+
+```ts title="my-loader.ts"
+class MyLoaderError extends Error {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // 사용자 정의 오류 타입을 반환합니다.
+      return {
+        error: new MyLoaderError('로드 실패', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+`getLiveCollection()` 또는 `getLiveEntry()`를 사용할 때, TypeScript는 사용자 정의 오류 타입을 추론하여, 이를 적절히 처리할 수 있도록 도와줍니다.
+
+```astro
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+if (error) {
+  if (error.name === 'MyLoaderError') {
+    console.error(`로더 오류: ${error.message} (code: ${error.code})`);
+  } else {
+    console.error(`예기치 않은 오류: ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+## Zod 스키마 사용하기
+
+빌드 타임 컬렉션과 마찬가지로, 라이브 컬렉션에서도 [Zod 스키마](/ko/guides/content-collections/#컬렉션-스키마-정의)를 사용하여 런타임에 데이터를 검증하고 변환할 수 있습니다. 스키마를 정의하면, 컬렉션을 쿼리할 때 [로더의 타입](#타입-안전-데이터)보다 더 높은 우선순위를 가집니다.
+
+```ts title="src/live.config.ts"
+import { z, defineLiveCollection } from 'astro:content';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  type: 'live',
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // API의 카테고리 형식을 변환합니다.
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // 날짜에 Date 객체를 강제로 할당합니다.
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // 형식이 지정된 가격 필드를 추가합니다.
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+Zod 스키마를 사용하는 경우, 유효성 검사 오류는 자동으로 포착되어 `AstroError` 객체로 반환됩니다.
+
+```astro
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// 유효성 검사 오류를 더 구체적으로 처리할 수 있습니다.
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript는 entry.data가 로더의 타입이 아닌, Zod 스키마와 일치한다는 것을 알고 있습니다.
+console.log(entry?.data.displayPrice); // 예: "$29.99"
+---
+```
+
+## 캐시 힌트
+
+라이브 로더는 응답 캐싱을 돕기 위해 캐시 힌트를 제공할 수 있습니다. 이 데이터를 사용하여 HTTP 캐시 헤더를 전송하거나 캐싱 전략에 대한 정보를 얻을 수 있습니다.
+
+```ts title="my-loader.ts"
+export function myLoader(config): LiveLoader<MyData> {
+  return {
+    name: 'cached-loader',
+    loadCollection: async ({ filter }) => {
+      // ... 데이터 가져오기
+      return {
+        entries: data.map((item) => ({
+          id: item.id,
+          data: item,
+          // 각 항목에 대한 캐시 힌트를 선택적으로 제공할 수 있습니다.
+          cacheHint: {
+            tags: [`product-${item.id}`, `category-${item.category}`],
+          },
+        })),
+        cacheHint: {
+          // 모든 필드는 선택 사항이며, 각 항목의 캐시 힌트와 결합됩니다.
+          // 태그는 모든 항목에서 병합됩니다.
+          // maxAge는 모든 항목과 컬렉션 중에서 가장 짧은 maxAge입니다.
+          // lastModified는 모든 항목과 컬렉션 중에서 가장 최근의 lastModified입니다.
+          lastModified: new Date(item.lastModified),
+          tags: ['products'],
+          maxAge: 300, // 5분
+        },
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // ... 단일 항목 가져오기
+      return {
+        id: item.id,
+        data: item,
+        cacheHint: {
+          lastModified: new Date(item.lastModified),
+          tags: [`product-${item.id}`, `category-${item.category}`],
+          maxAge: 3600, // 1시간
+        },
+      };
+    },
+  };
+}
+```
+
+이제 페이지에서 이 힌트를 사용할 수 있습니다.
+
+```astro
+---
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+// 응답 헤더에 캐시 힌트를 적용합니다.
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.maxAge) {
+  Astro.response.headers.set('Cache-Control', `s-maxage=${cacheHint.maxAge}`);
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+:::note
+캐시 힌트는 프로젝트의 다른 부분에서 사용될 수 있는 값을 제공할 뿐이며, Astro에 의해 응답이 자동으로 캐시되지는 않습니다. 이러한 힌트를 사용하여 HTTP 헤더 설정이나 CDN 사용과 같은 나만의 캐싱 전략을 구축할 수 있습니다.
+:::
+
+## 라이브 컬렉션 제한 사항
+
+라이브 콘텐츠 컬렉션은 빌드 타임 컬렉션과 비교하여 몇 가지 제한 사항이 있습니다.
+
+* **MDX 미지원**: MDX는 런타임에 렌더링될 수 없습니다.
+* **이미지 최적화 미지원**: 이미지는 런타임에 처리될 수 없습니다.
+* **성능 고려 사항**: (캐싱되지 않는 한) 요청할 때마다 데이터를 가져옵니다.
+* **데이터 저장소 영속성 없음**: 데이터가 콘텐츠 레이어 데이터 저장소에 저장되지 않습니다.
+
+## 빌드 타임 컬렉션과의 차이점
+
+For a complete overview and to give feedback on this experimental API, see the [Live Content collections RFC](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md).
+
+라이브 컬렉션은 프리로드 콘텐츠 컬렉션과는 다른 API를 사용합니다. 주요 차이점은 다음과 같습니다.
+
+1.  **실행 시점**: 빌드 타임 대신 요청 시점에 실행됩니다.
+2.  **구성 파일**: `src/content.config.ts` 대신 `src/live.config.ts`를 사용합니다.
+3.  **컬렉션 정의**: `defineCollection()` 대신 `defineLiveCollection()`을 사용합니다.
+4.  **컬렉션 타입**: 컬렉션 정의에서 `type: "live"`를 설정합니다.
+5.  **로더 API**: `load` 메서드 대신 `loadCollection` 및 `loadEntry` 메서드를 구현합니다.
+6.  **데이터 반환**: 데이터 저장소에 저장하는 대신 데이터를 직접 반환합니다.
+7.  **사용자가 사용하는 함수**: `getCollection`/`getEntry` 대신 `getLiveCollection`/`getLiveEntry`를 사용합니다.
+
+이 실험적인 API에 대한 전체 개요 및 피드백을 제공하려면 [라이브 콘텐츠 컬렉션 RFC](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md)를 참조하세요.
