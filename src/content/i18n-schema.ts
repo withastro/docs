@@ -2,7 +2,6 @@ import { z } from 'astro/zod';
 
 export const AstroDocsI18nSchema = z
 	.object({
-		'a11y.sectionLink': z.string(),
 		// Site settings
 		'site.title': z.string(),
 		// Left Sidebar
