@@ -1,0 +1,132 @@
+---
+title: Prisma Postgres & Astro
+description: Connect Astro to Prisma Postgres DB with or without Prisma ORM
+sidebar:
+  label: Prisma Postgres
+type: backend
+service: Prisma Postgres
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+Prisma Postgres is a fully managed, serverless Postgres database built for modern web apps. You can connect your Astro project to Prisma Postgres in two ways:
+
+## Option 1: Prisma ORM (Recommended)
+
+Prisma ORM is the recommended way to connect to your Prisma Postgres database. It provides type-safe queries, migrations, and global performance.
+
+### Prerequisites
+- An Astro project with [on-demand rendering (SSR)](/en/guides/on-demand-rendering/) enabled
+
+### Install dependencies and initialize Prisma
+
+To get started with Prisma, you'll need to install a few dependencies:
+
+```bash
+npm install prisma tsx --save-dev
+npm install @prisma/extension-accelerate @prisma/client
+```
+
+Once installed, initialize Prisma in your project:
+
+```bash
+npx prisma init --db --output ../src/generated/prisma
+```
+
+You'll need to answer a few questions while setting up your Prisma Postgres database. Select the region closest to your location and a memorable name for your database like "My Astro Project"
+
+This will create:
+- A `prisma/` directory with a `schema.prisma` file
+- A `.env` file with a `DATABASE_URL` already set
+
+The `npx prisma init` command above uses the following flags:
+- `--db` - Initialize Prisma with a database
+- `--output` - Output the generated Prisma Client to the specified directory
+
+### Update the `schema.prisma` file
+
+Update the `schema.prisma` file to add a `POST` model *(Just as an example, you can add more models as you need)*. Then, change the generator to use the `prisma-client` provider.
+
+```prisma title="prisma/schema.prisma" {2, 11-16}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+}
+```
+
+### Run Prisma Migrate
+
+Now, run the following command to create the database tables and generate the Prisma Client. This will also create a `prisma/migrations` directory with the migration files.
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Create a Prisma Client
+
+Inside of `/src/lib`, create a `prisma.ts` file. This file will be used to create and export your Prisma Client instance.
+
+```typescript title="src/lib/prisma.ts"
+import { PrismaClient } from "../generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
+
+const prisma = new PrismaClient({
+  datasourceUrl: import.meta.env.DATABASE_URL,
+}).$extends(withAccelerate());
+
+export default prisma;
+```
+
+You can now use your Prisma Client in your Astro project.
+
+## Option 2: Direct TCP Connection
+
+If you want to use your connection string directly, you can do so with the `pg` package.
+
+### Prerequisites
+- A [Prisma Postgres](https://pris.ly/ppg) database with a TCP enabled connection string
+- An Astro project with [on-demand rendering (SSR)](/en/guides/on-demand-rendering/) enabled
+
+### Install dependencies
+
+```bash
+npm install pg
+```
+
+### Update the `index.astro` file
+
+```typescript title="src/pages/index.astro"
+import { Client } from 'pg';
+
+const client = new Client({ connectionString: import.meta.env.DATABASE_URL });
+await client.connect();
+const res = await client.query('SELECT NOW() as current_time');
+const currentTime = res.rows[0].current_time;
+await client.end();
+
+---
+
+<h1>Current Time</h1>
+<p>The time is: {currentTime}</p>
+```
+
+## Resources
+
+- [Prisma Postgres Documentation](https://www.prisma.io/docs/orm/prisma-client/deployment/edge/deploy-to-vercel)
+- [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/astro)
+- [Prisma Accelerate](https://www.prisma.io/accelerate)
+- [Astro Environment Variables](/en/guides/environment-variables/)
