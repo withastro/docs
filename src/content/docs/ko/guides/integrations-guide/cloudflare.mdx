@@ -246,6 +246,96 @@ export default defineConfig({
 });
 ```
 
+### `workerEntryPoint`
+<p>
+
+**타입:** `{ path: string | URL, namedExports: string[] }`<br />
+**기본값:** `{ path: '@astrojs/cloudflare/entrypoints/server.js', namedExports: [] }`<br />
+<Since v="12.6.0" pkg="@astrojs/cloudflare"/>
+</p>
+
+`astro build` 명령을 사용할 때, Cloudflare Worker의 [workerEntryPoint](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/rpc/)를 지정하는 구성 객체입니다.
+
+이 객체를 통해 사용자 정의 파일 경로 (`path`)와 `namedExports`를 모두 선택적으로 지정할 수 있습니다.
+
+```js title="astro.config.mjs"
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		workerEntryPoint: {
+			path: 'src/worker.ts',
+			namedExports: ['MyDurableObject']
+		}
+	}),
+});
+```
+
+#### `workerEntryPoint.path`
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `@astrojs/cloudflare/entrypoints/server.js`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+항목 파일의 경로입니다. 이 경로는 Astro 프로젝트의 루트의 상대 경로여야 합니다.
+
+기본적으로 어댑터는 `fetch` 핸들러만 지원하는 일반 항목 파일을 사용합니다.
+
+다른 [Cloudflare 호출 핸들러](https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs)를 지원하기 위해 사용자 정의 파일을 생성하여 진입점으로 사용할 수 있습니다. 이는 다른 핸들러에 의존하는 기능 (예: Durable Objects, Cloudflare Queues, Scheduled Invocations)을 사용하는 경우에 유용합니다.
+
+#### `workerEntryPoint.namedExports` 
+
+<p>
+
+**타입:** `[]`<br />
+**기본값:** `['default']`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+항목 파일에서 사용할 명명된 내보내기를 담은 배열입니다.
+
+[사용자 정의 항목 파일](#사용자-정의-cloudflare-worker-항목-파일-만들기)의 정의된 모든 명명된 내보내기를 제공합니다. (예: `DurableObject`) 제공하지 않으면 기본 내보내기만 포함됩니다.
+
+#### 사용자 정의 Cloudflare Worker 항목 파일 만들기
+
+사용자 정의 항목 파일은 필요한 모든 핸들러가 포함된 `default` 내보내기를 반환하는 `createExports()` 함수를 내보내야 합니다.
+
+다음은 Durable Object와 큐 핸들러를 등록하는 항목 파일의 예시입니다.
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				await env.MY_QUEUE.send("log");
+				return handle(manifest, app, request, env, ctx);
+			},
+			async queue(batch, _env) {
+				let messages = JSON.stringify(batch.messages);
+				console.log(`큐에서 처리한 메시지: ${messages}`);
+			}
+		} satisfies ExportedHandler<Env>,
+		MyDurableObject: MyDurableObject,
+	}
+}
+```
+
 ## Cloudflare 런타임
 
 ### 사용
