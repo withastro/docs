@@ -15,7 +15,12 @@ export const sidebar = [
 		items: [
 			'getting-started',
 			group('start.welcome', {
-				items: ['concepts/why-astro', 'concepts/islands', 'tutorial/0-introduction'],
+				items: [
+					'concepts/why-astro',
+					'concepts/islands',
+					'tutorial/0-introduction',
+					'astro-courses',
+				],
 			}),
 			group('start.newProject', {
 				items: ['install-and-setup', 'basics/project-structure', 'develop-and-build'],
@@ -136,12 +141,13 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
-					'reference/experimental-flags/responsive-images',
 					'reference/experimental-flags/fonts',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
+					'reference/experimental-flags/csp',
+					'reference/experimental-flags/live-content-collections',
 				],
 			}),
 			'reference/legacy-flags',
