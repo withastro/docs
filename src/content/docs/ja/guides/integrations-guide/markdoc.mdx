@@ -1,0 +1,662 @@
+---
+type: integration
+title: '@astrojs/markdoc'
+description: Astroプロジェクトで@astrojs/markdocインテグレーションを使用する方法を学びます。
+sidebar:
+  label: Markdoc
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/markdoc/'
+category: other
+i18nReady: false
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+この[**Astroインテグレーション**][astro-integration]は、[Markdoc](https://markdoc.dev/)を使用してコンポーネント、ページ、およびコンテンツコレクションのエントリを作成できるようにします。
+
+## なぜMarkdocなのか
+
+Markdocを使用すると、[Astroコンポーネント][astro-components]でMarkdownを強化できます。Markdocで作成された既存のコンテンツがある場合、このインテグレーションを使用すると、コンテンツコレクションを使用してそれらのファイルをAstroプロジェクトに持ち込むことができます。
+
+## インストール
+
+Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。もしよろしければ、[手動でインテグレーションをインストールする](#手動インストール)こともできます。
+
+新しいターミナルウィンドウで次のいずれかのコマンドを実行します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+問題が発生した場合は、[GitHubで報告してください](https://github.com/withastro/astro/issues)。そして、以下の手動インストール手順を試してください。
+
+### 手動インストール
+
+まず、`@astrojs/markdoc`パッケージをインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、`integrations`プロパティを使用して、インテグレーションを`astro.config.*`ファイルに適用します。
+
+```js ins="markdoc()" title="astro.config.mjs" ins={2}
+import { defineConfig } from 'astro/config';
+import markdoc from '@astrojs/markdoc';
+export default defineConfig({
+  // ...
+  integrations: [markdoc()],
+});
+```
+
+### VS Codeエディタの統合
+
+VS Codeを使用している場合は、構成されたタグの構文ハイライトとオートコンプリートを含む公式の[Markdoc言語拡張機能](https://marketplace.visualstudio.com/items?itemName=Stripe.markdoc-language-support)があります。詳細については、[GitHubの言語サーバー](https://github.com/markdoc/language-server.git)を参照してください。
+
+拡張機能をセットアップするには、プロジェクトのルートに`markdoc.config.json`ファイルを作成し、次の内容を含めます。
+
+```json title="markdoc.config.json"
+[
+  {
+    "id": "my-site",
+    "path": "src/content",
+    "schema": {
+      "path": "markdoc.config.mjs",
+      "type": "esm",
+      "property": "default",
+      "watch": true
+    }
+  }
+]
+```
+
+`markdoc.config.mjs`を`schema`オブジェクトを持つ設定ファイルとして設定し、`path`プロパティを使用してMarkdocファイルが保存されている場所を定義します。Markdocはコンテンツコレクションに固有であるため、`src/content`を使用できます。
+
+## 使い方
+
+Markdocファイルは、コンテンツコレクション内でのみ使用できます。`.mdoc`拡張子を使用して、任意のコンテンツコレクションにエントリを追加します。
+
+<FileTree>
+- src/
+  - content/
+    - docs/
+      - why-markdoc.mdoc
+      - quick-start.mdoc
+</FileTree>
+
+次に、[コンテンツコレクションAPI](/ja/guides/content-collections/#コレクションのクエリ)を使用してコレクションをクエリします。
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await render(entry);
+---
+
+<!--dataでフロントマターのプロパティにアクセス-->
+<h1>{entry.data.title}</h1>
+<!--ContentコンポーネントでMarkdocのコンテンツをレンダリング-->
+<Content />
+```
+
+<ReadMore>[Astroコンテンツコレクションのドキュメント][astro-content-collections]で詳細を確認してください。</ReadMore>
+
+## Markdoc変数を渡す
+
+コンテンツに[変数][markdoc-variables]を渡す必要がある場合があります。これは、A/BテストなどのSSRパラメータを渡す場合に便利です。
+
+変数は、`Content`コンポーネントを介してプロップとして渡すことができます。
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await render(entry);
+---
+
+<!--abTestパラメータをを渡す-->
+<Content abTestGroup={Astro.params.abTestGroup} />
+```
+
+これで、`abTestGroup`は`docs/why-markdoc.mdoc`で変数として利用できます。
+
+```md title="src/content/docs/why-markdoc.mdoc"
+{% if $abTestGroup === 'image-optimization-lover' %}
+
+画像の最適化についてお話ししましょう...
+
+{% /if %}
+```
+
+すべてのMarkdocファイルにグローバルな変数を作成するには、`markdoc.config.mjs|ts`から`variables`属性を使用できます。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  variables: {
+    environment: process.env.IS_PROD ? 'prod' : 'dev',
+  },
+});
+```
+
+### Markdocコンテンツからフロントマターにアクセスする
+
+フロントマターにアクセスするには、コンテンツをレンダリングする場所でエントリの`data`プロパティをを渡すことができます。
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await render(entry);
+---
+
+<Content frontmatter={entry.data} />
+```
+
+これは、Markdocで`$frontmatter`としてアクセスできるようになりました。
+
+## コンポーネントのレンダリング
+
+`@astrojs/markdoc`は、Markdocのすべての機能を使用し、UIコンポーネントをコンテンツに接続するための設定オプションを提供します。
+
+### AstroコンポーネントをMarkdocタグとして使用する
+
+`.astro`コンポーネントにマッピングされる[Markdocタグ][markdoc-tags]を設定できます。プロジェクトのルートに`markdoc.config.mjs|ts`ファイルを作成し、`tag`属性を設定することで、新しいタグを追加できます。
+
+この例では、`Aside`コンポーネントをレンダリングし、`type`propを文字列として渡すことができます。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/Aside.astro'),
+      attributes: {
+        // Markdocは各属性に型定義を要求します。
+        // これらは、レンダリングしているコンポーネントの
+        // `Props`型を反映する必要があります。
+        // 属性の定義に関するMarkdocのドキュメントを参照してください
+        // https://markdoc.dev/docs/attributes#defining-attributes
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+このコンポーネントは、`{% aside %}`タグを使用してMarkdocファイルで使用できるようになりました。子はコンポーネントのデフォルトスロットに渡されます。
+
+```md
+# Markdocへようこそ👋
+
+{% aside type="tip" %}
+
+この派手な「aside」のようなタグを使用して、ドキュメントに_センス_を加えてください。
+
+{% /aside %}
+```
+
+### クライアントサイドUIコンポーネントを使用する
+
+タグとノードは`.astro`ファイルに制限されています。クライアントサイドUIコンポーネントをMarkdocに埋め込むには、[フレームワークコンポーネントをレンダリングするラッパー`.astro`コンポーネントを使用](/ja/guides/framework-components/#フレームワークコンポーネントをネストさせる)し、目的の`client:`ディレクティブを指定します。
+
+この例では、React `Aside.tsx`コンポーネントを`ClientAside.astro`コンポーネントでラップします。
+
+```astro title="src/components/ClientAside.astro"
+---
+import Aside from './Aside';
+---
+
+<Aside {...Astro.props} client:load />
+```
+
+このAstroコンポーネントは、設定内の任意の[タグ][markdoc-tags]または[ノード][markdoc-nodes]の`render`propに渡すことができるようになりました。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/ClientAside.astro'),
+      attributes: {
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+### npmパッケージとTypeScriptファイルからAstroコンポーネントを使用する
+
+TypeScriptまたはJavaScriptファイルから名前付きエクスポートとして公開されているAstroコンポーネントを使用する必要がある場合があります。これは、npmパッケージやデザインシステムを使用する場合によくあります。
+
+`component()`関数の2番目の引数としてインポート名を渡すことができます。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    tabs: {
+      render: component('@astrojs/starlight/components', 'Tabs'),
+    },
+  },
+});
+```
+
+これにより、内部で次のインポートステートメントが生成されます。
+
+```ts
+import { Tabs } from '@astrojs/starlight/components';
+```
+
+## Markdocパーシャル
+
+`{% partial /%}`タグを使用すると、Markdocコンテンツ内に他の`.mdoc`ファイルをレンダリングできます。
+
+これは、複数のドキュメントでコンテンツを再利用する場合に便利で、コレクションスキーマに従わない`.mdoc`コンテンツファイルを持つことができます。
+
+:::tip
+パーシャルファイルまたはディレクトリにはアンダースコア`_`プレフィックスを使用します。これにより、パーシャルがコンテンツコレクションクエリから除外されます。
+:::
+
+この例は、ブログコレクションエントリ内で使用するフッターのMarkdocパーシャルを示しています。
+
+```md title="src/content/blog/_footer.mdoc"
+ソーシャルリンク:
+
+- [Twitter / X](https://twitter.com/astrodotbuild)
+- [Discord](https://astro.build/chat)
+- [GitHub](https://github.com/withastro/astro)
+```
+
+`{% partial /%}`タグを使用して、ブログ投稿エントリの下部にフッターをレンダリングします。相対パスまたはインポートエイリアスを使用して、ファイルへのパスを指定して`file`属性を適用します。
+
+```md title="src/content/blog/post.mdoc" ins='file="_footer.mdoc"'
+# 私のブログ投稿
+
+{% partial file="./_footer.mdoc" /%}
+```
+
+## 構文のハイライト
+
+`@astrojs/markdoc`は、コードブロックをハイライトするための[Shiki](https://shiki.style)および[Prism](https://github.com/PrismJS)拡張機能を提供します。
+
+### Shiki
+
+`extends`プロパティを使用して、Markdoc設定に`shiki()`拡張機能を適用します。オプションで、shiki設定オブジェクトを渡すことができます。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import shiki from '@astrojs/markdoc/shiki';
+
+export default defineMarkdocConfig({
+  extends: [
+    shiki({
+      // Shikiの組み込みテーマから選択（または独自に追加）
+      // デフォルト: 'github-dark'
+      // https://shiki.style/themes
+      theme: 'dracula',
+      // 水平スクロールを防ぐためにワードラップを有効にする
+      // デフォルト: false
+      wrap: true,
+      // カスタム言語を渡す
+      // 注: Shikiには、`.astro`を含む無数の言語が組み込まれています！
+      // https://shiki.style/languages
+      langs: [],
+    }),
+  ],
+});
+```
+
+### Prism
+
+`extends`プロパティを使用して、Markdoc設定に`prism()`拡張機能を適用します。
+
+```js title="markdoc.config.mjs" ins={5}
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import prism from '@astrojs/markdoc/prism';
+
+export default defineMarkdocConfig({
+  extends: [prism()],
+});
+```
+
+<ReadMore>Prismスタイルシートの設定については、[構文ハイライトガイド](/ja/guides/syntax-highlighting/#prismスタイルシートを追加する)を参照してください。</ReadMore>
+
+## カスタムMarkdocノード/要素
+
+段落や太字のテキストなどの標準的なMarkdown要素をAstroコンポーネントとしてレンダリングしたい場合があります。このために、[Markdocノード][markdoc-nodes]を設定できます。特定のノードが属性を受け取る場合、それらはコンポーネントのプロップとして利用できます。
+
+この例では、カスタムの`Quote.astro`コンポーネントを使用してブロッククオートをレンダリングします。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    blockquote: {
+      ...nodes.blockquote, // 他のオプションにはMarkdocのデフォルトを適用
+      render: component('./src/components/Quote.astro'),
+    },
+  },
+});
+```
+
+<ReadMore>すべての組み込みノードと属性については、[Markdocノードのドキュメント](https://markdoc.dev/docs/nodes#built-in-nodes)を参照してください。</ReadMore>
+
+### カスタム見出し
+
+`@astrojs/markdoc`は、見出しにアンカーリンクを自動的に追加し、[コンテンツコレクションAPIを介して`headings`のリストを生成します](/ja/guides/content-collections/)。見出しのレンダリング方法をさらにカスタマイズするには、Astroコンポーネントを[Markdocノードとして][markdoc-nodes]適用できます。
+
+この例では、`render`プロパティを使用して`Heading.astro`コンポーネントをレンダリングします。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    heading: {
+      ...nodes.heading, // デフォルトのアンカーリンク生成を維持
+      render: component('./src/components/Heading.astro'),
+    },
+  },
+});
+```
+
+すべてのMarkdown見出しは`Heading.astro`コンポーネントをレンダリングし、次の`attributes`をコンポーネントのプロップとして渡します。
+
+* `level: number` 見出しレベル1〜6
+* `id: string` 見出しのテキストコンテンツから生成された`id`。これは、[コンテンツ`render()`関数](/ja/guides/content-collections/)によって生成された`slug`に対応します。
+
+たとえば、見出し`### レベル3の見出し！`は、コンポーネントのプロップとして`level: 3`と`id: 'level-3-heading'`を渡します。
+
+### カスタム画像コンポーネント
+
+Astroの`<Image />`コンポーネントは、Markdocで直接使用することはできません。ただし、ネイティブの`![]()`画像構文が使用されるたびにデフォルトの画像ノードを上書きするようにAstroコンポーネントを設定したり、追加の画像属性を指定できるカスタムMarkdocタグとして設定したりできます。
+
+#### Markdocのデフォルト画像ノードを上書きする
+
+デフォルトの画像ノードを上書きするには、標準の`<img>`の代わりにレンダリングされるように`.astro`コンポーネントを設定できます。
+
+<Steps>
+1. カスタムの`MarkdocImage.astro`コンポーネントをビルドして、画像から必要な`src`および`alt`プロパティを`<Image />`コンポーネントに渡します。
+
+    ```astro title="src/components/MarkdocImage.astro"
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    ```
+
+2. `<Image />`コンポーネントには、`![]()`構文では提供できないリモート画像の`width`と`height`が必要です。リモート画像を使用する際のエラーを回避するには、リモートURLの`src`が見つかった場合に標準のHTML `<img>`タグをレンダリングするようにコンポーネントを更新します。
+
+    ```astro title="src/components/MarkdocImage.astro" ins="| string" del={9} ins={10-12}
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    {
+      typeof src === 'string' ? <img src={src} alt={alt} /> : <Image src={src} alt={alt} />
+    }
+    ```
+
+3. Markdocを設定して、デフォルトの画像ノードを上書きし、`MarkdocImage.astro`をレンダリングします。
+
+    ```js title="markdoc.config.mjs"
+    import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      nodes: {
+        image: {
+          ...nodes.image, // 他のオプションにはMarkdocのデフォルトを適用
+          render: component('./src/components/MarkdocImage.astro'),
+        },
+      },
+    });
+    ```
+
+4. `.mdoc`ファイル内のネイティブ画像構文は、`<Image />`コンポーネントを使用してローカル画像を最適化するようになります。リモート画像は引き続き使用できますが、Astroの`<Image />`コンポーネントではレンダリングされません。
+
+    ```md title="src/content/blog/post.mdoc"
+    
+    <!-- <Image />によって最適化 -->
+    ![猫の写真](/cat.jpg)
+
+    <!-- 最適化されていない<img> -->
+    ![犬の写真](https://example.com/dog.jpg) 
+    ```
+</Steps>
+
+#### カスタムMarkdoc画像タグを作成する
+
+Markdocの`image`タグを使用すると、`![]()`構文では不可能な追加の属性を画像に設定できます。たとえば、カスタム画像タグを使用すると、`width`と`height`が必要なリモート画像にAstroの`<Image />`コンポーネントを使用できます。
+
+次の手順では、Astro `<Image />`コンポーネントを使用して画像を最適化し、キャプション付きの`<figure>`要素を表示するカスタムMarkdoc画像タグを作成します。
+
+<Steps>
+1. 必要なpropsを受け取り、キャプション付きの画像をレンダリングする`MarkdocFigure.astro`コンポーネントを作成します。
+
+    ```astro title="src/components/MarkdocFigure.astro"
+    ---
+    // src/components/MarkdocFigure.astro
+    import { Image } from "astro:assets";
+
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+      width: number;
+      height: number;
+      caption: string;
+    }
+
+    const { src, alt, width, height, caption } = Astro.props;
+    ---
+    <figure>
+        <Image {src} {alt} {width} {height}  />
+        {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+    ```
+
+2. Astroコンポーネントをレンダリングするようにカスタム画像タグを設定します。
+
+    ```ts title="markdoc.config.mjs"
+    import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      tags: {
+        image: {
+          attributes: {
+            width: {
+              type: String,
+            },
+            height: {
+              type: String,
+            },
+            caption: {
+              type: String,
+            },
+            ...nodes.image.attributes
+          },
+          render: component('./src/components/MarkdocFigure.astro'),
+        },
+      },
+    });
+    ```
+
+3. Markdocファイルで`image`タグを使用して、コンポーネントに必要なすべての属性を指定して、キャプション付きの図を表示します。
+
+    ```md
+    {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" /%}
+    ```
+</Steps>
+
+## 高度なMarkdoc設定
+
+`markdoc.config.mjs|ts`ファイルは、[タグ](https://markdoc.dev/docs/tags)や[関数](https://markdoc.dev/docs/functions)など、[すべてのMarkdoc設定オプション](https://markdoc.dev/docs/config)を受け入れます。
+
+これらのオプションは、`markdoc.config.mjs|ts`ファイルのデフォルトエクスポートから渡すことができます。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  functions: {
+    getCountryEmoji: {
+      transform(parameters) {
+        const [country] = Object.values(parameters);
+        const countryToEmojiMap = {
+          japan: '🇯🇵',
+          spain: '🇪🇸',
+          france: '🇫🇷',
+        };
+        return countryToEmojiMap[country] ?? '🏳';
+      },
+    },
+  },
+});
+```
+
+これで、任意のMarkdocコンテンツエントリからこの関数を呼び出すことができます。
+
+```md
+¡Hola {% getCountryEmoji("spain") %}!
+```
+
+<ReadMore>コンテンツでの変数や関数の使用方法の詳細については、[Markdocのドキュメント](https://markdoc.dev/docs/functions#creating-a-custom-function)を参照してください。</ReadMore>
+
+### ルートHTML要素を設定する
+
+Markdocは、デフォルトでドキュメントを`<article>`タグでラップします。これは、`document` Markdocノードから変更できます。これは、ラッパー要素を削除したい場合は、HTML要素名または`null`を受け入れます。
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    document: {
+      ...nodes.document, // 他のオプションにはデフォルトを適用
+      render: null, // デフォルトは'article'
+    },
+  },
+});
+```
+
+## インテグレーション設定オプション
+
+Astro Markdocインテグレーションは、`markdoc.config.js`ファイルでは利用できないMarkdocオプションと機能の設定を処理します。
+
+### `allowHTML`
+
+Markdocタグやノードと並べてHTMLマークアップを記述できるようにします。
+
+デフォルトでは、MarkdocはHTMLマークアップを意味のあるコンテンツとして認識しません。
+
+HTML要素をコンテンツと並べて含めることができる、よりMarkdownらしいエクスペリエンスを実現するには、`markdoc`インテグレーションオプションとして`allowHTML:true`を設定します。これにより、MarkdocマークアップでHTML解析が有効になります。
+
+```js ins="allowHTML: true" title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ allowHTML: true })],
+  });
+```
+
+:::caution
+`allowHTML`が有効になっている場合、Markdocドキュメント内のHTMLマークアップは実際のHTML要素（`<script>`を含む）としてレンダリングされるため、XSSなどの攻撃ベクトルが可能になります。HTMLマークアップが信頼できるソースからのものであることを確認してください。
+:::
+
+### `ignoreIndentation`
+
+デフォルトでは、4つのスペースでインデントされたコンテンツはコードブロックとして扱われます。残念ながら、この動作により、複雑な構造を持つドキュメントの読みやすさを向上させるために任意のレベルのインデントを使用することが困難になります。
+
+Markdocでネストされたタグを使用する場合、タグ内のコンテンツをインデントして、深さのレベルが明確になるようにすると便利です。任意のインデントをサポートするには、インデントベースのコードブロックを無効にし、インデントベースのコードブロックを考慮する他のいくつかのmarkdown-it解析ルールを変更する必要があります。これらの変更は、ignoreIndentationオプションを有効にすることで適用できます。
+
+```js "ignoreIndentation: true" title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ ignoreIndentation: true })],
+  });
+```
+
+```md
+# インデントされたタグを持つMarkdocへようこそ👋
+
+# 注：インデントにはスペースまたはタブのいずれかを使用できます
+
+{% custom-tag %}
+{% custom-tag %} ### タグは読みやすくするためにインデントできます
+
+    {% another-custom-tag %}
+      ネストが多い場合にこれを追跡しやすくなります
+    {% /another-custom-tag %}
+
+{% /custom-tag %}
+{% /custom-tag %}
+```
+
+## 例
+
+* [Astro Markdocスターターテンプレート](https://github.com/withastro/astro/tree/latest/examples/with-markdoc)は、AstroプロジェクトでMarkdocファイルを使用する方法を示しています。
+
+[astro-integration]: /ja/guides/integrations-guide/
+
+[astro-components]: /ja/basics/astro-components/
+
+[astro-content-collections]: /ja/guides/content-collections/
+
+[markdoc-tags]: https://markdoc.dev/docs/tags
+
+[markdoc-nodes]: https://markdoc.dev/docs/nodes
+
+[markdoc-variables]: https://markdoc.dev/docs/variables
