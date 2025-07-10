@@ -11,12 +11,22 @@ export const onRequest = defineRouteMiddleware((context) => {
 });
 
 function updateHead(context: APIContext) {
-	const { head, isFallback, lang } = context.locals.starlightRoute;
+	const { head, entry, isFallback, lang, entryMeta } = context.locals.starlightRoute;
 
 	const ogImageUrl = getOgImageUrl(context.url.pathname, !!isFallback);
 	const imageSrc = ogImageUrl ?? '/default-og-image.png';
 	const canonicalImageSrc = new URL(imageSrc, context.site);
 	const is404 = context.url.pathname.endsWith('/404/');
+
+	const title = head.find((item) => item.tag === 'title');
+	const frontmatterTitle = entry.data.head.find((item) => item.tag === 'title');
+	if (title && entry.id.split('/')[1] === 'tutorial' && !frontmatterTitle) {
+		title.content = context.locals.t('tutorial.title.prefix', {
+			title: title.content,
+			// TODO(HiDeoo) comment
+			lng: entryMeta.lang,
+		});
+	}
 
 	head.push({ tag: 'meta', attrs: { property: 'og:image', content: canonicalImageSrc.href } });
 	head.push({ tag: 'meta', attrs: { name: 'twitter:image', content: canonicalImageSrc.href } });
