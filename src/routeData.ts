@@ -21,7 +21,6 @@ function updateHead(context: APIContext) {
 		// Check if a prefix translation exists for the page content language, without any possible
 		// fallback.
 		const isPrefixTranslated = context.locals.t.exists('tutorial.title.prefix', {
-			// `exists()` checks for the translation key using fallbacks by default.
 			lngs: [entryMeta.lang],
 		});
 
@@ -31,7 +30,7 @@ function updateHead(context: APIContext) {
 				title: title.content,
 				// Explicitly use the language based on the page content, which can be different from the
 				// page language for fallback pages.
-				lng: entryMeta.lang,
+				lngs: [entryMeta.lang],
 			});
 		}
 	}
