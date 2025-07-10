@@ -18,12 +18,22 @@ function updateHead(context: APIContext) {
 
 	// Update the title of tutorial entry which do not provide a custom title in their frontmatter.
 	if (isTutorialEntry(entry) && title && !frontmatterTitle) {
-		title.content = context.locals.t('tutorial.title.prefix', {
-			title: title.content,
-			// Explicitly use the language based on the page content, which can be different from the
-			// page language for fallback pages.
-			lng: entryMeta.lang,
+		// Check if a prefix translation exists for the page content language, without any possible
+		// fallback.
+		const isPrefixTranslated = context.locals.t.exists('tutorial.title.prefix', {
+			// `exists()` checks for the translation key using fallbacks by default.
+			lngs: [entryMeta.lang],
 		});
+
+		if (isPrefixTranslated) {
+			// If a prefix translation exists, use it to format the title.
+			title.content = context.locals.t('tutorial.title.prefix', {
+				title: title.content,
+				// Explicitly use the language based on the page content, which can be different from the
+				// page language for fallback pages.
+				lng: entryMeta.lang,
+			});
+		}
 	}
 
 	const ogImageUrl = getOgImageUrl(context.url.pathname, !!isFallback);
