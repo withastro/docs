@@ -13,20 +13,23 @@ export const onRequest = defineRouteMiddleware((context) => {
 function updateHead(context: APIContext) {
 	const { head, entry, isFallback, lang, entryMeta } = context.locals.starlightRoute;
 
+	const title = head.find((item) => item.tag === 'title');
+	const frontmatterTitle = entry.data.head.find((item) => item.tag === 'title');
+
+	// Update the title of tutorial entry which do not provide a custom title in their frontmatter.
+	if (isTutorialEntry(entry) && title && !frontmatterTitle) {
+		title.content = context.locals.t('tutorial.title.prefix', {
+			title: title.content,
+			// Explicitly use the language based on the page content, which can be different from the
+			// page language for fallback pages.
+			lng: entryMeta.lang,
+		});
+	}
+
 	const ogImageUrl = getOgImageUrl(context.url.pathname, !!isFallback);
 	const imageSrc = ogImageUrl ?? '/default-og-image.png';
 	const canonicalImageSrc = new URL(imageSrc, context.site);
 	const is404 = context.url.pathname.endsWith('/404/');
-
-	const title = head.find((item) => item.tag === 'title');
-	const frontmatterTitle = entry.data.head.find((item) => item.tag === 'title');
-	if (title && entry.id.split('/')[1] === 'tutorial' && !frontmatterTitle) {
-		title.content = context.locals.t('tutorial.title.prefix', {
-			title: title.content,
-			// TODO(HiDeoo) comment
-			lng: entryMeta.lang,
-		});
-	}
 
 	head.push({ tag: 'meta', attrs: { property: 'og:image', content: canonicalImageSrc.href } });
 	head.push({ tag: 'meta', attrs: { name: 'twitter:image', content: canonicalImageSrc.href } });
@@ -50,7 +53,7 @@ function updateHead(context: APIContext) {
 function updateTutorialPagination(starlightRoute: StarlightRouteData) {
 	const { entry, locale, pagination } = starlightRoute;
 
-	if (entry.id.split('/')[1] !== 'tutorial') return;
+	if (!isTutorialEntry(entry)) return;
 
 	const tutorialPages = getTutorialPages(pages, locale!);
 	const i = tutorialPages.findIndex((p) => p.id === entry.id);
@@ -80,4 +83,8 @@ function updateTutorialPagination(starlightRoute: StarlightRouteData) {
 			attrs: {},
 		};
 	}
+}
+
+function isTutorialEntry(entry: StarlightRouteData['entry']) {
+	return entry.id.split('/')[1] === 'tutorial';
 }
