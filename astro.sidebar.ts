@@ -150,6 +150,20 @@ export const sidebar = [
 					'reference/experimental-flags/live-content-collections',
 				],
 			}),
+			group('reference.ai-resources', {
+				collapsed: true,
+				items: [
+					'reference/mcp-server',
+					{
+						label: 'llms.txt',
+						link: 'https://docs.astro.build/llms.txt',
+					},
+					{
+						label: 'llms-full.txt',
+						link: 'https://docs.astro.build/llms-full.txt',
+					},
+				],
+			}),
 			'reference/legacy-flags',
 			'reference/error-reference',
 		],
