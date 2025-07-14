@@ -31,6 +31,7 @@ export const sidebar = [
 					'editor-setup',
 					'guides/typescript',
 					'guides/environment-variables',
+					'guides/build-with-ai',
 					'guides/dev-toolbar',
 				],
 			}),
@@ -148,20 +149,6 @@ export const sidebar = [
 					'reference/experimental-flags/heading-id-compat',
 					'reference/experimental-flags/csp',
 					'reference/experimental-flags/live-content-collections',
-				],
-			}),
-			group('reference.ai-resources', {
-				collapsed: true,
-				items: [
-					'reference/mcp-server',
-					{
-						label: 'llms.txt',
-						link: 'https://docs.astro.build/llms.txt',
-					},
-					{
-						label: 'llms-full.txt',
-						link: 'https://docs.astro.build/llms-full.txt',
-					},
 				],
 			}),
 			'reference/legacy-flags',
