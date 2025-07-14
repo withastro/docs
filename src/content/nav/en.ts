@@ -19,7 +19,6 @@ export default {
 	'reference.other': 'Other development APIs',
 	'reference.syntax': 'Astro Template Syntax',
 	'reference.experimental': 'Experimental features',
-	'reference.ai-resources': 'AI resources',
 
 	integrations: 'Integrations',
 	'integrations.ui': 'UI frameworks',
