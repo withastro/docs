@@ -141,13 +141,14 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
+					'reference/experimental-flags/csp',
 					'reference/experimental-flags/fonts',
+					'reference/experimental-flags/live-content-collections',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
-					'reference/experimental-flags/csp',
-					'reference/experimental-flags/live-content-collections',
+					'reference/experimental-flags/raw-env-values',
 				],
 			}),
 			'reference/legacy-flags',
