@@ -31,6 +31,7 @@ export const sidebar = [
 					'editor-setup',
 					'guides/typescript',
 					'guides/environment-variables',
+					'guides/build-with-ai',
 					'guides/dev-toolbar',
 				],
 			}),
