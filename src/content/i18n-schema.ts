@@ -55,6 +55,7 @@ export const AstroDocsI18nSchema = z
 		// Tutorial Navigation
 		'tutorial.trackerLabel': z.string(),
 		'tutorial.unit': z.string(),
+		'tutorial.title.prefix': z.string(),
 		// Tutorial
 		'tutorial.getReady': z.string(),
 		// Code snippet vocabulary
