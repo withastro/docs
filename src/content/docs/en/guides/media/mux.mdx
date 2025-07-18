@@ -22,11 +22,11 @@ Learn more about features such as embedding, storing, streaming, and customizing
 
 ## Using Mux in Astro
 
-Mux's APIs and web components work in Astro to compress and optimize your videos and streams for the web, adapt the quality of your video to network conditions, and integrate additional features like captions, thumbnails, and analytics. The [Mux Node SDK](https://github.com/muxinc/mux-node-sdk) supports both Mux Data and Mux Video.
+Mux's APIs and web components work in Astro to compress and optimize your videos and streams for the web, adapt the quality of your video to network conditions, and integrate additional features like captions, thumbnails, and analytics. The [Mux Node SDK](https://github.com/muxinc/mux-node-sdk) supports both Mux Data and the Mux Video API.
 
 ## Prerequisites
 
-- An existing Astro project with an adapter installed for [on-demand server rendering](/en/guides/on-demand-rendering/). If you don’t have an Astro project yet, our [Installation guide](https://docs.astro.build/en/install-and-setup/) will get you up and running in no time.
+- An existing Astro project. Some features may additionally require an adapter installed for [on-demand server rendering](/en/guides/on-demand-rendering/). If you don’t have an Astro project yet, our [Installation guide](https://docs.astro.build/en/install-and-setup/) will get you up and running in no time.
 - A Mux account. If you don’t have an account, you can [sign up with Mux](https://dashboard.mux.com/login) for a free account.
 
 ## Mux Player
@@ -34,6 +34,17 @@ Mux's APIs and web components work in Astro to compress and optimize your videos
 In Astro, you can use the full-featured [Mux Player](https://www.mux.com/docs/guides/mux-player-web) as a native Astro comonent for optimized, responsive video playback and live streams. Mux Player has built-in support for Mux Data analytics, and will automatically show visitor engagement and video quality metrics in your dashboard once your video has views on your deployed site.
 
 Mux Player provides a responsive UI based on video player dimensions and stream type, automatic thumbnail previews and poster images, and modern video player capabilities (e.g. fullscreen, picture-in-picture, Chromecast, AirPlay).
+
+```astro title="src/components/MyMuxVideoPlayer.astro"
+---
+import MuxUploader from "@mux/mux-player-astro";
+---
+<MuxPlayer
+  playbackId="DS00Spx1CV902MCtPj5WknGlR102V5HFkDe"
+  metadata={{video_title: 'My Astro Video'}}
+/>
+
+```
 
 ### Installation
 
@@ -57,11 +68,11 @@ Mux Player can also be used in your Astro project as:
 - a React component (`<MuxPlayer />` from `@mux/mux-player-react`)
 - an HTML web embed (`<iframe>`)
 
-### `<MuxPlayer />` component
+### Play a video from Mux
 
 Import and use the native `<MuxPlayer />` Astro component directly in your `.astro` files like any other Astro component. 
 
-You will need the `playbackId` for your asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#retrieving-asset-data). 
+You will need the `playbackId` for your asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#retrieve-asset-data). 
 
 All other [options to control the Mux web player](https://www.mux.com/docs/guides/player-api-reference/) (e.g. hide or display controls, style elements, disable cookies) are optional:
 
@@ -118,7 +129,7 @@ Mux Video can be used as a web component (`<mux-video>`), or as a React componen
   </TabItem>
 </Tabs>
 
-You will need the `playback-id` for your video asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#retrieving-asset-data). All attributes for the HTML 5 `<video>` element (e.g. `poster`, `controls`, `muted`) are available, as well as additional Mux video player controls (e.g. to provide metadata, control the resolution, disable cookies):
+You will need the `playback-id` for your video asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#retrieve-asset-data). All attributes for the HTML 5 `<video>` element (e.g. `poster`, `controls`, `muted`) are available, as well as additional Mux video player controls (e.g. to provide metadata, control the resolution, disable cookies):
 
 ```astro title="src/components/StarlightVideo.astro"
 <script>import '@mux/mux-video'</script>
@@ -133,7 +144,9 @@ You will need the `playback-id` for your video asset which can be found in your 
 
 ## Mux Node SDK
 
-The [Mux Node SDK](https://github.com/muxinc/mux-node-sdk) provides access to the Mux REST API from server-side TypeScript or JavaScript. This allows you to interact with your Mux assets and data in the component script of your `.astro` files.
+The [Mux Node SDK](https://github.com/muxinc/mux-node-sdk) provides authenticated access to the Mux REST API from server-side TypeScript or JavaScript. This allows you to interact with your Mux assets and data in the component script of your `.astro` files.
+
+While the Mux Player and Mux Video components do not require authentication, and can play any publicly accessible video given its `playbackId`, connecting to your hosted Mux data via the Node SDK requires [a Mux API access token](#mux-environment-api-access).
 
 ### Installation
 
@@ -152,9 +165,11 @@ Install the Mux Node SDK using your preferred package manager:
   </TabItem>
 </Tabs>
 
-### Mux Environment
+### Mux Environment API access
 
-A Mux Environment contains a group of videos for shared use and data analysis. You will need to create an Environment in your Mux dashboard, and then create ID and SECRET tokens to provide credentials to the Node SDK. This will allow you to create an instance of the Mux Node SDK for retrieving information about your videos, creating new assets, accessing metrics and real-time performance, and more:
+API tokens are created for a specific Mux Environment: a group of videos for shared use and data analysis. You will need to create an Environment in your Mux dashboard, and [then get ID and SECRET tokens](https://www.mux.com/docs/core/stream-video-files#1-get-an-api-access-token) to provide credentials to the Node SDK. These can be provided to your Astro components as environment variables stored in a `.env` file.
+
+This will allow you to create an instance of the Mux Node SDK for retrieving information about your videos, creating new assets, accessing metrics and real-time performance, and more:
 
 ```astro
 ---
@@ -169,9 +184,9 @@ const mux = new Mux ({
 
 <ReadMore>Read more about using [environment variables](https://docs.astro.build/en/guides/environment-variables/) in your Astro project.</ReadMore>
 
-### Retrieving asset data
+### Retrieve asset data
 
-To fetch information about your video to use in your Astro project, provide the video's `ASSET_ID` (available in the Mux dashboard) to the `retrieve()` helper function:
+To fetch information about your video to use in your Astro project, provide the video's `ASSET_ID` (available in the Mux dashboard) to the `retrieve()` helper function. This will allow you to pass values to both your Mux components and your HTML template, such as the video's title or duration:
 
 ```astro
 ---
@@ -207,9 +222,132 @@ const time = new Date(Math.round(duration) * 1000).toISOString().substring(14, 1
 
 See all asset properties in the [Mux Asset API documentation](https://www.mux.com/docs/api-reference/video/assets).
 
+
+## Mux Uploader
+
+ Mux Uploader is a a fully-functional, customizable video upload UI for your Astro website. The native Astro `<MuxUpload />` component allows you to build video upload functionality in to your web app. Mux Uploader supports both manual file selection and drag and drop for file uploads, optional pausing and resuming of uploads, and more.
+
+```astro title="src/components/MyMuxVideoUploader.astro"
+---
+import MuxUploader from "@mux/mux-uploader-astro";
+---
+<MuxUploader endpoint="https://httpbin.org/put" />
+
+```
+
+### Installation
+
+Install the Astro version of Mux Player using your preferred package manager:
+
+<Tabs>
+<TabItem label="npm">
+  ```shell
+  npm install @mux/mux-player-astro@latest
+  ```
+  </TabItem>
+  <TabItem label="Yarn">
+  ```shell
+  yarn add @mux/mux-player-astro@latest
+  ```
+  </TabItem>
+</Tabs>
+
+### Using Mux Uploader in Astro
+
+
+### Upload a video to Mux
+
+To provide authentication for your Mux account, ensure you have the appropriate [Mux API access tokens](#mux-environment-api-access) set. You can then use the `create()` function from the Mux Node SDK to create a new video upload to Mux:
+
+```astro
+---
+import Layout from '../../layouts/Layout.astro';
+import Mux from "@mux/mux-node";
+import MuxUploader from "@mux/mux-uploader-astro";
+
+const mux = new Mux({
+  tokenId: import.meta.env.MUX_TOKEN_ID,
+  tokenSecret: import.meta.env.MUX_TOKEN_SECRET
+});
+
+const upload = await mux.video.uploads.create({
+  new_asset_settings: {
+    playback_policy: ['public'],
+    encoding_tier: 'baseline',
+  },
+  cors_origin: '*',
+});
+---
+<Layout title="Upload a video to Mux">
+  <MuxUploader endpoint={upload.url} />
+</Layout>
+```
+
+### Customize the uploader
+
+You can customize the functionality and appearance of the `<MuxUploader />` with additional component attributes. In addition to styling your element, this allows you to control options such as the ability to pause a download or set a maximum file size.
+
+```astro
+---
+import { MuxUploader } from '@mux/mux-uploader-astro';
+---
+
+<MuxUploader
+  endpoint="https://my-authenticated-url/storage?your-url-params"
+  pausable
+  maxFileSize={1000000000}
+  chunkSize={8192}
+  style={{
+    '--progress-bar-fill-color': '#7e22ce',
+    '--button-background-color': '#f0f0f0',
+  }}
+/>
+```
+
+See the [Mux uploader customization guide](https://www.mux.com/docs/guides/uploader-web-customize-look-and-feel) for more options.
+
+### Event handling for uploads
+
+Mux Uploader provides a feature-rich, dynamic UI that changes based on the current state of your media upload. The uploader's behavior responds to both user-driven events (e.g. selecting a file, retrying after an error) and state-driven events (e.g. upload in-progress, upload successfully completed). You can listen for these events and handle them in your Astro component with [client-side scripts](/en/guides/client-side-scripts/). An `MuxUploaderElement` type is available.
+
+```astro
+---
+import { MuxUploader } from '@mux/mux-uploader-astro';
+---
+
+<MuxUploader
+  id="my-uploader"
+  endpoint="https://my-authenticated-url/storage?your-url-params"
+  pausable
+/>
+
+<script>
+  import type { MuxUploaderElement } from '@mux/mux-uploader-astro';
+  
+  const uploader = document.getElementById('my-uploader') as MuxUploaderElement;
+  
+  uploader.addEventListener('uploadstart', (event) => {
+    console.log('Upload started!', event.detail);
+  });
+  
+  uploader.addEventListener('success', (event) => {
+    console.log('Upload successful!', event.detail);
+  });
+  
+  uploader.addEventListener('uploaderror', (event) => {
+    console.error('Upload error!', event.detail);
+  });
+  
+  uploader.addEventListener('progress', (event) => {
+    console.log('Upload progress: ', event.detail);
+  });
+</script>
+```
+
+
 ## Official Resources
 
-For more information about additional topics, such as integrating with a CMS, building custom video workflows, and more, please see:
+For the full API and webhook reference, usage guides, and information about additional topics, such as integrating with a CMS, building custom video workflows, and more, please see:
 
 - [The official Mux documentation](https://www.mux.com/docs/integrations/astro).
 - [Building a video uploader with Mux and Astro (YouTube)](https://www.youtube.com/watch?v=aaL1k5FsWfE)
