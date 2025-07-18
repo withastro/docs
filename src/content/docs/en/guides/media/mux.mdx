@@ -61,7 +61,7 @@ Mux Player can also be used in your Astro project as:
 
 Import and use the native `<MuxPlayer />` Astro component directly in your `.astro` files like any other Astro component. 
 
-You will need the `playbackId` for your asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#fetching-asset-data). 
+You will need the `playbackId` for your asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#retrieving-asset-data). 
 
 All other [options to control the Mux web player](https://www.mux.com/docs/guides/player-api-reference/) (e.g. hide or display controls, style elements, disable cookies) are optional:
 
@@ -118,7 +118,7 @@ Mux Video can be used as a web component (`<mux-video>`), or as a React componen
   </TabItem>
 </Tabs>
 
-You will need the `playback-id` for your video asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#fetching-asset-data). All attributes for the HTML 5 `<video>` element (e.g. `poster`, `controls`, `muted`) are available, as well as additional Mux video player controls (e.g. to provide metadata, control the resolution, disable cookies):
+You will need the `playback-id` for your video asset which can be found in your Mux dashboard or [retrieved from its `ASSET_ID`](#retrieving-asset-data). All attributes for the HTML 5 `<video>` element (e.g. `poster`, `controls`, `muted`) are available, as well as additional Mux video player controls (e.g. to provide metadata, control the resolution, disable cookies):
 
 ```astro title="src/components/StarlightVideo.astro"
 <script>import '@mux/mux-video'</script>
@@ -158,6 +158,8 @@ A Mux Environment contains a group of videos for shared use and data analysis. Y
 
 ```astro
 ---
+import Mux from "@mux/mux-node";
+
 const mux = new Mux ({
   tokenId: import.meta.env.MUX_TOKEN_ID,
   tokenSecret: import.meta.env.MUX_TOKEN_SECRET,
@@ -167,10 +169,43 @@ const mux = new Mux ({
 
 <ReadMore>Read more about using [environment variables](https://docs.astro.build/en/guides/environment-variables/) in your Astro project.</ReadMore>
 
-### Fetching asset data
+### Retrieving asset data
 
-From your video's fetch data from your video's `ASSET_ID`.
+To fetch information about your video to use in your Astro project, provide the video's `ASSET_ID` (available in the Mux dashboard) to the `retrieve()` helper function:
 
+```astro
+---
+import Mux from "@mux/mux-node";
+import MuxPlayer from "@mux/mux-player-astro";
+
+const mux = new Mux ({
+  tokenId: import.meta.env.MUX_TOKEN_ID,
+  tokenSecret: import.meta.env.MUX_TOKEN_SECRET,
+})
+
+const ASSET_ID = "E01irAaN8c6dk1010153uC2mzst7RVbAdJJWtHECAHFvDo";
+const asset = await mux.video.assets.retrieve(ASSET_ID);
+
+const playbackId = asset.playback_ids?.find((id)=> id.policy=== "public")?.id;
+const videoTitle = asset?.meta?.title;
+const createdAt = Number(asset?.created_at);
+const duration = Number(asset?.duration)
+
+const date = new Date(createdAt * 1000).toDateString()
+const time = new Date(Math.round(duration) * 1000).toISOString().substring(14, 19)
+---
+<h1>My Video Page</h1>
+<p>Title: {videoTitle}</p>
+<p>Upload Date: {date}</p>
+<p>Length: {time}</p>
+
+<MuxPlayer 
+  playbackId={playbackId}
+  videoTitle={videoTitle}
+/>
+```
+
+See all asset properties in the [Mux Asset API documentation](https://www.mux.com/docs/api-reference/video/assets).
 
 ## Official Resources
 
