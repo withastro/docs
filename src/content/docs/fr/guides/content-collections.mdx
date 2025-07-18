@@ -23,7 +23,7 @@ Les projets peuvent continuer à utiliser l'API de collections de contenu hérit
 
 Vous pouvez définir une **collection** à partir d'un ensemble de données structurellement similaires. Il peut s'agir d'un répertoire d'articles de blog, d'un fichier JSON de produits ou de toute donnée représentant plusieurs éléments de la même forme.
 
-Les collections stockées localement dans votre projet ou sur votre système de fichiers peuvent contenir des entrées de fichiers Markdown, MDX, Markdoc, YAML ou JSON :
+Les collections stockées localement dans votre projet ou sur votre système de fichiers peuvent contenir des entrées de fichiers Markdown, MDX, Markdoc, YAML, TOML ou JSON :
 
 <FileTree>
 - src/
@@ -85,7 +85,7 @@ L'API de couche de contenu vous permet de récupérer votre contenu (qu'il soit 
 
 Astro fournit [deux fonctions de chargement intégrées](/fr/reference/content-loader-reference/#types-de-chargeurs) (`glob()` et `file()`) pour récupérer votre contenu local, ainsi qu'un accès à l'API pour créer votre propre chargeur et récupérer des données distantes.
 
-Le [chargeur `glob()`](/fr/reference/content-loader-reference/#le-chargeur-glob) crée des entrées à partir de répertoires de fichiers Markdown, MDX, Markdoc, JSON, ou YAML à partir de n'importe quel endroit du système de fichiers. Il accepte un motif (`pattern`) de fichiers d'entrée à faire correspondre à l'aide de motifs glob pris en charge par [micromatch](https://github.com/micromatch/micromatch#matching-features) et un chemin de fichier `base` indiquant où se trouvent vos fichiers. L'`id` de chaque entrée sera automatiquement généré à partir de son nom de fichier. Utilisez ce chargeur lorsque vous avez un fichier par entrée.
+Le [chargeur `glob()`](/fr/reference/content-loader-reference/#le-chargeur-glob) crée des entrées à partir de répertoires de fichiers Markdown, MDX, Markdoc, JSON, YAML ou TOML à partir de n'importe quel endroit du système de fichiers. Il accepte un motif (`pattern`) de fichiers d'entrée à faire correspondre à l'aide de motifs glob pris en charge par [micromatch](https://github.com/micromatch/micromatch#matching-features) et un chemin de fichier `base` indiquant où se trouvent vos fichiers. L'`id` de chaque entrée sera automatiquement généré à partir de son nom de fichier. Utilisez ce chargeur lorsque vous avez un fichier par entrée.
 
 Le [chargeur `file()`](/fr/reference/content-loader-reference/#le-chargeur-file) crée plusieurs entrées à partir d'un seul fichier local. Chaque entrée du fichier doit avoir un nom de propriété `id` unique. Il accepte un chemin de fichier `base` vers votre fichier et éventuellement une [fonction `parser`](#fonction-parser) pour les fichiers de données qu'il ne peut pas analyser automatiquement. Utilisez ce chargeur lorsque votre fichier de données peut être analysé comme un tableau d'objets.
 
@@ -122,34 +122,16 @@ export const collections = { blog, dogs, probes };
 
 ##### Fonction `parser`
 
-Le chargeur `file()` accepte un second argument qui définit une fonction d'analyse (`parser`). Cela vous permet de spécifier un analyseur personnalisé (par exemple `toml.parse` ou `csv-parse`) pour créer une collection à partir du contenu d'un fichier.
+Le chargeur `file()` accepte un second argument qui définit une fonction d'analyse (`parser`). Cela vous permet de spécifier un analyseur personnalisé (par exemple `csv-parse`) pour créer une collection à partir du contenu d'un fichier.
 
-Le chargeur `file()` détectera et analysera automatiquement un seul tableau d'objets à partir de fichiers JSON et YAML (en fonction de leur extension de fichier) sans avoir besoin d'un analyseur (`parser`) à moins que vous n'ayez un [document JSON imbriqué](#documents-json-imbriqués). Pour utiliser d'autres fichiers, tels que `.toml` et `.csv`, vous aurez besoin de créer une fonction d'analyse.
+Le chargeur `file()` détectera et analysera automatiquement (en fonction de leur extension de fichier) un seul tableau d'objets à partir de fichiers JSON et YAML, et traitera chaque table de niveau supérieur comme une entrée indépendante dans les fichiers TOML. La prise en charge de ces types de fichiers est intégrée, et aucun analyseur (`parser`) n'est nécessaire, sauf si vous disposez d'un [document JSON imbriqué](#documents-json-imbriqués). Pour utiliser d'autres fichiers, comme `.csv`, vous devrez créer une fonction d'analyse.
 
-L'exemple suivant définit une collection de contenu `dogs` à l'aide d'un fichier `.toml` :
-
-```toml title="src/data/dogs.toml"
-[[dogs]]
-id = "..."
-age = "..."
-
-[[dogs]]
-id = "..."
-age = "..."
-```
-
-Après avoir importé l'analyseur de TOML, vous pouvez charger la collection `dogs` dans votre projet en transmettant à la fois un chemin de fichier et la fonction d'analyse (`parser`) au chargeur `file()`. Un processus similaire peut être utilisé pour définir une collection `cats` à partir d'un fichier `.csv` :
+L'exemple suivant montre l'importation d'un analyseur CSV, puis le chargement d'une collection `cats` dans votre projet en transmettant à la fois un chemin de fichier et une fonction `parser` au chargeur `file()` :
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
-import { parse as parseToml } from "toml";
 import { parse as parseCsv } from "csv-parse/sync";
-
-const dogs = defineCollection({
-  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
-  schema: /* ... */
-})
 
 const cats = defineCollection({
   loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
