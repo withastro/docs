@@ -1,0 +1,108 @@
+---
+title: Optimize video metadata for SEO and social sharing
+description: Learn how you to add OG metadata and structured data for your videos using Mux.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+
+This recipe will walk through providing appropriate metadata for social cards, rich browser search etc. You can add this for any video on your site, either hosted locally or with a third party video hosting service.
+
+This example will show the process for video hosted at Mux. If your videos are hosted elsewhere, see your own host's instructions for fetching metadata about your videos.
+
+
+## Prerequisites
+
+- An Astro site containing video content hosted by Mux with [static renditions enabled](https://www.mux.com/docs/guides/enable-static-mp4-renditions) for your asset
+- [how to create static mp4 renditions for an existing asset](https://www.mux.com/docs/api-reference/video/assets/update-asset-master-access)
+
+## Adding video structured data
+
+- [Google's guide to video structured data](https://developers.google.com/search/docs/appearance/structured-data/video)
+- [Rich results test](https://search.google.com/test/rich-results)
+- [Schema validator](https://validator.schema.org/)
+- [required `videoObject` fields](https://developers.google.com/search/docs/appearance/structured-data/video#video-object) + any optional fields 
+
+``````astro title="src/pages/talking-and-docing.astro"
+---
+import Layout from "../layouts/Layout.astro";
+import Mux from "@mux/mux-node";
+import MuxPlayer from "@mux/mux-player-astro";
+
+
+const mux = new Mux ({
+  tokenId: import.meta.env.MUX_TOKEN_ID,
+  tokenSecret: import.meta.env.MUX_TOKEN_SECRET,
+})
+
+const ASSET_ID = "E01irAaN8c6dk1010153uC2mzst7RVbAdJJWtHECAHFvDo";
+const asset = await mux.video.assets.retrieve(ASSET_ID);
+
+const playbackId = asset.playback_ids?.find((id)=> id.policy=== "public")?.id;
+const videoTitle= asset?.meta?.title;
+const createdAt = Number(asset?.created_at);
+const date = new Date(createdAt * 1000).toISOString()
+
+const jsonLd = {
+    "@context":"https://schema.org",
+      "@type":"VideoObject",
+      "name":videoTitle,
+      "thumbnailUrl":`https://image.mux.com/${playbackId}/thumbnail.webp`,
+      "uploadDate": date,
+      "description": description,
+      "contentURL": `https://stream.mux.com/${playbackId}.m3u8`
+}
+
+const pageTitle = "About Talking and Doc'ing"
+const videoDescription = "The Talking and Doc'ing theme song."
+---
+<script>import "@mux/mux-player";</script>
+<Layout title={pageTitle} description={description}>
+    <Fragment slot="head">
+        <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+    </Fragment>
+
+    <h1>Mux Video Page</h1>
+    <p>Go <a href="/">home</a></p>
+    <p>Go to <a href="/video/">video</a></p>
+    <mux-player playback-id={playbackId} video-title={videoTitle}></mux-player>
+</Layout>
+
+``````
+and then a layout that can handle accepting this content (slot and props)
+
+``````astro title="src/layouts/BaseLayout.astro"
+---
+const site = {
+	title: "My Astro video site",
+  description: "A collection of my videos."
+}
+const {title, description} = Astro.props
+---
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<title>{title ?? site.title}</title>
+    <meta name="description" content={ description ?? site.description} />
+		<slot name="head" />
+	</head>
+	<body>
+		<slot />
+	</body>
+</html>
+
+<style>
+	html,
+	body {
+		margin: 0;
+		width: 100%;
+		height: 100%;
+	}
+</style>
+``````
+
