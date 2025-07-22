@@ -9,7 +9,7 @@ i18nReady: true
 description: Ressources et conseils pour créer des sites Astro avec l'aide de l'IA
 ---
 
-import { Steps, LinkButton, Card } from '@astrojs/starlight/components';
+import { Steps, LinkButton, Card, Tabs, TabItem } from '@astrojs/starlight/components';
 
 Les éditeurs basés sur l'IA et les outils de codage agentique ont généralement une bonne connaissance des API et des concepts de base d'Astro. Cependant, certains peuvent utiliser des API plus anciennes et ne pas être au courant des nouvelles fonctionnalités ou des modifications récentes apportées au framework.
 
@@ -39,13 +39,43 @@ Le serveur MCP d'Astro Docs utilise l'API de [kapa.ai](https://www.kapa.ai/) pou
 - **URL** : `https://mcp.docs.astro.build/mcp`
 - **Transport** : HTTP diffusable en continu
 
-Ce serveur utilise un transport HTTP diffusable en continu, qui peut ne pas être compatible avec tous les outils. Consultez la documentation de votre outil pour connaître la prise en charge de MCP.
-
 ### Installation
 
 Le processus de configuration varie en fonction de votre outil de développement d’IA. Certains outils peuvent désigner les serveurs MCP par des termes tels que connecteurs, adaptateurs, extensions ou modules d'extension.
 
-#### Claude Code
+#### Configuration manuelle
+
+De nombreux outils prennent en charge un format de configuration JSON commun pour les serveurs MCP. Si votre outil ne dispose pas d'instructions spécifiques, vous pouvez peut-être ajouter le serveur MCP d'Astro Docs en incluant la configuration suivante dans les paramètres MCP de votre outil :
+
+<Tabs>
+  <TabItem label="Streamable HTTP">
+    ```json title="mcp.json" {3-6}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "http",
+          "url": "https://mcp.docs.astro.build/mcp"
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Local Proxy">
+    ```json title="mcp.json" {3-7}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+#### CLI de Claude Code
 
 [Claude Code](https://docs.anthropic.com/fr/docs/claude-code/overview) est un outil de codage agentique qui s'exécute sur la ligne de commande. L'activation du serveur MCP d'Astro Docs lui permet d'accéder à la documentation la plus récente lors de la génération de code Astro.
 
@@ -56,6 +86,31 @@ claude mcp add --transport http "Astro docs" https://mcp.docs.astro.build/mcp
 ```
 
 [Plus d'informations sur l'utilisation des serveurs MCP avec Claude Code](https://docs.anthropic.com/fr/docs/claude-code/mcp)
+
+#### GitHub Action pour Claude Code
+
+Claude Code fournit également une action GitHub qui peut être utilisée pour exécuter des commandes en réponse à des événements GitHub. L'activation du serveur MCP d'Astro Docs lui permet d'accéder à la documentation la plus récente tout en répondant aux questions dans les commentaires ou en générant du code Astro.
+
+Vous pouvez le configurer pour utiliser le serveur MCP d'Astro Docs pour accéder à la documentation en ajoutant ce qui suit au fichier de workflow :
+
+```yaml title=".github/workflows/claude.yml" {5-14}
+# ...le reste de la configuration de votre flux de travail
+- uses: anthropics/claude-code-action@beta
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    mcp_config: |
+      {
+        "mcpServers": {
+          "astro-docs": {
+            "type": "http",
+            "url": "https://mcp.docs.astro.build/mcp"
+          }
+        }
+      }
+    allowed_tools: "mcp__astro-docs__search_astro_docs" 
+```
+
+[Plus d'informations sur l'utilisation des serveurs MCP avec l'action GitHub Claude Code](https://github.com/anthropics/claude-code-action?tab=readme-ov-file#using-custom-mcp-configuration)
 
 #### Cursor
 
@@ -147,6 +202,23 @@ Windsurf ne prend pas en charge le streaming HTTP, il nécessite donc une config
 
 [Plus d'informations sur l'utilisation des serveurs MCP avec Windsurf](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json)
 
+#### CLI de Gemini
+
+La CLI de Gemini est un outil de codage IA en ligne de commande qui peut utiliser le serveur MCP d'Astro Docs pour accéder à la documentation tout en générant du code Astro.
+
+Vous pouvez configurer les serveurs MCP au niveau global dans le fichier `~/.gemini/settings.json`, ou dans un fichier `.gemini/settings.json` à la racine d'un projet.
+
+```json title=".gemini/settings.json" {3-5}
+{
+  "mcpServers": {
+    "Astro docs": {
+      "httpUrl": "https://mcp.docs.astro.build/mcp",
+    }
+  }
+}
+``` 
+
+[Plus d'informations sur l'utilisation des serveurs MCP avec la CLI de Gemini](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
 
 #### Zed
 
