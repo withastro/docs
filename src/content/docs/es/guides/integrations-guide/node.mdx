@@ -2,24 +2,23 @@
 type: integration
 title: '@astrojs/node'
 description: Aprende como usar el adaptador SSR @astrojs/node para desplegar tu proyecto de Astro.
+sidebar:
+  label: Node
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 category: adapter
 i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
-## Astro Node
-
-Este adaptador permite a Astro desplegar tu [sitio renderizado en modo `hybrid` o `server`](/es/guides/on-demand-rendering/) a objetivos de Node.
+Este adaptador permite a Astro desplegar tus [rutas y características renderizadas bajo demanda](/es/guides/on-demand-rendering/) a objetivos de Node, incluyendo [islas del servidor](/es/guides/server-islands/), [acciones](/es/guides/actions/), y [sesiones](/es/guides/sessions/).
 
 Si estás usando Astro como un constructor de sitios estáticos, no necesitas un adaptador.
 
-Si deseas [usar renderizado del lado del servidor (SSR)](/es/guides/on-demand-rendering/), Astro requiere un adaptador que coincida con tu tiempo de ejecución de implementación.
+## Por qué Astro Node.js
 
-## Por qué Node.js
-
-[Node.js](https://nodejs.org/en/) es un tiempo de ejecución de JavaScript para código del lado del servidor. @astrojs/node puede ser usado en modo independiente o como middleware para otros servidores http, como [Express](https://expressjs.com/).
+[Node.js](https://nodejs.org/es/) es un entorno de ejecución de JavaScript para código del lado del servidor. @astrojs/node puede utilizarse en modo standalone o como middleware para otros servidores http, como [Express](https://expressjs.com/).
 
 ## Instalación
 
@@ -46,9 +45,10 @@ Esto instalará `@astrojs/node` y hará los cambios apropiados en tu archivo `as
   </Fragment>
 </PackageManagerTabs>
 
+Ahora, puedes habilitar [el renderizado bajo demanda por página](/es/guides/on-demand-rendering/#habilitar-el-renderizado-bajo-demanda), o establecer la configuración de salida de tu construcción en `output: 'server'` para [renderizar todas tus páginas en el servidor por defecto](/es/guides/on-demand-rendering/#modo-server).
+
 ### Instalación manual
 
-El adaptador de Node a las dependencias de tu proyecto usando tu gestor de paquetes preferido.
 Primero, agrega el adaptador de Node a las dependencias de tu proyecto usando tu gestor de paquetes preferido.
 
 <PackageManagerTabs>
@@ -69,14 +69,13 @@ Primero, agrega el adaptador de Node a las dependencias de tu proyecto usando tu
   </Fragment>
 </PackageManagerTabs>
 
-Luego, agrega el adaptador y tu [modo de renderizado bajo de manda](/es/guides/on-demand-rendering/) deseado a tu archivo `astro.config.*`:
+Luego, agrega el adaptador a tu archivo astro.config.*:
 
-```js title="astro.config.mjs" ins={2,5-8}
+```js title="astro.config.mjs" ins={2,5-7}
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 
 export default defineConfig({
-  output: 'server',
   adapter: node({
     mode: 'standalone',
   }),
@@ -87,33 +86,87 @@ export default defineConfig({
 
 @astrojs/node puede ser configurado pasando opciones al adaptador. Las siguientes opciones están disponibles:
 
-### Modo
+### `mode`
+<p>
+**Tipo:** `'middleware' | 'standalone'` <br />
+</p>
 
 Controla si el adaptador construye en modo `middleware` o `standalone`.
 
 * El modo `middleware` permite que la salida generada se utilice como middleware para otro servidor de Node.js, como Express.js o Fastify.
+* El modo `standalone` construye un servidor que se inicia automáticamente cuando se ejecuta el módulo de entrada. Esto te permite desplegar tu compilación en un host con mayor facilidad, sin necesidad de código adicional.
 
-  ```js title="astro.config.mjs"
-  import { defineConfig } from 'astro/config';
-  import node from '@astrojs/node';
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
 
-  export default defineConfig({
-    output: 'server',
-    adapter: node({
-      mode: 'middleware',
-    }),
-  });
-  ```
+export default defineConfig({
+  adapter: node({
+    mode: 'middleware',
+  }),
+});
+```
 
-* El modo `standalone` permite construir un servidor se que inicia automáticamente cuando el módulo de entrada se ejecuta. Esto te permite desplegar tu construcción a un host sin ningún código adicional.
+### `experimentalDisableStreaming`
+
+<p>
+**Tipo:** `boolean` <br />
+**Predeterminado:** `false`<br />
+<Since v="9.3.0" pkg="@astrojs/node" />
+</p>
+
+Desactiva el [streaming de HTML](/es/guides/on-demand-rendering/#transmisión-de-html) por defecto de Astro para las páginas renderizadas bajo demanda.
+
+El streaming de HTML ayuda con el rendimiento y generalmente proporciona una mejor experiencia al visitante. En la mayoría de los casos, no se recomienda desactivar el streaming.
+
+Sin embargo, cuando necesitas desactivar el streaming de HTML (por ejemplo, si tu host solo admite almacenamiento en caché de HTML no transmitido a nivel de CDN), puedes optar por no utilizar el comportamiento predeterminado:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+    experimentalDisableStreaming: true,
+  }),
+});
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+  **Tipo:** `boolean` <br />
+  **Predeterminado:** `false`<br />
+  <Since v="9.3.0"  pkg="@astrojs/node"/>
+</p>
+
+Si está habilitado, el adaptador servirá los encabezados de las páginas prerenderizadas utilizando el objeto `Response` cuando lo proporcionen las funciones de Astro, como la Política de Seguridad de Contenido.
+
+Por ejemplo, cuando se habilita [la Política de Seguridad de Contenido experimental](/es/reference/experimental-flags/csp/), se puede utilizar `experimentalStaticHeaders` para agregar los encabezados de CSP al objeto `Response` en lugar de crear un elemento `<meta>`:
+
+```js title="astro.config.mjs" {10}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: node({
+    mode: 'standalone',
+    experimentalStaticHeaders: true,
+  })
+});
+```
 
 ## Uso
 
-Primero, [realiza una construcción](/es/guides/deploy/#construyendo-tu-proyecto-localmente). Dependiendo del `mode` seleccionado (ver arriba) sigue los pasos apropiados a continuación:
+Primero, [realiza una compilación](/es/guides/deploy/#construyendo-tu-proyecto-localmente). Dependiendo de qué `modo` se seleccione (ver arriba), sigue los pasos apropiados a continuación:
 
 ### Middleware
 
-La entrada del servidor se construye a `./dist/server/entry.mjs` de forma predeterminada. Este módulo exporta una función `handler` que puede ser usada con cualquier framework que soporte los objetos `request` y `response` de Node.
+El punto de entrada del servidor se construye en `./dist/server/entry.mjs` por defecto. Este módulo exporta una función `handler` que se puede utilizar con cualquier framework que admita los objetos `request` y `response` de Node.
 
 Por ejemplo, con Express:
 
@@ -124,7 +177,7 @@ import { handler as ssrHandler } from './dist/server/entry.mjs';
 const app = express();
 // Modifica esto en función de la opción `base` de tu archivo astro.config.mjs.
 // Deben coincidir. El valor predeterminado es "/".
-const base = '/'
+const base = '/';
 app.use(base, express.static('dist/client/'));
 app.use(ssrHandler);
 
@@ -152,7 +205,7 @@ app.use(ssrHandler);
 app.listen({ port: 8080 });
 ```
 
-Además, también puedes pasar un objeto para acceder a través de `Astro.locals` o en el middleware de Astro:
+Además, también puedes pasar un objeto que se podrá acceder mediante `Astro.locals` o en el middleware de Astro:
 
 ```js title="run-server.mjs"
 import express from 'express';
@@ -171,21 +224,21 @@ app.use((req, res, next) => {
 app.listen(8080);
 ```
 
-Ten en cuenta que el modo middleware no sirve de archivos. Necesitarás configurar tu framework HTTP para que lo haga por ti. De forma predeterminada, los activos del cliente se escriben en `./dist/client/`.
+Ten en cuenta que el modo middleware no se encarga de servir archivos. Deberás configurar tu framework HTTP para que lo haga por ti. Por defecto, los assets del cliente se escriben en `./dist/client/`.
 
 ### Standalone
 
-En el modo standalone, un servidor se inicia cuando el punto de entrada del servidor se ejecuta. De forma predeterminada se construye a `./dist/server/entry.mjs`. Puedes ejecutarlo con:
+En el modo standalone, un servidor se inicia cuando se ejecuta el punto de entrada del servidor. Por defecto, se construye en `./dist/server/entry.mjs`. Puedes ejecutarlo con:
 
 ```sh
 node ./dist/server/entry.mjs
 ```
 
-Para el modo standalone, el servidor se encarga de servir archivos además de las rutas de página y API.
+En el modo standalone, el servidor se encarga de servir archivos además de las rutas de página y API.
 
 #### Host y puerto personalizados
 
-Puedes anular el host y el puerto en los que se ejecuta el servidor independiente pasándolos como variables de entorno en tiempo de ejecución:
+Puedes sobrescribir el host y el puerto en los que se ejecuta el servidor standalone pasándolos como variables de entorno en tiempo de ejecución:
 
 ```sh
 HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
@@ -193,9 +246,9 @@ HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 
 #### HTTPS
 
-Por defecto el servidor standalone usa HTTP. Esto funciona bien si tienes un servidor proxy delante de él que hace HTTPS. Si necesitas que el servidor standalone ejecute HTTPS por sí mismo, necesitas proveer tu llave SSL y certificado.
+Por defecto, el servidor standalone utiliza HTTP. Esto funciona bien si tienes un servidor proxy delante que maneje HTTPS. Si necesitas que el servidor standalone utilice HTTPS directamente, debes proporcionar tu clave SSL y certificado.
 
-Puedes pasar la ruta a tu llave y certificado a través de las variables de entorno `SERVER_CERT_PATH` y `SERVER_KEY_PATH`. Así es como podrías pasarlas en bash:
+Puedes pasar la ruta a tu clave y certificado a través de las variables de entorno `SERVER_CERT_PATH` y `SERVER_KEY_PATH`. Así es como podrías pasarlos en bash:
 
 ```bash
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
@@ -203,11 +256,11 @@ SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dis
 
 #### Variables de entorno en tiempo de ejecución
 
-Si existe un archivo `.env` que contiene variables de entorno está presente cuando se ejecuta el proceso de construcción, estos valores se codificarán en la salida, al igual que al generar un sitio web estático.
+Si hay un archivo `.env` con variables de entorno presente al momento de ejecutar el proceso de compilación, estos valores se incrustarán en el resultado final, tal como sucede al generar un sitio web estático.
 
-Durante la compilación, las variables de tiempo de ejecución deben estar ausentes del archivo `.env`, y debes proporcionar a Astro todas las variables de entorno que esperas en tiempo de ejecución: `VARIABLE_1=placeholder astro build`. Esto le indica a Astro que el valor real estará disponible cuando se ejecute la aplicación construida. El valor de marcador de posición será ignorado por el proceso de construcción, y Astro usará el valor proporcionado en tiempo de ejecución.
+Durante la compilación, las variables de tiempo de ejecución deben estar ausentes del archivo `.env`, y debes proporcionar a Astro cada variable de entorno que se espera en tiempo de ejecución: `VARIABLE_1=placeholder astro build`. Esto le indica a Astro que el valor real estará disponible cuando se ejecute la aplicación construida. El valor de marcador de posición será ignorado por el proceso de compilación, y Astro utilizará el valor proporcionado en tiempo de ejecución.
 
-En este caso de múltiples variables de tiempo de ejecución, almacénalas en un archivo separado (por ejemplo, `.env.runtime`) de `.env`. Inicia la construcción con el siguiente comando:
+En el caso de múltiples variables de tiempo de ejecución, guárdalas en un archivo separado (por ejemplo, `.env.runtime`) de `.env`. Inicia la compilación con el siguiente comando:
 
 ```sh
 export $(cat .env.runtime) && astro build
@@ -215,10 +268,16 @@ export $(cat .env.runtime) && astro build
 
 #### Assets
 
-En modo autónomo, los activos de tu carpeta `dist/client/` se sirven a través del servidor autónomo. Es posible que despliegues estos activos en una CDN, en cuyo caso el servidor nunca los servirá realmente. Pero en algunos casos, como los sitios de intranet, está bien servir activos estáticos directamente desde el servidor de aplicaciones.
+En el modo standalone, los assets en tu carpeta `dist/client/` son servidos a través del servidor standalone. Es posible que estés desplegando estos assets en un CDN, en cuyo caso el servidor nunca los estará sirviendo realmente. Pero en algunos casos, como en sitios de intranet, está bien servir assets estáticos directamente desde el servidor de la aplicación.
 
-Los assets en la carpeta `dist/client/_astro/` son los que Astro ha construido. Todos estos assets se nombran con un hash y, por lo tanto, se les pueden asignar cabeceras de caché largas. Internamente el adaptador añade esta cabecera para estos assets:
+Los assets en la carpeta `dist/client/_astro/` son los que Astro ha construido. Estos assets están todos nombrados con un hash y, por lo tanto, se les pueden dar encabezados de caché prolongados. Internamente, el adaptador agrega este encabezado para estos assets:
 
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
+
+## Sesiones
+
+La [API de Sesiones](/es/guides/sessions/) de Astro te permite almacenar fácilmente datos de usuario entre solicitudes. Esto se puede utilizar para cosas como datos y preferencias de usuario, carritos de compras y credenciales de autenticación. A diferencia del almacenamiento en cookies, no hay límites de tamaño en los datos, y se pueden restaurar en diferentes dispositivos.
+
+Astro utiliza el sistema de archivos local para el almacenamiento de sesiones cuando se utiliza el adaptador de Node. Si prefieres utilizar un controlador de almacenamiento de sesiones diferente, puedes especificarlo en tu configuración de Astro. Consulta [la referencia de configuración `session`](/es/reference/configuration-reference/#sessiondriver) para obtener más detalles.
