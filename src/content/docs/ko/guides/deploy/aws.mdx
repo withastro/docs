@@ -6,6 +6,7 @@ sidebar:
 type: deploy
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
@@ -16,7 +17,11 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 ## AWS Amplify
 
-AWS Amplify는 프런트엔드 웹 및 모바일 개발자가 AWS에서 풀 스택 애플리케이션을 빠르고 쉽게 구축할 수 있도록 특별히 제작된 도구 및 기능 세트입니다.
+AWS Amplify는 프런트엔드 웹 및 모바일 개발자가 AWS에서 풀 스택 애플리케이션을 빠르고 쉽게 구축할 수 있도록 특별히 제작된 도구 및 기능 세트입니다. Astro 프로젝트를 정적 사이트로 배포하거나 서버 렌더링 사이트로 배포할 수 있습니다.
+
+### 정적 사이트
+
+Astro 프로젝트는 기본적으로 정적 사이트입니다.
 
 <Steps>
 1. 새로운 Amplify 호스팅 프로젝트를 생성합니다.
@@ -92,6 +97,127 @@ AWS Amplify는 프런트엔드 웹 및 모바일 개발자가 AWS에서 풀 스�
 </Steps>
 
 Amplify는 커밋을 저장소에 푸시할 때 자동으로 웹 사이트를 배포하고 업데이트합니다.
+
+### 요청 시 렌더링을 위한 어댑터
+
+프로젝트를 서버 렌더링 사이트로 배포하려면 [커뮤니티에서 관리하는 타사 AWS Amplify 어댑터](https://github.com/alexnguyennz/astro-aws-amplify)를 사용하고, 몇 가지 구성을 변경해야 합니다.
+
+먼저 Amplify 어댑터를 설치합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro-aws-amplify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 `astro.config.*` 파일에 어댑터를 추가하고 출력을 `server`로 설정합니다.
+
+```js title="astro.config.mjs" ins={2, 6, 7}
+import { defineConfig } from 'astro/config';
+import awsAmplify from 'astro-aws-amplify';
+
+export default defineConfig({
+  // ...
+  output: "server",
+  adapter: awsAmplify(),
+});
+```
+
+어댑터가 설치되면 Amplify 프로젝트를 설정할 수 있습니다.
+
+<Steps>
+1. Amplify Hosting 프로젝트를 새로 만드세요.
+
+2. 리포지토리를 Amplify에 연결하세요.
+
+3. AWS 콘솔에서 빌드 설정을 수정하거나 프로젝트의 루트에 `amplify.yaml`를 추가하여 빌드 설정을 어댑터의 빌드 프로세스와 일치시키세요.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --cache .npm --prefer-offline
+        build:
+          commands:
+            - npm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .npm/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify는 웹사이트를 자동으로 배포합니다. 그리고 리포지토리에 커밋을 푸시하면 업데이트합니다.
+
+<ReadMore>
+  자세한 내용은 [AWS의 Astro 배포 가이드](https://docs.aws.amazon.com/amplify/latest/userguide/get-started-astro.html)를 참조하세요.
+</ReadMore>
 
 ## S3 정적 웹사이트 호스팅
 
@@ -227,8 +353,9 @@ AWS에 대한 지속적 배포를 설정하는 방법에는 여러 가지가 있
     :::
 </Steps>
 
-## 커뮤니티 자료
+## 커뮤니티 리소스
 
 - [Astro를 AWS Amplify에 배포](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
 - [Astro를 AWS Elastic Beanstalk에 배포](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
 - [Astro를 AWS Fargate의 Amazon ECS에 배포](https://www.launchfa.st/blog/deploy-astro-aws-fargate)
+- [Amplify SSR 배포 문제 해결](https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html)
