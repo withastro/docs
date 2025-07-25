@@ -1,0 +1,156 @@
+---
+type: integration
+title: '@astrojs/partytown'
+description: Astroプロジェクトで@astrojs/partytownインテグレーションを使用する方法を学びます。
+sidebar:
+  label: Partytown
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
+category: other
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+この[**Astroインテグレーション**][astro-integration]は、Astroプロジェクトで[Partytown](https://partytown.builder.io/)を有効にします。
+
+## Astro Partytownを選ぶ理由
+
+Partytownは、リソースを大量に消費するスクリプトを[Web Worker](https://developer.mozilla.org/ja/docs/Web/API/Web_Workers_API)に再配置し、[メインスレッド](https://developer.mozilla.org/ja/docs/Glossary/Main_thread)から解放するのに役立つ遅延読み込みライブラリです。
+
+分析や広告などのためにサードパーティのスクリプトを使用している場合、Partytownはサイトの速度を低下させないようにするための優れた方法です。
+
+Astro Partytownインテグレーションは、Partytownをインストールし、すべてのページで有効になっていることを確認します。
+
+## インストール
+
+Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。もしよろしければ、[手動でインテグレーションをインストールする](#手動インストールこともできます。
+
+新しいターミナルウィンドウで次のいずれかのコマンドを実行します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+問題が発生した場合は、[GitHubで報告してください](https://github.com/withastro/astro/issues)。そして、以下の手動インストール手順を試してください。
+
+### 手動インストール
+
+まず、`@astrojs/partytown`パッケージをインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、`integrations`プロパティを使用して、インテグレーションを`astro.config.*`ファイルに適用します。
+
+```js title="astro.config.mjs" ins={2} ins="partytown()"
+import { defineConfig } from 'astro/config';
+import partytown from '@astrojs/partytown';
+
+export default defineConfig({
+  // ...
+  integrations: [partytown()],
+});
+```
+
+## 使い方
+
+Partytownは、設定なしですぐに使用できるはずです。サイトに既存のサードパーティスクリプトがある場合は、`type="text/partytown"`属性を追加してみてください。
+
+```html ins="type="text/partytown""
+<script type="text/partytown" src="fancy-analytics.js"></script>
+```
+
+[ブラウザの開発者ツール](https://developer.chrome.com/docs/devtools/open/)から「ネットワーク」タブを開くと、`partytown`プロキシがこのリクエストをインターセプトしているのがわかるはずです。
+
+## 設定
+
+このインテグレーションを設定するには、`astro.config.mjs`の`partytown()`関数呼び出しに「config」オブジェクトを渡します。
+
+```js title="astro.config.mjs" {5-7}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      config: {
+        // options go here
+      },
+    }),
+  ],
+});
+```
+
+これは[Partytown設定オブジェクト](https://partytown.builder.io/configuration)をミラーリングします。
+
+### config.debug
+
+Partytownには`debug`モードが付属しています。`config.debug`に`true`または`false`を渡すことで有効または無効にできます。[`debug`モード](https://partytown.builder.io/debugging)が有効になっている場合、詳細なログがブラウザコンソールに出力されます。
+
+このオプションが設定されていない場合、`debug`モードは[dev](/ja/reference/cli-reference/#astro-dev)または[preview](/ja/reference/cli-reference/#astro-preview)モードでデフォルトでオンになります。
+
+```js title="astro.config.mjs" {6}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 例：デバッグモードを無効にする
+      config: { debug: false },
+    }),
+  ],
+});
+```
+
+### config.forward
+
+サードパーティのスクリプトは通常、`window`オブジェクトに変数を追加して、サイト全体でそれらと通信できるようにします。しかし、スクリプトがWeb Workerで読み込まれると、そのグローバルな`window`オブジェクトにアクセスできなくなります。
+
+これを解決するために、Partytownは変数をグローバル`window`オブジェクトに「パッチ」して、適切なスクリプトに転送できます。
+
+`config.forward`オプションを使用して、転送する変数を指定できます。[Partytownのドキュメントで詳細を読む](https://partytown.builder.io/forwarding-events)。
+
+```js title="astro.config.mjs" {7}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 例：dataLayer.pushを転送イベントとして追加する
+      config: {
+        forward: ['dataLayer.push'],
+      },
+    }),
+  ],
+});
+```
+
+## 例
+
+* [GitHubでAstro Partytownを使用したプロジェクトを閲覧する](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json\&type=code)でその他の例をご覧ください！
+
+[astro-integration]: /ja/guides/integrations-guide/
