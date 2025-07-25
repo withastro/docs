@@ -20,7 +20,7 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 Cette fonctionnalité expérimentale vous permet d'utiliser des polices de votre système de fichiers et de divers fournisseurs de polices (par exemple Google, Fontsource, Bunny) via une API unifiée, entièrement personnalisable et assurant la sûreté du typage.
 
-Les polices web peuvent impacter les performances des pages, aussi bien au moment du chargement qu'au moment du rendu. Cette API vous aide à maintenir les performances de votre site grâce à des [optimisations automatiques des polices web](https://web.dev/learn/performance/optimize-web-fonts) notamment des liens de préchargement, des solutions de repli optimisées et des valeurs par défaut pensées pour éviter les problèmes courants tels que le téléchargement inutiles de fichiers de polices.
+Les polices web peuvent impacter les performances des pages, aussi bien au moment du chargement qu'au moment du rendu. Cette API vous aide à maintenir les performances de votre site grâce à des [optimisations automatiques des polices web](https://web.dev/learn/performance/optimize-web-fonts) notamment des liens de préchargement, des solutions de repli optimisées et des valeurs par défaut opiniâtres. [Voir des exemples d'utilisation courante](#exemples-dutilisation).
 
 Pour activer cette fonctionnalité, configurez un objet `experimental.fonts` avec au moins une police :
 
@@ -215,6 +215,70 @@ provider: fontProviders.google({
 </Tabs>
 
 Vous pouvez également [créer un fournisseur de polices Astro personnalisé](#créer-votre-propre-fournisseur-de-polices) pour n'importe quel fournisseur unifont.
+
+## Exemples d'utilisation
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--font-roboto"
+        provider: fontProviders.google(),
+        // Par défaut inclus :
+        // weights: [400] ,
+        // styles: ["normal", "italics"],
+        // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+        // fallbacks: ["sans-serif"], 
+      },
+      {
+        name: "Inter",
+        cssVariable: "--font-inter",
+        provider: fontProviders.fontsource(),
+        // Spécifier les graisses réellement utilisées
+        weights: [400, 500, 600, 700],
+        // Spécifier les styles réellement utilisés
+        styles: ["normal"],
+        // Télécharger uniquement les fichiers de polices pour les caractères utilisés sur la page
+        subsets: ["cyrillic"],
+      },
+      {
+        name: "JetBrains Mono",
+        cssVariable: "--font-jetbrains-mono",
+        provider: fontProviders.fontsource(),
+        // Télécharger uniquement les fichiers de polices pour les caractères utilisés sur la page
+        subsets: ["latin"],
+        // Utiliser une famille de polices de repli correspondant à l'apparence souhaitée
+        fallbacks: ["monospace"],
+      },
+      {
+        name: "Poppins",
+        cssVariable: "--font-poppins",
+        provider: "local",
+        // La graisse et le style ne sont pas spécifiés, donc Astro
+        // essaiera de les déduire pour chaque variante
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    ],
+  }
+});
+```
 
 ## Référence du composant `<Font />`
 
@@ -442,7 +506,9 @@ display: "block"
 **Par défaut :** `undefined`
 </p>
 
-Détermine la [plage spécifique de caractères Unicode](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face/unicode-range) à utiliser à partir d'une police :
+Détermine quand une police doit être téléchargée et utilisée en fonction d'une [plage spécifique de caractères Unicode](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face/unicode-range). Si un caractère de la page correspond à la plage configurée, le navigateur télécharge la police et tous les caractères sont disponibles sur la page. Pour configurer un sous-ensemble de caractères préchargés pour une seule police, consultez plutôt la propriété [subsets](#subsets).
+
+Cela peut être utile pour la localisation afin d'éviter les téléchargements inutiles de polices lorsqu'une partie spécifique de votre site web utilise un alphabet différent et sera affichée avec une police distincte. Par exemple, un site web proposant des versions anglaise et japonaise peut empêcher le navigateur de télécharger la police japonaise sur les versions anglaises de la page qui ne contiennent aucun des caractères japonais fournis dans `unicodeRange`.
 
 ```js
 unicodeRange: ["U+26"]
@@ -533,7 +599,8 @@ export default defineConfig({
 
 <p>
 
-**Type :** `number | string`
+**Type :** `number | string`<br />
+**Par défaut :** `undefined`
 </p>
 
 Une [graisse de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-weight) :
@@ -548,11 +615,14 @@ Si la police associée est une [police variable](https://developer.mozilla.org/f
 weight: "100 900"
 ```
 
+Lorsque la valeur n'est pas définie, Astro essaiera par défaut de déduire la valeur en fonction de la première [`source`](#src).
+
 #### style
 
 <p>
 
-**Type :** `"normal" | "italic" | "oblique"`
+**Type :** `"normal" | "italic" | "oblique"`<br />
+**Par défaut :** `undefined`
 </p>
 
 Un [style de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-style) :
@@ -560,6 +630,8 @@ Un [style de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-style) 
 ```js
 style: "normal"
 ```
+
+Lorsque la valeur n'est pas définie, Astro essaiera par défaut de déduire la valeur en fonction de la première [`source`](#src).
 
 #### src
 

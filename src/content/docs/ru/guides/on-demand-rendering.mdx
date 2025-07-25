@@ -1,0 +1,288 @@
+---
+title: Рендеринг по запросу
+description: Генерация SSR страниц и маршрутов в момент запроса с помощью адаптера.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Чтобы ваш Astro проект отображался в браузере, его код должен быть **преобразован** в HTML.
+
+По умолчанию Astro генерирует все страницы, маршруты и API эндпойнты как статические файлы во время сборки проекта. Однако вы можете обрабатывать некоторые или все маршруты на сервере в момент, когда они запрашиваются пользователем.
+
+Страницы и маршруты с рендерингом по запросу генерируются при каждом посещении и могут быть персонализированы для каждого пользователя. Например, такая страница может показать авторизованному пользователю данные его аккаунта или отобразить актуальную информацию без пересборки всего сайта.
+
+Этот подход, когда страницы рендерятся на сервере в момент запроса, также известен как **рендеринг на стороне сервера (SSR)**.
+
+## Серверные адаптеры
+
+Чтобы рендерить страницы по запросу, вам нужно подключить **адаптер**. Каждый адаптер позволяет Astro сгенерировать скрипт, запускающий ваш проект в конкретной **среде выполнения** — окружении, которое выполняет код и генерирует страницы при обращении к ним (например, Netlify, Cloudflare).
+
+Адаптер может пригодиться даже для полностью статического сайта без динамического рендеринга. Например, [адаптер Netlify](/ru/guides/integrations-guide/netlify/) включает Image CDN от Netlify, а [серверные островки](/ru/guides/server-islands/) требуют установленного адаптера для использования атрибута `server:defer` в компонентах.
+
+<IntegrationsNav category="adapter"/>
+
+Astro поддерживает официальные адаптеры для [Node.js](https://nodejs.org/), [Netlify](https://www.netlify.com/), [Vercel](https://vercel.com/) и [Cloudflare](https://www.cloudflare.com/). Вы можете найти как официальные, так и адаптеры сообщества в нашем [каталоге интеграций](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Выберите тот, который соответствует вашей [среде развертывания](/ru/guides/deploy/).
+
+### Добавление адаптера
+
+Вы можете подключить любой из [официальных адаптеров, поддерживаемых Astro](/ru/guides/integrations-guide/#официальные-интеграции) с помощью команды `astro add`. Она автоматически установит адаптер и внесет все необходимые изменения в файл `astro.config.mjs`.
+
+Например, чтобы установить адаптер Netlify, выполните:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Вы также можете [добавить адаптер вручную, установив NPM-пакет](/ru/guides/integrations-guide/#установка-пакета-npm) (например, `@astrojs/netlify`) и самостоятельно обновив файл `astro.config.mjs`.
+
+Имейте в виду, что у разных адаптеров разные настройки конфигурации. Изучите документацию выбранного адаптера и примените необходимые параметры конфигурации в файле `astro.config.mjs`.
+
+## Включение рендеринга по запросу
+
+**По умолчанию весь ваш сайт Astro генерируется заранее** и отправляется в браузер в виде статических HTML-страниц. Но вы можете отключить предварительную генерацию для маршрутов, которые требуют серверного рендеринга — например, для страниц, проверяющих куки и показывающих персонализированный контент.
+
+Для начала [добавьте адаптер](#добавление-адаптера) для вашего серверного окружения, чтобы включить рендеринг по запросу.
+
+Затем добавьте `export const prerender = false` в начало каждой страницы или эндпойнта, который нужно рендерить по запросу. Остальная часть сайта останется статической:
+
+```astro title="src/pages/page-rendered-on-demand.astro" ins={2}
+---
+export const prerender = false
+---
+<html>
+<!--
+Этот контент будет обрабатываться на сервере по запросу!
+Просто подключите адаптер для серверной среды!
+Все остальные страницы создаются статически во время сборки!
+-->
+<html>
+```
+
+Следующий пример показывает, как отключить предварительную генерацию, чтобы отображать случайное число при каждом запросе к эндпойнту:
+
+```js title="src/pages/randomnumber.js" ins={1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Вот случайное число: ${number}`,
+    }),
+  );
+}
+```
+### Режим `'server'`
+
+Для **высоко динамичных приложений** после подключения адаптера вы можете [указать `output: 'server'` в настройках сборки](/ru/reference/configuration-reference/#output). Это заставит **все страницы по умолчанию обрабатываться на сервере** — как если бы вы отключили предварительную генерацию для каждой страницы.
+
+Затем, при необходимости, вы можете включить предварительную генерацию для отдельных страниц, которые не требуют выполнения на сервере, например, для страницы с политикой конфиденциальности или страницы «О нас».
+
+```astro title="src/pages/about-my-app.astro" ins={2}
+---
+export const prerender = true
+---
+<html>
+<!--
+`output: 'server'` настроен, но эта страница статическая!
+Остальные страницы рендерятся по запросу!
+-->
+<html>
+```
+
+Добавьте `export const prerender = true` к любой странице или маршруту, чтобы предварительно сгенерировать статическую страницу или эндпоинт:
+
+```js title="src/pages/myendpoint.js" ins={1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `This is my static endpoint`,
+    }),
+  );
+}
+```
+
+:::tip
+Начните с режима `'static'` по умолчанию, пока вы не убедитесь, что **большинство или все** ваши страницы будут рендериться по запросу! Это обеспечит максимальную производительность сайта, не полагаясь на серверные функции для генерации статического контента.
+
+Режим вывода `'server'` не добавляет никакой дополнительной функциональности. Он только меняет поведение рендеринга по умолчанию.
+:::
+
+<ReadMore>Подробнее о настройке [`output`](/ru/reference/configuration-reference/#output) в справочнике конфигурации.</ReadMore>
+
+
+## Возможности рендеринга по запросу
+
+### HTML-стриминг
+
+При HTML-стриминге документ разбивается на части, которые отправляются по сети и отображаются на странице в том же порядке. Astro использует потоковую передачу HTML при рендеринге по запросу, чтобы отправлять каждый компонент в браузер по мере его обработки. Это позволяет пользователю видеть HTML как можно быстрее, но есть и ограничения: медленная сеть может задержать загрузку больших страниц, а запросы данных могут приостановить рендеринг.
+
+<RecipeLinks slugs={["ru/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+Функции для изменения [заголовков ответа](https://developer.mozilla.org/ru/docs/Glossary/Response_header) доступны только на уровне **страницы**. (Их нельзя использовать внутри компонентов, в том числе компонентов макетов.) К моменту выполнения кода вашего компонента Astro уже отправил заголовки ответа, и их нельзя изменить.
+:::
+
+### Куки
+
+Страница или API эндпоинт, рендеринг которого осуществляется по запросу, может проверять, устанавливать, получать и удалять куки.
+
+В следующем примере обновляется значение куки для счётчика просмотров страницы:
+
+```astro title="src/pages/index.astro" {6,7,12}
+---
+export const prerender = false; // Не требуется в режиме 'server'
+
+let counter = 0
+
+if (Astro.cookies.has('counter')) {
+  const cookie = Astro.cookies.get('counter')
+  const value = cookie?.number()
+  if (value !== undefined && !isNaN(value)) counter = value + 1
+}
+
+Astro.cookies.set('counter', String(counter))
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+Подробнее об [`Astro.cookies` и типе `AstroCookie`](/ru/reference/api-reference/#cookies) в справочнике API.
+
+### `Response`
+
+[`Astro.response`](/ru/reference/api-reference/#response) — это стандартный объект [`ResponseInit`](https://developer.mozilla.org/ru/docs/Web/API/Response/Response#параметры). Он может использоваться для установки статуса и заголовков ответа.
+
+В следующем примере устанавливается статус и текст статуса для страницы продукта, если продукт не найден:
+
+```astro title="src/pages/product/[id].astro" {10,11}
+---
+export const prerender = false; // Не требуется в режиме 'server'
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// Продукт не найден
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- Контент страницы -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+Вы можете установить заголовки с помощью объекта `Astro.response.headers`:
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Не требуется в режиме 'server'
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- Контент страницы -->
+</html>
+```
+
+#### Возврат объекта `Response`
+
+Вы также можете возвращать объект [Response](https://developer.mozilla.org/ru/docs/Web/API/Response) напрямую из любой страницы с помощью рендеринга по запросу, либо вручную, либо с помощью [`Astro.redirect`](/ru/reference/api-reference/#redirect). 
+
+В следующем примере показан поиск продукта по ID в базе данных на динамической странице: если продукт не найден — возвращается 404, если продукт недоступен — пользователь перенаправляется на другую страницу, в остальных случаях отображается информация о продукте:
+
+```astro title="src/pages/product/[id].astro" {10-13, 18}
+---
+export const prerender = false; // Не требуется в режиме 'server'
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// Продукт не найден
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+
+// Продукт недоступен
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
+---
+<html>
+  <!-- Контент страницы -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` — это стандартный объект [Request](https://developer.mozilla.org/ru/docs/Web/API/Request). Он может использоваться для получения `url`, `headers`, `method` и даже тела запроса.
+
+Вы можете получить дополнительную информацию из этого объекта для страниц, которые не генерируются статически.
+
+#### `Astro.request.headers`
+
+Заголовки запроса доступны в `Astro.request.headers`. Они работают так же, как и браузерные [`Request.headers`](https://developer.mozilla.org/ru/docs/Web/API/Request/headers). Это объект [Headers](https://developer.mozilla.org/ru/docs/Web/API/Headers), в котором вы можете получить заголовки, такие как куки.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Не требуется в режиме 'server'
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Контент страницы -->
+</html>
+```
+
+#### `Astro.request.method`
+
+HTTP метод, используемый в запросе, доступен в `Astro.request.method`. Он работает так же, как и браузерный [`Request.method`](https://developer.mozilla.org/ru/docs/Web/API/Request/method). Он возвращает строковое представление HTTP метода, используемого в запросе.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Не требуется в режиме 'server'
+
+console.log(Astro.request.method) // GET (при навигации в браузере)
+---
+```
+
+Подробнее о [`Astro.request`](/ru/reference/api-reference/#request) в справочнике API.
+
+### Серверные эндпоинты
+
+Серверный эндпоинт, также известный как **API маршрут**, — это специальная функция, экспортируемая из файла `.js` или `.ts` в папке `src/pages/`. Одна из мощных возможностей рендеринга по запросу на стороне сервера — API маршруты могут безопасно выполнять код на сервере.
+
+Функция принимает [контекст эндпоинта](/ru/reference/api-reference/) и возвращает [Response](https://developer.mozilla.org/ru/docs/Web/API/Response). 
+
+Подробнее см. в [руководстве по эндпоинтам](/ru/guides/endpoints/#серверные-эндпойнты-api-маршруты).

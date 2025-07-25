@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/netlify'
-description: 了解如何使用 @astrojs/netlify SSR 适配器来部署 Astro 项目。
+description: 了解如何使用 @astrojs/netlify 适配器来部署 Astro 项目。
 sidebar:
   label: Netlify
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
@@ -11,9 +11,9 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
 
-此适配器可以部署你的 [按需渲染路由](/zh-cn/guides/on-demand-rendering/) 到 [Netlify](https://www.netlify.com/)。
+此适配器允许 Astro 将你的 [按需渲染路由及其功能](/zh-cn/guides/on-demand-rendering/) 部署到 [Netlify](https://www.netlify.com/)，包括 [服务器群岛](/zh-cn/guides/server-islands/)，[actions](/zh-cn/guides/actions/) 以及 [sessions](/zh-cn/guides/sessions/)。
 
-如果你正在使用 Astro 作为静态站点生成器，则不需要适配器。
+如果你需要额外的、需要服务器参与的 Netlify 功能（例如 [Netlify 图片 CDN](#netlify-图片-cdn-支持)），那么你会需要用上此适配器，但如果你只是将 Astro 作为静态的站点构建器，则不需要适配器。
 
 在我们的 [Netlify 部署指南](/zh-cn/guides/deploy/netlify/) 中学习如何部署你的 Astro 网站。
 
@@ -25,7 +25,7 @@ import Since from '~/components/Since.astro';
 
 Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，可以改为 [手动安装集成](#手动安装)。
 
-在 Astro 项目中使用以下 `asrto add` 命令添加 Netlify 适配器，以启用 SSR。这将安装 `@astrojs/netlify` 并一步到位地对你的 `astro.config.mjs` 文件进行相应的更改。
+在 Astro 项目中使用以下 `asrto add` 命令添加 Netlify 适配器，以启用按需渲染。这将安装 `@astrojs/netlify` 并一步到位地对你的 `astro.config.mjs` 文件进行相应的更改。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -44,6 +44,8 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   ```
   </Fragment>
 </PackageManagerTabs>
+
+现在，你可以启用 [对每个页面的按需渲染](/zh-cn/guides/on-demand-rendering/#启用按需渲染)，或者将你的构建输出配置设置为 `output: 'server'` 从而 [默认对所有页面都进行服务器端渲染](/zh-cn/guides/on-demand-rendering/#server-模式)。
 
 ### 手动安装
 
@@ -67,15 +69,14 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   </Fragment>
 </PackageManagerTabs>
 
-然后，将适配器和你所需的 [按需渲染模式](/zh-cn/guides/on-demand-rendering/) 添加到你的 `astro.config.*` 文件中：
+然后，将适配器添加到 `astro.config.*` 文件中：
 
-   ```js title="astro.config.mjs" ins={2, 6-7}
+   ```js title="astro.config.mjs" ins={2, 6}
     import { defineConfig } from 'astro/config';
     import netlify from '@astrojs/netlify';
 
     export default defineConfig({
        // ...
-       output: 'server',
        adapter: netlify(),
     });
    ```
@@ -93,6 +94,28 @@ netlify deploy
 ```
 
 这篇 [Netlify 博客文章](https://www.netlify.com/blog/how-to-deploy-astro/) 和 [Netlify 文档](https://docs.netlify.com/integrations/frameworks/astro/) 提供了更多关于如何使用这个集成部署到 Netlify 的信息。
+
+### 在 Netlify Edge Functions 上运行 Astro 中间件
+
+任何 Astro 中间件都会在构建时应用于预渲染页面，在运行时应用于按需渲染页面。
+
+要在预渲染页面上实现重定向、访问控制或自定义响应头，请通过启用 [`edgeMiddleware` 选项](/zh-cn/reference/adapter-reference/#edgemiddleware) 在 Netlify Edge Functions 上运行你的中间件：
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+当 `edgeMiddleware` 启用时，边缘函数将为所有请求执行你的中间件代码，包括静态资源、预渲染页面和按需渲染页面。
+
+对于按需渲染的页面，`context.locals` 对象会被 JSON 序列化并通过标头发送给无服务器函数，由该函数执行渲染。作为安全措施，除非请求来自生成的边缘函数，否则无服务器函数将拒绝服务，并返回 `403 Forbidden` 响应。
 
 ### 从你的站点访问 edge 上下文
 
@@ -124,42 +147,18 @@ declare namespace App {
 
 这不适用于预渲染的页面。
 
-### 在 Netlify Edge Functions 上运行 Astro 中间件
-
-任何 Astro 中间件都会在构建时应用于预渲染页面，在运行时应用于按需渲染页面。
-
-要在预渲染页面上实现重定向、访问控制或自定义响应头，请通过启用 [`edgeMiddleware` 选项](/zh-cn/reference/adapter-reference/#edgemiddleware) 在 Netlify Edge Functions 上运行你的中间件：
-
-```js title="astro.config.mjs" ins={8}
-import { defineConfig } from 'astro/config';
-import netlify from '@astrojs/netlify';
-
-export default defineConfig({
-  // ...
-  output: 'server',
-  adapter: netlify({
-    edgeMiddleware: true,
-  }),
-});
-```
-
-当 `edgeMiddleware` 启用时，边缘函数将为所有请求执行你的中间件代码，包括静态资源、预渲染页面和按需渲染页面。
-
-对于按需渲染的页面，`context.locals` 对象会被 JSON 序列化并通过标头发送给无服务器函数，由该函数执行渲染。作为安全措施，除非请求来自生成的边缘函数，否则无服务器函数将拒绝服务，并返回 `403 Forbidden` 响应。
-
 ### Netlify 图片 CDN 支持
 
 这个适配器默认使用 [Netlify 图片 CDN](https://docs.netlify.com/image-cdn/overview/) 来实时转换图片，因而不会影响构建时间。它背后是使用 [Astro 图片服务](/zh-cn/reference/image-service-reference/) 实现的。
 
 如果你想退出 Netlify 的图片 CDN 远程图片优化，可以使用 `imageCDN` 选项：
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     imageCDN: false,
   }),
@@ -167,13 +166,12 @@ export default defineConfig({
 ```
 如果你使用的图片托管在另一个域名上，你必须使用 [`image.domains`](/zh-cn/reference/configuration-reference/#imagedomains) 或 [`image.remotePatterns`](/zh-cn/reference/configuration-reference/#imageremotepatterns) 配置选项授权该域名或 URL 模式：
 
-```js title="astro.config.mjs" ins={8-10}
+```js title="astro.config.mjs" ins={7-9}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
     // ...
-    output: 'server',
     adapter: netlify(),
     image: {
       domains: ['example.com'],
@@ -209,14 +207,19 @@ export default defineConfig({
 你仍然可以包含一个 `public/_redirects` 文件来手动重定向。你在重定向配置中指定的任何重定向都会被追加到你自己的重定向的末尾。
 :::
 
+### Sessions
+
+Astro [Session API](/zh-cn/guides/sessions/) 允许你在请求间，轻松地存储用户数据。该功能可用于用户数据和偏好选项，购物车内容，资格鉴权。不同于 cookie 存储，这里不存在对数据大小的限制，并且可以将其存储在不同的设备上。
+
+当使用 Netlify 适配器时，Astro 将自动配置 [Netlify Blobs](https://docs.netlify.com/blobs/overview/) 用于会话（session）存储。如果你更倾向于使用其他的会话存储驱动，你可以在 Astro config 中指定。更多细节请参见 [`session` 配置参考](/zh-cn/reference/configuration-reference/#sessiondriver)。
+
 ### 缓存页面
 
 可以缓存没有任何动态内容的按需渲染页面，以提高性能并降低资源使用率。在适配器中启用 `cacheOnDemandPages` 选项将会缓存所有服务器渲染的页面，最长可达一年：
 
-```ts title="astro.config.mjs"
+```ts title="astro.config.mjs" ins={4}
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     cacheOnDemandPages: true,
   }),
@@ -224,6 +227,7 @@ export default defineConfig({
 ```
 
 这可以通过向你的响应添加缓存头来根据每个页面进行更改：
+
 ```astro title="pages/index.astro"
 ---
 import Layout from '../components/Layout.astro';
@@ -257,13 +261,12 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 
 请提供一个数组，其中包含需附加的文件路径，路径需要是相对于项目 [`root`](/zh-cn/reference/configuration-reference/#root) 的相对路径。绝对路径可能会无法正常工作。
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     includeFiles: ['./my-data.json'], // 相对于 `root`
   }),
@@ -285,13 +288,12 @@ export default defineConfig({
 
 请提供一个数组，其中包含需要排除的文件路径，路径需要是相对于项目 [`root`](/zh-cn/reference/configuration-reference/#root) 的相对路径。绝对路径可能会无法正常工作。
 
-```js title="astro.config.mjs" ins={8}
+```js title="astro.config.mjs" ins={7}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
   // ...
-  output: 'server',
   adapter: netlify({
     excludeFiles: ['./src/some_big_file.jpg'], // 相对于 `root`
   }),
@@ -302,12 +304,11 @@ export default defineConfig({
 
 不论是 `includeFiles` 还是 `excludeFiles` 都支持使用 [glob 模式](/zh-cn/guides/imports/#glob-模式) 来匹配多项文件：
 
-```js title="astro.config.mjs" ins={8, 11-12}
+```js title="astro.config.mjs" ins={7, 10-11}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
 export default defineConfig({
-  output: 'server',
   adapter: netlify({
     includeFiles: [
       './data/**/*.json'
@@ -317,6 +318,39 @@ export default defineConfig({
       './src/**/*.test.js'
     ]
   }),
+});
+```
+
+## 实验性功能
+
+以下功能当前可用，但在未来更新中可能会发生破坏性变更。如果你在项目中使用这些功能，请密切关注 [`@astrojs/netlify` CHANGELOG](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/CHANGELOG.md) 以获取最新动态。
+
+
+### `experimentalStaticHeaders`
+
+<p>
+  **类型：** `boolean` <br />
+  **默认值：** `false`<br />
+  <Since v="6.4.0"  pkg="@astrojs/netlify"/>
+</p>
+
+启用在 Netlify 配置中为预渲染页面指定自定义标头。
+
+启用后，当 Astro 功能（如内容安全策略）提供静态标头时，适配器会将其 [保存在框架 API 配置文件中](https://docs.netlify.com/frameworks-api/#headers)。
+
+例如，当启用 [实验性的内容安全策略](/zh-cn/reference/experimental-flags/csp/) 时，可以使用 `experimentalStaticHeaders` 将 CSP `headers` 添加到你的 Netlify 配置中，而不是创建 `<meta>` 元素：
+
+```js title="astro.config.mjs" {9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: netlify({
+    experimentalStaticHeaders: true 
+  })
 });
 ```
 

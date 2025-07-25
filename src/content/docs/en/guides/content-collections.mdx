@@ -23,7 +23,7 @@ Projects may continue using the legacy Content Collections API introduced in Ast
 
 You can define a **collection** from a set of data that is structurally similar. This can be a directory of blog posts, a JSON file of product items, or any data that represents multiple items of the same shape.
 
-Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, YAML, or JSON files:
+Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, YAML, TOML, or JSON files:
 
 <FileTree>
 - src/
@@ -85,7 +85,7 @@ The Content Layer API allows you to fetch your content (whether stored locally i
 
 Astro provides [two built-in loader functions](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
 
-The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, or YAML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
+The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, YAML, or TOML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
 
 The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
 
@@ -122,34 +122,16 @@ export const collections = { blog, dogs, probes };
 
 ##### `parser` function
 
-The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `toml.parse` or `csv-parse`) to create a collection from a file's contents.
+The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `csv-parse`) to create a collection from a file's contents.
 
-The `file()` loader will automatically detect and parse a single array of objects from JSON and YAML files (based on their file extension) with no need for a `parser` unless you have a [nested JSON document](#nested-json-documents). To use other files, such as `.toml` and `.csv`, you will need a to create a parser function.
+The `file()` loader will automatically detect and parse (based on their file extension) a single array of objects from JSON and YAML files, and will treat each top-level table as an independent entry in TOML files. Support for these file types is built-in, and there is no need for a `parser` unless you have a [nested JSON document](#nested-json-documents). To use other files, such as `.csv`, you will need to create a parser function.
 
-The following example defines a content collection `dogs` using a `.toml` file:
-
-```toml title="src/data/dogs.toml"
-[[dogs]]
-id = "..."
-age = "..."
-
-[[dogs]]
-id = "..."
-age = "..."
-```
-
-After importing TOML's parser, you can load the `dogs` collection into your project by passing both a file path and `parser` function to the `file()` loader. A similar process can be used to define a `cats` collection from a `.csv` file:
+The following example shows importing a CSV parser, then loading a `cats` collection into your project by passing both a file path and `parser` function to the `file()` loader:
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
-import { parse as parseToml } from "toml";
 import { parse as parseCsv } from "csv-parse/sync";
-
-const dogs = defineCollection({
-  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
-  schema: /* ... */
-})
 
 const cats = defineCollection({
   loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
@@ -383,6 +365,19 @@ const poodleData = await getEntry('dogs', 'poodle');
 
 
 ```
+
+The sort order of generated collections is non-deterministic and platform-dependent. This means that if you are calling `getCollection()` and need your entries returned in a specific order (e.g. blog posts sorted by date), you must sort the collection entries yourself:
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
 <ReadMore>See the full list of properties returned by the [`CollectionEntry` type](/en/reference/modules/astro-content/#collectionentry).</ReadMore>
 
 ### Using content in Astro templates

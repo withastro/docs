@@ -1,5 +1,5 @@
 ---
-title: 资源 API 参考
+title: 图片与资源 API 参考
 sidebar:
   label: 'astro:assets'
 i18nReady: true
@@ -359,6 +359,135 @@ import myImage from "../my_image.png"; // Image 为 1600x900
   />
 </picture>
 ```
+
+### 响应式图片属性
+
+在 [`<Image />`](#image-) 或 [`<Picture />`](#picture-) 组件上设置 [`layout`](#layout) 属性会创建一个响应式图片，并启用其他属性设置。
+
+```astro title=MyComponent.astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="我的图片描述。" layout='constrained' width={800} height={600} />
+```
+
+设置布局后，会根据图片的尺寸和布局类型自动生成 `srcset` 和 `sizes` 属性。前面的 `<Image />` 组件将生成以下 HTML 输出：
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="我的图片描述"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+`layout` 的值还定义了应用于 `<img>` 标签的默认样式，以确定图片应如何根据其容器调整大小：
+
+```css title="响应式图片样式"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+你可以通过在 `<Image />` 或 `<Picture />` 组件上设置 [`fit`](#fit) 和 [`position`](#position) 属性来覆盖默认的 `object-fit` 和 `object-position` 样式。
+
+
+##### layout
+
+<p>
+
+**类型：** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**默认值：** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+定义一个[响应式图片](#响应式图片属性)，并确定当容器大小改变时图片应如何调整大小。可用于覆盖 [`image.layout`](/zh-cn/reference/configuration-reference/#imagelayout) 的默认配置值。
+
+- `constrained` - 图片将按比例缩小以适应容器，保持其宽高比，但不会放大超过指定的 `width` 和 `height` 或图片的原始尺寸。
+
+  如果你希望图片在可能的情况下以请求的尺寸显示，但在较小的屏幕上收缩以适应，请使用此选项。这与使用 Tailwind 时图片的默认行为相匹配。如果你不确定，这可能是你应该选择的布局。
+
+- `full-width` - 图片将按比例缩放以适应容器的宽度，保持其宽高比。
+
+  用于主视觉图片或其他应占据页面整个宽度的图片。
+
+- `fixed` - 图片将保持请求的尺寸并且不会调整大小。它会生成一个 `srcset` 以支持高密度显示，但不会为不同的屏幕尺寸生成。
+
+  如果图片不会调整大小，例如图标或小于任何屏幕宽度的徽标，或其他固定宽度容器中的图片，请使用此选项。
+
+- `none` - 图片将不是响应式的。不会自动生成 `srcset` 或 `sizes`，也不会应用任何样式。
+
+  如果你已启用默认布局，但希望为特定图片禁用它，这很有用。
+
+例如，将 `constrained` 设置为默认布局，你可以覆盖任何单个图片的 `layout` 属性：
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="这将使用 constrained 布局" width={800} height={600} />
+<Image src={myImage} alt="这将使用 full-width 布局" layout="full-width" />
+<Image src={myImage} alt="这将禁用响应式图片" layout="none" />
+```
+
+##### fit
+
+<p>
+
+**类型：** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**默认值：** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+当设置或配置了 [`layout`](#layout) 属性时启用。定义当宽高比改变时，响应式图片应如何裁剪。
+
+值与 CSS `object-fit` 的值相匹配。默认为 `cover`，如果设置了，则为 [`image.objectFit`](/zh-cn/reference/configuration-reference/#imageobjectfit) 的值。可用于覆盖默认的 `object-fit` 样式。
+
+##### position
+
+<p>
+
+**类型：** `string` <br />
+**默认值：** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+当设置或配置了 [`layout`](#layout) 属性时启用。定义当宽高比改变时，响应式图片的裁剪位置。
+
+值与 CSS `object-position` 的值相匹配。默认为 `center`，如果设置了，则为 [`image.objectPosition`](/zh-cn/reference/configuration-reference/#imageobjectposition) 的值。可用于覆盖默认的 `object-position` 样式。
+
+##### priority
+
+<p>
+
+**类型：** `boolean` <br />
+**默认值：** `false` <br />
+<Since v="5.10.0" />
+</p>
+
+当设置或配置了 [`layout`](#layout) 属性时启用。如果设置，则会立即加载响应式图片。否则，图片将被延迟加载。用于首屏中最大的图片。默认为 `false`。
 
 ### `getImage()`
 
