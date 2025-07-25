@@ -1,0 +1,802 @@
+---
+title: API des polices expérimentale
+sidebar:
+  label: Polices
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+
+**Type :** `FontFamily[]`<br />
+<Since v="5.7.0" />
+</p>
+
+Cette fonctionnalité expérimentale vous permet d'utiliser des polices de votre système de fichiers et de divers fournisseurs de polices (par exemple Google, Fontsource, Bunny) via une API unifiée, entièrement personnalisable et assurant la sûreté du typage.
+
+Les polices web peuvent impacter les performances des pages, aussi bien au moment du chargement qu'au moment du rendu. Cette API vous aide à maintenir les performances de votre site grâce à des [optimisations automatiques des polices web](https://web.dev/learn/performance/optimize-web-fonts) notamment des liens de préchargement, des solutions de repli optimisées et des valeurs par défaut opiniâtres. [Voir des exemples d'utilisation courante](#exemples-dutilisation).
+
+Pour activer cette fonctionnalité, configurez un objet `experimental.fonts` avec au moins une police :
+
+```js title="astro.config.mjs" ins={5-9} ins=" fontProviders "
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: fontProviders.google(),
+            name: "Roboto",
+            cssVariable: "--font-roboto"
+        }]
+    }
+});
+```
+
+Ensuite, ajoutez le composant `<Font />` et le style à l'échelle du site dans votre `<head>` :
+
+```astro title="src/components/Head.astro" ins={2,5,8-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable='--font-roboto' preload />
+
+<style>
+body {
+    font-family: var(--font-roboto);
+}
+</style>
+```
+
+## Utilisation
+
+<Steps>
+
+1. `experimental.fonts` accepte un tableau d'objets de police. Pour chaque police, vous devez spécifier un fournisseur (`provider`), un nom de la famille (`name`) et définir une variable CSS (`cssVariable`) pour référencer votre police.
+
+    - [`provider`](#provider) : Vous pouvez choisir dans la liste des [fournisseurs distants intégrés](#fournisseurs-de-polices-distantes-disponibles), créer votre propre [fournisseur de polices personnalisé](#créer-votre-propre-fournisseur-de-polices) ou utiliser le [fournisseur local](#variantes-de-polices-locales) pour enregistrer les fichiers de polices locaux.
+    - [`name`](#name) : Choisissez une famille de polices prise en charge par votre fournisseur.
+    - [`cssVariable`](#cssvariable-1) : Doit être un [identifiant](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) valide sous la forme d'une variable CSS.
+
+    L'exemple suivant configure la [famille « Roboto » depuis Google Fonts](https://fonts.google.com/specimen/Roboto) :
+
+    ```js title="astro.config.mjs" ins={4-10} ins="fontProviders"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      experimental: {
+        fonts: [{
+          provider: fontProviders.google(),
+          name: "Roboto",
+          cssVariable: "--font-roboto"
+        }]
+      }
+    });
+    ```
+
+    Plus d'options de configuration, telles que la définition de [familles de polices de repli](#fallbacks) ainsi que les [graisses (`weights`)](#weights) et [`styles`](#styles) à télécharger, sont disponibles et certaines dépendront du fournisseur choisi.
+    
+    Consultez la [référence de configuration](#référence-de-configuration-des-polices) complète pour en savoir plus.
+
+2. Appliquez des styles à l'aide du composant `<Font />`. Il doit être importé et ajouté au `<head>` de votre page. La fourniture de la [variable CSS](#cssvariable) de la police est obligatoire, et vous pouvez éventuellement [générer les liens de préchargement](#preload) :
+
+    ```astro title="src/components/Head.astro" ins={2, 5}
+    ---
+    import { Font } from 'astro:assets';
+    ---
+
+    <Font cssVariable="--font-roboto" preload />
+    ```
+
+    Cela se fait généralement dans un composant tel que `Head.astro` qui est utilisé dans une mise en page de site courante.
+
+    <ReadMore>Consultez la référence complète du composant [`<Font>`](#référence-du-composant-font-) pour plus d'informations.</ReadMore>
+
+    Étant donné que le composant `<Font />` génère du CSS avec des déclarations de polices, vous pouvez faire référence à la famille de polices à l'aide de `cssVariable` :
+
+    <Tabs>
+
+    <TabItem label="CSS">
+
+    ```css ins={3}
+    <style>
+    body {
+        font-family: var(--font-roboto);
+    }
+    </style>
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import 'tailwindcss';
+
+    @theme inline {
+        --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+    content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+    theme: {
+        extend: {},
+        fontFamily: {
+            sans: ["var(--font-roboto)"]
+        }
+    },
+    plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+</Steps>
+
+## Fournisseurs de polices distantes disponibles
+
+Astro réexporte la plupart des fournisseurs de polices [unifont](https://github.com/unjs/unifont/). Les suivants offrent une prise en charge intégrée :
+
+- [Adobe](https://fonts.adobe.com/)
+- [Bunny](https://fonts.bunny.net/)
+- [Fontshare](https://www.fontshare.com/)
+- [Fontsource](https://fontsource.org/)
+- [Google](https://fonts.google.com/)
+
+Pour utiliser un fournisseur distant intégré, configurez `provider` avec la valeur appropriée pour le fournisseur de polices choisi :
+
+<Tabs>
+
+<TabItem label="Adobe">
+
+```js
+provider: fontProviders.adobe({ id: process.env.ADOBE_ID })
+```
+
+</TabItem>
+
+<TabItem label="Bunny">
+
+```js
+provider: fontProviders.bunny()
+```
+
+</TabItem>
+
+<TabItem label="Fontshare">
+
+```js
+provider: fontProviders.fontshare()
+```
+
+</TabItem>
+
+<TabItem label="Fontsource">
+
+```js
+provider: fontProviders.fontsource()
+```
+
+</TabItem>
+
+<TabItem label="Google">
+
+```js
+provider: fontProviders.google()
+```
+
+En complément, le fournisseur de polices `google()` accepte toutes les options disponibles dans l'interface [`ProviderOption` d'unifont pour Google](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26) :
+
+```js
+provider: fontProviders.google({
+	glyphs: {
+		Roboto: ["a"]
+	}
+})
+```
+
+</TabItem>
+
+</Tabs>
+
+Vous pouvez également [créer un fournisseur de polices Astro personnalisé](#créer-votre-propre-fournisseur-de-polices) pour n'importe quel fournisseur unifont.
+
+## Exemples d'utilisation
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--font-roboto"
+        provider: fontProviders.google(),
+        // Par défaut inclus :
+        // weights: [400] ,
+        // styles: ["normal", "italics"],
+        // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+        // fallbacks: ["sans-serif"], 
+      },
+      {
+        name: "Inter",
+        cssVariable: "--font-inter",
+        provider: fontProviders.fontsource(),
+        // Spécifier les graisses réellement utilisées
+        weights: [400, 500, 600, 700],
+        // Spécifier les styles réellement utilisés
+        styles: ["normal"],
+        // Télécharger uniquement les fichiers de polices pour les caractères utilisés sur la page
+        subsets: ["cyrillic"],
+      },
+      {
+        name: "JetBrains Mono",
+        cssVariable: "--font-jetbrains-mono",
+        provider: fontProviders.fontsource(),
+        // Télécharger uniquement les fichiers de polices pour les caractères utilisés sur la page
+        subsets: ["latin"],
+        // Utiliser une famille de polices de repli correspondant à l'apparence souhaitée
+        fallbacks: ["monospace"],
+      },
+      {
+        name: "Poppins",
+        cssVariable: "--font-poppins",
+        provider: "local",
+        // La graisse et le style ne sont pas spécifiés, donc Astro
+        // essaiera de les déduire pour chaque variante
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    ],
+  }
+});
+```
+
+## Référence du composant `<Font />`
+
+Ce composant génère des balises de style et peut éventuellement générer des liens de préchargement pour une famille de polices donnée.
+
+Il doit être importé et ajouté au `<head>` de votre page. Cette opération est généralement effectuée dans un composant tel que `Head.astro`, utilisé dans une mise en page de site commune à usage global, mais peut être ajouté à des pages individuelles si nécessaire.
+
+Avec ce composant, vous contrôlez quelle famille de polices est utilisée sur quelle page et quelles polices sont préchargées.
+
+### cssVariable
+
+<p>
+
+**Exemple de type :** `"--font-roboto" | "--font-comic-sans" | ...`
+</p>
+
+La [variable CSS](#cssvariable-1) enregistrée dans votre configuration Astro :
+
+```astro title="src/components/Head.astro" "cssVariable"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" />
+```
+
+### preload
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`
+</p>
+
+Détermine s'il faut ou non afficher les [liens de préchargement](https://web.dev/learn/performance/optimize-web-fonts#preload) :
+
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+## Référence de configuration des polices
+
+Toutes les propriétés de vos polices doivent être configurées dans la configuration d'Astro. Certaines propriétés sont communes aux polices distantes et locales, tandis que d'autres sont disponibles selon le fournisseur de polices choisi.
+
+### Propriétés communes
+
+Les propriétés suivantes sont disponibles pour les polices distantes et locales. `provider`, `name` et `cssVariable` sont obligatoires.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### provider
+
+<p>
+
+**Type :** `AstroFontProvider | "local"`
+</p>
+
+La source de vos fichiers de polices. Vous pouvez utiliser un [fournisseur intégré](#fournisseurs-de-polices-distantes-disponibles), créer votre propre [fournisseur personnalisé](#créer-votre-propre-fournisseur-de-polices) ou définir `local` pour utiliser les fichiers de polices locaux :
+
+```js title="astro.config.mjs" {6}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### name
+
+<p>
+
+**Type :** `string`
+</p>
+
+Le nom de la famille de polices, tel qu'identifié par votre fournisseur de polices :
+
+```js
+name: "Roboto"
+```
+
+#### cssVariable
+
+<p>
+
+**Type :** `string`
+</p>
+
+Un [identifiant](https://developer.mozilla.org/en-US/docs/Web/CSS/ident)  valide de votre choix sous la forme d'une variable CSS (c'est-à-dire commençant par `--`) :
+
+```js
+cssVariable: "--font-roboto"
+```
+
+#### fallbacks
+
+<p>
+
+**Type :** `string[]`<br />
+**Par défaut :** `["sans-serif"]`
+</p>
+
+Un tableau de polices à utiliser lorsque la police choisie n'est pas disponible ou est en cours de chargement. Les polices de repli seront sélectionnées dans l'ordre indiqué. La première police disponible sera utilisée :
+
+```js
+fallbacks: ["PolicePersonnalisee", "serif"]
+```
+
+Pour désactiver complètement les polices de repli, configurez un tableau vide :
+
+```js
+fallbacks: []
+```
+
+Si la dernière police du tableau `fallbacks` est un [nom de famille générique](https://developer.mozilla.org/fr/docs/Web/CSS/font-family#generic-name), Astro tentera de générer des [solutions de repli optimisées](https://developer.chrome.com/blog/font-fallbacks) en utilisant les métriques de police. Pour désactiver cette optimisation, définissez `optimizedFallbacks` sur `false`.
+
+#### optimizedFallbacks
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+</p>
+
+S'il faut ou non activer l'optimisation par défaut d'Astro lors de la génération de polices de repli. Vous pouvez désactiver cette optimisation par défaut pour contrôler entièrement la manière dont les [solutions de repli](#fallbacks) sont générées.
+
+```js
+optimizedFallbacks: false
+```
+
+### Propriétés de police à distance
+
+D'autres options de configuration sont disponibles pour les polices distantes. Définissez-les pour personnaliser les données chargées depuis votre [fournisseur de polices](#fournisseurs-de-polices-distantes-disponibles), par exemple pour télécharger uniquement certains styles ou graisses de police.
+
+Sous le capot, ces options sont gérées par [unifont](https://github.com/unjs/unifont/). Certaines propriétés peuvent ne pas être prises en charge par certains fournisseurs et être gérées différemment par chacun.
+
+#### weights
+
+<p>
+
+**Type :** `(number | string)[]`<br />
+**Par défaut :** `[400]`
+</p>
+
+Un tableau de [graisses de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-weight). Si aucune valeur n'est spécifiée dans votre configuration, seule la graisse `400` est incluse par défaut pour éviter les téléchargements inutiles. Vous devrez inclure cette propriété pour accéder aux autres graisses de police :
+
+```js
+weights: [200, "400", "bold"]
+```
+
+Si la police associée est une [police variable](https://developer.mozilla.org/fr/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), vous pouvez spécifier une plage de graisses :
+
+```js
+weights: ["100 900"]
+```
+
+#### styles
+
+<p>
+
+**Type :** `("normal" | "italic" | "oblique")[]`<br />
+**Par défaut :** `["normal", "italic"]`
+</p>
+
+Un tableau de [styles de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-style) :
+
+```js
+styles: ["normal", "oblique"]
+```
+
+#### subsets
+
+<p>
+
+**Type :** `string[]`<br />
+**Par défaut :** `["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"]`
+</p>
+
+Définit une liste de [sous-ensembles de polices](https://knaap.dev/posts/font-subsetting/) à précharger.
+
+```js
+subsets: ["latin"]
+```
+
+#### display
+
+<p>
+
+**Type :** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
+**Par défaut :** `"swap"`
+</p>
+
+Définit [comment une police s'affiche](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face/font-display) en fonction du moment où elle est téléchargée et prête à l'emploi :
+
+```js
+display: "block"
+```
+
+#### unicodeRange
+
+<p>
+
+**Type :** `string[]`<br />
+**Par défaut :** `undefined`
+</p>
+
+Détermine quand une police doit être téléchargée et utilisée en fonction d'une [plage spécifique de caractères Unicode](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face/unicode-range). Si un caractère de la page correspond à la plage configurée, le navigateur télécharge la police et tous les caractères sont disponibles sur la page. Pour configurer un sous-ensemble de caractères préchargés pour une seule police, consultez plutôt la propriété [subsets](#subsets).
+
+Cela peut être utile pour la localisation afin d'éviter les téléchargements inutiles de polices lorsqu'une partie spécifique de votre site web utilise un alphabet différent et sera affichée avec une police distincte. Par exemple, un site web proposant des versions anglaise et japonaise peut empêcher le navigateur de télécharger la police japonaise sur les versions anglaises de la page qui ne contiennent aucun des caractères japonais fournis dans `unicodeRange`.
+
+```js
+unicodeRange: ["U+26"]
+```
+
+#### stretch
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `undefined`
+</p>
+
+Un [étirement de la police](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face/font-stretch) :
+
+```js
+stretch: "condensed"
+```
+
+#### featureSettings
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `undefined`
+</p>
+
+Contrôle les [fonctionnalités de police typographique](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings) (par exemple, les ligatures, les petites majuscules ou les ornements) :
+
+```js
+featureSettings: "'smcp' 2"
+```
+
+#### variationSettings
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `undefined`
+</p>
+
+[Paramètres de variation](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face/font-variation-settings) de police :
+
+```js
+variationSettings: "'xhgt' 0.7"
+```
+
+
+### Variantes de polices locales
+
+<p>
+
+**Type :** `LocalFontFamily["variants"]`
+</p>
+
+La propriété `variants` est requise lors de l'utilisation de fichiers de polices locaux. Chaque variante représente une [déclaration `@font-face`](https://developer.mozilla.org/fr/docs/Web/CSS/@font-face) et nécessite une valeur pour `weight`, `style` et `src`.
+
+De plus, [certaines autres propriétés des polices distantes](#autres-propriétés) peuvent être spécifiées dans chaque variante.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Personnalisee",
+            cssVariable: "--police-personnalisee",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/personnalisee-400.woff2"]
+                },
+                {
+                    weight: 700,
+                    style: "normal",
+                    src: ["./src/assets/fonts/personnalisee-700.woff2"]
+                }
+                // ...
+            ]
+        }]
+    }
+});
+```
+
+#### weight
+
+<p>
+
+**Type :** `number | string`<br />
+**Par défaut :** `undefined`
+</p>
+
+Une [graisse de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-weight) :
+
+```js
+weight: 200
+```
+
+Si la police associée est une [police variable](https://developer.mozilla.org/fr/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), vous pouvez spécifier une plage de graisses :
+
+```js
+weight: "100 900"
+```
+
+Lorsque la valeur n'est pas définie, Astro essaiera par défaut de déduire la valeur en fonction de la première [`source`](#src).
+
+#### style
+
+<p>
+
+**Type :** `"normal" | "italic" | "oblique"`<br />
+**Par défaut :** `undefined`
+</p>
+
+Un [style de police](https://developer.mozilla.org/fr/docs/Web/CSS/font-style) :
+
+```js
+style: "normal"
+```
+
+Lorsque la valeur n'est pas définie, Astro essaiera par défaut de déduire la valeur en fonction de la première [`source`](#src).
+
+#### src
+
+<p>
+
+**Type :** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+[Sources](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src) des polices. Il peut s'agir d'un chemin relatif à la racine, d'une importation de paquets ou d'une URL. Les URL sont particulièrement utiles si vous injectez des polices locales via une intégration :
+
+<Tabs>
+
+<TabItem label="Chemin relatif">
+
+```js
+src: ["./src/assets/fonts/MaPolice.woff2", "./src/assets/fonts/MaPolice.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./personnalisee.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="Importation de paquets">
+
+```js
+src: ["mon-paquet/UnePolice.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+Nous vous recommandons de ne pas placer vos fichiers de polices dans [le répertoire `public/`](/fr/reference/configuration-reference/#publicdir). Étant donné qu'Astro copiera ces fichiers dans ce dossier lors de la construction, cela entraînera des doublons dans votre sortie de construction. Stockez-les plutôt dans un autre emplacement de votre projet, par exemple dans [`src/`](/fr/reference/configuration-reference/#srcdir).
+:::
+
+Vous pouvez également spécifier une [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech) en fournissant des objets :
+
+```js
+src: [{ url:"./src/assets/fonts/MaPolice.woff2", tech: "color-COLRv1" }]
+```
+
+#### Autres propriétés
+
+Les options suivantes des familles de polices distantes sont également disponibles pour les familles de polices locales dans les variantes :
+
+- [display](#display)
+- [unicodeRange](#unicoderange)
+- [stretch](#stretch)
+- [featureSettings](#featuresettings)
+- [variationSettings](#variationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Personnalisee",
+            cssVariable: "--police-personnalisee",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/personnalisee-400.woff2"],
+                    display: "block"
+                }
+            ]
+        }]
+    }
+});
+```
+
+## Créer votre propre fournisseur de polices
+
+Si vous ne souhaitez pas utiliser l'un des [fournisseurs intégrés](#fournisseurs-de-polices-distantes-disponibles) (par exemple, vous souhaitez utiliser un fournisseur de polices unifont tiers ou créer quelque chose pour un registre privé), vous pouvez créer le vôtre.
+
+Un fournisseur de polices Astro est composé de deux parties : l'objet de configuration et l'implémentation réelle.
+
+<Steps>
+
+1. À l'aide de l'assistant de type `defineAstroFontProvider()`, créez une fonction qui renvoie un objet de configuration de fournisseur de polices contenant :
+
+    - `entrypoint` : Une URL, un chemin relatif à la racine ou une importation de package.
+    - `config` : Un objet sérialisable facultatif transmis au fournisseur unifont.
+
+    <Tabs>
+
+    <TabItem label="Sans configuration">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    export function myProvider() {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url)
+        });
+    };
+    ```
+
+    </TabItem>
+
+    <TabItem label="Avec configuration">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    interface Config {
+        // ...
+    };
+
+    export function myProvider(config: Config) {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url),
+            config
+        });
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+2. Créez un deuxième fichier pour exporter votre implémentation de fournisseur unifont :
+
+    ```ts title="implementation.ts"
+    import { defineFontProvider } from "unifont";
+
+    export const provider = defineFontProvider("mon-fournisseur", async (options, ctx) => {
+        // récupérer/définir vos polices personnalisées
+        // ...
+    });
+    ```
+
+    :::tip
+
+    Vous pouvez consulter [le code source des fournisseurs d'unifont](https://github.com/unjs/unifont/blob/main/src/providers/) pour en savoir plus sur la création d'un fournisseur unifont.
+
+    :::
+
+3. Ajoutez votre fournisseur personnalisé à votre configuration de police.
+
+    ```js title="astro.config.mjs" ins="myProvider()"
+    fonts: [{
+      provider: fontProviders.myProvider(),
+      name: "Police personnalisee",
+      cssVariable: "--police-personnalisee"
+     }]
+    ```
+
+</Steps>
+
+## Mise en cache
+
+L'implémentation de la mise en cache de l'API Fonts a été conçue pour être pratique en développement et efficace en production. Lors des constructions, les fichiers de polices sont copiés dans le répertoire de sortie `_astro/fonts`, afin qu'ils puissent bénéficier de la mise en cache HTTP des ressources statiques (généralement un an).
+
+Pour vider le cache en développement, supprimez le répertoire `.astro/fonts`. Pour vider le cache de construction, supprimez le répertoire `node_modules/.astro/fonts`
+
+## Lectures complémentaires
+
+Pour plus de détails et pour donner votre avis sur cette API expérimentale, consultez [la RFC pour les polices](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md).

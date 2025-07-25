@@ -1,6 +1,6 @@
 ---
-title: 部署你的 Astro 站点至 Cloudflare Pages
-description: 如何使用 Cloudflare Pages 将你的 Astro 网站部署到网络上。
+title: 部署你的 Astro 站点至 Cloudflare
+description: 如何使用 Cloudflare 将你的 Astro 网站部署到网络上
 sidebar:
   label: Cloudflare
 type: deploy
@@ -8,114 +8,183 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
 
-你可以将你的 Astro 项目部署在 [Cloudflare Pages](https://pages.cloudflare.com/) 上。Cloudflare Pages 是一个供前端开发人员协作和部署静态 (JAMstack) 或 SSR 网站的平台。
+你可以通过 [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) 和 [Cloudflare Pages](https://pages.cloudflare.com/) 来部署全栈应用，包括前端的静态资源和后端的 API，以及按需渲染站点。
 
 本指南包含：
 
-- [如何使用 Git 部署一个站点](#如何使用-git-部署一个站点)
-- [如何使用 Wrangler 部署一个站点](#如何使用-wrangler-部署一个站点)
-- [如何部署 SSR 站点](#如何部署-ssr-站点)
+- [如何部署至 Cloudflare Workers](#cloudflare-workers)
+- [如何部署至 Cloudflare Pages](#cloudflare-pages)
+
+:::note
+
+Cloudflare 更建议为新项目使用 Cloudflare Workers。对于现有的、使用 Pages 的项目，可参考 [Cloudflare 的迁移指南](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/) 以及 [compatibility matrix](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/#compatibility-matrix)。
+
+:::
+
+<ReadMore>阅读有关在 Astro 项目中 [使用 Cloudflare 运行时](/zh-cn/guides/integrations-guide/cloudflare/) 的更多内容。</ReadMore>
 
 ## 前提条件
 
 开始之前，你需要：
 
-- 一个 Cloudflare 账号。如果你暂时还没有，你可以现在免费去 Cloudflare 官网注册一个。
-- 你的源代码存储在一个 [GitHub](https://github.com/) 或者 [GitLab](https://about.gitlab.com/) 仓库里。
+- 一个 Cloudflare 账号。如果你暂时还没有，可通过 Cloudflare 官网免费注册。
 
-## 如何使用 Git 部署一个站点
+## Cloudflare Workers
 
-<Steps>
-1. 将你的代码提交到一个 Git 仓库中 (GitHub, GitLab)。
-
-2. 在 Cloudflare Pages 设置一个新项目。使用以下的构建设置：
-
-    - **Framework preset（框架预设）:** `Astro`
-    - **Build command（构建命令）:** `npm run build`
-    - **Build output directory（构建输出目录）:** `dist`
-
-3. 点击 **Save and Deploy**（保存并部署）按钮。
-</Steps>
-
-## 如何使用 Wrangler 部署一个站点
+### 如何使用 Wrangler 进行部署
 
 <Steps>
 1. 安装 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)。
 
-2. 使用 `wrangler login` 在 Wrangler 登录 Cloudflare 账号并授权。
+    ```bash
+    npm install wrangler@latest --save-dev
+    ```
 
-3. 运行你的构建命令（比如 `npm run build`）。
+2. 如果你的站点使用了按需渲染，安装 [`@astrojs/cloudflare` 适配器](/zh-cn/guides/integrations-guide/cloudflare/)。
 
-4. 使用 `npx wrangler pages deploy dist` 进行部署。
-</Steps>
+    该步骤将会安装适配器，并对你的 `astro.config.mjs` 文件进行适当的调整。
+    
+      ```bash
+      npx astro add cloudflare
+      ```
+      
+      接下来，在你的 `public/` 文件夹中创建一个 `.assetsignore` 文件，并向其添加以下内容：
+      ```txt title="public/.assetsignore"
+      _worker.js
+      _routes.json
+      ```
+  
+    <ReadMore>阅读更多有关 [Astro 中的按需渲染](/zh-cn/guides/on-demand-rendering/)的内容。</ReadMore>
 
-```bash
-# 安装 Wrangler CLI（命令行）
-npm install -g wrangler
-# 在 CLI 中登录 Cloudflare 账号
-wrangler login
-# 运行你的构建命令
-npm run build
-# 创建新的部署
-npx wrangler pages deploy dist
-```
+3. 创建一个 [Wrangler 配置项文件](https://developers.cloudflare.com/workers/wrangler/configuration/)。
 
-上传完所有的文件后，Wrangler 将为你提供一个预览 URL 以检查你的站点。当你登录 Cloudflare Pages 仪表板时，你将看到你的新项目。
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```jsonc
+        // wrangler.jsonc
+        {
+          "$schema": "node_modules/wrangler/config-schema.json",
+          "name": "my-astro-app",
+          // 更新为今天的日期
+          "compatibility_date": "2025-03-25",
+          "assets": {
+            "directory": "./dist",
+            "not_found_handling": "404-page" // 如果你有自定义的 `src/pages/404.astro` 页面
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc
+        // wrangler.jsonc
+        {
+          "$schema": "node_modules/wrangler/config-schema.json",
+          "name": "my-astro-app",
+          "main": "./dist/_worker.js/index.js",
+          // 更新为今天的日期
+          "compatibility_date": "2025-03-25",
+          "compatibility_flags": ["nodejs_compat"],
+          "assets": {
+            "binding": "ASSETS",
+            "directory": "./dist"
+          },
+          "observability": {
+            "enabled": true
+          }
+        }
+    ```
+      </Fragment>
+    </StaticSsrTabs>
 
-### 使用 Wrangler 在本地启用预览
-
-要使预览版正常工作，你必须安装 `wrangler`
-
-```bash
-pnpm add wrangler --save-dev
-```
-
-然后就可以将预览脚本从 Astro 的内置预览命令更新为 `wrangler` 了：
-
-```json title="package.json"
-"preview": "wrangler pages dev ./dist"
-```
-
-## 如何部署 SSR 站点
-
-你可以使用 [`@astrojs/cloudflare` 适配器](/zh-cn/guides/integrations-guide/cloudflare/)将 Astro SSR 站点部署到 Cloudflare Pages。
-
-请按照以下步骤设置适配器。完成后，你可以使用上述文档中的任何方法进行部署。
-
-### 快速安装
-
-使用以下 `astro add` 命令添加 Cloudflare 适配器以在你的 Astro 项目中启用 SSR。这将安装适配器并一步对你的文件 `astro.config.mjs` 进行适当的更改。
-
-```bash
-npx astro add cloudflare
-```
-
-### 手动安装
-
-如果你想要手动安装适配器，请完成以下两个步骤：
-
-<Steps>
-1. 使用你喜欢的包管理器将 `@astrojs/cloudflare` 添加到项目的依赖项中。如果你正在使用 npm 或不确定是哪个包管理器，请在终端中运行：
+4. 使用 Wrangler 对你的项目进行本地预览。
 
     ```bash
-    npm install @astrojs/cloudflare
+    npx astro build && npx wrangler dev
     ```
 
-2. 将以下内容添加到你的 `astro.config.mjs` 文件中：
+5. 使用 `npx wrangler deploy` 命令进行部署。
 
-    ```js title="astro.config.mjs" ins={2, 5-6}
-    import { defineConfig } from 'astro/config';
-    import cloudflare from '@astrojs/cloudflare';
-
-    export default defineConfig({
-      output: 'server',
-      adapter: cloudflare()
-    });
+    ```bash
+    npx astro build && npx wrangler deploy
     ```
 </Steps>
 
-<ReadMore>阅读更多关于 [Astro 中的 SSR（服务端渲染）](/zh-cn/guides/on-demand-rendering/) 的信息。</ReadMore>
+在你的资源上传之后，Wrangler 将会提供一个预览 URL 用以让你检视自己的网站。
+
+<ReadMore>阅读更多有关使用 [Cloudflare 运行时 API](/zh-cn/guides/integrations-guide/cloudflare/) 的内容，例如绑定。</ReadMore>
+
+### 如何使用 CI/CD 进行部署
+
+你可以使用一个 CI/CD 系统，例如 [Workers Builds (BETA)](https://developers.cloudflare.com/workers/ci-cd/builds/) 来通过推送，自动化构建并部署你的网站。
+
+假设你正在使用 Workers Builds：
+
+<Steps>
+1. 与上文中如何使用 Wrangler 进行部署的步骤 1-3 相同。
+
+2. 登录至 [Cloudflare dashboard](https://dash.cloudflare.com/) 并导航至 `Workers & Pages` 页面。选择 `Create`（创建）。
+
+3. 在 `Import a repository`（导入仓库）选项下，选择一个 Git 账号，然后选择包含你 Astro 项目的仓库。
+
+4. 配置项目：
+    - Build command（构建命令）：`npx astro build`
+    - Deploy command（部署命令）：`npx wrangler deploy`
+    
+5. 点击 `Save and Deploy`（保存并部署）。你现在可以在它提供的 `workers.dev` 子域名下，预览 Worker 部署的结果了。
+</Steps>
+
+## Cloudflare Pages
+
+### 如何使用 Wrangler 进行部署
+
+<Steps>
+1. 安装 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)。
+
+    ```bash
+    npm install wrangler@latest --save-dev
+    ```
+
+2. 如果你的站点使用了按需渲染，安装 [`@astrojs/cloudflare` 适配器](/zh-cn/guides/integrations-guide/cloudflare/)。
+    
+    该步骤将会安装适配器，并对你的 `astro.config.mjs` 文件进行适当的调整。
+    
+      ```bash
+      npx astro add cloudflare
+      ```
+      
+    <ReadMore>阅读更多有关 [Astro 中的按需渲染](/zh-cn/guides/on-demand-rendering/) 的内容。</ReadMore>
+
+3. 使用 Wrangler 对你的项目进行本地预览。
+
+    ```bash
+    npx astro build && npx wrangler pages dev ./dist
+    ```
+
+4. 使用 `npx wrangler deploy` 命令进行部署。
+
+    ```bash
+    npx astro build && npx wrangler pages deploy ./dist
+    ```
+</Steps>
+
+在你的资源上传之后，Wrangler 将会提供一个预览 URL 用以让你检视自己的网站。
+
+### 如何使用 Git 来部署站点
+
+<Steps>
+1. 推送代码至 Git 仓库（例如：GitHub、GitLab）。
+
+2. 登录至 [Cloudflare dashboard](https://dash.cloudflare.com/) 并导航至 **Compute (Workers) > Workers & Pages**。选择 **Create**（创建）并选择 **Pages**（页面）标签页。连接至你的 Git 仓库。
+
+3. 配置项目：
+    - **Framework preset（框架预设）**：`Astro`
+    - **Build command（构建命令）**：`npm run build`
+    - **Build output directory（构建输出目录）**：`dist`
+
+4. 点击 **Save and Deploy（保存并部署）** 按钮。
+</Steps>
 
 ## 故障排除
 
@@ -125,7 +194,7 @@ npx astro add cloudflare
 
 ### Node.js 运行时 API
 
-如果你正在构建一个使用 [Cloudflare 服务端渲染适配器](/zh-cn/guides/integrations-guide/cloudflare/) 的按需渲染项目，并且服务器在构建时失败，出现如 `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.` 的错误信息：
+如果你正在构建一个使用 [Cloudflare 适配器](/zh-cn/guides/integrations-guide/cloudflare/) 的按需渲染项目，并且服务器在构建时失败，出现如 `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.` 的错误信息：
 
 - 这意味着你在服务器端环境中使用的某个包或导入项与 [Cloudflare 运行时 API](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) 不兼容。
 

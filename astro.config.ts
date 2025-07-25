@@ -7,7 +7,7 @@ import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
 import { makeLocalesConfig } from './config/locales';
-import { starlightPluginAutolinkHeadings } from './config/plugins/rehype-autolink';
+import { starlightPluginLlmsTxt } from './config/plugins/llms-txt';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 
@@ -21,7 +21,7 @@ export default defineConfig({
 	site,
 	integrations: [
 		devServerFileWatcher([
-			'./config/*', // Custom plugins and integrations
+			'./config/**', // Custom plugins and integrations
 			'./astro.sidebar.ts', // Sidebar configuration file
 			'./src/content/nav/*.ts', // Sidebar labels
 		]),
@@ -32,13 +32,11 @@ export default defineConfig({
 			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
-				Head: './src/components/starlight/Head.astro',
 				Hero: './src/components/starlight/Hero.astro',
 				MarkdownContent: './src/components/starlight/MarkdownContent.astro',
 				MobileTableOfContents: './src/components/starlight/MobileTableOfContents.astro',
 				TableOfContents: './src/components/starlight/TableOfContents.astro',
 				PageSidebar: './src/components/starlight/PageSidebar.astro',
-				Pagination: './src/components/starlight/Pagination.astro',
 				Footer: './src/components/starlight/Footer.astro',
 				SiteTitle: './src/components/starlight/SiteTitle.astro',
 				Search: './src/components/starlight/Search.astro',
@@ -46,16 +44,17 @@ export default defineConfig({
 				MobileMenuFooter: './src/components/starlight/MobileMenuFooter.astro',
 				PageTitle: './src/components/starlight/PageTitle.astro',
 			},
+			routeMiddleware: './src/routeData.ts',
 			editLink: {
 				baseUrl: 'https://github.com/withastro/docs/edit/main',
 			},
 			defaultLocale: 'en',
 			locales: makeLocalesConfig(),
 			sidebar,
-			social: {
-				github: 'https://github.com/withastro/astro',
-				discord: 'https://astro.build/chat',
-			},
+			social: [
+				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/astro' },
+				{ icon: 'discord', label: 'Discord', href: 'https://astro.build/chat' },
+			],
 			pagefind: false,
 			head: [
 				// Add ICO favicon fallback for Safari.
@@ -69,7 +68,7 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
-			plugins: [starlightPluginAutolinkHeadings()],
+			plugins: [starlightPluginLlmsTxt()],
 		}),
 		sitemap(),
 	],

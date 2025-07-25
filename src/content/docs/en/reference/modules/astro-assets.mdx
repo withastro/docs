@@ -1,5 +1,5 @@
 ---
-title: Assets API Reference
+title: Image and Assets API Reference
 sidebar:
   label: 'astro:assets'
 i18nReady: true
@@ -27,6 +27,10 @@ import {
 
 ### `<Image />`
 
+The `<Image />` component optimizes and transforms images.
+
+This component can also be used to create [responsive images](#responsive-image-properties) that can adjust based on the size of their container or a device screen size and resolution.
+
 ```astro title="src/components/MyComponent.astro"
 ---
 // import the Image component and the image
@@ -53,7 +57,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 
 #### Image properties
 
-The `<Image />` component accepts all properties accepted by the HTML `<img>` tag in addition to the properties described below.
+The `<Image />` component accepts the following listed properties and [responsive image properties](#responsive-image-properties) in addition to all properties accepted by the HTML `<img>` tag.
 
 ##### src (required)
 
@@ -122,6 +126,8 @@ If an image is merely decorative (i.e. doesn't contribute to the understanding o
 
 These properties define the dimensions to use for the image.
 
+When a `layout` type is set, these are automatically generated based on the image's dimensions and in most cases should not be set manually.
+
 When using images in their original aspect ratio, `width` and `height` are optional. These dimensions can be automatically inferred from image files located in `src/`. For remote images, add [the `inferSize` attribute set to `true`](#infersize) on the `<Image />` or `<Picture />` component or use [`inferRemoteSize()` function](#inferremotesize).
 
 However, both of these properties are required for images stored in your `public/` folder as Astro is unable to analyze these files.
@@ -135,6 +141,8 @@ However, both of these properties are required for images stored in your `public
 </p>
 
 A list of pixel densities to generate for the image.
+
+The `densities` attribute is not compatible with [responsive images](#responsive-image-properties) with a `layout` prop or `image.layout` config set, and will be ignored if set.
 
 If provided, this value will be used to generate a `srcset` attribute on the `<img>` tag. Do not provide a value for `widths` when using this value.
 
@@ -181,6 +189,8 @@ A list of widths to generate for the image.
 
 If provided, this value will be used to generate a `srcset` attribute on the `<img>` tag. A [`sizes` property](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes) must also be provided.
 
+The `widths` and `sizes` attributes will be automatically generated for responsive images using a `layout` property. Providing these values is generally not needed, but can be used to override any automatically generated values.
+
 Do not provide a value for `densities` when using this value. Only one of these two values can be used to generate a `srcset`.
 
 Widths that are larger than the original image will be ignored to avoid upscaling the image.
@@ -222,6 +232,21 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 />
 ```
 
+##### sizes
+
+<p>
+
+**Type:** `string | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+Specifies the layout width of the image for each of a list of media conditions. Must be provided when specifying `widths`.
+
+The `widths` and `sizes` attributes will be automatically generated for responsive images using a `layout` property. Providing these values is generally not needed, but can be used to override any automatically generated values.
+
+The generated `sizes` attribute for `constrained` and `full-width` images is based on the assumption that the image is displayed close to the full width of the screen when the viewport is smaller than the image's width. If it is significantly different (e.g. if it's in a multi-column layout on small screens), you may need to adjust the `sizes` attribute manually for best results.
+
+
 ##### format
 
 <p>
@@ -249,6 +274,7 @@ By default, the `<Image />` component will produce a `.webp` file.
 <p>
 
 **Type:** `boolean`<br />
+**Default:** `false`<br />
 <Since v="4.4.0" />
 </p>
 
@@ -258,7 +284,7 @@ By default, this value is set to `false` and you must manually specify both dime
 
 Add `inferSize` to the `<Image />` component (or `inferSize: true` to `getImage()`) to infer these values from the image content when fetched. This is helpful if you don't know the dimensions of the remote image, or if they might change:
 
-```astro mark="inferSize"
+```astro title="src/components/MyComponent.astro" "inferSize"
 ---
 import { Image } from 'astro:assets';
 ---
@@ -267,11 +293,42 @@ import { Image } from 'astro:assets';
 
 `inferSize` can fetch the dimensions of a [remote image from a domain that has not been authorized](/en/guides/images/#authorizing-remote-images), however the image itself will remain unprocessed.
 
+##### priority
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+Allows you to automatically set the `loading`, `decoding`, and `fetchpriority` attributes to their optimal values for above-the-fold images.
+
+```astro title="src/components/MyComponent.astro" "priority"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} priority alt="A description of my image" />
+```
+
+When `priority="true"` (or the shorthand syntax `priority`) is added to the `<Image />` or `<Picture />` component, it will add the following attributes to instruct the browser to load the image immediately:
+
+```html
+loading="eager"
+decoding="sync"
+fetchpriority="high"
+```
+
+These individual attributes can still be set manually if you need to customize them further.
+
 ### `<Picture />`
 
 <p><Since v="3.3.0" /></p>
 
-Use the built-in `<Picture />` Astro component to display a responsive image with multiple formats and/or sizes.
+The `<Picture />` component generates an optimized image with multiple formats and/or sizes.
+
+This component can also be used to create [responsive images](#responsive-image-properties) that can adjust based on the size of their container or a device screen size and resolution.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -301,7 +358,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 
 #### Picture properties
 
-`<Picture />` accepts all the properties of [the `<Image />` component](#image-properties), plus the following:
+`<Picture />` accepts all the properties of [the `<Image />` component](#image-properties), including [responsive image properties](#responsive-image-properties), plus the following:
 
 ##### `formats`
 
@@ -359,6 +416,124 @@ import myImage from "../my_image.png"; // Image is 1600x900
   />
 </picture>
 ```
+
+### Responsive image properties
+
+Setting the [`layout`](#layout) property on an [`<Image />`](#image-) or [`<Picture />`](#picture-) component creates a responsive image and enables additional property settings.
+
+```astro title=MyComponent.astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="A description of my image." layout='constrained' width={800} height={600} />
+```
+
+ When a layout is set, `srcset` and `sizes` attributes are automatically generated based on the image's dimensions and the layout type. The previous `<Image />` component will generate the following HTML output:
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="A description of my image"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+The value for `layout` also defines the default styles applied to the `<img>` tag to determine how the image should resize according to its container:
+
+```css title="Responsive Image Styles"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+You can override the default `object-fit` and `object-position` styles by setting the [`fit`](#fit) and [`position`](#position) props on the `<Image />` or `<Picture />` component.
+
+
+##### layout
+
+<p>
+
+**Type:** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**Default:** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+Defines a [responsive image](#responsive-image-properties) and determines how the image should resize when its container changes size. Can be used to override the default configured value for [`image.layout`](/en/reference/configuration-reference/#imagelayout).
+
+- `constrained` - The image will scale down to fit the container, maintaining its aspect ratio, but will not scale up beyond the specified `width` and `height`, or the image's original dimensions.
+
+  Use this if you want the image to display at the requested size where possible, but shrink to fit smaller screens. This matches the default behavior for images when using Tailwind. If you're not sure, this is probably the layout you should choose.
+
+- `full-width` - The image will scale to fit the width of the container, maintaining its aspect ratio.
+
+  Use this for hero images or other images that should take up the full width of the page.
+
+- `fixed` - The image will maintain the requested dimensions and not resize. It will generate a `srcset` to support high density displays, but not for different screen sizes.
+
+  Use this if the image will not resize, for example icons or logos smaller than any screen width, or other images in a fixed-width container. 
+
+- `none` - The image will not be responsive. No `srcset` or `sizes` will be automatically generated, and no styles will be applied.
+
+  This is useful if you have enabled a default layout, but want to disable it for a specific image. 
+
+For example, with `constrained` set as the default layout, you can override any individual image's `layout` property:
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="This will use constrained layout" width={800} height={600} />
+<Image src={myImage} alt="This will use full-width layout" layout="full-width" />
+<Image src={myImage} alt="This will disable responsive images" layout="none" />
+```
+
+##### fit
+
+<p>
+
+**Type:** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**Default:** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+Enabled when the [`layout`](#layout) property is set or configured. Defines how a responsive image should be cropped if its aspect ratio is changed.
+
+Values match those of CSS `object-fit`. Defaults to `cover`, or the value of [`image.objectFit`](/en/reference/configuration-reference/#imageobjectfit) if set. Can be used to override the default `object-fit` styles. 
+
+##### position
+
+<p>
+
+**Type:** `string` <br />
+**Default:** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+Enabled when the [`layout`](#layout) property is set or configured. Defines the position of the image crop for a responsive image if the aspect ratio is changed. 
+
+Values match those of CSS `object-position`. Defaults to `center`, or the value of [`image.objectPosition`](/en/reference/configuration-reference/#imageobjectposition) if set. Can be used to override the default `object-position` styles. 
 
 ### `getImage()`
 

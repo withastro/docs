@@ -1,0 +1,157 @@
+---
+title: Sessions
+description: 共享按需渲染页面在请求间的数据。
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+会话（session）是用于存储 [按需渲染页面](/zh-cn/guides/on-demand-rendering/) 在请求间的数据。
+
+不同于 [`cookies`](/zh-cn/guides/on-demand-rendering/#cookies)，因为会话存储在服务端，所以对于存储更大体积的数据或是安全问题，你都无需担忧。会话存储适用于用户信息、购物车内容以及表单状态，且无需客户端 JavaScript：
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // Not needed with 'server' output
+const cart = await Astro.session?.get('cart');
+---
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+## 配置会话
+
+会话需要一个存储驱动来将会话数据保存起来。[Node](/zh-cn/guides/integrations-guide/node/#sessions)、[Cloudflare](/zh-cn/guides/integrations-guide/cloudflare/#sessions) 和 [Netlify](/zh-cn/guides/integrations-guide/netlify/#sessions) 适配器都会为你自动配置默认的驱动，但是其他的适配器目前需要你 [手动指定驱动](/zh-cn/reference/configuration-reference/#sessiondriver)
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+<ReadMore>
+请参阅 [`session` 配置选项](/zh-cn/reference/configuration-reference/#session-选项)，以获取关于设置存储驱动和其他可配置项的更多信息。
+</ReadMore>
+
+## 使用会话数据
+
+[`session` 对象](/zh-cn/reference/api-reference/#session) 允许你与存储的用户状态（例如，向购物车中添加商品）和会话 ID（例如，当退出登录时，删除会话 ID cookie）进行交互。该对象可以在你的 Astro 组件中作为 `Astro.session` 被访问到，而在页面的 API 端点、中间件和 action 中，则作为 `context.session` 对象被访问。
+
+会话将在首次使用时自动生成，会话也可以随时使用 [`Astro.session.regenerate()`](/zh-cn/reference/api-reference/#regenerate) 重新生成，或使用 [`Astro.session.destroy()`](/zh-cn/reference/api-reference/#destroy) 销毁。
+
+在大多数情况下，只需使用 [`Astro.session.get()`](/zh-cn/reference/api-reference/#get) 和 [`Astro.session.set()`](/zh-cn/reference/api-reference/#set) 即可。
+
+<ReadMore>
+有关更多细节，请参阅 [会话的 API 部分](/zh-cn/reference/api-reference/#session)。
+</ReadMore>
+
+### Astro 组件和页面
+
+在 `.astro` 组件和页面中，你可以通过全局的 `Astro` 对象来访问会话对象。例如，显示购物车中的商品数量：
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // 无需使用 'server' 输出
+const cart = await Astro.session?.get('cart');
+---
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### API 端点
+
+在 API 端点中，会话对象在 `context` 对象中可用。例如，向购物车中添加一个商品：
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+	const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### Actions
+
+在 action 中，会话对象在 `context` 对象中可用。例如，向购物车中添加一个商品：
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### 中间件
+
+:::note
+边缘中间件（edge middleware）不支持会话功能。
+:::
+
+在中间件中，会话对象在 `context` 对象中可用。例如，在会话中设置最后访问的时间：
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## 会话数据类型
+
+默认情况下，会话数据的类型是未被定义的，你可以将任意数据存储在任何 key 中。使用 [devalue](https://github.com/Rich-Harris/devalue) 对值进行序列化和反序列化，该库与 content layer 和 action 所使用的库相同。这意味着支持的类型是相同的，包括字符串、数字、`Date`、`Map`、`Set`、`URL`、数组和简单对象。
+
+你可以通过创建 `src/env.d.ts` 文件并为 `App.SessionData` 添加类型，来选择性地为你的会话数据定义 TypeScript 类型：
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+这将使你可以在编辑器中访问会话数据时，使用类型检查和自动补全：
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+这仅用于类型检查，不会影响会话的运行时行为。如果你在用户使用会话来存储数据时更改了类型，请格外小心，因为这可能会导致运行时错误。
+:::

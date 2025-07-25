@@ -6,49 +6,42 @@ i18nReady: true
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
-Astro prend en charge les transitions de vue avec seulement quelques lignes de code. Les transitions de vue mettent à jour le contenu de votre page sans l'actualisation normale de la navigation pleine page du navigateur et fournissent des animations transparentes entre les pages. Lorsque la [prise en charge du navigateur pour l'API View Transition](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility) fait défaut, Astro vous permet de [contrôler les stratégies de secours](#gestion-de-solution-de-secours) pour la meilleure expérience possible pour tous les visiteurs.
+Les [transitions de vue](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) sont des transitions animées entre différentes vues d'un site web. Elles constituent un choix de conception populaire pour préserver la continuité visuelle lorsque les visiteurs se déplacent entre les états ou les vues d'une application.
 
-Astro fournit un composant de routage `<ClientRouter />` qui peut être ajouté au `<head>` d'une page unique pour contrôler les transitions entre les pages lorsque vous naviguez vers une autre page. Il fournit un routeur léger côté client qui [intercepte la navigation](#processus-de-navigation-du-côté-client) et vous permet de naviguer entre les pages.
+Les transitions de vue et la prise en charge du routage côté client d'Astro sont alimentées par l'[API des Transitions de Vue du navigateur](https://developer.chrome.com/docs/web-platform/view-transitions/) et incluent également :
 
-Ajoutez ce composant à un composant `.astro` réutilisable, tel qu'un en-tête ou une mise en page commune, pour [des transitions de page animées sur l'ensemble de votre site (mode SPA)](#transitions-de-vue-du-site-complet-mode-spa).
-
-La prise en charge des transitions de vue par Astro est assurée par la nouvelle API du navigateur [View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) et comprend également les éléments suivants :
-
-- Quelques [options d'animation intégrées](#directives-danimation-intégrées), telles que `fade`, `slide`, et `none`.
-- Le support des animations de navigation vers l'avant et vers l'arrière.
-- La possibilité de [personnaliser tous les aspects de l'animation de transition](#personnalisation-des-animations), et de construire vos propres animations.
+- Quelques [options d'animation intégrées](#directives-danimation-intégrées), telles que `fade`, `slide` et `none`.
+- La prise en charge des animations de navigation vers l'avant et vers l'arrière.
+- La possibilité de [personnaliser entièrement tous les aspects de l'animation de transition](#personnalisation-des-animations) et de créer vos propres animations.
+- Un moyen de transporter des éléments HTML de la page actuelle à la suivante pendant la navigation.
 - L'option d'[empêcher la navigation côté client pour les liens qui ne sont pas des pages](#contrôle-du-routeur).
-- [Contrôle du comportement de secours](#gestion-de-solution-de-secours) pour les navigateurs qui ne prennent pas encore en charge les API de Transition de Vue.
-- Prise en charge automatique de [`prefers-reduced-motion`](#prefers-reduced-motion).
+- Le [contrôle du comportement de secours](#gestion-de-solution-de-secours) pour les navigateurs qui ne prennent pas encore en charge les API de Transition de Vue.
+- La prise en charge automatique de [`prefers-reduced-motion`](#prefers-reduced-motion).
 
 :::note
-Par défaut, chaque page utilise la navigation normale, pleine page, du navigateur. Vous devez vous connecter pour afficher les transitions et vous pouvez les utiliser soit par page, soit pour l'ensemble du site.
+Par défaut, chaque page utilise la navigation normale, pleine page, du navigateur. Vous devez accepter d'afficher les transitions et pouvez les utiliser soit par page, soit sur l'ensemble du site.
 :::
 
-## Ajouter des Transitions de Vue à une page
+## Différences entre les transitions de vue natives du navigateur et le `<ClientRouter />` d'Astro
 
-Optez pour l'utilisation des transitions de vue sur des pages individuelles en important et en ajoutant le composant de routage `<ClientRouter />` dans la balise `<head>` sur chaque page souhaitée.
+Les [transitions de vue inter-documents natives du navigateur](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#basic_mpa_view_transition) peuvent être utilisées dans Astro pour animer la navigation entre les documents dans une application multipage (MPA), offrant souvent l'expérience du routage côté client d'applications monopages. Elles ne modifient pas les fonctionnalités principales d'une application multipage, n'affectent pas les scripts existants et n'ajoutent pas de code JavaScript supplémentaire au chargement de la page. Elles ajoutent simplement des animations.
 
-```astro title="src/pages/index.astro" ins={2,7}
----
-import { ClientRouter } from "astro:transitions";
----
-<html lang="fr">
-  <head>
-    <title>Ma page d'accueil</title>
-    <ClientRouter />
-  </head>
-  <body>
-    <h1>Bienvenue sur mon site web !</h1>
-  </body>
-</html>
-```
+Pour des fonctionnalités améliorées de routage côté client et de transition de vue qui ne sont pas encore entièrement prises en charge par l'API de transition de vue, Astro fournit un composant léger intégré pour activer le routage côté client et transformer votre application multipage en une [application monopage](#activation-des-transitions-de-vue-mode-spa) avec des animations fluides lors de la navigation.
 
-## Transitions de vue du site complet (mode SPA)
+Cela présente certains avantages, comme l’état partagé entre les pages et les éléments persistants, et certains inconvénients, comme la nécessité de réinitialiser manuellement les scripts ou l’état après la navigation.
 
-Importez et ajoutez le composant `<ClientRouter />` à votre `<head>` commun ou au composant de mise en page partagé. Astro créera des animations de page par défaut basées sur les similitudes entre l'ancienne et la nouvelle page, et fournira également un comportement de repli pour les navigateurs non pris en charge.
+L'ajout du composant intégré `<ClientRouter />` d'Astro :
+- [intercepte la navigation de la page](#processus-de-navigation-du-côté-client) et vous donne un contrôle considérable sur ce processus.
+- étend et améliore certaines fonctionnalités des API de transition de vue/navigation.
+- vous permet de [configurer des stratégies de secours](#gestion-de-solution-de-secours) lorsque [la prise en charge native du navigateur fait défaut](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
 
-L'exemple ci-dessous montre l'ajout des animations de navigation par défaut d'Astro sur l'ensemble du site, y compris l'option de contrôle de repli par défaut pour les navigateurs non compatibles, en important et en ajoutant ce composant à un composant `<CommonHead />` d'Astro :
+Cependant, à mesure que les API des navigateurs et les standards Web évoluent, l'utilisation du routage côté client d'Astro (`<ClientRouter />`) pour cette fonctionnalité supplémentaire [deviendra de plus en plus inutile](https://astro.build/blog/future-of-astro-zero-js-view-transitions/). Nous vous recommandons de vous tenir informé de l'état actuel des API des navigateurs afin de [déterminer si vous avez toujours besoin du routage côté client d'Astro](https://events-3bg.pages.dev/jotter/astro-view-transitions/) pour les fonctionnalités que vous utilisez.
+
+## Activation des transitions de vue (mode SPA)
+
+Importez et ajoutez le composant `<ClientRouter />` à votre en-tête (`<head>`) commun ou à votre composant de mise en page partagé. Astro créera des animations de page par défaut en fonction des similitudes entre l'ancienne et la nouvelle page, et fournira également un comportement de repli pour les navigateurs non pris en charge.
+
+L'exemple ci-dessous montre l'ajout des animations de navigation par défaut d'Astro sur l'ensemble du site, y compris l'option de contrôle de repli par défaut pour les navigateurs non compatibles, en important et en ajoutant ce composant à un composant Astro `<CommonHead />` :
 
 ```astro title="src/components/CommonHead.astro" ins={2,12}
 ---
@@ -76,18 +69,18 @@ Astro attribuera automatiquement aux éléments correspondants trouvés à la fo
 Utilisez les directives optionnelles `transition:*` sur les éléments de page dans vos composants `.astro` pour un contrôle plus fin du comportement de transition de la page pendant la navigation.
 
 - `transition:name` : Permet d'outrepasser la correspondance d'éléments par défaut d'Astro pour l'animation du contenu ancien/nouveau et de [spécifier un nom de transition](#nommer-une-transition) pour associer une paire d'éléments DOM.
-- `transition:animate` : Permet d'outrepasser l'animation par défaut d'Astro tout en remplaçant l'ancien élément par le nouveau en spécifiant un type d'animation. Utilisez les [directives d'animation intégrées](#directives-danimation-intégrées) ou [créer des animations de transition personnalisées](#personnalisation-des-animations) Astro.
+- `transition:animate` : Permet d'outrepasser l'animation par défaut d'Astro tout en remplaçant l'ancien élément par le nouveau en spécifiant un type d'animation. Utilisez les [directives d'animation intégrées](#directives-danimation-intégrées) d'Astro ou [créer des animations de transition personnalisées](#personnalisation-des-animations).
 - `transition:persist` : Permet d'outrepasser le remplacement par défaut des anciens éléments par de nouveaux et de [conserver les composants et les éléments HTML](#maintenir-létat) lorsque l'on navigue vers une autre page.
 
 ### Nommer une transition
 
-Dans certains cas, vous pouvez vouloir ou devoir identifier vous-même les éléments de transition de vue correspondants. Vous pouvez spécifier un nom pour une paire d'éléments en utilisant la directive `transition:name`.
+Dans certains cas, vous souhaiterez ou devrez peut-être identifier vous-même les éléments de transition de vue correspondants. Vous pouvez spécifier un nom pour une paire d'éléments en utilisant la directive `transition:name`.
 
-```astro title="src/pages/old-page.astro"
+```astro title="src/pages/page-precedente.astro"
 <aside transition:name="hero">
 ```
 
-```astro title="src/pages/new-page.astro"
+```astro title="src/pages/nouvelle-page.astro"
 <aside transition:name="hero">
 ```
 
@@ -99,7 +92,7 @@ Notez que la valeur `transition:name` fournie ne peut être utilisée qu'une seu
 
 Vous pouvez faire persister les composants et les éléments HTML (au lieu de les remplacer) à travers les pages naviguées en utilisant la directive `transition:persist`.
 
-Par exemple, l'élément `<video>` suivant continuera à être joué lorsque vous naviguerez au sein d'une autre page contenant le même élément vidéo. Cela fonctionne aussi bien pour la navigation vers l'avant que vers l'arrière.
+Par exemple, la `<video>` suivante continuera à être lue lorsque vous naviguerez au sein d'une autre page contenant le même élément vidéo. Cela fonctionne aussi bien pour la navigation vers l'avant que vers l'arrière.
 
 ```astro title="src/components/Video.astro" "transition:persist"
 <video controls muted autoplay transition:persist>
@@ -110,7 +103,7 @@ Par exemple, l'élément `<video>` suivant continuera à être joué lorsque vou
 </video>
 ```
 
-Vous pouvez également placer la directive sur une [île Astro](/fr/concepts/islands/) (un Framework UI avec une directive [`client:`](/fr/reference/directives-reference/#directives-client)). Si ce composant existe sur la page suivante, l'île de l'ancienne page **avec son état actuel** continuera d'être affichée, au lieu d'être remplacée par l'île de la nouvelle page.
+Vous pouvez également placer la directive sur un [îlot Astro](/fr/concepts/islands/) (un framework UI avec une directive [`client:`](/fr/reference/directives-reference/#directives-client)). Si ce composant existe sur la page suivante, l'îlot de l'ancienne page **avec son état actuel** continuera d'être affichée, au lieu d'être remplacée par l'îlot de la nouvelle page.
 
 Dans l'exemple ci-dessous, l'état interne du compteur du composant ne sera pas réinitialisé lors de la navigation entre les pages qui contiennent le composant `<Counter />` avec l'attribut `transition:persist`.
 
@@ -122,9 +115,9 @@ Dans l'exemple ci-dessous, l'état interne du compteur du composant ne sera pas 
 Tous les états ne peuvent pas être préservés de cette manière. Le redémarrage des animations CSS et le rechargement des iframes ne peuvent être évités lors des transitions de vue, même en utilisant `transition:persist`.
 :::
 
-Vous pouvez également [identifier manuellement les éléments correspondants](#nommer-une-transition) si l'île/l'élément se trouve dans un composant différent entre les deux pages.
+Vous pouvez également [identifier manuellement les éléments correspondants](#nommer-une-transition) si l'îlot/l'élément se trouve dans un composant différent entre les deux pages.
 
-```astro title="src/pages/old-page.astro" "video" 'transition:name="media-player"'
+```astro title="src/pages/page-precedente.astro" "video" 'transition:name="media-player"'
 <video
   controls
   muted
@@ -134,7 +127,7 @@ Vous pouvez également [identifier manuellement les éléments correspondants](#
 />
 ```
 
-```astro title="src/pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+```astro title="src/pages/nouvelle-page.astro" "MyVideo" 'transition:name="media-player"'
 <MyVideo
   controls
   muted
@@ -154,11 +147,11 @@ Comme raccourci pratique, `transition:persist` peut aussi prendre un nom de tran
 
 <p><Since v="4.5.0" /></p>
 
-Cela vous permet de contrôler si les props d'une île doivent ou non être conservées lors de la navigation.
+Cela vous permet de contrôler si les props d'un îlot doivent ou non être conservées lors de la navigation.
 
-Par défaut, lorsque vous ajoutez `transition:persist` à une île, l'état est conservé lors de la navigation, mais votre composant sera re-rendu avec de nouvelles props. Ceci est utile, par exemple, lorsqu'un composant reçoit des props spécifiques à une page, comme le `title` de la page courante.
+Par défaut, lorsque vous ajoutez `transition:persist` à un îlot, l'état est conservé lors de la navigation, mais votre composant sera à nouveau rendu avec de nouvelles props. Ceci est utile, par exemple, lorsqu'un composant reçoit des props spécifiques à une page, comme le titre (`title`) de la page courante.
 
-Vous pouvez modifier ce comportement en définissant `transition:persist-props` en plus de `transition:persist`. L'ajout de cette directive conservera les props existantes d'une île (sans les rendre avec de nouvelles valeurs) en plus de maintenir son état existant.
+Vous pouvez modifier ce comportement en définissant `transition:persist-props` en plus de `transition:persist`. L'ajout de cette directive conservera les props existantes d'un îlot (sans le restituer avec de nouvelles valeurs) en plus de maintenir son état existant.
 
 ### Directives d'animation intégrées
 
@@ -312,7 +305,7 @@ Dans certains cas, il n'est pas possible de naviguer via le routage côté clien
 
 Vous pouvez renoncer au routage côté client pour chaque lien en ajoutant l'attribut `data-astro-reload` à n'importe quelle balise `<a>` ou `<form>`. Cet attribut remplacera tout composant `<ClientRouter />` existant et déclenchera à la place un rafraîchissement du navigateur pendant la navigation.
 
-L'exemple suivant montre que l'on empêche le routage côté client lorsque l'on navigue au sein d'un article à partir de la page d'accueil uniquement. Cela permet néanmoins d'animer des éléments partagés, tels qu'une image de héros, lorsque l'on navigue vers la même page à partir d'une page de liste d'articles :
+L'exemple suivant montre comment empêcher le routage côté client lors de la navigation vers un article depuis la page d'accueil uniquement. Cela permet néanmoins d'animer des éléments partagés, tels qu'une image de héros, lors de la navigation vers la même page à partir d'une page de liste d'articles :
 
 ```astro title="src/pages/index.astro"
 <a href="/articles/emperor-penguins" data-astro-reload>
@@ -401,17 +394,17 @@ La méthode `navigate` prend ces arguments :
 
 - `href` (obligatoire) - La nouvelle page vers laquelle naviguer.
 - `options` - Un objet optionnel avec les propriétés suivantes :
-- `history` : `"push"` | `"replace"` | `"auto"`
-- `"push"` : le routeur utilisera `history.pushState` pour créer une nouvelle entrée dans l'historique du navigateur.
-- `"replace"` : le routeur utilisera `history.replaceState` pour mettre à jour l'URL sans ajouter une nouvelle entrée dans la navigation.
-- `"auto"` (par défaut) : le routeur va essayer `history.pushState`, mais si l'URL n'est pas une URL vers laquelle il est possible d'effectuer une transition, l'URL actuelle sera conservée sans modification de l'historique du navigateur.
-- `formData` : Un objet [`FormData`](https://developer.mozilla.org/fr/docs/Web/API/FormData) pour les requêtes `POST`.
+  - `history` : `"push"` | `"replace"` | `"auto"`
+    - `"push"` : le routeur utilisera `history.pushState` pour créer une nouvelle entrée dans l'historique du navigateur.
+    - `"replace"` : le routeur utilisera `history.replaceState` pour mettre à jour l'URL sans ajouter une nouvelle entrée dans la navigation.
+    - `"auto"` (par défaut) : le routeur va essayer `history.pushState`, mais si l'URL n'est pas une URL vers laquelle il est possible d'effectuer une transition, l'URL actuelle sera conservée sans modification de l'historique du navigateur.
+  - `formData` : Un objet [`FormData`](https://developer.mozilla.org/fr/docs/Web/API/FormData) pour les requêtes `POST`.
 
 Pour la navigation vers l'arrière et vers l'avant dans l'historique du navigateur, vous pouvez combiner `navigate()` avec les fonctions intégrées `history.back()`, `history.forward()` et `history.go()` du navigateur. Si `navigate()` est appelé pendant le rendu côté serveur de votre composant, il n'a aucun effet.
 
 ### Remplacer les entrées dans l'historique du navigateur
 
-Normalement, chaque fois que vous naviguez, une nouvelle entrée est inscrite dans l'historique du navigateur. Cela permet de naviguer entre les pages à l'aide des boutons "retour" et "avant" du navigateur.
+Normalement, à chaque navigation, une nouvelle entrée est ajoutée à l'historique du navigateur. Cela permet de naviguer entre les pages à l'aide des boutons « Précédent » et « Suivant ».
 
 Le routeur `<ClientRouter />` vous permet d'écraser les entrées de l'historique en ajoutant l'attribut `data-astro-history` à n'importe quelle balise `<a>`.
 
@@ -437,7 +430,7 @@ Cela a pour effet que si vous revenez en arrière à partir de la page `/main`, 
 
 Le routeur `<ClientRouter />` déclenche des transitions dans la page à partir d'éléments `<form>`, supportant à la fois les requêtes `GET` et `POST`.
 
-Par défaut, Astro soumet les données de votre formulaire en tant que `multipart/form-data` lorsque votre `method` est réglé sur `POST`. Si vous voulez correspondre au comportement par défaut des navigateurs web, utilisez l'attribut `enctype` pour soumettre vos données encodées en tant que `application/x-www-form-urlencoded` :
+Par défaut, Astro envoie les données de votre formulaire en tant que `multipart/form-data` lorsque votre méthode (`method`) est définie sur `POST`. Si vous voulez correspondre au comportement par défaut des navigateurs web, utilisez l'attribut `enctype` pour soumettre vos données encodées en tant que `application/x-www-form-urlencoded` :
 
 ```astro title="src/components/Form.astro"
 <form
@@ -455,7 +448,7 @@ Vous pouvez refuser les transitions de routeur sur un formulaire individuel en u
 
 ## Gestion de solution de secours
 
-Le routeur `<ClientRouter />` fonctionne mieux dans les navigateurs qui supportent les Transitions de Vues (c'est-à-dire les navigateurs Chromium), mais il inclut également un support de secours par défaut pour les autres navigateurs. Même si le navigateur ne prend pas en charge l'API View Transitions, le routeur client d'Astro peut tout de même fournir une navigation dans le navigateur en utilisant l'une des options de secours.
+Le routeur `<ClientRouter />` fonctionne mieux dans les navigateurs qui prennent en charge les Transitions de Vue (c'est-à-dire les navigateurs Chromium), mais inclut également une prise en charge de secours par défaut pour les autres navigateurs. Même si le navigateur ne prend pas en charge l'API de Transitions de Vue, le routeur client d'Astro peut tout de même fournir une navigation dans le navigateur en utilisant l'une des options de secours.
 
 En fonction de la prise en charge du navigateur, vous devrez peut-être définir explicitement les [directives de transition](#directives-de-transition) `name` ou `animate` sur les éléments que vous souhaitez animer pour une expérience comparable sur tous les navigateurs :
 
@@ -466,7 +459,7 @@ import Layout from "../layouts/LayoutUsingClientRouter.astro";
 <title transition:animate="fade">À propos de mon site</title>
 ```
 
-Vous pouvez remplacer le support par défaut d'Astro en ajoutant une propriété `fallback` sur le composant `<ClientRouter />` et en la réglant sur `swap` ou `none` :
+Vous pouvez remplacer la prise en charge de secours par défaut d'Astro en ajoutant une propriété `fallback` sur le composant `<ClientRouter />` et en la définissant sur `swap` ou `none` :
 
 - `animate` (par défaut, recommandé) : Astro simulera des transitions de vues en utilisant des attributs personnalisés avant de mettre à jour le contenu de la page.
 - `swap` : Astro n'essaiera pas d'animer la page. Au lieu de cela, l'ancienne page sera immédiatement remplacée par la nouvelle.
@@ -491,10 +484,10 @@ Lors de l'utilisation du routeur `<ClientRouter />`, les étapes suivantes se pr
 
 <Steps>
 1. Un visiteur de votre site déclenche la navigation par l'une des actions suivantes :
-   - Cliquer sur une balise `<a>` qui renvoie à une autre page de votre site.
-   - Cliquer sur le bouton "Précédent".
-   - Cliquer sur le bouton "Avancer".
-2. Le routeur commence à chercher la page suivante.
+   - En cliquant sur une balise `<a>` qui renvoie à une autre page de votre site.
+   - En cliquant sur le bouton « Précédent ».
+   - En cliquant sur le bouton « Suivant ».
+2. Le routeur commence à récupérer la page suivante.
 3. Le routeur ajoute l'attribut `data-astro-transition` à l'élément HTML avec la valeur `"forward"` ou `"back"` selon le cas.
 4. Le routeur appelle `document.startViewTransition`. Cela déclenche le [processus de Transition de Vue du navigateur](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#the_view_transition_process). Il est important de noter que le navigateur fait une capture d'écran de l'état actuel de la page.
 5. Dans le callback `startViewTransition`, le routeur effectue un __swap__, qui consiste en la séquence d'événements suivante :
@@ -527,9 +520,9 @@ Lorsque l'on navigue entre les pages avec le composant `<ClientRouter />`, les s
 
 ### Réexécution du script
 
-Les [scripts des modules intégrés](/fr/guides/client-side-scripts/#regroupement-de-script), qui sont les scripts par défaut dans Astro, ne sont exécutés qu'une seule fois. Après l'exécution initiale, ils seront ignorés, même si le script existe sur la nouvelle page après une transition.
+Les [scripts des modules intégrés](/fr/guides/client-side-scripts/#traitement-des-scripts), qui sont les scripts par défaut dans Astro, ne sont exécutés qu'une seule fois. Après l'exécution initiale, ils seront ignorés, même si le script existe sur la nouvelle page après une transition.
 
-Contrairement aux scripts de modules intégrés, les scripts [inline](/fr/guides/client-side-scripts/#inclure-des-fichiers-javascript-dans-la-page) peuvent être réexécutés au cours de la visite d'un utilisateur sur un site s'ils se trouvent sur une page visitée plusieurs fois. Les scripts en ligne peuvent également être réexécutés lorsqu'un visiteur navigue vers une page sans script, puis de nouveau vers une page avec le script.
+Contrairement aux scripts de modules intégrés, les [scripts incorporés à la page](/fr/guides/client-side-scripts/#inclure-des-fichiers-javascript-dans-la-page) peuvent être réexécutés au cours de la visite d'un utilisateur sur un site s'ils se trouvent sur une page visitée plusieurs fois. Les scripts incorporés à la page peuvent également être réexécutés lorsqu'un visiteur navigue vers une page sans script, puis de nouveau vers une page avec le script.
 
 Avec les transitions de vue, certains scripts peuvent ne plus être réexécutés après la navigation vers une nouvelle page comme c'est le cas avec les actualisations complètes du navigateur. Il existe plusieurs [événements pendant le routage côté client que vous pouvez écouter](#événements-du-cycle-de-vie) et déclencher des événements lorsqu'ils se produisent. Vous pouvez encapsuler un script existant dans un écouteur d'événements pour garantir qu'il s'exécute au bon moment dans le cycle de navigation.
 
@@ -562,15 +555,15 @@ L'exemple suivant montre une fonction qui s'exécute en réponse à l'événemen
 
 <p><Since v="4.5.0" /></p>
 
-Pour forcer les scripts inline à se réexécuter après chaque transition, ajoutez la propriété `data-astro-rerun`. L'ajout de n'importe quel attribut à un script ajoute aussi implicitement `is:inline`, donc ceci n'est disponible que pour les scripts qui ne sont pas regroupés et traités par Astro.
+Pour forcer les scripts incorporés à la page à se réexécuter après chaque transition, ajoutez la propriété `data-astro-rerun`. L'ajout de n'importe quel attribut à un script ajoute aussi implicitement `is:inline`, donc ceci n'est disponible que pour les scripts qui ne sont pas regroupés et traités par Astro.
 
 ```astro
 <script is:inline data-astro-rerun>...</script>
 ```
 
-Pour s'assurer qu'un script s'exécute à chaque fois qu'une page est chargée pendant la navigation côté client, il doit être exécuté par un [lifecycle event](#événements-du-cycle-de-vie). Par exemple, les récepteurs d'événements pour `DOMContentLoaded` peuvent être remplacés par l'événement de cycle de vie [`astro:page-load`](/fr/guides/view-transitions/#astropage-load).
+Pour garantir qu'un script s'exécute à chaque fois qu'une page est chargée pendant la navigation côté client, il doit être exécuté par un [événement de cycle de vie](#événements-du-cycle-de-vie). Par exemple, les récepteurs d'événements pour `DOMContentLoaded` peuvent être remplacés par l'événement de cycle de vie [`astro:page-load`](/fr/guides/view-transitions/#astropage-load).
 
-Si vous avez du code qui établit un état global dans un script en ligne, cet état devra prendre en compte le fait que le script peut s'exécuter plus d'une fois. Vérifiez l'état global dans votre balise `<script>`, et exécutez votre code de manière conditionnelle lorsque c'est possible. Cela fonctionne parce que `window` est préservé.
+Si vous avez du code qui établit un état global dans un script incorporé à la page, cet état devra prendre en compte le fait que le script peut s'exécuter plus d'une fois. Vérifiez l'état global dans votre balise `<script>`, et exécutez votre code de manière conditionnelle lorsque c'est possible. Cela fonctionne parce que `window` est préservé.
 
 ```astro
 <script is:inline>
@@ -608,11 +601,11 @@ Un événement qui se déclenche au début de la phase de préparation, après q
 
 Cet événement est utilisé :
 
-- pour faire quelque chose avant que le chargement n'ait commencé, par exemple afficher un indicateur de chargement
+- Pour faire quelque chose avant que le chargement n'ait commencé, par exemple afficher un indicateur de chargement.
 - Pour modifier le chargement, comme charger le contenu que vous avez défini dans un modèle plutôt qu'à partir de l'URL externe.
 - Pour changer la `direction` de la navigation (qui est généralement soit `forward` soit `backward`) pour une animation personnalisée.
 
-Voici un exemple d'utilisation de l'événement `astro:before-preparation` pour charger un spinner avant le chargement du contenu et l'arrêter immédiatement après le chargement. Notez que l'utilisation du callback du chargeur de cette manière permet l'exécution asynchrone du code.
+Voici un exemple d'utilisation de l'événement `astro:before-preparation` pour charger un spinner avant le chargement du contenu et l'arrêter immédiatement après le chargement. Notez que l'utilisation du callback du chargeur (`loader`) de cette manière permet l'exécution asynchrone du code.
 
 ```astro
 <script is:inline>
@@ -647,7 +640,7 @@ Cet exemple utilise l'événement `astro:before-preparation` pour démarrer un i
 </script>
 ```
 
-Il s'agit d'une version plus simple du chargement d'un spinner que l'exemple ci-dessus : si tout le code de l'écouteur peut être exécuté de manière synchrone, il n'est pas nécessaire de se connecter au callback du chargeur.
+Il s'agit d'une version plus simple du chargement d'un spinner que l'exemple ci-dessus : si tout le code de l'écouteur peut être exécuté de manière synchrone, il n'est pas nécessaire de se connecter au callback du chargeur (`loader`).
 
 ### `astro:before-swap`
 
@@ -673,7 +666,7 @@ Cet événement peut être utilisé pour effectuer des modifications avant que l
 </script>
 ```
 
-L'événement `astro:before-swap` peut aussi être utilisé pour changer l'*implémentation* de la permutation. L'implémentation par défaut de la permutation diffère le contenu de l'en-tête, déplace les éléments __persistants__ de l'ancien document vers `newDocument`, et remplace ensuite le `body` entier par le corps du nouveau document.
+L'événement `astro:before-swap` peut aussi être utilisé pour changer l'*implémentation* de la permutation. L'implémentation par défaut de la permutation diffère le contenu de l'en-tête, déplace les éléments __persistants__ de l'ancien document vers `newDocument`, et remplace ensuite l'ensemble du corps (`body`) par celui du nouveau document.
 
 À ce stade du cycle de vie, vous pouvez choisir de définir votre propre implémentation de l'échange, par exemple pour diffuser l'intégralité du contenu du document existant (ce que font certains autres routeurs) :
 
@@ -765,7 +758,7 @@ Pour ajouter l'annonce d'itinéraire au routage côté client, le composant ajou
 
 - Le `<title>`, s'il existe.
 - Le premier `<h1>` qu'il trouve.
-- Le `pathname` de la page.
+- Le chemin de la page (`pathname`).
 
 Nous vous recommandons vivement de toujours inclure un `<title>` dans chaque page pour des raisons d'accessibilité.
 

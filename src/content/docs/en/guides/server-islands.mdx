@@ -68,7 +68,7 @@ This fallback content can be things like:
 - Loading indicators such as spinners.
 
 
-## How it works 
+## How it works
 
 Server island implementation happens mostly at build-time where component content is swapped out for a small script.
 
@@ -84,13 +84,13 @@ This rendering pattern was built to be portable. It does not depend on any serve
 
 The data for server islands is retrieved via a `GET` request, passing props as an encrypted string in the URL query. This allows caching data with the [`Cache-Control` HTTP header](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) using standard `Cache-Control` directives.
 
-However, [the browser limits URLs to a maximum length of 2048 bytes](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) for practical reasons and to avoid causing denial-of-service problems. If your query string causes your URL to exceed this limit, Astro will instead send a `POST` request that contains all props in the body. 
+However, [the browser limits URLs to a maximum length of 2048 bytes](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) for practical reasons and to avoid causing denial-of-service problems. If your query string causes your URL to exceed this limit, Astro will instead send a `POST` request that contains all props in the body.
 
 `POST` requests are not cached by browsers because they are used to submit data, and could cause data integrity or security issues. Therefore, any existing caching logic in your project will break. Whenever possible, pass only necessary props to your server islands and avoid sending entire data objects and arrays to keep your query small.
 
 ## Accessing the page URL in a server island
 
-In most cases you, your server island component can get information about the page rendering it by [passing props](/en/basics/astro-components/#component-props) like in normal components. 
+In most cases you, your server island component can get information about the page rendering it by [passing props](/en/basics/astro-components/#component-props) like in normal components.
 
 However, server islands run in their own isolated context outside of the page request. `Astro.url` and `Astro.request.url` in a server island component both return a URL that looks like `/_server-islands/Avatar` instead of the current page's URL in the browser. Additionally, if you are prerendering the page you will not have access to information such as query parameters in order to pass as props.
 
@@ -106,20 +106,16 @@ const productId = url.searchParams.get('product');
 
 ## Reusing the encryption key
 
-Astro uses [cryptography](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography) to encrypt props passed to server islands to prevent accidentally leaking secrets. The props are encrypted using a key that is generated during the build.
+Astro uses [cryptography](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography) to encrypt props passed to server islands, protecting sensitive data from accidental exposure. This encryption relies on a new, random key that is generated on each build and embedded in the server bundle.
 
-For most hosts, this happens transparently and there is nothing that you as a developer need to do. If you are using rolling deployments in an environment such as Kubernetes, you may run into issues where the frontend and backend are temporarily out of sync and the keys don't match.
+Most deploy hosts will handle keeping your front end and back end in sync automatically. However, you may need a constant encryption key if you are using rolling deployments, multi-region hosting or a CDN that caches pages containing server islands.
 
-To solve this, you can create a key with the Astro CLI and then reuse it for all of your deployments. This ensures that each user's frontend is talking to a backend that has the right key.
+In environments with rolling deployments (e.g., Kubernetes) where your frontend assets (which encrypt props) and your backend functions (which decrypt props) may be temporarily using different keys, or when a CDN is still serving pages built with an old key, encrypted props passed to your server island cannot be decrypted.
 
-Generate a key using `astro create-key`:
+In these situations, use the Astro CLI to generate a reusable, encoded encryption key to set as an environment variable in your build environment:
 
 ```shell
 astro create-key
 ```
 
-This will create a key that you can set as the `ASTRO_KEY` environment variable wherever your hosting environment requires, such as in a `.env` file:
-
-```ini title=".env"
-ASTRO_KEY=zyM5c0qec+1Sgi4K+AejFX9ufbig7/7wIZjxOjti9Po=
-```
+Use this value to configure the `ASTRO_KEY` environment variable (e.g. in a `.env` file) and include it in your CI/CD or host's build settings. This ensures the same key is always reused in the generated bundle so that encryption and decryption remain in sync.

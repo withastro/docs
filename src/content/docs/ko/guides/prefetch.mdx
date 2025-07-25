@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import { Steps } from '@astrojs/starlight/components'
+import Since from '~/components/Since.astro'
 
 페이지 로드 시간은 사이트의 유용성과 전반적인 즐거움에 큰 역할을 합니다. Astro의 **선택적 프리페칭**은 방문자가 사이트와 상호 작용할 때 다중 페이지 애플리케이션(MPA)에 거의 즉각적인 페이지 탐색 이점을 제공합니다.
 
@@ -114,11 +115,62 @@ export default defineConfig({
 prefetch('/about', { ignoreSlowConnection: true });
 ```
 
+### `eagerness`
+
+<p>
+**타입:** `'immediate' | 'eager' | 'moderate' | 'conservative'`<br />
+**기본값:** `'immediate'`<br />
+<Since v="5.6.0" />
+</p>
+
+실험적인 [`clientPrerender`](/ko/reference/experimental-flags/client-prerender/) 플래그를 활성화하면 `prefetch()`의 `eagerness` 옵션을 사용하여 브라우저에 링크 대상의 프리페치/프리렌더링을 얼마나 적극적으로 수행해야 하는지 제안할 수 있습니다.
+
+이것은 [Speculation Rules API](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/speculationrules#eagerness)에 설명된 것과 동일한 API를 따르며, 기본값은 가장 적극적인 옵션인 `immediate`입니다. 적극성이 감소하는 순서대로 다른 옵션은 `eager`, `moderate`, `conservative`입니다.
+
+`eagerness` 옵션을 사용하면 대기 시간 감소의 이점과 사이트 방문자의 대역폭, 메모리 및 CPU 비용 사이의 균형을 맞출 수 있습니다. Chrome과 같은 일부 브라우저는 과도한 speculating 실행 (너무 많은 링크를 프리렌더링/프리페치하는 것)을 방지하기 위해 [제한을 두고 있습니다](https://developer.chrome.com/blog/speculation-rules-improvements#chrome-limits).
+
+ ```astro
+---
+---
+<script>
+// `experimental.clientPrerender`로 프리페치 적극성을 제어합니다.
+import { prefetch } from 'astro:prefetch';
+
+// 이 페이지는 리소스 사용량이 많습니다.
+prefetch('/data-heavy-dashboard', { eagerness: 'conservative' });
+
+// 이 페이지는 방문자의 여정에 매우 중요합니다.
+prefetch('/getting-started'); // 기본값인 `{ eagerness: 'immediate' }`입니다.
+
+// 이 페이지는 방문되지 않을 수 있습니다.
+prefetch('/terms-of-service', { eagerness: 'moderate' });
+</script>
+```
+
+많은 링크 세트와 함께 프로그래밍 방식으로 `prefetch()`를 사용하려면 `eagerness: 'moderate'`를 설정하여 [선입선출 (FIFO)](https://ko.wikipedia.org/wiki/%EC%84%A0%EC%9E%85_%EC%84%A0%EC%B6%9C) 전략과 브라우저 휴리스틱을 활용하여 브라우저가 언제, 어떤 순서로 프리렌더링/프리페치할지 결정하도록 할 수 있습니다.
+
+```astro "{eagerness: 'moderate'}"
+<a class="link-moderate" href="/nice-link-1">멋진 링크 1</a>
+<a class="link-moderate" href="/nice-link-2">멋진 링크 2</a>
+<a class="link-moderate" href="/nice-link-3">멋진 링크 3</a>
+<a class="link-moderate" href="/nice-link-4">멋진 링크 4</a>
+...
+<a class="link-moderate" href="/nice-link-20">멋진 링크 20</a>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const linkModerate = document.getElementsByClassName('link-moderate');
+  linkModerate.forEach((link) => prefetch(link.getAttribute('href'), {eagerness: 'moderate'}));
+  
+</script>
+```
+
 브라우저 API에 의존하므로, 클라이언트 측 스크립트에서만 `prefetch()`를 가져와야 합니다.
 
 ## 뷰 전환과 함께 사용
 
-페이지에서 [뷰 전환](/ko/guides/view-transitions/)을 사용하면 기본적으로 프리페치도 활성화됩니다. 페이지에서 [모든 링크에 대한 프리페칭](#모든-링크에-대한-프리페치를-기본값으로-설정하기)을 활성화하는 `{ prefetchAll: true }`의 기본 구성을 설정합니다.
+페이지에서 [Astro의 `<ClientRouter />`](/ko/guides/view-transitions/#뷰-전환-활성화-spa-모드)를 사용하면 기본적으로 프리페치도 활성화됩니다. 페이지에서 [모든 링크에 대한 프리페칭](#모든-링크에-대한-프리페치를-기본값으로-설정하기)을 활성화하는 `{ prefetchAll: true }`의 기본 구성을 설정합니다.
 
 `astro.config.mjs`에서 프리페치 구성을 맞춤설정하여 기본값을 재정의할 수 있습니다. 예를 들어:
   
@@ -151,6 +203,8 @@ Astro의 프리페칭은 브라우저에서 지원하는 경우 [`<link rel="pre
 ### Chrome
 
 Chrome은 `<link rel="prefetch">`를 지원합니다. 프리페치는 의도한 대로 작동합니다.
+
+또한 [Speculation Rules API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API)의 `<script type="speculationrules">`를 완벽하게 지원하여 [프리페치 전략 및 규칙](#eagerness)을 더욱 자세히 설명하고 Chrome 사용자 경험을 향상시킬 수 있습니다. `prefetch()`와 함께 이 기능을 활용하려면 [`clientPrerender`](/ko/reference/experimental-flags/client-prerender/) 실험을 활성화해야 합니다.
 
 ### Firefox
 
