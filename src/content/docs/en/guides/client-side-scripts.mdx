@@ -7,70 +7,20 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro'
 
-You can add interactivity to your Astro components without [using a UI framework](/en/guides/framework-components/) like React, Svelte, Vue, etc. using standard HTML `<script>` tags. This allows you to send JavaScript to run in the browser and add functionality to your Astro components.
+You can add interactivity to your Astro components without [using a UI framework](/en/guides/framework-components/) like React, Svelte, Vue, etc. using `<script>` tags. This allows you to send JavaScript to run in the browser and add functionality to your components.
 
-## Client-Side Scripts
+By default, Astro processes and bundles `<script>` tags with TypeScript support, npm module imports, and automatic optimization.
 
-Scripts can be used to add event listeners, send analytics data, play animations, and everything else JavaScript can do on the web.
 
-```astro
-<!-- src/components/ConfettiButton.astro -->
-<button data-confetti-button>Celebrate!</button>
+## Script processing
 
-<script>
-  // Import npm modules.
-  import confetti from 'canvas-confetti';
+By default, `<script>` tags with no additional attributes other than `src` are processed by Astro in the following ways:
 
-  // Find our component DOM on the page.
-  const buttons = document.querySelectorAll('[data-confetti-button]');
-
-  // Add event listeners to fire confetti when a button is clicked.
-  buttons.forEach((button) => {
-    button.addEventListener('click', () => confetti());
-  });
-</script>
-```
-
-By default, Astro processes and bundles `<script>` tags, adding support for importing npm modules, writing TypeScript, and more.
-
-## Using `<script>` in Astro
-
-In `.astro` files, you can add client-side JavaScript by adding one (or more) `<script>` tags.
-
-In this example, adding the `<Hello />` component to a page will log a message to the browser console.
-
-```astro title="src/components/Hello.astro"
-<h1>Welcome, world!</h1>
-
-<script>
-  console.log('Welcome, browser console!');
-</script>
-```
-
-### Script processing
-
-By default, `<script>` tags are processed by Astro.
-
-- Any imports will be bundled, allowing you to import local files or Node modules.
-- The processed script will be injected at where it's declared with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
-- TypeScript is fully supported, including importing TypeScript files.
-- If your component is used several times on a page, the script will only be included once.
-
-```astro title="src/components/Example.astro"
-<script>
-  // Processed! Bundled! TypeScript-supported!
-  // Importing local scripts and Node modules works.
-</script>
-```
-
-The `type="module"` attribute makes the browser treat the script as a JavaScript module. This has several performance benefits:
-- Rendering is not blocked. The browser continues to process the rest of the HTML while the module script and its dependencies load.
-- The browser waits for HTML to be processed before executing module scripts. You do not need to listen for the "load" event.
-- `async` and `defer` attributes are unnecessary. Module scripts are always deferred.
-
-:::note
-The `async` attribute is valuable for normal scripts because it prevents them from blocking rendering. However, module scripts already have this behavior. Adding `async` to a module script will cause it to execute before the page has fully loaded. This is probably not what you want.
-:::
+- **TypeScript by default:** All scripts are processed as TypeScript.
+- **Import bundling:** Import local files or npm modules, which will be bundled together.
+- **Module injection:** The processed script is injected with [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- **Script deduplication:** If your component is used multiple times on a page, the script will only be included once.
+- **Automatic inlining:** If the script is small enough, Astro will inline it directly into the HTML to reduce the number of requests. See [Externalization](#externalization) for more details.
 
 ### Opting out of processing
 
@@ -85,7 +35,7 @@ To prevent Astro from processing a script, add the `is:inline` directive.
 ```
 
 :::note
-Astro will not process your script tags in some situations. In particular, adding `type="module"` or any attribute other than `src` to a `<script>` tag will cause Astro to treat the tag as if it had an `is:inline` directive.
+Astro will not process your script tags in some situations. In particular, adding `type="module"` or any attribute other than `src` to a `<script>` tag will cause Astro to treat the tag as if it had an `is:inline` directive. This means the script will be rendered exactly as written without bundling or TypeScript processing.
 :::
 
 <ReadMore>See our [directives reference](/en/reference/directives-reference/#script--style-directives) page for more information about the directives available on `<script>` tags.</ReadMore>
@@ -97,9 +47,9 @@ You may want to write your scripts as separate `.js`/`.ts` files or need to refe
 
 #### Import local scripts
 
-**When to use this:** when your script lives inside of `src/`.
+**When to use this:** When your script lives inside of `src/`.
 
-Astro will build, optimize, and add these scripts to the page for you, following its [script processing rules](#script-processing).
+Astro will build, optimize, and add these scripts to the page for you with TypeScript support and bundling.
 
 ```astro title="src/components/LocalScripts.astro"
 <!-- relative path to script at `src/scripts/local.js` -->
@@ -122,6 +72,29 @@ To load scripts outside of your project's `src/` folder, include the `is:inline`
 <!-- full URL to a script on a remote server -->
 <script is:inline src="https://my-analytics.com/script.js"></script>
 ```
+
+### Externalization
+
+When Astro builds your site for production deployment, it processes and minifies your scripts. When scripts are above 4kB in size, they will be made into external files using `<script type="module" src="...">`, while smaller ones are inlined directly as `<script type="module">` with the JavaScript code embedded. This approach provides a balance between the number of additional requests and the volume of JavaScript that can be cached between pages.
+
+You can configure the size at which scripts will be linked externally (in bytes) using the `assetsInlineLimit` vite build option. Note that this option affects stylesheet and image inlining as well.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  }
+});
+```
+
+#### External script behavior
+
+External scripts with `type="module"` are automatically deferred by the browser and handled differently by Astro's [client router](/en/reference/modules/astro-transitions/#clientrouter). See the [View Transitions Guide](/en/guides/view-transitions/#script-behavior-with-view-transitions) for more information.
+
 
 ## Common script patterns
 
@@ -147,9 +120,8 @@ Instead, you can use [`addEventListener`](https://developer.mozilla.org/en-US/do
 </script>
 ```
 
-:::note
 If you have multiple `<AlertButton />` components on a page, Astro will not run the script multiple times. Scripts are bundled and only included once per page. Using `querySelectorAll` ensures that this script attaches the event listener to every button with the `alert` class found on the page.
-:::
+
 
 ### Web components with custom elements
 
@@ -196,9 +168,7 @@ There are two advantages to using a custom element here:
 
 ### Pass frontmatter variables to scripts
 
-In Astro components, the code in [the frontmatter](/en/basics/astro-components/#the-component-script) between the `---` fences runs on the server and is not available in the browser. To send variables from the server to the client, we need a way to store our variables and then read them when JavaScript runs in the browser.
-
-One way to do this is to use [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) to store the value of variables in your HTML output. Scripts, including custom elements, can then read these attributes using an element’s `dataset` property once your HTML loads in the browser.
+In Astro components, [the frontmatter](/en/basics/astro-components/#the-component-script) code runs on the server and is not available in the browser. To pass server-side variables to client-side scripts, store them in [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) on HTML elements. Scripts can then access these values using the `dataset` property.
 
 In this example component, a `message` prop is stored in a `data-message` attribute, so the custom element can read `this.dataset.message` and get the value of the prop in the browser.
 
