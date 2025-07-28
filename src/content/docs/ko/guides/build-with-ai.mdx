@@ -9,7 +9,7 @@ i18nReady: true
 description: AI의 도움을 받아 Astro 사이트를 구축하기 위한 리소스 및 팁
 ---
 
-import { Steps, LinkButton, Card } from '@astrojs/starlight/components';
+import { Steps, LinkButton, Card, Tabs, TabItem } from '@astrojs/starlight/components';
 
 AI 기반 편집기 및 에이전트 코딩 도구는 일반적으로 Astro의 핵심 API와 개념에 대해 잘 알고 있습니다. 그러나 일부는 이전 API를 사용하며 최신 기능이나 프레임워크의 최근 변경 사항을 알지 못할 수 있습니다.
 
@@ -39,23 +39,77 @@ Astro Docs MCP 서버는 [kapa.ai](https://www.kapa.ai/) API를 사용하여 Ast
 - **URL**: `https://mcp.docs.astro.build/mcp`
 - **전송 방식**: 스트리밍 가능한 HTTP
 
-이 서버는 스트리밍 가능한 HTTP 전송을 사용하므로 일부 도구와 호환되지 않을 수 있습니다. 해당 도구의 문서에서 MCP 지원 여부를 확인하세요.
-
 ### 설치
 
 설치 프로세스는 사용하는 AI 개발 도구에 따라 다릅니다. 일부 도구는 MCP 서버를 커넥터, 어댑터, 확장 또는 플러그인으로 참조합니다.
 
-#### Claude Code
+#### 직접 설정하기
+
+많은 도구가 MCP 서버를 위한 일반적인 JSON 구성 형식을 지원합니다. 선택한 도구에 대한 구체적인 지침이 없는 경우, 도구의 MCP 설정에 다음 구성을 포함하여 Astro Docs MCP 서버를 추가할 수 있습니다.
+
+<Tabs>
+  <TabItem label="스트리밍 가능한 HTTP">
+    ```json title="mcp.json" {3-6}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "http",
+          "url": "https://mcp.docs.astro.build/mcp"
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="로컬 프록시">
+    ```json title="mcp.json" {3-7}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+#### Claude Code CLI
 
 [Claude Code](https://docs.anthropic.com/ko/docs/claude-code/overview)는 명령줄에서 실행되는 에이전트 코딩 도구입니다. Astro Docs MCP 서버를 활성화하면 Astro 코드를 생성하는 동안 최신 문서에 액세스할 수 있습니다.
 
 다음 터미널 명령을 사용하여 설치합니다.
 
 ```shell
-claude mcp add --transport http "Astro docs" https://mcp.docs.astro.build/mcp
+claude mcp add --transport http astro-docs https://mcp.docs.astro.build/mcp
 ```
 
 [Claude Code에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://docs.anthropic.com/ko/docs/claude-code/mcp)
+
+#### Claude Code GitHub Action
+
+Claude Code는 GitHub 이벤트에 대한 응답으로 명령을 실행하는 데 사용할 수 있는 GitHub 액션도 제공합니다. Astro Docs MCP 서버를 활성화하면 댓글로 질문에 답변하거나 Astro 코드를 생성하면서 최신 문서에 액세스할 수 있습니다.
+
+문서에 액세스하기 위해 워크플로 파일에 다음을 추가하여 Astro Docs MCP 서버를 사용하도록 구성할 수 있습니다.
+
+```yaml title=".github/workflows/claude.yml" {5-14}
+# ...나머지 워크플로 구성
+- uses: anthropics/claude-code-action@beta
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    mcp_config: |
+      {
+        "mcpServers": {
+          "astro-docs": {
+            "type": "http",
+            "url": "https://mcp.docs.astro.build/mcp"
+          }
+        }
+      }
+    allowed_tools: "mcp__astro-docs__search_astro_docs" 
+```
+
+[Claude Code GitHub Action에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://github.com/anthropics/claude-code-action?tab=readme-ov-file#using-custom-mcp-configuration)
 
 #### Cursor
 
@@ -146,6 +200,24 @@ Windsurf는 HTTP 스트리밍을 지원하지 않으므로 로컬 프록시 구�
 </Steps>
 
 [Windsurf에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json)
+
+#### Gemini CLI
+
+Gemini CLI는 명령줄 AI 코딩 도구로, Astro 코드를 생성하면서 문서에 액세스하기 위해 Astro Docs MCP 서버를 사용할 수 있습니다.
+
+전역 수준에 있는 `~/.gemini/settings.json` 파일 또는 프로젝트 루트에 있는 `.gemini/settings.json` 파일에서 MCP 서버를 구성할 수 있습니다.
+
+```json title=".gemini/settings.json" {3-5}
+{
+  "mcpServers": {
+    "Astro docs": {
+      "httpUrl": "https://mcp.docs.astro.build/mcp",
+    }
+  }
+}
+``` 
+
+[Gemini CLI에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
 
 #### Zed
 
