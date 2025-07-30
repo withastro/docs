@@ -31,15 +31,23 @@ jobs:
           node-version: 20 
 
       - name: Run textlint
+        id: textlint
         run: |
           echo "::group::Running textlint on Japanese documentation"
-          pnpm run lint:ja
+          set +e
+          pnpm run lint:ja 2>&1 | tee textlint-output.txt
+          TEXTLINT_EXIT_CODE=${PIPESTATUS[0]}
+          set -e
           echo "::endgroup::"
+
+          echo "exit_code=$TEXTLINT_EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $TEXTLINT_EXIT_CODE
         continue-on-error: true
-        id: textlint
 
       - name: Report textlint results
-        if: always() && steps.textlint.outcome == 'failure'
+        if: always() && steps.textlint.outputs.exit_code != '0'
         run: |
-          echo "::error::textlint found issues in Japanese documentation. Please run 'pnpm run lint:ja' locally to see details."
+          echo "::error::textlint found issues in Japanese documentation"
+          cat textlint-output.txt
+          echo "To fix these issues locally, run: pnpm run lint:ja"
           exit 1
