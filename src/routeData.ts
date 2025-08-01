@@ -11,7 +11,29 @@ export const onRequest = defineRouteMiddleware((context) => {
 });
 
 function updateHead(context: APIContext) {
-	const { head, isFallback, lang } = context.locals.starlightRoute;
+	const { head, entry, isFallback, lang, entryMeta } = context.locals.starlightRoute;
+
+	const title = head.find((item) => item.tag === 'title');
+	const frontmatterTitle = entry.data.head.find((item) => item.tag === 'title');
+
+	// Update the title of tutorial entry which do not provide a custom title in their frontmatter.
+	if (isTutorialEntry(entry) && title && !frontmatterTitle) {
+		// Check if a prefix translation exists for the page content language, without any possible
+		// fallback.
+		const isPrefixTranslated = context.locals.t.exists('tutorial.title.prefix', {
+			lngs: [entryMeta.lang],
+		});
+
+		if (isPrefixTranslated) {
+			// If a prefix translation exists, use it to format the title.
+			title.content = context.locals.t('tutorial.title.prefix', {
+				title: title.content,
+				// Explicitly use the language based on the page content, which can be different from the
+				// page language for fallback pages.
+				lngs: [entryMeta.lang],
+			});
+		}
+	}
 
 	const ogImageUrl = getOgImageUrl(context.url.pathname, !!isFallback);
 	const imageSrc = ogImageUrl ?? '/default-og-image.png';
@@ -40,7 +62,7 @@ function updateHead(context: APIContext) {
 function updateTutorialPagination(starlightRoute: StarlightRouteData) {
 	const { entry, locale, pagination } = starlightRoute;
 
-	if (entry.id.split('/')[1] !== 'tutorial') return;
+	if (!isTutorialEntry(entry)) return;
 
 	const tutorialPages = getTutorialPages(pages, locale!);
 	const i = tutorialPages.findIndex((p) => p.id === entry.id);
@@ -70,4 +92,8 @@ function updateTutorialPagination(starlightRoute: StarlightRouteData) {
 			attrs: {},
 		};
 	}
+}
+
+function isTutorialEntry(entry: StarlightRouteData['entry']) {
+	return entry.id.split('/')[1] === 'tutorial';
 }

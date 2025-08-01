@@ -1,0 +1,369 @@
+---
+type: integration
+title: '@astrojs/netlify'
+description: '@astrojs/netlifyアダプターを使用してAstroプロジェクトをデプロイする方法を学びます。'
+sidebar:
+  label: Netlify
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/netlify/'
+category: adapter
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+
+このアダプターを使用すると、Astroで[オンデマンドでレンダリングされたルートと機能](/ja/guides/on-demand-rendering/)を[Netlify](https://www.netlify.com/)にデプロイできます。これには、[サーバーアイランド](/ja/guides/server-islands/)、[アクション](/ja/guides/actions/)、[セッション](/ja/guides/sessions/)が含まれます。
+
+Astroを静的サイトビルダーとして使用している場合、このアダプターが必要になるのは、サーバーを必要とする追加のNetlifyサービス（[Netlify Image CDN](#netlify-image-cdnのサポート)など）を使用している場合のみです。それ以外の場合、静的サイトをデプロイするためにアダプターは必要ありません。
+
+[Netlifyデプロイガイド](/ja/guides/deploy/netlify/)でAstroサイトをデプロイする方法を学びましょう。
+
+## Astro Netlifyを選ぶ理由
+
+[Netlify](https://www.netlify.com/)は、GitHubリポジトリに直接接続してサイトをホストできるデプロイメントプラットフォームです。このアダプターは、Astroのビルドプロセスを強化し、Netlifyを介したデプロイメントのためにプロジェクトを準備します。
+
+## インストール
+
+Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。もしよろしければ、[手動でインテグレーションをインストールする](#手動インストール)こともできます。
+
+`astro add`コマンドでNetlifyアダプターを追加して、Astroプロジェクトでオンデマンドレンダリングを有効にします。
+これにより、`@astrojs/netlify`がインストールされ、`astro.config.mjs`ファイルに適切な変更が一度に行われます。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+これで、[ページごとにオンデマンドレンダリングを有効にする](/ja/guides/on-demand-rendering/#オンデマンドレンダリングを有効にする)か、ビルド出力設定を`output: 'server'`に設定して[デフォルトですべてのページをサーバーレンダリングする](/ja/guides/on-demand-rendering/#serverモード)ことができます。
+
+### 手動インストール
+
+まず、お好みのパッケージマネージャーを使用して、Netlifyアダプターをプロジェクトの依存関係にインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、アダプターを`astro.config.*`ファイルに追加します。
+
+   ```js title="astro.config.mjs" ins={2, 6}
+    import { defineConfig } from 'astro/config';
+    import netlify from '@astrojs/netlify';
+
+    export default defineConfig({
+       // ...
+       adapter: netlify(),
+    });
+   ```
+
+## 使い方
+
+[デプロイガイドはこちらでご覧いただけます。](/ja/guides/deploy/netlify/)
+
+指示に従って[サイトをローカルでビルド](/ja/guides/deploy/#ローカルでサイトをビルドする)します。ビルド後、`.netlify/`フォルダーが作成され、その中には`.netlify/functions-internal/`フォルダーに[Netlify Functions](https://docs.netlify.com/functions/overview/)が、`.netlify/edge-functions/`フォルダーに[Netlify Edge Functions](https://docs.netlify.com/edge-functions/overview/)が含まれます。
+
+サイトをデプロイするには、[Netlify CLI](https://docs.netlify.com/cli/get-started/)をインストールして実行します。
+
+```sh
+netlify deploy
+```
+
+[Astroに関するNetlifyブログ投稿](https://www.netlify.com/blog/how-to-deploy-astro/)と[Netlifyドキュメント](https://docs.netlify.com/integrations/frameworks/astro/)には、このインテグレーションを使用してNetlifyにデプロイする方法に関する詳細情報が記載されています。
+
+### Netlify Edge FunctionsでAstroミドルウェアを実行する
+
+Astroミドルウェアは、ビルド時に事前レンダリングされたページに、実行時にオンデマンドでレンダリングされたページに適用されます。
+
+事前レンダリングされたページのリダイレクト、アクセス制御、またはカスタムレスポンスヘッダーを実装するには、[`edgeMiddleware`オプション](/ja/reference/adapter-reference/#edgemiddleware機能について)を有効にして、Netlify Edge Functionsでミドルウェアを実行します。
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    edgeMiddleware: true,
+  }),
+});
+```
+
+`edgeMiddleware`が有効になっている場合、Edge functionsは、静的アセット、事前レンダリングされたページ、オンデマンドでレンダリングされたページを含むすべてのリクエストに対してミドルウェアコードを実行します。
+
+オンデマンドでレンダリングされたページの場合、`context.locals`オブジェクトはJSONを使用してシリアル化され、レンダリングを実行するサーバーレス関数にヘッダーで送信されます。セキュリティ対策として、サーバーレス関数は、生成されたEdge functionsからのリクエストでない限り、`403 Forbidden`レスポンスでリクエストを拒否します。
+
+### サイトからEdge Contextにアクセスする
+
+Netlify Edge Functionsは、ユーザーのIP、地理位置情報データ、Cookieなどのリクエストに関するメタデータを含む[コンテキストオブジェクト](https://docs.netlify.com/edge-functions/api/#netlify-specific-context-object)を提供します。
+
+これは`Astro.locals.netlify.context`オブジェクトを介してアクセスできます。
+
+```astro
+---
+const {
+  geo: { city },
+} = Astro.locals.netlify.context;
+---
+
+<h1>{city}から来たフレンドリーな訪問者さん、こんにちは！</h1>
+```
+
+TypeScriptを使用している場合は、`src/env.d.ts`を更新して`NetlifyLocals`を使用することで、適切な型指定を取得できます。
+
+```ts title="src/env.d.ts"
+type NetlifyLocals = import('@astrojs/netlify').NetlifyLocals
+
+declare namespace App {
+  interface Locals extends NetlifyLocals {
+    // ...
+  }
+}
+```
+
+これは事前レンダリングされたページでは利用できません。
+
+### Netlify Image CDNのサポート
+
+このアダプターは、デフォルトで[Netlify Image CDN](https://docs.netlify.com/image-cdn/overview/)を使用して、ビルド時間に影響を与えることなく画像をオンザフライで変換します。
+これは、内部で[Astro Image Service](/ja/reference/image-service-reference/)を使用して実装されています。
+
+NetlifyのImage CDNのリモート画像最適化をオプトアウトするには、`imageCDN`オプションを使用します。
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    imageCDN: false,
+  }),
+});
+```
+
+別のドメインでホストされている画像を使用している場合は、[`image.domains`](/ja/reference/configuration-reference/#imagedomains)または[`image.remotePatterns`](/ja/reference/configuration-reference/#imageremotepatterns)設定オプションを使用して、ドメインまたはURLパターンを承認する必要があります。
+
+```js title="astro.config.mjs" ins={7-9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+    // ...
+    adapter: netlify(),
+    image: {
+      domains: ['example.com'],
+    },
+});
+```
+詳細については、[リモート画像の承認ガイド](/ja/guides/images/#リモート画像の許可)を参照してください。これは、サイトと同じドメインでホストされている画像には必要ありません。
+
+### Netlifyアダプターを使用した静的サイト
+
+Netlifyでホストされている静的サイト（`output: 'static'`）の場合、通常はアダプターは必要ありません。ただし、一部のデプロイ機能はアダプターを介してのみ利用できます。
+
+静的サイトでは、Netlifyの[画像サービス](#netlify-image-cdnのサポート)を使用して設定するために、このアダプターをインストールする必要があります。
+
+Astro設定で`redirects`設定を使用する場合、Netlifyアダプターを使用してこれを適切な`_redirects`形式に変換できます。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify(),
+  redirects: {
+    '/blog/old-post': '/blog/new-post',
+  },
+});
+```
+
+`astro build`を実行すると、`dist/_redirects`ファイルが作成されます。Netlifyは、本番環境でページを適切にルーティングするためにそれを使用します。
+
+:::note
+手動リダイレクト用に`public/_redirects`ファイルをまだ含めることができます。リダイレクト設定で指定したリダイレクトは、独自のリダイレクトの末尾に追加されます。
+:::
+
+### セッション
+
+Astro [Sessions API](/ja/guides/sessions/)を使用すると、リクエスト間でユーザーデータを簡単に保存できます。これは、ユーザーデータや設定、ショッピングカート、認証情報などに使用できます。Cookieストレージとは異なり、データにサイズ制限はなく、別のデバイスで復元できます。
+
+Astroは、Netlifyアダプターを使用する場合、セッションストレージ用に[Netlify Blobs](https://docs.netlify.com/blobs/overview/)を自動的に設定します。別のセッションストレージドライバーを使用したい場合は、Astro設定で指定できます。詳細については、[ `session`設定リファレンス](/ja/reference/configuration-reference/#sessiondriver)を参照してください。
+
+### ページのキャッシュ
+
+動的コンテンツのないオンデマンドでレンダリングされたページは、パフォーマンスを向上させ、リソース使用量を削減するためにキャッシュできます。
+アダプターで`cacheOnDemandPages`オプションを有効にすると、すべてのサーバーでレンダリングされたページが最大1年間キャッシュされます。
+
+```ts title="astro.config.mjs" ins={4}
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    cacheOnDemandPages: true,
+  }),
+});
+```
+
+これは、レスポンスにキャッシュヘッダーを追加することで、ページごとに変更できます。
+
+```astro title="pages/index.astro"
+---
+import Layout from '../components/Layout.astro';
+
+Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revalidate');
+---
+
+<Layout title="Astro on Netlify">
+  {new Date()}
+</Layout>
+```
+
+[きめ細かなキャッシュ制御](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/)により、Netlifyは`CDN-Cache-Control`や`Vary`などの標準的なキャッシュヘッダーをサポートしています。
+TTL（Time to Live）やSWR（Stale While Revalidate）キャッシングの実装方法については、ドキュメントを参照してください：https://docs.netlify.com/platform/caching
+
+### Netlify Functionsからのファイルのインクルードまたは除外
+
+オンデマンドレンダリングでAstroサイトをNetlifyにデプロイする場合、生成された関数はサーバーの依存関係を自動的にトレースしてインクルードします。ただし、Netlify Functionsにインクルードするファイルをカスタマイズする必要がある場合があります。
+
+#### `includeFiles`
+
+<p>
+**Type:**  `string[]`<br />
+**Default:** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+`includeFiles`プロパティを使用すると、関数にバンドルする必要がある追加のファイルを明示的に指定できます。これは、次のような依存関係として自動的に検出されないファイルに役立ちます。
+- `fs`操作を使用してロードされたデータファイル
+- 設定ファイル
+- テンプレートファイル
+
+プロジェクトの[`root`](/ja/reference/configuration-reference/#root)からの相対ファイルパスを持つ追加ファイルの配列を指定します。絶対パスは期待どおりに機能しない場合があります。
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    includeFiles: ['./my-data.json'], // `root`からの相対パス
+  }),
+});
+```
+
+#### `excludeFiles`
+
+<p>
+**Type:**  `string[]`<br />
+**Default:** `[]`<br />
+<Since v="5.3.0" />
+</p>
+
+`excludeFiles`プロパティを使用して、通常はインクルードされる特定のファイルがバンドルされないようにすることができます。これは、次の場合に役立ちます。
+- バンドルサイズの削減
+- 大きなバイナリの除外
+- 不要なファイルがデプロイされないようにする
+
+プロジェクトの[`root`](/ja/reference/configuration-reference/#root)からの相対ファイルパスを持つ除外する特定のファイルの配列を指定します。絶対パスは期待どおりに機能しない場合があります。
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    excludeFiles: ['./src/some_big_file.jpg'], // `root`からの相対パス
+  }),
+});
+```
+
+#### globパターンの使用
+
+`includeFiles`と`excludeFiles`の両方で、複数のファイルを照合するための[globパターン](/ja/guides/imports/#globパターン)がサポートされています。
+
+```js title="astro.config.mjs" ins={7, 10-11}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  adapter: netlify({
+    includeFiles: [
+      './data/**/*.json'
+    ],
+    excludeFiles: [
+      './node_modules/package/**/*',
+      './src/**/*.test.js'
+    ]
+  }),
+});
+```
+
+## 実験的な機能
+
+以下の機能も利用可能ですが、将来のアップデートで破壊的な変更が加えられる可能性があります。この機能をプロジェクトで使用している場合は、[`@astrojs/netlify` CHANGELOG](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/CHANGELOG.md)で更新情報を確認してください。
+
+### `experimentalStaticHeaders`
+
+<p>
+  **Type:** `boolean` <br />
+  **Default:** `false`<br />
+  <Since v="6.4.0"  pkg="@astrojs/netlify"/>
+</p>
+
+Netlifyの設定で事前レンダリングされたページのカスタムヘッダーを指定できるようにします。
+
+有効にすると、アダプターはコンテンツセキュリティポリシーなどのAstroの機能によって提供された[静的ヘッダーをフレームワークAPI設定ファイル](https://docs.netlify.com/frameworks-api/#headers)に保存します。
+
+たとえば、[実験的なコンテンツセキュリティポリシー](/ja/reference/experimental-flags/csp/)が有効な場合、`experimentalStaticHeaders`を使用して、`<meta>`要素を作成する代わりにCSP `headers`をNetlify設定に追加できます。
+
+```js title="astro.config.mjs" {9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: netlify({
+    experimentalStaticHeaders: true
+  })
+});
+```
+
+
+## 例
+
+* [Astro Netlify Edge Starter](https://github.com/sarahetter/astro-netlify-edge-starter)には、例とREADMEのガイドが記載されています。
+
+* その他の例については、[GitHubでAstro Netlifyプロジェクトを閲覧](https://github.com/search?q=path%3A**%2Fastro.config.mjs+%40astrojs%2Fnetlify\&type=code)してください！
+
+
+[astro-integration]: /ja/guides/integrations-guide/
