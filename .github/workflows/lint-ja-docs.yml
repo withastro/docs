@@ -1,0 +1,53 @@
+name: Lint Japanese Documentation
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'src/content/docs/ja/**'
+      - '.textlintrc.ja.json'
+  pull_request:
+    paths:
+      - 'src/content/docs/ja/**'
+      - '.textlintrc.ja.json'
+
+# Automatically cancel in-progress actions on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request_target' && github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  textlint:
+    name: Run textlint on Japanese documentation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+        with:
+          node-version: 20 
+
+      - name: Run textlint
+        id: textlint
+        run: |
+          echo "::group::Running textlint on Japanese documentation"
+          set +e
+          pnpm run lint:ja 2>&1 | tee textlint-output.txt
+          TEXTLINT_EXIT_CODE=${PIPESTATUS[0]}
+          set -e
+          echo "::endgroup::"
+
+          echo "exit_code=$TEXTLINT_EXIT_CODE" >> $GITHUB_OUTPUT
+          exit $TEXTLINT_EXIT_CODE
+        continue-on-error: true
+
+      - name: Report textlint results
+        if: always() && steps.textlint.outputs.exit_code != '0'
+        run: |
+          echo "::error::textlint found issues in Japanese documentation"
+          cat textlint-output.txt
+          echo "To fix these issues locally, run: pnpm run lint:ja"
+          exit 1
