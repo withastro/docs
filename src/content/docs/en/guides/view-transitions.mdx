@@ -6,17 +6,14 @@ i18nReady: true
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
-Astro supports view transitions with just a few lines of code. View transitions update your page content without the browser’s normal, full-page navigation refresh and provide seamless animations between pages. Where [browser support for the View Transition API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility) is lacking, Astro allows you to [control fallback strategies](#fallback-control) for the best possible experience for all visitors.  
+[View transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) are animated transitions between different website views. They are a popular design choice for preserving visual continuity as visitors move between states or views of an application.
 
-Astro provides a `<ClientRouter />` routing component that can be added to a single page's `<head>` to control page transitions as you navigate away to another page. It provides a lightweight client-side router that [intercepts navigation](#client-side-navigation-process) and allows you to customize the transition between pages.
-
-Add this component to a reusable `.astro` component, such as a common head or layout, for [animated page transitions across your entire site (SPA mode)](#full-site-view-transitions-spa-mode).
-
-Astro's view transitions support is powered by the new [View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) browser API and also includes:
+Astro's view transitions and client-side routing support is powered by the [View Transitions browser API](https://developer.chrome.com/docs/web-platform/view-transitions/) and also includes:
 
 - A few [built-in animation options](#built-in-animation-directives), such as `fade`, `slide`, and `none`.
 - Support for both forwards and backwards navigation animations.
 - The ability to fully [customize all aspects of transition animation](#customizing-animations), and build your own animations.
+- A way to carry HTML elements from the current page to the next during navigation.
 - The option to [prevent client-side navigation for non-page links](#preventing-client-side-navigation).
 - [Control over fallback behavior](#fallback-control) for browsers that do not yet support the View Transition APIs.
 - Automatic support for [`prefers-reduced-motion`](#prefers-reduced-motion).
@@ -25,26 +22,22 @@ Astro's view transitions support is powered by the new [View Transitions](https:
 By default, every page will use regular, full-page, browser navigation. You must opt in to view transitions and can use them either on a per-page basis or site-wide.
 :::
 
-## Adding View Transitions to a Page
+## Differences between browser-native view transitions and Astro's `<ClientRouter />`
 
-Opt in to using view transitions on individual pages by importing and adding the `<ClientRouter />` routing component to `<head>` on every desired page.
+[Browser-native, cross-document view transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#basic_mpa_view_transition) can be used in Astro to animate the navigation between documents in a multi-page app (MPA), often providing the experience of client-side routing of single-page applications. They don’t alter the core functionality of a multi-page application, nor do they affect any existing scripts or add additional JavaScript to your page load. They simply add animations.
 
-```astro title="src/pages/index.astro" ins={2,7}
----
-import { ClientRouter } from "astro:transitions";
----
-<html lang="en">
-  <head>
-    <title>My Homepage</title>
-    <ClientRouter />
-  </head>
-  <body>
-    <h1>Welcome to my website!</h1>
-  </body>
-</html>
-```
+For enhanced client-side routing and view transition features not yet fully supported by the View Transition API, Astro provides a built-in, lightweight component to enable client-side routing and turn your multi-page app into a [single-page app](#enabling-view-transitions-spa-mode) with smooth animations on navigation.
 
-## Full site view transitions (SPA mode)
+That comes with some benefits, like shared state across pages and persistent elements, and some drawbacks, such as needing to manually reinitialize scripts or state after navigation.
+
+Adding Astro's built-in `<ClientRouter />` component:
+- [intercepts page navigation](#client-side-navigation-process) and gives you considerable control over this process.
+- extends and enhances some View Transition/Navigation API features.
+- allows you to [configure fallback strategies](#fallback-control) for when [native browser support is lacking](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
+
+However, as browser APIs and web standards evolve, using Astro's `<ClientRouter />` for this additional functionality [will increasingly become unnecessary](https://astro.build/blog/future-of-astro-zero-js-view-transitions/). We recommend keeping up with the current state of browser APIs so you can [decide whether you still need Astro's client-side routing](https://events-3bg.pages.dev/jotter/astro-view-transitions/) for the specific features you use.
+
+## Enabling view transitions (SPA mode)
 
 Import and add the `<ClientRouter />` component to your common `<head>` or shared layout component. Astro will create default page animations based on the similarities between the old and new page, and will also provide fallback behavior for unsupported browsers.
 
@@ -709,7 +702,9 @@ The following example demonstrates how to use these functions to recreate Astro'
     restoreFocusFunction();
   }
   
-  event.swap = () => mySwap(event.newDocument);
+  document.addEventListener("astro:before-swap", (event) => {
+    event.swap = () => mySwap(event.newDocument);
+  });
 <script>
 ```
 

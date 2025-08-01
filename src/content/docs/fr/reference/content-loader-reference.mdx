@@ -12,7 +12,7 @@ L'API du chargeur de contenu d'Astro (Content Loader) vous permet de charger vos
 
 Les chargeurs Astro vous permettent de charger des données dans des [collections de contenu](/fr/guides/content-collections/), qui peuvent ensuite être utilisées dans des pages et des composants. Les [chargeurs intégrés `glob()` et `file()`](/fr/guides/content-collections/#chargeurs-intégrés) sont utilisés pour charger le contenu du système de fichiers, et vous pouvez créer vos propres chargeurs pour charger le contenu à partir d'autres sources.
 
-Chaque collection a besoin [d'un chargeur défini dans son schéma](/fr/guides/content-collections/#définir-le-loader-de-collection). Vous pouvez définir un chargeur en ligne dans le fichier `src/content.config.ts` de votre projet, partager un chargeur entre plusieurs collections, ou même [publier votre chargeur sur NPM en tant que paquet](/fr/reference/publish-to-npm/) à partager avec d'autres et à inclure dans notre bibliothèque d'intégrations.
+Chaque collection a besoin [d'un chargeur défini dans son schéma](/fr/guides/content-collections/#définir-le-chargeur-de-collection-loader). Vous pouvez définir un chargeur en ligne dans le fichier `src/content.config.ts` de votre projet, partager un chargeur entre plusieurs collections, ou même [publier votre chargeur sur NPM en tant que paquet](/fr/reference/publish-to-npm/) à partager avec d'autres et à inclure dans notre bibliothèque d'intégrations.
 
 ## Chargeurs intégrés
 
@@ -351,6 +351,45 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
+#### `renderMarkdown`
+
+<p>
+
+**Type** : `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+Restitue une chaîne Markdown en HTML, renvoyant un objet `RenderedContent`.
+
+Cela vous permet de restituer le contenu Markdown directement dans vos chargeurs en utilisant le même traitement Markdown que le chargeur `glob` intégré d'Astro et donne accès à la fonction `render()` et au composant `<Content />` pour [la restitution du contenu](/fr/guides/content-collections/#restitution-du-contenu).
+
+Affecter cet objet au champ [renderer](#rendered) de l'objet [DataEntry](#dataentry) pour permettre aux utilisateurs d'[afficher le contenu dans une page](/fr/guides/content-collections/#restitution-du-contenu).
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set({
+          id: entry.id,
+          data: entry,
+          // Suppose que chaque entrée possède un champ `content` avec du contenu Markdown
+          rendered: await renderMarkdown(entry.content),
+        });
+      }
+    },
+  };
+}
+```
+
 #### `generateDigest`
 
 <p>
@@ -576,7 +615,7 @@ Il est de la responsabilité du chargeur d'utiliser [`parseData`](#parsedata) po
 
 Chemin d'accès au fichier source de cette entrée, par rapport à la racine du site. Cela s'applique uniquement aux chargeurs basés sur des fichiers et est utilisé pour résoudre des chemins tels que des images ou d'autres ressources.
 
-S'il n'est pas défini, tous les champs du schéma qui utilisent [l'assistant `image()`](/fr/guides/images/#images-dans-les-collections-de-contenus) seront traités comme des [chemins publics](/fr/guides/images/#où-stocker-les-images) et non transformés.
+S'il n'est pas défini, tous les champs du schéma qui utilisent [l'assistant `image()`](/fr/guides/images/#images-dans-les-collections-de-contenu) seront traités comme des [chemins publics](/fr/guides/images/#où-stocker-les-images) et non transformés.
 
 #### `body`
 
@@ -618,7 +657,7 @@ Le format de l'objet `RenderedContent` est :
 	/** Chaîne HTML rendue. Si elle est présente, `render(entry)` renverra un composant qui restitue ce code HTML. */
 	html: string;
 	metadata?: {
-		/** Toutes les images présentes dans cette entrée. Par rapport au chemin d'accès au fichier {@link DataEntry}. */
+		/** Toutes les images présentes dans cette entrée. Relatives au chemin d'accès au fichier DataEntry. */
 		imagePaths?: Array<string>;
 		/** Tous les titres présents dans ce fichier. Renvoyé comme `headings` par `render()` */
 		headings?: MarkdownHeading[];
@@ -629,3 +668,5 @@ Le format de l'objet `RenderedContent` est :
 	};
 }
 ```
+
+Si l'entrée contient du contenu Markdown, vous pouvez utiliser la fonction [`renderMarkdown()`](#rendermarkdown) pour générer cet objet à partir de la chaîne Markdown.
