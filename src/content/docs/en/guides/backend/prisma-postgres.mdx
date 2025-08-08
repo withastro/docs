@@ -41,13 +41,15 @@ This will create:
 - A `prisma/` directory with a `schema.prisma` file
 - A `.env` file with a `DATABASE_URL` already set
 
-### Define a Temporary Model in `schema.prisma`
+### Define a Model
 
 Even if you don't need any specific data models yet, Prisma requires at least one model in the schema in order to generate a client and apply migrations.
 
-In this example, we'll define a simple `Post` model as a placeholder. You can safely delete or replace it later with models that reflect your actual data.
+The following example defines a `Post` model as a placeholder. Add the model to your schema to get started. You can safely delete or replace it later with models that reflect your actual data.
 
-```prisma title="prisma/schema.prisma" ins={11-16}
+Update the generator provider from `prisma-client-js` to `prisma-client` in your `prisma/schema.prisma` file:
+
+```prisma title="prisma/schema.prisma" {2} ins={11-16}
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
@@ -66,12 +68,11 @@ model Post {
 }
 ```
 
-> 💡 Prisma needs at least one model defined to run `migrate` and generate the Prisma Client.  
-> Learn more in the [Prisma schema reference](https://www.prisma.io/docs/concepts/components/prisma-schema).
+Learn more about configuring your Prisma ORM setup in the [Prisma schema reference](https://www.prisma.io/docs/concepts/components/prisma-schema).
 
-### Run Prisma Migrate
+### Generate migration files
 
-Run the following command to create the database tables and generate the Prisma Client from your schema. This will also create a `prisma/migrations/` directory with the migration files.
+Run the following command to create the database tables and generate the Prisma Client from your schema. This will also create a `prisma/migrations/` directory with migration history files.
 
 ```bash
 npx prisma migrate dev --name init
@@ -92,15 +93,14 @@ const prisma = new PrismaClient({
 export default prisma;
 ```
 
-You can now query your database in your Astro project using the Prisma Client.
+### Querying and displaying data
 
-The following example shows how to use your Prisma Client in an Astro page to fetch and display data:
+The following example shows fetching only your published posts with the Prisma Client sorted by `id`, and then displaying titles and post content in your Astro template:
 
-```typescript title="src/pages/posts.astro"
+```astro title="src/pages/posts.astro" {2, 4-7}
 ---
 import prisma from '../lib/prisma';
 
-// Fetch all published posts from the database
 const posts = await prisma.post.findMany({
   where: { published: true },
   orderBy: { id: 'desc' }
@@ -125,19 +125,19 @@ const posts = await prisma.post.findMany({
 </html>
 ```
 
-For more information on how to use Prisma Client in your Astro project, see the [Prisma Client API reference](https://www.prisma.io/docs/reference/api-reference/prisma-client-reference) and the [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/astro).
+It is best practice to handle queries in an API route. For more information on how to use Prisma ORM in your Astro project, see the [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/astro).
 
-## Connect via direct TCP connection
-
-If you want to use your connection string directly, you can do so with the `pg` package.
+## Direct TCP connection
+To connect to Prisma Postgres via direct TCP, you can create a direct connection string in your Prisma Console. This allows you to connect any other ORM, database library, or tool of your choice.
 
 ### Prerequisites
 - A [Prisma Postgres](https://pris.ly/ppg) database with a TCP enabled connection string
-- An Astro project with [on-demand rendering (SSR)](/en/guides/on-demand-rendering/) enabled
 
 ### Install dependencies
 
-Run the following command to install the `pg` package:
+This example will make a direct TCP connection using [`pg`, a PostgreSQL client for Node.js](https://github.com/brianc/node-postgres).
+
+Run the following command to install  the `pg` package:
 
 ```bash
 npm install pg
@@ -145,21 +145,37 @@ npm install pg
 
 ### Query your database client
 
-Provide your connection string to the `pg` client to fetch data from your database. The following example shows how to connect to your database and query the current time:
+Provide your connection string to the `pg` client to communicate with your SQL server and fetch data from your database.
 
-```typescript title="src/pages/index.astro"
+The following example of creating a table and inserting data can be used to validate your query URL and TCP connection:
+
+```astro title="src/pages/index.astro" {2-19}
+---
 import { Client } from 'pg';
-
-const client = new Client({ connectionString: import.meta.env.DATABASE_URL });
+const client = new Client({ 
+  connectionString: import.meta.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
 await client.connect();
-const res = await client.query('SELECT NOW() as current_time');
-const currentTime = res.rows[0].current_time;
-await client.end();
 
+await client.query(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id SERIAL PRIMARY KEY,
+    title TEXT UNIQUE,
+    content TEXT
+  );
+  
+  INSERT INTO posts (title, content)
+  VALUES ('Hello', 'World')
+  ON CONFLICT (title) DO NOTHING;
+`);
+
+const { rows } = await client.query('SELECT * FROM posts');
+await client.end();
 ---
 
-<h1>Current Time</h1>
-<p>The time is: {currentTime}</p>
+<h1>Posts</h1>
+<p>{rows[0].title}: {rows[0].content}</p>
 ```
 
 ## Official Resources
