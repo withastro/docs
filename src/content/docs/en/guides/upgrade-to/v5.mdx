@@ -723,7 +723,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	if (payload) {
 		const { actionName, actionResult } = payload.json();
 		setActionResult(actionName, actionResult);
-		context.cookies.delete('ACTION_PAYLOAD');
+		context.cookies.delete('ACTION_PAYLOAD', { path: '/' });
 		return next();
 	}
 
@@ -735,6 +735,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		context.cookies.set('ACTION_PAYLOAD', {
 			actionName: action.name,
 			actionResult: serializeActionResult(actionResult),
+		}, {
+			path: '/',      // Critical: ensures cookie works with trailingSlash: "ignore"
+			httpOnly: true,
+			sameSite: 'lax',
+			maxAge: 60
 		});
 
 		if (actionResult.error) {
@@ -752,6 +757,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	return next();
 })
 ```
+
+:::note[Cookie path configuration]
+The `path: '/'` option is critical when using `trailingSlash: "ignore"` (the default with `build.format: "directory"`). Without an explicit path, the cookie defaults to the request's directory path, which can cause cookies to be inaccessible after redirects between `/route` and `/route/`. Setting `path: '/'` ensures the cookie is available regardless of trailing slashes.
+:::
 
 ### Changed: `compiledContent()` is now an async function
 
