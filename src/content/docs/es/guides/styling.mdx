@@ -6,6 +6,7 @@ i18nReady: true
 import Since from '~/components/Since.astro';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro";
 
 Astro fue diseñado para que estilar y escribir CSS sea pan comido. Escribe tu propio CSS directamente dentro de un componente de Astro o importa tu biblioteca de CSS favorita como [Tailwind][tailwind]. También es compatible con lenguajes de estilo avanzados como [Sass][sass] y [Less][less].
 
@@ -77,7 +78,7 @@ También puedes mezclar reglas de CSS globales y locales en la misma etiqueta `<
     color: blue;
   }
 </style>
-<h1>Title</h1>
+<h1>Titulo</h1>
 <article><slot /></article>
 ```
 
@@ -296,7 +297,10 @@ Las reglas de CSS de Astro son evaluadas en este orden de aparición:
 
 ### Estilos locales
 
-Usar [estilos locales](#estilos-locales) no incrementa la _especificidad_ de tu CSS, pero siempre vendrán al final en el _orden de aparición_. Por lo tanto, tomarán prioridad sobre otros estilos de la misma especificidad. Por ejemplo, si importas una hoja de estilos que conflictúe con un estilo local, el valor del estilo local será aplicado:
+Dependiendo del valor que elijas para [`scopedStyleStrategy`](/es/reference/configuration-reference/#scopedstylestrategy), los estilos con alcance (scoped styles) pueden o no aumentar la [especificidad de la columna CLASS](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity#class_column).
+
+Sin embargo, los [estilos con alcance](#scoped-styles) siempre aparecerán al final en el orden de aparición. Por lo tanto, estos estilos tendrán prioridad sobre otros estilos con la misma especificidad. Por ejemplo, si importas una hoja de estilos que entra en conflicto con un estilo con alcance, se aplicará el valor del estilo con alcance:
+
 
 ```css title="src/components/hazlo-morado.css"
 h1 {
@@ -317,14 +321,15 @@ import "./hazlo-morado.css"
 </div>
 ```
 
-Si haces el estilo importado _más específico_, éste tendrá una mayor importancia que el estilo local:
+Los estilos con alcance serán sobrescritos si el estilo importado es más específico. El estilo con mayor especificidad tendrá prioridad sobre el estilo con alcance:
+
 
 ```css title="src/components/hazlo-morado.css"
-div > h1 {
+#intro {
   color: purple;
 }
 ```
-```astro title="src/components/MiComponente.astro"
+```astro title="src/components/MyComponent.astro"
 ---
 import "./hazlo-morado.css"
 ---
@@ -332,7 +337,7 @@ import "./hazlo-morado.css"
   h1 { color: red }
 </style>
 <div>
-  <h1>
+  <h1 id="intro">
     ¡Este encabezado será morado!
   </h1>
 </div>
@@ -397,6 +402,7 @@ Un patrón común en Astro es importar CSS global dentro de un [componente Plant
 :::
 
 ### Etiquetas link
+
 Las hojas de estilo cargadas mediante [etiquetas link](#carga-una-hoja-de-estilos-a-través-de-etiquetas-de-link) son evaluadas en orden, antes que cualquier otro estilo en un archivo de Astro. Por lo tanto, esos estilos tendrán menor importancia que las hojas de estilo importadas y los estilos locales:
 
 ```astro title="src/pages/index.astro"
@@ -421,13 +427,17 @@ import "../components/hazlo-morado.css"
 </html>
 ```
 
-## Integraciones CSS
+## Tailwind
 
-¡Astro viene con soporte para agregar bibliotecas, herramientas y frameworks de CSS populares a tu proyecto como [Tailwind](https://tailwindcss.com) y más!
+Astro incluye soporte para añadir librerías, herramientas y frameworks CSS populares a tu proyecto, como [Tailwind](https://tailwindcss.com) y más.
 
-### Tailwind
+Astro soporta tanto Tailwind 3 como 4. Puedes [agregar soporte para Tailwind 4 mediante un plugin de Vite](#agregar-tailwind-4) a tu proyecto con un comando CLI, o instalar las dependencias heredadas manualmente para añadir [soporte para Tailwind 3 mediante una integración de Astro](#soporte-antiguo-para-tailwind-3).
 
-Para usar Tailwind en tu proyecto, instala la integración oficial de [Astro Tailwind][tailwind] utilizando el comando `astro add` para tu gestor de paquetes:
+Para [actualizar tu proyecto Astro de Tailwind 3 a 4](#actualizar-de-tailwind-3) necesitarás tanto agregar soporte para Tailwind 4 como eliminar el soporte heredado de Tailwind 3.
+
+### Agregar Tailwind 4
+
+En Astro `>=5.2.0`, usa el comando `astro add tailwind` de tu gestor de paquetes para instalar el plugin oficial de Tailwind para Vite. Para agregar soporte de Tailwind 4 en versiones anteriores de Astro, sigue las [instrucciones en la documentación de Tailwind][tailwind] para agregar manualmente el plugin `@tailwindcss/vite` de Vite.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -447,9 +457,136 @@ Para usar Tailwind en tu proyecto, instala la integración oficial de [Astro Tai
   </Fragment>
 </PackageManagerTabs>
 
+Luego, importa `tailwindcss` en `src/styles/global.css` (o en otro archivo CSS de tu elección) para que las clases de Tailwind estén disponibles en tu proyecto Astro. Este archivo, incluyendo la importación, se creará por defecto si usaste el comando `astro add tailwind` para instalar el plugin de Vite.
 
-<ReadMore>Consulta la [guía de integraciones](/es/guides/integrations-guide/) para obtener instrucciones sobre cómo instalar, importar y configurar estas integraciones de Astro.</ReadMore>
+```css title="src/styles/global.css"
+@import "tailwindcss";
+```
 
+Importa este archivo en las páginas donde quieras que se aplique Tailwind. Esto se hace comúnmente en un componente de layout para que los estilos de Tailwind puedan usarse en todas las páginas que comparten ese layout:
+
+```astro title="src/layouts/Layout.astro"
+---
+import "../styles/global.css";
+---
+```
+
+### Actualizar de Tailwind 3
+
+Sigue los pasos para actualizar un proyecto Astro existente que use Tailwind v3 (con la integración `@astrojs/tailwind`) a Tailwind 4 (usando [el plugin `@tailwindcss/vite`](https://tailwindcss.com/docs/installation/framework-guides/astro)).
+
+<Steps>
+
+1. [Agrega soporte para Tailwind 4 a tu proyecto](#agrega-tailwind-4) mediante la CLI para la versión más reciente de Astro, o añadiendo el plugin de Vite manualmente.
+
+2. Desinstala la integración `@astrojs/tailwind` de tu proyecto:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm uninstall @astrojs/tailwind
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm remove @astrojs/tailwind
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn remove @astrojs/tailwind
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+    
+3. Elimina la integración `@astrojs/tailwind` de tu archivo `astro.config.mjs`:
+
+    ```js title="astro.config.mjs" del={2} del="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+
+4. Luego, actualiza tu proyecto siguiendo la [guía de actualización a la versión 4 de Tailwind](https://tailwindcss.com/docs/upgrade-guide#changes-from-v3).
+</Steps>
+
+## Soporte antiguo para Tailwind 3
+
+Para agregar (o mantener) soporte para Tailwind 3, necesitarás tener instalados tanto `tailwindcss@3` como la integración oficial de Astro para Tailwind, `@astrojs/tailwind`. La instalación manual de estas dependencias se usa solo para compatibilidad con el antiguo Tailwind 3, y no es necesaria para Tailwind 4. También necesitarás una [configuración antigua de Tailwind](https://v3.tailwindcss.com/docs/configuration#creating-your-configuration-file):
+
+<Steps>
+1. Instala Tailwind y la integración de Astro para Tailwind en las dependencias de tu proyecto usando el gestor de paquetes que prefieras:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Importa la integración en tu archivo `astro.config.mjs` y agrégala al arreglo `integrations[]`:
+
+    ```js title="astro.config.mjs" ins={2} ins="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+3. Crea un archivo `tailwind.config.mjs` en el directorio raíz de tu proyecto. Puedes usar el siguiente comando para generar un archivo de configuración básico:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npx tailwindcss init
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm dlx tailwindcss init
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn dlx tailwindcss init
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+4. Agrega la siguiente configuración básica a tu archivo `tailwind.config.mjs`:
+
+    ```ts title="tailwind.config.mjs" ins={3}
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    };
+    ```
+</Steps>
+
+<RecipeLinks slugs={["es/recipes/tailwind-rendered-markdown"]}/>
 
 ## Preprocesadores CSS
 
