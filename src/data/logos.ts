@@ -92,6 +92,7 @@ export const logos = LogoCheck({
 	strapi: { file: 'strapi.svg', padding: '.25em' },
 	microcms: { file: 'microcms.svg', padding: '.2em' },
 	preprcms: { file: 'preprcms.svg', padding: '0' },
+	'prisma-postgres': { file: 'prisma-postgres.svg', padding: '.20em' },
 	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
 	keystatic: { file: 'keystatic.svg', padding: '0' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
@@ -103,6 +104,7 @@ export const logos = LogoCheck({
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
+	optimizely: { file: 'optimizely.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
