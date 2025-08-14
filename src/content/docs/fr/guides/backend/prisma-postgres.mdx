@@ -1,0 +1,183 @@
+---
+title: Prisma Postgres & Astro
+description: Ajoutez une base de données Postgres serverless à votre projet Astro avec Prisma Postgres
+sidebar:
+  label: Prisma Postgres
+type: backend
+service: Prisma Postgres
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Prisma Postgres](https://www.prisma.io/) est une base de données Postgres entièrement gérée et serverless, conçue pour les applications Web modernes.
+
+## Connexion via l'ORM de Prisma (recommandé)
+
+L'[ORM de Prisma](https://www.prisma.io/orm) est la méthode recommandée pour se connecter à votre base de données Prisma Postgres. Il fournit des requêtes avec sûreté du typage, des migrations et des performances globales.
+
+### Prérequis
+- Un projet Astro avec un adaptateur installé pour activer le [rendu à la demande (SSR)](/fr/guides/on-demand-rendering/).
+
+### Installer les dépendances et initialiser Prisma
+
+Exécutez les commandes suivantes pour installer les dépendances de Prisma nécessaires :
+
+```bash
+npm install prisma tsx --save-dev
+npm install @prisma/extension-accelerate @prisma/client
+```
+
+Une fois installé, initialisez Prisma dans votre projet avec la commande suivante :
+
+```bash
+npx prisma init --db --output ../src/generated/prisma
+```
+
+Vous devrez répondre à quelques questions lors de la configuration de votre base de données Prisma Postgres. Sélectionnez la région la plus proche de votre emplacement et un nom facile à retenir pour votre base de données, comme « Mon projet Astro ».
+
+Cela créera :
+- Un répertoire `prisma/` avec un fichier `schema.prisma`
+- Un fichier `.env` avec une URL de base de données (`DATABASE_URL`) déjà définie
+
+### Définir un modèle
+
+Même si vous n'avez pas encore besoin de modèles de données spécifiques, Prisma nécessite au moins un modèle dans le schéma afin de générer un client et d'appliquer des migrations.
+
+L'exemple suivant définit un modèle `Post` comme valeur fictive. Ajoutez-le à votre schéma pour commencer. Vous pouvez le supprimer ou le remplacer en toute sécurité ultérieurement par des modèles qui reflètent vos données réelles.
+
+Mettez à jour le fournisseur du générateur de `prisma-client-js` vers `prisma-client` dans votre fichier `prisma/schema.prisma` :
+
+```prisma title="prisma/schema.prisma" {2} ins={11-16}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+}
+```
+
+Apprenez-en plus sur la configuration de l'ORM de Prisma dans la [référence du schéma Prisma](https://www.prisma.io/docs/concepts/components/prisma-schema).
+
+### Générer des fichiers de migration
+
+Exécutez la commande suivante pour créer les tables de base de données et générer le client Prisma à partir de votre schéma. Cela créera également un répertoire `prisma/migrations/` avec les fichiers d’historique de migration.
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Créer un client Prisma
+
+Dans le répertoire `/src/lib`, créez un fichier `prisma.ts`. Ce fichier initialisera et exportera votre instance du client Prisma afin que vous puissiez interroger votre base de données tout au long de votre projet Astro.
+
+```typescript title="src/lib/prisma.ts"
+import { PrismaClient } from "../generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
+
+const prisma = new PrismaClient({
+  datasourceUrl: import.meta.env.DATABASE_URL,
+}).$extends(withAccelerate());
+
+export default prisma;
+```
+
+### Interrogation et affichage des données
+
+L'exemple suivant montre comment récupérer uniquement vos articles publiés avec le client Prisma triés par `id`, puis afficher les titres et le contenu des articles dans votre modèle Astro :
+
+```astro title="src/pages/posts.astro" {2, 4-7}
+---
+import prisma from '../lib/prisma';
+
+const posts = await prisma.post.findMany({
+  where: { published: true },
+  orderBy: { id: 'desc' }
+});
+---
+
+<html>
+  <head>
+    <title>Articles publiés</title>
+  </head>
+  <body>
+    <h1>Articles publiés</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <h2>{post.title}</h2>
+          {post.content && <p>{post.content}</p>}
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+Il est recommandé de gérer les requêtes dans une route d'API. Pour plus d'informations sur la façon d'utiliser l'ORM de Prisma dans votre projet Astro, consultez le [guide Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro).
+
+## Connexion TCP directe
+Pour vous connecter à Prisma Postgres via TCP direct, vous pouvez créer une chaîne de connexion directe dans votre console Prisma. Cela vous permet de connecter n'importe quel autre ORM, bibliothèque de base de données ou outil de votre choix.
+
+### Prérequis
+- Une base de données [Prisma Postgres](https://pris.ly/ppg) avec une chaîne de connexion TCP activée
+
+### Installer les dépendances
+
+Cet exemple établira une connexion TCP directe en utilisant [`pg`, un client PostgreSQL pour Node.js](https://github.com/brianc/node-postgres).
+
+Exécutez la commande suivante pour installer le paquet `pg` :
+
+```bash
+npm install pg
+```
+
+### Interroger votre client de base de données
+
+Fournissez votre chaîne de connexion au client `pg` pour communiquer avec votre serveur SQL et récupérer les données de votre base de données.
+
+L'exemple suivant de création d'une table et d'insertion de données peut être utilisé pour valider votre URL de requête et votre connexion TCP :
+
+```astro title="src/pages/index.astro" {2-19}
+---
+import { Client } from 'pg';
+const client = new Client({ 
+  connectionString: import.meta.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+await client.connect();
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id SERIAL PRIMARY KEY,
+    title TEXT UNIQUE,
+    content TEXT
+  );
+  
+  INSERT INTO posts (title, content)
+  VALUES ('Hello', 'World')
+  ON CONFLICT (title) DO NOTHING;
+`);
+
+const { rows } = await client.query('SELECT * FROM posts');
+await client.end();
+---
+
+<h1>Articles</h1>
+<p>{rows[0].title}: {rows[0].content}</p>
+```
+
+## Ressources officielles
+
+- [Guide Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro)
