@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import { Steps } from '@astrojs/starlight/components'
+import Since from '~/components/Since.astro'
 
 Los tiempos de carga de las páginas juegan un papel importante en la usabilidad y el disfrute general de un sitio. La **precarga opcional** de Astro aporta los beneficios de las navegaciones de páginas casi instantáneas a su aplicación multipágina (MPA) a medida que sus visitantes interactúan con el sitio.
 
@@ -51,7 +52,6 @@ Cada estrategia está ajustada para precargar solo cuando sea necesario y ahorra
 
 - Si un visitante está usando el [modo ahorro de datos](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) o tiene una [conexión lenta](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), la precarga volverá a la estrategia `tap`.
 - Desplazarse rápidamente sobre los enlaces no los precargará.
-- Los enlaces que usan la estrategia `viewport` o `load` se precargan con una prioridad más baja para evitar obstruir la red.
 
 ### Estrategia de precarga predeterminada
 
@@ -106,17 +106,6 @@ Como algunas navegaciones no siempre aparecen como enlaces `<a />`, también pue
 </script>
 ```
 
-Puedes configurar adicionalmente la prioridad de la precarga pasando la opción `with`:
-
-```js
-// Precarga con `fetch()`, que tiene una prioridad más alta.
-prefetch('/about', { with: 'fetch' });
-
-// Precarga con `<link rel="prefetch">`, que tiene una prioridad más baja
-// y programado manualmente por el navegador. (predeterminado)
-prefetch('/about', { with: 'link' });
-```
-
 La API `prefetch()` incluye el mismo [modo de ahorro de datos](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) y [conexión lenta](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), por lo que solo precarga cuando sea necesario.
 
 Para ignorar la detección de conexiones lentas, puedes utilizar la opción `ignoreSlowConnection`:
@@ -126,11 +115,57 @@ Para ignorar la detección de conexiones lentas, puedes utilizar la opción `ign
 prefetch('/about', { ignoreSlowConnection: true });
 ```
 
+### `eagerness`
+
+<p>
+**Tipo:** `'immediate' | 'eager' | 'moderate' | 'conservative'`<br />
+**Por defecto:** `'immediate'`<br />
+<Since v="5.6.0" />
+</p>
+
+Con la bandera experimental [`clientPrerender`](/en/reference/experimental-flags/client-prerender/) activada, puedes usar la opción `eagerness` en `prefetch()` para sugerirle al navegador con qué nivel de anticipación debería realizar el *prefetch* o *prerender* de los enlaces de destino.
+
+Esto sigue la misma API descrita en la [API Speculation Rules](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script/type/speculationrules#eagerness) y, de forma predeterminada, se establece en `immediate` (la opción más agresiva). En orden decreciente de anticipación, las otras opciones son: `eager`, `moderate` y `conservative`.
+
+La opción `eagerness` te permite equilibrar el beneficio de reducir los tiempos de espera con respecto al consumo de ancho de banda, memoria y CPU para los visitantes de tu sitio. Algunos navegadores, como Chrome, tienen [límites para evitar una especulación excesiva](https://developer.chrome.com/blog/speculation-rules-improvements#chrome-limits) (*prerendering/prefetching* de demasiados enlaces).
+
+```astro
+---
+---
+<script>
+// Controlar el nivel de anticipación del prefetching con `experimental.clientPrerender`
+import { prefetch } from 'astro:prefetch';
+// Esta página consume muchos recursos
+prefetch('/data-heavy-dashboard', { eagerness: 'conservative' });
+// Esta página es fundamental en el recorrido del visitante
+prefetch('/getting-started'); // defaults to `{ eagerness: 'immediate' }`
+// Es posible que esta página no sea visitada
+prefetch('/terms-of-service', { eagerness: 'moderate' });
+</script>
+```
+
+Para usar `prefetch()` de forma programática con grandes conjuntos de enlaces, puedes establecer `eagerness: 'moderate'` para aprovechar las estrategias [First In, First Out (FIFO)](https://es.wikipedia.org/wiki/First_in,_first_out) y las heurísticas del navegador, permitiendo que el navegador decida cuándo hacer prerender/prefetch de los enlaces y en qué orden:
+
+```astro "{eagerness: 'moderate'}"
+<a class="link-moderate" href="/nice-link-1">A Nice Link 1</a>
+<a class="link-moderate" href="/nice-link-2">A Nice Link 2</a>
+<a class="link-moderate" href="/nice-link-3">A Nice Link 3</a>
+<a class="link-moderate" href="/nice-link-4">A Nice Link 4</a>
+...
+<a class="link-moderate" href="/nice-link-20">A Nice Link 20</a>
+<script>
+  import { prefetch } from 'astro:prefetch';
+  const linkModerate = document.getElementsByClassName('link-moderate');
+  linkModerate.forEach((link) => prefetch(link.getAttribute('href'), {eagerness: 'moderate'}));
+</script>
+```
+
+
 Asegúrate de importar `prefetch()` solo en scripts del lado del cliente, ya que depende de las API del navegador.
 
 ## Usar con View Transitions
 
-Cuando uses [View Transitions](/es/guides/view-transitions/) en una página, la precarga también estará habilitada de forma predeterminada. Establece una configuración predeterminada de `{ prefetchAll: true }` que habilita [la precarga para todos los enlaces](#precargar-todos-los-enlaces-de-forma-predeterminada) en la página.
+Cuando usas [el `<ClientRouter />` de Astro](/es/guides/view-transitions/##activar-transiciones-de-vista-modo-spa) en una página, la precarga también estará habilitada de forma predeterminada. Establece una configuración predeterminada de `{ prefetchAll: true }` que habilita [la precarga para todos los enlaces](#precargar-todos-los-enlaces-de-forma-predeterminada) en la página.
 
 Puedes personalizar la configuración de precarga en `astro.config.mjs` para anular la predeterminada. Por ejemplo:
   
@@ -153,6 +188,42 @@ export default defineConfig({
   }
 });
 ```
+
+## Compatibilidad con navegadores
+
+El *prefetching* de Astro utiliza [`<link rel="prefetch">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Attributes/rel/prefetch) si el navegador lo admite y, en caso contrario, recurre a la [API `fetch()`](https://developer.mozilla.org/es/docs/Web/API/Fetch_API).
+
+Los navegadores más comunes son compatibles con el *prefetching* de Astro, aunque con ligeras diferencias:
+
+### Chrome
+
+Chrome admite `<link rel="prefetch">`. El *prefetching* funciona como se espera.
+
+También es totalmente compatible con `<script type="speculationrules">` de la [API Speculation Rules](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API), que puede utilizarse para describir con más detalle las [estrategias y reglas de *prefetching*](#eagerness), mejorando la experiencia de usuario para quienes utilicen Chrome.
+
+Para aprovechar esta funcionalidad con `prefetch()`, deberás activar el experimento [`clientPrerender`](/es/reference/experimental-flags/client-prerender/).
+
+### Firefox
+
+Firefox admite `<link rel="prefetch">`, pero puede mostrar errores o fallar por completo:
+
+* Sin una cabecera de caché explícita (por ejemplo, [`Cache-Control`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Cache-Control) o [`Expires`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Expires)), el *prefetching* dará un error con `NS_BINDING_ABORTED`.
+* Incluso si ocurre un error, si la respuesta tiene una cabecera [`ETag`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/ETag) correcta, esta se reutilizará al navegar.
+* De lo contrario, si se produce un error sin otras cabeceras de caché, el *prefetch* no funcionará.
+
+### Safari
+
+Safari no admite `<link rel="prefetch">` y recurrirá a la API `fetch()`, la cual requiere que se configuren cabeceras de caché (por ejemplo, [`Cache-Control`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/Expires) y [`ETag`](https://developer.mozilla.org/es/docs/Web/HTTP/Headers/ETag)). De lo contrario, el *prefetch* no funcionará.
+
+**Caso particular:** las cabeceras `ETag` no funcionan en ventanas privadas.
+
+### Recomendaciones
+
+Para garantizar la mejor compatibilidad con todos los navegadores, asegúrate de que tus páginas tengan las cabeceras de caché adecuadas.
+
+En el caso de páginas estáticas o prerenderizadas, la cabecera `ETag` suele configurarse automáticamente por la plataforma de despliegue y se espera que funcione sin necesidad de ajustes adicionales.
+
+Para páginas dinámicas o renderizadas en el servidor, configura tú mismo las cabeceras de caché apropiadas según el contenido de la página. Consulta la [documentación de MDN sobre almacenamiento en caché HTTP](https://developer.mozilla.org/es/docs/Web/HTTP/Caching) para más información.
 
 ## Migrando desde `@astrojs/prefetch`
 
