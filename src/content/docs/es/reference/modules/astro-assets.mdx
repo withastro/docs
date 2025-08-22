@@ -1,0 +1,600 @@
+---
+title: Referencia de la API de Imágenes y Recursos
+sidebar:
+  label: 'astro:assets'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+Astro proporciona componentes integrados y funciones auxiliares para optimizar y mostrar tus imágenes. Para conocer las funciones y ver ejemplos de uso, [consulta nuestra guía de imágenes](/es/guides/images/).
+
+## Importaciones desde `astro:assets`
+
+```js
+import { 
+  Image,
+  Picture,
+  getImage,
+  inferRemoteSize,
+ } from 'astro:assets';
+```
+
+### `<Image />`
+
+El componente `<Image />` optimiza y transforma imágenes.
+
+Este componente también se puede usar para crear [imágenes responsivas](#responsive-image-properties) que pueden ajustarse según el tamaño de su contenedor o el tamaño y la resolución de la pantalla de un dispositivo.
+
+```astro title="src/components/MyComponent.astro"
+---
+// import the Image component and the image
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Imagen is 1600x900
+---
+
+<!-- `alt` es obligatorio en el componente Image -->
+<Image src={myImage} alt="Una descripción de mi imagen." />
+```
+
+```html
+<!-- Salida -->
+<!-- La imagen está optimizada y se aplican los atributos correctos -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="Una descripción de mi imagen."
+/>
+```
+
+#### Propiedades de la imagen
+
+El componente `<Image />` acepta las siguientes propiedades listadas y las [propiedades de imagen responsiva](#responsive-image-properties), además de todas las propiedades que acepta la etiqueta HTML `<img>`.
+
+
+##### src (required)
+
+<p>
+
+**Tipo:** `ImageMetadata | string | Promise<{ default: ImageMetadata }>`
+</p>
+
+El formato del valor `src` de tu archivo de imagen depende de dónde se encuentre tu archivo de imagen:
+
+- **Imágenes locales en `src/`**: debes **importar también la imagen** usando una ruta relativa del archivo o configurar y usar un [alias de importación](/en/guides/imports/#aliases). Luego, utiliza el nombre del import como valor de `src`:
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from '../assets/my-local-image.png';
+  ---
+  <Image src={myImportedImage} alt="texto descriptivo" />
+  ```
+
+- **Imágenes en la carpeta `public/`**: utiliza la **ruta del archivo relativa a la carpeta public**:
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="/images/my-public-image.png"
+    alt="texto descriptivo"
+    width="200"
+    height="150"
+  />
+  ```
+
+- **Imágenes remotas**: utiliza la **URL completa** de la imagen como valor de la propiedad:
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="https://example.com/remote-image.jpg"
+    alt="texto descriptivo"
+    width="200"
+    height="150"
+  />
+  ```
+
+##### alt (required)
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Usa el atributo obligatorio `alt` para proporcionar un texto alternativo [descriptivo](https://www.w3.org/WAI/tutorials/images/) para las imágenes.
+
+Si una imagen es meramente decorativa (es decir, no contribuye a la comprensión de la página), establece `alt=""` para que los lectores de pantalla y otras tecnologías de asistencia sepan que deben ignorar la imagen.
+
+##### width and height (required for images in `public/`)
+
+<p>
+
+**Type:** `number | undefined`
+</p>
+
+Estas propiedades definen las dimensiones que se usarán para la imagen.
+
+Cuando se establece un tipo de `layout`, estas se generan automáticamente en función de las dimensiones de la imagen y, en la mayoría de los casos, no deberían establecerse manualmente.
+
+Al usar imágenes con su proporción original, `width` y `height` son opcionales. Estas dimensiones se pueden inferir automáticamente a partir de archivos de imagen ubicados en `src/`. Para imágenes remotas, agrega [el atributo `inferSize` establecido en `true`](#infersize) en el componente `<Image />` o `<Picture />` o usa la [función `inferRemoteSize()`](#inferremotesize).
+
+Sin embargo, ambas propiedades son obligatorias para las imágenes almacenadas en tu carpeta `public/`, ya que Astro no puede analizar estos archivos.
+
+##### densities
+
+<p>
+
+**Tipo:** ``(number | `${number}x`)[] | undefined``<br />
+<Since v="3.3.0" />
+</p>
+
+Una lista de densidades de píxeles para generar la imagen.
+
+El atributo `densities` no es compatible con [imágenes responsivas](#responsive-image-properties) que tengan una propiedad `layout` o una configuración `image.layout`, y será ignorado si se establece.
+
+Si se proporciona, este valor se usará para generar un atributo `srcset` en la etiqueta `<img>`. No proporciones un valor para `widths` cuando uses este valor.
+
+Las densidades que sean iguales o mayores que los anchos superiores a la imagen original serán ignoradas para evitar escalar la imagen hacia arriba."
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image
+  src={myImage}
+  width={myImage.width / 2}
+  densities={[1.5, 2]}
+  alt="Una descripción de mi imagen."
+/>
+```
+
+```html
+<!-- Salida -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="Una descripción de mi imagen."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<p>
+
+**Tipo:** `number[] | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+Una lista de anchos para generar la imagen.
+
+Si se proporciona, este valor se usará para generar un atributo `srcset` en la etiqueta `<img>`. También se debe proporcionar una [propiedad `sizes`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes).
+
+Los atributos `widths` y `sizes` se generarán automáticamente para imágenes responsivas que usen una propiedad `layout`. Generalmente no es necesario proporcionar estos valores, pero se pueden usar para sobrescribir los valores generados automáticamente.
+
+No proporciones un valor para `densities` cuando uses este valor. Solo uno de estos dos valores puede usarse para generar un `srcset`.
+
+Los anchos que sean mayores que la imagen original serán ignorados para evitar escalar la imagen hacia arriba.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // Image is 1600x900
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="Una descripción de mi imagen."
+/>
+```
+
+```html
+<!-- Salida -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="Una descripción de mi imagen."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### sizes
+
+<p>
+
+**Tipo:** `string | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+Especifica el ancho de diseño de la imagen para cada una de una lista de condiciones de medios. Debe proporcionarse al especificar `widths`.
+
+Los atributos `widths` y `sizes` se generarán automáticamente para imágenes responsivas que usen una propiedad `layout`. Generalmente no es necesario proporcionar estos valores, pero se pueden usar para sobrescribir los valores generados automáticamente.
+
+El atributo `sizes` generado para imágenes con `constrained` y `full-width` se basa en la suposición de que la imagen se muestra cerca del ancho completo de la pantalla cuando el viewport es más pequeño que el ancho de la imagen. Si es significativamente diferente (por ejemplo, si está en un diseño de varias columnas en pantallas pequeñas), puede que necesites ajustar manualmente el atributo `sizes` para obtener mejores resultados.
+
+##### format
+
+<p>
+
+**Tipo:** `ImageOutputFormat | undefined`
+</p>
+
+Opcionalmente, puedes indicar el [tipo de archivo de imagen](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) de salida que se debe usar.
+
+De forma predeterminada, el componente `<Image />` generará un archivo `.webp`.
+
+##### quality
+
+<p>
+
+**Tipo:** `ImageQuality | undefined`
+</p>
+
+`quality` es una propiedad opcional que puede ser:
+* una preconfiguración (`low`, `mid`, `high`, `max`) que se normaliza automáticamente entre formatos.
+* un número del `0` al `100` (interpretado de manera diferente entre formatos).
+
+##### inferSize
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Predeterminado:** `false`<br />
+<Since v="4.4.0" />
+</p>
+
+Te permite establecer automáticamente el `width` y `height` originales de una imagen remota.
+
+De forma predeterminada, este valor está establecido en `false` y debes especificar manualmente ambas dimensiones para tu imagen remota.
+
+Agrega `inferSize` al componente `<Image />` (o `inferSize: true` a `getImage()`) para inferir estos valores a partir del contenido de la imagen cuando se obtiene. Esto es útil si no conoces las dimensiones de la imagen remota o si estas podrían cambiar:
+
+```astro title="src/components/MyComponent.astro" "inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="Un gato durmiendo al sol." />
+```
+
+`inferSize` puede obtener las dimensiones de una [imagen remota desde un dominio que no ha sido autorizado](/en/guides/images/#authorizing-remote-images), sin embargo, la imagen en sí permanecerá sin procesar.
+
+##### priority
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Predeterminado:** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+Te permite configurar automáticamente los atributos `loading`, `decoding` y `fetchpriority` con sus valores óptimos para imágenes que aparecen en la parte visible inicial de la página.
+
+```astro title="src/components/MyComponent.astro" "priority"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} priority alt="Una descripción de mi imagen" />
+```
+
+Cuando se agrega `priority="true"` (o la sintaxis abreviada `priority`) al componente `<Image />` o `<Picture />`, este añadirá los siguientes atributos para indicar al navegador que cargue la imagen de inmediato:
+
+```html
+loading="eager"
+decoding="sync"
+fetchpriority="high"
+```
+
+Estos atributos individuales aún se pueden configurar manualmente si necesitas personalizarlos más.
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+El componente `<Picture />` genera una imagen optimizada con múltiples formatos y/o tamaños.
+
+Este componente también se puede usar para crear [imágenes responsivas](#responsive-image-properties) que pueden ajustarse según el tamaño de su contenedor o el tamaño y la resolución de la pantalla de un dispositivo.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Image is 1600x900
+---
+
+<!-- `alt` es obligatorio en el componente Picture -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="Una descripción de mi imagen." />
+```
+
+```html
+<!-- Salida -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="Una descripción de mi imagen."
+  />
+</picture>
+```
+
+#### Propiedades de Picture
+
+`<Picture />` acepta todas las propiedades del [componente `<Image />`](#image-properties), incluidas las [propiedades de imagen responsiva](#responsive-image-properties), además de las siguientes:
+
+##### `formats`
+
+<p>
+
+**Tipo:** `ImageOutputFormat[]`
+</p>
+
+Un arreglo de formatos de imagen para usar en las etiquetas `<source>`. Las entradas se agregarán como elementos `<source>` en el orden en que se listan, y este orden determina qué formato se muestra. Para obtener el mejor rendimiento, enumera primero el formato más moderno (por ejemplo, `webp` o `avif`). De forma predeterminada, esto se establece en `['webp']`.
+
+##### `fallbackFormat`
+
+<p>
+
+**Tipo:** `ImageOutputFormat`
+</p>
+
+Formato para usar como valor de respaldo en la etiqueta `<img>`. El valor predeterminado es `.png` para imágenes estáticas (o `.jpg` si la imagen es un JPG), `.gif` para imágenes animadas y `.svg` para archivos SVG.
+
+##### `pictureAttributes`
+
+<p>
+
+**Tipo:** `HTMLAttributes<'picture'>`
+</p>
+
+Un objeto de atributos que se agregarán a la etiqueta `<picture>`.
+
+Usa esta propiedad para aplicar atributos directamente al elemento `<picture>` externo. Los atributos aplicados directamente al componente `<Picture />` se aplicarán al elemento `<img>` interno, excepto aquellos usados para la transformación de imágenes.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // Imagen es 1600x900
+---
+
+<Picture
+  src={myImage}
+  alt="Una descripción de mi imagen."
+  pictureAttributes={{ style: "background-color: red;" }}
+/>
+```
+
+```html
+<!-- Salida -->
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="Una descripción de mi imagen."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
+
+### Propiedades de imagen responsiva
+
+Configurar la propiedad [`layout`](#layout) en un componente [`<Image />`](#image-) o [`<Picture />`](#picture-) crea una imagen responsiva y habilita configuraciones adicionales de propiedades.
+
+```astro title=MyComponent.astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="Una descripción de mi imagen." layout='constrained' width={800} height={600} />
+```
+
+Cuando se establece un layout, los atributos `srcset` y `sizes` se generan automáticamente en función de las dimensiones de la imagen y el tipo de diseño. El componente `<Image />` anterior generará la siguiente salida HTML:
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="Una descripción de mi imagen."
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+
+El valor de `layout` también define los estilos predeterminados aplicados a la etiqueta `<img>` para determinar cómo debe cambiar el tamaño de la imagen según su contenedor:
+
+```css title="Estilos de Imagen Responsiva"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+Puedes sobrescribir los estilos predeterminados de `object-fit` y `object-position` configurando las propiedades [`fit`](#fit) y [`position`](#position) en el componente `<Image />` o `<Picture />`.
+
+
+##### layout
+
+<p>
+
+**Tipo:** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**Predeterminado:** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+Define una [imagen responsiva](#responsive-image-properties) y determina cómo debe cambiar el tamaño de la imagen cuando cambia el tamaño de su contenedor. Se puede usar para sobrescribir el valor configurado por defecto para [`image.layout`](/en/reference/configuration-reference/#imagelayout).
+
+- `constrained` - La imagen se reducirá para ajustarse al contenedor, manteniendo su proporción, pero no aumentará más allá del `width` y `height` especificados, o de las dimensiones originales de la imagen.
+
+  Úsalo si quieres que la imagen se muestre al tamaño solicitado cuando sea posible, pero que se reduzca para ajustarse a pantallas más pequeñas. Esto coincide con el comportamiento predeterminado para imágenes al usar Tailwind. Si no estás seguro, probablemente este sea el layout que debas elegir.
+
+- `full-width` - La imagen se escalará para ajustarse al ancho del contenedor, manteniendo su proporción.
+
+  Úsalo para imágenes principales (hero) u otras imágenes que deban ocupar todo el ancho de la página.
+
+* `fixed` - La imagen mantendrá las dimensiones solicitadas y no cambiará de tamaño. Generará un `srcset` para pantallas de alta densidad, pero no para diferentes tamaños de pantalla.
+
+  Úsalo si la imagen no cambiará de tamaño, por ejemplo, íconos o logotipos más pequeños que cualquier ancho de pantalla, u otras imágenes en un contenedor de ancho fijo.
+
+* `none` - La imagen no será responsiva. No se generarán automáticamente `srcset` ni `sizes`, y no se aplicarán estilos.
+
+  Esto es útil si tienes habilitado un diseño por defecto, pero quieres desactivarlo para una imagen específica.
+
+Por ejemplo, con `constrained` establecido como el diseño predeterminado, puedes sobrescribir la propiedad `layout` de cualquier imagen individual:"
+
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="Esto usará el layout constrained" width={800} height={600} />
+<Image src={myImage} alt="Esto usará el diseño full-width" layout="full-width" />
+<Image src={myImage} alt="Esto deshabilitará las imágenes responsivas" layout="none" />
+```
+
+##### fit
+
+<p>
+
+**Tipo:** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**Predeterminado:** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+Se habilita cuando se establece o configura la propiedad [`layout`](#layout). Define cómo debe recortarse una imagen responsiva si se cambia su relación de aspecto.
+
+Los valores coinciden con los de `object-fit` en CSS. El valor predeterminado es `cover`, o el valor de [`image.objectFit`](/en/reference/configuration-reference/#imageobjectfit) si está configurado. Se puede usar para sobrescribir los estilos `object-fit` predeterminados."
+
+##### position
+
+<p>
+
+**Tipo:** `string` <br />
+**Predeterminado:** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+Se habilita cuando la propiedad [`layout`](#layout) está establecida o configurada. Define la posición del recorte de la imagen para una imagen responsiva si se cambia su relación de aspecto.
+
+Los valores coinciden con los de `object-position` en CSS. El valor predeterminado es `center`, o el valor de [`image.objectPosition`](/en/reference/configuration-reference/#imageobjectposition) si está configurado. Se puede usar para sobrescribir los estilos `object-position` predeterminados."
+
+### `getImage()`
+
+<p>
+
+**Tipo:** `(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
+:::caution
+`getImage()` depende de APIs que solo funcionan en el servidor y falla al compilar cuando se usa en el cliente.
+:::
+
+La función `getImage()` está pensada para generar imágenes destinadas a ser usadas en otro lugar que no sea directamente en HTML, por ejemplo, en una [ruta de API](/en/guides/endpoints/#server-endpoints-api-routes). También te permite crear tu propio componente `<Image />`.
+
+`getImage()` recibe un objeto de opciones con [las mismas propiedades que el componente Image](#image-properties) (excepto `alt`).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+Devuelve un objeto con el siguiente tipo:
+
+```ts
+type GetImageResult = {
+  /* Atributos HTML adicionales necesarios para renderizar la imagen (ancho, alto, estilo, etc.) */
+  attributes: Record\<string, any>;
+  /* Parámetros validados pasados */
+  options: ImageTransform;
+  /* Parámetros originales pasados */
+  rawOptions: ImageTransform;
+  /* Ruta a la imagen generada */
+  src: string;
+  srcSet: {
+  /* Valores generados para srcset, cada entrada tiene una URL y un descriptor de tamaño */
+  values: SrcSetValue\[];
+  /* Un valor listo para usar en el atributo `srcset` \*/
+  attribute: string;
+  };
+}
+```
+
+### inferRemoteSize()
+
+<p>
+
+**Tipo:** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.12.0" />
+</p>
+
+Una función para inferir las dimensiones de las imágenes remotas. Esto se puede usar como una alternativa a pasar la propiedad `inferSize`.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
+```
