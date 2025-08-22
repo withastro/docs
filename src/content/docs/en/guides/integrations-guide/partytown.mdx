@@ -10,7 +10,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-This **[Astro integration][astro-integration]** enables [Partytown](https://partytown.builder.io/) in your Astro project.
+This **[Astro integration][astro-integration]** enables [Partytown](https://partytown.qwik.dev/) in your Astro project.
 
 ## Why Astro Partytown
 
@@ -109,35 +109,11 @@ export default defineConfig({
 
 This mirrors the [Partytown config object](https://partytown.qwik.dev/configuration/).
 
-:::caution
-The `config` object is serialized and sent to the client. That means functions like `config.resolveUrl()` cannot use TypeScript, nor access anything outside of their scope.
-:::
-
-If you need to pass external data to functions when Partytown is initialized on the client, you can set the configuration through `window.partytown`:
-
-```astro title="Head.astro"
----
-const proxyMap = {
-  "connect.facebook.net": "my-proxy.com"
-};
----
-
-<script is:inline set:html={`
-window.partytown = {
-  resolveUrl: (url) => {
-    const proxyMap = ${JSON.stringify(proxyMap)};
-    url.hostname = proxyMap[url.hostname] || url.hostname;
-    return url;
-  },
-};
-`} />
-```
-
-It will be overriden by any config option coming from the integration.
+The `config` object is serialized, even [`config.resolveUrl()`](#configresolveurl), because it is sent to the client.
 
 ### config.debug
 
-Partytown ships with a `debug` mode; enable or disable it by passing `true` or `false` to `config.debug`. If [`debug` mode](https://partytown.builder.io/debugging) is enabled, it will output detailed logs to the browser console.
+Partytown ships with a `debug` mode; enable or disable it by passing `true` or `false` to `config.debug`. If [`debug` mode](https://partytown.qwik.dev/debugging) is enabled, it will output detailed logs to the browser console.
 
 If this option isn't set, `debug` mode will be on by default in [dev](/en/reference/cli-reference/#astro-dev) or [preview](/en/reference/cli-reference/#astro-preview) mode.
 
@@ -159,7 +135,7 @@ Third-party scripts typically add variables to the `window` object so that you c
 
 To solve this, Partytown can "patch" variables to the global window object and forward them to the appropriate script.
 
-You can specify which variables to forward with the `config.forward` option. [Read more in Partytown's documentation.](https://partytown.builder.io/forwarding-events)
+You can specify which variables to forward with the `config.forward` option. [Read more in Partytown's documentation.](https://partytown.qwik.dev/forwarding-events)
 
 ```js title="astro.config.mjs" {7}
 export default defineConfig({
@@ -174,6 +150,38 @@ export default defineConfig({
   ],
 });
 ```
+
+### config.resolveUrl
+
+Some third-party scripts may require proxying through `config.resolveUrl()`, which runs inside the service worker. [Read more in Partytown's documentation.](https://partytown.qwik.dev/forwarding-events)
+
+However since `config` is serialized (even functions), it has limitations:
+
+- It cannot reference anything outside of the function scope
+- It can only use JavaScript
+
+For advanced use cases, you may need to pass data to this function while initializing Partytown. To do so, you can set `resolveUrl()` on `window.partytown` instead of the integration config:
+
+```astro title="Head.astro"
+---
+const proxyMap = {
+  "connect.facebook.net": "my-proxy.com"
+};
+---
+
+<script is:inline set:html={`
+window.partytown = {
+  resolveUrl: (url) => {
+    const proxyMap = ${JSON.stringify(proxyMap)};
+    url.hostname = proxyMap[url.hostname] || url.hostname;
+    return url;
+  },
+};
+`} />
+```
+
+Note that the integration config will override `window.partytown` if you set a property in both.
+
 
 ## Examples
 
