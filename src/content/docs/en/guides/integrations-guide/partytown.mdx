@@ -152,12 +152,32 @@ export default defineConfig({
 
 ### config.resolveUrl
 
-Some third-party scripts may require proxying through `config.resolveUrl()`, which runs inside the service worker. [Read more in Partytown's documentation.](https://partytown.qwik.dev/forwarding-events)
+Some third-party scripts may require [proxying](https://partytown.qwik.dev/proxying-requests/) through `config.resolveUrl()`, which runs inside the service worker. You can set this configuration option to check for a specific URL, and optionally return a proxied URL instead:
 
-However since `config` is serialized (even functions), it has limitations:
+```js title="astro.config.mjs" {7-13}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // Example: proxy Facebook's analytics script
+      config: {
+        resolveUrl: (url) => {
+          const proxyMap = {
+            "connect.facebook.net": "my-proxy.com"
+          }
+          url.hostname = proxyMap[url.hostname] || url.hostname;
+          return url;
+        },
+      }
+    }),
+  ],
+});
+```
 
-- It cannot reference anything outside of the function scope
-- It can only use JavaScript
+However since `config` is serialized, some limitations apply:
+
+- Functions passed to the `config` object cannot reference anything outside of the function scope.
+- Functions passed to the `config` object can only be written in JavaScript.
 
 In some advanced use cases, you may need to pass data to this function while initializing Partytown. To do so, you can set `resolveUrl()` on `window.partytown` instead of the integration config:
 
