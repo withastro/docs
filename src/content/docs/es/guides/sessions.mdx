@@ -1,0 +1,173 @@
+---
+title: Sesiones
+description: Comparte datos entre solicitudes para páginas renderizadas bajo demanda.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+Las sesiones se utilizan para compartir datos entre solicitudes para [páginas renderizadas bajo demanda](/es/guides/on-demand-rendering/).
+
+En tercera persona y en español:
+
+A diferencia de las [`cookies`](/es/guides/on-demand-rendering/#cookies), las sesiones se almacenan en el servidor, por lo que es posible guardar cantidades mayores de datos sin preocuparse por los límites de tamaño o problemas de seguridad. Son útiles para almacenar cosas como datos de usuario, carritos de compra y el estado de formularios, y funcionan sin necesidad de JavaScript del lado del cliente:
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // No es necesario con la salida `'server'`
+
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} artículos</a>
+```
+
+## Configurando de sesiones
+
+{/* TODO: add link to 
+ - Node: /es/guides/integrations-guide/node/#sesiones, 
+ - cloudflare: /es/guides/integrations-guide/cloudflare/#sesiones
+ - netlify: /es/guides/integrations-guide/netlify/#sessions
+ - controlador: /es/reference/configuration-reference/#sessiondriver
+*/}
+Las sesiones requieren un controlador de almacenamiento para guardar los datos de la sesión. Los adaptadores de Node, Cloudflare y Netlify configuran automáticamente un controlador predeterminado para ti, pero otros adaptadores actualmente requieren que especifiques un controlador manualmente.
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+{/* TODO: add link to session options /en/reference/configuration-reference/#session-options*/}
+<ReadMore>
+  Consulta las opciones de configuración de `session` para más detalles sobre cómo establecer un controlador de almacenamiento y otras opciones configurables.
+</ReadMore>
+
+## Interactuando con los datos de la sesión
+
+{/* TODO: add link to /en/reference/api-reference/#session*/}
+El `objeto session` te permite interactuar con el estado almacenado del usuario (por ejemplo, agregar artículos a un carrito de compras) y con el ID de la sesión (por ejemplo, eliminar la cookie del ID de sesión al cerrar sesión). El objeto es accesible como `Astro.session` en tus componentes y páginas de Astro, y como `context.session` en endpoints API, middleware y acciones.
+
+{/* TODO: add link to /en/reference/api-reference/#regenerate and /es/reference/api-reference/#destroy */}
+La sesión se genera automáticamente cuando se usa por primera vez y puede regenerarse en cualquier momento con `session.regenerate()` o destruirse con `session.destroy()`.
+
+{/* TODO: add link to /en/reference/api-reference/#get and /en/reference/api-reference/#set*/}
+Para muchos casos de uso, solo necesitarás usar `session.get()` y `session.set()`.
+
+<ReadMore>
+{/* TODO: add link to /en/reference/api-reference/#session*/}
+Consulta la referencia de la API de Sesiones para más detalles.
+</ReadMore>
+
+### Componentes y páginas de Astro
+
+En los componentes y páginas `.astro`, puedes acceder al objeto sesión a través del objeto global `Astro`. Por ejemplo, para mostrar el número de artículos en un carrito de compras:
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // No es necesario con la salida 'server'
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} artículos</a>
+```
+
+### Endpoints API
+
+En los endpoints de la API, el objeto sesión está disponible en el objeto `context`. Por ejemplo, para agregar un artículo a un carrito de compras:
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+	const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### Acciones
+
+En las acciones, el objeto sesión está disponible en el objeto `context`. Por ejemplo, para agregar un artículo a un carrito de compras:
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### Middleware
+
+:::note
+Las sesiones no son compatibles con middleware en el edge.
+:::
+
+En el middleware, el objeto sesión está disponible en el objeto `context`. Por ejemplo, para establecer la hora de la última visita en la sesión:
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Tipos de datos de la sesión
+
+Por defecto, los datos de la sesión no tienen un tipo específico, y puedes almacenar datos arbitrarios en cualquier clave. Los valores se serializan y deserializan usando [devalue](https://github.com/Rich-Harris/devalue), que es la misma biblioteca utilizada en colecciones de contenido y acciones. Esto significa que los tipos compatibles son los mismos, e incluyen cadenas, números, `Date`, `Map`, `Set`, `URL`, arreglos y objetos simples.
+
+Opcionalmente, puedes definir tipos TypeScript para tus datos de sesión creando un archivo `src/env.d.ts` y agregando una declaración para el tipo `App.SessionData`:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+Esto te permitirá acceder a los datos de la sesión con verificación de tipos y autocompletado en tu editor:
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+Esto solo se utiliza para la verificación de tipos y no afecta el comportamiento en tiempo de ejecución de la sesión. Ten especial cuidado si cambias el tipo cuando los usuarios ya han almacenado datos en la sesión, ya que esto podría causar errores en tiempo de ejecución.
+:::
