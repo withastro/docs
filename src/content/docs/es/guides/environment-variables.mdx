@@ -1,13 +1,19 @@
 ---
 title: Usando variables de entorno
+sidebar:
+   label: Variables de entorno
 description: Aprende a usar variables de entorno en un proyecto de Astro.
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
 
-:::tip[¿Estás buscando astro&#58;env\?]
-¡Encuentra más información sobre la [API `astro:env` experimental](/es/reference/configuration-reference/#experimentalenv) para variables de entorno seguras!
-:::
+Astro te da acceso a [la soporte integrada de Vite con variables de entorno](#soporte-integrada-de-vite) e incluye algunas [variables de entorno predeterminadas para tu proyecto](#variables-de-entorno-predeterminadas) que te permiten acceder a valores de configuración de tu proyecto actual (por ejemplo, `site`, `base`), ya sea que tu proyecto se esté ejecutando en desarrollo o en producción, y más.
+
+{/*TODO: add link to /en/reference/configuration-reference/#env */}
+Astro también ofrece una forma de [usar y organizar tus variables de entorno con seguridad de tipos](#variables-de-entorno-con-seguridad-de-tipos). Está disponible para su uso dentro del contexto de Astro (por ejemplo, componentes de Astro, rutas y endpoints, componentes de frameworks de interfaz de usuario, middleware) y se gestiona mediante un esquema en tu configuración de Astro).
+
+## Soporte integrada de Vite
 
 Astro usa el soporte integrado de Vite para las variables de entorno, que se reemplazan estáticamente en tiempo de compilación y te permite [usar cualquiera de sus métodos](https://vite.dev/guide/env-and-mode.html) para trabajar con ellas.
 
@@ -23,6 +29,26 @@ En este ejemplo, `PUBLIC_ANYBODY` (accesible mediante `import.meta.env.PUBLIC_AN
 :::caution
 Los archivos `.env` no son cargados dentro de [archivos de configuración](/es/guides/configuring-astro/#variables-de-entorno).
 :::
+
+### IntelliSense para TypeScript
+
+De forma predeterminada, Astro proporciona una definición de tipos para `import.meta.env` en `astro/client.d.ts`.
+
+Aunque puedes definir más variables de entorno personalizadas en archivos `.env.[mode]`, quizá quieras obtener IntelliSense de TypeScript para las variables de entorno definidas por el usuario que estén prefijadas con `PUBLIC_`.
+
+Para lograrlo, puedes crear un archivo `env.d.ts` en `src/` y configurar `ImportMetaEnv` de esta manera:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // más variables de entorno...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
 
 ## Variables de entorno predeterminadas
 
@@ -48,18 +74,85 @@ const isDev = import.meta.env.DEV;
 
 Las variables de entorno se pueden cargar desde los archivos `.env` en la raíz de tu proyecto.
 
-También puedes adjuntar un modo (ya sea `production` o `development`) al nombre del archivo, como `.env.production` o `.env.development`, lo que hace que las variables de entorno solo tengan efecto en ese modo.
-
 Simplemente crea un archivo `.env` en la raíz de tu proyecto y agrega algunas variables.
 
 ```ini title=".env"
 # ¡Esto solo estará disponible cuando se ejecute en el servidor!
 DB_PASSWORD="foobar"
+
 # ¡Estará disponible en todas partes!
 PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
 ```
 
+También puedes añadir `.production`, `.development` o un nombre de modo personalizado al propio nombre del archivo (por ejemplo, `.env.testing`, `.env.staging`). Esto te permite usar diferentes conjuntos de variables de entorno en distintos momentos.
+
+{/*TODO: add link to: /en/reference/cli-reference/#--mode-string*/}
+Los comandos `astro dev` y `astro build` usan por defecto los modos `"development"` y `"production"`, respectivamente. Puedes ejecutar estos comandos con la opción `--mode` para pasar un valor diferente para `mode` y cargar el archivo `.env` correspondiente.
+
+Esto te permite ejecutar el servidor de desarrollo o compilar tu sitio conectándote a diferentes API:
+
+<PackageManagerTabs>
+ <Fragment slot="npm">
+    ```shell
+    # Ejecutar el servidor de desarrollo conectado a una API de “staging”
+    npm run astro dev -- --mode staging
+
+    # Compilar un sitio que se conecta a una API de "producción" con información de depuración adicional
+    npm run astro build -- --devOutput
+
+    # Compilar un sitio que se conecta a una API de "pruebas"
+    npm run astro build -- --mode testing
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    # Ejecutar el servidor de desarrollo conectado a una API de “staging”
+    pnpm astro dev --mode staging
+
+     # Compilar un sitio que se conecta a una API de "producción" con información de depuración adicional
+    pnpm astro build --devOutput
+
+    # Compilar un sitio que se conecta a una API de "pruebas"
+    pnpm astro build --mode testing
+    ```
+ </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    # Ejecutar el servidor de desarrollo conectado a una API de “staging”
+    yarn astro dev --mode staging
+
+    # Compilar un sitio que se conecta a una API de "producción" con información de depuración adicional
+    yarn astro build --devOutput
+
+    # Compilar un sitio que se conecta a una API de "pruebas"
+    yarn astro build --mode testing
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
 Para obtener más información sobre los archivos `.env`, consulta la [documentación de Vite](https://vite.dev/guide/env-and-mode.html#env-files).
+
+### In the Astro config file
+
+Astro evalúa los archivos de configuración antes de cargar tus otros archivos. Esto significa que no puedes usar `import.meta.env` en `astro.config.mjs` para acceder a variables de entorno que se hayan definido en archivos `.env`.
+
+Puedes usar `process.env` en un archivo de configuración para acceder a otras variables de entorno, como aquellas [definidas por la CLI](#usando-la-cli).
+
+También puedes usar el [helper `loadEnv` de Vite](https://main.vite.dev/config/#using-environment-variables-in-config) para cargar manualmente los archivos `.env`.
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+:::note
+`pnpm` no te permite importar módulos que no estén instalados directamente en tu proyecto. Si estás usando `pnpm`, necesitarás instalar `vite` para poder usar el helper `loadEnv`.
+
+```sh
+pnpm add -D vite
+```
+:::
 
 ### Usando la CLI
 
@@ -99,22 +192,165 @@ const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
 
 Cuando se utiliza SSR, se puede acceder a las variables de entorno en tiempo de ejecución en función del adaptador SSR que se esté utilizando. Con la mayoría de los adaptadores puedes acceder a las variables de entorno con `process.env`, pero algunos adaptadores funcionan de forma diferente. Para el adaptador Deno, utilizará `Deno.env.get()`. Mira cómo [acceder al runtime de Cloudflare](/es/guides/integrations-guide/cloudflare/#tiempo-de-ejecución-de-cloudflare) para manejar las variables de entorno cuando utilices el adaptador de Cloudflare. Astro comprobará primero el entorno del servidor en busca de variables, y si no existen, Astro las buscará en los archivos .env.
 
-## IntelliSense para TypeScript
+## Variables de entorno con seguridad de tipos
 
-De forma predeterminada, Vite proporciona una definición de tipos para `import.meta.env` en `astro/client.d.ts`.
+La API `astro:env` te permite configurar un esquema con seguridad de tipos para [las variables de entorno que hayas establecido](#configurando-variables-de-entorno). Esto te permite indicar si deben estar disponibles en el servidor o en el cliente, así como definir su tipo de dato y propiedades adicionales.
 
-Si bien puedes definir más variables de entorno personalizadas en los archivos `.env.[mode]`, es posible que desees obtener TypeScript IntelliSense para las variables de entorno definidas por el usuario que tienen el prefijo `PUBLIC_`.
+{/*TODO: add link to /en/reference/adapter-reference/#envgetsecret */}
+<ReadMore>¿Estás desarrollando un adaptador? Mira cómo hacer que un adaptador sea compatible con `astro:env`.</ReadMore>
 
-Para lograr esto, puedes crear un archivo `env.d.ts` en `src/` y configurar `ImportMetaEnv` así:
+### Uso básico
 
-```ts title="src/env.d.ts"
-interface ImportMetaEnv {
-  readonly DB_PASSWORD: string;
-  readonly PUBLIC_POKEAPI: string;
-  // más variables de entorno...
-}
+#### Definir tu esquema
 
-interface ImportMeta {
-  readonly env: ImportMetaEnv;
-}
+Para configurar un esquema, añade la opción `env.schema` a tu configuración de Astro:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
 ```
+
+Luego puedes [registrar variables como cadena, número, enumeración o booleano](#tipos-de-datos) usando el helper `envField`. Define el [tipo de variable de entorno](#tipos-de-variables) proporcionando un `context` (`"client"` o `"server"`) y un `access` (`"secret"` o `"public"`) para cada variable, y pasa cualquier propiedad adicional como `optional` o `default` en un objeto:
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+Los tipos se generarán automáticamente al ejecutar `astro dev` o `astro build`, pero puedes ejecutar `astro sync` para generar únicamente los tipos.
+
+#### Usar variables de tu esquema
+
+Importa y utiliza tus variables definidas desde el módulo correspondiente `/client` o `/server`:
+
+```astro
+---
+import { API_URL } from "astro:env/client";
+import { API_SECRET_TOKEN } from "astro:env/server";
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
+	},
+})
+---
+
+<script>
+  import { API_URL } from "astro:env/client";
+  
+  fetch(`${API_URL}/ping`)
+</script>
+```
+
+### Tipos de variables
+
+Hay tres tipos de variables de entorno, determinados por la combinación de las opciones `context` (`"client"` o `"server"`) y `access` (`"secret"` o `"public"`) definidas en tu esquema:
+
+- **Variables públicas de cliente**: Estas variables terminan tanto en el bundle final del cliente como en el del servidor, y pueden accederse desde ambos (cliente y servidor) a través del módulo `astro:env/client`:
+
+   ```js
+   import { API_URL } from "astro:env/client";
+   ```
+
+- **Variables públicas de servidor**: Estas variables terminan en el bundle final del servidor y pueden accederse en el servidor a través del módulo `astro:env/server`:
+
+   ```js
+   import { PORT } from "astro:env/server";
+   ```
+
+- **Variables secretas de servidor**: Estas variables no forman parte de tu bundle final y pueden accederse en el servidor a través del módulo `astro:env/server`:
+
+   ```js
+   import { API_SECRET } from "astro:env/server";
+   ```
+
+{/*TODO: add link to /en/reference/configuration-reference/#envvalidatesecrets */}
+   De forma predeterminada, los secretos solo se validan en tiempo de ejecución. Puedes habilitar la validación de variables privadas al inicio configurando `validateSecrets: true`.
+
+:::note
+**Las variables secretas de cliente** no son compatibles porque no existe una forma segura de enviar estos datos al cliente. Por lo tanto, no es posible configurar simultáneamente `context: "client"` y `access: "secret"` en tu esquema.
+:::
+
+### Tipos de datos
+
+Actualmente se admiten cuatro tipos de datos: cadenas, números, enumeraciones y booleanos:
+
+```js
+import { envField } from "astro/config";
+
+envField.string({
+   // contexto y acceso
+   optional: true,
+   default: "foo",
+})
+
+envField.number({
+   // contexto y acceso
+   optional: true,
+   default: 15,
+})
+
+envField.boolean({
+   // contexto y acceso
+   optional: true,
+   default: true,
+})
+
+envField.enum({
+   // contexto y acceso
+   values: ["foo", "bar", "baz"],
+   optional: true,
+   default: "baz",
+})
+```
+
+{/*TODO: add link to /es/reference/configuration-reference/#envschema */}
+<ReadMore>Para ver la lista completa de campos de validación, consulta la referencia de la API `envField`.</ReadMore>
+
+### Recuperar secretos de forma dinámica
+
+Aunque definas tu esquema, puede que quieras obtener el valor en bruto de un secreto específico o recuperar secretos que no estén definidos en tu esquema. En este caso, puedes usar `getSecret()` exportado desde `astro:env/server`:
+
+```js
+import {
+   FOO, // boolean
+   getSecret
+} from "astro:env/server";
+
+getSecret("FOO"); // string | undefined
+```
+
+<ReadMore>Obtén más información en [la referencia de la API](/es/reference/modules/astro-env/#getsecret).</ReadMore>
+
+### Limitaciones
+
+`astro:env` es un módulo virtual, lo que significa que solo puede usarse dentro del contexto de Astro. Por ejemplo, puedes usarlo en:
+
+- Middlewares
+- Rutas y endpoints de Astro
+- Componentes de Astro
+- Componentes de frameworks
+- Módulos
+
+No puedes usarlo en los siguientes casos y tendrás que recurrir a `process.env`:
+
+- `astro.config.mjs`
+- Scripts
