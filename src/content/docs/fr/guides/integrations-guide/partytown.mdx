@@ -10,7 +10,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-Cette **[intégration Astro][astro-integration]** active [Partytown](https://partytown.builder.io/) dans votre projet Astro.
+Cette **[intégration Astro][astro-integration]** active [Partytown](https://partytown.qwik.dev/) dans votre projet Astro.
 
 ## Pourquoi Astro Partytown
 
@@ -107,11 +107,11 @@ export default defineConfig({
 });
 ```
 
-Cela reflète l'[objet de configuration Partytown](https://partytown.builder.io/configuration).
+Cela reflète l'[objet de configuration Partytown](https://partytown.qwik.dev/configuration/).
 
 ### config.debug
 
-Partytown est livré avec un mode `debug` ; activez-le ou désactivez-le en passant `true` ou `false` à `config.debug`. Si le [mode `debug`](https://partytown.builder.io/debugging) est activé, il produira des journaux détaillés dans la console du navigateur.
+Partytown est livré avec un mode `debug` ; activez-le ou désactivez-le en passant `true` ou `false` à `config.debug`. Si le [mode `debug`](https://partytown.qwik.dev/debugging) est activé, il produira des journaux détaillés dans la console du navigateur.
 
 Si cette option n'est pas définie, le mode `debug` sera activé par défaut en mode [dev](/fr/reference/cli-reference/#astro-dev) ou [preview](/fr/reference/cli-reference/#astro-preview).
 
@@ -133,7 +133,7 @@ Les scripts tiers ajoutent généralement des variables à l'objet `window` afin
 
 Pour résoudre ce problème, Partytown peut « patcher » les variables de l'objet de fenêtre globale et les transmettre au script approprié.
 
-Vous pouvez spécifier les variables à transférer avec l'option `config.forward`. [Pour en savoir plus, consultez la documentation de Partytown](https://partytown.builder.io/forwarding-events)
+Vous pouvez spécifier les variables à transférer avec l'option `config.forward`. [Pour en savoir plus, consultez la documentation de Partytown](https://partytown.qwik.dev/forwarding-events).
 
 ```js title="astro.config.mjs" {7}
 export default defineConfig({
@@ -149,8 +149,64 @@ export default defineConfig({
 });
 ```
 
+### config.resolveUrl
+
+Certains scripts tiers peuvent nécessiter un proxy (https://partytown.qwik.dev/proxying-requests/) via `config.resolveUrl()`, exécuté dans le service worker. Vous pouvez configurer cette option pour rechercher une URL spécifique et éventuellement renvoyer une URL de proxy à la place :
+
+```js title="astro.config.mjs" {7-13}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // Exemple : utiliser un proxy pour le script d'analyse de Facebook
+      config: {
+        resolveUrl: (url) => {
+          const proxyMap = {
+            "connect.facebook.net": "my-proxy.com"
+          }
+          url.hostname = proxyMap[url.hostname] || url.hostname;
+          return url;
+        },
+      }
+    }),
+  ],
+});
+```
+
+Cependant, étant donné que l'objet `config` est sérialisé lorsqu'il est envoyé au client, certaines limitations sur les fonctions transmises à votre configuration s'appliquent :
+
+- Les fonctions ne peuvent pas référencer quoi que ce soit en dehors de la portée de la fonction.
+- Les fonctions ne peuvent être écrites qu'en JavaScript.
+
+Dans certains cas d'utilisation avancés, vous devrez peut-être transmettre des données à cette fonction lors de l'initialisation de Partytown. Pour ce faire, vous pouvez définir `resolveUrl()` dans `window.partytown` au lieu de la configuration d'intégration :
+
+```astro title="Head.astro" {8-14}
+---
+const proxyMap = {
+  "connect.facebook.net": "my-proxy.com"
+};
+---
+
+<script is:inline set:html={`
+  window.partytown = {
+    resolveUrl: (url) => {
+      const proxyMap = ${JSON.stringify(proxyMap)};
+      url.hostname = proxyMap[url.hostname] || url.hostname;
+      return url;
+    },
+  };
+`} />
+```
+
+Notez que la configuration de l'intégration remplacera `window.partytown` si vous définissez une propriété dans les deux.
+
 ## Exemples
 
 * [Parcourir les projets avec Astro Partytown sur GitHub](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json\&type=code) pour plus d'exemples !
+
+## Ressources communautaires
+
+* [Implémentation de Google Tag Manager avec Partytown et Astro](https://medium.com/@tagperfect/implementing-google-tag-manager-with-partytown-js-in-astro-my-modest-experience-983388907b35)
+* [Optimiser Google Analytics avec Partytown dans Astro](https://ricostacruz.com/posts/google-analytics-in-astro)
 
 [astro-integration]: /fr/guides/integrations-guide/
