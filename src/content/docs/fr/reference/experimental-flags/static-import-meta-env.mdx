@@ -1,0 +1,88 @@
+---
+title: Incorporation expérimentale des variables d'environnement privées provenant de meta
+sidebar:
+  label: Incorporation des variables d'environnement privées provenant de meta
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="5.13.0" />
+</p>
+
+:::tip[Aperçu d'Astro 6.0]
+Le comportement activé par cette fonctionnalité deviendra le comportement par défaut dans Astro 6.0.
+
+Vous souhaiterez peut-être ajouter cette option dès que cela vous convient. Vous pourrez ainsi profiter plus rapidement des avantages et éviter de mettre à jour le code de votre projet pour la prochaine version majeure d'Astro.
+:::
+
+Astro vous permet de configurer un [schéma avec sûreté du typage pour vos variables d'environnement](/fr/guides/environment-variables/#variables-denvironnement-avec-sûreté-du-typage), et convertit les variables importées via `astro:env` avec le type attendu. Il s'agit de la méthode recommandée pour utiliser les variables d'environnement dans Astro, car elle vous permet de visualiser et de gérer facilement si vos variables sont publiques ou secrètes, disponibles sur le client ou uniquement sur le serveur lors de la compilation, ainsi que le type de données de vos valeurs.
+
+Cependant, vous pouvez toujours accéder directement à vos variables d'environnement via `process.env` ainsi que `import.meta.env` si nécessaire. C'était la seule façon d'utiliser les variables d'environnement dans Astro avant l'ajout de `astro:env` dans Astro 5.0, et sa gestion de `import.meta.env` inclut une logique qui était destinée aux versions antérieures d'Astro et qui n'est plus nécessaire.
+
+L'option `experimental.staticImportMetaEnv` met à jour le comportement lors de l'accès direct à `import.meta.env` pour s'aligner sur [la gestion des variables d'environnement par Vite](https://vite.dev/guide/env-and-mode.html#env-variables) et garantit que les valeurs de `import.meta.env` sont toujours intégrées au code.
+
+Actuellement, les variables d'environnement non publiques sont remplacées par une référence à `process.env`. De plus, Astro peut également convertir le type de valeur de vos variables d'environnement utilisées via `import.meta.env`, ce qui peut empêcher l'accès à certaines valeurs telles que les chaînes de caractères `"true"` (qui est convertie en valeur booléenne) et `"1"` (qui est convertie en nombre).
+
+L'option `experimental.staticImportMetaEnv` simplifie le comportement par défaut d'Astro, le rendant plus facile à comprendre et à utiliser. Astro ne remplacera plus aucune variable d'environnement provenant de `import.meta.env` par un appel à `process.env` et ne forcera plus la conversion des valeurs.
+
+Pour activer cette fonctionnalité, ajoutez l'option expérimentale dans votre configuration Astro :
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    staticImportMetaEnv: true,
+  }
+})
+```
+
+## Utilisation
+
+L'activation de cette option expérimentale ne convertira plus les valeurs des chaînes de caractères en booléens ou en nombres, ni ne transformera les valeurs de `import.meta.env` en appels à `process.env`. Cela aligne le comportement de `import.meta.env` dans Astro avec celui de [Vite](https://vite.dev/guide/env-and-mode.html#env-variables).
+
+Dans une future version majeure, Astro adoptera ce comportement par défaut, mais vous pouvez opter pour le comportement futur plus tôt en utilisant l'option `experimental.staticImportMetaEnv` et, si nécessaire, [en mettant à jour votre projet](#mise-à-jour-de-votre-projet) en conséquence.
+
+### Mise à jour de votre projet
+
+Si vous vous appuyiez sur la coercition, vous devrez peut-être mettre à jour le code de votre projet pour l'appliquer manuellement :
+
+```ts title="src/components/MonComposant.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.ENABLED;
+const enabled: boolean = import.meta.env.ENABLED === "true";
+```
+
+Si vous comptiez sur la transformation en `process.env`, vous devrez peut-être mettre à jour le code de votre projet pour l'appliquer manuellement :
+
+```ts title="src/components/MonComposant.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.DB_PASSWORD;
+const enabled: boolean = process.env.DB_PASSWORD;
+```
+
+Vous devrez peut-être également mettre à jour les types :
+
+```ts title="src/env.d.ts" del={3-4} ins={5,12-16}
+interface ImportMetaEnv {
+  readonly PUBLIC_POKEAPI: string;
+  readonly DB_PASSWORD: string;
+  readonly ENABLED: boolean;
+  readonly ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+namespace NodeJS {
+  interface ProcessEnv {
+    DB_PASSWORD: string;
+  }
+}
+```
+
+Si vous avez besoin de plus de contrôle sur les variables d'environnement dans Astro, nous vous recommandons d'utiliser [`astro:env`](/fr/guides/environment-variables/).
