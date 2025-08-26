@@ -1,0 +1,405 @@
+---
+title: Gudupao Astro I18n 插件
+sidebar:
+ label: Gudupao Astro I18n 插件
+description: 支持 {{t.xxx}}、本地语言包、语言切换以及与 SSR 和 SSG 兼容的 Astro i18n 插件。
+i18nReady: true
+---
+
+我们的插件为 Astro 项目提供了一个功能齐全的 i18n 解决方案，设计直观且功能强大：
+
+- 灵活的多语言路由：支持基于路径和无路径的路由。
+- 自动语言检测：检测用户的浏览器语言并优雅地回退。
+- 可自定义的语言包：允许开发人员在本地 JSON 文件中定义和组织翻译。
+- 简单的翻译语法：可以使用 \{\{t.xxx\}\} 访问翻译，以提高清晰度和可维护性。
+- 无缝语言切换：支持在运行时切换语言，无需复杂操作。
+- 模式兼容性：完全支持 Astro 的 SSR（动态）和 SSG（静态）模式。
+- 跨框架支持：适用于 Astro 的三种主要创作语言——Astro、React 和 Vue。
+
+## 安装
+
+```
+pnpm add @gudupao/astro-i18n
+```
+
+
+
+## 配置
+
+### 概述
+
+Astro-i18n 可以通过各种选项进行配置，以自定义其行为。本文档详细说明每个配置选项、其目的和默认值。
+
+Astro-i18n 支持两种主要的操作模式：
+- **基于路径**：语言由 URL 路径识别（例如 `/en/about`、`/zh/about`）。这由 `pathBasedRouting` 选项控制。
+- **无路径**：语言由其他方式（Cookie、Accept-Language 标头）确定，而无需更改 URL 路径。这也由 `pathBasedRouting` 选项控制。
+
+### 通用配置选项
+
+这些选项适用于基于路径和无路径模式。
+
+#### `localesDir`
+
+- **类型**：`string`
+- **说明**：存放地区设置文件的目录。
+- **默认**：`'locales'`
+
+示例：
+```typescript
+integrations: [
+  astroI18nPlugin({
+    localesDir: './my-locales'
+ })
+]
+```
+
+#### `fallbackLang`
+
+- **类型**：`string`
+- **说明**：如果找不到当前语言的翻译，则回退到的语言。
+- **默认**：`'en'`
+
+示例：
+```typescript
+integrations: [
+ astroI18nPlugin({
+    fallbackLang: 'zh'
+  })
+]
+```
+
+#### `autoDetectLanguage`
+
+- **类型**：`boolean`
+- **说明**：是否从 Accept-Language 标头自动检测用户语言。
+- **默认**：`true`
+
+示例（启用自动检测）：
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: true
+  })
+]
+```
+
+示例（停用自动检测）：
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: false
+  })
+]
+```
+
+#### `pathBasedRouting`
+
+- **类型**：`boolean`
+- **说明**：是否使用基于路径的路由。如果为 `true`，语言由 URL 路径识别（例如 `/en/about`、`/zh/about`）。如果为 `false`，语言由其他方式（Cookie、Accept-Language 标头）确定，而无需更改 URL 路径。
+- **默认**：`true`
+
+此选项决定操作模式：
+- `true`（默认）：基于路径的模式。
+- `false`：无路径模式。
+
+示例（基于路径）：
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: true
+  })
+]
+```
+
+示例（无路径）：
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: false
+  })
+]
+```
+
+### 基于路径模式配置 (pathBasedRouting: true)
+
+当 `pathBasedRouting` 为 `true` 时，Astro-i18n 以基于路径的模式运作。所有通用配置选项都适用。
+
+### 无路径模式配置 (pathBasedRouting: false)
+
+当 `pathBasedRouting` 为 `false` 时，Astro-i18n 以无路径模式运作。所有通用配置选项都适用。
+
+主要差异在于语言的判定方式以及 URL 的处理方式：
+- 在基于路径的模式中，语言是 URL 路径的一部分。
+- 在无路径模式中，语言由其他方式（Cookie、Accept-Language 标头）确定，而 URL 路径保持不变。
+
+## 用法
+
+
+### Astro
+
+```astro
+---
+import { getTranslator } from '@gudupao/astro-i18n';
+
+// 从参数取得语言
+const lang = Astro.params.lang || 'en';
+const t = getTranslator(lang);
+---
+
+<div>
+  <h1>Astro 测试: {t('hello')} {t('123.a')}</h1>
+</div>
+```
+
+### React
+
+```jsx
+import React from 'react';
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+const TestComponent = ({ translations }: { translations: Translations }) => {
+  const t = createClientTranslator(translations);
+  
+  return (
+    <div>
+      <h1>React 测试: {t('hello')} {t('123.a')}</h1>
+    </div>
+  );
+};
+
+export default TestComponent;
+```
+
+### Vue
+
+```vue
+<template>
+ <div>
+    <h1>Vue 测试: {{ t('hello') }} {{ t('123.a') }}</h1>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+interface Props {
+  translations: Translations;
+}
+
+const props = defineProps<Props>();
+const t = createClientTranslator(props.translations);
+</script>
+```
+
+## 语言切换器示例
+
+### 基于路径的版本
+
+```astro
+---
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<script is:inline>
+ function switchLanguage(language) {
+    // 设定语言 Cookie
+    document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+    console.log('[LanguageSwitcher] 设定语言 Cookie:', language);
+    
+    const urlParts = window.location.pathname.split('/');
+    urlParts[1] = language;
+    window.location.href = urlParts.join('/');
+  }
+
+  const currentPath = window.location.pathname;
+  const urlParts = currentPath.split('/');
+</script>
+
+<div class="language-switcher">
+  <button
+    onclick="switchLanguage('en')"
+    class={lang === 'en' ? 'active' : ''}
+  >
+    English
+  </button>
+  <button
+    onclick="switchLanguage('zh')"
+    class={lang === 'zh' ? 'active' : ''}
+  >
+    中文
+  </button>
+    <button
+    onclick="switchLanguage('jp')"
+    class={lang === 'jp' ? 'active' : ''}
+  >
+    日本語
+  </button>
+</div>
+
+<style>
+.language-switcher {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.language-switcher button {
+  padding: 5px 10px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+</style>
+```
+
+### 无路径版本
+
+```astro
+---
+// 取得所有可用语言
+const { getAvailableLanguages } = await import('@gudupao/astro-i18n');
+const availableLanguages = getAvailableLanguages();
+
+interface Props {
+  pathBasedRouting?: boolean; // 是否使用基于路径的路由模式
+}
+
+const { pathBasedRouting = true } = Astro.props;
+
+// 检测当前语言的函数
+function detectCurrentLanguage() {
+  // 首先检查 URL 参数
+  const urlParams = new URLSearchParams(Astro.url.search);
+  const langParam = urlParams.get('lang');
+ if (langParam) return langParam;
+
+  // 然后检查 Cookie
+  const cookies = Astro.request.headers.get('cookie');
+  if (cookies) {
+    const cookieObj = Object.fromEntries(
+      cookies.split(';').map(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        return [name, decodeURIComponent(value)];
+      })
+    );
+    if (cookieObj.lang) return cookieObj.lang;
+ }
+
+  // 返回默认语言
+  return 'en';
+}
+
+// 取得当前语言
+const currentLang = detectCurrentLanguage();
+---
+
+<div class="language-switcher">
+  <h3>语言切换器 (新版本)</h3>
+  <p>当前模式: {pathBasedRouting ? '基于路径的路由' : '无路径路由'}</p>
+  <div class="switcher-buttons">
+    {availableLanguages.map((language) => (
+      <button
+        data-lang={language}
+        class={language === currentLang ? 'active' : ''}
+        onclick={`switchLanguage('${language}', ${pathBasedRouting})`}
+      >
+        {language === 'en' && 'English'}
+        {language === 'zh' && '中文'}
+        {language === 'jp' && '日本語'}
+        {language !== 'en' && language !== 'zh' && language !== 'jp' && language}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  // 切换语言的函数
+  function switchLanguage(language, pathBasedRouting) {
+    if (pathBasedRouting) {
+      // 基于路径的路由模式
+      // 设定语言 Cookie
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      console.log('[LanguageSwitcher] 设定语言 Cookie:', language);
+      
+      const urlParts = window.location.pathname.split('/');
+      urlParts[1] = language;
+      window.location.href = urlParts.join('/');
+    } else {
+      // 无路径路由模式
+      // 设定语言 Cookie
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      // 设定 localStorage
+      localStorage.setItem('lang', language);
+      // 重新载入页面以套用新语言
+      window.location.reload();
+    }
+  }
+</script>
+
+<style>
+.language-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9;
+}
+
+.switcher-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.language-switcher button {
+  padding: 8px 12px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-switcher button:hover {
+  background: #e0e0e0;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+
+.language-switcher h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.language-switcher p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+</style>
+```
+
+## 链接
+
+- 源代码存储库: [https://github.com/GudupaoSpark/Astro-i18n](https://github.com/GudupaoSpark/Astro-i18n)
+- npmjs: [https://www.npmjs.com/package/@gudupao/astro-i18n](https://www.npmjs.com/package/@gudupao/astro-i18n)
+- 原始文档: [https://astro-i18n.gudupao.top](https://astro-i18n.gudupao.top)

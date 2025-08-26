@@ -52,6 +52,7 @@ export const sidebar = [
 					'guides/endpoints',
 					'guides/middleware',
 					'guides/internationalization',
+					'guides/gudupaointernationalization',
 					'guides/prefetch',
 					'guides/view-transitions',
 				],

@@ -1,0 +1,405 @@
+---
+title: Gudupao Astro I18n Plugin
+sidebar:
+  label: Gudupao Astro I18n Plugin
+description: Astro i18n plugin with support for {{t.xxx}}, local language packs, language switching, and compatibility with both SSR and SSG.
+i18nReady: true
+---
+
+Our plugin provides a full-featured i18n solution for Astro projects, designed to be intuitive yet powerful:
+
+- Flexible multilingual routing: supports both path-based and pathless routing.
+- Automatic language detection: detects the user's browser language with graceful fallbacks.
+- Customizable language packs: allows developers to define and organize translations in local JSON files.
+- Simple translation syntax: translations can be accessed using \{\{t.xxx\}\} for clarity and maintainability.
+- Seamless language switching: enables runtime language changes without complexity.
+- Mode compatibility: fully supports Astro's SSR (dynamic) and SSG (static) modes.
+- Cross-framework support: works with Astro's three primary authoring languages — Astro, React, and Vue.
+
+## Installation
+```
+pnpm add @gudupao/astro-i18n
+```
+
+
+
+## Configuration
+
+### Overview
+
+Astro-i18n can be configured with various options to customize its behavior. This document details each configuration option, its purpose, and default value.
+
+Astro-i18n supports two main modes of operation:
+- **Path-based**: Languages are identified by URL paths (e.g., `/en/about`, `/zh/about`). This is controlled by the `pathBasedRouting` option.
+- **Path-less**: Language is determined by other means (cookie, Accept-Language header) without changing the URL path. This is also controlled by the `pathBasedRouting` option.
+
+### Common Configuration Options
+
+These options are available for both path-based and path-less modes.
+
+#### `localesDir`
+
+- **Type**: `string`
+- **Description**: The directory where your locale files are stored.
+- **Default**: `'locales'`
+
+Example:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    localesDir: './my-locales'
+ })
+]
+```
+
+#### `fallbackLang`
+
+- **Type**: `string`
+- **Description**: The language to fall back to if a translation is not found for the current language.
+- **Default**: `'en'`
+
+Example:
+```typescript
+integrations: [
+ astroI18nPlugin({
+    fallbackLang: 'zh'
+  })
+]
+```
+
+#### `autoDetectLanguage`
+
+- **Type**: `boolean`
+- **Description**: Whether to automatically detect the user's language from the Accept-Language header.
+- **Default**: `true`
+
+Example (with auto-detect):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: true
+  })
+]
+```
+
+Example (without auto-detect):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: false
+  })
+]
+```
+
+#### `pathBasedRouting`
+
+- **Type**: `boolean`
+- **Description**: Whether to use path-based routing. If `true`, languages are identified by URL paths (e.g., `/en/about`, `/zh/about`). If `false`, language is determined by other means (cookie, Accept-Language header) without changing the URL path.
+- **Default**: `true`
+
+This option determines the mode of operation:
+- `true` (default): Path-based mode.
+- `false`: Path-less mode.
+
+Example (Path-based):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: true
+  })
+]
+```
+
+Example (Path-less):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: false
+  })
+]
+```
+
+### Path-based Mode Configuration (pathBasedRouting: true)
+
+When `pathBasedRouting` is `true`, Astro-i18n operates in path-based mode. All the common configuration options apply.
+
+### Path-less Mode Configuration (pathBasedRouting: false)
+
+When `pathBasedRouting` is `false`, Astro-i18n operates in path-less mode. All the common configuration options apply.
+
+The main difference is in how the language is determined and how URLs are handled:
+- In path-based mode, the language is part of the URL path.
+- In path-less mode, the language is determined by other means (cookie, Accept-Language header) and the URL path remains unchanged.
+
+## Usage
+
+
+### Astro
+
+```astro
+---
+import { getTranslator } from '@gudupao/astro-i18n';
+
+// Get language from params
+const lang = Astro.params.lang || 'en';
+const t = getTranslator(lang);
+---
+
+<div>
+  <h1>Astro Test: {t('hello')} {t('123.a')}</h1>
+</div>
+```
+
+### React
+
+```jsx
+import React from 'react';
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+const TestComponent = ({ translations }: { translations: Translations }) => {
+  const t = createClientTranslator(translations);
+  
+  return (
+    <div>
+      <h1>React Test: {t('hello')} {t('123.a')}</h1>
+    </div>
+  );
+};
+
+export default TestComponent;
+```
+
+### Vue
+
+```vue
+<template>
+ <div>
+    <h1>Vue Test: {{ t('hello') }} {{ t('123.a') }}</h1>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+interface Props {
+  translations: Translations;
+}
+
+const props = defineProps<Props>();
+const t = createClientTranslator(props.translations);
+</script>
+```
+
+## Language Switcher Examples
+
+### Path-based Version
+
+```astro
+---
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<script is:inline>
+ function switchLanguage(language) {
+    // Set language Cookie
+    document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+    console.log('[LanguageSwitcher] Set language Cookie:', language);
+    
+    const urlParts = window.location.pathname.split('/');
+    urlParts[1] = language;
+    window.location.href = urlParts.join('/');
+  }
+
+  const currentPath = window.location.pathname;
+  const urlParts = currentPath.split('/');
+</script>
+
+<div class="language-switcher">
+  <button
+    onclick="switchLanguage('en')"
+    class={lang === 'en' ? 'active' : ''}
+  >
+    English
+  </button>
+  <button
+    onclick="switchLanguage('zh')"
+    class={lang === 'zh' ? 'active' : ''}
+  >
+    中文
+  </button>
+    <button
+    onclick="switchLanguage('jp')"
+    class={lang === 'jp' ? 'active' : ''}
+  >
+    日本語
+  </button>
+</div>
+
+<style>
+.language-switcher {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.language-switcher button {
+  padding: 5px 10px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+</style>
+```
+
+### Path-less Version
+
+```astro
+---
+// Get all available languages
+const { getAvailableLanguages } = await import('@gudupao/astro-i18n');
+const availableLanguages = getAvailableLanguages();
+
+interface Props {
+  pathBasedRouting?: boolean; // Whether to use path-based routing mode
+}
+
+const { pathBasedRouting = true } = Astro.props;
+
+// Function to detect current language
+function detectCurrentLanguage() {
+  // First check URL parameters
+  const urlParams = new URLSearchParams(Astro.url.search);
+  const langParam = urlParams.get('lang');
+  if (langParam) return langParam;
+
+  // Then check Cookie
+  const cookies = Astro.request.headers.get('cookie');
+  if (cookies) {
+    const cookieObj = Object.fromEntries(
+      cookies.split(';').map(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        return [name, decodeURIComponent(value)];
+      })
+    );
+    if (cookieObj.lang) return cookieObj.lang;
+ }
+
+  // Return default language
+  return 'en';
+}
+
+// Get current language
+const currentLang = detectCurrentLanguage();
+---
+
+<div class="language-switcher">
+  <h3>Language Switcher (New Version)</h3>
+  <p>Current Mode: {pathBasedRouting ? 'Path-based Routing' : 'Path-less Routing'}</p>
+  <div class="switcher-buttons">
+    {availableLanguages.map((language) => (
+      <button
+        data-lang={language}
+        class={language === currentLang ? 'active' : ''}
+        onclick={`switchLanguage('${language}', ${pathBasedRouting})`}
+      >
+        {language === 'en' && 'English'}
+        {language === 'zh' && '中文'}
+        {language === 'jp' && '日本語'}
+        {language !== 'en' && language !== 'zh' && language !== 'jp' && language}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  // Function to switch language
+  function switchLanguage(language, pathBasedRouting) {
+    if (pathBasedRouting) {
+      // Path-based routing mode
+      // Set language Cookie
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      console.log('[LanguageSwitcher] Set language Cookie:', language);
+      
+      const urlParts = window.location.pathname.split('/');
+      urlParts[1] = language;
+      window.location.href = urlParts.join('/');
+    } else {
+      // Path-less routing mode
+      // Set language Cookie
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      // Set localStorage
+      localStorage.setItem('lang', language);
+      // Reload the page to apply the new language
+      window.location.reload();
+    }
+  }
+</script>
+
+<style>
+.language-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.switcher-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.language-switcher button {
+  padding: 8px 12px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-switcher button:hover {
+  background: #e0e0e0;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+
+.language-switcher h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.language-switcher p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+</style>
+```
+
+## Links
+
+- Source Code Repository: [https://github.com/GudupaoSpark/Astro-i18n](https://github.com/GudupaoSpark/Astro-i18n)
+- npmjs: [https://www.npmjs.com/package/@gudupao/astro-i18n](https://www.npmjs.com/package/@gudupao/astro-i18n)
+- Original Documentation: [https://astro-i18n.gudupao.top](https://astro-i18n.gudupao.top)
+

@@ -1,0 +1,405 @@
+---
+title: グドゥパオ・アストロ・アイ18nプラグイン
+sidebar:
+ label: グドゥパオ・アストロ・アイ18nプラグイン
+description: "{{t.xxx}}、ローカル言語パック、言語切り替え、およびSSRとSSGとの互換性をサポートするAstro i18nプラグイン。"
+i18nReady: true
+---
+
+当社のプラグインは、直感的で強力なAstroプロジェクト用のフル機能のi18nソリューションを提供します。
+
+- 柔軟な多言語ルーティング: パスベースとパスレスの両方のルーティングをサポートします。
+- 自動言語検出: ユーザーのブラウザ言語を検出し、適切なフォールバックを行います。
+- カスタマイズ可能な言語パック: 開発者がローカルのJSONファイルで翻訳を定義および整理できるようにします。
+- 単純な翻訳構文: 明確さと保守性のために\{\{t.xxx\}\}を使用して翻訳にアクセスできます。
+- シームレスな言語切り替え: 複雑さなしにランタイムでの言語変更を可能にします。
+- モード互換性: AstroのSSR（動的）およびSSG（静的）モードを完全にサポートします。
+- クロスフレームワークサポート: Astroの3つの主要なオーサリング言語（Astro、React、Vue）で動作します。
+
+## インストール
+
+```
+pnpm add @gudupao/astro-i18n
+```
+
+
+
+## 構成
+
+### 概要
+
+Astro-i18nは、その動作をカスタマイズするためにさまざまなオプションで構成できます。このドキュメントでは、各構成オプション、その目的、およびデフォルト値について詳しく説明します。
+
+Astro-i18nは、次の2つの主要な操作モードをサポートしています。
+- **パスベース**: 言語はURLパス（例: `/en/about`、`/zh/about`）によって識別されます。これは `pathBasedRouting` オプションによって制御されます。
+- **パスレス**: URLパスを変更せずに、他の手段（クッキー、Accept-Languageヘッダー）によって言語が決定されます。これも `pathBasedRouting` オプションによって制御されます。
+
+### 一般的な構成オプション
+
+これらのオプションは、パスベースモードとパスレスモードの両方で使用できます。
+
+#### `localesDir`
+
+- **タイプ**: `string`
+- **説明**: ロケールファイルが保存されているディレクトリ。
+- **デフォルト**: `'locales'`
+
+例:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    localesDir: './my-locales'
+ })
+]
+```
+
+#### `fallbackLang`
+
+- **タイプ**: `string`
+- **説明**: 現在の言語の翻訳が見つからない場合にフォールバックする言語。
+- **デフォルト**: `'en'`
+
+例:
+```typescript
+integrations: [
+ astroI18nPlugin({
+    fallbackLang: 'zh'
+  })
+]
+```
+
+#### `autoDetectLanguage`
+
+- **タイプ**: `boolean`
+- **説明**: Accept-Languageヘッダーからユーザーの言語を自動検出するかどうか。
+- **デフォルト**: `true`
+
+例（自動検出あり）:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: true
+  })
+]
+```
+
+例（自動検出なし）:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: false
+  })
+]
+```
+
+#### `pathBasedRouting`
+
+- **タイプ**: `boolean`
+- **説明**: パスベースのルーティングを使用するかどうか。 `true`の場合、言語はURLパス（例: `/en/about`、`/zh/about`）によって識別されます。 `false`の場合、言語は他の手段（クッキー、Accept-Languageヘッダー）によって決定され、URLパスは変更されません。
+- **デフォルト**: `true`
+
+このオプションは操作モードを決定します。
+- `true`（デフォルト）: パスベースモード。
+- `false`: パスレスモード。
+
+例（パスベース）:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: true
+  })
+]
+```
+
+例（パスレス）:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: false
+  })
+]
+```
+
+### パスベースモードの構成（pathBasedRouting: true）
+
+`pathBasedRouting`が`true`の場合、Astro-i18nはパスベースモードで動作します。すべての一般的な構成オプションが適用されます。
+
+### パスレスモードの構成（pathBasedRouting: false）
+
+`pathBasedRouting`が`false`の場合、Astro-i18nはパスレスモードで動作します。すべての一般的な構成オプションが適用されます。
+
+主な違いは、言語の決定方法とURLの処理方法にあります。
+- パスベースモードでは、言語はURLパスの一部です。
+- パスレスモードでは、言語は他の手段（クッキー、Accept-Languageヘッダー）によって決定され、URLパスは変更されません。
+
+## 使用方法
+
+
+### アストロ
+
+```astro
+---
+import { getTranslator } from '@gudupao/astro-i18n';
+
+// パラメータから言語を取得
+const lang = Astro.params.lang || 'en';
+const t = getTranslator(lang);
+---
+
+<div>
+  <h1>Astroテスト: {t('hello')} {t('123.a')}</h1>
+</div>
+```
+
+### リアクション
+
+```jsx
+import React from 'react';
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+const TestComponent = ({ translations }: { translations: Translations }) => {
+  const t = createClientTranslator(translations);
+  
+  return (
+    <div>
+      <h1>Reactテスト: {t('hello')} {t('123.a')}</h1>
+    </div>
+  );
+};
+
+export default TestComponent;
+```
+
+### ヴュー
+
+```vue
+<template>
+ <div>
+    <h1>Vueテスト: {{ t('hello') }} {{ t('123.a') }}</h1>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+interface Props {
+  translations: Translations;
+}
+
+const props = defineProps<Props>();
+const t = createClientTranslator(props.translations);
+</script>
+```
+
+## 言語スイッチャーの例
+
+### パスベースバージョン
+
+```astro
+---
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<script is:inline>
+ function switchLanguage(language) {
+    // 言語クッキーを設定
+    document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+    console.log('[LanguageSwitcher] 言語クッキーを設定:', language);
+    
+    const urlParts = window.location.pathname.split('/');
+    urlParts[1] = language;
+    window.location.href = urlParts.join('/');
+  }
+
+  const currentPath = window.location.pathname;
+  const urlParts = currentPath.split('/');
+</script>
+
+<div class="language-switcher">
+  <button
+    onclick="switchLanguage('en')"
+    class={lang === 'en' ? 'active' : ''}
+  >
+    English
+  </button>
+  <button
+    onclick="switchLanguage('zh')"
+    class={lang === 'zh' ? 'active' : ''}
+  >
+    中文
+  </button>
+    <button
+    onclick="switchLanguage('jp')"
+    class={lang === 'jp' ? 'active' : ''}
+  >
+    日本語
+  </button>
+</div>
+
+<style>
+.language-switcher {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.language-switcher button {
+  padding: 5px 10px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+</style>
+```
+
+### パスレスバージョン
+
+```astro
+---
+// 利用可能なすべての言語を取得
+const { getAvailableLanguages } = await import('@gudupao/astro-i18n');
+const availableLanguages = getAvailableLanguages();
+
+interface Props {
+  pathBasedRouting?: boolean; // パスベースのルーティングモードを使用するかどうか
+}
+
+const { pathBasedRouting = true } = Astro.props;
+
+// 現在の言語を検出する関数
+function detectCurrentLanguage() {
+  // 最初にURLパラメータを確認
+  const urlParams = new URLSearchParams(Astro.url.search);
+  const langParam = urlParams.get('lang');
+  if (langParam) return langParam;
+
+  // 次にクッキーを確認
+  const cookies = Astro.request.headers.get('cookie');
+  if (cookies) {
+    const cookieObj = Object.fromEntries(
+      cookies.split(';').map(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        return [name, decodeURIComponent(value)];
+      })
+    );
+    if (cookieObj.lang) return cookieObj.lang;
+ }
+
+  // デフォルト言語を返す
+  return 'en';
+}
+
+// 現在の言語を取得
+const currentLang = detectCurrentLanguage();
+---
+
+<div class="language-switcher">
+ <h3>言語スイッチャー（新バージョン）</h3>
+  <p>現在のモード: {pathBasedRouting ? 'パスベースのルーティング' : 'パスレスルーティング'}</p>
+  <div class="switcher-buttons">
+    {availableLanguages.map((language) => (
+      <button
+        data-lang={language}
+        class={language === currentLang ? 'active' : ''}
+        onclick={`switchLanguage('${language}', ${pathBasedRouting})`}
+      >
+        {language === 'en' && 'English'}
+        {language === 'zh' && '中文'}
+        {language === 'jp' && '日本語'}
+        {language !== 'en' && language !== 'zh' && language !== 'jp' && language}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  // 言語を切り替える関数
+ function switchLanguage(language, pathBasedRouting) {
+    if (pathBasedRouting) {
+      // パスベースのルーティングモード
+      // 言語クッキーを設定
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      console.log('[LanguageSwitcher] 言語クッキーを設定:', language);
+      
+      const urlParts = window.location.pathname.split('/');
+      urlParts[1] = language;
+      window.location.href = urlParts.join('/');
+    } else {
+      // パスレスルーティングモード
+      // 言語クッキーを設定
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      // ローカルストレージを設定
+      localStorage.setItem('lang', language);
+      // 新しい言語を適用するためにページを再読み込み
+      window.location.reload();
+    }
+  }
+</script>
+
+<style>
+.language-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.switcher-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.language-switcher button {
+  padding: 8px 12px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-switcher button:hover {
+  background: #e0e0e0;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+
+.language-switcher h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.language-switcher p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+</style>
+```
+
+## リンク
+
+- ソースコードリポジトリ: [https://github.com/GudupaoSpark/Astro-i18n](https://github.com/GudupaoSpark/Astro-i18n)
+- npmjs: [https://www.npmjs.com/package/@gudupao/astro-i18n](https://www.npmjs.com/package/@gudupao/astro-i18n)
+- 元のドキュメント: [https://astro-i18n.gudupao.top](https://astro-i18n.gudupao.top)

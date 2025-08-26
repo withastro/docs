@@ -1,0 +1,405 @@
+---
+title: Plugin Gudupao Astro I18n
+sidebar:
+ label: Plugin Gudupao Astro I18n
+description: Plugin i18n per Astro con supporto per {{t.xxx}}, pacchetti linguistici locali, cambio lingua e compatibilità con SSR e SSG.
+i18nReady: true
+---
+
+Il nostro plugin fornisce una soluzione i18n completa per i progetti Astro, progettata per essere intuitiva e potente:
+
+- Routing multilingue flessibile: supporta sia il routing basato su percorso che quello senza percorso.
+- Rilevamento automatico della lingua: rileva la lingua del browser dell'utente con fallback eleganti.
+- Pacchetti linguistici personalizzabili: consente agli sviluppatori di definire e organizzare le traduzioni in file JSON locali.
+- Sintassi di traduzione semplice: le traduzioni sono accessibili utilizzando \{\{t.xxx\}\} per chiarezza e manutenibilità.
+- Cambio lingua senza soluzione di continuità: consente modifiche alla lingua in fase di esecuzione senza complessità.
+- Compatibilità delle modalità: supporta pienamente le modalità SSR (dinamica) e SSG (statica) di Astro.
+- Supporto multipiattaforma: funziona con le tre principali lingue di authoring di Astro: Astro, React e Vue.
+
+## Installazione
+
+```
+pnpm add @gudupao/astro-i18n
+```
+
+
+
+## Configurazione
+
+### Panoramica
+
+Astro-i18n può essere configurato con varie opzioni per personalizzarne il comportamento. Questo documento descrive in dettaglio ogni opzione di configurazione, il suo scopo e il valore predefinito.
+
+Astro-i18n supporta due modalità principali di funzionamento:
+- **Basato su percorso**: le lingue sono identificate dai percorsi degli URL (ad esempio, `/en/about`, `/zh/about`). Questo è controllato dall'opzione `pathBasedRouting`.
+- **Senza percorso**: la lingua è determinata da altri mezzi (cookie, intestazione Accept-Language) senza modificare il percorso dell'URL. Questo è controllato anche dall'opzione `pathBasedRouting`.
+
+### Opzioni di configurazione comuni
+
+Queste opzioni sono disponibili sia per la modalità basata su percorso che per quella senza percorso.
+
+#### `localesDir`
+
+- **Tipo**: `string`
+- **Descrizione**: La directory in cui sono memorizzati i file delle impostazioni locali.
+- **Predefinito**: `'locales'`
+
+Esempio:
+```typescript
+integrations: [
+  astroI18nPlugin({
+    localesDir: './my-locales'
+ })
+]
+```
+
+#### `fallbackLang`
+
+- **Tipo**: `string`
+- **Descrizione**: La lingua di fallback se non viene trovata una traduzione per la lingua corrente.
+- **Predefinito**: `'en'`
+
+Esempio:
+```typescript
+integrations: [
+ astroI18nPlugin({
+    fallbackLang: 'zh'
+  })
+]
+```
+
+#### `autoDetectLanguage`
+
+- **Tipo**: `boolean`
+- **Descrizione**: Se rilevare automaticamente la lingua dell'utente dall'intestazione Accept-Language.
+- **Predefinito**: `true`
+
+Esempio (con rilevamento automatico):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: true
+  })
+]
+```
+
+Esempio (senza rilevamento automatico):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    autoDetectLanguage: false
+  })
+]
+```
+
+#### `pathBasedRouting`
+
+- **Tipo**: `boolean`
+- **Descrizione**: Se utilizzare il routing basato su percorso. Se `true`, le lingue sono identificate dai percorsi degli URL (ad esempio, `/en/about`, `/zh/about`). Se `false`, la lingua è determinata da altri mezzi (cookie, intestazione Accept-Language) senza modificare il percorso dell'URL.
+- **Predefinito**: `true`
+
+Questa opzione determina la modalità operativa:
+- `true` (predefinito): Modalità basata su percorso.
+- `false`: Modalità senza percorso.
+
+Esempio (Basato su percorso):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: true
+  })
+]
+```
+
+Esempio (Senza percorso):
+```typescript
+integrations: [
+  astroI18nPlugin({
+    pathBasedRouting: false
+  })
+]
+```
+
+### Configurazione della modalità basata su percorso (pathBasedRouting: true)
+
+Quando `pathBasedRouting` è `true`, Astro-i18n opera in modalità basata su percorso. Si applicano tutte le opzioni di configurazione comuni.
+
+### Configurazione della modalità senza percorso (pathBasedRouting: false)
+
+Quando `pathBasedRouting` è `false`, Astro-i18n opera in modalità senza percorso. Si applicano tutte le opzioni di configurazione comuni.
+
+La differenza principale sta nel modo in cui viene determinata la lingua e come vengono gestiti gli URL:
+- Nella modalità basata su percorso, la lingua fa parte del percorso dell'URL.
+- Nella modalità senza percorso, la lingua è determinata da altri mezzi (cookie, intestazione Accept-Language) e il percorso dell'URL rimane invariato.
+
+## Utilizzo
+
+
+### Astro
+
+```astro
+---
+import { getTranslator } from '@gudupao/astro-i18n';
+
+// Ottieni la lingua dai parametri
+const lang = Astro.params.lang || 'en';
+const t = getTranslator(lang);
+---
+
+<div>
+  <h1>Test Astro: {t('hello')} {t('123.a')}</h1>
+</div>
+```
+
+### React
+
+```jsx
+import React from 'react';
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+const TestComponent = ({ translations }: { translations: Translations }) => {
+  const t = createClientTranslator(translations);
+  
+  return (
+    <div>
+      <h1>Test React: {t('hello')} {t('123.a')}</h1>
+    </div>
+  );
+};
+
+export default TestComponent;
+```
+
+### Vue
+
+```vue
+<template>
+ <div>
+    <h1>Test Vue: {{ t('hello') }} {{ t('123.a') }}</h1>
+  </div>
+</template>
+
+<script setup lang="ts">
+import { createClientTranslator } from '@gudupao/astro-i18n';
+import type { Translations } from '@gudupao/astro-i18n';
+
+interface Props {
+  translations: Translations;
+}
+
+const props = defineProps<Props>();
+const t = createClientTranslator(props.translations);
+</script>
+```
+
+## Esempi di selettore lingua
+
+### Versione basata su percorso
+
+```astro
+---
+interface Props {
+  lang: string;
+}
+
+const { lang } = Astro.props;
+---
+
+<script is:inline>
+ function switchLanguage(language) {
+    // Imposta il cookie della lingua
+    document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+    console.log('[LanguageSwitcher] Imposta il cookie della lingua:', language);
+    
+    const urlParts = window.location.pathname.split('/');
+    urlParts[1] = language;
+    window.location.href = urlParts.join('/');
+  }
+
+  const currentPath = window.location.pathname;
+  const urlParts = currentPath.split('/');
+</script>
+
+<div class="language-switcher">
+  <button
+    onclick="switchLanguage('en')"
+    class={lang === 'en' ? 'active' : ''}
+  >
+    English
+  </button>
+  <button
+    onclick="switchLanguage('zh')"
+    class={lang === 'zh' ? 'active' : ''}
+  >
+    中文
+  </button>
+    <button
+    onclick="switchLanguage('jp')"
+    class={lang === 'jp' ? 'active' : ''}
+  >
+    日本語
+  </button>
+</div>
+
+<style>
+.language-switcher {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.language-switcher button {
+  padding: 5px 10px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+</style>
+```
+
+### Versione senza percorso
+
+```astro
+---
+// Ottieni tutte le lingue disponibili
+const { getAvailableLanguages } = await import('@gudupao/astro-i18n');
+const availableLanguages = getAvailableLanguages();
+
+interface Props {
+  pathBasedRouting?: boolean; // Se utilizzare la modalità di routing basata su percorso
+}
+
+const { pathBasedRouting = true } = Astro.props;
+
+// Funzione per rilevare la lingua corrente
+function detectCurrentLanguage() {
+  // Controlla prima i parametri dell'URL
+  const urlParams = new URLSearchParams(Astro.url.search);
+  const langParam = urlParams.get('lang');
+  if (langParam) return langParam;
+
+  // Poi controlla il Cookie
+  const cookies = Astro.request.headers.get('cookie');
+  if (cookies) {
+    const cookieObj = Object.fromEntries(
+      cookies.split(';').map(cookie => {
+        const [name, value] = cookie.trim().split('=');
+        return [name, decodeURIComponent(value)];
+      })
+    );
+    if (cookieObj.lang) return cookieObj.lang;
+ }
+
+  // Restituisci la lingua predefinita
+  return 'en';
+}
+
+// Ottieni la lingua corrente
+const currentLang = detectCurrentLanguage();
+---
+
+<div class="language-switcher">
+  <h3>Selettore lingua (Nuova versione)</h3>
+  <p>Modalità corrente: {pathBasedRouting ? 'Routing basato su percorso' : 'Routing senza percorso'}</p>
+  <div class="switcher-buttons">
+    {availableLanguages.map((language) => (
+      <button
+        data-lang={language}
+        class={language === currentLang ? 'active' : ''}
+        onclick={`switchLanguage('${language}', ${pathBasedRouting})`}
+      >
+        {language === 'en' && 'English'}
+        {language === 'zh' && '中文'}
+        {language === 'jp' && '日本語'}
+        {language !== 'en' && language !== 'zh' && language !== 'jp' && language}
+      </button>
+    ))}
+  </div>
+</div>
+
+<script is:inline>
+  // Funzione per cambiare lingua
+  function switchLanguage(language, pathBasedRouting) {
+    if (pathBasedRouting) {
+      // Modalità di routing basata su percorso
+      // Imposta il cookie della lingua
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      console.log('[LanguageSwitcher] Imposta il cookie della lingua:', language);
+      
+      const urlParts = window.location.pathname.split('/');
+      urlParts[1] = language;
+      window.location.href = urlParts.join('/');
+    } else {
+      // Modalità di routing senza percorso
+      // Imposta il cookie della lingua
+      document.cookie = `lang=${language}; path=/; max-age=31536000; samesite=lax`;
+      // Imposta localStorage
+      localStorage.setItem('lang', language);
+      // Ricarica la pagina per applicare la nuova lingua
+      window.location.reload();
+    }
+  }
+</script>
+
+<style>
+.language-switcher {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+
+.switcher-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.language-switcher button {
+  padding: 8px 12px;
+  border: none;
+  background: #f0f0f0;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.language-switcher button:hover {
+  background: #e0e0e0;
+}
+
+.language-switcher button.active {
+  background: #007bff;
+  color: white;
+}
+
+.language-switcher h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.language-switcher p {
+  margin: 0 0 10px 0;
+  font-size: 14px;
+  color: #666;
+}
+</style>
+```
+
+## Collegamenti
+
+- Repository del codice sorgente: [https://github.com/GudupaoSpark/Astro-i18n](https://github.com/GudupaoSpark/Astro-i18n)
+- npmjs: [https://www.npmjs.com/package/@gudupao/astro-i18n](https://www.npmjs.com/package/@gudupao/astro-i18n)
+- Documentazione originale: [https://astro-i18n.gudupao.top](https://astro-i18n.gudupao.top)
