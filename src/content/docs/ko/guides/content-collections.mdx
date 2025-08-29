@@ -23,7 +23,7 @@ Astro v5.0에서는 콘텐츠 컬렉션을 정의하고 쿼리하기 위한 Cont
 
 구조적으로 유사한 데이터 집합에서 **컬렉션**을 정의할 수 있습니다. 블로그 게시물의 디렉터리, 제품 항목의 JSON 파일 또는 동일한 모양의 여러 항목을 나타내는 모든 데이터가 여기에 해당할 수 있습니다.
 
-프로젝트 또는 파일 시스템에 로컬로 저장된 컬렉션에는 Markdown, MDX, Markdoc, YAML 또는 JSON 파일 항목이 있을 수 있습니다:
+프로젝트 또는 파일 시스템에 로컬로 저장된 컬렉션에는 Markdown, MDX, Markdoc, YAML, TOML 또는 JSON 파일 항목이 있을 수 있습니다:
 
 <FileTree>
 - src/
@@ -85,7 +85,7 @@ Content Layer API를 사용하면 프로젝트에 로컬로 저장하든 원격�
 
 Astro는 로컬 콘텐츠를 가져오기 위한 [두 가지 내장 로더 함수](/ko/reference/content-loader-reference/#내장-로더) (`glob()` 및 `file()`)와 자체 로더를 구성하고 원격 데이터를 가져오기 위한 API에 대한 액세스를 제공합니다.
 
-[`glob()` 로더](/ko/reference/content-loader-reference/#glob-로더)는 파일 시스템 어디에서나 Markdown, MDX, Markdoc, JSON 또는 YAML 파일 디렉터리에서 항목을 만듭니다. [micromatch](https://github.com/micromatch/micromatch#matching-features)에서 지원하는 glob 패턴을 사용하여 일치시킬 항목 파일의 `pattern`과 파일 위치의 기본 파일 경로를 받습니다. 각 항목의 `id`는 파일 이름으로부터 자동으로 생성됩니다. 항목당 파일이 하나씩 있을 때 이 로더를 사용합니다.
+[`glob()` 로더](/ko/reference/content-loader-reference/#glob-로더)는 파일 시스템 어디에서나 Markdown, MDX, Markdoc, JSON, YAML 또는 TOML 파일 디렉터리에서 항목을 만듭니다. [micromatch](https://github.com/micromatch/micromatch#matching-features)에서 지원하는 glob 패턴을 사용하여 일치시킬 항목 파일의 `pattern`과 파일 위치의 기본 파일 경로를 받습니다. 각 항목의 `id`는 파일 이름으로부터 자동으로 생성됩니다. 항목당 파일이 하나씩 있을 때 이 로더를 사용합니다.
 
 [`file()` 로더](/ko/reference/content-loader-reference/#file-로더)는 단일 로컬 파일에서 여러 항목을 생성합니다. 파일의 각 항목에는 고유한 `id` 키 속성이 있어야 합니다. 이 로더는 파일의 `base` 파일 경로를 인자로 받고 자동으로 분석할 수 없는 파일을 위해 선택적으로 [`parser` 함수](#parser-함수)를 인자로 받습니다. 데이터 파일을 객체 배열로 구문 분석할 수 있는 경우 이 로더를 사용합니다.
 
@@ -122,34 +122,16 @@ export const collections = { blog, dogs, probes };
 
 ##### `parser` 함수
 
-`file()` 로더는 `parser` 함수를 정의하는 두 번째 인수를 받습니다. 이를 통해 사용자 정의 구문 분석기(예: `toml.parse` 또는 `csv-parse`)를 지정하여 파일 콘텐츠에서 컬렉션을 생성할 수 있습니다.
+`file()` 로더는 `parser` 함수를 정의하는 두 번째 인수를 받습니다. 이를 통해 사용자 정의 구문 분석기(예: `csv-parse`)를 지정하여 파일 콘텐츠에서 컬렉션을 생성할 수 있습니다.
 
-`file()` 로더는 [중첩된 JSON 문서](#중첩된-json-문서)가 없는 한 `parser`가 필요 없이 JSON 및 YAML 파일에서(파일 확장자에 따라) 단일 객체 배열을 자동으로 감지하고 구문 분석합니다. `.toml` 및 `.csv`와 같은 다른 파일을 사용하려면 파서 함수를 만들어야 합니다.
+`file()` 로더는 JSON 및 YAML 파일에서 단일 객체 배열을 자동으로 감지하고 구문 분석하며 (파일 확장자에 따라), TOML 파일의 각 최상위 테이블을 독립된 항목으로 취급합니다. 기본적으로 이러한 파일 형식을 지원하며, [중첩된 JSON 문서](#중첩된-json-문서)가 없는 한 `parser`가 필요하지 않습니다. `.csv`와 같은 다른 파일을 사용하려면 파서 함수를 만들어야 합니다.
 
-다음 예시에서는 `.toml` 파일을 사용하여 콘텐츠 컬렉션 `dogs`를 정의합니다:
-
-```toml title="src/data/dogs.toml"
-[[dogs]]
-id = "..."
-age = "..."
-
-[[dogs]]
-id = "..."
-age = "..."
-```
-
-TOML의 파서를 가져온 후 파일 경로와 `parser` 함수를 모두 `file()` 로더에 전달하여 `dogs` 컬렉션을 프로젝트에 로드할 수 있습니다. 비슷한 과정을 통해 `.csv` 파일에서 `cats` 컬렉션을 정의할 수 있습니다:
+다음 예시는 CSV 파서를 가져온 다음 파일 경로와 `parser` 함수를 모두 `file()` 로더에 전달하여 프로젝트에 `cats` 컬렉션을 로드하는 방법을 보여줍니다.
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
-import { parse as parseToml } from "toml";
 import { parse as parseCsv } from "csv-parse/sync";
-
-const dogs = defineCollection({
-  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
-  schema: /* ... */
-})
 
 const cats = defineCollection({
   loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
@@ -221,6 +203,10 @@ Astro 통합이나 Vite 플러그인을 만드는 것처럼, [로더를 NPM 패�
 스키마는 Zod 유효성 검사를 통해 컬렉션의 프런트매터나 항목 데이터의 일관성을 강제합니다. 스키마는 데이터를 참조하거나 쿼리할 때 데이터가 예측 가능한 형태로 존재함을 **보장합니다**. 만약 어떤 파일이 컬렉션 스키마를 위반하면, Astro는 도움이 되는 오류 메시지를 표시합니다.
 
 스키마는 또한 Astro의 자동 TypeScript 타입 생성 기능을 제공합니다. 컬렉션에 스키마를 정의하면 Astro는 자동으로 TypeScript 인터페이스를 생성하고 적용합니다. 그 결과 컬렉션을 쿼리할 때 속성 자동 완성과 타입 검사를 포함한 완전한 TypeScript 지원을 받을 수 있습니다.
+
+:::tip
+Astro가 새 스키마 또는 업데이트된 스키마를 인식하려면 개발 서버를 다시 시작하거나 [콘텐츠 레이어 동기화](/ko/reference/cli-reference/#astro-dev) (<code>s + enter</code>)를 통해 `astro:content` 모듈을 정의해야 할 수도 있습니다.
+:::
 
 컬렉션 항목의 모든 프런트매터나 데이터 속성은 Zod 데이터 타입을 사용하여 정의되어야 합니다:
 

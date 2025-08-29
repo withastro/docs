@@ -248,6 +248,94 @@ export default defineConfig({
 });
 ```
 
+### `workerEntryPoint`
+
+<p>
+**类型：** `{ path: string | URL, namedExports: string[] }`<br />
+**默认值：** `{ path: '@astrojs/cloudflare/entrypoints/server.js', namedExports: [] }`<br />
+<Since v="12.6.0" pkg="@astrojs/cloudflare"/>
+</p>
+
+该配置对象允许你在使用 `astro build` 命令时为 Cloudflare Worker 指定 [workerEntryPoint](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/rpc/)。
+
+你可以选择性地指定自定义文件的 `path` 和 `namedExports`：
+
+```js title="astro.config.mjs"
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  adapter: cloudflare({
+    workerEntryPoint: {
+      path: 'src/worker.ts',
+      namedExports: ['MyDurableObject']
+    }
+  }),
+});
+```
+
+#### `workerEntryPoint.path`
+
+<p>
+**类型：** `string`<br />
+**默认值：** `@astrojs/cloudflare/entrypoints/server.js`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+入口文件的路径。应为 Astro 项目根目录下的相对路径。
+
+默认情况下，适配器会使用一个通用入口文件，仅支持 `fetch` 处理器。
+
+如需支持其他 [Cloudflare 调用处理器](https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs)，可创建自定义入口文件。这对于需要 Durable Objects、Cloudflare Queues、Scheduled Invocations 等功能时非常有用。
+
+#### `workerEntryPoint.namedExports`
+
+<p>
+**类型：** `[]`<br />
+**默认值：** `[]`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+为入口文件提供额外的命名导出。
+
+如有[自定义入口文件](#创建自定义-cloudflare-worker-入口文件)（如 DurableObject），可在此处指定命名导出。若未指定，仅包含默认导出。
+
+#### 创建自定义 Cloudflare Worker 入口文件
+
+自定义入口文件必须导出 `createExports()` 函数，并通过 `default` 导出包含所有所需处理器。
+
+以下示例注册了 Durable Object 和队列处理器：
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+  const app = new App(manifest);
+  return {
+    default: {
+      async fetch(request, env, ctx) {
+        await env.MY_QUEUE.send("log");
+        return handle(manifest, app, request, env, ctx);
+      },
+      async queue(batch, _env) {
+        let messages = JSON.stringify(batch.messages);
+        console.log(`consumed from our queue: ${messages}`);
+      }
+    } satisfies ExportedHandler<Env>,
+    MyDurableObject: MyDurableObject,
+  }
+}
+```
+
 ## Cloudflare 运行时
 
 ### 用例

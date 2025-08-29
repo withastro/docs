@@ -10,6 +10,7 @@ i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
 Cet adaptateur permet à Astro de déployer vos [routes et fonctionnalités rendues à la demande](/fr/guides/on-demand-rendering/) vers des cibles Node, y compris [les îlots de serveurs](/fr/guides/server-islands/), les [actions](/fr/guides/actions/) et les [sessions](/fr/guides/sessions/).
 
@@ -103,6 +104,87 @@ export default defineConfig({
   adapter: node({
     mode: 'middleware',
   }),
+});
+```
+
+### `experimentalDisableStreaming`
+
+<p>
+**Type :** `boolean` <br />
+**Par défaut :** `false`<br />
+<Since v="9.3.0" pkg="@astrojs/node" />
+</p>
+
+Désactive le [streaming HTML](/fr/guides/on-demand-rendering/#streaming-html) par défaut d'Astro pour les pages rendues à la demande.
+
+Le streaming HTML améliore les performances et offre généralement une meilleure expérience aux visiteurs. Dans la plupart des cas, il est déconseillé de désactiver le streaming.
+
+Cependant, lorsque vous devez désactiver le streaming HTML (par exemple, votre hébergeur ne prend en charge que la mise en cache HTML non diffusée au niveau du CDN), vous pouvez désactiver le comportement par défaut :
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+    experimentalDisableStreaming: true,
+  }),
+});
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+  **Type :** `boolean` <br />
+  **Par défaut :** `false`<br />
+  <Since v="9.3.0"  pkg="@astrojs/node"/>
+</p>
+
+Si cette option est activée, l'adaptateur servira les en-têtes des pages pré-rendues à l'aide de l'objet `Response` lorsqu'il est fourni par les fonctionnalités Astro, telles que la politique de sécurité du contenu.
+
+Par exemple, lorsque [la politique de sécurité du contenu expérimentale](/fr/reference/experimental-flags/csp/) est activée, `experimentalStaticHeaders` peut être utilisé pour ajouter les en-têtes CSP à l'objet `Response` au lieu de créer un élément `<meta>` :
+
+```js title="astro.config.mjs" {10}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: node({
+    mode: 'standalone',
+    experimentalStaticHeaders: true,
+  })
+});
+```
+
+### `experimentalErrorPageHost`
+
+<p>
+  **Type :** `string | URL` <br />
+  **Par défaut :** `undefined`<br />
+  <Since v="9.4.0" pkg="@astrojs/node"/>
+</p>
+
+Spécifie un hôte alternatif pour le chargement des [pages d'erreur personnalisées](/fr/basics/astro-pages/#page-derreur-404-personnalisée) pré-rendues.
+
+Astro doit pouvoir charger votre page 404 afin de la renvoyer dans une réponse. Par défaut, Astro charge les pages d'erreur personnalisées pré-rendues depuis le même hôte que celui auquel la requête est adressée. Par exemple, si une requête est adressée à `https://example.com/page-inexistante`, Astro tentera de charger la page d'erreur pré-rendue depuis `https://example.com/404.html`.
+
+Utilisez `experimentalErrorPageHost` lorsque votre page d'erreur personnalisée doit être chargée depuis un autre hôte, par exemple lorsque le serveur est exécuté derrière un proxy inverse ou dans un conteneur n'ayant pas accès à l'URL de l'hôte externe. Vous pouvez également l'utiliser lorsqu'il est plus efficace de charger la page d'erreur pré-rendue depuis localhost plutôt que via le réseau Internet public.
+
+La valeur peut être une chaîne de caractères ou un objet URL. Il doit s'agir d'une URL complète, incluant le protocole (par exemple, `http://localhost:4321`). Astro chargera toujours la page d'erreur pré-rendue depuis le chemin racine, et les paramètres de chemin ou de requête seront ignorés.
+
+```js
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    // Charger les pages depuis localhost, et non depuis l'URL publique.
+    experimentalErrorPageHost: 'http://localhost:4321',
+  })
 });
 ```
 
