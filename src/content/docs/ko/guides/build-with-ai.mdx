@@ -1,0 +1,298 @@
+---
+title: AI 도구를 사용하여 Astro 사이트 빌드하기
+sidebar:
+  label: AI를 사용하여 빌드하기
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+i18nReady: true
+description: AI의 도움을 받아 Astro 사이트를 구축하기 위한 리소스 및 팁
+---
+
+import { Steps, LinkButton, Card, Tabs, TabItem } from '@astrojs/starlight/components';
+
+AI 기반 편집기 및 에이전트 코딩 도구는 일반적으로 Astro의 핵심 API와 개념에 대해 잘 알고 있습니다. 그러나 일부는 이전 API를 사용하며 최신 기능이나 프레임워크의 최근 변경 사항을 알지 못할 수 있습니다.
+
+이 가이드에서는 최신 Astro 지식으로 AI 도구를 향상시키는 방법을 다루고 AI의 도움을 받아 Astro 사이트를 구축하는 모범 사례를 제공합니다.
+
+## 컨텍스트 파일
+
+Astro는 전체 문서 콘텐츠가 포함된 [`llms.txt`](https://docs.astro.build/llms.txt) 및 [`llms-full.txt`](https://docs.astro.build/llms-full.txt) 파일을 AI 소비에 최적화된 형식으로 제공합니다. 이는 간소화된 Markdown 형식의 정적 Astro 문서 콘텐츠의 파일입니다. `https://docs.astro.build`를 문서 소스로 제공하면 일부 AI 도구에서 이러한 파일을 자동으로 검색할 수 있습니다.
+
+이러한 파일은 구문을 분석하기 쉬운 최소한의 Astro 문서를 제공하지만, 컨텍스트에서 직접 사용할 경우 많은 토큰이 소비되는 대용량 파일이며 최신 상태를 유지하기 위해 정기적으로 업데이트해야 합니다. AI 도구가 다른 방법으로 최신 문서에 액세스할 수 없을 때 사용하는 것이 가장 좋습니다. [MCP 서버](#astro-docs-mcp-서버)는 실시간 검색 기능을 통해 전체 문서에 보다 효율적으로 액세스할 수 있으므로 가능한 경우 선호되는 옵션입니다.
+
+## Astro Docs MCP 서버
+
+Astro 문서 MCP (모델 컨텍스트 프로토콜) 서버를 통해 AI 도구에 최신 Astro 지식이 있는지 확인할 수 있습니다. 이를 통해 최신 문서에 실시간으로 액세스할 수 있으므로 AI 도구가 오래된 권장 사항을 피하고 최신 모범 사례를 이해할 수 있도록 도와줍니다.
+
+:::tip[MCP란 무엇입니까?]
+[모델 컨텍스트 프로토콜](https://modelcontextprotocol.io/) (MCP)은 AI 도구가 외부 도구 및 데이터 소스에 액세스하는 표준화된 방식입니다.
+:::
+
+정적 데이터로 학습된 AI 모델과 달리 MCP 서버는 최신 Astro 문서에 대한 액세스를 제공합니다. 이 서버는 무료 오픈 소스이며 로컬에 설치할 필요 없이 원격으로 실행됩니다.
+
+Astro Docs MCP 서버는 [kapa.ai](https://www.kapa.ai/) API를 사용하여 Astro 문서의 최신 색인을 관리합니다.
+
+### 서버 상세 정보
+
+- **이름**: Astro Docs
+- **URL**: `https://mcp.docs.astro.build/mcp`
+- **전송 방식**: 스트리밍 가능한 HTTP
+
+### 설치
+
+설치 프로세스는 사용하는 AI 개발 도구에 따라 다릅니다. 일부 도구는 MCP 서버를 커넥터, 어댑터, 확장 또는 플러그인으로 참조합니다.
+
+#### 직접 설정하기
+
+많은 도구가 MCP 서버를 위한 일반적인 JSON 구성 형식을 지원합니다. 선택한 도구에 대한 구체적인 지침이 없는 경우, 도구의 MCP 설정에 다음 구성을 포함하여 Astro Docs MCP 서버를 추가할 수 있습니다.
+
+<Tabs>
+  <TabItem label="스트리밍 가능한 HTTP">
+    ```json title="mcp.json" {3-6}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "http",
+          "url": "https://mcp.docs.astro.build/mcp"
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="로컬 프록시">
+    ```json title="mcp.json" {3-7}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+#### Claude Code CLI
+
+[Claude Code](https://docs.anthropic.com/ko/docs/claude-code/overview)는 명령줄에서 실행되는 에이전트 코딩 도구입니다. Astro Docs MCP 서버를 활성화하면 Astro 코드를 생성하는 동안 최신 문서에 액세스할 수 있습니다.
+
+다음 터미널 명령을 사용하여 설치합니다.
+
+```shell
+claude mcp add --transport http astro-docs https://mcp.docs.astro.build/mcp
+```
+
+[Claude Code에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://docs.anthropic.com/ko/docs/claude-code/mcp)
+
+#### Claude Code GitHub Action
+
+Claude Code는 GitHub 이벤트에 대한 응답으로 명령을 실행하는 데 사용할 수 있는 GitHub 액션도 제공합니다. Astro Docs MCP 서버를 활성화하면 댓글로 질문에 답변하거나 Astro 코드를 생성하면서 최신 문서에 액세스할 수 있습니다.
+
+문서에 액세스하기 위해 워크플로 파일에 다음을 추가하여 Astro Docs MCP 서버를 사용하도록 구성할 수 있습니다.
+
+```yaml title=".github/workflows/claude.yml" {5-14}
+# ...나머지 워크플로 구성
+- uses: anthropics/claude-code-action@beta
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    mcp_config: |
+      {
+        "mcpServers": {
+          "astro-docs": {
+            "type": "http",
+            "url": "https://mcp.docs.astro.build/mcp"
+          }
+        }
+      }
+    allowed_tools: "mcp__astro-docs__search_astro_docs" 
+```
+
+[Claude Code GitHub Action에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://github.com/anthropics/claude-code-action?tab=readme-ov-file#using-custom-mcp-configuration)
+
+#### Cursor
+
+[Cursor](https://cursor.com)는 AI 코드 편집기입니다. Astro Docs MCP 서버를 추가하면 Cursor가 개발 작업을 수행하면서 최신 Astro 문서에 액세스할 수 있습니다.
+
+아래 버튼을 클릭하여 설치합니다.
+
+<LinkButton href="cursor://anysphere.cursor-deeplink/mcp/install?name=Astro%20docs&config=eyJ1cmwiOiJodHRwczovL21jcC5kb2NzLmFzdHJvLmJ1aWxkL21jcCJ9">Cursor에 추가하기</LinkButton>
+
+[Cursor에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://docs.cursor.com/context/mcp)
+
+#### Visual Studio Code
+
+[Visual Studio Code](https://code.visualstudio.com)는 Copilot Chat을 사용할 때 MCP 서버를 지원합니다. Astro Docs MCP 서버를 추가하면 VS Code에서 질문에 답하거나 코딩 작업을 수행할 때 최신 Astro 문서에 액세스할 수 있습니다.
+
+아래 버튼을 클릭하여 설치합니다.
+
+<LinkButton href="vscode:mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%7D">VS Code에 추가하기</LinkButton>
+
+[VS Code에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
+
+#### Warp
+
+[Warp](https://warp.dev) (구 Warp Terminal)는 여러 AI 에이전트를 사용하여 코딩할 수 있는 에이전트 개발 환경입니다. Astro Docs MCP 서버를 추가하면 질문에 답하거나 코딩 작업을 수행할 때 Warp가 최신 Astro 문서에 액세스할 수 있습니다.
+
+<Steps>
+
+1. Warp의 settings 메뉴를 선택하고 AI > MCP Servers > Manage MCP Servers를 선택합니다.
+2. "Add"를 클릭합니다.
+3. 다음 구성을 입력하여 추가합니다. Astro MCP 서버는 `start_on_launch` 플래그를 사용하여 선택적으로 시작 시 활성화되도록 구성할 수 있습니다.
+   ```json title="MCP Configuration" {3-9}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"],
+         "env": {},
+         "working_directory": null,
+         "start_on_launch": true
+       }
+     }
+   }
+   ```
+4. "Save"를 클릭합니다.
+
+</Steps>
+
+[Warp에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://docs.warp.dev/knowledge-and-collaboration/mcp)
+
+#### Claude.ai / Claude Desktop
+
+[Claude.ai](https://claude.ai)는 범용 AI 어시스턴트입니다. Astro Docs MCP 서버를 추가하면 Astro 질문에 답하거나 Astro 코드를 생성할 때 최신 문서에 액세스할 수 있습니다.
+
+<Steps>
+
+1. [Claude.ai 커넥터 설정](https://claude.ai/settings/connectors)으로 이동합니다.
+2. "Add custom connector"를 클릭합니다. 이 옵션을 찾으려면 아래로 스크롤해야 할 수도 있습니다.
+3. 서버 URL을 입력합니다: `https://mcp.docs.astro.build/mcp`.
+4. 이름을 "Astro docs"로 설정합니다.
+
+</Steps>
+
+[Claude.ai에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://support.anthropic.com/ko/articles/10168395-claude-ai%EC%97%90%EC%84%9C-%ED%86%B5%ED%95%A9-%EC%84%A4%EC%A0%95%ED%95%98%EA%B8%B0#h_cda40ecb32)
+
+#### Windsurf
+
+[Windsurf](https://windsurf.com/)는 AI 기반 에이전트 코딩 도구로, 편집기 플러그인 또는 독립형 편집기로 사용할 수 있습니다. 코딩 작업을 수행하면서 문서에 액세스하기 위해 Astro Docs MCP 서버를 사용할 수 있습니다.
+
+Windsurf는 HTTP 스트리밍을 지원하지 않으므로 로컬 프록시 구성이 필요합니다.
+
+<Steps>
+
+1. 편집기에서 `~/.codeium/windsurf/mcp_config.json`을 엽니다.
+2. Windsurf MCP 설정에 다음 구성을 추가합니다.
+
+   ```json title="MCP Configuration" {3-6}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. 구성을 저장하고 Windsurf를 다시 시작합니다.
+
+</Steps>
+
+[Windsurf에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json)
+
+#### Gemini CLI
+
+Gemini CLI는 명령줄 AI 코딩 도구로, Astro 코드를 생성하면서 문서에 액세스하기 위해 Astro Docs MCP 서버를 사용할 수 있습니다.
+
+전역 수준에 있는 `~/.gemini/settings.json` 파일 또는 프로젝트 루트에 있는 `.gemini/settings.json` 파일에서 MCP 서버를 구성할 수 있습니다.
+
+```json title=".gemini/settings.json" {3-5}
+{
+  "mcpServers": {
+    "Astro docs": {
+      "httpUrl": "https://mcp.docs.astro.build/mcp",
+    }
+  }
+}
+``` 
+
+[Gemini CLI에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
+
+#### Zed
+
+[Zed](https://zed.dev)는 AI 기능을 사용할 때 MCP 서버를 지원합니다. 코딩 작업을 수행하면서 문서에 액세스하기 위해 Astro Docs MCP 서버를 사용할 수 있습니다.
+
+Zed는 HTTP 스트리밍을 지원하지 않으므로 로컬 프록시 구성이 필요합니다.
+
+<Steps>
+
+1. 편집기에서 `~/.config/zed/settings.json`을 엽니다.
+2. Zed MCP 설정에 다음 구성을 추가합니다.
+
+   ```json title="MCP Configuration" {3-6}
+   {
+     "context_servers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. 구성을 저장합니다.
+
+</Steps>
+
+[Zed에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://zed.dev/docs/ai/mcp)
+
+#### ChatGPT
+
+:::caution[제한된 가능]
+MCP 서버 통합은 ChatGPT 프로, 팀, 엔터프라이즈 사용자만 사용할 수 있습니다. 설정 프로세스는 다른 도구보다 복잡합니다.
+:::
+
+구체적인 설정 지침은 [OpenAI MCP 문서](https://platform.openai.com/docs/mcp#test-and-connect-your-mcp-server)를 참조하세요.
+
+#### Raycast
+
+[Raycast](https://www.raycast.com/)는 MCP 서버에 연결하여 AI 기능을 향상시킬 수 있습니다. MCP와 같은 AI 기능을 사용하려면 [Raycast Pro](https://www.raycast.com/pro) 계정이 필요하므로 설치하기 전에 업그레이드했는지 확인하세요. Astro Docs MCP 서버를 추가하면 Raycast가 질문에 답하면서 최신 Astro 문서에 액세스할 수 있습니다.
+
+아래 버튼을 클릭하여 설치합니다.
+
+<LinkButton href="raycast://mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%20%22mcp-remote%22%2C%20%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%5D%7D">Raycast에 추가하기</LinkButton>
+
+[Raycast에서 MCP 서버를 사용하는 방법에 대한 자세한 정보](https://manual.raycast.com/model-context-protocol)
+
+### 사용하기
+
+구성이 완료되면 AI 도구에 Astro에 대해 질문할 수 있습니다. 그러면 AI 도구는 답변을 하기 위해 최신 문서에서 직접 정보를 검색할 수 있습니다. 코딩 에이전트는 코딩 작업을 수행할 때 최신 문서를 참조할 수 있으며, 챗봇은 Astro의 기능, API 및 모범 사례에 대한 질문에 정확하게 답변할 수 있습니다.
+
+:::note[기억하세요]
+Astro Docs MCP 서버는 최신 문서에 대한 액세스를 제공하지만, 해석과 코드 생성은 여전히 AI 도구가 담당합니다. AI는 실수를 할 수 있으므로 항상 생성된 코드를 주의 깊게 검토하고 철저하게 테스트하세요.
+:::
+
+### 문제 해결
+
+문제가 발생하면 다음 작업들을 수행해보세요.
+
+- 사용하는 도구가 스트리밍 가능한 HTTP 전송을 지원하는지 확인하세요.
+- 서버 URL이 올바른지 확인하세요: `https://mcp.docs.astro.build/mcp`.
+- 도구에 인터넷이 제대로 연결되어 있는지 확인하세요.
+- 특정 도구의 MCP 통합 문서를 참조하세요.
+
+그래도 문제가 계속 발생하면 [Astro Docs MCP 서버 리포지토리](https://github.com/withastro/docs-mcp/issues)에서 이슈를 제출하세요.
+
+
+## Discord AI 지원
+
+Astro의 MCP 서버를 구동하는 것과 동일한 기술이 셀프 서비스 지원을 위해 [Astro Discord](https://astro.build/chat)의 챗봇으로도 제공됩니다. `#support-ai` 채널을 방문하여 자연어로 Astro 또는 프로젝트 코드에 대해 질문하세요. 대화에 대한 스레드가 자동으로 생성되며, 후속 질문을 무제한으로 할 수 있습니다.
+
+**챗봇과의 대화는 공개되며 다른 채널과 동일한 언어 및 행동에 대한 서버 규칙을 따릅니다.** 하지만, 자원 봉사 회원들이 적극적으로 확인하지는 않습니다. 커뮤니티의 도움이 필요하면 일반 `#support` 채널에 스레드를 작성해 주세요.
+
+## AI 기반 Astro 개발을 위한 팁
+
+- **템플릿으로 시작**: 처음부터 빌드하는 대신 AI 도구에 기존 [Astro 템플릿](https://astro.build/themes/)으로 시작하거나 `npm create astro@latest`를 사용하여 템플릿 옵션을 선택하도록 요청하세요.
+- **통합을 위한 `astro add` 사용**: 공식 통합을 설치하기 위해 `astro add`를 사용하도록 AI 도구에 요청하세요 (예: `astro add tailwind`, `astro add react`). 다른 패키지의 경우, `package.json`을 직접 편집하지 말고 선호하는 패키지 관리자의 명령을 사용하여 설치하세요.
+- **현재 API 확인**: AI 도구는 오래된 패턴을 사용할 수 있습니다. 특히 세션 및 액션과 같은 최신 기능에 대해서는 최신 문서를 확인하도록 요청하세요. 이는 콘텐츠 컬렉션과 같이 처음 출시된 이후 상당한 변화가 있었던 기능이나 더 이상 실험적이지 않는 이전의 실험적 기능의 경우에도 중요합니다.
+- **프로젝트 규칙 사용**: AI 도구에서 지원하는 경우 프로젝트 규칙을 설정하여 위에 나열된 것과 같은 모범 사례 및 코딩 표준을 적용하세요.

@@ -1,12 +1,10 @@
 ---
-title: Astroの構文
-description: .astroコンポーネント構文の紹介。
+title: テンプレート式のリファレンス
 i18nReady: true
 ---
 
-**HTMLを知っていれば、最初のAstroコンポーネントを書くには十分です。**
+Astroコンポーネントの構文はHTMLのスーパーセットです。この構文はHTMLやJSXを書いたことのある人にとって親しみやすいように設計され、コンポーネントやJavaScriptの式がサポートされています。
 
-Astroコンポーネントの構文はHTMLのスーパーセットです。この構文は[HTMLやJSXを書いたことのある人にとって親しみやすいように設計され](#astroとjsxの違い)、コンポーネントやJavaScriptの式がサポートされています。
 
 ## JSXライクな式
 
@@ -45,7 +43,8 @@ const name = "Astro";
 ```
 
 :::caution
-HTML属性は文字列に変換されるため、関数やオブジェクトをHTML要素に渡すことはできません。たとえば、Astroコンポーネント内のHTML要素にイベントハンドラを割り当てることはできません。
+HTML属性は文字列に変換されるため、関数やオブジェクトをHTML要素に渡すことはできません。
+たとえば、Astroコンポーネント内のHTML要素にイベントハンドラを割り当てることはできません。
 
 ```astro title="dont-do-this.astro"
 ---
@@ -98,7 +97,7 @@ const visible = true;
 
 ### 動的タグ
 
-HTMLタグ名またはインポートされたコンポーネントを変数に設定することで、動的タグも使用できます。
+HTMLタグ名を変数に割り当てるか、コンポーネントのインポートを再割り当てすることで、動的タグも使用できます。
 
 ```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
 ---
@@ -120,9 +119,9 @@ const Component = MyComponent;
 
 ### フラグメント
 
-Astroでは、`<Fragment> </Fragment>`または短縮形の`<> </>`を使用できます。
+Astroでは `<> </>` 表記を使用でき、組み込みの `<Fragment />` コンポーネントを提供しています。このコンポーネントは、HTML文字列を注入するために [`set:*` ディレクティブ](/ja/reference/directives-reference/#sethtml) を追加する際に、ラッパー要素を避けるのに役立ちます。
 
-フラグメントは、次の例のように、[`set:*`ディレクティブ](/ja/reference/directives-reference/#sethtml)を使用する際にラッパー要素を避けるために役立ちます。
+次の例では、`<Fragment />` コンポーネントを使用して段落テキストをレンダリングします。
 
 ```astro title="src/components/SetHtml.astro" "Fragment"
 ---
@@ -170,3 +169,139 @@ Astroでは、標準のHTMLコメントまたはJavaScriptスタイルのコメ�
 :::caution
 HTMLスタイルのコメントはブラウザのDOMに含まれますが、JSのコメントはスキップされます。TODOメッセージやその他の開発専用の説明を残したい場合は、JavaScriptスタイルのコメントを使用することをお勧めします。
 :::
+
+
+## コンポーネントユーティリティ
+
+### `Astro.slots`
+
+`Astro.slots` には、Astroコンポーネントのスロットの子要素を変更するためのユーティリティ関数が含まれています。
+
+#### `Astro.slots.has()`
+
+<p>
+
+**Type:** `(slotName: string) => boolean`
+</p>
+
+`Astro.slots.has()` を使用して、特定のスロット名のコンテンツが存在するかどうかを確認できます。これは、スロットのコンテンツをラップしたいが、スロットが使用されている場合にのみラッパー要素をレンダリングしたい場合に便利です。
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**Type:** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+`Astro.slots.render()` を使用して、スロットのコンテンツをHTML文字列として非同期にレンダリングできます。
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+これは高度なユースケースです！ほとんどの場合、[`<slot />` 要素](/ja/basics/astro-components/#スロット)を使用してスロットのコンテンツをレンダリングする方が簡単です。
+:::
+
+`Astro.slots.render()` は、2番目のオプションの引数として、任意の子関数に転送されるパラメータの配列を受け取ります。これは、カスタムユーティリティコンポーネントに役立ちます。
+
+たとえば、この `<Shout />` コンポーネントは、`message` propを大文字に変換し、デフォルトスロットに渡します。
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+`<Shout />` の子として渡されたコールバック関数は、すべて大文字の `message` パラメータを受け取ります。
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- <div>SLOTS!</div> としてレンダリングされます -->
+```
+
+コールバック関数は、`slot` 属性を持つHTML要素タグでラップすることで、名前付きスロットに渡すことができます。この要素はコールバックを名前付きスロットに転送するためにのみ使用され、ページにはレンダリングされません。
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+ラッパータグには、標準のHTML要素またはコンポーネントとして解釈されない小文字のタグ（例：`<Fragment />` の代わりに `<fragment>`）を使用します。HTMLの `<slot>` 要素はAstroのスロットとして解釈されるため、使用しないでください。
+
+### `Astro.self`
+
+`Astro.self` を使用すると、Astroコンポーネントを再帰的に呼び出すことができます。この動作により、コンポーネントテンプレート内で `<Astro.self>` を使用して、Astroコンポーネントを自身の中からレンダリングできます。これは、大規模なデータストアやネストされたデータ構造を反復処理するのに役立ちます。
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- ネストされたデータ構造がある場合は、`<Astro.self>` をレンダリングします -->
+      <!-- そして、再帰呼び出しでpropを渡すことができます -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+このコンポーネントは次のように使用できます。
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+そして、次のようなHTMLをレンダリングします。
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>

@@ -11,7 +11,7 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-이 **[Astro 통합][astro-integration]은** Astro 프로젝트에서 [Partytown](https://partytown.builder.io/)을 활성화합니다.
+이 **[Astro 통합][astro-integration]은** Astro 프로젝트에서 [Partytown](https://partytown.qwik.dev/)을 활성화합니다.
 
 ## 왜 Astro Partytown인가?
 
@@ -108,11 +108,11 @@ export default defineConfig({
 });
 ```
 
-이는 [Partytown 구성 객체](https://partytown.builder.io/configuration)를 미러링합니다.
+이는 [Partytown 구성 객체](https://partytown.qwik.dev/configuration)를 미러링합니다.
 
 ### config.debug
 
-Partytown에는 `debug` 모드가 포함되어 있습니다. `config.debug`에 `true` 또는 `false`를 전달하여 활성화하거나 비활성화합니다. [`debug` 모드](https://partytown.builder.io/debugging)가 활성화되면 브라우저 콘솔에 자세한 로그가 출력됩니다.
+Partytown에는 `debug` 모드가 포함되어 있습니다. `config.debug`에 `true` 또는 `false`를 전달하여 활성화하거나 비활성화합니다. [`debug` 모드](https://partytown.qwik.dev/debugging)가 활성화되면 브라우저 콘솔에 자세한 로그가 출력됩니다.
 
 기본적으로 이 옵션을 설정하지 않으면 [dev](/ko/reference/cli-reference/#astro-dev) 모드나 [preview](/ko/reference/cli-reference/#astro-preview) 모드에서 디버그 모드가 켜집니다.
 
@@ -134,7 +134,7 @@ export default defineConfig({
 
 이 문제를 해결하기 위해 Partytown은 전역 window 객체에 변수를 "patch"하고 이를 적절한 스크립트로 전달할 수 있습니다.
 
-`config.forward` 옵션을 사용하여 전달할 변수를 지정할 수 있습니다. [Partytown 문서에서 자세히 알아보세요.](https://partytown.builder.io/forwarding-events)
+`config.forward` 옵션을 사용하여 전달할 변수를 지정할 수 있습니다. [Partytown 문서에서 자세히 알아보세요.](https://partytown.qwik.dev/forwarding-events)
 
 ```js title="astro.config.mjs" {7}
 export default defineConfig({
@@ -150,8 +150,64 @@ export default defineConfig({
 });
 ```
 
-## 예
+### config.resolveUrl
+
+일부 타사 스크립트는 서비스 워커에서 실행되는 `config.resolveUrl()`을 통한 [프록시](https://partytown.qwik.dev/proxying-requests/)가 필요할 수 있습니다. 이 구성 옵션을 설정하여 특정 URL을 확인하고, 대신 프록시된 URL을 선택적으로 반환할 수 있습니다.
+
+```js title="astro.config.mjs" {7-13}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 예시: Facebook의 분석 스크립트 프록시
+      config: {
+        resolveUrl: (url) => {
+          const proxyMap = {
+            "connect.facebook.net": "my-proxy.com"
+          }
+          url.hostname = proxyMap[url.hostname] || url.hostname;
+          return url;
+        },
+      }
+    }),
+  ],
+});
+```
+
+그러나 `config` 객체가 클라이언트로 전송될 때 직렬화되므로 구성에 전달되는 함수에 대한 몇 가지 제한 사항이 적용됩니다.
+
+- 함수 범위 밖에 있는 것을 참조할 수 없습니다.
+- 오직 JavaScript로만 작성할 수 있습니다.
+
+일부 고급 사용 사례에서는 Partytown을 초기화하는 동안 이 함수에 데이터를 전달해야 할 수도 있습니다. 이렇게 하려면 통합 구성 대신 `window.partytown`에서 `resolveUrl()`을 설정하면 됩니다.
+
+```astro title="Head.astro" {8-14}
+---
+const proxyMap = {
+  "connect.facebook.net": "my-proxy.com"
+};
+---
+
+<script is:inline set:html={`
+  window.partytown = {
+    resolveUrl: (url) => {
+      const proxyMap = ${JSON.stringify(proxyMap)};
+      url.hostname = proxyMap[url.hostname] || url.hostname;
+      return url;
+    },
+  };
+`} />
+```
+
+이 둘을 모두 설정하면 통합 구성이 `window.partytown`을 재정의한다는 점에 유의하세요.
+
+## 예시
 
 * 더 많은 예시를 보려면 [GitHub에서 Astro Partytown 프로젝트를 찾아보세요](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json\&type=code)!
+
+## 커뮤니티 리소스
+
+* [Partytown과 Astro를 사용하여 Google Tag Manager 구현하기](https://medium.com/@tagperfect/implementing-google-tag-manager-with-partytown-js-in-astro-my-modest-experience-983388907b35)
+* [Astro에서 Partytown을 사용하여 Google Analytics 최적화하기](https://ricostacruz.com/posts/google-analytics-in-astro)
 
 [astro-integration]: /ko/guides/integrations-guide/
