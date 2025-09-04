@@ -79,6 +79,7 @@ export default defineConfig({
 		// Override with our own config
 		smartypants: false,
 		remarkPlugins: [
+			// @ts-expect-error — `remark-smartypants` type is not matching Astro’s for some reason even though they both use unified’s `Plugin` type
 			[remarkSmartypants, { dashes: false }],
 			// Add our custom plugin that marks links to fallback language pages
 			remarkFallbackLang(),
