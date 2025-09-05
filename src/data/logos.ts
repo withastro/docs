@@ -35,6 +35,7 @@ export const logos = LogoCheck({
 	image: { file: 'astro-image.svg', padding: '.1875em' },
 	lit: { file: 'lit.svg', padding: '.1875em' },
 	mdx: { file: 'mdx.svg', padding: '.1em' },
+	mux: { file: 'mux.svg', padding: '.1em' },
 	node: { file: 'node.svg', padding: '.1875em' },
 	partytown: { file: 'partytown.svg', padding: '.2em .2em .25em .25em' },
 	preact: { file: 'preact.svg', padding: '.1875em' },
