@@ -4,18 +4,21 @@ description: 如何使用浏览器 JavaScript API 将客户端交互界面添加
 ---
 import ReadMore from '~/components/ReadMore.astro'
 
-你可以通过使用标准的 HTML `<script>` 标签，在不使用任何 [UI 框架](/zh-cn/guides/framework-components/)（比如 React，Svelte，Vue）的情况下，为你的 Astro 组件添加交互性。这允许你发送 JavaScript 到浏览器，并且为 Astro 组件添加各种功能。
+你可以通过在组件模版中使用 `<script>` 标签发送 JavaScript 到浏览器，并且为 Astro 组件添加各种功能。
+
+脚本用来向你的网站添加交互性，比如处理事件或者动态更新内容，而无需任何像 React、Svelte 或者 Vue 这样的 [UI 框架](/zh-cn/guides/framework-components/)。这避免了随框架一起分发大量 JavaScript 的开销，也不需要你掌握任何额外框架就能创建功能齐全的网站或应用。
 
 ## 客户端脚本
 
 脚本可以用来添加事件监听器，发送分析数据，播放动画，以及其他所有 JavaScript 可以在 Web 上做的事情。
 
-```astro
-<!-- src/components/ConfettiButton.astro -->
+Astro 会自动增强 HTML 标准的 `<script>` 标签，提供打包、TypeScript 等功能。有关更多详细信息，请参阅 [Astro 如何处理脚本](#脚本处理)。
+
+```astro title="src/components/ConfettiButton.astro"
 <button data-confetti-button>Celebrate!</button>
 
 <script>
-  // 导入 npm 模块
+  // 从 npm 包导入
   import confetti from 'canvas-confetti';
 
   // 找到页面上的组件 DOM。
@@ -28,65 +31,38 @@ import ReadMore from '~/components/ReadMore.astro'
 </script>
 ```
 
-默认情况下，Astro 会处理并打包 `<script>` 标签，添加对导入 npm 模块、编写 TypeScript 等的支持。
+<ReadMore>了解 [何时你的脚本不会被处理](#未处理的脚本) 来排查脚本行为, 或了解如何有意选择退出此处理。</ReadMore>
 
-## 在 Astro 中使用 `<script>`
+## 脚本处理
 
-在 `.astro` 文件中，你可以添加一个或多个 `<script>` 标签来添加客户端 JavaScript。
+默认情况下，Astro 会用以下方式处理不包含属性（除了 `src` 之外）的 `<script>` 标签：
 
-在这个例子中，将 `<Hello />` 组件添加到一个页面会向你的浏览器控制台输出一条消息。
-
-```astro title="src/components/Hello.astro"
-<h1>你好，世界！</h1>
-
-<script>
-  console.log('你好，浏览器控制台！');
-</script>
-```
-
-### 脚本处理
-
-Astro 默认处理 `<script>` 标签。
-
-- 任何导入会被打包，这允许你导入本地文件或者 Node 模块。
-- 处理过的脚本会被注入到使用 [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) 声明的位置。
-- 完全支持 TypeScript，包括导入 TypeScript 文件。
-- 如果你的组件在一个页面上被用到了多次，脚本只会有一个。
+- **TypeScript 支持：** 所有脚本默认使用 TypeScript。
+- **导入打包：** 导入本地文件或 npm 模块，会被打包在一起。
+- **模块类型：** 处理后的脚本会自动变成 [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)。
+- **去重：** 如果包含 `<script>` 的组件在页面上被多次使用，该脚本只会被包含一次。
+- **自动内联：** 如果脚本足够小，Astro 会将其直接内联到 HTML 中，以减少请求次数。
 
 ```astro title="src/components/Example.astro"
 <script>
-  // 会处理！会打包！支持 TypeScript！
-  // 也可以导入本地脚本和 Node 模块。
+  // 会处理！会打包！TypeScript！
+  // 也可以导入本地脚本和 npm 包。
 </script>
 ```
 
-`type="module"` 属性使浏览器把脚本视为 JavaScript 模块。这带来了一些性能上的好处：
+### 未处理的脚本
 
--  不会阻塞渲染。在模块脚本及其依赖项加载时，浏览器会继续处理其余的 HTML。
--  浏览器会等待 HTML 处理完毕后再执行模块脚本，因此你无需监听 "load" 事件。
--  不再需要 `async` 和 `defer` 属性。因为模块脚本总是会被延迟执行。
+Astro 不会处理包含除了 `src` 以外任何属性的 `<script>`  标签。
 
-:::note
-对于普通脚本来说，`async` 属性非常有价值，因为它可以防止它们阻塞渲染。然而，模块脚本已经具备了这种行为。将 `async` 添加到模块脚本中会导致它在页面完全加载之前执行，这可能不是你想要的行为。
-:::
-
-### 选择退出处理
-
-如果想阻止 Astro 处理脚本，请添加 `is:inline` 指令。
+你可以添加 [`is:inline`](/zh-cn/reference/directives-reference/#isinline) 指令来有意选择不对脚本进行处理。
 
 ```astro title="src/components/InlineScript.astro" "is:inline"
 <script is:inline>
   // 将会被直接插入 HTML，不会有任何变化！
-  // 本地导入并不会被解析，也不会生效。
-  // 如果组件被多次使用，脚本会出现多次。
+  // 不会被转换：没有 TypeScript，也没有被 Astro 解析导入。
+  // 如果在组件内部使用，这段代码会为每个实例重复创建。
 </script>
 ```
-
-:::note
-在某些情况下，Astro 不会处理你的脚本标签。具体来说，在 `<script>` 标签添加 `type="module"` 或者除 `src` 之外的任何属性，都会使 Astro 将该标签视为具有 `is:inline` 指令。
-:::
-
-<ReadMore>请参阅我们的[指令参考](/zh-cn/reference/directives-reference/#脚本和样式指令)页面以获取有关 `<script>` 标签上可用指令的更多信息。</ReadMore>
 
 ### 在你的页面中包含 JavaScript 文件
 
@@ -96,7 +72,7 @@ Astro 默认处理 `<script>` 标签。
 
 **何时使用**：当你的脚本位于 `src/`。
 
-Astro 将按照其[脚本处理规则](#脚本处理)为你构建、优化并将这些脚本添加到页面中。
+Astro 将按照其[脚本处理规则](#脚本处理)处理这些脚本。
 
 ```astro title="src/components/LocalScripts.astro"
 <!-- `src/scripts/local.js` 脚本的相对路径 -->
@@ -144,9 +120,7 @@ Astro 将按照其[脚本处理规则](#脚本处理)为你构建、优化并将
 </script>
 ```
 
-:::note
 如果你在一个页面上有多个 `<AlertButton />` 组件，Astro 将不会多次运行该脚本。脚本是打包在一起的，每页只包含一次。使用 `querySelectorAll` 确保此脚本将事件侦听器附加到页面上找到的具有 `alert` 类的每个按钮。
-:::
 
 ### 具有自定义元素的 Web 组件
 
@@ -192,9 +166,9 @@ Astro 将按照其[脚本处理规则](#脚本处理)为你构建、优化并将
 
 ### 将 frontmatter 变量传递给脚本
 
-在 Astro 组件中，`---` 之间 [frontmatter](/zh-cn/basics/astro-components/#组件脚本) 中的代码在服务器上运行，而不是在浏览器中。要将变量从服务器发送到客户端，我们需要一种方法来存储我们的变量，然后在浏览器中运行 JavaScript 时读取它们。
+在 Astro 组件中，[frontmatter](/zh-cn/basics/astro-components/#组件脚本)（`---` 之间）中的代码在服务器上运行，而不是在浏览器中。
 
-一种方法是使用 [`data-*` 属性](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Howto/Use_data_attributes) 在 HTML 中存储变量值输出。一旦你的 HTML 加载到浏览器中，脚本（包括自定义元素）就可以使用元素的“数据集”属性读取这些属性。
+要将服务端变量传递给客户端脚本，可以使用 [`data-*` 属性](https://developer.mozilla.org/zh-CN/docs/Learn/HTML/Howto/Use_data_attributes) 在 HTML 中存储它们。脚本就可以使用 `dataset` 属性读取这些属性。
 
 在此示例组件中，一个 `message` 属性存储在 `data-message` 属性中，因此自定义元素可以读取 `this.dataset.message` 并在浏览器中获取该属性的值。
 
