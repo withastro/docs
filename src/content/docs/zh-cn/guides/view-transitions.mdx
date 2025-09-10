@@ -6,17 +6,14 @@ i18nReady: true
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
-Astro 仅需几行代码就可以支持视图过渡动画。视图过渡动画可以在不刷新浏览器的情况下更新页面内容，并在页面之间提供无缝的动画效果。而那些对 [View Transition API 缺少支持的浏览器](https://developer.mozilla.org/zh-CN/docs/Web/API/View_Transition_API#浏览器兼容性)，Astro 允许你 [控制回退策略](#回退控制)，来为所有访客提供最佳的体验。
+[视图过渡动画（View transitions）](https://developer.mozilla.org/zh-CN/docs/Web/API/View_Transition_API) 是在不同网站视图之间的动画过渡。它们是保留视觉连续性的流行设计选择，当访客在应用程序的状态或视图之间切换时，可以保持视觉上的连贯性。
 
-Astro 提供了一个 `<ClientRouter />` 路由组件，可以添加到单个页面的 `<head>` 中，以控制页面在导航到另一个页面时的过渡效果。它提供了一个轻量级的客户端路由器，[拦截导航](#客户端导航流程) 并允许你自定义页面之间的过渡效果。
-
-将此组件添加到一个可复用的 `.astro` 组件中，例如公共头部或布局组件，以便 [在整个站点上实现动画页面过渡（SPA 模式）](#整站视图过渡动画spa-模式)。
-
-Astro 的视图过渡动画支持由新的 [View Transitions](https://developer.chrome.com/docs/web-platform/view-transitions/) 浏览器 API 提供，还包括：
+Astro 的视图过渡动画和客户端路由支持由 [View Transitions 浏览器 API](https://developer.chrome.com/docs/web-platform/view-transitions/) 提供支持，并且还包括：
 
 - 一些 [内置的动画选项](#内置动画指令)，例如 `fade`、`slide` 和 `none`。
-- 支持前进和后退导航动画；
-- 可完全 [自定义过渡动画](#自定义动画) 的能力，可以构建自己的动画效果；
+- 支持前进和后退导航动画。
+- 可完全 [自定义过渡动画](#自定义动画) 的能力，可以构建自己的动画效果。
+- 在导航过程中将当前页面的 HTML 元素带到下一个页面的方式。
 - 用于 [阻止非页面链接的客户端导航](#阻止客户端导航) 的选项。
 - 对于尚未支持视图过渡动画 API 的浏览器，可以 [控制回退行为](#回退控制)。
 - 自动支持 [`prefers-reduced-motion`](#prefers-reduced-motion)。
@@ -25,26 +22,22 @@ Astro 的视图过渡动画支持由新的 [View Transitions](https://developer.
 默认情况下，每个页面都将使用常规的、全页的浏览器导航。你必须选择视图过渡动画，并且可以在每个页面或整个站点上使用它们。
 :::
 
-## 向页面添加视图过渡动画
+## 浏览器原生视图过渡动画与 Astro 的 `<ClientRouter />` 之间的差异
 
-通过在每个页面的 `<head>` 中导入和添加 `<ClientRouter />` 路由组件，可以选择在单个页面上使用视图过渡动画。
+[浏览器原生的跨文档视图过渡动画](https://developer.mozilla.org/zh-CN/docs/Web/API/View_Transition_API/Using#基本_mpa_视图过渡) 可以在 Astro 中用于为多页面应用（MPA）中文档之间的导航添加动画，常用于提供类似单页面应用的客户端路由体验。它们不会改变多页面应用的核心功能，也不会影响任何现有脚本或在页面加载时添加额外的 JavaScript。它们只是添加动画效果。
 
-```astro title="src/pages/index.astro" ins={2,7}
----
-import { ClientRouter } from "astro:transitions";
----
-<html lang="en">
-  <head>
-    <title>我的主页</title>
-    <ClientRouter />
-  </head>
-  <body>
-    <h1>欢迎来到我的网站！</h1>
-  </body>
-</html>
-```
+对于 View Transition API 尚未完全支持的增强型客户端路由和视图过渡功能，Astro 提供了一个内置的轻量级组件，用于启用客户端路由并将你的多页应用转换为具有平滑导航动画的[单页面应用](#启用视图过渡动画spa-模式)。
 
-## 整站视图过渡动画（SPA 模式）
+这带来了一些好处，比如跨页面的共享状态和持久化元素，也有一些缺点，例如在导航后需要手动重新初始化脚本或状态。
+
+添加 Astro 的内置 `<ClientRouter />` 组件：
+- [拦截页面导航](#客户端导航流程)，并让你对这个过程有相当大的控制权。
+- 扩展并增强了某些 View Transition/Navigation API 功能。
+- 允许你配置 [原生浏览器支持不足时](https://developer.mozilla.org/zh-CN/docs/Web/API/View_Transition_API#浏览器兼容性) 的 [回退策略](#回退控制)。
+
+然而，随着浏览器 API 和 web 标准的不断发展，使用 Astro 的 `<ClientRouter />` 来实现这些附加功能 [将越来越变得不必要](https://astro.build/blog/future-of-astro-zero-js-view-transitions/)。我们建议你关注浏览器 API 的当前状态，以便你可以根据你使用的特定功能[决定是否仍然需要 Astro 的客户端路由](https://events-3bg.pages.dev/jotter/astro-view-transitions/)。
+
+## 启用视图过渡动画（SPA 模式）
 
 导入 `<ClientRouter />` 组件并将其添加到公共 `<head>` 或共享布局组件中。Astro 将根据旧页面和新页面之间的相似之处创建默认的页面动画，并为不支持的浏览器提供回退行为。
 
