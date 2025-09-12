@@ -28,6 +28,7 @@ export const logos = LogoCheck({
 	heroku: { file: 'heroku.svg', padding: '.25em' },
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
 	netlify: { file: 'netlify.svg', padding: '.1625em' },
+	railway: { file: 'railway.svg', padding: '0' },
 	render: { file: 'render.svg', padding: '.1875em' },
 	stormkit: { file: 'stormkit.svg', padding: '0' },
 	surge: { file: 'surge.svg', padding: '.125em' },
