@@ -1,24 +1,29 @@
 import { z } from 'astro:content';
 
-export const logos = {
+/** Enforce logo types while preserving exact key type. */
+const LogoCheck = <T extends string>(
+	logos: Record<T, { file: string; padding?: string; bg?: string }>
+) => logos;
+
+export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
-	cloudray: { file: 'cloudray.svg', padding: '0' },
+	cloudray: { file: 'cloudray.svg' },
 	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
 	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
-	deno: { file: 'deno.svg', padding: '0' },
+	deno: { file: 'deno.svg' },
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
 	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
-	gitlab: { file: 'gitlab.svg', padding: '0' },
+	gitlab: { file: 'gitlab.svg' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
 	'google-firebase': { file: 'firebase.svg', padding: '.1875em' },
 	hashnode: { file: 'hashnode.png', padding: '.1875em' },
@@ -26,7 +31,7 @@ export const logos = {
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
 	netlify: { file: 'netlify.svg', padding: '.1625em' },
 	render: { file: 'render.svg', padding: '.1875em' },
-	stormkit: { file: 'stormkit.svg', padding: '0' },
+	stormkit: { file: 'stormkit.svg' },
 	surge: { file: 'surge.svg', padding: '.125em' },
 	vercel: { file: 'vercel.svg', padding: '.3em .3em .35em' },
 	image: { file: 'astro-image.svg', padding: '.1875em' },
@@ -59,14 +64,14 @@ export const logos = {
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
 	caisy: { file: 'caisy.svg', padding: '.05em' },
-	sanity: { file: 'sanity.svg', padding: '.15em' },
+	sanity: { file: 'sanity.svg', padding: '.15em', bg: '#F03E2F' },
 	sitecore: { file: 'sitecore.svg', padding: '.15em' },
 	sitepins: { file: 'sitepins.svg', padding: '.15em .15em' },
 	spinal: { file: 'spinal.svg', padding: '.15em .15em' },
 	storyblok: { file: 'storyblok.svg', padding: '.3em .25em .25em' },
 	wordpress: { file: 'wordpress.svg', padding: '.2em' },
-	kinsta: { file: 'kinsta.svg', padding: '0' },
-	gatsby: { file: 'gatsby.svg', padding: '0' },
+	kinsta: { file: 'kinsta.svg' },
+	gatsby: { file: 'gatsby.svg' },
 	nextjs: { file: 'nextjs.svg', padding: '.125em' },
 	jekyll: { file: 'jekyll.png', padding: '.1em .05em 0' },
 	hugo: { file: 'hugo.svg', padding: '.125em' },
@@ -81,7 +86,7 @@ export const logos = {
 	appwriteio: { file: 'appwriteio.svg', padding: '.2em' },
 	supabase: { file: 'supabase.svg', padding: '.2em' },
 	turso: { file: 'turso.svg', padding: '.2em' },
-	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
+	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em', bg: '#034ad8' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 	gitbook: { file: 'gitbook.svg', padding: '.25em' },
 	'frontmatter-cms': { file: 'frontmatter-cms.svg', padding: '.25em' },
@@ -89,10 +94,10 @@ export const logos = {
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	strapi: { file: 'strapi.svg', padding: '.25em' },
 	microcms: { file: 'microcms.svg', padding: '.2em' },
-	preprcms: { file: 'preprcms.svg', padding: '0' },
+	preprcms: { file: 'preprcms.svg' },
 	'prisma-postgres': { file: 'prisma-postgres.svg', padding: '.20em' },
 	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
-	keystatic: { file: 'keystatic.svg', padding: '0' },
+	keystatic: { file: 'keystatic.svg' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	zerops: { file: 'zerops.svg', padding: '.2em' },
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em' },
@@ -103,7 +108,7 @@ export const logos = {
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
-} satisfies Record<string, { file: string; padding: string }>;
+});
 
 export type LogoKey = keyof typeof logos;
 const logoKeys = Object.keys(logos) as [LogoKey, ...LogoKey[]];
