@@ -1,9 +1,16 @@
 import { z } from 'astro:content';
 
+interface Logo {
+	/** Filename for this logo in `public/logos/*`, e.g. `"alpine-js.svg"`. */
+	file: string;
+	/** CSS padding in `em` units to apply around the logo, e.g. `"0.1em"` or `"0.1em 0.2em"`. */
+	padding?: string;
+	/** Accent color to use as the logo background in large applications. */
+	bg?: string;
+}
+
 /** Enforce logo types while preserving exact key type. */
-const LogoCheck = <T extends string>(
-	logos: Record<T, { file: string; padding?: string; bg?: string }>
-) => logos;
+const LogoCheck = <T extends string>(logos: Record<T, Logo>) => logos;
 
 export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
