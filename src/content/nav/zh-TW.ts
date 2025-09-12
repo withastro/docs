@@ -31,5 +31,5 @@ export default navDictionary({
 	'thirdParty.deployment': '部署指南',
 	'thirdParty.cms': '內容管理系統',
 	'thirdParty.backend': '後端服務',
-	'thirdParty.media': '受託管的媒體與 DAM',
+	'thirdParty.media': '圖片與影片託管',
 });
