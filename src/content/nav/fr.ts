@@ -31,5 +31,5 @@ export default navDictionary({
 	'thirdParty.deployment': 'Guides de déploiement',
 	'thirdParty.cms': 'Systèmes de gestion de contenu',
 	'thirdParty.backend': 'Services back-end',
-	'thirdParty.media': 'Médias hébergés et DAM',
+	'thirdParty.media': 'Hébergement d’images et de vidéos',
 });
