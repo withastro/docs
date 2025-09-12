@@ -24,7 +24,7 @@ Astro 5.0 引入了内容层（Content Layer）API，用于定义和查询内容
 
 你可以从结构相似的数据集中定义一个**集合**。这可以是一个博客文章的目录，一个产品项目的 JSON 文件，或者任何代表相同形状的多个项目的数据。
 
-本地存储在项目中或文件系统上的集合可以包含 Markdown、MDX、Markdoc、YAML 或 JSON 文件的条目：
+本地存储在项目中或文件系统上的集合可以包含 Markdown、MDX、Markdoc、YAML、TOML 或 JSON 文件的条目：
 
 <FileTree>
 - src/
@@ -87,7 +87,7 @@ export const collections = { blog, dogs };
 
 Astro 提供了 [两个内置的加载器函数（`glob()` 和 `file()`）](/zh-cn/reference/content-loader-reference/#内置的加载器) 用于获取本地内容，也可以通过 API 来构建自己的加载器并请求远程数据。
 
-[`glob()` 加载器](/zh-cn/reference/content-loader-reference/#glob-加载器) 可以从文件系统的任何地方创建 Markdown、MDX、Markdoc、JSON 或 YAML 文件的目录条目。它基于 [micromatch](https://github.com/micromatch/micromatch#matching-features) 的 glob 模式支持来接受一个匹配条目文件的 `pattern`，以及你的文件所在的 `base` 文件路径。每个条目的 `id` 将从其文件名自动生成。当每个条目对应一个文件时，请使用此加载器。
+[`glob()` 加载器](/zh-cn/reference/content-loader-reference/#glob-加载器) 可以从文件系统的任何地方创建 Markdown、MDX、Markdoc、JSON、YAML 或 TOML 文件的目录条目。它基于 [micromatch](https://github.com/micromatch/micromatch#matching-features) 的 glob 模式支持来接受一个匹配条目文件的 `pattern`，以及你的文件所在的 `base` 文件路径。每个条目的 `id` 将从其文件名自动生成。当每个条目对应一个文件时，请使用此加载器。
 
 [`file()` 加载器](/zh-cn/reference/content-loader-reference/#file-加载器) 从单个本地文件创建多个条目。文件中的每个条目必须有一个唯一的 `id` 键属性。它接受一个 相对你的文件的 `base` 文件路径，以及一个可选的 [`parser` 函数](#parser-函数) 用于它无法自动解析的数据文件。当你的数据文件可以解析为对象数组时，请使用此加载器。
 
@@ -124,34 +124,16 @@ export const collections = { blog, dogs, probes };
 
 ##### `parser` 函数
 
-`file()` 加载器接受一个第二个参数，定义了一个 `parser` 函数。这允许你指定一个自定义解析器（例如 `toml.parse` 或 `csv-parse`）来从文件内容创建一个集合。
+`file()` 加载器接受一个第二个参数，定义了一个 `parser` 函数。这允许你指定一个自定义解析器（例如 `csv-parse`）来从文件内容创建一个集合。
 
-`file()` 加载器将自动检测和解析 JSON 和 YAML 文件中的单个对象数组（基于它们的文件扩展名），无需 `parser`，除非你有一个[嵌套的 JSON 文件](#嵌套的-json-文件)。要使用其他文件，例如 `.toml` 和 `.csv`，你需要创建一个解析器函数。
+`file()` 加载器将自动检测和解析（基于它们的文件扩展名）JSON 和 YAML 文件中的单个对象数组，并将每个顶层表作为 TOML 文件中的独立条目处理。这些文件类型的支持是内置的，除非你有[嵌套的 JSON 文件](#嵌套的-json-文件)，否则不需要 `parser`。要使用其他文件，例如 `.csv`，你需要创建一个解析器函数。
 
-以下示例使用 `.toml` 文件定义了一个内容集合 `dogs`：
-
-```toml title="src/data/dogs.toml"
-[[dogs]]
-id = "..."
-age = "..."
-
-[[dogs]]
-id = "..."
-age = "..."
-```
-
-导入 TOML 解析器后，你可以通过将文件路径和 `parser` 函数传递给 `file()` 加载器来将 `dogs` 集合加载到你的项目中。类似的过程可以用来从 `.csv` 文件定义 `cats` 集合：
+下面的示例展示了如何导入一个 CSV 解析器，然后通过将文件路径和 `parser` 函数都传递给 `file()` 加载器，将名为 `cats` 的集合加载到你的项目中。
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
-import { parse as parseToml } from "toml";
 import { parse as parseCsv } from "csv-parse/sync";
-
-const dogs = defineCollection({
-  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
-  schema: /* ... */
-})
 
 const cats = defineCollection({
   loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
@@ -223,6 +205,10 @@ const countries = defineCollection({
 模式通过 Zod 验证强制执行集合中的一致的 frontmatter 或条目数据。模式 **保证** 了当你需要引用或查询数据时，这些数据以可预测的形式存在。如果任何文件违反了其集合模式，Astro 将提供一个有用的错误提示。
 
 模式还为 Astro 的内容自动 TypeScript 类型提供了支持。当你为集合定义模式时，Astro 将自动生成并应用一个 TypeScript 接口。结果是当你查询集合时，完整的 TypeScript 支持，包括属性自动补全和类型检查。
+
+:::tip
+为了让 Astro 识别新的或更新后的模式，你可能需要重启开发服务器，或者 [同步内容层](/zh-cn/reference/cli-reference/#astro-dev) (<code>s + enter</code>) 来定义 `astro:content` 模块。
+:::
 
 集合条目的每个 frontmatter 或数据属性都必须使用 Zod 数据类型定义：
 
