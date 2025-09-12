@@ -1,9 +1,6 @@
 import { z } from 'astro:content';
 
-/** Enforce logo types while preserving exact key type. */
-const LogoCheck = <T extends Record<string, { file: string; padding: string }>>(logos: T) => logos;
-
-export const logos = LogoCheck({
+export const logos = {
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
@@ -98,7 +95,7 @@ export const logos = LogoCheck({
 	keystatic: { file: 'keystatic.svg', padding: '0' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	zerops: { file: 'zerops.svg', padding: '.2em' },
-	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
+	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em' },
 	db: { file: 'db.svg', padding: '.1em' },
 	sentry: { file: 'sentry.svg', padding: '.1em' },
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
@@ -106,7 +103,7 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
-});
+} satisfies Record<string, { file: string; padding: string }>;
 
 export type LogoKey = keyof typeof logos;
 const logoKeys = Object.keys(logos) as [LogoKey, ...LogoKey[]];
