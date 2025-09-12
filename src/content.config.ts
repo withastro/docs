@@ -34,6 +34,11 @@ export const cmsSchema = baseSchema.extend({
 	type: z.literal('cms'),
 	stub: z.boolean().default(false),
 	service: z.string(),
+	featuredListing: z
+		.object({
+			tagline: z.string().min(30).max(160),
+		})
+		.optional(),
 });
 
 export const integrationSchema = baseSchema.extend({

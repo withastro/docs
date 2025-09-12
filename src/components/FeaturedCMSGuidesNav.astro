@@ -1,41 +1,26 @@
 ---
-import { getLanguageFromURL } from '~/util/path-utils';
+import { allPages } from '~/content';
+import { isCmsEntry, isEnglishEntry } from '~/content.config';
+import { isLogoKey } from '~/data/logos';
+import { getLanguageFromURL, stripLangFromSlug } from '~/util/path-utils';
 import CardsNav from './NavGrid/CardsNav.astro';
-import type { LogoKey } from '~/data/logos';
 
 const lang = getLanguageFromURL(Astro.url.pathname);
-
-interface Service {
-	title: string;
-	slug: LogoKey;
-	description: string;
-}
-
-const services = [
-	{
-		title: 'CloudCannon',
-		slug: 'cloudcannon',
-		description: 'Git-based CMS built for speed, security, and zero headaches.',
-	},
-	{
-		title: 'Sanity',
-		slug: 'sanity',
-		description: 'Powering all your content applications from a single platform.',
-	},
-	{
-		title: 'Storyblok',
-		slug: 'storyblok',
-		description: 'A headless CMS made for humans. Built for the AI-driven content era.',
-	},
-] satisfies Service[];
+const featuredCmsGuides = allPages.filter(isCmsEntry).filter((entry) => entry.data.featuredListing);
+const enFeaturedCmsGuides = featuredCmsGuides.filter(isEnglishEntry);
 ---
 
 <CardsNav
 	size="large"
-	links={services.map(({ title, slug, description }) => ({
-		title,
-		href: `/${lang}/guides/cms/${slug}/`,
-		logo: { brand: slug, size: 'large', shape: 'rounded' },
-		description,
-	}))}
+	links={enFeaturedCmsGuides.map(({ id, data }) => {
+		const slugWithoutLang = stripLangFromSlug(id);
+		const localizedSlug = `${lang}/${slugWithoutLang}`;
+		const translation = featuredCmsGuides.find((page) => localizedSlug === page.id);
+		return {
+			title: translation?.data.service || data.service,
+			href: `/${localizedSlug}/`,
+			logo: { brand: isLogoKey(id.split('/').pop()), size: 'large', shape: 'rounded' },
+			description: translation?.data.featuredListing?.tagline || data.featuredListing!.tagline,
+		};
+	})}
 />
