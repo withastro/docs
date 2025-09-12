@@ -151,6 +151,7 @@ export const sidebar = [
 					'reference/experimental-flags/heading-id-compat',
 					'reference/experimental-flags/static-import-meta-env',
 					'reference/experimental-flags/chrome-devtools-workspace',
+					'reference/experimental-flags/fail-on-prerender-conflict',
 				],
 			}),
 			'reference/legacy-flags',
