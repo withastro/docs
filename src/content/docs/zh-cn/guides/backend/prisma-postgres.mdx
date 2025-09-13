@@ -1,0 +1,183 @@
+---
+title: Prisma Postgres 与 Astro
+description: 使用 Prisma Postgres 为你的 Astro 项目添加无服务器 Postgres 数据库
+sidebar:
+  label: Prisma Postgres
+type: backend
+service: Prisma Postgres
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Prisma Postgres](https://www.prisma.io/) 是专为现代 Web 应用构建的完全托管、无服务器的 Postgres 数据库。
+
+## 通过 Prisma ORM 连接（推荐）
+
+推荐使用 [Prisma ORM](https://www.prisma.io/orm) 连接你的 Prisma Postgres 数据库。它提供类型安全查询、迁移和全局性能优化。
+
+### 前提条件
+- 一个已安装适配器并支持 [按需渲染（SSR）](/zh-cn/guides/on-demand-rendering/)的 Astro 项目。
+
+### 安装依赖并初始化 Prisma
+
+运行以下命令安装所需的 Prisma 依赖项：
+
+```bash
+npm install prisma tsx --save-dev
+npm install @prisma/extension-accelerate @prisma/client
+```
+
+安装完成后，使用以下命令在项目中初始化 Prisma：
+
+```bash
+npx prisma init --db --output ../src/generated/prisma
+```
+
+设置 Prisma Postgres 数据库时，你需要回答几个问题。选择离你位置最近的区域，并为数据库取一个容易记住的名称，例如“我的 Astro 项目”。
+
+这将创建：
+- 一个包含 `schema.prisma` 文件的 `prisma/` 目录
+- 一个已设置好 `DATABASE_URL` 的 `.env` 文件
+
+### 定义模型
+
+即使你还不需要任何特定的数据模型，Prisma 仍要求在模式中至少定义一个模型，以便生成客户端并应用迁移。
+
+以下示例将 `Post` 模型定义为占位符。将此模型添加到你的架构中即可开始使用。之后你可以放心地删除或用反映你实际数据的模型替换它。
+
+在你的 `prisma/schema.prisma` 文件中，将生成器提供程序从 `prisma-client-js` 更新为 `prisma-client`：
+
+```prisma title="prisma/schema.prisma" {2} ins={11-16}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+}
+```
+
+在 [Prisma schema](https://www.prisma.io/docs/concepts/components/prisma-schema) 参考文档中了解更多关于配置 Prisma ORM 设置的信息。
+
+### 生成迁移文件
+
+运行以下命令创建数据库表并根据你的模式创建 Prisma 客户端。这还将创建包含迁移历史记录文件的 `prisma/migrations/` 目录。
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### 创建 Prisma 客户端
+
+在 `/src/lib` 目录中，创建一个 `prisma.ts` 文件。该文件将初始化并导出你的 Prisma 客户端实例，以便你可以在整个 Astro 项目中查询数据库。
+
+```typescript title="src/lib/prisma.ts"
+import { PrismaClient } from "../generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
+
+const prisma = new PrismaClient({
+  datasourceUrl: import.meta.env.DATABASE_URL,
+}).$extends(withAccelerate());
+
+export default prisma;
+```
+
+### 查询和显示数据
+
+以下示例展示了如何使用 Prisma 客户端仅按 `id` 排序获取已发布的帖子，并在 Astro 模板中显示标题和帖子内容：
+
+```astro title="src/pages/posts.astro" {2, 4-7}
+---
+import prisma from '../lib/prisma';
+
+const posts = await prisma.post.findMany({
+  where: { published: true },
+  orderBy: { id: 'desc' }
+});
+---
+
+<html>
+  <head>
+    <title>Published Posts</title>
+  </head>
+  <body>
+    <h1>Published Posts</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <h2>{post.title}</h2>
+          {post.content && <p>{post.content}</p>}
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+最好的做法是在 API 路由中处理查询。有关如何在 Astro 项目中使用 Prisma ORM 的更多信息，请参考 [Astro + Prisma ORM 指南](https://www.prisma.io/docs/guides/astro)。
+
+## 直接 TCP 连接
+要通过直接 TCP 连接到 Prisma Postgres，你可以在 Prisma 控制台中创建一个直接连接字符串。这样你就能连接任意其他 ORM、数据库库或你选择的工具。
+
+### 前提条件
+- 一个已启用 TCP 连接字符串的 [Prisma Postgres](https://pris.ly/ppg) 数据库
+
+### 安装依赖包
+
+本示例将使用 [`pg`（一个 Node.js 的 PostgreSQL 客户端）](https://github.com/brianc/node-postgres)来建立直接 TCP 连接。
+
+运行以下命令来安装 `pg` 包：
+
+```bash
+npm install pg
+```
+
+### 查询数据库客户端
+
+将连接字符串提供给 `pg` 客户端，以便与 SQL 服务器通信并从数据库中获取数据。
+
+以下创建表和插入的数据示例可用于验证你的查询 URL 和 TCP 连接：
+
+```astro title="src/pages/index.astro" {2-19}
+---
+import { Client } from 'pg';
+const client = new Client({ 
+  connectionString: import.meta.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+await client.connect();
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id SERIAL PRIMARY KEY,
+    title TEXT UNIQUE,
+    content TEXT
+  );
+  
+  INSERT INTO posts (title, content)
+  VALUES ('Hello', 'World')
+  ON CONFLICT (title) DO NOTHING;
+`);
+
+const { rows } = await client.query('SELECT * FROM posts');
+await client.end();
+---
+
+<h1>Posts</h1>
+<p>{rows[0].title}: {rows[0].content}</p>
+```
+
+## 官方资源
+
+- [Astro + Prisma ORM 指南](https://www.prisma.io/docs/guides/astro)
