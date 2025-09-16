@@ -114,6 +114,54 @@ To use your first React component in Astro, head to our [UI framework documentat
 * 💧 client-side hydration options, and
 * 🤝 opportunities to mix and nest frameworks together
 
+## Integrate Actions with `useActionState()` (experimental)
+
+[Astro Actions](astro-actions) can be integrated with [React's `useActionState()` hook](https://react.dev/reference/react/useActionState) to update client-side state when triggering actions during form submission.
+
+To do so, pass `experimental_withState()` receiving the action you want to trigger in the `useActionState()` hook:
+
+```jsx title="Like.tsx" ins={2,6}
+import { actions } from 'astro:actions';
+import { experimental_withState } from '@astrojs/react/actions';
+
+export function Like({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState(
+    experimental_withState(actions.like),
+    0, // initial likes
+  );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="postId" value={postId} />
+      <button disabled={pending}>{state} ❤️</button>
+    </form>
+  );
+}
+```
+
+The `experimental_withState()` function will match the action's types with React's expectations and preserve metadata used for progressive enhancement, allowing it to work even when JavaScript is disabled on the user's device.
+
+You can also access the state stored by `useActionState()` on the server in your action `handler` by calling `experimental_getActionState()` passing in the API context, and optionally, apply a type to the result:
+
+```ts title="actions.ts" ins={3,11}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+import { experimental_getActionState } from '@astrojs/react/actions';
+
+export const server = {
+  like: defineAction({
+    input: z.object({
+      postId: z.string(),
+    }),
+    handler: async ({ postId }, ctx) => {
+      const currentLikes = experimental_getActionState<number>(ctx);
+      // write to database
+      return currentLikes + 1;
+    },
+  })
+};
+```
+
 ## Options
 
 ### Combining multiple JSX frameworks
@@ -201,11 +249,11 @@ export default defineConfig({
   integrations: [
     react({
       experimentalDisableStreaming: true,
-    }),
-  ],
+    })
+  ]
 });
 ```
 
 [astro-integration]: /en/guides/integrations-guide/
-
+[astro-actions]: /en/guides/actions/
 [astro-ui-frameworks]: /en/guides/framework-components/#using-framework-components
