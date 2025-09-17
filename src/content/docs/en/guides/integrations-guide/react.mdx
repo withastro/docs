@@ -120,22 +120,31 @@ The `@astrojs/react` integration provides two experimental functions for use wit
 
 These are used with [React's useActionState() hook](https://react.dev/reference/react/useActionState) to read and update client-side state when triggering actions during form submission.
 
-To do so, pass `experimental_withState()` receiving the action you want to trigger in the `useActionState()` hook:
+### `experimental_withState()`
 
-```jsx title="Like.tsx" ins={2,6}
+<p>
+
+**Type:** `(action: FormFn<T>) => (state: T, formData: FormData) => FormFn<T>`<br />
+<Since v="4.3.2" />
+</p>
+
+You can pass `experimental_withState()` and the action you want to trigger to React's `useActionState()` hook as the form action function. The example below passes a `like` action to increase a counter along with an initial state of `0` likes.
+
+```jsx title="Like.tsx" ins={2,7}
 import { actions } from 'astro:actions';
 import { experimental_withState } from '@astrojs/react/actions';
+import { useActionState } from "react";
 
 export function Like({ postId }: { postId: string }) {
   const [state, action, pending] = useActionState(
     experimental_withState(actions.like),
-    0, // initial likes
+    { data: 0, error: undefined }, // initial likes and errors
   );
 
   return (
     <form action={action}>
       <input type="hidden" name="postId" value={postId} />
-      <button disabled={pending}>{state} ❤️</button>
+      <button disabled={pending}>{state.data} ❤️</button>
     </form>
   );
 }
@@ -147,7 +156,7 @@ The `experimental_withState()` function will match the action's types with React
 
 <p>
 
-**Type:** `(context: APIContext) => Promise<T><br />
+**Type:** `(context: APIContext) => Promise<T>`<br />
 <Since v="4.3.2" />
 </p>
 
@@ -156,7 +165,7 @@ You can access the state stored by `useActionState()` on the server in your acti
 The example below gets the current value of likes from a counter, typed as a number, in order to create an incrementing `like` action:
 
 ```ts title="actions.ts" ins={3,11}
-import { defineAction } from 'astro:actions';
+import { defineAction, type SafeResult } from 'astro:actions';
 import { z } from 'astro:schema';
 import { experimental_getActionState } from '@astrojs/react/actions';
 
@@ -166,7 +175,7 @@ export const server = {
       postId: z.string(),
     }),
     handler: async ({ postId }, ctx) => {
-      const currentLikes = await experimental_getActionState<number>(ctx);
+      const currentLikes = await experimental_getActionState<SafeResult<any, number>>(ctx);
       // write to database
       return currentLikes + 1;
     },
