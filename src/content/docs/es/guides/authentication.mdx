@@ -4,12 +4,14 @@ description: Una introducción a la autenticación en Astro
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
 
 La autenticación y la autorización son dos procesos de seguridad que manejan el acceso a tu sitio web o aplicación. La autenticación verifica la identidad de un visitante, mientras que la autorización otorga acceso a áreas y recursos protegidos.
 
-La autenticación te permite personalizar áreas de tu sitio para personas que han iniciado sesión y proporciona la mayor protección para la información personal o privada. Las bibliotecas de autenticación (por ejemplo, [Lucia Auth](https://lucia-auth.com/), [Auth.js](https://authjs.dev/), [Clerk](https://clerk.com)) proporcionan utilidades para múltiples métodos de autenticación, como el inicio de sesión con correo electrónico y los proveedores de OAuth.
+La autenticación te permite personalizar áreas de tu sitio para personas que han iniciado sesión y proporciona la mayor protección para la información personal o privada. Las bibliotecas de autenticación (por ejemplo, [Auth.js](https://authjs.dev/), [Clerk](https://clerk.com)) proporcionan utilidades para múltiples métodos de autenticación, como el inicio de sesión con correo electrónico y los proveedores de OAuth.
 
 :::tip
 No hay una solución oficial de autenticación para Astro, pero puedes encontrar [integraciones de "auth" de la comunidad](https://astro.build/integrations/?search=auth) en el directorio de integraciones.
@@ -17,54 +19,13 @@ No hay una solución oficial de autenticación para Astro, pero puedes encontrar
 
 <ReadMore>Consulta como [agregar autenticación con Supabase](/es/guides/backend/supabase/#agregar-autenticación-con-supabase) o [agregar autenticación con Firebase](/es/guides/backend/google-firebase/#agregando-autenticación-con-firebase) en nuestras guías dedicadas para estos servicios de backend.</ReadMore>
 
-## Lucia
-
-Lucia es un framework agnóstico, una biblioteca de autenticación basada en sesiones con un gran soporte para Astro.
-
-### Instalación
-
-Instala Lucia usando el gestor de paquetes de tu elección.
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm install lucia
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm add lucia
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn add lucia
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-### Configuración
-
-Usa la guía ["Getting started in Astro"](https://lucia-auth.com/getting-started/astro) de Lucia para inicializar Lucia con un adaptador y configurar una base de datos para almacenar usuarios y sesiones.
-
-### Uso
-
-:::tip
-Sigue uno de los tutoriales completos de Lucia para Astro para agregar [autenticación de nombre de usuario y contraseña](https://lucia-auth.com/tutorials/username-and-password/astro) o [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro) a tu proyecto de Astro.
-:::
-
-### Siguientes pasos
-
-- [Ejemplo de proyecto Astro + Lucia OAuth](https://github.com/lucia-auth/examples/tree/main/astro/github-oauth)
-- [Ejemplo de proyecto Astro + Lucia usuario y contraseña](https://github.com/lucia-auth/examples/tree/main/astro/username-and-password)
-
 ## Auth.js
 
 Auth.js es una solución de framework agnóstico para autenticación. Un adaptador de framework de la comunidad [`auth-astro`](https://www.npmjs.com/package/auth-astro) está disponible para Astro.
 
 ### Instalación
 
-Usa el comando `astro add` para tu gestor de paquetes preferido para agregar la integración `auth-astro`.
+Usa el comando `astro add` para tu gestor de paquetes preferido para agregar la integración `auth-astro` a un proyecto de Astro configurado con un [adaptador de servidor](/es/guides/on-demand-rendering/#server-adapters) para el renderizado bajo demanda.
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -108,21 +69,23 @@ Para instalar `auth-astro` manualmente, instala el paquete requerido para tu ges
 
 Luego, aplica la integración a tu archivo `astro.config.*` usando la propiedad `integrations`:
 
-```ts title="astro.config.mjs" ins={2,6}
+```ts title="astro.config.mjs" ins={2,7}
 import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
 import auth from 'auth-astro';
 
 export default defineConfig({
   // ...
+  adapter: netlify(),
   integrations: [auth()],
 });
 ```
 
 ### Configuración
 
-Crea un archivo `auth.config.mjs` en la raíz de tu proyecto. Agrega cualquier [proveedor](https://authjs.dev/getting-started/providers) o método de autenticación que desees admitir, junto con cualquier variable de entorno que requieran.
+Crea un archivo `auth.config.ts` en la raíz de tu proyecto. Agrega cualquier [proveedor](https://authjs.dev/getting-started/providers) o método de autenticación que desees admitir, junto con cualquier variable de entorno que requieran.
 
-```ts title="auth.config.mjs"
+```ts title="auth.config.ts"
 import GitHub from '@auth/core/providers/github';
 import { defineConfig } from 'auth-astro';
 
@@ -165,10 +128,12 @@ import Layout from 'src/layouts/Base.astro';
 
 Puedes obtener la sesión del usuario usando el método `getSession`.
 
-```astro title="src/pages/index.astro" {3,5}
+```astro title="src/pages/index.astro" {3,7}
 ---
 import Layout from 'src/layouts/Base.astro';
 import { getSession } from 'auth-astro/server';
+
+export const prerender = false; // Innecesario en modo 'server'
 
 const session = await getSession(Astro.request);
 ---
@@ -187,6 +152,158 @@ const session = await getSession(Astro.request);
 
 - [`auth-astro` en GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
 - [Documentación de Auth.js](https://authjs.dev/)
+
+## Better Auth
+
+Better Auth es un framework agnóstico de autenticación (y autorización) independiente para TypeScript. Proporciona un conjunto completo de funciones listas para usar e incluye un ecosistema de complementos que simplifica la adición de funcionalidades avanzadas.
+
+Es compatible con Astro desde el primer momento, y puedes utilizarlo para añadir autenticación a tu proyecto de Astro.
+
+### Instalación
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Para obtener instrucciones detalladas sobre la configuración, consulta la [Guía de instalación de Better Auth](https://www.better-auth.com/docs/installation).
+
+### Configuración
+
+Configura tu tabla de base de datos para almacenar los datos de los usuarios y tus métodos de autenticación preferidos tal y como se describe en la [Guía de instalación de Better Auth](https://www.better-auth.com/docs/installation#configure-database). A continuación, tendrás que montar el controlador Better Auth en tu proyecto de Astro.
+
+```ts title="src/pages/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // importa tu instancia de Better Auth
+import type { APIRoute } from "astro";
+
+export const prerender = false; // Innecesario en modo 'server'
+ 
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+Sigue la [Guía de Better Auth en Astro](https://www.better-auth.com/docs/integrations/astro) para obtener más información.
+
+### Uso
+
+Better Auth ofrece un asistente `createAuthClient` para varios frameworks, incluidos Vanilla JS, React, Vue, Svelte y Solid.
+
+Por ejemplo, para crear un cliente para React, importa el ayudante desde `'better-auth/react'`:
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+Una vez configurado el cliente, puedes utilizarlo para autenticar usuarios en tus componentes de Astro o en cualquier archivo específico del framework. El siguiente ejemplo añade la posibilidad de iniciar o cerrar sesión con las funciones `signIn()` y `signOut()` configuradas.
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+A continuación, puedes utilizar el objeto `auth` para obtener los datos de sesión del usuario en tu código del lado del servidor. El siguiente ejemplo personaliza el contenido de la página mostrando el nombre de un usuario autenticado:
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../../../lib/auth"; // importa tu instancia de Better Auth
+
+export const prerender = false; // Innecesario en modo 'server'
+ 
+const session = await auth.api.getSession({
+	headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+También puedes utilizar el objeto `auth` para proteger tus rutas mediante middleware. El siguiente ejemplo comprueba si un usuario que intenta acceder a una ruta del panel de control en la que ha iniciado sesión está autenticado y, si no es así, lo redirige a la página de inicio.
+
+```ts title="src/middleware.ts"
+import { auth } from "../../../auth"; // importa tu instancia de Better Auth
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+	const isAuthed = await auth.api
+		.getSession({
+			headers: context.request.headers,
+		})
+	if (context.url.pathname === "/dashboard" && !isAuthed) {
+		return context.redirect("/");
+	}
+	return next();
+});
+```
+
+### Siguientes pasos
+
+- [Guía de Better Auth en Astro](https://www.better-auth.com/docs/integrations/astro)
+- [Ejemplo de Better Auth en Astro](https://github.com/better-auth/examples/tree/main/astro-example)
+- [Documentación de Better Auth](https://www.better-auth.com/docs)
+- [Repositorio de GitHub de Better Auth](https://github.com/better-auth/better-auth)
 
 ## Clerk
 
@@ -226,6 +343,8 @@ Clerk proporciona componentes que te permiten controlar la visibilidad de las p�
 ---
 import Layout from 'src/layouts/Base.astro';
 import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+
+export const prerender = false; // Innecesario en modo 'server'
 ---
 <Layout>
     <SignedIn>
@@ -258,6 +377,28 @@ export const onRequest = clerkMiddleware((auth, context) => {
 
 - Leer la [documentación de `clerk/astro` oficial](https://clerk.com/docs/references/astro/overview)
 - Empieza usando una plantilla con el [proyecto de inicio rápido de Clerk + Astro](https://github.com/clerk/clerk-astro-quickstart)
+
+## Lucia
+
+[Lucia](https://lucia-auth.com/) es un recurso para implementar la autenticación basada en sesiones en varios frameworks, incluido Astro.
+
+### Guides
+
+<Steps>
+
+1. Crea una [API de sesiones básica](https://lucia-auth.com/sessions/basic-api/) con la base de datos que elijas.
+2. Añade [cookies de sesión](https://lucia-auth.com/sessions/cookies/astro) utilizando endpoints y middleware.
+3. Implementa [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro) utilizando las API que has implementado.
+
+</Steps>
+
+### Ejemplos
+
+- [Ejemplo de Github OAuth en Astro](https://github.com/lucia-auth/example-astro-github-oauth)
+- [Ejemplo de Google OAuth en Astro](https://github.com/lucia-auth/example-astro-google-oauth)
+- [Ejemplo de correo electrónico y contraseña con 2FA en Astro](https://github.com/lucia-auth/example-astro-email-password-2fa)
+- [Ejemplo de correo electrónico y contraseña con 2FA y WebAuthn en Astro](https://github.com/lucia-auth/example-astro-email-password-webauthn)
+
 
 ## Recursos de la comunidad
 
