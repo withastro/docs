@@ -325,6 +325,52 @@ import { Font } from 'astro:assets';
 <Font cssVariable="--font-roboto" preload />
 ```
 
+## Accessing font data programmatically
+
+<p>
+
+**Type:** `(cssVariable: CssVariable) => FontData`<br />
+<Since v="5.14.0" />
+</p>
+
+If the `<Font />` component is not enough for you, you can have access to lower level data about a given font family:
+
+```ts
+import { getFontData } from "astro:assets"
+
+const data = getFontData("--font-roboto")
+```
+
+This is useful, for example, if you need to get the font buffer from the URL when using [satori](https://github.com/vercel/satori) to generate OpenGraph images:
+
+```tsx title="src/pages/og.png.ts" "getFontData(\"--font-roboto\")" "data[0].src[0].url"
+import type{ APIRoute } from "astro"
+import { getFontData } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = getFontData("--font-roboto")
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await fetch(new URL(data[0].src[0].url, context.url.origin)).then(res => res.arrayBuffer()),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
+```
+
 ## Font configuration reference
 
 All properties of your fonts must be configured in the Astro config. Some properties are common to both remote and local fonts, and other properties are available depending on your chosen font provider.
