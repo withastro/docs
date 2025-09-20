@@ -5,18 +5,22 @@ i18nReady: true
 ---
 import ReadMore from '~/components/ReadMore.astro'
 
-Puedes agregar interactividad a tus componentes de Astro sin [usar un framework de interfaz de usuario](/es/guides/framework-components/) como React, Svelte, Vue, etc. usando las etiquetas estándar HTML `<script>`. Esto te permite enviar JavaScript para ejecutar en el navegador y agregar funcionalidad a tus componentes de Astro.
+Puedes enviar JavaScript al navegador y añadir funcionalidad a tus componentes de Astro utilizando etiquetas `<script>` en la plantilla del componente.
+
+Los scripts añaden interactividad a tu sitio web, como la gestión de eventos o la actualización dinámica de contenidos, sin necesidad de utilizar un [UI framework](/es/guides/framework-components/) como React, Svelte o Vue. Esto evita la sobrecarga que supone enviar el JavaScript del framework y no requiere que conozcas ningún framework adicional para crear un sitio web o una aplicación con todas las funciones.
 
 ## Scripts del lado del cliente
 
 Los scripts pueden ser usados para agregar event listeners, enviar datos de analítica, reproducir animaciones y todo lo que JavaScript puede hacer en la web.
 
-```astro
+Astro mejora automáticamente la etiqueta estándar HTML `<script>` con agrupación, TypeScript y mucho más. Consulta [cómo procesa Astro los scripts](#procesamiento-de-scripts) para obtener más detalles.
+
+```astro title="src/components/ConfettiButton.astro"
 <!-- src/components/ConfettiButton.astro -->
-<button data-confetti-button>Celebrate!</button>
+<button data-confetti-button>¡Celebra!</button>
 
 <script>
-  // Importa módulos npm.
+  // Importa desde el paquete de npm.
   import confetti from 'canvas-confetti';
 
   // Encuentra nuestro componente en la página.
@@ -29,64 +33,37 @@ Los scripts pueden ser usados para agregar event listeners, enviar datos de anal
 </script>
 ```
 
-Por defecto, Astro procesa y empaqueta las etiquetas `<script>`, agregando soporte para importar módulos npm, escribir TypeScript y más.
+<ReadMore>Consulta [cuándo no se procesarán tus scripts](#scripts-no-procesados) para solucionar problemas relacionados con el comportamiento de los scripts o para aprender a desactivar este procesamiento de forma intencionada.</ReadMore>
 
-## Usando `<script>` en Astro
+## Procesamiento de scripts
 
-En archivos `.astro`, puedes agregar JavaScript del lado del cliente agregando una (o más) etiquetas `<script>`.
+De forma predeterminada, Astro procesa las etiquetas `<script>` que no contienen atributos (aparte de `src`) de las siguientes maneras:
 
-En este ejemplo, agregar el componente `<Hello />` a una página registrará un mensaje en la consola del navegador.
-
-```astro title="src/components/Hello.astro"
-<h1>¡Bienvenido, mundo!</h1>
-
-<script>
-  console.log('¡Bienvenida, consola del navegador!');
-</script>
-```
-
-### Procesamiento de scripts
-
-De forma predeterminada, las etiquetas `<script>` son procesadas por Astro.
-
-- Cualquier importación se empaquetará, permitiéndote importar archivos locales o módulos de Node.
-- El script procesado se insertará en el `<head>` de tu página con [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules).
-- TypeScript es totalmente compatible, incluyendo la importación de archivos TypeScript.
-- Si tu componente se usa varias veces en una página, el script solo se incluirá una vez.
-
+- **Compatibilidad con TypeScript:** Todos los scripts son TypeScript de forma predeterminada.
+- **Agrupación de importaciones:** Importa archivos locales o módulos de npm, que se agruparán juntos.
+- **Módulo de tipo:** Los scripts procesados se convierten automáticamente en [`type="module"`](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Modules).
+- **Deduplicación:** Si un componente que contiene un `<script>` se utiliza varias veces en una página, el script solo se incluirá una vez.
+- **Inline automático:** Si el script es lo suficientemente pequeño, Astro lo insertará directamente en el HTML para reducir el número de solicitudes.
 
 ```astro title="src/components/Example.astro"
 <script>
-  // ¡Procesado! ¡Empaquetado! ¡Compatible con TypeScript!
-  // La importación de scripts locales y módulos de Node funciona.
+  // ¡Procesado! ¡Empaquetado! ¡TypeScript!
+  // La importación de scripts locales y packetes de npm funciona.
 </script>
 ```
 
-El atributo `type="module"` hace que el navegador trate el script como un módulo de JavaScript. Esto tiene varios beneficios de rendimiento:
-- El renderizado no se bloquea. El navegador continúa procesando el resto del HTML mientras el script del módulo y sus dependencias se cargan.
-- El navegador espera a que se procese el HTML antes de ejecutar los scripts del módulo. No es necesario escuchar el evento "load".
-- Los atributos `async` y `defer` no son necesarios. Los scripts del módulo siempre se diferirán.
+### Scripts no procesados
 
-:::note
-El atributo `async` es valioso para scripts normales porque evita que bloqueen el renderizado. Sin embargo, los scripts del módulo ya tienen este comportamiento. Agregar `async` a un script del módulo hará que se ejecute antes de que la página se haya cargado por completo. Probablemente no es lo que deseas.
-:::
+Astro no procesará una etiqueta `<script>` si tiene algún atributo distinto de `src`.
 
-### Optar por no procesar
-
-Para evitar que Astro procese un script, agregue la directiva `is:inline`.
+Puedes añadir la directiva [`is:inline`](/es/reference/directives-reference/#isinline) para excluir intencionadamente el procesamiento de un script.
 
 ```astro title="src/components/InlineScript.astro" "is:inline"
 <script is:inline>
-  // Sera renderizado en el HTML exactamente como se escribió!
-  // Importaciones locales no se resuelven y no funcionarán.
-  // Si se encuentra un componente, se repite cada vez que se usa el componente.
+  // Sin transformar: sin TypeScript y sin resolución de importaciones por parte de Astro.
+  // Si se utiliza dentro de un componente, este código se duplica para cada instancia.
 </script>
 ```
-:::note
-Astro no procesará tus etiquetas de script en algunas situaciones. En particular, al agregar `type="module"` o cualquier atributo que no sea `src` a una etiqueta `<script>` hará que Astro trate la etiqueta como si tuviera una directiva `is:inline`. Lo mismo será cierto cuando el script esté escrito en una expresión JSX.
-:::
-
-<ReadMore>Consulta nuestra página de [referencia de directivas](/es/reference/directives-reference/#directivas-script--style) para obtener más información sobre las directivas disponibles en las etiquetas `<script>`.</ReadMore>
 
 ## Incluye archivos de JavaScript en tu página
 
@@ -96,7 +73,7 @@ Es posible que quieras escribir tus scripts como archivos separados `.js`/`.ts` 
 
 **Cuándo usar esto:** Cuando tu script se encuentra dentro de `src/`.
 
-Astro empaquetará, optimizará y agregará estos scripts a la página por ti, siguiendo sus [reglas de procesado](#procesamiento-de-scripts).
+Astro procesará estos scripts de acuerdo con las [reglas de procesamiento de scripts](#procesamiento-de-scripts).
 
 ```astro title="src/components/LocalScripts.astro"
 <!-- ruta relativa al script en `src/scripts/local.js` -->
@@ -144,9 +121,7 @@ En su lugar, puedes usar [`addEventListener`](https://developer.mozilla.org/es/d
 </script>
 ```
 
-:::note
 Si tienes múltiples componentes `<AlertButton />` en una página, Astro no ejecutará el script múltiples veces. Los scripts son empaquetados y solo incluidos una vez en la página. Usando `querySelectorAll` asegura que este script agregue el event listener a cada botón con la clase `alert` en la página.
-:::
 
 ### Componentes Web con elementos personalizados.
 
@@ -163,8 +138,7 @@ En este ejemplo, definimos un nuevo elemento HTML `<astro-heart>` que rastrea cu
 <script>
   // Define el comportamiento para nuestro nuevo tipo de elemento HTML.
   class AstroHeart extends HTMLElement {
-    constructor() {
-			super();
+    connectedCallback() {
       let count = 0;
 
       const heartButton = this.querySelector('button');
@@ -187,15 +161,15 @@ Hay dos ventajas de usar un elemento personalizado aqui:
 
 1. En lugar de buscar en toda la página usando `document.querySelector()`, puedes usar `this.querySelector()`, el cual solo busca dentro de la instancia del elemento personalizado. Esto facilita el trabajo solo con los hijos de una instancia del componente a la vez.
 
-2. Aunque un `<script>` solo se ejecuta una vez, el navegador ejecutará método `constructor()` de nuestro elemento cada vez que encuentre `<astro-heart>` en la página. Esto significa que puedes escribir forma segura código para un componente a la vez, incluso si tienes la intención de utilizar este componente varias veces en una página.
+2. Aunque un `<script>` solo se ejecuta una vez, el navegador ejecutará método `connectedCallback()` de nuestro elemento cada vez que encuentre `<astro-heart>` en la página. Esto significa que puedes escribir forma segura código para un componente a la vez, incluso si tienes la intención de utilizar este componente varias veces en una página.
 
 <ReadMore>Puedes aprender más sobre elementos personalizaods en [la guía de Componentes Web Reusables de web.dev](https://web.dev/custom-elements-v1/) y en [la introducción de MDN a elementos personalizados](https://developer.mozilla.org/es/docs/Web/Web_Components/Using_custom_elements).</ReadMore>
 
 ### Pasando variables frontmatter a scripts
 
-En componentes Astro, el codigo en [el frontmatter](/es/basics/astro-components/#script-de-un-componente) entre los cercos `---` se ejecuta en el servidor y no esta disponible en el navegador. Para mandar variables desde el servidor al cliente, necesitamos una manera de guardar nuestras variables y leerlas cuando JavaScript se ejecute en el navegador.
+En componentes Astro, el codigo en [el frontmatter](/es/basics/astro-components/#script-de-un-componente) (entre los cercos `---`) se ejecuta en el servidor y no esta disponible en el navegador.
 
-Una manera para hacer esto es usando [atributos `data-*`](https://developer.mozilla.org/es/docs/Learn/HTML/Howto/Use_data_attributes) para guardar el valor de las variables en tu HTML. Los scripts, incluyendo elementos personalizados, pueden entonces leer estos atributos usando la propiedad de elemento `dataset` una vez que tu HTML cargue en el navegador.
+To pass server-side variables to client-side scripts, store them in [`data-*` attributes](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) on HTML elements. Scripts can then access these values using the `dataset` property.
 
 En este componente ejemplo, una propiedad `message` es guardada en un atributo `data-message`, para que el elemento personalizado pueda leer `this.dataset.message` y obtener el valor de la propiedad en el navegador.
 
@@ -211,9 +185,7 @@ const { message = '¡Bienvenido, mundo!' } = Astro.props;
 
 <script>
   class AstroGreet extends HTMLElement {
-    constructor() {
-			super();
-
+    connectedCallback() {
       // Lee el mensaje del atributo data.
       const message = this.dataset.message;
       const button = this.querySelector('button');
@@ -244,3 +216,7 @@ import AstroGreet from '../components/AstroGreet.astro';
 :::tip[¿Sabías que?]
 ¡Esto es lo que realmente hace Astro detrás de escenas cuando pasas propiedades a un componente escrito usando un framework de UI como React! Para componentes con una directiva `client:*`, Astro crea un elemento personalizado `<astro-island>` con un atributo `props` que guarda tus propiedades del servidor en la salida HTML.
 :::
+
+### Combinando scripts y UI frameworks
+
+Es posible que los elementos renderizados por un UI framework aún no estén disponibles cuando se ejecuta una etiqueta `<script>`. Si tu script también necesita gestionar [componentes de un UI framework](/es/guides/framework-components/), se recomienda utilizar un elemento personalizado.
