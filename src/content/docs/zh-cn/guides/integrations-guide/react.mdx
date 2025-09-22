@@ -9,6 +9,7 @@ category: renderer
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
 **[Astro 集成][astro-integration]** 为你的 [React](https://react.dev/) 组件实现渲染和客户端水合。
 
@@ -113,6 +114,79 @@ export default defineConfig({
 * 💧 客户端水合选项，以及
 * 🤝 有机会将不同的框架混合和嵌套
 
+## 使用 `useActionState()` 集成 Actions （实验性）
+
+`@astrojs/react` 集成提供了两个实验性函数：`experimental_withState()` 和 `experimental_getActionState()` 来与 [Astro Actions][astro-actions] 一起使用。
+
+这些函数与 React 的 `useActionState()` 钩子一起使用，用于在触发表单提交时读取和更新客户端状态。
+
+### `experimental_withState()`
+
+<p>
+
+**类型：** `(action: FormFn<T>) => (state: T, formData: FormData) => FormFn<T>`<br />
+<Since v="4.3.2" />
+</p>
+
+你可以将 `experimental_withState()` 和你想要触发的 action 传递给 React 的 `useActionState()` hook 作为表单 action 函数。下面的示例将 `like` action 传递给增加计数器，并将初始状态设为 `0` 个点赞。
+
+```jsx title="Like.tsx" ins={2,7} "useActionState"
+import { actions } from 'astro:actions';
+import { experimental_withState } from '@astrojs/react/actions';
+import { useActionState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState(
+    experimental_withState(actions.like),
+    { data: 0, error: undefined }, // 初始点赞和错误
+  );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="postId" value={postId} />
+      <button disabled={pending}>{state.data} ❤️</button>
+    </form>
+  );
+}
+```
+
+`experimental_withState()` 函数会将 action 的类型与 React 的期望匹配，并保留用于渐进增强的元数据，使其即使在用户设备禁用 JavaScript 时也能正常工作。
+
+### `experimental_getActionState()`
+
+<p>
+
+**类型：** `(context: ActionAPIContext) => Promise<T>`<br />
+<Since v="4.3.2" />
+</p>
+
+你可以在 action `handler` 中通过 `experimental_getActionState()` 访问 `useActionState()` 存储的状态。它接受 [Astro API 上下文](/zh-cn/reference/api-reference/#上下文对象)，并可选地对结果应用类型。
+
+下面的示例获取计数器中当前的点赞数的值，类型为 number，以便创建一个递增的 `like` action：
+
+```ts title="actions.ts" ins={3,11}
+import { defineAction, type SafeResult } from 'astro:actions';
+import { z } from 'astro:schema';
+import { experimental_getActionState } from '@astrojs/react/actions';
+
+export const server = {
+  like: defineAction({
+    input: z.object({
+      postId: z.string(),
+    }),
+    handler: async ({ postId }, ctx) => {
+      const { data: currentLikes = 0, error } = await experimental_getActionState<SafeResult<any, number>>(ctx);
+
+      // 处理错误
+      if (error) throw error;
+
+      // 写入数据库
+      return currentLikes + 1;
+    },
+  })
+};
+```
+
 ## 选项
 
 ### 组合多个 JSX 框架
@@ -199,11 +273,13 @@ export default defineConfig({
   integrations: [
     react({
       experimentalDisableStreaming: true,
-    }),
-  ],
+    })
+  ]
 });
 ```
 
 [astro-integration]: /zh-cn/guides/integrations-guide/
 
 [astro-ui-frameworks]: /zh-cn/guides/framework-components/#使用框架组件
+
+[astro-actions]: /zh-cn/guides/actions/
