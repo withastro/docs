@@ -11,6 +11,7 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 This adapter allows Astro to deploy your [on-demand rendered routes and features](/en/guides/on-demand-rendering/) to Node targets, including [server islands](/en/guides/server-islands/), [actions](/en/guides/actions/), and [sessions](/en/guides/sessions/).
 
@@ -282,18 +283,6 @@ You can pass the path to your key and certification via the environment variable
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### Runtime environment variables
-
-If an `.env` file containing environment variables is present when the build process is run, these values will be hard-coded in the output, just as when generating a static website.
-
-During the build, the runtime variables must be absent from the `.env` file, and you must provide Astro with every environment variable to expect at run-time: `VARIABLE_1=placeholder astro build`. This signals to Astro that the actual value will be available when the built application is run. The placeholder value will be ignored by the build process, and Astro will use the value provided at run-time.
-
-In the case of multiple run-time variables, store them in a separate file (e.g. `.env.runtime`) from `.env`. Start the build with the following command:
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### Assets
 
 In standalone mode, assets in your `dist/client/` folder are served via the standalone server. You might be deploying these assets to a CDN, in which case the server will never actually be serving them. But in some cases, such as intranet sites, it's fine to serve static assets directly from the application server.
@@ -309,3 +298,37 @@ Cache-Control: public, max-age=31536000, immutable
 The Astro [Sessions API](/en/guides/sessions/) allows you to easily store user data between requests. This can be used for things like user data and preferences, shopping carts, and authentication credentials. Unlike cookie storage, there are no size limits on the data, and it can be restored on different devices. 
 
 Astro uses the local filesystem for session storage when using the Node adapter. If you would prefer to use a different session storage driver, you can specify it in your Astro config. See [the `session` configuration reference](/en/reference/configuration-reference/#sessiondriver) for more details.
+
+## Environment variables
+
+When using the [`astro:env`](/en/guides/environment-variables/#type-safe-environment-variables) secrets or `process.env` at runtime, Astro nor the adapter loads environment variables for you. Here are a few examples of how you can load them:
+
+<Tabs>
+  <TabItem label="Inline">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>
+
+Some hosts may expose the environment variables you configure through their dashboard during the build and at runtime. In this case, it works out of the box!
