@@ -1,0 +1,332 @@
+---
+title: Referencia de enrutamiento
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+No hay una configuración de enrutamiento independiente en Astro.
+
+Todo [archivo de página compatible](/es/basics/astro-pages/#tipos-de-página-compatibles) ubicado dentro del directorio especial `src/pages/` crea una ruta. Cuando el nombre del archivo contiene un [parámetro](#params), una ruta puede crear varias páginas de forma dinámica, de lo contrario, crea una sola página.
+
+Por defecto, todas las rutas y endpoints de las páginas de Astro se generan y se preprocesan en el momento de la compilación. El [renderizado bajo demanda del servidor](/es/guides/on-demand-rendering/) se puede configurar para rutas individuales o como valor predeterminado.
+
+## `prerender`
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `true` en modo estático (por defecto); `false` con la configuración `output: 'server'`<br />
+<Since v="1.0.0" />
+</p>
+
+Un valor exportado desde cada ruta individual para determinar si está prerenderizada o no.
+
+Por defecto, todas las páginas y endpoints se prerenderizan y se generan de forma estática en el momento de la compilación. Puedes desactivar el prerenderizado en una o varias rutas, y puedes tener rutas renderizadas tanto de forma estática como bajo demanda en el mismo proyecto.
+
+### Sobreescritura por página
+
+Puedes anular el valor predeterminado para habilitar [el renderizado bajo demanda](/es/guides/on-demand-rendering/) para una ruta individual exportando `prerender` con el valor `false` desde ese archivo:
+
+```astro title="src/pages/rendered-on-demand.astro" {2}
+---
+export const prerender = false
+---
+<!-- contenido renderizado en el servidor -->
+<!-- el resto de mi sitio es estático -->
+```
+
+### Cambiar al modo `servidor`
+
+Puedes sobreescribir el valor predeterminado para todas las rutas configurando [`output: 'server'`](/es/reference/configuration-reference/#output). En este modo de salida, todas las páginas y endpoints se generarán en el servidor bajo demanda de forma predeterminada, en lugar de ser prerenderizados.
+
+En el modo `servidor`, habilita el prerenderizado para una ruta individual exportando `prerender` con el valor `true` desde ese archivo:
+
+```astro title="src/pages/static-about-page.astro" {3}
+---
+// con `output: 'server'` configurado
+export const prerender = true
+---
+<!-- Mi página acerca de mí estática -->
+<!-- El resto de páginas se renderizan bajo demanda -->
+```
+
+## `partial`
+
+<p>
+
+**Tipo:** `boolean` <br />
+**Por defecto:** `false` <br />
+<Since v="3.4.0" />
+</p>
+
+Un valor exportado desde una ruta individual para determinar si debe representarse como una página HTML completa.
+
+Por defecto, todos los archivos ubicados dentro del directorio reservado `src/pages/` incluyen automáticamente la declaración `<!DOCTYPE html>` y contenido adicional `<head>`, como los estilos y scripts de Astro.
+
+Puedes sobreescribir el valor predeterminado para designar el contenido como una [página parcial](/es/basics/astro-pages/#páginas-parciales) para una ruta individual exportando un valor para `partial` desde ese archivo:
+
+```astro title="src/pages/my-page-partial.astro" {2}
+---
+export const partial = true
+---
+<!-- HTML generado disponible en una URL -->
+<!-- Disponible para una biblioteca de renderizado -->
+```
+
+El `export const partial` debe ser identificable de forma estática. Puede tener el valor de:
+
+- El valor booleano __`true`__.
+- Una variable de entorno que utiliza import.meta.env, como `import.meta.env.USE_PARTIALS`.
+
+## `getStaticPaths()`
+
+<p>
+**Tipo:** `(options: GetStaticPathsOptions) => Promise<GetStaticPathsResult> | GetStaticPathsResult` <br />
+<Since v="1.0.0" />
+</p>
+
+Una función para generar múltiples rutas de página prerenderizadas a partir de un único componente de página `.astro` con uno o más [parámetros](#params) en su ruta de archivo. Utilízala para rutas que se crearán en el momento de la compilación, también conocido como construcción de sitios estáticos.
+
+La función `getStaticPaths()` debe devolver una lista de objetos para determinar qué rutas URL serán prerenderizadas por Astro. Cada objeto debe incluir un objeto `params` para especificar las rutas. El objeto puede contener opcionalmente un objeto `props` con [datos que se pasarán](#transmisión-de-datos-con-props) a cada plantilla de página.
+
+```astro title="src/pages/blog/[post].astro" "post"
+---
+// En modo `servidor`, opta por el prerenderizado:
+// export const prerender = true
+
+export async function getStaticPaths() {
+  return [
+    // { params: { /* requerido */ }, props: { /* opcional */ } },
+    { params: { post: '1' } }, // [post] es el parámetro
+    { params: { post: '2' } }, // debe coincidir con el nombre del archivo
+    // ...
+  ];
+}
+---
+<!-- Tu plantilla HTML va aquí -->
+```
+
+`getStaticPaths()` también se puede utilizar en endpoints de archivos estáticos para [enrutamiento dinámico](/es/guides/endpoints/#params-y-enrutamiento-dinámico).
+
+:::tip
+Cuando utilices TypeScript, utiliza la utilidad de tipos [`GetStaticPaths`](/es/guides/typescript/#inferir-los-tipos-de-getstaticpaths) para garantizar un tipado seguro a tus `params` y `props`.
+:::
+
+:::caution
+La función `getStaticPaths()` se ejecuta una vez en su propio ámbito aislado, antes de que se cargue cualquier página. Por lo tanto, no se puede hacer referencia a nada de su ámbito principal, salvo a las importaciones de archivos. El compilador te avisará si incumples este requisito.
+:::
+
+### `params`
+
+La clave `params` de cada objeto de la lista que devuelve `getStaticPaths()` le dice a Astro qué rutas debe crear.
+
+Las claves en `params` deben coincidir con los parámetros definidos en la ruta del archivo del componente. El valor de cada objeto `params` debe coincidir con los parámetros utilizados en el nombre de la página. Los `params` se codifican en la URL, por lo que solo se admiten cadenas de texto como valores.
+
+Por ejemplo, `src/pages/posts/[id].astro` tiene un parámetro `id` en su nombre de archivo. La siguiente función `getStaticPaths()` en este componente `.astro` le indica a Astro que genere de forma estática `posts/1`, `posts/2` y `posts/3` en el momento de la compilación.
+
+```astro title="src/pages/posts/[id].astro"
+---
+export async function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+### Transmisión de datos con `props`
+
+Para pasar datos adicionales a cada página generada, puedes establecer un valor `props` en cada objeto de la lista devuelta por `getStaticPaths()`. A diferencia de `params`, `props` no se codifican en la URL, por lo que no se limitan solo a cadenas de texto.
+
+Por ejemplo, si generas páginas con datos obtenidos de una API remota, puedes pasar el objeto de datos completo al componente de la página dentro de `getStaticPaths()`. La plantilla de la página puede hacer referencia a los datos de cada publicación utilizando `Astro.props`.
+
+```astro title="src/pages/posts/[id].astro" {9}
+---
+export async function getStaticPaths() {
+  const response = await fetch('...');
+  const data = await response.json();
+
+  return data.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post },
+    };
+  });
+}
+
+const { id } = Astro.params;
+const { post } = Astro.props;
+---
+<h1>{id}: {post.name}</h1>
+```
+
+### `paginate()`
+
+<p>
+
+<Since v="1.0.0" />
+</p>
+
+Una función que se puede devolver desde [`getStaticPaths()`](#getstaticpaths) para dividir una colección de elementos de contenido en páginas separadas.
+
+`paginate()` generará automáticamente la lista necesaria para devolver desde `getStaticPaths()` y crear una URL para cada página de tu colección paginada. El número de página se pasará como un `param`, y los datos de la página se pasarán como una propiedad `page`.
+
+El siguiente ejemplo recupera y pasa 150 elementos a la función `paginate`, y crea páginas estáticas y prerenderizadas en tiempo de compilación que mostrará 10 elementos por página:
+
+```astro title="src/pages/pokemon/[page].astro"
+---
+export async function getStaticPaths({ paginate }) {
+  // Carga tus datos con fetch(), getCollection(), etc.
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
+  const result = await response.json();
+  const allPokemon = result.results;
+
+  // Devuelve una colección de rutas paginadas para todos los elementos
+  return paginate(allPokemon, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+---
+```
+
+`paginate()` tiene los siguientes argumentos:
+- `data` - lista que contiene los datos de la página pasados a la función `paginate()`
+- `options` - Objeto opcional con las siguientes propiedades:
+  - `pageSize` - El número de elementos mostrados por página (`10` por defecto)
+  - `params` - Envía parámetros adicionales para crear rutas dinámicas
+  - `props` - Envía propiedades adicionales que estarán disponibles en cada página
+
+`paginate()` asume un nombre de archivo de `[page].astro` o `[...page].astro`. El parámetro `page` se convierte en el número de página en su URL:
+
+- `/posts/[page].astro` generaría las URLs `/posts/1`, `/posts/2`, `/posts/3`, etc.
+- `/posts/[...page].astro` generaría las URLs `/posts`, `/posts/2`, `/posts/3`, etc.
+
+#### La propiedad de paginación `page`
+
+<p>
+
+**Tipo:** `Page<TData>`
+</p>
+
+La paginación pasará una propiedad `page` a cada página renderizada que represente una sola página de datos en la colección paginada. Esto incluye los datos que has paginado (`page.data`) así como los metadatos de la página (`page.url`, `page.start`, `page.end`, `page.total`, etc.). Estos metadatos son útiles para elementos como el botón "Siguiente página" o el mensaje "Mostrando 1-10 de 100".
+
+##### `page.data`
+
+<p>
+
+**Tipo:** `Array<TData>`
+</p>
+
+Lista de datos devueltos por la función `paginate()` para la página actual.
+
+##### `page.start`
+
+<p>
+
+**Tipo:** `number`
+</p>
+
+Índice del primer elemento en la página actual, empezando en `0`. (por ejemplo, si `pageSize: 25`, esto sería `0` en la página 1, `25` en la página 2, etc.)
+
+##### `page.end`
+
+<p>
+
+**Tipo:** `number`
+</p>
+
+Índice del último elemento en la página actual.
+
+##### `page.size`
+
+<p>
+
+**Tipo:** `number`<br />
+**Por defecto:** `10`
+</p>
+
+El número total de elementos por página.
+
+##### `page.total`
+
+<p>
+
+**Tipo:** `number`
+</p>
+
+El número total de elementos en todas las páginas.
+
+##### `page.currentPage`
+
+<p>
+
+**Tipo:** `number`
+</p>
+
+El número de página actual, empezando con `1`.
+
+##### `page.lastPage`
+
+<p>
+
+**Tipo:** `number`
+</p>
+
+El número total de páginas.
+
+##### `page.url.current`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Obtén la URL de la página actual (útil para URLs canónicas). Si se establece un valor para [`base`](/es/reference/configuration-reference/#base), la URL comienza con ese valor.
+
+##### `page.url.prev`
+
+<p>
+
+**Tipo:** `string | undefined`
+</p>
+
+Obtén la URL de la página anterior (será `undefined` si estás en la página 1). Si se establece un valor para [`base`](/es/reference/configuration-reference/#base), agrega la ruta base a la URL.
+
+##### `page.url.next`
+
+<p>
+
+**Tipo:** `string | undefined`
+</p>
+
+Obtén la URL de la página siguiente (será `undefined` si no hay más páginas). Si se establece un valor para [`base`](/es/reference/configuration-reference/#base), agrega la ruta base a la URL.
+
+##### `page.url.first`
+
+<p>
+
+**Tipo:** `string | undefined`<br />
+<Since v="4.12.0" />
+</p>
+
+Obtén la URL de la primera página (será `undefined` si estás en la página 1). Si se establece un valor para [`base`](/es/reference/configuration-reference/#base), agrega la ruta base a la URL.
+
+##### `page.url.last`
+
+<p>
+
+**Tipo:** `string | undefined`<br />
+<Since v="4.12.0" />
+</p>
+
+Obtén la URL de la última página (será `undefined` si no hay más páginas). Si se establece un valor para [`base`](/es/reference/configuration-reference/#base), agrega la ruta base a la URL.
