@@ -1,6 +1,8 @@
 ---
 title: Strapi y Astro
 description: Agrega contenido a tu proyecto de Astro utilizando el headless CMS de Strapi.
+sidebar:
+  label: Strapi
 type: cms
 service: Strapi
 stub: false
@@ -9,8 +11,9 @@ i18nReady: true
 import { Steps } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
-[Strapi](https://strapi.io/) es un headless CMS de código abierto y personalizable.
+[Strapi](https://strapi.io/) es un CMS headless de código abierto y personalizable.
 
 ## Integración con Astro
 
@@ -50,6 +53,8 @@ Ahora tu directorio raíz debería incluir el/los nuevos archivo(s):
   - astro.config.mjs
   - package.json
 </FileTree>
+
+<ReadMore>Más información sobre [variables de entorno](/es/guides/environment-variables/) y archivos `.env` en Astro.</ReadMore>
 
 ### Creando el wrapper de la API
 
@@ -116,16 +121,14 @@ Si estás utilizando TypeScript, crea la siguiente interfaz Article en el archiv
 
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
-  id: number;
-  attributes: {
-    title: string;
-    description: string;
-    content: string;
-    slug: string;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string;
-  };
+  documentId: number;
+  title: string;
+  description: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 ```
 
@@ -167,21 +170,16 @@ Puedes modificar esta interfaz o crear múltiples interfaces para que se corresp
     La llamada a la API solicita datos desde `http://localhost:1337/api/articles` y devuelve `articles`: un array de objetos JSON que representan tus datos:
 
     ```json
-    [
-      {
-        id: 1,
-        attributes: {
-          title: "What's inside a Black Hole",
-          description: "Maybe the answer is in this article, or not...",
-          content: "Well, we don't know yet...",
-          slug: "what-s-inside-a-black-hole",
-          createdAt: "2023-05-28T13:19:46.421Z",
-          updatedAt: "2023-05-28T13:19:46.421Z",
-          publishedAt: "2023-05-28T13:19:45.826Z"
-        }
-      },
-      // ...
-    ]
+    {
+      documentId: 1,
+      title: "What's inside a Black Hole",
+      description: "Maybe the answer is in this article, or not...",
+      content: "Well, we don't know yet...",
+      slug: "what-s-inside-a-black-hole",
+      createdAt: "2023-05-28T13:19:46.421Z",
+      updatedAt: "2023-05-28T13:19:46.421Z",
+      publishedAt: "2023-05-28T13:19:45.826Z"
+    }
     ```
 
 3. Utilizando los datos del array `articles` devuelto por la API, muestra tus publicaciones de blog de Strapi en una lista. Estas publicaciones estarán vinculadas a sus propias páginas individuales, las cuales crearás en el siguiente paso.
@@ -209,8 +207,8 @@ Puedes modificar esta interfaz o crear múltiples interfaces para que se corresp
             {
               articles.map((article) => (
                 <li>
-                  <a href={`/blog/${article.attributes.slug}/`}>
-                    {article.attributes.title}
+                  <a href={`/blog/${article.slug}/`}>
+                    {article.title}
                   </a>
                 </li>
               ))
@@ -244,9 +242,9 @@ Crea el archivo `src/pages/blog/[slug].astro` para [generar dinámicamente una p
 
 #### Generación de sitios estáticos
 
-En el modo estático predeterminado de Astro (SSG), utiliza [`getStaticPaths()`](/es/reference/api-reference/#getstaticpaths) para obtener tu lista de artículos desde Strapi.
+En el modo estático predeterminado de Astro (SSG), utiliza [`getStaticPaths()`](/es/reference/routing-reference/#getstaticpaths) para obtener tu lista de artículos desde Strapi.
 
-```astro title="src/pages/blog/[slug].astro
+```astro title="src/pages/blog/[slug].astro"
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -258,7 +256,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -271,7 +269,7 @@ const article = Astro.props;
 Crea la plantilla para cada página utilizando las propiedades de cada objeto de publicación.
 
 
-```astro title="src/pages/blog/[slug].astro ins={21-43}
+```astro title="src/pages/blog/[slug].astro" ins={21-43}
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -283,7 +281,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -295,23 +293,23 @@ const article = Astro.props;
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- Renderizar texto plano -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- Renderizar markdown -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- Renderizar html -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>
@@ -320,9 +318,9 @@ const article = Astro.props;
 Asegúrate de elegir el renderizado adecuado para tu contenido. Para Markdown, consulta nuestra [guía de Markdown](/es/guides/markdown-content/). Si estás representando HTML, consulta [esta guía](/es/reference/directives-reference/#sethtml) para asegurar la seguridad.
 :::
 
-#### Renderizado en el lado del servidor
+#### Renderizado bajo demanda
 
-Si has [optado por el modo SSR](/es/guides/on-demand-rendering/) con `output: server` o `output: hybrid`, [genera tus rutas dinámicas](/es/guides/routing/#modo-servidor-ssr) utilizando el siguiente código:
+Si ha [optado por el renderizado bajo demanda con un adaptador](/es/guides/on-demand-rendering/) con `output: server` o `output: hybrid`, [genera tus rutas dinámicas](/es/guides/routing/#rutas-dinámicas-bajo-demanda) utilizando el siguiente código:
 
 Crea el archivo `src/pages/blog/[slug].astro`:
 
@@ -352,23 +350,23 @@ try {
 <!DOCTYPE html>
 <html lang="es">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- Renderizar texto plano -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- Renderizar markdown -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- Renderizar html -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>
