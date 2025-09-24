@@ -1,0 +1,183 @@
+---
+title: Prisma Postgres y Astro
+description: Añade una base de datos Postgres sin servidor a tu proyecto de Astro con Prisma Postgres
+sidebar:
+  label: Prisma Postgres
+type: backend
+service: Prisma Postgres
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Prisma Postgres](https://www.prisma.io/) es una base de datos Postgres totalmente gestionada y sin servidor, diseñada para aplicaciones web modernas.
+
+## Conectar a través de Prisma ORM (recomendado)
+
+[Prisma ORM](https://www.prisma.io/orm) es la forma recomendada de conectarse a tu base de datos Prisma Postgres. Proporciona consultas seguras en cuanto a tipos, migraciones y rendimiento global.
+
+### Prerrequisitos
+- Un proyecto de Astro con un adaptador instalado para habilitar [el renderizado bajo demanda (SSR)](/es/guides/on-demand-rendering/).
+
+### Instalar dependencias e inicializar Prisma
+
+Ejecuta los siguientes comandos para instalar las dependencias necesarias de Prisma:
+
+```bash
+npm install prisma tsx --save-dev
+npm install @prisma/extension-accelerate @prisma/client
+```
+
+Una vez instalado, inicializa Prisma en tu proyecto con el siguiente comando:
+
+```bash
+npx prisma init --db --output ../src/generated/prisma
+```
+
+Deberás responder algunas preguntas mientras configuras tu base de datos Prisma Postgres. Selecciona la región más cercana a tu ubicación y un nombre fácil de recordar para tu base de datos, como "Mi proyecto Astro".
+
+Esto creará:
+- Un directorio `prisma/` con un archivo `schema.prisma`.
+- Un archivo `.env` con un campo `DATABASE_URL` ya configurado.
+
+### Define un Modelo
+
+Aunque aún no necesites ningún modelo de datos específico, Prisma requiere al menos un modelo en el esquema para generar un cliente y aplicar migraciones.
+
+El siguiente ejemplo define un modelo `Post` como marcador. Añade el modelo a tu esquema para empezar. Puedes eliminarlo o sustituirlo más adelante por modelos que reflejen tus datos reales.
+
+Actualiza el proveedor del generador de `prisma-client-js` a `prisma-client` en tu archivo `prisma/schema.prisma`:
+
+```prisma title="prisma/schema.prisma" {2} ins={11-16}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+}
+```
+
+Más información sobre cómo configurar Prisma ORM en la [referencia del esquema de Prisma](https://www.prisma.io/docs/concepts/components/prisma-schema).
+
+### Generar archivos de migración
+
+Ejecuta el siguiente comando para crear las tablas de la base de datos y generar el cliente de Prisma a partir de tu esquema. Esto también creará un directorio `prisma/migrations/` con los archivos del historial de migraciones.
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Crear un cliente Prisma
+
+Dentro de `/src/lib`, crea un archivo `prisma.ts`. Este archivo inicializará y exportará tu instancia de Prisma Client para que puedas consultar tu base de datos en todo tu proyecto de Astro.
+
+```typescript title="src/lib/prisma.ts"
+import { PrismaClient } from "../generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
+
+const prisma = new PrismaClient({
+  datasourceUrl: import.meta.env.DATABASE_URL,
+}).$extends(withAccelerate());
+
+export default prisma;
+```
+
+### Consulta y visualización de datos
+
+El siguiente ejemplo muestra cómo recuperar solo tus publicaciones con Prisma Client ordenadas por `id` y, a continuación, mostrar los títulos y el contenido de las publicaciones en tu plantilla de Astro:
+
+```astro title="src/pages/posts.astro" {2, 4-7}
+---
+import prisma from '../lib/prisma';
+
+const posts = await prisma.post.findMany({
+  where: { published: true },
+  orderBy: { id: 'desc' }
+});
+---
+
+<html>
+  <head>
+    <title>Artículos publicados</title>
+  </head>
+  <body>
+    <h1>Artículos publicados</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <h2>{post.title}</h2>
+          {post.content && <p>{post.content}</p>}
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+Lo mejor es gestionar las consultas en una ruta API. Para obtener más información sobre cómo utilizar Prisma ORM en tu proyecto de Astro, consulta la [Guía de Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro).
+
+## Conexión TCP directa
+Para conectarte a Prisma Postgres a través de TCP directo, puedes crear una cadena de conexión directa en tu consola de Prisma. Esto te permite conectar cualquier otro ORM, biblioteca de bases de datos o herramienta de tu elección.
+
+### Prerrequisitos
+- Una base de datos [Prisma Postgres](https://pris.ly/ppg) con una cadena de conexión habilitada para TCP.
+
+### Instalar dependecias
+
+Este ejemplo establecerá una conexión TCP directa utilizando [`pg`, un cliente PostgreSQL para Node.js](https://github.com/brianc/node-postgres).
+
+Ejecuta el siguiente comando para instalar el paquete `pg`:
+
+```bash
+npm install pg
+```
+
+### Consulta tu cliente de base de datos
+
+Proporciona tu cadena de conexión al cliente `pg` para comunicarse con tu servidor SQL y obtener datos de tu base de datos.
+
+El siguiente ejemplo de creación de una tabla e inserción de datos se puede utilizar para validar la URL de consulta y la conexión TCP:
+
+```astro title="src/pages/index.astro" {2-19}
+---
+import { Client } from 'pg';
+const client = new Client({ 
+  connectionString: import.meta.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+await client.connect();
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id SERIAL PRIMARY KEY,
+    title TEXT UNIQUE,
+    content TEXT
+  );
+  
+  INSERT INTO posts (title, content)
+  VALUES ('Hello', 'World')
+  ON CONFLICT (title) DO NOTHING;
+`);
+
+const { rows } = await client.query('SELECT * FROM posts');
+await client.end();
+---
+
+<h1>Artículos</h1>
+<p>{rows[0].title}: {rows[0].content}</p>
+```
+
+## Recursos oficiales
+
+- [Guía de Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro)
