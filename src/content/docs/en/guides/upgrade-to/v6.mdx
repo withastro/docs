@@ -80,88 +80,116 @@ Projects now containing these removed features will be unable to build, and ther
 
 In Astro 5.x, it was still possible to use [the Content Collections API first introduced in Astro v2.0](https://astro.build/blog/introducing-content-collections/), either through a `legacy` configuration flag or via built-in backwards compatibility. These methods allowed you to upgrade to Astro v5 even if you were not yet ready or able to update your content collections to the new Content Layer API.
 
-Astro v6.0 removes the Content Collections API entirely. All content collections must now use the Content Layer API introduced in Astro v5.0. No backwards compatibility support is available.
+Astro v6.0 removes this previously deprecated Content Collections API support entirely. All content collections must now use the Content Layer API introduced in Astro v5.0 that powers all content collections. No backwards compatibility support is available.
 
 #### What should I do?
 
-Ensure that your content collections are **fully updated** for the Content Layer API. Astro v5.x included some backwards compatibility that may have allowed your existing collections to continue to work even if only some features of the Content Layer API were upgraded.
+Especially if you did not upgrade your collections for Astro v5.0, ensure that your content collections are **fully updated** for the Content Layer API.
 
-You will need to upgrade your collections to be fully compatible with the Content Layer API if you currently have any of the following legacy features:
+Astro v5.x included some automatic backwards compatibility under the hood relying on the older Content Collections API. This may have allowed your existing collections to continue to work even when only some features of Content Layer API collections were successfully updated.
 
-- no content collections configuration file
-- a configuration file located at `src/content/config.ts`
-- a legacy collection definition that does not define a `loader`
-- a legacy collection definition that includes a collection type (`type: 'content'` or `type: 'data'`)
-- legacy collection querying methods `getDataEntryById()` and `getEntryBySlug()`
-- legacy collection querying and rendering methods that depend on a special, reserved `slug` property
-- legacy collection rendering methods that do not import and use the Content Layer API `render()` function
+Check for any of the following legacy features in your project and take the appropriate action described as necessary.
 
-See the detailed instructions below for updating any legacy content collection to use the Content Layer API.
-
-BELOW IS STILL THE V5 stuff, NOT UPDATED YET
+##### If you have...
 
 <details>
-<summary>Step-by-step instructions to update a collection from the Content Collecctions API to the new Content Layer API</summary>
+<summary>no content collections configuration file</summary>
+Create `src/content.config.ts` and [define your collections](/en/guides/content-collections/#defining-collections) in it.
+</details>
 
-<Steps>
+<details>
+<summary>a configuration file located at `src/content/config.ts`</summary>
+Rename and move this file to `src/content.config.ts`
+</details>
 
-1. **Move the content config file**. This file no longer lives within the `src/content/` folder. This file should now exist at `src/content.config.ts`.
+<details>
+<summary>a collection that does not define a `loader`</summary>
 
-2. **Edit the collection definition**. Your updated collection requires a `loader` which indicates both a folder for the location of your collection (`base`) and a `pattern` defining the collection entry filenames and extensions to match. (You may need to update the example below accordingly. You can use [globster.xyz](https://globster.xyz/) to check your glob pattern.) The option to select a collection `type` is no longer available.
+Import [Astro's built-in `glob()` loader](/en/guides/content-collections/#built-in-loaders) and define the `pattern` and `base` for your collection entries:
 
-    ```ts ins={3,8} del={7}
-    // src/content.config.ts
-    import { defineCollection, z } from 'astro:content';
-    import { glob } from 'astro/loaders';
+```ts ins={3,6}
+// src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
-    const blog = defineCollection({
-      // For content layer you no longer define a `type`
-      type: 'content',
-      loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
-      schema: z.object({
-        title: z.string(),
-        description: z.string(),
-        pubDate: z.coerce.date(),
-        updatedDate: z.coerce.date().optional(),
-      }),
-    });
-    ```
+const blog = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+```
+</details>
 
-3. **Change references from `slug` to `id`**. Content layer collections do not have a reserved `slug` field. Instead, all updated collections will have an `id`:
+<details>
+<summary>a collection that defines a collection type (`type: 'content'` or `type: 'data'`)</summary>
+There are no longer different types of collections. This must be deleted from your collection definition.
 
-    ```astro ins={7} del={6}
-    // src/pages/[slug].astro
-    ---
-    export async function getStaticPaths() {
-      const posts = await getCollection('blog');
-      return posts.map((post) => ({
-        params: { slug: post.slug },
-        params: { slug: post.id },
-        props: post,
-      }));
-    }
-    ---
-    ```
-    You can also update the dynamic routing file names to match the value of the changed `getStaticPaths()` parameter.
+```ts del={7}
+// src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
 
-4. **Switch to the new `render()` function**. Entries no longer have a `render()` method, as they are now serializable plain objects. Instead, import the `render()` function from `astro:content`.
+const blog = defineCollection({
+  // For content layer you no longer define a `type`
+  type: 'content',
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+```
+</details>
 
-    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
-    ---
-    import { getEntry, render } from 'astro:content';
-
-    const post = await getEntry('blog', params.slug);
-
-    const { Content, headings } = await post.render();
-    const { Content, headings } = await render(post);
-    ---
-    <Content />
-    ```
-</Steps>
+<details>
+<summary>legacy collection querying methods `getDataEntryById()` and `getEntryBySlug()`</summary>
+Replace both methods with [`getEntry()`](/en/reference/modules/astro-content/#getentry).
 
 </details>
 
-<ReadMore> See [the Astro v5 upgrade guide](/en/guides/upgrade-to/v5/#legacy-v20-content-collections-api) for previous guidance about maintaining backwards compatibility of legacy collections in Astro v5.</ReadMore>
+<details>
+<summary>legacy collection querying and rendering methods that depend on a special, reserved `slug` property</summary>
+The [CollectionEntry type](/en/reference/modules/astro-content/#collectionentry) now returns a unique `id`. Replace instances of `slug` with `id`:
+
+```astro ins={6} del={5} title="src/pages/[slug].astro"
+---
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    params: { slug: post.id },
+    props: post,
+  }));
+}
+---
+```
+</details>
+
+<details>
+<summary>content rendered using `entry.render()`</summary>
+Collection entries no longer have a render() method. Instead, import the `render()` function from `astro:content` and use `render(entry)`:
+
+```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+---
+import { getEntry, render } from 'astro:content';
+
+const post = await getEntry('blog', params.slug);
+
+const { Content, headings } = await post.render();
+const { Content, headings } = await render(post);
+---
+<Content />
+```
+
+</details>
+
+<ReadMore> See [the Astro v5 upgrade guide](/en/guides/upgrade-to/v5/#legacy-v20-content-collections-api) for previous guidance about backwards compatibility of legacy collections in Astro v5 and upgrading to the new Content Layer API.</ReadMore>
 
 
 ### Removed: `<ViewTransitions />` component
