@@ -1,0 +1,131 @@
+---
+title: カスタム画像コンポーネントを作成する
+description: getImage関数を使って、メディアクエリ対応のカスタム画像コンポーネントを作成する方法を学びます。
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Astroには画像の表示と最適化に使える組み込みコンポーネントが2つあります。`<Picture>`コンポーネントはレスポンシブ画像を表示し、異なる形式やサイズに対応できます。`<Image>`コンポーネントは画像を最適化し、形式や画質などのプロパティを渡せます。
+
+`<Picture>`や`<Image>`が現時点でサポートしていないオプションが必要な場合は、`getImage()`関数を使ってカスタムコンポーネントを作成できます。
+
+このレシピでは、[`getImage()`関数](/en/guides/images/#generating-images-with-getimage)を使い、メディアクエリに基づいて異なるソース画像を表示する独自の画像コンポーネントを作成します。
+
+## レシピ
+
+<Steps>
+1. 新しいAstroコンポーネントを作成し、`getImage()`関数をインポートします。
+
+    
+    ```astro title="src/components/MyCustomImageComponent.astro" 
+    ---
+     import { getImage } from "astro:assets";
+    ---
+    ```
+
+2. カスタム画像用の新しいコンポーネントを作成します。`MyCustomImageComponent.astro`は`Astro.props`から3つの`props`を受け取ります。`mobileImgUrl`と`desktopImgUrl`はビューポートに応じた画像生成に使い、`alt`は代替テキストに使います。これらのpropsはコンポーネントをレンダリングする箇所で渡します。次のインポートを追加し、使用するpropsを定義します。TypeScriptで型付けもできます。
+
+    
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={3, 11}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+    ---
+    ```
+
+3. `getImage()`関数に必要なプロパティを渡して、レスポンシブ画像をそれぞれ定義します。
+
+    
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={13-18, 20-25}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 200,
+        height: 200,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 800,
+        height: 200,
+    });
+    ---
+    ```
+
+4. 望むメディアクエリに基づいて異なる画像を`srcset`に出し分ける`<picture>`要素を作成します。
+
+    
+    ```astro title="src/components/MyCustomImageComponent.astro" ins={28-32}
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 200,
+        height: 200,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 800,
+        height: 200,
+    });
+    ---
+
+    <picture>
+        <source media="(max-width: 799px)" srcset={mobileImg.src} />
+        <source media="(min-width: 800px)" srcset={desktopImg.src} />
+        <img src={desktopImg.src} alt={alt} />
+    </picture>
+    ```
+
+5. 任意の`.astro`ファイルで`<MyCustomImageComponent />`をインポートして使用します。2つのビューポート幅に対応するpropsを渡します。
+
+    
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomImageComponent from "../components/MyCustomImageComponent.astro";
+    import mobileImage from "../images/mobile-profile-image.jpg";
+    import desktopImage from "../images/desktop-profile-image.jpg";
+    ---
+
+    <MyCustomImageComponent
+        mobileImgUrl={mobileImage}
+        desktopImgUrl={desktopImage}
+        alt="ユーザープロフィール画像"
+    />
+    ```
+</Steps>
