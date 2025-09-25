@@ -1,0 +1,300 @@
+---
+title: AIツールでAstroサイトを構築する
+sidebar:
+  label: AIで構築
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+i18nReady: true
+description: AIの支援でAstroサイトを構築するためのリソースとヒント
+---
+
+import { Steps, LinkButton, Card, Tabs, TabItem } from '@astrojs/starlight/components';
+
+AI対応エディターやエージェント型コーディングツールは、一般にAstroのコアAPIや概念をよく理解しています。ただし、一部のツールは古いAPIを使ったり、最新機能やフレームワークの最近の変更を把握していない場合があります。
+
+このガイドでは、AIツールに最新のAstro知識を提供する方法と、AIの支援でAstroサイトを構築する際のベストプラクティスを解説します。
+
+## コンテキストファイル
+
+Astroは[`llms.txt`](https://docs.astro.build/llms.txt)と[`llms-full.txt`](https://docs.astro.build/llms-full.txt)を提供しています。これは、AIでの利用に最適化した形式でドキュメント全文を収録した静的ファイルで、簡素化されたMarkdownとして提供されます。`https://docs.astro.build`をドキュメントソースとして指定すると、これらのファイルを自動検出できるAIツールもあります。
+
+これらのファイルは最小限かつ解析しやすい一方で、コンテキストに直接読み込むとトークン消費が大きく、最新状態の維持には定期的な更新が必要です。他の手段で最新ドキュメントにアクセスできないときのフォールバックとして適しています。[MCPサーバー](#astro-docs-mcpサーバー)はリアルタイム検索で全文に効率よくアクセスできるため、利用可能な場合はそちらを優先してください。
+
+## Astro Docs MCPサーバー
+
+Astro Docs MCP（Model Context Protocol）サーバーを使うと、AIツールが常に最新のAstroドキュメントへリアルタイムにアクセスできます。これにより古い推奨事項を避け、現行のベストプラクティスに沿った理解を促せます。
+
+:::tip[MCPとは]
+[Model Context Protocol](https://modelcontextprotocol.io/)は、AIツールが外部ツールやデータソースにアクセスするための標準化プロトコルです。
+:::
+
+静的データで学習されたAIモデルと異なり、MCPサーバーは最新のAstroドキュメントへのアクセスを提供します。サーバーは無料・オープンソースで、リモート実行されるためローカルインストールは不要です。
+
+Astro Docs MCPサーバーは[kapa.ai](https://www.kapa.ai/)のAPIを使って、Astroドキュメントの最新インデックスを維持しています。
+
+### サーバー情報
+
+- **Name**: Astro Docs
+- **URL**: `https://mcp.docs.astro.build/mcp`
+- **Transport**: Streamable HTTP
+
+### インストール
+
+設定手順はAI開発ツールによって異なります。ツールによっては、MCPサーバーをコネクタ、アダプター、拡張機能、プラグインなどと呼ぶ場合があります。
+
+#### 手動設定
+
+多くのツールはMCPサーバー向けの共通JSON設定形式に対応しています。選んだツールに特定の手順がない場合でも、次の設定をMCP設定に追加することでAstro Docs MCPサーバーを登録できる場合があります。
+
+<Tabs>
+  <TabItem label="Streamable HTTP">
+    ```json title="mcp.json" {3-6}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "http",
+          "url": "https://mcp.docs.astro.build/mcp"
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="ローカルプロキシ">
+    ```json title="mcp.json" {3-7}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+#### Claude Code CLI
+
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)はコマンドラインで動作するエージェント型コーディングツールです。Astro Docs MCPサーバーを有効化すると、コード生成時に最新ドキュメントへアクセスできます。
+
+インストール（有効化）は次のコマンドで行います。
+    
+```shell
+claude mcp add --transport http astro-docs https://mcp.docs.astro.build/mcp
+```
+
+[Claude CodeでのMCPサーバー利用について詳しく見る](https://docs.anthropic.com/en/docs/claude-code/mcp)
+
+#### Claude Code GitHub Action
+
+Claude CodeはGitHub Actionも提供しており、GitHubイベントに応じてコマンドを実行できます。Astro Docs MCPサーバーを有効化すると、コメントへの回答やAstroコード生成時に最新ドキュメントへアクセスできます。
+
+ワークフローでAstro Docs MCPサーバーを利用するには、次の設定を追加します。
+    
+```yaml title=".github/workflows/claude.yml" {5-14}
+# ...rest of your workflow configuration
+- uses: anthropics/claude-code-action@beta
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    mcp_config: |
+      {
+        "mcpServers": {
+          "astro-docs": {
+            "type": "http",
+            "url": "https://mcp.docs.astro.build/mcp"
+          }
+        }
+      }
+    allowed_tools: "mcp__astro-docs__search_astro_docs" 
+```
+
+[Claude Code GitHub ActionでのMCP利用について詳しく見る](https://github.com/anthropics/claude-code-action?tab=readme-ov-file#using-custom-mcp-configuration)
+
+#### Cursor
+
+[Cursor](https://cursor.com)はAIコードエディターです。Astro Docs MCPサーバーを追加すると、開発タスクで最新ドキュメントにアクセスできます。
+
+以下のボタンからインストールします。
+
+<LinkButton href="cursor://anysphere.cursor-deeplink/mcp/install?name=Astro%20docs&config=eyJ1cmwiOiJodHRwczovL21jcC5kb2NzLmFzdHJvLmJ1aWxkL21jcCJ9">Cursorに追加</LinkButton>
+
+[CursorでのMCPサーバー利用について詳しく見る](https://docs.cursor.com/context/mcp)
+
+#### Visual Studio Code
+
+[Visual Studio Code](https://code.visualstudio.com)はCopilot Chat使用時にMCPサーバーをサポートします。Astro Docs MCPサーバーを追加すると、質問応答やコーディングタスクで最新ドキュメントにアクセスできます。
+
+以下のボタンからインストールします。
+
+<LinkButton href="vscode:mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%7D">VS Codeに追加</LinkButton>
+
+[VS CodeでのMCPサーバー利用について詳しく見る](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
+
+#### Warp
+
+[Warp](https://warp.dev)（旧称Warp Terminal）は、複数のAIエージェントでのコーディングに特化したエージェント開発環境です。Astro Docs MCPサーバーを追加すると、回答やタスク実行時に最新ドキュメントへアクセスできます。
+
+<Steps>
+
+1. Warpの設定でAI > MCP Servers > Manage MCP Serversを開く。
+2. 「Add」をクリック。
+3. 次の設定を入力します。`start_on_launch`で起動時に有効化することも可能です。
+
+   ```json title="MCPの設定" {3-9}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"],
+         "env": {},
+         "working_directory": null,
+         "start_on_launch": true
+       }
+     }
+   }
+   ```
+4. 「Save」をクリック。
+
+</Steps>
+
+[WarpでのMCPサーバー利用について詳しく見る](https://docs.warp.dev/knowledge-and-collaboration/mcp)
+
+#### Claude.ai / Claude Desktop
+
+[Claude.ai](https://claude.ai)は汎用AIアシスタントです。Astro Docs MCPサーバーを追加すると、Astroの質問回答やコード生成で最新ドキュメントにアクセスできます。
+
+<Steps>
+
+1. [Claude.aiのコネクタ設定](https://claude.ai/settings/connectors)を開く。
+2. 「Add custom connector」をクリック（見つからない場合は下へスクロール）。
+3. サーバーURLとして`https://mcp.docs.astro.build/mcp`を入力。
+4. 名前を「Astro docs」に設定。
+
+</Steps>
+
+[Claude.aiでのMCP利用について詳しく見る](https://support.anthropic.com/en/articles/10168395-setting-up-integrations-on-claude-ai#h_cda40ecb32)
+
+#### Windsurf
+
+[Windsurf](https://windsurf.com/)はエディター用プラグインやスタンドアロンエディターとして使えるAIコーディングツールです。Astro Docs MCPサーバーを使って、タスク実行時にドキュメント参照ができます。
+
+WindsurfはStreaming HTTPをサポートしていないため、ローカルプロキシ設定が必要です。
+
+<Steps>
+
+1. `~/.codeium/windsurf/mcp_config.json`を開く。
+2. 次の設定をWindsurfのMCP設定に追加します。
+    
+   ```json title="MCPの設定" {3-6}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. 設定を保存してWindsurfを再起動。
+
+</Steps>
+
+[WindsurfでのMCP利用について詳しく見る](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json)
+
+#### Gemini CLI
+
+Gemini CLIはコマンドラインのAIコーディングツールで、Astro Docs MCPサーバーを使いながらドキュメント参照とコード生成ができます。
+
+MCPサーバーはグローバル設定`~/.gemini/settings.json`またはプロジェクトルートの`.gemini/settings.json`で構成できます。
+
+    
+```json title=".gemini/settings.json" {3-5}
+{
+  "mcpServers": {
+    "Astro docs": {
+      "httpUrl": "https://mcp.docs.astro.build/mcp",
+    }
+  }
+}
+```
+
+[Gemini CLIでのMCP利用について詳しく見る](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
+
+#### Zed
+
+[Zed](https://zed.dev)はAI機能使用時にMCPサーバーをサポートします。Astro Docs MCPサーバーを使って、タスク実行時にドキュメントへアクセスできます。
+
+ZedはStreaming HTTPをサポートしていないため、ローカルプロキシ設定が必要です。
+
+<Steps>
+
+1. `~/.config/zed/settings.json`を開く。
+2. 次の設定をZedのMCP設定に追加します。
+    
+   ```json title="MCPの設定" {3-6}
+   {
+     "context_servers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. 設定を保存。
+
+</Steps>
+
+[ZedでのMCP利用について詳しく見る](https://zed.dev/docs/ai/mcp)
+
+#### ChatGPT
+
+:::caution[提供範囲に制限]
+MCPサーバー連携はChatGPTのPro、Team、Enterpriseでのみ利用できます。設定は他のツールより複雑です。
+:::
+
+具体的な手順は[OpenAIのMCPドキュメント](https://platform.openai.com/docs/mcp#test-and-connect-your-mcp-server)を参照してください。
+
+#### Raycast
+
+[Raycast](https://www.raycast.com/)はMCPサーバーに接続してAI機能を強化できます。MCPなどのAI機能には[Raycast Pro](https://www.raycast.com/pro)が必要です。Astro Docs MCPサーバーを追加すると、質問応答時に最新ドキュメントへアクセスできます。
+
+以下のボタンからインストールします。
+
+<LinkButton href="raycast://mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%20%22mcp-remote%22%2C%20%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%5D%7D">Raycastに追加</LinkButton>
+
+[RaycastでのMCP利用について詳しく見る](https://manual.raycast.com/model-context-protocol)
+
+### 使い方
+
+設定後は、AIツールにAstroについて質問するだけで、最新ドキュメントから情報を取得できます。コーディングエージェントはタスク実行時にドキュメントを参照でき、チャットボットはAstroの機能・API・ベストプラクティスについて正確に回答できます。
+
+:::note[注意]
+Astro Docs MCPサーバーは最新ドキュメントへのアクセスを提供しますが、解釈やコード生成はAIツールの責任です。AIは誤ることがあるため、生成コードは必ずレビューし、十分にテストしてください。
+:::
+
+### トラブルシューティング
+
+問題が発生した場合は次を確認してください。
+
+- ツールがStreamable HTTPトランスポートをサポートしているか。
+- サーバーURLが正しいか: `https://mcp.docs.astro.build/mcp`。
+- ツールが適切にインターネットへアクセスできるか。
+- 利用ツールのMCP連携ドキュメントを参照しているか。
+
+それでも解決しない場合は、[Astro Docs MCP Serverリポジトリ](https://github.com/withastro/docs-mcp/issues)でIssueを作成してください。
+
+## DiscordのAIサポート
+
+AstroのMCPサーバーを支える同じ技術は、[Astro Discord](https://astro.build/chat)のチャットボットとしても利用できます。`#support-ai`チャンネルでAstroやプロジェクトコードについて自然言語で質問できます。会話は自動でスレッド化され、フォローアップの質問は無制限です。
+
+**チャットボットとの会話は公開で、他チャンネルと同様の言語・行動ルールが適用されます。** ただし、ボランティアのサポートメンバーが常時対応する場ではありません。コミュニティからの支援が必要な場合は、通常の`#support`チャンネルでスレッドを作成してください。
+
+## AIでAstro開発を進めるヒント
+
+- **テンプレートから始める**: ゼロからではなく、既存の[Astroテンプレート](https://astro.build/themes/)を使うか、`npm create astro@latest`のテンプレートオプションで開始します。
+- **インテグレーションには`astro add`を使う**: 公式インテグレーション（例:`astro add tailwind`,`astro add react`）は`astro add`を使います。その他のパッケージは`package.json`を直接編集せず、好みのパッケージマネージャーのコマンドでインストールします。
+- **現行APIを確認する**: AIツールは古いパターンを提示することがあります。特にsessionsやactionsのような新機能、初期公開後に大きく変わった機能（content collectionsや、かつて実験的で現在は変更された機能など）は、最新ドキュメントを必ず確認してください。
+- **プロジェクトルールを活用する**: ツールが対応していれば、本ガイドのようなルールをプロジェクト規約として設定し、ベストプラクティスやコーディング規約を自動で徹底します。
