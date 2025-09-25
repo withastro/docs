@@ -11,6 +11,7 @@ i18nReady: true
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 
 Astro DB est une base de données SQL entièrement gérée, conçue pour l'écosystème Astro : développez localement dans Astro et déployer vers n'importe quelle [base de données compatible libSQL](/fr/guides/astro-db/).
 
@@ -92,6 +93,38 @@ export default defineDb({
 })
 ```
 
+## Configuration
+
+### `mode`
+
+<p>
+
+**Type :** `'node' | 'web'`<br />
+**Par défaut :** `'node'`<br />
+<Since v="0.18.0" pkg="@astrojs/db" />
+</p>
+
+Configure le pilote à utiliser pour se connecter à votre base de données en production.
+
+Par défaut, Astro DB utilise un pilote libSQL reposant sur Node.js pour les déploiements en production. Le mode `node` du pilote est suffisant pour la plupart des sites web hébergés ou auto-hébergés par Astro avec des environnements d'exécution Node.js. Cela vous permet de vous connecter à votre base de données via plusieurs protocoles, notamment `memory:`, `file:`, `ws:`, `wss:`, `libsql`, `http` et `https`, ainsi que d'accéder à des fonctionnalités plus avancées telles que les [répliques intégrées](/fr/guides/astro-db/#syncurl).
+
+Lors d'un déploiement dans un environnement serverless dans un environnement d'exécution autre que Node.js, comme Cloudflare Workers ou Deno, un pilote libSQL est disponible. Lors du déploiement à l'aide du mode `web`, vous pourrez établir des connexions web via `libsql`, `http` ou `https`.
+
+Pour utiliser le mode web du pilote libSQL pour les environnements n'utilisant pas Node.js, définissez la propriété `mode` dans la configuration de votre adaptateur :
+
+```ts title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import db from '@astrojs/db';
+
+export default defineConfig({
+  integrations: [
+   db({
+     mode: 'web'
+   })
+  ]
+});
+```
+
 ## Référence de configuration des tables
 
 ### `columns`
@@ -126,6 +159,28 @@ Quelques valeurs de configuration sont communes à toutes les colonnes :
 - `default` - Définit la valeur par défaut pour les entrées nouvellement insérées. Ceci accepte soit une valeur statique, soit une chaîne de `sql` pour les valeurs générées comme les timestamps.
 - `unique` - Marque une colonne comme unique. Cela permet d'éviter les valeurs dupliquées dans les entrées de la table.
 - `references` - Fait référence à une table liée par une colonne. Cela établit une contrainte de clé étrangère, ce qui signifie que chaque valeur de colonne doit avoir une valeur correspondante dans la table référencée.
+
+Une colonne `texte` peut éventuellement définir une liste de chaînes de caractères litérales qui sera utilisée en tant qu'énumération pour la génération des types. Cependant, **aucune validation ne sera effectuée au moment de l'exécution**. La suppression, l'ajout et la modification de valeurs doivent être gérés dans le code de votre projet.
+
+```ts title="db/config.ts" {8}
+import { defineTable, column } from 'astro:db';
+
+// Définition de la table
+const UserTable = defineTable({
+	columns: {
+		id: column.number({ primaryKey: true }),
+		name: column.text(),
+    rank: column.text({ enum: ['user', 'mod', 'admin'] }),
+	},
+});
+
+// Définition de type résultant
+type UserTableInferInsert = {
+    id?: string;
+    name: string;
+    rank: "user" | "mod" | "admin";
+}
+```
 
 ### `indexes`
 
