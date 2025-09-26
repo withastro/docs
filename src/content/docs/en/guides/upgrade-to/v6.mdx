@@ -180,6 +180,71 @@ You may also wish to consider using glob packages from NPM, such as [`fast-glob`
 
 <ReadMore>Learn more about [importing files with `import.meta.glob`](/en/guides/imports/#importmetaglob).</ReadMore>
 
+### Removed: `routes` on `astro:build:done` hook (Integration API)
+
+<SourcePR number="14446" title="feat: cleanup integration api"/>
+
+In Astro 5.0, accessing `routes` on the `astro:build:done` hook was deprecated.
+
+Astro 6.0 removes the `routes` array passed to this hook entirely. Instead, the `astro:routes:resolved` hook should be used. 
+
+#### What should I do?
+
+Remove any instance of `routes` passed to `astro:build:done` and replace it with the new `astro:routes:resolved` hook. Access `distURL` on the newly exposed `assets` map:
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>Learn more about [the Integration API `astro:routes:resolved` hook](/en/reference/integrations-reference/#astroroutesresolved) for building integrations.</ReadMore>
+
+### Removed: `entryPoints` on `astro:build:ssr` hook (Integration API)
+
+<SourcePR number="14446" title="feat: cleanup integration api"/>
+
+In Astro 5.0, [`functionPerRoute` was deprecated](https://docs.astro.build/en/guides/upgrade-to/v5/#deprecated-functionperroute-adapter-api). That meant that `entryPoints` on the `astro:build:ssr` hook was always empty.
+
+Astro 6.0 removes the `entryPoints` map passed to this hook entirely.
+
+#### What should I do?
+
+Remove any instance of `rouentryPointstes` passed to `astro:build:ssr`:
+
+```js title="my-integration.mjs" del={6}
+const integration = () => {
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:build:ssr': (params) => {
+                someLogic(params.entryPoints)
+            },
+        }
+    }
+}
+```
+
 ## Changed Defaults
 
 Some default behavior has changed in Astro v5.0 and your project code may need updating to account for these changes.
