@@ -59,6 +59,7 @@ export const logos = LogoCheck({
 	drupal: { file: 'drupal.svg', padding: '.12em' },
 	ghost: { file: 'ghost.png', padding: '.125em' },
 	'decap-cms': { file: 'decap-cms.svg', padding: '0 .225em 0 .26em' },
+	'digital-ocean': { file: 'digital-ocean.svg', padding: '.2em' },
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
