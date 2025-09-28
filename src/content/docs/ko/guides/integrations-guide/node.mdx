@@ -8,9 +8,9 @@ githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/int
 category: adapter
 i18nReady: true
 ---
-
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 이 어댑터를 사용하면 Astro가 [서버 아일랜드](/ko/guides/server-islands/), [액션](/ko/guides/actions/), [세션](/ko/guides/sessions/)을 포함하여 [요청 시 렌더링되는 라우트 및 기능](/ko/guides/on-demand-rendering/)을 Node 대상에 배포할 수 있습니다.
 
@@ -282,18 +282,6 @@ HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### 런타임 환경 변수
-
-빌드 프로세스가 실행될 때 환경 변수가 포함된 `.env` 파일이 존재하는 경우 이러한 값은 정적 웹 사이트를 생성할 때와 마찬가지로 출력에 하드 코딩됩니다.
-
-빌드하는 동안 런타임 변수는 `.env` 파일에 없어야 하며 런타임에 예상되는 모든 환경 변수를 Astro에 제공해야 합니다.  (`VARIABLE_1=placeholder astro build`) 이는 빌드된 애플리케이션이 실행될 때 실제 값을 사용할 수 있다는 신호를 Astro에 보냅니다. placeholder 값은 빌드 프로세스에서 무시되며 Astro는 런타임에 제공된 값을 사용합니다.
-
-런타임 변수가 여러 개인 경우 `.env` 파일에서 별도의 파일 (예: `.env.runtime`)에 옮겨 저장하세요. 다음 명령을 사용하여 빌드를 시작합니다.
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### 자산
 
 standalone 모드에서는 `dist/client/` 폴더의 자산이 standalone 서버를 통해 제공됩니다. 이러한 자산을 CDN에 배포할 수 있으며, 이 경우 서버는 실제로 해당 자산을 제공하지 않습니다. 그러나 인트라넷 사이트와 같은 일부 경우에는 애플리케이션 서버에서 직접 정적 자산을 제공하는 것이 좋습니다.
@@ -309,3 +297,39 @@ Cache-Control: public, max-age=31536000, immutable
 [Astro 세션 API](/ko/guides/sessions/)를 사용하면 요청 간에 사용자 데이터를 쉽게 저장할 수 있습니다. 이는 사용자 데이터 및 설정, 쇼핑 카트, 인증 자격 증명 등에 활용될 수 있습니다. 쿠키 저장소와 달리 데이터 크기에 제한이 없으며, 다른 기기에서도 복원할 수도 있습니다.
 
 Node 어댑터를 사용하는 경우 Astro는 세션 스토리지를 위해 로컬 파일 시스템을 사용합니다. 다른 세션 스토리지 드라이버를 사용하려면 Astro 구성에서 지정할 수 있습니다. 자세한 내용은 [`session` 구성 참조](/ko/reference/configuration-reference/#sessiondriver)를 확인하세요.
+
+## 환경 변수
+
+런타임 시 [`astro:env`](/ko/guides/environment-variables/#타입-안전-환경-변수) 비밀 또는 `process.env`를 사용할 경우, Astro나 어댑터 모두 환경 변수를 자동으로 로드하지 않습니다.
+
+일부 호스트는 빌드 및 런타임에 대시보드를 통해 구성한 환경 변수를 노출할 수도 있습니다. 특정 플랫폼에서 환경 변수를 설정하고 사용하는 방법은 호스트의 문서를 참조하세요.
+
+자체 호스팅을 하는 경우에는 CLI 명령어나 구성 파일을 통해 환경 변수를 로드할 수 있습니다.
+
+<Tabs>
+  <TabItem label="인라인">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>
