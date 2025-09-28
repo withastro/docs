@@ -40,16 +40,6 @@ En complément, nous vous recommandons de définir `include` et `exclude` comme 
 }
 ```
 
-Vous pouvez créer le fichier `src/env.d.ts` comme convention pour ajouter des déclarations de types personnalisés, ou pour bénéficier des types d'Astro si vous n'avez pas de `tsconfig.json` :
-
-```ts title="src/env.d.ts"
-// Déclarations de types personnalisés
-declare var myString: string;
-
-// Types d'Astro, non nécessaire si vous avez déjà un fichier `tsconfig.json`
-/// <reference path="../.astro/types.d.ts" />
-```
-
 ### Module d'extension Typescript pour les éditeurs
 
 Le [module d'extension d'Astro pour TypeScript](https://www.npmjs.com/package/@astrojs/ts-plugin) peut être installé séparément si vous n'utilisez pas l'[extension officielle d'Astro dans VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode). Ce module d'extension est automatiquement installé et configuré par l'extension VS Code, et vous n'avez pas besoin d'installer les deux.
@@ -118,7 +108,7 @@ Vous pouvez configurer TypeScript pour qu'il applique les importations de types 
 
 ## Alias d'importation
 
-Astro prend en charge les [alias d'importation](/fr/guides/imports/#alias) que vous définissez dans la propriété `paths` de votre configuration `tsconfig.json`. [Consultez notre guide](/fr/guides/imports/#alias) pour en savoir plus.
+Astro prend en charge les alias d'importation que vous définissez dans la propriété `paths` de votre configuration `tsconfig.json`. [Consultez notre guide des importations](/fr/guides/imports/#alias) pour en savoir plus.
 
 ```astro title="src/pages/about/nate.astro" "@components" "@layouts"
 ---
@@ -131,14 +121,26 @@ import Layout from "@layouts/Layout.astro";
 {
   "compilerOptions": {
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"]
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"]
     }
   }
 }
 ```
 
-## Extension de `window` et de `globalThis`
+## Extension des types globaux
+
+Vous pouvez créer le fichier `src/env.d.ts` comme convention pour ajouter des déclarations de types personnalisées, ou pour bénéficier des types d'Astro si vous n'avez pas de fichier `tsconfig.json` :
+
+```ts title="src/env.d.ts"
+// Déclarations de types personnalisées
+declare var myString: string;
+
+// Types d'Astro, non nécessaire si vous avez déjà un fichier `tsconfig.json`
+/// <reference path="../.astro/types.d.ts" />
+```
+
+### `window` et `globalThis`
 
 Vous pouvez vouloir ajouter une propriété à l'objet global. Vous pouvez le faire en ajoutant des déclarations de haut niveau en utilisant le mot-clé `declare` dans votre fichier `env.d.ts` :
 
@@ -158,6 +160,56 @@ interface Window {
 	myFunction(): boolean;
 }
 ```
+
+### Ajouter des attributs non standard
+
+Vous souhaiterez peut-être définir un type pour des propriétés CSS ou des attributs personnalisés. Vous pouvez étendre les définitions JSX par défaut pour ajouter des attributs non standard en redéclarant l'espace de noms `astroHTML.JSX` dans un fichier `.d.ts`.
+
+```ts title="src/env.d.ts"
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    "data-count"?: number;
+    "data-label"?: string;
+  }
+
+  // Ajouter une propriété CSS personnalisée à l'objet style
+  interface CSSProperties {
+    "--theme-color"?: "black" | "white";
+  }
+}
+```
+
+:::note
+`astroHTML` est injecté globalement dans les composants `.astro`. Pour l'utiliser dans les fichiers TypeScript, utilisez une [directive triple barre oblique](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html) :
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+### Utilisation d'importations
+
+Vous souhaiterez peut-être étendre les types globaux en réutilisant les types déclarés ailleurs dans votre projet ou à partir d'une bibliothèque externe. Pour ce faire, utilisez les [importations dynamiques](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Operators/import) :
+
+```ts title="src/env.d.ts"
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+declare namespace App {
+  interface Locals {
+    orders: Map<string, Product[]>
+    session: import("./lib/serveur/session").Session | null;
+    user: import("ma-bibliotheque-externe").User;
+  }
+}
+```
+
+Un fichier `.d.ts` est une déclaration de [module ambiant](https://www.typescriptlang.org/docs/handbook/modules/reference.html#ambient-modules). Bien que sa syntaxe soit similaire à celle des modules ES, ces fichiers n'autorisent pas les importations/exportations de niveau supérieur. Si Typescript en rencontre un, le fichier sera considéré comme une [augmentation de module](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) et cela brisera vos types globaux.
 
 ## Les props de composants
 
@@ -210,32 +262,6 @@ const { href, ...attrs } = Astro.props;
   <slot />
 </a>
 ```
-
-Il est également possible d'étendre les définitions JSX par défaut pour ajouter des attributs non standard en redéclarant l'espace de noms `astroHTML.JSX` dans un fichier `.d.ts`.
-
-```ts title="src/custom-attributes.d.ts"
-declare namespace astroHTML.JSX {
-  interface HTMLAttributes {
-    "data-count"?: number;
-    "data-label"?: string;
-  }
-
-  // Ajouter une propriété CSS personnalisée à l'objet style
-  interface CSSProperties {
-    "--theme-color"?: "black" | "white";
-  }
-}
-```
-
-:::note
-`astroHTML` est injecté globalement dans les composants `.astro`. Pour l'utiliser dans les fichiers TypeScript, utilisez une [directive triple barre oblique](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html) :
-
-```ts
-/// <reference types="astro/astro-jsx" />
-
-type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
-```
-:::
 
 ### Type `ComponentProps`
 
