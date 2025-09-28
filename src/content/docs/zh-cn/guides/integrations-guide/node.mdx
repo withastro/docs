@@ -11,6 +11,7 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 此适配器允许 Astro 将你的 [按需渲染路由及其功能](/zh-cn/guides/on-demand-rendering/) 部署到 Node 目标，包括 [服务器群岛](/zh-cn/guides/server-islands/)，[actions](/zh-cn/guides/actions/) 以及 [sessions](/zh-cn/guides/sessions/)。
 
@@ -282,18 +283,6 @@ HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### 运行时环境变量
-
-如果在构建过程运行时存在包含环境变量的 `.env` 文件，这些值将会被硬编码到输出中，就像生成静态网站一样。
-
-在构建过程中，运行时变量必须不存在于 `.env` 文件中，并且你必须为 Astro 提供每个运行时期望的环境变量： `VARIABLE_1=placeholder astro build`。这会向 Astro 指示实际值将在构建的应用程序运行时可用。占位符值将被构建过程忽略，Astro 将在运行时使用提供的值。
-
-如果使用多个运行时变量，请将它们保存在与 `.env`不同的独立文件（如 `.env.runtime`）中。使用以下命令开始构建：
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### 资源文件
 
 在独立模式下，你的 `dist/client/` 文件夹中的资源文件将通过独立服务器提供服务。但你可能会将这些资源部署到 CDN 上，在这种情况下，服务器实际上则不会为它们提供服务。但是在某些情况下，比如内网站点，直接从应用服务器提供静态资源文件则是可行的。
@@ -309,3 +298,39 @@ Cache-Control: public, max-age=31536000, immutable
 Astro [Session API](/zh-cn/guides/sessions/) 允许你在请求间，轻松地存储用户数据。该功能可用于用户数据和偏好选项，购物车内容，资格鉴权。不同于 cookie 存储，这里不存在对数据大小的限制，并且可以将其存储在不同的设备上。
 
 当使用 Netlify 适配器时，Astro 将自动配置 [Netlify Blobs](https://docs.netlify.com/blobs/overview/) 用于会话（session）存储。如果你更倾向于使用其他的会话存储驱动，你可以在 Astro config 中指定。更多细节请参见 [`session` 配置参考](/zh-cn/reference/configuration-reference/#sessiondriver)。
+
+## 环境变量
+
+在运行时使用 [`astro:env`](/zh-cn/guides/environment-variables/#类型安全的环境变量) secrets 或 `process.env` 时 ，Astro 和适配器都不会为你加载环境变量。
+
+一些主机可能会在构建时和运行时通过其仪表板暴露你配置的环境变量。请查阅你所用主机在特定平台上设置和使用环境变量的文档。
+
+在自托管时，你可以通过 CLI 命令或配置文件按需加载环境变量：
+
+<Tabs>
+  <TabItem label="Inline">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>
