@@ -5,8 +5,6 @@ description: >-
   튜토리얼: 첫 번째 Astro 블로그 구축 — Astro 스크립트 태그를 사용하여 모바일 탐색에 클라이언트 측 상호 작용 기능 추가
 i18nReady: true
 ---
-
-
 import Blanks from '~/components/tutorial/Blanks.astro';
 import Box from '~/components/tutorial/Box.astro';
 import Checklist from '~/components/Checklist.astro';
@@ -15,74 +13,65 @@ import Option from '~/components/tutorial/Option.astro';
 import PreCheck from '~/components/tutorial/PreCheck.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-클라이언트 측 상호 작용이 필요한 모바일 화면 크기에서 링크를 열고 닫을 수 있는 햄버거 메뉴를 추가해 보겠습니다.
+클라이언트 측 상호 작용이 필요한 모바일 화면 크기에서 탐색 메뉴를 열고 닫을 수 있는 버튼을 추가해 보겠습니다.
 
 <PreCheck>
-  - 햄버거 메뉴 컴포넌트 만들기
+  - 메뉴 컴포넌트 만들기
   - 사이트 방문자가 탐색 메뉴를 열고 닫을 수 있도록 `<script>` 작성
   - JavaScript를 `.js` 파일로 이동
 </PreCheck>
 
-## 햄버거 컴포넌트 구축
+## 메뉴 컴포넌트 구축
 
-모바일 메뉴를 열고 닫을 수 있는 `<Hamburger />` 컴포넌트를 만듭니다.
+모바일 메뉴를 열고 닫을 수 있는 `<Menu />` 컴포넌트를 만듭니다.
 
 <Steps>
-1. `src/components/`에 `Hamburger.astro`라는 파일을 생성합니다.
+1. `src/components/`에 `Menu.astro`라는 파일을 생성합니다.
   
-2. 다음 코드를 컴포넌트에 복사합니다. 이는 모바일에서 탐색 링크를 열고 닫는 3줄 "햄버거" 메뉴를 나타냅니다. (나중에 `global.css`에 새 CSS 스타일을 추가할 것입니다.)
+2. 다음 코드를 컴포넌트에 복사합니다. 이는 모바일 기기에서 탐색 링크의 표시 여부를 전환하는 데 사용될 버튼을 생성합니다. (나중에 `global.css`에 새 CSS 스타일을 추가할 것입니다.)
 
-    ```astro title="src/components/Hamburger.astro"
+    ```astro title="src/components/Menu.astro"
     --- 
     ---
-    <div class="hamburger">
-      <span class="line"></span>
-      <span class="line"></span>
-      <span class="line"></span>
-    </div>
+    <button aria-expanded="false" aria-controls="main-menu" class="menu">
+      Menu
+    </button>
     ```
 
-3. 이 새로운 `<Hamburger />` 컴포넌트를 `Header.astro`의 `<Navigation />` 컴포넌트 바로 앞에 배치하세요.
+3. 이 새로운 `<Menu />` 컴포넌트를 `Header.astro`의 `<Navigation />` 컴포넌트 바로 앞에 배치하세요.
 
     <details>
     <summary>코드를 확인하세요!</summary>
 
     ```astro title="src/components/Header.astro" ins={2,7}
     ---
-    import Hamburger from './Hamburger.astro';
+    import Menu from './Menu.astro';
     import Navigation from './Navigation.astro';
     ---
     <header>
       <nav>
-        <Hamburger />
+        <Menu />
         <Navigation />
       </nav>
     </header>
     ```
     </details>
 
-4. 햄버거 컴포넌트에 다음 스타일을 추가합니다.
+4. 메뉴 컴포넌트에 다음 스타일을 추가하세요. 여기에는 반응형 스타일도 포함됩니다.
 
-    ```css title="src/styles/global.css" ins={2-13, 56-58}
+    ```css title="src/styles/global.css" ins={2-9, 33-35, 51-53}
     /* nav 스타일 */
-    .hamburger {
-      padding-right: 20px;
-      cursor: pointer;
-    }
-
-    .hamburger .line {
-      display: block;
-      width: 40px;
-      height: 5px;
-      margin-bottom: 10px;
-      background-color: #ff9776;
+    .menu {
+      background-color: #0d0950;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 5px 10px;
     }
 
     .nav-links {
       width: 100%;
-      top: 5rem;
-      left: 48px;
-      background-color: #ff9776;
       display: none;
       margin: 0;
     }
@@ -95,13 +84,15 @@ import { Steps } from '@astrojs/starlight/components';
       font-size: 1.2rem;
       font-weight: bold;
       text-transform: uppercase;
+      color: #0d0950;
     }
-
-    .nav-links a:hover, a:focus {
+    
+    .nav-links a:hover,
+    .nav-links a:focus {
       background-color: #ff9776;
     }
 
-    .expanded {
+    :has(.menu[aria-expanded="true"]) .nav-links {
       display: unset;
     }
 
@@ -119,7 +110,7 @@ import { Steps } from '@astrojs/starlight/components';
         padding: 15px 20px;
       }
 
-      .hamburger {
+      .menu {
         display: none;
       }
     }
@@ -128,18 +119,21 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## 첫 번째 스크립트 태그 작성
 
-탐색 링크를 표시하거나 숨기기 위해 햄버거 메뉴를 클릭하는 등의 사용자 입력에 응답할 수 없기 때문에 헤더는 아직 **대화형**이 아닙니다.
+탐색 링크를 표시하거나 숨기기 위해 메뉴를 클릭하는 등의 사용자 입력에 응답할 수 없기 때문에 헤더는 아직 **대화형**이 아닙니다.
 
 `<script>` 태그를 추가하면 클라이언트 측 JavaScript가 사용자 이벤트를 '수신'한 후 그에 따라 응답합니다.
 
 <Steps>
 1. `index.astro`의 닫는 `</body>` 태그 바로 앞에 다음 `<script>` 태그를 추가합니다.
 
-    ```astro title="src/pages/index.astro" ins={2-6}
+    ```astro title="src/pages/index.astro" ins={2-9}
       <Footer />
       <script>
-        document.querySelector('.hamburger')?.addEventListener('click', () => {
-          document.querySelector('.nav-links')?.classList.toggle('expanded');
+        const menu = document.querySelector('.menu');
+  
+        menu.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', !isExpanded);
         });
       </script>
     </body>
@@ -156,18 +150,24 @@ import { Steps } from '@astrojs/starlight/components';
 1. `src/scripts/menu.js`를 생성하고 (새 `/scripts/` 폴더를 생성해야 함) JavaScript를 해당 폴더로 이동합니다.
 
     ```js title="src/scripts/menu.js"
-    document.querySelector('.hamburger').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('expanded');
+    const menu = document.querySelector('.menu');
+
+    menu.addEventListener('click', () => {
+      const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+      menu.setAttribute('aria-expanded', !isExpanded);
     });
     ```
 
 2. `index.astro`의 `<script>` 태그 내용을 다음 파일 가져오기로 바꿉니다.
 
-    ```astro title="src/pages/index.astro" ins={7} del={3-5}
+    ```astro title="src/pages/index.astro" ins={7} del={3-8}
       <Footer />
       <script>
-        document.querySelector('.hamburger')?.addEventListener('click', () => {
-          document.querySelector('.nav-links')?.classList.toggle('expanded');
+        const menu = document.querySelector('.menu');
+  
+        menu.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', !isExpanded);
         });
 
         import "../scripts/menu.js";
@@ -175,7 +175,7 @@ import { Steps } from '@astrojs/starlight/components';
     </body>
     ```
 
-3. 더 작은 크기로 브라우저 미리보기를 다시 확인하고 햄버거 메뉴가 여전히 탐색 링크를 열고 닫는지 확인하세요.
+3. 더 작은 크기로 브라우저 미리보기를 다시 확인하고 메뉴가 여전히 탐색 링크를 열고 닫는지 확인하세요.
 
 4. 가져오기와 동일한 `<script>`를 다른 두 페이지인 `about.astro` 및 `blog.astro`에 추가하고 각 페이지에 반응형 대화형 헤더가 있는지 확인하세요.
 
