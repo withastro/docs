@@ -57,10 +57,6 @@ export interface AstroAdapterFeatures {
 	 * Astroミドルウェアと通信するエッジ関数を作成します。
 	 */
 	edgeMiddleware: boolean;
-	/**
-	 * SSR専用。各ルートが個別の関数/ファイルになります。
-	 */
-	functionPerRoute: boolean;
 }
 
 export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
@@ -334,89 +330,6 @@ export default function createIntegration() {
 ## アダプターの機能について
 
 アダプターの機能は、出力されるファイルの内容を変更する一連の機能です。アダプターがこれらの機能を有効にすると、特定のフック内で追加情報を取得できます。
-
-### `functionPerRoute`機能
-
-この機能は、SSR（サーバーサイドレンダリング）を使用する場合にのみ有効になります。デフォルトでは、Astroは単一の`entry.mjs`ファイルを生成し、このファイルが各リクエストに対してレンダリングされたページを出力します。
-
-`functionPerRoute`を`true`に設定すると、Astroはプロジェクトで定義された各ルートに対して個別のファイルを作成します。
-
-生成される各ファイルは1つのページのみをレンダリングします。これらのページファイルは`dist/pages/`ディレクトリ（または[`outDir`](/ja/reference/configuration-reference/#outdir)で指定されたディレクトリ内の`/pages/`）に出力され、`src/pages/`ディレクトリと同じファイル構造を維持します。
-
-例えば、`pages/`ディレクトリ内のファイル構造は、ビルド後の`src/pages/`のページファイルの構造を反映します。
-
-<FileTree>
-- dist/
-    - pages/
-        - blog/
-            - entry.\_slug\_.astro.mjs
-            - entry.about.astro.mjs
-        - entry.index.astro.mjs
-</FileTree>
-
-この機能を有効にするには、アダプターに`true`を渡します。
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-その後、[`astro:build:ssr`](/ja/reference/integrations-reference/#astrobuildssr)フックを使用します。このフックは`entryPoints`オブジェクトを提供し、ページのルートとビルド後に生成された実際のファイルをマッピングします。
-
-```js title="my-adapter.mjs" ins={15-19}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/my-adapter',
-          serverEntrypoint: '@matthewp/my-adapter/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ entryPoints }) => {
-          for (const [route, entryFile] of entryPoints) {
-              // routeとentryFileを使用して何かをする
-          }
-      }  
-    },
-  };
-}
-```
-
-:::caution
-`entryFile`は`URL`型で、ファイルシステム上の実際のファイルパスを表します。つまり、コードが実行されるOSによってパスが変わる可能性があります。
-:::
-
-#### サーバーレス環境での動作について
-
-サーバーレス環境で`functionPerRoute: true`を設定すると、各ルートに対して個別のJavaScriptファイル（ハンドラー）が作成されます。このハンドラーは、使用するホスティングプラットフォームによってlambda、function、pageなど、さまざまな名前で呼ばれることがあります。
-
-これらの各ルートは、ハンドラーが実行される際に[コールドスタート](https://azure.microsoft.com/ja-jp/blog/understanding-serverless-cold-start/)の影響を受ける可能性があり、これにより多少の遅延が生じることがあります。この遅延の程度はさまざまな要因に左右されます。
-
-一方、`functionPerRoute: false`に設定した場合、すべてのルートのレンダリングを1つのハンドラーが担当します。このハンドラーが最初に呼び出されるときにはコールドスタートの影響を受けますが、それ以降のルートは遅延なく機能するはずです。ただし、この設定では`functionPerRoute: true`で得られるコード分割の利点は失われてしまいます。
-
-:::note
-プロジェクトに最適な`functionPerRoute`の設定を選択するためには、使用するホスティングプラットフォームの仕組みをよく理解することが重要です。
-:::
 
 ### `edgeMiddleware`機能について
 
