@@ -79,7 +79,6 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
       manifest: SerializedSSRManifest;
-      entryPoints: Map<IntegrationRouteData, URL>;
       middlewareEntryPoint: URL | undefined;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
@@ -1036,13 +1035,11 @@ export default {
 **When:** After a production SSR build has completed.
 
 **Why:** To access the SSR manifest and map of the emitted entry points. This is useful when creating custom SSR builds in plugins or integrations.
-- `entryPoints` maps a page route to the physical file emitted after the build;
 - `middlewareEntryPoint` is the file system path of the middleware file;
 
 ```js
 'astro:build:ssr'?: (options: {
   manifest: SerializedSSRManifest;
-  entryPoints: Map<IntegrationRouteData, URL>;
   middlewareEntryPoint: URL | undefined;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
@@ -1066,29 +1063,6 @@ export default {
       if (i18n?.strategy === "domains-prefix-always") {
         // do something
       }
-    },
-  },
-}
-```
-
-#### `entryPoints` option
-
-<p>
-
-**Type:** <code>Map\<<a href="#integrationroutedata-type-reference">IntegrationRouteData</a>, URL\></code><br />
-<Since v="2.7.0" />
-</p>
-
-A `Map` of the emitted entry points with the `IntegrationRouteData` as key and the physical file URL as value.
-
-```js
-export default {
-  name: 'my-integration',
-  hooks: {
-    'astro:build:ssr': ({ entryPoints }) => {
-      entryPoints.forEach((url) => {
-        console.log(url.href);
-      });
     },
   },
 }
@@ -1173,8 +1147,6 @@ export default {
 'astro:build:done'?: (options: {
   pages: { pathname: string }[];
   dir: URL;
-  /** @deprecated Use the `assets` map and the new `astro:routes:resolved` hook */
-  routes: IntegrationRouteData[];
   assets: Map<string, URL[]>;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
@@ -1206,24 +1178,6 @@ export default function myIntegration() {
   }
 }
 ```
-
-#### `routes` option
-
-:::caution
-This property is deprecated since v5.0. Check the [migration guide](/en/guides/upgrade-to/v5/#deprecated-routes-on-astrobuilddone-hook-integration-api).
-:::
-
-<p>
-
-**Type:** [`IntegrationRouteData[]`](#integrationroutedata-type-reference)
-</p>
-
-A list of all generated routes alongside their associated metadata.
-
-You can reference the full `IntegrationRouteData` type below, but the most common properties are:
-
-- `component` - the input file path relative to the project root
-- `pathname` - the output file URL (undefined for routes using `[dynamic]` and `[...spread]` params)
 
 #### `assets` option
 
@@ -1495,146 +1449,6 @@ Allows you to access the route to redirect to. This can be a string or an object
 </p>
 
 Determines if a route comes from Astro core (`internal`), an integration (`external`) or the user's project (`project`).
-
-### `IntegrationRouteData` type reference
-
-:::caution
-This type is deprecated since v5.0. Use [`IntegrationResolvedRoute`](#integrationresolvedroute-type-reference) instead.
-:::
-
-A smaller version of the `RouteData` that is used in the integrations.
-
-```ts
-interface IntegrationRouteData {
-  type: RouteType;
-  component: string;
-  pathname?: string;
-  pattern: RegExp;
-  params: string[];
-  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
-  generate: (data?: any) => string;
-	prerender: boolean;
-	distURL?: URL[];
-	redirect?: RedirectConfig;
-	redirectRoute?: IntegrationRouteData;
-}
-```
-
-#### `type`
-
-<p>
-
-**Type:** `RouteType`
-</p>
-
-Allows you to identify the type of the route. The value can be:
-- `page`: a route that lives in the file system, usually an Astro component
-- `endpoint`: a route that lives in the file system, usually a JS file that exposes endpoints methods
-- `redirect`: a route that points to another route that lives in the file system
-- `fallback`: a route that doesn't exist in the file system and needs to be handled with other means, usually middleware
-
-#### `component`
-
-<p>
-
-**Type:** `string`
-</p>
-
-Allows you to access the source component URL pathname.
-
-#### `pathname`
-
-<p>
-
-**Type:** `string | undefined`
-</p>
-
-For regular routes, the value will be the URL pathname where this route will be served. When the project uses [dynamic routes](/en/guides/routing/#dynamic-routes) (ie. `[dynamic]` or `[...spread]`), the pathname will be undefined.
-
-#### `pattern`
-
-<p>
-
-**Type:** `RegExp`
-</p>
-
-Allows you to access a regex used for matching an input URL against a requested route.
-
-For example, given a `[fruit]/about.astro` path, the regex will be `/^\/([^/]+?)\/about\/?$/`. Using `pattern.test("banana/about")` will return `true`.
-
-#### `params`
-
-<p>
-
-**Type:** `string[]`
-</p>
-
-Allows you to access the route `params`. For example, when a project uses the following [dynamic routes](/en/guides/routing/#dynamic-routes) `/pages/[lang]/[...slug].astro`, the value will be `['lang', '...slug']`.
-
-#### `segments`
-
-<p>
-
-**Type:** `{ content: string; dynamic: boolean; spread: boolean; }[][]`
-</p>
-
-Allows you to access the route [`params`](#params-1) with additional metadata. Each object contains the following properties:
-* `content`: the `param`,
-* `dynamic`: whether the route is dynamic or not,
-* `spread`: whether the dynamic route uses the spread syntax or not.
-
-For example, the following route `/pages/[lang]/index.astro` will output the segments `[[ { content: 'lang', dynamic: true, spread: false } ]]`.
-
-#### `generate()`
-
-<p>
-
-**Type:** `(data?: any) => string`
-</p>
-
-A function that provides the optional parameters of the route, interpolates them with the route pattern, and returns the path name of the route.
-
-For example, with a route such as `/blog/[...id].astro`, the `generate` function could return:
-
-```js
-console.log(generate({ id: 'presentation' })) // will log `/blog/presentation` 
-```
-
-#### `prerender`
-
-<p>
-
-**Type:** `boolean`
-</p>
-
-Determines whether the route is prerendered or not.
-
-#### `distURL`
-
-<p>
-
-**Type:** `URL[] | undefined`
-</p>
-
-The paths of the physical files emitted by this route. When a route **isn't** prerendered, the value is either `undefined` or an empty array.
-
-#### `redirect`
-
-<p>
-
-**Type:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/config.ts#L39-L44">RedirectConfig</a> | undefined</code>
-</p>
-
-Allows you to access the route to redirect to. This can be a string or an object containing information about the status code and its destination.
-
-#### `redirectRoute`
-
-<p>
-
-**Type:** `IntegrationRouteData | undefined`
-</p>
-
-When the value of `RouteData.type` is `redirect`, the value will contains the `IntegrationRouteData` of the route to redirect to. Otherwise, the value will be undefined.
 
 ## Allow installation with `astro add`
 
