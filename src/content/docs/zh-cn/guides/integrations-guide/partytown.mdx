@@ -10,7 +10,7 @@ i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-此 **[Astro 集成][astro-integration]** 允许你在 Astro 项目中启用 [Partytown](https://partytown.builder.io/)。
+此 **[Astro 集成][astro-integration]** 允许你在 Astro 项目中启用 [Partytown](https://partytown.qwik.dev/)。
 
 ## 为什么是 Astro Partytown
 
@@ -106,11 +106,11 @@ export default defineConfig({
 });
 ```
 
-这与 [Partytown 配置对象](https://partytown.builder.io/configuration) 相对应。
+这与 [Partytown 配置对象](https://partytown.qwik.dev/configuration) 相对应。并且所有选项都可以在 `partytown.config` 中设置。本页描述了适用于 Astro 项目的常见配置选项。
 
-### config.debug
+### 启用 debug 模式
 
-Partytown 自带一个 `debug` 模式；通过向 `config.debug` 传入 `true` 或 `false` 来启用或禁用它。如果启用了[`debug` 模式](https://partytown.builder.io/debugging)，它会向浏览器控制台输出详细的日志。
+Partytown 自带一个 `debug` 模式；通过向 `config.debug` 传入 `true` 或 `false` 来启用或禁用它。如果启用了[`debug` 模式](https://partytown.qwik.dev/debugging)，它会向浏览器控制台输出详细的日志。
 
 如果不设置此选项，在 [dev](/zh-cn/reference/cli-reference/#astro-dev) 或 [preview](/zh-cn/reference/cli-reference/#astro-preview) 模式下，`debug` 模式默认启用。
 
@@ -126,13 +126,13 @@ export default defineConfig({
 });
 ```
 
-### config.forward
+### 转发变量
 
 第三方脚本通常会向 `window` 对象添加变量，以便你可以在整个站点与它们通信。但是当一个脚本在 web worker 中加载时，它无法访问全局的 `window` 对象。
 
 为了解决这个问题，Partytown 可以“打补丁”变量到全局 window 对象并将它们转发到适当的脚本。
 
-你可以使用 `config.forward` 选项指定要转发的变量。[在 Partytown 的文档中了解更多信息。](https://partytown.builder.io/forwarding-events)
+你可以使用 `config.forward` 选项指定要转发的变量。[在 Partytown 的文档中了解更多信息。](https://partytown.qwik.dev/forwarding-events)
 
 ```js title="astro.config.mjs" {7}
 export default defineConfig({
@@ -148,8 +148,63 @@ export default defineConfig({
 });
 ```
 
+### 代理请求
+
+某些第三方脚本可能需要通过运行在 service worker 内的 `config.resolveUrl()` 进行[代理](https://partytown.qwik.dev/proxying-requests/)。你可以设置此配置选项以检查特定 URL，并可选择返回一个被代理的 URL：
+
+```js title="astro.config.mjs" {7-13}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 示例：代理 Facebook 的分析脚本
+      config: {
+        resolveUrl: (url) => {
+          const proxyMap = {
+            "connect.facebook.net": "my-proxy.com"
+          }
+          url.hostname = proxyMap[url.hostname] || url.hostname;
+          return url;
+        },
+      }
+    }),
+  ],
+});
+```
+
+但是由于 `config` 对象在发送到客户端时会被序列化，因此对传入配置的函数存在一些限制：
+
+- 函数不能引用函数作用域之外的任何内容。
+- 函数只能用 JavaScript 编写。
+
+在一些高级用例中，你可能需要在初始化 Partytown 时向此函数传递数据。为此，你可以将 `resolveUrl()` 设置在 `window.partytown` 上，而不是集成配置中：
+
+```astro title="Head.astro" {8-14}
+---
+const proxyMap = {
+  "connect.facebook.net": "my-proxy.com"
+};
+---
+<script is:inline set:html={`
+  window.partytown = {
+    resolveUrl: (url) => {
+      const proxyMap = ${JSON.stringify(proxyMap)};
+      url.hostname = proxyMap[url.hostname] || url.hostname;
+      return url;
+    },
+  };
+`} />
+```
+
+注意，如果你用两种方式同时设置了某个属性，集成配置将覆盖 `window.partytown`。
+
 ## 例子
 
 * [在 GitHub 上浏览使用 Astro Partytown 的项目](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json\&type=code) 来获取更多例子！
+
+## 社区资源
+
+* [在 Astro 中使用 Partytown 实现 Google Tag Manager](https://medium.com/@tagperfect/implementing-google-tag-manager-with-partytown-js-in-astro-my-modest-experience-983388907b35)
+* [在 Astro 中使用 Partytown 优化 Google Analytics](https://ricostacruz.com/posts/google-analytics-in-astro)
 
 [astro-integration]: /zh-cn/guides/integrations-guide/
