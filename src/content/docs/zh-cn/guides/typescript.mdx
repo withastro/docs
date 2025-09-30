@@ -40,16 +40,6 @@ Astro 中包含三个可扩展的 `tsconfig.json` 模板：`base`、`strict` 和
 }
 ```
 
-你可以创建 `src/env.d.ts` 作为添加自定义类型声明的约定，或者如果你没有 `tsconfig.json`，则可以从 Astro 类型中受益：
-
-```ts title="src/env.d.ts"
-// 自定义类型声明
-declare var myString: string;
-
-// Astro 类型，如果你已经有 `tsconfig.json`，则不需要
-/// <reference path="../.astro/types.d.ts" />
-```
-
 ### TypeScript 编辑器插件
 
 当你不使用[官方 Astro VS Code 扩展](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)时，可以单独安装 [Astro TypeScript 插件](https://www.npmjs.com/package/@astrojs/ts-plugin)。该插件由 VS Code 扩展自动安装和配置，你无需同时安装两者。
@@ -119,7 +109,7 @@ import type { SomeType } from "./script";
 
 ## 导入别名
 
-Astro 支持你在 `tsconfig.json` 文件里的 `paths` 配置所定义的 [导入别名](/zh-cn/guides/imports/#别名)。
+Astro 支持你在 `tsconfig.json` 文件里的 `paths` 配置所定义的导入别名。 [阅读导入指南](/zh-cn/guides/imports/#别名) 了解更多。
 
 ```astro title="src/pages/about/nate.astro" "@components" "@layouts"
 ---
@@ -139,7 +129,19 @@ import Layout from "@layouts/Layout.astro";
 }
 ```
 
-## 扩展 `window` 和 `globalThis`
+## 扩展全局类型
+
+你可以创建 `src/env.d.ts` 作为约定来添加自定义类型声明，或者在没有 `tsconfig.json` 的情况下利用 Astro 类型的优势：
+
+```ts title="src/env.d.ts"
+// 自定义类型声明
+declare var myString: string;
+
+// Astro 类型，如果你已有 `tsconfig.json` 则无需添加。
+/// <reference path="../.astro/types.d.ts" />
+```
+
+### `window` 和 `globalThis`
 
 你可能需要在全局对象中添加一项属性。可以通过在 `env.d.ts` 文件中使用 `declare` 关键字添加顶级声明来实现这一点：
 
@@ -159,6 +161,56 @@ interface Window {
 	myFunction(): boolean;
 }
 ```
+
+### 添加非标准属性
+
+你可能需要为自定义属性或 CSS 属性定义类型。你可以通过在 `.d.ts` 文件中重新声明 `astroHTML.JSX` 命名空间来扩展默认的 JSX 定义，以添加非标准属性。
+
+```ts title="src/env.d.ts"
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    "data-count"?: number;
+    "data-label"?: string;
+  }
+
+  // 向 style 对象添加一个 CSS 自定义属性
+  interface CSSProperties {
+    "--theme-color"?: "black" | "white";
+  }
+}
+```
+
+:::note
+`astroHTML` 会在 `.astro` 组件中全局注入。要在 TypeScript 文件中使用它，可以使用 [三斜杠指令](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)：
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+### 使用导入
+
+你可能希望通过复用项目中其他地方或外部库中声明的类型来扩展全局类型。为此，请使用 [动态导入](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import)：
+
+```ts title="src/env.d.ts"
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+declare namespace App {
+  interface Locals {
+    orders: Map<string, Product[]>
+    session: import("./lib/server/session").Session | null;
+    user: import("my-external-library").User;
+  }
+}
+```
+
+`.d.ts` 文件是一种 [环境模块](https://www.typescriptlang.org/docs/handbook/modules/reference.html#ambient-modules) 声明。虽然它的语法与 ES 模块类似，但这些文件不允许顶层导入/导出。如果 TypeScript 遇到一个 `.d.ts` 文件，它将被视为 [模块增强](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation)，这将破坏你的全局类型。
 
 ## 组件参数
 
@@ -211,32 +263,6 @@ const { href, ...attrs } = Astro.props;
   <slot />
 </a>
 ```
-
-也可以通过在 `.d.ts` 文件中重新声明命名空间 `astroHTML.JSX`，来为默认的 JSX 定义扩展非标准属性。
-
-```ts title="src/custom-attributes.d.ts"
-declare namespace astroHTML.JSX {
-  interface HTMLAttributes {
-    "data-count"?: number;
-    "data-label"?: string;
-  }
-
-  // 添加一个 CSS 自定义属性到 style 对象中
-  interface CSSProperties {
-    "--theme-color"?: "black" | "white";
-  }
-}
-```
-
-:::note
-`astroHTML` 被全局注入到 `.astro` 组件中。如果要在 TypeScript 文件中使用它，请使用一个[三斜杠指令（triple-slash directive）](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)来进行引用：
-
-```ts
-/// <reference types="astro/astro-jsx" />
-
-type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
-```
-:::
 
 ### `ComponentProps` 类型
 
