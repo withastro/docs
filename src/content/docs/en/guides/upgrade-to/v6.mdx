@@ -427,6 +427,55 @@ Review your links to your custom endpoints that include a file extension in the 
 
 <ReadMore>Learn more about [custom endpoints](/en/guides/endpoints/).</ReadMore>
 
+### Changed: `import.meta.env` values are always inlined
+
+<SourcePR number="14485" title="feat: stabilize static import meta env"/>
+
+In Astro 5.13, the `experimental.staticImportMetaEnv` was introduced to update the behavior when accessing `import.meta.env` directly to align with [Vite's handling of environment variables](https://vite.dev/guide/env-and-mode.html#env-variables) and ensures that `import.meta.env` values are always inlined. Previously, non-public environment variables were replaced by a reference to `process.env`. Additionally, Astro could also convert the value type of your environment variables used through `import.meta.env`, which could prevent access to some values such as the strings `"true"` (which was converted to a boolean value), and `"1"` (which was converted to a number).
+
+Astro 6 removes this experimental flag and makes this the new default behavior in Astro: `import.meta.env` values are always inlined
+
+#### What should I do?
+
+If you were relying on coercion, you may need to update your project code to apply it manually:
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.ENABLED;
+const enabled: boolean = import.meta.env.ENABLED === "true";
+```
+
+If you were relying on the transformation into `process.env`, you may need to update your project code to apply it manually:
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.DB_PASSWORD;
+const enabled: boolean = process.env.DB_PASSWORD;
+```
+
+You may also need to update types:
+
+```ts title="src/env.d.ts" del={3-4} ins={5,12-16}
+interface ImportMetaEnv {
+  readonly PUBLIC_POKEAPI: string;
+  readonly DB_PASSWORD: string;
+  readonly ENABLED: boolean;
+  readonly ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+namespace NodeJS {
+  interface ProcessEnv {
+    DB_PASSWORD: string;
+  }
+}
+```
+
+If you need more control over environment variables in Astro, we recommend you use `astro:env`.
+
+<ReadMore>Learn more about [environment variables](/en/guides/environment-variables/).</ReadMore>
+
 ## Community Resources
 
 Know a good resource for Astro v5.0? [Edit this page](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v6.mdx) and add a link below!
