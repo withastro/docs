@@ -147,7 +147,6 @@ export const sidebar = [
 					'reference/experimental-flags/live-content-collections',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
-					'reference/experimental-flags/preserve-scripts-order',
 					'reference/experimental-flags/heading-id-compat',
 					'reference/experimental-flags/chrome-devtools-workspace',
 				],
