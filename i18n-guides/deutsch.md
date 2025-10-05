@@ -76,7 +76,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Nichtverwendung der vom Duden empfohlenen Schreibweisen
 	- mit Hilfe --> mithilfe
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
-	- Github --> GitHub
+    - Github → GitHub
 	- Gitlab --> GitLab
 	- Javascript --> JavaScript
 	- Typescript --> TypeScript
