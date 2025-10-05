@@ -24,6 +24,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur „Option“ verwendet werden.
 | deployment provider         | der Hosting-Anbieter                 |
 | to deploy                   | veröffentlichen                      | Wir vermeiden „ausliefern“ aufgrund der Zweideutigkeit.
+| dev server                  | der Entwicklungsserver               |
 | dev toolbar                 | die Entwicklungs&shy;werkzeugleiste  |
 | directory                   | das Verzeichnis                      |
 | domain                      | die Domäne                           |
