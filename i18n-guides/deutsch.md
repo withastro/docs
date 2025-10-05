@@ -21,7 +21,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | Commit                      | Commit                               | Siehe [Stilrichtlinien](#stilrichtlinien-style-guide)
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden.
 | CLI flag                    | die Kommandozeilen&shy;option        |
-| configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur "Option" verwendet werden.
+| configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur „Option“ verwendet werden.
 | deployment provider         | der Hosting-Anbieter                 |
 | to deploy                   | veröffentlichen                      | Wir vermeiden "ausliefern" aufgrund der Zweideutigkeit.
 | dev toolbar                 | die Entwicklungs&shy;werkzeugleiste  |
