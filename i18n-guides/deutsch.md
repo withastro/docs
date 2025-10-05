@@ -82,7 +82,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 	- Typescript --> TypeScript
 	- VSCode --> VS Code
 - Abkürzungen müssen in der gleichen Zeile stehen. Hierfür wird das [Unicode Symbol "U+00A0 NO-BREAK SPACE"](https://unicode-explorer.com/c/00A0) (` `) verwendet:
-    - zum Beispiel --> `z.&nbsp;B.`
+    - zum Beispiel --> `z. B.` (am besten mit geschütztem Leerzeichen, sonst die HTML-Entität)
 - Verwendung der falschen Anführungszeichen ("" statt „“)
 
 ## Hast du Ergänzungen oder Anregungen zu dieser Anleitung?
