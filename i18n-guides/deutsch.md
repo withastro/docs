@@ -41,17 +41,17 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
 | request                     | die Anfrage                          |
 | script                      | das Skript                           |
-| selective hydration         | die selektive Hydratation            | Falsch hingegen wäre "Hydrierung".
+| selective hydration         | die selektive Hydratation            | Falsch hingegen wäre „Hydrierung“.
 | site, website               | die Website                          | Eine vollständige Webpräsenz unter einer gemeinsamen Domain, bestehend aus beliebig vielen (HTML-)Seiten.
 | style, styles               | Style, Styles                        | Wird nicht übersetzt (gängiger Domänenbegriff).
-| scoped style                | Scoped Style                         | Beim ersten Vorkommen sollte die deutsche Erklärung `(auf Komponenten begrenzte lokale CSS-Stile)` dahinter ergänzt werden.
+| scoped style                | Scoped Style                         | Beim ersten Vorkommen sollte die deutsche Erklärung „(auf Komponenten begrenzte lokale CSS-Stile)“ dahinter ergänzt werden.
 | template                    | die Vorlage                          |
-| ui                          | die Benutzeroberfläche               |
+| UI                          | die Benutzeroberfläche               |
 | web                         | das Internet                         |
 
 ## Stilrichtlinien (Style Guide)
 
-- Wir halten uns hinsichtlich Grammatik und Rechtschreibung an die Empfehlungen des Dudens und verwenden die neue deutsche Rechtschreibung.
+- Wir halten uns hinsichtlich Grammatik und Rechtschreibung an die Empfehlungen des Dudens und verwenden die reformierte deutsche Rechtschreibung.
 - Wir verwenden eine informelle Ansprache mit kleingeschriebenem „du“ (statt „Du“ oder „Sie“).
 - Wir bleiben möglichst nah am englischen Originaltext.
 	- Falls die Übersetzung sich aber nicht flüssig liest, weil z. B. im Deutschen übliche Überleitungen fehlen oder andere Formulierungen geläufiger sind, kann freier übersetzt werden, so lange die Bedeutung korrekt bleibt.
@@ -59,7 +59,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Komponenten-, Klassen- und Variablennamen in Code-Beispielen werden nicht übersetzt.
 - Wir haben uns gegen das Gendern in unserer Übersetzung entschieden, weil es die Lesbarkeit der Texte verschlechtert und noch keine Duden-Vorgaben dafür existieren. Wir vermeiden lieber geschlechtsspezifische Formulierungen in unseren Übersetzungen und formulieren die Texte so, dass niemand sich ausgeschlossen fühlen muss.
 - Wir vermeiden wertende Adjektive wie „einfach“, „simpel“ usw., da es immer Personen geben wird, denen das beschriebene Thema eben nicht „einfach“ oder „simpel“ vorkommt. Wir möchten niemandem den Eindruck vermitteln, fachlich „nicht gut genug“ zu sein.
-- Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie `Commit`, `Pull Request` und `merge`, die teils einen ganzen Prozess im Git-Ökosystem beschreiben.
+- Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie  „Commit“, „Pull Request“ und „merge“, die teils einen ganzen Prozess im Git-Ökosystem beschreiben.
 - Bei Wörtern, die länger als 20 Zeichen sind, fügen wir generell einen weichen Bindestrich (`&shy;`) ein. Um solche Wörter zu finden, kann der folgende reguläre Ausdruck zum Suchen im Code-Editor verwendet werden: `\b[A-Za-zÄäÖöÜüß]{20,}\b`
 - Wir verwenden untere (`„`) und obere (`“`) Anführungszeichen anstelle von englischen Anführungszeichen (`“”`) (`„Erstelle deinen ersten Astro-Blog“`)
 
@@ -68,23 +68,23 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 > **🚨 Wichtig:** Bitte sieh dir die nachfolgenden Fehler genau an und vermeide sie in deinen Übersetzungen. Insbesondere der erste Fehler (fehlende Bindestriche) tritt besonders häufig auf und verursacht so vermeidbare Arbeit bei Reviews.
 
 - Fehlende Bindestriche bei zusammengesetzten Wörtern
-	- Astro Projekt --> Astro-Projekt
-	- `<description>` Feld --> `<description>`-Feld
-	- Readme Datei --> Readme-Datei
-- Falsche Übersetzung von Infoboxen ("Asides")
+	- Astro Projekt → Astro-Projekt
+	- `<description>` Feld → `<description>`-Feld
+	- Readme Datei → Readme-Datei
+- Falsche Übersetzung von Infoboxen („Asides“)
   - Unsere Dokumentation enthält an manchen Stellen farblich hervorgehobene Boxen mit Hinweisen, Tipps und Warnungen. Diese sind im Markdown-Code mit drei Doppelpunkten abgegrenzt und beginnen mit dem Typnamen der Box (`:::note`, `:::tip`, `:::caution`). Dieser Typname ist **nicht** zu übersetzen, da ansonsten die Infobox nicht mehr funktioniert.
   - Falls dem Typnamen eine vom Standard abweichende Überschrift in eckigen Klammern folgt (`:::caution[Here be dragons!]`), darf nur der Teil in eckigen Klammern übersetzt werden.
 - Nichtverwendung der vom Duden empfohlenen Schreibweisen
-    - mit Hilfe → mithilfe
+    - mit Hilfe → mithilfe
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
-    - Github → GitHub
-    - Gitlab → GitLab
-    - Javascript → JavaScript
-    - Typescript → TypeScript
-    - VSCode → VS Code
-    - NPM → npm
+    - Github → GitHub
+    - Gitlab → GitLab
+    - Javascript → JavaScript
+    - Typescript → TypeScript
+    - VSCode → VS Code
+    - NPM → npm
 - Abkürzungen müssen in der gleichen Zeile stehen. Hierfür wird das [Unicode Symbol "U+00A0 NO-BREAK SPACE"](https://unicode-explorer.com/c/00A0) (` `) verwendet:
-    - zum Beispiel --> `z. B.` (am besten mit geschütztem Leerzeichen, sonst die HTML-Entität)
+    - zum Beispiel → `z. B.` (am besten mit geschütztem Leerzeichen, sonst die HTML-Entität)
 - Verwendung der falschen Anführungszeichen ("" statt „“)
 
 ## Hast du Ergänzungen oder Anregungen zu dieser Anleitung?
