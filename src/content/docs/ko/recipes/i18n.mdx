@@ -84,10 +84,10 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
               - post-2.md
     </FileTree>
 
-2. `src/content/config.ts` 파일을 만들고 각 콘텐츠 유형에 대한 컬렉션을 내보냅니다.
+2. `src/content.config.ts` 파일을 만들고 각 콘텐츠 유형에 대한 컬렉션을 내보냅니다.
 
     ```ts
-    //src/content/config.ts
+    //src/content.config.ts
     import { defineCollection, z } from 'astro:content';
 
     const blogCollection = defineCollection({
@@ -106,7 +106,7 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
     
     <ReadMore>[콘텐츠 컬렉션](/ko/guides/content-collections/)에 대해 자세히 알아보세요.</ReadMore>
 
-3. [동적 경로](/ko/guides/routing/#동적-경로)를 사용하여 `lang` 및 `slug` 매개변수를 기반으로 콘텐츠를 가져와 렌더링하세요.
+3. [동적 경로](/ko/guides/routing/#동적-라우트)를 사용하여 `lang` 및 `slug` 매개변수를 기반으로 콘텐츠를 가져와 렌더링하세요.
 
     <StaticSsrTabs>
       <Fragment slot="static">
@@ -115,13 +115,13 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
         ```astro
         //src/pages/[lang]/blog/[...slug].astro
         ---
-        import { getCollection } from 'astro:content';
+        import { getCollection, render } from 'astro:content';
 
         export async function getStaticPaths() {
           const pages = await getCollection('blog');
 
           const paths = pages.map(page => {
-            const [lang, ...slug] = page.slug.split('/');
+            const [lang, ...slug] = page.id.split('/');
             return { params: { lang, slug: slug.join('/') || undefined }, props: page };
           });
 
@@ -132,7 +132,7 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
         const page = Astro.props;
         const formattedDate = page.data.date.toLocaleString(lang);
 
-        const { Content } = await page.render();
+        const { Content } = await render(page);
         ---
         <h1>{page.data.title}</h1>
         <p>by {page.data.author} • {formattedDate}</p>
@@ -141,22 +141,22 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
       </Fragment>
 
       <Fragment slot="ssr">
-        [SSR 모드](/ko/guides/server-side-rendering/)에서 요청된 항목을 직접 가져옵니다.
+        [SSR 모드](/ko/guides/on-demand-rendering/)에서 요청된 항목을 직접 가져옵니다.
 
         ```astro
         //src/pages/[lang]/blog/[...slug].astro
         ---
-        import { getEntryBySlug } from 'astro:content';
+        import { getEntry, render } from 'astro:content';
 
         const { lang, slug } = Astro.params;
-        const page = await getEntryBySlug('blog', `${lang}/${slug}`);
+        const page = await getEntry('blog', `${lang}/${slug}`);
 
         if (!page) {
           return Astro.redirect('/404');
         }
 
         const formattedDate = page.data.date.toLocaleString(lang);
-        const { Content, headings } = await page.render();
+        const { Content, headings } = await render(page);
         ---
         <h1>{page.data.title}</h1>
         <p>by {page.data.author} • {formattedDate}</p>
@@ -165,7 +165,7 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
       </Fragment>
     </StaticSsrTabs>
 
-    <ReadMore>[동적 라우팅](/ko/guides/routing/#동적-경로)에 대해 자세히 알아보세요.</ReadMore>
+    <ReadMore>[동적 라우팅](/ko/guides/routing/#동적-라우트)에 대해 자세히 알아보세요.</ReadMore>
 
     :::tip[Date 형식]
     위 예시는 인간이 읽을 수 있는는 문자열을 프런트매터 날짜로 생성하기 위해 내장된 [`toLocaleString()` 날짜 형식 지정 방법](https://developer.mozilla.org/ko/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString)을 사용합니다.
@@ -503,16 +503,19 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
     ---
     // src/components/LanguagePicker.astro
     import { languages } from '../i18n/ui';
-    import { getRouteFromUrl } from '../i18n/utils';
+    import { getRouteFromUrl, useTranslatedPath } from '../i18n/utils';
 
     const route = getRouteFromUrl(Astro.url);
     ---
     <ul>
-      {Object.entries(languages).map(([lang, label]) => (
-        <li>
-          <a href={translatePath(`/${route ? route : ''}`, lang)}>{label}</a>
-        </li>
-      ))}
+      {Object.entries(languages).map(([lang, label]) => {
+        const translatePath = useTranslatedPath(lang);
+        return (
+          <li>
+            <a href={translatePath(`/${route ? route : ''}`)}>{label}</a>
+          </li>
+        )
+      })}
     </ul>
     ```
 </Steps>
@@ -525,4 +528,6 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
 - [astro-i18next](https://github.com/yassinedoghri/astro-i18next) — 일부 유틸리티 컴포넌트를 포함하는 i18next용 Astro 통합입니다.
 - [astro-i18n](https://github.com/alexandre-fernandez/astro-i18n) — Astro용 TypeScript 우선 국제화 라이브러리입니다.
 - [astro-i18n-aut](https://github.com/jlarmstrongiv/astro-i18n-aut) — 페이지 생성 없이 `defaultLocale`을 지원하는 i18n용 Astro 통합입니다. 통합은 어댑터와 UI 프레임워크에 구애받지 않습니다.
-- [paraglide](https://inlang.com/c/astro) - Astro 아일랜드와 같은 부분적인 하이드레이션 패턴을 위해 특별히 설계된 완전한 타입 안정성을 갖춘 i18n 라이브러리입니다.
+- [astro-react-i18next](https://github.com/jeremyxgo/astro-react-i18next) — Astro 웹사이트의 React 컴포넌트에서 i18next 및 react-i18next를 원활하게 사용할 수 있도록 하는 Astro 통합입니다.
+- [paraglide](https://inlang.com/c/astro) — Astro 아일랜드와 같은 부분적인 하이드레이션 패턴을 위해 특별히 설계된 완전한 타입 안정성을 갖춘 i18n 라이브러리입니다.
+- [astro-loader-i18n](https://github.com/openscript/astro-loader-i18n) — 라우트 번역을 지원하는 i18n 파일 및 폴더 구조용 Astro 글로브 콘텐츠 로더입니다.

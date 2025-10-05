@@ -1,6 +1,5 @@
-import path from 'node:path';
-import type { TutorialEntry } from '~/content/config';
-import { stripLangFromSlug } from '~/util';
+import type { TutorialEntry } from '~/content.config';
+import { stripLangFromSlug } from '~/util/path-utils';
 import { groupPagesByLang } from './groupPagesByLang';
 
 /** Get a full list of pages for the tutorial in the current language, falling back to English if not available. */
@@ -9,27 +8,14 @@ export function getTutorialPages(allPages: TutorialEntry[], lang: string) {
 	/** Pages */
 	const pages = pagesByLang['en']
 		.map((englishPage) => {
-			const enSlug = stripLangFromSlug(englishPage.slug);
-			const langPage = pagesByLang[lang]?.find((page) => stripLangFromSlug(page.slug) === enSlug);
+			const enSlug = stripLangFromSlug(englishPage.id);
+			const langPage = pagesByLang[lang]?.find((page) => stripLangFromSlug(page.id) === enSlug);
 			return {
 				...((langPage as TutorialEntry) || (englishPage as TutorialEntry)),
 				isFallback: !langPage,
 			};
 		})
-		.sort((a, b) => {
-			const aPath = path.parse(a.id);
-			const bPath = path.parse(b.id);
-			// Directories are numbered so pages in different directories can be sorted easily.
-			const aPathDir = path.basename(aPath.dir);
-			const bPathDir = path.basename(bPath.dir);
-			if (aPathDir < bPathDir) return -1;
-			if (aPathDir > bPathDir) return 1;
-			// Index files should come first within a directory.
-			if (aPath.name === 'index') return -1;
-			if (bPath.name === 'index') return 1;
-			// Other files within a directory are numbered and sorted ascending.
-			return aPath.name < bPath.name ? -1 : aPath.name > bPath.name ? 1 : 0;
-		});
+		.sort((a, b) => (a.id > b.id ? 1 : a.id < b.id ? -1 : 0));
 	return pages;
 }
 

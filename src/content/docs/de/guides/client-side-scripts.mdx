@@ -1,14 +1,15 @@
 ---
 title: Skripte und Ereignisbehandlung
 description: >-
-  Hinzufügen von clientseitiger Interaktivität zu Astro-Komponenten mit nativen Browser
-  JavaScript-APIs.
+  Hinzufügen von clientseitiger Interaktivität zu Astro-Komponenten mit nativen Browser JavaScript-APIs.
 i18nReady: true
 ---
 
-Du kannst deinen Astro-Komponenten Interaktivität hinzufügen, [ohne ein UI-Framework](/de/guides/framework-components/) wie React, Svelte, Vue usw. zu verwenden, indem du standardmäßige HTML-`<script>`-Tags verwendest. So kannst du JavaScript im Browser ausführen lassen und deinen Astro-Komponenten Funktionen hinzufügen.
+import ReadMore from '~/components/ReadMore.astro'
 
-## Client-seitige Skripte
+Du kannst deinen Astro-Komponenten Interaktivität hinzufügen, ohne [ein UI-Framework](/de/guides/framework-components/) wie React, Svelte, Vue usw. zu verwenden, indem du standardmäßige HTML-`<script>`-Tags verwendest. So kannst du JavaScript in den Browser schicken und deine Astro-Komponenten mit Funktionen versehen.
+
+## Clientseitige Skripte
 
 Skripte können verwendet werden, um Event-Listener hinzuzufügen, Analysedaten zu senden, Animationen abzuspielen und alles andere, was JavaScript im Web ermöglicht.
 
@@ -46,12 +47,12 @@ In diesem Beispiel wird durch das Hinzufügen der Komponente `<Hello />` zu eine
 </script>
 ```
 
-### Script bundling
+### Skriptverarbeitung
 
 `<script>`-Tags werden standardmäßig von Astro verarbeitet.
 
 - Alle Importe werden gebündelt, sodass du lokale Dateien oder Node-Module importieren kannst.
-- Das verarbeitete Skript wird in den `<head>`-Block deiner Seite mit [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) eingefügt.
+- Das verarbeitete Skript wird dort, wo es deklariert ist, mit [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) eingefügt.
 - TypeScript wird vollständig unterstützt, einschließlich des Imports von TypeScript-Dateien.
 - Wenn deine Komponente mehrmals auf einer Seite verwendet wird, wird das Skript nur einmal eingebunden.
 
@@ -62,7 +63,19 @@ In diesem Beispiel wird durch das Hinzufügen der Komponente `<Hello />` zu eine
 </script>
 ```
 
-Um die Bündelung des Skripts zu vermeiden, kannst du die Direktive `is:inline` verwenden.
+Das Attribut `type="module"` bewirkt, dass der Browser das Skript als JavaScript-Modul behandelt. Das hat mehrere Leistungsvorteile:
+
+- Das Rendering wird nicht blockiert. Der Browser fährt mit der Verarbeitung des restlichen HTML fort, während das Modulskript und seine Abhängigkeiten geladen werden.
+- Der Browser wartet auf die Verarbeitung von HTML, bevor er die Modulskripte ausführt. Du musst nicht auf das Ereignis `load` warten.
+- Die Attribute `async` und `defer` sind unnötig. Modulskripte werden immer aufgeschoben.
+
+:::note
+Das Attribut `async` ist für normale Skripte nützlich, weil es verhindert, dass sie das Rendern blockieren. Modulskripte haben dieses Verhalten jedoch bereits. Wenn du `async` zu einem Modulskript hinzufügst, wird es ausgeführt, bevor die Seite vollständig geladen ist. Das ist wahrscheinlich nicht das, was du willst.
+:::
+
+### Skript-Verarbeitung deaktivieren
+
+Um zu verhindern, dass Astro ein Skript verarbeitet, füge die Direktive `is:inline` hinzu.
 
 ```astro title="src/components/InlineScript.astro" "is:inline"
 <script is:inline>
@@ -73,20 +86,20 @@ Um die Bündelung des Skripts zu vermeiden, kannst du die Direktive `is:inline` 
 ```
 
 :::note
-Das Hinzufügen von `type="module"` oder eines anderen Attributs als `src` zu einem `<script>`-Tag deaktiviert das Standard-Bündelungsverhalten von Astro und behandelt den Tag so, als hätte er eine `is:inline`-Direktive.
+Astro wird deine Skript-Tags in manchen Situationen nicht verarbeiten. Insbesondere das Hinzufügen von `type="module"` oder eines anderen Attributs als `src` zu einem `<script>`-Tag führt dazu, dass Astro den Tag so behandelt, als ob er eine `is:inline`-Direktive hätte. Das Gleiche gilt, wenn das Skript in einem JSX-Ausdruck geschrieben wird.
 :::
 
-📚 Auf unserer Seite [directives reference](/de/reference/directives-reference/#script--style-directives) findest du weitere Informationen über die Direktiven, die für `<script>`-Tags verfügbar sind.
+<ReadMore>Siehe unsere [Richtlinien-Referenz](/de/reference/directives-reference/#script--style-directives) Seite für weitere Informationen über die Direktiven, die für `<script>` Tags verfügbar sind.</ReadMore>
 
-### Skripte laden
+### JavaScript-Dateien auf deiner Seite einbinden
 
 Vielleicht möchtest du deine Skripte als separate `.js`/`.ts`-Dateien schreiben oder du musst auf ein externes Skript auf einem anderen Server verweisen. Das kannst du tun, indem du im Attribut `src` eines `<script>`-Tags auf diese Dateien verweist.
 
 #### Lokale Skripte importieren
 
-**Wann sollte man das verwenden:** Wenn dein Skript innerhalb von `src/` liegt.
+**Wann sollte man das verwenden:** wenn dein Skript innerhalb von `src/` liegt.
 
-Astro erstellt und optimiert diese Skripte für dich und fügt sie der Seite hinzu, indem es die [Skriptbündelungsregeln](#script-bundling) befolgt.
+Astro erstellt und optimiert diese Skripte für dich und fügt sie der Seite hinzu, indem es die [Skriptverarbeitungsregeln](#skriptverarbeitung) befolgt.
 
 ```astro title="src/components/LocalScripts.astro"
 <!-- relativer Pfad zum Skript unter `src/scripts/local.js` -->
@@ -98,7 +111,7 @@ Astro erstellt und optimiert diese Skripte für dich und fügt sie der Seite hin
 
 #### Externe Skripte laden
 
-**Wann sollte man das verwenden:** Wenn deine JavaScript-Datei in `public/` oder in einem CDN liegt.
+**Wann sollte man das verwenden:** wenn deine JavaScript-Datei in `public/` oder in einem CDN liegt.
 
 Um Skripte außerhalb des Ordners `src/` deines Projekts zu laden, füge die Direktive `is:inline` ein. Dieser Ansatz überspringt die Verarbeitung, Bündelung und Optimierung von JavaScript, die Astro beim Import von Skripten wie oben beschrieben vornimmt.
 
@@ -110,7 +123,7 @@ Um Skripte außerhalb des Ordners `src/` deines Projekts zu laden, füge die Dir
 <script is:inline src="https://my-analytics.com/script.js"></script>
 ```
 
-## Gemeinsame Skript-Pattern
+## Übliche Skript-Pattern
 
 ### `onclick` und andere Ereignisse verarbeiten
 
@@ -153,8 +166,7 @@ In diesem Beispiel definieren wir ein neues `<astro-heart>` HTML-Element, das au
 <script>
   // Definiere das Verhalten für unseren neuen Typ von HTML-Element.
   class AstroHeart extends HTMLElement {
-    constructor() {
-			super();
+    connectedCallback() {
       let count = 0;
 
       const heartButton = this.querySelector('button');
@@ -163,7 +175,7 @@ In diesem Beispiel definieren wir ein neues `<astro-heart>` HTML-Element, das au
       // Jedes Mal, wenn die Schaltfläche angeklickt wird, aktualisiere die Anzahl.
 			heartButton.addEventListener('click', () => {
         count++;
-        countSpan.textContent = count;
+        countSpan.textContent = count.toString();
       });
 		}
   }
@@ -179,7 +191,7 @@ Die Verwendung eines benutzerdefinierten Elements hat hier zwei Vorteile:
 
 2. Obwohl ein `<script>` nur einmal ausgeführt wird, führt der Browser die Methode `constructor()` unseres benutzerdefinierten Elements jedes Mal aus, wenn er `<astro-heart>` auf der Seite findet. Das bedeutet, dass du gefahrlos Code für jeweils eine Komponente schreiben kannst, auch wenn du diese Komponente mehrmals auf einer Seite verwenden willst.
 
-📚 Mehr über benutzerdefinierte Elemente erfährst du in [web.dev's Reusable Web Components guide](https://web.dev/custom-elements-v1/) und [MDN's introduction to custom elements](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).
+<ReadMore>Mehr über benutzerdefinierte Elemente erfährst du in [web.dev's Leitfaden für wiederverwendbare Webkomponenten](https://web.dev/custom-elements-v1/) und [MDNs Einführung in benutzerdefinierte Elemente](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).</ReadMore>
 
 ### Übergabe von Frontmatter-Variablen an Skripte
 
@@ -201,9 +213,7 @@ const { message = 'Willkommen, Welt!' } = Astro.props;
 
 <script>
   class AstroGreet extends HTMLElement {
-    constructor() {
-			super();
-
+    connectedCallback() {
       // Lies die Nachricht aus dem Datenattribut.
       const message = this.dataset.message;
       const button = this.querySelector('button');
@@ -235,3 +245,7 @@ import AstroGreet from '../components/AstroGreet.astro';
 :::tip[Wusstest du schon?]
 Genau das macht Astro hinter den Kulissen, wenn du Props an eine Komponente übergibst, die mit einem UI-Framework wie React geschrieben wurde! Für Komponenten mit einer `client:*`-Direktive erstellt Astro ein benutzerdefiniertes `<astro-island>`-Element mit einem `props`-Attribut, das deine serverseitigen Props in der HTML-Ausgabe speichert.
 :::
+
+### Kombination von Skripten und UI-Frameworks
+
+Elemente, die von einem UI-Framework gerendert werden, sind möglicherweise noch nicht verfügbar, wenn ein `<script>`-Tag ausgeführt wird. Wenn dein Skript auch mit [UI-Framework-Komponenten](/de/guides/framework-components/) umgehen muss, empfiehlt es sich, ein eigenes Element zu verwenden.

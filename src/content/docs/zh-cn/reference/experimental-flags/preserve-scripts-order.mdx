@@ -1,0 +1,81 @@
+---
+title: 实验性保留脚本顺序
+sidebar:
+  label: 保留脚本顺序
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+  **类型:** `boolean`<br />
+  **默认值:** `false`<br />
+  <Since v="5.5.0" />
+</p>
+
+按照源代码中声明的顺序渲染多个 `<style>` 和 `<script>` 标签。
+
+要启用此行为，将 `experimental.preserveScriptOrder` 功能标志添加到你的 Astro 配置中：
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    preserveScriptOrder: true
+  }
+})
+```
+
+## 用法
+
+此实验性标志无需特定用法，仅影响 Astro 渲染样式和脚本的顺序。
+
+当在同一页面渲染多个 `<style>` 和 `<script>` 标签时，Astro 目前会在生成的 HTML 输出中反转它们的顺序。这可能会导致意外的结果，例如，当你的网站被构建时，CSS 样式被较早定义的样式标签覆盖。此实验性标志则会按照定义的顺序渲染 `<script>` 和 `<style>` 标签。
+
+例如，以下组件有两个 `<style>` 标签和两个 `<script>` 标签：
+
+```astro title="src/components/MyComponent.astro"
+<p>I am a component</p>
+<style>
+  body {
+    background: red;
+  }
+</style>
+<style>
+  body {
+    background: yellow;
+  }
+</style>
+<script>
+    console.log("hello")
+</script>
+<script>
+    console.log("world!")
+</script>
+```
+
+在编译后，Astro 的默认行为会创建一个内联样式，其中 `yellow` 首先出现，然后是 `red`。这意味着最终应用的是 `red` 背景。类似地，对于两个脚本，会先打印 `world!`，然后是 `hello`：
+
+```css
+body {background:#ff0} body {background:red}
+```
+
+```js
+console.log("world!")
+console.log("hello")
+```
+
+当 `experimental.preserveScriptOrder` 设置为 `true` 时，`<style>` 和 `<script>` 标签的渲染顺序与它们的书写顺序相匹配。对于相同的示例组件，生成的样式 `red` 首先出现，然后是 `yellow`；对于脚本，`hello` 先被打印，然后是 `world!`：
+
+```css
+body {background:red} body {background:#ff0}
+```
+
+```js
+console.log("hello")
+console.log("world!")
+```
+
+在未来的主要版本中，Astro 将默认保留样式和脚本的顺序，但你可以提前使用 `experimental.preserveScriptOrder` 标志启用这一未来行为。

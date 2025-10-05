@@ -1,0 +1,96 @@
+---
+title: Neon Postgres 与 Astro
+description: 使用 Neon 将无服务器 Postgres 数据库添加到你的 Astro 项目
+sidebar:
+  label: Neon
+type: backend
+service: Neon
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Neon](https://neon.tech) 是一个完全托管的无服务器 Postgres 数据库。它将存储和计算分开，以提供自动扩展、分支和无限存储。
+
+## 将 Neon 添加至你的 Astro 项目
+
+### 先决条件
+
+- 一个已创建项目的 [Neon](https://console.neon.tech/signup) 账号
+- Neon 数据库连接字符串（connection-string）
+- 一个启用 [按需渲染 (SSR)](/zh-cn/guides/on-demand-rendering/) 的 Astro 项目
+
+### 环境配置
+
+要将 Neon 与 Astro 一起使用，你需要设置 Neon 环境变量。在项目根目录中创建或编辑 `.env` 文件，并添加以下代码，替换你自己的项目详细信息：
+
+```ini title=".env"
+NEON_DATABASE_URL="postgresql://<user>:<password>@<endpoint_hostname>.neon.tech:<port>/<dbname>?sslmode=require"
+```
+
+为了获得更好的 TypeScript 支持，可以在 `src/env.d.ts` 文件中定义环境变量：
+
+```typescript title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly NEON_DATABASE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+<ReadMore>了解有关 Astro 中的 [环境变量](/zh-cn/guides/environment-variables/) 和 `.env` 文件的更多信息。</ReadMore>
+
+### 安装依赖
+
+安装 `@neondatabase/serverless` 包以连接到 Neon：
+
+```bash
+npm install @neondatabase/serverless
+```
+
+### 创建 Neon 客户端
+
+使用以下代码创建一个新文件 `src/lib/neon.ts` 来初始化 Neon 客户端：
+
+```typescript title="src/lib/neon.ts"
+import { neon } from '@neondatabase/serverless';
+
+export const sql = neon(import.meta.env.NEON_DATABASE_URL);
+```
+
+## 查询你的 Neon 数据库
+
+你现在可以使用 Neon 客户端从任何 `.astro` 组件查询数据库。以下示例从 Postgres 数据库中获取当前时间：
+
+```astro title="src/pages/index.astro"
+---
+import { sql } from '../lib/neon';
+
+const response =  await  sql`SELECT NOW() as current_time`;
+const currentTime = response[0].current_time;
+---
+
+<h1>当前时间</h1>
+<p>时间为：{currentTime}</p>
+```
+
+## 使用 Neon 进行数据库分支
+
+Neon 的分支功能允许你创建数据库的副本以进行开发或测试。通过为每个分支创建不同的环境变量，在 Astro 项目中使用它：
+
+```ini title=".env.development"
+NEON_DATABASE_URL=your_development_branch_url
+```
+
+```ini title=".env.production"
+NEON_DATABASE_URL=your_production_branch_url
+```
+
+## 资源
+
+- [Neon 文档](https://neon.tech/docs/introduction)
+- [Github 上的 Neon 无服务驱动](https://github.com/neondatabase/serverless)
+- [将 Astro 站点或应用程序连接到 Neon Postgres](https://neon.tech/docs/guides/astro)

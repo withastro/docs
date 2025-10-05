@@ -4,22 +4,25 @@ description: Astroでのミドルウェアの使い方を学びます。
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
 
-**ミドルウェア**により、リクエストとレスポンスをインターセプトし、ページやエンドポイントがレンダリングされる直前に動的に振る舞いを注入できます。こうしたレンダリングは、ページが事前レンダリングされる場合にはビルド時におこなわれますが、オンデマンドにレンダリングされるページの場合は、ルートへのリクエスト時におこなわれます。
+**ミドルウェア**により、リクエストとレスポンスをインターセプトし、ページやエンドポイントがレンダリングされる直前に動的に振る舞いを注入できます。こうしたレンダリングは、ページが事前レンダリングされる場合にはビルド時におこなわれますが、オンデマンドにレンダリングされるページの場合はルートへのリクエスト時におこなわれ、[クッキーやヘッダーなどの追加のSSR機能](/ja/guides/on-demand-rendering/)が利用できます。
 
 また、ミドルウェアを使って、すべてのAstroコンポーネントとAPIエンドポイントで利用可能な`locals`オブジェクトを変更し、リクエスト固有の情報を各エンドポイントとページで設定・共有することもできます。このオブジェクトは、このミドルウェアがビルド時に実行される場合でも利用できます。
 
 ## 基本的な使い方
 
+<Steps>
 1. `src/middleware.js|ts` というファイルを作成します。（あるいは、`src/middleware/index.js|ts` を作成しても構いません。）
 
-2. このファイルの中で、[`context`オブジェクト](#contextオブジェクト)と`next()`関数を受け取る[`onRequest()`](/ja/reference/api-reference/#onrequest)関数をエクスポートします。これをデフォルトエクスポートにしてはいけません。
+2. このファイルの中で、[`context`オブジェクト](#contextオブジェクト)と`next()`関数を受け取る[`onRequest()`](/ja/reference/modules/astro-middleware/#onrequest)関数をエクスポートします。これをデフォルトエクスポートにしてはいけません。
 
     ```js title="src/middleware.js"
-    export function onRequest ({ locals, request }, next) {
+    export function onRequest (context, next) {
         // リクエストからデータをインターセプトします
         // 必要に応じて、`locals`内のプロパティを改変します
-        locals.title = "新しいタイトル";
+        context.locals.title = "新しいタイトル";
 
         // Responseか`next()`の結果を返します
         return next();
@@ -35,10 +38,11 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
     <h1>{data.title}</h1>
     <p>この{data.property}はミドルウェアで設定しました。</p>
     ```
+</Steps>
 
 ### `context`オブジェクト
 
-[`context`](/ja/reference/api-reference/#endpoint-context)オブジェクトには、レンダリング中に他のミドルウェア、APIルート、`.astro`ルートで利用可能な情報が含まれています。
+[`context`](/ja/reference/api-reference/)オブジェクトには、レンダリング中に他のミドルウェア、APIルート、`.astro`ルートで利用可能な情報が含まれています。
 
 これは`onRequest()`に渡されるオプション引数で、`locals`オブジェクトや、レンダリング中に共有されるその他のプロパティを含む場合があります。たとえば`context`オブジェクトには、認証に使用されるクッキーを含められます。
 
@@ -46,7 +50,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 `context.locals`は、ミドルウェア内で変更可能なオブジェクトです。
 
-この`locals`オブジェクトは、リクエスト処理のプロセスを通じて受け渡されていき、[`APIContext`](/ja/reference/api-reference/#contextlocals)と[`AstroGlobal`](/ja/reference/api-reference/#astrolocals)のプロパティとして利用できます。これにより、ミドルウェア、APIルート、`.astro`ページ間でデータを共有できます。ユーザーデータなど、リクエスト固有のデータを各レンダリングステップをまたいで保持する際に役立ちます。
+この`locals`オブジェクトは、リクエスト処理のプロセスを通じて受け渡されていき、[`APIContext`](/ja/reference/api-reference/#locals)と[`AstroGlobal`](/ja/reference/api-reference/#locals)のプロパティとして利用できます。これにより、ミドルウェア、APIルート、`.astro`ページ間でデータを共有できます。ユーザーデータなど、リクエスト固有のデータを各レンダリングステップをまたいで保持する際に役立ちます。
 
 :::tip[インテグレーションのプロパティ]
 [インテグレーション](/ja/guides/integrations-guide/)は、`locals`オブジェクトを介してプロパティを設定し、機能を提供する場合があります。インテグレーションを使用している場合は、そのドキュメントを確認して、プロパティを上書きしていないか、不要な操作をしていないかを確認してください。
@@ -55,11 +59,11 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 `locals`には、文字列、数値、さらには関数やマップといった複雑なデータ型など、どんな型のデータでも格納できます。
 
 ```js title="src/middleware.js"
-export function onRequest ({ locals, request }, next) {
+export function onRequest (context, next) {
     // リクエストからデータをインターセプトします
     // 必要に応じて、`locals`内のプロパティを改変します
-    locals.user.name = "John Wick";
-    locals.welcomeTitle = () => {
+    context.locals.user.name = "John Wick";
+    context.locals.welcomeTitle = () => {
         return "おかえりなさい " + locals.user.name;
     };
 
@@ -137,7 +141,8 @@ export const onRequest = (context, next) => {
 `Astro.locals`内の情報に型を付け、`.astro`ファイルとミドルウェアの両コードで自動補完を有効化するには、`env.d.ts`ファイルでグローバル名前空間を宣言します。
 
 ```ts title="src/env.d.ts"
-/// <reference types="astro/client" />
+/// <reference path="../.astro/types.d.ts" />
+
 declare namespace App {
     interface Locals {
         user: {
@@ -153,7 +158,7 @@ declare namespace App {
 
 ## ミドルウェアを連結する
 
-[`sequence()`](/ja/reference/api-reference/#sequence)を使用して、複数のミドルウェアを指定した順序で連結できます。
+[`sequence()`](/ja/reference/modules/astro-middleware/#sequence)を使用して、複数のミドルウェアを指定した順序で連結できます。
 
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
@@ -193,9 +198,74 @@ authレスポンス
 validationレスポンス
 ```
 
+## リライト
+
+<p><Since v="4.13.0" /></p>
+
+{/* TODO: routing.mdx の修正時に #rewrites を追加する */}
+`APIContext`は、[Astro.rewrite](/ja/guides/routing/)と同じように動作する`rewrite()`メソッドを公開しています。
+
+ページ閲覧者を新しいページにリダイレクトすることなく異なるページコンテンツを表示するには、ミドルウェア内で`context.rewrite()`を使用します。これにより新しいレンダリングフェーズがトリガーされ、ミドルウェアが再実行されます。
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // ユーザーがログインしていない場合、`/login`ルートをレンダリングするようにRequestを更新し、
+    // ログイン成功後にユーザーをどこに送り返すかを示すヘッダーを追加します。
+    // ミドルウェアは再実行されます。
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+  return next();
+};
+```
+また、`next()`関数にオプションのURLパスパラメータを渡すことで、新しいレンダリングフェーズを再トリガーすることなく、現在の`Request`を書き換えることができます。リライト先のパスは、文字列、URL、または`Request`として与えます。
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // ユーザーがログインしていない場合、`/login`ルートをレンダリングするようにRequestを更新し、
+    // ログイン成功後にユーザーをどこに送り返すかを示すヘッダーを追加します。
+    // 後続のミドルウェアに新しい`context`を返します。
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+  return next();
+};
+```
+`next()`関数には、[Astro.rewrite()関数](/ja/reference/api-reference/#rewrite)と同じペイロードを渡せます。リライト先のパスは、文字列、URL、または`Request`として与えます。[sequence()](#ミドルウェアを連結する)により複数のミドルウェア関数を連結している場合、`next()`にパスを渡すと`Request`はその場で書き換えられ、ミドルウェアは再実行されません。チェーン内の次のミドルウェア関数は、更新された`context`をもつ新しい`Request`を受け取ります。
+```js title="src/middleware.js"
+// 現在のURLは https://example.com/blog です
+
+// 最初のミドルウェア関数
+async function first(_, next) {
+  console.log(context.url.pathname) // これは"/blog"をログに出力します
+  // 新しいルートであるホームページにリライトします
+  // 次の関数に渡される、更新された`context`を返します
+  return next("/")
+}
+
+// 現在のURLはまだ https://example.com/blog です
+
+// 2番目のミドルウェア関数
+async function second(context, next) {
+  // 更新された`context`を受け取ります
+  console.log(context.url.pathname) // これは"/"をログに出力します
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
 ## エラーページ
 
-ミドルウェアは、オンデマンドレンダリングされるすべてのページに対して実行を試みます。これにはAstroのデフォルト（空白）の404ページや、カスタムの404ページが含まれます。ただし、そのコードが実行されるかどうかは[アダプター](/ja/guides/server-side-rendering/)によって決定されます。一部のアダプターは、プラットフォーム固有のエラーページを代わりに提供する場合があります。
+ミドルウェアは、オンデマンドレンダリングされるすべてのページに対して実行を試みます。これにはAstroのデフォルト（空白）の404ページや、カスタムの404ページが含まれます。ただし、そのコードが実行されるかどうかは[アダプター](/ja/guides/on-demand-rendering/)によって決定されます。一部のアダプターは、プラットフォーム固有のエラーページを代わりに提供する場合があります。
 
 ミドルウェアはまた、カスタムの500ページを含む500エラーページを提供する前にも実行を試みます。ただし、ミドルウェア自体の実行中にサーバーエラーが発生した場合を除きます。ミドルウェアが正常に実行されない場合、500ページをレンダリングするために`Astro.locals`にアクセスすることはできません。
 
@@ -212,7 +282,7 @@ validationレスポンス
 
 これは`onRequest()`に渡されるオプション引数で、`locals`オブジェクトや、レンダリング中に共有されるその他のプロパティを含む場合があります。たとえば`context`オブジェクトには、認証に使用されるクッキーを含められます。
 
-これはAPIルートに渡される[`context`](/ja/reference/api-reference/#endpoint-context)オブジェクトと同じものです。
+これはAPIルートに渡される[`context`](/ja/reference/api-reference/)オブジェクトと同じものです。
 
 ### `next()`
 
@@ -224,7 +294,7 @@ validationレスポンス
 
 ミドルウェア内で変更可能な、`Response`からのデータを含むオブジェクトです。
 
-この`locals`オブジェクトは、リクエスト処理のプロセスを通じて転送されていき、[`APIContext`](/ja/reference/api-reference/#endpoint-context)と`AstroGlobal`のプロパティとして利用できます。これにより、ミドルウェア、APIルート、`.astro`ページ間でデータを共有できます。ユーザーデータなど、リクエスト固有のデータを各レンダリングステップをまたいで保持するために役立ちます。
+この`locals`オブジェクトは、リクエスト処理のプロセスを通じて転送されていき、[`APIContext`](/ja/reference/api-reference/)と`AstroGlobal`のプロパティとして利用できます。これにより、ミドルウェア、APIルート、`.astro`ページ間でデータを共有できます。ユーザーデータなど、リクエスト固有のデータを各レンダリングステップをまたいで保持するために役立ちます。
 
 `locals`は単一のAstroルーティング内で生成・消滅します。ルーティングされたページがレンダリングされると、`locals`はもう存在せず、その後また新しいものが作成されます。複数のページリクエストをまたいで保持されるべき情報は、別の場所に保存する必要があります。
 
@@ -238,7 +308,7 @@ validationレスポンス
 
 ### `createContext`
 
-Astroミドルウェアで使用可能な[`APIContext`](/ja/reference/api-reference/#endpoint-context)を作成するための低レベルなAPIです。
+Astroミドルウェアで使用可能な[`APIContext`](/ja/reference/api-reference/)を作成するための低レベルなAPIです。
 
 この関数は、Astroミドルウェアをプログラムから実行する目的で、インテグレーションとアダプターから使用できます。
 

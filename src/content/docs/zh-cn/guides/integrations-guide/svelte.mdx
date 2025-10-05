@@ -1,7 +1,9 @@
 ---
 type: integration
 title: '@astrojs/svelte'
-description: 了解如何使用 @astrojs/svelte 框架来拓展 Astro 项目中的组件支持
+description: 了解如何使用 @astrojs/svelte 框架来拓展 Astro 项目中的组件支持。
+sidebar:
+  label: Svelte
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/svelte/'
 category: renderer
 i18nReady: true
@@ -9,7 +11,7 @@ i18nReady: true
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 
-此 **[Astro 集成][astro-integration]** 为你的 [Svelte](https://svelte.dev/) 组件启用服务器端渲染和客户端注入。它支持 Svelte 3、Svelte 4 以及 Svelte 5 版本（实验性）。
+此 **[Astro 集成][astro-integration]** 为你的 [Svelte](https://svelte.dev/) 5 的组件启用渲染和客户端水合。对于 Svelte 3 和 4 的支持, 请安装 `@astrojs/svelte@5` 作为替代。
 
 ## 安装
 
@@ -59,22 +61,22 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   </Fragment>
 </PackageManagerTabs>
 
-大多数包管理器也会安装相关的对等依赖项。如果在启动 Astro 时看到 "Cannot find package 'svelte'" (或类似的)警告，则需要安装 Svelte：
+大多数包管理器也会安装相关的对等依赖项。如果在启动 Astro 时看到 `Cannot find package 'svelte'` (或类似的)警告，则需要安装 Svelte 和 TypeScript：
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm install svelte
+  npm install svelte typescript
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm add svelte
+  pnpm add svelte typescript
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn add svelte
+  yarn add svelte typescript
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -90,6 +92,16 @@ export default defineConfig({
 });
 ```
 
+然后，在你的项目根目录中创建一个名为 `svelte.config.js` 的文件，并添加以下代码：
+
+```js title="svelte.config.js"
+import { vitePreprocess } from '@astrojs/svelte';
+
+export default {
+  preprocess: vitePreprocess(),
+}
+```
+
 ## 入门
 
 要在 Astro 使用你的 Svelte 组件，你可以移步我们的 [UI 框架文档][astro-ui-frameworks]. 你将会了解到：
@@ -100,48 +112,31 @@ export default defineConfig({
 
 ## 选项
 
-
 此集成由 `@sveltejs/vite-plugin-svelte` 提供支持的，要定制 Svelte 编译器，你可以传递选项给当前集成，查看 [`@sveltejs/vite-plugin-svelte`文档](https://github.com/sveltejs/vite-plugin-svelte/blob/HEAD/docs/config.md) 获取更多细节。
 
-### 默认选项
+你可以通过将选项传递给 `astro.config.mjs` 中的 `svelte` 集成或者 `svelte.config.js` 来设置选项。如果两者都存在，则 `astro.config.mjs` 中的选项将优先于 `svelte.config.js` 中的选项：
 
-此集成将以下默认选项传递给 Svelte 编译器：
-
-```js
-const defaultOptions = {
-  emitCss: true,
-  compilerOptions: { dev: isDev, hydratable: true },
-  preprocess: vitePreprocess(),
-};
-```
-
-这些 `emitCss`、 `compilerOptions.dev` 和 `compilerOptions.hydratable` 选项对于构建过程来说是必传的，并且不能被赋值。
-
-如果你传递自定义的 `preprocess` 选项，这**将会**覆盖 [`vitePreprocess()`](https://github.com/sveltejs/vite-plugin-svelte/blob/HEAD/docs/preprocess.md) 的默认值。确保根据你的项目实际需求来开启预处理配置。
-
-你可以通过在 `astro.config.mjs` 或者 `svelte.config.js` 文件中传递这个选项配置给 `svelte` 集成，这两种方式都将覆盖默认的 `preprocess` 设置：
-
-```js title="astro.config.mjs" "preprocess: []"
+```js title="astro.config.mjs" "extensions: ['.svelte']"
 import { defineConfig } from 'astro/config';
 import svelte from '@astrojs/svelte';
 
 export default defineConfig({
-  integrations: [svelte({ preprocess: [] })],
+  integrations: [svelte({ extensions: ['.svelte'] })],
 });
 ```
 
 ```js title="svelte.config.js"
 // svelte.config.js
 export default {
-  preprocess: [],
+  extensions: ['.svelte'],
 };
 ```
 
-## TypeScript 智能提示
+## 预处理器
 
 <Since v="2.0.0" pkg="@astrojs/svelte" />
 
-如果你的文件中使用了像 TypeScript 或 SCSS 预处理器，你可以创建一个 `svelte.config.js` 文件，确保 Svelte IDE 拓展能够正确解析 Svelte 文件。
+如果你的文件中使用了 SCSS 或 Stylus，那么你可以创建一个 `svelte.config.js` 文件，以便让它们由 Svelte 进行预处理，从而确保 Svelte IDE 拓展能够正确解析 Svelte 文件。
 
 ```js title="svelte.config.js"
 import { vitePreprocess } from '@astrojs/svelte';
@@ -151,7 +146,7 @@ export default {
 };
 ```
 
-当你运行 `astro add svelte` 指令的时候，将自动为你添加配置文件。
+当你运行 `astro add svelte` 指令的时候，将自动为你添加配置文件。参见 [`@sveltejs/vite-plugin-svelte` 文档](https://github.com/sveltejs/vite-plugin-svelte/blob/HEAD/docs/preprocess.md)以了解更多关于 `vitePreprocess` 的细节。
 
 [astro-integration]: /zh-cn/guides/integrations-guide/
 

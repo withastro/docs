@@ -1,0 +1,633 @@
+---
+title: Astro Content Loader API
+sidebar:
+  label: Content Loader API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+AstroのContent Loader APIを使用することで、ローカルまたはリモートの任意のソースからデータをロードし、Astroのコンテンツレイヤーとやり取りして[コンテンツコレクション](/ja/guides/content-collections/)を管理できます。
+
+## ローダーとは？
+
+{/* TODO: `/ja/guides/content-collections/#built-in-loaders` does not exist yet. `#built-in-loaders` will be added when the fragment link destination is specified. */}
+Astroのローダーを使用すると、[コンテンツコレクション](/ja/guides/content-collections/)にデータをロードでき、ページやコンポーネントで使用できます。[ビルトインの`glob()`および`file()`ローダー](/ja/guides/content-collections/)はファイルシステムからコンテンツをロードするために使用され、他のソースからコンテンツをロードするために独自のローダーを作成することもできます。
+
+{/* TODO: `/ja/guides/content-collections/#defining-the-collection-loader` does not exist yet. `#defining-the-collection-loader` will be added when the fragment link destination is specified. */}
+各コレクションには[スキーマで定義されたローダー](/ja/guides/content-collections/)が必要です。プロジェクトの`src/content.config.ts`ファイルにインラインでローダーを定義したり、複数のコレクション間で1つのローダーを共有したり、他の人と共有するために[NPMにパッケージとしてローダーを公開](/ja/reference/publish-to-npm/)して、統合ライブラリに含めることもできます。
+
+## ビルトインローダー
+
+Astroには、コレクションを取得するための2つのビルトインローダーが用意されています。どちらも幅広いユースケースに対応するオプションを提供しています。
+
+### `glob()` ローダー
+
+<p>
+
+**Type:** <code>(options: GlobOptions) => <a href="#loaderオブジェクト">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`glob()`ローダーは、ファイルシステム上の任意のディレクトリからファイルのエントリを作成します。サポートされているファイルタイプは、Markdown、MDX、Markdoc、JSON、およびYAMLファイルです。
+
+このローダーは、`pattern`、`base`（オプショナル）、および`generateId`（オプショナル）のプロパティを持つをオブジェクトを受け入れます。
+
+```ts title="src/content.config.ts" {2,6,11,16-20}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* pagesディレクトリにあるすべてのマークダウンファイルを取得する。 */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* blogディレクトリにあるすべてのマークダウン、MDXファイルを取得する。 */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* 大文字のIDを保持したまま、authorsディレクトリ内のすべてのJSONファイルを取得する。 */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**Type:** `string | string[]`
+</p>
+
+`pattern`プロパティは、グロブマッチング（ワイルドカードなど）を使用して文字列または文字列の配列を受け入れます。パターンは、エントリファイルのベースディレクトリに対して相対的である必要があります。
+
+使用する構文の詳細については、[micromatchのドキュメント](https://github.com/micromatch/micromatch#matching-features)を参照してください。また、[DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob)のようなオンラインツールを使用してパターンの有効性を確認することもできます。
+
+#### `base`
+
+<p>
+
+**Type:** `string | URL`<br />
+**Default:** `"."`
+</p>
+
+`pattern`を解決するためのディレクトリへの相対パスまたは[URL](https://developer.mozilla.org/ja/docs/Web/API/URL)を指定します。
+
+#### `generateId()`
+
+<p>
+
+**Type:** `(options: GenerateIdOptions) => string`
+</p>
+
+エントリごとに一意の文字列を返すコールバック関数です。以下のプロパティを持つオブジェクトをパラメータとして受け取ります。
+* `entry` - ベースディレクトリに対するエントリファイルのパス
+* `base` - ベースディレクトリの[URL](https://developer.mozilla.org/ja/docs/Web/API/URL)
+* `data` - パースされた未検証のエントリデータ
+
+デフォルトでは、[`github-slugger`](https://github.com/Flet/github-slugger)を使用して、[ケバブケース](https://developer.mozilla.org/ja/docs/Glossary/Kebab_case)の単語でスラッグを生成します。
+
+### `file()` ローダー
+
+<p>
+
+**Type:** <code>(fileName: string, options?: FileOptions) => <a href="#loaderオブジェクト">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+`file()`ローダーは、ユニークな`id`フィールドを持つオブジェクトの配列を含む単一のファイル、またはIDをキー、エントリを値とするオブジェクトからエントリを作成します。JSONまたはYAMLをサポートしており、デフォルトでは解析できないデータファイルに対してカスタムの`parser`を提供することができます。
+
+このローダーは、`fileName`プロパティとオプションのオブジェクトを第二引数として受け入れます。
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* JSONファイルからすべてのエントリーを取得する。 */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* カスタムのパーサーを使って、CSVファイルからすべてのエントリーを取得する。 */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* パーサーのロジックを記述 */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+ファイルをロードするためのパスを、ルートディレクトリからの相対パスで設定します。
+
+#### Options
+
+<p>
+
+**Type:** `FileOptions`
+</p>
+
+オプションのオブジェクトとして、次のプロパティを持ちます。
+
+##### `parser()`
+
+<p>
+
+**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+{/* TODO: `/ja/guides/content-collections/#nested-json-documents` does not exist yet. `#nested-json-documents` will be added when the fragment link destination is specified. */}
+ファイルの内容からコレクションを作成するためのコールバック関数です。デフォルトでサポートされていないファイル（例：`.csv`）を処理する必要がある場合や、[ネストされた`.json`ドキュメント](/ja/guides/content-collections/)を使用する場合に使用します。
+
+## ローダータイプ
+
+ローダーは、エントリの配列を返す単純な関数として定義することも、より強力なオブジェクトContent Loader APIを使用してロードプロセスをより詳細に制御することもできます。
+
+### インラインローダー
+
+インラインローダーは、エントリを含む配列またはオブジェクトを返す非同期関数です。これは、特に`src/content.config.ts`ファイルにインラインで定義されるシンプルなローダーに使用します。
+
+この関数は非同期であり、各エントリが一意の`id`フィールドを含む配列、または各キーが一意のIDで各値がエントリであるオブジェクトを返す必要があります。ローダーが呼び出されるたびに、ストアをクリアしてすべてのエントリを再ロードします。
+
+```ts title="src/content.config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // エントリの配列を返す必要があります（各エントリにはidプロパティが必要）
+    // またはIDをキー、エントリを値とするオブジェクトを返す必要があります
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+### オブジェクトローダー
+
+ローダーは、ビルド時にデータを取得してデータストアを更新するために呼び出される`load()`メソッドを持つオブジェクトです。これにより、エントリを段階的に更新したり、必要に応じてストアをクリアすることができます。また、エントリのスキーマを定義してデータを検証し、静的な型を生成することもできます。
+
+推奨されるパターンは、構成オプションを受け取り、ローダーオブジェクトを返す関数を定義することです。これは、通常AstroインテグレーションやViteプラグインを定義する方法と同じです。
+
+
+```ts title=loader.ts
+import type { Loader, LoaderContext } from 'astro/loaders';
+import { z } from 'astro:content';
+import { loadFeedData } from "./feed.js";
+
+// ローダーが必要とするオプションを定義
+export function myLoader(options: { url: string, apiKey: string }): Loader {
+  // ローダーの設定
+  const feedUrl = new URL(options.url);
+  // Loaderオブジェクトを返す
+  return {
+    name: "my-loader",
+    // コレクションを更新する際に呼び出されます
+    load: async (context: LoaderContext): Promise<void> => {
+      // データをロードしてストアを更新
+      const response = await loadFeedData(feedUrl, options.apiKey);
+    },
+    // オプションで、エントリのスキーマを定義します
+    // ユーザー定義のスキーマによって上書きされます
+    schema: async () => z.object({
+      // ...
+    })
+  };
+}
+```
+
+これらの構成オプションは、コレクションを定義する際に設定できます。
+
+```ts title="src/content.config.ts"  {2,5-8}  
+import { defineCollection, z } from 'astro:content';  
+import myLoader from '../../loader.ts';  
+
+const blog = defineCollection({  
+  loader: myLoader({
+    url: "https://api.example.com/posts",
+    apiKey: "my-secret",
+  }),  
+  schema: /* ... */  
+});  
+```
+
+## オブジェクトローダーAPI
+
+[インラインローダー](#インラインローダー)のAPIは、上述の通り非常にシンプルです。このセクションでは、オブジェクトローダーを定義するためのAPIを示します。
+
+### `Loader`オブジェクト
+
+Loaderオブジェクトは、以下のプロパティを持ちます。
+
+#### `name`
+
+<p>
+
+**Type**: `string`
+</p>
+
+一意なローダーの名前を示します。ログや[条件付きロード](/ja/reference/integrations-reference/#refreshcontent-option)に使用されます。
+
+#### `load`
+
+<p>
+
+**Type**: <code>(context: <a href="#loadercontext">LoaderContext</a>) => Promise&lt;void&gt;</code>
+</p>
+
+ビルド時にデータをロードしてストアを更新するために呼び出される非同期関数です。詳細は[`LoaderContext`](#loadercontext)を参照してください。
+
+#### `schema`
+
+<p>
+
+**Type**: `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+</p>
+
+オプションで、[Zodスキーマ](/ja/guides/content-collections/#zodによるデータ型の定義)でエントリの型を定義します。データの検証と、コレクションのTypeScriptの型の生成に使用されます。
+
+関数が提供された場合、ビルド時に`load()`の前に呼び出されてスキーマを生成します。これを使用して、構成オプションに基づいてスキーマを動的に生成したり、APIを検証してスキーマを生成したりできます。
+
+### `LoaderContext`
+
+このオブジェクトはローダーの`load()`メソッドの引数に渡されるもので、以下のプロパティを持ちます。
+
+#### `collection`
+
+<p>
+
+**Type**: `string`
+</p>
+
+一意なコレクションの名前を示します。これは、`src/content.config.ts`ファイルの`collections`オブジェクトのキーです。
+
+#### `store`
+
+<p>
+
+**Type**: [`DataStore`](#datastore)
+</p>
+
+実際のデータを保持するデータベースです。これを使用して、新しいエントリでストアを更新します。詳細は[`DataStore`](#datastore)を参照してください。
+
+#### `meta`
+
+<p>
+
+**Type**: `MetaStore`
+</p>
+
+コレクションにスコープされたキーと値のストアで、同期トークンや最終更新時刻などに使用されます。このメタデータはビルド間でコレクションデータと共に保持されますが、ローダー内でのみ利用可能です。
+
+```ts
+const lastModified = meta.get("lastModified");
+// ...
+meta.set("lastModified", new Date().toISOString());
+```
+
+#### `logger`
+
+<p>
+
+**Type**: [`AstroIntegrationLogger`](/ja/reference/integrations-reference/#astrointegrationlogger)
+</p>
+
+コンソールにメッセージを出力するために使用できるロガーです。`console.log`の代わりにこれを使用すると、ローダー名を含むより有用なログが得られます。詳細は[`AstroIntegrationLogger`](/ja/reference/integrations-reference/#astrointegrationlogger)を参照してください。
+
+#### `config`
+
+<p>
+
+**Type**: `AstroConfig`
+</p>
+
+すべてのデフォルト値が適用された完全な解決済みAstro構成オブジェクトです。詳細は[設定方法](/ja/reference/configuration-reference/)を参照してください。
+
+#### `parseData`
+
+<p>
+
+**Type**: `(props: ParseDataOptions<TData>) => Promise<TData>`
+</p>
+
+コレクションスキーマに従って、データを検証および解析します。この関数にデータを渡して、データストアに保存する前に検証および解析します。
+
+```ts title=loader.ts {14-17}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `generateDigest`
+
+<p>
+
+**Type**: `(data: Record<string, unknown> | string) => string`
+</p>
+
+オブジェクトや文字列の暗号化を伴わないコンテンツダイジェストを生成します。これは、エントリの[`digest`フィールド](#digest)を設定してデータが変更されたかどうかを追跡するために使用できます。
+
+```ts title=loader.ts {19,24}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+
+        const digest = generateDigest(data);
+
+        store.set({
+          id,
+          data,
+          digest,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `watcher`
+
+<p>
+
+**Type**: `FSWatcher`
+</p>
+
+開発モードで実行している場合に、これは更新をトリガーするために使用できるファイルシステムウォッチャーです。詳細は[`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver)を参照してください。
+
+```ts title="Extract from the file() loader" {8-13}
+return {
+  name: 'file-loader',
+  load: async ({ config, store, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
+
+#### `refreshContextData`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+ローダーがインテグレーションでトリガーされた場合、オプションでインテグレーションによって設定された追加データを含むことがあります。これはローダーがインテグレーションによってトリガーされた場合にのみ設定されます。詳細は[`astro:server:setup`](/ja/reference/integrations-reference/#refreshcontent-option)フックリファレンスを参照してください。
+
+```ts title=loader.ts {5-8}
+export function myLoader(options: { url: string }): Loader {
+  return {
+    name: "my-loader",
+    load: async ({ refreshContextData, store, logger }) => {
+      if(refreshContextData?.webhookBody) {
+        logger.info("Webhook triggered with body");
+        processWebhook(store, refreshContextData.webhookBody);
+      }
+      // ...
+    },
+  };
+}
+```
+
+### `DataStore`
+
+DataStoreは、ローダーがコンテンツコレクションデータにアクセスするためのインターフェースです。これはキーと値のストアで、コレクションにスコープされているため、ローダーは自分のコレクションのデータにのみアクセスできます。
+
+#### `get`
+
+<p>
+
+**Type**: <code>(key: string) => <a href="#dataentry">DataEntry</a> | undefined</code>
+</p>
+
+ストアから指定したIDのエントリを取得します。エントリが存在しない場合は`undefined`を返却します。
+
+```ts
+const existingEntry = store.get("my-entry");
+```
+
+返却されるオブジェクトは[`DataEntry`](#dataentry)オブジェクトです。
+
+#### `set`
+
+<p>
+
+**Type**: <code>(entry: <a href="#dataentry">DataEntry</a>) => boolean</code>
+</p>
+
+データが[検証および解析](#parsedata)された後にエントリをストアに追加するために使用され、エントリが設定された場合は`true`を返却します。エントリが変更されておらず更新する必要がないと[`digest`](#digest)プロパティが判断した場合は`false`を返却します。
+
+```ts title=loader.ts {7-14}
+    for (const item of feed.items) {
+      const data = await parseData({
+        id: item.guid,
+        data: item,
+      });
+      const digest = generateDigest(data);
+      store.set({
+        id,
+        data,
+        rendered: {
+          html: data.description ?? "",
+        },
+        digest,
+      });
+    }
+```
+
+#### `entries`
+
+<p>
+
+**Type**: `() => Array<[id: string, DataEntry]>`
+</p>
+
+コレクション内のすべてのエントリをキーと値のペアの配列で取得します。
+
+#### `keys`
+
+<p>
+
+**Type**: `() => Array<string>`
+</p>
+
+コレクション内のすべてのエントリのキーを取得します。
+
+#### `values`
+
+<p>
+
+**Type**: `() => Array<DataEntry>`
+</p>
+
+コレクション内のすべてのエントリを配列で取得します。
+
+#### `delete`
+
+<p>
+
+**Type**: `(key: string) => void`
+</p>
+
+ストアから指定したIDのエントリを削除します。
+
+#### `clear`
+
+<p>
+
+**Type**: `() => void`
+</p>
+
+コレクションからすべてのエントリを削除します。
+
+#### `has`
+
+<p>
+
+**Type**: `(key: string) => boolean`
+</p>
+
+ストアに指定したIDのエントリが存在するかどうかを確認します。
+
+### `DataEntry`
+
+これはデータストアに保存されるオブジェクトの型です。以下のプロパティを持ちます。
+
+#### `id`
+
+<p>
+
+**Type**: `string`
+</p>
+
+エントリの識別子で、コレクション内で一意である必要があります。これはストア内でエントリを検索するために使用され、`getEntry`でそのコレクションに使用されるキーです。
+
+#### `data`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+エントリの実際のデータです。ユーザーがコレクションにアクセスする際、これはコレクションスキーマに従って生成されたTypeScriptの型を持ちます。
+
+データストアに保存する前にデータを検証および解析するために[`parseData`](#parsedata)を使用するのはローダーの責任です。データの取得や設定時には検証は行われません。
+
+#### `filePath`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+このエントリのソースとなるファイルへのパスです。サイトのルートからの相対パスです。これはファイルベースのローダーにのみ適用され、画像やその他のアセットのパスを解決するために使用されます。
+
+設定されていない場合、スキーマ内で[`image()`ヘルパー](/ja/guides/images/#コンテンツコレクションと画像)を使用するフィールドは[publicパス](/ja/guides/images/#画像を保存する場所)として扱われ、変換されません。
+
+#### `body`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+エントリの生のボディです（該当する場合）。エントリに[レンダリングされたコンテンツ](#rendered)が含まれている場合、このフィールドを使用して生のソースを保存できます。これはオプションであり、内部的には使用されません。
+
+#### `digest`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+任意のエントリのコンテンツダイジェストです。これを使用してデータが変更されたかどうかを確認できます。
+
+[エントリを設定](#set)する際、同じIDの既存エントリとダイジェストが一致しない場合にのみエントリが更新されます。
+
+ダイジェストの形式はローダー次第ですが、データが変更されたときに変わる文字列でなければなりません。これは[`generateDigest`](#generatedigest)関数を使用して行えます。
+
+#### `rendered`
+
+<p>
+
+**Type**: `RenderedContent | undefined`
+</p>
+
+エントリがHTMLにレンダリングされている場合、そのレンダリングされたコンテンツとメタデータを含むオブジェクトを保存します。例えば、Markdownエントリのレンダリングされたコンテンツや、CMSからのHTMLを保存するために使用できます。
+
+このフィールドが提供されている場合、[`render()`関数と`<Content />`コンポーネント](/ja/guides/content-collections/#コンテンツをhtmlにレンダリングする)を使用してページ内でエントリをレンダリングできます。
+
+`RenderedContent`オブジェクトの形式は次の通りです。
+
+```ts
+{
+	/** レンダリングされたHTML文字列。これが存在する場合、`render(entry)`はこのHTMLをレンダリングするコンポーネントを返します。 */
+	html: string;
+	metadata?: {
+		/** このエントリに含まれる画像。{@link DataEntry}のfilePathに対して相対的です。 */
+		imagePaths?: Array<string>;
+		/** このファイルに含まれる見出し。`render()`から`headings`として返されます。 */
+		headings?: MarkdownHeading[];
+		/** ファイルから解析された生のフロントマター。これにはremarkプラグインからのデータが含まれる場合があります。 */
+		frontmatter?: Record<string, any>;
+		/** このファイルに含まれるその他のメタデータ。 */
+		[key: string]: unknown;
+	};
+}
+```

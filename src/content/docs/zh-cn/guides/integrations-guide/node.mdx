@@ -1,17 +1,21 @@
 ---
 type: integration
 title: '@astrojs/node'
-description: 了解如何使用 @astrojs/node 来部署你的 Astro 项目。
+description: 了解如何使用 @astrojs/node 适配器来部署你的 Astro 项目。
+sidebar:
+  label: Node
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
 category: adapter
 i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
-此适配器允许 Astro 将你的 [`hybrid` 或 `server` 渲染的网站](/zh-cn/basics/rendering-modes/#按需渲染)部署到 Node 目标。
+此适配器允许 Astro 将你的 [按需渲染路由及其功能](/zh-cn/guides/on-demand-rendering/) 部署到 Node 目标，包括 [服务器群岛](/zh-cn/guides/server-islands/)，[actions](/zh-cn/guides/actions/) 以及 [sessions](/zh-cn/guides/sessions/)。
 
-如果你将 Astro 用作[静态站点构建器](/zh-cn/basics/rendering-modes/#预渲染)，则不需要适配器。
+如果你将 Astro 用作静态站点构建器，则不需要适配器。
 
 ## 为什么选择 Astro Node.js
 
@@ -21,8 +25,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如果你愿意，可以改为[手动安装集成](#手动安装)。
 
-使用 `astro add` 命令将 Node 适配器添加到你的 Astro 项目中，以启用服务端渲染。
-这将一步安装 `@astrojs/node` 并对你的 `astro.config.*` 文件进行适当的修改。
+使用 `astro add` 命令将 Node 适配器添加到你的 Astro 项目中，以启用按需渲染。这将一步到位地安装 `@astrojs/node` 并对你的 `astro.config.*` 文件进行适当的修改。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -41,6 +44,8 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   ```
   </Fragment>
 </PackageManagerTabs>
+
+现在，你可以启用 [对每个页面的按需渲染](/zh-cn/guides/on-demand-rendering/#启用按需渲染)，或者将你的构建输出配置设置为 `output: 'server'` 从而 [默认对所有页面都进行服务器端渲染](/zh-cn/guides/on-demand-rendering/#server-模式)。
 
 ### 手动安装
 
@@ -64,14 +69,13 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
   </Fragment>
 </PackageManagerTabs>
 
-然后，将适配器和你所需的[按需渲染模式](/zh-cn/basics/rendering-modes/#按需渲染)添加到你的 `astro.config.*` 文件中：
+然后，将适配器添加到 `astro.config.*` 文件中：
 
- ```js title="astro.config.mjs" ins={2,5-8}
+ ```js title="astro.config.mjs" ins={2,5-7}
 import { defineConfig } from 'astro/config';
 import node from '@astrojs/node';
 
 export default defineConfig({
-  output: 'server',
   adapter: node({
     mode: 'standalone',
   }),
@@ -82,25 +86,107 @@ export default defineConfig({
 
 @astrojs/node 可以通过将选项传递给适配器函数来配置。以下选项可用：
 
-### 模式
+### `mode`
+<p>
+**类型：** `'middleware' | 'standalone'` <br />
+</p>
 
 控制适配器是构建为 `middleware` 模式还是 `standalone` 模式。
 
 * `middleware` 模式允许将构建的输出用作另一个 Node.js 服务器的中间件，例如 Express.js 或 Fastify。
-
-  ```js title="astro.config.mjs"
-  import { defineConfig } from 'astro/config';
-  import node from '@astrojs/node';
-
-  export default defineConfig({
-    output: 'server',
-    adapter: node({
-      mode: 'middleware',
-    }),
-  });
-  ```
-
 * `standalone` 构建到服务器，随着入口模块的运行会自动启动。这使你可以更轻松地部署到主机，而无需任何额外的代码。
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'middleware',
+  }),
+});
+```
+
+### `experimentalDisableStreaming`
+
+<p>
+**类型：** `boolean` <br />
+**默认值：** `false`<br />
+<Since v="9.3.0" pkg="@astrojs/node" />
+</p>
+
+对于按需渲染的页面，禁用 Astro 的默认 [HTML 流式传输](/zh-cn/guides/on-demand-rendering/#html-流式传输)。
+
+HTML 流式传输有助于提升性能，通常能为访客提供更好的体验。在大多数情况下，不建议禁用此功能。
+
+但当你确实需要禁用 HTML 流式传输时（例如你的主机仅支持在 CDN 层级缓存非流式 HTML），可以通过以下方式覆盖默认行为：
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+    experimentalDisableStreaming: true,
+  }),
+});
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+  **类型：** `boolean` <br />
+  **默认值：** `false`<br />
+  <Since v="9.3.0"  pkg="@astrojs/node"/>
+</p>
+
+启用后，当 Astro 功能（如内容安全策略）提供 `Response` 对象时，适配器将使用该对象提供预渲染页面的头部信息。
+
+例如，当启用 [实验性的内容安全策略](/zh-cn/reference/experimental-flags/csp/) 时，可以使用 `experimentalStaticHeaders` 将 CSP `headers` 添加 `Response` 对象，而不是创建 `<meta>` 元素：
+
+```js title="astro.config.mjs" {10}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: node({
+    mode: 'standalone',
+    experimentalStaticHeaders: true,
+  })
+});
+```
+
+### `experimentalErrorPageHost`
+
+<p>
+  **类型：** `string | URL` <br />
+  **默认值：** `undefined`<br />
+  <Since v="9.4.0" pkg="@astrojs/node"/>
+</p>
+
+指定用于加载预渲染 [自定义错误页面](/zh-cn/basics/astro-pages/#自定义-404-错误页面) 的替代主机。
+
+Astro 需要能够加载你的 404 页面以便在响应中返回。默认情况下，Astro 会从与请求所指向的主机相同的主机加载预渲染的自定义错误页面。例如，如果对 `https://example.com/nonexistent-page` 发起请求，Astro 将尝试从 `https://example.com/404.html` 加载预渲染错误页面。
+
+当你的自定义错误页面必须从不同主机加载时（例如服务器运行在反向代理之后或在可能无法访问外部主机 URL 的容器中），请使用 `experimentalErrorPageHost` 。当从本地主机加载预渲染错误页面比通过公共互联网加载更高效时，也可以使用此选项。
+
+该值可以是字符串或 URL 对象。它必须是一个完整的符合格式的 URL，包括协议（例如， `http://localhost:4321` ）。Astro 将始终从根路径加载预渲染错误页面，任何路径或查询参数都将被忽略。
+
+```js
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    // 从本地主机加载页面，而不是公共网址。
+    experimentalErrorPageHost: 'http://localhost:4321',
+  })
+});
+```
 
 ## 用法
 
@@ -197,18 +283,6 @@ HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### 运行时环境变量
-
-如果在构建过程运行时存在包含环境变量的 `.env` 文件，这些值将会被硬编码到输出中，就像生成静态网站一样。
-
-在构建过程中，运行时变量必须不存在于 `.env` 文件中，并且你必须为 Astro 提供每个运行时期望的环境变量： `VARIABLE_1=placeholder astro build`。这会向 Astro 指示实际值将在构建的应用程序运行时可用。占位符值将被构建过程忽略，Astro 将在运行时使用提供的值。
-
-如果使用多个运行时变量，请将它们保存在与 `.env`不同的独立文件（如 `.env.runtime`）中。使用以下命令开始构建：
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### 资源文件
 
 在独立模式下，你的 `dist/client/` 文件夹中的资源文件将通过独立服务器提供服务。但你可能会将这些资源部署到 CDN 上，在这种情况下，服务器实际上则不会为它们提供服务。但是在某些情况下，比如内网站点，直接从应用服务器提供静态资源文件则是可行的。
@@ -218,3 +292,45 @@ export $(cat .env.runtime) && astro build
 ```
 Cache-Control: public, max-age=31536000, immutable
 ```
+
+### Sessions
+
+Astro [Session API](/zh-cn/guides/sessions/) 允许你在请求间，轻松地存储用户数据。该功能可用于用户数据和偏好选项，购物车内容，资格鉴权。不同于 cookie 存储，这里不存在对数据大小的限制，并且可以将其存储在不同的设备上。
+
+当使用 Netlify 适配器时，Astro 将自动配置 [Netlify Blobs](https://docs.netlify.com/blobs/overview/) 用于会话（session）存储。如果你更倾向于使用其他的会话存储驱动，你可以在 Astro config 中指定。更多细节请参见 [`session` 配置参考](/zh-cn/reference/configuration-reference/#sessiondriver)。
+
+## 环境变量
+
+在运行时使用 [`astro:env`](/zh-cn/guides/environment-variables/#类型安全的环境变量) secrets 或 `process.env` 时 ，Astro 和适配器都不会为你加载环境变量。
+
+一些主机可能会在构建时和运行时通过其仪表板暴露你配置的环境变量。请查阅你所用主机在特定平台上设置和使用环境变量的文档。
+
+在自托管时，你可以通过 CLI 命令或配置文件按需加载环境变量：
+
+<Tabs>
+  <TabItem label="Inline">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>

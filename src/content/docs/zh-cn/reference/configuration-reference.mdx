@@ -2,12 +2,12 @@
 title: 配置参考
 i18nReady: true
 githubURL: >-
-  https://github.com/withastro/astro/blob/main/packages/astro/src/%40types/astro.ts
+  https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 ---
 
 import Since from '~/components/Since.astro'
 
-下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解更多关于配置 Astro 的信息，请阅读我们的[配置 Astro 指南](/zh-cn/guides/configuring-astro/)。
+下面的参考资料涵盖了 Astro 所有支持的配置选项。要了解有关配置 Astro 的更多信息，请阅读我们的 [配置 Astro 指南](/zh-cn/guides/configuring-astro/)。
 
 ```js
 // astro.config.mjs
@@ -43,7 +43,9 @@ export default defineConfig({
 **类型**：`string`
 </p>
 
-你要部署到的基本路径。Astro 在开发过程中会匹配这个路径名，这样你的开发环境就会尽可能地与你的构建环境匹配。在下面的例子中，`astro dev` 会在 `/docs` 处启动你的服务器。
+你要部署到的基本路径。Astro 在开发过程中会匹配这个路径名，这样你的开发环境就会尽可能地与你的构建环境匹配。
+
+在下面的例子中，`astro dev` 会在 `/docs` 处启动你的服务器。
 
 ```js
 {
@@ -55,7 +57,7 @@ export default defineConfig({
 
 `import.meta.env.BASE_URL` 的值将由你的 `trailingSlash` 配置所决定，无论你为 `base` 设置了什么值。
 
-如果设置了 `trailingSlash: "always"`，则始终包含尾部斜杠。如果设置了 `trailingSlash: "never"`，即使 `base` 包含斜杠，`BASE_URL` 也不会包含尾部斜杠。
+如果设置了 `trailingSlash: "always"`，则始终包含末尾斜杠。如果设置了 `trailingSlash: "never"`，即使 `base` 包含斜杠，`BASE_URL` 也不会包含末尾斜杠。
 
 此外，Astro 在将 `config.base` 的配置值提供给集成之前会进行内部操作。由集成读取的 `config.base` 值也同样由你的 `trailingSlash` 配置决定。
 
@@ -84,19 +86,19 @@ export default defineConfig({
 **默认值**：`'ignore'`
 </p>
 
-设置开发服务器的路由匹配行为。从以下选项中选择：
+为开发服务器和按需渲染页面的末尾斜杠设置路由匹配行为。从以下选项中选择：
 
-- `'always'` - 只匹配包含尾部斜线的链接（例如：`/foo/`）。
-- `'never'` - 不匹配包含尾部斜线的链接（例如：`/foo`）。
-- `'ignore'`- 匹配链接，不管是否存在尾部的 `/`。
+  - `'ignore'` - 匹配 URL，而不管是否存在末尾的 `/`。对 "/about" 和 "/about/" 的请求将匹配到同样的路由。
+  - `'always'` - 只匹配包含末尾斜杠的 URL（例如："/about/"）。为了方便起见，在生产环境中，对于没有末尾斜杠的按需渲染 URL 的请求，将会重定向到正确的 URL。但是，在开发环境中，将会显示警示页面来提醒你，你已配置为 `always` 选项。
+  - `'never'` - 只匹配不包含末尾斜杠的 URL（例如："/about"）。为了方便起见，在生产环境中，对于包含末尾斜杠的按需渲染 URL 的请求，将会重定向到正确的 URL。但是，在开发环境中，将会显示警示页面来提醒你，你已配置为 `never` 选项。
 
-如果你的生产主机对尾部斜杠的工作或不工作有严格的处理方式，请使用该配置选项。
+当在生产环境中，因为 GET 请求发生重定向时，重定向将是 301（永久）重定向。而对于所有其他请求方法，则会是 308（永久，保留请求方法）重定向。
 
-如果你希望自己更严格一些，那么你也可以设置这个选项，这样在开发过程中，无论是否有尾部斜杠的 URL 都不会工作。
+预渲染页面上的末尾斜杠是由托管平台处理的，他们可能会忽视你选择的配置。有关更多信息，请参阅托管平台的文档。此时，你不能使用 Astro [重定向](/zh-cn/reference/configuration-reference/#redirects) 来处理这种情况。
 
 ```js
 {
-  // 示例：在开发过程中要求有尾部斜线
+  // 示例：在开发过程中要求有末尾斜杠
   trailingSlash: 'always'
 }
 ```
@@ -105,12 +107,11 @@ export default defineConfig({
 
 - build.format
 
-
 ### redirects
 
 <p>
 
-**类型：** `Record.<string, RedirectConfig>`<br />
+**类型：** `Record<string, RedirectConfig>`<br />
 **默认值：** `{}`<br />
 <Since v="2.9.0" />
 </p>
@@ -119,14 +120,19 @@ export default defineConfig({
 
 你可以重定向静态和动态路由，但只能重定向到相同类型的路由。例如，你不能有一个 `'/article': '/blog/[...slug]'` 的重定向。
 
-
 ```js
-{
+export default defineConfig({
   redirects: {
-    '/old': '/new',
-    '/blog/[...slug]': '/articles/[...slug]',
-  }
-}
+   '/old': '/new',
+   '/blog/[...slug]': '/articles/[...slug]',
+   '/about': 'https://example.com/about',
+   '/news': {
+     status: 302,
+     destination: 'https://example.com/news'
+ 	},
+   // '/product1/', '/product1' // 注意，这是不支持的
+	}
+})
 ```
 
 对于未安装适配器的静态生成站点，这将生成一个使用 [`<meta http-equiv="refresh">` 标签](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Element/meta#http-equiv) 的客户端重定向，并且不支持状态码。
@@ -137,32 +143,31 @@ export default defineConfig({
 
 你可以使用重定向配置中的对象自定义 [重定向状态码](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Status#redirection_messages)：
 
-
 ```js
-{
+export default defineConfig({
   redirects: {
     '/other': {
       status: 302,
       destination: '/place',
     },
   }
-}
-```
+})
 
+
+```
 
 ### output
 
 <p>
 
-**类型**：`'static' | 'server' | 'hybrid'`<br />
+**类型**：`'static' | 'server'`<br />
 **默认值**：`'static'`
 </p>
 
 指定构建的输出目标。
 
-- `static`- 构建静态网站，部署到任何静态托管服务器上；
-- `server` - 构建应用，部署到支持 SSR（服务器端渲染）的托管服务器上；
-- `hybrid` - 构建包含少量服务端渲染页面的静态网站。
+- `static` - 默认预渲染你的所有页面，如果没有页面选择退出预渲染的话，将输出一个完全静态的站点。
+- `server` - 默认使用服务器端渲染（SSR）渲染所有页面，始终输出一个服务器渲染的站点。
 
 ```js
 import { defineConfig } from 'astro/config';
@@ -183,9 +188,9 @@ export default defineConfig({
 **类型**：`AstroIntegration`
 </p>
 
-使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器 [Netlify](/zh-cn/guides/deploy/netlify/#ssr-适配器)、[Vercel](/zh-cn/guides/deploy/vercel/#ssr-适配器)，以及更多的适配器来使用 Astro SSR。
+使用构建适配器将其部署到你最喜爱的服务器、无服务器或边缘主机。导入我们的第一方适配器（[Cloudflare](/zh-cn/guides/integrations-guide/cloudflare/), [Netlify](/zh-cn/guides/integrations-guide/netlify/), [Node.js](/zh-cn/guides/integrations-guide/node/), [Vercel](/zh-cn/guides/integrations-guide/vercel/)），或是探索 [社区适配器](https://astro.build/integrations/2/?search=&categories%5B%5D=adapters) 以在你的 Astro 项目中启用按需渲染。
 
-[有关 SSR 的更多信息，请参见我们的服务器端渲染指南](/zh-cn/guides/server-side-rendering/)，以及[我们的部署指南](/zh-cn/guides/deploy/)以获得完整的主机列表。
+有关 SSR 的更多信息，请参见我们的 [按需渲染指南](/zh-cn/guides/on-demand-rendering/) 以获得完整的 Astro 服务端渲染选项。
 
 ```js
 import netlify from '@astrojs/netlify';
@@ -211,10 +216,10 @@ import netlify from '@astrojs/netlify';
 
 ```js
 import react from '@astrojs/react';
-import tailwind from '@astrojs/tailwind';
+import mdx from '@astrojs/mdx';
 {
-  // 示例：添加 React + Tailwind 支持
-  integrations: [react(), tailwind()]
+  // 示例：添加 React + MDX 支持
+  integrations: [react(), mdx()]
 }
 ```
 
@@ -226,7 +231,7 @@ import tailwind from '@astrojs/tailwind';
 **默认值**：`"."` (当前工作文件夹)
 </p>
 
-只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 [Astro 配置文件](/zh-cn/guides/configuring-astro/#受支持的配置文件类型)提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
+只有当你在项目根目录以外的目录下运行 `astro` CLI 命令时，你才应该提供该选项。通常，这个选项是通过 CLI 而不是 Astro 配置文件提供的，因为 Astro 需要知道项目根目录才能找到配置文件。
 
 如果提供相对路径（例如：`--root: './my-project'`），Astro 会根据你当前的工作目录进行解析。
 
@@ -351,7 +356,7 @@ $ astro build --root ./my-project-directory
 指定 Astro 组件内部样式作用范围。可选项包括：
   - `'where'` - 使用 `:where` 选择器，不会增加特异性。
   - `'class'` - 使用基于类的选择器，会增加 +1 的特异性。
-  - `'attribute'` - 使用 `data-` 属性，不会增加特异性。
+  - `'attribute'` - 使用 `data-` 属性，会增加 +1 的特异性。
 
 使用 `'class'` 可以确保 Astro 组件内的元素选择器覆盖全局样式默认值（例如来自全局样式表）。
 
@@ -363,21 +368,23 @@ $ astro build --root ./my-project-directory
 
 <p>
 
-**类型：** `boolean`<br />
-**默认值：** `{}`<br />
+**类型：** `Record<"checkOrigin", boolean> | undefined`<br />
+**默认值：** `{checkOrigin: true}`<br />
 <Since v="4.9.0" />
 </p>
 
 为 Astro 网站启用安全措施。
 
-这些功能仅存在于使用 `server` 模式按需渲染的页面，或在 `hybrid` 模式中选择不进行预渲染的页面。
+这些功能仅存在于使用 `server` 模式按需渲染的页面，或在 `static` 模式中选择退出预渲染的页面。
+
+默认情况下，Astro 将自动检查在动态渲染的页面中，每个请求发送的 URL 是否与 "origin" 头匹配。你可以通过将 `checkOrigin` 设置为 `false` 来禁用此行为：
 
 ```js
 // astro.config.mjs
 export default defineConfig({
   output: "server",
   security: {
-    checkOrigin: true
+    checkOrigin: false
   }
 })
 ```
@@ -387,11 +394,11 @@ export default defineConfig({
 <p>
 
 **类型：** `boolean`<br />
-**默认值：** 'false'<br />
+**默认值：** `true`<br />
 <Since v="4.9.0" />
 </p>
 
-启用后，将检查所有现代浏览器自动传递的 "origin" 头是否与每个 `Request` 发送的 URL 匹配。这用于提供跨站请求伪造（CSRF）保护。
+检查所有现代浏览器自动传递的 "origin" 头是否与每个 `Request` 发送的 URL 匹配。这用于提供跨站请求伪造（CSRF）保护。
 
 "origin" 检查仅对按需渲染的页面执行，并且仅对具有以下 `content-type` 头的 `POST`、`PATCH`、`DELETE` 和 `PUT` 请求执行：`'application/x-www-form-urlencoded'`、`'multipart/form-data'`、`'text/plain'`。
 
@@ -405,7 +412,7 @@ export default defineConfig({
 
 传递额外的配置选项给 Vite。适用于需要使用一些 Astro 不支持的高级配置。
 
-在 [vitejs.dev](https://vitejs.dev/config/) 上查看完整的 `vite` 配置对象文档。
+在 [vite.dev](https://cn.vite.dev/config/) 上查看完整的 `vite` 配置对象文档。
 
 #### 示例
 
@@ -458,12 +465,12 @@ export default defineConfig({
 
 设置 `build.format` 可以控制 `Astro.url` 在构建过程中被设置成什么。当它是：
 
-- `directory` - `Astro.url.pathname` 将包括一个尾部斜杠，以模仿文件夹行为；例如 `/foo/`。
-- `file` - `Astro.url.pathname` 将包括 `.html`，即`/foo.html`。
+- `directory` - `Astro.url.pathname` 将包括一个末尾斜杠，以模仿文件夹行为。（例如 `/foo/`）。
+- `file` - `Astro.url.pathname` 将包括 `.html`。（例如 `/foo.html`）。
 
 这意味着当你使用 `new URL('./relative', Astro.url)` 创建相对的连接时，开发和构建会得到一致的行为。
 
-为了避免开发环境中尾部斜杠行为的不一致性，你可以根据构建格式将 [`trailingSlash` 选项](#trailingslash) 限制为 `'always'` 或 `'never'`：
+为了避免开发环境中末尾斜杠行为的不一致性，你可以根据构建格式将 [`trailingSlash` 选项](/zh-cn/reference/configuration-reference/#trailingslash) 限制为 `'always'` 或 `'never'`：
 
 -  `directory` - 设置 `trailingSlash: 'always'`
 -  `file` - 设置 `trailingSlash: 'never'`
@@ -472,31 +479,30 @@ export default defineConfig({
 
 <p>
 
-**类型**：`string`<br />
-**默认值**：`'./dist/client'`
+**类型：**`string`<br />
+**默认值：**`'./client'`
 </p>
 
-仅当设置`output: 'server'` 或 `output: 'hybrid'`时，控制你的客户端 CSS 和 JavaScript 的输出文件夹。
+当构建一个有服务端渲染页面的网站时，控制你的客户端 CSS 和 JavaScript 的输出文件夹。
 `outDir` 控制代码的构建位置。
 
 这个值是相对于 `outDir` 的。
 
 ```js
 {
-  output: 'server', // 或者 'hybrid'
+  output: 'server',
   build: {
     client: './client'
   }
 }
 ```
 
-
 ### build.server
 
 <p>
 
-**类型**：`string`<br />
-**默认值**：`'./dist/server'`
+**类型：**`string`<br />
+**默认值：**`'./server'`
 </p>
 
 当构建为 SSR 时控制服务器 JavaScript 的输出目录。
@@ -510,7 +516,6 @@ export default defineConfig({
   }
 }
 ```
-
 
 ### build.assets
 
@@ -537,7 +542,7 @@ export default defineConfig({
 
 <p>
 
-**类型：** `string | Record.<string, string>`<br />
+**类型：** `string | Record<string, string>`<br />
 **默认值：** `undefined`<br />
 <Since v="2.2.0" />
 </p>
@@ -558,8 +563,7 @@ export default defineConfig({
 
 **新增于：** `astro@4.5.0`
 
-你也可以传递一个对象给 `assetsPrefix`，以指定每种文件类型的不同域名。
-在这种情况下，`fallback`属性是必填的，并且它将作为默认值用于任何其他文件。
+你也可以传递一个对象给 `assetsPrefix`，以指定每种文件类型的不同域名。在这种情况下，`fallback`属性是必填的，并且它将作为默认值用于任何其他文件。
 
 ```js
 {
@@ -594,7 +598,6 @@ export default defineConfig({
 }
 ```
 
-
 ### build.redirects
 
 <p>
@@ -604,9 +607,7 @@ export default defineConfig({
 <Since v="2.6.0" />
 </p>
 
-指定是否在构建期间将重定向输出到 HTML 中。
-
-此选项仅适用于 `output: 'static'` 模式；在 SSR 中，重定向会被作为和其他响应一样对待。
+指定是否在构建期间将重定向输出到 HTML 中。此选项仅适用于 `output: 'static'` 模式；在 SSR 中，重定向会被作为和其他响应一样对待。
 
 此选项主要适用于具有用于重定向的特殊配置文件且不需要（或不希望）基于 HTML 的重定向的适配器。
 
@@ -617,7 +618,6 @@ export default defineConfig({
   }
 }
 ```
-
 
 ### build.inlineStylesheets
 
@@ -642,13 +642,40 @@ export default defineConfig({
 }
 ```
 
+### build.concurrency
+
+<p>
+
+**类型：** `number`<br />
+**默认值：** `1`<br />
+<Since v="4.16.0" />
+</p>
+
+并行构建的页面数。
+
+**在大多数情况下，你不应更改作为默认值的 `1`。**
+
+仅当其他减少总体渲染时间的尝试（例如，批处理或缓存长时间运行的任务，如网络请求或数据访问）无法实现或没有帮助时，才使用此选项。如果该值设置得太高，可能会由于内存资源不足以及 JS 单线程的原因，导致页面渲染变慢。
+
+```js
+{
+  build: {
+    concurrency: 2
+  }
+}
+```
+
+:::caution[潜在的破坏性变更]
+此功能是稳定的，且不被认定为是实验性功能。但是，此功能仅旨在解决困难的性能问题，并且在 [次要版本](/zh-cn/upgrade-astro/#语义化版本控制) 中可能会产生破坏性变更，以尽可能保持此选项的性能。如果你正在使用此功能，请检查每个次要版本的 [Astro 更新日志](https://github.com/withastro/astro/blob/refs/heads/next/packages/astro/CHANGELOG.md)。
+:::
+
 ## 服务器选项
 
 定制 Astro 开发服务器，适用于 `astro dev` 和 `astro preview`。
 
 ```js
 {
-  server: { port: 1234, host: true}
+  server: { port: 1234, host: true }
 }
 ```
 
@@ -665,8 +692,8 @@ export default defineConfig({
 
 <p>
 
-**类型**：`string | boolean`<br />
-**默认值**：`false`<br />
+**类型：** `string | boolean`<br />
+**默认值：** `false`<br />
 <Since v="0.24.0" />
 </p>
 
@@ -680,8 +707,8 @@ export default defineConfig({
 
 <p>
 
-**类型**：`number`<br />
-**默认值**：`4321`
+**类型：** `number`<br />
+**默认值：** `4321`
 </p>
 
 设置服务器监听端口。
@@ -691,6 +718,25 @@ export default defineConfig({
 ```js
 {
   server: { port: 8080 }
+}
+```
+
+### server.allowedHosts
+
+<p>
+
+**类型：** `Array<string> | true`<br />
+**默认值：** `[]`<br />
+<Since v="5.4.0" />
+</p>
+
+一个主机名列表，Astro 允许响应这些主机名。当该值设置为 `true` 时，任何主机名都是允许的。
+
+```js
+{
+  server: {
+  	allowedHosts: ['staging.example.com', 'qa.example.com']
+  }
 }
 ```
 
@@ -717,12 +763,148 @@ export default defineConfig({
 
 <p>
 
-**类型**：`OutgoingHttpHeaders`<br />
-**默认值**：`{}`<br />
+**类型：** `OutgoingHttpHeaders`<br />
+**默认值：** `{}`<br />
 <Since v="1.7.0" />
 </p>
 
 设置要在 `astro dev` 和 `astro preview` 中发送的自定义 HTTP 响应标头。
+
+## Session 选项
+
+<p>
+
+<Since v="5.7.0" />
+</p>
+
+为你的 Astro 项目配置会话（session）存储。该功能用于以持久化方式存储会话数据，使其能够在不同请求之间被访问。部分适配器可能会提供默认的会话驱动，但你可以通过手动个人配置来覆盖它。
+
+更多信息请参阅 [session 指南](/zh-cn/guides/sessions/)。
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // Unstorage 上驱动的名字
+      driver: 'redis',
+      // 所需项取决于驱动程序
+      options: {
+        url: process.env.REDIS_URL,
+      },
+      ttl: 3600, // 1 小时
+    }
+  }
+```
+
+### session.driver
+
+<p>
+
+**类型：** `string | undefined`<br />
+<Since v="5.7.0" />
+</p>
+
+Unstorage 上用于会话存储的驱动。[Node](/zh-cn/guides/integrations-guide/node/#sessions)、[Cloudflare](/zh-cn/guides/integrations-guide/cloudflare/#sessions) 和 [Netlify](/zh-cn/guides/integrations-guide/netlify/#sessions) 适配器都会为你自动配置默认的驱动，但是如果你更倾向于手动配置，或者是你正在使用的适配器并未提供驱动，你仍然可以自己指定。
+
+该值为 [Unstorage 驱动文档](https://unstorage.unjs.io/drivers) 的“驱动名称（Driver name）”。
+
+```js title="astro.config.mjs" ins={4}
+{
+  adapter: vercel(),
+  session: {
+    driver: "redis",
+  },
+}
+```
+:::note
+部分驱动可能需要安装额外的包。部分驱动可能会要求设置环境变量或凭证。更多信息请参阅 [Unstorage 文档](https://unstorage.unjs.io/drivers)。
+:::
+
+### session.options
+
+<p>
+
+**类型：** `Record<string, unknown> | undefined`<br />
+**默认值：** `{}`<br />
+<Since v="5.7.0" />
+</p>
+
+用于会话存储的驱动专用配置选项。该选项具体取决于你所使用的驱动程序。请参阅 [Unstorage 文档](https://unstorage.unjs.io/drivers) 以获取不同驱动的详细配置参数。
+
+
+```js title="astro.config.mjs" ins={4-6}
+{
+   session: {
+     driver: "redis",
+     options: {
+       url: process.env.REDIS_URL
+     },
+   }
+}
+```
+
+### session.cookie
+
+<p>
+
+**类型：** `string | AstroCookieSetOptions | undefined`<br />
+**默认值：** `{ name: "astro-session", sameSite: "lax", httpOnly: true, secure: true }`<br />
+<Since v="5.7.0" />
+</p>
+
+用于配置会话 cookie 的选项。如果将该选项设置为字符串，则它会被用作 cookie 名称。或者，你也可以传入一个带有额外选项的对象。那么它将会和默认值一同合并。
+
+```js title="astro.config.mjs" ins={3-4}
+{
+ session: {
+   // 如果设置为字符串，则该项会被视为 cookie 名称。
+   cookie: "my-session-cookie",
+ }
+}
+
+```
+
+```js title="astro.config.mjs" ins={4-8}
+{
+ session: {
+   // 如果设置为对象，那么它将被视为 cookie 选项。
+   cookie: {
+     name: "my-session-cookie",
+     sameSite: "lax",
+     secure: true,
+   }
+ }
+}
+```
+
+### session.ttl
+
+<p>
+
+**类型：** `number | undefined`<br />
+**默认值：** {Infinity}<br />
+<Since v="5.7.0" />
+</p>
+
+一个可选的默认选项，用于配置会话值直到过期的生存时间（以秒为单位）。
+
+默认情况下，会话值会一直存续直到它们被删除或是会话被销毁，并且由于特定的时间已经过去，因此它们也不会自动过期。通过设置 `session.ttl` 能为你的会话值添加一个默认的过期时间。将 `ttl` 选项传递给 [`session.set()`](/zh-cn/reference/api-reference/#set) 将覆盖该单个条目的全局默认值。
+
+```js title="astro.config.mjs" ins={3-4}
+{
+ session: {
+   // 设置一个时长为 1 小时（3600 秒）的默认过期时间
+   ttl: 3600,
+ }
+}
+```
+
+:::note
+为会话值设置 `ttl` 不会在时间限制传入后自动从存储中将其删除。
+
+存储中的值只会在 `ttl` 时间过期后尝试访问它们时，才会被删除。而此时，会话值将会为 undefined，而直到这时会话值才会被删除。
+
+部分驱动程序同样支持 `ttl` 选项，该选项将在指定时间后自动删除会话。有关更多信息，请参阅你选定驱动的文档。
+:::
 
 ## 开发工具栏选项
 
@@ -745,7 +927,7 @@ export default defineConfig({
 **类型：** `boolean | object`
 </p>
 
-在你的网站上为链接启用预获取，以提供更快的页面视图过渡效果。（在使用 `<ViewTransitions />` 路由器的页面上默认启用。设置 `prefetch: false` 可以选择退出此行为。）
+在你的网站上为链接启用预获取，以提供更快的页面视图过渡效果。（在使用 `<ClientRouter />` 路由器的页面上默认启用。设置 `prefetch: false` 可以选择退出此行为。）
 
 此配置自动将预获取脚本添加到项目中的每个页面上，让你可以访问 `data-astro-prefetch` 属性。将此属性添加到页面上的任何 `<a />` 链接，以启用该页面的预获取。
 
@@ -753,7 +935,7 @@ export default defineConfig({
 <a href="/about" data-astro-prefetch>about</a>
 ```
 
-使用 [`prefetch.defaultStrategy`](#prefetchdefaultstrategy) 和 [`prefetch.prefetchAll`](#prefetchprefetchall) 选项进一步自定义默认的预获取行为。
+使用 [`prefetch.defaultStrategy`](/zh-cn/reference/configuration-reference/#prefetchdefaultstrategy) 和 [`prefetch.prefetchAll`](/zh-cn/reference/configuration-reference/#prefetchprefetchall) 选项进一步自定义默认的预获取行为。
 
 查看 [预获取指南](/zh-cn/guides/prefetch/) 获取更多信息。
 
@@ -764,7 +946,7 @@ export default defineConfig({
 **类型：** `boolean`
 </p>
 
-为所有链接启用预获取，包括那些没有 `data-astro-prefetch` 属性的链接。当使用 `<ViewTransitions />` 路由器时，此值默认为 `true`。否则，默认值为 `false`。
+为所有链接启用预获取，包括那些没有 `data-astro-prefetch` 属性的链接。当使用 `<ClientRouter />` 路由器时，此值默认为 `true`。否则，默认值为 `false`。
 
 ```js
 prefetch: {
@@ -805,20 +987,21 @@ prefetch: {
 
 <p>
 
-**类型：** `string`<br />
-**默认值：** `undefined`<br />
+**类型：** `Object`<br />
+**默认值：** `{route: '/_image', entrypoint: undefined}`<br />
 <Since v="3.1.0" />
 </p>
 
-设置在开发和 SSR 中用于图像优化的端点。设置为 `undefined` 则使用默认端点。
-
-端点将始终注入到 `/_image`。
+设置在开发和 SSR 中用于图像优化的端点。`entrypoint` 可以设置为 `undefined` 来使用默认端点。
 
 ```js
 {
   image: {
-    // 示例：使用自定义图像端点
-    endpoint: './src/image-endpoint.ts',
+    // 示例：使用自定义的图像端点 `/custom_endpoint`
+    endpoint: {
+      route: '/custom_endpoint',
+      entrypoint: 'src/my_endpoint.ts',
+    },
   },
 }
 ```
@@ -869,14 +1052,14 @@ prefetch: {
 
 <p>
 
-**类型**： `Array.<string>`<br />
-**默认值**： `{domains: []}`<br />
+**类型：** `Array<string>`<br />
+**默认值：** `[]`<br />
 <Since v="2.10.10" />
 </p>
 
 定义了一个允许进行远程图像优化的图像源域名列表。Astro 不会对其他远程图像进行优化。
 
-该选项需要一个由域名字符串组成的数组，但不允许使用通配符。或者你也可以使用 [`image.remotePatterns`](#imageremotepatterns) 来定义一组允许的源 URL 模式。
+该选项需要一个由域名字符串组成的数组，但不允许使用通配符。或者你也可以使用 [`image.remotePatterns`](/zh-cn/reference/configuration-reference/#imageremotepatterns) 来定义一组允许的源 URL 模式。
 
 ```js
 // astro.config.mjs
@@ -892,8 +1075,8 @@ prefetch: {
 
 <p>
 
-**类型**： `Array.<RemotePattern>`<br />
-**默认值**： `{remotePatterns: []}`<br />
+**类型：** `Array<RemotePattern>`<br />
+**默认值：** `[]`<br />
 <Since v="2.10.10" />
 </p>
 
@@ -901,10 +1084,10 @@ prefetch: {
 
 `remotePatterns` 可以通过以下四个属性进行配置：
 
-1. `protocol`
-2. `hostname`
-3. `port`
-4. `pathname`
+1. protocol
+2. hostname
+3. port
+4. pathname
 
 ```js
 {
@@ -928,29 +1111,141 @@ prefetch: {
   - 以 '/**' 结尾允许所有子路由 ('startsWith')。
   - 以 '/*' 结尾只允许一级子路由。
 
+### image.responsiveStyles
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+是否为响应式图片自动添加全局样式。除非你打算自己为图片设置样式，否则应该启用此选项。
+
+此选项仅在通过配置或在图片组件上使用 `layout` 属性将 `layout` 设置为 `constrained`、`full-width` 或 `fixed` 时使用。
+
+更多信息请参阅[图片文档](/zh-cn/guides/images/#响应式图像行为)。
+
+### image.layout
+
+<p>
+
+**类型：** `ImageLayout`<br />
+**默认值：** `undefined`<br />
+<Since v="5.10.0" />
+</p>
+
+响应式图像的默认布局类型。可以被图像组件上的 `layout` 属性覆盖。
+- `constrained` - 图像将缩放以适应容器，保持其纵横比，但不会超过指定的尺寸。
+- `fixed` - 图像将保持其原始尺寸。
+- `full-width` - 图像将缩放以适应容器，并保持其纵横比。
+
+更多详情请参阅 [`layout` 组件属性](/zh-cn/reference/modules/astro-assets/#layout)。
+
+### image.objectFit
+
+<p>
+
+**类型：** `ImageFit`<br />
+**默认值：** `"cover"`<br />
+<Since v="5.10.0" />
+</p>
+
+响应式图像的 [`object-fit` CSS 属性值](https://developer.mozilla.org/zh-CN/docs/Web/CSS/object-fit)。可以被图像组件上的 `fit` 属性覆盖。
+需要设置 `layout` 的值。
+
+更多详情请参阅 [`fit` 组件属性](/zh-cn/reference/modules/astro-assets/#fit)。
+
+### image.objectPosition
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `"center"`<br />
+<Since v="5.10.0" />
+</p>
+
+响应式图像的默认 [`object-position` CSS 属性值](https://developer.mozilla.org/zh-CN/docs/Web/CSS/object-position)。可以被图像组件上的 `position` 属性覆盖。
+需要设置 `layout` 的值。
+
+更多详情请参阅 [`position` 组件属性](/zh-cn/reference/modules/astro-assets/#position)。
+
+### image.breakpoints
+
+<p>
+
+**类型：** `Array<number>`<br />
+**默认值：** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`<br />
+<Since v="5.10.0" />
+</p>
+
+用于生成响应式图像的断点。需要设置 `layout` 的值。完整列表通常不使用，
+而是根据源和输出大小进行过滤。使用的默认值取决于使用的是本地还是远程图像服务。对于远程服务，
+使用更全面的列表，因为只生成所需的尺寸。对于本地服务，列表较短以减少生成的图像数量。
+
 ## Markdown 选项
 
 ### markdown.shikiConfig
 
 <p>
 
-**类型**：`Partial<ShikiConfig>`
+**类型：** `Partial<ShikiConfig>`
 </p>
 
-Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markdown-content/#shiki-配置)。
+Shiki 是我们的默认语法高亮器。你可以通过 `markdown.shikiConfig` 对象配置所有选项：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      // 从 Shiki 的内置主题中选择 (或者添加你自己的)
+      // https://shiki.style/themes
+      theme: 'dracula',
+      // 或者, 提供多个主题
+      // 请参阅下面的注释，了解如何使用双明/暗主题
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+      // 禁用默认配色
+      // https://shiki.style/guide/dual-themes#without-default-color
+      // (添加于 v4.12.0)
+      defaultColor: false,
+      // 添加自定义语言
+      // 注意：Shiki 内置了无数语言，包括 .astro！
+      // https://shiki.style/languages
+      langs: [],
+      // 为语言添加自定义别名
+      // 将别名映射到 Shiki 语言 ID：https://shiki.style/languages#bundled-languages
+      // https://shiki.style/guide/load-lang#custom-language-aliases
+      langAlias: {
+        cjs: "javascript"
+      },
+      // 启用自动换行以防止水平滚动
+      wrap: true,
+      // 添加自定义转换器：https://shiki.style/guide/transformers
+      // 在这里找到常用的转换器：https://shiki.style/packages/transformers
+      transformers: [],
+    },
+  },
+});
+```
+
+请参阅 [代码语法高亮指南](/zh-cn/guides/syntax-highlighting/) 以获取更多用法和示例。
 
 ### markdown.syntaxHighlight
 
 <p>
 
-**类型**：`'shiki' | 'prism' | false`<br />
-**默认值**：`shiki`
+**类型：** `SyntaxHighlightConfig | SyntaxHighlightConfigType | false`<br />
+**默认值：** `{ type: 'shiki', excludeLangs: ['math'] }`
 </p>
 
-可供使用的语法高亮器：
+配置 Markdown 代码块（\`\`\`）使用哪种语法高亮器（如果有的话）。这决定了 Astro 将应用于你的 Markdown 代码块的 CSS 类。
 
-- `shiki` - 使用 [Shiki](https://shiki.style) 高亮器
-- `prism` - 使用 [Prism](https://prismjs.com/) 高亮器
+- `shiki` - 使用 [Shiki](https://shiki.style) 高亮器（默认配置 `github-dark` 主题）
+- `prism` - 使用 [Prism](https://prismjs.com/) 高亮器并[提供你自己的 Prism 样式表](/zh-cn/guides/syntax-highlighting/#添加-prism-样式表)
 - `false` - 不使用语法高亮。
 
 ```js
@@ -960,6 +1255,43 @@ Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markd
     syntaxHighlight: 'prism',
   }
 }
+```
+
+对于更多对语法高亮的控制，你可以指定一个配置对象，其中包含以下列出的属性：
+
+#### markdown.syntaxHighlight.type
+
+<p>
+
+**类型：** `'shiki' | 'prism'`<br />
+**默认值：** `'shiki'`<br />
+<Since v="5.5.0" />
+</p>
+
+应用于 Markdown 代码块的默认 CSS 类。（如果无需其他语法高亮配置，可以直接将 `markdown.syntaxHighlight` 设置为 `shiki`、`prism` 或 `false`。）
+
+#### markdown.syntaxHighlight.excludeLangs
+
+<p>
+
+**类型：** `Array<string>`<br />
+**默认值：** `['math']`<br />
+<Since v="5.5.0" />
+</p>
+
+一个包含语言的数组，用于排除在 `markdown.syntaxHighlight.type` 中指定的默认语法高亮。在使用从 Markdown 代码块生成图表的工具（如 Mermaid.js 和 D2）时，这可能会很有用。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math'],
+    },
+  },
+});
 ```
 
 ### markdown.remarkPlugins
@@ -975,7 +1307,7 @@ Shiki 配置选项。使用方法见 [markdown 配置文档](/zh-cn/guides/markd
 import remarkToc from 'remark-toc';
 {
   markdown: {
-    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
+    remarkPlugins: [ [remarkToc, { heading: "contents" }] ]
   }
 }
 ```
@@ -1049,7 +1381,7 @@ Astro 默认使用 [SmartyPants formatter](https://daringfireball.net/projects/s
 {
   markdown: {
     // 示例：将脚注文本翻译成另一种语言，这里是默认的英文内容
-    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1" },
   },
 };
 ```
@@ -1066,18 +1398,6 @@ Astro 默认使用 [SmartyPants formatter](https://daringfireball.net/projects/s
 
 查看我们的指南以获取更多关于 [Astro 的国际化](/zh-cn/guides/internationalization/) 的信息。
 
-### i18n.defaultLocale
-
-<p>
-
-**类型：** `string`<br />
-<Since v="3.5.0" />
-</p>
-
-你的网站（或应用）的默认语言环境。这是一个必填字段。
-
-我们并未强制要求使用特定的语言格式或语法，但为了最大程度的兼容性，我们建议在需要的时候使用小写字母和连字符（例如 "es"、"pt-br"）。
-
 ### i18n.locales
 
 <p>
@@ -1086,17 +1406,29 @@ Astro 默认使用 [SmartyPants formatter](https://daringfireball.net/projects/s
 <Since v="3.5.0" />
 </p>
 
-网站所支持的包含 `defaultLocale` 在内所有语言环境的列表。这是一个必填字段。
+网站支持的所有语言环境的列表。这是一个必填字段。
 
-语言可以列为单独的代码（例如 `['en', 'es', 'pt-br']`）或映射到同一个 `path` 的多个代码（例如 `{ path: "english", codes: ["en", "en-US"]}`）。这些代码将用于确定你部署的网站的 URL 结构。
+语言可以列为单个代码（例如 `['en', 'es', 'pt-br']`）或映射到共享代码的 `path`（例如 `{ path: "english", codes: ["en", "en-US"]}`）。这些代码将用于确定你部署的站点的 URL 结构。
 
-没有强制执行特定的语言格式或语法，但你的文件夹结构必须与列表中的语言环境完全匹配。当多个 `codes` 指向同一个自定义的 URL 路径前缀时，将你的内容文件存储在与配置的 `path` 相同的文件夹中。
+不强制任何特定的语言代码格式或语法，但是你的项目文件夹中包含的内容文件必须与列表中的 `locales` 项完全匹配。在多个 `codes` 指向自定义 URL 路径前缀的情况下，将你的内容文件存储在与配置的 `path` 相同的文件夹中。
+
+### i18n.defaultLocale
+
+<p>
+
+**类型：** `string`<br />
+<Since v="3.5.0" />
+</p>
+
+你的网站/应用的默认语言环境，是你指定的 `locales` 之一。这是一个必填字段。
+
+不强制任何特定的语言代码格式或语法，但是我们建议使用小写和必要的连字符（例如 "es"，"pt-br"）以获得最大的兼容性。
 
 ### i18n.fallback
 
 <p>
 
-**类型：** `Record.<string, string>`<br />
+**类型：** `Record<string, string>`<br />
 <Since v="3.5.0" />
 </p>
 
@@ -1125,11 +1457,38 @@ export default defineConfig({
 
 <p>
 
-**类型：** `Routing`<br />
+**类型：** `object | "manual"`<br />
+**默认值：** `object`<br />
 <Since v="3.7.0" />
 </p>
 
 控制路由策略以确定你的网站 URL。请根据你的默认语言的文件夹（或 URL）路径配置来进行设置。
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr"],
+		routing: {
+			prefixDefaultLocale: false,
+			redirectToDefaultLocale: true,
+			fallbackType: "redirect",
+		}
+	}
+})
+```
+
+自 4.6.0 起，此选项也可以设置为 `manual`。启用此路由策略后，Astro 将**禁用**其 i18n 中间件，并且无法配置其他 `routing` 选项（例如 `prefixDefaultLocale`）。你需要自行编写路由逻辑，或者手动执行 Astro 的 i18n 中间件与自定义逻辑配合使用。
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr"],
+		routing: "manual"
+	}
+})
+```
 
 #### i18n.routing.prefixDefaultLocale
 
@@ -1186,451 +1545,183 @@ export default defineConfig({
 })
 ```
 
-#### i18n.routing.manual
+#### i18n.routing.fallbackType
 
 <p>
-**类型：** `string`<br />
-<Since v="4.6.0" />
+
+**类型：**`"redirect" | "rewrite"`<br />
+**默认值：**`"redirect"`<br />
+<Since v="4.15.0" />
 </p>
 
-当启用此选项时，Astro 将**禁用**其 i18n 中间件，以便你可以实现自己的自定义逻辑。在 `routing: "manual"` 配置下，不能配置其他 `routing` 选项（例如 `prefixDefaultLocale`）。
+当 [`i18n.fallback`](/zh-cn/reference/configuration-reference/#i18nfallback) 配置为避免给缺失的页面路由显示 404 页面时，此选项用于控制是将用户[重定向](/zh-cn/guides/routing/#重定向)到回退页面，还是将回退页面的内容[重写](/zh-cn/guides/routing/#重写)到原始请求的 URL 上。
 
-你将负责编写自己的路由逻辑，或者手动执行 Astro 的 i18n 中间件以及你自己的逻辑。
+默认情况下，Astro 的 i18n 路由会创建页面，将你的访问者重定向到基于你的回退配置的新目的地。浏览器将刷新并在 URL 栏中显示目的地地址。
+
+当 `i18n.routing.fallback: "rewrite"` 配置时，Astro 则会创建页面，并将回退页面的内容重写到原始请求的 URL 上。
+
+使用以下配置，如果你有 `src/pages/en/about.astro` 这个文件，但没有 `src/pages/fr/about.astro` 时，`astro build` 命令将生成与 `dist/en/about.html` 页面相同内容的 `dist/fr/about.html` 页面。
+你的网站访问者将在 `https://example.com/fr/about/` 看到页面的英文版本，而不会被重定向。
 
 ```js
+//astro.config.mjs
 export default defineConfig({
-	i18n: {
-		defaultLocale: "en",
-		locales: ["en", "fr", "pt-br", "es"],
-		routing: {
-			prefixDefaultLocale: true,
-		}
-	}
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+    	prefixDefaultLocale: false,
+    	fallbackType: "rewrite",
+    },
+    fallback: {
+    	fr: "en",
+    }
+  },
 })
 ```
 
-## Legacy 标志
-
-为了帮助一些用户在 Astro 不同版本之间进行迁移，我们偶尔会引入 `legacy` 标志。
-这些标志允许你在最新的版本中选择使用 Astro 的一些废弃的或其他过时的行为，
-这样你就可以继续升级并使用新的 Astro 版本。
-
-## Experimental 标志
-
-Astro 提供了实验性标志，以便用户提前使用新功能。这些标志不保证稳定。
-
-
-### experimental.directRenderScript
+### i18n.domains
 
 <p>
 
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.5.0" />
+**类型：** `Record<string, string>`<br />
+**默认值：** `{}`<br />
+<Since v="4.3.0" />
 </p>
 
-启用一种更可靠的策略，以防止在不使用的页面中执行脚本。
+配置一个或多个支持的语言环境的 URL 模式，以使用自定义域名（或子域名）。
 
-脚本将直接按照在 Astro 文件中声明的方式渲染（包括现有的特性，如 TypeScript，导入 `node_modules`，以及脚本去重）。现在，你也可以在你的 Astro 文件中有条件地渲染脚本。
-然而，这意味着脚本不再提升到 `<head>` 中，且页面上的多个脚本不再被打包在一起。
-如果你启用了这个选项，你应该检查所有的 `<script>` 标签是否按预期行为。
+当一个语言环境映射到一个域名时，将不会使用 `/[locale]/` 路径前缀。
+但是，`src/pages/` 中的本地化文件夹仍然是必需的，包括你配置的 `defaultLocale`。
 
-这个选项将在 Astro 5.0 中默认启用。
+任何未配置的其他语言环境都将默认使用基于路径的本地化 URL，并遵循你的 `prefixDefaultLocale` 策略（例如 `https://example.com/[locale]/blog`）。
 
 ```js
-{
-  experimental: {
-    directRenderScript: true,
-  },
-}
-```
-
-### experimental.contentCollectionCache
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="3.5.0" />
-</p>
-
-在静态模式下构建时，启用内容集合的持久性缓存。
-
-```js
-{
-	experimental: {
-		contentCollectionCache: true,
-	},
-}
-```
-
-### experimental.contentCollectionJsonSchema
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.5.0" />
-</p>
-
-此功能将为 `type: 'data'` 的内容集合自动生成一个 JSON 模式，该模式可用作 VSCode 等工具中 TypeScript 风格的自动完成/提示的 `$schema` 值。
-
-要启用此功能，请添加实验性标志：
-
-```diff
-import { defineConfig } from 'astro/config';
+//astro.config.mjs
 export default defineConfig({
-	experimental: {
-+		contentCollectionJsonSchema: true
-	}
-});
-```
-
-此实验性实现要求你在内容集合的每个数据条目文件中手动引用模式：
-
-```diff
-// src/content/test/entry.json
-{
-+  "$schema": "../../../.astro/collections/test.schema.json",
-	"test": "test"
-}
-```
-
-或者，你也可以在你的 [VSCode `json.schemas` 设置](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)中进行配置：
-
-```diff
-"json.schemas": [
-	{
-		"fileMatch": [
-			"/src/content/test/**"
-		],
-		"url": "./.astro/collections/test.schema.json"
-	}
-]
-```
-
-请注意，这个初始实现使用了一个库，该库对于高级 Zod 模式有[已知的问题](https://github.com/StefanTerdell/zod-to-json-schema#known-issues)，因此在启用实验性标志之前，你可能希望查阅这些限制。
-
-### experimental.clientPrerender
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.2.0" />
-</p>
-
-允许在支持的浏览器中启用客户端预渲染来预获取页面。
-
-此功能使用实验性的 [推测规则 Web API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API)，并全局增强默认的 `prefetch` 行为，以在客户端预渲染链接。
-在启用此功能之前，你可能希望查看 [在客户端预渲染时可能的风险](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API#unsafe_prefetching)。
-
-在你的 `astro.config.mjs` 中启用客户端预渲染，以及任何所需的 `prefetch` 配置选项：
-
-```js
-// astro.config.mjs
-{
-  prefetch: {
-    prefetchAll: true,
-    defaultStrategy: 'viewport',
+	 site: "https://example.com",
+	 output: "server", // 必须，没有预渲染页面
+	 adapter: node({
+	   mode: 'standalone',
+	 }),
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+    prefixDefaultLocale: false,
+    domains: {
+      fr: "https://fr.example.com",
+      es: "https://example.es"
+    }
   },
-	experimental: {
-		clientPrerender: true,
-	},
-}
+})
 ```
 
-继续在你网站上的任何 `<a />` 链接上使用 `data-astro-prefetch` 属性来使用预获取。
-不要将 `<link>` 标签添加到文档的头部或使用 JavaScript 获取页面，而是添加一个带有相应推测规则的 `<script>` 标签。
+由 `astro:i18n` 辅助函数 [`getAbsoluteLocaleUrl()`](/zh-cn/reference/modules/astro-i18n/#getabsolutelocaleurl) 和 [`getAbsoluteLocaleUrlList()`](/zh-cn/reference/modules/astro-i18n/#getabsolutelocaleurllist) 返回的 URL 以及构建的页面路由，都将使用 `i18n.domains` 中设置的选项。  
 
-客户端预渲染需要浏览器支持。如果不支持 `推测规则 API(Speculation Rules API)`，`prefetch` 将回退到支持的策略。
+请参阅 [国际化指南](/zh-cn/guides/internationalization/#domains) 了解更多详情，包括此功能的限制。
 
-查看 [预获取指南](/zh-cn/guides/prefetch/) 以获取更多 `prefetch` 选项和使用方法。
-
-### experimental.actions
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-Actions 可以帮助你编写可从任何地方调用的类型安全的后端函数。[使用 `output` 属性](/zh-cn/basics/rendering-modes/#按需渲染) 启用服务端渲染并在 `experimental` 对象中添加 `actions` 标志：
-
-```js
-{
-  output: 'hybrid', // 或 'server'
-  experimental: {
-    actions: true,
-  },
-}
-```
-
-在 `src/actions/index.ts` 中声明所有的 action。这个文件是全局的 action 处理函数。
-
-使用 `astro:actions` 模块中的 `defineAction()` 工具定义一个 action。Action 接受 `handler` 属性来定义你的服务端请求处理函数。如果你的 action 接受参数，使用 `input` 属性通过 Zod 对参数进行校验。
-
-此示例定义了两个 action：`like` 和 `comment`。`like` 接受一个包含 `postId` 字符串的 JSON 对象，而 `comment` 接受包含 `postId`、`author` 和 `body` 字符串的 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects)。每个 `handler` 更新你的数据库并返回一个类型安全的响应。
-
-```ts
-// src/actions/index.ts
-import { defineAction, z } from "astro:actions";
-
-export const server = {
-  like: defineAction({
-    input: z.object({ postId: z.string() }),
-    handler: async ({ postId }) => {
-      // 更新数据库中的点赞
-
-      return likes;
-    },
-  }),
-  comment: defineAction({
-		 accept: 'form',
-    input: z.object({
-      postId: z.string(),
-      author: z.string(),
-      body: z.string(),
-    }),
-    handler: async ({ postId }) => {
-      // 在数据库中插入评论
-
-      return comment;
-    },
-  }),
-};
-```
-
-然后，使用来自 `astro:actions` 的 `actions` 对象从你的客户端组件调用一个 action。当使用 JSON 时，你可以传递一个类型安全的对象，或者当在你的 action 定义中使用 `accept: 'form'` 时，传递一个 [FormData](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects) 对象：
-
-这个例子展示了如何从 React 组件中调用`like` 和 `comment` action：
-
-```tsx "actions"
-// src/components/blog.tsx
-import { actions } from "astro:actions";
-import { useState } from "react";
-
-export function Like({ postId }: { postId: string }) {
-  const [likes, setLikes] = useState(0);
-  return (
-    <button
-      onClick={async () => {
-        const newLikes = await actions.like({ postId });
-        setLikes(newLikes);
-      }}
-    >
-      {likes} likes
-    </button>
-  );
-}
-
-export function Comment({ postId }: { postId: string }) {
-  return (
-    <form
-      onSubmit={async (e) => {
-        e.preventDefault();
-        const formData = new FormData(e.target as HTMLFormElement);
-        const result = await actions.blog.comment(formData);
-        // 处理结果
-      }}
-    >
-      <input type="hidden" name="postId" value={postId} />
-      <label htmlFor="author">Author</label>
-      <input id="author" type="text" name="author" />
-      <textarea rows={10} name="body"></textarea>
-      <button type="submit">Post</button>
-    </form>
-  );
-}
-```
-
-要全面了解并对这个实验性 API 提供反馈，请查看 [Actions RFC](https://github.com/withastro/roadmap/blob/actions/proposals/0046-actions.md)。
-
-### experimental.globalRoutePriority
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.2.0" />
-</p>
-
-将重定向和注入路由与基于文件的项目路由进行同等优先级处理，所有路由都遵循相同的[路由优先级顺序规则](/zh-cn/guides/routing/#路由优先级顺序)。
-
-这允许你在项目中对路由有更多的控制，不会自动优先处理某些类型的路由，并且标准化所有路由的路由优先级顺序。
-
-以下示例显示了当如下所示组合文件基础路由、注入路由和重定向时，哪个路由将构建特定页面的 URL：
-- 文件基础路由：`/blog/post/[pid]`
-- 文件基础路由：`/[page]`
-- 注入路由：`/blog/[...slug]`
-- 重定向：`/blog/tags/[tag]` -> `/[tag]`
-- 重定向：`/posts` -> `/blog`
-
-启用 `experimental.globalRoutingPriority`（而不是 Astro 4.0 默认的路由优先级顺序）：
-
-- `/blog/tags/astro` 由重定向到 `/tags/[tag]` 构建（而不是注入路由 `/blog/[...slug]`）
-- `/blog/post/0` 由文件基础路由 `/blog/post/[pid]` 构建（而不是注入路由 `/blog/[...slug]`）
-- `/posts` 由重定向到 `/blog` 构建（而不是文件基础路由 `/[page]`）
-
-
-在路由冲突的情况下，两个具有相同路由优先级的路由试图构建相同的 URL，Astro 将记录警告，标识出冲突的路由。
-
-### experimental.rewriting
-
-<p>
-
-**类型：** `boolean`<br />
-**默认值：** `false`<br />
-<Since v="4.8.0" />
-</p>
-
-启用一个路由功能，用于在 Astro 页面、端点和 Astro 中间件中重写请求，使你可以对路由进行编程控制。
-
-```js
-{
-  experimental: {
-    rewriting: true,
-  },
-}
-```
-
-在你的 `.astro` 文件中使用 `Astro.rewrite` 来重定向到不同的页面：
-
-```astro "rewrite"
----
-// src/pages/dashboard.astro
-if (!Astro.props.allowed) {
-	return Astro.rewrite("/")
-}
----
-```
-
-在你的端点文件中使用 `context.rewrite` 来重定向到不同的页面：
-
-```js
-// src/pages/api.js
-export function GET(ctx) {
-	if (!ctx.locals.allowed) {
-		return ctx.rewrite("/")
-	}
-}
-```
-
-在你的中间件文件中使用 `next("/")` 来重定向到不同的页面，然后调用下一个中间件函数：
-
-```js
-// src/middleware.js
-export function onRequest(ctx, next) {
-	if (!ctx.cookies.get("allowed")) {
-		return next("/") // new signature
-	}
-	return next();
-}
-```
-
-要全面了解并对这个实验性 API 提供反馈，请查看 [Rerouting RFC](https://github.com/withastro/roadmap/blob/feat/reroute/proposals/0047-rerouting.md)。
-
-### experimental.env
+## env
 
 <p>
 
 **类型：** `object`<br />
-**默认值：** `undefined`<br />
-<Since v="4.10.0" />
+**默认值：** `{}`<br />
+<Since v="5.0.0" />
 </p>
 
-启用实验性的 `astro:env` 功能。
+类型安全的环境变量的配置选项。
 
-`astro:env` API 允许你为环境变量配置类型安全的 schema，并指示它们是否应该在服务端或客户端可用。从相应的 `/client` 或 `/server` 模块中导入并使用你定义的变量：
+有关 [Astro 中环境变量](/zh-cn/guides/environment-variables/)的更多信息，请参阅我们的指南。
 
-```astro
----
-import { PUBLIC_APP_ID } from "astro:env/client"
-import { PUBLIC_API_URL, getSecret } from "astro:env/server"
-const API_TOKEN = getSecret("API_TOKEN")
-const data = await fetch(`${PUBLIC_API_URL}/users`, {
-	method: "POST",
-	headers: {
-		"Content-Type": "application/json",
-		"Authorization": `Bearer ${API_TOKEN}`
-	},
-	body: JSON.stringify({ appId: PUBLIC_APP_ID })
-})
----
-```
-
-要定义环境变量的数据类型和属性，请在你的 Astro 配置中用 `experimental.env.schema` 声明一个 schema。`envField` 助手函数允许你将变量定义为字符串、数字或布尔值，并在一个对象中传递属性：
-
-```js
-// astro.config.mjs
-import { defineConfig, envField } from "astro/config"
-
-export default defineConfig({
-    experimental: {
-        env: {
-            schema: {
-                PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-                PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
-                API_SECRET: envField.string({ context: "server", access: "secret" }),
-            }
-        }
-    }
-})
-```
-
-目前支持三种数据类型：字符串、数字和布尔值。
-
-环境变量有三种类型，由 `context`（client 或 server）和 `access`（secret 或 public）的组合设置在你的 [`env.schema`](#experimentalenvschema) 中确定：
-
-- **公开客户端变量**：这些变量最终会出现在你的客户端和服务端包中，并且可以通过 `astro:env/client` 模块在客户端和服务端访问：
-
-    ```js
-    import { PUBLIC_API_URL } from "astro:env/client"
-    ```
-
-- **公开服务端变量**：这些变量最终会出现在你的最终服务端包中，并且可以通过 `astro:env/server` 模块在服务端访问：
-
-    ```js
-    import { PUBLIC_PORT } from "astro:env/server"
-    ```
-
-- **秘密服务端变量**：这些变量不会包含在你的最终包中，可以通过 `astro:env/server` 模块提供的 `getSecret()` 助手函数在服务端访问：
-
-    ```js
-    import { getSecret } from "astro:env/server"
-
-    const API_SECRET = getSecret("API_SECRET") // 定义的类型
-    const SECRET_NOT_IN_SCHEMA = getSecret("SECRET_NOT_IN_SCHEMA") // string | undefined
-    ```
-
-**注意：** 因为没有方式可以将数据安全地发送到客户端，所以不支持秘密客户端变量。因此，在你的 schema 中不能同时配置 `context: "client"` 和 `access: "secret"`。
-
-要完整了解此实验性 API 并提供反馈，请查看 [Astro Env RFC](https://github.com/withastro/roadmap/blob/feat/astro-env-rfc/proposals/0046-astro-env.md)。
-
-#### experimental.env.schema
+### env.schema
 
 <p>
 
 **类型：** `EnvSchema`<br />
-**默认值：** `undefined`<br />
-<Since v="4.10.0" />
+**默认值：** `{}`<br />
+<Since v="5.0.0" />
 </p>
 
-一个使用 `envField` 来定义环境变量的数据类型（`string`、`number` 或 `boolean`）及其属性的对象：`context`（client 或 server）、`access`（public 或 secret）、使用的默认值 `default` 以及该环境变量是否为可选的 `optional`（默认为 `false`）。
+使用 `envField` 定义环境变量的数据类型和属性：`context`（client 或 server）、`access`（public 或 secret）、要使用的 `default` 值，以及此环境变量是否是 `optional`（默认为 `false`）。
+
 ```js
 // astro.config.mjs
 import { defineConfig, envField } from "astro/config"
 
 export default defineConfig({
-  experimental: {
-    env: {
-      schema: {
-        PUBLIC_API_URL: envField.string({ context: "client", access: "public", optional: true }),
-        PUBLIC_PORT: envField.number({ context: "server", access: "public", default: 4321 }),
-        API_SECRET: envField.string({ context: "server", access: "secret" }),
-      }
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
     }
+  }
+})
+```
+
+`envField` 支持四种数据类型：string、number、enum 和 boolean。`context` 和 `access` 是所有数据类型的必需属性。以下显示了每种数据类型可用的所有属性的完整列表：
+
+```js
+import { envField } from "astro/config"
+
+envField.string({
+   // context & access
+   optional: true,
+   default: "foo",
+   max: 20,
+   min: 1,
+   length: 13,
+   url: true,
+   includes: "oo",
+   startsWith: "f",
+   endsWith: "o",
+})
+envField.number({
+   // context & access
+   optional: true,
+   default: 15,
+   gt: 2,
+   min: 1,
+   lt: 3,
+   max: 4,
+   int: true,
+})
+envField.boolean({
+   // context & access
+   optional: true,
+   default: true,
+})
+envField.enum({
+   // context & access
+   values: ['foo', 'bar', 'baz'], // 必需
+   optional: true,
+   default: 'baz',
+})
+```
+
+### env.validateSecrets
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="5.0.0" />
+</p>
+
+当启动 dev 服务器或运行构建时，是否在服务器上验证私密环境变量。
+
+默认情况下，只有在启动 dev 服务器或运行构建时才会在服务器上验证公共变量，私密变量只在运行时验证。如果启用，私密变量也将在启动时检查。这在某些持续集成（CI）管道中很有用，以确保在部署之前正确设置所有的私密信息。
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    },
+    validateSecrets: true
   }
 })
 ```

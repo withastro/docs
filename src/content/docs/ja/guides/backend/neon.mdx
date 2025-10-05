@@ -1,0 +1,96 @@
+---
+title: Neon Postgres & Astro
+description: Neonを使用してAstroプロジェクトにサーバーレスPostgresデータベースを追加する
+sidebar:
+  label: Neon
+type: backend
+service: Neon
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Neon](https://neon.tech) は、フルマネージドなサーバーレスPostgresデータベースです。ストレージとコンピューティングを分離し、オートスケーリング、ブランチング、ボトムレスストレージを提供します。
+
+## AstroプロジェクトにNeonを追加する
+
+### 前提条件
+
+- プロジェクトが作成された [Neon](https://console.neon.tech/signup) アカウント
+- Neonデータベース接続文字列
+- [オンデマンドレンダリング (SSR)](/ja/guides/on-demand-rendering/) が有効なAstroプロジェクト
+
+### 環境設定
+
+AstroでNeonを使用するには、Neon環境変数を設定する必要があります。プロジェクトルートで `.env` ファイルを作成または編集し、次のコードを追加して、独自のプロジェクトの詳細に置き換えます。
+
+```ini title=".env"
+NEON_DATABASE_URL="postgresql://<user>:<password>@<endpoint_hostname>.neon.tech:<port>/<dbname>?sslmode=require"
+```
+
+より良いTypeScriptサポートのために、`src/env.d.ts` ファイルで環境変数を定義します。
+
+```typescript title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly NEON_DATABASE_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+<ReadMore>Astroの[環境変数](/ja/guides/environment-variables/)と `.env` ファイルの詳細をご覧ください。</ReadMore>
+
+### 依存関係のインストール
+
+Neonに接続するために `@neondatabase/serverless` パッケージをインストールします。
+
+```bash
+npm install @neondatabase/serverless
+```
+
+### Neonクライアントの作成
+
+新しいファイル `src/lib/neon.ts` を作成し、次のコードでNeonクライアントを初期化します。
+
+```typescript title="src/lib/neon.ts"
+import { neon } from '@neondatabase/serverless';
+
+export const sql = neon(import.meta.env.NEON_DATABASE_URL);
+```
+
+## Neon データベースへのクエリ
+
+これで、任意の `.astro` コンポーネントからNeonクライアントを使用してデータベースにクエリを実行できます。次の例では、Postgresデータベースから現在時刻を取得します。
+
+```astro title="src/pages/index.astro"
+---
+import { sql } from '../lib/neon';
+
+const response =  await  sql`SELECT NOW() as current_time`;
+const currentTime = response[0].current_time;
+---
+
+<h1>現在時刻</h1>
+<p>時刻は: {currentTime}</p>
+```
+
+## Neon によるデータベースブランチング
+
+Neonのブランチング機能を使用すると、開発やテスト用にデータベースのコピーを作成できます。Astroプロジェクトでこれを使用するには、各ブランチに異なる環境変数を作成します。
+
+```ini title=".env.development"
+NEON_DATABASE_URL=your_development_branch_url
+```
+
+```ini title=".env.production"
+NEON_DATABASE_URL=your_production_branch_url
+```
+
+## リソース
+
+- [Neonドキュメント](https://neon.tech/docs/introduction)
+- [NeonサーバーレスドライバーGitHub](https://github.com/neondatabase/serverless)
+- [AstroサイトまたはアプリケーションをNeon Postgresに接続する](https://neon.tech/docs/guides/astro)

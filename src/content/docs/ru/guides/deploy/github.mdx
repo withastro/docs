@@ -1,0 +1,169 @@
+---
+title: Разверните свой сайт Astro на GitHub Pages
+description: Как развернуть свой сайт Astro в интернет, используя GitHub Pages.
+sidebar:
+  label: GitHub Pages
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Вы можете использовать [GitHub Pages](https://pages.github.com/), чтобы разместить в Интернете сайт Astro прямо из репозитория на [GitHub.com](https://github.com/).
+
+## Как развернуть
+
+Вы можете развернуть сайт Astro на GitHub Pages, используя [GitHub Actions](https://github.com/features/actions) чтобы автоматически собрать и развернуть свой сайт. Для этого исходный код сайта должен располагаться на GitHub.
+
+Astro поддерживает официальный `withastro/action` чтобы развернуть ваш сайт с минимальной конфигурацией. Следуйте инструкциям ниже, чтобы развернуть свой сайт Astro на GitHub Actions, и смотрите [README проекта](https://github.com/withastro/action) для дополнительной информации.
+
+## Настройте Astro для GitHub Pages
+
+### Развёртывание на `github.io` URL 
+
+Установите опции [`site`](/ru/reference/configuration-reference/#site) и [`base`](/ru/reference/configuration-reference/#base) в `astro.config.mjs`.
+    
+```js title="astro.config.mjs" ins={4-5}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  site: 'https://astronaut.github.io',
+  base: 'my-repo',
+})
+```
+
+#### `site`
+
+Значение `site` должно быть одним из следующих:
+
+- Следующий URL на основе вашего имени пользователя: `https://<имя-пользователя>.github.io`
+- Случайный URL, автоматически сгенерированный для  [приватной страницы организации GitHub](https://docs.github.com/en/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site): `https://<случайная-строка>.pages.github.io/`
+
+#### `base`
+
+Значение `base` может быть необходимо, чтобы Astro считал имя репозитория (например `/my-repo`) как корень вашего сайта.
+
+:::note
+  Не устанавливайте параметр `base`, если:
+
+- Ваша страница развёрнута из корневой директории.
+- Ваш репозиторий расположен на `https://github.com/<ИМЯ-ПОЛЬЗОВАТЕЛЯ>/<ИМЯ-ПОЛЬЗОВАТЕЛЯ>.github.io`.
+:::
+
+Значение для `base` должно быть именем репозитория, начинающееся с косой черты, например `/my-blog`. Благодаря этому Astro понимает, что корнем вашего сайта является `/my-repo`, а не `/` (по умолчанию).
+
+:::caution
+    Когда это значение настроено, все внутренние ссылки на страницы должны начинаться с вашего значения `base`:
+
+```astro ins="/my-repo"
+<a href="/my-repo/about">О проекте</a>
+```
+
+Узнайте больше о [настройке значения `base`](/ru/reference/configuration-reference/#base)
+:::
+
+### Использование GitHub Pages с кастомным доменом
+
+:::tip[Настройка кастомного домена]
+Вы можете настроить кастомный домен, добавив следующий `./public/CNAME` файл в свой проект: 
+
+```js title="public/CNAME"
+sub.mydomain.com
+```
+
+Благодаря этому сайт будет развёрнут на ваш кастомный домен вместо `user.github.io`. Не забудьте также [настроить DNS для своего провайдера домена](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).   
+:::
+  
+Чтобы настроить Astro для использования GitHub pages с кастомным доменом, установите своё доменное имя как значение для `site`. Не устанавливайте значение для `base`:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  site: 'https://example.com',
+})
+```
+
+## Настройте GitHub Action
+
+<Steps>
+1. Создайте в вашем проекте новый файл с именем `.github/workflows/deploy.yml` и вставьте в него следующий YAML.
+
+    ```yaml title="deploy.yml"
+    name: Deploy to GitHub Pages
+
+    on:
+      # Вызывать workflow при каждом пуше в ветку `main`
+      # Используете другое имя для ветки? Замените `main` на имя своей ветки
+      push:
+        branches: [ main ]
+      # Разрешает запускать этот workflow вручную с вкладки Actions на GitHub.
+      workflow_dispatch:
+      
+    # Разрешить этому workflow клонировать репозиторий и создавать развёртывание Pages
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout your repository using git
+            uses: actions/checkout@v4
+          - name: Install, build, and upload your site
+            uses: withastro/action@v3
+            # with:
+              # path: . # Корень вашего проекта Astro внутри репозитория (опционально)
+              # node-version: 20 # Версия Node, которую следует использовать для сборки сайта. По умолчанию 20. (опционально)
+              # package-manager: pnpm@latest # Менеджер пакетов Node, который следует использовать для установки зависимостей и сборки сайта. Автоматически определяется на основе лок-файла. (опционально)
+
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v4
+    ```
+
+    :::note
+    Action Astro принимает несколько опциональных значений, которые могут быть переданы путём раскомментирования строки с `with` и нужной строки.
+    :::
+    
+    :::caution
+    Официальный Astro [action](https://github.com/withastro/action) сканирует лок-файл для определения предпочтительного пакетного менеджера (`npm`, `yarn`, `pnpm`, или `bun`). Вы должны закоммитить автоматически сгенерированный пакетным менеджером файл `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, или `bun.lockb` в свой репозиторий.
+    :::
+
+2. (Опционально) Если вы передаёте переменные среды в свой проект Astro во время локальной разработки или превью-сборок, вам необходимо определить публичные переменные в файле `deploy.yml`, чтобы они были обработаны во время развёртывания на GitHub Pages. (Смотрите [документацию GitHub по установке секретов](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository) для добавления приватных переменных среды.)
+
+   ```yaml title="deploy.yml"
+   jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout your repository using git
+            uses: actions/checkout@v4
+          - name: Install, build, and upload your site
+            uses: withastro/action@v3
+            env:
+              # Используйте одинарные кавычки для значения переменной
+              PUBLIC_EVM_WALLET_ADDRESS: '0x4bFc229A40d41698154336aFF864f61083E76659'
+   ```
+
+
+3. На GitHub, перейдите в настройки вашего репозитория (вкладка **Settings**) и найдите секцию **Pages**.
+
+4. Выберите **GitHub Actions** как **Source** (источник) вашего сайта.  
+
+5. Сделайте коммит нового файла workflow и запушьте на GitHub.  
+</Steps>
+  
+Ваш сайт уже должен быть опубликован! При каждом пуше в репозиторий проекта Astro, GitHub Action автоматически развернёт изменения.
+
+## Примеры
+
+- [Развёртывание на GitHub Pages](https://github.com/hkbertoson/github-pages)

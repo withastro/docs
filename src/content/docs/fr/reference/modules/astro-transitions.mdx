@@ -1,0 +1,463 @@
+---
+title: Référence de l'API du routeur des transitions de vue
+sidebar:
+  label: 'astro:transitions'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+Ce module fournit des fonctions pour contrôler et interagir avec l'API Transitions de Vue et le routeur côté client.
+
+:::note
+Cette API est compatible avec le `<ClientRouter />` inclus dans `astro:transitions`, mais ne peut pas être utilisée avec le routage MPA natif du navigateur.
+:::
+
+Pour des fonctionnalités et des exemples d'utilisation, [consultez notre guide sur les Transitions de Vue](/fr/guides/view-transitions/).
+
+## Importations depuis `astro:transitions`
+
+```ts
+import { ClientRouter, fade, slide } from 'astro:transitions';
+```
+
+### `<ClientRouter />`
+
+<p><Since v="3.0.0" /></p>
+
+Choisissez d'utiliser les transitions de vue sur des pages individuelles en important et en ajoutant le composant de routage `<ClientRouter />` dans la balise `<head>` sur chaque page souhaitée.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ClientRouter } from 'astro:transitions';
+---
+<html lang="fr">
+  <head>
+    <title>Ma page d'accueil</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <h1>Bienvenue sur mon site web !</h1>
+  </body>
+</html>
+```
+
+Découvrez comment [contrôler le routeur](/fr/guides/view-transitions/#contrôle-du-routeur) et [ajouter des directives de transition](/fr/guides/view-transitions/#directives-de-transition) aux éléments et composants de la page.
+
+### `fade`
+
+<p>
+
+**Type :** `(opts: { duration?: string | number }) => TransitionDirectionalAnimations`
+<Since v="3.0.0" />
+</p>
+
+Fonction utilitaire permettant de prendre en charge la personnalisation de la durée de l'animation `fade` intégrée.
+
+```astro {2} /fade\\(.+\\)/
+---
+import { fade } from 'astro:transitions';
+---
+
+<!-- Transition en fondu avec la durée par défaut -->
+<div transition:animate="fade" />
+
+<!-- Transition en fondu d'une durée de 400 millisecondes -->
+<div transition:animate={fade({ duration: '0.4s' })} />
+```
+
+### `slide`
+
+<p>
+
+**Type :** `(opts: { duration?: string | number }) => TransitionDirectionalAnimations`
+<Since v="3.0.0" />
+</p>
+
+Fonction utilitaire permettant de prendre en charge la personnalisation de la durée de l'animation `slide` intégrée.
+
+```astro {2} /slide\\(.+\\)/
+---
+import { slide } from 'astro:transitions';
+---
+
+<!-- Transition de glissement avec la durée par défaut -->
+<div transition:animate="slide" />
+
+<!-- Transition de glissement d'une durée de 400 millisecondes -->
+<div transition:animate={slide({ duration: '0.4s' })} />
+```
+
+## Importations depuis `astro:transitions/client`
+
+```astro
+<script>
+  import { 
+    navigate,
+    supportsViewTransitions,
+    transitionEnabledOnThisPage,
+    getFallback,
+    swapFunctions,
+  } from 'astro:transitions/client';
+</script>
+```
+
+### `navigate()`
+
+<p>
+
+**Type :** `(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+Une fonction qui exécute une navigation vers le `href` donné à l'aide de l'API Transitions de Vue.
+
+Cette signature de fonction est basée sur la fonction [`navigate` de l'API Navigation du navigateur](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate). Bien que basée sur l'API Navigation, cette fonction est implémentée sur l'[API History](https://developer.mozilla.org/fr/docs/Web/API/History_API) pour permettre la navigation sans recharger la page.
+
+#### Option `history`
+
+<p>
+
+**Type :** `'auto' | 'push' | 'replace'`<br />
+**Par défaut :** `'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+Définit la manière dont cette navigation doit être ajoutée à l'historique du navigateur.
+
+- `'push'` : le routeur utilisera `history.pushState` pour créer une nouvelle entrée dans l'historique du navigateur.
+- `'replace'` : le routeur utilisera `history.replaceState` pour mettre à jour l'URL sans ajouter de nouvelle entrée dans la navigation.
+- `'auto'` (par défaut) : le routeur tentera `history.pushState`, mais si l'URL ne peut pas être transférée, l'URL actuelle restera sans modification de l'historique du navigateur.
+
+Cette option suit l'[option `history`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history) de l'API Navigation du navigateur mais simplifiée pour les cas qui peuvent survenir sur un projet Astro.
+
+#### Option `formData`
+
+<p>
+
+**Type :** `FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+Un objet `FormData` pour les requêtes `POST`.
+
+Lorsque cette option est transmise, les requêtes vers la page cible de navigation seront envoyées sous forme de requête `POST` avec l'objet de données du formulaire comme contenu.
+
+L'envoi d'un formulaire HTML avec les transitions de vue activées utilisera cette méthode au lieu de la navigation par défaut avec rechargement de page. L'appel de cette méthode permet de déclencher le même comportement par programmation.
+
+#### Option `info`
+
+<p>
+
+**Type :** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+Données arbitraires à inclure dans les événements `astro:before-preparation` et `astro:before-swap` provoqués par cette navigation.
+
+Cette option imite l'[option `info`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info) de l'API Navigation du navigateur.
+
+#### Option `state`
+
+<p>
+
+**Type :** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+Données arbitraires à associer à l'objet `NavitationHistoryEntry` créé par cette navigation. Ces données peuvent ensuite être récupérées à l'aide de la fonction [`history.getState`](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) de l'API History.
+
+Cette option imite l'[option `state`](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state) de l'API Navigation du navigateur.
+
+#### Option `sourceElement`
+
+<p>
+
+**Type :** `Element`<br />
+<Since v="3.6.0" />
+</p>
+
+L'élément qui a déclenché cette navigation, le cas échéant. Cet élément sera disponible dans les événements suivants :
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+Indique si les transitions de vue sont prises en charge et activées dans le navigateur actuel.
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+Indique si la page actuelle comporte ou non des transitions d'affichage activées pour la navigation côté client. Cela peut être utilisé pour créer des composants qui se comportent différemment lorsqu'ils sont utilisés sur des pages avec des transitions de vue.
+
+### `getFallback()`
+
+<p>
+
+**Type :** `() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+Renvoie la stratégie de secours à utiliser dans les navigateurs qui ne prennent pas en charge les transitions de vue.
+
+Voir le guide sur la [Gestion de solution de secours](/fr/guides/view-transitions/#gestion-de-solution-de-secours) pour savoir comment choisir et configurer le comportement de repli.
+
+### `swapFunctions`
+
+<p>
+
+<Since v="4.15.0" />
+</p>
+
+Un objet contenant les fonctions utilitaires utilisées pour créer la fonction d’échange par défaut d’Astro.
+Celles-ci peuvent être utiles lors de la [création d'une fonction d'échange personnalisée](/fr/guides/view-transitions/#créer-une-fonction-déchange-personnalisée).
+
+`swapFunctions` fournit les méthodes suivantes :
+
+#### `deselectScripts()`
+
+<p>
+
+**Type :** `(newDocument: Document) => void`
+</p>
+
+Marque les scripts du nouveau document qui ne doivent pas être exécutés. Ces scripts sont déjà présents dans le document actuel et ne sont pas signalés pour une réexécution à l'aide de [`data-astro-rerun`](/fr/guides/view-transitions/#data-astro-rerun).
+
+#### `swapRootAttributes()`
+
+<p>
+
+**Type :** `(newDocument: Document) => void`
+</p>
+
+Échange les attributs entre les racines du document, comme l'attribut `lang`. Cela inclut également les attributs internes injectés par Astro comme `data-astro-transition`, qui rendent la direction de transition disponible pour les règles CSS générées par Astro.
+
+Lors de la création d'une fonction d'échange personnalisée, il est important d'appeler cette fonction afin de ne pas interrompre les animations de transition de vue.
+
+#### `swapHeadElements()`
+
+<p>
+
+**Type :** `(newDocument: Document) => void`
+</p>
+
+Supprime tous les éléments présents dans la balise `<head>` du document actuel qui ne sont pas conservés dans le nouveau document. Ajoute ensuite tous les nouveaux éléments présents dans la balise `<head>` du nouveau document dans celle du document courant.
+
+#### `saveFocus()`
+
+<p>
+
+**Type :** `() => () => void`
+</p>
+
+Stocke l'élément focalisé sur la page actuelle et renvoie une fonction qui, lorsqu'elle est appelée, si l'élément focalisé a été conservé, renvoie le focus sur celui-ci.
+
+
+#### `swapBodyElement()`
+
+<p>
+
+**Type :** `(newBody: Element, oldBody: Element) => void`
+</p>
+
+Remplace l'ancien corps par le nouveau. Ensuite, il passe en revue chaque élément de l'ancien corps qui doit être conservé et qui possède un élément correspondant dans le nouveau corps avant de remplacer l'ancien élément en place.
+
+## Événements du cycle de vie
+
+### Événement `astro:before-preparation`
+
+Un événement déclenché au début d'une navigation à l'aide du routeur Transitions de Vue. Cet événement se produit avant toute demande et tout changement d'état du navigateur.
+
+Cet événement possède les attributs suivants :
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader`](#loader)
+
+Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astrobefore-preparation).
+
+### Événement `astro:after-preparation`
+
+Un événement envoyé après le chargement de la page suivante dans une navigation utilisant le routeur Transitions de Vue.
+
+Cet événement n'a aucun attribut.
+
+Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astroafter-preparation).
+
+### Événement `astro:before-swap`
+
+Un événement envoyé après que la page suivante est analysée, préparée et liée à un document en prévision de la transition, mais avant que tout contenu ne soit échangé entre les documents.
+
+Cet événement ne peut pas être annulé. L'appel de `preventDefault()` est une opération interdite.
+
+Cet événement possède les attributs suivants :
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap`](#swap)
+
+Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astrobefore-swap).
+
+### Événement `astro:after-swap`
+
+Un événement envoyé après que le contenu de la page a été échangé mais avant la fin de la transition de vue.
+
+L'entrée de l'historique et la position de défilement ont déjà été mises à jour lorsque cet événement est déclenché.
+
+### Événement `astro:page-load`
+
+Un événement envoyé une fois le chargement d'une page terminé, qu'il s'agisse d'une navigation utilisant des transitions de vue ou native du navigateur.
+
+Lorsque les transitions de vue sont activées sur la page, le code qui s'exécuterait normalement sur `DOMContentLoaded` doit être modifié pour s'exécuter sur cet événement.
+
+### Attributs des événements du cycle de vie
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+Données arbitraires définies lors de la navigation.
+
+Il s'agit de la valeur littérale transmise à l'[option `info`](#option-info) de la [fonction `navigate()`](#navigate).
+
+#### `sourceElement`
+
+<p>
+
+**Type :** `Element | undefined`
+</p>
+
+L'élément qui a déclenché la navigation. Il peut s'agir, par exemple, d'un élément `<a>` sur lequel on a cliqué.
+
+Lors de l'utilisation de la [fonction `navigate()`](#navigate), ce sera l'élément spécifié dans l'appel.
+
+#### `newDocument`
+
+<p>
+
+**Type :** `Document`
+</p>
+
+Le document de la page suivante dans la navigation. Le contenu de ce document sera échangé à la place du contenu du document actuel.
+
+#### `navigationType`
+
+<p>
+
+**Type :** `'push' | 'replace' | 'traverse'`
+</p>
+
+Quel type de navigation dans l'historique est en cours.
+- `push` : une nouvelle `NavigationHistoryEntry` est en cours de création pour la nouvelle page.
+- `replace` : l'actuelle `NavigationHistoryEntry` est remplacée par une entrée pour la nouvelle page.
+- `traverse` : aucune `NavigationHistoryEntry` n'est créée. La position dans l'historique change.
+  La direction du parcours est donnée sur l'[attribut `direction`](#direction)
+
+#### `direction`
+
+<p>
+
+**Type :** `Direction`
+</p>
+
+La direction de la transition.
+- `forward` : naviguer vers la page suivante de l'historique ou vers une nouvelle page.
+- `back` : naviguer vers la page précédente de l'historique.
+- Tout ce qu’un autre écouteur d'événement aurait pu définir.
+
+#### `from`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+L'URL de la page initiant la navigation.
+
+#### `to`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+L'URL de la page vers laquelle on navigue. Cette propriété peut être modifiée, la valeur à la fin du cycle de vie sera utilisée dans le `NavigationHistoryEntry` pour la page suivante.
+
+#### `formData`
+
+<p>
+
+**Type :** `FormData | undefined`
+</p>
+
+Un objet `FormData` pour les requêtes `POST`.
+
+Lorsque cet attribut est défini, une requête `POST` sera envoyée à l'[URL`to`](#to) avec l'objet de données de formulaire donné comme contenu au lieu de la requête `GET` normale.
+
+Lors de la soumission d'un formulaire HTML avec les transitions de vue activées, ce champ est automatiquement défini sur les données du formulaire. Lorsque vous utilisez la [fonction `navigate()`](#navigate), cette valeur est la même que celle donnée dans les options.
+
+#### `loader()`
+
+<p>
+
+**Type :** `() => Promise<void>`
+</p>
+
+Implémentation de la phase suivante dans la navigation (chargement de la page suivante). Cette implémentation peut être surchargée pour ajouter un comportement supplémentaire.
+
+#### `viewTransition`
+
+<p>
+
+**Type :** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+</p>
+
+L'objet de transition de vue utilisé dans cette navigation. Sur les navigateurs qui ne prennent pas en charge l'[API de Transitions de Vue](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), il s'agit d'un objet implémentant la même API pour plus de commodité, mais sans l'intégration DOM.
+
+#### `swap()`
+
+<p>
+
+**Type :** `() => void`
+</p>
+
+Mise en place de la logique d'échange de documents.
+
+Apprenez-en davantage sur la façon de [créer votre propre fonction d'échange personnalisée](/fr/guides/view-transitions/#créer-une-fonction-déchange-personnalisée) dans le guide Transitions de Vue.
+
+Par défaut, cette implémentation appellera les fonctions suivantes dans l’ordre :
+
+1. [`deselectScripts()`](#deselectscripts)
+2. [`swapRootAttributes()`](#swaprootattributes)
+3. [`swapHeadElements()`](#swapheadelements)
+4. [`saveFocus()`](#savefocus)
+5. [`swapBodyElement()`](#swapbodyelement)

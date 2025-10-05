@@ -1,6 +1,8 @@
 ---
 title: Contentful 与 Astro
 description: 使用 Contentful 作为 CMS 向你的 Astro 项目添加内容
+sidebar:
+  label: Contentful
 type: cms
 service: Contentful
 i18nReady: true
@@ -25,13 +27,13 @@ import { Steps } from '@astrojs/starlight/components';
 
 3. **Contentful 凭证** - 你可以在 Contentful 仪表板中的**设置 > API 密钥**中找到以下凭证。如果你还没有 API 密钥，请选择**添加 API 密钥**。
 
-    - **Contentful space ID** - 你的Contentful 空间 的 ID。
+    - **Contentful space ID** - 你的 Contentful 空间 的 ID。
     - **Contentful delivery access token** - 用于从你的 Contentful 空间获取已发布内容的访问令牌。
     - **Contentful preview access token** - 用于从你的 Contentful 空间获取未发布内容的访问令牌。
 
 ### 设置凭证
 
-要将你的 Contentful 空间凭证添加到 Astro 中，在项目根目录中创建一个名为`.env`的文件，并添加以下变量：
+要将你的 Contentful 空间凭证添加到 Astro 中，在项目根目录中创建一个名为 `.env` 的文件，并添加以下变量：
 
 ```ini title=".env"
 CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
@@ -41,7 +43,7 @@ CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
 
 现在，你可以在项目中使用这些环境变量。
 
-如果你希望为 Contentful 环境变量启用智能感知，你可以在`src/`目录中创建一个名为`env.d.ts`的文件，并像这样配置`ImportMetaEnv`：
+如果你希望为 Contentful 环境变量启用智能感知，你可以在 `src/` 目录中创建一个名为 `env.d.ts` 的文件，并像这样配置 `ImportMetaEnv`：
 
 ```ts title="src/env.d.ts"
 interface ImportMetaEnv {
@@ -91,7 +93,7 @@ interface ImportMetaEnv {
 接下来，在你的项目的 `src/lib/` 目录中创建一个名为 `contentful.ts` 的新文件。
 
 ```ts title="src/lib/contentful.ts"
-import contentful from "contentful";
+import * as contentful from "contentful";
 
 export const contentfulClient = contentful.createClient({
   space: import.meta.env.CONTENTFUL_SPACE_ID,
@@ -222,8 +224,9 @@ const entries = await contentfulClient.getEntries<BlogPost>({
 
 创建一个名为 `BlogPost` 的新接口，并将其添加到位于 `src/lib/` 下的 `contentful.ts` 文件中。此接口将与你在 Contentful 中的博客文章内容类型的字段相匹配。你将使用它来对博客文章条目的响应进行类型定义。
 
-```ts title="src/lib/contentful.ts" ins=", { EntryFieldTypes }" ins={3-12}
-import contentful, { EntryFieldTypes } from "contentful";
+```ts title="src/lib/contentful.ts" ins="type { EntryFieldTypes }" ins={4-13}
+import * as contentful from "contentful";
+import type { EntryFieldTypes } from "contentful";
 
 export interface BlogPost {
   contentTypeId: "blogPost",
@@ -329,7 +332,7 @@ const posts = entries.items.map((item) => {
 </html>
 ```
 
-#### 生成单独的博客文章页面
+### 生成单独的博客文章页面
 
 使用与上述相同的方法从 Contentful 获取数据，但这次在将为每篇博客文章创建一个唯一的页面路由。
 
@@ -361,6 +364,7 @@ export async function getStaticPaths() {
 ```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
 ---
 import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
@@ -385,7 +389,7 @@ export async function getStaticPaths() {
 
 在我们的示例中，`props` 对象将三个属性传递给页面：
 - title（字符串）
-- content（将文档转换为 HTML 的富文本文档）
+- content（用 `documentToHtmlString` 将文档转换为 HTML 的富文本文档）
 - date（使用 `Date` 构造函数进行格式化）
 
 最后，你可以使用页面 `props` 来显示博客文章。
@@ -393,14 +397,14 @@ export async function getStaticPaths() {
 ```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
 ---
 import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { BlogPost } from "../../lib/contentful";
 
 export async function getStaticPaths() {
-  const entries = await contentfulClient.getEntries<BlogPost>({
+  const { items } = await contentfulClient.getEntries<BlogPost>({
     content_type: "blogPost",
   });
-
-  const pages = entries.items.map((item) => ({
+  const pages = items.map((item) => ({
     params: { slug: item.fields.slug },
     props: {
       title: item.fields.title,
@@ -425,13 +429,13 @@ const { content, title, date } = Astro.props;
 </html>
 ```
 
-在浏览器中导航到 http://localhost:4321/， 然后点击其中一篇文章，以确保你的动态路由正常工作！
+在浏览器中导航到 http://localhost:4321/ 然后点击其中一篇文章，以确保你的动态路由正常工作！
 
-#### 服务器端渲染
+#### 按需渲染
 
-如果你已经 [选择使用 SSR 模式](/zh-cn/guides/server-side-rendering/)，你将使用一个使用 `slug` 参数从 Contentful 获取数据的动态路由。
+如果你已经 [选择使用适配器进行按需渲染](/zh-cn/guides/on-demand-rendering/)，那么你将会使用到动态路由，该路由调用 `slug` 参数从 Contentful 中获取数据。
 
-在 `src/pages/posts` 中创建一个 `[slug].astro` 页面。使用 [`Astro.params`](/zh-cn/reference/api-reference/#astroparams) 来从 URL 中获取 slug，然后将其传递给 `getEntries`：
+在 `src/pages/posts` 中创建一个 `[slug].astro` 页面。使用 [`Astro.params`](/zh-cn/reference/api-reference/#params) 来从 URL 中获取 slug，然后将其传递给 `getEntries`：
 
 ```astro title="src/pages/posts/[slug].astro"
 ---
@@ -449,7 +453,7 @@ const data = await contentfulClient.getEntries<BlogPost>({
 
 如果找不到条目，你可以使用 [`Astro.redirect`](/zh-cn/guides/routing/#动态重定向) 将用户重定向到 404 页面。
 
-```astro title="src/pages/posts/[slug].astro" ins={7, 12-13}
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-14}
 ---
 import { contentfulClient } from "../../lib/contentful";
 import type { BlogPost } from "../../lib/contentful";
@@ -473,7 +477,9 @@ try {
 
 ```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
 ---
+import Layout from "../../layouts/Layout.astro";
 import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
 import type { BlogPost } from "../../lib/contentful";
 
 let post;

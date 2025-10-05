@@ -1,0 +1,339 @@
+---
+title: Internationalization API Reference
+sidebar:
+  label: 'astro:i18n'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.5.0" /></p>
+
+This module provides functions to help you create URLs using your project's configured locales.
+
+Creating routes for your project with the i18n router will depend on certain configuration values you have set that affect your page routes. When creating routes with these functions, be sure to take into account your individual settings for:
+
+- [`base`](/en/reference/configuration-reference/#base)
+- [`trailingSlash`](/en/reference/configuration-reference/#trailingslash)
+- [`build.format`](/en/reference/configuration-reference/#buildformat)
+- [`site`](/en/reference/configuration-reference/#site)
+
+Also, note that the returned URLs created by these functions for your `defaultLocale` will reflect your `i18n.routing` configuration.
+
+For features and usage examples, [see our i18n routing guide](/en/guides/internationalization/).
+
+## Imports from `astro:i18n`
+
+```js
+import { 
+  getRelativeLocaleUrl,
+  getAbsoluteLocaleUrl,
+  getRelativeLocaleUrlList,
+  getAbsoluteLocaleUrlList,
+  getPathByLocale,
+  getLocaleByPath,
+  redirectToDefaultLocale,
+  redirectToFallback,
+  notFound,
+  middleware,
+  requestHasLocale,
+ } from 'astro:i18n';
+```
+
+### `getRelativeLocaleUrl()` 
+
+<p>
+
+**Type:** `(locale: string, path?: string,  options?: GetLocaleOptions) => string`
+</p>
+
+Use this function to retrieve a relative path for a locale. If the locale doesn't exist, Astro throws an error. 
+
+```astro
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+getRelativeLocaleUrl("fr");
+// returns /fr
+
+getRelativeLocaleUrl("fr", "");
+// returns /fr/
+
+getRelativeLocaleUrl("fr", "getting-started");
+// returns /fr/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// returns /blog/fr-ca/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// returns /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+<p>
+
+**Type:** `(locale: string, path?: string, options?: GetLocaleOptions) => string`
+</p>
+
+Use this function to retrieve an absolute path for a locale when [`site`] has a value. If [`site`] isn't configured, the function returns a relative URL. If the locale doesn't exist, Astro throws an error.
+
+
+```astro title="src/pages/index.astro"
+---
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+
+// If `site` is set to be `https://example.com`
+
+getAbsoluteLocaleUrl("fr"); 
+// returns https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", ""); 
+// returns https://example.com/fr/
+
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// returns https://example.com/fr/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// returns https://example.com/blog/fr-ca/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// returns https://example.com/blog/fr_CA/getting-started
+---
+```
+ 
+### `getRelativeLocaleUrlList()` 
+
+<p>
+
+**Type:** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+Use this like [`getRelativeLocaleUrl`](#getrelativelocaleurl) to return a list of relative paths for all the locales.
+
+
+### `getAbsoluteLocaleUrlList()` 
+
+<p>
+
+**Type:** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+Use this like [`getAbsoluteLocaleUrl`](/en/guides/internationalization/#custom-locale-paths) to return a list of absolute paths for all the locales.
+
+### `getPathByLocale()` 
+
+<p>
+
+**Type:** `(locale: string) => string`
+</p>
+
+A function that returns the `path` associated to one or more `codes` when [custom locale paths](/en/guides/internationalization/#custom-locale-paths) are configured.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getPathByLocale } from 'astro:i18n';
+
+getPathByLocale("fr"); // returns "french"
+getPathByLocale("fr-CA"); // returns "french"
+---
+```
+
+### `getLocaleByPath()`
+
+<p>
+
+**Type:** `(path: string) => string`
+</p>
+
+A function that returns the `code` associated to a locale `path`.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getLocaleByPath } from 'astro:i18n';
+
+getLocaleByPath("french"); // returns "fr" because that's the first code configured
+---
+```
+
+### `redirectToDefaultLocale()`
+
+<p>
+
+**Type:** `(context: APIContext, statusCode?: ValidRedirectStatus) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Available only when `i18n.routing` is set to `"manual"`
+:::
+
+A function that returns a `Response` that redirects to the `defaultLocale` configured. It accepts an optional valid redirect status code.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+<p>
+
+**Type:** `(context: APIContext, response: Response) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Available only when `i18n.routing` is set to `"manual"`
+:::
+
+A function that allows you to use your [`i18n.fallback` configuration](/en/reference/configuration-reference/#i18nfallback) in your own middleware.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+<p>
+
+**Type:** `(context: APIContext, response?: Response) => Promise<Response> | undefined`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Available only when `i18n.routing` is set to `"manual"`
+:::
+
+Use this function in your routing middleware to return a 404 when:
+- the current path isn't a root. e.g. `/` or `/<base>`
+- the URL doesn't contain a locale
+
+When a `Response` is passed, the new `Response` emitted by this function will contain the same headers of the original response.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+<p>
+
+**Type:** `(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean }) => MiddlewareHandler`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Available only when `i18n.routing` is set to `"manual"`
+:::
+
+A function that allows you to programmatically create the Astro i18n middleware.
+
+This is useful when you still want to use the default i18n logic, but add only a few exceptions to your website.
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // Custom logic after resolving the response.
+  // It's possible to catch the response coming from Astro i18n middleware.
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+<p>
+
+**Type:** `(context: APIContext) => boolean`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Available only when `i18n.routing` is set to `"manual"`
+:::
+
+Checks whether the current URL contains a configured locale. Internally, this function will use `APIContext#url.pathname`.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```

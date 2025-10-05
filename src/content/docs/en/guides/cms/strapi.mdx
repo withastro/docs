@@ -1,6 +1,8 @@
 ---
 title: Strapi & Astro
 description: Add content to your Astro project using Strapi Headless CMS
+sidebar:
+  label: Strapi
 type: cms
 service: Strapi
 stub: false
@@ -9,6 +11,7 @@ i18nReady: true
 import { Steps } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
 [Strapi](https://strapi.io/) is an open-source, customizable, headless CMS.
 
@@ -28,7 +31,7 @@ To get started, you will need to have the following:
 To add your Strapi URL to Astro, create a `.env` file in the root of your project (if one does not already exist) and add the following variable:
 
 ```ini title=".env"
-STRAPI_URL="http://127.0.0.1:1337" // or use your IP address
+STRAPI_URL="http://127.0.0.1:1337" # or use your IP address
 ```
 
 Restart the dev server to use this environment variable in your Astro project.
@@ -49,6 +52,8 @@ Your root directory should now include the new file(s):
   - astro.config.mjs
   - package.json
 </FileTree>
+
+<ReadMore>Learn more about [environment variables](/en/guides/environment-variables/) and `.env` files in Astro.</ReadMore>
 
 ### Creating the API wrapper
 
@@ -115,16 +120,14 @@ If you are using TypeScript, create the following Article interface to correspon
 
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
-  id: number;
-  attributes: {
-    title: string;
-    description: string;
-    content: string;
-    slug: string;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string;
-  };
+  documentId: number;
+  title: string;
+  description: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 ```
 
@@ -167,16 +170,14 @@ You can modify this interface, or create multiple interfaces, to correspond to y
     ```json
     [
       {
-        id: 1,
-        attributes: {
-          title: "What's inside a Black Hole",
-          description: "Maybe the answer is in this article, or not...",
-          content: "Well, we don't know yet...",
-          slug: "what-s-inside-a-black-hole",
-          createdAt: "2023-05-28T13:19:46.421Z",
-          updatedAt: "2023-05-28T13:19:46.421Z",
-          publishedAt: "2023-05-28T13:19:45.826Z"
-        }
+        documentId: 1,
+        title: "What's inside a Black Hole",
+        description: "Maybe the answer is in this article, or not...",
+        content: "Well, we don't know yet...",
+        slug: "what-s-inside-a-black-hole",
+        createdAt: "2023-05-28T13:19:46.421Z",
+        updatedAt: "2023-05-28T13:19:46.421Z",
+        publishedAt: "2023-05-28T13:19:45.826Z"
       },
       // ...
     ]
@@ -206,8 +207,8 @@ You can modify this interface, or create multiple interfaces, to correspond to y
             {
               articles.map((article) => (
                 <li>
-                  <a href={`/blog/${article.attributes.slug}/`}>
-                    {article.attributes.title}
+                  <a href={`/blog/${article.slug}/`}>
+                    {article.title}
                   </a>
                 </li>
               ))
@@ -241,9 +242,9 @@ Create the file `src/pages/blog/[slug].astro` to [dynamically generate a page](/
 
 #### Static site generation
 
-In Astro's default static mode (SSG), use [`getStaticPaths()`](/en/reference/api-reference/#getstaticpaths) to fetch your list of articles from Strapi.
+In Astro's default static mode (SSG), use [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths) to fetch your list of articles from Strapi.
 
-```astro title="src/pages/blog/[slug].astro
+```astro title="src/pages/blog/[slug].astro"
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -255,7 +256,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -267,7 +268,7 @@ const article = Astro.props;
 
 Create the template for each page using the properties of each post object.
 
-```astro title="src/pages/blog/[slug].astro ins={21-43}
+```astro title="src/pages/blog/[slug].astro" ins={21-43}
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -279,7 +280,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -291,23 +292,23 @@ const article = Astro.props;
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- Render plain text -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- Render markdown -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- Render html -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>
@@ -316,9 +317,9 @@ const article = Astro.props;
 Make sure to choose the right rendering for your content. For markdown check out our [markdown guide](/en/guides/markdown-content/). If you are rendering html refer to [this guide](/en/reference/directives-reference/#sethtml) for safety.
 :::
 
-#### Server-side rendering
+#### On-demand rendering
 
-If you've [opted into SSR mode](/en/guides/server-side-rendering/) with `output: server` or `output: hybrid`, [generate your dynamic routes](/en/guides/routing/#server-ssr-mode) using the following code:
+If you've [opted into on-demand rendering with an adapter](/en/guides/on-demand-rendering/), [generate your dynamic routes](/en/guides/routing/#on-demand-dynamic-routes) using the following code:
 
 Create the `src/pages/blog/[slug].astro` file:
 
@@ -348,23 +349,23 @@ try {
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- Render plain text -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- Render markdown -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- Render html -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>

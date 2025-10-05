@@ -1,0 +1,184 @@
+---
+title: Prisma Postgres & Astro
+description: Prisma Postgres를 사용하여 Astro 프로젝트에 서버리스 Postgres 데이터베이스를 추가하세요.
+sidebar:
+  label: Prisma Postgres
+type: backend
+service: Prisma Postgres
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Prisma Postgres](https://www.prisma.io/)는 최신 웹 앱을 위해 구축된 완전 관리형 서버리스 Postgres 데이터베이스입니다.
+
+## Prisma ORM을 통해 연결 (권장)
+
+[Prisma ORM](https://www.prisma.io/orm)은 Prisma Postgres 데이터베이스에 연결하는 데 권장되는 방법입니다. 타입 안전 쿼리, 마이그레이션 및 글로벌 성능을 제공합니다.
+
+### 전제 조건
+- [요청 시 렌더링 (SSR)](/ko/guides/on-demand-rendering/)을 활성화하기 위해 어댑터가 설치된 Astro 프로젝트가 필요합니다.
+
+### 의존성 설치 및 Prisma 초기화
+
+다음 명령을 실행하여 필수 Prisma 의존성을 설치합니다.
+
+```bash
+npm install prisma tsx --save-dev
+npm install @prisma/extension-accelerate @prisma/client
+```
+
+설치가 완료되면 프로젝트에서 다음 명령어를 사용하여 Prisma를 초기화합니다.
+
+```bash
+npx prisma init --db --output ../src/generated/prisma
+```
+
+Prisma Postgres 데이터베이스를 설정하는 동안 몇 가지 질문에 답해야 합니다. 현재 위치에서 가장 가까운 지역을 선택하고 데이터베이스의 이름을 "My Astro Project"와 같이 기억할 수 있는 이름으로 설정합니다.
+
+이렇게 하면 다음 항목이 생성됩니다.
+- `schema.prisma` 파일을 포함하는 `prisma/` 디렉터리
+- `DATABASE_URL`이 설정된 `.env` 파일
+
+### 모델 정의하기
+
+아직 데이터 모델이 필요하지 않더라도 Prisma가 클라이언트를 생성하고 마이그레이션을 적용하기 위해 스키마에 적어도 하나의 모델이 필요합니다.
+
+다음 예시에서는 `Post` 모델을 임시로 정의합니다. 시작하려면 스키마에 모델을 추가하세요. 나중에 안전하게 삭제하거나 실제 데이터를 반영하는 모델로 대체할 수 있습니다.
+
+`prisma/schema.prisma` 파일의 generator provider를 `prisma-client-js`에서 `prisma-client`로 업데이트합니다.
+
+```prisma title="prisma/schema.prisma" {2} ins={11-16}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+}
+```
+
+[Prisma 스키마 참조](https://www.prisma.io/docs/concepts/components/prisma-schema)에서 Prisma ORM 설정 구성에 대해 자세히 알아보세요.
+
+### 마이그레이션 파일 생성하기
+
+다음 명령을 실행하여 데이터베이스 테이블을 생성하고 스키마로부터 Prisma 클라이언트를 생성합니다. 그러면 마이그레이션 기록 파일이 포함된 `prisma/migrations/` 디렉터리도 함께 생성됩니다.
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Prisma 클라이언트 만들기
+
+`/src/lib`에 `prisma.ts` 파일을 생성합니다. 이 파일은 Prisma 클라이언트 인스턴스를 초기화하고 내보내 Astro 프로젝트 전체에서 데이터베이스를 쿼리할 수 있도록 합니다.
+
+```typescript title="src/lib/prisma.ts"
+import { PrismaClient } from "../generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
+
+const prisma = new PrismaClient({
+  datasourceUrl: import.meta.env.DATABASE_URL,
+}).$extends(withAccelerate());
+
+export default prisma;
+```
+
+### 데이터 쿼리 및 표시하기
+
+다음 예시는 Prisma 클라이언트를 사용하여 공개된 게시물만 `id`별로 정렬하여 가져온 다음, Astro 템플릿에서 제목과 게시물 내용을 표시하는 방법을 보여줍니다.
+
+```astro title="src/pages/posts.astro" {2, 4-7}
+---
+import prisma from '../lib/prisma';
+
+const posts = await prisma.post.findMany({
+  where: { published: true },
+  orderBy: { id: 'desc' }
+});
+---
+
+<html>
+  <head>
+    <title>공개된 게시물 목록</title>
+  </head>
+  <body>
+    <h1>공개된 게시물 목록</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <h2>{post.title}</h2>
+          {post.content && <p>{post.content}</p>}
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+API 라우트에서 쿼리를 처리하는 것이 가장 좋습니다. Astro 프로젝트에서 Prisma ORM을 사용하는 방법에 대한 자세한 내용은 [Astro + Prisma ORM 가이드](https://www.prisma.io/docs/guides/astro)를 참조하세요.
+
+## 다이렉트 TCP 연결하기
+
+다이렉트 TCP를 통해 Prisma Postgres에 연결하려면 Prisma 콘솔에서 다이렉트 연결 문자열을 생성하면 됩니다. 이를 통해 다른 ORM, 데이터베이스 라이브러리 또는 도구를 연결할 수 있습니다.
+
+### 전제 조건
+- TCP가 활성화된 연결 문자열이 있는 [Prisma Postgres](https://pris.ly/ppg) 데이터베이스
+
+### 의존성 설치하기
+
+이 예시에서는 [Node.js용 PostgreSQL 클라이언트인 `pg`](https://github.com/brianc/node-postgres)를 사용하여 다이렉트 TCP 연결을 설정합니다.
+
+다음 명령을 실행하여 `pg` 패키지를 설치합니다.
+
+```bash
+npm install pg
+```
+
+### 데이터베이스 클라이언트 쿼리
+
+SQL 서버와 통신하고 데이터베이스에서 데이터를 가져올 수 있도록 `pg` 클라이언트에 연결 문자열을 제공합니다.
+
+테이블을 만들고 데이터를 삽입하는 다음 예시는 쿼리 URL과 TCP 연결의 유효성을 검사하는 데 사용할 수 있습니다:
+
+```astro title="src/pages/index.astro" {2-19}
+---
+import { Client } from 'pg';
+const client = new Client({ 
+  connectionString: import.meta.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+await client.connect();
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id SERIAL PRIMARY KEY,
+    title TEXT UNIQUE,
+    content TEXT
+  );
+  
+  INSERT INTO posts (title, content)
+  VALUES ('Hello', 'World')
+  ON CONFLICT (title) DO NOTHING;
+`);
+
+const { rows } = await client.query('SELECT * FROM posts');
+await client.end();
+---
+
+<h1>게시물 목록</h1>
+<p>{rows[0].title}: {rows[0].content}</p>
+```
+
+## 공식 리소스
+
+- [Astro + Prisma ORM 가이드](https://www.prisma.io/docs/guides/astro)

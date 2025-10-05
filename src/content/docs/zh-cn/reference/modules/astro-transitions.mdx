@@ -1,0 +1,462 @@
+---
+title: 视图过渡路由 API 参考
+sidebar:
+  label: 'astro:transitions'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+此模块提供了一些函数，用于控制和与视图过渡 API 和客户端路由进行交互。
+
+:::note
+此 API 与 `astro:transitions` 中包含的 `<ClientRouter />` 兼容，但不能与原生浏览器的 MPA 路由一起使用。
+:::
+
+对于功能和使用示例，[请参阅我们的视图过渡指南](/zh-cn/guides/view-transitions/)。
+
+## 从 `astro:transitions` 导入
+
+```ts
+import { ClientRouter, fade, slide } from 'astro:transitions';
+```
+
+### `<ClientRouter />`
+
+<p><Since v="3.0.0" /></p>
+
+通过将 `<ClientRouter />` 路由组件导入并添加到每个所需页面的 `<head>` 部分，以选择在各个页面上使用视图过渡动画。
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ClientRouter } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <title>我的首页</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <h1>欢迎来到我的网站！</h1>
+  </body>
+</html>
+```
+
+查看有关如何 [控制路由器](/zh-cn/guides/view-transitions/#路由器控制)以及 [添加过渡指令](/zh-cn/guides/view-transitions/#过渡动画指令) 到页面元素和组件的更多信息。
+
+### `fade`
+
+<p>
+
+**类型：** `(opts: { duration?: string | number }) => TransitionDirectionalAnimations`
+<Since v="3.0.0" />
+</p>
+
+支持自定义内置 `fade` 动画持续时间的实用函数。
+
+```astro {2} /fade\\(.+\\)/
+---
+import { fade } from 'astro:transitions';
+---
+
+<!-- 使用默认持续时间的淡入淡出过渡 -->
+<div transition:animate="fade" />
+
+<!-- 持续时间为 400 毫秒的淡入淡出过渡 -->
+<div transition:animate={fade({ duration: '0.4s' })} />
+```
+
+### `slide`
+
+<p>
+
+**类型：** `(opts: { duration?: string | number }) => TransitionDirectionalAnimations`
+<Since v="3.0.0" />
+</p>
+
+支持自定义内置 `slide` 动画持续时间的实用函数。
+
+```astro {2} /slide\\(.+\\)/
+---
+import { slide } from 'astro:transitions';
+---
+
+<!-- 使用默认持续时间的滑动过渡 -->
+<div transition:animate="slide" />
+
+<!-- 持续时间为 400 毫秒的滑动过渡 -->
+<div transition:animate={slide({ duration: '0.4s' })} />
+```
+
+## 从 `astro:transitions/client` 导入
+
+```astro
+<script>
+  import { 
+    navigate,
+    supportsViewTransitions,
+    transitionEnabledOnThisPage,
+    getFallback,
+    swapFunctions,
+  } from 'astro:transitions/client';
+</script>
+```
+
+### `navigate()`
+
+<p>
+
+**类型：**`(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+一个使用视图过渡 API 导航到给定 `href` 的函数。
+
+此函数签名基于 [浏览器 Navigation API 中的 `navigate` 函数](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate)。虽然基于 Navigation API，但此函数是在 [History API](https://developer.mozilla.org/zh-CN/docs/Web/API/History_API) 之上实现的，以允许在不重新加载页面的情况下进行导航。
+
+#### `history` 选项
+
+<p>
+
+**类型：**`'auto' | 'push' | 'replace'`<br />
+**默认值：**`'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+定义了如何将此导航添加到浏览器历史记录中。
+
+- `'push'`：路由将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
+- `'replace'`：路由将使用 `history.replaceState` 更新 URL，而不会在导航中添加新条目。
+- `'auto'`（默认）：路由将尝试 `history.pushState`，但如果无法进行过渡，则当前 URL 将保持不变，浏览器历史记录不会发生变化。
+
+此选项遵循浏览器 Navigation API 中的 [`history` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history)，但简化了在 Astro 项目中可能发生的情况。
+
+#### `formData` 选项
+
+<p>
+
+**类型：**`FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+一个 `FormData` 对象，用于 `POST` 请求。
+
+当提供此选项时，导航目标页面的请求将以 `POST` 请求的形式发送，内容为表单数据对象。
+
+当提交一个带有视图过渡的 HTML 表单时，将使用此方法代替默认的页面重新加载导航。调用此方法允许以编程方式触发相同的行为。
+
+#### `info` 选项
+
+<p>
+
+**类型：**`any`<br />
+<Since v="3.6.0" />
+</p>
+
+与导航相关的 `astro:before-preparation` 和 `astro:before-swap` 事件中包含的任意数据。
+
+此选项模仿了浏览器 Navigation API 中的 [`info` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info)。
+
+#### `state` 选项
+
+<p>
+
+**类型：**`any`<br />
+<Since v="3.6.0" />
+</p>
+
+与导航相关的 `NavitationHistoryEntry` 对象中关联的任意数据。此数据可以通过 [`history.getState` 函数](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) 从 History API 中检索。
+
+此选项模仿了浏览器 Navigation API 中的 [`state` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state)。
+
+#### `sourceElement` 选项
+
+<p>
+
+**类型：**`Element`<br />
+<Since v="3.6.0" />
+</p>
+
+此导航的触发元素，如果有的话。此元素将在以下事件中可用：
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**类型：**`boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+当前浏览器是否支持并启用视图过渡。
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**类型：**`boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+当前页面是否启用了视图过渡以进行客户端导航。这可以用于使组件在视图过渡页面上的行为有所不同。
+
+### `getFallback`
+
+<p>
+
+**类型：**`() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+返回在浏览器不支持视图过渡时使用的回退策略。
+
+有关如何选择和配置回退行为的详细信息，请参阅 [回退控制](/zh-cn/guides/view-transitions/#回退控制) 指南。
+
+### `swapFunctions`
+
+<p>
+
+<Since v="4.15.0" />
+</p>
+
+一个对象，其中包含了用于构建 Astro 默认交换函数的工具类函数。
+这些函数在 [构建自定义交换函数](/zh-cn/guides/view-transitions/#构建自定义交换函数) 时非常有用。
+
+`swapFunctions` 提供了以下方法：
+
+#### `deselectScripts()`
+
+<p>
+
+**类型：** `(newDocument: Document) => void`
+</p>
+
+标记在新的 document 中不应执行的脚本。这些脚本已经在当前 document 中，并且没有使用 [`data-astro-rerun`](/zh-cn/guides/view-transitions/#data-astro-rerun) 标记为重新执行。
+
+#### `swapRootAttributes()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+在 document 根节点之间交换属性，如 `lang` 属性。这也包括 Astro 注入的内部属性，如 `data-astro-transition`，这使得过渡方向可用于 Astro 生成的 CSS 规则。
+
+在构建自定义交换函数时，重要的是调用此函数，以避免破坏视图过渡的动画。
+
+#### `swapHeadElements()`
+
+<p>
+
+**类型：**`(newDocument: Document) => void`
+</p>
+
+从当前 document 的 `<head>` 中删除所有未持久化到新 document 的元素。然后将新 document 的 `<head>` 中的所有新元素附加到当前 document 的 `<head>`。
+
+#### `saveFocus()`
+
+<p>
+
+**类型：**`() => () => void`
+</p>
+
+在当前页面上存储聚焦的元素，并返回一个函数，当调用时，如果聚焦的元素被持久化，则将焦点返回给该元素。
+
+#### `swapBodyElement()`
+
+<p>
+
+**类型：**`(newBody: Element, oldBody: Element) => void`
+</p>
+
+用新 document 的 body 替换旧的 body。然后，遍历旧 body 中应持久化的每个元素，并在新 body 中找到匹配的元素，将旧元素交换回原位。
+
+## 生命周期事件
+
+### `astro:before-preparation` 事件
+
+使用视图过渡路由开始导航时触发的事件。此事件发生在任何请求之前，并且不会更改任何浏览器状态。
+
+此事件具有以下属性：
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader()`](#loader)
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-preparation)。
+
+### `astro:after-preparation` 事件
+
+使用视图过渡路由加载导航中的下一个页面后触发的事件。
+
+此事件没有属性。
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astroafter-preparation)。
+
+### `astro:before-swap` 事件
+
+在视图过渡中导航的下一个页面解析、准备并链接到 document 后，但在任何内容在 document 之间交换之前触发的事件。
+
+此事件不能取消。调用 `preventDefault()` 是无效的。
+
+此事件具有以下属性：
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap`](#swap)
+
+有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-swap)。
+
+### `astro:after-swap` 事件
+
+在视图过渡中导航的下一个页面内容交换后，但在视图过渡结束之前触发的事件。
+
+在触发此事件时，历史记录条目和滚动位置已经更新。
+
+### `astro:page-load` 事件
+
+在页面完成加载后触发的事件，无论是通过视图过渡导航还是浏览器原生导航。
+
+当视图过渡在页面上启用时，通常在 `DOMContentLoaded` 上执行的代码应更改为在此事件上执行。
+
+### 生命周期事件属性
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+在导航期间定义的任意数据。
+
+这是在 [`navigate()` 函数](#navigate) 的 [`info` 选项](#info-选项) 中传递的文字值。
+
+#### `sourceElement`
+
+<p>
+
+**类型：**`Element | undefined`
+</p>
+
+触发导航的元素。例如，这可以是点击的 `<a>` 元素。
+
+当使用 [`navigate()` 函数](#navigate) 时，这将是调用中指定的元素。
+
+#### `newDocument`
+
+<p>
+
+**类型：**`Document`
+</p>
+
+导航中下一个页面的 document。此 document 的内容将替换当前 document 的内容。
+
+#### `navigationType`
+
+<p>
+
+**类型：**`'push' | 'replace' | 'traverse'`
+</p>
+
+正在发生的导航类型。
+- `push`: 正在为新页面创建一个新的 `NavigationHistoryEntry`。
+- `replace`: 当前的 `NavigationHistoryEntry` 正在被新页面的条目替换。
+- `traverse`: 没有创建 `NavigationHistoryEntry`。历史记录中的位置正在改变。
+  遍历的方向由 [`direction` 属性](#direction) 给出
+
+#### `direction`
+
+<p>
+
+**类型：**`Direction`
+</p>
+
+过渡的方向。
+- `forward`: 在历史记录中导航到下一个页面或新页面。
+- `back`: 在历史记录中导航到前一个页面。
+- 其他监听器可能设置的任何其他内容。
+
+#### `from`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+正在导航的页面的 URL。
+
+#### `to`
+
+<p>
+
+**类型：**`URL`
+</p>
+
+正在导航的页面的 URL。此属性可以修改，在生命周期结束时使用的值将是下一个页面的 `NavigationHistoryEntry` 的值。
+
+#### `formData`
+
+<p>
+
+**类型：**`FormData | undefined`
+</p>
+
+一个用于 `POST` 请求的 `FormData` 对象。
+
+当此属性设置时，将使用给定的表单数据对象作为内容发送 `POST` 请求到 [`to` URL](#to)，而不是正常的 `GET` 请求。
+
+当提交一个带有视图过渡的 HTML 表单时，此字段会自动设置为表单中的数据。当使用 [`navigate()` 函数](#navigate) 时，此值与给定的选项相同。
+
+#### `loader`
+
+<p>
+
+**类型：**`() => Promise<void>`
+</p>
+
+在导航过程中下个阶段的实现（加载下一个页面）。此实现可以覆盖以添加额外的行为。
+
+#### `viewTransition`
+
+<p>
+
+**类型：**[`ViewTransition`](https://developer.mozilla.org/zh-CN/docs/Web/API/ViewTransition)
+</p>
+
+在导航过程中使用的视图过渡对象。在浏览器不支持 [视图过渡 API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) 的情况下，这是一个对象，实现了相同的 API 以方便使用，但没有 DOM 集成。
+
+#### `swap`
+
+<p>
+
+**类型：**`() => void`
+</p>
+
+document 交换逻辑的实现。
+
+有关如何构建自定义交换函数的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#构建自定义交换函数).
+
+默认情况下，此实现将按顺序调用以下函数：
+
+1. [`deselectScripts()`](#deselectscripts)
+2. [`swapRootAttributes()`](#swaprootattributes)
+3. [`swapHeadElements()`](#swapheadelements)
+4. [`saveFocus()`](#savefocus)
+5. [`swapBodyElement()`](#swapbodyelement)

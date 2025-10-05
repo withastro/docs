@@ -1,0 +1,176 @@
+---
+title: Astro सिंटेक्स
+description: .astro अवयव सिंटैक्स का परिचय।
+i18nReady: true
+---
+
+**यदि आप HTML जानते हैं, तो आप अपना पहला Astro अवयव लिखने के लिए पहले से ही पर्याप्त जानते हैं।**
+
+Astro अवयव सिंटैक्स एक सुपरसेट है HTML का। सिंटैक्स को [HTML या JSX लिखने का अनुभव रखने वाले किसी भी व्यक्ति को परिचित महसूस कराने के लिए डिज़ाइन किया गया था](#astro-और-jsx-के-बीच-अंतर), और अवयवों और JavaScript एक्सप्रेशन को शामिल करने के लिए समर्थन जोड़ता है।
+
+
+## JSX-जैसे एक्सप्रेशन
+
+आप Astro अवयव के दो कोड बाड़ (`---`) के बीच फ्रंटमैटर अवयव स्क्रिप्ट के अंदर स्थानीय JavaScript चर को परिभाषित कर सकते हैं। फिर आप JSX-जैसी एक्सप्रेशन का उपयोग करके इन चरों को अवयव के HTML टेम्पलेट में इंजेक्ट कर सकते हैं!
+
+:::note[गतिशील vs प्रतिक्रियाशील]
+इस दृष्टिकोण का उपयोग करके, आप **गतिशील** मानों को शामिल कर सकते हैं जिनकी गणना फ्रंटमैटर में की जाती है। लेकिन एक बार शामिल होने के बाद, ये मूल्य **प्रतिक्रियाशील** नहीं होते हैं और कभी नहीं बदलेंगे। Astro अवयव ऐसे टेम्पलेट हैं जो रेंडरिंग चरण के दौरान केवल एक बार चलते हैं।
+
+[Astro और JSX के बीच अंतर](#astro-और-jsx-के-बीच-अंतर) के अधिक उदाहरणों के लिए नीचे देखें।
+:::
+
+### चर
+
+घुंघराले ब्रेसिज़ सिंटैक्स का उपयोग करके स्थानीय चर को HTML में जोड़ा जा सकता है:
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- <h1>Hello Astro!</h1> मिलेगा -->
+</div>
+```
+
+### गतिशील विशेषताएँ
+
+स्थानीय चर का उपयोग HTML तत्वों और अवयवों दोनों में विशेषता मानों को पारित करने के लिए घुंघराले ब्रेसिज़ में किया जा सकता है:
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>विशेषता एक्सप्रेशन समर्थित हैं</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+HTML विशेषताओं को स्ट्रिंग्स में परिवर्तित कर दिया जाएगा, इसलिए फ़ंक्शंस और ऑब्जेक्ट्स को HTML तत्वों में पास करना संभव नहीं है।
+उदाहरण के लिए, आप Astro अवयव में किसी HTML तत्व के लिए ईवेंट हैंडलर निर्दिष्ट नहीं कर सकते:
+
+```astro title="dont-do-this.astro"
+---
+function handleClick () {
+    console.log("बटन क्लिक किया गया!");
+}
+---
+<!-- ❌ यह काम नहीं करता! ❌ -->
+<button onClick={handleClick}>जब आप मुझ पर क्लिक करेंगे तो कुछ नहीं होगा!</button>
+```
+
+इसके बजाय, इवेंट हैंडलर जोड़ने के लिए क्लाइंट-साइड स्क्रिप्ट का उपयोग करें, जैसे आप वेनिला JavaScript में करेंगे:
+
+```astro title="do-this-instead.astro"
+---
+---
+<button id="button">Click Me</button>
+<script>
+  function handleClick () {
+    console.log("button क्लिक किया गया!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### गतिशील HTML
+
+गतिशील रूप से उत्पन्न HTML तत्वों का उत्पादन करने के लिए JSX-जैसे फ़ंक्शंस में स्थानीय चर का उपयोग किया जा सकता है:
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["Dog", "Cat", "Platypus"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro JSX तार्किक ऑपरेटरों और टर्नरी एक्सप्रेशन का उपयोग करके HTML को सशर्त रूप से प्रदर्शित कर सकता है।
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>मुझे दिखाओ!</p>}
+
+{visible ? <p>मुझे दिखाओ!</p> : <p>वरना मुझे दिखाओ!</p>}
+```
+
+### गतिशील टैग
+
+आप HTML टैग नाम या अवयव आयात में एक चर सेट करके गतिशील टैग का भी उपयोग कर सकते हैं:
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- renders as <div>Hello!</div> -->
+<Component /> <!-- renders as <MyComponent /> -->
+```
+
+गतिशील टैग का उपयोग करते समय:
+
+- **चर नामों को बड़े अक्षरों में लिखा जाना चाहिए।** उदाहरण के लिए, `Element` का उपयोग करें, `element` का नहीं। अन्यथा, Astro आपके वैरिएबल नाम को शाब्दिक HTML टैग के रूप में प्रस्तुत करने का प्रयास करेगा।
+
+- **हाइड्रेशन निर्देश समर्थित नहीं हैं।** [`client:*` हाइड्रेशन निर्देशों](/hi/guides/framework-components/#hydrating-interactive-components) का उपयोग करते समय, Astro को यह जानना होगा कि उत्पादन के लिए किन घटकों को बंडल करना है, और गतिशील टैग पैटर्न इसे काम करने से रोकता है।
+
+- **[define:vars directive](/hi/reference/directives-reference/#definevars) समर्थित नहीं है।** यदि आप चिल्ड्रन को एक अतिरिक्त तत्व (जैसे `<div>`) के साथ लपेट नहीं सकते हैं, तो आप नियमावली रूप से अपने तत्व में `style={``--myVar:${value}``}` जोड़ सकते हैं।
+
+### फ़्रैगमेन्ट्स
+
+Astro या तो `<Fragment> </Fragment>` या संक्षेप `<> </>` का उपयोग करने का समर्थन करता है।
+
+[`set:*` निर्देश](/hi/reference/directives-reference/#sethtml) जोड़ते समय आवरण तत्वों से बचने के लिए फ़्रैगमेन्ट्स उपयोगी हो सकते हैं, जैसा कि निम्नलिखित उदाहरण में है:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>कच्ची HTML सामग्री</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Astro और JSX के बीच अंतर
+
+Astro अवयव सिंटैक्स HTML का एक सुपरसेट है। इसे HTML या JSX अनुभव वाले किसी भी व्यक्ति को परिचित महसूस कराने के लिए डिज़ाइन किया गया था, लेकिन `.astro` फ़ाइलों और JSX के बीच कुछ महत्वपूर्ण अंतर हैं।
+
+#### विशेषताएँ
+
+Astro में, आप JSX में प्रयुक्त `camelCase` के बजाय सभी HTML विशेषताओं के लिए मानक `kebab-case` प्रारूप का उपयोग करते हैं। यह `class` के लिए भी काम करता है, जो React द्वारा समर्थित नहीं है।
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### एकाधिक तत्व
+
+एक Astro अवयव टेम्पलेट JavaScript या JSX के विपरीत, एक `<div>` या `<>` में सब कुछ लपेटने की आवश्यकता के बिना कई तत्वों को प्रस्तुत कर सकता है।
+
+```astro title="src/components/RootElements.astro"
+---
+// एकाधिक तत्वों वाला टेम्पलेट
+---
+<p>तत्वों को एक ही तत्व में लपेटने की आवश्यकता नहीं है।</p>
+<p>Astro एक टेम्पलेट में एकाधिक मूल तत्वों का समर्थन करता है।</p>
+```
+
+#### टिप्पणियाँ
+
+Astro में, आप मानक HTML टिप्पणियों या JavaScript-शैली टिप्पणियों का उपयोग कर सकते हैं।
+
+```astro title="example.astro"
+---
+---
+<!-- HTML टिप्पणी सिंटैक्स .astro फ़ाइलों में मान्य है -->
+{/* JS टिप्पणी सिंटैक्स भी मान्य है */}
+```
+
+:::caution
+HTML-शैली की टिप्पणियाँ ब्राउज़र DOM में शामिल की जाएंगी, जबकि JS वाली टिप्पणियाँ छोड़ दी जाएंगी। TODO संदेशों या अन्य विकास-केवल स्पष्टीकरणों को छोड़ने के लिए, आप इसके बजाय JavaScript-शैली टिप्पणियों का उपयोग करना चाह सकते हैं।
+:::

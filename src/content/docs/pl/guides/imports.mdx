@@ -1,0 +1,289 @@
+---
+title: Importowanie
+description: Naucz się jak importować różne typy treści za pomocą Astro.
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import ReadMore from '~/components/ReadMore.astro'
+
+Astro wspiera większość statycznych zasobów bez konieczności konfiguracji. Możesz użyć instrukcji `import` w dowolnym miejscu w JavaScript Twojego projektu (w tym w sekcji frontmatter Astro), a Astro uwzględni zbudowaną, zoptymalizowaną kopię tego statycznego zasobu w Twoim finalnym buildzie. `@import` jest również obsługiwany wewnątrz CSS i tagów `<style>`.
+
+## Obsługiwane typy plików
+
+Następujące typy plików są obsługiwane przez Astro od razu po instalacji:
+
+- Komponenty Astro (`.astro`)
+- Markdown (`.md`, `.markdown`, etc.)
+- JavaScript (`.js`, `.mjs`)
+- TypeScript (`.ts`)
+- Pakiety NPM
+- JSON (`.json`)
+- CSS (`.css`)
+- Moduły CSS (`.module.css`)
+- Obrazy (`.svg`, `.jpg`, `.png`, etc.)
+
+Dodatkowo możesz rozszerzyć Astro, aby dodać obsługę różnych [frameworków UI](/pl/guides/framework-components/) takich jak komponenty React, Svelte i Vue. Możesz również zainstalować [integrację Astro MDX](/pl/guides/integrations-guide/mdx/) i używać plików `.mdx` w swoim projekcie.
+
+### Pliki w katalogu `public/`
+
+Możesz umieścić dowolny statyczny zasób (np. obrazek, gif, animację) w [ katalogu `public/`](/pl/basics/project-structure/#public) swojego projektu, a Astro skopiuje go bezpośrednio do Twojej finalnej kompilacji bez zmian. Pliki w `public/` nie są budowane ani bundlowane przez Astro, co oznacza, że obsługiwany jest każdy typ pliku. Możesz odwoływać się do pliku z `public/` poprzez ścieżkę URL bezpośrednio w swoich szablonach HTML.
+
+## Instrukcje importu
+
+Astro używa ESM, tej samej składni [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax) i [`export`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export)  obsługiwanej w przeglądarce.
+
+### JavaScript
+
+```js
+import { getUser } from './user.js';
+```
+
+JavaScript może być importowany przy użyciu normalnej składni ESM `import` i `export`.
+
+:::note[Importowanie plików JSX]
+
+Do renderowania plików JSX/TSX wymagany jest odpowiedni [framework UI](/pl/guides/framework-components/) ([React](/pl/guides/integrations-guide/react/), [Preact](/pl/guides/integrations-guide/preact/) lub [Solid](/pl/guides/integrations-guide/solid-js/)). 
+Używaj rozszerzeń `.jsx`/`.tsx` tam, gdzie to właściwe, ponieważ Astro nie obsługuje JSX w plikach `.js`/`.ts`.
+
+:::
+
+### TypeScript
+
+```js
+import { getUser } from './user';
+import type { UserType } from './user';
+```
+
+Astro zawiera wbudowaną obsługę [TypeScript](https://www.typescriptlang.org/). Możesz importować pliki `.ts` i `.tsx` bezpośrednio w swoim projekcie Astro, a nawet pisać kod TypeScript bezpośrednio wewnątrz [skryptu komponentu Astro](/pl/basics/astro-components/#skrypt-komponentu) i dowolnych [hoistowanych tagów skryptu](/pl/guides/client-side-scripts/).
+
+**Astro nie wykonuje żadnej kontroli typów samodzielnie.** Kontrola typów powinna być przeprowadzana poza Astro, albo przez Twoje IDE, albo poprzez osobny skrypt. Do sprawdzania typów plików Astro dostarczane jest polecenie [`astro check`](/pl/reference/cli-reference/#astro-check).
+
+:::note[TypeScript i rozszerzenia plików]
+Zgodnie z [zasadami rozwiązywania modułów TypeScript](https://www.typescriptlang.org/docs/handbook/module-resolution.html), rozszerzeń plików `.ts` and `.tsx` nie powinno się używać podczas importowania plików TypeScript. Zamiast tego używaj rozszerzeń `.js`/`.jsx` albo całkowicie pomiń rozszerzenie pliku.
+
+```ts
+import { getUser } from './user.js'; // user.ts
+import MyComponent from "./MyComponent"; // MyComponent.tsx
+```
+
+:::
+
+<ReadMore>Przeczytaj więcej o [obsłudze TypeScript w Astro](/pl/guides/typescript/).</ReadMore>
+
+
+### Pakiety NPM
+
+Jeśli zainstalowałeś pakiet NPM, możesz go importować w Astro.
+
+```astro
+---
+import { Icon } from 'astro-icon';
+---
+```
+Jeśli pakiet został opublikowany w starszym formacie, Astro spróbuje przekonwertować go do ESM, aby instrukcje import działały. W niektórych przypadkach może być konieczne dostosowanie [`konfiguracji vite`](/pl/reference/configuration-reference/#vite), aby to działało.
+
+:::caution
+Niektóre pakiety polegają na środowisku przeglądarki. Komponenty Astro działają na serwerze, więc importowanie tych pakietów w sekcji frontmatter może [prowadzić do błędów](/pl/guides/troubleshooting/#document-or-window-is-not-defined).
+:::
+
+### JSON
+
+```js
+// Załaduj obiekt JSON przez domyślny eksport
+import json from './data.json';
+```
+
+Astro obsługuje importowanie plików JSON bezpośrednio do Twojej aplikacji. Importowane pliki zwracają pełny obiekt JSON w domyślnym imporcie.
+
+### CSS
+
+```js
+// Załaduj i wstrzyknij 'style.css' na stronę
+import './style.css';
+```
+
+Astro obsługuje importowanie plików CSS bezpośrednio do Twojej aplikacji. Importowane style nie udostępniają żadnych eksportów, ale ich import automatycznie doda te style do strony. Działa to domyślnie dla wszystkich plików CSS i może obsługiwać języki kompilowane do CSS, takie jak Sass i Less, za pomocą wtyczek.
+
+<ReadMore>Przeczytaj więcej o zaawansowanych przypadkach użycia importu CSS, takich jak bezpośrednie odwołanie URL do pliku CSS lub importowanie CSS jako ciągu znaków w [przewodniku po stylizacji](/pl/guides/styling/#advanced).</ReadMore>
+
+### Moduły CSS
+
+```jsx
+// 1. Konwertuje klasy CSS z pliku './style.module.css' na unikalne, ograniczone zasięgiem wartości.
+// 2. Zwraca obiekt mapujący oryginalne nazwy klas na ich ostateczne, zasięgowe wartości.
+import styles from './style.module.css';
+
+//  Ten przykład używa JSX, ale można używać modułów CSS z dowolnym frameworkiem.
+return <div className={styles.error}>Your Error Message</div>;
+```
+
+Astro obsługuje moduły CSS używając konwencji nazewnictwa `[nazwa].module.css`. Podobnie jak każdy plik CSS, ich import automatycznie zastosuje te style do strony. Jednak moduły CSS eksportują specjalny domyślny obiekt `styles`, który mapuje oryginalne nazwy klas na unikalne identyfikatory.
+
+Moduły CSS pomagają wymusić zakres i izolację komponentów na frontendzie dzięki unikalnie generowanym nazwom klas dla Twoich arkuszy stylów.
+
+### Inne assety
+
+```jsx
+import imgReference from './image.png'; // imgReference === '/src/image.png'
+import svgReference from './image.svg'; // svgReference === '/src/image.svg'
+import txtReference from './words.txt'; // txtReference === '/src/words.txt'
+
+// Ten przykład używa JSX, ale możesz używać referencji importu z dowolnym frameworkiem.
+<img src={imgReference.src} alt="image description" />;
+```
+
+Wszystkie inne zasoby (assety) niewymienione powyżej mogą być importowane za pomocą ESM import i zwrócą referencję URL do finalnego zbudowanego zasobu. Może to być przydatne do odwoływania się do zasobów niebędących JS przez URL, na przykład tworząc element obrazka z atrybutem src wskazującym na ten obraz.
+
+Może być również użyteczne umieszczenie obrazów w folderze `public/`, jak wyjaśniono na [stronie struktury projektu](/pl/basics/project-structure/#public).
+
+<ReadMore>Przeczytaj więcej o dołączaniu parametrów importu Vite (np. `?url`, `?raw`) w [przewodniku obsługi statycznych zasobów Vite](https://vite.dev/guide/assets.html).</ReadMore>
+
+:::note
+Dodawanie **tekstu alternatywnego** do tagów `<img>` jest zalecane dla dostępności (accessibility)! Nie zapomnij dodać atrybutu `alt="przydatny opis"` do swoich elementów obrazów. Możesz pozostawić ten atrybut pusty, jeśli obraz jest czysto dekoracyjny.
+:::
+
+## Aliasy
+
+**Alias** to sposób na tworzenie skrótów dla Twoich importów.
+
+Aliasy mogą pomóc poprawić doświadczenie deweloperskie w bazach kodu z wieloma katalogami lub importami względnymi.
+
+```astro title="src/pages/about/company.astro" del="../../components" del="../../assets"
+---
+import Button from '../../components/controls/Button.astro';
+import logoUrl from '../../assets/logo.png?url';
+---
+```
+
+W tym przykładzie deweloper musiałby zrozumieć relację drzewa pomiędzy: `src/pages/about/company.astro`, `src/components/controls/Button.astro` i `src/assets/logo.png`. A potem, jeśli plik `company.astro` zostałby przeniesiony, te importy również musiałyby zostać zaktualizowane.
+
+Możesz dodać aliasy importu w pliku `tsconfig.json`.
+
+```json title="tsconfig.json" ins={5-6}
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@assets/*": ["src/assets/*"]
+    }
+  }
+}
+```
+
+:::note
+Upewnij się, że `compilerOptions.baseUrl` jest ustawiony, aby aliasowane ścieżki mogły zostać rozwiązane.
+:::
+
+Serwer deweloperski automatycznie zrestartuje się po tej zmianie konfiguracji. Teraz możesz importować używając aliasów w dowolnym miejscu w swoim projekcie:
+
+```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
+---
+import Button from '@components/controls/Button.astro';
+import logoUrl from '@assets/logo.png?url';
+---
+```
+
+Te aliasy są również automatycznie zintegrowane z [VS Code](https://code.visualstudio.com/docs/languages/jsconfig) i innymi edytorami.
+
+
+## `Astro.glob()`
+
+`Astro.glob()` to sposób na zaimportowanie wielu plików naraz.
+
+`Astro.glob()` przyjmuje tylko jeden parametr: względny [wzorzec glob](/pl/guides/imports/#wzorce-glob) pasujący do lokalnych plików, które chcesz zaimportować. Jest asynchroniczna i zwraca tablicę eksportów każdego pasującego pliku.
+
+```
+astro title="src/components/my-component.astro"
+---
+// importuje wszystkie pliki kończące się na `.md` w `./src/pages/post/`
+const posts = await Astro.glob('../pages/post/*.md'); 
+---
+<!-- Renders an <article> for the first 5 blog posts -->
+<div>
+{posts.slice(0, 4).map((post) => (
+  <article>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+Komponenty Astro importowane za pomocą `Astro.glob` są typu [`AstroInstance`](/pl/reference/api-reference/#astro-files). Możesz renderować każdą instancję komponentu używając jej właściwości `default`:
+
+```astro title="src/pages/component-library.astro" {8}
+---
+// importuje wszystkie pliki kończące się na `.astro` w `./src/components/`
+const components = await Astro.glob('../components/*.astro');
+---
+<!-- Wyświetla wszystkie nasze komponenty -->
+{components.map((component) => (
+  <div>
+    <component.default size={24} />
+  </div>
+))}
+```
+
+
+### Wzorce glob
+
+Wzorzec glob to ścieżka pliku, która obsługuje specjalne znaki wieloznaczne. Używa się go do odwoływania się do wielu plików w Twoim projekcie naraz.
+
+Na przykład, wzorzec glob `./pages/**/*.{md,mdx}` zaczyna w podkatalogu `pages`, przeszukuje wszystkie jego podkatalogi `(/**)` i dopasowuje dowolną nazwę pliku `(/*)` kończącą się na `.md` lub `.mdx (.{md,mdx})`.
+
+#### Wzorce glob w Astro
+
+Aby użyć z `Astro.glob()`, wzorzec glob musi być ciągiem znaków i nie może zawierać żadnych zmiennych. Zobacz przewodnik rozwiązywania problemów po rozwiązania.
+
+Dodatkowo, wzorce glob muszą zaczynać się od jednego z następujących:
+- `./` (aby zacząć w bieżącym katalogu)
+- `../` (aby zacząć w katalogu nadrzędnym)
+- `/` (aby zacząć w katalogu głównym projektu)
+ 
+
+[Przeczytaj więcej o składni wzorców glob](https://github.com/mrmlnc/fast-glob#pattern-syntax).
+
+#### `Astro.glob()` vs `getCollection()`
+
+[Zbiory treści](/pl/guides/content-collections/) dostarczają [`getCollection()` API](/pl/reference/modules/astro-content/#getcollection) do ładowania wielu plików zamiast `Astro.glob()`. Jeśli Twoje pliki treści (np. Markdown, MDX, Markdoc) znajdują się w zbiorach w katalogu `src/content/` użyj `getCollection()`, aby [zapytaj zbiór](/pl/guides/content-collections/#querying-collections) i zwróć wpisy treści.
+
+## WASM
+
+```js
+// Ładuje i inicjalizuje żądany plik WASM
+const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
+```
+
+Astro obsługuje ładowanie plików WASM bezpośrednio do Twojej aplikacji przy użyciu API [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) przeglądarki.
+
+
+## Wbudowane moduły Node
+
+Zachęcamy użytkowników Astro do unikania wbudowanych modułów Node.js (`fs`, `path` itp.) gdy tylko to możliwe. Astro jest kompatybilne z wieloma środowiskami uruchomieniowymi przy użyciu [adapterów](/pl/guides/on-demand-rendering/). Obejmuje to [Deno](https://github.com/denoland/deno-astro-adapter) i [Cloudflare Workers](/pl/guides/integrations-guide/cloudflare/), które nie obsługują wbudowanych modułów Node, takich jak `fs`.
+
+Naszym celem jest dostarczenie Astro alternatyw dla powszechnych wbudowanych modułów Node.js. Jednak obecnie takie alternatywy nie istnieją. Więc jeśli naprawdę musisz użyć tych wbudowanych modułów, to nie chcemy Ci tego uniemożliwiać. Astro obsługuje wbudowane moduły Node.js używając nowego prefiksu `node:`. Jeśli chcesz na przykład odczytać plik, możesz to zrobić w ten sposób:
+
+```astro title="src/components/MyComponent.astro"
+---
+// Przykład: importowanie wbudowanego modułu "fs/promises" z Node.js
+import fs from 'node:fs/promises';
+
+const url = new URL('../../package.json', import.meta.url);
+const json = await fs.readFile(url, 'utf-8');
+const data = JSON.parse(json);
+---
+
+<span>Version: {data.version}</span>
+```
+
+## Rozszerzanie obsługi typów plików
+
+Dzięki **Vite** i kompatybilnym wtyczkom **Rollup** możesz importować typy plików, które nie są natywnie obsługiwane przez Astro. Dowiedz się, gdzie znaleźć potrzebne wtyczki w sekcji [Znajdowanie Wtyczek](https://vite.dev/guide/using-plugins.html#finding-plugins) dokumentacji Vite.
+
+:::note[Konfiguracja wtyczki]
+Zapoznaj się z dokumentacją swojej wtyczki, aby uzyskać informacje o opcjach konfiguracji i jak ją poprawnie zainstalować.
+:::
+
+<RecipeLinks slugs={["pl/recipes/add-yaml-support"]} />

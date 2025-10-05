@@ -1,6 +1,8 @@
 ---
 title: Strapi 与 Astro
 description: 使用 Strapi 无头 CMS 为你的 Astro 项目添加内容
+sidebar:
+  label: Strapi
 type: cms
 service: Strapi
 stub: false
@@ -9,6 +11,7 @@ i18nReady: true
 import { Steps } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
 [Strapi](https://strapi.io/) 是一个开源的、可定制化的无头 CMS。
 
@@ -28,7 +31,7 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 为了将 Strapi URL 添加到 Astro 中，你可以在项目的根目录中创建一个 `.env` 文件（如果还没有的话），并添加以下变量：
 
 ```ini title=".env"
-STRAPI_URL="http://127.0.0.1:1337" // 或者使用你的 IP 地址
+STRAPI_URL="http://127.0.0.1:1337" # 或者使用你的 IP 地址
 ```
 
 重启开发服务器以在你的 Astro 项目中使用这个环境变量。
@@ -49,6 +52,8 @@ interface ImportMetaEnv {
   - astro.config.mjs
   - package.json
 </FileTree>
+
+<ReadMore>了解更多关于 Astro 中的 [环境变量](/zh-cn/guides/environment-variables/) 和 `.env` 文件的内容。</ReadMore>
 
 ### 创建 API 包装器
 
@@ -115,16 +120,14 @@ export default async function fetchApi<T>({
 
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
-  id: number;
-  attributes: {
-    title: string;
-    description: string;
-    content: string;
-    slug: string;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string;
-  };
+  documentId: number;
+  title: string;
+  description: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 ```
 
@@ -167,21 +170,14 @@ export default interface Article {
     ```json
     [
       {
-        id: 1,
-        attributes: {
-          title: "What's inside a Black Hole",
-          description: 'Maybe the answer is in this article, or not...',
-          description: "Maybe the answer is in this article, or not...",
-          content: "Well, we don't know yet...",
-          slug: 'what-s-inside-a-black-hole',
-          createdAt: '2023-05-28T13:19:46.421Z',
-          updatedAt: '2023-05-28T13:19:46.421Z',
-          publishedAt: '2023-05-28T13:19:45.826Z'
-          slug: "what-s-inside-a-black-hole",
-          createdAt: "2023-05-28T13:19:46.421Z",
-          updatedAt: "2023-05-28T13:19:46.421Z",
-          publishedAt: "2023-05-28T13:19:45.826Z"
-        }
+        documentId: 1,
+        title: "What's inside a Black Hole",
+        description: "Maybe the answer is in this article, or not...",
+        content: "Well, we don't know yet...",
+        slug: "what-s-inside-a-black-hole",
+        createdAt: "2023-05-28T13:19:46.421Z",
+        updatedAt: "2023-05-28T13:19:46.421Z",
+        publishedAt: "2023-05-28T13:19:45.826Z"
       },
       // ...
     ]
@@ -211,8 +207,8 @@ export default interface Article {
             {
               articles.map((article) => (
                 <li>
-                  <a href={`/blog/${article.attributes.slug}/`}>
-                    {article.attributes.title}
+                  <a href={`/blog/${article.slug}/`}>
+                    {article.title}
                   </a>
                 </li>
               ))
@@ -246,9 +242,9 @@ export default interface Article {
 
 #### 静态网站生成
 
-在 Astro 的默认静态模式（SSG）中，使用 [`getStaticPaths()`](/zh-cn/reference/api-reference/#getstaticpaths) 从 Strapi 获取文章列表。
+在 Astro 的默认静态模式（SSG）中，使用 [`getStaticPaths()`](/zh-cn/reference/routing-reference/#getstaticpaths) 从 Strapi 获取文章列表。
 
-```astro title="src/pages/blog/[slug].astro
+```astro title="src/pages/blog/[slug].astro"
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -260,7 +256,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -272,7 +268,7 @@ const article = Astro.props;
 
 接着，使用每个文章对象的属性来创建每个页面的模板。
 
-```astro title="src/pages/blog/[slug].astro ins={21-43}
+```astro title="src/pages/blog/[slug].astro" ins={21-43}
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -284,7 +280,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -296,23 +292,23 @@ const article = Astro.props;
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- 渲染纯文本 -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- 渲染 Markdown -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- 渲染 HTML -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>
@@ -322,9 +318,9 @@ const article = Astro.props;
 请确保选择适合你内容的正确渲染方式。对于 markdown，请查看我们的[markdown 指南](/zh-cn/guides/markdown-content/)。如果你要渲染 html，请参考[这个指南](/zh-cn/reference/directives-reference/#sethtml)以确保安全。
 :::
 
-#### 服务器端渲染
+#### 按需渲染
 
-如果你选择了 [SSR 模式](/zh-cn/guides/server-side-rendering/) 并设置了 `output: server` 或 `output: hybrid`，那么可以使用以下代码来生成你的[动态路由](/zh-cn/guides/routing/#服务器ssr模式)。
+如果你选择了 [使用适配器按需渲染](/zh-cn/guides/on-demand-rendering/) ，那么可以使用以下代码来生成你的[动态路由](/zh-cn/guides/routing/#按需动态路由)。
 
 创建 `src/pages/blog/[slug].astro` 文件：
 
@@ -354,23 +350,23 @@ try {
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- 渲染纯文本 -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- 渲染 Markdown -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- 渲染 HTML -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>

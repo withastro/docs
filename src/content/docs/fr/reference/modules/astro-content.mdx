@@ -1,0 +1,323 @@
+---
+title: Référence de l'API des collections de contenu
+sidebar:
+  label: 'astro:content'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.0.0" /></p>
+
+Les collections de contenu proposent des API pour configurer et interroger vos documents Markdown ou MDX dans `src/content/`. Pour connaître les fonctionnalités et les exemples d'utilisation, [consultez notre guide sur les collections de contenu](/fr/guides/content-collections/).
+
+## Importations depuis `astro:content`
+
+```js
+import { 
+  z,
+  defineCollection,
+  getCollection,
+  getEntry,
+  getEntries,
+  reference,
+  render
+ } from 'astro:content';
+```
+### `defineCollection()`
+
+<p>
+
+**Type :** `(input: CollectionConfig) => CollectionConfig`
+<Since v="2.0.0" />
+</p>
+
+`defineCollection()` est un utilitaire pour configurer une collection dans un fichier `src/content.config.*`.
+
+```ts title="src/content.config.ts"
+import { z, defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// Exposez votre collection définie à Astro
+// avec l'exportation `collections`
+export const collections = { blog };
+```
+
+Cette fonction accepte les propriétés suivantes :
+
+#### `loader`
+
+<p>
+
+**Type :** <code>() => Promise&lt;Array&lt;\{ id: string, [key: string]: any }&gt; | Record&lt;string, Record&lt;string, any&gt;&gt;&gt; | <a href="/fr/reference/content-loader-reference/#api-des-chargeurs-sous-forme-dobjet">Loader</a></code>
+<Since v="5.0.0" />
+</p>
+
+Un `loader` est soit un objet, soit une fonction qui vous permet de charger des données à partir de n'importe quelle source, locale ou distante, dans des collections de contenu.
+
+[Consultez le guide « Collection de contenu »](/fr/guides/content-collections/#définir-le-chargeur-de-collection-loader) pour un exemple d'utilisation.
+
+#### `schema`
+
+<p>
+
+**Type :** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+<Since v="2.0.0" />
+</p>
+
+`schema` est un objet Zod facultatif pour configurer le type et la forme du document pour une collection. Chaque valeur doit utiliser [un validateur Zod](https://github.com/colinhacks/zod).
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#définition-dun-schéma-de-collection) pour un exemple d'utilisation.
+
+### `reference()`
+
+<p>
+
+**Type :** `(collection: string) => ZodEffects<ZodString, { collection, id: string }>`<br />
+<Since v="2.5.0" />
+</p>
+
+La fonction `reference()` est utilisée dans la configuration du contenu pour définir une relation, ou « référence », entre une collection et une autre. Elle accepte un nom de collection et transforme la référence en un objet contenant le nom de la collection et l'identifiant de référence.
+
+
+Cet exemple définit les références d'un auteur de blog à la collection `authors` et un tableau d'articles associés à la même collection `blog` :
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
+  schema: z.object({
+    // Référence un seul auteur de la collection `authors` par `id`
+    author: reference('authors'),
+    // Référence un tableau d'articles connexes de la collection `blog` par `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  loader: file("src/data/authors.json"),
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+La validation des entrées référencées se produit au moment de l'exécution lors de l'utilisation de `getEntry()` ou `getEntries()` :
+
+```astro title="src/pages/[posts].astro"
+// si une entrée référencée n'est pas valide, cela renverra undefined.
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+```
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#définition-des-références-de-collection) pour un exemple d'utilisation.
+
+### `getCollection()`
+
+<p>
+
+**Type :** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+<Since v="2.0.0" />
+</p>
+
+`getCollection()` est une fonction qui récupère une liste d'entrées de collection de contenu par nom de collection.
+
+Elle renvoie tous les éléments de la collection par défaut et accepte une fonction facultative `filter` pour affiner les propriétés d'entrée. Cela vous permet d'interroger uniquement certains éléments d'une collection en fonction de `id` ou des valeurs du frontmatter via l'objet `data`.
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// Récupère toutes les entrées `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Ne renvoie que les messages avec `draft: true` dans le frontmatter
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+[Consultez le guide Collections de contenu](/fr/guides/content-collections/#interroger-les-collections) pour un exemple d'utilisation.
+
+### `getEntry()`
+
+<p>
+
+**Types :**
+* `(collection: string, id: string) => Promise<CollectionEntry<collection> | undefined>`
+* `({ collection: string, id: string }) => Promise<CollectionEntry<collection> | undefined>`
+<Since v="2.5.0" />
+</p>
+
+`getEntry()` est une fonction qui récupère une seule entrée de collection par nom de collection et l'entrée `id`. `getEntry()` peut également être utilisée pour obtenir des entrées référencées pour accéder aux propriétés `data` ou `body` :
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// Récupère `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Récupère `src/content/captains/picard.json`
+const picardProfile = await getEntry('captains', 'picard');
+
+// Récupère le profil référencé par `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
+---
+```
+
+Consultez le guide Collections de contenu pour des exemples d'[interrogation des entrées de collection](/fr/guides/content-collections/#interroger-les-collections).
+
+### `getEntries()`
+
+<p>
+
+**Type :** `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+<Since v="2.5.0" />
+</p>
+
+`getEntries()` est une fonction qui récupère plusieurs entrées dans une même collection. Ceci est utile pour [renvoyer un tableau d'entrées référencées](/fr/guides/content-collections/#définition-des-références-de-collection) afin d'accéder à leurs propriétés associées `data` et `body`.
+
+```astro
+---
+import { getEntries, getEntry } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Récupère les articles associés référencés par `data.ratedPosts`
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+### `render()`
+
+<p>
+
+**Type :** `(entry: CollectionEntry) => Promise<RenderedEntry>`
+<Since v="5.0.0" />
+</p>
+
+Une fonction permettant de compiler une entrée donnée pour le rendu. Elle renvoie les propriétés suivantes :
+
+- `<Content />` - Un composant utilisé pour restituer le contenu du document dans un fichier Astro.
+- `headings` - Une liste générée de titres, [reflétant l'utilitaire `getHeadings()` d'Astro](/fr/guides/markdown-content/#propriétés-disponibles) sur les importations Markdown et MDX.
+- `remarkPluginFrontmatter ` - L'objet frontmatter modifié après que tous les [modules d'extension Remark ou Rehype ont été appliqués](/fr/guides/markdown-content/#modification-programmatique-du-frontmatter). Définit sur le type `any`.
+
+```astro
+---
+import { getEntry, render } from 'astro:content';
+const entry = await getEntry('blog', 'entry-1');
+
+if (!entry) {
+   // Gérer l'erreur, par exemple :
+  throw new Error('Could not find blog post 1');
+}
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
+---
+```
+
+[Consultez le guide collections de contenu](/fr/guides/content-collections/#restitution-du-contenu) pour un exemple d'utilisation.
+
+## Types d'`astro:content`
+
+```ts
+import type {
+  CollectionEntry,
+  CollectionKey,
+  ContentCollectionKey,
+  DataCollectionKey,
+  SchemaContext,
+ } from 'astro:content';
+```
+
+### `CollectionEntry`
+
+Les fonctions de requête, notamment [`getCollection()`](#getcollection), [`getEntry()`](#getentry) et [`getEntries()`](#getentries) renvoient chacune des entrées avec le type `CollectionEntry`. Ce type est disponible en tant qu'utilitaire depuis `astro:content` :
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+`CollectionEntry` est un type générique. Utilisez-le avec le nom de la collection que vous interrogez.
+Par exemple, une entrée de votre collection `blog` aurait le type `CollectionEntry<'blog'>`.
+
+Chaque `CollectionEntry` est un objet avec les valeurs suivantes :
+
+#### `id`
+
+**Type :** `string`
+
+Un identifiant unique. Notez que tous les identifiants du chargeur `glob()` intégré d'Astro sont transformés en slug.
+
+#### `collection`
+
+**Exemple de type :** `'blog' | 'authors' | ...`
+
+Le nom d'une collection dans laquelle se trouvent les entrées. Il s'agit du nom utilisé pour référencer la collection dans votre schéma et dans les fonctions de requête.
+
+#### `data`
+
+**Type :** `CollectionSchema<TCollectionName>`
+
+Un objet de propriétés provenant du frontmatter et déduit de votre schéma de collection ([voir la référence `defineCollection()`](#definecollection)). La valeur par défaut est `any` si aucun schéma n'est configuré.
+
+#### `body`
+
+**Type :** `string`
+
+Une chaîne de caractères contenant le corps brut et non compilé du document Markdown ou MDX.
+
+### `CollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+Une union de chaînes de caractères de tous les noms de collections définis dans votre fichier `src/content.config.*`. Ce type peut être utile lors de la définition d'une fonction générique enveloppant la fonction intégrée `getCollection()`.
+
+```ts
+import { type CollectionKey, getCollection } from 'astro:content';
+
+async function queryCollection(collection: CollectionKey) {
+  return getCollection(collection, ({ data }) => {
+    return data.draft !== true;
+  });
+}
+```
+
+### `SchemaContext`
+
+L'objet `context` que `defineCollection` utilise pour la forme de fonction du `schema`. Ce type peut être utile lors de la création de schémas réutilisables pour plusieurs collections.
+
+Il inclut la propriété suivante :
+
+- `image` - L'assistant de schéma `image()` qui vous permet [d'utiliser des images locales dans les collections de contenu](/fr/guides/images/#images-dans-les-collections-de-contenu)
+
+```ts
+import { defineCollection, z, type SchemaContext } from "astro:content";
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  loader: /* ... */,
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```

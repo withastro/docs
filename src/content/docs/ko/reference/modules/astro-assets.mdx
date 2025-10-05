@@ -1,0 +1,596 @@
+---
+title: 이미지 및 자산 API 참조
+sidebar:
+  label: 'astro:assets'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+ Astro는 최적화된 이미지를 표시하기 위한 기본 컴포넌트와 도우미 함수를 제공합니다. 기능 및 사용 예시는 [이미지 가이드](/ko/guides/images/)를 참조하세요.
+
+## `astro:assets`에서 가져오기
+
+```js
+import {
+  Image,
+  Picture,
+  getImage,
+  inferRemoteSize,
+ } from 'astro:assets';
+```
+
+### `<Image />`
+
+`<Image />` 컴포넌트는 이미지를 최적화하고 변환합니다.
+
+이 컴포넌트는 컨테이너 크기 또는 기기 화면의 크기와 해상도에 따라 조정할 수 있는 [반응형 이미지](#반응형-이미지-속성)를 만드는 데도 사용할 수 있습니다.
+
+```astro title="src/components/MyComponent.astro"
+---
+// Image 컴포넌트 및 이미지 가져오기
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 1600x900의 이미지
+---
+
+<!-- Image 컴포넌트에서는 'alt'가 필수입니다. -->
+<Image src={myImage} alt="A description of my image." />
+```
+
+```html
+<!-- 결과 -->
+<!-- 이미지가 최적화되었으며 적절한 속성이 적용되었습니다. -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="A description of my image."
+/>
+```
+
+#### Image 속성
+
+`<Image />` 컴포넌트는 HTML의 `<img>` 태그가 허용하는 모든 속성 외에도 다음에 나열된 속성과 [반응형 이미지 속성](#반응형-이미지-속성)을 허용합니다.
+
+##### src (필수)
+
+<p>
+
+**타입:** `ImageMetadata | string | Promise<{ default: ImageMetadata }>`
+</p>
+
+이미지 파일의 `src` 값 형식은 이미지 파일의 위치에 따라 다릅니다.
+
+- **`src/`의 로컬 이미지** - 상대 파일 경로를 사용하여 **이미지도 가져오거나** [가져오기 별칭](/ko/guides/imports/#별칭)을 구성하고 사용해야 합니다. 그런 다음 가져오기 이름을 `src` 값으로 사용합니다.
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from '../assets/my-local-image.png';
+  ---
+  <Image src={myImportedImage} alt="descriptive text" />
+  ```
+
+- **`public/` 폴더의 이미지** - 이미지의 **public 폴더에 상대적인 파일 경로** 사용:
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="/images/my-public-image.png"
+    alt="descriptive text"
+    width="200"
+    height="150"
+  />
+  ```
+
+- **원격 이미지** - 이미지의 **전체 URL**을 속성 값으로 사용합니다.
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="https://example.com/remote-image.jpg"
+    alt="descriptive text"
+    width="200"
+    height="150"
+  />
+  ```
+
+##### alt (필수)
+
+<p>
+
+**타입:** `string`
+</p>
+
+이미지에 대한 [설명 대체 텍스트](https://www.w3.org/WAI/tutorials/images/) 문자열을 제공하려면 필수 `alt` 속성을 사용하세요.
+
+이미지가 단지 장식용인 경우 (즉, 페이지 이해에 도움이 되지 않는 경우) `alt=""`를 설정하여 화면 판독기 및 기타 보조 기술이 이미지를 무시하도록 알립니다.
+
+##### width 및 height (`public/`의 이미지에 필요)
+
+<p>
+
+**타입:** `number | undefined`
+</p>
+
+이러한 속성은 이미지에 사용할 크기를 정의합니다.
+
+`layout` 유형이 설정되면, 이미지의 크기에 따라 이 값들이 자동으로 생성되므로 대부분의 경우 수동으로 설정하지 않아도 됩니다.
+
+이미지를 원본 가로세로 비율로 사용하는 경우 `width` 및 `height`는 선택사항입니다. 이러한 크기는 `src/`에 있는 이미지 파일에서 자동으로 유추할 수 있습니다. 원격 이미지의 경우 `<Image />` 또는 `<Picture />` 컴포넌트의 [`inferSize` 속성을 `true`로 설정](#infersize)하거나 [`inferRemoteSize()` 함수](#inferremotesize)를 사용하세요.
+
+그러나 Astro는 이러한 파일을 분석할 수 없으므로 `public/` 폴더에 저장된 이미지에는 이 두 속성이 모두 필요합니다.
+
+##### densities
+
+<p>
+
+**타입:** ``(number | `${number}x`)[] | undefined``<br />
+<Since v="3.3.0" />
+</p>
+
+이미지에 대해 생성할 픽셀 밀도 목록입니다.
+
+`densities` 속성은 `layout` prop 또는 `image.layout` 구성 세트를 사용하는 [반응형 이미지](#반응형-이미지-속성)와 호환되지 않으며 설정된 경우 무시됩니다.
+
+제공된 경우 이 값은 `<img>` 태그에 `srcset` 속성을 생성하는 데 사용됩니다. 이 값을 사용할 때 `widths` 값을 제공하지 마세요.
+
+이미지 크기가 커지는 것을 방지하기 위해 원본 이미지보다 더 큰 너비와 동일한 밀도는 무시됩니다.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image
+  src={myImage}
+  width={myImage.width / 2}
+  densities={[1.5, 2]}
+  alt="A description of my image."
+/>
+```
+
+```html
+<!-- 출력 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="A description of my image."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+##### widths
+
+<p>
+
+**타입:** `number[] | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+이미지에 대해 생성할 너비 목록입니다.
+
+제공된 경우 이 값은 `<img>` 태그에 `srcset` 속성을 생성하는 데 사용됩니다. [`sizes` 속성](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)도 제공해야 합니다.
+
+`layout` 속성을 사용하는 반응형 이미지는 `widths` 및 `sizes` 속성을 자동으로 생성합니다. 일반적으로 이러한 값을 제공할 필요는 없지만 자동으로 생성된 값을 재정의하는 데 사용할 수 있습니다.
+
+이 값을 사용할 때는 `densities` 값을 제공하지 마세요. 이 두 값 중 하나만 사용하여 `srcset`을 생성할 수 있습니다.
+
+이미지 크기가 커지는 것을 방지하기 위해 원본 이미지보다 큰 너비는 무시됩니다.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // 1600x900의 이미지
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="A description of my image."
+/>
+```
+
+```html
+<!-- 출력 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="A description of my image."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### sizes
+
+<p>
+
+**타입:** `string | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+각 미디어 조건 목록에 대한 이미지의 레이아웃 너비를 지정합니다. `widths`를 지정할 때 반드시 제공해야 합니다.
+
+`layout` 속성을 사용하는 반응형 이미지는 `widths` 및 `sizes` 속성을 자동으로 생성합니다. 일반적으로 이러한 값을 제공할 필요는 없지만 자동으로 생성된 값을 재정의하는 데 사용할 수 있습니다.
+
+`constrained` 및 `full-width` 이미지에 대해 생성된 `sizes` 속성은 뷰포트가 이미지 너비보다 작은 경우 이미지가 화면 전체 너비에 가깝게 표시된다는 가정을 기반으로 합니다. 크게 다른 경우 (예: 작은 화면의 다중 열 레이아웃)에는 최상의 결과를 위해 `sizes` 속성을 수동으로 조정해야 할 수 있습니다.
+
+##### format
+
+<p>
+
+**타입:** `ImageOutputFormat | undefined`
+</p>
+
+선택적으로 사용할 [이미지 파일 형식](https://developer.mozilla.org/en-US/docs/Web/Media/Formats/Image_types#common_image_file_types) 출력을 명시할 수 있습니다.
+
+기본적으로 `<Image />` 컴포넌트는 `.webp` 파일을 생성합니다.
+
+##### quality
+
+<p>
+
+**타입:** `ImageQuality | undefined`
+</p>
+
+`quality`는 다음 중 하나일 수 있는 선택적 속성입니다.
+- 형식 간 자동으로 표준화되는 사전 설정 (`low`, `mid`, `high`, `max`)입니다.
+- `0`부터 `100`까지의 숫자 (형식에 따라 다르게 해석됨)
+
+##### inferSize
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="4.4.0" />
+</p>
+
+원격 이미지의 원래 `width` 및 `height`를 자동으로 설정할 수 있습니다.
+
+기본적으로 이 값은 `false`로 설정되어 있어 원격 이미지에 두 크기를 모두 수동으로 지정해야 합니다.
+
+`<Image />` 컴포넌트에 `inferSize`를 추가하거나 `getImage()`에 `inferSize: true`를 추가하여 가져올 때 이미지 콘텐츠에서 이러한 값을 추론합니다. 이는 원격 이미지의 크기를 모르거나 변경될 수 있는 경우에 유용합니다.
+
+```astro title="src/components/MyComponent.astro" "inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="A cat sleeping in the sun." />
+```
+
+`inferSize`는 [승인되지 않은 도메인의 원격 이미지](/ko/guides/images/#원격-이미지-승인)의 크기를 가져올 수 있지만 이미지 자체는 처리되지 않은 상태로 유지됩니다.
+
+##### priority
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+웹 페이지에 접속 시, 스크롤하지 않아도 화면에 바로 나타나는 이미지에 대해 `loading`, `decoding`, `fetchpriority` 속성을 최적화된 값으로 자동 설정합니다.
+
+```astro title="src/components/MyComponent.astro" "priority"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} priority alt="A description of my image" />
+```
+
+`priority="true"` (또는 단축 구문 `priority`)를 `<Image />` 또는 `<Picture />` 컴포넌트에 추가하면 브라우저에 이미지를 즉시 로드하도록 지시하는 다음 속성이 추가됩니다.
+
+```html
+loading="eager"
+decoding="sync"
+fetchpriority="high"
+```
+
+이러한 개별 속성을 사용자 정의하는 경우 수동으로 설정할 수 있습니다.
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+`<Picture />` 컴포넌트는 여러 형식 및/또는 크기로 최적화된 이미지를 생성합니다.
+
+이 컴포넌트는 컨테이너 크기 또는 기기 화면의 크기와 해상도에 따라 조정할 수 있는 [반응형 이미지](#반응형-이미지-속성)를 만드는 데도 사용할 수 있습니다.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // 1600x900의 이미지
+---
+
+<!-- Picture 컴포넌트에서는 'alt'가 필수입니다. -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="A description of my image." />
+```
+
+```html
+<!-- 결과 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="A description of my image."
+  />
+</picture>
+```
+
+#### Picture 속성
+
+`<Picture />`는 [반응형 이미지 속성](#반응형-이미지-속성)을 포함하여 [`<Image />` 컴포넌트](#image-속성)의 모든 속성과 다음을 허용합니다.
+
+##### `formats`
+
+<p>
+
+**타입:** `ImageOutputFormat[]`
+</p>
+
+`<source>` 태그에 사용할 이미지 형식의 배열입니다. 항목은 나열된 순서대로 `<source>` 요소로 추가되며, 이 순서에 따라 표시되는 형식이 결정됩니다. 최상의 성능을 얻으려면 가장 최신 형식 (예: `webp` 또는 `avif`)을 먼저 나열하세요. 기본적으로 `['webp']`로 설정되어 있습니다.
+
+##### `fallbackFormat`
+
+<p>
+
+**타입:** `ImageOutputFormat`
+</p>
+
+`<img>` 태그에 대한 대체 값으로 사용할 형식입니다. 정적 이미지의 기본값은 `.png` (또는 이미지가 JPG인 경우 `.jpg`), 애니메이션 이미지의 경우 `.gif`, SVG 파일의 경우 `.svg`입니다.
+
+##### `pictureAttributes`
+
+<p>
+
+**타입:** `HTMLAttributes<'picture'>`
+</p>
+
+`<picture>` 태그에 추가될 속성의 객체입니다.
+
+이 속성을 사용하여 외부 `<picture>` 요소 자체에 속성을 적용합니다. `<Picture />` 컴포넌트에 직접 적용된 속성은 이미지 변환에 사용되는 속성을 제외하고 내부 `<img>` 요소에 적용됩니다.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // 1600x900의 이미지
+---
+
+<Picture
+  src={myImage}
+  alt="A description of my image."
+  pictureAttributes={{ style: "background-color: red;" }}
+/>
+```
+
+```html
+<!-- 결과 -->
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="A description of my image."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
+
+### 반응형 이미지 속성
+
+[`<Image />`](#image-) 또는 [`<Picture />`](#picture-) 컴포넌트에 [`layout`](#layout) 속성을 설정하면 반응형 이미지가 생성되고 추가 속성을 설정할 수 있게 됩니다.
+
+```astro title=MyComponent.astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="A description of my image." layout='constrained' width={800} height={600} />
+```
+
+레이아웃이 설정되면 이미지의 크기와 레이아웃 유형에 따라 `srcset` 및 `sizes` 속성이 자동으로 생성됩니다. 이전 `<Image />` 컴포넌트는 다음과 같은 HTML 출력을 생성합니다.
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="A description of my image"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+
+`layout`의 값은 컨테이너에 따라 이미지 크기를 조정하는 방법을 결정하기 위해 `<img>` 태그에 적용되는 기본 스타일도 정의합니다.
+
+```css title="Responsive Image Styles"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+`<Image />` 또는 `<Picture />` 컴포넌트에 [`fit`](#fit) 및 [`position`](#position) props를 설정하여 기본 `object-fit` 및 `object-position` 스타일을 재정의할 수 있습니다.
+
+##### layout
+
+<p>
+
+**타입:** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**기본값:** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+[반응형 이미지](#반응형-이미지-속성)를 정의하고 컨테이너 크기가 변경될 때 이미지의 크기를 조정하는 방법을 결정합니다. [`image.layout`](/ko/reference/configuration-reference/#imagelayout)의 기본값을 재정의하는 데 사용할 수 있습니다.
+
+- `constrained` - 이미지가 컨테이너에 맞게 축소되어 가로 세로 비율을 유지하지만 지정된 `width`와 `height` 또는 이미지의 원래 크기를 초과하여 확대되지는 않습니다.
+
+  이미지를 가능한 한 요청된 크기로 표시하되 작은 화면에 맞게 축소하려면 이 옵션을 사용합니다. 이는 Tailwind를 사용할 때 이미지의 기본 동작과 일치합니다. 잘 모르겠다면 이 레이아웃을 선택하는 것이 좋습니다.
+
+- `full-width` - 이미지가 가로 세로 비율을 유지하면서 컨테이너 너비에 맞게 크기가 조정됩니다.
+
+  히어로 이미지 또는 페이지의 전체 너비를 차지해야 하는 이미지에 이 옵션을 사용합니다.
+
+- `fixed` - 이미지 크기가 조정되지 않고 요청된 크기를 유지합니다. 고밀도 디스플레이를 지원하기 위해 `srcset`을 생성하지만 다른 화면 크기에는 적용되지 않습니다.
+
+  화면 너비보다 작은 아이콘이나 로고, 고정 너비 컨테이너의 이미지 등 이미지 크기가 조정되지 않는 경우에 이 옵션을 사용합니다.
+
+- `none` - 이미지가 반응형으로 작동하지 않습니다. `srcset` 또는 `sizes`가 자동으로 생성되지 않으며 스타일이 적용되지 않습니다.
+
+  기본 레이아웃을 사용하도록 설정했지만 특정 이미지에 대해 사용하지 않으려는 경우에 유용합니다.
+
+예를 들어, 기본 레이아웃으로 `constrained`를 설정하면 개별 이미지의 `layout` 속성을 재정의할 수 있습니다:
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="This will use constrained layout" width={800} height={600} />
+<Image src={myImage} alt="This will use full-width layout" layout="full-width" />
+<Image src={myImage} alt="This will disable responsive images" layout="none" />
+```
+
+##### fit
+
+<p>
+
+**타입:** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**기본값:** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+[`layout`](#layout) 속성이 설정되거나 구성된 경우 활성화됩니다. 가로 세로 비율이 변경된 경우 반응형 이미지를 자르는 방법을 정의합니다.
+
+값은 CSS `object-fit`의 값과 일치합니다. 기본값은 `cover`이지만, [`image.objectFit`](/ko/reference/configuration-reference/#imageobjectfit)이 설정된 경우 이 속성의 값이 기본값입니다. 기본 `object-fit` 스타일을 재정의하는 데 사용할 수 있습니다.
+
+##### position
+
+<p>
+
+**타입:** `string` <br />
+**기본값:** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+[`layout`](#layout) 속성이 설정 또는 구성된 경우 활성화됩니다. 가로 세로 비율이 변경된 경우 반응형 이미지를 자르는 위치를 정의합니다.
+
+값은 CSS `object-position`의 값과 일치합니다. 기본값은 `center`이지만, [`image.objectPosition`](/ko/reference/configuration-reference/#imageobjectposition)이 설정된 경우 이 속성의 값이 기본값입니다. 기본 `object-position` 스타일을 재정의하는 데 사용할 수 있습니다.
+
+### `getImage()`
+
+<p>
+
+**타입:** `(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
+:::caution
+`getImage()`는 서버 전용 API에 의존하며 클라이언트에서 사용될 때 빌드를 중단합니다.
+:::
+
+`getImage()` 함수는 HTML이 아닌 다른 곳 (예: [API 경로](/ko/guides/endpoints/#서버-엔드포인트-api-라우트))에서 사용할 이미지를 생성하기 위한 것입니다. 또한 사용자 정의 `<Image />` 컴포넌트를 만들 수도 있습니다.
+
+`getImage()`는 [Image 컴포넌트와 동일한 속성](#image-속성)을 가진 옵션 객체를 사용합니다 (`alt` 제외).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+다음 타입을 가진 객체를 반환합니다.
+
+```ts
+type GetImageResult = {
+  /* 이미지 렌더링에 필요한 추가 HTML 속성 (width, height, style 등) */
+  attributes: Record<string, any>;
+  /* 검증된 매개변수 전달 */
+  options: ImageTransform;
+  /* 원본 매개변수 전달 */
+  rawOptions: ImageTransform;
+  /* 생성된 이미지의 경로 */
+  src: string;
+  srcSet: {
+    /* 생성된 srcset의 값, 각 항목에는 URL과 크기 설명자가 있습니다. */
+    values: SrcSetValue[];
+    /* `srcset` 속성에서 사용할 수 있는 값 */
+    attribute: string;
+  };
+}
+```
+
+### inferRemoteSize()
+
+<p>
+
+**타입:** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.12.0" />
+</p>
+
+원격 이미지의 크기를 유추하는 함수입니다. 이 함수는 `inferSize` 프로퍼티를 전달하는 대신 사용할 수 있습니다.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
+```

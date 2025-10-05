@@ -1,0 +1,374 @@
+---
+title: API programmatique d'Astro (expérimentale)
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Si vous avez besoin de plus de contrôle lors de l'exécution d'Astro, le paquet `"astro"` exporte des API pour exécuter par programmation les commandes CLI.
+
+Ces API sont expérimentales et leur signature API peut changer. Toutes les mises à jour seront mentionnées dans le [journal des modifications d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) et les informations ci-dessous afficheront toujours les informations actuelles et à jour.
+
+## `AstroInlineConfig`
+
+Le type `AstroInlineConfig` est utilisé par toutes les API de commande ci-dessous. Il s'étend à partir du type de [configuration Astro](/fr/reference/configuration-reference/) de l'utilisateur :
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: string;
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+### `configFile`
+
+<p>
+
+**Type :** `string | false`<br />
+**Par défaut :** `undefined`
+</p>
+
+Un chemin personnalisé vers le fichier de configuration Astro.
+
+Si cette valeur est indéfinie (par défaut) ou non définie, Astro recherchera un fichier `astro.config.(js,mjs,ts,mts)` par rapport à la racine (`root`) et chargera le fichier de configuration s'il est trouvé.
+
+Si un chemin relatif est défini, il sera résolu en fonction de l'option `root`.
+
+Définissez la valeur sur `false` pour désactiver le chargement des fichiers de configuration.
+
+La configuration transmise dans cet objet aura la priorité la plus élevée lors de la fusion avec la configuration utilisateur chargée.
+
+### `mode`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"development"` lors de l'exécution de `astro dev`, `"production"` lors de l'exécution de `astro build`<br />
+<Since v="5.0.0" />
+</p>
+
+Le mode utilisé lors du développement ou de la compilation de votre site (par exemple `"production"`, `"test"`).
+
+Cette valeur est transmise à Vite à l'aide de [l'option `--mode`](/fr/reference/cli-reference/#--mode-string) lorsque les commandes `astro build` ou `astro dev` sont exécutées pour déterminer la valeur de `import.meta.env.MODE`. Cela détermine également quels fichiers `.env` sont chargés, et donc les valeurs de `astro:env`. Consultez la [page des variables d'environnement](/fr/guides/environment-variables/) pour plus de détails.
+
+Pour générer une version basée sur le développement, vous pouvez exécuter `astro build` avec l'[option `--devOutput`](/fr/reference/cli-reference/#--devoutput).
+
+### `logLevel`
+
+<p>
+
+**Type :** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**Par défaut :** `"info"`
+</p>
+
+Le niveau de journalisation pour filtrer les messages enregistrés par Astro.
+
+- `"debug"` : Enregistrer tout, y compris les diagnostics de débogage bruyants.
+- `"info"` : Enregistrer les messages d'information, les avertissements et les erreurs.
+- `"warn"` : Enregistrer les avertissements et les erreurs.
+- `"error"` : Enregistrer uniquement les erreurs.
+- `"silent"` : Aucune journalisation.
+
+## `dev()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
+</p>
+
+Similaire à [`astro dev`](/fr/reference/cli-reference/#astro-dev), il exécute le serveur de développement d'Astro.
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// Arrête le serveur si nécessaire
+await devServer.stop();
+```
+
+### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+#### `address`
+
+<p>
+
+**Type :** `AddressInfo`
+</p>
+
+L'adresse sur laquelle le serveur de développement écoute.
+
+Cette propriété contient la valeur renvoyée par la [méthode `net.Server#address()`](https://nodejs.org/api/net.html#serveraddress) de Node.
+
+#### `handle()`
+
+<p>
+
+**Type :** `(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void`
+</p>
+
+Un gestionnaire pour les requêtes HTTP brutes de Node. Vous pouvez appeler `handle()` avec un [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) et un [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) au lieu d'envoyer une requête via le réseau.
+
+#### `watcher`
+
+<p>
+
+**Type :** `vite.FSWatcher`
+</p>
+
+L'[observateur de fichiers Chokidar](https://github.com/paulmillr/chokidar#getting-started) tel qu'il est exposé par [le serveur de développement de Vite](https://vite.dev/guide/api-javascript#vitedevserver).
+
+#### `stop()`
+
+<p>
+
+**Type :** `Promise<void>`
+</p>
+
+Arrête le serveur de développement. Cela ferme toutes les connexions inactives et arrête d'écouter les nouvelles connexions.
+
+Renvoie une `Promise` qui se résout une fois que toutes les demandes en attente ont été satisfaites et que toutes les connexions inactives ont été fermées.
+
+## `build()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig, options?: BuildOptions) => Promise<void>`
+</p>
+
+Similaire à [`astro build`](/fr/reference/cli-reference/#astro-build), il compile votre site pour le déploiement.
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./mon-projet",
+});
+```
+
+### `BuildOptions`
+
+```ts
+export interface BuildOptions {
+	devOutput?: boolean;
+	teardownCompiler?: boolean;
+}
+```
+
+#### `devOutput`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`
+<Since v="5.4.0" />
+</p>
+
+Génère une version basée sur le développement similaire au code transformé avec `astro dev`. Cela peut être utile pour tester les problèmes de version uniquement avec des informations de débogage supplémentaires incluses.
+
+#### `teardownCompiler`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+<Since v="5.4.0" />
+</p>
+
+Supprime l'instance WASM du compilateur après la compilation. Cela peut améliorer les performances lors d'une compilation unique, mais peut entraîner une baisse des performances en cas de compilation plusieurs fois de suite.
+
+Lors de la création de plusieurs projets dans la même exécution (par exemple pendant les tests), la désactivation de cette option peut augmenter considérablement les performances et réduire l'utilisation maximale de la mémoire au détriment d'une utilisation soutenue de la mémoire plus élevée.
+
+## `preview()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
+</p>
+
+Similaire à [`astro preview`](/fr/reference/cli-reference/#astro-preview), il démarre un serveur local pour servir la sortie de votre compilation.
+
+Si aucun adaptateur n'est défini dans la configuration, le serveur d'aperçu ne servira que les fichiers statiques créés.
+Si un adaptateur est défini dans la configuration, le serveur d'aperçu est fourni par l'adaptateur. Les adaptateurs ne sont pas tenus de fournir un serveur d'aperçu, cette fonctionnalité peut donc ne pas être disponible en fonction de l'adaptateur choisi.
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./mon-projet",
+});
+
+// Arrête le serveur si nécessaire
+await previewServer.stop();
+```
+
+### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+#### `host`
+
+<p>
+
+**Type :** `string`
+</p>
+
+L'hôte sur lequel le serveur écoute les connexions.
+
+Les adaptateurs sont autorisés à laisser ce champ non défini. La valeur de `host` est spécifique à l'implémentation.
+
+#### `port`
+
+<p>
+
+**Type :** `number`
+</p>
+
+Le port sur lequel le serveur écoute les connexions.
+
+#### `stop()`
+
+<p>
+
+**Type :** `Promise<void>`
+</p>
+
+Demande au serveur d'aperçu de fermer, d'arrêter d'accepter les demandes et de supprimer les connexions inactives.
+
+La `Promise` renvoyée est résolue lorsque la demande de fermeture a été envoyée. Cela ne signifie pas que le serveur est déjà fermé. Utilisez la méthode [`closed()`](#closed) si vous devez vous assurer que le serveur est complètement fermé.
+
+#### `closed()`
+
+<p>
+
+**Type :** `Promise<void>`
+</p>
+
+Renvoie une `Promise` qui sera résolue une fois le serveur fermé et rejetée si une erreur se produit sur le serveur.
+
+## `sync()`
+
+<p>
+
+**Type :** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+Similaire à [`astro sync`](/fr/reference/cli-reference/#astro-sync), il génère des types TypeScript pour tous les modules Astro.
+
+```js
+import { sync } from "astro";
+
+await sync({
+  root: "./mon-projet",
+});
+```
+
+## `mergeConfig()`
+
+<p>
+
+**Type :** `<T extends AstroConfig | AstroInlineConfig>(config: T, overrides: DeepPartial<T>) => T`
+<Since v="5.4.0" />
+</p>
+
+Importé depuis `astro/config`, fusionne une configuration Astro partielle avec une configuration Astro existante et valide.
+
+`mergeConfig()` accepte un objet de configuration Astro et une configuration partielle (tout ensemble d'options de configuration Astro valides) et renvoie une configuration Astro valide combinant les deux valeurs telles que :
+
+- Les tableaux sont concaténés (y compris les intégrations et les modules d'extension Remark).
+- Les objets sont fusionnés de manière récursive.
+- Les options de Vite sont fusionnées à l'aide de [la fonction `mergeConfig` de Vite](https://vite.dev/guide/api-javascript#mergeconfig) avec l'option `isRoot` par défaut.
+- Les options qui peuvent être fournies sous forme de fonctions sont encapsulées dans de nouvelles fonctions qui fusionnent de manière récursive les valeurs de retour des deux configurations avec ces mêmes règles.
+- Toutes les autres options remplacent la configuration existante.
+
+```ts
+import { mergeConfig } from "astro/config";
+
+mergeConfig(
+  {
+    output: 'static',
+    site: 'https://example.com',
+    integrations: [partytown()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
+  },
+  {
+    output: 'server',
+    base: '/astro',
+    integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
+  }
+);
+
+// Le résultat est équivalent à :
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [partytown(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
+```
+
+## `validateConfig()`
+
+<p>
+
+**Type :** `(userConfig: any, root: string, cmd: string): Promise<AstroConfig>`
+<Since v="5.4.0" />
+</p>
+
+Importé depuis `astro/config`, valide un objet comme s'il était exporté depuis `astro.config.mjs` et importé par Astro.
+
+
+Il accepte les arguments suivants :
+- La configuration à valider.
+- Le répertoire racine du projet.
+- La commande Astro en cours d'exécution (`build`, `dev`, `sync`, etc.)
+
+La promesse renvoyée correspond à la configuration validée, remplie avec toutes les valeurs par défaut appropriées pour la commande Astro donnée.
+
+```ts
+import { validateConfig } from "astro/config";
+
+const config = await validateConfig({
+  integrations: [partytown()],
+}, "./mon-projet", "build");
+
+// les valeurs par défaut sont appliquées
+await rm(config.outDir, { recursive: true, force: true });
+```

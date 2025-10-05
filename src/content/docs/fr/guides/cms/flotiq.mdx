@@ -1,0 +1,300 @@
+---
+title: Flotiq & Astro
+description: Ajouter du contenu à votre projet Astro en utilisant Flotiq comme CMS
+sidebar:
+  label: Flotiq
+type: cms
+service: Flotiq
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Flotiq](https://flotiq.com?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) est un CMS headless conçu pour différents frontends, tels que les sites statiques, les applications mobiles et les applications web. Les développeurs et les créateurs de contenu gèrent et diffusent le contenu par le biais d'API REST et GraphQL.
+
+## Intégration avec Astro
+
+Ce guide permet d'utiliser l'API CMS headless de Flotiq avec un projet Astro pour afficher du contenu sur votre site web.
+
+### Pré-requis
+
+Pour commencer, vous aurez besoin de :
+
+1. **Un projet Astro** - Vous pouvez créer un nouveau projet en utilisant la commande `npm create astro@latest`.
+2. **Un compte Flotiq** - Si vous n'avez pas de compte, [inscrivez-vous gratuitement](https://editor.flotiq.com/register?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro).
+3. **Une clé API Flotiq en lecture seule** - Découvrez [comment obtenir votre clé](https://flotiq.com/docs/API/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro).
+
+### Configuration des variables d'environnement
+
+Ajoutez la clé API en lecture seule de votre compte Flotiq au fichier `.env` à la racine de votre projet Astro :
+
+```ini title=".env"
+FLOTIQ_API_KEY=__VOTRE_CLE_API_FLOTIQ__
+```
+
+### Définir un type de contenu dans Flotiq
+
+Tout d'abord, vous devez définir un exemple de [définition de type de contenu](https://flotiq.com/docs/panel/content-types/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) dans Flotiq pour stocker des données.
+
+Connectez-vous à votre compte Flotiq et créez une définition de type de contenu personnalisée avec l'exemple de configuration `Blog Post` suivant :
+- **Label** : Blog Post
+- **API Name** : blogpost
+- **Fields** :
+  - **Title** : texte, obligatoire
+  - **Slug** : texte, obligatoire
+  - **Content** : texte enrichi, obligatoire
+
+Ensuite, créez un ou plusieurs exemples d'[objets de contenu](https://flotiq.com/docs/panel/content-objects/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) en utilisant le type `Blog Post`.
+
+### Installation du SDK TypeScript de Flotiq
+
+Pour connecter votre projet à Flotiq, installez le [SDK de Flotiq](https://github.com/flotiq/flotiq-api-ts) en utilisant le gestionnaire de paquets de votre choix :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, configurez le SDK en utilisant vos informations d'identification. Créez un nouveau fichier nommé `flotiq.ts` dans le répertoire `src/lib` de votre projet :
+
+```ts title="src/lib/flotiq.ts"
+import { FlotiqApi } from "flotiq-api-ts";
+
+export const flotiq = new FlotiqApi(import.meta.env.FLOTIQ_API_KEY);
+```
+
+Cette configuration peut maintenant être utilisée dans l'ensemble de votre projet.
+
+### Récupérer et afficher les données de Flotiq
+
+<Steps>
+
+1. Récupérez les données `Blog Post` sur une page Astro en utilisant l'API personnalisée de votre contenu `BlogpostAPI` :
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    ```
+
+2. Affichez le contenu dans votre modèle Astro. Vous aurez accès au titre (`title`), `slug`, et contenu (`content`) de vos articles ainsi qu'à d'autres données internes de l'article :
+
+    ```astro title="src/pages/index.astro" ins={6-21}
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    <html lang="fr">
+    	<head>
+    		<title>Astro</title>
+    	</head>
+    	<body>
+    		{posts.data?.map((post) => (
+    			<section>
+    				<a href={`/posts/${post.slug}`}>
+    				  <h2>{post.title}</h2>
+            </a>
+    				<div>{post.internal?.createdAt}</div>
+    				<div set:html={post.content}/>
+    			</section>
+    		))}
+    	</body>
+    </html>
+    ```
+
+3. Démarrez le serveur de développement et visitez votre page de prévisualisation à `http://localhost:4321` pour voir la liste de vos articles de blog. Chaque article renvoie à une page qui n'existe pas encore. Celles-ci seront créées à l'étape suivante.
+
+</Steps>
+
+### Générer des pages individuelles
+
+Astro prend en charge le pré-rendu de toutes vos pages à l'avance, ou la création de routes à la demande lorsqu'elles sont demandées. Suivez les instructions pour la [génération de site statique](#génération-de-sites-statiques) ou le [rendu à la demande](#rendu-à-la-demande) pour créer les routes de pages pour vos articles de blog.
+
+#### Génération de sites statiques
+
+En mode génération de sites statiques (SSG), utilisez la méthode `getStaticPaths()` pour récupérer tous les chemins d'accès possibles aux articles de blog à partir de Flotiq.
+
+<Steps>
+
+1. Créez un nouveau fichier `[slug].astro` dans le répertoire `/src/pages/posts/`. Récupérez tous les articles du blog et renvoyez-les dans la méthode `getStaticPaths()` :
+
+    ```astro title="src/pages/posts/[slug].astro" 
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    ---
+    ```
+
+2. Ajoutez le modèle pour afficher un article individuel :
+
+    ```astro title="src/pages/posts/[slug].astro" ins={12-20}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    const post: Blogpost = Astro.props;
+    ---
+    <html lang="fr">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. Visitez `http://localhost:4321` et cliquez sur un article de blog lié dans votre liste. Vous pourrez alors naviguer vers la page de l'article en question.
+
+</Steps>
+
+#### Rendu à la demande
+
+Si vous utilisez le mode [SSR](/fr/guides/on-demand-rendering/), vous devrez récupérer un seul article en vous basant sur son `slug`.
+
+<Steps>
+
+1. Créez un nouveau fichier `[slug].astro` dans le répertoire `/src/pages/posts/`. Récupérez l'article par son champ `slug`, en incluant la logique pour afficher une page 404 si la route n'est pas trouvée :
+
+    ```astro title="src/pages/posts/[slug].astro"
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    ```
+
+2. Ajoutez le modèle pour afficher un article individuel :
+
+    ```astro title="src/pages/posts/[slug].astro" ins={24-30}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    <html lang="fr">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. Visitez `http://localhost:4321` et cliquez sur un article de blog lié dans votre liste. Vous pourrez alors naviguer vers la page de l'article en question.
+
+</Steps>
+
+### Actualiser le SDK après des changements de type de contenu
+
+Lorsque vous utilisez le SDK TypeScript de Flotiq (`flotiq-api-ts`), tous vos types de données sont correctement associés dans le projet Astro.
+
+Si vous apportez des modifications à la structure de vos types de contenu (comme l'ajout d'un nouveau champ ou la modification d'un champ existant), vous devrez actualiser le SDK pour vous assurer que votre projet reflète les dernières mises à jour du modèle.
+
+Pour ce faire, exécutez la commande rebuild de votre gestionnaire de paquets :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn rebuild flotiq-api-ts 
+    // pour yarn v1 (Classic):
+    // yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Cette opération mettra à jour le SDK, en alignant les types d'objets, les champs et les méthodes de l'API sur votre modèle de données actuel.
+
+## Publier votre site
+
+Pour déployer votre site web, visitez les [guides de déploiement](/fr/guides/deploy/) d'Astro et suivez les instructions de votre hébergeur préféré.
+
+### Redéploiement en fonction des modifications apportées à Flotiq
+
+Pour mettre à jour votre site publié, configurez Flotiq pour qu'il envoie un webhook à votre hébergeur afin de déclencher une nouvelle compilation chaque fois que votre contenu est modifié.
+
+Dans Flotiq, vous pouvez définir le type de contenu et les événements sur lesquels il doit se déclencher, et le configurer en conséquence. Voir la [documentation des Webhooks de Flotiq](https://flotiq.com/docs/panel/webhooks/async-co-webhook/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) pour plus de détails.
+
+## Ressources officielles
+
+- [Documentation de Flotiq](https://flotiq.com/docs/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)
+
+## Ressources communautaires
+- [Flotiq x Astro](https://maciekpalmowski.dev/blog/flotiq-cms-astro/) (Anglais) par Maciek Palmowski

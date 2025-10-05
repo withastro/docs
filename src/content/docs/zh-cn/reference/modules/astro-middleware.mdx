@@ -1,0 +1,124 @@
+---
+title: 中间件 API 参考
+sidebar:
+  label: 'astro:middleware'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.6.0" /></p>
+
+中间件使你能拦截请求和响应，并在每次渲染页面或端点时动态注入行为。有关功能和用法示例，请参考 [中间件指南](/zh-cn/guides/middleware/)。
+
+## 从 `astro:middleware` 导入
+
+```js
+import { 
+  sequence,
+  createContext,
+  trySerializeLocals,
+  defineMiddleware,
+ } from 'astro:middleware';
+```
+
+### `defineMiddleware()`
+
+你可以导入并使用 `defineMiddleware()` 实用函数来提供类型安全：
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` 和 `next` 会自动被类型化
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+### `sequence()`
+
+<p>
+
+**类型：**`(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
+
+一个接受中间件函数作为参数的函数，它将按照它们传递的顺序执行它们。
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+<p>
+
+**类型：**`(context: CreateContext) => APIContext`<br />
+<Since v="2.8.0" />
+</p>
+
+一个底层 API，用于创建一个 [`APIContext`](/zh-cn/reference/api-reference/) 以传递给 Astro 中间件的 `onRequest()` 函数。
+
+此函数可以由集成/适配器用于执行 Astro 中间件。
+
+### `trySerializeLocals()`
+
+<p>
+
+**类型：**`(value: unknown) => string`<br />
+<Since v="2.8.0" />
+</p>
+
+一个底层 API，它接受任何值并尝试返回它的序列化版本（一个字符串）。如果该值无法序列化，该函数将抛出一个运行时错误。
+
+## 中间件导出
+
+在 `src/middleware.js` 中定义项目的中间件时，导出以下用户定义的函数：
+
+### `onRequest()`
+
+**类型：**`(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+
+一个在 `src/middleware.js` 里的必须导出的函数，它将在每次渲染页面或端点时被调用。它接受两个参数：[context](#context) 和 [next()](#next)。`onRequest()` 必须返回一个 `Response`：要么直接返回，要么通过调用 `next()` 返回。
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // 拦截一个请求的响应数据
+    // 可选修改响应
+    // 直接返回一个 Response 对象，或者调用 `next()` 的结果
+    return next();
+};
+```
+
+你的 `onRequest()` 函数将使用以下参数调用：
+
+#### `context`
+
+<p>
+
+**类型：**`APIContext`
+</p>
+
+`onRequest()` 的第一个参数是一个上下文对象。它反映了许多 `Astro` 全局属性。
+
+<ReadMore>有关更多信息，请参阅 [端点上下文](/zh-cn/reference/api-reference/)。</ReadMore>
+
+#### `next()`
+
+<p>
+
+**类型：**`(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+</p>
+
+`onRequest()` 的第二个参数是一个调用链中的所有后续中间件，并返回一个 `Response` 的函数。例如，其他中间件可以修改响应的 HTML 主体，等待 `next()` 的结果将允许你的中间件响应这些更改。
+
+自从 Astro v4.13.0，`next()` 接受一个可选的 URL 路径参数，形式为字符串、`URL` 或 `Request`，用于[重写](/zh-cn/guides/routing/#重写)当前请求而不重新触发新的渲染阶段。

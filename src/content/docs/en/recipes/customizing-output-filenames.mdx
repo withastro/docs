@@ -1,0 +1,106 @@
+---
+title: Customize file names in the build output
+description: Learn how to change the default naming pattern for your built assets like JavaScript, CSS, and images in Astro using Vite's Rollup options.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+By default, the `astro build` command outputs your built assets from [your project source](/en/basics/project-structure/#src), like JavaScript and CSS files located in the `src/` directory, into an `_astro` directory with hashed filenames (e.g. `_astro/index.DRf8L97S.js`) which are excellent for long-term caching.
+
+Although it is normally not necessary, you can customise the output file names when needed. For example, this can be helpful if you have scripts with names that might trigger ad blockers (e.g. `ads.js`), or if you want to organize your assets with a particular naming convention. By customizing Rollup output options, you can gain more control over your project's build structure, allowing you to meet specific organizational or deployment requirements.
+
+## Recipe
+
+This recipe configures `vite.build.rollupOptions` to output built assets with the following structure and naming pattern:
+-   JavaScript entry files (e.g. scripts directly associated with your pages or layouts): `dist/js/[name]-[hash].js`
+-   JavaScript code-split chunks (e.g. dynamically imported components or shared modules): `dist/js/chunks/[name]-[hash].js`
+-   Other assets (e.g. CSS, images, fonts): `dist/static/[name]-[hash][extname]` (e.g. `dist/static/styles-a1b2c3d4.css`, `dist/static/logo-e5f6g7h8.svg`)
+
+<Steps>
+
+1.  Add Vite Rollup Output Options.
+
+    Modify your `astro.config.mjs` to include the following `vite.build.rollupOptions.output` configuration. This is where you can define the custom naming patterns for your assets using Rollup's [`entryFileNames`](https://rollupjs.org/configuration-options/#output-entryfilenames), [`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames), and [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames):
+
+    ```javascript title="astro.config.mjs" ins
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // ...
+      vite: {
+        build: {
+          rollupOptions: {
+            output: {
+              // path names relative to `outDir`
+              entryFileNames: 'js/[name]-[hash].js',
+              chunkFileNames: 'js/chunks/[name]-[hash].js',
+              assetFileNames: 'static/[name]-[hash][extname]',
+            },
+          },
+        },
+      },
+    });
+    ```
+
+    This example uses the following file name placeholders:
+    *   `[name]`: The original name of the file (without the extension and path).
+    *   `[hash]`: A content-based hash generated for the file, crucial for cache busting. You can also specify a length, e.g. `[hash:8]`. This ensures that when you update an asset, the filename changes, forcing browsers to download the new version instead of serving a stale cached version.
+    *   `[extname]`: The original file extension, including the leading dot (e.g. `.js`, `.css`, `.svg`).
+
+    <ReadMore>
+    For a full list of available placeholders and advanced patterns for these options, refer to the [Rollup configuration documentation](https://rollupjs.org/configuration-options/).
+    </ReadMore>
+
+2.  Build your project.
+
+    Since these filename customizations apply to the production build output only, you will need to run your project's build command:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run build
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm build
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn build
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. After the build completes, inspect your [output directory](/en/reference/configuration-reference/#outdir) (`dist/` by default).
+
+    Verify that the build assets from your project `src` are named and organized according to the new patterns. (Files from [your `public/` directory](/en/basics/project-structure/#public) are copied directly to the output directory and are not affected by these Rollup naming options.)
+
+    Depending on your project's specific contents, your build folder will now look something like this:
+
+    <FileTree>
+    - dist/
+      - js/
+        - index-a1b2c3d4.js
+        - chunks/
+          - common-e5f6g7h8.js
+      - img/
+        - logo-i9j0k1l2.png
+      - fonts/
+        - myfont-q2w3e4r5.woff2
+      - static_assets/
+        - styles-m3n4o5p6.css
+      - index.html
+      - about/
+        - index.html
+      - ... (other HTML files and public assets)
+    </FileTree>
+
+</Steps>
+
+

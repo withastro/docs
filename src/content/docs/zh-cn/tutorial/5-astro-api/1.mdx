@@ -3,7 +3,7 @@ type: tutorial
 title: 创建文章存档页
 description: |-
   教程：搭建你的 Astro 博客 -
-  使用 Astro.glob() 从项目中访问文件数据
+  使用 import.meta.glob() 从项目中访问文件数据
 ---
 import Box from '~/components/tutorial/Box.astro';
 import Checklist from '~/components/Checklist.astro';
@@ -15,7 +15,7 @@ import { Steps } from '@astrojs/starlight/components';
 现在你有一些要展示的博客文章了，是时候配置博客页面来自动创建一个存档列表了！
 
 <PreCheck>
-  - 使用 `Astro.glob()` 一次性访问所有文章的数据
+  - 使用 `import.meta.glob()` 一次性访问所有文章的数据
   - 在博客页面上显示动态生成的文章列表
   - 重构以使用 `<BlogPost />` 组件来显示每个列表项
 </PreCheck>
@@ -23,20 +23,20 @@ import { Steps } from '@astrojs/starlight/components';
 ## 动态展示文章列表
 
 <Steps>
-1. 将以下代码添加到 `blog.astro` 中，以返回关于所有 Markdown 文件的信息。`Astro.glob()` 将返回一个对象数组，每个博客文章对应一个对象。
+1. 将以下代码添加到 `blog.astro` 中，以返回关于所有 Markdown 文件的信息。`import.meta.glob()` 将返回一个对象数组，每个博客文章对应一个对象。
 
     ```astro title="src/pages/blog.astro" ins={3}
     ---
     import BaseLayout from '../layouts/BaseLayout.astro'
-    const allPosts = await Astro.glob('./posts/*.md');
+    const allPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
     const pageTitle = "我的 Astro 学习博客";
     ---
     <BaseLayout pageTitle={pageTitle}>
-      <p>在这里，我将分享我的学习 Astro 的之旅。</p>
+      <p>在这里，我将分享我的 Astro 学习之旅。</p>
       <ul>
-        <li><a href="/posts/post-1/">第一篇文章</a></li>
-        <li><a href="/posts/post-2/">第二篇文章</a></li>
-        <li><a href="/posts/post-3/">第三篇文章</a></li>
+        <li><a href="/posts/post-1/">文章 1</a></li>
+        <li><a href="/posts/post-2/">文章 2</a></li>
+        <li><a href="/posts/post-3/">文章 3</a></li>
       </ul>
     </BaseLayout>
     ```
@@ -46,22 +46,22 @@ import { Steps } from '@astrojs/starlight/components';
     ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
     ---
     import BaseLayout from '../layouts/BaseLayout.astro'
-    const allPosts = await Astro.glob('./posts/*.md');
+    const allPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
     const pageTitle = "我的 Astro 学习博客";
     ---
     <BaseLayout pageTitle={pageTitle}>
-      <p>在这里，我将分享我的学习 Astro 的之旅。</p>
+      <p>在这里，我将分享我的 Astro 学习之旅。</p>
       <ul>
-        <li><a href="/posts/post-1/">Post 1</a></li>
-        <li><a href="/posts/post-2/">Post 2</a></li>
-        <li><a href="/posts/post-3/">Post 3</a></li>
+        <li><a href="/posts/post-1/">文章 1</a></li>
+        <li><a href="/posts/post-2/">文章 2</a></li>
+        <li><a href="/posts/post-3/">文章 3</a></li>
 
-        {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
       </ul>
     </BaseLayout>
     ```
 
-    通过对 `Astro.glob()` 返回的数组进行映射，你的整个博客文章列表现在是动态生成的。
+    通过对 `import.meta.glob()` 返回的数组进行映射，你的整个博客文章列表现在是通过 Astro 内置的 TypeScript 支持而动态生成的。
 
 3. 通过在 `src/pages/posts/` 中创建一个新的 `post-4.md` 文件并添加一些 Markdown 内容来添加一个新的博客文章。请确保至少包含下面使用的 frontmatter
 
@@ -77,7 +77,7 @@ import { Steps } from '@astrojs/starlight/components';
     pubDate: 2022-08-08
     tags: ["astro", "successes"]
     ---
-    这篇文章应该会与其他的博客文章一起显示，因为 `Astro.glob()` 会返回一个包含所有文章的列表，以创建这个文章列表。
+    这篇文章应该会与其他的博客文章一起显示，因为 `import.meta.glob()` 会返回一个包含所有文章的列表，以创建这个文章列表。
     ```
 
 4. 在浏览器预览中重新访问博客页面 `http://localhost:4321/blog`，并查看更新后的包含四篇文章的列表，其中包括你的新博客文章！
@@ -91,8 +91,8 @@ import { Steps } from '@astrojs/starlight/components';
 
 ```astro title="src/pages/blog.astro" del={2} ins={3}
 <ul>
-  {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
-  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+  {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
 </ul>
 ```
 
@@ -139,7 +139,7 @@ import { Steps } from '@astrojs/starlight/components';
     ---
     import BaseLayout from '../layouts/BaseLayout.astro';
     import BlogPost from '../components/BlogPost.astro';
-    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const allPosts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
     const pageTitle = "我的 Astro 学习博客";
     ---
     ```
@@ -159,13 +159,13 @@ import { Steps } from '@astrojs/starlight/components';
     ---
     import BaseLayout from '../layouts/BaseLayout.astro';
     import BlogPost from '../components/BlogPost.astro';
-    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const allPosts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
     const pageTitle = "我的 Astro 学习博客"
     ---
     <BaseLayout pageTitle={pageTitle}>
       <p>在这里，我将分享我的学习 Astro 的之旅。</p>
       <ul>
-        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+        {allPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
       </ul>
     </BaseLayout>
     ```
@@ -182,7 +182,7 @@ import { Steps } from '@astrojs/starlight/components';
 
 ```astro
 ---
-const myPosts = await Astro.glob('./posts/*.md');
+const myPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
 ---
 ```
 
@@ -198,11 +198,11 @@ const myPosts = await Astro.glob('./posts/*.md');
         `myPosts[2].frontmatter.title`
       </Option>
       <Option>
-        `<a href={myPosts[0].url}>First Post!!</a>`
+        `<a href={myPosts[0].url}>第一篇文章！！</a>`
       </Option>
     </MultipleChoice>
 
-2. 指向你的第一篇博客文章的 URL 的链接。
+2. 指向你的第一篇博客文章的 URL 链接。
 
     <MultipleChoice>
       <Option>
@@ -212,7 +212,7 @@ const myPosts = await Astro.glob('./posts/*.md');
         `myPosts[2].frontmatter.title`
       </Option>
       <Option isCorrect>
-        `<a href={myPosts[0].url}>First Post!!</a>`
+        `<a href={myPosts[0].url}>第一篇文章！！</a>`
       </Option>
     </MultipleChoice>
 
@@ -226,7 +226,7 @@ const myPosts = await Astro.glob('./posts/*.md');
         `myPosts[2].frontmatter.title`
       </Option>
       <Option>
-        `<a href={myPosts[0].url}>First Post!!</a>`
+        `<a href={myPosts[0].url}>第一篇文章！！</a>`
       </Option>
     </MultipleChoice>
 
@@ -244,4 +244,4 @@ const myPosts = await Astro.glob('./posts/*.md');
 
 ### 相关资源
 
-- [`Astro.glob()` API 文档](/zh-cn/reference/api-reference/#astroglob)
+- [在 Astro 中导入 glob 模式](/zh-cn/guides/imports/#importmetaglob)

@@ -1,0 +1,81 @@
+---
+title: 실험적 스크립트 순서 유지
+sidebar:
+  label: 스크립트 순서 유지
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+  **타입:** `boolean`<br />
+  **기본값:** `false`<br />
+  <Since v="5.5.0" />
+</p>
+
+소스 코드에 선언된 순서와 동일하게 여러 `<style>` 및 `<script>` 태그를 렌더링합니다.
+
+이 동작을 활성화하려면 Astro 구성에 `experimental.preserveScriptOrder` 기능 플래그를 추가하세요.
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    preserveScriptOrder: true
+  }
+})
+```
+
+## 사용법
+
+이 실험적 플래그는 특별한 사용법이 필요하지 않으며 Astro가 스타일과 스크립트를 렌더링하는 순서에만 영향을 줍니다.
+
+Astro는 현재 동일한 페이지에 여러 `<style>` 및 `<script>` 태그를 렌더링할 때 생성된 HTML 출력의 순서를 반대로 바꿉니다. 이로 인해 예상치 못한 결과가 발생할 수 있습니다. 예를 들어 사이트가 빌드될 때, 이전에 정의된 스타일 태그에 의해 CSS 스타일이 덮어쓰여질 수 있습니다. 대신 이 실험적 플래그는 `<script>` 및 `<style>` 태그를 정의된 순서대로 렌더링합니다.
+
+예를 들어, 다음 컴포넌트에는 두 개의 `<style>` 태그와 두 개의 `<script>` 태그가 있습니다.
+
+```astro title="src/components/MyComponent.astro"
+<p>컴포넌트</p>
+<style>
+  body {
+    background: red;
+  }
+</style>
+<style>
+  body {
+    background: yellow;
+  }
+</style>
+<script>
+    console.log("hello")
+</script>
+<script>
+    console.log("world!")
+</script>
+```
+
+컴파일 후 Astro의 기본 동작은 `yellow`가 먼저 나타나고 `red`가 다음에 나타나는 인라인 스타일을 생성합니다. 이는 `red` 배경이 적용됨을 의미합니다. 두 스크립트의 경우 `world!`가 먼저 기록되고 `hello`가 다음에 기록됩니다.
+
+```css
+body {background:#ff0} body {background:red}
+```
+
+```js
+console.log("world!")
+console.log("hello")
+```
+
+`experimental.preserveScriptOrder`가 `true`로 설정되면 `<style>` 및 `<script>` 태그의 렌더링 순서는 작성된 순서와 일치합니다. 동일한 예제 컴포넌트의 경우 `red` 스타일이 먼저 나타나고 `yellow`가 다음에 나타납니다. 스크립트의 경우 `hello`가 먼저 기록되고 `world!`가 다음에 기록됩니다.
+
+```css
+body {background:red} body {background:#ff0}
+```
+
+```js
+console.log("hello")
+console.log("world!")
+```
+
+향후 메이저 버전에서 Astro는 기본적으로 스타일 및 스크립트 순서를 유지하지만 `experimental.preserveScriptOrder` 플래그를 사용하여 미래 동작을 미리 선택할 수 있습니다.

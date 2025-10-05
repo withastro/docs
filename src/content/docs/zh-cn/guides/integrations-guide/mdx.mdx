@@ -2,6 +2,8 @@
 type: integration
 title: '@astrojs/mdx'
 description: 了解如何在你的 Astro 项目中使用 @astrojs/mdx 集成。
+sidebar:
+  label: MDX
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
 category: other
 i18nReady: true
@@ -14,7 +16,7 @@ import Since from '~/components/Since.astro'
 
 ## 为什么是 MDX？
 
-MDX 允许你在 Astro 项目的 [Markdown 内容中使用变量、JSX 表达式和组件](/zh-cn/guides/markdown-content/#mdx-独有特性)。如果你有现有的用 MDX 编写的内容，这个集成允许你把这些文件带到你的 Astro 项目中。
+MDX 允许你在 Astro 项目的 Markdown 内容中使用变量、JSX 表达式和组件。如果你有现有的用 MDX 编写的内容，这个集成允许你把这些文件带到你的 Astro 项目中。
 
 ## 安装
 
@@ -83,13 +85,146 @@ export default defineConfig({
 
 ## 使用
 
-通过 Astro MDX 集成，你可以在你的 `src/pages/` 目录下添加 `.mdx` 文件来[添加 MDX 页面到你的项目](/zh-cn/guides/markdown-content/#markdown-和-mdx-页面)。你也可以[导入 `.mdx` 文件](/zh-cn/guides/markdown-content/#导入-markdown)到 `.astro` 文件。
+访问 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/)，了解如何使用标准 MDX 功能。
 
-Astro 的 MDX 集成为标准的 MDX 增加了额外的功能，包括 Markdown 风格的 frontmatter。这允许你使用大部分 Astro 的内置 Markdown 功能，比如一个[特殊的 frontmatter`layout` 属性](/zh-cn/guides/markdown-content/#frontmatter-layout)。
+## Astro 中的 MDX
 
-在我们的 [Markdown & MDX 指南](/zh-cn/guides/markdown-content/)中可以看到 MDX 在 Astro 中的工作原理和例子。
+添加 MDX 集成可以使用 JSX 变量、表达式和组件来增强你的 Markdown 编写体验。
 
-访问 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/)，了解使用标准 MDX 功能的情况。
+它还为标准 MDX 添加了额外的功能，包括对 MDX 中 Markdown 风格的 frontmatter 的支持。这允许你使用大部分 [Astro 内置的 Markdown 功能](/zh-cn/guides/markdown-content/)。
+
+`.mdx` 文件必须使用 [MDX 语法](https://mdxjs.com/docs/what-is-mdx/#mdx-syntax) 而不能使用像 Astro 那样类 HTML 的语法编写。
+
+### 在 MDX 中使用内容集合
+
+要将 MDX 文件包含在内容集合中，请确保你的 [集合 loader](/zh-cn/guides/content-collections/#定义集合-loader) 配置为从 `.mdx` 文件加载内容：
+
+```js title="src/content.config.ts" ins="mdx"
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+  })
+});
+
+export const collections = { blog };
+```
+
+### 在 MDX 中使用导出的变量
+
+MDX 支持使用 `export` 语句将变量添加到 MDX 内容，或者将数据导出给需要引入它的组件。
+
+例如，你可以从 MDX 页面或组件导出 `title` 字段以用作 `{JSX 表达式}` 的标题：
+
+```mdx title="/src/blog/posts/post-1.mdx"
+export const title = '我的第一篇 MDX 博客'
+
+# {title}
+```
+
+或者，你可以使用 `import` 和 `import.meta.glob()` 语句在页面中使用导出的 `title`：
+
+```astro title="src/pages/index.astro"
+---
+const matches = import.meta.glob('./posts/*.mdx', { eager: true });
+const posts = Object.values(matches);
+---
+
+{posts.map(post => <p>{post.title}</p>)}
+```
+
+#### 导出的属性
+
+当使用 `import` 语句或 `import.meta.glob()` 时，`.astro` 组件可以使用以下属性：
+
+- **`file`** - 文件的绝对路径（例如：`/home/user/projects/.../file.mdx`）。
+- **`url`** - 页面的 URL（例如：`/zh-cn/guides/markdown-content`）。
+- **`frontmatter`** - 包含了文件的 YAML/TOML frontmatter 中所指定的任何数据。
+- **`getHeadings()`** - 一个异步函数，用于返回文件中所有标题（`<h1>` 到 `<h6>`）的数组，类型为：`{ depth: number; slug: string; text: string }[]`。每个标题的 `slug` 都对应了给定标题生成的 ID，可用于锚点链接。
+- **`<Content />`** - 返回文件完整渲染内容的组件。
+- **（任意的 `export` 值）** - MDX 文件还可以使用 `export` 语句以导出数据。
+
+### 在 MDX 中使用 Frontmatter 变量
+
+Astro MDX 集成默认支持在 MDX 中使用 frontmatter。在 Markdown 文件中添加 frontmatter 属性，这些变量可在模板中以及在导入文件时以命名属性的形式访问。
+
+```mdx title="/src/blog/posts/post-1.mdx"
+---
+title: '我的第一篇 MDX 博客'
+author: 'Houston'
+---
+
+# {frontmatter.title}
+
+作者：{frontmatter.author}
+```
+
+### 在 MDX 中使用组件
+
+安装 MDX 集成后，你可以在 MDX (`.mdx`) 文件中导入并使用 [Astro 组件](/zh-cn/basics/astro-components/)和 [UI 框架组件](/zh-cn/guides/framework-components/#使用框架组件)。就像在任何其他 Astro 组件中使用它们一样。
+
+别忘了在你的 UI 框架组件上添加 `client:directive`，如果需要的话！
+
+在 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/#esm)中查看有关使用导入和导出语句的更多示例。
+
+```mdx title="src/blog/post-1.mdx" {4,9}
+---
+title: 我的第一篇博客
+---
+import ReactCounter from '../components/ReactCounter.jsx';
+
+我刚开始折腾一个新的 Astro 博客！
+
+这是我的计数器组件，它在 MDX 中工作：
+
+<ReactCounter client:load />
+```
+
+#### 使用导入的 MDX 自定义组件
+
+渲染导入的 MDX 内容时，可以通过 `components` 属性传递 [自定义组件](#将自定义组件分配给-html-元素)。
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- 为 # 语法创建自定义<h1>， _并且_ 在`content.mdx`中应用任何自定义组件 -->
+<Content components={{...components, h1: Heading }} />
+```
+
+:::note
+在 MDX 文件中定义并导出的自定义组件必须通过 `components` 属性导入并传递回 `<Content />` 组件。
+:::
+
+#### 将自定义组件分配给 HTML 元素
+
+使用 MDX，你可以将 Markdown 语法映射到自定义组件，而不是它们的标准 HTML 元素。这允许你以标准的 Markdown 语法编写，但是将特殊的组件样式应用于所选的元素。
+
+将自定义组件导入 `.mdx`文件，然后将标准 HTML 元素映射到自定义组件的 `components` 对象以导出：
+
+```mdx title="src/blog/posts/post-1.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> 这个引用将是自定义引用块组件。
+```
+
+```astro title="src/components/Blockquote.astro"
+---
+const props = Astro.props;
+---
+<blockquote {...props} class="bg-blue-50 p-4">
+  <span class="text-4xl text-blue-600 mb-2">“</span>
+  <slot /> <!-- 请务必为子组件添加 `<slot/>`！ -->
+</blockquote>
+```
+访问 [MDX 网站](https://mdxjs.com/table-of-components/)，了解可以覆盖为自定义组件的 HTML 元素的完整列表。
 
 ## 配置
 
@@ -110,7 +245,7 @@ Astro 的 MDX 集成为标准的 MDX 增加了额外的功能，包括 Markdown 
 import { defineConfig } from 'astro/config';
 import mdx from '@astrojs/mdx';
 import remarkToc from 'remark-toc';
-import rehypeMinifyHtml from 'rehype-minify-html';
+import rehypePresetMinify from 'rehype-preset-minify';
 
 export default defineConfig({
   // ...
@@ -119,7 +254,7 @@ export default defineConfig({
       syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
       remarkPlugins: [remarkToc],
-      rehypePlugins: [rehypeMinifyHtml],
+      rehypePlugins: [rehypePresetMinify],
       remarkRehype: { footnoteLabel: 'Footnotes' },
       gfm: false,
     }),
@@ -135,8 +270,12 @@ MDX 不支持以字符串形式传递备注和 rehype 插件。你应该安装�
 
 ### `extendMarkdownConfig`
 
-* **类型：** `boolean`
-* **默认值：** `true`
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`<br />
+<Since v="0.15.0" pkg="@astrojs/mdx" />
+</p>
 
 MDX 将默认扩展[你的项目现有的 Markdown 配置](/zh-cn/reference/configuration-reference/#markdown-选项)。要覆盖个别选项，你可以在你的 MDX 配置中进行等价配置。
 
@@ -190,13 +329,26 @@ export default defineConfig({
 
 ### `recmaPlugins`
 
+
+<p>
+
+**类型：** `PluggableList`<br />
+**默认值：** `[]`<br />
+<Since v="0.11.5" pkg="@astrojs/mdx" />
+</p>
+
 这些是直接修改输出 [estree](https://github.com/estree/estree) 的插件。这对于在你的 MDX 文件中修改或注入 JavaScript 变量很有用。
 
 我们建议[使用 AST Explorer](https://astexplorer.net/)来处理 estree 的输出，并尝试 [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) 来搜索整个 JavaScript 节点。
 
 ### optimize
 
-* **类型：** `boolean | { ignoreElementNames?: string[] }`
+<p>
+
+**类型：** `boolean | { ignoreElementNames?: string[] }`<br />
+**默认值：** `false`<br />
+<Since v="0.19.5" pkg="@astrojs/mdx" />
+</p>
 
 这是一个可选的配置设置，用于优化 MDX 输出，以便通过内部 rehype 插件加快构建和渲染速度。如果你的 MDX 文件较多，并注意到构建速度较慢，这可能会很有用。不过，该选项可能会生成一些未转义的 HTML，因此请确保你网站的交互式部分在启用该选项后仍能正常工作。
 
@@ -218,12 +370,16 @@ export default defineConfig({
 
 #### ignoreElementNames
 
-* **类型：** `string[]`
+<p>
+
+**类型：** `string[]`<br />
+<Since v="3.0.0" pkg="@astrojs/mdx" />
+</p>
 
 <p><Since pkg="@astrojs/mdx" v="3.0.0" /></p>
 以前称为 `customComponentNames`。
 
-`optimize` 的一个可选属性，用于防止 MDX 优化器处理某些元素名称，例如通过 components 属性传递给导入的 MDX 内容的[自定义组件](/zh-cn/guides/markdown-content/#使用导入的-mdx-的自定义组件)。
+`optimize` 的一个可选属性，用于防止 MDX 优化器处理某些元素名称，例如通过 components 属性传递给导入的 MDX 内容的[自定义组件](/zh-cn/guides/integrations-guide/mdx/#使用导入的-mdx-自定义组件)。
 
 你需要将这些组件从优化中排除，因为优化器会急切地将内容转换为静态字符串，这将破坏需要动态呈现的自定义组件。
 
@@ -257,7 +413,7 @@ export default defineConfig({
 });
 ```
 
-请注意，如果你的 MDX 文件[使用 `export const components = {...}` 配置自定义组件](/zh-cn/guides/markdown-content/#将自定义组件分配给-html-元素)，则你无需手动配置此选项。优化器将自动检测它们。
+请注意，如果你的 MDX 文件[使用 `export const components = {...}` 配置自定义组件](/zh-cn/guides/integrations-guide/mdx/#将自定义组件分配给-html-元素)，则你无需手动配置此选项。优化器将自动检测它们。
 
 
 ## 例子

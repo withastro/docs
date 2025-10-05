@@ -1,0 +1,284 @@
+---
+type: integration
+title: '@astrojs/node'
+description: '@astrojs/nodeアダプターを使用してAstroプロジェクトをデプロイする方法を学びます。'
+sidebar:
+  label: Node
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+category: adapter
+i18nReady: false
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+
+このアダプターを使用すると、Astroで[オンデマンドでレンダリングされたルートと機能](/ja/guides/on-demand-rendering/)をNodeターゲットにデプロイできます。これには、[サーバーアイランド](/ja/guides/server-islands/)、[アクション](/ja/guides/actions/)、[セッション](/ja/guides/sessions/)が含まれます。
+
+Astroを静的サイトビルダーとして使用している場合、アダプターは必要ありません。
+
+## Astro Node.jsを選ぶ理由
+
+[Node.js](https://nodejs.org/en/)は、サーバーサイドコード用のJavaScriptランタイムです。@astrojs/nodeは、スタンドアロンモードまたは[Express](https://expressjs.com/)などの他のhttpサーバーのミドルウェアとして使用できます。
+
+## インストール
+
+Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。もしよろしければ、[手動でインテグレーションをインストールする](#手動インストール)こともできます。
+
+`astro add`コマンドでNodeアダプターを追加して、Astroプロジェクトでオンデマンドレンダリングを有効にします。
+これにより、`@astrojs/node`がインストールされ、`astro.config.*`ファイルに適切な変更が一度に行われます。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+これで、[ページごとにオンデマンドレンダリングを有効にする](/ja/guides/on-demand-rendering/#オンデマンドレンダリングを有効にする)か、ビルド出力設定を`output: 'server'`に設定して[デフォルトですべてのページをサーバーレンダリングする](/ja/guides/on-demand-rendering/#serverモード)ことができます。
+
+### 手動インストール
+
+まず、お好みのパッケージマネージャーを使用して、Nodeアダプターをプロジェクトの依存関係に追加します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、アダプターを`astro.config.*`ファイルに追加します。
+
+```js title="astro.config.mjs" ins={2,5-7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+  }),
+});
+```
+
+## 設定
+
+@astrojs/nodeは、アダプター関数にオプションを渡すことで設定できます。次のオプションが利用可能です。
+
+### `mode`
+<p>
+**Type:** `'middleware' | 'standalone'` <br />
+</p>
+
+アダプターが`middleware`モードと`standalone`モードのどちらでビルドするかを制御します。
+
+* `middleware`モードでは、ビルドされた出力をExpress.jsやFastifyなどの別のNode.jsサーバーのミドルウェアとして使用できます。
+* `standalone`モードでは、エントリモジュールが実行されると自動的に起動するサーバーがビルドされます。これにより、追加のコードを必要とせずに、ビルドをホストに簡単にデプロイできます。
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'middleware',
+  }),
+});
+```
+
+### `experimentalDisableStreaming`
+
+<p>
+  **Type:** `boolean` <br />
+  **Default:** `false`<br />
+  <Since v="9.3.0" pkg="@astrojs/node" />
+</p>
+
+オンデマンドでレンダリングされるページの、Astroのデフォルトの[HTMLストリーミング](/ja/guides/on-demand-rendering/#htmlストリーミング)を無効にします。
+
+HTMLストリーミングはパフォーマンスに役立ち、一般的にユーザーにより良い体験を提供します。ほとんどの場合、ストリーミングを無効にすることはお勧めできません。
+
+ただし、HTMLストリーミングを無効にする必要がある場合（たとえば、ホストがCDNレベルでストリーミングされていないHTMLキャッシュのみをサポートしている場合）、デフォルトの動作をオプトアウトできます。
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+    experimentalDisableStreaming: true,
+  }),
+});
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+  **Type:** `boolean` <br />
+  **Default:** `false`<br />
+  <Since v="9.3.0"  pkg="@astrojs/node"/>
+</p>
+
+有効にすると、アダプターは、コンテンツセキュリティポリシーなどのAstroの機能によって提供された場合、`Response`オブジェクトを使用して事前レンダリングされたページのヘッダーを提供します。
+
+たとえば、[実験的なコンテンツセキュリティポリシー](/ja/reference/experimental-flags/csp/)が有効になっている場合、`experimentalStaticHeaders`を使用して、`<meta>`要素を作成する代わりにCSPヘッダーを`Response`オブジェクトに追加できます。
+
+```js title="astro.config.mjs" {10}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: node({
+    mode: 'standalone',
+    experimentalStaticHeaders: true,
+  })
+});
+```
+
+
+## 使い方
+
+まず、[ビルドを実行します](/ja/guides/deploy/#ローカルでサイトをビルドする)。選択した`mode`（上記参照）に応じて、以下の適切な手順に従ってください。
+
+### ミドルウェア
+
+サーバーのエントリポイントは、デフォルトで`./dist/server/entry.mjs`にビルドされます。このモジュールは、Nodeの`request`および`response`オブジェクトをサポートする任意のフレームワークで使用できる`handler`関数をエクスポートします。
+
+たとえば、Expressでは次のようになります。
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+// これをastro.config.mjsの`base`オプションに基づいて変更します。
+// それらは一致する必要があります。デフォルト値は「/」です。
+const base = '/';
+app.use(base, express.static('dist/client/'));
+app.use(ssrHandler);
+
+app.listen(8080);
+```
+
+または、Fastify（>4）では次のようになります。
+
+```js title="run-server.mjs"
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+app.listen({ port: 8080 });
+```
+
+さらに、`Astro.locals`またはAstroミドルウェアでアクセスするオブジェクトを渡すこともできます。
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'New title',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
+```
+
+ミドルウェアモードではファイルを提供しないことに注意してください。HTTPフレームワークを設定して、ファイルを提供するようにする必要があります。デフォルトでは、クライアントアセットは`./dist/client/`に書き込まれます。
+
+### スタンドアロン
+
+スタンドアロンモードでは、サーバーのエントリポイントが実行されるとサーバーが起動します。デフォルトでは、`./dist/server/entry.mjs`にビルドされます。次のように実行できます。
+
+```sh
+node ./dist/server/entry.mjs
+```
+
+スタンドアロンモードの場合、サーバーはページとAPIルートに加えてファイルの提供を処理します。
+
+#### カスタムホストとポート
+
+実行時に環境変数として渡すことで、スタンドアロンサーバーが実行されるホストとポートを上書きできます。
+
+```sh
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
+```
+
+#### HTTPS
+
+デフォルトでは、スタンドアロンサーバーはHTTPを使用します。これは、HTTPSを実行するプロキシサーバーがその前にある場合にうまく機能します。スタンドアロンサーバー自体でHTTPSを実行する必要がある場合は、SSLキーと証明書を提供する必要があります。
+
+環境変数`SERVER_CERT_PATH`および`SERVER_KEY_PATH`を介してキーと証明書へのパスを渡すことができます。bashでそれらを渡す方法は次のとおりです。
+
+```bash
+SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+```
+
+#### ランタイム環境変数
+
+ビルドプロセスの実行時に環境変数を含む`.env`ファイルが存在する場合、これらの値は、静的ウェブサイトを生成する場合と同様に、出力にハードコーディングされます。
+
+ビルド中、ランタイム変数は`.env`ファイルに存在していてはならず、実行時に期待されるすべての環境変数をAstroに提供する必要があります：`VARIABLE_1=placeholder astro build`。これは、ビルドされたアプリケーションが実行されるときに実際の値が利用可能になることをAstroに示します。プレースホルダーの値はビルドプロセスによって無視され、Astroは実行時に提供された値を使用します。
+
+複数のランタイム変数の場合は、`.env`とは別のファイル（例：`.env.runtime`）に保存します。次のコマンドでビルドを開始します。
+
+```sh
+export $(cat .env.runtime) && astro build
+```
+
+#### アセット
+
+スタンドアロンモードでは、`dist/client/`フォルダー内のアセットはスタンドアロンサーバーを介して提供されます。これらのアセットをCDNにデプロイしている場合があり、その場合、サーバーは実際にはそれらを提供しません。しかし、イントラネットサイトなどの場合によっては、アプリケーションサーバーから直接静的アセットを提供しても問題ありません。
+
+`dist/client/_astro/`フォルダー内のアセットは、Astroがビルドしたものです。これらのアセットはすべてハッシュで名前が付けられているため、長いキャッシュヘッダーを付けることができます。内部的に、アダプターはこれらのアセットにこのヘッダーを追加します。
+
+```
+Cache-Control: public, max-age=31536000, immutable
+```
+
+## セッション
+
+Astro [Sessions API](/ja/guides/sessions/)を使用すると、リクエスト間でユーザーデータを簡単に保存できます。これは、ユーザーデータや設定、ショッピングカート、認証情報などに使用できます。Cookieストレージとは異なり、データにサイズ制限はなく、別のデバイスで復元できます。
+
+Astroは、Nodeアダプターを使用する場合、セッションストレージにローカルファイルシステムを使用します。別のセッションストレージドライバーを使用したい場合は、Astro設定で指定できます。詳細については、[ `session`設定リファレンス](/ja/reference/configuration-reference/#sessiondriver)を参照してください。

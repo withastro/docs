@@ -1,0 +1,478 @@
+---
+title: Astro Adapter API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import { FileTree } from '@astrojs/starlight/components';
+
+Astroは、SSR（サーバーサイドレンダリング）のために任意のクラウドプロバイダに簡単にデプロイできるように設計されています。この機能は、**アダプター**によって提供されている[インテグレーション](/ja/reference/integrations-reference/)の一種です。既存のアダプターの使用方法については、[SSRガイド](/ja/guides/on-demand-rendering/)をご覧ください。
+
+## アダプターとは
+
+アダプターは、サーバーサイドレンダリングのエントリポイントを提供する特別な種類の[インテグレーション](/ja/reference/integrations-reference/)です。アダプターは以下の2つのことを行います。
+
+- リクエストを処理するためのホスト固有のAPIを実装します。
+- ホストの規約に従ってビルドを設定します。
+
+## アダプターの構築
+
+アダプターは[インテグレーション](/ja/reference/integrations-reference/)であり、インテグレーションが行えることは何でも行うことができます。
+
+アダプターは、次のようにして`astro:config:done`フックで`setAdapter` APIを呼び出す**必要**があります。
+
+```js title="my-adapter.mjs"
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }  
+        });
+      },
+    },
+  };
+}
+```
+
+`setAdapter`に渡されるオブジェクトは以下のように定義されています。
+
+```ts
+interface AstroAdapter {
+	name: string;
+	serverEntrypoint?: string;
+	previewEntrypoint?: string;
+	exports?: string[];
+	args?: any;
+	adapterFeatures?: AstroAdapterFeatures;
+	supportedAstroFeatures?: AstroFeatureMap;
+}
+
+export interface AstroAdapterFeatures {
+	/**
+	 * Astroミドルウェアと通信するエッジ関数を作成します。
+	 */
+	edgeMiddleware: boolean;
+	/**
+	 * SSR専用。各ルートが個別の関数/ファイルになります。
+	 */
+	functionPerRoute: boolean;
+}
+
+export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
+
+export type AstroFeatureMap = {
+  /**
+   * アダプターが静的ページを提供できるかどうか
+   */
+  staticOutput?: SupportsKind;
+  /**
+   * アダプターが静的またはサーバーレンダリングされたページを提供できるかどうか
+   */
+  hybridOutput?: SupportsKind;
+  /**
+   * アダプターがSSRページを提供できるかどうか
+   */
+  serverOutput?: SupportsKind;
+  /**
+   * アダプターが静的アセットを生成できるかどうか
+   */
+  assets?: AstroAssetsFeature;
+};
+
+export interface AstroAssetsFeature {
+  supportKind?: SupportsKind;
+  /**
+   * このアダプターがライブラリ`sharp`と互換性のある環境でファイルをデプロイするかどうか
+   */
+  isSharpCompatible?: boolean;
+  /**
+   * このアダプターがライブラリ`squoosh`と互換性のある環境でファイルをデプロイするかどうか
+   */
+  isSquooshCompatible?: boolean;
+}
+```
+
+プロパティの説明は次のとおりです。
+
+* **name**: ログに使用されるアダプターのユニークな名前。
+* **serverEntrypoint**: サーバーサイドレンダリングのエントリポイント。
+* **exports**: `createExports`（以下で説明）と併用する場合の名前付きエクスポートの配列。
+* **adapterFeatures**: アダプターがサポートする必要がある特定の機能を有効にするオブジェクト。これらの機能はビルドされた出力を変更し、アダプターは異なる出力を処理するための適切なロジックを実装する必要があります。
+* **supportedAstroFeatures**: Astroの組み込み機能のマップ。これにより、Astroはアダプターがサポートできない、またはサポートしない機能を判断し、適切なエラーメッセージを提供できます。
+
+### サーバーエントリポイント
+
+AstroのアダプターAPIは、任意のタイプのホストと連携できるように設計されており、ホストのAPIに適合する柔軟な方法を提供します。
+
+#### エクスポート
+
+一部のサーバーレスホストでは、`handler`のような関数をエクスポートすることが求められます。
+
+```js
+export function handler(event, context) {
+  // ...
+}
+```
+
+アダプターAPIを使用すると、`serverEntrypoint`で`createExports`を実装することでこれを実現できます。
+
+```js
+import { App } from 'astro/app';
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+その後、`setAdapter`を呼び出すインテグレーションで、この名前を`exports`で指定します。
+
+```js title="my-adapter.mjs" ins={9}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          exports: ['handler'],
+        });
+      },
+    },
+  };
+}
+```
+
+#### サーバーの起動について
+
+一部のホスティング環境では、サーバーを自分で起動する必要があります。例えば、特定のポートでリッスンを開始するなどです。このような環境に対応するため、アダプターAPIでは`start`関数をエクスポートできるようになっています。この関数は、バンドルされたスクリプトが実行されたときに呼び出されます。
+
+```js
+import { App } from 'astro/app';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    // ...
+  });
+}
+```
+
+#### `astro/app`モジュールについて
+
+このモジュールは、`astro build`コマンドで事前にビルドされたページをレンダリングするために使用します。Astroは標準の[Request](https://developer.mozilla.org/ja/docs/Web/API/Request)オブジェクトと[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)オブジェクトを使用します。独自のリクエスト/レスポンスAPIを持つホスティング環境の場合、アダプター内でこれらの標準オブジェクトに変換する処理を実装する必要があります。
+
+```js
+import { App } from 'astro/app';
+import http from 'http';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      app.render(event.request)
+    );
+  });
+}
+```
+
+このモジュールは以下のメソッドを提供します。
+
+##### `app.render(request: Request, options?: RenderOptions)`
+
+このメソッドは、リクエストに対応するAstroページを呼び出してレンダリングし、[Response](https://developer.mozilla.org/ja/docs/Web/API/Response)オブジェクトを含むPromiseを返します。これはページをレンダリングしないAPIルートでも同様に機能します。
+
+```js
+const response = await app.render(request);
+```
+
+##### `RenderOptions`について
+
+`app.render()`メソッドは、必須の`request`引数と、オプションの`RenderOptions`オブジェクトを受け取ります。`RenderOptions`には[`addCookieHeader`](#addcookieheaderオプション)、[`clientAddress`](#clientaddressオプション)、[`locals`](#localsオプション)、[`routeData`](#routedataオプション)といったオプションが含まれます。
+
+###### `addCookieHeader`オプション
+
+このオプションは、`Astro.cookie.set()`で設定されたすべてのクッキーを自動的にレスポンスヘッダーに追加するかどうかを指定します。
+
+`true`に設定すると、クッキーはレスポンスの`Set-Cookie`ヘッダーにコンマ区切りのキーと値のペアとして追加されます。標準の`response.headers.getSetCookie()` APIを使用して個別に読み取ることができます。
+`false`（デフォルト値）に設定すると、クッキーは`App.getSetCookieFromResponse(response)`メソッドを通じてのみ取得できます。
+
+```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+###### `clientAddress`オプション
+
+このオプションで指定したクライアントのIPアドレスは、ページ内では[`Astro.clientAddress`](/ja/reference/api-reference/#clientaddress)として、APIルートとミドルウェア内では`ctx.clientAddress`として利用できます。
+
+以下は、`x-forwarded-for`ヘッダーの値を読み取り、それを`clientAddress`として設定する例です。この値は`Astro.clientAddress`としてユーザーが利用できるようになります。
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+###### `locals`オプション
+
+`locals`は、リクエストの処理中に情報を保存したりアクセスしたりするための[`context.locals`オブジェクト](/ja/reference/api-reference/#locals)です。
+
+例えば、次のようなケースで使用できます。`x-private-header`というヘッダーの値を読み取り、それをオブジェクトとして解析して`locals`に渡します。こうすることで、その情報を任意の[ミドルウェア関数](/ja/guides/middleware/)で利用できるようになります。
+
+```js "locals"
+const privateHeader = request.headers.get("x-private-header");
+let locals = {};
+try {
+    if (privateHeader) {
+        locals = JSON.parse(privateHeader);
+    }
+} finally {
+    const response = await app.render(request, { locals });
+}
+```
+
+###### `routeData`オプション
+
+レンダリングするルートが事前に分かっている場合は、このオプションで[`routeData`](/ja/reference/integrations-reference/#integrationroutedata-type-reference)を指定できます。これにより、ルートを決定するための[`app.match`](#appmatchrequestメソッド)の内部呼び出しをスキップできます。
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+    return app.render(request, { routeData });
+} else {
+    /* アダプター固有の404レスポンス */
+    return new Response(..., { status: 404 });
+}
+```
+
+##### `app.match(request)`メソッド
+
+このメソッドは、受け取ったリクエストがAstroアプリのルーティングルールに合致するかどうかを判断するために使用します。
+
+```js
+if(app.match(request)) {
+  const response = await app.render(request);
+}
+```
+
+通常は`.match`を使わずに直接`app.render(request)`を呼び出せます。Astroは`404.astro`ファイルがあれば、自動的に404エラーを処理します。ただし、404エラーを独自の方法で処理したい場合は、`app.match(request)`を使用してください。
+
+## `astro add`コマンドでのインストールを可能にする
+
+[`astro add`コマンド](/ja/reference/cli-reference/#astro-add)を使うと、ユーザーは簡単にインテグレーション機能やアダプターをプロジェクトに追加できます。自作のアダプターをこのコマンドでインストールできるようにするには、**`package.json`ファイルの`keywords`フィールドに`astro-adapter`を追加してください**。
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+アダプターを[npmに公開](https://docs.npmjs.com/cli/v8/commands/npm-publish)すると、ユーザーは`astro add example`コマンドを実行するだけで、`package.json`に指定されたピア依存関係と共にパッケージをインストールできます。ただし、プロジェクトの設定ファイルの更新は手動で行うよう、ユーザーに指示する必要があります。
+
+## Astroの機能について
+
+<p><Since v="3.0.0" /></p>
+
+Astroの機能は、アダプターがどの機能をサポートできるか、そしてそのサポートレベルをAstroに伝えるための仕組みです。
+
+これらの機能を使用すると、Astroは以下の処理を行います。
+- 特定の検証を実行します
+- 状況に応じたログを出力します
+
+これらの処理は、サポートされている機能、サポートされていない機能、そのサポートレベル、そしてユーザーの設定に基づいて実行されます。
+
+例えば、次の設定は、このアダプターがアセット機能を実験的にサポートしているものの、SharpやSquooshといった組み込みサービスとは互換性がないことをAstroに伝えます。
+
+```js title="my-adapter.mjs" ins={9-15}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+            assets: {
+              supportKind: "experimental",
+              isSharpCompatible: false,
+              isSquooshCompatible: false
+            }
+          }  
+        });
+      },
+    },
+  };
+}
+```
+
+この場合、Astroはターミナルに**警告**を表示します。
+
+```
+[@matthewp/my-adapter] The feature is experimental and subject to issues or changes.
+```
+
+また、アセットに使用するサービスがアダプターと互換性がない場合は、エラーも表示します。
+
+```
+[@matthewp/my-adapter] The currently selected adapter `@matthewp/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
+
+## アダプターの機能について
+
+アダプターの機能は、出力されるファイルの内容を変更する一連の機能です。アダプターがこれらの機能を有効にすると、特定のフック内で追加情報を取得できます。
+
+### `functionPerRoute`機能
+
+この機能は、SSR（サーバーサイドレンダリング）を使用する場合にのみ有効になります。デフォルトでは、Astroは単一の`entry.mjs`ファイルを生成し、このファイルが各リクエストに対してレンダリングされたページを出力します。
+
+`functionPerRoute`を`true`に設定すると、Astroはプロジェクトで定義された各ルートに対して個別のファイルを作成します。
+
+生成される各ファイルは1つのページのみをレンダリングします。これらのページファイルは`dist/pages/`ディレクトリ（または[`outDir`](/ja/reference/configuration-reference/#outdir)で指定されたディレクトリ内の`/pages/`）に出力され、`src/pages/`ディレクトリと同じファイル構造を維持します。
+
+例えば、`pages/`ディレクトリ内のファイル構造は、ビルド後の`src/pages/`のページファイルの構造を反映します。
+
+<FileTree>
+- dist/
+    - pages/
+        - blog/
+            - entry.\_slug\_.astro.mjs
+            - entry.about.astro.mjs
+        - entry.index.astro.mjs
+</FileTree>
+
+この機能を有効にするには、アダプターに`true`を渡します。
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+その後、[`astro:build:ssr`](/ja/reference/integrations-reference/#astrobuildssr)フックを使用します。このフックは`entryPoints`オブジェクトを提供し、ページのルートとビルド後に生成された実際のファイルをマッピングします。
+
+```js title="my-adapter.mjs" ins={15-19}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ entryPoints }) => {
+          for (const [route, entryFile] of entryPoints) {
+              // routeとentryFileを使用して何かをする
+          }
+      }  
+    },
+  };
+}
+```
+
+:::caution
+`entryFile`は`URL`型で、ファイルシステム上の実際のファイルパスを表します。つまり、コードが実行されるOSによってパスが変わる可能性があります。
+:::
+
+#### サーバーレス環境での動作について
+
+サーバーレス環境で`functionPerRoute: true`を設定すると、各ルートに対して個別のJavaScriptファイル（ハンドラー）が作成されます。このハンドラーは、使用するホスティングプラットフォームによってlambda、function、pageなど、さまざまな名前で呼ばれることがあります。
+
+これらの各ルートは、ハンドラーが実行される際に[コールドスタート](https://azure.microsoft.com/ja-jp/blog/understanding-serverless-cold-start/)の影響を受ける可能性があり、これにより多少の遅延が生じることがあります。この遅延の程度はさまざまな要因に左右されます。
+
+一方、`functionPerRoute: false`に設定した場合、すべてのルートのレンダリングを1つのハンドラーが担当します。このハンドラーが最初に呼び出されるときにはコールドスタートの影響を受けますが、それ以降のルートは遅延なく機能するはずです。ただし、この設定では`functionPerRoute: true`で得られるコード分割の利点は失われてしまいます。
+
+:::note
+プロジェクトに最適な`functionPerRoute`の設定を選択するためには、使用するホスティングプラットフォームの仕組みをよく理解することが重要です。
+:::
+
+### `edgeMiddleware`機能について
+
+この機能は、SSR（サーバーサイドレンダリング）のミドルウェアコードをビルド時にバンドル（まとめて）するかどうかを指定します。
+
+この機能を有効にすると、ビルド中にミドルウェアコードがバンドルされ、すべてのページで個別にインポートされるのを防ぐことができます。
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+この機能を使用する場合、[`astro:build:ssr`](/ja/reference/integrations-reference/#astrobuildssr)フックを利用します。このフックは`middlewareEntryPoint`を提供します。これはファイルシステム上の実際のファイルへの`URL`です。
+
+```js title="my-adapter.mjs" ins={15-19}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        set
+
+Adapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+          // このプロパティが存在するか確認することを忘れないでください。アダプターがこの機能にオプトインしない場合、これは`undefined`になります。
+          if (middlewareEntryPoint) {
+              createEdgeMiddleware(middlewareEntryPoint)
+          }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+    // バンドラーを使用して新しい物理ファイルを発行する
+}
+```

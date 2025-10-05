@@ -1,0 +1,1720 @@
+---
+title: Référence de configuration
+i18nReady: true
+githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
+---
+
+import Since from '~/components/Since.astro'
+
+La référence suivante couvre toutes les options de configuration prises en charge dans Astro. Pour en savoir plus sur la manière de configurer Astro, consultez notre guide dédié à la [configuration d'Astro](/fr/guides/configuring-astro/).
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  // vos options de configuration ici...
+})
+```
+## Options de niveau supérieur
+
+### site
+
+<p>
+
+**Type :** `string`
+</p>
+
+Il s'agit de votre URL finale déployée. Astro utilise cette URL complète pour générer votre plan de site et vos URL canoniques dans votre version finale. Il est fortement recommandé de définir cette configuration pour tirer le meilleur parti d'Astro.
+
+```js
+{
+  site: 'https://www.mon-site.dev'
+}
+```
+
+### base
+
+<p>
+
+**Type :** `string`
+</p>
+
+Le chemin de base vers lequel déployer. Astro utilisera ce chemin comme racine de vos pages et de vos ressources à la fois en développement et en production.
+
+Dans l'exemple ci-dessous, `astro dev` démarrera votre serveur à l'adresse `/docs`.
+
+```js
+{
+  base: '/docs'
+}
+```
+
+Lorsque vous utilisez cette option, toutes vos importations de ressources statiques et toutes vos URL doivent ajouter cette base comme préfixe. Vous pouvez accéder à cette valeur via `import.meta.env.BASE_URL`.
+
+La valeur de `import.meta.env.BASE_URL` sera déterminée par votre configuration `trailingSlash`, quelle que soit la valeur que vous avez définie pour `base`.
+
+Une barre oblique finale est toujours incluse quand l'option `trailingSlash: "always"` est définie. Au contraire, quand l'option `trailingSlash: "never"` est définie, `BASE_URL` n'inclura pas de barre oblique finale, même si `base` en inclut une.
+
+De plus, Astro manipulera en interne la valeur configurée de `config.base` avant de la rendre disponible aux intégrations. La valeur de `config.base` telle que lue par les intégrations sera également déterminée par votre configuration `trailingSlash` de la même manière.
+
+Dans l'exemple ci-dessous, les valeurs de `import.meta.env.BASE_URL` et `config.base` une fois traitées seront toutes deux `/docs` :
+
+```js
+{
+	 base: '/docs/',
+	 trailingSlash: "never"
+}
+```
+
+Dans l'exemple ci-dessous, les valeurs de `import.meta.env.BASE_URL` et `config.base` une fois traitées seront toutes deux `/docs/` :
+
+```js
+{
+	 base: '/docs',
+	 trailingSlash: "always"
+}
+```
+
+### trailingSlash
+
+<p>
+
+**Type :** `'always' | 'never' | 'ignore'`<br />
+**Par défaut :** `'ignore'`
+</p>
+
+Définissez le comportement de correspondance de route pour les barres obliques finales dans le serveur de développement et les pages rendues à la demande. Choisissez parmi les options suivantes :
+  - `'ignore'` - Faire correspondre les URL, qu'il existe ou non une barre oblique finale (`/`). Les requêtes pour `/about` et `/about/` correspondront toutes deux à la même route.
+  - `'always'` - Faire correspondre uniquement les URL qui incluent une barre oblique finale (par exemple : `/about/`). En production, les requêtes d'URL rendues à la demande sans barre oblique finale seront redirigées vers l'URL correcte pour votre commodité. Cependant, en développement, elles afficheront une page d'avertissement vous rappelant que le paramètre configuré est `always`.
+  - `'never'` - Faire correspondre uniquement les URL qui n'incluent pas de barre oblique finale (par exemple : `/about`). En production, les requêtes d'URL rendues à la demande avec une barre oblique finale seront redirigées vers l'URL correcte pour votre commodité. Cependant, en développement, elles afficheront une page d'avertissement vous rappelant que le paramètre configuré est `never`.
+
+Lorsque des redirections se produisent en production pour les requêtes GET, la redirection sera une redirection 301 (permanente). Pour toutes les autres méthodes de requête, il s'agira d'une redirection 308 (permanente et conservant la méthode de requête).
+
+Les barres obliques finales sur les pages pré-rendues sont gérées par la plate-forme d'hébergement et peuvent ne pas respecter la configuration que vous avez choisie.
+Consultez la documentation de votre plateforme d'hébergement pour plus d'informations. Vous ne pouvez pas utiliser [les redirections](/fr/reference/configuration-reference/#redirects) d'Astro pour ce cas d’utilisation à ce stade.
+
+```js
+{
+  // Exemple : Exiger une barre oblique finale pendant le développement
+  trailingSlash: 'always'
+}
+```
+**Voir aussi :**
+- build.format
+
+### redirects
+
+<p>
+
+**Type :** `Record<string, RedirectConfig>`<br />
+**Par défaut :** `{}`<br />
+<Since v="2.9.0" />
+</p>
+
+Spécifie le mappage des redirections où la clé est la route à rechercher et la valeur est le chemin vers lequel rediriger.
+
+Vous pouvez rediriger des routes statiques et dynamiques, mais uniquement vers le même type de route.
+Par exemple, vous ne pouvez pas avoir de redirection `'/article': '/blog/[...slug]'`.
+
+
+```js
+export default defineConfig({
+  redirects: {
+   '/ancien': '/nouveau',
+   '/blog/[...slug]': '/articles/[...slug]',
+   '/a-propos': 'https://example.com/a-propos',
+   '/nouvelles': {
+     status: 302,
+     destination: 'https://example.com/nouvelles'
+ 	},
+   // '/produit1/', '/produit1' // Attention, ceci n'est pas pris en charge
+	}
+})
+```
+
+
+Pour les sites générés statiquement sans adaptateur installé, cela produira une redirection client à l'aide d'une [balise `<meta http-equiv="refresh">`](https://developer.mozilla.org/fr/docs/Web/HTML/Element/meta#http-equiv) qui ne prend pas en charge les codes d'état.
+
+Lors de l'utilisation de SSR ou avec un adaptateur statique en mode `output: "static"`, les codes d'état sont pris en charge.
+Astro servira les requêtes GET redirigées avec un statut `301` et utilisera un statut `308` pour toute autre méthode de requête.
+
+Vous pouvez personnaliser le [code d'état de redirection](https://developer.mozilla.org/fr/docs/Web/HTTP/Status#messages_de_redirection) à l'aide d'un objet dans la configuration de redirection :
+
+```js
+export default defineConfig({
+  redirects: {
+    '/autre': {
+      status: 302,
+      destination: '/endroit',
+    },
+  }
+})
+
+
+```
+
+### output
+
+<p>
+
+**Type :** `'static' | 'server'`<br />
+**Par défaut :** `'static'`
+</p>
+
+Spécifie la cible de sortie des générations.
+
+- `'static'` - Effectue le prérendu de toutes vos pages par défaut, générant un site complètement statique si aucune de vos pages ne choisit de désactiver le prérendu.
+- `'server'` - Utilise le rendu côté serveur (SSR) pour toutes les pages par défaut, générant toujours un site rendu par le serveur.
+
+```js
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'static'
+})
+```
+**Voir aussi :**
+- adapter
+
+### adapter
+
+<p>
+
+**Type :** `AstroIntegration`
+</p>
+
+Déployez sur votre serveur préféré, serverless ou hôte périphérique avec des adaptateurs de compilation. Importez l'un de nos adaptateurs ([Cloudflare](/fr/guides/integrations-guide/cloudflare/), [Netlify](/fr/guides/integrations-guide/netlify/), [Node.js](/fr/guides/integrations-guide/node/), [Vercel](/fr/guides/integrations-guide/vercel/)) ou explorez les [adaptateurs communautaires](https://astro.build/integrations/2/?search=&categories%5B%5D=adapters) pour activer le rendu à la demande dans votre projet Astro.
+
+Consultez notre [guide de rendu à la demande](/fr/guides/on-demand-rendering/) pour en savoir plus sur les options de rendu du serveur d'Astro.
+
+```js
+import netlify from '@astrojs/netlify';
+{
+  // Exemple : Compiler pour un déploiement serverless avec Netlify
+  adapter: netlify(),
+}
+```
+**Voir aussi :**
+- output
+
+### integrations
+
+<p>
+
+**Type :** `AstroIntegration[]`
+</p>
+
+Étendez Astro avec des intégrations personnalisées. Les intégrations sont votre guichet unique pour ajouter la prise en charge de frameworks (comme Solid.js), de nouvelles fonctionnalités (comme les plans de site) et de nouvelles bibliothèques (comme Partytown).
+
+Lisez notre [Guide sur les intégrations](/fr/guides/integrations-guide/) pour obtenir de l'aide pour démarrer avec les intégrations Astro.
+
+```js
+import react from '@astrojs/react';
+import mdx from '@astrojs/mdx';
+{
+  // Exemple : Ajouter la prise en charge de React et de MDX dans Astro
+  integrations: [react(), mdx()]
+}
+```
+
+### root
+
+<p>
+
+**Type :** `string`<br />
+**CLI :** `--root`<br />
+**Par défaut :** `"."` (répertoire de travail actuel)
+</p>
+
+Vous devez renseigner cette option seulement si vous exécutez les commandes CLI `astro` dans un répertoire autre que le répertoire racine du projet. Habituellement, cette option est définie via la CLI au lieu du fichier de configuration Astro, car Astro a besoin de connaître la racine de votre projet avant de pouvoir localiser votre fichier de configuration.
+
+Si vous fournissez un chemin relatif (par exemple : `--root: './mon-projet'`) Astro le résoudra par rapport à votre répertoire de travail actuel.
+
+#### Exemples
+
+```js
+{
+  root: './mon-répertoire-de-projet'
+}
+```
+```bash
+$ astro build --root ./mon-répertoire-de-projet
+```
+
+### srcDir
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"./src"`
+</p>
+
+Définit le répertoire à partir duquel Astro lira votre site.
+
+La valeur peut être soit un chemin absolu du système de fichiers, soit un chemin relatif à la racine du projet.
+
+```js
+{
+  srcDir: './www'
+}
+```
+
+### publicDir
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"./public"`
+</p>
+
+Définit le répertoire de vos ressources statiques. Les fichiers de ce répertoire sont servis dans `/` pendant le développement et copiés dans votre répertoire de sortie pendant la compilation. Ces fichiers sont toujours servis ou copiés tels quels, sans transformation ni regroupement.
+
+La valeur peut être soit un chemin absolu du système de fichiers, soit un chemin relatif à la racine du projet.
+
+```js
+{
+  publicDir: './mon-répertoire-publicDir-personnalisé'
+}
+```
+
+### outDir
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"./dist"`
+</p>
+
+Définit le répertoire dans lequel `astro build` écrit votre version finale.
+
+La valeur peut être soit un chemin absolu du système de fichiers, soit un chemin relatif à la racine du projet.
+
+```js
+{
+  outDir: './mon-répertoire-de-sortie-personnalisé'
+}
+```
+**Voir aussi :**
+- build.server
+
+### cacheDir
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"./node_modules/.astro"`
+</p>
+
+Définit le répertoire pour la mise en cache des artefacts de compilation. Les fichiers de ce répertoire seront utilisés dans les versions ultérieures pour accélérer le temps de compilation.
+
+La valeur peut être soit un chemin absolu du système de fichiers, soit un chemin relatif à la racine du projet.
+
+```js
+{
+  cacheDir: './mon-répertoire-de-cache-personnalisé'
+}
+```
+
+### compressHTML
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+</p>
+
+Il s'agit d'une option permettant de minimiser votre sortie HTML et de réduire la taille de vos fichiers HTML.
+
+Par défaut, Astro supprime des composants `.astro` les espaces présents dans votre HTML, y compris les sauts de ligne, sans perte.
+Certains espaces peuvent être conservés si nécessaire pour préserver le rendu visuel de votre HTML. Cela se produit à la fois en mode développement et dans la version finale.
+
+Pour désactiver la compression HTML, définissez `compressHTML` sur false.
+
+```js
+{
+  compressHTML: false
+}
+```
+
+### scopedStyleStrategy
+
+<p>
+
+**Type :** `'where' | 'class' | 'attribute'`<br />
+**Par défaut :** `'attribute'`<br />
+<Since v="2.4" />
+</p>
+
+Spécifie la stratégie utilisée pour limiter la portée des styles dans les composants Astro. Choisissez parmi :
+  - `'where'` 		- Utilisez les sélecteurs `:where`, n'entraînant aucune augmentation de spécificité.
+  - `'class'` 		- Utilisez des sélecteurs basés sur les classes, provoquant une augmentation de spécificité (+1).
+  - `'attribute'` 	- Utilisez les attributs `data-`, provoquant une augmentation de spécificité (+1).
+
+L'utilisation de `'class'` est utile lorsque vous voulez vous assurer que les sélecteurs d'éléments au sein d'un composant Astro remplacent les styles globaux par défaut (par exemple à partir d'une feuille de style globale).
+L'utilisation de `'where'` vous donne plus de contrôle sur la spécificité, mais nécessite que vous utilisiez des sélecteurs, des calques et d'autres outils de plus grande spécificité pour contrôler quels sélecteurs sont appliqués.
+L'utilisation d'`'attribut'` est utile lorsque vous manipulez l'attribut `class` des éléments et que vous devez éviter les conflits entre votre propre logique de style et l'application des styles par Astro.
+
+### security
+
+<p>
+
+**Type :** `Record<"checkOrigin", boolean> | undefined`<br />
+**Par défaut :** `{checkOrigin: true}`<br />
+<Since v="4.9.0" />
+</p>
+
+Active les mesures de sécurité pour un site web Astro.
+
+Ces fonctionnalités n'existent que pour les pages rendues à la demande (SSR) à l'aide du mode serveur (`server`) ou les pages qui refusent le prérendu en mode statique (`static`).
+
+Par défaut, Astro vérifie automatiquement que l'en-tête « origin »
+correspond à l'URL envoyée par chaque requête dans les pages rendues à la demande. Vous pouvez désactiver ce comportement en définissant `checkOrigin` sur `false` :
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: false
+  }
+})
+```
+
+#### security.checkOrigin
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="4.9.0" />
+</p>
+
+Vérifie que l'en-tête « origin », automatiquement transmis par tous les navigateurs modernes, correspond à l'URL envoyée par chaque `Request`. Ceci est utilisé pour fournir une protection contre la falsification de requêtes intersites (CSRF).
+
+La vérification de l'en-tête « origin » est exécutée uniquement pour les pages rendues à la demande, et uniquement pour les requêtes `POST`, `PATCH`, `DELETE` et `PUT` avec l'un des en-têtes `content-type` suivants :`'application/ x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'`.
+
+Si l'en-tête « origin » ne correspond pas au chemin d'accès de la requête (`pathname`), Astro renverra un code d'état 403 et n'affichera pas la page.
+
+### vite
+
+<p>
+
+**Type :** `ViteUserConfig`
+</p>
+
+Transmet des options de configuration supplémentaires à Vite. Utile lorsqu'Astro ne prend pas en charge certaines configurations avancées dont vous pourriez avoir besoin.
+
+Consultez la documentation complète de l'objet de configuration `vite` sur [vite.dev](https://vite.dev/config/).
+
+#### Exemples
+
+```js
+{
+  vite: {
+    ssr: {
+      // Exemple : Forcer un paquet défectueux à ignorer le traitement SSR, si nécessaire
+      external: ['paquet-npm-cassé'],
+    }
+  }
+}
+```
+
+```js
+{
+  vite: {
+    // Exemple : Ajouter des modules d'extension personnalisés pour Vite directement dans votre projet Astro
+    plugins: [monExtension()],
+  }
+}
+```
+
+## Options de compilation
+
+### build.format
+
+<p>
+
+**Type :** `('file' | 'directory' | 'preserve')`<br />
+**Par défaut :** `'directory'`
+</p>
+
+Contrôlez le format de fichier de sortie de chaque page. Cette valeur peut être définie par un adaptateur pour vous.
+  - `'file'` : Astro générera un fichier HTML nommé pour chaque route de page. (par exemple, `src/pages/a-propos.astro` et `src/pages/a-propos/index.astro` génèrent tous deux le fichier `/a-propos.html`)
+  - `'directory'` : Astro générera un répertoire avec un fichier `index.html` imbriqué pour chaque page. (par exemple, `src/pages/a-propos.astro` et `src/pages/a-propos/index.astro` génèrent tous deux le fichier `/a-propos/index.html`)
+  - `'preserve'` : Astro générera des fichiers HTML exactement tels qu'ils apparaissent dans votre dossier source. (par exemple, `src/pages/a-propos.astro` génère `/a-propos.html` et `src/pages/a-propos/index.astro` génère le fichier `/a-propos/index.html`)
+
+```js
+{
+  build: {
+    // Exemple : Générer `page.html` au lieu de `page/index.html` pendant la compilation.
+    format: 'file'
+  }
+}
+```
+
+#### Effet sur Astro.url
+
+La définition de `build.format` contrôle ce sur quoi `Astro.url` est défini pendant la compilation. Lorsqu'il est défini sur :
+- `directory` - La valeur d'`Astro.url.pathname` inclura une barre oblique finale pour imiter le comportement du dossier. (par exemple `/foo/`)
+- `file` - La valeur d'`Astro.url.pathname` inclura `.html`. (par exemple `/foo.html`)
+
+Cela signifie que lorsque vous créez des URL relatives à l'aide de `new URL('./relative', Astro.url)`, vous obtiendrez un comportement cohérent entre le développement et la production.
+
+Pour éviter les incohérences avec le comportement des barres obliques finales en développement, vous pouvez restreindre l'[option `trailingSlash`](/fr/reference/configuration-reference/#trailingslash) à `'always'` ou `'never'` selon votre format de compilation :
+- `directory` - Définissez `trailingSlash: 'always'`
+- `file` - Définissez `trailingSlash: 'never'`
+
+### build.client
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'./client'`
+</p>
+
+Contrôle le répertoire de sortie de vos fichiers CSS et JavaScript, côté client, lors de la création d'un site Web avec des pages rendues par le serveur.
+`outDir` contrôle l'endroit où le code est compilé.
+
+Cette valeur est relative à `outDir`.
+
+```js
+{
+  output: 'server',
+  build: {
+    client: './client'
+  }
+}
+```
+
+### build.server
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'./server'`
+</p>
+
+Contrôle le répertoire de sortie du JavaScript côté serveur lors de la compilation en mode SSR.
+
+Cette valeur est relative à `outDir`.
+
+```js
+{
+  build: {
+    server: './server'
+  }
+}
+```
+
+### build.assets
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'_astro'`<br />
+<Since v="2.0.0" />
+</p>
+
+Spécifie le répertoire dans la sortie de compilation où doivent résider les ressources générées par Astro (JS et CSS regroupés par exemple).
+
+```js
+{
+  build: {
+    assets: '_custom'
+  }
+}
+```
+**Voir aussi :**
+- outDir
+
+### build.assetsPrefix
+
+<p>
+
+**Type :** `string | Record<string, string>`<br />
+**Par défaut :** `undefined`<br />
+<Since v="2.2.0" />
+</p>
+
+Spécifie le préfixe des liens des ressources générées par Astro. Cela peut être utilisé si les ressources sont servies à partir d'un domaine différent de celui du site actuel.
+
+Cela nécessite de télécharger les ressources de votre dossier local `./dist/_astro` vers un dossier `/_astro/` correspondant sur le domaine distant.
+Pour renommer le chemin `_astro`, spécifiez un nouveau répertoire dans `build.assets`.
+
+Pour récupérer toutes les ressources téléchargées sur le même domaine (par exemple `https://cdn.example.com/_astro/...`), définissez `assetsPrefix` sur le domaine racine sous forme de chaîne de caractères (quelle que soit la valeur de votre `base`) :
+
+```js
+{
+  build: {
+    assetsPrefix: 'https://cdn.example.com'
+  }
+}
+```
+
+**Ajouté dans :** `astro@4.5.0`
+
+Vous pouvez également transmettre un objet à `assetsPrefix` pour spécifier un domaine différent pour chaque type de fichier.
+Dans ce cas, une propriété `fallback` est requise et sera utilisée par défaut pour tous les autres fichiers.
+
+```js
+{
+  build: {
+    assetsPrefix: {
+      'js': 'https://js.cdn.example.com',
+      'mjs': 'https://js.cdn.example.com',
+      'css': 'https://css.cdn.example.com',
+      'fallback': 'https://cdn.example.com'
+    }
+  }
+}
+```
+
+### build.serverEntry
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'entry.mjs'`
+</p>
+
+Spécifie le nom de fichier du point d'entrée du serveur lors de la compilation en utilisant le mode SSR.
+Ce point d'entrée dépend généralement de l'hôte sur lequel vous déployez et sera défini par votre adaptateur pour vous.
+
+Notez qu'il est recommandé que ce fichier se termine par `.mjs` afin que le runtime détecte que le fichier est un module JavaScript.
+
+```js
+{
+  build: {
+    serverEntry: 'main.mjs'
+  }
+}
+```
+
+### build.redirects
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="2.6.0" />
+</p>
+
+Spécifie si les redirections seront générées au format HTML lors de la compilation.
+Cette option s'applique uniquement au mode `output: 'static'` ; avec SSR, les redirections sont traitées de la même manière que toutes les réponses.
+
+Cette option est principalement destinée à être utilisée par les adaptateurs qui ont des fichiers de configuration spéciaux pour les redirections et qui n'ont pas besoin/ne veulent pas de redirections basées sur HTML.
+
+```js
+{
+  build: {
+    redirects: false
+  }
+}
+```
+
+### build.inlineStylesheets
+
+<p>
+
+**Type :** `'always' | 'auto' | 'never'`<br />
+**Par défaut :** `auto`<br />
+<Since v="2.6.0" />
+</p>
+
+Contrôle si les styles du projet sont envoyés au navigateur dans un fichier CSS séparé ou intégrés dans des balises `<style>`. Choisissez parmi les options suivantes :
+ - `'always'` - les styles du projet sont intégrés dans des balises `<style>`
+ - `'auto'` - seules les feuilles de style plus petites que la valeur de `ViteConfig.build.assetsInlineLimit` (par défaut : 4 Ko) sont intégrées. Sinon, les styles du projet sont envoyés dans des feuilles de style externes.
+ - `'never'` - les styles du projet sont envoyés dans des feuilles de style externes
+
+```js
+{
+	build: {
+		inlineStylesheets: 'never',
+	},
+}
+```
+
+### build.concurrency
+
+<p>
+
+**Type :** `number`<br />
+**Par défault :** `1`<br />
+<Since v="4.16.0" />
+</p>
+
+Le nombre de pages à générer en parallèle.
+
+**Dans la plupart des cas, vous ne devriez pas modifier la valeur par défaut de `1`.**
+
+Utilisez cette option uniquement lorsque d'autres tentatives visant à réduire le temps de rendu global (par exemple, des tâches de longue durée mises par lots ou en cache comme des appels de récupération ou l'accès à des données) ne sont pas possibles ou sont insuffisantes.
+Si le nombre est trop élevé, le rendu de la page peut ralentir en raison de ressources mémoire insuffisantes et parce que JS est monothread.
+
+```js
+{
+  build: {
+    concurrency: 2
+  }
+}
+```
+
+ :::caution[Changements majeurs avec rupture de compatibilité possibles]
+ Cette fonctionnalité est stable et n'est pas considérée comme expérimentale. Cependant, celle-ci est uniquement destinée à résoudre des problèmes de performances difficiles, et des modifications importantes peuvent survenir dans une [version mineure](/fr/upgrade-astro/#gestion-sémantique-de-version) pour maintenir cette option aussi performante que possible. Veuillez vérifier le [CHANGELOG d'Astro](https://github.com/withastro/astro/blob/refs/heads/next/packages/astro/CHANGELOG.md) pour chaque version mineure si vous utilisez cette fonctionnalité.
+ :::
+
+## Options du serveur
+
+Personnalise le serveur de développement Astro, utilisé à la fois par `astro dev` et `astro preview`.
+
+```js
+{
+  server: { port: 1234, host: true }
+}
+```
+
+Pour définir une configuration différente en fonction de l'exécution de la commande (`dev`, `preview`), une fonction peut également être transmise à cette option de configuration.
+
+```js
+{
+  // Exemple : Définir une fonction pour personnaliser la configuration suivant la commande utilisée
+  server: ({ command }) => ({ port: command === 'dev' ? 4321 : 4000 })
+}
+```
+
+### server.host
+
+<p>
+
+**Type :** `string | boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="0.24.0" />
+</p>
+
+Définit les adresses IP réseau sur lesquelles le serveur doit écouter (c'est-à-dire les adresses IP non locales).
+- `false` - ne pas exposer sur une adresse IP du réseau
+- `true` - écouter sur toutes les adresses, y compris les adresses LAN et publiques
+- `[adresse-personnalisée]` - exposer sur une adresse IP du réseau à `[adresse-personnalisée]` (par exemple : `192.168.0.1`)
+
+### server.port
+
+<p>
+
+**Type :** `number`<br />
+**Par défaut :** `4321`
+</p>
+
+Définit le port sur lequel le serveur doit écouter.
+
+Si le port donné est déjà utilisé, Astro essaiera automatiquement le prochain port disponible.
+
+```js
+{
+  server: { port: 8080 }
+}
+```
+
+### server.allowedHosts
+
+<p>
+
+**Type :** `Array<string> | true`<br />
+**Par défaut :** `[]`<br />
+<Since v="5.4.0" />
+</p>
+
+Liste des noms d'hôtes auxquels Astro est autorisé à répondre. Lorsque la valeur est définie sur `true`, tous les noms d'hôtes sont autorisés.
+
+```js
+{
+  server: {
+  	allowedHosts: ['staging.example.com', 'qa.example.com']
+  }
+}
+```
+
+### server.open
+
+<p>
+
+**Type :** `string | boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="4.1.0" />
+</p>
+
+Contrôle si le serveur de développement doit ouvrir une fenêtre dans votre navigateur au démarrage.
+
+Passez une URL complète (par exemple `"http://example.com"`) ou un chemin d'accès (par exemple `"/a-propos"`) pour spécifier l'URL à ouvrir.
+
+```js
+{
+  server: { open: "/a-propos" }
+}
+```
+
+### server.headers
+
+<p>
+
+**Type :** `OutgoingHttpHeaders`<br />
+**Par défaut :** `{}`<br />
+<Since v="1.7.0" />
+</p>
+
+Définit les en-têtes de réponse HTTP personnalisés à envoyer dans `astro dev` et `astro preview`.
+
+## Options des sessions
+
+<p>
+
+<Since v="5.7.0" />
+</p>
+
+Configure le stockage de session pour votre projet Astro. Ceci permet de stocker les données de session de manière persistante, afin qu'elles soient accessibles lors de différentes requêtes.
+Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration.
+
+Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations.
+
+```js title="astro.config.mjs"
+  {
+    session: {
+      // Le nom du pilote Unstorage
+      driver: 'redis',
+      // Les options requises dépendent du pilote
+      options: {
+        url: process.env.REDIS_URL,
+      },
+      ttl: 3600, // 1 heure
+    }
+  }
+```
+
+### session.driver
+
+<p>
+
+**Type :** `string | undefined`<br />
+<Since v="5.7.0" />
+</p>
+
+Le pilote Unstorage à utiliser pour le stockage de session. Les adaptateurs [Node](/fr/guides/integrations-guide/node/#sessions), [Cloudflare](/fr/guides/integrations-guide/cloudflare/#sessions) et [Netlify](/fr/guides/integrations-guide/netlify/#sessions) configurent automatiquement un pilote par défaut, mais vous pouvez spécifier le vôtre si vous le souhaitez ou si vous utilisez un adaptateur qui n'en fournit pas.
+
+La valeur est le « Nom du pilote » disponible dans la [documentation du pilote Unstorage](https://unstorage.unjs.io/drivers).
+
+```js title="astro.config.mjs" ins={4}
+{
+  adapter: vercel(),
+  session: {
+    driver: "redis",
+  },
+}
+```
+:::note
+Certains pilotes peuvent nécessiter l'installation de paquets supplémentaires, ainsi que la définition de variables d'environnement ou d'identifiants. Voir la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations.
+:::
+
+### session.options
+
+<p>
+
+**Type :** `Record<string, unknown> | undefined`<br />
+**Par défaut :** `{}`<br />
+<Since v="5.7.0" />
+</p>
+
+Options spécifiques au pilote à utiliser pour le stockage des sessions. Ces options dépendent du pilote utilisé. Consultez la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations sur les options disponibles pour chaque pilote.
+
+```js title="astro.config.mjs" ins={4-6}
+{
+   session: {
+     driver: "redis",
+     options: {
+       url: process.env.REDIS_URL
+     },
+   }
+}
+```
+
+### session.cookie
+
+<p>
+
+**Type :** `string | AstroCookieSetOptions | undefined`<br />
+**Par défaut :** `{ name: "astro-session", sameSite: "lax", httpOnly: true, secure: true }`<br />
+<Since v="5.7.0" />
+</p>
+
+Configuration du cookie de session. Si cette valeur est une chaîne de caractères, elle sera utilisée comme nom de cookie.
+Alternativement, vous pouvez transmettre un objet avec des options supplémentaires. Celles-ci seront fusionnées avec les valeurs par défaut.
+
+```js title="astro.config.mjs" ins={3-4}
+{
+ session: {
+   // Si défini avec une chaîne de caractères, elle sera utilisée comme nom de cookie.
+   cookie: "mon-cookie-de-session",
+ }
+}
+
+```
+
+```js title="astro.config.mjs" ins={4-8}
+{
+ session: {
+   // Si un objet est utilisé, il définira les options du cookie.
+   cookie: {
+     name: "mon-cookie-de-session",
+     sameSite: "lax",
+     secure: true,
+   }
+ }
+}
+```
+
+### session.ttl
+
+<p>
+
+**Type :** `number | undefined`<br />
+**Par défaut :** {Infinity}<br />
+<Since v="5.7.0" />
+</p>
+
+Une période d'expiration de durée de vie par défaut facultative pour les valeurs de session, en secondes.
+
+Par défaut, les valeurs de session persistent jusqu'à ce qu'elles soient supprimées ou que la session soit détruite, et n'expirent pas automatiquement car un certain laps de temps s'est écoulé.
+Définissez `session.ttl` pour ajouter une période d'expiration par défaut pour vos valeurs de session. Passer une option `ttl` à [`session.set()`](/fr/reference/api-reference/#set) remplacera la valeur globale par défaut pour cette entrée individuelle.
+
+```js title="astro.config.mjs" ins={3-4}
+{
+ session: {
+   // Définir une période d'expiration par défaut de 1 heure (3 600 secondes)
+   ttl: 3600,
+ }
+}
+```
+:::note
+La définition d'une valeur pour `ttl` ne supprime pas automatiquement la valeur du stockage une fois le délai écoulé.
+
+Les valeurs stockées ne seront supprimées qu'en cas de tentative d'accès après l'expiration de la période `ttl`. À ce moment, la valeur de session sera indéfinie et ce n'est qu'à ce moment-là qu'elle sera supprimée.
+
+Les pilotes individuels peuvent également prendre en charge une option `ttl` qui supprimera automatiquement les sessions après l'heure spécifiée. Consultez la documentation du pilote choisi pour plus d'informations.
+:::
+
+## Options de la barre d'outils de développement
+
+
+### devToolbar.enabled
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+</p>
+
+Détermine s'il faut activer la barre d'outils de développement d'Astro. Cette barre d'outils vous permet d'inspecter vos îlots de pages, de consulter des audits utiles sur les performances et l'accessibilité, et bien plus encore.
+
+Cette option s'étend à l'ensemble du projet, pour désactiver uniquement la barre d'outils pour vous-même, exécutez `npm run astro preferences disable devToolbar`. Pour désactiver la barre d'outils pour tous vos projets Astro, exécutez `npm run astro preferences disable devToolbar --global`.
+
+## Options de préchargement
+
+<p>
+
+**Type :** `boolean | object`
+</p>
+
+Active le préchargement des liens sur votre site afin de fournir des transitions de page plus rapides.
+(Activé par défaut sur les pages utilisant le routeur `<ClientRouter />`. Définissez `prefetch: false` pour désactiver ce comportement.)
+
+Cette configuration ajoute automatiquement un script de préchargement à chaque page du projet vous donnant accès à l'attribut `data-astro-prefetch`.
+Ajoutez cet attribut à n'importe quel lien `<a />` sur votre page pour activer le préchargement pour cette page.
+
+```html
+<a href="/a-propos" data-astro-prefetch>À propos</a>
+```
+Personnalisez davantage le comportement par défaut du préchargement à l'aide des options [`prefetch.defaultStrategy`](/fr/reference/configuration-reference/#prefetchdefaultstrategy) et [`prefetch.prefetchAll`](/fr/reference/configuration-reference/#prefetchprefetchall).
+
+Consultez le [guide sur le préchargement](/fr/guides/prefetch/) pour plus d'informations.
+
+### prefetch.prefetchAll
+
+<p>
+
+**Type :** `boolean`
+</p>
+
+Active le préchargement pour tous les liens, y compris ceux sans l'attribut `data-astro-prefetch`.
+Cette valeur est définie par défaut sur `true` lors de l'utilisation du routeur `<ClientRouter />`. Sinon, la valeur par défaut est `false`.
+
+```js
+prefetch: {
+	prefetchAll: true
+}
+```
+
+Lorsqu'elle est définie sur `true`, vous pouvez désactiver le préchargement individuellement en définissant `data-astro-prefetch="false"` sur n'importe quel lien individuel.
+
+```html
+<a href="/a-propos" data-astro-prefetch="false">À propos</a>
+```
+
+### prefetch.defaultStrategy
+
+<p>
+
+**Type :** `'tap' | 'hover' | 'viewport' | 'load'`<br />
+**Par défaut :** `'hover'`
+</p>
+
+La stratégie de préchargement par défaut à utiliser lorsque l'attribut `data-astro-prefetch` est défini sur un lien sans valeur.
+
+- `'tap'` : Précharge juste avant de cliquer sur le lien.
+- `'hover'` : Précharge lorsque vous survolez le lien ou que vous lui donner le focus. (par défaut)
+- `'viewport'` : Précharge lorsque les liens entrent dans la fenêtre.
+- `'load'` : Précharge tous les liens de la page une fois la page chargée.
+
+Vous pouvez remplacer cette valeur par défaut et sélectionner une stratégie différente pour n'importe quel lien individuel en définissant une valeur sur l'attribut.
+
+```html
+<a href="/a-propos" data-astro-prefetch="viewport">À propos</a>
+```
+
+## Options d'images
+
+### image.endpoint
+
+<p>
+
+**Type :** `Object`<br />
+**Par défaut :** `{route: '/_image', entrypoint: undefined}`<br />
+<Since v="3.1.0" />
+</p>
+
+Définit le point de terminaison à utiliser pour l'optimisation des images dans dev et SSR. La propriété `entrypoint` peut être définie sur `undefined` pour utiliser le point de terminaison d'image par défaut.
+
+```js
+{
+  image: {
+    // Exemple : Utiliser un point de terminaison personnalisé pour les images disponible à l'adresse `/custom_endpoint`
+    endpoint: {
+		 	route: '/custom_endpoint',
+		 	entrypoint: 'src/my_endpoint.ts',
+		},
+  },
+}
+```
+
+### image.service
+
+<p>
+
+**Type :** `Object`<br />
+**Par défaut :** `{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
+<Since v="2.1.0" />
+</p>
+
+Définit le service d'images utilisé pour la prise en charge des ressources d'Astro.
+
+La valeur doit être un objet avec un point d'entrée que le service d'images doit utiliser et, éventuellement, un objet de configuration à transmettre au service.
+
+Le point d’entrée du service peut être soit l’un des services inclus, soit un paquet tiers.
+
+```js
+{
+  image: {
+    // Exemple : Activer le service d'images basé sur Sharp avec une configuration personnalisée
+    service: {
+			 entrypoint: 'astro/assets/services/sharp',
+			 config: {
+				 limitInputPixels: false,
+      },
+		 },
+  },
+}
+```
+
+#### image.service.config.limitInputPixels
+
+<p>
+
+**Type :** `number | boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="4.1.0" />
+</p>
+
+Limite ou non la taille des images traitées par le service d'images Sharp.
+
+Définissez le paramètre sur `false` pour contourner la limite de taille des images par défaut pour le service d'images Sharp et pour traiter des images volumineuses.
+
+### image.domains
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `[]`<br />
+<Since v="2.10.10" />
+</p>
+
+Définit une liste de domaines sources d'images autorisés pour l'optimisation des images à distance. Aucune autre image distante ne sera optimisée par Astro.
+
+Cette option nécessite un tableau de noms de domaine individuels sous forme de chaînes de caractères. Les caractères génériques ne sont pas autorisés. Utilisez plutôt [`image.remotePatterns`](/fr/reference/configuration-reference/#imageremotepatterns) pour définir une liste de modèles d'URL source autorisés.
+
+```js
+// astro.config.mjs
+{
+  image: {
+    // Exemple : Autoriser l'optimisation des images distantes à partir d'un seul domaine
+    domains: ['astro.build'],
+  },
+}
+```
+
+### image.remotePatterns
+
+<p>
+
+**Type :** `Array<RemotePattern>`<br />
+**Par défaut :** `[]`<br />
+<Since v="2.10.10" />
+</p>
+
+Définit une liste de modèles d’URL autorisés comme source d’images pour l’optimisation des images distantes.
+
+`remotePatterns` peut être configuré avec quatre propriétés :
+1. protocol
+2. hostname
+3. port
+4. pathname
+
+```js
+{
+  image: {
+    // Exemple : autoriser le traitement de toutes les images de votre compartiment aws s3
+    remotePatterns: [{
+      protocol: 'https',
+      hostname: '**.amazonaws.com',
+    }],
+  },
+}
+```
+
+Vous pouvez utiliser des caractères génériques pour définir les valeurs autorisées pour `hostname` et `pathname` comme décrit ci-dessous. Sinon, seules les valeurs exactes fournies seront configurées :
+`hostname` :
+  - Commencez avec `**.` pour autoriser tous les sous-domaines (`endsWith`).
+  - Commencez avec `*.` pour autoriser un seul niveau de sous-domaine.
+
+`pathname` :
+  - Terminez par `/**` pour autoriser toutes les sous-routes (`startsWith`).
+  - Terminez par `/*` pour autoriser un seul niveau de sous-route.
+
+### image.responsiveStyles
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+S'il faut ajouter automatiquement des styles globaux pour les images adaptatives. Vous devez activer cette option, sauf si vous mettez en forme les images vous-même.
+
+Cette option n'est utilisée que lorsque `layout` est défini sur `constrained`, `full-width` ou `fixed` à l'aide de la configuration ou de la propriété `layout` sur le composant Image.
+
+Consultez [la documentation des images](/fr/guides/images/#styles-des-images-adaptatives) pour plus d'informations.
+
+### image.layout
+
+<p>
+
+**Type :** `ImageLayout`<br />
+**Par défaut :** `undefined`<br />
+<Since v="5.10.0" />
+</p>
+
+Le type de mise en page par défaut pour les images adaptatives. Peut être remplacé par la propriété `layout` sur le composant Image.
+- `constrained` - L'image sera mise à l'échelle pour s'adapter au conteneur, en conservant son rapport hauteur/largeur, mais ne dépassera pas les dimensions spécifiées.
+- `fixed` - L'image conservera ses dimensions d'origine.
+- `full-width` - L'image sera mise à l'échelle pour s'adapter au conteneur, en conservant son rapport hauteur/largeur.
+
+### image.objectFit
+
+<p>
+
+**Type :** `ImageFit`<br />
+**Par défaut :** `"cover"`<br />
+<Since v="5.10.0" />
+</p>
+
+La [valeur de la propriété CSS `object-fit`](https://developer.mozilla.org/fr/docs/Web/CSS/object-fit) pour les images adaptatives. Peut être remplacée par la propriété `fit` sur le composant Image.
+Nécessite la définition d'une valeur pour `layout`.
+
+Voir [la propriété `fit` du composant](/fr/reference/modules/astro-assets/#fit) pour plus de détails.
+
+### image.objectPosition
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `"center"`<br />
+<Since v="5.10.0" />
+</p>
+
+La [valeur par défaut de la propriété CSS `object-position`](https://developer.mozilla.org/en-US/docs/Web/CSS/object-position) pour les images adaptatives. Peut être remplacée par la propriété `position` sur le composant Image.
+Nécessite la définition d'une valeur pour `layout`.
+
+Voir [la propriété `position` du composant](/fr/reference/modules/astro-assets/#position) pour plus de détails.
+
+### image.breakpoints
+
+<p>
+
+**Type :** `Array<number>`<br />
+**Par défaut :** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`<br />
+<Since v="5.10.0" />
+</p>
+
+Les points d'arrêt utilisés pour générer des images adaptatives. Nécessite la définition d'une valeur pour `layout`. La liste complète n'est normalement pas utilisée, mais est filtrée en fonction de la source et de la taille de sortie. Les valeurs par défaut utilisées dépendent du service d'image utilisé (local ou distant). Pour les services distants, la liste la plus complète est utilisée, car seules les tailles requises sont générées. Pour les services locaux, la liste est plus courte pour réduire le nombre d'images générées.
+
+## Options de Markdown
+
+### markdown.shikiConfig
+
+<p>
+
+**Type :** `Partial<ShikiConfig>`
+</p>
+
+Shiki est notre colorateur syntaxique par défaut. Vous pouvez configurer toutes les options via l'objet `markdown.shikiConfig` :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      // Choisir parmi les thèmes intégrés de Shiki (ou ajouter le vôtre)
+      // https://shiki.style/themes
+      theme: 'dracula',
+      // Alternativement, proposer plusieurs thèmes
+      // Voir la note ci-dessous pour utiliser les thèmes doubles clair/sombre
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+      // Désactiver les couleurs par défaut
+      // https://shiki.style/guide/dual-themes#without-default-color
+      // (Ajouté dans la v4.12.0)
+      defaultColor: false,
+      // Ajouter des langages personnalisés
+      // Remarque : Shiki possède d’innombrables langages intégrés, y compris .astro !
+      // https://shiki.style/languages
+      langs: [],
+      // Ajouter des alias personnalisés pour les langages
+      // Associer un alias à un identifiant de langage Shiki : https://shiki.style/languages#bundled-languages
+      // https://shiki.style/guide/load-lang#custom-language-aliases
+      langAlias: {
+        cjs: "javascript"
+      },
+      // Activer le retour à la ligne pour empêcher le défilement horizontal
+      wrap: true,
+      // Ajouter des transformateurs personnalisés : https://shiki.style/guide/transformers
+      // Trouver des transformateurs courants : https://shiki.style/packages/transformers
+      transformers: [],
+    },
+  },
+});
+```
+
+Consultez le [guide de coloration syntaxique du code](/fr/guides/syntax-highlighting/) pour l'utilisation et les exemples.
+
+### markdown.syntaxHighlight
+
+<p>
+
+**Type :** `SyntaxHighlightConfig | SyntaxHighlightConfigType | false`<br />
+**Par défaut :** `{ type: 'shiki', excludeLangs: ['math'] }`
+</p>
+
+Quel surligneur de syntaxe utiliser pour les blocs de code Markdown (\`\`\`), le cas échéant. Cela détermine les classes CSS qu'Astro appliquera à vos blocs de code Markdown.
+
+- `shiki` - utiliser le colorateur [Shiki](https://shiki.style) (thème `github-dark` configuré par défaut)
+- `prism` - utiliser le colorateur [Prism](https://prismjs.com/) et [fournir votre propre feuille de style Prism](/fr/guides/syntax-highlighting/#ajouter-une-feuille-de-style-prism)
+- `false` - n'appliquer aucune coloration syntaxique.
+
+```js
+{
+  markdown: {
+    // Exemple : Utiliser Prism pour la coloration syntaxique dans Markdown
+    syntaxHighlight: 'prism',
+  }
+}
+```
+
+Pour un meilleur contrôle sur la coloration syntaxique, vous pouvez spécifier un objet de configuration avec les propriétés répertoriées ci-dessous.
+
+#### markdown.syntaxHighlight.type
+
+<p>
+
+**Type :** `'shiki' | 'prism'`<br />
+**Par défaut :** `'shiki'`<br />
+<Since v="5.5.0" />
+</p>
+
+Les classes CSS par défaut à appliquer aux blocs de code Markdown.
+(Si aucune autre configuration de coloration syntaxique n'est nécessaire, vous pouvez définir `markdown.syntaxHighlight` directement sur `shiki`, `prism` ou `false`.)
+
+#### markdown.syntaxHighlight.excludeLangs
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `['math']`<br />
+<Since v="5.5.0" />
+</p>
+
+Un tableau de langages à exclure de la coloration syntaxique par défaut spécifiée dans `markdown.syntaxHighlight.type`. Cela peut être utile lors de l'utilisation d'outils créant des diagrammes à partir de blocs de code Markdown, tels que Mermaid.js et D2.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: {
+      type: 'shiki',
+      excludeLangs: ['mermaid', 'math'],
+    },
+  },
+});
+```
+
+### markdown.remarkPlugins
+
+<p>
+
+**Type :** `RemarkPlugins`
+</p>
+
+Transmet des [modules d'extension Remark](https://github.com/remarkjs/remark) pour personnaliser la façon dont votre Markdown est compilé. Vous pouvez importer et appliquer la fonction du module d'extension (recommandé) ou transmettre le nom du module d'extension sous forme de chaîne de caractères.
+
+```js
+import remarkToc from 'remark-toc';
+{
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ]
+  }
+}
+```
+
+### markdown.rehypePlugins
+
+<p>
+
+**Type :** `RehypePlugins`
+</p>
+
+Transmet des [modules d'extension Rehype](https://github.com/remarkjs/remark-rehype) pour personnaliser la façon dont le HTML de sortie de votre Markdown est traité. Vous pouvez importer et appliquer la fonction du module d'extension (recommandé) ou transmettre le nom du module d'extension sous forme de chaîne de caractères.
+
+```js
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+{
+  markdown: {
+    rehypePlugins: [rehypeAccessibleEmojis]
+  }
+}
+```
+
+### markdown.gfm
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="2.0.0" />
+</p>
+
+Astro utilise [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) par défaut. Pour désactiver cela, définissez l'option `gfm` sur `false` :
+
+```js
+{
+  markdown: {
+    gfm: false,
+  }
+}
+```
+
+### markdown.smartypants
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="2.0.0" />
+</p>
+
+Astro utilise le [formatteur SmartyPants](https://daringfireball.net/projects/smartypants/) par défaut. Pour désactiver cela, définissez l'option `smartypants` sur `false` :
+
+```js
+{
+  markdown: {
+    smartypants: false,
+  }
+}
+```
+
+### markdown.remarkRehype
+
+<p>
+
+**Type :** `RemarkRehype`
+</p>
+
+Transmet des options à [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
+
+```js
+{
+  markdown: {
+    // Exemple : Traduire le texte des notes de bas de page dans une autre langue. Voici les valeurs anglaises par défaut.
+    remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
+  },
+};
+```
+
+## i18n
+
+<p>
+
+**Type :** `object`<br />
+<Since v="3.5.0" />
+</p>
+
+Configure le routage i18n et vous permet de spécifier certaines options de personnalisation.
+
+Consultez notre guide pour plus d’informations sur [l’internationalisation dans Astro](/fr/guides/internationalization/)
+
+### i18n.locales
+
+<p>
+
+**Type :** `Locales`<br />
+<Since v="3.5.0" />
+</p>
+
+Liste de tous les paramètres régionaux pris en charge par le site web. Ce champ est obligatoire.
+
+Les langues peuvent être répertoriées soit sous forme de codes individuels (par exemple `['en', 'es', 'pt-br']`) soit en associant un chemin (`path`) à un tableau de codes (par exemple `{ path: "english", codes: ["en", "en-US"]}`). Ces codes seront utilisés pour déterminer la structure de l'URL de votre site déployé.
+
+Aucun format particulier de code de langue ou de syntaxe n'est appliqué, mais les dossiers de votre projet contenant vos fichiers de contenu doivent correspondre exactement aux éléments de la liste `locales`. Dans le cas de plusieurs `codes` pointant vers un préfixe de chemin d'URL personnalisé, stockez vos fichiers de contenu dans un dossier portant le même nom que le chemin (`path`) configuré.
+
+### i18n.defaultLocale
+
+<p>
+
+**Type :** `string`<br />
+<Since v="3.5.0" />
+</p>
+
+Les paramètres régionaux par défaut de votre site web/application, c'est-à-dire l'un des paramètres régionaux spécifiés dans `locales`. Ce champ est obligatoire.
+
+Aucun format de langue ou syntaxe particulière n'est imposé, mais nous vous suggérons d'utiliser des minuscules et des traits d'union si nécessaire (par exemple « es », « pt-br ») pour une meilleure compatibilité.
+
+### i18n.fallback
+
+<p>
+
+**Type :** `Record<string, string>`<br />
+<Since v="3.5.0" />
+</p>
+
+La stratégie de repli lors de la navigation vers des pages qui n'existent pas (par exemple une page traduite n'a pas été créée).
+
+Utilisez cet objet pour déclarer une route de repli pour chaque langue que vous prenez en charge. Si aucune solution de repli n'est spécifiée, les pages indisponibles renverront un code d'état 404.
+
+##### Exemple
+
+L'exemple suivant configure votre stratégie de repli pour rediriger les pages indisponibles dans `/pt-br/` vers leur version `es`, et les pages indisponibles dans `/fr/` vers leur version `en`. Les pages `/es/` non disponibles renverront un code d'état 404.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		fallback: {
+			pt: "es",
+		  fr: "en"
+		}
+	}
+})
+```
+
+### i18n.routing
+
+<p>
+
+**Type :** `object | "manual"`<br />
+**Par défaut :** `object`<br />
+<Since v="3.7.0" />
+</p>
+
+Contrôle la stratégie de routage pour déterminer les URL de votre site. Définissez ceci en fonction de la configuration de votre chemin de dossier/URL pour votre langue par défaut.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr"],
+		routing: {
+			prefixDefaultLocale: false,
+			redirectToDefaultLocale: true,
+			fallbackType: "redirect",
+		}
+	}
+})
+```
+
+Depuis la version 4.6.0, cette option peut également être définie sur `manual`. Lorsque cette stratégie de routage est activée, Astro **désactivera** son middleware i18n et aucune autre option de routage (`routing`) (par exemple `prefixDefaultLocale`) ne pourra être configurée. Vous serez responsable de l'écriture de votre propre logique de routage ou de l'exécution manuelle du middleware i18n d'Astro en parallèle de la vôtre.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr"],
+		routing: "manual"
+	}
+})
+```
+
+#### i18n.routing.prefixDefaultLocale
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="3.7.0" />
+</p>
+
+Lorsque le paramètre est défini sur `false`, seules les langues autres que celles par défaut afficheront un préfixe de langue.
+La langue par défaut (`defaultLocale`) n'affichera pas de préfixe de langue et les fichiers de contenu ne résident pas dans un dossier localisé.
+Les URL seront de la forme `example.com/[locale]/content/` pour toutes les langues autres que celles par défaut, mais `example.com/content/` pour la langue par défaut.
+
+Lorsque le paramètre est défini sur `true`, toutes les URL afficheront un préfixe de langue.
+Les URL seront de la forme `example.com/[locale]/content/` pour chaque route, y compris la langue par défaut.
+Les dossiers localisés sont utilisés pour chaque langue, y compris la langue par défaut.
+
+```js
+export default defineConfig({
+	i18n: {
+		defaultLocale: "en",
+		locales: ["en", "fr", "pt-br", "es"],
+		routing: {
+			prefixDefaultLocale: true,
+		}
+	}
+})
+```
+
+#### i18n.routing.redirectToDefaultLocale
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="4.2.0" />
+</p>
+
+Configure si l'URL d'accueil (`/`) générée par `src/pages/index.astro` sera redirigée vers `/[defaultLocale]` lorsque `prefixDefaultLocale: true` est défini.
+
+Définissez `redirectToDefaultLocale: false` pour désactiver cette redirection automatique à la racine de votre site :
+```js
+// astro.config.mjs
+export default defineConfig({
+  i18n:{
+    defaultLocale: "en",
+		locales: ["en", "fr"],
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: false
+    }
+  }
+})
+```
+
+#### i18n.routing.fallbackType
+
+<p>
+
+**Type :** `"redirect" | "rewrite"`<br />
+**Par défaut :** `"redirect"`<br />
+<Since v="4.15.0" />
+</p>
+
+Lorsque [`i18n.fallback`](/fr/reference/configuration-reference/#i18nfallback) est configuré pour éviter d'afficher une page 404 pour les routes de page manquantes, cette option contrôle s'il faut [rediriger](/fr/guides/routing/#redirections) vers la page de secours ou [réécrire](/fr/guides/routing/#réécritures) le contenu de la page de secours en place.
+
+Par défaut, le routage i18n d'Astro crée des pages qui redirigent vos visiteurs vers une nouvelle destination en fonction de votre configuration de repli. Le navigateur s'actualise et affiche l'adresse de destination dans la barre d'URL.
+
+Lorsque `i18n.routing.fallback: "rewrite"` est configuré, Astro crée des pages qui restituent le contenu de la page de secours sur l'URL d'origine demandée.
+
+Avec la configuration suivante, si vous avez le fichier `src/pages/en/about.astro` mais pas `src/pages/fr/about.astro`, la commande `astro build` générera `dist/fr/about.html` avec le même contenu que la page `dist/en/about.html`.
+Le visiteur de votre site verra la version anglaise de la page à l'adresse `https://example.com/fr/about/` et ne sera pas redirigé.
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr"],
+    routing: {
+    	prefixDefaultLocale: false,
+    	fallbackType: "rewrite",
+    },
+    fallback: {
+    	fr: "en",
+    }
+  },
+})
+```
+
+### i18n.domains
+
+<p>
+
+**Type :** `Record<string, string>`<br />
+**Par défaut :** `{}`<br />
+<Since v="4.3.0" />
+</p>
+
+Configure le modèle d'URL d'une ou plusieurs langues prises en charge pour utiliser un domaine personnalisé (ou sous-domaine).
+
+Lorsqu'un paramètre régional est associé à un domaine, un préfixe de chemin `/[locale]/` ne sera pas utilisé.
+Cependant, les dossiers localisés dans `src/pages/` sont toujours nécessaires, y compris pour le paramètre régional par défaut (`defaultLocale`) configuré.
+
+Tout autre paramètre régional non configuré sera par défaut une URL basée sur un chemin localisé selon votre stratégie `prefixDefaultLocale` (par exemple `https://example.com/[locale]/blog`).
+
+```js
+//astro.config.mjs
+export default defineConfig({
+	 site: "https://example.com",
+	 output: "server", // requis, sans pages pré-rendues
+	 adapter: node({
+	   mode: 'standalone',
+	 }),
+	 i18n: {
+    defaultLocale: "en",
+    locales: ["en", "fr", "pt-br", "es"],
+    prefixDefaultLocale: false,
+    domains: {
+      fr: "https://fr.example.com",
+      es: "https://example.es"
+    }
+  },
+})
+```
+
+Les routes de page générées et les URL renvoyées par les fonctions d'assistance [`getAbsoluteLocaleUrl()`](/fr/reference/modules/astro-i18n/#getabsolutelocaleurl) et [`getAbsoluteLocaleUrlList()`](/fr/reference/modules/astro-i18n/#getabsolutelocaleurllist) du module `astro:i18n` utiliseront les options définies dans `i18n.domains`.
+
+Consultez le [Guide d'internationalisation](/fr/guides/internationalization/#domains) pour plus de détails, y compris les limitations de cette fonctionnalité.
+
+## env
+
+<p>
+
+**Type :** `object`<br />
+**Par défaut :** `{}`<br />
+<Since v="5.0.0" />
+</p>
+
+Options de configuration pour les variables d'environnement avec sûreté du typage.
+
+Consultez notre guide pour plus d'informations sur [les variables d'environnement dans Astro](/fr/guides/environment-variables/).
+
+### env.schema
+
+<p>
+
+**Type :** `EnvSchema`<br />
+**Par défaut :** `{}`<br />
+<Since v="5.0.0" />
+</p>
+
+Un objet qui utilise `envField` pour définir le type de données et les propriétés de vos variables d'environnement : `context` (client ou serveur), `access` (public ou secret), une valeur par défaut (`default`) à utiliser et si cette variable d'environnement est facultative (`optional`) ou non (la valeur par défaut est `false`).
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+`envField` prend en charge quatre types de données : chaîne de caractères, nombre, énumération et booléen. `context` et `access` sont des propriétés obligatoires pour tous les types de données. La liste complète des propriétés disponibles pour chaque type de données est présentée ci-dessous :
+
+```js
+import { envField } from "astro/config"
+
+envField.string({
+   // context & access
+   optional: true,
+   default: "foo",
+   max: 20,
+   min: 1,
+   length: 13,
+   url: true,
+   includes: "oo",
+   startsWith: "f",
+   endsWith: "o",
+})
+envField.number({
+   // context & access
+   optional: true,
+   default: 15,
+   gt: 2,
+   min: 1,
+   lt: 3,
+   max: 4,
+   int: true,
+})
+envField.boolean({
+   // context & access
+   optional: true,
+   default: true,
+})
+envField.enum({
+   // context & access
+   values: ['foo', 'bar', 'baz'], // requis
+   optional: true,
+   default: 'baz',
+})
+```
+
+### env.validateSecrets
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="5.0.0" />
+</p>
+
+Détermine s'il faut ou non valider les secrets sur le serveur lors du démarrage du serveur de développement ou de l'exécution d'une compilation.
+
+Par défaut, seules les variables publiques sont validées sur le serveur lors du démarrage du serveur de développement ou d'une compilation, et les variables privées sont validées uniquement au moment de l'exécution. Si elles sont activées, les variables privées seront également vérifiées au démarrage. Ceci est utile dans certains pipelines d'intégration continue (CI) pour vous assurer que tous vos secrets sont correctement définis avant le déploiement.
+
+```js
+// astro.config.mjs
+import { defineConfig, envField } from "astro/config"
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    },
+    validateSecrets: true
+  }
+})
+```

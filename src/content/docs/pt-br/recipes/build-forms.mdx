@@ -1,0 +1,205 @@
+---
+title: Crie formulários HTML em páginas Astro
+description: Aprenda como criar formulários HTML e lidar com envios em seu frontmatter.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+No modo SSR, as páginas Astro podem exibir e manipular formulários. Nesta receita, você usará um formulário HTML padrão para enviar dados ao servidor. O seu script frontmatter manipulará os dados no servidor, sem enviar qualquer JavaScript para o cliente.
+
+## Pré-requisitos
+- Um projeto com [SSR](/pt-br/guides/on-demand-rendering/) (`output: 'server'`) ativado
+
+## Receita
+
+<Steps>
+1. Crie ou identifique uma página `.astro` que irá conter o formulário e seu código de manipulação. Por exemplo, você pode adicionar uma página de registro:
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Registrar</h1>
+    ```
+
+2. Adicione uma tag `<form>` com alguns inputs na página. Cada input deve ter um atributo `name` que descreva o valor daquele campo.
+
+    Certifique-se de incluir um elemento `<button>` ou `<input type="submit">` para enviar o formulário.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Registrar</h1>
+    <form>
+      <label>
+        Nome de usuário:
+        <input type="text" name="username" />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" />
+      </label>
+      <label>
+        Senha:
+        <input type="password" name="password" />
+      </label>
+      <button>Enviar</button>
+    </form>
+    ```
+
+3. Use [atributos de validação](https://developer.mozilla.org/pt-BR/docs/Learn/Forms/Form_validation#usando_validação_de_formulário_integrada) para fornecer validação básica no lado do cliente, mesmo que o JavaScript esteja desativado.
+
+    Neste exemplo,
+    - `required` impede o envio do formulário até que o campo seja preenchido.
+    - `minlength` define um comprimento mínimo para o campo.
+    - `type="email"` adiciona validação para aceitar apenas um formato de email válido.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Registrar</h1>
+    <form>
+      <label>
+        Nome de usuário:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Senha:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Enviar</button>
+    </form>
+    ```
+    
+    :::tip
+    Você pode adicionar lógica de validação personalizada que refere-se a vários campos usando a tag `<script>` e a [Constraint Validation API](https://developer.mozilla.org/en-US/docs/Web/HTML/Constraint_validation#complex_constraints_using_the_constraint_validation_api).
+
+    Para escrever lógica de validação complexa mais facilmente, você pode construir seu formulário usando um [framework frontend](/pt-br/guides/framework-components/) e escolher uma biblioteca de formulários como [React Hook Form](https://react-hook-form.com/) ou [Felte](https://felte.dev/).
+    :::
+
+4. O envio do formulário fará o navegador solicitar novamente a página. Altere a transferência de dados do formulário `method` para `POST` para enviar os dados do formulário como parte do corpo de `Request`, em vez de como parâmetros na URL.
+
+    ```astro title="src/pages/register.astro" 'method="POST"'
+    ---
+    ---
+    <h1>Registrar</h1>
+    <form method="POST">
+      <label>
+        Nome de usuário:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Senha:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Enviar</button>
+    </form>
+    ```
+
+5. Verifique o método `POST` no frontmatter e acesse os dados do formulário usando `Astro.request.formData()`. Envolva isso em um bloco `try ... catch` para lidar com os casos em que a solicitação `POST` não foi enviada por um formulário ou quando o `formData` é inválido.
+
+    ```astro title="src/pages/register.astro" ins={2-14} "Astro.request.formData()"
+    ---
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        // Faça algo com os dados
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Registrar</h1>
+    <form method="POST">
+      <label>
+        Nome de usuário:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Senha:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Enviar</button>
+    </form>
+    ```
+
+6. Valide os dados do formulário no servidor. Isso deve incluir a mesma validação feita no lado do cliente para evitar envios maliciosos ao seu endpoint e para dar suporte aos raros navegadores legado que não possuem validação de formulário.
+
+    Isso também pode incluir validação que não pode ser feita no lado do cliente. Por exemplo, o exemplo abaixo verifica se o email já está no banco de dados.
+
+    Mensagens de erro podem ser enviadas de volta para o cliente armazenando-as em um objeto `errors` e acessando-as no template.
+
+    ```astro title="src/pages/register.astro" ins={5, 12-22, 41, 46, 51}
+    ---
+    import { isRegistered, registerUser } from "../../data/users"
+    import { isValidEmail } from "../../utils/isValidEmail";
+
+    const errors = { username: "", email: "", password: "" };
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        if (typeof name !== "string" || name.length < 1) {
+          errors.username += "Por favor, insira um nome de usuário. ";
+        }
+        if (typeof email !== "string" || !isValidEmail(email)) {
+          errors.email += "O email não é válido. ";
+        } else if (await isRegistered(email)) {
+          errors.email += "O email já está registrado. ";
+        }
+        if (typeof password !== "string" || password.length < 6) {
+          errors.password += "A senha deve ter pelo menos 6 caracteres. ";
+        }
+        const hasErrors = Object.values(errors).some(msg => msg)
+        if (!hasErrors) {
+          await registerUser({name, email, password});
+          return Astro.redirect("/login");
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Registrar</h1>
+    <form method="POST">
+      <label>
+        Nome de usuário:
+        <input type="text" name="username" />
+      </label>
+      {errors.username && <p>{errors.username}</p>}
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      {errors.email && <p>{errors.email}</p>}
+      <label>
+        Senha:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      {errors.password && <p>{errors.password}</p>}
+      <button>Registrar</button>
+    </form>
+
+    ```
+</Steps>

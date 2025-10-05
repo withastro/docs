@@ -1,15 +1,17 @@
 ---
 title: Strapi & Astro
 description: Strapi 헤드리스 CMS를 사용하여 Astro 프로젝트에 콘텐츠 추가
+sidebar:
+  label: Strapi
 type: cms
 service: Strapi
 stub: false
 i18nReady: true
 ---
-
 import { Steps } from '@astrojs/starlight/components';
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
 [Strapi](https://strapi.io/)는 사용자 정의가 가능한 오픈 소스 헤드리스 CMS입니다.
 
@@ -29,14 +31,14 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 Astro에 Strapi URL을 추가하려면 프로젝트 루트에 `.env` 파일을 만들고 (아직 없는 경우) 다음 변수를 추가하세요.
 
 ```ini title=".env"
-STRAPI_URL="http://127.0.0.1:1337" // 또는 여려분의 IP 주소를 사용하세요.
+STRAPI_URL="http://127.0.0.1:1337" # 또는 여려분의 IP 주소를 사용하세요.
 ```
 
 Astro 프로젝트에서 이 환경 변수를 사용하려면 개발 서버를 다시 시작하세요.
 
 환경 변수에 IntelliSense를 사용하려면 `src/` 디렉터리에 `env.d.ts` 파일을 만들고 다음과 같이 `ImportMetaEnv`를 구성하면 됩니다.
 
-```ts title="src/kov.d.ts"
+```ts title="src/env.d.ts"
 interface ImportMetaEnv {
   readonly STRAPI_URL: string;
 }
@@ -52,9 +54,11 @@ interface ImportMetaEnv {
   - package.json
 </FileTree>
 
+<ReadMore>Astro의 [환경 변수](/ko/guides/environment-variables/) 및 `.env` 파일에 대해 자세히 알아보세요.</ReadMore>
+
 ### API 래퍼 만들기
 
-`src/lib/strapi.ts`에 새 파일을 만들고 다음 래퍼 함수를 ​​추가하여 Strapi API와 상호 작용합니다.
+`src/lib/strapi.ts`에 새 파일을 만들고 다음 래퍼 함수를 추가하여 Strapi API와 상호 작용합니다.
 
 ```ts title="src/lib/strapi.ts"
 interface Props {
@@ -117,16 +121,14 @@ TypeScript를 사용하는 경우 `src/interfaces/article.ts`에서 Strapi 콘�
 
 ```ts title="src/interfaces/article.ts"
 export default interface Article {
-  id: number;
-  attributes: {
-    title: string;
-    description: string;
-    content: string;
-    slug: string;
-    createdAt: string;
-    updatedAt: string;
-    publishedAt: string;
-  };
+  documentId: number;
+  title: string;
+  description: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
 }
 ```
 
@@ -170,16 +172,14 @@ export default interface Article {
     ```json
     [
       {
-        id: 1,
-        attributes: {
-          title: "What's inside a Black Hole",
-          description: "Maybe the answer is in this article, or not...",
-          content: "Well, we don't know yet...",
-          slug: "what-s-inside-a-black-hole",
-          createdAt: "2023-05-28T13:19:46.421Z",
-          updatedAt: "2023-05-28T13:19:46.421Z",
-          publishedAt: "2023-05-28T13:19:45.826Z"
-        }
+        documentId: 1,
+        title: "What's inside a Black Hole",
+        description: "Maybe the answer is in this article, or not...",
+        content: "Well, we don't know yet...",
+        slug: "what-s-inside-a-black-hole",
+        createdAt: "2023-05-28T13:19:46.421Z",
+        updatedAt: "2023-05-28T13:19:46.421Z",
+        publishedAt: "2023-05-28T13:19:45.826Z"
       },
       // ...
     ]
@@ -209,9 +209,11 @@ export default interface Article {
           <ul>
             {
               articles.map((article) => (
-                <a href={`/blog/${article.attributes.slug}/`}>
-                  {article.attributes.title}
-                </a>
+                <li>
+                  <a href={`/blog/${article.slug}/`}>
+                    {article.title}
+                  </a>
+                </li>
               ))
             }
           </ul>
@@ -223,7 +225,7 @@ export default interface Article {
 
 ### 아티클 페이지 생성
 
-각 아티클에 대해 [동적으로 페이지를 생성](/ko/guides/routing/#동적-경로)하려면 `src/pages/blog/[slug].astro` 파일을 만드세요.
+각 아티클에 대해 [동적으로 페이지를 생성](/ko/guides/routing/#동적-라우트)하려면 `src/pages/blog/[slug].astro` 파일을 만드세요.
 
 <FileTree title="Project Structure">
   - src/
@@ -243,9 +245,9 @@ export default interface Article {
 
 #### 정적 사이트 생성
 
-Astro의 기본 정적 모드 (SSG)에서는 [`getStaticPaths()`](/ko/reference/api-reference/#getstaticpaths)를 사용하여 Strapi에서 아티클 목록을 가져옵니다.
+Astro의 기본 정적 모드 (SSG)에서는 [`getStaticPaths()`](/ko/reference/routing-reference/#getstaticpaths)를 사용하여 Strapi에서 아티클 목록을 가져옵니다.
 
-```astro title="src/pages/blog/[slug].astro
+```astro title="src/pages/blog/[slug].astro"
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -257,7 +259,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -269,7 +271,7 @@ const article = Astro.props;
 
 각 게시물 객체의 속성을 사용하여 각 페이지의 템플릿을 만듭니다.
 
-```astro title="src/pages/blog/[slug].astro ins={21-43}
+```astro title="src/pages/blog/[slug].astro" ins={21-43}
 ---
 import fetchApi from '../../lib/strapi';
 import type Article from '../../interfaces/article';
@@ -281,7 +283,7 @@ export async function getStaticPaths() {
   });
 
   return articles.map((article) => ({
-    params: { slug: article.attributes.slug },
+    params: { slug: article.slug },
     props: article,
   }));
 }
@@ -293,23 +295,23 @@ const article = Astro.props;
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- 일반 텍스트 렌더링 -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- markdown 렌더링 -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- html 렌더링 -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>
@@ -318,9 +320,9 @@ const article = Astro.props;
 여러분의 콘텐츠에 적합한 렌더링을 선택하세요. Markdown에 대해서는 [Markdown 가이드](/ko/guides/markdown-content/)를 확인하세요. HTML을 렌더링하는 경우 안전을 위해 [이 가이드](/ko/reference/directives-reference/#sethtml)를 참조하세요.
 :::
 
-#### 서버 측 렌더링
+#### 요청 시 렌더링
 
-`output: server` 또는 `output: hybrid`를 사용하여 [SSR 모드를 선택](/ko/guides/server-side-rendering/)한 경우, 다음 코드를 사용하여 [동적 경로를 생성](/ko/guides/routing/#서버-ssr-모드)하세요.
+[어댑터를 사용하여 요청 시 렌더링을 선택](/ko/guides/on-demand-rendering/)하는 경우, 다음 코드로 [동적 라우트를 생성](/ko/guides/routing/#요청-시-렌더링되는-동적-라우트)하세요.
 
 `src/pages/blog/[slug].astro` 파일을 만듭니다:
 
@@ -350,23 +352,23 @@ try {
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <title>{article.attributes.title}</title>
+    <title>{article.title}</title>
   </head>
 
   <body>
     <main>
-      <img src={import.meta.env.STRAPI_URL + article.attributes.image.data.attributes.url} />
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
 
-      <h1>{article.attributes.title}</h1>
+      <h1>{article.title}</h1>
 
       <!-- 일반 텍스트 렌더링 -->
-      <p>{article.attributes.content}</p>
+      <p>{article.content}</p>
       <!-- markdown 렌더링 -->
       <MyMarkdownComponent>
-        {article.attributes.content}
+        {article.content}
       </MyMarkdownComponent>
       <!-- html 렌더링 -->
-      <Fragment set:html={article.attributes.content} />
+      <Fragment set:html={article.content} />
     </main>
   </body>
 </html>

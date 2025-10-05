@@ -1,0 +1,226 @@
+---
+title: Cloudinary & Astro
+description: 使用 Cloudinary 为你的 Astro 项目添加图片和视频
+sidebar:
+  label: Cloudinary
+type: media
+stub: true
+service: Cloudinary
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Cloudinary](https://cloudinary.com) 是一个图片和视频平台，也是一个无头数字资源管理器 (DAM)，它能够为你托管资源并通过它们的内容分发网络 (CDN) 进行交付。
+
+从 Cloudinary 交付时，你还可以访问它们的转换 API，使你能够使用背景去除、动态裁剪和调整大小以及生成 AI 等工具来编辑资源。
+
+## 在 Astro 中使用 Cloudinary
+
+支持多种 SDK，可根据你的 Astro 环境使用。
+
+[Cloudinary Astro SDK](https://astro.cloudinary.dev/) 提供原生 Astro 组件，包括图像、视频和上传组件，以及可与 Astro 内容集合一起使用的内容加载器。
+
+或者，Cloudinary [Node.js SDK](https://cloudinary.com/documentation/node_integration) 和 [JavaScript SDK](https://cloudinary.com/documentation/javascript_integration) 都可以用于为你的项目生成图像的 URL。Node.js SDK 还可以向 Cloudinary API 发出请求，包括上传资源、请求资源和运行内容分析。
+
+## 先决条件
+
+- 一个现有的 Astro 项目
+- 一个 Cloudinary 账号
+
+## 安装 Astro Cloudinary
+
+通过为你的包管理器运行适当的命令来安装 Cloudinary Astro SDK：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro-cloudinary
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add astro-cloudinary
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro-cloudinary
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 配置你的账号
+
+在项目的根目录中，创建一个新的 `.env` 文件并添加你的 Cloudinary 凭据：
+
+```shell title=".env"
+PUBLIC_CLOUDINARY_CLOUD_NAME="<Your Cloud Name>"
+
+// 仅当使用 CldUploadWidget 或 cldAssetsLoader 时才需要
+PUBLIC_CLOUDINARY_API_KEY="<Your API Key>"
+CLOUDINARY_API_SECRET="<Your API Secret>"
+```
+
+## 使用 Cloudinary 图像
+
+通过将图像数据（例如 `src`、`width`、`alt`）传递到 `<CldImage>` 组件，以在 `.astro` 组件中添加图像。这将自动优化你的图像并让你可以访问转换 API。
+
+```jsx title="Component.astro"
+---
+import { CldImage } from 'astro-cloudinary';
+---
+<CldImage
+  src="<Public ID>"
+  width="<Width>"
+  height="<Height>"
+  alt="<Description>"
+/>
+```
+
+有关更多信息，请参阅 [Cloudinary 的 `<CldImage>` 文档](https://astro.cloudinary.dev/cldimage/basic-usage)。
+
+## 使用 Cloudinary 视频
+
+要将视频添加到 `.astro` 组件，可以添加 `<CldVideoPlayer>` 并传递合适的属性。该组件将使用 [Cloudinary 视频播放器](https://cloudinary.com/documentation/cloudinary_video_player) 自动优化和嵌入你的视频。
+
+```jsx title="Component.astro"
+---
+import { CldVideoPlayer } from 'astro-cloudinary';
+---
+<CldVideoPlayer
+  src="<Public ID>"
+  width="<Width>"
+  height="<Height>"
+/>
+```
+
+有关更多信息，请参阅 [Cloudinary 的 `<CldVideoPlayer>` 文档](https://astro.cloudinary.dev/cldvideoplayer/basic-usage)。
+
+## 启用 Cloudinary 上传
+
+要在你的网站或应用程序的 UI 中启用文件上传，请添加 `<CldUploadWidget>`，它将嵌入 [Cloudinary 上传组件](https://cloudinary.com/documentation/upload_widget)。
+
+以下示例创建了一个小部件，并通过传递未签名的 [上传预设](https://cloudinary.com/documentation/upload_presets) 来允许未签名的上传：
+
+```jsx title="Component.astro"
+---
+import { CldUploadWidget } from 'astro-cloudinary';
+---
+<CldUploadWidget uploadPreset="<Upload Preset>">
+  <button>上传</button>
+</CldUploadWidget>
+```
+
+对于签名上传，你可以在 Astro Cloudinary 文档上找到 [指南和示例](https://astro.cloudinary.dev/clduploadwidget/signed-uploads)。
+
+有关更多信息，请参阅 [Cloudinary 的 `<CldUploadWidget>` 文档](https://astro.cloudinary.dev/clduploadwidget/basic-usage)。
+
+## Cloudinary 内容加载器
+
+Cloudinary Astro SDK 提供了 `cldAssetsLoader` 内容加载器来加载内容集合中的 Cloudinary 资产。
+
+要加载图像或视频集合，请根据需要设置 `loader: cldAssetsLoader ({})` 和 `folder`：
+
+```jsx title="config.ts"
+import { defineCollection } from 'astro:content';
+import { cldAssetsLoader } from 'astro-cloudinary/loaders';
+
+export const collections = {
+  assets: defineCollection({
+    loader: cldAssetsLoader({
+      folder: '<Folder>' // 可选，不加载根目录
+    })
+  }),
+}
+```
+
+然后，你可以使用 [`getCollection()` 或 `getEntry()` 查询函数](/zh-cn/guides/content-collections/#查询集合) 以从你的收藏中选择一张或多张图像或视频。
+
+有关更多信息，请参阅 [Cloudinary 的 `cldAssetsLoader` 文档](https://astro.cloudinary.dev/cldassetsloader/basic-usage)。
+
+## 生成 Cloudinary 图像 URL
+
+Astro Cloudinary SDK 提供了一个 `getCldOgImageUrl()` 助手，用于生成和使用图像的 URL。当你需要 URL 而不是组件来显示图像时，请使用此选项。
+
+URL 的一种常见用途是用于社交媒体卡的 `<meta>` 标记中的 Open Graph 图像。与组件一样，此助手函数允许你访问 Cloudinary 转换，以便为你的任何页面创建动态、独特的社交卡。
+
+以下示例显示了，使用 `getCldOgImageUrl()` 生成社交媒体卡的 Open Graph 图像所需的 `<meta>` 标签：
+
+```jsx title="Layout.astro"
+---
+import { getCldOgImageUrl } from 'astro-cloudinary/helpers';
+const ogImageUrl = getCldOgImageUrl({ src: '<Public ID>' });
+---
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:image:secure_url" content={ogImageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="twitter:title" content="<Twitter Title>" />
+<meta property="twitter:card" content="summary_large_image" />
+<meta property="twitter:image" content={ogImageUrl} />
+```
+
+在 Cloudinary 文档中查找 [Cloudinary 社交媒体卡模板](https://astro.cloudinary.dev/templates/social-media-cards)。
+
+有关更多信息，请参阅 [Cloudinary 的 `getCldOgImageUrl()` 文档](https://astro.cloudinary.dev/getcldogimageurl/basic-usage)。
+
+## 在 Node.js 中使用 Cloudinary
+
+对于更复杂的资源管理、上传或分析，你可以在 Astro Node.js 环境中使用 Cloudinary Node.js SDK。
+
+通过为你的包管理器运行适当的命令来安装 Cloudinary Node.js SDK：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install cloudinary
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add cloudinary
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add cloudinary
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+在你的 `.env` 文件中添加以下环境变量：
+
+```shell title=".env"
+PUBLIC_CLOUDINARY_CLOUD_NAME="<Your Cloud Name>"
+PUBLIC_CLOUDINARY_API_KEY="<Your API Key>"
+CLOUDINARY_API_SECRET="<Your API Secret>"
+```
+
+通过在 Astro 组件的代码围栏之间添加以下代码，以使用新的 Cloudinary 实例配置你的帐户：
+
+```js title="Component.astro"
+---
+import { v2 as cloudinary } from "cloudinary";
+
+cloudinary.config({
+  cloud_name: import.meta.env.PUBLIC_CLOUDINARY_CLOUD_NAME,
+  api_key: import.meta.env.PUBLIC_CLOUDINARY_API_KEY,
+  api_secret: import.meta.env.CLOUDINARY_API_SECRET,
+});
+---
+```
+
+这将使你能够访问所有 Cloudinary API，以便与图像、视频和其他支持的文件进行交互。
+
+```js title="Component.astro"
+await cloudinary.uploader.upload('./path/to/file');
+```
+
+了解如何 [使用 Cloudinary Node.js SDK 和 Astro 表单上传文件](https://www.youtube.com/watch?v=DQUYMyT2MTM)。
+
+## 官方资源
+
+- [Cloudinary Astro SDK](https://astro.cloudinary.dev/)
+- [Cloudinary Node.js SDK](https://cloudinary.com/documentation/node_integration)
+- [将 Cloudinary 与 Astro 结合使用 (YouTube)](https://www.youtube.com/playlist?list=PL8dVGjLA2oMqnpf2tShn1exf5GkSWuu5-)
+- [使用 Cloudinary Astro SDK 的代码示例 (GitHub)](https://github.com/cloudinary-community/cloudinary-examples/tree/main/examples/astro-cloudinary)

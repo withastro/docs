@@ -1,0 +1,134 @@
+---
+title: 部署你的 Astro 網站至 Cloudflare Pages
+description: 如何使用 Cloudflare Pages 將你的 Astro 網站部署到網路上。
+sidebar:
+  label: Cloudflare
+type: deploy
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+你可以將你的 Astro 項目部署在 [Cloudflare Pages](https://pages.cloudflare.com/)，一個供前端開發人員協作和部署靜態（JAMstack）或 SSR 網站的平臺。
+
+本指南包含：
+
+- [如何使用 Git 部署一個站點](#如何使用-git-部署網站)
+- [如何使用 Wrangler 部署網站](#如何使用-wrangler-部署網站)
+- [如何部署 SSR 網站](#如何部署-ssr-網站)
+
+## 前提條件
+
+開始之前，你需要：
+
+- 一個 Cloudflare 帳號，如果還沒有的話，可以在過程中建立免費的 Cloudflare 帳號
+- 把程式碼推到 [GitHub](https://github.com/) 或者 [GitLab](https://about.gitlab.com/) 儲存庫
+
+## 如何使用 Git 部署網站
+
+<Steps>
+1. 將程式碼推到 git 倉儲（GitHub、GitLab）
+
+2. 在 Cloudflare Pages 建立新專案。使用以下的建構設定：
+
+    - **Framework preset:** `Astro`
+    - **Build command:** `npm run build`
+    - **Build output directory:** `dist`
+
+3. 點選 **Save and Deploy** 按鈕。
+</Steps>
+
+## 如何使用 Wrangler 部署網站
+
+<Steps>
+1. 安裝 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)。
+
+2. 使用 `wrangler login` 登入 Cloudflare 帳號並授權 Wrangler。
+
+3. 執行你的建構命令。
+
+4. 使用 `npx wrangler pages deploy dist` 部署。
+</Steps>
+
+```bash
+# 安裝 Wrangler CLI（命令列）
+npm install -g wrangler
+# 透過 CLI 登入 Cloudflare 帳號
+wrangler login
+# 執行你的建構命令
+npm run build
+# 建立新的部署
+npx wrangler pages deploy dist
+```
+
+上傳完所有檔案後，Wrangler 會提供一個預覽網址讓你檢查網站。登入 Cloudflare Pages 儀表板時，你就會看到新專案。
+
+### 使用 Wrangler 在本地啟用預覽
+
+要使預覽正常運作，你必須安裝 `wrangler`
+
+```bash
+pnpm add wrangler --save-dev
+```
+
+然後就可以將預覽指令碼從 Astro 的內建預覽命令更新為 `wrangler` 了：
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
+
+## 如何部署 SSR 網站
+
+你可以使用 [`@astrojs/cloudflare` 轉接器](/zh-tw/guides/integrations-guide/cloudflare/)將 Astro SSR 站點部署到 Cloudflare Pages。
+
+請按照以下步驟設定轉接器。完成後，你可以使用上述文件中的任何方法進行部署。
+
+### 快速安裝
+
+使用以下 `astro add` 命令新增 Cloudflare 轉接器以在你的 Astro 專案中啟用 SSR。這將安裝轉接器並一併對 `astro.config.mjs` 進行適當的更改。
+
+```bash
+npx astro add cloudflare
+```
+
+### 手動安裝
+
+如果你想要手動安裝轉接器，請完成以下兩個步驟：
+
+<Steps>
+1. 使用你喜歡的套件管理器將 `@astrojs/cloudflare` 加到專案的相依套件中。如果你使用 npm 或不確定是哪個管理器，請在終端機執行：
+
+    ```bash
+    npm install @astrojs/cloudflare
+    ```
+
+2. 將以下內容新增到 `astro.config.mjs` 檔案中：
+
+    ```js title="astro.config.mjs" ins={2, 5-6}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: cloudflare()
+    });
+    ```
+</Steps>
+
+<ReadMore>進一步了解 [Astro 的 SSR（伺服器端算繪）](/zh-tw/guides/on-demand-rendering/)。</ReadMore>
+
+## 故障排除
+
+### 客戶端 hydration
+
+Cloudflare 的 Auto Minify（自動壓縮）功能可能導致客戶端 hydration 失敗。如果你在控制檯中看到 `Hydration completed but contains mismatches`，請確保在 Cloudflare 設定中停用 Auto Minify。
+
+### Node.js runtime API
+
+如果你用 [Cloudflare SSR 轉接器](/zh-tw/guides/integrations-guide/cloudflare/) 的隨需算繪建立專案，而伺服器在建構時失敗，出現如 `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.` 的錯誤資訊：
+
+- 這意味著你在伺服器端環境中使用的某個套件或匯入與 [Cloudflare runtime API](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) 不相容。
+
+- 如果你直接匯入 Node.js runtime API，請參考 Astro 關於 Cloudflare 的 [Node.js 相容性](/zh-tw/guides/integrations-guide/cloudflare/#nodejs-compatibility)文件，瞭解如何進一步解決這個問題。
+
+- 如果你匯入的套件中包含 Node.js runtime API，請檢查該套件的作者是否支援 `node:*` 的匯入語法。如果不支援，你可能需要找到其他替代套件。

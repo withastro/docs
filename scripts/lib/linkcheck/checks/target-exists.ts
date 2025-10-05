@@ -21,6 +21,11 @@ export class TargetExists extends CheckBase {
 
 			// Report links to missing pages
 			if (!linkedPage) {
+				// If it's not a page it may be a file
+				if (this.findFileByPathname(context, url.pathname)) {
+					return;
+				}
+
 				context.report({
 					type: TargetExists.BrokenPageLink,
 					linkHref,

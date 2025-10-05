@@ -1,6 +1,8 @@
 ---
 title: Hashnode & Astro
 description: Ajouter du contenu à votre projet Astro en utilisant Hashnode comme CMS
+sidebar:
+  label: Hashnode
 type: cms
 stub: false
 service: Hashnode
@@ -14,12 +16,12 @@ import { Steps } from '@astrojs/starlight/components';
 [Hashnode](https://hashnode.com/) est un CMS hébergé qui vous permet de créer un blog ou une simple publication.
 
 ## Intégration avec Astro
-L'API [Hashnode Public API](https://apidocs.hashnode.com/) est une API GraphQL qui vous permet d'interagir avec Hashnode. Ce guide utilise [`graphql-request`](https://github.com/jasonkuhrt/graphql-request), un client GraphQL minimal qui fonctionne bien avec Astro, pour apporter vos données Hashnode dans votre projet Astro.
+L'API [publique de Hashnode](https://apidocs.hashnode.com/) est une API GraphQL qui vous permet d'interagir avec Hashnode. Ce guide utilise [`graphql-request`](https://github.com/jasonkuhrt/graphql-request), un client GraphQL minimal qui fonctionne bien avec Astro, pour apporter vos données Hashnode dans votre projet Astro.
 
 ### Prérequis
 Pour commencer, vous devez disposer des éléments suivants :
 
-1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [Guide d'installation](/fr/install-and-setup/) vous permettra d'être opérationnel en un rien de temps.
+1. **Un projet Astro** - Si vous n'avez pas encore de projet Astro, notre [guide d'installation](/fr/install-and-setup/) vous permettra d'être opérationnel en un rien de temps.
 
 2. **Un site Hashnode** - Vous pouvez créer un site personnel gratuit en visitant [Hashnode](https://hashnode.com/).
 
@@ -60,6 +62,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
 
 <Steps>
 1. Pour récupérer les données de votre site avec le paquet `graphql-request`, créez un répertoire `src/lib` et créez deux nouveaux fichiers `client.ts` & `schema.ts` :
+
     <FileTree title="Structure du projet">
     - src/
       - lib/
@@ -71,7 +74,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
     - package.json
     </FileTree>
 
-2. Initialisez une instance API avec le GraphQLClient en utilisant l'URL de votre site web Hashnode.
+2. Initialisez une instance API avec GraphQLClient en utilisant l'URL de votre site web Hashnode.
 
     ```ts title="src/lib/client.ts" "astroplayground.hashnode.dev"
 
@@ -91,6 +94,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
         gql`
           query allPosts {
             publication(host: "${myHashnodeURL}") {
+              id
               title
               posts(first: 20) {
                 pageInfo{
@@ -99,6 +103,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
                 }
                 edges {
                   node {
+                    id
                     author{
                       name
                       profilePicture
@@ -135,7 +140,9 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
         gql`
           query postDetails($slug: String!) {
             publication(host: "${myHashnodeURL}") {
+              id
               post(slug: $slug) {
+                id
                 author{
                   name
                   profilePicture
@@ -173,6 +180,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
     import { z } from "astro/zod";
 
     export const PostSchema = z.object({
+        id: z.string(),
         author: z.object({
             name: z.string(),
             profilePicture: z.string(),
@@ -196,6 +204,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
     })
 
     export const AllPostsDataSchema = z.object({
+        id: z.string(),
         publication: z.object({
             title: z.string(),
             posts: z.object({
@@ -211,6 +220,7 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
     })
 
     export const PostDataSchema = z.object({
+        id: z.string(),
         publication: z.object({
             title: z.string(),
             post: PostSchema,
@@ -226,14 +236,13 @@ Cet exemple va créer une page d'index qui liste les articles avec des liens ver
 
 ### Affichage d'une liste d'articles
 
-La recherche via `getAllPosts()` renvoie un tableau d'objets contenant les propriétés de chaque article telles que :
+La récupération via `getAllPosts()` renvoie un tableau d'objets contenant les propriétés de chaque article telles que :
 - `title` - le titre de l'article
 - `brief` - l'affichage HTML du contenu de l'article
 - `coverImage.url` - l'URL source de l'image vedette de l'article
 - `slug` - le nom de l'article.
 
-Utilisez le tableau `posts` renvoyé par la recherche pour afficher une liste d'articles de blog sur la page.
-
+Utilisez le tableau `posts` renvoyé par la récupération pour afficher une liste d'articles de blog sur la page.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -267,11 +276,11 @@ const allPosts = data.publication.posts.edges;
 ### Générer des pages
 
 <Steps>
-1. Créez la page `src/pages/post/[slug].astro` pour [générer dynamiquement une page](/fr/guides/routing/#routes-dynamiques) pour chaque post.
+1. Créez la page `src/pages/post/[slug].astro` pour [générer dynamiquement une page](/fr/guides/routing/#routes-dynamiques) pour chaque article.
 
     <FileTree title="Structure du projet">
     - src/
-    - lib/
+      - lib/
         - client.ts
         - schema.ts
       - pages/
@@ -282,7 +291,7 @@ const allPosts = data.publication.posts.edges;
     - package.json
     </FileTree>
 
-2. Importez et utilisez `getAllPosts()` et `getPost()` pour récupérer les données de Hashnode et générer des routes de pages individuelles pour chaque post.
+2. Importez et utilisez `getAllPosts()` et `getPost()` pour récupérer les données de Hashnode et générer des routes de pages individuelles pour chaque article.
 
     ```astro title="src/pages/post/[slug].astro"
     ---
@@ -325,7 +334,7 @@ const allPosts = data.publication.posts.edges;
 
     ---
     <!DOCTYPE html>
-    <html lang="en">
+    <html lang="fr">
         <head>
             <title>{post.title}</title>
         </head>
@@ -340,7 +349,7 @@ const allPosts = data.publication.posts.edges;
     </html>
     ```
     :::note
-    `<Fragment />` est un composant Astro intégré qui vous permet d'éviter un élément wrapper inutile. Cela peut s'avérer particulièrement utile lorsque vous récupérez du HTML à partir d'un CMS (par exemple, Hashnode ou [WordPress](/fr/guides/cms/wordpress/)).
+    `<Fragment />` est un composant Astro intégré qui vous permet d'éviter un élément enveloppant inutile. Cela peut s'avérer particulièrement utile lorsque vous récupérez du HTML à partir d'un CMS (par exemple, Hashnode ou [WordPress](/fr/guides/cms/wordpress/)).
     :::
 </Steps>
 

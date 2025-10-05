@@ -1,0 +1,300 @@
+---
+title: Flotiq & Astro
+description: Flotiq을 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+sidebar:
+  label: Flotiq
+type: cms
+service: Flotiq
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Flotiq](https://flotiq.com?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)은 정적 사이트, 모바일, 웹 애플리케이션 등 다양한 프런트엔드를 위해 설계된 헤드리스 CMS입니다. 개발자와 콘텐츠 제작자는 REST 및 GraphQL 기반 API를 통해 콘텐츠를 관리하고 전달합니다.
+
+## Astro와 통합
+
+이 가이드에서는 Flotiq 헤드리스 CMS API를 Astro 프로젝트와 함께 사용하여 웹사이트에 콘텐츠를 표시합니다.
+
+### 전제 조건
+
+시작하려면 다음이 필요합니다:
+
+1. **Astro 프로젝트** - `npm create astro@latest` 명령을 사용하여 새 프로젝트를 생성할 수 있습니다.
+2. **Flotiq 계정** - 계정이 없는 경우 [무료로 가입](https://editor.flotiq.com/register?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)하세요.
+3. **읽기 전용 Flotiq API 키** - [키를 받는 방법](https://flotiq.com/docs/API/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)을 확인하세요.
+
+### 환경 변수 설정
+
+Flotiq 계정의 읽기 전용 API 키를 Astro 프로젝트의 루트에 있는 `.env` 파일에 추가합니다:
+
+```ini title=".env"
+FLOTIQ_API_KEY=__YOUR_FLOTIQ_API_KEY__
+```
+
+### Flotiq에서 Content Type 정의
+
+먼저, 데이터를 저장하기 위해 Flotiq에서 [Content Type Definition](https://flotiq.com/docs/panel/content-types/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) 예시를 정의해야 합니다.
+
+Flotiq 계정에 로그인하고 다음 예시 `Blog Post` 구성으로 사용자 정의 Content Type Definition을 생성합니다:
+- **Label**: Blog Post
+- **API Name**: blogpost
+- **Fields**:
+  - **Title**: text, required
+  - **Slug**: text, required
+  - **Content**: rich text, required
+
+그런 다음, 이 `Blog Post` 타입을 사용하여 하나 이상의 예시 [Content Objects](https://flotiq.com/docs/panel/content-objects/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)를 생성합니다.
+
+### Flotiq TypeScript SDK 설치
+
+프로젝트를 Flotiq과 연결하려면 원하는 패키지 관리자를 사용하여 [Flotiq SDK](https://github.com/flotiq/flotiq-api-ts)를 설치하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음, 자격 증명을 사용하여 SDK를 구성합니다. 프로젝트의 `src/lib` 디렉터리에 `flotiq.ts`라는 새 파일을 만듭니다:
+
+```ts title="src/lib/flotiq.ts"
+import { FlotiqApi } from "flotiq-api-ts";
+
+export const flotiq = new FlotiqApi(import.meta.env.FLOTIQ_API_KEY);
+```
+
+이제 이 구성을 프로젝트 전체에서 사용할 수 있습니다.
+
+### Flotiq에서 데이터 가져오기 및 표시하기
+
+<Steps>
+
+1. 콘텐츠의 사용자 정의 API인 `BlogpostAPI`를 사용하여 Astro 페이지에서 `Blog Post` 데이터를 가져옵니다:
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    ```
+
+2. Astro 템플릿에 콘텐츠를 표시합니다. 게시물의 `title`, `slug`, `content` 및 기타 `internal` 게시물 데이터에 액세스할 수 있습니다:
+
+    ```astro title="src/pages/index.astro" ins={6-21}
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    <html lang="en">
+    	<head>
+    		<title>Astro</title>
+    	</head>
+    	<body>
+    		{posts.data?.map((post) => (
+    			<section>
+    				<a href={`/posts/${post.slug}`}>
+    				  <h2>{post.title}</h2>
+            </a>
+    				<div>{post.internal?.createdAt}</div>
+    				<div set:html={post.content}/>
+    			</section>
+    		))}
+    	</body>
+    </html>
+    ```
+
+3. 개발 서버를 시작하고 `http://localhost:4321`에서 페이지 미리 보기를 방문하여 블로그 게시물 목록을 확인합니다. 각 게시물은 아직 존재하지 않는 페이지로 연결됩니다. 이러한 페이지는 다음 단계에서 만들 것입니다.
+
+</Steps>
+
+### 개별 페이지 생성
+
+Astro는 모든 페이지를 사전 렌더링하거나 요청이 있을 때 온디맨드로 경로를 생성하는 기능을 모두 지원합니다. [정적 사이트 생성](#정적-사이트-생성) 또는 [온디맨드 렌더링](#온디맨드-렌더링)에 대한 지침에 따라 블로그 게시물의 페이지 경로를 빌드하세요.
+
+#### 정적 사이트 생성
+
+정적 사이트 생성 (SSG) 모드에서는 `getStaticPaths()` 메서드를 사용하여 Flotiq에서 가능한 모든 블로그 게시물 경로를 가져옵니다.
+
+<Steps>
+
+1. `/src/pages/posts/` 디렉터리에 `[slug].astro` 파일을 새로 만듭니다. 모든 블로그 게시물을 가져와 `getStaticPaths()` 메서드에서 반환합니다:
+
+    ```astro title="src/pages/posts/[slug].astro" 
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    ---
+    ```
+
+2. 템플릿을 추가하여 개별 게시물을 표시합니다:
+
+    ```astro title="src/pages/posts/[slug].astro" ins={12-20}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    const post: Blogpost = Astro.props;
+    ---
+    <html lang="en">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. `http://localhost:4321`을 방문하여 목록에서 링크된 블로그 게시물을 클릭합니다. 이제 개별 게시물의 페이지로 이동할 수 있습니다.
+
+</Steps>
+
+#### 온디맨드 렌더링
+
+[SSR](/ko/guides/on-demand-rendering/) 모드를 사용하는 경우 `slug`를 기준으로 단일 게시물을 가져와야 합니다.
+
+<Steps>
+
+1. `/src/pages/posts/` 디렉터리에 `[slug].astro` 파일을 새로 만듭니다. 경로를 찾을 수 없는 경우 404 페이지를 표시하는 로직을 포함하여 `slug` 필드로 게시물을 가져옵니다:
+
+    ```astro title="src/pages/posts/[slug].astro"
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    ```
+
+2. 템플릿을 추가하여 개별 게시물을 표시합니다:
+
+    ```astro title="src/pages/posts/[slug].astro" ins={24-30}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    <html lang="en">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. `http://localhost:4321`을 방문하여 목록에서 링크된 블로그 게시물을 클릭합니다. 이제 개별 게시물의 페이지로 이동할 수 있습니다.
+
+</Steps>
+
+### Content Type 변경 후 SDK 새로 고침
+
+Flotiq TypeScript SDK (`flotiq-api-ts`)를 사용하는 경우 모든 데이터 타입이 Astro 프로젝트에 정확하게 매핑됩니다.
+
+새 필드를 추가하거나 기존 필드를 수정하는 등 콘텐츠 타입의 구조를 변경하는 경우 프로젝트에 최신 모델 업데이트가 반영되도록 SDK를 새로 고쳐야 합니다.
+
+이렇게 하려면 패키지 관리자에서 재빌드 명령을 실행합니다:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn rebuild flotiq-api-ts 
+    // yarn v1 (클래식)의 경우:
+    // yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+이렇게 하면 SDK가 업데이트되어 객체 타입, 필드, API 메서드가 현재 데이터 모델에 맞게 정렬됩니다.
+
+## 사이트 게시
+
+웹사이트를 배포하려면 Astro의 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+### Flotiq 변경 시 재배포
+
+게시된 사이트를 업데이트하려면 콘텐츠가 변경될 때마다 재빌드를 트리거하기 위해 호스팅 제공업체에 웹훅을 보내도록 Flotiq을 구성하세요.
+
+Flotiq에서는 트리거할 콘텐츠 타입과 이벤트를 정의하고 그에 따라 구성할 수 있습니다. 자세한 내용은 [Flotiq 웹훅 문서](https://flotiq.com/docs/panel/webhooks/async-co-webhook/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)를 참조하세요.
+
+## 공식 리소스
+
+- [Flotiq 문서](https://flotiq.com/docs/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)
+
+## 커뮤니티 리소스
+- [Flotiq x Astro](https://maciekpalmowski.dev/blog/flotiq-cms-astro/) - Maciek Palmowski

@@ -1,0 +1,340 @@
+---
+title: 国际化 API 参考
+sidebar:
+  label: 'astro:i18n'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.5.0" /></p>
+
+此模块提供了一些函数，帮助你使用项目配置的语言环境设置创建 URL。
+
+使用 i18n 路由为你的项目创建路由将依赖于你设置的某些配置值，这些值会影响你的页面路由。使用这些函数创建路由时，请确保考虑到你的个人设置，包括：
+
+- [`base`](/zh-cn/reference/configuration-reference/#base)
+- [`trailingSlash`](/zh-cn/reference/configuration-reference/#trailingslash)
+- [`build.format`](/zh-cn/reference/configuration-reference/#buildformat)
+- [`site`](/zh-cn/reference/configuration-reference/#site)
+
+另外，请注意，这些函数为你的 `defaultLocale` 创建的返回 URL 将反映你的 `i18n.routing` 配置。
+
+有关功能和使用示例，请参阅[我们的 i18n 路由指南](/zh-cn/guides/internationalization/)。
+
+## 从 `astro:i18n` 导入
+
+```js
+import { 
+  getRelativeLocaleUrl,
+  getAbsoluteLocaleUrl,
+  getRelativeLocaleUrlList,
+  getAbsoluteLocaleUrlList,
+  getPathByLocale,
+  getLocaleByPath,
+  redirectToDefaultLocale,
+  redirectToFallback,
+  notFound,
+  middleware,
+  requestHasLocale,
+ } from 'astro:i18n';
+```
+
+### `getRelativeLocaleUrl()` 
+
+<p>
+
+**类型：**`(locale: string, path?: string,  options?: GetLocaleOptions) => string`
+</p>
+
+`getRelativeLocaleUrl(locale: string, path?: string,  options?: GetLocaleOptions): string`
+
+使用此函数来检索一个语言环境的相对路径。如果该语言环境不存在，Astro 会抛出一个错误。
+
+```astro
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+getRelativeLocaleUrl("fr");
+// 返回 /fr
+
+getRelativeLocaleUrl("fr", "");
+// 返回 /fr/
+
+getRelativeLocaleUrl("fr", "getting-started");
+// 返回 /fr/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// 返回 /blog/fr-ca/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// 返回 /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+<p>
+
+**类型：**`(locale: string, path?: string, options?: GetLocaleOptions) => string`
+</p>
+
+当 [`site`] 配置了值时，使用这个函数来检索一个语言环境的绝对路径。如果 [`site`] 没有被配置，该函数将返回一个相对 URL。如果语言环境不存在，Astro 会抛出一个错误。
+
+
+```astro title="src/pages/index.astro"
+---
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+
+// 如果 `site` 被设置为 `https://example.com`
+
+getAbsoluteLocaleUrl("fr"); 
+// 返回 https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", ""); 
+// 返回 https://example.com/fr/
+
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// 返回 https://example.com/fr/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// 返回 https://example.com/blog/fr-ca/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// 返回 https://example.com/blog/fr_CA/getting-started
+---
+```
+ 
+### `getRelativeLocaleUrlList()` 
+
+<p>
+
+**类型：**`(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+像使用 [`getAbsoluteLocaleUrl`](#getrelativelocaleurl) 那样使用此函数，返回所有语言环境的绝对路径列表。
+
+### `getAbsoluteLocaleUrlList()` 
+
+<p>
+
+**类型：**`(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+像使用 [`getAbsoluteLocaleUrl`](/zh-cn/guides/internationalization/#自定义语言环境路径) 那样使用此函数，返回所有语言环境的绝对路径列表。
+
+### `getPathByLocale()` 
+
+<p>
+
+**类型：**`(locale: string) => string`
+</p>
+
+当配置了[自定义语言环境路径](/zh-cn/guides/internationalization/#自定义语言环境路径)时，此函数返回与一个或多个 `codes` 关联的 `path`。
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getPathByLocale } from 'astro:i18n';
+
+getPathByLocale("fr"); // 返回 "french"
+getPathByLocale("fr-CA"); // 返回 "french"
+---
+```
+
+### `getLocaleByPath()`
+
+<p>
+
+**类型：**`(path: string) => string`
+</p>
+
+此函数返回与语言环境 `path` 关联的 `code`。
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getLocaleByPath } from 'astro:i18n';
+
+getLocaleByPath("french"); // 返回 "fr"，因为这是首个配置的代码
+---
+```
+
+### `redirectToDefaultLocale()`
+
+<p>
+
+**类型：**`(context: APIContext, statusCode?: ValidRedirectStatus) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+仅当 `i18n.routing` 设置为 `"manual"` 时可用。
+:::
+
+此函数返回一个 `Response`，将重定向到配置的 `defaultLocale`。它接受一个可选的有效重定向状态码。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+<p>
+
+**类型：**`(context: APIContext, response: Response) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+仅当 `i18n.routing` 设置为 `"manual"` 时可用。
+:::
+
+此函数允许你在自己的中间件中使用你的 [`i18n.fallback` 配置](/zh-cn/reference/configuration-reference/#i18nfallback)。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+<p>
+
+**类型：**`(context: APIContext, response?: Response) => Promise<Response> | undefined`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+仅当 `i18n.routing` 设置为 `"manual"` 时可用。
+:::
+
+当以下情况发生时，在你的路由中间件中使用此函数来返回一个 404 错误：
+- 当前路径不是根路径。例如：`/` 或 `/<base>`
+- URL 中不包含语言环境代码
+
+当传递了一个 `Response`，由此函数发出的新 `Response` 将包含原始响应的相同头信息。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+<p>
+
+**类型：**`(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean }) => MiddlewareHandler`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+仅当 `i18n.routing` 设置为 `"manual"` 时可用。
+:::
+
+此函数允许你以编程方式创建 Astro i18n 中间件。
+
+当你仍然想要使用默认的 i18n 逻辑，但只在你的网站添加少数例外时，这个功能非常有用。
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // 在这里解析响应后的自定义逻辑。
+  // 可以捕获来自 Astro i18n 中间件的响应。
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+<p>
+
+**类型：**`(context: APIContext) => boolean`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+仅当 `i18n.routing` 设置为 `"manual"` 时可用。
+:::
+
+检查当前 URL 是否包含已配置的语言环境代码。在内部，此函数将使用 `APIContext#url.pathname`。
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```

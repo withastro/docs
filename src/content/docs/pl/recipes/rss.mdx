@@ -1,0 +1,282 @@
+---
+title: Dodaj kanał RSS
+description: Dodaj kanał RSS do swojej witryny Astro, aby umożliwić użytkownikom subskrypcję Twoich treści.
+i18nReady: true
+type: recipe
+---
+import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro obsługuje szybkie, automatyczne generowanie kanałów RSS dla blogów i innych witryn z treścią. Kanały RSS zapewniają łatwy sposób dla użytkowników na subskrybowanie Twoich treści.
+
+## Konfiguracja `@astrojs/rss`
+
+Pakiet [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) zapewnia narzędzia pomocnicze do generowania kanałów RSS za pomocą [endpointów API](/pl/guides/endpoints/#static-file-endpoints). Odblokowuje to zarówno statyczne budowanie jak i generowanie na żądanie przy użyciu [adaptera SSR](/pl/guides/on-demand-rendering/).
+
+<Steps>
+1. Zainstaluj `@astrojs/rss` używając preferowanego menedżera pakietów:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/rss
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/rss
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/rss
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    Upewnij się, że [skonfigurowałeś `site`](/pl/reference/configuration-reference/#site) w `astro.config` Twojego projektu. Zostanie to użyte do generowania linków do Twoich artykułów RSS.
+    :::
+
+2. Utwórz plik w `src/pages/` z wybraną nazwą i rozszerzeniem `.xml.js`, który będzie używany jako wyjściowy URL dla Twojego kanału. Niektóre powszechne nazwy URL kanałów RSS to `feed.xml` lub `rss.xml`.
+
+    Poniższy przykład pliku `src/pages/rss.xml.js` utworzy kanał RSS pod adresem `site/rss.xml`.
+
+3. Zaimportuj funkcję pomocniczą `rss()` z pakietu `@astrojs/rss` do swojego pliku `.xml.js` i wyeksportuj funkcję, która ją zwróci przy użyciu następujących parametrów:
+
+    ```js title="src/pages/rss.xml.js"
+    import rss from '@astrojs/rss';
+
+    export function GET(context) {
+      return rss({
+        // Pole `<title>` w wyjściowym XML
+        title: 'Blog Buzza',
+        // Pole `<description>` w wyjściowym XML
+        description: 'Skromny przewodnik Astronauty po gwiazdach',
+        // Pobiera "site" Twojego projektu z kontekstu endpointa
+        // https://docs.astro.build/pl/reference/api-reference/#contextsite
+        site: context.site,
+        // Tablica `<item>` w wyjściowym XML
+        // Zobacz sekcję "Generowanie items" dla przykładów użycia zbiorów treści i importów glob
+        items: [],
+        // (opcjonalnie) wstrzyknij niestandardowy xml
+        customData: `<language>pl</language>`,
+      });
+    }
+    ```
+</Steps>
+
+## Generowanie `items`
+
+Pole `items` akceptuje listę obiektów kanału RSS, które mogą być generowane z wpisów kolekcji zawartości za pomocą `getCollection()` lub z plików stron za pomocą `pagesGlobToRssItems()`.
+
+Standardowy format kanału RSS zawiera następujące wartości dla każdego opublikowanego elementu:
+
+- `title`: Tytuł wpisu. Opcjonalny tylko jeśli ustawiono `description`. W przeciwnym razie wymagany
+- `description`: Krótki fragment lub opis wpisu. Opcjonalny tylko jeśli ustawiono `title`. W przeciwnym razie wymagany.
+- `link`: URL do oryginalnego źródła wpisu. (opcjonalne)
+- `pubDate`:  Data publikacji wpisu. (opcjonalne)
+- `content`: Pełna treść Twojego posta. (opcjonalne)
+- `customData`: Pole do uwzględnienia dowolnych dodatkowych danych, takich jak inne właściwości frontmatter z Twoich postów na blogu.
+
+### Używanie kolekcji zawartości
+
+Aby utworzyć kanał RSS stron zarządzanych w [kolekcji zawartości](/pl/guides/content-collections/), użyj funkcji `getCollection()`, aby pobrać dane wymagane dla Twojej tablicy `items`. Będziesz musiał określić wartości dla każdej żądanej właściwości (np. `title`, `description`) z zwróconych danych.
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Blog Buzza',
+    description: 'Skromny przewodnik Astronauty po gwiazdach',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      customData: post.data.customData,
+      // Oblicz link RSS z `slug` posta
+      // Ten przykład zakłada, że wszystkie posty są renderowane jako trasy `/blog/[slug]`
+      link: `/blog/${post.slug}/`,
+    })),
+  });
+}
+
+```
+
+Opcjonalnie: zastąp istniejący schemat kolekcji bloga, aby wymusić oczekiwane właściwości RSS.
+
+Aby upewnić się, że każdy wpis na blogu generuje prawidłowy element kanału RSS, możesz opcjonalnie zaimportować i zastosować `rssSchema` zamiast definiować każdą indywidualną właściwość swojego schematu.
+
+```js title="src/content/config.ts" "rssSchema"
+import { defineCollection } from 'astro:content';
+import { rssSchema } from '@astrojs/rss';
+
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+### Używanie importów glob
+
+<p><Since v="2.1.0" pkg="@astrojs/rss" /></p>
+
+Aby utworzyć kanał RSS z dokumentów w `src/pages/`, użyj pomocnika `pagesGlobToRssItems()`. Akceptuje on wynik [`import.meta.glob`](https://vite.dev/guide/features.html#glob-import) i   zwraca tablicę prawidłowych elementów kanału RSS (zobacz [więcej o pisaniu wzorców glob](/pl/guides/imports/#wzorce-glob) w celu określenia, które strony uwzględnić).
+
+:::caution
+Ta funkcja zakłada, ale nie weryfikuje, że wszystkie niezbędne właściwości kanału są obecne w każdym dokumencie frontmatter. Jeśli napotkasz błędy, zweryfikuj frontmatter każdej strony ręcznie.
+:::
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function GET(context) {
+  return rss({
+    title: 'Blog Buzza',
+    description: 'Skromny przewodnik Astronauty po gwiazdach',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[Używasz starszej wersji?]
+W wersjach `@astrojs/rss` przed v2.1.0, przekaż wynik glob bezpośrednio do `items` bez wrappera `pagesGlobToRssItems()`:
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+
+Ta metoda jest przestarzała we wszystkich wersjach Astro od v2.1.0 i nie może być używana w nowoczesnych projektach.
+:::
+
+### Uwzględnianie pełnej treści posta
+
+<p><Since v="1.6.14" /></p>
+
+Klucz `content` zawiera pełną treść posta jako HTML. Pozwala to na udostępnienie całej treści posta czytnikom kanałów RSS.
+
+:::tip
+Pakiet taki jak [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) upewni się, że Twoja treść jest odpowiednio oczyszczona, escapowana i zakodowana. W procesie takim pakiet może również usunąć pewne nieszkodliwe elementy i atrybuty, więc upewnij się, że zweryfikowałeś dane wyjściowe i skonfigurowałeś pakiet zgodnie ze swoimi potrzebami.
+:::
+
+Podczas używania kolekcji zawartości, renderuj `body` posta za pomocą standardowego parsera Markdown, takiego jak [`markdown-it`](https://github.com/markdown-it/markdown-it) i zsanityzuj wynik, uwzględniając wszelkie dodatkowe tagi (np. `<img>`), które są potrzebne do renderowania Twojej treści:
+
+```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Blog Buzza',
+    description: 'Skromny przewodnik Astronauty po gwiazdach',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.slug}/`,
+      // Uwaga: to nie przetworzy komponentów ani wyrażeń JSX w plikach MDX.
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
+      ...post.data,
+    })),
+  });
+}
+```
+Podczas używania importów glob z Markdown, możesz użyć pomocnika `compiledContent()`, aby pobrać renderowany HTML w celu sanityzacji. Uwaga: ta funkcja nie jest obsługiwana dla plików MDX.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export function GET(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true }); 
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Blog Buzza',
+    description: 'Skromny przewodnik Astronauty po gwiazdach',
+    site: context.site,
+    items: posts.map((post) => ({
+      link: post.url,
+      content: sanitizeHtml(post.compiledContent()),
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Usuwanie końcowych ukośników
+
+Kanał RSS Astro domyślnie generuje linki z końcowym ukośnikiem, niezależnie od wartości, którą skonfigurowałeś dla `trailingSlash`. Oznacza to, że Twoje linki RSS mogą nie dokładnie odpowiadać URL-om Twoich postów.
+
+Jeśli ustawiłeś `trailingSlash: "never"` w swoim `astro.config.mjs`, ustaw `trailingSlash: false` w pomocniku `rss()`, aby Twój kanał pasował do konfiguracji projektu.
+
+```ts title="src/pages/rss.xml.js" ins={9}
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Blog Buzza',
+    description: 'Skromny przewodnik Astronauty po gwiazdach',
+    site: context.site,
+    trailingSlash: false,
+    items: posts.map((post) => ({
+      link: post.url,
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Dodawanie arkusza stylów
+
+Ostyluj swój kanał RSS, aby zapewnić przyjemniejsze doświadczenie użytkownikowi podczas przeglądania pliku w przeglądarce.
+
+Użyj opcji `stylesheet` funkcji `rss`, aby określić absolutną ścieżkę do swojego arkusza stylów.
+
+```js
+rss({
+  // np. użyj swojego arkusza stylów z "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+:::tip
+Jeśli wolisz nie tworzyć własnego arkusza stylów, możesz użyć gotowego arkusza, takiego jak [domyślny arkusz stylów Pretty Feed v3](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl). Pobierz arkusz stylów z GitHuba i zapisz go w katalogu `public/` swojego projektu.
+:::
+
+## Włączanie automatycznego wykrywania kanału RSS
+
+[Automatyczne wykrywanie RSS](https://www.rssboard.org/rss-autodiscovery) pozwala przeglądarkom i innemu oprogramowaniu automatycznie znaleźć kanał RSS witryny z głównego adresu URL.
+
+Aby włączyć, dodaj znacznik `<link>` z następującymi atrybutami do elementu `head` swojej witryny:
+```jsx
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Tytuł Twojej Witryny"
+    href={new URL("rss.xml", Astro.site)}
+/>
+```
+
+Dzięki temu tagowi czytelnicy Twojego bloga mogą wprowadzić podstawowy URL Twojej witryny do swojego czytnika RSS, aby subskrybować Twoje posty bez potrzeby znajomości konkretnego URL Twojego kanału RSS.
+
+## Kolejne kroki
+
+Po odwiedzeniu swojego kanału w przeglądarce pod adresem `twoja-domena.com/rss.xml` i potwierdzeniu, że możesz zobaczyć dane dla każdego ze swoich postów, możesz teraz [promować swój kanał na swojej stronie internetowej](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#:~:text=com/~deno%2Drss-,Advertising%20your%20RSS%20feed,-Now%20you%20have). Dodanie standardowej ikony RSS do swojej witryny pozwala Twoim czytelnikom wiedzieć, że mogą subskrybować Twoje posty w swoim czytniku kanałów.
+
+## Zasoby
+
+- [Kanały RSS](https://aboutfeeds.com/)

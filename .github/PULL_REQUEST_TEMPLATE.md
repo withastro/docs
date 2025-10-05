@@ -13,7 +13,7 @@
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
 <!-- 1. Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `4.x`. See astro PR [#](url). -->
+<!-- #### For Astro version: `5.x`. See astro PR [#](url). -->
 
 <!-- 2. Check that your PR includes `<p><Since v="4.x.0" /></p>` and imports the `<Since>` component, if necessary! -->
 

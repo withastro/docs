@@ -1,0 +1,124 @@
+---
+title: Middleware API Reference
+sidebar:
+  label: 'astro:middleware'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.6.0" /></p>
+
+Middleware allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. For features and usage examples, [see our middleware guide](/en/guides/middleware/).
+
+## Imports from `astro:middleware`
+
+```js
+import { 
+  sequence,
+  createContext,
+  trySerializeLocals,
+  defineMiddleware,
+ } from 'astro:middleware';
+```
+
+### `defineMiddleware()`
+
+You can import and use the utility function `defineMiddleware()` to take advantage of type safety:
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` and `next` are automatically typed
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+### `sequence()`
+
+<p>
+
+**Type:** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
+
+A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed. 
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+<p>
+
+**Type:** `(context: CreateContext) => APIContext`<br />
+<Since v="2.8.0" />
+</p>
+
+A low-level API to create an [`APIContext`](/en/reference/api-reference/)to be passed to an Astro middleware `onRequest()` function.
+
+This function can be used by integrations/adapters to programmatically execute the Astro middleware.
+
+### `trySerializeLocals()`
+
+<p>
+
+**Type:** `(value: unknown) => string`<br />
+<Since v="2.8.0" />
+</p>
+
+A low-level API that takes in any value and tries to return a serialized version (a string) of it. If the value cannot be serialized, the function will throw a runtime error.
+
+## Middleware exports
+
+When defining your project’s middleware in `src/middleware.js`, export the following user-defined functions:
+
+### `onRequest()`
+
+**Type:** `(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+
+A required exported function from `src/middleware.js` that will be called before rendering every page or API route. It receives two arguments: [context](#context) and [next()](#next). `onRequest()` must return a `Response`: either directly, or by calling `next()`.
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // intercept response data from a request
+    // optionally, transform the response
+    // return a Response directly, or the result of calling `next()`
+    return next();
+};
+```
+
+Your `onRequest()` function will be called with the following arguments:
+
+#### `context`
+
+<p>
+
+**Type:** `APIContext`
+</p>
+
+The first argument of `onRequest()` is a context object. It mirrors many of the `Astro` global properties.
+
+<ReadMore>See [Endpoint contexts](/en/reference/api-reference/) for more information about the context object.</ReadMore>
+
+#### `next()`
+
+<p>
+
+**Type:** `(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+</p>
+
+The second argument of `onRequest()` is a function that calls all the subsequent middleware in the chain and returns a `Response`. For example, other middleware could modify the HTML body of a response and awaiting the result of `next()` would allow your middleware to respond to those changes.
+
+Since Astro v4.13.0, `next()` accepts an optional URL path parameter in the form of a string, `URL`, or `Request` to [rewrite](/en/guides/routing/#rewrites) the current request without retriggering a new rendering phase.

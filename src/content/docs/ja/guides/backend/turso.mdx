@@ -1,0 +1,128 @@
+---
+title: Turso & Astro
+description: SQLiteファイルでローカルに構築し、Tursoを使用してグローバルにデプロイする
+sidebar:
+  label: Turso
+type: backend
+service: Turso
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Turso](https://turso.tech) は、SQLiteのフォークであるlibSQLを基盤とした分散データベースです。低クエリレイテンシーに最適化されており、グローバルアプリケーションに適しています。
+
+## AstroでTursoを初期化する
+
+### 前提条件
+
+- [Turso CLI](https://docs.turso.tech/cli/introduction) がインストールされ、サインインされていること
+- スキーマを持つ [Turso](https://turso.tech) データベース
+- データベースURL
+- アクセストークン
+
+### 環境変数の設定
+
+次のコマンドを使用してデータベースURLを取得します。
+
+```bash
+turso db show <database-name> --url
+```
+
+データベースの認証トークンを作成します。
+
+```bash
+turso db tokens create <database-name>
+```
+
+上記の両方のコマンドからの出力を、プロジェクトのルートにある `.env` ファイルに追加します。このファイルが存在しない場合は、作成してください。
+
+```ini title=".env"
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=
+```
+
+:::caution
+これらのプライベートな[環境変数](/ja/guides/environment-variables/)を作成する際は、`PUBLIC_` プレフィックスを使用しないでください。これらの値がクライアントに公開されてしまいます。
+:::
+
+### LibSQLクライアントのインストール
+
+TursoをAstroに接続するために `@libsql/client` をインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @libsql/client
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 新しいクライアントの初期化
+
+`src` フォルダに `turso.ts` ファイルを作成し、`TURSO_DATABASE_URL` と `TURSO_AUTH_TOKEN` を渡して `createClient` を呼び出します。
+
+```ts title="src/turso.ts"
+import { createClient } from "@libsql/client/web";
+
+export const turso = createClient({
+  url: import.meta.env.TURSO_DATABASE_URL,
+  authToken: import.meta.env.TURSO_AUTH_TOKEN,
+});
+```
+
+## データベースのクエリ
+
+データベースから情報にアクセスするには、任意の `.astro` コンポーネント内で `turso` をインポートし、[SQL クエリを実行](https://docs.turso.tech/sdk/ts/reference#simple-query)します。
+
+次の例では、テーブルからすべての `posts` を取得し、`<BlogIndex />` コンポーネントでタイトルのリストを表示します。
+
+```astro title="src/components/BlogIndex.astro"
+---
+import { turso } from '../turso'
+
+const { rows } = await turso.execute('SELECT * FROM posts')
+---
+
+<ul>
+  {rows.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+
+### SQLプレースホルダー
+
+`execute()` メソッドは、`slug` やページネーションなど、[SQL文に変数を渡すオブジェクト](https://docs.turso.tech/sdk/ts/reference#placeholders)を受け取ることができます。
+
+次の例では、`slug` が `Astro.params` から取得した値と一致する `posts` テーブルから単一のエントリを取得し、投稿のタイトルを表示します。
+
+```astro title="src/pages/index.astro"
+---
+import { turso } from '../turso'
+
+const { slug } = Astro.params
+
+const { rows } = await turso.execute({
+  sql: 'SELECT * FROM posts WHERE slug = ?',
+  args: [slug!]
+})
+---
+
+<h1>{rows[0].title}</h1>
+```
+
+## Tursoリソース
+- [Tursoドキュメント](https://docs.turso.tech)
+- [GitHubのTurso](https://github.com/tursodatabase)
+- [サーバーサイドレンダリングされたAstroブログのコンテンツを提供するためにTursoを使用する](https://blog.turso.tech/using-turso-to-serve-a-server-side-rendered-astro-blogs-content-58caa6188bd5)
