@@ -88,6 +88,6 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 
 ## Hast du Ergänzungen oder Anregungen zu dieser Anleitung?
 
-Das ist super! Die Inhalte dieses Dokuments sind nämlich nicht als in Stein gemeißelte "Regeln von oben" zu verstehen, sondern bilden lediglich den aktuellen Konsens unseres deutschen Übersetzungsteams ab. 
+Das ist super! Die Inhalte dieses Dokuments sind nämlich nicht als in Stein gemeißelte „Regeln von oben“ zu verstehen, sondern bilden lediglich den aktuellen Konsens unseres deutschen Übersetzungsteams ab.
 
 Solltest du Verbesserungsideen oder Änderungswünsche zu diesem Dokument haben, besuch uns gerne auf Discord und sprich mit uns darüber. Wir sind stets offen für neue Anregungen!
