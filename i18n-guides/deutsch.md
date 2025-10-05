@@ -74,7 +74,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
   - Unsere Dokumentation enthält an manchen Stellen farblich hervorgehobene Boxen mit Hinweisen, Tipps und Warnungen. Diese sind im Markdown-Code mit drei Doppelpunkten abgegrenzt und beginnen mit dem Typnamen der Box (`:::note`, `:::tip`, `:::caution`). Dieser Typname ist **nicht** zu übersetzen, da ansonsten die Infobox nicht mehr funktioniert.
   - Falls dem Typnamen eine vom Standard abweichende Überschrift in eckigen Klammern folgt (`:::caution[Here be dragons!]`), darf nur der Teil in eckigen Klammern übersetzt werden.
 - Nichtverwendung der vom Duden empfohlenen Schreibweisen
-	- mit Hilfe --> mithilfe
+    - mit Hilfe → mithilfe
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
     - Github → GitHub
     - Gitlab → GitLab
