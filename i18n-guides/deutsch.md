@@ -78,7 +78,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
     - Github → GitHub
     - Gitlab → GitLab
-	- Javascript --> JavaScript
+    - Javascript → JavaScript
 	- Typescript --> TypeScript
 	- VSCode --> VS Code
 - Abkürzungen müssen in der gleichen Zeile stehen. Hierfür wird das [Unicode Symbol "U+00A0 NO-BREAK SPACE"](https://unicode-explorer.com/c/00A0) (` `) verwendet:
