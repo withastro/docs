@@ -81,6 +81,8 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 	- Javascript --> JavaScript
 	- Typescript --> TypeScript
 	- VSCode --> VS Code
+- Abkürzungen müssen in der gleichen Zeile stehen. Hierfür wird die HTML Entität `&nbsp;` (non-breakable space) verwendet:
+    - zum Beispiel --> `z.&nbsp;B.`
 - Verwendung der falschen Anführungszeichen ("" statt „“)
 
 ## Hast du Ergänzungen oder Anregungen zu dieser Anleitung?
