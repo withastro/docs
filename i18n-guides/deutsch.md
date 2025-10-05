@@ -16,7 +16,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | branch                      | der Branch                           | s.o.
 | build process               | Erzeugungs- / Erstellungsvorgang     | s.o.
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
-| to build                    | erzeugen                             | Da die Alternativen "bauen" oder gar "builden" merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
+| to build                    | erzeugen                             | Da die Alternativen „bauen“ oder gar „builden“ merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
 | command line                | die Kommandozeile                    |
 | Commit                      | Commit                               | Siehe [Stilrichtlinien](#stilrichtlinien-style-guide)
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden.
