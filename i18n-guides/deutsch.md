@@ -34,7 +34,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | island(s)                   | Island(s)                            | „Islands“ bleibt unübersetzt. „Astro“ wird davorgesetzt, um den Feature-Charakter zu betonen. Beim ersten Vorkommen: `(Insel(n))` ergänzen zur Verständlichkeit.
 | media query                 | Media Query                          | Wird nicht übersetzt (gängiger Domänenbegriff).
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form „Webseite“, um Verwechslungen mit „Website“ zu vermeiden.
-| partial hydration           | die partielle Hydratation            | Falsch hingegen wäre "Hydrierung".
+| partial hydration           | die partielle Hydratation            | Falsch hingegen wäre „Hydrierung“.
 | project root (directory)    | das Projektstamm&shy;verzeichnis     | 
 | recipe                      | das Beispiel                         |
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
