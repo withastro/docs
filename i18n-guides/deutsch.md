@@ -77,7 +77,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 	- mit Hilfe --> mithilfe
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
     - Github → GitHub
-	- Gitlab --> GitLab
+    - Gitlab → GitLab
 	- Javascript --> JavaScript
 	- Typescript --> TypeScript
 	- VSCode --> VS Code
