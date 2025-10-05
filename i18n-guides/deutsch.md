@@ -51,7 +51,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 ## Stilrichtlinien (Style Guide)
 
 - Wir halten uns hinsichtlich Grammatik und Rechtschreibung an die Empfehlungen des Dudens und verwenden die neue deutsche Rechtschreibung.
-- Wir verwenden eine informelle Ansprache mit kleingeschriebenem "du" (statt "Du" oder "Sie").
+- Wir verwenden eine informelle Ansprache mit kleingeschriebenem „du“ (statt „Du“ oder „Sie“).
 - Wir bleiben möglichst nah am englischen Originaltext.
 	- Falls die Übersetzung sich aber nicht flüssig liest, weil z. B. im Deutschen übliche Überleitungen fehlen oder andere Formulierungen geläufiger sind, kann freier übersetzt werden, so lange die Bedeutung korrekt bleibt.
 - Wir übersetzen alle Kommentare in Code-Beispielen.
