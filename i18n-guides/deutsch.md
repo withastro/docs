@@ -31,7 +31,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | frontmatter prop(erty)      | die Frontmatter-Eigenschaft          |
 | frontmatter value           | der Frontmatter-Wert                 |
 | to hydrate (an element)     | hydratisieren                        | Falsch hingegen wäre "hydrieren".
-| island(s)                   | Island(s)                            | Da Islands ein Konzept sind, und nicht im Code beim Nutzer auftauchen, werden sie nicht übersetzt. "Astro" wird davorgesetzt, sofern wir über Astros Umsetzung der Islands sprechen. Beim ersten Vorkommen auf einer Seite sollte `(Insel(n))` dahinter ergänzt werden.
+| island(s)                   | Island(s)                            | "Islands" bleibt unübersetzt. "Astro" wird davorgesetzt, um den Feature-Charakter zu betonen. Beim ersten Vorkommen: `(Insel(n))` ergänzen zur Verständlichkeit.
 | media query                 | Media Query                          | Wird nicht übersetzt (gängiger Domänenbegriff).
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form "Webseite", um Verwechslungen mit "Website" zu vermeiden.
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre "Hydrierung".
