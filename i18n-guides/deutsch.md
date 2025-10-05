@@ -60,6 +60,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Wir vermeiden wertende Adjektive wie "einfach", "simpel" usw., da es immer Personen geben wird, denen das beschriebene Thema eben nicht "einfach" oder "simpel" vorkommt. Wir möchten niemandem den Eindruck vermitteln, fachlich "nicht gut genug" zu sein.
 - Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie `Commit`, `Pull Request` und `merge`, die teils einen ganzen Prozess im Git-Ökosystem beschreiben.
 - Bei Wörtern, die länger als 20 Zeichen sind, fügen wir generell einen weichen Bindestrich (`&shy;`) ein. Um solche Wörter zu finden, kann der folgende reguläre Ausdruck zum Suchen im Code-Editor verwendet werden: `\b[A-Za-zÄäÖöÜüß]{20,}\b`
+- Wir verwenden untere (`„`) und obere (`“`) Anführungszeichen anstelle von englischen quotation marks (`"`) (`„Erstelle deinen ersten Astro-Blog“`)
 
 ## Häufige Fehler
 
@@ -80,6 +81,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 	- Javascript --> JavaScript
 	- Typescript --> TypeScript
 	- VSCode --> VS Code
+- Verwendung der falschen Anführungszeichen ("" statt „“)
 
 ## Hast du Ergänzungen oder Anregungen zu dieser Anleitung?
 
