@@ -61,7 +61,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Wir haben uns gegen das Gendern in unserer Übersetzung entschieden, weil es die Lesbarkeit der Texte verschlechtert und noch keine Duden-Vorgaben dafür existieren. Wir vermeiden lieber geschlechtsspezifische Formulierungen in unseren Übersetzungen und formulieren die Texte so, dass niemand sich ausgeschlossen fühlen muss.
 - Wir vermeiden wertende Adjektive wie „einfach“, „simpel“ usw., da es immer Personen geben wird, denen das beschriebene Thema eben nicht „einfach“ oder „simpel“ vorkommt. Wir möchten niemandem den Eindruck vermitteln, fachlich „nicht gut genug“ zu sein.
 - Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie  „Commit“, „Pull Request“ und „merge“, die teils einen ganzen Prozess im Git-Ökosystem beschreiben.
-- Bei Wörtern, die länger als 20 Zeichen sind, fügen wir generell einen weichen Bindestrich (`&shy;`) ein. Um solche Wörter zu finden, kann der folgende reguläre Ausdruck zum Suchen im Code-Editor verwendet werden: `\b[A-Za-zÄäÖöÜüß]{20,}\b`
+- Bei Wörtern, die länger als 20 Zeichen sind, fügen wir generell einen weichen Bindestrich (`&shy;`) ein. Um solche Wörter zu finden, kann der folgende reguläre Ausdruck zum Suchen im Code-Editor verwendet werden: `\b[A-Za-zÄäÖöÜüẞß]{20,}\b`
 - Wir verwenden untere (`„`) und obere (`“`) Anführungszeichen anstelle von englischen Anführungszeichen (`“”`) (`„Erstelle deinen ersten Astro-Blog“`)
 
 ## Häufige Fehler
