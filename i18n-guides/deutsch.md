@@ -4,7 +4,7 @@ Hallo und herzlich willkommen! Wir freuen uns sehr, dass du dich dafür interess
 
 ## Zielsetzung dieser Anleitung
 
-Wie bei Open Source-Projekten üblich wird unsere Dokumentation von vielen fleißigen Personen auf freiwilliger Basis übersetzt. Die aktuellen Übersetzungen stammen daher aus vielen unterschiedlichen Federn. Zudem ändert sich auch die Besetzung unseres Teams im Laufe der Zeit.
+Wie bei Open Source-Projekten üblich wird unsere Dokumentation von vielen fleißigen Personen auf freiwilliger Basis übersetzt. Die aktuellen Übersetzungen stammen daher von einigen unterschiedlichen Leuten. Zudem ändert sich auch die Besetzung unseres Teams im Laufe der Zeit.
 
 Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz aller verschiedenen Einflüsse wie ein Gesamtwerk mit gemeinsamem Schreibstil anfühlt.
 
