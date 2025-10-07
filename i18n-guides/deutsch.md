@@ -19,7 +19,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | to build                    | erzeugen                             | Da die Alternativen „bauen“ oder gar „builden“ merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
 | command line                | die Kommandozeile                    |
 | Commit                      | Commit                               | Siehe [Stilrichtlinien](#stilrichtlinien-style-guide)
-| CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann `(CLI)` dahinter ergänzt werden.
+| CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann „(CLI)“ dahinter ergänzt werden.
 | CLI flag                    | die Kommandozeilen&shy;option        |
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur „Option“ verwendet werden.
 | deployment provider         | der Hosting-Anbieter                 |
