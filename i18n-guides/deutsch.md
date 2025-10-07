@@ -18,7 +18,8 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen „bauen“ oder gar „builden“ merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
 | command line                | die Kommandozeile                    |
-| Commit                      | Commit                               | Siehe [Stilrichtlinien](#stilrichtlinien-style-guide)
+| commit                      | Commit                               | Siehe [Stilrichtlinien](#stilrichtlinien-style-guide)
+| content collection          | Content-Collection                   | Beim ersten Vorkommen in einem Abschnitt kann „(Inhaltssammlung)“ ergänzt werden.
 | CLI                         | die Kommandozeilen&shy;schnittstelle | Beim ersten Vorkommen in einem Abschnitt kann „(CLI)“ dahinter ergänzt werden.
 | CLI flag                    | die Kommandozeilen&shy;option        |
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur „Option“ verwendet werden.
