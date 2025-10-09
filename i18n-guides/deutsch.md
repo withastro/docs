@@ -63,6 +63,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 - Wir übersetzen nicht zwanghaft Begriffe, die aus einem Ökosystem-spezifischen Kontext stammen. Eine Wort für Wort Übersetzung ist meistens nicht möglich, sodass eine ausführliche Erklärung folgen müsste, was wiederum die Lesbarkeit verschlechtert. Ein gutes Beispiel hierfür wären Begriffe, wie  „Commit“, „Pull Request“ und „merge“, die teils einen ganzen Prozess im Git-Ökosystem beschreiben.
 - Bei Wörtern, die länger als 20 Zeichen sind, fügen wir generell einen weichen Bindestrich (`&shy;`) ein. Um solche Wörter zu finden, kann der folgende reguläre Ausdruck zum Suchen im Code-Editor verwendet werden: `\b[A-Za-zÄäÖöÜüẞß]{20,}\b`
 - Wir verwenden untere (`„`) und obere (`“`) Anführungszeichen anstelle von englischen Anführungszeichen (`“”`) (`„Erstelle deinen ersten Astro-Blog“`)
+- Abkürzungen müssen in der gleichen Zeile stehen. Hierfür wird die HTML-Entität `&nbsp;` oder das [Unicode Symbol "U+00A0 NO-BREAK SPACE"](https://unicode-explorer.com/c/00A0) (` `) verwendet.
 
 ## Häufige Fehler
 
@@ -76,18 +77,18 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
   - Unsere Dokumentation enthält an manchen Stellen farblich hervorgehobene Boxen mit Hinweisen, Tipps und Warnungen. Diese sind im Markdown-Code mit drei Doppelpunkten abgegrenzt und beginnen mit dem Typnamen der Box (`:::note`, `:::tip`, `:::caution`). Dieser Typname ist **nicht** zu übersetzen, da ansonsten die Infobox nicht mehr funktioniert.
   - Falls dem Typnamen eine vom Standard abweichende Überschrift in eckigen Klammern folgt (`:::caution[Here be dragons!]`), darf nur der Teil in eckigen Klammern übersetzt werden.
 - Nichtverwendung der vom Duden empfohlenen Schreibweisen
-    - mit Hilfe → mithilfe
+  - mit Hilfe → mithilfe
 - Falsch geschriebene Markennamen (wir halten uns an die offizielle Schreibweise auf der Hersteller-Website)
-    - Github → GitHub
-    - Gitlab → GitLab
-    - Javascript → JavaScript
-    - Typescript → TypeScript
-    - VSCode → VS Code
-    - NPM → npm
+  - Github → GitHub
+  - Gitlab → GitLab
+  - Javascript → JavaScript
+  - Typescript → TypeScript
+  - VSCode → VS Code
+  - NPM → npm
 - Markennamen, deren Name sich im Laufe der Zeit geändert hat, werden mit dem aktuellen Namen genannt; der frühere Name steht in Klammern (z. B. X (Twitter)).
-- Abkürzungen müssen in der gleichen Zeile stehen. Hierfür wird das [Unicode Symbol "U+00A0 NO-BREAK SPACE"](https://unicode-explorer.com/c/00A0) (` `) verwendet:
-    - zum Beispiel → `z. B.` (am besten mit geschütztem Leerzeichen, sonst die HTML-Entität)
 - Verwendung der falschen Anführungszeichen ("" statt „“)
+- Abkürzungen sind nicht mit non-breaking space versehen
+  - `z. B.` → `z. B.` (Unicode-Zeichen) oder `z.&nbsp;B.` (HTML-Entität)
 
 ## Hast du Ergänzungen oder Anregungen zu dieser Anleitung?
 
