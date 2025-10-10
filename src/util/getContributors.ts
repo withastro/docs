@@ -21,6 +21,7 @@ const printError = (e: Error) =>
 	console.warn(`[error]  /src/util/getContributors.ts\n         ${e?.message ?? e}`);
 
 async function recursiveFetch(endpoint: string, page = 1) {
+	console.info(`docs: recursiveFetch() - ${endpoint} (page ${page})`);
 	try {
 		const queryParam = endpoint.includes('?') ? '&' : '?';
 		const pageSize = 100;
@@ -63,8 +64,10 @@ async function recursiveFetch(endpoint: string, page = 1) {
 }
 
 export async function getAllContributors(repo: string) {
+	console.info(`docs: getAllContributors() start`);
 	const endpoint = `repos/${repo}/contributors`;
 	const contributors: Contributor[] = await recursiveFetch(endpoint);
+	console.info(`docs: getAllContributors() end - ${contributors.length} contributors found`);
 
 	return contributors;
 }
