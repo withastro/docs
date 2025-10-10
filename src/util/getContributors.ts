@@ -29,6 +29,7 @@ async function recursiveFetch(endpoint: string, page = 1) {
 
 		const token = import.meta.env.PUBLIC_GITHUB_TOKEN;
 
+		console.info(`docs: recursiveFetch() - cachedFetch() - start`);
 		const res = await cachedFetch(
 			url,
 			{
@@ -40,8 +41,11 @@ async function recursiveFetch(endpoint: string, page = 1) {
 			},
 			{ duration: '15m' }
 		);
+		console.info(`docs: recursiveFetch() - cachedFetch() - end`);
+		console.info(`docs: recursiveFetch() - ${res.ok}`);
 
 		const data = await res.json();
+		console.info(`docs: recursiveFetch() - got json`);
 
 		if (!res.ok) {
 			throw new Error(
@@ -58,6 +62,7 @@ async function recursiveFetch(endpoint: string, page = 1) {
 
 		return data;
 	} catch (e) {
+		console.info(`docs: recursiveFetch() - error`);
 		printError(e as Error);
 		return [];
 	}

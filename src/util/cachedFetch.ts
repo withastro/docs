@@ -31,6 +31,7 @@ export async function cachedFetch(
 			})
 		);
 	} catch (e: unknown) {
+		console.info(`docs: cachedFetch() - error - ${e}`);
 		const error = e as Error;
 		const msg: string = error?.message || error.toString();
 		const matches = msg.match(/^Bad response for (.*) \(.*?\): (.*)$/);
