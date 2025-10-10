@@ -1,0 +1,53 @@
+diff --git a/entryToSimpleMarkdown.ts b/entryToSimpleMarkdown.ts
+index d0ce19a6abed550fe3a4eb09fa186815055daa15..74cb9adbb587e3460a0944a72044807764761f9f 100644
+--- a/entryToSimpleMarkdown.ts
++++ b/entryToSimpleMarkdown.ts
+@@ -179,12 +179,15 @@ export async function entryToSimpleMarkdown(
+ 		return entry.body || '';
+ 	}
+ 
++	console.info(`starlight-llms-txt: Rendering…`);
+ 	const { Content } = await render(entry);
+ 	const html = await astroContainer.renderToString(Content, context);
++	console.info(`starlight-llms-txt: Rendered.`);
+ 	const file = await htmlToMarkdownPipeline.process({
+ 		value: html,
+ 		data: { starlightLlmsTxt: { minify: shouldMinify } },
+ 	});
++	console.info(`starlight-llms-txt: Processed.`);
+ 	let markdown = String(file).trim();
+ 	if (shouldMinify && minify.whitespace) {
+ 		markdown = markdown.replace(/\s+/g, ' ');
+diff --git a/generator.ts b/generator.ts
+index 3a076f3d8b5070980f89e0601cfa11a6583a4ee5..00cc24c63439c26849d48260f61e356ddca9e023 100644
+--- a/generator.ts
++++ b/generator.ts
+@@ -27,7 +27,9 @@ export async function generateLlmsTxt(
+ 		include?: string[] | undefined;
+ 	}
+ ): Promise<string> {
++	console.info('starlight-llms-txt: Starting generation…');
+ 	let docs = await getCollection('docs', (doc) => isDefaultLocale(doc) && !doc.data.draft);
++	console.info(`starlight-llms-txt: Found ${docs.length} documents.`);
+ 	if (include) {
+ 		docs = docs.filter((doc) => micromatch.isMatch(doc.id, include));
+ 	}
+@@ -51,13 +53,18 @@ export async function generateLlmsTxt(
+ 		return '_'.repeat(prefixLength) + id;
+ 	};
+ 	docs.sort((a, b) => collator.compare(prioritizePages(a.id), prioritizePages(b.id)));
++	console.info('starlight-llms-txt: Sorted documents.');
+ 	const segments: string[] = [];
+ 	for (const doc of docs) {
+ 		const docSegments = [`# ${doc.data.hero?.title || doc.data.title}`];
+ 		const description = doc.data.hero?.tagline || doc.data.description;
+ 		if (description) docSegments.push(`> ${description}`);
++		console.info(
++			`starlight-llms-txt: Processing document: ${doc.data.hero?.title || doc.data.title}`
++		);
+ 		docSegments.push(await entryToSimpleMarkdown(doc, context, minify));
+ 		segments.push(docSegments.join('\n\n'));
++		console.info(`starlight-llms-txt: Added document: ${doc.data.hero?.title || doc.data.title}`);
+ 	}
+ 	if (description) {
+ 		segments.unshift(`<SYSTEM>${description}</SYSTEM>`);
