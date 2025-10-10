@@ -22,15 +22,25 @@ export async function cachedFetch(
 	let buffer: Buffer | undefined;
 
 	try {
-		buffer = await retry(() => {
-			console.info(`docs: cachedFetch() - EleventyFetch() - start`);
-			return EleventyFetch(url, {
-				duration,
-				verbose: true,
-				type: 'buffer',
-				fetchOptions,
-			});
-		});
+		buffer = await retry(
+			() => {
+				console.info(`docs: cachedFetch() - EleventyFetch() - start`);
+				return EleventyFetch(url, {
+					duration,
+					verbose: true,
+					type: 'buffer',
+					fetchOptions,
+				});
+			},
+			{
+				onFailedAttempt: ({ error, attemptNumber, retriesLeft }) => {
+					console.info(
+						`docs: cachedFetch() - retry() - attempt ${attemptNumber} failed. ${retriesLeft} retries left.`
+					);
+					console.error(error);
+				},
+			}
+		);
 	} catch (e: unknown) {
 		console.info(`docs: cachedFetch() - error - ${e}`);
 		const error = e as Error;
