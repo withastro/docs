@@ -22,14 +22,15 @@ export async function cachedFetch(
 	let buffer: Buffer | undefined;
 
 	try {
-		buffer = await retry(() =>
-			EleventyFetch(url, {
+		buffer = await retry(() => {
+			console.info(`docs: cachedFetch() - EleventyFetch() - start`);
+			return EleventyFetch(url, {
 				duration,
-				verbose,
+				verbose: true,
 				type: 'buffer',
 				fetchOptions,
-			})
-		);
+			});
+		});
 	} catch (e: unknown) {
 		console.info(`docs: cachedFetch() - error - ${e}`);
 		const error = e as Error;
