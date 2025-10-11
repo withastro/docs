@@ -27,11 +27,15 @@ import {
 
 ### `<Image />`
 
+`<Image />` 组件能优化并转换图像。
+
+该组件还可用于创建能根据容器尺寸或设备屏幕大小及分辨率自动调整的 [响应式图片](#响应式图片属性) 。
+
 ```astro title="src/components/MyComponent.astro"
 ---
 // 导入图像组件和图片
 import { Image } from 'astro:assets';
-import myImage from "../assets/my_image.png"; // Image is 1600x900
+import myImage from "../assets/my_image.png"; // 图片分辨率是 1600x900
 ---
 
 <!-- `alt` 在 Image 组件中是必需的属性 -->
@@ -53,7 +57,7 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 
 #### Image 属性
 
-除了下面描述的属性之外，`<Image />` 组件还接受 HTML `<img>` 标签接受的所有属性。
+`<Image />` 组件除接受 HTML `<img>` 标签的所有属性外，还支持以下列出的属性及 [响应式图片属性](#响应式图片属性)。
 
 ##### src (必须)
 
@@ -122,6 +126,8 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 
 这些属性定义了要用于图像的尺寸。
 
+当设置了 `layout` 类型时，这些属性会根据图像尺寸自动生成，在大多数情况下不应手动设置。
+
 当使用保持原始宽高比的图像时，`width` 和 `height` 是可选的。这些尺寸可以自动从位于 `src/` 中的图像文件自动推断出来。而对于远程图像，请将 `<Image />` 或 `<Picture />` 组件上的 [`inferSize` 属性设置为 `true`](#infersize)，或使用 [`inferRemoteSize()`](#inferremotesize) 函数。
 
 但是，对于存储在你的 `public/` 文件夹中的图像，这两个属性都是必需的，因为 Astro 无法分析这些文件。
@@ -135,6 +141,8 @@ import myImage from "../assets/my_image.png"; // Image is 1600x900
 </p>
 
 为图像生成的像素密度列表。
+
+`densities` 属性与设置了 `layout` 属性或 `image.layout` 配置的 [响应式图像](#响应式图片属性) 不兼容，若同时设置将被忽略。
 
 如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。在使用此值时，请不要提供 `widths` 的值。
 
@@ -181,6 +189,8 @@ import myImage from '../assets/my_image.png';
 
 如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。但还需提供一个 [`sizes` 属性](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)。
 
+`widths` 和 `sizes` 属性将通过 `layout` 属性自动生成，用于响应式图像。通常无需提供这些值，但可用于覆盖任何自动生成的值。
+
 在使用该值时，请不要提供 `densities` 的值。这两个值只能选择一个来生成 `srcset` 属性。
 
 将忽略大于原始图像宽度的宽度值，以避免对图像进行放大。
@@ -222,6 +232,20 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 />
 ```
 
+##### sizes
+
+<p>
+
+**类型：** `string | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+指定图像在各类媒体查询条件下的布局宽度。在指定 `widths` 时必须提供此参数。
+
+响应式图片的 `widths` 和 `sizes` 属性将通过布局属性自动生成。通常无需手动提供这些值，但可用于覆盖任何自动生成的值。
+
+针对 `constrained` 和 `full-width` 图片自动生成的 `sizes` 属性，其计算前提是当视口宽度小于图片宽度时，图片会以接近屏幕全宽的方式显示。若实际布局与此存在显著差异（例如在小屏幕设备上采用多栏布局），则可能需要手动调整 `sizes` 属性以获得最佳效果。
+
 ##### format
 
 <p>
@@ -249,6 +273,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 <p>
 
 **类型：** `boolean`<br />
+**默认值：** `false`<br />
 <Since v="4.4.0" />
 </p>
 
@@ -258,7 +283,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 
 在 `<Image />` 组件中添加 `inferSize`（或者在 `getImage()` 中添加 `inferSize: true`），以便在获取时从图片内容中推断这些值。如果你不知道远程图片的尺寸，或者这些尺寸可能会变化，这个属性对你会很有帮助：
 
-```astro mark="inferSize"
+```astro title="src/components/MyComponent.astro" "inferSize"
 ---
 import { Image } from 'astro:assets';
 ---
@@ -267,11 +292,43 @@ import { Image } from 'astro:assets';
 
 `inferSize` 能够获取来自未经授权域的 [远程图片的尺寸](/zh-cn/guides/images/#授权远程图像)，但图片本身将保持未处理状态。
 
+
+##### priority
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+可自动为首屏图片设置 `loading`、`decoding`，和 `fetchpriority` 属性至最佳值。
+
+```astro title="src/components/MyComponent.astro" "priority"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} priority alt="A description of my image" />
+```
+
+当在 `<Image />` 或 `<Picture />` 组件中添加 `priority="true"`（或简写语法 `priority` ）时，它将添加以下属性以指示浏览器立即加载图像：
+
+```html
+loading="eager"
+decoding="sync"
+fetchpriority="high"
+```
+
+如需进一步定制，这些独立属性仍可手动设置。
+
 ### `<Picture />`
 
 <p><Since v="3.3.0" /></p>
 
-使用内置的 `<Picture />` Astro 组件来展示具有多种格式和（或）尺寸的响应式图像。
+ `<Picture />` 组件可以生成具有多种格式和（或）尺寸的优化后的图像。
+ 
+该组件还可用于创建能根据容器尺寸或设备屏幕大小及分辨率自动调整的 [响应式图片](#响应式图片属性) 。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -301,7 +358,7 @@ import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
 
 #### Picture 属性
 
-`<Picture />` 接受 [`<Image />` 组件](#image-属性) 的所有属性，以及以下属性：
+`<Picture />` 接受 [`<Image />` 组件](#image-属性) 的所有属性（包括 [响应式图片属性](#响应式图片属性)），以及以下属性：
 
 ##### `formats`
 
@@ -477,17 +534,6 @@ import myImage from '../assets/my_image.png';
 当设置或配置了 [`layout`](#layout) 属性时启用。定义当宽高比改变时，响应式图片的裁剪位置。
 
 值与 CSS `object-position` 的值相匹配。默认为 `center`，如果设置了，则为 [`image.objectPosition`](/zh-cn/reference/configuration-reference/#imageobjectposition) 的值。可用于覆盖默认的 `object-position` 样式。
-
-##### priority
-
-<p>
-
-**类型：** `boolean` <br />
-**默认值：** `false` <br />
-<Since v="5.10.0" />
-</p>
-
-当设置或配置了 [`layout`](#layout) 属性时启用。如果设置，则会立即加载响应式图片。否则，图片将被延迟加载。用于首屏中最大的图片。默认为 `false`。
 
 ### `getImage()`
 
