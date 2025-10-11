@@ -13,7 +13,7 @@ export default navDictionary({
 	'guides.content': 'Inhalte zu deiner Website hinzufügen',
 	'guides.serverRendering': 'Server-Rendering',
 	'guides.upgrade': 'Aktualisierung',
-	'guides.upgrade.major': 'Große Aktualisierungs&shy;anleitungen',
+	'guides.upgrade.major': 'Große Aktualisierungs­anleitungen',
 	'guides.recipes': 'Praktische Beispiele',
 
 	reference: 'Referenz',
