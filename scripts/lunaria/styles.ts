@@ -4,10 +4,12 @@ export const BaseStyles = html`
 	<style>
 		:root {
 			/** Fonts */
-			--ln-font-fallback: -apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif,
+			--ln-font-fallback:
+				-apple-system, BlinkMacSystemFont, Segoe UI, Helvetica, Arial, sans-serif,
 				Apple Color Emoji, Segoe UI Emoji;
 			--ln-font-body: system-ui, var(--ln-font-fallback);
-			--ln-font-mono: 'IBM Plex Mono', Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console',
+			--ln-font-mono:
+				'IBM Plex Mono', Consolas, 'Andale Mono WT', 'Andale Mono', 'Lucida Console',
 				'Lucida Sans Typewriter', 'DejaVu Sans Mono', 'Bitstream Vera Sans Mono', 'Liberation Mono',
 				'Nimbus Mono L', Monaco, 'Courier New', Courier, monospace;
 
