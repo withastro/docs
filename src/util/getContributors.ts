@@ -21,7 +21,6 @@ const printError = (e: Error) =>
 	console.warn(`[error]  /src/util/getContributors.ts\n         ${e?.message ?? e}`);
 
 async function recursiveFetch(endpoint: string, page = 1) {
-	console.info(`docs: recursiveFetch() - ${endpoint} (page ${page})`);
 	try {
 		const queryParam = endpoint.includes('?') ? '&' : '?';
 		const pageSize = 100;
@@ -29,7 +28,6 @@ async function recursiveFetch(endpoint: string, page = 1) {
 
 		const token = import.meta.env.PUBLIC_GITHUB_TOKEN;
 
-		console.info(`docs: recursiveFetch() - cachedFetch() - start`);
 		const res = await cachedFetch(
 			url,
 			{
@@ -41,11 +39,8 @@ async function recursiveFetch(endpoint: string, page = 1) {
 			},
 			{ duration: '15m' }
 		);
-		console.info(`docs: recursiveFetch() - cachedFetch() - end`);
-		console.info(`docs: recursiveFetch() - ${res.ok}`);
 
 		const data = await res.json();
-		console.info(`docs: recursiveFetch() - got json`);
 
 		if (!res.ok) {
 			throw new Error(
@@ -62,17 +57,14 @@ async function recursiveFetch(endpoint: string, page = 1) {
 
 		return data;
 	} catch (e) {
-		console.info(`docs: recursiveFetch() - error`);
 		printError(e as Error);
 		return [];
 	}
 }
 
 export async function getAllContributors(repo: string) {
-	console.info(`docs: getAllContributors() start`);
 	const endpoint = `repos/${repo}/contributors`;
 	const contributors: Contributor[] = await recursiveFetch(endpoint);
-	console.info(`docs: getAllContributors() end - ${contributors.length} contributors found`);
 
 	return contributors;
 }
