@@ -54,10 +54,6 @@ export interface AstroAdapterFeatures {
 	 * Cria uma função na edge que irá se comunicar com o middleware do Astro.
 	 */
 	edgeMiddleware: boolean;
-	/**
-	 * SSR apenas. Cada rota se torna sua própria função/arquivo.
-	 */
-	functionPerRoute: boolean;
 }
 
 export type SupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated';
@@ -292,89 +288,6 @@ e um erro se o serviço usado para assets não é compatível com o adaptador:
 ## Funcionalides do Adaptador
 
 Um conjunto de funcionalidades que modificam o resultado dos arquivos emitidos. Quando um adaptador opta por essas funcionalidades, ele irá adquirir informação adicional dentro de hooks específicos.
-
-### `functionPerRoute`
-
-Essa é uma funcionalidade que é habilitada ao utilizar SSR apenas. Por padrão, Astro emite um único arquivo `entry.mjs`, que é responsável por emitir a página renderizada a cada requisição.
-
-Quando `functionPerRoute` é `true`, Astro irá ao invés disso criar um arquivo separado para cada rota definida no projeto.
-
-Cada arquivo emitido irá apenas renderizar uma página. As páginas serão emitidas dentro do diretório `dist/pages/` (ou dentro de um diretório `/pages/` no diretório especificado para [`outDir`](/pt-br/reference/configuration-reference/#outdir)), e os arquivos emitidos irão manter o mesmo caminho de arquivo que o diretório `src/pages/`.
-
-Os arquivos dentro do diretório `pages/` da build refletirão a estrutura do diretório dos seus arquivos de página em `src/pages/`, por exemplo:
-
-<FileTree>
-- dist/
-    - pages/
-        - blog/
-            - entry.\_slug\_.astro.mjs
-            - entry.sobre.astro.mjs
-        - entry.index.astro.mjs
-</FileTree>
-
-Habilite essa funcionalidade passando `true` ao adaptador.
-
-```js title="meu-adaptador.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/meu-adaptador',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/meu-adaptador',
-          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-Então, consuma o hook [`astro:build:ssr`](/pt-br/reference/integrations-reference/#astrobuildssr), que irá te dar um objeto `entryPoints` que mapeia uma rota de página ao arquivo físico emitido após a build.
-
-```js title="meu-adaptador.mjs" ins={15-19}
-export default function createIntegration() {
-  return {
-    name: '@matthewp/meu-adaptador',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@matthewp/meu-adaptador',
-          serverEntrypoint: '@matthewp/meu-adaptador/server.js',
-          adapterFeatures: {
-              functionPerRoute: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ entryPoints }) => {
-          for (const [route, entryFile] of entryPoints) {
-              // faça algo com a route e entryFile
-          }
-      }  
-    },
-  };
-}
-```
-
-:::caution
-O `entryFile` é do tipo `URL` e representa o caminho físico do arquivo no sistema de arquivos. Isso significa que os caminhos mudam com base no SO onde o código é executado. 
-:::
-
-#### Ambientes Serverless
-
-Definir `functionPerRoute: true` em um ambiente serverless cria um arquivo JavaScript (handler) para cada rota. Um handler pode terr nomes diferentes com base na sua plataforma de hospedagem: lambda, function, page, etc. 
-
-Cada uma dessas rotas é sujeita a um [cold start](https://azure.microsoft.com/en-us/blog/understanding-serverless-cold-start/) quando o handler é executado, o que pode causar algum delay. Esse delay é influenciado por diferentes fatores.
-
-Com `functionPerRoute: false`, há apenas um único handler no comando da renderização de todas as suas rotas. Quando esse handler é ativado pela primeira vez, você estará sujeito a um cold start. E então, todas as outras rotas devem funcionar sem delay. Porém, você irá perder o benefício da separação de código que `functionPerRoute: true` fornece.
-
-:::note
-É importante que você entenda sua plataforma de hospedagem, e como ela funciona, para que você escolha a configuração de `functionPerRoute` apropriada para seu projeto.
-:::
 
 ### `edgeMiddleware`
 
