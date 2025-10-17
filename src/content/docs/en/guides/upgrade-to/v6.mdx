@@ -59,6 +59,44 @@ See [the Astro changelog](https://github.com/withastro/astro/blob/main/packages/
 
 Any major upgrades to Astro's dependencies may cause breaking changes in your project.
 
+### Node 22
+
+<SourcePR number="14427" title="feat!: drop node 18 and 20"/>
+
+Node 18 reached its End of Life in March 2025 and Node 20 is scheduled to reach its End of Life in April 2026.
+
+Astro v6.0 drops Node 18 and Node 20 support entirely so that all Astro users can take advantage of Node's more modern features.
+
+#### What should I do?
+
+Check that both your development environment and your deployment environment are using **Node `22.12.0` or higher**.
+
+<Steps>
+1. Check your local version of Node using:
+
+    ```sh
+    node -v
+    ```
+
+2. Check your [deployment environment's](/en/guides/deploy/) own documentation to verify that they support Node 22.
+
+    You can specify Node `22.12.0` for your Astro project either in a dashboard configuration setting or a `.nvmrc` file.
+
+    ```bash title=".nvmrc"
+    22.12.0
+    ```
+</Steps>
+
+### Vite 7.0
+
+<SourcePR number="14445" title="feat: update vite"/>
+
+Astro v6.0 upgrades to Vite v7.0 as the development server and production bundler.
+
+#### What should I do?
+
+If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vite.dev/guide/migration) for their breaking changes and upgrade your project as needed.
+
 ## Legacy
 
 The following features are now considered legacy features. They should function normally but are no longer recommended and are in maintenance mode. They will see no future improvements and documentation will not be updated. These features will eventually be deprecated, and then removed entirely.
@@ -68,6 +106,54 @@ The following features are now considered legacy features. They should function 
 The following deprecated features are no longer supported and are no longer documented. Please update your project accordingly.
 
 Some deprecated features may temporarily continue to function until they are completely removed. Others may silently have no effect, or throw an error prompting you to update your code.
+
+### Deprecated: `Astro` in `getStaticPaths()`
+
+<SourcePR number="14432" title="feat: deprecate Astro in getStaticPaths"/>
+
+In Astro 5.x, it was possible to access an `Astro` object inside `getStaticPaths()`. However, despite being typed the same as the `Astro` object accessible in the frontmatter, this object only had `site` and `generator` properties. This could lead to confusion about which `Astro` object properties were available inside `getStaticPaths()`.
+
+Astro 6.0 deprecates this object for `getStaticPaths()` to avoid confusion and improves error handling when attempting to access `Astro` values that are unavailable. Using `Astro.site` or `Astro.generator` within `getStaticPaths()` will now log a deprecation warning, and accessing any other property will throw a specific error with a helpful message. In a future major version, this object will be removed entirely, and accessing `Astro.site` or `Astro.generator` will also throw an error.
+
+#### What should I do?
+
+Update your `getStaticPaths()` function if you were attempting to access any `Astro` properties inside its scope. Remove `Astro.generator` entirely, and replace all occurrences of `Astro.site()` with `import.meta.env.SITE`:
+
+```astro title="src/pages/blog/[slug].astro" del={5,6} ins={7}
+---
+import { getPages } from "../../../utils/data";
+
+export async function getStaticPaths() {
+  console.log(Astro.generator);
+  return getPages(Astro.site);
+  return getPages(import.meta.env.SITE);
+}
+---
+```
+
+<ReadMore>Read more about [built-in environment variables such as `import.meta.env.SITE`](/en/guides/environment-variables/#default-environment-variables) that are accessible when [using `getStaticPaths()` to dynamically generate static routes](/en/guides/routing/#static-ssg-mode).</ReadMore>
+
+### Deprecated: `import.meta.env.ASSETS_PREFIX`
+
+<SourcePR number="14461" title="feat: deprecate import.meta.env.ASSETS_PREFIX"/>
+
+In Astro 5.x, it was possible to access `build.assetsPrefix` in your Astro config via the built-in environment variable `import.meta.env.ASSETS_PREFIX`. However, Astro v5.7.0 introduced the `astro:config` virtual model to expose a non-exhaustive, serializable, type-safe version of the Astro configuration which included access to `build.assetsPrefix` directly. This became the preferred way to access the prefix for Astro-generated asset links when set, although the environment variable still existed.
+
+Astro 6.0 deprecates this variable in favor of `build.assetsPrefix` from the `astro:config/server` module.
+
+#### What should I do?
+
+Replace any occurances of `import.meta.env.ASSETS_PREFIX` with the `build.assetsPrefix` import from `astro:config/server`. This is a drop-in replacement to provide the existing value, and no other changes to your code should be necessary:
+
+```ts del={4} ins={2,5}
+import { someLogic } from "./utils"
+import { build } from "astro:config/server"
+
+someLogic(import.meta.env.ASSETS_PREFIX)
+someLogic(build.assetsPrefix)
+```
+
+<ReadMore>Read more about the [`astro:config` virtual modules](/en/reference/modules/astro-config/).</ReadMore>
 
 ## Removed
 
@@ -256,15 +342,505 @@ const result = await emitImageMetadata(imageId);
 
 <ReadMore>Read more about [`emitImageMetadata()`](/en/reference/image-service-reference/#emitimagemetadata).</ReadMore>
 
+### Removed: `Astro.glob()`
+
+<SourcePR number="14421" title="feat!: remove Astro.glob"/>
+
+In Astro 5.0, `Astro.glob()` was deprecated in favor of using `getCollection()` to query your collections, and `import.meta.glob()` to query other source files in your project.
+
+Astro 6.0 removes `Astro.glob()` entirely. Update to `import.meta.glob()` to keep your current behavior.
+
+#### What should I do?
+
+Replace all use of `Astro.glob()` with `import.meta.glob()`. Note that `import.meta.glob()` no longer returns a `Promise`, so you may have to update your code accordingly. You should not require any updates to your [glob patterns](/en/guides/imports/#glob-patterns).
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+---
+const posts = await Astro.glob('./posts/*.md');
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+```
+
+Where appropriate, consider using [content collections](/en/guides/content-collections/) to organize your content, which has its own newer, more performant querying functions.
+
+You may also wish to consider using glob packages from NPM, such as [`fast-glob`](https://www.npmjs.com/package/fast-glob).
+
+<ReadMore>Learn more about [importing files with `import.meta.glob`](/en/guides/imports/#importmetaglob).</ReadMore>
+
+### Removed: `routes` on `astro:build:done` hook (Integration API)
+
+<SourcePR number="14446" title="feat: cleanup integration api"/>
+
+In Astro 5.0, accessing `routes` on the `astro:build:done` hook was deprecated.
+
+Astro 6.0 removes the `routes` array passed to this hook entirely. Instead, the `astro:routes:resolved` hook should be used. 
+
+#### What should I do?
+
+Remove any instance of `routes` passed to `astro:build:done` and replace it with the new `astro:routes:resolved` hook. Access `distURL` on the newly exposed `assets` map:
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>Learn more about [the Integration API `astro:routes:resolved` hook](/en/reference/integrations-reference/#astroroutesresolved) for building integrations.</ReadMore>
+
+### Removed: `entryPoints` on `astro:build:ssr` hook (Integration API)
+
+<SourcePR number="14446" title="feat: cleanup integration api"/>
+
+In Astro 5.0, [`functionPerRoute` was deprecated](/en/guides/upgrade-to/v5/#deprecated-functionperroute-adapter-api). That meant that `entryPoints` on the `astro:build:ssr` hook was always empty.
+
+Astro 6.0 removes the `entryPoints` map passed to this hook entirely.
+
+#### What should I do?
+
+Remove any instance of `entryPoints` passed to `astro:build:ssr`:
+
+```js title="my-integration.mjs" del={6}
+const integration = () => {
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:build:ssr': (params) => {
+                someLogic(params.entryPoints)
+            },
+        }
+    }
+}
+```
+
+### Removed: old `app.render()` signature (Adapter API)
+
+<SourcePR number="14462" title="feat: clean deprecated APIs"/>
+
+In Astro 4.0, the `app.render()` signature that allowed passing `routeData` and `locals` as optional arguments was deprecated in favor of a single optional `renderOptions` argument.
+
+Astro 6.0 removes this signature entirely. Attempting to pass these separate arguments will now cause an error in your project.
+
+#### What should I do?
+
+Review your `app.render` calls and pass `routeData` and `locals` as properties of an object instead of as multiple independent arguments:
+
+```ts title="my-adapter/entrypoint.ts" del={1} ins={2}
+app.render(request, routeData, locals)
+app.render(request, { routeData, locals })
+```
+
+<ReadMore>Learn more about the [Adapter API](/en/reference/adapter-reference/).</ReadMore>
+
+### Removed: `handleForms` prop for the `<ClientRouter />` component
+
+<SourcePR number="14462" title="feat: clean deprecated APIs"/>
+
+In Astro 4.0, the `handleForms` prop of the `<ClientRouter />` component was deprecated, as it was no longer necessary to opt in to handling `submit` events for `form` elements. This functionality has been built in by default and the property, if still included in your project, silently had no impact on form submission.
+
+Astro 6.0 removes this prop entirely and it now must be removed to avoid errors in your project.
+
+#### What should I do?
+
+Remove the `handleForms` property from your `<ClientRouter />` component if it exists. It has provided no additional functionality, and so removing it should not change any behavior in your project:
+
+```astro title="src/pages/index.astro" del="handleForms"
+---
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+  <head>
+    <ClientRouter handleForms />
+  </head>
+  <body>
+    <!-- stuff here -->
+  </body>
+</html>
+```
+
+<ReadMore>Learn more about [transitions with forms](/en/guides/view-transitions/#transitions-with-forms).</ReadMore>
+
+### Removed: `prefetch()` `with` option
+
+<SourcePR number="14462" title="feat: clean deprecated APIs"/>
+
+In Astro 4.8.4, the `with` option of the programmatic `prefetch()` function was deprecated in favor of a more sensible default behavior that no longer required specifying the priority of prefetching for each page.
+
+Astro 6.0 removes this option entirely and it is no longer possible to configure the priority of prefetching by passing the `with` option. Attempting to do so will now cause errors.
+
+By default, Astro's prefetching now uses an automatic approach that will always try to use `<link rel="prefetch>` if supported, or will fall back to `fetch()`.
+
+#### What should I do?
+
+Review your `prefetch()` calls and remove the `with` option if it still exists:
+
+```ts del={1} ins={2}
+prefetch('/about', { with: 'fetch' });
+prefetch('/about');
+```
+
+<ReadMore>Learn more about [prefetching](/en/guides/prefetch/).</ReadMore>
+
+### Removed: `rewrite()` from Actions context
+
+<SourcePR number="14477" title="feat!: remove rewrite from action context"/>
+
+In Astro 5.5.6, the `ActionAPIContext.rewrite` method was deprecated because custom endpoints should be used instead of rewrites.
+
+Astro 6.0 removes the `rewrite()` method from `ActionAPIContext` entirely and it may no longer be used.
+
+#### What should I do?
+
+Review your Actions handlers and remove any call to `rewrite()`:
+
+
+```ts title="src/actions/index.ts" del={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  getGreeting: defineAction({
+    input: z.object({
+      // ...
+    }),
+    handler: async (input, context) => {
+      context.rewrite('/')
+      // ...
+    }
+  })
+}
+```
+
+<ReadMore>Learn more about [rewrites](/en/guides/routing/#rewrites).</ReadMore>
+
+### Experimental Flags
+
+The following experimental flags have been removed in Astro v6.0 and these features are available for use:
+
+- `thing 1`
+
+Additionally, the following experimental flags have been removed and **are now the default or recommended behavior in Astro v6.0**.
+
+- `experimental.preserveScriptOrder` (See below for breaking changes to [default `<script>` and `<style>` behavior](#changed-script-and-style-tags-are-rendered-in-the-order-they-are-defined).)
+- `experimental.staticImportMetaEnv` (See below for breaking changes to [`import.meta.env`](#changed-importmetaenv-values-are-always-inlined).)
+
+The following experimental flags have been removed and **their corresponding features are not part of Astro v6.0**.
+
+- `thing 2`
+
+Remove these experimental flags from your Astro config if you were previously using them:
+
+```js del={5-7} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    preserveScriptOrder: true,
+    staticImportMetaEnv: true,
+    headingIdCompat: true,
+  },
+})
+```
+
+These features are all available by default in Astro v5.0.
+
+<ReadMore>Read about these exciting features and more in [the v6.0 Blog post](https://astro.build/blog/astro-6/).</ReadMore>
+
+
 ## Changed Defaults
 
 Some default behavior has changed in Astro v5.0 and your project code may need updating to account for these changes.
 
 In most cases, the only action needed is to review your existing project's deployment and ensure that it continues to function as you expect, making updates to your code as necessary. In some cases, there may be a configuration setting to allow you to continue to use the previous default behavior.
 
+### Changed: `i18n.routing.redirectToDefaultLocale` default value
+
+<SourcePR number="14406" title="feat(astro)!: update i18n.redirectToDefaultLocale default"/>
+
+In Astro v5.0, the `i18n.routing.redirectToDefaultLocale` default value was `true`. When combined with the `i18n.routing.prefixDefaultLocale` default value of `false`, the resulting redirects could cause infinite loops.
+
+In Astro v6.0, `i18n.routing.redirectToDefaultLocale` now defaults to `false`. Additionally, it can now only be used if `i18n.routing.prefixDefaultLocale` is set to `true`.
+
+#### What should I do?
+
+Review your Astro `i18n` config as you may now need to explicitly set values for `redirectToDefaultLocale` and `prefixDefaultLocale` to recreate your project's previous behavior.
+
+```js ins={7} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  i18n: {
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: true
+    }
+  }
+})
+```
+
+<ReadMore>Learn more about [Internationalization routing](/en/guides/internationalization/#routing).</ReadMore>
+
+### Changed: `<script>` and `<style>` tags are rendered in the order they are defined
+
+<SourcePR number="14480" title="feat: stabilize experimental preserveScriptOrder option"/>
+
+In Astro v5.5, the `experimental.preserveScriptOrder` flag was introduced to render multiple `<style>` and `<script>` tags in the same order as they were declared in the source code. Astro 5.x reversed their order in your generated HTML output. This could give unexpected results, for example, CSS styles being overridden by earlier defined style tags when your site was built.
+
+Astro 6.0 removes this experimental flag and makes this the new default behavior in Astro: scripts and styles are now rendered in the order defined in your code.
+
+#### What should I do?
+
+If you were previously using this experimental feature, you must [remove this experimental flag from your configuration](#experimental-flags) as it no longer exists.
+
+Review your `<script>` and `<style>` tags to make sure they behave as desired. You may need to reverse their order:
+
+```astro title="src/components/MyComponent.astro" del={4,10,15,19} ins={5,11,16,20}
+<p>I am a component</p>
+<style>
+  body {
+    background: red;
+    background: yellow;
+  }
+</style>
+<style>
+  body {
+    background: yellow;
+    background: red;
+  }
+</style>
+<script>
+    console.log("hello")
+    console.log("world")
+</script>
+<script>
+    console.log("world!")
+    console.log("hello!")
+</script>
+```
+
+<ReadMore>Read more about [using `script`](/en/guides/client-side-scripts/) and [`style`](/en/guides/styling/) tags.</ReadMore>
+
 ## Breaking Changes
 
 The following changes are considered breaking changes in Astro v5.0. Breaking changes may or may not provide temporary backwards compatibility. If you were using these features, you may have to update your code as recommended in each entry.
+
+### Changed: endpoints with a file extension cannot be accessed with a trailing slash
+
+<SourcePR number="14457" title="feat!: trailing slash never for endpoints with file extension"/>
+
+In Astro v5.0, custom endpoints whose URL ended in a file extension (e.g. `/src/pages/sitemap.xml.ts` ) could be accessed with a trailing slash (`/sitemap.xml/`) or without (`/sitemap.xml`), regardless of the value configured for `build.trailingSlash`.
+
+In Astro v6.0, these endpoints can only be accessed without a trailing slash. This is true regardless of your `build.trailingSlash` configuration.
+
+#### What should I do?
+
+Review your links to your custom endpoints that include a file extension in the URL and remove any trailing slashes:
+
+```html del={1} ins={2} title="src/pages/index.astro"
+<a href="/sitemap.xml/">Sitemap</a>
+<a href="/sitemap.xml">Sitemap</a>
+```
+
+<ReadMore>Learn more about [custom endpoints](/en/guides/endpoints/).</ReadMore>
+
+### Changed: `import.meta.env` values are always inlined
+
+<SourcePR number="14485" title="feat: stabilize static import meta env"/>
+
+In Astro 5.13, the `experimental.staticImportMetaEnv` flag was introduced to update the behavior when accessing `import.meta.env` directly to align with [Vite's handling of environment variables](https://vite.dev/guide/env-and-mode.html#env-variables) and ensures that `import.meta.env` values are always inlined.
+
+In Astro 5.x, non-public environment variables were replaced by a reference to `process.env`. Additionally, Astro could also convert the value type of your environment variables used through `import.meta.env`, which could prevent access to some values such as the strings `"true"` (which was converted to a boolean value), and `"1"` (which was converted to a number).
+
+Astro 6 removes this experimental flag and makes this the new default behavior in Astro: `import.meta.env` values are always inlined and never coerced.
+
+#### What should I do?
+
+If you were previously using this experimental feature, you must [remove this experimental flag from your configuration](#experimental-flags) as it no longer exists.
+
+If you were relying on coercion, you may need to update your project code to apply it manually:
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.ENABLED;
+const enabled: boolean = import.meta.env.ENABLED === "true";
+```
+
+If you were relying on the transformation into `process.env`, you may need to update your project code to apply it manually:
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.DB_PASSWORD;
+const enabled: boolean = process.env.DB_PASSWORD;
+```
+
+You may also need to update types:
+
+```ts title="src/env.d.ts" del={3-4} ins={5,12-16}
+interface ImportMetaEnv {
+  readonly PUBLIC_POKEAPI: string;
+  readonly DB_PASSWORD: string;
+  readonly ENABLED: boolean;
+  readonly ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+namespace NodeJS {
+  interface ProcessEnv {
+    DB_PASSWORD: string;
+  }
+}
+```
+
+If you need more control over environment variables in Astro, we recommend you use `astro:env`.
+
+<ReadMore>Learn more about [environment variables](/en/guides/environment-variables/) in Astro, including `astro:env`.</ReadMore>
+
+### Changed: Markdown heading ID generation
+
+<SourcePR number="14494" title="feat!: stabilize experimental.headingIdCompat"/>
+
+In Astro 5.x, an additional default processing step to Markdown stripped trailing hyphens from the end of IDs for section headings ending in special characters. This provided a cleaner `id` value, but could lead to incompatibilities rendering your Markdown across platforms.
+
+In Astro 5.5, the `experimental.headingIdCompat` flag was introduced to allow you to make the IDs generated by Astro for Markdown headings compatible with common platforms like GitHub and npm, using the popular [`github-slugger`](https://github.com/Flet/github-slugger) package.
+
+Astro 6.0 removes this experimental flag and makes this the new default behavior in Astro: trailing hyphens from the end of IDs for headings ending in special characters are no longer removed.
+
+#### What should I do?
+
+If you have manual links to headings, you may need to update the anchor link value with a new trailing hyphen. For example, the following Markdown heading:
+
+```md
+## `<Picture />`
+```
+
+will now generate the following HTML with a trailing hyphen in the heading `id`:
+
+```html ins="-"
+<h2 id="picture-"><code>&lt;Picture /&gt;</h2>
+```
+
+and must now be linked to as:
+
+```markdown ins="-"
+See [the Picture component](/en/guides/images/#picture-) for more details.
+```
+
+If you were previously using the experimental feature to enforce trailing hyphens, you must [remove this experimental flag from your configuration](#experimental-flags) as it no longer exists.
+
+If you were previously using the `rehypeHeadingIds` plugin directly to enforce compatibility, remove the `headingIdCompat` option as it no longer exists:
+
+```js title="astro.config.mjs" del={8} ins={9}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      [rehypeHeadingIds, { headingIdCompat: true }],
+      [rehypeHeadingIds],
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
+
+If you want to keep the old ID generation for backward compatibility reasons, you can create a custom rehype plugin that will generate headings IDs like Astro 5.x. This will allow you to continue to use your existing anchor links without adding trailing hyphens.
+
+<details>
+
+<summary>Create a custom rehype plugin to strip trailing hyphens</summary>
+
+<Steps>
+
+1. Install required dependencies:
+
+   <PackageManagerTabs>
+   <Fragment slot="npm">
+   ```sh
+   npm i github-slugger hast-util-heading-rank unist-util-visit hast-util-to-string
+   ```
+   </Fragment>
+   <Fragment slot="pnpm">
+   ```sh
+   pnpm add github-slugger hast-util-heading-rank unist-util-visit hast-util-to-string
+   ```
+   </Fragment>
+   <Fragment slot="yarn">
+   ```sh
+   yarn add github-slugger hast-util-heading-rank unist-util-visit hast-util-to-string
+   ```
+   </Fragment>
+   </PackageManagerTabs>
+   
+2. Create a custom rehype plugin that will generate headings IDs like Astro v5:
+
+   ```js title="plugins/rehype-slug.mjs"
+   import GithubSlugger from 'github-slugger';
+   import { headingRank } from 'hast-util-heading-rank';
+   import { visit } from 'unist-util-visit';
+   import { toString } from 'hast-util-to-string';
+
+   const slugs = new GithubSlugger();
+
+   export function rehypeSlug() {
+     /**
+      * @param {import('hast').Root} tree
+      */
+     return (tree) => {
+       slugs.reset();
+       visit(tree, 'element', (node) => {
+         if (headingRank(node) && !node.properties.id) {
+           let slug = slugs.slug(toString(node));
+           // Strip trailing hyphens like in Astro v5 and below:
+           if (slug.endsWith('-')) slug = slug.slice(0, -1);
+           node.properties.id = slug;
+         }
+       });
+     };
+   }
+   ```
+   
+3. Add the custom plugin to your Markdown configuration in `astro.config.mjs`:
+
+   ```js title="astro.config.mjs" ins={2} ins="rehypeSlug"
+   import { defineConfig } from 'astro/config';
+   import { rehypeSlug } from './plugins/rehype-slug';
+   
+   export default defineConfig({
+     markdown: {
+       rehypePlugins: [rehypeSlug],
+     },
+   });
+   ```
+
+</Steps>
+
+</details>
+
+<ReadMore>Learn more about [Heading IDs](/en/guides/markdown-content/#heading-ids).</ReadMore>
 
 ## Community Resources
 
