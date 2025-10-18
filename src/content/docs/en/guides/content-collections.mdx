@@ -36,6 +36,33 @@ Collections use a `loader` to retrieve your content. Collections stored locally 
 
 With [community-built loaders](https://astro.build/integrations/?search=&categories%5B%5D=loaders) or by [building a custom collection loader](#building-a-custom-loader) yourself, you can fetch remote data from any external source, such as a CMS, database, or headless payment system.
 
+### When to create a collection
+
+You can create a collection any time you have a group of related data or content that shares a common structure.
+
+Much of the benefit of using collections comes from:
+
+- Defining a common data shape to validate that an individual entry is "correct" or "complete", avoiding errors in production.
+- Content-focused APIs designed to make querying intuitive (e.g. `getCollection()` instead of `import.meta.glob()`) when importing and rendering content on your pages.
+- Both built-in loaders and access to the low-level [Content Loader API](/en/reference/content-loader-reference/) for retrieving your content. There are additionally several third-party and community-built loaders available, and you can build your own custom loader to fetch data from anywhere.
+- Performance and scalability. Build-time content collections data can be cached between builds and is suitable for tens of thousands of content entries.
+
+Define your data as a collection when:
+
+- You have multiple files or data to organize that share the same overall structure (e.g. blog posts written in Markdown which all have the same frontmatter properties).
+- You have existing content stored remotely, such as in a CMS, and want to take advantage of the collections helper functions instead of using `fetch()` or SDKs.
+- You need to fetch (tens of) thousands of related pieces of data at build time, and need a querying and caching method that handles at scale.
+
+### When not to create a collection
+
+Collections provide excellent structure, safety, and organization when you have **multiple pieces of content that must share the same properties**.
+
+Collections **may not be your solution** if:
+
+- You have only one or a small number of different pages. Consider [making individual page components](/en/basics/astro-pages/) such as `src/pages/about.astro` with your content directly instead.
+- You are displaying files that are not processed by Astro, such as PDFs. Place these static assets in the [`public/` directory](/en/basics/project-structure/#public) of your project instead.
+- Your data source has its own SDK/client library for imports that is incompatible with or does not offer a content loader and you prefer to use it directly.
+
 ## Types of collections
 
 **Content collections** are updated at build time and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness such as live stock prices.
@@ -45,6 +72,28 @@ With [community-built loaders](https://astro.build/integrations/?search=&categor
 We suggest using content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable.
 
 Both types of collection use similar APIs (e.g. `getEntry()` and `getLiveEntry()`) so that working with collections will feel familiar no matter which one you choose, while still ensuring that you always know which type of collection you are working with.
+
+### Build-time content collections
+
+For the best performance and scalability, use build-time content collections when:
+
+- **Performance is critical** and you want to pre-render data at build time.
+- **Your data is relatively static** (e.g., blog posts, documentation, product descriptions).
+- **You want to benefit from build-time optimization** and caching.
+- **You need to process MDX** or perform image optimization.
+- **Your data can be fetched once and reused** across multiple builds.
+
+### Live content collections
+
+Live content collections are designed for data that changes frequently and needs to be up-to-date when a page is requested. Consider using them when:
+
+- **You need real-time information** (e.g. user-specific data, current stock levels).
+- **You want to avoid constant rebuilds** for content that changes often.
+- **Your data updates frequently** (e.g. up-to-the-minute product inventory, prices, availability).
+- **You need to pass dynamic filters** to your data source based on user input or request parameters.
+- **You're building preview functionality** for a CMS where editors need to see draft content immediately.
+
+See the [limitations of experimental live collections](#live-collection-limitations) and [key differences from build-time collections](#differences-from-build-time-collections) for more details on choosing between live and preloaded collections.
 
 ## TypeScript configuration for collections
 
@@ -578,30 +627,23 @@ const { Content } = await render(post);
 Explore the `src/pages/` folder of the [blog tutorial demo code on GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) to see full examples of creating pages from your collections for blog features like a list of blog posts, tags pages, and more!
 :::
 
-## When to create a collection
 
-You can [create a collection](#defining-collections) any time you have a group of related data or content that shares a common structure.
+### Live collection limitations
 
-Much of the benefit of using collections comes from:
+Live content collections have some limitations compared to build-time collections:
 
-- Defining a common data shape to validate that an individual entry is "correct" or "complete", avoiding errors in production.
-- Content-focused APIs designed to make querying intuitive (e.g. `getCollection()` instead of `import.meta.glob()`) when importing and rendering content on your pages.
-- A [Content Loader API](/en/reference/content-loader-reference/) for retrieving your content that provides both built-in loaders and access to the low-level API. There are several third-party and community-built loaders available, and you can build your own custom loader to fetch data from anywhere.
-- Performance and scalability. The Content Layer API allows data to be cached between builds and is suitable for tens of thousands of content entries.
+- **No MDX support**: MDX cannot be rendered at runtime
+- **No image optimization**: Images cannot be processed at runtime
+- **Performance considerations**: Data is fetched on each request (unless cached)
+- **No data store persistence**: Data is not saved to the content layer data store
 
-[Define your data](#defining-collections) as a collection when:
+### Differences from build-time collections
 
-- You have multiple files or data to organize that share the same overall structure (e.g. blog posts written in Markdown which all have the same frontmatter properties).
-- You have existing content stored remotely, such as in a CMS, and want to take advantage of the collections helper functions and Content Layer API instead of using `fetch()` or SDKs.
-- You need to fetch (tens of) thousands of related pieces of data, and need a querying and caching method that handles at scale.
+Live collections use a different API than build-time content collections. Key differences include:
 
-### When not to create a collection
-
-Collections provide excellent structure, safety, and organization when you have **multiple pieces of content that must share the same properties**.
-
-Collections **may not be your solution** if:
-
-- You have only one or a small number of different pages. Consider [making individual page components](/en/basics/astro-pages/) such as `src/pages/about.astro` with your content directly instead.
-- You are displaying files that are not processed by Astro, such as PDFs. Place these static assets in the [`public/` directory](/en/basics/project-structure/#public) of your project instead.
-- Your data source has its own SDK/client library for imports that is incompatible with or does not offer a content loader and you prefer to use it directly.
-- You are using APIs that need to be updated in real time. Content collections are only updated at build time, so if you need live data, use other methods of [importing files](/en/guides/imports/#import-statements) or [fetching data](/en/guides/data-fetching/) with [on-demand rendering](/en/guides/on-demand-rendering/).
+1. **Execution time**: Run at request time instead of build time
+2. **Configuration file**: Use `src/live.config.ts` instead of `src/content.config.ts`
+3. **Collection definition**: Use `defineLiveCollection()` instead of `defineCollection()`
+4. **Loader API**: Implement `loadCollection` and `loadEntry` methods instead of the `load` method
+5. **Data return**: Return data directly instead of storing in the data store
+6. **User-facing functions**: Use `getLiveCollection`/`getLiveEntry` instead of `getCollection`/`getEntry`
