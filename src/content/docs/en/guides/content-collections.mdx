@@ -22,7 +22,7 @@ You can define a **collection** from a set of data that is structurally similar.
 
 A [collection schema](#defining-the-collection-schema) allows you to define the expected shape of each entry, providing type safety, autocomplete, and validation in your editor.
 
-Collections use a `loader` to retrieve your content. Collections stored locally in your project or on your filesystem can use one of [Astro's built-in loaders](#built-in-loaders) to fetch data from Markdown, MDX, Markdoc, YAML, TOML, or JSON files:
+Collections use a [loader](#collection-loaders) to retrieve your content. Collections stored locally in your project or on your filesystem can use one of Astro's built-in loaders to fetch data from Markdown, MDX, Markdoc, YAML, TOML, or JSON files:
 
 <FileTree>
 - src/
@@ -65,13 +65,13 @@ Collections **may not be your solution** if:
 
 ## Types of collections
 
-**Content collections** are updated at build time and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness such as live stock prices.
+**[Content collections](#build-time-content-collections)** are updated at build time and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness such as live stock prices.
 
-**Live content collections** fetch their data at runtime rather than build time. This allows you to access frequently updated data from CMSs, APIs, databases, or other sources using a unified API, without needing to rebuild your site when the data changes. However, this can come at a performance cost since data is fetched at each request and returned directly with no data store persistence. Additionally, neither MDX entries nor image optimization are currently supported.
+**[Live content collections](#live-content-collections)** fetch their data at runtime rather than build time. This allows you to access frequently updated data from CMSs, APIs, databases, or other sources using a unified API, without needing to rebuild your site when the data changes. However, this can come at a performance cost since data is fetched at each request and returned directly with no data store persistence.
 
-We suggest using content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable.
+We suggest using build-time content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable. You may have both kinds of collections in the same project, so you can always choose the best type of collection for each individual data source. For example, a build-time collection can manage product descriptions, while a live collection can manage content inventory.
 
-Both types of collection use similar APIs (e.g. `getEntry()` and `getLiveEntry()`) so that working with collections will feel familiar no matter which one you choose, while still ensuring that you always know which type of collection you are working with.
+Both types of collections use similar APIs (e.g. `getEntry()` and `getLiveEntry()`) so that working with collections will feel familiar no matter which one you choose, while still ensuring that you always know which type of collection you are working with.
 
 ### Build-time content collections
 
@@ -82,6 +82,24 @@ For the best performance and scalability, use build-time content collections whe
 - **You want to benefit from build-time optimization** and caching.
 - **You need to process MDX** or perform image optimization.
 - **Your data can be fetched once and reused** across multiple builds.
+
+Build-time content collections are defined in `src/content.config.ts` (`.js` and `.mjs` extensions are also supported) using `defineCollection()` and then exported for use in your project.
+
+Each individual collection configures:
+- a `loader` for a data source (required)
+- a `schema` for type safety (optional, but highly recommended!)
+
+```ts  title="src/content.config.ts"
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: /* ... */
+  schema: /* ... */
+});
+
+export const collections = { blog };
+```
 
 ### Live content collections
 
@@ -94,6 +112,25 @@ Live content collections are designed for data that changes frequently and needs
 - **You're building preview functionality** for a CMS where editors need to see draft content immediately.
 
 See the [limitations of experimental live collections](#live-collection-limitations) and [key differences from build-time collections](#differences-from-build-time-collections) for more details on choosing between live and preloaded collections.
+
+Make sure you have an adapter configured for [on-demand rendering](/en/guides/on-demand-rendering/), then define your live collections in `src/live.config.ts` (alongside your `src/content.config.ts` for build-time collections, if you have one).
+
+Like build-time content collections, live collections can be typed to ensure type safety in your data [using Zod schemas](#using-zod-schemas). But, this is not required to [define types for live collections](). Unlike collections defined at build time, live loaders can instead choose to pass generic types to the `LiveLoader` interface.
+
+```ts title="src/live.config.ts"
+// Define live collections for accessing real-time data
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+export const collections = { products };
+```
 
 ## TypeScript configuration for collections
 
@@ -110,75 +147,49 @@ Content collections rely on TypeScript to provide Zod validation, Intellisense a
 }
 ```
 
-## Defining Collections
+## Build time collection loaders
 
-Individual collections use `defineCollection()` to configure:
-- a `loader` for a data source (required)
-- a `schema` for type safety (optional, but highly recommended!) 
+A loader allows you to fetch your content collections data, whether stored locally in your project or remotely.
 
-### The collection config file
+Astro provides two built-in loader functions (`glob()` and `file()`) for fetching your local content at build time, as well as access to the [Content Loader API](/en/reference/content-loader-reference/) to construct your own loaders to fetch remote data.
 
-To define collections, you must create a `src/content.config.ts` file in your project (`.js` and `.mjs` extensions are also supported.) This is a special file that Astro will use to configure your content collections based on the following structure:
+### The `glob()` loader
 
-```ts title="src/content.config.ts"
-// 1. Import utilities from `astro:content`
-import { defineCollection, z } from 'astro:content';
+The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, YAML, or TOML files from anywhere on the filesystem. If you store your content locally, such as a directory of blog posts, then the `glob()` loader is all you need to access your content.
 
-// 2. Import loader(s)
-import { glob, file } from 'astro/loaders';
-
-// 3. Define your collection(s)
-const blog = defineCollection({ /* ... */ });
-const dogs = defineCollection({ /* ... */ });
-
-// 4. Export a single `collections` object to register your collection(s)
-export const collections = { blog, dogs };
-```
-
-### Defining the collection `loader`
-
-The Content Layer API allows you to fetch your content (whether stored locally in your project or remotely) and uses a `loader` property to retrieve your data. 
-
-#### Built-in loaders
-
-Astro provides [two built-in loader functions](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
-
-The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, YAML, or TOML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
-
-The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
+This loader accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when each entry in your content collection is its own single file.
 
 ```ts  title="src/content.config.ts" {5,9}
 import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // Not available with legacy API
+import { glob, file } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
   schema: /* ... */
 });
+
+export const collections = { blog };
+```
+
+### The `file()` loader
+
+The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. This is useful if your content is stored as multiple objects within a single JSON or TOML file.
+
+Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
+
+```ts  title="src/content.config.ts"
+import { defineCollection, z } from 'astro:content';
+import { file } from 'astro/loaders';
+
 const dogs = defineCollection({
   loader: file("src/data/dogs.json"),
   schema: /* ... */
 });
 
-const probes = defineCollection({
-  // `loader` can accept an array of multiple patterns as well as string patterns
-  // Load all markdown files in the space-probes directory, except for those that start with "voyager-"
-  loader: glob({ pattern: ['*.md', '!voyager-*'], base: 'src/data/space-probes' }),
-  schema: z.object({
-    name: z.string(),
-    type: z.enum(['Space Probe', 'Mars Rover', 'Comet Lander']),
-    launch_date: z.date(),
-    status: z.enum(['Active', 'Inactive', 'Decommissioned']),
-    destination: z.string(),
-    operator: z.string(),
-    notable_discoveries: z.array(z.string()),
-  }),
-});
-
-export const collections = { blog, dogs, probes };
+export const collections = { dogs };
 ```
 
-##### `parser` function
+#### `parser` function
 
 The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `csv-parse`) to create a collection from a file's contents.
 
@@ -196,7 +207,7 @@ const cats = defineCollection({
 });
 ```
 
-###### Nested `.json` documents
+##### Nested `.json` documents
 
 The `parser` argument also allows you to load a single collection from a nested JSON document. For example, this JSON file contains multiple collections:
 
@@ -215,7 +226,7 @@ const cats = defineCollection({
 });
 ```
 
-#### Building a custom loader 
+### Custom build-time loaders
 
 You can build a custom loader to fetch remote content from any data source, such as a CMS, a database, or an API endpoint.
 
@@ -225,7 +236,7 @@ Using a loader to fetch your data will automatically create a collection from yo
 Find community-built and third-party loaders in the [Astro integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
 :::
 
-##### Inline loaders
+#### Inline build-time loaders
 
 You can define a loader inline, inside your collection, as an async function that returns an array of entries.
 
@@ -248,15 +259,232 @@ const countries = defineCollection({
 
 The returned entries are stored in the collection and can be queried using the `getCollection()` and `getEntry()` functions.
 
-##### Loader objects
+#### Loader objects
 
-For more control over the loading process, you can use the Content Loader API to create a loader object. For example, with access to the `load` method directly, you can create a loader that allows entries to be updated incrementally or clears the store only when necessary.
+For more control over the loading process, you can use the Content Loader API to create a [loader object](/en/reference/content-loader-reference/#object-loaders). For example, with access to the `load` method directly, you can create a loader that allows entries to be updated incrementally or clears the store only when necessary.
 
 Similar to creating an Astro integration or Vite plugin, you can [distribute your loader as an NPM package](/en/reference/publish-to-npm/) that others can use in their projects.
 
 <ReadMore>See the full [Content Loader API](/en/reference/content-loader-reference/) and examples of how to build your own loader.</ReadMore>
 
-### Defining the collection schema
+## Creating a live loader
+
+A live loader is an object with two methods: `loadCollection()` and `loadEntry()`. These methods should handle errors gracefully and return either data or an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) object.
+
+The standard pattern is to export a function that returns this loader object, allowing you to pass configuration options like API keys or endpoints.
+
+Here's a basic example:
+
+```ts title="myloader.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load articles: ${error.message}`),
+        };
+      }
+    },
+    loadEntry: async ({ filter }) => {
+      try {
+        // filter will be { id: "some-id" } when called with a string
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('Article not found'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load article: ${error.message}`),
+        };
+      }
+    },
+  };
+}
+```
+
+### Defining data types
+
+Like regular content collections, live collections can be typed to ensure type safety in your data. [Using Zod schemas](#using-zod-schemas-with-live-collections) is supported, but not required to define types for live collections. Unlike preloaded collections defined at build time, live loaders can instead choose to pass generic types to the `LiveLoader` interface.
+
+You can define the types for your collection and entry data, as well as custom filter types for querying, and custom error types for error handling.
+
+Live loaders can define types for the data they return. This allows TypeScript to provide type checking and autocompletion when working with the data in your components.
+
+```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+export function storeLoader(): LiveLoader<Product> {
+  // ...
+}
+```
+
+When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer the types based on the loader's definition:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+const { entry: product } = await getLiveEntry('products', '123');
+// TypeScript knows product.data is of type Product
+console.log(product?.data.name);
+---
+```
+
+### Defining custom filter types
+
+Live loaders can define custom filter types for both `getLiveCollection()` and `getLiveEntry()`. This enables type-safe querying that matches your API's capabilities, making it easier for users to discover available filters and ensure they are used correctly. If you include JSDoc comments in your filter types, the user will see these in their IDE as hints when using the loader.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** Minimum price to filter products */
+  minPrice?: number;
+  /** Maximum price to filter products */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** Alias for `sku` */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'product-loader',
+    loadCollection: async ({ filter }) => {
+      // filter is typed as CollectionFilter
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // filter is typed as EntryFilter | { id: string }
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('Product not found'),
+        };
+      }
+      return {
+        id: product.sku,
+        entry: product,
+      };
+    },
+  };
+}
+```
+
+### Creating live loader error types
+
+You can create custom error types for [errors returned by your loader](#error-handling-in-loaders) and pass them as a generic to get proper typing:
+
+```ts title="my-loader.ts"
+class MyLoaderError extends Error {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Return your custom error type
+      return {
+        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer the custom error type, allowing you to handle it appropriately:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+if (error) {
+  if (error.name === 'MyLoaderError') {
+    console.error(`Loader error: ${error.message} (code: ${error.code})`);
+  } else {
+    console.error(`Unexpected error: ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+## Defining the collection schema
 
 Schemas enforce consistent frontmatter or entry data within a collection through Zod validation. A schema **guarantees** that this data exists in a predictable form when you need to reference or query it. If any file violates its collection schema, Astro will provide a helpful error to let you know.
 
@@ -293,7 +521,7 @@ const dogs = defineCollection({
 export const collections = { blog, dogs };
 ```
 
-#### Defining datatypes with Zod
+### Defining datatypes with Zod
 
 Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's data within a collection *and* provide automatic TypeScript types when you go to query content from inside your project.
 
@@ -329,13 +557,64 @@ defineCollection({
 })
 ```
 
+### Using Zod schemas with live collections
+
+Just like with build-time collections, you can use Zod schemas with live collections to validate and transform data at runtime. When you define a schema, it takes precedence over the loader's types](#type-safe-data) when you query the collection:
+
+```ts title="src/live.config.ts"
+import { z, defineLiveCollection } from 'astro:content';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transform the API's category format
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Coerce the date to a Date object
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Add a formatted price field
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+When using Zod schemas, validation errors are automatically caught and returned as `AstroError` objects:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// You can handle validation errors specifically
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript knows entry.data matches your Zod schema, not the loader's type
+console.log(entry?.data.displayPrice); // e.g., "$29.99"
+---
+```
+
 <ReadMore>See [Zod's README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.</ReadMore>
 
-##### Zod schema methods
+#### Zod schema methods
 
 All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
 
-#### Defining collection references
+### Defining collection references
 
 Collection entries can also "reference" other related entries. 
 
