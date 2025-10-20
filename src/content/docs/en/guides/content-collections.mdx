@@ -77,7 +77,7 @@ Both types of collections use similar APIs (e.g. `getEntry()` and `getLiveEntry(
 
 For the best performance and scalability, use build-time content collections when:
 
-- **Performance is critical** and you want to pre-render data at build time.
+- **Performance is critical** and you want to prerender data at build time.
 - **Your data is relatively static** (e.g., blog posts, documentation, product descriptions).
 - **You want to benefit from build-time optimization** and caching.
 - **You need to process MDX** or perform image optimization.
@@ -86,10 +86,11 @@ For the best performance and scalability, use build-time content collections whe
 Build-time content collections are defined in `src/content.config.ts` (`.js` and `.mjs` extensions are also supported) using `defineCollection()` and then exported for use in your project.
 
 Each individual collection configures:
-- a `loader` for a data source (required)
-- a `schema` for type safety (optional, but highly recommended!)
+- [a `loader`](#build-time-collection-loaders) for a data source (required)
+- [a `schema`](#defining-the-collection-schema) for type safety (optional, but highly recommended!)
 
 ```ts  title="src/content.config.ts"
+// Define build-time collections with a loader and a schema
 import { defineCollection, z } from 'astro:content';
 import { glob } from 'astro/loaders';
 
@@ -103,7 +104,9 @@ export const collections = { blog };
 
 You can then use the dedicated `getCollection()` and `getEntry()` functions to [query your content collections data](#querying-build-time-collections) and render your content.
 
-
+:::tip[Quick start]
+See [the official Astro blog starter template](https://github.com/withastro/astro/tree/latest/examples/blog) to get up and running quickly with an example of using the [built-in `glob()` loader](#the-glob-loader) and [defining a schema](#defining-the-collection-schema) for a collection of Markdown or MDX blog posts.
+:::
 
 ### Live content collections
 
@@ -117,9 +120,17 @@ Live content collections are designed for data that changes frequently and needs
 
 See the [limitations of experimental live collections](#live-collection-limitations) and [key differences from build-time collections](#differences-from-build-time-collections) for more details on choosing between live and preloaded collections.
 
-Make sure you have an adapter configured for [on-demand rendering](/en/guides/on-demand-rendering/), then define your live collections in `src/live.config.ts` (alongside your `src/content.config.ts` for build-time collections, if you have one).
+Make sure you have an adapter configured for [on-demand rendering](/en/guides/on-demand-rendering/), then define your live collections in `src/live.config.ts` (separate from your `src/content.config.ts` for build-time collections, if you have one).
 
-Like build-time content collections, live collections can be typed to ensure type safety in your data [using Zod schemas](#using-zod-schemas). But, this is not required to [define types for live collections](). Unlike collections defined at build time, live loaders can instead choose to pass generic types to the `LiveLoader` interface.
+Each individual collection configures:
+- a `loader` for your data source (required)
+- a `schema` for type safety (optional)
+
+Unlike for build-time collections, there are no built-in live loaders available. You will need to [create a custom live loader](creating-a-live-loader) for your specific data source or find a third-party loader to pass to your live collection's `loader` property.
+
+Live loaders can provide type safety by passing generic types to the `LiveLoader` interface. You can define the types for your collection and entry data, as well as custom filter types for querying, and custom error types for error handling.
+
+You can instead provide type safety by [using a Zod schema](#using-zod-schemas-with-live-collections) like build-time collections do. Defining a `schema` is optional. However, if you provide one, it will take precedence over the live loader's types. 
 
 ```ts title="src/live.config.ts"
 // Define live collections for accessing real-time data
@@ -136,8 +147,7 @@ const products = defineLiveCollection({
 export const collections = { products };
 ```
 
-You can then use the dedicated `getLiveCollection()` and `getLiveEntry()` functions to [access your live data](#accessing-live-data).
-
+You can then use the dedicated `getLiveCollection()` and `getLiveEntry()` functions to [access your live data](#accessing-live-data) and render your content.
 
 ## TypeScript configuration for collections
 
@@ -955,30 +965,14 @@ const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 
 ## Accessing live data
 
-You can [create your own live loaders](#creating-a-live-loader) for your data source, or you can use community loaders distributed as npm packages. Here's how you could use example CMS and e-commerce loaders:
+Astro provides helper functions to query a live collection and return one (or more) content entries.
 
-```ts title="src/live.config.ts"
-import { defineLiveCollection } from 'astro:content';
-import { cmsLoader } from '@example/cms-astro-loader';
-import { productLoader } from '@example/store-astro-loader';
+- [`getLiveCollection()`](/en/reference/modules/astro-content/#getlivecollection) fetches an entire collection and returns an array of entries.
+- [`getLiveEntry()`](/en/reference/modules/astro-content/#getliveentry) fetches a single entry from a collection.
 
-const articles = defineLiveCollection({
-  loader: cmsLoader({
-    apiKey: process.env.CMS_API_KEY,
-    contentType: 'article',
-  }),
-});
+These return entries with a unique `id`, and `data` object with all defined properties from the data loader. When using third-party or community loaders distributed as npm packages, check their own documentation for the expected shape of data returned.
 
-const products = defineLiveCollection({
-  loader: productLoader({
-    apiKey: process.env.STORE_API_KEY,
-  }),
-});
-
-export const collections = { articles, products };
-```
-
-You can then get content from both loaders with a unified API:
+You can use these functions to access your live data, passing the name of the collection and optionally filtering conditions.
 
 ```astro
 ---
@@ -995,6 +989,29 @@ const { entries: draftArticles } = await getLiveCollection('articles', {
 // Get a specific product by ID
 const { entry: product } = await getLiveEntry('products', Astro.params.slug);
 ---
+```
+
+### Rendering content
+
+A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages, using the same method as build-time collections. If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
+
+You also have access to any [error returned by the live loader](#error-handling-in-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
+
+```astro "render(entry)" "<Content />"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry, render } from 'astro:content';
+const { entry, error } = await getLiveEntry('articles', Astro.params.id);
+if (error) {
+  return Astro.rewrite('/404');
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
 ```
 
 ### Error handling
@@ -1029,62 +1046,6 @@ if (error) {
   }
 }
 ---
-```
-
-### Rendering content
-
-A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages. 
-If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
-
-```ts title="myloader.ts" {16-19}
-// ...
-export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
-  return {
-    name: 'article-loader',
-    loadEntry: async ({ filter }) => {
-      try {
-        const article = await fetchFromCMS({
-          apiKey: config.apiKey,
-          type: 'article',
-          id: filter.id,
-        });
-
-        return {
-          id: article.id,
-          data: article,
-          rendered: {
-            // Assuming the CMS returns HTML content
-            html: article.htmlContent,
-          },
-        };
-      } catch (error) {
-        return {
-          error: new Error(`Failed to load article: ${error.message}`),
-        };
-      }
-    },
-    // ...
-  };
-}
-```
-
-You can then render both content and metadata from live collection entries in pages using the same method as built-time collections. You also have access to any [error returned by the live loader](#error-handling-in-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
-
-```astro "render(entry)" "<Content />"
----
-export const prerender = false; // Not needed in 'server' mode
-
-import { getLiveEntry, render } from 'astro:content';
-const { entry, error } = await getLiveEntry('articles', Astro.params.id);
-if (error) {
-  return Astro.rewrite('/404');
-}
-
-const { Content } = await render(entry);
----
-
-<h1>{entry.data.title}</h1>
-<Content />
 ```
 
 ## Generating Routes from Content
