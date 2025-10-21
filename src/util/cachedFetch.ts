@@ -22,13 +22,23 @@ export async function cachedFetch(
 	let buffer: Buffer | undefined;
 
 	try {
-		buffer = await retry(() =>
-			EleventyFetch(url, {
-				duration,
-				verbose,
-				type: 'buffer',
-				fetchOptions,
-			})
+		buffer = await retry(
+			() =>
+				EleventyFetch(url, {
+					duration,
+					verbose,
+					type: 'buffer',
+					fetchOptions,
+				}),
+			{
+				retries: 5,
+				factor: 3,
+				onFailedAttempt({ attemptNumber, retriesLeft }) {
+					console.error(
+						`Failed to fetch ${url} (attempt ${attemptNumber} - ${retriesLeft} retries left)`
+					);
+				},
+			}
 		);
 	} catch (e: unknown) {
 		const error = e as Error;
