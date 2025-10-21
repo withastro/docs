@@ -108,6 +108,7 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
+	'zephyr-cloud': { file: 'zephyr.svg', padding: '0' },
 });
 
 export type LogoKey = keyof typeof logos;
