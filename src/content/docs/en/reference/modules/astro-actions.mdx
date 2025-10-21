@@ -166,6 +166,27 @@ The `isActionError()` utility is used to check whether your action raised an `Ac
 
 The `ActionError()` constructor is used to create errors thrown by an action `handler`. This accepts a `code` property describing the error that occurred (example: `"UNAUTHORIZED"`), and an optional `message` property with further details.
 
+The following example creates a new `ActionError` when the user is not logged in:
+
+```ts title="src/actions/index.ts" {8-11} "ActionError"
+import { defineAction, ActionError } from "astro:actions";
+
+export const server = {
+  getUserOrThrow: defineAction({
+    accept: 'form',
+    handler: async (_, { locals }) => {
+      if (locals.user?.name !== 'florian') {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'Not logged in',
+        });
+      }
+      return locals.user;
+    },
+  }),
+}
+```
+
 #### `code`
 
 <p>
@@ -361,11 +382,29 @@ An array of standard HTTP status codes [defined by IANA](https://www.iana.org/as
 
 ### `ActionInputError`
 
-<p>
+Creates a new error by passing an array of Zod issues to its constructor. This is useful to create a different type of error when validating inputs. You can then use it to refine the type of an error and handle it differently.
 
-**Type:** `ActionError`
-</p>
+The following example will log errors to the console if the error received when updating an email address is an `ActionInputError`:
 
+```astro title="src/pages/dashboard/account.astro" {13} "ActionInputError"
+---
+---
+
+<!-- your template -->
+
+<script>
+import { ActionInputError, actions } from 'astro:actions';
+
+const input = document.querySelector('input');
+input?.addEventListener('change', async () => {
+  if (e.currentTarget instanceof HTMLInputElement) {
+    const { data, error } = await actions.updateEmail(e.currentTarget.value);
+    if (error instanceof ActionInputError) console.error(error);
+    /* ... */
+  }
+})
+</script>
+```
 
 ## `astro:actions` types
 
