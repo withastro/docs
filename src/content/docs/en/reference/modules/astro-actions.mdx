@@ -184,6 +184,26 @@ export const server = {
 }
 ```
 
+
+You can also use `ActionError` to narrow the error type when handling the results of an action:
+
+```astro title="src/pages/index.astro" {9-12} "ActionError"
+---
+---
+
+<script>
+import { ActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (err instanceof ActionError) {
+    // Handle action-specific errors
+    console.log(err.code);
+  }
+}
+</script>
+```
+
 #### `code`
 
 <p>
@@ -408,7 +428,9 @@ An array of standard HTTP status codes [defined by IANA](https://www.iana.org/as
 
 ### `ActionInputError`
 
-Creates a new error by passing an array of Zod issues to its constructor. This is useful to create a different type of error when validating inputs. You can then use it to refine the type of an error and handle it differently.
+Creates a new error by passing an array of Zod issues to its constructor. This is useful to create a different type of error when an action input fails schema validation.
+
+You usually don't need to construct this error yourself. However, you can use it to refine the error type and handle it differently.
 
 The following example will log errors to the console if the error received when updating an email address is an `ActionInputError`:
 
@@ -455,7 +477,7 @@ import type {
 **Type:** [`APIContext`](/en/reference/api-reference/)
 </p>
 
-A subset of the Astro context object.
+A subset of the Astro context object. The following properties are not available: `callAction`, `getActionResult`, `props`, and `redirect`.
 
 ### `ActionAccept`
 
@@ -464,12 +486,20 @@ A subset of the Astro context object.
 **Type:** `"form" | "json"`
 </p>
 
+Represents the format expected by an action:
+* `form`: When an action receives `FormData` from a form submission.
+* `json`: When an action receives an object matching its schema. This is the format to use in most cases.
+
 ### `ActionClient`
 
 <p>
 
-**Type:** `((input?: any) => Promise<SafeResult<never, Awaited<TOutput>>>) & { queryString?: string; orThrow: (input?: any) => Promise<Awaited<TOutput>>; }`
+**Types:**
+* `(input?: any) => Promise<SafeResult<never, Awaited<TOutput>>>`
+* `{ queryString?: string; orThrow: (input?: any) => Promise<Awaited<TOutput>>; }`
 </p>
+
+Represents a function to be used on the client for calling an action. This accepts input data and returns a `Promise` with a `SafeResult` containing either the action's output or validation errors.
 
 #### `queryString` property
 
@@ -478,12 +508,16 @@ A subset of the Astro context object.
 **Type:** `string`
 </p>
 
+A string representation of the action that can be used for client-side routing or URL generation.
+
 #### `orThrow()` property
 
 <p>
 
 **Type:** `(input?: any) => Promise<Awaited<TOutput>>`
 </p>
+
+An alternative method that throws an error on failure instead of returning a `SafeResult`. This is useful when you want exceptions rather than error handling.
 
 ### `ActionErrorCode`
 
@@ -492,6 +526,8 @@ A subset of the Astro context object.
 **Type:** <code>(typeof <a href="#action_error_codes">ACTION_ERROR_CODES</a>)[number]</code>
 </p>
 
+A union type of all HTTP error status codes defined in [`ACTION_ERROR_CODES`](#action_error_codes).
+
 ### `ActionHandler`
 
 <p>
@@ -499,12 +535,20 @@ A subset of the Astro context object.
 **Type:** <code>\<TInputSchema, TOutput\>(input: TInputSchema, context: <a href="#actionapicontext">ActionAPIContext</a>) => TOutput | Promise\<TOutput\></code>
 </p>
 
+Represents the handler function provided when defining an action. The handler receives two parameters:
+* **`input`:** The validated input data. When an input schema is defined, this is typed according to the schema. Otherwise, it's untyped.
+* **`context`:** An `ActionAPIContext` object containing request information like headers, cookies, and other contextual data.
+
 ### `ActionReturnType`
 
 <p>
 
 **Type:** <code>Awaited\<ReturnType\<<a href="#actionhandler">ActionHandler</a>\>\></code>
 </p>
+
+A utility type that extracts the output type from an `ActionHandler`. This type unwraps both the `Promise` (if the handler is async) and the `ReturnType` to give you the actual output type of an action handler.
+
+This is primarily used internally by the framework for type inference, but can be useful if you need to reference an action's output type in your own type definitions.
 
 ### `AstroActionContext`
 
@@ -514,6 +558,8 @@ A subset of the Astro context object.
 <Since v="5.4.2" />
 </p>
 
+Represents context and utilities for working with actions in Astro middleware and API routes. This context is primarily useful when you need to customize action handling in middleware.
+
 #### `action`
 
 <p>
@@ -521,7 +567,7 @@ A subset of the Astro context object.
 **Type:** <code>\{ calledFrom: "rpc" | "form"; name: string; handler: () => Promise\<<a href="#saferesult">SafeResult</a>\<any, any\>\>; \}</code>
 </p>
 
-An object containing information about an inbound action request. It is available from [`getActionContext()`](#getactioncontext), and provides the action name, handler, and whether the action was called from an client-side RPC function (e.g. `actions.newsletter()`) or an HTML form action.
+An optional object containing information about an inbound action request. It is available from [`getActionContext()`](#getactioncontext), and provides the action `name`, `handler`, and whether the action was called from a client-side RPC function (e.g. `actions.newsletter()`) or an HTML form action.
 
 ```ts title="src/middleware.ts" {6}
 import { defineMiddleware } from 'astro:middleware';
@@ -602,12 +648,24 @@ Deserializes an action result to access data and error objects. This is the [sam
 
 <p>
 
-**Type:** `{ data: TOutput; error: undefined; } | { data: undefined; error: ActionError<TInput>; }`
+**Type:** `{ data: TOutput, error: undefined } | { data: undefined, error: ActionError }`
 </p>
+
+Represents the result of an action call:
+* on success, `data` contains the output of the action and `error` is `undefined`.
+* on failure, `error` contains an [`ActionError`](#actionerror) with validation errors or runtime errors, and `data` is `undefined`.
 
 ### `SerializedActionResult`
 
 <p>
 
-**Type:** `{ type: "data"; contentType: "application/json+devalue"; status: 200; body: string; } | { type: "error"; contentType: "application/json"; status: number; body: string; } | { type: "empty"; status: 204; }`
+**Types:** 
+* `{ type: "data"; contentType: "application/json+devalue"; status: 200; body: string; }`
+* `{ type: "error"; contentType: "application/json"; status: number; body: string; }`
+* `{ type: "empty"; status: 204; }`
 </p>
+
+Represents a serialized result as returned by the server before being parsed by the client:
+* **`data`:** A successful result with `status` 200. The `body` contains the serialized output using the `application/json+devalue` format.
+* **`error`:** A failed result with an error `status` code. The `body` contains the serialized error details in standard JSON format.
+* **`empty`:** A successful result with no data, indicated by its 204 `status` (No Content).
