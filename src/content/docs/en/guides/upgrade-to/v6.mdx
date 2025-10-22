@@ -161,6 +161,137 @@ The following features have now been entirely removed from the code base and can
 
 Projects now containing these removed features will be unable to build, and there will no longer be any supporting documentation prompting you to remove these features.
 
+
+### Removed: legacy content collections
+
+<SourcePR number="14407" title="fix: remove legacy content collections"/>
+
+In Astro 5.x, it was still possible to use [the original Content Collections API first introduced in Astro v2.0](https://astro.build/blog/introducing-content-collections/), either through a `legacy` configuration flag or via built-in backwards compatibility. These methods allowed you to upgrade to Astro v5 even if you were not yet ready or able to update your existing content collections to those powered by the new Content Layer API.
+
+**Astro v6.0 removes this previously deprecated Content Collections API support entirely, including the `legacy.collections` flag.** All content collections must now use [the Content Layer API introduced in Astro v5.0](https://astro.build/blog/content-layer-deep-dive/) that powers all content collections. No backwards compatibility support is available.
+
+#### What should I do?
+
+If you had previously enabled the legacy flag, you must remove it.
+
+```ts title="astro.config.mjs" del={5}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  legacy: {
+    collections: true,
+  }
+})
+```
+
+Additionally, if you did not upgrade your collections for Astro v5.0, ensure that your content collections are **fully updated** for the new API.
+
+Astro v5.x included some automatic backwards compatibility to allow content collections to continue to work even if they had not been updated to use the new API. Therefore, your v5 collections may contain one or more legacy features that need updating to the newer API for v6, even if your project was previously error-free.
+
+If you have [content collections errors](/en/reference/error-reference/#content-collection-errors) or warnings after upgrading to v6, use the following list to help you identify and upgrade any legacy features that may exist in your code.
+
+##### If you have...
+
+<details>
+<summary>no content collections configuration file</summary>
+Create `src/content.config.ts` and [define your collections](/en/guides/content-collections/#defining-collections) in it.
+</details>
+
+<details>
+<summary>a configuration file located at `src/content/config.ts` / ([`LegacyContentConfigError`](/en/reference/errors/legacy-content-config-error/))</summary>
+Rename and move this file to `src/content.config.ts`
+</details>
+
+<details>
+<summary>a collection that does not define a `loader`/ ([`ContentCollectionMissingALoaderError`](/en/reference/errors/content-collection-missing-loader/))</summary>
+
+Import [Astro's built-in `glob()` loader](/en/guides/content-collections/#built-in-loaders) and define the `pattern` and `base` for your collection entries:
+
+```ts ins={3,6}
+// src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+```
+</details>
+
+<details>
+<summary>a collection that defines a collection type (`type: 'content'` or `type: 'data'`) / ([`ContentCollectionInvalidTypeError`](/en/reference/errors/content-collection-invalid-type/))</summary>
+There are no longer different types of collections. This must be deleted from your collection definition.
+
+```ts del={7}
+// src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  // For content layer you no longer define a `type`
+  type: 'content',
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+```
+</details>
+
+<details>
+<summary>legacy collection querying methods `getDataEntryById()` and `getEntryBySlug()` / ([`GetEntryDeprecationError`](/en/reference/errors/get-entry-deprecation-error/))</summary>
+Replace both methods with [`getEntry()`](/en/reference/modules/astro-content/#getentry).
+
+</details>
+
+<details>
+<summary>legacy collection querying and rendering methods that depend on a `slug` property / ([`ContentSchemaContainsSlugError`](/en/reference/errors/content-schema-contains-slug-error/))</summary>
+Previously, the `id` was based on the filename, and there was a `slug` property that could be used in a URL. Now the [CollectionEntry](/en/reference/modules/astro-content/#collectionentry) `id` is a slug. If you need access to the filename (previously available as the `id`), use the `filePath` property. Replace instances of `slug` with `id`:
+
+```astro ins={6} del={5} title="src/pages/[slug].astro"
+---
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    params: { slug: post.id },
+    props: post,
+  }));
+}
+---
+```
+</details>
+
+<details>
+<summary>content rendered using `entry.render()`</summary>
+Collection entries no longer have a `render()` method. Instead, import the `render()` function from `astro:content` and use `render(entry)`:
+
+```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+---
+import { getEntry, render } from 'astro:content';
+
+const post = await getEntry('pages', 'homepage');
+
+const { Content, headings } = await post.render();
+const { Content, headings } = await render(post);
+---
+<Content />
+```
+
+</details>
+
+<ReadMore> See [the Astro v5 upgrade guide](/en/guides/upgrade-to/v5/#legacy-v20-content-collections-api) for previous guidance about backwards compatibility of legacy collections in Astro v5 and full step-by-step instructions for upgrading legacy collections to the new Content Layer API.</ReadMore>
+
+
 ### Removed: `<ViewTransitions />` component
 
 <SourcePR number="14400" title="Remove deprecated ViewTransitions component"/>
@@ -405,26 +536,16 @@ export const server = {
 
 ### Experimental Flags
 
-The following experimental flags have been removed in Astro v6.0 and these features are available for use:
-
-- `thing 1`
-
-Additionally, the following experimental flags have been removed and **are now the default or recommended behavior in Astro v6.0**.
-
-- `experimental.preserveScriptOrder` (See below for breaking changes to [default `<script>` and `<style>` behavior](#changed-script-and-style-tags-are-rendered-in-the-order-they-are-defined).)
-- `experimental.staticImportMetaEnv` (See below for breaking changes to [`import.meta.env`](#changed-importmetaenv-values-are-always-inlined).)
-
-The following experimental flags have been removed and **their corresponding features are not part of Astro v6.0**.
-
-- `thing 2`
+Experimental flags allow you to opt in to features while they are in early development. Astro may also use experimental flags to test breaking changes to default behavior. The following experimental flags have been removed in Astro 6.0 and are now stable, or the new default behavior.
 
 Remove these experimental flags from your Astro config if you were previously using them:
 
-```js del={5-7} title="astro.config.mjs"
+```js del={5-8} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   experimental: {
+    liveContentCollections: true,
     preserveScriptOrder: true,
     staticImportMetaEnv: true,
     headingIdCompat: true,
@@ -432,9 +553,17 @@ export default defineConfig({
 })
 ```
 
-These features are all available by default in Astro v5.0.
+#### Experimental features now stable:
 
-<ReadMore>Read about these exciting features and more in [the v6.0 Blog post](https://astro.build/blog/astro-6/).</ReadMore>
+- `liveContentCollections` (See the updated [content collections docs](/en/guides/content-collections/) to learn more about live collections.)
+
+#### New default or recommended behavior:
+
+- `preserveScriptOrder` (See below for breaking changes to [default `<script>` and `<style>` behavior](#changed-script-and-style-tags-are-rendered-in-the-order-they-are-defined).)
+- `staticImportMetaEnv` (See below for breaking changes to [`import.meta.env`](#changed-importmetaenv-values-are-always-inlined).)
+- `headingIdCompat` (See below for breaking changes to [Markdown heading ID generation](#changed-markdown-heading-id-generation).)
+
+<ReadMore>Read about exciting new features and more in [the v6.0 Blog post](https://astro.build/blog/astro-6/).</ReadMore>
 
 
 ## Changed Defaults
