@@ -12,7 +12,13 @@ import ReadMore from '~/components/ReadMore.astro';
 
 <p><Since v="2.0.0" /></p>
 
-Content collections offer APIs to configure and query your Markdown or MDX documents in `src/content/`. For features and usage examples, [see our content collections guide](/en/guides/content-collections/).
+Build-time content collections offer APIs to configure, query, and render your local Markdown, MDX, Markdoc, YAML, TOML, or JSON files as well as remote content. 
+
+<p><Since v="5.0.0" /></p>
+
+Live content collections offer APIs to configure, query and render fresh, up-to-the-moment live data from remote sources.
+
+For features and usage examples, [see our content collections guide](/en/guides/content-collections/).
 
 ## Imports from `astro:content`
 
@@ -20,8 +26,11 @@ Content collections offer APIs to configure and query your Markdown or MDX docum
 import { 
   z,
   defineCollection,
+  defineLiveCollection,
   getCollection,
+  getLiveCollection,
   getEntry,
+  getLiveEntry,
   getEntries,
   reference,
   render
@@ -79,6 +88,58 @@ A `loader` is either an object or a function that allows you to load data from a
 `schema` is an optional Zod object to configure the type and shape of document frontmatter for a collection. Each value must use [a Zod validator](https://github.com/colinhacks/zod).
 
 [See the `Content Collection` guide](/en/guides/content-collections/#defining-the-collection-schema) for example usage.
+
+### `defineLiveCollection()`
+
+<p>
+
+**Type:** `(input: CollectionConfig) => CollectionConfig`
+<Since v="5.0.0" />
+</p>
+
+`defineLiveCollection()` is a utility to configure a live collection in a `src/live.config.*` file.
+
+```ts title="src/content.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+// Expose your defined collection to Astro
+// with the `collections` export
+export const collections = { products };
+```
+
+This function accepts the following properties:
+
+#### `loader`
+
+<p>
+
+**Type:** <code>() => Promise&lt;Array&lt;\{ id: string, [key: string]: any }&gt; | Record&lt;string, Record&lt;string, any&gt;&gt;&gt; | <a href="/en/reference/content-loader-reference/#object-loader-api">Loader</a></code>
+<Since v="5.0.0" />
+</p>
+
+A `loader` is either an object or a function that allows you to load data from any source, local or remote, into a live content collections.
+
+[See the `Content Collection` guide](/en/guides/content-collections/#creating-a-live-loader) for example usage.
+
+#### `schema`
+
+<p>
+
+**Type:** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+<Since v="5.0.0" />
+</p>
+
+`schema` is an optional Zod object to configure the type and shape of document frontmatter for a live collection. Each value must use [a Zod validator](https://github.com/colinhacks/zod).
+
+[See the `Content Collection` guide](/en/guides/content-collections/#using-zod-schemas-with-live-collections) for example usage.
 
 ### `reference()`
 
@@ -151,6 +212,34 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 
 [See the `Content Collection` guide](/en/guides/content-collections/#querying-collections) for example usage.
 
+### `getLiveCollection()`
+
+<p>
+
+**Type:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+<Since v="5.0.0" />
+</p>
+
+`getLiveCollection()` is a function that retrieves a list of live content collection entries by collection name.
+
+It returns all items in the collection by default, and accepts an optional `filter` function to narrow by entry properties. This allows you to query for only some items in a collection based on `id` or frontmatter values via the `data` object.
+
+```astro
+---
+import { getLiveCollection } from 'astro:content';
+
+// Get all `src/content/blog/` entries
+const allBlogPosts = await getLiveCollection('blog');
+
+// Only return posts with `draft: true` in the frontmatter
+const draftBlogPosts = await getLiveCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+[See the `Content Collection` guide](/en/guides/content-collections/#accessing-live-data) for example usage.
+
 ### `getEntry()`
 
 <p>
@@ -179,6 +268,33 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 ```
 
 See the `Content Collections` guide for examples of [querying collection entries](/en/guides/content-collections/#querying-collections).
+
+### `getLiveEntry()`
+
+<p>
+
+**Types:**
+* `(collection: string, id: string) => Promise<CollectionEntry<collection> | undefined>`
+* `({ collection: string, id: string }) => Promise<CollectionEntry<collection> | undefined>`
+<Since v="5.0.0" />
+</p>
+
+`getLiveEntry()` is a function that retrieves a single live collection entry by collection name and the entry `id`. `getLiveEntry()` can also be used to get referenced entries to access the `data` or `body` properties:
+
+```astro
+---
+import { getLiveEntry } from 'astro:content';
+
+const enterprisePost = await getLiveEntry('blog', 'enterprise');
+
+const picardProfile = await getLiveEntry('captains', 'picard');
+
+// Get the profile referenced by `data.captain`
+const enterpriseCaptainProfile = await getLiveEntry(enterprisePost.data.captain);
+---
+```
+
+See the `Content Collections` guide for examples of [querying collection entries](/en/guides/content-collections/#accessing-live-data).
 
 ### `getEntries()`
 
