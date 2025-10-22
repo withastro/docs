@@ -1,33 +1,33 @@
 ---
-title: API de Service d'images
+title: API des services d'images
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 
-`astro:assets` a été conçu pour permettre à n'importe quel service d'optimisation d'images de construire facilement un service au-dessus d'Astro.
+`astro:assets` a été conçu pour permettre à tout service d'optimisation d'images de créer facilement un service reposant sur Astro.
 
 ## Qu'est-ce qu'un service d'images ?
 
 Astro propose deux types de services d'images : Local et Externe.
 
-- **Les services locaux** gèrent les transformations d'image directement lors de la création pour les sites statiques, ou lors de l'exécution, à la fois en mode développement et pour le rendu à la demande. Il s'agit souvent de wrappers autour de bibliothèques telles que Sharp, ImageMagick ou Squoosh. En mode développement et dans les routes de production rendues à la demande, les services locaux utilisent un point de terminaison API pour effectuer la transformation.
-- Les **services externes** pointent vers des URL et peuvent ajouter la prise en charge de services tels que Cloudinary, Vercel ou tout autre serveur conforme à [RIAPI](https://github.com/riapi/riapi).
+- **Les services locaux** gèrent les transformations d'image directement lors de la compilation pour les sites statiques, ou lors de l'exécution, à la fois en mode développement et pour le rendu à la demande. Il s'agit souvent d'enveloppes autour de bibliothèques telles que Sharp, ImageMagick ou Squoosh. En mode développement et pour les routes en production rendues à la demande, les services locaux utilisent un point de terminaison d'API pour effectuer la transformation.
+- Les **services externes** pointent vers des URL et peuvent ajouter la prise en charge de services tels que Cloudinary, Vercel ou tout autre serveur compatible avec [RIAPI](https://github.com/riapi/riapi).
 
-## Construire à l'aide de l'API d'un service d'image
+## Construire à l'aide de l'API des services d'images
 
-Les définitions de service prennent la forme d'un objet par défaut exporté avec diverses méthodes requises ("hooks").
+Les définitions de service prennent la forme d'un objet par défaut exporté avec diverses méthodes requises (« hooks »).
 
-Les services externes fournissent un `getURL()` qui pointe vers le `src` de la balise `<img>` de sortie.
+Les services externes fournissent une méthode `getURL()` qui pointe vers la `src` de la balise `<img>` après compilation.
 
 Les services locaux fournissent une méthode `transform()` pour effectuer des transformations sur votre image, et les méthodes `getURL()` et `parseURL()` pour utiliser un point de terminaison pour le mode dev et lors du rendu à la demande.
 
-Les deux types de services peuvent fournir `getHTMLAttributes()` pour déterminer les autres attributs de la sortie `<img>` et `validateOptions()` pour valider et augmenter les options passées.
+Les deux types de services peuvent fournir `getHTMLAttributes()` pour déterminer les autres attributs de la sortie `<img>` et `validateOptions()` pour valider et augmenter les options transmises.
 
-### Services Externes
+### Services externes
 
 Un service externe pointe vers une URL distante à utiliser comme attribut `src` de la balise `<img>` finale. Cette URL distante est responsable du téléchargement, de la transformation et du renvoi de l'image.
 
-```js
+```ts
 import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
 
 const service: ExternalImageService = {
@@ -35,15 +35,15 @@ const service: ExternalImageService = {
     const serviceConfig = imageConfig.service.config;
 
     // Appliquer la largeur maximale définie par l'utilisateur.
-    if (options.width > serviceConfig.maxWidth) {
-      console.warn(`Image width ${options.width} exceeds max width ${serviceConfig.maxWidth}. Falling back to max width.`);
+    if (options.width && options.width > serviceConfig.maxWidth) {
+      console.warn(`La largeur de l'image ${options.width} dépasse la largeur maximale ${serviceConfig.maxWidth}. Repli sur la largeur maximale.`);
       options.width = serviceConfig.maxWidth;
     }
 
     return options;
   },
   getURL(options, imageConfig) {
-    return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
+    return `https://monsupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
   },
   getHTMLAttributes(options, imageConfig) {
     const { src, format, quality, ...attributes } = options;
@@ -59,26 +59,27 @@ const service: ExternalImageService = {
 export default service;
 ```
 
-### Services Local
+### Services locaux
 
-Pour créer votre propre service local, vous pouvez pointer vers le [built-in point de terminaison](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) (`/_image`), ou vous pouvez également créer votre propre point de terminaison qui peut appeler les méthodes du service.
+Pour créer votre propre service local, vous pouvez pointer vers le [point de terminaison intégré](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) (`/_image`), ou vous pouvez également créer votre propre point de terminaison qui peut appeler les méthodes du service.
 
-```js
-import type { LocalImageService, AstroConfig } from "astro";
+```ts
+import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
 
-const service: LocalImageService = {
-  getURL(options: ImageTransform, imageConfig: AstroConfig['image']) {
+const service: LocalImageService<AstroConfig["image"]> = {
+  getURL(options: ImageTransform, imageConfig) {
     const searchParams = new URLSearchParams();
 		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
 		options.width && searchParams.append('w', options.width.toString());
 		options.height && searchParams.append('h', options.height.toString());
 		options.quality && searchParams.append('q', options.quality.toString());
 		options.format && searchParams.append('f', options.format);
-    return `/my_custom_endpoint_that_transforms_images?${searchParams}`;
-    // Vous pouvez également utiliser le point de terminaison intégré, qui appellera vos fonctions parseURL et transform :
-    // retourne `/_image?${searchParams}`;
+    return `/mon_point_de_terminaison_personnalise_qui_transforme_les_images?${searchParams}`;
+    // Ou utilisez le point de terminaison intégré, qui appellera vos fonctions parseURL et transform :
+    // return `/_image?${searchParams}`;
   },
   parseURL(url: URL, imageConfig) {
+    const params = url.searchParams;
     return {
       src: params.get('href')!,
       width: params.has('w') ? parseInt(params.get('w')!) : undefined,
@@ -87,8 +88,8 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
-    const { buffer } = mySuperLibraryThatEncodesImages(options);
+  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig) {
+    const { buffer } = await mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
       format: options.format,
@@ -122,17 +123,17 @@ const service: LocalImageService = {
 export default service;
 ```
 
-Au moment de la construction des sites statiques et des routes pré-rendues, `<Image />` et `getImage(options)` appellent la fonction `transform()`. Ces derniers transmettent les options soit par les attributs du composant, soit par un argument `options`, respectivement. Les images transformées seront compilées dans un dossier `dist/_astro`. Leurs noms de fichiers contiendront un hachage des propriétés passées à `propertiesToHash`. Cette propriété est optionnelle et sera par défaut `['src', 'width', 'height', 'format', 'quality']`. Si votre service d'image personnalisé a plus d'options qui modifient les images générées, ajoutez-les dans le tableau.
+Au moment de la compilation des sites statiques et des routes pré-rendues, `<Image />` et `getImage(options)` appellent la fonction `transform()`. Ces derniers transmettent des options soit par les attributs du composant, soit par un argument `options`, respectivement. Les images transformées seront générées dans un dossier `dist/_astro`. Leurs noms de fichier contiendront un hachage des propriétés transmises à `propertiesToHash`. Cette propriété est optionnelle et sera définie par défaut sur `['src', 'width', 'height', 'format', 'quality']`. Si votre service d'images personnalisé dispose d’autres options qui modifient les images générées, ajoutez-les au tableau.
 
-En mode développement et lors de l'utilisation d'un adaptateur pour effectuer le rendu à la demande, Astro ne sait pas à l'avance quelles images doivent être optimisées. Astro utilise un point d'accès GET (par défaut, `/_image`) pour traiter les images au moment de l'exécution. `<Image />` et `getImage()` transmettent leurs options à `getURL()`, qui renvoie l'URL du point d'accès. Ensuite, le point d'accès appelle `parseURL()` et transmet les propriétés résultantes à `transform()`.
+En mode développement et lors de l'utilisation d'un adaptateur pour effectuer le rendu à la demande, Astro ne sait pas à l'avance quelles images doivent être optimisées. Astro utilise un point de terminaison GET (par défaut, `/_image`) pour traiter les images au moment de l'exécution. `<Image />` et `getImage()` transmettent leurs options à `getURL()`, qui renvoie l'URL du point de terminaison. Ensuite, le point de terminaison appelle `parseURL()` et transmet les propriétés résultantes à `transform()`.
 
 #### getConfiguredImageService & imageConfig
 
-Si vous implémentez votre propre point d'accès comme point d'accès Astro, vous pouvez utiliser `getConfiguredImageService` et `imageConfig` pour appeler les méthodes `parseURL` et `transform` de votre service et fournir la configuration de l'image.
+Si vous implémentez votre propre point de terminaison en tant que point de terminaison Astro, vous pouvez utiliser `getConfiguredImageService` et `imageConfig` pour appeler les méthodes `parseURL` et `transform` de votre service et fournir la configuration de l'image.
 
 Pour accéder à la configuration du service d'image ([`image.service.config`](/fr/reference/configuration-reference/#imageservice)), vous pouvez utiliser `imageConfig.service.config`.
 
-```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
+```ts title="src/api/mon_point_de_terminaison_personnalise_qui_transforme_les_images.ts"
 import type { APIRoute } from "astro";
 import { getConfiguredImageService, imageConfig } from 'astro:assets';
 
@@ -159,11 +160,15 @@ export const GET: APIRoute = async ({ request }) => {
 
 ### `getURL()`
 
+<p>
+
+**Type :** `(options: ImageTransform, imageConfig: AstroConfig['image']) => string | Promise<string>`<br />
+<Since v="2.1.0" />
+</p>
+
 **Requis pour les services locaux et externes**
 
-`getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
-
-Pour les services locaux, ce hook renvoie l'URL du point de terminaison qui génère votre image (pour le rendu à la demande et en mode dev). Il n'est pas utilisé pendant la construction. Le point d'accès local vers lequel `getURL()` pointe peut appeler à la fois `parseURL()` et `transform()`.
+Pour les services locaux, ce hook renvoie l'URL du point de terminaison qui génère votre image (pour le rendu à la demande et en mode dev). Il n'est pas utilisé pendant la compilation. Le point de terminaison local vers lequel `getURL()` pointe peut appeler à la fois `parseURL()` et `transform()`.
 
 Pour les services externes, ce hook renvoie l'URL finale de l'image.
 
@@ -173,13 +178,14 @@ Pour les deux types de services, les `options` sont les propriétés passées pa
 export type ImageTransform = {
     // Images importées par l'ESM | chemins d'accès aux images distantes/publiques
     src: ImageMetadata | string;
-    width?: number;
-    height?: number;
+    width?: number | undefined;
+    height?: number | undefined;
     widths?: number[] | undefined;
 	  densities?: (number | `${number}x`)[] | undefined;
-    quality?: ImageQuality;
-    format?: OutputFormat;
-    alt?: string;
+    quality?: ImageQuality  | undefined;
+    format?: OutputFormat | undefined;
+    fit?: ImageFit | undefined;
+    position?: string | undefined;
     [key: string]: any;
 };
 ```
@@ -187,44 +193,58 @@ export type ImageTransform = {
 
 ### `parseURL()`
 
-**Requis pour les services locaux ; indisponible pour les services externes**
+<p>
 
-`parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
+**Type :** `(url: URL, imageConfig: AstroConfig['image']) => { src: string, [key: string]: any } | undefined | Promise<{ src: string, [key: string]: any }> | Promise<undefined>`<br />
+<Since v="2.1.0" />
+</p>
 
-Ce hook analyse les URLs générées par `getURL()` en un objet avec les différentes propriétés à utiliser par `transform` (en SSR et en mode dev). Il n'est pas utilisé pendant la construction.
+**Requis pour les services locaux uniquement ; indisponible pour les services externes**
+
+Ce hook analyse les URLs générées par `getURL()` en un objet avec les différentes propriétés à utiliser par `transform` (en SSR et en mode dev). Il n'est pas utilisé pendant la compilation.
 
 ### `transform()`
 
-**Requis pour les services locaux ; indisponible pour les services externes**
+<p>
 
-`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
+**Type :** `(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']) => Promise<{ data: Uint8Array; format: ImageOutputFormat }>`<br />
+<Since v="2.1.0" />
+</p>
 
-Ce hook transforme et renvoie l'image et est appelé pendant la construction pour créer les fichiers d'actifs finaux.
+**Requis pour les services locaux uniquement ; indisponible pour les services externes**
+
+Ce hook transforme et renvoie l'image et est appelé pendant la compilation pour créer les fichiers de ressources finaux.
 
 Vous devez renvoyer un `format` pour garantir que le type MIME approprié est fourni aux utilisateurs pour le rendu à la demande et le mode de développement.
 
 ### `getHTMLAttributes()`
 
+<p>
+
+**Type :** `(options: ImageTransform, imageConfig: AstroConfig['image'] ) => Record<string, any> | Promise<Record<string, any>>`<br />
+<Since v="2.1.0" />
+</p>
+
 **Facultatif pour les services locaux et externes**
 
-`getHTMLAttributes(options: ImageTransform, imageConfig: AstroConfig['image']): Record<string, any>`
-
-Ce hook renvoie tous les attributs supplémentaires utilisés pour rendre l'image en HTML, en fonction des paramètres passés par l'utilisateur (`options`).
+Ce hook renvoie tous les attributs supplémentaires utilisés pour restituer l'image en HTML, en fonction des paramètres transmis par l'utilisateur (`options`).
 
 ### `getSrcSet()`
 
-<p><Since v="3.3.0" /></p>
+<p>
+
+**Type :** `(options: ImageTransform, imageConfig: AstroConfig['image'] ) => UnresolvedSrcSetValue[] | Promise<UnresolvedSrcSetValue[]>`<br />
+<Since v="3.3.0" />
+</p>
 
 **Facultatif pour les services locaux et externes**
-
-`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
 
 Ce hook génère plusieurs variantes de l'image spécifiée, par exemple, pour générer un attribut `srcset` sur une `<img>` ou `source` sur `<picture>`.
 
 Ce hook retourne un tableau d'objets avec les propriétés suivantes :
 
 ```ts
-export type SrcSetValue = {
+export type UnresolvedSrcSetValue = {
 	transform: ImageTransform;
 	descriptor?: string;
 	attributes?: Record<string, any>;
@@ -233,13 +253,17 @@ export type SrcSetValue = {
 
 ### `validateOptions()`
 
-**Facultatif pour les services locaux et externes**
+<p>
 
-`validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']): ImageTransform`
+**Type :** `(options: ImageTransform, imageConfig: AstroConfig['image'] ) => ImageTransform | Promise<ImageTransform>`
+<Since v="2.1.4" />
+</p>
+
+**Facultatif pour les services locaux et externes**
 
 Ce hook vous permet de valider et d'augmenter les options passées par l'utilisateur. C'est utile pour définir des options par défaut, ou pour indiquer à l'utilisateur qu'un paramètre est nécessaire.
 
-[Voir comment `validateOptions()` est utilisé dans les services intégrés Astro](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
+[Voir comment `validateOptions()` est utilisé dans les services intégrés d'Astro](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
 
 ## Configuration de l'utilisateur
 
@@ -251,7 +275,7 @@ import { defineConfig } from "astro/config";
 export default defineConfig({
   image: {
     service: {
-      entrypoint: "votre-point-d’entrée", // 'astro/assets/services/sharp' | string,
+      entrypoint: "votre-point-d-entrée", // 'astro/assets/services/sharp' | string,
       config: {
         // ... configuration spécifique au service. En option.
       }
@@ -277,6 +301,7 @@ import {
     resolveSrc,
     imageMetadata,
     emitESMImage,
+    emitImageMetadata,
     getOrigQueryParams,
     inferRemoteSize,
     propsToFilename,
@@ -287,7 +312,7 @@ import {
 ### `isRemoteAllowed()`
 
 <p>
-**Type :** `(src: string, { domains, remotePatterns }: {domains: string[], remotePatterns: RemotePattern[] }): boolean`<br />
+**Type :** `(src: string, { domains, remotePatterns }: {domains: string[], remotePatterns: RemotePattern[] }) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -312,7 +337,7 @@ console.log(`L'image distante est-elle autorisée ? ${isAllowed}`);
 ### `matchHostname()`
 
 <p>
-**Type :** `(url: URL, hostname?: string, allowWildcard = false): boolean`<br />
+**Type :** `(url: URL, hostname?: string, allowWildcard = false) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -338,7 +363,7 @@ console.log(`Le nom d'hôte correspond-il avec un caractère générique ? ${is
 ### `matchPathname()`
 
 <p>
-**Type :** `(url: URL, pathname?: string, allowWildcard = false): boolean`<br />
+**Type :** `(url: URL, pathname?: string, allowWildcard = false) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -365,7 +390,7 @@ console.log(`Le nom du chemin correspond-il avec un caractère générique ? ${
 ### `matchPattern()`
 
 <p>
-**Type :** `(url: URL, remotePattern: RemotePattern): boolean`<br />
+**Type :** `(url: URL, remotePattern: RemotePattern) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -393,7 +418,7 @@ console.log(`L'URL correspond-elle au modèle distant ? ${isPatternMatched}`); 
 ### `matchPort()`
 
 <p>
-**Type :** `(url: URL, port?: string): boolean`<br />
+**Type :** `(url: URL, port?: string) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -424,7 +449,7 @@ console.log(`Le port correspond-il (aucun port spécifié) ? ${isPortMatch3}`); 
 ### `matchProtocol()`
 
 <p>
-**Type :** `(url: URL, protocol?: string): boolean`<br />
+**Type :** `(url: URL, protocol?: string) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -455,7 +480,7 @@ console.log(`Le protocole correspond-il (aucun protocole spécifié) ? ${isProto
 ### `isESMImportedImage()`
 
 <p>
-  **Type :** `(src: ImageMetadata | string): boolean`<br />
+  **Type :** `(src: ImageMetadata | string) => boolean`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -486,7 +511,7 @@ console.log(`filePathExample est-il une image importée ESM ? ${isFilePathImage
 ### `isRemoteImage()`
 
 <p>
-  **Type :** `(src: ImageMetadata | string): boolean`<br />
+  **Type :** `(src: ImageMetadata | string) => boolean`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -516,11 +541,11 @@ console.log(`localImageMetadata est-elle une image distante ? ${isRemote2}`); /
 ### `resolveSrc()`
 
 <p>
-  **Type :** `(src: UnresolvedImageTransform['src']): Promise<string | ImageMetadata>`<br />
+  **Type :** `(src: UnresolvedImageTransform['src']) => Promise<string | ImageMetadata>`<br />
   <Since v="4.0.0" />
 </p>
 
-Renvoie la source de l'image. Cette fonction garantit que si `src` est une promesse (par exemple, un `import()` dynamique), elle est attendue et la bonne `src` est extraite. Si `src` est déjà une valeur résolue, elle est renvoyée telle quelle.
+Renvoie la source de l'image. Cette fonction garantit que si `src` est une promesse (par exemple, une importation dynamique (`import()`)), elle est attendue et la bonne `src` est extraite. Si `src` est déjà une valeur résolue, elle est renvoyée telle quelle.
 
 ```ts
 import { resolveSrc } from 'astro/assets/utils';
@@ -540,7 +565,7 @@ const resolvedDynamic = await resolveSrc(import("./images/image-dynamique.jpg"))
 ### `imageMetadata()`
 
 <p>
-  **Type :** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  **Type :** `(data: Uint8Array, src?: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -578,24 +603,24 @@ await extractImageMetadata();
 
 ### `emitESMImage()`
 
-:::caution[Obsolète]
+:::caution[Dépréciée]
 Utilisez plutôt la fonction [`emitImageMetadata`](#emitimagemetadata).
 :::
 
 <p>
-  **Type :** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+  **Type :** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter) => Promise<ImageMetadataWithContents | undefined>`<br />
   <Since v="4.0.0" />
 </p>
 
 
-Traite un fichier image et émet ses métadonnées et éventuellement son contenu. En mode construction, la fonction utilise `fileEmitter` pour générer une référence de ressource. En mode développement, elle résout l'URL d'un fichier local avec des paramètres de requête pour les métadonnées.
+Traite un fichier image et émet ses métadonnées et éventuellement son contenu. En mode compilation, la fonction utilise `fileEmitter` pour générer une référence de ressource. En mode développement, elle résout l'URL d'un fichier local avec des paramètres de requête pour les métadonnées.
 
 ```ts
 
 import { emitESMImage } from 'astro/assets/utils';
 
 const imageId = '/images/photo.jpg';
-const unusedWatchMode = false; // Obsolète, inutilisé
+const unusedWatchMode = false; // Dépréciée, inutilisé
 const unusedExperimentalSvgEnabled = false; // Définissez sur `true` uniquement si vous utilisez SVG et souhaitez que les données du fichier soient intégrées
 
 try {
@@ -621,12 +646,12 @@ try {
 ### `emitImageMetadata()`
 
 <p>
-  **Type :** `(id: string | undefined, fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+  **Type :** `(id: string | undefined, fileEmitter?: FileEmitter) => Promise<ImageMetadataWithContents | undefined>`<br />
   <Since v="5.7.0" />
 </p>
 
 
-Traite un fichier image et émet ses métadonnées et éventuellement son contenu. En mode construction, la fonction utilise `fileEmitter` pour générer une référence de ressource. En mode développement, elle résout l'URL d'un fichier local avec des paramètres de requête pour les métadonnées.
+Traite un fichier image et émet ses métadonnées et éventuellement son contenu. En mode compilation, la fonction utilise `fileEmitter` pour générer une référence de ressource. En mode développement, elle résout l'URL d'un fichier local avec des paramètres de requête pour les métadonnées.
 
 ```ts
 
@@ -657,7 +682,7 @@ try {
 ### `getOrigQueryParams()`
 
 <p>
-  **Type :** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
+  **Type :** `(params: URLSearchParams) => Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -690,7 +715,7 @@ if (origParams) {
 ### `inferRemoteSize()`
 
 <p>
-  **Type :** `(url: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  **Type :** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -725,7 +750,7 @@ await getRemoteImageSize();
 ### `propsToFilename()`
 
 <p>
-  **Type :** `(filePath: string, transform: ImageTransform, hash: string): string`<br />
+  **Type :** `(filePath: string, transform: ImageTransform, hash: string) => string`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -765,7 +790,7 @@ generateTransformedFilename();
 ### `hashTransform()`
 
 <p>
-  **Type :** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]): string`<br />
+  **Type :** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]) => string`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -777,6 +802,7 @@ import { hashTransform } from 'astro/assets/utils';
 
 function generateTransformHash() {
   const transform = {
+    src: '/images/photo.jpg',
     width: 800,
     height: 600,
     format: 'jpg',
