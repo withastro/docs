@@ -138,6 +138,30 @@ export const server = {
 };
 ```
 
+### `actions`
+
+<p>
+
+**Type:** <code>Record\<string, <a href="#actionclient">ActionClient</a>\></code>
+</p>
+
+An object containing all your actions with the action name as key associated to a function to call this action.
+
+```astro title="src/pages/index.astro" {5,8}
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+In order for Astro to recognize this property, you may need to restart the dev server or [sync the module](/en/reference/cli-reference/#astro-dev) (`s + enter`).
+
 ### `isInputError()`
 
 <p>
@@ -148,6 +172,34 @@ export const server = {
 The `isInputError()` utility is used to check whether an `ActionError` is an input validation error. When the `input` validator is a `z.object()`, input errors include a `fields` object with error messages grouped by name.
 
 <ReadMore>See the [form input errors guide](/en/guides/actions/#displaying-form-input-errors) for more on using `isInputError()`.</ReadMore>
+
+### `ActionInputError`
+
+Creates a new error by passing an array of Zod issues to its constructor. This is useful to create a different type of error when an action input fails schema validation.
+
+You usually don't need to construct this error yourself. However, you can use it to refine the error type and handle it differently. Alternatively, you can use the [`isInputError()` helper](#isinputerror).
+
+The following example will log errors to the console if the error received when updating an email address is an `ActionInputError`:
+
+```astro title="src/pages/dashboard/account.astro" {13} "ActionInputError"
+---
+---
+
+<!-- your template -->
+
+<script>
+import { ActionInputError, actions } from 'astro:actions';
+
+const input = document.querySelector('input');
+input?.addEventListener('change', async () => {
+  if (e.currentTarget instanceof HTMLInputElement) {
+    const { data, error } = await actions.updateEmail(e.currentTarget.value);
+    if (error instanceof ActionInputError) console.error(error);
+    /* ... */
+  }
+})
+</script>
+```
 
 ### `isActionError()`
 
@@ -335,53 +387,6 @@ navigator.sendBeacon(
 </script>
 ```
 
-### `actions`
-
-<p>
-
-**Type:** <code>Record\<string, <a href="#actionclient">ActionClient</a>\></code>
-</p>
-
-An object containing all your actions with the action name as key associated to a function to call this action.
-
-```astro title="src/pages/index.astro" {5,8}
----
----
-
-<script>
-import { actions } from 'astro:actions';
-
-async () => {
-  const { data, error } = await actions.myAction({ /* ... */ });
-}
-</script>
-```
-
-In order for Astro to recognize this property, you may need to restart the dev server or [sync the module](/en/reference/cli-reference/#astro-dev) (`s + enter`).
-
-### `appendForwardSlash()`
-
-<p>
-
-**Type:** `(path: string) => string`<br />
-<Since v="5.0.6" />
-</p>
-
-A utility to add a trailing slash to the given string if it does not already end with a slash.
-
-```ts title="src/actions/index.ts" "appendForwardSlash"
-import { appendForwardSlash, defineAction } from "astro:actions";
-
-export const server = {
-  myAction: defineAction({
-    handler: async ({ url }, context) => {
-      const normalizedUrl = appendForwardSlash(url);
-      /* ... */
-    },
-  }),
-}
-```
-
 ### `formDataToObject()`
 
 <p>
@@ -416,32 +421,27 @@ form?.addEventListener('submit', async (e) => {
 
 Creates a URL query string prefixed with a question mark, containing the action parameter (`_action`) and an encoded version of the provided name. For example, calling `getActionQueryString("register")` returns `?_action=register`.
 
-### `ActionInputError`
+### `appendForwardSlash()`
 
-Creates a new error by passing an array of Zod issues to its constructor. This is useful to create a different type of error when an action input fails schema validation.
+<p>
 
-You usually don't need to construct this error yourself. However, you can use it to refine the error type and handle it differently.
+**Type:** `(path: string) => string`<br />
+<Since v="5.0.6" />
+</p>
 
-The following example will log errors to the console if the error received when updating an email address is an `ActionInputError`:
+A utility to add a trailing slash to the given string if it does not already end with a slash.
 
-```astro title="src/pages/dashboard/account.astro" {13} "ActionInputError"
----
----
+```ts title="src/actions/index.ts" "appendForwardSlash"
+import { appendForwardSlash, defineAction } from "astro:actions";
 
-<!-- your template -->
-
-<script>
-import { ActionInputError, actions } from 'astro:actions';
-
-const input = document.querySelector('input');
-input?.addEventListener('change', async () => {
-  if (e.currentTarget instanceof HTMLInputElement) {
-    const { data, error } = await actions.updateEmail(e.currentTarget.value);
-    if (error instanceof ActionInputError) console.error(error);
-    /* ... */
-  }
-})
-</script>
+export const server = {
+  myAction: defineAction({
+    handler: async ({ url }, context) => {
+      const normalizedUrl = appendForwardSlash(url);
+      /* ... */
+    },
+  }),
+}
 ```
 
 ## `astro:actions` types
