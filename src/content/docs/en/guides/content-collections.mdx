@@ -3,6 +3,9 @@ title: Content collections
 description: >-
   Manage your content with type safety.
 i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 5
 ---
 import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro'
@@ -22,7 +25,9 @@ You can define a **collection** from a set of data that is structurally similar.
 
 A [collection schema](#defining-the-collection-schema) allows you to define the expected shape of each entry, providing type safety, autocomplete, and validation in your editor.
 
-Collections use a [loader](#collection-loaders) to retrieve your content. Collections stored locally in your project or on your filesystem can use one of Astro's built-in loaders to fetch data from Markdown, MDX, Markdoc, YAML, TOML, or JSON files:
+Both [build-time collections](#build-time-content-collections) and [live updating collections](#live-content-collections) use a `loader` to retrieve your content from wherever it is stored.
+
+Collections stored locally in your project or on your filesystem can use one of Astro's [built-in build-time loaders](#build-time-collection-loaders) to fetch data from Markdown, MDX, Markdoc, YAML, TOML, or JSON files:
 
 <FileTree>
 - src/
@@ -34,7 +39,7 @@ Collections use a [loader](#collection-loaders) to retrieve your content. Collec
   - authors.json a single file containing all collection entries
 </FileTree>
 
-With [community-built loaders](https://astro.build/integrations/?search=&categories%5B%5D=loaders) or by [building a custom collection loader](#building-a-custom-loader) yourself, you can fetch remote data from any external source, such as a CMS, database, or headless payment system.
+With [community-built loaders](https://astro.build/integrations/?search=&categories%5B%5D=loaders) or by building a [custom build-time collection loader](#custom-build-time-loaders) or [creating a live loader](#creating-a-live-loader) yourself, you can fetch remote data from any external source, such as a CMS, database, or headless payment system, either at build time or live on demand.
 
 ### When to create a collection
 
@@ -65,11 +70,13 @@ Collections **may not be your solution** if:
 
 ## Types of collections
 
-**[Content collections](#build-time-content-collections)** are updated at build time and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness such as live stock prices.
+**[Build-time content collections](#build-time-content-collections)** are updated at build time and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness such as live stock prices.
 
 **[Live content collections](#live-content-collections)** fetch their data at runtime rather than build time. This allows you to access frequently updated data from CMSs, APIs, databases, or other sources using a unified API, without needing to rebuild your site when the data changes. However, this can come at a performance cost since data is fetched at each request and returned directly with no data store persistence.
 
-We suggest using build-time content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable. You may have both kinds of collections in the same project, so you can always choose the best type of collection for each individual data source. For example, a build-time collection can manage product descriptions, while a live collection can manage content inventory.
+We suggest using build-time content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable.
+
+You may have both kinds of collections in the same project, so you can always choose the best type of collection for each individual data source. For example, a build-time collection can manage product descriptions, while a live collection can manage content inventory.
 
 Both types of collections use similar APIs (e.g. `getEntry()` and `getLiveEntry()`) so that working with collections will feel familiar no matter which one you choose, while still ensuring that you always know which type of collection you are working with.
 
@@ -123,14 +130,12 @@ See the [limitations of experimental live collections](#live-collection-limitati
 Make sure you have an adapter configured for [on-demand rendering](/en/guides/on-demand-rendering/), then define your live collections in `src/live.config.ts` (separate from your `src/content.config.ts` for build-time collections, if you have one).
 
 Each individual collection configures:
-- a `loader` for your data source (required)
+- a `loader` for your data source, and optionally for type safety (required)
 - a `schema` for type safety (optional)
 
 Unlike for build-time collections, there are no built-in live loaders available. You will need to [create a custom live loader](creating-a-live-loader) for your specific data source or find a third-party loader to pass to your live collection's `loader` property.
 
-Live loaders can provide type safety by passing generic types to the `LiveLoader` interface. You can define the types for your collection and entry data, as well as custom filter types for querying, and custom error types for error handling.
-
-You can instead provide type safety by [using a Zod schema](#using-zod-schemas-with-live-collections) like build-time collections do. Defining a `schema` is optional. However, if you provide one, it will take precedence over the live loader's types. 
+You can optionally [include type safety your live loaders](#type-safety-in-live-loaders). Therefore, [defining a Zod `schema`](#using-zod-schemas-with-live-collections) for live collections is optional. However, if you provide one, it will take precedence over the live loader's types.
 
 ```ts title="src/live.config.ts"
 // Define live collections for accessing real-time data
@@ -247,7 +252,7 @@ const cats = defineCollection({
 
 You can build a custom loader to fetch remote content from any data source, such as a CMS, a database, or an API endpoint.
 
-Using a loader to fetch your data will automatically create a collection from your remote data. This gives you all the benefits of local collections, such as collection-specific API helpers such as `getCollection()` and `render()` to query and display your data, as well as schema validation.
+Using a loader to fetch your data will automatically create a collection from your remote data. This gives you all the benefits of local collections, such as collection-specific API helpers such as `getCollection()` and `render()` to [query and display your data](#querying-build-time-collections), as well as schema validation.
 
 :::tip
 Find community-built and third-party loaders in the [Astro integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
@@ -280,7 +285,7 @@ The returned entries are stored in the collection and can be queried using the `
 
 For more control over the loading process, you can use the Content Loader API to create a [loader object](/en/reference/content-loader-reference/#object-loaders). For example, with access to the `load` method directly, you can create a loader that allows entries to be updated incrementally or clears the store only when necessary.
 
-Similar to creating an Astro integration or Vite plugin, you can [distribute your loader as an NPM package](/en/reference/publish-to-npm/) that others can use in their projects.
+Similar to creating an Astro integration or Vite plugin, you can [distribute your loader as an npm package](/en/reference/publish-to-npm/) that others can use in their projects.
 
 <ReadMore>See the full [Content Loader API](/en/reference/content-loader-reference/) and examples of how to build your own loader.</ReadMore>
 
@@ -355,7 +360,81 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
 }
 ```
 
-### Defining data types
+### Providing rendered content
+
+A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages.
+
+If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
+
+```ts title="myloader.ts" {16-19}
+// ...
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadEntry: async ({ filter }) => {
+      try {
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        return {
+          id: article.id,
+          data: article,
+          rendered: {
+            // Assuming the CMS returns HTML content
+            html: article.htmlContent,
+          },
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load article: ${error.message}`),
+        };
+      }
+    },
+    // ...
+  };
+}
+```
+
+You can then [render both content and metadata from live collection entries](#rendering-content) in pages using the same method as built-time collections.
+
+### Error handling in live loaders
+
+Loaders should handle all errors and return an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) subclass for errors. You can create custom error types and use them for more specific error handling if needed. If an error is thrown in the loader, it will be caught and returned, wrapped in a `LiveCollectionError`. You can also create [custom error types](#custom-error-types) for proper typing.
+
+Astro will generate some errors itself, depending on the response from the loader:
+
+- If `loadEntry` returns `undefined`, Astro will return a `LiveEntryNotFoundError` to the user.
+- If a schema is defined for the collection and the data does not match the schema, Astro will return a `LiveCollectionValidationError`.
+- If the loader returns an invalid cache hint, Astro will return a `LiveCollectionCacheHintError`. The `cacheHint` field is optional, so if you do not have valid data to return, you can simply omit it.
+
+```ts title="my-loader.ts" {9-11}
+import type { LiveLoader } from 'astro/loaders';
+import { MyLoaderError } from './errors.js';
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Return your custom error type
+      return {
+        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+### Type safety in live loaders
+
+You can provide type safety for live collections by [using a Zod schema](#using-zod-schemas-with-live-collections) like you do in build-time collections. 
+
+Live loaders can also provide their own type safety by passing generic types to the `LiveLoader` interface. You can [define the types](#defining-data-types) for your collection and entry data, as well as [custom filter types](#defining-custom-filter-types) for querying, and [custom error types](#creating-live-loader-error-types) for error handling in the live loader itself.
+
+#### Defining data types
 
 Like regular content collections, live collections can be typed to ensure type safety in your data. [Using Zod schemas](#using-zod-schemas-with-live-collections) is supported, but not required to define types for live collections. Unlike preloaded collections defined at build time, live loaders can instead choose to pass generic types to the `LiveLoader` interface.
 
@@ -385,7 +464,7 @@ console.log(product?.data.name);
 ---
 ```
 
-### Defining custom filter types
+#### Defining custom filter types
 
 Live loaders can define custom filter types for both `getLiveCollection()` and `getLiveEntry()`. This enables type-safe querying that matches your API's capabilities, making it easier for users to discover available filters and ensure they are used correctly. If you include JSDoc comments in your filter types, the user will see these in their IDE as hints when using the loader.
 
@@ -451,38 +530,9 @@ export function productLoader(config: {
 }
 ```
 
-### Error handling in loaders
+#### Creating live loader error types
 
-Loaders should handle all errors and return an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) subclass for errors. You can create custom error types and use them for more specific error handling if needed. If an error is thrown in the loader, it will be caught and returned, wrapped in a `LiveCollectionError`. You can also create [custom error types](#custom-error-types) for proper typing.
-
-Astro will generate some errors itself, depending on the response from the loader:
-
-- If `loadEntry` returns `undefined`, Astro will return a `LiveEntryNotFoundError` to the user.
-- If a schema is defined for the collection and the data does not match the schema, Astro will return a `LiveCollectionValidationError`.
-- If the loader returns an invalid cache hint, Astro will return a `LiveCollectionCacheHintError`. The `cacheHint` field is optional, so if you do not have valid data to return, you can simply omit it.
-
-```ts title="my-loader.ts" {9-11}
-import type { LiveLoader } from 'astro/loaders';
-import { MyLoaderError } from './errors.js';
-
-export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
-  return {
-    name: 'my-loader',
-    loadCollection: async ({ filter }) => {
-      // Return your custom error type
-      return {
-        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
-      };
-    },
-    // ...
-  };
-}
-```
-
-
-### Creating live loader error types
-
-You can create custom error types for [errors returned by your loader](#error-handling-in-loaders) and pass them as a generic to get proper typing:
+You can create custom error types for [errors returned by your loader](#error-handling-in-live-loaders) and pass them as a generic to get proper typing:
 
 ```ts title="my-loader.ts"
 class MyLoaderError extends Error {
@@ -610,6 +660,13 @@ if (cacheHint?.lastModified) {
 Cache hints only provide values that can be used in other parts of your project and do not automatically cause the response to be cached by Astro. You can use them to create your own caching strategy, such as setting HTTP headers or using a CDN.
 :::
 
+
+### Distributing your loader
+
+Loaders can be defined in your site or as a separate npm package. If you want to share your loader with the community, you can [publish it to NPM with the `astro-component` and `astro-loader` keywords](/en/reference/publish-to-npm/#packagejson-data).
+
+The loader should export a function that returns the `LiveLoader` object, allowing users to configure it with their own settings.
+
 ## Defining the collection schema
 
 Schemas enforce consistent frontmatter or entry data within a collection through Zod validation. A schema **guarantees** that this data exists in a predictable form when you need to reference or query it. If any file violates its collection schema, Astro will provide a helpful error to let you know.
@@ -651,7 +708,7 @@ export const collections = { blog, dogs };
 
 Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's data within a collection *and* provide automatic TypeScript types when you go to query content from inside your project.
 
-To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod. 
+To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod 3.
 
 ```ts
 // Example: A cheatsheet of many common Zod datatypes
@@ -683,9 +740,13 @@ defineCollection({
 })
 ```
 
+#### Zod schema methods
+
+All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
+
 ### Using Zod schemas with live collections
 
-Just like with build-time collections, you can use Zod schemas with live collections to validate and transform data at runtime. When you define a schema, it takes precedence over the loader's types](#type-safe-data) when you query the collection:
+Just like with build-time collections, you can use Zod schemas with live collections to validate and transform data at runtime. When you define a schema, it takes precedence over [the loader's types](#type-safety-in-live-loaders) when you query the collection:
 
 ```ts title="src/live.config.ts"
 import { z, defineLiveCollection } from 'astro:content';
@@ -736,15 +797,11 @@ console.log(entry?.data.displayPrice); // e.g., "$29.99"
 
 <ReadMore>See [Zod's README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.</ReadMore>
 
-#### Zod schema methods
-
-All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
-
 ### Defining collection references
 
 Collection entries can also "reference" other related entries. 
 
-With the [`reference()` function](/en/reference/modules/astro-content/#reference) from the Collections API, you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
+With the [`reference()` function](/en/reference/modules/astro-content/#reference), you can define a property in a collection schema as an entry from another collection. For example, you can require that every `space-shuttle` entry includes a `pilot` property which uses the `pilot` collection's own schema for type checking, autocomplete, and validation.
 
 A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
 
@@ -790,7 +847,7 @@ These references will be transformed into objects containing a `collection` key 
 
 ### Defining custom IDs
 
-When using the `glob()` loader with Markdown, MDX, Markdoc, or JSON files, every content entry [`id`](/en/reference/modules/astro-content/#id) is automatically generated in an URL-friendly format based on the content filename. The `id` is used to query the entry directly from your collection. It is also useful when creating new pages and URLs from your content.
+When using the [`glob()` loader](#the-glob-loader) with Markdown, MDX, Markdoc, JSON, or TOML files, every content entry [`id`](/en/reference/modules/astro-content/#id) is automatically generated in an URL-friendly format based on the content filename. The `id` is used to query the entry directly from your collection. It is also useful when [creating new pages and URLs from your content](#generating-routes-from-content).
 
 You can override an entry’s generated `id` by adding your own `slug` property to the file frontmatter or data object for JSON files. This is similar to the “permalink” feature of other web frameworks.
 
@@ -995,9 +1052,9 @@ const { entry: product } = await getLiveEntry('products', Astro.params.slug);
 
 ### Rendering content
 
-A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages, using the same method as build-time collections. If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
+If your loader [returns a `rendered` property](#providing-rendered-content), you can use [the `render()` function and `<Content />` component](#rendering-body-content) to render your content directly in your pages, using the same method as build-time collections.
 
-You also have access to any [error returned by the live loader](#error-handling-in-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
+You also have access to any [error returned by the live loader](#error-handling-in-live-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
 
 ```astro "render(entry)" "<Content />"
 ---
