@@ -148,6 +148,7 @@ export const sidebar = [
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
+					'reference/experimental-flags/fail-on-prerender-conflict',
 				],
 			}),
 			'reference/legacy-flags',

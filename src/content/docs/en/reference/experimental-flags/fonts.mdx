@@ -311,7 +311,7 @@ import { Font } from 'astro:assets';
 
 <p>
 
-**Type:** `boolean`<br />
+**Type:** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
 **Default:** `false`
 </p>
 
@@ -323,6 +323,79 @@ import { Font } from 'astro:assets';
 ---
 
 <Font cssVariable="--font-roboto" preload />
+```
+
+With the `preload` directive, the browser will immediately begin downloading all possible font links during page load. 
+
+#### Granular preloads
+
+<p>
+<Since v="5.15.0" />
+</p>
+
+You may not always want to preload every font link, as this can block loading other important resources or may download fonts that are not needed for the current page. 
+
+To selectively control which font files are preloaded, you can provide an array of objects describing any combination of font `weight`, `style`, or `subset` to preload.
+
+The following example will only preload font files with a `400` weight or a `normal` style in the `latin` subset:
+
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: 'latin', style: 'normal' },
+    { weight: '400' },
+  ]}
+/>
+```
+
+Variable weight font files will be preloaded if any weight within its range is requested. For example, a font file for font weight `100 900` will be included when `400` is specified in a `preload` object.
+
+## Accessing font data programmatically
+
+The `getFontData()` function is intended for retrieving lower-level font family data programmatically, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) or to generate your own meta tags.
+
+### `getFontData()`
+<p>
+
+**Type:** `(cssVariable: CssVariable) => FontData[]`<br />
+<Since v="5.14.0" />
+</p>
+
+Returns an array of `FontData` objects for the provided [`cssVariable`](#cssvariable-1), which contains `src`, `weight` and `style`.
+
+The following example uses `getFontData()` to get the font buffer from the URL when using [satori](https://github.com/vercel/satori) to generate OpenGraph images:
+
+```tsx title="src/pages/og.png.ts" "getFontData(\"--font-roboto\")" "data[0].src[0].url"
+import type{ APIRoute } from "astro"
+import { getFontData } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = getFontData("--font-roboto")
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await fetch(new URL(data[0].src[0].url, context.url.origin)).then(res => res.arrayBuffer()),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
 ```
 
 ## Font configuration reference
@@ -801,4 +874,4 @@ To clear the cache in development, remove the `.astro/fonts` directory. To clear
 
 ## Further reading
 
-For full details and to give feedback on this experimental API, see [the Fonts RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md).
+For full details and to give feedback on this experimental API, see [the Fonts RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0055-fonts.md).
