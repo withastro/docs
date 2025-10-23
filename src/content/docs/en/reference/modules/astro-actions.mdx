@@ -21,18 +21,12 @@ Actions help you build a type-safe backend you can call from client code and HTM
 ```js
 import { 
   ActionError,
-  ActionInputError,
   actions,
-  appendForwardSlash,
   defineAction,
-  deserializeActionResult,
-  formDataToObject,
   getActionContext,
   getActionPath,
-  getActionQueryString,
   isActionError,
   isInputError,
-  serializeActionResult,
  } from 'astro:actions';
 ```
 
@@ -65,7 +59,7 @@ export const server = {
 
 <p>
 
-**Type:** <code><a href="#actionhandler">ActionHandler</a></code>
+**Type:** <code>(input: TInputSchema, context: <a href="#actionapicontext">ActionAPIContext</a>) => TOutput | Promise\<TOutput\></code>
 </p>
 
 A required function containing the server logic to run when the action is called. Data returned from the `handler()` is automatically serialized and sent to the caller.
@@ -89,11 +83,13 @@ If `input` is omitted, the `handler` will receive an input of type `unknown` for
 
 <p>
 
-**Type:** <code><a href="#actionaccept">ActionAccept</a> | undefined</code><br />
+**Type:** `"form" | "json"`<br />
 **Default:** `json`
 </p>
 
-If your action accepts form inputs, use the `z.object()` validator to automatically parse form data to a typed object. All Zod validators are supported for form data fields (e.g. `z.coerce.date()`). Astro additionally provides special handling under the hood for your convenience for validating the following types of field inputs:
+Defines the format expected by an action. If your action accepts form inputs, use `accept: "form"` with the `z.object()` validator to automatically parse `FormData` to a typed object.
+
+All Zod validators are supported for form data fields (e.g. `z.coerce.date()`). Astro additionally provides special handling under the hood for your convenience for validating the following types of field inputs:
 
 - Inputs of type `number` can be validated using `z.number()`
 - Inputs of type `checkbox` can be validated using `z.coerce.boolean()`
@@ -172,34 +168,6 @@ In order for Astro to recognize this property, you may need to restart the dev s
 An utility used to check whether [an `ActionError`](#actionerror) is an input validation error. When the `input` validator is a `z.object()`, input errors include a `fields` object with error messages grouped by name.
 
 <ReadMore>See the [form input errors guide](/en/guides/actions/#displaying-form-input-errors) for more on using `isInputError()`.</ReadMore>
-
-### `ActionInputError`
-
-Creates a new error by passing an array of Zod issues to its constructor. This is useful to create a different type of error when an action input fails schema validation.
-
-You usually don't need to construct this error yourself. However, you can use it to refine the error type and handle it differently. Alternatively, you can use the [`isInputError()` helper](#isinputerror).
-
-The following example will log errors to the console if the error received when updating an email address is an `ActionInputError`:
-
-```astro title="src/pages/dashboard/account.astro" {13} "ActionInputError"
----
----
-
-<!-- your template -->
-
-<script>
-import { ActionInputError, actions } from 'astro:actions';
-
-const input = document.querySelector('input');
-input?.addEventListener('change', async () => {
-  if (e.currentTarget instanceof HTMLInputElement) {
-    const { data, error } = await actions.updateEmail(e.currentTarget.value);
-    if (error instanceof ActionInputError) console.error(error);
-    /* ... */
-  }
-})
-</script>
-```
 
 ### `isActionError()`
 
@@ -303,11 +271,11 @@ An optional property to pass the stack trace.
 
 <p>
 
-**Type:** <code>(context: <a href="/en/reference/api-reference/">APIContext</a>) => <a href="#astroactioncontext">AstroActionContext</a></code><br />
+**Type:** <code>(context: <a href="/en/reference/api-reference/">APIContext</a>) => AstroActionContext</code><br />
 <Since v="5.0.0" />
 </p>
 
-A function called from your middleware handler to retrieve information about inbound action requests. This returns an `action` object with information about the request, and the `setActionResult()` and `serializeActionResult()` functions to programmatically set the value returned by `Astro.getActionResult()`.
+A function called from your middleware handler to retrieve information about inbound action requests. This returns an `action` object with information about the request, a `deserializeActionResult()` method, and the `setActionResult()` and `serializeActionResult()` functions to programmatically set the value returned by `Astro.getActionResult()`.
 
 `getActionContext()` lets you programmatically get and set action results using middleware, allowing you to persist action results from HTML forms, gate action requests with added security checks, and more.
 
@@ -325,11 +293,87 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
-### `serializeActionResult()`
+#### `action`
 
 <p>
 
-**Type:** <code>(res: <a href="#saferesult">SafeResult</a>) => <a href="#serializedactionresult">SerializedActionResult</a></code>
+**Type:** <code>\{ calledFrom: "rpc" | "form"; name: string; handler: () => Promise\<<a href="#saferesult">SafeResult</a>\>; \} | undefined</code>
+</p>
+
+An object containing information about an inbound action request. It is available from [`getActionContext()`](#getactioncontext), and provides the action `name`, `handler`, and whether the action was called from a client-side RPC function (e.g. `actions.newsletter()`) or an HTML form action.
+
+```ts title="src/middleware.ts" {6}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'rpc' && action.name.startsWith('private')) {
+    // Check for a valid session token
+  }
+  // ...
+});
+```
+
+##### `calledFrom`
+
+<p>
+
+**Type:** `"rpc" | "form"`
+</p>
+
+Whether an action was called using an RPC function or an HTML form action.
+
+##### `name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The name of the action. Useful to track the source of an action result during a redirect.
+
+##### `handler()`
+
+<p>
+
+**Type:** <code>() => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+</p>
+
+A method allowing you to programmatically call the action to get the result.
+
+#### `setActionResult()`
+
+<p>
+
+**Type:** <code>(actionName: string, actionResult: <a href="#serializedactionresult">SerializedActionResult</a>) => void</code>
+</p>
+
+A function to programmatically set the value returned by `Astro.getActionResult()` in middleware. It is passed the action name and an action result serialized by [`serializeActionResult()`](#serializeactionresult). Calling this function from middleware will disable Astro's own action result handling.
+
+This is useful when calling actions from an HTML form to persist and load results from a session.
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... handle the action result
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+<ReadMore>See the [advanced sessions guide](/en/guides/actions/#advanced-persist-action-results-with-a-session) for a sample implementation using Netlify Blob.</ReadMore>
+
+#### `serializeActionResult()`
+
+<p>
+
+**Type:** <code>(res: <a href="#saferesult">SafeResult</a>) => SerializedActionResult</code>
 </p>
 
 Serializes an action result to JSON for persistence. This is required to properly handle non-JSON return values like `Map` or `Date` as well as the `ActionError` object.
@@ -350,11 +394,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
-### `deserializeActionResult()`
+#### `deserializeActionResult()`
 
 <p>
 
-**Type:** <code>(res: <a href="#serializedactionresult">SerializedActionResult</a>) => <a href="#saferesult">SafeResult</a></code>
+**Type:** <code>(res: SerializedActionResult) => <a href="#saferesult">SafeResult</a></code>
 </p>
 
 Reverses the effect of [`serializeActionResult()`](#serializeactionresult) and returns an action result to its original state. This is useful to access the `data` and `error` objects on a serialized action result.
@@ -402,93 +446,21 @@ navigator.sendBeacon(
 </script>
 ```
 
-### `formDataToObject()`
-
-<p>
-
-**Type:** `(formData: FormData, schema: AnyZodObject) => Record<string, unknown>`
-</p>
-
-Transforms form data into an object based on a Zod schema. This can be useful for converting user data obtained via a form while your action handler expects an object.
-
-```astro title="src/pages/contact.astro" {5,11} "formDataToObject"
----
----
-
-<script>
-import { actions, formDataToObject } from 'astro:actions';
-
-const form = document.querySelector('form');
-form?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const formData = new FormData(form);
-  const { data, error } = await actions.sendMail(formDataToObject(formData));
-});
-</script>
-```
-
-### `getActionQueryString()`
-
-<p>
-
-**Type:** `(name: string) => string`
-</p>
-
-Creates a URL query string prefixed with a question mark, containing the action parameter (`_action`) and an encoded version of the provided name. For example, calling `getActionQueryString("register")` returns `?_action=register`.
-
-### `appendForwardSlash()`
-
-<p>
-
-**Type:** `(path: string) => string`<br />
-<Since v="5.0.6" />
-</p>
-
-A utility to add a trailing slash to the given string if it does not already end with a slash.
-
-```ts title="src/actions/index.ts" "appendForwardSlash"
-import { appendForwardSlash, defineAction } from "astro:actions";
-
-export const server = {
-  myAction: defineAction({
-    handler: async ({ url }, context) => {
-      const normalizedUrl = appendForwardSlash(url);
-      /* ... */
-    },
-  }),
-}
-```
-
 ## `astro:actions` types
 
 ```ts
 import type {
   ActionAPIContext,
-  ActionAccept,
   ActionClient,
   ActionErrorCode,
-  ActionHandler,
   ActionReturnType,
-  AstroActionContext,
   SafeResult,
-  SerializedActionResult,
  } from 'astro:actions';
 ```
 
 ### `ActionAPIContext`
 
 A subset of the [Astro context object](/en/reference/api-reference/). The following properties are not available: `callAction`, `getActionResult`, `props`, and `redirect`.
-
-### `ActionAccept`
-
-<p>
-
-**Type:** `"form" | "json"`
-</p>
-
-Represents the format expected by an action:
-* `form`: When an action receives `FormData` from a form submission.
-* `json`: When an action receives an object matching its schema. This is the format to use in most cases.
 
 ### `ActionClient`
 
@@ -499,7 +471,31 @@ Represents the format expected by an action:
 * `{ queryString?: string; orThrow: (input?: any) => Promise<Awaited<TOutput>>; }`
 </p>
 
-Represents a function to be used on the client for calling an action. This accepts input data and returns a `Promise` with a [`SafeResult`](#saferesult) containing either the action's output or validation errors.
+Represents an action to be called on the client. You can use it as a function that accepts input data and returns a Promise with a [`SafeResult` object](#saferesult) containing the action result or validation errors.
+
+The following example handles error when incrementing the like count fails:
+
+```astro title="src/pages/posts/post-1.astro" "data" "error"
+---
+---
+
+<!-- your template -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const { data: updatedLikes, error } = await actions.likePost({ postId: post?.id });
+  if (error) {
+    /* handle errors */
+  }
+})
+</script>
+```
+
+Alternatively, you can use it as an object giving you access to the `queryString` and an alternative `orThrow()` method.
 
 #### `queryString` property
 
@@ -508,7 +504,20 @@ Represents a function to be used on the client for calling an action. This accep
 **Type:** `string`
 </p>
 
-A string representation of the action that can be used for client-side routing or URL generation.
+A string representation of the action that can be used to construct form action URLs.
+
+The following example uses `queryString` to construct the URL of a confirmation form:
+
+```astro title="src/pages/form.astro" "queryString"
+---
+import { actions } from 'astro:actions';
+const confirmationUrl = new URL('/confirmation', Astro.url);
+confirmationUrl.search = actions.myAction.queryString;
+---
+<form method="POST" action={confirmationUrl.pathname}>
+  <button>Submit</button>
+</form>
+```
 
 #### `orThrow()` property
 
@@ -517,7 +526,26 @@ A string representation of the action that can be used for client-side routing o
 **Type:** `(input?: any) => Promise<Awaited<TOutput>>`
 </p>
 
-An alternative method that throws an error on failure instead of returning a [`SafeResult`](#saferesult). This is useful when you want exceptions rather than error handling, for example while prototyping or using a library that will catch errors for you.
+A method that throws an error on failure instead of returning the errors. This is useful when you want exceptions rather than error handling.
+
+The following example uses `orThrow()` to skip error handling when incrementing the like count fails:
+
+```astro title="src/pages/posts/post-1.astro" "orThrow"
+---
+---
+
+<!-- your template -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const updatedLikes = await actions.likePost.orThrow({ postId: post?.id });
+})
+</script>
+```
 
 ### `ActionErrorCode`
 
@@ -528,121 +556,24 @@ An alternative method that throws an error on failure instead of returning a [`S
 
 A union type of standard HTTP status codes [defined by IANA](https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml) using the human-readable versions as uppercase strings separated by an underscore (e.g. `BAD_REQUEST` or `PAYLOAD_TOO_LARGE`).
 
-### `ActionHandler`
-
-<p>
-
-**Type:** <code>(input: TInputSchema, context: <a href="#actionapicontext">ActionAPIContext</a>) => TOutput | Promise\<TOutput\></code>
-</p>
-
-Represents the handler function provided when defining an action. The handler receives two parameters:
-* **`input`:** The validated input data.
-* **`context`:** A subset of the Astro context object.
-
 ### `ActionReturnType`
 
 <p>
 
-**Type:** <code>Awaited\<ReturnType\<<a href="#actionhandler">ActionHandler</a>\>\></code>
+**Type:** <code>Awaited\<ReturnType\<ActionHandler\>\></code>
 </p>
 
-A utility type that extracts the output type from an `ActionHandler`. This type unwraps both the `Promise` (if the handler is async) and the `ReturnType` to give you the actual output type of an action handler.
+A utility type that extracts the output type from [an action handler](#defineaction). This unwraps both the `Promise` (if the handler is async) and the `ReturnType` to give you the [actual output type](#saferesult). This can be useful if you need to reference an action's output type in your own type definitions.
 
-This is primarily used internally by the framework for type inference, but can be useful if you need to reference an action's output type in your own type definitions.
+The following example uses `ActionReturnType` to retrieve the expected output type for an action named `contact`:
 
-### `AstroActionContext`
+```astro title="src/components/Form.astro" {4}
+---
+import { actions, ActionReturnType } from 'astro:actions';
 
-<p>
-
-**Type:** <code>\{ <a href="#action">action</a>, <a href="#setactionresult-property">setActionResult</a>, <a href="#setactionresult-property">serializeActionResult</a>, <a href="#deserializeactionresult-property">deserializeActionResult</a> \}</code><br />
-<Since v="5.4.2" />
-</p>
-
-Represents context and utilities for working with actions in Astro middleware and API routes. This context is primarily useful when you need to customize action handling in middleware.
-
-#### `action`
-
-<p>
-
-**Type:** <code>\{ calledFrom: "rpc" | "form"; name: string; handler: () => Promise\<<a href="#saferesult">SafeResult</a>\>; \}</code>
-</p>
-
-An optional object containing information about an inbound action request. It is available from [`getActionContext()`](#getactioncontext), and provides the action `name`, `handler`, and whether the action was called from a client-side RPC function (e.g. `actions.newsletter()`) or an HTML form action.
-
-```ts title="src/middleware.ts" {6}
-import { defineMiddleware } from 'astro:middleware';
-import { getActionContext } from 'astro:actions';
-
-export const onRequest = defineMiddleware(async (context, next) => {
-  const { action, setActionResult, serializeActionResult } = getActionContext(context);
-  if (action?.calledFrom === 'rpc' && action.name.startsWith('private')) {
-    // Check for a valid session token
-  }
-  // ...
-});
+type ContactResult = ActionReturnType<typeof actions.contact>;
+---
 ```
-
-##### `calledFrom`
-
-<p>
-
-**Type:** `"rpc" | "form"`
-</p>
-
-Whether an action was called using an RPC function or an HTML form action.
-
-##### `name`
-
-<p>
-
-**Type:** `string`
-</p>
-
-The name of the action. Useful to track the source of an action result during a redirect.
-
-##### `handler()`
-
-<p>
-
-**Type:** <code>() => Promise\<<a href="#saferesult">SafeResult</a>\></code>
-</p>
-
-A method allowing you to programmatically call the action to get the result.
-
-#### `setActionResult()` property
-
-<p>
-
-**Type:** <code>(actionName: string, actionResult: <a href="#serializedactionresult">SerializedActionResult</a>) => void</code>
-</p>
-
-A function to programmatically set the value returned by `Astro.getActionResult()` in middleware. It is passed the action name and an action result serialized by [`serializeActionResult()`](#serializeactionresult). Calling this function from middleware will disable Astro's own action result handling.
-
-This is useful when calling actions from an HTML form to persist and load results from a session.
-
-```ts title="src/middleware.ts" {8}
-import { defineMiddleware } from 'astro:middleware';
-import { getActionContext } from 'astro:actions';
-export const onRequest = defineMiddleware(async (context, next) => {
-  const { action, setActionResult, serializeActionResult } = getActionContext(context);
-  if (action?.calledFrom === 'form') {
-    const result = await action.handler();
-    // ... handle the action result
-    setActionResult(action.name, serializeActionResult(result));
-  }
-  return next();
-});
-```
-
-<ReadMore>See the [advanced sessions guide](/en/guides/actions/#advanced-persist-action-results-with-a-session) for a sample implementation using Netlify Blob.</ReadMore>
-
-#### `serializeActionResult()` property
-
-Serializes an action result to stored in a cookie or session. Also used to pass a result to Astro templates via `setActionResult()`. This is the [same function available from `astro:actions`](#serializeactionresult).
-
-#### `deserializeActionResult()` property
-
-Deserializes an action result to access data and error objects. This is the [same function available from `astro:actions`](#deserializeactionresult).
 
 ### `SafeResult`
 
@@ -654,18 +585,3 @@ Deserializes an action result to access data and error objects. This is the [sam
 Represents the result of an action call:
 * on success, `data` contains the output of the action and `error` is `undefined`.
 * on failure, `error` contains an [`ActionError`](#actionerror) with validation errors or runtime errors, and `data` is `undefined`.
-
-### `SerializedActionResult`
-
-<p>
-
-**Types:** 
-* `{ type: "data"; contentType: "application/json+devalue"; status: 200; body: string; }`
-* `{ type: "error"; contentType: "application/json"; status: number; body: string; }`
-* `{ type: "empty"; status: 204; }`
-</p>
-
-Represents a serialized result as returned by the server before being parsed by the client:
-* **`data`:** A successful result with `status` 200. The `body` contains the serialized output using the `application/json+devalue` format.
-* **`error`:** A failed result with an error `status` code. The `body` contains the serialized error details in standard JSON format.
-* **`empty`:** A successful result with no data, indicated by its 204 `status` (No Content).
