@@ -12,6 +12,7 @@ export const logos = LogoCheck({
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
 	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
+	'craft-cross-cms': { file: 'craft-cross-cms.svg', padding: '.225em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
 	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
