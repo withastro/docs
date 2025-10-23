@@ -11,6 +11,7 @@ i18nReady: true
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 
 Astro DB는 Astro 생태계를 위해 설계된 완전 관리형 SQL 데이터베이스입니다. Astro에서 로컬로 개발하고 모든 [libSQL 호환 데이터베이스](/ko/guides/astro-db/)에 배포하세요.
 
@@ -92,9 +93,46 @@ export default defineDb({
 })
 ```
 
+## 구성
+
+### `mode`
+
+<p>
+
+**타입:** `'node' | 'web'`<br />
+**기본값:** `'node'`<br />
+<Since v="0.18.0" pkg="@astrojs/db" />
+</p>
+
+프로덕션 환경에서 데이터베이스에 연결할 때 사용할 드라이버를 구성합니다.
+
+기본적으로 Astro DB는 프로덕션 배포에 Node.js 기반 libSQL 드라이버를 사용합니다. Node.js 런타임을 사용하는 대부분의 Astro 호스팅 또는 자체 호스팅 웹사이트에는 `node` 드라이버 모드로 충분합니다. 이를 통해 `memory:`, `file:`, `ws:`, `wss:`, `libsql`, `http`, `https` 등 여러 프로토콜을 통해 데이터베이스에 연결할 수 있으며, [임베디드 레플리카](/ko/guides/astro-db/#syncurl)와 같은 고급 기능도 사용할 수 있습니다.
+
+Cloudflare Workers나 Deno와 같은 Node.js가 아닌 런타임의 서버리스 환경에 배포할 경우, 웹 기반 libSQL 드라이버를 사용할 수 있습니다. `web` 모드를 사용하여 배포할 경우, `libsql`, `http`, `https`를 통해 웹 기반 연결을 설정할 수 있습니다.
+
+Node.js 환경이 아닌 경우 웹 libSQL 드라이버 모드를 사용하려면 어댑터 구성에서 `mode` 속성을 설정해야 합니다.
+
+```ts title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import db from '@astrojs/db';
+
+export default defineConfig({
+  integrations: [
+   db({
+     mode: 'web'
+   })
+  ]
+});
+```
+
 ## 테이블 구성 참조
 
 ### `columns`
+
+<p>
+
+**타입:** `ColumnsConfig`
+</p>
 
 테이블 열은 `columns` 객체를 사용하여 구성됩니다.
 
@@ -151,6 +189,11 @@ type UserTableInferInsert = {
 
 ### `indexes`
 
+<p>
+
+**타입:** `{ on: string | string[]; unique?: boolean | undefined; name?: string | undefined; }[]`
+</p>
+
 테이블 인덱스는 특정 열 또는 열 조합에 대한 조회 속도를 향상시키는 데 사용됩니다. `indexes` 속성은 인덱스를 생성할 열을 지정하는 구성 객체의 배열을 값으로 전달받습니다.
 
 ```ts title="db/config.ts" {9-11}
@@ -172,11 +215,16 @@ const Comment = defineTable({
 
 각 인덱스에 대해 다음 구성 옵션을 사용할 수 있습니다.
 
-- `on`: `string | string[]` - 인덱싱할 단일 열 또는 열 이름 배열입니다.
-- `unique`: `boolean` - 인덱스가 생성된 열 전체에 고유한 값을 적용하려면 `true`로 설정합니다.
-- `name`: `string` (선택 사항) - 고유 인덱스의 사용자 정의 이름입니다. 이는 색인화되는 테이블 및 열 이름을 기반으로 Astro에서 생성된 이름을 재정의합니다 (예: `Comment_authorId_published_idx`). 사용자 정의 이름은 전역적이므로 인덱스 이름이 테이블 간에 충돌하지 않는지 확인하세요.
+- `on` - 인덱싱할 단일 열 또는 열 이름 배열입니다.
+- `unique` (선택 사항) - 인덱스가 생성된 열 전체에 고유한 값을 적용하려면 `true`로 설정합니다.
+- `name` (선택 사항) - 고유 인덱스의 사용자 정의 이름입니다. 이는 색인화되는 테이블 및 열 이름을 기반으로 Astro에서 생성된 이름을 재정의합니다 (예: `Comment_authorId_published_idx`). 사용자 정의 이름은 전역적이므로 인덱스 이름이 테이블 간에 충돌하지 않는지 확인하세요.
 
 ### `foreignKeys`
+
+<p>
+
+**타입:** `{ columns: string | string[]; references: () => Column | Column[]; }[]`
+</p>
 
 :::tip
 
@@ -213,8 +261,8 @@ const Comment = defineTable({
 
 각 외래 키 구성 객체는 다음 속성을 허용합니다.
 
-- `columns`: `string[]` - 참조된 테이블과 관련된 열 이름의 배열입니다.
-- `references`: `() => Column[]` - 참조된 테이블에서 열 배열을 반환하는 함수입니다.
+- `columns` - 참조된 테이블과 관련된 단일 열 또는 열 이름의 배열입니다.
+- `references` - 참조된 테이블에서 단일 열 또는 열 배열을 반환하는 함수입니다.
 
 ## Astro DB CLI 참조
 
@@ -254,6 +302,12 @@ Astro DB에는 로컬 및 libSQL 호환 데이터베이스와 상호 작용하�
 ## Astro DB 유틸리티 참조
 
 ### `isDbError()`
+
+<p>
+
+**타입:** `(err: unknown) => boolean`<br />
+<Since v="0.9.1" pkg="@astrojs/db" />
+</p>
 
 `isDbError()` 함수는 오류가 libSQL 데이터베이스 예외인지 확인합니다. 여기에는 참조 사용 시 외래 키 제약 조건 오류가 포함되거나 데이터 삽입 시 필드 누락이 포함될 수 있습니다. `isDbError()`를 try / catch 블록과 결합하여 애플리케이션의 데이터베이스 오류를 처리할 수 있습니다.
 
