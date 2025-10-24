@@ -1,19 +1,17 @@
 import AstroSitemap from '@astrojs/sitemap';
 import type { AstroIntegration } from 'astro';
-import { normalizeLangTag } from '../../src/util/normalizeLangTag';
-import languages from '../../src/languages';
-
-const langTags = Object.keys(languages);
+import { allLanguages } from '../../src/languages';
+import { localesConfig } from '../../config/locales';
 
 /** Set matching our `/[lang]/something.astro` redirect routes. */
 const blocklist = new Set([
-	...langTags.map((lang) => `/${lang}/`),
-	...langTags.map((lang) => `/${lang}/install/`),
-	...langTags.map((lang) => `/${lang}/tutorial/`),
+	...allLanguages.map((lang) => `/${lang}/`),
+	...allLanguages.map((lang) => `/${lang}/install/`),
+	...allLanguages.map((lang) => `/${lang}/tutorial/`),
 ]);
 
 /** Match a pathname starting with “lighthouse” or one of our language tags. */
-const ValidRouteRE = new RegExp(`^/(lighthouse|${langTags.join('|')})/`);
+const ValidRouteRE = new RegExp(`^/(lighthouse|${allLanguages.join('|')})/`);
 
 /** Test a pathname is not in our blocklist and starts with a valid prefix. */
 const isValidPath = (path: string) => !blocklist.has(path) && ValidRouteRE.test(path);
@@ -24,7 +22,9 @@ export function sitemap(): AstroIntegration {
 		filter: (page) => isValidPath(new URL(page).pathname),
 		i18n: {
 			defaultLocale: 'en',
-			locales: Object.fromEntries(langTags.map((lang) => [lang, normalizeLangTag(lang)])),
+			locales: Object.fromEntries(
+				Object.entries(localesConfig).map(([lang, config]) => [lang, config.lang])
+			),
 		},
 	});
 }

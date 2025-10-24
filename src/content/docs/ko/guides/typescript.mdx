@@ -40,18 +40,6 @@ Astro에는 확장 가능한 세 가지 `tsconfig.json` 템플릿인 `base`, `st
 }
 ```
 
-`src/env.d.ts` 파일은 사용자 정의 타입 선언을 추가하기 위한 관례로서, 또는 `tsconfig.json`이 없는 경우 Astro 타입을 활용하기 위해 생성할 수 있습니다.
-
-사용자 정의 타입 선언을 추가하거나 `tsconfig.json`이 없는 경우 Astro 타입을 활용하기 위해 `src/env.d.ts`를 규칙으로 생성할 수 있습니다.
-
-```ts title="src/env.d.ts"
-// 사용자 정의 타입을 선언합니다.
-declare var myString: string;
-
-// Astro 타입입니다. `tsconfig.json`이 이미 있는 경우에는 필요하지 않습니다.
-/// <reference path="../.astro/types.d.ts" />
-```
-
 ### TypeScript 편집기 플러그인
 
 [공식 Astro VS Code 확장 프로그램](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode)을 사용하지 않을 때 [Astro TypeScript 플러그인](https://www.npmjs.com/package/@astrojs/ts-plugin)을 별도로 설치할 수 있습니다. 이 플러그인은 VSCode 확장 프로그램에 의해 자동으로 설치 및 구성되므로 둘 다 설치할 필요는 없습니다.
@@ -120,7 +108,7 @@ import type { SomeType } from "./script";
 
 ## 별칭 가져오기
 
-Astro는 `tsconfig.json` `paths` 구성에서 정의하는 [별칭 가져오기](/ko/guides/imports/#별칭)를 지원합니다. 자세한 내용은 [가이드](/ko/guides/imports/#별칭)를 참조하세요.
+Astro는 `tsconfig.json` `paths` 구성에서 정의하는 별칭 가져오기를 지원합니다. 자세한 내용은 [가져오기 가이드](/ko/guides/imports/#별칭)를 참조하세요.
 
 ```astro title="src/pages/about/nate.astro" "@components" "@layouts"
 ---
@@ -133,14 +121,26 @@ import Layout from "@layouts/Layout.astro";
 {
   "compilerOptions": {
     "paths": {
-      "@components/*": ["src/components/*"],
-      "@layouts/*": ["src/layouts/*"]
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"]
     }
   }
 }
 ```
 
-## `window` 및 `globalThis` 확장
+## 전역 타입 확장하기
+
+`src/env.d.ts`를 생성하여 사용자 정의 타입 선언을 추가하거나, `tsconfig.json` 없이 Astro의 타입을 활용할 수 있습니다.
+
+```ts title="src/env.d.ts"
+// 사용자 정의 타입을 선언합니다.
+declare var myString: string;
+
+// Astro의 타입입니다. `tsconfig.json`이 이미 있는 경우에는 필요하지 않습니다.
+/// <reference path="../.astro/types.d.ts" />
+```
+
+### `window` 및 `globalThis` 확장
 
 전역 객체에 속성을 추가하려는 경우가 있을 수 있습니다. `env.d.ts` 파일에 `declare` 키워드를 사용하여 최상위 선언을 추가하면 됩니다.
 
@@ -155,13 +155,61 @@ declare function myFunction(): boolean;
 
 `window` 객체의 속성에만 타입을 추가하려면 `Window` 인터페이스를 사용하세요.
 
-`window` 객체의 속성에만 타입을 지정하려면 대신 `Window` 인터페이스를 제공하세요.
-
 ```ts title="src/env.d.ts"
 interface Window {
 	myFunction(): boolean;
 }
 ```
+
+### 비표준 속성 추가하기
+
+사용자 정의 속성이나 CSS 속성에 대한 타입을 정의하고 싶을 수도 있습니다. `.d.ts` 파일에서 `astroHTML.JSX` 네임스페이스를 재선언하여 기본 JSX 정의를 확장하면 비표준 속성을 추가할 수 있습니다.
+
+```ts title="src/env.d.ts"
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    "data-count"?: number;
+    "data-label"?: string;
+  }
+
+  // 스타일 객체에 사용자 정의 CSS 속성을 추가합니다.
+  interface CSSProperties {
+    "--theme-color"?: "black" | "white";
+  }
+}
+```
+
+:::note
+`astroHTML`은 `.astro` 컴포넌트에 전역적으로 주입됩니다. TypeScript 파일에서 사용하려면 [삼중 슬래시 지시어](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)를 사용하세요.
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+### 가져오기 사용하기
+
+[동적 가져오기](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import)를 사용하면 프로젝트 또는 외부 라이브러리에서 선언된 타입을 재사용하여 전역 타입을 확장할 수 있습니다.
+
+```ts title="src/env.d.ts"
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+declare namespace App {
+  interface Locals {
+    orders: Map<string, Product[]>
+    session: import("./lib/server/session").Session | null;
+    user: import("my-external-library").User;
+  }
+}
+```
+
+`.d.ts`는 [앰비언트 모듈](https://www.typescriptlang.org/docs/handbook/modules/reference.html#ambient-modules) 선언 파일입니다. 구문은 ES 모듈과 유사하지만, 최상위 수준에서 가져오기/내보내기를 허용하지 않습니다. Typescript가 이를 감지하면 해당 파일을 [모듈 확장 파일](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation)로 간주하여 전역 타입 정의가 깨질 수 있습니다.
 
 ## 컴포넌트 Props
 
@@ -213,32 +261,6 @@ const { href, ...attrs } = Astro.props;
   <slot />
 </a>
 ```
-
-`.d.ts` 파일에서 `astroHTML.JSX` 네임스페이스를 다시 선언하여 기본 JSX 정의를 확장할 수 있습니다. 이를 통해 비표준 속성을 추가할 수도 있습니다.
-
-```ts title="src/custom-attributes.d.ts"
-declare namespace astroHTML.JSX {
-  interface HTMLAttributes {
-    "data-count"?: number;
-    "data-label"?: string;
-  }
-
-  // 스타일 객체에 CSS 사용자 정의 속성을 추가합니다.
-  interface CSSProperties {
-    "--theme-color"?: "black" | "white";
-  }
-}
-```
-
-:::note
-`astroHTML`은 `.astro` 컴포넌트에 전역적으로 주입됩니다. TypeScript 파일에서 사용하려면 [삼중 슬래시 지시어](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html)를 사용하세요.
-
-```ts
-/// <reference types="astro/astro-jsx" />
-
-type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
-```
-:::
 
 ### `ComponentProps` 타입
 

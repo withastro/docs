@@ -1,6 +1,8 @@
 ---
 title: Supabase y Astro
 description: Añade un backend a tu proyecto con Supabase
+sidebar:
+  label: Supabase
 type: backend
 service: Supabase
 i18nReady: true
@@ -15,7 +17,7 @@ import { FileTree } from '@astrojs/starlight/components';
 ### Prerrequisitos
 
 - Un proyecto con Supabase. Si no tienes uno, puedes registrarte gratis en [supabase.com](https://supabase.com/) y crear un nuevo proyecto.
-- Un proyecto de Astro con [renderizado del lado del servidor (SSR)](/es/guides/on-demand-rendering/) habilitado.
+- Un proyecto de Astro con [`output: 'server'` para renderizado bajo demanda](/es/guides/on-demand-rendering/) habilitado.
 - Las credenciales de Supabase para tu proyecto. Puedes encontrarlas en la pestaña **Settings > API** de tu proyecto de Supabase.
   - `SUPABASE_URL`: La URL de tu proyecto de Supabase.
   - `SUPABASE_ANON_KEY`: La clave anónima de tu proyecto de Supabase.
@@ -122,7 +124,7 @@ Para agregar autenticación a tu proyecto, deberás crear algunos endpoints de s
 - `POST /api/auth/signin`: para iniciar sesión de un usuario.
 - `GET /api/auth/signout`: para cerrar la sesión de un usuario.
 
-Crea estos endpoints en el directorio `src/pages/api/auth` de tu proyecto. Si estás utilizando el modo de renderizado `hybrid`, debes especificar `export const prerender = false` en la parte superior de cada archivo para renderizar estos endpoints bajo demanda. Ahora tu proyecto debería incluir estos archivos:
+Crea estos endpoints en el directorio `src/pages/api/auth` de tu proyecto. Si estás utilizando el modo de renderizado `static`, debes especificar `export const prerender = false` en la parte superior de cada archivo para renderizar estos endpoints bajo demanda. Ahora tu proyecto debería incluir estos archivos:
 
 <FileTree title="Project Structure">
 - src/
@@ -143,7 +145,7 @@ Crea estos endpoints en el directorio `src/pages/api/auth` de tu proyecto. Si es
 El archivo `register.ts` crea un nuevo usuario en Supabase. Acepta una solicitud `POST` con un correo electrónico y una contraseña. Luego, utiliza el SDK de Supabase para crear un nuevo usuario.
 
 ```ts title="src/pages/api/auth/register.ts"
-// Con `output: 'hybrid'` configurado:
+// Con `output: 'static'` configurado:
 // export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
@@ -173,7 +175,7 @@ export const POST: APIRoute = async ({ request, redirect }) => {
 El archivo `signin.ts` inicia sesión de un usuario. Acepta una solicitud `POST` con un correo electrónico y una contraseña. Luego, utiliza el SDK de Supabase para iniciar sesión del usuario.
 
 ```ts title="src/pages/api/auth/signin.ts"
-// Con `output: 'hybrid'` configurado:
+// Con `output: 'static'` configurado:
 // export const prerender = false;
 import type { APIRoute } from "astro";
 import { supabase } from "../../../lib/supabase";
@@ -210,7 +212,7 @@ export const POST: APIRoute = async ({ request, cookies, redirect }) => {
 El archivo `signout.ts` cierra la sesión de un usuario. Acepta una solicitud `GET` y elimina los tokens de acceso y actualización del usuario.
 
 ```ts title="src/pages/api/auth/signout.ts"
-// Con `output: 'hybrid'` configurado:
+// Con `output: 'static'` configurado:
 // export const prerender = false;
 import type { APIRoute } from "astro";
 
@@ -299,39 +301,46 @@ if (accessToken && refreshToken) {
 </Layout>
 ```
 
-El archivo `dashboard.astro` contiene una página que solo es accesible para usuarios autenticados. Verifica la presencia de los tokens de acceso y actualización. Si no están presentes, redirige a la página de inicio de sesión.
+El archivo `dashboard.astro` contiene una página que solo es accesible para usuarios autenticados. Verifica la presencia de los tokens de acceso y actualización. Si no están presentes o son inválidos, redirige a la página de inicio de sesión.
 
 ```astro title="src/pages/dashboard.astro"
 ---
 import Layout from "../layouts/Layout.astro";
 import { supabase } from "../lib/supabase";
 
-const { cookies, redirect } = Astro;
-
-const accessToken = cookies.get("sb-access-token");
-const refreshToken = cookies.get("sb-refresh-token");
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
 
 if (!accessToken || !refreshToken) {
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const { data, error } = await supabase.auth.setSession({
-  refresh_token: refreshToken.value,
-  access_token: accessToken.value,
-});
-
-if (error) {
-  cookies.delete("sb-access-token", {
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
     path: "/",
   });
-  cookies.delete("sb-refresh-token", {
+  Astro.cookies.delete("sb-refresh-token", {
     path: "/",
   });
-
-  return redirect("/signin");
+  return Astro.redirect("/signin");
 }
 
-const email = data?.user?.email;
+const email = session.data.user?.email;
 ---
 <Layout title="panel de control">
   <h1>Bienvenido {email}</h1>
