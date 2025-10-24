@@ -8,7 +8,8 @@ githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/int
 category: adapter
 i18nReady: true
 ---
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
@@ -51,36 +52,69 @@ Astro 프로젝트의 서버 렌더링을 활성화하려면 `astro add` 명령�
 
 ### 수동 설치
 
-먼저, 선호하는 패키지 관리자를 사용하여 `@astrojs/cloudflare` 어댑터를 프로젝트 종속성에 추가하세요.
+<Steps>
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```sh
-  npm install @astrojs/cloudflare
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```sh
-  pnpm add @astrojs/cloudflare
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```sh
-  yarn add @astrojs/cloudflare
-  ```
-  </Fragment>
-</PackageManagerTabs>
+1. 선호하는 패키지 관리자를 사용하여 `@astrojs/cloudflare` 어댑터를 프로젝트 종속성에 추가하세요.
 
-그런 다음 `astro.config.mjs` 파일에 어댑터를 추가합니다.
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npm install @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm add @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn add @astrojs/cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
 
-```js title="astro.config.mjs" ins={2,5}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+2. `astro.config.mjs` 파일에 어댑터를 추가합니다.
 
-export default defineConfig({
-  adapter: cloudflare(),
-});
-```
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      adapter: cloudflare(),
+    });
+    ```
+
+3. [Wrangler 구성 파일](https://developers.cloudflare.com/workers/wrangler/configuration/)을 생성합니다.
+
+    ```jsonc title="wrangler.jsonc"
+    {
+      "main": "dist/_worker.js/index.js",
+      "name": "my-astro-app",
+      // 배포하는 날짜로 업데이트합니다.
+      "compatibility_date": "2025-03-25",
+      "compatibility_flags": [
+        "nodejs_compat",
+        "global_fetch_strictly_public"
+      ],
+      "assets": {
+        "binding": "ASSETS",
+        "directory": "./dist"
+      },
+      "observability": {
+        "enabled": true
+      }
+    }
+    ```
+
+4. `public/` 폴더에 `.assetsignore` 파일을 만들고 다음 줄을 추가합니다.
+
+      ```txt title="public/.assetsignore"
+      _worker.js
+      _routes.json
+      ```
+
+</Steps>
 
 ## 옵션
 
@@ -213,14 +247,14 @@ Cloudflare 어댑터가 요청 시 생성할 추가 경로를 `routes.extend.inc
 **기본값:** `undefined`
 </p>
 
-주문형 렌더링에서 제외할 경로를 `routes.extend.exclude` 배열에 구성합니다. 대신 이러한 경로는 사전 렌더링되어 정적으로 제공되며 서버 함수를 호출하지 않습니다. 또한 이 옵션을 사용하면 서버 함수를 통해 요청을 라우팅하지 않고도 정적 자산 (예: 이미지, 글꼴, CSS, js, html, txt, json 등) 파일을 직접 제공할 수 있습니다.
+요청 시 렌더링에서 제외할 경로를 `routes.extend.exclude` 배열에 구성합니다. 대신 이러한 경로는 사전 렌더링되어 정적으로 제공되며 서버 함수를 호출하지 않습니다. 또한 이 옵션을 사용하면 서버 함수를 통해 요청을 라우팅하지 않고도 정적 자산 (예: 이미지, 글꼴, CSS, js, html, txt, json 등) 파일을 직접 제공할 수 있습니다.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   adapter: cloudflare({
     routes: {
       extend: {
-        include: [{ pattern: '/static' }], // 주문형 렌더링을 위해 사전 렌더링된 페이지를 서버 함수로 라우팅합니다.
+        include: [{ pattern: '/static' }], // 요청 시 렌더링을 위해 사전 렌더링된 페이지를 서버 함수로 라우팅합니다.
         exclude: [{ pattern: '/pagefind/*' }], // 빌드 시 정적으로 생성되는 Starlight의 pagefind 검색을 사용합니다.
       }
     },
@@ -337,12 +371,11 @@ export function createExports(manifest: SSRManifest) {
 
 ## Cloudflare 런타임
 
-### 사용
+### 사용법
 
-Cloudflare 런타임은 환경 변수와 Cloudflare 리소스에 대한 바인딩 접근 권한을 제공합니다.
-Cloudflare 런타임은 `wrangler.toml`/`wrangler.json` 구성 파일에 있는 바인딩을 사용합니다.
+Cloudflare 런타임을 통해 `wrangler.toml`/`wrangler.jsonc` 구성 파일에 정의된 환경 변수 및 Cloudflare 리소스에 대한 바인딩에 액세스할 수 있습니다.
 
-`Astro.locals.runtime`에서 바인딩에 접근할 수 있습니다.
+`Astro.locals.runtime`을 통해 바인딩에 접근할 수 있습니다.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -367,9 +400,9 @@ Cloudflare 문서에서 [지원되는 모든 바인딩 목록](https://developer
 
 Cloudflare 런타임은 환경 변수를 일종의 바인딩으로 취급합니다.
 
-예를 들어, `wrangler.json`에서 다음과 같이 [환경 변수](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler)를 정의할 수 있습니다.
+예를 들어, `wrangler.jsonc`에서 다음과 같이 [환경 변수](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler)를 정의할 수 있습니다.
 
-```json title="wrangler.json"
+```jsonc title="wrangler.jsonc"
 {
   "vars" : {
     "MY_VARIABLE": "test"
@@ -494,8 +527,8 @@ Cloudflare 어댑터를 사용하는 경우 Astro는 세션 스토리지를 위�
 2. Wrangler 구성에서 KV 네임스페이스를 선언하고, 네임스페이스 ID를 이전 명령에서 반환된 ID로 설정합니다.
 
     <Tabs>
-      <TabItem label="wrangler.json">
-        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+      <TabItem label="wrangler.jsonc">
+        ```json title="wrangler.jsonc" "<KV_NAMESPACE_ID>"
         {
           "kv_namespaces": [
             {
@@ -600,7 +633,7 @@ export default defineConfig({
 Workers를 사용하는 경우:
 
 ```json title="package.json"
-"preview": "wrangler dev ./dist"
+"preview": "wrangler dev"
 ```
 
 Pages를 사용하는 경우:
