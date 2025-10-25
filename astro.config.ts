@@ -69,7 +69,10 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
-			plugins: [starlightPluginSmokeTest(), starlightPluginLlmsTxt()],
+			plugins: [
+				starlightPluginSmokeTest(),
+				...(process.env.PUBLIC_TWO_LANG ? [] : [starlightPluginLlmsTxt()]),
+			],
 		}),
 		sitemap(),
 	],

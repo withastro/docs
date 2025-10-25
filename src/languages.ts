@@ -4,7 +4,7 @@ import { localesConfig, twoLocalesConfig } from '../config/locales';
 /** The current Starlight i18n configuration depending if we are running smoke tests or not. */
 const currentLocalesConfig = process.env.PUBLIC_TWO_LANG ? twoLocalesConfig : localesConfig;
 
-/** An array of all language currently configured. */
+/** An array of all languages currently configured. */
 export const allLanguages = Object.keys(currentLocalesConfig);
 
 /** The pages to generate for `/[lang]/` dynamic routes. */
