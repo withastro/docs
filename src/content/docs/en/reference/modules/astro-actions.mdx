@@ -88,56 +88,13 @@ If `input` is omitted, the `handler` will receive an input of type `unknown` for
 **Default:** `json`
 </p>
 
-Defines the format expected by an action. If your action accepts form inputs, use `accept: "form"` with the `z.object()` validator to automatically parse `FormData` to a typed object.
+Defines the format expected by an action:
+* Use `form` when your action accepts `FormData`.
+* Use `json`, the default, for all other cases.
 
-All Zod validators are supported for form data fields (e.g. `z.coerce.date()`). Astro additionally provides special handling under the hood for your convenience for validating the following types of field inputs:
+When your action accepts form inputs, the `z.object()` validator will automatically parse `FormData` to a typed object. All Zod validators are supported to validate your inputs. However, the output type is not guaranteed to match your `input` validator except when you use arrays or booleans. Any falsy values will be internally converted to `null`.
 
-- Inputs of type `number` can be validated using `z.number()`
-- Inputs of type `checkbox` can be validated using `z.coerce.boolean()`
-- Inputs of type `file` can be validated using `z.instanceof(File)`
-- Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
-- All other inputs can be validated using `z.string()`
-
-Extension functions including `.refine()`, `.transform()`, and `.pipe()` are also supported on the `z.object()` validator.
-
-:::caution
-Except when using arrays or booleans, any falsy values will be internally converted to `null`. For example, if an input of type `text` is sent with an empty value, the result will be `null` instead of an empty string (`""`).
-:::
-
-To apply a union of different validators, use the `z.discriminatedUnion()` wrapper to narrow the type based on a specific form field. This example accepts a form submission to either "create" or "update" a user, using the form field with the name `type` to determine which object to validate against:
-
-```ts
-import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
-
-export const server = {
-  changeUser: defineAction({
-    accept: 'form',
-    input: z.discriminatedUnion('type', [
-      z.object({
-        // Matches when the `type` field has the value `create`
-        type: z.literal('create'),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-      z.object({
-        // Matches when the `type` field has the value `update`
-        type: z.literal('update'),
-        id: z.number(),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-    ]),
-    async handler(input) {
-      if (input.type === 'create') {
-        // input is { type: 'create', name: string, email: string }
-      } else {
-        // input is { type: 'update', id: number, name: string, email: string }
-      }
-    },
-  }),
-};
-```
+For example, if an input of type `text` is sent with an empty value, the result will be `null` instead of an empty string (`""`).
 
 ### `actions`
 
