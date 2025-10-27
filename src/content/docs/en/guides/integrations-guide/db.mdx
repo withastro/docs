@@ -11,6 +11,7 @@ i18nReady: true
 import { FileTree } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
 
 Astro DB is a fully-managed SQL database designed for the Astro ecosystem: develop locally in Astro and deploy to any [libSQL-compatible database](/en/guides/astro-db/).
 
@@ -92,9 +93,46 @@ export default defineDb({
 })
 ```
 
+## Configuration
+
+### `mode`
+
+<p>
+
+**Type:** `'node' | 'web'`<br />
+**Default:** `'node'`<br />
+<Since v="0.18.0" pkg="@astrojs/db" />
+</p>
+
+Configures the driver to use to connect to your database in production.
+
+By default, Astro DB uses a Node.js-based libSQL driver for production deployments. The `node` driver mode is sufficient for most Astro hosted or self-hosted websites with Node.js runtimes. This allows you to connect to your database over several protocols, including `memory:`, `file:`, `ws:`, `wss:`, `libsql`, `http`, and `https`, as well as allowing for more advanced features such as [embedded replicas](/en/guides/astro-db/#syncurl).
+
+When deploying to a serverless environment on a non-Node.js runtime, such as Cloudflare Workers or Deno, a web-based libSQL driver is available. When deploying using the `web` mode, you will be able to make web-based connections over `libsql`, `http`, or `https`.
+
+To use the web libSQL driver mode for non-Node.js environments, set the `mode` property in your adapter's configuration:
+
+```ts title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import db from '@astrojs/db';
+
+export default defineConfig({
+  integrations: [
+   db({
+     mode: 'web'
+   })
+  ]
+});
+```
+
 ## Table configuration reference
 
 ### `columns`
+
+<p>
+
+**Type:** `ColumnsConfig`
+</p>
 
 Table columns are configured using the `columns` object:
 
@@ -151,6 +189,11 @@ type UserTableInferInsert = {
 
 ### `indexes`
 
+<p>
+
+**Type:** `{ on: string | string[]; unique?: boolean | undefined; name?: string | undefined; }[]`
+</p>
+
 Table indexes are used to improve lookup speeds on a given column or combination of columns. The `indexes` property accepts an array of configuration objects specifying the columns to index:
 
 ```ts title="db/config.ts" {9-11}
@@ -172,11 +215,16 @@ This will generate a unique index on the `authorId` and `published` columns with
 
 The following configuration options are available for each index:
 
-- `on`: `string | string[]` - A single column or array of column names to index.
-- `unique`: `boolean` - Set to `true` to enforce unique values across the indexed columns.
-- `name`: `string` (optional) - A custom name for the unique index. This will override Astro's generated name based on the table and column names being indexed (e.g. `Comment_authorId_published_idx`). Custom names are global, so ensure index names do not conflict between tables.
+- `on` - A single column or array of column names to index.
+- `unique` (optional) - Set to `true` to enforce unique values across the indexed columns.
+- `name` (optional) - A custom name for the unique index. This will override Astro's generated name based on the table and column names being indexed (e.g. `Comment_authorId_published_idx`). Custom names are global, so ensure index names do not conflict between tables.
 
 ### `foreignKeys`
+
+<p>
+
+**Type:** `{ columns: string | string[]; references: () => Column | Column[]; }[]`
+</p>
 
 :::tip
 
@@ -213,8 +261,8 @@ const Comment = defineTable({
 
 Each foreign key configuration object accepts the following properties:
 
-- `columns`: `string[]` - An array of column names to relate to the referenced table.
-- `references`: `() => Column[]` - A function that returns an array of columns from the referenced table.
+- `columns` - A single column or array of column names to relate to the referenced table.
+- `references` - A function that returns a single column or an array of columns from the referenced table.
 
 ## Astro DB CLI reference
 
@@ -254,6 +302,12 @@ Execute a raw SQL query against your database. Use the `--remote` flag to run ag
 ## Astro DB utility reference
 
 ### `isDbError()`
+
+<p>
+
+**Type:** `(err: unknown) => boolean`<br />
+<Since v="0.9.1" pkg="@astrojs/db" />
+</p>
 
 The `isDbError()` function checks if an error is a libSQL database exception. This may include a foreign key constraint error when using references, or missing fields when inserting data. You can combine `isDbError()` with a try / catch block to handle database errors in your application:
 
