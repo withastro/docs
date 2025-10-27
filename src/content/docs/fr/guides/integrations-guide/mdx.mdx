@@ -185,36 +185,11 @@ Voici mon composant compteur, fonctionnant dans MDX :
 <ReactCounter client:load />
 ```
 
-#### Composants personnalisés avec MDX importé
+#### Affecter des composants personnalisés aux éléments HTML
 
-Lors de l'affichage de contenu MDX importé, les [composants personnalisés](#assigner-des-composants-personnalisés-à-des-éléments-html) peuvent être passés via la propriété `components`.
+Avec MDX, vous pouvez associer la syntaxe Markdown à des composants personnalisés plutôt qu'à leurs éléments HTML standard. Cela vous permet d'écrire en syntaxe Markdown standard, tout en appliquant un style de composant spécifique aux éléments sélectionnés.
 
-```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
----
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
----
-<!-- Crée un <h1> personnalisé pour la syntaxe #, _et_ applique tout composant personnalisé défini dans `content.mdx` -->
-<Content components={{...components, h1: Heading }} />
-```
-
-:::note
-Les composants personnalisés définis et exportés dans un fichier MDX doivent être importés et renvoyés au composant `<Content />` via la propriété `components`.
-:::
-
-#### Assigner des composants personnalisés à des éléments HTML
-
-Avec MDX, vous pouvez associer la syntaxe Markdown à des composants personnalisés plutôt qu'à leurs éléments HTML standard. Cela vous permet d'écrire dans la syntaxe Markdown standard, mais d'appliquer un style de composant spécial aux éléments sélectionnés.
-
-Importez votre composant personnalisé dans votre fichier `.mdx`, puis exportez un objet `components` qui associe l'élément HTML standard à votre composant personnalisé :
-
-```mdx title="src/blog/posts/post-1.mdx"
-import Blockquote from '../components/Blockquote.astro';
-export const components = {blockquote: Blockquote}
-
-> Cette citation utilisera un composant Blockquote personnalisé
-```
-
+Par exemple, vous pouvez créer un composant `Blockquote.astro` pour donner une mise en forme personnalisée au contenu `<blockquote>` :
 
 ```astro title="src/components/Blockquote.astro"
 ---
@@ -222,10 +197,55 @@ const props = Astro.props;
 ---
 <blockquote {...props} class="bg-blue-50 p-4">
   <span class="text-4xl text-blue-600 mb-2">“</span>
-  <slot /> <!-- Veillez à ajouter un `<slot/>` pour le contenu enfant ! -->
+  <slot /> <!-- Assurez-vous d'ajouter un `<slot/>` pour le contenu enfant ! -->
 </blockquote>
 ```
-Visitez le [site web MDX](https://mdxjs.com/table-of-components/) pour obtenir la liste complète des éléments HTML qui peuvent être remplacés par des composants personnalisés.
+
+Importez votre composant personnalisé dans votre fichier `.mdx`, puis exportez un objet `components` qui associe l'élément HTML standard à votre composant personnalisé :
+
+```mdx title="src/blog/articles/article-1.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> Cette citation utilisera un composant Blockquote personnalisé
+```
+
+Visitez le [site web de MDX](https://mdxjs.com/table-of-components/) pour obtenir une liste complète des éléments HTML qui peuvent être remplacés par des composants personnalisés.
+
+:::note
+Les composants personnalisés définis et exportés dans un fichier MDX doivent toujours être importés puis renvoyés au composant `<Content />` via la propriété `components`.
+:::
+
+#### Transmettre des composants au contenu MDX
+
+Lors du rendu du contenu MDX importé avec le composant `<Content />`, y compris le rendu des entrées MDX à l'aide de collections de contenu, des composants personnalisés peuvent être transmis via la propriété `components`. Ces composants doivent d'abord être importés pour qu'ils soient disponibles pour le composant `<Content />`.
+
+L'objet `components` associe les noms d'éléments HTML (`h1`, `h2`, `blockquote`, etc.) à vos composants personnalisés. Vous pouvez également inclure [tous les composants exportés depuis le fichier MDX](#affecter-des-composants-personnalisés-aux-éléments-html) à l'aide de l'opérateur de propagation (`...`), qui doivent également être importés depuis votre fichier MDX en tant que `components`.
+
+Si vous importez du contenu MDX directement à partir d'un seul fichier pour l'utiliser dans un composant Astro, importez à la fois le composant `Content` et tous les composants exportés à partir de votre fichier MDX.
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}" {2}
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- Crée une balise <h1> personnalisée pour la syntaxe #, _et_ applique tous les composants personnalisés définis dans `content.mdx` -->
+<Content components={{...components, h1: Heading }} />
+```
+
+Si votre fichier MDX est une entrée de collection de contenu, utilisez la fonction `render()` de `astro:content` pour accéder au composant `<Content />`.
+
+L'exemple suivant transmet un titre personnalisé au composant `<Content />` via la propriété `components` à utiliser à la place de tous les éléments HTML `<h1>` :
+
+```astro title="src/pages/blog/article-1.astro" ins="components={{ h1: CustomHeading }}"
+---
+import { getEntry, render } from 'astro:content';
+import CustomHeading from '../../components/CustomHeading.astro';
+const entry = await getEntry('blog', 'article-1');
+const { Content } = await render(entry);
+---
+<Content components={{ h1: CustomHeading }} />
+```
 
 ## Configuration
 
@@ -378,7 +398,7 @@ export default defineConfig({
 
 Précédemment connu sous le nom de `customComponentNames`.
 
-Une propriété optionnelle de `optimize` pour empêcher l'optimiseur MDX de gérer certains noms d'éléments, comme [les composants personnalisés passés au contenu MDX importé via la propriété components](/fr/guides/integrations-guide/mdx/#composants-personnalisés-avec-mdx-importé).
+Une propriété optionnelle de `optimize` pour empêcher l'optimiseur MDX de gérer certains noms d'éléments, comme [les composants personnalisés passés au contenu MDX importé via la propriété components](#transmettre-des-composants-au-contenu-mdx).
 
 Vous devrez exclure ces composants de l'optimisation, car l'optimiseur convertit trop rapidement le contenu en une chaîne statique, ce qui brisera les composants personnalisés qui ont besoin d'être rendus dynamiquement.
 
@@ -412,7 +432,7 @@ export default defineConfig({
 });
 ```
 
-Notez que si votre fichier MDX [configure les composants personnalisés en utilisant `export const components = { ... }`](/fr/guides/integrations-guide/mdx/#assigner-des-composants-personnalisés-à-des-éléments-html), alors vous n'avez pas besoin de configurer manuellement cette option. L'optimisateur les détectera automatiquement.
+Notez que si votre fichier MDX [configure les composants personnalisés en utilisant `export const components = { ... }`](/fr/guides/integrations-guide/mdx/#affecter-des-composants-personnalisés-aux-éléments-html), alors vous n'avez pas besoin de configurer manuellement cette option. L'optimisateur les détectera automatiquement.
 
 ## Exemples
 
