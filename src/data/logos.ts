@@ -109,6 +109,7 @@ export const logos = LogoCheck({
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
 	'zephyr-cloud': { file: 'zephyr.svg', padding: '0' },
+	seenode: { file: 'seenode.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
