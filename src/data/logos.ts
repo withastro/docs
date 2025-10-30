@@ -108,7 +108,7 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
-	'zephyr': { file: 'zephyr.svg', padding: '0' },
+	zephyr: { file: 'zephyr.svg', padding: '0' },
 	seenode: { file: 'seenode.svg', padding: '.2em' },
 });
 
