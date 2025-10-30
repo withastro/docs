@@ -207,7 +207,7 @@ Vous pouvez utiliser la classe `ActionError` fournie pour générer une erreur �
 
 #### Création d'une `ActionError`
 
-Pour générer une erreur, importez la classe `ActionError()` depuis le module `astro:actions`. Transmettez-lui un code d'état lisible par l'homme (par exemple `"NOT_FOUND"` ou `"BAD_REQUEST"`), et un `message` facultatif pour fournir des informations supplémentaires sur l'erreur.
+Pour générer une erreur, importez la [classe `ActionError()`](/fr/reference/modules/astro-actions/#actionerror) depuis le module `astro:actions`. Transmettez-lui un code d'état lisible par l'homme (par exemple `"NOT_FOUND"` ou `"BAD_REQUEST"`), et un `message` facultatif pour fournir des informations supplémentaires sur l'erreur.
 
 Cet exemple génère une erreur d'une action `likePost` lorsqu'un utilisateur n'est pas connecté, après avoir vérifié un hypothétique cookie de « session utilisateur » pour l'authentification :
 
@@ -299,6 +299,55 @@ export const server = {
     handler: async (input) => { /* ... */ },
   })
 }
+```
+
+### Utilisation de validateurs avec des champs de formulaire
+
+Lorsque votre action est [configurée pour accepter les données d'un formulaire](/fr/reference/modules/astro-actions/#propriété-accept), vous pouvez utiliser n'importe quel validateur Zod pour valider vos champs (par exemple `z.coerce.date()` pour les champs de date). Les fonctions d'extension, telles que `.refine()`, `.transform()` et `.pipe()`, sont également prises en charge par le validateur `z.object()`.
+
+De plus, Astro fournit une gestion spéciale sous le capot pour votre commodité afin de valider les types de champ suivants :
+
+- Les champs de type `number` peuvent être validés à l'aide de `z.number()`
+- Les champs de type `checkbox` peuvent être validés à l'aide de `z.coerce.boolean()`
+- Les champs de type `file` peuvent être validés à l'aide de `z.instanceof(File)`
+- Plusieurs champs du même nom (`name`) peuvent être validés à l'aide de `z.array(/* validateur */)`
+- Tous les autres champs peuvent être validés à l'aide de `z.string()`
+
+Lorsque votre formulaire est soumis avec des champs vides, le type du résultat peut ne pas correspondre à celui de votre validateur de saisie (`input`). Les valeurs vides sont converties en `null`, sauf lors de la validation de tableaux ou de booléens. Par exemple, si une entrée de type `text` est soumise avec une valeur vide, le résultat sera `null` au lieu d'une chaîne de caractères vide (`""`).
+
+Pour appliquer une union de différents validateurs, utilisez l'encapsuleur `z.discriminatedUnion()` afin de restreindre le type en fonction d'un champ de formulaire spécifique. Cet exemple accepte un envoi de formulaire pour créer ou mettre à jour un utilisateur, en utilisant le champ de formulaire utilisant le nom `type` pour déterminer l'objet à valider :
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // Correspond lorsque le champ `type` a la valeur `create`
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // Correspond lorsque le champ `type` a la valeur `update`
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input correspond à { type: 'create', name: string, email: string }
+      } else {
+        // input correspond à { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
 ```
 
 ### Validation des données du formulaire
@@ -656,7 +705,7 @@ Les actions sont accessibles en tant que points de terminaison publics en foncti
 
 Pour autoriser les demandes d'action, ajoutez une vérification d'authentification à votre gestionnaire d'actions. Vous souhaiterez peut-être utiliser [une bibliothèque d'authentification](/fr/guides/authentication/) pour gérer la gestion des sessions et les informations utilisateur.
 
-Les actions exposent l'objet `APIContext` complet pour accéder aux propriétés transmises par le middleware à l'aide de `context.locals`. Lorsqu'un utilisateur n'est pas autorisé, vous pouvez générer une `ActionError` avec le code `UNAUTHORIZED` :
+Les actions exposent [un sous-ensemble de l'objet `APIContext`](/fr/reference/modules/astro-actions/#actionapicontext) pour accéder aux propriétés transmises par le middleware à l'aide de `context.locals`. Lorsqu'un utilisateur n'est pas autorisé, vous pouvez générer une `ActionError` avec le code `UNAUTHORIZED` :
 
 ```ts title="src/actions/index.ts" {6-8}
 import { defineAction, ActionError } from 'astro:actions';
@@ -679,7 +728,7 @@ export const server = {
 
 Astro recommande d'autoriser les sessions utilisateur à partir de votre gestionnaire d'actions pour respecter les niveaux d'autorisation et la limitation de débit par action. Cependant, vous pouvez également limiter les demandes à toutes les actions (ou à un sous-ensemble d'actions) à partir du middleware.
 
-Utilisez la fonction `getActionContext()` de votre middleware pour récupérer des informations sur les demandes d'action entrantes. Cela inclut le nom de l'action et si cette action a été appelée à l'aide d'une fonction d'appel de procédure à distance (RPC) côté client (par exemple, `actions.blog.like()`) ou d'un formulaire HTML.
+Utilisez la [fonction `getActionContext()`](/fr/reference/modules/astro-actions/#getactioncontext) de votre middleware pour récupérer des informations sur les demandes d'action entrantes. Cela inclut le nom de l'action et si cette action a été appelée à l'aide d'une fonction d'appel de procédure à distance (RPC) côté client (par exemple, `actions.blog.like()`) ou d'un formulaire HTML.
 
 L'exemple suivant rejette toutes les demandes d'action qui ne disposent pas d'un jeton de session valide. Si la vérification échoue, une réponse « Forbidden » est renvoyée. Remarque : cette méthode garantit que les actions ne sont accessibles que lorsqu'une session est présente, mais ne remplace _pas_ une autorisation sécurisée.
 
