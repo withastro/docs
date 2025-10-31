@@ -5,6 +5,7 @@ sidebar:
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
 Astro's  Content Loader API allows you to load your data from any source, local or remote, and interact with Astro's content layer to manage your [content collections](/en/guides/content-collections/).
 
@@ -222,9 +223,78 @@ const blog = defineCollection({
 });  
 ```
 
+### Live loaders
+
+A live loader is an object with two methods: `loadCollection()` and `loadEntry()` that should handle errors gracefully and return either data or an `Error` object.
+
+```ts title="src/article-loader.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load articles: ${error.message}`),
+        };
+      }
+    },
+    loadEntry: async ({ filter }) => {
+      try {
+        // filter will be { id: "some-id" } when called with a string
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('Article not found'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Failed to load article: ${error.message}`),
+        };
+      }
+    },
+  };
+}
+```
+
+<ReadMore>[See the `Content Collection` guide](/en/guides/content-collections/#creating-a-live-loader) for more information about creating a live loader and example usage.</ReadMore>
+
 ## Object loader API
 
-The API for [inline loaders](#inline-loaders) is very simple, and is shown above. This section shows the API for defining an object loader.
+The API for [inline loaders](#inline-loaders) is very simple, and is shown above. This section shows the API for defining an [object loader](#object-loaders).
 
 ### The `Loader` object
 
@@ -670,3 +740,67 @@ The format of the `RenderedContent` object is:
 ```
 
 If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
+
+## Live loader API
+
+This section shows the API for defining a [live loader](#live-loaders).
+
+### The `LiveLoader` object
+
+A generic type to provide [type safety in your loader](#type-safety-in-live-loaders). This describes an object and accepts four type parameters to describe, in this order: your data structure, your filters when querying a collection, your filters when querying a single entry, and errors.
+
+This object contains the following properties:
+
+#### `name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+
+A unique name for the loader, used in logs.
+
+#### `loadCollection()`
+
+<p>
+
+**Type:** `(context: LoadCollectionContext<TCollectionFilter>) => Promise<LiveDataCollection<TData> | { error: TError; }>`
+</p>
+
+Defines a method to load a collection of entries. This function receives a [context object](#loadcollectioncontext) containing an optional `filter` property and must return a the data associated to this collection or the errors.
+
+#### `loadEntry()`
+
+<p>
+
+**Type:** `(context: LoadEntryContext<TEntryFilter>) => Promise<LiveDataEntry<TData> | undefined | { error: TError; }>`
+</p>
+
+Defines a method to load a single entry. This function receives a [context object](#loadentrycontext) containing a `filter` property and returns either the data associated to the requested entry, `undefined` when the entry cannot be found, or the errors.
+
+### `LoadCollectionContext`
+
+This object is passed to the [`loadCollection()` method](#loadcollection) of the loader and contains the following properties:
+
+#### `filter`
+
+<p>
+
+**Type:** `Record<string, any>`
+</p>
+
+An object describing the filters supported by your loader.
+
+### `LoadEntryContext`
+
+This object is passed to the [`loadEntry()` method](#loadentry) of the loader and contains the following properties:
+
+#### `filter`
+
+<p>
+
+**Type:** `Record<string, any>`
+</p>
+
+An object describing the filters supported by your loader.
