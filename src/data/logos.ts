@@ -7,6 +7,7 @@ export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
+	deployhq: { file: 'deployhq.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
