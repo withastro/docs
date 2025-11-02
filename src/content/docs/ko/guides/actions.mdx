@@ -205,9 +205,9 @@ const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
 
 - 애플리케이션 코드에서 모든 오류는 액션 결과의 `error` 객체에 전달됩니다. 이렇게 하면 데이터가 `undefined`인지 검사를 할 필요가 없으며, 무엇이 잘못되었는지에 따라 사용자에게 맞춤형 피드백을 표시할 수 있습니다.
 
-#### `ActionError` 만들기 
+#### `ActionError` 만들기
 
-오류를 발생시키려면 `astro:actions` 모듈에서 `ActionError()` 클래스를 가져옵니다. 사람이 읽을 수 있는 상태 `code` (예: `"NOT_FOUND"` 또는 `"BAD_REQUEST"`)와 오류에 대한 추가 정보를 제공하기 위한 선택적 `message`를 전달합니다.
+오류를 발생시키려면 `astro:actions` 모듈에서 [`ActionError()` 클래스](/ko/reference/modules/astro-actions/#actionerror)를 가져옵니다. 사람이 읽을 수 있는 상태 `code` (예: `"NOT_FOUND"` 또는 `"BAD_REQUEST"`)와 오류에 대한 추가 정보를 제공하기 위한 선택적 `message`를 전달합니다.
 
 이 예시에서는 사용자가 로그인하지 않은 경우, 가상의 "user-session" 쿠키를 확인하여 인증을 수행한 후 `likePost` 액션에서 오류를 발생시킵니다:
 
@@ -299,6 +299,55 @@ export const server = {
     handler: async (input) => { /* ... */ },
   })
 }
+```
+
+### 양식 입력에서 유효성 검사하기
+
+액션이 [양식 데이터를 허용하도록 구성된](/ko/reference/modules/astro-actions/#accept-속성) 경우, 필드의 유효성을 검사하기 위해 모든 Zod 유효성 검사기를 사용할 수 있습니다. (예: 날짜 입력의 경우 `z.coerce.date()`) `.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 `z.object()` 유효성 검사기에서 지원됩니다.
+
+또한 Astro는 편의를 위해 다음과 같은 유형의 필드 입력에 대한 유효성 검사를 내부적으로 특별히 처리합니다.
+
+- `number` 타입의 입력은 `z.number()`를 사용하여 검사할 수 있습니다.
+- `checkbox` 타입의 입력은 `z.coerce.boolean()`을 사용하여 검사할 수 있습니다.
+- `file` 타입의 입력은 `z.instanceof(File)`을 사용하여 검사할 수 있습니다.
+- 동일한 `name`을 가진 여러 입력은 `z.array(/* 유효성 검사기 */)`를 사용하여 검사할 수 있습니다.
+- 다른 모든 입력은 `z.string()`을 사용하여 검사할 수 있습니다.
+
+양식을 빈 입력으로 제출하면, 출력 타입이 `input` 유효성 검사기와 일치하지 않을 수 있습니다. 배열이나 불리언을 검사하는 경우가 아니라면 빈 값은 `null`로 변환됩니다. 예를 들어, `text` 타입의 입력을 빈 값으로 제출하면 결과는 빈 문자열(`""`) 대신 `null`이 됩니다.
+
+다양한 유효성 검사기의 합집합을 적용하려면 `z.discriminatedUnion()` 래퍼를 사용하여 특정 양식 필드를 기반으로 타입을 좁히세요. 다음은 사용자를 "생성"하거나 "업데이트"하기 위해 양식 제출을 허용하며, `type`이라는 이름의 양식 필드를 사용하여 어떤 객체에 유효성 검사를 수행할지 결정하는 예시입니다.
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // `type` 필드의 값이 `create`인 경우 일치합니다.
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // `type` 필드의 값이 `update`인 경우 일치합니다.
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input은 { type: 'create', name: string, email: string }입니다.
+      } else {
+        // input은 { type: 'update', id: number, name: string, email: string }입니다.
+      }
+    },
+  }),
+};
 ```
 
 ### 양식 데이터 검증하기
@@ -656,7 +705,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 액션 요청을 인증하기 위해 액션 핸들러에 인증 검사를 추가하세요. [인증 라이브러리](/ko/guides/authentication/)를 사용하여 세션 관리와 사용자 정보를 처리할 수 있습니다.
 
-액션은 `context.locals`를 사용하여 미들웨어에서 전달된 속성에 접근하기 위한 전체 `APIContext` 객체를 노출합니다. 사용자가 인증되지 않은 경우 `UNAUTHORIZED` 코드와 함께 `ActionError`를 발생시킬 수 있습니다:
+액션은 `context.locals`를 사용하여 미들웨어에서 전달된 속성에 접근하기 위한 [`APIContext` 객체의 하위 집합](/ko/reference/modules/astro-actions/#actionapicontext)을 노출합니다. 사용자가 인증되지 않은 경우 `UNAUTHORIZED` 코드와 함께 `ActionError`를 발생시킬 수 있습니다:
 
 ```ts title="src/actions/index.ts" {6-8}
 import { defineAction, ActionError } from 'astro:actions';
@@ -678,7 +727,7 @@ export const server = {
 
 Astro는 권한 수준과 액션별 속도 제한을 존중하기 위해 액션 핸들러에서 사용자 세션을 인증하는 것을 권장합니다. 하지만 미들웨어에서 모든 액션(또는 액션의 하위 집합)에 대한 요청을 제한할 수도 있습니다.
 
-미들웨어에서 `getActionContext()` 함수를 사용하여 들어오는 액션 요청에 대한 정보를 검색할 수 있습니다. 여기에는 액션 이름과 해당 액션이 클라이언트 측 원격 프로시저 호출(RPC) 함수(예: `actions.blog.like()`) 또는 HTML 양식을 사용하여 호출되었는지 여부가 포함됩니다.
+미들웨어에서 [`getActionContext()` 함수](/ko/reference/modules/astro-actions/#getactioncontext)를 사용하여 들어오는 액션 요청에 대한 정보를 검색할 수 있습니다. 여기에는 액션 이름과 해당 액션이 클라이언트 측 원격 프로시저 호출(RPC) 함수(예: `actions.blog.like()`) 또는 HTML 양식을 사용하여 호출되었는지 여부가 포함됩니다.
 
 다음 예시는 유효한 세션 토큰이 없는 모든 액션 요청을 거부합니다. 검사가 실패하면 "Forbidden" 응답이 반환됩니다. 참고: 이 방법은 세션이 있을 때만 액션에 접근할 수 있도록 보장하지만, 안전한 인증을 *대체하지는* 않습니다.
 
