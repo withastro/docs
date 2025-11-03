@@ -185,36 +185,11 @@ Here is my counter component, working in MDX:
 <ReactCounter client:load />
 ```
 
-#### Custom components with imported MDX
-
-When rendering imported MDX content, [custom components](#assigning-custom-components-to-html-elements) can be passed via the `components` prop.
-
-```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
----
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
----
-<!-- Creates a custom <h1> for the # syntax, _and_ applies any custom components defined in `content.mdx` -->
-<Content components={{...components, h1: Heading }} />
-```
-
-:::note
-Custom components defined and exported in an MDX file must be imported and then passed back to the `<Content />` component via the `components` property.
-:::
-
 #### Assigning Custom Components to HTML elements
 
 With MDX, you can map Markdown syntax to custom components instead of their standard HTML elements. This allows you to write in standard Markdown syntax, but apply special component styling to selected elements.
 
-Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
-
-```mdx title="src/blog/posts/post-1.mdx"
-import Blockquote from '../components/Blockquote.astro';
-export const components = {blockquote: Blockquote}
-
-> This quote will be a custom Blockquote
-```
-
+For example, you can create a `Blockquote.astro` component to provide custom styling for `<blockquote>` content:
 
 ```astro title="src/components/Blockquote.astro"
 ---
@@ -225,7 +200,52 @@ const props = Astro.props;
   <slot /> <!-- Be sure to add a `<slot/>` for child content! -->
 </blockquote>
 ```
+
+Import your custom component into your `.mdx` file, then export a `components` object that maps the standard HTML element to your custom component:
+
+```mdx title="src/blog/posts/post-1.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> This quote will be a custom Blockquote
+```
+
 Visit the [MDX website](https://mdxjs.com/table-of-components/) for a full list of HTML elements that can be overwritten as custom components.
+
+:::note
+Custom components defined and exported in an MDX file must always be imported and then passed back to the `<Content />` component via the `components` property.
+:::
+
+#### Passing `components` to MDX content
+
+When rendering imported MDX content with the `<Content />` component, including rendering MDX entries using content collections, custom components can be passed via the `components` prop. These components must first be imported to make them available to the `<Content />` component.
+
+The `components` object maps HTML element names (`h1`, `h2`, `blockquote`, etc.) to your custom components. You can also include [all components exported from the MDX file itself](#assigning-custom-components-to-html-elements) using the spread operator (`...`), which must also be imported from your MDX file as `components`.
+
+If you are importing MDX directly from a single file for use in an Astro component, import both the `Content` component and any exported components from your MDX file.
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}" {2}
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- Creates a custom <h1> for the # syntax, _and_ applies any custom components defined in `content.mdx` -->
+<Content components={{...components, h1: Heading }} />
+```
+
+If your MDX file is a content collections entry, then use the `render()` function from `astro:content` to access the `<Content />` component.
+
+The following example passes a custom heading to the `<Content />` component via the `components` prop to be used in place of all `<h1>` HTML elements:
+
+```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
+---
+import { getEntry, render } from 'astro:content';
+import CustomHeading from '../../components/CustomHeading.astro';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await render(entry);
+---
+<Content components={{ h1: CustomHeading }} />
+```
 
 ## Configuration
 
@@ -378,7 +398,7 @@ export default defineConfig({
 
 Previously known as `customComponentNames`.
 
-An optional property of `optimize` to prevent the MDX optimizer from handling certain element names, like [custom components passed to imported MDX content via the components prop](/en/guides/integrations-guide/mdx/#custom-components-with-imported-mdx).
+An optional property of `optimize` to prevent the MDX optimizer from handling certain element names, like [custom components passed to imported MDX content via the components prop](#passing-components-to-mdx-content).
 
 You will need to exclude these components from optimization as the optimizer eagerly converts content into a static string, which will break custom components that needs to be dynamically rendered.
 

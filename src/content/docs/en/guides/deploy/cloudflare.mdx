@@ -9,6 +9,7 @@ i18nReady: true
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 You can deploy full-stack applications, including front-end static assets and back-end APIs, as well as on-demand rendered sites, to both [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) and [Cloudflare Pages](https://pages.cloudflare.com/). 
 
@@ -41,50 +42,57 @@ To get started, you will need:
     npm install wrangler@latest --save-dev
     ```
 
-2. If your site uses on demand rendering, install the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/).
+2. If your site uses on-demand rendering, install the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/).
 
     This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
-    
-      ```bash
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
       npx astro add cloudflare
       ```
-      
-      Then, create a `.assetsignore` file in your `public/` folder, and add the following lines to it:
-      ```txt title="public/.assetsignore"
-      _worker.js
-      _routes.json
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm astro add cloudflare
       ```
-  
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn astro add cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
     <ReadMore>Read more about [on-demand rendering in Astro](/en/guides/on-demand-rendering/).</ReadMore>
 
 3. Create a [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/).
 
+    Running `astro add cloudflare` will create this for you; if you are not using the adapter, you'll need to create it yourself.
+
     <StaticSsrTabs>
       <Fragment slot="static">
-        ```jsonc
-        // wrangler.jsonc
+        ```jsonc title="wrangler.jsonc"
         {
-          "$schema": "node_modules/wrangler/config-schema.json",
           "name": "my-astro-app",
-          // Update to today's date
-          "compatibility_date": "2025-03-25",
+          "compatibility_date": "YYYY-MM-DD", // Update to the day you deploy
           "assets": {
+            "binding": "ASSETS",
             "directory": "./dist",
-            "not_found_handling": "404-page" // If you have a custom `src/pages/404.astro` page
           }
         }
         ```
       </Fragment>
       <Fragment slot="ssr">
-        ```jsonc
-        // wrangler.jsonc
+        ```jsonc title="wrangler.jsonc"
         {
-          "$schema": "node_modules/wrangler/config-schema.json",
+          "main": "dist/_worker.js/index.js",
           "name": "my-astro-app",
-          "main": "./dist/_worker.js/index.js",
-          // Update to today's date
-          "compatibility_date": "2025-03-25",
-          "compatibility_flags": ["nodejs_compat"],
+          "compatibility_date": "YYYY-MM-DD", // Update to the day you deploy
+          "compatibility_flags": [
+            "nodejs_compat",
+            "global_fetch_strictly_public"
+          ],
           "assets": {
             "binding": "ASSETS",
             "directory": "./dist"
@@ -141,36 +149,123 @@ If you're using Workers Builds:
 <Steps>
 1. Install [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/).
 
-    ```bash
-    npm install wrangler@latest --save-dev
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npm install wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm add wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn add wrangler@latest --dev
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 
-2. If your site uses on demand rendering, install the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/). 
+2. If your site uses on-demand rendering, install the [`@astrojs/cloudflare` adapter](/en/guides/integrations-guide/cloudflare/). 
     
     This will install the adapter and make the appropriate changes to your `astro.config.mjs` file in one step.
     
-      ```bash
-      npx astro add cloudflare
+       <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro add cloudflare
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+3. Create a [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/).
+
+    Because Cloudflare recommends new projects use Workers instead of Pages, the `astro add cloudflare` command creates a `wrangler.jsonc` and `public/.assetsignore` file, which are specific to Workers projects. You will need to delete the `public/.assetsignore` file and change your `wrangler.jsonc` file. If you are not using the adapter you'll need to create it yourself.
+
+    Ensure your `wrangler.jsonc` file is structured like this:
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+      ```jsonc title="wrangler.jsonc"
+      {
+        "name": "my-astro-app",
+        "compatibility_date": "YYYY-MM-DD", // Update to the day you deploy
+        "pages_build_output_dir": "./dist"
+      }
       ```
-      
-    <ReadMore>Read more about [on demand rendering in Astro](/en/guides/on-demand-rendering/).</ReadMore>
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // Update to the day you deploy
+          "compatibility_flags": [
+            "nodejs_compat",
+            "disable_nodejs_process_v2"
+          ],
+          "pages_build_output_dir": "./dist"
+        }
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+    <ReadMore>Read more about [on-demand rendering in Astro](/en/guides/on-demand-rendering/).</ReadMore>
 
 3. Preview your project locally with Wrangler.
 
-    ```bash
-    npx astro build && npx wrangler pages dev ./dist
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 
 4. Deploy using `npx wrangler deploy`.
 
-    ```bash
-    npx astro build && npx wrangler pages deploy ./dist
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 </Steps>
 
 After your assets are uploaded, Wrangler will give you a preview URL to inspect your site.
 
-### How to deploy a site with Git
+### How to deploy a site with CI/CD
 
 <Steps>
 1. Push your code to your git repository (e.g. GitHub, GitLab).
@@ -186,6 +281,21 @@ After your assets are uploaded, Wrangler will give you a preview URL to inspect 
 </Steps>
 
 ## Troubleshooting
+
+### 404 behavior
+
+For Workers projects, you will need to set `not_found_handling` if you want to serve a custom 404 page. You can read more about this in the [Routing behavior section](https://developers.cloudflare.com/workers/static-assets/#routing-behavior) of Cloudflare's documentation.
+
+```jsonc title="wrangler.jsonc"
+{
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+For Pages projects, if you include a custom 404 page, it will be served by default. Otherwise, Pages will default to [Cloudflare's single-page application rendering behavior](https://developers.cloudflare.com/pages/configuration/serving-pages/#single-page-application-spa-rendering) and redirect to the home page instead of showing a 404 page.
 
 ### Client-side hydration
 
