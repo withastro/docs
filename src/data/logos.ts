@@ -7,11 +7,13 @@ export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
+	deployhq: { file: 'deployhq.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
 	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
+	'craft-cross-cms': { file: 'craft-cross-cms.svg', padding: '.225em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
 	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
@@ -107,6 +109,8 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
+	zephyr: { file: 'zephyr.svg', padding: '0' },
+	seenode: { file: 'seenode.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;

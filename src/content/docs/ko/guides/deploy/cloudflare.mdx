@@ -9,6 +9,7 @@ i18nReady: true
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 프런트엔드 정적 자산과 백엔드 API를 포함한 풀스택 애플리케이션뿐만 아니라 요청 시 렌더링되는 사이트까지 [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) 및 [Cloudflare Pages](https://pages.cloudflare.com/)에 배포할 수 있습니다.
 
@@ -45,46 +46,53 @@ Astro 프로젝트에서 [Cloudflare 런타임을 사용하는 방법](/ko/guide
 
     이 명령어는 어댑터를 설치하고 `astro.config.mjs` 파일에 필요한 변경 사항을 한 번에 적용합니다.
     
-      ```bash
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
       npx astro add cloudflare
       ```
-      
-      그런 다음 `public/` 폴더에 `.assetsignore` 파일을 만들고 다음 줄을 추가하세요.
-      ```txt title="public/.assetsignore"
-      _worker.js
-      _routes.json
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm astro add cloudflare
       ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn astro add cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
       
     <ReadMore>[Astro의 요청 시 렌더링](/ko/guides/on-demand-rendering/)에 대해 더 자세히 알아보세요.</ReadMore>
 
 3. [Wrangler 구성 파일](https://developers.cloudflare.com/workers/wrangler/configuration/)을 생성합니다.
+    
+    `astro add cloudflare` 명령어를 실행하면 이 파일이 자동으로 생성됩니다. 어댑터를 사용하지 않는 경우 직접 생성해야 합니다.
 
     <StaticSsrTabs>
       <Fragment slot="static">
-        ```jsonc
-        // wrangler.jsonc
+        ```jsonc title="wrangler.jsonc"
         {
-          "$schema": "node_modules/wrangler/config-schema.json",
           "name": "my-astro-app",
-          // 오늘 날짜로 업데이트합니다.
-          "compatibility_date": "2025-03-25",
+          "compatibility_date": "YYYY-MM-DD", // 배포하는 날짜로 업데이트합니다.
           "assets": {
+            "binding": "ASSETS",
             "directory": "./dist",
-            "not_found_handling": "404-page" // 사용자 정의 `src/pages/404.astro` 페이지가 존재하는 경우
           }
         }
         ```
       </Fragment>
       <Fragment slot="ssr">
-        ```jsonc
-        // wrangler.jsonc
+        ```jsonc title="wrangler.jsonc"
         {
-          "$schema": "node_modules/wrangler/config-schema.json",
+          "main": "dist/_worker.js/index.js",
           "name": "my-astro-app",
-          "main": "./dist/_worker.js/index.js",
-          // 오늘 날짜로 업데이트합니다.
-          "compatibility_date": "2025-03-25",
-          "compatibility_flags": ["nodejs_compat"],
+          "compatibility_date": "YYYY-MM-DD", // 배포하는 날짜로 업데이트합니다.
+          "compatibility_flags": [
+            "nodejs_compat",
+            "global_fetch_strictly_public"
+          ],
           "assets": {
             "binding": "ASSETS",
             "directory": "./dist"
@@ -93,7 +101,7 @@ Astro 프로젝트에서 [Cloudflare 런타임을 사용하는 방법](/ko/guide
             "enabled": true
           }
         }
-      ```
+    ```
       </Fragment>
     </StaticSsrTabs>
 
@@ -141,35 +149,123 @@ Workers Builds를 사용하는 경우:
 <Steps>
 1. [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)를 설치합니다.
 
-    ```bash
-    npm install wrangler@latest --save-dev
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npm install wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm add wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn add wrangler@latest --dev
+        ```
+        </Fragment>
+      </PackageManagerTabs>
     
 2. 사이트에서 요청 시 렌더링을 사용하는 경우, [`@astrojs/cloudflare` 어댑터](/ko/guides/integrations-guide/cloudflare/)를 설치합니다.
 
     이 명령어는 어댑터를 설치하고 `astro.config.mjs` 파일에 필요한 변경 사항을 한 번에 적용합니다.
     
-      ```bash
-      npx astro add cloudflare
+       <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro add cloudflare
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+      
+3. [Wrangler 구성 파일](https://developers.cloudflare.com/workers/wrangler/configuration/)을 생성합니다.
+    
+    Cloudflare는 신규 프로젝트에 Pages 대신 Workers를 사용할 것을 권장하므로, `astro add cloudflare` 명령은 Workers 프로젝트에 특화된 `wrangler.jsonc` 및 `public/.assetsignore` 파일을 생성합니다. 그래서 `public/.assetsignore` 파일을 삭제하고 `wrangler.jsonc` 파일을 수정해야 합니다. 어댑터를 사용하지 않는다면 직접 생성해야 합니다.
+    
+    `wrangler.jsonc` 파일이 다음과 같은 구조인지 확인하세요.
+    
+    <StaticSsrTabs>
+      <Fragment slot="static">
+      ```jsonc title="wrangler.jsonc"
+      {
+        "name": "my-astro-app",
+        "compatibility_date": "YYYY-MM-DD", // 배포하는 날짜로 업데이트합니다.
+        "pages_build_output_dir": "./dist"
+      }
       ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // 배포하는 날짜로 업데이트합니다.
+          "compatibility_flags": [
+            "nodejs_compat",
+            "disable_nodejs_process_v2"
+          ],
+          "pages_build_output_dir": "./dist"
+        }
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
     <ReadMore>[Astro의 요청 시 렌더링](/ko/guides/on-demand-rendering/)에 대해 더 자세히 알아보세요.</ReadMore>
 
 3. Wrangler를 사용하여 프로젝트를 로컬에서 미리 봅니다.
 
-    ```bash
-    npx astro build && npx wrangler pages dev ./dist
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 
 4. `npx wrangler deploy`를 사용하여 배포합니다.
 
-    ```bash
-    npx astro build && npx wrangler pages deploy ./dist
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 </Steps>
 
 자산이 업로드되면 Wrangler는 사이트를 검사할 수 있는 미리보기 URL을 제공합니다.
 
-### Git을 사용하여 사이트를 배포하는 방법
+### CI/CD를 사용하여 사이트를 배포하는 방법
 
 <Steps>
 1. 코드를 git 리포지토리 (예: GitHub, GitLab)에 푸시합니다.
@@ -185,6 +281,21 @@ Workers Builds를 사용하는 경우:
 </Steps>
 
 ## 문제 해결
+
+### 404 동작
+
+Workers 프로젝트에서 사용자 정의 404 페이지를 제공하려면 `not_found_handling`을 설정해야 합니다. Cloudflare 문서의 [라우팅 동작 섹션](https://developers.cloudflare.com/workers/static-assets/#routing-behavior)에서 이에 대해 더 자세히 알아볼 수 있습니다.
+
+```jsonc title="wrangler.jsonc"
+{
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+Pages 프로젝트에서 사용자 정의 404 페이지를 포함하면 해당 페이지가 기본적으로 제공됩니다. 그렇지 않으면 Pages는 [Cloudflare의 단일 페이지 애플리케이션 렌더링 동작](https://developers.cloudflare.com/pages/configuration/serving-pages/#single-page-application-spa-rendering)을 기본값으로 사용하고 404 페이지를 표시하는 대신 홈 페이지로 리디렉션합니다.
 
 ### 클라이언트 측 수화
 
