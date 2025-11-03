@@ -207,7 +207,7 @@ You can use the provided `ActionError` to throw an error from your action `handl
 
 #### Creating an `ActionError`
 
-To throw an error, import the `ActionError()` class from the `astro:actions` module. Pass it a human-readable status `code` (e.g. `"NOT_FOUND"` or `"BAD_REQUEST"`), and an optional `message` to provide further information about the error.
+To throw an error, import the [`ActionError()` class](/en/reference/modules/astro-actions/#actionerror) from the `astro:actions` module. Pass it a human-readable status `code` (e.g. `"NOT_FOUND"` or `"BAD_REQUEST"`), and an optional `message` to provide further information about the error.
 
 This example throws an error from a `likePost` action when a user is not logged in, after checking a hypothetical "user-session" cookie for authentication:
 
@@ -299,6 +299,55 @@ export const server = {
     handler: async (input) => { /* ... */ },
   })
 }
+```
+
+### Using validators with form inputs
+
+When your action is [configured to accept form data](/en/reference/modules/astro-actions/#accept-property), you can use any Zod validators to validate your fields (e.g. `z.coerce.date()` for date inputs). Extension functions including `.refine()`, `.transform()`, and `.pipe()` are also supported on the `z.object()` validator.
+
+Additionally, Astro provides special handling under the hood for your convenience to validate the following types of field inputs:
+
+- Inputs of type `number` can be validated using `z.number()`
+- Inputs of type `checkbox` can be validated using `z.coerce.boolean()`
+- Inputs of type `file` can be validated using `z.instanceof(File)`
+- Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
+- All other inputs can be validated using `z.string()`
+
+When your form is submitted with empty inputs, the output type may not match your `input` validator. Empty values are converted to `null` except when validating arrays or booleans. For example, if an input of type `text` is submitted with an empty value, the result will be `null` instead of an empty string (`""`).
+
+To apply a union of different validators, use the `z.discriminatedUnion()` wrapper to narrow the type based on a specific form field. This example accepts a form submission to either "create" or "update" a user, using the form field with the name `type` to determine which object to validate against:
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // Matches when the `type` field has the value `create`
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // Matches when the `type` field has the value `update`
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input is { type: 'create', name: string, email: string }
+      } else {
+        // input is { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
 ```
 
 ### Validating form data
@@ -656,7 +705,7 @@ Actions are accessible as public endpoints based on the name of the action. For 
 
 To authorize action requests, add an authentication check to your action handler. You may want to use [an authentication library](/en/guides/authentication/) to handle session management and user information.
 
-Actions expose the full `APIContext` object to access properties passed from middleware using `context.locals`. When a user is not authorized, you can raise an `ActionError` with the `UNAUTHORIZED` code:
+Actions expose [a subset of the `APIContext` object](/en/reference/modules/astro-actions/#actionapicontext) to access properties passed from middleware using `context.locals`. When a user is not authorized, you can raise an `ActionError` with the `UNAUTHORIZED` code:
 
 ```ts title="src/actions/index.ts" {6-8}
 import { defineAction, ActionError } from 'astro:actions';
@@ -679,7 +728,7 @@ export const server = {
 
 Astro recommends authorizing user sessions from your action handler to respect permission levels and rate-limiting on a per-action basis. However, you can also gate requests to all actions (or a subset of actions) from middleware.
 
-Use the `getActionContext()` function from your middleware to retrieve information about any inbound action requests. This includes the action name and whether that action was called using a client-side remote procedure call (RPC) function (e.g. `actions.blog.like()`) or an HTML form.
+Use the [`getActionContext()` function](/en/reference/modules/astro-actions/#getactioncontext) from your middleware to retrieve information about any inbound action requests. This includes the action name and whether that action was called using a client-side remote procedure call (RPC) function (e.g. `actions.blog.like()`) or an HTML form.
 
 The following example rejects all action requests that do not have a valid session token. If the check fails, a "Forbidden" response is returned. Note: this method ensures that actions are only accessible when a session is present, but is _not_ a substitute for secure authorization.
 

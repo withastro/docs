@@ -20,21 +20,25 @@ import ReadMore from '~/components/ReadMore.astro';
 
 ```js
 import {
+  ACTION_QUERY_PARAMS,
+  ActionError,
   actions,
   defineAction,
-  isInputError,
+  getActionContext,
+  getActionPath,
   isActionError,
-  ActionError,
+  isInputError,
  } from 'astro:actions';
 ```
 
 ### `defineAction()`
 
 <p>
-<Since v="4.15.0" />
+
+**타입:** <code>(\{ accept, input, handler \}) => <a href="#actionclient">ActionClient</a></code>
 </p>
 
-`defineAction()` 유틸리티는 `src/actions/index.ts` 파일에서 새 액션을 정의하는 데 사용됩니다. 이 함수는 실행할 서버 로직이 포함된 [`handler()`](#handler-속성) 함수와 런타임에 입력 매개변수를 검사하는 선택적인 [`input`](#input-유효성-검사기) 속성을 받습니다.
+`src/actions/index.ts` 파일에서 새 액션을 정의하기 위한 유틸리티입니다. 이 함수는 실행할 서버 로직이 포함된 [`handler()`](#handler-속성) 함수와 런타임에 입력 매개변수를 검사하는 선택적인 [`input`](#input-유효성-검사기) 속성을 받습니다.
 
 ```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
@@ -56,12 +60,12 @@ export const server = {
 
 <p>
 
-**타입:** `(input, context) => any`
+**타입:** <code>(input: TInputSchema, context: <a href="#actionapicontext">ActionAPIContext</a>) => TOutput | Promise\<TOutput\></code>
 </p>
 
-`defineAction()`에는 액션이 호출될 때 실행할 서버 로직이 포함된 `handler()` 함수가 필요합니다. 핸들러에서 반환된 데이터는 자동으로 직렬화되어 호출자에게 전송됩니다.
+액션을 호출할 때 실행할 서버 로직을 포함하는 필수 함수입니다. `handler()`에서 반환된 데이터는 자동으로 직렬화되어 호출자에게 전송됩니다.
 
-`handler()`는 사용자 입력을 첫 번째 인수로 받아 호출됩니다. [`input`](#input-유효성-검사기) 유효성 검사기가 설정되어 있으면 사용자 입력은 핸들러로 전달되기 전에 유효성이 검사됩니다. 두 번째 인수는 `getActionResult()`, `callAction()` 및 `redirect()`를 제외한 대부분의 Astro [표준 엔드포인트 컨텍스트](/ko/reference/api-reference/)를 포함하는 `context` 객체입니다.
+`handler()`는 사용자 입력을 첫 번째 인수로 받아 호출됩니다. [`input`](#input-유효성-검사기) 유효성 검사기가 설정되어 있으면 사용자 입력은 핸들러로 전달되기 전에 유효성이 검사됩니다. 두 번째 인수는 [Astro `context` 객체의 하위 집합](#actionapicontext)입니다.
 
 반환 값은 [devalue 라이브러리](https://github.com/Rich-Harris/devalue)를 사용하여 구문 분석됩니다. 이 라이브러리는 `Date()`, `Map()`, `Set()`, `URL()`의 인스턴스와 JSON 값을 지원합니다.
 
@@ -72,66 +76,58 @@ export const server = {
 **타입:** `ZodType | undefined`
 </p>
 
-선택적 `input` 속성은 런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기 (예: Zod 객체, Zod 구별된 유니온)를 전달받습니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
+런타임에 핸들러 입력의 유효성을 검사하기 위해 Zod 유효성 검사기 (예: Zod 객체, Zod 구별된 유니온)를 허용하는 선택적 속성입니다. 액션이 유효성 검사에 실패하면 [`BAD_REQUEST` 오류](#actionerror)가 반환되고 `handler`가 호출되지 않습니다.
 
 `input`을 생략하면 `handler`는 JSON 요청의 경우 `unknown` 타입의 입력을, 양식 요청의 경우 `FormData` 타입의 입력을 받습니다.
 
-##### `accept: 'form'`과 함께 사용
+#### `accept` 속성
 
-액션이 양식 입력을 전달받는 경우 `z.object()` 유효성 검사기를 사용하여 양식 데이터를 타입이 정해진 객체로 자동 구문 분석합니다. 모든 Zod 유효성 검사기는 양식 데이터 필드 (예: `z.coerce.date()`)에 대해 지원됩니다. Astro는 사용자의 편의를 위해 다음과 같은 필드 입력 유형의 유효성을 검사하는 특별한 내부 처리를 추가로 제공합니다.
+<p>
 
-- `number` 유형의 입력은 `z.number()`를 사용하여 검증할 수 있습니다.
-- `checkbox` 유형의 입력은 `z.coerce.boolean()`을 사용하여 검증할 수 있습니다.
-- `file` 유형의 입력은 `z.instanceof(File)`을 사용하여 검증할 수 있습니다.
-- 동일한 `name`의 여러 입력은 `z.array(/* validator */)`를 사용하여 검증할 수 있습니다.
-- 다른 모든 입력은 `z.string()`을 사용하여 검증할 수 있습니다.
+**타입:** `"form" | "json"`<br />
+**기본값:** `json`
+</p>
 
-`.refine()`, `.transform()`, `.pipe()`를 포함한 확장 함수도 `z.object()` 유효성 검사기에서 지원됩니다.
+액션이 예상하는 형식을 정의합니다.
+* 액션이 `FormData`를 허용하는 경우 `form`을 사용합니다.
+* 기본값인 `json`은 다른 모든 경우에 사용됩니다.
 
-서로 다른 유효성 검사기의 조합을 적용하려면 `z.discriminatedUnion()` 래퍼를 사용하여 특정 양식 필드를 기준으로 타입을 좁히세요. 이 예시는 사용자 "생성" 또는 "업데이트" 중 하나로 양식 제출을 처리하며, `type`이라는 이름의 양식 필드를 사용하여 어떤 객체에 대해 유효성 검사를 수행할지 결정합니다.
+액션이 양식 입력을 허용하는 경우, `z.object()` 유효성 검사기가 `FormData`를 타입이 정의된 객체로 구문 분석합니다. 입력을 검증하기 위해 모든 Zod 유효성 검사기를 사용할 수 있습니다.
 
-```ts
-import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+<ReadMore>액션 가이드에서 [양식 입력에 유효성 검사기를 사용하는 방법](/ko/guides/actions/#양식-입력에서-유효성-검사하기)에 대해 자세히 알아보세요. 여기에는 사용 방법에 대한 예시와 특별한 입력을 처리하는 방법도 포함되어 있습니다.</ReadMore>
 
-export const server = {
-  changeUser: defineAction({
-    accept: 'form',
-    input: z.discriminatedUnion('type', [
-      z.object({
-        // `type` 필드에 `create` 값이 있을 때 일치합니다.
-        type: z.literal('create'),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-      z.object({
-        // `type` 필드에 `update` 값이 있을 때 일치합니다.
-        type: z.literal('update'),
-        id: z.number(),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-    ]),
-    async handler(input) {
-      if (input.type === 'create') {
-        // input은 { type: 'create', name: string, email: string }
-      } else {
-        // input은 { type: 'update', id: number, name: string, email: string }
-      }
-    },
-  }),
-};
+### `actions`
+
+<p>
+
+**타입:** <code>Record\<string, <a href="#actionclient">ActionClient</a>\></code>
+</p>
+
+모든 액션을 담고 있는 객체이며, 액션 이름이 키가 되고 해당 액션을 호출하는 함수가 값이 됩니다.
+
+```astro title="src/pages/index.astro" {5,8}
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
 ```
+
+Astro가 이 속성을 인식하게 하려면 개발 서버를 다시 시작하거나 [`astro sync` 명령을 실행](/ko/reference/cli-reference/#astro-sync)(`s + enter`)해야 할 수 있습니다. 
 
 ### `isInputError()`
 
 <p>
 
-**타입:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
-<Since v="4.15.0" />
+**타입:** `(error?: unknown) => boolean`
 </p>
 
-`isInputError()` 유틸리티는 `ActionError`가 입력 유효성 검사 오류인지 확인하는 데 사용됩니다. `input` 유효성 검사기가 `z.object()`인 경우 입력 오류에는 이름별로 그룹화된 오류 메시지가 있는 `fields` 객체가 포함됩니다.
+[`ActionError`](#actionerror)가 입력 유효성 검사 오류인지 확인하는 데 사용되는 유틸리티입니다. `input` 유효성 검사기가 `z.object()`인 경우 입력 오류에는 이름별로 그룹화된 오류 메시지가 있는 `fields` 객체가 포함됩니다.
 
 <ReadMore>[양식 입력 오류 가이드](/ko/guides/actions/#양식-입력-오류-표시)에서 `isInputError()` 사용에 대한 자세한 내용을 참조하세요.</ReadMore>
 
@@ -139,67 +135,109 @@ export const server = {
 
 <p>
 
-**타입:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
-<Since v="4.15.0" />
+**타입:** `(error?: unknown) => boolean`
 </p>
 
-`isActionError()` 유틸리티는 [핸들러 속성](/ko/reference/modules/astro-actions/#handler-속성)에서 액션이 `ActionError`를 발생시켰는지 확인하는 데 사용됩니다. 이는 `try / catch` 블록에서 일반 오류의 타입을 좁힐 때 유용합니다.
+[handler 속성](#handler-속성)에서 액션이 [ActionError](#actionerror)를 발생시켰는지 확인하는 데 사용되는 유틸리티입니다. 이는 일반적인 오류의 유형을 좁힐 때 유용합니다.
 
+```astro title="src/pages/index.astro" {9-12} "isActionError"
+---
+---
+
+<script>
+import { isActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (isActionError(error)) {
+    // 액션별 오류를 처리합니다.
+    console.log(error.code);
+  }
+}
+</script>
+```
 
 ### `ActionError`
 
-<p>
-<Since v="4.15.0" />
-</p>
-
 액션 `handler`가 던지는 오류를 생성하는 데 `ActionError()` 생성자가 사용됩니다. 이는 발생한 오류 (예: `"UNAUTHORIZED"`)를 설명하는 `code` 속성과 추가 세부정보가 포함된 선택적 `message` 속성을 허용합니다.
+
+다음은 사용자가 로그인하지 않았을 때 새 `ActionError`를 생성하는 예시입니다.
+
+```ts title="src/actions/index.ts" {8-11} "ActionError"
+import { defineAction, ActionError } from "astro:actions";
+
+export const server = {
+  getUserOrThrow: defineAction({
+    accept: 'form',
+    handler: async (_, { locals }) => {
+      if (locals.user?.name !== 'florian') {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: '로그인하지 않았습니다.',
+        });
+      }
+      return locals.user;
+    },
+  }),
+}
+```
+
+
+`ActionError`를 사용하여 액션 결과 처리 시 오류 유형을 좁힐 수도 있습니다.
+
+```astro title="src/pages/index.astro" {9-12} "ActionError"
+---
+---
+
+<script>
+import { ActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (error instanceof ActionError) {
+    // 액션별 오류를 처리합니다.
+    console.log(error.code);
+  }
+}
+</script>
+```
 
 #### `code`
 
 <p>
-<Since v="4.15.0" />
+
+**타입:** <code><a href="#actionerrorcode">ActionErrorCode</a></code>
 </p>
 
-`code` 속성은 모든 HTTP 상태 코드의 사람이 읽을 수 있는 버전을 허용합니다. 지원되는 코드는 다음과 같습니다:
-
-- `BAD_REQUEST` (400): 클라이언트가 잘못된 입력을 보냈습니다. 이 오류는 액션 `input` 유효성 검사기가 유효성 검사에 실패할 때 발생합니다.
-- `UNAUTHORIZED` (401): 클라이언트에 유효한 인증 자격 증명이 없습니다.
-- `FORBIDDEN` (403): 클라이언트가 리소스에 액세스할 수 있는 권한이 없습니다.
-- `NOT_FOUND` (404): 서버가 요청된 리소스를 찾을 수 없습니다.
-- `METHOD_NOT_SUPPORTED` (405): 서버가 요청된 메서드를 지원하지 않습니다.
-- `TIMEOUT` (408):  서버가 요청을 처리하는 동안 시간 초과가 발생했습니다.
-- `CONFLICT` (409): 충돌로 인해 서버에서 리소스를 업데이트할 수 없습니다.
-- `PRECONDITION_FAILED` (412): 서버가 요청의 전제 조건을 충족하지 않습니다.
-- `PAYLOAD_TOO_LARGE` (413): 페이로드가 너무 커서 서버가 요청을 처리할 수 없습니다.
-- `UNSUPPORTED_MEDIA_TYPE` (415): 서버가 요청의 미디어 유형을 지원하지 않습니다. 참고: 액션은 이미 JSON 및 양식 요청에 대해 [`Content-Type` 헤더](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Content-Type)를 확인하므로 이 코드를 수동으로 사용할 필요가 없을 것입니다.
-- `UNPROCESSABLE_CONTENT` (422): 시멘틱 오류로 인해 서버가 요청을 처리할 수 없습니다.
-- `TOO_MANY_REQUESTS` (429): 서버가 지정된 속도 제한을 초과했습니다.
-- `CLIENT_CLOSED_REQUEST` (499): 서버가 응답하기 전에 클라이언트가 요청을 종료했습니다.
-- `INTERNAL_SERVER_ERROR` (500): 서버가 예기치 않게 실패했습니다.
-- `NOT_IMPLEMENTED` (501): 서버가 요청된 기능을 지원하지 않습니다.
-- `BAD_GATEWAY` (502): 서버가 업스트림 서버로부터 잘못된 응답을 받았습니다.
-- `SERVICE_UNAVAILABLE` (503): 서버를 일시적으로 사용할 수 없습니다.
-- `GATEWAY_TIMEOUT` (504): 서버가 업스트림 서버로부터 시간 초과를 받았습니다.
+사람이 읽을 수 있는 버전의 [HTTP 상태 코드](#actionerrorcode)를 정의합니다.
 
 #### `message`
 
 <p>
-<Since v="4.15.0" />
+
+**타입:** `string`
 </p>
 
-`message` 속성은 문자열을 받습니다. (예: "사용자는 로그인해야 합니다.")
+선택적 속성으로, 오류를 설명합니다. (예: "사용자는 로그인해야 합니다.")
+
+#### `stack`
+
+<p>
+
+**타입:** `string`
+</p>
+
+선택적 속성으로, 스택 트레이스를 전달합니다.
 
 ### `getActionContext()`
 
 <p>
 
-**타입:** `(context: APIContext) => ActionMiddlewareContext`
+**타입:** <code>(context: <a href="/ko/reference/api-reference/">APIContext</a>) => AstroActionContext</code><br />
 <Since v="5.0.0" />
 </p>
 
-`getActionContext()`는 인바운드 액션 요청에 대한 정보를 검색하기 위해 미들웨어 핸들러에서 호출되는 함수입니다.
-
-이 함수는 요청에 대한 정보가 포함된 `action` 객체와 `Astro.getActionResult()`에서 반환되는 값을 프로그래밍 방식으로 설정하는 `setActionResult()` 및 `serializeActionResult()` 함수를 반환합니다.
+미들웨어 핸들러에서 호출되어, 들어오는 액션 요청에 대한 정보를 검색하는 함수입니다. 이 함수는 요청에 대한 정보가 담긴 `action` 객체, `deserializeActionResult()` 메서드, 그리고 `Astro.getActionResult()`가 반환하는 값을 프로그래밍 방식으로 설정하기 위한 `setActionResult()` 및 `serializeActionResult()` 함수를 반환합니다.
 
 `getActionContext()`를 사용하면 미들웨어를 통해 액션 결과를 프로그래밍 방식으로 가져와 설정할 수 있어, HTML 양식의 액션 결과를 유지하고 보안 검사를 추가하여 액션 요청을 제한하는 등의 작업이 가능합니다.
 
@@ -221,12 +259,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**타입:** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+**타입:** <code>\{ calledFrom: "rpc" | "form"; name: string; handler: () => Promise\<<a href="#saferesult">SafeResult</a>\>; \} | undefined</code>
 </p>
- 
- `action`은 인바운드 액션 요청에 대한 정보를 포함하는 객체입니다.
- 
- 이것은 `getActionContext()`를 통해 사용할 수 있으며, 액션 이름, 핸들러, 그리고 해당 액션이 클라이언트 측 RPC 함수(예: `actions.newsletter()`)에서 호출되었는지 또는 HTML 양식 액션에서 호출되었는지에 대한 정보를 제공합니다.
+
+들어오는 액션 요청에 대한 정보를 담고 있는 객체입니다. [`getActionContext()`](#getactioncontext)에서 사용할 수 있으며, 액션의 `name`, `handler`, 그리고 액션이 클라이언트 측 RPC 함수(예: `actions.newsletter()`) 또는 HTML 양식 액션에서 호출되었는지 여부를 제공합니다.
 
 ```ts title="src/middleware.ts" {6}
 import { defineMiddleware } from 'astro:middleware';
@@ -241,6 +277,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+##### `calledFrom`
+
+<p>
+
+**타입:** `"rpc" | "form"`
+</p>
+
+액션이 RPC 함수 또는 HTML 양식 액션을 사용하여 호출되었는지 여부입니다.
+
+##### `name`
+
+<p>
+
+**타입:** `string`
+</p>
+
+액션의 이름입니다. 리디렉션 중에 액션 결과의 출처를 추적하는 데 유용합니다.
+
+##### `handler()`
+
+<p>
+
+**타입:** <code>() => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+</p>
+
+결과를 얻기 위해 액션을 프로그래밍 방식으로 호출하는 메서드입니다.
+
 #### `setActionResult()`
 
 <p>
@@ -248,7 +311,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 **타입:** `(actionName: string, actionResult: SerializedActionResult) => void`
 </p>
 
-`setActionResult()`는 미들웨어에서 `Astro.getActionResult()`가 반환하는 값을 프로그래밍 방식으로 설정하는 함수입니다. 이 함수에는 액션 이름과 [`serializeActionResult()`](#serializeactionresult)로 직렬화된 액션 결과가 전달됩니다.
+미들웨어에서 `Astro.getActionResult()`가 반환하는 값을 프로그래밍 방식으로 설정하는 함수입니다. 이 함수에는 액션 이름과 [`serializeActionResult()`](#serializeactionresult)로 직렬화된 액션 결과가 전달됩니다. 이 함수를 미들웨어에서 호출하면 Astro 자체의 액션 결과 처리가 비활성화됩니다.
 
 이는 HTML 양식에서 액션을 호출하여 세션에서 결과를 유지하고 로드할 때 유용합니다.
 
@@ -272,10 +335,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**타입:** `(result: SafeResult<any, any>) => SerializedActionResult`
+**타입:** <code>(res: <a href="#saferesult">SafeResult</a>) => SerializedActionResult</code>
 </p>
 
-`serializeActionResult()`는 지속성을 위해 액션 결과를 JSON으로 직렬화합니다. 이는 `Map`이나 `Date`와 같은 JSON이 아닌 반환 값과 `ActionError` 객체를 올바르게 처리하기 위해 필요합니다.
+지속성을 위해 액션 결과를 JSON으로 직렬화합니다. 이는 `Map`이나 `Date`와 같은 JSON이 아닌 반환 값과 `ActionError` 객체를 올바르게 처리하기 위해 필요합니다.
 
 `setActionResult()`에 전달할 액션 결과를 직렬화할 때 이 함수를 호출하세요:
 
@@ -297,20 +360,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**타입:** `(result: SerializedActionResult) => SafeResult<any, any>`
+**타입:** <code>(res: SerializedActionResult) => <a href="#saferesult">SafeResult</a></code>
 </p>
 
-`deserializeActionResult()`는 `serializeActionResult()`의 효과를 반대로 하여 액션 결과를 원래 상태로 되돌립니다. 이는 직렬화된 액션 결과에서 `data`와 `error` 객체에 접근할 때 유용합니다.
+[`serializeActionResult()`](#serializeactionresult)의 효과를 역전시켜 액션 결과를 원래 상태로 되돌립니다. 이는 직렬화된 액션 결과에서 `data`와 `error` 객체에 접근할 때 유용합니다.
 
 ### `getActionPath()`
 
 <p>
 
-**타입:** `(action: ActionClient<any, any, any>) => string`
+**타입:** <code>(action: <a href="#actionclient">ActionClient</a>) => string</code>
 <Since v="5.1.0" />
 </p>
 
-`getActionPath()` 유틸리티는 액션을 받아서 URL 경로를 반환하므로 액션 호출을 직접 `fetch()` 작업으로 실행할 수 있습니다. 이를 통해 액션을 호출할 때 사용자 지정 헤더와 같은 세부 정보를 제공할 수 있습니다. 그런 다음 액션을 직접 호출한 것처럼 필요에 따라 [사용자 지정 형식의 반환된 데이터를 처리](/ko/guides/actions/#반환된-데이터-처리)할 수 있습니다.
+액션을 받아서 URL 경로를 반환하는 유틸리티입니다. 이를 통해 `fetch()` 작업으로 액션 호출을 직접 실행할 수 있습니다. 또한, 액션을 호출할 때 사용자 지정 헤더와 같은 세부 정보를 제공할 수 있습니다. 그런 다음 액션을 직접 호출한 것처럼 필요에 따라 [사용자 지정 형식의 반환된 데이터를 처리](/ko/guides/actions/#반환된-데이터-처리)할 수 있습니다.
 
 다음 예제는 `Authorization` 헤더와 [`keepalive`](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive) 옵션을 전달하는 정의된 `like` 액션을 호출하는 방법을 보여줍니다:
 
@@ -344,3 +407,171 @@ navigator.sendBeacon(
 )
 </script>
 ```
+
+### `ACTION_QUERY_PARAMS`
+
+<p>
+
+**타입:** `{ actionName: string, actionPayload: string }`
+</p>
+
+양식 액션 제출을 처리할 때 Astro 내부적으로 사용하는 쿼리 매개변수 이름을 포함하는 객체입니다.
+
+액션을 사용하여 양식을 제출하면 액션 호출을 추적하기 위해 다음과 같은 쿼리 매개변수가 URL에 추가됩니다.
+* `actionName` - 호출되는 액션의 이름을 포함하는 쿼리 매개변수입니다.
+* `actionPayload` - 직렬화된 양식 데이터를 포함하는 쿼리 매개변수입니다.
+
+이 상수는 양식 제출 후 URL을 정리해야 할 때 유용할 수 있습니다. 예를 들어, 리디렉션 중에 액션 관련 쿼리 매개변수를 제거하고 싶을 수 있습니다.
+
+```ts title="src/pages/api/contact.ts" "ACTION_QUERY_PARAMS"
+import type { APIRoute } from "astro";
+import { ACTION_QUERY_PARAMS } from 'astro:actions'
+
+export const GET: APIRoute = ({ params, request }) => {
+  const link = request.url.searchParams;
+  link.delete(ACTION_QUERY_PARAMS.actionName);
+  link.delete(ACTION_QUERY_PARAMS.actionPayload);
+
+  return redirect(link, 303);
+};
+```
+
+## `astro:actions` 타입
+
+```ts
+import type {
+  ActionAPIContext,
+  ActionClient,
+  ActionErrorCode,
+  ActionReturnType,
+  SafeResult,
+ } from 'astro:actions';
+```
+
+### `ActionAPIContext`
+
+[Astro 컨텍스트 객체](/ko/reference/api-reference/)의 하위 집합입니다. 다음 속성은 사용할 수 없습니다: `callAction`, `getActionResult`, `props`, `redirect`.
+
+### `ActionClient`
+
+<p>
+
+**타입:**
+* <code>(input?: any) => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+* `{ queryString?: string; orThrow: (input?: any) => Promise<Awaited<TOutput>>; }`
+</p>
+
+클라이언트에서 호출되는 액션을 나타냅니다. 입력 데이터를 받아 액션 결과 또는 유효성 검사 오류가 포함된 [`SafeResult` 객체](#saferesult)가 담긴 Promise를 반환하는 함수로 사용할 수 있습니다.
+
+다음은 좋아요 수를 증가시키려 할 때 실패하는 경우 `if` 문을 사용하여 오류 처리를 제공하는 방법을 보여주는 예시입니다.
+
+```astro title="src/pages/posts/post-1.astro" "data" "error"
+---
+---
+
+<!-- 템플릿 -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const { data: updatedLikes, error } = await actions.likePost({ postId: post?.id });
+  if (error) {
+    /* 오류 처리 */
+  }
+})
+</script>
+```
+
+또는 객체로 사용해 `queryString`에 접근하거나, 대신 `orThrow()` 메서드를 호출할 수도 있습니다.
+
+#### `queryString` 속성
+
+<p>
+
+**타입:** `string`
+</p>
+
+양식 액션 URL을 구성하는 데 사용할 수 있는 액션의 문자열 표현입니다. 양식 컴포넌트가 여러 곳에서 사용되지만 제출 시 다른 URL로 리디렉션해야 하는 경우 유용할 수 있습니다.
+
+다음은 `queryString`을 사용하여 사용자 정의 prop을 통해 양식 `action` 속성으로 전달할 URL을 구성하는 예시입니다.
+
+```astro title="src/pages/postal-service.astro" "queryString"
+---
+import { actions } from 'astro:actions';
+import FeedbackForm from "../components/FeedbackForm.astro";
+
+const feedbackUrl = new URL('/feedback', Astro.url);
+feedbackUrl.search = actions.myAction.queryString;
+---
+<FeedbackForm sendTo={feedbackUrl.pathname} />
+```
+
+#### `orThrow()` 속성
+
+<p>
+
+**타입:** `(input?: any) => Promise<Awaited<TOutput>>`
+</p>
+
+실패 시 오류를 반환하는 대신 오류를 발생시키는 메서드입니다. 이는 오류 처리를 직접 하는 대신 예외를 사용하고자 할 때 유용합니다.
+
+다음은 좋아요 수 증가에 실패했을 때 오류 처리를 건너뛰기 위해 `orThrow()`를 사용하는 예시입니다.
+
+```astro title="src/pages/posts/post-1.astro" "orThrow"
+---
+---
+
+<!-- 템플릿 -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const updatedLikes = await actions.likePost.orThrow({ postId: post?.id });
+})
+</script>
+```
+
+### `ActionErrorCode`
+
+<p>
+
+**타입:** `string`
+</p>
+
+[IANA에서 정의한](https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml) 표준 HTTP 상태 코드의 유니언 타입으로, 사람이 읽을 수 있는 버전의 대문자 문자열이며, 언더스코어로 구분합니다. (예: `BAD_REQUEST` 또는 `PAYLOAD_TOO_LARGE`)
+
+### `ActionReturnType`
+
+<p>
+
+**타입:** <code>Awaited\<ReturnType\<ActionHandler\>\></code>
+</p>
+
+[액션 핸들러](#defineaction)에서 출력 타입을 추출하는 유틸리티 타입입니다. 이는 `Promise`(핸들러가 비동기인 경우)와 `ReturnType`을 모두 언래핑하여 [실제 출력 타입](#saferesult)을 제공합니다. 또한 자체 타입 정의에서 액션의 출력 타입을 참조해야 하는 경우에 유용할 수 있습니다.
+
+다음은 `ActionReturnType`을 사용하여 `contact`라는 액션의 예상 출력 타입을 검색하는 예시입니다.
+
+```astro title="src/components/Form.astro" {4}
+---
+import { actions, ActionReturnType } from 'astro:actions';
+
+type ContactResult = ActionReturnType<typeof actions.contact>;
+---
+```
+
+### `SafeResult`
+
+<p>
+
+**타입:** `{ data: TOutput, error: undefined } | { data: undefined, error: ActionError }`
+</p>
+
+액션 호출 결과를 나타냅니다.
+* 성공 시 `data`에는 액션의 출력이 포함되고 `error`는 `undefined`입니다.
+* 실패 시 `error`에는 유효성 검사 오류 또는 런타임 오류가 포함된 [`ActionError`](#actionerror)가 포함되고 `data`는 `undefined`입니다.

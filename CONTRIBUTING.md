@@ -101,8 +101,7 @@ Our Docs are translated into several languages and we rely on automation to noti
 
 **Pages generated from outside sources**
 
-Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are `configuration-reference.md` and all those under the `integrations-guide/` directory as well as our error messages.
-
+Some of our English-language pages are generated from outside sources and maintained in another repo. Currently, these files are configuration-reference.md and all our error messages.
 The page's **Edit this page** button should redirect you to the file that should be changed. Alternatively, you can get the correct URL from the file's `githubURL` frontmatter property.
 
 > **Note**
@@ -123,15 +122,15 @@ Every pull request needs to be reviewed by our contributors and approved by a ma
 
 You can find more information about submitting your pull requests in our [contributor guides](https://contribute.docs.astro.build)
 
-### Contribute PRs using an online code editor (e.g. StackBlitz, Codeflow, CodeSandbox, Gitpod)
+### Contribute PRs using an online code editor (e.g. StackBlitz, Codeflow, CodeSandbox)
 
 Editing a local fork on GitHub.com is convenient for small text changes, but does not allow you to see a live preview of the site.
 
 You can instead open your fork in an online IDE (integrated development environment) for a code editor and live preview without needing to set up any local development environment. Each online IDE has its own shortcut URL for opening an existing repository, and will allow you to create pull requests after you have made changes.
 
-See specific instructions for opening an existing repository in [CodeSandbox](https://codesandbox.io/docs/importing#import-from-github), [StackBlitz](https://developer.stackblitz.com/docs/platform/importing-projects/#import-from-github), [Codeflow IDE](https://developer.stackblitz.com/codeflow/working-in-codeflow-ide) and [Gitpod](https://www.gitpod.io/docs/getting-started#start-your-first-workspace) on their respective websites.
+See specific instructions for opening an existing repository in [CodeSandbox](https://codesandbox.io/docs/importing#import-from-github), [StackBlitz](https://developer.stackblitz.com/docs/platform/importing-projects/#import-from-github) and [Codeflow IDE](https://developer.stackblitz.com/codeflow/working-in-codeflow-ide) on their respective websites.
 
-Note that CodeSandbox and StackBlitz provide Astro syntax highlighting in their custom code editors, while Gitpod and Codeflow support the full [Astro VSCode extension](https://docs.astro.build/en/editor-setup/#vs-code).
+Note that CodeSandbox and StackBlitz provide Astro syntax highlighting in their custom code editors, while Codeflow supports the full [Astro VSCode extension](https://docs.astro.build/en/editor-setup/#vs-code).
 
 ### Contribute PRs by Developing Locally
 
