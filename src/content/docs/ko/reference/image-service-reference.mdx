@@ -28,7 +28,7 @@ Astro는 로컬과 외부라는 두 가지 유형의 이미지 서비스를 제�
 
 외부 서비스는 최종 `<img>` 태그의 `src` 속성으로 사용될 원격 URL을 가리킵니다. 이 원격 URL은 이미지 다운로드, 변환 및 반환을 담당합니다.
 
-```js
+```ts
 import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
 
 const service: ExternalImageService = {
@@ -36,7 +36,7 @@ const service: ExternalImageService = {
     const serviceConfig = imageConfig.service.config;
 
     // 사용자가 설정한 최대 너비를 적용합니다.
-    if (options.width > serviceConfig.maxWidth) {
+    if (options.width && options.width > serviceConfig.maxWidth) {
       console.warn(`Image width ${options.width} exceeds max width ${serviceConfig.maxWidth}. Falling back to max width.`);
       options.width = serviceConfig.maxWidth;
     }
@@ -64,11 +64,11 @@ export default service;
 
 자신만의 로컬 서비스를 생성하려면 [내장된 엔드포인트](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) (`/_image`)를 가리키거나 서비스의 메서드를 호출할 수 있는 자체 엔드포인트를 추가로 생성할 수 있습니다.
 
-```js
-import type { LocalImageService, AstroConfig } from "astro";
+```ts
+import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
 
-const service: LocalImageService = {
-  getURL(options: ImageTransform, imageConfig: AstroConfig['image']) {
+const service: LocalImageService<AstroConfig["image"]> = {
+  getURL(options: ImageTransform, imageConfig) {
     const searchParams = new URLSearchParams();
 		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
 		options.width && searchParams.append('w', options.width.toString());
@@ -80,6 +80,7 @@ const service: LocalImageService = {
     // 이 함수는 `/_image?${searchParams}`를 반환합니다.
   },
   parseURL(url: URL, imageConfig) {
+    const params = url.searchParams;
     return {
       src: params.get('href')!,
       width: params.has('w') ? parseInt(params.get('w')!) : undefined,
@@ -88,8 +89,8 @@ const service: LocalImageService = {
       quality: params.get('q'),
     };
   },
-  transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig): { data: Uint8Array, format: OutputFormat } {
-    const { buffer } = mySuperLibraryThatEncodesImages(options);
+  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig) {
+    const { buffer } = await mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
       format: options.format,
@@ -159,9 +160,13 @@ export const GET: APIRoute = async ({ request }) => {
 
 ### `getURL()`
 
-**로컬 및 외부 서비스에 필요함**
+<p>
 
-`getURL(options: ImageTransform, imageConfig: AstroConfig['image']): string`
+**타입:** `(options: ImageTransform, imageConfig: AstroConfig['image']) => string | Promise<string>`<br />
+<Since v="2.1.0" />
+</p>
+
+**로컬 및 외부 서비스에 필요함**
 
 로컬 서비스의 경우 이 후크는 이미지를 생성하는 엔드포인트의 URL을 반환합니다 (요청 시 렌더링 및 개발 모드에서). 빌드 중에는 사용되지 않습니다. `getURL()`이 가리키는 로컬 엔드포인트는 `parseURL()`과 `transform()`을 모두 호출할 수 있습니다.
 
@@ -171,32 +176,41 @@ export const GET: APIRoute = async ({ request }) => {
 
 ```ts
 export type ImageTransform = {
-    // 이미지를 가져오는 ESM | 원격/public 이미지 경로
-    src: ImageMetadata | string;
-    width?: number;
-    height?: number;
-    widths?: number[] | undefined;
-	  densities?: (number | `${number}x`)[] | undefined;
-    quality?: ImageQuality;
-    format?: OutputFormat;
-    alt?: string;
-    [key: string]: any;
+  // 이미지를 가져오는 ESM | 원격/public 이미지 경로
+  src: ImageMetadata | string;
+  width?: number | undefined;
+  height?: number | undefined;
+  widths?: number[] | undefined;
+  densities?: (number | `${number}x`)[] | undefined;
+  quality?: ImageQuality  | undefined;
+  format?: OutputFormat | undefined;
+  fit?: ImageFit | undefined;
+  position?: string | undefined;
+  [key: string]: any;
 };
 ```
 
 ### `parseURL()`
 
-**로컬 서비스에 필요합니다. 외부 서비스에 사용할 수 없음**
+<p>
 
-`parseURL(url: URL, imageConfig: AstroConfig['image']): { src: string, [key: string]: any}`
+**타입:** `(url: URL, imageConfig: AstroConfig['image']) => { src: string, [key: string]: any } | undefined | Promise<{ src: string, [key: string]: any }> | Promise<undefined>`<br />
+<Since v="2.1.0" />
+</p>
+
+**로컬 서비스에만 필요합니다. 외부 서비스에 사용할 수 없음**
 
 이 후크는 `getURL()`에 의해 생성된 URL을 `transform` (요청 시 렌더링 및 개발 모드에서)에 사용되는 다른 속성을 가진 객체로 다시 구문 분석합니다. 빌드 중에는 사용되지 않습니다.
 
 ### `transform()`
 
-**로컬 서비스에만 필요합니다. 외부 서비스에 사용할 수 없음**
+<p>
 
-`transform(buffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']): { data: Uint8Array, format: OutputFormat }`
+**타입:** `(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig: AstroConfig['image']) => Promise<{ data: Uint8Array; format: ImageOutputFormat }>`<br />
+<Since v="2.1.0" />
+</p>
+
+**로컬 서비스에만 필요합니다. 외부 서비스에 사용할 수 없음**
 
 이 후크는 이미지를 변환하고 반환하며 빌드 중에 호출되어 최종 자산 파일을 생성합니다.
 
@@ -204,26 +218,32 @@ export type ImageTransform = {
 
 ### `getHTMLAttributes()`
 
-**로컬 및 외부 서비스 모두 선택 사항**
+<p>
 
-`getHTMLAttributes(options: ImageTransform, imageConfig: AstroConfig['image']): Record<string, any>`
+**타입:** `(options: ImageTransform, imageConfig: AstroConfig['image'] ) => Record<string, any> | Promise<Record<string, any>>`<br />
+<Since v="2.1.0" />
+</p>
+
+**로컬 및 외부 서비스 모두 선택 사항**
 
 이 후크는 사용자가 전달한 매개변수 (`options`)를 기반으로 이미지를 HTML로 렌더링하는 데 사용되는 모든 추가 속성을 반환합니다.
 
 ### `getSrcSet()`
 
-<p><Since v="3.3.0" /></p>
+<p>
+
+**타입:** `(options: ImageTransform, imageConfig: AstroConfig['image'] ) => UnresolvedSrcSetValue[] | Promise<UnresolvedSrcSetValue[]>`<br />
+<Since v="3.3.0" />
+</p>
 
 **로컬 및 외부 서비스 모두 선택 사항입니다.**
-
-`getSrcSet?: (options: ImageTransform, imageConfig: AstroConfig['image']): SrcSetValue[] | Promise<SrcSetValue[]>;`
 
 이 후크는 `<img>` 또는 `<picture>`의 `source`에 `srcset` 속성을 생성하기 위해 지정된 이미지의 여러 변형을 생성합니다.
 
 이 후크는 다음 속성을 가진 객체 배열을 반환합니다.
 
 ```ts
-export type SrcSetValue = {
+export type UnresolvedSrcSetValue = {
 	transform: ImageTransform;
 	descriptor?: string;
 	attributes?: Record<string, any>;
@@ -232,9 +252,13 @@ export type SrcSetValue = {
 
 ### `validateOptions()`
 
-**로컬 및 외부 서비스 모두 선택 사항**
+<p>
 
-`validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']): ImageTransform`
+**타입:** `(options: ImageTransform, imageConfig: AstroConfig['image'] ) => ImageTransform | Promise<ImageTransform>`
+<Since v="2.1.4" />
+</p>
+
+**로컬 및 외부 서비스 모두 선택 사항**
 
 이 후크를 사용하면 사용자가 전달한 옵션을 검증하고 강화할 수 있습니다. 이는 기본 옵션을 설정하거나 사용자에게 매개변수가 필요함을 알리는 데 유용합니다.
 
@@ -276,6 +300,7 @@ import {
     resolveSrc,
     imageMetadata,
     emitESMImage,
+    emitImageMetadata,
     getOrigQueryParams,
     inferRemoteSize,
     propsToFilename,
@@ -286,7 +311,7 @@ import {
 ### `isRemoteAllowed()`
 
 <p>
-**타입:** `(src: string, { domains, remotePatterns }: {domains: string[], remotePatterns: RemotePattern[] }): boolean`<br />
+**타입:** `(src: string, { domains, remotePatterns }: { domains: string[], remotePatterns: RemotePattern[] }) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -310,7 +335,7 @@ console.log(`Is the remote image allowed? ${isAllowed}`);
 ### `matchHostname()`
 
 <p>
-**타입:** `(url: URL, hostname?: string, allowWildcard = false): boolean`<br />
+**타입:** `(url: URL, hostname?: string, allowWildcard = false) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -336,7 +361,7 @@ console.log(`Does the hostname match with wildcard? ${isMatchWithWildcard}`); //
 ### `matchPathname()`
 
 <p>
-**타입:** `(url: URL, pathname?: string, allowWildcard = false): boolean`<br />
+**타입:** `(url: URL, pathname?: string, allowWildcard = false) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -363,7 +388,7 @@ console.log(`Does the pathname match with wildcard? ${isMatchWithWildcard}`); //
 ### `matchPattern()`
 
 <p>
-**타입:** `(url: URL, remotePattern: RemotePattern): boolean`<br />
+**타입:** `(url: URL, remotePattern: RemotePattern) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -391,7 +416,7 @@ console.log(`Does the URL match the remote pattern? ${isPatternMatched}`); // �
 ### `matchPort()`
 
 <p>
-**타입:** `(url: URL, port?: string): boolean`<br />
+**타입:** `(url: URL, port?: string) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -422,7 +447,7 @@ console.log(`Does the port match (no port specified)? ${isPortMatch3}`); // 출�
 ### `matchProtocol()`
 
 <p>
-**타입:** `(url: URL, protocol?: string): boolean`<br />
+**타입:** `(url: URL, protocol?: string) => boolean`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -453,7 +478,7 @@ console.log(`Does the protocol match (no protocol specified)? ${isProtocolMatch3
 ### `isESMImportedImage()`
 
 <p>
-  **타입:** `(src: ImageMetadata | string): boolean`<br />
+  **타입:** `(src: ImageMetadata | string) => boolean`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -484,7 +509,7 @@ console.log(`Is filePathExample an ESM imported image? ${isFilePathImage}`); // 
 ### `isRemoteImage()`
 
 <p>
-  **타입:** `(src: ImageMetadata | string): boolean`<br />
+  **타입:** `(src: ImageMetadata | string) => boolean`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -513,7 +538,7 @@ console.log(`Is localImageMetadata a remote image? ${isRemote2}`); // 출력: fa
 ### `resolveSrc()`
 
 <p>
-  **타입:** `(src: UnresolvedImageTransform['src']): Promise<string | ImageMetadata>`<br />
+  **타입:** `(src: UnresolvedImageTransform['src']) => Promise<string | ImageMetadata>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -537,7 +562,7 @@ const resolvedDynamic = await resolveSrc(import("./images/dynamic-image.jpg"))
 ### `imageMetadata()`
 
 <p>
-  **타입:** `(data: Uint8Array, src?: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  **타입:** `(data: Uint8Array, src?: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -580,7 +605,7 @@ await extractImageMetadata();
 :::
 
 <p>
-  **타입:** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+  **타입:** `(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: FileEmitter) => Promise<ImageMetadataWithContents | undefined>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -617,7 +642,7 @@ try {
 ### `emitImageMetadata()`
 
 <p>
-  **타입:** `(id: string | undefined, fileEmitter?: FileEmitter): Promise<ImageMetadataWithContents | undefined>`<br />
+  **타입:** `(id: string | undefined, fileEmitter?: FileEmitter) => Promise<ImageMetadataWithContents | undefined>`<br />
   <Since v="5.7.0" />
 </p>
 
@@ -652,7 +677,7 @@ try {
 ### `getOrigQueryParams()`
 
 <p>
-  **타입:** `(params: URLSearchParams): Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
+  **타입:** `(params: URLSearchParams) => Pick<ImageMetadata, 'width' | 'height' | 'format'> | undefined`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -685,7 +710,7 @@ if (origParams) {
 ### `inferRemoteSize()`
 
 <p>
-  **타입:** `(url: string): Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+  **타입:** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -720,7 +745,7 @@ await getRemoteImageSize();
 ### `propsToFilename()`
 
 <p>
-  **타입:** `(filePath: string, transform: ImageTransform, hash: string): string`<br />
+  **타입:** `(filePath: string, transform: ImageTransform, hash: string) => string`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -759,7 +784,7 @@ generateTransformedFilename();
 ### `hashTransform()`
 
 <p>
-  **타입:** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]): string`<br />
+  **타입:** `(transform: ImageTransform, imageService: string, propertiesToHash: string[]) => string`<br />
   <Since v="4.0.0" />
 </p>
 
@@ -771,6 +796,7 @@ import { hashTransform } from 'astro/assets/utils';
 
 function generateTransformHash() {
   const transform = {
+    src: '/images/photo.jpg',
     width: 800,
     height: 600,
     format: 'jpg',

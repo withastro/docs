@@ -7,11 +7,13 @@ export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
+	deployhq: { file: 'deployhq.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
 	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
+	'craft-cross-cms': { file: 'craft-cross-cms.svg', padding: '.225em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
 	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
@@ -28,6 +30,7 @@ export const logos = LogoCheck({
 	heroku: { file: 'heroku.svg', padding: '.25em' },
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
 	netlify: { file: 'netlify.svg', padding: '.1625em' },
+	railway: { file: 'railway.svg', padding: '0' },
 	render: { file: 'render.svg', padding: '.1875em' },
 	stormkit: { file: 'stormkit.svg', padding: '0' },
 	surge: { file: 'surge.svg', padding: '.125em' },
@@ -35,6 +38,7 @@ export const logos = LogoCheck({
 	image: { file: 'astro-image.svg', padding: '.1875em' },
 	lit: { file: 'lit.svg', padding: '.1875em' },
 	mdx: { file: 'mdx.svg', padding: '.1em' },
+	mux: { file: 'mux.svg', padding: '.1em' },
 	node: { file: 'node.svg', padding: '.1875em' },
 	partytown: { file: 'partytown.svg', padding: '.2em .2em .25em .25em' },
 	preact: { file: 'preact.svg', padding: '.1875em' },
@@ -105,6 +109,8 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
+	zephyr: { file: 'zephyr.svg', padding: '0' },
+	seenode: { file: 'seenode.svg', padding: '.2em' },
 });
 
 export type LogoKey = keyof typeof logos;

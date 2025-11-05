@@ -1,0 +1,103 @@
+---
+title: Astro 사이트를 Seenode에 배포
+description: Seenode에서 웹에 Astro 사이트를 배포하는 방법.
+sidebar:
+  label: Seenode
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[Seenode](https://seenode.com)는 데이터베이스, 내장된 관찰 기능, 자동 확장이 포함된 웹 애플리케이션을 빌드하고 배포하기 위한 배포 플랫폼입니다. Astro 사이트는 서버 측 렌더링(SSR)을 사용하여 Seenode에 배포할 수 있습니다.
+
+이 가이드에는 웹 인터페이스를 통해 Seenode에 배포하는 방법에 대한 지침이 포함되어 있습니다.
+
+## 프로젝트 구성
+
+### SSR용 어댑터
+
+Astro 프로젝트에서 요청 시 렌더링을 활성화하고 Seenode에 배포하려면 다음 `astro add` 명령을 사용하여 [Node.js 어댑터](/ko/guides/integrations-guide/node/)를 추가하세요. 이렇게 하면 어댑터가 설치되고 `astro.config.mjs` 파일에 필요한 변경 사항이 한번에 적용됩니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+어댑터를 설치한 후 Seenode의 요구 사항에 맞게 서버를 구성하도록 `astro.config.mjs`를 업데이트하세요.
+
+```js title="astro.config.mjs" ins={6-11}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  server: {
+    port: process.env.NODE_ENV === 'production' ? (Number(process.env.PORT) || 80) : 4321,
+    host: true
+  }
+});
+```
+
+빌드된 서버를 실행하는 시작 스크립트를 포함하도록 `package.json`을 업데이트하세요.
+
+```json title="package.json" ins={6}
+{
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "start": "NODE_ENV=production node ./dist/server/entry.mjs"
+  }
+}
+```
+
+<ReadMore>자세한 구성 옵션 및 문제 해결은 [Seenode의 Astro 배포 가이드](https://seenode.com/docs/frameworks/javascript/astro/)를 참조하세요.</ReadMore>
+
+## 배포 방법
+
+Git 리포지토리를 연결하여 웹 인터페이스를 통해 Seenode에 배포할 수 있습니다.
+
+### 웹 인터페이스 배포
+
+<Steps>
+1. [Seenode 계정](https://cloud.seenode.com)을 생성하고 로그인합니다.
+
+2. 코드를 Git 리포지토리(GitHub 또는 GitLab)에 푸시합니다.
+
+3. [Seenode 대시보드](https://cloud.seenode.com/dashboard/applications/web/create)에서 새 **Web Service**를 생성하고 리포지토리를 연결합니다.
+
+4. Seenode는 자동으로 Astro 프로젝트를 감지합니다. 배포 설정을 구성하세요.
+
+   - **Build Command:** `npm ci && npm run build` (또는 `pnpm` / `yarn` 등을 사용합니다.)
+   - **Start Command:** `npm start`
+   - **Port:** `80` (웹 서비스에서 필수)
+
+5. 선호하는 인스턴스 크기를 선택하고 **Create Web Service**를 클릭합니다.
+
+6. 애플리케이션이 빌드 및 배포됩니다. 작업이 완료되면 실시간 Astro 사이트에 액세스할 수 있는 URL을 받게 되며, 이후 도메인을 연결할 수 있습니다.
+</Steps>
+
+## 공식 리소스
+
+- [Seenode 클라우드](https://cloud.seenode.com) — Seenode 대시보드
+- [Seenode 문서](https://seenode.com/docs) — 완전한 플랫폼 문서
+- [Seenode Astro 가이드](https://seenode.com/docs/frameworks/javascript/astro/) — 상세한 배포 가이드 및 문제 해결
+- [Seenode Astro 템플릿](https://github.com/seenode/example-astro) — 사전 구성된 시작 템플릿
