@@ -72,190 +72,7 @@ Defines the entrypoint for on-demand server rendering.
 
 A map of Astro built-in features supported by the adapter. This allows Astro to determine which features an adapter is unable or unwilling to support so appropriate error messages can be provided.
 
-When using these properties, Astro will:
-- run specific validation; 
-- emit contextual information to the logs;
-
-These operations are run based on the features supported or not supported, their level of support, the [desired amount of logging](#suppress), and the user's own configuration.
-
-The following configuration tells Astro that this adapter has experimental support for the Sharp-powered built-in image service:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          supportedAstroFeatures: {
-            sharpImageService: 'experimental'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-If the Sharp image service is used, Astro will log a warning and error to the terminal based on your adapter's support:
-
-```
-[@example/my-adapter] The feature is experimental and subject to issues or changes.
-
-[@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
-```
-
-A message can additionally be provided to give more context to the user:
-
-```js title="my-adapter.mjs" ins={9-14}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          supportedAstroFeatures: {
-            sharpImageService: {
-              support: 'limited',
-              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.'
-            }
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-This object contains the following configurable features:
-
-#### `staticOutput`
-
-<p>
-
-**Type:** [`AdapterSupport`](#adaptersupport)
-</p>
-
-Defines whether the adapter is able to serve static pages.
-
-#### `hybridOutput`
-
-<p>
-
-**Type:** [`AdapterSupport`](#adaptersupport)
-</p>
-
-Defines whether the adapter is able to serve pages that are static or on-demand rendered.
-
-#### `serverOutput`
-
-<p>
-
-**Type:** [`AdapterSupport`](#adaptersupport)
-</p>
-
-Defines whether the adapter is able to serve on-demand pages.
-
-#### `i18nDomains`
-
-<p>
-
-**Type:** [`AdapterSupport`](#adaptersupport)<br />
-<Since v="4.3.0" />
-</p>
-
-Defines whether the adapter is able to support i18n domains.
-
-#### `envGetSecret`
-
-<p>
-
-**Type:** [`AdapterSupport`](#adaptersupport)<br />
-<Since v="4.10.0" />
-</p>
-
-Defines whether the adapter is able to support `getSecret()` exported from [`astro:env/server`](/en/reference/modules/astro-env/). When enabled, this feature allows your adapter to retrieve secrets configured by users in `env.schema`.
-
-The following example enables the feature by passing [a valid `AdapterSupportsKind` value](#adaptersupportskind) to the adapter:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          supportedAstroFeatures: {
-              envGetSecret: 'stable'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-The `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In your server entrypoint, call `setGetEnv()` as soon as possible:
-
-```js ins={2,4}
-import { App } from 'astro/app';
-import { setGetEnv } from "astro/env/setup"
-
-setGetEnv((key) => process.env[key])
-
-export function createExports(manifest) {
-  const app = new App(manifest);
-
-  const handler = (event, context) => {
-    // ...
-  };
-
-  return { handler };
-}
-```
-
-If you support secrets, be sure to call `setGetEnv()` before `getSecret()` when your environment variables are tied to the request:
-
-```js ins={3,14}
-import type { SSRManifest } from 'astro';
-import { App } from 'astro/app';
-import { setGetEnv } from 'astro/env/setup';
-import { createGetEnv } from '../utils/env.js';
-
-type Env = {
-	[key: string]: unknown;
-};
-
-export function createExports(manifest: SSRManifest) {
-	const app = new App(manifest);
-
-	const fetch = async (request: Request, env: Env) => {
-		setGetEnv(createGetEnv(env));
-
-		const response = await app.render(request);
-
-		return response;
-	};
-
-	return { default: { fetch } };
-}
-```
-
-#### `sharpImageService`
-
-<p>
-
-**Type:** [`AdapterSupport`](#adaptersupport)<br />
-<Since v="5.0.0" />
-</p>
-
-Defines whether the adapter supports image transformation using the built-in Sharp image service.
+<ReadMore>Discover the [available Astro features](#astro-features) that an adapter can configure.</ReadMore>
 
 ### `adapterFeatures`
 
@@ -265,136 +82,9 @@ Defines whether the adapter supports image transformation using the built-in Sha
 <Since v="3.0.0" />
 </p>
 
-A set of features that changes the output of the emitted files. When an adapter opts in to these features, they will get additional information inside specific hooks and must implement the proper logic to handle the different output.
+An object that enables specific features that must be supported by the adapter. These features will change the built output, and the adapter must implement the proper logic to handle the different output.
 
-#### `edgeMiddleware`
-
-<p>
-
-**Type:** `boolean`
-</p>
-
-Defines whether any on-demand rendering middleware code will be bundled when built.
-
-When enabled, this prevents middleware code from being bundled and imported by all pages during the build:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-Then, consume the hook [`astro:build:ssr`](/en/reference/integrations-reference/#astrobuildssr), which will give you a `middlewareEntryPoint`, an `URL` to the physical file on the file system.
-
-```js title="my-adapter.mjs" ins={15-20}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ middlewareEntryPoint }) => {
-          // remember to check if this property exits, it will be `undefined` if the adapter doesn't opt in to the feature
-          if (middlewareEntryPoint) {
-             createEdgeMiddleware(middlewareEntryPoint)
-          }
-      }  
-    },
-  };
-}
-
-function createEdgeMiddleware(middlewareEntryPoint) {
-    // emit a new physical file using your bundler
-}
-```
-
-#### `buildOutput`
-
-<p>
-
-**Type:** `"static" | "server"`<br />
-**Default:** `"server"`<br />
-<Since v="5.0.0" />
-</p>
-
-Allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type, for instance, your adapter might expect a static website, but uses an adapter to create host-specific files. Defaults to `server` if not specified.
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            buildOutput: 'static'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-#### `experimentalStaticHeaders`
-
-<p>
-
-**Type:** `boolean`<br />
-<Since v="5.9.3" />
-</p>
-
-When this feature is enabled, Astro will return a map of the `Headers` emitted by the static pages. This map `experimentalRouteToHeaders` is available in the [`astro:build:generated` hook](/en/reference/integrations-reference/#astrobuildgenerated).
-  
-The value of the headers might change based on the features enabled/used by the application.
-
-For example, if [CSP is enabled](/en/reference/experimental-flags/csp/), the `<meta http-equiv="content-security-policy">` element is not added to the static page. Instead its `content` is available in the `experimentalRouteToHeaders` map. 
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            experimentalStaticHeaders: true,
-          },
-        });
-      },
-      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
-        // use `experimentalRouteToHeaders` to generate a configuration file
-        // for your virtual host of choice
-      },
-    },
-  };
-}
-```
+<ReadMore>Learn more about the [available features](#adapter-features) that an adapter can activate.</ReadMore>
 
 ### `args`
 
@@ -693,6 +383,328 @@ if(app.match(request)) {
 You can usually call `app.render(request)` without using `.match` because Astro handles 404s if you provide a `404.astro` file. Use `app.match(request)` if you want to handle 404s in a different way.
 
 By default, prerendered routes aren't returned, even if they are matched. You can change this behavior by using `true` as second argument.
+
+## Astro features
+
+Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter’s level of support.
+
+When using these properties, Astro will:
+- run specific validation; 
+- emit contextual information to the logs;
+
+These operations are run based on the features supported or not supported, their level of support, the [desired amount of logging](#suppress), and the user's own configuration.
+
+The following configuration tells Astro that this adapter has experimental support for the Sharp-powered built-in image service:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: 'experimental'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+If the Sharp image service is used, Astro will log a warning and error to the terminal based on your adapter's support:
+
+```
+[@example/my-adapter] The feature is experimental and subject to issues or changes.
+
+[@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
+
+A message can additionally be provided to give more context to the user:
+
+```js title="my-adapter.mjs" ins={9-14}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+This object contains the following configurable features:
+
+#### `staticOutput`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+Defines whether the adapter is able to serve static pages.
+
+#### `hybridOutput`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+Defines whether the adapter is able to serve pages that are static or on-demand rendered.
+
+#### `serverOutput`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+Defines whether the adapter is able to serve on-demand pages.
+
+#### `i18nDomains`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.3.0" />
+</p>
+
+Defines whether the adapter is able to support i18n domains.
+
+#### `envGetSecret`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.10.0" />
+</p>
+
+Defines whether the adapter is able to support `getSecret()` exported from [`astro:env/server`](/en/reference/modules/astro-env/). When enabled, this feature allows your adapter to retrieve secrets configured by users in `env.schema`.
+
+The following example enables the feature by passing [a valid `AdapterSupportsKind` value](#adaptersupportskind) to the adapter:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+              envGetSecret: 'stable'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+The `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In your server entrypoint, call `setGetEnv()` as soon as possible:
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+If you support secrets, be sure to call `setGetEnv()` before `getSecret()` when your environment variables are tied to the request:
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+	[key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+
+	const fetch = async (request: Request, env: Env) => {
+		setGetEnv(createGetEnv(env));
+
+		const response = await app.render(request);
+
+		return response;
+	};
+
+	return { default: { fetch } };
+}
+```
+
+#### `sharpImageService`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="5.0.0" />
+</p>
+
+Defines whether the adapter supports image transformation using the built-in Sharp image service.
+
+## Adapter features
+
+A set of features that changes the output of the emitted files. When an adapter opts in to these features, they will get additional information inside specific hooks and must implement the proper logic to handle the different output.
+
+#### `edgeMiddleware`
+
+<p>
+
+**Type:** `boolean`
+</p>
+
+Defines whether any on-demand rendering middleware code will be bundled when built.
+
+When enabled, this prevents middleware code from being bundled and imported by all pages during the build:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Then, consume the hook [`astro:build:ssr`](/en/reference/integrations-reference/#astrobuildssr), which will give you a `middlewareEntryPoint`, an `URL` to the physical file on the file system.
+
+```js title="my-adapter.mjs" ins={15-20}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+          // remember to check if this property exits, it will be `undefined` if the adapter doesn't opt in to the feature
+          if (middlewareEntryPoint) {
+             createEdgeMiddleware(middlewareEntryPoint)
+          }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+    // emit a new physical file using your bundler
+}
+```
+
+#### `buildOutput`
+
+<p>
+
+**Type:** `"static" | "server"`<br />
+**Default:** `"server"`<br />
+<Since v="5.0.0" />
+</p>
+
+Allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type, for instance, your adapter might expect a static website, but uses an adapter to create host-specific files. Defaults to `server` if not specified.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            buildOutput: 'static'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+#### `experimentalStaticHeaders`
+
+<p>
+
+**Type:** `boolean`<br />
+<Since v="5.9.3" />
+</p>
+
+When this feature is enabled, Astro will return a map of the `Headers` emitted by the static pages. This map `experimentalRouteToHeaders` is available in the [`astro:build:generated` hook](/en/reference/integrations-reference/#astrobuildgenerated).
+  
+The value of the headers might change based on the features enabled/used by the application.
+
+For example, if [CSP is enabled](/en/reference/experimental-flags/csp/), the `<meta http-equiv="content-security-policy">` element is not added to the static page. Instead its `content` is available in the `experimentalRouteToHeaders` map. 
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            experimentalStaticHeaders: true,
+          },
+        });
+      },
+      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
+        // use `experimentalRouteToHeaders` to generate a configuration file
+        // for your virtual host of choice
+      },
+    },
+  };
+}
+```
 
 ## Adapter types reference
 
