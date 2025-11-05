@@ -1,0 +1,333 @@
+---
+type: integration
+title: '@astrojs/db'
+description: Pelajari cara menggunakan integrasi @astrojs/db di proyek Astro Anda.
+sidebar:
+  label: DB
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+category: other
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+Astro DB adalah basis data SQL terkelola penuh yang dirancang untuk ekosistem Astro: kembangkan secara lokal di Astro dan deploy ke basis data yang kompatibel dengan [libSQL](/id/guides/astro-db/).
+
+Dengan Astro DB, Anda memiliki alat lokal yang kuat dan **type-safe** untuk melakukan kueri dan memodelkan konten sebagai basis data relasional.
+
+<ReadMore>Lihat [panduan Astro DB](/id/guides/astro-db/) untuk penggunaan lengkap dan contoh.</ReadMore>
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatisasi penyiapan integrasi resmi. Jika Anda mau, Anda dapat [menginstal integrasi secara manual](#manual-installation) sebagai gantinya.
+
+Jalankan salah satu perintah berikut di jendela terminal baru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+ </PackageManagerTabs>
+
+#### Instalasi Manual 
+
+Jika Anda lebih suka menyiapkan semuanya dari nol sendiri, lewati `astro add` dan ikuti instruksi berikut untuk memasang Astro DB secara manual.
+
+##### 1. Instal integrasi dari npm melalui package manager
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/db
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/db
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+##### 2. Tambahkan integrasi ke `astro.config.mjs`
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import db from '@astrojs/db';
+
+    export default defineConfig({
+      integrations: [
+       db()
+      ]
+    });
+    ```
+
+##### 3. Konfigurasikan database Anda 
+
+Buat file `db/config.ts` di root proyek Anda. Ini adalah file khusus yang akan dimuat secara otomatis oleh Astro dan digunakan untuk mengonfigurasi tabel database Anda.
+
+```ts
+// db/config.ts
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: {},
+})
+```
+
+## Konfigurasi
+
+### `mode`
+
+<p>
+
+**Tipe:** `'node' | 'web'`<br />
+**Bawaan:** `'node'`<br />
+<Since v="0.18.0" pkg="@astrojs/db" />
+</p>
+
+Mengonfigurasi driver yang digunakan untuk terhubung ke database Anda di produksi.
+
+Secara default, Astro DB menggunakan driver libSQL berbasis Node.js untuk deployment produksi. Mode driver `node` sudah cukup untuk sebagian besar situs Astro yang di-host maupun self-host dengan runtime Node.js. Ini memungkinkan Anda terhubung ke database melalui berbagai protokol, termasuk `memory:`, `file:`, `ws:`, `wss:`, `libsql`, `http`, dan `https`, serta mendukung fitur lanjutan seperti [embedded replicas](/id/guides/astro-db/#syncurl).
+
+Saat mendeploy ke lingkungan serverless dengan runtime non‑Node.js, seperti Cloudflare Workers atau Deno, tersedia driver libSQL berbasis web. Jika mendeploy menggunakan mode `web`, Anda dapat membuat koneksi berbasis web melalui `libsql`, `http`, atau `https`.
+
+Untuk menggunakan driver web libSQL pada lingkungan non‑Node.js, set properti `mode` pada konfigurasi adapter Anda:
+
+```ts title="astro.config.mjs" ins={7}
+import { defineConfig } from 'astro/config';
+import db from '@astrojs/db';
+
+export default defineConfig({
+  integrations: [
+   db({
+     mode: 'web'
+   })
+  ]
+});
+```
+
+## Referensi konfigurasi tabel
+
+### `columns`
+
+<p>
+
+**Tipe:** `ColumnsConfig`
+</p>
+
+Kolom tabel dikonfigurasi menggunakan objek `columns`:
+
+```ts
+import { defineTable, column, NOW } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    author: column.text(),
+    content: column.text({ optional: true }),
+    published: column.date({ default: NOW }),
+  },
+});
+```
+
+Kolom dikonfigurasi menggunakan utilitas `column`. `column` mendukung tipe berikut:
+
+- **`column.text(...)`** - menyimpan konten teks (plain atau rich text)
+- **`column.number(...)`** - menyimpan nilai integer dan floating point
+- **`column.boolean(...)`** - menyimpan nilai benar/salah
+- **`column.date(...)`** - menyimpan objek `Date`, di-parse sebagai string ISO untuk penyimpanan data
+- **`column.json(...)`** - menyimpan JSON arbitrer, di-parse sebagai JSON yang di‑stringify untuk penyimpanan data
+
+Ada beberapa nilai konfigurasi bersama yang berlaku untuk semua kolom:
+
+- `primaryKey` - Jadikan kolom `number` atau `text` sebagai pengenal unik.
+- `optional` - Astro DB menggunakan `NOT NULL` untuk semua kolom secara default. Set `optional: true` untuk mengizinkan nilai null.
+- `default` - Set nilai default untuk entri baru. Ini menerima nilai statis atau string `sql` untuk nilai ter‑generate seperti timestamp.
+- `unique` - Tandai kolom sebagai unik. Ini mencegah nilai duplikat di seluruh entri dalam tabel.
+- `references` - Mereferensikan tabel terkait melalui kolom. Ini membuat foreign key constraint, artinya setiap nilai kolom harus memiliki nilai yang cocok pada tabel yang direferensikan.  
+
+Kolom `text` dapat secara opsional mendefinisikan daftar literal string sebagai enum untuk menghasilkan tipe. Namun, **tidak ada validasi runtime yang dilakukan**. Menghapus, menambah, dan mengubah nilai harus ditangani di kode proyek Anda.
+
+```ts title="db/config.ts" {8}
+import { defineTable, column } from 'astro:db';
+
+// Definisi tabel
+const UserTable = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+    rank: column.text({ enum: ['user', 'mod', 'admin'] }),
+  },
+});
+
+// Definisi tipe yang dihasilkan
+type UserTableInferInsert = {
+    id?: string;
+    name: string;
+    rank: "user" | "mod" | "admin";
+}
+```
+
+### `indexes`
+
+<p>
+
+**Tipe:** `{ on: string | string[]; unique?: boolean | undefined; name?: string | undefined; }[]`
+</p>
+
+Index tabel digunakan untuk meningkatkan kecepatan pencarian pada kolom tertentu atau kombinasi kolom. Properti `indexes` menerima array objek konfigurasi yang menentukan kolom yang diindeks:
+
+```ts title="db/config.ts" {9-11}
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number(),
+    published: column.date(),
+    body: column.text(),
+  },
+  indexes: [
+    { on: ["authorId", "published"], unique: true },
+  ]
+});
+```
+
+Ini akan menghasilkan index unik pada kolom `authorId` dan `published` dengan nama `Comment_authorId_published_idx`.
+
+Opsi konfigurasi berikut tersedia untuk setiap index:
+
+- `on` - Satu kolom atau array nama kolom yang akan diindeks.
+- `unique` (opsional) - Set ke `true` untuk memaksa nilai unik di seluruh kolom yang diindeks.
+- `name` (opsional) - Nama khusus untuk index unik. Ini akan menimpa nama yang dihasilkan Astro berdasarkan nama tabel dan kolom yang diindeks (mis. `Comment_authorId_published_idx`). Nama khusus bersifat global, jadi pastikan tidak terjadi konflik antar tabel.
+
+### `foreignKeys`
+
+<p>
+
+**Tipe:** `{ columns: string | string[]; references: () => Column | Column[]; }[]`
+</p>
+
+:::tip
+
+`foreignKeys` adalah API tingkat lanjut untuk mengaitkan banyak kolom tabel. Jika Anda hanya perlu mereferensikan satu kolom, coba gunakan [properti kolom `references`.](#columns)
+
+:::
+
+Foreign key digunakan untuk membangun relasi antar dua tabel. Properti `foreignKeys` menerima array objek konfigurasi yang dapat mengaitkan satu atau lebih kolom antar tabel:
+
+```ts title="db/config.ts" {12-20}
+import { defineTable, column } from 'astro:db';
+
+const Author = defineTable({
+  columns: {
+    firstName: column.text(),
+    lastName: column.text(),
+  },
+});
+
+const Comment = defineTable({
+  columns: {
+    authorFirstName: column.text(),
+    authorLastName: column.text(),
+    body: column.text(),
+  },
+  foreignKeys: [
+    {
+      columns: ["authorFirstName", "authorLastName"],
+      references: () => [Author.columns.firstName, Author.columns.lastName],
+    },
+  ],
+});
+```
+
+Setiap objek konfigurasi foreign key menerima properti berikut:
+
+- `columns` - Satu kolom atau array nama kolom yang dihubungkan ke tabel referensi.
+- `references` - Fungsi yang mengembalikan satu kolom atau array kolom dari tabel yang direferensikan.
+
+## Referensi CLI Astro DB
+
+Astro DB menyertakan sekumpulan perintah CLI untuk berinteraksi dengan database lokal dan database yang kompatibel dengan libSQL. 
+
+Perintah‑perintah ini dipanggil secara otomatis saat menggunakan aksi GitHub CI, dan dapat dipanggil manual menggunakan CLI `astro db`. 
+
+### `astro db push`
+
+**Flags:**
+
+- `--force-reset` Reset semua data produksi jika diperlukan perubahan skema yang breaking.
+
+Mendorong perubahan konfigurasi database ke database proyek Anda secara aman. Perintah ini akan memeriksa risiko kehilangan data dan memberi panduan langkah migrasi yang disarankan. Jika perubahan skema yang breaking harus dilakukan, gunakan flag `--force-reset` untuk mereset semua data produksi.
+
+### `astro db verify`
+
+Memeriksa perbedaan antara konfigurasi database lokal dan remote Anda. Ini dijalankan otomatis oleh `astro db push`. `verify` akan membandingkan file lokal `db/config.ts` Anda dengan database remote dan memperingatkan jika ada perubahan yang terdeteksi.
+
+### `astro db execute <file-path>`
+
+**Flags:**
+
+- `--remote` Jalankan terhadap database yang kompatibel dengan libSQL. Hilangkan flag ini untuk menjalankan terhadap server pengembangan Anda.
+
+Menjalankan file `.ts` atau `.js` untuk membaca atau menulis ke database Anda. Perintah ini menerima path file sebagai argumen, dan mendukung penggunaan modul `astro:db` untuk menulis kueri yang **type‑safe**. Gunakan flag `--remote` untuk menjalankan terhadap database libSQL‑compatible Anda, atau hilangkan flag untuk menjalankan terhadap server pengembangan. Lihat cara [seeding data pengembangan](/id/guides/astro-db/#seed-your-database-for-development) untuk contoh file.
+
+### `astro db shell --query <sql-string>`
+
+**Flags:**
+
+- `--query` Kueri SQL mentah yang akan dieksekusi.
+- `--remote` Jalankan terhadap database yang kompatibel dengan libSQL. Hilangkan flag ini untuk menjalankan terhadap server pengembangan Anda.
+
+Menjalankan kueri SQL mentah terhadap database Anda. Gunakan flag `--remote` untuk menjalankan terhadap database libSQL‑compatible Anda, atau hilangkan flag untuk menjalankan terhadap server pengembangan.
+
+## Referensi utilitas Astro DB
+
+### `isDbError()`
+
+<p>
+
+**Tipe:** `(err: unknown) => boolean`<br />
+<Since v="0.9.1" pkg="@astrojs/db" />
+</p>
+
+Fungsi `isDbError()` memeriksa apakah sebuah error merupakan pengecualian database libSQL. Ini bisa mencakup error foreign key constraint saat menggunakan referensi, atau field yang hilang saat melakukan insert data. Anda dapat menggabungkan `isDbError()` dengan blok try/catch untuk menangani error database di aplikasi Anda:
+
+```ts title="src/pages/api/comment/[id].ts" "idDbError"
+import { db, Comment, isDbError } from 'astro:db';
+import type { APIRoute } from 'astro';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    if (isDbError(e)) {
+      return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```

@@ -1,0 +1,155 @@
+---
+title: Impor gambar secara dinamis
+description: Pelajari cara mengimpor gambar secara dinamis menggunakan fungsi import.meta.glob milik Vite.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+
+[Gambar](/en/guides/images/) lokal harus diimpor ke dalam berkas `.astro` agar dapat ditampilkan. Ada kalanya Anda ingin atau perlu mengimpor path gambar secara dinamis alih-alih mengimpor setiap gambar satu per satu.
+
+Pada resep ini, Anda akan mempelajari cara mengimpor gambar secara dinamis menggunakan fungsi `import.meta.glob` milik Vite. Anda akan membuat sebuah komponen kartu yang menampilkan nama, usia, dan foto seseorang.
+
+## Resep
+
+<Steps>
+1. Buat folder `assets` baru di bawah direktori `src` dan tambahkan gambar Anda ke dalam folder baru tersebut. 
+
+    <FileTree>
+    - src/
+      - assets/
+        - avatar-1.jpg
+        - avatar-2.png
+        - avatar-3.jpeg
+    </FileTree>
+
+    :::note
+    `assets` adalah konvensi penamaan folder yang umum untuk menaruh gambar, tetapi Anda bebas menamai folder sesuai keinginan.
+    ::: 
+
+2. Buat komponen Astro baru untuk kartu Anda dan impor komponen `<Image />`.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" 
+    ---
+    import { Image } from 'astro:assets';
+    ---
+    ```
+
+3. Tentukan `props` yang akan diterima komponen Anda untuk menampilkan informasi yang diperlukan pada setiap kartu. Anda juga dapat mendefinisikan tipenya secara opsional jika menggunakan TypeScript dalam proyek Anda.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={4-9, 11}
+    ---
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+
+    const { imagePath, altText, name, age } = Astro.props;
+    ---
+    ``` 
+
+4. Buat variabel `images` baru dan gunakan fungsi `import.meta.glob` yang mengembalikan sebuah objek berisi semua path gambar di dalam folder `assets`. Anda juga perlu mengimpor tipe `ImageMetadata` untuk membantu mendefinisikan tipe variabel `images`. 
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={2, 13} "ImageMetadata"
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}')
+    ---
+    ```
+
+
+5. Gunakan props tersebut untuk membuat markup komponen kartu Anda. 
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins={15-19} "<Image src={} alt={altText} />"
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Usia: {age}</p>
+        <Image src={} alt={altText} />
+    </div>
+    ```
+
+6. Di dalam atribut `src`, teruskan objek `images` dan gunakan notasi bracket untuk path gambar. Lalu pastikan untuk memanggil fungsi glob tersebut.
+
+    Karena Anda mengakses objek `images` yang bertipe tidak diketahui, Anda juga sebaiknya melakukan `throw` error jika path berkas yang dikirim melalui prop tidak valid.
+
+    ```astro title="src/components/MyCustomCardComponent.astro" ins="images[imagePath]()" ins={14}
+
+    ---
+    import type { ImageMetadata } from 'astro';
+    import { Image } from 'astro:assets';
+
+    interface Props {
+       imagePath: string;
+       altText: string;
+       name: string;
+       age: number;
+    }
+
+    const { imagePath, altText, name, age } = Astro.props;
+    const images = import.meta.glob<{ default: ImageMetadata }>('/src/assets/*.{jpeg,jpg,png,gif}');
+    if (!images[imagePath]) throw new Error(`"${imagePath}" does not exist in glob: "src/assets/*.{jpeg,jpg,png,gif}"`);
+    ---
+    <div class="card">
+        <h2>{name}</h2>
+        <p>Usia: {age}</p>
+        <Image src={images[imagePath]()} alt={altText} />
+    </div>
+    ```
+
+    :::note
+    `images` adalah sebuah objek yang berisi semua path gambar di dalam folder `assets`. 
+
+    ```js
+    const images = {
+      './assets/avatar-1.jpg': () => import('./assets/avatar-1.jpg'),
+      './assets/avatar-2.png': () => import('./assets/avatar-2.png'),
+      './assets/avatar-3.jpeg': () => import('./assets/avatar-3.jpeg')
+    }
+    ```
+
+    Prop `imagePath` adalah string yang berisi path menuju gambar yang ingin Anda tampilkan. `import.meta.glob()` yang akan mencari path gambar yang cocok dengan prop `imagePath` dan menangani impor untuk Anda.
+    ::: 
+
+7. Impor dan gunakan komponen kartu di dalam sebuah halaman Astro, dengan meneruskan nilai untuk `props`. 
+
+    ```astro title="src/pages/index.astro" 
+    ---
+    import MyCustomCardComponent from '../components/MyCustomCardComponent.astro';
+    ---
+    <MyCustomCardComponent 
+        imagePath="/src/assets/avatar-1.jpg"
+        altText="Foto close-up Priya dengan latar dinding bata."
+        name="Priya"
+        age={25}
+    />
+    ```
+</Steps>

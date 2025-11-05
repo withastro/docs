@@ -1,0 +1,665 @@
+---
+title: Koleksi konten
+description: Kelola konten Anda dengan type safety.
+i18nReady: true
+---
+import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+import ReadMore from "~/components/ReadMore.astro"
+
+<p><Since v="2.0.0" /></p>
+
+**Koleksi konten** adalah cara terbaik untuk mengelola kumpulan konten di proyek Astro mana pun. Koleksi membantu mengorganisasi dan melakukan query dokumen Anda, mengaktifkan IntelliSense dan pengecekan tipe di editor, serta memberikan type-safety TypeScript otomatis untuk semua konten Anda.
+Astro v5.0 memperkenalkan Content Layer API untuk mendefinisikan dan melakukan query koleksi konten. API yang performa dan skalabel ini menyediakan content loader bawaan untuk koleksi lokal Anda. Untuk konten jarak jauh (remote), Anda dapat menggunakan loader pihak ketiga dan buatan komunitas atau membuat loader kustom sendiri dan menarik data dari sumber mana pun.
+
+:::note
+Proyek masih dapat menggunakan Content Collections API lama yang diperkenalkan di Astro v2.0. Namun, kami mendorong Anda untuk [memperbarui koleksi yang ada](/id/guides/upgrade-to/v5/#legacy-v20-content-collections-api) saat Anda siap.
+:::
+
+## Apa itu Koleksi Konten?
+
+Anda dapat mendefinisikan sebuah **koleksi** dari sekumpulan data yang strukturnya serupa. Ini bisa berupa direktori posting blog, sebuah file JSON berisi item produk, atau data apa pun yang merepresentasikan banyak item dengan bentuk yang sama.
+
+Koleksi yang disimpan secara lokal di proyek Anda atau pada sistem file dapat berisi entri berupa file Markdown, MDX, Markdoc, YAML, TOML, atau JSON:
+
+<FileTree>
+- src/
+- **newsletter/** koleksi "newsletter"
+  - week-1.md sebuah entri koleksi
+  - week-2.md sebuah entri koleksi
+  - week-3.md sebuah entri koleksi
+- **authors/** koleksi "author"
+  - authors.json satu file yang berisi semua entri koleksi
+</FileTree>
+
+Dengan loader koleksi yang sesuai, Anda dapat mengambil data jarak jauh dari sumber eksternal mana pun, seperti CMS, database, atau sistem pembayaran headless.
+
+## Konfigurasi TypeScript untuk koleksi
+
+Koleksi konten bergantung pada TypeScript untuk menyediakan validasi Zod, IntelliSense, dan pengecekan tipe di editor Anda. Jika Anda tidak memperluas salah satu pengaturan TypeScript `strict` atau `strictest` milik Astro, Anda harus memastikan `compilerOptions` berikut disetel di `tsconfig.json` Anda:
+
+```json title="tsconfig.json" ins={5} {6}
+{
+  // Disertakan dengan "astro/tsconfigs/strict" atau "astro/tsconfigs/strictest"
+  "extends": "astro/tsconfigs/base",
+  "compilerOptions": {
+    "strictNullChecks": true, // tambahkan jika menggunakan template `base`
+    "allowJs": true // wajib, dan disertakan pada semua template Astro
+  }
+}
+```
+
+## Mendefinisikan Koleksi
+
+Koleksi individual menggunakan `defineCollection()` untuk mengonfigurasi:
+- sebuah `loader` untuk sumber data (wajib)
+- sebuah `schema` untuk type safety (opsional, tetapi sangat dianjurkan!) 
+
+### Berkas konfigurasi koleksi
+
+Untuk mendefinisikan koleksi, Anda harus membuat berkas `src/content.config.ts` di proyek Anda (ekstensi `.js` dan `.mjs` juga didukung.) Ini adalah berkas khusus yang akan digunakan Astro untuk mengonfigurasi koleksi konten Anda berdasarkan struktur berikut:
+
+```ts title="src/content.config.ts"
+// 1. Impor utilitas dari `astro:content`
+import { defineCollection, z } from 'astro:content';
+
+// 2. Impor loader
+import { glob, file } from 'astro/loaders';
+
+// 3. Definisikan koleksi Anda
+const blog = defineCollection({ /* ... */ });
+const dogs = defineCollection({ /* ... */ });
+
+// 4. Ekspor satu objek `collections` untuk mendaftarkan koleksi Anda
+export const collections = { blog, dogs };
+```
+
+### Mendefinisikan `loader` koleksi
+
+Content Layer API memungkinkan Anda mengambil konten (baik yang disimpan lokal di proyek Anda maupun yang remote) dan menggunakan properti `loader` untuk mengambil data Anda. 
+
+#### Loader bawaan
+
+Astro menyediakan [dua fungsi loader bawaan](/id/reference/content-loader-reference/#built-in-loaders) (`glob()` dan `file()`) untuk mengambil konten lokal Anda, serta akses ke API untuk membangun loader Anda sendiri dan mengambil data remote.
+
+[`glob()` loader](/id/reference/content-loader-reference/#glob-loader) membuat entri dari direktori file Markdown, MDX, Markdoc, JSON, YAML, atau TOML dari mana saja di sistem file. Loader ini menerima `pattern` berisi file entri yang cocok menggunakan pola glob yang didukung [micromatch](https://github.com/micromatch/micromatch#matching-features), dan path dasar lokasi file Anda. `id` setiap entri akan dibuat otomatis dari nama filenya. Gunakan loader ini ketika Anda memiliki satu file per entri.
+
+[`file()` loader](/id/reference/content-loader-reference/#file-loader) membuat banyak entri dari satu file lokal. Setiap entri di file harus memiliki properti kunci `id` yang unik. Loader ini menerima path `base` ke file Anda dan opsional [fungsi `parser`](#parser-function) untuk file data yang tidak dapat diparse secara otomatis. Gunakan loader ini ketika file data Anda dapat diparse sebagai array objek.
+
+```ts  title="src/content.config.ts" {5,9}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // Tidak tersedia pada API legacy
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: /* ... */
+});
+
+const probes = defineCollection({
+  // `loader` juga dapat menerima array beberapa pattern serta string pattern
+  // Muat semua berkas markdown di direktori space-probes, kecuali yang diawali "voyager-"
+  loader: glob({ pattern: ['*.md', '!voyager-*'], base: 'src/data/space-probes' }),
+  schema: z.object({
+    name: z.string(),
+    type: z.enum(['Space Probe', 'Mars Rover', 'Comet Lander']),
+    launch_date: z.date(),
+    status: z.enum(['Active', 'Inactive', 'Decommissioned']),
+    destination: z.string(),
+    operator: z.string(),
+    notable_discoveries: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs, probes };
+```
+
+##### Fungsi `parser`
+
+`file()` loader menerima argumen kedua yang mendefinisikan fungsi `parser`. Ini memungkinkan Anda menentukan parser kustom (mis. `csv-parse`) untuk membuat koleksi dari isi sebuah file.
+
+`file()` loader akan secara otomatis mendeteksi dan mem-parse (berdasarkan ekstensi file) satu array objek dari file JSON dan YAML, serta memperlakukan setiap tabel tingkat atas sebagai entri independen pada file TOML. Dukungan untuk jenis file ini sudah bawaan, dan tidak memerlukan `parser` kecuali Anda memiliki [dokumen JSON bertingkat](#nested-json-documents). Untuk menggunakan file lain, seperti `.csv`, Anda perlu membuat fungsi parser.
+
+Contoh berikut menunjukkan mengimpor parser CSV, lalu memuat koleksi `cats` ke proyek Anda dengan memberikan path file dan fungsi `parser` ke `file()` loader:
+
+```typescript title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+import { parse as parseCsv } from "csv-parse/sync";
+
+const cats = defineCollection({
+  loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
+});
+```
+
+###### Dokumen `.json` bertingkat
+
+Argumen `parser` juga memungkinkan Anda memuat satu koleksi dari dokumen JSON bertingkat. Misalnya, file JSON berikut berisi beberapa koleksi:
+
+```json title="src/data/pets.json"
+{"dogs": [{}], "cats": [{}]}
+```
+
+Anda dapat memisahkan koleksi ini dengan memberikan `parser` kustom ke `file()` loader untuk masing-masing koleksi:
+
+```typescript title="src/content.config.ts"
+const dogs = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
+});
+const cats = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).cats })
+});
+```
+
+#### Membangun loader kustom 
+
+Anda dapat membangun loader kustom untuk mengambil konten remote dari sumber data mana pun, seperti CMS, database, atau endpoint API.
+
+Menggunakan loader untuk mengambil data Anda akan secara otomatis membuat koleksi dari data remote Anda. Ini memberi Anda semua manfaat koleksi lokal, seperti helper API khusus koleksi seperti `getCollection()` dan `render()` untuk melakukan query dan menampilkan data Anda, serta validasi skema.
+
+:::tip
+Temukan loader buatan komunitas dan pihak ketiga di [direktori integrasi Astro](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
+:::
+
+##### Loader inline
+
+Anda dapat mendefinisikan loader secara inline, di dalam koleksi Anda, sebagai fungsi async yang mengembalikan array entri.
+
+Ini berguna untuk loader yang tidak perlu mengontrol secara manual cara data dimuat dan disimpan. Setiap kali loader dipanggil, store akan dibersihkan dan semua entri dimuat ulang.
+
+```ts title="src/content.config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // Harus mengembalikan array entri dengan properti id, atau objek dengan ID sebagai key dan entri sebagai nilai
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+Entri yang dikembalikan disimpan di koleksi dan dapat di-query menggunakan fungsi `getCollection()` dan `getEntry()`.
+
+##### Objek loader
+
+Untuk kontrol lebih lanjut atas proses pemuatan, Anda dapat menggunakan Content Loader API untuk membuat objek loader. Misalnya, dengan akses langsung ke metode `load`, Anda dapat membuat loader yang memungkinkan entri diperbarui secara inkremental atau hanya membersihkan store saat diperlukan.
+
+Serupa dengan membuat integrasi Astro atau plugin Vite, Anda dapat [mendistribusikan loader Anda sebagai paket NPM](/id/reference/publish-to-npm/) agar dapat digunakan orang lain di proyek mereka.
+
+<ReadMore>Lihat [Content Loader API](/id/reference/content-loader-reference/) lengkap dan contoh cara membangun loader Anda sendiri.</ReadMore>
+
+### Mendefinisikan skema koleksi
+
+Skema menegakkan konsistensi frontmatter atau data entri dalam sebuah koleksi melalui validasi Zod. Skema **menjamin** bahwa data ini ada dalam bentuk yang dapat diprediksi saat Anda perlu mereferensikan atau melakukan query. Jika ada file yang melanggar skema koleksinya, Astro akan memberikan error yang membantu untuk memberi tahu Anda.
+
+Skema juga menjadi dasar pembuatan tipe TypeScript otomatis untuk konten Anda. Saat Anda mendefinisikan skema untuk koleksi Anda, Astro secara otomatis menghasilkan dan menerapkan interface TypeScript padanya. Hasilnya adalah dukungan TypeScript penuh ketika Anda melakukan query ke koleksi, termasuk autocompletion properti dan pengecekan tipe.
+
+:::tip
+Agar Astro mengenali skema baru atau yang diperbarui, Anda mungkin perlu memulai ulang server dev atau [menyinkronkan content layer](/id/reference/cli-reference/#astro-dev) (<code>s + enter</code>) untuk mendefinisikan modul `astro:content`.
+:::
+
+Setiap properti frontmatter atau data dari entri koleksi Anda harus didefinisikan menggunakan tipe data Zod:
+
+```ts title="src/content.config.ts" {6-11,15-19}
+import { defineCollection, z } from 'astro:content';
+import { glob, file } from 'astro/loaders'; // Tidak tersedia pada API legacy
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+#### Mendefinisikan tipe data dengan Zod
+
+Astro menggunakan [Zod](https://github.com/colinhacks/zod) untuk mendukung skema kontennya. Dengan Zod, Astro dapat memvalidasi data setiap file dalam koleksi *dan* menyediakan tipe TypeScript otomatis saat Anda melakukan query konten dari dalam proyek.
+
+Untuk menggunakan Zod di Astro, impor utilitas `z` dari `"astro:content"`. Ini adalah re-export dari pustaka Zod, dan mendukung semua fitur Zod. 
+
+```ts
+// Contoh: daftar ringkas banyak tipe data Zod yang umum
+import { z, defineCollection } from 'astro:content';
+
+defineCollection({
+  schema: z.object({
+    isDraft: z.boolean(),
+    title: z.string(),
+    sortOrder: z.number(),
+    image: z.object({
+      src: z.string(),
+      alt: z.string(),
+    }),
+    author: z.string().default('Anonymous'),
+    language: z.enum(['en', 'es']),
+    tags: z.array(z.string()),
+    footnote: z.string().optional(),
+
+    // Di YAML, tanggal yang ditulis tanpa tanda kutip ditafsirkan sebagai objek Date
+    publishDate: z.date(), // mis. 2024-09-17
+
+    // Ubah string tanggal (mis. "2022-07-08") menjadi objek Date
+    updatedDate: z.string().transform((str) => new Date(str)),
+
+    authorContact: z.string().email(),
+    canonicalURL: z.string().url(),
+  })
+})
+```
+
+<ReadMore>Lihat [README Zod](https://github.com/colinhacks/zod) untuk dokumentasi lengkap tentang cara kerja Zod dan fitur yang tersedia.</ReadMore>
+
+##### Metode skema Zod
+
+Semua [metode skema Zod](https://zod.dev/?id=schema-methods) (mis. `.parse()`, `.transform()`) tersedia, dengan beberapa keterbatasan. Perlu dicatat, melakukan pemeriksaan validasi kustom pada gambar menggunakan `image().refine()` tidak didukung.
+
+#### Mendefinisikan referensi koleksi
+
+Entri koleksi juga dapat "mereferensikan" entri terkait lainnya. 
+
+Dengan fungsi [`reference()`](/id/reference/modules/astro-content/#reference) dari Collections API, Anda dapat mendefinisikan sebuah properti dalam skema koleksi sebagai entri dari koleksi lain. Misalnya, Anda dapat mewajibkan setiap entri `space-shuttle` memiliki properti `pilot` yang menggunakan skema koleksi `pilot` untuk pengecekan tipe, autocomplete, dan validasi.
+
+Contoh umum adalah posting blog yang mereferensikan profil penulis yang dapat digunakan ulang yang disimpan sebagai JSON, atau URL posting terkait yang disimpan di koleksi yang sama:
+
+```ts title="src/content.config.ts"
+import { defineCollection, reference, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    // Referensikan satu penulis dari koleksi `authors` berdasarkan `id`
+    author: reference('authors'),
+    // Referensikan array posting terkait dari koleksi `blog` berdasarkan `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.json', base: "./src/data/authors" }),
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.string().url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+Contoh posting blog berikut menentukan `id` posting terkait dan `id` penulis posting:
+
+```yaml title="src/data/blog/welcome.md"
+---
+title: "Welcome to my blog"
+author: ben-holmes # mereferensikan `src/data/authors/ben-holmes.json` 
+relatedPosts:
+- about-me # mereferensikan `src/data/blog/about-me.md`
+- my-year-in-review # mereferensikan `src/data/blog/my-year-in-review.md`
+---
+```
+
+Referensi ini akan diubah menjadi objek yang berisi kunci `collection` dan `id`, memungkinkan Anda dengan mudah [melakukan query di template](/id/guides/content-collections/#accessing-referenced-data).
+
+### Mendefinisikan ID kustom
+
+Saat menggunakan `glob()` loader dengan file Markdown, MDX, Markdoc, atau JSON, setiap [`id`](/id/reference/modules/astro-content/#id) entri konten dibuat otomatis dalam format ramah-URL berdasarkan nama file konten. `id` digunakan untuk melakukan query entri secara langsung dari koleksi Anda. `id` juga berguna saat membuat halaman dan URL baru dari konten Anda.
+
+Anda dapat menimpa `id` yang dihasilkan dengan menambahkan properti `slug` Anda sendiri ke frontmatter file atau objek data untuk file JSON. Ini mirip dengan fitur “permalink” pada kerangka kerja web lainnya.
+
+```md title="src/blog/1.md" {3}
+---
+title: My Blog Post
+slug: my-custom-id/supports/slashes
+---
+Your blog post content here.
+```
+
+```json title="src/categories/1.json" {3}
+{
+  "title": "My Category",
+  "slug": "my-custom-id/supports/slashes",
+  "description": "Your category description here."
+}
+```
+
+## Melakukan query Koleksi
+
+Astro menyediakan fungsi helper untuk melakukan query sebuah koleksi dan mengembalikan satu (atau lebih) entri konten.
+
+- [`getCollection()`](/id/reference/modules/astro-content/#getcollection) mengambil seluruh koleksi dan mengembalikan array entri.
+- [`getEntry()`](/id/reference/modules/astro-content/#getentry) mengambil satu entri dari koleksi.
+
+Fungsi-fungsi ini mengembalikan entri dengan `id` unik, sebuah objek `data` berisi semua properti yang didefinisikan, dan juga akan mengembalikan `body` yang berisi body mentah yang belum dikompilasi dari dokumen Markdown, MDX, atau Markdoc.
+
+```js
+import { getCollection, getEntry } from 'astro:content';
+
+// Ambil semua entri dari sebuah koleksi.
+// Membutuhkan nama koleksi sebagai argumen.
+const allBlogPosts = await getCollection('blog');
+
+// Ambil satu entri dari sebuah koleksi.
+// Membutuhkan nama koleksi dan `id`
+const poodleData = await getEntry('dogs', 'poodle');
+
+
+```
+
+Urutan sortir koleksi yang dihasilkan tidak deterministik dan bergantung pada platform. Artinya, jika Anda memanggil `getCollection()` dan perlu entri dikembalikan dalam urutan tertentu (mis. posting blog diurutkan berdasarkan tanggal), Anda harus mengurutkan entri koleksi sendiri:
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
+<ReadMore>Lihat daftar lengkap properti yang dikembalikan oleh tipe [`CollectionEntry`](/id/reference/modules/astro-content/#collectionentry).</ReadMore>
+
+### Menggunakan konten di template Astro
+
+Setelah melakukan query koleksi Anda, Anda dapat mengakses konten setiap entri langsung di dalam template komponen Astro Anda. Misalnya, Anda dapat membuat daftar tautan ke posting blog, menampilkan informasi dari frontmatter entri menggunakan properti `data`.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+---
+<h1>Posting saya</h1>
+<ul>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
+  ))}
+</ul>
+```
+#### Merender konten body
+
+Setelah di-query, Anda dapat merender entri Markdown dan MDX menjadi HTML menggunakan properti fungsi [`render()`](/id/reference/modules/astro-content/#render). Memanggil fungsi ini memberi Anda akses ke konten HTML yang sudah dirender, termasuk komponen `<Content />` dan daftar semua heading yang dirender.
+
+```astro title="src/pages/blog/post-1.astro" {5,8}
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('blog', 'post-1');
+if (!entry) {
+  // Tangani Error, misalnya:
+  throw new Error('Could not find blog post 1');
+}
+const { Content, headings } = await render(entry);
+---
+<p>Published on: {entry.data.published.toDateString()}</p>
+<Content />
+```
+
+<ReadMore>Saat bekerja dengan entri MDX, Anda juga dapat [mengoper komponen Anda sendiri ke `<Content />`](/id/guides/integrations-guide/mdx/#passing-components-to-mdx-content) untuk mengganti elemen HTML dengan alternatif kustom.</ReadMore>
+
+#### Mengoper konten sebagai props
+
+Sebuah komponen juga dapat mengoper seluruh entri koleksi sebagai prop.
+
+Anda dapat menggunakan utilitas [`CollectionEntry`](/id/reference/modules/astro-content/#collectionentry) untuk mengetik props komponen Anda dengan benar menggunakan TypeScript. Utilitas ini menerima argumen string yang cocok dengan nama skema koleksi Anda dan akan mewarisi semua properti dari skema koleksi tersebut.
+
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` akan sesuai dengan tipe skema koleksi 'blog' Anda
+const { post } = Astro.props;
+---
+```
+
+### Memfilter query koleksi
+
+`getCollection()` menerima callback "filter" opsional yang memungkinkan Anda memfilter query berdasarkan properti `id` atau `data` sebuah entri.
+
+Anda dapat menggunakan ini untuk memfilter berdasarkan kriteria konten apa pun yang Anda inginkan. Misalnya, Anda dapat memfilter properti seperti `draft` untuk mencegah posting draf diterbitkan ke blog Anda:
+
+```js
+// Contoh: Saring entri konten dengan `draft: true`
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+```
+
+Anda juga dapat membuat halaman draf yang tersedia saat menjalankan dev server, tetapi tidak dibangun di produksi:
+
+```js
+// Contoh: Saring entri konten dengan `draft: true` hanya saat build untuk produksi
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+```
+
+Argumen filter juga mendukung pemfilteran berdasarkan direktori bertingkat dalam koleksi. Karena `id` menyertakan path bertingkat penuh, Anda dapat memfilter berdasarkan awal setiap `id` untuk hanya mengembalikan item dari direktori bertingkat tertentu:
+
+```js
+// Contoh: Saring entri berdasarkan sub-direktori dalam koleksi
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+```
+
+### Mengakses data yang direferensikan
+
+Setiap [referensi yang didefinisikan di skema Anda](/id/guides/content-collections/#defining-collection-references) harus di-query secara terpisah setelah terlebih dahulu melakukan query entri koleksi Anda. Karena fungsi [`reference()`](/id/reference/modules/astro-content/#reference) mengubah referensi menjadi objek dengan kunci `collection` dan `id`, Anda dapat menggunakan fungsi `getEntry()` untuk mengembalikan satu item yang direferensikan, atau `getEntries()` untuk mengambil banyak entri yang direferensikan dari objek `data` yang dikembalikan.
+
+```astro title="src/pages/blog/welcome.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+const blogPost = await getEntry('blog', 'welcome');
+
+// Selesaikan referensi tunggal (mis. `{collection: "authors", id: "ben-holmes"}`)
+const author = await getEntry(blogPost.data.author);
+// Selesaikan array referensi
+// (mis. `[{collection: "blog", id: "about-me"}, {collection: "blog", id: "my-year-in-review"}]`)
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>Author: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>Anda mungkin juga suka:</h2>
+{relatedPosts.map(post => (
+  <a href={post.id}>{post.data.title}</a>
+))}
+```
+
+## Menghasilkan rute dari konten
+
+Koleksi konten disimpan di luar direktori `src/pages/`. Ini berarti tidak ada halaman atau rute yang dihasilkan untuk item koleksi Anda secara default.
+
+Anda harus membuat [rute dinamis](/id/guides/routing/#dynamic-routes) baru secara manual jika ingin menghasilkan halaman HTML untuk setiap entri koleksi, seperti posting blog individual. Rute dinamis Anda akan memetakan parameter permintaan yang masuk (mis. `Astro.params.slug` di `src/pages/blog/[...slug].astro`) untuk mengambil entri yang benar untuk setiap halaman.
+
+Metode pasti untuk menghasilkan rute akan bergantung pada apakah halaman Anda di-prerender (default) atau dirender sesuai permintaan oleh server.
+
+### Membangun untuk output statis (default)
+
+Jika Anda sedang membangun situs statis (perilaku default Astro), gunakan fungsi [`getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths) untuk membuat banyak halaman dari satu komponen halaman (mis. `src/pages/[slug]`) selama proses build.
+
+Panggil `getCollection()` di dalam `getStaticPaths()` agar data koleksi Anda tersedia untuk membangun rute statis. Lalu, buat path URL individual menggunakan properti `id` dari setiap entri konten. Setiap halaman diberikan seluruh entri koleksi sebagai prop untuk [digunakan di template halaman Anda](#using-content-in-astro-templates).
+
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
+---
+import { getCollection, render } from 'astro:content';
+// 1. Hasilkan path baru untuk setiap entri koleksi
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+// 2. Untuk template Anda, Anda dapat mengambil entri langsung dari prop
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+Ini akan menghasilkan rute halaman untuk setiap entri dalam koleksi `blog`. Misalnya, entri di `src/blog/hello-world.md` akan memiliki `id` `hello-world`, sehingga URL finalnya adalah `/posts/hello-world/`.
+
+:::note
+Jika slug kustom Anda mengandung karakter `/` untuk menghasilkan URL dengan beberapa segmen path, Anda harus menggunakan [rest parameter (mis. `[...slug]`)](/id/guides/routing/#rest-parameters) pada nama berkas `.astro` untuk halaman routing dinamis ini.
+:::
+
+### Membangun untuk output server (SSR)
+
+Jika Anda membangun situs dinamis (menggunakan dukungan SSR Astro), Anda tidak diharapkan menghasilkan path apa pun sebelumnya saat build. Sebagai gantinya, halaman Anda harus memeriksa permintaan (menggunakan `Astro.request` atau `Astro.params`) untuk menemukan `slug` sesuai permintaan, lalu mengambilnya menggunakan [`getEntry()`](/id/reference/modules/astro-content/#getentry).
+
+
+```astro title="src/pages/posts/[id].astro"
+---
+import { getEntry, render } from "astro:content";
+// 1. Ambil slug dari permintaan server yang masuk
+const { id } = Astro.params;
+if (id === undefined) {
+  return Astro.redirect("/404");
+}
+// 2. Query entri secara langsung menggunakan slug dari permintaan
+const post = await getEntry("blog", id);
+// 3. Redirect jika entri tidak ada
+if (post === undefined) {
+  return Astro.redirect("/404");
+}
+// 4. Render entri menjadi HTML di template
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+:::tip
+Jelajahi folder `src/pages/` dari [kode demo tutorial blog di GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) untuk melihat contoh lengkap pembuatan halaman dari koleksi Anda untuk fitur blog seperti daftar posting, halaman tag, dan lainnya!
+:::
+
+## Skema JSON Koleksi
+
+<p><Since v="4.13.0" /></p>
+
+Astro membuat [JSON Schema](https://json-schema.org/) secara otomatis untuk koleksi, yang dapat Anda gunakan di editor untuk mendapatkan IntelliSense dan pengecekan tipe pada file data.
+
+Satu berkas JSON Schema dibuat untuk setiap koleksi di proyek Anda dan dikeluarkan ke direktori `.astro/collections/`.
+Misalnya, jika Anda memiliki dua koleksi, satu bernama `authors` dan satu lagi `posts`, Astro akan menghasilkan `.astro/collections/authors.schema.json` dan `.astro/collections/posts.schema.json`.
+
+### Menggunakan JSON Schema di berkas JSON
+
+Anda dapat menunjuk ke skema yang dihasilkan Astro secara manual dengan menyetel field `$schema` di file JSON Anda.
+Nilainya harus berupa path file relatif dari file data ke skema.
+Pada contoh berikut, sebuah file data di `src/data/authors/` menggunakan skema yang dihasilkan untuk koleksi `authors`:
+
+```json title="src/data/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+#### Menggunakan skema untuk sekelompok berkas JSON di VS Code
+
+Di VS Code, Anda dapat mengonfigurasi skema agar berlaku untuk semua file dalam sebuah koleksi menggunakan pengaturan [`json.schemas`](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings).
+Pada contoh berikut, semua file di direktori `src/data/authors/` akan menggunakan skema yang dihasilkan untuk koleksi `authors`:
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/data/authors/**"],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
+### Menggunakan skema di berkas YAML di VS Code
+
+Di VS Code, Anda dapat menambahkan dukungan untuk menggunakan JSON schema di file YAML menggunakan ekstensi [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml).
+Dengan ekstensi ini terpasang, Anda dapat mereferensikan skema di file YAML menggunakan sintaks komentar khusus:
+
+```yaml title="src/data/authors/armand.yml" ins={1}
+# yaml-language-server: $schema=../../../.astro/collections/authors.schema.json
+name: Armand
+skills:
+  - Astro
+  - Starlight
+```
+
+#### Menggunakan skema untuk sekelompok berkas YAML di VS Code
+
+Dengan ekstensi Red Hat YAML, Anda dapat mengonfigurasi skema agar berlaku untuk semua file YAML dalam sebuah koleksi menggunakan pengaturan `yaml.schemas`.
+Pada contoh berikut, semua file YAML di direktori `src/data/authors/` akan menggunakan skema yang dihasilkan untuk koleksi `authors`:
+
+```json
+{
+  "yaml.schemas": {
+    "./.astro/collections/authors.schema.json": ["/src/content/authors/*.yml"]
+  }
+}
+```
+
+Lihat [“Associating schemas”](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas) di dokumentasi ekstensi Red Hat YAML untuk detail selengkapnya.
+
+## Kapan membuat koleksi
+
+Anda dapat [membuat koleksi](#defining-collections) kapan pun Anda memiliki sekelompok data atau konten terkait yang berbagi struktur umum.
+
+Banyak manfaat menggunakan koleksi berasal dari:
+
+- Mendefinisikan bentuk data umum untuk memvalidasi bahwa entri individual “benar” atau “lengkap”, menghindari error di produksi.
+- API berfokus pada konten yang dirancang agar melakukan query menjadi intuitif (mis. `getCollection()` alih-alih `import.meta.glob()`) saat mengimpor dan merender konten di halaman Anda.
+- Sebuah [Content Loader API](/id/reference/content-loader-reference/) untuk mengambil konten Anda yang menyediakan loader bawaan dan akses ke API level rendah. Ada beberapa loader pihak ketiga dan buatan komunitas yang tersedia, dan Anda dapat membangun loader kustom untuk mengambil data dari mana saja.
+- Performa dan skalabilitas. Content Layer API memungkinkan data di-cache di antara build dan cocok untuk puluhan ribu entri konten.
+
+[Definisikan data Anda](#defining-collections) sebagai sebuah koleksi ketika:
+
+- Anda memiliki banyak file atau data untuk diorganisasi yang berbagi struktur keseluruhan yang sama (mis. posting blog yang ditulis dalam Markdown yang semuanya memiliki properti frontmatter yang sama).
+- Anda memiliki konten yang sudah ada dan disimpan secara remote, seperti di CMS, dan ingin memanfaatkan fungsi helper koleksi dan Content Layer API alih-alih menggunakan `fetch()` atau SDK.
+- Anda perlu mengambil (puluhan) ribu potongan data terkait, dan memerlukan metode query dan caching yang dapat menangani skala.
+
+### Kapan tidak membuat koleksi
+
+Koleksi memberikan struktur, keamanan, dan organisasi yang sangat baik ketika Anda memiliki **banyak potongan konten yang harus berbagi properti yang sama**.
+
+Koleksi **mungkin bukan solusi Anda** jika:
+
+- Anda hanya memiliki satu atau sedikit halaman berbeda. Pertimbangkan untuk [membuat komponen halaman individual](/id/basics/astro-pages/) seperti `src/pages/about.astro` dengan konten Anda langsung di dalamnya.
+- Anda menampilkan file yang tidak diproses oleh Astro, seperti PDF. Tempatkan aset statis tersebut di [direktori `public/`](/id/basics/project-structure/#public) proyek Anda.
+- Sumber data Anda memiliki SDK/klien impor sendiri yang tidak kompatibel dengan atau tidak menawarkan content loader dan Anda memilih untuk menggunakannya secara langsung.
+- Anda menggunakan API yang perlu diperbarui secara real-time. Koleksi konten hanya diperbarui saat build, jadi jika Anda memerlukan data live, gunakan metode lain untuk [mengimpor file](/id/guides/imports/#import-statements) atau [mengambil data](/id/guides/data-fetching/) dengan [on-demand rendering](/id/guides/on-demand-rendering/).

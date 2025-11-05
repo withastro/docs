@@ -1,0 +1,230 @@
+---
+title: Penyorotan Sintaks
+description: Pelajari cara menyorot blok kode Anda di Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro hadir dengan dukungan bawaan untuk [Shiki](https://shiki.style/) dan [Prism](https://prismjs.com/). Ini memberikan penyorotan sintaks untuk:
+
+- semua [pagar kode (```) ](#markdown-code-blocks) yang digunakan dalam file Markdown atau MDX.
+- konten di dalam [komponen bawaan `<Code />`](#code-) (ditenagai oleh Shiki) di file `.astro`.
+- konten di dalam [komponen `<Prism />`](#prism-) (ditenagai oleh Prism) di file `.astro`.
+
+Tambahkan [integrasi komunitas seperti Expressive Code](https://astro.build/integrations/?search=syntax+highlight) untuk lebih banyak opsi penandaan teks dan anotasi pada blok kode Anda.
+
+## Blok kode Markdown
+
+Blok kode Markdown ditandai dengan tiga backtick ``` di awal dan akhir blok. Anda dapat menuliskan bahasa pemrograman setelah backtick pembuka untuk menentukan bagaimana kode akan diwarnai dan distilir agar lebih mudah dibaca.
+
+``````markdown
+```js
+// Kode JavaScript dengan penyorotan sintaks.
+var fun = function lang(l) {
+  dateformat.i18n = require('./lang/' + l);
+  return true;
+};
+```
+``````
+
+Blok kode Markdown Astro diberi gaya oleh Shiki secara default, dengan tema `github-dark` yang telah dikonfigurasi sebelumnya. Output terkompilasi akan terbatas pada `style` inline tanpa kelas CSS tambahan, stylesheet, atau JS sisi klien.
+
+Anda dapat [menambahkan stylesheet Prism dan beralih ke penyorotan Prism](#add-a-prism-stylesheet), atau menonaktifkan penyorotan sintaks Astro sepenuhnya, dengan opsi konfigurasi [`markdown.syntaxHighlight`](/id/reference/configuration-reference/#markdownsyntaxhighlight).
+
+<ReadMore>Lihat referensi lengkap [`markdown.shikiConfig`](/id/reference/configuration-reference/#markdownshikiconfig) untuk seluruh set opsi penyorotan sintaks Markdown saat menggunakan Shiki.</ReadMore>
+
+### Menetapkan tema Shiki bawaan
+
+Anda dapat mengonfigurasi tema Shiki bawaan apa pun ([built-in Shiki theme](https://shiki.style/themes)) untuk blok kode Markdown Anda di konfigurasi Astro:
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      theme: 'dracula',
+    },
+  },
+});
+```
+<ReadMore>Lihat referensi lengkap [konfigurasi Shiki](/id/reference/configuration-reference/#markdownshikiconfig) untuk seluruh set opsi blok kode Markdown.</ReadMore>
+
+### Menetapkan tema mode terang dan gelap
+
+Anda dapat menentukan dua tema Shiki untuk mode terang dan gelap di konfigurasi Astro Anda:
+
+```js title="astro.config.mjs" {6-9}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      themes: {
+        light: 'github-light',
+        dark: 'github-dark',
+      },
+    },
+  },
+});
+```
+
+Kemudian, [tambahkan variabel CSS mode gelap Shiki melalui media query atau kelas](https://shiki.style/guide/dual-themes#query-based-dark-mode) agar diterapkan ke semua blok kode Markdown Anda secara default. Ganti kelas `.shiki` pada contoh dokumentasi Shiki dengan `.astro-code`:
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+@media (prefers-color-scheme: dark) {
+  .shiki,
+  .shiki span {
+  .astro-code,
+  .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: var(--shiki-dark-bg) !important;
+    /* Opsional, jika Anda juga menginginkan gaya font */
+    font-style: var(--shiki-dark-font-style) !important;
+    font-weight: var(--shiki-dark-font-weight) !important;
+    text-decoration: var(--shiki-dark-text-decoration) !important;
+  }
+}
+```
+
+<ReadMore>Lihat referensi lengkap [konfigurasi Shiki](/id/reference/configuration-reference/#markdownshikiconfig) untuk seluruh set opsi blok kode Markdown.</ReadMore>
+
+### Menambahkan tema Shiki Anda sendiri
+
+Alih-alih menggunakan salah satu tema bawaan Shiki, Anda dapat mengimpor tema Shiki kustom dari file lokal.
+
+```js title="astro.config.mjs" ins={2,7}
+import { defineConfig } from 'astro/config';
+import customTheme from './my-shiki-theme.json';
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: { 
+      theme: customTheme,
+    },
+  },
+});
+```
+
+### Menyesuaikan tema Shiki
+
+Anda dapat mengikuti [dokumentasi tema Shiki](https://shiki.style/themes) untuk opsi kustomisasi lebih lanjut untuk tema, [toggle mode terang vs gelap](https://shiki.style/guide/dual-themes), atau styling melalui [variabel CSS](https://shiki.style/guide/theme-colors#css-variables-theme).
+
+Anda perlu menyesuaikan contoh dari dokumentasi Shiki untuk proyek Astro Anda dengan melakukan substitusi berikut:
+
+- Blok kode distilir menggunakan kelas `.astro-code` alih-alih `.shiki`
+- Saat menggunakan tema `css-variables`, properti kustom diberi prefix `--astro-code-` alih-alih `--shiki-`
+
+## Komponen untuk blok kode
+
+Ada dua komponen Astro yang tersedia untuk file `.astro` dan `.mdx` untuk merender blok kode: [`<Code />`](#code-) dan [`<Prism />`](#prism-).
+
+Anda dapat merujuk `Props` dari komponen ini menggunakan utilitas tipe [`ComponentProps`](/id/guides/typescript/#componentprops-type).
+
+### `<Code />`
+
+Komponen ini ditenagai secara internal oleh Shiki. Ia mendukung semua tema dan bahasa populer Shiki serta beberapa opsi Shiki lainnya seperti tema kustom, bahasa, [transformer](#transformers), dan warna default.
+
+Nilai-nilai ini diteruskan ke komponen `<Code />` menggunakan atribut `theme`, `lang`, `transformers`, dan `defaultColor` masing-masing sebagai prop. Komponen `<Code />` **tidak** akan mewarisi pengaturan `shikiConfig` Anda untuk blok kode Markdown.
+
+```astro 'theme="dark-plus"' /wrap/ /(inline) \/>/ 'defaultColor={false}'
+---
+import { Code } from 'astro:components';
+---
+<!-- Sorot sintaks beberapa kode JavaScript. -->
+<Code code={`const foo = 'bar';`} lang="js" />
+<!-- Opsional: Sesuaikan tema Anda. -->
+<Code code={`const foo = 'bar';`} lang="js" theme="dark-plus" />
+<!-- Opsional: Aktifkan pemenggalan baris (word wrap). -->
+<Code code={`const foo = 'bar';`} lang="js" wrap />
+<!-- Opsional: Keluarkan kode inline. -->
+<p>
+  <Code code={`const foo = 'bar';`} lang="js" inline />
+  akan dirender inline.
+</p>
+<!-- Opsional: defaultColor -->
+<Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
+```
+
+#### Transformer
+
+<p><Since v="4.11.0" /></p>
+
+[Transformer Shiki](https://shiki.style/packages/transformers#shikijs-transformers) dapat diterapkan secara opsional ke kode dengan meneruskannya melalui properti `transformers` sebagai sebuah array. Sejak Astro v4.14.0, Anda juga dapat menyediakan sebuah string untuk [atribut `meta` Shiki](https://shiki.style/guide/transformers#meta) untuk meneruskan opsi ke transformer.
+
+Perhatikan bahwa `transformers` hanya menerapkan kelas dan Anda harus menyediakan aturan CSS sendiri untuk menargetkan elemen-elemen dari blok kode Anda.
+
+```astro title="src/pages/index.astro" {12-13}
+---
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
+import { Code } from 'astro:components'
+const code = `const foo = 'hello'
+const bar = ' world'
+console.log(foo + bar) // [!code focus]
+`
+---
+<Code
+  code={code}
+  lang="js"
+  transformers={[transformerMetaHighlight()]}
+  meta="{1,3}"
+/>
+  
+<style is:global>
+  pre.has-focused .line:not(.focused) {
+    filter: blur(1px);
+  }
+</style>
+```
+
+### `<Prism />`
+
+Komponen ini menyediakan penyorotan sintaks spesifik-bahasa untuk blok kode dengan menerapkan kelas CSS Prism. Perhatikan bahwa Anda harus [menyediakan stylesheet Prism](#add-a-prism-stylesheet) (atau membawa milik Anda sendiri) untuk memberi gaya pada kelas-kelas tersebut.
+
+Untuk menggunakan komponen penyorot `Prism`, Anda harus memasang paket `@astrojs/prism`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/prism
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/prism
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Kemudian, Anda dapat mengimpor dan menggunakan komponen `<Prism />` seperti komponen Astro lainnya, dengan meneruskan bahasa dan kode yang akan dirender.
+
+```astro
+---
+import { Prism } from '@astrojs/prism';
+---
+<Prism lang="js" code={`const foo = 'bar';`} />
+```
+
+Selain [daftar bahasa yang didukung oleh Prism](https://prismjs.com/#supported-languages), Anda juga dapat menggunakan `lang="astro"` untuk menampilkan blok kode Astro.
+
+## Tambahkan stylesheet Prism
+
+Jika Anda memilih untuk menggunakan Prism (baik dengan mengonfigurasi `markdown.syntaxHighlight: 'prism'` atau dengan komponen `<Prism />`), Astro akan menerapkan kelas CSS Prism alih-alih Shiki pada kode Anda. Anda perlu menyediakan stylesheet CSS sendiri agar penyorotan sintaks muncul.
+
+<Steps>
+1. Pilih stylesheet siap pakai dari [Prism Themes](https://github.com/PrismJS/prism-themes) yang tersedia.
+
+2. Tambahkan stylesheet ini ke [direktori `public/` proyek Anda](/id/basics/project-structure/#public).
+
+3. Muat stylesheet ini ke `<head>` halaman Anda dalam [komponen layout](/id/basics/layouts/) melalui tag `<link>`. (Lihat [Prism basic usage](https://prismjs.com/#basic-usage).)
+</Steps>
+
+Anda juga dapat mengunjungi [daftar bahasa yang didukung oleh Prism](https://prismjs.com/#supported-languages) untuk opsi dan cara penggunaannya.

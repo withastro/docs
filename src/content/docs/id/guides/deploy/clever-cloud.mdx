@@ -1,0 +1,113 @@
+---
+title: Deploy Situs Astro Anda ke Clever Cloud
+description: Cara men-deploy situs Astro Anda ke web di Clever Cloud.
+sidebar:
+  label: Clever Cloud
+type: deploy
+i18nReady: true
+---
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Clever Cloud](https://clever-cloud.com) adalah platform cloud asal Eropa yang menyediakan layanan otomatis dan dapat diskalakan.
+
+## Konfigurasi Proyek
+
+Anda dapat mendeploy proyek Astro yang sepenuhnya statis maupun yang dirender on-demand di Clever Cloud. Terlepas dari mode `output` Anda (pre-rendered atau [on-demand](/id/guides/on-demand-rendering/)), Anda bisa memilih untuk mendeploy sebagai **aplikasi statis** yang berjalan menggunakan post-build hook, atau sebagai **aplikasi Node.js** yang memerlukan beberapa konfigurasi manual pada `package.json` Anda.
+
+### Scripts
+
+Jika Anda menjalankan aplikasi Node.js on-demand, perbarui script `start` untuk menjalankan server Node. Aplikasi di Clever Cloud mendengarkan pada port **8080**.
+
+```json title="package.json"
+"scripts": {
+  "start": "node ./dist/server/entry.mjs --host 0.0.0.0 --port 8080",
+} 
+```
+
+## Deploy Astro dari Console
+
+Untuk mendeploy proyek Astro Anda ke Clever Cloud, Anda perlu **membuat aplikasi baru**. Wizard aplikasi akan memandu Anda melalui langkah konfigurasi yang diperlukan.
+
+<Steps>
+
+1. Dari bilah menu samping, klik **Create** > **An application**
+2. Pilih cara deployment:
+
+    - **Create a brand new app**: untuk mendeploy dari repositori lokal dengan Git
+    
+    atau
+    
+    - **Select a GitHub repository**: untuk mendeploy dari GitHub
+
+3. Pilih aplikasi **Node.js**, atau **static**.
+4. Atur ukuran minimal instance dan opsi skalabilitas. Situs Astro umumnya dapat dideploy menggunakan instance **Nano**. Bergantung pada spesifikasi proyek dan dependensi Anda, Anda mungkin perlu menyesuaikan sambil memantau metrik di halaman **Overview**.
+5. Pilih **region** untuk mendeploy instance Anda.
+6. Lewati langkah [menghubungkan **Add-ons** ke aplikasi Clever](https://www.clever-cloud.com/developers/doc/addons/) kecuali Anda menggunakan database atau Keycloak.
+7. Suntikkan **environment variables** berikut:
+
+    - Untuk **Node.js**, atur variabel lingkungan berdasarkan pengelola paket Anda:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      CC_NODE_BUILD_TOOL="npm"
+      CC_PRE_BUILD_HOOK="npm install && npm run astro telemetry disable && npm run build"
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      CC_NODE_BUILD_TOOL="custom"
+      CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install"
+      CC_CUSTOM_BUILD_TOOL="pnpm run astro telemetry disable && pnpm build"
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      CC_NODE_BUILD_TOOL="yarn"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable && yarn build"
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    - Untuk **static** application, tambahkan variabel berikut:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      CC_POST_BUILD_HOOK="npm run build"
+      CC_PRE_BUILD_HOOK="npm install && npm run astro telemetry disable"
+      CC_WEBROOT="/dist"
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      CC_POST_BUILD_HOOK="pnpm build"
+      CC_PRE_BUILD_HOOK="npm install -g pnpm && pnpm install && pnpm run astro telemetry disable"
+      CC_WEBROOT="/dist"
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      CC_POST_BUILD_HOOK="yarn build"
+      CC_PRE_BUILD_HOOK="yarn && yarn run astro telemetry disable"
+      CC_WEBROOT="/dist"
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+
+8. **Deploy!** Jika Anda mendeploy dari **GitHub**, proses deployment akan dimulai otomatis. Jika Anda menggunakan **Git**, salin remote dan lakukan push ke branch **master**. 
+
+</Steps>
+
+:::tip[Branch Lain]
+Untuk mendeploy dari branch selain `master`, gunakan `git push clever <branch>:master`.
+
+Sebagai contoh, jika Anda ingin mendeploy branch lokal `main` tanpa mengganti namanya, gunakan `git push clever main:master`.
+:::
+
+
+## Sumber Resmi
+- [Dokumentasi Clever Cloud untuk mendeploy aplikasi Node.js](https://www.clever-cloud.com/developers/doc/applications/javascript/nodejs/)
+- [Dokumentasi Clever Cloud untuk mendeploy Astro sebagai aplikasi statis](https://www.clever-cloud.com/developers/guides/astro/)

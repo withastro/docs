@@ -1,0 +1,339 @@
+---
+title: Internationalization API Reference
+sidebar:
+  label: 'astro:i18n'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.5.0" /></p>
+
+Modul ini menyediakan fungsi-fungsi untuk membantu Anda membuat URL menggunakan locale yang dikonfigurasi di proyek Anda.
+
+Pembuatan rute untuk proyek Anda dengan router i18n akan bergantung pada nilai konfigurasi tertentu yang Anda setel dan yang memengaruhi rute halaman. Saat membuat rute dengan fungsi-fungsi ini, pastikan untuk mempertimbangkan pengaturan individual Anda untuk:
+
+- [`base`](/id/reference/configuration-reference/#base)
+- [`trailingSlash`](/id/reference/configuration-reference/#trailingslash)
+- [`build.format`](/id/reference/configuration-reference/#buildformat)
+- [`site`](/id/reference/configuration-reference/#site)
+
+Perhatikan juga bahwa URL yang dikembalikan oleh fungsi-fungsi ini untuk `defaultLocale` Anda akan mencerminkan konfigurasi `i18n.routing` Anda.
+
+Untuk fitur dan contoh penggunaan, lihat [panduan routing i18n kami](/id/guides/internationalization/).
+
+## Imports from `astro:i18n`
+
+```js
+import { 
+  getRelativeLocaleUrl,
+  getAbsoluteLocaleUrl,
+  getRelativeLocaleUrlList,
+  getAbsoluteLocaleUrlList,
+  getPathByLocale,
+  getLocaleByPath,
+  redirectToDefaultLocale,
+  redirectToFallback,
+  notFound,
+  middleware,
+  requestHasLocale,
+ } from 'astro:i18n';
+```
+
+### `getRelativeLocaleUrl()` 
+
+<p>
+
+**Type:** `(locale: string, path?: string,  options?: GetLocaleOptions) => string`
+</p>
+
+Gunakan fungsi ini untuk mendapatkan path relatif untuk sebuah locale. Jika locale tidak ada, Astro akan melempar error. 
+
+```astro
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+getRelativeLocaleUrl("fr");
+// mengembalikan /fr
+
+getRelativeLocaleUrl("fr", "");
+// mengembalikan /fr/
+
+getRelativeLocaleUrl("fr", "getting-started");
+// mengembalikan /fr/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// mengembalikan /blog/fr-ca/getting-started
+
+getRelativeLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// mengembalikan /blog/fr_CA/getting-started
+---
+```
+
+### `getAbsoluteLocaleUrl()` 
+
+<p>
+
+**Type:** `(locale: string, path?: string, options?: GetLocaleOptions) => string`
+</p>
+
+Gunakan fungsi ini untuk mendapatkan path absolut untuk sebuah locale ketika [`site`] memiliki nilai. Jika [`site`] tidak dikonfigurasi, fungsi akan mengembalikan URL relatif. Jika locale tidak ada, Astro akan melempar error.
+
+
+```astro title="src/pages/index.astro"
+---
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
+
+// Jika `site` disetel menjadi `https://example.com`
+
+getAbsoluteLocaleUrl("fr"); 
+// mengembalikan https://example.com/fr
+
+getAbsoluteLocaleUrl("fr", ""); 
+// mengembalikan https://example.com/fr/
+
+getAbsoluteLocaleUrl("fr", "getting-started"); 
+// mengembalikan https://example.com/fr/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog"
+}); 
+// mengembalikan https://example.com/blog/fr-ca/getting-started
+
+getAbsoluteLocaleUrl("fr_CA", "getting-started", {
+  prependWith: "blog",
+  normalizeLocale: false
+}); 
+// mengembalikan https://example.com/blog/fr_CA/getting-started
+---
+```
+ 
+### `getRelativeLocaleUrlList()` 
+
+<p>
+
+**Type:** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+Gunakan ini seperti [`getRelativeLocaleUrl`](#getrelativelocaleurl) untuk mengembalikan daftar path relatif untuk semua locale.
+
+
+### `getAbsoluteLocaleUrlList()` 
+
+<p>
+
+**Type:** `(path?: string, options?: GetLocaleOptions) => string[]`
+</p>
+
+Gunakan ini seperti [`getAbsoluteLocaleUrl`](/id/guides/internationalization/#custom-locale-paths) untuk mengembalikan daftar path absolut untuk semua locale.
+
+### `getPathByLocale()` 
+
+<p>
+
+**Type:** `(locale: string) => string`
+</p>
+
+Fungsi yang mengembalikan `path` yang diasosiasikan ke satu atau lebih `codes` ketika [custom locale paths](/id/guides/internationalization/#custom-locale-paths) dikonfigurasi.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getPathByLocale } from 'astro:i18n';
+
+getPathByLocale("fr"); // mengembalikan "french"
+getPathByLocale("fr-CA"); // mengembalikan "french"
+---
+```
+
+### `getLocaleByPath()`
+
+<p>
+
+**Type:** `(path: string) => string`
+</p>
+
+Fungsi yang mengembalikan `code` yang diasosiasikan ke `path` suatu locale.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", {
+      path: "french",
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { getLocaleByPath } from 'astro:i18n';
+
+getLocaleByPath("french"); // mengembalikan "fr" karena itu adalah code pertama yang dikonfigurasi
+---
+```
+
+### `redirectToDefaultLocale()`
+
+<p>
+
+**Type:** `(context: APIContext, statusCode?: ValidRedirectStatus) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Hanya tersedia ketika `i18n.routing` disetel ke `"manual"`
+:::
+
+Fungsi yang mengembalikan `Response` yang melakukan redirect ke `defaultLocale` yang dikonfigurasi. Menerima kode status redirect yang valid sebagai opsi.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  if (context.url.pathname.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(context, 302);
+  }
+})
+```
+
+### `redirectToFallback()`
+
+<p>
+
+**Type:** `(context: APIContext, response: Response) => Promise<Response>`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Hanya tersedia ketika `i18n.routing` disetel ke `"manual"`
+:::
+
+Fungsi yang memungkinkan Anda menggunakan [`konfigurasi i18n.fallback`](/id/reference/configuration-reference/#i18nfallback) Anda di middleware sendiri.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToFallback } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const response = await next();
+  if (response.status >= 300) {
+    return redirectToFallback(context, response)
+  }
+  return response;
+})
+```
+
+### `notFound()`
+
+<p>
+
+**Type:** `(context: APIContext, response?: Response) => Promise<Response> | undefined`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Hanya tersedia ketika `i18n.routing` disetel ke `"manual"`
+:::
+
+Gunakan fungsi ini di middleware routing Anda untuk mengembalikan 404 ketika:
+- path saat ini bukan root, mis. `/` atau `/<base>`
+- URL tidak berisi locale
+
+Ketika sebuah `Response` diteruskan, `Response` baru yang dihasilkan oleh fungsi ini akan berisi header yang sama dengan respons asli.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { notFound } from "astro:i18n";
+
+export const onRequest = defineMiddleware((context, next) => {
+  const pathNotFound = notFound(context);
+  if (pathNotFound) {
+    return pathNotFound;
+  }
+  return next();
+})
+```
+
+### `middleware()`
+
+<p>
+
+**Type:** `(options: { prefixDefaultLocale: boolean, redirectToDefaultLocale: boolean }) => MiddlewareHandler`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Hanya tersedia ketika `i18n.routing` disetel ke `"manual"`
+:::
+
+Fungsi yang memungkinkan Anda membuat middleware i18n Astro secara terprogram.
+
+Ini berguna ketika Anda masih ingin menggunakan logika i18n bawaan, tetapi hanya menambahkan beberapa pengecualian ke situs Anda.
+
+```js title="middleware.js"
+import { middleware } from "astro:i18n";
+import { sequence, defineMiddleware } from "astro:middleware";
+
+const customLogic = defineMiddleware(async (context, next) => {
+  const response = await next();
+
+  // Logika khusus setelah response terselesaikan.
+  // Respon yang berasal dari middleware i18n Astro bisa ditangkap.
+
+  return response;
+});
+
+export const onRequest = sequence(customLogic, middleware({
+	prefixDefaultLocale: true,
+	redirectToDefaultLocale: false
+}))
+```
+
+### `requestHasLocale()`
+
+<p>
+
+**Type:** `(context: APIContext) => boolean`<br />
+<Since v="4.6.0" />
+</p>
+
+:::note
+Hanya tersedia ketika `i18n.routing` disetel ke `"manual"`
+:::
+
+Memeriksa apakah URL saat ini berisi locale yang telah dikonfigurasikan. Secara internal, fungsi ini akan menggunakan `APIContext#url.pathname`.
+
+```js title="middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { requestHasLocale } from "astro:i18n";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if (requestHasLocale(context)) {
+    return next();
+  }
+  return new Response("Not found", { status: 404 });
+})
+```

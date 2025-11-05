@@ -1,0 +1,795 @@
+---
+title: 'Astro DB'
+description: Pelajari cara menggunakan Astro DB, basis data SQL terkelola penuh yang dirancang khusus untuk Astro.
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/db/'
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Astro DB adalah basis data SQL terkelola penuh yang dirancang untuk ekosistem Astro. Kembangkan secara lokal di Astro dan *deploy* ke basis data apa pun yang kompatibel dengan libSQL.
+
+Astro DB adalah solusi lengkap untuk mengonfigurasi, mengembangkan, dan melakukan *query* data Anda. Sebuah basis data lokal akan dibuat di `.astro/content.db` setiap kali Anda menjalankan `astro dev` untuk mengelola data Anda tanpa perlu Docker atau koneksi jaringan.
+
+## Installation
+
+Pasang integrasi [`@astrojs/db`](/id/guides/integrations-guide/db/) menggunakan perintah bawaan `astro add`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Define your database
+
+Memasang `@astrojs/db` dengan perintah `astro add` akan secara otomatis membuat berkas `db/config.ts` di proyek Anda untuk mendefinisikan tabel basis data Anda:
+
+```ts title="db/config.ts"
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: { },
+})
+```
+
+### Tables
+
+Data di Astro DB disimpan menggunakan tabel SQL. Tabel menstrukturkan data Anda menjadi baris dan kolom, di mana kolom menegakkan tipe dari setiap nilai baris.
+
+Definisikan tabel Anda di `db/config.ts` dengan menyediakan struktur data pada basis data libSQL yang sudah ada, atau data yang akan Anda kumpulkan di basis data baru. Ini memungkinkan Astro menghasilkan antarmuka TypeScript untuk melakukan *query* tabel tersebut dari proyek Anda. Hasilnya adalah dukungan TypeScript penuh saat mengakses data Anda dengan pelengkapan properti otomatis dan *type-checking*.
+
+Untuk mengonfigurasi sebuah tabel basis data, impor dan gunakan utilitas `defineTable()` dan `column` dari `astro:db`. Kemudian, tetapkan nama (peka huruf besar-kecil) untuk tabel Anda dan tipe data di setiap kolom.
+
+Contoh berikut mengonfigurasi tabel `Comment` dengan kolom teks wajib `author` dan `body`. Lalu, tabel tersebut dibuat tersedia bagi proyek Anda melalui *export* `defineDb()`.
+
+```ts title="db/config.ts" "Comment"
+import { defineDb, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDb({
+  tables: { Comment },
+})
+```
+
+<ReadMore>Lihat [referensi konfigurasi tabel](/id/guides/integrations-guide/db/#table-configuration-reference) untuk referensi lengkap opsi tabel.</ReadMore>
+
+### Columns
+
+Astro DB mendukung tipe kolom berikut:
+
+```ts title="db/config.ts" "column.text()" "column.number()" "column.boolean()" "column.date()" "column.json()"
+import { defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    // String teks.
+    author: column.text(),
+    // Nilai bilangan bulat.
+    likes: column.number(),
+    // Nilai benar atau salah.
+    flagged: column.boolean(),
+    // Nilai tanggal/waktu yang di-*query* sebagai objek Date JavaScript.
+    published: column.date(),
+    // Objek JSON tanpa tipe.
+    metadata: column.json(),
+  }
+});
+```
+
+<ReadMore>Lihat [referensi kolom tabel](/id/guides/integrations-guide/db/#table-configuration-reference) untuk detail lebih lanjut.</ReadMore>
+
+### Table References
+
+Relasi antar tabel adalah pola umum dalam desain basis data. Misalnya, tabel `Blog` mungkin berhubungan erat dengan tabel `Comment`, `Author`, dan `Category`.
+
+Anda dapat mendefinisikan relasi ini antar tabel dan menyimpannya ke skema basis data menggunakan **kolom referensi**. Untuk membangun relasi, Anda akan memerlukan:
+
+- Kolom **identifier** pada tabel yang direferensikan. Ini biasanya kolom `id` dengan properti `primaryKey`.
+- Sebuah kolom pada tabel dasar untuk **menyimpan `id` yang direferensikan**. Ini menggunakan properti `references` untuk membangun relasi.
+
+Contoh berikut menunjukkan kolom `authorId` milik tabel `Comment` yang mereferensikan kolom `id` milik tabel `Author`.
+
+```ts title="db/config.ts" {3, 10}
+const Author = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number({ references: () => Author.columns.id }),
+    body: column.text(),
+  }
+});
+```
+
+## Seed your database for development
+
+Dalam pengembangan, Astro akan menggunakan konfigurasi DB Anda untuk menghasilkan tipe lokal sesuai skema Anda. Tipe-tipe ini akan dibuat ulang dari berkas *seed* setiap kali *dev server* dijalankan, dan memungkinkan Anda melakukan *query* dan bekerja dengan bentuk data Anda dengan *type-safety* dan pelengkapan otomatis.
+
+Anda tidak akan memiliki akses ke data produksi selama pengembangan kecuali Anda [terhubung ke basis data jarak jauh](#connecting-to-remote-databases) saat pengembangan. Ini melindungi data Anda sekaligus memungkinkan Anda menguji dan mengembangkan dengan basis data yang berfungsi dan aman tipe.
+
+Untuk melakukan *seed* data pengembangan untuk pengujian dan *debugging* ke dalam proyek Astro Anda, buat berkas `db/seed.ts`. Impor objek `db` dan tabel Anda yang didefinisikan di `astro:db`. Lakukan `insert` beberapa data awal ke tiap tabel. Data pengembangan ini harus sesuai dengan bentuk skema basis data dan data produksi Anda.
+
+Contoh berikut mendefinisikan dua baris data pengembangan untuk tabel `Comment`, dan sebuah tabel `Author`:
+
+```ts title="db/seed.ts"
+import { db, Comment, Author } from 'astro:db';
+
+export default async function() {
+  await db.insert(Author).values([
+    { id: 1, name: "Kasim" },
+    { id: 2, name: "Mina" },
+  ]);
+
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!'},
+  ])
+}
+```
+
+*Dev server* Anda akan secara otomatis me-*restart* basis data setiap kali berkas ini berubah, menghasilkan ulang tipe dan mengisi data pengembangan dari `seed.ts` setiap kali.
+
+## Connect a libSQL database for production
+
+Astro DB dapat terhubung ke basis data libSQL lokal apa pun atau server mana pun yang mengekspos protokol *remote* libSQL, baik yang dikelola maupun *self-hosted*.
+
+Untuk menghubungkan Astro DB ke basis data libSQL, set variabel lingkungan berikut yang diperoleh dari penyedia basis data Anda:
+
+- `ASTRO_DB_REMOTE_URL`: URL koneksi ke lokasi DB libSQL lokal atau *remote* Anda. Ini dapat berisi [opsi konfigurasi URL](#remote-url-configuration-options) seperti sinkronisasi dan enkripsi sebagai parameter.
+- `ASTRO_DB_APP_TOKEN`: token autentikasi ke server libSQL Anda. Ini diperlukan untuk basis data *remote*, dan tidak diperlukan untuk [DB lokal seperti berkas atau *in-memory*](#url-scheme-and-host).
+
+Bergantung pada layanan Anda, Anda mungkin memiliki akses ke CLI atau antarmuka web untuk mengambil nilai ini. Bagian berikut akan menunjukkan cara menghubungkan ke Turso dan menyetel nilai-nilai ini sebagai contoh, namun Anda bebas menggunakan penyedia apa pun. 
+
+### Getting started with Turso
+
+Turso adalah perusahaan di balik [libSQL](https://github.com/tursodatabase/libsql), *fork* sumber terbuka dari SQLite yang menjalankan Astro DB. Mereka menyediakan platform basis data libSQL terkelola penuh dan sepenuhnya kompatibel dengan Astro.
+
+Langkah-langkah di bawah ini akan memandu Anda memasang Turso CLI, masuk (atau mendaftar), membuat basis data baru, mendapatkan variabel lingkungan yang diperlukan, serta mendorong (*push*) skema ke basis data *remote*.
+
+<Steps>
+
+1. Pasang [Turso CLI](https://docs.turso.tech/cli/installation).
+
+2. [Masuk atau daftar](https://docs.turso.tech/cli/authentication) ke Turso.
+
+3. Buat basis data baru. Pada contoh ini, nama basis datanya `andromeda`.
+
+   ```sh "andromeda"
+   turso db create andromeda
+   ```
+
+4. Jalankan perintah `show` untuk melihat informasi tentang basis data yang baru dibuat:
+
+   ```sh "andromeda"
+   turso db show andromeda
+   ```
+
+   Salin nilai `URL` dan set sebagai nilai untuk `ASTRO_DB_REMOTE_URL`.
+   
+
+   ```dotenv title=".env" "libsql://andromeda-houston.turso.io"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ```
+
+5. Buat token baru untuk mengautentikasi permintaan ke basis data:
+
+   ```sh "andromeda"
+   turso db tokens create andromeda
+   ```
+
+   Salin keluaran perintah dan set sebagai nilai untuk `ASTRO_DB_APP_TOKEN`.
+
+   ```dotenv title=".env" add={2} "eyJhbGciOiJF...3ahJpTkKDw"
+   ASTRO_DB_REMOTE_URL=libsql://andromeda-houston.turso.io
+   ASTRO_DB_APP_TOKEN=eyJhbGciOiJF...3ahJpTkKDw
+   ```
+
+6. *Push* skema DB dan metadata ke basis data Turso yang baru.
+
+   ```sh
+   astro db push --remote
+   ```
+
+7. Selamat, sekarang Anda telah terhubung ke basis data! Istirahat dulu. 👾
+
+   ```sh
+   turso relax
+   ```
+
+</Steps>
+
+Untuk mengeksplor fitur Turso lainnya, lihat [dokumentasi Turso](https://docs.turso.tech).
+
+### Connecting to remote databases
+
+Astro DB memungkinkan Anda terhubung ke basis data lokal maupun *remote*. Secara bawaan, Astro menggunakan berkas basis data lokal untuk perintah `dev` dan `build`, membuat ulang tabel dan memasukkan *seed* data pengembangan setiap kali.
+
+Untuk terhubung ke basis data *hosted remote*, gunakan flag `--remote`. Flag ini mengaktifkan akses baca dan tulis ke basis data jarak jauh Anda, memungkinkan Anda [menerima dan menyimpan data pengguna](#insert) di lingkungan produksi.
+
+Konfigurasikan perintah *build* Anda agar menggunakan flag `--remote`:
+
+```json title="package.json" "--remote"
+{
+  "scripts": {
+    "build": "astro build --remote"
+  }
+}
+```
+
+Anda juga dapat menggunakan flag ini langsung di baris perintah:
+
+```bash
+# Build dengan koneksi remote
+astro build --remote
+
+# Develop dengan koneksi remote
+astro dev --remote
+```
+
+:::caution
+Berhati-hatilah saat menggunakan `--remote` di pengembangan. Ini akan terhubung ke basis data produksi Anda yang aktif, dan semua perubahan (insert, update, delete) akan dipertahankan.
+:::
+
+Flag `--remote` menggunakan koneksi ke DB *remote* baik secara lokal selama *build* maupun di server. Pastikan Anda menyetel variabel lingkungan yang diperlukan di lingkungan pengembangan lokal dan platform *deployment* Anda. Selain itu, Anda mungkin perlu [mengonfigurasi *web mode*](/id/guides/integrations-guide/db/#mode) untuk *runtime* non-Node.js seperti Cloudflare Workers atau Deno.
+
+Saat *deploy* proyek Astro DB Anda, pastikan perintah *build* platform *deployment* Anda disetel ke `npm run build` (atau yang setara untuk *package manager* Anda) agar memanfaatkan flag `--remote` yang dikonfigurasi di `package.json` Anda.
+
+### Remote URL configuration options
+
+Variabel lingkungan `ASTRO_DB_REMOTE_URL` mengonfigurasi lokasi basis data Anda serta opsi lain seperti sinkronisasi dan enkripsi. 
+
+#### URL scheme and host
+
+libSQL mendukung HTTP dan WebSockets sebagai protokol transport untuk server *remote*. libSQL juga mendukung penggunaan berkas lokal atau DB *in-memory*. Ini dapat dikonfigurasi menggunakan skema URL berikut pada URL koneksi:
+
+- `memory:` akan menggunakan DB *in-memory*. *Host* harus kosong dalam kasus ini.
+- `file:` akan menggunakan berkas lokal. *Host* adalah path ke berkas (`file:path/to/file.db`).
+- `libsql:` akan menggunakan server *remote* melalui protokol yang disukai pustaka (ini dapat berbeda antar versi). *Host* adalah alamat server (`libsql://your.server.io`).
+- `http:` akan menggunakan server *remote* melalui HTTP. `https:` dapat digunakan untuk mengaktifkan koneksi aman. *Host* sama seperti untuk `libsql:`.
+- `ws:` akan menggunakan server *remote* melalui WebSockets. `wss:` dapat digunakan untuk koneksi aman. *Host* sama seperti untuk `libsql:`.
+
+Detail koneksi libSQL (mis. kunci enkripsi, replikasi, interval sinkronisasi) dapat dikonfigurasi sebagai parameter *query* di URL koneksi *remote*.
+
+Misalnya, untuk membuat berkas lokal terenkripsi berfungsi sebagai replika tertanam untuk server libSQL, Anda dapat menyetel variabel lingkungan berikut:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file://local-copy.db?encryptionKey=your-encryption-key&syncInterval=60&syncUrl=libsql%3A%2F%2Fyour.server.io
+ASTRO_DB_APP_TOKEN=token-to-your-remote-url
+```
+
+:::caution
+Menggunakan berkas basis data adalah fitur tingkat lanjut, dan perlu kehati-hatian saat *deploy* agar tidak menimpa basis data Anda dan kehilangan data produksi.
+
+Selain itu, metode ini tidak akan berfungsi pada *serverless deployment*, karena sistem berkas tidak dipertahankan di lingkungan tersebut.
+:::
+
+#### `encryptionKey`
+
+libSQL memiliki dukungan bawaan untuk basis data terenkripsi. Menyertakan parameter pencarian ini akan mengaktifkan enkripsi menggunakan kunci yang diberikan:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=file:path/to/file.db?encryptionKey=your-encryption-key
+```
+
+#### `syncUrl`
+
+Replika tertanam adalah fitur klien libSQL yang membuat salinan tersinkronisasi penuh dari basis data Anda pada berkas lokal atau *in memory* untuk pembacaan super-cepat. *Write* dikirim ke basis data *remote* yang didefinisikan pada `syncUrl` dan disinkronkan dengan salinan lokal.
+
+Gunakan properti ini untuk meneruskan URL koneksi terpisah guna menjadikan basis data sebagai replika tertanam dari basis data lain. Ini hanya boleh digunakan dengan skema `file:` dan `memory:`. Parameter harus di-*URL encode*.
+
+Sebagai contoh, untuk memiliki replika tertanam *in-memory* dari basis data di `libsql://your.server.io`, Anda dapat menyetel URL koneksi sebagai berikut:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io
+```
+
+#### `syncInterval`
+
+Interval antar sinkronisasi replika tertanam dalam detik. Secara bawaan hanya tersinkron pada saat *startup* dan setelah *write*.
+
+Properti ini hanya digunakan ketika `syncUrl` juga disetel. Misalnya, untuk menyetel replika tertanam *in-memory* agar sinkron setiap menit, set variabel lingkungan berikut:
+
+```dotenv title=".env"
+ASTRO_DB_REMOTE_URL=memory:?syncUrl=libsql%3A%2F%2Fyour.server.io&syncInterval=60
+```
+
+## Query your database
+
+Anda dapat melakukan *query* basis data dari [halaman Astro](/id/basics/astro-pages/#astro-pages), [endpoint](/id/guides/endpoints/), atau [action](/id/guides/actions/) mana pun di proyek Anda menggunakan ORM `db` dan *query builder* yang disediakan.
+
+### Drizzle ORM
+
+```ts
+import { db } from 'astro:db';
+```
+
+Astro DB menyertakan klien [Drizzle ORM](https://orm.drizzle.team/) bawaan. Tidak ada *setup* atau konfigurasi manual yang diperlukan untuk menggunakan klien ini. Klien `db` Astro DB secara otomatis dikonfigurasi untuk berkomunikasi dengan basis data Anda (lokal atau *remote*) saat Anda menjalankan Astro. Klien ini menggunakan definisi skema basis data Anda secara persis untuk *query* SQL yang aman tipe dengan error TypeScript ketika Anda mereferensikan kolom atau tabel yang tidak ada.
+
+### Select 
+
+Contoh berikut memilih semua baris dari tabel `Comment`. Ini mengembalikan seluruh array data *seed* pengembangan dari `db/seed.ts` yang kemudian tersedia untuk digunakan di templat halaman Anda:
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ author, body }) => (
+    <article>
+      <p>Author: {author}</p>
+      <p>{body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>Lihat [referensi API Drizzle `select()`](https://orm.drizzle.team/docs/select) untuk gambaran lengkap.</ReadMore>
+
+### Insert
+
+Untuk menerima masukan pengguna, seperti menangani permintaan formulir dan memasukkan data ke basis data *remote* yang di-*host*, konfigurasikan proyek Astro Anda untuk [on-demand rendering](/id/guides/on-demand-rendering/) dan [tambahkan adapter](/id/guides/on-demand-rendering/#add-an-adapter) untuk lingkungan *deployment* Anda.
+
+Contoh ini memasukkan satu baris ke tabel `Comment` berdasarkan permintaan POST formulir yang telah di-*parse*:
+
+```astro
+---
+// src/pages/index.astro
+import { db, Comment } from 'astro:db';
+
+if (Astro.request.method === 'POST') {
+  // Parse form data
+  const formData = await Astro.request.formData();
+  const author = formData.get('author');
+  const body = formData.get('body');
+  if (typeof author === 'string' && typeof body === 'string') {
+    // Insert data formulir ke tabel Comment
+    await db.insert(Comment).values({ author, body });
+  }
+}
+
+// Render daftar komentar yang baru pada setiap permintaan
+const comments = await db.select().from(Comment);
+---
+
+<form method="POST" style="display: grid">
+  <label for="author">Author</label>
+  <input id="author" name="author" />
+
+  <label for="body">Body</label>
+  <textarea id="body" name="body"></textarea>
+
+  <button type="submit">Submit</button>
+</form>
+
+<!-- Render `comments` -->
+```
+
+Anda juga dapat menggunakan [Astro actions](/id/guides/actions/) untuk memasukkan data ke tabel Astro DB. Contoh berikut memasukkan satu baris ke tabel `Comment` menggunakan sebuah action:
+
+```ts
+// src/actions/index.ts
+import { db, Comment } from 'astro:db';
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addComment: defineAction({
+    // Actions menyertakan type safety dengan Zod, sehingga tidak perlu
+    // memeriksa typeof {value} === 'string' di halaman Anda
+    input: z.object({
+      author: z.string(),
+      body: z.string(),
+    }),
+    handler: async (input) => {
+      const updatedComments = await db
+        .insert(Comment)
+        .values(input)
+        .returning(); // Kembalikan komentar yang diperbarui
+      return updatedComments;
+    },
+  }),
+};
+```
+
+<ReadMore>
+
+Lihat [referensi API Drizzle `insert()`](https://orm.drizzle.team/docs/insert) untuk gambaran lengkap.
+
+</ReadMore>
+
+### Delete
+
+Anda juga dapat melakukan *query* basis data dari endpoint API. Contoh berikut menghapus satu baris dari tabel `Comment` berdasarkan parameter `id`:
+
+```ts
+// src/pages/api/comments/[id].ts
+import type { APIRoute } from "astro";
+import { db, Comment, eq } from 'astro:db';
+
+export const DELETE: APIRoute = async (ctx) => {
+  await db.delete(Comment).where(eq(Comment.id, ctx.params.id ));
+  return new Response(null, { status: 204 });
+}
+```
+
+<ReadMore>
+
+Lihat [referensi API Drizzle `delete()`](https://orm.drizzle.team/docs/delete) untuk gambaran lengkap.
+
+</ReadMore>
+
+### Filtering
+
+Untuk melakukan *query* hasil tabel berdasarkan properti tertentu, gunakan [opsi Drizzle untuk *partial selects*](https://orm.drizzle.team/docs/select#partial-select). Misalnya, tambahkan [pemanggilan `.where()`](https://orm.drizzle.team/docs/select#filtering) ke *query* `select()` Anda dan teruskan perbandingan yang ingin dibuat. 
+
+Contoh berikut mencari semua baris pada tabel `Comment` yang mengandung frasa "Astro DB." Gunakan [operator `like()`](https://orm.drizzle.team/docs/operators#like) untuk memeriksa apakah frasa hadir dalam `body`:
+
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment, like } from 'astro:db';
+
+const comments = await db.select().from(Comment).where(
+    like(Comment.body, '%Astro DB%')
+);
+---
+```
+
+### Drizzle utilities
+
+Semua utilitas Drizzle untuk membangun *query* diekspos dari modul `astro:db`. Ini termasuk:
+
+- [Operator filter](https://orm.drizzle.team/docs/operators) seperti `eq()` dan `gt()`
+- [Pembantu agregasi](https://orm.drizzle.team/docs/select#aggregations-helpers) seperti `count()`
+- [Helper `sql`](https://orm.drizzle.team/docs/sql) untuk menulis *raw* SQL
+
+```ts
+import { eq, gt, count, sql } from 'astro:db';
+```
+
+### Relationships
+
+Anda dapat melakukan *query* data terkait dari beberapa tabel menggunakan *SQL join*. Untuk membuat *join query*, perluas pernyataan `db.select()` Anda dengan operator *join*. Setiap fungsi menerima tabel yang akan di-*join* dan kondisi untuk mencocokkan baris antar dua tabel.
+
+Contoh ini menggunakan fungsi `innerJoin()` untuk menggabungkan penulis `Comment` dengan informasi `Author` terkait berdasarkan kolom `authorId`. Ini mengembalikan array objek dengan setiap baris `Author` dan `Comment` sebagai properti *top-level*:
+
+```astro title="src/pages/index.astro"
+---
+import { db, eq, Comment, Author } from 'astro:db';
+
+const comments = await db.select()
+  .from(Comment)
+  .innerJoin(Author, eq(Comment.authorId, Author.id));
+---
+
+<h2>Comments</h2>
+
+{
+  comments.map(({ Author, Comment }) => (
+    <article>
+      <p>Author: {Author.name}</p>
+      <p>{Comment.body}</p>
+    </article>
+  ))
+}
+```
+
+<ReadMore>
+
+Lihat [referensi *join* Drizzle](https://orm.drizzle.team/docs/joins#join-types) untuk semua operator *join* dan opsi konfigurasinya.
+
+</ReadMore>
+
+### Batch Transactions
+
+Semua *query* basis data *remote* dibuat sebagai permintaan jaringan. Anda mungkin perlu melakukan *batch* *query* menjadi satu transaksi saat membuat banyak *query*, atau untuk memiliki *rollback* otomatis jika ada *query* yang gagal.
+
+Contoh berikut melakukan *seed* banyak baris dalam satu permintaan menggunakan metode `db.batch()`:
+
+```ts
+// db/seed.ts
+import { db, Author, Comment } from 'astro:db';
+
+export default async function () {
+  const queries = [];
+  // Seed 100 komentar contoh ke basis data remote Anda
+  // dengan satu permintaan jaringan.
+  for (let i = 0; i < 100; i++) {
+    queries.push(db.insert(Comment).values({ body: `Test comment ${i}` }));
+  }
+  await db.batch(queries);
+}
+```
+
+<ReadMore>
+
+Lihat dokumentasi [Drizzle `db.batch()`](https://orm.drizzle.team/docs/batch-api) untuk detail lebih lanjut.
+
+</ReadMore>
+
+## Pushing changes to your database
+
+Anda dapat *push* perubahan yang dibuat selama pengembangan ke basis data Anda.
+
+### Pushing table schemas
+
+Skema tabel Anda mungkin berubah seiring pertumbuhan proyek. Anda dapat dengan aman menguji perubahan konfigurasi secara lokal dan *push* ke basis data *remote* saat *deploy*.
+
+Anda dapat *push* perubahan skema lokal ke basis data *remote* melalui CLI menggunakan perintah `astro db push --remote`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Perintah ini akan memverifikasi bahwa perubahan lokal Anda dapat dilakukan tanpa kehilangan data dan, jika perlu, menyarankan cara membuat perubahan skema dengan aman untuk menyelesaikan konflik.
+
+#### Pushing breaking schema changes
+
+:::caution
+__Ini akan menghancurkan basis data Anda__. Hanya lakukan perintah ini jika Anda tidak memerlukan data produksi Anda.
+:::
+
+Jika Anda harus mengubah skema tabel dengan cara yang tidak kompatibel dengan data yang ada yang di-*host* pada basis data *remote* Anda, Anda perlu mereset basis data produksi Anda.
+
+Untuk *push* pembaruan skema tabel yang mencakup perubahan *breaking*, tambahkan flag `--force-reset` untuk mereset semua data produksi:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm run astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro db push --remote --force-reset
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro db push --remote --force-reset
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Renaming tables
+
+Anda dapat mengganti nama tabel setelah mendorong skema ke basis data *remote* Anda.
+
+Jika Anda **tidak memiliki data produksi penting**, maka Anda dapat [me-reset basis data](#pushing-breaking-schema-changes) menggunakan flag `--force-reset`. Flag ini akan menghapus semua tabel di basis data dan membuat yang baru sehingga cocok persis dengan skema Anda saat ini.
+
+Untuk mengganti nama tabel sambil mempertahankan data produksi Anda, Anda harus melakukan serangkaian perubahan non-*breaking* untuk mendorong skema lokal ke basis data *remote* dengan aman.
+
+Contoh berikut mengganti nama tabel dari `Comment` menjadi `Feedback`:
+
+<Steps>
+
+1. Di berkas konfigurasi basis data Anda, tambahkan properti `deprecated: true` pada tabel yang ingin diganti namanya:
+
+    ```ts title="db/config.ts" ins={2}
+    const Comment = defineTable({
+      deprecated: true,
+      columns: {
+        author: column.text(),
+        body: column.text(),
+      }
+    });
+    ```
+
+2. Tambahkan skema tabel baru (yang cocok persis dengan properti tabel yang ada) dengan nama baru:
+
+    ```ts title="db/config.ts" ins={8-14}
+    const Comment = defineTable({
+        deprecated: true,
+      columns: {
+        author: column.text(),
+        body: column.text(),
+      }
+    });
+    const Feedback = defineTable({
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+    ```
+
+3. [*Push* ke basis data *remote*](#pushing-table-schemas) dengan `astro db push --remote`. Ini akan menambahkan tabel baru dan menandai tabel lama sebagai *deprecated*.
+4. Perbarui kode proyek lokal Anda untuk menggunakan tabel baru alih-alih tabel lama. Anda mungkin perlu memigrasikan data ke tabel baru juga.
+5. Setelah yakin bahwa tabel lama tidak lagi digunakan di proyek Anda, Anda dapat menghapus skemanya dari `config.ts` Anda:
+    ```ts title="db/config.ts" del={1-7}
+    const Comment = defineTable({
+          deprecated: true,
+        columns: {
+          author: column.text(),
+          body: column.text(),
+        }
+    });
+
+    const Feedback = defineTable({
+          columns: {
+            author: column.text(),
+            body: column.text(),
+          }
+    });
+    ```
+6. *Push* lagi ke basis data *remote* dengan `astro db push --remote`. Tabel lama akan dihapus, menyisakan hanya tabel baru yang telah diganti nama.
+</Steps>
+
+### Pushing table data 
+
+Anda mungkin perlu *push* data ke basis data *remote* untuk *seeding* atau migrasi data. Anda dapat menulis berkas `.ts` dengan modul `astro:db` untuk menulis *query* yang aman tipe. Lalu, jalankan berkas tersebut terhadap basis data *remote* menggunakan perintah `astro db execute <file-path> --remote`:
+
+Komentar berikut dapat di-*seed* menggunakan perintah `astro db execute db/seed.ts --remote`:
+
+```ts
+// db/seed.ts
+import { Comment } from 'astro:db';
+
+export default async function () {
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Hope you like Astro DB!' },
+    { authorId: 2, body: 'Enjoy!' },
+  ])
+}
+```
+
+<ReadMore>
+
+Lihat [referensi CLI](/id/guides/integrations-guide/db/#astro-db-cli-reference) untuk daftar lengkap perintah.
+
+</ReadMore>
+
+## Building Astro DB integrations
+
+[Integrasi Astro](/id/reference/integrations-reference/) dapat memperluas proyek pengguna dengan tabel Astro DB tambahan dan *seed data*.
+
+Gunakan metode `extendDb()` di *hook* `astro:db:setup` untuk mendaftarkan konfigurasi Astro DB dan berkas *seed* tambahan.
+Helper `defineDbIntegration()` menyediakan dukungan TypeScript dan pelengkapan otomatis untuk *hook* `astro:db:setup`.
+
+```js {8-13}
+// my-integration/index.ts
+import { defineDbIntegration } from '@astrojs/db/utils';
+
+export default function MyIntegration() {
+  return defineDbIntegration({
+    name: 'my-astro-db-powered-integration',
+    hooks: {
+      'astro:db:setup': ({ extendDb }) => {
+        extendDb({
+          configEntrypoint: '@astronaut/my-package/config',
+          seedEntrypoint: '@astronaut/my-package/seed',
+        });
+      },
+      // Hook integrasi lain...
+    },
+  });
+}
+```
+
+Berkas [config](#define-your-database) dan [seed](#seed-your-database-for-development) integrasi mengikuti format yang sama seperti padanan yang ditentukan pengguna.
+
+### Type safe operations in integrations
+
+Saat mengembangkan integrasi, Anda mungkin tidak dapat memanfaatkan tipe tabel yang dihasilkan Astro yang diekspor dari `astro:db`.
+Untuk *type-safety* penuh, gunakan utilitas `asDrizzleTable()` untuk membuat objek referensi tabel yang dapat Anda gunakan untuk operasi basis data.
+
+Sebagai contoh, diberikan sebuah integrasi yang menyiapkan tabel basis data `Pets` berikut:
+
+```js
+// my-integration/config.ts
+import { defineDb, defineTable, column } from 'astro:db';
+
+export const Pets = defineTable({
+  columns: {
+    name: column.text(),
+    species: column.text(),
+  },
+});
+
+export default defineDb({ tables: { Pets } });
+```
+
+Berkas *seed* dapat mengimpor `Pets` dan menggunakan `asDrizzleTable()` untuk memasukkan baris ke tabel Anda dengan pengecekan tipe:
+
+```js {2,7} /typeSafePets(?! )/
+// my-integration/seed.ts
+import { asDrizzleTable } from '@astrojs/db/utils';
+import { db } from 'astro:db';
+import { Pets } from './config';
+
+export default async function() {
+  const typeSafePets = asDrizzleTable('Pets', Pets);
+
+  await db.insert(typeSafePets).values([
+    { name: 'Palomita', species: 'cat' },
+    { name: 'Pan', species: 'dog' },
+  ]);
+}
+```
+
+Nilai yang dikembalikan oleh `asDrizzleTable('Pets', Pets)` setara dengan `import { Pets } from 'astro:db'`, tetapi tersedia bahkan ketika generasi tipe Astro tidak dapat berjalan.
+Anda dapat menggunakannya di kode integrasi apa pun yang perlu melakukan *query* atau memasukkan ke basis data.
+
+
+
+
+## Migrate from Astro Studio to Turso
+
+<Steps>
+
+1. Di [dashboard Studio](https://studio.astro.build/), buka proyek yang ingin Anda migrasikan. Pada tab *settings*, gunakan tombol "Export Database" untuk mengunduh *dump* basis data Anda.
+2. Ikuti instruksi resmi untuk [memasang Turso CLI](https://docs.turso.tech/cli/installation) dan [mendaftar atau masuk](https://docs.turso.tech/cli/authentication) ke akun Turso Anda.
+3. Buat basis data baru di Turso menggunakan perintah `turso db create`.
+   ```sh
+   turso db create [database-name]
+   ```
+4. Ambil URL basis data menggunakan Turso CLI, dan gunakan sebagai variabel lingkungan `ASTRO_DB_REMOTE_URL`.
+   ```sh
+   turso db show [database-name]
+   ```
+   ```dotenv
+   ASTRO_DB_REMOTE_URL=[your-database-url]
+   ```
+5. Buat token untuk mengakses basis data Anda, dan gunakan sebagai variabel lingkungan `ASTRO_DB_APP_TOKEN`.
+   ```sh
+   turso db tokens create [database-name]
+   ```
+   ```dotenv
+   ASTRO_DB_APP_TOKEN=[your-app-token]
+   ```
+6. *Push* skema dan metadata DB Anda ke basis data Turso yang baru.
+   ```sh
+   astro db push --remote
+   ```
+7. Impor *dump* basis data dari langkah 1 ke Turso DB baru Anda.
+   ```sh
+   turso db shell [database-name] < ./path/to/dump.sql
+   ```
+8. Setelah Anda memastikan proyek Anda terhubung ke basis data baru, Anda dapat menghapus proyek dari Astro Studio dengan aman.
+
+</Steps>

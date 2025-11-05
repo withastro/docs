@@ -1,0 +1,224 @@
+---
+title: Payload CMS & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Payload sebagai CMS
+sidebar:
+  label: Payload CMS
+type: cms
+stub: true
+service: Payload CMS
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[PayloadCMS](https://payloadcms.com/) adalah sistem manajemen konten headless open-source yang dapat digunakan untuk menyediakan konten bagi proyek Astro Anda.
+
+## Mengintegrasikan dengan Astro
+
+### Prasyarat
+
+1. **Proyek Astro** - Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membuat Anda siap dalam waktu singkat.
+2. **Database MongoDB** - PayloadCMS akan meminta string koneksi MongoDB saat membuat proyek baru. Anda bisa menyiapkannya secara lokal atau menggunakan [MongoDBAtlas](https://www.mongodb.com/) untuk meng-host database di web secara gratis.
+3. **REST API PayloadCMS** - Buat proyek [PayloadCMS](https://payloadcms.com/docs/getting-started/installation) dan hubungkan ke database MongoDB Anda selama proses penyiapan.
+
+:::note[Memilih template]
+Selama instalasi PayloadCMS, Anda akan ditanya apakah ingin menggunakan template.
+
+Memilih salah satu template yang tersedia pada langkah ini (seperti 'blog') akan membuat koleksi tambahan secara otomatis untuk Anda gunakan. Jika tidak, Anda perlu membuat koleksi PayloadCMS secara manual.
+:::
+
+### Mengonfigurasi Astro untuk koleksi PayloadCMS Anda
+
+Template proyek Payload Anda akan berisi berkas bernama Posts.ts di `src/collections/`. Jika Anda tidak memilih template saat instalasi yang membuat koleksi konten untuk Anda, Anda dapat membuat Koleksi Payload CMS baru dengan menambahkan berkas konfigurasi ini secara manual. Contoh di bawah ini menunjukkan berkas untuk koleksi bernama `posts` yang mewajibkan field `title`, `content`, dan `slug`:
+
+```ts title="src/collections/Posts.ts"
+import { CollectionConfig } from "payload/types";
+
+const Posts: CollectionConfig = {
+  slug: "posts",
+  admin: {
+    useAsTitle: "title",
+  },
+  access: {
+    read: () => true,
+  },
+
+  fields: [
+    {
+      name: "title",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "content",
+      type: "text",
+      required: true,
+    },
+    {
+      name: "slug",
+      type: "text",
+      required: true,
+    },
+  ],
+};
+
+export default Posts;
+```
+
+<Steps>
+1. Impor dan tambahkan `Users` (tersedia di semua proyek PayloadCMS) dan koleksi lain apa pun (mis. `Posts`) ke daftar koleksi di berkas `payload.config.ts`.
+    ```ts title="src/payload.config.ts" ins={4, 5, 12}
+    import { buildConfig } from "payload/config";
+    import path from "path";
+
+    import Users from "./collections/Users";
+    import Posts from "./collections/Posts";
+
+    export default buildConfig({
+      serverURL: "http://localhost:4321",
+      admin: {
+        user: Users.slug,
+      },
+      collections: [Users, Posts],
+      typescript: {
+        outputFile: path.resolve(__dirname, "payload-types.ts"),
+      },
+      graphQL: {
+        schemaOutputFile: path.resolve(__dirname, "generated-schema.graphql"),
+      },
+    });
+    ```
+
+    Ini akan menampilkan koleksi baru bernama "Posts" di Dashboard PayloadCMS Anda di samping koleksi "Users". 
+
+2. Masuk ke koleksi "Posts" dan buat pos baru. Setelah menyimpannya, Anda akan melihat URL API muncul di kanan bawah.
+
+3. Dengan dev server berjalan, buka `http://localhost:4321/api/posts` di browser Anda. Anda akan melihat berkas JSON yang berisi pos yang telah Anda buat sebagai sebuah objek.
+    ```json
+    {
+      "docs":[
+          {
+            "id":"64098b16483b0f06a7e20ed4",
+            "title":"Astro & PayloadCMS Title 🚀",
+            "content":"Astro & PayloadCMS Content",
+            "slug":"astro-payloadcms-slug",
+            "createdAt":"2023-03-09T07:30:30.837Z",
+            "updatedAt":"2023-03-09T07:30:30.837Z"
+          }
+      ],
+      "totalDocs":1,
+      "limit":10,
+      "totalPages":1,
+      "page":1,
+      "pagingCounter":1,
+      "hasPrevPage":false,
+      "hasNextPage":false,
+      "prevPage":null,
+      "nextPage":null
+    }
+    ```
+</Steps>
+
+:::tip
+Secara bawaan, Astro dan PayloadCMS sama‑sama menggunakan port 4321. Anda mungkin ingin mengubah port PayloadCMS di berkas `src/server.ts`. Jangan lupa perbarui `serverURL` di `src/payload.config.ts` juga.
+:::
+
+### Mengambil Data
+
+Ambil data PayloadCMS Anda melalui URL REST API unik situs dan rute konten Anda. (Secara default, PayloadCMS akan memasang semua rute melalui `/api`.) Lalu, Anda dapat merender properti data menggunakan direktif `set:html=""` milik Astro.
+
+Bersama dengan pos Anda, PayloadCMS akan mengembalikan beberapa metadata tingkat atas. Dokumen sebenarnya berada di dalam array `docs`.
+
+Sebagai contoh, untuk menampilkan daftar judul pos dan kontennya:
+
+```astro title="src/pages/index.astro"
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+
+const res = await fetch("http://localhost:5000/api/posts") // http://localhost:4321/api/posts secara default
+const posts = await res.json()
+---
+
+<HomeLayout title='Astro Blog'>
+	{
+    posts.docs.map((post) => (
+        <h2 set:html={post.title} />
+        <p set:html={post.content} />
+    ))
+	}
+</HomeLayout>
+```
+
+## Membangun blog dengan PayloadCMS dan Astro
+
+Buat halaman indeks blog `src/pages/index.astro` untuk menampilkan daftar setiap pos dengan tautan ke halamannya masing‑masing.
+
+Pengambilan data melalui API mengembalikan array objek (pos) yang mencakup, antara lain, properti berikut:
+
+- `title`
+- `content`
+- `slug`
+
+```astro title="src/pages/index.astro"
+---
+import HomeLayout from "../layouts/HomeLayout.astro";
+
+const res = await fetch("http://localhost:5000/api/posts") // http://localhost:4321/api/posts secara default
+const posts = await res.json()
+---
+
+<HomeLayout title='Astro Blog'>
+	<h1>Astro + PayloadCMS 🚀</h1>
+	<h2>Daftar blog post:</h2>
+	<ul>
+		{
+			posts.docs.map((post) =>(
+				<li>
+					<a href={`posts/${post.slug}`} set:html={post.title} />
+				</li>
+			))
+		}
+	</ul>
+</HomeLayout>
+```
+
+### Menggunakan API PayloadCMS untuk menghasilkan halaman
+
+Buat halaman `src/pages/posts/[slug].astro` untuk [menghasilkan halaman secara dinamis](/id/guides/routing/#dynamic-routes) bagi setiap pos.
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import PostLayout from "../../layouts/PostLayout.astro"
+
+const {title, content} = Astro.props
+
+// getStaticPaths() diperlukan untuk situs Astro statis.
+// Jika menggunakan SSR, Anda tidak memerlukan fungsi ini.
+export async function getStaticPaths() {
+    let data = await fetch("http://localhost:5000/api/posts")
+    let posts = await data.json()
+
+    return posts.docs.map((post) => {
+        return {
+            params: {slug: post.slug},
+            props: {title: post.title, content: post.content},
+        };
+    });
+} 
+---
+<PostLayout title={title}>
+    <article>
+        <h1 set:html={title} />
+        <p set:html={content} />
+    </article>
+</PostLayout>
+```
+
+### Menerbitkan situs Anda
+
+Untuk menerapkan (deploy) situs Anda, kunjungi [panduan deployment](/id/guides/deploy/) kami dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+## Sumber Daya Komunitas
+
+- Lihat [integrasi resmi Astro Payload CMS](https://github.com/payloadcms/payload/tree/main/examples/astro).
+- Coba [Payload CMS & Astro Template](https://github.com/Lambdo-Labs/payloadcms-astro-template).
+- Lihat [Astroad](https://github.com/mooxl/astroad) untuk pengembangan mudah dan deployment VPS dengan Docker.

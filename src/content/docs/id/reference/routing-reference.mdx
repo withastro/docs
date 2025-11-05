@@ -1,0 +1,367 @@
+
+---
+title: Referensi Routing
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro tidak memiliki konfigurasi routing terpisah.
+
+Setiap [berkas halaman yang didukung](/id/basics/astro-pages/#supported-page-files) yang berada di dalam direktori khusus `src/pages/` akan membuat sebuah rute. Ketika nama berkas memuat sebuah [parameter](#params), satu rute dapat membuat banyak halaman secara dinamis. Jika tidak, rute tersebut membuat satu halaman saja.
+
+Secara bawaan, semua rute halaman Astro dan endpoint dihasilkan dan diprerender saat build. [Rendering server on-demand](/id/guides/on-demand-rendering/) dapat diatur untuk rute individual, atau dijadikan default.
+
+## `prerender`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true` pada mode statis (default); `false` dengan konfigurasi `output: 'server'`<br />
+<Since v="1.0.0" />
+</p>
+
+Sebuah nilai yang diekspor dari tiap rute untuk menentukan apakah rute tersebut diprerender atau tidak.
+
+Secara bawaan, semua halaman dan endpoint diprerender dan akan digenerasikan secara statis saat build. Anda dapat menonaktifkan prerender pada satu atau lebih rute, dan Anda bisa memiliki rute statis serta rute yang dirender on-demand dalam satu proyek yang sama.
+
+### Override per-halaman
+
+Anda dapat menimpa nilai default untuk mengaktifkan [rendering on-demand](/id/guides/on-demand-rendering/) pada rute tertentu dengan mengekspor `prerender` bernilai `false` dari berkas tersebut:
+
+```astro title="src/pages/rendered-on-demand.astro" {2}
+---
+export const prerender = false
+---
+<!-- konten yang dirender di server -->
+<!-- sisa situs saya bersifat statis -->
+```
+
+### Beralih ke mode `server`
+
+Anda dapat menimpa nilai default untuk semua rute dengan mengonfigurasi [`output: 'server'`](/id/reference/configuration-reference/#output). Dalam mode output ini, semua halaman dan endpoint akan digenerasikan di server saat diminta secara default, alih-alih diprerender.
+
+Dalam mode `server`, aktifkan prerender untuk rute tertentu dengan mengekspor `prerender` bernilai `true` dari berkas tersebut:
+
+```astro title="src/pages/static-about-page.astro" {3}
+---
+// dengan konfigurasi `output: 'server'`
+export const prerender = true
+---
+<!-- Halaman about statis saya -->
+<!-- Semua halaman lain dirender on-demand -->
+```
+
+## `partial`
+
+<p>
+
+**Type:** `boolean` <br />
+**Default:** `false` <br />
+<Since v="3.4.0" />
+</p>
+
+Sebuah nilai yang diekspor dari rute untuk menentukan apakah rute tersebut harus dirender sebagai halaman HTML penuh atau tidak.
+
+Secara bawaan, semua berkas di dalam direktori `src/pages/` akan otomatis menyertakan deklarasi `<!DOCTYPE html>` dan konten `<head>` tambahan seperti style dan script scoped milik Astro.
+
+Anda dapat menimpa nilai default untuk menetapkan konten sebagai [partial halaman](/id/basics/astro-pages/#page-partials) untuk rute tertentu dengan mengekspor nilai `partial` dari berkas tersebut:
+
+```astro title="src/pages/my-page-partial.astro" {2}
+---
+export const partial = true
+---
+<!-- HTML yang dihasilkan tersedia di sebuah URL -->
+<!-- Tersedia untuk digunakan oleh library perenderan -->
+```
+
+`export const partial` harus dapat dikenali secara statis. Nilainya dapat berupa:
+
+- Boolean __`true`__.
+- Variabel lingkungan menggunakan import.meta.env seperti `import.meta.env.USE_PARTIALS`.
+
+## `getStaticPaths()`
+
+<p>
+**Type:** `(options: GetStaticPathsOptions) => Promise<GetStaticPathsResult> | GetStaticPathsResult` <br />
+<Since v="1.0.0" />
+</p>
+
+Fungsi untuk menghasilkan banyak rute halaman yang diprerender dari satu komponen halaman `.astro` yang memiliki satu atau lebih [parameter](#params) pada jalur berkasnya. Gunakan ini untuk rute yang akan dibuat saat build (static site building).
+
+Fungsi `getStaticPaths()` harus mengembalikan array objek yang menentukan jalur URL mana yang akan diprerender oleh Astro. Setiap objek harus menyertakan objek `params` untuk menentukan jalur rute. Objek tersebut juga boleh menyertakan objek `props` berisi [data yang akan diteruskan](#data-passing-with-props) ke setiap templat halaman.
+
+```astro title="src/pages/blog/[post].astro" "post"
+---
+// Dalam mode 'server', ikutkan rute ini ke prerendering:
+// export const prerender = true
+
+export async function getStaticPaths() {
+  return [
+    // { params: { /* wajib */ }, props: { /* opsional */ } },
+    { params: { post: '1' } }, // [post] adalah parameter
+    { params: { post: '2' } }, // harus cocok dengan nama berkas
+    // ...
+  ];
+}
+---
+<!-- Templat HTML Anda di sini. -->
+```
+
+`getStaticPaths()` juga dapat digunakan di endpoint berkas statis untuk [routing dinamis](/id/guides/endpoints/#params-and-dynamic-routing).
+
+:::tip
+Saat menggunakan TypeScript, gunakan utilitas tipe [`GetStaticPaths`](/id/guides/typescript/#infer-getstaticpaths-types) untuk memastikan akses `params` dan `props` yang aman tipe.
+:::
+
+:::caution
+Fungsi `getStaticPaths()` dijalankan sekali dalam scope-nya sendiri sebelum halaman mana pun dimuat. Karena itu, Anda tidak dapat mereferensikan apa pun dari scope induknya selain impor berkas. Compiler akan memperingatkan jika Anda melanggar aturan ini.
+:::
+
+### `params`
+
+Kunci `params` dari setiap objek dalam array yang dikembalikan `getStaticPaths()` memberi tahu Astro rute mana yang harus dibuat.
+
+Kunci dalam `params` harus cocok dengan parameter yang didefinisikan pada jalur berkas komponen Anda. Nilai setiap objek `params` harus cocok dengan parameter yang digunakan pada nama halaman. `params` akan dienkode ke dalam URL, sehingga hanya nilai string yang didukung.
+
+Sebagai contoh, `src/pages/posts/[id].astro` memiliki parameter `id` pada nama berkasnya. Fungsi `getStaticPaths()` berikut pada komponen `.astro` ini memberi tahu Astro untuk membuat `posts/1`, `posts/2`, dan `posts/3` secara statis saat build.
+
+```astro title="src/pages/posts/[id].astro"
+---
+export async function getStaticPaths() {
+  return [
+    { params: { id: '1' } },
+    { params: { id: '2' } },
+    { params: { id: '3' } }
+  ];
+}
+
+const { id } = Astro.params;
+---
+<h1>{id}</h1>
+```
+
+### Pengoperan data dengan `props`
+
+Untuk meneruskan data tambahan ke setiap halaman yang dibuat, Anda dapat menetapkan nilai `props` pada setiap objek dalam array yang dikembalikan oleh `getStaticPaths()`. Tidak seperti `params`, `props` tidak dienkode ke dalam URL sehingga tidak dibatasi hanya string.
+
+Sebagai contoh, jika Anda membuat halaman dengan data yang diambil dari API jarak jauh, Anda dapat meneruskan objek data lengkap ke komponen halaman di dalam `getStaticPaths()`. Templat halaman dapat mereferensikan data dari setiap post menggunakan `Astro.props`.
+
+```astro title="src/pages/posts/[id].astro" {9}
+---
+export async function getStaticPaths() {
+  const response = await fetch('...');
+  const data = await response.json();
+
+  return data.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { post },
+    };
+  });
+}
+
+const { id } = Astro.params;
+const { post } = Astro.props;
+---
+<h1>{id}: {post.name}</h1>
+```
+
+### `routePattern`
+
+<p>
+
+**Type:** `string` <br />
+<Since v="5.14.0" />
+</p>
+
+Properti yang tersedia pada opsi [`getStaticPaths()`](#getstaticpaths) untuk mengakses [`routePattern`](/id/reference/api-reference/#routepattern) saat ini sebagai string.
+
+Ini menyediakan data dari [konteks render Astro](/id/reference/api-reference/) yang tidak akan tersedia sebaliknya di dalam scope `getStaticPaths()` dan dapat berguna untuk menghitung `params` dan `props` tiap rute halaman.
+
+`routePattern` selalu mencerminkan definisi segmen dinamis asli pada jalur berkas (mis. `/[...locale]/[files]/[slug]`), berbeda dengan `params` yang merupakan nilai eksplisit untuk sebuah halaman (mis. `/fr/fichiers/article-1/`).
+
+Contoh berikut menunjukkan bagaimana melokalkan segmen rute Anda dan mengembalikan array jalur statis dengan meneruskan `routePattern` ke fungsi helper kustom `getLocalizedData()`. Objek [params](/id/reference/routing-reference/#params) akan berisi nilai eksplisit untuk tiap segmen rute: `locale`, `files`, dan `slug`. Lalu, nilai-nilai ini akan digunakan untuk membuat rute dan dapat digunakan di templat halaman Anda melalui `Astro.params`.
+
+```astro title="src/pages/[...locale]/[files]/[slug].astro" "routePattern" "getLocalizedData"
+---
+import { getLocalizedData } from "../../../utils/i18n";
+
+export async function getStaticPaths({ routePattern }) {
+  const response = await fetch('...');
+  const data = await response.json();
+
+  console.log(routePattern); // [...locale]/[files]/[slug]
+
+  // Panggil helper kustom Anda dengan `routePattern` untuk menghasilkan jalur statis
+  return data.flatMap((file) => getLocalizedData(file, routePattern));
+}
+
+const { locale, files, slug } = Astro.params;
+---
+```
+
+### `paginate()`
+
+<p>
+
+<Since v="1.0.0" />
+</p>
+
+Fungsi yang dapat dikembalikan dari [`getStaticPaths()`](#getstaticpaths) untuk membagi kumpulan item konten ke halaman-halaman terpisah.
+
+`paginate()` akan secara otomatis menghasilkan array yang dibutuhkan untuk dikembalikan dari `getStaticPaths()` guna membuat satu URL untuk setiap halaman dari koleksi yang dipaginasi. Nomor halaman akan diteruskan sebagai `param`, dan data halaman akan diteruskan sebagai prop `page`.
+
+Contoh berikut mengambil dan meneruskan 150 item ke fungsi `paginate`, dan membuat halaman statis yang diprerender saat build yang akan menampilkan 10 item per halaman:
+
+```astro title="src/pages/pokemon/[page].astro"
+---
+export async function getStaticPaths({ paginate }) {
+  // Muat data Anda dengan fetch(), getCollection(), dll.
+  const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
+  const result = await response.json();
+  const allPokemon = result.results;
+
+  // Kembalikan koleksi rute yang dipaginasi untuk semua item
+  return paginate(allPokemon, { pageSize: 10 });
+}
+
+const { page } = Astro.props;
+---
+```
+
+`paginate()` memiliki argumen berikut:
+- `data` - array yang berisi data halaman yang diteruskan ke fungsi `paginate()`
+- `options` - Objek opsional dengan properti berikut:
+  - `pageSize` - Jumlah item per halaman (default `10`)
+  - `params` - Kirim parameter tambahan untuk membuat rute dinamis
+  - `props` - Kirim props tambahan yang tersedia di setiap halaman
+
+`paginate()` mengasumsikan nama berkas `[page].astro` atau `[...page].astro`. Parameter `page` menjadi nomor halaman di URL Anda:
+
+- `/posts/[page].astro` akan menghasilkan URL `/posts/1`, `/posts/2`, `/posts/3`, dst.
+- `/posts/[...page].astro` akan menghasilkan URL `/posts`, `/posts/2`, `/posts/3`, dst.
+
+#### Prop pagination `page`
+
+<p>
+
+**Type:** `Page<TData>`
+</p>
+
+Pagination akan meneruskan prop `page` ke setiap halaman yang dirender yang merepresentasikan satu halaman data dalam koleksi yang dipaginasi. Ini termasuk data yang Anda paginasi (`page.data`) serta metadata untuk halaman tersebut (`page.url`, `page.start`, `page.end`, `page.total`, dll). Metadata ini berguna untuk hal-hal seperti tombol "Halaman Berikutnya" atau pesan "Menampilkan 1–10 dari 100".
+
+##### `page.data`
+
+<p>
+
+**Type:** `Array<TData>`
+</p>
+
+Array data yang dikembalikan dari fungsi `paginate()` untuk halaman saat ini.
+
+##### `page.start`
+
+<p>
+
+**Type:** `number`
+</p>
+
+Indeks item pertama pada halaman saat ini, mulai dari `0`. (mis. jika `pageSize: 25`, ini akan bernilai `0` di halaman 1, `25` di halaman 2, dst.)
+
+##### `page.end`
+
+<p>
+
+**Type:** `number`
+</p>
+
+Indeks item terakhir pada halaman saat ini.
+
+##### `page.size`
+
+<p>
+
+**Type:** `number`<br />
+**Default:** `10`
+</p>
+
+Jumlah total item per halaman.
+
+##### `page.total`
+
+<p>
+
+**Type:** `number`
+</p>
+
+Jumlah total item di semua halaman.
+
+##### `page.currentPage`
+
+<p>
+
+**Type:** `number`
+</p>
+
+Nomor halaman saat ini, dimulai dari `1`.
+
+##### `page.lastPage`
+
+<p>
+
+**Type:** `number`
+</p>
+
+Jumlah total halaman.
+
+##### `page.url.current`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Mendapatkan URL halaman saat ini (berguna untuk URL kanonis). Jika nilai disetel untuk [`base`](/id/reference/configuration-reference/#base), URL akan diawali dengan nilai tersebut.
+
+##### `page.url.prev`
+
+<p>
+
+**Type:** `string | undefined`
+</p>
+
+Mendapatkan URL halaman sebelumnya (akan `undefined` jika berada di halaman 1). Jika nilai disetel untuk [`base`](/id/reference/configuration-reference/#base), tambahkan base path ke URL.
+
+##### `page.url.next`
+
+<p>
+
+**Type:** `string | undefined`
+</p>
+
+Mendapatkan URL halaman berikutnya (akan `undefined` jika tidak ada halaman lagi). Jika nilai disetel untuk [`base`](/id/reference/configuration-reference/#base), tambahkan base path ke URL.
+
+##### `page.url.first`
+
+<p>
+
+**Type:** `string | undefined`<br />
+<Since v="4.12.0" />
+</p>
+
+Mendapatkan URL halaman pertama (akan `undefined` jika berada di halaman 1). Jika nilai disetel untuk [`base`](/id/reference/configuration-reference/#base), tambahkan base path ke URL.
+
+##### `page.url.last`
+
+<p>
+
+**Type:** `string | undefined`<br />
+<Since v="4.12.0" />
+</p>
+
+Mendapatkan URL halaman terakhir (akan `undefined` jika tidak ada halaman lagi). Jika nilai disetel untuk [`base`](/id/reference/configuration-reference/#base), tambahkan base path ke URL.

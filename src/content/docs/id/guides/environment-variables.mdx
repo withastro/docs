@@ -1,0 +1,351 @@
+---
+title: Menggunakan variabel lingkungan
+sidebar:
+  label: Variabel lingkungan
+description: Pelajari cara menggunakan variabel lingkungan di proyek Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro memberi Anda akses ke [dukungan variabel lingkungan bawaan Vite](#vites-built-in-support) dan menyertakan beberapa [variabel lingkungan default untuk proyek Anda](#default-environment-variables) yang memungkinkan Anda mengakses nilai konfigurasi untuk proyek saat ini (misalnya `site`, `base`), apakah proyek berjalan dalam mode pengembangan atau produksi, dan lainnya.
+
+Astro juga menyediakan cara untuk [menggunakan dan mengatur variabel lingkungan Anda dengan aman bertipe](#type-safe-environment-variables). Fitur ini tersedia di dalam konteks Astro (misalnya komponen Astro, rute dan endpoint, komponen UI framework, middleware), dan dikelola melalui [skema di konfigurasi Astro](/id/reference/configuration-reference/#env).
+
+## Dukungan bawaan Vite
+
+Astro menggunakan dukungan variabel lingkungan bawaan Vite, yang akan diganti secara statis saat build, dan memungkinkan Anda [menggunakan berbagai metodenya](https://vite.dev/guide/env-and-mode.html) untuk bekerja dengan variabel tersebut.
+
+Perhatikan bahwa _semua_ variabel lingkungan tersedia di kode sisi server, tetapi hanya variabel lingkungan yang diawali dengan `PUBLIC_` yang tersedia di kode sisi klien untuk alasan keamanan.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+Pada contoh ini, `PUBLIC_ANYBODY` (diakses melalui `import.meta.env.PUBLIC_ANYBODY`) akan tersedia di kode server maupun klien, sedangkan `SECRET_PASSWORD` (diakses melalui `import.meta.env.SECRET_PASSWORD`) hanya tersedia di sisi server.
+
+:::caution
+Berkas `.env` tidak dimuat di dalam [berkas konfigurasi](#in-the-astro-config-file).
+:::
+
+### IntelliSense untuk TypeScript
+
+Secara default, Astro menyediakan definisi tipe untuk `import.meta.env` di `astro/client.d.ts`.
+
+Walaupun Anda dapat mendefinisikan variabel env kustom di berkas `.env.[mode]`, Anda mungkin ingin mendapatkan IntelliSense TypeScript untuk variabel env buatan pengguna yang diawali dengan `PUBLIC_`.
+
+Untuk itu, Anda dapat membuat `env.d.ts` di `src/` untuk [memperluas tipe global](/id/guides/typescript/#extending-global-types) dan mengonfigurasi `ImportMetaEnv` seperti ini:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // variabel env lainnya...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## Variabel lingkungan bawaan
+
+Astro menyertakan beberapa variabel lingkungan di luar kotak:
+
+- `import.meta.env.MODE`: Mode tempat situs Anda berjalan. Ini bernilai `development` saat menjalankan `astro dev` dan `production` saat menjalankan `astro build`.
+- `import.meta.env.PROD`: `true` jika situs Anda berjalan di produksi; `false` jika tidak.
+- `import.meta.env.DEV`: `true` jika situs Anda berjalan di pengembangan; `false` jika tidak. Selalu berlawanan dengan `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: Base URL dari mana situs Anda disajikan. Ini ditentukan oleh opsi config [`base`](/id/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: Diset sesuai [opsi `site`](/id/reference/configuration-reference/#site) yang ditentukan di `astro.config` proyek Anda.
+- `import.meta.env.ASSETS_PREFIX`: Prefiks untuk tautan aset yang dihasilkan Astro jika opsi config [`build.assetsPrefix`](/id/reference/configuration-reference/#buildassetsprefix) disetel. Ini dapat digunakan untuk membuat tautan aset yang tidak ditangani oleh Astro.
+
+Gunakan seperti variabel lingkungan lainnya.
+
+```ts utils.ts
+const isProd = import.meta.env.PROD;
+const isDev = import.meta.env.DEV;
+```
+
+## Menyetel variabel lingkungan
+
+### Berkas `.env`
+
+Variabel lingkungan dapat dimuat dari berkas `.env` di direktori proyek Anda.
+
+Cukup buat berkas `.env` di direktori proyek lalu tambahkan beberapa variabel ke dalamnya.
+
+```ini title=".env"
+# Hanya akan tersedia saat dijalankan di server!
+DB_PASSWORD="foobar"
+
+# Akan tersedia di mana saja!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+Anda juga dapat menambahkan `.production`, `.development` atau nama mode kustom ke nama berkas itu sendiri (misalnya `.env.testing`, `.env.staging`). Ini memungkinkan Anda menggunakan kumpulan variabel lingkungan yang berbeda pada waktu yang berbeda.
+
+Perintah `astro dev` dan `astro build` masing‑masing menggunakan mode default `"development"` dan `"production"`. Anda dapat menjalankan perintah ini dengan [`--mode` flag](/id/reference/cli-reference/#--mode-string) untuk mengoper nilai `mode` yang berbeda dan memuat berkas `.env` yang cocok.
+
+Ini memungkinkan Anda menjalankan server dev atau membangun situs yang terhubung ke API berbeda:
+
+<PackageManagerTabs>
+ <Fragment slot="npm">
+    ```shell
+    # Menjalankan dev server yang terhubung ke API "staging"
+    npm run astro dev -- --mode staging
+
+    # Build situs yang terhubung ke API "production" dengan informasi debug tambahan
+    npm run astro build -- --devOutput
+
+    # Build situs yang terhubung ke API "testing"
+    npm run astro build -- --mode testing
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    # Menjalankan dev server yang terhubung ke API "staging"
+    pnpm astro dev --mode staging
+
+    # Build situs yang terhubung ke API "production" dengan informasi debug tambahan
+    pnpm astro build --devOutput
+
+    # Build situs yang terhubung ke API "testing"
+    pnpm astro build --mode testing
+    ```
+ </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    # Menjalankan dev server yang terhubung ke API "staging"
+    yarn astro dev --mode staging
+
+    # Build situs yang terhubung ke API "production" dengan informasi debug tambahan
+    yarn astro build --devOutput
+
+    # Build situs yang terhubung ke API "testing"
+    yarn astro build --mode testing
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+Untuk informasi lebih lanjut tentang berkas `.env`, [lihat dokumentasi Vite](https://vite.dev/guide/env-and-mode.html#env-files).
+
+### Di berkas konfigurasi Astro
+
+Astro mengevaluasi berkas konfigurasi sebelum memuat berkas lainnya. Ini berarti Anda tidak dapat menggunakan `import.meta.env` di `astro.config.mjs` untuk mengakses variabel lingkungan yang disetel di berkas `.env`.
+
+Anda dapat menggunakan `process.env` di berkas konfigurasi untuk mengakses variabel lingkungan lainnya, seperti yang [disetel oleh CLI](#using-the-cli).
+
+Anda juga dapat menggunakan [helper `loadEnv` milik Vite](https://main.vite.dev/config/#using-environment-variables-in-config) untuk memuat berkas `.env` secara manual.
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+:::note
+`pnpm` tidak mengizinkan Anda mengimpor modul yang tidak diinstal langsung di proyek Anda. Jika Anda menggunakan `pnpm`, Anda perlu menginstal `vite` untuk menggunakan helper `loadEnv`.
+
+```sh
+pnpm add -D vite
+```
+:::
+
+### Menggunakan CLI
+
+Anda juga dapat menambahkan variabel lingkungan saat menjalankan proyek Anda:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+## Mengambil variabel lingkungan
+
+Variabel lingkungan di Astro diakses dengan `import.meta.env`, menggunakan fitur [`import.meta` yang ditambahkan di ES2020](https://tc39.es/ecma262/2020/#prod-ImportMeta), alih‑alih `process.env`.
+
+Sebagai contoh, gunakan `import.meta.env.PUBLIC_POKEAPI` untuk mendapatkan variabel lingkungan `PUBLIC_POKEAPI`.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// Ketika import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// Ketika import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+Saat menggunakan SSR, variabel lingkungan dapat diakses saat runtime bergantung pada adapter SSR yang digunakan. Pada sebagian besar adapter Anda dapat mengakses variabel lingkungan dengan `process.env`, tetapi beberapa adapter bekerja secara berbeda. Untuk adapter Deno, Anda akan menggunakan `Deno.env.get()`. Lihat cara [mengakses runtime Cloudflare](/id/guides/integrations-guide/cloudflare/#cloudflare-runtime) untuk menangani variabel lingkungan saat menggunakan adapter Cloudflare. Astro akan terlebih dahulu memeriksa variabel di lingkungan server, dan jika tidak ada, Astro akan mencari di berkas `.env`.
+
+## Variabel lingkungan bertipe aman
+
+API `astro:env` memungkinkan Anda mengonfigurasi skema bertipe aman untuk [variabel lingkungan yang telah Anda setel](#setting-environment-variables). Ini memungkinkan Anda menunjukkan apakah variabel tersebut tersedia di server atau klien, serta mendefinisikan tipe data dan properti tambahan.
+
+<ReadMore>Sedang mengembangkan adapter? Pelajari cara [membuat adapter kompatibel dengan `astro:env`](/id/reference/adapter-reference/#envgetsecret).</ReadMore>
+
+### Penggunaan dasar
+
+#### Definisikan skema Anda
+
+Untuk mengonfigurasi skema, tambahkan opsi `env.schema` ke konfigurasi Astro Anda:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
+```
+
+Anda kemudian dapat [mendaftarkan variabel sebagai string, number, enum, atau boolean](#data-types) menggunakan helper `envField`. Tentukan [jenis variabel lingkungan](#variable-types) dengan menyediakan `context` (`"client"` atau `"server"`) dan `access` (`"secret"` atau `"public"`) untuk setiap variabel, serta oper properti tambahan seperti `optional` atau `default` dalam sebuah objek:
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+Tipe akan dihasilkan untuk Anda saat menjalankan `astro dev` atau `astro build`, tetapi Anda juga bisa menjalankan `astro sync` untuk hanya menghasilkan tipe.
+
+#### Gunakan variabel dari skema Anda
+
+Impor dan gunakan variabel yang telah ditentukan dari modul `/client` atau `/server` yang sesuai:
+
+```astro
+---
+import { API_URL } from "astro:env/client";
+import { API_SECRET_TOKEN } from "astro:env/server";
+
+const data = await fetch(`${API_URL}/users`, {
+   method: "GET",
+   headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${API_SECRET_TOKEN}`
+   },
+})
+---
+
+<script>
+  import { API_URL } from "astro:env/client";
+  
+  fetch(`${API_URL}/ping`)
+</script>
+```
+
+### Jenis variabel
+
+Ada tiga jenis variabel lingkungan, ditentukan oleh kombinasi pengaturan `context` (`"client"` atau `"server"`) dan `access` (`"secret"` atau `"public"`) yang didefinisikan di skema Anda:
+
+- **Variabel klien publik**: Variabel ini masuk ke bundel klien dan server akhir Anda, dan dapat diakses dari klien maupun server melalui modul `astro:env/client`:
+
+   ```js
+   import { API_URL } from "astro:env/client";
+   ```
+
+- **Variabel server publik**: Variabel ini masuk ke bundel server akhir Anda dan dapat diakses di server melalui modul `astro:env/server`:
+
+   ```js
+   import { PORT } from "astro:env/server";
+   ```
+
+- **Variabel server rahasia**: Variabel ini tidak menjadi bagian dari bundel akhir Anda dan dapat diakses di server melalui modul `astro:env/server`:
+
+   ```js
+   import { API_SECRET } from "astro:env/server";
+   ```
+
+   Secara default, secret hanya divalidasi saat runtime. Anda dapat mengaktifkan validasi variabel privat saat start dengan [mengonfigurasi `validateSecrets: true`](/id/reference/configuration-reference/#envvalidatesecrets).
+
+:::note
+**Variabel klien rahasia** tidak didukung karena tidak ada cara aman untuk mengirim data ini ke klien. Karena itu, tidak mungkin mengonfigurasi keduanya `context: "client"` dan `access: "secret"` di skema Anda.
+:::
+
+### Tipe data
+
+Saat ini ada empat tipe data yang didukung: string, number, enum, dan boolean:
+
+```js
+import { envField } from "astro/config";
+
+envField.string({
+   // context & access
+   optional: true,
+   default: "foo",
+})
+
+envField.number({
+   // context & access
+   optional: true,
+   default: 15,
+})
+
+envField.boolean({
+   // context & access
+   optional: true,
+   default: true,
+})
+
+envField.enum({
+   // context & access
+   values: ["foo", "bar", "baz"],
+   optional: true,
+   default: "baz",
+})
+```
+
+<ReadMore>Untuk daftar lengkap field validasi, lihat referensi API [`envField`](/id/reference/configuration-reference/#envschema).</ReadMore>
+
+### Mengambil secret secara dinamis
+
+Walaupun sudah mendefinisikan skema, Anda mungkin ingin mengambil nilai mentah dari secret tertentu atau mengambil secret yang tidak didefinisikan di skema Anda. Dalam kasus ini, Anda dapat menggunakan `getSecret()` yang diekspor dari `astro:env/server`:
+
+```js
+import {
+   FOO, // boolean
+   getSecret
+} from "astro:env/server";
+
+getSecret("FOO"); // string | undefined
+```
+
+<ReadMore>Pelajari lebih lanjut di [referensi API](/id/reference/modules/astro-env/#getsecret).</ReadMore>
+
+### Batasan
+
+`astro:env` adalah modul virtual yang berarti modul ini hanya dapat digunakan di dalam konteks Astro. Misalnya, Anda dapat menggunakannya di:
+
+- Middleware
+- Rute dan endpoint Astro
+- Komponen Astro
+- Komponen framework
+- Modul
+
+Anda tidak dapat menggunakannya di berikut ini dan harus menggunakan `process.env`:
+
+- `astro.config.mjs`
+- Script

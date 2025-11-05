@@ -1,0 +1,88 @@
+---
+title: Inlining variabel lingkungan meta privat (eksperimental)
+sidebar:
+  label: Private meta environment variables inlining
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="5.13.0" />
+</p>
+
+:::tip[Pratinjau Astro 6.0]
+Perilaku yang diaktifkan oleh fitur ini akan menjadi perilaku bawaan di Astro 6.0.
+
+Anda mungkin ingin menambahkan flag ini kapan pun nyaman. Anda bisa mulai menikmati manfaatnya lebih cepat dan menghindari kebutuhan memperbarui kode proyek untuk versi mayor Astro berikutnya.
+:::
+
+Astro memungkinkan Anda mengonfigurasi [skema bertipe untuk variabel lingkungan](/id/guides/environment-variables/#type-safe-environment-variables), dan mengonversi variabel yang diimpor melalui `astro:env` ke tipe yang diharapkan. Ini adalah cara yang direkomendasikan untuk menggunakan variabel lingkungan di Astro, karena memudahkan Anda melihat dan mengelola apakah variabel bersifat publik atau rahasia, tersedia di klien atau hanya di server saat build, serta tipe datanya.
+
+Namun, Anda tetap dapat mengakses variabel lingkungan melalui `process.env` maupun `import.meta.env` secara langsung jika diperlukan. Ini adalah satu‑satunya cara menggunakan variabel lingkungan di Astro sebelum `astro:env` ditambahkan pada Astro 5.0, dan penanganan `import.meta.env` menyertakan beberapa logika yang dimaksudkan untuk versi Astro sebelumnya yang kini tidak lagi diperlukan.
+
+Flag `experimental.staticImportMetaEnv` memperbarui perilaku saat mengakses `import.meta.env` secara langsung agar selaras dengan [penanganan variabel lingkungan milik Vite](https://vite.dev/guide/env-and-mode.html#env-variables) dan memastikan nilai `import.meta.env` selalu di‑inline.
+
+Saat ini, variabel lingkungan non‑publik diganti dengan referensi ke `process.env`. Selain itu, Astro juga dapat mengonversi tipe nilai variabel lingkungan Anda yang digunakan melalui `import.meta.env`, yang dapat mencegah akses ke beberapa nilai seperti string `"true"` (yang dikonversi menjadi boolean), dan `"1"` (yang dikonversi menjadi number).
+
+Flag `experimental.staticImportMetaEnv` menyederhanakan perilaku bawaan Astro sehingga lebih mudah dipahami dan digunakan. Astro tidak lagi mengganti variabel lingkungan `import.meta.env` menjadi pemanggilan `process.env`, dan tidak akan melakukan koersi nilai.
+
+Untuk mengaktifkan fitur ini, tambahkan flag eksperimental ke konfigurasi Astro Anda:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    staticImportMetaEnv: true,
+  }
+})
+```
+
+## Penggunaan
+
+Mengaktifkan flag eksperimental ini tidak lagi mengonversi nilai string menjadi boolean atau number, dan tidak mengubah nilai `import.meta.env` menjadi pemanggilan `process.env`. Ini menyelaraskan perilaku `import.meta.env` di Astro dengan [Vite](https://vite.dev/guide/env-and-mode.html#env-variables).
+
+Di versi mayor mendatang, Astro akan beralih ke perilaku ini secara bawaan, namun Anda dapat lebih dulu *opt‑in* menggunakan flag `experimental.staticImportMetaEnv` dan, bila perlu, [memperbarui proyek Anda](#memperbarui-proyek-anda) sesuai kebutuhan.
+
+### Memperbarui proyek Anda
+
+Jika sebelumnya Anda bergantung pada koersi, Anda mungkin perlu memperbarui kode untuk menerapkannya secara manual:
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.ENABLED;
+const enabled: boolean = import.meta.env.ENABLED === "true";
+```
+
+Jika sebelumnya Anda bergantung pada transformasi menjadi `process.env`, Anda mungkin perlu memperbarui kode untuk menerapkannya secara manual:
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.DB_PASSWORD;
+const enabled: boolean = process.env.DB_PASSWORD;
+```
+
+Anda juga mungkin perlu memperbarui tipe:
+
+```ts title="src/env.d.ts" del={3-4} ins={5,12-16}
+interface ImportMetaEnv {
+  readonly PUBLIC_POKEAPI: string;
+  readonly DB_PASSWORD: string;
+  readonly ENABLED: boolean;
+  readonly ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+namespace NodeJS {
+  interface ProcessEnv {
+    DB_PASSWORD: string;
+  }
+}
+```
+
+Jika Anda membutuhkan kontrol yang lebih rinci terhadap variabel lingkungan di Astro, kami merekomendasikan menggunakan [`astro:env`](/id/guides/environment-variables/).

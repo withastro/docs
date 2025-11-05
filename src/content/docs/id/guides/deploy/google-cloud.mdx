@@ -1,0 +1,89 @@
+---
+title: Deploy Situs Astro Anda ke Google Cloud
+description: Cara melakukan deploy situs Astro Anda ke web menggunakan Google Cloud.
+sidebar:
+  label: Google Cloud
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[Google Cloud](https://cloud.google.com/) adalah platform hosting aplikasi web berfitur lengkap yang dapat digunakan untuk melakukan deploy situs Astro.
+
+## Cara melakukan deploy
+
+### Cloud Storage (hanya statis)
+
+<Steps>
+1. [Buat proyek GCP baru](https://console.cloud.google.com/projectcreate), atau pilih yang sudah Anda miliki.
+
+2. Buat bucket baru di [Cloud Storage](https://cloud.google.com/storage).
+
+3. Beri nama dan tentukan pengaturan lain yang diperlukan.
+
+4. Unggah folder `dist` Anda ke sana atau unggah menggunakan [Cloud Build](https://cloud.google.com/build).
+
+5. Aktifkan akses publik dengan menambahkan izin baru ke `allUsers` bernama `Storage Object Viewer`.
+
+6. Edit konfigurasi website dan tambahkan `ìndex.html` sebagai entrypoint dan `404.html` sebagai halaman error.
+</Steps>
+
+### Cloud Run (SSR dan statis)
+
+Cloud Run adalah platform serverless yang memungkinkan Anda menjalankan container tanpa mengelola infrastruktur. Ini dapat digunakan untuk melakukan deploy situs statis maupun SSR.
+
+#### Siapkan Service
+
+<Steps>
+1. [Buat proyek GCP baru](https://console.cloud.google.com/projectcreate), atau pilih yang sudah Anda miliki.
+
+2. Pastikan [Cloud Run API](https://console.cloud.google.com/apis/library/run.googleapis.com) diaktifkan.
+
+3. Buat service baru.
+</Steps>
+
+#### Buat Dockerfile & Bangun Container
+
+Sebelum Anda dapat melakukan deploy situs Astro ke Cloud Run, Anda perlu membuat Dockerfile yang akan digunakan untuk membangun container. Temukan informasi lebih lanjut tentang [cara menggunakan Docker dengan Astro](/id/recipes/docker/#creating-a-dockerfile) di bagian resep kami.
+
+Setelah Dockerfile dibuat, bangun menjadi image dan push ke Google Cloud. Ada beberapa cara untuk melakukannya:
+
+**Build lokal menggunakan Docker**:
+
+Gunakan perintah `docker build` untuk membangun image, `docker tag` untuk memberi tag, lalu `docker push` untuk mendorongnya ke registry. Untuk Google Cloud, [`Artifact Registry`](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling) adalah opsi termudah, tetapi Anda juga dapat menggunakan [Docker Hub](https://hub.docker.com/).
+
+```bash
+# build container Anda
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Push image Anda ke registry
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Ubah nilai berikut pada perintah di atas agar sesuai dengan proyek Anda:
+
+- `SOURCE_IMAGE`: nama image lokal atau ID image.
+- `HOSTNAME`: host registry (`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`, `docker.io`).
+- `PROJECT`: ID proyek Google Cloud Anda.
+- `TARGET-IMAGE`: nama image saat disimpan di registry.
+- `TAG`: versi yang terkait dengan image.
+
+[Baca lebih lanjut di dokumentasi Google Cloud.](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling)
+
+**Menggunakan alat lain**:
+
+Anda dapat menggunakan alat CI/CD yang mendukung Docker, seperti [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Build menggunakan [Cloud Build](https://cloud.google.com/build)**:
+
+Alih-alih membangun Dockerfile secara lokal, Anda dapat menginstruksikan Google Cloud untuk membangun image secara remote. Lihat [dokumentasi Google Cloud Build di sini](https://cloud.google.com/build/docs/build-push-docker-image).
+
+#### Melakukan deploy container
+
+Deployment dapat dilakukan secara manual di terminal Anda [menggunakan `gcloud`](https://cloud.google.com/run/docs/deploying#service) atau otomatis menggunakan [Cloud Build](https://cloud.google.com/build) atau sistem CI/CD lainnya.
+
+:::note[Butuh akses publik?]
+Jangan lupa tambahkan izin `Cloud Run Invoker` ke grup `allUsers` pada pengaturan izin Cloud Run!
+:::

@@ -1,0 +1,1275 @@
+---
+title: Upgrade ke Astro v5
+description: Cara meningkatkan proyek Anda ke Astro v5.0.
+sidebar:
+  label: v5.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+Panduan ini akan membantu Anda bermigrasi dari Astro v4 ke Astro v5.
+
+Perlu meningkatkan proyek yang lebih lama ke v4 terlebih dahulu? Lihat [panduan migrasi yang lebih lama](/en/guides/upgrade-to/v4/).
+
+Perlu melihat dokumentasi v4? Kunjungi [versi lama situs dokumentasi ini (snapshot v4.16 yang tidak dipelihara)](https://v4.docs.astro.build/).
+
+## Tingkatkan Astro
+
+Perbarui versi Astro di proyek Anda ke versi terbaru menggunakan manajer paket pilihan Anda:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Upgrade Astro dan integrasi resmi sekaligus
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Upgrade Astro dan integrasi resmi sekaligus
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Upgrade Astro dan integrasi resmi sekaligus
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Anda juga dapat [meng-upgrade integrasi Astro secara manual](/en/guides/integrations-guide/#manual-upgrading) jika diperlukan, dan Anda mungkin juga perlu meningkatkan dependensi lain di proyek Anda.
+
+:::note[Perlu lanjut?]
+Setelah meng-upgrade Astro, Anda mungkin sama sekali tidak perlu mengubah apa pun di proyek Anda!
+
+Namun, jika Anda melihat error atau perilaku yang tidak terduga, silakan periksa bagian di bawah untuk melihat perubahan apa yang mungkin perlu Anda sesuaikan di proyek.
+:::
+
+Astro v5.0 mencakup [perubahan yang berpotensi merusak](#breaking-changes), serta penghapusan dan deprecate beberapa fitur.
+
+Jika proyek Anda tidak bekerja seperti yang diharapkan setelah upgrade ke v5.0, lihat panduan ini untuk gambaran semua perubahan yang merusak dan instruksi cara memperbarui basis kode Anda.
+
+Lihat [changelog Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) untuk catatan rilis lengkap.
+
+## Peningkatan Dependensi
+
+Peningkatan mayor pada dependensi Astro dapat menyebabkan perubahan yang merusak di proyek Anda.
+
+### Vite 6.0
+
+Astro v5.0 meningkatkan ke Vite v6.0 sebagai server pengembangan dan bundler produksi.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan plugin, konfigurasi, atau API khusus Vite, cek [panduan migrasi Vite](https://vite.dev/guide/migration.html) untuk perubahan merusaknya dan tingkatkan proyek Anda sesuai kebutuhan.
+
+### `@astrojs/mdx`
+
+<SourcePR number="11741" title="Bersihkan kode JSX yang tidak dipakai"/>
+
+Di Astro v4.x, Astro menangani JSX internal untuk integrasi `@astrojs/mdx`.
+
+Astro v5.0 memindahkan tanggung jawab untuk menangani dan merender JSX dan MDX ke paket `@astrojs/mdx` secara langsung. Ini berarti Astro 5.0 tidak lagi kompatibel dengan versi integrasi MDX yang lebih lama.
+
+#### Apa yang harus saya lakukan?
+
+Jika proyek Anda menyertakan file `.mdx`, Anda harus meng-upgrade `@astrojs/mdx` ke versi terbaru (v4.0.0) agar JSX Anda dapat ditangani dengan benar oleh integrasi.
+
+Jika Anda menggunakan renderer server MDX dengan [Astro Container API](/en/reference/container-reference/) (eksperimental) Anda harus memperbarui import ke lokasi baru:
+
+```ts del={1} ins={2}
+import mdxRenderer from "astro/jsx/server.js";
+import mdxRenderer from "@astrojs/mdx/server.js";
+```
+
+<ReadMore>Pelajari lebih lanjut tentang [menggunakan MDX dalam proyek Anda](/en/guides/integrations-guide/mdx/).</ReadMore>
+
+## Legacy
+
+Fitur-fitur berikut sekarang dianggap sebagai fitur legacy. Fitur ini masih berfungsi normal tetapi tidak lagi direkomendasikan dan berada dalam mode pemeliharaan. Tidak akan ada peningkatan di masa depan dan dokumentasi tidak akan diperbarui. Fitur ini pada akhirnya akan didepresiasi, lalu dihapus sepenuhnya.
+
+### Legacy: API Content Collections v2.0
+
+Di Astro 4.x, content collection didefinisikan, di-query, dan dirender menggunakan [Content Collections API yang pertama kali diperkenalkan di Astro v2.0](https://astro.build/blog/introducing-content-collections/). Semua entri koleksi adalah file lokal di folder khusus `src/content/`. Selain itu, [konvensi nama file Astro untuk mengecualikan build halaman individual](/en/guides/routing/#excluding-pages) juga ada di Content Collections API.
+
+Astro 5.0 memperkenalkan versi baru content collections menggunakan Content Layer API yang membawa berbagai peningkatan performa dan kapabilitas tambahan. Meskipun koleksi lama (legacy) dan yang baru (Content Layer API) dapat terus hidup berdampingan dalam rilis ini, ada perubahan yang berpotensi merusak pada koleksi legacy yang ada.
+
+Rilis ini juga menghapus opsi untuk menambahkan awalan garis bawah (`_`) pada nama file entri koleksi untuk mencegah pembuatan rute.
+
+#### Apa yang harus saya lakukan?
+
+Kami merekomendasikan [mengonversi koleksi yang ada ke Content Layer API](#updating-existing-collections) sesegera mungkin dan membuat koleksi baru menggunakan Content Layer API.
+
+Jika Anda belum bisa mengonversi koleksi Anda, silakan lihat [perubahan merusak pada koleksi konten dan data legacy](#breaking-changes-to-legacy-content-and-data-collections) untuk melihat apakah koleksi Anda terdampak dan perlu diperbarui.
+
+Jika Anda belum dapat melakukan perubahan apa pun saat ini, Anda dapat [mengaktifkan flag `legacy.collections`](#enabling-the-legacycollections-flag) yang akan memungkinkan koleksi Anda tetap berfungsi dalam keadaan sekarang hingga flag legacy tidak lagi didukung.
+
+<ReadMore>Pelajari lebih lanjut tentang [content collections yang diperbarui](/en/guides/content-collections/).</ReadMore>
+
+##### Memperbarui koleksi yang ada
+
+Lihat instruksi di bawah untuk memperbarui content collection yang ada (`type: 'content'` atau `type: 'data'`) agar menggunakan Content Layer API.
+
+<details>
+<summary>Langkah demi langkah memperbarui koleksi</summary>
+
+<Steps>
+
+1. **Pindahkan file konfigurasi konten**. File ini tidak lagi berada di dalam folder `src/content/`. File ini sekarang harus berada di `src/content.config.ts`.
+
+2. **Edit definisi koleksi**. Koleksi yang diperbarui memerlukan `loader` yang menunjukkan folder lokasi koleksi (`base`) dan `pattern` yang mendefinisikan nama file dan ekstensi entri koleksi yang dicocokkan. (Anda mungkin perlu menyesuaikan contoh di bawah. Anda dapat menggunakan [globster.xyz](https://globster.xyz/) untuk memeriksa pola glob Anda.) Opsi untuk memilih `type` koleksi tidak lagi tersedia.
+
+    ```ts ins={3,8} del={7}
+    // src/content.config.ts
+    import { defineCollection, z } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const blog = defineCollection({
+      // Untuk content layer Anda tidak lagi mendefinisikan `type`
+      type: 'content',
+      loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+      schema: z.object({
+        title: z.string(),
+        description: z.string(),
+        pubDate: z.coerce.date(),
+        updatedDate: z.coerce.date().optional(),
+      }),
+    });
+    ```
+
+3. **Ubah referensi dari `slug` ke `id`**. Koleksi content layer tidak memiliki field `slug` yang dipesan. Sebagai gantinya, semua koleksi yang diperbarui memiliki `id`:
+
+    ```astro ins={7} del={6}
+    // src/pages/[slug].astro
+    ---
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map((post) => ({
+        params: { slug: post.slug },
+        params: { slug: post.id },
+        props: post,
+      }));
+    }
+    ---
+    ```
+    Anda juga dapat memperbarui nama file routing dinamis agar sesuai dengan nilai parameter `getStaticPaths()` yang berubah.
+
+4. **Beralih ke fungsi `render()` yang baru**. Entri tidak lagi memiliki metode `render()`, karena sekarang merupakan objek biasa yang dapat diserialisasi. Sebagai gantinya, import fungsi `render()` dari `astro:content`.
+
+    ```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+    ---
+    import { getEntry, render } from 'astro:content';
+
+    const post = await getEntry('blog', params.slug);
+
+    const { Content, headings } = await post.render();
+    const { Content, headings } = await render(post);
+    ---
+    <Content />
+    ```
+</Steps>
+
+</details>
+
+##### Perubahan merusak pada koleksi `content` dan `data` legacy
+
+<SourcePR number="11976" title="Implementasi koleksi legacy menggunakan glob" />
+
+Secara default, koleksi yang menggunakan properti lama `type` (`content` atau `data`) dan tidak mendefinisikan `loader` sekarang diimplementasikan di balik layar menggunakan `glob()` loader bawaan Content Layer API, dengan penanganan kompatibilitas mundur tambahan.
+
+Selain itu, sementara waktu masih ada kompatibilitas untuk tetap menyimpan file konfigurasi konten di lokasi asalnya `src/content/config.ts`.
+
+Implementasi kompatibilitas mundur ini mampu meniru sebagian besar fitur koleksi legacy dan akan memungkinkan banyak koleksi legacy terus bekerja bahkan tanpa memperbarui kode Anda. Namun, **ada beberapa perbedaan dan keterbatasan yang mungkin menyebabkan perubahan merusak pada koleksi yang ada**:
+
+  - Pada versi Astro sebelumnya, koleksi akan dibuat untuk semua folder di `src/content/`, bahkan jika tidak didefinisikan di `src/content/config.ts`. Perilaku ini sekarang didepresiasi, dan koleksi harus selalu didefinisikan di `src/content.config.ts`. Untuk koleksi yang ada, Anda dapat membuat deklarasi kosong (mis. `const blog = defineCollection({})`) dan Astro akan secara implisit mendefinisikan koleksi legacy Anda dengan cara yang kompatibel dengan perilaku loading yang baru.
+  - Field khusus `layout` tidak didukung pada entri koleksi Markdown. Properti ini hanya dimaksudkan untuk file halaman mandiri di `src/pages/` dan kecil kemungkinan ada pada entri koleksi Anda. Namun, jika Anda menggunakannya, Anda sekarang harus membuat route dinamis yang menyertakan styling halaman Anda.
+  - Urutan sortir koleksi yang dihasilkan tidak deterministik dan bergantung pada platform. Artinya, jika Anda memanggil `getCollection()`, urutan entri yang dikembalikan mungkin berbeda dari sebelumnya. Jika Anda memerlukan urutan tertentu, Anda harus menyortir entri koleksi sendiri.
+  - `image().refine()` tidak didukung. Jika Anda perlu memvalidasi properti sebuah gambar, Anda harus melakukannya saat runtime di halaman atau komponen Anda.
+  - Argumen `key` dari `getEntry(collection, key)` kini bertipe `string`, bukan lagi bertipe union untuk setiap entri.
+  - Sebelumnya saat memanggil `getEntry(collection, key)` dengan string statis sebagai key, tipe kembalian tidak nullable. Sekarang tipenya menyertakan `undefined` sehingga Anda harus memeriksa apakah entri terdefinisi sebelum menggunakannya atau Anda akan mendapatkan error tipe.
+
+##### Mengaktifkan flag `legacy.collections`
+
+<SourcePR number="11976" title="Implementasi koleksi legacy menggunakan glob" />
+
+Jika Anda belum siap memperbarui koleksi yang ada, Anda dapat mengaktifkan flag [`legacy.collections`](/en/reference/legacy-flags/) dan koleksi Anda akan terus berfungsi seperti sebelumnya.
+
+## Didepresiasi
+
+Fitur-fitur yang didepresiasi berikut tidak lagi didukung dan tidak lagi didokumentasikan. Harap perbarui proyek Anda sesuai kebutuhan.
+
+Beberapa fitur yang didepresiasi mungkin masih berfungsi sementara hingga benar-benar dihapus. Yang lain mungkin diam-diam tidak berpengaruh, atau melempar error yang meminta Anda memperbarui kode.
+
+### Didepresiasi: `Astro.glob()`
+
+<SourcePR number="11826" title="Depresiasi glob"/>
+
+Di Astro v4.x, Anda bisa menggunakan `Astro.glob()` di komponen `.astro` untuk melakukan query beberapa file di proyek Anda. Ini memiliki beberapa keterbatasan (tempat penggunaan, performa, dll.), dan fungsi query dari Content Collections API atau `import.meta.glob()` milik Vite sering kali memberi lebih banyak fungsi dan fleksibilitas.
+
+Astro 5.0 mendepresiasi `Astro.glob()` demi menggunakan `getCollection()` untuk meng-query koleksi Anda, dan `import.meta.glob()` untuk meng-query file sumber lain di proyek Anda.
+
+#### Apa yang harus saya lakukan?
+
+Ganti semua penggunaan `Astro.glob()` dengan `import.meta.glob()`. Perhatikan bahwa `import.meta.glob()` tidak lagi mengembalikan `Promise`, jadi Anda mungkin perlu memperbarui kode Anda. Anda tidak perlu memperbarui [pola glob](/en/guides/imports/#glob-patterns) Anda.
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+---
+const posts = await Astro.glob('./posts/*.md');
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+```
+
+Jika cocok, pertimbangkan menggunakan [content collections](/en/guides/content-collections/) untuk mengorganisasi konten, yang memiliki fungsi query yang lebih baru dan lebih performant.
+
+Anda juga dapat mempertimbangkan paket glob dari NPM, seperti [`fast-glob`](https://www.npmjs.com/package/fast-glob).
+
+<ReadMore>Pelajari lebih lanjut tentang [mengimpor file dengan `import.meta.glob`](/en/guides/imports/#importmetaglob).</ReadMore>
+ 
+### Didepresiasi: `functionPerRoute` (Adapter API)
+
+<SourcePR number="11714" title="Hapus opsi functionPerRoute"/>
+
+Di Astro v4.x, Anda dapat memilih untuk membuat file terpisah untuk setiap rute yang didefinisikan di proyek, mencerminkan direktori `src/pages/` di folder build. Secara default, Astro menghasilkan satu file `entry.mjs`, yang bertanggung jawab untuk merender halaman pada setiap permintaan.
+
+Astro v5.0 menghapus opsi untuk memilih keluar dari perilaku default ini. Perilaku ini sekarang menjadi standar, dan tidak dapat dikonfigurasi.
+
+Hapus properti `functionPerRoute` dari konfigurasi `adapterFeatures` Anda. Ini tidak lagi tersedia.
+
+```js title="my-adapter.mjs" del={10}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          adapterFeatures: {
+              functionPerRoute: true
+          }
+        });
+      },
+    },
+  };
+}
+
+```
+
+<ReadMore>Pelajari lebih lanjut tentang [Adapter API](/en/reference/adapter-reference/) untuk membangun integrasi adapter.</ReadMore>
+
+### Didepresiasi: `routes` pada hook `astro:build:done` (Integration API)
+
+<SourcePR number="12329" title="feat(next): astro:routes:resolved"/>
+
+Di Astro v4.x, integrasi mengakses rute dari hook `astro:build:done`.
+
+Astro v5.0 mendepresiasi array `routes` yang diteruskan ke hook ini. Sebagai gantinya, Astro mengekspos hook baru `astro:routes:resolved` yang berjalan sebelum `astro:config:done`, dan kapan pun rute berubah pada saat development. Hook ini memiliki semua properti dari daftar `routes` yang didepresiasi, kecuali `distURL` yang hanya tersedia saat build. 
+
+#### Apa yang harus saya lakukan?
+
+Hapus semua instance `routes` yang diteruskan ke `astro:build:done` dan ganti dengan hook baru `astro:routes:resolved`. Akses `distURL` pada peta `assets` yang baru diekspos:
+
+```js title="my-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'my-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>Pelajari lebih lanjut tentang [hook Integration API `astro:routes:resolved`](/en/reference/integrations-reference/#astroroutesresolved) untuk membangun integrasi.</ReadMore>
+
+## Dihapus
+
+Fitur-fitur berikut sekarang telah sepenuhnya dihapus dari basis kode dan tidak dapat lagi digunakan. Beberapa fitur ini mungkin masih berfungsi di proyek Anda bahkan setelah didepresiasi. Yang lain mungkin diam-diam tidak berpengaruh.
+
+Proyek yang kini masih mengandung fitur yang dihapus tidak akan bisa dibangun, dan tidak akan ada dokumentasi pendukung yang mengarahkan Anda untuk menghapus fitur-fitur tersebut.
+
+### Dihapus: Integrasi Lit
+
+<SourcePR number="11680" title="Hapus `@astrojs/lit`"/>
+
+Di Astro v4.x, [Lit](https://lit.dev/) adalah library framework yang dipelihara inti melalui paket `@astrojs/lit`.
+
+Astro v5.0 menghapus integrasi ini dan tidak akan menerima pembaruan lebih lanjut untuk kompatibilitas dengan 5.x dan di atasnya.
+
+
+#### Apa yang harus saya lakukan?
+
+Anda tetap dapat menggunakan Lit untuk komponen klien dengan menambahkan tag skrip sisi klien. Misalnya:
+
+```astro
+<script>
+  import "../components/MyTabs";
+</script>
+
+<my-tabs title="These are my tabs">...</my-tabs>
+```
+
+Jika Anda tertarik memelihara integrasi Lit sendiri, Anda mungkin ingin menggunakan [versi terakhir `@astrojs/lit` yang dirilis](https://github.com/withastro/astro/tree/astro%404.13.0/packages/integrations/lit) sebagai titik awal dan meng-upgrade paket terkait.
+
+<ReadMore>Pelajari lebih lanjut tentang [integrasi resmi Astro](/en/guides/integrations-guide/).</ReadMore>
+
+### Dihapus: mode rendering `hybrid`
+
+<SourcePR number="11824" title="Gabungkan output:hybrid dan output:static" />
+
+Di Astro v4.x, Astro menyediakan tiga mode rendering `output`: `'static'`, `'hybrid'`, dan `'server'`
+
+Astro v5.0 menggabungkan konfigurasi `output: 'hybrid'` dan `output: 'static'` menjadi satu konfigurasi (sekarang bernama `'static'`) yang bekerja sama seperti opsi hybrid sebelumnya.
+
+Tidak lagi diperlukan untuk menentukan `output: 'hybrid'` di konfigurasi Astro agar dapat menggunakan halaman yang dirender server. `output: 'static'` yang baru memiliki kapabilitas ini secara bawaan.
+
+Astro sekarang secara otomatis memungkinkan Anda memilih keluar dari prerendering di situs statis Anda tanpa perlu perubahan pada konfigurasi output. Rute halaman atau endpoint mana pun dapat menyertakan `export const prerender = false` untuk dirender server sesuai permintaan (on demand), sementara bagian situs lainnya digenerasikan secara statis.
+
+#### Apa yang harus saya lakukan?
+
+Jika proyek Anda menggunakan rendering hybrid, Anda sekarang harus menghapus opsi `output: 'hybrid'` dari konfigurasi Astro karena sudah tidak ada. Namun, tidak ada perubahan lain yang diperlukan pada proyek Anda, dan seharusnya tidak ada perubahan merusak. Perilaku `'hybrid'` sebelumnya kini menjadi default, dengan nama baru `'static'`.
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  output: 'hybrid',
+});
+```
+
+Jika Anda menggunakan opsi `output: 'static'` (default), Anda dapat terus menggunakannya seperti sebelumnya. Secara default, semua halaman Anda tetap diprerender dan Anda akan memiliki situs yang sepenuhnya statis. Seharusnya tidak ada perubahan merusak pada proyek Anda.
+
+Adapter tetap diperlukan untuk mendeploy proyek Astro dengan halaman yang dirender server, apa pun mode `output` yang Anda gunakan. Tidak menyertakan adapter akan menghasilkan peringatan saat development dan error saat build.
+
+<ReadMore>Pelajari lebih lanjut tentang [on-demand rendering di Astro](/en/guides/on-demand-rendering/).</ReadMore>
+
+### Dihapus: dukungan nilai dinamis untuk `prerender` di rute
+
+<SourcePR number="11824" title="Gabungkan output:hybrid dan output:static" />
+
+Di Astro 4.x, variabel lingkungan dapat digunakan untuk menetapkan nilai `prerender` secara dinamis pada ekspor rute, misalnya `export const prerender =  import.meta.env.SOME_VAR`.
+
+Astro v5.0 menghapus dukungan untuk nilai dinamis di ekspor `prerender`. Hanya nilai statis `true` dan `false` yang didukung.
+
+#### Apa yang harus saya lakukan?
+
+<Steps>
+
+1. Hapus semua ekspor `prerender` dinamis di rute Anda:
+
+    ```astro title="src/pages/blog/[slug].astro" del={2}
+    ---
+    export const prerender = import.meta.env.SOME_VAR;
+    ---
+    ```
+
+2. Gunakan integrasi Astro di file `astro.config.mjs` untuk menetapkan nilai `prerender` yang perlu bersifat dinamis di hook `"astro:route:setup"`:
+
+    ```js title="astro.config.mjs" {6-19}
+    import { defineConfig } from 'astro/config';
+    import { loadEnv } from 'vite';
+
+    export default defineConfig({
+      integrations: [
+        {
+          name: 'set-prerender',
+          hooks: {
+            'astro:route:setup': ({ route }) => {
+              // Muat variabel lingkungan dari file .env (jika perlu)
+              const { PRERENDER } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+              // Temukan rute yang cocok dengan nama file yang diharapkan.
+              if (route.component.endsWith('/blog/[slug].astro')) {
+                // Set nilai prerender pada rute sesuai kebutuhan.
+                route.prerender = PRERENDER;
+              }
+            },
+          },
+        }
+      ],
+    });
+    ```
+
+</Steps>
+
+### Dihapus: layanan gambar Squoosh
+
+<SourcePR number="11770" title="Hapus layanan gambar Squoosh"/>
+
+Di Astro 4.x, Anda bisa mengonfigurasi `image.service: squooshImageService()` untuk menggunakan Squoosh dalam mentransformasi gambar alih-alih Sharp. Namun, library inti `libsquoosh` tidak lagi dipelihara dan memiliki masalah memori serta performa.
+
+Astro 5.0 menghapus layanan optimasi gambar Squoosh sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Untuk beralih ke layanan gambar Sharp bawaan, hapus import `squooshImageService` dari konfigurasi Astro Anda. Secara default, Anda akan menggunakan Sharp untuk `astro:assets`.
+
+```ts title="astro.config.mjs" del={1, 5-7}
+import { squooshImageService } from "astro/config";
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+ image: {
+   service: squooshImageService()
+ }
+});
+```
+
+Jika Anda menggunakan manajer paket yang ketat seperti `pnpm`, Anda mungkin perlu memasang paket `sharp` secara manual untuk menggunakan layanan gambar Sharp, meskipun ini bawaan Astro.
+
+Jika adapter Anda tidak mendukung optimasi gambar Sharp bawaan Astro, Anda dapat [mengonfigurasi layanan gambar no-op](/en/guides/images/#configure-no-op-passthrough-service) agar tetap dapat menggunakan komponen `<Image />` dan `<Picture />`.
+
+Sebagai alternatif, Anda dapat mempertimbangkan [layanan gambar Squoosh yang dipelihara komunitas](https://github.com/Princesseuh/astro-image-service-squoosh) jika Anda tidak dapat menggunakan layanan gambar Sharp.
+
+##### Untuk adapter
+
+Jika adapter Anda sebelumnya menyebutkan status kompatibilitasnya dengan Squoosh, Anda sekarang harus menghapus informasi ini dari konfigurasi adapter Anda.
+
+```js title="my-adapter.mjs" del={2-4}
+supportedAstroFeatures: {
+  assets: {
+    isSquooshCompatible: true
+  }
+}
+```
+
+<ReadMore>Baca selengkapnya tentang [mengonfigurasi layanan gambar default Anda](/en/guides/images/#default-image-service).</ReadMore>
+
+### Dihapus: beberapa tipe publik
+
+<SourcePR number="11715" title="Refactor/types"/>
+
+Di Astro v4.x, `@types/astro.ts` mengekspos semua tipe secara publik kepada pengguna, baik yang masih aktif digunakan maupun yang hanya untuk internal.
+
+Astro v5.0 merapikan file ini untuk menghapus tipe usang dan internal. Refactor ini meningkatkan editor Anda (mis. saran lebih cepat, penggunaan memori lebih rendah, dan opsi saran yang lebih relevan). Namun, ini mungkin menyebabkan error di beberapa proyek yang bergantung pada tipe yang tidak lagi tersedia untuk publik.
+
+#### Apa yang harus saya lakukan?
+
+Hapus tipe apa pun yang sekarang menyebabkan error di proyek Anda karena Anda tidak lagi memiliki akses ke tipe tersebut. Ini kebanyakan adalah API yang sebelumnya telah didepresiasi dan dihapus, tetapi juga mungkin termasuk tipe yang sekarang bersifat internal.
+
+<ReadMore>Lihat [tipe publik yang diekspos untuk digunakan](https://github.com/withastro/astro/tree/main/packages/astro/src/types/public).</ReadMore>
+
+### Flag Eksperimental
+
+Flag eksperimental berikut telah dihapus di Astro v5.0 dan fitur-fiturnya tersedia untuk digunakan:
+
+- `env`
+- `serverIslands`
+
+
+Selain itu, flag eksperimental berikut telah dihapus dan **sekarang menjadi perilaku default atau yang direkomendasikan di Astro v5.0**.
+
+- `directRenderScript` (Lihat di bawah untuk perubahan merusak pada [perilaku default tag `<script>`](#script-tags-are-rendered-directly-as-declared).)
+- `globalRoutePriority` (Lihat di bawah untuk perubahan merusak pada [urutan prioritas rute default](#route-priority-order-for-injected-routes-and-redirects).)
+- `contentLayer` (Lihat panduan untuk [meng-upgrade content collections yang ada](#legacy-v20-content-collections-api) ke Content Layer API yang baru dan direkomendasikan.)
+
+Flag eksperimental berikut telah dihapus dan **fitur terkaitnya tidak menjadi bagian dari Astro v5.0**.
+
+- `contentCollectionsCache`
+
+Hapus flag eksperimental ini jika Anda sebelumnya menggunakannya, dan pindahkan konfigurasi `env` Anda ke akar konfigurasi Astro:
+
+```js del={5-12} ins={14-16} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    directRenderScript: true,
+    globalRoutePriority: true,
+    contentLayer: true,
+    serverIslands: true,
+    contentCollectionsCache: true,
+    env: {
+      schema: {...}
+    }
+  },
+  env: {
+      schema: {...}
+  }
+})
+```
+
+Semua fitur ini tersedia secara default di Astro v5.0.
+
+<ReadMore>Baca tentang fitur-fitur menarik ini dan lainnya dalam [blog rilis v5.0](https://astro.build/blog/astro-5/).</ReadMore>
+
+## Perubahan Default
+
+Beberapa perilaku default telah berubah di Astro v5.0 dan kode proyek Anda mungkin perlu diperbarui untuk menyesuaikan perubahan ini.
+
+Dalam banyak kasus, tindakan yang diperlukan hanyalah meninjau deployment proyek Anda yang ada dan memastikan bahwa semuanya tetap berfungsi seperti yang Anda harapkan, lalu memperbarui kode jika perlu. Dalam beberapa kasus, mungkin ada pengaturan konfigurasi untuk memungkinkan Anda terus menggunakan perilaku default sebelumnya.
+
+### Perlindungan CSRF sekarang aktif secara default
+
+<SourcePR number="11788" title="ubah nilai default checkOrigin"/>
+
+Di Astro v4.x, nilai default `security.checkOrigin` adalah `false`. Sebelumnya, Anda harus secara eksplisit menyetel nilai ini ke `true` untuk mengaktifkan perlindungan Cross-Site Request Forgery (CSRF).
+
+Astro v5.0 mengubah nilai default opsi ini menjadi `true`, dan akan secara otomatis memeriksa bahwa header "origin" cocok dengan URL yang dikirim pada setiap permintaan di halaman yang dirender on-demand.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda sebelumnya telah mengonfigurasi `security.checkOrigin: true`, Anda tidak lagi memerlukan baris ini di konfigurasi Astro. Ini sekarang menjadi default.
+
+Untuk menonaktifkan perilaku ini, Anda harus secara eksplisit menyetel `security.checkOrigin: false`.
+
+```js title="astro.config.mjs" ins={3-5}
+export default defineConfig({
+  output: "server",
+  security: {
+    checkOrigin: false
+  }
+})
+```
+
+<ReadMore>Baca selengkapnya tentang [opsi konfigurasi keamanan](/en/reference/configuration-reference/#security)</ReadMore>
+
+### Urutan prioritas rute untuk injected routes dan redirect
+
+<SourcePR number="11798" title="Hapus prioritas rute legacy"/>
+
+Di Astro v4.x, `experimental.globalRoutePriority` adalah flag opsional yang memastikan rute injeksi, rute berbasis file, dan redirect semuanya diprioritaskan menggunakan [aturan urutan prioritas rute untuk semua rute](/en/guides/routing/#route-priority-order). Ini memberi kontrol lebih atas routing di proyek Anda dengan tidak secara otomatis memprioritaskan jenis rute tertentu dan menstandarkan urutan prioritas rute.
+
+Astro v5.0 menghapus flag eksperimental ini dan menjadikannya perilaku default baru di Astro: redirect dan injected routes sekarang diprioritaskan setara bersama rute proyek berbasis file.
+
+Perhatikan bahwa ini sudah menjadi perilaku default di Starlight, dan tidak akan memengaruhi proyek Starlight yang telah diperbarui.
+
+#### Apa yang harus saya lakukan?
+
+Jika proyek Anda menyertakan injected routes atau redirect, harap pastikan URL rute Anda terbangun sesuai yang diharapkan. Contoh perilaku baru yang diharapkan ditunjukkan di bawah ini.
+
+Dalam proyek yang berisi rute berikut:
+
+- Rute berbasis file: `/blog/post/[pid]`
+- Rute berbasis file: `/[page]`
+- Injected route: `/blog/[...slug]`
+- Redirect: `/blog/tags/[tag] -> /[tag]`
+- Redirect: `/posts -> /blog`
+
+URL berikut akan dibangun (alih-alih mengikuti urutan prioritas rute gaya Astro v4.x):
+
+- `/blog/tags/astro` dibangun oleh redirect ke `/tags/[tag]` (bukan oleh injected route `/blog/[...slug]`)
+- `/blog/post/0` dibangun oleh rute berbasis file `/blog/post/[pid]` (bukan oleh injected route `/blog/[...slug]`)
+- `/posts` dibangun oleh redirect ke `/blog` (bukan oleh rute berbasis file `/[page]`)
+
+Jika terjadi tabrakan rute, di mana dua rute dengan prioritas sama mencoba membangun URL yang sama, Astro akan menampilkan peringatan yang mengidentifikasi rute-rute yang bertentangan.
+
+<ReadMore>Baca selengkapnya tentang [aturan urutan prioritas rute](/en/guides/routing/#route-priority-order).</ReadMore>
+
+### Tag `<script>` dirender langsung seperti yang dideklarasikan
+
+<SourcePR number="11791" title="Jadikan directRenderScript sebagai default"/>
+
+Di Astro v4.x, `experimental.directRenderScript` adalah flag opsional untuk merender `<script>` secara langsung seperti dideklarasikan di file `.astro` (termasuk fitur yang sudah ada seperti TypeScript, import `node_modules`, dan deduplikasi script). Strategi ini mencegah eksekusi skrip di tempat yang tidak digunakan. Selain itu, skrip yang dirender secara kondisional sebelumnya secara implisit di-inline, seolah-olah ada directive `is:inline` yang otomatis ditambahkan.
+
+Astro 5.0 menghapus flag eksperimental ini dan menjadikannya perilaku default baru di Astro: skrip tidak lagi diangkat (hoist) ke `<head>`, beberapa skrip di halaman tidak lagi dibundel menjadi satu, dan tag `<script>` dapat mengganggu styling CSS. Selain itu, skrip yang dirender secara kondisional tidak lagi secara implisit di-inline.
+
+#### Apa yang harus saya lakukan?
+
+Silakan tinjau tag `<script>` Anda dan pastikan perilakunya sesuai keinginan.
+
+Jika sebelumnya Anda memiliki tag `<script>` yang dirender secara kondisional, Anda perlu menambahkan atribut `is:inline` untuk mempertahankan perilaku yang sama seperti sebelumnya:
+
+```astro title="src/components/MyComponent.astro" ins="is:inline"
+---
+type Props = {
+  showAlert: boolean
+}
+
+const { showAlert } = Astro.props;
+---
+{
+  showAlert && <script is:inline>alert("Some very important code!!")</script>
+}
+```
+
+<ReadMore>Baca selengkapnya tentang [menggunakan tag `script` di Astro](/en/guides/client-side-scripts/).</ReadMore>
+
+## Perubahan yang Merusak
+
+Perubahan berikut dianggap sebagai perubahan merusak di Astro v5.0. Perubahan merusak mungkin atau mungkin tidak menyediakan kompatibilitas sementara. Jika Anda menggunakan fitur-fitur ini, Anda mungkin harus memperbarui kode seperti yang direkomendasikan pada setiap entri.
+
+{/* Jika Anda perlu merujuk dokumentasi untuk proyek v4.x, Anda dapat menelusuri [(snapshot yang tidak dipelihara) dokumentasi sebelum v5.0 dirilis](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/). */}
+
+### Diubah nama: komponen `<ViewTransitions />`
+
+<SourcePR number="11980" title="Ubah nama komponen ViewTransitions menjadi ClientRouter"/>
+
+Di Astro 4.x, View Transitions API Astro menyertakan komponen router `<ViewTransitions />` untuk mengaktifkan client-side routing, transisi halaman, dan lainnya.
+
+Astro 5.0 mengubah nama komponen ini menjadi `<ClientRouter />` untuk memperjelas perannya di dalam API. Ini membuat lebih jelas bahwa fitur yang Anda dapatkan dari komponen routing `<ClientRouter />` Astro sedikit berbeda dari MPA router berbasis CSS native.
+
+Tidak ada fungsi yang berubah. Hanya nama komponen yang berubah.
+
+#### Apa yang harus saya lakukan?
+
+Ganti semua kemunculan import dan komponen `ViewTransitions` dengan `ClientRouter`:
+
+```astro title="src/layouts/MyLayout.astro" del={1,7} ins={2,8}
+import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
+
+<html>
+  <head>
+    ...
+   <ViewTransitions />
+   <ClientRouter />
+  </head>
+</html>
+```
+
+<ReadMore>Baca selengkapnya tentang [view transitions dan client-side routing di Astro](/en/guides/view-transitions/).</ReadMore>
+
+
+### Diubah: konfigurasi TypeScript
+
+<SourcePR number="11859" title="better tsconfig"/>
+
+Di Astro v4.x, Astro mengandalkan file `src/env.d.ts` untuk inferensi tipe dan mendefinisikan modul untuk fitur yang bergantung pada tipe yang dihasilkan.
+
+Astro 5.0 kini menggunakan file `.astro/types.d.ts` untuk inferensi tipe, dan sekarang merekomendasikan menyetel `include` dan `exclude` di `tsconfig.json` untuk mendapatkan manfaat tipe Astro dan menghindari pemeriksaan file hasil build.
+
+Menjalankan `astro sync` tidak lagi membuat atau memperbarui `src/env.d.ts` karena tidak diperlukan untuk pengecekan tipe pada proyek Astro standar.
+
+#### Apa yang harus saya lakukan?
+
+Untuk memperbarui proyek Anda ke pengaturan TypeScript yang direkomendasikan Astro, tambahkan properti `include` dan `exclude` berikut ke `tsconfig.json` Anda yang sudah ada:
+
+```ts ins={3,4} title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+Perhatikan bahwa `src/env.d.ts` hanya diperlukan jika Anda menambahkan konfigurasi kustom, atau jika Anda tidak menggunakan file `tsconfig.json`.
+
+<ReadMore>Baca selengkapnya tentang [konfigurasi TypeScript di Astro](/en/guides/typescript/#setup).</ReadMore>
+
+### Diubah: Action yang dikirim dari form HTML tidak lagi menggunakan cookie redirect
+
+<SourcePR number="12373" title="Actions middleware"/>
+
+Di Astro 4.x, action yang dipanggil dari form HTML akan memicu redirect dengan hasil yang diteruskan menggunakan cookie. Ini menimbulkan masalah untuk error dan nilai balik form yang besar melebihi batas penyimpanan berbasis cookie 4 KB.
+
+Astro 5.0 sekarang merender hasil action sebagai hasil POST tanpa forwarding apa pun. Ini akan menimbulkan dialog "konfirmasi pengiriman ulang formulir?" saat pengguna mencoba memuat ulang halaman, tetapi tidak lagi memberlakukan batas 4 KB pada nilai balik action.
+
+#### Apa yang harus saya lakukan?
+
+Anda harus memperbarui penanganan hasil action yang bergantung pada redirect, dan opsional mengatasi dialog "konfirmasi pengiriman ulang" dengan middleware.
+
+##### Untuk redirect ke rute sebelumnya saat error
+
+Jika action form HTML Anda diarahkan ke rute lain (mis. `action={"/success-page" + actions.name}`), Astro tidak lagi mengarahkan ke rute sebelumnya saat error. Anda dapat menerapkan perilaku ini secara manual menggunakan redirect dari komponen Astro Anda. Contoh ini malah mengarahkan ke rute baru saat sukses, dan menangani error di halaman saat ini:
+
+```astro title="src/pages/newsletter.astro" ins={4-9} del="'/confirmation' + "
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+if (!result?.error) {
+  // Sematkan data hasil yang relevan ke URL jika diperlukan
+  // contoh: redirect(`/confirmation?email=${result.data.email}`);
+  return redirect('/confirmation');
+}
+---
+
+<form method="POST" action={'/confirmation' + actions.newsletter}>
+  <label>E-mail <input required type="email" name="email" /></label>
+  <button>Sign up</button>
+</form>
+```
+
+##### (Opsional) Untuk menghapus dialog konfirmasi saat refresh
+
+Untuk mengatasi dialog "konfirmasi pengiriman ulang" saat refresh, atau untuk mempertahankan hasil action di seluruh sesi, Anda sekarang dapat [menyesuaikan penanganan hasil action dari middleware](/en/guides/actions/#advanced-persist-action-results-with-a-session).
+
+Kami merekomendasikan menggunakan penyedia penyimpanan sesi [seperti pada contoh Netlify Blob](/en/guides/actions/#advanced-persist-action-results-with-a-session). Namun, jika Anda lebih suka perilaku forwarding cookie dari 4.X dan menerima batas ukuran 4 KB, Anda dapat menerapkan pola seperti pada potongan kode contoh berikut:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Lewati permintaan untuk halaman yang diprerender
+  if (context.isPrerendered) return next();
+
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+
+  // Jika hasil action diteruskan sebagai cookie, set hasilnya
+  // agar dapat diakses dari `Astro.getActionResult()`
+  const payload = context.cookies.get('ACTION_PAYLOAD');
+  if (payload) {
+    const { actionName, actionResult } = payload.json();
+    setActionResult(actionName, actionResult);
+    context.cookies.delete('ACTION_PAYLOAD', { path: '/' });
+    return next();
+  }
+
+  // Jika action dipanggil dari action form HTML,
+  // panggil handler action dan redirect dengan hasil sebagai cookie.
+  if (action?.calledFrom === 'form') {
+    const actionResult = await action.handler();
+
+    context.cookies.set('ACTION_PAYLOAD', {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    }, {
+      path: '/',
+      httpOnly: true,
+      sameSite: 'lax',
+      maxAge: 60
+    });
+
+    if (actionResult.error) {
+    // Redirect kembali ke halaman sebelumnya saat error
+      const referer = context.request.headers.get('Referer');
+      if (!referer) {
+        throw new Error('Internal: Referer unexpectedly missing from Action POST request.');
+      }
+      return context.redirect(referer);
+    }
+    // Redirect ke halaman tujuan saat sukses
+    return context.redirect(context.originPathname);
+  }
+
+  return next();
+})
+```
+
+### Diubah: `compiledContent()` sekarang fungsi async
+
+<SourcePR number="11782" title="Hapus TLA dengan menjadikan compiledContent async"/>
+
+Di Astro 4.x, top level await disertakan di modul Markdown. Ini menyebabkan beberapa masalah dengan layanan gambar khusus dan gambar di dalam Markdown, membuat Node tiba-tiba keluar tanpa pesan error.
+
+Astro 5.0 menjadikan properti `compiledContent()` pada import Markdown sebagai fungsi async, yang memerlukan `await` untuk menyelesaikan konten.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui kode Anda untuk menggunakan `await` saat memanggil `compiledContent()`.
+
+```astro title="src/pages/post.astro" del={4} ins={5}
+---
+import * as myPost from "../blog/post.md";
+
+const content = myPost.compiledContent();
+const content = await myPost.compiledContent();
+---
+
+<Fragment set:html={content} />
+```
+
+<ReadMore>Baca selengkapnya tentang [fungsi `compiledContent()`](/en/guides/markdown-content/#importing-markdown) untuk mengembalikan Markdown yang telah dikompilasi.</ReadMore>
+
+### Diubah: `astro:content` tidak lagi dapat digunakan di client
+
+<SourcePR number="11827" title="Cegah penggunaan `astro:content` di client "/>
+
+Di Astro 4.x, memungkinkan untuk mengakses modul `astro:content` di client.
+
+Astro 5.0 menghapus akses ini karena tidak pernah dimaksudkan untuk client. Menggunakan `astro:content` seperti ini memiliki keterbatasan dan membengkakkan bundle client.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda saat ini menggunakan `astro:content` di client, teruskan data yang Anda perlukan melalui props ke komponen klien Anda:
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+import ClientComponent from '../components/ClientComponent';
+
+const posts = await getCollection('blog');
+const postsData = posts.map(post => post.data);
+---
+
+<ClientComponent posts={postsData} />
+```
+
+<ReadMore>Baca selengkapnya tentang [API `astro:content`](/en/reference/modules/astro-content/).</ReadMore>
+
+### Diubah nama: token warna tema Shiki `css-variables`
+
+<SourcePR number="11661" title="Perbarui ke nama token shiki yang baru"/>
+
+Di Astro v4.x, tema Shiki `css-variables` menggunakan token `--astro-code-color-text` dan `--astro-code-color-background` untuk styling warna foreground dan background block kode.
+
+Astro v5.0 mengganti nama token tersebut menjadi `--astro-code-foreground` dan `--astro-code-background` untuk lebih selaras dengan default Shiki v1.
+
+#### Apa yang harus saya lakukan?
+
+Anda dapat melakukan find and replace global di proyek Anda untuk bermigrasi ke nama token baru.
+
+```css title="src/styles/global.css" del={2,3} ins={4,5}
+:root {
+  --astro-code-color-text: #000;
+  --astro-code-color-background: #fff;
+  --astro-code-foreground: #000;
+  --astro-code-background: #fff;
+}
+```
+
+<ReadMore>Baca selengkapnya tentang [syntax highlighting di Astro](/en/guides/syntax-highlighting/).</ReadMore>
+
+### Diubah: plugin rehype internal Shiki untuk highlight block kode
+
+<SourcePR number="11825" title="Refactor createShikiHighlighter"/>
+
+Di Astro 4.x, plugin rehype Shiki internal Astro menyorot block kode sebagai HTML.
+
+Astro 5.0 memperbarui plugin ini untuk menyorot block kode sebagai hast. Ini memungkinkan pemrosesan Markdown dan MDX yang lebih langsung dan meningkatkan performa saat build. Namun, ini dapat menyebabkan masalah dengan transformer Shiki yang ada.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan transformer Shiki yang diteruskan ke `markdown.shikiConfig.transformers`, Anda harus memastikan transformer tersebut tidak menggunakan hook `postprocess`. Hook ini tidak lagi berjalan pada block kode di file `.md` dan `.mdx`. (Lihat [dokumentasi Shiki tentang hook transformer](https://shiki.style/guide/transformers#transformer-hooks) untuk informasi lebih lanjut).
+
+Block kode di file `.mdoc` dan komponen bawaan Astro `<Code />` tidak menggunakan plugin rehype Shiki internal dan tidak terpengaruh.
+
+<ReadMore>Baca selengkapnya tentang [syntax highlighting di Astro](/en/guides/syntax-highlighting/).</ReadMore>
+
+### Diubah: perilaku otomatis `charset=utf-8` untuk halaman Markdown dan MDX
+
+<SourcePR number="12231" title="Hapus charset=utf-8 content-type untuk halaman md/mdx"/>
+
+Di Astro 4.0, halaman Markdown dan MDX (yang berada di `src/pages/`) secara otomatis merespons dengan `charset=utf-8` pada header `Content-Type`, yang memungkinkan perenderan karakter non-ASCII di halaman Anda.
+
+Astro 5.0 memperbarui perilaku untuk menambahkan tag `<meta charset="utf-8">` sebagai gantinya, dan hanya untuk halaman yang tidak menggunakan properti frontmatter khusus Astro `layout`. Demikian pula untuk halaman MDX, Astro hanya akan menambahkan tag jika konten MDX tidak mengimpor komponen pembungkus `Layout`.
+
+Jika halaman Markdown atau MDX Anda menggunakan properti frontmatter `layout`, atau jika konten halaman MDX mengimpor komponen pembungkus `Layout`, maka encoding HTML akan ditangani oleh komponen layout yang ditentukan, dan tag `<meta charset="utf-8">` tidak akan ditambahkan ke halaman Anda secara default.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda memerlukan `charset=utf-8` untuk merender halaman dengan benar, pastikan komponen layout Anda berisi tag `<meta charset="utf-8">`. Anda mungkin perlu menambahkannya jika belum.
+
+<ReadMore>Baca selengkapnya tentang [Markdown layout](/en/basics/layouts/#markdown-layouts).</ReadMore>
+
+### Diubah: metadata khusus Astro yang terlampir di plugin remark dan rehype
+
+<SourcePR number="11861" title="Rapikan metadata Astro di vfile.data"/>
+
+Di Astro 4.x, metadata khusus Astro yang dilampirkan ke `vfile.data` di plugin remark dan rehype ditempatkan di lokasi berbeda dengan nama yang tidak konsisten.
+
+Astro 5 merapikan API ini dan metadata sekarang diubah namanya sebagai berikut:
+
+ - `vfile.data.__astroHeadings` -> `vfile.data.astro.headings`
+ - `vfile.data.imagePaths` -> `vfile.data.astro.imagePaths`
+
+Tipe dari `imagePaths` juga diperbarui dari `Set<string>` menjadi `string[]`. Metadata `vfile.data.astro.frontmatter` tetap tidak berubah.
+
+#### Apa yang harus saya lakukan?
+
+Walaupun kami tidak menganggap API ini publik, API ini dapat diakses oleh plugin remark dan rehype yang ingin menggunakan kembali metadata Astro. Jika Anda menggunakan API ini, pastikan mengaksesnya di lokasi yang baru.
+
+<ReadMore>Baca selengkapnya tentang [menggunakan plugin Markdown di Astro](/en/guides/markdown-content/#markdown-plugins).</ReadMore>
+
+### Diubah: konfigurasi endpoint gambar
+
+<SourcePR number="11908" title="Izinkan kustomisasi route untuk endpoint gambar"/>
+
+Di Astro 4.x, Anda dapat menyetel endpoint di konfigurasi `image` untuk digunakan dalam optimasi gambar.
+
+Astro 5.0 memungkinkan Anda mengkustomisasi `route` dan `entrypoint` dari konfigurasi `image.endpoint`. Ini berguna pada situasi tertentu saat route default `/_image` berbenturan dengan rute yang ada atau setelan server lokal Anda.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda sebelumnya mengkustomisasi `image.endpoint`, pindahkan endpoint tersebut ke properti baru `endpoint.entrypoint`. Opsional, Anda dapat mengkustomisasi `route`:
+
+```js title="astro.config.mjs" del={5} ins={6-9}
+import { defineConfig } from "astro/config";
+
+defineConfig({
+  image: {
+    endpoint: './src/image-endpoint.ts',
+    endpoint: {
+      route: "/image",
+      entrypoint: "./src/image_endpoint.ts"
+    }
+  },
+})
+```
+
+<ReadMore>Baca selengkapnya tentang [menyetel endpoint untuk optimasi gambar](/en/reference/configuration-reference/#imageendpoint).</ReadMore>
+
+### Diubah: perilaku resolve `build.client` dan `build.server`
+
+<SourcePR number="11916" title="Perbaiki perilaku resolve build.client dan build.server" />
+
+Di Astro v4.x, opsi `build.client` dan `build.server` didokumentasikan untuk resolve relatif dari opsi `outDir`, tetapi tidak selalu bekerja seperti yang diharapkan.
+
+Astro 5.0 memperbaiki perilaku ini agar benar-benar resolve dari opsi `outDir`. Misalnya, jika `outDir` disetel ke `./dist/nested/`, maka secara default:
+
+- `build.client` akan resolve ke `<root>/dist/nested/client/`
+- `build.server` akan resolve ke `<root>/dist/nested/server/`
+
+Sebelumnya nilainya resolve secara keliru:
+
+- `build.client` resolve ke `<root>/dist/nested/dist/client/`
+- `build.server` resolve ke `<root>/dist/nested/dist/server/`
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda bergantung pada path build sebelumnya, pastikan kode proyek Anda diperbarui ke path build yang baru.
+
+<ReadMore>Baca selengkapnya tentang [opsi konfigurasi `build` di Astro](/en/reference/configuration-reference/#build-options).</ReadMore>
+
+### Diubah: dependensi JS di file konfigurasi tidak lagi diproses oleh Vite
+
+<SourcePR number="11819" title="Set external: true saat memuat konfigurasi astro"/>
+
+Di Astro 4.x, dependensi JS yang ditautkan secara lokal (mis. `npm link`, monorepo, dll) dapat menggunakan fitur Vite seperti `import.meta.glob` saat diimpor oleh file konfigurasi Astro.
+
+Astro 5 memperbarui alur pemuatan konfigurasi Astro untuk mengabaikan pemrosesan dependensi JS lokal dengan Vite. Dependensi yang mengekspor file TypeScript mentah tidak terpengaruh. Sebagai gantinya, dependensi JS ini akan diimpor secara normal oleh runtime Node.js sama seperti dependensi lain dari `node_modules`.
+
+Perubahan ini dilakukan karena perilaku sebelumnya membingungkan penulis integrasi yang menguji terhadap paket yang bekerja secara lokal, tetapi tidak saat dipublikasikan. Itu juga membatasi penggunaan dependensi CJS-only karena Vite mengharuskan kode berupa ESM. Meskipun perubahan ini hanya memengaruhi dependensi JS, disarankan juga agar paket mengekspor JavaScript daripada TypeScript mentah jika memungkinkan untuk mencegah penggunaan spesifik Vite secara tidak sengaja karena itu adalah detail implementasi dari alur pemuatan konfigurasi Astro.
+
+#### Apa yang harus saya lakukan?
+
+Pastikan dependensi JS yang ditautkan secara lokal telah dibangun sebelum menjalankan proyek Astro Anda. Lalu, pemuatan konfigurasi akan berfungsi seperti sebelumnya.
+
+<ReadMore>Baca selengkapnya tentang [pengaturan konfigurasi Vite di Astro](/en/reference/configuration-reference/#vite).</ReadMore>
+
+### Diubah: URL yang dikembalikan oleh `paginate()`
+
+<SourcePR number="11253" title="Tambahkan base ke paginate"/>
+
+Di Astro v4.x, URL yang dikembalikan oleh `paginate()` (mis. `page.url.next`, `page.url.first`, dll.) tidak menyertakan nilai yang disetel untuk `base` di konfigurasi Astro. Anda harus menambahkan nilai `base` yang dikonfigurasi ke path URL secara manual.
+
+Astro 5.0 secara otomatis menyertakan nilai `base` di `page.url`.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan fungsi `paginate()` untuk URL tersebut, hapus nilai `base` apa pun yang sudah ada karena sekarang akan ditambahkan untuk Anda:
+
+```astro del={16} ins={17}
+---
+export async function getStaticPaths({ paginate }) {
+  const astronautPages = [{
+    astronaut: 'Neil Armstrong',
+  }, {
+    astronaut: 'Buzz Aldrin',
+  }, {
+    astronaut: 'Sally Ride',
+  }, {
+    astronaut: 'John Glenn',
+  }];
+  return paginate(astronautPages, { pageSize: 1 });
+}
+const { page } = Astro.props;
+// `base: /'docs'` dikonfigurasi di `astro.config.mjs`
+const prev = "/docs" + page.url.prev;
+const prev = page.url.prev;
+---
+<a id="prev" href={prev}>Back</a>
+```
+
+<ReadMore>Baca selengkapnya tentang [pagination di Astro](/en/guides/routing/#pagination).</ReadMore>
+
+### Diubah: atribut HTML non-boolean
+
+<SourcePR number="11660" title="Perbaiki perenderan atribut untuk nilai boolean (percobaan 2)"/>
+
+Di Astro v4.x, atribut HTML non-[boolean](https://developer.mozilla.org/en-US/docs/Glossary/Boolean/HTML) mungkin tidak menyertakan nilainya saat dirender ke HTML.
+
+Astro v5.0 merender nilainya secara eksplisit sebagai `="true"` atau `="false"`, sesuai penanganan atribut yang benar di peramban.
+
+Dalam contoh `.astro` berikut, hanya `allowfullscreen` yang merupakan atribut boolean:
+
+```astro
+<!-- src/pages/index.astro -->
+<!-- `allowfullscreen` adalah atribut boolean -->
+<p allowfullscreen={true}></p>
+<p allowfullscreen={false}></p>
+<!-- `inherit` *bukan* atribut boolean -->
+<p inherit={true}></p>
+<p inherit={false}></p>
+<!-- atribut `data-*` bukan atribut boolean -->
+<p data-light={true}></p>
+<p data-light={false}></p>
+```
+
+Astro v5.0 sekarang mempertahankan atribut data beserta nilainya saat merender HTML untuk atribut non-boolean:
+
+```astro del={5,8,10} ins={6,9,11}
+<p allowfullscreen></p>
+<p></p>
+
+<p inherit="true"></p>
+<p inherit></p>
+<p inherit="false"></p>
+
+<p data-light></p>
+<p data-light="true"></p>
+<p></p>
+<p data-light="false"></p>
+```
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda bergantung pada nilai atribut, misalnya untuk menemukan elemen atau melakukan render kondisional, perbarui kode Anda agar sesuai dengan nilai atribut non-boolean yang baru:
+
+```js del={1,4} ins={2,5}
+el.getAttribute('inherit') === ''
+el.getAttribute('inherit') === 'false'
+
+el.hasAttribute('data-light')
+el.dataset.light === 'true'
+```
+
+<ReadMore>Baca selengkapnya tentang [menggunakan atribut HTML di Astro](/en/reference/astro-syntax/#dynamic-attributes).</ReadMore>
+
+### Diubah: menambahkan nilai ke `context.locals`
+
+<SourcePR number="11987" title="TODOs"/>
+
+Di Astro 4.x, memungkinkan untuk mengganti seluruh objek `locals` di middleware, endpoint API, dan halaman saat menambahkan nilai baru.
+
+Astro 5.0 mengharuskan Anda menambahkan nilai ke objek `locals` yang ada tanpa menghapusnya. Locals di middleware, endpoint API, dan halaman, tidak lagi dapat ditimpa seluruhnya.
+
+#### Apa yang harus saya lakukan?
+
+Di mana sebelumnya Anda menimpa objeknya, sekarang Anda harus menetapkan nilainya:
+
+```js title="src/middleware.js" del={1,5} ins={2,6}
+ctx.locals = {
+Object.assign(ctx.locals, {
+  one: 1,
+  two: 2
+}
+})
+```
+
+<ReadMore>Lihat lebih lanjut tentang [menyimpan data di `context.locals`](/en/guides/middleware/#storing-data-in-contextlocals).</ReadMore>
+
+### Diubah: `params` tidak lagi didekode
+
+<SourcePR number="12079" title="decode pathname early, don't decode params"/>
+
+Di Astro v4.x, `params` yang diteruskan ke `getStaticPath()` secara otomatis didekode menggunakan `decodeURIComponent`.
+
+Astro v5.0 tidak lagi mendekode nilai `params` yang diteruskan ke `getStaticPaths`. Anda harus mendekodenya secara manual jika diperlukan.
+
+#### Apa yang harus saya lakukan?
+
+Jika sebelumnya Anda mengandalkan dekode otomatis, gunakan `decodeURI` saat meneruskan `params`.
+
+```astro title="src/pages/[id].astro" del={4} ins={5}
+---
+export function getStaticPaths() {
+  return [
+    { params: { id: "%5Bpage%5D" } },
+    { params: { id: decodeURI("%5Bpage%5D") } },
+  ]
+}
+
+const { id } = Astro.params;
+---
+```
+
+Perhatikan bahwa penggunaan [`decodeURIComponent`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURIComponent) tidak disarankan untuk `getStaticPaths` karena ini mendekode lebih banyak karakter daripada seharusnya, misalnya `/`, `?`, `#`, dan lainnya.
+
+<ReadMore>Baca selengkapnya tentang [membuat rute dinamis dengan `params`](/en/guides/routing/#static-ssg-mode).</ReadMore>
+
+### Diubah: tipe `RouteData` diganti oleh `IntegrationsRouteData` (Integrations API)
+
+<SourcePR number="11864" title="kirim `IntegrationRouteData` ke integrasi"/>
+
+Di Astro v4.x, tipe `entryPoints` di dalam hook `astro:build:ssr` dan `astro:build:done` adalah `RouteData`.
+
+Astro v5.0 tipe `entryPoints` sekarang menjadi `IntegrationRouteData`, yang berisi subset dari tipe `RouteData`. Field `isIndex` dan `fallbackRoutes` dihapus.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui adapter Anda untuk mengubah tipe `entryPoints` dari `RouteData` menjadi `IntegrationRouteData`.
+
+```js del={1,4} ins={2,5}
+import type {RouteData} from 'astro';
+import type {IntegrationRouteData} from "astro"
+
+function useRoute(route: RouteData) {
+function useRoute(route: IntegrationRouteData) {
+}
+```
+
+<ReadMore>Lihat [referensi API untuk `IntegrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference).</ReadMore>
+
+### Diubah: `distURL` sekarang berupa array (Integrations API)
+
+<SourcePR number="11864" title="kirim `IntegrationRouteData` ke integrasi"/>
+
+Di Astro v4.x, `RouteData.distURL` adalah `undefined` atau sebuah `URL`.
+
+Astro v5.0 memperbarui bentuk `IntegrationRouteData.distURL` menjadi `undefined` atau array dari `URL`. Ini memperbaiki error sebelumnya karena satu rute dapat menghasilkan beberapa file di disk, terutama saat menggunakan rute dinamis seperti `[slug]` atau `[...slug]`.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui kode Anda untuk menangani `IntegrationRouteData.distURL` sebagai array.
+
+```js del={2-4} ins={5-9}
+if (route.distURL) {
+  if (route.distURL.endsWith('index.html')) {
+    // do something
+  }
+  for (const url of route.distURL) {
+    if (url.endsWith('index.html')) {
+      // do something
+    }
+  }
+}
+```
+
+<ReadMore>Lihat [referensi API untuk `IntegrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference).</ReadMore>
+
+### Diubah: Argumen yang diteruskan ke `app.render()` (Adapter API)
+
+<SourcePR number="11987" title="TODOs"/>
+
+Di Astro v4.x, metode Adapter API `app.render()` dapat menerima tiga argumen: `request` (wajib), sebuah objek opsi atau objek `routeData`, dan `locals`.
+
+Astro 5.0 menggabungkan dua argumen terakhir menjadi satu argumen opsi bernama `renderOptions`.
+
+#### Apa yang harus saya lakukan?
+
+Teruskan objek sebagai argumen kedua ke `app.render()`, yang dapat mencakup `routeData` dan `locals` sebagai properti.
+
+```js del={1} ins={2}
+const response = await app.render(request, routeData, locals);
+const response = await app.render(request, {routeData, locals});
+```
+
+<ReadMore>Lihat [referensi Adapter API untuk `renderOptions`](/en/reference/adapter-reference/#renderoptions).</ReadMore>
+
+### Diubah: Properti pada `supportedAstroFeatures` (Adapter API)
+
+<SourcePR number="11806" title="rework supportedAstroFeatures"/>
+
+Di Astro 4.x, `supportedAstroFeatures`, yang memungkinkan penulis adapter menentukan fitur mana yang didukung integrasinya, menyertakan properti `assets` untuk menentukan layanan gambar Astro mana yang didukung.
+
+Astro 5.0 mengganti properti ini dengan properti khusus `sharpImageService`, yang digunakan untuk menentukan apakah adapter kompatibel dengan layanan gambar Sharp bawaan.
+
+v5.0 juga menambahkan nilai baru `limited` untuk berbagai properti `supportedAstroFeatures` pada adapter, yang menunjukkan bahwa adapter kompatibel dengan fitur tersebut, tetapi dengan beberapa keterbatasan. Ini berguna untuk adapter yang mendukung suatu fitur, namun tidak di semua kasus atau dengan semua opsi.
+
+Selain itu, nilai dari berbagai properti pada `supportedAstroFeatures` untuk adapter sekarang dapat berupa objek, dengan properti `support` dan `message`. Isi dari properti `message` akan menampilkan pesan yang membantu di CLI Astro ketika adapter tidak kompatibel dengan suatu fitur. Ini sangat berguna dengan nilai baru `limited`, untuk menjelaskan kepada pengguna mengapa dukungannya terbatas.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan properti `assets`, hapus karena tidak lagi tersedia. Untuk menentukan bahwa adapter Anda mendukung layanan gambar Sharp bawaan, ganti dengan `sharpImageService`.
+
+Anda juga dapat memperbarui fitur yang didukung dengan opsi baru `limited` dan menyertakan pesan tentang dukungan adapter Anda.
+
+```ts title="my-adapter.mjs" del={2-6} ins={7-10}
+supportedAstroFeatures: {
+  assets: {
+    supportKind: "stable",
+    isSharpCompatible: true,
+    isSquooshCompatible: true,
+  },
+  sharpImageService: {
+    support: "limited",
+    message: 'Adapter ini mendukung layanan gambar Sharp bawaan, namun dengan beberapa keterbatasan.'
+  }
+}
+```
+
+<ReadMore>Baca selengkapnya tentang [menentukan fitur Astro yang didukung di adapter](/en/reference/adapter-reference/#astro-features).</ReadMore>
+
+### Dihapus: bentuk definisi lama untuk aplikasi dev toolbar (Dev Toolbar API)
+
+<SourcePR number="11987" title="Hapus bentuk app dev toolbar yang didepresiasi"/>
+
+Di Astro 4.x, ketika membangun aplikasi dev toolbar, masih dimungkinkan menggunakan signature yang sudah didepresiasi `addDevToolbarApp(string);`. Properti `id`, `title`, dan `icon` untuk mendefinisikan aplikasi kemudian tersedia melalui default export dari `entrypoint` aplikasi.
+
+Astro 5.0 sepenuhnya menghapus opsi ini demi bentuk objek saat ini ketika mendefinisikan aplikasi dev toolbar di sebuah integrasi, yang lebih intuitif dan memungkinkan Astro memberikan error yang lebih baik ketika aplikasi toolbar gagal dimuat dengan benar.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan bentuk yang didepresiasi, perbarui aplikasi dev toolbar Anda untuk menggunakan bentuk yang baru:
+
+```js title="my-integration.mjs" del={1-2} ins={4-10}
+// Bentuk lama
+addDevToolbarApp("./my-dev-toolbar-app.mjs");
+
+// Bentuk baru
+addDevToolbarApp({
+  id: "my-app",
+  name: "My App",
+  icon: "<svg>...</svg>",
+  entrypoint: "./my-dev-toolbar-app.mjs",
+});
+```
+
+```js title="my-dev-toolbar-app.mjs" del={2-4}
+export default {
+  id: 'my-dev-toolbar-app',
+  title: 'My Dev Toolbar App',
+  icon: '🚀',
+  init() {
+    // ...
+  }
+}
+```
+
+<ReadMore>Baca selengkapnya tentang [mengembangkan aplikasi dev toolbar untuk Astro menggunakan Dev Toolbar API](/en/reference/dev-toolbar-app-reference/).</ReadMore>
+
+### Dihapus: konfigurasi TypeScript saat `create-astro`
+
+<SourcePR number="12083" title="pembaruan create-astro"/>
+
+Di Astro v4.x, Anda dapat memilih di antara tiga setelan TypeScript Astro saat membuat proyek baru menggunakan `create astro`, baik dengan menjawab pertanyaan atau dengan meneruskan flag `--typescript` beserta setelan TypeScript yang diinginkan. 
+
+Astro 5.0 memperbarui perintah CLI `create astro` untuk menghapus pertanyaan TypeScript dan flag `--typescript` terkait. Preset "strict" sekarang menjadi default untuk semua proyek baru yang dibuat dengan command line dan tidak lagi dapat dikustomisasi pada saat itu. Namun, template TypeScript masih dapat diubah secara manual di `tsconfig.json`.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan flag `--typescript` dengan `create-astro`, hapus flag tersebut dari perintah Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```diff lang=shell
+  -npm create astro@latest -- --template <example-name> --typescript strict
+  +npm create astro@latest -- --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```diff lang=shell
+  -pnpm create astro@latest --template <example-name> --typescript strict
+  +pnpm create astro@latest --template <example-name>
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```diff lang=shell
+  -yarn create astro --template <example-name> --typescript strict
+  +yarn create astro --template <example-name>
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+<ReadMore>Lihat [semua flag perintah `create astro` yang tersedia](https://github.com/withastro/astro/blob/main/packages/create-astro/README.md)</ReadMore>
+
+## Sumber Daya Komunitas
+
+Punya sumber daya yang bagus untuk Astro v5.0? [Edit halaman ini](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v5.mdx) dan tambahkan tautan di bawah!
+
+## Masalah yang Diketahui
+
+Silakan periksa [issue Astro di GitHub](https://github.com/withastro/astro/issues/) untuk setiap masalah yang dilaporkan, atau untuk membuat issue Anda sendiri.

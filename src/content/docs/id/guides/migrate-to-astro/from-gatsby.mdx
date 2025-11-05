@@ -1,0 +1,608 @@
+---
+title: Migrasi dari Gatsby
+description: Tips untuk memigrasikan proyek Gatsby yang sudah ada ke Astro
+sidebar:
+  label: Gatsby
+type: migration
+stub: false
+framework: Gatsby
+i18nReady: true
+---
+import { Steps, LinkCard, CardGrid } from '@astrojs/starlight/components';
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Berikut beberapa konsep kunci dan strategi migrasi untuk membantu Anda memulai. Gunakan dokumentasi lainnya dan [komunitas Discord kami](https://astro.build/chat) untuk melanjutkan!
+
+## Persamaan Utama antara Gatsby dan Astro
+
+Gatsby dan Astro memiliki beberapa kesamaan yang akan membantu Anda memigrasikan proyek Anda:
+
+- [Sintaks file `.astro` mirip dengan JSX](/id/reference/astro-syntax/#jsx-like-expressions). Menulis Astro akan terasa familiar.
+
+- Astro memiliki dukungan bawaan untuk [Markdown](/id/guides/markdown-content/) dan integrasi untuk menggunakan berkas MDX. Anda juga dapat mengonfigurasi dan terus menggunakan banyak plugin Markdown yang sudah ada.
+
+- Astro juga memiliki [integrasi resmi untuk menggunakan komponen React](/id/guides/integrations-guide/react/). Perhatikan bahwa di Astro, berkas React **harus** berekstensi `.jsx` atau `.tsx`.
+
+- Astro mendukung [memasang paket NPM](/id/guides/imports/#npm-packages), termasuk pustaka React. Banyak dependensi Anda saat ini akan berfungsi di Astro.
+
+- Seperti Gatsby, proyek Astro dapat berupa SSG atau [SSR dengan prerender tingkat halaman](/id/guides/on-demand-rendering/).
+
+## Perbedaan Utama antara Gatsby dan Astro
+
+Saat Anda membangun ulang situs Gatsby di Astro, Anda akan melihat beberapa perbedaan penting:
+
+- Proyek Gatsby adalah aplikasi React satu halaman dan menggunakan `index.js` sebagai root proyek Anda. Proyek Astro adalah situs multi-halaman, dan `index.astro` adalah halaman beranda Anda.
+
+- [Komponen Astro](/id/basics/astro-components/) tidak ditulis sebagai fungsi diekspor yang mengembalikan templating halaman. Sebagai gantinya, Anda akan membagi kode menjadi “pagar kode” (code fence) untuk JavaScript dan body khusus untuk HTML yang Anda hasilkan.
+
+- [Data berkas lokal](/id/guides/imports/): Gatsby menggunakan GraphQL untuk mengambil data dari berkas proyek Anda. Astro menggunakan impor ESM dan fungsi top-level await (mis. [`import.meta.glob()`](/id/guides/imports/#importmetaglob), [`getCollection()`](/id/guides/content-collections/#querying-collections)) untuk mengimpor data dari berkas proyek Anda. Anda dapat menambahkan GraphQL secara manual ke proyek Astro, tetapi tidak termasuk secara default.
+
+## Konversi Proyek Gatsby Anda
+
+Setiap migrasi proyek akan terlihat berbeda, tetapi ada beberapa langkah umum yang akan Anda lakukan saat beralih dari Gatsby ke Astro.
+
+### Buat proyek Astro baru
+Gunakan perintah `create astro` untuk manajer paket Anda guna menjalankan wizard CLI Astro atau pilih tema komunitas dari [Astro Theme Showcase](https://astro.build/themes).
+
+Anda dapat menambahkan argumen `--template` ke perintah `create astro` untuk memulai proyek Astro baru dengan salah satu starter resmi (mis. `docs`, `blog`, `portfolio`). Atau, Anda dapat [memulai proyek baru dari repositori Astro mana pun di GitHub](/id/install-and-setup/#install-from-the-cli-wizard).
+
+  <PackageManagerTabs>
+    <Fragment slot="npm">
+    ```shell
+    # jalankan Astro CLI Wizard 
+    npm create astro@latest
+
+    # buat proyek baru dengan contoh resmi
+    npm create astro@latest -- --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="pnpm">
+    ```shell
+    # jalankan Astro CLI Wizard 
+    pnpm create astro@latest
+
+    # buat proyek baru dengan contoh resmi
+    pnpm create astro@latest --template <example-name>
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```shell
+    # jalankan Astro CLI Wizard 
+    yarn create astro@latest
+
+    # buat proyek baru dengan contoh resmi
+    yarn create astro@latest --template <example-name>
+    ```
+    </Fragment>
+  </PackageManagerTabs>
+
+Selanjutnya, salin berkas proyek Gatsby Anda yang ada ke proyek Astro baru ke dalam folder terpisah di luar `src`.
+
+:::tip
+Kunjungi https://astro.new untuk daftar lengkap starter template resmi, dan tautan untuk membuka proyek baru di IDX, StackBlitz, CodeSandbox, atau Gitpod.
+:::
+
+### Pasang integrasi (opsional)
+
+Anda mungkin ingin memasang beberapa [integrasi opsional Astro](/id/guides/integrations-guide/) untuk digunakan saat mengonversi proyek Gatsby Anda ke Astro:
+
+- **@astrojs/react**: untuk menggunakan kembali beberapa komponen UI React yang ada di situs Astro baru Anda atau terus menulis dengan komponen React.
+
+- **@astrojs/mdx**: untuk membawa berkas MDX yang sudah ada dari proyek Gatsby Anda, atau menggunakan MDX di situs Astro baru Anda.
+
+### Pindahkan kode Anda ke `src`
+
+Mengikuti [struktur proyek Astro](/id/basics/project-structure/):
+
+<Steps>
+1. **Hapus** folder `public/` milik Gatsby. 
+    
+    Gatsby menggunakan direktori `public/` untuk output build-nya, jadi Anda dapat menghapus folder ini dengan aman. Anda tidak lagi memerlukan versi build dari situs Gatsby Anda. (Astro menggunakan `dist/` secara default untuk output build.)
+
+2. **Ubah nama** folder `static/` milik Gatsby menjadi `public/`, dan gunakan sebagai folder `public/` Astro. 
+
+    Astro menggunakan folder bernama `public/` untuk aset statis. Atau, Anda bisa menyalin isi `static/` ke folder `public/` Astro Anda yang sudah ada.
+
+3. **Salin atau Pindahkan** berkas dan folder Gatsby lainnya (mis. `components`, `pages`, dll.) sesuai kebutuhan ke folder `src/` Astro Anda saat Anda membangun ulang situs, mengikuti [struktur proyek Astro](/id/basics/project-structure/).
+
+    Folder khusus `src/pages/` milik Astro digunakan untuk routing berbasis file untuk membuat halaman dan postingan situs Anda dari berkas `.astro`, `.md`, dan `.mdx`. Anda tidak perlu mengonfigurasi perilaku routing apa pun untuk berkas Astro, Markdown, dan MDX Anda.
+
+    Folder lainnya bersifat opsional, dan Anda dapat mengatur isi folder `src/` sesuai keinginan. Folder umum lain di proyek Astro termasuk `src/layouts/`, `src/components`, `src/styles`, dan `src/scripts`.
+</Steps>
+
+### Tips: Konversi berkas JSX menjadi berkas `.astro`
+
+Berikut beberapa kiat untuk mengonversi komponen `.js` Gatsby menjadi komponen `.astro`:
+
+1. Gunakan hanya bagian `return()` dari fungsi komponen Gatsby yang ada sebagai template HTML Anda.
+
+2. Ubah [sintaks Gatsby atau JSX ke sintaks Astro](#reference-convert-to-astro-syntax) atau ke standar web HTML. Ini termasuk `<Link to="">`, `{children}`, dan `className`, misalnya.
+
+3. Pindahkan JavaScript yang diperlukan, termasuk pernyataan impor, ke dalam [“pagar kode” (`---`)](/id/basics/astro-components/#the-component-script). Catatan: JavaScript untuk [merender konten secara kondisional](/id/reference/astro-syntax/#dynamic-html) sering kali ditulis langsung di dalam template HTML di Astro.
+
+4. Gunakan [`Astro.props`](/id/reference/api-reference/#props) untuk mengakses properti tambahan apa pun yang sebelumnya diteruskan ke fungsi Gatsby Anda.
+
+5. Putuskan apakah komponen yang diimpor juga perlu diubah ke Astro. Dengan integrasi React resmi terpasang, Anda dapat [menggunakan komponen React yang ada di berkas Astro](/id/guides/framework-components/). Namun, Anda mungkin ingin mengonversinya menjadi komponen `.astro`, terutama jika komponen tersebut tidak perlu interaktif!
+
+6. Hapus semua query GraphQL. Sebagai gantinya, gunakan impor dan [`import.meta.glob()`](/id/guides/imports/#importmetaglob) untuk menanyakan berkas lokal Anda.
+
+Lihat [contoh dari Gatsby Blog starter yang dikonversi langkah demi langkah](#guided-example-gatsby-layout-to-astro)
+
+#### Perbandingan: `.jsx` vs `.astro`
+
+Bandingkan komponen Gatsby berikut dan komponen Astro yang sesuai:
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="component.jsx"
+    import * as React from "react"
+    import { useStaticQuery, graphql } from "gatsby"
+    import Header from "./header"
+    import Footer from "./footer"
+    import "./layout.css"
+
+    const Component = ({ message, children }) => {
+      const data = useStaticQuery(graphql`
+        query SiteTitleQuery {
+          site {
+            siteMetadata {
+              title
+            }
+          }
+        }
+      `)
+      return (
+        <>
+          <Header siteTitle={data.site.siteMetadata.title} />
+          <div style={{ margin: `0`, maxWidth: `960`}}>{message}</div>
+          <main>{children}</main>
+          <Footer siteTitle={data.site.siteMetadata} />
+        </>
+      )
+    }
+
+    export default Component
+    ```
+  </Fragment>
+
+  <Fragment slot="astro">
+    ```astro title="component.astro"
+    ---
+    import Header from "./Header.astro"
+    import Footer from "./Footer.astro"
+    import "../styles/stylesheet.css"
+    import { site } from "../data/siteMetaData.js"
+    const { message } = Astro.props
+    ---
+    <Header siteTitle={site.title} />
+      <div style="margin: 0; max-width: 960;">{message}</div>
+      <main>
+        <slot />
+      </main>
+    <Footer siteTitle={site.title} />
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### Migrasi Berkas Layout
+
+Anda mungkin merasa terbantu untuk memulai dengan mengonversi layout dan template Gatsby Anda menjadi [komponen layout Astro](/id/basics/layouts/).
+
+Setiap halaman Astro secara eksplisit membutuhkan tag `<html>`, `<head>`, dan `<body>`, sehingga umum untuk menggunakan kembali berkas layout di banyak halaman. Astro menggunakan [`<slot />`](/id/basics/astro-components/#slots) alih-alih properti `{children}` milik React untuk konten halaman, tanpa perlu pernyataan impor. `layout.js` dan template Gatsby Anda tidak akan menyertakan ini.
+
+Perhatikan templating HTML standar, dan akses langsung ke `<head>`:  
+
+```astro title="src/layouts/Layout.astro" "slot"
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro</title>
+  </head>
+  <body>
+    <!-- Bungkus elemen slot dengan templating layout yang sudah ada -->
+    <slot />
+  </body>
+</html>
+```
+
+Anda juga mungkin ingin menggunakan kembali kode dari `src/components/seo.js` milik Gatsby untuk menyertakan metadata situs tambahan. Perhatikan bahwa Astro tidak menggunakan `<Helmet>` maupun `<Header>`, tetapi langsung membuat `<head>`. Anda dapat mengimpor dan menggunakan komponen, bahkan di dalam `<head>`, untuk memisahkan dan mengatur konten halaman Anda.
+
+### Migrasi Halaman dan Postingan
+
+Di Gatsby, [halaman dan postingan](/id/basics/astro-pages/) Anda mungkin ada di `src/pages/` atau di luar `src` pada folder lain seperti `content`. Di Astro, semua konten halaman harus berada di dalam `src/` kecuali Anda menggunakan [content collections](/id/guides/content-collections/).
+
+#### Halaman React
+
+Halaman JSX (`.js`) Gatsby yang ada harus [dikoversi dari berkas JSX menjadi halaman `.astro`](#tips-convert-jsx-files-to-astro-files). Anda tidak dapat menggunakan berkas halaman JSX yang ada di Astro.
+
+[Halaman `.astro`](/id/basics/astro-pages/) ini harus berada di dalam `src/pages/` dan akan mendapatkan rute halaman secara otomatis berdasarkan path berkasnya.
+
+#### Halaman Markdown dan MDX
+
+Astro memiliki dukungan bawaan untuk Markdown dan integrasi opsional untuk berkas MDX. [Berkas Markdown dan MDX](/id/guides/markdown-content/) Anda yang sudah ada dapat digunakan kembali tetapi mungkin perlu beberapa penyesuaian pada frontmatter, seperti menambahkan [properti frontmatter khusus Astro `layout`](/id/basics/layouts/#markdown-layouts). Berkas-berkas tersebut juga dapat ditempatkan di dalam `src/pages/` untuk memanfaatkan routing berbasis file otomatis.
+
+Sebagai alternatif, Anda dapat menggunakan [content collections](/id/guides/content-collections/) di Astro untuk menyimpan dan mengelola konten Anda. Anda akan mengambil konten sendiri dan [menghasilkan halaman tersebut secara dinamis](/id/guides/content-collections/#generating-routes-from-content).
+
+### Migrasi Pengujian
+
+Karena Astro menghasilkan HTML mentah, memungkinkan untuk menulis pengujian end-to-end menggunakan output dari langkah build. Pengujian end-to-end yang ditulis sebelumnya mungkin berfungsi langsung jika Anda mampu mencocokkan markup situs Gatsby lama. Pustaka pengujian seperti Jest dan React Testing Library dapat diimpor dan digunakan di Astro untuk menguji komponen React Anda.
+
+Lihat [panduan pengujian](/id/guides/testing/) Astro untuk selengkapnya.
+
+### Gunakan ulang berkas konfigurasi
+
+Gatsby memiliki beberapa berkas konfigurasi tingkat atas yang juga menyertakan metadata situs dan halaman serta digunakan untuk routing. Anda tidak akan menggunakan berkas `gatsby-*.js` ini di proyek Astro Anda, tetapi mungkin ada beberapa konten yang dapat digunakan kembali saat membangun proyek Astro Anda:
+
+- `gatsby-config.js`: Pindahkan `siteMetadata: {}` Anda ke `src/data/siteMetadata.js` (atau `siteMetadata.json`) untuk mengimpor data tentang situs Anda (judul, deskripsi, akun sosial, dll.) ke dalam layout halaman.
+
+- `gatsby-browser.js`: Pertimbangkan untuk menambahkan apa pun yang digunakan di sini langsung ke tag `<head>` pada [layout utama](#migrating-layout-files) Anda.
+
+- `gatsby-node.js`: Anda tidak perlu membuat node sendiri di Astro, tetapi melihat skema pada berkas ini dapat membantu Anda mendefinisikan tipe di proyek Astro Anda.
+
+- `gatsby-ssr.js`: Jika Anda memilih untuk menggunakan SSR di Astro, Anda akan [menambahkan dan mengonfigurasi adapter SSR](/id/guides/on-demand-rendering/) pilihan Anda langsung di `astro.config.mjs`.
+
+## Referensi: Konversi ke Sintaks Astro
+
+Berikut beberapa contoh sintaks khusus Gatsby yang perlu Anda konversi ke Astro. Lihat juga lebih banyak [perbedaan antara Astro dan JSX](/id/reference/astro-syntax/#differences-between-astro-and-jsx) dalam panduan menulis komponen Astro.
+
+### Gatsby Links ke Astro
+
+Ubah komponen Gatsby `<Link to="">`, `<NavLink>`, dll. menjadi tag HTML `<a href="">`. 
+
+```astro del={1} ins={2}
+<Link to="/blog">Blog</Link>
+<a href="/blog">Blog</a>
+```
+
+Astro tidak menggunakan komponen khusus untuk tautan, meskipun Anda dipersilakan membuat komponen `<Link>` sendiri. Anda kemudian dapat mengimpor dan menggunakan `<Link>` ini sebagaimana komponen lainnya.
+
+```astro title="src/components/Link.astro"
+---
+const { to } = Astro.props
+---
+<a href={to}><slot /></a>
+```
+
+### Impor Gatsby ke Astro
+
+Jika perlu, perbarui [impor berkas](/id/guides/imports/) agar merujuk ke jalur berkas relatif secara tepat. Ini dapat dilakukan menggunakan [alias impor](/id/guides/typescript/#import-aliases), atau dengan menuliskan jalur relatif secara penuh. 
+
+Perhatikan bahwa `.astro` dan beberapa jenis berkas lainnya harus diimpor dengan ekstensi berkas lengkapnya.
+
+```astro title="src/pages/authors/Fred.astro" ".astro"
+---
+import Card from `../../components/Card.astro`;
+---
+<Card />
+```
+
+### Properti Children Gatsby ke Astro
+
+Ubah setiap instance `{children}` menjadi `<slot />` Astro. Astro tidak perlu menerima `{children}` sebagai properti fungsi dan akan secara otomatis merender konten anak di `<slot />`.
+
+```astro title="src/components/MyComponent" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+Komponen React yang meneruskan beberapa set children dapat dimigrasikan ke komponen Astro menggunakan [slot bernama](/id/basics/astro-components/#named-slots). 
+
+Lihat lebih lanjut tentang [penggunaan `<slot />` spesifik di Astro](/id/basics/astro-components/#slots).
+
+### Penataan Gaya Gatsby ke Astro
+
+Anda mungkin perlu mengganti [pustaka CSS-in-JS](https://github.com/withastro/astro/issues/4432) (mis. styled-components) dengan opsi CSS lain yang tersedia di Astro.
+
+Jika perlu, konversi objek gaya inline (`style={{ fontWeight: "bold" }}`) menjadi atribut gaya inline HTML (`style="font-weight:bold;"`). Atau, gunakan [tag `<style>` Astro](/id/guides/styling/#styling-in-astro) untuk gaya CSS berskala komponen.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind didukung setelah memasang [plugin Vite Tailwind](/id/guides/styling/#tailwind). Tidak diperlukan perubahan pada kode Tailwind Anda yang sudah ada!
+
+Penataan gaya global di Gatsby dicapai melalui impor CSS di `gatsby-browser.js`. Di Astro, Anda akan mengimpor berkas `.css` langsung ke komponen layout utama untuk menerapkan gaya global.
+
+Lihat lebih lanjut tentang [Styling di Astro](/id/guides/styling/).
+
+### Plugin Gambar Gatsby ke Astro
+
+Ubah komponen `<StaticImage />` dan `<GatsbyImage />` milik Gatsby menjadi [komponen integrasi gambar milik Astro](/id/guides/images/), atau menjadi tag [HTML `<img>` standar / JSX `<img />`](/id/guides/images/#images-in-ui-framework-components) sesuai kebutuhan di komponen React Anda.
+
+```astro title="src/pages/index.astro"
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+---
+<Image src={rocket} alt="A rocketship in space." />
+<img src={rocket.src} alt="A rocketship in space.">
+```
+
+Komponen `<Image />` milik Astro bekerja di berkas `.astro` dan `.mdx` saja. Lihat [daftar lengkap atribut komponennya](/id/reference/modules/astro-assets/#image-properties) dan perhatikan bahwa beberapa atribut akan berbeda dari atribut Gatsby.
+
+Untuk terus menggunakan [gambar di berkas Markdown (`.md`)](/id/guides/images/#images-in-markdown-files) dengan sintaks Markdown standar (`![]()`), Anda mungkin perlu memperbarui tautannya. Penggunaan tag HTML `<img>` secara langsung tidak didukung di berkas `.md` untuk gambar lokal, dan harus dikonversi ke sintaks Markdown.
+
+```md
+<!-- src/pages/post-1.md -->
+
+# My Markdown Page
+
+<!-- Gambar lokal tersimpan di src/assets/stars.png -->
+![A starry night sky.](../assets/stars.png)
+
+```
+
+Di komponen React (`.jsx`), gunakan sintaks gambar JSX standar (`<img />`). Astro tidak akan mengoptimalkan gambar-gambar ini, tetapi Anda dapat memasang paket NPM untuk fleksibilitas lebih lanjut.
+
+Pelajari lebih lanjut tentang [menggunakan gambar di Astro](/id/guides/images/) di Images Guide.
+
+### Gatsby GraphQL ke Astro
+
+Hapus semua referensi query GraphQL, dan sebagai gantinya gunakan [`import.meta.glob()`](/id/guides/imports/#importmetaglob) untuk mengakses data dari berkas lokal Anda. 
+
+Atau, jika menggunakan content collections, query berkas Markdown dan MDX Anda menggunakan [`getEntry()` dan `getCollection()`](/id/guides/content-collections/#generating-routes-from-content). 
+
+Permintaan data ini dibuat di frontmatter komponen Astro menggunakan data tersebut.
+
+```astro title="src/pages/index.astro" del={2,12-28}
+---
+import { graphql } from "gatsby"
+import { getCollection } from 'astro:content';
+
+// Ambil semua entri `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Ambil semua entri `src/pages/posts/`
+const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
+---
+
+export const pageQuery = graphql`
+  {
+    allMarkdownRemark(sort: { frontmatter: { date: DESC } }) {
+      nodes {
+        excerpt
+        fields {
+          slug
+        }
+        frontmatter {
+          date(formatString: "MMMM DD, YYYY")
+          title
+          description
+        }
+      }
+    }
+  }
+`
+```
+
+## Contoh terpandu: layout Gatsby ke Astro
+
+Contoh ini mengonversi layout proyek utama (`layout.js`) dari Gatsby blog starter menjadi `src/layouts/Layout.astro`.
+
+Layout halaman ini menampilkan satu header saat mengunjungi halaman beranda, dan header berbeda dengan tautan kembali ke Home untuk semua halaman lainnya.
+
+<Steps>
+1. Identifikasi JSX di dalam `return()`.
+
+    ```jsx {21-29} title="layout.js"
+    import * as React from "react"
+    import { Link } from "gatsby"
+    const Layout = ({ location, title, children }) => {
+      const rootPath = `${__PATH_PREFIX__}/`
+      const isRootPath = location.pathname === rootPath
+      let header
+      if (isRootPath) {
+        header = (
+          <h1 className="main-heading">
+            <Link to="/">{title}</Link>
+          </h1>
+        )
+      } else {
+        header = (
+          <Link className="header-link-home" to="/">
+            Home
+          </Link>
+        )
+      }
+      return (
+        <div className="global-wrapper" data-is-root-path={isRootPath}>
+          <header className="global-header">{header}</header>
+          <main>{children}</main>
+          <footer>
+            © {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.gatsbyjs.com">Gatsby</a>
+          </footer>
+        </div>
+      )
+    }
+    export default Layout
+    ```
+
+2. Buat `Layout.astro` dan tambahkan nilai `return` ini, [yang dikonversi ke sintaks Astro](#reference-convert-to-astro-syntax). 
+
+    Perhatikan bahwa:
+
+    - `{new Date().getFullYear()}` tetap berfungsi 🎉
+    - `{children}` menjadi `<slot />` 🦥
+    - `className` menjadi `class` 📛
+    - `Gatsby` menjadi `Astro` 🚀
+
+    ```astro title="src/layouts/Layout.astro" "<slot />" "class" "Astro" "astro.build"
+    ---
+    ---
+    <div class="global-wrapper" data-is-root-path={isRootPath}>
+      <header class="global-header">{header}</header>
+      <main><slot /></main>
+      <footer>
+        © {new Date().getFullYear()}, Built with
+        {` `}
+        <a href="https://www.astro.build">Astro</a>
+      </footer>
+    </div>
+    ```
+
+3. Tambahkan kerangka halaman agar layout Anda menyediakan setiap halaman dengan bagian-bagian yang diperlukan dari dokumen HTML:
+
+    ```astro title="src/layouts/Layout.astro" ins={3-10,22-23}
+    ---
+    ---
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <div class="global-wrapper" data-is-root-path={isRootPath}>
+          <header class="global-header">{header}</header>
+          <main>
+            <slot />
+          </main>
+          <footer>
+            &#169; {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.astro.build">Astro</a>
+          </footer>
+        </div>
+      </body>
+    </html>
+    ```
+
+4. Tambahkan impor, props, dan JavaScript yang diperlukan
+  
+    Untuk merender header secara kondisional berdasarkan rute halaman dan judul di Astro:
+
+    - Sediakan props melalui `Astro.props`. (Ingat: templating Astro mengakses props dari frontmatter, bukan diteruskan ke fungsi.) 
+    - Gunakan operator ternary untuk menampilkan satu heading jika ini adalah halaman beranda, dan heading berbeda jika bukan. 
+    - Hapus variabel `{header}` dan `{isRootPath}` karena tidak lagi diperlukan.
+    - Ganti tag `<Link/>` milik Gatsby dengan tag jangkar `<a>`.
+    - Gunakan `class` alih-alih `className`. 
+    - Impor stylesheet lokal dari proyek Anda agar class name berlaku.
+
+    ```astro title="src/layouts/Layout.astro" ins={2-3, 15, 16, 20, 24} "class" "<a" "</a>"
+    ---
+    import '../styles/style.css';
+    const { title, pathname } = Astro.props
+    ---
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <div class="global-wrapper">
+          <header class="global-header">
+            { pathname === "/" 
+            ? 
+              <h1 class="main-heading">
+              <a href="/">{title}</a>
+              </h1>
+            : 
+              <h1 class="main-heading">
+              <a class="header-link-home" href="/">Home</a>
+              </h1>
+            }  
+          </header>
+          <main>
+            <slot />
+          </main>
+          <footer>
+            &#169; {new Date().getFullYear()}, Built with
+            {` `}
+            <a href="https://www.astro.build">Astro</a>
+          </footer>
+        </div>
+      </body>
+    </html>
+    ```
+
+5. Perbarui `index.astro` untuk memakai layout baru ini dan teruskan props `title` dan `pathname` yang diperlukan:
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    const pagePathname = Astro.url.pathname
+    ---
+    <Layout title="Home Page" pathname={pagePathname}>
+        <p>Astro</p>
+    </Layout>
+    ```
+    :::tip
+    Anda dapat [mendapatkan path halaman saat ini menggunakan `Astro.url`](/id/reference/api-reference/#url).
+    :::
+
+6. Untuk menguji header kondisional, buat halaman kedua, `about.astro`, dengan pola yang sama:
+
+    ```astro title="src/pages/about.astro"
+    ---
+    import Layout from '../layouts/Layout.astro';
+    const pagePathname = Astro.url.pathname
+    ---
+    <Layout title="About" pathname={pagePathname}>
+        <p>About</p>
+    </Layout>
+    ```
+
+    Anda hanya akan melihat tautan "Home" saat mengunjungi halaman About.
+</Steps>
+
+## Sumber Daya Komunitas
+
+<CardGrid>
+<LinkCard title="Migrating from Gatsby to Astro" href="https://loige.co/migrating-from-gatsby-to-astro/" 
+description="Bagaimana dan mengapa saya memigrasikan blog ini dari Gatsby ke Astro, dan apa yang saya pelajari sepanjang prosesnya." />
+
+<LinkCard title="Migrating to Astro was EZ" href="https://joelhooks.com/migrating-to-astro-was-ez" 
+description="Tentang proses migrasi dari Gatsby ke Astro, dan mengapa saya memilih Astro." />
+
+<LinkCard title="My Switch from Gatsby to Astro" href="https://www.joshfinnie.com/blog/my-switch-from-gatsby-to-astro/" 
+description="Beralih ke Astro jelas layak ditulis! Ini merevolusi pengembangan web statis ke arah yang lebih baik."/>
+
+<LinkCard title="Why I moved to Astro from Gatsby" href="https://dev.to/askrodney/why-i-moved-to-astro-from-gatsby-3fck" 
+description="Sekilas tentang apa yang membuat saya ingin beralih dan mengapa Astro cocok." />
+
+<LinkCard title="Another Migration: From Gatsby to Astro" href="https://logarithmicspirals.com/blog/migrating-from-gatsby-to-astro/" 
+description="Pelajari bagaimana saya memindahkan situs pribadi dari Gatsby ke Astro berikut wawasan dan pengalaman selama proses migrasi."/>
+
+<LinkCard title="From Gatsby gridlock to Astro bliss: my personal site redesign" href="https://jwn.gr/posts/migrating-from-gatsby-to-astro/" 
+description="Gatsby mulai terasa menua dan saya mencari alternatif modern. Hadir Astro — kerangka yang memberi nafas baru untuk situs ini."/>
+
+<LinkCard title="Why and how I moved my blog away from Gatsby and React to Astro Js and Preact" href="https://www.helmerdavila.com/blog/id/why-and-how-i-moved-my-blog-away-from-gatsby-and-react-to-astro-js-and-preact" 
+description="Semua tentang kesederhanaan dan kekuatan pada saat yang sama." />
+
+<LinkCard title="How I rewrote my HUGE Gatsby site in Astro and learned to love it in the process" href="https://dunedinsound.com/blog/how_i_rewrote_my_huge_gatsby_site_in_astro_and_learned_to_love_it_in_the_process/" 
+description="Semuanya lebih cepat. Lebih menyenangkan. Lebih produktif."/>
+
+<LinkCard title="How I switched from Gatsby to Astro (While Keeping Drupal in the Mix)" href="https://albert.skibinski.nl/id/blog/how-i-switched-gatsby-astro-while-keeping-drupal-mix/" 
+description="Saya menemukan Astro yang relatif baru, dan semua kotak persyaratan saya tercentang."/>
+
+<LinkCard title="Migrating my website from Gatsby to Astro" href="https://dev.to/flashblaze/migrating-my-website-from-gatsby-to-astro-2ej5" 
+description="Astro telah masuk ke percakapan." />
+
+<LinkCard title="Gatsby to Astro" href="https://alvin.codes/writing/gatsby-to-astro" 
+description="Mengapa dan bagaimana saya memigrasikan situs ini dari Gatsby ke Astro."/>
+
+</CardGrid>
+
+:::note[Punya sumber untuk dibagikan?]
+Jika Anda menemukan (atau membuat!) video atau artikel blog yang bermanfaat tentang mengonversi situs Gatsby ke Astro, [tambahkan ke daftar ini](https://github.com/withastro/docs/edit/main/src/content/docs/id/guides/migrate-to-astro/from-gatsby.mdx)!
+:::

@@ -6,6 +6,7 @@ import type { StarlightUserConfig } from '@astrojs/starlight/types';
  */
 export const localesConfig = {
 	en: { label: 'English', lang: 'en', dir: 'ltr' },
+	id: { label: 'Indonesian', lang: 'id', dir: 'ltr' },
 	de: { label: 'Deutsch', lang: 'de', dir: 'ltr' },
 	'pt-br': { label: 'Português do Brasil', lang: 'pt-BR', dir: 'ltr' },
 	es: { label: 'Español', lang: 'es', dir: 'ltr' },

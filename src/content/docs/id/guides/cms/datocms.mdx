@@ -1,0 +1,215 @@
+---
+title: DatoCMS & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan DatoCMS
+sidebar:
+  label: DatoCMS
+type: cms
+stub: false
+service: DatoCMS
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+[DatoCMS](https://datocms.com/) adalah CMS headless berbasis web untuk mengelola konten digital bagi situs dan aplikasi Anda.
+
+## Integrasi dengan Astro
+
+Dalam panduan ini, Anda akan mengambil data konten dari DatoCMS di proyek Astro Anda, kemudian menampilkannya pada sebuah halaman.
+
+## Prasyarat
+
+Untuk memulai, Anda memerlukan hal-hal berikut:
+
+- **Proyek Astro** — Jika Anda belum memiliki proyek Astro, Anda dapat mengikuti instruksi di [Panduan instalasi](/id/install-and-setup/).
+- **Akun dan proyek DatoCMS** — Jika Anda belum memiliki akun, Anda dapat [mendaftar gratis](https://dashboard.datocms.com/signup).
+- **Read-only API Key untuk proyek DatoCMS Anda** — Anda dapat menemukannya di admin dashboard proyek Anda, di "Settings" > "API Tokens".
+
+## Menyiapkan kredensial
+
+Buat file baru (jika belum ada) bernama `.env` di root proyek Astro Anda. Tambahkan variabel lingkungan baru seperti berikut, menggunakan API key dari admin dashboard DatoCMS Anda: 
+
+```ini title=".env"
+DATOCMS_API_KEY=YOUR_API_KEY
+```
+
+Untuk dukungan TypeScript, deklarasikan typing variabel lingkungan ini di file `env.d.ts` dalam folder `src/`. Jika file ini belum ada, Anda dapat membuatnya dan menambahkan berikut ini:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DATOCMS_API_KEY: string;
+}
+```
+
+Direktori root Anda sekarang seharusnya berisi file-file ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+<ReadMore>Pelajari lebih lanjut tentang [variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.</ReadMore>
+
+## Membuat Model di DatoCMS
+
+Di admin dashboard DatoCMS untuk proyek Anda, buka "Settings" > "Models" dan buat Model baru bernama "Home" dengan toggle "Single Instance" diaktifkan. Ini akan membuat halaman beranda untuk proyek Anda. Pada model ini, tambahkan field teks baru untuk judul halaman.
+
+Buka tab "Content" di proyek Anda dan klik halaman beranda yang baru dibuat. Sekarang Anda dapat menambahkan judul. Simpan halaman, lalu lanjutkan.
+
+## Mengambil data
+
+Di proyek Astro Anda, buka halaman yang akan mengambil dan menampilkan konten CMS Anda. Tambahkan kueri berikut untuk mengambil konten `home` menggunakan DatoCMS GraphQL API.
+
+Contoh ini menampilkan judul halaman dari DatoCMS pada `src/pages/index.astro`:
+
+```astro title="src/pages/index.astro"
+---
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+```
+
+Kueri GraphQL ini akan mengambil field `title` pada halaman `home` dari Proyek DatoCMS Anda. Saat Anda menyegarkan browser, Anda akan melihat judul pada halaman Anda.
+
+## Menambahkan blok konten modular dinamis
+
+Jika proyek DatosCMS Anda menyertakan [modular content](https://www.datocms.com/docs/content-modelling/modular-content), maka Anda perlu membuat komponen `.astro` yang sesuai untuk setiap blok konten (mis. bagian teks, video, kutipan, dll.) yang diizinkan oleh field modular di proyek Anda.
+
+Contoh di bawah ini adalah komponen Astro `<Text />` untuk menampilkan blok "Multiple-paragraph text" dari DatoCMS. 
+
+```astro title="src/components/Text.astro"
+---
+export interface TextProps {
+	text: string
+}
+
+export interface Props {
+	item: TextProps
+}
+
+const { item } = Astro.props;
+---
+
+<div set:html={item.text} />
+
+```
+Untuk mengambil blok-blok ini, sunting kueri GraphQL Anda agar menyertakan blok konten modular yang Anda buat di DatoCMS. 
+
+Pada contoh ini, blok konten modular dinamai **content** di DatoCMS. Kueri ini juga menyertakan `_modelApiKey` unik dari setiap item untuk memeriksa blok mana yang harus ditampilkan di field modular, berdasarkan blok yang dipilih oleh penulis konten pada editor DatoCMS. Gunakan switch statement di template Astro untuk memungkinkan rendering dinamis berdasarkan data yang diterima dari kueri.
+
+Contoh berikut merepresentasikan blok konten modular DatoCMS yang memungkinkan penulis memilih antara field teks (`<Text />`) dan gambar (`<Image />`) yang dirender pada halaman beranda:
+
+```astro title="src/pages/index.astro" ins={2,3, 16-27, 39-50}
+---
+import Image from '../components/Image.astro';
+import Text from '../components/Text.astro';
+
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+            content {
+              ... on ImageRecord {
+                _modelApiKey
+               image{
+                url
+               }
+              }
+              ... on TextRecord {
+                _modelApiKey
+                text(markdown: true)
+              }
+            }
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+{
+  data.content.map((item: any) => {
+    switch (item._modelApiKey) {
+      case 'image':
+        return <Image item={item} />;
+      case 'text':
+        return <Text item={item} />;
+      default:
+        return null;
+    }
+  })
+}
+```
+
+## Menerbitkan situs Anda
+
+Untuk deploy situs web Anda, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+## Publish saat konten DatoCMS berubah
+
+Jika proyek Anda menggunakan mode statis default Astro, Anda perlu menyiapkan webhook untuk memicu build baru ketika konten Anda berubah. Jika Anda menggunakan Netlify atau Vercel sebagai penyedia hosting, Anda dapat menggunakan fitur webhook-nya untuk memicu build baru ketika Anda mengubah konten di DatoCMS.
+
+### Netlify
+
+Menyiapkan webhook di Netlify:
+
+<Steps>
+1. Buka dashboard situs Anda dan klik **Build & deploy**.
+
+2. Di bawah tab **Continuous Deployment**, temukan bagian **Build hooks** dan klik **Add build hook**.
+
+3. Beri nama webhook Anda dan pilih branch yang ingin memicu build. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+### Vercel
+
+Menyiapkan webhook di Vercel:
+
+<Steps>
+1. Buka dashboard proyek Anda dan klik **Settings**.
+
+2. Di bawah tab **Git**, temukan bagian **Deploy Hooks**.
+
+3. Beri nama webhook dan branch yang ingin memicu build. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+### Menambahkan webhook ke DatoCMS
+
+Di admin dashboard proyek DatoCMS Anda, buka tab **Settings** dan klik **Webhooks**. Klik ikon plus untuk membuat webhook baru dan beri nama. Pada field URL, tempel URL yang dihasilkan oleh layanan hosting pilihan Anda. Sebagai Trigger, pilih opsi yang sesuai kebutuhan Anda. (Contoh: build setiap kali record baru dipublikasikan.)
+
+## Proyek starter
+Anda juga dapat melihat [template blog Astro](https://www.datocms.com/marketplace/starters/astro-template-blog) di marketplace DatoCMS untuk mempelajari cara membuat blog dengan Astro dan DatoCMS.

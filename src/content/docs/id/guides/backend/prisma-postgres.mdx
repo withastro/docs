@@ -1,0 +1,184 @@
+---
+title: Prisma Postgres & Astro
+description: Tambahkan database Postgres serverless ke proyek Astro Anda dengan Prisma Postgres
+sidebar:
+  label: Prisma Postgres
+  hidden: false
+type: backend
+service: Prisma Postgres
+stub: false
+i18nReady: true
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Prisma Postgres](https://www.prisma.io/) adalah database Postgres serverless yang sepenuhnya dikelola, dibuat untuk aplikasi web modern.
+
+## Terhubung melalui Prisma ORM (Direkomendasikan)
+
+[Prisma ORM](https://www.prisma.io/orm) adalah cara yang direkomendasikan untuk terhubung ke database Prisma Postgres Anda. Prisma menyediakan kueri yang aman terhadap tipe, migrasi, dan performa global.
+
+### Prasyarat
+- Proyek Astro dengan adapter terinstal untuk mengaktifkan [on-demand rendering (SSR)](/id/guides/on-demand-rendering/).
+
+### Instal dependensi dan inisialisasi Prisma
+
+Jalankan perintah berikut untuk menginstal dependensi Prisma yang diperlukan:
+
+```bash
+npm install prisma tsx --save-dev
+npm install @prisma/extension-accelerate @prisma/client
+```
+
+Setelah terpasang, inisialisasi Prisma di proyek Anda dengan perintah berikut:
+
+```bash
+npx prisma init --db --output ../src/generated/prisma
+```
+
+Anda akan menjawab beberapa pertanyaan saat menyiapkan database Prisma Postgres Anda. Pilih region yang paling dekat dengan lokasi Anda dan nama yang mudah diingat untuk database, misalnya "My Astro Project".
+
+Ini akan membuat:
+- Direktori `prisma/` dengan berkas `schema.prisma`
+- Berkas `.env` dengan `DATABASE_URL` yang sudah diisi
+
+### Mendefinisikan Model
+
+Meski Anda belum membutuhkan model data spesifik, Prisma tetap memerlukan setidaknya satu model dalam skema agar dapat menghasilkan klien dan menerapkan migrasi.
+
+Contoh berikut mendefinisikan model `Post` sebagai placeholder. Tambahkan model ini ke skema Anda untuk mulai. Anda dapat menghapus atau menggantinya nanti dengan model yang merefleksikan data Anda sesungguhnya.
+
+Perbarui `generator provider` dari `prisma-client-js` menjadi `prisma-client` di berkas `prisma/schema.prisma` Anda:
+
+```prisma title="prisma/schema.prisma" {2} ins={11-16}
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Post {
+  id        Int     @id @default(autoincrement())
+  title     String
+  content   String?
+  published Boolean @default(false)
+}
+```
+
+Pelajari lebih lanjut tentang konfigurasi Prisma ORM di [Prisma schema reference](https://www.prisma.io/docs/concepts/components/prisma-schema).
+
+### Hasilkan berkas migrasi
+
+Jalankan perintah berikut untuk membuat tabel database dan menghasilkan Prisma Client dari skema Anda. Ini juga akan membuat direktori `prisma/migrations/` berisi riwayat migrasi.
+
+```bash
+npx prisma migrate dev --name init
+```
+
+### Buat Prisma Client
+
+Di dalam `/src/lib`, buat berkas `prisma.ts`. Berkas ini akan menginisialisasi dan mengekspor instance Prisma Client sehingga Anda dapat melakukan kueri ke database di seluruh proyek Astro Anda.
+
+```typescript title="src/lib/prisma.ts"
+import { PrismaClient } from "../generated/prisma/client";
+import { withAccelerate } from "@prisma/extension-accelerate";
+
+const prisma = new PrismaClient({
+  datasourceUrl: import.meta.env.DATABASE_URL,
+}).$extends(withAccelerate());
+
+export default prisma;
+```
+
+### Melakukan kueri dan menampilkan data
+
+Contoh berikut menunjukkan pengambilan hanya posting yang sudah dipublikasikan dengan Prisma Client diurutkan berdasarkan `id`, lalu menampilkan judul dan konten posting di template Astro Anda:
+
+```astro title="src/pages/posts.astro" {2, 4-7}
+---
+import prisma from '../lib/prisma';
+
+const posts = await prisma.post.findMany({
+  where: { published: true },
+  orderBy: { id: 'desc' }
+});
+---
+
+<html>
+  <head>
+    <title>Published Posts</title>
+  </head>
+  <body>
+    <h1>Published Posts</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <h2>{post.title}</h2>
+          {post.content && <p>{post.content}</p>}
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+Sebaiknya tangani kueri di rute API. Untuk informasi lebih lanjut tentang penggunaan Prisma ORM di proyek Astro Anda, lihat [Panduan Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro).
+
+## Koneksi TCP langsung
+Untuk terhubung ke Prisma Postgres melalui TCP langsung, Anda dapat membuat connection string langsung di Prisma Console. Ini memungkinkan Anda menghubungkan ORM, pustaka database, atau alat lain pilihan Anda.
+
+### Prasyarat
+- Database [Prisma Postgres](https://pris.ly/ppg) dengan connection string TCP yang diaktifkan
+
+### Instal dependensi
+
+Contoh ini akan membuat koneksi TCP langsung menggunakan [`pg`, klien PostgreSQL untuk Node.js](https://github.com/brianc/node-postgres).
+
+Jalankan perintah berikut untuk memasang paket `pg`:
+
+```bash
+npm install pg
+```
+
+### Kueri klien database Anda
+
+Berikan connection string Anda kepada klien `pg` untuk berkomunikasi dengan server SQL dan mengambil data dari database Anda.
+
+Contoh berikut untuk membuat tabel dan memasukkan data dapat digunakan untuk memvalidasi URL kueri dan koneksi TCP Anda:
+
+```astro title="src/pages/index.astro" {2-19}
+---
+import { Client } from 'pg';
+const client = new Client({ 
+  connectionString: import.meta.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false }
+});
+await client.connect();
+
+await client.query(`
+  CREATE TABLE IF NOT EXISTS posts (
+    id SERIAL PRIMARY KEY,
+    title TEXT UNIQUE,
+    content TEXT
+  );
+  
+  INSERT INTO posts (title, content)
+  VALUES ('Hello', 'World')
+  ON CONFLICT (title) DO NOTHING;
+`);
+
+const { rows } = await client.query('SELECT * FROM posts');
+await client.end();
+---
+
+<h1>Posts</h1>
+<p>{rows[0].title}: {rows[0].content}</p>
+```
+
+## Sumber Resmi
+
+- [Panduan Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro)

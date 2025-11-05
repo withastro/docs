@@ -1,0 +1,710 @@
+---
+title: API Adapter Astro
+sidebar:
+  label: API Adapter
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import { FileTree } from '@astrojs/starlight/components';
+
+
+Astro dirancang agar mudah dideploy ke penyedia cloud mana pun untuk *on-demand rendering*, juga dikenal sebagai server-side rendering (SSR). Kemampuan ini disediakan oleh __adapter__, yang merupakan [integration](/id/reference/integrations-reference/). Lihat [panduan on-demand rendering](/id/guides/on-demand-rendering/) untuk mempelajari cara menggunakan adapter yang sudah ada.
+
+## Apa itu adapter?
+
+Adapter adalah jenis khusus dari [integration](/id/reference/integrations-reference/) yang menyediakan *entrypoint* untuk *server rendering* saat permintaan datang. Sebuah adapter melakukan dua hal:
+
+- Mengimplementasikan API spesifik host untuk menangani request.
+- Mengonfigurasi proses build sesuai konvensi host.
+
+## Membangun Adapter
+
+Sebuah adapter adalah [integration](/id/reference/integrations-reference/) dan dapat melakukan apa pun yang bisa dilakukan oleh integration.
+
+Sebuah adapter __harus__ memanggil API `setAdapter` di *hook* `astro:config:done` seperti berikut:
+
+```js title="my-adapter.mjs"
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+Objek yang diberikan ke `setAdapter` didefinisikan sebagai:
+
+```ts
+interface AstroAdapter {
+	name: string;
+	serverEntrypoint?: string;
+	previewEntrypoint?: string;
+	exports?: string[];
+	args?: any;
+	adapterFeatures?: AstroAdapterFeatures;
+	supportedAstroFeatures: AstroAdapterFeatureMap;
+	client?: {
+		/**
+		 * Headers to inject into Astro's internal fetch calls (Actions, View Transitions, Server Islands, Prefetch).
+		 * Can be an object of headers or a function that returns headers.
+		 */
+		internalFetchHeaders?: Record<string, string> | (() => Record<string, string>);
+		/**
+		 * Query parameters to append to all asset URLs (images, stylesheets, scripts, etc.).
+		 * Useful for adapters that need to track deployment versions or other metadata.
+		 */
+		assetQueryParams?: URLSearchParams;
+	};
+}
+
+export interface AstroAdapterFeatures {
+	/**
+	 * Creates an edge function that will communicate with the Astro middleware.
+	 */
+	edgeMiddleware: boolean;
+	/**
+	 * Determine the type of build output the adapter is intended for. Defaults to `server`;
+	 */
+	buildOutput?: 'static' | 'server';
+}
+
+export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated' | 'limited';
+
+export type AdapterSupportWithMessage = {
+	support: Exclude<AdapterSupportsKind, 'stable'>;
+	message: string;
+	suppress?: 'default' | 'all';
+};
+
+export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
+
+export type AstroAdapterFeatureMap = {
+  /**
+   * The adapter is able to serve static pages
+   */
+  staticOutput?: AdapterSupport;
+  /**
+   * The adapter is able to serve pages that are static or rendered via server
+   */
+  hybridOutput?: AdapterSupport;
+  /**
+   * The adapter is able to serve pages rendered on demand
+   */
+  serverOutput?: AdapterSupport;
+  /**
+	 * The adapter is able to support i18n domains
+	 */
+	i18nDomains?: AdapterSupport;
+	/**
+	 * The adapter is able to support `getSecret` exported from `astro:env/server`
+	 */
+	envGetSecret?: AdapterSupport;
+  /**
+   * The adapter supports the Sharp image service
+   */
+  sharpImageService?: AdapterSupport;
+};
+```
+
+Properti-properti tersebut adalah:
+
+* __name__: Nama unik untuk adapter Anda, digunakan untuk logging.
+* __serverEntrypoint__: *Entrypoint* untuk *on-demand server rendering*.
+* __exports__: Array berisi *named exports* ketika digunakan bersama `createExports` (dijelaskan di bawah).
+* __adapterFeatures__: Objek yang mengaktifkan fitur spesifik yang harus didukung oleh adapter. 
+  Fitur-fitur ini akan mengubah output build, dan adapter harus mengimplementasikan logika yang tepat untuk menangani output yang berbeda.
+* __supportedAstroFeatures__: Peta fitur bawaan Astro. Ini memungkinkan Astro menentukan fitur mana yang tidak dapat atau tidak ingin didukung oleh adapter sehingga pesan error yang sesuai dapat diberikan.
+
+### Server Entrypoint
+
+API adapter Astro berusaha bekerja dengan jenis host apa pun, dan memberikan cara fleksibel untuk menyesuaikan diri dengan API host.
+
+#### Exports
+
+Beberapa *serverless host* mengharuskan Anda mengekspor sebuah fungsi, seperti `handler`:
+
+```js
+export function handler(event, context) {
+  // ...
+}
+```
+
+Dengan API adapter, Anda dapat melakukannya dengan mengimplementasikan `createExports` di `serverEntrypoint` Anda:
+
+```js
+import { App } from 'astro/app';
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+Lalu, di integration Anda, tempat Anda memanggil `setAdapter`, sediakan nama ini di `exports`:
+
+```js title="my-adapter.mjs" ins={9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          exports: ['handler'],
+        });
+      },
+    },
+  };
+}
+```
+
+#### Start
+
+Beberapa host mengharuskan Anda *menjalankan* server sendiri, misalnya dengan *listening* ke sebuah port. Untuk tipe host seperti ini, API adapter memungkinkan Anda mengekspor fungsi `start` yang akan dipanggil ketika *bundle script* dijalankan.
+
+```js
+import { App } from 'astro/app';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    // ...
+  });
+}
+```
+
+#### `astro/app`
+
+Modul ini digunakan untuk merender halaman yang telah dibangun terlebih dahulu melalui `astro build`. Astro menggunakan objek standar [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) dan [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). Host yang memiliki API berbeda untuk request/response harus mengonversinya ke tipe ini di adaptor mereka.
+
+```js
+import { App } from 'astro/app';
+import http from 'http';
+
+export function start(manifest) {
+  const app = new App(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      app.render(event.request)
+    );
+  });
+}
+```
+
+Metode berikut tersedia:
+
+##### `app.render()`
+
+<p>
+
+**Tipe:** `(request: Request, options?: RenderOptions) => Promise<Response>`
+</p>
+
+Metode ini memanggil halaman Astro yang cocok dengan request, merendernya, dan mengembalikan *Promise* ke objek [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). Ini juga berfungsi untuk *API routes* yang tidak merender halaman.
+
+```js
+const response = await app.render(request);
+```
+
+##### `RenderOptions`
+
+<p>
+
+**Tipe:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
+</p>
+
+Metode `app.render()` menerima argumen wajib `request`, dan objek opsional `RenderOptions` untuk [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`prerenderedErrorPageFetch`](#prerenderederrorpagefetch), dan [`routeData`](#routedata).
+
+###### `addCookieHeader`
+
+<p>
+
+**Tipe:** `boolean`<br />
+**Default:** `false`
+</p>
+
+Apakah secara otomatis menambahkan semua cookie yang ditulis oleh `Astro.cookie.set()` ke header respons atau tidak.
+
+Jika disetel ke `true`, cookie akan ditambahkan ke header `Set-Cookie` dari respons sebagai pasangan kunci-nilai yang dipisahkan koma. Anda dapat menggunakan API standar `response.headers.getSetCookie()` untuk membacanya satu per satu.
+Jika disetel ke `false` (default), cookie hanya akan tersedia dari `App.getSetCookieFromResponse(response)`.
+
+```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+###### `clientAddress`
+
+<p>
+
+**Tipe:** `string`<br />
+**Default:** `request[Symbol.for("astro.clientAddress")]`
+</p>
+
+Alamat IP klien yang akan tersedia sebagai [`Astro.clientAddress`](/id/reference/api-reference/#clientaddress) di halaman, dan sebagai `ctx.clientAddress` di *API routes* dan *middleware*.
+
+Contoh di bawah ini membaca header `x-forwarded-for` dan meneruskannya sebagai `clientAddress`. Nilai ini menjadi tersedia bagi pengguna sebagai `Astro.clientAddress`.
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+###### `locals`
+
+<p>
+
+**Tipe:** `object`
+</p>
+
+Objek [`context.locals`](/id/reference/api-reference/#locals) digunakan untuk menyimpan dan mengakses informasi selama siklus hidup sebuah request.
+
+Contoh di bawah ini membaca header bernama `x-private-header`, mencoba menguraikannya sebagai objek dan meneruskannya ke `locals`, yang kemudian dapat diteruskan ke fungsi [middleware](/id/guides/middleware/) mana pun.
+
+```js "locals"
+const privateHeader = request.headers.get("x-private-header");
+let locals = {};
+try {
+    if (privateHeader) {
+        locals = JSON.parse(privateHeader);
+    }
+} finally {
+    const response = await app.render(request, { locals });
+}
+```
+
+###### `prerenderedErrorPageFetch`
+
+<p>
+
+**Tipe:** `(url: ErrorPagePath) => Promise<Response>`<br />
+**Default:** `fetch`<br />
+<Since v="5.6.0" />
+</p>
+
+Fungsi yang memungkinkan Anda menyediakan implementasi kustom untuk *fetching* halaman error yang telah diprerender.
+
+Ini digunakan untuk mengganti perilaku `fetch()` bawaan, misalnya, ketika `fetch()` tidak tersedia atau ketika Anda tidak dapat memanggil server dari dirinya sendiri.
+
+Contoh berikut membaca `500.html` dan `404.html` dari disk alih-alih melakukan panggilan HTTP:
+
+```js "prerenderedErrorPageFetch"
+return app.render(request, {
+  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+      return new Response(content, {
+        status: 404,
+        headers: { "Content-Type": "text/html" },
+      });
+});
+```
+
+Jika tidak disediakan, Astro akan kembali ke perilaku default-nya untuk mengambil halaman error.
+
+###### `routeData`
+
+<p>
+
+**Tipe:** `RouteData`<br />
+**Default:** `app.match(request)`
+</p>
+
+Sediakan nilai untuk [`integrationRouteData`](/id/reference/integrations-reference/#integrationroutedata-type-reference) jika Anda sudah mengetahui *route* yang akan dirender. Melakukan ini akan melewati pemanggilan internal ke [`app.match`](#appmatch) untuk menentukan *route* yang akan dirender.
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+    return app.render(request, { routeData });
+} else {
+    /* adapter-specific 404 response */
+    return new Response(..., { status: 404 });
+}
+```
+
+##### `app.match()`
+
+<p>
+
+**Tipe:** `(request: Request) => RouteData | undefined`
+</p>
+
+Metode ini digunakan untuk menentukan apakah sebuah request cocok dengan aturan routing aplikasi Astro.
+
+```js
+if(app.match(request)) {
+  const response = await app.render(request);
+}
+```
+
+Biasanya Anda bisa memanggil `app.render(request)` tanpa menggunakan `.match` karena Astro menangani 404 jika Anda menyediakan berkas `404.astro`. Gunakan `app.match(request)` jika Anda ingin menangani 404 dengan cara yang berbeda.
+
+## Mengizinkan instalasi lewat `astro add`
+
+[Perintah `astro add`](/id/reference/cli-reference/#astro-add) memungkinkan pengguna menambahkan integration dan adapter ke proyek mereka dengan mudah. Jika Anda ingin adapter Anda dapat dipasang dengan alat ini, **tambahkan `astro-adapter` ke bidang `keywords` di `package.json` Anda**:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+Setelah Anda [menerbitkan adapter ke npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), menjalankan `astro add example` akan memasang paket Anda beserta *peer dependency* apa pun yang ditentukan di `package.json` Anda. Kami juga akan menginstruksikan pengguna untuk memperbarui konfigurasi proyek mereka secara manual.
+
+## Fitur Astro
+
+<p><Since v="3.0.0" /></p>
+
+Fitur Astro adalah cara bagi adapter untuk memberi tahu Astro apakah mereka mampu mendukung sebuah fitur, dan juga tingkat dukungan adapter tersebut. 
+
+Saat menggunakan properti ini, Astro akan:
+- menjalankan validasi tertentu; 
+- menampilkan informasi kontekstual ke log;
+
+Operasi ini dijalankan berdasarkan fitur yang didukung atau tidak didukung, tingkat dukungannya, [tingkat logging yang diinginkan](#suppress), dan konfigurasi pengguna sendiri.
+
+Konfigurasi berikut memberi tahu Astro bahwa adapter ini memiliki dukungan eksperimental untuk layanan gambar bawaan berbasis Sharp:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: 'experimental'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Jika layanan gambar Sharp digunakan, Astro akan menampilkan peringatan dan error di terminal berdasarkan dukungan adapter Anda:
+
+```
+[@example/my-adapter] The feature is experimental and subject to issues or changes.
+
+[@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
+```
+
+Sebuah pesan tambahan dapat disediakan untuk memberi konteks lebih kepada pengguna:
+
+```js title="my-adapter.mjs" ins={9-14}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+### `suppress`
+
+<p>
+
+  **Tipe:** `'default' | 'all'`<br />
+  <Since v="5.9.0" />
+</p>
+
+Opsi untuk mencegah penayangan beberapa atau semua pesan log tentang dukungan adapter terhadap suatu fitur.
+
+Jika pesan log default Astro terasa berulang, atau membingungkan bagi pengguna ketika digabung dengan `message` kustom Anda, Anda dapat menggunakan `suppress: "default"` untuk menyembunyikan pesan default dan hanya menampilkan pesan Anda:
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'The adapter has limited support for Sharp. It will be used for images during build time, but will not work at runtime.',
+              suppress: 'default' // custom message is more detailed than the default
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Anda juga dapat menggunakan `suppress: "all"` untuk menyembunyikan semua pesan tentang dukungan terhadap fitur tersebut. Ini berguna ketika pesan-pesan itu tidak membantu pengguna dalam konteks tertentu, seperti ketika mereka memiliki pengaturan konfigurasi yang berarti mereka tidak menggunakan fitur itu. Misalnya, Anda dapat memilih untuk mencegah logging pesan apa pun tentang dukungan Sharp dari adapter Anda:
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.',
+              suppress: 'all'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+## Fitur adapter
+
+Sekumpulan fitur yang mengubah output dari berkas yang di-*emit*. Ketika adapter memilih ikut serta (*opt-in*) ke fitur-fitur ini, mereka akan mendapatkan informasi tambahan di hook tertentu.
+
+### `edgeMiddleware`
+
+<p>
+
+**Tipe:** `boolean`
+</p>
+
+Menentukan apakah kode *on-demand rendering middleware* akan di-*bundle* ketika build.
+
+Saat diaktifkan, ini mencegah kode middleware di-*bundle* dan di-*import* oleh semua halaman saat build:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Lalu, konsumsi hook [`astro:build:ssr`](/id/reference/integrations-reference/#astrobuildssr), yang akan memberi Anda `middlewareEntryPoint`, sebuah `URL` ke berkas fisik di sistem berkas.
+
+```js title="my-adapter.mjs" ins={15-20}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+              edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+          // remember to check if this property exits, it will be `undefined` if the adapter doesn't opt in to the feature
+          if (middlewareEntryPoint) {
+             createEdgeMiddleware(middlewareEntryPoint)
+          }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+    // emit a new physical file using your bundler
+}
+```
+
+### envGetSecret
+
+<p>
+
+**Tipe:** `AdapterSupportsKind`
+</p>
+
+Ini adalah fitur agar adapter Anda dapat mengambil *secret* yang dikonfigurasi oleh pengguna di `env.schema`.
+
+Aktifkan fitur ini dengan memberikan nilai `AdapterSupportsKind` yang valid ke adapter:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+              envGetSecret: 'stable'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Modul `astro/env/setup` memungkinkan Anda menyediakan implementasi untuk `getSecret()`. Di *server entrypoint* Anda, panggil `setGetEnv()` sedini mungkin:
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+Jika Anda mendukung *secrets*, pastikan untuk memanggil `setGetEnv()` sebelum `getSecret()` ketika variabel lingkungan Anda terkait dengan request:
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+	[key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+
+	const fetch = async (request: Request, env: Env) => {
+		setGetEnv(createGetEnv(env));
+
+		const response = await app.render(request);
+
+		return response;
+	};
+
+	return { default: { fetch } };
+}
+```
+
+### buildOutput
+
+<p>
+
+**Tipe:** `'static' | 'server'`<br />
+<Since v="5.0.0" />
+</p>
+
+Properti ini memungkinkan Anda memaksa bentuk output tertentu untuk build. Ini berguna untuk adapter yang hanya bekerja dengan tipe output tertentu, misalnya adapter Anda mungkin mengharapkan situs statis, tetapi menggunakan adapter untuk membuat berkas spesifik host. Default ke `server` jika tidak ditentukan.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            buildOutput: 'static'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+### experimentalStaticHeaders
+
+<p>
+
+**Tipe:** `true | false`<br />
+<Since v="5.9.3" />
+</p>
+
+Saat fitur ini diaktifkan, Astro akan mengembalikan peta `Headers` yang di-*emit* oleh halaman statis. Peta ini, `experimentalRouteToHeaders`, tersedia di *hook* `astro:build:generated`.
+
+Nilai dari header dapat berubah berdasarkan fitur yang diaktifkan/digunakan oleh aplikasi.
+
+Sebagai contoh, jika CSP diaktifkan, elemen `<meta http-equiv="content-security-policy">` tidak ditambahkan ke halaman statis. Sebagai gantinya, nilai `content`-nya tersedia di peta `experimentalRouteToHeaders`. 
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            experimentalStaticHeaders: true,
+          },
+        });
+      },
+      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
+        // use `experimentalRouteToHeaders` to generate a configuration file
+        // for your virtual host of choice
+      },
+    },
+  };
+}
+```

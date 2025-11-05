@@ -1,0 +1,1000 @@
+---
+title: Upgrade ke Astro v3
+description: Cara meningkatkan proyek Anda ke versi Astro terbaru (v3.0).
+sidebar:
+  label: v3.0
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Panduan ini akan membantu Anda bermigrasi dari Astro v2 ke Astro v3.
+
+Perlu meningkatkan proyek yang lebih lama ke v2? Lihat [panduan migrasi lama kami](/en/guides/upgrade-to/v2/).
+
+## Upgrade Astro
+
+Perbarui versi Astro di proyek Anda ke versi terbaru menggunakan manajer paket Anda. Jika Anda menggunakan integrasi Astro, harap perbarui juga ke versi terbaru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Upgrade ke Astro v3.x
+  npm install astro@latest
+
+  # Contoh: upgrade integrasi React dan Tailwind
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Upgrade ke Astro v3.x
+  pnpm add astro@latest
+
+  # Contoh: upgrade integrasi React dan Tailwind
+  pnpm add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Upgrade ke Astro v3.x
+  yarn add astro@latest
+
+  # Contoh: upgrade integrasi React dan Tailwind
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::note[Perlu melanjutkan?]
+Setelah meng-upgrade Astro ke versi terbaru, Anda mungkin tidak perlu melakukan perubahan apa pun pada proyek Anda!
+
+Namun, jika Anda melihat error atau perilaku yang tidak terduga, silakan periksa di bawah untuk melihat perubahan apa yang mungkin perlu diperbarui di proyek Anda.
+:::
+
+## Flag Eksperimental Astro v3.0 Dihapus
+
+Hapus flag eksperimental berikut dari `astro.config.mjs`:
+
+```js del={5-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true,
+    viewTransitions: true,
+  },
+})
+```
+
+Fitur-fitur ini kini tersedia secara default:
+
+- View Transitions untuk transisi halaman yang dianimasikan dan island yang persisten. Lihat [perubahan breaking API view transitions dan saran upgrade](#upgrade-view-transitions-to-v3) jika Anda menggunakan flag eksperimental ini.
+- API layanan gambar baru `astro:assets` untuk menggunakan gambar di Astro, termasuk komponen `<Image />` dan fungsi `getImage()`. Harap baca [saran upgrade gambar](#upgrade-images-to-v3) secara detail **baik Anda menggunakan flag eksperimental ini maupun tidak** untuk melihat bagaimana hal ini dapat memengaruhi proyek Anda.
+
+Baca selengkapnya tentang dua fitur menarik ini dan lainnya di [posting Blog 3.0](https://astro.build/blog/astro-3/)!
+
+## Perubahan Breaking Astro v3.0
+
+Astro v3.0 menyertakan beberapa perubahan breaking, serta penghapusan beberapa fitur yang sebelumnya telah didepresiasi. Jika proyek Anda tidak bekerja seperti yang diharapkan setelah upgrade ke v3.0, cek panduan ini untuk ringkasan semua perubahan breaking dan instruksi bagaimana memperbarui codebase Anda.
+
+Lihat [changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) untuk catatan rilis lengkap.
+
+### Dihapus: Dukungan untuk Node 16
+
+Node 16 dijadwalkan mencapai End of Life pada September 2023.
+
+Astro v3.0 menghapus dukungan untuk Node 16 sepenuhnya agar semua pengguna Astro dapat memanfaatkan fitur Node yang lebih modern.
+
+#### Apa yang harus saya lakukan?
+
+ Pastikan lingkungan pengembangan Anda dan lingkungan deployment Anda menggunakan **Node `18.14.1` atau lebih tinggi**.
+
+<Steps>
+1. Periksa versi Node lokal Anda menggunakan:
+
+    ```sh
+    node -v
+    ```
+
+2. Periksa dokumentasi [lingkungan deployment](/en/guides/deploy/) Anda untuk memastikan mereka mendukung Node 18.
+
+    Anda dapat menentukan Node `18.14.1` untuk proyek Astro Anda di pengaturan dashboard atau di file `.nvmrc`.
+
+    ```bash title=".nvmrc"
+    18.14.1
+    ```
+</Steps>
+
+### Dihapus: Dukungan untuk TypeScript 4
+
+Di Astro v2.x, preset `tsconfig.json` mencakup dukungan untuk TypeScript 4.x dan 5.x.
+
+Astro v3.0 memperbarui preset `tsconfig.json` untuk hanya mendukung TypeScript 5.x. Astro kini mengasumsikan Anda menggunakan TypeScript 5.0 (Maret 2023), atau editor Anda menyertakannya (mis. VS Code 1.77).
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda memasang TypeScript secara lokal, upgrade ke minimal v5.0.
+
+```bash
+npm install typescript@latest --save-dev
+```
+
+### Dihapus: `@astrojs/image`
+
+Di Astro v2.x, Astro menyediakan integrasi gambar resmi yang menyertakan komponen `<Image />` dan `<Picture />`.
+
+Astro v3.0 menghapus integrasi ini sepenuhnya. Solusi baru Astro untuk gambar adalah API layanan gambar bawaan: `astro:assets`.
+
+#### Apa yang harus saya lakukan?
+
+Hapus integrasi `@astrojs/image` dari proyek Anda. Anda tidak hanya perlu menghapus instalasi integrasinya, tetapi juga memperbarui atau menghapus semua pernyataan `import` dan komponen `<Image />` serta `<Picture />` yang ada. Anda mungkin juga perlu mengonfigurasi layanan pemrosesan gambar default pilihan Anda.
+
+Anda akan menemukan [instruksi lengkap langkah demi langkah untuk menghapus integrasi gambar lama](#remove-astrojsimage) di panduan Gambar kami.
+
+Bermigrasi ke `astro:assets` juga akan menghadirkan beberapa opsi dan fitur gambar baru yang mungkin ingin Anda gunakan. Silakan lihat [Saran Upgrade Gambar v3.0](#upgrade-images-to-v3) untuk detail lengkap!
+
+```js del={3,7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import image from '@astrojs/image';
+
+export default defineConfig({
+  integrations: [
+    image(),
+  ]
+})
+```
+
+### Dihapus: komponen `<Markdown />`
+
+Di Astro v1.x, Astro mendeprasiasi komponen `<Markdown />` dan memindahkannya ke paket eksternal.
+
+Astro v3.0 sepenuhnya menghapus paket `@astrojs/markdown-component`. Komponen `<Markdown />` Astro tidak akan berfungsi lagi di proyek Anda.
+
+#### Apa yang harus saya lakukan?
+
+Hapus semua penggunaan `@astrojs/markdown-component`.
+
+```astro del={2} title="src/components/MyAstroComponent.astro"
+---
+import Markdown from '@astrojs/markdown-component';
+---
+```
+
+Untuk terus menggunakan komponen `<Markdown />` serupa dalam kode Anda, pertimbangkan untuk menggunakan [integrasi komunitas](https://astro.build/integrations/) seperti [`astro-remote`](https://github.com/natemoo-re/astro-remote). Pastikan Anda memperbarui import dan atribut komponen `<Markdown />` sesuai dokumentasi integrasi tersebut.
+
+Jika tidak, hapus semua referensi impor komponen `<Markdown />` Astro dan komponen itu sendiri di file `.astro` Anda. Anda perlu menulis ulang konten Anda sebagai HTML langsung atau [impor Markdown](/en/guides/markdown-content/#importing-markdown) dari file `.md`.
+
+### Dihapus: API 1.x yang didepresiasi
+
+Di Astro v1.x, Astro mendeprasiasi pengaturan konfigurasi asli serta dukungan `<style global>` dan `<script hoist>`. Namun, ini masih didukung demi kompatibilitas mundur.
+
+Astro v3.0 menghapus API yang didepresiasi ini sepenuhnya. Gunakan [pengaturan konfigurasi](/en/reference/configuration-reference/) yang didukung resmi dan sintaks modern `<style is:global>` serta `<script>` sebagai gantinya.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda masih menggunakan API v1.x, gunakan API baru untuk setiap fitur sebagai berikut:
+
+- Opsi konfigurasi yang didepresiasi: Lihat [panduan migrasi 0.26](/en/guides/upgrade-to/v1/#new-configuration-api)
+- Jenis atribut script/style yang didepresiasi: Lihat [panduan migrasi 0.26](/en/guides/upgrade-to/v1/#new-default-script-behavior)
+
+### Dihapus: shim parsial untuk Web API di kode server
+
+Di Astro v2.x, Astro menyediakan shim parsial untuk Web API seperti `document` atau `localStorage` pada kode yang dirender server. Shim ini sering tidak lengkap dan tidak andal.
+
+Astro v3.0 menghapus shim parsial ini sepenuhnya. Web API tidak lagi tersedia di kode yang dirender server.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan Web API di komponen yang dirender server, Anda harus membuat penggunaan API tersebut menjadi kondisional atau menggunakan [direktif klien `client:only`](/en/reference/directives-reference/#clientonly).
+
+### Dihapus: `image` dari `astro:content` dalam skema content collections
+
+Di Astro v2.x, API content collections mendeprasiasi ekspor `image` dari `astro:content` untuk digunakan di skema content collections Anda.
+
+Astro v3.0 menghapus ekspor ini sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan `image()` yang didepresiasi dari `astro:content`, hapus karena ini tidak lagi ada. Validasi gambar melalui [helper `image` dari `schema`](#update-content-collections-schemas) sebagai gantinya:
+
+ ```ts title="src/content/config.ts" del={1} ins={2} "({ image })"
+import { defineCollection, z, image } from "astro:content";
+import { defineCollection, z } from "astro:content";
+
+ defineCollection({
+   schema: ({ image }) =>
+     z.object({
+       image: image(),
+    }),
+});
+```
+
+### Dihapus: nama tema Shiki pra-0.14
+
+Di Astro v2.x, beberapa nama tema Shiki telah diganti nama, tetapi nama asli tetap dipertahankan untuk kompatibilitas mundur.
+
+Astro v3.0 menghapus nama asli demi nama tema yang sudah diperbarui.
+
+#### Apa yang harus saya lakukan?
+
+Jika proyek Anda menggunakan salah satu tema di bawah ini, ubah namanya ke nama yang diperbarui:
+
+- `material-darker` -> `material-theme-darker`
+- `material-default` -> `material-theme`
+- `material-lighter` -> `material-theme-lighter`
+- `material-ocean` -> `material-theme-ocean`
+- `material-palenight` -> `material-theme-palenight`
+
+### Dihapus: fitur `class:list`
+
+Di Astro v2.x, [direktif `class:list`](/en/reference/directives-reference/#classlist) menggunakan implementasi kustom yang terinspirasi oleh [`clsx`](https://github.com/lukeed/clsx) dengan beberapa fitur tambahan seperti deduplikasi dan dukungan `Set`.
+
+Astro v3.0 kini menggunakan `clsx` secara langsung untuk `class:list`, yang tidak mendukung deduplikasi atau nilai `Set`.
+
+#### Apa yang harus saya lakukan?
+
+Ganti elemen `Set` apa pun yang diteruskan ke direktif `class:list` dengan `Array` biasa.
+
+```astro title="src/components/MyAstroComponent.astro" del={4} ins={5}
+<Component class:list={[
+  'a',
+  'b',
+  new Set(['c', 'd'])
+  ['c', 'd']
+]} />
+```
+
+### Dihapus: pengiriman `class:list` sebagai prop
+
+Di Astro v2.x, [nilai `class:list`](/en/reference/directives-reference/#classlist) dikirim ke komponen melalui [`Astro.props['class:list']`](/en/reference/api-reference/#props).
+
+Astro v3.0 menormalisasi nilai `class:list` menjadi string sebelum dikirim ke komponen melalui `Astro.props['class']`.
+
+#### Apa yang harus saya lakukan?
+
+Hapus kode apa pun yang mengharapkan menerima prop `class:list`.
+
+```astro title="src/components/MyAstroComponent.astro" del={2,3,7} ins={4,8} "classList" "'class:list': classList"
+---
+import { clsx } from 'clsx';
+const { class: className, 'class:list': classList } = Astro.props;
+const { class: className } = Astro.props;
+---
+<div
+  class:list={[className, classList]}
+  class:list={[className]}
+/>
+```
+
+### Dihapus: transformasi kebab-case untuk variabel CSS camelCase
+
+Di Astro v2.x, variabel [CSS](/en/guides/styling/#css-variables) camelCase yang diteruskan ke atribut `style` dirender sebagai camelCase (seperti ditulis) dan kebab-case (dipertahankan untuk kompatibilitas mundur).
+
+Astro v3.0 menghapus transformasi kebab-case untuk nama variabel CSS camelCase ini, dan hanya variabel CSS camelCase aslinya yang dirender.
+
+```astro "my-value"
+---
+// src/components/MyAstroComponent.astro
+const myValue = "red"
+---
+<!-- input -->
+<div style={{ "--myValue": myValue }}></div>
+
+<!-- output (Astro 2.x) -->
+<div style="--my-value:var(--myValue);--myValue:red"></div>
+<!-- output (Astro 3.0) -->
+<div style="--myValue:red"></div>
+```
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda bergantung pada Astro untuk mentransformasikan ke kebab-case di gaya Anda, perbarui gaya yang ada ke camelCase untuk mencegah gaya hilang. Misalnya:
+
+```astro del={3} ins={4} title="src/components/MyAstroComponent.astro"
+<style>
+  div {
+   color: var(--my-value);
+   color: var(--myValue);
+  }
+</style>
+```
+
+### Dihapus: pelipatan otomatis nilai kembalian `getStaticPaths()`
+
+Di Astro v2.x, nilai kembalian [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths) secara otomatis di-flatten agar Anda dapat mengembalikan array berisi array tanpa error.
+
+Astro v3.0 menghapus pelipatan otomatis hasil `getStaticPaths()`.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda mengembalikan array berisi array alih-alih array berisi _objek_ (seperti yang diharapkan), gunakan `.flatMap` dan `.flat` untuk memastikan Anda mengembalikan array datar.
+
+Sebuah [pesan error yang menunjukkan bahwa nilai kembalian `getStaticPath()` harus berupa array objek](/en/reference/errors/invalid-get-static-paths-entry/#what-went-wrong) akan diberikan jika Anda perlu memperbarui kode Anda.
+
+### Dipindahkan: `astro check` kini memerlukan paket eksternal
+
+Di Astro v2.x, [`astro check`](/en/reference/cli-reference/#astro-check) disertakan di Astro secara default, dan dependensinya dibundel di Astro. Ini berarti paket yang lebih besar meskipun Anda tidak pernah menggunakan `astro check`. Ini juga mencegah Anda mengontrol versi TypeScript dan Astro Language Server yang digunakan.
+
+Astro v3.0 memindahkan perintah `astro check` ke luar inti Astro dan kini memerlukan paket eksternal `@astrojs/check`. Selain itu, Anda harus memasang `typescript` di proyek Anda untuk menggunakan perintah `astro check`.
+
+#### Apa yang harus saya lakukan?
+
+Jalankan perintah `astro check` setelah upgrade ke Astro v3.0 dan ikuti petunjuk untuk memasang dependensi yang diperlukan, atau pasang `@astrojs/check` dan `typescript` secara manual ke proyek Anda.
+
+### Didepresiasi: `build.excludeMiddleware` dan `build.split`
+
+Di Astro v2.x, `build.excludeMiddleware` dan `build.split` digunakan untuk mengubah bagaimana file tertentu dihasilkan saat menggunakan adapter dalam mode SSR.
+
+Astro v3.0 mengganti opsi konfigurasi build ini dengan [opsi konfigurasi adapter SSR baru](/en/guides/integrations-guide/#official-integrations) untuk melakukan tugas yang sama: `edgeMiddleware` dan `functionPerRoute`.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui file konfigurasi Astro untuk sekarang menggunakan opsi baru **langsung di konfigurasi adapter**.
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import vercel from "@astrojs/vercel/serverless";
+
+export default defineConfig({
+    build: {
+      excludeMiddleware: true
+    },
+    adapter: vercel({
+      edgeMiddleware: true
+    }),
+});
+```
+
+```js title="astro.config.mjs" del={5-7} ins={9}
+import { defineConfig } from "astro/config";
+import netlify from "@astrojs/netlify/functions";
+
+export default defineConfig({
+     build: {
+        split: true
+     },
+     adapter: netlify({
+        functionPerRoute: true
+     }),
+});
+```
+
+### Didepresiasi: `markdown.drafts`
+
+Di Astro v2.x, konfigurasi `markdown.drafts` memungkinkan Anda memiliki halaman draf yang tersedia saat menjalankan dev server, tetapi tidak dibangun di produksi.
+
+Astro v3.0 mendeprasiasi fitur ini demi metode content collections untuk menangani halaman draf dengan menyaring secara manual, yang memberi kontrol lebih atas fitur ini.
+
+#### Apa yang harus saya lakukan?
+
+Untuk terus menandai beberapa halaman di proyek Anda sebagai draf, [bermigrasilah ke content collections](/en/guides/content-collections/) dan saring secara manual halaman dengan properti frontmatter `draft: true`.
+
+### Didepresiasi: mengembalikan objek sederhana di endpoint
+
+Di Astro v2.x, endpoint dapat mengembalikan objek sederhana, yang akan dikonversi menjadi respons JSON.
+
+Astro v3.0 mendeprasiasi perilaku ini demi mengembalikan objek `Response` secara langsung.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui endpoint Anda untuk mengembalikan objek `Response` secara langsung.
+
+```ts title="endpoint.json.ts" del={2} ins={3}
+export async function GET() {
+  return { body: { "title": "Bob's blog" }};
+  return new Response(JSON.stringify({ "title": "Bob's blog" }));
+}
+```
+
+Jika Anda benar-benar perlu mempertahankan format sebelumnya, Anda dapat menggunakan objek `ResponseWithEncoding` tetapi akan didepresiasi di masa mendatang.
+
+```ts title="endpoint.json.ts" del={2} ins={3}
+export async function GET() {
+  return { body: { "title": "Bob's blog" } };
+  return new ResponseWithEncoding({ body: { "title": "Bob's blog" }});
+}
+```
+
+### Default diubah: `verbatimModuleSyntax` di preset tsconfig.json
+
+Di Astro v2.x, pengaturan [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) nonaktif secara default, dengan padanan TypeScript 4.x `importsNotUsedAsValues` diaktifkan dalam preset `strict`.
+
+Di Astro v3.0, `verbatimModuleSyntax` diaktifkan di setiap preset.
+
+#### Apa yang harus saya lakukan?
+
+Opsi ini mengharuskan tipe diimpor menggunakan sintaks `import type`.
+
+```astro title="src/components/MyAstroComponent.astro" "type"
+---
+import { type CollectionEntry, getEntry } from "astro:content";
+---
+```
+
+Walaupun kami menyarankan tetap menyalakannya dan menggunakan `type` untuk impor tipe (seperti di atas), Anda dapat menonaktifkannya dengan menyetel `verbatimModuleSyntax: false` di file `tsconfig.json` jika menimbulkan masalah.
+
+```json title="tsconfig.json" "false"
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": false
+  }
+}
+```
+
+### Default diubah: port `3000`
+
+Di Astro v2.x, Astro berjalan pada port `3000` secara default.
+
+Astro v3.0 mengubah [port default](/en/reference/cli-reference/#--port-number) menjadi `4321`. 🚀
+
+#### Apa yang harus saya lakukan?
+
+Perbarui referensi yang ada ke `localhost:3000`, misalnya di pengujian atau di `README`, agar menggunakan port baru `localhost:4321`.
+
+### Default diubah: `import.meta.env.BASE_URL` `trailingSlash`
+
+Di Astro v2.x, `import.meta.env.BASE_URL` menambahkan pengaturan [`base`](/en/reference/configuration-reference/#base) Anda dengan [trailingSlash](/en/reference/configuration-reference/#trailingslash) secara default. `trailingSlash: "ignore"` juga menambahkan trailing slash.
+
+Astro v3.0 tidak lagi menambahkan trailing slash pada `import.meta.env.BASE_URL` secara default, maupun saat `trailingSlash: "ignore"` disetel. (Perilaku yang ada dari `base` dikombinasikan dengan `trailingSlash: "always"` atau `trailingSlash: "never"` tidak berubah.)
+
+#### Apa yang harus saya lakukan?
+
+Jika `base` Anda sudah memiliki trailing slash, tidak perlu perubahan.
+
+Jika `base` Anda tidak memiliki trailing slash, tambahkan jika Anda ingin mempertahankan perilaku default sebelumnya (atau `trailingSlash: "ignore"`):
+
+```js title="astro.config.mjs" del={4} ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  base: 'my-base',
+  base: 'my-base/',
+});
+```
+
+### Default diubah: `compressHTML`
+
+Di Astro v2.x, Astro hanya memampatkan HTML yang dihasilkan saat [`compressHTML`](/en/reference/configuration-reference/#compresshtml) secara eksplisit disetel ke `true`. Nilai defaultnya `false`.
+
+Astro v3.0 sekarang memampatkan HTML yang dihasilkan secara default.
+
+#### Apa yang harus saya lakukan?
+
+Anda kini dapat menghapus `compressHTML: true` dari konfigurasi karena ini merupakan perilaku default baru.
+
+```js title="astro.config.mjs" del={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  compressHTML: true
+})
+```
+
+Sekarang Anda harus menyetel `compressHTML: false` untuk tidak ikut kompresi HTML.
+
+### Default diubah: `scopedStyleStrategy`
+
+Di Astro v2.x, nilai default [`scopedStyleStrategy`](/en/reference/configuration-reference/#scopedstylestrategy) adalah `"where"`.
+
+Astro v3.0 memperkenalkan nilai default baru: `"attribute"`. Secara default, style sekarang diterapkan menggunakan atribut `data-*`.
+
+#### Apa yang harus saya lakukan?
+
+Untuk mempertahankan [scoping style](/en/guides/styling/#scoped-styles) proyek Anda saat ini, perbarui file konfigurasi ke nilai default sebelumnya:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  scopedStyleStrategy: "where"
+})
+```
+
+### Default diubah: `inlineStyleSheets`
+
+Di Astro v2.x, semua stylesheet proyek dikirim sebagai tag link secara default. Anda dapat memilih untuk meng-inline ke `<style>` setiap saat dengan `"always"`, atau hanya meng-inline stylesheet di bawah ukuran tertentu dengan `"auto"` dengan menyetel konfigurasi [`build.inlineStylesheets`](/en/reference/configuration-reference/#buildinlinestylesheets). Nilai defaultnya `"never"`.
+
+Astro v3.0 mengubah nilai default `inlineStylesheets` menjadi `"auto"`. Stylesheet yang lebih kecil dari `ViteConfig.build.assetsInlineLimit` (default: 4kb) di-inline secara default. Selain itu, style proyek dikirim sebagai stylesheet eksternal.
+
+#### Apa yang harus saya lakukan?
+Jika Anda ingin mempertahankan perilaku proyek saat ini, setel `build.inlineStylesheets` ke default sebelumnya, `"never"`:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+   build: {
+    inlineStylesheets: "never"
+  }
+})
+```
+
+### Default diubah: layanan gambar
+
+Di Astro v2.x, Squoosh adalah [layanan pemrosesan gambar default](/en/guides/images/#default-image-service).
+
+Astro v3.0 kini menyertakan Sharp sebagai layanan pemrosesan gambar default dan menyediakan opsi konfigurasi untuk menggunakan Squoosh.
+
+#### Apa yang harus saya lakukan?
+
+:::note
+Saat menggunakan [package manager ketat](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) seperti `pnpm`, Anda mungkin perlu memasang Sharp secara manual ke proyek Anda meskipun ia merupakan dependensi Astro:
+
+```bash
+pnpm add sharp
+```
+:::
+
+Jika Anda lebih suka terus menggunakan Squoosh untuk mentransformasi gambar Anda, perbarui konfigurasi Anda seperti berikut:
+
+```ts title="astro.config.mjs" ins={4-6}
+import { defineConfig, squooshImageService } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: squooshImageService(),
+  }
+})
+```
+
+### Diubah: penulisan huruf (case) metode permintaan HTTP
+
+Di Astro v2.x, [metode permintaan HTTP](/en/guides/endpoints/#http-methods) ditulis menggunakan nama fungsi huruf kecil: `get`, `post`, `put`, `all`, dan `del`.
+
+Astro v3.0 menggunakan nama fungsi huruf besar, termasuk `DELETE` menggantikan `del`.
+
+#### Apa yang harus saya lakukan?
+
+Ganti nama semua fungsi ke padanan huruf besar:
+
+- `get` menjadi `GET`
+- `post` menjadi `POST`
+- `put` menjadi `PUT`
+- `all` menjadi `ALL`
+- `del` menjadi `DELETE`
+
+```diff lang="js" title="endpoint.ts"
+-export function get() {
++export function GET() {
+    return new Response(JSON.stringify({ "title": "Bob's blog" }));
+}
+```
+
+### Diubah: Konfigurasi beberapa framework JSX
+
+Di Astro v2.x, Anda dapat menggunakan [beberapa integrasi framework JSX](/en/guides/integrations-guide/#official-integrations) (React, Solid, Preact) dalam proyek yang sama tanpa perlu mengidentifikasi file mana yang milik framework mana.
+
+Astro v3.0 kini mengharuskan Anda menentukan framework mana yang digunakan untuk file Anda dengan opsi konfigurasi integrasi baru `include` dan `exclude` saat Anda memiliki beberapa integrasi framework JSX terpasang. Ini memungkinkan Astro mendukung penggunaan satu framework dengan lebih baik, serta fitur lanjutan seperti React Fast Refresh.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan beberapa framework JSX dalam proyek yang sama, setel `include` (dan opsional `exclude`) ke array file dan/atau folder. Wildcard dapat digunakan untuk menyertakan beberapa path file.
+
+Kami merekomendasikan menempatkan komponen framework umum di folder yang sama (mis. `/components/react/` dan `/components/solid/`) untuk memudahkan penentuan include, tetapi ini tidak wajib:
+
+```js ins={13,16,19}
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Aktifkan banyak framework untuk mendukung berbagai jenis komponen.
+  // Tidak perlu `include` jika Anda hanya menggunakan satu framework!
+  integrations: [
+    preact({
+      include: ['**/preact/*']
+    }),
+    react({
+      include: ['**/react/*']
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ]
+});
+```
+
+### Diubah: `Astro.cookies.get(key)` bisa mengembalikan `undefined`
+
+Di Astro v2.x, `Astro.cookies.get(key)` selalu mengembalikan objek `AstroCookie`, bahkan jika cookie tidak ada. Untuk memeriksa keberadaannya, Anda perlu menggunakan `Astro.cookies.has(key)`.
+
+Astro v3.0 mengembalikan `undefined` untuk `Astro.cookies.get(key)` jika cookie tidak ada.
+
+#### Apa yang harus saya lakukan?
+
+Perubahan ini tidak akan merusak kode apa pun yang memeriksa keberadaan objek `Astro.cookie` sebelum menggunakan `Astro.cookies.get(key)`, namun kini tidak lagi diperlukan.
+
+Anda dapat dengan aman menghapus kode apa pun yang menggunakan `has()` untuk memeriksa apakah nilai `Astro.cookies` adalah `undefined`:
+
+```js del={1-3} ins={5-7}
+if (Astro.cookies.has(id)) {
+  const id = Astro.cookies.get(id)!;
+}
+
+const id = Astro.cookies.get(id);
+if (id) {
+}
+```
+
+### Diubah: menjalankan Astro CLI secara programatis
+
+Di Astro v2.x, entrypoint paket `"astro"` mengekspor dan menjalankan Astro CLI secara langsung. Tidak disarankan menjalankan Astro seperti ini dalam praktiknya.
+
+Astro v3.0 menghapus CLI dari entrypoint, dan mengekspor serangkaian API JavaScript eksperimental baru, termasuk `dev()`, `build()`, `preview()`, dan `sync()`.
+
+#### Apa yang harus saya lakukan?
+
+Untuk [menjalankan Astro CLI secara programatis](/en/reference/programmatic-reference/), gunakan API JavaScript eksperimental baru:
+
+```js
+import { dev, build } from "astro";
+
+// Mulai dev server Astro
+const devServer = await dev();
+await devServer.stop();
+
+// Build proyek Astro Anda
+await build();
+```
+
+### Diubah: path ekspor entry point API internal Astro
+
+Di Astro v2.x, Anda dapat mengimpor API internal Astro dari `astro/internal/*` dan `astro/runtime/server/*`.
+
+Astro v3.0 menghapus dua entry point tersebut demi entry point `astro/runtime/*` yang sudah ada. Selain itu, ekspor baru `astro/compiler-runtime` telah ditambahkan untuk kode runtime khusus compiler.
+
+#### Apa yang harus saya lakukan?
+
+Ini adalah entry point untuk API internal Astro dan seharusnya tidak memengaruhi proyek Anda. Namun jika Anda menggunakan entry point ini, perbarui seperti di bawah:
+
+```js del={1,4,10} ins={2,5,11}
+import 'astro/internal/index.js';
+import 'astro/runtime/server/index.js';
+
+import 'astro/server/index.js';
+import 'astro/runtime/server/index.js';
+```
+
+```js ins={5} del={4}
+import { transform } from '@astrojs/compiler';
+
+const result = await transform(source, {
+  internalURL: 'astro/runtime/server/index.js',
+  internalURL: 'astro/compiler-runtime',
+  // ...
+});
+```
+
+## Peningkatan Fitur
+
+### Upgrade gambar ke v3
+
+`astro:assets` tidak lagi berada di balik flag eksperimental di Astro v3.0.
+
+`<Image />` kini menjadi komponen bawaan dan integrasi `@astrojs/image` sebelumnya telah dihapus.
+
+Perubahan ini dan perubahan terkait penggunaan gambar di Astro dapat menyebabkan beberapa perubahan breaking saat Anda meng-upgrade proyek Astro dari versi sebelumnya.
+
+Silakan ikuti instruksi di bawah sesuai kebutuhan untuk meng-upgrade proyek Astro v2.x ke v3.0.
+
+#### Upgrade dari `experimental.assets`
+
+Jika sebelumnya Anda mengaktifkan flag eksperimental untuk `astro:assets`, Anda perlu memperbarui proyek Anda untuk Astro v3.0 yang kini menyertakan fitur aset secara default.
+
+##### Hapus flag `experimental.assets`
+
+Hapus flag eksperimental:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    assets: true
+  }
+});
+```
+
+Jika perlu, perbarui juga file `src/env.d.ts` Anda untuk mengganti referensi `astro/client-image` dengan `astro/client`:
+
+```ts title="src/env.d.ts" del={1} ins={2}
+/// <reference types="astro/client-image" />
+/// <reference types="astro/client" />
+```
+
+##### Hapus alias impor `~/assets`
+
+Alias impor ini tidak lagi disertakan secara default dengan `astro:assets`. Jika Anda menggunakan alias ini saat aset eksperimental, Anda harus mengonversinya ke path file relatif, atau [buat alias impor Anda sendiri](/en/guides/imports/#aliases).
+
+```astro title="src/pages/posts/post-1.astro" del={2} ins={3}
+---
+import rocket from '~/assets/rocket.png';
+import rocket from '../../assets/rocket.png';
+---
+```
+
+##### Tambahkan dukungan aset sederhana untuk Cloudflare, Deno, Vercel Edge dan Netlify Edge
+
+ Astro v3.0 memungkinkan `astro:assets` bekerja tanpa error di Cloudflare, Deno, Vercel Edge dan Netlify Edge, yang tidak mendukung optimasi gambar bawaan Astro (Squoosh dan Sharp). Perhatikan bahwa Astro tidak melakukan transformasi dan pemrosesan gambar di lingkungan ini. Namun, Anda tetap dapat menikmati manfaat lain dari menggunakan `astro:assets`, termasuk tanpa Cumulative Layout Shift (CLS), atribut `alt` yang diwajibkan, dan pengalaman penulisan yang konsisten.
+
+ Jika Anda sebelumnya menghindari menggunakan `astro:assets` karena batasan ini, sekarang Anda dapat menggunakannya tanpa masalah. Anda dapat mengonfigurasi layanan gambar no-op untuk memilih perilaku ini secara eksplisit:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: 'astro/assets/services/noop'
+    }
+  }
+});
+```
+
+#### Tentukan lokasi penyimpanan gambar
+
+Lihat panduan Gambar untuk membantu Anda memutuskan [di mana menyimpan gambar](/en/guides/images/#where-to-store-images). Anda mungkin ingin memanfaatkan opsi baru untuk menyimpan gambar dengan fleksibilitas yang dibawa `astro:assets`. Misalnya, gambar relatif dari `src/` proyek Anda kini dapat direferensikan di Markdown, MDX, dan Markdoc menggunakan sintaks Markdown standar `![alt](src)`.
+
+#### Perbarui tag `<img>` yang ada
+
+Sebelumnya, mengimpor gambar akan mengembalikan `string` sederhana berupa path gambar. Sekarang, aset gambar yang diimpor sesuai dengan signature berikut:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+Anda harus memperbarui atribut `src` dari tag `<img>` yang ada (termasuk [gambar di komponen framework UI](/en/guides/images/#images-in-ui-framework-components)) dan Anda juga dapat memperbarui atribut lain yang kini tersedia dari gambar yang diimpor.
+
+```astro title="src/components/MyComponent.astro" ".src" ".width" ".height" del={4} ins={6}
+---
+import rocket from '../images/rocket.svg';
+---
+<img src={rocket} width="250" height="250" alt="A rocketship in space." />
+
+<img src={rocket.src} width={rocket.width} height={rocket.height} alt="A rocketship in space." />
+```
+
+#### Perbarui file Markdown, MDX, dan Markdoc Anda
+
+Gambar relatif dari `src/` proyek Anda kini dapat direferensikan di Markdown, MDX, dan Markdoc menggunakan sintaks Markdown standar `![alt](src)`.
+
+Ini memungkinkan Anda memindahkan gambar dari direktori `public/` ke `src/` proyek Anda di mana mereka kini akan diproses dan dioptimalkan. Gambar Anda yang ada di `public/` dan gambar jarak jauh (remote) tetap valid tetapi tidak dioptimalkan oleh proses build Astro.
+
+```md title="src/pages/posts/post-1.md" "/_astro" ".hash" "../../assets/"
+# Halaman Markdown Saya
+
+<!-- Gambar lokal kini memungkinkan! -->
+![Langit malam penuh bintang.](../../images/stars.png)
+
+<!-- Simpan gambar Anda di dekat konten! -->
+![Langit malam penuh bintang.](./stars.png)
+```
+
+Jika Anda memerlukan kontrol lebih atas atribut gambar, kami merekomendasikan menggunakan format `.mdx`, yang memungkinkan Anda menyertakan komponen `<Image />` Astro atau tag JSX `<img />` di samping sintaks Markdown. Gunakan [integrasi MDX](/en/guides/integrations-guide/mdx/) untuk menambahkan dukungan MDX ke Astro.
+
+#### Hapus `@astrojs/image`
+
+
+Jika Anda menggunakan integrasi gambar di Astro v2.x, selesaikan langkah-langkah berikut:
+
+<Steps>
+1. Hapus integrasi `@astrojs/image`.
+
+    Anda harus [menghapus integrasinya](/en/guides/integrations-guide/#removing-an-integration) dengan meng-uninstall lalu menghapusnya dari file `astro.config.mjs` Anda.
+
+    ```js del={3,7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import image from '@astrojs/image';
+
+    export default defineConfig({
+      integrations: [
+        image(),
+      ]
+    })
+    ```
+
+2. Perbarui tipe (jika diperlukan).
+
+    Jika Anda memiliki konfigurasi tipe khusus untuk `@astrojs/image` di `src/env.d.ts`, Anda mungkin perlu mengubahnya kembali ke tipe Astro default jika upgrade ke v3 belum menyelesaikan langkah ini untuk Anda.
+
+    ```ts title="src/env.d.ts" del={1} ins={2}
+     /// <reference types="@astrojs/image/client" />
+     /// <reference types="astro/client" />
+    ```
+
+    Demikian pula, perbarui `tsconfig.json` jika perlu:
+
+    ```json title="tsconfig.json" del={3} ins={4}
+    {
+      "compilerOptions": {
+        "types": ["@astrojs/image/client"]
+        "types": ["astro/client"]
+      }
+    }
+    ```
+
+3. Migrasikan semua komponen `<Image />` yang ada.
+
+    Ubah semua pernyataan `import` dari `@astrojs/image/components` menjadi `astro:assets` untuk menggunakan komponen `<Image />` bawaan yang baru.
+
+    Hapus atribut komponen apa pun yang bukan [properti aset gambar yang didukung saat ini](/en/reference/modules/astro-assets/#image-properties).
+
+    Sebagai contoh, `aspectRatio` tidak lagi didukung, karena kini disimpulkan secara otomatis dari atribut `width` dan `height`.
+
+      ```astro title="src/components/MyComponent.astro" del= {2,11} ins={3}
+      ---
+      import { Image } from '@astrojs/image/components';
+      import { Image } from 'astro:assets';
+      import localImage from '../assets/logo.png';
+      const localAlt = 'The Astro Logo';
+      ---
+
+      <Image
+        src={localImage}
+        width={300}
+        aspectRatio="16:9"
+        alt={localAlt}
+      />
+      ```
+
+4. Pilih layanan gambar default.
+
+    [Sharp](https://github.com/lovell/sharp) kini menjadi layanan gambar default yang digunakan untuk `astro:assets`. Jika Anda ingin menggunakan Sharp, tidak diperlukan konfigurasi.
+
+    Jika Anda lebih suka menggunakan [Squoosh](https://github.com/GoogleChromeLabs/squoosh) untuk mentransformasi gambar Anda, perbarui konfigurasi Anda dengan opsi `image.service` berikut:
+
+    ```js title="astro.config.mjs" ins={4-6}
+    import { defineConfig, squooshImageService } from 'astro/config';
+
+    export default defineConfig({
+      image: {
+        service: squooshImageService(),
+      },
+    });
+    ```
+</Steps>
+
+#### Perbarui skema Content Collections
+
+Kini Anda dapat mendeklarasikan gambar terkait untuk entri content collections, seperti gambar sampul posting blog, di frontmatter menggunakan path relatif terhadap folder saat ini.
+
+Helper `image` baru untuk content collections memungkinkan Anda memvalidasi metadata gambar menggunakan Zod. Pelajari lebih lanjut tentang [cara menggunakan gambar di content collections](/en/guides/images/#images-in-content-collections)
+
+#### Menavigasi Impor Gambar di Astro v3.0
+
+Di Astro v3.0, jika Anda harus mempertahankan perilaku impor lama untuk gambar dan memerlukan representasi string dari URL gambar, tambahkan `?url` di akhir path gambar saat mengimpornya. Misalnya:
+
+```astro title="src/pages/blog/MyImages.astro"
+---
+import Sprite from '../assets/logo.svg?url';
+---
+
+<svg>
+  <use xlink:href={Sprite + '#cart'} />
+</svg>
+```
+
+Pendekatan ini memastikan Anda memperoleh string URL. Perlu diingat bahwa saat pengembangan, Astro menggunakan path `src/`, tetapi saat build, ia menghasilkan path dengan hash seperti `/_astro/cat.a6737dd3.png`.
+
+Jika Anda lebih suka bekerja langsung dengan objek gambarnya, Anda dapat mengakses properti `.src`. Pendekatan ini terbaik untuk tugas seperti mengelola dimensi gambar untuk metrik Core Web Vitals dan mencegah CLS.
+
+Jika Anda sedang bertransisi ke perilaku impor baru, mengombinasikan metode `?url` dan `.src` mungkin merupakan cara tepat untuk penanganan gambar yang mulus.
+
+
+### Upgrade view transitions ke v3
+
+View transitions tidak lagi berada di balik flag eksperimental di Astro v3.0.
+
+Jika Anda **tidak** mengaktifkan flag eksperimental ini di Astro 2.x, ini tidak akan menyebabkan perubahan breaking pada proyek Anda. API View Transitions baru tidak berdampak pada kode Anda yang ada.
+
+Jika sebelumnya Anda menggunakan view transitions eksperimental, mungkin ada beberapa perubahan breaking saat Anda meng-upgrade proyek Astro dari versi sebelumnya.
+
+Silakan ikuti instruksi di bawah sesuai kebutuhan untuk meng-upgrade **proyek Astro v2.x yang dikonfigurasi dengan `experimental.viewTransitions: true`** ke v3.0.
+
+#### Upgrade dari `experimental.viewTransitions`
+
+Jika sebelumnya Anda mengaktifkan flag eksperimental untuk view transitions, Anda perlu memperbarui proyek Anda untuk Astro v3.0 yang kini mengizinkan view transitions secara default.
+
+##### Hapus flag `experimental.viewTransitions`
+
+Hapus flag eksperimental:
+
+```js title="astro.config.mjs" del={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+   viewTransitions: true
+  }
+});
+```
+
+##### Perbarui sumber impor
+
+Komponen `<ViewTransitions />` telah dipindahkan dari `astro:components` ke `astro:transitions`. Perbarui sumber impor di semua kemunculan dalam proyek Anda.
+
+```astro title="src/layouts/BaseLayout.astro" del="astro:components" ins="astro:transitions"
+---
+import { ViewTransitions } from "astro:components astro:transitions"
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ViewTransitions />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+#### Perbarui direktif `transition:animate`
+
+**Diubah:** Nilai `transition:animate` `morph` telah diganti nama menjadi `initial`. Selain itu, ini bukan lagi animasi default. Jika tidak ada direktif `transition:animate` yang ditentukan, animasi Anda kini default ke `fade`.
+
+1. Ganti nama animasi `morph` menjadi `initial`.
+    ```astro title="src/components/MyComponent.astro" del="morph" ins="initial"
+    <div transition:name="name" transition:animate="morph initial" />
+    ```
+2. Untuk mempertahankan animasi yang sebelumnya menggunakan `morph` sebagai default, tambahkan secara eksplisit `transition:animate="initial"`
+
+    ```astro title="src/components/MyComponent.astro" ins='transition:animate="initial"'
+    <div transition:name="name" transition:animate="initial" />
+    ```
+3. Anda dapat dengan aman menghapus animasi apa pun yang secara eksplisit disetel ke `fade`. Ini kini merupakan perilaku default:
+
+    ```astro title="src/components/MyComponent.astro" del="transition:animate=\"fade\""
+    <div transition:name="name" transition:animate="fade" />
+    ```
+
+**Ditambahkan:** Astro juga mendukung nilai `transition:animate` baru, `none`. Nilai ini dapat digunakan pada elemen `<html>` halaman untuk menonaktifkan transisi halaman penuh yang dianimasikan pada seluruh halaman. Ini hanya akan menimpa **perilaku animasi default** pada elemen halaman tanpa direktif animasi. Anda masih dapat menyetel animasi pada elemen individual, dan animasi spesifik ini akan terjadi.
+
+4. Kini Anda dapat menonaktifkan semua transisi default pada halaman tertentu, hanya menganimasikan elemen yang secara eksplisit menggunakan direktif `transition:animate`: 
+
+    ```astro ins="transition:animate=\"none\""
+    <html transition:animate="none">
+      <head></head>
+      <body>
+        <h1>Hello world!</h1>
+      </body>
+    </html>
+    ```
+
+##### Perbarui nama event
+
+Event `astro:load` telah diganti nama menjadi `astro:page-load`. Ganti semua kemunculan di proyek Anda.
+
+```astro title="src/components/MyComponent.astro" del="astro:load" ins="astro:page-load"
+<script>
+document.addEventListener('astro:load astro:page-load', runSetupLogic);
+</script>
+```
+
+Event `astro:beforeload` telah diganti nama menjadi `astro:after-swap`. Ganti semua kemunculan di proyek Anda.
+
+```astro title="src/components/MyComponent.astro" del="astro:beforeload" ins="astro:after-swap"
+<script>
+document.addEventListener('astro:beforeload astro:after-swap', setDarkMode);
+</script>
+```
+
+
+## Sumber Daya Komunitas
+
+Punya sumber yang bagus untuk Astro v3.0? [Edit halaman ini](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v3.mdx) dan tambahkan tautan di bawah!
+
+## Masalah Diketahui
+
+Saat ini tidak ada masalah yang diketahui.

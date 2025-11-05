@@ -1,0 +1,413 @@
+---
+title: Kebijakan Keamanan Konten (CSP) (eksperimental)
+sidebar:
+  label: Content Security Policy
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `boolean | object`<br />
+**Default:** `false`<br />
+<Since v="5.9.0" />
+</p>
+
+Mengaktifkan dukungan untuk [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) guna membantu meminimalkan jenis-jenis ancaman keamanan tertentu dengan mengontrol sumber daya mana saja yang boleh dimuat oleh sebuah dokumen. Ini memberikan perlindungan tambahan terhadap serangan [cross-site scripting (XSS)](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting).
+
+Mengaktifkan fitur ini menambahkan keamanan tambahan pada **penanganan skrip dan gaya yang diproses serta dibundel oleh Astro** secara bawaan, dan memungkinkan Anda mengonfigurasi tipe konten tersebut (dan tipe konten tambahan) lebih lanjut.
+
+Fitur CSP eksperimental ini memiliki beberapa keterbatasan. Skrip inline tidak didukung secara langsung, tetapi Anda dapat [menyediakan hash Anda sendiri](#hashes) untuk skrip eksternal dan inline. [Transisi tampilan Astro](/id/guides/view-transitions/) yang menggunakan `<ClientRouter />` tidak didukung, tetapi Anda dapat [mempertimbangkan untuk bermigrasi ke View Transition API bawaan peramban](https://events-3bg.pages.dev/jotter/astro-view-transitions/) jika Anda tidak menggunakan peningkatan Astro terhadap API View Transitions dan Navigation bawaan.
+
+:::note
+Karena sifat server dev Vite, fitur ini tidak didukung saat bekerja dalam mode `dev`. Sebagai gantinya, Anda dapat mengujinya di proyek Astro menggunakan `build` dan `preview`.
+:::
+
+Untuk mengaktifkan fitur ini, tambahkan flag eksperimental ke konfigurasi Astro Anda:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  }
+});
+```
+
+Saat diaktifkan, Astro akan menambahkan elemen `<meta>` di dalam elemen `<head>` pada setiap halaman.
+
+Elemen ini akan memiliki atribut `http-equiv="content-security-policy"`, dan atribut `content` akan memberikan nilai untuk [directive](#directives) `script-src` dan `style-src` berdasarkan skrip dan gaya yang digunakan di halaman.
+
+```html
+<head>
+  <meta 
+    http-equiv="content-security-policy" 
+    content="
+      script-src 'self' 'sha256-somehash'; 
+      style-src 'self' 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+## Konfigurasi
+
+Anda dapat menyesuaikan elemen `<meta>` lebih lanjut dengan mengaktifkan fitur ini menggunakan objek konfigurasi yang mencakup opsi tambahan.
+
+### `algorithm`
+
+<p>
+
+**Type:** `'SHA-256' | 'SHA-512' | 'SHA-384'`<br />
+**Default:** `'SHA-256'`<br />
+<Since v="5.9.0" />
+</p>
+
+[Fungsi hash](https://developer.mozilla.org/en-US/docs/Glossary/Hash_function) yang digunakan saat menghasilkan hash untuk gaya dan skrip yang dikeluarkan oleh Astro.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      algorithm: 'SHA-512'
+    }
+  }
+});
+```
+
+### `directives`
+
+<p>
+
+**Type:** `CspDirective[]`<br />
+**Default:** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+Daftar [directive CSP](https://content-security-policy.com/#directive) yang mendefinisikan sumber valid untuk tipe konten tertentu.
+
+Meskipun Astro perlu mengontrol directive `script-src` dan `style-src`, Anda dapat mengontrol directive CSP lainnya menggunakan bidang `csp.directives`. Directive ini ditambahkan ke semua halaman. Nilainya menerima daftar directive yang aman-jenis (type-safe):
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' https://images.cdn.example.com"
+      ]
+    }
+  }
+});
+```
+
+Setelah proses build, elemen `<meta>` akan menambahkan directive Anda ke nilai `content` berdampingan dengan directive bawaan Astro:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    default-src 'self';
+    img-src 'self' 'https://images.cdn.example.com';
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `styleDirective` dan `scriptDirective`
+
+<p>
+
+**Type:** `object`<br />
+**Default:** `{}`<br />
+<Since v="5.9.0" />
+</p>
+
+Objek konfigurasi yang memungkinkan Anda menimpa sumber bawaan untuk directive `style-src` dan `script-src` dengan properti [`resources`](#resources), atau menyediakan [hash](#hashes) tambahan untuk dirender.
+
+Properti ini ditambahkan ke semua halaman dan **sepenuhnya menimpa sumber bawaan Astro**, bukan menambahkannya. Oleh karena itu, Anda harus secara eksplisit menyertakan nilai bawaan apa pun yang ingin tetap digunakan.
+
+#### `resources`
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+Daftar sumber valid untuk directive `script-src` dan `style-src`.
+
+Directive `script-src` dan `style-src` ditangani oleh Astro secara bawaan, dan menggunakan sumber `'self'`. Artinya, skrip dan gaya hanya dapat diunduh dari host saat ini (biasanya situs yang sama).
+
+Untuk menimpa sumber bawaan, Anda dapat menyediakan daftar sumber sebagai gantinya. Ini **tidak** akan menyertakan `'self'` secara otomatis, dan harus Anda cantumkan dalam daftar ini jika ingin tetap menggunakannya. Sumber-sumber ini ditambahkan ke semua halaman.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "'self'",
+          "https://styles.cdn.example.com"
+        ]
+      },
+      scriptDirective: {
+        resources: [
+          "https://cdn.example.com"
+        ]
+      }
+    }
+  }
+});
+```
+
+Setelah proses build, elemen `<meta>` akan menerapkan sumber Anda ke directive `style-src` dan `script-src`:
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+      script-src https://cdn.example.com 'sha256-somehash'; 
+      style-src 'self' https://styles.cdn.example.com 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+#### `hashes`
+
+<p>
+
+**Type:** `CspHash[]`<br />
+**Default:** `[]`<br />
+<Since v="5.9.0" />
+</p>
+
+Daftar hash tambahan yang akan dirender.
+
+Jika Anda memiliki skrip atau gaya eksternal yang tidak dihasilkan oleh Astro, atau skrip inline, opsi konfigurasi ini memungkinkan Anda menyediakan hash tambahan untuk dirender. 
+
+Anda harus menyediakan hash yang diawali dengan `sha384-`, `sha512-` atau `sha256-`. Nilai lain akan menyebabkan galat validasi. Hash ini ditambahkan ke semua halaman.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        hashes: [
+          "sha384-styleHash",
+          "sha512-styleHash",
+          "sha256-styleHash"
+        ]
+      },
+      scriptDirective: {
+        hashes: [
+          "sha384-scriptHash",
+          "sha512-scriptHash",
+          "sha256-scriptHash"
+        ]
+      }
+    }
+  }
+});
+```
+
+Setelah proses build, elemen `<meta>` akan menyertakan hash tambahan Anda di directive `script-src` dan `style-src`:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha384-scriptHash' 'sha512-scriptHash' 'sha256-scriptHash' 'sha256-generatedByAstro';
+    style-src 'self' 'sha384-styleHash' 'sha512-styleHash' 'sha256-styleHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
+#### `strictDynamic`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="5.9.0" />
+</p>
+
+Mengaktifkan [kata kunci `strict-dynamic`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP#the_strict-dynamic_keyword) untuk mendukung penyuntikan skrip secara dinamis.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      scriptDirective: {
+        strictDynamic: true
+      }
+    }
+  }
+});
+```
+
+## API runtime
+
+Anda dapat menyesuaikan elemen `<meta>` per halaman melalui API runtime yang tersedia dari global `Astro` di dalam komponen `.astro`, atau tipe `APIContext` di endpoint dan middleware.
+
+### `csp.insertDirective`
+
+<p>
+
+**Type:** `(directive: CspDirective) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+Menambahkan satu directive ke halaman saat ini. Anda dapat memanggil metode ini beberapa kali untuk menambahkan directive tambahan.
+
+```astro
+---
+Astro.csp.insertDirective("default-src 'self'");
+Astro.csp.insertDirective("img-src 'self' https://images.cdn.example.com");
+---
+```
+
+Setelah proses build, elemen `<meta>` untuk halaman ini akan memasukkan directive tambahan Anda berdampingan dengan directive `script-src` dan `style-src` yang ada:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    default-src 'self'; 
+    img-src 'self' https://images.cdn.example.com;
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `csp.insertStyleResource`
+
+<p>
+
+**Type:** `(resource: string) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+Menyisipkan sumber baru yang akan digunakan untuk directive `style-src`.
+
+```astro
+---
+Astro.csp.insertStyleResource("https://styles.cdn.example.com");
+---
+```
+
+Setelah proses build, elemen `<meta>` untuk halaman ini akan menambahkan sumber Anda ke directive `style-src` bawaan:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha256-somehash';
+    style-src https://styles.cdn.example.com 'sha256-somehash';
+  "
+>
+```
+
+### `csp.insertStyleHash`
+
+<p>
+
+**Type:** `(hash: CspHash) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+Menambahkan hash baru ke directive `style-src`.
+
+```astro
+---
+Astro.csp.insertStyleHash("sha512-styleHash");
+---
+```
+
+Setelah proses build, elemen `<meta>` untuk halaman ini akan menambahkan hash Anda ke directive `style-src` bawaan:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
+### `csp.insertScriptResource`
+
+<p>
+
+**Type:** `(resource: string) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+Menyisipkan sumber valid baru yang akan digunakan untuk directive `script-src`.
+
+```astro
+---
+Astro.csp.insertScriptResource("https://scripts.cdn.example.com");
+---
+```
+
+Setelah proses build, elemen `<meta>` untuk halaman ini akan menambahkan sumber Anda ke directive `script-src` bawaan:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src https://scripts.cdn.example.com 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `csp.insertScriptHash`
+
+<p>
+
+**Type:** `(hash: CspHash) => void`<br />
+<Since v="5.9.0" />
+</p>
+
+Menambahkan hash baru ke directive `script-src`.
+
+```astro
+---
+Astro.csp.insertScriptHash("sha512-scriptHash");
+---
+```
+
+Setelah proses build, elemen `<meta>` untuk halaman ini akan menambahkan hash Anda ke directive `script-src` bawaan:
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha256-somehash' 'sha512-styleHash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```

@@ -1,0 +1,124 @@
+---
+title: Deploy Situs Astro Anda ke GitLab Pages
+description: Cara melakukan deploy situs Astro Anda ke web menggunakan GitLab Pages.
+sidebar:
+  label: GitLab Pages
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Anda dapat menggunakan [GitLab Pages](https://docs.gitlab.com/ee/user/project/pages/) untuk menghosting situs Astro untuk proyek, grup, atau akun pengguna [GitLab](https://about.gitlab.com/) Anda.
+
+:::tip[Mencari contoh?]
+Lihat [proyek contoh resmi GitLab Pages untuk Astro](https://gitlab.com/pages/astro)!
+:::
+
+## Cara melakukan deploy
+
+Anda dapat melakukan deploy situs Astro ke GitLab Pages dengan menggunakan GitLab CI/CD untuk secara otomatis membangun dan memublikasikan situs Anda. Untuk melakukan ini, kode sumber Anda harus dihosting di GitLab dan Anda perlu melakukan perubahan berikut pada proyek Astro Anda:
+
+<Steps>
+
+1. Konfigurasikan opsi [`site`](/id/reference/configuration-reference/#site) dan [`base`](/id/reference/configuration-reference/#base) di `astro.config.mjs`.
+
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      site: 'https://<username>.gitlab.io',
+      base: '/<my-repo>',
+      outDir: 'public',
+      publicDir: 'static',
+    });
+    ```
+
+    `site`
+
+    Nilai untuk `site` harus salah satu dari berikut:
+
+    - URL berikut berdasarkan username Anda: `https://<username>.gitlab.io`
+    - URL berikut berdasarkan nama grup Anda: `https://<groupname>.gitlab.io`
+    - Domain kustom Anda jika telah dikonfigurasi di pengaturan proyek GitLab Anda: `https://example.com`
+
+    Untuk instance GitLab self-managed, ganti `gitlab.io` dengan domain Pages instance Anda.
+
+    `base`
+
+    Nilai `base` mungkin diperlukan agar Astro memperlakukan nama repositori Anda (mis. `/my-repo`) sebagai root situs web Anda.
+
+    :::note
+      Jangan set parameter `base` jika halaman Anda disajikan dari folder root.
+    :::
+
+    Nilai `base` harus merupakan nama repositori Anda yang diawali garis miring, misalnya `/my-blog`. Ini agar Astro memahami root situs Anda adalah `/my-repo`, bukan default `/`.
+
+    :::caution
+        Saat nilai ini dikonfigurasi, semua tautan halaman internal Anda harus diawali dengan nilai `base` Anda:
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">About</a>
+      ```
+
+    Lihat lebih lanjut tentang [mengonfigurasi nilai `base`](/id/reference/configuration-reference/#base)
+    :::
+
+
+2. Ubah nama direktori `public/` menjadi `static/`.
+
+3. Set `outDir: 'public'` di `astro.config.mjs`. Pengaturan ini memberi tahu Astro untuk menaruh output build statis di folder bernama `public`, yaitu folder yang diperlukan oleh GitLab Pages untuk file yang diekspos.
+
+   Jika Anda menggunakan direktori [`public/`](/id/basics/project-structure/#public) sebagai sumber file statis dalam proyek Astro Anda, ubah namanya dan gunakan nama folder baru tersebut di `astro.config.mjs` sebagai nilai `publicDir`.
+
+   Sebagai contoh, berikut pengaturan `astro.config.mjs` yang benar ketika direktori `public/` diganti namanya menjadi `static/`:
+
+   ```js title="astro.config.mjs" ins={4-5}
+   import { defineConfig } from 'astro/config';
+   
+   export default defineConfig({
+     outDir: 'public',
+     publicDir: 'static',
+   });
+   ```
+
+4. Ubah output build di `.gitignore`. Pada contoh kita perlu mengubah `dist/` menjadi `public/`:
+
+    ```diff  title=".gitignore"
+    # build output
+    -dist/
+    +public/
+    ```
+
+5. Buat file bernama `.gitlab-ci.yml` di root proyek Anda dengan konten di bawah ini. Ini akan membangun dan melakukan deploy situs setiap kali Anda mengubah konten:
+
+   ```yaml title=".gitlab-ci.yml"
+   pages:
+     # Docker image yang akan digunakan untuk membangun app Anda
+     image: node:lts
+
+     before_script:
+       - npm ci
+
+     script:
+       # Tentukan langkah-langkah untuk membangun app Anda di sini
+       - npm run build
+
+     artifacts:
+       paths:
+         # Folder yang berisi file hasil build untuk dipublikasikan.
+         # Folder ini harus bernama "public".
+         - public
+
+     only:
+       # Jalankan build dan deploy hanya saat ada push ke
+       # branch di bawah ini
+       - main
+   ```
+
+6. Commit perubahan Anda dan push ke GitLab.
+
+7. Di GitLab, buka menu **Deploy** repositori Anda dan pilih **Pages**. Di sini Anda akan melihat URL lengkap situs GitLab Pages Anda. Untuk memastikan Anda menggunakan format URL `https://username.gitlab.io/my-repo`, hapus centang pengaturan **Use unique domain** pada halaman ini.
+
+</Steps>
+
+Situs Anda sekarang seharusnya sudah terbit! Saat Anda push perubahan ke repositori proyek Astro, pipeline GitLab CI/CD akan otomatis melakukan deploy untuk Anda.

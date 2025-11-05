@@ -1,0 +1,124 @@
+---
+title: Referensi API Middleware
+sidebar:
+  label: 'astro:middleware'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.6.0" /></p>
+
+Middleware memungkinkan Anda mencegat permintaan (request) dan respons lalu menyuntikkan perilaku secara dinamis setiap kali sebuah halaman atau endpoint akan dirender. Untuk fitur dan contoh penggunaan, lihat [panduan middleware](/id/guides/middleware/).
+
+## Imports from `astro:middleware`
+
+```js
+import { 
+  sequence,
+  createContext,
+  trySerializeLocals,
+  defineMiddleware,
+ } from 'astro:middleware';
+```
+
+### `defineMiddleware()`
+
+Anda dapat mengimpor dan menggunakan fungsi utilitas `defineMiddleware()` untuk mendapatkan manfaat pengetikan yang aman (type safety):
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` dan `next` diketik otomatis
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+### `sequence()`
+
+<p>
+
+**Type:** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
+
+Fungsi yang menerima beberapa fungsi middleware sebagai argumen, dan mengeksekusinya sesuai urutan yang diberikan.
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {...}
+async function auth(_, next) {...}
+async function greeting(_, next) {...}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+### `createContext()`
+
+<p>
+
+**Type:** `(context: CreateContext) => APIContext`<br />
+<Since v="2.8.0" />
+</p>
+
+API level-rendah untuk membuat [`APIContext`](/id/reference/api-reference/) yang akan diteruskan ke fungsi `onRequest()` middleware Astro.
+
+Fungsi ini dapat dipakai oleh integrasi/adapter untuk menjalankan middleware Astro secara terprogram (programmatic).
+
+### `trySerializeLocals()`
+
+<p>
+
+**Type:** `(value: unknown) => string`<br />
+<Since v="2.8.0" />
+</p>
+
+API level-rendah yang menerima nilai apa pun dan mencoba mengembalikan versi terserialisasi (string). Jika nilai tidak dapat diserialisasi, fungsi ini akan melempar error runtime.
+
+## Middleware exports
+
+Saat mendefinisikan middleware proyek Anda di `src/middleware.js`, ekspor fungsi berikut:
+
+### `onRequest()`
+
+**Type:** `(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+
+Fungsi wajib dari `src/middleware.js` yang akan dipanggil sebelum merender setiap halaman atau route API. Fungsi ini menerima dua argumen: [context](#context) dan [next()](#next). `onRequest()` harus mengembalikan `Response`: baik secara langsung, atau dari pemanggilan `next()`.
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // intercept response data from a request
+    // optionally, transform the response
+    // return a Response directly, or the result of calling `next()`
+    return next();
+};
+```
+
+Fungsi `onRequest()` Anda akan dipanggil dengan argumen berikut:
+
+#### `context`
+
+<p>
+
+**Type:** `APIContext`
+</p>
+
+Argumen pertama `onRequest()` adalah objek context. Objek ini mencerminkan banyak properti global `Astro`.
+
+<ReadMore>Lihat [Endpoint contexts](/id/reference/api-reference/) untuk informasi lebih lanjut tentang objek context.</ReadMore>
+
+#### `next()`
+
+<p>
+
+**Type:** `(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+</p>
+
+Argumen kedua `onRequest()` adalah fungsi yang memanggil semua middleware berikutnya dalam rantai dan mengembalikan `Response`. Contohnya, middleware lain dapat memodifikasi body HTML dari sebuah respons dan dengan menunggu hasil `next()` middleware Anda dapat bereaksi terhadap perubahan tersebut.
+
+Sejak Astro v4.13.0, `next()` menerima parameter path URL opsional berupa string, `URL`, atau `Request` untuk melakukan [rewrite](/id/guides/routing/#rewrites) pada permintaan saat ini tanpa memicu fase rendering baru.

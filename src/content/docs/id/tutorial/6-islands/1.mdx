@@ -1,0 +1,228 @@
+---
+type: tutorial
+title: Bangun island Astro pertama Anda
+description: |-
+  Tutorial: Bangun blog Astro pertama Anda —
+  Gunakan komponen Preact untuk menyapa pengunjung dengan pesan yang dipilih secara acak
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+ Gunakan komponen Preact untuk menyapa pengunjung Anda dengan pesan sambutan yang dipilih secara acak!
+
+<PreCheck>
+  - Tambahkan Preact ke proyek Astro Anda
+  - Sertakan Astro islands (komponen Preact `.jsx`) di halaman beranda Anda
+  - Gunakan direktif `client:` untuk membuat island menjadi interaktif
+</PreCheck>
+
+## Tambahkan Preact ke proyek Astro Anda
+
+<Steps>
+1. Jika sedang berjalan, hentikan dev server agar Anda bisa menggunakan terminal (shortcut keyboard: <kbd>Ctrl + C</kbd>).
+
+2. Tambahkan kemampuan menggunakan komponen Preact di proyek Astro Anda dengan satu perintah:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npx astro add preact
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add preact
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn astro add preact
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. Ikuti instruksi di command line untuk mengonfirmasi penambahan Preact ke proyek Anda.
+</Steps>
+ 
+
+## Sertakan banner sapaan Preact
+
+Komponen ini akan menerima array pesan sapaan sebagai prop dan memilih salah satunya secara acak untuk ditampilkan sebagai pesan selamat datang. Pengguna dapat mengklik tombol untuk mendapatkan pesan acak baru.
+
+<Steps>
+1. Buat file baru di `src/components/` bernama `Greeting.jsx`
+
+    Perhatikan ekstensi file `.jsx`. File ini akan ditulis dengan Preact, bukan Astro.
+
+2. Tambahkan kode berikut ke `Greeting.jsx`:
+
+    ```jsx title="src/components/Greeting.jsx"
+    import { useState } from 'preact/hooks';
+
+    export default function Greeting({messages}) {
+
+      const randomMessage = () => messages[(Math.floor(Math.random() * messages.length))];
+      
+      const [greeting, setGreeting] = useState(messages[0]);
+
+      return (
+        <div> 
+          <h3>{greeting}! Thank you for visiting!</h3>
+          <button onClick={() => setGreeting(randomMessage())}>
+            New Greeting
+          </button>
+        </div>
+      );
+    }
+    ```
+
+3. Impor dan gunakan komponen ini di halaman Beranda Anda `index.astro`.
+
+    ```astro title="src/pages/index.astro" ins={3,8}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>My awesome blog subtitle</h2>
+      <Greeting messages={["Hi", "Hello", "Howdy", "Hey there"]} />
+    </BaseLayout>
+    ```
+
+    Periksa pratinjau di browser Anda: Anda harus melihat sapaan acak, tetapi tombolnya belum berfungsi!
+
+
+4. Tambahkan komponen `<Greeting />` kedua dengan direktif `client:load`.
+
+    ```astro title="src/pages/index.astro" ins={9} "client:load"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Home Page";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>My awesome blog subtitle</h2>
+      <Greeting messages={["Hi", "Hello", "Howdy", "Hey there"]} />
+      <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+    </BaseLayout>
+    ```
+
+  5. Kunjungi kembali halaman Anda dan bandingkan kedua komponen tersebut. Tombol kedua berfungsi karena direktif `client:load` memberi tahu Astro untuk mengirim dan menjalankan ulang JavaScript-nya di _client_ ketika halaman _memuat_, sehingga komponen menjadi interaktif. Ini disebut komponen yang **terhidrasi** (hydrated).
+  
+  6. Setelah perbedaannya jelas, hapus komponen Greeting yang tidak terhidrasi.
+
+
+      ```astro title="src/pages/index.astro" del={8} "client:load"
+      ---
+      import BaseLayout from '../layouts/BaseLayout.astro';
+      import Greeting from '../components/Greeting';
+      const pageTitle = "Home Page";
+      ---
+      <BaseLayout pageTitle={pageTitle}>
+        <h2>My awesome blog subtitle</h2>
+        <Greeting messages={["Hi", "Hello", "Howdy", "Hey there"]} />
+        <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+      </BaseLayout>
+      ```
+</Steps>
+
+<Box icon="question-mark">
+
+### Analisis Pola
+
+Ada direktif `client:` lain yang bisa dieksplorasi. Masing‑masing mengirim JavaScript ke client pada waktu yang berbeda. `client:visible`, misalnya, hanya akan mengirim JavaScript komponen ketika komponen tersebut terlihat di halaman.
+
+Pertimbangkan komponen Astro dengan kode berikut:
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AstroBanner from '../components/AstroBanner.astro';
+import PreactBanner from '../components/PreactBanner';
+import SvelteCounter from '../components/SvelteCounter.svelte';
+---
+<BaseLayout>
+  <AstroBanner />
+  <PreactBanner />
+  <PreactBanner client:load />
+  <SvelteCounter />
+  <SvelteCounter client:visible />
+</BaseLayout>
+```
+
+1. Komponen mana dari kelima di atas yang akan menjadi island **terhidrasi**, mengirim JavaScript ke client?
+
+    <p>
+      <Spoiler>`<PreactBanner client:load />` dan `<SvelteCounter client:visible />` akan menjadi island terhidrasi.</Spoiler>
+    </p>
+
+2. Dalam hal apa kedua komponen `<PreactBanner />` akan sama? Dalam hal apa mereka berbeda? 
+
+    <p>
+      <Spoiler>**Sama**: Keduanya menampilkan elemen HTML yang sama dan tampak sama pada awalnya. **Berbeda**: Komponen dengan direktif `client:load` akan melakukan render ulang setelah halaman dimuat, dan elemen interaktifnya akan berfungsi.</Spoiler>
+    </p>
+
+3. Misalkan komponen `SvelteCounter` menampilkan sebuah angka dan memiliki tombol untuk menambahkannya. Jika Anda tidak bisa melihat kode situs—hanya halaman terbitan—bagaimana Anda tahu mana dari dua `<SvelteCounter />` yang menggunakan `client:visible`? 
+
+    <p>
+      <Spoiler>Coba klik tombolnya, dan lihat mana yang interaktif. Jika merespons input Anda, berarti komponen tersebut memiliki direktif `client:`.</Spoiler>
+    </p>
+</Box>
+
+
+
+<Box icon="question-mark">
+
+### Uji pengetahuan Anda
+
+Untuk setiap komponen berikut, tentukan apa yang akan dikirim ke browser:
+
+1. `<ReactCounter client:load />`
+
+    <MultipleChoice>
+      <Option>
+        Hanya HTML dan CSS
+      </Option>
+      <Option isCorrect>
+        HTML, CSS, dan JavaScript
+      </Option>
+    </MultipleChoice>
+
+2. `<SvelteCard />`
+
+    <MultipleChoice>
+      <Option  isCorrect>
+        Hanya HTML dan CSS
+      </Option>
+      <Option>
+        HTML, CSS, dan JavaScript
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## Daftar Periksa
+
+<Checklist>
+- [ ] Saya bisa memasang sebuah integrasi Astro.
+- [ ] Saya bisa menulis komponen UI framework dalam bahasanya sendiri.
+- [ ] Saya bisa menggunakan direktif `client:` untuk hidrasi pada komponen UI framework saya.
+</Checklist>
+</Box>
+
+### Sumber Daya
+
+- [Panduan Integrasi Astro](/id/guides/integrations-guide/)
+
+- [Menggunakan Komponen UI Framework di Astro](/id/guides/framework-components/#using-framework-components)
+
+- [Referensi direktif klien (client directives) Astro](/id/reference/directives-reference/#client-directives)

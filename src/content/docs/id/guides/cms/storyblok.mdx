@@ -1,0 +1,550 @@
+---
+title: Storyblok & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Storyblok sebagai CMS
+sidebar:
+  label: Storyblok
+type: cms
+service: Storyblok
+stub: false
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Storyblok](https://www.storyblok.com/) adalah CMS headless berbasis komponen yang memungkinkan Anda mengelola konten menggunakan komponen yang dapat digunakan kembali yang disebut Blok.
+
+## Integrasi dengan Astro
+
+Di bagian ini, Anda akan menggunakan [integrasi Storyblok](https://github.com/storyblok/monoblok/tree/main/packages/astro) untuk menghubungkan Storyblok ke Astro.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan hal berikut:
+
+1. **Proyek Astro** – Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membantu Anda menyiapkannya dengan cepat.
+
+2. **Akun dan space Storyblok** – Jika Anda belum memiliki akun, [daftar gratis](https://app.storyblok.com/#/signup) dan buat space baru.
+
+3. **Token Preview Storyblok** – Token ini digunakan untuk mengambil draft dan versi terbit dari konten Anda. Anda dapat menemukan dan membuat token API di tab Access Tokens pada pengaturan space Storyblok Anda.
+
+### Menyiapkan kredensial
+
+Untuk menambahkan kredensial Storyblok ke Astro, buat file `.env` di root proyek Anda dengan variabel berikut:
+
+```ini title=".env"
+STORYBLOK_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+Sekarang, Anda dapat menggunakan variabel lingkungan ini di proyek Anda.
+
+Direktori root Anda sekarang harus menyertakan file baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menginstal dependensi
+
+Untuk menghubungkan Astro dengan space Storyblok Anda, instal [integrasi Storyblok](https://github.com/storyblok/monoblok/tree/main/packages/astro) resmi menggunakan perintah di bawah sesuai manajer paket Anda:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @storyblok/astro vite
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @storyblok/astro vite
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @storyblok/astro vite
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Mengonfigurasi Storyblok
+
+Ubah file konfigurasi Astro Anda untuk menyertakan integrasi Storyblok:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { storyblok } from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        // Tambahkan komponen Anda di sini
+      },
+      apiOptions: {
+        // Pilih region space Storyblok Anda
+        region: 'us', // opsional, atau 'eu' (default)
+      },
+    })
+  ],
+});
+```
+
+Integrasi Storyblok memerlukan sebuah objek dengan properti berikut:
+
+1. `accessToken` – Mengacu pada token API Storyblok yang Anda tambahkan pada langkah sebelumnya.
+
+    :::tip
+    Karena file konfigurasi Astro biasanya tidak mendukung variabel lingkungan, gunakan fungsi `loadEnv` dari Vite untuk memuatnya.
+    :::
+
+2. `components` – Objek yang memetakan nama komponen Storyblok ke path komponen lokal Anda. Ini diperlukan untuk merender Blok Storyblok di Astro.
+
+    :::note
+    Path komponen bersifat relatif terhadap direktori `src`. Misalnya, jika komponen Anda berada di `src/storyblok/MyComponent.astro`, maka path‑nya adalah `storyblok/MyComponent` (tanpa ekstensi `.astro`).
+    :::
+
+3. `apiOptions` – Objek yang berisi [opsi API Storyblok](https://www.storyblok.com/docs/packages/storyblok-astro#api). 
+
+    :::caution
+    Secara default, region adalah `eu`. Jika space Storyblok Anda dibuat di region US, Anda perlu menetapkan region menjadi `us`.
+    :::
+
+### Menghubungkan Blok ke komponen Astro
+
+Untuk menghubungkan Blok Anda ke Astro, buat folder baru bernama `storyblok` di direktori `src`. Folder ini akan berisi semua komponen Astro yang akan dipasangkan dengan Blok di pustaka Blok Storyblok Anda.
+
+Pada contoh ini, Anda memiliki tipe konten Blok `blogPost` di pustaka Storyblok dengan field berikut:
+
+- `title` – field teks
+- `description` – field teks
+- `content` – field rich text
+
+Tujuan kita adalah membuat komponen Astro yang ekuivalen yang akan menggunakan field tersebut untuk merender kontennya. Untuk itu, buat file baru bernama `BlogPost.astro` di dalam `src/storyblok` dengan konten berikut:
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+Properti `blok` berisi data yang akan Anda terima dari Storyblok. Ini juga berisi field yang didefinisikan pada tipe konten `blogPost` di Storyblok.
+
+Untuk merender konten, integrasi menyediakan fungsi utilitas seperti:
+
+- `storyblokEditable` – menambahkan atribut yang diperlukan ke elemen agar Anda dapat mengeditnya di Storyblok.
+- `renderRichText` – mengubah field rich text menjadi HTML.
+
+Direktori root Anda harus menyertakan file baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - storyblok/
+    - **BlogPost.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Terakhir, untuk menghubungkan Blok `blogPost` ke komponen `BlogPost`, tambahkan properti baru ke objek `components` pada file konfigurasi Astro Anda.
+
+- Key‑nya adalah nama Blok di Storyblok. Dalam kasus ini, `blogPost`.
+- Nilainya adalah path ke komponen. Dalam kasus ini, `storyblok/BlogPost`.
+
+:::caution
+  `key` harus persis sama dengan nama Blok Anda di Storyblok agar direferensikan dengan benar. Jika tidak cocok, atau Anda mencoba mereferensikan komponen yang tidak ada di Storyblok, Anda akan mendapatkan error.
+  :::
+
+```js title="astro.config.mjs" ins={12}
+import { defineConfig } from 'astro/config';
+import { storyblok } from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### Mengambil data
+
+Untuk menguji setup, di Storyblok buat story baru dengan tipe konten `blogPost` bernama `test-post`.
+Di Astro, buat halaman baru di direktori `src/pages/` bernama `test-post.astro` dengan konten berikut:
+
+```astro title="src/pages/test-post.astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+const storyblokApi = useStoryblokApi()
+
+const { data } = await storyblokApi.get("cdn/stories/test-post", {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const content = data.story.content;
+---
+<StoryblokComponent blok={content} />
+```
+
+Untuk melakukan query data, gunakan hook `useStoryblokApi`. Ini akan menginisialisasi instance klien baru menggunakan konfigurasi integrasi Anda.
+
+Untuk merender konten, oper properti `content` dari Story ke `StoryblokComponent` sebagai prop `blok`. Komponen ini akan merender Blok yang didefinisikan di dalam properti `content`. Dalam kasus ini, ia akan merender komponen `BlogPost`.
+
+## Membuat blog dengan Astro dan Storyblok
+
+Dengan integrasi yang sudah disiapkan, kini Anda dapat membuat blog dengan Astro dan Storyblok.
+
+### Prasyarat
+
+1. **Space Storyblok** – Untuk tutorial ini, kami sarankan menggunakan space baru. Jika Anda sudah memiliki space dengan Blok, silakan gunakan, tetapi Anda harus menyesuaikan kode agar sesuai dengan nama Blok dan tipe kontennya.
+
+2. **Proyek Astro yang terintegrasi dengan Storyblok** – Lihat [integrasi dengan Astro](#integrasi-dengan-astro) untuk petunjuk menyiapkan integrasi.
+
+### Membuat pustaka blok
+
+Untuk membuat Blok, buka aplikasi Storyblok dan klik tab **Block Library**. Klik tombol <kbd>+ New blok</kbd> dan buat Blok berikut:
+
+1. `blogPost` – Tipe konten Blok dengan field berikut:
+    - `title` – field teks
+    - `description` – field teks
+    - `content` – field rich text
+
+2. `blogPostList` – Blok nestable kosong
+
+3. `page` – Tipe konten Blok dengan field berikut:
+    - `body` – Blok yang bisa dinest (nestable)
+
+### Membuat konten
+
+Untuk menambahkan konten baru, buka bagian konten dengan mengklik tab **Content**. Menggunakan pustaka Blok yang Anda buat pada langkah sebelumnya, buat story berikut:
+
+1. `home` – Story tipe konten dengan Blok `page`. Di dalam field `body`, tambahkan Blok `blogPostList`.
+
+2. `blog/no-javascript` – Story dengan tipe konten `blogPost` di dalam folder blog.
+    ```yaml
+    title: No JavaScript
+    description: Contoh postingan blog
+    content: Hai! Postingan blog ini tidak menggunakan JavaScript.
+    ```
+3. `blog/astro-is-amazing` – Story dengan tipe konten `blogPost` di dalam folder blog.
+    ```yaml
+    title: Astro itu luar biasa
+    description: Kami menyukai Astro
+    content: Hai! Postingan blog ini dibuat dengan Astro.
+    ```
+
+Sekarang setelah Anda memiliki konten, kembali ke proyek Astro Anda dan mulai membangun blog.
+
+### Menghubungkan Blok ke komponen
+
+Untuk menghubungkan Blok baru Anda ke komponen Astro, buat folder baru bernama `storyblok` di direktori `src` dan tambahkan file berikut:
+
+`Page.astro` adalah komponen tipe konten Blok yang dapat dinest yang akan merender semua Blok di dalam properti `body` dari Blok `page` secara rekursif. Komponen ini juga menambahkan atribut `storyblokEditable` ke elemen induk agar dapat diedit di Storyblok.
+
+```astro title="src/storyblok/Page.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import StoryblokComponent from "@storyblok/astro/StoryblokComponent.astro";
+const { blok } = Astro.props
+---
+
+<main {...storyblokEditable(blok)}>
+  {
+    blok.body?.map((blok) => {
+      return <StoryblokComponent blok={blok} />
+    })
+  }
+</main>
+```
+
+`BlogPost.astro` akan merender properti `title`, `description`, dan `content` dari Blok `blogPost`.
+
+Untuk mengubah properti `content` dari rich text menjadi HTML, Anda dapat menggunakan fungsi helper `renderRichText`.
+
+```astro title="src/storyblok/BlogPost.astro"
+---
+import { storyblokEditable, renderRichText } from '@storyblok/astro'
+const { blok } = Astro.props
+const content = renderRichText(blok.content)
+---
+<article {...storyblokEditable(blok)}>
+  <h1>{blok.title}</h1>
+  <p>{blok.description}</p>
+  <Fragment set:html={content} />
+</article>
+```
+
+`BlogPostList.astro` adalah komponen tipe konten Blok yang dapat dinest yang akan merender daftar pratinjau postingan blog. 
+
+Komponen ini menggunakan hook `useStoryblokApi` untuk mengambil semua story dengan tipe konten `blogPost`. Ia menggunakan parameter query `version` untuk mengambil versi draft saat mode pengembangan dan versi publish saat build untuk produksi.
+
+`Astro.props` digunakan untuk menyiapkan editor di Storyblok. Properti tambahan juga dapat diteruskan ke komponen Anda di sini jika diperlukan.
+```astro title="src/storyblok/BlogPostList.astro"
+---
+import { storyblokEditable } from '@storyblok/astro'
+import { useStoryblokApi } from '@storyblok/astro'
+
+const storyblokApi = useStoryblokApi();
+
+const { data } = await storyblokApi.get('cdn/stories', {
+  version: import.meta.env.DEV ? "draft" : "published",
+  content_type: 'blogPost',
+})
+
+const posts = data.stories.map(story => {
+  return {
+    title: story.content.title,
+    date: new Date(story.published_at).toLocaleDateString("en-US", {dateStyle: "full"}),
+    description: story.content.description,
+    slug: story.full_slug,
+  }
+})
+
+const { blok } = Astro.props
+---
+
+<ul {...storyblokEditable(blok)}>
+  {posts.map(post => (
+    <li>
+      <time>{post.date}</time>
+      <a href={post.slug}>{post.title}</a>
+      <p>{post.description}</p>
+    </li>
+  ))}
+</ul>
+```
+
+Terakhir, tambahkan komponen Anda ke properti `components` dari objek konfigurasi `storyblok` di `astro.config.mjs`. Key adalah nama Blok di Storyblok, dan nilainya adalah path ke komponen relatif terhadap `src`.
+
+```js title="astro.config.mjs" ins={12-14}
+import { defineConfig } from 'astro/config';
+import { storyblok } from '@storyblok/astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'STORYBLOK');
+
+export default defineConfig({
+  integrations: [
+    storyblok({
+      accessToken: env.STORYBLOK_TOKEN,
+      components: {
+        blogPost: 'storyblok/BlogPost',
+        blogPostList: 'storyblok/BlogPostList',
+        page: 'storyblok/Page',
+      },
+      apiOptions: { 
+        region: 'us',
+      },
+    })
+  ],
+});
+```
+
+### Membuat halaman
+
+Untuk membuat rute untuk `page` tertentu, Anda dapat mengambil kontennya langsung dari API Storyblok dan meneruskannya ke komponen `StoryblokComponent`. Pastikan Anda telah menambahkan komponen `Page` ke `astro.config.mjs` Anda.
+
+Buat file `index.astro` di `src/pages/` untuk merender halaman `home`:
+
+```astro title="src/pages/index.astro" {3,7,8,9,17} 
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+import BaseLayout from '../layouts/BaseLayout.astro'
+
+const storyblokApi = useStoryblokApi();
+const { data } = await storyblokApi.get('cdn/stories/home', {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+const content = data.story.content;
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+Untuk membuat halaman bagi semua postingan blog Anda, buat halaman `.astro` yang akan menghasilkan rute dinamis. Pendekatan ini berbeda tergantung apakah rute Anda dibuat sebelumnya (prasetel / default di Astro) atau [dirender sesuai permintaan](/id/guides/on-demand-rendering/).
+
+#### Pembuatan situs statis
+
+Jika Anda menggunakan pembuatan situs statis default Astro, Anda akan menggunakan [rute dinamis](/id/guides/routing/#dynamic-routes) dan fungsi `getStaticPaths` untuk menghasilkan halaman proyek Anda.
+
+Buat direktori baru `src/pages/blog/` dan tambahkan file baru bernama `[...slug].astro` dengan kode berikut:
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+
+export async function getStaticPaths() {
+  const sbApi = useStoryblokApi();
+
+  const { data } = await sbApi.get("cdn/stories", {
+    content_type: "blogPost",
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+
+  const stories = Object.values(data.stories);
+
+  return stories.map((story) => {
+    return {
+      params: { slug: story.slug },
+    };
+  });
+}
+
+const sbApi = useStoryblokApi();
+const { slug } = Astro.params;
+const { data } = await sbApi.get(`cdn/stories/blog/${slug}`, {
+  version: import.meta.env.DEV ? "draft" : "published",
+});
+
+const story = data.story;
+---
+
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={story.content} />
+  </body>
+</html>
+```
+
+File ini akan menghasilkan satu halaman untuk setiap story, dengan slug dan konten yang diambil dari API Storyblok.
+
+:::note
+Saat menambahkan folder di dalam Storyblok, sertakan folder tersebut di slug saat berinteraksi dengan API Storyblok. Misalnya, pada permintaan GET di atas kita menggunakan **cdn/stories/blog**, dengan folder blog di dalamnya alih‑alih ditempatkan di root.
+:::
+
+#### Perenderan sesuai permintaan
+
+Jika Anda [merender rute sesuai permintaan dengan sebuah adapter](/id/guides/on-demand-rendering/), Anda akan menggunakan rute dinamis untuk mengambil data halaman dari Storyblok.
+
+Buat direktori baru `src/pages/blog/` dan tambahkan file baru bernama `[...slug].astro` dengan kode berikut:
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import { useStoryblokApi } from '@storyblok/astro'
+import StoryblokComponent from '@storyblok/astro/StoryblokComponent.astro'
+const storyblokApi = useStoryblokApi()
+const slug = Astro.params.slug;
+let content;
+try {
+  const { data } = await storyblokApi.get(`cdn/stories/blog/${slug}`, {
+    version: import.meta.env.DEV ? "draft" : "published",
+  });
+  content = data.story.content
+} catch (error) {
+  return Astro.redirect('/404')
+}
+---
+<html lang="en">
+  <head>
+    <title>Storyblok & Astro</title>
+  </head>
+  <body>
+    <StoryblokComponent blok={content} />
+  </body>
+</html>
+```
+
+File ini akan mengambil dan merender data halaman dari Storyblok yang cocok dengan parameter dinamis `slug`.
+
+Karena Anda menggunakan pengalihan ke `/404`, buat halaman 404 di `src/pages`: 
+
+```astro title="src/pages/404.astro"
+<html lang="en">
+  <head>
+    <title>Not found</title>
+  </head>
+  <body>
+    <p>Maaf, halaman ini tidak ada.</p>
+  </body>
+</html>
+```
+
+Jika story tidak ditemukan, permintaan akan dialihkan ke halaman 404.
+
+### Menerbitkan situs Anda
+
+Untuk menerapkan situs web Anda, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+#### Bangun ulang saat Storyblok berubah
+
+Jika proyek Anda menggunakan mode statis default Astro, Anda perlu menyiapkan webhook untuk memicu build baru saat konten Anda berubah. Jika Anda menggunakan Netlify atau Vercel sebagai penyedia hosting, Anda dapat menggunakan fitur webhook‑nya untuk memicu build baru dari event Storyblok. 
+
+##### Netlify
+
+Untuk menyiapkan webhook di Netlify:
+
+<Steps>
+1. Buka dasbor situs Anda dan klik **Build & deploy**. 
+
+2. Di tab **Continuous Deployment**, temukan bagian **Build hooks** dan klik **Add build hook**. 
+
+3. Beri nama webhook Anda dan pilih branch yang ingin Anda picu build‑nya. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Vercel
+
+Untuk menyiapkan webhook di Vercel:
+
+<Steps>
+1. Buka dasbor proyek Anda dan klik **Settings**. 
+
+2. Di tab **Git**, temukan bagian **Deploy Hooks**. 
+
+3. Beri nama webhook Anda dan branch yang ingin Anda picu build‑nya. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Menambahkan webhook ke Storyblok
+
+Di **Settings** space Storyblok Anda, klik tab **Webhooks**. Tempel URL webhook yang Anda salin pada kolom **Story published & unpublished** lalu tekan <kbd>Save</kbd> untuk membuat webhook.
+
+Sekarang, kapan pun Anda menerbitkan story baru, build baru akan dipicu dan blog Anda akan diperbarui.
+
+## Sumber Resmi
+
+- [Integrasi Storyblok Astro](https://www.storyblok.com/mp/announcing-storyblok-astro) untuk menambahkan Storyblok ke proyek Anda.
+- [Panduan Storyblok Astro](https://www.storyblok.com/docs/guides/astro/)
+- [Referensi paket Storyblok Astro](https://www.storyblok.com/docs/packages/storyblok-astro)
+
+## Sumber Daya Komunitas 
+
+- [Membuat Visual Editor bekerja untuk Storyblok + Astro](https://dev.to/sandrarodgers/getting-the-visual-editor-to-work-for-storyblok-astro-2gja) oleh Sandra Rodgers
+- [Astro + Storyblok: pratinjau SSR untuk penyuntingan visual instan](https://dev.to/jgierer12/astro-storyblok-ssr-preview-for-instant-visual-editing-3g9m) oleh Jonas Gierer
+- [Situs Pratinjau Astro‑Storyblok dengan fitur Branch Deploy Netlify](https://dev.to/sandrarodgers/astro-storyblok-previews-site-with-netlifys-branch-deploys-feature-44dh) oleh Sandra Rodgers

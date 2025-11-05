@@ -1,0 +1,719 @@
+---
+title: Actions
+description: Pelajari cara membuat fungsi server yang aman terhadap tipe (type-safe) yang dapat dipanggil dari mana saja.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astro Actions memungkinkan Anda mendefinisikan dan memanggil fungsi backend dengan jaminan tipe (type-safety). Actions akan melakukan pengambilan data, parsing JSON, dan validasi input untuk Anda. Ini dapat sangat mengurangi jumlah *boilerplate* dibandingkan menggunakan [API endpoint](/id/guides/endpoints/).
+
+Gunakan actions alih-alih endpoint API untuk komunikasi mulus antara kode klien dan server Anda, serta untuk:
+
+- Memvalidasi input JSON dan data formulir secara otomatis menggunakan [Zod validation](https://zod.dev/?id=primitives).
+- Menghasilkan fungsi yang aman terhadap tipe untuk memanggil backend dari klien dan bahkan [dari aksi formulir HTML](#call-actions-from-an-html-form-action). Tidak perlu pemanggilan `fetch()` manual.
+- Menstandarkan error backend dengan objek [`ActionError`](/id/reference/modules/astro-actions/#actionerror).
+
+## Basic usage
+
+Actions didefinisikan dalam sebuah objek `server` yang diekspor dari `src/actions/index.ts`:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+Actions Anda tersedia sebagai fungsi dari modul `astro:actions`. Impor `actions` dan panggil di sisi klien dalam [komponen UI framework](/id/guides/framework-components/), [permintaan POST formulir](#call-actions-from-an-html-form-action), atau menggunakan tag `<script>` di komponen Astro.
+
+Saat Anda memanggil sebuah action, action tersebut mengembalikan objek dengan `data` yang berisi hasil yang diserialisasi ke JSON, atau `error` yang berisi error yang dilempar.
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### Write your first action
+
+Ikuti langkah berikut untuk mendefinisikan sebuah action dan memanggilnya dalam tag `script` di halaman Astro Anda.
+
+<Steps>
+
+1. Buat berkas `src/actions/index.ts` dan ekspor sebuah objek `server`.
+
+    ```ts title="src/actions/index.ts"
+    export const server = {
+      // action declarations
+    }
+    ```
+
+2. Impor utilitas `defineAction()` dari `astro:actions`, dan objek `z` dari `astro:schema`.
+
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      // action declarations
+    }
+    ```
+
+3. Gunakan utilitas `defineAction()` untuk mendefinisikan action `getGreeting`. Properti `input` akan digunakan untuk memvalidasi parameter input dengan skema [Zod](https://zod.dev), dan fungsi `handler()` berisi logika backend yang berjalan di server.
+
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Hello, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4. Buat komponen Astro dengan sebuah tombol yang akan mengambil sapaan menggunakan action `getGreeting` saat diklik.
+
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Tampilkan pop-up alert dengan sapaan dari action
+    });
+    </script>
+    ```
+
+5. Untuk menggunakan action Anda, impor `actions` dari `astro:actions` lalu panggil `actions.getGreeting()` di *click handler*. Opsi `name` akan dikirim ke `handler()` action Anda di server dan, jika tidak ada error, hasilnya tersedia pada properti `data`.
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Tampilkan pop-up alert dengan sapaan dari action
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>Lihat dokumentasi lengkap API Actions untuk detail [`defineAction()`](/id/reference/modules/astro-actions/#defineaction) dan propertinya.</ReadMore>
+
+## Organizing actions
+
+Semua action di proyek Anda harus diekspor dari objek `server` di berkas `src/actions/index.ts`. Anda dapat mendefinisikan action secara *inline* atau memindahkan definisi ke berkas terpisah dan mengimpornya. Anda bahkan dapat mengelompokkan fungsi terkait dalam objek bertingkat (nested).
+
+Sebagai contoh, untuk menempatkan semua *user actions* di satu tempat, Anda dapat membuat berkas `src/actions/user.ts` dan menumpuk definisi `getUser` dan `createUser` di dalam satu objek `user`.
+
+```ts title="src/actions/user.ts"
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+Lalu, impor objek `user` ini ke `src/actions/index.ts` dan tambahkan sebagai *top-level key* pada objek `server` bersama action lainnya:
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+Sekarang, seluruh *user actions* Anda dapat dipanggil dari objek `actions.user`:
+
+- `actions.user.getUser()`
+- `actions.user.createUser()`
+
+
+## Handling returned data
+
+Actions mengembalikan objek yang berisi `data` dengan nilai *type-safe* dari `handler()` Anda, atau `error` dengan error backend apa pun. Error dapat berasal dari error validasi pada properti `input` atau error yang dilempar di dalam `handler()`.
+
+Actions mengembalikan format data kustom yang dapat menangani Date, Map, Set, dan URL [menggunakan pustaka Devalue](https://github.com/Rich-Harris/devalue). Oleh karena itu, Anda tidak dapat dengan mudah menginspeksi respons dari *network* seperti JSON biasa. Untuk *debugging*, Anda bisa menginspeksi objek `data` yang dikembalikan oleh actions.
+
+<ReadMore>[Lihat referensi API `handler()`](/id/reference/modules/astro-actions/#handler-property) untuk detail lengkap.</ReadMore>
+
+### Checking for errors
+
+Sebaiknya periksa apakah ada `error` sebelum menggunakan properti `data`. Ini memungkinkan Anda menangani error lebih awal dan memastikan `data` terdefinisi tanpa perlu pengecekan `undefined`.
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // tangani kasus error
+  return;
+}
+// gunakan `data`
+```
+
+### Accessing `data` directly without an error check
+
+Untuk melewati penanganan error—misalnya saat *prototyping* atau menggunakan pustaka yang akan menangkap error untuk Anda—gunakan properti `.orThrow()` pada pemanggilan action untuk melempar error alih-alih mengembalikan `error`. Ini akan mengembalikan `data` action secara langsung.
+
+Contoh berikut memanggil action `likePost()` yang mengembalikan jumlah *likes* yang diperbarui sebagai `number` dari `handler` action:
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ type: number
+```
+
+### Handling backend errors in your action
+
+Anda dapat menggunakan `ActionError` untuk melempar error dari `handler()` action Anda, seperti "not found" saat entri database tidak ada, atau "unauthorized" saat pengguna belum masuk. Ini memiliki dua manfaat utama dibanding mengembalikan `undefined`:
+
+- Anda dapat menyetel *status code* seperti `404 - Not found` atau `401 - Unauthorized`. Ini meningkatkan *debugging* baik saat pengembangan maupun produksi dengan menampilkan *status code* setiap permintaan.
+- Di kode aplikasi Anda, semua error diteruskan ke objek `error` pada hasil action. Ini menghindari kebutuhan pengecekan `undefined` pada data, dan memungkinkan Anda menampilkan umpan balik yang tepat kepada pengguna tergantung apa yang terjadi.
+
+#### Creating an `ActionError`
+
+Untuk melempar error, impor kelas `ActionError()` dari modul `astro:actions`. Berikan *status code* yang mudah dibaca (mis. `"NOT_FOUND"` atau `"BAD_REQUEST"`) dan *message* opsional untuk informasi lebih lanjut.
+
+Contoh berikut melempar error dari action `likePost` saat pengguna belum masuk, setelah memeriksa cookie "user-session" untuk autentikasi:
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro:schema";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // Otherwise, like the post
+    },
+  }),
+};
+```
+
+#### Handling an `ActionError`
+
+Untuk menangani error ini, panggil action dari aplikasi Anda dan periksa apakah properti `error` ada. Properti ini bertipe `ActionError` dan berisi `code` serta `message` Anda.
+
+Pada contoh berikut, komponen `LikeButton.tsx` memanggil action `likePost()` saat diklik. Jika terjadi error autentikasi, atribut `error.code` digunakan untuk menentukan apakah perlu menampilkan tautan login:
+
+```tsx title=src/components/LikeButton.tsx ins="if (error?.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Log in to like a post.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // Early return for unexpected errors
+        else if (error) return;
+        // update likes
+      }}>
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+### Handling client redirects
+
+Saat memanggil actions dari klien, Anda dapat berintegrasi dengan pustaka *client-side* seperti `react-router`, atau menggunakan fungsi [`navigate()`](/id/guides/view-transitions/#trigger-navigation) milik Astro untuk mengalihkan ke halaman baru ketika action berhasil.
+
+Contoh berikut menavigasi ke beranda setelah action `logout` berhasil:
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Logout
+    </button>
+  );
+}
+```
+
+## Accepting form data from an action
+
+Actions menerima data JSON secara bawaan. Untuk menerima data formulir dari HTML form, set `accept: 'form'` pada pemanggilan `defineAction()` Anda:
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### Validating form data
+
+Actions akan mengurai data formulir yang dikirim menjadi sebuah objek, menggunakan nilai atribut `name` dari tiap input sebagai *key* objek. Misalnya, formulir berisi `<input name="search">` akan diurai menjadi objek seperti `{ search: 'user input' }`. Skema `input` action Anda akan digunakan untuk memvalidasi objek ini.
+
+Untuk menerima objek `FormData` mentah di *handler* action Anda alih-alih objek hasil *parse*, hilangkan properti `input` pada definisi action.
+
+Contoh berikut menunjukkan formulir pendaftaran *newsletter* tervalidasi yang menerima email pengguna dan mewajibkan centang persetujuan "terms of service".
+
+<Steps>
+
+1. Buat komponen formulir HTML dengan atribut `name` unik pada setiap input:
+
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+    ```
+
+2. Definisikan action `newsletter` untuk menangani formulir yang dikirim. Validasi field `email` menggunakan validator `z.string().email()`, dan checkbox `terms` menggunakan `z.boolean()`:
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro:schema';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>Lihat referensi API [`input`](/id/reference/modules/astro-actions/#input-validator) untuk semua validator formulir yang tersedia.</ReadMore>
+
+3. Tambahkan `<script>` ke formulir HTML untuk mengirim masukan pengguna. Contoh ini menimpa perilaku submit bawaan formulir untuk memanggil `actions.newsletter()`, dan mengalihkan ke `/confirmation` menggunakan fungsi `navigate()`:
+
+    ```astro title=src/components/Newsletter.astro ins={11-22} collapse={2-8}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>Lihat [“Panggil actions dari aksi formulir HTML”](#call-actions-from-an-html-form-action) untuk cara alternatif mengirim data formulir.</ReadMore>
+
+</Steps>
+
+### Displaying form input errors
+
+Anda dapat memvalidasi input formulir sebelum pengiriman menggunakan [atribut validasi formulir HTML bawaan](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) seperti `required`, `type="email"`, dan `pattern`. Untuk validasi `input` yang lebih kompleks di backend, Anda dapat menggunakan fungsi utilitas [`isInputError()`](/id/reference/modules/astro-actions/#isinputerror).
+
+Untuk mengambil error input, gunakan utilitas `isInputError()` untuk memeriksa apakah error disebabkan oleh input tidak valid. Error input berisi objek `fields` dengan pesan untuk setiap *input name* yang gagal divalidasi. Anda dapat menggunakan pesan ini untuk meminta pengguna memperbaiki *submission*-nya.
+
+Contoh berikut memeriksa error dengan `isInputError()`, lalu memeriksa apakah error ada pada field email, sebelum akhirnya membuat pesan dari error tersebut. Anda dapat menggunakan manipulasi DOM JavaScript atau UI framework pilihan Anda untuk menampilkan pesan ini ke pengguna.
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // Tangani error input.
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
+
+## Call actions from an HTML form action
+
+:::note
+Halaman harus di-*render* on-demand saat memanggil actions menggunakan aksi formulir. [Pastikan prerendering dinonaktifkan pada halaman](/id/guides/on-demand-rendering/#enabling-on-demand-rendering) sebelum menggunakan API ini.
+:::
+
+Anda dapat mengaktifkan *zero-JS form submission* dengan atribut standar pada elemen `<form>` apa pun. Pengiriman formulir tanpa JavaScript sisi klien berguna baik sebagai *fallback* saat JavaScript gagal dimuat, atau jika Anda lebih suka menangani formulir sepenuhnya dari server.
+
+Memanggil [Astro.getActionResult()](/id/reference/api-reference/#getactionresult) di server akan mengembalikan hasil pengiriman formulir Anda (`data` atau `error`), dan dapat digunakan untuk *redirect* dinamis, menangani error formulir, memperbarui UI, dan lainnya.
+
+Untuk memanggil action dari HTML form, tambahkan `method="POST"` ke `<form>` Anda, lalu atur atribut `action` formulir menggunakan action Anda, misalnya `action={actions.logout}`. Ini akan menyetel atribut `action` untuk menggunakan *query string* yang ditangani server secara otomatis.
+
+Sebagai contoh, komponen Astro ini memanggil action `logout` ketika tombol diklik dan memuat ulang halaman saat ini:
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+Atribut tambahan pada elemen `<form>` mungkin diperlukan untuk validasi skema yang tepat dengan Zod. Misalnya, untuk menyertakan unggahan berkas, tambahkan `enctype="multipart/form-data"` agar berkas dikirim dalam format yang dikenali dengan benar oleh `z.instanceof(File)`:
+
+```astro title="src/components/FileUploadForm.astro"
+---
+import { actions } from 'astro:actions';
+---
+<form method="POST" action={actions.upload} enctype="multipart/form-data" >
+  <label for="file">Upload File</label>
+  <input type="file" id="file" name="file" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+### Redirect on action success
+
+Jika Anda perlu *redirect* ke rute baru saat berhasil, Anda dapat menggunakan hasil action di server. Contoh umum adalah membuat *product record* dan mengarahkan ke halaman produk baru, mis. `/products/[id]`.
+
+Misalnya, Anda memiliki action `createProduct` yang mengembalikan id produk yang dihasilkan:
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Anda dapat mengambil hasil action dari komponen Astro Anda dengan memanggil `Astro.getActionResult()`. Ini mengembalikan objek yang berisi properti `data` atau `error` ketika sebuah action dipanggil, atau `undefined` jika action tidak dipanggil selama permintaan ini.
+
+Gunakan properti `data` untuk menyusun URL yang akan digunakan dengan `Astro.redirect()`:
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### Handle form action errors
+
+Memanggil `Astro.getActionResult()` di komponen Astro yang berisi formulir memberi Anda akses ke objek `data` dan `error` untuk penanganan error khusus.
+
+Contoh berikut menampilkan pesan kegagalan umum ketika action `newsletter` gagal:
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+Untuk kustomisasi lebih lanjut, Anda dapat [menggunakan utilitas `isInputError()`](#displaying-form-input-errors) untuk memeriksa apakah error disebabkan oleh input tidak valid.
+
+Contoh berikut merender *banner* error di bawah input `email` ketika email tidak valid dikirimkan:
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
+</form>
+```
+
+#### Preserve input values on error
+
+Input akan dikosongkan setiap kali formulir dikirim. Untuk mempertahankan nilai input, Anda dapat [mengaktifkan *view transitions*](/id/guides/view-transitions/#enabling-view-transitions-spa-mode) dan menerapkan direktif `transition:persist` pada setiap input:
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### Update the UI with a form action result
+
+Untuk menggunakan nilai kembalian action guna menampilkan notifikasi kepada pengguna saat berhasil, oper action ke `Astro.getActionResult()`. Gunakan properti `data` yang dikembalikan untuk merender UI yang ingin Anda tampilkan.
+
+Contoh ini menggunakan properti `productName` yang dikembalikan oleh action `addToCart` untuk menampilkan pesan sukses.
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Added {result.data.productName} to cart</p>
+)}
+
+<!--...-->
+```
+
+### Advanced: Persist action results with a session
+
+<p><Since v="5.0.0" /></p>
+
+Hasil action ditampilkan sebagai kiriman POST. Ini berarti hasil akan direset menjadi `undefined` ketika pengguna menutup dan mengunjungi kembali halaman. Pengguna juga akan melihat dialog "confirm form resubmission?" jika mereka mencoba memuat ulang halaman.
+
+Untuk menyesuaikan perilaku ini, Anda dapat menambahkan middleware untuk menangani hasil action secara manual. Anda dapat memilih untuk mempertahankan hasil action menggunakan cookie atau penyimpanan sesi.
+
+Mulailah dengan [membuat berkas middleware](/id/guides/middleware/) dan mengimpor [fungsi `getActionContext()`](/id/reference/modules/astro-actions/#getactioncontext) dari `astro:actions`. Fungsi ini mengembalikan objek `action` dengan informasi tentang permintaan action yang masuk, termasuk *handler* action dan apakah action dipanggil dari HTML form. `getActionContext()` juga mengembalikan fungsi `setActionResult()` dan `serializeActionResult()` untuk menyetel nilai yang dikembalikan oleh `Astro.getActionResult()` secara terprogram:
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... handle the action result
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+Praktik umum untuk mempertahankan hasil HTML form adalah pola [POST / Redirect / GET](https://en.wikipedia.org/wiki/Post/Redirect/Get). *Redirect* ini menghapus dialog "confirm form resubmission?" saat halaman dimuat ulang, dan memungkinkan hasil action dipertahankan sepanjang sesi pengguna.
+
+Contoh berikut menerapkan pola POST / Redirect / GET ke semua pengiriman formulir menggunakan penyimpanan sesi dengan *adapter* server Netlify terpasang. Hasil action ditulis ke penyimpanan sesi menggunakan [Netlify Blob](https://docs.netlify.com/blobs/overview/), dan diambil setelah *redirect* menggunakan session ID:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // Lewati permintaan untuk halaman yang sudah di-prerender
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Buat Blob store untuk mempertahankan hasil action dengan Netlify Blob
+  const actionStore = getStore("action-session");
+  
+  // Jika hasil action diteruskan sebagai cookie, set hasilnya
+  // agar dapat diakses dari `Astro.getActionResult()`
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // Opsional: hapus sesi setelah halaman dirender.
+    // Silakan terapkan strategi persistensi Anda sendiri
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // Jika action dipanggil dari aksi HTML form,
+  // panggil handler action dan redirect ke halaman tujuan
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // Pertahankan hasil action menggunakan penyimpanan sesi
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // Teruskan session ID sebagai cookie
+    // untuk diambil setelah melakukan redirect ke halaman
+    context.cookies.set("action-session-id", sessionId);
+  
+    // Redirect kembali ke halaman sebelumnya saat terjadi error
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // Redirect ke halaman tujuan saat sukses
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## Security when using actions
+
+Actions dapat diakses sebagai endpoint publik berdasarkan nama action. Misalnya, action `blog.like()` akan dapat diakses dari `/_actions/blog.like`. Ini berguna untuk *unit testing* hasil action dan *debugging* error di produksi. Namun, ini berarti Anda **harus** menggunakan pemeriksaan otorisasi yang sama seperti yang Anda terapkan untuk API endpoint dan halaman yang dirender on-demand.
+
+### Authorize users from an action handler
+
+Untuk mengotorisasi permintaan action, tambahkan pemeriksaan autentikasi ke *handler* action Anda. Anda mungkin ingin menggunakan [pustaka autentikasi](/id/guides/authentication/) untuk menangani manajemen sesi dan informasi pengguna.
+
+Actions mengekspos seluruh objek `APIContext` untuk mengakses properti yang diteruskan dari middleware menggunakan `context.locals`. Ketika pengguna tidak berwenang, Anda dapat menaikkan `ActionError` dengan kode `UNAUTHORIZED`:
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
+
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* data on success */ };
+    }
+  })
+}
+```
+
+### Gate actions from middleware
+
+<p><Since v="5.0.0" /></p>
+
+Astro merekomendasikan mengotorisasi sesi pengguna dari *handler* action untuk menghormati level izin dan *rate-limiting* per action. Namun, Anda juga dapat membatasi permintaan ke semua action (atau sebagian) dari middleware.
+
+Gunakan fungsi `getActionContext()` dari middleware Anda untuk mengambil informasi tentang permintaan action yang masuk. Ini termasuk nama action dan apakah action tersebut dipanggil menggunakan fungsi RPC sisi klien (mis. `actions.blog.like()`) atau HTML form.
+
+Contoh berikut menolak semua permintaan action yang tidak memiliki token sesi yang valid. Jika pemeriksaan gagal, respons "Forbidden" dikembalikan. Catatan: metode ini memastikan bahwa actions hanya dapat diakses ketika sesi hadir, tetapi *bukan* pengganti otorisasi yang aman.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // Periksa apakah action dipanggil dari fungsi sisi klien
+  if (action?.calledFrom === 'rpc') {
+    // Jika ya, periksa token sesi pengguna
+    if (!context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* session token */);
+  return next();
+});
+```
+
+## Call actions from Astro components and server endpoints
+
+Anda dapat memanggil actions langsung dari skrip komponen Astro menggunakan *wrapper* `Astro.callAction()` (atau `context.callAction()` saat menggunakan [server endpoint](/id/guides/endpoints/#server-endpoints-api-routes)). Ini umum dilakukan untuk menggunakan kembali logika dari actions Anda di kode server lainnya.
+
+Oper action sebagai argumen pertama dan parameter input apa pun sebagai argumen kedua. Ini mengembalikan objek `data` dan `error` yang sama seperti saat memanggil actions di sisi klien:
+
+```astro title="src/pages/products.astro" {6}
+---
+import { actions } from 'astro:actions';
+
+const searchQuery = Astro.url.searchParams.get('search');
+if (searchQuery) {
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
+  // handle result
+}
+---
+```

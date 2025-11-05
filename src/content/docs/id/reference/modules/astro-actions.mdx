@@ -1,0 +1,346 @@
+---
+title: Actions API Reference
+sidebar:
+  label: 'astro:actions'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Actions membantu Anda membangun backend yang aman tipe (type-safe) yang bisa dipanggil dari kode klien dan formulir HTML. Semua utilitas untuk mendefinisikan dan memanggil action diekspos oleh modul `astro:actions`. Untuk contoh dan petunjuk penggunaan, [lihat panduan Actions](/id/guides/actions/).
+
+## Impor dari `astro:actions`
+
+```js
+import { 
+  actions,
+  defineAction,
+  isInputError,
+  isActionError,
+  ActionError,
+ } from 'astro:actions';
+```
+
+### `defineAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Utilitas `defineAction()` digunakan untuk mendefinisikan action baru dari berkas `src/actions/index.ts`. Fungsi ini menerima fungsi [`handler()`](#handler-property) yang berisi logika server untuk dijalankan, dan properti opsional [`input`](#input-validator) untuk memvalidasi parameter masukan saat runtime.
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  getGreeting: defineAction({
+    input: z.object({
+      name: z.string(),
+    }),
+    handler: async (input, context) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
+
+#### Properti `handler()`
+
+<p>
+
+**Tipe:** `(input, context) => any`
+</p>
+
+`defineAction()` mewajibkan fungsi `handler()` yang berisi logika server untuk dijalankan ketika action dipanggil. Data yang dikembalikan dari handler akan otomatis diserialisasi dan dikirim ke pemanggil.
+
+`handler()` dipanggil dengan masukan pengguna sebagai argumen pertama. Jika validator [`input`](#input-validator) disetel, masukan pengguna akan divalidasi sebelum diteruskan ke handler. Argumen kedua adalah objek `context` yang berisi sebagian besar [context endpoint standar](/id/reference/api-reference/) milik Astro, kecuali `getActionResult()`, `callAction()`, dan `redirect()`.
+
+Nilai kembalian diurai menggunakan [perpustakaan devalue](https://github.com/Rich-Harris/devalue). Ini mendukung nilai JSON dan instance `Date()`, `Map()`, `Set()`, dan `URL()`.
+
+#### Validator `input`
+
+<p>
+
+**Tipe:** `ZodType | undefined`
+</p>
+
+Properti opsional `input` menerima validator Zod (mis. objek Zod, union terdiferensiasi Zod) untuk memvalidasi masukan handler saat runtime. Jika validasi gagal, akan dikembalikan [error `BAD_REQUEST`](#actionerror) dan `handler` tidak akan dipanggil.
+
+Jika `input` diabaikan, `handler` akan menerima masukan bertipe `unknown` untuk permintaan JSON dan bertipe `FormData` untuk permintaan formulir.
+
+##### Penggunaan dengan `accept: 'form'`
+
+Jika action Anda menerima masukan dari formulir, gunakan validator `z.object()` untuk secara otomatis mengurai data formulir menjadi objek bertipe. Semua validator Zod didukung untuk field formulir (mis. `z.coerce.date()`). Astro juga menyediakan penanganan khusus di balik layar untuk memudahkan validasi tipe berikut:
+
+- Input bertipe `number` dapat divalidasi menggunakan `z.number()`
+- Input bertipe `checkbox` dapat divalidasi menggunakan `z.coerce.boolean()`
+- Input bertipe `file` dapat divalidasi menggunakan `z.instanceof(File)`
+- Beberapa input dengan `name` yang sama dapat divalidasi menggunakan `z.array(/* validator */)`
+- Semua input lainnya dapat divalidasi menggunakan `z.string()`
+
+Fungsi ekstensi termasuk `.refine()`, `.transform()`, dan `.pipe()` juga didukung pada validator `z.object()`.
+
+Untuk menerapkan union beberapa validator, gunakan pembungkus `z.discriminatedUnion()` untuk mempersempit tipe berdasarkan field formulir tertentu. Contoh ini menerima kiriman formulir untuk “create” atau “update” pengguna, menggunakan field formulir bernama `type` untuk menentukan objek mana yang divalidasi:
+
+```ts
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // Cocok ketika field `type` bernilai `create`
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // Cocok ketika field `type` bernilai `update`
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input adalah { type: 'create', name: string, email: string }
+      } else {
+        // input adalah { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
+
+### `isInputError()`
+
+<p>
+
+**Tipe:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+Utilitas `isInputError()` digunakan untuk memeriksa apakah sebuah `ActionError` merupakan error validasi input. Ketika validator `input` adalah `z.object()`, error input menyertakan objek `fields` dengan pesan error yang dikelompokkan berdasarkan nama.
+
+<ReadMore>Lihat [panduan error input formulir](/id/guides/actions/#displaying-form-input-errors) untuk penggunaan `isInputError()`.</ReadMore>
+
+### `isActionError()`
+
+<p>
+
+**Tipe:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
+<Since v="4.15.0" />
+</p>
+
+Utilitas `isActionError()` digunakan untuk memeriksa apakah action Anda melempar `ActionError` di dalam [properti handler](/id/reference/modules/astro-actions/#handler-property). Ini berguna untuk mempersempit tipe error generik di dalam blok `try / catch`.
+
+
+### `ActionError`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Konstruktor `ActionError()` digunakan untuk membuat error yang dilempar oleh `handler` action. Ini menerima properti `code` yang menggambarkan error yang terjadi (contoh: `"UNAUTHORIZED"`), dan properti opsional `message` dengan detail tambahan.
+
+#### `code`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Properti `code` menerima versi yang mudah dibaca manusia dari semua kode status HTTP. Kode berikut didukung:
+
+- `BAD_REQUEST` (400): Klien mengirim masukan yang tidak valid. Error ini dilempar ketika validator `input` gagal.
+- `UNAUTHORIZED` (401): Klien tidak memiliki kredensial autentikasi yang valid.
+- `FORBIDDEN` (403): Klien tidak diizinkan mengakses resource.
+- `NOT_FOUND` (404): Server tidak dapat menemukan resource yang diminta.
+- `METHOD_NOT_SUPPORTED` (405): Server tidak mendukung metode yang diminta.
+- `TIMEOUT` (408): Server habis waktu saat memproses permintaan.
+- `CONFLICT` (409): Server tidak dapat memperbarui resource karena konflik.
+- `PRECONDITION_FAILED` (412): Server tidak memenuhi prasyarat permintaan.
+- `PAYLOAD_TOO_LARGE` (413): Server tidak dapat memproses permintaan karena payload terlalu besar.
+- `UNSUPPORTED_MEDIA_TYPE` (415): Server tidak mendukung tipe media permintaan. Catatan: Actions sudah memeriksa [header `Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) untuk permintaan JSON dan formulir, sehingga Anda kemungkinan tidak perlu mengajukan kode ini secara manual.
+- `UNPROCESSABLE_CONTENT` (422): Server tidak dapat memproses permintaan karena kesalahan semantik.
+- `TOO_MANY_REQUESTS` (429): Server telah melampaui batas laju permintaan.
+- `CLIENT_CLOSED_REQUEST` (499): Klien menutup permintaan sebelum server dapat merespons.
+- `INTERNAL_SERVER_ERROR` (500): Server gagal secara tak terduga.
+- `NOT_IMPLEMENTED` (501): Server tidak mendukung fitur yang diminta.
+- `BAD_GATEWAY` (502): Server menerima respons tidak valid dari server hulu.
+- `SERVICE_UNAVAILABLE` (503): Server sementara tidak tersedia.
+- `GATEWAY_TIMEOUT` (504): Server menerima batas waktu dari server hulu.
+
+#### `message`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+Properti `message` menerima string. (mis. "Pengguna harus masuk.")
+
+### `getActionContext()`
+
+<p>
+
+**Tipe:** `(context: APIContext) => ActionMiddlewareContext`
+<Since v="5.0.0" />
+</p>
+
+`getActionContext()` adalah fungsi yang dipanggil dari handler middleware Anda untuk mengambil informasi tentang permintaan action yang masuk. 
+
+Fungsi ini mengembalikan objek `action` berisi informasi tentang permintaan, serta fungsi `setActionResult()` dan `serializeActionResult()` untuk mengatur nilai yang dikembalikan oleh `Astro.getActionResult()` secara terprogram.
+
+`getActionContext()` memungkinkan Anda mendapatkan dan menetapkan hasil action lewat middleware, sehingga Anda bisa menyimpan hasil action dari formulir HTML, membatasi permintaan action dengan pemeriksaan keamanan tambahan, dan lainnya.
+
+```ts title="src/middleware.ts" {5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+#### `action`
+
+<p>
+
+**Tipe:** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+</p>
+
+`action` adalah objek yang berisi informasi tentang permintaan action yang masuk.
+
+ Objek ini tersedia dari `getActionContext()`, dan menyediakan nama action, handler, serta apakah action dipanggil dari fungsi RPC sisi klien (mis. `actions.newsletter()`) atau dari action formulir HTML.
+
+```ts title="src/middleware.ts" {6}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'rpc' && action.name.startsWith('private')) {
+    // Periksa token sesi yang valid
+  }
+  // ...
+});
+```
+
+#### `setActionResult()`
+
+<p>
+
+**Tipe:** `(actionName: string, actionResult: SerializedActionResult) => void`
+</p>
+
+`setActionResult()` adalah fungsi untuk menetapkan nilai yang dikembalikan oleh `Astro.getActionResult()` di middleware secara terprogram. Fungsi ini menerima nama action dan hasil action yang diserialisasi oleh [`serializeActionResult()`](#serializeactionresult).
+
+Ini berguna saat memanggil action dari formulir HTML untuk menyimpan dan memuat hasil dari sesi.
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... tangani hasil action
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+<ReadMore>Lihat [panduan sesi lanjutan](/id/guides/actions/#advanced-persist-action-results-with-a-session) untuk contoh implementasi menggunakan Netlify Blob.</ReadMore>
+
+#### `serializeActionResult()`
+
+<p>
+
+**Tipe:** `(result: SafeResult<any, any>) => SerializedActionResult`
+</p>
+
+`serializeActionResult()` akan men-serialisasi hasil action ke JSON untuk penyimpanan. Ini diperlukan untuk menangani nilai hasil yang bukan JSON seperti `Map` atau `Date` serta objek `ActionError`.
+
+Panggil fungsi ini saat men-serialisasi hasil action yang akan diteruskan ke `setActionResult()`:
+
+```ts title="src/middleware.ts" {8}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action) {
+    const result = await action.handler();
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  // ...
+});
+```
+
+#### `deserializeActionResult()`
+
+<p>
+
+**Tipe:** `(result: SerializedActionResult) => SafeResult<any, any>`
+</p>
+
+`deserializeActionResult()` akan membalik efek `serializeActionResult()` dan mengembalikan hasil action ke keadaan aslinya. Ini berguna untuk mengakses objek `data` dan `error` pada hasil action yang telah diserialisasi.
+
+### `getActionPath()`
+
+<p>
+
+**Tipe:** `(action: ActionClient<any, any, any>) => string`
+<Since v="5.1.0" />
+</p>
+
+Utilitas `getActionPath()` menerima sebuah action dan mengembalikan path URL sehingga Anda dapat mengeksekusi pemanggilan action sebagai operasi `fetch()` langsung. Ini memungkinkan Anda memberi detail seperti header kustom saat memanggil action. Kemudian, Anda bisa [menangani data hasil yang dikembalikan](/id/guides/actions/#handling-returned-data) sesuai kebutuhan, seperti ketika memanggil action secara langsung.
+
+Contoh berikut menunjukkan cara memanggil action terdefinisi `like` sambil mengirim header `Authorization` dan opsi [`keepalive`](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive):
+
+```astro title="src/components/my-component.astro" {8,11}
+<script>
+import { actions, getActionPath } from 'astro:actions'
+
+await fetch(getActionPath(actions.like), {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: 'Bearer YOUR_TOKEN'
+  },
+  body: JSON.stringify({ id: 'YOUR_ID' }),
+  keepalive: true
+})
+</script>
+```
+
+Contoh ini menunjukkan cara memanggil action `like` yang sama menggunakan API [`sendBeacon`](https://developer.mozilla.org/en-US/docs/Web/API/Navigator/sendBeacon):
+
+```astro title="src/components/my-component.astro" {5} "sendBeacon"
+<script>
+import { actions, getActionPath } from 'astro:actions'
+
+navigator.sendBeacon(
+  getActionPath(actions.like),
+  new Blob([JSON.stringify({ id: 'YOUR_ID' })], {
+    type: 'application/json'
+  })
+)
+</script>
+```

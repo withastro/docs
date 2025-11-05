@@ -1,0 +1,877 @@
+---
+title: API font eksperimental
+sidebar:
+  label: Fonts
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+
+**Type:** `FontFamily[]`<br />
+<Since v="5.7.0" />
+</p>
+
+Fitur eksperimental ini memungkinkan Anda menggunakan font dari filesystem dan berbagai penyedia font (mis. Google, Fontsource, Bunny) melalui API yang terpadu, sepenuhnya dapat dikustomisasi, dan bertipe aman (type-safe).
+
+Web font dapat memengaruhi performa halaman baik saat pemuatan maupun perenderan. API ini membantu menjaga performa situs Anda dengan otomatis melakukan [optimasi web font](https://web.dev/learn/performance/optimize-web-fonts) termasuk tautan preload, fallback yang dioptimalkan, dan default yang terkurasi. [Lihat contoh penggunaan umum](#usage-examples).
+
+Fonts API berfokus pada performa dan privasi dengan mengunduh dan melakukan cache font sehingga disajikan dari situs Anda. Ini dapat menghindari pengiriman data pengguna ke situs pihak ketiga, dan juga memastikan satu set font yang konsisten tersedia untuk semua pengunjung Anda.
+
+Untuk mengaktifkan fitur ini, konfigurasikan objek `experimental.fonts` dengan minimal satu font:
+
+```js title="astro.config.mjs" ins={5-9} ins=" fontProviders "
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: fontProviders.google(),
+            name: "Roboto",
+            cssVariable: "--font-roboto"
+        }]
+    }
+});
+```
+
+Lalu, tambahkan komponen `<Font />` dan styling tingkat situs di `<head>`:
+
+```astro title="src/components/Head.astro" ins={2,5,8-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable='--font-roboto' preload />
+
+<style>
+body {
+    font-family: var(--font-roboto);
+}
+</style>
+```
+
+## Penggunaan
+
+<Steps>
+
+1. `experimental.fonts` menerima array objek font. Untuk setiap font, Anda harus menentukan `provider`, `name` (keluarga font), dan mendefinisikan `cssVariable` untuk mereferensikan font Anda.
+
+    - [`provider`](#provider): Anda dapat memilih dari daftar [penyedia remote bawaan](#available-remote-font-providers), membuat [penyedia font kustom](#build-your-own-font-provider), atau menggunakan [penyedia lokal](#local-font-variants) untuk mendaftarkan file font lokal.
+    - [`name`](#name): Pilih keluarga font yang didukung oleh penyedia Anda.
+    - [`cssVariable`](#cssvariable-1): Harus berupa [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) yang valid dalam bentuk variabel CSS.
+
+    Contoh berikut mengonfigurasi ["Roboto" dari Google Fonts](https://fonts.google.com/specimen/Roboto):
+
+    ```js title="astro.config.mjs" ins={4-10} ins="fontProviders"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      experimental: {
+        fonts: [{
+          provider: fontProviders.google(),
+          name: "Roboto",
+          cssVariable: "--font-roboto"
+        }]
+      }
+    });
+    ```
+
+    Opsi konfigurasi lainnya, seperti mendefinisikan [keluarga font fallback](#fallbacks) dan [`weights`](#weights) serta [`styles`](#styles) yang akan diunduh, tersedia dan beberapa akan bergantung pada penyedia yang Anda pilih.
+    
+    Lihat [referensi konfigurasi](#font-configuration-reference) untuk detail lengkap.
+
+2. Terapkan gaya menggunakan komponen `<Font />`. Komponen ini harus diimpor dan ditambahkan ke `<head>` halaman Anda. Memberikan [`cssVariable`](#cssvariable) font adalah wajib, dan Anda juga bisa [meng-output tautan preload](#preload):
+
+    ```astro title="src/components/Head.astro" ins={2, 5}
+    ---
+    import { Font } from 'astro:assets';
+    ---
+
+    <Font cssVariable="--font-roboto" preload />
+    ```
+
+    Ini biasanya dilakukan di komponen seperti `Head.astro` yang digunakan pada layout situs bersama.
+
+    <ReadMore>Lihat referensi lengkap komponen [`<Font>`](#font--component-reference) untuk info lebih lanjut.</ReadMore>
+
+    Karena komponen `<Font />` menghasilkan CSS dengan deklarasi font, Anda dapat mereferensikan keluarga font menggunakan `cssVariable`:
+
+    <Tabs>
+
+    <TabItem label="CSS">
+
+    ```css ins={3}
+    <style>
+    body {
+        font-family: var(--font-roboto);
+    }
+    </style>
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import 'tailwindcss';
+
+    @theme inline {
+        --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+    content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+    theme: {
+        extend: {},
+        fontFamily: {
+            sans: ["var(--font-roboto)"]
+        }
+    },
+    plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+</Steps>
+
+## Penyedia font remote yang tersedia
+
+Astro mengekspor ulang sebagian besar penyedia [unifont](https://github.com/unjs/unifont/). Berikut yang didukung bawaan:
+
+- [Adobe](https://fonts.adobe.com/)
+- [Bunny](https://fonts.bunny.net/)
+- [Fontshare](https://www.fontshare.com/)
+- [Fontsource](https://fontsource.org/)
+- [Google](https://fonts.google.com/)
+
+Untuk memakai penyedia remote bawaan, atur `provider` dengan nilai yang sesuai untuk penyedia font pilihan Anda:
+
+<Tabs>
+
+<TabItem label="Adobe">
+
+```js
+provider: fontProviders.adobe({ id: process.env.ADOBE_ID })
+```
+
+</TabItem>
+
+<TabItem label="Bunny">
+
+```js
+provider: fontProviders.bunny()
+```
+
+</TabItem>
+
+<TabItem label="Fontshare">
+
+```js
+provider: fontProviders.fontshare()
+```
+
+</TabItem>
+
+<TabItem label="Fontsource">
+
+```js
+provider: fontProviders.fontsource()
+```
+
+</TabItem>
+
+<TabItem label="Google">
+
+```js
+provider: fontProviders.google()
+```
+
+Selain itu, penyedia `google()` menerima semua opsi yang tersedia untuk [unifont Google `ProviderOption`](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26):
+
+```js
+provider: fontProviders.google({
+	glyphs: {
+		Roboto: ["a"]
+	}
+})
+```
+
+</TabItem>
+
+</Tabs>
+
+Anda juga dapat [membuat penyedia font Astro kustom](#build-your-own-font-provider) untuk penyedia unifont apa pun.
+
+## Contoh penggunaan
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--font-roboto"
+        provider: fontProviders.google(),
+        // Default yang disertakan:
+        // weights: [400] ,
+        // styles: ["normal", "italics"],
+        // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+        // fallbacks: ["sans-serif"], 
+      },
+      {
+        name: "Inter",
+        cssVariable: "--font-inter",
+        provider: fontProviders.fontsource(),
+        // Hanya spesifikasikan bobot yang dipakai
+        weights: [400, 500, 600, 700],
+        // Hanya gaya yang dipakai
+        styles: ["normal"],
+        // Unduh file font hanya untuk karakter yang digunakan di halaman
+        subsets: ["cyrillic"],
+      },
+      {
+        name: "JetBrains Mono",
+        cssVariable: "--font-jetbrains-mono",
+        provider: fontProviders.fontsource(),
+        // Unduh file font hanya untuk karakter yang digunakan di halaman
+        subsets: ["latin"],
+        // Gunakan keluarga fallback yang sesuai tampilan yang diinginkan
+        fallbacks: ["monospace"],
+      },
+      {
+        name: "Poppins",
+        cssVariable: "--font-poppins",
+        provider: "local",
+        // Weight dan style tidak ditentukan sehingga Astro
+        // akan mencoba menginfernnya untuk tiap varian
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    ],
+  }
+});
+```
+
+## Referensi komponen `<Font />`
+
+Komponen ini meng-output tag style dan opsional meng-output tautan preload untuk keluarga font tertentu.
+
+Komponen ini harus diimpor dan ditambahkan ke `<head>` halaman. Umumnya dilakukan pada komponen seperti `Head.astro` yang digunakan pada layout situs bersama, tetapi juga bisa ditambahkan per halaman sesuai kebutuhan.
+
+Dengan komponen ini, Anda mengontrol keluarga font mana yang digunakan pada halaman mana, dan font mana yang dipreload.
+
+### cssVariable
+
+<p>
+
+**Contoh tipe:** `"--font-roboto" | "--font-comic-sans" | ...`
+</p>
+
+[`cssVariable`](#cssvariable-1) yang didaftarkan di konfigurasi Astro Anda:
+
+```astro title="src/components/Head.astro" "cssVariable"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" />
+```
+
+### preload
+
+<p>
+
+**Type:** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
+**Default:** `false`
+</p>
+
+Apakah akan meng-output [tautan preload](https://web.dev/learn/performance/optimize-web-fonts#preload) atau tidak:
+
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from 'astro:assets';
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+Dengan directive `preload`, browser akan segera mulai mengunduh semua tautan font yang mungkin selama pemuatan halaman. 
+
+#### Preload granular
+
+<p>
+<Since v="5.15.0" />
+</p>
+
+Tidak selalu Anda ingin mem-preload semua tautan font, karena ini bisa menghambat pemuatan resource penting lain atau mengunduh font yang tidak diperlukan untuk halaman saat ini. 
+
+Untuk mengendalikan mana file font yang dipreload, Anda bisa memberikan array objek yang mendeskripsikan kombinasi `weight`, `style`, atau `subset` font untuk dipreload.
+
+Contoh berikut hanya akan mem-preload file font dengan bobot `400` atau gaya `normal` di subset `latin`:
+
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: 'latin', style: 'normal' },
+    { weight: '400' },
+  ]}
+/>
+```
+
+File font variable weight akan dipreload jika ada bobot dalam jangkauannya yang diminta. Misalnya, file font dengan rentang bobot `100 900` akan disertakan ketika `400` ditentukan di objek `preload`.
+
+## Mengakses data font secara programatis
+
+Fungsi `getFontData()` ditujukan untuk mengambil data tingkat rendah keluarga font secara programatis, misalnya, pada [API Route](/id/guides/endpoints/#server-endpoints-api-routes) atau untuk menghasilkan meta tag Anda sendiri.
+
+### `getFontData()`
+<p>
+
+**Type:** `(cssVariable: CssVariable) => FontData[]`<br />
+<Since v="5.14.0" />
+</p>
+
+Mengembalikan array objek `FontData` untuk [`cssVariable`](#cssvariable-1) yang diberikan, berisi `src`, `weight` dan `style`.
+
+Contoh berikut menggunakan `getFontData()` untuk mendapatkan buffer font dari URL saat menggunakan [satori](https://github.com/vercel/satori) untuk menghasilkan gambar OpenGraph:
+
+```tsx title="src/pages/og.png.ts" "getFontData(\"--font-roboto\")" "data[0].src[0].url"
+import type{ APIRoute } from "astro"
+import { getFontData } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = getFontData("--font-roboto")
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await fetch(new URL(data[0].src[0].url, context.url.origin)).then(res => res.arrayBuffer()),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
+```
+
+## Referensi konfigurasi font
+
+Semua properti font Anda harus dikonfigurasikan di konfigurasi Astro. Beberapa properti umum untuk font remote dan lokal, dan properti lain tersedia tergantung penyedia font yang dipilih.
+
+### Properti umum
+
+Properti berikut tersedia untuk font remote dan lokal. `provider`, `name`, dan `cssVariable` adalah wajib.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### provider
+
+<p>
+
+**Type:** `AstroFontProvider | "local"`
+</p>
+
+Sumber file font Anda. Anda dapat memakai [penyedia bawaan](#available-remote-font-providers), menulis [penyedia kustom](#build-your-own-font-provider), atau set ke `"local"` untuk menggunakan file font lokal:
+
+```js title="astro.config.mjs" {6}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+#### name
+
+<p>
+
+**Type:** `string`
+</p>
+
+Nama keluarga font, sebagaimana diidentifikasi oleh penyedia font Anda:
+
+```js
+name: "Roboto"
+```
+
+#### cssVariable
+
+<p>
+
+**Type:** `string`
+</p>
+
+Sebuah [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) yang valid pilihan Anda dalam bentuk variabel CSS (diawali `--`):
+
+```js
+cssVariable: "--font-roboto"
+```
+
+#### fallbacks
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `["sans-serif"]`
+</p>
+
+Array font yang digunakan ketika font pilihan Anda tidak tersedia, atau saat loading. Font fallback dipilih sesuai urutan. Font pertama yang tersedia akan digunakan:
+
+```js
+fallbacks: ["CustomFont", "serif"]
+```
+
+Untuk menonaktifkan fallback sepenuhnya, atur array kosong:
+
+```js
+fallbacks: []
+```
+
+Sebutkan setidaknya [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name) yang sesuai dengan tampilan font yang diinginkan. Astro kemudian akan mencoba menghasilkan [optimized fallbacks](https://developer.chrome.com/blog/font-fallbacks) menggunakan metrik font. Untuk menonaktifkannya, set `optimizedFallbacks` ke false.
+
+#### optimizedFallbacks
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+</p>
+
+Apakah mengaktifkan optimasi default Astro saat menghasilkan font fallback. Anda bisa menonaktifkannya untuk kontrol penuh atas bagaimana [`fallbacks`](#fallbacks) dibuat:
+
+```js
+optimizedFallbacks: false
+```
+
+### Properti font remote
+
+Opsi konfigurasi tambahan tersedia untuk font remote. Atur ini untuk menyesuaikan data yang diunduh dari [penyedia font](#available-remote-font-providers) Anda, misalnya hanya mengunduh bobot atau gaya tertentu.
+
+Di balik layar, opsi-opsi ini ditangani oleh [unifont](https://github.com/unjs/unifont/). Beberapa properti mungkin tidak didukung oleh sebagian penyedia dan bisa ditangani berbeda oleh tiap penyedia.
+
+#### weights
+
+<p>
+
+**Type:** `(number | string)[]`<br />
+**Default:** `[400]`
+</p>
+
+Array [bobot font](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight). Jika tidak ditentukan, hanya bobot `400` yang disertakan secara default untuk mencegah unduhan yang tidak perlu. Sertakan properti ini untuk mengakses bobot lain:
+
+```js
+weights: [200, "400", "bold"]
+```
+
+Jika font terkait adalah [variable font](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), Anda bisa menentukan rentang bobot:
+
+```js
+weights: ["100 900"]
+```
+
+#### styles
+
+<p>
+
+**Type:** `("normal" | "italic" | "oblique")[]`<br />
+**Default:** `["normal", "italic"]`
+</p>
+
+Array [gaya font](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
+
+```js
+styles: ["normal", "oblique"]
+```
+
+#### subsets
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"]`
+</p>
+
+Daftar [subset font](https://knaap.dev/posts/font-subsetting/) untuk dipreload.
+
+```js
+subsets: ["latin"]
+```
+
+#### display
+
+<p>
+
+**Type:** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
+**Default:** `"swap"`
+</p>
+
+Menentukan [bagaimana font ditampilkan](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display) berdasarkan kapan font diunduh dan siap dipakai:
+
+```js
+display: "block"
+```
+
+#### unicodeRange
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `undefined`
+</p>
+
+Menentukan kapan sebuah font harus diunduh dan digunakan berdasarkan [rentang unicode tertentu](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range). Jika sebuah karakter di halaman cocok dengan rentang yang dikonfigurasi, browser akan mengunduh font tersebut dan semua karakter akan tersedia di halaman. Untuk mengonfigurasi subset karakter yang dipreload untuk satu font, lihat properti [subsets](#subsets).
+
+Ini berguna untuk lokalisasi agar menghindari unduhan font yang tidak perlu ketika bagian tertentu situs Anda memakai alfabet berbeda dan akan ditampilkan dengan font terpisah. Misalnya, situs yang menawarkan versi Inggris dan Jepang dapat mencegah browser mengunduh font Jepang pada halaman Inggris yang tidak mengandung karakter Jepang yang diberikan dalam `unicodeRange`.
+
+```js
+unicodeRange: ["U+26"]
+```
+
+#### stretch
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `undefined`
+</p>
+
+[Font stretch](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch):
+
+```js
+stretch: "condensed"
+```
+
+#### featureSettings
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `undefined`
+</p>
+
+Mengatur [fitur tipografi font](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings) (mis. ligature, small caps, atau swash):
+
+```js
+featureSettings: "'smcp' 2"
+```
+
+#### variationSettings
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `undefined`
+</p>
+
+[Pengaturan variasi font](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-variation-settings):
+
+```js
+variationSettings: "'xhgt' 0.7"
+```
+
+
+### `variants` font lokal
+
+<p>
+
+**Type:** `LocalFontFamily["variants"]`
+</p>
+
+Properti `variants` wajib saat menggunakan file font lokal. Setiap varian merepresentasikan sebuah deklarasi [`@font-face`](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/) dan membutuhkan nilai `weight`, `style`, dan `src`.
+
+Selain itu, [beberapa properti font remote](#other-properties) juga dapat ditentukan dalam setiap varian.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Custom",
+            cssVariable: "--font-custom",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-400.woff2"]
+                },
+                {
+                    weight: 700,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-700.woff2"]
+                }
+                // ...
+            ]
+        }]
+    }
+});
+```
+
+#### weight
+
+<p>
+
+**Type:** `number | string`<br />
+**Default:** `undefined`
+</p>
+
+Sebuah [bobot font](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight):
+
+```js
+weight: 200
+```
+
+Jika font terkait adalah [variable font](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), Anda dapat menentukan rentang bobot:
+
+```js
+weight: "100 900"
+```
+
+Jika nilai tidak ditentukan, Astro akan mencoba menginfernnya dari [`src`](#src) pertama.
+
+#### style
+
+<p>
+
+**Type:** `"normal" | "italic" | "oblique"`<br />
+**Default:** `undefined`
+</p>
+
+Sebuah [gaya font](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
+
+```js
+style: "normal"
+```
+
+Jika nilai tidak ditentukan, Astro akan mencoba menginfernnya dari [`src`](#src) pertama.
+
+#### src
+
+<p>
+
+**Type:** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+[Sumber font](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src). Bisa berupa path relatif ke root, import paket, atau URL. URL sangat berguna jika Anda menyuntikkan font lokal lewat sebuah integrasi:
+
+<Tabs>
+
+<TabItem label="Relative path">
+
+```js
+src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./custom.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="Package import">
+
+```js
+src: ["my-package/SomeFont.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+Kami menyarankan untuk tidak menaruh file font di [direktori `public/`](/id/reference/configuration-reference/#publicdir). Karena Astro akan menyalin file-file ini ke folder tersebut saat build, hal ini akan menghasilkan file duplikat pada output build Anda. Sebagai gantinya, simpan di lokasi lain dalam proyek Anda, misalnya di [`src/`](/id/reference/configuration-reference/#srcdir).
+:::
+
+Anda juga bisa menentukan [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech) dengan menyediakan objek:
+
+```js
+src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
+```
+
+#### Properti lain
+
+Opsi berikut dari keluarga font remote juga tersedia untuk font lokal di dalam varian:
+
+- [display](#display)
+- [unicodeRange](#unicoderange)
+- [stretch](#stretch)
+- [featureSettings](#featuresettings)
+- [variationSettings](#variationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: "local",
+            name: "Custom",
+            cssVariable: "--font-custom",
+            variants: [
+                {
+                    weight: 400,
+                    style: "normal",
+                    src: ["./src/assets/fonts/custom-400.woff2"],
+                    display: "block"
+                }
+            ]
+        }]
+    }
+});
+```
+
+## Bangun penyedia font Anda sendiri
+
+Jika Anda tidak ingin menggunakan salah satu [penyedia bawaan](#available-remote-font-providers) (mis. ingin menggunakan penyedia unifont pihak ketiga atau sesuatu untuk registry privat), Anda bisa membangunnya sendiri.
+
+Penyedia font Astro terdiri dari dua bagian: objek konfigurasi dan implementasi aktualnya.
+
+<Steps>
+
+1. Dengan helper tipe `defineAstroFontProvider()`, buat fungsi yang mengembalikan objek konfigurasi penyedia font yang berisi:
+
+    - `entrypoint`: URL, path relatif ke root, atau import paket.
+    - `config`: Objek serializable opsional yang diteruskan ke penyedia unifont.
+
+    <Tabs>
+
+    <TabItem label="Tanpa config">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    export function myProvider() {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url)
+        });
+    };
+    ```
+
+    </TabItem>
+
+    <TabItem label="Dengan config">
+
+    ```ts title="provider/config.ts"
+    import { defineAstroFontProvider } from 'astro/config';
+
+    interface Config {
+        // ...
+    };
+
+    export function myProvider(config: Config) {
+        return defineAstroFontProvider({
+            entrypoint: new URL('./implementation.js', import.meta.url),
+            config
+        });
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+2. Buat file kedua untuk mengekspor implementasi `provider` unifont Anda:
+
+    ```ts title="implementation.ts"
+    import { defineFontProvider } from "unifont";
+
+    export const provider = defineFontProvider("my-provider", async (options, ctx) => {
+        // fetch/define font kustom Anda
+        // ...
+    });
+    ```
+
+    :::tip
+
+    Anda dapat melihat [kode sumber penyedia unifont](https://github.com/unjs/unifont/blob/main/src/providers/) untuk mempelajari lebih lanjut cara membuat penyedia unifont.
+
+    :::
+
+3. Tambahkan penyedia kustom Anda ke konfigurasi font.
+
+    ```js title="astro.config.mjs" ins="myProvider()"
+    fonts: [{
+      provider: fontProviders.myProvider(),
+      name: "Custom Font",
+      cssVariable: "--font-custom"
+     }]
+    ```
+
+</Steps>
+
+## Caching
+
+Implementasi caching Fonts API dirancang agar praktis saat pengembangan dan efisien di produksi. Selama build, file font disalin ke direktori output `_astro/fonts`, sehingga bisa mendapat manfaat dari HTTP caching aset statis (biasanya setahun).
+
+Untuk menghapus cache saat pengembangan, hapus direktori `.astro/fonts`. Untuk menghapus cache build, hapus direktori `node_modules/.astro/fonts`
+
+## Bacaan lanjutan
+
+Untuk detail lengkap dan memberi masukan pada API eksperimental ini, lihat [Fonts RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0055-fonts.md).

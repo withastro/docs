@@ -1,0 +1,104 @@
+---
+title: Sesuaikan nama file pada output build
+description: Pelajari cara mengubah pola penamaan default untuk aset hasil build seperti JavaScript, CSS, dan gambar di Astro menggunakan opsi Rollup milik Vite.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Secara default, perintah `astro build` menaruh aset hasil build dari [sumber proyek Anda](/en/basics/project-structure/#src), seperti berkas JavaScript dan CSS yang berada di direktori `src/`, ke dalam direktori `_astro` dengan nama berkas yang di-hash (mis. `_astro/index.DRf8L97S.js`) yang sangat baik untuk caching jangka panjang.
+
+Meskipun biasanya tidak diperlukan, Anda dapat menyesuaikan nama berkas output saat dibutuhkan. Misalnya, ini berguna jika Anda memiliki skrip dengan nama yang dapat memicu pemblokir iklan (mis. `ads.js`), atau jika Anda ingin mengatur aset dengan konvensi penamaan tertentu. Dengan menyesuaikan opsi output Rollup, Anda dapat memperoleh kontrol lebih terhadap struktur build proyek, memungkinkan Anda memenuhi kebutuhan organisasi atau deployment tertentu.
+
+## Resep
+
+Resep ini mengonfigurasi `vite.build.rollupOptions` untuk menghasilkan aset build dengan struktur dan pola penamaan berikut:
+-   Berkas entri JavaScript (mis. skrip yang terkait langsung dengan halaman atau layout): `dist/js/[name]-[hash].js`
+-   Potongan kode JavaScript hasil code-split (mis. komponen yang diimpor secara dinamis atau modul bersama): `dist/js/chunks/[name]-[hash].js`
+-   Aset lain (mis. CSS, gambar, font): `dist/static/[name]-[hash][extname]` (mis. `dist/static/styles-a1b2c3d4.css`, `dist/static/logo-e5f6g7h8.svg`)
+
+<Steps>
+
+1.  Tambahkan Vite Rollup Output Options.
+
+    Ubah `astro.config.mjs` Anda untuk memasukkan konfigurasi `vite.build.rollupOptions.output` berikut. Di sinilah Anda dapat mendefinisikan pola penamaan khusus untuk aset menggunakan [`entryFileNames`](https://rollupjs.org/configuration-options/#output-entryfilenames), [`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames), dan [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames) milik Rollup:
+
+    ```javascript title="astro.config.mjs" ins
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // ...
+      vite: {
+        build: {
+          rollupOptions: {
+            output: {
+              // path names relative to `outDir`
+              entryFileNames: 'js/[name]-[hash].js',
+              chunkFileNames: 'js/chunks/[name]-[hash].js',
+              assetFileNames: 'static/[name]-[hash][extname]',
+            },
+          },
+        },
+      },
+    });
+    ```
+
+    Contoh ini menggunakan placeholder nama berkas berikut:
+    *   `[name]`: Nama asli berkas (tanpa ekstensi dan path).
+    *   `[hash]`: Hash berbasis konten yang dihasilkan untuk berkas, penting untuk cache busting. Anda juga bisa menentukan panjangnya, misalnya `[hash:8]`. Ini memastikan ketika Anda memperbarui aset, nama berkas ikut berubah sehingga memaksa browser mengunduh versi baru alih-alih melayani versi cache yang usang.
+    *   `[extname]`: Ekstensi berkas asli, termasuk titik di depannya (mis. `.js`, `.css`, `.svg`).
+
+    <ReadMore>
+    Untuk daftar lengkap placeholder yang tersedia dan pola lanjutan, lihat [dokumentasi konfigurasi Rollup](https://rollupjs.org/configuration-options/).
+    </ReadMore>
+
+2.  Build proyek Anda.
+
+    Karena kustomisasi nama berkas ini hanya berlaku pada output build produksi, jalankan perintah build proyek Anda:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run build
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm build
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn build
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. Setelah build selesai, periksa [direktori output](/en/reference/configuration-reference/#outdir) (`dist/` secara default).
+
+    Verifikasi bahwa aset build dari `src` proyek Anda dinamai dan diatur sesuai pola baru. (Berkas dari [direktori `public/` Anda](/en/basics/project-structure/#public) disalin langsung ke direktori output dan **tidak** terpengaruh oleh opsi penamaan Rollup ini.)
+
+    Bergantung pada konten spesifik proyek, folder build Anda sekarang akan terlihat seperti berikut:
+
+    <FileTree>
+    - dist/
+      - js/
+        - index-a1b2c3d4.js
+        - chunks/
+          - common-e5f6g7h8.js
+      - img/
+        - logo-i9j0k1l2.png
+      - fonts/
+        - myfont-q2w3e4r5.woff2
+      - static_assets/
+        - styles-m3n4o5p6.css
+      - index.html
+      - about/
+        - index.html
+      - ... (other HTML files and public assets)
+    </FileTree>
+
+</Steps>

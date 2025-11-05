@@ -1,0 +1,360 @@
+---
+title: Mendeploy Situs Astro Anda ke AWS
+description: Cara mendeploy situs Astro Anda ke web menggunakan AWS.
+sidebar:
+  label: AWS
+type: deploy
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[AWS](https://aws.amazon.com/) adalah platform hosting aplikasi web lengkap yang dapat digunakan untuk mendeploy situs Astro.
+
+Mendeploy proyek Anda ke AWS memerlukan penggunaan [konsol AWS](https://aws.amazon.com/console/). (Sebagian besar tindakan ini juga dapat dilakukan menggunakan [AWS CLI](https://aws.amazon.com/cli/)). Panduan ini akan memandu Anda langkah demi langkah untuk mendeploy situs ke AWS menggunakan [AWS Amplify](https://aws.amazon.com/amplify/), [hosting situs statis S3](https://aws.amazon.com/s3/), dan [CloudFront](https://aws.amazon.com/cloudfront/).
+
+## AWS Amplify 
+
+AWS Amplify adalah serangkaian alat dan fitur yang dibuat khusus yang memungkinkan pengembang web dan mobile di frontend membangun aplikasi full‑stack di AWS dengan cepat dan mudah. Anda dapat mendeploy proyek Astro sebagai situs statis, atau sebagai situs yang dirender di server.
+
+### Situs Statis
+
+Proyek Astro Anda secara default adalah situs statis.
+
+<Steps>
+1. Buat proyek Amplify Hosting baru.
+
+2. Hubungkan repositori Anda ke Amplify.
+
+3. Ubah pengaturan build agar sesuai dengan proses build proyek Anda.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify akan secara otomatis mendeploy situs Anda dan memperbaruinya ketika Anda melakukan push commit ke repositori.
+
+### Adapter untuk rendering on‑demand
+
+Untuk mendeploy proyek Anda sebagai situs yang dirender di server, Anda perlu menggunakan adapter AWS Amplify pihak ketiga yang dipelihara komunitas, [astro-aws-amplify](https://github.com/alexnguyennz/astro-aws-amplify), dan melakukan beberapa perubahan pada konfigurasi Anda.
+
+Pertama, instal adapter Amplify.
+
+<PackageManagerTabs>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro-aws-amplify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, di file `astro.config.*` Anda, tambahkan adapter dan setel output ke `server`.
+
+```js title="astro.config.mjs" ins={2, 6, 7}
+import { defineConfig } from 'astro/config';
+import awsAmplify from 'astro-aws-amplify';
+
+export default defineConfig({
+  // ...
+  output: "server",
+  adapter: awsAmplify(),
+});
+```
+
+Setelah adapter dipasang, Anda dapat menyiapkan proyek Amplify Anda.
+
+<Steps>
+1. Buat proyek Amplify Hosting baru.
+
+2. Hubungkan repositori Anda ke Amplify.
+
+3. Ubah pengaturan build agar sesuai dengan proses build adapter dengan mengedit pengaturan build di konsol AWS, atau dengan menambahkan `amplify.yaml` di root proyek Anda.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --cache .npm --prefer-offline
+        build:
+          commands:
+            - npm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .npm/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify akan secara otomatis mendeploy situs Anda dan memperbaruinya ketika Anda melakukan push commit ke repositori.
+
+<ReadMore>
+  Lihat juga [panduan deployment Astro dari AWS](https://docs.aws.amazon.com/amplify/latest/userguide/get-started-astro.html) untuk info lebih lanjut.
+</ReadMore>
+
+## Hosting situs statis S3
+
+S3 adalah titik awal dari aplikasi apa pun. Di sinilah file proyek dan aset Anda disimpan. S3 mengenakan biaya untuk penyimpanan file dan jumlah permintaan. Anda dapat menemukan informasi lebih lanjut tentang S3 di [dokumentasi AWS](https://aws.amazon.com/s3/).
+
+<Steps>
+1. Buat bucket S3 dengan nama proyek Anda.
+
+    :::tip
+    Nama bucket harus unik secara global. Kami merekomendasikan kombinasi nama proyek dan nama domain situs Anda.
+    :::
+
+2. Nonaktifkan **\"Block all public access\"**. Secara default, AWS menyetel semua bucket menjadi privat. Untuk menjadikannya publik, Anda harus menghapus centang pada kotak \"Block public access\" di properti bucket.
+
+3. Unggah file hasil build Anda yang ada di `dist` ke S3. Anda bisa melakukannya secara manual di konsol atau menggunakan AWS CLI. Jika menggunakan AWS CLI, jalankan perintah berikut setelah [autentikasi dengan kredensial AWS Anda](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. Perbarui kebijakan bucket untuk mengizinkan akses publik. Anda dapat menemukan pengaturan ini di **Permissions > Bucket policy** pada bucket Anda.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    Jangan lupa mengganti `<BUCKET_NAME>` dengan nama bucket Anda.
+    :::
+
+5. Aktifkan website hosting untuk bucket Anda. Anda dapat menemukan pengaturan ini di **Properties > Static website hosting** pada bucket Anda. Setel dokumen indeks ke `index.html` dan dokumen error ke `404.html`. Terakhir, Anda dapat menemukan URL situs baru Anda di **Properties > Static website hosting** pada bucket tersebut.
+
+    :::note
+    Jika Anda mendeploy aplikasi single‑page (SPA), setel dokumen error ke `index.html`.
+    :::
+</Steps>
+
+## S3 dengan CloudFront
+
+CloudFront adalah layanan web yang menyediakan kemampuan content delivery network (CDN). Layanan ini digunakan untuk melakukan cache konten dari server web dan mendistribusikannya ke pengguna akhir. CloudFront mengenakan biaya berdasarkan jumlah data yang ditransfer. Menambahkan CloudFront ke bucket S3 Anda lebih hemat biaya dan memberikan pengiriman yang lebih cepat.
+
+Untuk menghubungkan S3 dengan CloudFront, buat distribusi CloudFront dengan nilai berikut:
+  - **Origin domain:** Endpoint situs statis bucket S3 Anda. Anda dapat menemukan endpoint di **Properties > Static website hosting** pada bucket S3 Anda. Atau, Anda bisa memilih bucket S3 Anda dan klik callout untuk mengganti alamat bucket dengan endpoint situs statis bucket Anda.
+  - **Viewer protocol policy:** \"Redirect to HTTPS\"
+
+Konfigurasi ini akan menyajikan situs Anda menggunakan jaringan CDN CloudFront. Anda dapat menemukan URL distribusi CloudFront di **Distributions > Domain name** pada bucket.
+
+:::note
+Saat menghubungkan CloudFront ke endpoint situs statis S3, Anda bergantung pada kebijakan bucket S3 untuk kontrol akses. Lihat bagian [hosting situs statis S3](#hosting-situs-statis-s3) untuk informasi lebih lanjut tentang kebijakan bucket.
+:::
+
+## Deployment berkelanjutan dengan GitHub Actions
+
+Ada banyak cara untuk menyiapkan deployment berkelanjutan untuk AWS. Salah satu kemungkinan untuk kode yang di‑hosting di GitHub adalah menggunakan [GitHub Actions](https://github.com/features/actions) untuk mendeploy situs Anda setiap kali Anda mendorong commit.
+
+<Steps>
+1. Buat kebijakan (policy) baru di akun AWS Anda menggunakan [IAM](https://aws.amazon.com/iam/) dengan izin berikut. Kebijakan ini akan memungkinkan Anda mengunggah file hasil build ke bucket S3 Anda dan melakukan invalidasi file distribusi CloudFront saat Anda melakukan push commit.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "s3:DeleteObject",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    Jangan lupa mengganti `<DISTRIBUTION_ARN>` dan `<BUCKET_NAME>`. Anda dapat menemukan DISTRIBUTION_ARN di **CloudFront > Distributions > Details**.
+    :::
+
+2. Buat pengguna IAM baru dan lampirkan kebijakan tersebut ke pengguna itu. Ini akan memberikan `AWS_SECRET_ACCESS_KEY` dan `AWS_ACCESS_KEY_ID` Anda.
+
+3. Tambahkan workflow contoh ini ke repositori Anda di `.github/workflows/deploy.yml` dan push ke GitHub. Anda perlu menambahkan `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, dan `DISTRIBUTION_ID` sebagai “secrets” di repositori GitHub Anda pada **Settings** > **Secrets** > **Actions**. Klik <kbd>New repository secret</kbd> untuk menambahkan masing‑masing.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v4
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v1
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    `BUCKET_ID` Anda adalah nama bucket S3 Anda. `DISTRIBUTION_ID` adalah ID distribusi CloudFront Anda. Anda dapat menemukan ID distribusi CloudFront di **CloudFront > Distributions > ID**
+    :::
+</Steps>
+
+## Sumber Daya Komunitas
+
+- [Mendeploy Astro ke AWS Amplify](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
+- [Mendeploy Astro ke AWS Elastic Beanstalk](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
+- [Mendeploy Astro ke Amazon ECS di AWS Fargate](https://www.launchfa.st/blog/deploy-astro-aws-fargate)
+- [Pemecahan Masalah Deployment SSR Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html)

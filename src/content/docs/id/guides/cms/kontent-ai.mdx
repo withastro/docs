@@ -1,0 +1,559 @@
+---
+title: Kontent.ai & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Kontent.ai sebagai CMS
+sidebar:
+  label: Kontent.ai
+type: cms
+service: Kontent.ai
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Kontent.ai](https://www.kontent.ai/) adalah headless CMS yang memungkinkan Anda mengelola konten secara terstruktur dan modular, didukung kemampuan AI.
+
+## Integrasi dengan Astro
+
+Pada bagian ini, Anda akan menggunakan [Kontent.ai TypeScript SDK](https://github.com/kontent-ai/delivery-sdk-js) untuk menghubungkan proyek Kontent.ai Anda ke aplikasi Astro.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan hal-hal berikut:
+
+1. **Proyek Kontent.ai** - Jika Anda belum memiliki akun Kontent.ai, [daftar gratis](https://app.kontent.ai/sign-up) dan buat proyek baru.
+
+2. **Kunci API Delivery** - Anda memerlukan Environment ID untuk konten yang sudah dipublikasikan dan Preview API key untuk mengambil draf (opsional). Keduanya berada di **Environment Settings -> API keys** di Kontent.ai.
+
+### Menyiapkan kredensial
+
+Untuk menambahkan kredensial Kontent.ai ke Astro, buat berkas `.env` di root proyek Anda dengan variabel berikut:
+
+```ini title=".env"
+KONTENT_ENVIRONMENT_ID=YOUR_ENVIRONMENT_ID
+KONTENT_PREVIEW_API_KEY=YOUR_PREVIEW_API_KEY
+```
+
+Sekarang, variabel lingkungan ini dapat digunakan di proyek Astro Anda.
+
+Jika Anda ingin mendapatkan [TypeScript IntelliSense untuk variabel lingkungan ini](/id/guides/environment-variables/#intellisense-for-typescript), buat berkas `env.d.ts` di direktori `src/` dan konfigurasikan `ImportMetaEnv` seperti ini:
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly KONTENT_ENVIRONMENT_ID: string;
+  readonly KONTENT_PREVIEW_API_KEY: string;
+}
+```
+
+Direktori root Anda sekarang harus menyertakan berkas-berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Menginstal dependensi
+
+Untuk menghubungkan Astro dengan proyek Kontent.ai Anda, instal [Kontent.ai TypeScript SDK](https://github.com/kontent-ai/delivery-sdk-js):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm install @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm add @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn add @kontent-ai/delivery-sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Selanjutnya, buat berkas baru bernama `kontent.ts` di direktori `src/lib/` pada proyek Astro Anda.
+
+```ts title="src/lib/kontent.ts"
+import { createDeliveryClient } from "@kontent-ai/delivery-sdk";
+
+export const deliveryClient = createDeliveryClient({
+    environmentId: import.meta.env.KONTENT_ENVIRONMENT_ID,
+    previewApiKey: import.meta.env.KONTENT_PREVIEW_API_KEY,
+});
+```
+
+:::note
+Baca selengkapnya tentang [mengambil variabel lingkungan di Astro](/id/guides/environment-variables/#getting-environment-variables).
+:::
+
+Implementasi ini membuat objek `DeliveryClient` baru menggunakan kredensial dari berkas `.env`.
+
+:::note[Pratinjau]
+`previewApiKey` bersifat opsional. Jika digunakan, Anda dapat [mengonfigurasi setiap kueri](https://github.com/kontent-ai/delivery-sdk-js#enable-preview-mode-per-query) ke endpoint Delivery API untuk mengembalikan versi konten terbaru terlepas dari statusnya pada workflow. Jika tidak, hanya item yang sudah dipublikasikan yang akan dikembalikan.
+:::
+
+Terakhir, direktori root proyek Astro Anda sekarang harus menyertakan berkas-berkas baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - **kontent.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Mengambil data
+
+`DeliveryClient` sekarang tersedia untuk semua komponen. Untuk mengambil konten, gunakan `DeliveryClient` dan *method chaining* untuk menentukan item yang diinginkan. Contoh berikut menunjukkan pengambilan sederhana *blog posts* dan merender judulnya dalam sebuah daftar:
+
+```astro title="src/pages/index.astro" ins={2-7, 16-20}
+---
+import { deliveryClient } from "../lib/kontent";
+
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+---
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width" />
+		<title>Astro</title>
+	</head>
+	<body>
+        <ul>
+        {blogPosts.data.items.map(blogPost => (
+            <li>{blogPost.elements.title.value}</li>
+        ))}
+        </ul>
+    </body>
+</html>
+```
+
+Anda dapat menemukan lebih banyak opsi kueri di [dokumentasi Kontent.ai](https://kontent.ai/learn/develop/hello-world/get-content/javascript).
+
+## Membuat blog dengan Astro dan Kontent.ai
+
+Dengan pengaturan di atas, Anda sekarang dapat membuat blog yang menggunakan Kontent.ai sebagai sumber konten.
+
+### Prasyarat
+
+1. **Proyek Kontent.ai** - Untuk tutorial ini, disarankan memulai dari proyek kosong. Jika Anda sudah memiliki beberapa *content type* pada *content model* Anda, silakan gunakan, namun Anda perlu menyesuaikan cuplikan kode agar sesuai dengan model Anda.
+
+2. **Proyek Astro yang dikonfigurasi untuk mengambil konten dari Kontent.ai** - lihat bagian di atas untuk detail cara menyiapkan proyek Astro dengan Kontent.ai
+
+### Menyiapkan model konten
+
+Di Kontent.ai, buka **Content model** dan buat *content type* baru dengan field dan nilai berikut:
+
+* **Name:** Blog Post
+* Elements:
+	* Text field
+		* **Name:** Title
+		* **Element Required:** yes
+	* Rich text field
+		* **Name:** Teaser
+		* **Element Required:** yes
+		* **Allowed in this element:** centang hanya Text
+	* Rich text field
+		* **Name:** Content
+		* **Element Required:** yes
+	* Date & time field
+		* **Name:** Date
+	* URL slug field
+		* **Name:** URL slug
+		* **Element Required:** yes
+		* **Auto-generate from:** pilih "Title"
+
+Lalu, klik **Save Changes**.
+
+### Membuat konten
+
+Sekarang, buka tab **Content & assets** dan buat *content item* baru bertipe **Blog Post**. Isi field dengan nilai berikut:
+
+* **Content item name:** Astro
+* **Title:** Astro is amazing
+* **Teaser:** Astro adalah *all-in-one framework* untuk membangun situs web cepat dengan lebih cepat.
+* **Content:** Anda dapat menggunakan JavaScript untuk mengimplementasikan fungsionalitas situs, tetapi tidak diperlukan *client bundle*.
+* **Date & time:** pilih hari ini
+* **URL slug:** astro-is-amazing
+
+Jika sudah, terbitkan postingan menggunakan tombol **Publish** di bagian atas.
+
+*Catatan: Silakan buat sebanyak mungkin postingan sebelum melanjutkan ke langkah berikutnya.* 
+
+### Menghasilkan model konten dalam TypeScript
+
+Selanjutnya, Anda akan menghasilkan tipe TypeScript dari *content model* Anda.
+
+:::note
+Langkah ini opsional, tetapi memberikan pengalaman pengembangan yang jauh lebih baik dan memungkinkan Anda menemukan potensi masalah saat *build time* alih-alih saat *runtime*.
+:::
+
+Pertama, instal [Kontent.ai JS model generator](https://github.com/kontent-ai/model-generator-js), [ts-node](https://github.com/TypeStrong/ts-node), dan [dotenv](https://github.com/motdotla/dotenv):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm install @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm add @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn add @kontent-ai/model-generator ts-node dotenv
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Kemudian, tambahkan skrip berikut ke package.json:
+
+```json title="package.json"
+{
+    ...
+    "scripts": {
+        ...
+        "regenerate:models": "ts-node --esm ./generate-models.ts"
+    },
+}
+```
+
+Karena tipe memerlukan informasi struktur tentang proyek Anda yang tidak tersedia di public API, Anda juga harus menambahkan Content Management API key ke berkas `.env`. Anda dapat membuat kunci di **Environment settings -> API keys -> Management API**.
+
+```ini title=".env" ins={3}
+KONTENT_ENVIRONMENT_ID=YOUR_ENVIRONMENT_ID
+KONTENT_PREVIEW_API_KEY=YOUR_PREVIEW_API_KEY
+KONTENT_MANAGEMENT_API_KEY=YOUR_MANAGEMENT_API_KEY
+```
+
+Terakhir, tambahkan skrip `generate-models.ts` yang mengonfigurasi *model generator* untuk menghasilkan model:
+
+```ts title="generate-models.ts"
+import { generateModelsAsync, textHelper } from '@kontent-ai/model-generator'
+import { rmSync, mkdirSync } from 'fs'
+
+import * as dotenv from 'dotenv'
+dotenv.config()
+
+const runAsync = async () => {
+	rmSync('./src/models', { force: true, recursive: true })
+	mkdirSync('./src/models')
+
+	// change working directory to models
+	process.chdir('./src/models')
+
+	await generateModelsAsync({
+		sdkType: 'delivery',
+		apiKey: process.env.KONTENT_MANAGEMENT_API_KEY ?? '',
+		environmentId: process.env.KONTENT_ENVIRONMENT_ID ?? '',
+		addTimestamp: false,
+		isEnterpriseSubscription: false,
+	})
+}
+
+// Self-invocation async function
+;(async () => {
+	await runAsync()
+})().catch(err => {
+	console.error(err)
+	throw err
+})
+```
+
+Sekarang, jalankan:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+    npm run regenerate:models
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+    pnpm run regenerate:models
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+    yarn run regenerate:models
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Menampilkan daftar posting blog
+
+Sekarang Anda siap mengambil konten. Buka halaman Astro tempat Anda ingin menampilkan daftar semua postingan blog, misalnya beranda `index.astro` di `src/pages`.
+
+Ambil semua postingan blog di *frontmatter* halaman Astro:
+
+```astro title="src/pages/index.astro"
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blog_post.codename)
+    .toPromise()
+---
+```
+
+Jika Anda melewatkan pembuatan model, Anda juga dapat menggunakan objek tanpa tipe dan *string literal* untuk mendefinisikan tipenya:
+
+```ts
+const blogPosts = await deliveryClient
+    .items()
+    .type("blogPost")
+    .toPromise()
+```
+
+Panggilan *fetch* akan mengembalikan objek `response` yang berisi daftar semua postingan blog di `data.items`. Pada bagian HTML halaman Astro, Anda bisa menggunakan fungsi `map()` untuk membuat daftar postingan tersebut:
+
+```astro title="src/pages/index.astro" ins={11-29}
+---
+import { deliveryClient } from '../lib/kontent';
+import type { BlogPost } from '../models';
+import { contentTypes } from '../models/project/contentTypes';
+
+const blogPosts = await deliveryClient
+    .items<BlogPost>
+    .type(contentTypes.blogPost.codename)
+    .toPromise()
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+    </head>
+    <body>
+        <h1>Blog posts</h1>
+        <ul>
+            {blogPosts.data.items.map(blogPost => (
+                <li>
+                    <a href={`/blog/${blogPost.elements.url_slug.value}/`} title={blogPost.elements.title.value}>
+                        {blogPost.elements.title.value}
+                    </a>
+                </li>
+            ))}
+        </ul>
+    </body>
+</html>
+```
+
+### Membuat halaman posting blog individual
+
+Langkah terakhir dari tutorial ini adalah menghasilkan halaman detail untuk setiap postingan blog.
+
+#### Pembuatan situs statis
+
+Pada bagian ini, Anda akan menggunakan [Mode Statis (SSG)](/id/guides/routing/#static-ssg-mode) dengan Astro.
+
+Pertama, buat berkas `[slug].astro` di `/src/pages/blog/` yang mengekspor fungsi `getStaticPaths` untuk mengumpulkan semua data dari CMS:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+---
+```
+
+Sampai di sini, fungsi tersebut mengambil semua postingan blog dari Kontent.ai. Cuplikan kodenya sama persis seperti yang digunakan pada halaman beranda.
+
+Selanjutnya, fungsi harus mengekspor *paths* dan data untuk setiap postingan blog. Anda menamai berkas `[slug].astro`, jadi parameter yang merepresentasikan URL slug disebut `slug`:
+
+```astro title="src/pages/blog/[slug].astro" ins={12-15}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+---
+```
+
+Bagian terakhir adalah menyediakan templat HTML dan menampilkan setiap postingan:
+
+```astro title="src/pages/blog/[slug].astro" ins={18-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+export async function getStaticPaths() {
+    const blogPosts = await deliveryClient
+        .items<BlogPost>()
+        .type(contentTypes.blog_post.codename)
+        .toPromise()
+
+    return blogPosts.data.items.map(blogPost => ({
+        params: { slug: blogPost.elements.url_slug.value },
+        props: { blogPost }
+    }))
+}
+
+const blogPost: BlogPost = Astro.props.blogPost
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? "")}</time>
+    </body>
+</html>
+```
+
+Buka pratinjau Astro Anda (secara bawaan di http://localhost:4321/blog/astro-is-amazing/) untuk melihat postingan yang dirender.
+
+#### Perenderan sesuai permintaan
+
+Jika rute Anda [dirender sesuai permintaan](/id/guides/on-demand-rendering/), Anda akan menggunakan rute dinamis untuk mengambil data halaman dari Kontent.ai.
+
+Buat berkas baru `[slug].astro` di `/src/pages/blog/` dan tambahkan kode berikut. Pengambilan datanya mirip dengan kasus sebelumnya namun menambahkan `equalsFilter` untuk menemukan postingan berdasarkan URL yang digunakan:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+```
+
+Jika Anda tidak menggunakan tipe yang dihasilkan, Anda bisa menggunakan *string literal* untuk mendefinisikan tipe *content item* dan *codename* elemen yang difilter:
+
+```ts
+const data = await deliveryClient
+        .items()
+        .equalsFilter("url_slug", slug ?? '')
+        .type("blog_post")
+        .limitParameter(1)
+        .toPromise()
+```
+
+Terakhir, tambahkan kode HTML untuk merender postingan. Bagian ini sama seperti pada pembuatan statis:
+
+```astro title="src/pages/blog/[slug].astro" ins={20-33}
+---
+import { deliveryClient } from '../../lib/kontent';
+import type { BlogPost } from '../../models';
+import { contentTypes } from '../../models/project/contentTypes';
+
+const { slug } = Astro.params
+let blogPost: BlogPost;
+try {
+    const data = await deliveryClient
+        .items<BlogPost>()
+        .equalsFilter(contentTypes.blog_post.elements.url_slug.codename, slug ?? '')
+        .type(contentTypes.blog_post.codename)
+        .limitParameter(1)
+        .toPromise()
+    blogPost = data.data.items[0]
+} catch (error) {
+    return Astro.redirect('/404')
+}
+---
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width" />
+        <title>{blogPost.elements.title.value}</title>
+    </head>
+    <body>
+        <article>
+            <h1>{blogPost.elements.title.value}</h1>
+            <Fragment set:html={blogPost.elements.teaser.value} />
+            <Fragment set:html={blogPost.elements.content.value} />
+            <time>{new Date(blogPost.elements.date.value ?? '')}</time>
+    </body>
+</html>
+```
+
+### Menerbitkan situs Anda
+
+Untuk menerapkan (deploy) situs web Anda, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+#### Bangun ulang saat ada perubahan di Kontent.ai
+
+Jika proyek Anda menggunakan mode statis bawaan Astro, Anda perlu menyiapkan webhook untuk memicu *build* baru ketika konten berubah. Jika Anda menggunakan Netlify atau Vercel sebagai penyedia hosting, Anda dapat menggunakan fitur webhook-nya untuk memicu *build* baru dari peristiwa Kontent.ai.
+
+##### Netlify
+
+Menyiapkan webhook di Netlify:
+
+<Steps>
+1. Buka dasbor situs Anda dan klik **Build & deploy**.
+
+2. Di bawah tab **Continuous Deployment**, cari bagian **Build hooks** dan klik **Add build hook**.
+
+3. Beri nama webhook Anda dan pilih *branch* yang ingin Anda gunakan untuk memicu *build*. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Vercel
+
+Menyiapkan webhook di Vercel:
+
+<Steps>
+1. Buka dasbor proyek Anda dan klik **Settings**.
+
+2. Di bawah tab **Git**, temukan bagian **Deploy Hooks**.
+
+3. Beri nama webhook Anda dan *branch* yang ingin memicu *build*. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Menambahkan webhook ke Kontent.ai
+
+Di [aplikasi Kontent.ai](https://kontent.ai/learn/docs/webhooks/javascript), buka **Environment settings -> Webhooks**. Klik **Create new webhook** dan beri nama webhook baru Anda. Tempel URL yang Anda salin dari Netlify atau Vercel dan pilih peristiwa mana saja yang harus memicu webhook. Secara bawaan, untuk membangun ulang situs saat konten yang dipublikasikan berubah, Anda hanya memerlukan peristiwa **Publish** dan **Unpublish** di bawah **Delivery API triggers**. Jika sudah, klik **Save**.
+
+Sekarang, setiap kali Anda menerbitkan postingan blog baru di Kontent.ai, *build* baru akan dipicu dan blog Anda akan diperbarui.

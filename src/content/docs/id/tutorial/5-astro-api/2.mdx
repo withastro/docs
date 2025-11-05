@@ -1,0 +1,333 @@
+---
+type: tutorial
+title: Hasilkan halaman tag
+description: |-
+  Tutorial: Bangun blog Astro pertamamu —
+  Gunakan getStaticPaths() untuk membuat banyak halaman (rute) sekaligus
+i18nReady: true
+---
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+<PreCheck>
+  - Buat satu file yang menghasilkan banyak halaman
+  - Tentukan rute halaman mana saja yang akan dibangun, dan berikan tiap halaman *props*-nya sendiri
+</PreCheck>
+
+## Perutean halaman dinamis
+
+Anda dapat membuat serangkaian halaman secara dinamis menggunakan file `.astro` yang mengekspor fungsi `getStaticPaths()`.
+
+## Buat halaman secara dinamis
+
+<Steps>
+1. Buat file baru `src/pages/tags/[tag].astro`. (Anda harus membuat folder baru.) Perhatikan bahwa nama file (`[tag].astro`) menggunakan tanda kurung siku. Tempelkan kode berikut ke file tersebut:
+
+    ```astro title="src/pages/tags/[tag].astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      return [
+        { params: { tag: "astro" } },
+        { params: { tag: "successes" } },
+        { params: { tag: "community" } },
+        { params: { tag: "blogging" } },
+        { params: { tag: "setbacks" } },
+        { params: { tag: "learning in public" } },
+      ];
+    }
+
+    const { tag } = Astro.params;
+    ---
+    <BaseLayout pageTitle={tag}>
+      <p>Post dengan tag {tag}</p>
+    </BaseLayout>
+    ```
+
+    Fungsi `getStaticPaths` mengembalikan sebuah array rute halaman, dan semua halaman pada rute tersebut akan menggunakan template yang sama seperti yang didefinisikan di file.
+
+2. Jika Anda menyesuaikan postingan blog Anda, ganti nilai tag satu per satu (mis. "astro", "successes", "community", dll.) dengan tag yang digunakan di postingan Anda sendiri.
+
+3. Pastikan setiap postingan blog memiliki setidaknya satu tag, ditulis sebagai array, mis. `tags: ["blogging"]`.
+
+4. Kunjungi `http://localhost:4321/tags/astro` di pratinjau browser Anda dan Anda akan melihat halaman yang dibuat secara dinamis dari `[tag].astro`. Periksa juga bahwa Anda memiliki halaman untuk setiap tag di `/tags/successes`, `/tags/community`, dan `/tags/learning%20in%20public`, dll., atau untuk tag kustom Anda. Anda mungkin perlu menghentikan lalu menjalankan ulang server *dev* untuk melihat halaman-halaman baru ini.
+</Steps>
+
+## Gunakan props pada rute dinamis
+
+<Steps>
+1. Tambahkan *props* berikut ke fungsi `getStaticPaths()` Anda agar data dari semua postingan blog tersedia untuk setiap rute halaman.
+
+    Pastikan setiap rute pada array Anda memiliki *props* baru tersebut, lalu buat *props* tersebut tersedia untuk template komponen Anda di luar fungsi.
+
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} ins="props: {posts: allPosts}" 
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+
+    export async function getStaticPaths() {
+      const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+
+      return [
+        {params: {tag: "astro"}, props: {posts: allPosts}},
+        {params: {tag: "successes"}, props: {posts: allPosts}},
+        {params: {tag: "community"}, props: {posts: allPosts}},
+        {params: {tag: "blogging"}, props: {posts: allPosts}},
+        {params: {tag: "setbacks"}, props: {posts: allPosts}},
+        {params: {tag: "learning in public"}, props: {posts: allPosts}}
+      ];
+    }
+    
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    ---
+    ```
+
+2. Saring daftar postingan Anda, menggunakan dukungan TypeScript bawaan Astro, agar hanya menyertakan postingan yang memiliki tag milik halaman itu sendiri.
+
+    ```astro title="src/pages/tags/[tag].astro" ins={4}
+    ---
+    const { tag } = Astro.params;
+    const { posts } = Astro.props;
+    const filteredPosts = posts.filter((post: any) => post.frontmatter.tags?.includes(tag));
+    ---
+    ```
+
+3. Sekarang Anda dapat memperbarui template HTML untuk menampilkan daftar tiap postingan blog yang mengandung tag halaman tersebut. Tambahkan kode berikut ke `[tag].astro`:
+
+    ```astro title="src/pages/tags/[tag].astro" ins={3-5}
+    <BaseLayout pageTitle={tag}>   
+      <p>Post dengan tag {tag}</p>
+      <ul>
+        {filteredPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+4. Anda juga bisa *refactor* untuk menggunakan komponen `<BlogPost />` sebagai gantinya! (Jangan lupa untuk mengimpor komponen ini di bagian atas `[tag].astro`.)
+
+    ```astro title="src/pages/tags/[tag].astro" del={4} ins={5}
+    <BaseLayout pageTitle={tag}>
+      <p>Post dengan tag {tag}</p>
+      <ul>
+        {filteredPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+      </ul>
+    </BaseLayout>
+    ```
+
+5. Periksa pratinjau browser Anda untuk halaman tag individual; sekarang Anda akan melihat daftar semua postingan blog yang memiliki tag tersebut.
+</Steps>
+
+<Box icon="question-mark">
+
+### Analisis pola
+
+Untuk setiap hal berikut, nyatakan apakah kodenya ditulis **di dalam** fungsi `getStaticPaths()`, atau **di luar** fungsi tersebut.
+
+1. Pemanggilan `import.meta.glob()` untuk menerima informasi semua file `.md` Anda lalu meneruskannya ke tiap rute halaman.
+
+    <MultipleChoice>
+    <Option isCorrect>di dalam `getStaticPaths`</Option>
+    <Option>di luar `getStaticPaths`</Option>
+    </MultipleChoice>
+
+2. Daftar rute yang akan dibuat (dikembalikan) oleh `getStaticPaths()`.
+
+    <MultipleChoice>
+    <Option isCorrect>di dalam `getStaticPaths`</Option>
+    <Option>di luar `getStaticPaths`</Option>
+    </MultipleChoice>
+
+3. Nilai *props* dan *params* yang diterima untuk digunakan di template HTML.
+
+    <MultipleChoice>
+    <Option>di dalam `getStaticPaths`</Option>
+    <Option isCorrect>di luar `getStaticPaths`</Option>
+    </MultipleChoice>
+</Box>
+
+:::note[Intisari]
+Jika Anda memerlukan informasi untuk menyusun rute halaman, tulislah **di dalam** `getStaticPaths()`.
+
+Untuk menerima informasi di template HTML dari sebuah rute halaman, tulislah **di luar** `getStaticPaths()`.
+:::
+
+
+## JavaScript tingkat lanjut: Hasilkan halaman dari tag yang ada
+
+Halaman tag Anda saat ini didefinisikan secara statis di `[tag].astro`. Jika Anda menambahkan tag baru pada postingan blog, Anda juga harus kembali ke halaman ini dan memperbarui rute halaman.
+
+Contoh berikut menunjukkan cara mengganti kode pada halaman ini dengan kode yang secara otomatis mencari, lalu menghasilkan halaman untuk setiap tag yang digunakan pada postingan blog Anda.
+
+:::note
+Meskipun terlihat menantang, Anda bisa mencoba mengikuti langkah-langkahnya untuk membangun fungsi ini sendiri! Jika Anda belum ingin mempelajari JavaScript yang diperlukan sekarang, Anda bisa langsung menuju [versi kode yang sudah jadi](#final-code-sample) dan menggunakannya di proyek Anda dengan mengganti konten yang ada.
+:::
+
+<Steps>
+
+1. Periksa bahwa semua postingan blog memiliki tag
+
+   Tinjau kembali setiap halaman Markdown Anda dan pastikan setiap postingan memiliki array `tags` di *frontmatter*-nya. Meski hanya satu tag, tetap tulis sebagai array, mis. `tags: ["blogging"]`.
+
+2. Buat sebuah array berisi semua tag yang ada, menggunakan dukungan TypeScript bawaan Astro.
+
+   Tambahkan kode berikut agar Anda memiliki daftar setiap tag yang digunakan di postingan blog.
+
+   ```astro title="src/pages/tags/[tag].astro" ins={7}
+   ---
+   import BaseLayout from '../../layouts/BaseLayout.astro';
+
+   export async function getStaticPaths() {
+     const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+
+     const uniqueTags = [...new Set(allPosts.map((post: any) => post.frontmatter.tags).flat())];
+   }
+   ```
+
+   <details>
+   <summary>Jelaskan lebih rinci apa yang dilakukan baris kode ini!</summary>
+
+   Tidak apa-apa jika ini belum sesuatu yang bisa Anda tulis sendiri!
+
+   Kode tersebut menelusuri setiap postingan Markdown satu per satu, lalu menggabungkan setiap array *tag* menjadi sebuah array besar. Kemudian, membuat `Set` baru dari semua *tag* individual yang ditemukan (untuk mengabaikan nilai yang berulang). Terakhir, diubah kembali menjadi array (tanpa duplikasi) yang bisa Anda gunakan untuk menampilkan daftar *tag* pada halaman Anda.
+   </details>
+
+    Sekarang Anda memiliki array `uniqueTags` dengan item `"astro"`, `"successes"`, `"community"`, `"blogging"`, `"setbacks"`, `"learning in public"`.
+
+3. Ganti nilai `return` dari fungsi `getStaticPaths`
+
+   ```js title="src/pages/tags/[tag].astro" del={1-8} ins={10-16}
+   return [
+     {params: {tag: "astro"}, props: {posts: allPosts}},
+     {params: {tag: "successes"}, props: {posts: allPosts}},
+     {params: {tag: "community"}, props: {posts: allPosts}},
+     {params: {tag: "blogging"}, props: {posts: allPosts}},
+     {params: {tag: "setbacks"}, props: {posts: allPosts}},
+     {params: {tag: "learning in public"}, props: {posts: allPosts}}
+   ]
+
+   return uniqueTags.map((tag) => {
+     const filteredPosts = allPosts.filter((post: any) => post.frontmatter.tags.includes(tag));
+     return {
+       params: { tag },
+       props: { posts: filteredPosts },
+     };
+   });
+   ```
+4. Fungsi `getStaticPaths` selalu harus mengembalikan daftar objek yang berisi `params` (nama untuk setiap rute halaman) dan opsional `props` (data yang ingin Anda kirim ke halaman-halaman tersebut). Sebelumnya, Anda mendefinisikan setiap nama tag yang diketahui dipakai pada blog dan mengirim seluruh daftar posting sebagai *props* ke tiap halaman.
+
+   Sekarang, Anda membuat daftar objek ini secara otomatis menggunakan array `uniqueTags` untuk mendefinisikan setiap parameter.
+
+   Dan, sekarang daftar semua postingan blog disaring **sebelum** dikirim ke tiap halaman sebagai *props*. Pastikan untuk menghapus baris kode sebelumnya yang menyaring postingan, dan perbarui template HTML Anda untuk menggunakan `posts` alih-alih `filteredPosts`.
+
+   ```astro title="src/pages/tags/[tag].astro" del={3,7} ins={8}
+   const { tag } = Astro.params;
+   const { posts } = Astro.props;
+   const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+   ---
+   <!-- -->
+   <ul>
+     {filteredPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+     {posts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+   </ul>
+   ```
+
+</Steps>
+
+### Contoh kode final
+
+Untuk memeriksa pekerjaan Anda, atau jika Anda hanya ingin kode lengkap yang benar untuk disalin ke `[tag].astro`, berikut seperti inilah komponen Astro Anda:
+
+```astro title="src/pages/tags/[tag].astro"
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import BlogPost from '../../components/BlogPost.astro';
+
+export async function getStaticPaths() {
+  const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+  
+  const uniqueTags = [...new Set(allPosts.map((post: any) => post.frontmatter.tags).flat())];
+
+  return uniqueTags.map((tag) => {
+    const filteredPosts = allPosts.filter((post: any) => post.frontmatter.tags.includes(tag));
+    return {
+      params: { tag },
+      props: { posts: filteredPosts },
+    };
+  });
+}
+
+const { tag } = Astro.params;
+const { posts } = Astro.props;
+---
+<BaseLayout pageTitle={tag}>
+  <p>Post dengan tag {tag}</p>
+  <ul>
+    {posts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+  </ul>
+</BaseLayout>
+```
+
+Sekarang, Anda bisa mengunjungi halaman *tag* mana pun di pratinjau browser.
+
+Arahkan ke `http://localhost:4321/tags/community` dan Anda akan melihat daftar postingan blog dengan tag `community`. Begitu juga `http://localhost:4321/tags/learning%20in%20public` akan menampilkan daftar postingan blog yang ditandai `learning in public`.
+
+Pada bagian berikutnya, Anda akan membuat tautan navigasi ke halaman-halaman ini.
+
+
+
+<Box icon="question-mark">
+
+### Uji pengetahuan Anda
+
+Pilih istilah yang cocok dengan deskripsi.
+
+1. Fungsi yang mengembalikan array rute halaman.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option>perutean dinamis</Option>
+      <Option isCorrect>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+2. Proses membuat banyak rute halaman dari satu file di Astro.
+
+    <MultipleChoice>
+      <Option>params</Option>
+      <Option isCorrect>perutean dinamis</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+4. Nilai yang mendefinisikan nama sebuah rute halaman yang dihasilkan secara dinamis.
+
+    <MultipleChoice>
+      <Option isCorrect>params</Option>
+      <Option>perutean dinamis</Option>
+      <Option>`getStaticPaths()`</Option>
+      <Option>props</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## Daftar Periksa
+
+<Checklist>
+- [ ] Saya dapat menghasilkan halaman secara dinamis.
+- [ ] Saya dapat mengirim `props` ke tiap rute halaman.
+</Checklist>
+</Box>
+
+### Sumber daya
+
+- [Perutean Halaman Dinamis di Astro](/id/guides/routing/#dynamic-routes)
+
+- [Dokumentasi API `getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths)

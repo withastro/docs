@@ -1,0 +1,260 @@
+---
+title: Cosmic & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Cosmic sebagai CMS
+sidebar:
+  label: Cosmic
+type: cms
+service: Cosmic
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Grid from '~/components/FluidGrid.astro';
+import Card from '~/components/ShowcaseCard.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Cosmic](https://www.cosmicjs.com/) adalah [headless CMS](https://www.cosmicjs.com/headless-cms) yang menyediakan *admin dashboard* untuk mengelola konten dan sebuah API yang dapat terintegrasi dengan beragam alat *frontend*.
+
+## Prasyarat
+
+1. **Proyek Astro** — Jika Anda ingin mulai dari nol, baca [panduan instalasi](/id/install-and-setup/). Panduan ini mengikuti versi sederhana dari [Astro Headless CMS Theme](https://astro.build/themes/details/cosmic-cms-blog/) dengan [Tailwind CSS](https://tailwindcss.com/) untuk styling.
+2. **Akun dan Bucket Cosmic** — [Buat akun Cosmic gratis](https://app.cosmicjs.com/signup) jika Anda belum punya. Setelah membuat akun, Anda akan diminta membuat proyek kosong baru. Tersedia juga [Simple Astro Blog template](https://www.cosmicjs.com/marketplace/templates/simple-astro-blog) (ini adalah template yang sama dengan Astro Headless CMS Theme) untuk mengimpor otomatis semua konten yang digunakan di panduan ini.
+3. **API keys Cosmic Anda** — Dari *dashboard* Cosmic, Anda perlu menemukan **Bucket slug** dan **Bucket read key** untuk terhubung ke Cosmic.
+
+## Mengintegrasikan Cosmic dengan Astro
+
+### Memasang Dependensi yang Diperlukan
+
+Tambahkan [Cosmic JavaScript SDK](https://www.npmjs.com/package/@cosmicjs/sdk) untuk mengambil data dari Bucket Cosmic Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @cosmicjs/sdk
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @cosmicjs/sdk
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Mengonfigurasi API Key
+
+Buat file `.env` di root proyek Astro Anda (jika belum ada). Tambahkan **Bucket slug** dan **Bucket read key** dari *dashboard* Cosmic sebagai variabel lingkungan publik.
+
+```ini title=".env"
+PUBLIC_COSMIC_BUCKET_SLUG=YOUR_BUCKET_SLUG
+PUBLIC_COSMIC_READ_KEY=YOUR_READ_KEY
+```
+
+## Mengambil Data dari Cosmic
+
+<Steps>
+1. Buat file baru bernama `cosmic.js`. Letakkan file ini di folder `src/lib` pada proyek Anda.
+
+2. Tambahkan kode berikut untuk mengambil data dari Cosmic menggunakan SDK dan variabel lingkungan Anda. 
+
+    Contoh di bawah membuat fungsi bernama `getAllPosts()` untuk mengambil metadata dari objek `posts` di Cosmic:
+
+    ```js
+    // src/lib/cosmic.js
+    import { createBucketClient } from '@cosmicjs/sdk'
+
+    const cosmic = createBucketClient({
+      bucketSlug: import.meta.env.PUBLIC_COSMIC_BUCKET_SLUG,
+      readKey: import.meta.env.PUBLIC_COSMIC_READ_KEY
+    })
+
+    export async function getAllPosts() {
+      const data = await cosmic.objects
+        .find({
+          type: 'posts'
+        })
+        .props('title,slug,metadata,created_at')
+      return data.objects
+    }
+    ```
+
+    Baca lebih lanjut tentang [kueri pada dokumentasi Cosmic](https://www.cosmicjs.com/docs/api/queries).
+
+3. Impor fungsi kueri Anda di komponen `.astro`. Setelah mengambil data, hasil kueri dapat digunakan di template Astro Anda.
+
+    Contoh berikut memperlihatkan pengambilan metadata dari `posts` Cosmic dan meneruskan nilai-nilai tersebut sebagai *props* ke komponen `<Card />` untuk membuat daftar posting blog:
+
+    ```astro
+    ---
+    // src/pages/index.astro
+    import Card from '../components/Card.astro'
+    import { getAllPosts } from '../lib/cosmic'
+
+    const data = await getAllPosts()
+    ---
+
+    <section>
+      <ul class="grid gap-8 md:grid-cols-2">
+        {
+          data.map((post) => (
+            <Card
+              title={post.title}
+              href={post.slug}
+              body={post.metadata.excerpt}
+              tags={post.metadata.tags.map((tag) => tag)}
+            />
+          ))
+        }
+      </ul>
+    </section>
+    ```
+
+    [Lihat kode sumber komponen Card](https://github.com/cosmicjs/simple-astro-blog/blob/main/src/components/Card.astro)
+</Steps>
+
+## Membangun Blog dengan Astro dan Cosmic
+
+Anda dapat mengelola konten blog Astro menggunakan Cosmic dan membuat webhook untuk *redeploy* situs Anda secara otomatis ketika Anda memperbarui atau menambahkan konten baru.
+
+### Cosmic Content Objects
+
+Instruksi berikut mengasumsikan Anda memiliki **Object Type** di Cosmic bernama **posts**. Setiap posting blog adalah sebuah `post` yang didefinisikan di *dashboard* Cosmic dengan Metafields berikut:
+
+1. **Text input** — Author
+2. **Image** — Cover Image
+3. **Repeater** — Tags
+    - **Text input** — Title
+4. **Text area** — Excerpt  
+5. **Rich Text** — Content
+
+### Menampilkan Daftar Posting Blog di Astro
+
+Menggunakan [metode pengambilan data](#mengambil-data-dari-cosmic) yang sama seperti di atas, impor kueri `getAllPosts()` dari berkas skrip Anda dan *await* datanya. Fungsi ini menyediakan metadata tentang setiap `post` yang dapat ditampilkan secara dinamis.
+
+Contoh di bawah meneruskan nilai-nilai ini ke komponen `<Card />` untuk menampilkan daftar posting blog yang terformat:
+
+```astro
+---
+// src/pages/index.astro
+import Card from '../components/Card.astro'
+import { getAllPosts } from '../lib/cosmic'
+
+const data = await getAllPosts()
+---
+
+<section>
+  <ul class="grid gap-8 md:grid-cols-2">
+    {
+      data.map((post) => (
+        <Card
+          title={post.title}
+          href={post.slug}
+          body={post.metadata.excerpt}
+          tags={post.metadata.tags.map((tag) => tag)}
+        />
+      ))
+    }
+  </ul>
+</section>
+```
+
+### Menghasilkan Posting Blog Individual dengan Astro
+
+Untuk menghasilkan halaman individual dengan konten penuh bagi setiap posting blog, buat [halaman rute dinamis](/id/guides/routing/#dynamic-routes) di `src/pages/blog/[slug].astro`.
+
+Halaman ini akan mengekspor fungsi `getStaticPaths()` untuk membuat rute halaman pada `slug` yang dikembalikan dari setiap objek `post`. Fungsi ini dipanggil saat *build time* dan menghasilkan serta merender semua posting blog Anda sekaligus.
+
+Untuk mengakses data Anda dari Cosmic:
+
+- Kueri Cosmic di dalam `getStaticPaths()` untuk mengambil data setiap *post* dan menyediakannya ke fungsi.
+- Gunakan setiap `post.slug` sebagai parameter rute, membuat URL untuk setiap posting blog.
+- Kembalikan setiap `post` di dalam `Astro.props`, sehingga data *post* tersedia bagi bagian template HTML dari komponen halaman untuk dirender.
+
+Markup HTML di bawah ini menggunakan berbagai data dari Cosmic, seperti judul posting, gambar sampul, dan **konten rich text** (konten posting penuh). Gunakan [set&colon;html](/id/reference/directives-reference/#sethtml) pada elemen yang menampilkan konten *rich text* dari Cosmic untuk merender elemen HTML di halaman persis seperti yang diambil dari Cosmic.
+
+```astro
+---
+// src/pages/blog/[slug].astro
+import { getAllPosts } from '../../lib/cosmic'
+import { Image } from 'astro:assets'
+
+export async function getStaticPaths() {
+  const data = (await getAllPosts()) || []
+
+  return data.map((post) => {
+    return {
+      params: { slug: post.slug },
+      props: { post }
+    }
+  })
+}
+
+const { post } = Astro.props
+---
+
+<article class="mx-auto max-w-screen-md pt-20">
+  <section class="border-b pb-8">
+    <h1 class="text-4xl font-bold">{post.title}</h1>
+    <div class="my-4"></div>
+    <span class="text-sm font-semibold">{post.metadata.author?.title}</span>
+  </section>
+  {
+    post.metadata.cover_image && (
+      <Image
+        src={post.metadata.cover_image.imgix_url}
+        format="webp"
+        width={1200}
+        height={675}
+        aspectRatio={16 / 9}
+        quality={50}
+        alt={`Cover image for the blog ${post.title}`}
+        class={'my-12 rounded-md shadow-lg'}
+      />
+    )
+  }
+  <div set:html={post.metadata.content} />
+</article>
+```
+
+### Menerbitkan situs Anda
+
+Untuk *deploy* situs web, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+#### *Rebuild* saat konten Cosmic diperbarui
+
+Anda dapat menyiapkan webhook langsung di Cosmic untuk memicu *redeploy* situs Anda pada platform hosting (mis. Vercel) setiap kali Anda memperbarui atau menambahkan *Object* konten.
+
+Di "Settings" > "webhooks", tambahkan *endpoint* URL dari Vercel dan pilih *Object Type* yang ingin memicu webhook. Klik “Add webhook” untuk menyimpan.
+
+##### Netlify
+
+Menyiapkan webhook di Netlify:
+
+<Steps>
+1. Buka *dashboard* situs Anda dan klik **Build & deploy**.
+
+2. Di bawah tab **Continuous Deployment**, temukan bagian **Build hooks** dan klik **Add build hook**.
+
+3. Beri nama webhook Anda dan pilih *branch* yang ingin memicu *build*. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Vercel
+
+Menyiapkan webhook di Vercel:
+
+<Steps>
+1. Buka *dashboard* proyek Anda dan klik **Settings**.
+
+2. Di bawah tab **Git**, temukan bagian **Deploy Hooks**.
+
+3. Beri nama webhook dan *branch* yang ingin memicu *build*. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+## Tema
+
+<Grid>
+  <Card title="Astro Headless CMS Blog" href="https://astro.build/themes/details/cosmic-cms-blog/" thumbnail="simple-astro-blog.png" />
+</Grid>

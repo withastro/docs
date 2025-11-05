@@ -1,0 +1,361 @@
+---
+title: Hashnode & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Hashnode sebagai CMS
+sidebar:
+  label: Hashnode
+type: cms
+stub: false
+service: Hashnode
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+
+[Hashnode](https://hashnode.com/) adalah CMS terkelola yang memungkinkan Anda membuat blog atau publikasi.
+
+## Integrasi dengan Astro
+[Hashnode Public API](https://apidocs.hashnode.com/) adalah GraphQL API yang memungkinkan Anda berinteraksi dengan Hashnode. Panduan ini menggunakan [`graphql-request`](https://github.com/jasonkuhrt/graphql-request), klien GraphQL minimal yang cocok dengan Astro, untuk membawa data Hashnode Anda ke proyek Astro.
+
+### Prasyarat
+Untuk memulai, Anda memerlukan: 
+
+1. **Proyek Astro** - Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membuat Anda siap dalam waktu singkat.
+
+2. **Situs Hashnode** - Anda dapat membuat situs personal gratis di [Hashnode](https://hashnode.com/).
+
+### Menginstal dependensi
+
+Instal paket `graphql-request` menggunakan manajer paket pilihan Anda:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add graphql-request
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add graphql-request
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Membuat blog dengan Astro dan Hashnode
+
+Panduan ini menggunakan [`graphql-request`](https://github.com/jasonkuhrt/graphql-request), klien GraphQL minimal yang cocok dengan Astro, untuk membawa data Hashnode Anda ke proyek Astro.
+
+### Prasyarat
+
+1. Blog Hashnode 
+2. Proyek Astro dengan paket [graphql-request](https://github.com/jasonkuhrt/graphql-request) terpasang.
+
+Contoh ini akan membuat halaman indeks yang menampilkan daftar pos dengan tautan ke halaman pos individual yang di-*generate* secara dinamis.
+
+### Mengambil data
+
+<Steps>
+1. Untuk mengambil data situs menggunakan paket `graphql-request`, buat direktori `src/lib` dan buat dua berkas baru `client.ts` & `schema.ts`:
+
+    <FileTree title="Struktur Proyek">
+    - src/
+      - lib/
+        - **client.ts**
+        - **schema.ts**
+      - pages/
+        - index.astro
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. Inisialisasi instance API dengan GraphQLClient menggunakan URL dari Website Hashnode Anda.
+
+    ```ts title="src/lib/client.ts" "astroplayground.hashnode.dev"
+
+    import { gql, GraphQLClient } from "graphql-request";
+    import type { AllPostsData, PostData } from "./schema";
+
+    export const getClient = () => { 
+      return new GraphQLClient("https://gql.hashnode.com") 
+    }
+
+    const myHashnodeURL = "astroplayground.hashnode.dev";
+
+    export const getAllPosts = async () => {
+      const client = getClient();
+
+      const allPosts = await client.request<AllPostsData>(
+        gql`
+          query allPosts {
+            publication(host: "${myHashnodeURL}") {
+              id
+              title
+              posts(first: 20) {
+                pageInfo{
+                  hasNextPage
+                  endCursor
+                }
+                edges {
+                  node {
+                    id
+                    author{
+                      name
+                      profilePicture
+                    }
+                    title
+                    subtitle
+                    brief
+                    slug
+                    coverImage {
+                      url
+                    }
+                    tags {
+                      name
+                      slug
+                    }
+                    publishedAt
+                    readTimeInMinutes
+                  }
+                }
+              }
+            }
+          }
+        `
+      );
+
+      return allPosts;
+    };
+
+
+    export const getPost = async (slug: string) => {
+      const client = getClient();
+
+      const data = await client.request<PostData>(
+        gql`
+          query postDetails($slug: String!) {
+            publication(host: "${myHashnodeURL}") {
+              id
+              post(slug: $slug) {
+                id
+                author{
+                  name
+                  profilePicture
+                }
+                publishedAt
+                title
+                subtitle
+                readTimeInMinutes
+                content{
+                  html
+                }
+                tags {
+                  name
+                  slug
+                }
+                coverImage {
+                  url
+                }
+              }
+            }
+          }
+        `,
+        { slug: slug }
+      );
+          
+      return data.publication.post;
+    };
+
+    ```
+
+3. Konfigurasikan `schema.ts` untuk mendefinisikan bentuk data yang dikembalikan dari Hashnode API.
+
+    ```ts title="src/lib/schema.ts"
+
+    import { z } from "astro/zod";
+
+    export const PostSchema = z.object({
+        id: z.string(),
+        author: z.object({
+            name: z.string(),
+            profilePicture: z.string(),
+            }),
+        publishedAt: z.string(),
+        title: z.string(),
+        subtitle: z.string(),
+        brief: z.string(),
+        slug: z.string(),
+        readTimeInMinutes: z.number(),
+        content: z.object({
+            html: z.string(),
+        }),
+        tags: z.array(z.object({
+            name: z.string(),
+            slug: z.string(),
+        })),
+        coverImage: z.object({
+            url: z.string(),
+        }),
+    })
+
+    export const AllPostsDataSchema = z.object({
+        id: z.string(),
+        publication: z.object({
+            title: z.string(),
+            posts: z.object({
+                pageInfo: z.object({
+                    hasNextPage: z.boolean(),
+                    endCursor: z.string(),
+                }),
+                edges: z.array(z.object({
+                    node: PostSchema,
+                })),
+            }),
+        }),
+    })
+
+    export const PostDataSchema = z.object({
+        id: z.string(),
+        publication: z.object({
+            title: z.string(),
+            post: PostSchema,
+        }),
+    })
+
+    export type Post = z.infer<typeof PostSchema>
+    export type AllPostsData = z.infer<typeof AllPostsDataSchema>
+    export type PostData = z.infer<typeof PostDataSchema>
+
+    ```
+</Steps>
+
+### Menampilkan daftar pos
+
+Pengambilan melalui `getAllPosts()` mengembalikan larik objek yang berisi properti untuk setiap pos seperti:
+- `title` - judul pos
+- `brief` - ringkasan konten pos
+- `coverImage.url` - URL sumber gambar unggulan pos
+- `slug` - *slug* pos
+
+Gunakan larik `posts` yang dikembalikan dari *fetch* untuk menampilkan daftar pos blog di halaman.
+
+```astro title="src/pages/index.astro"
+---
+import { getAllPosts } from '../lib/client';
+
+const data = await getAllPosts();
+const allPosts = data.publication.posts.edges;
+
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Hashnode</title>
+    </head>
+    <body>
+
+        {
+            allPosts.map((post) => (
+                <div>
+                    <h2>{post.node.title}</h2>
+                    <p>{post.node.brief}</p>
+                    <img src={post.node.coverImage.url} alt={post.node.title} />
+                    <a href={`/post/${post.node.slug}`}>Read more</a>
+                </div>
+            ))
+        }
+    </body>
+</html>
+```
+
+### Membuat halaman
+
+<Steps>
+1. Buat halaman `src/pages/post/[slug].astro` untuk [menghasilkan halaman secara dinamis](/id/guides/routing/#dynamic-routes) bagi setiap pos.
+
+    <FileTree title="Struktur Proyek">
+    - src/
+      - lib/
+        - client.ts
+        - schema.ts
+      - pages/
+        - index.astro
+        - post/
+          - **[slug].astro**
+    - astro.config.mjs
+    - package.json
+    </FileTree>
+
+2. Impor dan gunakan `getAllPosts()` serta `getPost()` untuk mengambil data dari Hashnode dan membuat rute halaman individual untuk setiap pos.
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    ```
+
+3. Buat templat untuk setiap halaman menggunakan properti dari objek `post`. Contoh di bawah ini menampilkan judul pos dan waktu baca, lalu konten penuh:
+
+    ```astro title="src/pages/post/[slug].astro"
+    ---
+    import { getAllPosts, getPost } from '../../lib/client';
+
+
+    export async function getStaticPaths() {
+      const data = await getAllPosts();
+      const allPosts = data.publication.posts.edges;
+      return allPosts.map((post) => {
+        return {
+          params: { slug: post.node.slug },
+        }
+      })
+    }
+    const { slug } = Astro.params;
+    const post = await getPost(slug);
+
+    ---
+    <!DOCTYPE html>
+    <html lang="en">
+        <head>
+            <title>{post.title}</title>
+        </head>
+        <body>
+            <img src={post.coverImage.url} alt={post.title} />
+
+            <h1>{post.title}</h1>
+            <p>{post.readTimeInMinutes} min read</p>
+
+            <Fragment set:html={post.content.html} />
+        </body>
+    </html>
+    ```
+    :::note
+    `<Fragment />` adalah komponen bawaan Astro yang memungkinkan Anda menghindari elemen pembungkus yang tidak perlu. Ini sangat berguna saat mengambil HTML dari CMS (mis. Hashnode atau [WordPress](/id/guides/cms/wordpress/)).
+    :::
+</Steps>
+
+### Menerbitkan situs Anda
+Untuk mendepoy situs Anda, kunjungi [panduan deployment](/id/guides/deploy/) kami dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+## Sumber Komunitas 
+
+- [`astro-hashnode`](https://github.com/matthiesenxyz/astro-hashnode) di GitHub

@@ -1,0 +1,547 @@
+---
+title: Drupal & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Drupal sebagai CMS
+sidebar:
+  label: Drupal
+type: cms
+service: Drupal
+i18nReady: true
+stub: true
+---
+import { FileTree, Steps, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[Drupal](https://www.drupal.org/) adalah alat manajemen konten sumber-terbuka.
+
+## Prasyarat
+
+Untuk memulai, Anda memerlukan hal berikut:
+
+1. **Proyek Astro** - Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membantu Anda menyiapkannya dengan cepat.
+
+2. **Situs Drupal** - Jika Anda belum menyiapkan situs Drupal, ikuti panduan resmi [Installing Drupal](https://www.drupal.org/docs/getting-started/installing-drupal).
+
+## Mengintegrasikan Drupal dengan Astro
+
+### Menginstal modul Drupal JSON:API
+
+Agar bisa mendapatkan konten dari Drupal, Anda perlu mengaktifkan [modul Drupal JSON:API](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module).
+
+1. Buka halaman **Extend** `admin/modules` melalui menu administratif **Manage**  
+2. Temukan modul **JSON:API** dan centang kotak di sebelahnya  
+3. Klik **Install** untuk memasang modul baru
+
+Sekarang Anda dapat melakukan permintaan `GET` ke aplikasi Drupal Anda melalui JSON:API.
+
+### Menambahkan URL Drupal di `.env`
+
+Untuk menambahkan URL Drupal Anda ke Astro, buat file `.env` di root proyek (jika belum ada) dan tambahkan variabel berikut:
+
+```ini title=".env"
+DRUPAL_BASE_URL="https://drupal.ddev.site/"
+```
+
+Mulai ulang server *dev* agar variabel lingkungan ini digunakan di proyek Astro Anda.
+
+### Menyiapkan Kredensial
+
+Secara bawaan, *endpoint* Drupal JSON:API dapat diakses untuk permintaan *data-fetching* eksternal tanpa memerlukan autentikasi. Ini memungkinkan Anda mengambil data untuk proyek Astro tanpa kredensial namun tidak mengizinkan pengguna memodifikasi data atau pengaturan situs Anda.
+
+Namun, jika Anda ingin membatasi akses dan mewajibkan autentikasi, Drupal menyediakan [beberapa metode autentikasi](https://www.drupal.org/docs/contributed-modules/api-authentication) termasuk:
+
+- [Basic Authentication](https://www.drupal.org/docs/contributed-modules/api-authentication/setup-basic-authentication)
+- [API Key-based authentication](https://www.drupal.org/docs/contributed-modules/api-authentication/api-key-authentication)
+- [Access Token/OAuth-based authentication](https://www.drupal.org/docs/contributed-modules/api-authentication/setup-access-token-oauth-based-authentication)
+- [JWT Token-based authentication](https://www.drupal.org/docs/contributed-modules/api-authentication/jwt-authentication)
+- [Third-Party Provider token authentication](https://www.drupal.org/docs/contributed-modules/api-authentication/rest-api-authentication-using-external-identity-provider)
+
+Anda dapat menambahkan kredensial Anda ke file `.env`.
+
+```ini title=".env"
+DRUPAL_BASIC_USERNAME="editor"
+DRUPAL_BASIC_PASSWORD="editor"
+DRUPAL_JWT_TOKEN="abc123"
+...
+```
+
+<ReadMore>Pelajari lebih lanjut tentang [variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.</ReadMore>
+
+Direktori root Anda sekarang seharusnya menyertakan file baru ini:
+
+<FileTree title="Struktur Proyek">
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menginstal dependensi
+
+Permintaan dan respons JSON:API sering kompleks dan bertingkat. Untuk mempermudah, Anda dapat menggunakan dua paket npm yang menyederhanakan pembuatan permintaan dan penanganan respons:
+- [`JSONA`](https://www.npmjs.com/package/jsona): *Serializer* dan *deserializer* spesifikasi JSON API v1.0 untuk digunakan di server dan *browser*.
+- [`Drupal JSON-API Params`](https://www.npmjs.com/package/drupal-jsonapi-params): Kelas pembantu untuk membuat kueri yang diperlukan, sekaligus mengoptimalkannya ke bentuk singkat bila memungkinkan.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install jsona drupal-jsonapi-params
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add jsona drupal-jsonapi-params
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add jsona drupal-jsonapi-params
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Mengambil data dari Drupal 
+
+Konten Anda diambil dari URL JSON:API.
+
+### Struktur URL Drupal JSON:API
+
+Struktur URL dasar adalah: `/jsonapi/{entity_type_id}/{bundle_id}`
+
+URL selalu diawali dengan `jsonapi`.
+- `entity_type_id` mengacu pada *Entity Type*, seperti node, block, user, dll.
+- `bundle_id` mengacu pada *Entity Bundles*. Untuk *Entity Type* Node, bundlenya bisa berupa *article*.
+- Dalam kasus ini, untuk mendapatkan daftar semua artikel, URL-nya adalah `[DRUPAL_BASE_URL]/jsonapi/node/article`.
+
+Untuk mengambil satu *entity*, struktur URL-nya adalah `/jsonapi/{entity_type_id}/{bundle_id}/{uuid}`, di mana `uuid` adalah UUID dari *entity* tersebut. Misalnya, URL untuk mengambil artikel tertentu berbentuk `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e`.
+
+#### Mengambil hanya field tertentu
+
+Ambil hanya field tertentu dengan menambahkan *query string* `fields` ke permintaan.
+
+GET: `/jsonapi/{entity_type_id}/{bundle_id}?field[entity_type]=field_list`
+
+Contoh:
+- `/jsonapi/node/article?fields[node--article]=title,created`
+- `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e?fields[node--article]=title,created,body`
+
+#### *Filtering*
+
+Tambahkan *filter* ke permintaan dengan menambahkan *query string* `filter`.
+
+Filter paling sederhana dan umum adalah filter *key–value*:
+
+GET: `/jsonapi/{entity_type_id}/{bundle_id}?filter[field_name]=value&filter[field_other]=value`
+
+Contoh:
+- `/jsonapi/node/article?filter[title]=Testing JSON:API&filter[status]=1`
+- `/jsonapi/node/article/2ee9f0ef-1b25-4bbe-a00f-8649c68b1f7e?fields[node--article]=title&filter[title]=Testing JSON:API`
+
+Anda dapat menemukan opsi kueri lainnya di [Dokumentasi JSON:API](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module).
+
+### Menyusun kueri Drupal
+
+Komponen Astro dapat mengambil data dari situs Drupal Anda menggunakan paket `drupal-jsonapi-params` untuk menyusun kueri. 
+
+Contoh berikut menunjukkan komponen dengan kueri untuk *content type* "article" yang memiliki field teks untuk judul dan field *rich text* untuk konten:
+
+```astro
+---
+import {Jsona} from "jsona";
+import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+// Dapatkan Drupal base URL
+export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+// Hasilkan JSON:API Query. Ambil title dan body dari artikel terpublikasi.
+const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+params.addFields("node--article", [
+        "title",
+        "body",
+    ])
+    .addFilter("status", "1");
+// Hasilkan query string.
+const path: string = params.getQueryString();
+const url: string = baseUrl + '/jsonapi/node/article?' + path;
+
+// Ambil artikel
+const request: Response = await fetch(url);
+const json: string | TJsonApiBody = await request.json();
+// Inisialisasi Jsona.
+const dataFormatter: Jsona = new Jsona();
+// *Deserialize* respons.
+const articles = dataFormatter.deserialize(json);
+---
+<body>
+ {articles?.length ? articles.map((article: any) => (
+    <section>
+      <h2>{article.title}</h2>
+      <article set:html={article.body.value}></article>
+    </section>
+ )): <div><h1>No Content found</h1></div> }
+</body>
+```
+
+Anda dapat menemukan lebih banyak opsi kueri di [Dokumentasi Drupal JSON:API](https://www.drupal.org/docs/core-modules-and-themes/core-modules/jsonapi-module/jsonapi)
+
+## Membuat blog dengan Astro dan Drupal
+
+Dengan penyiapan di atas, Anda sekarang dapat membuat blog yang menggunakan Drupal sebagai CMS. 
+
+### Prasyarat
+
+1. **Proyek Astro** dengan [`JSONA`](https://www.npmjs.com/package/jsona) dan [`Drupal JSON-API Params`](https://www.npmjs.com/package/drupal-jsonapi-params) terinstal.
+
+2. **Situs Drupal dengan minimal satu entri** - Untuk tutorial ini kami sarankan memulai dengan situs Drupal baru menggunakan *Standard installation*.
+
+    Pada bagian **Content** di situs Drupal Anda, buat entri baru dengan mengklik tombol **Add**. Lalu pilih **Article** dan isi field berikut:
+
+    - **Title:** `My first article for Astro!`
+    - **Alias:** `/articles/first-article-for astro`
+    - **Description:** `This is my first Astro article! Let's see what it will look like!`
+
+    Klik **Save** untuk membuat Article pertama Anda. Silakan tambahkan artikel sebanyak yang Anda mau.
+
+### Menampilkan daftar artikel
+
+<Steps>
+
+1. Buat `src/types.ts` jika belum ada dan tambahkan dua *interface* baru bernama `DrupalNode` dan `Path` dengan kode berikut. *Interface* ini akan menyesuaikan field *content type* artikel di Drupal dan field Path. Anda akan menggunakannya untuk memberi tipe pada respons entri artikel Anda.
+
+    ```ts title="src/types.ts"
+
+    export interface Path {
+        alias: string
+        pid: number
+        langcode: string
+    }
+
+    export interface DrupalNode extends Record<string, any> {
+        id: string
+        type: string
+        langcode: string
+        status: boolean
+        drupal_internal__nid: number
+        drupal_internal__vid: number
+        changed: string
+        created: string
+        title: string
+        default_langcode: boolean
+        sticky: boolean
+        path: Path
+    }
+    ```
+
+    Direktori `src` Anda sekarang seharusnya menyertakan file baru ini:
+
+    <FileTree title="Struktur Proyek">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - **types.ts**
+    </FileTree>
+
+2. Buat file baru bernama `drupal.ts` di bawah `src/api` dan tambahkan kode berikut:
+
+    ```ts title="src/api/drupal.ts"
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    // Get the Drupal Base Url.
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+    ```
+
+    Ini akan mengimpor pustaka yang diperlukan seperti `Jsona` untuk *deserialize* respons, `DrupalJsonApiParams` untuk memformat URL permintaan, dan tipe Node serta Jsona. Ini juga akan mengambil `baseUrl` dari file `.env`.
+
+    Direktori `src/api` Anda sekarang seharusnya menyertakan file baru ini:
+
+    <FileTree title="Struktur Proyek">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - **drupal.ts**
+      - types.ts
+    </FileTree>
+
+3. Pada file yang sama, buat fungsi `fetchUrl` untuk melakukan *fetch* dan *deserialize* respons.
+
+    ```ts title="src/api/drupal.ts" ins={9-23}
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    // Get the Drupal Base Url.
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+    /**
+     * Fetch url from Drupal.
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> as Promise<any>
+     */
+    export const fetchUrl = async (url: string): Promise<any> => {
+        const request: Response = await fetch(url);
+        const json: string | TJsonApiBody = await request.json();
+        const dataFormatter: Jsona = new Jsona();
+        return dataFormatter.deserialize(json);
+    }
+    ```
+
+4. Buat fungsi `getArticles()` untuk mengambil semua artikel terpublikasi.
+
+    ```ts title="src/api/drupal.ts" ins={23-40}
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    // Get the Drupal Base Url.
+    export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
+
+    /**
+     * Get all published articles.
+     *
+     * @return Promise<DrupalNode[]>
+     */
+    export const getArticles = async (): Promise<DrupalNode[]> => {
+        const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+        params
+            .addFields("node--article", [
+                "title",
+                "path",
+                "body",
+                "created",
+            ])
+            .addFilter("status", "1");
+        const path: string = params.getQueryString();
+        return await fetchUrl(baseUrl + '/jsonapi/node/article?' + path);
+    }
+    ```
+
+    Sekarang Anda dapat menggunakan fungsi `getArticles()` di komponen `.astro` untuk mendapatkan semua artikel terpublikasi dengan data untuk setiap judul, isi, path, dan tanggal pembuatan.
+
+5. Buka halaman Astro tempat Anda akan mengambil data dari Drupal. Contoh berikut membuat halaman daftar artikel di `src/pages/articles/index.astro`.
+
+    Impor dependensi yang diperlukan dan ambil semua entri dari Drupal dengan *content type* `article` menggunakan `getArticles()` sambil memberikan *interface* `DrupalNode` untuk memberi tipe pada respons Anda.
+
+    ```astro title="src/pages/articles/index.astro"
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // Get all published articles.
+    const articles = await getArticles();
+    ---
+    ```
+
+    Panggilan *fetch* menggunakan `getArticles()` ini akan mengembalikan *array* bertipe dari entri yang dapat digunakan di template halaman Anda.
+
+    Direktori `src/pages/` Anda sekarang seharusnya menyertakan file baru tersebut jika Anda menggunakan nama file halaman yang sama:
+    <FileTree title="Struktur Proyek">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - drupal.ts
+      - pages/
+        - articles/
+          - **index.astro**
+      - types.ts
+    </FileTree>
+
+6. Tambahkan konten ke halaman Anda, seperti judul. Gunakan `articles.map()` untuk menampilkan entri Drupal Anda sebagai item baris dalam sebuah daftar.
+
+    ```astro title="src/pages/articles/index.astro" ins={12-29}
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../types";
+    import {getArticles} from "../api/drupal";
+
+    // Get all published articles.
+    const articles = await getArticles();
+    ---
+    <html lang="en">
+      <head>
+        <title>My news site</title>
+      </head>
+      <body>
+        <h1>My news site</h1>
+        <ul>
+          {articles.map((article: DrupalNode) => (
+            <li>
+              <a href={article.path.alias.replace("internal:en/", "")}>
+                <h2>{article.title}</h2>
+                <p>Published on {article.created}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </body>
+    </html>
+    ```
+
+</Steps>
+
+### Menghasilkan halaman blog individual
+
+Gunakan metode yang sama untuk mengambil data dari Drupal seperti di atas, tetapi kali ini pada halaman yang akan membuat rute halaman unik untuk setiap artikel.
+
+Contoh ini menggunakan mode statis bawaan Astro, dan membuat [file halaman rute dinamis](/id/guides/routing/#dynamic-routes) dengan fungsi `getStaticPaths()`. Fungsi ini akan dipanggil saat *build* untuk menghasilkan daftar *path* yang menjadi halaman.
+
+<Steps>
+
+1. Buat file baru `src/pages/articles/[path].astro` dan impor *interface* `DrupalNode` serta `getArticle()` dari `src/api/drupal.ts`. Ambil data Anda di dalam fungsi `getStaticPaths()` untuk membuat rute untuk blog Anda.
+
+    ```astro title="src/pages/articles/[path].astro"
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // Get all published articles.
+    export async function getStaticPaths() {
+      const articles = await getArticles();
+    }
+    ---
+    ```
+
+    Direktori `src/pages/articles` Anda sekarang seharusnya menyertakan file baru ini:
+    <FileTree title="Struktur Proyek">
+    - .env
+    - astro.config.mjs
+    - package.json
+    - src/
+      - api/
+        - drupal.ts
+      - pages/
+        - articles/
+          - index.astro
+          - **[path].astro**
+      - types.ts
+    </FileTree>
+
+2. Pada file yang sama, *map* setiap entri Drupal ke sebuah objek dengan properti `params` dan `props`. Properti `params` akan digunakan untuk menghasilkan URL halaman dan nilai `props` akan diteruskan ke komponen halaman sebagai *props*.
+
+    ```astro title="src/pages/articles/[path].astro" ins={12-33}
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // Get all published articles.
+    export async function getStaticPaths() {
+        const articles = await getArticles();
+        return articles.map((article: DrupalNode) => {
+            return {
+                params: {
+                    // Choose `path` to match the `[path]` routing value
+                    path: article.path.alias.split('/')[2]
+                },
+                props: {
+                    title: article.title,
+                    body: article.body,
+                    date: new Date(article.created).toLocaleDateString('en-EN', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    })
+                }
+            }
+        });
+    }
+    ---
+    ```
+
+    Properti di dalam `params` harus sesuai dengan nama rute dinamis. Karena nama file adalah `[path].astro`, maka properti yang diberikan ke `params` harus `path`.
+
+    Pada contoh kami, objek `props` meneruskan tiga properti ke halaman:
+    - `title`: string, mewakili judul tulisan Anda.
+    - `body`: string, mewakili isi entri Anda.
+    - `date`: stempel waktu, berdasarkan tanggal pembuatan file Anda.
+
+3. Gunakan `props` halaman untuk menampilkan tulisan blog Anda.
+
+    ```astro title="src/pages/articles/[path].astro" ins={30, 32-42}
+    ---
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
+    import type { DrupalNode } from "../../types";
+    import {getArticles} from "../../api/drupal";
+
+    // Get all published articles.
+    export async function getStaticPaths() {
+        const articles = await getArticles();
+        return articles.map((article: DrupalNode) => {
+            return {
+                params: {
+                    path: article.path.alias.split('/')[2]
+                },
+                props: {
+                    title: article.title,
+                    body: article.body,
+                    date: new Date(article.created).toLocaleDateString('en-EN', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    })
+                }
+            }
+        });
+    }
+
+    const {title, date, body} = Astro.props;
+    ---
+    <html lang="en">
+      <head>
+        <title>{title}</title>
+      </head>
+      <body>
+        <h1>{title}</h1>
+        <time>{date}</time>
+        <article set:html={body.value} />
+      </body>
+    </html>
+    ```
+
+4. Buka pratinjau *dev server* Anda dan klik salah satu tulisan untuk memastikan rute dinamis Anda berfungsi.
+
+</Steps>
+
+### Menerbitkan situs Anda
+
+Untuk *deploy* situs web Anda, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda. 
+
+## Sumber Komunitas
+
+<CardGrid>
+
+  <LinkCard title="Membuat aplikasi web dengan Astro dan Drupal" href="https://www.linkedin.com/pulse/create-web-application-astrojs-website-generator-using-gambino-kx6cf"/>
+
+</CardGrid>
+
+:::note[Punya sumber untuk dibagikan?]
+Jika Anda menemukan (atau membuat!) video atau artikel blog yang membantu tentang penggunaan Drupal dengan Astro, [tambahkan ke daftar ini](https://github.com/withastro/docs/edit/main/src/content/docs/id/guides/cms/drupal.mdx)!
+:::

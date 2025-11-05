@@ -1,0 +1,864 @@
+---
+title: Dev Toolbar App API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+API Aplikasi Dev Toolbar Astro memungkinkan Anda membuat [Integrasi Astro](/id/reference/integrations-reference/) yang menambahkan aplikasi ke Astro Dev Toolbar. Ini memungkinkan Anda menambahkan fitur baru dan integrasi dengan layanan pihak ketiga.
+
+<RecipeLinks slugs={["en/recipes/making-toolbar-apps"]} />
+
+## Penyiapan integrasi aplikasi toolbar
+
+Integrasi dapat menambahkan aplikasi ke dev toolbar di [hook `astro:config:setup`](/id/reference/integrations-reference/#astroconfigsetup). 
+
+```ts title="my-integration.js" {8-13}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp({
+        id: "my-app",
+        name: "My App",
+        icon: "<svg>...</svg>",
+        entrypoint: "./my-app.js",
+      });
+    },
+  },
+});
+```
+
+### `addDevToolbarApp()`
+
+<p>
+
+**Type:** `(entrypoint: DevToolbarAppEntry) => void`<br />
+<Since v="4.0.0" />
+</p>
+
+Fungsi yang tersedia pada [hook `astro:config:setup`](/id/reference/integrations-reference/#astroconfigsetup) untuk menambahkan aplikasi dev toolbar. Fungsi ini menerima sebuah objek dengan properti wajib berikut untuk mendefinisikan aplikasi toolbar: [`id`](#id), [`name`](#name), dan [`entrypoint`](#entrypoint). Opsional, Anda juga dapat mendefinisikan sebuah [`icon`](#icon) untuk aplikasi Anda.
+
+### `id`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Pengenal unik untuk aplikasi. Nilai ini akan digunakan untuk mengidentifikasi aplikasi secara unik di hook dan event.
+
+```ts title="my-integration.js" {2}
+{
+  id: 'my-app',
+  // ...
+}
+```
+
+### `name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Nama aplikasi. Ini akan ditampilkan kepada pengguna kapan pun aplikasi perlu dirujuk menggunakan nama yang mudah dibaca manusia.
+
+```ts title="my-integration.js" {3}
+{
+  // ...
+  name: 'My App',
+  // ...
+}
+```
+
+### `icon`
+
+<p>
+
+**Type:** <code><a href="#icons">Icon</a> | string</code><br />
+**Default**: `"?"`
+</p>
+
+Ikon yang digunakan untuk menampilkan aplikasi di toolbar. Ini bisa berupa ikon dari [daftar ikon](#icons), atau string yang berisi markup SVG dari ikon.
+
+```ts title="my-integration.js" {3}
+{
+  // ...
+  icon: '<svg>...</svg>', // atau, misalnya 'astro:logo'
+  // ...
+}
+```
+
+### `entrypoint`
+
+<p>
+
+**Type:** `string | URL`
+</p>
+
+Path ke file yang mengekspor aplikasi dev toolbar.
+
+```ts title="my-integration.js" {3}
+{
+  // ...
+  entrypoint: './my-app.js',
+}
+```
+
+<p><Since v="5.0.0" /></p>
+
+Fungsi ini juga menerima sebuah `URL` sebagai `entrypoint`:
+
+
+```ts title="my-integration.js" "new URL(\"./my-app.js\", import.meta.url)"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp({
+        id: "my-app",
+        name: "My App",
+        icon: "<svg>...</svg>",
+        entrypoint: new URL("./my-app.js", import.meta.url),
+      });
+    },
+  },
+});
+```
+
+## Struktur Aplikasi Dev Toolbar
+
+Aplikasi Dev Toolbar adalah file `.js` atau `.ts` yang melakukan ekspor default sebuah objek menggunakan fungsi [`defineToolbarApp()`](#definetoolbarapp) yang tersedia dari modul `astro/toolbar`. 
+
+```ts title="src/my-app.js"
+import { defineToolbarApp } from "astro/toolbar";
+
+export default defineToolbarApp({
+  init(canvas) {
+    const text = document.createTextNode('Hello World!');
+    canvas.appendChild(text);
+  },
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Really exit?');
+    return confirmation;
+  } 
+});
+```
+### `defineToolbarApp()`
+
+<p>
+
+**Type:** `(app: DevToolbarApp) => DevToolbarApp`
+<Since v="4.7.0" />
+</p>
+
+Fungsi untuk mendefinisikan logika aplikasi toolbar saat dimuat dan ketika dinonaktifkan (toggled off). 
+
+Fungsi ini menerima sebuah objek dengan fungsi [`init()`](#init) yang akan dipanggil saat aplikasi dev toolbar dimuat. Fungsi ini juga dapat menerima [`beforeTogglingOff()`](#beforetogglingoff) yang akan berjalan ketika aplikasi toolbar diklik untuk menonaktifkan status aktifnya.
+
+### `init()`
+
+<p>
+
+**Type:** `(canvas: ShadowRoot, app: ToolbarAppEventTarget, server: ToolbarServerHelpers) => void | Promise<void>`
+</p>
+
+Meskipun tidak wajib, sebagian besar aplikasi akan menggunakan fungsi ini untuk mendefinisikan perilaku utama aplikasi. Fungsi ini hanya dipanggil sekali saat aplikasi dimuat, yaitu ketika browser idle atau ketika pengguna mengklik aplikasi di UI, mana pun yang terjadi terlebih dahulu.
+
+Fungsi ini menerima tiga argumen untuk mendefinisikan logika aplikasi Anda: [`canvas`](#canvas) (untuk merender elemen ke layar), [`app`](#app) (untuk mengirim dan menerima event sisi-klien dari dev toolbar), dan [`server`](#server) (untuk berkomunikasi dengan server).
+
+#### `canvas`
+
+<p>
+
+**Type:** `ShadowRoot`
+</p>
+
+Sebuah [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) standar yang dapat digunakan aplikasi untuk merender UI-nya. Elemen dapat dibuat dan ditambahkan ke ShadowRoot menggunakan API DOM standar.
+
+Setiap aplikasi menerima ShadowRoot khusus untuk merender UI-nya. Selain itu, elemen induk diposisikan menggunakan `position: absolute;` sehingga UI aplikasi tidak memengaruhi layout halaman Astro.
+
+```ts title="src/my-app.js" {3}
+export default defineToolbarApp({
+	init(canvas) {
+    canvas.appendChild(document.createTextNode('Hello World!'))
+  }
+});
+```
+
+#### `app`
+
+<p>
+
+**Type:** `ToolbarAppEventTarget`<br />
+<Since v="4.7.0" />
+</p>
+
+Sebuah [`EventTarget`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget) standar dengan beberapa [helper untuk event sisi-klien](#client-side-events) yang dapat digunakan untuk mengirim dan menerima event dari Dev toolbar.
+
+```ts title="src/my-app.js" {3-8}
+export default defineToolbarApp({
+  init(canvas, app) {
+    app.onToggled(({ state }) => {
+      const text = document.createTextNode(
+        `The app is now ${state ? "enabled" : "disabled"}!`,
+      );
+      canvas.appendChild(text);
+    });
+  },
+});
+```
+
+#### `server`
+
+<p>
+
+**Type:** `ToolbarServerHelpers`<br />
+<Since v="4.7.0" />
+</p>
+
+Objek yang dapat digunakan untuk [berkomunikasi dengan server](#client-server-communication).
+
+```ts title="src/my-app.js" {3-7}
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Hello!' });
+
+    server.on('server-message', (data) => {
+      console.log(data.message);
+    });
+  },
+});
+```
+
+### `beforeTogglingOff()`
+
+<p>
+
+**Type:** `(canvas: ShadowRoot) => boolean | Promise<boolean>`<br />
+<Since v="4.7.0" />
+</p>
+
+Fungsi opsional yang akan dipanggil saat pengguna mengklik ikon aplikasi di UI untuk menonaktifkan aplikasi. Fungsi ini dapat digunakan, misalnya, untuk melakukan operasi pembersihan, atau untuk meminta konfirmasi pengguna sebelum menonaktifkan aplikasi.
+
+Jika mengembalikan nilai falsy, proses penonaktifan akan dibatalkan dan aplikasi tetap aktif.
+
+```ts title="src/my-app.js" {3-6}
+export default defineToolbarApp({
+  // ...
+  beforeTogglingOff() {
+    const confirmation = window.confirm('Are you sure you want to disable this app?');
+    return confirmation;
+  }
+});
+```
+
+#### canvas
+
+<p>
+
+**Type:** `ShadowRoot`
+</p>
+
+ShadowRoot milik aplikasi, dapat digunakan untuk merender UI apa pun yang dibutuhkan sebelum ditutup. Sama seperti [`canvas` pada argumen fungsi `init`](#canvas).
+
+## Event Sisi-Klien
+
+Selain metode standar dari sebuah `EventTarget` ([`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget), [`dispatchEvent`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/dispatchEvent), [`removeEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/removeEventListener), dll.), objek [`app`](#app) juga memiliki metode-metode berikut:
+
+### `onToggled()`
+
+<p>
+
+**Type:** `(callback: (options: {state: boolean})) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mendaftarkan callback yang akan dipanggil saat pengguna mengklik ikon aplikasi di UI untuk mengaktifkan atau menonaktifkan aplikasi.
+
+```ts title="src/my-app.js"
+app.onToggled((options) => {
+  console.log(`The app is now ${options.state ? 'enabled' : 'disabled'}!`);
+});
+```
+
+### `onToolbarPlacementUpdated()`
+
+<p>
+
+**Type:** `(callback: (options: {placement: 'bottom-left' | 'bottom-center' | 'bottom-right'})) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Event ini dipicu saat pengguna mengubah posisi Dev Toolbar. Ini dapat digunakan, misalnya, untuk memosisikan ulang UI aplikasi saat toolbar dipindahkan.
+
+```ts title="src/my-app.js"
+app.onToolbarPlacementUpdated((options) => {
+  console.log(`The toolbar is now placed at ${options.placement}!`);
+});
+```
+
+### `toggleState()`
+
+<p>
+
+**Type:** `(options: {state: boolean}) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mengubah state aplikasi. Ini dapat digunakan untuk mengaktifkan atau menonaktifkan aplikasi secara terprogram, misalnya ketika pengguna mengklik tombol di UI aplikasi.
+
+```ts title="src/my-app.js"
+app.toggleState({ state: false });
+```
+
+### `toggleNotification()`
+
+<p>
+
+**Type:** `(options: {state?: boolean, level?: 'error' | 'warning' | 'info'}) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mengaktifkan atau menonaktifkan notifikasi pada ikon aplikasi. Ini dapat digunakan untuk memberi tahu pengguna bahwa aplikasi memerlukan perhatian, atau untuk menghapus notifikasi saat ini.
+
+```ts title="src/my-app.js"
+app.toggleNotification({
+  state: true,
+  level: 'warning',
+});
+```
+
+#### `state`
+
+<p>
+
+**Type:** `boolean`
+</p>
+
+Menunjukkan apakah aplikasi memiliki notifikasi untuk pengguna. Jika `true`, ikon aplikasi akan disorot. Jika `false`, sorotan akan dihapus. Jika properti ini tidak ditentukan, maka diasumsikan `true`.
+
+#### `level`
+
+<p>
+
+**Type:** `'error' | 'warning' | 'info'`<br />
+**Default:** `'error'`
+</p>
+
+Menunjukkan tingkat notifikasi. Ini digunakan untuk menentukan warna dan bentuk (lingkaran merah muda tua, segitiga emas, atau kotak biru) dari sorotan pada ikon aplikasi. Jika properti ini tidak ditentukan, maka `'error'` akan diasumsikan.
+
+## Komunikasi Klien-Server
+
+Dengan menggunakan [metode komunikasi klien-server milik Vite](https://vite.dev/guide/api-plugin.html#client-server-communication), Aplikasi Dev Toolbar dan server dapat saling berkomunikasi. Untuk mempermudah pengiriman dan penerimaan pesan kustom, helper disediakan baik di aplikasi toolbar Anda (di klien) maupun di integrasi Anda (di server).
+
+### Di klien
+
+Di aplikasi Anda, gunakan [`objek server pada hook \`init()\``](#server) untuk mengirim dan menerima pesan ke dan dari server.
+
+```ts title="src/my-app.js" {3-7} "server"
+export default defineToolbarApp({
+  init(canvas, app, server) {
+    server.send('my-message', { message: 'Hello!' });
+
+    server.on('server-message', (data) => {
+      console.log(data.message);
+    });
+  },
+});
+```
+
+#### `send()`
+
+<p>
+
+**Type:** `<T>(event: string, payload: T) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mengirim data ke server dari logika yang didefinisikan di aplikasi toolbar Anda.
+
+```ts title="src/my-app.js"
+init(canvas, app, server) {
+  server.send('my-app:my-message', { message: 'Hello!' });
+}
+```
+
+Saat mengirim pesan dari klien ke server, praktik yang baik adalah memberi prefiks nama event dengan ID aplikasi atau namespace lain untuk menghindari konflik dengan aplikasi atau integrasi lain yang mungkin juga mendengarkan pesan.
+
+#### `on()`
+
+<p>
+
+**Type:** `<T>(event: string, callback: (data: T) => void) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mendaftarkan callback yang akan dipanggil ketika server mengirimkan pesan dengan event yang ditentukan.
+
+```ts title="src/my-app.js"
+init(canvas, app, server) {
+  server.on('server-message', (data) => {
+    console.log(data.message);
+  });
+}
+```
+
+### Di server
+
+Di sebuah integrasi, seperti [integrasi yang menambahkan aplikasi toolbar Anda](#penyiapan-integrasi-aplikasi-toolbar), gunakan [hook `astro:server:setup`](/id/reference/integrations-reference/#astroserversetup) untuk mengakses objek `toolbar` guna mengirim dan menerima pesan ke dan dari aplikasi Anda.
+
+```ts title="my-integration.js" {5}
+export default () => ({
+  name: "my-integration",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {},
+    "astro:server:setup": ({ toolbar }) => {},
+  },
+});
+```
+
+#### `send()`
+
+<p>
+
+**Type:** `<T>(event: string, payload: T) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mengirim data ke klien.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.send('server-message', { message: 'Hello!' });
+},
+```
+
+#### `on()`
+
+<p>
+
+**Type:** `<T>(event: string, callback: (data: T) => void) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mendaftarkan callback yang akan dipanggil ketika klien mengirimkan pesan dengan event yang ditentukan.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.on('my-app:my-message', (data) => {
+    console.log(data.message);
+  });
+},
+```
+
+#### `onAppInitialized()`
+
+<p>
+
+**Type:** `(appId: string, callback: () => void) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mendaftarkan callback yang akan dipanggil ketika aplikasi diinisialisasi.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.onAppInitialized('my-app', () => {
+    console.log('The app is now initialized!');
+  });
+},
+```
+
+:::note
+Event `connection` bawaan dari Vite dipicu **sebelum** aplikasi Dev Toolbar diinisialisasi dan oleh karena itu tidak dapat digunakan secara langsung oleh aplikasi. Gunakan metode `onAppInitialized` untuk memastikan aplikasi sepenuhnya diinisialisasi sebelum mengirim pesan kepadanya.
+:::
+
+#### `onAppToggled()`
+
+<p>
+
+**Type:** `(appId: string, callback: (options: {state: boolean}) => void) => void`<br />
+<Since v="4.7.0" />
+</p>
+
+Mendaftarkan callback yang akan dipanggil saat pengguna mengklik ikon aplikasi di UI untuk mengaktifkan atau menonaktifkan aplikasi.
+
+```ts title="my-integration.js"
+'astro:server:setup': ({ toolbar }) => {
+  toolbar.onAppToggled('my-app', ({ state }) => {
+    console.log(`The app is now ${state ? 'enabled' : 'disabled'}!`);
+  });
+},
+```
+
+## Pustaka Komponen
+
+Dev Toolbar menyertakan sekumpulan web components yang dapat digunakan untuk membangun aplikasi dengan tampilan dan nuansa yang konsisten.
+
+### `astro-dev-toolbar-window`
+
+Menampilkan sebuah window.
+
+Slot dari komponen akan digunakan sebagai konten window.
+
+```html
+<astro-dev-toolbar-window>
+  <p>My content</p>
+</astro-dev-toolbar-window>
+```
+
+Saat membangun window menggunakan JavaScript, konten yang di-slot harus ditempatkan di light DOM komponen.
+
+```js
+const myWindow = document.createElement('astro-dev-toolbar-window');
+const myContent = document.createElement('p');
+myContent.textContent = 'My content';
+
+// gunakan appendChild langsung pada `window`, bukan `myWindow.shadowRoot`
+myWindow.appendChild(myContent);
+```
+
+### `astro-dev-toolbar-button`
+
+Menampilkan sebuah tombol.
+
+Slot dari komponen akan digunakan sebagai konten tombol.
+
+```js
+const myButton = document.createElement('astro-dev-toolbar-button');
+myButton.textContent = 'Click me!';
+myButton.buttonStyle = "purple";
+myButton.size = "medium";
+
+myButton.addEventListener('click', () => {
+  console.log('Clicked!');
+});
+```
+
+#### `size`
+
+<p>
+
+**Type:** `"small" | "medium" | "large"`<br />
+**Default:** `"small"`
+</p>
+
+Ukuran tombol.
+
+#### `button-style`
+
+<p>
+
+**Type:** `"ghost" | "outline" | "purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"purple"`
+</p>
+
+Gaya tombol. Saat menggunakan `ghost`, tombolnya sendiri tidak terlihat dan hanya konten tombol yang akan ditampilkan.
+
+Dalam JavaScript, setel properti ini menggunakan properti `buttonStyle` untuk menghindari konflik dengan properti native `style`.
+
+#### `button-border-radius`
+
+<p>
+
+**Type:** `"normal" | "rounded"`<br />
+**Default:** `"normal"`<br />
+<Since v="4.8.0" />
+</p>
+
+Radius sudut tombol. Saat menggunakan `rounded`, tombol akan memiliki sudut membulat dan padding seragam di semua sisi.
+
+Dalam JavaScript, setel properti ini menggunakan properti `buttonBorderRadius`.
+
+### `astro-dev-toolbar-badge`
+
+Menampilkan sebuah badge.
+
+Slot dari komponen akan digunakan sebagai konten badge.
+
+```html
+<astro-dev-toolbar-badge>My badge</astro-dev-toolbar-badge>
+```
+
+#### `size`
+
+<p>
+
+**Type:** `"small" | "large"`<br />
+**Default:** `"small"`
+</p>
+
+Ukuran badge.
+
+#### `badge-style`
+
+<p>
+
+**Type:** `"purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"purple"`
+</p>
+
+Gaya (warna) badge.
+
+Dalam JavaScript, setel properti ini menggunakan properti `badgeStyle` untuk menghindari konflik dengan properti native `style`.
+
+### `astro-dev-toolbar-card`
+
+Menampilkan sebuah kartu (card). Tentukan atribut opsional `link` untuk membuat kartu berperilaku seperti elemen `<a>`.
+
+Saat membuat kartu menggunakan JavaScript, properti `clickAction` dapat ditentukan untuk membuat kartu berperilaku seperti elemen `<button>`.
+
+Slot dari komponen akan digunakan sebagai konten kartu.
+
+```html
+<astro-dev-toolbar-card icon="astro:logo" link="https://github.com/withastro/astro/issues/new/choose">Report an issue</astro-dev-toolbar-card>
+```
+
+#### `card-style`
+
+<p>
+
+**Type:** `"purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"purple"`
+</p>
+
+Gaya kartu. Warna hanya diterapkan pada border kartu saat di-hover.
+
+Dalam JavaScript, setel properti ini menggunakan `cardStyle`.
+
+### `astro-dev-toolbar-toggle`
+
+Menampilkan elemen toggle, bertindak sebagai checkbox. Elemen ini secara internal adalah pembungkus sederhana di sekitar elemen native `<input type="checkbox">`. Elemen checkbox dapat diakses menggunakan properti `input`.
+
+```ts
+const toggle = document.createElement('astro-dev-toolbar-toggle');
+
+toggle.input.addEventListener('change', (evt) => {
+  console.log(`The toggle is now ${evt.currentTarget.checked ? 'enabled' : 'disabled'}!`);
+});
+```
+
+#### `toggle-style`
+
+<p>
+
+**Type:** `"purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"gray"`
+</p>
+
+Gaya toggle.
+
+Dalam JavaScript, setel properti ini menggunakan properti `toggleStyle`.
+
+### `astro-dev-toolbar-radio-checkbox`
+
+<p><Since v="4.8.0" /></p>
+
+Menampilkan radio checkbox. Mirip dengan komponen `astro-dev-toolbar-toggle`, elemen ini adalah pembungkus sederhana di sekitar elemen native `<input type="radio">`. Elemen radio dapat diakses menggunakan properti `input`.
+
+```ts
+const radio = document.createElement('astro-dev-toolbar-radio-checkbox');
+
+radio.input.addEventListener('change', (evt) => {
+  console.log(`The radio is now ${evt.currentTarget.checked ? 'enabled' : 'disabled'}!`);
+});
+```
+
+#### `radio-style`
+
+<p>
+
+**Type:** `"purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"purple"`
+</p>
+
+Gaya radio.
+
+Dalam JavaScript, setel properti ini menggunakan properti `radioStyle`.
+
+### `astro-dev-toolbar-highlight`
+
+Dapat digunakan untuk menyorot sebuah elemen di halaman. Dalam banyak kasus, Anda akan ingin memosisikan dan mengubah ukuran elemen ini menggunakan properti CSS `top`, `left`, `width`, dan `height` agar sesuai dengan elemen yang ingin Anda sorot.
+
+```html
+<!-- Sorot seluruh halaman -->
+<astro-dev-toolbar-highlight style="top: 0; left: 0; width: 100%; height: 100%;"></astro-dev-toolbar-highlight>
+```
+
+```ts
+const elementToHighlight = document.querySelector('h1');
+const rect = elementToHighlight.getBoundingClientRect();
+
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+highlight.style.top = `${Math.max(rect.top + window.scrollY - 10, 0)}px`;
+highlight.style.left = `${Math.max(rect.left + window.scrollX - 10, 0)}px`;
+highlight.style.width = `${rect.width + 15}px`;
+highlight.style.height = `${rect.height + 15}px`;
+highlight.icon = 'astro:logo';
+```
+
+#### `highlight-style`
+
+<p>
+
+**Type:** `"purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"purple"`
+</p>
+
+Gaya highlight.
+
+#### `icon`
+
+Sebuah [ikon](#icons) untuk ditampilkan di sudut kanan atas highlight.
+
+### `astro-dev-toolbar-tooltip`
+
+Menampilkan tooltip dengan beberapa bagian (section). Komponen ini disetel ke `display: none;` secara default dan dapat dibuat terlihat menggunakan atribut `data-show="true"`.
+
+Bagian-bagian didefinisikan menggunakan properti `sections`. Properti ini berupa array objek dengan bentuk berikut:
+
+```ts
+{
+	title?: string; // Judul section
+	inlineTitle?: string; // Judul section, ditampilkan inline di samping judul
+	icon?: Icon; // Ikon section
+	content?: string; // Konten section
+	clickAction?: () => void | Promise<void>; // Aksi saat mengklik section
+	clickDescription?: string; // Deskripsi aksi ketika diklik
+}
+```
+
+```ts
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+tooltip.sections = [{
+  title: 'My section',
+  icon: 'astro:logo',
+  content: 'My content',
+  clickAction: () => {
+    console.log('Clicked!')
+  },
+  clickDescription: 'Click me!'
+}]
+```
+
+Komponen ini sering dipadukan dengan komponen `astro-dev-toolbar-highlight` untuk menampilkan tooltip saat meng-hover elemen yang disorot:
+
+```ts
+const highlight = document.createElement('astro-dev-toolbar-highlight');
+
+// Posisikan highlight...
+
+const tooltip = document.createElement('astro-dev-toolbar-tooltip');
+
+// Tambahkan section ke tooltip...
+
+highlight.addEventListener('mouseover', () => {
+  tooltip.dataset.show = 'true';
+});
+
+highlight.addEventListener('mouseout', () => {
+  tooltip.dataset.show = 'false';
+});
+```
+
+### `astro-dev-toolbar-icon`
+
+Menampilkan sebuah ikon. Ikon dari [daftar ikon](#icons) dapat ditentukan menggunakan atribut `icon`, atau markup SVG ikon dapat diberikan sebagai slot.
+
+```html
+<astro-dev-toolbar-icon icon="astro:logo" />
+```
+
+```html
+<astro-dev-toolbar-icon>
+  <svg>...</svg>
+</astro-dev-toolbar-icon>
+```
+
+### `astro-dev-toolbar-select`
+
+<p>
+
+<Since v="4.6.0" />
+</p>
+
+Menampilkan elemen select. Mirip dengan komponen `astro-dev-toolbar-toggle`, elemen ini adalah pembungkus sederhana di sekitar elemen native `<select>`. Gunakan properti `element` untuk mengakses elemen select.
+
+```ts
+const mySelect = document.createElement("astro-dev-toolbar-select");
+const options = [
+  { label: "First option", value: "first" },
+  { label: "Second option", value: "second", isDefault: true },
+];
+const myOptions = options.map((option) => {
+  const optionEl = document.createElement("option");
+  optionEl.textContent = option.label;
+  optionEl.setAttribute("value", option.value);
+  optionEl.selected = option.isDefault || false;
+  return optionEl;
+});
+
+mySelect.selectStyle = "green";
+mySelect.append(...myOptions);
+
+mySelect.element.addEventListener("change", (evt) => {
+  if (evt.currentTarget instanceof HTMLSelectElement) {
+    console.log(`The select value is now ${evt.currentTarget.value}!`);
+  }
+});
+```
+
+#### `select-style`
+
+<p>
+
+**Type:** `"purple" | "gray" | "red" | "green" | "yellow" | "blue"`<br />
+**Default:** `"gray"`
+</p>
+
+Gaya select.
+
+Dalam JavaScript, setel properti ini menggunakan properti `selectStyle`.
+
+#### Ikon
+
+Saat ini, ikon berikut tersedia dan dapat digunakan di komponen apa pun yang menerima ikon:
+
+- `astro:logo`
+- `warning`
+- `arrow-down`
+- `bug`
+- `check-circle`
+- `gear`
+- `lightbulb`
+- `file-search`
+- `star`
+- `checkmark`
+- `dots-three`
+- `copy`
+- `compress`
+- `grid`
+- `puzzle`
+- `approveUser`
+- `checkCircle`
+- `resizeImage`
+- `searchFile`
+- `image`
+- `robot`
+- `sitemap`
+- `gauge`
+- `person-arms-spread`
+- `arrow-left`
+- `houston-detective`
+
+Semua ikon di atas memiliki `fill="currentColor"` secara default dan akan mewarisi warnanya dari elemen induk.

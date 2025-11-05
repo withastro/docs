@@ -1,0 +1,88 @@
+---
+title: Berbagi state antar komponen Astro
+description: Pelajari cara berbagi state di seluruh komponen Astro dengan Nano Stores.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+:::tip
+Menggunakan komponen framework? Lihat [cara berbagi state antar Islands](/en/recipes/sharing-state-islands/)!
+:::
+
+Saat membangun situs Astro, Anda mungkin perlu berbagi state di antara komponen. Astro merekomendasikan penggunaan [Nano Stores](https://github.com/nanostores/nanostores) untuk penyimpanan klien bersama.
+
+## Resep
+
+<Steps>
+1. Instal Nano Stores:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install nanostores
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add nanostores
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add nanostores
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Buat sebuah store. Pada contoh ini, store melacak apakah sebuah dialog sedang terbuka atau tidak:
+
+    ```ts title="src/store.js"
+    import { atom } from 'nanostores';
+
+    export const isOpen = atom(false);
+    ```
+
+3. Impor dan gunakan store di dalam tag `<script>` pada komponen yang akan berbagi state.
+
+    Komponen `Button` dan `Dialog` berikut masing-masing menggunakan state bersama `isOpen` untuk mengontrol apakah `<div>` tertentu disembunyikan atau ditampilkan:
+
+    ```astro title="src/components/Button.astro"
+    <button id="openDialog">Open</button>
+
+    <script>
+      import { isOpen } from '../store.js';
+
+      // Setel store ke true ketika tombol diklik
+      function openDialog() {
+        isOpen.set(true);
+      }
+
+      // Tambahkan event listener ke tombol
+      document.getElementById('openDialog').addEventListener('click', openDialog);
+    </script>
+    ```
+
+    ```astro title="src/components/Dialog.astro"
+    <div id="dialog" style="display: none">Hello world!</div>
+
+    <script>
+      import { isOpen } from '../store.js';
+
+      // Dengarkan perubahan pada store, dan tampilkan/sembunyikan dialog sesuai nilainya    
+      isOpen.subscribe(open => {
+        if (open) {
+          document.getElementById('dialog').style.display = 'block';
+        } else {
+          document.getElementById('dialog').style.display = 'none';
+        }
+      })
+    </script>
+    ```
+</Steps>
+
+## Sumber Daya
+
+- [Nano Stores di NPM](https://www.npmjs.com/package/nanostores)
+- [Dokumentasi Nano Stores untuk Vanilla JS](https://github.com/nanostores/nanostores#vanilla-js)

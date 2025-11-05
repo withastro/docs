@@ -1,0 +1,444 @@
+---
+title: Astro Container API (eksperimental)
+sidebar:
+  label: Container API (eksperimental)
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+
+<p><Since v="4.9.0" /></p>
+
+API Container memungkinkan Anda merender komponen Astro secara terisolasi.
+
+API sisi server yang bersifat eksperimental ini membuka berbagai potensi penggunaan di masa depan, tetapi saat ini cakupannya difokuskan untuk memungkinkan [pengujian keluaran komponen `.astro`](/id/guides/testing/#vitest-and-container-api) di lingkungan `vite` seperti `vitest`.
+
+API ini juga memungkinkan Anda [memuat skrip perenderan secara manual](#adding-a-renderer-manually) untuk membuat container pada halaman yang dirender saat permintaan (on‑demand) atau pada lingkungan “shell” lain di luar `vite` (misalnya di dalam aplikasi PHP atau Elixir).
+
+API ini memungkinkan Anda [membuat container baru](#create), dan merender sebuah komponen Astro yang mengembalikan [string](#rendertostring) atau [`Response`](#rendertoresponse). 
+
+API ini bersifat eksperimental dan dapat mengalami perubahan yang tidak kompatibel (breaking changes), bahkan pada [rilis minor atau patch](/id/upgrade-astro/#semantic-versioning). Silakan lihat [Astro CHANGELOG](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) untuk perubahan terbaru. Halaman ini akan selalu diperbarui dengan informasi paling mutakhir untuk versi Astro terbaru.
+
+## `create()`
+
+<p>
+
+**Type:** `(options?: AstroContainerOptions) => Promise<experimental_AstroContainer>`
+</p>
+
+Membuat instance baru dari container. 
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+
+const container = await experimental_AstroContainer.create();
+```
+
+Fungsi ini menerima sebuah objek dengan opsi berikut:
+
+
+```ts
+export type AstroContainerOptions = {
+	streaming?: boolean;
+	renderers?: AddServerRenderer[];
+};
+
+export type AddServerRenderer =
+	| {
+			renderer: NamedSSRLoadedRendererValue;
+			name: never;
+	  }
+	| {
+			renderer: SSRLoadedRendererValue;
+			name: string;
+	  };
+```
+
+### Opsi `streaming`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+</p>
+
+Mengaktifkan perenderan komponen menggunakan [HTML streaming](/id/guides/on-demand-rendering/#html-streaming).
+
+### Opsi `renderers`
+
+<p>
+
+**Type:** `AddServerRenderer[]`<br />
+**Default:** `[]`
+</p>
+
+Daftar renderer klien yang telah dimuat dan diperlukan oleh komponen. Gunakan ini jika komponen `.astro` Anda merender [komponen kerangka UI](/id/guides/framework-components/) atau MDX menggunakan integrasi resmi Astro (misalnya React, Vue, dll.).
+
+Renderer dapat ditambahkan melalui Container API secara otomatis untuk aplikasi statis, atau kasus di mana container tidak dipanggil saat runtime (misalnya pengujian dengan `vitest`).
+
+Untuk aplikasi yang [dirender saat permintaan](/id/guides/on-demand-rendering/), atau kasus di mana container dipanggil saat runtime atau di dalam “shell” lain (misalnya PHP, Ruby, Java, dll.), renderer harus diimpor secara manual.
+
+#### Menambahkan renderer melalui Container API
+
+Untuk setiap integrasi resmi Astro, impor dan gunakan fungsi helper `getContainerRenderer()` untuk mengekspos skrip perenderan sisi klien dan sisi servernya. Fungsi ini tersedia untuk `@astrojs/react`, `@astrojs/preact`, `@astrojs/solid-js`, `@astrojs/svelte`, `@astrojs/vue`, dan `@astrojs/mdx`.
+
+Untuk paket renderer di luar organisasi npm `@astrojs`, lihat dokumentasinya untuk `getContainerRenderer()` atau fungsi serupa yang disediakan.
+
+Saat menggunakan `vite` (`vitest`, integrasi Astro, dll.), renderer dimuat dengan fungsi `loadRenderers()` dari modul virtual `astro:container`.
+ 
+:::caution
+Di luar `vite` atau untuk penggunaan saat runtime, Anda harus [memuat renderer secara manual](#adding-a-renderer-manually).
+:::
+
+Contoh berikut menyediakan objek yang diperlukan untuk merender komponen Astro yang merender komponen React dan komponen Svelte: 
+
+```js
+import { getContainerRenderer as reactContainerRenderer } from "@astrojs/react";
+import { getContainerRenderer as svelteContainerRenderer } from "@astrojs/svelte";
+import { loadRenderers } from "astro:container";
+
+const renderers = await loadRenderers([reactContainerRenderer(), svelteContainerRenderer()]);
+const container = await experimental_AstroContainer.create({
+    renderers
+})
+const result = await container.renderToString(ReactWrapper);
+```
+
+#### Menambahkan renderer secara manual
+
+Ketika container dipanggil saat runtime, atau di dalam “shell” lain, fungsi helper modul virtual `astro:container` tidak tersedia. Anda harus mengimpor renderer sisi server dan sisi klien yang diperlukan secara manual lalu menyimpannya di dalam container menggunakan `addServerRenderer` dan `addClientRenderer`.
+
+Renderer sisi server diperlukan untuk membangun proyek Anda, dan **harus** disimpan di container untuk setiap framework yang digunakan. Renderer sisi klien juga diperlukan untuk menghidrasi komponen interaktif di sisi klien menggunakan [direktif `client:*`](/id/reference/directives-reference/#client-directives).
+
+Hanya satu pernyataan impor yang dibutuhkan per framework. Mengimpor sebuah renderer akan membuat renderer sisi server **dan** sisi klien tersedia bagi container Anda. Namun, **renderer sisi server harus ditambahkan ke container sebelum renderer sisi klien**. Ini memungkinkan seluruh container dirender terlebih dahulu, kemudian menghidrasi komponen interaktif apa pun.
+
+Contoh berikut mengimpor secara manual renderer sisi server yang diperlukan agar dapat menampilkan komponen Vue statis dan halaman `.mdx`. Contoh ini juga menambahkan renderer sisi server dan sisi klien untuk komponen React yang interaktif.
+
+```js
+import reactRenderer from "@astrojs/react/server.js";
+import vueRenderer from "@astrojs/vue/server.js";
+import mdxRenderer from "@astrojs/mdx/server.js";
+
+const container = await experimental_AstroContainer.create();
+container.addServerRenderer({ renderer: vueRenderer });
+container.addServerRenderer({ renderer: mdxRenderer });
+
+container.addServerRenderer({ renderer: reactRenderer });
+container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/react/client.js" });
+```
+
+## `renderToString()`
+
+<p>
+
+**Type:** <code>(component: AstroComponentFactory; options?: <a href="#rendering-options">ContainerRenderOptions</a>) => Promise&lt;string&gt;</code>
+</p>
+
+Fungsi ini merender komponen yang ditentukan di dalam container. Fungsi ini menerima sebuah komponen Astro sebagai argumen dan mengembalikan string yang merepresentasikan HTML/konten yang dirender oleh komponen Astro tersebut.
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+import Card from "../src/components/Card.astro";
+
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card);
+```
+
+Di balik layar, fungsi ini memanggil [`renderToResponse()`](#rendertoresponse) dan `Response.text()`. 
+
+Fungsi ini juga menerima sebuah objek sebagai argumen kedua yang dapat berisi [sejumlah opsi](#rendering-options).
+
+## `renderToResponse()`
+
+<p>
+
+**Type:** <code>(component: AstroComponentFactory; options?: <a href="#rendering-options">ContainerRenderOptions</a>) => Promise&lt;Response&gt;</code>
+</p>
+
+Merender sebuah komponen, dan mengembalikan objek `Response`.
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+import Card from "../src/components/Card.astro";
+
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToResponse(Card);
+```
+
+Fungsi ini juga menerima sebuah objek sebagai argumen kedua yang dapat berisi [sejumlah opsi](#rendering-options).
+
+## Opsi perenderan
+
+Baik [`renderToResponse()`](#rendertoresponse) maupun [`renderToString()`](#rendertostring) menerima sebuah objek sebagai argumen kedua:
+
+```ts
+export type ContainerRenderOptions = {
+	slots?: Record<string, any>;
+	props?: Record<string, unknown>;
+	request?: Request;
+	params?: Record<string, string | undefined>;
+	locals?: App.Locals;
+	routeType?: RouteType;
+	partial?: boolean;
+};
+```
+
+Nilai-nilai opsional ini dapat diteruskan ke fungsi perenderan untuk memberikan informasi tambahan yang diperlukan agar komponen Astro dapat dirender dengan benar.
+
+### `slots`
+
+<p>
+
+**Type**: `Record<string, any>`
+</p>
+
+Opsi untuk meneruskan konten yang akan dirender dengan [`<slots>`](/id/basics/astro-components/#slots).
+
+Jika komponen Astro Anda merender satu slot bawaan (default), berikan objek dengan kunci `default`:
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  slots: { default: "Some value" }
+});
+```
+
+Jika komponen Anda merender slot bernama, gunakan nama slot sebagai kunci objek:
+
+```astro name="Card.astro"
+---
+---
+<div>
+  <slot name="header" />
+  <slot name="footer" />
+</div>
+```
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  slots: {
+    header: "Header content",
+    footer: "Footer"
+  }
+});
+```
+
+Anda juga dapat merender komponen secara berantai (cascade):
+
+```astro name="Card.astro"
+---
+---
+<div>
+  <slot name="header" />
+  <slot name="footer" />
+</div>
+```
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+import CardHeader from "../src/components/CardHeader.astro";
+import CardFooter from "../src/components/CardFooter.astro";
+
+const result = await container.renderToString(Card, { 
+  slots: { 
+    header: await container.renderToString(CardHeader), 
+    footer:  await container.renderToString(CardFooter)
+  }
+});
+```
+
+### Opsi `props`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+Opsi untuk meneruskan [properti](/id/basics/astro-components/#component-props) kepada komponen Astro.
+
+```js name="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  props: { name: "Hello, world!" }
+});
+```
+
+```astro name="Card.astro"
+---
+// Untuk dukungan TypeScript
+interface Props {
+  name: string;
+};
+
+const { name } = Astro.props;
+---
+<div>
+  {name}
+</div>
+```
+
+### Opsi `request`
+
+<p>
+
+**Type**: `Request`
+</p>
+
+Opsi untuk meneruskan `Request` yang berisi informasi tentang path/URL tempat komponen akan dirender.
+
+Gunakan opsi ini ketika komponen Anda perlu membaca informasi seperti `Astro.url` atau `Astro.request`.
+
+Anda juga dapat menyuntikkan header atau cookie.
+
+```js file="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+const result = await container.renderToString(Card, { 
+  request: new Request("https://example.com/blog", {
+    headers: {
+      "x-some-secret-header": "test-value"
+    }
+  })
+});
+```
+
+### Opsi `params`
+
+<p>
+
+**Type**: `Record<string, string | undefined>`
+</p>
+
+Objek untuk meneruskan informasi parameter path ke komponen Astro yang bertanggung jawab [menghasilkan rute dinamis](/id/guides/routing/#dynamic-routes).
+
+Gunakan opsi ini jika komponen Anda membutuhkan nilai `Astro.params` untuk menghasilkan satu rute secara dinamis.
+
+```astro name="Card.astro"
+---
+const { locale, slug } = Astro.params;
+---
+<div></div>
+```
+
+```js file="LocaleSlug.test.js"
+import LocaleSlug from "../src/components/[locale]/[slug].astro";
+
+const result = await container.renderToString(LocaleSlug, { 
+  params: {
+    locale: "en",
+    slug: "getting-started"
+  }
+});
+```
+
+### Opsi `locals`
+
+<p>
+
+**Type**: `App.Locals`
+</p>
+
+Opsi untuk meneruskan informasi dari [`Astro.locals`](/id/reference/api-reference/#locals) saat merender komponen Anda.
+
+Gunakan opsi ini ketika komponen memerlukan informasi yang disimpan selama siklus hidup request agar dapat dirender, seperti status login.
+
+```astro name="Card.astro"
+---
+const { checkAuth } = Astro.locals;
+const isAuthenticated = checkAuth();
+---
+{isAuthenticated ? <span>You're in</span> : <span>You're out</span> }
+```
+
+```js file="Card.test.js"
+import Card from "../src/components/Card.astro";
+
+test("User is in", async () => {
+  const result = await container.renderToString(Card, { 
+    locals: {
+      checkAuth() { return true; }
+    }
+  });
+  
+  // assert result contains "You're in"
+});
+
+
+test("User is out", async () => {
+  const result = await container.renderToString(Card, { 
+    locals: {
+      checkAuth() { return false; }
+    }
+  });
+  
+  // assert result contains "You're out"
+});
+```
+
+### Opsi `routeType`
+
+<p>
+
+**Type**: `RouteType`
+</p>
+
+Opsi yang tersedia saat menggunakan `renderToResponse()` untuk menyatakan bahwa Anda sedang merender sebuah [endpoint](/id/guides/endpoints/):
+
+```js
+container.renderToString(Endpoint, { routeType: "endpoint" });
+```
+
+```js file="endpoint.test.js"
+import * as Endpoint from "../src/pages/api/endpoint.js";
+
+const response = await container.renderToResponse(Endpoint, { 
+  routeType: "endpoint"
+});
+const json = await response.json();
+```
+
+Untuk menguji endpoint pada metode seperti `POST`, `PATCH`, dll., gunakan opsi `request` agar fungsi yang benar dipanggil:
+
+```js file="endpoint.js"
+export function GET() {}
+
+// need to test this
+export function POST() {}
+```
+
+```js file="endpoint.test.js" ins={5-7}
+import * as Endpoint from "../src/pages/api/endpoint.js";
+
+const response = await container.renderToResponse(Endpoint, { 
+    routeType: "endpoint",
+    request: new Request("https://example.com", {
+      method: "POST" // Tentukan metode POST untuk pengujian
+    })
+});
+const json = await response.json();
+```
+
+### Opsi `partial`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`<br/>
+<Since v="4.16.6" />
+</p>
+
+Menentukan apakah Container API merender komponen seolah‑olah mereka adalah [page partials](/id/basics/astro-pages/#page-partials). Ini biasanya perilaku yang Anda inginkan saat merender komponen sehingga Anda dapat merender tanpa kerangka (shell) halaman penuh.
+
+Untuk merender komponen sebagai halaman Astro lengkap, termasuk `<!DOCTYPE html>`, Anda dapat menonaktifkan perilaku ini dengan menyetel `partial` ke `false`:
+
+```js name="Card.test.js" ins={4}
+import Blog from "../src/pages/Blog.astro";
+
+const result = await container.renderToString(Card, {
+    partial: false 
+});
+console.log(result) // berisi `<!DOCTYPE html>` di awal HTML
+```

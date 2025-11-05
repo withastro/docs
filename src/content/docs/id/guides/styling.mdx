@@ -1,0 +1,779 @@
+---
+title: Gaya dan CSS
+description: >-
+  Pelajari cara menata komponen di Astro dengan scoped styles, CSS eksternal,
+  dan tooling seperti Sass dan PostCSS.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+
+Astro dibuat agar penulisan style dan CSS terasa mudah. Tulis CSS Anda langsung di dalam komponen Astro, atau impor pustaka CSS favorit seperti [Tailwind][tailwind]. Bahasa styling tingkat lanjut seperti [Sass][sass] dan [Less][less] juga didukung.
+
+## Styling di Astro
+
+Menata gaya sebuah komponen Astro semudah menambahkan tag `<style>` ke komponen atau template halaman Anda. Saat Anda menempatkan tag `<style>` di dalam komponen Astro, Astro akan mendeteksi CSS dan menangani gaya Anda secara otomatis.
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red; }
+</style>
+```
+
+### Scoped Styles
+
+Aturan CSS `<style>` Astro secara otomatis **di‑scope secara default**. Scoped styles dikompilasi di balik layar agar hanya berlaku pada HTML yang ditulis di dalam komponen yang sama. CSS yang Anda tulis di dalam komponen Astro otomatis terenkapsulasi di dalam komponen tersebut.
+
+CSS ini:
+```astro title="src/pages/index.astro"
+<style>
+  h1 {
+    color: red;
+  }
+
+  .text {
+    color: blue;
+  }
+</style>
+```
+
+Dikompilasi menjadi:
+```astro
+<style>
+  h1[data-astro-cid-hhnqfkh6] {
+     color: red;
+  }
+
+  .text[data-astro-cid-hhnqfkh6] {
+    color: blue;
+  }
+</style>
+```
+
+Scoped styles tidak bocor dan tidak akan memengaruhi bagian lain situs Anda. Di Astro, aman menggunakan selector dengan spesifisitas rendah seperti `h1 {}` atau `p {}` karena akan dikompilasi dengan scope pada output final.
+
+Scoped styles juga tidak akan berlaku pada komponen Astro lain yang berada di dalam template Anda. Jika Anda perlu menata komponen anak, pertimbangkan untuk membungkus komponen tersebut dalam `<div>` (atau elemen lain) yang kemudian bisa Anda beri style.
+
+Spesifisitas scoped styles dipertahankan, sehingga dapat bekerja konsisten berdampingan dengan file CSS lain atau pustaka CSS sambil tetap menjaga batas eksklusif yang mencegah style diterapkan di luar komponen.
+
+### Global Styles
+
+Meski kami merekomendasikan scoped styles untuk sebagian besar komponen, Anda mungkin menemukan alasan yang valid untuk menulis CSS global tanpa scope. Anda dapat memilih keluar dari scoping otomatis dengan atribut `<style is:global>`.
+
+```astro title="src/components/GlobalStyles.astro" "is:global"
+<style is:global>
+  /* Tanpa scope, dikirim apa adanya ke browser.
+     Berlaku untuk semua tag <h1> di situs Anda. */
+  h1 { color: red; }
+</style>
+```
+
+Anda juga dapat mencampur aturan CSS global & scoped dalam tag `<style>` yang sama menggunakan selector `:global()`. Ini menjadi pola yang kuat untuk menerapkan style ke anak dari komponen Anda.
+
+```astro title="src/components/MixedStyles.astro" ":global(h1)"
+<style>
+  /* Hanya di-scope untuk komponen ini. */
+  h1 { color: red; }
+  /* Campuran: Berlaku hanya untuk elemen `h1` anak. */
+  article :global(h1) {
+    color: blue;
+  }
+</style>
+<h1>Title</h1>
+<article><slot /></article>
+```
+
+Ini cara yang bagus untuk menata, misalnya, posting blog atau dokumen dengan konten dari CMS di mana isinya berada di luar Astro. Namun, berhati‑hatilah: komponen yang tampilannya berubah tergantung ada tidaknya induk tertentu bisa sulit ditelusuri.
+
+Gunakan scoped styles sesering mungkin. Gunakan global styles hanya saat diperlukan.
+
+### Menggabungkan class dengan `class:list`
+
+Jika Anda perlu menggabungkan beberapa class pada sebuah elemen secara dinamis, Anda dapat menggunakan utilitas atribut `class:list` di file `.astro`.
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- Jika `isRed` truthy, class akan menjadi "box red". -->
+<!-- Jika `isRed` falsy, class akan menjadi "box". -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+<ReadMore>Lihat halaman [referensi directives](/id/reference/directives-reference/#classlist) untuk mempelajari lebih lanjut tentang `class:list`.</ReadMore>
+
+### Variabel CSS
+
+<p><Since v="0.21.0" /></p>
+
+Tag `<style>` Astro dapat mereferensikan variabel CSS apa pun yang tersedia di halaman. Anda juga dapat meneruskan variabel CSS langsung dari frontmatter komponen menggunakan directive `define:vars`.
+
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\(.*\)/
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+---
+<style define:vars={{ foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--foregroundColor);
+  }
+</style>
+<h1>Hello</h1>
+```
+
+<ReadMore>Lihat halaman [referensi directives](/id/reference/directives-reference/#definevars) untuk mempelajari lebih lanjut tentang `define:vars`.</ReadMore>
+
+
+### Meneruskan `class` ke komponen anak
+
+Di Astro, atribut HTML seperti `class` tidak otomatis diteruskan ke komponen anak.
+
+Sebagai gantinya, terima prop `class` di komponen anak dan terapkan ke elemen root. Saat melakukan destrukturisasi, Anda harus mengganti namanya, karena `class` adalah [kata kunci cadangan](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words) di JavaScript.
+
+Dengan strategi scoped style default, Anda juga harus meneruskan atribut `data-astro-cid-*`. Anda dapat melakukannya dengan meneruskan sisa prop `...rest` ke komponen. Jika Anda telah mengubah `scopedStyleStrategy` menjadi `'class'` atau `'where'`, prop `...rest` tidak diperlukan.
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className, ...rest } = Astro.props;
+---
+<div class={className} {...rest}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">Ini akan berwarna merah!</MyComponent>
+```
+
+:::note[Scoped styles dari komponen induk]
+Karena atribut `data-astro-cid-*` menyertakan anak dalam scope induknya, memungkinkan style mengalir dari induk ke anak. Untuk menghindari efek samping yang tidak diinginkan, pastikan Anda menggunakan nama class yang unik di komponen anak.
+:::
+
+### Inline styles
+
+Anda dapat memberi style pada elemen HTML secara inline menggunakan atribut `style`. Ini dapat berupa string CSS atau objek properti CSS:
+
+```astro title="src/pages/index.astro"
+// Keduanya setara:
+<p style={{ color: "brown", textDecoration: "underline" }}>Teks saya</p>
+<p style="color: brown; text-decoration: underline;">Teks saya</p>
+```
+
+## Style Eksternal
+
+Ada dua cara untuk memuat stylesheet global eksternal: impor ESM untuk file yang berada di dalam sumber proyek Anda, dan tautan URL absolut untuk file di direktori `public/`, atau yang di‑hosting di luar proyek Anda.
+
+<ReadMore>Baca lebih lanjut tentang penggunaan [aset statis](/id/guides/imports/) yang berada di `public/` atau `src/`.</ReadMore>
+
+### Impor stylesheet lokal
+
+:::caution[Menggunakan paket npm?]
+Anda mungkin perlu memperbarui `astro.config` saat mengimpor dari paket npm. Lihat bagian ["impor stylesheet dari paket npm"](#import-a-stylesheet-from-an-npm-package) di bawah.
+:::
+
+Anda dapat mengimpor stylesheet di frontmatter komponen Astro menggunakan sintaks impor ESM. Impor CSS bekerja seperti [impor ESM lainnya di komponen Astro](/id/basics/astro-components/#the-component-script), yang harus direferensikan **relatif terhadap komponen** dan harus ditulis di **bagian atas** skrip komponen, bersama impor lainnya.
+
+```astro title="src/pages/index.astro" {4}
+---
+// Astro akan membundel dan mengoptimasikan CSS ini secara otomatis
+// Ini juga bekerja untuk file preprocessor seperti .scss, .styl, dll.
+import '../styles/utils.css';
+---
+<html><!-- Halaman Anda di sini --></html>
+```
+
+Impor CSS via ESM didukung di dalam file JavaScript apa pun, termasuk komponen JSX seperti React & Preact. Ini berguna untuk menulis style granular per‑komponen untuk komponen React Anda.
+
+### Impor stylesheet dari paket npm
+
+Anda mungkin juga perlu memuat stylesheet dari paket npm eksternal. Ini umum untuk utilitas seperti [Open Props](https://open-props.style/). Jika paket Anda **menyarankan menggunakan ekstensi file** (mis. `package-name/styles.css` alih‑alih `package-name/styles`), ini akan berfungsi seperti stylesheet lokal:
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/styles.css';
+---
+<html><!-- Halaman Anda di sini --></html>
+```
+
+Jika paket Anda **tidak menyarankan menggunakan ekstensi file** (mis. `package-name/styles`), Anda perlu memperbarui konfigurasi Astro terlebih dahulu!
+
+Misalkan Anda mengimpor file CSS dari `package-name` bernama `normalize` (tanpa ekstensi file). Agar kami bisa melakukan prerender dengan benar, tambahkan `package-name` ke [array `vite.ssr.noExternal`](https://vite.dev/config/ssr-options.html#ssr-noexternal):
+
+```js ins={7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+:::note
+Ini adalah [pengaturan khusus Vite](https://vite.dev/config/ssr-options.html#ssr-noexternal) yang _tidak_ terkait (atau memerlukan) [Astro SSR](/id/guides/on-demand-rendering/).
+:::
+
+Sekarang, Anda dapat mengimpor `package-name/normalize`. Ini akan dibundel dan dioptimasikan oleh Astro seperti stylesheet lokal lainnya.
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- Halaman Anda di sini --></html>
+```
+
+### Memuat stylesheet statis melalui tag "link"
+
+Anda juga dapat menggunakan elemen `<link>` untuk memuat stylesheet pada halaman. Ini harus berupa jalur URL absolut ke file CSS yang berada di direktori `/public`, atau URL ke situs eksternal. Nilai href `<link>` relatif tidak didukung.
+
+```astro title="src/pages/index.astro" {3,5}
+<head>
+  <!-- Lokal: /public/styles/global.css -->
+  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- Eksternal -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css" />
+</head>
+```
+
+Karena pendekatan ini menggunakan direktori `public/`, ini melewati pemrosesan, pembundelan, dan optimasi CSS normal yang disediakan oleh Astro. Jika Anda memerlukan transformasi tersebut, gunakan metode [Impor Stylesheet](#import-a-local-stylesheet) di atas.
+
+## Urutan Cascading
+
+Komponen Astro terkadang harus mengevaluasi beberapa sumber CSS. Misalnya, komponen Anda mungkin mengimpor stylesheet CSS, menyertakan tag `<style>` sendiri, *dan* dirender di dalam layout yang juga mengimpor CSS.
+
+Saat aturan CSS yang saling bertentangan berlaku pada elemen yang sama, browser terlebih dahulu menggunakan _spesifisitas_ lalu _urutan kemunculan_ untuk menentukan nilai mana yang ditampilkan.
+
+Jika sebuah aturan lebih _spesifik_ dari aturan lain, di mana pun aturan CSS muncul, nilainya akan diutamakan:
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    Header ini akan berwarna ungu!
+  </h1>
+</div>
+```
+
+Jika dua aturan memiliki spesifisitas yang sama, maka _urutan kemunculan_ yang dinilai, dan nilai dari aturan terakhir akan diutamakan:
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    Header ini akan berwarna merah!
+  </h1>
+</div>
+```
+
+Aturan CSS Astro dievaluasi dalam urutan kemunculan berikut:
+
+- **Tag `<link>` di head** (prioritas terendah)
+- **style yang diimpor**
+- **scoped styles** (prioritas tertinggi)
+
+### Scoped Styles
+
+Tergantung pada nilai yang Anda pilih untuk [`scopedStyleStrategy`](/id/reference/configuration-reference/#scopedstylestrategy), scoped styles dapat meningkatkan atau tidak meningkatkan [kolom spesifisitas CLASS](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity#class_column).
+
+Namun, [scoped styles](#scoped-styles) selalu ditempatkan paling akhir dalam urutan kemunculan. Karena itu, style ini akan diutamakan atas style lain dengan spesifisitas yang sama. Misalnya, jika Anda mengimpor stylesheet yang bertentangan dengan scoped style, nilai scoped style‑lah yang diterapkan:
+
+```css title="src/components/make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    Header ini akan berwarna merah!
+  </h1>
+</div>
+```
+
+Scoped styles akan ditimpa jika style yang diimpor lebih spesifik. Style dengan spesifisitas lebih tinggi akan diutamakan dibanding scoped style:
+
+```css title="src/components/make-it-purple.css"
+#intro {
+  color: purple;
+}
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1 id="intro">
+    Header ini akan berwarna ungu!
+  </h1>
+</div>
+```
+
+### Urutan Impor
+
+Saat mengimpor beberapa stylesheet di komponen Astro, aturan CSS dievaluasi sesuai urutan impor. Spesifisitas yang lebih tinggi selalu menentukan style mana yang ditampilkan, kapan pun CSS dievaluasi. Tetapi, saat style yang bertentangan memiliki spesifisitas yang sama, _yang diimpor terakhir_ yang menang:
+
+```css title="src/components/make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="src/components/make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    Header ini akan berwarna ungu!
+  </h1>
+</div>
+```
+
+Walaupun tag `<style>` di‑scope dan hanya berlaku untuk komponen yang mendeklarasikannya, CSS _yang diimpor_ dapat “bocor”. Mengimpor sebuah komponen akan menerapkan CSS apa pun yang diimpornya, bahkan jika komponen tersebut tidak pernah digunakan:
+
+```astro title="src/components/PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>Saya mengimpor CSS ungu.</h1>
+</div>
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    Header ini akan berwarna ungu!
+  </h1>
+</div>
+```
+
+:::tip
+Pola umum di Astro adalah mengimpor CSS global di dalam [komponen Layout](/id/basics/layouts/). Pastikan mengimpor komponen Layout sebelum impor lain sehingga memiliki prioritas paling rendah.
+:::
+
+### Tag Link
+Stylesheet yang dimuat melalui [tag link](#load-a-static-stylesheet-via-link-tags) dievaluasi berurutan, sebelum style lain mana pun di file Astro. Karenanya, style ini memiliki prioritas lebih rendah daripada stylesheet yang diimpor dan scoped styles:
+
+```astro title="src/pages/index.astro"
+---
+import "../components/make-it-purple.css"
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>Ini akan berwarna ungu</h1>
+		</div>
+	</body>
+</html>
+```
+
+## Tailwind
+
+Astro mendukung penambahan pustaka, alat, dan framework CSS populer ke proyek Anda seperti [Tailwind](https://tailwindcss.com) dan lainnya!
+
+Astro mendukung Tailwind 3 dan 4. Anda dapat [menambahkan dukungan Tailwind 4 melalui plugin Vite](#add-tailwind-4) ke proyek Anda dengan perintah CLI, atau memasang dependensi legacy secara manual untuk menambahkan [dukungan Tailwind 3 melalui integrasi Astro](#legacy-tailwind-3-support).
+
+Untuk [meningkatkan proyek Astro Anda dari Tailwind 3 ke 4](#upgrade-from-tailwind-3) Anda harus menambahkan dukungan Tailwind 4, dan menghapus dukungan Tailwind 3 legacy.
+
+### Tambahkan Tailwind 4
+
+Di Astro `>=5.2.0`, gunakan perintah `astro add tailwind` untuk manajer paket Anda guna memasang plugin Vite resmi Tailwind. Untuk menambahkan dukungan Tailwind 4 ke versi Astro yang lebih lama, ikuti [instruksi di dokumentasi Tailwind][tailwind] untuk menambahkan plugin Vite `@tailwindcss/vite` secara manual.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npx astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn astro add tailwind
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, impor `tailwindcss` ke `src/styles/global.css` (atau file CSS lain pilihan Anda) untuk membuat kelas Tailwind tersedia di proyek Astro Anda. File ini beserta impor akan dibuat secara default jika Anda menggunakan perintah `astro add tailwind` untuk memasang plugin Vite.
+
+```css title="src/styles/global.css"
+@import "tailwindcss";
+```
+
+Impor file ini pada halaman tempat Anda ingin Tailwind diterapkan. Ini sering dilakukan di komponen layout sehingga style Tailwind dapat digunakan pada semua halaman yang berbagi layout tersebut:
+
+```astro title="src/layouts/Layout.astro"
+---
+import "../styles/global.css";
+---
+```
+
+### Tingkatkan dari Tailwind 3
+
+Ikuti langkah‑langkah untuk memperbarui proyek Astro yang menggunakan Tailwind v3 (dengan integrasi `@astrojs/tailwind`) ke Tailwind 4 (menggunakan [plugin `@tailwindcss/vite`](https://tailwindcss.com/docs/installation/framework-guides/astro)).
+
+<Steps>
+1. [Tambahkan dukungan Tailwind 4 ke proyek Anda](#add-tailwind-4) melalui CLI untuk versi Astro terbaru, atau dengan menambahkan plugin Vite secara manual.
+
+2. Copot integrasi `@astrojs/tailwind` dari proyek Anda:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm uninstall @astrojs/tailwind
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm remove @astrojs/tailwind
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn remove @astrojs/tailwind
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. Hapus integrasi `@astrojs/tailwind` dari `astro.config.mjs` Anda:
+
+    ```js title="astro.config.mjs" del={2} del="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+
+4. Kemudian, tingkatkan proyek Anda mengikuti [panduan upgrade Tailwind v4](https://tailwindcss.com/docs/upgrade-guide#changes-from-v3).
+</Steps>
+
+### Dukungan Tailwind 3 (legacy)
+
+Untuk menambahkan (atau mempertahankan) dukungan Tailwind 3, Anda perlu memasang `tailwindcss@3` dan integrasi resmi Astro `@astrojs/tailwind`. Memasang dependensi ini secara manual hanya untuk kompatibilitas legacy Tailwind 3, dan tidak diperlukan untuk Tailwind 4. Anda juga membutuhkan [konfigurasi Tailwind legacy](https://v3.tailwindcss.com/docs/configuration#creating-your-configuration-file):
+
+<Steps>
+1. Pasang Tailwind dan integrasi Astro Tailwind ke dependensi proyek Anda menggunakan manajer paket pilihan:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Impor integrasi ke file `astro.config.mjs`, dan tambahkan ke array `integrations[]`:
+
+    ```js title="astro.config.mjs" ins={2} ins="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+3. Buat file `tailwind.config.mjs` di direktori root proyek Anda. Anda dapat menggunakan perintah berikut untuk menghasilkan file konfigurasi dasar:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm dlx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn dlx tailwindcss init
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+4. Tambahkan konfigurasi dasar berikut ke file `tailwind.config.mjs` Anda:
+
+    ```ts title="tailwind.config.mjs" ins={3}
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    };
+    ```
+</Steps>
+
+<RecipeLinks slugs={["en/recipes/tailwind-rendered-markdown"]}/>
+
+## CSS Preprocessor
+
+Astro mendukung CSS preprocessor seperti [Sass][sass], [Stylus][stylus], dan [Less][less] melalui [Vite][vite-preprocessors].
+
+### Sass dan SCSS
+
+ ```shell
+ npm install sass
+ ```
+
+Gunakan `<style lang="scss">` atau `<style lang="sass">` di file `.astro`.
+
+### Stylus
+
+```shell
+npm install stylus
+```
+
+Gunakan `<style lang="styl">` atau `<style lang="stylus">` di file `.astro`.
+
+### Less
+
+```shell
+npm install less
+```
+
+Gunakan `<style lang="less">` di file `.astro`.
+
+### LightningCSS
+
+```shell
+npm install lightningcss
+```
+
+Perbarui konfigurasi `vite` Anda di `astro.config.mjs`:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    css: {
+      transformer: "lightningcss",
+    },
+  },
+})
+
+```
+
+### Di dalam komponen framework
+
+Anda juga dapat menggunakan semua CSS preprocessor di atas di dalam framework JS! Pastikan mengikuti pola yang direkomendasikan masing‑masing framework:
+
+- **React** / **Preact**: `import Styles from './styles.module.scss';`
+- **Vue**: `<style lang="scss">`
+- **Svelte**: `<style lang="scss">`
+
+## PostCSS
+
+Astro menyertakan PostCSS sebagai bagian dari [Vite](https://vite.dev/guide/features.html#postcss). Untuk mengonfigurasi PostCSS pada proyek Anda, buat file `postcss.config.cjs` di root proyek. Anda dapat mengimpor plugin menggunakan `require()` setelah memasangnya (misalnya `npm install autoprefixer`).
+
+```js title="postcss.config.cjs" ins={3-4}
+module.exports = {
+  plugins: [
+    require('autoprefixer'),
+    require('cssnano'),
+  ],
+};
+```
+
+## Framework & Pustaka
+
+### 📘 React / Preact
+
+File `.jsx` mendukung CSS global dan CSS Modules. Untuk mengaktifkan CSS Modules, gunakan ekstensi `.module.css` (atau `.module.scss`/`.module.sass` jika menggunakan Sass).
+
+```jsx title="src/components/MyReactComponent.jsx" /[a-z]+(\.module\.css)/
+import './global.css'; // sertakan CSS global
+import Styles from './styles.module.css'; // Gunakan CSS Modules (harus diakhiri `.module.css`, `.module.scss`, atau `.module.sass`!)
+```
+
+### 📗 Vue
+
+Vue di Astro mendukung metode yang sama seperti `vue-loader`:
+
+- [vue-loader - Scoped CSS][vue-scoped]
+- [vue-loader - CSS Modules][vue-css-modules]
+
+### 📕 Svelte
+
+Svelte di Astro juga bekerja seperti biasanya: [Dokumentasi Styling Svelte][svelte-style].
+
+## Styling Markdown
+
+Metode styling Astro apa pun tersedia untuk [komponen layout Markdown](/id/basics/layouts/#markdown-layouts), namun metode berbeda akan menghasilkan efek styling yang berbeda pada halaman Anda.
+
+Anda dapat menerapkan style global ke konten Markdown dengan menambahkan [stylesheet yang diimpor](#external-styles) ke layout yang membungkus konten halaman Anda. Anda juga dapat menata Markdown Anda dengan tag [`<style is:global>`](#global-styles) di komponen layout. Perhatikan bahwa style apa pun yang ditambahkan tunduk pada [urutan cascading Astro](#cascading-order), dan Anda harus memeriksa halaman yang dirender dengan cermat untuk memastikan style Anda diterapkan sebagaimana mestinya.
+
+Anda juga dapat menambahkan integrasi CSS termasuk [Tailwind](/id/recipes/tailwind-rendered-markdown/). Jika Anda menggunakan Tailwind, [plugin typography](https://tailwindcss.com/docs/typography-plugin) dapat berguna untuk menata Markdown.
+
+## Produksi
+
+### Kontrol bundel
+
+Saat Astro membangun situs Anda untuk deployment produksi, Astro meminifikasi dan menggabungkan CSS Anda menjadi chunk. Setiap halaman di situs Anda mendapatkan chunk‑nya sendiri, dan selain itu, CSS yang dibagi antara banyak halaman akan dipecah lagi menjadi chunk bersama untuk digunakan kembali.
+
+Namun, ketika Anda memiliki beberapa halaman yang berbagi style, sejumlah chunk bersama bisa menjadi sangat kecil. Jika semuanya dikirim terpisah, ini akan menghasilkan banyak permintaan stylesheet dan memengaruhi performa situs. Karena itu, secara default Astro hanya akan menautkan chunk yang ukurannya di atas 4kB di HTML Anda sebagai tag `<link rel="stylesheet">`, sementara yang lebih kecil akan di‑inline ke `<style type="text/css">`. Pendekatan ini memberikan keseimbangan antara jumlah permintaan tambahan dan volume CSS yang bisa di‑cache antar halaman.
+
+Anda dapat mengonfigurasi ukuran (dalam byte) di mana stylesheet akan ditautkan secara eksternal menggunakan opsi build vite `assetsInlineLimit`. Perhatikan bahwa opsi ini juga memengaruhi inlining skrip dan gambar.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+Jika Anda lebih memilih semua style proyek tetap eksternal, Anda dapat mengonfigurasi opsi build `inlineStylesheets`.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+Anda juga dapat mengaturnya ke `'always'` untuk meng‑inline semua stylesheet.
+
+## Lanjutan
+
+:::caution
+Berhati‑hatilah saat melewati bundling CSS bawaan Astro! Style tidak akan otomatis disertakan dalam output build, dan menjadi tanggung jawab Anda untuk memastikan file yang direferensikan benar‑benar disertakan pada output halaman final.
+:::
+
+### Impor CSS `?raw`
+
+Untuk kasus tingkat lanjut, CSS dapat dibaca langsung dari disk tanpa dibundel atau dioptimasikan oleh Astro. Ini berguna saat Anda memerlukan kontrol penuh atas potongan CSS, dan perlu melewati penanganan CSS otomatis Astro.
+
+Ini tidak direkomendasikan untuk sebagian besar pengguna.
+
+```astro title="src/components/RawInlineStyles.astro" "?raw"
+---
+// Contoh tingkat lanjut! Tidak direkomendasikan untuk kebanyakan pengguna.
+import rawStylesCSS from '../styles/main.css?raw';
+---
+<style is:inline set:html={rawStylesCSS}></style>
+```
+
+Lihat [dokumen Vite](https://vite.dev/guide/assets.html#importing-asset-as-string) untuk detail lengkap.
+### Impor CSS `?url`
+
+Untuk kasus tingkat lanjut, Anda dapat mengimpor referensi URL langsung untuk file CSS di dalam direktori `src/` proyek Anda. Ini berguna saat Anda memerlukan kontrol penuh atas cara file CSS dimuat di halaman. Namun, ini akan mencegah optimasi file CSS tersebut bersama CSS halaman lainnya.
+
+Ini tidak direkomendasikan untuk sebagian besar pengguna. Sebagai gantinya, tempatkan file CSS Anda di `public/` untuk mendapatkan referensi URL yang konsisten.
+
+:::caution
+Mengimpor file CSS kecil dengan `?url` dapat mengembalikan konten yang dikodekan base64 dari file CSS sebagai data URL pada build final Anda. Tulis kode Anda agar mendukung data URL ter‑encode (`data:text/css;base64,...`) atau atur opsi konfigurasi [`vite.build.assetsInlineLimit`](https://vite.dev/config/#build-assetsinlinelimit) ke `0` untuk menonaktifkan fitur ini.
+:::
+
+```astro title="src/components/RawStylesUrl.astro" "?url"
+---
+// Contoh tingkat lanjut! Tidak direkomendasikan untuk kebanyakan pengguna.
+import stylesUrl from '../styles/main.css?url';
+---
+<link rel="preload" href={stylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+Lihat [dokumen Vite](https://vite.dev/guide/assets.html#importing-asset-as-url) untuk detail lengkap.
+
+
+[less]: https://lesscss.org/
+[sass]: https://sass-lang.com/
+[stylus]: https://stylus-lang.com/
+[svelte-style]: https://svelte.dev/docs#component-format-style
+[tailwind]: https://tailwindcss.com/docs/installation/framework-guides/astro
+[vite-preprocessors]: https://vite.dev/guide/features.html#css-pre-processors
+[vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
+[vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html

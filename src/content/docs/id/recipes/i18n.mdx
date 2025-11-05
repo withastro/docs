@@ -1,0 +1,531 @@
+---
+title: Tambahkan fitur i18n 
+description: Gunakan routing dinamis dan content collections untuk menambahkan dukungan internasionalisasi ke situs Astro Anda.
+type: recipe
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+
+Pada resep ini, Anda akan mempelajari cara menggunakan content collections dan routing dinamis untuk membangun solusi internasionalisasi (i18n) Anda sendiri dan menyajikan konten dalam berbagai bahasa.
+
+:::tip
+Pada v4.0, Astro menambahkan dukungan bawaan untuk i18n routing yang memungkinkan Anda mengonfigurasi bahasa default dan bahasa yang didukung serta menyertakan fungsi bantu yang berguna untuk melayani audiens internasional. Jika Anda ingin menggunakan ini sebagai gantinya, lihat [panduan internasionalisasi](/en/guides/internationalization/) kami untuk mempelajari fitur-fitur tersebut.
+:::
+Contoh ini menyajikan tiap bahasa pada subpath-nya sendiri, mis. `example.com/en/blog` untuk bahasa Inggris dan `example.com/fr/blog` untuk bahasa Prancis.
+
+Jika Anda lebih suka bahasa default tidak terlihat di URL (berbeda dengan bahasa lain), tersedia [instruksi untuk menyembunyikan bahasa default](/en/recipes/i18n/#hide-default-language-in-the-url) di bawah.
+
+<ReadMore>Lihat [bagian sumber daya](#resources) untuk tautan eksternal ke topik terkait seperti styling right-to-left (RTL) dan memilih tag bahasa.</ReadMore>
+
+## Resep
+
+### Siapkan halaman untuk setiap bahasa
+
+<Steps>
+1. Buat direktori untuk setiap bahasa yang ingin Anda dukung. Misalnya, `en/` dan `fr/` jika Anda mendukung bahasa Inggris dan Prancis:
+
+    <FileTree>
+    - src/
+      - pages/
+        - **en/**
+          - about.astro
+          - index.astro
+        - **fr/**
+          - about.astro
+          - index.astro
+        - index.astro
+    </FileTree>
+
+2. Siapkan `src/pages/index.astro` untuk melakukan redirect ke bahasa default Anda.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```astro
+        ---
+        // src/pages/index.astro
+        ---
+        <meta http-equiv="refresh" content="0;url=/en/" />
+        ```
+
+        Pendekatan ini menggunakan [meta refresh](https://en.wikipedia.org/wiki/Meta_refresh) dan akan berfungsi apa pun platform deploy Anda. Beberapa host statis juga memungkinkan Anda mengonfigurasi redirect server dengan berkas konfigurasi khusus. Lihat dokumentasi platform deploy Anda untuk detailnya.
+      </Fragment>
+
+      <Fragment slot="ssr">
+        Jika Anda menggunakan adapter SSR, Anda dapat menggunakan [`Astro.redirect`](/en/guides/routing/#dynamic-redirects) untuk mengalihkan ke bahasa default di sisi server.
+
+        ```astro
+        ---
+        // src/pages/index.astro
+        return Astro.redirect('/en/');
+        ---
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+</Steps>
+
+### Gunakan koleksi untuk konten terjemahan
+
+<Steps>
+1. Buat folder di `src/content/` untuk setiap jenis konten yang ingin Anda sertakan dan tambahkan subdirektori untuk setiap bahasa yang didukung. Misalnya, untuk mendukung posting blog dalam bahasa Inggris dan Prancis:
+
+    <FileTree>
+    - src/
+      - content/
+          - blog/
+            - **en/** Postingan blog dalam bahasa Inggris
+                - post-1.md
+                - post-2.md
+            - **fr/** Postingan blog dalam bahasa Prancis
+              - post-1.md
+              - post-2.md
+    </FileTree>
+
+2. Buat berkas `src/content.config.ts` dan ekspor sebuah koleksi untuk setiap jenis konten.
+
+    ```ts
+    //src/content.config.ts
+    import { defineCollection, z } from 'astro:content';
+
+    const blogCollection = defineCollection({
+      schema: z.object({
+        title: z.string(),
+        author: z.string(),
+        date: z.date()
+      })
+    });
+
+    export const collections = {
+      'blog': blogCollection
+    };
+
+    ```
+
+    <ReadMore>Baca selengkapnya tentang [Content Collections](/en/guides/content-collections/).</ReadMore>
+
+3. Gunakan [dynamic routes](/en/guides/routing/#dynamic-routes) untuk mengambil dan merender konten berdasarkan parameter `lang` dan `slug`.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        Dalam mode static rendering, gunakan `getStaticPaths` untuk memetakan setiap entri konten ke sebuah halaman:
+
+        ```astro
+        //src/pages/[lang]/blog/[...slug].astro
+        ---
+        import { getCollection, render } from 'astro:content';
+
+        export async function getStaticPaths() {
+          const pages = await getCollection('blog');
+
+          const paths = pages.map(page => {
+            const [lang, ...slug] = page.id.split('/');
+            return { params: { lang, slug: slug.join('/') || undefined }, props: page };
+          });
+
+          return paths;
+        }
+
+        const { lang, slug } = Astro.params;
+        const page = Astro.props;
+        const formattedDate = page.data.date.toLocaleString(lang);
+        const { Content } = await render(page);
+        ---
+        <h1>{page.data.title}</h1>
+        <p>oleh {page.data.author} • {formattedDate}</p>
+        <Content/>
+        ```
+      </Fragment>
+
+      <Fragment slot="ssr">
+        Dalam [mode SSR](/en/guides/on-demand-rendering/), ambil entri yang diminta secara langsung:
+
+        ```astro
+        //src/pages/[lang]/blog/[...slug].astro
+        ---
+        import { getEntry, render } from 'astro:content';
+
+        const { lang, slug } = Astro.params;
+        const page = await getEntry('blog', `${lang}/${slug}`);
+
+        if (!page) {
+          return Astro.redirect('/404');
+        }
+
+        const formattedDate = page.data.date.toLocaleString(lang);
+        const { Content, headings } = await render(page);
+        ---
+        <h1>{page.data.title}</h1>
+        <p>oleh {page.data.author} • {formattedDate}</p>
+        <Content/>
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+    <ReadMore>Baca selengkapnya tentang [routing dinamis](/en/guides/routing/#dynamic-routes).</ReadMore>
+
+    :::tip[Format tanggal]
+    Contoh di atas menggunakan metode pemformatan tanggal bawaan [`toLocaleString()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleString) untuk membuat string yang mudah dibaca dari tanggal frontmatter.
+    Ini memastikan tanggal dan waktu diformat agar sesuai dengan bahasa pengguna.
+    :::
+</Steps>
+
+### Terjemahkan string UI
+
+Buat kamus istilah untuk menerjemahkan label elemen UI di seluruh situs Anda. Ini memungkinkan pengunjung merasakan situs Anda sepenuhnya dalam bahasa mereka.
+
+<Steps>
+1. Buat berkas `src/i18n/ui.ts` untuk menyimpan string terjemahan Anda:
+
+    ```ts
+    // src/i18n/ui.ts
+    export const languages = {
+      en: 'English',
+      fr: 'Français',
+    };
+
+    export const defaultLang = 'en';
+
+    export const ui = {
+      en: {
+        'nav.home': 'Home',
+        'nav.about': 'About',
+        'nav.twitter': 'Twitter',
+      },
+      fr: {
+        'nav.home': 'Accueil',
+        'nav.about': 'À propos',
+      },
+    } as const;
+    ```
+
+2. Buat dua fungsi helper: satu untuk mendeteksi bahasa halaman berdasarkan URL saat ini, dan satu lagi untuk mengambil string terjemahan untuk bagian berbeda dari UI di `src/i18n/utils.ts`:
+
+    ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang } from './ui';
+
+    export function getLangFromUrl(url: URL) {
+      const [, lang] = url.pathname.split('/');
+      if (lang in ui) return lang as keyof typeof ui;
+      return defaultLang;
+    }
+
+    export function useTranslations(lang: keyof typeof ui) {
+      return function t(key: keyof typeof ui[typeof defaultLang]) {
+        return ui[lang][key] || ui[defaultLang][key];
+      }
+    }
+    ```
+
+    :::note[Terlihat?]
+    Pada langkah 1, string `nav.twitter` tidak diterjemahkan ke bahasa Prancis. Anda mungkin tidak ingin setiap istilah diterjemahkan, seperti nama diri atau istilah industri umum. Helper `useTranslations` akan mengembalikan nilai bahasa default jika sebuah key belum diterjemahkan. Pada contoh ini, pengguna bahasa Prancis juga akan melihat “Twitter” di bilah navigasi.
+    :::
+
+3. Impor helper yang diperlukan dan gunakan untuk memilih string UI yang sesuai dengan bahasa saat ini. Misalnya, sebuah komponen nav dapat terlihat seperti ini:
+
+    ```astro 
+    ---
+    // src/components/Nav.astro
+    import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+    const lang = getLangFromUrl(Astro.url);
+    const t = useTranslations(lang);
+    ---
+    <ul>
+        <li>
+            <a href={`/${lang}/home/`}>
+              {t('nav.home')}
+            </a>
+        </li>
+        <li>
+            <a href={`/${lang}/about/`}>
+              {t('nav.about')}
+            </a>
+        </li>
+        <li>
+            <a href="https://twitter.com/astrodotbuild">
+              {t('nav.twitter')}
+            </a>
+        </li>
+    </ul>
+    ```
+
+4. Setiap halaman harus memiliki atribut `lang` pada elemen `<html>` yang cocok dengan bahasa halaman tersebut. Pada contoh ini, sebuah [layout yang dapat digunakan ulang](/en/basics/layouts/) mengekstrak bahasa dari rute saat ini:
+
+    ```astro
+    ---
+    // src/layouts/Base.astro
+
+    import { getLangFromUrl } from '../i18n/utils';
+
+    const lang = getLangFromUrl(Astro.url);
+    ---
+    <html lang={lang}>
+        <head>
+            <meta charset="utf-8" />
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+            <meta name="viewport" content="width=device-width" />
+            <title>Astro</title>
+        </head>
+        <body>
+            <slot />
+        </body>
+    </html>
+    ```
+
+    Anda kemudian dapat menggunakan layout dasar ini untuk memastikan halaman menggunakan atribut `lang` yang benar secara otomatis.
+
+    ```astro
+    ---
+    // src/pages/en/about.astro
+    import Base from '../../layouts/Base.astro';
+    ---
+    <Base>
+        <h1>About me</h1>
+        ...
+    </Base>
+    ```
+</Steps>
+
+### Biarkan pengguna beralih bahasa
+
+Buat tautan ke berbagai bahasa yang Anda dukung agar pengguna dapat memilih bahasa yang mereka inginkan.
+
+<Steps>
+1. Buat sebuah komponen untuk menampilkan tautan bagi setiap bahasa:
+
+    ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    ---
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={`/${lang}/`}>{label}</a>
+        </li>
+      ))}
+    </ul>
+    ```
+
+2. Tambahkan `<LanguagePicker />` ke situs Anda agar muncul di setiap halaman. Contoh di bawah menambahkannya ke footer situs di layout dasar:
+
+    ```astro ins={3,17-19}
+    ---
+    // src/layouts/Base.astro
+    import LanguagePicker from '../components/LanguagePicker.astro';
+    import { getLangFromUrl } from '../i18n/utils';
+
+    const lang = getLangFromUrl(Astro.url);
+    ---
+    <html lang={lang}>
+        <head>
+            <meta charset="utf-8" />
+            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+            <meta name="viewport" content="width=device-width" />
+            <title>Astro</title>
+        </head>
+        <body>
+            <slot />
+            <footer>
+              <LanguagePicker />
+            </footer>
+        </body>
+    </html>
+    ```
+</Steps>
+
+### Sembunyikan bahasa default di URL
+
+<Steps>
+1. Buat direktori untuk setiap bahasa kecuali bahasa default. Misalnya, simpan halaman bahasa default langsung di `pages/`, dan halaman terjemahan Anda di `fr/`:
+
+    <FileTree>
+    - src/
+      - pages/
+        - about.astro
+        - index.astro
+        - **fr/**
+          - about.astro
+          - index.astro
+    </FileTree>
+
+2. Tambahkan satu baris lagi ke berkas `src/i18n/ui.ts` untuk mengaktifkan fitur ini:
+
+    ```ts
+    // src/i18n/ui.ts
+    export const showDefaultLang = false;
+    ```
+
+3. Tambahkan fungsi helper ke `src/i18n/utils.ts`, untuk menerjemahkan path berdasarkan bahasa saat ini:
+
+   ```js
+   // src/i18n/utils.ts
+   import { ui, defaultLang, showDefaultLang } from './ui';
+
+   export function useTranslatedPath(lang: keyof typeof ui) {
+     return function translatePath(path: string, l: string = lang) {
+       return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`
+     }
+   }
+   ```
+
+4. Impor helper tersebut saat dibutuhkan. Misalnya, sebuah komponen `nav` dapat terlihat seperti ini:
+
+    ```astro 
+    ---
+    // src/components/Nav.astro
+    import { getLangFromUrl, useTranslations, useTranslatedPath } from '../i18n/utils';
+
+    const lang = getLangFromUrl(Astro.url);
+    const t = useTranslations(lang);
+    const translatePath = useTranslatedPath(lang);
+    ---
+    <ul>
+        <li>
+            <a href={translatePath('/home/')}>
+              {t('nav.home')}
+            </a>
+        </li>
+        <li>
+            <a href={translatePath('/about/')}>
+              {t('nav.about')}
+            </a>
+        </li>
+        <li>
+            <a href="https://twitter.com/astrodotbuild">
+              {t('nav.twitter')}
+            </a>
+        </li>
+    </ul>
+    ```
+
+5. Fungsi helper juga dapat digunakan untuk menerjemahkan path untuk bahasa tertentu. Misalnya, ketika pengguna beralih bahasa:
+
+    ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    import { getLangFromUrl, useTranslatedPath } from '../i18n/utils';
+
+    const lang = getLangFromUrl(Astro.url);
+    const translatePath = useTranslatedPath(lang);
+    ---
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => (
+        <li>
+          <a href={translatePath('/', lang)}>{label}</a>
+        </li>
+      ))}
+    </ul>
+    ```
+</Steps>
+
+### Terjemahkan rute
+
+Terjemahkan rute halaman Anda untuk setiap bahasa.
+
+<Steps>
+1. Tambahkan pemetaan rute ke `src/i18n/ui.ts`:
+
+    ```ts
+    // src/i18n/ui.ts
+    export const routes = {
+      de: {
+        'services': 'leistungen',
+      },
+      fr: {
+        'services': 'prestations-de-service',
+      },
+    }
+    ```
+
+2. Perbarui fungsi helper `useTranslatedPath` di `src/i18n/utils.ts` untuk menambahkan logika terjemahan rute.
+
+    ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang, routes } from './ui';
+
+    export function useTranslatedPath(lang: keyof typeof ui) {
+      return function translatePath(path: string, l: string = lang) {
+        const pathName = path.replaceAll('/', '')
+        const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
+        const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
+
+        return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
+      }
+    }
+    ```
+
+3. Buat fungsi helper untuk mendapatkan rute, jika ada, berdasarkan URL saat ini di `src/i18n/utils.ts`:
+
+    ```js
+    // src/i18n/utils.ts
+    import { ui, defaultLang, showDefaultLang, routes } from './ui';
+
+    export function getRouteFromUrl(url: URL): string | undefined {
+      const pathname = new URL(url).pathname;
+      const parts = pathname?.split('/');
+      const path = parts.pop() || parts.pop();
+
+      if (path === undefined) {
+        return undefined;
+      }
+
+      const currentLang = getLangFromUrl(url);
+
+      if (defaultLang === currentLang) {
+        const route = Object.values(routes)[0];
+        return route[path] !== undefined ? route[path] : undefined;
+      }
+
+      const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
+          return Object.keys(obj).find((key) => obj[key] === value);
+      }
+
+      const reversedKey = getKeyByValue(routes[currentLang], path);
+
+      if (reversedKey !== undefined) {
+        return reversedKey;
+      }
+
+      return undefined;
+    }
+    ```
+
+4. Fungsi helper tersebut juga dapat digunakan untuk mendapatkan rute yang diterjemahkan. Misalnya, ketika tidak ada rute terjemahan yang didefinisikan, pengguna akan diarahkan ke halaman beranda:
+
+    ```astro
+    ---
+    // src/components/LanguagePicker.astro
+    import { languages } from '../i18n/ui';
+    import { getRouteFromUrl, useTranslatedPath } from '../i18n/utils';
+
+    const route = getRouteFromUrl(Astro.url);
+    ---
+    <ul>
+      {Object.entries(languages).map(([lang, label]) => {
+        const translatePath = useTranslatedPath(lang);
+        return (
+          <li>
+            <a href={translatePath(`/${route ? route : ''}`)}>{label}</a>
+          </li>
+        )
+      })}
+    </ul>
+    ```
+</Steps>
+
+## Sumber Daya
+- [Choosing a Language Tag](https://www.w3.org/International/questions/qa-choosing-language-tags)
+- [Right-to-left (RTL) Styling 101](https://rtlstyling.com/)
+
+## Pustaka komunitas
+- [astro-i18next](https://github.com/yassinedoghri/astro-i18next) — Integrasi Astro untuk i18next beserta beberapa komponen utilitas.
+- [astro-i18n](https://github.com/alexandre-fernandez/astro-i18n) — Pustaka internasionalisasi berfokus TypeScript untuk Astro.
+- [astro-i18n-aut](https://github.com/jlarmstrongiv/astro-i18n-aut) — Integrasi Astro untuk i18n yang mendukung `defaultLocale` tanpa pembuatan halaman. Integrasi ini agnostik adapter dan agnostik UI framework.
+- [astro-react-i18next](https://github.com/jeremyxgo/astro-react-i18next) — Integrasi Astro yang mulus mengaktifkan i18next dan react-i18next dalam komponen React di situs Astro.
+- [paraglide](https://inlang.com/c/astro) — Pustaka i18n yang sepenuhnya type-safe, dirancang untuk pola partial hydration seperti Astro islands.
+- [astro-loader-i18n](https://github.com/openscript/astro-loader-i18n) — Loader konten i18n Astro berbasis glob untuk berkas dan struktur folder yang mendukung terjemahan rute.

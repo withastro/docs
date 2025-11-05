@@ -1,0 +1,212 @@
+---
+title: Membuat formulir HTML di halaman Astro
+description: Pelajari cara membuat formulir HTML dan menangani pengiriman di frontmatter Anda.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Halaman Astro yang dirender on demand dapat menampilkan dan menangani formulir sekaligus. Pada resep ini, Anda akan menggunakan formulir HTML standar untuk mengirim data ke server. Script frontmatter Anda akan menangani data di server, tanpa mengirim JavaScript ke klien.
+
+:::tip[Membuat formulir dengan Astro Actions]
+Pada v4.15, Astro menambahkan actions yang memberikan beberapa keuntungan dibanding formulir HTML dasar termasuk memvalidasi data formulir Anda dan memperbarui UI berdasarkan pengiriman formulir. Untuk menggunakan metode ini sebagai pengganti, lihat [panduan actions](/en/guides/actions/) untuk mempelajari fitur-fiturnya.
+:::
+
+## Prasyarat
+- Proyek Astro dengan [server adapter](/en/guides/on-demand-rendering/#server-adapters) terpasang.
+
+## Resep
+
+<Steps>
+1. Buat atau tentukan halaman `.astro` yang akan memuat formulir dan kode penanganannya. Misalnya, Anda dapat menambahkan halaman pendaftaran:
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    ```
+
+2. Tambahkan tag `<form>` beserta beberapa input ke halaman. Setiap input harus memiliki atribut `name` yang mendeskripsikan nilai dari input tersebut. 
+
+    Pastikan menyertakan elemen `<button>` atau `<input type="submit">` untuk mengirim formulir.
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    <form>
+      <label>
+        Username:
+        <input type="text" name="username" />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+3. Gunakan [atribut validasi](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) untuk menyediakan validasi sisi klien dasar yang tetap berfungsi meskipun JavaScript dinonaktifkan. 
+
+    Pada contoh ini,
+    - `required` mencegah pengiriman formulir hingga field diisi.
+    - `minlength` menetapkan panjang minimal untuk input teks.
+    - `type="email"` juga menambahkan validasi yang hanya menerima format email yang valid.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    ---
+    <h1>Register</h1>
+    <form>
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+    :::tip
+    Anda dapat menambahkan logika validasi kustom yang merujuk ke beberapa field menggunakan tag `<script>` dan [Constraint Validation API](https://developer.mozilla.org/en-US/docs/Web/HTML/Constraint_validation#complex_constraints_using_the_constraint_validation_api).
+
+    Untuk menulis logika validasi kompleks dengan lebih mudah, Anda dapat membangun formulir menggunakan [framework frontend](/en/guides/framework-components/) dan memilih pustaka formulir seperti [React Hook Form](https://react-hook-form.com/) atau [Felte](https://felte.dev/).
+    :::
+
+4. Pengiriman formulir akan menyebabkan browser meminta halaman tersebut lagi. Ubah `method` transfer data formulir menjadi `POST` untuk mengirim data formulir sebagai bagian dari body `Request`, bukan sebagai parameter URL.
+
+    ```astro title="src/pages/register.astro" 'method="POST"'
+    ---
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+5.  Periksa metode `POST` di frontmatter dan akses data formulir menggunakan `Astro.request.formData()`. Bungkus ini dalam blok `try ... catch` untuk menangani kasus ketika permintaan `POST` tidak dikirim oleh formulir dan `formData` tidak valid.
+
+    ```astro title="src/pages/register.astro" ins={2-16} "Astro.request.formData()"
+    ---
+    export const prerender = false; // Not needed in 'server' mode
+
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        // Do something with the data
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      <button>Submit</button>
+    </form>
+    ```
+
+6. Validasi data formulir di server. Ini harus mencakup validasi yang sama seperti di klien untuk mencegah pengiriman berbahaya ke endpoint Anda dan untuk mendukung browser lama yang jarang yang tidak memiliki validasi formulir. 
+
+    Ini juga dapat mencakup validasi yang tidak bisa dilakukan di klien. Misalnya, contoh ini memeriksa apakah email sudah ada di database. 
+
+    Pesan error dapat dikirim kembali ke klien dengan menyimpannya di objek `errors` dan mengaksesnya di template. 
+
+    ```astro title="src/pages/register.astro" ins={7, 14-24, 43, 48, 53}
+    ---
+    export const prerender = false; // Not needed in 'server' mode
+
+    import { isRegistered, registerUser } from "../../data/users"
+    import { isValidEmail } from "../../utils/isValidEmail";
+
+    const errors = { username: "", email: "", password: "" };
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const name = data.get("username");
+        const email = data.get("email");
+        const password = data.get("password");
+        if (typeof name !== "string" || name.length < 1) {
+          errors.username += "Please enter a username. ";
+        }
+        if (typeof email !== "string" || !isValidEmail(email)) {
+          errors.email += "Email is not valid. ";
+        } else if (await isRegistered(email)) {
+          errors.email += "Email is already registered. ";
+        }
+        if (typeof password !== "string" || password.length < 6) {
+          errors.password += "Password must be at least 6 characters. ";
+        }
+        const hasErrors = Object.values(errors).some(msg => msg)
+        if (!hasErrors) {
+          await registerUser({name, email, password});
+          return Astro.redirect("/login");
+        }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(error.message);
+        }
+      }
+    }
+    ---
+    <h1>Register</h1>
+    <form method="POST">
+      <label>
+        Username:
+        <input type="text" name="username" />
+      </label>
+      {errors.username && <p>{errors.username}</p>}
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      {errors.email && <p>{errors.email}</p>}
+      <label>
+        Password:
+        <input type="password" name="password" required minlength="6" />
+      </label>
+      {errors.password && <p>{errors.password}</p>}
+      <button>Register</button>
+    </form>
+
+    ```
+</Steps>

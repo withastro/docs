@@ -1,0 +1,287 @@
+---
+type: integration
+title: '@astrojs/react'
+description: Pelajari cara menggunakan integrasi framework @astrojs/react untuk memperluas dukungan komponen di proyek Astro Anda.
+sidebar:
+  label: React
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
+category: renderer
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+
+Integrasi **[Astro][astro-integration]** ini mengaktifkan rendering dan hydrasi sisi klien untuk komponen [React](https://react.dev/) Anda.
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatisasi penyiapan integrasi resmi. Jika Anda mau, Anda juga dapat [menginstal secara manual](#manual-install) sebagai alternatif.
+
+Untuk memasang `@astrojs/react`, jalankan salah satu perintah berikut dari direktori proyek Anda dan ikuti petunjuknya:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Jika Anda mengalami masalah, [laporkan di GitHub](https://github.com/withastro/astro/issues) dan coba langkah instalasi manual di bawah.
+
+### Manual Install
+
+Pertama, instal paket `@astrojs/react`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Sebagian besar package manager juga akan memasang peer dependency terkait. Jika saat menjalankan Astro Anda melihat peringatan `Cannot find package 'react'` (atau serupa), Anda perlu memasang `react` dan `react-dom` beserta tipe-nya:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install react react-dom @types/react @types/react-dom
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add react react-dom @types/react @types/react-dom
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add react react-dom @types/react @types/react-dom
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, terapkan integrasi ini pada berkas `astro.config.*` menggunakan properti `integrations`:
+
+```js ins="react()" ins={2} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [react()],
+});
+```
+
+Dan tambahkan konfigurasi berikut pada `tsconfig.json`:
+
+```json title="tsconfig.json" ins={5-8}
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  }
+}
+```
+
+## Memulai
+
+Untuk memakai komponen React pertama Anda di Astro, kunjungi dokumentasi [komponen UI framework][astro-ui-frameworks]. Anda akan mempelajari:
+
+* 📦 cara memuat komponen framework,
+* 💧 opsi hydrasi sisi klien, dan
+* 🤝 bagaimana mencampur serta menyarang berbagai framework
+
+## Integrasi Actions dengan `useActionState()`
+
+Integrasi `@astrojs/react` menyediakan dua fungsi untuk digunakan bersama [Astro Actions][astro-actions]: `withState()` dan `getActionState()`.
+
+Keduanya dipakai bersama [hook React `useActionState()`](https://react.dev/reference/react/useActionState) untuk membaca dan memperbarui state di sisi klien saat memicu action ketika pengiriman form.
+
+### `withState()`
+
+<p>
+
+**Type:** `(action: FormFn<T>) => (state: T, formData: FormData) => FormFn<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Anda dapat meneruskan `withState()` dan action yang ingin dipicu ke hook `useActionState()` React sebagai fungsi action form. Contoh di bawah meneruskan action `like` untuk menambah penghitung (counter) beserta state awal `0` suka.
+
+```jsx title="Like.tsx" ins={2,7} "useActionState"
+import { actions } from 'astro:actions';
+import { withState } from '@astrojs/react/actions';
+import { useActionState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState(
+    withState(actions.like),
+    { data: 0, error: undefined }, // jumlah suka & error awal
+  );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="postId" value={postId} />
+      <button disabled={pending}>{state.data} ❤️</button>
+    </form>
+  );
+}
+```
+
+Fungsi `withState()` akan menyesuaikan tipe action dengan ekspektasi React dan mempertahankan metadata untuk progressive enhancement, sehingga tetap berfungsi bahkan ketika JavaScript dinonaktifkan di perangkat pengguna.
+
+### `getActionState()`
+
+<p>
+
+**Type:** `(context: ActionAPIContext) => Promise<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Anda dapat mengakses state yang disimpan oleh `useActionState()` di server dalam `handler` action Anda menggunakan `getActionState()`. Fungsi ini menerima [konteks API Astro](/id/reference/api-reference/#the-context-object), dan opsional, Anda bisa menerapkan tipe pada hasilnya.
+
+Contoh berikut mengambil nilai suka saat ini dari sebuah counter, diketik sebagai angka, untuk membuat action `like` yang menambah 1:
+
+```ts title="actions.ts" ins={3,11}
+import { defineAction, type SafeResult } from 'astro:actions';
+import { z } from 'astro:schema';
+import { getActionState } from '@astrojs/react/actions';
+
+export const server = {
+  like: defineAction({
+    input: z.object({
+      postId: z.string(),
+    }),
+    handler: async ({ postId }, ctx) => {
+      const { data: currentLikes = 0, error } = await getActionState<SafeResult<any, number>>(ctx);
+      
+      // tangani error
+      if (error) throw error;
+
+      // tulis ke database
+      return currentLikes + 1;
+    },
+  })
+};
+```
+
+## Opsi
+
+### Menggabungkan banyak framework JSX
+
+Jika Anda memakai beberapa framework JSX (React, Preact, Solid) dalam satu proyek, Astro harus menentukan transformasi spesifik framework mana yang dipakai untuk setiap komponen Anda. Jika hanya satu framework JSX yang dipasang, Anda tidak perlu konfigurasi tambahan.
+
+Gunakan opsi konfigurasi `include` (wajib) dan `exclude` (opsional) untuk menentukan berkas mana yang termasuk ke framework tertentu. Berikan larik (array) berisi berkas dan/atau folder. Wildcard dapat digunakan untuk mencakup banyak jalur berkas.
+
+Kami menyarankan menempatkan komponen tiap framework pada folder berbeda (mis. `/components/react/` dan `/components/solid/`) agar penentuan include lebih mudah, meski tidak wajib:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Aktifkan banyak framework untuk mendukung berbagai jenis komponen.
+  // Tidak perlu `include` jika hanya memakai satu framework JSX!
+  integrations: [
+    preact({
+      include: ['**/preact/*'],
+    }),
+    react({
+      include: ['**/react/*'],
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ],
+});
+```
+
+### Parsing children
+
+Children yang diteruskan ke sebuah komponen React dari komponen Astro diparsing sebagai string biasa, bukan sebagai React node.
+
+Sebagai contoh, `<ReactComponent />` di bawah hanya akan menerima satu elemen child:
+
+```astro
+---
+import ReactComponent from './ReactComponent';
+---
+
+<ReactComponent>
+  <div>one</div>
+  <div>two</div>
+</ReactComponent>
+```
+
+Jika Anda memakai pustaka yang *mengharapkan* lebih dari satu elemen child (misalnya untuk menaruh elemen tertentu pada slot berbeda), hal ini bisa jadi penghalang.
+
+Anda dapat mengatur flag eksperimental `experimentalReactChildren` agar Astro selalu meneruskan children ke React sebagai node virtual DOM. Ada sedikit biaya runtime, tetapi dapat membantu kompatibilitas.
+
+Aktifkan opsi ini pada konfigurasi integrasi React Anda:
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      experimentalReactChildren: true,
+    }),
+  ],
+});
+```
+
+### Menonaktifkan streaming (eksperimental)
+
+Astro melakukan streaming output komponen React secara default. Namun, Anda dapat menonaktifkan perilaku ini dengan mengaktifkan opsi `experimentalDisableStreaming`. Ini khususnya membantu mendukung pustaka yang tidak bekerja baik dengan streaming, seperti beberapa solusi CSS-in-JS.
+
+Untuk menonaktifkan streaming bagi semua komponen React di proyek Anda, konfigurasikan `@astrojs/react` dengan `experimentalDisableStreaming: true`:
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      experimentalDisableStreaming: true,
+    })
+  ]
+});
+```
+
+[astro-integration]: /id/guides/integrations-guide/
+
+[astro-ui-frameworks]: /id/guides/framework-components/#using-framework-components
+
+[astro-actions]: /id/guides/actions/

@@ -1,0 +1,323 @@
+---
+title: Content Collections API Reference
+sidebar:
+  label: 'astro:content'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="2.0.0" /></p>
+
+Koleksi konten menyediakan API untuk mengonfigurasi dan melakukan kueri dokumen Markdown atau MDX Anda di `src/content/`. Untuk fitur dan contoh penggunaan, lihat [panduan content collections](/id/guides/content-collections/).
+
+## Imports from `astro:content`
+
+```js
+import { 
+  z,
+  defineCollection,
+  getCollection,
+  getEntry,
+  getEntries,
+  reference,
+  render
+ } from 'astro:content';
+```
+### `defineCollection()`
+
+<p>
+
+**Type:** `(input: CollectionConfig) => CollectionConfig`
+<Since v="2.0.0" />
+</p>
+
+`defineCollection()` adalah utilitas untuk mengonfigurasi sebuah koleksi di berkas `src/content.config.*`.
+
+```ts title="src/content.config.ts"
+import { z, defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
+  schema: z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+  }),
+});
+
+// Ekspor koleksi yang Anda definisikan ke Astro
+// dengan ekspor `collections`
+export const collections = { blog };
+```
+
+Fungsi ini menerima properti berikut:
+
+#### `loader`
+
+<p>
+
+**Type:** <code>() => Promise&lt;Array&lt;\{ id: string, [key: string]: any }&gt; | Record&lt;string, Record&lt;string, any&gt;&gt;&gt; | <a href="/id/reference/content-loader-reference/#object-loader-api">Loader</a></code>
+<Since v="5.0.0" />
+</p>
+
+Sebuah `loader` adalah objek atau fungsi yang memungkinkan Anda memuat data dari sumber mana pun, lokal maupun jarak jauh, ke dalam content collections.
+
+[Lihat panduan `Content Collection`](/id/guides/content-collections/#defining-the-collection-loader) untuk contoh penggunaan.
+
+#### `schema`
+
+<p>
+
+**Type:** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+<Since v="2.0.0" />
+</p>
+
+`schema` adalah objek Zod opsional untuk mengonfigurasi tipe dan bentuk frontmatter dokumen untuk sebuah koleksi. Setiap nilai harus menggunakan [validator Zod](https://github.com/colinhacks/zod).
+
+[Lihat panduan `Content Collection`](/id/guides/content-collections/#defining-the-collection-schema) untuk contoh penggunaan.
+
+### `reference()`
+
+<p>
+
+**Type:** `(collection: string) => ZodEffects<ZodString, { collection, id: string }>`<br />
+<Since v="2.5.0" />
+</p>
+
+Fungsi `reference()` digunakan dalam konfigurasi konten untuk mendefinisikan relasi, atau “referensi,” dari satu koleksi ke koleksi lain. Fungsi ini menerima nama koleksi dan mengubah referensi menjadi objek yang berisi nama koleksi dan id referensi.
+
+
+Contoh berikut mendefinisikan referensi dari penulis blog ke koleksi `authors` serta array posting terkait ke koleksi `blog` yang sama:
+
+```ts
+import { defineCollection, reference, z } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
+  schema: z.object({
+    // Referensikan satu author dari koleksi `authors` berdasarkan `id`
+    author: reference('authors'),
+    // Referensikan array posting terkait dari koleksi `blog` berdasarkan `slug`
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  loader: file("src/data/authors.json"),
+  schema: z.object({ /* ... */ })
+});
+
+export const collections = { blog, authors };
+```
+Validasi entri yang direferensikan terjadi pada waktu jalan saat menggunakan `getEntry()` atau `getEntries()`:
+
+```astro title="src/pages/[posts].astro"
+// jika entri referensi tidak valid, ini akan mengembalikan undefined.
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+```
+
+[Lihat panduan `Content Collection`](/id/guides/content-collections/#defining-collection-references) untuk contoh penggunaan.
+
+### `getCollection()`
+
+<p>
+
+**Type:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+<Since v="2.0.0" />
+</p>
+
+`getCollection()` adalah fungsi yang mengambil daftar entri koleksi konten berdasarkan nama koleksi.
+
+Secara default fungsi ini mengembalikan semua item dalam koleksi, dan menerima fungsi `filter` opsional untuk menyaring berdasarkan properti entri. Ini memungkinkan Anda melakukan kueri hanya terhadap beberapa item dalam sebuah koleksi berdasarkan `id` atau nilai frontmatter melalui objek `data`.
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+// Ambil semua entri `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Hanya kembalikan posting yang memiliki `draft: true` di frontmatter
+const draftBlogPosts = await getCollection('blog', ({ data }) => {
+  return data.draft === true;
+});
+---
+```
+
+[Lihat panduan `Content Collection`](/id/guides/content-collections/#querying-collections) untuk contoh penggunaan.
+
+### `getEntry()`
+
+<p>
+
+**Types:**
+* `(collection: string, id: string) => Promise<CollectionEntry<collection> | undefined>`
+* `({ collection: string, id: string }) => Promise<CollectionEntry<collection> | undefined>`
+<Since v="2.5.0" />
+</p>
+
+`getEntry()` adalah fungsi yang mengambil satu entri koleksi berdasarkan nama koleksi dan `id` entri. `getEntry()` juga dapat digunakan untuk mendapatkan entri yang direferensikan guna mengakses properti `data` atau `body`:
+
+```astro
+---
+import { getEntry } from 'astro:content';
+
+// Ambil `src/content/blog/enterprise.md`
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Ambil `src/content/captains/picard.json`
+const picardProfile = await getEntry('captains', 'picard');
+
+// Ambil profil yang direferensikan oleh `data.captain`
+const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
+---
+```
+
+Lihat panduan `Content Collections` untuk contoh [melakukan kueri entri koleksi](/id/guides/content-collections/#querying-collections).
+
+### `getEntries()`
+
+<p>
+
+**Type:** `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+<Since v="2.5.0" />
+</p>
+
+`getEntries()` adalah fungsi yang mengambil beberapa entri koleksi dari koleksi yang sama. Ini berguna untuk [mengembalikan array entri yang direferensikan](/id/guides/content-collections/#defining-collection-references) guna mengakses properti `data` dan `body` milik mereka.
+
+```astro
+---
+import { getEntries, getEntry } from 'astro:content';
+
+const enterprisePost = await getEntry('blog', 'enterprise');
+
+// Ambil posting terkait yang direferensikan oleh `data.relatedPosts`
+const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
+---
+```
+
+### `render()`
+
+<p>
+
+**Type:** `(entry: CollectionEntry) => Promise<RenderedEntry>`
+<Since v="5.0.0" />
+</p>
+
+Fungsi untuk mengompilasi suatu entri agar siap dirender. Ini mengembalikan properti berikut:
+
+- `<Content />` - Komponen untuk merender isi dokumen di file Astro.
+- `headings` - Daftar heading yang dihasilkan, [mencerminkan utilitas `getHeadings()` milik Astro](/id/guides/markdown-content/#available-properties) pada impor Markdown dan MDX.
+- `remarkPluginFrontmatter` - Objek frontmatter yang telah dimodifikasi setelah [plugin remark atau rehype diterapkan](/id/guides/markdown-content/#modifying-frontmatter-programmatically). Bertipe `any`.
+
+```astro
+---
+import { getEntry, render } from 'astro:content';
+const entry = await getEntry('blog', 'entry-1');
+
+if (!entry) {
+   // Tangani galat, misalnya:
+  throw new Error('Could not find blog post 1');
+}
+const { Content, headings, remarkPluginFrontmatter } = await render(entry);
+---
+```
+
+[Lihat panduan `Content Collection`](/id/guides/content-collections/#rendering-body-content) untuk contoh penggunaan.
+
+## `astro:content` types
+
+```ts
+import type {
+  CollectionEntry,
+  CollectionKey,
+  ContentCollectionKey,
+  DataCollectionKey,
+  SchemaContext,
+ } from 'astro:content';
+```
+
+### `CollectionEntry`
+
+Fungsi kueri termasuk [`getCollection()`](#getcollection), [`getEntry()`](#getentry), dan [`getEntries()`](#getentries) masing‑masing mengembalikan entri dengan tipe `CollectionEntry`. Tipe ini tersedia sebagai utilitas dari `astro:content`:
+
+```ts
+import type { CollectionEntry } from 'astro:content';
+```
+
+`CollectionEntry` adalah tipe generik. Gunakan dengan nama koleksi yang sedang Anda kueri.
+Sebagai contoh, sebuah entri di koleksi `blog` Anda akan memiliki tipe `CollectionEntry<'blog'>`.
+
+Setiap `CollectionEntry` adalah objek dengan nilai‑nilai berikut:
+
+#### `id`
+
+**Type:** `string`
+
+ID unik. Perhatikan bahwa semua ID dari `glob()` bawaan Astro telah dislugifikasi.
+
+#### `collection`
+
+**Example Type:** `'blog' | 'authors' | ...`
+
+Nama koleksi tempat entri berada. Ini adalah nama yang digunakan untuk mereferensikan koleksi di skema Anda dan di fungsi kueri.
+
+#### `data`
+
+**Type:** `CollectionSchema<TCollectionName>`
+
+Objek properti frontmatter yang diinferensikan dari skema koleksi Anda ([lihat referensi `defineCollection()`](#definecollection)). Default ke `any` jika tidak ada skema yang dikonfigurasi.
+
+#### `body`
+
+**Type:** `string`
+
+String yang berisi isi mentah, belum dikompilasi, dari dokumen Markdown atau MDX.
+
+### `CollectionKey`
+
+<p><Since v="3.1.0" /></p>
+
+Union string dari semua nama koleksi yang didefinisikan di berkas `src/content.config.*` Anda. Tipe ini berguna saat mendefinisikan fungsi generik yang membungkus `getCollection()` bawaan.
+
+```ts
+import { type CollectionKey, getCollection } from 'astro:content';
+
+async function queryCollection(collection: CollectionKey) {
+  return getCollection(collection, ({ data }) => {
+    return data.draft !== true;
+  });
+}
+```
+
+### `SchemaContext`
+
+Objek `context` yang digunakan `defineCollection` untuk bentuk fungsi `schema`. Tipe ini berguna saat membangun skema yang dapat digunakan ulang untuk beberapa koleksi.
+
+Ini mencakup properti berikut:
+
+- `image` - Helper skema `image()` yang memungkinkan Anda [menggunakan gambar lokal di Content Collections](/id/guides/images/#images-in-content-collections)
+
+```ts
+import { defineCollection, z, type SchemaContext } from "astro:content";
+
+export const imageSchema = ({ image }: SchemaContext) =>
+    z.object({
+        image: image(),
+        description: z.string().optional(),
+    });
+
+const blog = defineCollection({
+  loader: /* ... */,
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    permalink: z.string().optional(),
+    image: imageSchema({ image })
+  }),
+});
+```

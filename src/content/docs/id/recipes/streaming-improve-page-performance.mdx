@@ -1,0 +1,102 @@
+---
+title: "Menggunakan streaming untuk meningkatkan performa halaman"
+description: "Pelajari cara menggunakan streaming untuk meningkatkan performa halaman."
+type: recipe
+i18nReady: true
+---
+
+SSR milik Astro menggunakan HTML streaming untuk mengirim setiap komponen ke browser saat sudah tersedia agar pemuatan halaman lebih cepat. Untuk lebih meningkatkan performa halaman Anda, Anda dapat membangun komponen secara strategis untuk mengoptimalkan pemuatannya dengan menghindari fetch data yang memblokir.
+
+Contoh refactor berikut menunjukkan cara meningkatkan performa halaman dengan memindahkan pemanggilan fetch ke komponen lain, memindahkannya keluar dari komponen yang memblokir perenderan halaman.
+
+Halaman berikut melakukan `await` pada beberapa data di frontmatter-nya. Astro akan menunggu semua pemanggilan `fetch` terselesaikan sebelum mengirim HTML apa pun ke browser.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>A fact</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+Memindahkan pemanggilan `await` ke komponen yang lebih kecil memungkinkan Anda memanfaatkan streaming Astro. Dengan menggunakan komponen berikut untuk melakukan fetch data, Astro dapat merender sebagian HTML terlebih dahulu, seperti judul, lalu paragraf saat data sudah siap.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+
+Halaman Astro di bawah ini yang menggunakan komponen tersebut dapat merender bagian-bagian halaman lebih cepat. Tag `<head>`, `<body>`, dan `<h2>` tidak lagi diblokir oleh fetch data. Server kemudian akan men-fetch data untuk `RandomName` dan `RandomFact` secara paralel dan melakukan streaming HTML yang dihasilkan ke browser.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro';
+import RandomFact from '../components/RandomFact.astro';
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <RandomName />
+    <h2>A fact</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Menyertakan Promise secara langsung
+
+Anda juga dapat menyertakan promise secara langsung di template. Alih-alih memblokir seluruh komponen, ini akan menyelesaikan promise secara paralel dan hanya memblokir markup yang datang setelahnya.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(personData => personData.results[0].name.first);
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>A name and a fact</title>
+  </head>
+  <body>
+    <h2>A name</h2>
+    <p>{personPromise}</p>
+    <h2>A fact</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+Pada contoh ini, `A name` akan dirender saat `personPromise` dan `factPromise` sedang memuat.
+Setelah `personPromise` terselesaikan, `A fact` akan muncul dan `factPromise` akan dirender ketika selesai memuat.

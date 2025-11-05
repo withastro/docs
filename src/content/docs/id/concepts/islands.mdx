@@ -1,0 +1,134 @@
+---
+title: Arsitektur Islands
+description: Pelajari bagaimana arsitektur islands milik Astro membantu menjaga situs tetap cepat.
+i18nReady: true
+---
+
+import IslandsDiagram from '~/components/IslandsDiagram.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro membantu memelopori dan memopulerkan pola arsitektur frontend baru yang disebut **Arsitektur Islands**. Arsitektur ini bekerja dengan merender mayoritas halaman Anda menjadi HTML statis yang cepat, lalu menambahkan "pulau" JavaScript yang lebih kecil hanya ketika interaktivitas atau personalisasi dibutuhkan pada halaman (misalnya, image carousel). Ini menghindari payload JavaScript monolitik yang memperlambat responsivitas banyak kerangka kerja web modern berbasis JavaScript.
+
+## Sejarah singkat
+
+Istilah "component island" pertama kali diciptakan oleh arsitek frontend Etsy [Katie Sylor-Miller](https://sylormiller.com/) pada 2019. Gagasan ini kemudian diperluas dan didokumentasikan dalam [tulisan ini](https://jasonformat.com/islands-architecture/) oleh Jason Miller (pencipta Preact) pada 11 Agustus 2020.
+
+> Gagasan umum arsitektur "Islands" tampak sederhana: render halaman HTML di server, dan sisipkan placeholder atau slot di sekitar area yang sangat dinamis [...] yang kemudian dapat di-*hydrate* di klien menjadi widget kecil yang berdiri sendiri, menggunakan ulang HTML awal yang dirender di server.  
+> — Jason Miller, Pencipta Preact
+
+Teknik yang menjadi dasar pola arsitektur ini juga dikenal sebagai **partial** atau **selective hydration**.
+
+Sebaliknya, sebagian besar kerangka kerja web berbasis JavaScript melakukan hidrasi & rendering seluruh situs sebagai satu aplikasi JavaScript besar (sering disebut *single-page application* atau SPA). SPA menawarkan kesederhanaan dan kekuatan, tetapi sering kali mengalami masalah kinerja *page load* karena penggunaan JavaScript sisi klien yang berat.
+
+SPA tetap memiliki tempatnya, bahkan bisa [ditanam di dalam halaman Astro](/id/guides/migrate-to-astro/from-create-react-app/). Namun, SPA kekurangan kemampuan bawaan untuk melakukan hidrasi secara selektif dan strategis, sehingga menjadi pilihan yang terlalu berat untuk sebagian besar proyek web saat ini.
+
+Astro menjadi populer sebagai kerangka kerja web JavaScript arus utama pertama dengan *selective hydration* bawaan, menggunakan pola *component islands* yang pertama kali diciptakan oleh Sylor-Miller. Sejak itu, kami mengembangkan dan mengevolusi karya awal tersebut, yang juga menginspirasi pendekatan *component island* untuk konten yang dirender dinamis di server.
+
+## Apa itu sebuah island?
+
+Di Astro, sebuah *island* adalah komponen UI yang ditingkatkan pada halaman HTML statis.
+
+[**Client island**](#client-islands) adalah komponen UI JavaScript interaktif yang dihydrate terpisah dari bagian halaman lainnya, sedangkan [**server island**](#server-islands) adalah komponen UI yang merender konten dinamisnya di server secara terpisah dari bagian halaman lainnya.
+
+Keduanya menjalankan proses yang berat atau lambat secara independen, per komponen, demi *page load* yang optimal.
+
+## Komponen island
+
+Komponen Astro adalah blok bangunan template halaman Anda. Komponen tersebut dirender menjadi HTML statis tanpa *runtime* sisi klien.
+
+Bayangkan sebuah *client island* sebagai widget interaktif yang mengapung di lautan HTML ringan yang dirender server. *Server island* dapat ditambahkan untuk elemen yang dipersonalisasi atau dinamis yang dirender server, seperti foto profil pengunjung yang sudah masuk.
+
+<IslandsDiagram>
+  <Fragment slot="headerApp">Header (island interaktif)</Fragment>
+  <Fragment slot="sidebarApp">Sidebar (HTML statis)</Fragment>
+  <Fragment slot="main">
+    Konten statis seperti teks, gambar, dan lain-lain.
+  </Fragment>
+  <Fragment slot="carouselApp">Image carousel (island interaktif)</Fragment>
+  <Fragment slot="footer">Footer (HTML statis)</Fragment>
+  <Fragment slot="source">Sumber: [Islands Architecture: Jason Miller](https://jasonformat.com/islands-architecture/)</Fragment>
+</IslandsDiagram>
+
+Sebuah island selalu berjalan terisolasi dari island lainnya di halaman, dan beberapa island dapat ada pada satu halaman. *Client island* tetap dapat berbagi state dan saling berkomunikasi, meskipun berjalan pada konteks komponen berbeda.
+
+Fleksibilitas ini memungkinkan Astro mendukung banyak kerangka UI seperti [React](https://react.dev/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), dan [SolidJS](https://www.solidjs.com/). Karena bersifat independen, Anda bahkan dapat mencampur beberapa kerangka pada setiap halaman.
+
+:::tip
+Meskipun kebanyakan developer hanya akan menggunakan satu kerangka UI, Astro mendukung beberapa kerangka dalam proyek yang sama. Ini memungkinkan Anda untuk:
+
+- Memilih kerangka terbaik untuk tiap komponen.
+- Mempelajari kerangka baru tanpa harus memulai proyek baru.
+- Berkolaborasi meski setiap orang menggunakan kerangka berbeda.
+- Mengonversi situs yang sudah ada ke kerangka lain secara bertahap tanpa *downtime*.
+:::
+
+## Client Islands
+
+Secara bawaan, Astro akan merender setiap komponen UI menjadi HTML & CSS saja, **menghapus seluruh JavaScript sisi klien secara otomatis.** 
+
+```astro title="src/pages/index.astro"
+<MyReactComponent />
+```
+
+Ini mungkin terdengar ketat, namun perilaku ini yang menjaga situs Astro tetap cepat secara bawaan dan melindungi developer dari tanpa sengaja mengirim JavaScript yang tidak perlu yang dapat memperlambat situs.
+
+Mengubah komponen UI statis apa pun menjadi island interaktif hanya memerlukan sebuah direktif `client:*`. Astro kemudian secara otomatis membangun dan membundel JavaScript sisi klien Anda untuk performa optimal.
+
+```astro title="src/pages/index.astro" ins="client:load"
+<!-- Komponen ini kini interaktif di halaman! 
+     Sisa situs Anda tetap statis. -->
+<MyReactComponent client:load />
+```
+
+Dengan islands, JavaScript sisi klien hanya dimuat untuk komponen interaktif yang Anda tandai secara eksplilit menggunakan direktif `client:*`.
+
+Dan karena interaksi dikonfigurasi pada tingkat komponen, Anda dapat menangani prioritas pemuatan berbeda untuk setiap komponen berdasarkan penggunaannya. Misalnya, `client:idle` memuat komponen saat browser *idle*, dan `client:visible` memuat komponen hanya ketika memasuki *viewport*.
+
+<h3>Keuntungan client islands</h3>
+
+Keuntungan paling jelas dari pembangunan dengan Astro Islands adalah kinerja: mayoritas situs Anda diubah menjadi HTML statis yang cepat dan JavaScript hanya dimuat untuk komponen yang benar-benar membutuhkannya. JavaScript adalah salah satu aset paling lambat per byte, jadi setiap byte sangat berarti.
+
+Keuntungan lainnya adalah pemuatan paralel. Pada ilustrasi contoh di atas, *image carousel* berprioritas rendah tidak perlu memblokir *header* berprioritas tinggi. Keduanya dimuat secara paralel dan dihydrate terisolasi, artinya *header* menjadi interaktif segera tanpa harus menunggu carousel yang lebih berat di bagian bawah halaman.
+
+Lebih baik lagi, Anda dapat memberi tahu Astro kapan dan bagaimana merender setiap komponen. Jika carousel tersebut sangat mahal untuk dimuat, Anda dapat menambahkan [client directive](/id/reference/directives-reference/#client-directives) khusus yang memberi tahu Astro untuk hanya memuat carousel saat terlihat di halaman. Jika pengguna tidak pernah melihatnya, maka tidak akan dimuat.
+
+Di Astro, Andalah yang secara eksplisit memberi tahu komponen mana yang juga harus berjalan di browser. Astro hanya akan melakukan hidrasi pada yang dibutuhkan dan membiarkan sisanya sebagai HTML statis. 
+
+**Client islands adalah rahasia dari performa Astro yang cepat secara bawaan!**
+
+<ReadMore>Baca lebih lanjut tentang [menggunakan komponen kerangka JavaScript](/id/guides/framework-components/) di proyek Anda.</ReadMore>
+
+## Server islands
+
+*Server islands* adalah cara untuk memindahkan kode server yang mahal atau lambat dari proses render utama, sehingga mudah menggabungkan HTML statis berkinerja tinggi dan komponen dinamis yang dirender server.
+
+Tambahkan direktif [`server:defer`](/id/reference/directives-reference/#server-directives) ke komponen Astro apa pun di halaman Anda untuk mengubahnya menjadi *server island* tersendiri:
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from "../components/Avatar.astro";
+---
+<Avatar server:defer />
+```
+
+Ini memecah halaman Anda menjadi area kecil konten yang dirender di server yang masing-masing dimuat secara paralel.
+
+Konten utama halaman dapat dirender segera dengan konten placeholder, seperti avatar generik sampai konten island Anda tersedia. Dengan *server islands*, adanya sebagian kecil konten yang dipersonalisasi tidak menunda rendering dari halaman statis lainnya.
+
+Pola rendering ini dibuat agar portabel. Pola ini tidak bergantung pada infrastruktur server tertentu sehingga akan bekerja di host mana pun, dari server Node.js dalam kontainer Docker hingga penyedia *serverless* pilihan Anda.
+
+<h3>Keuntungan server islands</h3>
+
+Salah satu keuntungan *server islands* adalah kemampuan merender bagian halaman yang sangat dinamis secara *on the fly*. Ini memungkinkan *outer shell* dan konten utama bisa di-*cache* lebih agresif, memberikan performa yang lebih cepat.
+
+Keuntungan lain adalah pengalaman pengunjung yang lebih baik. *Server islands* dioptimalkan dan dimuat cepat, sering kali bahkan sebelum browser melakukan *paint* halaman. Namun dalam waktu singkat yang dibutuhkan island untuk merender, Anda dapat menampilkan konten *fallback* khusus dan mencegah *layout shift*.
+
+Contoh situs yang diuntungkan dari *server islands* Astro adalah toko e-commerce. Walaupun konten utama halaman produk jarang berubah, halaman-halaman ini biasanya memiliki bagian yang dinamis:
+
+- Avatar pengguna di header.
+- Promo dan diskon khusus untuk produk.
+- Ulasan pengguna.
+
+Dengan menggunakan *server islands* untuk elemen-elemen ini, pengunjung akan segera melihat bagian terpenting halaman—produk Anda. Avatar generik, *loading spinner*, dan pengumuman toko dapat ditampilkan sebagai *fallback* hingga bagian yang dipersonalisasi tersedia.
+
+<ReadMore>Baca lebih lanjut tentang [menggunakan server islands](/id/guides/server-islands/) di proyek Anda.</ReadMore>

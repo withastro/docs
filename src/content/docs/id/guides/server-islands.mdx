@@ -1,0 +1,120 @@
+---
+title: Server islands
+description: Gabungkan HTML statis berperforma tinggi dengan konten yang dirender di server secara dinamis.
+i18nReady: true
+---
+
+Server islands memungkinkan Anda merender "island" yang dinamis atau terpersonalisasi secara individual saat diminta (on-demand), tanpa mengorbankan performa bagian halaman lainnya.
+
+Ini berarti pengunjung Anda akan melihat bagian terpenting halaman lebih cepat, dan memungkinkan konten utama Anda di-cache lebih agresif sehingga performa menjadi lebih cepat.
+
+## Komponen server island
+
+Server island adalah komponen [Astro](/id/basics/astro-components/) yang dirender di server seperti biasa, tetapi diinstruksikan untuk menunda proses render hingga kontennya tersedia.
+
+Halaman Anda akan segera dirender bersama [konten fallback sebagai placeholder](#server-island-fallback-content) yang ditentukan. Lalu, konten milik komponen akan diambil di sisi klien dan ditampilkan ketika sudah tersedia.
+
+Dengan [adapter terpasang](/id/guides/on-demand-rendering/#server-adapters) untuk melakukan penundaan render, tambahkan direktif [`server:defer`](/id/reference/directives-reference/#server-directives) ke komponen apa pun di halaman Anda untuk menjadikannya island tersendiri:
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+Komponen-komponen ini dapat melakukan [apa pun yang biasanya Anda lakukan pada halaman yang dirender on-demand](/id/guides/on-demand-rendering/#on-demand-rendering-features) menggunakan adapter, seperti mengambil konten dan mengakses cookie:
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="User avatar" src={avatarURL} />
+```
+
+### Mengoper props ke server islands
+
+Props yang diberikan ke komponen server island harus [dapat diserialisasi](https://developer.mozilla.org/en-US/docs/Glossary/Serialization): dapat diterjemahkan ke format yang cocok untuk transfer melalui jaringan atau penyimpanan. Selain itu, Astro tidak menyerialisasi setiap jenis struktur data yang dapat diserialisasi. Oleh karena itu, ada beberapa batasan tentang apa yang dapat dioper sebagai props ke server island.
+
+Terutama, fungsi tidak dapat dioper ke komponen yang diberi tanda `server:defer` karena tidak dapat diserialisasi. Objek dengan referensi melingkar (circular references) juga tidak dapat diserialisasi.
+
+Tipe prop berikut didukung: 
+objek biasa, `number`, `string`, `Array`, `Map`, `Set`, `RegExp`, `Date`, `BigInt`, `URL`, `Uint8Array`, `Uint16Array`, `Uint32Array`, dan `Infinity`
+
+## Konten fallback server island
+
+Saat menggunakan atribut `server:defer` pada komponen untuk menunda proses render, Anda dapat "menyisipkan" konten pemuatan default menggunakan slot bernama `"fallback"` yang disediakan.
+
+Konten fallback Anda akan dirender bersamaan dengan bagian halaman lainnya saat pertama kali dimuat, dan akan digantikan oleh konten komponen Anda ketika sudah tersedia.
+
+Untuk menambahkan konten fallback, tambahkan `slot="fallback"` pada anak (komponen lain atau elemen HTML) yang dikirim ke komponen server island Anda:
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+Contoh konten fallback di antaranya:
+
+- Avatar generik sebagai pengganti avatar pengguna.
+- Placeholder UI seperti pesan kustom.
+- Indikator pemuatan seperti spinner.
+
+## Cara kerjanya
+
+Implementasi server island sebagian besar terjadi saat build, di mana konten komponen diganti dengan sebuah skrip kecil.
+
+Setiap island yang diberi tanda `server:defer` dipisahkan menjadi rute khusus yang akan diambil (fetch) oleh skrip saat runtime. Saat Astro membangun situs Anda, Astro akan menghilangkan komponen tersebut dan menyuntikkan skrip sebagai gantinya, beserta konten apa pun yang Anda tandai dengan `slot="fallback"`.
+
+Ketika halaman dimuat di browser, komponen-komponen ini akan diminta melalui endpoint khusus yang merendernya dan mengembalikan HTML. Ini berarti pengguna akan melihat bagian paling penting dari halaman seketika. Konten fallback akan terlihat dalam waktu singkat sebelum island dinamis tersebut dimuat.
+
+Setiap island dimuat secara independen dari yang lain. Ini berarti island yang lebih lambat tidak akan menunda ketersediaan konten terpersonalisasi lainnya.
+
+Pola render ini dibuat agar portabel. Pola ini tidak bergantung pada infrastruktur server tertentu sehingga dapat bekerja dengan host apa pun yang Anda gunakan, dari server Node.js di dalam Docker container hingga penyedia serverless pilihan Anda.
+
+## Caching
+
+Data untuk server islands diambil melalui permintaan `GET`, dengan mengirimkan props sebagai string terenkripsi di query URL. Ini memungkinkan caching data dengan [header HTTP `Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) menggunakan direktif `Cache-Control` standar.
+
+Namun, [browser membatasi URL ke panjang maksimum 2048 byte](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length) untuk alasan praktis dan untuk menghindari masalah denial-of-service. Jika string kueri Anda menyebabkan URL melebihi batas ini, Astro akan mengirim permintaan `POST` yang memuat semua props di body.
+
+Permintaan `POST` tidak di-cache oleh browser karena digunakan untuk mengirim data, dan dapat menyebabkan masalah integritas atau keamanan data. Oleh karena itu, logika caching apa pun yang ada di proyek Anda akan rusak. Sebisa mungkin, kirim hanya props yang diperlukan ke server island Anda dan hindari mengirim seluruh objek dan array data untuk menjaga kueri tetap kecil.
+
+## Mengakses URL halaman di dalam server island
+
+Dalam banyak kasus, komponen server island Anda bisa mendapatkan informasi tentang halaman yang merendernya dengan [mengoper props](/id/basics/astro-components/#component-props) seperti pada komponen biasa.
+
+Namun, server islands berjalan di konteksnya sendiri yang terisolasi di luar permintaan halaman. `Astro.url` dan `Astro.request.url` di dalam komponen server island keduanya akan mengembalikan URL yang terlihat seperti `/_server-islands/Avatar` alih-alih URL halaman saat ini di browser. Selain itu, jika Anda melakukan prerender pada halaman, Anda tidak akan memiliki akses ke informasi seperti parameter kueri untuk diteruskan sebagai props.
+
+Untuk mengakses informasi dari URL halaman, Anda dapat memeriksa header [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer), yang akan berisi alamat halaman yang sedang memuat island di browser:
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## Menggunakan ulang kunci enkripsi
+
+Astro menggunakan [kriptografi](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography) untuk mengenkripsi props yang dikirim ke server islands, guna melindungi data sensitif dari paparan yang tidak disengaja. Enkripsi ini bergantung pada kunci acak baru yang dihasilkan pada setiap build dan disematkan ke dalam bundel server.
+
+Sebagian besar host akan menangani sinkronisasi frontend dan backend Anda secara otomatis. Namun, Anda mungkin membutuhkan kunci enkripsi yang konstan jika Anda menggunakan rolling deployments, hosting multi-region, atau CDN yang melakukan cache pada halaman yang memuat server islands.
+
+Di lingkungan dengan rolling deployments (misalnya, Kubernetes) di mana aset frontend Anda (yang mengenkripsi props) dan fungsi backend Anda (yang mendekripsi props) mungkin sementara menggunakan kunci yang berbeda, atau ketika CDN masih menyajikan halaman yang dibangun dengan kunci lama, props terenkripsi yang dikirim ke server island Anda tidak dapat didekripsi.
+
+Dalam situasi ini, gunakan Astro CLI untuk menghasilkan kunci enkripsi terenkode yang dapat digunakan kembali dan setel sebagai variabel lingkungan di lingkungan build Anda:
+
+```shell
+astro create-key
+```
+
+Gunakan nilai ini untuk mengonfigurasi variabel lingkungan `ASTRO_KEY` (misalnya di file `.env`) dan sertakan dalam pengaturan build CI/CD atau host Anda. Ini memastikan kunci yang sama selalu digunakan kembali di bundel yang dihasilkan sehingga proses enkripsi dan dekripsi tetap sinkron.

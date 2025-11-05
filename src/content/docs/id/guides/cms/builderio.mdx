@@ -1,0 +1,385 @@
+---
+title: Builder.io & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan CMS visual Builder.io
+sidebar:
+  label: Builder.io
+type: cms
+service: Builder.io
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+
+[Builder.io](https://www.builder.io/) adalah CMS visual yang mendukung penyuntingan konten *drag‑and‑drop* untuk membangun situs web. 
+
+Resep ini akan menunjukkan cara menghubungkan *space* Builder Anda ke Astro **tanpa JavaScript sisi klien**.
+
+
+## Prasyarat
+
+Untuk memulai, Anda memerlukan hal-hal berikut:
+
+* **Akun dan space Builder** — Jika Anda belum punya akun, [daftar gratis](https://www.builder.io/) dan buat *space* baru. Jika Anda sudah memiliki *space* di Builder, silakan gunakan, tetapi Anda perlu menyesuaikan kode agar cocok dengan nama model (`blogpost`) dan field data kustom Anda.
+* **Kunci API Builder** — Kunci publik ini akan digunakan untuk mengambil konten Anda dari Builder. [Baca panduan Builder tentang cara menemukan kunci Anda](https://www.builder.io/c/docs/using-your-api-key#finding-your-public-api-key).
+
+## Menyiapkan kredensial
+
+Untuk menambahkan kunci API Builder dan nama model Builder ke Astro, buat file `.env` di root proyek Anda (jika belum ada) dan tambahkan variabel berikut:
+
+```ini title=".env"
+BUILDER_API_PUBLIC_KEY=YOUR_API_KEY
+BUILDER_BLOGPOST_MODEL='blogpost'
+```
+
+Sekarang Anda sudah bisa menggunakan kunci API ini di proyek.
+
+:::note
+Pada saat penulisan, [kunci ini bersifat publik](https://www.builder.io/c/docs/using-your-api-key#prerequisites), jadi Anda tidak perlu menyembunyikan atau mengenkripsinya.
+:::
+
+Jika Anda ingin mendapatkan IntelliSense untuk variabel lingkungan, buat file `env.d.ts` di direktori `src/` dan konfigurasikan `ImportMetaEnv` seperti ini:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly BUILDER_API_PUBLIC_KEY: string;
+}
+```
+
+Proyek Anda sekarang seharusnya menyertakan file-file berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+<ReadMore>Pelajari lebih lanjut tentang [variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.</ReadMore>
+
+## Membuat blog dengan Astro dan Builder
+
+### Membuat model untuk posting blog
+
+Instruksi di bawah ini membuat blog Astro menggunakan model Builder (Tipe: "Section") bernama `blogpost` yang berisi dua field teks wajib: `title` dan `slug`.
+
+:::tip[Untuk tipe visual]
+Anda dapat menemukan video yang menampilkan prosedur ini di salah satu [tutorial resmi Builder](https://www.builder.io/blog/creating-blog#creating-a-blog-article-model).
+:::
+
+Di aplikasi Builder, buat model yang merepresentasikan posting blog: buka tab **Models** dan klik tombol **+ Create Model** untuk membuat model dengan field dan nilai berikut:
+
+- **Type:** Section
+- **Name:** "blogpost"
+- **Description:** "This model is for a blog post"
+
+Di model baru Anda, gunakan tombol **+ New Custom Field** untuk membuat 2 field baru:
+
+1. Text field
+    - **Name:** "title"
+    - **Required:** Ya
+    - **Default value** "I forgot to give this a title"
+
+    (biarkan parameter lain pada nilai defaultnya)
+
+2. Text field
+    - **Name:** "slug"
+    - **Required:** Ya
+    - **Default value** "some-slugs-take-their-time"
+
+    (biarkan parameter lain pada nilai defaultnya)
+
+Lalu klik tombol **Save** di kanan atas. 
+
+:::caution[Slug]
+Ada beberapa hal yang perlu diperhatikan terkait field `slug`:
+
+* Pastikan slug Anda **bukan hanya angka**. Ini dapat menyebabkan *fetch* ke API Builder gagal. 
+
+* Pastikan slug **unik**, karena penentuan routing situs Anda bergantung padanya.
+:::
+
+### Menyiapkan *preview*
+
+Untuk menggunakan editor visual Builder, buat halaman `src/pages/builder-preview.astro` yang akan merender elemen khusus `<builder-component>`:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - pages/
+    - **builder-preview.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Lalu tambahkan konten berikut:
+
+```astro title="src/pages/builder-preview.astro"
+---
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+---
+
+<html lang="en">
+  <head>
+    <title>Preview for builder.io</title>
+  </head>
+  <body>
+    <header>This is your header</header>
+
+    <builder-component model={builderModel} api-key={builderAPIpublicKey}
+    ></builder-component>
+    <script async src="https://cdn.builder.io/js/webcomponents"></script>
+
+    <footer>This is your footer</footer>
+  </body>
+</html>
+
+```
+
+Pada contoh di atas, `<builder-component>` memberi tahu Builder di mana harus menyisipkan konten dari CMS-nya.
+
+#### Menyetel rute baru sebagai URL *preview*
+
+<Steps>
+1. Salin URL lengkap *preview* Anda, termasuk protokolnya (mis. `https://{host Anda}/builder-preview`). 
+
+2. Buka tab **Models** di *space* Builder Anda, pilih model yang telah dibuat dan tempel URL dari langkah 1 ke field **Preview URL**. Pastikan URL lengkap dan menyertakan protokol, misalnya `https://`.
+
+3. Klik tombol **Save** di kanan atas.
+</Steps>
+
+:::tip
+Saat Anda *deploy* situs, ubah URL preview agar sesuai dengan URL produksi, misalnya `https://myAwesomeAstroBlog.com/builder-preview`.
+:::
+
+#### Menguji pengaturan URL *preview*
+
+<Steps>
+1. Pastikan situs Anda aktif (mis. server dev berjalan) dan rute `/builder-preview` berfungsi.
+
+2. Di *space* Builder Anda, pada tab **Content**, klik **New** untuk membuat entri konten baru bagi model `blogpost` Anda.
+
+3. Di editor Builder yang baru terbuka, Anda seharusnya melihat halaman `builder-preview.astro` dengan tombol besar **Add Block** di tengah.
+</Steps>
+
+:::tip[Troubleshooting]
+
+Terkadang ada masalah saat menyiapkan *preview*. Jika ada yang tidak beres, coba langkah-langkah berikut:
+
+* Pastikan situs aktif — misalnya server dev Anda berjalan.
+* Pastikan URL **persis sama** — antara yang di proyek Astro dan yang disetel di aplikasi Builder.
+* Pastikan itu **URL penuh** termasuk protokol `https://`.
+* Jika Anda bekerja di lingkungan virtual seperti [IDX](https://idx.dev), [StackBlitz](https://stackblitz.com/), atau [Gitpod](https://www.gitpod.io/), Anda mungkin perlu menyalin dan menempelkan URL lagi saat merestart *workspace*, karena biasanya URL proyek berubah.
+  
+Untuk ide lain, baca [panduan troubleshooting Builder](https://www.builder.io/c/docs/guides/preview-url-working).
+:::
+
+### Membuat posting blog
+
+<Steps>
+1. Di editor visual Builder, buat entri konten baru dengan nilai berikut:
+    - **title:** 'First post, woohoo!'
+    - **slug:** 'first-post-woohoo'
+
+2. Lengkapi posting menggunakan tombol **Add Block** dan tambahkan text field berisi konten posting.
+
+3. Pada field teks di atas editor, beri entri Anda sebuah nama. Ini adalah nama yang akan terlihat di aplikasi Builder.
+
+4. Jika sudah siap, klik tombol **Publish** di kanan atas.
+
+5. Buat posting sebanyak yang Anda inginkan, pastikan setiap entri konten berisi `title` dan `slug` serta beberapa konten posting.
+</Steps>
+
+### Menampilkan daftar posting blog
+
+Tambahkan konten berikut ke `src/pages/index.astro` untuk mengambil dan menampilkan daftar semua judul posting, masing‑masing menaut ke halamannya sendiri:
+
+```astro title="src/pages/index.astro" {9}
+---
+
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+
+const { results: posts } = await fetch(
+  `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    fields: ["data.slug", "data.title"].join(","),
+    cachebust: "true",
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+
+<html lang="en">
+  <head>
+    <title>Blog Index</title>
+  </head>
+  <body>
+    <ul>
+      {
+        posts.flatMap(({ data: { slug, title } }) => (
+          <li>
+            <a href={`/posts/${slug}`}>{title}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </body>
+</html>
+
+```
+
+*Fetching* via Content API mengembalikan array objek yang berisi data untuk setiap posting. Parameter kueri `fields` memberi tahu Builder data mana yang disertakan (lihat kode yang disorot). `slug` dan `title` harus sesuai dengan nama field data kustom yang Anda tambahkan ke model Builder.
+
+Array `posts` yang dikembalikan dari *fetch* menampilkan daftar judul posting di halaman beranda. Rute halaman individual akan dibuat pada langkah berikutnya.
+
+:::tip[Integrasi framework]
+Jika Anda menggunakan framework JavaScript (mis. Svelte, Vue, atau React) di proyek Astro Anda, Anda dapat memakai [salah satu integrasi Builder](https://www.builder.io/m/integrations) sebagai alternatif dari *fetch* mentah lewat REST API.
+:::
+
+Buka rute indeks Anda dan Anda seharusnya melihat daftar tautan berisi judul posting blog!
+
+
+### Menampilkan satu posting blog
+
+Buat halaman `src/pages/posts/[slug].astro` yang akan [menghasilkan halaman secara dinamis](/id/guides/routing/#dynamic-routes) untuk setiap posting.
+
+<FileTree title="Struktur Proyek">
+- src/
+  - pages/
+    - index.astro
+    - posts/
+      - **[slug].astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+File ini harus berisi:
+- Fungsi [`getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths) untuk mengambil informasi `slug` dari Builder dan membuat rute statis untuk setiap posting.
+- *Fetch* ke API Builder menggunakan pengenal `slug` untuk mengembalikan konten dan metadata posting (mis. `title`).
+- `<Fragment />` di template untuk merender konten posting sebagai HTML.
+
+Masing‑masing disorot pada cuplikan kode berikut.  
+
+```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+---
+export async function getStaticPaths() {
+  const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+  const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+  const { results: posts } = await fetch(
+    `https://cdn.builder.io/api/v3/content/${builderModel}?${new URLSearchParams(
+      {
+        apiKey: builderAPIpublicKey,
+        fields: ["data.slug", "data.title"].join(","),
+        cachebust: "true",
+      }
+    ).toString()}`
+  )
+    .then((res) => res.json())
+    .catch
+    // ...catch some errors...);
+    ();
+  return posts.map(({ data: { slug, title } }) => ({
+    params: { slug },
+    props: { title },
+  }))
+}
+const { slug } = Astro.params;
+const { title } = Astro.props;
+const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
+const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
+// Builder's API requires this field but for this use case the url doesn't seem to matter - the API returns the same HTML
+const encodedUrl = encodeURIComponent("moot");
+const { html: postHTML } = await fetch(
+  `https://cdn.builder.io/api/v1/qwik/${builderModel}?${new URLSearchParams({
+    apiKey: builderAPIpublicKey,
+    url: encodedUrl,
+    "query.data.slug": slug,
+    cachebust: "true",
+  }).toString()}`
+)
+  .then((res) => res.json())
+  .catch();
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>This is your header</header>
+    <article>
+      <Fragment set:html={postHTML} />
+    </article>
+    <footer>This is your footer</footer>
+  </body>
+</html>
+```
+
+:::note
+Variabel `builderModel` dan `builderAPIpublicKey` perlu dibuat dua kali, karena [`getStaticPaths()` berjalan dalam *scope* terpisah](/id/reference/routing-reference/#getstaticpaths).
+:::
+
+Sekarang saat Anda mengeklik tautan di rute indeks, Anda akan dibawa ke halaman posting blog individual.
+
+### Menerbitkan situs Anda
+
+Untuk *deploy* situs web, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+#### Rebuild saat ada perubahan di Builder
+
+Jika proyek Anda menggunakan mode statis default Astro, Anda perlu menyiapkan webhook untuk memicu build baru saat konten berubah. Jika Anda menggunakan Netlify atau Vercel sebagai penyedia hosting, Anda dapat menggunakan fitur webhook-nya untuk memicu build baru setiap kali Anda mengklik **Publish** di editor Builder.
+
+##### Netlify
+
+<Steps>
+1. Buka *dashboard* situs Anda, lalu **Site Settings** dan klik **Build & deploy**.
+
+2. Di tab **Continuous Deployment**, temukan bagian **Build hooks** dan klik **Add build hook**.
+
+3. Beri nama webhook Anda dan pilih branch yang ingin memicu build. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Vercel
+
+<Steps>
+1. Buka *dashboard* proyek Anda dan klik **Settings**.
+
+2. Di bawah tab **Git**, temukan bagian **Deploy Hooks**.
+
+3. Beri nama webhook dan branch yang ingin memicu build. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Menambahkan webhook ke Builder
+
+:::tip[Sumber resmi]
+Lihat [panduan Builder tentang menambahkan webhook](https://www.builder.io/c/docs/webhooks) untuk informasi lebih lanjut.
+:::
+
+<Steps>
+1. Di *dashboard* Builder, masuk ke model **`blogpost`** Anda. Di bawah **Show More Options**, pilih **Edit Webhooks** di bagian bawah.
+
+2. Tambahkan webhook baru dengan mengeklik **Webhook**. Tempel URL yang dihasilkan penyedia hosting ke field **Url**.
+
+3. Klik **Show Advanced** di bawah field URL dan aktifkan opsi **Disable Payload**. Dengan payload dinonaktifkan, Builder mengirim permintaan POST yang lebih sederhana ke penyedia hosting Anda, yang bisa membantu saat situs Anda tumbuh. Klik **Done** untuk menyimpan.
+</Steps>
+
+Dengan webhook ini, setiap kali Anda mengeklik tombol **Publish** di editor Builder, penyedia hosting Anda akan membangun ulang situs — dan Astro akan mengambil data yang baru dipublikasikan untuk Anda. Tinggal duduk santai dan produksi konten!
+
+
+## Sumber resmi
+
+- Lihat [proyek *starter* resmi Builder.io](https://github.com/BuilderIO/builder/tree/main/examples/astro-solidjs), yang menggunakan Astro dan SolidJS.
+- [Panduan *quickstart* resmi Builder](https://www.builder.io/c/docs/quickstart#step-1-add-builder-as-a-dependency) mencakup penggunaan REST API maupun *data fetching* melalui integrasi dengan framework JavaScript seperti Qwik, React, atau Vue.
+- [API explorer Builder](https://builder.io/api-explorer) dapat membantu jika Anda perlu menelusuri panggilan API.
+
+## Sumber komunitas
+
+- Baca [Connecting Builder.io's Visual CMS to Astro](https://www.hamatoyogi.dev/blog/astro-log/connecting-builderio-to-astro) oleh Yoav Ganbar.

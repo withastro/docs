@@ -1,0 +1,81 @@
+---
+title: Preservasi urutan skrip (eksperimental)
+sidebar:
+  label: Preserve scripts order
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+  **Type:** `boolean`<br />
+  **Default:** `false`<br />
+  <Since v="5.5.0" />
+</p>
+
+Merender beberapa tag `<style>` dan `<script>` dalam urutan yang sama seperti dideklarasikan di kode sumber.
+
+Untuk mengaktifkan perilaku ini, tambahkan flag fitur `experimental.preserveScriptOrder` ke konfigurasi Astro Anda:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    preserveScriptOrder: true
+  }
+})
+```
+
+## Penggunaan
+
+Flag eksperimental ini tidak memerlukan penggunaan khusus dan hanya memengaruhi urutan Astro merender style dan script Anda.
+
+Saat merender beberapa tag `<style>` dan `<script>` pada halaman yang sama, Astro saat ini membalik urutan tersebut pada HTML keluaran. Ini dapat menghasilkan hal yang tidak terduga, misalnya gaya CSS ditimpa oleh tag style yang didefinisikan lebih awal ketika situs Anda dibangun. Flag eksperimental ini justru merender tag `<script>` dan `<style>` sesuai urutan penulisannya.
+
+Sebagai contoh, komponen berikut memiliki dua tag `<style>` dan dua tag `<script>`:
+
+```astro title="src/components/MyComponent.astro"
+<p>Saya sebuah komponen</p>
+<style>
+  body {
+    background: red;
+  }
+</style>
+<style>
+  body {
+    background: yellow;
+  }
+</style>
+<script>
+    console.log("hello")
+</script>
+<script>
+    console.log("world!")
+</script>
+```
+
+Setelah dikompilasi, perilaku bawaan Astro akan membuat style inline di mana `yellow` muncul terlebih dahulu, lalu `red`. Ini berarti latar belakang `red` yang diterapkan. Demikian pula dengan dua skrip, kata `world!` dicetak lebih dahulu, kemudian `hello`:
+
+```css
+body {background:#ff0} body {background:red}
+```
+
+```js
+console.log("world!")
+console.log("hello")
+```
+
+Ketika `experimental.preserveScriptOrder` disetel `true`, urutan rendering tag `<style>` dan `<script>` cocok dengan urutan penulisannya. Untuk komponen yang sama, style yang dihasilkan `red` muncul lebih dulu, lalu `yellow`; dan untuk skrip, `hello` dicetak lebih dulu, kemudian `world!`:
+
+```css
+body {background:red} body {background:#ff0}
+```
+
+```js
+console.log("hello")
+console.log("world!")
+```
+
+Di versi mayor mendatang, Astro akan mempertahankan urutan style dan script secara bawaan, namun Anda dapat lebih dulu *opt‑in* ke perilaku masa depan ini menggunakan flag `experimental.preserveScriptOrder`.

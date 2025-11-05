@@ -1,0 +1,762 @@
+---
+title: View transitions
+description: Enable seamless navigation between pages in Astro with view transitions.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import { Steps } from '@astrojs/starlight/components'
+
+[View transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) adalah transisi animasi antara tampilan situs yang berbeda. Ini adalah pilihan desain populer untuk menjaga kontinuitas visual saat pengunjung berpindah antar status atau tampilan aplikasi.
+
+Dukungan transisi tampilan dan routing sisi klien Astro ditenagai oleh [View Transitions browser API](https://developer.chrome.com/docs/web-platform/view-transitions/) dan juga mencakup:
+
+- Beberapa [opsi animasi bawaan](#built-in-animation-directives), seperti `fade`, `slide`, dan `none`.
+- Dukungan animasi navigasi maju dan mundur.
+- Kemampuan untuk sepenuhnya [menyesuaikan semua aspek animasi transisi](#customizing-animations), dan membangun animasi Anda sendiri.
+- Cara membawa elemen HTML dari halaman saat ini ke halaman berikutnya selama navigasi.
+- Opsi untuk [mencegah navigasi sisi klien untuk tautan non-halaman](#preventing-client-side-navigation).
+- [Kontrol perilaku fallback](#fallback-control) untuk browser yang belum mendukung View Transition API.
+- Dukungan otomatis untuk [`prefers-reduced-motion`](#prefers-reduced-motion).
+
+:::note
+Secara default, setiap halaman akan menggunakan navigasi browser penuh yang biasa. Anda harus melakukan _opt-in_ ke transisi tampilan dan dapat menggunakannya per halaman atau untuk seluruh situs.
+:::
+
+## Differences between browser-native view transitions and Astro's `<ClientRouter />`
+
+[Transisi tampilan lintas-dokumen bawaan browser](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#basic_mpa_view_transition) dapat digunakan di Astro untuk menganimasi navigasi antar dokumen di aplikasi multi-halaman (MPA), sering kali memberikan pengalaman routing sisi klien seperti aplikasi satu halaman. Fitur ini tidak mengubah fungsionalitas inti MPA, tidak memengaruhi skrip yang ada, ataupun menambah JavaScript tambahan ke muatan halaman. Fitur ini hanya menambahkan animasi.
+
+Untuk fitur routing sisi klien dan transisi tampilan yang lebih kaya yang belum sepenuhnya didukung oleh View Transition API, Astro menyediakan komponen ringan bawaan untuk mengaktifkan routing sisi klien dan mengubah MPA Anda menjadi [single-page app](#enabling-view-transitions-spa-mode) dengan animasi halus saat navigasi.
+
+Ini hadir dengan beberapa keuntungan, seperti state bersama lintas halaman dan elemen persisten, serta beberapa kekurangan, seperti perlunya menginisialisasi ulang skrip atau state setelah navigasi.
+
+Menambahkan komponen bawaan Astro `<ClientRouter />`:
+- [mencegat navigasi halaman](#client-side-navigation-process) dan memberi Anda kontrol besar atas proses ini.
+- memperluas dan meningkatkan beberapa fitur View Transition/Navigation API.
+- memungkinkan Anda [mengonfigurasi strategi fallback](#fallback-control) saat [dukungan native browser kurang](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
+
+Namun, seiring API browser dan standar web berkembang, penggunaan `<ClientRouter />` Astro untuk fungsionalitas tambahan ini [akan makin tidak diperlukan](https://astro.build/blog/future-of-astro-zero-js-view-transitions/). Kami menyarankan mengikuti perkembangan API browser saat ini agar Anda dapat [menentukan apakah masih memerlukan routing sisi klien Astro](https://events-3bg.pages.dev/jotter/astro-view-transitions/) untuk fitur spesifik yang Anda gunakan.
+
+## Enabling view transitions (SPA mode)
+
+Impor dan tambahkan komponen `<ClientRouter />` ke `<head>` umum Anda atau komponen layout bersama. Astro akan membuat animasi navigasi halaman default berdasarkan kemiripan antara halaman lama dan baru, dan juga menyediakan perilaku fallback untuk browser yang tidak didukung.
+
+Contoh di bawah menambahkan animasi navigasi halaman default Astro untuk seluruh situs, termasuk opsi kontrol fallback default untuk browser yang tidak mendukung, dengan mengimpor dan menambahkan komponen ini ke komponen Astro `<CommonHead />`:
+
+```astro title="src/components/CommonHead.astro" ins={2,12}
+---
+import { ClientRouter } from "astro:transitions";
+---
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<ClientRouter />
+```
+
+Tidak diperlukan konfigurasi lainnya untuk mengaktifkan navigasi sisi klien default Astro!
+
+Gunakan [transition directives](#transition-directives) atau [timpa navigasi sisi klien default](#preventing-client-side-navigation) pada elemen tertentu untuk kontrol yang lebih halus. 
+
+## Transition Directives
+
+Astro akan otomatis memberikan `view-transition-name` bersama yang unik pada elemen-elemen yang sesuai yang ditemukan baik di halaman lama maupun halaman baru. Pasangan elemen yang cocok ini diinferensikan berdasarkan jenis elemen dan lokasinya di DOM.
+
+Gunakan direktif opsional `transition:*` pada elemen halaman di komponen `.astro` Anda untuk kontrol yang lebih halus atas perilaku transisi halaman saat navigasi.
+
+- `transition:name`: Mengizinkan Anda menimpa pencocokan elemen default Astro untuk animasi konten lama/baru dan [menentukan nama transisi](#naming-a-transition) untuk mengaitkan sepasang elemen DOM.
+- `transition:animate`: Mengizinkan Anda menimpa animasi default saat mengganti elemen lama dengan yang baru dengan menentukan tipe animasi. Gunakan [direktif animasi bawaan](#built-in-animation-directives) Astro atau [buat animasi transisi khusus](#customizing-animations).
+- `transition:persist`: Mengizinkan Anda menimpa perilaku penggantian elemen lama dengan yang baru dan sebagai gantinya [mempertahankan komponen dan elemen HTML](#maintaining-state) saat menavigasi ke halaman lain.
+
+### Naming a transition
+
+Dalam beberapa kasus, Anda mungkin ingin atau perlu mengidentifikasi sendiri elemen transisi tampilan yang sesuai. Anda dapat menentukan nama untuk sepasang elemen menggunakan direktif `transition:name`.
+
+```astro title="src/pages/old-page.astro"
+<aside transition:name="hero">
+```
+
+```astro title="src/pages/new-page.astro"
+<aside transition:name="hero">
+```
+
+Perhatikan bahwa nilai `transition:name` yang diberikan hanya dapat digunakan sekali di setiap halaman. Atur ini secara manual saat Astro tidak dapat menginfer nama yang tepat, atau untuk kontrol pencocokan elemen yang lebih halus.
+
+### Maintaining State
+
+<p><Since v="2.10.0" /></p>
+
+Anda dapat mempertahankan komponen dan elemen HTML (alih-alih menggantinya) di seluruh navigasi halaman menggunakan direktif `transition:persist`. 
+
+Misalnya, `<video>` berikut akan terus diputar saat Anda menavigasi ke halaman lain yang berisi elemen video yang sama. Ini berfungsi untuk navigasi maju maupun mundur.
+
+```astro title="src/components/Video.astro" "transition:persist"
+<video controls muted autoplay transition:persist>
+  <source
+    src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4"
+    type="video/mp4"
+  />
+</video>
+```
+
+Anda juga dapat menempatkan direktif ini pada [pulau Astro](/id/concepts/islands/) (komponen framework UI dengan [direktif `client:`](/id/reference/directives-reference/#client-directives)). Jika komponen tersebut ada di halaman berikutnya, pulau dari halaman lama **beserta state saat ini** akan tetap ditampilkan, alih-alih diganti dengan pulau dari halaman baru.
+
+Pada contoh di bawah, state internal penghitung komponen tidak akan direset saat menavigasi bolak-balik antar halaman yang berisi komponen `<Counter />` dengan atribut `transition:persist`.
+
+```astro title="components/Header.astro" "transition:persist"
+<Counter client:load transition:persist initialCount={5} />
+```
+
+:::note[Known limitations]
+Tidak semua state dapat dipertahankan dengan cara ini. Pengulangan animasi CSS dan pemuatan ulang iframe tidak dapat dihindari selama transisi tampilan bahkan ketika menggunakan `transition:persist`.
+:::
+
+Anda juga dapat [mengidentifikasi elemen yang sesuai secara manual](#naming-a-transition) jika pulau/elemennya berada di komponen yang berbeda antara dua halaman.
+
+```astro title="src/pages/old-page.astro" "video" 'transition:name="media-player"'
+<video
+  controls
+  muted
+  autoplay
+  transition:name="media-player"
+  transition:persist
+/>
+```
+
+```astro title="src/pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+<MyVideo
+  controls
+  muted
+  autoplay
+  transition:name="media-player"
+  transition:persist
+/>
+```
+
+Sebagai _shorthand_ yang nyaman, `transition:persist` juga dapat menerima nama transisi sebagai nilainya.
+
+```astro title="src/pages/index.astro" 'transition:persist="media-player"'
+<video controls muted autoplay transition:persist="media-player">
+```
+
+#### `transition:persist-props`
+
+<p><Since v="4.5.0" /></p>
+
+Ini memungkinkan Anda mengontrol apakah props sebuah pulau harus dipertahankan saat navigasi.
+
+Secara default, saat Anda menambahkan `transition:persist` ke pulau, state dipertahankan saat navigasi, tetapi komponen Anda akan di-render ulang dengan props baru. Ini berguna, misalnya, ketika sebuah komponen menerima props spesifik halaman seperti `title` halaman saat ini.
+
+Anda dapat menimpa perilaku ini dengan menetapkan `transition:persist-props` selain `transition:persist`. Menambahkan direktif ini akan mempertahankan props yang ada (tidak di-render ulang dengan nilai baru) di samping mempertahankan state yang ada.
+
+### Built-in Animation Directives
+
+Astro menyertakan beberapa animasi bawaan untuk menimpa transisi `fade` default. Tambahkan direktif `transition:animate` ke elemen tertentu untuk menyesuaikan perilaku transisi spesifik.
+
+- `fade` (default): Animasi _crossfade_ yang beropini. Konten lama memudar dan konten baru memudar masuk.
+- `initial`: Menonaktifkan animasi _crossfade_ beropini Astro dan menggunakan styling default browser.
+- `slide`: Animasi di mana konten lama meluncur keluar ke kiri dan konten baru meluncur masuk dari kanan. Pada navigasi mundur, animasinya kebalikan.
+- `none`: Menonaktifkan animasi default browser. Gunakan pada elemen `<html>` halaman untuk menonaktifkan _fade_ default untuk setiap elemen pada halaman.
+
+Kombinasikan direktif untuk kontrol penuh atas animasi halaman Anda. Tetapkan default halaman pada elemen `<html>`, dan timpa pada elemen tertentu sesuai kebutuhan.
+
+Contoh berikut menghasilkan animasi _slide_ untuk konten body sambil menonaktifkan animasi _fade_ default browser untuk bagian halaman lainnya:
+
+```astro
+---
+import CommonHead from "../components/CommonHead.astro";
+---
+
+<html transition:name="root" transition:animate="none">
+  <head>
+    <CommonHead />
+  </head>
+  <body>
+    <header>
+      ...
+    </header>
+    <!-- Timpa default halaman pada satu elemen -->
+    <main transition:animate="slide">
+      ...
+    </main>
+  </body>
+</html>
+```
+
+### Customizing Animations
+
+Anda dapat menyesuaikan semua aspek transisi dengan properti animasi CSS apa pun.
+
+Untuk menyesuaikan animasi bawaan, pertama impor animasinya dari `astro:transitions`, lalu berikan opsi kustomisasi. 
+
+Contoh di bawah menyesuaikan durasi animasi bawaan `fade`:
+
+```astro
+---
+import { fade } from "astro:transitions";
+---
+<header transition:animate={fade({ duration: "0.4s" })}>
+```
+
+Anda juga dapat menentukan animasi Anda sendiri untuk digunakan dengan `transition:animate` dengan mendefinisikan perilaku maju dan mundur, serta halaman baru dan lama, sesuai tipe berikut:
+
+```ts
+export interface TransitionAnimation {
+  name: string; // The name of the keyframe
+  delay?: number | string;
+  duration?: number | string;
+  easing?: string;
+	fillMode?: string;
+	direction?: string;
+}
+
+export interface TransitionAnimationPair {
+	old: TransitionAnimation | TransitionAnimation[];
+	new: TransitionAnimation | TransitionAnimation[];
+}
+
+export interface TransitionDirectionalAnimations {
+	forwards: TransitionAnimationPair;
+	backwards: TransitionAnimationPair;
+}
+```
+
+Contoh berikut menunjukkan semua properti yang diperlukan untuk mendefinisikan animasi khusus `bump` di dalam tag `<style is:global>` pada file layout root Anda:
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ClientRouter } from "astro:transitions";
+---
+<html lang="en">
+  <head>
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+Perilaku animasi harus didefinisikan di frontmatter setiap komponen yang menggunakan animasi tersebut:
+
+```astro title="src/pages/index.astro"
+---
+const anim = {
+  old: {
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in",
+    direction: "reverse",
+  },
+  new: {
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in-out",
+  },
+};
+
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
+};
+---
+<header transition:animate={customTransition}> ... </header>
+```
+
+Anda memiliki fleksibilitas besar saat mendefinisikan animasi khusus. Untuk mencapai hasil yang diinginkan, Anda mungkin ingin mempertimbangkan kombinasi tidak biasa seperti menggunakan objek berbeda untuk maju dan mundur, atau menyediakan animasi keyframe terpisah untuk lama dan baru.
+
+## Router control
+
+Router `<ClientRouter />` menangani navigasi dengan mendengarkan:
+
+- Klik pada elemen `<a>`.
+- Event navigasi mundur dan maju.
+
+Opsi berikut memungkinkan Anda mengontrol kapan navigasi terjadi di dalam router:
+
+- `data-astro-reload`: atribut tag `<a>` untuk [memaksa navigasi halaman penuh](#preventing-client-side-navigation)
+- `data-astro-history="auto | push | replace"`: atribut tag `<a>` untuk [mengontrol riwayat browser](#replace-entries-in-the-browser-history)
+- `navigate(href, options)`: metode yang tersedia untuk skrip klien atau komponen klien mana pun untuk [memicu navigasi](#trigger-navigation)
+
+### Preventing client-side navigation
+
+Ada beberapa kasus di mana Anda tidak dapat menavigasi melalui routing sisi klien karena kedua halaman yang terlibat harus menggunakan router `<ClientRouter />` untuk mencegah muat ulang halaman penuh. Anda juga mungkin tidak menginginkan routing sisi klien pada setiap perubahan navigasi dan lebih memilih navigasi halaman tradisional pada rute tertentu.
+
+Anda dapat _opt-out_ dari routing sisi klien per tautan dengan menambahkan atribut `data-astro-reload` ke tag `<a>` atau `<form>` mana pun. Atribut ini akan menimpa komponen `<ClientRouter />` yang ada dan sebagai gantinya memicu penyegaran browser saat navigasi.
+
+Contoh berikut menunjukkan pencegahan routing sisi klien saat menavigasi ke sebuah artikel dari beranda saja. Ini tetap memungkinkan Anda memiliki animasi pada elemen bersama, seperti gambar hero, saat menavigasi ke halaman yang sama dari halaman daftar artikel:
+
+```astro title="src/pages/index.astro"
+<a href="/articles/emperor-penguins" data-astro-reload>
+```
+
+```astro title="src/pages/articles.astro"
+<a href="/articles/emperor-penguins">
+```
+
+Tautan dengan atribut `data-astro-reload` akan diabaikan oleh router dan navigasi halaman penuh akan terjadi.
+
+### Trigger navigation
+
+Anda juga dapat memicu navigasi sisi klien melalui event yang biasanya tidak didengarkan oleh router `<ClientRouter />` menggunakan `navigate`. Fungsi dari modul `astro:transitions/client` ini dapat digunakan dalam skrip, dan dalam komponen framework yang dihidrasi dengan [direktif klien](/id/reference/directives-reference/#client-directives).
+
+Contoh berikut menunjukkan komponen Astro yang menavigasikan pengunjung ke halaman lain yang dipilih dari menu:
+
+```astro title="src/components/Form.astro"
+<script>
+  import { navigate } from "astro:transitions/client";
+
+  // Navigasi otomatis ke opsi yang dipilih.
+  document.querySelector("select").onchange = (event) => {
+    let href = event.target.value;
+    navigate(href);
+  };
+</script>
+<select>
+  <option value="/play">Play</option>
+  <option value="/blog">Blog</option>
+  <option value="/about">About</option>
+  <option value="/contact">Contact</option>
+</select>
+```
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/Form.astro";
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+	<head>
+		<ClientRouter />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
+
+Contoh berikut mengimplementasikan hal yang sama menggunakan `navigate()` di komponen React `<Form />`:
+
+```js title="src/components/Form.jsx"
+import { navigate } from "astro:transitions/client";
+
+export default function Form() {
+  return (
+    <select onChange={(e) => navigate(e.target.value)}>
+      <option value="/play">Play</option>
+      <option value="/blog">Blog</option>
+      <option value="/about">About</option>
+      <option value="/contact">Contact</option>
+    </select>
+  );
+}
+```
+
+Komponen `<Form />` kemudian dapat dirender pada halaman Astro yang menggunakan router `<ClientRouter />`, dengan direktif klien:
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/Form.jsx";
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+	<head>
+		<ClientRouter />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
+```
+
+Metode `navigate` menerima argumen berikut:
+
+- `href` (wajib) - Halaman baru untuk dinavigasikan.
+- `options` - Objek opsional dengan properti berikut:
+	- `history`: `"push"` | `"replace"` | `"auto"`
+		- `"push"`: router akan menggunakan `history.pushState` untuk membuat entri baru di riwayat browser. 
+		- `"replace"`: router akan menggunakan `history.replaceState` untuk memperbarui URL tanpa menambahkan entri baru ke navigasi.
+		- `"auto"` (default): router akan mencoba `history.pushState`, tetapi jika URL tidak dapat ditransisikan, URL saat ini akan tetap tanpa perubahan pada riwayat browser.
+  - `formData`: Objek [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) untuk permintaan `POST`.
+
+Untuk navigasi mundur dan maju melalui riwayat browser, Anda dapat menggabungkan `navigate()` dengan fungsi bawaan browser `history.back()`, `history.forward()` dan `history.go()`. Jika `navigate()` dipanggil saat _server-side render_ komponen Anda, ini tidak berdampak.
+
+### Replace entries in the browser history
+
+Biasanya, setiap kali Anda menavigasi, entri baru ditulis ke riwayat browser. Ini memungkinkan navigasi antar halaman menggunakan tombol `back` dan `forward` browser. 
+
+Router `<ClientRouter />` memungkinkan Anda menimpa entri riwayat dengan menambahkan atribut `data-astro-history` ke tag `<a>` tertentu.
+
+Atribut `data-astro-history` dapat diatur ke tiga nilai yang sama seperti [opsi `history` pada fungsi `navigate()`](#trigger-navigation): 
+
+`data-astro-history`: `"push"` | `"replace"` | `"auto"`
+
+- `"push"`: router akan menggunakan `history.pushState` untuk membuat entri baru di riwayat browser. 
+- `"replace"`: router akan menggunakan `history.replaceState` untuk memperbarui URL tanpa menambahkan entri baru ke navigasi.
+- `"auto"` (default): router akan mencoba `history.pushState`, tetapi jika URL tidak dapat ditransisikan, URL saat ini akan tetap tanpa perubahan pada riwayat browser.
+
+Contoh berikut menavigasi ke halaman `/main` tetapi tidak menambahkan entri baru ke riwayat penelusuran. Sebagai gantinya, ia menggunakan kembali entri riwayat saat ini (`/confirmation`) dan menimpanya.
+
+```astro title="src/pages/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+Efeknya adalah jika Anda kembali dari halaman `/main`, browser tidak akan menampilkan halaman `/confirmation`, melainkan halaman sebelumnya.
+
+### Transitions with forms
+
+<p><Since v="4.0.0" /></p>
+
+Router `<ClientRouter />` akan memicu transisi _in-page_ dari elemen `<form>`, mendukung permintaan `GET` dan `POST`.
+
+Secara default, Astro mengirimkan data formulir Anda sebagai `multipart/form-data` saat `method` Anda diatur ke `POST`. Jika Anda ingin menyesuaikan perilaku default browser, gunakan atribut `enctype` untuk mengirim data Anda dengan _encoding_ `application/x-www-form-urlencoded`:
+
+```astro title="src/components/Form.astro"
+<form
+  action="/contact"
+  method="POST"
+  enctype="application/x-www-form-urlencoded"
+>
+```
+
+Anda dapat _opt out_ dari transisi router pada formulir tertentu menggunakan atribut `data-astro-reload`:
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+```
+
+## Fallback control
+
+Router `<ClientRouter />` bekerja paling baik di browser yang mendukung View Transitions (mis. browser Chromium), tetapi juga menyertakan dukungan fallback default untuk browser lain. Bahkan jika browser tidak mendukung View Transitions API, router sisi klien Astro masih dapat menyediakan navigasi dalam browser menggunakan salah satu opsi fallback.
+
+Bergantung pada dukungan browser, Anda mungkin perlu secara eksplisit menetapkan `name` atau `animate` [transition directives](#transition-directives) pada elemen yang ingin Anda animasikan untuk pengalaman yang sebanding di semua browser:
+
+```astro title="src/pages/about.astro"
+---
+import Layout from "../layouts/LayoutUsingClientRouter.astro";
+---
+<title transition:animate="fade">About my site</title>
+```
+
+Anda dapat menimpa dukungan fallback default Astro dengan menambahkan properti `fallback` pada komponen `<ClientRouter />` dan mengaturnya ke `swap` atau `none`:
+
+- `animate` (default, direkomendasikan): Astro akan mensimulasikan transisi tampilan menggunakan atribut khusus sebelum memperbarui konten halaman.
+- `swap`: Astro tidak akan mencoba menganimasi halaman. Sebagai gantinya, halaman lama akan segera digantikan oleh halaman baru.
+- `none`: Astro tidak akan melakukan transisi halaman animasi sama sekali. Sebagai gantinya, Anda akan mendapatkan navigasi halaman penuh di browser yang tidak mendukung.
+
+```astro
+---
+import { ClientRouter } from "astro:transitions";
+---
+<title>My site</title>
+
+<ClientRouter fallback="swap" />
+```
+
+:::note[Known limitations]
+Animasi browser `initial` tidak disimulasikan oleh Astro. Jadi elemen apa pun yang menggunakan animasi ini saat ini tidak akan dianimasikan.
+:::
+
+## Client-side navigation process
+
+Saat menggunakan router `<ClientRouter />`, langkah-langkah berikut terjadi untuk menghasilkan navigasi sisi klien Astro:
+
+<Steps>
+1. Pengunjung situs Anda memicu navigasi dengan salah satu tindakan berikut:
+    - Mengklik tag `<a>` yang menaut internal ke halaman lain di situs Anda.
+    - Mengklik tombol back.
+    - Mengklik tombol forward.
+2. Router mulai mengambil halaman berikutnya.
+3. Router menambahkan atribut `data-astro-transition` ke elemen HTML dengan nilai `"forward"` atau `"back"` sesuai kebutuhan.
+4. Router memanggil `document.startViewTransition`. Ini memicu [proses transisi tampilan](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#the_view_transition_process) milik browser. Yang penting, browser membuat tangkapan layar dari keadaan halaman saat ini.
+5. Di dalam _callback_ `startViewTransition`, router melakukan __swap__, yang terdiri dari urutan peristiwa berikut:
+
+    - Isi `<head>` ditukar, dengan beberapa elemen dipertahankan:
+      - Node DOM stylesheet dibiarkan jika ada di halaman baru, untuk mencegah FOUC.
+      - Script dibiarkan jika ada di halaman baru.
+      - Elemen head lain dengan `transition:persist` dibiarkan jika ada elemen yang sesuai di halaman baru.
+      
+    - `<body>` sepenuhnya diganti dengan body halaman baru.
+    
+    - Elemen yang ditandai `transition:persist` dipindahkan ke DOM baru jika ada di halaman baru.
+    
+    - Posisi scroll dipulihkan jika perlu.
+    
+    - Event `astro:after-swap` dipicu pada `document`. Ini adalah akhir proses __swap__.
+    
+6. Router menunggu stylesheet baru dimuat sebelum menyelesaikan transisi.
+7. Router mengeksekusi script baru yang ditambahkan ke halaman.
+8. Event `astro:page-load` ditembakkan. Ini adalah akhir dari proses navigasi.
+</Steps>
+
+## Script behavior with view transitions
+
+Saat Anda menambahkan transisi tampilan ke proyek Astro yang ada, beberapa skrip Anda mungkin tidak lagi dieksekusi ulang setelah navigasi halaman seperti ketika memuat ulang halaman penuh. Gunakan informasi berikut untuk memastikan skrip Anda berjalan sebagaimana mestinya.
+
+### Script order
+
+Saat menavigasi antar halaman dengan komponen `<ClientRouter />`, skrip dijalankan secara berurutan untuk menyesuaikan dengan perilaku browser. 
+
+### Script re-execution
+
+[_Bundled module scripts_](/id/guides/client-side-scripts/#script-processing), yang merupakan skrip default di Astro, hanya dieksekusi sekali. Setelah eksekusi awal, skrip akan diabaikan, bahkan jika skrip tersebut ada di halaman baru setelah transisi.
+
+Tidak seperti skrip modul yang dibundel, [_inline scripts_](/id/guides/client-side-scripts/#unprocessed-scripts) berpotensi dieksekusi ulang selama kunjungan pengguna ke situs jika skrip tersebut ada di halaman yang dikunjungi beberapa kali. Skrip _inline_ juga dapat dieksekusi ulang ketika pengunjung menavigasi ke halaman tanpa skrip, dan kemudian kembali ke halaman dengan skrip.
+
+Dengan transisi tampilan, beberapa skrip mungkin tidak lagi dijalankan ulang setelah navigasi halaman seperti halnya dengan penyegaran penuh. Ada beberapa [event selama routing sisi klien yang dapat Anda dengarkan](#lifecycle-events), dan menembakkan _event_ saat terjadi. Anda dapat membungkus skrip yang ada dalam pendengar event untuk memastikan skrip berjalan pada waktu yang tepat dalam siklus navigasi.
+
+Contoh berikut membungkus skrip untuk menu “hamburger” seluler dalam pendengar event `astro:page-load` yang berjalan di akhir navigasi halaman agar menu responsif terhadap klik setelah menavigasi ke halaman baru:
+
+```js title="src/scripts/menu.js" ins={1,5}
+document.addEventListener("astro:page-load", () => {
+  document.querySelector(".hamburger").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("expanded");
+  });
+});
+```
+
+Contoh berikut menunjukkan fungsi yang berjalan sebagai respons terhadap event `astro:after-swap`, yang terjadi segera setelah halaman baru menggantikan halaman lama dan sebelum elemen DOM dirender ke layar. Ini menghindari _flash_ tema mode terang setelah navigasi halaman dengan memeriksa dan, jika perlu, menetapkan tema mode gelap sebelum halaman baru dirender:
+
+```astro title="src/components/ThemeToggle.astro"
+<script is:inline>
+  function applyTheme() {
+    localStorage.theme === "dark"
+      ? document.documentElement.classList.add("dark")
+      : document.documentElement.classList.remove("dark");
+  }
+
+  document.addEventListener("astro:after-swap", applyTheme);
+  applyTheme(); 
+</script>
+```
+
+#### `data-astro-rerun`
+
+<p><Since v="4.5.0" /></p>
+
+Untuk memaksa skrip _inline_ dieksekusi ulang setelah setiap transisi, tambahkan properti `data-astro-rerun`. Menambahkan atribut apa pun ke skrip juga secara implisit menambahkan `is:inline`, jadi ini hanya tersedia untuk skrip yang tidak dibundel dan diproses oleh Astro.
+
+```astro
+<script is:inline data-astro-rerun>...</script>
+```
+
+Untuk memastikan skrip berjalan setiap kali halaman dimuat selama navigasi sisi klien, skrip harus dieksekusi oleh [event siklus hidup](#lifecycle-events). Misalnya, pendengar event untuk `DOMContentLoaded` dapat diganti oleh [event siklus hidup `astro:page-load`](/id/guides/view-transitions/#astropage-load).
+
+Jika Anda memiliki kode yang menyiapkan state global dalam skrip inline, state ini harus mempertimbangkan bahwa skrip mungkin dieksekusi lebih dari sekali. Periksa state global di tag `<script>` Anda, dan jalankan kode secara kondisional jika memungkinkan. Ini bekerja karena `window` dipertahankan.
+
+```astro
+<script is:inline>
+  if (!window.SomeGlobal) {
+    window.SomeGlobal = {};
+  }
+</script>
+```
+
+## Lifecycle events
+
+Router `<ClientRouter />` menembakkan sejumlah event pada `document` selama navigasi. Event ini menyediakan _hook_ ke siklus hidup navigasi, memungkinkan Anda melakukan hal-hal seperti menampilkan indikator bahwa halaman baru sedang dimuat, menimpa perilaku default, dan memulihkan state saat navigasi selesai.
+
+Proses navigasi melibatkan fase **persiapan**, saat konten baru dimuat; fase **DOM swap**, saat konten halaman lama digantikan oleh konten halaman baru; dan fase **penyelesaian** saat skrip dieksekusi, pemuatan dilaporkan selesai, dan pekerjaan pembersihan dilakukan. 
+
+Event siklus hidup View Transition API milik Astro secara berurutan adalah:
+
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
+
+:::tip
+Event `before-` memungkinkan Anda memengaruhi dan memodifikasi tindakan yang akan terjadi, dan event `after-` adalah notifikasi bahwa suatu fase telah selesai.
+:::
+
+Walaupun beberapa aksi dapat dipicu pada event mana pun, beberapa tugas hanya dapat dilakukan pada event tertentu untuk hasil terbaik, seperti menampilkan indikator pemuatan sebelum persiapan atau menimpa pasangan animasi sebelum menukar konten.
+
+### `astro:before-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+Event yang ditembakkan di awal fase persiapan, setelah navigasi dimulai (mis. setelah pengguna mengklik tautan), tetapi sebelum konten dimuat.
+
+Event ini digunakan untuk:
+
+- Melakukan sesuatu sebelum pemuatan dimulai, seperti menampilkan _loading spinner_.
+- Mengubah pemuatan, seperti memuat konten yang Anda definisikan di template alih-alih dari URL eksternal.
+- Mengubah `direction` navigasi (yang biasanya `forward` atau `backward`) untuk animasi khusus.
+
+Berikut contoh penggunaan event `astro:before-preparation` untuk memuat spinner sebelum konten dimuat dan menghentikannya segera setelah pemuatan. Perhatikan bahwa menggunakan _callback_ `loader` seperti ini memungkinkan eksekusi kode asinkron. 
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-preparation", (event) => {
+    const originalLoader = event.loader;
+    event.loader = async function () {
+      const { startSpinner } = await import("./spinner.js");
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+Event yang ditembakkan di akhir fase persiapan, setelah konten halaman baru dimuat dan diurai menjadi dokumen. Event ini terjadi sebelum fase transisi tampilan.
+
+Contoh ini menggunakan event `astro:before-preparation` untuk memulai indikator pemuatan dan event `astro:after-preparation` untuk menghentikannya:
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-preparation", () => {
+    document.querySelector("#loading").classList.add("show");
+  });
+  document.addEventListener("astro:after-preparation", () => {
+    document.querySelector("#loading").classList.remove("show");
+  });
+</script>
+```
+
+Ini adalah versi lebih sederhana dari memuat spinner dibandingkan contoh di atas: jika semua kode pendengar dapat dieksekusi secara sinkron, tidak perlu mengaitkan ke _callback_ `loader`. 
+
+### `astro:before-swap`
+
+<p><Since v="3.6.0" /></p>
+
+Event yang ditembakkan sebelum dokumen baru (yang diisi selama fase persiapan) menggantikan dokumen saat ini. Event ini terjadi di dalam transisi tampilan, saat pengguna masih melihat _snapshot_ dari halaman lama.
+
+Event ini dapat digunakan untuk melakukan perubahan sebelum _swap_ terjadi. Properti `newDocument` pada event mewakili dokumen yang akan datang. Berikut contoh memastikan preferensi mode terang atau gelap browser di `localStorage` dibawa ke halaman baru:
+
+```astro
+<script>
+  document.addEventListener("astro:before-swap", (event) => {
+    event.newDocument.documentElement.dataset.theme =
+      localStorage.getItem("darkMode") ? "dark" : "light";
+  });
+</script>
+```
+
+Event `astro:before-swap` juga dapat digunakan untuk mengubah *implementasi* _swap_. Implementasi _swap_ default melakukan _diff_ konten head, memindahkan elemen __persistent__ dari dokumen lama ke `newDocument`, lalu mengganti seluruh `body` dengan body dokumen baru.
+
+Pada titik siklus hidup ini, Anda dapat memilih untuk mendefinisikan implementasi _swap_ Anda sendiri, misalnya untuk melakukan _diff_ seluruh isi dokumen yang ada (yang dilakukan beberapa router lain):
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-swap", (event) => {
+    event.swap = () => {
+      diff(document, event.newDocument);
+    };
+  });
+</script>
+```
+
+#### Building a custom swap function
+
+<p><Since v="4.15.0" /></p>
+
+Objek `swapFunctions` dari modul `astro:transitions/client` menyediakan lima fungsi utilitas yang menangani tugas terkait _swap_ tertentu, termasuk penanganan atribut dokumen, elemen halaman, dan eksekusi skrip. Fungsi-fungsi ini dapat digunakan langsung untuk mendefinisikan implementasi _swap_ kustom.
+
+Contoh berikut menunjukkan cara menggunakan fungsi-fungsi ini untuk membuat ulang implementasi _swap_ bawaan Astro:
+
+```astro
+<script>
+  import { swapFunctions } from "astro:transitions/client";
+  
+  // mengganti `window.document` dengan `doc`
+  function mySwap(doc: Document) {
+    swapFunctions.deselectScripts(doc);
+    swapFunctions.swapRootAttributes(doc);
+    swapFunctions.swapHeadElements(doc);
+    const restoreFocusFunction = swapFunctions.saveFocus();
+    swapFunctions.swapBodyElement(doc.body, document.body);
+    restoreFocusFunction();
+  }
+  
+  document.addEventListener("astro:before-swap", (event) => {
+    event.swap = () => mySwap(event.newDocument);
+  });
+<script>
+```
+
+Implementasi _swap_ kustom dapat dimulai dengan template ini dan menambahkan atau mengganti langkah-langkah tertentu dengan logika kustom sesuai kebutuhan.
+
+### `astro:after-swap`
+
+Event yang ditembakkan segera setelah halaman baru menggantikan halaman lama. Anda dapat mendengarkan event ini pada `document` dan memicu tindakan yang akan terjadi sebelum elemen DOM halaman baru dirender dan skrip berjalan. 
+
+Event ini, saat didengarkan pada **halaman keluar**, berguna untuk meneruskan dan memulihkan state pada DOM yang perlu dipindahkan ke halaman baru.
+
+Ini adalah titik paling akhir dalam siklus hidup di mana masih aman, misalnya, menambahkan nama kelas mode gelap (`<html class="dark-mode">`), meskipun Anda mungkin ingin melakukannya pada event yang lebih awal.
+
+Event `astro:after-swap` terjadi segera setelah riwayat browser diperbarui dan posisi scroll ditetapkan. 
+Oleh karena itu, salah satu penggunaan menargetkan event ini adalah untuk menimpa pemulihan scroll default untuk navigasi riwayat. Contoh berikut mengatur ulang posisi scroll horizontal dan vertikal ke sudut kiri atas halaman untuk setiap navigasi.
+
+```js
+document.addEventListener("astro:after-swap", () =>
+  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+);
+```
+
+### `astro:page-load`
+
+Event yang ditembakkan pada akhir navigasi halaman, setelah halaman baru terlihat oleh pengguna dan stylesheet serta skrip pemblokir telah dimuat. Anda dapat mendengarkan event ini pada `document`.
+
+Komponen `<ClientRouter />` menembakkan event ini baik pada navigasi halaman awal untuk halaman yang sudah di-_prerender_ maupun pada navigasi berikutnya, maju atau mundur.
+
+Anda dapat menggunakan event ini untuk menjalankan kode pada setiap navigasi halaman, misalnya untuk menyiapkan pendengar event yang sebaliknya akan hilang selama navigasi.
+
+```astro
+<script>
+  document.addEventListener("astro:page-load", () => {
+    // Ini berjalan pada muat halaman pertama dan setelah setiap navigasi.
+    setupStuff(); // mis. tambahkan event listener
+  });
+</script>
+```
+
+## Accessibility
+
+Mengaktifkan routing sisi klien dan menganimasi transisi halaman keduanya memiliki tantangan aksesibilitas, dan Astro bertujuan membuat situs yang _opt-in_ ke View Transitions tetap aksesibel secara default.
+
+### Route announcement
+
+<p><Since v="3.2.0" /></p>
+
+Komponen `<ClientRouter />` menyertakan pengumum rute untuk navigasi halaman selama routing sisi klien. Tidak diperlukan konfigurasi atau tindakan untuk mengaktifkannya.
+
+Teknologi bantu memberi tahu pengunjung bahwa halaman telah berubah dengan mengumumkan judul halaman baru setelah navigasi. Saat menggunakan routing sisi server dengan penyegaran penuh halaman tradisional, ini terjadi secara default setelah halaman baru dimuat. Dalam routing sisi klien, komponen `<ClientRouter />` melakukan tindakan ini.
+
+Untuk menambahkan pengumuman rute ke routing sisi klien, komponen menambahkan sebuah elemen ke halaman baru dengan atribut `aria-live` yang diatur ke `assertive`. Ini memberi tahu AT (assistive technology) untuk segera mengumumkan. Komponen juga memeriksa hal-hal berikut, dalam urutan prioritas, untuk menentukan teks pengumuman:
+
+- `<title>`, jika ada.
+- `<h1>` pertama yang ditemukan.
+- `pathname` halaman.
+
+Kami sangat menyarankan Anda selalu menyertakan `<title>` di setiap halaman demi aksesibilitas.
+
+### `prefers-reduced-motion`
+
+Komponen `<ClientRouter />` Astro menyertakan _media query_ CSS yang menonaktifkan *semua* animasi transisi tampilan, termasuk animasi fallback, kapan pun pengaturan [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) terdeteksi. Sebagai gantinya, browser hanya akan menukar elemen DOM tanpa animasi.

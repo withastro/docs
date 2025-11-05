@@ -1,0 +1,598 @@
+---
+title: Image and Assets API Reference
+sidebar:
+  label: 'astro:assets'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+Astro menyediakan komponen bawaan dan fungsi pembantu untuk mengoptimalkan dan menampilkan gambar Anda. Untuk fitur dan contoh penggunaan, [lihat panduan gambar kami](/id/guides/images/).
+
+## Impor dari `astro:assets`
+
+```js
+import { 
+  Image,
+  Picture,
+  getImage,
+  inferRemoteSize,
+ } from 'astro:assets';
+```
+
+### `<Image />`
+
+Komponen `<Image />` mengoptimalkan dan mentransformasi gambar.
+
+Komponen ini juga dapat digunakan untuk membuat [gambar responsif](#responsive-image-properties) yang dapat menyesuaikan berdasarkan ukuran kontainernya atau ukuran dan resolusi layar perangkat.
+
+```astro title="src/components/MyComponent.astro"
+---
+// import komponen Image dan gambarnya
+import { Image } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Gambar berukuran 1600x900
+---
+
+<!-- `alt` wajib pada komponen Image -->
+<Image src={myImage} alt="Deskripsi gambar saya." />
+```
+
+```html
+<!-- Keluaran -->
+<!-- Gambar dioptimalkan, atribut yang tepat dipaksakan -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="Deskripsi gambar saya."
+/>
+```
+
+#### Properti gambar
+
+Komponen `<Image />` menerima properti yang tercantum berikut dan [properti gambar responsif](#responsive-image-properties) sebagai tambahan dari semua properti yang diterima oleh tag HTML `<img>`.
+
+##### src (wajib)
+
+<p>
+
+**Tipe:** `ImageMetadata | string | Promise<{ default: ImageMetadata }>`
+</p>
+
+Format nilai `src` untuk berkas gambar Anda bergantung pada lokasi berkas gambar:
+
+- **Gambar lokal di `src/`** - Anda juga harus **mengimpor gambar** menggunakan path berkas relatif atau mengonfigurasi dan menggunakan [alias impor](/id/guides/imports/#aliases). Lalu gunakan nama impor sebagai nilai `src`:
+
+  ```astro title="src/pages/index.astro" "myImportedImage" "{myImportedImage}"
+  ---
+  import { Image } from 'astro:assets';
+  import myImportedImage from '../assets/my-local-image.png';
+  ---
+  <Image src={myImportedImage} alt="teks deskriptif" />
+  ```
+
+- **Gambar di folder `public/`** - gunakan **path berkas relatif terhadap folder public**:
+
+  ```astro title="src/pages/index.astro" '"/images/my-public-image.png"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="/images/my-public-image.png"
+    alt="teks deskriptif"
+    width="200"
+    height="150"
+  />
+  ```
+
+- **Gambar jarak jauh (remote)** - gunakan **URL penuh** gambar sebagai nilai properti:
+
+  ```astro title="src/pages/index.astro" '"https://example.com/remote-image.jpg"'
+  ---
+  import { Image } from 'astro:assets';
+  ---
+  <Image
+    src="https://example.com/remote-image.jpg"
+    alt="teks deskriptif"
+    width="200"
+    height="150"
+  />
+  ```
+
+##### alt (wajib)
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+Gunakan atribut `alt` yang wajib diisi untuk memberikan string [teks alternatif yang deskriptif](https://www.w3.org/WAI/tutorials/images/) bagi gambar.
+
+Jika sebuah gambar hanya dekoratif (yakni tidak berkontribusi pada pemahaman halaman), setel `alt=""` agar pembaca layar dan teknologi bantu lainnya mengabaikan gambar tersebut.
+
+##### width dan height (wajib untuk gambar di `public/`)
+
+<p>
+
+**Tipe:** `number | undefined`
+</p>
+
+Properti ini menentukan dimensi yang digunakan untuk gambar.
+
+Ketika tipe `layout` disetel, nilai ini akan dibuat otomatis berdasarkan dimensi gambar dan sebagian besar kasus tidak perlu diatur manual.
+
+Saat menggunakan gambar dengan rasio aspek asli, `width` dan `height` bersifat opsional. Dimensi ini dapat diinferensikan secara otomatis untuk berkas gambar yang berada di `src/`. Untuk gambar jarak jauh, tambahkan [atribut `inferSize` bernilai `true`](#infersize) pada komponen `<Image />` atau `<Picture />` atau gunakan fungsi [`inferRemoteSize()`](#inferremotesize).
+
+Namun, kedua properti ini **wajib** untuk gambar yang disimpan di folder `public/` karena Astro tidak dapat menganalisis berkas-berkas tersebut.
+
+##### densities
+
+<p>
+
+**Tipe:** ``(number | `${number}x`)[] | undefined``<br />
+<Since v="3.3.0" />
+</p>
+
+Daftar kerapatan piksel (pixel density) yang akan dibuat untuk gambar.
+
+Atribut `densities` tidak kompatibel dengan [gambar responsif](#responsive-image-properties) yang menggunakan properti `layout` atau konfigurasi `image.layout`, dan akan diabaikan jika disetel.
+
+Jika diberikan, nilai ini akan digunakan untuk menghasilkan atribut `srcset` pada tag `<img>`. Jangan memberikan nilai `widths` ketika menggunakan nilai ini.
+
+Kerapatan yang ekuivalen dengan lebar melebihi gambar asli akan diabaikan untuk menghindari upscaling.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image
+  src={myImage}
+  width={myImage.width / 2}
+  densities={[1.5, 2]}
+  alt="Deskripsi gambar saya."
+/>
+```
+
+```html
+<!-- Keluaran -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 1.5x
+    /_astro/my_image.hash.webp 2x
+  "
+  alt="Deskripsi gambar saya."
+  width="800"
+  height="450"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### widths
+
+<p>
+
+**Tipe:** `number[] | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+Daftar lebar yang akan dibuat untuk gambar.
+
+Jika diberikan, nilai ini akan digunakan untuk menghasilkan atribut `srcset` pada tag `<img>`. Anda juga harus menyediakan [`properti sizes`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes).
+
+Atribut `widths` dan `sizes` akan dibuat otomatis untuk gambar responsif yang menggunakan properti `layout`. Menyetel nilai-nilai ini biasanya tidak diperlukan, tetapi dapat digunakan untuk menimpa nilai yang dibuat otomatis.
+
+Jangan memberikan nilai untuk `densities` saat menggunakan nilai ini. Hanya salah satu dari dua nilai ini yang dapat digunakan untuk menghasilkan `srcset`.
+
+Lebar yang lebih besar daripada gambar asli akan diabaikan untuk menghindari upscaling.
+
+```astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // Gambar berukuran 1600x900
+---
+<Image
+  src={myImage}
+  widths={[240, 540, 720, myImage.width]}
+  sizes={`(max-width: 360px) 240px, (max-width: 720px) 540px, (max-width: 1600px) 720px, ${myImage.width}px`}
+  alt="Deskripsi gambar saya."
+/>
+```
+
+```html
+<!-- Keluaran -->
+<img
+  src="/_astro/my_image.hash.webp"
+  srcset="
+    /_astro/my_image.hash.webp 240w,
+    /_astro/my_image.hash.webp 540w,
+    /_astro/my_image.hash.webp 720w,
+		/_astro/my_image.hash.webp 1600w
+  "
+  sizes="
+    (max-width: 360px) 240px,
+    (max-width: 720px) 540px,
+    (max-width: 1600px) 720px,
+    1600px
+  "
+  alt="Deskripsi gambar saya."
+  width="1600"
+  height="900"
+  loading="lazy"
+  decoding="async"
+/>
+```
+
+##### sizes
+
+<p>
+
+**Tipe:** `string | undefined`<br />
+<Since v="3.3.0" />
+</p>
+
+Menentukan lebar tata letak (layout width) gambar untuk setiap daftar kondisi media. Harus diberikan ketika menentukan `widths`.
+
+Atribut `widths` dan `sizes` akan dibuat otomatis untuk gambar responsif yang menggunakan properti `layout`. Menyetel nilai-nilai ini biasanya tidak diperlukan, tetapi dapat digunakan untuk menimpa nilai yang dibuat otomatis.
+
+Atribut `sizes` yang dihasilkan untuk gambar `constrained` dan `full-width` didasarkan pada asumsi bahwa gambar ditampilkan hampir selebar layar ketika viewport lebih kecil dari lebar gambar. Jika kenyataannya berbeda secara signifikan (mis. dalam tata letak multikolom pada layar kecil), Anda mungkin perlu menyesuaikan atribut `sizes` secara manual untuk hasil terbaik.
+
+
+##### format
+
+<p>
+
+**Tipe:** `ImageOutputFormat | undefined`
+</p>
+
+Anda dapat menyatakan tipe berkas gambar keluaran yang akan digunakan.
+
+Secara bawaan, komponen `<Image />` akan menghasilkan berkas `.webp`.
+
+##### quality
+
+<p>
+
+**Tipe:** `ImageQuality | undefined`
+</p>
+
+`quality` adalah properti opsional yang dapat berupa:
+- sebuah preset (`low`, `mid`, `high`, `max`) yang dinormalisasi otomatis antartipe format.
+- angka dari `0` hingga `100` (ditafsirkan berbeda oleh tiap format).
+
+##### inferSize
+
+<p>
+
+**Tipe:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="4.4.0" />
+</p>
+
+Memungkinkan Anda menyetel `width` dan `height` asli gambar jarak jauh secara otomatis.
+
+Secara bawaan, nilai ini `false` dan Anda harus menentukan kedua dimensi gambar jarak jauh secara manual.
+
+Tambahkan `inferSize` ke komponen `<Image />` (atau `inferSize: true` pada `getImage()`) untuk menginfer nilai-nilai ini dari konten gambar saat diambil (fetch). Ini membantu jika Anda tidak mengetahui dimensi gambar jarak jauh, atau jika dimensinya dapat berubah:
+
+```astro title="src/components/MyComponent.astro" "inferSize"
+---
+import { Image } from 'astro:assets';
+---
+<Image src="https://example.com/cat.png" inferSize alt="Seekor kucing tidur di bawah sinar matahari." />
+```
+
+`inferSize` dapat mengambil dimensi [gambar jarak jauh dari domain yang belum diizinkan](/id/guides/images/#authorizing-remote-images), namun gambar itu sendiri tetap tidak diproses.
+
+##### priority
+
+<p>
+
+**Tipe:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+Mengatur atribut `loading`, `decoding`, dan `fetchpriority` ke nilai optimalnya secara otomatis untuk gambar di atas lipatan (above-the-fold).
+
+```astro title="src/components/MyComponent.astro" "priority"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} priority alt="Deskripsi gambar saya" />
+```
+
+Ketika `priority="true"` (atau bentuk singkat `priority`) ditambahkan ke komponen `<Image />` atau `<Picture />`, properti ini akan menambahkan atribut berikut untuk menginstruksikan browser memuat gambar segera:
+
+```html
+loading="eager"
+decoding="sync"
+fetchpriority="high"
+```
+
+Atribut-atribut individual ini masih bisa disetel manual jika Anda perlu menyesuaikannya lebih lanjut.
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+Komponen `<Picture />` menghasilkan gambar teroptimasi dengan beberapa format dan/atau ukuran.
+
+Komponen ini juga dapat digunakan untuk membuat [gambar responsif](#responsive-image-properties) yang dapat menyesuaikan berdasarkan ukuran kontainernya atau ukuran dan resolusi layar perangkat.
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from "../assets/my_image.png"; // Gambar berukuran 1600x900
+---
+
+<!-- `alt` wajib pada komponen Picture -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="Deskripsi gambar saya." />
+```
+
+```html
+<!-- Keluaran -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="Deskripsi gambar saya."
+  />
+</picture>
+```
+
+#### Properti Picture
+
+`<Picture />` menerima semua properti [komponen `<Image />`](#image-properties), termasuk [properti gambar responsif](#responsive-image-properties), ditambah berikut ini:
+
+##### `formats`
+
+<p>
+
+**Tipe:** `ImageOutputFormat[]`
+</p>
+
+Array format gambar yang digunakan untuk tag `<source>`. Entri akan ditambahkan sebagai elemen `<source>` sesuai urutan yang terdaftar, dan urutan ini menentukan format mana yang ditampilkan. Untuk performa terbaik, letakkan format paling modern terlebih dahulu (mis. `webp` atau `avif`). Secara bawaan, disetel ke `['webp']`.
+
+##### `fallbackFormat`
+
+<p>
+
+**Tipe:** `ImageOutputFormat`
+</p>
+
+Format yang digunakan sebagai fallback untuk tag `<img>`. Default-nya adalah `.png` untuk gambar statik (atau `.jpg` jika gambar aslinya JPG), `.gif` untuk gambar animasi, dan `.svg` untuk berkas SVG.
+
+##### `pictureAttributes`
+
+<p>
+
+**Tipe:** `HTMLAttributes<'picture'>`
+</p>
+
+Objek atribut yang akan ditambahkan ke tag `<picture>`. 
+
+Gunakan properti ini untuk menerapkan atribut pada elemen `<picture>` luar itu sendiri. Atribut yang diterapkan langsung ke komponen `<Picture />` akan diterapkan ke elemen `<img>` di dalamnya, kecuali atribut yang digunakan untuk transformasi gambar.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Picture } from "astro:assets";
+import myImage from "../my_image.png"; // Gambar berukuran 1600x900
+---
+
+<Picture
+  src={myImage}
+  alt="Deskripsi gambar saya."
+  pictureAttributes={{ style: "background-color: red;" }}
+/>
+```
+
+```html
+<!-- Keluaran -->
+<picture style="background-color: red;">
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    alt="Deskripsi gambar saya."
+    width="1600"
+    height="900"
+    loading="lazy"
+    decoding="async"
+  />
+</picture>
+```
+
+### Properti gambar responsif
+
+Menyetel properti [`layout`](#layout) pada komponen [`<Image />`](#image-) atau [`<Picture />`](#picture-) akan membuat gambar responsif dan mengaktifkan pengaturan properti tambahan.
+
+```astro title=MyComponent.astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="Deskripsi gambar saya." layout='constrained' width={800} height={600} />
+```
+
+ Saat layout disetel, atribut `srcset` dan `sizes` akan dibuat otomatis berdasarkan dimensi gambar dan tipe layout. Komponen `<Image />` sebelumnya akan menghasilkan keluaran HTML berikut:
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="Deskripsi gambar saya"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+Nilai `layout` juga menentukan gaya bawaan yang diterapkan ke tag `<img>` untuk menentukan bagaimana gambar harus mengubah ukuran sesuai kontainernya:
+
+```css title="Responsive Image Styles"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+Anda dapat menimpa gaya bawaan `object-fit` dan `object-position` dengan menyetel properti [`fit`](#fit) dan [`position`](#position) pada komponen `<Image />` atau `<Picture />`.
+
+
+##### layout
+
+<p>
+
+**Tipe:** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**Default:** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+Mendefinisikan [gambar responsif](#responsive-image-properties) dan menentukan bagaimana gambar harus mengubah ukuran ketika ukuran kontainernya berubah. Dapat digunakan untuk menimpa nilai default yang dikonfigurasi [`image.layout`](/id/reference/configuration-reference/#imagelayout).
+
+- `constrained` - Gambar akan menyusut agar muat di kontainer, mempertahankan rasio aspeknya, tetapi tidak akan membesar melebihi `width` dan `height` yang diminta, atau dimensi asli gambar.
+
+  Gunakan ini jika Anda ingin gambar ditampilkan pada ukuran yang diminta bila memungkinkan, tetapi menyusut agar muat pada layar yang lebih kecil. Ini cocok dengan perilaku default gambar saat menggunakan Tailwind. Jika ragu, ini kemungkinan layout yang sebaiknya dipilih.
+
+- `full-width` - Gambar akan menyesuaikan agar memenuhi lebar kontainer, mempertahankan rasio aspeknya.
+
+  Gunakan ini untuk gambar hero atau gambar lain yang harus mengambil lebar penuh halaman.
+
+- `fixed` - Gambar akan mempertahankan dimensi yang diminta dan tidak mengubah ukuran. Ia akan menghasilkan `srcset` untuk mendukung layar berkepadatan tinggi, tetapi bukan untuk berbagai ukuran layar.
+
+  Gunakan ini jika gambar tidak akan mengubah ukuran, misalnya ikon atau logo yang lebih kecil dari lebar layar mana pun, atau gambar lain dalam kontainer berlebar tetap. 
+
+- `none` - Gambar tidak akan responsif. Tidak ada `srcset` atau `sizes` yang dibuat otomatis, dan tidak ada gaya yang diterapkan.
+
+  Ini berguna jika Anda telah mengaktifkan layout default, tetapi ingin menonaktifkannya untuk gambar tertentu. 
+
+Sebagai contoh, dengan `constrained` disetel sebagai layout default, Anda dapat menimpa properti `layout` setiap gambar:
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="Ini menggunakan layout constrained" width={800} height={600} />
+<Image src={myImage} alt="Ini menggunakan layout full-width" layout="full-width" />
+<Image src={myImage} alt="Ini menonaktifkan gambar responsif" layout="none" />
+```
+
+##### fit
+
+<p>
+
+**Tipe:** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**Default:** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+Diaktifkan ketika properti [`layout`](#layout) disetel atau dikonfigurasi. Mendefinisikan bagaimana gambar responsif harus dipangkas jika rasio aspeknya berubah.
+
+Nilainya sama dengan properti CSS `object-fit`. Default-nya `cover`, atau nilai [`image.objectFit`](/id/reference/configuration-reference/#imageobjectfit) jika disetel. Dapat digunakan untuk menimpa gaya `object-fit` bawaan. 
+
+##### position
+
+<p>
+
+**Tipe:** `string` <br />
+**Default:** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+Diaktifkan ketika properti [`layout`](#layout) disetel atau dikonfigurasi. Mendefinisikan posisi pemangkasan gambar untuk gambar responsif jika rasio aspeknya berubah. 
+
+Nilainya sama dengan `object-position` CSS. Default-nya `center`, atau nilai [`image.objectPosition`](/id/reference/configuration-reference/#imageobjectposition) jika disetel. Dapat digunakan untuk menimpa gaya `object-position` bawaan. 
+
+### `getImage()`
+
+<p>
+
+**Tipe:** `(options: UnresolvedImageTransform) => Promise<GetImageResult>`
+</p>
+
+:::caution
+`getImage()` bergantung pada API khusus server dan akan membuat build gagal bila digunakan di klien.
+:::
+
+Fungsi `getImage()` ditujukan untuk menghasilkan gambar yang akan digunakan di tempat lain selain langsung di HTML, misalnya dalam [API Route](/id/guides/endpoints/#server-endpoints-api-routes). Fungsi ini juga memungkinkan Anda membuat komponen `<Image />` kustom.
+
+`getImage()` menerima objek opsi dengan [properti yang sama seperti komponen Image](#image-properties) (kecuali `alt`).
+
+```astro
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png"
+
+const optimizedBackground = await getImage({src: myBackground, format: 'avif'})
+---
+
+<div style={`background-image: url(${optimizedBackground.src});`}></div>
+```
+
+Fungsi ini mengembalikan objek dengan tipe berikut:
+
+```ts
+type GetImageResult = {
+  /* Atribut HTML tambahan yang diperlukan untuk merender gambar (width, height, style, dll.) */
+  attributes: Record<string, any>;
+  /* Parameter tervalidasi yang dilewatkan */
+  options: ImageTransform;
+  /* Parameter asli yang dilewatkan */
+  rawOptions: ImageTransform;
+  /* Path ke gambar yang dihasilkan */
+  src: string;
+  srcSet: {
+    /* Nilai yang dihasilkan untuk srcset, setiap entri memiliki url dan deskriptor ukuran */
+    values: SrcSetValue[];
+    /* Nilai siap pakai untuk atribut `srcset` */
+    attribute: string;
+  };
+}
+```
+
+### inferRemoteSize()
+
+<p>
+
+**Tipe:** `(url: string) => Promise<Omit<ImageMetadata, 'src' | 'fsPath'>>`<br />
+<Since v="4.12.0" />
+</p>
+
+Fungsi untuk menginfer dimensi gambar jarak jauh. Ini dapat digunakan sebagai alternatif dari pemberian properti `inferSize`.
+
+```ts
+import { inferRemoteSize } from 'astro:assets';
+const {width, height} = await inferRemoteSize("https://example.com/cat.png");
+```

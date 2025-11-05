@@ -1,0 +1,322 @@
+---
+title: Buat aplikasi dev toolbar
+description: Pelajari cara membuat aplikasi dev toolbar untuk situs Anda.
+type: recipe
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro menyertakan sebuah [development toolbar](/en/guides/dev-toolbar/) yang dapat Anda gunakan untuk menginspeksi situs, memeriksa masalah aksesibilitas dan performa, dan banyak lagi. Toolbar ini dapat diperluas dengan aplikasi kustom.
+
+## Bangun aplikasi dev toolbar motivasi
+
+Pada resep ini, Anda akan belajar cara membuat aplikasi dev toolbar yang membantu Anda tetap termotivasi saat mengerjakan situs. Aplikasi ini akan menampilkan pesan motivasi setiap kali Anda menyalakannya.
+
+:::tip 
+Ingin langsung mulai dengan cepat? Mulai aplikasi Anda dengan membuat proyek Astro baru menggunakan template `toolbar-app`.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm create astro@latest -- --template toolbar-app
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm create astro -- --template toolbar-app
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn create astro -- --template toolbar-app
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Atau, lanjutkan membaca untuk mempelajari cara membangun aplikasi dari nol.
+:::
+
+### Membuat integrasi Astro
+
+Aplikasi dev toolbar hanya dapat ditambahkan oleh [Astro Integrations](/en/guides/integrations-guide/) menggunakan [hook `astro:config:setup`](/en/reference/integrations-reference/#astroconfigsetup). Anda perlu membuat aplikasi toolbar dan integrasi yang akan menambahkannya ke toolbar proyek Astro Anda yang sudah ada.
+
+<Steps>
+
+1. Di root proyek Astro Anda yang sudah ada, buat folder baru bernama `my-toolbar-app/` untuk berkas aplikasi dan integrasi. Buat dua berkas baru di folder ini: `app.ts` dan `my-integration.ts`.
+
+    <FileTree>
+    - **my-toolbar-app/**
+      - **app.ts**
+      - **my-integration.ts**
+    - src/
+      - pages/
+      - ...
+    - astro.config.mjs
+    - package.json
+    - tsconfig.json
+    </FileTree>
+
+2. Pada `my-integration.ts`, tambahkan kode berikut untuk menyediakan nama integrasi Anda dan [`fungsi addDevToolbarApp()`](/en/reference/dev-toolbar-app-reference/#toolbar-app-integration-setup) yang diperlukan untuk menambahkan aplikasi dev toolbar Anda dengan hook `astro:config:setup`:
+
+    ```ts title="my-toolbar-app/my-integration.ts" "'astro:config:setup'" "hooks" "addDevToolbarApp"
+    import { fileURLToPath } from 'node:url';
+    import type { AstroIntegration } from 'astro';
+
+    export default {
+      name: 'my-astro-integration',
+      hooks: {
+        'astro:config:setup': ({ addDevToolbarApp }) => {  
+          addDevToolbarApp({
+            id: "my-toolbar-app",
+            name: "My Toolbar App",
+            icon: "🚀",
+            entrypoint: fileURLToPath(new URL('./app.ts', import.meta.url))
+          });
+        },
+      },
+    } satisfies AstroIntegration;
+    ```
+
+
+    :::note[Menggunakan path relatif untuk entrypoint]
+    `entrypoint` adalah path ke berkas aplikasi dev toolbar Anda **relatif terhadap root proyek Astro Anda**, bukan terhadap folder integrasi (`my-toolbar-app`) itu sendiri.
+
+    Untuk menggunakan path relatif untuk entrypoint, dapatkan path ke berkas saat ini menggunakan `import.meta.url` dan resolusikan path ke entrypoint dari sana.
+    :::
+
+3. Untuk menggunakan integrasi ini di proyek Anda, tambahkan ke array `integrations` di berkas `astro.config.mjs` Anda.
+
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import myIntegration from './my-toolbar-app/my-integration.ts';
+
+    export default defineConfig({
+      integrations: [myIntegration],
+    })
+    ```
+
+4. Jika belum berjalan, jalankan server dev. Jika integrasi Anda berhasil ditambahkan ke proyek, Anda akan melihat aplikasi "undefined" baru di dev toolbar.
+
+    Namun, Anda juga akan melihat pesan error bahwa aplikasi dev toolbar Anda gagal dimuat. Ini karena Anda belum membangun aplikasinya. Anda akan melakukannya di bagian berikutnya.
+
+</Steps>
+
+<ReadMore> Lihat [dokumentasi Astro Integration API](/en/reference/integrations-reference/) untuk mempelajari lebih lanjut tentang membangun integrasi Astro.</ReadMore>
+
+### Membuat aplikasinya
+
+Aplikasi dev toolbar didefinisikan menggunakan fungsi `defineToolbarApp()` dari modul `astro/toolbar`. Fungsi ini menerima sebuah objek dengan `init()` yang akan dipanggil saat aplikasi dev toolbar dimuat.
+
+Fungsi `init()` ini berisi logika aplikasi Anda untuk merender elemen ke layar, mengirim dan menerima event sisi klien dari dev toolbar, dan berkomunikasi dengan server.
+
+```ts title="app.ts"
+import { defineToolbarApp } from "astro/toolbar";
+
+export default defineToolbarApp({
+    init(canvas, app, server) {
+      // ...
+    },
+});
+```
+
+Untuk menampilkan pesan motivasi di layar, Anda akan menggunakan properti `canvas` untuk mengakses [ShadowRoot](https://developer.mozilla.org/en-US/docs/Web/API/ShadowRoot) standar. Elemen dapat dibuat dan ditambahkan ke ShadowRoot menggunakan API DOM standar.  
+
+<Steps>
+
+1. Salin kode berikut ke `my-toolbar-app/app.ts`. Ini menyediakan daftar pesan motivasi, dan logika untuk membuat elemen `<h1>` baru dengan pesan acak:
+
+    ```ts title="my-toolbar-app/app.ts" {3-8, 12-15}
+    import { defineToolbarApp } from "astro/toolbar";
+
+    const motivationalMessages = [
+      "You're doing great!",
+      "Keep up the good work!",
+      "You're awesome!",
+      "You're a star!",
+    ];
+
+    export default defineToolbarApp({
+        init(canvas) {
+          const h1 = document.createElement('h1');
+          h1.textContent = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+
+          canvas.append(h1);
+        },
+    });
+    ```
+
+2. Mulai server dev jika belum berjalan dan nyalakan aplikasi di dev toolbar. Jika aplikasi Anda berfungsi dengan baik, Anda akan melihat pesan motivasi ditampilkan di sudut kiri atas layar. (Dan itu benar!)
+
+    Namun, pesan ini tidak akan berubah saat aplikasi dinyalakan dan dimatikan, karena fungsi `init()` hanya dipanggil sekali saat aplikasi dimuat.
+
+3. Untuk menambahkan interaktivitas sisi klien ke aplikasi Anda, tambahkan argumen `app` dan gunakan `onAppToggled()` untuk memilih pesan acak baru setiap kali aplikasi toolbar Anda dinyalakan:
+
+    ```ts title="app.ts" ins=", app" ins={17-21}
+    import { defineToolbarApp } from "astro/toolbar";
+
+    const motivationalMessages = [
+      "You're doing great!",
+      "Keep up the good work!",
+      "You're awesome!",
+      "You're a star!",
+    ];
+
+    export default defineToolbarApp({
+        init(canvas, app) {
+          const h1 = document.createElement('h1');
+          h1.textContent = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+          
+          canvas.append(h1);
+
+          // Tampilkan pesan acak saat aplikasi dinyalakan
+          app.onToggled(({ state }) => {
+            const newMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            h1.textContent = newMessage;
+          });
+        },
+    });
+    ```
+
+4. Di pratinjau browser Anda, nyalakan dan matikan aplikasi beberapa kali. Dengan perubahan ini, pesan acak baru akan dipilih setiap kali Anda menyalakan aplikasi, memberi Anda sumber motivasi tanpa batas!
+
+</Steps>
+
+<ReadMore>Lihat [dokumentasi Astro Dev Toolbar API](/en/reference/dev-toolbar-app-reference/) untuk mempelajari lebih lanjut tentang membangun aplikasi dev toolbar.</ReadMore>
+
+## Membangun aplikasi dengan UI framework
+
+UI framework seperti React, Vue, atau Svelte juga dapat digunakan untuk membuat aplikasi dev toolbar. Framework ini memberikan cara deklaratif untuk membuat UI dan dapat membuat kode Anda lebih mudah dirawat dan dibaca.
+
+Aplikasi dev toolbar motivasi yang sama yang dibangun ke proyek Astro Anda di atas dengan JavaScript juga dapat dibuat menggunakan UI framework (mis. Preact). Bergantung pada framework pilihan, Anda mungkin memerlukan atau tidak memerlukan langkah build.
+
+:::note 
+Apa pun cara Anda membangun aplikasi dev toolbar — menggunakan JavaScript atau UI framework — Anda tetap harus [membuat integrasi](#membuat-integrasi-astro) yang menambahkan aplikasi ke dev toolbar.
+:::
+
+### Tanpa langkah build
+
+Jika framework Anda mendukung, Anda dapat membuat aplikasi dev toolbar tanpa langkah build. Misalnya, Anda dapat menggunakan fungsi `h` milik Preact untuk membuat elemen dan merendernya langsung ke ShadowRoot:
+
+```ts title="app.ts"
+import { defineToolbarApp } from "astro/toolbar";
+import { render, h } from "preact";
+
+const motivationalMessages = [
+  "You're doing great!",
+  "Keep up the good work!",
+  "You're awesome!",
+  "You're a star!",
+];
+
+export default defineToolbarApp({
+    init(canvas) {
+      const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+      render(h('h1', null, message), canvas);
+    },
+});
+```
+
+Sebagai alternatif, paket [`htm`](https://github.com/developit/htm) adalah pilihan yang baik untuk membuat aplikasi dev toolbar tanpa langkah build, menawarkan integrasi native untuk React dan Preact serta dukungan untuk framework lainnya:
+
+```ts title="app.ts" ins={3, 15}
+import { defineToolbarApp } from "astro/toolbar";
+import { render } from "preact";
+import { html } from 'htm/preact';
+
+const motivationalMessages = [
+  "You're doing great!",
+  "Keep up the good work!",
+  "You're awesome!",
+  "You're a star!",
+];
+
+export default defineToolbarApp({
+    init(canvas) {
+      const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+      render(html`<h1>${message}</h1>`, canvas);
+    },
+});
+```
+
+Pada kedua kasus, Anda sekarang dapat memulai proyek dan melihat pesan motivasi ditampilkan di sudut kiri atas layar saat Anda menyalakan aplikasi.
+
+### Dengan langkah build
+
+Astro tidak memproses kode JSX dalam aplikasi dev toolbar, jadi langkah build diperlukan untuk menggunakan komponen JSX di aplikasi dev toolbar Anda.
+
+Langkah-langkah berikut akan menggunakan TypeScript untuk melakukan hal ini, tetapi alat lain yang mengompilasi kode JSX juga akan berfungsi (mis. Babel, Rollup, ESBuild).
+
+<Steps>
+1. Instal TypeScript di dalam proyek Anda:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```shell
+        npm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```shell
+        pnpm install --save-dev typescript
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```shell
+        yarn add --dev typescript
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Buat berkas `tsconfig.json` di root folder aplikasi toolbar Anda dengan pengaturan yang sesuai untuk build dan framework yang Anda gunakan ([React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript)). Contohnya, untuk Preact:
+
+    ```json title="my-toolbar-app/tsconfig.json"
+    {
+      "compilerOptions": {
+        "skipLibCheck": true,
+        "module": "NodeNext",
+        "jsx": "react-jsx",
+        "jsxImportSource": "preact",
+      }
+    }
+    ```
+
+3. Sesuaikan `entrypoint` pada integrasi Anda agar menunjuk ke berkas hasil kompilasi, ingat bahwa berkas ini relatif terhadap root proyek Astro Anda:
+
+    ```ts title="my-integration.ts" ins="app.js"
+    addDevToolbarApp({
+      id: "my-toolbar-app",
+      name: "My Toolbar App",
+      icon: "🚀",
+      entrypoint: join(__dirname, "./app.js"),
+    });
+    ```
+
+4. Jalankan `tsc` untuk membangun aplikasi toolbar Anda, atau `tsc --watch` untuk membangun ulang otomatis saat Anda melakukan perubahan.
+
+      Dengan perubahan ini, Anda sekarang dapat mengganti nama `app.ts` menjadi `app.tsx` (atau `.jsx`) dan menggunakan sintaks JSX untuk membuat aplikasi dev toolbar Anda:
+
+      ```tsx title="app.tsx"
+      import { defineToolbarApp } from "astro/toolbar";
+      import { render } from "preact";
+
+      const motivationalMessages = [
+        "You're doing great!",
+        "Keep up the good work!",
+        "You're awesome!",
+        "You're a star!",
+      ];
+
+      export default defineToolbarApp({
+          init(canvas) {
+            const message = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
+            render(<h1>{message}</h1>, canvas);
+          },
+      });
+      ```
+</Steps>
+
+Sekarang Anda memiliki semua alat yang diperlukan untuk membuat aplikasi dev toolbar menggunakan UI framework pilihan Anda!

@@ -1,0 +1,64 @@
+---
+title: Caisy & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Caisy sebagai CMS
+sidebar:
+  label: Caisy
+type: cms
+service: Caisy
+i18nReady: true
+stub: true
+---
+
+[Caisy](https://caisy.io/) adalah headless CMS yang menyediakan GraphQL API untuk mengakses konten.
+
+## Menggunakan Caisy CMS dengan Astro
+
+Gunakan `graphql-request` dan *rich text renderer* Caisy untuk Astro guna mengambil data CMS dan menampilkan konten Anda pada halaman Astro:
+
+```astro title="src/pages/blog/[...slug].astro"
+---
+import RichTextRenderer from '@caisy/rich-text-astro-renderer';
+import { gql, GraphQLClient } from 'graphql-request';
+
+const params = Astro.params;
+
+const client = new GraphQLClient(
+	`https://cloud.caisy.io/api/v3/e/${import.meta.env.CAISY_PROJECT_ID}/graphql`,
+	{
+		headers: {
+			'x-caisy-apikey': import.meta.env.CAISY_API_KEY
+		}
+	}
+);
+const gqlResponse = await client.request(
+	gql`
+		query allBlogArticle($slug: String) {
+			allBlogArticle(where: { slug: { eq: $slug } }) {
+				edges {
+					node {
+						text {
+							json
+						}
+						title
+						slug
+						id
+					}
+				}
+			}
+		}
+	`,
+	{ slug: params.slug }
+);
+
+const post = gqlResponse?.allBlogArticle?.edges?.[0]?.node;
+---
+<h1>{post.title}</h1>
+<RichTextRenderer node={post.text.json} />
+```
+
+## Sumber Resmi
+
+- Lihat contoh Caisy + Astro di [GitHub](https://github.com/caisy-io/caisy-example-astro) atau [StackBlitz](https://stackblitz.com/github/caisy-io/caisy-example-astro?file=src%2Fpages%2Fblog%2F%5B...slug%5D.astro)
+- Kueri dokumen Anda dalam [mode draft](https://caisy.io/developer/docs/external-api/localization-and-preview#preview-mode-15) dan beragam [locale](https://caisy.io/developer/docs/external-api/localization-and-preview#localization-in-a-graphql-query-8).
+- Gunakan [pagination](https://caisy.io/developer/docs/external-api/queries-pagination) untuk mengambil dokumen dalam jumlah besar.
+- Gunakan [filter](https://caisy.io/developer/docs/external-api/external-filter-and-sorting) pada kueri Anda dan [urutkan](https://caisy.io/developer/docs/external-api/external-filter-and-sorting#sorting-8) hasilnya

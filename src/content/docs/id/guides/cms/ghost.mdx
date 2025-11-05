@@ -1,0 +1,303 @@
+---
+title: Ghost & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Ghost sebagai CMS
+sidebar:
+  label: Ghost
+type: cms
+stub: false
+service: Ghost
+i18nReady: true
+---
+
+import { FileTree, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Ghost](https://github.com/TryGhost/Ghost) adalah sistem manajemen konten *headless* sumber terbuka yang dibangun di atas Node.js.
+
+## Integrasi dengan Astro
+Pada bagian ini, kita akan menggunakan [Ghost Content API](https://ghost.org/docs/content-api/) untuk membawa data Anda ke proyek Astro.
+
+### Prasyarat
+Untuk memulai, Anda memerlukan: 
+
+1. **Proyek Astro** - Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membuat Anda siap dalam waktu singkat.
+
+2. **Situs Ghost** - Diasumsikan Anda sudah memiliki situs yang disiapkan dengan Ghost. Jika belum, Anda dapat menyiapkannya pada [lingkungan lokal](https://ghost.org/docs/install/local/).
+
+3. **Content API Key** - Anda dapat membuat integrasi di `Settings > Integrations` pada situs Anda. Dari sana Anda bisa menemukan `Content API key` Anda.
+
+
+### Menyiapkan kredensial
+
+Untuk menambahkan kredensial situs Anda ke Astro, buat file `.env` di root proyek Anda dengan variabel berikut:
+
+```ini title=".env"
+CONTENT_API_KEY=YOUR_API_KEY
+```
+
+Sekarang, Anda dapat menggunakan variabel lingkungan ini di proyek Anda.
+
+Jika Anda ingin mendapatkan IntelliSense untuk variabel lingkungan, buat file `env.d.ts` di direktori `src/` dan konfigurasikan `ImportMetaEnv` seperti ini:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENT_API_KEY: string;
+}
+```
+:::tip
+Pelajari lebih lanjut tentang [menggunakan variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.
+:::
+
+Direktori root Anda sekarang seharusnya menyertakan berkas-berkas baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menginstal dependensi
+
+Untuk terhubung dengan Ghost, instal pembungkus Content API resmi [`@tryghost/content-api`](https://www.npmjs.com/package/@tryghost/content-api) menggunakan perintah di bawah ini untuk manajer paket pilihan Anda, dan opsional paket berisi definisi tipe jika Anda menggunakan TypeScript:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @tryghost/content-api
+  npm install --save @types/tryghost__content-api
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @tryghost/content-api
+  pnpm add --save-dev @types/tryghost__content-api
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @tryghost/content-api
+  yarn add --dev @types/tryghost__content-api
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Membuat blog dengan Astro dan Ghost
+
+Dengan penyiapan di atas, Anda kini dapat membuat blog yang menggunakan Ghost sebagai CMS.
+
+### Prasyarat
+
+1. Sebuah blog Ghost 
+2. Proyek Astro yang terintegrasi dengan [Ghost Content API](https://www.npmjs.com/package/@tryghost/content-api) - Lihat [integrasi dengan Astro](/id/guides/cms/ghost/#integrating-with-astro) untuk detail cara menyiapkan proyek Astro dengan Ghost.
+
+Contoh ini akan membuat halaman indeks yang menampilkan daftar pos dengan tautan ke halaman pos individual yang di-*generate* secara dinamis.
+
+### Mengambil data
+
+Anda dapat mengambil data situs menggunakan paket Ghost Content API.
+
+Pertama, buat file `ghost.ts` di dalam direktori `lib`.
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - **ghost.ts**
+  - pages/
+    - index.astro
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Inisialisasi instance API dengan Ghost API menggunakan API key dari halaman Integrations pada dasbor Ghost.
+
+```ts title="src/lib/ghost.ts"
+
+import GhostContentAPI from '@tryghost/content-api';
+
+// Buat instance API dengan kredensial situs
+export const ghostClient = new GhostContentAPI({
+    url: 'http://127.0.0.1:2368', // Ini adalah URL bawaan jika situs Anda berjalan di lingkungan lokal
+    key: import.meta.env.CONTENT_API_KEY,
+    version: 'v5.0',
+});
+
+```
+
+
+### Menampilkan daftar pos
+
+Halaman `src/pages/index.astro` akan menampilkan daftar pos, masing-masing dengan deskripsi dan tautan ke halamannya sendiri.
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - ghost.ts
+  - pages/
+    - **index.astro**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Impor `ghostClient()` di *frontmatter* Astro untuk menggunakan metode `posts.browse()` mengakses pos blog dari Ghost. Setel `limit: all` untuk mengambil semua pos.
+
+```astro title="src/pages/index.astro"
+---
+import { ghostClient } from '../lib/ghost';
+const posts = await ghostClient.posts
+    .browse({
+        limit: 'all',
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+---
+```
+
+Pengambilan melalui Content API mengembalikan larik objek yang berisi [properti untuk setiap pos](https://ghost.org/docs/content-api/#posts) seperti:
+- `title` - judul pos
+- `html` - hasil *render* HTML dari konten pos
+- `feature_image` - URL sumber gambar unggulan pos
+- `slug` - *slug* pos
+
+Gunakan larik `posts` yang dikembalikan dari *fetch* untuk menampilkan daftar pos blog di halaman.
+
+```astro title="src/pages/index.astro"
+---
+import { ghostClient } from '../lib/ghost';
+const posts = await ghostClient.posts
+    .browse({
+        limit: 'all',
+    })
+    .catch((err) => {
+        console.error(err);
+    });
+---
+
+<html lang="en">
+    <head>
+        <title>Astro + Ghost 👻</title>
+    </head>
+    <body>
+
+        {
+            posts.map((post) => (
+                <a href={`/post/${post.slug}`}>
+                    <h1> {post.title} </h1>
+                </a>
+            ))
+        }
+    </body>
+</html>
+```
+
+### Membuat halaman
+
+Halaman `src/pages/post/[slug].astro` [menghasilkan halaman secara dinamis](/id/guides/routing/#dynamic-routes) untuk setiap pos.
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    -  ghost.ts
+  - pages/
+    - index.astro
+    - post/
+      - **[slug].astro**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+Impor `ghostClient()` untuk mengakses pos blog menggunakan `posts.browse()` dan kembalikan satu pos sebagai *props* ke setiap rute dinamis Anda. 
+
+```astro title="src/pages/post/[slug].astro"
+---
+import { ghostClient } from '../../lib/ghost';
+
+export async function getStaticPaths() {
+    const posts = await ghostClient.posts
+        .browse({
+            limit: 'all',
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+
+    return posts.map((post) => {
+        return {
+            params: {
+                slug: post.slug,
+            },
+            props: {
+                post: post,
+            },
+        };
+    });
+}
+
+const { post } = Astro.props;
+---
+```
+
+Buat templat untuk setiap halaman menggunakan properti dari objek `post`.
+
+```astro title="src/pages/post/[slug].astro" ins={24-37}
+---
+import { ghostClient } from '../../lib/ghost';
+export async function getStaticPaths() {
+    const posts = await ghostClient.posts
+        .browse({
+            limit: 'all',
+        })
+        .catch((err) => {
+            console.error(err);
+        });
+    return posts.map((post) => {
+        return {
+            params: {
+                slug: post.slug,
+            },
+            props: {
+                post: post,
+            },
+        };
+    });
+}
+const { post } = Astro.props;
+---
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>{post.title}</title>
+    </head>
+    <body>
+        <img src={post.feature_image} alt={post.title} />
+
+        <h1>{post.title}</h1>
+        <p>{post.reading_time} min read</p>
+
+        <Fragment set:html={post.html} />
+    </body>
+</html>
+```
+:::note
+`<Fragment />` adalah komponen bawaan Astro yang memungkinkan Anda menghindari elemen pembungkus yang tidak perlu. Ini sangat berguna saat mengambil HTML dari CMS (mis. Ghost atau [WordPress](/id/guides/cms/wordpress/)).
+:::
+
+### Menerbitkan situs Anda
+Untuk mendepoy situs Anda, kunjungi [panduan deployment](/id/guides/deploy/) kami dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+## Sumber Komunitas 
+
+<CardGrid>
+
+  <LinkCard title="Ghost CMS & Astro Tutorial" href="https://matthiesen.xyz/blog/astro-ghostcms" />
+  <LinkCard title="Astro + Ghost + Tailwind CSS" href="https://andr.ec/posts/astro-ghost-blog/" />
+  <LinkCard title="Building a Corporate site with Astro and Ghost" href="https://artabric.com/post/building-a-corporate-site-with-astro-and-ghost/" />
+  <LinkCard title="`astro-starter-ghost`" href="https://github.com/PhilDL/astro-starter-ghost" />
+
+</CardGrid>
+
+:::note[Punya sumber untuk dibagikan?]
+Jika Anda menemukan (atau membuat!) video atau pos blog yang bermanfaat tentang menggunakan Ghost dengan Astro, [tambahkan ke daftar ini](https://github.com/withastro/docs/edit/main/src/content/docs/id/guides/cms/ghost.mdx)!
+:::

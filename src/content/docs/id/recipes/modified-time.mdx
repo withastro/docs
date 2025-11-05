@@ -1,0 +1,150 @@
+---
+title: Tambahkan waktu modifikasi terakhir
+description: Bangun plugin remark untuk menambahkan waktu modifikasi terakhir ke Markdown dan MDX Anda.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Pelajari cara membangun [plugin remark](https://github.com/remarkjs/remark) yang menambahkan waktu modifikasi terakhir ke frontmatter pada berkas Markdown dan MDX Anda. Gunakan properti ini untuk menampilkan waktu modifikasi di halaman Anda.
+
+:::note[Menggunakan riwayat Git]
+Resep ini menghitung waktu berdasarkan riwayat Git repositori Anda dan mungkin tidak akurat di beberapa platform deployment. Host Anda mungkin melakukan **shallow clone** yang tidak mengambil keseluruhan riwayat git.
+:::
+
+## Resep
+
+<Steps>
+1. Instal paket pembantu
+
+   Instal [`Day.js`](https://www.npmjs.com/package/dayjs) untuk memodifikasi dan memformat waktu:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+       ```shell
+       npm install dayjs
+       ```
+     </Fragment>
+     <Fragment slot="pnpm">
+       ```shell
+       pnpm add dayjs
+       ```
+     </Fragment>
+     <Fragment slot="yarn">
+       ```shell
+       yarn add dayjs
+       ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Buat Plugin Remark
+
+    Plugin ini menggunakan `execSync` untuk menjalankan perintah Git yang mengembalikan timestamp commit terbaru dalam format ISO 8601. Timestamp kemudian ditambahkan ke frontmatter berkas.
+
+     ```js title="remark-modified-time.mjs"
+     import { execSync } from "child_process";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = execSync(`git log -1 --pretty="format:%cI" "${filepath}"`);
+         file.data.astro.frontmatter.lastModified = result.toString();
+       };
+     }
+     ```
+		<details>
+		<summary>Menggunakan sistem berkas alih-alih Git</summary>
+
+		 Meskipun menggunakan Git adalah cara yang direkomendasikan untuk mendapatkan timestamp modifikasi terakhir dari sebuah berkas, memungkinkan juga menggunakan waktu modifikasi sistem berkas.
+     Plugin ini menggunakan `statSync` untuk mendapatkan `mtime` (modified time) berkas dalam format ISO 8601. Timestamp kemudian ditambahkan ke frontmatter berkas.
+     
+     ```js title="remark-modified-time.mjs"
+     import { statSync } from "fs";
+
+     export function remarkModifiedTime() {
+       return function (tree, file) {
+         const filepath = file.history[0];
+         const result = statSync(filepath);
+         file.data.astro.frontmatter.lastModified = result.mtime.toISOString();
+       };
+     }
+     ```
+		</details>
+
+3. Tambahkan plugin ke konfigurasi Anda
+
+   ```js title="astro.config.mjs"
+   import { defineConfig } from 'astro/config';
+   import { remarkModifiedTime } from './remark-modified-time.mjs';
+
+   export default defineConfig({
+     markdown: {
+       remarkPlugins: [remarkModifiedTime],
+     },
+   });
+   ```
+
+   Kini semua dokumen Markdown akan memiliki properti `lastModified` di frontmatter-nya.
+
+4. Tampilkan Waktu Modifikasi Terakhir
+
+   Jika konten Anda disimpan dalam [content collection](/en/guides/content-collections/), akses `remarkPluginFrontmatter` dari fungsi `render(entry)`. Lalu render `lastModified` di template Anda di mana pun Anda ingin menampilkannya.
+
+   ```astro title="src/pages/posts/[slug].astro" {3-4,6,17,19-21,28}
+   ---
+   import { getCollection, render } from 'astro:content';
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   export async function getStaticPaths() {
+     const blog = await getCollection('blog');
+     return blog.map(entry => ({
+       params: { slug: entry.id },
+       props: { entry },
+     }));
+   }
+
+   const { entry } = Astro.props;
+   const { Content, remarkPluginFrontmatter } = await render(entry);
+
+   const lastModified = dayjs(remarkPluginFrontmatter.lastModified)
+     .utc()
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       ...
+       <p>Last Modified: {lastModified}</p>
+       ...
+     </body>
+   </html>
+   ```
+
+   Jika Anda menggunakan [Markdown layout](/en/basics/layouts/#markdown-layouts), gunakan properti frontmatter `lastModified` dari `Astro.props` di template layout Anda.
+
+   ```astro title="src/layouts/BlogLayout.astro" {2-3,5,7-9,15}
+   ---
+   import dayjs from "dayjs";
+   import utc from "dayjs/plugin/utc";
+
+   dayjs.extend(utc);
+
+   const lastModified = dayjs()
+     .utc(Astro.props.frontmatter.lastModified)
+     .format("HH:mm:ss DD MMMM YYYY UTC");
+   ---
+
+   <html>
+     <head>...</head>
+     <body>
+       <p>{lastModified}</p>
+       <slot />
+     </body>
+   </html>
+   ```
+</Steps>

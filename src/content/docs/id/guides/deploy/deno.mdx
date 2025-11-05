@@ -1,0 +1,352 @@
+---
+title: Deploy situs Astro Anda dengan Deno
+description: Cara men-deploy situs Astro Anda ke web menggunakan Deno.
+sidebar:
+  label: Deno
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Anda dapat men-deploy situs Astro statis atau yang dirender on-demand menggunakan Deno, baik di server Anda sendiri, maupun ke [Deno Deploy](https://deno.com/deploy), sebuah sistem terdistribusi yang menjalankan JavaScript, TypeScript, dan WebAssembly di edge, di seluruh dunia.
+
+Panduan ini mencakup instruksi untuk menjalankan situs Astro Anda di server sendiri dengan Deno, serta men-deploy ke Deno Deploy melalui GitHub Actions atau CLI Deno Deploy.
+
+## Persyaratan
+
+Panduan ini mengasumsikan Anda sudah menginstal [Deno](https://deno.com/).
+
+## Konfigurasi Proyek
+
+Proyek Astro Anda dapat dideploy sebagai situs statis, atau sebagai situs yang dirender on-demand.
+
+### Situs Statis
+
+Proyek Astro Anda secara bawaan adalah situs statis. Anda tidak memerlukan konfigurasi tambahan untuk men-deploy situs Astro statis dengan Deno, atau ke Deno Deploy.
+
+### Adapter untuk rendering on-demand
+
+Untuk mengaktifkan rendering on-demand di proyek Astro Anda menggunakan Deno, dan untuk men-deploy di Deno Deploy:
+
+<Steps>
+1. Instal [adapter `@deno/astro-adapter`][Deno adapter] ke dependensi proyek Anda menggunakan manajer paket pilihan:
+   
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @deno/astro-adapter
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install @deno/astro-adapter
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @deno/astro-adapter
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Perbarui berkas konfigurasi proyek `astro.config.mjs` Anda dengan perubahan di bawah.
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@deno/astro-adapter';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+3. Perbarui skrip `preview` di `package.json` dengan perubahan berikut.
+
+    ```json del={8} ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+      }
+    }
+    ```
+    
+    Sekarang Anda dapat menggunakan perintah ini untuk pratinjau situs Astro produksi Anda secara lokal dengan Deno.
+    
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run preview
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm run preview
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn run preview
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+## Cara men-deploy
+
+Anda dapat menjalankan situs Astro di server Anda sendiri, atau men-deploy ke Deno Deploy melalui GitHub Actions atau menggunakan CLI (command line interface) Deno Deploy.
+
+### Di server Anda sendiri
+
+<Steps>
+1. Salin proyek Anda ke server.
+
+2. Instal dependensi proyek menggunakan manajer paket pilihan Anda:
+   
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+3. Build situs Astro Anda dengan manajer paket pilihan:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm run build
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm run build
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn run build
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+4. Jalankan aplikasi Anda dengan perintah berikut:  
+
+   <StaticSsrTabs>
+     <Fragment slot="static">
+       ```bash
+       deno run -A jsr:@std/http/file-server dist
+       ```
+     </Fragment>
+     
+     <Fragment slot="ssr">
+       ```bash
+       deno run -A ./dist/server/entry.mjs
+       ```
+     </Fragment>
+   </StaticSsrTabs>
+</Steps>
+
+### Deployment GitHub Actions
+
+Jika proyek Anda disimpan di GitHub, situs [Deno Deploy](https://dash.deno.com/) akan memandu Anda menyiapkan GitHub Actions untuk men-deploy situs Astro Anda.
+
+<Steps>
+1. Push kode Anda ke repositori GitHub publik atau privat.
+
+2. Masuk ke [Deno Deploy](https://dash.deno.com/) dengan akun GitHub Anda, lalu klik [New Project](https://dash.deno.com).
+
+3. Pilih repositori Anda, branch yang ingin digunakan untuk deploy, dan pilih mode **GitHub Action**. (Situs Astro memerlukan langkah build, dan tidak dapat menggunakan mode Automatic.)
+   
+4. Di proyek Astro Anda, buat berkas baru `.github/workflows/deploy.yml` dan tempel YAML di bawah. Ini mirip dengan YAML dari Deno Deploy, dengan langkah tambahan yang diperlukan untuk situs Astro Anda.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Diperlukan untuk autentikasi dengan Deno Deploy
+              contents: read # Diperlukan untuk mengkloning repositori
+
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
+
+              # Tidak menggunakan npm? Ubah `npm ci` menjadi `yarn install` atau `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+
+              # Tidak menggunakan npm? Ubah `npm run build` menjadi `yarn build` atau `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: ganti dengan nama proyek Deno Deploy
+                  entrypoint: jsr:@std/http/file-server
+                  root: dist
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Diperlukan untuk autentikasi dengan Deno Deploy
+              contents: read # Diperlukan untuk mengkloning repositori
+
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v4
+
+              # Tidak menggunakan npm? Ubah `npm ci` menjadi `yarn install` atau `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+
+              # Tidak menggunakan npm? Ubah `npm run build` menjadi `yarn build` atau `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: ganti dengan nama proyek Deno Deploy
+                  entrypoint: dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+5. Setelah berkas YAML ini dikomit dan dipush ke GitHub pada branch deploy yang dikonfigurasi, proses deploy akan berjalan otomatis!
+
+   Anda dapat melacak progresnya melalui tab "Actions" pada halaman repositori GitHub Anda, atau di [Deno Deploy](https://dash.deno.com).
+</Steps>
+
+### Deployment via CLI
+
+<Steps>
+1. Instal [Deno Deploy CLI](https://docs.deno.com/deploy/manual/deployctl).
+
+    ```bash
+    deno install -gArf jsr:@deno/deployctl
+    ```
+
+2. Build situs Astro Anda dengan manajer paket pilihan:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm run build
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm run build
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn run build
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+3. Jalankan `deployctl` untuk men-deploy!
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```bash
+        cd dist && deployctl deploy jsr:@std/http/file-server
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```bash
+        deployctl deploy ./dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+    
+    Anda dapat melacak semua deploy Anda di [Deno Deploy](https://dash.deno.com).
+
+4. (Opsional) Untuk menyederhanakan build dan deploy menjadi satu perintah, tambahkan skrip `deploy-deno` di `package.json`.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```json ins={9}
+        // package.json
+        {
+          // ...
+          "scripts": {
+          "dev": "astro dev",
+          "start": "astro dev",
+          "build": "astro build",
+          "preview": "astro preview",
+          "deno-deploy": "npm run build && cd dist && deployctl deploy jsr:@std/http/file-server"
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+    ```json ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy ./dist/server/entry.mjs"
+      }
+    }
+    ```
+      </Fragment>
+    </StaticSsrTabs>
+    
+    Setelah itu, Anda bisa menggunakan perintah ini untuk build dan deploy situs Astro dalam satu langkah.
+    
+    ```bash
+    npm run deno-deploy
+    ```
+</Steps>
+
+[Deno adapter]: https://github.com/denoland/deno-astro-adapter

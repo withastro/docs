@@ -1,0 +1,555 @@
+---
+type: integration
+title: '@astrojs/sitemap'
+description: Pelajari cara menggunakan integrasi @astrojs/sitemap di proyek Astro Anda.
+sidebar:
+  label: Sitemap
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/sitemap/'
+category: other
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro';
+
+Integrasi **[Astro][astro-integration]** ini menghasilkan sebuah sitemap berdasarkan halaman-halaman Anda saat membangun proyek Astro.
+
+## Mengapa Astro Sitemap
+
+Sitemap adalah berkas XML yang merinci semua halaman, video, dan berkas di situs Anda. Mesin pencari seperti Google membaca berkas ini untuk merayapi (crawl) situs Anda dengan lebih efisien. [Lihat panduan Google tentang sitemaps](https://developers.google.com/search/docs/advanced/sitemaps/overview) untuk mempelajari lebih lanjut.
+
+Berkas sitemap direkomendasikan untuk situs multi-halaman yang besar. Jika Anda tidak menggunakan sitemap, sebagian besar mesin pencari tetap dapat menemukan halaman-halaman situs Anda, tetapi sitemap adalah cara yang bagus untuk memastikan situs Anda se-ramah mesin pencari (SEO-friendly) mungkin.
+
+Dengan Astro Sitemap, Anda tidak perlu membuat berkas XML ini sendiri: integrasi Astro Sitemap akan merayapi rute yang digenerasikan secara statis dan membuat berkas sitemap, termasuk [rute dinamis](/id/guides/routing/#dynamic-routes) seperti `[...slug]` atau `src/pages/[lang]/[version]/info.astro` yang dihasilkan oleh `getStaticPaths()`.
+
+Integrasi ini tidak dapat menghasilkan entri sitemap untuk rute dinamis dalam [mode SSR](/id/guides/on-demand-rendering/).
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatisasi penyiapan integrasi resmi. Jika Anda mau, Anda juga bisa [menginstal integrasi secara manual](#manual-install) sebagai alternatif.
+
+Jalankan salah satu perintah berikut di jendela terminal baru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add sitemap
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add sitemap
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add sitemap
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Jika Anda mengalami kendala, [silakan laporkan di GitHub](https://github.com/withastro/astro/issues) dan coba langkah instalasi manual di bawah ini.
+
+### Manual Install
+
+Pertama, instal paket `@astrojs/sitemap` menggunakan manajer paket Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/sitemap
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/sitemap
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/sitemap
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, terapkan integrasi ke berkas `astro.config.*` Anda menggunakan properti `integrations`:
+
+```js ins={2} ins="sitemap()"
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  // ...
+  integrations: [sitemap()],
+});
+```
+
+## Pemakaian
+
+`@astrojs/sitemap` perlu mengetahui URL situs Anda yang sudah dideploy untuk menghasilkan sebuah sitemap.
+
+Tambahkan URL situs Anda sebagai opsi [`site`](/id/reference/configuration-reference/#site) di `astro.config.mjs`. Nilainya harus diawali dengan `http://` atau `https://`.
+
+```js title="astro.config.mjs" {5}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [sitemap()],
+  // ...
+});
+```
+
+Dengan integrasi sitemap dikonfigurasi, berkas `sitemap-index.xml` dan `sitemap-0.xml` akan ditambahkan ke direktori keluaran saat Anda build situs.
+
+`sitepmap-index.xml` menautkan ke semua berkas sitemap bernomor.
+`sitemap-0.xml` mencantumkan halaman-halaman di situs Anda.
+Untuk situs yang sangat besar, mungkin juga ada berkas tambahan seperti `sitemap-1.xml` dan `sitemap-2.xml`.
+
+<details>
+<summary>Contoh berkas yang dihasilkan untuk situs dengan dua halaman</summary>
+
+```xml title="sitemap-index.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+  <sitemapindex xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <sitemap>
+    <loc>https://example.com/sitemap-0.xml</loc>
+  </sitemap>
+</sitemapindex>
+```
+
+```xml title="sitemap-0.xml"
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:news="http://www.google.com/schemas/sitemap-news/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml" xmlns:image="http://www.google.com/schemas/sitemap-image/1.1" xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  <url>
+    <loc>https://example.com/</loc>
+  </url>
+  <url>
+    <loc>https://example.com/second-page/</loc>
+  </url>
+</urlset>
+```
+</details>
+
+### Penemuan sitemap (Sitemap discovery)
+
+Anda bisa memudahkan crawler menemukan sitemap dengan menambahkan tautan pada `<head>` situs dan berkas `robots.txt`.
+
+#### Tautan sitemap di `<head>`
+
+Tambahkan elemen `<link rel="sitemap">` ke `<head>` situs Anda yang menunjuk ke berkas indeks sitemap:
+
+```html title="src/layouts/Layout.astro" ins={2}
+<head>
+  <link rel="sitemap" href="/sitemap-index.xml" />
+</head>
+```
+
+#### Tautan sitemap di `robots.txt`
+
+Jika Anda memiliki `robots.txt` pada situs, tambahkan URL indeks sitemap untuk membantu crawler:
+
+```txt ins={5}
+# public/robots.txt
+User-agent: *
+Allow: /
+
+Sitemap: https://<YOUR SITE>/sitemap-index.xml
+```
+
+Jika Anda ingin menggunakan ulang nilai `site` dari `astro.config.mjs`, Anda juga dapat membuat `robots.txt` secara dinamis.
+Alih-alih menggunakan berkas statis di direktori `public/`, buat berkas `src/pages/robots.txt.ts` dan tambahkan kode berikut:
+
+```ts title="src/pages/robots.txt.ts"
+import type { APIRoute } from 'astro';
+
+const getRobotsTxt = (sitemapURL: URL) => `User-agent: *
+Allow: /
+
+Sitemap: ${sitemapURL.href}
+`;
+
+export const GET: APIRoute = ({ site }) => {
+  const sitemapURL = new URL('sitemap-index.xml', site);
+  return new Response(getRobotsTxt(sitemapURL));
+};
+```
+
+## Konfigurasi
+
+Untuk mengonfigurasi integrasi ini, berikan sebuah objek ke fungsi `sitemap()` di `astro.config.mjs`.
+
+```js title="astro.config.mjs" {6-8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  integrations: [
+    sitemap({
+      // opsi konfigurasi
+    }),
+  ],
+});
+```
+
+### `filter`
+
+<p>
+
+**Tipe:** `(page: string) => boolean`
+</p>
+
+Secara bawaan, semua halaman disertakan di sitemap. Dengan menambahkan fungsi `filter` kustom, Anda dapat memfilter halaman berdasarkan URL.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      filter: (page) => page !== 'https://example.com/secret-vip-lounge/',
+    }),
+  ],
+});
+```
+
+Fungsi ini akan dipanggil untuk setiap halaman di situs Anda. Parameter `page` adalah URL lengkap dari halaman yang sedang dipertimbangkan (termasuk domain `site` Anda). Kembalikan `true` untuk menyertakan halaman tersebut di sitemap, dan `false` untuk mengecualikannya.
+
+Untuk memfilter beberapa halaman sekaligus, tambahkan beberapa kondisi terhadap URL target.
+
+```js title="astro.config.mjs" {8-12}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      filter: (page) =>
+        page !== 'https://example.com/secret-vip-lounge-1/' &&
+        page !== 'https://example.com/secret-vip-lounge-2/' &&
+        page !== 'https://example.com/secret-vip-lounge-3/' &&
+        page !== 'https://example.com/secret-vip-lounge-4/',
+    }),
+  ],
+});
+```
+
+### `customPages`
+
+<p>
+
+**Tipe:** `string[]`
+</p>
+
+Array halaman yang dibuat di luar Astro untuk disertakan dalam berkas sitemap yang dihasilkan.
+
+Gunakan opsi ini untuk menyertakan halaman dalam sitemap yang merupakan bagian dari situs ter-deploy namun tidak dibuat oleh Astro.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      customPages: ['https://example.com/external-page1', 'https://example.com/external-page2'],
+    }),
+  ],
+});
+```
+
+### `customSitemaps`
+
+<p>
+
+**Tipe:** `string[]`<br />
+**Default:** `[]`<br />
+<Since v="3.5.0" pkg="@astrojs/sitemap" />
+</p>
+
+Array sitemap eksternal yang akan dimasukkan ke dalam berkas `sitemap-index.xml` bersama entri sitemap yang dihasilkan.
+
+Gunakan opsi ini untuk menyertakan sitemap eksternal di `sitemap-index.xml` yang dibuat oleh Astro untuk bagian situs Anda yang memiliki sitemap sendiri (bukan dibuat oleh Astro). Ini berguna saat Anda menampung beberapa layanan di bawah domain yang sama.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      customSitemaps: ['https://example.com/blog/sitemap.xml', 'https://example.com/shop/sitemap.xml'],
+    }),
+  ],
+});
+```
+
+### `entryLimit`
+
+<p>
+
+**Tipe:** `number`<br />
+**Default:** `45000`
+</p>
+
+Jumlah maksimum entri per berkas sitemap. Nilai bawaan adalah 45000. Indeks sitemap dan beberapa sitemap akan dibuat jika Anda memiliki lebih banyak entri. Lihat [penjelasan tentang membagi sitemap besar](https://developers.google.com/search/docs/advanced/sitemaps/large-sitemaps).
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      entryLimit: 10000,
+    }),
+  ],
+});
+```
+
+### `changefreq`, `lastmod`, dan `priority`
+
+<p>
+
+**Tipe:** `{ changefreq?: ChangeFreq; lastmod?: Date; priority?: number; }`
+<Since v="0.2.0" pkg="@astrojs/sitemap" />
+</p>
+
+Opsi-opsi ini berkaitan dengan tag `<changefreq>`, `<lastmod>`, dan `<priority>` dalam [spesifikasi XML Sitemap](https://www.sitemaps.org/protocol.html).
+
+Perlu dicatat bahwa `changefreq` dan `priority` diabaikan oleh Google.
+
+:::note
+Karena keterbatasan [Integration API](/id/reference/integrations-reference/) Astro, integrasi ini tidak dapat menganalisis kode sumber suatu halaman. Opsi konfigurasi ini dapat mengatur `changefreq`, `lastmod`, dan `priority` secara *global* untuk seluruh situs; lihat opsi berikutnya **serialize** untuk mengatur nilai-nilai ini per halaman.
+:::
+
+```js title="astro.config.mjs" ins={8-10}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      changefreq: 'weekly',
+      priority: 0.7,
+      lastmod: new Date('2022-02-24'),
+    }),
+  ],
+});
+```
+
+### `serialize`
+
+<p>
+
+**Tipe:** `(item: SitemapItem) => SitemapItem | Promise<SitemapItem | undefined> | undefined`
+</p>
+
+Sebuah fungsi yang dipanggil untuk setiap entri sitemap tepat sebelum ditulis ke disk. Fungsi ini bisa bersifat asinkron.
+
+Fungsi menerima parameter sebuah objek `SitemapItem` yang dapat memiliki properti berikut:
+
+* `url` (URL absolut halaman). Ini adalah satu-satunya properti yang dijamin ada pada `SitemapItem`.
+* `changefreq`
+* `lastmod` (tanggal berformat ISO, tipe `String`)
+* `priority`
+* `links`.
+
+Properti `links` berisi daftar `LinkItem` dari halaman-halaman alternatif termasuk halaman induk.
+
+Tipe `LinkItem` memiliki dua field: `url` (URL lengkap untuk versi halaman pada bahasa tertentu) dan `lang` (kode bahasa yang didukung untuk versi halaman tersebut).
+
+Fungsi `serialize` harus mengembalikan `SitemapItem`, baik diubah maupun tidak.
+
+Contoh berikut menunjukkan bagaimana menambahkan properti-properti sitemap secara individual.
+
+```js title="astro.config.mjs" ins={8-18}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      serialize(item) {
+        if (/exclude-from-sitemap/.test(item.url)) {
+          return undefined;
+        }
+        if (/your-special-page/.test(item.url)) {
+          item.changefreq = 'daily';
+          item.lastmod = new Date();
+          item.priority = 0.9;
+        }
+        return item;
+      },
+    }),
+  ],
+});
+```
+
+### `i18n`
+
+<p>
+
+**Tipe:** `{ defaultLocale: string; locales: Record<string, string>; }`
+</p>
+
+Untuk [melokalkan sitemap](https://developers.google.com/search/docs/advanced/crawling/localized-versions#all-method-guidelines), berikan sebuah objek pada opsi `i18n`.
+
+Objek ini memiliki dua properti wajib:
+
+* `defaultLocale`: Nilainya harus ada sebagai salah satu kunci di `locales`.
+* `locales`: pasangan key/value. Kunci digunakan untuk mencari bagian locale pada path halaman. Nilai adalah [atribut bahasa](https://developer.mozilla.org/en-US/docs/Web/HTML/Global_attributes/lang) (hanya huruf alfabet Latin dan tanda hubung yang diperbolehkan).
+
+```js title="astro.config.mjs" ins={8-15}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      i18n: {
+        defaultLocale: 'en', // Semua URL yang tidak mengandung `es` atau `fr` setelah `https://example.com/` akan diperlakukan sebagai locale default, yaitu `en`
+        locales: {
+          en: 'en-US', // Nilai `defaultLocale` harus ada di kunci `locales`
+          es: 'es-ES',
+          fr: 'fr-CA',
+        },
+      },
+    }),
+  ],
+});
+```
+
+Hasil sitemap akan terlihat seperti ini:
+
+```xml title="sitemap-0.xml"
+...
+  <url>
+    <loc>https://example.com/</loc>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://example.com/"/>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://example.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://example.com/fr/"/>
+  </url>
+  <url>
+    <loc>https://example.com/es/</loc>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://example.com/"/>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://example.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://example.com/fr/"/>
+  </url>
+  <url>
+    <loc>https://example.com/fr/</loc>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://example.com/"/>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://example.com/es/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://example.com/fr/"/>
+  </url>
+  <url>
+    <loc>https://example.com/es/second-page/</loc>
+    <xhtml:link rel="alternate" hreflang="es-ES" href="https://example.com/es/second-page/"/>
+    <xhtml:link rel="alternate" hreflang="fr-CA" href="https://example.com/fr/second-page/"/>
+    <xhtml:link rel="alternate" hreflang="en-US" href="https://example.com/second-page/"/>
+  </url>
+...
+```
+
+### `xslURL`
+
+<p>
+
+**Tipe:** `string`<br />
+<Since v="3.2.0" pkg="@astrojs/sitemap" />
+</p>
+
+URL stylesheet XSL untuk menata (styling) dan mempercantik sitemap Anda. 
+
+Nilai yang diberikan bisa berupa path relatif terhadap URL `site` Anda untuk stylesheet lokal, atau URL absolut ke stylesheet eksternal.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      xslURL: '/sitemap.xsl'
+    }),
+  ],
+});
+```
+
+### `filenameBase`
+
+<p>
+
+**Tipe:** `string`<br />
+**Default:** `sitemap`<br />
+<Since v="3.4.0" pkg="@astrojs/sitemap" />
+</p>
+
+String prefiks nama yang digunakan saat menghasilkan berkas XML sitemap. Nilai bawaannya adalah `sitemap`. 
+
+Opsi ini berguna ketika Anda mengintegrasikan situs Astro ke domain yang sudah memiliki berkas sitemap sebelumnya.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      filenameBase: 'astronomy-sitemap'
+    }),
+  ],
+});
+```
+
+Konfigurasi di atas akan menghasilkan berkas sitemap di `https://example.com/astronomy-sitemap-0.xml` dan `https://example.com/astronomy-sitemap-index.xml`.
+
+### `namespaces`
+
+<p>
+
+**Tipe:** `{ news?: boolean; xhtml?: boolean; image?: boolean; video?: boolean; }` <br />
+**Default:** `{ news: true, xhtml: true, image: true, video: true }` <br />
+<Since v="3.6.0" pkg="@astrojs/sitemap" />
+</p>
+
+Objek namespace XML yang dapat dikecualikan dari sitemap yang dihasilkan.
+
+Mengecualikan namespace yang tidak digunakan dapat membantu membuat sitemap yang lebih fokus, lebih cepat diproses mesin pencari, dan mengurangi bandwidth. Misalnya, jika situs Anda tidak memiliki konten berita, video, atau multi-bahasa, Anda dapat mengecualikan namespace tersebut untuk mengurangi ukuran XML.
+
+Secara bawaan, semua namespace yang dapat dikonfigurasi (`news`, `xhtml`, `image`, dan `video`) disertakan. Untuk mengecualikan satu atau lebih namespace dari proses pembuatan sitemap, tambahkan objek `namespaces` dan set opsi tertentu menjadi `false`:
+
+```js title="astro.config.mjs" ins={8-11}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      namespaces: {
+        news: false,
+        xhtml: false, 
+      }
+    })
+  ]
+});
+```
+
+## Contoh
+
+* Situs resmi Astro menggunakan Astro Sitemap untuk menghasilkan [sitemap-nya](https://astro.build/sitemap-index.xml).
+* [Jelajahi proyek yang menggunakan Astro Sitemap di GitHub](https://github.com/search?q=%22%40astrojs%2Fsitemap%22+path%3Apackage.json&type=Code) untuk lebih banyak contoh!
+
+[astro-integration]: /id/guides/integrations-guide/

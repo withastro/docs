@@ -1,0 +1,241 @@
+---
+title: Endpoint
+description: Pelajari cara membuat endpoint yang menyajikan berbagai jenis data
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+Astro memungkinkan Anda membuat endpoint khusus untuk menyajikan jenis data apa pun. Anda dapat menggunakannya untuk membuat gambar, menyediakan dokumen RSS, atau menggunakannya sebagai Rute API untuk membangun API lengkap bagi situs Anda.
+
+Pada situs yang dibangkitkan secara statis, endpoint khusus Anda dipanggil saat build untuk menghasilkan file statis. Jika Anda memilih mode [SSR](/id/guides/on-demand-rendering/), endpoint khusus berubah menjadi endpoint server live yang dipanggil saat ada permintaan. Endpoint statis dan SSR didefinisikan dengan cara serupa, tetapi endpoint SSR mendukung fitur tambahan.
+
+## Endpoint Berkas Statis
+
+Untuk membuat endpoint khusus, tambahkan file `.js` atau `.ts` ke direktori `/pages`. Ekstensi `.js` atau `.ts` akan dihapus selama proses build, jadi nama file harus menyertakan ekstensi data yang ingin Anda buat. Misalnya, `src/pages/data.json.ts` akan membangun endpoint `/data.json`.
+
+Endpoint mengekspor fungsi `GET` (opsional `async`) yang menerima [objek konteks](/id/reference/api-reference/) dengan properti yang mirip dengan global `Astro`. Di sini, fungsi mengembalikan objek [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) dengan `name` dan `url`, dan Astro akan memanggilnya saat build lalu menggunakan isi body untuk menghasilkan file.
+
+```ts title="src/pages/builtwith.json.ts"
+// Outputs: /builtwith.json
+export function GET({ params, request }) {
+  return new Response(
+    JSON.stringify({
+      name: "Astro",
+      url: "https://astro.build/",
+    }),
+  );
+}
+```
+
+Sejak Astro v3.0, objek `Response` yang dikembalikan tidak perlu lagi menyertakan properti `encoding`. Misalnya, untuk menghasilkan gambar biner `.png`:
+
+```ts title="src/pages/astro-logo.png.ts" {6}
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  
+  return new Response(await response.arrayBuffer());
+}
+```
+
+Anda juga dapat memberi tipe pada fungsi endpoint menggunakan tipe `APIRoute`:
+
+```ts
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ params, request }) => {...}
+```
+
+### `params` dan Perutean Dinamis
+
+Endpoint mendukung fitur [perutean dinamis](/id/guides/routing/#dynamic-routes) yang sama dengan halaman. Beri nama file Anda dengan parameter berkotak kurung dan ekspor fungsi [`getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths). Kemudian, Anda dapat mengakses parameter menggunakan properti `params` yang diteruskan ke fungsi endpoint:
+
+```ts title="src/pages/api/[id].json.ts"
+import type { APIRoute } from "astro";
+
+const usernames = ["Sarah", "Chris", "Yan", "Elian"];
+
+export const GET: APIRoute = ({ params, request }) => {
+  const id = params.id;
+  
+  return new Response(
+    JSON.stringify({
+      name: usernames[id],
+    }),
+  );
+};
+
+export function getStaticPaths() {
+  return [
+    { params: { id: "0" } },
+    { params: { id: "1" } },
+    { params: { id: "2" } },
+    { params: { id: "3" } },
+  ];
+}
+```
+
+Ini akan menghasilkan empat endpoint JSON saat build: `/api/0.json`, `/api/1.json`, `/api/2.json`, dan `/api/3.json`. Perutean dinamis dengan endpoint bekerja sama seperti pada halaman, tetapi karena endpoint adalah fungsi dan bukan komponen, [props](/id/reference/routing-reference/#data-passing-with-props) tidak didukung.
+
+### `request`
+
+Semua endpoint menerima properti `request`, tetapi dalam mode statis, Anda hanya memiliki akses ke `request.url`. Ini mengembalikan URL penuh endpoint saat ini dan bekerja sama seperti [Astro.request.url](/id/reference/api-reference/#request) pada halaman.
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      path: new URL(request.url).pathname,
+    }),
+  );
+};
+```
+
+## Endpoint Server (Rute API)
+
+Semua yang dijelaskan di bagian endpoint berkas statis juga dapat digunakan dalam mode SSR: file dapat mengekspor fungsi `GET` yang menerima [objek konteks](/id/reference/api-reference/) dengan properti yang mirip dengan global `Astro`.
+
+Namun, berbeda dengan mode `static`, saat Anda mengaktifkan rendering on‑demand untuk sebuah rute, endpoint akan dibangun ketika diminta. Ini membuka fitur baru yang tidak tersedia saat build, dan memungkinkan Anda membangun rute API yang mendengarkan permintaan serta mengeksekusi kode secara aman di server saat runtime.
+
+Rute Anda akan dirender on‑demand secara bawaan dalam mode `server`. Dalam mode `static`, Anda harus menonaktifkan prerender untuk tiap endpoint khusus dengan `export const prerender = false`.
+
+<RecipeLinks slugs={["en/recipes/call-endpoints" ]}/>
+
+:::note
+Pastikan Anda [mengaktifkan mode rendering on‑demand](/id/guides/on-demand-rendering/) sebelum mencoba contoh‑contoh ini, dan nonaktifkan prerender dalam mode `static`.
+:::
+
+Endpoint server dapat mengakses `params` tanpa mengekspor `getStaticPaths`, dan dapat mengembalikan objek `Response`, sehingga Anda bisa menetapkan kode status serta header:
+
+```js title="src/pages/[id].json.js"
+import { getProduct } from "../db";
+
+export async function GET({ params }) {
+  const id = params.id;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Not found",
+    });
+  }
+
+  return new Response(JSON.stringify(product), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+```
+
+Ini akan merespons setiap permintaan yang cocok dengan rute dinamis. Misalnya, jika kita menavigasi ke `/helmet.json`, `params.id` akan berisi `helmet`. Jika `helmet` ada dalam basis data produk tiruan, endpoint akan menggunakan objek `Response` untuk merespons dengan JSON dan mengembalikan [kode status HTTP](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) yang sukses. Jika tidak, ia akan merespons dengan `404`.
+
+Dalam mode SSR, beberapa penyedia mengharuskan header `Content-Type` untuk mengembalikan gambar. Dalam kasus ini, gunakan objek `Response` untuk menentukan properti `headers`. Misalnya, untuk menghasilkan gambar biner `.png`:
+
+```ts title="src/pages/astro-logo.png.ts"
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  const buffer = Buffer.from(await response.arrayBuffer());
+  
+  return new Response(buffer, {
+    headers: { "Content-Type": "image/png" },
+  });
+}
+```
+
+### Metode HTTP
+
+Selain fungsi `GET`, Anda dapat mengekspor fungsi dengan nama salah satu [metode HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods). Ketika ada permintaan masuk, Astro akan memeriksa metodenya dan memanggil fungsi yang sesuai. 
+
+Anda juga dapat mengekspor fungsi `ALL` untuk mencocokkan metode apa pun yang tidak memiliki fungsi ekspor terkait. Jika ada permintaan tanpa metode yang cocok, permintaan akan diarahkan ke [halaman 404](/id/basics/astro-pages/#custom-404-error-page) situs Anda.
+
+```ts title="src/pages/methods.json.ts"
+export const GET: APIRoute = ({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "This was a GET!",
+    }),
+  );
+};
+
+export const POST: APIRoute = ({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "This was a POST!",
+    }),
+  );
+};
+
+export const DELETE: APIRoute = ({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "This was a DELETE!",
+    }),
+  );
+};
+
+export const ALL: APIRoute = ({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: `This was a ${request.method}!`,
+    }),
+  );
+};
+```
+
+Jika Anda mendefinisikan fungsi `GET` namun tidak ada fungsi `HEAD`, Astro akan secara otomatis menangani permintaan `HEAD` dengan memanggil fungsi `GET` lalu menghapus body dari respons.
+
+<RecipeLinks slugs={["en/recipes/captcha", "en/recipes/build-forms-api" ]}/>
+
+### `request`
+
+Dalam mode SSR, properti `request` mengembalikan objek [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) yang sepenuhnya dapat digunakan dan merujuk pada permintaan saat ini. Ini memungkinkan Anda menerima data dan memeriksa header:
+
+```ts title="src/pages/test-post.json.ts"
+export const POST: APIRoute = async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    
+    return new Response(
+      JSON.stringify({
+        message: "Your name was: " + name,
+      }),
+      {
+        status: 200,
+      },
+    );
+  }
+  
+  return new Response(null, { status: 400 });
+};
+```
+
+### Pengalihan
+
+Konteks endpoint mengekspor utilitas `redirect()` yang mirip dengan `Astro.redirect`:
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from "../db";
+
+export async function GET({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Not found",
+    });
+  }
+
+  return redirect(link, 307);
+}
+```

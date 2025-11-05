@@ -1,0 +1,263 @@
+---
+type: tutorial
+title: Kirim skrip pertamamu ke browser
+description: >-
+  Tutorial: Bangun blog Astro pertamamu —
+
+  Tambahkan interaktivitas sisi-klien pada navigasi mobile dengan tag skrip Astro
+i18nReady: true
+---
+import Blanks from '~/components/tutorial/Blanks.astro';
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Mari tambahkan tombol untuk membuka dan menutup menu navigasi pada ukuran layar mobile—ini membutuhkan sedikit interaktivitas sisi-klien!
+
+<PreCheck>
+  - Buat komponen menu
+  - Tulis `<script>` agar pengunjung dapat membuka dan menutup menu navigasi
+  - Pindahkan JavaScript-mu ke file `.js` terpisah
+</PreCheck>
+
+## Bangun komponen Menu
+
+Buat komponen `<Menu />` untuk membuka dan menutup menu mobile.
+
+<Steps>
+1. Buat file bernama `Menu.astro` di `src/components/`.
+  
+2. Salin kode berikut ke komponenmu. Ini membuat sebuah tombol yang akan digunakan untuk mengubah visibilitas tautan navigasi pada perangkat mobile. (Kamu akan menambahkan gaya CSS baru ke `global.css` nanti.)
+
+    ```astro title="src/components/Menu.astro"
+    --- 
+    ---
+    <button aria-expanded="false" aria-controls="main-menu" class="menu">
+      Menu
+    </button>
+    ```
+
+3. Tempatkan komponen `<Menu />` baru ini tepat sebelum `<Navigation />` di `Header.astro`. 
+
+    <details>
+    <summary>Tunjukkan kodenya!</summary>
+
+    ```astro title="src/components/Header.astro" ins={2,7}
+    ---
+    import Menu from './Menu.astro';
+    import Navigation from './Navigation.astro';
+    ---
+    <header>
+      <nav>
+        <Menu />
+        <Navigation />
+      </nav>
+    </header>
+    ```
+    </details>
+
+4. Tambahkan gaya berikut untuk komponen Menu-mu, termasuk gaya responsif:
+
+    ```css title="src/styles/global.css" ins={2-9, 33-35, 51-53}
+    /* nav styles */
+    .menu {
+      background-color: #0d0950;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 5px 10px;
+    }
+
+    .nav-links {
+      width: 100%;
+      display: none;
+      margin: 0;
+    }
+
+    .nav-links a {
+      display: block;
+      text-align: center;
+      padding: 10px 0;
+      text-decoration: none;
+      font-size: 1.2rem;
+      font-weight: bold;
+      text-transform: uppercase;
+      color: #0d0950;
+    }
+
+    .nav-links a:hover,
+    .nav-links a:focus{
+      background-color: #ff9776;
+    }
+
+    :has(.menu[aria-expanded="true"]) .nav-links {
+      display: unset;
+    }
+
+    @media screen and (min-width: 636px) {
+      .nav-links {
+        margin-left: 5em;
+        display: block;
+        position: static;
+        width: auto;
+        background: none;
+      }
+
+      .nav-links a {
+        display: inline-block;
+        padding: 15px 20px;
+      }
+
+      .menu {
+        display: none;
+      }
+    }
+    ```
+</Steps>
+
+## Tulis tag skrip pertamamu
+
+Header-mu belum **interaktif** karena belum bisa merespons input pengguna, seperti mengklik menu untuk menampilkan atau menyembunyikan tautan navigasi.
+
+Menambahkan tag `<script>` menyediakan JavaScript sisi-klien untuk “mendengarkan” event pengguna lalu meresponsnya.
+
+<Steps>
+1. Tambahkan tag `<script>` berikut, menggunakan dukungan TypeScript bawaan Astro, ke `index.astro`, tepat sebelum tag penutup `</body>`.
+
+    ```astro title="src/pages/index.astro" ins={2-9}
+      <Footer />
+      <script>
+        const menu = document.querySelector('.menu');
+
+        menu?.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', `${!isExpanded}`);
+        });
+      </script>
+    </body>
+    ```
+
+2. Cek kembali pratinjau browser pada berbagai ukuran, dan pastikan kamu punya menu navigasi yang bekerja: responsif terhadap ukuran layar **dan** merespons input pengguna di halaman ini.
+</Steps>
+
+### Mengimpor file `.js`
+
+Alih-alih menulis JavaScript langsung di setiap halaman, kamu bisa memindahkan isi tag `<script>` ke file `.js` tersendiri di proyekmu.
+
+<Steps>
+1. Buat `src/scripts/menu.js` (kamu perlu membuat folder `/scripts/`) dan pindahkan JavaScript-mu ke sana.
+
+    ```js title="src/scripts/menu.js"
+    const menu = document.querySelector('.menu');
+
+    menu?.addEventListener('click', () => {
+      const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+      menu.setAttribute('aria-expanded', `${!isExpanded}`);
+    });
+    ```
+
+2. Ganti isi tag `<script>` pada `index.astro` dengan import file berikut:
+
+    ```astro title="src/pages/index.astro" ins={10} del={3-8}
+      <Footer />
+      <script>
+        const menu = document.querySelector('.menu');
+
+        menu?.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', `${!isExpanded}`);
+        });
+
+        import "../scripts/menu.js";
+      </script>
+    </body>
+    ```
+
+3. Cek lagi pratinjau browser pada ukuran lebih kecil dan pastikan menu masih bisa membuka/menutup tautan navigasi. 
+
+4. Tambahkan tag `<script>` yang sama dengan import ke dua halaman lain, `about.astro` dan `blog.astro`, dan pastikan header di setiap halaman sudah responsif dan interaktif.
+
+    ```astro title="src/pages/about.astro & src/pages/blog.astro" ins={2-4}
+      <Footer />
+      <script>
+        import "../scripts/menu.js";
+      </script>
+    </body>
+    ```
+</Steps>
+
+:::note[Yang perlu diingat]
+Sebelumnya kamu sudah menggunakan JavaScript untuk membangun bagian-bagian situsmu:
+
+- Mendefinisikan judul halaman dan heading secara dinamis
+- Melakukan `map` pada daftar keahlian di halaman About
+- Menampilkan elemen HTML secara kondisional
+
+Perintah-perintah itu dijalankan **saat build** untuk membuat HTML statis situsmu, lalu kodenya “dibuang”. 
+
+**JavaScript di dalam tag `<script>` dikirim ke browser**, dan akan tersedia untuk dijalankan berdasarkan interaksi pengguna seperti memuat ulang halaman atau menekan tombol.
+:::
+
+<Box icon="question-mark">
+
+### Uji pengetahuanmu
+
+1. Kapan Astro menjalankan JavaScript yang ditulis di frontmatter komponen?
+    <MultipleChoice>
+      <Option>
+       Astro tidak pernah menjalankan JavaScript
+      </Option>
+      <Option isCorrect>
+        saat build-time
+      </Option>
+      <Option>
+         ketika pengunjung mengeklik tombol
+      </Option>
+    </MultipleChoice>
+
+2. Secara opsional, Astro dapat mengirim JavaScript ke browser untuk memungkinkan:
+    <MultipleChoice>
+      <Option>
+        pengguna mengeklik tautan halaman
+      </Option>
+      <Option>
+        waktu muat lebih cepat
+      </Option>
+      <Option isCorrect>
+        interaktivitas sisi-klien
+      </Option>
+    </MultipleChoice>
+
+3. JavaScript sisi-klien akan dikirim ke browser ketika ditulis atau diimpor:
+    <MultipleChoice>
+      <Option isCorrect>
+        di tag `<script>`
+      </Option>
+      <Option>
+        di antara code fence file `.astro`
+      </Option>
+      <Option>
+        di `global.css`
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## Daftar Periksa
+
+<Checklist>
+- [ ] Aku bisa menambahkan interaktivitas sisi-klien dengan JavaScript di tag `<script>`.
+- [ ] Aku bisa mengimpor file `.js` ke dalam tag `<script>`.
+</Checklist>
+
+</Box>
+
+### Sumber daya
+
+[Client-side scripts di Astro](/id/guides/client-side-scripts/)

@@ -1,0 +1,373 @@
+---
+title: API Astro secara programatik (eksperimental)
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Jika Anda memerlukan kontrol lebih saat menjalankan Astro, paket `"astro"` mengekspor API untuk menjalankan perintah CLI secara terprogram.
+
+API ini bersifat eksperimental dan tanda tangannya dapat berubah. Setiap pembaruan akan disebutkan di [changelog Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) dan informasi di bawah ini akan selalu menunjukkan informasi terkini.
+
+## `AstroInlineConfig`
+
+Tipe `AstroInlineConfig` digunakan oleh semua API perintah di bawah. Tipe ini memperluas tipe [konfigurasi Astro](/id/reference/configuration-reference/) yang diberikan pengguna:
+
+```ts
+interface AstroInlineConfig extends AstroUserConfig {
+	configFile?: string | false;
+	mode?: string;
+	logLevel?: "debug" | "info" | "warn" | "error" | "silent";
+}
+```
+
+### `configFile`
+
+<p>
+
+**Type:** `string | false`<br />
+**Default:** `undefined`
+</p>
+
+Path kustom ke file konfigurasi Astro.
+
+Jika nilai ini tidak ditentukan (default) atau tidak di-set, Astro akan mencari file `astro.config.(js,mjs,ts,mts)` relatif terhadap `root` dan memuatnya jika ditemukan.
+
+Jika diberikan path relatif, maka akan di-resolve berdasarkan opsi `root`.
+
+Set ke `false` untuk menonaktifkan pemuatan file konfigurasi apa pun.
+
+Konfigurasi inline yang diberikan di objek ini akan memiliki prioritas tertinggi saat digabung dengan konfigurasi pengguna yang dimuat.
+
+### `mode`
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `"development"` saat menjalankan `astro dev`, `"production"` saat menjalankan `astro build`<br />
+<Since v="5.0.0" />
+</p>
+
+Mode yang digunakan saat mengembangkan atau membangun situs Anda (mis. `"production"`, `"testing"`).
+
+Nilai ini diteruskan ke Vite menggunakan [flag `--mode`](/id/reference/cli-reference/#--mode-string) ketika perintah `astro build` atau `astro dev` dijalankan untuk menentukan nilai `import.meta.env.MODE`. Ini juga menentukan `.env` mana yang dimuat, dan karenanya nilai `astro:env`. Lihat [variabel lingkungan](/id/guides/environment-variables/) untuk detailnya.
+
+Untuk menghasilkan build berbasis development, Anda dapat menjalankan `astro build` dengan [flag `--devOutput`](/id/reference/cli-reference/#--devoutput).
+
+### `logLevel`
+
+<p>
+
+**Type:** `"debug" | "info" | "warn" | "error" | "silent"`<br />
+**Default:** `"info"`
+</p>
+
+Tingkat logging untuk menyaring pesan yang dicatat oleh Astro.
+
+- `"debug"`: Log semua hal, termasuk diagnostik debug yang bising.
+- `"info"`: Log pesan informasional, peringatan, dan error.
+- `"warn"`: Hanya log peringatan dan error.
+- `"error"`: Hanya log error.
+- `"silent"`: Tanpa logging.
+
+## `dev()`
+
+<p>
+
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<DevServer>`
+</p>
+
+Mirip dengan [`astro dev`](/id/reference/cli-reference/#astro-dev), menjalankan server pengembangan Astro.
+
+```js
+import { dev } from "astro";
+
+const devServer = await dev({
+  root: "./my-project",
+});
+
+// Hentikan server jika diperlukan
+await devServer.stop();
+```
+
+### `DevServer`
+
+```ts
+export interface DevServer {
+	address: AddressInfo;
+	handle: (req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void;
+	watcher: vite.FSWatcher;
+	stop(): Promise<void>;
+}
+```
+
+#### `address`
+
+<p>
+
+**Type:** `AddressInfo`
+</p>
+
+Alamat tempat dev server mendengarkan koneksi.
+
+Properti ini berisi nilai yang dikembalikan oleh metode Node [`net.Server#address()`](https://nodejs.org/api/net.html#serveraddress).
+
+#### `handle()`
+
+<p>
+
+**Type:** `(req: http.IncomingMessage, res: http.ServerResponse<http.IncomingMessage>) => void`
+</p>
+
+Handle untuk permintaan HTTP Node mentah. Anda dapat memanggil `handle()` dengan [`http.IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) dan [`http.ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) alih‑alih mengirim permintaan melalui jaringan.
+
+#### `watcher`
+
+<p>
+
+**Type:** `vite.FSWatcher`
+</p>
+
+[Chokidar file watcher](https://github.com/paulmillr/chokidar#getting-started) seperti yang diekspos oleh [server pengembangan Vite](https://vite.dev/guide/api-javascript#vitedevserver).
+
+#### `stop()`
+
+<p>
+
+**Type:** `Promise<void>`
+</p>
+
+Menghentikan server pengembangan. Ini akan menutup semua koneksi idle dan berhenti mendengarkan koneksi baru.
+
+Mengembalikan `Promise` yang terselesaikan setelah semua permintaan tertunda terpenuhi dan seluruh koneksi idle ditutup.
+
+## `build()`
+
+<p>
+
+**Type:** `(inlineConfig: AstroInlineConfig, options?: BuildOptions) => Promise<void>`
+</p>
+
+Mirip dengan [`astro build`](/id/reference/cli-reference/#astro-build), membangun situs Anda untuk deployment.
+
+```js
+import { build } from "astro";
+
+await build({
+  root: "./my-project",
+});
+```
+
+### `BuildOptions`
+
+```ts
+export interface BuildOptions {
+	devOutput?: boolean;
+	teardownCompiler?: boolean;
+}
+```
+
+#### `devOutput`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+<Since v="5.4.0" />
+</p>
+
+Keluarkan build berbasis development, mirip dengan kode yang ditransformasi di `astro dev`. Ini berguna untuk menguji masalah khusus build dengan informasi debug tambahan.
+
+#### `teardownCompiler`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+<Since v="5.4.0" />
+</p>
+
+Menutup instance WASM compiler setelah build. Ini dapat meningkatkan performa saat membangun sekali, namun bisa menimbulkan penalti performa jika membangun berkali‑kali berturut‑turut.
+
+Saat membangun banyak proyek dalam satu eksekusi (mis. selama pengujian), menonaktifkan opsi ini dapat sangat meningkatkan performa dan mengurangi puncak penggunaan memori dengan konsekuensi penggunaan memori yang bertahan lebih tinggi.
+
+## `preview()`
+
+<p>
+
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<PreviewServer>`
+</p>
+
+Mirip dengan [`astro preview`](/id/reference/cli-reference/#astro-preview), menjalankan server lokal untuk menyajikan output build Anda.
+
+Jika tidak ada adapter yang disetel pada konfigurasi, server preview hanya akan menyajikan file statis hasil build.
+Jika ada adapter, server preview disediakan oleh adapter tersebut. Adapter tidak wajib menyediakan server preview, jadi fitur ini mungkin tidak tersedia tergantung pilihan adapter Anda.
+
+```js
+import { preview } from "astro";
+
+const previewServer = await preview({
+  root: "./my-project",
+});
+
+// Hentikan server jika diperlukan
+await previewServer.stop();
+```
+
+### `PreviewServer`
+
+```ts
+export interface PreviewServer {
+	host?: string;
+	port: number;
+	closed(): Promise<void>;
+	stop(): Promise<void>;
+}
+```
+
+#### `host`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Host tempat server mendengarkan koneksi.
+
+Adapter dapat membiarkan field ini tidak di-set. Nilai `host` spesifik implementasi.
+
+#### `port`
+
+<p>
+
+**Type:** `number`
+</p>
+
+Port tempat server mendengarkan koneksi.
+
+#### `stop()`
+
+<p>
+
+**Type:** `Promise<void>`
+</p>
+
+Meminta server preview untuk menutup, berhenti menerima permintaan, dan memutus koneksi idle.
+
+`Promise` yang dikembalikan akan terselesaikan saat permintaan penutupan telah dikirim. Ini **tidak** berarti server sudah benar‑benar tertutup. Gunakan metode [`closed()`](#closed) bila Anda perlu memastikan server telah sepenuhnya tertutup.
+
+#### `closed()`
+
+<p>
+
+**Type:** `Promise<void>`
+</p>
+
+Mengembalikan `Promise` yang akan terselesaikan ketika server tertutup dan akan gagal bila terjadi error pada server.
+
+## `sync()`
+
+<p>
+
+**Type:** `(inlineConfig: AstroInlineConfig) => Promise<void>`
+</p>
+
+Mirip dengan [`astro sync`](/id/reference/cli-reference/#astro-sync), menghasilkan tipe TypeScript untuk semua modul Astro.
+
+```js
+import { sync } from "astro";
+
+await sync({
+  root: "./my-project",
+});
+```
+
+## `mergeConfig()`
+
+<p>
+
+**Type:** `<T extends AstroConfig | AstroInlineConfig>(config: T, overrides: DeepPartial<T>) => T`
+<Since v="5.4.0" />
+</p>
+
+Diimpor dari `astro/config`, menggabungkan konfigurasi Astro parsial di atas konfigurasi Astro yang sudah valid.
+
+`mergeConfig()` menerima objek konfigurasi Astro dan konfigurasi parsial (kombinasi opsi konfigurasi Astro yang valid), lalu mengembalikan konfigurasi Astro yang valid hasil penggabungan keduanya, dengan aturan:
+
+- Array digabung (termasuk integrations dan plugin remark).
+- Object digabung secara rekursif.
+- Opsi Vite digabung menggunakan [fungsi `mergeConfig` punya Vite](https://vite.dev/guide/api-javascript#mergeconfig) dengan flag `isRoot` default.
+- Opsi yang dapat diberikan sebagai fungsi akan dibungkus ke fungsi baru yang menggabungkan nilai balik dari kedua konfigurasi dengan aturan yang sama.
+- Opsi lain akan menimpa konfigurasi yang ada.
+
+```ts
+import { mergeConfig } from "astro/config";
+
+mergeConfig(
+  {
+    output: 'static',
+    site: 'https://example.com',
+    integrations: [partytown()],
+    server: ({command}) => ({
+      port: command === 'dev' ? 4321 : 1234,
+    }),
+	  build: {
+		  client: './custom-client',
+	  },
+  },
+  {
+    output: 'server',
+    base: '/astro',
+    integrations: [mdx()],
+    server: ({command}) => ({
+      host: command === 'dev' ? 'localhost' : 'site.localhost',
+    }),
+	  build: {
+		  server: './custom-server',
+	  },
+  }
+);
+
+// Hasilnya setara dengan:
+{
+  output: 'server',
+  site: 'https://example.com',
+  base: '/astro',
+  integrations: [partytown(), mdx()],
+  server: ({command}) => ({
+    port: command === 'dev' ? 4321 : 1234,
+    host: command === 'dev' ? 'localhost' : 'site.localhost',
+  }),
+	build: {
+		client: './custom-client',
+		server: './custom-server',
+	},
+}
+```
+
+## `validateConfig()`
+
+<p>
+
+**Type:** `(userConfig: any, root: string, cmd: string): Promise<AstroConfig>`
+<Since v="5.4.0" />
+</p>
+
+Diimpor dari `astro/config`, memvalidasi sebuah objek seolah‑olah objek tersebut diekspor dari `astro.config.mjs` dan dimuat oleh Astro.
+
+Fungsi ini menerima argumen berikut:
+- Konfigurasi yang akan divalidasi.
+- Direktori root proyek.
+- Perintah Astro yang sedang dieksekusi (`build`, `dev`, `sync`, dll.)
+
+Promise yang dikembalikan akan terselesaikan ke konfigurasi yang sudah tervalidasi, lengkap dengan seluruh nilai default yang sesuai untuk perintah Astro yang diberikan.
+
+```ts
+import { validateConfig } from "astro/config";
+
+const config = await validateConfig({
+  integrations: [partytown()],
+}, "./my-project", "build");
+
+// nilai default diterapkan
+await rm(config.outDir, { recursive: true, force: true });
+```

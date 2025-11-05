@@ -1,0 +1,129 @@
+---
+title: Turso & Astro
+description: Bangun secara lokal dengan file SQLite dan deploy secara global menggunakan Turso.
+sidebar:
+  label: Turso
+  hidden: false
+type: backend
+service: Turso
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[Turso](https://turso.tech) adalah database terdistribusi yang dibangun di atas libSQL, sebuah fork dari SQLite. Turso dioptimalkan untuk latensi kueri yang rendah sehingga cocok untuk aplikasi global.
+
+## Inisialisasi Turso di Astro
+
+### Prasyarat
+
+- [Turso CLI](https://docs.turso.tech/cli/introduction) terpasang dan sudah masuk (signed in)
+- Database [Turso](https://turso.tech) dengan skema
+- URL Database Anda
+- Access Token
+
+### Konfigurasi variabel environment
+
+Dapatkan URL database Anda menggunakan perintah berikut:
+
+```bash
+turso db show <database-name> --url
+```
+
+Buat auth token untuk database:
+
+```bash
+turso db tokens create <database-name>
+```
+
+Tambahkan keluaran dari kedua perintah di atas ke berkas `.env` di root proyek Anda. Jika berkas ini belum ada, buatlah.
+
+```ini title=".env"
+TURSO_DATABASE_URL=libsql://...
+TURSO_AUTH_TOKEN=
+```
+
+:::caution
+Jangan gunakan awalan `PUBLIC_` saat membuat [variabel environment](/id/guides/environment-variables/) privat ini. Hal itu akan mengekspos nilai-nilai tersebut ke sisi klien.
+:::
+
+### Instal LibSQL Client
+
+Instal `@libsql/client` untuk menghubungkan Turso ke Astro:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm install @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm add @libsql/client
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn add @libsql/client
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Inisialisasi klien baru
+
+Buat berkas `turso.ts` di folder `src` dan panggil `createClient` dengan memberikan `TURSO_DATABASE_URL` dan `TURSO_AUTH_TOKEN`:
+
+```ts title="src/turso.ts"
+import { createClient } from "@libsql/client/web";
+
+export const turso = createClient({
+  url: import.meta.env.TURSO_DATABASE_URL,
+  authToken: import.meta.env.TURSO_AUTH_TOKEN,
+});
+```
+
+## Menjalankan kueri ke database Anda
+
+Untuk mengakses informasi dari database Anda, impor `turso` dan [jalankan kueri SQL](https://docs.turso.tech/sdk/ts/reference#simple-query) di dalam komponen `.astro` mana pun.
+
+Contoh berikut mengambil seluruh `posts` dari tabel Anda, lalu menampilkan daftar judul di komponen `<BlogIndex />`:
+
+```astro title="src/components/BlogIndex.astro"
+---
+import { turso } from '../turso'
+
+const { rows } = await turso.execute('SELECT * FROM posts')
+---
+
+<ul>
+  {rows.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+
+### Placeholder SQL
+
+Metode `execute()` dapat menerima [objek untuk mengoper variabel ke pernyataan SQL](https://docs.turso.tech/sdk/ts/reference#placeholders), seperti `slug` atau pagination.
+
+Contoh berikut mengambil satu entri dari tabel `posts` di mana `slug` bernilai dari `Astro.params`, lalu menampilkan judul posting:
+
+```astro title="src/pages/index.astro"
+---
+import { turso } from '../turso'
+
+const { slug } = Astro.params
+
+const { rows } = await turso.execute({
+  sql: 'SELECT * FROM posts WHERE slug = ?',
+  args: [slug!]
+})
+---
+
+<h1>{rows[0].title}</h1>
+```
+
+## Sumber Turso
+- [Dokumentasi Turso](https://docs.turso.tech)
+- [Turso di GitHub](https://github.com/tursodatabase)
+- [Menggunakan Turso untuk menyajikan konten blog Astro yang dirender di sisi server](https://blog.turso.tech/using-turso-to-serve-a-server-side-rendered-astro-blogs-content-58caa6188bd5)

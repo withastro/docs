@@ -1,0 +1,336 @@
+---
+type: integration
+title: '@astrojs/node'
+description: Pelajari cara menggunakan adapter @astrojs/node untuk men-deploy proyek Astro Anda.
+sidebar:
+  label: Node
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/node/'
+category: adapter
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+Adapter ini memungkinkan Astro untuk men-deploy [rute dan fitur yang dirender on‑demand](/id/guides/on-demand-rendering/) ke target Node, termasuk [server islands](/id/guides/server-islands/), [actions](/id/guides/actions/), dan [sessions](/id/guides/sessions/).
+
+Jika Anda menggunakan Astro sebagai pembangun situs statis, Anda tidak memerlukan adapter.
+
+## Mengapa Astro Node.js
+
+[Node.js](https://nodejs.org/id/) adalah runtime JavaScript untuk kode sisi server. `@astrojs/node` dapat digunakan dalam mode mandiri (standalone) atau sebagai middleware untuk server HTTP lain, seperti [Express](https://expressjs.com/).
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatisasi penyiapan integrasi resmi. Jika Anda mau, Anda dapat [menginstal integrasi secara manual](#manual-install) sebagai gantinya.
+
+Tambahkan adapter Node untuk mengaktifkan rendering on‑demand di proyek Astro Anda dengan perintah `astro add`. 
+Ini akan menginstal `@astrojs/node` dan melakukan perubahan yang sesuai pada berkas `astro.config.*` Anda dalam satu langkah.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Sekarang, Anda dapat mengaktifkan [rendering on‑demand per halaman](/id/guides/on-demand-rendering/#enabling-on-demand-rendering), atau atur konfigurasi output build menjadi `output: 'server'` untuk [merender semua halaman di server secara default](/id/guides/on-demand-rendering/#server-mode).
+
+### Manual Install
+
+Pertama, tambahkan adapter Node ke dependensi proyek Anda menggunakan manajer paket pilihan Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, tambahkan adapter ke berkas `astro.config.*` Anda:
+
+```js title="astro.config.mjs" ins={2,5-7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+  }),
+});
+```
+
+## Konfigurasi
+
+`@astrojs/node` dapat dikonfigurasi dengan meneruskan opsi ke fungsi adapter. Opsi berikut tersedia:
+
+### `mode`
+<p>
+**Type:** `'middleware' | 'standalone'` <br />
+</p>
+
+Mengontrol apakah adapter membangun ke mode `middleware` atau `standalone`.
+
+* Mode `middleware` memungkinkan output build digunakan sebagai middleware untuk server Node.js lain, seperti Express.js atau Fastify.
+* Mode `standalone` membangun server yang otomatis berjalan ketika modul entri dijalankan. Ini memudahkan Anda melakukan deploy ke host tanpa kode tambahan.
+
+```js title="astro.config.mjs" {6}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'middleware',
+  }),
+});
+```
+
+### `experimentalDisableStreaming`
+
+<p>
+**Type:** `boolean` <br />
+**Default:** `false`<br />
+<Since v="9.3.0" pkg="@astrojs/node" />
+</p>
+
+Menonaktifkan [HTML streaming](/id/guides/on-demand-rendering/#html-streaming) bawaan Astro untuk halaman yang dirender on‑demand.
+
+HTML streaming membantu performa dan umumnya memberikan pengalaman yang lebih baik. Dalam banyak kasus, menonaktifkan streaming tidak disarankan.
+
+Namun, jika Anda perlu menonaktifkan HTML streaming (mis. host Anda hanya mendukung caching HTML non‑stream di tingkat CDN), Anda dapat menyimpang dari perilaku default:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+    experimentalDisableStreaming: true,
+  }),
+});
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+  **Type:** `boolean` <br />
+  **Default:** `false`<br />
+  <Since v="9.3.0"  pkg="@astrojs/node"/>
+</p>
+
+Jika diaktifkan, adapter akan menyajikan header dari halaman yang diprerender menggunakan objek `Response` saat disediakan oleh fitur Astro, seperti Content Security Policy.
+
+Sebagai contoh, ketika [Content Security Policy eksperimental](/id/reference/experimental-flags/csp/) diaktifkan, `experimentalStaticHeaders` dapat digunakan untuk menambahkan header CSP ke objek `Response` alih-alih membuat elemen `<meta>`:
+
+```js title="astro.config.mjs" {10}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: node({
+    mode: 'standalone',
+    experimentalStaticHeaders: true,
+  })
+});
+```
+
+### `experimentalErrorPageHost`
+
+<p>
+  **Type:** `string | URL` <br />
+  **Default:** `undefined`<br />
+  <Since v="9.4.0" pkg="@astrojs/node"/>
+</p>
+
+Menentukan host alternatif untuk memuat [halaman error kustom](/id/basics/astro-pages/#custom-404-error-page) yang diprerender.
+
+Astro harus bisa memuat halaman 404 Anda untuk mengembalikannya dalam respons. Secara default, Astro akan memuat halaman error kustom dari host yang sama dengan tempat permintaan dilakukan. Misalnya, jika permintaan dibuat ke `https://example.com/nonexistent-page`, Astro akan mencoba memuat halaman error dari `https://example.com/404.html`.
+
+Gunakan `experimentalErrorPageHost` ketika halaman error kustom harus dimuat dari host yang berbeda, seperti saat server berjalan di balik reverse proxy atau dalam container yang mungkin tidak memiliki akses ke URL host eksternal. Anda juga dapat menggunakannya jika lebih efisien memuat halaman error yang diprerender dari localhost daripada melalui internet publik.
+
+Nilainya bisa berupa string atau objek URL. Harus berupa URL lengkap, termasuk protokol (mis., `http://localhost:4321`). Astro selalu akan memuat halaman error yang diprerender dari root path; path atau query parameter apa pun akan diabaikan.
+
+```js
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    // Muat halaman dari localhost, bukan URL publik.
+    experimentalErrorPageHost: 'http://localhost:4321',
+  })
+});
+```
+
+## Penggunaan
+
+Pertama, lakukan [build](/id/guides/deploy/#building-your-site-locally). Bergantung pada `mode` yang dipilih (lihat di atas) ikuti langkah yang sesuai di bawah ini:
+
+### Middleware
+
+Entrypoint server dibangun ke `./dist/server/entry.mjs` secara default. Modul ini mengekspor fungsi `handler` yang dapat digunakan dengan framework apa pun yang mendukung objek Node `request` dan `response`.
+
+Contoh dengan Express:
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+// Ubah ini berdasarkan opsi `base` di astro.config.mjs Anda.
+// Nilainya harus sama. Defaultnya adalah "/".
+const base = '/';
+app.use(base, express.static('dist/client/'));
+app.use(ssrHandler);
+
+app.listen(8080);
+```
+
+Atau, dengan Fastify (>4):
+
+```js title="run-server.mjs"
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+app.listen({ port: 8080 });
+```
+
+Selain itu, Anda juga dapat meneruskan sebuah objek untuk diakses melalui `Astro.locals` atau di middleware Astro:
+
+```js title="run-server.mjs"
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use((req, res, next) => {
+  const locals = {
+    title: 'New title',
+  };
+
+  ssrHandler(req, res, next, locals);
+});
+
+app.listen(8080);
+```
+
+Perhatikan bahwa mode middleware tidak melayani berkas statis. Anda perlu mengonfigurasi framework HTTP Anda untuk melakukannya. Secara default aset klien ditulis ke `./dist/client/`.
+
+### Standalone
+
+Dalam mode standalone, server akan berjalan ketika entrypoint server dijalankan. Secara default ini dibangun ke `./dist/server/entry.mjs`. Anda dapat menjalankannya dengan:
+
+```sh
+node ./dist/server/entry.mjs
+```
+
+Untuk mode standalone, server menangani penyajian berkas selain rute halaman dan API.
+
+#### Host dan port kustom
+
+Anda dapat mengganti host dan port server standalone dengan meneruskannya sebagai variabel lingkungan saat runtime:
+
+```sh
+HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
+```
+
+#### HTTPS
+
+Secara default server standalone menggunakan HTTP. Ini cocok jika Anda memiliki proxy server di depannya yang menangani HTTPS. Jika Anda perlu server standalone menjalankan HTTPS sendiri, Anda harus menyediakan kunci SSL dan sertifikat.
+
+Anda dapat meneruskan path ke kunci dan sertifikat melalui variabel lingkungan `SERVER_CERT_PATH` dan `SERVER_KEY_PATH`. Contohnya di bash:
+
+```bash
+SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
+```
+
+#### Aset
+
+Dalam mode standalone, aset di folder `dist/client/` disajikan melalui server standalone. Anda mungkin men-deploy aset-aset ini ke CDN, sehingga server tidak akan benar-benar menyajikannya. Namun dalam beberapa kasus, seperti situs intranet, menyajikan aset statis langsung dari server aplikasi tidak masalah.
+
+Aset di folder `dist/client/_astro/` adalah aset yang dibangun oleh Astro. Semua dinamai dengan hash sehingga dapat diberikan header cache jangka panjang. Secara internal, adapter menambahkan header berikut untuk aset-aset ini:
+
+```
+Cache-Control: public, max-age=31536000, immutable
+```
+
+## Sessions
+
+[Sessions API](/id/guides/sessions/) Astro memudahkan Anda menyimpan data pengguna antar permintaan. Ini dapat digunakan untuk hal-hal seperti data dan preferensi pengguna, keranjang belanja, dan kredensial autentikasi. Tidak seperti penyimpanan cookie, tidak ada batas ukuran data, dan dapat dipulihkan di perangkat yang berbeda. 
+
+Astro menggunakan filesystem lokal untuk penyimpanan sesi saat menggunakan adapter Node. Jika Anda lebih suka menggunakan driver penyimpanan sesi lainnya, Anda dapat menentukannya di konfigurasi Astro. Lihat [referensi konfigurasi `session`](/id/reference/configuration-reference/#sessiondriver) untuk detail selengkapnya.
+
+## Variabel lingkungan
+
+Saat menggunakan rahasia [`astro:env`](/id/guides/environment-variables/#type-safe-environment-variables) atau `process.env` pada runtime, baik Astro maupun adapter tidak memuat variabel lingkungan untuk Anda. 
+
+Beberapa host mungkin mengekspos variabel lingkungan yang Anda konfigurasikan melalui dashboard mereka selama build dan saat runtime. Periksa dokumentasi host Anda tentang cara menyetel dan menggunakan variabel lingkungan pada platform tersebut.
+
+Saat self‑hosting, Anda dapat memuat variabel lingkungan melalui perintah CLI atau berkas konfigurasi sesuai kebutuhan:
+
+<Tabs>
+  <TabItem label="Inline">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>

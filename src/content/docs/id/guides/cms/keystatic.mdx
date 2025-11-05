@@ -1,0 +1,236 @@
+---
+title: Keystatic & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Keystatic sebagai CMS
+sidebar:
+  label: Keystatic
+type: cms
+service: Keystatic
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Keystatic](https://keystatic.com/) adalah CMS *headless* sumber terbuka yang memungkinkan Anda menstrukturkan konten dan menyinkronkannya dengan GitHub.
+
+:::tip
+Jika Anda memulai **proyek Astro + Keystatic baru dari nol**, Anda dapat menggunakan [Keystatic CLI](https://keystatic.com/docs/quick-start#keystatic-cli) untuk menghasilkan proyek baru dalam hitungan detik:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create @keystatic@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create @keystatic@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create @keystatic
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Pilih templat Astro, dan Anda siap untuk [*deploy*](#deploying-keystatic--astro)!
+:::
+
+## Prasyarat
+
+- Proyek Astro yang sudah ada [dengan adapter terkonfigurasi](/id/guides/on-demand-rendering/).
+
+:::note
+Jika Anda berniat menyinkronkan data Keystatic dengan GitHub, Anda juga memerlukan **akun GitHub dengan izin `write`** pada repositori untuk proyek ini.
+:::
+
+## Menginstal dependensi
+
+Tambahkan integrasi Markdoc (untuk entri konten) dan React (untuk *Admin UI Dashboard* Keystatic) ke proyek Astro Anda, menggunakan perintah `astro add` sesuai *package manager* Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Anda juga memerlukan dua paket Keystatic:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @keystatic/core @keystatic/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @keystatic/core @keystatic/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @keystatic/core @keystatic/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Menambahkan integrasi Astro
+
+Tambahkan integrasi Astro dari `@keystatic/astro` di file konfigurasi Astro Anda:
+
+```js  ins={6} ins=", keystatic()"
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+
+import react from '@astrojs/react'
+import markdoc from '@astrojs/markdoc'
+import keystatic from '@keystatic/astro'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [react(), markdoc(), keystatic()],
+  output: 'static',
+})
+```
+
+## Membuat file konfigurasi Keystatic
+
+File konfigurasi Keystatic diperlukan untuk mendefinisikan skema konten Anda. File ini juga memungkinkan Anda menghubungkan proyek ke repositori GitHub tertentu (jika Anda memilih demikian).
+
+Buat file bernama `keystatic.config.ts` di root proyek dan tambahkan kode berikut untuk mendefinisikan tipe penyimpanan (`local`) serta satu koleksi konten (`posts`):
+
+```ts {8-25}
+// keystatic.config.ts
+import { config, fields, collection } from '@keystatic/core';
+
+export default config({
+  storage: {
+    kind: 'local',
+  },
+
+  collections: {
+    posts: collection({
+      label: 'Posts',
+      slugField: 'title',
+      path: 'src/content/posts/*',
+      format: { contentField: 'content' },
+      schema: {
+        title: fields.slug({ name: { label: 'Title' } }),
+        content: fields.markdoc({
+          label: 'Content',
+        }),
+      },
+    }),
+  },
+});
+```
+
+:::note[Sudah memakai content collections?]
+Jika Anda sudah menggunakan [content collections](/id/guides/content-collections/) di proyek Astro, perbarui skema di atas agar **persis** sama dengan koleksi yang didefinisikan pada skema Anda saat ini.
+:::
+
+Keystatic sekarang dikonfigurasi untuk mengelola konten Anda berdasarkan skema tersebut.
+
+## Menjalankan Keystatic secara lokal
+
+Untuk meluncurkan *Admin UI* Keystatic, jalankan server dev Astro:
+
+    ```bash
+    npm run dev
+    ```
+
+Buka `http://127.0.0.1:4321/keystatic` di peramban untuk melihat *Admin UI* Keystatic berjalan.
+
+## Membuat posting baru
+
+<Steps>
+1. Di *Admin UI* Keystatic, klik koleksi “Posts”.
+
+2. Gunakan tombol untuk membuat posting baru. Tambahkan judul "My First Post" dan beberapa konten, lalu simpan posting.
+
+3. Postingan ini sekarang akan terlihat dari koleksi "Posts". Anda dapat melihat dan mengedit tiap posting dari halaman dasbor ini.
+
+4. Kembali ke berkas proyek Astro Anda. Sekarang Anda akan menemukan file `.mdoc` baru di dalam direktori `src/content/posts` untuk posting ini:
+    <FileTree title="Struktur Proyek">
+    - src/
+      - content/
+        - posts/
+          - **my-first-post.mdoc**
+    </FileTree>
+
+5. Buka file tersebut di editor kode Anda dan pastikan Anda dapat melihat konten Markdown yang Anda masukkan. Contohnya: 
+      ```markdown
+      ---
+      title: My First Post
+      ---
+      
+      This is my very first post. I am **super** excited!
+      ```
+</Steps>
+
+## Merender konten Keystatic
+
+Gunakan Content Collections API milik Astro untuk [*query* dan menampilkan posting serta koleksi](/id/guides/content-collections/#querying-collections), seperti di proyek Astro pada umumnya.
+
+### Menampilkan daftar koleksi
+
+Contoh berikut menampilkan daftar judul tiap posting, dengan tautan ke halaman posting individual.
+
+```tsx {4}
+---
+import { getCollection } from 'astro:content'
+
+const posts = await getCollection('posts')
+---
+<ul>
+  {posts.map(post => (
+    <li>
+      <a href={`/posts/${post.slug}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
+```
+
+### Menampilkan satu entri
+
+Untuk menampilkan konten dari posting tertentu, Anda dapat mengimpor dan menggunakan komponen `<Content />` untuk [merender konten menjadi HTML](/id/guides/content-collections/#rendering-body-content):
+
+```tsx {4-5}
+---
+import { getEntry } from 'astro:content'
+
+const post = await getEntry('posts', 'my-first-post')
+const { Content } = await post.render()
+---
+
+<main>
+  <h1>{post.data.title}</h1>
+  <Content />
+</main>
+
+```
+
+Untuk informasi lebih lanjut tentang *querying*, pemfilteran, penampilan koleksi, dan lainnya, lihat dokumentasi lengkap [content collections](/id/guides/content-collections/).
+## *Deploy* Keystatic + Astro
+
+Untuk *deploy* situs Anda, kunjungi [panduan *deployment*](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+Anda kemungkinan juga ingin [menghubungkan Keystatic ke GitHub](https://keystatic.com/docs/connect-to-github) agar dapat mengelola konten pada instance proyek yang ter-*deploy*.
+
+## Sumber Daya Resmi
+
+- Lihat [panduan resmi Keystatic](https://keystatic.com/docs/installation-astro)
+- [Templat *starter* Keystatic](https://github.com/Thinkmill/keystatic/tree/main/templates/astro)

@@ -1,0 +1,118 @@
+---
+title: Tambahkan waktu baca
+description: Bangun plugin remark untuk menambahkan waktu baca ke berkas Markdown atau MDX Anda.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Buat sebuah [plugin remark](https://github.com/remarkjs/remark) yang menambahkan properti waktu baca ke frontmatter berkas Markdown atau MDX Anda. Gunakan properti ini untuk menampilkan waktu baca pada setiap halaman.
+
+## Resep
+
+<Steps>
+1. Instal Paket Pembantu
+
+    Instal dua paket pembantu ini:
+    - [`reading-time`](https://www.npmjs.com/package/reading-time) untuk menghitung menit baca
+    - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) untuk mengekstrak semua teks dari markdown Anda
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+    npm install reading-time mdast-util-to-string
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+    pnpm add reading-time mdast-util-to-string
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+    yarn add reading-time mdast-util-to-string
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Buat plugin remark.
+
+    Plugin ini menggunakan paket `mdast-util-to-string` untuk mendapatkan teks dari berkas Markdown. Teks ini kemudian diberikan ke paket `reading-time` untuk menghitung waktu baca dalam menit. 
+
+    ```js title="remark-reading-time.mjs"
+    import getReadingTime from 'reading-time';
+    import { toString } from 'mdast-util-to-string';
+
+    export function remarkReadingTime() {
+      return function (tree, { data }) {
+        const textOnPage = toString(tree);
+        const readingTime = getReadingTime(textOnPage);
+        // readingTime.text akan memberi kita menit baca sebagai string ramah,
+        // mis. "3 min read"
+        data.astro.frontmatter.minutesRead = readingTime.text;
+      };
+    }
+    ```
+
+3. Tambahkan plugin ke konfigurasi Anda:
+
+    ```js title="astro.config.mjs" "import { remarkReadingTime } from './remark-reading-time.mjs';" "remarkPlugins: [remarkReadingTime],"
+    import { defineConfig } from 'astro/config';
+    import { remarkReadingTime } from './remark-reading-time.mjs';
+
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [remarkReadingTime],
+      },
+    });
+    ```
+
+    Sekarang semua dokumen Markdown akan memiliki properti `minutesRead` yang dihitung di frontmatter-nya. 
+
+4. Tampilkan Waktu Baca
+
+    Jika postingan blog Anda disimpan dalam sebuah [content collection](/en/guides/content-collections/), akses `remarkPluginFrontmatter` dari fungsi `render(entry)`. Lalu, render `minutesRead` di template Anda di mana pun Anda ingin menampilkannya.
+
+    ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+    ---
+    import { getCollection, render } from 'astro:content';
+
+    export async function getStaticPaths() {
+      const blog = await getCollection('blog');
+      return blog.map(entry => ({
+        params: { slug: entry.id },
+        props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content, remarkPluginFrontmatter } = await render(entry);
+    ---
+
+    <html>
+      <head>...</head>
+      <body>
+        ...
+        <p>{remarkPluginFrontmatter.minutesRead}</p>
+        ...
+      </body>
+    </html>
+    ```
+
+    Jika Anda menggunakan [Markdown layout](/en/basics/layouts/#markdown-layouts), gunakan properti frontmatter `minutesRead` dari `Astro.props` di template layout Anda.
+
+    ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+    ---
+    const { minutesRead } = Astro.props.frontmatter;
+    ---
+
+    <html>
+      <head>...</head>
+      <body>
+        <p>{minutesRead}</p>
+        <slot />
+      </body>
+    </html>
+    ```
+</Steps>

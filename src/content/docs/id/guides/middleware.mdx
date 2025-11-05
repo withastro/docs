@@ -1,0 +1,283 @@
+---
+title: Middleware
+description: Pelajari cara menggunakan middleware di Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+
+**Middleware** memungkinkan Anda mencegat request dan response serta menyisipkan perilaku secara dinamis setiap kali sebuah halaman atau endpoint akan dirender. Perenderan ini terjadi saat build untuk semua halaman yang diprerender, tetapi terjadi ketika rute diminta untuk halaman yang dirender sesuai permintaan, sehingga [fitur SSR tambahan seperti cookie dan header](/id/guides/on-demand-rendering/#on-demand-rendering-features) tersedia.
+
+Middleware juga memungkinkan Anda menyetel dan berbagi informasi spesifik request di seluruh endpoint dan halaman dengan memodifikasi objek `locals` yang tersedia di semua komponen Astro dan endpoint API. Objek ini tersedia bahkan ketika middleware ini dijalankan saat build.
+
+## Penggunaan Dasar
+
+<Steps>
+1. Buat `src/middleware.js|ts` (Sebagai alternatif, Anda dapat membuat `src/middleware/index.js|ts`.)
+
+2. Di dalam file ini, ekspor fungsi [`onRequest()`](/id/reference/modules/astro-middleware/#onrequest) yang bisa menerima [`context object`](#objek-context) dan fungsi `next()`. Ini tidak boleh diekspor sebagai default.
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // mencegat data dari request
+        // opsional, ubah properti di `locals`
+        context.locals.title = "Judul baru";
+
+        // kembalikan sebuah Response atau hasil pemanggilan `next()`
+        return next();
+    };
+    ```
+
+3. Di dalam file `.astro` mana pun, akses data respons menggunakan `Astro.locals`.
+
+    ```astro title="src/components/Component.astro"
+    ---
+    const data = Astro.locals;
+    ---
+    <h1>{data.title}</h1>
+    <p>{data.property} ini berasal dari middleware.</p>
+    ```
+</Steps>
+
+### Objek `context`
+
+Objek [`context`](/id/reference/api-reference/) menyertakan informasi yang akan tersedia untuk middleware lain, rute API, dan rute `.astro` selama proses perenderan.
+
+Ini adalah argumen opsional yang diteruskan ke `onRequest()` yang dapat berisi objek `locals` serta properti tambahan apa pun untuk dibagikan selama proses render. Misalnya, objek `context` dapat menyertakan cookie yang digunakan dalam autentikasi.
+
+### Menyimpan data di `context.locals`
+
+`context.locals` adalah objek yang dapat dimanipulasi di dalam middleware.
+
+Objek `locals` ini diteruskan ke seluruh proses penanganan request dan tersedia sebagai properti untuk [`APIContext`](/id/reference/api-reference/#locals) dan [`AstroGlobal`](/id/reference/api-reference/#locals). Ini memungkinkan data dibagikan antara middleware, rute API, dan halaman `.astro`. Ini berguna untuk menyimpan data spesifik request, seperti data pengguna, di seluruh langkah perenderan.
+
+:::tip[Properti integrasi]
+[Integrasi](/id/guides/integrations-guide/) dapat menyetel properti dan menyediakan fungsionalitas melalui objek `locals`. Jika Anda menggunakan sebuah integrasi, periksa dokumentasinya untuk memastikan Anda tidak menimpa propertinya atau melakukan pekerjaan yang tidak perlu.
+:::
+
+Anda dapat menyimpan tipe data apa pun di dalam `locals`: string, number, dan bahkan tipe data kompleks seperti fungsi dan map.
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // mencegat data dari request
+    // opsional, ubah properti di `locals`
+    context.locals.user.name = "John Wick";
+    context.locals.welcomeTitle = () => {
+        return "Selamat datang kembali " + locals.user.name;
+    };
+
+    // kembalikan sebuah Response atau hasil pemanggilan `next()`
+    return next();
+};
+```
+
+Kemudian Anda dapat menggunakan informasi ini di dalam file `.astro` mana pun dengan `Astro.locals`.
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+const data = Astro.locals;
+---
+<h1>{title}</h1>
+<p>{data.property} ini berasal dari middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* lakukan sesuatu dengan setiap order */}</li>;
+    })}
+</ul>
+```
+
+`locals` adalah objek yang hidup dan mati dalam satu rute Astro saja; ketika halaman rute Anda dirender, `locals` tidak akan ada lagi dan yang baru akan dibuat. Informasi yang perlu dipertahankan di banyak permintaan halaman harus disimpan di tempat lain.
+
+:::note
+Nilai `locals` tidak dapat ditimpa saat runtime. Melakukannya berisiko menghapus semua informasi yang disimpan oleh pengguna. Astro melakukan pengecekan dan akan melempar error jika `locals` ditimpa.
+:::
+
+## Contoh: menyamarkan informasi sensitif
+
+Contoh di bawah menggunakan middleware untuk mengganti "PRIVATE INFO" dengan kata "REDACTED" agar Anda dapat merender HTML yang telah dimodifikasi di halaman Anda:
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+## Tipe middleware
+
+Anda dapat mengimpor dan menggunakan fungsi utilitas `defineMiddleware()` untuk mendapatkan manfaat keamanan tipe (type safety):
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` dan `next` secara otomatis diberi tipe
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+Sebagai gantinya, jika Anda menggunakan JsDoc untuk mendapatkan keamanan tipe, Anda dapat menggunakan `MiddlewareHandler`:
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareHandler}
+ */
+// `context` dan `next` secara otomatis diberi tipe
+export const onRequest = (context, next) => {
+
+};
+```
+
+Untuk memberi tipe informasi di dalam `Astro.locals`, yang memberi Anda autocompletion di file `.astro` dan kode middleware, [perluas tipe global](/id/guides/typescript/#extending-global-types) dengan mendeklarasikan namespace global di file `env.d.ts`:
+
+```ts title="src/env.d.ts"
+type User = {
+  id: number;
+  name: string;
+};
+
+declare namespace App {
+  interface Locals {
+    user: User;
+    welcomeTitle: () => string;
+    orders: Map<string, object>;
+    session: import("./lib/server/session").Session | null;
+  }
+}
+```
+
+Kemudian, di dalam file middleware, Anda dapat memanfaatkan autocompletion dan keamanan tipe.
+
+## Merangkai middleware
+
+Beberapa middleware dapat digabung dalam urutan tertentu menggunakan [`sequence()`](/id/reference/modules/astro-middleware/#sequence):
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+
+async function auth(_, next) {
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
+}
+
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+Ini akan menghasilkan urutan konsol berikut:
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```
+
+## Penulisan Ulang (Rewriting)
+
+<p><Since v="4.13.0" /></p>
+
+`APIContext` mengekspos metode bernama `rewrite()` yang bekerja sama seperti [Astro.rewrite](/id/guides/routing/#rewrites).
+
+Gunakan `context.rewrite()` di dalam middleware untuk menampilkan konten halaman lain tanpa [mengalihkan](/id/guides/routing/#dynamic-redirects) pengunjung Anda ke halaman baru. Ini akan memicu fase perenderan baru, menyebabkan middleware mana pun dijalankan kembali.
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // Jika pengguna belum masuk, perbarui Request untuk merender rute `/login` dan
+    // tambahkan header untuk menunjukkan ke mana pengguna harus diarahkan setelah login berhasil.
+    // Jalankan ulang middleware.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+Anda juga dapat memberikan parameter path URL opsional ke fungsi `next()` untuk menulis ulang `Request` saat ini tanpa memicu ulang fase perenderan. Lokasi path rewrite dapat diberikan sebagai string, URL, atau `Request`:
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // Jika pengguna belum masuk, perbarui Request untuk merender rute `/login` dan
+    // tambahkan header untuk menunjukkan ke mana pengguna harus diarahkan setelah login berhasil.
+    // Kembalikan `context` baru ke middleware berikutnya.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+Fungsi `next()` menerima payload yang sama seperti [fungsi `Astro.rewrite()`](/id/reference/api-reference/#rewrite). Lokasi path rewrite dapat diberikan sebagai string, URL, atau `Request`.
+
+Jika Anda memiliki banyak fungsi middleware yang dirangkai melalui [sequence()](#merangkai-middleware), mengirimkan path ke `next()` akan menulis ulang `Request` di tempat dan middleware tidak akan dieksekusi lagi. Fungsi middleware berikutnya dalam rangkaian akan menerima `Request` baru dengan `context` yang diperbarui:
+
+Memanggil `next()` dengan tanda tangan ini akan membuat objek `Request` baru menggunakan `ctx.request` lama. Artinya, mencoba mengonsumsi `Request.body`, baik sebelum atau setelah rewrite ini, akan menimbulkan error runtime. Error ini sering muncul dengan [Astro Actions yang menggunakan form HTML](/id/guides/actions/#call-actions-from-an-html-form-action). Dalam kasus ini, kami merekomendasikan menangani rewrite dari template Astro Anda menggunakan `Astro.rewrite()` alih-alih menggunakan middleware.    
+
+```js title="src/middleware.js"
+// URL saat ini adalah https://example.com/blog
+
+// Fungsi middleware pertama
+async function first(context, next) {
+  console.log(context.url.pathname) // ini akan mencetak "/blog"
+  // Tulis ulang ke rute baru, beranda 
+  // Kembalikan `context` yang diperbarui yang diteruskan ke fungsi berikutnya
+  return next("/")
+}
+
+// URL saat ini masih https://example.com/blog
+
+// Fungsi middleware kedua
+async function second(context, next) {
+  // Menerima `context` yang diperbarui
+  console.log(context.url.pathname) // ini akan mencetak  "/"    
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
+## Halaman error
+
+Middleware akan berusaha berjalan untuk semua halaman yang dirender sesuai permintaan, bahkan ketika rute yang cocok tidak dapat ditemukan. Ini termasuk halaman 404 bawaan Astro (kosong) dan halaman 404 kustom apa pun. Namun, terserah [adapter](/id/guides/on-demand-rendering/) untuk memutuskan apakah kode itu berjalan. Beberapa adapter mungkin menyajikan halaman error khusus platform sebagai gantinya.
+
+Middleware juga akan berusaha berjalan sebelum menyajikan halaman error 500, termasuk halaman 500 kustom, kecuali jika error server terjadi saat eksekusi middleware itu sendiri. Jika middleware Anda tidak berjalan dengan sukses, maka Anda tidak akan memiliki akses ke `Astro.locals` untuk merender halaman 500 Anda.

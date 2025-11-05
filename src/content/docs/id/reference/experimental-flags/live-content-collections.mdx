@@ -1,0 +1,630 @@
+---
+title: Koleksi konten live (eksperimental)
+sidebar:
+  label: Live content collections
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+
+<Since v="5.10.0" />
+</p>
+
+Mengaktifkan dukungan koleksi konten *live* di proyek Anda.
+
+*Koleksi konten live* adalah jenis [content collection](/id/guides/content-collections/) baru yang mengambil data saat runtime alih‑alih saat build. Ini memungkinkan Anda mengakses data yang sering diperbarui dari CMS, API, basis data, atau sumber lain dengan API terpadu, tanpa perlu membangun ulang situs ketika data berubah.
+
+## Penggunaan dasar
+
+Untuk mengaktifkan fitur ini, pastikan Anda telah mengonfigurasi adaptor untuk [rendering on‑demand](/id/guides/on-demand-rendering/) dan tambahkan flag `experimental.liveContentCollections` ke berkas `astro.config.mjs` Anda:
+
+```js title="astro.config.mjs"
+{
+  experimental: {
+    liveContentCollections: true,
+  },
+}
+```
+
+Lalu buat berkas baru `src/live.config.ts` (berdampingan dengan `src/content.config.ts` jika Anda memilikinya) untuk mendefinisikan koleksi *live* dengan sebuah [live loader](#membuat-live-loader) dan opsional sebuah [schema](#menggunakan-skema-zod) menggunakan fungsi baru `defineLiveCollection()` dari modul `astro:content`.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+export const collections = { products };
+```
+
+Anda kemudian bisa menggunakan fungsi khusus `getLiveCollection()` dan `getLiveEntry()` untuk mengakses data *live* Anda:
+
+```astro
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// Ambil semua produk
+const { entries: allProducts, error } = await getLiveCollection('products');
+if (error) {
+  // Tangani error yang terjadi
+  console.error(error.message);
+}
+
+// Ambil produk dengan filter (jika didukung loader Anda)
+const { entries: electronics } = await getLiveCollection('products', { category: 'electronics' });
+
+// Ambil satu produk berdasarkan ID (sintaks string)
+const { entry: product, error: productError } = await getLiveEntry('products', Astro.params.id);
+if (productError) {
+  return Astro.redirect('/404');
+}
+
+// Ambil satu produk dengan kueri kustom (jika didukung loader) menggunakan objek filter
+const { entry: productBySlug } = await getLiveEntry('products', { slug: Astro.params.slug });
+---
+```
+
+## Kapan menggunakan koleksi konten live
+
+Koleksi konten live dirancang untuk data yang sering berubah dan perlu mutakhir saat halaman diminta. Pertimbangkan untuk menggunakannya ketika:
+
+- **Anda membutuhkan informasi waktu nyata** (mis. data spesifik pengguna, stok saat ini)
+- **Anda ingin menghindari build berulang** untuk konten yang sering berubah
+- **Data Anda sering diperbarui** (mis. inventaris produk, harga, ketersediaan)
+- **Anda perlu meneruskan filter dinamis** ke sumber data berdasarkan input pengguna atau parameter request
+- **Anda membangun fitur pratinjau** untuk CMS di mana editor perlu melihat konten draf segera
+
+Sebaliknya, gunakan content collection waktu build ketika:
+
+- **Performa sangat krusial** dan Anda ingin melakukan pra‑render data saat build
+- **Data Anda relatif statis** (mis. posting blog, dokumentasi, deskripsi produk)
+- **Anda ingin memanfaatkan optimasi saat build** dan caching
+- **Anda perlu memproses MDX** atau melakukan optimasi gambar
+- **Data dapat diambil sekali dan digunakan ulang** di berbagai build
+
+Lihat [batasan koleksi live](#batasan-koleksi-live) dan [perbedaannya dengan koleksi waktu build](#perbedaan-dengan-koleksi-waktu-build) untuk detail lebih lanjut memilih pendekatan yang tepat.
+
+## Menggunakan koleksi live
+
+Anda bisa [membuat live loader sendiri](#membuat-live-loader) untuk sumber data Anda, atau menggunakan loader komunitas yang didistribusikan sebagai paket npm. Berikut contoh menggunakan loader CMS dan e‑commerce:
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { cmsLoader } from '@example/cms-astro-loader';
+import { productLoader } from '@example/store-astro-loader';
+
+const articles = defineLiveCollection({
+  loader: cmsLoader({
+    apiKey: process.env.CMS_API_KEY,
+    contentType: 'article',
+  }),
+});
+
+const products = defineLiveCollection({
+  loader: productLoader({
+    apiKey: process.env.STORE_API_KEY,
+  }),
+});
+
+export const collections = { articles, products };
+```
+
+Anda kemudian dapat mengambil konten dari kedua loader dengan API yang sama:
+
+```astro
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// Gunakan filter khusus milik loader
+const { entries: draftArticles } = await getLiveCollection('articles', {
+  status: 'draft',
+  author: 'john-doe',
+});
+
+// Ambil produk tertentu berdasarkan ID
+const { entry: product } = await getLiveEntry('products', Astro.params.slug);
+---
+```
+
+### Penanganan error
+
+Live loader dapat gagal karena masalah jaringan, error API, atau masalah validasi. API dirancang agar penanganan error eksplisit.
+
+Saat Anda memanggil `getLiveCollection()` atau `getLiveEntry()`, error akan berupa salah satu dari:
+
+- Tipe error yang didefinisikan oleh loader (jika loader mengembalikan error)
+- `LiveEntryNotFoundError` jika entri tidak ditemukan
+- `LiveCollectionValidationError` jika data koleksi tidak sesuai skema yang diharapkan
+- `LiveCollectionCacheHintError` jika *cache hint* tidak valid
+- `LiveCollectionError` untuk error lain, seperti error yang tidak tertangani di dalam loader
+
+Error ini mempunyai metode statis `is()` yang dapat Anda gunakan untuk memeriksa tipe error saat runtime:
+
+```astro "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveEntry, LiveEntryNotFoundError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  if (LiveEntryNotFoundError.is(error)) {
+    console.error(`Produk tidak ditemukan: ${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`Kesalahan memuat produk: ${error.message}`);
+    return Astro.redirect('/500');
+  }
+}
+---
+```
+
+## Membuat live loader
+
+Sebuah live loader adalah objek dengan dua metode: `loadCollection()` dan `loadEntry()`. Metode‑metode ini harus menangani error dengan baik dan mengembalikan data atau objek [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error).
+
+Pola umum adalah mengekspor fungsi yang mengembalikan objek loader, memungkinkan Anda meneruskan opsi konfigurasi seperti API key atau endpoint.
+
+Berikut contoh dasar:
+
+```ts title="myloader.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  content: string;
+  author: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Gagal memuat artikel: ${error.message}`),
+        };
+      }
+    },
+    loadEntry: async ({ filter }) => {
+      try {
+        // filter akan berupa { id: "some-id" } ketika dipanggil dengan string
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('Artikel tidak ditemukan'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Gagal memuat artikel: ${error.message}`),
+        };
+      }
+    },
+  };
+}
+```
+
+### Merender konten
+
+Loader dapat menambahkan dukungan untuk konten yang dirender langsung dengan mengembalikan [properti `rendered`](/id/reference/content-loader-reference/#rendered) pada entri. Ini memungkinkan Anda menggunakan [fungsi `render()` dan komponen `<Content />`](/id/guides/content-collections/#rendering-body-content) untuk merender konten langsung di halaman Anda. 
+Jika loader tidak mengembalikan properti `rendered` untuk sebuah entri, komponen `<Content />` tidak akan merender apa pun.
+
+```ts title="myloader.ts" {16-19}
+// ...
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+  return {
+    name: 'article-loader',
+    loadEntry: async ({ filter }) => {
+      try {
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        return {
+          id: article.id,
+          data: article,
+          rendered: {
+            // Misalkan CMS mengembalikan konten HTML
+            html: article.htmlContent,
+          },
+        };
+      } catch (error) {
+        return {
+          error: new Error(`Gagal memuat artikel: ${error.message}`),
+        };
+      }
+    },
+    // ...
+  };
+}
+```
+
+Kemudian Anda dapat merender baik konten maupun metadata dari entri koleksi live di halaman menggunakan cara yang sama seperti koleksi waktu build. Anda juga memiliki akses ke [error yang dikembalikan oleh live loader](#penanganan-error-di-dalam-loader), misalnya untuk menulis ulang ke halaman 404 ketika konten tidak dapat ditampilkan:
+
+```astro "render(entry)" "<Content />"
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveEntry, render } from 'astro:content';
+const { entry, error } = await getLiveEntry('articles', Astro.params.id);
+if (error) {
+  return Astro.rewrite('/404');
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+### Penanganan error di dalam loader
+
+Loader harus menangani semua error dan mengembalikan subkelas [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) untuk kondisi kesalahan. Anda dapat membuat tipe error kustom dan menggunakannya untuk penanganan yang lebih spesifik bila diperlukan. Jika sebuah error dilempar di dalam loader, error tersebut akan ditangkap dan dikembalikan, dibungkus sebagai `LiveCollectionError`. Anda juga dapat membuat [tipe error kustom](#tipe-error-kustom) untuk pengetikan yang tepat.
+
+Astro juga dapat menghasilkan beberapa error berdasarkan respons dari loader:
+
+- Jika `loadEntry` mengembalikan `undefined`, Astro akan mengembalikan `LiveEntryNotFoundError` kepada pengguna.
+- Jika skema didefinisikan untuk koleksi dan data tidak sesuai skema, Astro akan mengembalikan `LiveCollectionValidationError`.
+- Jika loader mengembalikan *cache hint* yang tidak valid, Astro akan mengembalikan `LiveCollectionCacheHintError`. Field `cacheHint` bersifat opsional, jadi jika Anda tidak memiliki data yang valid untuk dikembalikan, cukup abaikan saja.
+
+```ts title="my-loader.ts" {9-11}
+import type { LiveLoader } from 'astro/loaders';
+import { MyLoaderError } from './errors.js';
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Kembalikan tipe error kustom Anda
+      return {
+        error: new MyLoaderError('Gagal memuat', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+### Mendistribusikan loader Anda
+
+Loader dapat didefinisikan di dalam situs Anda atau sebagai paket npm terpisah. Jika ingin berbagi loader dengan komunitas, Anda dapat [menerbitkannya ke NPM dengan kata kunci `astro-component` dan `astro-loader`](/id/reference/publish-to-npm/#packagejson-data).
+
+Loader sebaiknya mengekspor fungsi yang mengembalikan objek `LiveLoader`, sehingga pengguna dapat mengonfigurasinya dengan pengaturan mereka sendiri.
+
+## Keamanan tipe
+
+Seperti content collection biasa, koleksi live dapat diketik (typed) untuk memastikan keamanan tipe pada data Anda. [Menggunakan skema Zod](#menggunakan-skema-zod) didukung, namun tidak wajib untuk mendefinisikan tipe koleksi live. Tidak seperti koleksi pramuat pada waktu build, live loader dapat memilih meneruskan tipe generik ke antarmuka `LiveLoader`.
+Anda dapat mendefinisikan tipe untuk data koleksi dan entri, serta tipe filter kustom untuk kueri, dan tipe error kustom untuk penanganan kesalahan.
+
+### Data yang aman tipe
+
+Live loader dapat mendefinisikan tipe untuk data yang mereka kembalikan. Ini memungkinkan TypeScript memberikan pemeriksaan tipe dan *autocomplete* saat bekerja dengan data di komponen Anda.
+
+```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+export function storeLoader(): LiveLoader<Product> {
+  // ...
+}
+```
+
+Saat Anda menggunakan `getLiveCollection()` atau `getLiveEntry()`, TypeScript akan menginfer tipe berdasarkan definisi loader:
+
+```astro
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveEntry } from 'astro:content';
+const { entry: product } = await getLiveEntry('products', '123');
+// TypeScript mengetahui product.data bertipe Product
+console.log(product?.data.name);
+---
+```
+
+### Filter yang aman tipe
+
+Live loader dapat mendefinisikan tipe filter kustom untuk `getLiveCollection()` dan `getLiveEntry()`. Ini memungkinkan kueri yang aman tipe sesuai kemampuan API Anda, memudahkan pengguna menemukan filter yang tersedia dan menggunakannya dengan benar. Jika Anda menyertakan komentar JSDoc di tipe filter, pengguna akan melihatnya sebagai hint di IDE saat menggunakan loader.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** Harga minimum untuk memfilter produk */
+  minPrice?: number;
+  /** Harga maksimum untuk memfilter produk */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** Alias untuk `sku` */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'product-loader',
+    loadCollection: async ({ filter }) => {
+      // filter bertipe CollectionFilter
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // filter bertipe EntryFilter | { id: string }
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('Produk tidak ditemukan'),
+        };
+      }
+      return {
+        id: product.sku,
+        entry: product,
+      };
+    },
+  };
+}
+```
+
+### Tipe error kustom
+
+Anda dapat membuat tipe error kustom untuk [error yang dikembalikan oleh loader](#penanganan-error-di-dalam-loader) dan meneruskannya sebagai generik untuk mendapatkan pengetikan yang tepat:
+
+```ts title="my-loader.ts"
+class MyLoaderError extends Error {
+  constructor(
+    message: string,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Kembalikan tipe error kustom Anda
+      return {
+        error: new MyLoaderError('Gagal memuat', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+Saat Anda menggunakan `getLiveCollection()` atau `getLiveEntry()`, TypeScript akan menginfer tipe error kustom, sehingga Anda dapat menanganinya dengan tepat:
+
+```astro
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+if (error) {
+  if (error.name === 'MyLoaderError') {
+    console.error(`Loader error: ${error.message} (code: ${error.code})`);
+  } else {
+    console.error(`Error tak terduga: ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+## Menggunakan skema Zod
+
+Sama seperti koleksi waktu build, Anda dapat menggunakan [skema Zod](/id/guides/content-collections/#defining-the-collection-schema) dengan koleksi live untuk memvalidasi dan mentransformasi data di runtime. Saat Anda mendefinisikan skema, skema itu memiliki prioritas dibanding [tipe milik loader](#data-yang-aman-tipe) ketika Anda melakukan kueri koleksi:
+
+```ts title="src/live.config.ts"
+import { z, defineLiveCollection } from 'astro:content';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transform format kategori dari API
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Paksa (coerce) ke Date
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Tambahkan field harga terformat
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+Ketika menggunakan skema Zod, error validasi akan otomatis ditangkap dan dikembalikan sebagai objek `AstroError`:
+
+```astro
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// Anda dapat menangani error validasi secara spesifik
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript mengetahui entry.data sesuai skema Zod Anda, bukan tipe loader
+console.log(entry?.data.displayPrice); // mis., "$29.99"
+---
+```
+
+## Cache hint
+
+Live loader dapat memberikan *cache hint* untuk membantu strategi caching respons. Anda dapat menggunakan data ini untuk mengirim header cache HTTP atau menginformasikan strategi caching Anda.
+
+```ts title="my-loader.ts"
+export function myLoader(config): LiveLoader<MyData> {
+  return {
+    name: 'cached-loader',
+    loadCollection: async ({ filter }) => {
+      // ... ambil data
+      return {
+        entries: data.map((item) => ({
+          id: item.id,
+          data: item,
+          // Opsional: berikan cache hint per entri
+          cacheHint: {
+            tags: [`product-${item.id}`, `category-${item.category}`],
+          },
+        })),
+        cacheHint: {
+          // Semua field opsional, dan digabung dengan cache hint tiap entri
+          // tags digabung dari semua entri
+          // lastModified adalah tanggal terbaru dari semua entri dan koleksi
+          lastModified: new Date(item.lastModified),
+          tags: ['products'],
+        },
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // ... ambil satu item
+      return {
+        id: item.id,
+        data: item,
+        cacheHint: {
+          lastModified: new Date(item.lastModified),
+          tags: [`product-${item.id}`, `category-${item.category}`],
+        },
+      };
+    },
+  };
+}
+```
+
+Anda kemudian dapat menggunakan hint ini di halaman Anda:
+
+```astro
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+// Terapkan cache hint ke header respons
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+:::note
+Cache hint hanya menyediakan nilai yang dapat digunakan di bagian lain proyek Anda dan tidak secara otomatis menyebabkan respons di-*cache* oleh Astro. Anda dapat menggunakannya untuk membuat strategi caching sendiri, seperti menyetel header HTTP atau menggunakan CDN.
+:::
+
+## Batasan koleksi live
+
+Koleksi konten live memiliki beberapa batasan dibanding koleksi waktu build:
+
+- **Tidak ada dukungan MDX**: MDX tidak dapat dirender saat runtime
+- **Tidak ada optimasi gambar**: Gambar tidak dapat diproses saat runtime
+- **Pertimbangan performa**: Data diambil pada setiap request (kecuali di-*cache*)
+- **Tidak ada penyimpanan data**: Data tidak disimpan ke *content layer data store*
+
+## Perbedaan dengan koleksi waktu build
+
+Koleksi live menggunakan API yang berbeda dari content collection pramuat saat ini. Perbedaan utama meliputi:
+
+1. **Waktu eksekusi**: Berjalan saat request, bukan saat build
+2. **Berkas konfigurasi**: Menggunakan `src/live.config.ts` alih‑alih `src/content.config.ts`
+3. **Definisi koleksi**: Menggunakan `defineLiveCollection()` alih‑alih `defineCollection()`
+4. **API loader**: Mengimplementasikan metode `loadCollection` dan `loadEntry` alih‑alih metode `load`
+5. **Pengembalian data**: Mengembalikan data langsung, bukan menyimpannya di *data store*
+6. **Fungsi untuk pengguna**: Menggunakan `getLiveCollection`/`getLiveEntry` alih‑alih `getCollection`/`getEntry`
+
+Untuk gambaran lengkap dan memberikan umpan balik atas API eksperimental ini, lihat [RFC Live Content collections](https://github.com/withastro/roadmap/blob/feat/live-loaders/proposals/0055-live-content-loaders.md).

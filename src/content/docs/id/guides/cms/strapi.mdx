@@ -1,0 +1,430 @@
+---
+title: Strapi & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Strapi Headless CMS
+sidebar:
+  label: Strapi
+type: cms
+service: Strapi
+stub: false
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[Strapi](https://strapi.io/) adalah CMS headless sumber terbuka yang dapat dikustomisasi.
+
+## Mengintegrasikan dengan Astro
+
+Panduan ini akan membuat fungsi *wrapper* untuk menghubungkan Strapi dengan Astro.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan hal-hal berikut:
+
+1. **Proyek Astro** - Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membantu Anda menyiapkannya dengan cepat.
+2. **Server Strapi CMS** - Anda dapat [menyiapkan server Strapi di lingkungan lokal](https://docs.strapi.io/dev-docs/quick-start).
+
+### Menambahkan URL Strapi di `.env`
+
+Untuk menambahkan URL Strapi ke Astro, buat file `.env` di akar proyek Anda (jika belum ada) dan tambahkan variabel berikut:
+
+```ini title=".env"
+STRAPI_URL="http://127.0.0.1:1337" # atau gunakan alamat IP Anda
+```
+
+Mulai ulang *dev server* untuk menggunakan variabel lingkungan ini di proyek Astro Anda.
+
+Jika Anda ingin mendapatkan IntelliSense untuk variabel lingkungan tersebut, buat file `env.d.ts` di direktori `src/` dan konfigurasikan `ImportMetaEnv` seperti ini:
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly STRAPI_URL: string;
+}
+```
+
+Direktori root Anda sekarang harus menyertakan file baru berikut:
+
+<FileTree title="Struktur Proyek">
+  - src/
+    - **env.d.ts**
+  - **.env**
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+<ReadMore>Pelajari lebih lanjut tentang [variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.</ReadMore>
+
+### Membuat *API wrapper*
+
+Buat file baru di `src/lib/strapi.ts` dan tambahkan fungsi *wrapper* berikut untuk berinteraksi dengan API Strapi:
+
+```ts title="src/lib/strapi.ts"
+interface Props {
+  endpoint: string;
+  query?: Record<string, string>;
+  wrappedByKey?: string;
+  wrappedByList?: boolean;
+}
+
+/**
+ * Mengambil data dari Strapi API
+ * @param endpoint - Endpoint yang akan di-*fetch*
+ * @param query - Parameter kueri yang ditambahkan ke URL
+ * @param wrappedByKey - Kunci untuk membuka respons yang terbungkus
+ * @param wrappedByList - Jika respons berupa daftar, ambil item pertama
+ * @returns
+ */
+export default async function fetchApi<T>({
+  endpoint,
+  query,
+  wrappedByKey,
+  wrappedByList,
+}: Props): Promise<T> {
+  if (endpoint.startsWith('/')) {
+    endpoint = endpoint.slice(1);
+  }
+
+  const url = new URL(`${import.meta.env.STRAPI_URL}/api/${endpoint}`);
+
+  if (query) {
+    Object.entries(query).forEach(([key, value]) => {
+      url.searchParams.append(key, value);
+    });
+  }
+  const res = await fetch(url.toString());
+  let data = await res.json();
+
+  if (wrappedByKey) {
+    data = data[wrappedByKey];
+  }
+
+  if (wrappedByList) {
+    data = data[0];
+  }
+
+  return data as T;
+}
+```
+
+Fungsi ini memerlukan objek dengan properti berikut:
+
+1. `endpoint` - Endpoint yang akan di-*fetch*.
+2. `query` - Parameter kueri yang ditambahkan ke akhir URL.
+3. `wrappedByKey` - Kunci `data` pada objek yang membungkus `Response` Anda.
+4. `wrappedByList` - Parameter untuk “membuka” daftar yang dikembalikan Strapi, dan hanya mengembalikan item pertama.
+
+### Opsional: Membuat *interface* Article
+
+Jika Anda menggunakan TypeScript, buat *interface* Article berikut agar sesuai dengan tipe konten Strapi di `src/interfaces/article.ts`:
+
+```ts title="src/interfaces/article.ts"
+export default interface Article {
+  documentId: number;
+  title: string;
+  description: string;
+  content: string;
+  slug: string;
+  createdAt: string;
+  updatedAt: string;
+  publishedAt: string;
+}
+```
+
+:::note
+Anda dapat memodifikasi *interface* ini, atau membuat beberapa *interface*, agar sesuai dengan data proyek Anda sendiri.
+:::
+
+<FileTree title="Struktur Proyek">
+  - src/
+    - interfaces/
+      - **article.ts**
+    - lib/
+      - strapi.ts
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+### Menampilkan daftar artikel
+
+<Steps>
+1. Perbarui beranda `src/pages/index.astro` untuk menampilkan daftar postingan blog, masing-masing dengan deskripsi dan tautan ke halamannya sendiri.
+
+2. Impor fungsi *wrapper* dan *interface*-nya. Tambahkan pemanggilan API berikut untuk mengambil artikel Anda dan mengembalikan daftar:
+    ```astro title="src/pages/index.astro"
+    ---
+    import fetchApi from '../lib/strapi';
+    import type Article from '../interfaces/article';
+
+    const articles = await fetchApi<Article[]>({
+      endpoint: 'articles', // tipe konten yang diambil
+      wrappedByKey: 'data', // kunci untuk membuka respons
+    });
+    ---
+    ```
+
+    Panggilan API tersebut meminta data dari `http://localhost:1337/api/articles` dan mengembalikan `articles`: sebuah array objek JSON yang merepresentasikan data Anda:
+
+    ```json
+    [
+      {
+        documentId: 1,
+        title: "What's inside a Black Hole",
+        description: "Maybe the answer is in this article, or not...",
+        content: "Well, we don't know yet...",
+        slug: "what-s-inside-a-black-hole",
+        createdAt: "2023-05-28T13:19:46.421Z",
+        updatedAt: "2023-05-28T13:19:46.421Z",
+        publishedAt: "2023-05-28T13:19:45.826Z"
+      },
+      // ...
+    ]
+    ```
+
+3. Menggunakan data dari array `articles` yang dikembalikan API, tampilkan postingan blog Strapi Anda dalam sebuah daftar. Postingan ini akan menaut ke halaman masing-masing, yang akan Anda buat pada langkah berikutnya.
+    ```astro title="src/pages/index.astro"
+    ---
+    import fetchApi from '../lib/strapi';
+    import type Article from '../interfaces/article';
+
+    const articles = await fetchApi<Article[]>({
+      endpoint: 'articles?populate=image',
+      wrappedByKey: 'data',
+    });
+    ---
+
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <title>Strapi & Astro</title>
+      </head>
+
+      <body>
+        <main>
+          <ul>
+            {
+              articles.map((article) => (
+                <li>
+                  <a href={`/blog/${article.slug}/`}>
+                    {article.title}
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </main>
+      </body>
+    </html>
+    ```
+</Steps>
+
+### Membuat halaman artikel
+
+Buat file `src/pages/blog/[slug].astro` untuk [menghasilkan halaman secara dinamis](/id/guides/routing/#dynamic-routes) untuk setiap artikel.
+
+<FileTree title="Struktur Proyek">
+  - src/
+    - interfaces/
+      - article.ts
+    - lib/
+      - strapi.ts
+    - pages/
+      - index.astro
+      - blog/
+        - **[slug].astro**
+    - env.d.ts
+  - .env
+  - astro.config.mjs
+  - package.json
+</FileTree>
+
+#### *Static site generation*
+
+Dalam mode statis (SSG) bawaan Astro, gunakan [`getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths) untuk mengambil daftar artikel dari Strapi.
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+```
+
+Buat templat untuk setiap halaman menggunakan properti dari setiap objek postingan.
+
+```astro title="src/pages/blog/[slug].astro" ins={21-43}
+---
+import fetchApi from '../../lib/strapi';
+import type Article from '../../interfaces/article';
+
+export async function getStaticPaths() {
+  const articles = await fetchApi<Article[]>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+  });
+
+  return articles.map((article) => ({
+    params: { slug: article.slug },
+    props: article,
+  }));
+}
+type Props = Article;
+
+const article = Astro.props;
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
+
+      <h1>{article.title}</h1>
+
+      <!-- Render teks biasa -->
+      <p>{article.content}</p>
+      <!-- Render markdown -->
+      <MyMarkdownComponent>
+        {article.content}
+      </MyMarkdownComponent>
+      <!-- Render html -->
+      <Fragment set:html={article.content} />
+    </main>
+  </body>
+</html>
+```
+:::tip
+Pastikan Anda memilih cara *rendering* yang tepat untuk konten Anda. Untuk markdown lihat [panduan markdown](/id/guides/markdown-content/). Jika Anda *render* HTML, lihat [panduan ini](/id/reference/directives-reference/#sethtml) untuk keamanan.
+:::
+
+#### *On-demand rendering*
+
+Jika Anda telah [mengaktifkan *on-demand rendering* dengan adapter](/id/guides/on-demand-rendering/), [hasilkan rute dinamis](/id/guides/routing/#on-demand-dynamic-routes) menggunakan kode berikut:
+
+Buat file `src/pages/blog/[slug].astro`:
+
+```astro title="src/pages/blog/[slug].astro"
+---
+import fetchApi from '../../../lib/strapi';
+import type Article from '../../../interfaces/article';
+
+const { slug } = Astro.params;
+
+let article: Article;
+
+try {
+  article = await fetchApi<Article>({
+    endpoint: 'articles',
+    wrappedByKey: 'data',
+    wrappedByList: true,
+    query: {
+      'filters[slug][$eq]': slug || '',
+    },
+  });
+} catch (error) {
+  return Astro.redirect('/404');
+}
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>{article.title}</title>
+  </head>
+
+  <body>
+    <main>
+      <img src={import.meta.env.STRAPI_URL + article.image.data.url} />
+
+      <h1>{article.title}</h1>
+
+      <!-- Render teks biasa -->
+      <p>{article.content}</p>
+      <!-- Render markdown -->
+      <MyMarkdownComponent>
+        {article.content}
+      </MyMarkdownComponent>
+      <!-- Render html -->
+      <Fragment set:html={article.content} />
+    </main>
+  </body>
+</html>
+```
+
+File ini akan mengambil dan *render* data halaman dari Strapi yang cocok dengan parameter dinamis `slug`.
+
+Karena Anda menggunakan pengalihan ke `/404`, buat halaman 404 di `src/pages`:
+
+```astro title="src/pages/404.astro"
+<html lang="en">
+  <head>
+    <title>Not found</title>
+  </head>
+  <body>
+    <p>Maaf, halaman ini tidak ada.</p>
+    <img src="https://http.cat/404" />
+  </body>
+</html>
+```
+
+Jika artikel tidak ditemukan, pengguna akan dialihkan ke halaman 404 ini.
+
+### Menerbitkan situs Anda
+
+Untuk menerapkan situs web Anda, kunjungi [panduan deployment](/id/guides/deploy/) kami dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+#### Bangun ulang saat ada perubahan
+
+Jika proyek Anda menggunakan mode statis bawaan Astro, Anda harus menyiapkan webhook untuk memicu build baru saat konten berubah. Jika Anda menggunakan Netlify atau Vercel sebagai penyedia hosting, Anda dapat menggunakan fitur webhook mereka untuk memicu build baru dari perubahan di Strapi.
+
+##### Netlify
+
+Untuk menyiapkan webhook di Netlify:
+
+<Steps>
+1. Buka dasbor situs Anda dan klik **Build & deploy**.
+
+2. Di tab **Continuous Deployment**, temukan bagian **Build hooks** dan klik **Add build hook**.
+
+3. Beri nama webhook Anda dan pilih branch yang ingin Anda picu build-nya. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Vercel
+
+Untuk menyiapkan webhook di Vercel:
+
+<Steps>
+1. Buka dasbor proyek Anda dan klik **Settings**.
+
+2. Di bawah tab **Git**, temukan bagian **Deploy Hooks**.
+
+3. Beri nama webhook Anda dan branch yang ingin Anda picu build-nya. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Menambahkan webhook ke Strapi
+
+Ikuti [panduan webhook Strapi](https://strapi.io/blog/webhooks) untuk membuat webhook di panel admin Strapi Anda.
+
+## Sumber Resmi
+
+- [Panduan Blog Strapi Untuk React](https://strapi.io/blog/build-a-blog-with-next-react-js-strapi) oleh Strapi

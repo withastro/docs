@@ -1,0 +1,419 @@
+---
+title: Upgrade ke Astro v2
+description: Cara meningkatkan proyek Anda ke versi Astro terbaru.
+sidebar:
+  label: v2.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import { Steps } from '@astrojs/starlight/components';
+
+Panduan ini akan membantu Anda bermigrasi dari Astro v1 ke Astro v2.
+
+Perlu meningkatkan proyek lama ke v1? Lihat [panduan migrasi lama kami](/en/guides/upgrade-to/v1/).
+
+## Tingkatkan Astro
+
+Perbarui versi Astro di proyek Anda ke versi terbaru menggunakan manajer paket Anda. Jika Anda menggunakan integrasi Astro, mohon perbarui juga ke versi terbaru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Upgrade ke Astro v2.x
+  npm install astro@latest
+  
+  # Contoh: upgrade integrasi React dan Tailwind
+  npm install @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Upgrade ke Astro v2.x
+  pnpm add astro@latest
+
+  # Contoh: upgrade integrasi React dan Tailwind
+  pnpm add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Upgrade ke Astro v2.x
+  yarn add astro@latest
+  
+  # Contoh: upgrade integrasi React dan Tailwind
+  yarn add @astrojs/react@latest @astrojs/tailwind@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Perubahan Tidak Kompatibel (Breaking Changes) di Astro v2.0
+
+Astro v2.0 menyertakan beberapa perubahan yang tidak kompatibel, serta penghapusan beberapa fitur yang sebelumnya didepresiasi. Jika proyek Anda tidak berjalan sebagaimana mestinya setelah upgrade ke v2.0, periksa panduan ini untuk ikhtisar semua perubahan dan instruksi cara memperbarui kode Anda.
+
+Lihat [changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) untuk catatan rilis lengkap.
+
+### Dihapus: Dukungan untuk Node 14
+
+Node 14 dijadwalkan mencapai End of Life pada April 2023. 
+
+Astro v2.0 menghapus dukungan Node 14 sepenuhnya agar semua pengguna Astro dapat memanfaatkan fitur Node yang lebih modern.
+
+#### Apa yang harus saya lakukan?
+
+ Pastikan lingkungan pengembangan dan lingkungan deployment Anda menggunakan **Node `16.12.0` atau lebih baru**.
+
+<Steps>
+1. Periksa versi Node lokal Anda menggunakan:
+
+    ```sh
+    node -v
+ 
+    ```
+    Jika lingkungan pengembangan lokal Anda perlu ditingkatkan, [instal Node](https://nodejs.org/en/download/).
+
+2. Periksa dokumentasi [lingkungan deployment](/en/guides/deploy/) Anda untuk memastikan mereka mendukung Node 16. 
+
+    Anda dapat menentukan Node `16.12.0` untuk proyek Astro Anda melalui pengaturan di dashboard, atau menggunakan berkas `.nvmrc`.
+</Steps>
+
+### Direservasi: `src/content/`
+
+Astro v2.0 kini menyertakan Collections API untuk mengorganisir berkas Markdown dan MDX Anda ke dalam [content collections](/en/guides/content-collections/). API ini me-reservasi `src/content/` sebagai folder khusus.
+
+#### Apa yang harus saya lakukan?
+
+Ganti nama folder `src/content/` yang sudah ada untuk menghindari konflik. Folder ini, jika ada, kini hanya dapat digunakan untuk [content collections](/en/guides/content-collections/).
+
+### Diubah: Garis miring penutup (trailing slash) `Astro.site`
+
+Di v1.x, Astro memastikan URL yang Anda set di `site` dalam `astro.config.mjs` selalu memiliki trailing slash ketika diakses menggunakan `Astro.site`.
+
+Astro v2.0 tidak lagi memodifikasi nilai `site`. `Astro.site` akan menggunakan nilai persis yang didefinisikan, dan trailing slash harus Anda tentukan jika diinginkan.
+
+#### Apa yang harus saya lakukan?
+
+ Di `astro.config.mjs`, tambahkan trailing slash pada URL yang diatur di `site`. 
+
+```js del={5} ins={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  site: 'https://example.com',
+  site: 'https://example.com/',
+});
+```
+
+### Diubah: Folder `_astro/` untuk aset build
+
+Di v1.x, aset dibangun ke berbagai lokasi, termasuk `assets/`, `chunks/`, dan ke root output build.
+
+Astro v2.0 memindahkan dan menyatukan lokasi semua aset output build ke folder baru `_astro/`. 
+
+<FileTree>
+- dist/
+  - _astro
+    - client.9218e799.js
+    - index.df3f880e0.css
+</FileTree>
+
+Anda dapat mengendalikan lokasi ini dengan [opsi konfigurasi baru `build.assets`](/en/reference/configuration-reference/#buildassets).
+
+#### Apa yang harus saya lakukan?
+
+Perbarui konfigurasi platform deployment Anda jika bergantung pada lokasi aset-aset ini.
+
+### Diubah: Konfigurasi plugin Markdown
+
+#### Dihapus: `extendDefaultPlugins`
+
+Di v1.x, Astro menggunakan `markdown.extendDefaultPlugins` untuk mengaktifkan kembali plugin default Astro saat menambahkan plugin Markdown Anda sendiri.
+
+Astro v2.0 menghapus opsi konfigurasi ini sepenuhnya karena perilakunya kini menjadi default.
+
+Menerapkan plugin remark dan rehype di konfigurasi Markdown Anda **tidak lagi menonaktifkan plugin default Astro**. GitHub-Flavored Markdown dan Smartypants kini diterapkan baik Anda mengonfigurasi `remarkPlugins` atau `rehypePlugins` kustom maupun tidak.
+
+##### Apa yang harus saya lakukan?
+
+Hapus `extendDefaultPlugins` dari konfigurasi Anda. Ini sekarang menjadi perilaku default Astro di v2.0, dan Anda dapat menghapus baris ini tanpa pengganti.
+
+```js del={6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    extendDefaultPlugins,
+  }
+});
+```
+
+#### Ditambahkan: `gfm` dan `smartypants`
+
+Di v1.x, Anda dapat menonaktifkan kedua plugin Markdown bawaan Astro (GitHub-Flavored Markdown dan SmartyPants) dengan mengatur `markdown.extendDefaultPlugins: false`.
+
+Astro v2.0 mengganti `markdown.extendDefaultPlugins: false` dengan opsi Boolean terpisah untuk mengendalikan masing-masing plugin Markdown bawaan Astro. Opsi-opsi ini diaktifkan secara default dan dapat disetel ke `false` secara independen.
+
+##### Apa yang harus saya lakukan?
+
+Hapus `extendDefaultPlugins: false` dan tambahkan flag untuk menonaktifkan masing-masing plugin secara terpisah.
+
+- `markdown.gfm: false` menonaktifkan GitHub-Flavored Markdown
+- `markdown.smartypants: false` menonaktifkan SmartyPants
+
+```js del={6} ins={7-8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  markdown: {
+    extendDefaultPlugins: false,
+    smartypants: false,
+    gfm: false,
+  }
+});
+```
+
+### Diubah: Konfigurasi plugin MDX
+
+#### Diganti: `extendPlugins` menjadi `extendMarkdownConfig`
+
+Di v1.x, opsi `extendPlugins` milik integrasi MDX mengatur bagaimana berkas MDX Anda mewarisi konfigurasi Markdown Anda: semua konfigurasi Markdown Anda (`markdown`), atau hanya plugin default Astro (`default`).
+
+Astro v2.0 menggantikan perilaku yang dikendalikan oleh `mdx.extendPlugins` dengan tiga opsi baru yang dapat dikonfigurasi secara independen dan bernilai `true` secara default:
+
+- **[`mdx.extendMarkdownConfig`](/en/guides/integrations-guide/mdx/#extendmarkdownconfig)** untuk mewarisi seluruh atau tidak sama sekali konfigurasi Markdown Anda
+- **`mdx.gfm`** untuk mengaktifkan atau menonaktifkan GitHub-Flavored Markdown di MDX
+- **`mdx.smartypants`** untuk mengaktifkan atau menonaktifkan SmartyPants di MDX
+
+##### Apa yang harus saya lakukan?
+
+Hapus `extendPlugins: 'markdown'` dari konfigurasi Anda. Ini sekarang adalah perilaku default.
+
+```js del={8}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      extendPlugins: 'markdown',
+    }),
+  ],
+});
+```
+
+Ganti `extendPlugins: 'defaults'` dengan `extendMarkdownConfig: false` dan tambahkan opsi terpisah untuk GitHub-Flavored Markdown dan SmartyPants untuk mengaktifkan plugin default tersebut secara individual di MDX.
+
+```js del={8} ins={9-11}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({
+      extendPlugins: 'defaults',
+      extendMarkdownConfig: false,
+      smartypants: true,
+      gfm: true,
+    }),
+  ],
+});
+```
+
+#### Ditambahkan: Lebih banyak opsi konfigurasi MDX agar selaras dengan Markdown
+
+Astro v2.0 kini memungkinkan Anda menyetel [setiap opsi konfigurasi Markdown yang tersedia](/en/reference/configuration-reference/#markdown-options) (kecuali `drafts`) secara terpisah di konfigurasi integrasi MDX.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      remarkPlugins: [remarkPlugin2],
+      gfm: false,
+    })
+  ]
+});
+```
+
+##### Apa yang harus saya lakukan?
+
+Tinjau kembali konfigurasi Markdown dan MDX Anda, dan bandingkan dengan opsi baru yang tersedia.
+
+### Diubah: Akses plugin ke frontmatter
+
+Di v1.x, plugin remark dan rehype tidak memiliki akses ke frontmatter pengguna. Astro menggabungkan frontmatter plugin dengan frontmatter berkas Anda, tanpa meneruskan frontmatter berkas ke plugin Anda.
+
+Astro v2.0 memberikan akses frontmatter pengguna kepada plugin remark dan rehype melalui frontmatter injection. Ini memungkinkan penulis plugin untuk memodifikasi frontmatter pengguna yang ada, atau menghitung properti baru berdasarkan properti lainnya.
+
+#### Apa yang harus saya lakukan?
+
+Periksa plugin remark dan rehype yang Anda tulis untuk melihat apakah perilakunya berubah. Perhatikan bahwa `data.astro.frontmatter` sekarang adalah frontmatter _lengkap_ dari dokumen Markdown atau MDX, bukan objek kosong.
+
+### Diubah: Konfigurasi RSS
+
+Di v1.x, paket RSS Astro memungkinkan Anda menggunakan `items: import.meta.glob(...)` untuk membuat daftar item feed RSS. Penggunaan ini sekarang didepresiasi dan akhirnya akan dihapus.
+
+Astro v2.0 memperkenalkan pembungkus `pagesGlobToRssItems()` untuk properti `items`.
+
+#### Apa yang harus saya lakukan?
+
+Impor, lalu bungkus fungsi Anda yang berisi `import.meta.glob()` dengan helper `pagesGlobToRssItems()`.
+
+```js ins={3, 8, 10}
+// src/pages/rss.xml.js
+import rss, {
+  pagesGlobToRssItems
+} from '@astrojs/rss';
+
+export async function get(context) {
+  return rss({
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+### Diubah: Dukungan IDE Svelte
+
+Astro v2.0 memerlukan berkas `svelte.config.js` di proyek Anda jika Anda menggunakan [integrasi `@astrojs/svelte`](/en/guides/integrations-guide/svelte/). Ini diperlukan untuk menyediakan autocompletion di IDE.
+
+#### Apa yang harus saya lakukan?
+
+Tambahkan berkas `svelte.config.js` ke root proyek Anda:
+
+```js
+// svelte.config.js
+import { vitePreprocess } from '@astrojs/svelte';
+
+export default {
+  preprocess: vitePreprocess(),
+};
+```
+
+Untuk pengguna baru, berkas ini akan ditambahkan secara otomatis ketika menjalankan `astro add svelte`.
+
+### Dihapus: `legacy.astroFlavoredMarkdown`
+
+Di v1.0, Astro memindahkan Astro-Flavored Markdown lama (juga dikenal sebagai Components in Markdown) menjadi fitur legacy.
+
+Astro v2.0 menghapus opsi `legacy.astroFlavoredMarkdown` sepenuhnya. Mengimpor dan menggunakan komponen di berkas `.md` tidak lagi berfungsi.
+
+#### Apa yang harus saya lakukan?
+
+Hapus flag legacy ini. Opsi ini tidak lagi tersedia di Astro.
+
+```js del={3-5}
+// astro.config.mjs
+export default defineConfig({
+  legacy: {
+    astroFlavoredMarkdown: true,
+  },
+})
+```
+
+Jika Anda menggunakan fitur ini di v1.x, kami merekomendasikan [menggunakan integrasi MDX](/en/guides/integrations-guide/mdx/) yang memungkinkan Anda menggabungkan komponen dan ekspresi JSX dengan sintaks Markdown.
+
+### Dihapus: `Astro.resolve()`
+
+Di v0.24, Astro mendeprasiasi `Astro.resolve()` untuk mendapatkan URL ter-resolve ke aset yang ingin Anda referensikan di browser.
+
+Astro v2.0 menghapus opsi ini sepenuhnya. `Astro.resolve()` dalam kode Anda akan menimbulkan error.
+
+#### Apa yang harus saya lakukan?
+
+Resolve path aset menggunakan `import`. Contoh:
+
+```astro
+---
+// src/pages/index.astro
+import 'style.css';
+import imageUrl from './image.png';
+---
+
+<img src={imageUrl} />
+```
+
+### Dihapus: `Astro.fetchContent()`
+
+Di v0.26, Astro mendeprasiasi `Astro.fetchContent()` untuk mengambil data dari berkas Markdown lokal Anda.
+
+Astro v2.0 menghapus opsi ini sepenuhnya. `Astro.fetchContent()` dalam kode Anda akan menimbulkan error.
+
+#### Apa yang harus saya lakukan?
+
+Gunakan `Astro.glob()` untuk mengambil berkas Markdown, atau konversi ke fitur [Content Collections](/en/guides/content-collections/).
+
+```astro
+---
+// src/pages/index.astro
+const allPosts = await Astro.glob('./posts/*.md');
+---
+```
+
+### Dihapus: `Astro.canonicalURL`
+
+Di v1.0, Astro mendeprasiasi `Astro.canonicalURL` untuk menyusun canonical URL. 
+
+Astro v2.0 menghapus opsi ini sepenuhnya. `Astro.canonicalURL` dalam kode Anda akan menimbulkan error.
+
+#### Apa yang harus saya lakukan?
+
+Gunakan `Astro.url` untuk menyusun canonical URL.
+
+```astro
+---
+// src/pages/index.astro
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+---
+
+```
+
+### Diperbarui: Vite 4
+
+Astro v2.0 meningkatkan dari Vite 3 ke [Vite 4](https://vite.dev/), dirilis pada Desember 2022.
+
+#### Apa yang harus saya lakukan?
+
+Seharusnya tidak ada perubahan kode yang diperlukan! Kami telah menangani sebagian besar upgrade ini di dalam Astro; namun, beberapa perilaku Vite yang halus mungkin berubah antar versi. 
+
+Lihat [Panduan Migrasi Vite](https://vite.dev/guide/migration.html) resmi jika Anda mengalami masalah.
+
+## Flag Eksperimental Astro v2.0 Dihapus
+
+Hapus flag eksperimental berikut dari `astro.config.mjs`:
+
+```js del={5-9}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    contentCollections: true,
+    prerender: true,
+    errorOverlay: true,
+  },
+})
+```
+
+Fitur-fitur ini kini tersedia secara default:
+
+- [Content collections](/en/guides/content-collections/) sebagai cara mengelola berkas Markdown dan MDX Anda dengan type-safety.
+- [Prerendering halaman individual ke HTML statis](/en/guides/on-demand-rendering/) saat menggunakan SSR untuk meningkatkan kecepatan dan kemampuan cache.
+- Overlay pesan error yang didesain ulang.
+
+## Masalah Diketahui
+
+Saat ini tidak ada masalah yang diketahui.

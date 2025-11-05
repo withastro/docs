@@ -1,0 +1,271 @@
+---
+title: Prefetch
+description: Pramuat tautan untuk navigasi antarhalaman yang lebih cepat.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+import Since from '~/components/Since.astro'
+
+Waktu muat halaman berperan besar dalam kegunaan dan pengalaman menikmati sebuah situs. **Prefetching** opsional Astro menghadirkan manfaat navigasi hampir seketika ke aplikasi multi-halaman (MPA) Anda saat pengunjung berinteraksi dengan situs.
+
+## Enable prefetching
+
+Anda dapat mengaktifkan prefetching dengan konfigurasi `prefetch`:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+});
+```
+
+Sebuah skrip prefetch akan ditambahkan ke semua halaman situs Anda. Lalu, tambahkan atribut `data-astro-prefetch` ke tautan `<a />` mana pun di situs Anda untuk ikut serta menggunakan prefetching. Saat Anda mengarahkan kursor ke tautan, skrip akan mengambil halaman tersebut di latar belakang.
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+Perhatikan bahwa prefetching hanya berfungsi untuk tautan di dalam situs Anda, bukan tautan eksternal.
+
+## Prefetch configuration
+
+Konfigurasi `prefetch` juga menerima objek opsi untuk menyesuaikan perilaku prefetching lebih lanjut.
+
+### Prefetch strategies
+
+Astro mendukung 4 strategi prefetch untuk berbagai kebutuhan:
+
+- `hover` (default): Pramuat saat Anda mengarahkan kursor atau fokus pada tautan.
+- `tap`: Pramuat tepat sebelum Anda mengeklik tautan.
+- `viewport`: Pramuat saat tautan memasuki viewport.
+- `load`: Pramuat semua tautan di halaman setelah halaman dimuat.
+
+Anda dapat menentukan strategi untuk tautan tertentu dengan mengisinya pada atribut `data-astro-prefetch`:
+
+```html
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+Setiap strategi diatur dengan cermat agar hanya melakukan prefetch saat diperlukan dan menghemat bandwidth pengguna Anda. Misalnya:
+
+- Jika pengunjung menggunakan [mode penghemat data](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) atau memiliki [koneksi lambat](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType), prefetch akan menggunakan strategi `tap` sebagai cadangan.
+- Mengarahkan kursor dengan cepat atau menggulir melewati tautan tidak akan memicu prefetch.
+
+### Default prefetch strategy
+
+Strategi prefetch bawaan saat menambahkan atribut `data-astro-prefetch` adalah `hover`. Untuk mengubahnya, Anda dapat mengonfigurasi [`prefetch.defaultStrategy`](/id/reference/configuration-reference/#prefetchdefaultstrategy) di file `astro.config.mjs` Anda:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+});
+```
+
+### Prefetch all links by default
+
+Jika Anda ingin mempramuat semua tautan, termasuk yang tanpa atribut `data-astro-prefetch`, Anda dapat menyetel [`prefetch.prefetchAll`](/id/reference/configuration-reference/#prefetchprefetchall) ke `true`:
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+});
+```
+
+Anda kemudian dapat menonaktifkan prefetch untuk tautan tertentu dengan menyetel `data-astro-prefetch="false"`:
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+Strategi prefetch bawaan untuk semua tautan dapat diubah dengan `prefetch.defaultStrategy` seperti ditunjukkan pada [bagian Default prefetch strategy](#default-prefetch-strategy).
+
+## Prefetch programmatically
+
+Karena beberapa navigasi tidak selalu muncul sebagai tautan `<a />`, Anda juga dapat melakukan prefetch secara terprogram dengan API `prefetch()` dari modul `astro:prefetch`:
+
+```astro
+<button id="btn">Click me</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+API `prefetch()` mencakup deteksi [mode penghemat data](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData) dan [koneksi lambat](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType) yang sama sehingga hanya melakukan prefetch jika dibutuhkan.
+
+Untuk mengabaikan deteksi koneksi lambat, Anda dapat menggunakan opsi `ignoreSlowConnection`:
+
+```js
+// Tetap melakukan prefetch meskipun pada mode hemat data atau koneksi lambat
+prefetch('/about', { ignoreSlowConnection: true });
+```
+
+### `eagerness`
+
+<p>
+**Type:** `'immediate' | 'eager' | 'moderate' | 'conservative'`<br />
+**Default:** `'immediate'`<br />
+<Since v="5.6.0" />
+</p>
+
+Dengan flag eksperimental [`clientPrerender`](/id/reference/experimental-flags/client-prerender/) aktif, Anda dapat menggunakan opsi `eagerness` pada `prefetch()` untuk menyarankan kepada browser seberapa agresif ia harus melakukan prefetch/prerender target tautan.
+
+Ini mengikuti API yang sama seperti yang dijelaskan dalam [Speculation Rules API](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/speculationrules#eagerness) dan default-nya adalah `immediate` (opsi paling agresif). Dalam urutan menurun tingkat keagresifan, opsi lainnya adalah `eager`, `moderate`, dan `conservative`.
+
+Opsi `eagerness` memungkinkan Anda menyeimbangkan manfaat waktu tunggu yang berkurang dengan biaya bandwidth, memori, dan CPU bagi pengunjung situs. Beberapa browser, seperti Chrome, memiliki [batas untuk mencegah spekulasi berlebihan](https://developer.chrome.com/blog/speculation-rules-improvements#chrome-limits) (mem-prerender/mem-prefetch terlalu banyak tautan).
+
+ ```astro
+---
+---
+<script>
+// Kendalikan tingkat keagresifan prefetch dengan `experimental.clientPrerender`
+import { prefetch } from 'astro:prefetch';
+
+// Halaman ini berat sumber daya
+prefetch('/data-heavy-dashboard', { eagerness: 'conservative' });
+
+// Halaman ini penting bagi perjalanan pengunjung
+prefetch('/getting-started'); // default ke `{ eagerness: 'immediate' }`
+
+// Halaman ini mungkin tidak dikunjungi
+prefetch('/terms-of-service', { eagerness: 'moderate' });
+</script>
+```
+
+Untuk menggunakan `prefetch()` secara terprogram pada kumpulan tautan yang besar, Anda dapat menyetel `eagerness: 'moderate'` untuk memanfaatkan strategi [First In, First Out (FIFO)](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics)) dan heuristik browser agar browser memutuskan kapan harus melakukan prerender/prefetch serta urutannya:
+
+```astro "{eagerness: 'moderate'}"
+<a class="link-moderate" href="/nice-link-1">A Nice Link 1</a>
+<a class="link-moderate" href="/nice-link-2">A Nice Link 2</a>
+<a class="link-moderate" href="/nice-link-3">A Nice Link 3</a>
+<a class="link-moderate" href="/nice-link-4">A Nice Link 4</a>
+...
+<a class="link-moderate" href="/nice-link-20">A Nice Link 20</a>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const linkModerate = document.getElementsByClassName('link-moderate');
+  linkModerate.forEach((link) => prefetch(link.getAttribute('href'), {eagerness: 'moderate'}));
+  
+</script>
+```
+
+Pastikan hanya mengimpor `prefetch()` dalam skrip sisi-klien karena API ini bergantung pada API browser.
+
+## Using with View Transitions
+
+Saat Anda menggunakan [Astro’s `<ClientRouter />`](/id/guides/view-transitions/#enabling-view-transitions-spa-mode) pada sebuah halaman, prefetching juga akan diaktifkan secara default. Komponen ini menyetel konfigurasi default `{ prefetchAll: true }` yang mengaktifkan [prefetch untuk semua tautan](#prefetch-all-links-by-default) pada halaman.
+
+Anda dapat menyesuaikan konfigurasi prefetch di `astro.config.mjs` untuk mengganti nilai default tersebut. Misalnya:
+  
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Nonaktifkan prefetch sepenuhnya
+  prefetch: false
+});
+```
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // Pertahankan prefetch, tetapi hanya untuk tautan dengan `data-astro-prefetch`
+  prefetch: {
+    prefetchAll: false
+  }
+});
+```
+
+## Browser support
+
+Prefetching Astro menggunakan [`<link rel="prefetch">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel/prefetch) jika didukung oleh browser, dan akan menggunakan cadangan [`fetch()` API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API) jika tidak.
+
+Browser paling umum mendukung prefetching Astro dengan perbedaan kecil berikut:
+
+### Chrome
+
+Chrome mendukung `<link rel="prefetch">`. Prefetching berfungsi seperti yang diharapkan.
+
+Chrome juga sepenuhnya mendukung `<script type="speculationrules">` dari [Speculation Rules API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API), yang dapat digunakan untuk mendeskripsikan lebih lanjut [strategi dan aturan prefetching](#eagerness), sehingga meningkatkan pengalaman pengguna di Chrome. Anda perlu mengaktifkan eksperimen [`clientPrerender`](/id/reference/experimental-flags/client-prerender/) untuk memanfaatkan fungsionalitas ini dengan `prefetch()`.
+
+### Firefox
+
+Firefox mendukung `<link rel="prefetch">` tetapi mungkin menampilkan error atau gagal sama sekali:
+
+ - Tanpa header cache eksplisit (mis. [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) atau [`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires)), prefetch akan menghasilkan error `NS_BINDING_ABORTED`. 
+- Bahkan jika terjadi error, bila respons memiliki header [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) yang benar, hasilnya akan digunakan kembali saat navigasi.
+- Jika tidak, jika gagal tanpa header cache lainnya, prefetch tidak akan berhasil.
+
+### Safari
+
+Safari tidak mendukung `<link rel="prefetch">` dan akan menggunakan API `fetch()` sebagai cadangan yang mengharuskan header cache (mis. [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control), [`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires), dan [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag)) disetel. Jika tidak, prefetch tidak akan berfungsi.
+
+**Kasus khusus:** Header `ETag` tidak berfungsi di jendela privat.
+
+### Recommendations
+
+Agar didukung dengan baik di semua browser, pastikan halaman Anda memiliki header cache yang tepat. 
+
+Untuk halaman statis atau yang sudah diprerender, header `ETag` sering kali disetel secara otomatis oleh platform deployment dan biasanya berfungsi langsung.
+
+Untuk halaman dinamis dan dirender di sisi server, setel sendiri header cache yang sesuai berdasarkan konten halaman. Kunjungi [dokumentasi MDN tentang HTTP caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) untuk informasi lebih lanjut.
+
+## Migrating from `@astrojs/prefetch`
+
+Integrasi `@astrojs/prefetch` sudah deprecated sejak v3.5.0 dan pada akhirnya akan dihapus sepenuhnya. Gunakan instruksi berikut untuk bermigrasi ke prefetching bawaan Astro yang menggantikan integrasi ini.
+
+<Steps>
+1. Hapus integrasi `@astrojs/prefetch` dan aktifkan konfigurasi `prefetch` di `astro.config.mjs`:
+
+    ```js title="astro.config.mjs" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    });
+    ```
+
+2. Konversi dari opsi konfigurasi `@astrojs/prefetch`:
+
+    - Integrasi yang sudah tidak digunakan ini memakai opsi konfigurasi `selector` untuk menentukan tautan mana yang harus diprimuat saat memasuki viewport.
+    
+      Tambahkan `data-astro-prefetch="viewport"` pada tautan-tautan tersebut sebagai gantinya.
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - Integrasi yang sudah tidak digunakan ini memakai opsi konfigurasi `intentSelector` untuk menentukan tautan mana yang harus diprimuat ketika diarahkan kursor atau difokuskan.
+    
+      Tambahkan `data-astro-prefetch` atau `data-astro-prefetch="hover"` pada tautan-tautan tersebut sebagai gantinya:
+
+      ```html
+      <!-- Anda dapat mengosongkan nilainya jika `defaultStrategy` disetel ke `hover` (default) -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- Atau, Anda bisa mendefinisikan strategi prefetch secara eksplisit -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - Opsi `throttles` dari `@astrojs/prefetch` tidak lagi diperlukan karena fitur prefetch baru akan menjadwalkan dan mempramuat secara optimal secara otomatis.
+</Steps>

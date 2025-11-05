@@ -1,0 +1,162 @@
+---
+title: Deploy Situs Astro Anda ke GitHub Pages
+description: Cara mendeploy situs Astro Anda ke web menggunakan GitHub Pages.
+sidebar:
+  label: GitHub Pages
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Anda dapat menggunakan [GitHub Pages](https://pages.github.com/) untuk menghosting situs Astro statis (prerender) langsung dari repositori di [GitHub.com](https://github.com/) menggunakan [GitHub Actions](https://github.com/features/actions).
+
+## Cara Mendeploy
+
+Astro menyediakan [GitHub Action resmi untuk mendeploy proyek Anda ke GitHub Pages](https://github.com/withastro/action) dengan konfigurasi yang sangat sedikit, dan ini adalah cara yang direkomendasikan untuk mendeploy ke GitHub Pages.
+
+Ikuti instruksi berikut untuk menggunakan GitHub Action guna mendeploy situs Astro Anda ke GitHub Pages. Ini akan membuat website dari repositori Anda pada URL GitHub (mis. `https://<username>.github.io/<my-repo>`). Setelah dideploy, Anda dapat secara opsional [mengonfigurasi domain kustom](#ubah-url-github-anda-ke-domain-kustom) agar situs GitHub Pages Anda tersedia di domain pilihan Anda (mis. `https://example.com`).
+
+<Steps>
+1. Buat berkas baru di proyek Anda pada `.github/workflows/deploy.yml` dan tempelkan YAML berikut.
+
+    ```yaml title="deploy.yml"
+    name: Deploy to GitHub Pages
+
+    on:
+      # Menjalankan workflow setiap kali Anda push ke branch `main`
+      # Menggunakan nama branch lain? Ganti `main` dengan nama branch Anda
+      push:
+        branches: [ main ]
+      # Mengizinkan Anda menjalankan workflow ini secara manual dari tab Actions di GitHub.
+      workflow_dispatch:
+
+    # Izin agar job ini bisa mengkloning repo dan membuat deployment halaman
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout your repository using git
+            uses: actions/checkout@v4
+          - name: Install, build, and upload your site
+            uses: withastro/action@v3
+            # with:
+              # path: . # Lokasi root proyek Astro di dalam repositori. (opsional)
+              # node-version: 20 # Versi Node spesifik yang digunakan untuk membangun situs. Bawaan 20. (opsional)
+              # package-manager: pnpm@latest # Paket manajer Node untuk instal dependensi & build. Terdeteksi otomatis dari lockfile. (opsional)
+            # env:
+              # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # Gunakan tanda petik tunggal. (opsional)
+
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v4
+    ```
+
+     Action Astro dapat dikonfigurasi dengan *optional inputs*. Berikan dengan membuka komentar pada bagian `with:` dan masukkan input yang Anda butuhkan.
+
+     Jika situs Anda membutuhkan *public environment variables*, buka komentar bagian `env:` dan tambahkan di sana. (Lihat [dokumentasi GitHub tentang menyetel secrets](https://docs.github.com/id/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository) untuk menambahkan variabel lingkungan privat.)
+
+    :::caution
+    [Action](https://github.com/withastro/action) resmi Astro memindai lockfile untuk mendeteksi package manager pilihan Anda (`npm`, `yarn`, `pnpm`, atau `bun`). Anda harus meng-commit `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, atau `bun.lockb` yang dihasilkan otomatis oleh package manager Anda.
+    :::
+
+2. Di berkas konfigurasi Astro Anda, setel [`site`](/id/reference/configuration-reference/#site) ke URL GitHub dari situs yang dideploy.
+
+    ```js title="astro.config.mjs" ins={4}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://astronaut.github.io',
+    })
+    ```
+
+    Nilai `site` harus salah satu dari berikut:
+
+    - URL berikut berdasarkan nama pengguna Anda: `https://<username>.github.io`
+    - URL acak yang dibuat untuk [halaman privat Organisasi GitHub](https://docs.github.com/id/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site): `https://<random-string>.pages.github.io/`
+
+3. Dalam `astro.config.mjs`, konfigurasikan nilai [`base`](/id/reference/configuration-reference/#base) (biasanya diperlukan).
+
+      GitHub Pages akan menerbitkan website Anda pada alamat yang bergantung pada nama pengguna dan nama repositori (mis. `https://<username>/github.io/<my-repo>/`). Setel nilai `base` yang menentukan repositori untuk website Anda. Ini agar Astro memahami root website Anda adalah `/my-repo`, bukan `/` (bawaan). Anda dapat melewati langkah ini jika nama repositori Anda mengikuti pola khusus `<username>.github.io` (mis. `https://github.com/username/username.github.io/`)
+
+      Setel `base` sebagai nama repositori yang diawali garis miring (mis. `/my-repo`):
+
+      ```js title="astro.config.mjs" ins={4-5}
+      import { defineConfig } from 'astro/config'
+
+      export default defineConfig({
+        site: 'https://astronaut.github.io',
+        base: '/my-repo',
+      })
+      ```
+
+      :::caution[Tautan internal dengan `base` dikonfigurasi]
+      Saat nilai ini disetel, seluruh tautan halaman internal Anda harus diawali dengan nilai `base`:
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">About</a>
+      ```
+
+      Lihat lebih lanjut tentang [mengonfigurasi nilai `base`](/id/reference/configuration-reference/#base).
+      :::
+
+4. Di GitHub, buka tab **Settings** repositori Anda dan temukan bagian **Pages** pada pengaturan.
+
+5. Pilih **GitHub Actions** sebagai **Source** situs Anda.
+
+</Steps>
+
+Saat Anda *push* perubahan ke repositori proyek Astro, GitHub Action akan otomatis mendeploy perubahan tersebut ke URL GitHub Anda.
+
+## Ubah URL GitHub Anda ke domain kustom
+
+Setelah proyek Astro Anda [dideploy ke GitHub Pages pada URL GitHub](#cara-mendeploy) mengikuti instruksi sebelumnya, Anda dapat mengonfigurasi domain kustom. Ini berarti pengguna dapat mengunjungi situs Anda di domain kustom `https://example.com` alih‑alih `https://<username>.github.io`.
+
+<Steps>
+
+1. [Konfigurasi DNS untuk penyedia domain Anda](https://docs.github.com/id/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).
+2. Tambahkan catatan `./public/CNAME` ke proyek Anda.
+
+    Buat berkas berikut di folder `public/` dengan satu baris teks yang menentukan domain kustom Anda: 
+    ```js title="public/CNAME"
+    sub.example.com
+    ```
+
+    Ini akan mendeploy situs Anda di domain kustom, bukan `user.github.io`.
+
+3. Dalam konfigurasi Astro Anda, perbarui nilai `site` dengan domain kustom Anda. Jangan setel nilai `base`, dan hapus jika ada:
+
+    ```js title="astro.config.mjs" ins={4} del={5}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://example.com',
+      base: '/my-repo'
+    })
+    ```
+
+4. Jika perlu, perbarui semua tautan internal halaman untuk menghapus awalan `base`:
+
+    ```astro del="/my-repo"
+    <a href="/my-repo/about">About</a>
+    ```
+
+</Steps>
+
+## Contoh
+
+- [Template awal Deployment GitHub Pages](https://github.com/hkbertoson/github-pages)
+- [Starlight Flexoki Theme (situs produksi)](https://delucis.github.io/starlight-theme-flexoki/)
+- [Expressive Code Color Chips (situs produksi)](https://delucis.github.io/expressive-code-color-chips/)
+- [Starlight Markdown Blocks (situs produksi)](https://delucis.github.io/starlight-markdown-blocks/)

@@ -1,0 +1,1165 @@
+---
+title: Konteks render Astro
+sidebar:
+  label: Konteks render
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+Saat merender sebuah halaman, Astro menyediakan API runtime yang spesifik untuk render saat ini. Ini mencakup informasi berguna seperti URL halaman saat ini serta API untuk melakukan tindakan seperti mengarahkan (redirect) ke halaman lain.
+
+Di komponen `.astro`, konteks ini tersedia dari objek global `Astro`. Fungsi endpoint juga dipanggil dengan objek konteks yang sama sebagai argumen pertama, yang propertinya mencerminkan properti global Astro.
+
+Beberapa properti hanya tersedia untuk rute yang dirender secara on‑demand atau mungkin memiliki fungsionalitas terbatas pada halaman yang dipreprender.
+
+Objek global `Astro` tersedia untuk semua file `.astro`. Gunakan objek `context` di [fungsi endpoint](/id/guides/endpoints/) untuk melayani endpoint statis atau live server dan di [middleware](/id/guides/middleware/) untuk menyuntikkan perilaku ketika sebuah halaman atau endpoint akan dirender.
+
+## Objek konteks
+
+Properti berikut tersedia pada global `Astro` (mis. `Astro.props`, `Astro.redirect()`) dan juga tersedia pada objek konteks (mis. `context.props`, `context.redirect()`) yang diteruskan ke fungsi endpoint dan middleware.
+
+### `props`
+
+`props` adalah objek yang berisi nilai apa pun yang telah diteruskan sebagai [atribut komponen](/id/basics/astro-components/#component-props).
+
+```astro {3}
+---
+// src/components/Heading.astro
+const { title, date } = Astro.props;
+---
+<div>
+  <h1>{title}</h1>
+  <p>{date}</p>
+</div>
+```
+
+```astro "title=" "date="
+---
+// src/pages/index.astro
+import Heading from '../components/Heading.astro';
+---
+<Heading title="My First Post" date="09 Aug 2022" />
+```
+
+<ReadMore>Pelajari lebih lanjut tentang bagaimana [layout Markdown dan MDX](/id/guides/markdown-content/#frontmatter-layout-property) menangani props.</ReadMore>
+
+
+Objek `props` juga berisi `props` apa pun yang diteruskan dari `getStaticPaths()` saat merender rute statis.
+
+<Tabs>
+  <TabItem label="Astro.props">
+    ```astro title="src/pages/posts/[id].astro" "props:" {11}
+    ---
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' }, props: { author: 'Blu' } },
+        { params: { id: '2' }, props: { author: 'Erika' } },
+        { params: { id: '3' }, props: { author: 'Matthew' } }
+      ];
+    }
+
+    const { id } = Astro.params;
+    const { author } = Astro.props;
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.props">
+    ```ts title="src/pages/posts/[id].json.ts" "props:" {11-15}
+    import type { APIContext } from 'astro';
+
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' }, props: { author: 'Blu' } },
+        { params: { id: '2' }, props: { author: 'Erika' } },
+        { params: { id: '3' }, props: { author: 'Matthew' } }
+      ];
+    }
+
+    export function GET({ props }: APIContext) {
+      return new Response(
+        JSON.stringify({ author: props.author }),
+      );
+    }
+    ```
+  </TabItem>
+
+</Tabs>
+Lihat juga: [Pengoperan Data dengan `props`](/id/reference/routing-reference/#data-passing-with-props)
+
+### `params`
+
+`params` adalah objek yang berisi nilai segmen rute dinamis yang cocok untuk sebuah request. Kuncinya harus cocok dengan [parameter](/id/guides/routing/#dynamic-routes) pada jalur file halaman atau endpoint.
+
+Pada build statis, ini akan menjadi `params` yang dikembalikan oleh `getStaticPaths()` yang digunakan untuk memprerender [rute dinamis](/id/guides/routing/#dynamic-routes):
+
+<Tabs>
+  <TabItem label="Astro.params">
+    ```astro title="src/pages/posts/[id].astro" {9} "params:"
+    ---
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' } },
+        { params: { id: '2' } },
+        { params: { id: '3' } }
+      ];
+    }
+    const { id } = Astro.params;
+    ---
+    <h1>{id}</h1>
+    ```
+  </TabItem>
+  <TabItem label="context.params">
+    ```ts title="src/pages/posts/[id].json.ts" "params:" {11-15}
+    import type { APIContext } from 'astro';
+
+    export function getStaticPaths() {
+      return [
+        { params: { id: '1' } },
+        { params: { id: '2' } },
+        { params: { id: '3' } }
+      ];
+    }
+
+    export function GET({ params }: APIContext) {
+      return new Response(
+        JSON.stringify({ id: params.id }),
+      );
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+Saat rute dirender on‑demand, `params` bisa berupa nilai apa pun yang cocok dengan segmen path dalam pola rute dinamis.
+
+```astro title="src/pages/posts/[id].astro" "Astro.params"
+---
+import { getPost } from '../api';
+
+const post = await getPost(Astro.params.id);
+
+// Tidak ada postingan dengan ID ini
+if (!post) {
+  return Astro.redirect("/404")
+}
+---
+<html>
+  <h1>{post.name}</h1>
+</html>
+```
+
+Lihat juga: [`params`](/id/reference/routing-reference/#params)
+
+### `url`
+
+<p>
+
+**Tipe:** `URL`<br />
+<Since v="1.0.0" />
+</p>
+
+`url` adalah objek [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) yang dikonstruksi dari nilai `request.url` saat ini. Ini berguna untuk berinteraksi dengan properti individual dari URL request, seperti pathname dan origin. 
+
+`Astro.url` setara dengan `new URL(Astro.request.url)`.
+
+`url` akan berupa URL `localhost` pada mode dev. Saat membangun situs, rute yang diprerender akan menerima URL berdasarkan opsi [`site`](/id/reference/configuration-reference/#site) dan [`base`](/id/reference/configuration-reference/#base). Jika `site` tidak dikonfigurasi, halaman yang diprerender juga akan menerima URL `localhost` selama build.
+
+```astro title="src/pages/index.astro" "Astro.url"
+<h1>URL saat ini: {Astro.url}</h1>
+<h1>Pathname URL saat ini: {Astro.url.pathname}</h1>
+<h1>Origin URL saat ini: {Astro.url.origin}</h1>
+```
+
+Anda juga dapat menggunakan `url` untuk membuat URL baru dengan meneruskannya sebagai argumen ke [`new URL()`](https://developer.mozilla.org/en-US/docs/Web/API/URL/URL).
+
+```astro title="src/pages/index.astro" "Astro.url"
+---
+// Contoh: Bangun URL kanonik menggunakan domain produksi Anda
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+// Contoh: Bangun URL untuk meta tag SEO menggunakan domain saat ini
+const socialImageURL = new URL('/images/preview.png', Astro.url);
+---
+<link rel="canonical" href={canonicalURL} />
+<meta property="og:image" content={socialImageURL} />
+```
+
+### `site`
+
+<p>
+
+**Tipe:** `URL | undefined`
+</p>
+
+`site` mengembalikan `URL` yang dibuat dari `site` di konfigurasi Astro Anda. Ini mengembalikan `undefined` jika Anda belum mengatur nilai untuk [`site`](/id/reference/configuration-reference/#site) di konfigurasi Astro Anda.
+
+```astro title="src/pages/index.astro" "Astro.site"
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Your Site's Title"
+    href={new URL("rss.xml", Astro.site)}
+/>
+```
+
+### `clientAddress`
+
+<p>
+
+**Tipe:** `string`<br />
+<Since v="1.0.0" />
+</p>
+
+`clientAddress` menentukan [alamat IP](https://en.wikipedia.org/wiki/IP_address) dari request. Properti ini hanya tersedia untuk rute yang dirender on‑demand dan tidak dapat digunakan di halaman yang diprerender.
+
+<Tabs>
+  <TabItem label="Astro.clientAddress">
+    ```astro title="src/pages/ip-address.astro" "Astro.clientAddress"
+    ---
+    export const prerender = false; // Tidak diperlukan pada mode 'server'
+    ---
+
+    <div>Alamat IP Anda: <span class="address">{Astro.clientAddress}</span></div>
+    ```
+  </TabItem>
+  <TabItem label="context.clientAddress">
+    ```ts title="src/pages/ip-address.ts" "clientAddress"
+    export const prerender = false; // Tidak diperlukan pada mode 'server'
+    import type { APIContext } from 'astro';
+
+    export function GET({ clientAddress }: APIContext) {
+      return new Response(`Alamat IP Anda: ${clientAddress}`);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+### `isPrerendered`
+
+<p>
+
+**Tipe**: `boolean`<br />
+<Since v="5.0.0" />
+</p>
+
+Boolean yang merepresentasikan apakah halaman saat ini diprerender atau tidak.
+
+Anda dapat menggunakan properti ini untuk menjalankan logika kondisional di middleware, misalnya, untuk menghindari mengakses header pada halaman yang diprerender.
+
+### `generator`
+
+<p>
+
+**Tipe:** `string`<br />
+<Since v="1.0.0" />
+</p>
+
+`generator` menyediakan versi Astro saat ini yang dijalankan proyek Anda. Ini cara praktis untuk menambahkan tag [`<meta name="generator">`](https://html.spec.whatwg.org/multipage/semantics.html#meta-generator) dengan versi Astro Anda saat ini. Formatnya `"Astro v5.x.x"`.
+
+<Tabs>
+  <TabItem label="Astro.generator">
+    ```astro title="src/pages/site-info.astro" "Astro.generator"
+    <html>
+      <head>
+        <meta name="generator" content={Astro.generator} />
+      </head>
+      <body>
+        <footer>
+          <p>Dibuat dengan <a href="https://astro.build">{Astro.generator}</a></p>
+        </footer>
+      </body>
+    </html>
+    ```
+  </TabItem>
+  <TabItem label="context.generator">
+    ```ts title="src/pages/site-info.json.ts" "generator"
+    import type { APIContext } from 'astro';
+
+    export function GET({ generator, site }: APIContext) {
+      const body = JSON.stringify({ generator, site });
+      return new Response(body);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `request`
+
+<p>
+
+**Tipe:** `Request`
+</p>
+
+`request` adalah objek standar [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request). Ini dapat digunakan untuk mendapatkan `url`, `headers`, `method`, dan bahkan body dari request. 
+
+<Tabs>
+  <TabItem label="Astro.request">
+    ```astro wrap title="src/pages/index.astro" "Astro.request"
+    <p>Menerima request {Astro.request.method} ke "{Astro.request.url}".</p>
+    <p>Header request yang diterima:</p>
+    <p><code>{JSON.stringify(Object.fromEntries(Astro.request.headers))}</code></p>
+    ```
+  </TabItem>
+  <TabItem label="context.request">
+    ```ts "request"
+    import type { APIContext } from 'astro';
+
+    export function GET({ request }: APIContext) {
+      return new Response(`Hello ${request.url}`);
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+:::note
+Pada halaman yang diprerender, `request.url` tidak berisi parameter pencarian, seperti `?type=new`, karena tidak mungkin menentukannya di muka saat build statis. Namun, `request.url` memang berisi parameter pencarian untuk halaman yang dirender on‑demand karena dapat ditentukan dari request server.
+:::
+
+### `response`
+
+<p>
+
+**Tipe:** `ResponseInit & { readonly headers: Headers }`
+</p>
+
+`response` adalah objek standar `ResponseInit`. Ia memiliki struktur berikut. 
+
+ - `status`: Kode status numerik dari respons, mis., `200`.
+ - `statusText`: Pesan status yang terkait dengan kode status, mis., `'OK'`.
+ - `headers`: Instance [`Headers`](https://developer.mozilla.org/en-US/docs/Web/API/Headers) yang dapat Anda gunakan untuk mengatur header HTTP dari respons.
+
+`Astro.response` digunakan untuk mengatur `status`, `statusText`, dan `headers` untuk respons sebuah halaman.
+
+
+```astro "Astro.response"
+---
+if (condition) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+```
+
+Atau untuk mengatur header:
+
+```astro "Astro.response"
+---
+Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
+---
+```
+
+### `redirect()`
+
+<p>
+
+**Tipe:** `(path: string, status?: number) => Response`
+<Since v="1.5.0" />
+</p>
+
+`redirect()` mengembalikan objek [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) yang memungkinkan Anda mengarahkan ke halaman lain, dan opsional memberikan [kode status HTTP](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status#redirection_messages) sebagai parameter kedua.
+
+Sebuah halaman (bukan komponen anak) harus `return` hasil dari `Astro.redirect()` agar pengalihan terjadi.
+
+Untuk rute yang dihasilkan secara statis, ini akan menghasilkan pengalihan klien menggunakan tag [`<meta http-equiv="refresh">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#http-equiv) dan tidak mendukung kode status.
+
+Untuk rute yang dirender on‑demand, penetapan kode status kustom didukung saat mengalihkan. Jika tidak ditentukan, pengalihan akan disajikan dengan kode status `302`.
+
+Contoh berikut mengalihkan pengguna ke halaman login:
+
+<Tabs>
+  <TabItem label="Astro.redirect()">
+    ```astro title="src/pages/account.astro" {8} "Astro.redirect"
+    ---
+    import { isLoggedIn } from '../utils';
+
+    const cookie = Astro.request.headers.get('cookie');
+
+    // Jika pengguna belum login, arahkan ke halaman login
+    if (!isLoggedIn(cookie)) {
+      return Astro.redirect('/login');
+    }
+    ---
+    
+    <p>Informasi pengguna</p>
+    ```
+  </TabItem>
+  <TabItem label="context.redirect()">
+    ```ts "redirect"
+    import type { APIContext } from 'astro';
+
+    export function GET({ redirect, request }: APIContext) {
+      const cookie = request.headers.get('cookie');
+      if (!isLoggedIn(cookie)) {
+        return redirect('/login', 302);
+      } else {
+        // kembalikan informasi pengguna
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+
+### `rewrite()`
+
+<p>
+
+**Tipe:** `(rewritePayload: string | URL | Request) => Promise<Response>`<br />
+<Since v="4.13.0" />
+</p>
+
+`rewrite()` memungkinkan Anda menyajikan konten dari URL atau path yang berbeda tanpa mengarahkan browser ke halaman baru. 
+
+Metode ini menerima string, `URL`, atau `Request` untuk lokasi path.
+
+Gunakan string untuk memberikan path eksplisit:
+
+<Tabs syncKey="rewrite">
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/index.astro" "Astro.rewrite"
+    ---
+    return Astro.rewrite("/login")
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts "rewrite"
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite('/login');
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Gunakan tipe `URL` ketika Anda perlu menyusun path URL untuk rewrite. Contoh berikut merender path induk halaman dengan membuat URL baru dari path relatif `"../"`:
+
+<Tabs syncKey="rewrite">
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/blog/index.astro"
+    ---
+    return Astro.rewrite(new URL("../", Astro.url))
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite(new URL("../", Astro.url));
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+Gunakan tipe `Request` untuk kontrol penuh atas `Request` yang dikirim ke server untuk path baru. Contoh berikut mengirim request untuk merender halaman induk sekaligus memberikan header:
+
+<Tabs syncKey="rewrite">
+  <TabItem label="Astro.rewrite()">
+    ```astro title="src/pages/blog/index.astro"
+    ---
+    return Astro.rewrite(new Request(new URL("../", Astro.url), {
+      headers: {
+        "x-custom-header": JSON.stringify(Astro.locals.someValue)
+      }
+    }))
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.rewrite()">
+    ```ts
+    import type { APIContext } from 'astro';
+
+    export function GET({ rewrite }: APIContext) {
+      return rewrite(new Request(new URL("../", Astro.url), {
+        headers: {
+          "x-custom-header": JSON.stringify(Astro.locals.someValue)
+        }
+      }));
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `originPathname`
+
+<p>
+
+**Tipe:** `string`<br />
+<Since v="5.0.0" />
+</p>
+
+`originPathname` mendefinisikan pathname asli dari request, sebelum rewrite diterapkan.
+
+<Tabs>
+  <TabItem label="Astro.originPathname">
+  	```astro title="src/pages/404.astro"
+    <p>Path asal adalah {Astro.originPathname}</p>
+    <p>Path hasil rewrite adalah {Astro.url.pathname}</p>
+    ```
+  </TabItem>
+  <TabItem label="context.originPathname">
+    ```ts title="src/middleware.ts"
+    import { defineMiddleware } from 'astro:middleware';
+
+    export const onRequest = defineMiddleware(async (context, next) => {
+      // Catat pathname asli sebelum rewrite apa pun
+      recordPageVisit(context.originPathname);
+      return next();
+    });
+  ```
+  </TabItem>
+</Tabs>
+
+### `locals`
+
+<p>
+
+<Since v="2.4.0" />
+</p>
+
+`locals` adalah objek yang digunakan untuk menyimpan dan mengakses informasi arbitrer selama siklus hidup sebuah request. `Astro.locals` adalah objek yang berisi nilai apa pun dari objek `context.locals` yang diatur oleh middleware. Gunakan ini untuk mengakses data yang dikembalikan oleh middleware di file `.astro` Anda.
+
+Fungsi middleware dapat membaca dan menulis nilai `context.locals`:
+
+```ts title="src/middleware.ts" "locals"
+import type { MiddlewareHandler } from 'astro';
+
+export const onRequest: MiddlewareHandler = ({ locals }, next) => {
+  if (!locals.title) {
+    locals.title = "Default Title";
+  }
+  return next();
+}
+```
+
+Komponen Astro dan endpoint API dapat membaca nilai dari `locals` saat mereka dirender:
+
+<Tabs>
+  <TabItem label="Astro.locals">
+    ```astro title="src/pages/Orders.astro" "Astro.locals"
+    ---
+    const title = Astro.locals.title;
+    ---
+    <h1>{title}</h1>
+    ```
+  </TabItem>
+  <TabItem label="context.locals">
+    ```ts title="src/pages/hello.ts" "locals"
+    import type { APIContext } from 'astro';
+
+    export function GET({ locals }: APIContext) {
+      return new Response(locals.title); // "Default Title"
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+### `preferredLocale`
+
+<p>
+
+**Tipe:** `string | undefined`<br />
+<Since v="3.5.0" />
+</p>
+
+`preferredLocale` adalah nilai terhitung untuk menemukan kecocokan terbaik antara preferensi bahasa browser pengunjung Anda dan locale yang didukung situs Anda.
+
+Nilai ini dihitung dengan memeriksa locale yang dikonfigurasi di array [`i18n.locales`](/id/reference/configuration-reference/#i18nlocales) dan locale yang didukung oleh browser pengguna melalui header `Accept-Language`. Nilai ini adalah `undefined` jika tidak ada kecocokan.
+
+Properti ini hanya tersedia untuk rute yang dirender on‑demand dan tidak dapat digunakan pada halaman statis yang diprerender.
+
+### `preferredLocaleList`
+
+<p>
+
+**Tipe:** `string[] | undefined`<br />
+<Since v="3.5.0" />
+</p>
+
+`preferredLocaleList` merepresentasikan array semua locale yang diminta oleh browser dan didukung oleh website Anda. Ini menghasilkan daftar semua bahasa yang kompatibel antara situs Anda dan pengunjung Anda. 
+
+Jika tidak ada bahasa yang diminta browser ditemukan dalam array locale Anda, maka nilainya adalah `[]`. Ini terjadi ketika Anda tidak mendukung bahasa yang diprioritaskan pengunjung Anda.
+
+Jika browser tidak menentukan bahasa pilihan apa pun, maka nilai ini akan menjadi [`i18n.locales`](/id/reference/configuration-reference/#i18nlocales): semua locale yang Anda dukung akan dianggap sama‑sama disukai oleh pengunjung tanpa preferensi. 
+
+Properti ini hanya tersedia untuk rute yang dirender on‑demand dan tidak dapat digunakan pada halaman statis yang diprerender.
+
+### `currentLocale`
+
+<p>
+
+**Tipe:** `string | undefined`<br />
+<Since v="3.5.6" />
+</p>
+
+Locale yang dihitung dari URL saat ini, menggunakan sintaks yang ditentukan dalam konfigurasi `locales` Anda. Jika URL tidak mengandung prefiks `/[locale]/`, maka nilainya akan menjadi [`i18n.defaultLocale`](/id/reference/configuration-reference/#i18ndefaultlocale).
+
+### `getActionResult()`
+
+<p>
+**Tipe:** `(action: TAction) => ActionReturnType<TAction> | undefined`<br />
+<Since v="4.15.0" />
+</p>
+
+`getActionResult()` adalah fungsi yang mengembalikan hasil dari pengiriman sebuah [Action](/id/guides/actions/). Ini menerima fungsi action sebagai argumen (mis. `actions.logout`) dan mengembalikan objek `data` atau `error` ketika sebuah submission diterima. Jika tidak, akan mengembalikan `undefined`.
+
+```astro title="src/pages/index.astro" "Astro.getActionResult"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.logout);
+---
+
+<form action={actions.logout}>
+  <button type="submit">Log out</button>
+</form>
+{result?.error && <p>Gagal keluar. Silakan coba lagi.</p>}
+```
+
+### `callAction()`
+
+<p>
+<Since v="4.15.0" />
+</p>
+
+`callAction()` adalah fungsi untuk memanggil handler Action langsung dari komponen Astro Anda. Fungsi ini menerima fungsi Action sebagai argumen pertama (mis. `actions.logout`) dan input apa pun yang diterima action tersebut sebagai argumen kedua. Mengembalikan hasil action sebagai promise.
+
+```astro title="src/pages/index.astro" "Astro.callAction"
+---
+import { actions } from 'astro:actions';
+
+const { data, error } = await Astro.callAction(actions.logout, { userId: '123' });
+---
+```
+
+### `routePattern`
+
+<p>
+
+**Tipe**: `string`<br />
+<Since v="5.0.0" />
+</p>
+
+Pola rute yang bertanggung jawab untuk menghasilkan halaman atau rute saat ini. Dalam routing berbasis file, ini menyerupai path file di proyek Anda yang digunakan untuk membuat rute. Ketika integrasi membuat rute untuk proyek Anda, `context.routePattern` identik dengan nilai `injectRoute.pattern`.
+
+Nilainya akan diawali dengan garis miring dan terlihat mirip dengan path komponen halaman relatif terhadap folder `src/pages/` tanpa ekstensi file.
+
+Sebagai contoh, file `src/pages/id/blog/[slug].astro` akan mengembalikan `/id/blog/[slug]` untuk `routePattern`. Setiap halaman di situs Anda yang dihasilkan oleh file itu (mis. `/id/blog/post-1/`, `/id/blog/post-2/`, dll.) berbagi nilai yang sama untuk `routePattern`. Dalam kasus rute `index.*`, pola rute tidak akan menyertakan kata "index". Misalnya, `src/pages/index.astro` akan mengembalikan `/`.
+
+Anda dapat menggunakan properti ini untuk memahami rute mana yang merender komponen Anda. Ini memungkinkan Anda menargetkan atau menganalisis URL halaman yang dihasilkan serupa bersama‑sama. Misalnya, Anda dapat menggunakannya untuk merender informasi tertentu secara kondisional, atau mengumpulkan metrik tentang rute mana yang lebih lambat.
+
+### `cookies`
+
+<p>
+
+**Tipe:** `AstroCookies`<br />
+<Since v="1.4.0" />
+</p>
+
+`cookies` berisi utilitas untuk membaca dan memanipulasi cookie untuk [rute yang dirender on‑demand](/id/guides/on-demand-rendering/).
+
+#### Utilitas Cookie
+
+##### `cookies.get()`
+
+<p>
+
+**Tipe:** <code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => <a href="#astrocookie-type">AstroCookie</a> | undefined</code>
+</p>
+
+Mengambil cookie sebagai objek [`AstroCookie`](#astrocookie-type), yang berisi `value` dan fungsi utilitas untuk mengonversi cookie ke tipe non‑string.
+
+##### `cookies.has()`
+
+<p>
+
+**Tipe:** <code>(key: string, options?: <a href="#astrocookiegetoptions">AstroCookieGetOptions</a>) => boolean</code>
+</p>
+
+Apakah cookie ini ada. Jika cookie telah diatur melalui `Astro.cookies.set()` ini akan mengembalikan true, jika tidak, ia akan memeriksa cookie pada `Astro.request`.
+
+##### `cookies.set()`
+
+<p>
+
+**Tipe:** <code>(key: string, value: string | object, options?: <a href="#astrocookiesetoptions">AstroCookieSetOptions</a>) => void</code>
+</p>
+
+Mengatur cookie `key` ke nilai yang diberikan. Ini akan mencoba mengonversi nilai cookie menjadi string. Opsi menyediakan cara untuk mengatur [fitur cookie](https://www.npmjs.com/package/cookie#options-1), seperti `maxAge` atau `httpOnly`.
+
+##### `cookies.delete()`
+
+<p>
+
+**Tipe:** `(key: string, options?: AstroCookieDeleteOptions) => void`
+</p>
+
+Membatalkan cookie dengan mengatur tanggal kedaluwarsa di masa lalu (0 dalam waktu Unix).
+
+Setelah cookie "dihapus" (kedaluwarsa), `Astro.cookies.has()` akan mengembalikan `false` dan `Astro.cookies.get()` akan mengembalikan [`AstroCookie`](#astrocookie-type) dengan `value` `undefined`. Opsi yang tersedia saat menghapus cookie adalah: `domain`, `path`, `httpOnly`, `sameSite`, dan `secure`.
+
+##### `cookies.merge()`
+
+<p>
+
+**Tipe:** `(cookies: AstroCookies) => void`
+</p>
+
+Menggabungkan instance `AstroCookies` baru ke instance saat ini. Cookie baru apa pun akan ditambahkan ke instance saat ini dan cookie dengan nama yang sama akan menimpa nilai yang ada.
+
+##### `cookies.headers()`
+
+<p>
+
+**Tipe:** `() => Iterator<string>`
+</p>
+
+Mengambil nilai header untuk `Set-Cookie` yang akan dikirim bersama respons.
+
+#### Tipe `AstroCookie`
+
+Tipe yang dikembalikan dari pengambilan cookie melalui `Astro.cookies.get()`. Memiliki properti berikut:
+
+##### `value`
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+Nilai string mentah dari cookie.
+
+##### `json`
+
+<p>
+
+**Tipe:** `() => Record<string, any>`
+</p>
+
+Melakukan parse nilai cookie melalui `JSON.parse()`, mengembalikan sebuah objek. Melempar error jika nilai cookie bukan JSON yang valid.
+
+##### `number`
+
+<p>
+
+**Tipe:** `() => number`
+</p>
+
+Melakukan parse nilai cookie sebagai Number. Mengembalikan NaN jika bukan angka yang valid.
+
+##### `boolean`
+
+<p>
+
+**Tipe:** `() => boolean`
+</p>
+
+Mengonversi nilai cookie menjadi boolean.
+
+#### `AstroCookieGetOptions`
+
+<p><Since v="4.1.0"/></p>
+
+Antarmuka `AstroCookieGetOption` memungkinkan Anda menentukan opsi saat mengambil cookie.
+
+##### `decode`
+
+<p>
+**Tipe:** `(value: string) => string`
+</p>
+
+Memungkinkan kustomisasi bagaimana cookie dideserialisasi menjadi nilai.
+
+#### `AstroCookieSetOptions`
+
+<p><Since v="4.1.0"/></p>
+
+`AstroCookieSetOptions` adalah objek yang dapat diteruskan ke `Astro.cookies.set()` saat mengatur cookie untuk menyesuaikan bagaimana cookie diserialisasi.
+
+##### `domain`
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+Menentukan domain. Jika tidak ada domain yang ditetapkan, sebagian besar klien akan menafsirkannya berlaku untuk domain saat ini.
+
+##### `expires`
+
+<p>
+
+**Tipe:** `Date`
+</p>
+
+Menentukan tanggal kedaluwarsa cookie.
+
+##### `httpOnly`
+
+<p>
+
+**Tipe:** `boolean`
+</p>
+
+Jika true, cookie tidak akan dapat diakses di sisi klien.
+
+##### `maxAge`
+
+<p>
+
+**Tipe:** `number`
+</p>
+
+Menentukan angka dalam detik untuk berapa lama cookie berlaku.
+
+##### `path`
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+Menentukan subpath dari domain tempat cookie diterapkan.
+
+##### `sameSite`
+
+<p>
+
+**Tipe:** `boolean | 'lax' | 'none' | 'strict'`
+</p>
+
+Menentukan nilai header cookie [SameSite](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-09#section-5.4.7).
+
+##### `secure`
+
+<p>
+
+**Tipe:** `boolean`
+</p>
+
+Jika true, cookie hanya diatur pada situs https.
+
+##### `encode`
+
+<p>
+
+**Tipe:** `(value: string) => string`
+</p>
+
+Memungkinkan kustomisasi bagaimana cookie diserialisasi.
+
+### `session`
+
+<p>
+
+**Tipe:** `AstroSession`
+
+<Since v="5.7.0" />
+
+</p>
+
+`session` adalah objek yang memungkinkan data disimpan antar request untuk [rute yang dirender on‑demand](/id/guides/on-demand-rendering/). Ini terkait dengan cookie yang hanya berisi ID sesi: datanya sendiri tidak disimpan di cookie.
+
+Sesi dibuat saat pertama kali digunakan, dan cookie sesi diatur secara otomatis. Objek `session` adalah `undefined` jika tidak ada penyimpanan sesi yang dikonfigurasi, atau jika rute saat ini diprerender, dan akan mencatat error jika Anda mencoba menggunakannya.
+
+Lihat [panduan sesi](/id/guides/sessions/) untuk informasi lebih lanjut tentang cara menggunakan sesi di proyek Astro Anda.
+
+#### `get()`
+
+<p>
+
+**Tipe**: `(key: string) => Promise<any>`
+
+</p>
+
+Mengembalikan nilai untuk kunci yang diberikan di sesi. Jika kunci tidak ada, ia mengembalikan `undefined`.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/components/Cart.astro" "Astro.session?.get('cart')"
+    ---
+    const cart = await Astro.session?.get('cart');
+    ---
+    <button>🛒 {cart?.length}</button>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/cart.ts" "session.get('cart')"
+    import type { APIContext } from 'astro';
+
+    export async function GET({ session }: APIContext) {
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `set()`
+
+<p>
+
+**Tipe**: `(key: string, value: any, options?: { ttl: number }) => void`
+
+</p>
+
+Mengatur nilai untuk kunci yang diberikan di sesi. Nilai dapat berupa tipe apa pun yang dapat diserialisasi. Metode ini sinkron dan nilainya segera tersedia untuk diambil, tetapi tidak disimpan ke backend hingga akhir request.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/products/[slug].astro" "Astro.session?.set('lastViewedProduct', slug)"
+    ---
+    const { slug } = Astro.params;
+    Astro.session?.set('lastViewedProduct', slug);
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session, request }: APIContext) {
+      const cart = await session.get('cart');
+      const newItem = await request.json();
+      cart.push(newItem);
+      // Simpan cart yang diperbarui ke sesi
+      session.set('cart', cart);
+      return Response.json({ cart });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `regenerate()`
+
+<p>
+
+**Tipe**: `() => void`
+
+</p>
+
+Membuat ulang ID sesi. Panggil ini saat pengguna masuk atau meningkatkan hak aksesnya, untuk mencegah serangan session fixation.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/welcome.astro" "Astro.session?.regenerate()"
+    ---
+    Astro.session?.regenerate();
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/login.ts" "session.regenerate()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      // Autentikasi pengguna...
+      doLogin();
+      // Regenerasi ID sesi untuk mencegah serangan session fixation
+      session.regenerate();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `destroy()`
+
+<p>
+
+**Tipe**: `() => void`
+
+</p>
+
+Menghancurkan sesi, menghapus cookie dan objek dari backend. Panggil ini saat pengguna logout atau sesi mereka tidak lagi valid.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/logout.astro" "Astro.session?.destroy()"
+    ---
+    Astro.session?.destroy();
+    return Astro.redirect('/login');
+    ---
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/logout.ts" "session.destroy()"
+    import type { APIContext } from 'astro';
+
+    export async function POST({ session }: APIContext) {
+      session.destroy();
+      return Response.json({ success: true });
+    }
+    ```
+
+  </TabItem>
+</Tabs>
+
+#### `load()`
+
+<p>
+
+**Tipe**: `(id: string) => Promise<void>`
+</p>
+
+Memuat sesi berdasarkan ID. Dalam penggunaan normal, sesi dimuat secara otomatis dari cookie request. Gunakan metode ini untuk memuat sesi dari ID yang berbeda. Ini berguna jika Anda menangani ID sesi sendiri, atau jika Anda ingin melacak sesi tanpa menggunakan cookie.
+
+<Tabs>
+  <TabItem label="Astro.session">
+    ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
+    ---
+    // Muat sesi dari header, bukan dari cookie
+    const sessionId = Astro.request.headers.get('x-session-id');
+    await Astro.session?.load(sessionId);
+    const cart = await Astro.session?.get('cart');
+    ---
+    <h1>Keranjang Anda</h1>
+    <ul>
+      {cart?.map((item) => (
+        <li>{item.name}</li>
+      ))}
+    </ul>
+    ```
+  </TabItem>
+  <TabItem label="context.session">
+    ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
+    import type { APIRoute } from 'astro';
+
+    export const GET: APIRoute = async ({ session, request }) => {
+      // Muat sesi dari header, bukan dari cookie
+      const sessionId = request.headers.get('x-session-id');
+      await session.load(sessionId);
+      const cart = await session.get('cart');
+      return Response.json({ cart });
+    };
+    ```
+
+  </TabItem>
+
+</Tabs>
+
+
+### Properti objek yang sudah usang (deprecated)
+
+#### `Astro.glob()`
+
+:::caution[Deprecated in v5.0]
+Gunakan [Vite `import.meta.glob`](https://vite.dev/guide/features.html#glob-import) untuk mengkueri file proyek. 
+
+`Astro.glob('../pages/post/*.md')` dapat diganti dengan:
+
+`Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));`
+
+Lihat [panduan impor](/id/guides/imports/#importmetaglob) untuk informasi lebih lanjut dan penggunaannya.
+:::
+
+`Astro.glob()` adalah cara untuk memuat banyak file lokal dalam setup situs statis Anda.
+
+```astro
+---
+// src/components/my-component.astro
+const posts = await Astro.glob('../pages/post/*.md'); // mengembalikan array postingan yang berada di ./src/pages/post/*.md
+---
+
+<div>
+{posts.slice(0, 3).map((post) => (
+  <article>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+`.glob()` hanya menerima satu parameter: glob URL relatif dari file lokal yang ingin Anda impor. Ini bersifat asinkron dan mengembalikan array ekspor dari file yang cocok.
+
+`.glob()` tidak dapat menerima variabel atau string yang menginterpolasinya, karena tidak dapat dianalisis secara statis. (Lihat [panduan impor](/id/guides/imports/#supported-values) untuk solusi.) Ini karena `Astro.glob()` adalah pembungkus dari Vite [`import.meta.glob()`](https://vite.dev/guide/features.html#glob-import).
+
+:::note
+Anda juga dapat menggunakan `import.meta.glob()` sendiri di proyek Astro Anda. Anda mungkin ingin melakukan ini ketika:
+- Anda membutuhkan fitur ini di file yang bukan `.astro`, seperti route API. `Astro.glob()` hanya tersedia di file `.astro`, sementara `import.meta.glob()` tersedia di mana saja dalam proyek.
+- Anda tidak ingin memuat setiap file segera. `import.meta.glob()` dapat mengembalikan fungsi yang mengimpor konten file, alih‑alih mengembalikan konten itu sendiri. Perhatikan bahwa impor ini mencakup semua style dan script untuk file apa pun yang diimpor. Ini akan dibundel dan ditambahkan ke halaman baik file benar‑benar digunakan atau tidak, karena ini diputuskan oleh analisis statis, bukan saat runtime.
+- Anda ingin mengakses path setiap file. `import.meta.glob()` mengembalikan peta dari path file ke kontennya, sementara `Astro.glob()` mengembalikan daftar konten.
+- Anda ingin meneruskan beberapa pola; misalnya, Anda ingin menambahkan "pola negatif" yang menyaring file tertentu. `import.meta.glob()` secara opsional dapat menerima array string glob, alih‑alih satu string.
+
+Baca lebih lanjut di [dokumentasi Vite](https://vite.dev/guide/features.html#glob-import).
+:::
+
+##### File Markdown
+
+File Markdown yang dimuat dengan `Astro.glob()` mengembalikan antarmuka `MarkdownInstance` berikut:
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Data apa pun yang ditentukan dalam frontmatter YAML/TOML file ini */
+	frontmatter: T;
+  /* Path file absolut dari file ini */
+	file: string;
+  /* Path terender dari file ini */
+	url: string | undefined;
+  /* Komponen Astro yang merender konten file ini */
+	Content: AstroComponentFactory;
+  /** (Hanya Markdown) Konten file Markdown mentah, tidak termasuk layout HTML dan frontmatter YAML/TOML */
+	rawContent(): string;
+  /** (Hanya Markdown) File Markdown yang dikompilasi ke HTML, tidak termasuk layout HTML */
+	compiledContent(): string;
+  /* Fungsi yang mengembalikan array elemen h1...h6 pada file ini */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
+}
+```
+
+Anda dapat secara opsional memberikan tipe untuk variabel `frontmatter` menggunakan generic TypeScript.
+
+```astro
+---
+interface Frontmatter {
+  title: string;
+  description?: string;
+}
+const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+##### File Astro
+
+File Astro memiliki antarmuka berikut:
+
+```ts
+export interface AstroInstance {
+  /* Path file dari file ini */
+  file: string;
+  /* URL untuk file ini (jika berada di direktori pages) */
+	url: string | undefined;
+	default: AstroComponentFactory;
+}
+```
+
+##### File Lainnya
+
+File lain mungkin memiliki berbagai antarmuka yang berbeda, tetapi `Astro.glob()` menerima generic TypeScript jika Anda tahu persis apa yang terkandung dalam tipe file yang tidak dikenali.
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+---
+```

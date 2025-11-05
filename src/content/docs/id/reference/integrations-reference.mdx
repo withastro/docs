@@ -1,0 +1,1685 @@
+---
+title: API Integrasi Astro
+sidebar:
+  label: API Integrasi
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+
+**Integrasi Astro** menambahkan fungsionalitas dan perilaku baru untuk proyek Anda hanya dengan beberapa baris kode.
+
+Halaman referensi ini ditujukan bagi siapa pun yang menulis integrasi mereka sendiri. Untuk mempelajari cara menggunakan integrasi di proyek Anda, lihat panduan kami [Menggunakan Integrasi](/id/guides/integrations-guide/) sebagai gantinya.
+
+## Contoh
+
+Integrasi resmi Astro dapat menjadi referensi saat Anda membangun integrasi sendiri.
+
+- **Renderer:** [`svelte`](/id/guides/integrations-guide/svelte/), [`react`](/id/guides/integrations-guide/react/), [`preact`](/id/guides/integrations-guide/preact/), [`vue`](/id/guides/integrations-guide/vue/), [`solid`](/id/guides/integrations-guide/solid-js/)
+- **Pustaka:** [`partytown`](/id/guides/integrations-guide/partytown/)
+- **Fitur:** [`sitemap`](/id/guides/integrations-guide/sitemap/)
+
+## Ringkasan API Cepat
+
+```ts
+interface AstroIntegration {
+  name: string;
+  hooks: {
+    'astro:config:setup'?: (options: {
+      config: AstroConfig;
+      command: 'dev' | 'build' | 'preview' | 'sync';
+      isRestart: boolean;
+      updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
+      addRenderer: (renderer: AstroRenderer) => void;
+      addWatchFile: (path: URL | string) => void;
+      addClientDirective: (directive: ClientDirectiveConfig) => void;
+      addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+      addDevToolbarApp: (entrypoint: DevToolbarAppEntry) => void;
+      injectScript: (stage: InjectedScriptStage, content: string) => void;
+      injectRoute: (injectedRoute: InjectedRoute) => void;
+      createCodegenDir: () => URL;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:route:setup'?: (options: {
+      route: RouteOptions;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:routes:resolved'?: (options: {
+      routes: IntegrationResolvedRoute[];
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:config:done'?: (options: {
+      config: AstroConfig;
+      setAdapter: (adapter: AstroAdapter) => void;
+      injectTypes: (injectedType: InjectedType) => URL;
+      logger: AstroIntegrationLogger;
+      buildOutput: 'static' | 'server';
+    }) => void | Promise<void>;
+    'astro:server:setup'?: (options: {
+      server: vite.ViteDevServer;
+      logger: AstroIntegrationLogger;
+      toolbar: ReturnType<typeof getToolbarServerCommunicationHelpers>;
+      refreshContent?: (options: RefreshContentOptions) => Promise<void>;
+    }) => void | Promise<void>;
+    'astro:server:start'?: (options: {
+      address: AddressInfo;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:server:done'?: (options: {
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:start'?: (options: {
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:setup'?: (options: {
+      vite: vite.InlineConfig;
+      pages: Map<string, PageBuildData>;
+      target: 'client' | 'server';
+      updateConfig: (newConfig: vite.InlineConfig) => void;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:ssr'?: (options: {
+      manifest: SerializedSSRManifest;
+      entryPoints: Map<IntegrationRouteData, URL>;
+      middlewareEntryPoint: URL | undefined;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:generated'?: (options: {
+      dir: URL;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+    'astro:build:done'?: (options: {
+      pages: { pathname: string }[];
+      dir: URL;
+      assets: Map<string, URL[]>;
+      logger: AstroIntegrationLogger;
+    }) => void | Promise<void>;
+
+    // ... hook kustom apa pun dari integrasi
+  };
+}
+```
+
+## Hook
+
+Astro menyediakan hook yang dapat diimplementasikan integrasi untuk dieksekusi pada bagian tertentu dari siklus hidup Astro. Hook Astro didefinisikan dalam interface `IntegrationHooks`, yang merupakan bagian dari namespace global `Astro`. Setiap hook memiliki opsi [`logger`](#astrointegrationlogger) yang memungkinkan Anda menggunakan logger Astro untuk menulis log.
+
+Hook berikut ini dibangun ke dalam Astro:
+
+### `astro:config:setup`
+
+**Hook berikutnya:** [`astro:route:setup`](#astroroutesetup)
+
+**Kapan:** Saat inisialisasi, sebelum [Vite](https://vite.dev/config/) atau [konfigurasi Astro](/id/reference/configuration-reference/) terselesaikan.
+
+**Mengapa:** Untuk memperluas konfigurasi proyek. Ini termasuk memperbarui [konfigurasi Astro](/id/reference/configuration-reference/), menerapkan [plugin Vite](https://vite.dev/guide/api-plugin.html), menambahkan renderer komponen, dan menyuntikkan skrip ke halaman.
+
+```ts
+'astro:config:setup'?: (options: {
+  config: AstroConfig;
+  command: 'dev' | 'build' | 'preview' | 'sync';
+  isRestart: boolean;
+  updateConfig: (newConfig: DeepPartial<AstroConfig>) => AstroConfig;
+  addRenderer: (renderer: AstroRenderer) => void;
+  addClientDirective: (directive: ClientDirectiveConfig) => void;
+  addMiddleware: (middleware: AstroIntegrationMiddleware) => void;
+  addDevToolbarApp: (entrypoint: DevToolbarAppEntry) => void;
+  addWatchFile: (path: URL | string) => void;
+  injectScript: (stage: InjectedScriptStage, content: string) => void;
+  injectRoute: (injectedRoute: InjectedRoute) => void;
+  createCodegenDir: () => URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `config`
+
+<p>
+
+**Tipe:** `AstroConfig`
+</p>
+
+Salinan hanya-baca dari [konfigurasi Astro](/id/reference/configuration-reference/) yang diberikan pengguna. Ini diselesaikan _sebelum_ integrasi lain menjalankan `astro:config:setup`. Jika Anda membutuhkan salinan konfigurasi setelah semua integrasi menyelesaikan pembaruannya, lihat [hook `astro:config:done`](#astroconfigdone).
+
+#### opsi `command`
+
+<p>
+
+**Tipe:** `'dev' | 'build' | 'preview' | 'sync'`
+</p>
+
+- `dev` - Proyek dieksekusi dengan `astro dev`
+- `build` - Proyek dieksekusi dengan `astro build`
+- `preview` - Proyek dieksekusi dengan `astro preview`
+- `sync` - Proyek dieksekusi dengan `astro sync`
+
+#### opsi `isRestart`
+
+<p>
+
+**Tipe:** `boolean`<br />
+<Since v="1.5.0" />
+</p>
+
+`false` saat dev server mulai, `true` saat reload dipicu. Berguna untuk mendeteksi kapan fungsi ini dipanggil lebih dari sekali.
+
+#### opsi `updateConfig()`
+
+<p>
+
+**Tipe:** `(newConfig: DeepPartial<AstroConfig>) => AstroConfig;`
+</p>
+
+Fungsi callback untuk memperbarui [konfigurasi Astro](/id/reference/configuration-reference/) yang diberikan pengguna. Konfigurasi apa pun yang Anda berikan **akan digabungkan dengan konfigurasi pengguna + pembaruan konfigurasi integrasi lainnya,** jadi Anda bebas menghilangkan kunci!
+
+Sebagai contoh, misalkan Anda perlu menyuplai plugin [Vite](https://vite.dev/) ke proyek pengguna:
+
+```js
+import bananaCSS from '@vitejs/official-banana-css-plugin';
+
+export default {
+  name: 'banana-css-integration',
+  hooks: {
+    'astro:config:setup': ({ updateConfig }) => {
+      updateConfig({
+        vite: {
+          plugins: [bananaCSS()],
+        }
+      })
+    }
+  }
+}
+```
+
+#### opsi `addRenderer()`
+
+<p>
+
+**Tipe:** `(renderer:` [`AstroRenderer`](https://github.com/withastro/astro/blob/fdd607c5755034edf262e7b275732519328a33b2/packages/astro/src/%40types/astro.ts#L872-L883) `) => void;`<br />
+**Contoh:** [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
+</p>
+
+Fungsi callback untuk menambahkan renderer framework komponen (mis. React, Vue, Svelte, dll). Anda dapat menelusuri contoh dan definisi tipe di atas untuk opsi lanjutan, namun berikut ini 2 opsi utama yang perlu diperhatikan:
+
+- `clientEntrypoint` - path ke file yang dieksekusi di klien saat komponen Anda digunakan. Ini terutama untuk merender atau meng-hydrate komponen Anda dengan JS.
+- `serverEntrypoint` - path ke file yang dieksekusi selama request sisi server atau build statis saat komponen Anda digunakan. Ini harus merender komponen ke markup statis, dengan hook untuk hydration bila perlu. [Callback `renderToString` milik React](https://react.dev/reference/react-dom/server/renderToString) adalah contoh klasik.
+
+<p><Since v="5.0.0" /></p>
+
+Fungsi `clientEntrypoint` dan `serverEntrypoint` menerima sebuah `URL`.
+
+#### opsi `addWatchFile()`
+
+<p>
+
+**Tipe:** `(path: URL | string) => void`<br />
+<Since v="1.5.0" />
+</p>
+
+Jika integrasi Anda bergantung pada beberapa file konfigurasi yang tidak diawasi Vite dan/atau membutuhkan restart dev server penuh agar berlaku, tambahkan dengan `addWatchFile`. Setiap kali file itu berubah, dev server Astro akan dimuat ulang (Anda dapat memeriksa kapan reload terjadi dengan `isRestart`).
+
+Contoh penggunaan:
+
+```js
+// Harus path absolut!
+addWatchFile('/home/user/.../my-config.json');
+addWatchFile(new URL('./ec.config.mjs', config.root));
+```
+
+#### opsi `addClientDirective()`
+
+<p>
+
+**Tipe:** `(directive:` [`ClientDirectiveConfig`](https://github.com/withastro/astro/blob/00327c213f74627ac9ca1dec774efa5bf71e9375/packages/astro/src/%40types/astro.ts#L1872-L1875) `) => void;`<br />
+<Since v="2.6.0" />
+</p>
+
+Menambahkan [direktif `client:*` kustom](/id/reference/directives-reference/#custom-client-directives) untuk digunakan di file `.astro`.
+
+Perlu dicatat bahwa entrypoint direktif hanya dibundel melalui esbuild dan sebaiknya tetap kecil agar tidak memperlambat hydration komponen.
+
+Contoh penggunaan:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import clickDirective from './astro-click-directive/register.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    clickDirective()
+  ],
+});
+```
+
+```js title="astro-click-directive/register.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "client:click",
+  hooks: {
+    "astro:config:setup": ({ addClientDirective }) => {
+      addClientDirective({
+        name: "click",
+        entrypoint: "./astro-click-directive/click.js",
+      });
+    },
+  },
+});
+```
+
+```js title="astro-click-directive/click.js"
+/**
+ * Hydrate pada klik pertama di window
+ * @type {import('astro').ClientDirective}
+ */
+export default (load, opts, el) => {
+  window.addEventListener('click', async () => {
+    const hydrate = await load()
+    await hydrate()
+  }, { once: true })
+}
+```
+
+Anda juga dapat menambahkan tipe untuk direktif di file definisi tipe pustaka Anda:
+
+```ts title="astro-click-directive/index.d.ts"
+import 'astro'
+declare module 'astro' {
+  interface AstroClientDirectives {
+    'client:click'?: boolean
+  }
+}
+```
+
+#### opsi `addDevToolbarApp()`
+
+<p>
+
+**Tipe:** `(entrypoint: DevToolbarAppEntry) => void;`<br />
+<Since v="3.4.0" />
+</p>
+
+Menambahkan [aplikasi dev toolbar kustom](/id/reference/dev-toolbar-app-reference/).
+
+Contoh penggunaan:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import devToolbarIntegration from './astro-dev-toolbar-app/integration.js'
+
+// https://astro.build/config
+export default defineConfig({
+  integrations: [
+    devToolbarIntegration()
+  ],
+});
+```
+
+```js title="astro-dev-toolbar-app/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "dev-toolbar-app",
+  hooks: {
+    "astro:config:setup": ({ addDevToolbarApp }) => {
+      addDevToolbarApp({
+        entrypoint: "./astro-dev-toolbar-app/plugin.js",
+        id: "my-plugin",
+        name: "My Plugin"
+      });
+    },
+  },
+});
+```
+
+```js title="astro-dev-toolbar-app/plugin.js"
+
+/**
+ * @type {import('astro').DevToolbarApp}
+ */
+export default {
+  id: "my-plugin",
+  name: "My Plugin",
+  icon: "<svg>...</svg>",
+  init() {
+    console.log("Saya adalah aplikasi dev toolbar!")
+  },
+};
+```
+#### opsi `addMiddleware()`
+
+<p>
+
+**Tipe:** `(middleware:` [`AstroIntegrationMiddleware`](https://github.com/withastro/astro/blob/852ac0f75dfca1b2602e9cdbfa0447d9998e2449/packages/astro/src/%40types/astro.ts#L2124-L2127) `) => void;`<br />
+<Since v="3.5.0" />
+</p>
+
+Menambahkan [middleware](/id/guides/middleware/) untuk dijalankan pada setiap request. Menerima modul `entrypoint` yang berisi middleware, dan `order` untuk menentukan apakah harus berjalan sebelum (`pre`) middleware lain atau sesudahnya (`post`).
+
+```js title="@my-package/integration.js"
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+      addMiddleware({
+        entrypoint: '@my-package/middleware',
+        order: 'pre'
+      });
+    },
+  },
+});
+```
+
+Middleware didefinisikan dalam paket dengan fungsi `onRequest`, serupa dengan middleware yang didefinisikan pengguna.
+
+```js title="@my-package/middleware.js"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  if(context.url.pathname === '/some-test-path') {
+    return Response.json({
+      ok: true
+    });
+  }
+
+  return next();
+});
+```
+
+<p><Since v="5.0.0" /></p>
+
+Fungsi ini juga menerima `URL` untuk `entrypoint`:
+
+```js title="@my-package/integration.js" ins={9}
+/**
+ * @type {() => import('astro').AstroIntegration}
+ */
+export default () => ({
+  name: "my-middleware-package",
+  hooks: {
+    "astro:config:setup": ({ addMiddleware }) => {
+      addMiddleware({
+        entrypoint: new URL('./middleware.js', import.meta.url),
+        order: 'pre'
+      });
+    },
+  },
+});
+```
+
+#### opsi `injectRoute()`
+
+<p>
+
+**Tipe:** `({ pattern: string; entrypoint: string | URL; prerender?: boolean }) => void;`
+</p>
+
+Fungsi callback untuk menyuntikkan rute ke dalam proyek Astro. Rute yang disuntikkan bisa berupa [halaman `.astro`](/id/basics/astro-pages/) atau [handler rute `.js` dan `.ts`](/id/guides/endpoints/#static-file-endpoints).
+
+`injectRoute` menerima objek dengan `pattern` dan `entrypoint`.
+
+- `pattern` - lokasi rute akan muncul di browser, misalnya `/foo/bar`. `pattern` dapat menggunakan sintaks filepath Astro untuk rute dinamis, misalnya `/foo/[bar]` atau `/foo/[...bar]`. Perhatikan bahwa ekstensi file **tidak** diperlukan pada `pattern`.
+- `entrypoint` - bare module specifier yang menunjuk ke halaman `.astro` atau handler rute `.js`/`.ts` yang menangani rute tersebut.
+- `prerender` - boolean untuk diatur jika Astro tidak dapat mendeteksi ekspor `prerender` Anda.
+
+##### Contoh penggunaan
+
+```js
+injectRoute({
+  // Gunakan sintaks pola Astro untuk rute dinamis.
+  pattern: '/subfolder/[dynamic]',
+  // Gunakan path relatif untuk rute lokal.
+  entrypoint: './src/dynamic-page.astro',
+  // Gunakan hanya jika Astro tidak dapat mendeteksi ekspor prerender Anda
+  prerender: false
+});
+```
+
+Untuk integrasi yang dirancang agar diinstal di proyek lain, gunakan nama paketnya untuk merujuk ke entrypoint rute.
+Contoh berikut menunjukkan paket yang dipublikasikan ke npm sebagai `@fancy/dashboard` menyuntikkan rute dashboard:
+
+```js
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entrypoint: '@fancy/dashboard/dashboard.astro'
+});
+```
+
+Saat menerbitkan paket Anda (`@fancy/dashboard`, dalam kasus ini) ke npm, Anda harus mengekspor `dashboard.astro` di `package.json` Anda:
+
+```json title="package.json" "exports"
+{
+  "name": "@fancy/dashboard",
+  // ...
+  "exports": { "./dashboard.astro": "./dashboard.astro" }
+}
+```
+
+<p><Since v="5.0.0" /></p>
+
+Fungsi ini juga menerima `URL` untuk `entrypoint`: 
+
+```js "new URL('./dashboard.astro', import.meta.url)"
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entrypoint: new URL('./dashboard.astro', import.meta.url)
+});
+```
+
+#### opsi `injectScript()`
+
+<p>
+
+**Tipe:** `(stage: InjectedScriptStage, content: string) => void;`
+</p>
+
+Fungsi callback untuk menyuntikkan string konten JavaScript ke setiap halaman.
+
+**`stage`** menunjukkan bagaimana skrip (yakni `content`) harus disisipkan. Beberapa tahap memungkinkan penyisipan skrip tanpa modifikasi, sementara yang lain memungkinkan optimalisasi selama [tahap bundling Vite](https://vite.dev/guide/build.html):
+
+- `"head-inline"`: Disisipkan ke dalam tag skrip di `<head>` setiap halaman. **Tidak** dioptimalkan atau di-resolve oleh Vite.
+- `"before-hydration"`: Diimpor di sisi klien, sebelum skrip hydration dijalankan. Dioptimalkan dan di-resolve oleh Vite.
+- `"page"`: Mirip dengan `head-inline`, kecuali snippet yang disuntik ditangani oleh Vite dan dibundel bersama tag `<script>` lain yang didefinisikan di dalam komponen Astro pada halaman. Skrip akan dimuat dengan `<script type="module">` pada output halaman akhir, dioptimalkan dan di-resolve oleh Vite.
+- `"page-ssr"`: Diimpor sebagai modul terpisah di frontmatter setiap komponen halaman Astro. Karena tahap ini mengimpor skrip Anda, global `Astro` tidak tersedia dan skrip Anda hanya akan dijalankan sekali saat `import` pertama kali dievaluasi.
+
+    Penggunaan utama tahap `page-ssr` adalah menyuntikkan impor CSS ke setiap halaman untuk dioptimalkan dan di-resolve oleh Vite:
+    ```js
+    injectScript('page-ssr', 'import "global-styles.css";');
+    ```
+
+#### `createCodegenDir`
+
+<p>
+
+**Tipe:** `() => URL;`<br />
+<Since v="5.0.0" />
+</p>
+
+Fungsi yang membuat folder `<root>/.astro/integrations/<normalized_integration_name>` dan mengembalikan path-nya.
+
+Ini memungkinkan Anda memiliki folder khusus, menghindari konflik dengan integrasi lain atau Astro itu sendiri. Direktori ini dibuat dengan memanggil fungsi sehingga aman untuk langsung menulis file ke dalamnya:
+
+```ts title="my-integration.ts"
+import { writeFileSync } from 'node:fs'
+
+const integration = {
+  name: 'my-integration',
+  hooks: {
+    'astro:config:setup': ({ createCodegenDir }) => {
+      const codegenDir = createCodegenDir()
+      writeFileSync(new URL('cache.json', codegenDir), '{}', 'utf-8')
+    }
+  }
+}
+```
+
+### `astro:route:setup`
+
+<p><Since v="4.14.0" /></p>
+
+**Hook sebelumnya:** [`astro:config:setup`](#astroconfigsetup)
+
+**Hook berikutnya:** [`astro:routes:resolved`](#astroroutesresolved)
+
+**Kapan:** Pada `astro build`, sebelum proses bundling dimulai. Pada `astro dev`, saat membangun grafik modul dan pada setiap perubahan rute berbasis file (ditambah/dihapus/diperbarui).
+
+**Mengapa:** Untuk mengatur opsi rute saat build atau saat request, seperti mengaktifkan [rendering server on-demand](/id/guides/on-demand-rendering/#enabling-on-demand-rendering).
+
+```js
+'astro:route:setup'?: (options: {
+  route: RouteOptions;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `route`
+
+<p>
+
+**Tipe:** [`RouteOptions`](https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/integrations.ts#L14-L27)
+</p>
+
+Objek dengan properti `component` untuk mengidentifikasi rute dan nilai tambahan berikut untuk memungkinkan Anda mengonfigurasi rute yang dihasilkan: `prerender`.
+
+##### `route.component`
+
+<p>
+**Tipe:** `string`<br />
+<Since v="4.14.0" />
+</p>
+
+Properti `component` menunjukkan entrypoint yang akan dirender pada rute. Anda dapat mengakses nilai ini sebelum rute dibangun untuk mengonfigurasi server rendering on-demand untuk halaman tersebut.
+
+##### `route.prerender`
+
+<p>
+**Tipe:** `boolean`<br />
+**Default:** `undefined`<br />
+<Since v="4.14.0" />
+</p>
+
+Properti `prerender` digunakan untuk mengonfigurasi [server rendering on-demand](/id/guides/on-demand-rendering/#enabling-on-demand-rendering) untuk rute. Jika file rute berisi nilai `export const prerender` eksplisit, nilai tersebut akan digunakan sebagai default alih-alih `undefined`.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [setPrerender()],
+});
+
+function setPrerender() {
+  return {
+    name: 'set-prerender',
+    hooks: {
+      'astro:route:setup': ({ route }) => {
+        if (route.component.endsWith('/blog/[slug].astro')) {
+          route.prerender = true;
+        }
+      },
+    },
+  };
+}
+```
+ 
+Jika nilai akhir setelah menjalankan semua hook adalah `undefined`, rute akan kembali ke default prerender berdasarkan opsi [`output`](/id/reference/configuration-reference/#output): di-prerender untuk mode `static`, dan dirender on-demand untuk mode `server`.
+
+### `astro:routes:resolved`
+
+<p>
+
+<Since v="5.0.0" />
+</p>
+
+**Hook sebelumnya:** [`astro:route:setup`](#astroroutesetup)
+
+**Hook berikutnya:** [`astro:config:done`](#astroconfigdone) (hanya saat setup)
+
+**Kapan:** Pada `astro dev`, juga berjalan pada setiap perubahan rute berbasis file (ditambah/dihapus/diperbarui).
+
+**Mengapa:** Untuk mengakses rute dan metadata-nya
+
+```js
+'astro:routes:resolved'?: (options: {
+  routes: IntegrationResolvedRoute[];
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `routes`
+
+<p>
+
+**Tipe:** [`IntegrationResolvedRoute[]`](#integrationresolvedroute-type-reference)
+</p>
+
+Daftar semua rute dengan metadata terkaitnya.
+
+Contoh penggunaan:
+
+```js title="my-integration.mjs"
+const integration = () => {
+  return {
+    name: 'my-integration',
+    hooks: {
+      'astro:routes:resolved': ({ routes }) => {
+        const projectRoutes = routes.filter(r => r.origin === 'project').map(r => r.pattern)
+        
+        console.log(projectRoutes)
+      },
+    }
+  }
+}
+```
+
+### `astro:config:done`
+
+**Hook sebelumnya:** [`astro:routes:resolved`](#astroroutesresolved)
+
+**Hook berikutnya:** [`astro:server:setup`](#astroserversetup) saat berjalan dalam mode "dev", atau [`astro:build:start`](#astrobuildstart) saat build produksi
+
+**Kapan:** Setelah konfigurasi Astro terselesaikan dan integrasi lain menjalankan hook `astro:config:setup` mereka.
+
+**Mengapa:** Untuk mendapatkan konfigurasi final untuk digunakan di hook lainnya.
+
+```js
+'astro:config:done'?: (options: {
+  config: AstroConfig;
+  setAdapter: (adapter: AstroAdapter) => void;
+  injectTypes: (injectedType: InjectedType) => URL;
+  logger: AstroIntegrationLogger;
+  buildOutput: 'static' | 'server';
+}) => void | Promise<void>;
+```
+
+#### opsi `config`
+
+<p>
+
+**Tipe:** `AstroConfig`
+</p>
+
+Salinan hanya-baca dari [konfigurasi Astro](/id/reference/configuration-reference/) yang diberikan pengguna. Ini terselesaikan _setelah_ integrasi lain berjalan.
+
+#### opsi `setAdapter()`
+
+<p>
+
+**Tipe:** `(adapter: AstroAdapter) => void;`
+</p>
+
+Menjadikan integrasi sebagai adapter. Baca lebih lanjut di [API adapter](/id/reference/adapter-reference/).
+
+#### opsi `injectTypes()`
+
+<p>
+
+**Tipe:** `(injectedType: { filename: string; content: string }) => URL`<br />
+<Since v="4.14.0" />
+</p>
+
+Memungkinkan Anda menyuntikkan tipe ke proyek pengguna dengan menambahkan file `*.d.ts` baru.
+
+Properti `filename` akan digunakan untuk menghasilkan file di `/.astro/integrations/<normalized_integration_name>/<normalized_filename>.d.ts` dan harus berakhiran `".d.ts"`.
+
+Properti `content` akan menjadi isi file dan harus TypeScript yang valid.
+
+Selain itu, `injectTypes()` mengembalikan URL ke path yang dinormalisasi sehingga Anda dapat menimpa kontennya nanti, atau memanipulasinya dengan cara apa pun yang Anda mau.
+
+```js
+const path = injectTypes({
+  filename: "types.d.ts",
+  content: "declare module 'virtual:integration' {}"
+})
+console.log(path) // URL
+```
+
+#### opsi `buildOutput`
+
+<p>
+
+**Tipe:** `'static' | 'server'`<br />
+<Since v="5.0.0" />
+</p>
+
+Memungkinkan Anda menyesuaikan logika integrasi tergantung pada output proyek pengguna.
+
+### `astro:server:setup`
+
+**Hook sebelumnya:** [`astro:config:done`](#astroconfigdone)
+
+**Hook berikutnya:** [`astro:server:start`](#astroserverstart)
+
+**Kapan:** Tepat setelah server Vite dibuat dalam mode "dev", tetapi sebelum event `listen()` dipicu. [Lihat API createServer milik Vite](https://vite.dev/guide/api-javascript.html#createserver) untuk detailnya.
+
+**Mengapa:** Untuk memperbarui opsi dan middleware server Vite, atau mengaktifkan dukungan untuk menyegarkan lapisan konten.
+
+```js
+'astro:server:setup'?: (options: {
+  server: vite.ViteDevServer;
+  logger: AstroIntegrationLogger;
+  toolbar: ReturnType<typeof getToolbarServerCommunicationHelpers>;
+  refreshContent: (options: {
+    loaders?: Array<string>;
+    context?: Record<string, any>;
+  }) => Promise<void>;
+}) => void | Promise<void>;
+```
+
+#### opsi `server`
+
+<p>
+
+**Tipe:** [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver)
+</p>
+
+Instance server Vite yang mutable dan digunakan dalam mode "dev". Misalnya, ini [digunakan oleh integrasi Partytown](/id/guides/integrations-guide/partytown/) kami untuk menyuntikkan server Partytown sebagai middleware:
+
+```js
+export default {
+  name: 'partytown',
+  hooks: {
+    'astro:server:setup': ({ server }) => {
+      server.middlewares.use(
+        function middleware(req, res, next) {
+          // tangani request
+        }
+      );
+    }
+  }
+}
+```
+
+#### opsi `toolbar`
+
+<p>
+
+**Tipe:** `ReturnType<typeof getToolbarServerCommunicationHelpers>`<br />
+<Since v="4.7.0" />
+</p>
+
+Objek yang menyediakan fungsi callback untuk berinteraksi dengan [dev toolbar](/id/reference/dev-toolbar-app-reference/):
+
+##### `on()`
+
+<p>
+
+**Tipe:** `<T>(event: string, callback: (data: T) => void) => void`<br />
+</p>
+
+Fungsi yang menerima nama event sebagai argumen pertama dan fungsi callback sebagai argumen kedua. Ini memungkinkan Anda menerima pesan dari aplikasi dev toolbar dengan data terkait event tersebut.
+
+##### `onAppInitialized()`
+
+<p>
+
+**Tipe:** `(appId: string, callback: (data: Record<string, never>) => void) => void`<br />
+</p>
+
+Fungsi yang dipicu ketika aplikasi dev toolbar diinisialisasi. Argumen pertama adalah id dari aplikasi yang diinisialisasi. Argumen kedua adalah fungsi callback yang dijalankan saat aplikasi diinisialisasi.
+
+##### `onAppToggled()`
+
+<p>
+
+**Tipe:** `(appId: string, callback: (data: { state: boolean; }) => void) => void`<br />
+</p>
+
+Fungsi yang dipicu ketika aplikasi dev toolbar dinyalakan atau dimatikan. Argumen pertama adalah id aplikasi yang di-toggle. Argumen kedua adalah fungsi callback yang menyediakan state untuk dieksekusi saat aplikasi di-toggle.
+
+##### `send()`
+
+<p>
+
+**Tipe:** `<T>(event: string, payload: T) => void`<br />
+</p>
+
+Fungsi yang mengirim pesan ke dev toolbar yang dapat didengarkan oleh aplikasi. Ini menerima nama event sebagai argumen pertama dan payload sebagai argumen kedua yang dapat berupa data serializable apa pun.
+
+#### opsi `refreshContent()`
+
+<p>
+
+**Tipe:** `(options: { loaders?: Array<string>; context?: Record<string, any>; }) => Promise<void>`<br />
+<Since v="5.0.0" />
+</p>
+
+Fungsi bagi integrasi untuk memicu pembaruan layer konten selama `astro dev`. Ini dapat digunakan, misalnya, untuk mendaftarkan endpoint webhook saat dev, atau membuka socket ke CMS untuk mendengarkan perubahan.
+
+Secara default, `refreshContent` akan menyegarkan semua koleksi. Anda bisa melewatkan properti `loaders`, berupa array nama loader. Jika diberikan, hanya koleksi yang menggunakan loader tersebut yang akan disegarkan. Misalnya, integrasi CMS dapat menggunakan properti ini untuk menyegarkan koleksinya sendiri saja.
+
+Anda juga bisa melewatkan objek `context` ke loader. Ini dapat digunakan untuk meneruskan data apa pun seperti body webhook, atau event dari websocket. 
+
+```ts title=my-integration.ts {19-22}
+{
+  name: 'my-integration',
+  hooks: {
+    'astro:server:setup': async ({ server, refreshContent }) => {
+      // Daftarkan endpoint webhook dev server
+      server.middlewares.use('/_refresh', async (req, res) => {
+        if(req.method !== 'POST') {
+          res.statusCode = 405
+          res.end('Method Not Allowed');
+          return
+        }
+        let body = '';
+        req.on('data', chunk => {
+          body += chunk.toString();
+        });
+        req.on('end', async () => {
+          try {
+            const webhookBody = JSON.parse(body);
+            await refreshContent({
+              context: { webhookBody },
+              loaders: ['my-loader']
+            });
+            res.writeHead(200, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ message: 'Content refreshed successfully' }));
+          } catch (error) {
+            res.writeHead(500, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify({ error: 'Failed to refresh content: ' + error.message }));
+          }
+        });
+      });
+    }
+  }
+}
+```
+
+Loader kemudian dapat mengakses properti `refreshContextData` untuk mendapatkan body webhook. Lihat properti [`refreshContextData`](/id/reference/content-loader-reference/#refreshcontextdata) untuk informasi lebih lanjut.
+
+### `astro:server:start`
+
+**Hook sebelumnya:** [`astro:server:setup`](#astroserversetup)
+
+**Hook berikutnya:** [`astro:server:done`](#astroserverdone)
+
+**Kapan:** Tepat setelah event `listen()` server dipicu.
+
+**Mengapa:** Untuk mencegat request jaringan pada alamat yang ditentukan. Jika Anda bermaksud menggunakan alamat ini untuk middleware, pertimbangkan menggunakan `astro:server:setup` sebagai gantinya.
+
+```js
+'astro:server:start'?: (options: {
+  address: AddressInfo;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `address`
+
+<p>
+
+**Tipe:** [`AddressInfo`](https://microsoft.github.io/PowerBI-JavaScript/interfaces/_node_modules__types_node_net_d_._net_.addressinfo.html)
+</p>
+
+Alamat, keluarga, dan nomor port yang disediakan oleh [modul Net Node.js](https://nodejs.org/api/net.html).
+
+### `astro:server:done`
+
+**Hook sebelumnya:** [`astro:server:start`](#astroserverstart)
+
+**Kapan:** Tepat setelah dev server ditutup.
+
+**Mengapa:** Untuk menjalankan event pembersihan apa pun yang Anda picu selama hook `astro:server:setup` atau `astro:server:start`.
+
+```js
+'astro:server:done'?: (options: {
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+### `astro:build:start`
+
+**Hook sebelumnya:** [`astro:config:done`](#astroconfigdone)
+
+**Hook berikutnya:** [`astro:build:setup`](#astrobuildsetup)
+
+**Kapan:** Setelah event `astro:config:done`, tetapi sebelum build produksi dimulai.
+
+**Mengapa:** Untuk menyiapkan objek global atau klien yang diperlukan selama build produksi. Ini juga dapat memperluas opsi konfigurasi build dalam [API adapter](/id/reference/adapter-reference/).
+
+```js
+'astro:build:start'?: (options: {
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+### `astro:build:setup`
+
+**Hook sebelumnya:** [`astro:build:start`](#astrobuildstart)
+
+**Hook berikutnya:** [`astro:build:ssr`](#astrobuildssr)
+
+**Kapan:** Setelah hook `astro:build:start`, berjalan tepat sebelum build.
+
+**Mengapa:** Pada titik ini, konfigurasi Vite untuk build telah dikonstruksi sepenuhnya, ini adalah kesempatan terakhir Anda untuk memodifikasinya. Ini berguna misalnya untuk menimpa beberapa default. Jika Anda tidak yakin harus menggunakan hook ini atau `astro:build:start`, gunakan `astro:build:start` saja.
+
+```js
+'astro:build:setup'?: (options: {
+  vite: vite.InlineConfig;
+  pages: Map<string, PageBuildData>;
+  target: 'client' | 'server';
+  updateConfig: (newConfig: vite.InlineConfig) => void;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+
+```
+
+#### opsi `vite`
+
+<p>
+
+**Tipe:** [`InlineConfig`](https://vite.dev/guide/api-javascript.html#inlineconfig)
+</p>
+
+Objek yang memungkinkan Anda mengakses konfigurasi Vite yang digunakan dalam build.
+
+Ini berguna jika Anda perlu mengakses opsi konfigurasi di integrasi Anda:
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ vite }) => {
+      const { publicDir, root } = vite;
+    },
+  }
+}
+```
+
+#### opsi `pages`
+
+<p>
+
+**Tipe:** <code>Map\<string, <a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/core/build/types.ts#L17-L23">PageBuildData</a>\></code>
+</p>
+
+`Map` dengan daftar halaman sebagai key dan data build-nya sebagai value.
+
+Ini dapat digunakan untuk melakukan tindakan jika suatu rute cocok dengan kriteria:
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ pages }) => {
+      pages.forEach((data) => {
+        if (data.route.pattern.test("/blog")) {
+          console.log(data.route.type);
+        }
+      });
+    },
+  }
+}
+```
+
+#### opsi `target`
+
+<p>
+
+**Tipe:** `'client' | 'server'`
+</p>
+
+Build dipisahkan dalam dua fase berbeda: `client` dan `server`. Opsi ini memungkinkan Anda menentukan fase build saat ini.
+
+Ini dapat digunakan untuk melakukan tindakan hanya pada fase tertentu:
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ target }) => {
+      if (target === "server") {
+        // lakukan sesuatu di fase build server
+      }
+    },
+  }
+}
+```
+
+#### opsi `updateConfig()`
+
+<p>
+
+**Tipe:** <code>(newConfig: <a href="https://vite.dev/guide/api-javascript.html#inlineconfig">InlineConfig</a>) => void</code>
+</p>
+
+Fungsi callback untuk memperbarui opsi [Vite](https://vite.dev/) yang digunakan dalam build. Konfigurasi apa pun yang Anda berikan **akan digabungkan dengan konfigurasi pengguna + pembaruan konfigurasi integrasi lainnya**, jadi Anda bebas menghilangkan kunci!
+
+Sebagai contoh, ini dapat digunakan untuk menyuplai plugin ke proyek pengguna:
+
+```js
+import awesomeCssPlugin from 'awesome-css-vite-plugin';
+
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:setup': ({ updateConfig }) => {
+      updateConfig({
+        plugins: [awesomeCssPlugin()],
+      })
+    }
+  }
+}
+```
+
+### `astro:build:ssr`
+
+**Hook sebelumnya:** [`astro:build:setup`](#astrobuildsetup)
+
+**Hook berikutnya:** [`astro:build:generated`](#astrobuildgenerated)
+
+**Kapan:** Setelah build SSR produksi selesai.
+
+**Mengapa:** Untuk mengakses manifest SSR dan peta entry point yang dihasilkan. Ini berguna saat membuat build SSR kustom di plugin atau integrasi.
+- `entryPoints` memetakan rute halaman ke file fisik yang dihasilkan setelah build;
+- `middlewareEntryPoint` adalah path sistem file dari file middleware;
+
+```js
+'astro:build:ssr'?: (options: {
+  manifest: SerializedSSRManifest;
+  entryPoints: Map<IntegrationRouteData, URL>;
+  middlewareEntryPoint: URL | undefined;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `manifest`
+
+<p>
+
+**Tipe:** [`SerializedSSRManifest`](https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/core/app/types.ts#L91-L109)
+</p>
+
+Memungkinkan Anda membuat build kustom dengan mengakses manifest SSR.
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:ssr': ({ manifest }) => {
+      const { i18n } = manifest;
+      if (i18n?.strategy === "domains-prefix-always") {
+        // lakukan sesuatu
+      }
+    },
+  },
+}
+```
+
+#### opsi `entryPoints`
+
+<p>
+
+**Tipe:** <code>Map\<<a href="#integrationroutedata-type-reference">IntegrationRouteData</a>, URL\></code><br />
+<Since v="2.7.0" />
+</p>
+
+`Map` dari entry point yang dihasilkan dengan `IntegrationRouteData` sebagai key dan URL file fisik sebagai value.
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:ssr': ({ entryPoints }) => {
+      entryPoints.forEach((url) => {
+        console.log(url.href);
+      });
+    },
+  },
+}
+```
+
+#### opsi `middlewareEntryPoint`
+
+<p>
+
+**Tipe:** `URL | undefined`<br />
+<Since v="2.8.0" />
+</p>
+
+Mengekspos path file [middleware](/id/guides/middleware/).
+
+```js
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:ssr': ({ middlewareEntryPoint }) => {
+      if (middlewareEntryPoint) {
+        // lakukan beberapa operasi jika middleware ada
+      }
+    },
+  },
+}
+```
+
+### `astro:build:generated`
+
+<p>
+
+<Since v="1.3.0" />
+</p>
+
+**Hook sebelumnya:** [`astro:build:ssr`](#astrobuildssr)
+
+**Hook berikutnya:** [`astro:build:done`](#astrobuilddone)
+
+**Kapan:** Setelah build produksi statis selesai menghasilkan rute dan aset.
+
+**Mengapa:** Untuk mengakses rute dan aset yang dihasilkan **sebelum** artefak build dibersihkan. Ini adalah kasus penggunaan yang sangat jarang. Kami merekomendasikan menggunakan [`astro:build:done`](#astrobuilddone) kecuali Anda benar-benar perlu mengakses file yang dihasilkan sebelum pembersihan.
+
+```js
+'astro:build:generated'?: (options: {
+  dir: URL;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `dir`
+
+<p>
+
+**Tipe:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+</p>
+
+URL path ke direktori output build. Perhatikan bahwa jika Anda memerlukan string path absolut yang valid, gunakan utilitas bawaan Node [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl-options).
+
+```js
+import { fileURLToPath } from 'node:url';
+
+export default {
+  name: 'my-integration',
+  hooks: {
+    'astro:build:generated': ({ dir }) => {
+      const outFile = fileURLToPath(new URL('./my-integration.json', dir));
+    }
+  }
+}
+```
+
+### `astro:build:done`
+
+**Hook sebelumnya:** [`astro:build:generated`](#astrobuildgenerated)
+
+**Kapan:** Setelah build produksi (SSG atau SSR) selesai.
+
+**Mengapa:** Untuk mengakses rute dan aset yang dihasilkan untuk diperluas (mis. menyalin konten ke direktori `/assets` yang dihasilkan). Jika Anda berencana mentransformasikan aset yang dihasilkan, pertimbangkan untuk mengeksplorasi [Vite Plugin API](https://vite.dev/guide/api-plugin.html) dan [konfigurasi melalui `astro:config:setup`](#updateconfig-option) sebagai gantinya.
+
+```js
+'astro:build:done'?: (options: {
+  pages: { pathname: string }[];
+  dir: URL;
+  /** @deprecated Gunakan map `assets` dan hook baru `astro:routes:resolved` */
+  routes: IntegrationRouteData[];
+  assets: Map<string, URL[]>;
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### opsi `dir`
+
+<p>
+
+**Tipe:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+</p>
+
+URL path ke direktori output build. Perhatikan bahwa jika Anda memerlukan string path absolut yang valid, gunakan utilitas bawaan Node [`fileURLToPath`](https://nodejs.org/api/url.html#urlfileurltopathurl-options).
+
+```js
+import { writeFile } from 'node:fs/promises';
+import { fileURLToPath } from 'node:url';
+
+export default function myIntegration() {
+  return {
+    hooks: {
+      'astro:build:done': async ({ dir }) => {
+        const metadata = await getIntegrationMetadata();
+        // Gunakan fileURLToPath untuk mendapatkan string path absolut lintas platform yang valid
+        const outFile = fileURLToPath(new URL('./my-integration.json', dir));
+        await writeFile(outFile, JSON.stringify(metadata));
+      }
+    }
+  }
+}
+```
+
+#### opsi `routes`
+
+:::caution
+Properti ini sudah deprecated sejak v5.0. Lihat [panduan migrasi](/id/guides/upgrade-to/v5/#deprecated-routes-on-astrobuilddone-hook-integration-api).
+:::
+
+<p>
+
+**Tipe:** [`IntegrationRouteData[]`](#integrationroutedata-type-reference)
+</p>
+
+Daftar semua rute yang dihasilkan beserta metadata terkaitnya.
+
+Anda dapat merujuk tipe lengkap `IntegrationRouteData` di bawah, namun properti yang paling umum adalah:
+
+- `component` - path file masukan relatif terhadap root proyek
+- `pathname` - URL file output (undefined untuk rute yang menggunakan parameter `[dynamic]` dan `[...spread]`)
+
+#### opsi `assets`
+
+<p>
+
+**Tipe:** `Map<string, URL[]>`<br />
+<Since v="5.0.0" />
+</p>
+
+Berisi URL ke path file output, dikelompokkan berdasarkan properti [`pattern` milik `IntegrationResolvedRoute`](#integrationresolvedroute-type-reference).
+
+#### opsi `pages`
+
+<p>
+
+**Tipe:** `{ pathname: string }[]`
+</p>
+
+Daftar semua halaman yang dihasilkan. Ini adalah objek dengan satu properti.
+
+- `pathname` - path final halaman.
+
+### Hook kustom
+
+Hook kustom dapat ditambahkan ke integrasi dengan memperluas interface `IntegrationHooks` melalui [global augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#global-augmentation).
+
+```ts
+declare global {
+  namespace Astro {
+    export interface IntegrationHook {
+      'your:hook': (params: YourHookParameters) => Promise<void>
+    }
+  }
+}
+```
+
+Astro memesan prefiks `astro:` untuk hook bawaan di masa depan. Silakan pilih prefiks berbeda saat menamai hook kustom Anda.
+
+## Referensi tipe integrasi
+
+### `AstroIntegrationLogger`
+
+Instance dari logger Astro, berguna untuk menulis log. Logger ini menggunakan [level log](/id/reference/cli-reference/#--verbose) yang sama dengan yang dikonfigurasi melalui CLI.
+
+**Metode yang tersedia** untuk menulis ke terminal:
+- `logger.info("Message")`;
+- `logger.warn("Message")`;
+- `logger.error("Message")`;
+- `logger.debug("Message")`;
+
+Semua pesan diawali dengan label yang nilainya sama dengan nama integrasi.
+
+```ts title="integration.ts" {8}
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+  return {
+    name: "astro-format",
+    hooks: {
+      "astro:build:done": ({ logger }) => {
+        // lakukan sesuatu
+        logger.info("Integration ready.");
+      }
+    }
+  }
+}
+```
+
+Contoh di atas akan mencetak pesan yang menyertakan pesan `info` yang diberikan:
+
+```shell
+[astro-format] Integration ready.
+```
+
+Untuk mencetak pesan dengan label berbeda, gunakan metode `.fork` untuk menentukan alternatif dari `name` default:
+
+```ts title="integration.ts" ".fork"
+import type { AstroIntegration } from "astro";
+export function formatIntegration(): AstroIntegration {
+  return {
+    name: "astro-format",
+    hooks: {
+      "astro:config:done": ({ logger }) => {
+        // lakukan sesuatu
+        logger.info("Integration ready.");
+      },
+      "astro:build:done": ({ logger }) => {
+        const buildLogger = logger.fork("astro-format/build");
+        // lakukan sesuatu
+        buildLogger.info("Build finished.")
+      }
+    }
+  }
+}
+```
+
+Contoh di atas akan menghasilkan log dengan `[astro-format]` secara default, dan `[astro-format/build]` saat ditentukan:
+
+```shell
+[astro-format] Integration ready.
+[astro-format/build] Build finished.
+```
+
+### `HookParameters`
+
+Anda dapat mengambil tipe argumen suatu hook dengan meneruskan nama hook ke tipe utilitas `HookParameters`. Pada contoh berikut, argumen `options` suatu fungsi diketik agar cocok dengan parameter hook `astro:config:setup`:
+
+```ts /HookParameters(?:<.+>)?/
+import type { HookParameters } from 'astro';
+
+function mySetup(options: HookParameters<'astro:config:setup'>) {
+  options.updateConfig({ /* ... */ });
+}
+```
+
+### Referensi tipe `IntegrationResolvedRoute`
+
+```ts
+interface IntegrationResolvedRoute {
+	pattern: RouteData['route'];
+	patternRegex: RouteData['pattern'];
+	entrypoint: RouteData['component'];
+	isPrerendered: RouteData['prerender'];
+	redirectRoute?: IntegrationResolvedRoute;
+	generate: (data?: any) => string;
+	params: string[];
+	pathname?: string;
+	segments: RoutePart[][];
+	type: RouteType;
+	redirect?: RedirectConfig;
+	origin: 'internal' | 'external' | 'project';
+}
+```
+
+#### `pattern`
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+Memungkinkan Anda mengidentifikasi jenis rute berdasarkan path-nya. Berikut beberapa contoh path yang terkait dengan polanya:
+* `src/pages/index.astro` akan menjadi `/`
+* `src/pages/blog/[...slug].astro` akan menjadi `/blog/[...slug]`
+* `src/pages/site/[blog]/[...slug].astro` akan menjadi `/site/[blog]/[...slug]`
+
+#### `patternRegex`
+
+<p>
+
+**Tipe:** `RegExp`
+</p>
+
+Memungkinkan Anda mengakses regex yang digunakan untuk mencocokkan URL input terhadap rute yang diminta.
+
+Sebagai contoh, untuk path `[fruit]/about.astro`, regex-nya adalah `/^\/([^/]+?)\/about\/?$/`. Menggunakan `pattern.test("banana/about")` akan mengembalikan `true`.
+
+#### `entrypoint`
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+URL pathname dari komponen sumber.
+
+#### `isPrerendered`
+
+<p>
+
+**Tipe:** `boolean`
+</p>
+
+Menentukan apakah rute menggunakan [on demand rendering](/id/guides/on-demand-rendering/). Nilainya akan `true` untuk proyek yang dikonfigurasi dengan:
+* `output: 'static'` ketika rute tidak mengekspor `const prerender = true` 
+* `output: 'server'` ketika rute mengekspor `const prerender = false`
+
+#### `redirectRoute`
+
+<p>
+
+**Tipe:** `IntegrationResolvedRoute | undefined`
+</p>
+
+Ketika nilai `IntegrationResolvedRoute.type` adalah `redirect`, nilainya akan menjadi `IntegrationResolvedRoute` tujuan pengalihan. Jika tidak, nilainya undefined.
+
+#### `generate()`
+
+<p>
+
+**Tipe:** `(data?: any) => string`
+</p>
+
+Fungsi yang menerima parameter opsional dari rute, menginterpolasikannya dengan pola rute, dan mengembalikan pathname rute.
+
+Sebagai contoh, dengan rute seperti `/blog/[...id].astro`, fungsi `generate` dapat mengembalikan:
+
+```js
+console.log(generate({ id: 'presentation' })) // akan mencetak `/blog/presentation`
+```
+
+#### `params`
+
+<p>
+
+**Tipe:** `string[]`
+</p>
+
+Memungkinkan Anda mengakses `params` rute. Sebagai contoh, ketika proyek menggunakan [rute dinamis](/id/guides/routing/#dynamic-routes) `/pages/[lang]/[...slug].astro`, nilainya adalah `['lang', '...slug']`.
+
+#### `pathname`
+
+<p>
+
+**Tipe:** `string | undefined`
+</p>
+
+Untuk rute reguler, nilainya adalah URL pathname tempat rute ini akan dilayani. Ketika proyek menggunakan [rute dinamis](/id/guides/routing/#dynamic-routes) (yaitu `[dynamic]` atau `[...spread]`), `pathname` akan undefined.
+
+#### `segments`
+
+<p>
+
+**Tipe:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/internal.ts#L154-L158">RoutePart</a>[][]</code>
+</p>
+
+Memungkinkan Anda mengakses [`params`](#params) rute dengan metadata tambahan. Setiap objek berisi properti berikut:
+* `content`: nama `param`,
+* `dynamic`: apakah rute dinamis atau tidak,
+* `spread`: apakah rute dinamis menggunakan spread syntax atau tidak.
+
+Sebagai contoh, rute `/pages/[blog]/[...slug].astro` akan menghasilkan segmen:
+
+```js
+[
+  [ { content: 'pages', dynamic: false, spread: false } ],
+  [ { content: 'blog', dynamic: true, spread: false } ],
+  [ { content: '...slug', dynamic: true, spread: true } ]
+]
+```
+
+#### `type`
+
+<p>
+
+**Tipe:** `RouteType`
+</p>
+
+Memungkinkan Anda mengidentifikasi jenis rute. Nilai yang mungkin adalah:
+* `page`: rute yang ada di sistem file, biasanya komponen Astro
+* `endpoint`: rute yang ada di sistem file, biasanya file JS yang mengekspor metode endpoint
+* `redirect`: rute yang mengarah ke rute lain yang ada di sistem file
+* `fallback`: rute yang tidak ada di sistem file dan perlu ditangani dengan cara lain, biasanya middleware
+
+#### `redirect`
+
+<p>
+
+**Tipe:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/config.ts#L39-L44">RedirectConfig</a> | undefined</code>
+</p>
+
+Memungkinkan Anda mengakses rute tujuan pengalihan. Ini bisa berupa string atau objek yang berisi informasi tentang status code dan tujuannya.
+
+#### `origin`
+
+<p>
+
+**Tipe:** `'internal' | 'external' | 'project'`
+</p>
+
+Menentukan apakah rute berasal dari Astro core (`internal`), sebuah integrasi (`external`) atau proyek pengguna (`project`).
+
+### Referensi tipe `IntegrationRouteData`
+
+:::caution
+Tipe ini deprecated sejak v5.0. Gunakan [`IntegrationResolvedRoute`](#integrationresolvedroute-type-reference) sebagai gantinya.
+:::
+
+Versi yang lebih kecil dari `RouteData` yang digunakan di integrasi.
+
+```ts
+interface IntegrationRouteData {
+  type: RouteType;
+  component: string;
+  pathname?: string;
+  pattern: RegExp;
+  params: string[];
+  segments: { content: string; dynamic: boolean; spread: boolean; }[][];
+  generate: (data?: any) => string;
+	prerender: boolean;
+	distURL?: URL[];
+	redirect?: RedirectConfig;
+	redirectRoute?: IntegrationRouteData;
+}
+```
+
+#### `type`
+
+<p>
+
+**Tipe:** `RouteType`
+</p>
+
+Memungkinkan Anda mengidentifikasi jenis rute. Nilainya dapat berupa:
+- `page`: rute yang ada di sistem file, biasanya komponen Astro
+- `endpoint`: rute yang ada di sistem file, biasanya file JS yang mengekspor metode endpoint
+- `redirect`: rute yang mengarah ke rute lain yang ada di sistem file
+- `fallback`: rute yang tidak ada di sistem file dan perlu ditangani dengan cara lain, biasanya middleware
+
+#### `component`
+
+<p>
+
+**Tipe:** `string`
+</p>
+
+Memungkinkan Anda mengakses URL pathname komponen sumber.
+
+#### `pathname`
+
+<p>
+
+**Tipe:** `string | undefined`
+</p>
+
+Untuk rute reguler, nilainya adalah URL pathname tempat rute ini akan dilayani. Ketika proyek menggunakan [rute dinamis](/id/guides/routing/#dynamic-routes) (yaitu `[dynamic]` atau `[...spread]`), `pathname` akan undefined.
+
+#### `pattern`
+
+<p>
+
+**Tipe:** `RegExp`
+</p>
+
+Memungkinkan Anda mengakses regex yang digunakan untuk mencocokkan URL input terhadap rute yang diminta.
+
+Sebagai contoh, untuk path `[fruit]/about.astro`, regex-nya adalah `/^\/([^/]+?)\/about\/?$/`. Menggunakan `pattern.test("banana/about")` akan mengembalikan `true`.
+
+#### `params`
+
+<p>
+
+**Tipe:** `string[]`
+</p>
+
+Memungkinkan Anda mengakses `params` rute. Sebagai contoh, ketika proyek menggunakan [rute dinamis](/id/guides/routing/#dynamic-routes) `/pages/[lang]/[...slug].astro`, nilainya adalah `['lang', '...slug']`.
+
+#### `segments`
+
+<p>
+
+**Tipe:** `{ content: string; dynamic: boolean; spread: boolean; }[][]`
+</p>
+
+Memungkinkan Anda mengakses [`params`](#params-1) rute dengan metadata tambahan. Setiap objek berisi properti berikut:
+* `content`: `param`,
+* `dynamic`: apakah rute dinamis atau tidak,
+* `spread`: apakah rute dinamis menggunakan spread syntax atau tidak.
+
+Sebagai contoh, rute `/pages/[lang]/index.astro` akan menghasilkan segmen `[[ { content: 'lang', dynamic: true, spread: false } ]]`.
+
+#### `generate()`
+
+<p>
+
+**Tipe:** `(data?: any) => string`
+</p>
+
+Fungsi yang menerima parameter opsional dari rute, menginterpolasikannya dengan pola rute, dan mengembalikan pathname rute.
+
+Sebagai contoh, dengan rute seperti `/blog/[...id].astro`, fungsi `generate` dapat mengembalikan:
+
+```js
+console.log(generate({ id: 'presentation' })) // akan mencetak `/blog/presentation` 
+```
+
+#### `prerender`
+
+<p>
+
+**Tipe:** `boolean`
+</p>
+
+Menentukan apakah rute di-prerender atau tidak.
+
+#### `distURL`
+
+<p>
+
+**Tipe:** `URL[] | undefined`
+</p>
+
+Path file fisik yang dihasilkan oleh rute ini. Ketika rute **tidak** di-prerender, nilainya `undefined` atau array kosong.
+
+#### `redirect`
+
+<p>
+
+**Tipe:** <code><a href="https://github.com/withastro/astro/blob/3b10b97a4fecd1dfd959b160a07b5b8427fe40a7/packages/astro/src/types/public/config.ts#L39-L44">RedirectConfig</a> | undefined</code>
+</p>
+
+Memungkinkan Anda mengakses rute tujuan pengalihan. Ini bisa berupa string atau objek yang berisi informasi tentang status code dan tujuannya.
+
+#### `redirectRoute`
+
+<p>
+
+**Tipe:** `IntegrationRouteData | undefined`
+</p>
+
+Ketika nilai `RouteData.type` adalah `redirect`, nilainya berisi `IntegrationRouteData` dari rute tujuan pengalihan. Jika tidak, nilainya undefined.
+
+## Izinkan instalasi dengan `astro add`
+
+[Perintah `astro add`](/id/reference/cli-reference/#astro-add) memungkinkan pengguna menambahkan integrasi dan adapter ke proyek mereka dengan mudah. Jika Anda ingin integrasi Anda dapat diinstal dengan alat ini, **tambahkan `astro-integration` ke field `keywords` dalam `package.json` Anda**:
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-integration"],
+}
+```
+
+Setelah Anda [menerbitkan integrasi ke npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), menjalankan `astro add example` akan memasang paket Anda beserta peer dependencies apa pun yang ditentukan di `package.json`. Ini juga akan menerapkan integrasi Anda ke `astro.config.*` pengguna seperti berikut:
+
+```js ins={3,6}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import example from 'example';
+
+export default defineConfig({
+  integrations: [example()],
+})
+```
+
+:::caution
+Ini mengasumsikan definisi integrasi Anda 1) merupakan ekspor `default` dan 2) sebuah fungsi. Pastikan ini benar sebelum menambahkan keyword `astro-integration`!
+:::
+
+## Urutan Integrasi
+
+Semua integrasi dijalankan sesuai urutan mereka dikonfigurasi. Misalnya, untuk array `[react(), svelte()]` di `astro.config.*` pengguna, `react` akan berjalan sebelum `svelte`.
+
+Idealnya, integrasi Anda seharusnya bisa berjalan dalam urutan apa pun. Jika ini tidak memungkinkan, kami merekomendasikan mendokumentasikan bahwa integrasi Anda harus berada paling awal atau paling akhir di array konfigurasi `integrations` pengguna Anda.
+
+## Gabungkan integrasi menjadi preset
+
+Sebuah integrasi juga dapat ditulis sebagai kumpulan dari beberapa integrasi yang lebih kecil. Kami menyebut kumpulan ini sebagai **preset.** Alih-alih membuat fungsi pabrik yang mengembalikan satu objek integrasi, sebuah preset mengembalikan _array_ objek integrasi. Ini berguna untuk membangun fitur kompleks dari beberapa integrasi.
+
+```js
+integrations: [
+  // Contoh: di mana examplePreset() mengembalikan: [integrationOne, integrationTwo, ...dst]
+  examplePreset()
+]
+```
+
+## Sumber Daya Komunitas
+
+- [Build your own Astro Integrations](https://www.freecodecamp.org/news/how-to-use-the-astro-ui-framework/#chapter-8-build-your-own-astro-integrations-1) - oleh Emmanuel Ohans di FreeCodeCamp
+- [Astro Integration Template](https://github.com/florian-lefebvre/astro-integration-template) - oleh Florian Lefebvre di GitHub

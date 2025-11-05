@@ -1,0 +1,113 @@
+---
+title: Xata & Astro
+description: Tambahkan database serverless dengan pencarian full-text ke proyek Anda menggunakan Xata
+sidebar:
+  label: Xata
+  hidden: false
+type: backend
+service: Xata
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
+
+[Xata](https://xata.io) adalah **Serverless Data Platform** yang menggabungkan fitur database relasional, mesin pencari, dan mesin analitik melalui satu REST API yang konsisten.
+
+## Menambahkan database dengan Xata
+
+### Prasyarat
+
+- Akun [Xata](https://app.xata.io/signin) dengan sebuah database. (Anda dapat menggunakan database contoh dari Web UI.)
+- Access Token (`XATA_API_KEY`).
+- URL Database Anda.
+
+Setelah Anda memperbarui dan menginisialisasi [Xata CLI](https://xata.io/docs/getting-started/installation), token API Anda akan tersimpan di berkas `.env` dan URL database sudah terdefinisi. 
+
+Pada akhir proses setup, Anda seharusnya memiliki:
+
+```ini title=".env"
+XATA_API_KEY=hash_key
+
+# Xata branch yang akan digunakan
+# jika tidak ada xata branch dengan
+# nama yang sama seperti git branch Anda
+XATA_BRANCH=main
+```
+
+Dan `databaseURL` telah terdefinisi:
+
+```ini title=".xatarc"
+{
+  "databaseUrl": "https://your-database-url"
+}
+```
+
+### Konfigurasi environment
+
+Agar mendapatkan IntelliSense dan type-safety untuk variabel environment Anda, edit atau buat berkas `env.d.ts` di direktori `src/`:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly XATA_API_KEY: string;
+  readonly XATA_BRANCH?: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Baca selengkapnya tentang [variabel environment](/id/guides/environment-variables/) dan berkas `.env` di Astro.
+:::
+
+Dengan menggunakan _code generation_ dari Xata CLI dan memilih opsi TypeScript, akan dihasilkan sebuah instance SDK untuk Anda, dengan tipe yang disesuaikan dengan skema database Anda. Selain itu, `@xata.io/client` akan ditambahkan ke `package.json` Anda.
+
+Variabel environment Xata Anda dan URL database akan otomatis diambil oleh instance SDK, jadi tidak diperlukan setup tambahan.
+
+Sekarang, proyek Anda seharusnya memiliki struktur berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **xata.ts**
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+- **.xatarc**
+</FileTree>
+
+## Buat kueri Anda
+
+Untuk melakukan kueri `posts`, impor dan gunakan kelas `XataClient` di berkas `.astro`. Contoh di bawah ini mengambil 50 posting pertama dari Sample Blog Database milik Xata.
+
+```astro title="src/pages/blog/index.astro"
+---
+import { XataClient } from '../../xata';
+ 
+const xata = new XataClient({
+  apiKey: import.meta.env.XATA_API_KEY,
+  branch: import.meta.env.XATA_BRANCH
+});
+
+const { records } = await xata.db.Posts.getPaginated({
+  pagination: {
+    size: 50
+  }
+})
+---
+
+<ul>
+  {records.map((post) => (
+    <li>{post.title}</li>
+  ))}
+</ul>
+```
+Perlu dicatat bahwa SDK harus digenerasikan ulang setiap kali skema Anda berubah. Jadi, hindari melakukan perubahan pada berkas yang dihasilkan otomatis oleh Xata CLI karena saat skema diperbarui, perubahan Anda akan ditimpa.
+
+
+## Sumber Resmi
+- [Xata Astro Starter](https://github.com/xataio/examples/tree/main/apps/getting-started-astro)
+- [Xata Docs: Quick Start Guide](https://xata.io/docs/getting-started/quickstart-astro)

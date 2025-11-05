@@ -1,0 +1,312 @@
+---
+title: Mendeploy Situs Astro Anda ke Cloudflare
+description: Cara mendeploy situs Astro Anda ke web menggunakan Cloudflare
+sidebar:
+  label: Cloudflare
+type: deploy
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Anda dapat mendeploy aplikasi full‑stack—termasuk aset statis front-end dan API back-end—serta situs yang dirender on‑demand ke [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) dan [Cloudflare Pages](https://pages.cloudflare.com/). 
+
+Panduan ini mencakup:
+
+- [Cara mendeploy ke Cloudflare Workers](#cloudflare-workers)
+- [Cara mendeploy ke Cloudflare Pages](#cloudflare-pages)
+
+:::note
+
+Cloudflare merekomendasikan menggunakan Cloudflare Workers untuk proyek baru. Untuk proyek Pages yang sudah ada, lihat [panduan migrasi Cloudflare](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/) dan [matriks kompatibilitas](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/#compatibility-matrix).
+
+:::
+
+<ReadMore>Baca selengkapnya tentang [menggunakan runtime Cloudflare](/id/guides/integrations-guide/cloudflare/) di proyek Astro Anda.</ReadMore>
+## Prasyarat
+
+Untuk memulai, Anda memerlukan:
+
+- Akun Cloudflare. Jika belum punya, Anda dapat membuat akun Cloudflare gratis selama proses berjalan.
+
+## Cloudflare Workers
+
+### Cara deploy dengan Wrangler
+
+<Steps>
+1. Instal [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/).
+
+    ```bash
+    npm install wrangler@latest --save-dev
+    ```
+
+2. Jika situs Anda menggunakan rendering on‑demand, instal [`@astrojs/cloudflare` adapter](/id/guides/integrations-guide/cloudflare/).
+
+    Ini akan memasang adapter dan melakukan perubahan yang diperlukan pada berkas `astro.config.mjs` Anda dalam satu langkah.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npx astro add cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm astro add cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn astro add cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    <ReadMore>Baca selengkapnya tentang [rendering on‑demand di Astro](/id/guides/on-demand-rendering/).</ReadMore>
+
+3. Buat [berkas konfigurasi Wrangler](https://developers.cloudflare.com/workers/wrangler/configuration/).
+
+    Menjalankan `astro add cloudflare` akan membuatkan berkas ini untuk Anda; jika Anda tidak menggunakan adapter, Anda perlu membuatnya sendiri.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // Perbarui ke tanggal Anda melakukan deploy
+          "assets": {
+            "binding": "ASSETS",
+            "directory": "./dist",
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "main": "dist/_worker.js/index.js",
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // Perbarui ke tanggal Anda melakukan deploy
+          "compatibility_flags": [
+            "nodejs_compat",
+            "global_fetch_strictly_public"
+          ],
+          "assets": {
+            "binding": "ASSETS",
+            "directory": "./dist"
+          },
+          "observability": {
+            "enabled": true
+          }
+        }
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+4. Pratinjau proyek Anda secara lokal dengan Wrangler.
+
+    ```bash
+    npx astro build && npx wrangler dev
+    ```
+
+5. Deploy menggunakan `npx wrangler deploy`.
+
+    ```bash
+    npx astro build && npx wrangler deploy
+    ```
+</Steps>
+
+Setelah aset Anda diunggah, Wrangler akan memberikan URL pratinjau untuk memeriksa situs Anda.
+
+<ReadMore>Baca selengkapnya tentang penggunaan [Cloudflare runtime API](/id/guides/integrations-guide/cloudflare/) seperti bindings.</ReadMore>
+
+### Cara deploy dengan CI/CD
+
+Anda juga dapat menggunakan sistem CI/CD seperti [Workers Builds (BETA)](https://developers.cloudflare.com/workers/ci-cd/builds/) untuk otomatis membangun dan mendeploy situs saat melakukan push. 
+
+Jika Anda menggunakan Workers Builds:
+
+<Steps>
+1. Ikuti Langkah 1–3 dari bagian Wrangler di atas.
+
+2. Masuk ke [dasbor Cloudflare](https://dash.cloudflare.com/) dan buka `Workers & Pages`. Pilih `Create`.
+
+3. Pada `Import a repository`, pilih akun Git lalu repository yang berisi proyek Astro Anda.
+
+4. Konfigurasikan proyek Anda dengan:
+    - Build command: `npx astro build`
+    - Deploy command: `npx wrangler deploy`
+    
+5. Klik `Save and Deploy`. Anda kini dapat melihat pratinjau Worker pada subdomain `workers.dev` yang disediakan.
+</Steps>
+
+## Cloudflare Pages
+
+### Cara deploy dengan Wrangler
+
+<Steps>
+1. Instal [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/).
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npm install wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm add wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn add wrangler@latest --dev
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+2. Jika situs Anda menggunakan rendering on‑demand, instal [`@astrojs/cloudflare` adapter](/id/guides/integrations-guide/cloudflare/). 
+    
+    Ini akan memasang adapter dan melakukan perubahan yang diperlukan pada berkas `astro.config.mjs` Anda dalam satu langkah.
+    
+       <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro add cloudflare
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+3. Buat [berkas konfigurasi Wrangler](https://developers.cloudflare.com/workers/wrangler/configuration/).
+
+    Karena Cloudflare merekomendasikan proyek baru menggunakan Workers alih‑alih Pages, perintah `astro add cloudflare` akan membuat berkas `wrangler.jsonc` dan `public/.assetsignore` yang spesifik untuk proyek Workers. Anda perlu menghapus berkas `public/.assetsignore` dan mengubah berkas `wrangler.jsonc` Anda. Jika Anda tidak menggunakan adapter, Anda perlu membuat berkas ini sendiri.
+
+    Pastikan berkas `wrangler.jsonc` Anda terstruktur seperti ini:
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+      ```jsonc title="wrangler.jsonc"
+      {
+        "name": "my-astro-app",
+        "compatibility_date": "YYYY-MM-DD", // Perbarui ke tanggal Anda melakukan deploy
+        "pages_build_output_dir": "./dist"
+      }
+      ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // Perbarui ke tanggal Anda melakukan deploy
+          "compatibility_flags": [
+            "nodejs_compat",
+            "disable_nodejs_process_v2"
+          ],
+          "pages_build_output_dir": "./dist"
+        }
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+    <ReadMore>Baca selengkapnya tentang [rendering on‑demand di Astro](/id/guides/on-demand-rendering/).</ReadMore>
+
+3. Pratinjau proyek Anda secara lokal dengan Wrangler.
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+4. Deploy menggunakan `npx wrangler deploy`.
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+</Steps>
+
+Setelah aset Anda diunggah, Wrangler akan memberikan URL pratinjau untuk memeriksa situs Anda.
+
+### Cara deploy situs dengan CI/CD
+
+<Steps>
+1. Push kode Anda ke repository git (mis. GitHub, GitLab).
+
+2. Masuk ke [dasbor Cloudflare](https://dash.cloudflare.com/) dan buka **Compute (Workers) > Workers & Pages**. Pilih **Create** lalu pilih tab **Pages**. Hubungkan repository git Anda.
+
+3. Konfigurasikan proyek Anda dengan:
+    - **Framework preset**: `Astro`
+    - **Build command:** `npm run build`
+    - **Build output directory:** `dist`
+    
+4. Klik tombol **Save and Deploy**.
+</Steps>
+
+## Pemecahan masalah
+
+### Perilaku 404
+
+Untuk proyek Workers, Anda perlu menyetel `not_found_handling` jika ingin menyajikan halaman 404 kustom. Baca lebih lanjut pada [bagian Routing behavior](https://developers.cloudflare.com/workers/static-assets/#routing-behavior) di dokumentasi Cloudflare.
+
+```jsonc title="wrangler.jsonc"
+{
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+Untuk proyek Pages, jika Anda menyertakan halaman 404 kustom, halaman tersebut akan disajikan secara default. Jika tidak, Pages akan menggunakan [perilaku rendering single‑page application Cloudflare](https://developers.cloudflare.com/pages/configuration/serving-pages/#single-page-application-spa-rendering) dan mengarahkan ke beranda alih‑alih menampilkan halaman 404.
+
+### Hydration sisi klien
+
+Hydration sisi klien dapat gagal akibat pengaturan Auto Minify Cloudflare. Jika Anda melihat `Hydration completed but contains mismatches` di konsol, pastikan untuk menonaktifkan Auto Minify di pengaturan Cloudflare.
+
+### API runtime Node.js
+
+Jika Anda membangun proyek yang menggunakan rendering on‑demand dengan [adapter Cloudflare](/id/guides/integrations-guide/cloudflare/) dan server gagal dibangun dengan pesan error seperti `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.`:
+
+- Ini berarti paket atau import yang Anda gunakan di lingkungan server‑side tidak kompatibel dengan [Cloudflare runtime API](https://developers.cloudflare.com/workers/runtime-apis/nodejs/). 
+
+- Jika Anda mengimpor API runtime Node.js secara langsung, lihat dokumentasi Astro tentang [kompatibilitas Node.js Cloudflare](/id/guides/integrations-guide/cloudflare/#nodejs-compatibility) untuk langkah penyelesaiannya.
+
+- Jika Anda mengimpor paket yang mengimpor API runtime Node.js, periksa ke penulis paket apakah mereka mendukung sintaks import `node:*`. Jika tidak, Anda mungkin perlu mencari paket alternatif.

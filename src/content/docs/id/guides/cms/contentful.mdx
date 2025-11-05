@@ -1,0 +1,574 @@
+---
+title: Contentful & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Contentful sebagai CMS
+sidebar:
+  label: Contentful
+type: cms
+service: Contentful
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Contentful](https://www.contentful.com/) adalah headless CMS yang memungkinkan Anda mengelola konten, berintegrasi dengan layanan lain, dan memublikasikan ke berbagai platform.
+
+## Integrasi dengan Astro
+
+Pada bagian ini, kita akan menggunakan [Contentful SDK](https://github.com/contentful/contentful.js) untuk menghubungkan *space* Contentful Anda ke Astro **tanpa JavaScript sisi klien**.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan hal-hal berikut:
+
+1. **Proyek Astro** — Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membuat Anda siap dalam waktu singkat.
+
+2. **Akun Contentful dan sebuah *space* Contentful** — Jika Anda belum memiliki akun, Anda dapat [mendaftar](https://www.contentful.com/sign-up/) gratis dan membuat *space* Contentful baru. Anda juga bisa menggunakan *space* yang sudah ada jika memilikinya. 
+
+3. **Kredensial Contentful** — Anda dapat menemukan kredensial berikut di *dashboard* Contentful Anda pada **Settings > API keys**. Jika Anda belum memiliki API key, buat dengan memilih **Add API key**.
+
+    - **Contentful space ID** — ID dari *space* Contentful Anda. 
+    - **Contentful delivery access token** — Token akses untuk mengonsumsi konten yang sudah *published* dari *space* Contentful Anda.
+    - **Contentful preview access token** — Token akses untuk mengonsumsi konten yang belum dipublikasikan dari *space* Contentful Anda.
+
+### Menyiapkan kredensial
+
+Untuk menambahkan kredensial *space* Contentful ke Astro, buat file `.env` di root proyek Anda dengan variabel berikut:
+
+```ini title=".env"
+CONTENTFUL_SPACE_ID=YOUR_SPACE_ID
+CONTENTFUL_DELIVERY_TOKEN=YOUR_DELIVERY_TOKEN
+CONTENTFUL_PREVIEW_TOKEN=YOUR_PREVIEW_TOKEN
+```
+
+Sekarang, Anda dapat menggunakan variabel lingkungan ini di proyek Anda. 
+
+Jika Anda ingin mendapatkan IntelliSense untuk variabel lingkungan Contentful Anda, Anda bisa membuat file `env.d.ts` di direktori `src/` dan mengonfigurasikan `ImportMetaEnv` seperti ini:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly CONTENTFUL_SPACE_ID: string;
+  readonly CONTENTFUL_DELIVERY_TOKEN: string;
+  readonly CONTENTFUL_PREVIEW_TOKEN: string;
+}
+```
+:::tip
+Baca selengkapnya tentang [menggunakan variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.
+:::
+
+Direktori root Anda sekarang seharusnya menyertakan file-file baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menginstal dependensi
+
+Untuk terhubung dengan *space* Contentful Anda, pasang keduanya menggunakan satu perintah di bawah ini untuk manajer paket pilihan Anda:
+- [`contentful.js`](https://github.com/contentful/contentful.js), SDK resmi Contentful untuk JavaScript
+- [`rich-text-html-renderer`](https://github.com/contentful/rich-text/tree/master/packages/rich-text-html-renderer), paket untuk merender *rich text* Contentful menjadi HTML.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add contentful @contentful/rich-text-html-renderer
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Selanjutnya, buat file baru bernama `contentful.ts` di direktori `src/lib/` pada proyek Anda.
+
+```ts title="src/lib/contentful.ts"
+import * as contentful from "contentful";
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+
+```
+
+Cuplikan kode di atas membuat klien Contentful baru, dengan menyuplai kredensial dari file `.env`. 
+
+:::caution
+Saat *development*, konten Anda akan diambil dari **Contentful Preview API**. Ini berarti Anda dapat melihat konten yang belum dipublikasikan dari aplikasi web Contentful. 
+
+Saat *build*, konten Anda akan diambil dari **Contentful Delivery API**. Ini berarti hanya konten yang sudah dipublikasikan yang tersedia saat *build* berlangsung. 
+:::
+
+Terakhir, direktori root Anda sekarang seharusnya menyertakan file-file baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - env.d.ts
+  - lib/
+    - **contentful.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Mengambil data
+
+Komponen Astro dapat mengambil data dari akun Contentful Anda dengan menggunakan `contentfulClient` dan menentukan `content_type`. 
+
+Sebagai contoh, jika Anda memiliki *content type* "blogPost" yang memiliki field teks *title* dan field *rich text* untuk konten, komponen Anda mungkin seperti ini:
+
+```astro
+---
+import { contentfulClient } from "../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { EntryFieldTypes } from "contentful";
+
+interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+  }
+}
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+<body>
+  {entries.items.map((item) => (
+    <section>
+      <h2>{item.fields.title}</h2>
+      <article set:html={documentToHtmlString(item.fields.content)}></article>
+    </section>
+  ))}
+</body>
+```
+
+:::tip
+Jika *space* Contentful Anda kosong, lihat [menyiapkan model Contentful](#setting-up-a-contentful-model) untuk mempelajari cara membuat model blog dasar bagi konten Anda.
+:::
+
+Anda dapat menemukan opsi kueri lainnya di [dokumentasi Contentful](https://contentful.github.io/contentful.js/).
+
+## Membuat blog dengan Astro dan Contentful
+
+Dengan penyiapan di atas, Anda sekarang dapat membuat blog yang menggunakan Contentful sebagai CMS. 
+
+### Prasyarat
+
+1. **Sebuah *space* Contentful** — Untuk tutorial ini kami menyarankan memulai dengan *space* kosong. Jika Anda sudah memiliki *content model*, silakan gunakan, tetapi Anda perlu menyesuaikan cuplikan kode agar sesuai dengan model Anda.
+2. **Proyek Astro yang terintegrasi dengan [Contentful SDK](https://github.com/contentful/contentful.js)** — Lihat [integrasi dengan Astro](#integrating-with-astro) untuk detail cara menyiapkan proyek Astro dengan Contentful.
+
+### Menyiapkan model Contentful
+
+Di dalam *space* Contentful Anda, pada bagian **Content model**, buat *content model* baru dengan field dan nilai berikut:
+
+- **Name:** Blog Post
+- **API identifier:** `blogPost`
+- **Description:** Tipe konten ini untuk sebuah posting blog
+
+Di *content type* yang baru dibuat, gunakan tombol **Add Field** untuk menambahkan 5 field baru dengan parameter berikut:
+
+1. Text field
+    - **Name:** title
+    - **API identifier:** `title`
+    (biarkan parameter lainnya pada nilai default)
+2. Date and time field
+    - **Name:** date
+    - **API identifier:** `date`
+3. Text field
+    - **Name:** slug
+    - **API identifier:** `slug`
+    (biarkan parameter lainnya pada nilai default)
+4. Text field
+    - **Name:** description
+    - **API identifier:** `description`
+5. Rich text field
+    - **Name:** content
+    - **API identifier:** `content`
+
+Klik **Save** untuk menyimpan perubahan. 
+
+Pada bagian **Content** dari *space* Contentful Anda, buat entri baru dengan mengeklik tombol **Add Entry**. Lalu, isi field berikut:
+
+- **Title:** `Astro is amazing!`
+- **Slug:** `astro-is-amazing`
+- **Description:** `Astro is a new static site generator that is blazing fast and easy to use.`
+- **Date:** `2022-10-05`
+- **Content:** `This is my first blog post!`
+
+Klik **Publish** untuk menyimpan entri. Anda baru saja membuat posting blog pertama Anda.
+
+Silakan tambahkan posting sebanyak yang Anda mau, lalu beralihlah ke editor kode favorit Anda untuk mulai ngoding dengan Astro!
+
+### Menampilkan daftar posting blog
+
+Buat *interface* bernama `BlogPost` dan tambahkan ke file `contentful.ts` Anda di `src/lib/`. *Interface* ini akan menyesuaikan field dari *content type* posting blog Anda di Contentful. Anda akan menggunakannya untuk *typing* respons entri posting blog Anda.
+
+```ts title="src/lib/contentful.ts" ins="type { EntryFieldTypes }" ins={4-13}
+import * as contentful from "contentful";
+import type { EntryFieldTypes } from "contentful";
+
+export interface BlogPost {
+  contentTypeId: "blogPost",
+  fields: {
+    title: EntryFieldTypes.Text
+    content: EntryFieldTypes.RichText,
+    date: EntryFieldTypes.Date,
+    description: EntryFieldTypes.Text,
+    slug: EntryFieldTypes.Text
+  }
+}
+
+export const contentfulClient = contentful.createClient({
+  space: import.meta.env.CONTENTFUL_SPACE_ID,
+  accessToken: import.meta.env.DEV
+    ? import.meta.env.CONTENTFUL_PREVIEW_TOKEN
+    : import.meta.env.CONTENTFUL_DELIVERY_TOKEN,
+  host: import.meta.env.DEV ? "preview.contentful.com" : "cdn.contentful.com",
+});
+```
+
+Selanjutnya, buka halaman Astro tempat Anda akan mengambil data dari Contentful. Pada contoh ini kita gunakan halaman beranda `index.astro` di `src/pages/`.
+
+Impor *interface* `BlogPost` dan `contentfulClient` dari `src/lib/contentful.ts`. 
+
+Ambil semua entri dari Contentful dengan *content type* `blogPost` sambil meneruskan *interface* `BlogPost` untuk *typing* respons Anda.
+
+```astro title="src/pages/index.astro"
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+---
+```
+
+Panggilan *fetch* ini akan mengembalikan array posting blog Anda di `entries.items`. Anda dapat menggunakan `map()` untuk membuat array baru (`posts`) yang memformat data yang dikembalikan.
+
+Contoh di bawah ini mengembalikan properti `items.fields` dari *Content model* kita untuk membuat pratinjau posting blog, dan pada saat yang sama memformat tanggal agar lebih mudah dibaca.
+
+```astro title="src/pages/index.astro" ins={9-17}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+```
+
+Terakhir, Anda dapat menggunakan `posts` di template untuk menampilkan pratinjau setiap posting blog.
+
+```astro astro title="src/pages/index.astro" ins={19-37}
+---
+import { contentfulClient } from "../lib/contentful";
+import type { BlogPost } from "../lib/contentful";
+
+const entries = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+});
+
+const posts = entries.items.map((item) => {
+  const { title, date, description, slug } = item.fields;
+  return {
+    title,
+    slug,
+    description,
+    date: new Date(date).toLocaleDateString()
+  };
+});
+---
+<html lang="en">
+  <head>
+    <title>My Blog</title>
+  </head>
+  <body>
+    <h1>My Blog</h1>
+    <ul>
+      {posts.map((post) => (
+        <li>
+          <a href={`/posts/${post.slug}/`}>
+            <h2>{post.title}</h2>
+          </a>
+          <time>{post.date}</time>
+          <p>{post.description}</p>
+        </li>
+      ))}
+    </ul>
+  </body>
+</html>
+```
+
+### Menghasilkan posting blog individual
+
+Gunakan cara yang sama untuk mengambil data dari Contentful seperti di atas, tetapi kali ini pada halaman yang akan membuat rute halaman unik untuk setiap posting blog.
+
+
+#### *Static site generation*
+
+Jika Anda menggunakan mode statis default Astro, Anda akan menggunakan [rute dinamis](/id/guides/routing/#dynamic-routes) dan fungsi `getStaticPaths()`. Fungsi ini akan dipanggil saat *build time* untuk menghasilkan daftar *path* yang menjadi halaman.
+
+Buat file baru bernama `[slug].astro` di `src/pages/posts/`.
+
+Seperti pada `index.astro`, impor *interface* `BlogPost` dan `contentfulClient` dari `src/lib/contentful.ts`. 
+
+Kali ini, ambil data Anda di dalam fungsi `getStaticPaths()`.
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+}
+---
+```
+
+Lalu, *map* setiap item ke objek dengan properti `params` dan `props`. Properti `params` akan digunakan untuk menghasilkan URL halaman dan `props` akan diteruskan ke komponen halaman sebagai *props*.
+
+```astro title="src/pages/posts/[slug].astro" ins={3,11-19}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const entries = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+
+  const pages = entries.items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+---
+```
+
+Properti di dalam `params` harus cocok dengan nama rute dinamis. Karena nama file kita adalah `[slug].astro`, kita menggunakan `slug`.
+
+Pada contoh kita, objek `props` meneruskan tiga properti ke halaman:
+- title (string)
+- content (Dokumen *rich text* yang dikonversi ke HTML menggunakan `documentToHtmlString`)
+- date (diformat menggunakan *constructor* `Date`)
+
+Terakhir, Anda dapat menggunakan `props` halaman untuk menampilkan posting blog Anda.
+
+```astro title="src/pages/posts/[slug].astro" ins={21,23-32}
+---
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+export async function getStaticPaths() {
+  const { items } = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+  });
+  const pages = items.map((item) => ({
+    params: { slug: item.fields.slug },
+    props: {
+      title: item.fields.title,
+      content: documentToHtmlString(item.fields.content),
+      date: new Date(item.fields.date).toLocaleDateString(),
+    },
+  }));
+  return pages;
+}
+
+const { content, title, date } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <time>{date}</time>
+    <article set:html={content} />
+  </body>
+</html>
+```
+
+Buka http://localhost:4321/ dan klik salah satu posting untuk memastikan rute dinamis Anda berfungsi!
+
+#### *On-demand rendering*
+
+Jika Anda telah [memilih *on-demand rendering* dengan sebuah *adapter*](/id/guides/on-demand-rendering/), Anda akan menggunakan rute dinamis yang memakai parameter `slug` untuk mengambil data dari Contentful.
+
+Buat halaman `[slug].astro` di `src/pages/posts`. Gunakan [`Astro.params`](/id/reference/api-reference/#params) untuk mendapatkan *slug* dari URL, lalu teruskan ke `getEntries`: 
+
+```astro title="src/pages/posts/[slug].astro"
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+const data = await contentfulClient.getEntries<BlogPost>({
+  content_type: "blogPost",
+  "fields.slug": slug,
+});
+---
+```
+
+Jika entri tidak ditemukan, Anda dapat mengarahkan pengguna ke halaman 404 menggunakan [`Astro.redirect`](/id/guides/routing/#dynamic-redirects).
+
+```astro title="src/pages/posts/[slug].astro" ins={7, 12-14}
+---
+import { contentfulClient } from "../../lib/contentful";
+import type { BlogPost } from "../../lib/contentful";
+
+const { slug } = Astro.params;
+
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+Untuk meneruskan data *post* ke bagian template, buat objek `post` di luar blok `try/catch`.
+
+Gunakan `documentToHtmlString` untuk mengonversi `content` dari Dokumen ke HTML, dan gunakan *constructor* `Date` untuk memformat tanggal. `title` dapat dibiarkan apa adanya. Lalu, tambahkan properti-properti ini ke objek `post` Anda.
+
+```astro title="src/pages/posts/[slug].astro" ins={7,14-19}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+```
+  
+Terakhir, Anda dapat mereferensikan `post` untuk menampilkan posting blog pada bagian template.
+
+```astro title="src/pages/posts/[slug].astro" ins={24-33}
+---
+import Layout from "../../layouts/Layout.astro";
+import { contentfulClient } from "../../lib/contentful";
+import { documentToHtmlString } from "@contentful/rich-text-html-renderer";
+import type { BlogPost } from "../../lib/contentful";
+
+let post;
+const { slug } = Astro.params;
+try {
+  const data = await contentfulClient.getEntries<BlogPost>({
+    content_type: "blogPost",
+    "fields.slug": slug,
+  });
+  const { title, date, content } = data.items[0].fields;
+  post = {
+    title,
+    date: new Date(date).toLocaleDateString(),
+    content: documentToHtmlString(content),
+  };
+} catch (error) {
+  return Astro.redirect("/404");
+}
+---
+<html lang="en">
+  <head>
+    <title>{post?.title}</title>
+  </head>
+  <body>
+    <h1>{post?.title}</h1>
+    <time>{post?.date}</time>
+    <article set:html={post?.content} />
+  </body>
+</html>
+```
+
+### Menerbitkan situs Anda
+
+Untuk *deploy* situs web, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda. 
+
+#### *Rebuild* saat ada perubahan di Contentful
+
+Jika proyek Anda menggunakan mode statis default Astro, Anda perlu menyiapkan webhook untuk memicu *build* baru saat konten berubah. Jika Anda menggunakan Netlify atau Vercel sebagai penyedia hosting, Anda dapat menggunakan fitur webhook-nya untuk memicu *build* baru dari event Contentful. 
+
+##### Netlify
+
+Menyiapkan webhook di Netlify:
+
+<Steps>
+1. Buka *dashboard* situs Anda dan klik **Build & deploy**. 
+
+2. Di bawah tab **Continuous Deployment**, temukan bagian **Build hooks** dan klik **Add build hook**. 
+
+3. Beri nama webhook Anda dan pilih *branch* yang ingin memicu *build*. Klik **Save** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Vercel
+
+Menyiapkan webhook di Vercel:
+
+<Steps>
+1. Buka *dashboard* proyek Anda dan klik **Settings**. 
+
+2. Di bawah tab **Git**, temukan bagian **Deploy Hooks**. 
+
+3. Beri nama webhook dan *branch* yang ingin memicu *build*. Klik **Add** dan salin URL yang dihasilkan.
+</Steps>
+
+##### Menambahkan webhook ke Contentful
+
+Di **settings** *space* Contentful Anda, klik tab **Webhooks** dan buat webhook baru dengan mengeklik tombol **Add Webhook**. Beri nama webhook Anda dan tempel URL webhook yang Anda salin pada bagian sebelumnya. Terakhir, tekan **Save** untuk membuat webhook.
+
+Sekarang, setiap kali Anda memublikasikan posting blog baru di Contentful, *build* baru akan dipicu dan blog Anda akan diperbarui.

@@ -1,0 +1,372 @@
+---
+title: Routing Internasionalisasi (i18n)
+sidebar:
+  label: Internationalization (i18n)
+description: Pelajari cara menggunakan fitur routing i18n Astro untuk melokalkan halaman situs Anda.
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+
+Fitur internasionalisasi (i18n) Astro memungkinkan Anda menyesuaikan proyek untuk audiens internasional. API routing ini membantu Anda membuat, menggunakan, dan memverifikasi URL yang dihasilkan situs multibahasa Anda.
+
+Routing i18n Astro memungkinkan Anda membawa konten multibahasa dengan dukungan untuk mengonfigurasi bahasa default, menghitung URL halaman relatif, dan menerima bahasa pilihan yang disediakan oleh browser pengunjung Anda. Anda juga dapat menentukan bahasa fallback per bahasa sehingga pengunjung Anda selalu dapat diarahkan ke konten yang tersedia di situs Anda.
+
+## Logika Routing
+
+Astro menggunakan [middleware](/id/guides/middleware/) untuk menerapkan logika routing-nya. Fungsi middleware ini ditempatkan di [posisi pertama](/id/guides/middleware/#chaining-middleware) di mana ia menunggu setiap `Response` yang datang dari middleware tambahan mana pun dan setiap rute halaman sebelum akhirnya mengeksekusi logikanya sendiri.
+
+Ini berarti operasi (misalnya pengalihan/redirect) dari middleware Anda sendiri dan logika halaman Anda dijalankan terlebih dahulu, rute Anda dirender, dan kemudian middleware i18n melakukan tindakannya sendiri seperti memverifikasi bahwa URL terlokalisasi sesuai dengan rute yang valid.
+
+Anda juga dapat memilih untuk [menambahkan logika i18n Anda sendiri sebagai tambahan atau sebagai pengganti middleware i18n Astro](#manual), memberi Anda kontrol lebih besar atas rute sambil tetap memiliki akses ke fungsi bantuan `astro:i18n`.
+
+## Konfigurasikan routing i18n
+
+Baik daftar semua bahasa yang didukung ([`locales`](/id/reference/configuration-reference/#i18nlocales)) maupun bahasa default ([`defaultLocale`](/id/reference/configuration-reference/#i18ndefaultlocale)), yang harus merupakan salah satu bahasa yang tercantum dalam `locales`, perlu ditentukan dalam objek konfigurasi `i18n`. Selain itu, Anda dapat mengonfigurasi perilaku routing dan fallback yang lebih spesifik agar sesuai dengan URL yang Anda inginkan.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", "pt-br"],
+    defaultLocale: "en",
+  }
+})
+```
+
+### Buat folder terlokalisasi
+
+Atur folder konten Anda berdasarkan bahasa. Buat folder `/[locale]/` individual di mana pun di dalam `src/pages/` dan [routing berbasis file](/id/guides/routing/) Astro akan membuat halaman Anda pada path URL yang sesuai.
+
+Nama folder Anda harus cocok tepat dengan item dalam `locales`. Sertakan folder terlokalisasi untuk `defaultLocale` Anda hanya jika Anda mengonfigurasi `prefixDefaultLocale: true` untuk menampilkan path URL terlokalisasi untuk bahasa default Anda (mis. `/id/about/`).
+
+<FileTree>
+- src
+  - pages
+    - about.astro
+    - index.astro
+    - es
+      - about.astro
+      - index.astro
+    - pt-br
+      - about.astro
+      - index.astro
+</FileTree>
+
+:::note
+Folder terlokalisasi tidak perlu berada di akar folder `/pages/`.
+:::
+
+### Buat tautan
+
+Dengan routing i18n yang dikonfigurasi, kini Anda dapat menghitung tautan ke halaman dalam situs Anda menggunakan fungsi bantuan seperti [`getRelativeLocaleUrl()`](/id/reference/modules/astro-i18n/#getrelativelocaleurl) yang tersedia dari [modul `astro:i18n`](/id/reference/modules/astro-i18n/). Tautan yang dihasilkan ini akan selalu memberikan rute yang benar dan terlokalisasi serta dapat membantu Anda menggunakan atau memeriksa URL di situs Anda.
+
+Anda juga masih dapat menulis tautannya secara manual.
+
+```astro title="src/pages/es/index.astro"
+---
+import { getRelativeLocaleUrl } from 'astro:i18n';
+
+// defaultLocale adalah "es"
+const aboutURL = getRelativeLocaleUrl("es", "about");
+---
+
+<a href="/get-started/">¡Vamos!</a>
+<a href={getRelativeLocaleUrl('es', 'blog')}>Blog</a>
+<a href={aboutURL}>Acerca</a> 
+``` 
+
+## `routing`
+
+Routing berbasis file bawaan Astro secara otomatis membuat rute URL untuk Anda berdasarkan struktur file di dalam `src/pages/`.
+
+Saat Anda mengonfigurasi routing i18n, informasi tentang struktur file ini (dan path URL terkait yang dihasilkan) tersedia bagi fungsi bantuan i18n sehingga mereka dapat membuat, menggunakan, dan memverifikasi rute di proyek Anda. Banyak opsi ini dapat digunakan bersama untuk kustomisasi lebih lanjut dan fleksibilitas per bahasa.
+
+Anda bahkan dapat memilih untuk [menerapkan logika routing Anda sendiri secara manual](#manual) untuk kontrol yang lebih besar.
+
+### `prefixDefaultLocale`
+
+<p><Since v="3.5.0" /></p>
+
+Opsi routing ini menentukan apakah URL bahasa default Anda harus menggunakan awalan bahasa (mis. `/id/about/`) atau tidak.
+
+Semua bahasa non-default **akan** menggunakan awalan terlokalisasi (mis. `/fr/` atau `/french/`) dan file konten harus berada di folder yang sesuai. Opsi konfigurasi ini memungkinkan Anda menentukan apakah bahasa default Anda juga harus mengikuti struktur URL terlokalisasi.
+
+Pengaturan ini juga menentukan di mana file halaman untuk bahasa default Anda harus berada (mis. `src/pages/about/` atau `src/pages/id/about`) karena struktur file dan struktur URL harus cocok untuk semua bahasa.
+
+- `"prefixDefaultLocale: false"` (default): URL dalam bahasa default Anda **tidak** akan memiliki awalan `/[locale]/`. Semua locale lainnya akan memilikinya.
+
+- `"prefixDefaultLocale: true"`: Semua URL, termasuk bahasa default Anda, akan memiliki awalan `/[locale]/`.
+
+#### `prefixDefaultLocale: false`
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", "fr"],
+    defaultLocale: "en",
+    routing: {
+        prefixDefaultLocale: false
+    }
+  }
+})
+```
+
+Ini adalah nilai **default**. Setel opsi ini ketika URL dalam bahasa default Anda **tidak** memiliki awalan `/[locale]/` dan file dalam bahasa default Anda berada di akar `src/pages/`:
+
+<FileTree>
+  - src
+    - pages
+      - about.astro
+      - index.astro
+      - es
+        - about.astro
+        - index.astro
+      - fr
+        - about.astro
+        - index.astro
+</FileTree>
+
+- `src/pages/about.astro` akan menghasilkan rute `example.com/about/` 
+- `src/pages/fr/about.astro` akan menghasilkan rute `example.com/fr/about/` 
+
+#### `prefixDefaultLocale: true`
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", "fr"],
+    defaultLocale: "en",
+    routing: {
+        prefixDefaultLocale: true
+    }
+  }
+})
+```
+
+Setel opsi ini ketika semua rute akan memiliki awalan `/locale/` pada URL-nya dan ketika semua file konten halaman, termasuk untuk `defaultLocale` Anda, berada di dalam folder terlokalisasi:
+
+    <FileTree>
+    - src
+      - pages
+        - **index.astro** // Catatan: file ini selalu diperlukan
+        - en
+          - index.astro
+          - about.astro
+        - es
+          - about.astro
+          - index.astro
+        - pt-br
+          - about.astro
+          - index.astro
+    </FileTree>
+
+- URL tanpa awalan locale (mis. `example.com/about/`) akan mengembalikan status 404 (tidak ditemukan) kecuali Anda menentukan [strategi fallback](#fallback).
+
+### `redirectToDefaultLocale`
+
+<p><Since v="4.2.0" /></p>
+
+Mengonfigurasi apakah URL beranda (`/`) yang dihasilkan oleh `src/pages/index.astro` akan mengalihkan (redirect) ke `/<defaultLocale>`.
+
+Menyetel `prefixDefaultLocale: true` juga akan otomatis menyetel `redirectToDefaultLocale: true` dalam objek konfigurasi `routing` Anda. Secara default, file `src/pages/index.astro` yang diperlukan akan secara otomatis mengalihkan ke halaman indeks locale default Anda.
+
+Anda dapat memilih keluar dari perilaku ini dengan [menyetel `redirectToDefaultLocale: false`](/id/reference/configuration-reference/#i18nroutingredirecttodefaultlocale). Ini memungkinkan Anda memiliki halaman beranda situs yang berada di luar struktur folder locale yang dikonfigurasi.
+
+### `manual`
+
+<p><Since v="4.6.0" /></p>
+
+Saat opsi ini diaktifkan, Astro akan **menonaktifkan** middleware i18n-nya sehingga Anda dapat menerapkan logika kustom sendiri. Tidak ada opsi `routing` lainnya (mis. `prefixDefaultLocale`) yang dapat dikonfigurasi dengan `routing: "manual"`.
+
+Anda akan bertanggung jawab menulis logika routing Anda sendiri, atau [menjalankan middleware i18n Astro secara manual](#middleware-function) bersamaan dengan milik Anda.
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", "fr"],
+    defaultLocale: "en",
+    routing: "manual"
+  }
+})
+```
+
+Astro menyediakan fungsi bantuan untuk middleware Anda sehingga Anda dapat mengontrol routing default Anda sendiri, pengecualian, perilaku fallback, penangkapan error, dll.: [`redirectToDefaultLocale()`](/id/reference/modules/astro-i18n/#redirecttodefaultlocale), [`notFound()`](/id/reference/modules/astro-i18n/#notfound), dan [`redirectToFallback()`](/id/reference/modules/astro-i18n/#redirecttofallback):
+
+```js title="src/middleware.js"
+import { defineMiddleware } from "astro:middleware";
+import { redirectToDefaultLocale } from "astro:i18n"; // fungsi tersedia dengan routing `manual`
+export const onRequest = defineMiddleware(async (ctx, next) => {
+  if (ctx.url.startsWith("/about")) {
+    return next();
+  } else {
+    return redirectToDefaultLocale(302);
+  }
+})
+```
+
+#### fungsi middleware
+
+Fungsi [`middleware`](#middleware-function) membuat middleware i18n Astro secara manual. Ini memungkinkan Anda memperluas routing i18n Astro alih-alih sepenuhnya menggantinya. 
+
+Anda dapat menjalankan `middleware` dengan [opsi routing](#routing) dikombinasikan dengan middleware Anda sendiri, menggunakan utilitas [`sequence`](/id/reference/modules/astro-middleware/#sequence) untuk menentukan urutan:
+
+```js title="src/middleware.js"
+import {defineMiddleware, sequence} from "astro:middleware";
+import { middleware } from "astro:i18n"; // konfigurasi routing i18n milik Astro
+
+export const userMiddleware = defineMiddleware(async (ctx, next) => {
+  // response ini mungkin berasal dari middleware i18n Astro, dan bisa saja mengembalikan 404
+  const response = await next();
+  // halaman /about adalah pengecualian dan kita ingin merendernya
+  if (ctx.url.startsWith("/about")) {
+    return new Response("About page", {
+      status: 200
+    });
+  } else {
+    return response;
+  }
+});
+
+
+export const onRequest = sequence(
+  userMiddleware,
+  middleware({
+    redirectToDefaultLocale: false,
+    prefixDefaultLocale: true
+  })
+)
+```
+
+## `domains`
+
+<p><Since v="4.9.0" /></p>
+
+Opsi routing ini memungkinkan Anda menyesuaikan domain per bahasa untuk proyek yang dirender `server` menggunakan adapter [`@astrojs/node`](/id/guides/integrations-guide/node/) atau [`@astrojs/vercel`](/id/guides/integrations-guide/vercel/) dengan `site` yang dikonfigurasi.
+
+Tambahkan `i18n.domains` untuk memetakan salah satu `locales` yang didukung ke URL khusus:
+
+```js title="astro.config.mjs" {3-7} ins={14-17}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  site: "https://example.com",
+  output: "server", // diperlukan, tanpa halaman yang diprerender
+  adapter: node({
+    mode: 'standalone',
+  }),
+  i18n: {
+    locales: ["es", "en", "fr", "ja"],
+    defaultLocale: "en",
+    routing: {
+      prefixDefaultLocale: false
+    },
+    domains: {
+      fr: "https://fr.example.com",
+      es: "https://example.es"
+    }
+  }
+})
+```
+
+Semua `locales` yang tidak dipetakan akan mengikuti konfigurasi `prefixDefaultLocales` Anda. Namun, bahkan jika nilainya `false`, file halaman untuk `defaultLocale` Anda juga harus ada di dalam folder terlokalisasi. Untuk konfigurasi di atas, folder `/id/` diperlukan.
+
+Dengan konfigurasi di atas:
+
+- File `/fr/about.astro` akan membuat URL `https://fr.example.com/about`.
+- File `/es/about.astro` akan membuat URL `https://example.es/about`.
+- File `/ja/about.astro` akan membuat URL `https://example.com/ja/about`.
+- File `/id/about.astro` akan membuat URL `https://example.com/about`.
+
+URL di atas juga akan dikembalikan oleh fungsi `getAbsoluteLocaleUrl()` dan `getAbsoluteLocaleUrlList()`.
+
+## Fallback
+
+Saat halaman dalam satu bahasa tidak ada (mis. halaman yang belum diterjemahkan), alih-alih menampilkan halaman 404, Anda dapat memilih untuk menampilkan konten fallback dari `locale` lain berdasarkan bahasa. Ini berguna ketika Anda belum memiliki halaman untuk setiap rute, tetapi Anda tetap ingin menyediakan sebagian konten kepada pengunjung.
+
+Strategi fallback Anda terdiri dari dua bagian: memilih bahasa mana yang harus fallback ke bahasa lain ([`i18n.fallback`](/id/reference/configuration-reference/#i18nfallback)) dan memilih apakah akan melakukan [redirect](/id/guides/routing/#redirects) atau [rewrite](/id/guides/routing/#rewrites) untuk menampilkan konten fallback ([`i18n.routing.fallbackType`](/id/reference/configuration-reference/#i18nroutingfallbacktype) ditambahkan di Astro v4.15.0).
+
+Misalnya, ketika Anda mengonfigurasi `i18n.fallback: { fr: "es" }`, Astro akan memastikan bahwa halaman dibuat di `src/pages/fr/` untuk setiap halaman yang ada di `src/pages/es/`.
+
+Jika ada halaman yang belum ada, maka halaman akan dibuat bergantung pada `fallbackType` Anda:
+
+- Dengan pengalihan ke rute `es` yang sesuai (perilaku default).
+- Dengan konten halaman `/es/` (`i18n.routing.fallbackType: "rewrite"`).
+
+Sebagai contoh, konfigurasi di bawah ini menyetel `es` sebagai locale fallback untuk rute `fr` yang hilang. Ini berarti bahwa pengguna yang mengunjungi `example.com/fr/my-page/` akan ditampilkan konten untuk `example.com/es/my-page/` (tanpa dialihkan) alih-alih diarahkan ke halaman 404 ketika `src/pages/fr/my-page.astro` tidak ada.
+
+```js title="astro.config.mjs" ins={6-8,10} 
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", "fr"],
+    defaultLocale: "en",
+    fallback: {
+      fr: "es"  
+    },
+    routing: {
+      fallbackType: "rewrite"
+    }
+  }
+})
+```
+
+## Path locale kustom
+
+Selain mendefinisikan `locales` situs Anda sebagai string (mis. "en", "pt-br"), Astro juga memungkinkan Anda memetakan sejumlah [kode bahasa yang dikenali browser (`codes`)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax) ke `path` URL kustom. Sementara locale dapat berupa string dengan format apa pun selama sesuai dengan struktur folder proyek Anda, `codes` harus mengikuti sintaks yang diterima browser.
+
+Teruskan sebuah objek ke array `locales` dengan kunci `path` untuk mendefinisikan awalan URL kustom, dan `codes` untuk menunjukkan bahasa yang dipetakan ke URL ini. Dalam kasus ini, nama folder `/[locale]/` Anda harus benar-benar cocok dengan nilai `path` dan URL Anda akan dibuat menggunakan nilai `path`.
+
+Ini berguna jika Anda mendukung beberapa variasi bahasa (mis. `"fr"`, `"fr-BR"`, dan `"fr-CA"`) dan Anda ingin semua variasi ini dipetakan di bawah URL yang sama `/fr/`, atau bahkan menyesuaikannya sepenuhnya (mis. `/french/`):
+
+```js title="astro.config.mjs" del={4} ins={5-8}
+import { defineConfig } from "astro/config"
+export default defineConfig({
+  i18n: {
+    locales: ["es", "en", "fr"],
+    locales: ["es", "en", {
+      path: "french", // tanpa garis miring
+      codes: ["fr", "fr-BR", "fr-CA"]
+    }],
+    defaultLocale: "en",
+    routing: {
+        prefixDefaultLocale: true
+    }
+  }
+})
+```
+
+Saat menggunakan fungsi dari [modul virtual `astro:i18n`](/id/reference/modules/astro-i18n/) untuk menghitung path URL yang valid berdasarkan konfigurasi Anda (mis. `getRelativeLocaleUrl()`), [gunakan `path` sebagai nilai untuk `locale`](/id/reference/modules/astro-i18n/#getlocalebypath).
+
+#### Keterbatasan
+
+Fitur ini memiliki beberapa batasan:
+- Opsi `site` wajib.
+- Opsi `output` harus disetel ke `"server"`.
+- Tidak boleh ada halaman individual yang diprerender.
+
+Astro bergantung pada header berikut untuk mendukung fitur ini:
+- [`X-Forwarded-Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Host) dan [`Host`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Host). Astro akan menggunakan yang pertama, dan jika tidak ada, akan mencoba yang kedua.
+- [`X-Forwarded-Proto`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Forwarded-Proto) dan [`URL#protocol`](https://developer.mozilla.org/en-US/docs/Web/API/URL/protocol) dari permintaan server.
+
+Pastikan proxy server/platform hosting Anda dapat menyediakan informasi ini. Gagal mengambil header ini akan mengakibatkan halaman 404 (status code).
+
+## Deteksi bahasa browser
+
+Routing i18n Astro memungkinkan Anda mengakses dua properti untuk deteksi bahasa browser pada halaman yang dirender sesuai permintaan: `Astro.preferredLocale` dan `Astro.preferredLocaleList`. Semua halaman, termasuk halaman statis yang diprerender, memiliki akses ke `Astro.currentLocale`.
+
+Properti ini menggabungkan header `Accept-Language` milik browser dan `locales` Anda (string atau `codes`) untuk secara otomatis menghormati bahasa pilihan pengunjung Anda.
+
+- [`Astro.preferredLocale`](/id/reference/api-reference/#preferredlocale): Astro dapat menghitung **locale pilihan** untuk pengunjung Anda jika locale pilihan browser mereka termasuk dalam array `locales` Anda. Nilai ini undefined jika tidak ada kecocokan.
+
+- [`Astro.preferredLocaleList`](/id/reference/api-reference/#preferredlocalelist): Array semua locale yang diminta browser dan didukung oleh situs Anda. Ini menghasilkan daftar semua bahasa yang kompatibel antara situs Anda dan pengunjung Anda. Nilai ini adalah `[]` jika tidak ada bahasa yang diminta browser ditemukan dalam array `locales` Anda. Jika browser tidak menentukan bahasa yang disukai, maka nilainya adalah [`i18n.locales`].
+
+- [`Astro.currentLocale`](/id/reference/api-reference/#currentlocale): Locale yang dihitung dari URL saat ini, menggunakan sintaks yang ditentukan dalam konfigurasi `locales` Anda. Jika URL tidak berisi awalan `/[locale]/`, maka nilainya akan menjadi default ke [`i18n.defaultLocale`](/id/reference/configuration-reference/#i18ndefaultlocale).
+
+Untuk berhasil mencocokkan preferensi pengunjung Anda, berikan `codes` Anda menggunakan pola yang sama [yang digunakan oleh browser](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Accept-Language#syntax).
+
+[`site`]: /id/reference/configuration-reference/#site
+[`i18n.locales`]: /id/reference/configuration-reference/#i18nlocales

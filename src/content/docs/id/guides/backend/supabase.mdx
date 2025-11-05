@@ -1,0 +1,518 @@
+---
+title: Supabase & Astro
+description: Tambahkan backend ke proyek Anda dengan Supabase
+sidebar:
+  label: Supabase
+  hidden: false
+type: backend
+service: Supabase
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
+[Supabase](https://supabase.com/) adalah alternatif Firebase sumber terbuka. Supabase menyediakan database Postgres, autentikasi, edge functions, langganan realtime, dan penyimpanan.
+
+## Inisialisasi Supabase di Astro
+
+### Prasyarat
+
+- Sebuah proyek Supabase. Jika belum punya, Anda dapat mendaftar gratis di [supabase.com](https://supabase.com/) dan membuat proyek baru.
+- Proyek Astro dengan [`output: 'server'` untuk on-demand rendering](/id/guides/on-demand-rendering/) diaktifkan.
+- Kredensial Supabase untuk proyek Anda. Anda dapat menemukannya di tab **Settings > API** pada proyek Supabase Anda.
+  - `SUPABASE_URL`: URL proyek Supabase Anda.
+  - `SUPABASE_ANON_KEY`: Kunci anonim untuk proyek Supabase Anda.
+
+### Menambahkan kredensial Supabase
+
+Untuk menambahkan kredensial Supabase ke proyek Astro Anda, tambahkan yang berikut ini ke berkas `.env` Anda:
+
+```ini title=".env"
+SUPABASE_URL=YOUR_SUPABASE_URL
+SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_KEY
+```
+
+Sekarang, variabel environment ini tersedia di proyek Anda.
+
+Jika Anda ingin mendapatkan IntelliSense untuk variabel environment, edit atau buat `env.d.ts` di direktori `src/` dan tambahkan berikut ini:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly SUPABASE_URL: string
+  readonly SUPABASE_ANON_KEY: string
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv
+}
+```
+
+:::tip
+Baca selengkapnya tentang [variabel environment](/id/guides/environment-variables/) dan berkas `.env` di Astro.
+:::
+
+Proyek Anda sekarang seharusnya menyertakan berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menginstal dependensi
+
+Untuk terhubung ke Supabase, Anda perlu memasang `@supabase/supabase-js` di proyek Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @supabase/supabase-js
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @supabase/supabase-js
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Selanjutnya, buat folder bernama `lib` di direktori `src/`. Di sinilah Anda akan menambahkan klien Supabase Anda.
+
+Di `supabase.ts`, tambahkan berikut untuk menginisialisasi klien Supabase Anda:
+
+```ts title="src/lib/supabase.ts"
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+);
+```
+
+Sekarang, proyek Anda seharusnya menyertakan berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - **supabase.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Menambahkan autentikasi dengan Supabase
+
+Supabase menyediakan autentikasi siap pakai. Supabase mendukung autentikasi email/password dan autentikasi OAuth dengan banyak penyedia termasuk GitHub, Google, dan lainnya.
+
+### Prasyarat
+
+- Proyek Astro yang [sudah diinisialisasi dengan Supabase](#initializing-supabase-in-astro).
+- Proyek Supabase dengan autentikasi email/password diaktifkan. Anda dapat mengaktifkannya di tab **Authentication > Providers** pada proyek Supabase Anda.
+
+### Membuat endpoint server autentikasi
+
+Untuk menambahkan autentikasi ke proyek Anda, Anda perlu membuat beberapa endpoint server. Endpoint ini akan digunakan untuk mendaftar, masuk, dan keluar pengguna.
+
+- `POST /api/auth/register`: untuk mendaftarkan pengguna baru.
+- `POST /api/auth/signin`: untuk masuk pengguna.
+- `GET /api/auth/signout`: untuk keluar pengguna.
+
+Buat endpoint ini di direktori `src/pages/api/auth` pada proyek Anda. Jika Anda menggunakan mode rendering `static`, Anda harus menambahkan `export const prerender = false` di bagian atas setiap berkas untuk merender endpoint ini on-demand. Proyek Anda sekarang seharusnya menyertakan berkas baru berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.ts` membuat pengguna baru di Supabase. Endpoint ini menerima permintaan `POST` dengan email dan kata sandi, lalu menggunakan SDK Supabase untuk membuat pengguna baru.
+
+```ts title="src/pages/api/auth/register.ts"
+// With `output: 'static'` configured:
+// export const prerender = false;
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { error } = await supabase.auth.signUp({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  return redirect("/signin");
+};
+```
+
+`signin.ts` melakukan proses masuk pengguna. Endpoint ini menerima permintaan `POST` dengan email dan kata sandi, lalu menggunakan SDK Supabase untuk masuk.
+
+```ts title="src/pages/api/auth/signin.ts"
+// With `output: 'static'` configured:
+// export const prerender = false;
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+`signout.ts` mengeluarkan pengguna. Endpoint ini menerima permintaan `GET` dan menghapus access token serta refresh token pengguna.
+
+```ts title="src/pages/api/auth/signout.ts"
+// With `output: 'static'` configured:
+// export const prerender = false;
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ cookies, redirect }) => {
+  cookies.delete("sb-access-token", { path: "/" });
+  cookies.delete("sb-refresh-token", { path: "/" });
+  return redirect("/signin");
+};
+```
+
+### Membuat halaman autentikasi
+
+Setelah membuat endpoint server, buat halaman yang akan menggunakannya.
+
+- `src/pages/register`: berisi formulir untuk mendaftarkan pengguna baru.
+- `src/pages/signin`: berisi formulir untuk masuk pengguna.
+- `src/pages/dashboard`: berisi halaman yang hanya dapat diakses oleh pengguna yang terautentikasi.
+
+Buat halaman ini di direktori `src/pages`. Proyek Anda sekarang seharusnya menyertakan berkas baru berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+    - **register.astro**
+    - **signin.astro**
+    - **dashboard.astro**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`register.astro` berisi formulir untuk mendaftarkan pengguna baru. Halaman ini menerima email dan kata sandi lalu mengirim permintaan `POST` ke `/api/auth/register`.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Register</button>
+  </form>
+</Layout>
+```
+
+`signin.astro` berisi formulir untuk masuk pengguna. Halaman ini menerima email dan kata sandi lalu mengirim permintaan `POST` ke `/api/auth/signin`. Halaman ini juga memeriksa keberadaan access token dan refresh token; jika ada, pengguna diarahkan ke dashboard.
+
+```astro title="src/pages/signin.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`dashboard.astro` berisi halaman yang hanya bisa diakses oleh pengguna yang terautentikasi. Halaman ini memeriksa keberadaan access token dan refresh token; jika tidak ada atau tidak valid, pengguna akan diarahkan ke halaman masuk.
+
+```astro title="src/pages/dashboard.astro"
+---
+import Layout from "../layouts/Layout.astro";
+import { supabase } from "../lib/supabase";
+
+const accessToken = Astro.cookies.get("sb-access-token");
+const refreshToken = Astro.cookies.get("sb-refresh-token");
+
+if (!accessToken || !refreshToken) {
+  return Astro.redirect("/signin");
+}
+
+let session;
+try {
+  session = await supabase.auth.setSession({
+    refresh_token: refreshToken.value,
+    access_token: accessToken.value,
+  });
+  if (session.error) {
+    Astro.cookies.delete("sb-access-token", {
+      path: "/",
+    });
+    Astro.cookies.delete("sb-refresh-token", {
+      path: "/",
+    });
+    return Astro.redirect("/signin");
+  }
+} catch (error) {
+  Astro.cookies.delete("sb-access-token", {
+    path: "/",
+  });
+  Astro.cookies.delete("sb-refresh-token", {
+    path: "/",
+  });
+  return Astro.redirect("/signin");
+}
+
+const email = session.data.user?.email;
+---
+<Layout title="dashboard">
+  <h1>Welcome {email}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### Menambahkan autentikasi OAuth
+
+Untuk menambahkan autentikasi OAuth ke proyek Anda, Anda perlu mengedit klien Supabase untuk mengaktifkan alur autentikasi dengan `"pkce"`. Baca selengkapnya tentang alur autentikasi di [dokumentasi Supabase](https://supabase.com/docs/guides/auth/server-side-rendering#understanding-the-authentication-flow).
+
+```ts title="src/lib/supabase.ts" ins={6-10}
+import { createClient } from "@supabase/supabase-js";
+
+export const supabase = createClient(
+  import.meta.env.SUPABASE_URL,
+  import.meta.env.SUPABASE_ANON_KEY,
+  {
+    auth: {
+      flowType: "pkce",
+    },
+  },
+);
+```
+
+Selanjutnya, di dashboard Supabase, aktifkan penyedia OAuth yang ingin Anda gunakan. Anda dapat menemukan daftar penyedia yang didukung di tab **Authentication > Providers** pada proyek Supabase Anda.
+
+Contoh berikut menggunakan GitHub sebagai penyedia OAuth. Untuk menghubungkan proyek Anda ke GitHub, ikuti langkah-langkah di [dokumentasi Supabase](https://supabase.com/docs/guides/auth/social-login/auth-github).
+
+Kemudian, buat endpoint server baru untuk menangani OAuth callback di `src/pages/api/auth/callback.ts`. Endpoint ini akan digunakan untuk menukar kode OAuth dengan access token dan refresh token.
+
+```ts title="src/pages/api/auth/callback.ts"
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+
+export const GET: APIRoute = async ({ url, cookies, redirect }) => {
+  const authCode = url.searchParams.get("code");
+
+  if (!authCode) {
+    return new Response("No code provided", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.exchangeCodeForSession(authCode);
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+Selanjutnya, edit halaman signin untuk menambahkan tombol masuk dengan penyedia OAuth. Tombol ini harus mengirim permintaan `POST` ke `/api/auth/signin` dengan `provider` diisi nama penyedia OAuth.
+
+```astro title="src/pages/signin.astro" ins={23}
+---
+import Layout from "../layouts/Layout.astro";
+
+const { cookies, redirect } = Astro;
+
+const accessToken = cookies.get("sb-access-token");
+const refreshToken = cookies.get("sb-refresh-token");
+
+if (accessToken && refreshToken) {
+  return redirect("/dashboard");
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+    <button value="github" name="provider" type="submit">Sign in with GitHub</button>
+  </form>
+</Layout>
+```
+
+Terakhir, edit endpoint server signin untuk menangani penyedia OAuth. Jika `provider` ada, endpoint akan mengarahkan ke penyedia OAuth. Jika tidak, endpoint akan melakukan proses masuk dengan email dan kata sandi.
+
+```ts title="src/pages/api/auth/signin.ts" ins={10-23}
+import type { APIRoute } from "astro";
+import { supabase } from "../../../lib/supabase";
+import type { Provider } from "@supabase/supabase-js";
+
+export const POST: APIRoute = async ({ request, cookies, redirect }) => {
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const provider = formData.get("provider")?.toString();
+
+  const validProviders = ["google", "github", "discord"];
+
+  if (provider && validProviders.includes(provider)) {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: provider as Provider,
+      options: {
+        redirectTo: "http://localhost:4321/api/auth/callback"
+      },
+    });
+
+    if (error) {
+      return new Response(error.message, { status: 500 });
+    }
+
+    return redirect(data.url);
+  }
+
+  if (!email || !password) {
+    return new Response("Email and password are required", { status: 400 });
+  }
+
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
+
+  if (error) {
+    return new Response(error.message, { status: 500 });
+  }
+
+  const { access_token, refresh_token } = data.session;
+  cookies.set("sb-access-token", access_token, {
+    path: "/",
+  });
+  cookies.set("sb-refresh-token", refresh_token, {
+    path: "/",
+  });
+  return redirect("/dashboard");
+};
+```
+
+Setelah membuat endpoint callback OAuth dan mengedit halaman serta endpoint signin, proyek Anda seharusnya memiliki struktur berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - lib/
+    - supabase.ts
+  - pages/
+    - api/
+      - auth/
+        - signin.ts
+        - signout.ts
+        - register.ts
+        - callback.ts
+    - register.astro
+    - signin.astro
+    - dashboard.astro
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Sumber Komunitas
+
+- [Masuk ke suasana liburan dengan Astro, React, dan Supabase](https://www.aleksandra.codes/astro-supabase)
+- [Demo autentikasi Astro dan Supabase](https://github.com/kevinzunigacuellar/astro-supabase)

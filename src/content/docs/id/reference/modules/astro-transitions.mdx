@@ -1,0 +1,461 @@
+---
+title: Referensi API Router View Transitions
+sidebar:
+  label: 'astro:transitions'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="3.0.0" /></p>
+
+Modul-modul ini menyediakan fungsi untuk mengontrol dan berinteraksi dengan View Transitions API serta router sisi-klien.
+
+:::note
+API ini kompatibel dengan `<ClientRouter />` yang disertakan di `astro:transitions`, tetapi **tidak** dapat digunakan dengan routing MPA bawaan browser.
+:::
+
+Untuk fitur dan contoh penggunaan, lihat [panduan View Transitions](/id/guides/view-transitions/).
+
+## Imports from `astro:transitions`
+
+```ts
+import { ClientRouter, fade, slide } from 'astro:transitions';
+```
+
+### `<ClientRouter />`
+
+<p><Since v="3.0.0" /></p>
+
+Aktifkan view transitions pada halaman tertentu dengan mengimpor dan menambahkan komponen routing `<ClientRouter />` ke `<head>` di setiap halaman yang diinginkan.
+
+```astro title="src/pages/index.astro" ins={2,7}
+---
+import { ClientRouter } from 'astro:transitions';
+---
+<html lang="en">
+  <head>
+    <title>My Homepage</title>
+    <ClientRouter />
+  </head>
+  <body>
+    <h1>Welcome to my website!</h1>
+  </body>
+</html>
+```
+
+Lihat lebih lanjut cara [mengontrol router](/id/guides/view-transitions/#router-control) dan [menambahkan direktif transisi](/id/guides/view-transitions/#transition-directives) pada elemen dan komponen halaman.
+
+### `fade`
+
+<p>
+
+**Type:** `(opts: { duration?: string | number }) => TransitionDirectionalAnimations`
+<Since v="3.0.0" />
+</p>
+
+Fungsi utilitas untuk menyesuaikan durasi animasi bawaan `fade`.
+
+```astro {2} /fade\(.+\)/
+---
+import { fade } from 'astro:transitions';
+---
+
+<!-- Fade transition with the default duration -->
+<div transition:animate="fade" />
+
+<!-- Fade transition with a duration of 400 milliseconds -->
+<div transition:animate={fade({ duration: '0.4s' })} />
+```
+
+### `slide`
+
+<p>
+
+**Type:** `(opts: { duration?: string | number }) => TransitionDirectionalAnimations`
+<Since v="3.0.0" />
+</p>
+
+Fungsi utilitas untuk menyesuaikan durasi animasi bawaan `slide`.
+
+```astro {2} /slide\(.+\)/
+---
+import { slide } from 'astro:transitions';
+---
+
+<!-- Slide transition with the default duration -->
+<div transition:animate="slide" />
+
+<!-- Slide transition with a duration of 400 milliseconds -->
+<div transition:animate={slide({ duration: '0.4s' })} />
+```
+
+## Imports from `astro:transitions/client`
+
+```astro
+<script>
+  import { 
+    navigate,
+    supportsViewTransitions,
+    transitionEnabledOnThisPage,
+    getFallback,
+    swapFunctions,
+  } from 'astro:transitions/client';
+</script>
+```
+
+### `navigate()`
+
+<p>
+
+**Type:** `(href: string, options?: Options) => void`<br />
+<Since v="3.2.0" />
+</p>
+
+Fungsi untuk mengeksekusi navigasi ke `href` yang diberikan menggunakan View Transitions API.
+
+Tanda tangan fungsi ini didasarkan pada [`navigate` dari Navigation API](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate). Meski demikian, implementasi ini dibangun di atas [History API](https://developer.mozilla.org/en-US/docs/Web/API/History_API) agar navigasi dapat terjadi tanpa memuat ulang halaman.
+
+#### `history` option
+
+<p>
+
+**Type:** `'auto' | 'push' | 'replace'`<br />
+**Default:** `'auto'`<br />
+<Since v="3.2.0" />
+</p>
+
+Menentukan bagaimana navigasi ini ditambahkan ke riwayat browser.
+
+- `'push'`: router menggunakan `history.pushState` untuk membuat entri riwayat baru.
+- `'replace'`: router menggunakan `history.replaceState` untuk memperbarui URL tanpa menambah entri baru.
+- `'auto'` (default): router akan mencoba `history.pushState`, tetapi jika URL tidak dapat ditransisikan, URL saat ini tetap dan riwayat tidak berubah.
+
+Opsi ini mengikuti [`history` option](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#history) dari Navigation API namun disederhanakan untuk kasus-kasus di proyek Astro.
+
+#### `formData` option
+
+<p>
+
+**Type:** `FormData`<br />
+<Since v="3.5.0" />
+</p>
+
+Objek `FormData` untuk permintaan `POST`.
+
+Jika opsi ini diberikan, permintaan ke halaman tujuan akan dikirim sebagai `POST` dengan objek form data sebagai kontennya.
+
+Mengirim formulir HTML ketika view transitions aktif akan menggunakan metode ini sebagai pengganti navigasi default dengan memuat ulang halaman. Memanggil fungsi ini memungkinkan Anda memicu perilaku yang sama secara terprogram.
+
+#### `info` option
+
+<p>
+
+**Type:** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+Data arbitrer yang akan disertakan pada event `astro:before-preparation` dan `astro:before-swap` yang disebabkan oleh navigasi ini.
+
+Opsi ini meniru [`info` option](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#info) dari Navigation API.
+
+#### `state` option
+
+<p>
+
+**Type:** `any`<br />
+<Since v="3.6.0" />
+</p>
+
+Data arbitrer yang diasosiasikan dengan objek `NavigationHistoryEntry` yang dibuat oleh navigasi ini. Data ini bisa diambil dengan [`history.getState`](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) dari History API.
+
+Opsi ini meniru [`state` option](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state) dari Navigation API.
+
+#### `sourceElement` option
+
+<p>
+
+**Type:** `Element`<br />
+<Since v="3.6.0" />
+</p>
+
+Elemen yang memicu navigasi ini, jika ada. Elemen ini akan tersedia pada event berikut:
+- `astro:before-preparation`
+- `astro:before-swap`
+
+### `supportsViewTransitions`
+
+<p>
+
+**Type:** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+Menunjukkan apakah view transitions didukung dan diaktifkan di browser saat ini.
+
+### `transitionEnabledOnThisPage`
+
+<p>
+
+**Type:** `boolean`<br />
+<Since v="3.2.0" />
+</p>
+
+Menunjukkan apakah halaman saat ini mengaktifkan view transitions untuk navigasi sisi-klien. Ini berguna untuk membuat komponen yang berperilaku berbeda ketika dipakai di halaman dengan view transitions.
+
+### `getFallback()`
+
+<p>
+
+**Type:** `() => 'none' | 'animate' | 'swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+Mengembalikan strategi fallback yang akan digunakan pada browser yang tidak mendukung view transitions.
+
+Lihat panduan [Fallback control](/id/guides/view-transitions/#fallback-control) untuk cara memilih dan mengonfigurasikan perilaku fallback.
+
+### `swapFunctions`
+
+<p>
+
+<Since v="4.15.0" />
+</p>
+
+Objek yang berisi fungsi-fungsi utilitas yang membangun fungsi swap bawaan Astro. Ini berguna saat [membangun fungsi swap kustom](/id/guides/view-transitions/#building-a-custom-swap-function).
+
+`swapFunctions` menyediakan metode berikut:
+
+#### `deselectScripts()`
+
+<p>
+
+**Type:** `(newDocument: Document) => void`
+</p>
+
+Menandai skrip pada dokumen baru yang tidak boleh dieksekusi. Skrip-skrip tersebut sudah ada di dokumen saat ini dan tidak ditandai untuk dijalankan ulang menggunakan [`data-astro-rerun`](/id/guides/view-transitions/#data-astro-rerun).
+
+#### `swapRootAttributes()`
+
+<p>
+
+**Type:** `(newDocument: Document) => void`
+</p>
+
+Menukar atribut antara root dokumen, seperti atribut `lang`. Ini juga mencakup atribut internal yang disuntikkan Astro seperti `data-astro-transition`, yang membuat arah transisi tersedia untuk aturan CSS yang dihasilkan Astro.
+
+Saat membuat fungsi swap kustom, penting untuk memanggil fungsi ini agar animasi view transition tidak rusak.
+
+#### `swapHeadElements()`
+
+<p>
+
+**Type:** `(newDocument: Document) => void`
+</p>
+
+Menghapus setiap elemen dari `<head>` dokumen saat ini yang tidak dipertahankan ke dokumen baru. Kemudian menambahkan semua elemen baru dari `<head>` dokumen baru ke `<head>` dokumen saat ini.
+
+#### `saveFocus()`
+
+<p>
+
+**Type:** `() => () => void`
+</p>
+
+Menyimpan elemen yang sedang fokus di halaman saat ini dan mengembalikan sebuah fungsi yang, ketika dipanggil, jika elemen fokus dipertahankan, akan mengembalikan fokus ke elemen tersebut.
+
+#### `swapBodyElement()`
+
+<p>
+
+**Type:** `(newBody: Element, oldBody: Element) => void`
+</p>
+
+Mengganti body lama dengan body baru. Lalu, menelusuri setiap elemen di body lama yang harus dipertahankan dan memiliki pasangan yang cocok di body baru, dan menukar elemen lama tersebut kembali ke tempatnya.
+
+## Lifecycle events
+
+### `astro:before-preparation` event
+
+Event yang dipancarkan pada awal navigasi menggunakan router View Transitions. Event ini terjadi sebelum permintaan apa pun dibuat dan sebelum state browser berubah.
+
+Event ini memiliki atribut:
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`formData`](#formdata)
+- [`loader()`](#loader)
+
+Baca selengkapnya tentang penggunaan event ini di [panduan View Transitions](/id/guides/view-transitions/#astrobefore-preparation).
+
+### `astro:after-preparation` event
+
+Event yang dipancarkan setelah halaman berikutnya pada sebuah navigasi (menggunakan router View Transitions) selesai dimuat.
+
+Event ini tidak memiliki atribut.
+
+Baca selengkapnya tentang penggunaan event ini di [panduan View Transitions](/id/guides/view-transitions/#astroafter-preparation).
+
+### `astro:before-swap` event
+
+Event yang dipancarkan setelah halaman berikutnya diurai, disiapkan, dan ditautkan ke sebuah dokumen untuk persiapan transisi tetapi sebelum konten apa pun ditukar antar dokumen.
+
+Event ini tidak bisa dibatalkan. Memanggil `preventDefault()` tidak berpengaruh.
+
+Event ini memiliki atribut:
+- [`info`](#info)
+- [`sourceElement`](#sourceelement)
+- [`navigationType`](#navigationtype)
+- [`direction`](#direction)
+- [`from`](#from)
+- [`to`](#to)
+- [`viewTransition`](#viewtransition)
+- [`swap()`](#swap)
+
+Baca selengkapnya tentang penggunaan event ini di [panduan View Transitions](/id/guides/view-transitions/#astrobefore-swap).
+
+### `astro:after-swap` event
+
+Event yang dipancarkan setelah isi halaman ditukar tetapi sebelum view transition berakhir.
+
+Entri riwayat dan posisi gulir telah diperbarui saat event ini dipicu.
+
+### `astro:page-load` event
+
+Event yang dipancarkan setelah sebuah halaman selesai dimuat, baik dari navigasi menggunakan view transitions maupun native dari browser.
+
+Jika view transitions diaktifkan pada halaman, kode yang biasanya dijalankan pada `DOMContentLoaded` sebaiknya dipindahkan ke event ini.
+
+### Lifecycle events attributes
+
+<p><Since v="3.6.0" /></p>
+
+#### `info`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+Data arbitrer yang didefinisikan saat navigasi.
+
+Ini adalah nilai literal yang diteruskan melalui [`info` option](#info-option) dari [fungsi `navigate()`](#navigate).
+
+#### `sourceElement`
+
+<p>
+
+**Type:** `Element | undefined`
+</p>
+
+Elemen yang memicu navigasi. Misalnya, elemen `<a>` yang diklik.
+
+Saat menggunakan [fungsi `navigate()`](#navigate), ini akan menjadi elemen yang ditentukan pada pemanggilan fungsi.
+
+#### `newDocument`
+
+<p>
+
+**Type:** `Document`
+</p>
+
+Dokumen untuk halaman berikutnya pada navigasi. Konten dokumen ini akan ditukar menggantikan konten dokumen saat ini.
+
+#### `navigationType`
+
+<p>
+
+**Type:** `'push' | 'replace' | 'traverse'`
+</p>
+
+Jenis navigasi riwayat yang terjadi.
+- `push`: `NavigationHistoryEntry` baru dibuat untuk halaman baru.
+- `replace`: `NavigationHistoryEntry` saat ini diganti dengan entri untuk halaman baru.
+- `traverse`: tidak ada `NavigationHistoryEntry` yang dibuat. Posisi pada riwayat berpindah.
+  Arah perpindahan diberikan oleh atribut [`direction`](#direction).
+
+#### `direction`
+
+<p>
+
+**Type:** `Direction`
+</p>
+
+Arah transisi.
+- `forward`: menuju halaman berikutnya di riwayat atau ke halaman baru.
+- `back`: kembali ke halaman sebelumnya di riwayat.
+- Nilai lain yang mungkin diatur oleh listener lain.
+
+#### `from`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+URL halaman yang memulai navigasi.
+
+#### `to`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+URL halaman tujuan navigasi. Properti ini dapat dimodifikasi, dan nilai pada akhir siklus akan dipakai dalam `NavigationHistoryEntry` untuk halaman berikutnya.
+
+#### `formData`
+
+<p>
+
+**Type:** `FormData | undefined`
+</p>
+
+Objek `FormData` untuk permintaan `POST`.
+
+Ketika atribut ini disetel, permintaan `POST` akan dikirim ke [URL `to`](#to) dengan data formulir yang diberikan sebagai konten menggantikan permintaan `GET` normal.
+
+Saat mengirim formulir HTML dengan view transitions aktif, field ini otomatis diisi dari data formulir. Ketika memakai [fungsi `navigate()`](#navigate), nilainya sama seperti yang diberikan pada opsi.
+
+#### `loader()`
+
+<p>
+
+**Type:** `() => Promise<void>`
+</p>
+
+Implementasi fase berikutnya dalam navigasi (memuat halaman berikutnya). Implementasi ini dapat ditimpa untuk menambahkan perilaku tambahan.
+
+#### `viewTransition`
+
+<p>
+
+**Type:** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+</p>
+
+Objek view transition yang digunakan pada navigasi ini. Pada browser yang tidak mendukung [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), ini adalah objek dengan API serupa untuk kemudahan, namun tanpa integrasi DOM.
+
+#### `swap()`
+
+<p>
+
+**Type:** `() => void`
+</p>
+
+Implementasi logika pertukaran dokumen.
+
+Baca tentang [membangun fungsi swap kustom](/id/guides/view-transitions/#building-a-custom-swap-function) di panduan View Transitions.
+
+Secara default, implementasi ini akan memanggil fungsi-fungsi berikut secara berurutan:
+
+1. [`deselectScripts()`](#deselectscripts)
+2. [`swapRootAttributes()`](#swaprootattributes)
+3. [`swapHeadElements()`](#swapheadelements)
+4. [`saveFocus()`](#savefocus)
+5. [`swapBodyElement()`](#swapbodyelement)

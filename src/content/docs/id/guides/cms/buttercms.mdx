@@ -1,0 +1,133 @@
+---
+title: ButterCMS & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan ButterCMS
+sidebar:
+  label: ButterCMS
+type: cms
+service: ButterCMS
+stub: false
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[ButterCMS](https://buttercms.com/) adalah headless CMS dan mesin blog yang memungkinkan Anda memublikasikan konten terstruktur untuk digunakan di proyek Anda.
+
+## Integrasi dengan Astro
+:::note
+Untuk contoh situs blog lengkap, lihat [Astro + ButterCMS Starter Project](https://buttercms.com/starters/astro-starter-project/).
+:::
+Pada bagian ini, kita akan menggunakan [ButterCMS SDK](https://www.npmjs.com/package/buttercms) untuk membawa data Anda ke proyek Astro. 
+Untuk memulai, Anda memerlukan hal-hal berikut:
+### Prasyarat
+
+1. **Proyek Astro** — Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membuat Anda siap dalam waktu singkat.
+
+2. **Akun ButterCMS**. Jika Anda belum memiliki akun, Anda dapat [mendaftar](https://buttercms.com/join/) untuk uji coba gratis.
+
+3. **ButterCMS API Token Anda** — Anda dapat menemukan API Token di halaman [Settings](https://buttercms.com/settings/).
+
+### Penyiapan
+
+<Steps>
+1. Buat file `.env` di root proyek Anda dan tambahkan token API sebagai variabel lingkungan:
+
+    ```ini title=".env"
+    BUTTER_TOKEN=YOUR_API_TOKEN_HERE
+    ```
+
+    :::tip
+    Baca lebih lanjut tentang [menggunakan variabel lingkungan](/id/guides/environment-variables/) dan file `.env` di Astro.
+    :::
+
+2. Pasang ButterCMS SDK sebagai dependensi:
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install buttercms
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add buttercms
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add buttercms
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. Buat file `buttercms.js` di direktori baru `src/lib/` pada proyek Anda:
+
+    ```js title="src/lib/buttercms.js"
+    import Butter from "buttercms";
+
+    export const butterClient = Butter(import.meta.env.BUTTER_TOKEN);
+    ```
+</Steps>
+
+**Langkah ini melakukan autentikasi SDK menggunakan API Token Anda dan mengekspornya agar dapat digunakan di seluruh proyek.**
+
+### Mengambil Data
+Untuk mengambil konten, impor klien ini dan gunakan salah satu fungsi `retrieve`-nya. 
+
+Pada contoh ini, kita [mengambil sebuah koleksi](https://buttercms.com/docs/api/#retrieve-a-collection) yang memiliki tiga field: teks pendek `name`, angka `price`, dan WYSIWYG `description`. 
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.content.retrieve(["shopitem"]);
+
+interface ShopItem {
+	name: string,
+	price: number,
+	description: string,
+}
+
+const items = response.data.data.shopitem as ShopItem[];
+---
+<body>
+	{items.map(item => <div>
+		<h2>{item.name} - ${item.price}</h2>
+		<p set:html={item.description}></p>
+	</div>)}
+</body>
+```
+
+Antarmuka TypeScript mencerminkan tipe field. Field WYSIWYG `description` dimuat sebagai string HTML, dan [`set:html`](/id/reference/directives-reference/#sethtml) memungkinkan Anda merendernya.
+
+Demikian pula, Anda dapat [mengambil sebuah halaman](https://buttercms.com/docs/api/#get-a-single-page) dan menampilkan field-nya:
+
+```astro title="src/pages/ShopItem.astro"
+---
+import { butterClient } from "../lib/buttercms";
+const response = await butterClient.page.retrieve("*", "simple-page");
+const pageData = response.data.data;
+
+interface Fields {
+  seo_title: string,
+  headline: string,
+  hero_image: string,
+}
+
+const fields = pageData.fields as Fields;
+---
+<html>
+  <title>{fields.seo_title}</title>
+  <body>
+    <h1>{fields.headline}</h1>
+    <img src={fields.hero_image} />
+  </body>
+</html>
+```
+
+## Sumber Resmi
+
+- [Astro + ButterCMS Starter Project](https://buttercms.com/starters/astro-starter-project/)
+- [Dokumentasi lengkap ButterCMS API](https://buttercms.com/docs/api/)
+- [Panduan JavaScript ButterCMS](https://buttercms.com/docs/api-client/javascript/)
+
+## Sumber Komunitas 
+- Tambahkan milik Anda!

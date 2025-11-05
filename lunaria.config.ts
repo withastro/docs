@@ -13,6 +13,13 @@ export default defineConfig({
 	},
 	locales: [
 		{
+			label: 'Indonesian',
+			lang: 'id',
+			parameters: {
+				tag: 'id',
+			},
+		},
+		{
 			label: 'العربية',
 			lang: 'ar',
 			parameters: {

@@ -1,0 +1,299 @@
+---
+title: Membangun situs Astro dengan alat AI
+sidebar:
+  label: Bangun dengan AI
+  hidden: false
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+i18nReady: true
+description: Sumber daya dan tips untuk membangun situs Astro dengan bantuan AI
+---
+
+import { Steps, LinkButton, Card, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Editor berbasis AI dan alat pengodean agens (*agentic coding tools*) umumnya memiliki pengetahuan yang baik tentang API dan konsep inti Astro. Namun, sebagian mungkin menggunakan API lama dan tidak mengetahui fitur terbaru atau perubahan baru-baru ini pada *framework*.
+
+Panduan ini membahas cara meningkatkan alat AI dengan pengetahuan Astro terkini dan memberikan praktik terbaik untuk membangun situs Astro dengan bantuan AI.
+
+## Context files
+
+Astro menyediakan berkas [`llms.txt`](https://docs.astro.build/llms.txt) dan [`llms-full.txt`](https://docs.astro.build/llms-full.txt) yang berisi seluruh konten dokumentasi dalam format yang dioptimalkan untuk konsumsi AI. Ini adalah berkas statis dari konten Astro Docs dalam format Markdown yang dirampingkan. Beberapa alat AI dapat menemukan berkas ini secara otomatis jika Anda memberikan `https://docs.astro.build` sebagai sumber dokumentasi.
+
+Meskipun berkas-berkas ini menyediakan versi dokumentasi Astro yang minimal dan mudah diparse, ukurannya besar sehingga akan menggunakan banyak token jika dimasukkan langsung ke konteks dan perlu diperbarui secara berkala agar tetap mutakhir. Berkas ini paling baik digunakan sebagai *fallback* ketika alat AI tidak memiliki akses ke dokumentasi terbaru dengan cara lain. [Server MCP](#astro-docs-mcp-server) menyediakan akses yang lebih efisien ke seluruh dokumentasi dengan kemampuan pencarian *real-time*, menjadikannya pilihan yang lebih disukai jika tersedia.
+
+## Astro Docs MCP Server
+
+Anda dapat memastikan alat AI Anda memiliki pengetahuan Astro terbaru melalui server Astro Docs MCP (*Model Context Protocol*). Server ini menyediakan akses *real-time* ke dokumentasi terbaru, membantu alat AI menghindari rekomendasi usang dan memahami praktik terbaik saat ini.
+
+:::tip[Apa itu MCP?]
+[Model Context Protocol](https://modelcontextprotocol.io/) (MCP) adalah cara terstandarisasi bagi alat AI untuk mengakses alat dan sumber data eksternal.
+:::
+
+Berbeda dengan model AI yang dilatih pada data statis, server MCP menyediakan akses ke dokumentasi Astro terbaru. Server ini gratis, sumber terbuka, dan berjalan *remote* tanpa perlu pemasangan lokal.
+
+Server Astro Docs MCP menggunakan API [kapa.ai](https://www.kapa.ai/) untuk mempertahankan indeks dokumentasi Astro yang selalu diperbarui. 
+
+### Server Details
+
+- **Name**: Astro Docs
+- **URL**: `https://mcp.docs.astro.build/mcp`
+- **Transport**: Streamable HTTP
+
+### Installation
+
+Proses penyiapan bervariasi tergantung pada alat pengembangan AI Anda. Beberapa alat mungkin menyebut server MCP sebagai konektor, adaptor, ekstensi, atau plugin.
+
+#### Manual setup
+
+Banyak alat mendukung format konfigurasi JSON umum untuk server MCP. Jika tidak ada instruksi spesifik untuk alat pilihan Anda, Anda dapat menambahkan server Astro Docs MCP dengan menyertakan konfigurasi berikut di pengaturan MCP alat Anda:
+
+<Tabs>
+  <TabItem label="Streamable HTTP">
+    ```json title="mcp.json" {3-6}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "http",
+          "url": "https://mcp.docs.astro.build/mcp"
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Local Proxy">
+    ```json title="mcp.json" {3-7}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+#### Claude Code CLI
+
+[Claude Code](https://docs.anthropic.com/id/docs/claude-code/overview) adalah alat pengodean agens yang berjalan di baris perintah. Mengaktifkan server Astro Docs MCP memungkinkannya mengakses dokumentasi terbaru saat menghasilkan kode Astro.
+
+Pasang menggunakan perintah terminal:
+
+```shell
+claude mcp add --transport http astro-docs https://mcp.docs.astro.build/mcp
+```
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Claude Code](https://docs.anthropic.com/id/docs/claude-code/mcp)
+
+#### Claude Code GitHub Action
+
+Claude Code juga menyediakan GitHub Action yang dapat digunakan untuk menjalankan perintah sebagai respons terhadap *event* GitHub. Mengaktifkan server Astro Docs MCP memungkinkannya mengakses dokumentasi terbaru saat menjawab pertanyaan di komentar atau menghasilkan kode Astro.
+
+Anda dapat mengonfigurasinya untuk menggunakan server Astro Docs MCP untuk akses dokumentasi dengan menambahkan konfigurasi berikut ke berkas *workflow*:
+
+```yaml title=".github/workflows/claude.yml" {5-14}
+# ...rest of your workflow configuration
+- uses: anthropics/claude-code-action@beta
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    mcp_config: |
+      {
+        "mcpServers": {
+          "astro-docs": {
+            "type": "http",
+            "url": "https://mcp.docs.astro.build/mcp"
+          }
+        }
+      }
+    allowed_tools: "mcp__astro-docs__search_astro_docs" 
+```
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Claude Code GitHub Action](https://github.com/anthropics/claude-code-action?tab=readme-ov-file#using-custom-mcp-configuration)
+
+#### Cursor
+
+[Cursor](https://cursor.com) adalah editor kode berbasis AI. Menambahkan server Astro Docs MCP memungkinkan Cursor mengakses dokumentasi Astro terbaru saat melakukan tugas pengembangan.
+
+Pasang dengan mengeklik tombol di bawah ini:
+
+<LinkButton href="cursor://anysphere.cursor-deeplink/mcp/install?name=Astro%20docs&config=eyJ1cmwiOiJodHRwczovL21jcC5kb2NzLmFzdHJvLmJ1aWxkL21jcCJ9">Tambahkan ke Cursor</LinkButton>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Cursor](https://docs.cursor.com/context/mcp)
+
+#### Visual Studio Code
+
+[Visual Studio Code](https://code.visualstudio.com) mendukung server MCP saat menggunakan Copilot Chat. Menambahkan server Astro Docs MCP memungkinkan VS Code mengakses dokumentasi terbaru saat menjawab pertanyaan atau melakukan tugas pengodean.
+
+Pasang dengan mengeklik tombol di bawah ini:
+
+<LinkButton href="vscode:mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%7D">Tambahkan ke VS Code</LinkButton>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan VS Code](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
+
+#### Warp
+
+[Warp](https://warp.dev) (sebelumnya Warp Terminal) adalah lingkungan pengembangan agen yang dibangun untuk *coding* dengan banyak agen AI. Menambahkan server Astro Docs MCP memungkinkan Warp mengakses dokumentasi terbaru saat menjawab pertanyaan atau melakukan tugas pengodean.
+
+<Steps>
+
+1. Buka pengaturan Warp dan pergi ke AI > MCP Servers > Manage MCP Servers.
+2. Klik "Add".
+3. Masukkan konfigurasi berikut. Anda dapat mengatur server Astro MCP untuk aktif saat *startup* menggunakan flag `start_on_launch` (opsional):
+   ```json title="MCP Configuration" {3-9}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"],
+         "env": {},
+         "working_directory": null,
+         "start_on_launch": true
+       }
+     }
+   }
+   ```
+4. Klik "Save".
+
+</Steps>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Warp](https://docs.warp.dev/knowledge-and-collaboration/mcp)
+
+#### Claude.ai / Claude Desktop
+
+[Claude.ai](https://claude.ai) adalah asisten AI serbaguna. Menambahkan server Astro Docs MCP memungkinkannya mengakses dokumentasi terbaru saat menjawab pertanyaan Astro atau menghasilkan kode Astro.
+
+<Steps>
+
+1. Buka [pengaturan konektor Claude.ai](https://claude.ai/settings/connectors).
+2. Klik "Add custom connector". Anda mungkin perlu menggulir ke bawah untuk menemukan opsi ini.
+3. Masukkan URL server: `https://mcp.docs.astro.build/mcp`.
+4. Atur nama menjadi "Astro docs".
+
+</Steps>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Claude.ai](https://support.anthropic.com/id/articles/10168395-setting-up-integrations-on-claude-ai#h_cda40ecb32)
+
+#### Windsurf
+
+[Windsurf](https://windsurf.com/) adalah alat pengodean agens bertenaga AI, tersedia sebagai plugin editor atau editor mandiri. Windsurf dapat menggunakan server Astro Docs MCP untuk mengakses dokumentasi saat melakukan tugas pengodean.
+
+Windsurf tidak mendukung *streaming HTTP*, sehingga memerlukan konfigurasi *local proxy*:
+
+<Steps>
+
+1. Buka `~/.codeium/windsurf/mcp_config.json` di editor Anda.
+2. Tambahkan konfigurasi berikut ke pengaturan MCP Windsurf Anda:
+
+   ```json title="MCP Configuration" {3-6}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. Simpan konfigurasi dan mulai ulang Windsurf.
+
+</Steps>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Windsurf](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json)
+
+#### Gemini CLI
+
+Gemini CLI adalah alat pengodean AI berbasis baris perintah yang dapat menggunakan server Astro Docs MCP untuk mengakses dokumentasi saat menghasilkan kode Astro.
+
+Anda dapat mengonfigurasi server MCP di tingkat global pada berkas `~/.gemini/settings.json`, atau pada berkas `.gemini/settings.json` di root proyek.
+
+```json title=".gemini/settings.json" {3-5}
+{
+  "mcpServers": {
+    "Astro docs": {
+      "httpUrl": "https://mcp.docs.astro.build/mcp",
+    }
+  }
+}
+``` 
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Gemini CLI](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
+
+#### Zed
+
+[Zed](https://zed.dev) mendukung server MCP saat menggunakan kapabilitas AI-nya. Zed dapat menggunakan server Astro Docs MCP untuk mengakses dokumentasi saat melakukan tugas pengodean.
+
+Zed tidak mendukung *streaming HTTP*, sehingga memerlukan konfigurasi *local proxy*:
+
+<Steps>
+
+1. Buka `~/.config/zed/settings.json` di editor Anda.
+2. Tambahkan konfigurasi berikut ke pengaturan MCP Zed Anda:
+
+   ```json title="MCP Configuration" {3-6}
+   {
+     "context_servers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. Simpan konfigurasi.
+
+</Steps>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Zed](https://zed.dev/docs/ai/mcp)
+
+#### ChatGPT
+
+:::caution[Ketersediaan terbatas]
+Integrasi server MCP hanya tersedia untuk pengguna ChatGPT Pro, Team, dan Enterprise. Proses penyiapannya lebih kompleks daripada alat lain.
+:::
+
+Lihat [dokumentasi MCP OpenAI](https://platform.openai.com/docs/mcp#test-and-connect-your-mcp-server) untuk instruksi penyiapan spesifik.
+
+#### Raycast
+
+[Raycast](https://www.raycast.com/) dapat terhubung ke server MCP untuk meningkatkan kapabilitas AI-nya. Fitur AI seperti MCP memerlukan akun [Raycast Pro](https://www.raycast.com/pro), jadi pastikan Anda sudah meningkatkan akun sebelum mencoba memasang. Menambahkan server Astro Docs MCP memungkinkan Raycast mengakses dokumentasi Astro terbaru saat menjawab pertanyaan.
+
+Pasang dengan mengeklik tombol di bawah ini:
+
+<LinkButton href="raycast://mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%20%22mcp-remote%22%2C%20%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%5D%7D">Tambahkan ke Raycast</LinkButton>
+
+[Info lebih lanjut tentang penggunaan server MCP dengan Raycast](https://manual.raycast.com/model-context-protocol)
+
+### Usage
+
+Setelah dikonfigurasi, Anda dapat meminta alat AI Anda menjawab pertanyaan tentang Astro, dan alat tersebut akan mengambil informasi langsung dari dokumentasi terbaru. Agen pengodean akan dapat merujuk dokumentasi terbaru saat melakukan tugas, dan chatbot akan mampu menjawab pertanyaan tentang fitur, API, serta praktik terbaik Astro secara akurat.
+
+:::note[Ingat]
+Server Astro Docs MCP menyediakan akses ke dokumentasi terkini, namun alat AI Anda tetap bertanggung jawab atas interpretasi dan pembuatan kode. AI bisa salah, jadi selalu tinjau kode yang dihasilkan dengan saksama dan uji secara menyeluruh.
+:::
+
+### Troubleshooting
+
+Jika Anda mengalami masalah:
+
+- Pastikan alat Anda mendukung transport *streamable HTTP*.
+- Periksa apakah URL server sudah benar: `https://mcp.docs.astro.build/mcp`.
+- Pastikan alat Anda memiliki akses internet yang memadai.
+- Lihat dokumentasi integrasi MCP untuk alat spesifik Anda.
+
+Jika masih mengalami masalah, buka *issue* di [repositori Astro Docs MCP Server](https://github.com/withastro/docs-mcp/issues).
+
+
+## Dukungan AI di Discord
+
+Teknologi yang sama yang menjalankan server MCP Astro juga tersedia sebagai chatbot di [Discord Astro](https://astro.build/chat) untuk dukungan mandiri. Kunjungi kanal `#support-ai` untuk mengajukan pertanyaan tentang Astro atau kode proyek Anda dalam bahasa alami. Percakapan Anda akan otomatis dibuat *thread*, dan Anda dapat menanyakan pertanyaan lanjutan tanpa batas.
+
+**Percakapan dengan chatbot bersifat publik, dan tunduk pada aturan server yang sama untuk bahasa dan perilaku seperti kanal lainnya**, tetapi kanal ini tidak secara aktif dipantau oleh relawan dukungan kami. Untuk bantuan dari komunitas, buat *thread* di kanal `#support` reguler kami.
+
+## Tips untuk Pengembangan Astro berbasis AI
+
+- **Mulai dengan templat**: Alih-alih membangun dari nol, mintalah alat AI untuk memulai dengan [templat Astro](https://astro.build/themes/) yang ada atau gunakan `npm create astro@latest` dengan opsi templat.
+- **Gunakan `astro add` untuk integrasi**: Minta alat AI menggunakan `astro add` untuk integrasi resmi (mis. `astro add tailwind`, `astro add react`). Untuk paket lainnya, lakukan pemasangan dengan perintah *package manager* pilihan Anda alih-alih mengedit `package.json` secara langsung.
+- **Verifikasi API terkini**: Alat AI mungkin menggunakan pola yang sudah usang. Minta mereka memeriksa dokumentasi terbaru, terutama untuk fitur baru seperti *sessions* dan *actions*. Ini juga penting untuk fitur yang telah mengalami perubahan signifikan sejak peluncuran awal, seperti *content collections*, atau fitur yang sebelumnya eksperimental yang mungkin tidak lagi eksperimental.
+- **Gunakan aturan proyek**: Jika alat AI Anda mendukungnya, atur *project rules* untuk menegakkan praktik terbaik dan standar pengodean, seperti yang tercantum di atas.

@@ -1,0 +1,693 @@
+---
+title: Gambar
+description: Pelajari cara menggunakan gambar di Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import { Steps } from '@astrojs/starlight/components'
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro menyediakan beberapa cara untuk menggunakan gambar di situs Anda, baik yang disimpan secara lokal di dalam proyek, ditautkan dari URL eksternal, atau dikelola di CMS/CDN.
+
+Astro menyediakan komponen Astro bawaan [`<Image />`](#image-) dan [`<Picture />`](#picture-), pemrosesan [sintaks gambar Markdown](#images-in-markdown-files) (`![]()`), [komponen SVG](#svg-components), dan [fungsi pembangkit gambar](#generating-images-with-getimage) untuk mengoptimalkan dan/atau mentransformasi gambar Anda. Selain itu, Anda dapat mengatur [pengubahan ukuran otomatis untuk gambar responsif](#responsive-image-behavior) sebagai default, atau menetapkan properti responsif pada komponen image dan picture tertentu.
+
+Anda selalu dapat memilih menggunakan gambar dan file SVG dengan elemen HTML native di file `.astro` atau Markdown, atau dengan cara standar sesuai jenis file (mis. `<img />` di MDX dan JSX). Namun, Astro tidak melakukan pemrosesan atau optimasi apa pun pada gambar-gambar tersebut.
+
+Astro juga tidak memiliki dukungan video bawaan, dan kami menyarankan untuk memilih [layanan hosting video](/id/guides/media/) guna menangani kebutuhan optimasi dan streaming konten video.
+
+<ReadMore>Lihat referensi API lengkap untuk komponen [`<Image />`](/id/reference/modules/astro-assets/#image-) dan [`<Picture />`](/id/reference/modules/astro-assets/#picture-).</ReadMore>
+
+## Di mana menyimpan gambar
+
+### `src/` vs `public/`
+
+Kami merekomendasikan gambar lokal disimpan di `src/` jika memungkinkan agar Astro bisa mentransformasi, mengoptimasi, dan membundelnya. File di direktori `public/` selalu dilayani atau disalin ke folder build apa adanya, tanpa pemrosesan.
+
+Gambar lokal Anda yang disimpan di `src/` dapat digunakan oleh semua file di proyek Anda: `.astro`, `.md`, `.mdx`, `.mdoc`, dan framework UI lainnya sebagai impor file. Gambar dapat ditempatkan di folder mana pun, termasuk berdampingan dengan konten Anda.
+
+Simpan gambar di folder `public/` jika Anda ingin menghindari pemrosesan apa pun. Gambar-gambar ini tersedia bagi file proyek Anda sebagai path URL pada domain Anda dan memungkinkan Anda memiliki tautan publik langsung kepadanya. Contohnya, favicon situs Anda biasanya ditempatkan di root folder ini agar peramban dapat mengenalinya.
+
+### Gambar jarak jauh (remote)
+
+Anda juga dapat menyimpan gambar secara remote, di [content management system (CMS)](/id/guides/cms/) atau [digital asset management (DAM)](/id/guides/media/). Astro dapat mengambil data Anda secara remote menggunakan API atau menampilkan gambar dari path URL penuhnya.
+
+Untuk perlindungan ekstra saat menangani sumber eksternal, komponen gambar dan fungsi pembantu Astro hanya akan memproses (mis. mengoptimasi, mentransformasi) gambar dari [sumber gambar yang diizinkan sebagaimana ditentukan dalam konfigurasi Anda](#authorizing-remote-images). Gambar remote dari sumber lain akan ditampilkan tanpa pemrosesan.
+
+## Gambar di file `.astro`
+
+<p>
+
+**Opsi:** `<Image />`, `<Picture />`, `<img>`, `<svg>`, komponen SVG
+</p>
+
+Bahasa templat Astro memungkinkan Anda merender gambar yang dioptimalkan dengan komponen Astro [`<Image />`](/id/reference/modules/astro-assets/#image-) dan menghasilkan beberapa ukuran serta format dengan komponen Astro [`<Picture />`](/id/reference/modules/astro-assets/#picture-). Kedua komponen ini juga menerima [properti gambar responsif](#responsive-image-behavior) untuk pengubahan ukuran berdasarkan kontainer dan untuk merespons ukuran serta resolusi layar perangkat.
+
+Selain itu, Anda dapat mengimpor dan menggunakan [file SVG sebagai komponen Astro](#svg-components) di komponen `.astro`.
+
+Semua tag HTML native, termasuk `<img>` dan `<svg>`, juga tersedia di komponen `.astro`. [Gambar yang dirender dengan tag HTML](#display-unprocessed-images-with-the-html-img-tag) tidak akan diproses (mis. dioptimasi, ditransformasi) dan akan disalin ke folder build apa adanya.
+
+Untuk semua gambar di file `.astro`, **nilai atribut `src` gambar ditentukan oleh lokasi file gambar Anda**:
+
+- Gambar lokal dari folder proyek `src/` menggunakan impor dari path relatif file.
+
+  Komponen image dan picture menggunakan impor bernama secara langsung (mis. `src={rocket}`), sedangkan tag `<img>` menggunakan properti objek `src` dari impor tersebut (mis. `src={rocket.src}`).
+
+- Gambar remote dan `public/` menggunakan path URL.
+
+  Berikan URL penuh untuk gambar remote (mis. `src="https://www.example.com/images/my-remote-image.jpg"`), atau path URL relatif pada situs Anda yang sesuai dengan lokasi file Anda di folder `public/` (mis. `src="/images/my-public-image.jpg"` untuk gambar yang berada di `public/images/my-public-image.jpg`).
+
+```astro title="src/pages/blog/my-images.astro"
+---
+import { Image } from 'astro:assets';
+import localBirdImage from '../../images/subfolder/localBirdImage.png';
+---
+<Image src={localBirdImage} alt="Seekor burung yang duduk di atas sarang berisi telur." />
+<Image src="/images/bird-in-public-folder.jpg" alt="Seekor burung." width="50" height="50" />
+<Image src="https://example.com/remote-bird.jpg" alt="Seekor burung." width="50" height="50" />
+
+<img src={localBirdImage.src} alt="Seekor burung yang duduk di atas sarang berisi telur.">
+<img src="/images/bird-in-public-folder.jpg" alt="Seekor burung.">
+<img src="https://example.com/remote-bird.jpg" alt="Seekor burung.">
+```
+
+<ReadMore>Lihat referensi API lengkap untuk komponen [`<Image />`](/id/reference/modules/astro-assets/#image-) dan [`<Picture />`](/id/reference/modules/astro-assets/#picture-) termasuk properti wajib dan opsional.</ReadMore>
+
+<RecipeLinks slugs={["en/recipes/dynamically-importing-images" ]}/>
+
+
+## Gambar di file Markdown
+
+<p>
+
+**Opsi:** `![]()`, `<img>` (dengan gambar public atau remote)
+</p>
+
+Gunakan sintaks standar Markdown `![alt](src)` di file `.md` Anda. Gambar lokal Anda yang disimpan di `src/` dan gambar remote akan diproses dan dioptimasi. Saat Anda [mengonfigurasi gambar responsif secara global](/id/reference/configuration-reference/#imagelayout), gambar-gambar ini juga akan [responsif](#responsive-image-behavior).
+
+Gambar yang disimpan di folder `public/` tidak pernah dioptimasi.
+
+```md
+<!-- src/pages/post-1.md -->
+
+# Halaman Markdown Saya
+
+<!-- Gambar lokal yang disimpan di src/assets/ -->
+<!-- Gunakan path file relatif atau alias impor -->
+![Langit malam berbintang.](../assets/stars.png)
+
+<!-- Gambar yang disimpan di public/images/ -->
+<!-- Gunakan path file relatif terhadap public/ -->
+![Langit malam berbintang.](/images/stars.png)
+
+<!-- Gambar remote di server lain -->
+<!-- Gunakan URL penuh gambar -->
+![Astro](https://example.com/images/remote-image.png)
+```
+
+Tag HTML `<img>` juga dapat digunakan untuk menampilkan gambar yang disimpan di `public/` atau gambar remote tanpa optimasi atau pemrosesan gambar. Namun, `<img>` tidak didukung untuk gambar lokal Anda di `src`.
+
+Komponen `<Image />` dan `<Picture />` tidak tersedia di file `.md`. Jika Anda memerlukan kontrol lebih atas atribut gambar Anda, kami menyarankan menggunakan [integrasi MDX Astro](/id/guides/integrations-guide/mdx/) untuk menambahkan dukungan format file `.mdx`. MDX memungkinkan [opsi gambar tambahan yang tersedia di MDX](#images-in-mdx-files), termasuk menggabungkan komponen dengan sintaks Markdown.
+
+## Gambar di file MDX
+
+<p>
+
+**Opsi:** `<Image />`, `<Picture />`, `<img />`, `![]()`, komponen SVG
+</p>
+
+Anda dapat menggunakan komponen `<Image />` dan `<Picture />` milik Astro di file `.mdx` dengan mengimpor komponen dan gambar Anda. Gunakan persis seperti [di file `.astro`](#images-in-astro-files). Tag JSX `<img />` juga didukung untuk gambar tanpa pemrosesan dan [menggunakan impor gambar yang sama seperti tag HTML `<img>`](#display-unprocessed-images-with-the-html-img-tag).
+
+Selain itu, ada dukungan untuk [sintaks Markdown standar `![alt](src)`](#images-in-markdown-files) tanpa perlu impor.
+
+```mdx title="src/pages/post-1.mdx"
+---
+title: Judul Halaman Saya
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+
+# Halaman MDX Saya
+
+// Gambar lokal yang disimpan di folder yang sama
+![Houston di alam liar](houston.png)
+
+// Gambar lokal yang disimpan di src/assets/
+<Image src={rocket} alt="Sebuah roket di angkasa." />
+<img src={rocket.src} alt="Sebuah roket di angkasa." />
+![Sebuah roket di angkasa](../assets/rocket.png)
+
+// Gambar yang disimpan di public/images/
+<Image src="/images/stars.png" alt="Langit malam berbintang." />
+<img src="/images/stars.png" alt="Langit malam berbintang." />
+![Langit malam berbintang.](/images/stars.png)
+
+// Gambar remote di server lain
+<Image src="https://example.com/images/remote-image.png" />
+<img src="https://example.com/images/remote-image.png" />
+![Astro](https://example.com/images/remote-image.png)
+
+```
+
+<ReadMore>Lihat referensi API lengkap untuk komponen [`<Image />`](/id/reference/modules/astro-assets/#image-) dan [`<Picture />`](/id/reference/modules/astro-assets/#picture-).</ReadMore>
+
+## Gambar di komponen framework UI
+
+<p>
+
+**Opsi gambar:** sintaks gambar milik framework (mis. `<img />` di JSX, `<img>` di Svelte)
+</p>
+
+[**Gambar lokal harus diimpor terlebih dahulu**](#display-unprocessed-images-with-the-html-img-tag) untuk mengakses propertinya seperti `src`. Setelah itu, render seperti biasa menggunakan sintaks gambar framework tersebut:
+
+```jsx title="src/components/ReactImage.jsx"
+import stars from "../assets/stars.png";
+
+export default function ReactImage() {
+  return (
+    <img src={stars.src} alt="Langit malam berbintang." />
+  )
+}
+```
+
+```svelte title="src/components/SvelteImage.svelte"
+<script>
+  import stars from '../assets/stars.png';
+</script>
+
+<img src={stars.src} alt="Langit malam berbintang." />
+
+```
+
+Komponen Astro (mis. `<Image />`, `<Picture />`, komponen SVG) tidak tersedia di dalam komponen framework UI karena [sebuah pulau (island) klien harus hanya berisi kode yang valid untuk framework-nya sendiri](/id/guides/framework-components/#can-i-use-astro-components-inside-my-framework-components).
+
+Namun, Anda dapat meneruskan konten statis yang dihasilkan oleh komponen-komponen ini ke komponen framework di dalam file `.astro` [sebagai children](/id/guides/framework-components/#passing-children-to-framework-components) atau menggunakan [named `<slot/>`](/id/guides/framework-components/#can-i-use-astro-components-inside-my-framework-components):
+
+```astro title="src/components/ImageWrapper.astro"
+---
+import ReactComponent from './ReactComponent.jsx';
+import { Image } from 'astro:assets';
+import stars from '~/stars/docline.png';
+---
+
+<ReactComponent>
+  <Image src={stars} alt="Langit malam berbintang." />
+</ReactComponent>
+```
+
+## Komponen Astro untuk gambar
+
+Astro menyediakan dua komponen Astro bawaan untuk gambar (`<Image />` dan `<Picture />`) serta memungkinkan Anda mengimpor file SVG dan menggunakannya sebagai komponen Astro. Komponen-komponen ini dapat digunakan di file apa pun yang bisa mengimpor dan merender komponen `.astro`.
+
+### `<Image />`
+
+Gunakan komponen Astro bawaan `<Image />` untuk menampilkan versi yang dioptimasi dari:
+
+- gambar lokal Anda yang berada di dalam folder `src/`
+- [gambar remote yang dikonfigurasi](#authorizing-remote-images) dari sumber yang diizinkan
+
+`<Image />` dapat mentransformasi dimensi, jenis file, dan kualitas dari gambar lokal atau gambar remote yang diizinkan untuk mengontrol gambar yang ditampilkan. Transformasi ini terjadi saat build untuk halaman yang diprerender. Ketika halaman Anda dirender sesuai permintaan, transformasi ini akan terjadi secara langsung saat halaman dilihat. Tag `<img>` yang dihasilkan menyertakan atribut `alt`, `loading`, dan `decoding` serta menyimpulkan dimensi gambar untuk menghindari Cumulative Layout Shift (CLS).
+
+:::note[Apa itu Cumulative Layout Shift?]
+[Cumulative Layout Shift (CLS)](https://web.dev/cls/) adalah metrik Core Web Vitals untuk mengukur seberapa banyak konten bergeser pada halaman selama proses pemuatan. Komponen `<Image />` mengoptimalkan CLS dengan otomatis menetapkan `width` dan `height` yang benar untuk gambar Anda.
+:::
+
+```astro title="src/components/MyComponent.astro"
+---
+// impor komponen Image dan gambarnya
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // Gambar berukuran 1600x900
+---
+
+<!-- `alt` wajib pada komponen Image -->
+<Image src={myImage} alt="Deskripsi gambar saya." />
+```
+
+```html
+<!-- Output prerender -->
+<!-- Gambar dioptimasi, atribut yang benar diterapkan -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="Deskripsi gambar saya."
+/>
+
+<!-- Output yang dirender sesuai permintaan -->
+<!-- src akan menggunakan endpoint yang dihasilkan saat dibutuhkan -->
+<img
+  src="/_image?href=%2F_astro%2Fmy_image.hash.webp&amp;w=1600&amp;h=900&amp;f=webp"
+  <!-- ... -->
+/>
+```
+
+Komponen `<Image />` menerima [beberapa properti komponen](/id/reference/modules/astro-assets/#image-properties) serta atribut apa pun yang diterima oleh tag HTML `<img>`.
+
+Contoh berikut memberikan `class` pada komponen gambar yang akan diterapkan ke elemen `<img>` akhir.
+
+```astro title="src/pages/index.astro" 'class="my-class"'
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+
+<!-- `alt` wajib pada komponen Image -->
+<Image src={myImage} alt="" class="my-class" />
+```
+
+```html 'class="my-class"'
+<!-- Output prerender -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  class="my-class"
+  alt=""
+/>
+
+```
+
+:::tip
+Anda juga dapat menggunakan komponen `<Image />` untuk gambar di folder `public/`, atau gambar remote yang tidak dikonfigurasi secara khusus di proyek Anda, meskipun gambar-gambar ini tidak akan dioptimasi atau diproses. Hasilnya akan sama seperti menggunakan HTML `<img>`.
+
+Namun, menggunakan komponen image untuk semua gambar memberikan pengalaman penulisan yang konsisten dan mencegah Cumulative Layout Shift (CLS) bahkan untuk gambar yang tidak dioptimasi.
+:::
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+Gunakan komponen Astro bawaan `<Picture />` untuk menghasilkan tag `<picture>` dengan beberapa format dan/atau ukuran dari gambar Anda. Ini memungkinkan Anda menentukan format file pilihan untuk ditampilkan sekaligus menyediakan format fallback. Seperti [komponen `<Image />`](#image-), gambar akan diproses saat build untuk halaman yang diprerender. Ketika halaman Anda dirender sesuai permintaan, pemrosesan akan terjadi saat halaman dilihat.
+
+Contoh berikut menggunakan komponen `<Picture />` untuk mentransformasi file `.png` lokal menjadi format `avif` dan `webp` yang ramah web serta `<img>` `.png` yang dapat ditampilkan sebagai fallback bila diperlukan:
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // Gambar berukuran 1600x900
+---
+
+<!-- `alt` wajib pada komponen Picture -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="Deskripsi gambar saya." />
+```
+
+```html
+<!-- Output prerender -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="Deskripsi gambar saya."
+  />
+</picture>
+```
+
+<ReadMore>Lihat detail tentang [properti komponen `<Picture />`](/id/reference/modules/astro-assets/#picture-properties) di referensi `astro:assets`.</ReadMore>
+
+### Perilaku gambar responsif
+
+ <p><Since v="5.10.0" /></p>
+
+Gambar responsif adalah gambar yang menyesuaikan diri untuk meningkatkan performa di berbagai perangkat. Gambar-gambar ini dapat mengubah ukuran agar pas dengan kontainer, dan dapat disajikan dalam ukuran yang berbeda tergantung ukuran layar dan resolusi pengunjung Anda.
+
+Dengan [properti gambar responsif](/id/reference/modules/astro-assets/#responsive-image-properties) yang diterapkan pada komponen `<Image />` atau `<Picture />`, Astro akan secara otomatis menghasilkan nilai `srcset` dan `sizes` yang diperlukan untuk gambar Anda, serta menerapkan [gaya yang diperlukan agar ukurannya berubah dengan benar](#responsive-image-styles). 
+
+Saat perilaku responsif ini [dikonfigurasi secara global dengan `image.layout`](/id/reference/configuration-reference/#imagelayout), pengaturan tersebut akan berlaku untuk semua komponen gambar dan juga untuk gambar lokal maupun remote yang menggunakan [sintaks Markdown `![]()`](/id/guides/images/#images-in-markdown-files).
+
+Gambar di folder `public/` tidak pernah dioptimasi, dan gambar responsif tidak didukung.
+
+:::note
+Satu gambar responsif akan menghasilkan beberapa gambar dengan ukuran berbeda sehingga peramban dapat menampilkan yang terbaik untuk pengunjung Anda.
+
+Untuk halaman yang diprerender, ini terjadi selama build dan dapat meningkatkan waktu build proyek Anda, terutama jika Anda memiliki banyak gambar.
+
+Untuk halaman yang dirender sesuai permintaan, gambar dihasilkan saat dibutuhkan ketika sebuah halaman dikunjungi. Ini tidak berdampak pada waktu build tetapi dapat meningkatkan jumlah transformasi gambar yang dilakukan saat sebuah gambar ditampilkan. Tergantung pada layanan gambar Anda, hal ini dapat menimbulkan biaya tambahan.
+:::
+
+<ReadMore>Baca lebih lanjut tentang [gambar responsif di MDN web docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images).</ReadMore>
+
+#### Output HTML yang dihasilkan untuk gambar responsif
+
+Ketika layout ditetapkan, baik secara default atau pada komponen tertentu, gambar mendapat atribut `srcset` dan `sizes` yang dihasilkan secara otomatis berdasarkan dimensi gambar dan jenis layout. Gambar dengan layout `constrained` dan `full-width` akan memiliki gaya yang diterapkan untuk memastikan ukurannya berubah sesuai kontainer.
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="Deskripsi gambar saya." layout='constrained' width={800} height={600} />
+```
+
+Komponen `<Image />` ini akan menghasilkan output HTML berikut pada halaman yang diprerender:
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="Deskripsi gambar saya"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+
+#### Gaya gambar responsif
+
+Menyetel [`image.responsiveStyles: true`](/id/reference/configuration-reference/#imageresponsivestyles) akan menerapkan sejumlah kecil gaya global untuk memastikan gambar Anda mengubah ukuran dengan benar. Dalam banyak kasus, Anda akan ingin mengaktifkannya sebagai default; gambar Anda tidak akan responsif tanpa gaya tambahan.
+
+Namun, jika Anda lebih suka menangani styling gambar responsif sendiri, atau perlu [menimpa default ini saat menggunakan Tailwind 4](#responsive-images-with-tailwind-4), biarkan nilai default `false` tetap dikonfigurasi.
+
+Gaya global yang diterapkan oleh Astro akan bergantung pada jenis layout, dan dirancang untuk menghasilkan hasil terbaik untuk atribut `srcset` dan `sizes` yang dihasilkan. Berikut gaya defaultnya:
+
+```css title="Responsive Image Styles"
+:where([data-astro-image]) {
+  object-fit: var(--fit);
+  object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+  width: 100%;
+}
+:where([data-astro-image='constrained']) {
+  max-width: 100%;
+}
+```
+
+Gaya menggunakan pseudo-class [`:where()`](https://developer.mozilla.org/en-US/docs/Web/CSS/:where) yang memiliki [specificity](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity) sebesar 0, artinya mudah ditimpa dengan gaya Anda sendiri. Selector CSS apa pun akan memiliki specificity lebih tinggi daripada `:where()`, sehingga Anda dapat dengan mudah menimpa gaya dengan menambahkan gaya Anda sendiri yang menargetkan gambar.
+
+Anda dapat menimpa gaya `object-fit` dan `object-position` per gambar dengan menyetel prop `fit` dan `position` pada komponen `<Image />` atau `<Picture />`. 
+
+#### Gambar responsif dengan Tailwind 4
+
+Tailwind 4 kompatibel dengan gaya responsif default Astro. Namun, Tailwind menggunakan [cascade layers](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer) sehingga aturannya selalu memiliki specificity lebih rendah daripada aturan yang tidak menggunakan layer, termasuk gaya responsif Astro. Oleh karena itu, styling Astro akan diutamakan dibanding styling Tailwind. Untuk menggunakan aturan Tailwind alih-alih styling default Astro, jangan aktifkan [gaya responsif default Astro](/id/reference/configuration-reference/#imageresponsivestyles).
+
+### Komponen SVG
+<p><Since v="5.7.0" /></p>
+
+Astro memungkinkan Anda mengimpor file SVG dan menggunakannya sebagai komponen Astro. Astro akan meng-inline konten SVG ke output HTML Anda.
+
+Rujuk impor default dari file `.svg` lokal apa pun. Karena impor ini diperlakukan sebagai komponen Astro, Anda harus menggunakan konvensi yang sama (mis. kapitalisasi) seperti saat [menggunakan tag dinamis](/id/reference/astro-syntax/#dynamic-tags).
+
+```astro title="src/components/MyAstroComponent.astro"
+---
+import Logo from './path/to/svg/file.svg';
+---
+
+<Logo />
+```
+
+Komponen SVG Anda, seperti `<Image />` atau komponen Astro lainnya, tidak tersedia di dalam komponen framework UI, tetapi dapat [diteruskan ke komponen framework](#images-in-ui-framework-components) di dalam komponen `.astro`.
+
+#### Atribut komponen SVG
+
+Anda dapat meneruskan prop seperti `width`, `height`, `fill`, `stroke`, dan atribut lain yang diterima oleh [elemen `<svg>` native](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg). Atribut ini akan otomatis diterapkan ke elemen `<svg>` yang mendasarinya. Jika sebuah properti sudah ada di file `.svg` asli dan juga diteruskan ke komponen, nilai yang diteruskan ke komponen akan menimpa nilai aslinya.
+
+```astro title="src/components/MyAstroComponent.astro"
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo width={64} height={64} fill="currentColor" />
+```
+
+#### Tipe `SvgComponent`
+
+<Since v="5.14.0" />
+
+Anda juga dapat menerapkan keamanan tipe untuk aset `.svg` menggunakan tipe `SvgComponent`:
+
+```astro title="src/components/Logo.astro"
+---
+import type { SvgComponent } from "astro/types";
+import HomeIcon from './Home.svg'
+
+interface Link {
+  url: string
+  text: string
+  icon: SvgComponent
+}
+
+const links: Link[] = [
+  {
+    url: '/',
+    text: 'Home',
+    icon: HomeIcon
+  }
+]
+---
+```
+
+### Membuat komponen gambar kustom
+
+Anda dapat membuat komponen gambar yang dapat digunakan kembali dengan membungkus komponen `<Image />` atau `<Picture/>` di komponen Astro lain. Ini memungkinkan Anda menetapkan atribut dan gaya default sekali saja.
+
+Sebagai contoh, Anda bisa membuat komponen untuk gambar posting blog yang menerima atribut sebagai prop dan menerapkan gaya yang konsisten ke setiap gambar:
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Image } from 'astro:assets';
+
+const { src, ...attrs } = Astro.props;
+---
+<Image src={src} {...attrs} />
+
+<style>
+  img {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
+## Menampilkan gambar tanpa pemrosesan dengan tag HTML `<img>`
+
+[Sintaks templating Astro](/id/reference/astro-syntax/) juga mendukung penulisan tag `<img>` secara langsung, dengan kontrol penuh atas output akhirnya. Gambar-gambar ini tidak akan diproses dan dioptimasi. Tag ini menerima semua properti tag HTML `<img>`, dan satu-satunya properti wajib adalah `src`. Namun, sangat disarankan untuk menyertakan [properti `alt` demi aksesibilitas](#alt-text).
+
+### Gambar di `src/`
+
+Gambar lokal harus diimpor dari path relatif terhadap file `.astro` saat ini, atau Anda dapat mengonfigurasi dan menggunakan [alias impor](/id/guides/imports/#aliases). Setelah itu, Anda dapat mengakses `src` gambar dan properti lainnya untuk digunakan pada tag `<img>`.
+
+Aset gambar yang diimpor memiliki tanda tangan berikut:
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+Contoh berikut menggunakan properti `height` dan `width` bawaan gambar untuk menghindari Cumulative Layout Shift (CLS) dan meningkatkan Core Web Vitals:
+
+```astro title="src/pages/posts/post-1.astro" "myDog.width" "myDog.height"
+---
+// impor gambar lokal
+import myDog from '../../images/pets/local-dog.jpg';
+---
+// akses propertinya
+<img src={myDog.src} width={myDog.width} height={myDog.height} alt="Seekor anjing yang menggonggong." />
+```
+
+### Gambar di `public/`
+Untuk gambar yang berada di dalam `public/` gunakan path file relatif terhadap folder public sebagai nilai `src`:
+
+```astro '"/images/public-cat.jpg"'
+<img src="/images/public-cat.jpg" alt="Seekor kucing yang sedang tidur." >
+```
+
+### Gambar remote
+
+Untuk gambar remote, gunakan URL penuh gambar sebagai nilai `src`:
+
+```astro '"https://example.com/remote-cat.jpg"'
+<img src="https://example.com/remote-cat.jpg" alt="Seekor kucing yang sedang tidur." >
+```
+
+### Memilih `<Image />` vs `<img>`
+
+Komponen `<Image />` mengoptimasi gambar Anda dan menyimpulkan lebar serta tinggi (untuk gambar yang dapat diproses) berdasarkan rasio aspek asli guna menghindari CLS. Ini adalah cara yang disarankan untuk menggunakan gambar di file `.astro` kapan pun memungkinkan.
+
+Gunakan elemen HTML `<img>` ketika Anda tidak dapat menggunakan komponen `<Image />`, misalnya:
+  - untuk format gambar yang tidak didukung
+  - ketika Anda tidak ingin gambar dioptimasi oleh Astro
+  - untuk mengakses dan mengubah atribut `src` secara dinamis di sisi klien
+
+
+## Menggunakan Gambar dari CMS atau CDN
+
+CDN gambar berfungsi dengan [semua opsi gambar Astro](#images-in-astro-files). Gunakan URL penuh gambar sebagai atribut `src` di komponen `<Image />`, tag `<img>`, atau dalam notasi Markdown. Untuk optimasi gambar dengan gambar remote, juga [konfigurasikan domain atau pola URL yang diizinkan](#authorizing-remote-images).
+
+Alternatifnya, CDN dapat menyediakan SDK sendiri untuk integrasi yang lebih mudah di proyek Astro. Misalnya, Cloudinary mendukung [SDK Astro](https://astro.cloudinary.dev/) yang memungkinkan Anda memasang gambar dengan komponen `CldImage` atau [SDK Node.js](https://cloudinary.com/documentation/node_integration) yang dapat menghasilkan URL untuk digunakan dengan tag `<img>` di lingkungan Node.js.
+
+<ReadMore>Lihat referensi API lengkap untuk komponen [`<Image />`](/id/reference/modules/astro-assets/#image-) dan [`<Picture />`](/id/reference/modules/astro-assets/#picture-).</ReadMore>
+
+## Mengizinkan (authorizing) gambar remote
+
+Anda dapat mengonfigurasi daftar domain dan pola URL sumber gambar yang diizinkan untuk optimasi gambar menggunakan [`image.domains`](/id/reference/configuration-reference/#imagedomains) dan [`image.remotePatterns`](/id/reference/configuration-reference/#imageremotepatterns). Konfigurasi ini adalah lapisan keamanan tambahan untuk melindungi situs Anda ketika menampilkan gambar dari sumber eksternal.
+
+Gambar remote dari sumber lain tidak akan dioptimasi, tetapi menggunakan komponen `<Image />` untuk gambar-gambar ini akan mencegah Cumulative Layout Shift (CLS).
+
+Sebagai contoh, konfigurasi berikut hanya akan mengizinkan gambar remote dari `astro.build` untuk dioptimasi:
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    domains: ["astro.build"],
+  }
+});
+```
+
+Konfigurasi berikut hanya akan mengizinkan gambar remote dari host HTTPS:
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    remotePatterns: [{ protocol: "https" }],
+  }
+});
+```
+
+## Gambar di content collections
+
+Anda dapat mendeklarasikan gambar terkait untuk sebuah entri content collections, seperti gambar sampul posting blog, di frontmatter menggunakan path relatif terhadap folder saat ini:
+
+```md title="src/content/blog/my-post.md" {3}
+---
+title: "Posting blog pertama saya"
+cover: "./firstpostcover.jpeg" # akan ter-resolve ke "src/content/blog/firstblogcover.jpeg"
+coverAlt: "Foto matahari terbenam di balik pegunungan."
+---
+
+Ini adalah sebuah posting blog
+```
+
+Helper `image` untuk skema content collections memungkinkan Anda memvalidasi dan mengimpor gambar.
+
+```ts title="src/content.config.ts"
+import { defineCollection, z } from "astro:content";
+
+const blogCollection = defineCollection({
+  schema: ({ image }) => z.object({
+    title: z.string(),
+    cover: image(),
+    coverAlt: z.string(),
+  }),
+});
+
+export const collections = {
+  blog: blogCollection,
+};
+```
+
+Gambar akan diimpor dan diubah menjadi metadata, memungkinkan Anda meneruskannya sebagai `src` ke `<Image/>`, `<img>`, atau `getImage()` di komponen Astro.
+
+Contoh di bawah ini menunjukkan halaman indeks blog yang merender foto sampul dan judul setiap posting blog dari skema sebelumnya:
+
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
+
+{
+  allBlogPosts.map((post) => (
+    <div>
+      <Image src={post.data.cover} alt={post.data.coverAlt} />
+      <h2>
+        <a href={"/blog/" + post.slug}>{post.data.title}</a>
+      </h2>
+    </div>
+  ))
+}
+```
+
+## Menghasilkan gambar dengan `getImage()`
+
+Fungsi `getImage()` ditujukan untuk menghasilkan gambar yang akan digunakan di tempat lain selain langsung di HTML, misalnya di [API Route](/id/guides/endpoints/#server-endpoints-api-routes). Saat Anda membutuhkan opsi yang belum didukung oleh komponen `<Picture>` dan `<Image>`, Anda dapat menggunakan fungsi `getImage()` untuk membuat komponen `<Image />` kustom Anda sendiri.
+
+<ReadMore>Lihat lebih lanjut di [referensi `getImage()`](/id/reference/modules/astro-assets/#getimage).</ReadMore>
+
+<RecipeLinks slugs={["en/recipes/build-custom-img-component" ]}/>
+
+## Teks Alt
+
+Tidak semua pengguna dapat melihat gambar dengan cara yang sama, jadi aksesibilitas adalah perhatian yang sangat penting saat menggunakan gambar. Gunakan atribut `alt` untuk memberikan [teks alternatif yang deskriptif](https://www.w3.org/WAI/tutorials/images/) untuk gambar.
+
+Atribut ini diwajibkan untuk komponen `<Image />` dan `<Picture />`. Jika tidak ada teks alt yang disediakan, pesan kesalahan yang membantu akan ditampilkan untuk mengingatkan Anda agar menyertakan atribut `alt`.
+
+Jika gambar hanya dekoratif (yaitu tidak berkontribusi pada pemahaman halaman), setel `alt=""` agar screen reader mengabaikan gambar tersebut.
+
+## Layanan gambar default
+
+[Sharp](https://github.com/lovell/sharp) adalah layanan gambar default yang digunakan untuk `astro:assets`. Anda dapat mengonfigurasi layanan gambar lebih lanjut menggunakan opsi [`image.service`](/id/reference/configuration-reference/#imageservice).
+
+:::note
+Saat menggunakan [package manager yang ketat](https://pnpm.io/pnpm-vs-npm#npms-flat-tree) seperti `pnpm`, Anda mungkin perlu menginstal Sharp secara manual ke proyek Anda meskipun ini merupakan dependensi Astro:
+
+```bash
+pnpm add sharp
+```
+:::
+
+### Konfigurasikan layanan passthrough (no-op)
+
+Jika [adapter](https://astro.build/integrations/?search=&categories%5B%5D=adapters) Anda tidak mendukung optimasi gambar Sharp bawaan Astro (mis. Deno, Cloudflare), Anda dapat mengonfigurasi layanan gambar no-op untuk memungkinkan Anda menggunakan komponen `<Image />` dan `<Picture />`. Perhatikan bahwa Astro tidak melakukan transformasi dan pemrosesan gambar apa pun di lingkungan ini. Namun, Anda tetap dapat menikmati manfaat lain dari `astro:assets`, termasuk tanpa Cumulative Layout Shift (CLS), atribut `alt` yang diwajibkan, dan pengalaman penulisan yang konsisten.
+
+Konfigurasikan `passthroughImageService()` untuk menghindari pemrosesan gambar Sharp:
+
+```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
+import { defineConfig, passthroughImageService } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
+```
+
+## Caching asset
+
+Astro menyimpan aset gambar yang diproses di direktori cache selama build situs untuk gambar lokal maupun [gambar remote dari sumber yang diizinkan](#authorizing-remote-images). Dengan mempertahankan direktori cache antar build, aset yang telah diproses dapat digunakan kembali, sehingga meningkatkan waktu build dan penggunaan bandwidth.
+
+Direktori cache default adalah `./node_modules/.astro`, namun ini dapat diubah menggunakan pengaturan konfigurasi [`cacheDir`](/id/reference/configuration-reference/#cachedir).
+
+### Gambar remote
+
+Gambar remote di cache aset dikelola berdasarkan [HTTP Caching](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching), dan mematuhi header [Cache-Control](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) yang dikembalikan oleh server remote.
+Gambar akan dicache jika header Cache-Control mengizinkan, dan akan digunakan hingga tidak lagi [fresh](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#fresh_and_stale_based_on_age).
+
+#### Revalidasi
+
+<p><Since v="5.1.0" /></p>
+
+[Revalidation](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#validation) mengurangi penggunaan bandwidth dan waktu build dengan memeriksa ke server remote apakah gambar yang telah kedaluwarsa di cache masih terbaru. Jika server menunjukkan bahwa gambar masih fresh, versi cache digunakan kembali; jika tidak, gambar akan diunduh ulang.
+
+Revalidasi memerlukan server remote mengirim header [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified) dan/atau [Etag (entity tag)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) dalam responsnya. Fitur ini tersedia untuk server remote yang mendukung header [If-Modified-Since](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since) dan [If-None-Match](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match).
+
+## Integrasi Komunitas
+
+Ada beberapa [integrasi gambar komunitas pihak ketiga](https://astro.build/integrations?search=images) untuk mengoptimalkan dan bekerja dengan gambar di proyek Astro Anda.

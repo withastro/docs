@@ -1,0 +1,406 @@
+---
+title: Komponen
+description: Pengantar komponen Astro.
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+
+**Komponen Astro** adalah blok bangunan dasar dari proyek Astro mana pun. Ini adalah komponen templating berbasis HTML saja tanpa runtime di sisi klien dan menggunakan ekstensi file `.astro`.
+
+:::note
+Jika Anda paham HTML, itu sudah cukup untuk menulis komponen Astro pertama Anda.
+
+<ReadMore>Pelajari lebih lanjut di [referensi sintaks Astro](/id/reference/astro-syntax/).</ReadMore>
+:::
+
+Komponen Astro sangat fleksibel. Sebuah komponen Astro bisa sesederhana potongan HTML, misalnya kumpulan tag `<meta>` umum yang memudahkan SEO. Komponen juga bisa berupa elemen UI yang dapat digunakan kembali, seperti header atau kartu profil. Komponen Astro bahkan bisa berisi seluruh layout halaman atau, ketika berada di folder khusus `src/pages/`, menjadi satu halaman penuh itu sendiri.
+
+Hal terpenting tentang komponen Astro adalah **komponen ini tidak dirender di sisi klien**. Komponen dirender menjadi HTML saat build atau sesuai permintaan. Anda dapat menyertakan kode JavaScript di dalam frontmatter komponen Anda, dan semuanya akan dihapus dari halaman akhir yang dikirim ke browser pengguna. Hasilnya adalah situs yang lebih cepat, dengan jejak JavaScript nol secara bawaan.
+
+Ketika komponen Astro Anda membutuhkan interaktivitas sisi klien, Anda bisa menambahkan [tag `<script>` HTML standar](/id/guides/client-side-scripts/) atau [komponen kerangka UI](/id/guides/framework-components/#hydrating-interactive-components) sebagai “client islands”.
+
+Untuk komponen yang perlu merender konten personalisasi atau dinamis, Anda dapat menunda rendering server-nya dengan menambahkan [server directive](/id/reference/directives-reference/#server-directives). “Server islands” ini akan merender kontennya saat tersedia, tanpa menunda pemuatan seluruh halaman.
+
+## Struktur Komponen
+
+Sebuah komponen Astro terdiri dari dua bagian utama: **Script Komponen** dan **Template Komponen**. Masing-masing menjalankan tugas berbeda, namun bersama-sama menyediakan kerangka kerja yang mudah digunakan dan cukup ekspresif untuk membangun apa pun yang Anda inginkan.
+
+```astro title="src/components/EmptyComponent.astro"
+---
+// Script Komponen (JavaScript)
+---
+<!-- Template Komponen (HTML + Ekspresi JS) -->
+```
+
+### Script Komponen
+
+Astro menggunakan pagar kode (`---`) untuk menandai script komponen pada komponen Astro Anda. Jika Anda pernah menulis Markdown, Anda mungkin sudah familiar dengan konsep serupa bernama *frontmatter.* Gagasan script komponen Astro terinspirasi langsung dari konsep tersebut.
+
+Anda dapat menggunakan script komponen untuk menulis kode JavaScript apa pun yang Anda perlukan untuk merender template. Ini bisa mencakup:
+
+- mengimpor komponen Astro lain
+- mengimpor komponen kerangka lain, seperti React
+- mengimpor data, misalnya file JSON
+- mengambil (fetch) konten dari API atau database
+- membuat variabel yang akan Anda gunakan di template
+
+```astro title="src/components/MyComponent.astro"
+---
+import SomeAstroComponent from '../components/SomeAstroComponent.astro';
+import SomeReactComponent from '../components/SomeReactComponent.jsx';
+import someData from '../data/pokemon.json';
+
+// Akses props yang diteruskan, seperti `<X title="Hello, World" />`
+const { title } = Astro.props;
+
+// Ambil data eksternal, bahkan dari API atau database privat
+const data = await fetch('SOME_SECRET_API_URL/users').then(r => r.json());
+---
+<!-- Template Anda di sini! -->
+```
+
+Pagar kode dirancang untuk menjamin JavaScript yang Anda tulis di dalamnya tetap “terpagar”. Kode tersebut tidak akan lolos ke aplikasi frontend Anda, atau jatuh ke tangan pengguna. Anda dapat menulis kode yang mahal atau sensitif (seperti memanggil database privat) dengan aman di sini tanpa khawatir berakhir di browser pengguna.
+
+:::note
+Script komponen Astro mendukung TypeScript, yang memungkinkan Anda menambahkan sintaks tambahan ke JavaScript untuk tooling editor dan pemeriksaan error.
+
+<ReadMore>Baca lebih lanjut tentang [dukungan TypeScript bawaan](/id/guides/typescript/).</ReadMore>
+:::
+
+### Template Komponen
+
+Template komponen berada di bawah pagar kode dan menentukan keluaran HTML dari komponen Anda.
+
+Jika Anda menulis HTML biasa di sini, komponen Anda akan merender HTML tersebut pada halaman Astro mana pun tempat ia diimpor dan digunakan.
+
+Namun, [sintaks template komponen Astro](/id/reference/astro-syntax/) juga mendukung **ekspresi JavaScript**, tag Astro [`<style>`](/id/guides/styling/#styling-in-astro) dan [`<script>`](/id/guides/client-side-scripts/), **komponen yang diimpor**, serta [**directive khusus Astro**](/id/reference/directives-reference/). Data dan nilai yang didefinisikan di script komponen dapat digunakan di template untuk menghasilkan HTML dinamis.
+
+```astro title="src/components/MyFavoritePokemon.astro"
+---
+// Script komponen Anda di sini!
+import Banner from '../components/Banner.astro';
+import Avatar from '../components/Avatar.astro';
+import ReactPokemonComponent from '../components/ReactPokemonComponent.jsx';
+const myFavoritePokemon = [/* ... */];
+const { title } = Astro.props;
+---
+<!-- Komentar HTML didukung! -->
+{/* Sintaks komentar JS juga valid! */}
+
+<Banner />
+<h1>Hello, world!</h1>
+
+<!-- Gunakan props dan variabel lain dari script komponen: -->
+<p>{title}</p>
+
+<!-- Tunda rendering komponen dan sediakan konten loading fallback: -->
+<Avatar server:defer>
+  <svg slot="fallback" class="generic-avatar" transition:name="avatar">...</svg>
+</Avatar>
+
+<!-- Sertakan komponen kerangka UI lain dengan directive `client:` untuk hydrate: -->
+<ReactPokemonComponent client:visible />
+
+<!-- Campur HTML dengan ekspresi JavaScript, mirip JSX: -->
+<ul>
+  {myFavoritePokemon.map((data) => <li>{data.name}</li>)}
+</ul>
+
+<!-- Gunakan directive template untuk membangun class name dari banyak string atau bahkan objek! -->
+<p class:list={["add", "dynamic", { classNames: true }]} />
+```
+
+## Desain Berbasis Komponen
+
+Komponen dirancang agar **dapat digunakan ulang** dan **dapat dikomposisi**. Anda dapat menggunakan komponen di dalam komponen lain untuk membangun UI yang makin canggih. Misalnya, komponen `Button` dapat digunakan untuk membuat komponen `ButtonGroup`:
+
+```astro title="src/components/ButtonGroup.astro"
+---
+import Button from './Button.astro';
+---
+<div>
+  <Button title="Button 1" />
+  <Button title="Button 2" />
+  <Button title="Button 3" />
+</div>
+```
+
+## Props Komponen
+
+Komponen Astro dapat mendefinisikan dan menerima props. Props ini kemudian tersedia bagi template komponen untuk merender HTML. Props tersedia pada global `Astro.props` di script frontmatter Anda.
+
+Berikut contoh komponen yang menerima prop `greeting` dan `name`. Perhatikan bahwa props yang diterima didestructure dari objek global `Astro.props`.
+
+```astro "Astro.props"
+---
+// src/components/GreetingHeadline.astro
+// Pemakaian: <GreetingHeadline greeting="Howdy" name="Partner" />
+const { greeting, name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+Komponen ini, ketika diimpor dan dirender di komponen Astro lain, layout, atau halaman, dapat menerima props ini sebagai atribut:
+
+```astro /(\w+)=\S+/
+---
+// src/components/GreetingCard.astro
+import GreetingHeadline from './GreetingHeadline.astro';
+const name = 'Astro';
+---
+<h1>Kartu Salam</h1>
+<GreetingHeadline greeting="Hi" name={name} />
+<p>Semoga harimu menyenangkan!</p>
+```
+
+Anda juga dapat mendeklarasikan props dengan TypeScript melalui interface tipe `Props`. Astro akan otomatis mendeteksi interface `Props` di frontmatter dan memberikan peringatan/error tipe. Props juga bisa diberi nilai default saat didestructure dari `Astro.props`.
+
+```astro ins={3-6}
+---
+// src/components/GreetingHeadline.astro
+interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting = "Hello", name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+Props komponen dapat diberi nilai default untuk digunakan ketika tidak ada nilai yang diteruskan.
+
+```astro ins="= \"Hello\"" ins="= \"Astronaut\""
+---
+// src/components/GreetingHeadline.astro
+const { greeting = "Hello", name = "Astronaut" } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+## Slot
+
+Elemen `<slot />` adalah placeholder untuk konten HTML eksternal, memungkinkan Anda menyisipkan (atau “men-slot”) elemen anak dari file lain ke dalam template komponen Anda.
+
+Secara bawaan, semua elemen anak yang diteruskan ke komponen akan dirender di `<slot />` miliknya.
+
+:::note
+Berbeda dengan _props_—atribut yang diteruskan ke komponen Astro dan tersedia di seluruh komponen lewat `Astro.props`—_slot_ merender elemen HTML anak di lokasi tempat slot ditulis.
+:::
+
+```astro "<slot />"
+---
+// src/components/Wrapper.astro
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props;
+---
+<div id="content-wrapper">
+  <Header />
+  <Logo />
+  <h1>{title}</h1>
+  <slot />  <!-- children akan ditempatkan di sini -->
+  <Footer />
+</div>
+```
+
+```astro {6-7}
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Halaman Fred">
+  <h2>Tentang Fred</h2>
+  <p>Berikut beberapa informasi tentang Fred.</p>
+</Wrapper>
+```
+
+Pola ini menjadi dasar [komponen layout Astro](/id/basics/layouts/): seluruh halaman HTML dapat “dibungkus” dengan tag `<SomeLayoutComponent></SomeLayoutComponent>` dan dikirim ke komponen untuk dirender di dalam elemen halaman umum yang didefinisikan di sana.
+
+<ReadMore>Lihat [fungsi utilitas `Astro.slots`](/id/reference/astro-syntax/#astroslots) untuk cara lain mengakses dan merender konten slot.</ReadMore>
+
+### Slot Bernama
+
+Komponen Astro juga dapat memiliki slot bernama. Ini memungkinkan Anda hanya meneruskan elemen HTML dengan nama slot yang sesuai ke lokasi slot tersebut.
+
+Slot dinamai menggunakan atribut `name`:
+
+```astro /<slot .*?/>/
+---
+// src/components/Wrapper.astro
+import Header from './Header.astro'];
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props;
+---
+<div id="content-wrapper">
+  <Header />
+  <!--  children dengan atribut `slot="after-header"` akan ditempatkan di sini -->
+  <slot name="after-header" />
+  <Logo />
+  <h1>{title}</h1>
+  <!--  children tanpa `slot`, atau dengan `slot="default"` akan ditempatkan di sini -->
+  <slot />
+  <Footer />
+  <!--  children dengan atribut `slot="after-footer"` akan ditempatkan di sini -->
+  <slot name="after-footer" />
+</div>
+```
+
+Untuk menyuntikkan konten HTML ke slot tertentu, gunakan atribut `slot` pada elemen anak untuk menentukan nama slot. Semua elemen anak lainnya akan dimasukkan ke `<slot />` (tanpa nama).
+
+```astro /slot=".*?"/
+---
+// src/pages/fred.astro
+import Wrapper from '../components/Wrapper.astro';
+---
+<Wrapper title="Halaman Fred">
+  <img src="https://my.photo/fred.jpg" slot="after-header" />
+  <h2>Tentang Fred</h2>
+  <p>Berikut beberapa informasi tentang Fred.</p>
+  <p slot="after-footer">Hak Cipta 2022</p>
+</Wrapper>
+```
+
+:::tip
+Gunakan atribut `slot="my-slot"` pada elemen anak yang ingin Anda teruskan ke placeholder `<slot name="my-slot" />` yang sesuai di komponen Anda.
+:::
+
+Untuk meneruskan beberapa elemen HTML ke placeholder `<slot/>` komponen tanpa membungkusnya dengan `<div>`, gunakan atribut `slot=""` pada [komponen `<Fragment/>` milik Astro](/id/reference/astro-syntax/#fragments):
+
+```astro title="src/components/CustomTable.astro" '<slot name="header" />' '<slot name="body" />'
+---
+// Buat tabel kustom dengan placeholder slot bernama untuk header dan body
+---
+<table class="bg-white">
+  <thead class="sticky top-0 bg-white"><slot name="header" /></thead>
+  <tbody class="[&_tr:nth-child(odd)]:bg-gray-100"><slot name="body" /></tbody>
+</table>
+```
+
+Suntikkan beberapa baris dan kolom konten HTML menggunakan atribut `slot=""` untuk menentukan konten `"header"` dan `"body"`. Elemen HTML individual juga bisa diberi gaya:
+
+```astro title="src/components/StockTable.astro" {5-7, 9-13} '<Fragment slot="header">' '<Fragment slot="body">' '</Fragment>'
+---
+import CustomTable from './CustomTable.astro';
+---
+<CustomTable>
+  <Fragment slot="header"> <!-- kirim header tabel -->
+    <tr><th>Nama produk</th><th>Unit stok</th></tr>
+  </Fragment>
+
+  <Fragment slot="body"> <!-- kirim body tabel -->
+    <tr><td>Sandal</td><td>64</td></tr>
+    <tr><td>Boots</td><td>32</td></tr>
+    <tr><td>Sepatu</td><td class="text-red-500">0</td></tr>
+  </Fragment>
+</CustomTable>
+```
+
+Perhatikan bahwa slot bernama harus menjadi anak langsung komponen. Anda tidak dapat meneruskan slot bernama melalui elemen bersarang.
+
+:::tip
+Slot bernama juga dapat diteruskan ke [komponen kerangka UI](/id/guides/framework-components/)!
+:::
+
+:::note
+Tidak mungkin membuat nama slot Astro secara dinamis (misalnya di dalam fungsi [map](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/map)). Jika fitur ini diperlukan di komponen kerangka UI, sebaiknya bangun slot dinamis tersebut di dalam kerangka tersebut.
+:::
+
+### Konten Fallback untuk Slot
+
+Slot juga dapat merender **konten fallback**. Ketika tidak ada anak yang cocok diteruskan ke slot, elemen `<slot />` akan merender anak placeholder miliknya.
+
+```astro {14}
+---
+// src/components/Wrapper.astro
+import Header from './Header.astro';
+import Logo from './Logo.astro';
+import Footer from './Footer.astro';
+
+const { title } = Astro.props;
+---
+<div id="content-wrapper">
+  <Header />
+  <Logo />
+  <h1>{title}</h1>
+  <slot>
+    <p>Ini konten fallback saya, jika tidak ada child yang diteruskan ke slot</p>
+  </slot>
+  <Footer />
+</div>
+```
+
+Konten fallback hanya akan ditampilkan ketika tidak ada elemen dengan atribut `slot="name"` yang diteruskan ke slot bernama.
+
+Astro akan meneruskan slot kosong ketika elemen slot ada tetapi tidak memiliki konten untuk diteruskan. Konten fallback tidak dapat digunakan sebagai default ketika slot kosong diteruskan. Konten fallback hanya ditampilkan ketika elemen slot tidak ditemukan.
+
+### Mentransfer slot
+
+Slot bisa ditransfer ke komponen lain. Misalnya, ketika membuat layout bersarang:
+
+```astro title="src/layouts/BaseLayout.astro" {9,12}
+---
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+    <slot name="head" />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+```astro {6,7}
+// src/layouts/HomeLayout.astro
+---
+import BaseLayout from './BaseLayout.astro';
+---
+<BaseLayout>
+  <slot name="head" slot="head" />
+  <slot />
+</BaseLayout>
+```
+
+:::note
+Slot bernama dapat ditransfer ke komponen lain dengan menggunakan atribut `name` dan `slot` pada tag `<slot />`.
+:::
+
+Sekarang, slot default dan `head` yang diteruskan ke `HomeLayout` akan ditransfer ke induknya, `BaseLayout`.
+
+```astro
+// src/pages/index.astro
+---
+import HomeLayout from '../layouts/HomeLayout.astro';
+---
+<HomeLayout>
+  <title slot="head">Astro</title>
+  <h1>Astro</h1>
+</HomeLayout>
+```
+
+## Komponen HTML
+
+Astro mendukung impor dan penggunaan file `.html` sebagai komponen atau menempatkan file-file ini di subdirektori `src/pages/` sebagai halaman. Anda mungkin ingin menggunakan komponen HTML jika Anda menggunakan ulang kode dari situs yang dibangun tanpa framework, atau jika Anda ingin memastikan komponen Anda tidak memiliki fitur dinamis.
+
+Komponen HTML harus hanya berisi HTML yang valid, dan karena itu tidak memiliki fitur komponen Astro yang penting:
+
+- Tidak mendukung frontmatter, impor sisi server, atau ekspresi dinamis.
+- Tag `<script>` apa pun dibiarkan tanpa dibundel, diperlakukan seperti memiliki [directive `is:inline`](/id/reference/directives-reference/#isinline). 
+- Hanya dapat [merujuk aset yang ada di folder `public/`](/id/basics/project-structure/#public).
+
+:::note
+Elemen [`<slot />`](/id/basics/astro-components/#slots) di dalam komponen HTML akan berfungsi seperti pada komponen Astro. Untuk menggunakan [elemen Slot Web Component HTML](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/slot), tambahkan `is:inline` ke elemen `<slot>` Anda.
+:::
+
+## Langkah Berikutnya
+
+<ReadMore>Baca lebih lanjut tentang penggunaan [komponen kerangka UI](/id/guides/framework-components/) di proyek Astro Anda.</ReadMore>

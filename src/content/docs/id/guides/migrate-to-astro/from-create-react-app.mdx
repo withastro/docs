@@ -1,0 +1,382 @@
+---
+title: Migrasi dari Create React App (CRA)
+description: Tips untuk memigrasikan proyek Create React App yang sudah ada ke Astro
+sidebar:
+  label: Create React App
+type: migration
+stub: true
+framework: Create React App
+i18nReady: true
+---
+import AstroJSXTabs from '~/components/tabs/AstroJSXTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import Badge from "~/components/Badge.astro"
+import { LinkCard, CardGrid } from '@astrojs/starlight/components';
+
+Integrasi [React untuk Astro](/id/guides/integrations-guide/react/) mendukung [penggunaan komponen React di dalam komponen Astro](/id/guides/framework-components/), termasuk aplikasi React utuh seperti Create React App (CRA)!
+
+```astro title="src/pages/index.astro"
+---
+// Impor komponen App root Anda
+import App from '../cra-project/App.jsx';
+---
+<!-- Gunakan direktif klien untuk memuat aplikasi Anda -->
+<App client:load />
+```
+
+<ReadMore>Lihat cara [Membangun Single Page Application (SPA) dengan Astro](https://logsnag.com/blog/react-spa-with-astro) <Badge text="External" /> menggunakan React Router.</ReadMore>
+
+Banyak aplikasi akan “langsung berjalan” sebagai aplikasi React penuh ketika Anda menambahkannya langsung ke proyek Astro dengan integrasi React terpasang. Ini adalah cara hebat untuk segera menjalankan proyek Anda dan menjaga aplikasi tetap fungsional sambil bermigrasi ke Astro.
+
+Seiring waktu, Anda dapat mengonversi struktur Anda sedikit demi sedikit menjadi kombinasi komponen `.astro` dan `.jsx`. Anda mungkin akan mendapati bahwa Anda membutuhkan lebih sedikit komponen React daripada yang Anda kira!
+
+Berikut beberapa konsep kunci dan strategi migrasi untuk membantu Anda memulai. Gunakan dokumentasi lainnya dan [komunitas Discord kami](https://astro.build/chat) untuk melanjutkan!
+
+## Persamaan Utama antara CRA dan Astro
+
+- [Sintaks file `.astro` mirip dengan JSX](/id/reference/astro-syntax/#differences-between-astro-and-jsx). Menulis Astro akan terasa familiar.
+
+- Astro menggunakan routing berbasis file, dan [mengizinkan penamaan halaman tertentu untuk membuat rute dinamis](/id/guides/routing/#dynamic-routes).
+
+- Astro [berbasis komponen](/id/basics/astro-components/), dan struktur markup Anda akan mirip sebelum dan sesudah migrasi.
+
+- Astro memiliki [integrasi resmi untuk React, Preact, dan Solid](/id/guides/integrations-guide/react/) sehingga Anda bisa menggunakan komponen JSX yang sudah ada. Perhatikan bahwa di Astro, berkas ini **harus** berekstensi `.jsx` atau `.tsx`.
+
+- Astro mendukung [memasang paket NPM](/id/guides/imports/#npm-packages), termasuk pustaka React. Banyak dependensi Anda saat ini akan berfungsi di Astro.
+
+## Perbedaan Utama antara CRA dan Astro
+
+Saat Anda membangun ulang situs CRA di Astro, Anda akan melihat beberapa perbedaan penting:
+
+- CRA adalah aplikasi satu halaman yang menggunakan `index.js` sebagai root proyek Anda. Astro adalah situs multi-halaman, dan `index.astro` adalah halaman beranda Anda.
+
+- [Komponen `.astro`](/id/basics/astro-components/) tidak ditulis sebagai fungsi yang diekspor yang mengembalikan templating halaman. Sebagai gantinya, Anda akan membagi kode menjadi “pagar kode” (code fence) untuk JavaScript dan sebuah body khusus untuk HTML yang Anda hasilkan.
+
+- [Berorientasi konten](/id/concepts/why-astro/#content-driven): Astro dirancang untuk menonjolkan konten Anda dan memungkinkan Anda memilih interaktivitas hanya saat diperlukan. Aplikasi CRA yang ada mungkin dibangun untuk interaktivitas sisi klien yang tinggi dan mungkin memerlukan teknik Astro lanjutan untuk menyertakan item yang lebih menantang untuk direplikasi menggunakan komponen `.astro`, seperti dasbor.
+
+## Tambahkan CRA Anda ke Astro
+
+Aplikasi yang sudah ada dapat dirender langsung di dalam proyek Astro baru, sering kali tanpa perubahan pada kode aplikasi Anda.
+
+### Buat proyek Astro baru
+
+Gunakan perintah `create astro` untuk manajer paket Anda guna menjalankan wizard CLI Astro dan pilih proyek Astro “kosong” yang baru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Tambahkan integrasi dan dependensi
+Tambahkan integrasi React menggunakan perintah `astro add` untuk manajer paket Anda. Jika aplikasi Anda menggunakan paket lain yang didukung oleh perintah `astro add`, seperti Tailwind dan MDX, Anda bisa menambahkannya sekaligus dalam satu perintah:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  npx astro add react tailwind mdx
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  pnpm astro add react tailwind mdx
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  yarn astro add react tailwind mdx
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Jika CRA Anda membutuhkan dependensi apa pun (misalnya paket NPM), instal satu per satu melalui command line atau tambahkan ke `package.json` proyek Astro baru Anda secara manual lalu jalankan perintah instalasi. Perhatikan bahwa banyak, tetapi tidak semua, dependensi React akan berfungsi di Astro. 
+
+### Tambahkan berkas aplikasi Anda yang ada
+
+Salin berkas dan folder sumber proyek Create React App (CRA) yang ada (misalnya `components`, `hooks`, `styles`, dll.) ke folder baru di dalam `src/`, pertahankan struktur berkasnya agar aplikasi Anda terus berfungsi. Perhatikan bahwa semua ekstensi berkas `.js` harus diubah menjadi `.jsx` atau `.tsx`.
+
+Jangan sertakan berkas konfigurasi apa pun. Anda akan menggunakan `astro.config.mjs`, `package.json`, dan `tsconfig.json` milik Astro.
+
+Pindahkan isi folder `public/` aplikasi Anda (misalnya aset statis) ke folder `public/` milik Astro.
+
+<FileTree>
+- public/
+  - logo.png
+  - favicon.ico
+  - ...
+- src/
+  - cra-project/
+    - App.jsx
+    - ...
+  - pages/
+    - index.astro
+- astro.config.mjs
+- package.json
+- tsconfig.json
+</FileTree>
+
+### Render aplikasi Anda
+
+Impor komponen root aplikasi Anda di bagian frontmatter `index.astro`, lalu render komponen `<App />` di template halaman Anda:
+
+```astro title="src/pages/index.astro"
+---
+import App from '../cra-project/App.jsx';
+---
+<App client:load />
+```
+
+:::note[Direktif klien]
+Aplikasi Anda memerlukan [direktif klien](/id/reference/directives-reference/#client-directives) untuk interaktivitas. Astro akan merender aplikasi React Anda sebagai HTML statis sampai Anda memilih untuk mengaktifkan JavaScript sisi klien.
+
+Gunakan `client:load` untuk memastikan aplikasi Anda dimuat segera dari server, atau `client:only="react"` untuk melewati rendering di server dan menjalankan aplikasi sepenuhnya di sisi klien.
+:::
+
+## Konversi CRA Anda ke Astro
+
+Setelah [menambahkan aplikasi yang ada ke Astro](#add-your-cra-to-astro), Anda mungkin ingin mengonversi aplikasi itu sendiri ke Astro!
+
+Anda akan mereplikasi desain berbasis komponen yang serupa [dengan menggunakan komponen templating HTML Astro untuk struktur dasar](/id/basics/astro-components/) sambil mengimpor dan menyertakan komponen React individual (yang bisa jadi merupakan aplikasi lengkap!) untuk “islands” interaktivitas.
+
+Setiap migrasi akan terlihat berbeda dan dapat dilakukan secara bertahap tanpa mengganggu aplikasi yang sedang berjalan. Konversikan bagian-bagian tertentu sesuai ritme Anda sendiri sehingga semakin banyak bagian aplikasi Anda yang ditenagai oleh komponen Astro seiring waktu.
+
+Saat Anda mengonversi aplikasi React, Anda akan memutuskan komponen React mana yang akan Anda [tulis ulang sebagai komponen Astro](#converting-jsx-files-to-astro-files). Satu-satunya batasan adalah bahwa komponen Astro dapat mengimpor komponen React, tetapi komponen React harus hanya mengimpor komponen React lainnya:
+
+```astro title="src/pages/static-components.astro" ins={2,7}
+---
+import MyReactComponent from '../components/MyReactComponent.jsx';
+---
+<html>
+  <body>
+    <h1>Gunakan komponen React langsung di Astro!</h1>
+    <MyReactComponent />
+  </body>
+</html>
+```
+
+Alih-alih mengimpor komponen Astro ke dalam komponen React, Anda bisa menaruh komponen React di dalam satu komponen Astro:
+
+```astro title="src/pages/nested-components.astro" {2,3,5,8,10}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+---
+<MyReactSidebar>
+  <p>Berikut adalah sidebar dengan sedikit teks dan sebuah tombol.</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+
+Anda mungkin merasa terbantu untuk mempelajari [Astro islands](/id/concepts/islands/) dan [komponen Astro](/id/basics/astro-components/) sebelum merestrukturisasi CRA Anda sebagai proyek Astro.
+
+### Perbandingan: JSX vs Astro
+
+Bandingkan komponen CRA berikut dan komponen Astro yang sesuai:
+
+<AstroJSXTabs>
+  <Fragment slot="jsx">
+    ```jsx title="StarCount.jsx"
+    import React, { useState, useEffect } from 'react';
+import Header from './Header';
+import Footer from './Footer';
+
+const Component = () => {
+    const [stars, setStars] = useState(0);
+    const [message, setMessage] = useState('');
+
+    useEffect(() => {
+        const fetchData = async () => {
+            const res = await fetch('https://api.github.com/repos/withastro/astro');
+            const json = await res.json();
+
+            setStars(json.stargazers_count || 0);
+            setMessage(json.message);
+        };
+
+        fetchData();
+    }, []);
+
+    return (
+        <>
+            <Header />
+            <p style={{
+                backgroundColor: `#f4f4f4`,
+                padding: `1em 1.5em`,
+                textAlign: `center`,
+                marginBottom: `1em`
+            }}>Astro memiliki {stars} 🧑‍🚀</p>
+            <Footer />
+        </>
+    )
+};
+
+export default Component;
+    ```
+  </Fragment>
+  <Fragment slot="astro">
+    ```astro title="StarCount.astro"
+    ---
+    import Header from './Header.astro';
+    import Footer from './Footer.astro';
+    import './layout.css';
+    const res = await fetch('https://api.github.com/repos/withastro/astro')
+    const json = await res.json();
+    const message = json.message;
+    const stars = json.stargazers_count || 0;
+    ---
+    <Header />
+    <p class="banner">Astro memiliki {stars} 🧑‍🚀</p>
+    <Footer />
+    <style>
+      .banner {
+        background-color: #f4f4f4; 
+        padding: 1em 1.5em;
+        text-align: center;
+        margin-bottom: 1em;
+      }
+    </style>
+    ```
+  </Fragment>
+</AstroJSXTabs>
+
+### Mengonversi berkas JSX menjadi berkas `.astro`
+
+Berikut beberapa kiat untuk mengonversi komponen `.js` CRA menjadi komponen `.astro`:
+
+1. Gunakan JSX yang dikembalikan oleh fungsi komponen CRA yang ada sebagai dasar template HTML Anda.
+
+2. Ubah [sintaks CRA atau JSX ke Astro](#reference-convert-cra-syntax-to-astro) atau ke standar web HTML. Ini termasuk `{children}` dan `className`, misalnya.
+
+3. Pindahkan JavaScript yang diperlukan, termasuk pernyataan impor, ke dalam [“pagar kode” (`---`)](/id/basics/astro-components/#the-component-script). Catatan: JavaScript untuk [merender konten secara kondisional](/id/reference/astro-syntax/#dynamic-html) sering kali ditulis langsung di dalam template HTML di Astro.
+
+4. Gunakan [`Astro.props`](/id/reference/api-reference/#props) untuk mengakses properti tambahan apa pun yang sebelumnya diteruskan ke fungsi CRA Anda.
+
+5. Putuskan apakah komponen yang diimpor juga perlu diubah ke Astro. Anda bisa mempertahankannya sebagai komponen React untuk saat ini, atau selamanya. Namun, pada akhirnya Anda mungkin ingin mengonversinya menjadi komponen `.astro`, terutama jika komponen tersebut tidak perlu interaktif!
+
+6. Ganti `useEffect()` dengan pernyataan impor atau [`import.meta.glob()`](/id/guides/imports/#importmetaglob) untuk menanyakan berkas lokal Anda. Gunakan `fetch()` untuk mengambil data eksternal.
+
+### Migrasi Pengujian
+
+Karena Astro menghasilkan HTML mentah, memungkinkan untuk menulis pengujian end-to-end menggunakan output langkah build. Pengujian end-to-end yang ditulis sebelumnya mungkin berfungsi langsung jika Anda mampu mencocokkan markup situs CRA Anda. Pustaka pengujian seperti Jest dan React Testing Library dapat diimpor dan digunakan di Astro untuk menguji komponen React Anda.
+
+Lihat [panduan pengujian](/id/guides/testing/) Astro untuk selengkapnya.
+
+## Referensi: Konversi Sintaks CRA ke Astro
+
+### Impor CRA ke Astro
+
+Perbarui [impor berkas](/id/guides/imports/) apa pun untuk merujuk ke jalur berkas relatif secara tepat. Ini dapat dilakukan menggunakan [alias impor](/id/guides/typescript/#import-aliases), atau dengan menuliskan jalur relatif secara penuh. 
+
+Perhatikan bahwa `.astro` dan beberapa jenis berkas lainnya harus diimpor dengan ekstensi berkas lengkapnya.
+
+```astro title="src/pages/authors/Fred.astro"
+---
+import Card from '../../components/Card.astro';
+---
+<Card />
+```
+
+### Properti Children CRA ke Astro
+
+Ubah setiap instance `{children}` menjadi `<slot />` Astro. Astro tidak perlu menerima `{children}` sebagai properti fungsi dan akan secara otomatis merender konten anak di `<slot />`.
+
+```astro title="src/components/MyComponent.astro" del={3-9} ins={11-13}
+---
+---
+export default function MyComponent(props) { 
+    return (
+      <div>
+        {props.children}
+      </div>
+    );  
+}
+
+<div>
+  <slot />
+</div>
+```
+
+Komponen React yang meneruskan beberapa set children dapat dimigrasikan ke komponen Astro menggunakan [slot bernama](/id/basics/astro-components/#named-slots).
+
+Lihat lebih lanjut tentang [penggunaan `<slot />` spesifik di Astro](/id/basics/astro-components/#slots).
+
+### Pengambilan Data CRA ke Astro
+
+Mengambil data di komponen Create React App mirip dengan Astro, dengan beberapa perbedaan kecil.
+
+Anda perlu menghapus setiap instance hook efek samping (`useEffect`) untuk diganti dengan `import.meta.glob()` atau `getCollection()`/`getEntry()` guna mengakses data dari berkas lain di sumber proyek Anda.
+
+Untuk [mengambil data jarak jauh](/id/guides/data-fetching/), gunakan `fetch()`.
+
+Permintaan data ini dibuat di frontmatter komponen Astro dan menggunakan top-level await.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+
+// Ambil semua entri `src/content/blog/`
+const allBlogPosts = await getCollection('blog');
+
+// Ambil semua entri `src/pages/posts/`
+const allPosts = Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));
+
+// Ambil data jarak jauh
+const response = await fetch('https://randomuser.me/api/');
+const data = await response.json();
+const randomUser = data.results[0];
+---
+```
+
+Lihat lebih lanjut tentang impor berkas lokal dengan [`import.meta.glob()`](/id/guides/imports/#importmetaglob), [query menggunakan Collections API](/id/guides/content-collections/#querying-collections) atau [mengambil data jarak jauh](/id/guides/data-fetching/).
+
+### Penataan Gaya CRA ke Astro
+
+Anda mungkin perlu mengganti [pustaka CSS-in-JS](https://github.com/withastro/astro/issues/4432) (misalnya styled-components) dengan opsi CSS lain yang tersedia di Astro.
+
+Jika perlu, konversi objek gaya inline (`style={{ fontWeight: "bold" }}`) menjadi atribut gaya inline HTML (`style="font-weight:bold;"`). Atau, gunakan [tag `<style>` Astro](/id/guides/styling/#styling-in-astro) untuk gaya CSS berskala komponen.
+
+```astro title="src/components/Card.astro" del={1} ins={2}
+<div style={{backgroundColor: `#f4f4f4`, padding: `1em`}}>{message}</div>
+<div style="background-color: #f4f4f4; padding: 1em;">{message}</div>
+```
+
+Tailwind didukung setelah memasang [plugin Vite Tailwind](/id/guides/styling/#tailwind). Tidak diperlukan perubahan pada kode Tailwind Anda yang sudah ada!
+
+Lihat lebih lanjut tentang [Styling di Astro](/id/guides/styling/).
+
+## Pemecahan Masalah
+
+CRA Anda mungkin “langsung berfungsi” di Astro! Namun, Anda kemungkinan perlu melakukan penyesuaian kecil untuk menduplikasi fungsionalitas dan/atau gaya aplikasi Anda saat ini.
+
+Jika Anda tidak menemukan jawabannya dalam dokumentasi ini, silakan kunjungi [Astro Discord](https://astro.build/chat) dan ajukan pertanyaan di forum dukungan kami!
+
+## Sumber Daya Komunitas
+
+<CardGrid>
+
+  <LinkCard title="Code Fix: The SIBA Website's Move from Create-React-App to Astro" href="https://brittanisavery.com/post/move-siba-to-astro"/>
+
+</CardGrid>
+
+:::note[Punya sumber untuk dibagikan?]
+Jika Anda menemukan (atau membuat!) video atau artikel blog yang bermanfaat tentang konversi Create React App ke Astro, [tambahkan ke daftar ini](https://github.com/withastro/docs/edit/main/src/content/docs/id/guides/migrate-to-astro/from-create-react-app.mdx)!
+:::

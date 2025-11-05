@@ -1,0 +1,160 @@
+---
+title: Sesi
+description: Berbagi data antar permintaan untuk halaman yang dirender sesuai permintaan.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+Sesi digunakan untuk berbagi data antar permintaan untuk [halaman yang dirender sesuai permintaan](/id/guides/on-demand-rendering/). 
+
+Berbeda dengan [`cookies`](/id/guides/on-demand-rendering/#cookies), sesi disimpan di server sehingga Anda dapat menyimpan data dalam jumlah lebih besar tanpa khawatir tentang batas ukuran atau masalah keamanan. Sesi berguna untuk menyimpan hal-hal seperti data pengguna, keranjang belanja, dan status formulir, serta bekerja tanpa JavaScript sisi klien:
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // Tidak diperlukan dengan output 'server'
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+## Mengonfigurasi sesi
+
+Sesi memerlukan driver penyimpanan untuk menyimpan data sesi. Adapter [Node](/id/guides/integrations-guide/node/#sessions), [Cloudflare](/id/guides/integrations-guide/cloudflare/#sessions), dan [Netlify](/id/guides/integrations-guide/netlify/#sessions) secara otomatis mengonfigurasi driver default untuk Anda, tetapi adapter lain saat ini mengharuskan Anda untuk [menentukan driver secara manual](/id/reference/configuration-reference/#sessiondriver). 
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+<ReadMore>
+  Lihat [opsi konfigurasi `session`](/id/reference/configuration-reference/#session-options) untuk detail lebih lanjut tentang penetapan driver penyimpanan, dan opsi lain yang dapat dikonfigurasi.
+</ReadMore>
+
+
+## Berinteraksi dengan data sesi
+
+Objek [`session`](/id/reference/api-reference/#session) memungkinkan Anda berinteraksi dengan status pengguna yang tersimpan (misalnya menambahkan item ke keranjang belanja) dan ID sesi (misalnya menghapus cookie ID sesi saat keluar). Objek ini dapat diakses sebagai `Astro.session` di komponen dan halaman Astro Anda serta sebagai objek `context.session` di endpoint API, middleware, dan actions.
+
+Sesi dibuat secara otomatis saat pertama kali digunakan dan dapat dibuat ulang kapan saja dengan [`session.regenerate()`](/id/reference/api-reference/#regenerate) atau dihancurkan dengan [`session.destroy()`](/id/reference/api-reference/#destroy).
+
+Untuk banyak kasus penggunaan, Anda hanya perlu menggunakan [`session.get()`](/id/reference/api-reference/#get) dan [`session.set()`](/id/reference/api-reference/#set). 
+
+<ReadMore>
+Lihat [referensi API Sessions](/id/reference/api-reference/#session) untuk detail lebih lanjut.
+</ReadMore>
+
+### Komponen dan halaman Astro
+
+Di komponen dan halaman `.astro`, Anda dapat mengakses objek sesi melalui objek global `Astro`. Misalnya, untuk menampilkan jumlah item di keranjang belanja:
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // Tidak diperlukan dengan output 'server'
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### Endpoint API
+
+Di endpoint API, objek sesi tersedia pada objek `context`. Misalnya, untuk menambahkan item ke keranjang belanja:
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+  const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### Actions
+
+Di actions, objek sesi tersedia pada objek `context`. Misalnya, untuk menambahkan item ke keranjang belanja:
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### Middleware
+
+:::note
+Sesi tidak didukung di edge middleware.
+:::
+
+Di middleware, objek sesi tersedia pada objek `context`. Misalnya, untuk menyetel waktu kunjungan terakhir di sesi:
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Tipe data sesi
+
+Secara default data sesi tidak bertipe (untyped), dan Anda dapat menyimpan data apa pun pada kunci apa pun. Nilai akan diserialisasi dan deserialisasi menggunakan [devalue](https://github.com/Rich-Harris/devalue), yang merupakan pustaka yang sama digunakan di content collections dan actions. Artinya tipe yang didukung sama, termasuk string, number, `Date`, `Map`, `Set`, `URL`, array, dan objek biasa.
+
+Anda juga dapat [mendefinisikan tipe TypeScript](/id/guides/typescript/#extending-global-types) untuk data sesi Anda dengan membuat file `src/env.d.ts` dan menambahkan deklarasi untuk tipe `App.SessionData`:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+Ini akan memungkinkan Anda mengakses data sesi dengan pemeriksaan tipe dan pelengkapan otomatis di editor Anda:
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+Ini hanya digunakan untuk pemeriksaan tipe dan tidak memengaruhi perilaku runtime sesi. Berhati-hatilah jika Anda mengubah tipe saat pengguna telah menyimpan data di sesi, karena ini dapat menyebabkan error pada saat runtime.
+:::

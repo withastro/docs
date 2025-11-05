@@ -1,0 +1,310 @@
+---
+title: Referensi ekspresi template
+i18nReady: true
+---
+
+Sintaks komponen Astro adalah superset dari HTML. Sintaks ini dirancang agar terasa familiar bagi siapa pun yang pernah menulis HTML atau JSX, dan menambahkan dukungan untuk menyertakan komponen serta ekspresi JavaScript.
+
+
+## Ekspresi mirip JSX
+
+Anda bisa mendefinisikan variabel JavaScript lokal di dalam skrip komponen frontmatter di antara dua pagar kode (`---`) pada sebuah komponen Astro. Lalu, Anda bisa menyuntikkan variabel-variabel ini ke dalam template HTML komponen menggunakan ekspresi mirip JSX!
+
+:::note[Dinamis vs reaktif]
+Dengan pendekatan ini, Anda dapat menyertakan nilai **dinamis** yang dihitung di frontmatter. Namun, setelah dimasukkan, nilai-nilai tersebut tidak **reaktif** dan tidak akan berubah. Komponen Astro adalah template yang hanya dijalankan sekali, saat langkah render.
+
+Lihat di bawah untuk lebih banyak contoh [perbedaan antara Astro dan JSX](#perbedaan-antara-astro-dan-jsx).
+:::
+
+### Variabel
+
+Variabel lokal bisa dimasukkan ke dalam HTML menggunakan sintaks kurung kurawal:
+
+```astro title="src/components/Variables.astro" "{name}"
+---
+const name = "Astro";
+---
+<div>
+  <h1>Hello {name}!</h1>  <!-- Outputs <h1>Hello Astro!</h1> -->
+</div>
+```
+
+### Atribut Dinamis
+
+Variabel lokal dapat digunakan di dalam kurung kurawal untuk mengisi nilai atribut baik pada elemen HTML maupun komponen:
+
+```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
+---
+const name = "Astro";
+---
+<h1 class={name}>Attribute expressions are supported</h1>
+
+<MyComponent templateLiteralNameAttribute={`MyNameIs${name}`} />
+```
+
+:::caution
+Atribut HTML akan dikonversi menjadi string, sehingga tidak memungkinkan untuk meneruskan fungsi dan objek ke elemen HTML.
+Sebagai contoh, Anda tidak dapat menetapkan event handler ke elemen HTML di dalam komponen Astro:
+
+```astro title="dont-do-this.astro"
+---
+function handleClick () {
+    console.log("button clicked!");
+}
+---
+<!-- ❌ This doesn't work! ❌ -->
+<button onClick={handleClick}>Nothing will happen when you click me!</button>
+```
+
+Sebagai gantinya, gunakan skrip sisi-klien untuk menambahkan event handler, seperti pada JavaScript murni (vanilla):
+
+```astro title="do-this-instead.astro"
+---
+---
+<button id="button">Click Me</button>
+<script>
+  function handleClick () {
+    console.log("button clicked!");
+  }
+  document.getElementById("button").addEventListener("click", handleClick);
+</script>
+```
+:::
+
+### HTML Dinamis
+
+Variabel lokal dapat digunakan dalam fungsi mirip JSX untuk menghasilkan elemen HTML secara dinamis:
+
+```astro title="src/components/DynamicHtml.astro" "{item}"
+---
+const items = ["Dog", "Cat", "Platypus"];
+---
+<ul>
+  {items.map((item) => (
+    <li>{item}</li>
+  ))}
+</ul>
+```
+
+Astro dapat menampilkan HTML secara kondisional menggunakan operator logika JSX dan ekspresi ternary.
+
+```astro title="src/components/ConditionalHtml.astro" "visible"
+---
+const visible = true;
+---
+{visible && <p>Show me!</p>}
+
+{visible ? <p>Show me!</p> : <p>Else show me!</p>}
+```
+
+### Tag Dinamis
+
+Anda juga bisa menggunakan tag dinamis dengan menetapkan nama tag HTML ke sebuah variabel atau dengan penugasan ulang impor komponen:
+
+```astro title="src/components/DynamicTags.astro" /Element|(?<!My)Component/
+---
+import MyComponent from "./MyComponent.astro";
+const Element = 'div'
+const Component = MyComponent;
+---
+<Element>Hello!</Element> <!-- renders as <div>Hello!</div> -->
+<Component /> <!-- renders as <MyComponent /> -->
+```
+
+Saat menggunakan tag dinamis:
+
+- **Nama variabel harus diawali huruf kapital.** Misalnya, gunakan `Element`, bukan `element`. Jika tidak, Astro akan mencoba merender nama variabel Anda sebagai tag HTML literal.
+
+- **Direktif hidrasi tidak didukung.** Saat menggunakan [direktif hidrasi `client:*`](/id/guides/framework-components/#hydrating-interactive-components), Astro perlu mengetahui komponen mana yang harus dibundel untuk produksi, dan pola tag dinamis menghalangi hal ini.
+
+- **[Direktif define:vars](/id/reference/directives-reference/#definevars) tidak didukung.** Jika Anda tidak dapat membungkus anak (children) dengan elemen tambahan (mis. `<div>`), maka Anda bisa menambahkan secara manual ``style={`--myVar:${value}`}`` ke Element Anda.
+
+### Fragmen
+
+Astro mendukung notasi `<> </>` dan juga menyediakan komponen bawaan `<Fragment />`. Komponen ini berguna untuk menghindari elemen pembungkus saat menambahkan direktif [`set:*`](/id/reference/directives-reference/#sethtml) untuk menyisipkan string HTML.
+
+Contoh berikut merender teks paragraf menggunakan komponen `<Fragment />`:
+
+```astro title="src/components/SetHtml.astro" "Fragment"
+---
+const htmlString = '<p>Raw HTML content</p>';
+---
+<Fragment set:html={htmlString} />
+```
+
+### Perbedaan antara Astro dan JSX
+
+Sintaks komponen Astro adalah superset dari HTML. Sintaks ini dirancang untuk terasa familiar bagi siapa pun yang pernah menggunakan HTML atau JSX, tetapi ada beberapa perbedaan penting antara berkas `.astro` dan JSX.
+
+#### Atribut
+
+Di Astro, Anda menggunakan format `kebab-case` standar untuk semua atribut HTML alih-alih `camelCase` seperti di JSX. Ini bahkan berlaku untuk `class`, yang tidak didukung oleh React.
+
+```jsx del={1} ins={2} title="example.astro"
+<div className="box" dataValue="3" />
+<div class="box" data-value="3" />
+```
+
+#### Banyak Elemen
+
+Template komponen Astro bisa merender banyak elemen tanpa perlu membungkus semuanya dalam satu `<div>` atau `<>`, berbeda dengan JavaScript atau JSX.
+
+```astro title="src/components/RootElements.astro"
+---
+// Template dengan banyak elemen
+---
+<p>Tidak perlu membungkus elemen dalam satu elemen induk.</p>
+<p>Astro mendukung beberapa elemen root dalam sebuah template.</p>
+```
+
+#### Komentar
+
+Di Astro, Anda dapat menggunakan komentar HTML standar atau komentar bergaya JavaScript.
+
+```astro title="example.astro"
+---
+---
+<!-- Sintaks komentar HTML valid di berkas .astro -->
+{/* Sintaks komentar JS juga valid */}
+```
+
+:::caution
+Komentar bergaya HTML akan ikut dimasukkan ke DOM browser, sedangkan komentar JS akan di-skip. Untuk meninggalkan catatan TODO atau penjelasan khusus pengembangan, Anda mungkin lebih ingin menggunakan komentar bergaya JavaScript.
+:::
+
+
+## Utilitas komponen
+
+### `Astro.slots`
+
+`Astro.slots` berisi fungsi-fungsi utilitas untuk memodifikasi konten anak (slotted children) sebuah komponen Astro.
+
+#### `Astro.slots.has()`
+
+<p>
+
+**Tipe:** `(slotName: string) => boolean`
+</p>
+
+Anda dapat memeriksa apakah ada konten untuk nama slot tertentu dengan `Astro.slots.has()`. Ini berguna saat Anda ingin membungkus konten slot tetapi hanya merender elemen pembungkus jika slot tersebut digunakan.
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**Tipe:** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+Anda dapat merender konten sebuah slot secara asinkron menjadi string HTML menggunakan `Astro.slots.render()`.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+Ini untuk kasus penggunaan tingkat lanjut! Dalam kebanyakan situasi, lebih sederhana untuk merender konten slot dengan [elemen `<slot />`](/id/basics/astro-components/#slots).
+:::
+
+`Astro.slots.render()` secara opsional menerima argumen kedua: sebuah array parameter yang akan diteruskan ke fungsi-children apa pun. Ini berguna untuk komponen utilitas kustom.
+
+Sebagai contoh, komponen `<Shout />` berikut mengubah properti `message` menjadi huruf besar semua dan meneruskannya ke slot default:
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+Sebuah fungsi callback yang diteruskan sebagai child `<Shout />` akan menerima parameter `message` versi huruf besar semua:
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- renders as <div>SLOTS!</div> -->
+```
+
+Fungsi callback dapat diteruskan ke slot bernama di dalam sebuah tag elemen pembungkus HTML dengan atribut `slot`. Elemen ini hanya digunakan untuk mentransfer callback ke slot bernama dan tidak akan dirender ke halaman.
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+Gunakan elemen HTML standar untuk tag pembungkus atau tag huruf kecil apa pun (mis. `<fragment>` alih-alih `<Fragment />`) agar tidak ditafsirkan sebagai komponen. Jangan gunakan elemen HTML `<slot>` karena ini akan ditafsirkan sebagai slot Astro.
+
+### `Astro.self`
+
+`Astro.self` memungkinkan komponen Astro dipanggil secara rekursif. Perilaku ini memungkinkan Anda merender sebuah komponen Astro dari dirinya sendiri dengan menggunakan `<Astro.self>` di template komponen. Ini membantu mengiterasi data besar dan struktur data bertingkat.
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- Jika ada struktur data bersarang kita merender `<Astro.self>` -->
+      <!-- dan dapat meneruskan props melalui pemanggilan rekursif -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+Komponen ini kemudian dapat digunakan seperti ini:
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+Dan akan merender HTML seperti ini:
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```

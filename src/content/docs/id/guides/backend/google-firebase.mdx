@@ -1,0 +1,933 @@
+---
+title: Firebase & Astro
+description: Tambahkan backend ke proyek Anda dengan Firebase
+sidebar:
+  label: Firebase
+  hidden: false
+type: backend
+service: Firebase
+stub: false
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { FileTree } from '@astrojs/starlight/components';
+
+
+[Firebase](https://firebase.google.com/) adalah platform pengembangan aplikasi yang menyediakan database NoSQL, autentikasi, langganan realtime, fungsi, dan penyimpanan. 
+
+Lihat panduan terpisah kami untuk [deploy ke Firebase Hosting](/id/guides/deploy/google-firebase/).
+
+## Inisialisasi Firebase di Astro
+
+### Prasyarat
+
+- [Proyek Firebase dengan aplikasi web yang sudah dikonfigurasi](https://firebase.google.com/docs/web/setup).
+- Proyek Astro dengan [`output: 'server'` untuk on-demand rendering](/id/guides/on-demand-rendering/) diaktifkan.
+- Kredensial Firebase: Anda memerlukan dua set kredensial untuk menghubungkan Astro ke Firebase:
+  - Kredensial aplikasi web: Kredensial ini akan digunakan oleh sisi klien aplikasi Anda. Anda dapat menemukannya di konsol Firebase pada *Project settings > General*. Gulir ke bagian **Your apps** dan klik ikon **Web app**.
+  - Kredensial proyek: Kredensial ini akan digunakan oleh sisi server aplikasi Anda. Anda dapat membuatnya di konsol Firebase pada *Project settings > Service accounts > Firebase Admin SDK > Generate new private key*.
+
+### Menambahkan kredensial Firebase
+
+Untuk menambahkan kredensial Firebase ke Astro, buat berkas `.env` di root proyek Anda dengan variabel berikut:
+
+```ini title=".env"
+FIREBASE_PRIVATE_KEY_ID=YOUR_PRIVATE_KEY_ID
+FIREBASE_PRIVATE_KEY=YOUR_PRIVATE_KEY
+FIREBASE_PROJECT_ID=YOUR_PROJECT_ID
+FIREBASE_CLIENT_EMAIL=YOUR_CLIENT_EMAIL
+FIREBASE_CLIENT_ID=YOUR_CLIENT_ID
+FIREBASE_AUTH_URI=YOUR_AUTH_URI
+FIREBASE_TOKEN_URI=YOUR_TOKEN_URI
+FIREBASE_AUTH_CERT_URL=YOUR_AUTH_CERT_URL
+FIREBASE_CLIENT_CERT_URL=YOUR_CLIENT_CERT_URL
+```
+
+Sekarang, variabel environment ini tersedia untuk digunakan di proyek Anda. 
+
+Jika Anda ingin mendapatkan IntelliSense untuk variabel environment Firebase, edit atau buat berkas `env.d.ts` di direktori `src/` dan konfigurasikan tipe-nya:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly FIREBASE_PRIVATE_KEY_ID: string;
+  readonly FIREBASE_PRIVATE_KEY: string;
+  readonly FIREBASE_PROJECT_ID: string;
+  readonly FIREBASE_CLIENT_EMAIL: string;
+  readonly FIREBASE_CLIENT_ID: string;
+  readonly FIREBASE_AUTH_URI: string;
+  readonly FIREBASE_TOKEN_URI: string;
+  readonly FIREBASE_AUTH_CERT_URL: string
+  readonly FIREBASE_CLIENT_CERT_URL: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+:::tip
+Baca selengkapnya tentang [variabel environment](/id/guides/environment-variables/) dan berkas `.env` di Astro.
+:::
+
+Proyek Anda sekarang seharusnya menyertakan berkas baru berikut ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+
+### Menginstal dependensi
+
+Untuk menghubungkan Astro dengan Firebase, instal paket-paket berikut menggunakan satu perintah di bawah ini sesuai manajer paket pilihan Anda:
+
+- `firebase` - Firebase SDK untuk sisi klien
+- `firebase-admin` - Firebase Admin SDK untuk sisi server
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add firebase firebase-admin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add firebase firebase-admin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Selanjutnya, buat folder bernama `firebase` di direktori `src/` dan tambahkan dua berkas baru ke folder ini: `client.ts` dan `server.ts`.
+
+Di `client.ts`, tambahkan kode berikut untuk menginisialisasi Firebase di klien menggunakan kredensial aplikasi web Anda dan paket `firebase`:
+
+```ts title="src/firebase/client.ts"
+import { initializeApp } from "firebase/app";
+
+const firebaseConfig = {
+  apiKey: "my-public-api-key",
+  authDomain: "my-auth-domain",
+  projectId: "my-project-id",
+  storageBucket: "my-storage-bucket",
+  messagingSenderId: "my-sender-id",
+  appId: "my-app-id",
+};
+
+export const app = initializeApp(firebaseConfig);
+```
+
+:::note
+Ingat untuk mengganti objek `firebaseConfig` dengan kredensial aplikasi web Anda sendiri.
+:::
+
+Di `server.ts`, tambahkan kode berikut untuk menginisialisasi Firebase di server menggunakan kredensial proyek Anda dan paket `firebase-admin`:
+
+```ts title="src/firebase/server.ts"
+import type { ServiceAccount } from "firebase-admin";
+import { initializeApp, cert, getApps } from "firebase-admin/app";
+
+const activeApps = getApps();
+const serviceAccount = {
+  type: "service_account",
+  project_id: import.meta.env.FIREBASE_PROJECT_ID,
+  private_key_id: import.meta.env.FIREBASE_PRIVATE_KEY_ID,
+  private_key: import.meta.env.FIREBASE_PRIVATE_KEY,
+  client_email: import.meta.env.FIREBASE_CLIENT_EMAIL,
+  client_id: import.meta.env.FIREBASE_CLIENT_ID,
+  auth_uri: import.meta.env.FIREBASE_AUTH_URI,
+  token_uri: import.meta.env.FIREBASE_TOKEN_URI,
+  auth_provider_x509_cert_url: import.meta.env.FIREBASE_AUTH_CERT_URL,
+  client_x509_cert_url: import.meta.env.FIREBASE_CLIENT_CERT_URL,
+};
+
+const initApp = () => {
+  if (import.meta.env.PROD) {
+    console.info('PROD env detected. Using default service account.')
+    // Use default config in firebase functions. Should be already injected in the server by Firebase.
+    return initializeApp()
+  }
+  console.info('Loading service account from env.')
+  return initializeApp({
+    credential: cert(serviceAccount as ServiceAccount)
+  })
+}
+
+export const app = activeApps.length === 0 ? initApp() : activeApps[0];
+```
+
+:::note
+Ingat untuk mengganti objek `serviceAccount` dengan kredensial proyek Anda sendiri.
+:::
+
+Terakhir, proyek Anda sekarang seharusnya menyertakan berkas baru berikut ini:
+
+<FileTree title="Struktur Proyek">
+- src
+  - env.d.ts
+  - firebase
+    - **client.ts**
+    - **server.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Menambahkan autentikasi dengan Firebase
+
+### Prasyarat
+
+- Proyek Astro yang [sudah diinisialisasi dengan Firebase](#initializing-firebase-in-astro).
+- Proyek Firebase dengan autentikasi email/password diaktifkan di konsol Firebase pada *Authentication > Sign-in method*.
+
+### Membuat endpoint server autentikasi
+
+Autentikasi Firebase di Astro memerlukan tiga [endpoint server Astro](/id/guides/endpoints/):
+
+- `GET /api/auth/signin` - untuk masuk pengguna
+- `GET /api/auth/signout` - untuk keluar pengguna
+- `POST /api/auth/register` - untuk mendaftarkan pengguna
+
+Buat tiga endpoint terkait autentikasi di direktori baru `src/pages/api/auth/`: `signin.ts`, `signout.ts`, dan `register.ts`.
+
+`signin.ts` berisi kode untuk masuk pengguna menggunakan Firebase:
+
+```ts title="src/pages/api/auth/signin.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+
+export const GET: APIRoute = async ({ request, cookies, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Get token from request headers */
+  const idToken = request.headers.get("Authorization")?.split("Bearer ")[1];
+  if (!idToken) {
+    return new Response(
+      "No token found",
+      { status: 401 }
+    );
+  }
+
+  /* Verify id token */
+  try {
+    await auth.verifyIdToken(idToken);
+  } catch (error) {
+    return new Response(
+      "Invalid token",
+      { status: 401 }
+    );
+  }
+
+  /* Create and set session cookie */
+  const fiveDays = 60 * 60 * 24 * 5 * 1000;
+  const sessionCookie = await auth.createSessionCookie(idToken, {
+    expiresIn: fiveDays,
+  });
+
+  cookies.set("__session", sessionCookie, {
+    path: "/",
+  });
+
+  return redirect("/dashboard");
+};
+```
+
+:::caution
+Firebase hanya mengizinkan penggunaan [satu cookie, dan harus bernama `__session`](https://firebase.google.com/docs/hosting/manage-cache#using_cookies). Cookie lain yang dikirim klien tidak akan terlihat oleh aplikasi Anda.
+:::
+
+:::note
+Ini adalah implementasi dasar endpoint signin. Anda dapat menambahkan lebih banyak logika sesuai kebutuhan.
+:::
+
+`signout.ts` berisi kode untuk logout dengan menghapus cookie sesi:
+
+```ts title="src/pages/api/auth/signout.ts"
+import type { APIRoute } from "astro";
+
+export const GET: APIRoute = async ({ redirect, cookies }) => {
+  cookies.delete("__session", {
+    path: "/",
+  });
+  return redirect("/signin");
+};
+```
+
+:::note
+Ini adalah implementasi dasar endpoint signout. Anda dapat menambahkan lebih banyak logika sesuai kebutuhan.
+:::
+
+`register.ts` berisi kode untuk mendaftarkan pengguna menggunakan Firebase:
+
+```ts title="src/pages/api/auth/register.ts"
+import type { APIRoute } from "astro";
+import { getAuth } from "firebase-admin/auth";
+import { app } from "../../../firebase/server";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const auth = getAuth(app);
+
+  /* Get form data */
+  const formData = await request.formData();
+  const email = formData.get("email")?.toString();
+  const password = formData.get("password")?.toString();
+  const name = formData.get("name")?.toString();
+
+  if (!email || !password || !name) {
+    return new Response(
+      "Missing form data",
+      { status: 400 }
+    );
+  }
+
+  /* Create user */
+  try {
+    await auth.createUser({
+      email,
+      password,
+      displayName: name,
+    });
+  } catch (error: any) {
+    return new Response(
+      "Something went wrong",
+      { status: 400 }
+    );
+  }
+  return redirect("/signin");
+};
+```
+
+:::note
+Ini adalah implementasi dasar endpoint register. Anda dapat menambahkan lebih banyak logika sesuai kebutuhan.
+:::
+
+Setelah membuat endpoint server untuk autentikasi, struktur direktori proyek Anda sekarang akan menyertakan berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - auth
+        - **signin.ts**
+        - **signout.ts**
+        - **register.ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Membuat halaman
+
+Buat halaman yang akan menggunakan endpoint Firebase:
+
+- `src/pages/register` - berisi formulir untuk mendaftarkan pengguna
+- `src/pages/signin` - berisi formulir untuk masuk pengguna
+- `src/pages/dashboard` - berisi dasbor yang hanya bisa diakses oleh pengguna yang terautentikasi
+
+Contoh `src/pages/register.astro` di bawah ini menyertakan formulir yang akan mengirim permintaan `POST` ke endpoint `/api/auth/register`. Endpoint ini akan membuat pengguna baru menggunakan data dari formulir dan kemudian mengarahkan pengguna ke halaman `/signin`.
+
+```astro title="src/pages/register.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Register">
+  <h1>Register</h1>
+  <p>Already have an account? <a href="/signin">Sign in</a></p>
+  <form action="/api/auth/register" method="post">
+    <label for="name">Name</label>
+    <input type="text" name="name" id="name" />
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+```
+
+`src/pages/signin.astro` menggunakan aplikasi server Firebase untuk memverifikasi cookie sesi pengguna. Jika pengguna terautentikasi, halaman akan mengarahkan ke `/dashboard`.
+
+Contoh halaman di bawah ini menyertakan formulir yang akan mengirim permintaan `POST` ke endpoint `/api/auth/signin` dengan ID token yang dihasilkan oleh aplikasi klien Firebase.
+
+Endpoint akan memverifikasi ID token dan membuat cookie sesi baru untuk pengguna. Kemudian, endpoint akan mengarahkan pengguna ke halaman `/dashboard`.
+
+```astro title="src/pages/signin.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* Check if the user is authenticated */
+const auth = getAuth(app);
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session")!.value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  // This will prevent the browser from storing session data
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+`src/pages/dashboard.astro` akan memverifikasi cookie sesi pengguna menggunakan aplikasi server Firebase. Jika pengguna tidak terautentikasi, halaman akan mengarahkan ke `/signin`.
+
+Contoh halaman di bawah ini menampilkan nama pengguna dan tombol untuk keluar. Mengklik tombol akan mengirim permintaan `GET` ke endpoint `/api/auth/signout`.
+
+Endpoint akan menghapus cookie sesi pengguna dan mengarahkan ke halaman `/signin`.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+const auth = getAuth(app);
+
+/* Check current session */
+if (!Astro.cookies.has("__session")) {
+  return Astro.redirect("/signin");
+}
+const sessionCookie = Astro.cookies.get("__session")!.value;
+const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+const user = await auth.getUser(decodedCookie.uid);
+
+if (!user) {
+  return Astro.redirect("/signin");
+}
+---
+
+<Layout title="dashboard">
+  <h1>Welcome {user.displayName}</h1>
+  <p>We are happy to see you here</p>
+  <form action="/api/auth/signout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>
+```
+
+### Menambahkan penyedia OAuth
+
+Untuk menambahkan penyedia OAuth ke aplikasi Anda, Anda perlu mengaktifkannya di konsol Firebase. 
+
+Di konsol Firebase, buka bagian **Authentication** dan klik tab **Sign-in method**. Lalu, klik tombol **Add a new provider** dan aktifkan penyedia yang ingin Anda gunakan.
+
+Contoh di bawah menggunakan penyedia **Google**.
+
+Edit halaman `signin.astro` untuk menambahkan:
+- sebuah tombol untuk masuk dengan Google di bawah formulir yang sudah ada
+- event listener pada tombol untuk menangani proses masuk di `<script>` yang sudah ada.
+
+```astro title="src/pages/signin.astro" ins={27, 34, 35, 69-83}
+---
+import { app } from "../firebase/server";
+import { getAuth } from "firebase-admin/auth";
+import Layout from "../layouts/Layout.astro";
+
+/* Check if the user is authenticated */
+const auth = getAuth(app);
+if (Astro.cookies.has("__session")) {
+  const sessionCookie = Astro.cookies.get("__session")!.value;
+  const decodedCookie = await auth.verifySessionCookie(sessionCookie);
+  if (decodedCookie) {
+    return Astro.redirect("/dashboard");
+  }
+}
+---
+
+<Layout title="Sign in">
+  <h1>Sign in</h1>
+  <p>New here? <a href="/register">Create an account</a></p>
+  <form action="/api/auth/signin" method="post">
+    <label for="email" for="email">Email</label>
+    <input type="email" name="email" id="email" />
+    <label for="password">Password</label>
+    <input type="password" name="password" id="password" />
+    <button type="submit">Login</button>
+  </form>
+  <button id="google">Sign in with Google</button>
+</Layout>
+<script>
+  import {
+    getAuth,
+    inMemoryPersistence,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
+    signInWithPopup,
+  } from "firebase/auth";
+  import { app } from "../firebase/client";
+
+  const auth = getAuth(app);
+  auth.setPersistence(inMemoryPersistence);
+
+  const form = document.querySelector("form") as HTMLFormElement;
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const formData = new FormData(form);
+    const email = formData.get("email")?.toString();
+    const password = formData.get("password")?.toString();
+
+    if (!email || !password) {
+      return;
+    }
+    const userCredential = await signInWithEmailAndPassword(
+      auth,
+      email,
+      password
+    );
+    const idToken = await userCredential.user.getIdToken();
+    const response = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+
+  const googleSignin = document.querySelector("#google") as HTMLButtonElement;
+  googleSignin.addEventListener("click", async () => {
+    const provider = new GoogleAuthProvider();
+    const userCredential = await signInWithPopup(auth, provider);
+    const idToken = await userCredential.user.getIdToken();
+    const res = await fetch("/api/auth/signin", {
+      headers: {
+        Authorization: `Bearer ${idToken}`,
+      },
+    });
+
+    if (res.redirected) {
+      window.location.assign(res.url);
+    }
+  });
+</script>
+```
+
+Saat diklik, tombol masuk Google akan membuka jendela popup untuk masuk dengan Google. Setelah pengguna masuk, tombol tersebut akan mengirim permintaan `POST` ke endpoint `/api/auth/signin` dengan ID token yang dihasilkan oleh penyedia OAuth. 
+
+Endpoint akan memverifikasi ID token dan membuat cookie sesi baru untuk pengguna. Kemudian, endpoint akan mengarahkan pengguna ke halaman `/dashboard`.
+
+## Menghubungkan ke database Firestore
+
+### Prasyarat
+
+- Proyek Astro yang sudah diinisialisasi dengan Firebase seperti dijelaskan pada bagian [Inisialisasi Firebase di Astro](#initializing-firebase-in-astro).
+
+- Proyek Firebase dengan database Firestore. Anda dapat mengikuti [dokumentasi Firebase untuk membuat proyek baru dan menyiapkan database Firestore](https://firebase.google.com/docs/firestore/quickstart). 
+
+Dalam resep ini, koleksi Firestore akan bernama **friends** dan berisi dokumen dengan field berikut:
+
+- `id`: dibuat otomatis oleh Firestore
+- `name`: field string
+- `age`: field number
+- `isBestFriend`: field boolean
+
+### Membuat endpoint server
+
+Buat dua berkas baru di direktori `src/pages/api/friends/`: `index.ts` dan `[id].ts`. Ini akan membuat dua endpoint server untuk berinteraksi dengan database Firestore sebagai berikut:
+
+- `POST /api/friends`: membuat dokumen baru di koleksi friends.
+- `POST /api/friends/:id`: memperbarui dokumen di koleksi friends.
+- `DELETE /api/friends/:id`: menghapus dokumen di koleksi friends.
+
+`index.ts` akan berisi kode untuk membuat dokumen baru di koleksi friends:
+
+```ts title="src/pages/api/friends/index.ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+export const POST: APIRoute = async ({ request, redirect }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+  try {
+    const db = getFirestore(app);
+    const friendsRef = db.collection("friends");
+    await friendsRef.add({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Ini adalah implementasi dasar endpoint `friends`. Anda dapat menambahkan lebih banyak logika sesuai kebutuhan.
+:::
+
+`[id].ts` akan berisi kode untuk memperbarui dan menghapus dokumen di koleksi friends:
+
+```ts title="src/pages/api/friends/[id].ts"
+import type { APIRoute } from "astro";
+import { app } from "../../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+
+export const POST: APIRoute = async ({ params, redirect, request }) => {
+  const formData = await request.formData();
+  const name = formData.get("name")?.toString();
+  const age = formData.get("age")?.toString();
+  const isBestFriend = formData.get("isBestFriend") === "on";
+
+  if (!name || !age) {
+    return new Response("Missing required fields", {
+      status: 400,
+    });
+  }
+
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).update({
+      name,
+      age: parseInt(age),
+      isBestFriend,
+    });
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+
+export const DELETE: APIRoute = async ({ params, redirect }) => {
+  if (!params.id) {
+    return new Response("Cannot find friend", {
+      status: 404,
+    });
+  }
+
+  try {
+    await friendsRef.doc(params.id).delete();
+  } catch (error) {
+    return new Response("Something went wrong", {
+      status: 500,
+    });
+  }
+  return redirect("/dashboard");
+};
+```
+
+:::note
+Ini adalah implementasi dasar endpoint `friends/:id`. Anda dapat menambahkan lebih banyak logika sesuai kebutuhan.
+:::
+
+Setelah membuat endpoint server untuk Firestore, struktur direktori proyek Anda sekarang akan menyertakan berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - api
+      - friends
+        - **index.ts**
+        - **[id].ts**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Membuat halaman
+
+Buat halaman yang akan menggunakan endpoint Firestore:
+
+- `src/pages/add.astro` - berisi formulir untuk menambahkan teman baru.
+- `src/pages/edit/[id].astro` - berisi formulir untuk mengedit teman dan tombol untuk menghapus teman.
+- `src/pages/friend/[id].astro` - berisi detail seorang teman.
+- `src/pages/dashboard.astro` - menampilkan daftar teman.
+
+#### Menambahkan data baru
+
+Contoh `src/pages/add.astro` di bawah ini menyertakan formulir yang akan mengirim permintaan `POST` ke endpoint `/api/friends`. Endpoint ini akan membuat teman baru menggunakan data dari formulir dan kemudian akan mengarahkan pengguna ke halaman `/dashboard`.
+
+```astro title="src/pages/add.astro"
+---
+import Layout from "../layouts/Layout.astro";
+---
+
+<Layout title="Add a new friend">
+  <h1>Add a new friend</h1>
+  <form method="post" action="/api/friends">
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" />
+    <label for="isBestFriend">Is best friend?</label>
+    <input type="checkbox" id="isBestFriend" name="isBestFriend" />
+    <button type="submit">Add friend</button>
+  </form>
+</Layout>
+```
+
+#### Mengedit atau Menghapus data
+
+`src/pages/edit/[id].astro` berisi formulir untuk mengedit data teman dan tombol untuk menghapus. Saat submit, halaman ini akan mengirim permintaan `POST` ke endpoint `/api/friends/:id` untuk memperbarui data teman. 
+
+Jika pengguna mengklik tombol hapus, halaman ini akan mengirim permintaan `DELETE` ke endpoint `/api/friends/:id` untuk menghapus teman.
+
+```astro title="src/pages/edit/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title="Edit {friend.name}">
+  <h1>Edit {friend.name}</h1>
+  <p>Here you can edit or delete your friend's data.</p>
+  <form method="post" action={`/api/friends/${id}`}>
+    <label for="name">Name</label>
+    <input type="text" id="name" name="name" value={friend.name} />
+    <label for="age">Age</label>
+    <input type="number" id="age" name="age" value={friend.age} />
+    <label for="isBestFriend">Is best friend?</label>
+    <input
+      type="checkbox"
+      id="isBestFriend"
+      name="isBestFriend"
+      checked={friend.isBestFriend}
+    />
+    <button type="submit">Edit friend</button>
+  </form>
+  <button type="button" id="delete-document">Delete</button>
+</Layout>
+<script>
+  const deleteButton = document.getElementById(
+    "delete-document"
+  ) as HTMLButtonElement;
+  const url = document.querySelector("form")?.getAttribute("action") as string;
+  deleteButton.addEventListener("click", async () => {
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    if (response.redirected) {
+      window.location.assign(response.url);
+    }
+  });
+</script>
+```
+
+#### Menampilkan satu data
+
+`src/pages/friend/[id].astro` akan menampilkan detail seorang teman.
+
+```astro title="src/pages/friend/[id].astro"
+---
+import Layout from "../../layouts/Layout.astro";
+import { app } from "../../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+
+interface Friend {
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect("/404");
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendSnapshot = await friendsRef.doc(id).get();
+
+if (!friendSnapshot.exists) {
+  return Astro.redirect("/404");
+}
+
+const friend = friendSnapshot.data() as Friend;
+---
+
+<Layout title={friend.name}>
+  <h1>{friend.name}</h1>
+  <p>Age: {friend.age}</p>
+  <p>Is best friend: {friend.isBestFriend ? "Yes" : "No"}</p>
+</Layout>
+```
+
+#### Menampilkan daftar data dengan tombol edit
+
+Terakhir, `src/pages/dashboard.astro` akan menampilkan daftar teman. Setiap teman akan memiliki tautan ke halaman detail dan tombol edit yang akan mengarahkan pengguna ke halaman edit.
+
+```astro title="src/pages/dashboard.astro"
+---
+import { app } from "../firebase/server";
+import { getFirestore } from "firebase-admin/firestore";
+import Layout from "../layouts/Layout.astro";
+
+interface Friend {
+  id: string;
+  name: string;
+  age: number;
+  isBestFriend: boolean;
+}
+
+const db = getFirestore(app);
+const friendsRef = db.collection("friends");
+const friendsSnapshot = await friendsRef.get();
+const friends = friendsSnapshot.docs.map((doc) => ({
+  id: doc.id,
+  ...doc.data(),
+})) as Friend[];
+---
+
+<Layout title="My friends">
+  <h1>Friends</h1>
+  <ul>
+    {
+      friends.map((friend) => (
+        <li>
+          <a href={`/friend/${friend.id}`}>{friend.name}</a>
+          <span>({friend.age})</span>
+          <strong>{friend.isBestFriend ? "Bestie" : "Friend"}</strong>
+          <a href={`/edit/${friend.id}`}>Edit</a>
+        </li>
+      ))
+    }
+  </ul>
+</Layout>
+
+```
+
+Setelah membuat semua halaman, Anda akan memiliki struktur berkas berikut:
+
+<FileTree title="Struktur Proyek">
+- src
+  - env.d.ts
+  - firebase
+    - client.ts
+    - server.ts
+  - pages
+    - dashboard.astro
+    - add.astro
+    - edit
+      - [id].astro
+    - friend
+      - [id].astro
+    - api
+      - friends
+        - index.ts
+        - [id].ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Sumber Komunitas
+
+- [Contoh aplikasi Astro dan Firebase SSR](https://github.com/kevinzunigacuellar/astro-firebase)
+- [Menggunakan Firebase Realtime Database di Astro dengan Vue: Panduan Langkah demi Langkah](https://www.launchfa.st/blog/vue-astro-firebase-realtime-database)

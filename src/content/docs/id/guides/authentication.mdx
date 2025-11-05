@@ -1,0 +1,272 @@
+---
+title: Autentikasi
+description: Pengantar autentikasi di Astro
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Autentikasi (*authentication*) dan otorisasi (*authorization*) adalah dua proses keamanan yang mengelola akses ke situs atau aplikasi Anda. Autentikasi memverifikasi identitas pengunjung, sedangkan otorisasi memberikan akses ke area dan sumber daya yang dilindungi.
+
+Autentikasi memungkinkan Anda menyesuaikan area situs untuk pengguna yang sudah masuk dan memberikan perlindungan terbaik untuk informasi pribadi atau privat. Pustaka autentikasi (misalnya [Better Auth](https://better-auth.com/), [Clerk](https://clerk.com)) menyediakan utilitas untuk berbagai metode autentikasi seperti masuk melalui email dan penyedia OAuth.
+
+:::tip
+Belum ada solusi autentikasi resmi untuk Astro, namun Anda dapat menemukan [integrasi "auth" dari komunitas](https://astro.build/integrations/?search=auth) di direktori integrasi.
+:::
+
+<ReadMore>Lihat cara [menambahkan autentikasi dengan Supabase](/id/guides/backend/supabase/#adding-authentication-with-supabase) atau [menambahkan autentikasi dengan Firebase](/id/guides/backend/google-firebase/#adding-authentication-with-firebase) di panduan khusus kami untuk layanan backend ini.</ReadMore>
+
+## Better Auth
+
+Better Auth adalah kerangka kerja autentikasi (dan otorisasi) agnostik framework untuk TypeScript. Better Auth menyediakan serangkaian fitur lengkap siap pakai dan ekosistem plugin yang memudahkan penambahan fungsionalitas tingkat lanjut.
+
+Better Auth mendukung Astro secara langsung, dan Anda dapat menggunakannya untuk menambahkan autentikasi ke proyek Astro Anda.
+
+### Installation
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Untuk instruksi penyiapan yang lebih rinci, lihat [Panduan Instalasi Better Auth](https://www.better-auth.com/docs/installation).
+
+### Configuration
+
+Konfigurasikan tabel basis data Anda untuk menyimpan data pengguna dan metode autentikasi pilihan Anda seperti yang dijelaskan dalam [Panduan Instalasi Better Auth](https://www.better-auth.com/docs/installation#configure-database). Selanjutnya, Anda harus memasang *handler* Better Auth di proyek Astro Anda.
+
+```ts title="src/pages/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // import instance Better Auth Anda
+import type { APIRoute } from "astro";
+
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+export const ALL: APIRoute = async (ctx) => {
+  return auth.handler(ctx.request);
+};
+```
+
+Ikuti [Panduan Better Auth untuk Astro](https://www.better-auth.com/docs/integrations/astro) untuk mempelajari lebih lanjut.
+
+### Usage
+
+Better Auth menyediakan *helper* `createAuthClient` untuk berbagai framework, termasuk Vanilla JS, React, Vue, Svelte, dan Solid. 
+
+Sebagai contoh, untuk membuat klien untuk React, impor *helper* dari `'better-auth/react'`:
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+Setelah klien Anda siap, Anda dapat menggunakannya untuk mengautentikasi pengguna di komponen Astro atau berkas spesifik framework apa pun. Contoh berikut menambahkan kemampuan untuk masuk atau keluar dengan fungsi `signIn()` dan `signOut()` yang telah Anda konfigurasikan.
+
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+Anda kemudian dapat menggunakan objek `auth` untuk mendapatkan data sesi pengguna di kode server. Contoh berikut mempersonalisasi konten halaman dengan menampilkan nama pengguna yang telah diautentikasi:
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../../../lib/auth"; // import instance Better Auth Anda
+
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+ 
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+Anda juga dapat menggunakan objek `auth` untuk melindungi rute menggunakan *middleware*. Contoh berikut memeriksa apakah pengguna yang mencoba mengakses rute dasbor (khusus login) telah diautentikasi, dan mengarahkan ke beranda jika tidak.
+
+```ts title="src/middleware.ts"
+import { auth } from "../../../auth"; // import instance Better Auth Anda
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+  const isAuthed = await auth.api
+    .getSession({
+      headers: context.request.headers,
+    })
+  if (context.url.pathname === "/dashboard" && !isAuthed) {
+    return context.redirect("/");
+  }
+  return next();
+});
+```
+
+### Next Steps
+
+- [Panduan Better Auth untuk Astro](https://www.better-auth.com/docs/integrations/astro)
+- [Contoh Better Auth + Astro](https://github.com/better-auth/examples/tree/main/astro-example)
+- [Dokumentasi Better Auth](https://www.better-auth.com/docs)
+- [Repositori GitHub Better Auth](https://github.com/better-auth/better-auth)
+
+## Clerk
+
+Clerk adalah rangkaian lengkap UI yang dapat disematkan, API fleksibel, dan dasbor admin untuk mengautentikasi serta mengelola pengguna Anda. [SDK Clerk resmi untuk Astro](https://clerk.com/docs/references/astro/overview) tersedia.
+
+### Installation
+
+Pasang `@clerk/astro` menggunakan *package manager* pilihan Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuration
+
+Ikuti [panduan *Quickstart* Astro dari Clerk](https://clerk.com/docs/quickstarts/astro) untuk menyiapkan integrasi dan *middleware* Clerk di proyek Astro Anda.
+
+### Usage
+
+Clerk menyediakan komponen yang memungkinkan Anda mengontrol visibilitas halaman berdasarkan status autentikasi pengguna. Tunjukkan tombol masuk kepada pengguna yang belum masuk, alih-alih konten yang tersedia untuk pengguna yang sudah masuk:
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+---
+
+<Layout>
+    <SignedIn>
+        <UserButton />
+    </SignedIn>
+    <SignedOut>
+        <SignInButton />
+    </SignedOut>
+</Layout>
+```
+
+Clerk juga memungkinkan Anda melindungi rute di server menggunakan *middleware*. Tentukan rute mana yang dilindungi, dan minta pengguna yang tidak terautentikasi untuk masuk:
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/forum(.*)',
+]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (!auth().userId && isProtectedRoute(context.request)) {
+    return auth().redirectToSignIn();
+  }
+});
+```
+
+### Next Steps
+
+- Baca [dokumentasi resmi `@clerk/astro`](https://clerk.com/docs/references/astro/overview)
+- Mulai dari templat dengan [proyek *Quickstart* Clerk + Astro](https://github.com/clerk/clerk-astro-quickstart)
+
+## Lucia
+
+[Lucia](https://lucia-auth.com/) adalah sumber daya untuk mengimplementasikan autentikasi berbasis sesi di sejumlah framework, termasuk Astro.
+
+### Guides
+
+<Steps>
+
+1. Buat [API sesi dasar](https://lucia-auth.com/sessions/basic-api/) dengan basis data pilihan Anda.
+2. Tambahkan [cookie sesi](https://lucia-auth.com/sessions/cookies/astro) menggunakan endpoint dan *middleware*.
+3. Implementasikan [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro) menggunakan API yang telah Anda buat.
+
+</Steps>
+
+### Examples
+
+- [Contoh GitHub OAuth di Astro](https://github.com/lucia-auth/example-astro-github-oauth)
+- [Contoh Google OAuth di Astro](https://github.com/lucia-auth/example-astro-google-oauth)
+- [Contoh email dan kata sandi dengan 2FA di Astro](https://github.com/lucia-auth/example-astro-email-password-2fa)
+- [Contoh email dan kata sandi dengan 2FA dan WebAuthn di Astro](https://github.com/lucia-auth/example-astro-email-password-webauthn)
+
+## Community Resources
+
+- [Menggunakan Microsoft Entra Id EasyAuth dengan Astro dan Azure Static Web App](https://agramont.net/blog/entra-id-easyauth-with-astro/)

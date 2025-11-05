@@ -1,0 +1,387 @@
+---
+title: Upgrade ke Astro v4
+description: Cara meng-upgrade proyek Anda ke versi Astro terbaru (v4.0).
+sidebar:
+  label: v4.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Panduan ini akan membantu Anda bermigrasi dari Astro v3 ke Astro v4.
+
+Perlu meng-upgrade proyek lama ke v3? Lihat [panduan migrasi lama kami](/en/guides/upgrade-to/v3/).
+
+Perlu melihat dokumentasi v3? Kunjungi [versi lama situs dokumentasi (snapshot v3.6 yang tidak dipelihara)](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/).
+
+## Upgrade Astro
+
+Perbarui versi Astro proyek Anda dan semua integrasi resmi ke versi terbaru menggunakan manajer paket Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Upgrade Astro dan integrasi resmi sekaligus
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Upgrade Astro dan integrasi resmi sekaligus
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Upgrade Astro dan integrasi resmi sekaligus
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Anda juga dapat [meng-upgrade integrasi Astro secara manual](/en/guides/integrations-guide/#manual-upgrading) jika diperlukan, dan Anda mungkin juga perlu meng-upgrade dependensi lain di proyek Anda.
+
+:::note[Perlu lanjut?]
+Setelah meng-upgrade Astro ke versi terbaru, bisa jadi Anda tidak perlu melakukan perubahan apa pun pada proyek!
+
+Namun, jika Anda melihat error atau perilaku yang tidak terduga, silakan cek bagian di bawah untuk melihat apa saja yang berubah dan mungkin perlu diperbarui di proyek Anda.
+:::
+
+Astro v4.0 menyertakan [perubahan yang berpotensi breaking](#breaking-changes), serta [penghapusan beberapa fitur yang sebelumnya sudah deprecated](#previously-deprecated-features-now-removed). 
+
+Jika proyek Anda tidak berfungsi seperti yang diharapkan setelah meng-upgrade ke v4.0, lihat panduan ini untuk ringkasan semua perubahan breaking dan instruksi cara memperbarui basis kode Anda.
+
+Lihat [changelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) untuk catatan rilis lengkap.
+
+## Flag Eksperimental Astro v4.0 Dihapus
+
+Hapus flag eksperimental `devOverlay` dan pindahkan konfigurasi `i18n` ke tingkat atas di `astro.config.mjs`:
+
+```js del={5-9} ins={11-14} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    devOverlay: true,
+    i18n: {
+      locales: ["en", "fr", "pt-br", "es"],
+      defaultLocale: "en",
+    }
+  },
+  i18n: {
+    locales: ["en", "fr", "pt-br", "es"],
+    defaultLocale: "en",
+  },
+})
+```
+
+Konfigurasi ini—`i18n` dan `devToolbar` (nama baru `devOverlay`)—sekarang tersedia di Astro v4.0.
+
+Baca lebih lanjut tentang kedua fitur menarik ini dan lainnya di [Blog v4.0](https://astro.build/blog/astro-4/)!
+
+## Upgrade
+
+Upgrade mayor pada dependensi Astro dapat menyebabkan perubahan breaking di proyek Anda.
+
+### Ditingkatkan: Vite 5.0
+
+Di Astro v3.0, Vite 4 digunakan sebagai development server dan bundler produksi.
+
+Astro v4.0 meng-upgrade dari Vite 4 ke Vite 5.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan plugin, konfigurasi, atau API spesifik Vite, periksa [panduan migrasi Vite](https://vite.dev/guide/migration) untuk perubahan breaking mereka dan upgrade proyek Anda sesuai kebutuhan. Tidak ada perubahan breaking pada Astro itu sendiri.
+
+### Ditingkatkan: dependensi unified, remark, dan rehype
+
+Di Astro v3.x, unified v10 dan paket remark/rehype kompatibel digunakan untuk memproses Markdown dan MDX.
+
+Astro v4.0 meng-upgrade [unified ke v11](https://github.com/unifiedjs/unified/releases/tag/11.0.0) dan paket remark/rehype lainnya ke versi terbaru.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan paket remark/rehype kustom, perbarui semuanya ke versi terbaru menggunakan manajer paket Anda agar mendukung unified v11. Paket yang Anda gunakan dapat ditemukan di `astro.config.mjs`.
+
+Seharusnya tidak ada perubahan breaking yang signifikan jika Anda menggunakan paket yang aktif dipelihara, namun beberapa paket mungkin belum kompatibel dengan unified v11. Periksa secara visual halaman Markdown/MDX Anda sebelum deploy untuk memastikan situs berfungsi sebagaimana mestinya.
+
+## Breaking Changes
+
+Perubahan berikut dianggap sebagai perubahan breaking di Astro. Perubahan breaking mungkin (atau mungkin tidak) menyediakan kompatibilitas ke belakang sementara, dan seluruh dokumentasi diperbarui untuk merujuk hanya pada kode yang saat ini didukung.
+
+Jika Anda perlu merujuk dokumentasi untuk proyek v3.x, Anda dapat menelusuri [snapshot (tidak dipelihara) dokumentasi sebelum v4.0 dirilis](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/).
+
+### Diubah nama: `entrypoint` (Integrations API)
+
+Di Astro v3.x, properti API integrasi `injectRoute` yang menentukan entry point rute bernama `entryPoint`.
+
+Astro v4.0 mengganti nama properti ini menjadi `entrypoint` agar konsisten dengan API Astro lainnya. Properti `entryPoint` dideprekasi tetapi tetap berfungsi dan akan menampilkan peringatan untuk memperbarui kode Anda.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda memiliki integrasi yang menggunakan API `injectRoute`, ganti nama properti `entryPoint` menjadi `entrypoint`. Jika Anda pengelola library yang ingin mendukung Astro 3 dan 4 sekaligus, Anda dapat menuliskan keduanya `entryPoint` dan `entrypoint`; dalam hal ini, peringatan tidak akan ditampilkan.
+
+```js ins={4} del={3}
+injectRoute({
+  pattern: '/fancy-dashboard',
+  entryPoint: '@fancy/dashboard/dashboard.astro'
+  entrypoint: '@fancy/dashboard/dashboard.astro'
+});
+```
+
+### Diubah: signature `app.render` di Integrations API
+
+Di Astro v3.0, metode `app.render()` menerima `routeData` dan `locals` sebagai argumen terpisah (opsional). 
+
+Astro v4.0 mengubah signature `app.render()`. Kedua properti ini kini tersedia di dalam satu objek. Baik objek maupun dua properti ini tetap opsional.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda memelihara adapter, signature saat ini tetap berfungsi hingga versi mayor berikutnya. Untuk bermigrasi ke signature baru, berikan `routeData` dan `locals` sebagai properti dari sebuah objek, bukan sebagai beberapa argumen terpisah.
+
+```diff lang="js"
+- app.render(request, routeData, locals)
++ app.render(request, { routeData, locals })
+```
+### Diubah: adapter kini harus menentukan fitur yang didukung
+
+Di Astro v3.x, adapter tidak diharuskan menentukan fitur yang mereka dukung.
+
+Astro v4.0 mewajibkan adapter meneruskan properti `supportedAstroFeatures{}` untuk menentukan daftar fitur yang didukung. Properti ini tidak lagi opsional.
+
+#### Apa yang harus saya lakukan?
+
+Penulis adapter perlu meneruskan opsi `supportedAstroFeatures{}` untuk menentukan daftar fitur yang mereka dukung.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@matthewp/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@matthewp/my-adapter',
+          serverEntrypoint: '@matthewp/my-adapter/server.js',
+          supportedAstroFeatures: {
+              staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+### Dihapus: properti bahasa Shiki `path`
+
+Di Astro v3.x, bahasa Shiki yang diteruskan ke `markdown.shikiConfig.langs` otomatis dikonversi ke bahasa yang kompatibel Shikiji. Shikiji adalah tooling internal yang digunakan Astro untuk syntax highlighting.
+
+Astro v4.0 menghapus dukungan untuk properti `path` pada bahasa Shiki karena membingungkan untuk dikonfigurasi. Properti ini digantikan oleh import yang dapat diteruskan langsung ke `langs`.
+
+#### Apa yang harus saya lakukan?
+
+File JSON bahasa harus di-import dan diteruskan ke opsi tersebut.
+
+```diff lang="js"
+// astro.config.js
++ import customLang from './custom.tmLanguage.json'
+
+export default defineConfig({
+  markdown: {
+    shikiConfig: {
+      langs: [
+-       { path: '../../custom.tmLanguage.json' },
++       customLang,
+      ],
+    },
+  },
+})
+```
+
+## Dideprekasi
+
+Fitur-fitur berikut telah dideprekasi dan tidak lagi didukung serta tidak lagi didokumentasikan. Harap perbarui proyek Anda sesuai.
+
+Beberapa fitur yang dideprekasi mungkin sementara masih berfungsi hingga benar-benar dihapus. Yang lain mungkin diam-diam tidak berpengaruh, atau melempar error yang meminta Anda memperbarui kode.
+
+### Dideprekasi: `handleForms` untuk event `submit` View Transitions
+
+Di Astro v3.x, proyek yang menggunakan komponen `<ViewTransitions />` harus melakukan opt‑in untuk menangani event `submit` pada elemen `form` dengan meneruskan properti `handleForms`.
+
+Astro v4.0 menangani event `submit` pada elemen `form` secara default saat `<ViewTransitions />` digunakan. Properti `handleForms` telah dideprekasi dan tidak lagi berpengaruh.
+
+#### Apa yang harus saya lakukan?
+
+Hapus properti `handleForms` dari komponen `ViewTransitions`. Ini tidak lagi diperlukan.
+
+```astro title="src/pages/index.astro" del="handleForms"
+---
+import { ViewTransitions } from "astro:transitions";
+---
+<html>
+  <head>
+    <ViewTransitions handleForms />
+  </head>
+  <body>
+    <!-- stuff here -->
+  </body>
+</html>
+```
+
+Untuk opt‑out dari penanganan event `submit`, tambahkan atribut `data-astro-reload` pada elemen `form` terkait.
+
+```astro title="src/components/Form.astro" ins="data-astro-reload"
+<form action="/contact" data-astro-reload>
+  <!-- -->
+</form>
+```
+
+## Fitur yang sebelumnya dideprekasi kini dihapus
+
+Fitur-fitur berikut yang sebelumnya dideprekasi kini telah sepenuhnya dihapus dari basis kode dan tidak dapat digunakan lagi. Beberapa fitur ini mungkin masih terus bekerja di proyek Anda setelah dideprekasi; yang lain mungkin diam‑diam tidak berpengaruh.
+
+Proyek yang masih berisi fitur-fitur yang dihapus ini tidak akan bisa dibangun, dan tidak akan ada lagi dokumentasi pendukung untuk meminta Anda menghapusnya.
+
+### Dihapus: mengembalikan objek sederhana dari endpoint
+
+Di Astro v3.x, pengembalian objek sederhana dari endpoint telah dideprekasi, namun tetap didukung untuk kompatibilitas dengan Astro v2. Utilitas `ResponseWithEncoding` juga disediakan untuk mempermudah migrasi.
+
+Astro v4.0 menghapus dukungan objek sederhana dan mengharuskan endpoint selalu mengembalikan `Response`. Utilitas `ResponseWithEncoding` juga dihapus demi tipe `Response` yang semestinya.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui endpoint Anda untuk langsung mengembalikan objek `Response`.
+
+```diff lang="ts"
+  export async function GET() {
+-   return { body: { "title": "Bob's blog" }};
++   return new Response(JSON.stringify({ "title": "Bob's blog" }));
+  }
+```
+
+Untuk menghapus penggunaan `ResponseWithEncoding`, refactor kode Anda untuk menggunakan `ArrayBuffer`:
+
+```diff lang="ts"
+  export async function GET() {
+    const file = await fs.readFile('./bob.png');
+-   return new ResponseWithEncoding(file.toString('binary'), undefined, 'binary');
++   return new Response(file.buffer);
+  }
+```
+
+### Dihapus: `build.split` dan `build.excludeMiddleware`
+
+Di Astro v3.0, opsi konfigurasi build `build.split` dan `build.excludeMiddleware` telah dideprekasi dan digantikan oleh [opsi konfigurasi adapter](/en/reference/adapter-reference/#adapter-features) untuk melakukan tugas yang sama.
+
+Astro v4.0 menghapus properti-properti ini sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan `build.split` atau `build.excludeMiddleware` yang dideprekasi, Anda harus menghapusnya karena sudah tidak ada lagi.
+
+Silakan lihat panduan migrasi v3 untuk [memperbarui properti middleware yang dideprekasi ini](/en/guides/upgrade-to/v3/#deprecated-buildexcludemiddleware-and-buildsplit) dengan konfigurasi adapter.
+
+### Dihapus: `Astro.request.params`
+
+Di Astro v3.0, API `Astro.request.params` dideprekasi tetapi tetap dipertahankan untuk kompatibilitas ke belakang.
+
+Astro v4.0 menghapus opsi ini sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Perbarui semua kemunculan menjadi [`Astro.params`](/en/reference/api-reference/#params), yang merupakan pengganti resmi.
+
+```astro del={1} ins={2}
+const { id } = Astro.request.params;
+const { id } = Astro.params;
+```
+
+### Dihapus: `markdown.drafts`
+
+Di Astro v3.0, penggunaan `markdown.drafts` untuk mengontrol build draft post telah dideprekasi.
+
+Astro v4.0 menghapus opsi ini sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan `markdown.drafts` yang dideprekasi, Anda harus menghapusnya karena sudah tidak ada lagi.
+
+Untuk tetap menandai beberapa halaman di proyek Anda sebagai draft, [migrasikan ke content collections](/en/guides/content-collections/) dan secara manual saring halaman dengan properti frontmatter `draft: true`.
+
+### Dihapus: `getHeaders()`
+
+Di Astro v3.0, ekspor Markdown `getHeaders()` dideprekasi dan digantikan oleh `getHeadings()`.
+
+Astro v4.0 menghapus opsi ini sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan `getHeaders()` yang dideprekasi, Anda harus menghapusnya karena sudah tidak ada lagi. Gantikan semua instance dengan `getHeadings()` sebagai pengganti yang didukung.
+
+```js del={2} ins={3}
+const posts = await Astro.glob('../content/blog/*.mdx');
+const firstPostHeadings = posts.at(0).getHeaders();
+const firstPostHeadings = posts.at(0).getHeadings();
+```
+
+### Dihapus: penggunaan `rss` di `getStaticPaths()`
+
+Di Astro v3.0, penggunaan helper `rss` yang dideprekasi di `getStaticPaths()` akan melempar error.
+
+Astro v4.0 menghapus helper ini sepenuhnya.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan metode yang tidak didukung untuk membuat feed RSS, kini Anda harus menggunakan [integrasi `@astrojs/rss`](/en/recipes/rss/) untuk setup RSS yang lengkap.
+
+### Dihapus: nama metode HTTP huruf kecil
+
+Di Astro v3.0, penggunaan nama metode HTTP huruf kecil (`get`, `post`, `put`, `all`, `del`) dideprekasi.
+
+Astro v4.0 menghapus dukungan untuk nama huruf kecil sepenuhnya. Semua metode permintaan HTTP sekarang harus ditulis dengan huruf besar.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda menggunakan nama huruf kecil yang dideprekasi, Anda harus menggantinya dengan padanannya yang huruf besar.
+
+Silakan lihat panduan migrasi v3 [untuk panduan menggunakan nama metode HTTP huruf besar](/en/guides/upgrade-to/v3/#changed-http-request-methods-case).
+
+### Dihapus: redirect 301 saat tidak ada prefiks `base`
+
+Di Astro v3.x, server preview Astro mengembalikan redirect 301 ketika mengakses aset direktori public tanpa path base.
+
+Astro v4.0 mengembalikan status 404 jika tidak ada prefiks base path untuk aset direktori public saat server preview berjalan, menyamakan perilaku dengan dev server.
+ 
+#### Apa yang harus saya lakukan?
+
+Saat menggunakan server preview Astro, semua impor aset statik dan URL dari direktori public harus memiliki prefiks [nilai base](/en/reference/configuration-reference/#base) pada path-nya.
+
+Contoh berikut menunjukkan atribut `src` yang diperlukan untuk menampilkan gambar dari folder public ketika `base: '/docs'` dikonfigurasi:
+
+```astro title="src/pages/index.astro" ins="/docs"
+// Untuk mengakses public/images/my-image.png:
+
+<img src="/docs/images/my-image.png" alt="">
+```
+
+### Dihapus: konversi otomatis `astro/client-image`
+
+Di Astro v3.x, tipe `astro/client-image` (digunakan untuk integrasi gambar yang dideprekasi) dihapus tetapi secara otomatis dikonversi ke tipe default Astro `astro/client` jika ditemukan di file `env.d.ts` Anda.
+
+Astro v4.0 mengabaikan `astro/client-image` dan tidak lagi memperbarui `env.d.ts` secara otomatis untuk Anda.
+
+#### Apa yang harus saya lakukan?
+
+Jika Anda memiliki tipe yang dikonfigurasi untuk `@astrojs/image` di `src/env.d.ts` dan upgrade ke v3.0 tidak otomatis mengonversi tipe untuk Anda, ganti tipe `astro/client-image` secara manual dengan `astro/client`.
+
+```ts title="src/env.d.ts" del={1} ins={2}
+  /// <reference types="astro/client-image" />
+  /// <reference types="astro/client" />
+```
+
+## Sumber Daya Komunitas
+
+Punya sumber yang bagus untuk Astro v4.0? [Edit halaman ini](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v4.mdx) dan tambahkan tautan di bawah!
+
+## Isu yang Diketahui
+
+Silakan periksa [isu Astro di GitHub](https://github.com/withastro/astro/issues/) untuk laporan masalah apa pun, atau untuk membuat isu baru.

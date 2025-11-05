@@ -1,0 +1,465 @@
+---
+title: ApostropheCMS & Astro
+description: Edit konten di halaman pada proyek Astro Anda menggunakan Apostrophe sebagai CMS.
+sidebar:
+  label: ApostropheCMS
+type: cms
+stub: true
+service: Apostrophe
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+[ApostropheCMS](https://apostrophecms.com/) adalah sistem manajemen konten (CMS) yang mendukung pengeditan langsung di halaman (on-page) di Astro.
+
+## Integrasi dengan Astro
+
+Di bagian ini, Anda akan menggunakan [integrasi Apostrophe](https://apostrophecms.com/extensions/astro-integration) untuk menghubungkan ApostropheCMS ke Astro.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan hal-hal berikut:
+
+1. **Proyek Astro yang dirender on‑demand** dengan [adapter Node.js](/id/guides/integrations-guide/node/) terpasang dan `output: 'server'` sudah dikonfigurasi — Jika Anda belum memiliki proyek Astro, [panduan instalasi kami](/id/install-and-setup/) akan membantu Anda menyiapkannya dengan cepat.
+
+2. **Proyek ApostropheCMS dengan variabel lingkungan `APOS_EXTERNAL_FRONT_KEY` yang dikonfigurasi** — Variabel lingkungan ini bisa diisi string acak apa pun. Jika Anda belum memiliki proyek ApostropheCMS, [panduan instalasi](https://docs.apostrophecms.org/guide/development-setup.html) akan membantu menyiapkannya dengan cepat. Kami sangat merekomendasikan menggunakan [Apostrophe CLI](https://apostrophecms.com/extensions/apos-cli) untuk mempermudah proses ini.
+
+
+### Menyiapkan komunikasi antaprojek
+
+Proyek Astro Anda harus memiliki variabel lingkungan `APOS_EXTERNAL_FRONT_KEY` yang disetel ke nilai yang sama seperti di proyek ApostropheCMS Anda agar keduanya dapat berkomunikasi. Kunci bersama ini bertindak sebagai verifikasi permintaan antara frontend (Astro) dan backend (ApostropheCMS).
+
+Buat file `.env` di root proyek Astro Anda dengan variabel berikut:
+
+```ini title=".env"
+APOS_EXTERNAL_FRONT_KEY='RandomStrongString'
+```
+
+Direktori root Anda sekarang akan menyertakan file baru ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menginstal dependensi
+
+Untuk menghubungkan Astro dengan proyek ApostropheCMS Anda, pasang integrasi resmi Apostrophe di proyek Astro Anda menggunakan perintah di bawah ini sesuai manajer paket pilihan Anda.
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @apostrophecms/apostrophe-astro vite @astro/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Mengonfigurasi Astro
+
+Konfigurasikan integrasi `apostrophe-astro` dan `vite` di file `astro.config.mjs` Anda.
+
+Contoh berikut menyediakan URL dasar instance Apostrophe Anda dan path ke folder di proyek Anda untuk memetakan [widget](https://docs.apostrophecms.org/guide/core-widgets.html) dan jenis [template halaman](https://docs.apostrophecms.org/guide/pages.html) ApostropheCMS ke proyek Astro Anda. Ini juga mengonfigurasi server‑side rendering Vite.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+import apostrophe from '@apostrophecms/apostrophe-astro';
+import { loadEnv } from 'vite';
+
+const env = loadEnv("", process.cwd(), 'APOS');
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({
+    mode: 'standalone'
+  }),
+  integrations: [
+    apostrophe({
+      aposHost: 'http://localhost:3000',
+      widgetsMapping: './src/widgets',
+      templatesMapping: './src/templates'
+    })
+  ],
+  vite: {
+    ssr: {
+      // Jangan eksternalisasi plugin @apostrophecms/apostrophe-astro,
+      // kita perlu menggunakan URL virtual: di sana
+      noExternal: [ '@apostrophecms/apostrophe-astro' ],
+    },
+    define: {
+      'process.env.APOS_EXTERNAL_FRONT_KEY': JSON.stringify(env.APOS_EXTERNAL_FRONT_KEY),
+      'process.env.APOS_HOST': JSON.stringify(env.APOS_HOST)
+    }
+  }
+});
+```
+
+Untuk opsi konfigurasi lengkap dan penjelasannya, lihat dokumentasi [`apostrophe-astro`](https://apostrophecms.com/extensions/astro-integration#configuration-astro).
+
+### Menghubungkan widget ApostropheCMS ke komponen Astro
+Widget ApostropheCMS adalah blok konten terstruktur yang dapat ditambahkan ke halaman seperti kolom tata letak, gambar, dan blok teks. Anda perlu membuat komponen Astro untuk setiap widget di proyek Apostrophe Anda, plus sebuah file untuk memetakan komponen tersebut ke widget Apostrophe yang sesuai.
+
+Buat folder baru di `src/widgets/` untuk komponen Astro Anda dan file pemetaan, `index.js`.
+
+Komponen yang dipetakan di folder ini menerima properti `widget` yang berisi field skema widget Anda, dan properti kustom apa pun, melalui `Astro.props`. Nilai‑nilai ini kemudian tersedia untuk pengeditan langsung di halaman.
+
+Contoh berikut menunjukkan komponen `RichTextWidget.astro` yang mengakses konten dari widget ApostropheCMS yang sesuai untuk memungkinkan pengeditan dalam konteks (in‑context editing):
+
+```js title="src/widgets/RichTextWidget.astro"
+---
+const { widget } = Astro.props;
+const { content } = widget;
+---
+<Fragment set:html={ content }></Fragment>
+```
+
+Beberapa widget standar Apostrophe, seperti gambar dan video, memerlukan **placeholder** karena secara default tidak berisi konten yang dapat diedit. Contoh berikut membuat komponen standar `ImageWidget.astro` yang menyetel nilai `src` secara kondisional ke salah satu dari: gambar `aposPlaceholder` yang diteruskan oleh widget, gambar fallback dari proyek Astro, atau gambar yang dipilih pengelola konten menggunakan helper `attachment` Apostrophe:
+
+```js title="src/widgets/ImageWidget.astro"
+---
+const { widget } = Astro.props;
+const placeholder = widget?.aposPlaceholder;
+const src = placeholder ?
+  '/images/image-widget-placeholder.jpg' :
+  widget?._image[0]?.attachment?._urls['full'];
+---
+<style>
+  .img-widget {
+    width: 100%;
+  }
+</style>
+<img class="img-widget" {src} />
+```
+
+Untuk contoh lainnya, lihat [contoh widget pada proyek pemula `astro-frontend`](https://github.com/apostrophecms/astro-frontend/tree/main/src/widgets).
+
+Setiap komponen `.astro` harus dipetakan ke widget core Apostrophe yang sesuai di `src/widgets/index.js`.
+
+Contoh di bawah menambahkan dua komponen sebelumnya ke file ini:
+
+```js title="src/widgets/index.js"
+import RichTextWidget from './RichTextWidget.astro';
+import ImageWidget from './ImageWidget.astro';
+
+const widgetComponents = {
+  '@apostrophecms/rich-text': RichTextWidget,
+  '@apostrophecms/image': ImageWidget
+};
+
+export default widgetComponents;
+```
+
+Lihat [dokumentasi ApostropheCMS](https://apostrophecms.com/extensions/astro-integration) untuk konvensi penamaan widget standar, pro, dan level kustom proyek.
+
+Direktori proyek sekarang seharusnya terlihat seperti ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - widgets/
+    - **index.js**
+    - **ImageWidget.astro**
+    - **RichTextWidget.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Menambahkan jenis halaman
+
+Sama seperti widget, setiap template jenis halaman di proyek ApostropheCMS Anda harus memiliki komponen template yang sesuai di proyek Astro Anda. Anda juga memerlukan file yang memetakan jenis halaman Apostrophe ke komponen individual.
+
+Buat folder baru di `src/templates/` untuk komponen Astro Anda dan file pemetaan, `index.js`. Komponen yang dipetakan di folder ini menerima properti `page` yang berisi field skema halaman Anda, dan properti kustom apa pun, melalui `Astro.props`. Komponen ini juga dapat mengakses komponen `AposArea` untuk merender area Apostrophe.
+
+Contoh berikut menunjukkan komponen `HomePage.astro` yang merender template halaman dari jenis halaman ApostropheCMS `home-page` yang sesuai, termasuk field area bernama `main`:
+
+```js title="src/templates/HomePage.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+const { page, user, query } = Astro.props.aposData;
+const { main } = page;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+  <AposArea area={main} />
+</section>
+```
+
+Setiap komponen `.astro` harus dipetakan ke jenis halaman core Apostrophe yang sesuai di `src/templates/index.js`.
+
+Contoh di bawah menambahkan komponen `HomePage.astro` sebelumnya ke file ini:
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage
+};
+
+export default templateComponents;
+```
+
+Lihat [dokumentasi ApostropheCMS](https://apostrophecms.com/extensions/astro-integration/#how-apostrophe-template-names-work) untuk konvensi penamaan template, termasuk halaman khusus dan jenis halaman piece.
+
+Direktori proyek sekarang seharusnya terlihat seperti ini:
+
+<FileTree title="Struktur Proyek">
+- src/
+  - widgets/
+    - index.js
+    - ImageWidget.astro
+    - RichTextWidget.astro
+  - templates/
+    - **HomePage.astro**
+    - **index.js**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Membuat komponen [...slug.astro] dan mengambil data Apostrophe
+
+Karena Apostrophe bertanggung jawab menghubungkan URL ke konten, termasuk membuat konten dan halaman baru secara dinamis, Anda hanya membutuhkan satu komponen halaman Astro tingkat atas: rute `[...slug].astro`.
+
+Contoh berikut menunjukkan komponen minimal `[...slug].astro`:
+
+```js title="src/pages/[...slug].astro"
+---
+import aposPageFetch from '@apostrophecms/apostrophe-astro/lib/aposPageFetch.js';
+import AposLayout from '@apostrophecms/apostrophe-astro/components/layouts/AposLayout.astro';
+import AposTemplate from '@apostrophecms/apostrophe-astro/components/AposTemplate.astro';
+
+const aposData = await aposPageFetch(Astro.request);
+const bodyClass = `myclass`;
+
+if (aposData.redirect) {
+  return Astro.redirect(aposData.url, aposData.status);
+}
+if (aposData.notFound) {
+  Astro.response.status = 404;
+}
+---
+<AposLayout title={aposData.page?.title} {aposData} {bodyClass}>
+    <Fragment slot="standardHead">
+      <meta name="description" content={aposData.page?.seoDescription} />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta charset="UTF-8" />
+    </Fragment>
+    <AposTemplate {aposData} slot="main"/>
+</AposLayout>
+```
+Lihat [dokumentasi ApostropheCMS](https://apostrophecms.com/extensions/astro-integration#creating-the-slugastro-component-and-fetching-apostrophe-data) untuk opsi templating tambahan, termasuk slot yang tersedia di komponen `AposTemplate`.
+
+## Membuat blog dengan Astro dan ApostropheCMS
+
+Setelah integrasi selesai, Anda kini dapat membuat blog dengan Astro dan ApostropheCMS. Blog Anda akan menggunakan sebuah *piece* Apostrophe (tipe konten mandiri yang bisa disertakan pada halaman mana pun) dan *piece page type* (jenis halaman khusus untuk menampilkan piece tersebut secara individual atau kolektif).
+
+### Prasyarat
+
+1. **Proyek ApostropheCMS dengan Apostrophe CLI terpasang** — Anda bisa membuat proyek baru atau menggunakan yang sudah ada. Namun, tutorial ini hanya menunjukkan cara membuat *blog piece* dan *piece page type*. Anda harus mengintegrasikan kode proyek lain secara mandiri. Jika Anda belum memasang CLI, lihat [instruksi instalasi Apostrophe CLI](https://docs.apostrophecms.org/guide/setting-up.html#the-apostrophe-cli-tool).
+2. **Proyek Astro yang terintegrasi dengan ApostropheCMS** — Untuk membuat proyek dari nol, lihat [integrasi dengan Astro](#integrasi-dengan-astro) untuk instruksi menyiapkan integrasi, atau gunakan *starter* [astro-frontend](https://github.com/apostrophecms/astro-frontend).
+
+### Membuat *blog piece* dan *piece page type*
+
+Untuk membuat *blog piece* dan *piece page type*-nya, masuk ke root proyek ApostropheCMS Anda di terminal. Gunakan Apostrophe CLI untuk membuat *piece* baru dan *piece page type* dengan perintah berikut:
+
+```sh
+apos add piece blog --page
+```
+
+Perintah ini akan membuat dua modul baru di proyek Anda: satu untuk *blog piece type* dan satu untuk *piece page type* yang terkait. Selanjutnya, buka file `app.js` di root proyek ApostropheCMS Anda dan tambahkan modul-modul baru tersebut.
+
+```js title="app.js"
+require('apostrophe')({
+  // opsi konfigurasi lainnya
+  modules: {
+    // modul proyek lainnya
+    blog: {},
+    'blog-page': {}
+  }
+});
+```
+
+Modul `blog-page` juga perlu ditambahkan ke array opsi `types` pada modul `@apostrophecms/page` agar dapat dipilih di modal pembuatan halaman. Di proyek ApostropheCMS Anda, buka file `modules/@apostrophecms/page/index.js` dan tambahkan `blog-page`.
+
+```js title="modules/@apostrophecms/page/index.js"
+module.exports = {
+  options: {
+    types: [
+      {
+        name: '@apostrophecms/home-page',
+        label: 'Home'
+      },
+      // Halaman proyek lainnya
+      {
+        name: 'blog-page',
+        label: 'Blog'
+      }
+    ]
+  }
+};
+```
+
+### Membuat skema blog
+
+Dalam proyek ApostropheCMS, editor disediakan sekumpulan field input untuk menambahkan konten. Berikut contoh posting blog sederhana yang menambahkan tiga field input: `authorName`, `publicationDate`, dan area `content` tempat pengelola konten dapat menambahkan banyak instance widget. Pada contoh ini, kita menentukan bahwa mereka dapat menambahkan widget gambar dan teks kaya yang kita buat saat [menyiapkan integrasi](#menghubungkan-widget-apostrophecms-ke-komponen-astro).
+
+```js title="modules/blog/index.js"
+module.exports = {
+  extend: '@apostrophecms/piece-type',
+  options: {
+    label: 'Blog',
+    // Tambahkan juga opsi `pluralLabel` jika perlu.
+  },
+  fields: {
+    add: {
+      authorName: {
+        type: 'string',
+        label: 'Author'
+      },
+      publicationDate: {
+        type: 'date',
+        label: 'Publication date'
+      },
+      content: {
+        type: 'area',
+        label: 'Content',
+        options: {
+          widgets: {
+            '@apostrophecms/rich-text': {},
+            '@apostrophecms/image': {}
+          }
+        }
+      }
+    },
+    group: {
+      basics: {
+        label: 'Basic',
+        fields: [ 'authorName', 'publicationDate', 'content' ]
+      }
+    }
+  }
+};
+```
+
+Pada titik ini, semua komponen yang berasal dari proyek ApostropheCMS telah disiapkan. Jalankan situs lokal dari command line menggunakan `npm run dev`, pastikan Anda meneruskan variabel lingkungan `APOS_EXTERNAL_FRONT_KEY` yang disetel ke string pilihan Anda:
+
+```bash
+APOS_EXTERNAL_FRONT_KEY='MyRandomString' npm run dev
+```
+
+### Menampilkan posting blog
+Untuk menampilkan halaman dengan seluruh posting blog, buat file komponen `BlogIndex.astro` di direktori `src/templates` proyek Astro Anda dan tambahkan kode berikut:
+
+Setelah mengambil data halaman dan *pieces* dari properti `aposData`, komponen ini membuat markup menggunakan field dari skema *blog piece* yang kita buat, serta `piece.title` dan `piece._url` yang ditambahkan ke setiap *piece* oleh Apostrophe.
+
+```js title="src/templates/BlogIndex.astro"
+---
+import dayjs from 'dayjs';
+
+const { page, pieces } = Astro.props.aposData;
+---
+
+<section class="bp-content">
+  <h1>{ page.title }</h1>
+
+  <h2>Blog Posts</h2>
+
+  {pieces.map(piece => (
+    <h4>
+      Released On { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+    </h4>
+    <h3>
+      <a href={ piece._url }>{ piece.title }</a>
+    </h3>
+    <h4>{ piece.authorName }</h4>
+  ))}
+</section>
+```
+
+Untuk menampilkan posting individual, buat file `BlogShow.astro` di folder `src/templates` proyek Astro dengan kode berikut:
+
+Komponen ini menggunakan `<AposArea>` untuk menampilkan widget apa pun yang ditambahkan ke area `content`, serta `authorName` dan `publicationDate` yang dimasukkan ke field dengan nama yang sama.
+
+```js title="src/templates/BlogShow.astro"
+---
+import AposArea from '@apostrophecms/apostrophe-astro/components/AposArea.astro';
+import dayjs from 'dayjs';
+
+const { page, piece } = Astro.props.aposData;
+const { main } = piece;
+---
+
+<section class="bp-content">
+  <h1>{ piece.title }</h1>
+  <h3>Created by: { piece.authorName }
+  <h4>
+    Released On { dayjs(piece.publicationDate).format('MMMM D, YYYY') }
+  </h4>
+  <AposArea area={content} />
+</section>
+```
+
+Terakhir, komponen Astro ini harus dipetakan ke jenis halaman ApostropheCMS yang sesuai. Buka file `src/templates/index.js` di proyek Astro dan ubah isinya menjadi berikut:
+
+```js title="src/templates/index.js"
+import HomePage from './HomePage.astro';
+import BlogIndexPage from './BlogIndexPage.astro';
+import BlogShowPage from './BlogShowPage.astro';
+
+const templateComponents = {
+  '@apostrophecms/home-page': HomePage,
+  '@apostrophecms/blog-page:index': BlogIndexPage,
+  '@apostrophecms/blog-page:show': BlogShowPage
+};
+
+export default templateComponents;
+```
+
+### Membuat posting blog
+
+Menambahkan posting blog ke situs Anda dilakukan menggunakan alat manajemen konten ApostropheCMS untuk membuat posting dan menerbitkan setidaknya satu halaman indeks untuk menampilkannya.
+
+Dengan server dev Astro berjalan, buka halaman login di [http://localhost:4321/login](http://localhost:4321/login) pada browser. Gunakan kredensial yang ditambahkan saat [membuat proyek ApostropheCMS](https://docs.apostrophecms.org/guide/development-setup.html#creating-a-project) untuk masuk sebagai administrator. Proyek ApostropheCMS Anda seharusnya masih berjalan.
+
+Setelah masuk, browser Anda akan diarahkan ke beranda proyek dan menampilkan bilah admin di bagian atas untuk mengedit konten dan mengelola proyek Anda.
+
+Untuk menambahkan posting pertama, klik tombol `Blogs` di bilah admin untuk membuka modal pembuatan piece blog. Klik tombol `New Blog` di kanan atas untuk membuka modal pengeditan tempat Anda dapat menambahkan konten. Field area `content` memungkinkan Anda menambahkan sebanyak mungkin widget gambar dan teks kaya sesuai kebutuhan.
+
+Anda dapat mengulangi langkah ini untuk menambahkan posting sebanyak yang Anda inginkan. Ikuti langkah yang sama setiap kali ingin menambahkan posting baru.
+
+Untuk memublikasikan halaman yang menampilkan seluruh posting, klik tombol `Pages` di bilah admin. Dari modal pohon halaman, klik tombol `New Page`. Di *dropdown* `Type` pada kolom kanan pilih `Blog`. Tambahkan judul untuk halaman lalu klik `Publish and View`. Anda hanya perlu melakukan ini sekali.
+
+Posting baru yang dibuat akan otomatis ditampilkan pada halaman ini. Posting individual dapat diakses dengan mengeklik tautan yang dibuat di halaman indeks.
+
+Area `content` pada posting individual dapat diedit langsung di halaman dengan menavigasi ke posting tersebut dan mengeklik `edit` pada bilah admin. Field lainnya dapat diedit menggunakan modal pengeditan yang dibuka saat mengeklik menu `Blogs` pada bilah admin.
+
+### Mendeploy situs Anda
+Untuk *deploy* situs web, Anda perlu menghosting proyek Astro dan ApostropheCMS.
+
+Untuk Astro, kunjungi [panduan deployment](/id/guides/deploy/) dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+Untuk proyek ApostropheCMS, ikuti instruksi sesuai jenis hosting di [panduan hosting](https://docs.apostrophecms.org/guide/hosting.html). Terakhir, Anda harus menyuplai variabel lingkungan `APOS_HOST` pada proyek Astro agar sesuai dengan URL tempat situs ApostropheCMS Anda dideploy.
+
+## Sumber Resmi
+
+- [Integrasi Astro untuk ApostropheCMS](https://apostrophecms.com/extensions/astro-integration) — plugin ApostropheCMS untuk Astro, panduan integrasi, dan proyek *starter* untuk Apostrophe dan Astro
+- [Proyek contoh Astro untuk ApostropheCMS](https://github.com/apostrophecms/astro-frontend) — Proyek Astro sederhana dengan beberapa halaman dan widget Apostrophe yang sudah dibuat.
+- [Starter‑kit ApostropheCMS untuk Astro](https://apostrophecms.com/starter-kits/astro-integration-starter-kit) — Proyek ApostropheCMS dengan modifikasi halaman inti untuk digunakan bersama Astro.
+
+## Sumber Komunitas
+- [Integrating ApostropheCMS with Astro, Pt. 1](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-1) oleh Antonello Zaini
+- [Integrating ApostropheCMS with Astro, Pt. 2](https://apostrophecms.com/blog/how-to-integrate-astro-with-apostrophecms-pt-2) oleh Antonello Zaini
+- [Show & Tell Live | Astro & Apostrophe](https://youtu.be/cwJhtJhAhwA?si=6iUU9EjidfdnOdCh)

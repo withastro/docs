@@ -1,0 +1,331 @@
+---
+title: Referensi direktif templat
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro'
+
+**Direktif templat** adalah jenis atribut HTML khusus yang tersedia di dalam template komponen Astro (`.astro`), dan beberapa juga dapat digunakan di berkas `.mdx`.
+
+Direktif templat digunakan untuk mengontrol perilaku suatu elemen atau komponen. Sebuah direktif dapat mengaktifkan fitur kompilator yang memudahkan (seperti menggunakan `class:list` alih‑alih `class`). Atau, direktif dapat memberi tahu kompilator Astro untuk melakukan sesuatu yang khusus pada komponen tersebut (misalnya menghidrasi dengan `client:load`).
+
+Halaman ini menjelaskan semua direktif templat yang tersedia di Astro, dan cara kerjanya.
+
+## Aturan
+
+Agar sebuah direktif templat dianggap valid, maka harus:
+
+- Menyertakan tanda titik dua `:` pada namanya, menggunakan bentuk `X:Y` (contoh: `client:load`).
+- Terlihat oleh kompilator (contoh: `<X {...attr}>` tidak akan berfungsi jika `attr` berisi direktif).
+
+Beberapa direktif templat—tetapi tidak semuanya—dapat menerima nilai khusus:
+- `<X client:load />` (tanpa nilai)
+- `<X class:list={['some-css-class']} />` (menerima sebuah array)
+
+Direktif templat tidak pernah disertakan langsung dalam keluaran HTML akhir dari suatu komponen.
+
+## Direktif Umum
+
+### `class:list`
+
+`class:list={...}` menerima sebuah array nilai kelas dan mengubahnya menjadi string kelas. Ini ditenagai oleh pustaka helper [clsx](https://github.com/lukeed/clsx) buatan @lukeed.
+
+`class:list` menerima array dengan beberapa jenis nilai berikut:
+- `string`: Ditambahkan ke atribut `class` elemen
+- `Object`: Semua key yang bernilai truthy ditambahkan ke `class` elemen
+- `Array`: akan diratakan (flattened)
+- `false`, `null`, atau `undefined`: diabaikan
+
+```astro
+<!-- Ini -->
+<span class:list={[ 'hello goodbye', { world: true }, [ 'friend' ] ]} />
+<!-- Menjadi -->
+<span class="hello goodbye world friend"></span>
+```
+
+### `set:html`
+
+`set:html={string}` menyuntikkan string HTML ke dalam elemen, mirip dengan menetapkan `el.innerHTML`.
+
+**Nilai tersebut tidak otomatis di‑escape oleh Astro!** Pastikan Anda mempercayai nilainya, atau Anda telah melakukan escape secara manual sebelum meneruskannya ke template. Melupakan hal ini akan membuka celah [serangan Cross Site Scripting (XSS).](https://owasp.org/www-community/attacks/xss/)
+
+```astro
+---
+const rawHTMLString = "Hello <strong>World</strong>"
+---
+<h1>{rawHTMLString}</h1>
+  <!-- Output: <h1>Hello &lt;strong&gt;World&lt;/strong&gt;</h1> -->
+<h1 set:html={rawHTMLString} />
+  <!-- Output: <h1>Hello <strong>World</strong></h1> -->
+```
+
+Anda juga dapat menggunakan `set:html` pada `<Fragment>` untuk menghindari penambahan elemen pembungkus yang tidak diperlukan. Ini sangat berguna saat mengambil HTML dari CMS.
+
+```astro
+---
+const cmsContent = await fetchHTMLFromMyCMS();
+---
+<Fragment set:html={cmsContent}>
+```
+
+`set:html={Promise<string>}` menyuntikkan string HTML ke dalam elemen yang dibungkus di dalam sebuah Promise.
+
+Ini dapat digunakan untuk menyuntikkan HTML yang disimpan secara eksternal, seperti di dalam basis data.
+
+```astro
+---
+import api from '../db/api.js';
+---
+<article set:html={api.getArticle(Astro.props.id)}></article>
+```
+
+`set:html={Promise<Response>}` menyuntikkan sebuah [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) ke dalam elemen.
+
+Ini paling membantu ketika menggunakan `fetch()`. Misalnya, mengambil posting lama dari generator situs statis sebelumnya.
+
+```astro
+<article set:html={fetch('http://example/old-posts/making-soup.html')}></article>
+```
+
+`set:html` dapat digunakan pada tag apa pun dan tidak harus berisi HTML. Misalnya, gunakan bersama [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify) pada tag `<script>` untuk menambahkan skema [JSON-LD](https://json-ld.org/) ke halaman Anda.
+
+```astro
+<script type="application/ld+json" set:html={JSON.stringify({
+  "@context": "https://schema.org/",
+  "@type": "Person",
+  name: "Houston",
+  hasOccupation: {
+    "@type": "Occupation",
+    name: "Astronaut"
+  }
+})}/>
+```
+
+### `set:text`
+
+`set:text={string}` menyuntikkan string teks ke dalam elemen, mirip dengan menetapkan `el.innerText`. Berbeda dengan `set:html`, nilai `string` yang diberikan akan di‑escape secara otomatis oleh Astro.
+
+Ini setara dengan langsung meneruskan variabel ke dalam ekspresi template (contoh: `<div>{someText}</div>`) dan karena itu direktif ini tidak sering digunakan.
+
+## Direktif Klien
+
+Direktif‑direktif ini mengontrol bagaimana [komponen kerangka UI](/id/guides/framework-components/) dihidrasi pada halaman.
+
+Secara default, komponen kerangka UI tidak dihidrasi di klien. Jika tidak ada direktif `client:*` yang diberikan, HTML‑nya akan dirender ke halaman tanpa JavaScript.
+
+Direktif klien hanya dapat digunakan pada komponen kerangka UI yang diimpor langsung ke dalam komponen `.astro`. Direktif hidrasi tidak didukung saat menggunakan [tag dinamis](/id/reference/astro-syntax/#dynamic-tags) dan [komponen kustom yang diteruskan melalui prop `components`](/id/guides/integrations-guide/mdx/#passing-components-to-mdx-content).
+
+### `client:load`
+
+- **Prioritas:** Tinggi
+- **Cocok untuk:** Elemen UI yang langsung terlihat dan perlu interaktif secepat mungkin.
+
+Muat dan hidrasi JavaScript komponen segera pada saat pemuatan halaman.
+
+```astro
+<BuyButton client:load />
+```
+
+### `client:idle`
+
+- **Prioritas:** Sedang
+- **Cocok untuk:** Elemen UI prioritas lebih rendah yang tidak perlu langsung interaktif.
+
+Muat dan hidrasi JavaScript komponen setelah halaman selesai memuat awal dan event `requestIdleCallback` dipicu. Jika berada di browser yang tidak mendukung [`requestIdleCallback`](https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback), maka digunakan event dokumen [`load`](https://developer.mozilla.org/en-US/docs/Web/API/Window/load_event).
+
+```astro
+<ShowHideButton client:idle />
+```
+
+#### `timeout`
+
+<p><Since v="4.15.0" /></p>
+
+Waktu maksimum tunggu, dalam milidetik, sebelum menghidrasi komponen, bahkan jika halaman belum selesai memuat awal.
+
+Ini memungkinkan Anda meneruskan nilai untuk [opsi `timeout` dari spesifikasi `requestIdleCallback()`](https://www.w3.org/TR/requestidlecallback/#the-requestidlecallback-method). Artinya Anda bisa menunda hidrasi untuk elemen UI prioritas rendah dengan kontrol lebih, untuk memastikan elemen Anda interaktif dalam jangka waktu tertentu.
+
+```astro
+<ShowHideButton client:idle={{timeout: 500}} />
+```
+
+### `client:visible`
+
+- **Prioritas:** Rendah
+- **Cocok untuk:** Elemen UI prioritas rendah yang berada jauh di bawah lipatan (below the fold) atau begitu berat sehingga Anda lebih memilih untuk tidak memuatnya sama sekali jika pengguna tidak pernah melihatnya.
+
+Muat dan hidrasi JavaScript komponen ketika komponen memasuki viewport pengguna. Ini menggunakan `IntersectionObserver` secara internal untuk melacak visibilitas.
+
+```astro
+<HeavyImageCarousel client:visible />
+```
+
+#### `client:visible={{rootMargin}}`
+<p><Since v="4.1.0" /></p>
+
+Secara opsional, nilai `rootMargin` dapat diteruskan ke `IntersectionObserver` yang mendasari. Saat `rootMargin` ditentukan, JavaScript komponen akan dihidrasi ketika margin yang ditentukan (dalam piksel) di sekitar komponen memasuki viewport, bukan komponen itu sendiri.
+
+```astro
+<HeavyImageCarousel client:visible={{rootMargin: "200px"}} />
+```
+
+Menentukan nilai `rootMargin` dapat mengurangi pergeseran tata letak (CLS), memberi lebih banyak waktu untuk menghidrasi komponen pada koneksi internet lambat, dan membuat komponen menjadi interaktif lebih cepat, sehingga meningkatkan stabilitas dan respons halaman.
+
+### `client:media`
+
+- **Prioritas:** Rendah
+- **Cocok untuk:** Toggle sidebar, atau elemen lain yang mungkin hanya terlihat pada ukuran layar tertentu.
+
+`client:media={string}` memuat dan menghidrasi JavaScript komponen ketika suatu kueri media CSS tertentu terpenuhi.
+
+:::note
+Jika komponen sudah disembunyikan dan ditampilkan oleh kueri media di CSS Anda, maka akan lebih mudah untuk menggunakan `client:visible` dan tidak meneruskan kueri media yang sama ke direktif.
+:::
+
+```astro
+<SidebarToggle client:media="(max-width: 50em)" />
+```
+
+### `client:only`
+
+`client:only={string}` **melewati** rendering HTML di server, dan merender hanya di klien. Ini berperilaku mirip `client:load` karena memuat, merender, dan menghidrasi komponen segera saat halaman dimuat.
+
+**Anda harus meneruskan framework yang benar sebagai nilainya!** Karena Astro tidak menjalankan komponen selama build / di server, Astro tidak tahu framework apa yang digunakan komponen Anda kecuali Anda memberitahukannya secara eksplisit.
+
+```astro
+<SomeReactComponent client:only="react" />
+<SomePreactComponent client:only="preact" />
+<SomeSvelteComponent client:only="svelte" />
+<SomeVueComponent client:only="vue" />
+<SomeSolidComponent client:only="solid-js" />
+```
+
+#### Menampilkan konten pemuatan
+
+Untuk komponen yang hanya dirender di klien, Anda juga dapat menampilkan konten fallback saat komponen sedang dimuat. Gunakan `slot="fallback"` pada elemen anak apa pun untuk membuat konten yang hanya akan ditampilkan sampai komponen klien tersedia:
+
+```astro {2}
+<ClientComponent client:only="vue">
+  <div slot="fallback">Loading</div>
+</ClientComponent>
+```
+
+### Direktif Klien Kustom
+
+Sejak Astro 2.6.0, integrasi juga dapat menambahkan direktif `client:*` kustom untuk mengubah bagaimana dan kapan komponen harus dihidrasi.
+
+Kunjungi halaman API [`addClientDirective`](/id/reference/integrations-reference/#addclientdirective-option) untuk mempelajari cara membuat direktif klien kustom.
+
+## Direktif Server
+
+Direktif‑direktif ini mengontrol bagaimana komponen server island dirender.
+
+### `server:defer`
+
+Direktif `server:defer` mengubah komponen menjadi server island, membuatnya dirender sesuai permintaan (on demand), di luar cakupan proses rendering halaman lainnya.
+
+<ReadMore>Lihat lebih lanjut tentang penggunaan [komponen server island](/id/guides/server-islands/).</ReadMore>
+
+```astro
+<Avatar server:defer />
+```
+
+## Direktif Script & Style
+
+Direktif‑direktif ini hanya dapat digunakan pada tag HTML `<script>` dan `<style>`, untuk mengontrol bagaimana JavaScript sisi klien dan CSS Anda ditangani di halaman.
+
+### `is:global`
+
+Secara default, Astro secara otomatis melakukan scoping aturan CSS `<style>` ke komponen. Anda dapat menonaktifkan perilaku ini dengan direktif `is:global`.
+
+`is:global` membuat isi tag `<style>` berlaku secara global pada halaman saat komponen disertakan. Ini menonaktifkan sistem scoping CSS Astro. Ini setara dengan membungkus semua selector dalam tag `<style>` dengan `:global()`.
+
+Anda dapat menggabungkan `<style>` dan `<style is:global>` bersama‑sama dalam komponen yang sama, untuk membuat beberapa aturan gaya global sambil tetap melakukan scoping pada sebagian besar CSS komponen Anda.
+
+<ReadMore>Lihat halaman [Styling & CSS](/id/guides/styling/#global-styles) untuk detail tentang cara kerja gaya global.</ReadMore>
+
+```astro
+<style is:global>
+  body a { color: red; }
+</style>
+```
+
+### `is:inline`
+
+Secara default, Astro akan memproses, mengoptimalkan, dan membundel tag `<script>` dan `<style>` yang terlihat di halaman. Anda dapat menonaktifkan perilaku ini dengan direktif `is:inline`.
+
+`is:inline` memberi tahu Astro untuk membiarkan tag `<script>` atau `<style>` tetap apa adanya dalam HTML keluaran akhir. Isinya tidak akan diproses, dioptimalkan, atau dibundel. Ini membatasi beberapa fitur Astro, seperti mengimpor paket npm atau menggunakan bahasa pra‑proses CSS seperti Sass.
+
+Direktif `is:inline` berarti bahwa tag `<style>` dan `<script>`:
+
+- Tidak akan dibundel ke dalam berkas eksternal. Ini berarti [atribut seperti `defer`](https://javascript.info/script-async-defer) yang mengontrol pemuatan berkas eksternal tidak akan berpengaruh.
+- Tidak akan dideduplikasi—elemen akan muncul sebanyak jumlah rendernya.
+- Referensi `import`/`@import`/`url()`‑nya tidak akan di‑resolve relatif terhadap berkas `.astro`.
+- Akan dirender dalam HTML keluaran akhir persis di tempat ia ditulis.
+- Gaya akan bersifat global dan tidak di‑scope ke komponen.
+
+:::caution
+Direktif `is:inline` tersirat setiap kali atribut selain `src` digunakan pada tag `<script>` atau `<style>`.
+Satu pengecualian adalah penggunaan direktif [`define:vars`](/id/reference/directives-reference/#definevars) pada tag `<style>`, yang tidak otomatis menyiratkan `is:inline`.
+:::
+
+```astro
+<style is:inline>
+  /* inline: impor relatif & paket npm tidak didukung. */
+  @import '/assets/some-public-styles.css';
+  span { color: green; }
+</style>
+
+<script is:inline>
+  /* inline: impor relatif & paket npm tidak didukung. */
+  console.log('Saya di-inline tepat di sini di HTML keluaran akhir.');
+</script>
+```
+
+<ReadMore>Lihat cara kerja [script sisi klien](/id/guides/client-side-scripts/) di komponen Astro.</ReadMore>
+
+### `define:vars`
+
+`define:vars={...}` dapat meneruskan variabel sisi server dari frontmatter komponen Anda ke tag `<script>` atau `<style>` di klien. Variabel frontmatter apa pun yang dapat diserialisasi JSON didukung, termasuk `props` yang diteruskan ke komponen Anda melalui `Astro.props`. Nilai‑nilai diserialisasi dengan [`JSON.stringify()`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON/stringify).
+
+```astro
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+const message = "Astro is awesome!";
+---
+<style define:vars={{ textColor: foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--textColor);
+  }
+</style>
+
+<script define:vars={{ message }}>
+  alert(message);
+</script>
+```
+
+:::caution
+Menggunakan `define:vars` pada tag `<script>` menyiratkan direktif [`is:inline`](#isinline), yang berarti skrip Anda tidak akan dibundel dan akan di‑inline langsung ke dalam HTML.
+
+Ini karena saat Astro membundel sebuah skrip, skrip tersebut disertakan dan dijalankan sekali meskipun Anda menyertakan komponen yang berisi skrip itu beberapa kali pada satu halaman. `define:vars` mengharuskan skrip dijalankan ulang untuk setiap set nilai, sehingga Astro membuat skrip inline sebagai gantinya.
+
+Untuk skrip, cobalah [meneruskan variabel ke skrip secara manual](/id/guides/client-side-scripts/#pass-frontmatter-variables-to-scripts) sebagai alternatif.
+:::
+
+## Direktif Lanjutan
+
+### `is:raw`
+
+`is:raw` menginstruksikan kompilator Astro untuk memperlakukan anak‑anak elemen tersebut sebagai teks. Artinya semua sintaks templating Astro khusus akan diabaikan di dalam komponen ini.
+
+Sebagai contoh, jika Anda memiliki komponen Katex kustom yang mengonversi teks menjadi HTML, Anda dapat membuat pengguna melakukan hal berikut:
+
+```astro
+---
+import Katex from '../components/Katex.astro';
+---
+<Katex is:raw>Some conflicting {syntax} here</Katex>
+```

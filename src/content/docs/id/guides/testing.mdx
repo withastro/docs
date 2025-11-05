@@ -1,0 +1,412 @@
+---
+title: Pengujian
+description: Pengantar pengujian di Astro
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro'
+
+Pengujian membantu Anda menulis dan memelihara kode Astro yang berfungsi. Astro mendukung banyak alat populer untuk uji unit, uji komponen, dan uji end-to-end termasuk Jest, Mocha, Jasmine, [Cypress](https://cypress.io) dan [Playwright](https://playwright.dev). Anda bahkan dapat memasang pustaka pengujian khusus framework seperti React Testing Library untuk menguji komponen UI framework Anda.
+
+Kerangka kerja pengujian memungkinkan Anda menyatakan **assertion** atau **expectation** tentang bagaimana kode Anda seharusnya berperilaku dalam situasi tertentu, lalu membandingkannya dengan perilaku aktual dari kode Anda saat ini.
+
+## Uji unit dan integrasi
+
+### Vitest
+
+Framework uji unit native Vite dengan dukungan ESM, TypeScript, dan JSX yang didukung oleh esbuild.
+
+Gunakan helper `getViteConfig()` milik Astro di [berkas konfigurasi `vitest.config.ts`](https://vitest.dev/config/) Anda untuk menyiapkan Vitest dengan pengaturan proyek Astro Anda:
+
+```js
+// vitest.config.ts
+/// <reference types="vitest/config" />
+import { getViteConfig } from 'astro/config';
+
+export default getViteConfig({
+  test: {
+    // Opsi konfigurasi Vitest
+  },
+});
+```
+
+Secara bawaan, `getViteConfig()` akan mencoba memuat berkas konfigurasi Astro di proyek Anda dan menerapkannya ke lingkungan pengujian.
+Mulai Astro 4.8, jika Anda perlu menyesuaikan konfigurasi Astro yang diterapkan pada pengujian, berikan argumen kedua ke `getViteConfig()`:
+
+```js
+export default getViteConfig(
+  { test: { /* Opsi konfigurasi Vitest */ } },
+  {
+    site: 'https://example.com/',
+    trailingSlash: 'always',
+  },
+);
+```
+
+Lihat [template starter Astro + Vitest](https://github.com/withastro/astro/tree/latest/examples/with-vitest) di GitHub.
+
+#### Vitest dan Container API
+
+<p><Since v="4.9.0" /></p>
+
+Anda dapat menguji komponen Astro secara native menggunakan [Container API](/id/reference/container-reference/). Pertama, siapkan [`vitest` seperti dijelaskan di atas](#vitest), lalu buat berkas `.test.js` untuk menguji komponen Anda:
+
+```js title="example.test.js"
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { expect, test } from 'vitest';
+import Card from '../src/components/Card.astro';
+
+test('Card with slots', async () => {
+  const container = await AstroContainer.create();
+  const result = await container.renderToString(Card, {
+    slots: {
+      default: 'Card content',
+    },
+  });
+
+  expect(result).toContain('This is a card');
+  expect(result).toContain('Card content');
+});
+```
+
+## Uji end-to-end
+
+### Playwright
+
+Playwright adalah framework pengujian end-to-end untuk aplikasi web modern. Gunakan Playwright API dalam JavaScript atau TypeScript untuk menguji kode Astro Anda pada semua mesin render modern termasuk Chromium, WebKit, dan Firefox.
+
+#### Instalasi
+
+Anda dapat mulai dan menjalankan pengujian menggunakan [Ekstensi VS Code](https://playwright.dev/docs/getting-started-vscode).
+
+Sebagai alternatif, Anda dapat memasang Playwright di dalam proyek Astro Anda menggunakan manajer paket pilihan Anda. Ikuti langkah-langkah CLI untuk memilih JavaScript/TypeScript, menamai folder test, dan menambahkan workflow GitHub Actions opsional.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init playwright@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create playwright
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create playwright
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Buat uji Playwright pertama Anda
+
+<Steps>
+1. Pilih halaman yang akan diuji. Contoh ini akan menguji halaman contoh `index.astro` di bawah.
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="en">
+      <head>
+        <title>Astro is awesome!</title>
+        <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen islands architecture." />
+      </head>
+      <body></body>
+    </html>
+    ```
+
+2. Buat folder baru dan tambahkan berkas uji berikut di `src/test`. Salin dan tempel uji berikut ke berkas untuk memverifikasi bahwa informasi meta halaman sudah benar. Perbarui nilai `<title>` halaman agar sesuai dengan halaman yang Anda uji.
+
+    ```jsx title="src/test/index.spec.ts" "Astro is awesome!"
+    import { test, expect } from '@playwright/test';
+
+    test('meta is correct', async ({ page }) => {
+      await page.goto("http://localhost:4321/");
+
+      await expect(page).toHaveTitle('Astro is awesome!');
+    });
+    ```
+
+    :::tip[Setel `baseUrl`]
+    Anda dapat menyetel [`"baseURL": "http://localhost:4321"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url) di berkas konfigurasi `playwright.config.ts` untuk menggunakan `page.goto("/")` alih-alih `page.goto("http://localhost:4321/")` agar URL lebih ringkas.
+    :::
+</Steps>
+
+#### Menjalankan uji Playwright Anda
+
+Anda dapat menjalankan satu uji atau beberapa uji sekaligus, menguji satu atau beberapa browser. Secara bawaan, hasil uji Anda akan ditampilkan di terminal. Opsional, Anda dapat membuka HTML Test Reporter untuk menampilkan laporan lengkap dan memfilter hasil uji.
+
+<Steps>
+1. Untuk menjalankan uji kita dari contoh sebelumnya menggunakan command line, gunakan perintah `test`. Opsional, sertakan nama berkas untuk menjalankan hanya satu uji:
+
+    ```sh
+    npx playwright test index.spec.ts
+    ```
+
+2. Untuk melihat Laporan Uji HTML lengkap, buka dengan perintah berikut:
+
+    ```sh
+    npx playwright show-report
+    ```
+</Steps>
+
+:::tip
+Jalankan uji Anda terhadap kode produksi untuk lebih menyerupai situs yang telah dideploy.
+:::
+
+##### Lanjutan: Menjalankan server pengembangan saat pengujian
+
+Anda juga dapat membuat Playwright menjalankan server ketika Anda menjalankan skrip pengujian menggunakan opsi [`webServer`](https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests) di berkas konfigurasi Playwright.
+
+Berikut contoh konfigurasi dan perintah yang diperlukan saat menggunakan npm:
+
+<Steps>
+1. Tambahkan skrip uji ke berkas `package.json` di root proyek, misalnya `"test:e2e": "playwright test"`.
+
+2. Di `playwright.config.ts`, tambahkan objek `webServer` dan ubah nilai command menjadi `npm run preview`.
+
+    ```js title="playwright.config.ts" ins={4-9} "npm run preview"
+    import { defineConfig } from '@playwright/test';
+    
+    export default defineConfig({
+      webServer: {
+        command: 'npm run preview',
+        url: 'http://localhost:4321/',
+        timeout: 120 * 1000,
+        reuseExistingServer: !process.env.CI,
+      },
+      use: {
+        baseURL: 'http://localhost:4321/',
+      },
+    });
+    ```
+
+3. Jalankan `npm run build`, lalu jalankan `npm run test:e2e` untuk menjalankan uji Playwright.
+</Steps>
+
+Informasi lebih lanjut tentang Playwright dapat ditemukan pada tautan berikut:
+
+- [Memulai dengan Playwright](https://playwright.dev/docs/intro)
+- [Menggunakan server pengembangan](https://playwright.dev/docs/test-webserver#configuring-a-web-server)
+
+### Cypress
+
+Cypress adalah alat pengujian front-end yang dibuat untuk web modern. Cypress memungkinkan Anda menulis uji end-to-end untuk situs Astro Anda.
+
+#### Instalasi
+
+Anda dapat memasang Cypress menggunakan manajer paket pilihan Anda. Ini akan memasang Cypress secara lokal sebagai dev dependency untuk proyek Anda.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install cypress --save-dev
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add --save-dev cypress
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add cypress --dev
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Konfigurasi
+
+Di root proyek Anda, buat berkas `cypress.config.js` dengan isi berikut:
+
+```js title="cypress.config.js"
+import { defineConfig } from 'cypress'
+
+export default defineConfig({
+  e2e: {
+    supportFile: false
+  }
+})
+```
+
+#### Buat uji Cypress pertama Anda
+
+<Steps>
+1. Pilih halaman yang akan diuji. Contoh ini akan menguji halaman contoh `index.astro` di bawah.
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="en">
+      <head>
+        <title>Astro is awesome!</title>
+        <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen islands architecture." />
+      </head>
+      <body>
+      <h1>Hello world from Astro</h1>
+      </body>
+    </html>
+    ```
+
+2. Buat berkas `index.cy.js` di folder `cypress/e2e`. Gunakan uji berikut pada berkas untuk memverifikasi bahwa judul halaman dan header sudah benar.
+
+    ```js title="cypress/e2e/index.cy.js"
+    it('titles are correct', () => {
+      const page = cy.visit('http://localhost:4321');
+
+      page.get('title').should('have.text', 'Astro is awesome!')
+      page.get('h1').should('have.text', 'Hello world from Astro');
+    });
+    ```
+
+    :::tip[Setel `baseUrl`]
+    Anda dapat menyetel [`"baseUrl": "http://localhost:4321"`](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app#Step-3-Configure-Cypress) di berkas konfigurasi `cypress.config.js` untuk menggunakan `cy.visit("/")` alih-alih `cy.visit("http://localhost:4321/")` agar URL lebih ringkas.
+    :::
+</Steps>
+
+#### Menjalankan uji Cypress Anda
+
+Cypress dapat dijalankan dari command line atau dari Cypress App. Aplikasi tersebut menyediakan antarmuka visual untuk menjalankan dan men-debug uji Anda.
+
+Pertama, jalankan dev server sehingga Cypress dapat mengakses situs live Anda.
+
+Untuk menjalankan uji kita dari contoh sebelumnya menggunakan command line, jalankan perintah berikut:
+
+```shell
+npx cypress run
+```
+
+Atau, untuk menjalankan uji menggunakan Cypress App, jalankan perintah berikut:
+
+```shell
+npx cypress open
+```
+
+Setelah Cypress App terbuka, pilih **E2E Testing**, lalu pilih browser yang akan digunakan untuk menjalankan uji.
+
+Setelah uji selesai, Anda akan melihat tanda centang hijau pada output yang mengonfirmasi bahwa uji Anda lulus:
+
+```shell title="Output from npx cypress run"
+Running:  index.cy.js                                                                     (1 of 1)
+
+✓ titles are correct (107ms)
+
+1 passing (1s)
+```
+
+:::note[Gagalkan uji]
+Untuk memeriksa bahwa uji Anda benar-benar bekerja, Anda dapat mengubah baris berikut di berkas `index.astro`:
+
+ ```astro title="src/pages/index.astro" del={2} ins={3}
+  <body>
+    <h1>Hello world from Astro</h1>
+    <h1>Hello from Astro</h1>
+  </body>
+```
+
+Lalu jalankan uji lagi. Anda akan melihat tanda "x" merah pada output yang mengonfirmasi bahwa uji Anda gagal.
+:::
+
+#### Langkah berikutnya
+
+Informasi lebih lanjut tentang Cypress dapat ditemukan pada tautan berikut:
+
+- [Pendahuluan ke Cypress](https://docs.cypress.io/guides/core-concepts/introduction-to-cypress)
+- [Menguji Aplikasi Anda](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app)
+
+### NightwatchJS
+
+Nightwatch.js adalah kerangka kerja otomasi pengujian dengan seperangkat alat yang kuat untuk menulis, menjalankan, dan men-debug uji Anda di seluruh web dengan dukungan bawaan untuk semua browser utama dan padanan selulernya, serta aplikasi mobile native.
+
+#### Instalasi
+
+Anda dapat memasang NightwatchJS di dalam proyek Astro Anda menggunakan manajer paket pilihan Anda. Ikuti langkah-langkah CLI untuk memilih JavaScript/TypeScript, menamai folder test, dan memilih apakah akan menyertakan pengujian komponen dan pengujian pada browser seluler.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init nightwatch@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create nightwatch
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create nightwatch
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### Buat uji Nightwatch pertama Anda
+
+<Steps>
+1. Pilih halaman yang akan diuji. Contoh ini akan menguji halaman contoh `index.astro` di bawah.
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="en">
+      <head>
+        <title>Astro is awesome!</title>
+        <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen islands architecture." />
+      </head>
+      <body></body>
+    </html>
+    ```
+
+2. Buat folder baru `src/test/` dan tambahkan berkas uji berikut:
+
+    ```js title="src/test/index.js"
+    describe('Astro testing with Nightwatch', function () {
+        before(browser => browser.navigateTo('http://localhost:4321/'));
+    
+        it("check that the title is correct", function (browser) {
+            browser.assert.titleEquals('Astro is awesome!')
+        });
+    
+        after(browser => browser.end());
+    });
+    ```
+
+    :::tip[Setel `baseUrl`]
+    Anda dapat menyetel [`"baseURL": "http://localhost:4321"`](https://nightwatchjs.org/guide/reference/settings.html#setting-the-baseurl-property) di berkas konfigurasi `nightwatch.conf.js` untuk menggunakan `browser.navigateTo("/")` alih-alih `browser.navigateTo("http://localhost:4321/")` agar URL lebih ringkas.
+    :::
+</Steps>
+
+#### Menjalankan uji NightwatchJS Anda
+
+Anda dapat menjalankan satu uji atau beberapa uji sekaligus, menguji satu atau beberapa browser. Secara bawaan, hasil uji Anda akan ditampilkan di terminal. Opsional, Anda dapat membuka HTML Test Reporter untuk menampilkan laporan lengkap dan memfilter hasil uji.
+
+Anda dapat menjalankan uji dengan [Ekstensi NightwatchJS untuk VSCode](https://marketplace.visualstudio.com/items?itemName=browserstackcom.nightwatch) atau menggunakan langkah-langkah CLI di bawah ini:
+
+<Steps>
+1. Untuk menjalankan semua uji, masukkan perintah berikut di terminal. Opsional, sertakan nama berkas untuk menjalankan hanya satu uji:
+
+    ```sh
+    npx nightwatch test/index.js
+    ```
+    Selain itu, Anda dapat menjalankan uji terhadap browser tertentu menggunakan argumen CLI `--environment` atau `-e`. Jika Anda tidak memiliki browser terkait yang terinstal, Nightwatch akan mencoba menyiapkannya untuk Anda menggunakan [Selenium Manager](https://www.selenium.dev/blog/2022/introducing-selenium-manager/):
+
+    ```sh
+    npx nightwatch test/index.ts -e firefox
+    ```
+2. Untuk melihat Laporan Uji HTML lengkap, buka dengan perintah berikut:
+
+    ```sh
+    npx nightwatch test/index.ts --open
+    ```
+</Steps>
+
+:::tip
+Jalankan uji Anda terhadap kode produksi untuk lebih menyerupai situs yang telah dideploy.
+:::
+
+Informasi lebih lanjut tentang NightwatchJS dapat ditemukan pada tautan berikut:
+
+  - [Perkenalan Nightwatch](https://nightwatchjs.org/guide/overview/what-is-nightwatch.html)
+  - [Pengujian dengan Nightwatch](https://nightwatchjs.org/guide/writing-tests/introduction.html)

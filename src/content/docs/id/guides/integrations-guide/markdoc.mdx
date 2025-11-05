@@ -1,0 +1,676 @@
+---
+type: integration
+title: '@astrojs/markdoc'
+description: Pelajari cara menggunakan integrasi @astrojs/markdoc di proyek Astro Anda.
+sidebar:
+  label: Markdoc
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/markdoc/'
+category: other
+i18nReady: true
+---
+import { FileTree, Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+Integrasi **[Astro ini][astro-integration]** memungkinkan penggunaan [Markdoc](https://markdoc.dev/) untuk membuat komponen, halaman, dan entri koleksi konten.
+
+## Mengapa Markdoc?
+
+Markdoc memungkinkan Anda menambahkan kemampuan pada Markdown dengan [komponen Astro][astro-components]. Jika Anda memiliki konten yang sudah ditulis dalam Markdoc, integrasi ini memungkinkan Anda membawa berkas-berkas tersebut ke proyek Astro menggunakan koleksi konten.
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatisasi pemasangan integrasi resmi. Jika Anda mau, Anda bisa [menginstal integrasi secara manual](#manual-install) sebagai gantinya.
+
+Jalankan salah satu perintah berikut di jendela terminal baru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Jika Anda mengalami masalah, [silakan laporkan kepada kami di GitHub](https://github.com/withastro/astro/issues) dan coba langkah instalasi manual di bawah ini.
+
+### Instalasi Manual
+
+Pertama, instal paket `@astrojs/markdoc`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/markdoc
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/markdoc
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/markdoc
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, terapkan integrasi ke berkas `astro.config.*` Anda menggunakan properti `integrations`:
+
+```js ins="markdoc()" title="astro.config.mjs" ins={2}
+import { defineConfig } from 'astro/config';
+import markdoc from '@astrojs/markdoc';
+export default defineConfig({
+  // ...
+  integrations: [markdoc()],
+});
+```
+
+### Integrasi Editor VS Code
+
+Jika Anda menggunakan VS Code, tersedia [ekstensi bahasa Markdoc resmi](https://marketplace.visualstudio.com/items?itemName=Stripe.markdoc-language-support) yang menyertakan penyorotan sintaks dan pelengkapan otomatis untuk tag yang dikonfigurasi. [Lihat language server di GitHub](https://github.com/markdoc/language-server.git) untuk informasi lebih lanjut.
+
+Untuk menyiapkan ekstensi, buat berkas `markdoc.config.json` di root proyek dengan isi berikut:
+
+```json title="markdoc.config.json"
+[
+  {
+    "id": "my-site",
+    "path": "src/content",
+    "schema": {
+      "path": "markdoc.config.mjs",
+      "type": "esm",
+      "property": "default",
+      "watch": true
+    }
+  }
+]
+```
+
+Atur `markdoc.config.mjs` sebagai berkas konfigurasi Anda melalui objek `schema`, dan tentukan lokasi berkas Markdoc Anda menggunakan properti `path`. Karena Markdoc spesifik untuk koleksi konten, Anda dapat menggunakan `src/content`.
+
+## Penggunaan
+
+Berkas Markdoc hanya dapat digunakan di dalam koleksi konten. Tambahkan entri ke koleksi konten apa pun menggunakan ekstensi `.mdoc`:
+
+<FileTree>
+- src/
+  - content/
+    - docs/
+      - why-markdoc.mdoc
+      - quick-start.mdoc
+</FileTree>
+
+Kemudian, kueri koleksi Anda menggunakan [API Koleksi Konten](/id/guides/content-collections/#querying-collections):
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await render(entry);
+---
+
+<!--Akses properti frontmatter dengan `data`-->
+<h1>{entry.data.title}</h1>
+<!--Render isi Markdoc dengan komponen Content-->
+<Content />
+```
+
+<ReadMore>Lihat [dokumen Koleksi Konten Astro][astro-content-collections] untuk informasi lebih lanjut.</ReadMore>
+
+## Mengoper variabel Markdoc
+
+Anda mungkin ingin mengoper [variabel][markdoc-variables] ke konten Anda. Ini berguna saat meneruskan parameter SSR seperti A/B test.
+
+Variabel dapat diteruskan sebagai props melalui komponen `Content`:
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await render(entry);
+---
+
+<!--Teruskan parameter `abTest` sebagai variabel-->
+<Content abTestGroup={Astro.params.abTestGroup} />
+```
+
+Sekarang, `abTestGroup` tersedia sebagai variabel di `docs/why-markdoc.mdoc`:
+
+```md title="src/content/docs/why-markdoc.mdoc"
+{% if $abTestGroup === 'image-optimization-lover' %}
+
+Let me tell you about image optimization...
+
+{% /if %}
+```
+
+Untuk menjadikan sebuah variabel bersifat global untuk semua berkas Markdoc, Anda dapat menggunakan atribut `variables` dari `markdoc.config.mjs|ts` Anda:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  variables: {
+    environment: process.env.IS_PROD ? 'prod' : 'dev',
+  },
+});
+```
+
+### Mengakses frontmatter dari konten Markdoc Anda
+
+Untuk mengakses frontmatter, Anda dapat meneruskan properti entri `data` sebagai variabel saat merender konten Anda:
+
+```astro title="src/pages/why-markdoc.astro"
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('docs', 'why-markdoc');
+const { Content } = await render(entry);
+---
+
+<Content frontmatter={entry.data} />
+```
+
+Ini sekarang dapat diakses sebagai `$frontmatter` di Markdoc Anda.
+
+## Merender komponen
+
+`@astrojs/markdoc` menawarkan opsi konfigurasi untuk menggunakan semua fitur Markdoc dan menghubungkan komponen UI ke konten Anda.
+
+### Menggunakan komponen Astro sebagai tag Markdoc
+
+Anda dapat mengonfigurasi [tag Markdoc][markdoc-tags] yang dipetakan ke komponen `.astro`. Anda dapat menambahkan tag baru dengan membuat berkas `markdoc.config.mjs|ts` di root proyek dan mengonfigurasi atribut `tag`.
+
+Contoh ini merender komponen `Aside`, dan mengizinkan prop `type` diteruskan sebagai string:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/Aside.astro'),
+      attributes: {
+        // Markdoc memerlukan tipe untuk setiap atribut.
+        // Tipe ini harus mencerminkan tipe `Props` komponen
+        // yang Anda render.
+        // Lihat dokumentasi Markdoc tentang pendefinisian atribut
+        // https://markdoc.dev/docs/attributes#defining-attributes
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+Komponen ini sekarang dapat digunakan di berkas Markdoc Anda dengan tag `{% aside %}`. Children akan diteruskan ke slot default komponen Anda:
+
+```md
+# Selamat datang di Markdoc 👋
+
+{% aside type="tip" %}
+
+Gunakan tag seperti "aside" ini untuk menambahkan _flair_ pada dokumentasi Anda.
+
+{% /aside %}
+```
+
+### Menggunakan komponen UI sisi klien
+
+Tag dan node dibatasi pada berkas `.astro`. Untuk menyematkan komponen UI sisi klien di Markdoc, [gunakan komponen pembungkus `.astro` yang merender komponen framework](/id/guides/framework-components/#nesting-framework-components) dengan direktif `client:` yang diinginkan.
+
+Contoh ini membungkus komponen React `Aside.tsx` dengan komponen `ClientAside.astro`:
+
+```astro title="src/components/ClientAside.astro"
+---
+import Aside from './Aside';
+---
+
+<Aside {...Astro.props} client:load />
+```
+
+Komponen Astro ini sekarang dapat diteruskan ke properti `render` untuk [tag][markdoc-tags] atau [node][markdoc-nodes] apa pun di konfigurasi Anda:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    aside: {
+      render: component('./src/components/ClientAside.astro'),
+      attributes: {
+        type: { type: String },
+      },
+    },
+  },
+});
+```
+
+### Menggunakan komponen Astro dari paket npm dan berkas TypeScript
+
+Anda mungkin perlu menggunakan komponen Astro yang diekspos sebagai named export dari berkas TypeScript atau JavaScript. Ini umum saat menggunakan paket npm dan design system.
+
+Anda dapat meneruskan nama impor sebagai argumen kedua ke fungsi `component()`:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  tags: {
+    tabs: {
+      render: component('@astrojs/starlight/components', 'Tabs'),
+    },
+  },
+});
+```
+
+Ini akan menghasilkan pernyataan import berikut secara internal:
+
+```ts
+import { Tabs } from '@astrojs/starlight/components';
+```
+
+## Markdoc Partials
+
+Tag `{% partial /%}` memungkinkan Anda merender berkas `.mdoc` lain di dalam konten Markdoc Anda.
+
+Ini berguna untuk menggunakan ulang konten di banyak dokumen, dan memungkinkan Anda memiliki berkas konten `.mdoc` yang tidak mengikuti skema koleksi Anda.
+
+:::tip
+Gunakan prefiks garis bawah `_` untuk berkas atau direktori partial. Ini mengecualikan partial dari kueri koleksi konten.
+:::
+
+Contoh berikut menunjukkan partial Markdoc untuk footer yang akan digunakan di entri koleksi blog:
+
+```md title="src/content/blog/_footer.mdoc"
+Tautan sosial:
+
+- [Twitter / X](https://twitter.com/astrodotbuild)
+- [Discord](https://astro.build/chat)
+- [GitHub](https://github.com/withastro/astro)
+```
+
+Gunakan tag `{% partial /%}` untuk merender footer di bagian bawah entri posting blog. Terapkan atribut `file` dengan path ke berkas, menggunakan path relatif atau alias impor:
+
+```md title="src/content/blog/post.mdoc" ins='file="_footer.mdoc"'
+# Postingan Blog Saya
+
+{% partial file="./_footer.mdoc" /%}
+```
+
+## Penyorotan sintaks
+
+`@astrojs/markdoc` menyediakan ekstensi [Shiki](https://shiki.style) dan [Prism](https://github.com/PrismJS) untuk menyorot blok kode Anda.
+
+### Shiki
+
+Terapkan ekstensi `shiki()` ke konfigurasi Markdoc Anda menggunakan properti `extends`. Anda dapat secara opsional meneruskan objek konfigurasi shiki:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import shiki from '@astrojs/markdoc/shiki';
+
+export default defineMarkdocConfig({
+  extends: [
+    shiki({
+      // Pilih tema bawaan Shiki (atau tambahkan milik Anda)
+      // Default: 'github-dark'
+      // https://shiki.style/themes
+      theme: 'dracula',
+      // Aktifkan word wrap untuk mencegah scroll horizontal
+      // Default: false
+      wrap: true,
+      // Kirim bahasa kustom
+      // Catatan: Shiki memiliki banyak bahasa bawaan, termasuk `.astro`!
+      // https://shiki.style/languages
+      langs: [],
+    }),
+  ],
+});
+```
+
+### Prism
+
+Terapkan ekstensi `prism()` ke konfigurasi Markdoc Anda menggunakan properti `extends`.
+
+```js title="markdoc.config.mjs" ins={5}
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+import prism from '@astrojs/markdoc/prism';
+
+export default defineMarkdocConfig({
+  extends: [prism()],
+});
+```
+
+<ReadMore>Untuk mempelajari cara mengonfigurasi stylesheet Prism, [lihat panduan penyorotan sintaks kami](/id/guides/syntax-highlighting/#add-a-prism-stylesheet).</ReadMore>
+
+## Node/elemen Markdoc kustom
+
+Anda mungkin ingin merender elemen Markdown standar, seperti paragraf dan teks tebal, sebagai komponen Astro. Untuk itu, Anda dapat mengonfigurasi [node Markdoc][markdoc-nodes]. Jika sebuah node menerima atribut, atribut tersebut akan tersedia sebagai props komponen.
+
+Contoh ini merender blockquote dengan komponen kustom `Quote.astro`:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    blockquote: {
+      ...nodes.blockquote, // Terapkan default Markdoc untuk opsi lain
+      render: component('./src/components/Quote.astro'),
+    },
+  },
+});
+```
+
+<ReadMore>Lihat [dokumentasi node Markdoc](https://markdoc.dev/docs/nodes#built-in-nodes) untuk mempelajari semua node dan atribut bawaan.</ReadMore>
+
+### Heading kustom
+
+`@astrojs/markdoc` secara otomatis menambahkan tautan jangkar ke heading Anda, dan [menghasilkan daftar `headings` melalui API koleksi konten](/id/guides/content-collections/#rendering-body-content). Untuk menyesuaikan lebih jauh cara heading dirender, Anda dapat menerapkan komponen Astro [sebagai node Markdoc][markdoc-nodes].
+
+Contoh ini merender komponen `Heading.astro` menggunakan properti `render`:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    heading: {
+      ...nodes.heading, // Pertahankan pembuatan tautan jangkar default
+      render: component('./src/components/Heading.astro'),
+    },
+  },
+});
+```
+
+Semua heading Markdown akan merender komponen `Heading.astro` dan meneruskan `attributes` berikut sebagai props komponen:
+
+* `level: number` Level heading 1 - 6
+* `id: string` `id` yang dihasilkan dari teks heading. Ini sesuai dengan `slug` yang dihasilkan oleh [fungsi `render()` konten](/id/guides/content-collections/#rendering-body-content).
+
+Contohnya, heading `### Level 3 heading!` akan meneruskan `level: 3` dan `id: 'level-3-heading'` sebagai props komponen.
+
+### Komponen gambar kustom
+
+Komponen `<Image />` milik Astro tidak dapat digunakan langsung di Markdoc. Namun, Anda dapat mengonfigurasi komponen Astro untuk menimpa node gambar default setiap kali sintaks `![]()` gambar native digunakan, atau sebagai tag Markdoc kustom agar Anda dapat menentukan atribut gambar tambahan.
+
+#### Menimpa node gambar default Markdoc
+
+Untuk menimpa node gambar default, Anda dapat mengonfigurasi komponen `.astro` agar dirender menggantikan `<img>` standar.
+
+<Steps>
+1. Bangun komponen `MarkdocImage.astro` kustom untuk meneruskan properti `src` dan `alt` yang diperlukan dari gambar Anda ke komponen `<Image />`:
+
+    ```astro title="src/components/MarkdocImage.astro"
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    ```
+
+2. Komponen `<Image />` memerlukan `width` dan `height` untuk gambar remote yang tidak dapat diberikan menggunakan sintaks `![]()`. Untuk menghindari error saat menggunakan gambar remote, perbarui komponen Anda agar merender tag HTML `<img>` standar ketika ditemukan `src` berupa URL remote:
+
+    ```astro title="src/components/MarkdocImage.astro" ins="| string" del={9} ins={10-12}
+    ---
+    import { Image } from "astro:assets";
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+    }
+    const { src, alt } = Astro.props;
+    ---
+    <Image src={src} alt={alt} />
+    {
+      typeof src === 'string' ? <img src={src} alt={alt} /> : <Image src={src} alt={alt} />
+    }
+    ```
+
+3. Konfigurasikan Markdoc untuk menimpa node gambar default dan merender `MarkdocImage.astro`:
+
+    ```js title="markdoc.config.mjs"
+    import { defineMarkdocConfig, nodes, component } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      nodes: {
+        image: {
+          ...nodes.image, // Terapkan default Markdoc untuk opsi lain
+          render: component('./src/components/MarkdocImage.astro'),
+        },
+      },
+    });
+    ```
+
+4. Sintaks gambar native di berkas `.mdoc` mana pun kini akan menggunakan komponen `<Image />` untuk mengoptimalkan gambar lokal Anda. Gambar remote tetap dapat digunakan, tetapi tidak akan dirender oleh komponen `<Image />` milik Astro.
+
+    ```md title="src/content/blog/post.mdoc"
+    
+    <!-- Dioptimalkan oleh <Image /> -->
+    ![A picture of a cat](/cat.jpg)
+
+    <!-- <img> tidak dioptimalkan -->
+    ![A picture of a dog](https://example.com/dog.jpg) 
+    ```
+</Steps>
+
+#### Membuat tag gambar Markdoc kustom
+
+Tag `image` Markdoc memungkinkan Anda menetapkan atribut tambahan pada gambar yang tidak mungkin dilakukan dengan sintaks `![]()`. Misalnya, tag gambar kustom memungkinkan Anda menggunakan komponen `<Image />` Astro untuk gambar remote yang memerlukan `width` dan `height`.
+
+Langkah-langkah berikut akan membuat tag gambar Markdoc kustom untuk menampilkan elemen `<figure>` dengan caption, menggunakan komponen `<Image />` Astro untuk mengoptimalkan gambar.
+
+<Steps>
+1. Buat komponen `MarkdocFigure.astro` untuk menerima props yang diperlukan dan merender gambar dengan caption:
+
+    ```astro title="src/components/MarkdocFigure.astro"
+    ---
+    // src/components/MarkdocFigure.astro
+    import { Image } from "astro:assets";
+
+    interface Props {
+      src: ImageMetadata | string;
+      alt: string;
+      width: number;
+      height: number;
+      caption: string;
+    }
+
+    const { src, alt, width, height, caption } = Astro.props;
+    ---
+    <figure>
+        <Image {src} {alt} {width} {height}  />
+        {caption && <figcaption>{caption}</figcaption>}
+    </figure>
+    ```
+
+2. Konfigurasikan tag gambar kustom Anda untuk merender komponen Astro Anda:
+
+    ```ts title="markdoc.config.mjs"
+    import { component, defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+    export default defineMarkdocConfig({
+      tags: {
+        image: {
+          attributes: {
+            width: {
+              type: String,
+            },
+            height: {
+              type: String,
+            },
+            caption: {
+              type: String,
+            },
+            ...nodes.image.attributes
+          },
+          render: component('./src/components/MarkdocFigure.astro'),
+        },
+      },
+    });
+    ```
+
+3. Gunakan tag `image` di berkas Markdoc untuk menampilkan figure dengan caption, dengan menyediakan semua atribut yang diperlukan untuk komponen Anda:
+
+    ```md
+    {% image src="./astro-logo.png" alt="Astro Logo" width="100" height="100" caption="a caption!" /%}
+    ```
+</Steps>
+
+## Konfigurasi Markdoc tingkat lanjut
+
+Berkas `markdoc.config.mjs|ts` menerima [semua opsi konfigurasi Markdoc](https://markdoc.dev/docs/config), termasuk [tags](https://markdoc.dev/docs/tags) dan [functions](https://markdoc.dev/docs/functions).
+
+Anda dapat meneruskan opsi-opsi tersebut dari default export di berkas `markdoc.config.mjs|ts` Anda:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  functions: {
+    getCountryEmoji: {
+      transform(parameters) {
+        const [country] = Object.values(parameters);
+        const countryToEmojiMap = {
+          japan: '🇯🇵',
+          spain: '🇪🇸',
+          france: '🇫🇷',
+        };
+        return countryToEmojiMap[country] ?? '🏳';
+      },
+    },
+  },
+});
+```
+
+Sekarang, Anda dapat memanggil fungsi ini dari entri konten Markdoc mana pun:
+
+```md
+¡Hola {% getCountryEmoji("spain") %}!
+```
+
+<ReadMore>[Lihat dokumentasi Markdoc](https://markdoc.dev/docs/functions#creating-a-custom-function) untuk lebih lanjut tentang penggunaan variabel atau fungsi di konten Anda.</ReadMore>
+
+### Menetapkan elemen HTML root
+
+Secara default, Markdoc membungkus dokumen dengan tag `<article>`. Hal ini dapat diubah dari node Markdoc `document`. Ini menerima nama elemen HTML atau `null` jika Anda ingin menghapus elemen pembungkus:
+
+```js title="markdoc.config.mjs"
+import { defineMarkdocConfig, nodes } from '@astrojs/markdoc/config';
+
+export default defineMarkdocConfig({
+  nodes: {
+    document: {
+      ...nodes.document, // Terapkan default untuk opsi lain
+      render: null, // default 'article'
+    },
+  },
+});
+```
+
+## Opsi konfigurasi integrasi
+
+Integrasi Astro Markdoc menangani konfigurasi opsi dan kapabilitas Markdoc yang tidak tersedia melalui berkas `markdoc.config.js`.
+
+### `allowHTML`
+
+<p>
+
+**Tipe:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="0.4.4" pkg="@astrojs/markdoc" />
+</p>
+
+Mengaktifkan penulisan markup HTML berdampingan dengan tag dan node Markdoc.
+
+Secara default, Markdoc tidak akan mengenali markup HTML sebagai konten semantik.
+
+Untuk mendapatkan pengalaman yang lebih mirip Markdown—di mana elemen HTML dapat disertakan berdampingan dengan konten—atur `allowHTML:true` sebagai opsi integrasi `markdoc`. Ini akan mengaktifkan parsing HTML dalam markup Markdoc.
+
+```js ins="allowHTML: true" title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ allowHTML: true })],
+  });
+```
+
+:::caution
+Saat `allowHTML` diaktifkan, markup HTML di dalam dokumen Markdoc akan dirender sebagai elemen HTML sebenarnya (termasuk `<script>`), sehingga vektor serangan seperti XSS menjadi mungkin. Pastikan setiap markup HTML berasal dari sumber tepercaya.
+:::
+
+### `ignoreIndentation`
+
+<p>
+
+**Tipe:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="0.7.0" pkg="@astrojs/markdoc" />
+</p>
+
+Secara default, konten yang menjorok empat spasi diperlakukan sebagai blok kode. Sayangnya, perilaku ini membuat sulit menggunakan tingkat indentasi sebarang untuk meningkatkan keterbacaan dokumen dengan struktur kompleks.
+
+Saat menggunakan tag bertingkat (nested) di Markdoc, akan membantu jika konten di dalam tag dapat diindentasi sehingga tingkat kedalaman terlihat jelas. Untuk mendukung indentasi sebarang, kita harus menonaktifkan blok kode berbasis indentasi dan memodifikasi beberapa aturan parsing markdown-it lain yang memperhitungkan blok kode berbasis indentasi. Perubahan ini dapat diterapkan dengan mengaktifkan opsi `ignoreIndentation`.
+
+```js "ignoreIndentation: true" title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ ignoreIndentation: true })],
+  });
+```
+
+```md
+# Selamat datang di Markdoc dengan tag yang diindentasi 👋
+
+# Catatan: Bisa menggunakan spasi atau tab untuk indentasi
+
+{% custom-tag %}
+{% custom-tag %} ### Tag dapat diindentasi agar lebih mudah dibaca
+
+    {% another-custom-tag %}
+      Ini lebih mudah diikuti saat ada banyak nesting
+    {% /another-custom-tag %}
+
+{% /custom-tag %}
+{% /custom-tag %}
+```
+
+## Contoh
+
+* [Template starter Astro Markdoc](https://github.com/withastro/astro/tree/latest/examples/with-markdoc) menunjukkan cara menggunakan berkas Markdoc di proyek Astro Anda.
+
+[astro-integration]: /id/guides/integrations-guide/
+
+[astro-components]: /id/basics/astro-components/
+
+[astro-content-collections]: /id/guides/content-collections/
+
+[markdoc-tags]: https://markdoc.dev/docs/tags
+
+[markdoc-nodes]: https://markdoc.dev/docs/nodes
+
+[markdoc-variables]: https://markdoc.dev/docs/variables

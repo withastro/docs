@@ -1,0 +1,228 @@
+---
+title: Pemecahan Masalah
+description: Perlu bantuan? Terjebak pada sesuatu? Kami siap membantu.
+i18nReady: true
+---
+
+Astro menyediakan beberapa alat untuk membantu Anda memecahkan masalah dan melakukan debug kode Anda.
+
+## Tips dan trik
+
+### Debugging dengan `console.log()`
+
+`console.log()` adalah metode debugging yang sederhana namun populer untuk kode Astro Anda. Di mana Anda menuliskan pernyataan `console.log()` akan menentukan di mana keluaran debugging Anda dicetak:
+
+```astro
+---
+console.log('Hi! I’m the server. This is logged in the terminal where Astro is running.');
+---
+
+<script>
+console.log('Hi! I’m the client. This is logged in browser dev console.');
+</script>
+```
+
+Pernyataan `console.log()` di frontmatter Astro akan selalu keluar ke **terminal** yang menjalankan Astro CLI. Ini karena Astro berjalan di server, dan tidak pernah di browser.
+
+Kode yang ditulis atau diimpor di dalam tag `<script>` Astro dijalankan di browser. Setiap pernyataan `console.log()` atau keluaran debug lainnya akan dicetak ke **konsol di browser** Anda.
+
+### Debugging komponen framework
+
+[Komponen framework](/id/guides/framework-components/) (seperti React dan Svelte) bersifat unik: Komponen ini melakukan rendering di sisi server secara default, yang berarti keluaran debug `console.log()` akan terlihat di terminal. Namun, komponen ini juga dapat dihidrasi untuk browser, yang mungkin menyebabkan log debug Anda juga muncul di browser.
+
+Ini bisa berguna untuk mendebug perbedaan antara keluaran server dan komponen yang dihidrasi di browser.
+
+### Komponen Astro `<Debug />`
+
+Untuk membantu Anda melakukan debug komponen Astro, Astro menyediakan komponen bawaan `<Debug />` yang merender nilai apa pun langsung ke template HTML komponen Anda.
+
+Komponen ini menyediakan cara untuk memeriksa nilai di sisi klien, tanpa JavaScript apa pun. Ini berguna untuk debugging cepat di browser tanpa harus bolak‑balik antara terminal dan browser Anda.
+
+```astro {2,7}
+---
+import { Debug } from 'astro:components';
+const sum = (a, b) => a + b;
+---
+
+<!-- Contoh: Menampilkan {answer: 6} ke browser -->
+<Debug answer={sum(2, 4)} />
+```
+
+Komponen Debug mendukung berbagai opsi sintaks untuk debugging yang lebih fleksibel dan ringkas:
+
+```astro {2,7-9}
+---
+import { Debug } from 'astro:components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- Contoh: Ketiga contoh berikut setara. -->
+<Debug answer={sum(2, 4)} />
+<Debug {{answer: sum(2, 4)}} />
+<Debug {answer} />
+```
+
+## Pesan Error Umum
+
+Berikut beberapa pesan error umum yang mungkin Anda lihat di terminal, apa penyebabnya, dan apa yang harus dilakukan. Lihat [panduan referensi error lengkap kami](/id/reference/error-reference/) untuk daftar lengkap error Astro yang mungkin Anda temui.
+
+### Cannot use import statement outside a module
+
+Dalam komponen Astro, tag `<script>` dimuat sebagai [modul JS](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules) secara default. Jika Anda menyertakan direktif [`is:inline`](/id/reference/directives-reference/#isinline) atau atribut lainnya di tag tersebut, perilaku default ini akan dihapus.
+
+**Solusi**: Jika Anda menambahkan atribut apa pun ke tag `<script>`, Anda juga harus menambahkan atribut `type="module"` agar dapat menggunakan pernyataan import.
+
+**Status**: Perilaku Astro yang diharapkan, sesuai rancangan.
+
+**Tidak yakin ini masalah Anda?**  
+Periksa apakah ada orang lain yang telah melaporkan [isu ini](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)!
+
+### `document` (atau `window`) is not defined
+
+Error ini terjadi saat mencoba mengakses `document` atau `window` di server.
+
+Komponen Astro berjalan di server, jadi Anda tidak dapat mengakses objek khusus browser ini di dalam frontmatter.
+
+Komponen framework berjalan di server secara default, jadi error ini dapat terjadi saat mengakses `document` atau `window` selama proses rendering.
+
+**Solusi**: Tentukan kode yang memanggil `document` atau `window`. Jika Anda tidak menggunakan `document` atau `window` secara langsung namun tetap mendapatkan error ini, periksa apakah ada paket yang Anda impor yang memang dimaksudkan untuk dijalankan di klien.
+
+- Jika kodenya berada di komponen Astro, pindahkan ke tag `<script>` di luar frontmatter. Ini memberi tahu Astro untuk menjalankan kode tersebut di klien, tempat `document` dan `window` tersedia.
+
+- Jika kodenya berada di komponen framework, cobalah mengakses objek tersebut setelah rendering menggunakan metode siklus hidup (mis. [`useEffect()`](https://react.dev/reference/react/useEffect) di React, [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted) di Vue, dan [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount) di Svelte). Instruksikan komponen framework untuk dihidrasi di sisi klien dengan menggunakan direktif [client:](/id/reference/directives-reference/#client-directives), seperti `client:load`, agar metode siklus hidup ini berjalan. Anda juga dapat mencegah komponen dirender di server sama sekali dengan menambahkan direktif [`client:only`](/id/reference/directives-reference/#clientonly).
+
+**Status**: Perilaku Astro yang diharapkan, sesuai rancangan.
+
+### Expected a default export
+
+Error ini dapat muncul saat mencoba mengimpor atau merender komponen yang tidak valid, atau komponen yang tidak berfungsi dengan baik. (Pesan ini muncul karena cara kerja impor komponen UI di Astro.)
+
+**Solusi**: Coba cari error di komponen yang Anda impor dan render, dan pastikan komponen tersebut berfungsi dengan benar. Pertimbangkan untuk membuka template awal Astro dari [astro.new](https://astro.new) dan melakukan troubleshooting komponen Anda pada proyek Astro minimal.
+
+**Status**: Perilaku Astro yang diharapkan, sesuai rancangan.
+
+### Refused to execute inline script
+
+Anda mungkin melihat error berikut di konsol browser:
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+Ini berarti [Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP) (CSP) situs Anda tidak mengizinkan menjalankan tag `<script>` inline, yang secara default dihasilkan oleh Astro.
+
+**Solusi:** Perbarui CSP Anda untuk menyertakan `script-src: 'unsafe-inline'` agar skrip inline dapat dijalankan. Atau, Anda bisa menggunakan integrasi pihak ketiga seperti [`astro-shield`](https://github.com/KindSpells/astro-shield) untuk membuat header CSP untuk Anda.
+
+## Hal yang sering mengecoh
+
+### Komponen saya tidak merender
+
+Pertama, periksa bahwa Anda telah **mengimpor komponen** di [script komponen `.astro`](/id/basics/astro-components/#the-component-script) atau file [`.mdx`](/id/guides/integrations-guide/mdx/#using-components-in-mdx).
+
+Lalu periksa pernyataan impor Anda:
+
+- Apakah impor Anda menaut ke lokasi yang salah? (Periksa path impor Anda.)
+
+- Apakah nama impor Anda sama dengan komponen yang diimpor? (Periksa nama komponen Anda dan pastikan mengikuti [sintaks `.astro`](/id/reference/astro-syntax/#differences-between-astro-and-jsx).)
+
+- Apakah Anda menyertakan ekstensi pada impor? (Pastikan file yang diimpor memiliki ekstensi. mis. `.astro`, `.md`, `.vue`, `.svelte`. Catatan: Ekstensi file **tidak** diperlukan hanya untuk file `.js(x)` dan `.ts(x)`.)
+
+### Komponen saya tidak interaktif
+
+Jika komponen Anda merender (lihat di atas) tetapi tidak merespons interaksi pengguna, maka Anda mungkin melewatkan direktif [`client:*`](/id/reference/directives-reference/#client-directives) untuk menghidrasi komponen Anda.
+
+Secara default, [komponen UI Framework tidak dihidrasi di klien](/id/guides/framework-components/#hydrating-interactive-components). Jika tidak ada direktif `client:*` yang diberikan, HTML‑nya akan dirender ke halaman tanpa JavaScript.
+
+:::tip
+[Komponen Astro](/id/basics/astro-components/) adalah komponen templating HTML‑saja tanpa runtime sisi klien. Namun, Anda dapat menggunakan tag `<script>` di template komponen Astro Anda untuk mengirim JavaScript ke browser yang akan dieksekusi di global scope.
+:::
+
+### Cannot find package 'X'
+
+Jika Anda melihat peringatan `"Cannot find package 'react'"` (atau sejenisnya) saat memulai Astro, itu berarti Anda perlu menginstal paket tersebut ke proyek Anda. Tidak semua manajer paket akan memasang peer dependency untuk Anda secara otomatis. Jika Anda menggunakan Node v16+ dan npm, Anda biasanya tidak perlu khawatir bagian ini.
+
+Contohnya React adalah peer dependency dari integrasi `@astrojs/react`. Artinya Anda harus memasang paket resmi `react` dan `react-dom` bersamaan dengan integrasi Anda. Integrasi kemudian akan menggunakan paket‑paket ini secara otomatis.
+
+```shell ins="react react-dom"
+# Contoh: Instal integrasi dan framework bersama‑sama
+npm install @astrojs/react react react-dom
+```
+Lihat [panduan integrasi Astro](/id/guides/integrations-guide/) untuk instruksi menambahkan renderer framework, alat CSS, dan paket lainnya ke Astro.
+
+### Menggunakan Astro dengan Yarn 2+ (Berry)
+
+Yarn 2+, alias Berry, menggunakan teknik [Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp) untuk menyimpan dan mengelola modul Node, yang dapat [menyebabkan masalah](https://github.com/withastro/astro/issues/3450) saat menginisialisasi proyek Astro baru menggunakan `create astro` atau saat bekerja dengan Astro. Solusi sementara adalah mengatur properti [`nodeLinker`](https://yarnpkg.com/configuration/yarnrc#nodeLinker) di `.yarnrc.yml` ke `node-modules`:
+
+```yaml title=".yarnrc.yml"
+nodeLinker: "node-modules"
+```
+
+### Menambahkan dependensi ke Astro di monorepo
+
+Saat bekerja dengan Astro di setup monorepo, dependensi proyek harus ditambahkan di file `package.json` masing‑masing proyek.
+
+Namun, Anda mungkin juga ingin menggunakan Astro di root monorepo (mis. [proyek Nx merekomendasikan memasang dependensi di root](https://github.com/nrwl/nx/issues/3023#issuecomment-630558318)). Dalam kasus ini, tambahkan secara manual dependensi terkait Astro (mis. `@astrojs/vue`, `astro-component-lib`) ke bagian `vite.ssr.noExternal` pada konfigurasi Astro untuk memastikan dependensi tersebut terpasang dan dibundel dengan benar:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: [
+        '@astrojs/vue',
+        'astro-component-lib',
+      ]
+    }
+  }
+})
+```
+
+### Menggunakan `<head>` di dalam komponen
+
+Di Astro, penggunaan tag `<head>` sama seperti tag HTML lainnya: tag ini tidak dipindahkan ke bagian atas halaman atau digabungkan dengan `<head>` yang sudah ada. Karena itu, Anda biasanya hanya ingin menyertakan satu tag `<head>` di seluruh halaman. Kami merekomendasikan menuliskan satu `<head>` tersebut dan isinya di [komponen layout](/id/basics/layouts/).
+
+### Ada `<style>` tak terduga yang ikut disertakan
+
+Anda mungkin melihat tag `<style>` dari komponen yang diimpor ikut muncul di sumber HTML Anda meskipun komponen tersebut tidak tampil dalam keluaran akhir. Misalnya, ini akan terjadi pada komponen yang [dirender secara kondisional](/id/reference/astro-syntax/#dynamic-html) namun tidak ditampilkan.
+
+Proses build Astro bekerja pada grafik modul: setelah sebuah komponen disertakan di template, tag `<style>`‑nya akan diproses, dioptimalkan, dan dibundel, apakah komponen itu muncul di keluaran akhir atau tidak.
+
+## Escape karakter khusus di Markdown
+
+Karakter tertentu memiliki makna khusus di Markdown. Anda mungkin perlu menggunakan sintaks berbeda jika ingin menampilkannya. Untuk itu, Anda dapat menggunakan [entitas HTML](https://developer.mozilla.org/en-US/docs/Glossary/Entity) untuk karakter‑karakter ini.
+
+Sebagai contoh, untuk mencegah `<` ditafsirkan sebagai awal elemen HTML, tulislah `&lt;`.
+
+## Membuat reproduksi minimal
+
+Saat memecahkan masalah kode Anda, akan sangat membantu untuk membuat **reproduksi minimal** dari isu yang dapat Anda bagikan. Ini adalah proyek Astro yang lebih kecil dan sederhana yang mendemonstrasikan masalah Anda. Memiliki reproduksi yang berjalan di proyek baru membantu memastikan bahwa ini adalah masalah yang dapat diulang, dan bukan disebabkan oleh hal lain di lingkungan pribadi atau proyek yang sudah ada.
+
+Berbagi reproduksi minimal sangat membantu saat meminta bantuan di thread dukungan kami dan sering kali diperlukan saat mengajukan laporan bug ke Astro.
+
+### Buat StackBlitz melalui [astro.new](https://astro.new/repro)
+
+Anda dapat menggunakan [astro.new](https://astro.new/repro) untuk membuat proyek Astro baru dengan sekali klik. Untuk reproduksi minimal, kami sangat menyarankan memulai dari contoh minimal (kosong) yang berjalan di [StackBlitz](https://stackblitz.com), dengan kode tambahan sesedikit mungkin.
+
+StackBlitz akan menjalankan proyek Astro ini di browser, di luar lingkungan lokal Anda. Layanan ini juga akan memberi Anda tautan yang dapat dibagikan sehingga maintainer Astro atau anggota support squad mana pun dapat melihat reproduksi minimal Anda di luar lingkungan lokal mereka sendiri. Ini berarti semua orang melihat proyek yang persis sama, dengan konfigurasi dan dependensi yang sama. Hal ini memudahkan orang lain untuk membantu memecahkan masalah kode Anda. Jika isu dapat direproduksi, ini mengindikasikan bahwa masalah berada di kode Astro itu sendiri dan Anda dapat yakin untuk mengajukan laporan bug.
+
+Perhatikan bahwa tidak setiap isu dapat direproduksi di StackBlitz. Misalnya, masalah Anda mungkin bergantung pada lingkungan atau manajer paket tertentu, atau melibatkan HTML Streaming yang tidak didukung di StackBlitz. Dalam kasus ini, buat proyek Astro minimal (kosong) baru menggunakan CLI, reproduksi masalahnya, dan unggah ke repositori GitHub. Alih‑alih membagikan URL StackBlitz, berikan tautan ke repositori GitHub dari reproduksi minimal Anda.
+### Kode minimal
+
+Setelah proyek kosong Anda siap, lakukan langkah‑langkah untuk mereproduksi masalah. Ini dapat mencakup menambahkan paket, mengubah konfigurasi, dan menulis kode.
+
+Anda hanya boleh menambahkan jumlah kode minimum yang diperlukan untuk mereproduksi masalah. Jangan mereplikasi elemen lain dari proyek Anda yang ada, dan hapus semua kode yang tidak terkait langsung dengan masalah.
+
+### Membuat issue
+
+Jika masalah Anda dapat direproduksi, saatnya membuat issue dan mengajukan laporan bug!
+
+Kunjungi repositori Astro yang sesuai di GitHub dan buka issue baru. Sebagian besar repositori memiliki templat issue yang akan menanyakan atau memerlukan informasi untuk dikirimkan. Penting untuk mengikuti templat tersebut karena jika Anda tidak memberikan informasi yang kami perlukan, kami harus menanyakannya kembali… dan tidak ada yang mengerjakan issue Anda!
+
+Sertakan tautan ke reproduksi minimal Anda di StackBlitz (atau repositori GitHub, jika perlu). Mulailah dengan deskripsi tentang perilaku yang diharapkan versus perilaku aktual untuk memberikan konteks. Kemudian, sertakan instruksi jelas, langkah demi langkah tentang cara mereplikasi masalah di proyek Astro.
+
+## Butuh bantuan lagi?
+
+Ayo mengobrol dengan kami di [Discord](https://astro.build/chat) dan jelaskan masalah Anda di kanal forum `#support`. Kami selalu siap membantu!
+
+Kunjungi [isu terbuka di Astro saat ini](https://github.com/withastro/astro/issues/) untuk melihat apakah Anda mengalami masalah yang sudah diketahui atau untuk mengajukan laporan bug.
+
+Anda juga dapat mengunjungi [RFC Discussions](https://github.com/withastro/rfcs/discussions/) untuk melihat apakah Anda menemukan keterbatasan yang diketahui di Astro, dan memeriksa apakah ada proposal saat ini yang terkait dengan kasus penggunaan Anda.

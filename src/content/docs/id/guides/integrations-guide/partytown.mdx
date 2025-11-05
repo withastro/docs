@@ -1,0 +1,213 @@
+---
+type: integration
+title: '@astrojs/partytown'
+description: Pelajari cara menggunakan integrasi @astrojs/partytown di proyek Astro Anda.
+sidebar:
+  label: Partytown
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
+category: other
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Integrasi **[Astro][astro-integration]** ini mengaktifkan [Partytown](https://partytown.qwik.dev/) di proyek Astro Anda.
+
+## Mengapa Astro Partytown
+
+Partytown adalah pustaka lazy‑loaded untuk membantu memindahkan skrip yang berat sumber daya ke [web worker](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API), dan keluar dari [main thread](https://developer.mozilla.org/en-US/docs/Glossary/Main_thread).
+
+Jika Anda menggunakan skrip pihak ketiga seperti analitik atau iklan, Partytown adalah cara yang bagus untuk memastikan skrip tersebut tidak memperlambat situs Anda.
+
+Integrasi Astro Partytown memasang Partytown untuk Anda dan memastikan skripnya diaktifkan di semua halaman Anda.
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatisasi penyiapan integrasi resmi. Jika Anda mau, Anda dapat [menginstal integrasi secara manual](#manual-install) sebagai gantinya.
+
+Jalankan salah satu perintah berikut di jendela terminal baru.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Jika Anda mengalami masalah, [silakan laporkan di GitHub](https://github.com/withastro/astro/issues) dan coba langkah instalasi manual di bawah ini.
+
+### Manual Install
+
+Pertama, instal paket `@astrojs/partytown`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, terapkan integrasi ke berkas `astro.config.*` Anda menggunakan properti `integrations`:
+
+```js title="astro.config.mjs" ins={2} ins="partytown()"
+import { defineConfig } from 'astro/config';
+import partytown from '@astrojs/partytown';
+
+export default defineConfig({
+  // ...
+  integrations: [partytown()],
+});
+```
+
+## Penggunaan
+
+Partytown siap digunakan tanpa konfigurasi. Jika Anda memiliki skrip pihak ketiga yang sudah ada di situs Anda, coba tambahkan atribut `type="text/partytown"`:
+
+```html ins="type="text/partytown""
+<script type="text/partytown" src="fancy-analytics.js"></script>
+```
+
+Jika Anda membuka tab "Network" dari [dev tools peramban](https://developer.chrome.com/docs/devtools/open/), Anda akan melihat proxy `partytown` mencegat permintaan ini.
+
+## Konfigurasi
+
+Untuk mengonfigurasi integrasi ini, teruskan objek 'config' ke pemanggilan `partytown()` di `astro.config.mjs`.
+
+```js title="astro.config.mjs" {5-7}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      config: {
+        // options go here
+      },
+    }),
+  ],
+});
+```
+
+Ini mencerminkan [objek konfigurasi Partytown](https://partytown.qwik.dev/configuration/) dan semua opsi dapat diatur di `partytown.config`. Beberapa opsi konfigurasi umum untuk proyek Astro dijelaskan di halaman ini. 
+
+
+### Mengaktifkan mode debug
+
+Partytown menyertakan mode `debug`; aktifkan atau nonaktifkan dengan memberikan `true` atau `false` ke `config.debug`. Jika [`debug` mode](https://partytown.qwik.dev/debugging) diaktifkan, konsol peramban akan menampilkan log terperinci.
+
+Jika opsi ini tidak diatur, mode `debug` akan aktif secara default pada mode [dev](/id/reference/cli-reference/#astro-dev) atau [preview](/id/reference/cli-reference/#astro-preview).
+
+```js title="astro.config.mjs" {6}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // Contoh: Nonaktifkan mode debug.
+      config: { debug: false },
+    }),
+  ],
+});
+```
+
+### Meneruskan variabel (forwarding)
+
+Skrip pihak ketiga biasanya menambahkan variabel ke objek `window` sehingga Anda dapat berkomunikasi dengannya di seluruh situs. Namun ketika skrip dimuat di web worker, ia tidak memiliki akses ke objek global `window` tersebut.
+
+Untuk mengatasinya, Partytown dapat "menambal" variabel ke objek window global dan meneruskannya ke skrip yang sesuai.
+
+Anda dapat menentukan variabel apa yang akan diteruskan dengan opsi `config.forward`. [Baca selengkapnya di dokumentasi Partytown.](https://partytown.qwik.dev/forwarding-events)
+
+```js title="astro.config.mjs" {7}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // Contoh: Tambahkan dataLayer.push sebagai forwarding-event.
+      config: {
+        forward: ['dataLayer.push'],
+      },
+    }),
+  ],
+});
+```
+
+### Proxying request
+
+Beberapa skrip pihak ketiga mungkin memerlukan [proxying](https://partytown.qwik.dev/proxying-requests/) melalui `config.resolveUrl()`, yang berjalan di service worker. Anda dapat mengatur opsi konfigurasi ini untuk memeriksa URL tertentu, dan opsional mengembalikan URL yang diproksi:
+
+```js title="astro.config.mjs" {7-13}
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // Contoh: proxy skrip analitik Facebook
+      config: {
+        resolveUrl: (url) => {
+          const proxyMap = {
+            "connect.facebook.net": "my-proxy.com"
+          }
+          url.hostname = proxyMap[url.hostname] || url.hostname;
+          return url;
+        },
+      }
+    }),
+  ],
+});
+```
+
+Namun karena objek `config` diserialisasi saat dikirim ke klien, ada beberapa batasan pada fungsi yang diteruskan ke konfigurasi Anda:
+
+- Fungsi tidak boleh mereferensikan apa pun di luar lingkup fungsi.
+- Fungsi hanya dapat ditulis dalam JavaScript.
+
+Dalam beberapa kasus lanjutan, Anda mungkin perlu meneruskan data ke fungsi ini saat menginisialisasi Partytown. Untuk itu, Anda dapat menyetel `resolveUrl()` pada `window.partytown` alih‑alih di konfigurasi integrasi:
+
+```astro title="Head.astro" {8-14}
+---
+const proxyMap = {
+  "connect.facebook.net": "my-proxy.com"
+};
+---
+
+<script is:inline set:html={`
+  window.partytown = {
+    resolveUrl: (url) => {
+      const proxyMap = ${JSON.stringify(proxyMap)};
+      url.hostname = proxyMap[url.hostname] || url.hostname;
+      return url;
+    },
+  };
+`} />
+```
+
+Perhatikan bahwa konfigurasi integrasi akan menimpa `window.partytown` jika Anda menyetel properti yang sama di keduanya.
+
+## Contoh
+
+* [Jelajahi proyek dengan Astro Partytown di GitHub](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json&type=code) untuk lebih banyak contoh!
+
+## Sumber Daya Komunitas
+
+* [Menerapkan Google Tag Manager dengan Partytown dan Astro](https://medium.com/@tagperfect/implementing-google-tag-manager-with-partytown-js-in-astro-my-modest-experience-983388907b35)
+* [Optimalkan Google Analytics menggunakan Partytown di Astro](https://ricostacruz.com/posts/google-analytics-in-astro)
+
+[astro-integration]: /id/guides/integrations-guide/

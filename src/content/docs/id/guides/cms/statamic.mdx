@@ -1,0 +1,126 @@
+---
+title: Headless Statamic & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Statamic sebagai CMS
+sidebar:
+  label: Statamic
+type: cms
+stub: false
+service: Statamic
+i18nReady: true
+---
+import Grid from '~/components/FluidGrid.astro'
+import Card from '~/components/ShowcaseCard.astro'
+
+[Statamic](https://statamic.com/) adalah CMS modern berbasis file (flat‑file). Ini memungkinkan pengembang dengan mudah membuat situs web dan aplikasi dinamis sekaligus menawarkan antarmuka yang intuitif dan mudah digunakan bagi editor konten untuk mengelola konten.
+
+## Integrasi dengan Astro
+
+Statamic menyertakan [REST API](https://statamic.dev/rest-api) dan [GraphQL API](https://statamic.dev/graphql) bawaan untuk menghubungkan data Anda ke Astro.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan hal berikut:
+
+1. REST API dan GraphQL API hanya tersedia di versi Pro Statamic. Anda dapat mencoba versi Pro secara gratis di [mesin lokal Anda](https://statamic.dev/tips/how-to-enable-statamic-pro#trial-mode).
+2. **Proyek Astro** – Jika Anda belum memiliki proyek Astro, [Panduan instalasi](/id/install-and-setup/) kami akan membantu Anda menyiapkannya dengan cepat.
+3. **Situs Statamic** – Jika Anda memerlukan situs Statamic, [panduan ini](https://statamic.dev/quick-start-guide) akan membantu Anda memulai.  
+Ingat untuk [mengaktifkan REST API](https://statamic.dev/rest-api#enable-the-api) atau [GraphQL API](https://statamic.dev/graphql#enable-graphql) dengan menambahkan `STATAMIC_API_ENABLED=true` atau `STATAMIC_GRAPHQL_ENABLED=true` di file `.env` dan aktifkan resource yang diperlukan di file konfigurasi API.
+
+:::caution
+Semua contoh mengasumsikan bahwa situs Anda memiliki koleksi bernama `posts`, dengan blueprint bernama `post`, dan blueprint tersebut memiliki field title (fieldtype text) dan content (fieldtype markdown).
+:::
+
+### Mengambil Data
+:::caution
+Jika Anda menggunakan Statamic dan Astro di mesin lokal, ingat untuk menggunakan `127.0.0.1` alih‑alih `localhost` saat melakukan fetch ke API.
+
+Saat melakukan request dari server Astro, `localhost` tidak terselesaikan dengan benar seperti di browser, dan permintaan apa pun ke API akan gagal.
+:::
+
+#### REST API
+
+Ambil data Statamic Anda dari URL REST API situs Anda. Secara default, `https://[YOUR-SITE]/api/`. Lalu, Anda dapat merender properti data menggunakan direktif `set:html={}` milik Astro.
+
+Sebagai contoh, untuk menampilkan daftar judul dan kontennya dari [collection](https://statamic.dev/collections) yang dipilih:
+
+```astro title="src/pages/index.astro"
+---
+const res = await fetch("https://[YOUR-SITE]/api/collections/posts/entries?sort=-date")
+const posts = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+#### GraphQL
+
+Ambil data Statamic Anda melalui URL GraphQL API situs Anda. Secara default, `https://[YOUR-SITE]/graphql/`. Lalu, Anda dapat merender properti data menggunakan direktif `set:html={}` milik Astro.
+
+Sebagai contoh, untuk menampilkan daftar judul dan kontennya dari [collection](https://statamic.dev/collections) yang dipilih:
+
+```astro title="src/pages/index.astro"
+---
+const graphqlQuery = {
+  query: `
+    query Entries($page: Int, $locale: String) {
+      entries(
+        collection: "posts"
+        sort: "date asc"
+        limit: 20
+        page: $page
+        filter: { locale: $locale }
+      ) {
+        current_page
+        has_more_pages
+        data {
+          title
+          ... on Entry_Posts_Post {
+              content
+            }
+        }
+      }
+    }
+  `,
+  variables: {
+    page: page,
+    locale: locale,
+  },
+};
+
+const res = await fetch("https://[YOUR-SITE]/graphql", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(graphqlQuery),
+})
+
+const { data } = await res.json();
+const entries = data?.entries;
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  entries.data.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+### Menerbitkan situs Anda
+
+Untuk menerapkan (deploy) situs Astro Anda, kunjungi [panduan deployment](/id/guides/deploy/) kami dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+## Sumber Daya Komunitas 
+
+- [Cara membangun situs statis menggunakan Statamic sebagai headless CMS](https://buddy.works/guides/statamic-rest-api)
+- [Menerapkan live preview Astro di Statamic headless](https://maciekpalmowski.dev/implementing-live-previews-in-headless-statamic-when-using-astro/)
+
+## Tema
+
+<Grid>
+  <Card title="Creek" href="https://astro.build/themes/details/creek/" thumbnail="creek.png"/>
+</Grid>

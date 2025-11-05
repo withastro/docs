@@ -1,0 +1,289 @@
+---
+title: On-demand rendering
+description: Hasilkan halaman dan rute yang dirender di server sesuai permintaan dengan sebuah adapter.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Kode proyek Astro Anda harus **dirender** ke HTML agar dapat ditampilkan di web. 
+
+Secara default, halaman, rute, dan endpoint API Astro akan diprerender saat build sebagai halaman statis. Namun, Anda dapat memilih untuk merender beberapa atau semua rute Anda sesuai permintaan oleh server saat rute diminta.
+
+Halaman dan rute yang dirender sesuai permintaan dihasilkan per kunjungan, dan dapat disesuaikan untuk setiap pengunjung. Misalnya, halaman yang dirender sesuai permintaan dapat menampilkan informasi akun untuk pengguna yang masuk atau menampilkan data yang baru diperbarui tanpa memerlukan rebuild seluruh situs.
+
+Perenderan sesuai permintaan di server pada saat request juga dikenal sebagai **server-side rendering (SSR)**.
+
+## Adapter server
+
+Untuk merender halaman apa pun sesuai permintaan, Anda perlu menambahkan sebuah **adapter**. Setiap adapter memungkinkan Astro menghasilkan skrip yang menjalankan proyek Anda pada **runtime** tertentu: lingkungan yang menjalankan kode di server untuk menghasilkan halaman saat diminta (misalnya Netlify, Cloudflare).
+
+Anda juga mungkin ingin menambahkan adapter meskipun situs Anda sepenuhnya statis dan Anda tidak merender halaman apa pun sesuai permintaan. Sebagai contoh, [adapter Netlify](/id/guides/integrations-guide/netlify/) mengaktifkan Netlify Image CDN, dan [server islands](/id/guides/server-islands/) memerlukan adapter terpasang untuk menggunakan `server:defer` pada komponen.
+
+<IntegrationsNav category="adapter"/>
+
+Astro memelihara adapter resmi untuk [Node.js](https://nodejs.org/), [Netlify](https://www.netlify.com/), [Vercel](https://vercel.com/), dan [Cloudflare](https://www.cloudflare.com/). Anda dapat menemukan adapter resmi dan komunitas di [direktori integrasi kami](https://astro.build/integrations/?search=&categories%5B%5D=adapters). Pilih yang sesuai dengan [lingkungan deployment](/id/guides/deploy/) Anda.
+
+### Tambahkan Adapter
+
+Anda dapat menambahkan salah satu [integrasi adapter resmi yang dipelihara oleh Astro](/id/guides/integrations-guide/#official-integrations) dengan perintah `astro add` berikut. Ini akan menginstal adapter dan melakukan perubahan yang sesuai pada file `astro.config.mjs` Anda dalam satu langkah. 
+
+Sebagai contoh, untuk memasang adapter Netlify, jalankan:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Anda juga dapat [menambahkan adapter secara manual dengan memasang paket NPM](/id/guides/integrations-guide/#installing-an-npm-package) (mis. `@astrojs/netlify`) dan memperbarui `astro.config.mjs` sendiri.
+
+Perhatikan bahwa adapter yang berbeda mungkin memiliki pengaturan konfigurasi yang berbeda. Baca dokumentasi setiap adapter, dan terapkan opsi konfigurasi yang diperlukan untuk adapter pilihan Anda di `astro.config.mjs`
+
+## Mengaktifkan rendering sesuai permintaan
+
+**Secara default, seluruh situs Astro Anda akan diprerender**, dan halaman HTML statis akan dikirim ke browser. Namun, Anda dapat tidak ikut (opt-out) dari prerendering pada rute apa pun yang memerlukan perenderan server, misalnya, halaman yang memeriksa cookie dan menampilkan konten yang dipersonalisasi.
+
+Pertama, [tambahkan integrasi adapter](#tambahkan-adapter) untuk runtime server Anda guna mengaktifkan perenderan server sesuai permintaan di proyek Astro Anda.
+
+Kemudian, tambahkan `export const prerender = false` di bagian atas halaman atau endpoint individual yang ingin Anda render sesuai permintaan. Sisa situs Anda akan tetap menjadi situs statis:
+
+```astro title="src/pages/page-rendered-on-demand.astro" ins={2}
+---
+export const prerender = false
+---
+<html>
+<!--
+Konten ini akan dirender di server sesuai permintaan!
+Cukup tambahkan integrasi adapter untuk runtime server!
+Semua halaman lain dihasilkan statis saat build!
+-->
+<html>
+```
+
+Contoh berikut menunjukkan memilih untuk tidak melakukan prerender untuk menampilkan angka acak setiap kali endpoint dipanggil:
+
+```js title="src/pages/randomnumber.js" ins={1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Berikut nomor acak: ${number}`,
+    }),
+  );
+}
+```
+### Mode `'server'`
+
+Untuk **aplikasi yang sangat dinamis**, setelah menambahkan adapter, Anda dapat [menyetel konfigurasi keluaran build ke `output: 'server'`](/id/reference/configuration-reference/#output) untuk **merender di server semua halaman Anda secara default**. Ini setara dengan memilih tidak melakukan prerender pada setiap halaman.
+
+Kemudian, jika diperlukan, Anda dapat memilih untuk memprerender halaman apa pun yang tidak memerlukan server untuk dieksekusi, seperti kebijakan privasi atau halaman tentang.
+
+```astro title="src/pages/about-my-app.astro" ins={2}
+---
+export const prerender = true
+---
+<html>
+<!--
+`output: 'server'` dikonfigurasi, tetapi halaman ini statis!
+Sisa situs saya dirender sesuai permintaan!
+-->
+<html>
+```
+
+Tambahkan `export const prerender = true` ke halaman atau rute apa pun untuk memprerender halaman statis atau endpoint:
+
+```js title="src/pages/myendpoint.js" ins={1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `Ini endpoint statis saya`,
+    }),
+  );
+}
+```
+
+:::tip
+Mulailah dengan mode default `'static'` sampai Anda yakin bahwa **sebagian besar atau semua** halaman Anda akan dirender sesuai permintaan! Ini memastikan situs Anda se-performan mungkin, tidak bergantung pada fungsi server untuk merender konten statis.
+
+Mode `'server'` tidak membawa fungsionalitas tambahan. Mode ini hanya mengubah perilaku perenderan default.
+:::
+
+<ReadMore>Lihat lebih lanjut tentang pengaturan [`output`](/id/reference/configuration-reference/#output) di referensi konfigurasi.</ReadMore>
+
+
+## Fitur rendering sesuai permintaan
+
+### Streaming HTML
+
+Dengan streaming HTML, sebuah dokumen dipecah menjadi beberapa potongan, dikirim melalui jaringan secara berurutan, dan dirender di halaman dalam urutan tersebut. Astro menggunakan streaming HTML dalam perenderan sesuai permintaan untuk mengirim setiap komponen ke browser seiring komponen itu dirender. Ini memastikan pengguna melihat HTML Anda secepat mungkin, meskipun kondisi jaringan dapat menyebabkan dokumen besar diunduh perlahan, dan menunggu pengambilan data dapat memblokir perenderan halaman.
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+Fitur yang memodifikasi [Response headers](https://developer.mozilla.org/en-US/docs/Glossary/Response_header) hanya tersedia pada **tingkat halaman**. (Anda tidak dapat menggunakannya di dalam komponen, termasuk komponen layout.) Saat kode komponen Anda dijalankan, Astro sudah mengirim Response headers dan header tidak dapat diubah.
+
+:::
+
+### Cookie
+
+Halaman atau endpoint API yang dirender sesuai permintaan dapat memeriksa, menyetel, mendapatkan, dan menghapus cookie.
+
+Contoh di bawah memperbarui nilai cookie untuk penghitung tampilan halaman:
+
+```astro title="src/pages/index.astro" {6,7,12}
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+let counter = 0
+
+if (Astro.cookies.has('counter')) {
+  const cookie = Astro.cookies.get('counter')
+  const value = cookie?.number()
+  if (value !== undefined && !isNaN(value)) counter = value + 1
+}
+
+Astro.cookies.set('counter', String(counter))
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+Lihat detail lebih lanjut tentang [`Astro.cookies` dan tipe `AstroCookie`](/id/reference/api-reference/#cookies) di referensi API.
+
+### `Response`
+
+[`Astro.response`](/id/reference/api-reference/#response) adalah objek standar [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options). Ini dapat digunakan untuk menyetel status dan header respons.
+
+Contoh di bawah menyetel status respons dan status text untuk halaman produk ketika produk tidak ada:
+
+```astro title="src/pages/product/[id].astro" {10,11}
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// Tidak ada produk
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- Halaman di sini... -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+Anda dapat menyetel header menggunakan objek `Astro.response.headers`:
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- Halaman di sini... -->
+</html>
+```
+
+#### Mengembalikan objek `Response`
+
+Anda juga dapat mengembalikan objek [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) secara langsung dari halaman mana pun yang menggunakan perenderan sesuai permintaan baik secara manual maupun dengan [`Astro.redirect`](/id/reference/api-reference/#redirect). 
+
+Contoh di bawah mencari ID di database pada halaman dinamis dan mengembalikan 404 jika produk tidak ada, atau mengalihkan pengguna ke halaman lain jika produk tidak lagi tersedia, atau menampilkan produk:
+
+```astro title="src/pages/product/[id].astro" {10-13, 18}
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// Tidak ada produk
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+
+// Produk tidak lagi tersedia
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
+---
+<html>
+  <!-- Halaman di sini... -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` adalah objek [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) standar. Ini dapat digunakan untuk mendapatkan `url`, `headers`, `method`, dan bahkan body dari request.
+
+Anda dapat mengakses informasi tambahan dari objek ini untuk halaman yang tidak dihasilkan statis.
+
+#### `Astro.request.headers`
+
+Header untuk request tersedia pada `Astro.request.headers`. Ini bekerja seperti [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers) di browser. Ini adalah objek [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) di mana Anda dapat mengambil header seperti cookie.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- Halaman di sini... -->
+</html>
+```
+
+#### `Astro.request.method`
+
+Metode HTTP yang digunakan dalam request tersedia sebagai `Astro.request.method`. Ini bekerja seperti [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method) di browser. Ini mengembalikan representasi string dari metode HTTP yang digunakan dalam request.
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // Tidak diperlukan pada mode 'server'
+
+console.log(Astro.request.method) // GET (ketika dinavigasi di browser)
+---
+```
+
+Lihat detail lebih lanjut tentang [`Astro.request`](/id/reference/api-reference/#request) di referensi API.
+
+### Endpoint Server
+
+Endpoint server, juga dikenal sebagai **rute API**, adalah fungsi khusus yang diekspor dari file `.js` atau `.ts` di dalam folder `src/pages/`. Fitur kuat dari server-side rendering sesuai permintaan, rute API dapat menjalankan kode dengan aman di server.
+
+Fungsi ini menerima [konteks endpoint](/id/reference/api-reference/) dan mengembalikan sebuah [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response). 
+
+Untuk mempelajari lebih lanjut, lihat [Panduan Endpoints kami](/id/guides/endpoints/#server-endpoints-api-routes).

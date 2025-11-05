@@ -1,0 +1,378 @@
+---
+title: TypeScript
+description: Pelajari cara menggunakan dukungan TypeScript bawaan Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro hadir dengan dukungan bawaan untuk [TypeScript](https://www.typescriptlang.org/). Anda dapat mengimpor file `.ts` dan `.tsx` di proyek Astro Anda, menulis kode TypeScript langsung di dalam [komponen Astro](/id/basics/astro-components/#the-component-script), dan bahkan memakai file [`astro.config.ts`](/id/guides/configuring-astro/#the-astro-config-file) untuk konfigurasi Astro jika diinginkan.
+
+Dengan TypeScript, Anda dapat mencegah error saat runtime dengan mendefinisikan bentuk (shape) objek dan komponen di kode Anda. Misalnya, jika Anda menggunakan TypeScript untuk [mengetik properti komponen Anda](#component-props), editor akan menampilkan error ketika Anda memberikan prop yang tidak diterima oleh komponen tersebut.
+
+Anda tidak perlu menulis kode TypeScript di proyek Astro untuk tetap mendapatkan manfaatnya. Astro selalu memperlakukan kode komponen Anda sebagai TypeScript, dan [Ekstensi VS Code Astro](/id/editor-setup/) akan menginfer sebanyak mungkin untuk memberikan pelengkapan otomatis, hint, dan error di editor Anda.
+
+Server pengembangan Astro tidak menjalankan pemeriksaan tipe, tetapi Anda dapat menggunakan [skrip terpisah](#type-checking) untuk memeriksa error tipe dari command line.
+
+## Setup
+
+Proyek awal (starter) Astro menyertakan file `tsconfig.json`. Bahkan bila Anda tidak menulis kode TypeScript, file ini penting agar alat seperti Astro dan VS Code memahami proyek Anda. Beberapa fitur (seperti impor paket npm) tidak sepenuhnya didukung di editor tanpa file `tsconfig.json`. Jika Anda menginstal Astro secara manual, pastikan membuat file ini sendiri.
+
+### Template TSConfig
+
+Tiga template `tsconfig.json` yang dapat diperluas disertakan di Astro: `base`, `strict`, dan `strictest`. Template `base` mengaktifkan dukungan fitur JavaScript modern dan juga menjadi dasar untuk template lainnya. Kami merekomendasikan menggunakan `strict` atau `strictest` jika Anda berencana menulis TypeScript di proyek Anda. Anda dapat melihat dan membandingkan ketiganya di [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+Untuk mewarisi dari salah satu template, gunakan [pengaturan `extends`](https://www.typescriptlang.org/tsconfig#extends):
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+Selain itu, kami menyarankan mengatur `include` dan `exclude` seperti berikut untuk memanfaatkan tipe Astro dan menghindari memeriksa file build:
+
+```json title="tsconfig.json" ins={3-4}
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+### Plugin editor TypeScript
+
+[Plugin TypeScript Astro](https://www.npmjs.com/package/@astrojs/ts-plugin) dapat dipasang terpisah saat Anda tidak menggunakan [ekstensi resmi Astro untuk VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode). Plugin ini dipasang dan dikonfigurasi otomatis oleh ekstensi VS Code, dan Anda tidak perlu memasang keduanya sekaligus.
+
+Plugin ini hanya berjalan di editor. Saat menjalankan `tsc` di terminal, file `.astro` sepenuhnya diabaikan. Sebagai gantinya, Anda dapat menggunakan [perintah CLI `astro check`](/id/reference/cli-reference/#astro-check) untuk memeriksa file `.astro` dan `.ts` sekaligus.
+
+Plugin ini juga mendukung mengimpor file `.astro` dari file `.ts` (berguna untuk re-export).
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/ts-plugin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Lalu, tambahkan berikut ini ke `tsconfig.json` Anda:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+  }
+}
+```
+Untuk memeriksa bahwa plugin bekerja, buat sebuah file `.ts` dan impor komponen Astro ke dalamnya. Editor Anda seharusnya tidak menampilkan peringatan.
+
+### UI Frameworks
+
+Jika proyek Anda menggunakan [UI framework](/id/guides/framework-components/), pengaturan tambahan mungkin diperlukan tergantung framework. Silakan lihat dokumentasi TypeScript masing‑masing framework. ([Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript), [React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup), [Preact](https://preactjs.com/guide/v10/typescript), [Solid](https://www.solidjs.com/guides/typescript), [Svelte](https://svelte.dev/docs/svelte/typescript))
+
+## Type Imports
+
+Gunakan impor dan ekspor tipe secara eksplisit bila memungkinkan.
+
+```js del={1} ins={2} ins="type"
+import { SomeType } from "./script";
+import type { SomeType } from "./script";
+```
+
+Dengan cara ini, Anda menghindari kasus tepi di mana bundler Astro mungkin mencoba membundel tipe yang diimpor seolah‑olah itu JavaScript.
+
+Anda dapat mengonfigurasi TypeScript untuk mewajibkan impor tipe di `tsconfig.json`. Setel [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) ke `true`. TypeScript akan memeriksa impor Anda dan memberi tahu kapan harus menggunakan `import type`. Pengaturan ini aktif secara default di semua preset kami.
+
+```json title="tsconfig.json" ins={3}
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": true
+  }
+}
+```
+
+## Import Aliases
+
+Astro mendukung alias impor yang Anda definisikan di konfigurasi `paths` pada `tsconfig.json`. [Baca panduan impor kami](/id/guides/imports/#aliases) untuk mempelajari lebih lanjut.
+
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
+---
+import HelloWorld from "@components/HelloWorld.astro";
+import Layout from "@layouts/Layout.astro";
+---
+```
+
+```json title="tsconfig.json" {4-5}
+{
+  "compilerOptions": {
+    "paths": {
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"]
+    }
+  }
+}
+```
+
+## Memperluas tipe global
+
+Anda dapat membuat `src/env.d.ts` sebagai konvensi untuk menambahkan deklarasi tipe kustom, atau untuk memanfaatkan tipe Astro bila Anda tidak memiliki `tsconfig.json`:
+
+```ts title="src/env.d.ts"
+// Deklarasi tipe kustom
+declare var myString: string;
+
+// Tipe Astro, tidak diperlukan jika Anda sudah memiliki `tsconfig.json`
+/// <reference path="../.astro/types.d.ts" />
+```
+
+### `window` dan `globalThis`
+
+Anda mungkin ingin menambahkan properti ke objek global. Anda dapat melakukannya dengan menambahkan deklarasi tingkat atas menggunakan kata kunci `declare` ke file `env.d.ts` Anda:
+
+```ts title="src/env.d.ts"
+declare var myString: string;
+declare function myFunction(): boolean;
+```
+
+Ini akan memberikan pengetikan untuk `globalThis.myString` dan `globalThis.myFunction`, serta `window.myString` dan `window.myFunction`.
+
+Perhatikan bahwa `window` hanya tersedia di kode sisi klien. `globalThis` tersedia di sisi server dan klien, tetapi nilai sisi server tidak akan dibagikan ke klien.
+
+Jika Anda hanya ingin mengetik properti pada objek `window`, sediakan interface `Window`:
+
+```ts title="src/env.d.ts"
+interface Window {
+  myFunction(): boolean;
+}
+```
+
+### Menambahkan atribut non-standar
+
+Anda mungkin ingin mendefinisikan tipe untuk atribut kustom atau properti CSS. Anda dapat memperluas definisi JSX bawaan untuk menambahkan atribut non‑standar dengan mendeklarasikan ulang namespace `astroHTML.JSX` dalam file `.d.ts`.
+
+```ts title="src/env.d.ts"
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    "data-count"?: number;
+    "data-label"?: string;
+  }
+
+  // Tambahkan properti CSS kustom ke objek style
+  interface CSSProperties {
+    "--theme-color"?: "black" | "white";
+  }
+}
+```
+
+:::note
+`astroHTML` diinjeksi secara global di dalam komponen `.astro`. Untuk menggunakannya di file TypeScript, gunakan [directive triple‑slash](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html):
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+### Menggunakan impor
+
+Anda mungkin ingin memperluas tipe global dengan menggunakan kembali tipe yang dideklarasikan di tempat lain di proyek Anda atau dari pustaka eksternal. Untuk melakukannya, gunakan [dynamic imports](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import):
+
+```ts title="src/env.d.ts"
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+declare namespace App {
+  interface Locals {
+    orders: Map<string, Product[]>
+    session: import("./lib/server/session").Session | null;
+    user: import("my-external-library").User;
+  }
+}
+```
+
+File `.d.ts` adalah deklarasi [ambient module](https://www.typescriptlang.org/docs/handbook/modules/reference.html#ambient-modules). Meskipun sintaksnya mirip ES module, file‑file ini tidak mengizinkan impor/ekspor tingkat atas. Jika TypeScript menemukannya, file akan dianggap sebagai [module augmentation](https://www.typescriptlang.org/docs/handbook/declaration-merging.html#module-augmentation) dan ini akan merusak tipe global Anda.
+
+## Component Props
+
+Astro mendukung pengetikan props komponen melalui TypeScript. Untuk mengaktifkan, tambahkan interface TypeScript `Props` ke frontmatter komponen Anda. `export` boleh digunakan, tetapi tidak wajib. [Ekstensi VS Code Astro](/id/editor-setup/) akan otomatis mencari interface `Props` dan memberikan dukungan TS yang tepat saat Anda menggunakan komponen tersebut di template lain.
+
+```astro title="src/components/HelloProps.astro" ins={2-5}
+---
+interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting = "Hello", name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+### Pola tipe prop umum
+
+- Jika komponen Anda tidak menerima prop atau konten slot, Anda dapat menggunakan `type Props = Record<string, never>`.
+- Jika komponen Anda harus menerima children ke default slot, Anda dapat memaksakannya dengan `type Props = { children: any; };`.
+
+## Type Utilities
+
+<p><Since v="1.6.0" /></p>
+
+Astro memiliki beberapa tipe utilitas bawaan untuk pola tipe prop umum. Ini tersedia melalui entrypoint `astro/types`.
+
+### Atribut HTML bawaan
+
+Astro menyediakan tipe `HTMLAttributes` untuk memeriksa bahwa markup Anda menggunakan atribut HTML yang valid. Anda dapat menggunakan tipe ini untuk membantu membangun tipe props komponen.
+
+Sebagai contoh, jika Anda membangun komponen `<Link>`, Anda dapat melakukan berikut untuk mencerminkan atribut HTML bawaan untuk tag `<a>` pada tipe props komponen Anda.
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
+---
+import type { HTMLAttributes } from "astro/types";
+
+// gunakan `type`
+type Props = HTMLAttributes<"a">;
+
+// atau perluas dengan `interface`
+interface Props extends HTMLAttributes<"a"> {
+  myProp?: boolean;
+}
+
+const { href, ...attrs } = Astro.props;
+---
+<a href={href} {...attrs}>
+  <slot />
+</a>
+```
+
+### Tipe `ComponentProps`
+
+<p><Since v="4.3.0" /></p>
+
+Tipe ini memungkinkan Anda mereferensikan `Props` yang diterima komponen lain, bahkan jika komponen tersebut tidak mengekspor tipe `Props` secara langsung.
+
+Contoh berikut menunjukkan penggunaan utilitas `ComponentProps` dari `astro/types` untuk mereferensikan tipe `Props` komponen `<Button />`:
+
+```astro title="src/pages/index.astro"
+---
+import type { ComponentProps } from "astro/types";
+import Button from "./Button.astro";
+
+type ButtonProps = ComponentProps<typeof Button>;
+---
+```
+
+### Tipe Polymorphic
+
+<p><Since v="2.5.0" /></p>
+
+Astro menyertakan helper untuk memudahkan membangun komponen yang dapat dirender sebagai elemen HTML berbeda dengan keamanan tipe penuh. Ini berguna untuk komponen seperti `<Link>` yang dapat dirender sebagai `<a>` atau `<button>` tergantung props yang diberikan.
+
+Contoh di bawah mengimplementasikan komponen polymorphic yang sepenuhnya bertipe dan dapat dirender sebagai elemen HTML apa pun. Tipe [`HTMLTag`](#atribut-html-bawaan) digunakan untuk memastikan prop `as` adalah elemen HTML yang valid.
+
+```astro
+---
+import type { HTMLTag, Polymorphic } from "astro/types";
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+<Tag {...props} />
+```
+
+### Infer tipe `getStaticPaths()`
+
+<p><Since v="2.1.0" /></p>
+
+Astro menyertakan helper untuk bekerja dengan tipe yang dikembalikan oleh fungsi [`getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths) pada rute dinamis.
+
+Anda bisa mendapatkan tipe dari [`Astro.params`](/id/reference/api-reference/#params) dengan `InferGetStaticParamsType` dan tipe dari [`Astro.props`](/id/reference/api-reference/#props) dengan `InferGetStaticPropsType` atau Anda dapat menggunakan `GetStaticPaths` untuk menginfer keduanya sekaligus:
+
+```astro title="src/pages/posts/[...id].astro" {2-6,18-19} "satisfies GetStaticPaths;"
+---
+import type {
+  InferGetStaticParamsType,
+  InferGetStaticPropsType,
+  GetStaticPaths,
+} from "astro";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("blog");
+  return posts.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { id } = Astro.params as Params;
+//                   ^? { id: string; }
+
+const { title } = Astro.props;
+//                      ^? { draft: boolean; title: string; }
+---
+```
+
+## Type checking
+
+Untuk melihat error tipe di editor, pastikan Anda memasang [ekstensi VS Code Astro](/id/editor-setup/). Perlu dicatat bahwa perintah `astro start` dan `astro build` akan men-transpile kode dengan esbuild, tetapi tidak menjalankan pemeriksaan tipe. Untuk mencegah build jika ada error TypeScript, ubah skrip "build" di `package.json` menjadi berikut:
+
+```json title="package.json" del={3} ins={4} ins="astro check &&"
+{
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && astro build",
+  },
+}
+```
+
+:::note
+`astro check` memeriksa semua file yang disertakan di proyek TypeScript Anda. Untuk memeriksa tipe di file Svelte dan Vue, Anda dapat menggunakan paket [`svelte-check`](https://www.npmjs.com/package/svelte-check) dan [`vue-tsc`](https://www.npmjs.com/package/vue-tsc).
+:::
+
+import ReadMore from '~/components/ReadMore.astro'
+
+<ReadMore>Pelajari lebih lanjut tentang [impor file `.ts`](/id/guides/imports/#typescript) di Astro.</ReadMore>
+
+<ReadMore>Pelajari lebih lanjut tentang [Konfigurasi TypeScript](https://www.typescriptlang.org/tsconfig/).</ReadMore>
+
+## Troubleshooting
+
+### Error saat mengetik beberapa framework JSX secara bersamaan
+
+Masalah dapat muncul saat menggunakan beberapa framework JSX dalam satu proyek, karena setiap framework membutuhkan pengaturan berbeda yang terkadang bertentangan di `tsconfig.json`.
+
+**Solusi**: Setel [`pengaturan jsxImportSource`](https://www.typescriptlang.org/tsconfig#jsxImportSource) ke `react` (default), `preact` atau `solid-js` tergantung framework yang paling sering Anda gunakan. Lalu, gunakan [pragma comment](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) di file yang konflik dari framework lain.
+
+Untuk pengaturan default `jsxImportSource: react`, Anda dapat menggunakan:
+
+```jsx
+// Untuk Preact
+/** @jsxImportSource preact */
+
+// Untuk Solid
+/** @jsxImportSource solid-js */
+```

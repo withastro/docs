@@ -1,0 +1,577 @@
+---
+title: Routing
+description: Pengantar routing dengan Astro.
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Astro menggunakan **routing berbasis berkas** untuk menghasilkan URL build Anda berdasarkan tata letak berkas di direktori `src/pages/` proyek Anda.
+
+## Menavigasi antar halaman
+
+Astro menggunakan elemen HTML standar [`<a>`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/a) untuk menavigasi antar rute. Tidak ada komponen `<Link>` khusus framework yang disediakan.
+
+```astro title="src/pages/index.astro"
+<p>Pelajari lebih lanjut <a href="/about/">tentang</a> Astro!</p>
+
+<!-- Dengan `base: "/docs"` dikonfigurasi -->
+<p>Pelajari lebih banyak di bagian <a href="/docs/reference/">reference</a> kami!</p> 
+```
+
+## Rute statis
+
+Komponen halaman `.astro` [/id/basics/astro-pages/] serta berkas Markdown dan MDX (`.md`, `.mdx`) di dalam direktori `src/pages/` **secara otomatis menjadi halaman di situs Anda**. Rute setiap halaman sesuai dengan path dan nama filenya di dalam direktori `src/pages/`.
+
+```diff
+# Contoh: Rute statis
+src/pages/index.astro        -> mysite.com/
+src/pages/about.astro        -> mysite.com/about
+src/pages/about/index.astro  -> mysite.com/about
+src/pages/about/me.astro     -> mysite.com/about/me
+src/pages/posts/1.md         -> mysite.com/posts/1
+```
+
+:::tip
+Tidak ada “konfigurasi routing” terpisah yang harus dipelihara di proyek Astro! Saat Anda menambahkan berkas ke direktori `src/pages/`, sebuah rute baru otomatis dibuat untuk Anda. Pada build statis, Anda dapat menyesuaikan format output berkas menggunakan opsi konfigurasi [`build.format`](/id/reference/configuration-reference/#buildformat).
+:::
+
+## Rute dinamis
+
+Berkas halaman Astro dapat menentukan parameter rute dinamis pada namanya untuk menghasilkan beberapa halaman yang cocok. Misalnya, `src/pages/authors/[author].astro` menghasilkan halaman bio untuk setiap penulis di blog Anda. `author` menjadi sebuah _parameter_ yang dapat Anda akses dari dalam halaman.
+
+Dalam mode output statis bawaan Astro, halaman-halaman ini dihasilkan saat build, sehingga Anda harus menentukan daftar `author` yang akan mendapatkan berkas yang sesuai. Dalam mode SSR, sebuah halaman akan dihasilkan saat diminta untuk rute apa pun yang cocok.
+
+### Mode Statik (SSG)
+
+Karena semua rute harus ditentukan saat build, rute dinamis harus mengekspor `getStaticPaths()` yang mengembalikan array objek dengan properti `params`. Masing-masing objek ini akan menghasilkan rute yang sesuai.
+
+`[dog].astro` mendefinisikan parameter dinamis `dog` pada namanya, jadi objek yang dikembalikan oleh `getStaticPaths()` harus menyertakan `dog` di `params`. Halaman kemudian dapat mengakses parameter ini menggunakan `Astro.params`.
+
+```astro title="src/pages/dogs/[dog].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { dog: "clifford" }},
+    { params: { dog: "rover" }},
+    { params: { dog: "spot" }},
+  ];
+}
+
+const { dog } = Astro.params;
+---
+<div>Anjing baik, {dog}!</div>
+```
+
+Ini akan menghasilkan tiga halaman: `/dogs/clifford`, `/dogs/rover`, dan `/dogs/spot`, masing-masing menampilkan nama anjing yang sesuai.
+
+Nama berkas dapat menyertakan beberapa parameter, yang semuanya harus disertakan dalam objek `params` di `getStaticPaths()`:
+
+```astro title="src/pages/[lang]-[version]/info.astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { lang: "en", version: "v1" }},
+    { params: { lang: "fr", version: "v2" }},
+  ];
+}
+
+const { lang, version } = Astro.params;
+---
+```
+
+Ini akan menghasilkan `/en-v1/info` dan `/fr-v2/info`.
+
+Parameter dapat dimasukkan di bagian path yang terpisah. Misalnya, berkas `src/pages/[lang]/[version]/info.astro` dengan `getStaticPaths()` yang sama seperti di atas akan menghasilkan rute `/id/v1/info` dan `/fr/v2/info`.
+
+#### Mendekode `params`
+
+`params` yang diberikan ke fungsi `getStaticPaths()` tidak didekode. Gunakan fungsi [`decodeURI`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) saat Anda perlu mendekode nilai parameter.
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI("%5Bpage%5D") }}, // didekode menjadi "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>Pelajari lebih lanjut tentang [`getStaticPaths()`](/id/reference/routing-reference/#getstaticpaths).</ReadMore>
+
+<RecipeLinks slugs={["en/recipes/i18n"]} />
+
+#### Parameter rest
+
+Jika Anda membutuhkan fleksibilitas lebih dalam perutean URL, Anda dapat menggunakan [parameter rest](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...path]`) pada nama berkas `.astro` untuk mencocokkan path berkas dengan kedalaman apa pun:
+
+```astro title="src/pages/sequences/[...path].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { path: "one/two/three" }},
+    { params: { path: "four" }},
+    { params: { path: undefined }}
+  ]
+}
+
+const { path } = Astro.params;
+---
+```
+
+Ini akan menghasilkan `/sequences/one/two/three`, `/sequences/four`, dan `/sequences`. (Mengatur parameter rest ke `undefined` memungkinkan pencocokan halaman tingkat atas.)
+
+Parameter rest dapat digunakan bersama **parameter bernama lainnya**. Misalnya, penampil berkas GitHub dapat direpresentasikan dengan rute dinamis berikut:
+
+```
+/[org]/[repo]/tree/[branch]/[...file]
+```
+
+Pada contoh ini, permintaan ke `/withastro/astro/tree/main/docs/public/favicon.svg` akan dipecah menjadi parameter bernama berikut:
+
+```js
+{
+	org: "withastro",
+	repo: "astro",
+	branch: "main",
+	file: "docs/public/favicon.svg"
+}
+```
+
+#### Contoh: Halaman dinamis di banyak level
+
+Pada contoh berikut, parameter rest (`[...slug]`) dan fitur [`props`](/id/reference/routing-reference/#data-passing-with-props) dari `getStaticPaths()` menghasilkan halaman untuk slug dengan kedalaman berbeda-beda.
+
+```astro title="src/pages/[...slug].astro"
+---
+export function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: "Astro Store",
+      text: "Selamat datang di Astro store!",
+    },
+    {
+      slug: "products",
+      title: "Produk Astro",
+      text: "Kami punya banyak produk untuk Anda",
+    },
+    {
+      slug: "products/astro-handbook",
+      title: "Panduan Astro terbaik",
+      text: "Jika Anda ingin belajar Astro, Anda harus membaca buku ini.",
+    },
+  ];
+  
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
+### Rute dinamis on-demand
+
+Untuk [rendering on-demand](/id/guides/on-demand-rendering/) dengan adapter, rute dinamis didefinisikan dengan cara yang sama: sertakan tanda kurung `[param]` atau `[...path]` pada nama berkas untuk mencocokkan string atau path apa pun. Namun karena rute tidak lagi dibangun sebelumnya, halaman akan dilayani untuk rute apa pun yang cocok. Karena ini bukan rute “statis”, `getStaticPaths` tidak boleh digunakan.
+
+Untuk rute yang dirender on-demand, hanya satu parameter rest dengan notasi spread yang boleh digunakan dalam nama berkas (misalnya `src/pages/[locale]/[...slug].astro` atau `src/pages/[...locale]/[slug].astro`, tetapi bukan `src/pages/[...locale]/[...slug].astro`).
+
+```astro title="src/pages/resources/[resource]/[id].astro"
+---
+export const prerender = false; // Tidak diperlukan dalam mode 'server'
+const { resource, id } = Astro.params;
+---
+<h1>{resource}: {id}</h1>
+```
+
+Halaman ini akan dilayani untuk nilai `resource` dan `id` apa pun: `resources/users/1`, `resources/colors/blue`, dll.
+
+#### Memodifikasi contoh `[...slug]` untuk SSR
+
+Karena halaman SSR tidak dapat menggunakan `getStaticPaths()`, halaman tersebut tidak dapat menerima props. [Contoh sebelumnya](#contoh-halaman-dinamis-di-banyak-level) dapat disesuaikan untuk mode SSR dengan mencari nilai parameter `slug` dalam sebuah objek. Jika rute berada di root ("/"), parameter `slug` akan bernilai `undefined`. Jika nilai tersebut tidak ada dalam objek, kita mengarahkan ke halaman 404.
+
+```astro title="src/pages/[...slug].astro"
+---
+const pages = [
+	{
+		slug: undefined,
+		title: 'Astro Store',
+		text: 'Selamat datang di Astro store!',
+	},
+	{
+		slug: 'products',
+		title: 'Produk Astro',
+		text: 'Kami punya banyak produk untuk Anda',
+	},
+	{
+		slug: 'products/astro-handbook',
+		title: 'Panduan Astro terbaik',
+		text: 'Jika Anda ingin belajar Astro, Anda harus membaca buku ini.',
+	}
+];
+
+const { slug } = Astro.params;
+const page = pages.find((page) => page.slug === slug);
+if (!page) return Astro.redirect("/404");
+const { title, text } = page;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
+## Pengalihan
+
+Terkadang Anda perlu mengalihkan pembaca ke halaman baru, baik secara permanen karena struktur situs Anda telah berubah atau sebagai respons atas suatu tindakan seperti masuk ke rute yang diautentikasi.
+
+Anda dapat menentukan aturan untuk [mengalihkan pengguna ke halaman yang dipindahkan secara permanen](#pengalihan-terkonfigurasi) di konfigurasi Astro Anda. Atau, [mengalihkan pengguna secara dinamis](#pengalihan-dinamis) saat mereka menggunakan situs Anda.
+
+### Pengalihan terkonfigurasi
+
+<p><Since v="2.9.0" /></p>
+
+Anda dapat menentukan pemetaan pengalihan permanen di konfigurasi Astro Anda dengan nilai [`redirects`](/id/reference/configuration-reference/#redirects).
+
+Untuk pengalihan internal, ini adalah pemetaan path rute lama ke rute baru. Mulai Astro v5.2.0, Anda juga dapat mengalihkan ke URL eksternal yang diawali dengan `http` atau `https` dan [dapat diurai](https://developer.mozilla.org/en-US/docs/Web/API/URL/canParse_static):
+
+```js title="astro.config.mjs" {4-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  redirects: {
+    "/old-page": "/new-page",
+    "/blog": "https://example.com/blog"
+  }
+});
+```
+
+Pengalihan ini mengikuti [aturan prioritas yang sama dengan rute berbasis berkas](#urutan-prioritas-rute) dan selalu memiliki prioritas lebih rendah daripada berkas halaman yang ada dengan nama yang sama di proyek Anda. Misalnya, `/old-page` tidak akan dialihkan ke `/new-page` jika proyek Anda berisi berkas `src/pages/old-page.astro`.
+
+Rute dinamis diperbolehkan selama rute baru dan lama sama-sama berisi parameter yang sama, misalnya:
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+Dengan menggunakan SSR atau adapter statis, Anda juga dapat memberikan objek sebagai nilainya, memungkinkan Anda menentukan kode `status` selain `destination` baru:
+
+```js title="astro.config.mjs" {5-8}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  redirects: {
+    "/old-page": {
+      status: 302,
+      destination: "/new-page"
+    },
+    "/news": {
+      status: 302,
+      destination: "https://example.com/news"
+    }
+  }
+});
+```
+
+Saat menjalankan `astro build`, Astro akan menghasilkan berkas HTML dengan tag [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#examples) secara default. Adapter yang didukung akan menuliskan berkas konfigurasi host dengan pengalihan tersebut.
+
+Kode status default adalah `301`. Jika membangun ke berkas HTML, kode status tidak digunakan oleh server.
+
+### Pengalihan dinamis
+
+Pada global `Astro`, metode `Astro.redirect` memungkinkan Anda mengalihkan ke halaman lain secara dinamis. Anda dapat melakukannya setelah memeriksa apakah pengguna masuk dengan mendapatkan sesi mereka dari cookie.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from "../utils";
+
+const cookie = Astro.request.headers.get("cookie");
+
+// Jika pengguna belum masuk, arahkan ke halaman login
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect("/login");
+}
+---
+```
+
+Karena Astro menggunakan [HTML streaming](/id/guides/on-demand-rendering/#html-streaming) dalam rendering on-demand, pengalihan harus dilakukan di tingkat halaman, bukan di dalam komponen anak.
+
+## Penulisan ulang (Rewrites)
+
+<p><Since v="4.13.0" /></p>
+
+Rewrite memungkinkan Anda menyajikan rute yang berbeda tanpa mengarahkan browser ke halaman lain. Browser akan menampilkan alamat asli di bilah URL, tetapi akan menampilkan konten dari URL yang diberikan ke [`Astro.rewrite()`](/id/reference/api-reference/#rewrite).
+
+:::tip
+Untuk konten yang telah dipindahkan secara permanen, atau untuk mengarahkan pengguna Anda ke halaman lain dengan URL baru (misalnya dasbor pengguna setelah masuk), gunakan [pengalihan](#pengalihan) sebagai gantinya.
+:::
+
+Rewrite berguna untuk menampilkan konten yang sama pada beberapa path (misalnya `/products/shoes/men/` dan `/products/men/shoes/`) tanpa perlu memelihara dua berkas sumber berbeda.
+
+Rewrite juga bermanfaat untuk SEO dan pengalaman pengguna. Rewrite memungkinkan Anda menampilkan konten yang sebaliknya mengharuskan pengalihan ke halaman lain atau akan mengembalikan status 404. Salah satu penggunaan umum rewrite adalah menampilkan konten lokal yang sama untuk varian bahasa yang berbeda.
+
+Contoh berikut menggunakan rewrite untuk merender versi `/es/` dari suatu halaman ketika path URL `/es-CU/` (Spanyol Kuba) dikunjungi. Saat pengunjung menavigasi ke URL `/es-cu/articles/introduction`, Astro akan merender konten yang dihasilkan oleh berkas `src/pages/es/articles/introduction.astro`.
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite("/es/articles/introduction");
+---
+```
+
+Gunakan `context.rewrite()` di berkas endpoint Anda untuk merutekan ulang ke halaman lain:
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite("/");
+  }
+}
+```
+
+Jika URL yang diteruskan ke `Astro.rewrite()` memunculkan error runtime, Astro akan menampilkan overlay error pada mode pengembangan dan mengembalikan status 500 pada produksi. Jika URL tidak ada di proyek Anda, status 404 akan dikembalikan.
+
+Anda dapat secara sengaja membuat rewrite untuk merender halaman `/404`, misalnya untuk menunjukkan bahwa suatu produk di toko e-commerce Anda tidak lagi tersedia:
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+
+if (!itemExists(item)) {
+  return Astro.rewrite("/404");
+}
+---
+``` 
+
+Anda juga dapat melakukan rewrite secara kondisional berdasarkan status respons HTTP, misalnya untuk menampilkan halaman tertentu di situs Anda saat mengunjungi URL yang tidak ada:
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite("/");
+  }
+  return response;
+}
+``` 
+
+Sebelum menampilkan konten dari path rewrite yang ditentukan, fungsi `Astro.rewrite()` akan memicu fase rendering baru sepenuhnya. Ini mengeksekusi ulang middleware apa pun untuk rute/permintaan baru.
+
+<ReadMore>Lihat referensi API [`Astro.rewrite()`](/id/reference/api-reference/#rewrite) untuk informasi lebih lanjut.</ReadMore>
+
+## Urutan Prioritas Rute
+
+Ada kemungkinan beberapa rute yang didefinisikan mencoba membangun path URL yang sama. Misalnya, semua rute ini dapat membangun `/posts/create`:
+
+<FileTree>
+- src/pages/
+  - [...slug].astro
+  - posts/
+    - create.astro
+    - [page].astro
+    - [pid].ts
+    - [...slug].astro
+</FileTree>
+
+Astro perlu mengetahui rute mana yang harus digunakan untuk membangun halaman. Untuk melakukannya, Astro menyortirnya menurut aturan berikut secara berurutan:
+
+- Rute yang dipesan Astro (lihat [rute yang dipesan](#rute-yang-dipesan-reserved))
+- Rute dengan lebih banyak segmen path akan memiliki prioritas dibandingkan rute yang kurang spesifik. Pada contoh di atas, semua rute di bawah `/posts/` memiliki prioritas lebih tinggi daripada `/[...slug].astro` di root.
+- Rute statis tanpa parameter path memiliki prioritas lebih tinggi daripada rute dinamis. Contoh: `/posts/create.astro` memiliki prioritas lebih tinggi daripada semua rute lain pada contoh.
+- Rute dinamis dengan parameter bernama memiliki prioritas lebih tinggi daripada parameter rest. Contoh: `/posts/[page].astro` memiliki prioritas lebih tinggi daripada `/posts/[...slug].astro`.
+- Rute dinamis yang di-prerender memiliki prioritas lebih tinggi daripada rute dinamis server.
+- Endpoint memiliki prioritas lebih tinggi daripada halaman.
+- Rute berbasis berkas memiliki prioritas lebih tinggi daripada pengalihan.
+- Jika tidak ada aturan di atas yang menentukan urutan, rute akan diurutkan secara alfabet berdasarkan locale default instalasi Node Anda.
+
+Dengan contoh di atas, berikut beberapa contoh bagaimana aturan akan mencocokkan URL yang diminta dengan rute yang digunakan untuk membangun HTML:
+
+- `pages/posts/create.astro` - Hanya akan membangun `/posts/create`
+- `pages/posts/[pid].ts` - Akan membangun `/posts/abc`, `/posts/xyz`, dll. Namun bukan `/posts/create`
+- `pages/posts/[page].astro` - Akan membangun `/posts/1`, `/posts/2`, dll. Namun bukan `/posts/create`, `/posts/abc` ataupun `/posts/xyz`
+- `pages/posts/[...slug].astro` - Akan membangun `/posts/1/2`, `/posts/a/b/c`, dll. Namun bukan `/posts/create`, `/posts/1`, `/posts/abc`, dll.
+- `pages/[...slug].astro` - Akan membangun `/abc`, `/xyz`, `/abc/xyz`, dll. Namun bukan `/posts/create`, `/posts/1`, `/posts/abc`, dll.
+
+### Rute yang dipesan (reserved)
+
+Rute internal memiliki prioritas di atas rute yang ditentukan pengguna atau integrasi karena diperlukan agar fitur Astro dapat bekerja. Berikut adalah rute yang dipesan oleh Astro:
+
+- `_astro/`: Menyajikan semua aset statis ke klien, termasuk dokumen CSS, bundel skrip klien, gambar teroptimasi, dan aset Vite apa pun.
+- `_server_islands/`: Menyajikan komponen dinamis yang ditunda ke [server island](/id/guides/server-islands/).
+- `_actions/`: Menyajikan [actions](/id/guides/actions/) yang didefinisikan.
+
+## Paginasi
+
+Astro mendukung paginasi bawaan untuk kumpulan data besar yang perlu dibagi menjadi beberapa halaman. Astro akan menghasilkan properti paginasi umum, termasuk URL halaman sebelumnya/berikutnya, jumlah total halaman, dan lainnya.
+
+Nama rute yang dipaginasi harus menggunakan sintaks `[bracket]` yang sama seperti rute dinamis standar. Misalnya, nama berkas `/astronauts/[page].astro` akan menghasilkan rute untuk `/astronauts/1`, `/astronauts/2`, dst., di mana `[page]` adalah nomor halaman yang dihasilkan.
+
+Anda dapat menggunakan fungsi `paginate()` untuk menghasilkan halaman-halaman ini dari array nilai seperti berikut:
+
+```astro /{ (paginate) }/ /paginate\(.*\);/ /(?<=const.*)(page)/ /page\.[a-zA-Z]+/
+---
+// src/pages/astronauts/[page].astro
+export function getStaticPaths({ paginate }) {
+  const astronautPages = [
+    { astronaut: "Neil Armstrong" },
+    { astronaut: "Buzz Aldrin" },
+    { astronaut: "Sally Ride" },
+    { astronaut: "John Glenn" },
+  ];
+  
+  // Hasilkan halaman dari array astronaut kita, 2 per halaman
+  return paginate(astronautPages, { pageSize: 2 });
+}
+// Semua data paginasi diteruskan pada properti "page"
+const { page } = Astro.props;
+---
+<!-- Tampilkan nomor halaman saat ini. `Astro.params.page` juga bisa digunakan! -->
+<h1>Page {page.currentPage}</h1>
+<ul>
+  <!-- Daftarkan array info astronaut -->
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+```
+
+Ini menghasilkan halaman berikut, dengan 2 item per halaman:
+
+- `/astronauts/1` - Halaman 1: Menampilkan "Neil Armstrong" dan "Buzz Aldrin"
+- `/astronauts/2` - Halaman 2: Menampilkan "Sally Ride" dan "John Glenn"
+
+### Properti `page`
+
+Saat Anda menggunakan fungsi `paginate()`, setiap halaman akan menerima datanya melalui properti `page`. Properti `page` memiliki banyak properti berguna yang dapat Anda gunakan untuk membangun halaman dan tautan di antaranya:
+
+```ts
+interface Page<T = any> {
+	/** array berisi potongan data halaman yang Anda teruskan ke fungsi paginate() */
+	data: T[];
+	/** metadata */
+	/** hitungan item pertama pada halaman, mulai dari 0 */
+	start: number;
+	/** hitungan item terakhir pada halaman, mulai dari 0 */
+	end: number;
+	/** jumlah total hasil */
+	total: number;
+	/** nomor halaman saat ini, mulai dari 1 */
+	currentPage: number;
+	/** jumlah item per halaman (default: 10) */
+	size: number;
+	/** nomor halaman terakhir */
+	lastPage: number;
+	url: {
+		/** url halaman saat ini */
+		current: string;
+		/** url halaman sebelumnya (jika ada) */
+		prev: string | undefined;
+		/** url halaman berikutnya (jika ada) */
+		next: string | undefined;
+		/** url halaman pertama (jika halaman saat ini bukan yang pertama) */
+		first: string | undefined;
+		/** url halaman terakhir (jika halaman saat ini bukan yang terakhir) */
+		last: string | undefined;
+	};
+}
+```
+
+Contoh berikut menampilkan informasi saat ini untuk halaman bersama tautan untuk bernavigasi antar halaman:
+
+```astro /(?<=const.*)(page)/ /page\.[a-zA-Z]+(?:\.(?:prev|next|first|last))?/
+---
+// src/pages/astronauts/[page].astro
+// Paginasi daftar objek `{ astronaut }` yang sama seperti contoh sebelumnya
+export function getStaticPaths({ paginate }) { /* ... */ }
+const { page } = Astro.props;
+---
+<h1>Page {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.first ? <a href={page.url.first}>First</a> : null}
+{page.url.prev ? <a href={page.url.prev}>Previous</a> : null}
+{page.url.next ? <a href={page.url.next}>Next</a> : null}
+{page.url.last ? <a href={page.url.last}>Last</a> : null}
+```
+
+<ReadMore>Pelajari lebih lanjut tentang [properti paginasi `page`](/id/reference/routing-reference/#the-pagination-page-prop).</ReadMore>
+
+### Paginasi bertingkat
+
+Kasus penggunaan yang lebih lanjut untuk paginasi adalah **paginasi bertingkat (nested pagination).** Ini adalah ketika paginasi digabungkan dengan param rute dinamis lainnya. Anda dapat menggunakan paginasi bertingkat untuk mengelompokkan koleksi paginasi berdasarkan suatu properti atau tag.
+
+Misalnya, jika Anda ingin mengelompokkan posting Markdown yang dipaginasi berdasarkan tag tertentu, Anda akan menggunakan paginasi bertingkat dengan membuat halaman `/src/pages/[tag]/[page].astro` yang akan cocok dengan URL berikut:
+
+- `/red/1` (tag=red)
+- `/red/2` (tag=red)
+- `/blue/1` (tag=blue)
+- `/green/1` (tag=green)
+
+Paginasi bertingkat bekerja dengan mengembalikan array hasil `paginate()` dari `getStaticPaths()`, satu untuk setiap pengelompokan.
+
+Pada contoh berikut, kita akan menerapkan paginasi bertingkat untuk membangun URL yang terdaftar di atas:
+
+```astro /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
+---
+// src/pages/[tag]/[page].astro
+export function getStaticPaths({ paginate }) {
+  const allTags = ["red", "blue", "green"];
+  const allPosts = Object.values(import.meta.glob("../pages/post/*.md", { eager: true }));
+  // Untuk setiap tag, kembalikan hasil `paginate()`.
+  // Pastikan Anda meneruskan `{ params: { tag }}` ke `paginate()`
+  // agar Astro tahu untuk pengelompokan tag yang mana hasilnya.
+  return allTags.flatMap((tag) => {
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
+    return paginate(filteredPosts, {
+      params: { tag },
+      pageSize: 10
+    });
+  });
+}
+
+const { page } = Astro.props;
+const params = Astro.params;
+```
+
+## Mengecualikan halaman
+
+Anda dapat mengecualikan halaman atau direktori di dalam `src/pages` dari proses build dengan menambahkan awalan garis bawah (`_`) pada namanya. Berkas dengan awalan `_` tidak akan dikenali oleh router dan tidak akan ditempatkan ke direktori `dist/`.
+
+Anda dapat menggunakannya untuk menonaktifkan halaman sementara, dan juga untuk menaruh pengujian, utilitas, dan komponen di folder yang sama dengan halaman terkaitnya. 
+
+Pada contoh ini, hanya `src/pages/index.astro` dan `src/pages/projects/project1.md` yang akan dibangun sebagai rute halaman dan berkas HTML.
+
+<FileTree>
+- src/pages/
+  - _hidden-directory/
+    - page1.md
+    - page2.md
+  - _hidden-page.astro
+  - **index.astro**
+  - projects/
+    - _SomeComponent.astro
+    - _utils.js
+    - **project1.md**
+</FileTree>

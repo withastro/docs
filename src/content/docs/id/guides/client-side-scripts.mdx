@@ -1,0 +1,225 @@
+---
+title: Skrip dan penanganan event
+description: Cara menambahkan interaktivitas sisi-klien ke komponen Astro menggunakan API JavaScript bawaan browser.
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+Anda dapat mengirim JavaScript ke browser dan menambahkan fungsionalitas ke komponen Astro menggunakan tag `<script>` di template komponen.
+
+Skrip menambahkan interaktivitas ke situs Anda, seperti menangani event atau memperbarui konten secara dinamis, tanpa perlu [UI framework](/id/guides/framework-components/) seperti React, Svelte, atau Vue. Ini menghindari overhead pengiriman JavaScript framework dan tidak mengharuskan Anda mempelajari framework tambahan apa pun untuk membuat situs atau aplikasi yang lengkap.
+
+## Client-Side Scripts
+
+Skrip dapat digunakan untuk menambahkan *event listener*, mengirim data analitik, memutar animasi, dan semua hal lain yang bisa dilakukan JavaScript di web.
+
+Astro secara otomatis meningkatkan tag HTML standar `<script>` dengan bundling, TypeScript, dan lainnya. Lihat [cara Astro memproses skrip](#script-processing) untuk detailnya.
+
+```astro title="src/components/ConfettiButton.astro"
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // Impor dari paket npm.
+  import confetti from 'canvas-confetti';
+
+  // Temukan DOM komponen kita pada halaman.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // Tambahkan event listener untuk menembakkan konfeti saat tombol diklik.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+<ReadMore>Lihat [kapan skrip Anda tidak akan diproses](#unprocessed-scripts) untuk menelusuri perilaku skrip, atau pelajari cara menonaktifkan pemrosesan ini secara sengaja.</ReadMore>
+
+
+## Script processing
+
+Secara bawaan, Astro memproses tag `<script>` yang tidak memiliki atribut apa pun (selain `src`) dengan cara berikut:
+
+- **Dukungan TypeScript:** Semua skrip adalah TypeScript secara default.
+- **Import bundling:** Impor berkas lokal atau modul npm akan dibundel bersama.
+- **Type Module:** Skrip yang diproses otomatis menjadi [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules).
+- **Deduplication:** Jika sebuah komponen yang berisi `<script>` digunakan beberapa kali pada satu halaman, skrip hanya akan disertakan sekali.
+- **Automatic inlining:** Jika skrip cukup kecil, Astro akan *inline* langsung ke HTML untuk mengurangi jumlah permintaan.
+```astro title="src/components/Example.astro"
+<script>
+  // Diproses! Dibundel! TypeScript!
+  // Impor skrip lokal dan dari paket npm berfungsi.
+</script>
+```
+
+### Unprocessed scripts
+
+Astro tidak akan memproses tag `<script>` jika memiliki atribut apa pun selain `src`.
+
+Anda dapat menambahkan direktif [`is:inline`](/id/reference/directives-reference/#isinline) untuk secara sengaja tidak memproses sebuah skrip.
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // Akan dirender ke HTML persis seperti yang ditulis!
+  // Tidak ditransformasi: tanpa TypeScript dan tanpa resolusi impor oleh Astro.
+  // Jika digunakan di dalam sebuah komponen, kode ini akan diduplikasi untuk setiap instance.
+</script>
+```
+
+### Include JavaScript files on your page
+
+Anda mungkin ingin menulis skrip sebagai berkas `.js`/`.ts` terpisah atau perlu mereferensikan skrip eksternal di server lain. Anda dapat melakukannya dengan mereferensikan berkas tersebut di atribut `src` pada tag `<script>`.
+
+#### Import local scripts
+
+**Kapan digunakan:** ketika skrip Anda berada di dalam `src/`.
+
+Astro akan memproses skrip ini sesuai dengan [aturan pemrosesan skrip](#script-processing).
+
+```astro title="src/components/LocalScripts.astro"
+<!-- path relatif ke skrip di `src/scripts/local.js` -->
+<script src="../scripts/local.js"></script>
+
+<!-- juga berlaku untuk berkas TypeScript lokal -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### Load external scripts
+
+**Kapan digunakan:** ketika berkas JavaScript Anda berada di dalam `public/` atau di CDN.
+
+Untuk memuat skrip di luar folder `src/` proyek Anda, sertakan direktif `is:inline`. Pendekatan ini melewati pemrosesan JavaScript, bundling, dan optimasi yang disediakan Astro ketika Anda mengimpor skrip seperti di atas.
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- path absolut ke skrip di `public/my-script.js` -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- URL penuh ke skrip di server jarak jauh -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## Common script patterns
+
+### Handle `onclick` and other events
+
+Beberapa UI framework menggunakan sintaks kustom untuk penanganan event seperti `onClick={...}` (React/Preact) atau `@click="..."` (Vue). Astro mengikuti HTML standar lebih dekat dan tidak menggunakan sintaks kustom untuk event.
+
+Sebagai gantinya, gunakan [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) di tag `<script>` untuk menangani interaksi pengguna.
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">Click me!</button>
+
+<script>
+  // Temukan semua tombol dengan kelas `alert` pada halaman.
+  const buttons = document.querySelectorAll('button.alert');
+
+  // Tangani klik pada setiap tombol.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('Button was clicked!');
+    });
+  });
+</script>
+```
+
+Jika Anda memiliki beberapa komponen `<AlertButton />` pada halaman, Astro tidak akan menjalankan skrip beberapa kali. Skrip dibundel dan hanya disertakan sekali per halaman. Menggunakan `querySelectorAll` memastikan skrip ini memasang *event listener* ke setiap tombol dengan kelas `alert` yang ditemukan di halaman.
+
+
+### Web components with custom elements
+
+Anda dapat membuat elemen HTML sendiri dengan perilaku khusus menggunakan standar Web Components. Mendefinisikan [custom element](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) di komponen `.astro` memungkinkan Anda membangun komponen interaktif tanpa memerlukan pustaka UI framework.
+
+Pada contoh ini, kita mendefinisikan elemen HTML baru `<astro-heart>` yang melacak berapa kali Anda mengeklik tombol hati dan memperbarui `<span>` dengan jumlah terbaru.
+
+```astro title="src/components/AstroHeart.astro"
+<!-- Bungkus elemen komponen di dalam custom element “astro-heart”. -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // Definisikan perilaku untuk tipe elemen HTML baru kita.
+  class AstroHeart extends HTMLElement {
+    connectedCallback() {
+      let count = 0;
+
+      const heartButton = this.querySelector('button');
+      const countSpan = this.querySelector('span');
+
+      // Setiap kali tombol diklik, perbarui hitungan.
+			heartButton.addEventListener('click', () => {
+        count++;
+        countSpan.textContent = count.toString();
+      });
+		}
+  }
+
+  // Beri tahu browser untuk memakai kelas AstroHeart bagi elemen <astro-heart>.
+  customElements.define('astro-heart', AstroHeart);
+</script>
+```
+
+Ada dua keuntungan menggunakan custom element di sini:
+
+1. Alih-alih mencari seluruh halaman dengan `document.querySelector()`, Anda dapat menggunakan `this.querySelector()` yang hanya mencari di dalam instance custom element saat ini. Ini memudahkan bekerja hanya dengan anak-anak dari satu instance komponen pada satu waktu.
+
+2. Meskipun `<script>` hanya berjalan sekali, browser akan menjalankan metode `connectedCallback()` custom element setiap kali menemukan `<astro-heart>` di halaman. Ini berarti Anda dapat dengan aman menulis kode untuk satu komponen pada satu waktu, meskipun Anda berniat menggunakan komponen ini beberapa kali dalam satu halaman.
+
+<ReadMore>Pelajari lebih lanjut tentang custom element di [panduan Reusable Web Components web.dev](https://web.dev/custom-elements-v1/) dan [pengantar custom element di MDN](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements).</ReadMore>
+
+
+### Pass frontmatter variables to scripts
+
+Dalam komponen Astro, kode di [frontmatter](/id/basics/astro-components/#the-component-script) (di antara pagar `---`) berjalan di server dan tidak tersedia di browser.
+
+Untuk meneruskan variabel sisi server ke skrip sisi klien, simpan variabel tersebut di [atribut `data-*`](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes) pada elemen HTML. Skrip kemudian dapat mengakses nilai ini menggunakan properti `dataset`.
+
+Pada komponen contoh ini, *prop* `message` disimpan di atribut `data-message`, sehingga custom element dapat membaca `this.dataset.message` dan mendapatkan nilai *prop* di browser.
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'Welcome, world!' } = Astro.props;
+---
+
+<!-- Simpan prop message sebagai atribut data. -->
+<astro-greet data-message={message}>
+  <button>Say hi!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    connectedCallback() {
+      // Baca pesan dari atribut data.
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button.addEventListener('click', () => {
+        alert(message);
+      });
+		}
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+Sekarang kita bisa menggunakan komponen ini beberapa kali dan mendapatkan sapaan berbeda untuk masing-masingnya.
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- Gunakan pesan default: “Welcome, world!” -->
+<AstroGreet />
+
+<!-- Gunakan pesan kustom yang dikirim sebagai props. -->
+<AstroGreet message="Lovely day to build components!" />
+<AstroGreet message="Glad you made it! 👋" />
+```
+
+:::tip[Tahukah kamu?]
+Ini sebenarnya yang dilakukan Astro di balik layar ketika Anda mengirim *props* ke komponen yang ditulis menggunakan UI framework seperti React! Untuk komponen dengan direktif `client:*`, Astro membuat custom element `<astro-island>` dengan atribut `props` yang menyimpan *props* sisi server Anda dalam output HTML.
+:::
+
+### Combining scripts and UI Frameworks
+
+Elemen yang dirender oleh UI framework mungkin belum tersedia saat tag `<script>` dieksekusi. Jika skrip Anda juga perlu menangani [komponen UI framework](/id/guides/framework-components/), menggunakan custom element sangat disarankan.

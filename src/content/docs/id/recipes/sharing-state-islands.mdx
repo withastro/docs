@@ -1,0 +1,702 @@
+---
+title: Berbagi state antar island
+description: Pelajari cara berbagi state di seluruh komponen framework dengan Nano Stores.
+i18nReady: true
+type: recipe
+---
+
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+import LoopingVideo from '~/components/LoopingVideo.astro'
+import JavascriptFlavorTabs from '~/components/tabs/JavascriptFlavorTabs.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+
+Saat membangun situs Astro dengan [arsitektur islands / partial hydration](/en/concepts/islands/), Anda mungkin menemui masalah ini: **Saya ingin berbagi state di antara komponen saya.**
+
+UI framework seperti React atau Vue mungkin menganjurkan ["context" providers](https://react.dev/learn/passing-data-deeply-with-context) untuk dikonsumsi komponen lain. Namun saat [melakukan partial hydration komponen](/en/guides/framework-components/#hydrating-interactive-components) di dalam Astro atau Markdown, Anda tidak bisa menggunakan pembungkus context tersebut.
+
+Astro merekomendasikan solusi berbeda untuk penyimpanan sisi-klien bersama: [**Nano Stores**](https://github.com/nanostores/nanostores).
+
+<RecipeLinks slugs={["en/recipes/sharing-state"]} />
+
+## Mengapa Nano Stores?
+
+Library [Nano Stores](https://github.com/nanostores/nanostores) memungkinkan Anda menulis store yang bisa diakses komponen mana pun. Kami merekomendasikan Nano Stores karena:
+- **Ringan.** Nano Stores hanya memaketkan JS minimum yang Anda butuhkan (kurang dari 1 KB) tanpa dependensi.
+- **Agnostik framework.** Ini berarti berbagi state antar framework akan mulus! Astro dibangun di atas fleksibilitas, jadi kami menyukai solusi yang menawarkan pengalaman pengembang serupa apa pun preferensi Anda.
+
+Tetap saja, ada sejumlah alternatif yang bisa Anda jelajahi. Ini termasuk:
+- [Store bawaan Svelte](https://svelte.dev/tutorial/writable-stores)
+- [Solid signals](https://www.solidjs.com/docs/latest) di luar konteks komponen
+- [API reaktivitas Vue](https://vuejs.org/guide/scaling-up/state-management.html#simple-state-management-with-reactivity-api)
+- [Mengirim custom browser events](https://developer.mozilla.org/en-US/docs/Web/Events/Creating_and_triggering_events) antar komponen
+
+:::note[FAQ]
+
+<details>
+<summary>**🙋 Bisakah saya menggunakan Nano Stores di berkas `.astro` atau komponen sisi server lainnya?**</summary>
+
+Nano Stores dapat digunakan di tag `<script>` untuk [berbagi state di antara komponen `.astro`](/en/recipes/sharing-state/). Namun, menggunakan Nano Stores di frontmatter komponen sisi server tidak direkomendasikan karena batasan berikut:
+- Menulis ke store dari berkas `.astro` atau [komponen yang tidak dihidrasi](/en/guides/framework-components/#hydrating-interactive-components) _tidak_ akan memengaruhi nilai yang diterima [komponen sisi klien](/en/reference/directives-reference/#client-directives).
+- Anda tidak dapat meneruskan Nano Store sebagai "prop" ke komponen sisi klien.
+- Anda tidak dapat berlangganan perubahan store dari berkas `.astro`, karena komponen Astro tidak melakukan render ulang.
+
+Jika Anda memahami batasan ini dan masih menemukan use case-nya, Anda boleh mencoba Nano Stores! Ingat saja bahwa Nano Stores dibangun untuk reaktivitas terhadap perubahan pada **klien** secara khusus.
+
+</details>
+
+<details>
+<summary>**🙋 Bagaimana perbandingan store Svelte dengan Nano Stores?**</summary>
+
+**Nano Stores dan [Svelte stores](https://svelte.dev/tutorial/writable-stores) sangat mirip!** Bahkan, [nanostores memungkinkan Anda menggunakan shortcut `$` yang sama](https://github.com/nanostores/nanostores#svelte) untuk berlangganan seperti yang mungkin Anda gunakan dengan Svelte stores.
+
+Jika Anda ingin menghindari library pihak ketiga, [Svelte stores](https://svelte.dev/tutorial/writable-stores) adalah alat komunikasi antarisland yang hebat. Namun, Anda mungkin lebih suka Nano Stores jika a) Anda menyukai add-on mereka untuk ["objects"](https://github.com/nanostores/nanostores#maps) dan [async state](https://github.com/nanostores/nanostores#lazy-stores), atau b) Anda ingin berkomunikasi antara Svelte dan UI framework lain seperti Preact atau Vue.
+</details>
+
+<details>
+<summary>**🙋 Bagaimana perbandingan Solid signals dengan Nano Stores?**</summary>
+
+Jika Anda telah menggunakan Solid untuk sementara waktu, Anda mungkin pernah mencoba memindahkan [signals](https://www.solidjs.com/docs/latest#createsignal) atau [stores](https://www.solidjs.com/docs/latest#createstore) ke luar komponen Anda. Ini adalah cara yang bagus untuk berbagi state antar island Solid! Cobalah mengekspor signals dari berkas bersama:
+
+```js
+// sharedStore.js
+import { createSignal } from 'solid-js';
+
+export const sharedCount = createSignal(0);
+```
+...dan semua komponen yang mengimpor `sharedCount` akan berbagi state yang sama. Meski ini bekerja dengan baik, Anda mungkin lebih suka Nano Stores jika a) Anda menyukai add-on mereka untuk ["objects"](https://github.com/nanostores/nanostores#maps) dan [async state](https://github.com/nanostores/nanostores#lazy-stores), atau b) Anda ingin berkomunikasi antara Solid dan UI framework lain seperti Preact atau Vue.
+</details>
+:::
+
+## Menginstal Nano Stores
+
+Untuk memulai, instal Nano Stores bersama paket helper untuk UI framework favorit Anda:
+
+<UIFrameworkTabs>
+  <Fragment slot="preact">
+  ```shell
+  npm install nanostores @nanostores/preact
+  ```
+  </Fragment>
+  <Fragment slot="react">
+  ```shell
+  npm install nanostores @nanostores/react
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```shell
+  npm install nanostores @nanostores/solid
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+  ```shell
+  npm install nanostores
+  ```
+  :::note
+  Tidak ada paket helper di sini! Nano Stores dapat digunakan seperti Svelte stores standar.
+  :::
+  </Fragment>
+  <Fragment slot="vue">
+  ```shell
+  npm install nanostores @nanostores/vue
+  ```
+  </Fragment>
+
+</UIFrameworkTabs>
+
+Anda bisa langsung ke [panduan penggunaan Nano Stores](https://github.com/nanostores/nanostores#guide) dari sini, atau ikuti contoh kami di bawah!
+
+## Contoh penggunaan - cart flyout ecommerce
+
+Misalkan kita membangun antarmuka ecommerce sederhana dengan tiga elemen interaktif:
+- Formulir pengiriman "add to cart"
+- Cart flyout untuk menampilkan item yang ditambahkan
+- Toggle cart flyout
+
+<LoopingVideo sources={[{ src: '/videos/stores-example.mp4', type: 'video/mp4' }]} />
+
+_[**Coba contoh yang sudah jadi**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) di mesin Anda atau online via StackBlitz._
+
+Berkas Astro dasar Anda mungkin terlihat seperti ini:
+
+```astro
+---
+// src/pages/index.astro
+import CartFlyoutToggle from '../components/CartFlyoutToggle';
+import CartFlyout from '../components/CartFlyout';
+import AddToCartForm from '../components/AddToCartForm';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+<head>...</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Astro storefront</a>
+      <CartFlyoutToggle client:load />
+    </nav>
+  </header>
+  <main>
+    <AddToCartForm client:load>
+    <!-- ... -->
+    </AddToCartForm>
+  </main>
+  <CartFlyout client:load />
+</body>
+</html>
+```
+
+### Menggunakan "atoms"
+
+Mari mulai dengan membuka `CartFlyout` saat `CartFlyoutToggle` diklik. 
+
+Pertama, buat berkas JS atau TS baru untuk menyimpan store kita. Kita akan menggunakan ["atom"](https://github.com/nanostores/nanostores#atoms) untuk ini:
+
+```js
+// src/cartStore.js
+import { atom } from 'nanostores';
+
+export const isCartOpen = atom(false);
+```
+
+Sekarang, kita bisa mengimpor store ini ke berkas mana pun yang perlu membaca atau menulis. Kita mulai dengan menyambungkan `CartFlyoutToggle`:
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen } from '../cartStore';
+
+export default function CartButton() {
+  // baca nilai store dengan hook `useStore`
+  const $isCartOpen = useStore(isCartOpen);
+  // tulis ke store yang diimpor menggunakan `.set`
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen } from '../cartStore';
+
+export default function CartButton() {
+  // baca nilai store dengan hook `useStore`
+  const $isCartOpen = useStore(isCartOpen);
+  // tulis ke store yang diimpor menggunakan `.set`
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyoutToggle.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen } from '../cartStore';
+
+export default function CartButton() {
+  // baca nilai store dengan hook `useStore`
+  const $isCartOpen = useStore(isCartOpen);
+  // tulis ke store yang diimpor menggunakan `.set`
+  return (
+    <button onClick={() => isCartOpen.set(!$isCartOpen())}>Cart</button>
+  )
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyoutToggle.svelte-->
+<script>
+  import { isCartOpen } from '../cartStore';
+</script>
+
+<!--gunakan "$" untuk membaca nilai store-->
+<button on:click={() => isCartOpen.set(!$isCartOpen)}>Cart</button>
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyoutToggle.vue-->
+<template>
+  <!--tulis ke store yang diimpor menggunakan `.set`-->
+  <button @click="isCartOpen.set(!$isCartOpen)">Cart</button>
+</template>
+
+<script setup>
+  import { isCartOpen } from '../cartStore';
+  import { useStore } from '@nanostores/vue';
+
+  // baca nilai store dengan hook `useStore`
+  const $isCartOpen = useStore(isCartOpen);
+</script>
+```
+</Fragment>
+
+</UIFrameworkTabs>
+
+Kemudian, kita bisa membaca `isCartOpen` dari komponen `CartFlyout`:
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+
+  return $isCartOpen() ? <aside>...</aside> : null;
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyout.svelte-->
+<script>
+  import { isCartOpen } from '../cartStore';
+</script>
+
+{#if $isCartOpen}
+<aside>...</aside>
+{/if}
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyout.vue-->
+<template>
+  <aside v-if="$isCartOpen">...</aside>
+</template>
+
+<script setup>
+  import { isCartOpen } from '../cartStore';
+  import { useStore } from '@nanostores/vue';
+
+  const $isCartOpen = useStore(isCartOpen);
+</script>
+```
+</Fragment>
+
+</UIFrameworkTabs>
+
+### Menggunakan "maps"
+
+:::tip
+**[Maps](https://github.com/nanostores/nanostores#maps) adalah pilihan yang bagus untuk objek yang sering Anda tulis!** Selain helper standar `get()` dan `set()` yang disediakan oleh `atom`, Anda juga memiliki fungsi `.setKey()` untuk memperbarui key objek secara efisien.
+:::
+
+Sekarang, mari melacak item di dalam cart Anda. Untuk menghindari duplikasi dan melacak "quantity," kita dapat menyimpan cart Anda sebagai objek dengan ID item sebagai key. Kita akan menggunakan [Map](https://github.com/nanostores/nanostores#maps) untuk ini.
+
+Mari tambahkan store `cartItem` ke `cartStore.js` kita sebelumnya. Anda juga bisa beralih ke berkas TypeScript untuk mendefinisikan bentuk (shape)-nya jika diinginkan.
+
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  import { atom, map } from 'nanostores';
+
+  export const isCartOpen = atom(false);
+
+  /**
+   * @typedef {Object} CartItem
+   * @property {string} id
+   * @property {string} name
+   * @property {string} imageSrc
+   * @property {number} quantity
+   */
+
+  /** @type {import('nanostores').MapStore<Record<string, CartItem>>} */
+  export const cartItems = map({});
+
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  import { atom, map } from 'nanostores';
+
+  export const isCartOpen = atom(false);
+
+  export type CartItem = {
+    id: string;
+    name: string;
+    imageSrc: string;
+    quantity: number;
+  }
+
+  export const cartItems = map<Record<string, CartItem>>({});
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
+
+Sekarang, mari ekspor helper `addCartItem` untuk digunakan komponen kita.
+- **Jika item tersebut belum ada di cart**, tambahkan item dengan kuantitas awal 1.
+- **Jika item tersebut _sudah_ ada**, naikkan kuantitasnya sebesar 1.
+
+<JavascriptFlavorTabs>
+  <Fragment slot="js">
+  ```js
+  // src/cartStore.js
+  ...
+  export function addCartItem({ id, name, imageSrc }) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      })
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
+  }
+  ```
+  </Fragment>
+  <Fragment slot="ts">
+  ```ts
+  // src/cartStore.ts
+  ...
+  type ItemDisplayInfo = Pick<CartItem, 'id' | 'name' | 'imageSrc'>;
+  export function addCartItem({ id, name, imageSrc }: ItemDisplayInfo) {
+    const existingEntry = cartItems.get()[id];
+    if (existingEntry) {
+      cartItems.setKey(id, {
+        ...existingEntry,
+        quantity: existingEntry.quantity + 1,
+      });
+    } else {
+      cartItems.setKey(
+        id,
+        { id, name, imageSrc, quantity: 1 }
+      );
+    }
+  }
+  ```
+  </Fragment>
+</JavascriptFlavorTabs>
+
+:::note
+<details>
+
+<summary>**🙋 Mengapa menggunakan `.get()` di sini alih-alih helper `useStore`?**</summary>
+
+Anda mungkin memperhatikan bahwa kami memanggil `cartItems.get()` di sini, alih-alih mengambil helper `useStore` dari contoh React / Preact / Solid / Vue kami. Ini karena **useStore dimaksudkan untuk memicu render ulang komponen.** Dengan kata lain, `useStore` harus digunakan saat nilai store sedang dirender ke UI. Karena kita membaca nilai saat sebuah **event** dipicu (`addToCart` dalam kasus ini), dan kita tidak mencoba merender nilai tersebut, kita tidak memerlukan `useStore` di sini.
+</details>
+:::
+
+Dengan store yang sudah siap, kita bisa memanggil fungsi ini di dalam `AddToCartForm` setiap kali formulir tersebut disubmit. Kita juga akan membuka cart flyout agar Anda bisa melihat ringkasan cart.
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/AddToCartForm.jsx
+import { addCartItem, isCartOpen } from '../cartStore';
+
+export default function AddToCartForm({ children }) {
+  // untuk kesederhanaan, kita hardcode info item!
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+
+  return (
+    <form onSubmit={addToCart}>
+      {children}
+    </form>
+  )
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/AddToCartForm.jsx
+import { addCartItem, isCartOpen } from '../cartStore';
+
+export default function AddToCartForm({ children }) {
+  // untuk kesederhanaan, kita hardcode info item!
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+
+  return (
+    <form onSubmit={addToCart}>
+      {children}
+    </form>
+  )
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/AddToCartForm.jsx
+import { addCartItem, isCartOpen } from '../cartStore';
+
+export default function AddToCartForm({ children }) {
+  // untuk kesederhanaan, kita hardcode info item!
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+
+  return (
+    <form onSubmit={addToCart}>
+      {children}
+    </form>
+  )
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/AddToCartForm.svelte-->
+<form on:submit|preventDefault={addToCart}>
+  <slot></slot>
+</form>
+
+<script>
+  import { addCartItem, isCartOpen } from '../cartStore';
+
+  // untuk kesederhanaan, kita hardcode info item!
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart() {
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+</script>
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/AddToCartForm.vue-->
+<template>
+  <form @submit="addToCart">
+    <slot></slot>
+  </form>
+</template>
+
+<script setup>
+  import { addCartItem, isCartOpen } from '../cartStore';
+
+  // untuk kesederhanaan, kita hardcode info item!
+  const hardcodedItemInfo = {
+    id: 'astronaut-figurine',
+    name: 'Astronaut Figurine',
+    imageSrc: '/images/astronaut-figurine.png',
+  }
+
+  function addToCart(e) {
+    e.preventDefault();
+    isCartOpen.set(true);
+    addCartItem(hardcodedItemInfo);
+  }
+</script>
+```
+</Fragment>
+
+</UIFrameworkTabs>
+
+Terakhir, kita akan merender item cart tersebut di dalam `CartFlyout`:
+
+<UIFrameworkTabs>
+<Fragment slot="preact">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/preact';
+import { isCartOpen, cartItems } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+
+  return $isCartOpen ? (
+    <aside>
+      {Object.values($cartItems).length ? (
+        <ul>
+          {Object.values($cartItems).map(cartItem => (
+            <li>
+              <img src={cartItem.imageSrc} alt={cartItem.name} />
+              <h3>{cartItem.name}</h3>
+              <p>Quantity: {cartItem.quantity}</p>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Your cart is empty!</p>}
+    </aside>
+  ) : null;
+}
+```
+</Fragment>
+<Fragment slot="react">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/react';
+import { isCartOpen, cartItems } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+
+  return $isCartOpen ? (
+    <aside>
+      {Object.values($cartItems).length ? (
+        <ul>
+          {Object.values($cartItems).map(cartItem => (
+            <li>
+              <img src={cartItem.imageSrc} alt={cartItem.name} />
+              <h3>{cartItem.name}</h3>
+              <p>Quantity: {cartItem.quantity}</p>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Your cart is empty!</p>}
+    </aside>
+  ) : null;
+}
+```
+</Fragment>
+<Fragment slot="solid">
+```jsx
+// src/components/CartFlyout.jsx
+import { useStore } from '@nanostores/solid';
+import { isCartOpen, cartItems } from '../cartStore';
+
+export default function CartFlyout() {
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+
+  return $isCartOpen() ? (
+    <aside>
+      {Object.values($cartItems()).length ? (
+        <ul>
+          {Object.values($cartItems()).map(cartItem => (
+            <li>
+              <img src={cartItem.imageSrc} alt={cartItem.name} />
+              <h3>{cartItem.name}</h3>
+              <p>Quantity: {cartItem.quantity}</p>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Your cart is empty!</p>}
+    </aside>
+  ) : null;
+}
+```
+</Fragment>
+<Fragment slot="svelte">
+```svelte
+<!--src/components/CartFlyout.svelte-->
+<script>
+  import { isCartOpen, cartItems } from '../cartStore';
+</script>
+
+{#if $isCartOpen}
+  {#if Object.values($cartItems).length}
+    <aside>
+      {#each Object.values($cartItems) as cartItem}
+      <li>
+        <img src={cartItem.imageSrc} alt={cartItem.name} />
+        <h3>{cartItem.name}</h3>
+        <p>Quantity: {cartItem.quantity}</p>
+      </li>
+      {/each}
+    </aside>
+  {:else}
+    <p>Your cart is empty!</p>
+  {/if}
+{/if}
+```
+</Fragment>
+<Fragment slot="vue">
+```vue
+<!--src/components/CartFlyout.vue-->
+<template>
+  <aside v-if="$isCartOpen">
+    <ul v-if="Object.values($cartItems).length">
+      <li v-for="cartItem in Object.values($cartItems)" v-bind:key="cartItem.name">
+        <img :src=cartItem.imageSrc :alt=cartItem.name />
+        <h3>{{cartItem.name}}</h3>
+        <p>Quantity: {{cartItem.quantity}}</p>
+      </li>
+    </ul>
+    <p v-else>Your cart is empty!</p>
+  </aside>
+</template>
+
+<script setup>
+  import { cartItems, isCartOpen } from '../cartStore';
+  import { useStore } from '@nanostores/vue';
+
+  const $isCartOpen = useStore(isCartOpen);
+  const $cartItems = useStore(cartItems);
+</script>
+```
+</Fragment>
+
+</UIFrameworkTabs>
+
+Sekarang, Anda seharusnya memiliki contoh ecommerce yang sepenuhnya interaktif dengan bundel JS paling kecil di galaksi 🚀
+
+[**Coba contoh yang sudah jadi**](https://github.com/withastro/astro/tree/main/examples/with-nanostores) di mesin Anda atau online via StackBlitz!

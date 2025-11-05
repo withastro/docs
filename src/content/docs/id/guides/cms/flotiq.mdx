@@ -1,0 +1,300 @@
+---
+title: Flotiq & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Flotiq sebagai CMS
+sidebar:
+  label: Flotiq
+type: cms
+service: Flotiq
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Flotiq](https://flotiq.com?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) adalah headless CMS yang dirancang untuk berbagai frontend seperti situs statis, aplikasi mobile, dan aplikasi web. Pengembang dan pembuat konten mengelola serta mendistribusikan konten melalui API berbasis REST dan GraphQL.
+
+## Integrasi dengan Astro
+
+Panduan ini akan menggunakan API headless CMS Flotiq bersama proyek Astro untuk menampilkan konten di situs Anda.
+
+### Prasyarat
+
+Untuk memulai, Anda memerlukan:
+
+1. **Proyek Astro** - Anda dapat membuat proyek baru menggunakan perintah `npm create astro@latest`.
+2. **Akun Flotiq** - Jika Anda belum memiliki akun, [daftar gratis](https://editor.flotiq.com/register?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro).
+3. **Read-only API key Flotiq** - Pelajari [cara mendapatkan kunci Anda](https://flotiq.com/docs/API/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro).
+
+### Menyiapkan variabel lingkungan
+
+Tambahkan read-only API key dari akun Flotiq Anda ke file `.env` di root proyek Astro Anda:
+
+```ini title=".env"
+FLOTIQ_API_KEY=__YOUR_FLOTIQ_API_KEY__
+```
+
+### Mendefinisikan Content Type di Flotiq
+
+Pertama, Anda perlu mendefinisikan contoh [Content Type Definition](https://flotiq.com/docs/panel/content-types/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) di Flotiq untuk menyimpan data.
+
+Masuk ke akun Flotiq Anda dan buat Content Type Definition kustom dengan konfigurasi contoh `Blog Post` berikut:
+- **Label**: Blog Post
+- **API Name**: blogpost
+- **Fields**:
+  - **Title**: text, wajib
+  - **Slug**: text, wajib
+  - **Content**: rich text, wajib
+
+Lalu, buat satu atau beberapa [Content Objects](https://flotiq.com/docs/panel/content-objects/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) contoh menggunakan tipe `Blog Post` ini.
+
+### Menginstal Flotiq TypeScript SDK
+
+Untuk menghubungkan proyek Anda dengan Flotiq, instal [Flotiq SDK](https://github.com/flotiq/flotiq-api-ts) menggunakan manajer paket pilihan Anda:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Selanjutnya, konfigurasikan SDK menggunakan kredensial Anda. Buat file baru bernama `flotiq.ts` di dalam direktori `src/lib` pada proyek Anda:
+
+```ts title="src/lib/flotiq.ts"
+import { FlotiqApi } from "flotiq-api-ts";
+
+export const flotiq = new FlotiqApi(import.meta.env.FLOTIQ_API_KEY);
+```
+
+Konfigurasi ini sekarang dapat digunakan di seluruh proyek Anda.
+
+### Mengambil dan Menampilkan Data dari Flotiq
+
+<Steps>
+
+1. Ambil data `Blog Post` pada sebuah halaman Astro menggunakan API kustom konten Anda `BlogpostAPI`:
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    ```
+
+2. Tampilkan kontennya di template Astro Anda. Anda akan memiliki akses ke `title`, `slug`, dan `content` dari setiap post serta data `internal` lainnya:
+
+    ```astro title="src/pages/index.astro" ins={6-21}
+    ---
+    import { flotiq } from "../lib/flotiq";
+    
+    const posts = await flotiq.BlogpostAPI.list();
+    ---
+    <html lang="en">
+    	<head>
+    		<title>Astro</title>
+    	</head>
+    	<body>
+    		{posts.data?.map((post) => (
+    			<section>
+    				<a href={`/posts/${post.slug}`}>
+    				  <h2>{post.title}</h2>
+            </a>
+    				<div>{post.internal?.createdAt}</div>
+    				<div set:html={post.content}/>
+    			</section>
+    		))}
+    	</body>
+    </html>
+    ```
+
+3. Jalankan *dev server* dan kunjungi pratinjau halaman Anda di `http://localhost:4321` untuk melihat daftar blog post. Setiap post akan menaut ke halaman yang belum ada. Halaman-halaman tersebut akan dibuat pada langkah berikutnya.
+
+</Steps>
+
+### Membuat Halaman Individual
+
+Astro mendukung prarender semua halaman Anda di awal, atau membuat rute sesuai permintaan saat diminta. Ikuti instruksi untuk [static site generation](#static-site-generation) atau [on-demand rendering](#on-demand-rendering) untuk membangun rute halaman bagi blog post Anda.
+
+#### Static Site Generation
+
+Dalam mode static site generation (SSG), gunakan metode `getStaticPaths()` untuk mengambil semua kemungkinan path blog post dari Flotiq.
+
+<Steps>
+
+1. Buat file baru `[slug].astro` di direktori `/src/pages/posts/`. Ambil semua blog post dan kembalikan di dalam metode `getStaticPaths()`:
+
+    ```astro title="src/pages/posts/[slug].astro" 
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    ---
+    ```
+
+2. Tambahkan templating untuk menampilkan satu post:
+
+    ```astro title="src/pages/posts/[slug].astro" ins={12-20}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    export async function getStaticPaths() {
+      const posts = await flotiq.BlogpostAPI.list();
+      return posts.data?.map((post) => ({
+        params: { slug: post.slug },
+        props: post
+      })) || []
+    }
+    const post: Blogpost = Astro.props;
+    ---
+    <html lang="en">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. Kunjungi `http://localhost:4321` dan klik salah satu tautan blog post di daftar Anda. Kini Anda dapat menavigasi ke halaman post individual.
+
+</Steps>
+
+#### On-demand Rendering
+
+Jika Anda menggunakan mode [SSR](/id/guides/on-demand-rendering/), Anda perlu mengambil satu post berdasarkan `slug`-nya.
+
+<Steps>
+
+1. Buat file baru `[slug].astro` di direktori `/src/pages/posts/`. Ambil post berdasarkan field `slug`, termasuk logika untuk menampilkan halaman 404 saat rute tidak ditemukan:
+
+    ```astro title="src/pages/posts/[slug].astro"
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    ```
+
+2. Tambahkan templating untuk menampilkan satu post:
+
+    ```astro title="src/pages/posts/[slug].astro" ins={24-30}
+    ---
+    import type { Blogpost } from "flotiq-api-ts";
+    import { flotiq } from "../../lib/flotiq";
+    
+    const { slug } = Astro.params;
+    let post: Blogpost;
+    
+    const blogpostList = await flotiq.BlogpostAPI.list({
+      filters: JSON.stringify({
+        slug: {
+          type: 'equals',
+          filter: slug,
+        }
+      }),
+      limit: 1
+    });
+    
+    if (blogpostList.data?.[0]) {
+      post = blogpostList.data[0]
+    } else {
+      return Astro.redirect('/404');
+    }
+    ---
+    <html lang="en">
+      <title>{post.title}</title>
+      <body>
+        <h1>{post.title}</h1>
+        <div set:html={post.content}/>
+      </body>
+    </html>
+    ```
+
+3. Kunjungi `http://localhost:4321` dan klik salah satu tautan blog post di daftar Anda. Kini Anda dapat menavigasi ke halaman post individual.
+
+</Steps>
+
+### Menyegarkan SDK Setelah Perubahan Content Type
+
+Saat menggunakan Flotiq TypeScript SDK (`flotiq-api-ts`), semua tipe data Anda dipetakan secara akurat ke dalam proyek Astro.
+
+Jika Anda melakukan perubahan pada struktur content type (seperti menambahkan field baru atau memodifikasi yang sudah ada), Anda perlu menyegarkan SDK agar proyek Anda mencerminkan pembaruan model terbaru.
+
+Untuk melakukannya, jalankan perintah *rebuild* sesuai manajer paket Anda:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm rebuild flotiq-api-ts
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn rebuild flotiq-api-ts 
+    // untuk yarn v1 (Classic):
+    // yarn add flotiq-api-ts
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ini akan memperbarui SDK, menyelaraskan tipe objek, field, dan metode API dengan model data Anda saat ini.
+
+## Menerbitkan Situs Anda
+
+Untuk mendepoy situs web Anda, kunjungi [panduan deployment](/id/guides/deploy/) Astro dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+### *Redeploy* ketika ada Perubahan di Flotiq
+
+Untuk memperbarui situs yang telah dipublikasikan, konfigurasikan Flotiq agar mengirim *webhook* ke penyedia hosting Anda guna memicu *rebuild* setiap kali konten berubah.
+
+Di Flotiq, Anda dapat menentukan Content Type dan peristiwa apa yang harus memicunya, lalu mengonfigurasikannya. Lihat [dokumentasi Flotiq Webhooks](https://flotiq.com/docs/panel/webhooks/async-co-webhook/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro) untuk detailnya.
+
+## Sumber Resmi
+
+- [Dokumentasi Flotiq](https://flotiq.com/docs/?utm_campaign=flotiq_at_astro_headless_cms&utm_medium=referral&utm_source=astro)
+
+## Sumber komunitas
+- [Flotiq x Astro](https://maciekpalmowski.dev/blog/flotiq-cms-astro/) oleh Maciek Palmowski

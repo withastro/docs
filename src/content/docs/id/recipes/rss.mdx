@@ -1,0 +1,290 @@
+---
+title: Tambahkan RSS feed
+description: Tambahkan RSS feed ke situs Astro Anda agar pengguna bisa berlangganan konten Anda.
+i18nReady: true
+type: recipe
+---
+import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro mendukung pembuatan RSS feed yang cepat dan otomatis untuk blog dan situs konten lainnya. RSS feed memberikan cara mudah bagi pengguna untuk berlangganan konten Anda.
+
+## Menyiapkan `@astrojs/rss`
+
+Paket [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) menyediakan helper untuk menghasilkan RSS feed menggunakan [API endpoints](/en/guides/endpoints/#static-file-endpoints). Ini memungkinkan build statis _dan_ pembuatan sesuai permintaan saat menggunakan [SSR adapter](/en/guides/on-demand-rendering/).
+
+<Steps>
+1. Instal `@astrojs/rss` menggunakan manajer paket pilihan Anda:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/rss
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/rss
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/rss
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    Pastikan Anda telah [mengonfigurasi `site`](/en/reference/configuration-reference/#site) di `astro.config` proyek Anda. Nilai ini akan digunakan untuk membuat tautan ke artikel RSS Anda.
+    :::
+
+2. Buat sebuah berkas di `src/pages/` dengan nama pilihan Anda dan ekstensi `.xml.js` yang akan digunakan sebagai URL output feed Anda. Beberapa nama URL feed RSS yang umum adalah `feed.xml` atau `rss.xml`.
+
+    Contoh berkas berikut `src/pages/rss.xml.js` akan membuat RSS feed di `site/rss.xml`.
+
+3. Impor helper `rss()` dari paket `@astrojs/rss` ke dalam berkas `.xml.js` Anda dan ekspor sebuah fungsi yang mengembalikannya dengan parameter berikut:
+
+    ```js title="src/pages/rss.xml.js"
+    import rss from '@astrojs/rss';
+
+    export function GET(context) {
+      return rss({
+        // field `<title>` di output xml
+        title: 'Buzz’s Blog',
+        // field `<description>` di output xml
+        description: 'A humble Astronaut’s guide to the stars',
+        // Ambil nilai "site" proyek Anda dari konteks endpoint
+        // https://docs.astro.build/en/reference/api-reference/#site
+        site: context.site,
+        // Array `<item>` pada output xml
+        // Lihat bagian "Generating items" untuk contoh menggunakan content collections dan glob import
+        items: [],
+        // (opsional) menyuntikkan xml kustom
+        customData: `<language>en-us</language>`,
+      });
+    }
+    ```
+</Steps>
+
+<ReadMore>Lihat [`@astrojs/rss` README](https://github.com/withastro/astro/tree/main/packages/astro-rss) untuk referensi konfigurasi lengkap.</ReadMore>
+
+## Menghasilkan `items`
+
+Field `items` menerima daftar objek RSS feed, yang dapat dihasilkan dari entri content collections menggunakan `getCollection()` atau dari berkas halaman Anda menggunakan `pagesGlobToRssItems()`.
+
+Format standar RSS menyertakan metadata untuk setiap item yang dipublikasikan, termasuk nilai seperti:
+
+- `title`: Judul entri. Opsional hanya jika `description` disetel. Jika tidak, wajib.
+- `description`: Cuplikan singkat dari atau yang menjelaskan entri. Opsional hanya jika `title` disetel. Jika tidak, wajib.
+- `link`: URL ke sumber asli entri. (opsional)
+- `pubDate`: Tanggal publikasi entri. (opsional)
+- `content`: Konten penuh postingan Anda. (opsional)
+
+<ReadMore>Lihat [referensi konfigurasi `items`](https://github.com/withastro/astro/tree/main/packages/astro-rss#items) untuk daftar opsi lengkap.</ReadMore>
+
+### Menggunakan content collection
+
+Untuk membuat RSS feed dari halaman yang dikelola dalam [content collections](/en/guides/content-collections/), gunakan fungsi `getCollection()` untuk mengambil data yang diperlukan bagi array `items` Anda. Anda harus menentukan nilai untuk setiap properti yang diinginkan (mis. `title`, `description`) dari data yang dikembalikan.
+
+```js title="src/pages/rss.xml.js" "items:" "const blog = await getCollection('blog');"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      // Hitung tautan RSS dari `id` postingan
+      // Contoh ini mengasumsikan semua posting dirender sebagai rute `/blog/[id]`
+      link: `/blog/${post.id}/`,
+    })),
+  });
+}
+```
+
+Opsional: ganti skema koleksi blog Anda yang ada untuk menegakkan properti RSS yang diharapkan.
+
+Untuk memastikan setiap entri blog menghasilkan item RSS yang valid, Anda dapat secara opsional mengimpor dan menerapkan `rssSchema` alih-alih mendefinisikan setiap properti skema secara individual.
+
+```js title="src/content.config.ts" "rssSchema"
+import { defineCollection } from 'astro:content';
+import { rssSchema } from '@astrojs/rss';
+
+const blog = defineCollection({
+  schema: rssSchema,
+});
+
+export const collections = { blog };
+```
+
+### Menggunakan glob import
+
+<p><Since v="2.1.0" pkg="@astrojs/rss" /></p>
+
+Untuk membuat RSS feed dari dokumen di `src/pages/`, gunakan helper `pagesGlobToRssItems()`. Ini menerima hasil [`import.meta.glob`](https://vite.dev/guide/features.html#glob-import) dan menghasilkan array item RSS yang valid (lihat [lebih lanjut tentang menulis pola glob](/en/guides/imports/#glob-patterns) untuk menentukan halaman mana yang akan disertakan).
+
+:::caution
+Fungsi ini mengasumsikan, tetapi tidak memverifikasi, bahwa semua properti feed yang diperlukan hadir di frontmatter setiap dokumen. Jika Anda mengalami error, verifikasi frontmatter setiap halaman secara manual.
+:::
+
+```js title="src/pages/rss.xml.js" "pagesGlobToRssItems" "await pagesGlobToRssItems("
+import rss, { pagesGlobToRssItems } from '@astrojs/rss';
+
+export async function GET(context) {
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await pagesGlobToRssItems(
+      import.meta.glob('./blog/*.{md,mdx}'),
+    ),
+  });
+}
+```
+
+:::note[Menggunakan versi lama?]
+Pada versi `@astrojs/rss` sebelum v2.1.0, berikan hasil glob Anda langsung ke `items` tanpa pembungkus `pagesGlobToRssItems()`:
+```js
+items: import.meta.glob('./blog/*.{md,mdx}'),
+```
+
+Metode ini sudah deprecated untuk semua versi Astro sejak v2.1.0, dan tidak dapat digunakan pada proyek modern.
+:::
+
+### Menyertakan konten posting lengkap
+
+<p><Since v="1.6.14" /></p>
+
+Setel key `content` pada `rss.items` untuk menyediakan konten penuh posting sebagai HTML. Ini memungkinkan `@astrojs/rss` membuat teks Markdown penuh posting Anda tersedia bagi pembaca RSS feed. Gambar dan tautan dengan path URL penuh juga didukung. Namun, gambar dan tautan internal ke halaman lain yang menggunakan path relatif tidak didukung.
+
+Saat merender konten posting penuh, Anda harus mempertimbangkan gambar, tautan relatif, gaya, skrip, dan elemen lain di luar teks Markdown standar yang mungkin Anda miliki dalam postingan. Anda mungkin perlu menyertakan logika tambahan di endpoint `src/pages/rss.xml.js` untuk mengakomodasi hal-hal ini, atau menghapus elemen yang tidak diperlukan untuk RSS feed (mis. yang hanya digunakan untuk styling atau interaksi di situs Anda).
+
+Anda dapat melihat [satu implementasi komunitas spesifik](https://github.com/delucis/astro-blog-full-text-rss/blob/latest/src/pages/rss.xml.ts) yang menangani beberapa hal ini sebagai contoh cara melanjutkan.
+
+:::tip
+Paket seperti [`sanitize-html`](https://www.npmjs.com/package/sanitize-html) akan memastikan bahwa konten Anda disanitasi, di-escape, dan di-encode dengan benar. Dalam prosesnya, paket tersebut juga mungkin menghapus beberapa elemen dan atribut yang tidak berbahaya, jadi pastikan untuk memverifikasi output dan mengonfigurasi paket sesuai kebutuhan Anda.
+:::
+
+Saat menggunakan content collections, render `body` posting menggunakan parser Markdown standar seperti [`markdown-it`](https://github.com/markdown-it/markdown-it) dan sanitasi hasilnya, termasuk tag tambahan apa pun (mis. `<img>`) yang diperlukan untuk merender konten Anda:
+
+```js title="src/pages/rss.xml.js" ins={3, 4, 5, 16}
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+import sanitizeHtml from 'sanitize-html';
+import MarkdownIt from 'markdown-it';
+const parser = new MarkdownIt();
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: blog.map((post) => ({
+      link: `/blog/${post.id}/`,
+      // Catatan: ini tidak akan memproses komponen atau ekspresi JSX dalam berkas MDX.
+      content: sanitizeHtml(parser.render(post.body), {
+        allowedTags: sanitizeHtml.defaults.allowedTags.concat(['img'])
+      }),
+      ...post.data,
+    })),
+  });
+}
+```
+
+Saat menggunakan glob import dengan Markdown, Anda dapat menggunakan helper `compiledContent()` untuk mengambil HTML yang sudah dirender untuk disanitasi. Catatan: fitur ini **tidak** didukung untuk berkas MDX.
+
+```js title="src/pages/rss.xml.js" ins={2, 13}
+import rss from '@astrojs/rss';
+import sanitizeHtml from 'sanitize-html';
+
+export async function GET(context) {
+  const postImportResult = import.meta.glob('../posts/**/*.md', { eager: true });
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    items: await Promise.all(posts.map(async (post) => ({
+      link: post.url,
+      content: sanitizeHtml((await post.compiledContent())),
+      ...post.frontmatter,
+    }))),
+  });
+}
+```
+
+## Menghapus trailing slash
+
+RSS feed Astro menghasilkan tautan dengan trailing slash secara default, apa pun nilai yang Anda konfigurasikan untuk `trailingSlash`. Ini berarti tautan RSS Anda mungkin tidak cocok persis dengan URL posting Anda.
+
+Jika Anda telah menyetel `trailingSlash: "never"` pada `astro.config.mjs`, setel `trailingSlash: false` di helper `rss()` agar feed Anda cocok dengan konfigurasi proyek.
+
+```ts title="src/pages/rss.xml.js" ins={9}
+import rss from '@astrojs/rss';
+
+export function GET(context) {
+  const posts = Object.values(postImportResult);
+  return rss({
+    title: 'Buzz’s Blog',
+    description: 'A humble Astronaut’s guide to the stars',
+    site: context.site,
+    trailingSlash: false,
+    items: posts.map((post) => ({
+      link: post.url,
+      ...post.frontmatter,
+    })),
+  });
+}
+```
+
+## Menambahkan stylesheet
+
+Gaya (style) RSS feed Anda untuk pengalaman pengguna yang lebih menyenangkan saat melihat berkas di browser.
+
+Gunakan opsi `stylesheet` dari fungsi `rss` untuk menentukan path absolut ke stylesheet Anda.
+
+```js
+rss({
+  // mis. gunakan stylesheet Anda dari "public/rss/styles.xsl"
+  stylesheet: '/rss/styles.xsl',
+  // ...
+});
+```
+
+:::tip
+Jika Anda tidak ingin membuat stylesheet sendiri, Anda dapat menggunakan stylesheet siap pakai seperti [Pretty Feed v3 default stylesheet](https://github.com/genmon/aboutfeeds/blob/main/tools/pretty-feed-v3.xsl). Unduh stylesheet dari GitHub dan simpan ke direktori `public/` proyek Anda.
+:::
+
+## Mengaktifkan auto-discovery RSS feed
+
+[Auto-discovery RSS](https://www.rssboard.org/rss-autodiscovery) memungkinkan browser dan perangkat lunak lain menemukan RSS feed situs secara otomatis dari URL utama.
+
+Untuk mengaktifkannya, tambahkan tag `<link>` dengan atribut berikut ke elemen `head` situs Anda:
+
+```jsx
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Your Site's Title"
+    href={new URL("rss.xml", Astro.site)}
+/>
+```
+
+Dengan tag ini, pembaca blog Anda dapat memasukkan URL dasar situs ke pembaca RSS mereka untuk berlangganan posting Anda tanpa perlu mengetahui URL spesifik RSS feed Anda.
+
+## Langkah Berikutnya
+
+Setelah mengunjungi feed Anda di browser pada `your-domain.com/rss.xml` dan memastikan Anda dapat melihat data untuk setiap posting, Anda dapat [mempromosikan feed di situs Anda](https://medium.com/samsung-internet-dev/add-rss-feeds-to-your-website-to-keep-your-core-readers-engaged-3179dca9c91e#:~:text=com/~deno%2Drss-,Advertising%20your%20RSS%20feed,-Now%20you%20have). Menambahkan ikon RSS standar ke situs akan memberi tahu pembaca bahwa mereka dapat berlangganan posting Anda di pembaca feed mereka sendiri.
+
+## Sumber
+
+- [RSS Feeds](https://aboutfeeds.com/)

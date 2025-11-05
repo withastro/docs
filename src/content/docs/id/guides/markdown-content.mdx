@@ -1,0 +1,421 @@
+---
+title: Markdown di Astro
+sidebar:
+  label: Markdown
+description: Pelajari tentang dukungan bawaan Astro untuk Markdown.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Markdown](https://daringfireball.net/projects/markdown/) biasa digunakan untuk menulis konten kaya teks seperti posting blog dan dokumentasi. Astro menyertakan dukungan bawaan untuk berkas Markdown yang juga bisa memuat [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) (atau [TOML](https://toml.io)) untuk mendefinisikan properti khusus seperti judul, deskripsi, dan tag.
+
+Di Astro, Anda dapat menulis konten dalam [GitHub Flavored Markdown](https://github.github.com/gfm/), lalu merendernya di komponen `.astro`. Ini menggabungkan format penulisan yang familier yang dirancang untuk konten dengan fleksibilitas sintaks dan arsitektur komponen Astro.
+
+:::tip
+Untuk fungsionalitas tambahan, seperti menyertakan komponen dan ekspresi JSX di Markdown, tambahkan integrasi [`@astrojs/mdx`](/id/guides/integrations-guide/mdx/) untuk menulis konten Markdown Anda menggunakan [MDX](https://mdxjs.com/).
+:::
+
+## Mengatur berkas Markdown
+
+Berkas Markdown lokal Anda dapat disimpan di mana saja di dalam direktori `src/`. Berkas Markdown yang berada di dalam `src/pages/` akan secara otomatis menghasilkan [halaman Markdown di situs Anda](#halaman-markdown-individual).
+
+Konten Markdown dan properti frontmatter Anda tersedia untuk digunakan di komponen melalui [impor berkas lokal](#mengimpor-markdown) atau saat [dikuery dan dirender dari data yang diambil oleh fungsi pembantu content collections](#markdown-dari-kueri-content-collections).
+
+### Impor berkas vs kueri content collections
+
+Markdown lokal dapat diimpor ke komponen `.astro` menggunakan pernyataan `import` untuk satu berkas dan [Vite `import.meta.glob()`](/id/guides/imports/#importmetaglob) untuk mengkuery banyak berkas sekaligus. [Data yang diekspor dari berkas Markdown ini](#mengimpor-markdown) kemudian dapat digunakan di komponen `.astro`.
+
+Jika Anda memiliki grup berkas Markdown yang saling terkait, pertimbangkan untuk [mendefinisikannya sebagai koleksi](/id/guides/content-collections/). Ini memberi Anda beberapa keuntungan, termasuk kemampuan untuk menyimpan berkas Markdown di mana saja pada sistem berkas Anda atau secara remote.
+
+Koleksi menggunakan API khusus konten yang dioptimalkan untuk [mengkuery dan merender konten Markdown Anda](#markdown-dari-kueri-content-collections) alih-alih impor berkas. Koleksi ditujukan untuk sekumpulan data yang memiliki struktur yang sama, seperti posting blog atau item produk. Saat Anda mendefinisikan bentuknya dalam sebuah skema, Anda juga mendapatkan validasi, keamanan tipe, dan Intellisense di editor Anda.
+
+<ReadMore>Lihat lebih lanjut tentang [kapan menggunakan content collections](/id/guides/content-collections/#when-to-create-a-collection) dibandingkan impor berkas.</ReadMore>
+
+## Ekspresi mirip JSX yang dinamis
+
+Setelah mengimpor atau mengkuery berkas Markdown, Anda dapat menulis templat HTML dinamis di komponen `.astro` yang menyertakan data frontmatter dan isi body.
+
+```md title="src/pages/posts/great-post.md"
+---
+title: 'The greatest post of all time'
+author: 'Ben'
+---
+
+Here is my _great_ post!
+```
+
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+<p>{greatPost.frontmatter.title}</p>
+<p>Written by: {greatPost.frontmatter.author}</p>
+
+<p>Post Archive:</p>
+<ul>
+  {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+</ul>
+```
+
+### Properti yang tersedia
+
+#### Markdown dari kueri content collections
+
+Saat mengambil data dari koleksi Anda dengan fungsi pembantu `getCollection()` atau `getEntry()`, properti frontmatter Markdown Anda tersedia pada objek `data` (mis. `post.data.title`). Selain itu, `body` berisi isi body mentah yang belum dikompilasi sebagai string.
+
+Fungsi [`render()`](/id/reference/modules/astro-content/#render) mengembalikan isi body Markdown Anda, daftar heading yang dihasilkan, serta objek frontmatter yang dimodifikasi setelah plugin remark atau rehype diterapkan.
+
+<ReadMore>Baca selengkapnya tentang [menggunakan konten yang dikembalikan oleh kueri koleksi](/id/guides/content-collections/#using-content-in-astro-templates).</ReadMore>
+
+#### Mengimpor Markdown
+
+Properti yang diekspor berikut tersedia di komponen `.astro` Anda saat mengimpor Markdown menggunakan `import` atau `import.meta.glob()`:
+
+- **`file`** - Jalur berkas absolut (mis. `/home/user/projects/.../file.md`).
+- **`url`** - URL halaman (mis. `/id/guides/markdown-content`).
+- **`frontmatter`** - Berisi data apa pun yang ditentukan di frontmatter YAML (atau TOML) berkas.
+- **`<Content />`** - Komponen yang mengembalikan seluruh isi berkas yang dirender menjadi HTML.
+- **`rawContent()`** - Fungsi yang mengembalikan dokumen Markdown mentah sebagai string.
+- **`compiledContent()`** - Fungsi async yang mengembalikan dokumen Markdown yang dikompilasi menjadi string HTML.
+- **`getHeadings()`** - Fungsi async yang mengembalikan array semua heading (`<h1>` hingga `<h6>`) dalam berkas dengan tipe: `{ depth: number; slug: string; text: string }[]`. `slug` setiap heading sesuai dengan ID yang dihasilkan untuk heading tersebut dan dapat digunakan untuk tautan jangkar.
+
+Contoh posting blog Markdown dapat memberikan objek `Astro.props` berikut:
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/id/guides/markdown-content/",
+  frontmatter: {
+    /** Frontmatter from a blog post */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+  },
+  getHeadings: () => [
+    {"depth": 1, "text": "Astro 0.18 Release", "slug": "astro-018-release"},
+    {"depth": 2, "text": "Responsive partial hydration", "slug": "responsive-partial-hydration"}
+    /* ... */
+  ],
+  rawContent: () => "# Astro 0.18 Release
+A little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>
+<p>A little over a month ago, the first public beta [...]</p>",
+}
+```
+
+
+## Komponen `<Content />`
+
+Komponen `<Content />` tersedia dengan mengimpor `Content` dari berkas Markdown. Komponen ini mengembalikan seluruh isi body berkas, yang dirender ke HTML. Anda dapat memilih untuk mengganti nama `Content` menjadi nama komponen apa pun yang Anda sukai.
+
+Anda juga dapat [merender konten HTML dari entri koleksi Markdown](/id/guides/content-collections/#rendering-body-content) dengan merender komponen `<Content />`.
+
+```astro title="src/pages/content.astro" "Content"
+---
+// Import statement
+import {Content as PromoBanner} from '../components/promoBanner.md';
+
+// Collections query
+import { getEntry, render } from 'astro:content';
+
+const product = await getEntry('products', 'shirt');
+const { Content } = await render(product);
+---
+<h2>Today's promo</h2>
+<PromoBanner />
+
+<p>Sale Ends: {product.data.saleEndDate.toDateString()}</p>
+<Content />
+```
+
+## ID Heading
+
+Menulis heading di Markdown akan otomatis memberi Anda tautan jangkar sehingga Anda dapat menautkan langsung ke bagian tertentu di halaman Anda.
+
+```markdown title="src/pages/page-1.md"
+---
+title: My page of content
+---
+## Introduction
+
+I can link internally to [my conclusion](#conclusion) on the same page when writing Markdown.
+
+## Conclusion
+
+I can visit `https://example.com/page-1/#introduction` in a browser to navigate directly to my Introduction.
+```
+
+Astro menghasilkan `id` heading berdasarkan `github-slugger`. Anda dapat menemukan lebih banyak contoh di [dokumentasi github-slugger](https://github.com/Flet/github-slugger#usage).
+
+### ID Heading dan plugin
+
+Astro menyuntikkan atribut `id` ke semua elemen heading (`<h1>` hingga `<h6>`) dalam berkas Markdown dan MDX. Anda dapat mengambil data ini dari utilitas `getHeadings()` yang tersedia sebagai [properti ekspor Markdown](#properti-yang-tersedia) dari berkas yang diimpor, atau dari fungsi `render()` saat [menggunakan Markdown yang dikembalikan dari kueri content collections](#markdown-dari-kueri-content-collections).
+
+Anda dapat menyesuaikan ID heading ini dengan menambahkan plugin rehype yang menyuntikkan atribut `id` (mis. `rehype-slug`). ID khusus Anda, bukan bawaan Astro, akan tercermin dalam keluaran HTML dan item yang dikembalikan oleh `getHeadings()`.
+
+Secara default, Astro menyuntikkan atribut `id` setelah plugin rehype Anda dijalankan. Jika salah satu plugin rehype khusus Anda perlu mengakses ID yang disuntikkan oleh Astro, Anda dapat mengimpor dan menggunakan plugin `rehypeHeadingIds` milik Astro secara langsung. Pastikan untuk menambahkan `rehypeHeadingIds` sebelum plugin apa pun yang bergantung padanya:
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
+
+## Plugin Markdown
+
+Dukungan Markdown di Astro ditenagai oleh [remark](https://remark.js.org/), alat parsing dan pemrosesan yang kuat dengan ekosistem yang aktif. Parser Markdown lainnya seperti Pandoc dan markdown-it saat ini belum didukung.
+
+Astro menerapkan plugin [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) dan [SmartyPants](https://github.com/silvenon/remark-smartypants) secara default. Ini menghadirkan beberapa kenyamanan seperti menghasilkan tautan yang bisa diklik dari teks, dan pemformatan untuk [kutipan dan em-dash](https://daringfireball.net/projects/smartypants/).
+
+Anda dapat menyesuaikan cara remark mem-parsing Markdown Anda di `astro.config.mjs`. Lihat daftar lengkap [opsi konfigurasi Markdown](/id/reference/configuration-reference/#markdown-options).
+
+### Menambahkan plugin remark dan rehype
+
+Astro mendukung penambahan plugin pihak ketiga [remark](https://github.com/remarkjs/remark) dan [rehype](https://github.com/rehypejs/rehype) untuk Markdown. Plugin-plugin ini memungkinkan Anda memperluas Markdown dengan kemampuan baru, seperti [membuat daftar isi secara otomatis](https://github.com/remarkjs/remark-toc), [menerapkan label emoji yang aksesibel](https://github.com/florianeckerstorfer/remark-a11y-emoji), dan [mestyling Markdown Anda](/id/guides/styling/#markdown-styling).
+
+Kami mendorong Anda untuk menelusuri [awesome-remark](https://github.com/remarkjs/awesome-remark) dan [awesome-rehype](https://github.com/rehypejs/awesome-rehype) untuk plugin-plugin populer! Lihat README masing-masing plugin untuk instruksi pemasangan spesifik.
+
+Contoh ini menerapkan [`remark-toc`](https://github.com/remarkjs/remark-toc) dan [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) ke berkas Markdown:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: 'toc', maxDepth: 3 } ] ],
+    rehypePlugins: [rehypeAccessibleEmojis],
+  },
+});
+```
+
+### Menyesuaikan sebuah plugin
+
+Untuk menyesuaikan plugin, berikan objek opsi setelahnya di dalam array bertingkat.
+
+Contoh di bawah ini menambahkan [opsi `heading` ke plugin `remarkToc`](https://github.com/remarkjs/remark-toc#options) untuk mengubah lokasi daftar isi, dan opsi [`behavior` ke plugin `rehype-autolink-headings`](https://github.com/rehypejs/rehype-autolink-headings#options) untuk menambahkan tag jangkar setelah teks judul.
+
+```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+export default {
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+  },
+}
+```
+
+### Memodifikasi frontmatter secara terprogram
+
+Anda dapat menambahkan properti frontmatter ke semua berkas Markdown dan MDX Anda dengan menggunakan [plugin remark atau rehype](#plugin-markdown).
+
+<Steps>
+1. Tambahkan `customProperty` ke properti `data.astro.frontmatter` dari argumen `file` plugin Anda:
+
+    ```js title="example-remark-plugin.mjs"
+    export function exampleRemarkPlugin() {
+      // All remark and rehype plugins return a separate function
+      return function (tree, file) {
+        file.data.astro.frontmatter.customProperty = 'Generated property';
+      }
+    }
+    ```
+
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter` berisi semua properti dari sebuah dokumen Markdown atau MDX. Ini memungkinkan Anda untuk memodifikasi properti frontmatter yang ada, atau menghitung properti baru dari frontmatter yang sudah ada.
+    :::
+
+2. Terapkan plugin ini ke konfigurasi `markdown` atau integrasi `mdx` Anda:
+
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [exampleRemarkPlugin]
+      },
+    });
+    ```
+
+    atau
+
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      integrations: [
+        mdx({
+          remarkPlugins: [exampleRemarkPlugin],
+        }),
+      ],
+    });
+    ```
+</Steps>
+
+Sekarang, setiap berkas Markdown atau MDX akan memiliki `customProperty` di frontmatter-nya, sehingga tersedia saat [mengimpor markdown Anda](#mengimpor-markdown) dan dari [properti `Astro.props.frontmatter` di layout Anda](#properti-layout-pada-frontmatter).
+
+<RecipeLinks slugs={["en/recipes/reading-time"]} />
+
+### Memperluas konfigurasi Markdown dari MDX
+
+Integrasi MDX Astro akan memperluas [konfigurasi Markdown proyek Anda yang ada](/id/reference/configuration-reference/#markdown-options) secara default. Untuk menimpa opsi individual, Anda dapat menentukan padanannya di konfigurasi MDX Anda.
+
+Contoh berikut menonaktifkan GitHub-Flavored Markdown dan menerapkan serangkaian plugin remark yang berbeda untuk berkas MDX:
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      // `syntaxHighlight` diwarisi dari Markdown
+
+      // `remarkPlugins` Markdown diabaikan,
+      // hanya `remarkPlugin2` yang diterapkan.
+      remarkPlugins: [remarkPlugin2],
+      // `gfm` diubah menjadi `false`
+      gfm: false,
+    })
+  ]
+});
+```
+
+Untuk menghindari memperluas konfigurasi Markdown Anda dari MDX, setel [opsi `extendMarkdownConfig`](/id/guides/integrations-guide/mdx/#extendmarkdownconfig) (aktif secara default) menjadi `false`:
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin],
+  },
+  integrations: [
+    mdx({
+      // Konfigurasi Markdown sekarang diabaikan
+      extendMarkdownConfig: false,
+      // Tidak ada `remarkPlugins` yang diterapkan
+    })
+  ]
+});
+```
+
+## Halaman Markdown individual
+
+:::tip
+[Content collections](/id/guides/content-collections/) dan [mengimpor Markdown ke komponen `.astro`](#ekspresi-mirip-jsx-yang-dinamis) menyediakan lebih banyak fitur untuk merender Markdown Anda dan merupakan cara yang direkomendasikan untuk menangani sebagian besar konten Anda. Namun, mungkin ada kalanya Anda menginginkan kemudahan cukup menambahkan berkas ke `src/pages/` dan memiliki halaman sederhana yang secara otomatis dibuat untuk Anda.
+:::
+
+Astro memperlakukan [berkas apa pun yang didukung di dalam direktori `/src/pages/`](/id/basics/astro-pages/#supported-page-files) sebagai sebuah halaman, termasuk `.md` dan tipe berkas Markdown lainnya.
+
+Menaruh sebuah berkas di direktori ini, atau sub-direktori mana pun, akan secara otomatis membangun rute halaman menggunakan nama path berkas dan menampilkan konten Markdown yang dirender menjadi HTML. Astro akan secara otomatis menambahkan tag `<meta charset="utf-8">` ke halaman Anda untuk memudahkan penulisan konten non-ASCII.
+
+```markdown title="src/pages/page-1.md"
+---
+title: Hello, World
+---
+
+# Hi there!
+
+This Markdown file creates a page at `your-domain.com/page-1/`
+
+It probably isn't styled much, but Markdown does support:
+- **bold** and _italics._
+- lists
+- [links](https://astro.build)
+- <p>HTML elements</p>
+- and more!
+```
+
+### Properti `layout` pada frontmatter
+
+Untuk membantu keterbatasan fungsionalitas halaman Markdown individual, Astro menyediakan properti frontmatter khusus `layout` yang merupakan path relatif ke [komponen layout Markdown](/id/basics/layouts/#markdown-layouts) Astro. `layout` bukan properti khusus saat menggunakan [content collections](/id/guides/content-collections/) untuk mengkuery dan merender konten Markdown Anda, dan tidak dijamin didukung di luar kasus penggunaan yang dimaksudkan.
+
+Jika berkas Markdown Anda berada di dalam `src/pages/`, buat komponen layout dan tambahkan di properti layout ini untuk menyediakan kerangka halaman di sekitar konten Markdown Anda.
+
+```markdown title="src/pages/posts/post-1.md" {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Astro in brief
+author: Himanshu
+description: Find out what makes Astro awesome!
+---
+This is a post written in Markdown.
+```
+
+Komponen layout ini adalah komponen Astro biasa dengan [properti khusus yang tersedia secara otomatis](/id/basics/layouts/#markdown-layout-props) melalui `Astro.props` untuk templat Astro Anda. Misalnya, Anda dapat mengakses properti frontmatter dari berkas Markdown Anda melalui `Astro.props.frontmatter`:
+
+```astro title="src/layouts/BlogPostLayout.astro" /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+  <head>
+    <!-- ... -->
+    <meta charset="utf-8"> // no longer added by default
+  </head>
+  <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>Post author: {frontmatter.author}</h2>
+  <p>{frontmatter.description}</p>
+  <slot /> <!-- Markdown content is injected here -->
+  <!-- ... -->
+</html>
+```
+
+Saat menggunakan properti `layout` pada frontmatter, Anda harus menyertakan tag `<meta charset="utf-8">` di layout Anda karena Astro tidak lagi menambahkannya secara otomatis. Sekarang Anda juga dapat [menata Markdown](/id/guides/styling/#markdown-styling) di komponen layout Anda.
+
+<ReadMore>Pelajari lebih lanjut tentang [Layout Markdown](/id/basics/layouts/#markdown-layouts).</ReadMore>
+
+## Mengambil Markdown jarak jauh
+
+Prosesor Markdown internal Astro tidak tersedia untuk memproses Markdown jarak jauh.
+
+Untuk mengambil Markdown jarak jauh untuk digunakan dalam [content collections](/id/guides/content-collections/), Anda dapat [membangun loader khusus](/id/guides/content-collections/#building-a-custom-loader) dengan akses ke fungsi [`renderMarkdown()`](/id/reference/content-loader-reference/#rendermarkdown).
+
+Untuk mengambil Markdown jarak jauh secara langsung dan merendernya ke HTML, Anda perlu memasang dan mengonfigurasi parser Markdown Anda sendiri dari NPM. Ini tidak akan mewarisi pengaturan Markdown bawaan Astro apa pun yang telah Anda konfigurasikan.
+
+Pastikan Anda memahami keterbatasan ini sebelum menerapkannya dalam proyek Anda, dan pertimbangkan untuk mengambil Markdown jarak jauh menggunakan loader content collections sebagai gantinya.
+
+```astro title="src/pages/remote-example.astro"
+---
+// Example: Fetch Markdown from a remote API
+// and render it to HTML, at runtime.
+// Using "marked" (https://github.com/markedjs/marked)
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```

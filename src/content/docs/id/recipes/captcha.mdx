@@ -1,0 +1,80 @@
+---
+title: Verifikasi Captcha
+description: Pelajari cara membuat rute API dan melakukan fetch dari klien.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[Server endpoints](/en/guides/endpoints/#server-endpoints-api-routes) dapat digunakan sebagai endpoint REST untuk menjalankan fungsi seperti autentikasi, akses database, dan verifikasi tanpa mengekspos data sensitif ke klien.
+
+Pada resep ini, sebuah rute API digunakan untuk memverifikasi Google reCAPTCHA v3 tanpa mengekspos secret ke klien.
+
+## Prasyarat
+
+- Proyek dengan [SSR](/en/guides/on-demand-rendering/) (`output: 'server'`) diaktifkan
+
+## Resep
+
+<Steps>
+1. Buat endpoint `POST` yang menerima data recaptcha, lalu memverifikasinya dengan API reCAPTCHA. Di sini, Anda dapat dengan aman mendefinisikan nilai secret atau membaca variabel lingkungan.
+
+    ```js title="src/pages/recaptcha.js"
+    export async function POST({ request }) {
+      const data = await request.json();
+
+      const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+      const requestHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      };
+      const requestBody = new URLSearchParams({
+        secret: "YOUR_SITE_SECRET_KEY",   // Ini bisa berupa variabel lingkungan
+        response: data.recaptcha          // Token yang dikirim dari klien
+      });
+
+      const response = await fetch(recaptchaURL, {
+        method: "POST",
+        headers: requestHeaders,
+        body: requestBody.toString()
+      });
+
+      const responseData = await response.json();
+
+      return new Response(JSON.stringify(responseData), { status: 200 });
+    }
+    ```
+
+2. Akses endpoint Anda menggunakan `fetch` dari skrip klien:
+
+    ```astro title="src/pages/index.astro"
+    <html>
+      <head>
+        <script is:inline src="https://www.google.com/recaptcha/api.js"></script>
+      </head>
+
+      <body>
+        <button class="g-recaptcha" 
+          data-sitekey="PUBLIC_SITE_KEY" 
+          data-callback="onSubmit" 
+          data-action="submit"> Klik saya untuk memverifikasi tantangan captcha! </button>
+
+        <script is:inline>
+          function onSubmit(token) {
+            fetch("/recaptcha", {
+              method: "POST",
+              body: JSON.stringify({ recaptcha: token })
+            })
+            .then((response) => response.json())
+            .then((gResponse) => {
+              if (gResponse.success) {
+                // Verifikasi captcha berhasil
+              } else {
+                // Verifikasi captcha gagal
+              }
+            })
+          }
+        </script>
+      </body>
+    </html>
+    ```
+</Steps>

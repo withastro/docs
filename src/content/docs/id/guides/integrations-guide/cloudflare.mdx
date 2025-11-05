@@ -1,0 +1,663 @@
+---
+type: integration
+title: '@astrojs/cloudflare'
+description: Pelajari cara menggunakan adapter @astrojs/cloudflare untuk melakukan deploy proyek Astro Anda.
+sidebar:
+  label: Cloudflare
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/cloudflare/'
+category: adapter
+i18nReady: true
+---
+
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
+
+Adapter ini memungkinkan Astro untuk melakukan deploy [rute dan fitur yang dirender on-demand](/id/guides/on-demand-rendering/) ke [Cloudflare](https://www.cloudflare.com/), termasuk [server islands](/id/guides/server-islands/), [actions](/id/guides/actions/), dan [sessions](/id/guides/sessions/).
+
+Jika Anda menggunakan Astro sebagai static site builder, Anda tidak memerlukan adapter.
+
+Pelajari cara men-deploy situs Astro Anda di [panduan deployment Cloudflare](/id/guides/deploy/cloudflare/).
+
+## Mengapa Astro Cloudflare
+
+[Developer Platform](https://developers.cloudflare.com/) milik Cloudflare memungkinkan Anda membangun aplikasi full‑stack dengan akses ke sumber daya seperti storage dan AI, semuanya dideploy ke jaringan edge global. Adapter ini membangun proyek Astro Anda untuk deployment melalui Cloudflare.
+
+## Instalasi
+
+Astro menyertakan perintah `astro add` untuk mengotomatiskan setup integrasi resmi. Jika Anda mau, Anda dapat [menginstal integrasi secara manual](#manual-install) sebagai alternatif.
+
+Tambahkan adapter Cloudflare untuk mengaktifkan server‑rendering di proyek Astro Anda dengan perintah `astro add`. Ini akan memasang `@astrojs/cloudflare` dan melakukan perubahan yang diperlukan pada `astro.config.mjs` Anda dalam satu langkah.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add cloudflare
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add cloudflare
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Sekarang, Anda dapat mengaktifkan [on‑demand rendering per halaman](/id/guides/on-demand-rendering/#enabling-on-demand-rendering), atau menyetel konfigurasi build output ke `output: 'server'` untuk [me-render semua halaman Anda di server secara default](/id/guides/on-demand-rendering/#server-mode).
+
+### Manual Install
+
+<Steps>
+
+1. Tambahkan adapter `@astrojs/cloudflare` ke dependensi proyek menggunakan manajer paket pilihan Anda.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npm install @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm add @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn add @astrojs/cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Tambahkan adapter ke berkas `astro.config.mjs` Anda:
+
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      adapter: cloudflare(),
+    });
+    ```
+
+3. Buat [berkas konfigurasi Wrangler](https://developers.cloudflare.com/workers/wrangler/configuration/):
+
+    ```jsonc title="wrangler.jsonc"
+    {
+      "main": "dist/_worker.js/index.js",
+      "name": "my-astro-app",
+      // Update ke tanggal hari ini
+      "compatibility_date": "2025-03-25",
+      "compatibility_flags": [
+        "nodejs_compat",
+        "global_fetch_strictly_public"
+      ],
+      "assets": {
+        "binding": "ASSETS",
+        "directory": "./dist"
+      },
+      "observability": {
+        "enabled": true
+      }
+    }
+    ```
+
+4. Buat berkas `.assetsignore` di folder `public/`, dan tambahkan baris berikut:
+
+      ```txt title="public/.assetsignore"
+      _worker.js
+      _routes.json
+      ```
+
+</Steps>
+
+## Opsi
+
+Adapter Cloudflare menerima opsi berikut:
+
+### `cloudflareModules`
+
+<p>
+**Tipe:** `boolean`<br />
+**Default:** `true`
+</p>
+
+Mengaktifkan [import modul `.wasm`, `.bin`, dan `.txt`](#cloudflare-module-imports).
+
+Fungsionalitas ini aktif secara default. Jika ingin menonaktifkan, set `cloudflareModules` ke `false`.
+
+### `imageService`
+
+<p>
+**Tipe:** `'passthrough' | 'cloudflare' | 'compile' | 'custom'`<br />
+**Default:** `'compile'`
+</p>
+
+Menentukan layanan gambar yang digunakan oleh adapter. Adapter akan default ke mode `compile` saat layanan gambar yang dikonfigurasi tidak kompatibel. Jika kompatibel, adapter akan menggunakan layanan gambar yang dikonfigurasi secara global:
+
+* **`cloudflare`:** Menggunakan layanan [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/).
+* **`passthrough`:** Menggunakan layanan [`noop`](/id/guides/images/#configure-no-op-passthrough-service) yang ada.
+* **`compile`:** Menggunakan layanan bawaan Astro (sharp), tetapi hanya pada rute yang diprerender saat build. Untuk halaman yang dirender on‑demand, semua fitur `astro:assets` dinonaktifkan.
+* **`custom`:** Selalu menggunakan layanan gambar yang dikonfigurasi di [Image Options](/id/reference/configuration-reference/#image-options). **Opsi ini tidak akan memeriksa apakah layanan gambar yang dikonfigurasi bekerja di runtime `workerd` Cloudflare.**
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+     imageService: 'cloudflare'
+  }),
+})
+```
+
+### `platformProxy`
+
+Menentukan apakah dan bagaimana runtime Cloudflare ditambahkan ke `astro dev`. Ini berisi proxy ke binding lokal `workerd` dan emulasi nilai khusus Cloudflare, memungkinkan emulasi runtime di proses dev Node.js. Baca selengkapnya tentang [Runtime Cloudflare](#cloudflare-runtime).
+
+:::note
+Proxy yang disediakan adalah upaya terbaik untuk menyerupai produksi. Meski dirancang sedekat mungkin, mungkin ada sedikit perbedaan dan inkonsistensi antara keduanya.
+:::
+
+#### `platformProxy.enabled`
+<p>
+**Tipe:** `boolean`<br />
+**Default:** `true`
+</p>
+
+Menentukan apakah akan mengaktifkan runtime Cloudflare pada mode pengembangan.
+
+#### `platformProxy.configPath`
+<p>
+**Tipe:** `string`<br />
+**Default:** `undefined`
+</p>
+
+Mendefinisikan path ke berkas konfigurasi Wrangler. Jika tidak diisi, akan melacak `wrangler.toml`, `wrangler.json`, dan `wrangler.jsonc` di root proyek.
+
+#### `platformProxy.environment`
+<p>
+**Tipe:** `string`<br />
+**Default:** `undefined`
+</p>
+
+Menyetel [environment Cloudflare](https://developers.cloudflare.com/workers/wrangler/environments/) yang digunakan. Anda harus memilih environment yang didefinisikan pada berkas konfigurasi Wrangler, jika tidak akan terjadi error.
+
+#### `platformProxy.persist`
+<p>
+**Tipe:** `boolean | { path: string }`<br />
+**Default:** `true`
+</p>
+
+Mengatur apakah dan di mana menyimpan data binding secara lokal ke filesystem.
+
+- Jika `true`, data binding disimpan di `.wrangler/state/v3/` (sama seperti default wrangler).
+- Jika `false`, data binding tidak disimpan di filesystem.
+- Jika `{ path: string }`, data binding disimpan di path yang ditentukan.
+
+:::note
+Opsi `--persist-to` milik `wrangler` menambahkan sub direktori bernama `v3` secara internal sedangkan properti `persist` pada `@astrojs/cloudflare` **tidak**. Misalnya, untuk menggunakan lokasi yang sama dengan `wrangler dev --persist-to ./my-directory`, Anda harus menentukan: `persist: { path: "./my-directory/v3" }`.
+:::
+
+Konfigurasi berikut menunjukkan contoh pengaktifan runtime Cloudflare saat menjalankan server pengembangan, memakai berkas `wrangler.json`, dan menetapkan lokasi penyimpanan data pada filesystem:
+
+```js
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		platformProxy: {
+			enabled: true,
+			configPath: 'wrangler.json',
+			persist: {
+				path: './.cache/wrangler/v3'
+			},
+		},
+	}),
+});
+```
+### `routes.extend`
+
+Pada Cloudflare Workers, opsi ini tidak berlaku. Lihat [Routing pada Cloudflare Workers](#routing-on-cloudflare-workers) untuk informasi lebih lanjut.
+
+Pada Cloudflare Pages, opsi ini memungkinkan Anda menambah atau mengecualikan pola khusus (mis. `/fonts/*`) ke berkas `_routes.json` yang menentukan rute mana yang dibuat on‑demand. Ini berguna jika Anda perlu menambahkan pola rute yang tidak dapat dihasilkan secara otomatis, atau mengecualikan rute yang diprerender.
+
+Info lebih lanjut tentang pola rute kustom dapat ditemukan di [dokumen routing Cloudflare](https://developers.cloudflare.com/pages/functions/routing/#functions-invocation-routes). Rute yang ditentukan tidak akan deddeduplikasi secara otomatis dan akan ditambahkan sebagaimana adanya.
+
+#### `routes.extend.include`
+
+<p>
+**Tipe:** `{ pattern: string }[]`<br />
+**Default:** `undefined`
+</p>
+
+Mengonfigurasi rute tambahan yang akan dirender on‑demand oleh adapter Cloudflare di array `routes.extend.include`.
+
+#### `routes.extend.exclude`
+
+<p>
+**Tipe:** `{ pattern: string }[]`<br />
+**Default:** `undefined`
+</p>
+
+Mengonfigurasi rute yang dikecualikan dari on‑demand rendering di array `routes.extend.exclude`. Rute ini akan diprerender dan disajikan secara statis, dan tidak akan memanggil fungsi server. Anda juga dapat menggunakan opsi ini untuk menyajikan asset statis apa pun (mis. gambar, font, css, js, html, txt, json, dll.) langsung tanpa merutekan permintaan melalui fungsi server.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  adapter: cloudflare({
+    routes: {
+      extend: {
+        include: [{ pattern: '/static' }], // Arahkan halaman yang diprerender ke fungsi server untuk on-demand rendering
+        exclude: [{ pattern: '/pagefind/*' }], // Gunakan pencarian pagefind dari Starlight yang dihasilkan statis saat build
+      }
+    },
+  }),
+});
+```
+
+### `sessionKVBindingName`
+<p>
+**Tipe:** `string`<br />
+**Default:** `SESSION`
+<Since v="5.6.0" />
+</p>
+
+Opsi `sessionKVBindingName` memungkinkan Anda menentukan nama binding KV yang digunakan untuk penyimpanan sesi. Default‑nya `SESSION`, tetapi Anda boleh menggantinya agar sesuai dengan nama binding Anda sendiri. Lihat bagian [Sessions](#sessions) untuk info lebih lanjut.
+
+```js title="astro.config.mjs" "MY_SESSION_BINDING"
+export default defineConfig({
+  adapter: cloudflare({
+    sessionKVBindingName: 'MY_SESSION_BINDING',
+  }),
+});
+```
+
+### `workerEntryPoint`
+<p>
+
+**Tipe:** `{ path: string | URL, namedExports: string[] }`<br />
+**Default:** `{ path: '@astrojs/cloudflare/entrypoints/server.js', namedExports: [] }`<br />
+<Since v="12.6.0" pkg="@astrojs/cloudflare"/>
+</p>
+
+
+Objek konfigurasi untuk menentukan [workerEntryPoint](https://developers.cloudflare.com/workers/runtime-apis/bindings/service-bindings/rpc/) Cloudflare Worker Anda ketika menjalankan `astro build`.
+
+Anda dapat menentukan `path` berkas kustom dan `namedExports` secara opsional:
+
+```js title="astro.config.mjs"
+import cloudflare from '@astrojs/cloudflare';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+	adapter: cloudflare({
+		workerEntryPoint: {
+			path: 'src/worker.ts',
+			namedExports: ['MyDurableObject']
+		}
+	}),
+});
+```
+
+#### `workerEntryPoint.path`
+
+<p>
+
+**Tipe:** `string`<br />
+**Default:** `@astrojs/cloudflare/entrypoints/server.js`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+Path ke berkas entry. Ini harus berupa path relatif dari root proyek Astro Anda.
+
+Secara default, adapter menggunakan berkas entry generik yang hanya mendukung handler `fetch`.
+
+Untuk mendukung [handler invokasi Cloudflare](https://developers.cloudflare.com/workers/observability/logs/workers-logs/#invocation-logs) lain, Anda dapat membuat berkas kustom sebagai entry point. Ini berguna jika ingin memakai fitur yang membutuhkan handler lain (mis. Durable Objects, Cloudflare Queues, Scheduled Invocations).
+
+#### `workerEntryPoint.namedExports` 
+
+<p>
+
+**Tipe:** `[]`<br />
+**Default:** `[]`
+<Since v="12.6.0" pkg="@astrojs/cloudflare" />
+</p>
+
+Array nama ekspor yang digunakan untuk berkas entry.
+
+Sertakan nama export tambahan dari [berkas entry kustom](#creating-a-custom-cloudflare-worker-entry-file) Anda (mis. `DurableObject`). Jika tidak diisi, hanya export default yang akan disertakan.
+
+#### Membuat berkas entry Cloudflare Worker kustom
+
+Berkas entry kustom harus mengekspor fungsi `createExports()` dengan ekspor `default` yang mencakup semua handler yang Anda butuhkan.
+
+Contoh berkas entry berikut mendaftarkan Durable Object dan handler antrian:
+
+```ts title="src/worker.ts"
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { handle } from '@astrojs/cloudflare/handler'
+import { DurableObject } from 'cloudflare:workers';
+
+class MyDurableObject extends DurableObject<Env> {
+  constructor(ctx: DurableObjectState, env: Env) {
+    super(ctx, env)
+  }
+}
+
+export function createExports(manifest: SSRManifest) {
+	const app = new App(manifest);
+	return {
+		default: {
+			async fetch(request, env, ctx) {
+				await env.MY_QUEUE.send("log");
+				return handle(manifest, app, request, env, ctx);
+			},
+			async queue(batch, _env) {
+				let messages = JSON.stringify(batch.messages);
+				console.log(`consumed from our queue: ${messages}`);
+			}
+		} satisfies ExportedHandler<Env>,
+		MyDurableObject: MyDurableObject,
+	}
+}
+```
+
+## Runtime Cloudflare
+
+### Penggunaan
+
+Runtime Cloudflare memberi akses ke environment variable dan binding ke sumber daya Cloudflare yang didefinisikan pada konfigurasi `wrangler.toml`/`wrangler.jsonc` Anda.
+
+Anda dapat mengakses binding dari `Astro.locals.runtime`:
+
+```astro title="src/pages/index.astro"
+---
+const { env } = Astro.locals.runtime;
+---
+```
+Anda dapat mengakses runtime dari endpoint API melalui `context.locals`:
+
+```js title="src/pages/api/someFile.js"
+export function GET(context) {
+  const runtime = context.locals.runtime;
+
+  return new Response('Some body');
+}
+```
+
+Lihat [daftar semua binding yang didukung](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings) di dokumentasi Cloudflare.
+
+
+### Environment variable dan secret
+
+Runtime Cloudflare memperlakukan environment variable sebagai tipe binding.
+
+Sebagai contoh, Anda dapat mendefinisikan [environment variable](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) di `wrangler.jsonc` seperti berikut:
+
+```jsonc title="wrangler.jsonc"
+{
+  "vars" : {
+    "MY_VARIABLE": "test"
+  }
+}
+```
+
+Secret adalah tipe khusus dari environment variable yang menyimpan nilai terenkripsi untuk Worker Anda. Secret harus didefinisikan dengan cara berbeda agar nilainya tidak terlihat setelah disetel.
+
+Untuk mendefinisikan `secrets`, tambahkan melalui [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) alih‑alih di berkas konfigurasi Wrangler. 
+
+```bash
+npx wrangler secret put <KEY>
+```
+
+Untuk menyetel secret saat pengembangan lokal, tambahkan berkas `.dev.vars` di root proyek Astro:
+
+```ini title=".dev.vars"
+DB_PASSWORD=myPassword
+```
+
+Kemudian Anda dapat mengakses environment variable, termasuk secret, dari objek `env` yang tersedia melalui `Astro.locals.runtime`:  
+
+```astro title="src/pages/index.astro"
+---
+const { env } = Astro.locals.runtime;
+const myVariable = env.MY_VARIABLE;
+const secret = env.DB_PASSWORD;
+---
+```
+
+Environment variable dan secret Cloudflare kompatibel dengan API [`astro:env`](/id/guides/environment-variables/#type-safe-environment-variables).
+
+### Pengetikan (Typing)
+
+`wrangler` menyediakan perintah `types` untuk menghasilkan tipe TypeScript bagi binding. Ini memungkinkan Anda mengetik `locals` tanpa perlu melakukannya secara manual. Lihat [dokumentasi Cloudflare](https://developers.cloudflare.com/workers/wrangler/commands/#types) untuk info lebih lanjut.
+
+Setiap kali Anda mengubah berkas konfigurasi (mis. `wrangler.toml`, `.dev.vars`) Anda perlu menjalankan `wrangler types`.
+
+:::note
+Anda bisa membuat skrip pnpm untuk menjalankan `wrangler types` secara otomatis sebelum perintah lain.
+
+```json title="package.json"
+{
+  "scripts": {
+    "dev": "wrangler types && astro dev",
+    "start": "wrangler types && astro dev",
+    "build": "wrangler types && astro check && astro build",
+    "preview": "wrangler types && astro preview",
+    "astro": "astro"
+  }
+}
+```
+:::
+
+Anda dapat mengetik objek `runtime` dengan [memperluas tipe global](/id/guides/typescript/#extending-global-types) menggunakan `Runtime`:
+
+```ts title="src/env.d.ts"
+type Runtime = import('@astrojs/cloudflare').Runtime<Env>;
+
+declare namespace App {
+  interface Locals extends Runtime {
+    otherLocals: {
+      test: string;
+    };
+  }
+}
+```
+
+## Platform Cloudflare
+
+### Header
+
+Anda dapat menambahkan [header kustom](https://developers.cloudflare.com/pages/platform/headers/) pada respons dengan menambahkan berkas `_headers` di folder `public/` proyek Astro Anda. Berkas ini akan disalin ke direktori output build.
+
+Ini tersedia di Cloudflare Workers dan Pages.
+
+### Aset
+Aset yang dibangun oleh Astro semua dinamai dengan hash sehingga dapat diberikan header cache jangka panjang. Secara default, Astro di Cloudflare akan menambahkan header semacam itu untuk berkas‑berkas ini.
+
+### Redirect
+
+Anda dapat mendeklarasikan [redirect kustom](https://developers.cloudflare.com/pages/platform/redirects/) untuk mengarahkan permintaan ke URL yang berbeda. Tambahkan berkas `_redirects` di folder `public/` proyek Astro Anda. Berkas ini akan disalin ke direktori output build.
+
+Ini tersedia di Cloudflare Workers dan Pages.
+
+### Rute
+#### Routing pada Cloudflare Workers
+
+Routing untuk aset statis didasarkan pada struktur berkas di direktori build (mis. `./dist`). Jika tidak ada kecocokan, permintaan akan dialihkan ke Worker untuk on‑demand rendering. Baca lebih lanjut tentang [routing aset statis dengan Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/routing/).
+
+Berbeda dengan [Cloudflare Pages](#routing-on-cloudflare-pages), pada Workers Anda tidak memerlukan berkas `_routes.json`. 
+
+Saat ini, adapter Cloudflare selalu menghasilkan berkas tersebut. Untuk menyiasatinya, buat berkas `.assetsignore` di folder `public/`, dan tambahkan baris berikut:
+  ```txt title="public/.assetsignore"
+  _worker.js
+  _routes.json
+  ```
+
+#### Routing pada Cloudflare Pages
+
+Untuk Cloudflare Pages, [routing](https://developers.cloudflare.com/pages/platform/functions/routing/#functions-invocation-routes) menggunakan berkas `_routes.json` untuk menentukan permintaan mana yang diarahkan ke fungsi server dan mana yang dilayani sebagai aset statis. Secara default, berkas `_routes.json` akan dibuat otomatis berdasarkan berkas dan konfigurasi proyek Anda.
+
+Anda dapat [menentukan pola routing tambahan](#routesextend) pada konfigurasi adapter, atau membuat berkas `_routes.json` kustom untuk menimpa generasi otomatis sepenuhnya.
+
+
+Membuat `public/_routes.json` kustom akan menimpa generasi otomatis. Lihat [dokumentasi Cloudflare tentang membuat `_routes.json` kustom](https://developers.cloudflare.com/pages/platform/functions/routing/#create-a-_routesjson-file) untuk detailnya.
+
+## Sesi
+
+[API Sessions](/id/guides/sessions/) Astro memudahkan penyimpanan data pengguna antarpermintaan. Ini bisa digunakan untuk data & preferensi pengguna, keranjang belanja, kredensial autentikasi, dan lainnya. Berbeda dengan cookie, tidak ada batas ukuran data dan dapat dipulihkan di perangkat yang berbeda. 
+
+Astro secara otomatis mengonfigurasi [Workers KV](https://developers.cloudflare.com/kv/) untuk penyimpanan sesi saat menggunakan adapter Cloudflare. Sebelum menggunakan sesi, Anda perlu membuat namespace KV untuk menyimpan data dan mengonfigurasi binding KV dalam berkas konfigurasi Wrangler Anda. Secara default, Astro mengharapkan nama binding KV adalah `SESSION`, namun Anda dapat memilih nama berbeda dengan menyetel opsi [`sessionKVBindingName`](#sessionkvbindingname) pada konfigurasi adapter.
+
+<Steps>
+
+1. Buat namespace KV menggunakan Wrangler CLI dan catat ID namespace yang baru:
+
+   ```sh
+   npx wrangler kv namespace create "SESSION"
+   ```
+
+2. Deklarasikan namespace KV di konfigurasi Wrangler Anda, atur ID namespace sesuai hasil perintah sebelumnya:
+
+    <Tabs>
+      <TabItem label="wrangler.jsonc">
+        ```json title="wrangler.jsonc" "<KV_NAMESPACE_ID>"
+        {
+          "kv_namespaces": [
+            {
+              "binding": "SESSION",
+              "id": "<KV_NAMESPACE_ID>"
+            }
+          ]
+        }
+        ```
+      </TabItem>
+      <TabItem label="wrangler.toml">
+        ```toml title="wrangler.toml" "<KV_NAMESPACE_ID>"
+        kv_namespaces = [
+          { binding = "SESSION", id = "<KV_NAMESPACE_ID>" }
+        ]
+        ```
+      </TabItem>
+    </Tabs>
+
+3. Sekarang Anda dapat menggunakan sesi di kode server Anda:
+
+    ```astro title="src/components/CartButton.astro" "Astro.session?.get('cart')"
+    ---
+    export const prerender = false;
+    const cart = await Astro.session?.get('cart');
+    ---
+
+    <a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+    ```
+
+</Steps>
+
+:::note
+Penulisan ke Cloudflare KV [eventually consistent](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency) antarregion. Artinya, perubahan tersedia segera di region yang sama namun bisa memerlukan hingga 60 detik untuk menyebar secara global. Ini biasanya tidak memengaruhi kebanyakan pengguna, tetapi mungkin jadi pertimbangan untuk beberapa use case seperti pengguna VPN.
+:::
+
+
+## Import Modul Cloudflare
+
+Runtime Cloudflare `workerd` mendukung import beberapa [tipe modul non‑standar](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules). Sebagian besar tipe tambahan juga tersedia di Astro:
+
+- `.wasm` atau `.wasm?module`: mengekspor [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) yang kemudian bisa di‑instantiate
+- `.bin`: mengekspor [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) berisi konten biner mentah
+- `.txt`: mengekspor string isi berkas
+
+Semua tipe modul mengekspor satu nilai `default`. Modul bisa diimport baik dari halaman yang dirender di server maupun dari halaman yang diprerender untuk SSG.
+
+Berikut contoh import modul Wasm yang lalu merespons permintaan dengan menjumlahkan parameter angka pada URL:
+
+```js title="pages/add/[a]/[b].js"
+// Import modul WebAssembly
+import mod from '../util/add.wasm';
+
+// Instansiasi terlebih dahulu agar bisa digunakan
+const addModule: any = new WebAssembly.Instance(mod);
+
+export async function GET(context) {
+  const a = Number.parseInt(context.params.a);
+  const b = Number.parseInt(context.params.b);
+  return new Response(`${addModule.exports.add(a, b)}`);
+}
+```
+
+Walau contoh ini sederhana, Wasm dapat digunakan untuk mempercepat operasi komputasi intensif yang tidak banyak I/O seperti menyematkan pustaka pemrosesan gambar, atau basis data kecil yang pra‑indeks untuk pencarian dataset read‑only.
+
+## Kompatibilitas Node.js
+
+Secara default, Cloudflare tidak mendukung API runtime Node.js. Dengan sedikit konfigurasi, Cloudflare mendukung subset API runtime Node.js. Anda dapat menemukan API yang didukung pada [dokumentasi](https://developers.cloudflare.com/workers/runtime-apis/nodejs) Cloudflare.
+
+Untuk menggunakan API ini, halaman atau endpoint Anda harus dirender di server (bukan diprerender) dan **harus** menggunakan sintaks import `import {} from 'node:*'`.
+
+```js title="pages/api/endpoint.js"
+export const prerender = false;
+import { Buffer } from 'node:buffer';
+```
+
+Anda juga perlu memodifikasi konfigurasi `vite` pada konfigurasi Astro agar mengizinkan sintaks import `node:*`:
+
+```js title="astro.config.mjs" ins={6-10}
+import {defineConfig} from "astro/config";
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({}),
+  vite: {
+		ssr: {
+			external: ['node:buffer'],
+		},
+	},
+})
+```
+
+Selain itu, Anda harus mengikuti dokumentasi Cloudflare tentang cara mengaktifkan dukungan tersebut. Lihat panduan lengkap di [dokumentasi kompatibilitas Node.js](https://developers.cloudflare.com/workers/runtime-apis/nodejs/).
+
+:::note[Implikasi Kompatibilitas Paket]
+Jika proyek mengimpor paket pada sisi server yang menggunakan API runtime Node.js, ini dapat menyebabkan masalah saat deploy ke Cloudflare—terutama jika paket tersebut tidak menggunakan sintaks import `node:*`. Disarankan menghubungi penulis paket untuk memastikan dukungan. Jika tidak didukung, Anda mungkin perlu menggunakan paket lain.
+:::
+
+## Pratinjau dengan Wrangler
+
+Untuk menggunakan [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) menjalankan aplikasi Anda secara lokal, perbarui skrip preview.
+
+Untuk Workers:
+
+```json title="package.json"
+"preview": "wrangler dev"
+```
+
+Untuk Pages:
+
+```json title="package.json"
+"preview": "wrangler pages dev ./dist"
+```
+
+Mengembangkan dengan [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) memberi Anda akses ke [binding Cloudflare](https://developers.cloudflare.com/pages/platform/functions/bindings), [environment variable](https://developers.cloudflare.com/pages/platform/functions/bindings/#environment-variables), dan objek [cf](https://developers.cloudflare.com/workers/runtime-apis/request/#incomingrequestcfproperties). Mendapatkan hot‑reload Astro dev server agar bekerja dengan Wrangler mungkin membutuhkan setup kustom. Lihat [contoh komunitas](https://github.com/withastro/roadmap/discussions/590).
+
+### Pesan error yang lebih bermakna
+
+Saat ini, error ketika menjalankan aplikasi di Wrangler kurang informatif karena minifikasi kode Anda. Untuk debugging yang lebih baik, Anda bisa menambahkan pengaturan `vite.build.minify = false` pada `astro.config.mjs`.
+
+```js title="astro.config.mjs" ins={3-7}
+export default defineConfig({
+  adapter: cloudflare(),
+  vite: {
+    build: {
+      minify: false,
+    },
+  },
+});
+```
+
+[astro-integration]: /id/guides/integrations-guide/

@@ -1,0 +1,672 @@
+---
+title: API Loader Konten Astro
+sidebar:
+  label: API Loader Konten
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+API **Content Loader** Astro memungkinkan Anda memuat data dari sumber mana pun, lokal maupun jarak jauh, dan berinteraksi dengan lapisan konten Astro untuk mengelola [koleksi konten](/id/guides/content-collections/).
+
+## Apa itu loader?
+
+Loader Astro memungkinkan Anda memuat data ke dalam [koleksi konten](/id/guides/content-collections/) yang kemudian dapat digunakan di halaman dan komponen. [Loader bawaan `glob()` dan `file()`](/id/guides/content-collections/#built-in-loaders) digunakan untuk memuat konten dari sistem berkas, dan Anda dapat membuat loader sendiri untuk memuat konten dari sumber lain.
+
+Setiap koleksi membutuhkan [sebuah loader yang didefinisikan di skemanya](/id/guides/content-collections/#defining-the-collection-loader). Anda dapat mendefinisikan loader secara inline di berkas `src/content.config.ts` proyek Anda, berbagi satu loader untuk beberapa koleksi, atau bahkan [menerbitkan loader Anda ke NPM sebagai paket](/id/reference/publish-to-npm/) untuk dibagikan ke orang lain dan disertakan di pustaka integrasi kami.
+
+## Loader bawaan
+
+Astro menyediakan dua loader bawaan untuk membantu Anda mengambil koleksi. Keduanya menawarkan opsi untuk beragam kasus penggunaan.
+
+### `glob()` loader
+
+<p>
+
+**Type:** <code>(options: GlobOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+Loader `glob()` membuat entri dari direktori berkas di mana pun pada sistem berkas. Tipe berkas yang didukung adalah Markdown, MDX, Markdoc, JSON, YAML, dan TOML.
+
+Loader ini menerima sebuah objek dengan properti berikut: `pattern`, `base` (opsional), dan `generateId` (opsional).
+
+```ts title="src/content.config.ts" {2,6,11,17-21}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const pages = defineCollection({
+  /* Ambil semua berkas Markdown di direktori pages Anda. */
+  loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
+  schema: /* ... */
+});
+const blog = defineCollection({
+  /* Ambil semua berkas Markdown dan MDX di direktori blog Anda. */
+  loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const authors = defineCollection({
+  /* Ambil semua berkas JSON di direktori authors sekaligus mempertahankan
+   * huruf besar pada ID. */
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+  schema: /* ... */
+});
+```
+
+#### `pattern`
+
+<p>
+
+**Type:** `string | string[]`
+</p>
+
+Properti `pattern` menerima sebuah string atau array string menggunakan pencocokan glob (mis. wildcard, globstar). Pola harus relatif terhadap direktori basis berkas entri yang akan dicocokkan.
+
+Pelajari lebih lanjut tentang sintaksnya di [dokumentasi micromatch](https://github.com/micromatch/micromatch#matching-features). Anda juga bisa memverifikasi validitas pola menggunakan alat daring seperti [DigitalOcean Glob Tool](https://www.digitalocean.com/community/tools/glob).
+
+#### `base`
+
+<p>
+
+**Type:** `string | URL`<br />
+**Default:** `"."`
+</p>
+
+Path relatif atau [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) ke direktori dari mana `pattern` akan di-resolve.
+
+#### `generateId()`
+
+<p>
+
+**Type:** `(options: GenerateIdOptions) => string`
+</p>
+
+Fungsi callback yang mengembalikan string unik per entri di sebuah koleksi. Menerima objek parameter dengan properti berikut:
+* `entry` - path ke berkas entri, relatif terhadap direktori basis
+* `base` - direktori basis berupa [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL)
+* `data` - data yang telah diurai namun belum divalidasi dari entri
+
+Secara bawaan menggunakan [`github-slugger`](https://github.com/Flet/github-slugger) untuk menghasilkan slug dengan kata-kata [kebab-case](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case).
+
+### `file()` loader
+
+<p>
+
+**Type:** <code>(fileName: string, options?: FileOptions) => <a href="#the-loader-object">Loader</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+Loader `file()` membuat entri dari satu berkas yang berisi array objek dengan field `id` yang unik, atau sebuah objek dengan ID sebagai key dan entri sebagai value. Mendukung berkas JSON, YAML, atau TOML dan Anda dapat menyediakan `parser` khusus untuk berkas data yang tidak dapat diurai secara bawaan.
+
+Loader ini menerima properti `fileName` dan sebuah objek opsional sebagai argumen kedua:
+
+```ts title="src/content.config.ts" {2,6,11-13}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const authors = defineCollection({
+  /* Ambil semua entri dari berkas JSON. */
+  loader: file("src/data/authors.json"),
+  schema: /* ... */
+});
+const products = defineCollection({
+  /* Ambil semua entri dari berkas CSV menggunakan parser khusus. */
+  loader: file("src/data/products.csv", {
+    parser: (fileContent) => { /* logika parser Anda */ },
+  }),
+  schema: /* ... */
+});
+```
+
+#### `fileName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Menentukan path ke berkas yang akan dimuat, relatif terhadap direktori root.
+
+#### Options
+
+<p>
+
+**Type:** `FileOptions`
+</p>
+
+Objek opsional dengan properti berikut:
+
+##### `parser()`
+
+<p>
+
+**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+</p>
+
+Fungsi callback untuk membuat koleksi dari isi berkas. Gunakan ini saat Anda perlu memproses berkas yang tidak didukung secara bawaan (mis. `.csv`) atau saat menggunakan [dokumen `.json` bertingkat](/id/guides/content-collections/#nested-json-documents).
+
+## Tipe loader
+
+Loader dapat didefinisikan sebagai fungsi sederhana yang mengembalikan array entri atau menggunakan API **Object Content Loader** untuk kontrol proses pemuatan yang lebih kuat.
+
+### Loader inline
+
+Loader inline adalah fungsi async yang mengembalikan array atau objek yang berisi entri. Gunakan ini untuk loader sederhana, khususnya yang didefinisikan inline di berkas `src/content.config.ts`.
+
+Fungsi dapat berupa async dan harus mengembalikan array entri yang masing-masing memiliki field `id` unik, atau sebuah objek di mana setiap key adalah ID unik dan setiap value adalah entri. Setiap kali loader dipanggil, ia akan mengosongkan store dan memuat ulang semua entri.
+
+```ts title="src/content.config.ts"
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // Harus mengembalikan array entri dengan properti id
+    // atau sebuah objek dengan ID sebagai key dan entri sebagai value
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+  schema: /* ... */
+});
+```
+
+### Loader berbasis objek
+
+Loader adalah objek dengan metode `load()` yang dipanggil saat build untuk mengambil data dan memperbarui data store. Ini memungkinkan pembaruan entri secara inkremental, atau mengosongkan store hanya jika diperlukan. Loader juga dapat mendefinisikan skema untuk entri, yang dapat digunakan untuk memvalidasi data dan menghasilkan tipe statis.
+
+Pola yang direkomendasikan adalah mendefinisikan fungsi yang menerima opsi konfigurasi dan mengembalikan objek loader, sama seperti Anda biasanya mendefinisikan integrasi Astro atau plugin Vite.
+
+
+```ts title=loader.ts
+import type { Loader, LoaderContext } from 'astro/loaders';
+import { z } from 'astro:content';
+import { loadFeedData } from "./feed.js";
+
+// Definisikan opsi apa pun yang diperlukan loader
+export function myLoader(options: { url: string, apiKey: string }): Loader {
+  // Konfigurasi loader
+  const feedUrl = new URL(options.url);
+  // Kembalikan objek loader
+  return {
+    name: "my-loader",
+    // Dipanggil saat memperbarui koleksi.
+    load: async (context: LoaderContext): Promise<void> => {
+      // Muat data dan perbarui store
+      const response = await loadFeedData(feedUrl, options.apiKey);
+    },
+    // Opsional, definisikan skema entri.
+    // Ini akan ditimpa oleh skema yang didefinisikan pengguna.
+    schema: async () => z.object({
+      // ...
+    })
+  };
+}
+```
+
+Opsi konfigurasi ini kemudian dapat diatur saat mendefinisikan koleksi:
+
+```ts title="src/content.config.ts"  {2,5-8}  
+import { defineCollection, z } from 'astro:content';  
+import myLoader from '../../loader.ts';  
+
+const blog = defineCollection({  
+  loader: myLoader({
+    url: "https://api.example.com/posts",
+    apiKey: "my-secret",
+  }),  
+  schema: /* ... */  
+});  
+```
+
+## API loader berbasis objek
+
+API untuk [loader inline](#loader-inline) sangat sederhana dan telah ditunjukkan di atas. Bagian ini menunjukkan API untuk mendefinisikan loader berbasis objek.
+
+### Objek `Loader`
+
+Objek loader memiliki properti berikut:
+
+#### `name`
+
+<p>
+
+**Type**: `string`
+</p>
+
+Nama unik untuk loader, digunakan pada log dan [untuk pemuatan kondisional](/id/reference/integrations-reference/#refreshcontent-option).
+
+#### `load`
+
+<p>
+
+**Type**: <code>(context: <a href="#loadercontext">LoaderContext</a>) => Promise&lt;void&gt;</code>
+</p>
+
+Fungsi async yang dipanggil saat build untuk memuat data dan memperbarui store. Lihat [`LoaderContext`](#loadercontext) untuk informasi selengkapnya.
+
+#### `schema`
+
+<p>
+
+**Type**: `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+</p>
+
+[Skema Zod](/id/guides/content-collections/#defining-datatypes-with-zod) opsional yang mendefinisikan bentuk entri. Digunakan untuk memvalidasi data dan juga menghasilkan tipe TypeScript untuk koleksi.
+
+Jika fungsi disediakan, fungsi tersebut akan dipanggil saat build sebelum `load()` untuk menghasilkan skema. Anda dapat menggunakannya untuk membuat skema secara dinamis berdasarkan opsi konfigurasi atau dengan mengintrospeksi sebuah API.
+
+### `LoaderContext`
+
+Objek ini diteruskan ke metode `load()` milik loader, dan berisi properti berikut:
+
+#### `collection`
+
+<p>
+
+**Type**: `string`
+</p>
+
+Nama unik koleksi. Ini adalah key di objek `collections` pada berkas `src/content.config.ts`.
+
+#### `store`
+
+<p>
+
+**Type**: [`DataStore`](#datastore)
+</p>
+
+Basis data untuk menyimpan data sebenarnya. Gunakan ini untuk memperbarui store dengan entri baru. Lihat [`DataStore`](#datastore) untuk informasi selengkapnya.
+
+#### `meta`
+
+<p>
+
+**Type**: `MetaStore`
+</p>
+
+Penyimpanan key-value yang ruang lingkupnya per koleksi, dirancang untuk hal seperti token sinkronisasi dan waktu last-modified. Metadata ini dipertahankan antar build bersama data koleksi tetapi hanya tersedia di dalam loader.
+
+```ts
+const lastModified = meta.get("lastModified");
+// ...
+meta.set("lastModified", new Date().toISOString());
+```
+
+#### `logger`
+
+<p>
+
+**Type**: [`AstroIntegrationLogger`](/id/reference/integrations-reference/#astrointegrationlogger)
+</p>
+
+Logger yang dapat digunakan untuk menulis pesan ke konsol. Gunakan ini alih-alih `console.log` untuk log yang lebih informatif yang menyertakan nama loader di pesan log. Lihat [`AstroIntegrationLogger`](/id/reference/integrations-reference/#astrointegrationlogger) untuk informasi selengkapnya.
+
+#### `config`
+
+<p>
+
+**Type**: `AstroConfig`
+</p>
+
+Objek konfigurasi Astro penuh yang telah ter-resolve dengan semua nilai default diterapkan. Lihat [referensi konfigurasi](/id/reference/configuration-reference/) untuk informasi lebih lanjut.
+
+#### `parseData`
+
+<p>
+
+**Type**: `(props: ParseDataOptions<TData>) => Promise<TData>`
+</p>
+
+Memvalidasi dan mengurai data sesuai skema koleksi. Teruskan data ke fungsi ini untuk memvalidasi dan menguraikannya sebelum disimpan ke data store.
+
+```ts title=loader.ts {14-17}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `renderMarkdown`
+
+<p>
+
+**Type**: `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+Merender string Markdown menjadi HTML, mengembalikan objek `RenderedContent`.
+
+Ini memungkinkan Anda merender konten Markdown langsung di dalam loader menggunakan pemrosesan Markdown yang sama seperti loader `glob` bawaan Astro dan menyediakan akses ke fungsi `render()` serta komponen `<Content />` untuk [merender isi body](/id/guides/content-collections/#rendering-body-content).
+
+Tetapkan objek ini ke field [rendered](#rendered) pada [DataEntry](#dataentry) untuk memungkinkan pengguna [merender konten di halaman](/id/guides/content-collections/#rendering-body-content).
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set({
+          id: entry.id,
+          data: entry,
+          // Misalkan setiap entri punya field 'content' berisi konten markdown
+          rendered: await renderMarkdown(entry.content),
+        });
+      }
+    },
+  };
+}
+```
+
+#### `generateDigest`
+
+<p>
+
+**Type**: `(data: Record<string, unknown> | string) => string`
+</p>
+
+Menghasilkan digest konten non-kriptografis dari sebuah objek atau string. Ini dapat digunakan untuk melacak apakah data berubah dengan mengatur [field `digest`](#digest) pada sebuah entri.
+
+```ts title=loader.ts {19,24}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }): Loader {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const data = await parseData({
+          id: item.guid,
+          data: item,
+        });
+
+        const digest = generateDigest(data);
+
+        store.set({
+          id,
+          data,
+          digest,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `watcher`
+
+<p>
+
+**Type**: `FSWatcher`
+</p>
+
+Saat berjalan dalam mode dev, ini adalah watcher sistem berkas yang dapat digunakan untuk memicu pembaruan. Lihat [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver) untuk informasi lebih lanjut.
+
+```ts title="Potongan dari loader file()" {8-13}
+return {
+  name: 'file-loader',
+  load: async ({ config, store, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
+
+#### `refreshContextData`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+Jika loader dipicu oleh integrasi, ini mungkin berisi data tambahan yang diatur oleh integrasi tersebut. Hanya tersedia ketika loader dipicu oleh integrasi. Lihat referensi hook [`astro:server:setup`](/id/reference/integrations-reference/#refreshcontent-option) untuk informasi lebih lanjut.
+
+```ts title=loader.ts {5-8}
+export function myLoader(options: { url: string }): Loader {
+  return {
+    name: "my-loader",
+    load: async ({ refreshContextData, store, logger }) => {
+      if(refreshContextData?.webhookBody) {
+        logger.info("Webhook triggered with body");
+        processWebhook(store, refreshContextData.webhookBody);
+      }
+      // ...
+    },
+  };
+}
+```
+
+### `DataStore`
+
+Data store adalah antarmuka loader ke data koleksi konten. Ini adalah penyimpanan key-value (KV) yang ruang lingkupnya per koleksi, sehingga loader hanya dapat mengakses data untuk koleksinya sendiri.
+
+#### `get`
+
+<p>
+
+**Type**: <code>(key: string) => <a href="#dataentry">DataEntry</a> | undefined</code>
+</p>
+
+Ambil sebuah entri dari store berdasarkan ID-nya. Mengembalikan `undefined` jika entri tidak ada.
+
+```ts
+const existingEntry = store.get("my-entry");
+```
+
+Objek yang dikembalikan adalah objek [`DataEntry`](#dataentry).
+
+#### `set`
+
+<p>
+
+**Type**: <code>(entry: <a href="#dataentry">DataEntry</a>) => boolean</code>
+</p>
+
+Digunakan setelah data [divalidasi dan diurai](#parsedata) untuk menambahkan entri ke store, mengembalikan `true` jika entri disetel. Ini mengembalikan `false` ketika properti [`digest`](#digest) menentukan bahwa entri tidak berubah dan tidak perlu diperbarui.
+
+```ts title=loader.ts {7-14}
+    for (const item of feed.items) {
+      const data = await parseData({
+        id: item.guid,
+        data: item,
+      });
+      const digest = generateDigest(data);
+      store.set({
+        id,
+        data,
+        rendered: {
+          html: data.description ?? "",
+        },
+        digest,
+      });
+    }
+```
+
+#### `entries`
+
+<p>
+
+**Type**: `() => Array<[id: string, DataEntry]>`
+</p>
+
+Ambil semua entri di koleksi sebagai array pasangan key-value.
+
+#### `keys`
+
+<p>
+
+**Type**: `() => Array<string>`
+</p>
+
+Ambil semua key entri di koleksi.
+
+#### `values`
+
+<p>
+
+**Type**: `() => Array<DataEntry>`
+</p>
+
+Ambil semua entri di koleksi sebagai array.
+
+#### `delete`
+
+<p>
+
+**Type**: `(key: string) => void`
+</p>
+
+Hapus sebuah entri dari store berdasarkan ID-nya.
+
+#### `clear`
+
+<p>
+
+**Type**: `() => void`
+</p>
+
+Kosongkan semua entri dari koleksi.
+
+#### `has`
+
+<p>
+
+**Type**: `(key: string) => boolean`
+</p>
+
+Periksa apakah sebuah entri ada di store berdasarkan ID-nya.
+
+### `DataEntry`
+
+Ini adalah tipe objek yang disimpan di data store. Memiliki properti berikut:
+
+#### `id`
+
+<p>
+
+**Type**: `string`
+</p>
+
+Pengidentifikasi untuk entri, yang harus unik dalam koleksi. Ini digunakan untuk mencari entri di store dan merupakan key yang digunakan dengan `getEntry` untuk koleksi tersebut.
+
+#### `data`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+Data sebenarnya untuk entri. Saat pengguna mengakses koleksi, ini akan memiliki tipe TypeScript yang dihasilkan sesuai skema koleksi.
+
+Menjadi tanggung jawab loader untuk menggunakan [`parseData`](#parsedata) guna memvalidasi dan mengurai data sebelum menyimpannya di data store: tidak ada validasi yang dilakukan saat mengambil atau menyetel data.
+
+#### `filePath`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+Path ke berkas sumber entri ini, relatif terhadap root situs. Ini hanya berlaku untuk loader berbasis berkas dan digunakan untuk me-resolve path seperti gambar atau aset lainnya.
+
+Jika tidak diatur, maka field apa pun di skema yang menggunakan [helper `image()`](/id/guides/images/#images-in-content-collections) akan diperlakukan sebagai [public path](/id/guides/images/#where-to-store-images) dan tidak ditransformasikan.
+
+#### `body`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+Body mentah dari entri, jika ada. Jika entri menyertakan [konten yang telah dirender](#rendered), maka field ini dapat digunakan untuk menyimpan sumber mentah. Ini opsional dan tidak digunakan secara internal.
+
+#### `digest`
+
+<p>
+
+**Type**: `string | undefined`
+</p>
+
+Digest konten opsional untuk entri. Ini dapat digunakan untuk memeriksa apakah data telah berubah.
+
+Saat [menyetel entri](#set), entri hanya akan diperbarui jika digest tidak cocok dengan entri yang sudah ada dengan ID yang sama.
+
+Format digest terserah loader, tetapi harus berupa string yang berubah ketika datanya berubah. Ini dapat dilakukan dengan fungsi [`generateDigest`](#generatedigest).
+
+#### `rendered`
+
+<p>
+
+**Type**: `RenderedContent | undefined`
+</p>
+
+Menyimpan objek berisi konten yang telah dirender dan metadata bila telah dirender menjadi HTML. Misalnya, ini dapat digunakan untuk menyimpan konten yang dirender dari entri Markdown, atau HTML dari CMS.
+
+Jika field ini disediakan, maka [fungsi `render()` dan komponen `<Content />`](/id/guides/content-collections/#rendering-body-content) tersedia untuk merender entri di halaman.
+
+Format objek `RenderedContent` adalah:
+
+```ts
+{
+	/** String HTML hasil render. Jika ada maka `render(entry)` akan mengembalikan komponen yang merender HTML ini. */
+	html: string;
+	metadata?: {
+		/** Gambar apa pun yang ada pada entri ini. Relatif terhadap DataEntry filePath. */
+		imagePaths?: Array<string>;
+		/** Heading apa pun yang ada pada berkas ini. Dikembalikan sebagai `headings` dari `render()` */
+		headings?: MarkdownHeading[];
+		/** Frontmatter mentah, diurai dari berkas. Ini mungkin menyertakan data dari plugin remark. */
+		frontmatter?: Record<string, any>;
+		/** Metadata lain apa pun yang ada pada berkas ini. */
+		[key: string]: unknown;
+	};
+}
+```
+
+Jika entri memiliki konten Markdown maka Anda dapat menggunakan fungsi [`renderMarkdown()`](#rendermarkdown) untuk menghasilkan objek ini dari string Markdown.

@@ -1,0 +1,241 @@
+---
+title: Framework front-end
+description: Bangun situs Astro Anda dengan React, Svelte, dan lainnya.
+i18nReady: true
+---
+import IntegrationsNav from '~/components/IntegrationsNav.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+Bangun situs Astro Anda tanpa mengorbankan framework komponen favorit. Buat [islands](/id/concepts/islands/) Astro dengan framework UI pilihan Anda.
+
+## Integrasi framework front-end resmi
+
+Astro mendukung berbagai framework populer termasuk [React](https://react.dev/), [Preact](https://preactjs.com/), [Svelte](https://svelte.dev/), [Vue](https://vuejs.org/), [SolidJS](https://www.solidjs.com/), dan [AlpineJS](https://alpinejs.dev/) dengan integrasi resmi. 
+
+Temukan lebih banyak [integrasi framework yang dikelola komunitas](https://astro.build/integrations/?search=&categories%5B%5D=frameworks) (mis. Angular, Qwik, Elm) di direktori integrasi kami. 
+
+<IntegrationsNav category="renderer" />
+
+## Menginstal integrasi
+
+Satu atau beberapa integrasi Astro ini dapat diinstal dan dikonfigurasi di proyek Anda.
+
+Lihat [Panduan Integrasi](/id/guides/integrations-guide/) untuk detail selengkapnya tentang pemasangan dan konfigurasi integrasi Astro.
+
+:::tip
+Ingin melihat contoh untuk framework pilihan Anda? Kunjungi [astro.new](https://astro.new/latest/frameworks) dan pilih salah satu template framework.
+:::
+
+## Menggunakan komponen framework
+
+Gunakan komponen framework JavaScript Anda di halaman, layout, dan komponen Astro sama seperti komponen Astro! Semua komponen Anda dapat berada bersama di `/src/components`, atau diatur sesuai keinginan Anda.
+
+Untuk menggunakan komponen framework, impor dari path relatifnya di skrip komponen Astro Anda. Lalu, gunakan komponen tersebut berdampingan dengan komponen lain, elemen HTML, dan ekspresi mirip JSX di template komponen.
+
+```astro title="src/pages/static-components.astro" ins={2,7}
+---
+import MyReactComponent from '../components/MyReactComponent.jsx';
+---
+<html>
+  <body>
+    <h1>Use React components directly in Astro!</h1>
+    <MyReactComponent />
+  </body>
+</html>
+```
+
+Secara default, komponen framework Anda hanya akan dirender di server sebagai HTML statis. Ini berguna untuk komponen templating yang tidak interaktif dan menghindari pengiriman JavaScript yang tidak perlu ke klien.
+
+## Menghidrasi komponen interaktif
+
+Komponen framework dapat dibuat interaktif (di-*hydrate*) menggunakan [`client:*` directive](/id/reference/directives-reference/#client-directives). Ini adalah atribut komponen yang menentukan kapan JavaScript komponen Anda harus dikirim ke browser.
+
+Dengan semua direktif klien kecuali `client:only`, komponen Anda akan terlebih dahulu dirender di server untuk menghasilkan HTML statis. JavaScript komponen akan dikirim ke browser sesuai dengan direktif yang Anda pilih. Komponen kemudian akan di-hydrate dan menjadi interaktif.
+
+```astro title="src/pages/interactive-components.astro" /client:\S+/
+---
+// Example: hydrating framework components in the browser.
+import InteractiveButton from '../components/InteractiveButton.jsx';
+import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from '../components/InteractiveModal.svelte';
+---
+<!-- This component's JS will begin importing when the page loads -->
+<InteractiveButton client:load />
+
+<!-- This component's JS will not be sent to the client until
+the user scrolls down and the component is visible on the page -->
+<InteractiveCounter client:visible />
+
+<!-- This component won't render on the server, but will render on the client when the page loads -->
+<InteractiveModal client:only="svelte" />
+```
+
+Framework JavaScript (React, Svelte, dll.) yang dibutuhkan untuk merender komponen akan dikirim ke browser bersama dengan JavaScript komponen. Jika dua atau lebih komponen pada halaman menggunakan framework yang sama, framework tersebut hanya akan dikirim sekali.
+
+:::note[Aksesibilitas]
+Sebagian besar pola aksesibilitas khusus framework akan bekerja sama saat komponen ini digunakan di Astro. Pastikan memilih direktif klien yang akan menjamin JavaScript terkait aksesibilitas dimuat dan dijalankan pada waktu yang tepat!
+:::
+
+### Direktif hidrasi yang tersedia
+
+Ada beberapa direktif hidrasi yang tersedia untuk komponen UI framework: `client:load`, `client:idle`, `client:visible`, `client:media={QUERY}` dan `client:only={FRAMEWORK}`.
+
+<ReadMore>Lihat halaman [referensi direktif](/id/reference/directives-reference/#client-directives) kami untuk deskripsi lengkap direktif hidrasi ini beserta penggunaannya.</ReadMore>
+
+## Menggabungkan framework
+
+Anda bisa mengimpor dan merender komponen dari beberapa framework dalam komponen Astro yang sama.
+
+```astro title="src/pages/mixing-frameworks.astro"
+---
+// Example: Mixing multiple framework components on the same page.
+import MyReactComponent from '../components/MyReactComponent.jsx';
+import MySvelteComponent from '../components/MySvelteComponent.svelte';
+import MyVueComponent from '../components/MyVueComponent.vue';
+---
+<div>
+  <MySvelteComponent />
+  <MyReactComponent />
+  <MyVueComponent />
+</div>
+```
+
+Astro akan mengenali dan merender komponen Anda berdasarkan ekstensi filenya. Untuk membedakan framework yang menggunakan ekstensi file yang sama, diperlukan [konfigurasi tambahan saat merender beberapa framework JSX](/id/guides/integrations-guide/react/#combining-multiple-jsx-frameworks) (mis. React dan Preact).
+
+:::caution
+Hanya komponen **Astro** (`.astro`) yang dapat berisi komponen dari beberapa framework.
+:::
+
+## Mengoper props ke komponen framework
+
+Anda dapat mengoper props dari komponen Astro ke komponen framework:
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../components/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["learn Astro", "review PRs"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+Props yang diteruskan ke komponen framework interaktif [menggunakan `client:*` directive](/id/reference/directives-reference/#client-directives) harus [diserialisasi](https://developer.mozilla.org/en-US/docs/Glossary/Serialization): diterjemahkan ke format yang cocok untuk transfer jaringan atau penyimpanan. Namun, Astro tidak men-serialisasi setiap jenis struktur data. Karena itu, ada beberapa batasan tentang apa yang dapat diteruskan sebagai props ke komponen yang di-hydrate.
+
+Tipe prop berikut didukung:
+objek biasa, `number`, `string`, `Array`, `Map`, `Set`, `RegExp`, `Date`, `BigInt`, `URL`, `Uint8Array`, `Uint16Array`, `Uint32Array`, dan `Infinity`
+
+Struktur data yang tidak didukung, seperti fungsi, hanya dapat digunakan saat rendering server komponen dan tidak dapat digunakan untuk menyediakan interaktivitas. Misalnya, mengoper fungsi ke komponen yang di-hydrate tidak didukung karena Astro tidak dapat mengirim fungsi dari server dengan cara yang membuatnya dapat dieksekusi di klien.
+
+## Mengoper children ke komponen framework
+
+Di dalam komponen Astro, Anda **bisa** mengoper *children* ke komponen framework. Setiap framework memiliki polanya masing-masing untuk mereferensikan *children* ini: React, Preact, dan Solid menggunakan prop khusus bernama `children`, sedangkan Svelte dan Vue menggunakan elemen `<slot />`.
+
+```astro title="src/pages/component-children.astro" {5}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+---
+<MyReactSidebar>
+  <p>Here is a sidebar with some text and a button.</p>
+</MyReactSidebar>
+```
+
+Selain itu, Anda dapat menggunakan [Named Slots](/id/basics/astro-components/#named-slots) untuk mengelompokkan *children* tertentu bersama-sama. 
+
+Untuk React, Preact, dan Solid, slot ini akan dikonversi menjadi prop level teratas. Nama slot yang menggunakan `kebab-case` akan dikonversi menjadi `camelCase`.
+
+```astro title="src/pages/named-slots.astro" /slot="(.*)"/
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">Menu</h2>
+  <p>Here is a sidebar with some text and a button.</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx /{props.(title|socialLinks)}/
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+Untuk Svelte dan Vue, slot ini dapat direferensikan menggunakan elemen `<slot>` dengan atribut `name`. Nama slot yang menggunakan `kebab-case` akan dipertahankan.
+
+```jsx /slot name="(.*)"/
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+## Menyarang komponen framework
+
+Di dalam file Astro, *children* komponen framework juga bisa berupa komponen yang di-hydrate. Ini berarti Anda dapat men-*nest* komponen secara rekursif dari framework mana pun.
+
+```astro title="src/pages/nested-components.astro" {10-11}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+import MySvelteButton from '../components/MySvelteButton.svelte';
+---
+<MyReactSidebar>
+  <p>Here is a sidebar with some text and a button.</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+
+:::caution
+Ingat: file komponen framework itu sendiri (mis. `.jsx`, `.svelte`) tidak dapat mencampur beberapa framework.
+:::
+
+Ini memungkinkan Anda membangun seluruh “aplikasi” di framework JavaScript pilihan Anda dan merendernya, melalui komponen induk, ke halaman Astro.
+
+:::note
+Komponen Astro selalu dirender menjadi HTML statis, bahkan ketika mereka menyertakan komponen framework yang di-hydrate. Ini berarti Anda hanya dapat mengoper props yang tidak melakukan rendering HTML. Mengoper “render props” milik React ke komponen framework dari komponen Astro tidak akan berhasil, karena komponen Astro tidak dapat menyediakan perilaku runtime klien yang dibutuhkan pola ini. Sebagai gantinya, gunakan named slots.
+:::
+
+## Bisakah saya menggunakan komponen Astro di dalam komponen framework saya?
+
+Setiap komponen framework UI menjadi “pulau” (island) dari framework tersebut. Komponen ini harus ditulis sepenuhnya sebagai kode valid untuk framework itu, menggunakan hanya impor dan paketnya sendiri. Anda tidak dapat mengimpor komponen `.astro` di komponen framework UI (mis. `.jsx` atau `.svelte`).
+
+Namun, Anda dapat menggunakan pola `<slot />` milik Astro untuk mengoper konten statis yang dihasilkan oleh komponen Astro sebagai *children* ke komponen framework Anda **di dalam komponen `.astro`**. 
+
+```astro title="src/pages/astro-children.astro" {6}
+---
+import MyReactComponent from  '../components/MyReactComponent.jsx';
+import MyAstroComponent from '../components/MyAstroComponent.astro';
+---
+<MyReactComponent>
+  <MyAstroComponent slot="name" />
+</MyReactComponent>
+```
+
+## Bisakah saya menghidrasi komponen Astro?
+
+Jika Anda mencoba menghidrasi komponen Astro dengan modifier `client:`, Anda akan mendapatkan error.
+
+[Komponen Astro](/id/basics/astro-components/) adalah komponen templating khusus HTML tanpa runtime di sisi klien. Namun, Anda dapat menggunakan tag `<script>` di template komponen Astro untuk mengirim JavaScript ke browser yang dieksekusi di *global scope*.
+
+<ReadMore>Pelajari lebih lanjut tentang [tag `<script>` sisi klien di komponen Astro](/id/guides/client-side-scripts/)</ReadMore>
+
+[mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+[mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+[mdn-mm]: https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia

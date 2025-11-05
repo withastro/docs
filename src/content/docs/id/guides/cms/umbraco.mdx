@@ -1,0 +1,234 @@
+---
+title: Umbraco & Astro
+description: Tambahkan konten ke proyek Astro Anda menggunakan Umbraco sebagai CMS
+sidebar:
+  label: Umbraco
+type: cms
+stub: false
+service: Umbraco
+i18nReady: true
+---
+import { FileTree, Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'; 
+
+
+[Umbraco CMS](https://umbraco.com/) adalah CMS ASP.NET Core sumber terbuka. Secara default, Umbraco menggunakan halaman Razor untuk front-end, tetapi juga dapat digunakan sebagai headless CMS.
+
+## Integrating with Astro
+
+Di bagian ini Anda akan menggunakan [Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api) bawaan Umbraco untuk menyediakan konten ke proyek Astro Anda.
+
+### Prerequisites
+
+Untuk memulai, Anda memerlukan:
+
+1. **Proyek Astro** – Jika Anda belum memiliki proyek Astro, [panduan instalasi](/id/install-and-setup/) kami akan membantu Anda menyiapkannya dengan cepat.
+2. **Proyek Umbraco (v12+)** – Jika Anda belum memiliki proyek Umbraco, lihat [panduan instalasi ini](https://docs.umbraco.com/umbraco-cms/fundamentals/setup/install/).
+
+### Setting up the Content Delivery API
+
+Untuk mengaktifkan Content Delivery API, perbarui berkas `appsettings.json` proyek Umbraco Anda:
+
+```json title="appsettings.json"
+{
+  "Umbraco": {
+    "CMS": {
+      "DeliveryApi": {
+        "Enabled": true,
+        "PublicAccess": true
+      }
+    }
+  }
+}
+```
+
+Anda dapat mengonfigurasi opsi tambahan sesuai kebutuhan seperti akses publik, kunci API, tipe konten yang diizinkan, otorisasi keanggotaan, dan lainnya. Lihat dokumentasi [Umbraco Content Delivery API](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api) untuk informasi lebih lanjut.
+
+### Fetching Data
+
+Gunakan pemanggilan `fetch()` ke Content Delivery API untuk mengakses konten Anda dan membuatnya tersedia bagi komponen Astro Anda.
+
+Contoh berikut menampilkan daftar artikel yang diambil, termasuk properti seperti tanggal artikel dan kontennya.
+
+```astro title="src/pages/index.astro"
+---
+const res = await fetch('http://localhost/umbraco/delivery/api/v2/content?filter=contentType:article');
+const articles = await res.json();
+---
+<h1>Astro + Umbraco 🚀</h1>
+{
+  articles.items.map((article) => (
+      <h1>{article.name}</h1>
+      <p>{article.properties.articleDate}</p>
+      <div set:html={article.properties.content?.markup}></div>
+  ))
+}
+```
+
+
+<ReadMore>Pelajari lebih lanjut tentang [pengambilan data di Astro](/id/guides/data-fetching/).</ReadMore>
+
+## Building a blog with Umbraco and Astro
+
+### Prerequisites
+
+- **Proyek Astro** – Jika Anda belum memiliki proyek Astro, [panduan instalasi](/id/install-and-setup/) kami akan membantu Anda menyiapkannya dengan cepat.
+
+- **Proyek Umbraco (v12+)** dengan Content Delivery API diaktifkan – Ikuti [panduan instalasi ini](https://docs.umbraco.com/umbraco-cms/fundamentals/setup/install/) untuk membuat proyek baru.
+
+### Creating blog posts in Umbraco
+
+Dari [Umbraco backoffice](https://docs.umbraco.com/umbraco-cms/fundamentals/backoffice), buat Tipe Dokumen (Document Type) untuk artikel blog sederhana bernama 'Article'.
+
+<Steps>
+1. Konfigurasikan Tipe Dokumen 'Article' Anda dengan properti berikut:
+
+		- Title (DataType: Textstring)
+		- Article Date (DataType: Date Picker)
+		- Content (DataType: Richtext Editor)
+
+2. Aktifkan "Allow as root" menjadi `true` pada Tipe Dokumen 'Article'.
+
+3. Dari bagian "Content" di backoffice Umbraco, [buat dan publikasikan posting blog pertama Anda](https://docs.umbraco.com/umbraco-cms/fundamentals/data/defining-content). Ulangi proses ini sebanyak yang Anda inginkan.
+
+</Steps>
+
+Untuk informasi lebih lanjut, tonton [video panduan membuat Document Types](https://www.youtube.com/watch?v=otRuIkN80qM).
+
+### Displaying a list of blog posts in Astro
+
+Buat folder `src/layouts/`, lalu tambahkan berkas baru `Layout.astro` dengan kode berikut:
+
+```astro title="src/layouts/Layout.astro"
+---
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>My Blog with Astro and Umbraco</title>
+</head>
+<body>
+    <main>
+        <slot />
+    </main>
+</body>
+</html>
+```
+
+Proyek Anda sekarang harus berisi berkas-berkas berikut:
+
+<FileTree>
+- src/
+  - **layouts/**
+    - **Layout.astro**
+  - pages/
+    - index.astro
+</FileTree>
+
+Untuk membuat daftar posting blog, lakukan `fetch` ke endpoint `content` Content Delivery API dan filter berdasarkan contentType 'article'. Objek artikel akan menyertakan properti dan konten yang disetel di CMS. Anda kemudian dapat melakukan loop melalui artikel dan menampilkan setiap judul dengan tautan ke artikelnya.
+
+Ganti konten default `index.astro` dengan kode berikut:
+
+```astro title="src/pages/index.astro"
+---
+import Layout from '../layouts/Layout.astro';
+const res = await fetch('http://localhost/umbraco/delivery/api/v2/content?filter=contentType:article');
+const articles = await res.json();
+---
+<Layout>
+	<h2>Blog Articles</h2>
+	{
+        articles.items.map((article: any) => (
+            <div>
+                <h3>{article.properties.title}</h3>
+                <p>{article.properties.articleDate}</p>
+                <a href={article.route.path}>Read more</a>
+            </div>
+        ))
+    }
+</Layout>
+```
+
+### Generating individual blog posts
+
+Buat berkas `[...slug].astro` di akar direktori `/pages/`. Berkas ini akan digunakan untuk [membuat halaman blog individual secara dinamis](/id/guides/routing/#dynamic-routes).
+
+Perhatikan bahwa properti `params`, yang menghasilkan jalur URL halaman, berisi `article.route.path` dari hasil API. Demikian juga, properti `props` harus menyertakan seluruh `article` itu sendiri sehingga Anda dapat mengakses semua informasi pada entri CMS Anda.
+
+Tambahkan kode berikut ke `[...slug].astro` yang akan membuat halaman posting blog individual Anda:
+
+```astro title="[...slug].astro"
+---
+import Layout from '../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+    let data = await fetch("http://localhost/umbraco/delivery/api/v2/content?filter=contentType:article");
+    let articles = await data.json();
+    
+    return articles.items.map((article: any) => ({
+        params: { slug: article.route.path },
+        props: { article: article },
+    }));
+}
+
+const { article } = Astro.props;
+---
+
+<Layout>
+  <h1>{article.properties.title}</h1>
+  <p>{article.properties.articleDate}</p>
+  <div set:html={article.properties.content?.markup}></div>
+</Layout>
+```
+
+Proyek Anda sekarang harus berisi berkas-berkas berikut:
+
+<FileTree>
+- src/
+  - layouts/
+    - Layout.astro
+  - pages/
+    - index.astro
+    - **[...slug].astro**
+</FileTree>
+
+Dengan dev server berjalan, sekarang Anda seharusnya dapat melihat konten yang dibuat di Umbraco pada pratinjau browser proyek Astro Anda. Selamat! 🚀
+
+
+## Publishing your site
+
+Untuk memublikasikan situs Anda, kunjungi [panduan deployment](/id/guides/deploy/) kami dan ikuti instruksi untuk penyedia hosting pilihan Anda.
+
+## Local dev, HTTPS and self-signed SSL certificates
+
+Jika Anda menggunakan endpoint HTTPS Umbraco secara lokal, kueri `fetch` akan menghasilkan `fetch failed` dengan kode `DEPTH_ZERO_SELF_SIGNED_CERT`. Ini karena Node (yang menjadi dasar Astro) tidak akan menerima sertifikat yang ditandatangani sendiri secara default. Untuk menghindari hal ini, gunakan endpoint HTTP Umbraco untuk pengembangan lokal.
+
+Sebagai alternatif, Anda dapat mengatur `NODE_TLS_REJECT_UNAUTHORIZED=0` dalam berkas `env.development` dan memperbarui `astro.config.js` seperti yang ditunjukkan:
+
+```ini title=".env.development"
+NODE_TLS_REJECT_UNAUTHORIZED=0
+```
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { loadEnv } from "vite";
+
+const { NODE_TLS_REJECT_UNAUTHORIZED } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+process.env.NODE_TLS_REJECT_UNAUTHORIZED = NODE_TLS_REJECT_UNAUTHORIZED;
+// https://astro.build/config
+export default defineConfig({});
+```
+
+Metode ini dijelaskan lebih detail dalam [posting blog yang menunjukkan cara mengonfigurasi proyek Anda untuk sertifikat yang ditandatangani sendiri](https://kjac.dev/posts/jamstack-for-free-with-azure-and-cloudflare/), dengan [repo pendamping](https://github.com/kjac/UmbracoAzureCloudflare).
+
+## Official Documentation
+- [Content Delivery API - Umbraco Documentation](https://docs.umbraco.com/umbraco-cms/reference/content-delivery-api)
+
+## Community Resources
+
+- [Astro-nomically Performant Websites using the Content Delivery API - Louis Richardson](https://24days.in/umbraco-cms/2023/sustainable-performant/astronomically-performant/)
+- [Generating a TypeScript OpenAPI client from Umbraco's Content Delivery API - Rick Butterfield](https://rickbutterfield.dev/blog/typescript-openapi-umbraco-content-delivery/)
+- [Jamstack For Free With Azure And CloudFlare - Kenn Jacobsen](https://kjac.dev/posts/jamstack-for-free-with-azure-and-cloudflare/)
+- [Quick n' dirty blog with Astro and Umbraco - Kenn Jacobsen](https://kjac.dev/posts/quick-n-dirty-blog-with-astro/)
+- [Talk: Bake, Don't Fry - Astro & The Content Delivery API - Adam Prendergast](https://www.youtube.com/watch?v=zNxqI25dtx4)
