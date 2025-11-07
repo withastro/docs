@@ -95,31 +95,20 @@ Live content collections are designed for data that changes frequently and needs
 - **You need to pass dynamic filters** to your data source based on user input or request parameters.
 - **You're building preview functionality** for a CMS where editors need to see draft content immediately.
 
-See the [limitations of experimental live collections](#live-collection-limitations) and [key differences from build-time collections](#differences-from-build-time-collections) for more details on choosing between live and preloaded collections.
-
-We suggest using build-time content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable.
-
 Both kinds of collections can exist in the same project, so you can always choose the best type of collection for each individual data source. For example, a build-time collection can manage product descriptions, while a live collection can manage content inventory.
 
 Both types of collections use similar APIs (e.g. `getCollection()` and `getLiveCollection()`) so that working with collections will feel familiar no matter which one you choose, while still ensuring that you always know which type of collection you are working with.
 
-{/* ### Build-time content collections
-
-For the best performance and scalability, use build-time content collections when:
-
-- **Performance is critical** and you want to prerender data at build time.
-- **Your data is relatively static** (e.g., blog posts, documentation, product descriptions).
-- **You want to benefit from build-time optimization** and caching.
-- **You need to process MDX** or **perform image optimization**.
-- **Your data can be fetched once and reused** across multiple builds.
-
-:::tip[Quick start]
-See [the official Astro blog starter template](https://github.com/withastro/astro/tree/latest/examples/blog) to get up and running quickly with an example of using the [built-in `glob()` loader](#the-glob-loader) and [defining a schema](#defining-the-collection-schema) for a collection of local Markdown or MDX blog posts.
-::: */}
-
-{/* ### Live content collections */}
 
 
+### Live collection limitations
+
+We suggest using build-time content collections whenever possible, and using live collections when your content needs updating in real time and the performance tradeoffs are acceptable. Live content collections have some limitations compared to build-time collections:
+
+- **No MDX support**: MDX cannot be rendered at runtime
+- **No image optimization**: Images cannot be processed at runtime
+- **Performance considerations**: Data is fetched on each request (unless cached)
+- **No data store persistence**: Data is not saved to the content layer data store
 
 ## TypeScript configuration for collections
 
@@ -441,7 +430,8 @@ Astro provides helper functions to query a build-time collection and return one 
 
 These return entries with a unique `id`, a `data` object with all defined properties, and will also return a `body` containing the raw, uncompiled body of a Markdown, MDX, or Markdoc document.
 
-```js
+```astro title="src/pages/index.astro"
+---
 import { getCollection, getEntry } from 'astro:content';
 
 // Get all entries from a collection.
@@ -451,8 +441,7 @@ const allBlogPosts = await getCollection('blog');
 // Get a single entry from a collection.
 // Requires the name of the collection and `id`
 const poodleData = await getEntry('dogs', 'poodle');
-
-
+---
 ```
 
 The sort order of generated collections is non-deterministic and platform-dependent. This means that if you are calling `getCollection()` and need your entries returned in a specific order (e.g. blog posts sorted by date), you must sort the collection entries yourself:
@@ -534,32 +523,38 @@ const { post } = Astro.props;
 
 You can use this to filter by any content criteria you like. For example, you can filter by properties like `draft` to prevent any draft blog posts from publishing to your blog:
 
-```js
+```astro title="src/pages/blog.astro"
+---
 // Example: Filter out content entries with `draft: true`
 import { getCollection } from 'astro:content';
 const publishedBlogEntries = await getCollection('blog', ({ data }) => {
   return data.draft !== true;
 });
+---
 ```
 
 You can also create draft pages that are available when running the dev server, but not built in production:
 
-```js
+```astro title="src/pages/blog.astro"
+---
 // Example: Filter out content entries with `draft: true` only when building for production
 import { getCollection } from 'astro:content';
 const blogEntries = await getCollection('blog', ({ data }) => {
   return import.meta.env.PROD ? data.draft !== true : true;
 });
+---
 ```
 
 The filter argument also supports filtering by nested directories within a collection. Since the `id` includes the full nested path, you can filter by the start of each `id` to only return items from a specific nested directory:
 
-```js
+```astro title="src/pages/blog.astro"
+---
 // Example: Filter entries by sub-directory in the collection
 import { getCollection } from 'astro:content';
 const englishDocsEntries = await getCollection('docs', ({ id }) => {
   return id.startsWith('en/');
 });
+---
 ```
 
 #### Accessing referenced data
@@ -590,8 +585,16 @@ const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ))}
 ```
 
-
 ## Live content collections 
+
+Live collections use a different API than build-time content collections. Key differences include:
+
+1. **Execution time**: Run at request time instead of build time
+2. **Configuration file**: Use `src/live.config.ts` instead of `src/content.config.ts`
+3. **Collection definition**: Use `defineLiveCollection()` instead of `defineCollection()`
+4. **Loader API**: Implement `loadCollection` and `loadEntry` methods instead of the `load` method
+5. **Data return**: Return data directly instead of storing in the data store
+6. **User-facing functions**: Use `getLiveCollection()`/`getLiveEntry()` instead of `getCollection()`/`getEntry()`
 
 Make sure you have an adapter configured for [on-demand rendering](/en/guides/on-demand-rendering/), then define your live collections in `src/live.config.ts` (separate from your `src/content.config.ts` for build-time collections, if you have one).
 
@@ -1200,10 +1203,10 @@ const { Content } = await render(post);
 ```
 
 :::tip
-Explore the `src/pages/` folder of the [blog tutorial demo code on GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) to see full examples of creating pages from your collections for blog features like a list of blog posts, tags pages, and more!
+Explore the `src/pages/` folder of the [blog tutorial demo code on GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) to see full examples of creating dynamic pages from your collections for blog features like a list of blog posts, tags pages, and more!
 :::
 
-## Collection JSON Schemas
+## Using JSON Schema files in your editor
 
 <p><Since v="4.13.0" /></p>
 
@@ -1212,7 +1215,7 @@ Astro auto-generates [JSON Schema](https://json-schema.org/) files for collectio
 A JSON Schema file is generated for each collection in your project and output to the `.astro/collections/` directory.
 For example, if you have two collections, one named `authors` and another named `posts`, Astro will generate `.astro/collections/authors.schema.json` and `.astro/collections/posts.schema.json`.
 
-### Use JSON Schemas in JSON files
+<h3>Use JSON Schemas in JSON files</h3>
 
 You can manually point to an Astro-generated schema by setting the `$schema` field in your JSON file.
 The value should be a relative file path from the data file to the schema.
@@ -1226,7 +1229,7 @@ In the following example, a data file in `src/data/authors/` uses the schema gen
 }
 ```
 
-#### Use a schema for a group of JSON files in VS Code
+<h4>>Use a schema for a group of JSON files in VS Code</h4>
 
 In VS Code, you can configure a schema to apply for all files in a collection using the [`json.schemas` setting](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings).
 In the following example, all files in the `src/data/authors/` directory will use the schema generated for the `authors` collection:
@@ -1242,7 +1245,7 @@ In the following example, all files in the `src/data/authors/` directory will us
 }
 ```
 
-### Use schemas in YAML files in VS Code
+<h3>>Use schemas in YAML files in VS Code</h3>
 
 In VS Code, you can add support for using JSON schemas in YAML files using the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension.
 With this extension installed, you can reference a schema in a YAML file using a special comment syntax:
@@ -1255,7 +1258,7 @@ skills:
   - Starlight
 ```
 
-#### Use schemas for a group of YAML files in VS Code
+<h4> >Use schemas for a group of YAML files in VS Code</h4>
 
 With the Red Hat YAML extension, you can configure a schema to apply for all YAML files in a collection using the `yaml.schemas` setting.
 In the following example, all YAML files in the `src/data/authors/` directory will use the schema generated for the `authors` collection:
@@ -1269,23 +1272,3 @@ In the following example, all YAML files in the `src/data/authors/` directory wi
 ```
 
 See [“Associating schemas”](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas) in the Red Hat YAML extension documentation for more details.
-
-## Live collection limitations
-
-Live content collections have some limitations compared to build-time collections:
-
-- **No MDX support**: MDX cannot be rendered at runtime
-- **No image optimization**: Images cannot be processed at runtime
-- **Performance considerations**: Data is fetched on each request (unless cached)
-- **No data store persistence**: Data is not saved to the content layer data store
-
-## Differences from build-time collections
-
-Live collections use a different API than build-time content collections. Key differences include:
-
-1. **Execution time**: Run at request time instead of build time
-2. **Configuration file**: Use `src/live.config.ts` instead of `src/content.config.ts`
-3. **Collection definition**: Use `defineLiveCollection()` instead of `defineCollection()`
-4. **Loader API**: Implement `loadCollection` and `loadEntry` methods instead of the `load` method
-5. **Data return**: Return data directly instead of storing in the data store
-6. **User-facing functions**: Use `getLiveCollection`/`getLiveEntry` instead of `getCollection`/`getEntry`
