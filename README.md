@@ -6,7 +6,6 @@ To all who come to this happy place: welcome.
 This is the repo for [docs.astro.build](https://docs.astro.build/).
 This repo contains all the source code we use to build our docs site.
 
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/withastro/docs)
 [![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/github/withastro/docs)
 [![Open in Codeflow](https://developer.stackblitz.com/img/open_in_codeflow.svg)](https://pr.new/github.com/withastro/docs)
 
