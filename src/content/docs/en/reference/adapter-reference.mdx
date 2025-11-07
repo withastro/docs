@@ -569,6 +569,90 @@ if (app.setCookieHeaders) {
 }
 ```
 
+### `astro/app/node`
+
+Just like [`astro/app`](#astroapp), this module is used for rendering pages that have been prebuilt through `astro build`. This allows you to create a `NodeApp` providing all the methods available from `App` and additional methods useful for Node environments.
+
+The `NodeApp` constructor accepts a required SSR manifest argument, and optionally an argument to enable or disable streaming, defaulting to `true`.
+
+```js
+import { NodeApp } from 'astro/app/node';
+import http from 'http';
+
+export function start(manifest) {
+  const nodeApp = new NodeApp(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      nodeApp.render(event.request)
+    );
+  });
+}
+```
+
+The following additional methods are provided:
+
+#### `nodeApp.render()`
+
+<p>
+
+**Type:** `(request: NodeRequest | Request, options?: RenderOptions) => Promise<Response>`<br />
+<Since v="4.0.0" />
+</p>
+
+Extends [`app.render()`](#apprender) to also accept [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) objects in addition to standard `Request` objects as first argument. The second argument is an optional object allowing you to [control the rendering](#renderoptions).
+
+```js
+const response = await nodeApp.render(request);
+```
+
+#### `nodeApp.match()`
+
+<p>
+
+**Type:** `(req: NodeRequest | Request, allowPrerenderedRoutes?: boolean) => RouteData | undefined`
+</p>
+
+Extends [`app.match()`](#appmatch) to also accept [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) objects in addition to standard `Request` objects.
+
+```js
+if(nodeApp.match(request)) {
+  const response = await nodeApp.render(request);
+}
+```
+
+#### `nodeApp.headersMap`
+
+<p>
+
+**Type:** `NodeAppHeadersJson | undefined`<br />
+**Default:** `undefined`<br />
+<Since v="5.11.0" />
+</p>
+
+An array containing headers configuration. Each entry maps a pathname to a list of headers that should be applied for that route. This is useful for applying headers such as CSP directives to prerendered routes.
+
+#### `nodeApp.setHeadersMap()`
+
+<p>
+
+**Type:** `(headers: NodeAppHeadersJson) => void`<br />
+<Since v="5.11.0" />
+</p>
+
+Loads [headers configuration](#nodeappheadersmap) into the `NodeApp` instance. 
+
+```js
+nodeApp.setHeadersMap([
+  {
+    pathname: "/blog",
+    headers: [
+      { key: "Content-Security-Policy", value: "default-src 'self'" },
+    ]
+  }
+]);
+```
+
 ## Astro features
 
 Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter’s level of support.
