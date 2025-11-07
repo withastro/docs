@@ -434,7 +434,7 @@ Your blog post content here.
 
 ### Querying build-time collections
 
-Astro provides helper functions to query a collection and return one (or more) content entries.
+Astro provides helper functions to query a build-time collection and return one (or more) content entries.
 
 - [`getCollection()`](/en/reference/modules/astro-content/#getcollection) fetches an entire collection and returns an array of entries.
 - [`getEntry()`](/en/reference/modules/astro-content/#getentry) fetches a single entry from a collection.
@@ -471,7 +471,9 @@ const posts = (await getCollection('blog')).sort(
 
 #### Using content in Astro templates
 
-After querying your collections, you can access each entry's content directly inside of your Astro component template. For example, you can create a list of links to your blog posts, displaying information from your entry's frontmatter using the `data` property.
+After querying your collections, you can access each entry's content and metadata directly inside of your Astro component template.
+
+For example, you can create a list of links to your blog posts, displaying information from your entry's frontmatter using the `data` property:
 
 
 ```astro title="src/pages/index.astro"
@@ -486,11 +488,12 @@ const posts = await getCollection('blog');
   ))}
 </ul>
 ```
+
 #### Rendering body content 
 
-Once queried, you can render Markdown and MDX entries to HTML using the [`render()`](/en/reference/modules/astro-content/#render) function property. Calling this function gives you access to rendered HTML content, including both a `<Content />` component and a list of all rendered headings.
+Once queried, you can render Markdown and MDX entries to HTML using the [`render()`](/en/reference/modules/astro-content/#render) function from `astro:content`. Calling this function gives you access to rendered HTML content, including both a `<Content />` component and a list of all rendered headings.
 
-```astro title="src/pages/blog/post-1.astro" {5,8}
+```astro title="src/pages/blog/post-1.astro" {2,9}
 ---
 import { getEntry, render } from 'astro:content';
 
@@ -621,11 +624,9 @@ You can [generate page routes](#generating-routes-from-content) from your live c
 
 ### Creating a live loader
 
-A live loader is an object with two methods: `loadCollection()` and `loadEntry()`. These methods should handle errors gracefully and return either data or an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) object.
+A live loader is an object with two methods: `loadCollection()` and `loadEntry()`. These methods handle errors gracefully and return either data or an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) object.
 
-The standard pattern is to export a function that returns this loader object, allowing you to pass configuration options like API keys or endpoints.
-
-Here's a basic example:
+The standard pattern for a live loader is to export a function that returns this loader object, allowing you to pass configuration options like API keys or endpoints:
 
 ```ts title="myloader.ts"
 import type { LiveLoader } from 'astro/loaders';
@@ -692,7 +693,7 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
 
 #### Providing rendered content
 
-A loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) to render the content directly in your pages.
+A live loader can add support for directly rendered content by returning [a `rendered` property](/en/reference/content-loader-reference/#rendered) in the entry. This allows you to use [the same `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) available to build-time collections to render live content directly in your pages.
 
 If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
 
@@ -732,9 +733,9 @@ You can then [render both content and metadata from live collection entries](#re
 
 #### Error handling in live loaders
 
-Loaders should handle all errors and return an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) subclass for errors. You can create [custom error types](#creating-live-loader-error-types) and use them for more specific error handling if needed. If an error is thrown in the loader, it will be caught and returned, wrapped in a `LiveCollectionError`.
+Live loaders return an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) subclass for errors. You can create [custom error types](#creating-live-loader-error-types) and use them for more specific error handling if needed. If an error is thrown in the live loader, it will be caught and returned, wrapped in a `LiveCollectionError`.
 
-Astro will generate some errors itself, depending on the response from the loader:
+Astro will generate some errors itself, depending on the response from the live loader:
 
 - If `loadEntry` returns `undefined`, Astro will return a `LiveEntryNotFoundError` to the user.
 - If a schema is defined for the collection and the data does not match the schema, Astro will return a `LiveCollectionValidationError`.
@@ -766,11 +767,7 @@ Live loaders can also provide their own type safety by passing generic types to 
 
 ##### Defining data types
 
-Like regular content collections, live collections can be typed to ensure type safety in your data. [Using Zod schemas](#using-zod-schemas-with-live-collections) is supported, but not required to define types for live collections. Unlike preloaded collections defined at build time, live loaders can instead choose to pass generic types to the `LiveLoader` interface.
-
-You can define the types for your collection and entry data, as well as custom filter types for querying, and custom error types for error handling.
-
-Live loaders can define types for the data they return. This allows TypeScript to provide type checking and autocompletion when working with the data in your components.
+Live loaders can choose to pass generic types to the `LiveLoader` interface for the data they return. This allows TypeScript to provide type checking and autocompletion when working with the data in your components.
 
 ```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
 import type { LiveLoader } from 'astro/loaders';
@@ -781,7 +778,7 @@ export function storeLoader(): LiveLoader<Product> {
 }
 ```
 
-When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer the types based on the loader's definition:
+When you use `getLiveCollection()` or `getLiveEntry()` to access your live data, TypeScript will infer the types based on the loader's definition:
 
 ```astro
 ---
@@ -994,7 +991,7 @@ Cache hints only provide values that can be used in other parts of your project 
 
 Loaders can be defined in your site or as a separate npm package. If you want to share your loader with the community, you can [publish it to npm with the `astro-component` and `astro-loader` keywords](/en/reference/publish-to-npm/#packagejson-data).
 
-The loader should export a function that returns the `LiveLoader` object, allowing users to configure it with their own settings.
+The live loader should export a function that returns the `LiveLoader` object, allowing users to configure it with their own settings.
 
 ### Using Zod schemas with live collections
 
@@ -1028,7 +1025,7 @@ const products = defineLiveCollection({
 export const collections = { products };
 ```
 
-When using Zod schemas, validation errors are automatically caught and returned as `AstroError` objects:
+When using Zod schemas with live collections, validation errors are automatically caught and returned as `AstroError` objects:
 
 ```astro
 ---
@@ -1054,12 +1051,12 @@ console.log(entry?.data.displayPrice); // e.g., "$29.99"
 
 ### Accessing live data
 
-Astro provides helper functions to query a live collection and return one (or more) content entries. These can be used similarly to their [build-time collection counterparts](#querying-build-time-collections).
+Astro provides live collection helper functions to access live data on each request and return one (or more) content entries. These can be used similarly to their [build-time collection counterparts](#querying-build-time-collections).
 
 - [`getLiveCollection()`](/en/reference/modules/astro-content/#getlivecollection) fetches an entire collection and returns an array of entries.
 - [`getLiveEntry()`](/en/reference/modules/astro-content/#getliveentry) fetches a single entry from a collection.
 
-These return entries with a unique `id`, and `data` object with all defined properties from the data loader. When using third-party or community loaders distributed as npm packages, check their own documentation for the expected shape of data returned.
+These return entries with a unique `id`, and `data` object with all defined properties from the live loader. When using third-party or community loaders distributed as npm packages, check their own documentation for the expected shape of data returned.
 
 You can use these functions to access your live data, passing the name of the collection and optionally filtering conditions.
 
@@ -1082,7 +1079,7 @@ const { entry: product } = await getLiveEntry('products', Astro.params.slug);
 
 #### Rendering content
 
-If your loader [returns a `rendered` property](#providing-rendered-content), you can use [the `render()` function and `<Content />` component](#rendering-body-content) to render your content directly in your pages, using the same method as build-time collections.
+If your live loader [returns a `rendered` property](#providing-rendered-content), you can use [the `render()` function and `<Content />` component](#rendering-body-content) to render your content directly in your pages, using the same method as build-time collections.
 
 You also have access to any [error returned by the live loader](#error-handling-in-live-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
 
