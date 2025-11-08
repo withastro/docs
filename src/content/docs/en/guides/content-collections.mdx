@@ -166,8 +166,8 @@ The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) fetch
 This loader accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name.
 
 ```ts  title="src/content.config.ts" {5}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders';
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -183,7 +183,7 @@ The [`file()` loader](/en/reference/content-loader-reference/#file-loader) fetch
 It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
 
 ```ts  title="src/content.config.ts" {5}
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { file } from 'astro/loaders';
 
 const dogs = defineCollection({
@@ -201,13 +201,15 @@ The `file()` loader will automatically detect and parse (based on their file ext
 
 The following example shows importing a CSV parser, then loading a `cats` collection into your project by passing both a file path and `parser` function to the `file()` loader:
 
-```typescript title="src/content.config.ts" {3} "{ parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })}"
+```typescript title="src/content.config.ts" {3} "parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
 import { parse as parseCsv } from "csv-parse/sync";
 
 const cats = defineCollection({
-  loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
+  loader: file("src/data/cats.csv", {
+    parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true }),
+  }),
 });
 ```
 
@@ -222,6 +224,9 @@ The `parser` argument also allows you to load a single collection from a nested 
 You can separate these collections by passing a custom `parser` to the `file()` loader for each collection:
 
 ```typescript title="src/content.config.ts"
+import { file } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
 const dogs = defineCollection({
   loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
 });
@@ -247,6 +252,8 @@ You can define a loader inline, inside your collection, as an async function tha
 This is useful for loaders that don't need to manually control how the data is loaded and stored. Whenever the loader is called, it will clear the store and reload all the entries.
 
 ```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+
 const countries = defineCollection({
   loader: async () => {
     const response = await fetch("https://restcountries.com/v3.1/all");
@@ -740,8 +747,9 @@ Astro will generate some errors itself, depending on the response from the live 
 - If a schema is defined for the collection and the data does not match the schema, Astro will return a `LiveCollectionValidationError`.
 - If the loader returns an invalid cache hint, Astro will return a `LiveCollectionCacheHintError`. The `cacheHint` field is optional, so if you do not have valid data to return, you can simply omit it.
 
-```ts title="my-loader.ts" {9-11}
+```ts title="my-loader.ts" {10-12}
 import type { LiveLoader } from 'astro/loaders';
+import type { MyData } from "./types";
 import { MyLoaderError } from './errors.js';
 
 export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
@@ -861,6 +869,9 @@ export function productLoader(config: {
 You can create custom error types for [errors returned by your loader](#error-handling-in-live-loaders) and pass them as a generic to get proper typing:
 
 ```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import type { MyData } from "./types"
+
 class MyLoaderError extends Error {
   constructor(
     message: string,
@@ -911,13 +922,18 @@ if (error) {
 Live loaders can provide cache hints to help with response caching. You can use this data to send HTTP cache headers or otherwise inform your caching strategy.
 
 ```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import { byLastModified } from "./sort";
+import { loadStoreProduct, loadStoreProducts } from "./store";
+import type { MyData } from "./types";
+
 export function myLoader(config): LiveLoader<MyData> {
   return {
     name: 'cached-loader',
     loadCollection: async ({ filter }) => {
-      // ... fetch data
+      const products = await loadStoreProducts(filter);
       return {
-        entries: data.map((item) => ({
+        entries: products.map((item) => ({
           id: item.id,
           data: item,
           // You can optionally provide cache hints for each entry
@@ -930,14 +946,14 @@ export function myLoader(config): LiveLoader<MyData> {
           // tags are merged from all entries
           // maxAge is the shortest maxAge of all entries and the collection
           // lastModified is the most recent lastModified of all entries and the collection
-          lastModified: new Date(item.lastModified),
+          lastModified: new Date(products.sort(byLastModified)[0].lastModified),
           tags: ['products'],
           maxAge: 300, // 5 minutes
         },
       };
     },
     loadEntry: async ({ filter }) => {
-      // ... fetch single item
+      const item = await loadStoreProduct(filter);
       return {
         id: item.id,
         data: item,
@@ -954,7 +970,7 @@ export function myLoader(config): LiveLoader<MyData> {
 
 You can then use these hints in your pages:
 
-```astro
+```astro title="src/pages/store/[id].astro"
 ---
 export const prerender = false; // Not needed in 'server' mode
 
@@ -1026,11 +1042,12 @@ export const collections = { products };
 
 When using Zod schemas with live collections, validation errors are automatically caught and returned as `AstroError` objects:
 
-```astro
+```astro title="src/pages/store/index.astro"
 ---
 export const prerender = false; // Not needed in 'server' mode
 
-import { getLiveEntry, LiveCollectionValidationError } from 'astro:content';
+import { LiveCollectionValidationError } from 'astro/content/runtime';
+import { getLiveEntry } from 'astro:content';
 
 const { entry, error } = await getLiveEntry('products', '123');
 
@@ -1059,7 +1076,7 @@ These return entries with a unique `id`, and `data` object with all defined prop
 
 You can use these functions to access your live data, passing the name of the collection and optionally filtering conditions.
 
-```astro
+```astro title="src/pages/store/[slug].astro"
 ---
 export const prerender = false; // Not needed in 'server' mode
 
@@ -1082,7 +1099,7 @@ If your live loader [returns a `rendered` property](#providing-rendered-content)
 
 You also have access to any [error returned by the live loader](#error-handling-in-live-loaders), for example, to rewrite to a 404 page when content cannot be displayed:
 
-```astro "render(entry)" "<Content />"
+```astro title="src/pages/store/[id].astro" "render(entry)" "<Content />"
 ---
 export const prerender = false; // Not needed in 'server' mode
 
@@ -1113,11 +1130,12 @@ When you call `getLiveCollection()` or `getLiveEntry()`, the error will be one o
 
 These errors have a static `is()` method that you can use to check the type of error at runtime:
 
-```astro "LiveEntryNotFoundError.is(error)"
+```astro title="src/pages/store/[id].astro" "LiveEntryNotFoundError.is(error)"
 ---
 export const prerender = false; // Not needed in 'server' mode
 
-import { getLiveEntry, LiveEntryNotFoundError } from 'astro:content';
+import { LiveEntryNotFoundError } from 'astro/content/runtime';
+import { getLiveEntry } from 'astro:content';
 
 const { entry, error } = await getLiveEntry('products', Astro.params.id);
 
