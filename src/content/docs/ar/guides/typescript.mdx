@@ -1,0 +1,421 @@
+---
+title: TypeScript
+description: تعلّم كيفية استخدام دعم TypeScript المدمج في Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+يأتي **Astro** مزوّدًا بدعم مدمج لـ [TypeScript](https://www.typescriptlang.org/). يمكنك استيراد ملفات `.ts` و `.tsx` في مشروعك، وكتابة كود TypeScript مباشرةً داخل [مكوّنات Astro](/ar/basics/astro-components/#the-component-script)، بل ويمكنك أيضًا استخدام ملف [`astro.config.ts`](/ar/guides/configuring-astro/#the-astro-config-file) لتكوين إعدادات المشروع إن رغبت.
+
+باستخدام TypeScript، يمكنك تجنّب الأخطاء أثناء التشغيل عبر تعريف شكل الكائنات والمكوّنات في الكود الخاص بك. على سبيل المثال، إذا استخدمت TypeScript لتعريف [أنواع الخصائص (props) الخاصة بالمكوّنات](#component-props)، فسيُظهر لك المحرّر خطأً إذا مرّرت خاصية غير معرّفة للمكوّن.
+
+لست مضطرًا لكتابة كود TypeScript حتى تستفيد منه. فـ **Astro** يتعامل مع كود المكوّنات وكأنه TypeScript افتراضيًا، وملحق [Astro الخاص بـ VS Code](/ar/editor-setup/) يقوم بتخمين الأنواع لتوفير الإكمال التلقائي والتنبيهات والأخطاء في المحرّر.
+
+خادم التطوير في Astro لا يقوم بفحص الأنواع أثناء التشغيل، ولكن يمكنك استخدام [سكربت منفصل](#type-checking) لفحص أخطاء الأنواع عبر سطر الأوامر.
+
+## الإعداد
+
+تتضمّن مشاريع البدء في Astro ملف `tsconfig.json` داخل المشروع. حتى لو لم تستخدم TypeScript، يظل هذا الملف ضروريًا حتى يتمكّن كل من Astro و VS Code من فهم بنية مشروعك. بعض الميزات (مثل استيراد حزم npm) لن تعمل بشكل كامل داخل المحرّر دون وجود هذا الملف. وإذا قمت بتثبيت Astro يدويًا، فتأكّد من إنشاء هذا الملف بنفسك.
+
+### قوالب TSConfig
+
+يتضمّن Astro ثلاثة قوالب قابلة للتوسيع من `tsconfig.json`: وهي `base` و `strict` و `strictest`.  
+قالب `base` يفعّل ميزات JavaScript الحديثة ويُستخدم كأساس للقالبين الآخرين.  
+نوصي باستخدام `strict` أو `strictest` إذا كنت تخطط لكتابة كود TypeScript في مشروعك.  
+يمكنك الاطلاع على هذه القوالب الثلاثة ومقارنتها على [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+للاستفادة من أحد هذه القوالب، استخدم إعداد [`extends`](https://www.typescriptlang.org/tsconfig#extends):
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+بالإضافة إلى ذلك، نوصي بتحديد الخصائص `include` و `exclude` كما يلي للاستفادة من أنواع Astro وتجنّب فحص الملفات الناتجة بعد البناء:
+
+```json title="tsconfig.json" ins={3-4}
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+### إضافة TypeScript للمحرّر
+
+يمكنك تثبيت [إضافة TypeScript الخاصة بـ Astro](https://www.npmjs.com/package/@astrojs/ts-plugin) بشكل منفصل إذا لم تكن تستخدم [الملحق الرسمي لـ Astro في VS Code](https://marketplace.visualstudio.com/items?itemName=astro-build.astro-vscode).  
+يتم تثبيت هذه الإضافة تلقائيًا وإعدادها بواسطة ملحق VS Code، لذلك لا حاجة لتثبيتهما معًا.
+
+تعمل هذه الإضافة داخل المحرّر فقط، أي أنها لا تُشغَّل عند تنفيذ الأمر `tsc` في الطرفية.  
+عند استخدام `tsc`، يتم تجاهل ملفات `.astro` تمامًا.  
+بدلاً من ذلك، يمكنك استخدام [أمر CLI `astro check`](/ar/reference/cli-reference/#astro-check) لفحص كلٍّ من ملفات `.astro` و `.ts`.
+
+كما تدعم هذه الإضافة أيضًا استيراد ملفات `.astro` من ملفات `.ts`، وهو أمر مفيد في بعض الحالات مثل إعادة التصدير.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/ts-plugin
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/ts-plugin
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+بعد التثبيت، أضف الإضافة إلى ملف `tsconfig.json` الخاص بك:
+
+```json title="tsconfig.json"
+{
+  "compilerOptions": {
+    "plugins": [
+      {
+        "name": "@astrojs/ts-plugin"
+      },
+    ],
+  }
+}
+```
+للتأكّد من أن الإضافة تعمل بشكل صحيح، أنشئ ملفًا بامتداد `.ts` واستورد مكوّنًا من مكوّنات Astro داخله.  
+إذا لم تظهر أي رسائل تحذير في المحرّر، فهذا يعني أن الإضافة مفعّلة وتعمل كما يجب.
+
+### أُطر واجهات المستخدم (UI Frameworks)
+
+إذا كان مشروعك يستخدم أحد [أُطر واجهات المستخدم](/ar/guides/framework-components/)، فقد تحتاج إلى إعدادات إضافية تختلف حسب الإطار المستخدم.  
+راجع توثيق TypeScript الخاص بإطارك لمزيد من التفاصيل:
+
+- [Vue](https://vuejs.org/guide/typescript/overview.html#using-vue-with-typescript)
+- [React](https://react-typescript-cheatsheet.netlify.app/docs/basic/setup)
+- [Preact](https://preactjs.com/guide/v10/typescript)
+- [Solid](https://www.solidjs.com/guides/typescript)
+- [Svelte](https://svelte.dev/docs/svelte/typescript)
+
+## استيراد الأنواع (Type Imports)
+
+احرص على استخدام **استيراد وتصدير الأنواع بشكل صريح** متى كان ذلك ممكنًا.
+
+```js del={1} ins={2} ins="type"
+import { SomeType } from "./script";
+import type { SomeType } from "./script";
+```
+
+بهذه الطريقة، تتجنّب الحالات النادرة التي قد يحاول فيها مجمّع Astro ضمّ الأنواع المستوردة وكأنها ملفات JavaScript فعلية.
+
+يمكنك ضبط TypeScript ليفرض استخدام استيراد الأنواع في ملف `tsconfig.json`.  
+قم بتعيين الخيار [`verbatimModuleSyntax`](https://www.typescriptlang.org/tsconfig#verbatimModuleSyntax) إلى القيمة `true`.  
+سيقوم TypeScript عندها بفحص الاستيرادات وإعلامك متى يجب استخدام `import type`.  
+يُفعَّل هذا الإعداد افتراضيًا في جميع القوالب الجاهزة (presets) الخاصة بـ Astro.
+
+```json title="tsconfig.json" ins={3}
+{
+  "compilerOptions": {
+    "verbatimModuleSyntax": true
+  }
+}
+```
+
+## أسماء الاستيراد المختصرة (Import Aliases)
+
+يدعم **Astro** استخدام أسماء استيراد مختصرة يمكنك تعريفها داخل إعداد `paths` في ملف `tsconfig.json`.  
+[اطّلع على دليل الاستيراد الخاص بنا](/ar/guides/imports/#aliases) لمعرفة المزيد حول كيفية استخدامها.
+
+```astro title="src/pages/about/nate.astro" "@components" "@layouts"
+---
+import HelloWorld from "@components/HelloWorld.astro";
+import Layout from "@layouts/Layout.astro";
+---
+```
+
+```json title="tsconfig.json" {4-5}
+{
+  "compilerOptions": {
+    "paths": {
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"]
+    }
+  }
+}
+```
+
+## توسيع الأنواع العامة (Extending Global Types)
+
+يمكنك إنشاء ملف باسم `src/env.d.ts` كإجراء متّبع لإضافة تعريفات أنواع مخصّصة،  
+أو للاستفادة من أنواع **Astro** في حال لم يكن لديك ملف `tsconfig.json`:
+
+```ts title="src/env.d.ts"
+// تعريف أنواع مخصّصة
+declare var myString: string;
+
+// أنواع Astro — ليست ضرورية إذا كان لديك بالفعل ملف `tsconfig.json`
+/// <reference path="../.astro/types.d.ts" />
+```
+
+### `window` و `globalThis`
+
+قد تحتاج أحيانًا إلى إضافة خاصية إلى الكائن العام (global object).  
+يمكنك القيام بذلك عبر إضافة تعريفات على المستوى الأعلى باستخدام الكلمة المفتاحية `declare` داخل ملف `env.d.ts`:
+
+```ts title="src/env.d.ts"
+declare var myString: string;
+declare function myFunction(): boolean;
+```
+
+سيُوفّر هذا التعريف دعم الأنواع لكلٍّ من `globalThis.myString` و `globalThis.myFunction`،  
+وكذلك `window.myString` و `window.myFunction`.
+
+لاحظ أن الكائن `window` متاح فقط في كود الواجهة الأمامية (client-side).  
+أما `globalThis` فهو متاح في كلٍّ من الخادم (server-side) والواجهة الأمامية،  
+لكن القيم المعرّفة على الخادم لن تُشارك تلقائيًا مع الواجهة الأمامية.
+
+إذا كنت ترغب فقط في تعريف خاصية على كائن `window`، يمكنك بدلاً من ذلك تعريف واجهة (interface) باسم `Window` كما يلي:
+
+```ts title="src/env.d.ts"
+interface Window {
+	myFunction(): boolean;
+}
+```
+
+### إضافة خصائص غير قياسية (Non-standard Attributes)
+
+قد ترغب أحيانًا في تعريف نوع لخصائص مخصّصة أو لخصائص CSS خاصة بمشروعك.  
+يمكنك توسيع تعريفات JSX الافتراضية في **Astro** لإضافة هذه الخصائص غير القياسية عن طريق إعادة تعريف مساحة الأسماء `astroHTML.JSX` داخل ملف `.d.ts`.
+
+```ts title="src/env.d.ts"
+declare namespace astroHTML.JSX {
+  interface HTMLAttributes {
+    "data-count"?: number;
+    "data-label"?: string;
+  }
+
+  // إضافة خاصية CSS مخصّصة إلى كائن style
+  interface CSSProperties {
+    "--theme-color"?: "black" | "white";
+  }
+}
+```
+
+:::note
+يتم حقن الكائن `astroHTML` بشكلٍ عام داخل مكونات `.astro`.  
+أما إذا كنت تريد استخدامه داخل ملفات TypeScript، فيمكنك ذلك باستخدام [توجيه التعليمة الثلاثية](https://www.typescriptlang.org/docs/handbook/triple-slash-directives.html):
+
+```ts
+/// <reference types="astro/astro-jsx" />
+
+type MyAttributes = astroHTML.JSX.ImgHTMLAttributes;
+```
+:::
+
+### استخدام الاستيراد (Using Imports)
+
+قد ترغب في توسيع الأنواع العامة (global types) عبر إعادة استخدام أنواع تم تعريفها مسبقًا داخل مشروعك أو من مكتبة خارجية.  
+للقيام بذلك، استخدم [الاستيراد الديناميكي](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/import):
+
+```ts title="src/env.d.ts"
+type Product = {
+  id: string;
+  name: string;
+  price: number;
+};
+
+declare namespace App {
+  interface Locals {
+    orders: Map<string, Product[]>
+    session: import("./lib/server/session").Session | null;
+    user: import("my-external-library").User;
+  }
+}
+```
+
+ملف `.d.ts` هو إعلان لـ **وحدة محيطة** (ambient module). على الرغم من تشابه صيغته مع صيغة وحدات ES، إلا أن هذه الملفات لا تسمح بوجود استيرادات أو تصديرات على مستوى الأعلى (top-level imports/exports). إذا صادف TypeScript وجود استيراد أو تصدير في ملف `.d.ts`، فسيُعامل الملف على أنه **توسيع للوحدة** (module augmentation) — وهذا سيؤدّي إلى كسر تعريفات الأنواع العامة لديك.
+
+## خواص المكوّن (Component Props)
+
+يدعم **Astro** كتابة أنواع (typing) لخاصيات المكوّنات (component props) باستخدام TypeScript. لتمكين ذلك، أضِف واجهة TypeScript باسم `Props` داخل الـ frontmatter للمكوّن. يمكن استخدام عبارة `export` لكنّها ليست ضرورية. يقوم [ملحق Astro الخاص بـ VS Code](/ar/editor-setup/) بالبحث تلقائيًا عن واجهة `Props` وتوفير دعم TypeScript المناسب عند استخدام ذلك المكوّن داخل قالب آخر.
+
+```astro title="src/components/HelloProps.astro" ins={2-5}
+---
+interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting = "Hello", name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+### أنماط شائعة لتعريف أنواع الخصائص (Common Prop Type Patterns)
+
+- إذا كان المكوّن لا يستقبل أي خصائص أو محتوى ضمن الفتحات (slots)، يمكنك استخدام:
+  `type Props = Record<string, never>`.
+- إذا كان المكوّن يجب أن يحتوي على عناصر فرعية (children) في الفتحة الافتراضية، يمكنك فرض ذلك باستخدام:
+  `type Props = { children: any; };`.
+
+## أدوات أنواع (Type Utilities)
+
+<p><Since v="1.6.0" /></p>
+
+يأتي **Astro** مزوّدًا ببعض أنواع الأدوات (utility types) المضمّنة لأنماط الخصائص الشائعة.  
+تتوفر هذه الأنواع من خلال نقطة الدخول `astro/types`.
+
+### الخصائص المضمّنة لعناصر HTML (Built-in HTML Attributes)
+
+يوفّر Astro النوع `HTMLAttributes` للتحقّق من أن علامات HTML في مشروعك تستخدم الخصائص الصحيحة والمعتمدة.  
+يمكنك استخدام هذه الأنواع لبناء تعريفات دقيقة لخصائص المكوّنات (component props).
+
+على سبيل المثال، إذا كنت بصدد إنشاء مكوّن باسم `<Link>`، يمكنك استخدام هذا النوع لتعكس الخصائص الافتراضية لعناصر `<a>` في نوع الخصائص الخاص بالمكوّن:
+
+```astro title="src/components/Link.astro" ins="HTMLAttributes" ins="HTMLAttributes<'a'>"
+---
+import type { HTMLAttributes } from "astro/types";
+
+// استخدام `type`
+type Props = HTMLAttributes<"a">;
+
+// آو باستخدام `interface`
+interface Props extends HTMLAttributes<"a"> {
+  myProp?: boolean;
+}
+
+const { href, ...attrs } = Astro.props;
+---
+<a href={href} {...attrs}>
+  <slot />
+</a>
+```
+
+### نوع `ComponentProps`
+
+<p><Since v="4.3.0" /></p>
+
+يتيح لك هذا النوع الوصول إلى تعريف `Props` الخاص بمكوّن آخر، حتى لو لم يقم ذلك المكوّن بتصدير نوع `Props` بشكل مباشر.
+
+يوضّح المثال التالي كيفية استخدام أداة `ComponentProps` من مكتبة `astro/types` للإشارة إلى نوع الخصائص `Props` الخاص بمكوّن `<Button />`:
+
+```astro title="src/pages/index.astro"
+---
+import type { ComponentProps } from "astro/types";
+import Button from "./Button.astro";
+
+type ButtonProps = ComponentProps<typeof Button>;
+---
+```
+
+### النوع متعدد الأشكال (Polymorphic Type)
+
+<p><Since v="2.5.0" /></p>
+
+يتضمّن **Astro** أداة مساعدة لتسهيل إنشاء مكوّنات يمكنها العرض كعناصر HTML مختلفة مع الحفاظ على أمان الأنواع بشكل كامل.  
+يُعد هذا مفيدًا للمكوّنات مثل `<Link>` التي يمكن أن تُعرض إمّا كعنصر `<a>` أو `<button>` وفقًا للخصائص (props) الممرّرة إليها.
+
+يوضّح المثال التالي كيفية إنشاء مكوّن متعدد الأشكال مكتوب بالكامل بأنواع دقيقة (fully-typed) يمكنه العرض كأي عنصر HTML.  
+يُستخدم النوع [`HTMLTag`](#built-in-html-attributes) لضمان أن خاصية `as` تمثّل عنصر HTML صالحًا.
+
+```astro
+---
+import type { HTMLTag, Polymorphic } from "astro/types";
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+
+const { as: Tag, ...props } = Astro.props;
+---
+<Tag {...props} />
+```
+
+### Infer `getStaticPaths()` types
+
+<p><Since v="2.1.0" /></p>
+
+يتضمّن **Astro** أدوات مساعدة للعمل مع الأنواع الناتجة عن دالة [`getStaticPaths()`](/ar/reference/routing-reference/#getstaticpaths) الخاصة بالمسارات الديناميكية.
+
+يمكنك الحصول على نوع [`Astro.params`](/ar/reference/api-reference/#params) باستخدام `InferGetStaticParamsType`،  
+وعلى نوع [`Astro.props`](/ar/reference/api-reference/#props) باستخدام `InferGetStaticPropsType`.  
+كما يمكنك استخدام `GetStaticPaths` لاشتقاق النوعين معًا في خطوة واحدة.
+
+```astro title="src/pages/posts/[...id].astro" {2-6,18-19} "satisfies GetStaticPaths;"
+---
+import type {
+  InferGetStaticParamsType,
+  InferGetStaticPropsType,
+  GetStaticPaths,
+} from "astro";
+
+export const getStaticPaths = (async () => {
+  const posts = await getCollection("blog");
+  return posts.map((post) => {
+    return {
+      params: { id: post.id },
+      props: { draft: post.data.draft, title: post.data.title },
+    };
+  });
+}) satisfies GetStaticPaths;
+
+type Params = InferGetStaticParamsType<typeof getStaticPaths>;
+type Props = InferGetStaticPropsType<typeof getStaticPaths>;
+
+const { id } = Astro.params as Params;
+//                   ^? { id: string; }
+
+const { title } = Astro.props;
+//                      ^? { draft: boolean; title: string; }
+---
+```
+
+## فحص الأنواع (Type Checking)
+
+لرؤية أخطاء الأنواع مباشرة داخل المحرّر، تأكّد من تثبيت [ملحق Astro الخاص بـ VS Code](/ar/editor-setup/).  
+لاحظ أن أوامر `astro start` و `astro build` تقوم بترجمة الكود باستخدام **esbuild**، لكنها لا تُجري أي فحص لأنواع TypeScript.
+
+لمنع عملية البناء في حال احتوى الكود على أخطاء TypeScript، يمكنك تعديل سكربت "build" داخل ملف `package.json` كما يلي:
+
+```json title="package.json" del={3} ins={4} ins="astro check &&"
+{
+  "scripts": {
+    "build": "astro build",
+    "build": "astro check && astro build",
+  },
+}
+```
+
+:::note
+يقوم الأمر `astro check` بفحص جميع الملفات المضمّنة ضمن مشروع TypeScript الخاص بك.  
+ولفحص الأنواع داخل ملفات **Svelte** و **Vue**، يمكنك استخدام الحزم التالية على الترتيب:  
+[`svelte-check`](https://www.npmjs.com/package/svelte-check) و [`vue-tsc`](https://www.npmjs.com/package/vue-tsc).
+:::
+
+import ReadMore from '~/components/ReadMore.astro'
+
+<ReadMore>اطّلع على المزيد حول [استيراد ملفات `.ts`](/ar/guides/imports/#typescript) في Astro.</ReadMore>
+
+<ReadMore>اقرأ المزيد عن [إعدادات TypeScript](https://www.typescriptlang.org/tsconfig/).</ReadMore>
+
+## استكشاف الأخطاء وإصلاحها (Troubleshooting)
+
+### أخطاء عند كتابة أنواع متعددة من أُطر JSX في نفس المشروع
+
+قد تظهر بعض المشكلات عند استخدام أكثر من إطار JSX في مشروع واحد،  
+وذلك لأن كل إطار يتطلب إعدادات مختلفة — وأحيانًا متعارضة — داخل ملف `tsconfig.json`.
+
+**الحل:**  
+قم بتعيين الخيار [`jsxImportSource`](https://www.typescriptlang.org/tsconfig#jsxImportSource) إلى القيمة المناسبة لإطارك الأكثر استخدامًا، مثل:  
+`react` (الإعداد الافتراضي)، أو `preact`، أو `solid-js`.  
+ثم استخدم [تعليق pragma](https://www.typescriptlang.org/docs/handbook/jsx.html#configuring-jsx) داخل أي ملف يتبع إطارًا مختلفًا لتحديد مصدر JSX يدويًا.
+
+على سبيل المثال، مع الإعداد الافتراضي `jsxImportSource: react`، يمكنك استخدام:
+
+```jsx
+// لإطار Preact
+/** @jsxImportSource preact */
+
+// لإطار Solid
+/** @jsxImportSource solid-js */
+```
