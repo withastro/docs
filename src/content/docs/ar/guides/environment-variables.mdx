@@ -1,0 +1,376 @@
+---
+title: استخدام المتغيرات البيئية
+sidebar:
+  label: المتغيرات البيئية
+description: تعلّم كيفية استخدام المتغيرات البيئية في مشروع Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+
+يوفّر لك Astro إمكانية استخدام [دعم Vite المدمج للمتغيرات البيئية](#vites-built-in-support)، ويتضمّن بعض [المتغيرات البيئية الافتراضية لمشروعك](#default-environment-variables) التي تتيح لك الوصول إلى قيم الإعدادات الخاصة بمشروعك الحالي (مثل `site` و`base`) سواء كان المشروع يعمل في بيئة التطوير أو الإنتاج، والمزيد.
+
+كما يوفّر Astro طريقة [لاستخدام وتنظيم المتغيرات البيئية مع ضمان التحقق من الأنواع](#type-safe-environment-variables). يمكن استخدامها داخل سياق Astro (مثل مكوّنات Astro، أو المسارات والنهايات، أو مكوّنات أُطر العمل، أو الوسائط "middleware")، ويتم إدارتها من خلال [مخطط في إعدادات Astro الخاصة بك](/ar/reference/configuration-reference/#env).
+
+## دعم Vite المدمج
+
+يعتمد Astro على دعم Vite المدمج للمتغيرات البيئية، والتي يتم استبدالها بشكلٍ ثابت أثناء عملية البناء، ويسمح لك [باستخدام أي من طرقه](https://vite.dev/guide/env-and-mode.html) للتعامل معها.
+
+لاحظ أنه بينما تكون **جميع المتغيرات البيئية** متاحة في الشيفرة التي تعمل على الخادم، فإن المتغيرات البيئية التي تبدأ بالمقدمة `PUBLIC_` فقط هي التي تكون متاحة في الشيفرة التي تعمل على جهة العميل، وذلك لأسبابٍ أمنية.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+في هذا المثال، سيكون المتغير `PUBLIC_ANYBODY` (القابل للوصول عبر `import.meta.env.PUBLIC_ANYBODY`) متاحًا في كلٍ من شيفرة الخادم والعميل، بينما سيكون المتغير `SECRET_PASSWORD` (القابل للوصول عبر `import.meta.env.SECRET_PASSWORD`) متاحًا في جهة الخادم فقط.
+
+:::caution
+لن يتم تحميل ملفات `.env` داخل [ملفات الإعداد](#in-the-astro-config-file).
+:::
+
+### الإكمال التلقائي IntelliSense في TypeScript
+
+بشكلٍ افتراضي، يوفّر Astro تعريفات الأنواع الخاصة بـ `import.meta.env` داخل الملف `astro/client.d.ts`.
+
+ورغم أنه يمكنك تعريف المزيد من المتغيرات البيئية المخصصة في ملفات `.env.[mode]`، فقد ترغب أحيانًا في الحصول على ميزة الإكمال التلقائي IntelliSense في TypeScript للمتغيرات البيئية التي تُعرّفها بنفسك والمسبوقة بـ `PUBLIC_`.
+
+لتحقيق ذلك، يمكنك إنشاء ملف باسم `env.d.ts` داخل مجلد `src/` من أجل [توسيع الأنواع العامة](/ar/guides/typescript/#extending-global-types) وضبط واجهة `ImportMetaEnv` كما يلي:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // أضف المزيد من المتغيرات البيئية هنا...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## المتغيرات البيئية الافتراضية
+
+يتضمّن Astro عددًا من المتغيرات البيئية المدمجة بشكلٍ افتراضي:
+
+- `import.meta.env.MODE`: يحدّد وضع التشغيل الحالي للموقع. تكون قيمته `development` عند تشغيل الأمر `astro dev`، و`production` عند تشغيل `astro build`.
+- `import.meta.env.PROD`: تساوي `true` إذا كان الموقع يعمل في بيئة الإنتاج، و`false` في غير ذلك.
+- `import.meta.env.DEV`: تساوي `true` إذا كان الموقع يعمل في بيئة التطوير، و`false` في غير ذلك. وهي دائمًا معاكسة لقيمة `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: عنوان الأساس الذي يتم تقديم الموقع منه. يتم تحديده من خلال خيار الإعداد [`base`](/ar/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: يتم ضبطه بناءً على خيار [`site`](/ar/reference/configuration-reference/#site) المعرّف في ملف إعداد مشروعك `astro.config`.
+- `import.meta.env.ASSETS_PREFIX`: يُستخدم كمقدمة (prefix) للروابط الخاصة بالملفات التي ينشئها Astro إذا تم تحديد خيار [`build.assetsPrefix`](/ar/reference/configuration-reference/#buildassetsprefix). يمكن استخدامه لإنشاء روابط موارد (assets) لا يديرها Astro مباشرة.
+
+يمكنك استخدامها كما تستخدم أي متغير بيئي آخر.
+
+```ts utils.ts
+const isProd = import.meta.env.PROD;
+const isDev = import.meta.env.DEV;
+```
+
+## ضبط المتغيرات البيئية
+
+### ملفات `.env`
+
+يمكن تحميل المتغيرات البيئية من ملفات `.env` الموجودة داخل مجلد مشروعك.
+
+كل ما عليك هو إنشاء ملف باسم `.env` في مجلد المشروع، ثم إضافة المتغيرات التي تريدها بداخله.
+
+```ini title=".env"
+# سيكون هذا المتغير متاحًا فقط عند التشغيل على الخادم!
+DB_PASSWORD="foobar"
+
+# بينما سيكون هذا المتغير متاحًا في كل مكان!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+يمكنك أيضًا إضافة امتدادات مثل `.production` أو `.development` أو أي اسم وضع مخصص إلى اسم ملف البيئة نفسه (مثل `.env.testing` أو `.env.staging`).  
+يتيح لك ذلك استخدام مجموعات مختلفة من المتغيرات البيئية في أوقات مختلفة.
+
+تعمل أوامر `astro dev` و`astro build` بشكلٍ افتراضي في أوضاع `"development"` و`"production"` على التوالي.  
+ويمكنك تشغيل هذه الأوامر باستخدام العلم [`--mode`](/ar/reference/cli-reference/#--mode-string) لتمرير قيمة مختلفة للـ `mode` وتحميل ملف البيئة المناسب.
+
+يتيح لك هذا تشغيل خادم التطوير أو بناء موقعك مع الاتصال بواجهات برمجة تطبيقات (APIs) مختلفة، مثل:
+
+<PackageManagerTabs>
+ <Fragment slot="npm">
+    ```shell
+    # تشغيل خادم التطوير متصل بواجهة API بيئة "staging"
+    npm run astro dev -- --mode staging
+
+    # بناء الموقع متصل بواجهة API لبيئة "production" مع معلومات تصحيح إضافية
+    npm run astro build -- --devOutput
+
+    # بناء الموقع متصل بواجهة API لبيئة "testing"
+    npm run astro build -- --mode testing
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    # تشغيل خادم التطوير متصل بواجهة API بيئة "staging" 
+    pnpm astro dev --mode staging
+
+    # بناء الموقع متصل بواجهة API لبيئة "production" مع معلومات تصحيح إضافية
+    pnpm astro build --devOutput
+
+    # بناء الموقع متصل بواجهة API لبيئة "testing"
+    pnpm astro build --mode testing
+    ```
+ </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    # تشغيل خادم التطوير متصل بواجهة API بيئة "staging" 
+    yarn astro dev --mode staging
+
+    # بناء الموقع متصل بواجهة API لبيئة "production" مع معلومات تصحيح إضافية
+    yarn astro build --devOutput
+
+    # بناء الموقع متصل بواجهة API لبيئة "testing"
+    yarn astro build --mode testing
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+لمزيد من المعلومات حول ملفات `.env`، راجع [توثيق Vite](https://vite.dev/guide/env-and-mode.html#env-files).
+
+### داخل ملف إعداد Astro
+
+يقوم Astro بتقييم ملفات الإعداد قبل تحميل بقية الملفات.  
+وهذا يعني أنه لا يمكنك استخدام `import.meta.env` داخل ملف `astro.config.mjs` للوصول إلى المتغيرات البيئية المحددة في ملفات `.env`.
+
+يمكنك استخدام `process.env` داخل ملف الإعداد للوصول إلى المتغيرات البيئية الأخرى، مثل تلك [التي يحددها سطر الأوامر (CLI)](#using-the-cli).
+
+كما يمكنك أيضًا استخدام [دالة Vite المساعدة `loadEnv`](https://main.vite.dev/config/#using-environment-variables-in-config) لتحميل ملفات `.env` يدويًا.
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+:::note
+لا يسمح `pnpm` باستيراد الحزم (modules) التي لم يتم تثبيتها مباشرة في مشروعك.  
+إذا كنت تستخدم `pnpm`، فستحتاج إلى تثبيت حزمة `vite` لتتمكن من استخدام الدالة المساعدة `loadEnv`.
+
+```sh
+pnpm add -D vite
+```
+:::
+
+### استخدام سطر الأوامر (CLI)
+
+يمكنك أيضًا إضافة المتغيرات البيئية أثناء تشغيل مشروعك مباشرةً، مثل:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+## الوصول إلى المتغيرات البيئية
+
+يتم الوصول إلى المتغيرات البيئية في Astro من خلال `import.meta.env`، باستخدام ميزة [`import.meta` المضافة في ES2020](https://tc39.es/ecma262/2020/#prod-ImportMeta)، بدلاً من `process.env`.
+
+على سبيل المثال، يمكنك استخدام `import.meta.env.PUBLIC_POKEAPI` للحصول على قيمة المتغير البيئي `PUBLIC_POKEAPI`.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// عندما تكون import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// عندما تكون import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+عند استخدام ميزة **SSR (الاستدعاء من جهة الخادم)**، يمكن الوصول إلى المتغيرات البيئية أثناء وقت التشغيل اعتمادًا على مُهايئ SSR المستخدم.  
+في أغلب المهايئات، يمكنك الوصول إلى المتغيرات باستخدام `process.env`، ولكن بعض المهايئات تعمل بطريقة مختلفة.  
+فعلى سبيل المثال، في مُهايئ **Deno** ستستخدم `Deno.env.get()`.  
+أما في حالة استخدام مُهايئ **Cloudflare**، فيمكنك الاطلاع على [كيفية الوصول إلى بيئة التشغيل الخاصة بـ Cloudflare](/ar/guides/integrations-guide/cloudflare/#cloudflare-runtime) للتعامل مع المتغيرات البيئية.
+
+يقوم Astro أولاً بالبحث عن المتغيرات داخل بيئة الخادم، وإذا لم يجدها، فإنه ينتقل للبحث عنها في ملفات `.env`.
+
+## المتغيرات البيئية ذات الأنواع الآمنة (Type Safe)
+
+تتيح لك واجهة `astro:env` إعداد مخطط (schema) آمن من حيث الأنواع للـ [متغيرات البيئة التي قمت بتحديدها](#setting-environment-variables).  
+يسمح لك هذا بتحديد ما إذا كان المتغير متاحًا على الخادم أو العميل، بالإضافة إلى تحديد نوع بياناته وخصائصه الإضافية.
+
+<ReadMore>هل تطوّر مُهايئًا (Adapter)؟ اطّلع على كيفية [جعل المهايئ متوافقًا مع `astro:env`](/ar/reference/adapter-reference/#envgetsecret).</ReadMore>
+
+### الاستخدام الأساسي
+
+#### تعريف المخطط (Schema)
+
+لتهيئة المخطط، أضف الخيار `env.schema` إلى إعدادات مشروعك في ملف إعداد Astro:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
+```
+
+بعد ذلك، يمكنك [تسجيل المتغيرات كقيمة نصية (string)، رقمية (number)، تعداد (enum)، أو منطقية (boolean)](#data-types) باستخدام الدالة المساعدة `envField`.
+
+قم بتحديد [نوع المتغير البيئي](#variable-types) من خلال تحديد **السياق** (`"client"` أو `"server"`) و**مستوى الوصول** (`"secret"` أو `"public"`) لكل متغير،  
+ويمكنك أيضًا تمرير خصائص إضافية مثل `optional` (اختياري) أو `default` (قيمة افتراضية) داخل كائن الإعدادات.
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+سيتم توليد الأنواع (Types) تلقائيًا عند تشغيل الأمرين `astro dev` أو `astro build`،  
+ولكن يمكنك أيضًا تشغيل الأمر `astro sync` لتوليد الأنواع فقط دون تشغيل المشروع.
+
+#### استخدام المتغيرات من المخطط
+
+قم باستيراد المتغيرات التي عرّفتها واستخدمها من الوحدة المناسبة سواء كانت `/client` أو `/server`:
+
+```astro
+---
+import { API_URL } from "astro:env/client";
+import { API_SECRET_TOKEN } from "astro:env/server";
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
+	},
+})
+---
+
+<script>
+  import { API_URL } from "astro:env/client";
+  
+  fetch(`${API_URL}/ping`)
+</script>
+```
+
+### أنواع المتغيرات البيئية
+
+هناك ثلاثة أنواع من المتغيرات البيئية، يتم تحديدها بناءً على مزيج من إعدادات `context` (إما `"client"` أو `"server"`) و`access` (إما `"secret"` أو `"public"`) في المخطط الخاص بك:
+
+- **متغيرات العميل العامة (Public client variables):**  
+  هذه المتغيرات يتم تضمينها في حزم العميل والخادم النهائية،  
+  ويمكن الوصول إليها من كليهما من خلال وحدة `astro:env/client`:
+
+   ```js
+   import { API_URL } from "astro:env/client";
+   ```
+
+- **متغيرات الخادم العامة (Public server variables):**  
+  يتم تضمين هذه المتغيرات في الحزمة النهائية الخاصة بالخادم،  
+  ويمكن الوصول إليها على الخادم من خلال وحدة `astro:env/server`:
+
+   ```js
+   import { PORT } from "astro:env/server";
+   ```
+
+- **متغيرات الخادم السرّية (Secret server variables):**  
+  هذه المتغيرات لا يتم تضمينها في الحزمة النهائية إطلاقًا،  
+  ويمكن الوصول إليها فقط على الخادم من خلال وحدة `astro:env/server`:
+
+   ```js
+   import { API_SECRET } from "astro:env/server";
+   ```
+
+   بشكلٍ افتراضي، يتم التحقق من المتغيرات السرّية أثناء وقت التشغيل فقط.  
+  يمكنك تفعيل التحقق منها عند بدء التشغيل عن طريق ضبط الخيار [`validateSecrets: true`](/ar/reference/configuration-reference/#envvalidatesecrets).
+
+:::note
+**المتغيرات السرّية الخاصة بالعميل (Secret client variables)** غير مدعومة،  
+لأنه لا توجد طريقة آمنة لإرسال هذه البيانات إلى العميل.  
+لذلك، لا يمكن الجمع بين `context: "client"` و`access: "secret"` في المخطط الخاص بك.
+:::
+
+### أنواع البيانات
+
+يدعم النظام حاليًا أربعة أنواع من البيانات: **string (نصي)**، **number (رقمي)**، **enum (تعدادي)**، و**boolean (منطقي)**:
+
+```js
+import { envField } from "astro/config";
+
+envField.string({
+   // السياق ومستوى الوصول
+   optional: true,
+   default: "foo",
+})
+
+envField.number({
+   // السياق ومستوى الوصول
+   optional: true,
+   default: 15,
+})
+
+envField.boolean({
+   // السياق ومستوى الوصول
+   optional: true,
+   default: true,
+})
+
+envField.enum({
+   // السياق ومستوى الوصول
+   values: ["foo", "bar", "baz"],
+   optional: true,
+   default: "baz",
+})
+```
+
+<ReadMore>للاطلاع على قائمة كاملة بخصائص التحقق، راجع [مرجع واجهة برمجة التطبيقات `envField`](/ar/reference/configuration-reference/#envschema).</ReadMore>
+
+### جلب القيم السرّية ديناميكيًا
+
+على الرغم من تعريفك لمخطط المتغيرات، فقد تحتاج أحيانًا إلى جلب القيمة الأصلية (الخام) لمتغير سرّي معيّن أو لجلب متغيرات سرّية لم تُعرّفها في المخطط.  
+في هذه الحالة، يمكنك استخدام الدالة `getSecret()` المصدّرة من الوحدة `astro:env/server`:
+
+```js
+import {
+   FOO, // نوعه boolean
+   getSecret
+} from "astro:env/server";
+
+getSecret("FOO"); // ترجع string أو undefined
+```
+
+<ReadMore>تعرّف على المزيد في [مرجع واجهة برمجة التطبيقات](/ar/reference/modules/astro-env/#getsecret).</ReadMore>
+
+### القيود
+
+الوحدة `astro:env` هي وحدة افتراضية (virtual module)، مما يعني أنه يمكن استخدامها فقط داخل سياق Astro.  
+على سبيل المثال، يمكنك استخدامها في:
+
+- الوسائط (Middlewares)
+- المسارات والنهايات في Astro
+- مكوّنات Astro
+- مكوّنات أطر العمل
+- الوحدات (Modules)
+
+بينما **لا يمكن** استخدامها في الأماكن التالية، ويجب عليك في هذه الحالات استخدام `process.env` بدلًا منها:
+
+- ملف `astro.config.mjs`
+- السكربتات (Scripts)
