@@ -1,35 +1,35 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: 'Start',
-	'start.welcome': 'Witaj, świecie!',
-	'start.newProject': 'Rozpocznij nowy projekt',
-	'start.config': 'Konfiguracja',
-	'start.migrate': 'Migracja do Astro',
+	start: 'Start', // Start
+	'start.welcome': 'Witaj, świecie!', // Welcome, world!
+	'start.newProject': 'Rozpocznij nowy projekt', // Start a new project
+	'start.config': 'Konfiguracja', // Configuration
+	'start.migrate': 'Migracja do Astro', // Migrate to Astro
 
-	guides: 'Przewodniki i przykłady',
-	'guides.routing': 'Routing i nawigacja',
-	'guides.ui': 'Zbuduj swój interfejs użytkownika',
-	'guides.content': 'Dodaj treści do swojej strony',
-	'guides.serverRendering': 'Renderowanie po stronie serwera',
-	'guides.upgrade': 'Aktualizacje',
-	'guides.upgrade.major': 'Przewodniki po ważnych aktualizacjach',
-	'guides.recipes': 'Przykłady zastosowań',
+	guides: 'Przewodniki i przykłady', // Guides and recipes
+	'guides.routing': 'Routing i nawigacja', // Routing and navigation
+	'guides.ui': 'Zbuduj swój interfejs użytkownika', // Build your UI
+	'guides.content': 'Dodaj treści do swojej strony', // Add content to your site
+	'guides.serverRendering': 'Renderowanie po stronie serwera', // Server rendering
+	'guides.upgrade': 'Aktualizacje', // Upgrade
+	'guides.upgrade.major': 'Przewodniki po ważnych aktualizacjach', // Major upgrade guides
+	'guides.recipes': 'Przykłady zastosowań', // How-to recipes
 
-	reference: 'Odniesienia',
-	'reference.runtime': 'API Runtime',
-	'reference.other': 'Inne API dla programistów',
-	'reference.syntax': 'Składnia szablonów Astro',
-	'reference.experimental': 'Funkcje eksperymentalne',
+	reference: 'Odniesienia', // Reference
+	'reference.runtime': 'API Runtime', // Runtime API
+	'reference.other': 'Inne API dla programistów', // Other development APIs
+	'reference.syntax': 'Składnia szablonów Astro', // Astro Template Syntax
+	'reference.experimental': 'Funkcje eksperymentalne', // Experimental features
 
-	integrations: 'Integracje',
-	'integrations.ui': 'Frameworki UI',
-	'integrations.adapters': 'Adaptery',
-	'integrations.other': 'Inne oficjalne integracje',
+	integrations: 'Integracje', // Integrations
+	'integrations.ui': 'Frameworki UI', // UI frameworks
+	'integrations.adapters': 'Adaptery', // Adapters
+	'integrations.other': 'Inne oficjalne integracje', // Other official integrations
 
-	thirdParty: 'Usługi stron trzecich',
-	'thirdParty.deployment': 'Przewodniki wdrażania',
-	'thirdParty.cms': 'Systemy zarządzania treściami',
-	'thirdParty.backend': 'Usługi backendowe',
-	'thirdParty.media': 'Hostowanie obrazów i wideo',
+	thirdParty: 'Usługi stron trzecich', // Third-party services
+	'thirdParty.deployment': 'Przewodniki wdrażania', // Deployment guides
+	'thirdParty.cms': 'Systemy zarządzania treściami', // Content management systems
+	'thirdParty.backend': 'Usługi backendowe', // Backend services
+	'thirdParty.media': 'Hostowanie obrazów i wideo', // Image and video hosting
 });
