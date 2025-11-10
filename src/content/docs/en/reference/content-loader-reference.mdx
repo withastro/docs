@@ -11,13 +11,15 @@ Astro's  Content Loader API allows you to load your data from any source, local 
 
 ## What is a loader?
 
-Astro loaders allow you to load data into [content collections](/en/guides/content-collections/), which can then be used in pages and components. The [built-in `glob()` and `file()` loaders](/en/guides/content-collections/#build-time-collection-loaders) are used to load content from the file system, and you can create your own loaders to load content from other sources.
+Astro loaders allow you to load data into [content collections](/en/guides/content-collections/), which can then be used in pages and components. The [built-in `glob()` and `file()` loaders](#built-in-loaders) are used at built time to load content from the file system. You can also create your own [built-time loaders](/en/guides/content-collections/#custom-build-time-loaders) or [live loaders](/en/guides/content-collections/#creating-a-live-loader) to load content from other sources.
 
-Each collection needs a loader defined in its schema. You can define a loader inline in your project's `src/content.config.ts` file, share one loader between multiple collections, or even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
+Each collection needs to define a loader and an optional schema. For build-time collections, you can define a loader inline in your project's `src/content.config.ts` file or share an object loader between multiple collections. For live collections, you'll need to create your own live loader and import it in your `src/live.config.ts` file. In both cases, you can even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
 
 ## Built-in loaders
 
 Astro provides two built-in loaders to help you fetch your collections. Both offer options to suit a wide range of use cases.
+
+<ReadMore>Learn more about [using built-time loaders](/en/guides/content-collections/#build-time-content-collections) with guided explanations and example usage.</ReadMore>
 
 ### `glob()` loader
 
@@ -31,19 +33,17 @@ The `glob()` loader creates entries from directories of files from anywhere on t
 
 This loader accepts an object with the following properties: `pattern`, `base` (optional), and `generateId` (optional).
 
-```ts title="src/content.config.ts" {2,6,11,17-21}
+```ts title="src/content.config.ts" {2,6,10,15-19}
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const pages = defineCollection({
   /* Retrieve all Markdown files in your pages directory. */
   loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
-  schema: /* ... */
 });
 const blog = defineCollection({
   /* Retrieve all Markdown and MDX files in your blog directory. */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
-  schema: /* ... */
 });
 const authors = defineCollection({
   /* Retrieve all JSON files in your authors directory while retaining
@@ -53,7 +53,6 @@ const authors = defineCollection({
     base: "./src/data/authors",
     generateId: ({ entry }) => entry.replace(/\.json$/, ''),
   }),
-  schema: /* ... */
 });
 ```
 
@@ -104,21 +103,19 @@ The `file()` loader creates entries from a single file that contains an array of
 
 This loader accepts a `fileName` property and an optional object as second argument:
 
-```ts title="src/content.config.ts" {2,6,11-13}
+```ts title="src/content.config.ts" {2,6,10-12}
 import { defineCollection } from 'astro:content';
 import { file } from 'astro/loaders';
 
 const authors = defineCollection({
   /* Retrieve all entries from a JSON file. */
   loader: file("src/data/authors.json"),
-  schema: /* ... */
 });
 const products = defineCollection({
   /* Retrieve all entries from a CSV file using a custom parser. */
   loader: file("src/data/products.csv", {
     parser: (fileContent) => { /* your parser logic */ },
   }),
-  schema: /* ... */
 });
 ```
 
@@ -160,6 +157,8 @@ An inline loader is an async function that returns an array or object containing
 The function can be async and must return either an array of entries that each contain a unique `id` field, or an object where each key is a unique ID and each value is the entry. Whenever the loader is invoked, it will clear the store and reload all the entries. 
 
 ```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+
 const countries = defineCollection({
   loader: async () => {
     const response = await fetch("https://restcountries.com/v3.1/all");
@@ -171,7 +170,6 @@ const countries = defineCollection({
       ...country,
     }));
   },
-  schema: /* ... */
 });
 ```
 
@@ -182,7 +180,7 @@ A loader is an object with a [`load()` method](#load) that is called at build ti
 The recommended pattern is to define a function that accepts configuration options and returns the loader object, in the same way that you would normally define an Astro integration or Vite plugin. 
 
 
-```ts title=loader.ts
+```ts title="src/loader.ts"
 import type { Loader, LoaderContext } from 'astro/loaders';
 import { z } from 'astro:content';
 import { loadFeedData } from "./feed.js";
@@ -211,16 +209,15 @@ export function myLoader(options: { url: string, apiKey: string }): Loader {
 These configuration options can then be set when defining a collection:
 
 ```ts title="src/content.config.ts"  {2,5-8}  
-import { defineCollection, z } from 'astro:content';  
-import myLoader from '../../loader.ts';  
+import { defineCollection } from 'astro:content';
+import { myLoader } from './loader.ts';
 
-const blog = defineCollection({  
+const blog = defineCollection({
   loader: myLoader({
     url: "https://api.example.com/posts",
     apiKey: "my-secret",
-  }),  
-  schema: /* ... */  
-});  
+  }),
+});
 ```
 
 ### Live loaders
@@ -290,7 +287,7 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
 }
 ```
 
-<ReadMore>[See the `Content Collection` guide](/en/guides/content-collections/#creating-a-live-loader) for more information about creating a live loader and example usage.</ReadMore>
+<ReadMore>See [how to create a live loader](/en/guides/content-collections/#creating-a-live-loader) with example usage.</ReadMore>
 
 ## Object loader API
 
@@ -393,7 +390,7 @@ The full, resolved Astro configuration object with all defaults applied. See [th
 
 Validates and parses the data according to the collection schema. Pass data to this function to validate and parse it before storing it in the data store.
 
-```ts title=loader.ts {14-17}
+```ts title=loader.ts {15-18}
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
@@ -407,8 +404,9 @@ export function feedLoader({ url }): Loader {
       store.clear();
 
       for (const item of feed.items) {
+        const id = item.guid;
         const data = await parseData({
-          id: item.guid,
+          id,
           data: item,
         });
         store.set({
@@ -469,7 +467,7 @@ export function myLoader(settings): Loader {
 
 Generates a non-cryptographic content digest of an object or string. This can be used to track if the data has changed by setting [the `digest` field](#digest) of an entry.
 
-```ts title=loader.ts {19,24}
+```ts title=loader.ts {20,25}
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
@@ -483,8 +481,9 @@ export function feedLoader({ url }): Loader {
       store.clear();
 
       for (const item of feed.items) {
+        const id = item.guid;
         const data = await parseData({
-          id: item.guid,
+          id,
           data: item,
         });
 
@@ -537,7 +536,10 @@ return {
 
 If the loader has been triggered by an integration, this may optionally contain extra data set by that integration. It is only set when the loader is triggered by an integration. See the [`astro:server:setup`](/en/reference/integrations-reference/#refreshcontent-option) hook reference for more information.
 
-```ts title=loader.ts {5-8}
+```ts title=loader.ts {8-11}
+import type { Loader } from "astro/loaders";
+import { processWebhook } from "./lib/webhooks";
+
 export function myLoader(options: { url: string }): Loader {
   return {
     name: "my-loader",
@@ -580,10 +582,11 @@ The returned object is a [`DataEntry`](#dataentry) object.
 
 Used after data has been [validated and parsed](#parsedata) to add an entry to the store, returning `true` if the entry was set. This returns `false` when the [`digest`](#digest) property determines that an entry has not changed and should not be updated.
 
-```ts title=loader.ts {7-14}
+```ts title=loader.ts {8-15}
     for (const item of feed.items) {
+      const id = item.guid;
       const data = await parseData({
-        id: item.guid,
+        id,
         data: item,
       });
       const digest = generateDigest(data);
