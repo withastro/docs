@@ -111,6 +111,7 @@ export const logos = LogoCheck({
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
 	zephyr: { file: 'zephyr.svg', padding: '0' },
 	seenode: { file: 'seenode.svg', padding: '.2em' },
+	jekyllpad: { file: 'jekyllpad.svg', padding: '0' },
 });
 
 export type LogoKey = keyof typeof logos;
