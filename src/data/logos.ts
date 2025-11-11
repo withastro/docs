@@ -21,6 +21,7 @@ export const logos = LogoCheck({
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
+	juno: { file: 'juno.svg', padding: '.1625em' },
 	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
