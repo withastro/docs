@@ -872,11 +872,8 @@ You can create custom error types for [errors returned by your loader](#error-ha
 import type { LiveLoader } from "astro/loaders";
 import type { MyData } from "./types"
 
-class MyLoaderError extends Error {
-  constructor(
-    message: string,
-    public code?: string
-  ) {
+export class MyLoaderError extends Error {
+  constructor(message: string, public code?: string) {
     super(message);
     this.name = 'MyLoaderError';
   }
@@ -903,11 +900,12 @@ When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer th
 export const prerender = false; // Not needed in 'server' mode
 
 import { getLiveEntry } from 'astro:content';
+import { MyLoaderError } from "../my-loader";
 
 const { entry, error } = await getLiveEntry('products', '123');
 
 if (error) {
-  if (error.name === 'MyLoaderError') {
+  if (error instanceof MyLoaderError) {
     console.error(`Loader error: ${error.message} (code: ${error.code})`);
   } else {
     console.error(`Unexpected error: ${error.message}`);
@@ -1128,7 +1126,7 @@ When you call `getLiveCollection()` or `getLiveEntry()`, the error will be one o
 - A `LiveCollectionCacheHintError` if the cache hint is invalid
 - A `LiveCollectionError` for other errors, such as uncaught errors thrown in the loader
 
-These errors have a static `is()` method that you can use to check the type of error at runtime:
+You can use `instanceof` to check the type of an error at runtime:
 
 ```astro title="src/pages/store/[id].astro" "LiveEntryNotFoundError.is(error)"
 ---
@@ -1140,7 +1138,7 @@ import { getLiveEntry } from 'astro:content';
 const { entry, error } = await getLiveEntry('products', Astro.params.id);
 
 if (error) {
-  if (LiveEntryNotFoundError.is(error)) {
+  if (error instanceof LiveEntryNotFoundError) {
     console.error(`Product not found: ${error.message}`);
     Astro.response.status = 404;
   } else {
