@@ -4,26 +4,26 @@ sidebar:
   label: Adapter API
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { FileTree } from '@astrojs/starlight/components';
-
 
 Astro is designed to make it easy to deploy to any cloud provider for on-demand rendering, also known as server-side rendering (SSR). This ability is provided by __adapters__, which are [integrations](/en/reference/integrations-reference/). See the [on-demand rendering guide](/en/guides/on-demand-rendering/) to learn how to use an existing adapter.
 
 ## What is an adapter?
 
-An adapter is a special kind of [integration](/en/reference/integrations-reference/) that provides an entrypoint for server rendering at request time. An adapter does two things:
+An adapter is a special kind of [integration](/en/reference/integrations-reference/) that provides an entrypoint for server rendering at request time. An adapter has access to the full Integration API and does two things:
 
 - Implements host-specific APIs for handling requests.
 - Configures the build according to host conventions.
 
-## Building an Adapter
+## Building an adapter
 
-An adapter is an [integration](/en/reference/integrations-reference/) and can do anything that an integration can do.
+Create an integration and call the `setAdapter()` function in the [`astro:config:done`](/en/reference/integrations-reference/#astroconfigdone) hook. This allows you to define a server entrypoint and the features supported by your adapter.
 
-An adapter __must__ call the `setAdapter` API in the `astro:config:done` hook like so:
+The following example creates an adapter with a server entrypoint and stable support for Astro static output:
 
-```js title="my-adapter.mjs"
+```js title="my-adapter.mjs" {5-13} "setAdapter"
 export default function createIntegration() {
   return {
     name: '@example/my-adapter',
@@ -33,7 +33,7 @@ export default function createIntegration() {
           name: '@example/my-adapter',
           serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
-              staticOutput: 'stable'
+            staticOutput: 'stable'
           }
         });
       },
@@ -42,106 +42,226 @@ export default function createIntegration() {
 }
 ```
 
-The object passed into `setAdapter` is defined as:
+The `setAdapter()` function accepts an object containing the following properties:
 
-```ts
-interface AstroAdapter {
-	name: string;
-	serverEntrypoint?: string;
-	previewEntrypoint?: string;
-	exports?: string[];
-	args?: any;
-	adapterFeatures?: AstroAdapterFeatures;
-	supportedAstroFeatures: AstroAdapterFeatureMap;
-	client?: {
-		/**
-		 * Headers to inject into Astro's internal fetch calls (Actions, View Transitions, Server Islands, Prefetch).
-		 * Can be an object of headers or a function that returns headers.
-		 */
-		internalFetchHeaders?: Record<string, string> | (() => Record<string, string>);
-		/**
-		 * Query parameters to append to all asset URLs (images, stylesheets, scripts, etc.).
-		 * Useful for adapters that need to track deployment versions or other metadata.
-		 */
-		assetQueryParams?: URLSearchParams;
-	};
-}
+### `name`
 
-export interface AstroAdapterFeatures {
-	/**
-	 * Creates an edge function that will communicate with the Astro middleware.
-	 */
-	edgeMiddleware: boolean;
-	/**
-	 * Determine the type of build output the adapter is intended for. Defaults to `server`;
-	 */
-	buildOutput?: 'static' | 'server';
-}
+<p>
 
-export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated' | 'limited';
+**Type:** `string`
+</p>
 
-export type AdapterSupportWithMessage = {
-	support: Exclude<AdapterSupportsKind, 'stable'>;
-	message: string;
-	suppress?: 'default' | 'all';
-};
+Defines a unique name for your adapter. This will be used for logging.
 
-export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
+### `serverEntrypoint`
 
-export type AstroAdapterFeatureMap = {
-  /**
-   * The adapter is able to serve static pages
-   */
-  staticOutput?: AdapterSupport;
-  /**
-   * The adapter is able to serve pages that are static or rendered via server
-   */
-  hybridOutput?: AdapterSupport;
-  /**
-   * The adapter is able to serve pages rendered on demand
-   */
-  serverOutput?: AdapterSupport;
-  /**
-	 * The adapter is able to support i18n domains
-	 */
-	i18nDomains?: AdapterSupport;
-	/**
-	 * The adapter is able to support `getSecret` exported from `astro:env/server`
-	 */
-	envGetSecret?: AdapterSupport;
-  /**
-   * The adapter supports the Sharp image service
-   */
-  sharpImageService?: AdapterSupport;
-};
-```
+<p>
 
-The properties are:
+**Type:** `string | URL`
+</p>
 
-* __name__: A unique name for your adapter, used for logging.
-* __serverEntrypoint__: The entrypoint for on-demand server rendering.
-* __exports__: An array of named exports when used in conjunction with `createExports` (explained below).
-* __adapterFeatures__: An object that enables specific features that must be supported by the adapter. 
-  These features will change the built output, and the adapter must implement the proper logic to handle the different output. 
-* __supportedAstroFeatures__: A map of Astro built-in features. This allows Astro to determine which features an adapter is unable or unwilling to support so appropriate error messages can be provided.
+Defines the entrypoint for on-demand rendering.
 
-### Server Entrypoint
+<ReadMore>Learn more about [building a server entrypoint](#building-a-server-entrypoint).</ReadMore>
 
-Astro's adapter API attempts to work with any type of host, and gives a flexible way to conform to the host APIs.
+### `supportedAstroFeatures`
 
-#### Exports
+<p>
 
-Some serverless hosts expect you to export a function, such as `handler`:
+**Type:** `AstroAdapterFeatureMap`<br />
+<Since v="3.0.0" />
+</p>
 
-```js
-export function handler(event, context) {
-  // ...
+A map of Astro's built-in features supported by the adapter. This allows Astro to determine which features an adapter supports, so appropriate error messages can be provided.
+
+<ReadMore>Discover the [available Astro features](#astro-features) that an adapter can configure.</ReadMore>
+
+### `adapterFeatures`
+
+<p>
+
+**Type:** `AstroAdapterFeatures`<br />
+<Since v="3.0.0" />
+</p>
+
+An object that specifies which [adapter features that change the build output](#adapter-features) are supported by the adapter.
+
+### `args`
+
+<p>
+
+**Type:** `any`
+</p>
+
+A JSON-serializable value that will be passed to the adapter's server entrypoint at runtime. This is useful to pass an object containing build-time configuration (e.g. paths, secrets) to your server runtime code.
+
+The following example defines an `args` object with a property that identifies where assets generated by Astro are located:
+
+```js title="my-adapter.mjs" {9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          args: {
+            assets: config.build.assets
+          }
+        });
+      },
+    },
+  };
 }
 ```
 
-With the adapter API you achieve this by implementing `createExports` in your `serverEntrypoint`:
+### `client`
 
-```js
+<p>
+
+**Type:** `{ internalFetchHeaders?: Record<string, string> | () => Record<string, string>; assetQueryParams?: URLSearchParams; }`<br />
+<Since v="5.15.0" />
+</p>
+
+A configuration object for Astro's client-side code.
+
+#### `internalFetchHeaders`
+
+<p>
+
+**Type:** `Record<string, string> | () => Record<string, string>`
+</p>
+
+Defines the headers to inject into Astro's internal fetch calls (e.g. Actions, View Transitions, Server Islands, Prefetch). This can be an object of headers or a function that returns headers.
+
+The following example retrieves a `DEPLOY_ID` from the environment variables and, if provided, returns an object with the header name as key and the deploy id as value:
+
+```js title="my-adapter.mjs" {9-14}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          client: {
+            internalFetchHeaders: () => {
+              const deployId = process.env.DEPLOY_ID;
+              return deployId ? { 'Your-Header-ID': deployId } : {};
+            },
+          },
+        });
+      },
+    },
+  };
+}
+```
+
+#### `assetQueryParams`
+
+<p>
+
+**Type:** `URLSearchParams`
+</p>
+
+Defines the query parameters to append to all asset URLs (e.g. images, stylesheets, scripts). This is useful for adapters that need to track deployment versions or other metadata.
+
+The following example retrieves a `DEPLOY_ID` from the environment variables and, if provided, returns an object with a custom search parameter name as key and the deploy id as value:
+
+```js title="my-adapter.mjs" {9-13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          client: {
+            assetQueryParams: process.env.DEPLOY_ID
+              ? new URLSearchParams({ yourParam: process.env.DEPLOY_ID })
+              : undefined,
+          },
+        });
+      },
+    },
+  };
+}
+```
+
+### `exports`
+
+<p>
+
+**Type:** `string[]`
+</p>
+
+Defines an array of named exports to use in conjunction with the [`createExports()` function](#createexports) of your server entrypoint.
+
+The following example assumes that `createExports()` provides an export named `handler`:
+
+```js title="my-adapter.mjs" {9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          exports: ['handler']
+        });
+      },
+    },
+  };
+}
+```
+
+### `previewEntrypoint`
+
+<p>
+
+**Type:** `string | URL`<br />
+<Since v="1.5.0" />
+</p>
+
+Defines the path or ID of a module in the adapter's package that is responsible for starting up the built server when `astro preview` is run.
+
+```js title="my-adapter.mjs" {9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          previewEntrypoint: '@example/my-adapter/preview.js',
+        });
+      },
+    },
+  };
+}
+```
+
+## Building a server entrypoint
+
+You will need to create a file that executes during server-side requests to enable on-demand rendering with your particular host. Astro's adapter API attempts to work with any type of host and gives a flexible way to conform to the host APIs.
+
+### `createExports()`
+
+<p>
+
+Type: `(manifest: SSRManifest, options: any) => Record<string, any>`
+</p>
+
+An exported function that takes an SSR manifest as its first argument and an object containing your adapter [`args`](#args) as its second argument. This should provide the exports required by your host.
+
+For example, some serverless hosts expect you to export an `handler()` function. With the adapter API, you achieve this by implementing `createExports()` in your server entrypoint:
+
+```js title="my-adapter/server.js"
 import { App } from 'astro/app';
 
 export function createExports(manifest) {
@@ -155,7 +275,7 @@ export function createExports(manifest) {
 }
 ```
 
-And then in your integration, where you call `setAdapter`, provide this name in `exports`:
+And then in your integration, where you call `setAdapter()`, provide this name in [`exports`](#exports):
 
 ```js title="my-adapter.mjs" ins={9}
 export default function createIntegration() {
@@ -174,11 +294,34 @@ export default function createIntegration() {
 }
 ```
 
-#### Start
+You can access the [`args`](#args) defined by your adapter through the second argument of `createExports()`. This can be useful when you need to access build-time configuration in your server entrypoint. For example, your server might need to identify where assets generated by Astro are located:
 
-Some hosts expect you to *start* the server yourselves, for example by listening to a port. For these types of hosts, the adapter API allows you to export a `start` function which will be called when the bundle script is run.
+```js title="my-adapter/server.js" {4} "args"
+import { App } from 'astro/app';
 
-```js
+export function createExports(manifest, args) {
+  const assetsPath = args.assets;
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+### `start()`
+
+<p>
+
+Type: `(manifest: SSRManifest, options: any) => Record<string, any>`
+</p>
+
+An exported function that takes an SSR manifest as its first argument and an object containing your adapter [`args`](#args) as its second argument.
+
+Some hosts expect you to *start* the server yourselves, for example, by listening to a port. For these types of hosts, the adapter API allows you to export a `start()` function, which will be called when the bundle script is run.
+
+```js title="my-adapter/server.js"
 import { App } from 'astro/app';
 
 export function start(manifest) {
@@ -190,9 +333,11 @@ export function start(manifest) {
 }
 ```
 
-#### `astro/app`
+### `astro/app`
 
-This module is used for rendering pages that have been prebuilt through `astro build`. Astro uses the standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects. Hosts that have a different API for request/response should convert to these types in their adapter.
+This module is used for rendering pages that have been prebuilt through `astro build`. Astro uses the standard [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects. Hosts that have a different API for request/response should convert to these types in their adapter.
+
+The `App` constructor accepts a required SSR manifest argument, and optionally an argument to enable or disable streaming, defaulting to `true`.
 
 ```js
 import { App } from 'astro/app';
@@ -211,14 +356,14 @@ export function start(manifest) {
 
 The following methods are provided:
 
-##### `app.render()`
+#### `app.render()`
 
 <p>
 
 **Type:** `(request: Request, options?: RenderOptions) => Promise<Response>`
 </p>
 
-This method calls the Astro page that matches the request, renders it, and returns a Promise to a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This also works for API routes that do not render pages.
+A method that accepts a required `request` argument and an optional `RenderOptions` object. This calls the Astro page that matches the request, renders it, and returns a promise to a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This also works for API routes that do not render pages.
 
 ```js
 const response = await app.render(request);
@@ -231,7 +376,7 @@ const response = await app.render(request);
 **Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-The `app.render()` method accepts a mandatory `request` argument, and an optional `RenderOptions` object for [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`prerenderedErrorPageFetch`](#prerenderederrorpagefetch), and [`routeData`](#routedata).
+An object that controls the rendering and contains the following properties:
 
 ###### `addCookieHeader`
 
@@ -243,8 +388,8 @@ The `app.render()` method accepts a mandatory `request` argument, and an optiona
 
 Whether or not to automatically add all cookies written by `Astro.cookie.set()` to the response headers.
 
-When set to `true`, they will be added to the `Set-Cookie` header of the response as comma separated key-value pairs. You can use the standard `response.headers.getSetCookie()` API to read them individually.
-When set to `false`(default), the cookies will only be available from `App.getSetCookieFromResponse(response)`.
+When set to `true`, they will be added to the `Set-Cookie` header of the response as comma-separated key-value pairs. You can use the standard `response.headers.getSetCookie()` API to read them individually.
+When set to `false`(default), the cookies will only be available from [`App.getSetCookieFromResponse(response)`](#appgetsetcookiefromresponse).
 
 ```js
 const response = await app.render(request, { addCookieHeader: true });
@@ -282,15 +427,15 @@ The example below reads a header named `x-private-header`, attempts to parse it 
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
-    if (privateHeader) {
-        locals = JSON.parse(privateHeader);
-    }
+  if (privateHeader) {
+    locals = JSON.parse(privateHeader);
+  }
 } finally {
-    const response = await app.render(request, { locals });
+  const response = await app.render(request, { locals });
 }
 ```
 
-###### `prerenderedErrorPageFetch`
+###### `prerenderedErrorPageFetch()`
 
 <p>
 
@@ -305,22 +450,23 @@ This is used to override the default `fetch()` behavior, for example, when `fetc
 
 The following example reads `500.html` and `404.html` from disk instead of performing an HTTP call:
 
-```js "prerenderedErrorPageFetch"
+```ts "prerenderedErrorPageFetch"
 return app.render(request, {
   prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
     if (url.includes("/500")) {
-        const content = await fs.promises.readFile("500.html", "utf-8");
-        return new Response(content, {
-          status: 500,
-          headers: { "Content-Type": "text/html" },
-        });
+      const content = await fs.promises.readFile("500.html", "utf-8");
+      return new Response(content, {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      });
     }
 
     const content = await fs.promises.readFile("404.html", "utf-8");
-      return new Response(content, {
-        status: 404,
-        headers: { "Content-Type": "text/html" },
-      });
+    return new Response(content, {
+      status: 404,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
 });
 ```
 
@@ -334,26 +480,26 @@ If not provided, Astro will fallback to its default behavior for fetching error 
 **Default:** `app.match(request)`
 </p>
 
-Provide a value for [`integrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference) if you already know the route to render. Doing so will bypass the internal call to [`app.match`](#appmatch) to determine the route to render.
+Provides a value for [`integrationRouteData`](/en/reference/integrations-reference/#integrationroutedata-type-reference) if you already know the route to render. Doing so will bypass the internal call to [`app.match()`](#appmatch) to determine the route to render.
 
 ```js "routeData"
 const routeData = app.match(request);
 if (routeData) {
-    return app.render(request, { routeData });
+  return app.render(request, { routeData });
 } else {
-    /* adapter-specific 404 response */
-    return new Response(..., { status: 404 });
+  /* adapter-specific 404 response */
+  return new Response(..., { status: 404 });
 }
 ```
 
-##### `app.match()`
+#### `app.match()`
 
 <p>
 
-**Type:** `(request: Request) => RouteData | undefined`
+**Type:** `(request: Request, allowPrerenderedRoutes = false) => RouteData | undefined`
 </p>
 
-This method is used to determine if a request is matched by the Astro app's routing rules.
+Determines if a request is matched by the Astro app's routing rules.
 
 ```js
 if(app.match(request)) {
@@ -363,24 +509,284 @@ if(app.match(request)) {
 
 You can usually call `app.render(request)` without using `.match` because Astro handles 404s if you provide a `404.astro` file. Use `app.match(request)` if you want to handle 404s in a different way.
 
-## Allow installation via `astro add`
+By default, prerendered routes aren't returned, even if they are matched. You can change this behavior by using `true` as the second argument.
 
-[The `astro add` command](/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project. If you want _your_ adapter to be installable with this tool, **add `astro-adapter` to the `keywords` field in your `package.json`**:
+#### `app.getAdapterLogger()`
 
-```json
-{
-  "name": "example",
-  "keywords": ["astro-adapter"],
+<p>
+
+**Type:** `() => AstroIntegrationLogger`<br />
+<Since v="v3.0.0" />
+</p>
+
+Returns an [instance of the Astro logger](/en/reference/integrations-reference/#astrointegrationlogger) available to the adapter's runtime environment.
+
+```js "logger"
+const logger = app.getAdapterLogger();
+try {
+  /* Some logic that can throw */
+} catch {
+  logger.error("Your custom error message using Astro logger.");
 }
 ```
 
-Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` will install your package with any peer dependencies specified in your `package.json`. We will also instruct users to update their project config manually.
+#### `app.getAllowedDomains()`
+
+<p>
+
+**Type:** `() => Partial<RemotePattern>[] | undefined`<br />
+<Since v="5.14.2" />
+</p>
+
+Returns a list of permitted host patterns for incoming requests when using on-demand rendering [as defined in the user configuration](/en/reference/configuration-reference/#securityalloweddomains).
+
+#### `app.removeBase()`
+
+<p>
+
+**Type:** `(pathname: string) => string`<br />
+<Since v="1.6.4" />
+</p>
+
+Removes the base from the given path. This is useful when you need to look up assets from the filesystem.
+
+#### `app.setCookieHeaders()`
+
+<p>
+
+**Type:** `(response: Response) => Generator<string, string[], any>`<br />
+<Since v="1.4.0" />
+</p>
+
+Returns a generator that yields individual cookie header values from a `Response` object. This is used to properly handle multiple cookies that may have been set during request processing.
+
+The following example appends a `Set-Cookie` header for each header obtained from a response:
+
+```js
+for (const setCookieHeader of app.setCookieHeaders(response)) {
+  response.headers.append('Set-Cookie', setCookieHeader);
+}
+```
+
+#### `App.getSetCookieFromResponse()`
+
+<p>
+
+**Type:** `(response: Response) => Generator<string, string[]>`<br />
+<Since v="4.2.0" />
+</p>
+
+Returns a generator that yields individual cookie header values from a `Response` object. This works in the same way as [`app.setCookieHeaders()`](#appsetcookieheaders), but can be used at any time as it is a static method.
+
+The following example appends a `Set-Cookie` header for each header obtained from a response:
+
+```js
+for (const cookie of App.getSetCookieFromResponse(response)) {
+  response.headers.append('Set-Cookie', cookie);
+}
+```
+
+#### `App.validateForwardedHost()`
+
+<p>
+
+**Type:** `(forwardedHost: string, allowedDomains?: Partial<RemotePattern>[], protocol?: string = 'https') => boolean`<br />
+<Since v="5.14.2" />
+</p>
+
+Checks whether a `forwardedHost` matches any of the given [`allowedDomains`](/en/reference/configuration-reference/#securityalloweddomains). This static method accepts a third argument that allows you to override the host protocol, defaulting to `https`.
+
+The following example retrieves the `forwardedHost` from the headers and checks if the host matches an allowed domain:
+
+```js {4-6}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const forwardedHost = event.request.headers.get('X-Forwarded-Host');
+    if (App.validateForwardedHost(forwardedHost, manifest.allowedDomains)) {
+      /* do something */
+    }
+  });
+}
+```
+
+#### `App.sanitizeHost()`
+
+<p>
+
+**Type:** `(hostname: string | undefined) => string | undefined`<br />
+<Since v="5.15.5" />
+</p>
+
+Validates a hostname by rejecting any name containing path separators. When a hostname is invalid, this static method will return `undefined`.
+
+The following example retrieves the `forwardedHost` from the headers and sanitizes it:
+
+```js {4}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const forwardedHost = event.request.headers.get('X-Forwarded-Host');
+    const sanitized = App.sanitizeHost(forwardedHost);
+  });
+}
+```
+
+#### `App.validateForwardedHeaders()`
+
+<p>
+
+**Type:** `(forwardedProtocol?: string, forwardedHost?: string, forwardedPort?: string, allowedDomains?: Partial<RemotePattern>[]) => { protocol?: string; host?: string; port?: string }`<br />
+<Since v="5.15.5" />
+</p>
+
+Validates the forwarded protocol, host, and port against the `allowedDomains`. This static method returns validated values or `undefined` for rejected headers.
+
+The following example validates the forwarded headers against the authorized domains defined in the received manifest:
+
+```js {3-8}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const validated = App.validateForwardedHeaders(
+      request.headers.get('X-Forwarded-Proto') ?? undefined,
+      request.headers.get('X-Forwarded-Host') ?? undefined,
+      request.headers.get('X-Forwarded-Port') ?? undefined,
+      manifest.allowedDomains,
+    );
+  });
+}
+```
+
+### `astro/app/node`
+
+Just like [`astro/app`](#astroapp), this module is used for rendering pages that have been prebuilt through `astro build`. This allows you to create a `NodeApp` providing all the methods available from `App` and additional methods useful for Node environments.
+
+The `NodeApp` constructor accepts a required SSR manifest argument, and optionally an argument to enable or disable streaming, defaulting to `true`.
+
+```js
+import { NodeApp } from 'astro/app/node';
+import http from 'http';
+
+export function start(manifest) {
+  const nodeApp = new NodeApp(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      nodeApp.render(event.request)
+    );
+  });
+}
+```
+
+The following additional methods are provided:
+
+#### `nodeApp.render()`
+
+<p>
+
+**Type:** `(request: NodeRequest | Request, options?: RenderOptions) => Promise<Response>`<br />
+<Since v="4.0.0" />
+</p>
+
+Extends [`app.render()`](#apprender) to also accept [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) objects in addition to standard `Request` objects as the first argument. The second argument is an optional object allowing you to [control the rendering](#renderoptions).
+
+```js
+const response = await nodeApp.render(request);
+```
+
+#### `nodeApp.match()`
+
+<p>
+
+**Type:** `(req: NodeRequest | Request, allowPrerenderedRoutes?: boolean) => RouteData | undefined`
+</p>
+
+Extends [`app.match()`](#appmatch) to also accept [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) objects in addition to standard `Request` objects.
+
+```js
+if(nodeApp.match(request)) {
+  const response = await nodeApp.render(request);
+}
+```
+
+#### `nodeApp.headersMap`
+
+<p>
+
+**Type:** `NodeAppHeadersJson | undefined`<br />
+**Default:** `undefined`<br />
+<Since v="5.11.0" />
+</p>
+
+An array containing the headers configuration. Each entry maps a pathname to a list of headers that should be applied for that route. This is useful for applying headers such as CSP directives to prerendered routes.
+
+#### `nodeApp.setHeadersMap()`
+
+<p>
+
+**Type:** `(headers: NodeAppHeadersJson) => void`<br />
+<Since v="5.11.0" />
+</p>
+
+Loads [headers configuration](#nodeappheadersmap) into the `NodeApp` instance. 
+
+```js
+nodeApp.setHeadersMap([
+  {
+    pathname: "/blog",
+    headers: [
+      { key: "Content-Security-Policy", value: "default-src 'self'" },
+    ]
+  }
+]);
+```
+
+#### `NodeApp.createRequest()`
+
+<p>
+
+**Type:** `(req: NodeRequest, options?: { skipBody?: boolean; allowedDomains?: Partial<RemotePattern>[]; }) => Request`<br />
+<Since v="4.2.0" />
+</p>
+
+Converts a NodeJS `IncomingMessage` into a standard `Request` object. This static method accepts an optional object as the second argument, allowing you to define if the body should be ignored, defaulting to `false`, and the [`allowedDomains`](/en/reference/configuration-reference/#securityalloweddomains).
+
+The following example creates a `Request` and passes it to `app.render()`:
+
+```js {5}
+import { NodeApp } from 'astro/app/node';
+import { createServer } from 'node:http';
+
+const server = createServer(async (req, res) => {
+  const request = NodeApp.createRequest(req);
+  const response = await app.render(request);
+})
+```
+
+#### `NodeApp.writeResponse()`
+
+<p>
+
+**Type:** `(source: Response, destination: ServerResponse) => Promise<ServerResponse<IncomingMessage> | undefined>`<br />
+<Since v="4.2.0" />
+</p>
+
+Streams a web-standard `Response` into a NodeJS server response. This static method takes a `Response` object and the initial `ServerResponse` before returning a promise of a `ServerResponse` object.
+
+The following example creates a `Request`, passes it to `app.render()`, and writes the response:
+
+```js {7}
+import { NodeApp } from 'astro/app/node';
+import { createServer } from 'node:http';
+
+const server = createServer(async (req, res) => {
+  const request = NodeApp.createRequest(req);
+  const response = await app.render(request);
+  await NodeApp.writeResponse(response, res);
+})
+```
 
 ## Astro features
 
-<p><Since v="3.0.0" /></p>
-
-Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter's level of support. 
+Astro features are a way for an adapter to tell Astro whether they are able to support a feature, and also the adapter’s level of support.
 
 When using these properties, Astro will:
 - run specific validation; 
@@ -441,17 +847,327 @@ export default function createIntegration() {
 }
 ```
 
-### `suppress`
+This object contains the following configurable features:
+
+### `staticOutput`
 
 <p>
 
-  **Type:** `'default' | 'all'`<br />
-  <Since v="5.9.0" />
+**Type:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+Defines whether the adapter is able to serve static pages.
+
+### `hybridOutput`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+Defines whether the adapter is able to serve sites that include a mix of static and on-demand rendered pages.
+
+### `serverOutput`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+Defines whether the adapter is able to serve on-demand rendered pages.
+
+### `i18nDomains`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.3.0" />
+</p>
+
+Defines whether the adapter is able to support i18n domains.
+
+### `envGetSecret`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.10.0" />
+</p>
+
+Defines whether the adapter is able to support `getSecret()` exported from [`astro:env/server`](/en/reference/modules/astro-env/). When enabled, this feature allows your adapter to retrieve secrets configured by users in `env.schema`.
+
+The following example enables the feature by passing [a valid `AdapterSupportsKind` value](#adaptersupportskind) to the adapter:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            envGetSecret: 'stable'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+The `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In [your server entrypoint](#building-a-server-entrypoint), call `setGetEnv()` as soon as possible:
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+If the adapter supports secrets, be sure to call `setGetEnv()` before `getSecret()` when environment variables are tied to the request:
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+  [key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+  const app = new App(manifest);
+
+  const fetch = async (request: Request, env: Env) => {
+    setGetEnv(createGetEnv(env));
+
+    const response = await app.render(request);
+
+    return response;
+  };
+
+  return { default: { fetch } };
+}
+```
+
+### `sharpImageService`
+
+<p>
+
+**Type:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="5.0.0" />
+</p>
+
+Defines whether the adapter supports image transformation using the built-in Sharp image service.
+
+## Adapter features
+
+A set of features that changes the output of the emitted files. When an adapter opts in to these features, they will get additional information inside specific hooks and must implement the proper logic to handle the different output.
+
+### `edgeMiddleware`
+
+<p>
+
+**Type:** `boolean`
+</p>
+
+Defines whether any on-demand rendering middleware code will be bundled when built.
+
+When enabled, this prevents middleware code from being bundled and imported by all pages during the build:
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+Then, consume the hook [`astro:build:ssr`](/en/reference/integrations-reference/#astrobuildssr), which will give you a `middlewareEntryPoint`, an `URL` to the physical file on the file system.
+
+```js title="my-adapter.mjs" ins={15-20}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+        // remember to check if this property exits, it will be `undefined` if the adapter doesn't opt in to the feature
+        if (middlewareEntryPoint) {
+          createEdgeMiddleware(middlewareEntryPoint)
+        }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+  // emit a new physical file using your bundler
+}
+```
+
+### `buildOutput`
+
+<p>
+
+**Type:** `"static" | "server"`<br />
+**Default:** `"server"`<br />
+<Since v="5.0.0" />
+</p>
+
+Allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type. For example, your adapter might expect a static website, but uses an adapter to create host-specific files. Defaults to `server` if not specified.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            buildOutput: 'static'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+
+**Type:** `boolean`<br />
+<Since v="5.9.3" />
+</p>
+
+Whether or not the adapter provides experimental support for setting response headers for static pages. When this feature is enabled, Astro will return a map of the `Headers` emitted by the static pages. This map `experimentalRouteToHeaders` is available in the [`astro:build:generated` hook](/en/reference/integrations-reference/#astrobuildgenerated) for generating files such as a `_headers` that allows you to make changes to the default HTTP header.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            experimentalStaticHeaders: true,
+          },
+        });
+      },
+      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
+        // use `experimentalRouteToHeaders` to generate a configuration file
+        // for your virtual host of choice
+      },
+    },
+  };
+}
+```
+
+The value of the headers might change based on the features enabled/used by the application. For example, if [CSP is enabled](/en/reference/experimental-flags/csp/), the `<meta http-equiv="content-security-policy">` element is not added to the static page. Instead, its `content` is available in the `experimentalRouteToHeaders` map. 
+
+## Adapter types reference
+
+### `AdapterSupport`
+
+<p>
+
+**Type:** <code><a href="#adaptersupport">AdapterSupportsKind</a> | <a href="#adaptersupportwithmessage">AdapterSupportWithMessage</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+A union of valid formats to describe the support level for a feature.
+
+### `AdapterSupportsKind`
+
+<p>
+
+**Type:** `"deprecated" | "experimental" | "limited" | "stable" | "unsupported"`
+</p>
+
+Defines the level of support for a feature by your adapter:
+* Use `"deprecated"` when your adapter deprecates support for a feature before removing it completely in a future version.
+* Use `"experimental"` when your adapter adds support for a feature, but issues or breaking changes are expected.
+* Use `"limited"` when your adapter only supports a subset of the full feature.
+* Use `"stable"` when the feature is fully supported by your adapter.
+* Use `"unsupported"` to warn users that they may encounter build issues in their project, as this feature is not supported by your adapter.
+
+### `AdapterSupportWithMessage`
+
+<p>
+
+<Since v="5.0.0" />
+</p>
+
+An object that allows you to define a support level for a feature and a message to be logged in the user console. This object contains the following properties:
+
+#### `support`
+
+<p>
+
+**Type:** <code>Exclude\<<a href="#adaptersupportskind">AdapterSupportsKind</a>, "stable"\></code>
+</p>
+
+Defines the level of support for a feature by your adapter.
+
+#### `message`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Defines a custom message to log regarding the support of a feature by your adapter.
+
+#### `suppress`
+
+<p>
+
+**Type:** `"default" | "all"`<br />
+<Since v="5.9.0" />
 </p>
 
 An option to prevent showing some or all logged messages about an adapter's support for a feature.
 
-If Astro's default log message is redundant, or confusing to the user in combination with your custom `message`, you can use `suppress: "default"` to suppress the default message and only log your message:
+If Astro's default log message is redundant, or confusing to the user in combination with your [custom `message`](#message), you can use `suppress: "default"` to suppress the default message and only log your message:
 
 ```js title="my-adapter.mjs" ins={13}
 export default function createIntegration() {
@@ -501,210 +1217,15 @@ export default function createIntegration() {
 }
 ```
 
-## Adapter features
+## Allow installation via `astro add`
 
-A set of features that changes the output of the emitted files. When an adapter opts in to these features, they will get additional information inside specific hooks.
+[The `astro add` command](/en/reference/cli-reference/#astro-add) allows users to easily add integrations and adapters to their project.  To allow your adapter to be installed with this command, **add `astro-adapter` to the `keywords` field in your `package.json`**:
 
-### `edgeMiddleware`
-
-<p>
-
-**Type:** `boolean`
-</p>
-
-Defines whether any on-demand rendering middleware code will be bundled when built.
-
-When enabled, this prevents middleware code from being bundled and imported by all pages during the build:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-    },
-  };
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
 }
 ```
 
-Then, consume the hook [`astro:build:ssr`](/en/reference/integrations-reference/#astrobuildssr), which will give you a `middlewareEntryPoint`, an `URL` to the physical file on the file system.
-
-```js title="my-adapter.mjs" ins={15-20}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ middlewareEntryPoint }) => {
-          // remember to check if this property exits, it will be `undefined` if the adapter doesn't opt in to the feature
-          if (middlewareEntryPoint) {
-             createEdgeMiddleware(middlewareEntryPoint)
-          }
-      }  
-    },
-  };
-}
-
-function createEdgeMiddleware(middlewareEntryPoint) {
-    // emit a new physical file using your bundler
-}
-```
-
-### envGetSecret
-
-<p>
-
-**Type:** `AdapterSupportsKind`
-</p>
-
-This is a feature to allow your adapter to retrieve secrets configured by users in `env.schema`.
-
-Enable the feature by passing any valid `AdapterSupportsKind` value to the adapter:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              envGetSecret: 'stable'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-The `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In your server entrypoint, call `setGetEnv()` as soon as possible:
-
-```js ins={2,4}
-import { App } from 'astro/app';
-import { setGetEnv } from "astro/env/setup"
-
-setGetEnv((key) => process.env[key])
-
-export function createExports(manifest) {
-  const app = new App(manifest);
-
-  const handler = (event, context) => {
-    // ...
-  };
-
-  return { handler };
-}
-```
-
-If you support secrets, be sure to call `setGetEnv()` before `getSecret()` when your environment variables are tied to the request:
-
-```js ins={3,14}
-import type { SSRManifest } from 'astro';
-import { App } from 'astro/app';
-import { setGetEnv } from 'astro/env/setup';
-import { createGetEnv } from '../utils/env.js';
-
-type Env = {
-	[key: string]: unknown;
-};
-
-export function createExports(manifest: SSRManifest) {
-	const app = new App(manifest);
-
-	const fetch = async (request: Request, env: Env) => {
-		setGetEnv(createGetEnv(env));
-
-		const response = await app.render(request);
-
-		return response;
-	};
-
-	return { default: { fetch } };
-}
-```
-
-### buildOutput
-
-<p>
-
-**Type:** `'static' | 'server'`<br />
-<Since v="5.0.0" />
-</p>
-
-This property allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type, for instance, your adapter might expect a static website, but uses an adapter to create host-specific files. Defaults to `server` if not specified.
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            buildOutput: 'static'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-### experimentalStaticHeaders
-
-<p>
-
-**Type:** `true | false`<br />
-<Since v="5.9.3" />
-</p>
-
-When this feature is enabled, Astro will return a map of the `Headers` emitted by the static pages. This map `experimentalRouteToHeaders` is available in the `astro:build:generated` hook.
-  
-The value of the headers might change based on the features enabled/used by the application.
-
-For example, if CSP enabled, the `<meta http-equiv="content-security-policy">` element is not added to the static page. Instead its `content` is available in the `experimentalRouteToHeaders` map. 
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            experimentalStaticHeaders: true,
-          },
-        });
-      },
-      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
-        // use `experimentalRouteToHeaders` to generate a configuration file
-        // for your virtual host of choice
-      },
-    },
-  };
-}
-```
+Once you [publish your adapter to npm](https://docs.npmjs.com/cli/v8/commands/npm-publish), running `astro add example` will install your package with any peer dependencies specified in your `package.json` and instruct users to update their project config manually.
