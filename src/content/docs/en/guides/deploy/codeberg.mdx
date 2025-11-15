@@ -1,0 +1,130 @@
+---
+title: Deploy Your Astro Site to Codeberg Pages
+description: How to deploy your Astro website to the web using Codeberg Pages.
+sidebar:
+  label: Codeberg Pages
+type: deploy
+---
+import { Steps } from '@astrojs/starlight/components';
+
+You can host your Astro website using [Codeberg Pages](https://codeberg.page/) directly from your repository on [Codeberg](https://codeberg.org).
+
+## How to Deploy
+
+You can deploy your Astro site to Codeberg Pages using Codeberg CI to automatically build and deploy your site. To do this, your source code must be hosted on Codeberg and you need to:
+
+<Steps>
+1. Create an issue [here](https://codeberg.org/Codeberg-e.V./requests/issues) with the label `ci`, select `medium` for `Expected Resource Usage`, fill in `@your-codeberg-username` in the `I would also like the following users to be added` field, fill in other details as needed, and wait for approval.
+
+2. Set the [`site`](/zh-cn/reference/configuration-reference/#site) and [`base`](/zh-cn/reference/configuration-reference/#base) options in your `astro.config.mjs` file.
+```js title="astro.config.mjs" ins={4-5}
+import { defineConfig } from 'astro/config';
+
+ export default defineConfig({
+   site: 'https://<username>.codeberg.page',
+   base: '/<my-repo>',
+   outDir: 'dist',
+   publicDir: 'public',
+ });
+
+`base`
+
+You need a `base` value so that Astro treats your repository name (e.g., `/my-repo`) as the root directory of your website.
+
+:::note
+  If your pages are served from the root directory, you do not need to set the `base` parameter.
+:::
+
+The value of `base` should be your repository name starting with a slash, such as `/my-blog`. This lets Astro understand that the root directory of your website is `/my-repo` instead of the default `/`.
+
+:::caution
+    After configuring this value, all internal page links must be prefixed with your `base` value:
+
+  ```astro ins="/my-repo"
+  <a href="/my-repo/about">About</a>
+  ```
+
+See [Configuring the `base` value](/zh-cn/reference/configuration-reference/#base)
+:::
+
+3. In the root directory of your repository, create a new .forgejo folder, then create a workflows folder inside the .forgejo folder.
+4. Add an astro.yml file in the folder with the following example code:
+```yml
+
+name: Deploy Astro site to Pages
+
+on:
+  # Runs on pushes targeting the default branch
+  push:
+    branches:
+      # If you want to build from a different branch, change it here.
+      - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    # You can find the list of available runners on https://codeberg.org/actions/meta, or run one yourself.
+    runs-on: codeberg-tiny-lazy
+    steps:
+      - name: Clone the repository
+        uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: check .domains files
+        run: |
+          git ls-files public/.domains
+          ls -la public/
+          ls -la public/.domains || echo ".domains not found"
+      - name: Setup Node.js
+        uses: https://code.forgejo.org/actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Build Astro site
+        run: npm run build
+
+      - name: Upload generated files
+        uses: https://code.forgejo.org/actions/upload-artifact@v3
+        with:
+          name: Generated files
+          path: dist/
+          include-hidden-files: true
+      
+  deploy:
+    needs: [ build ]
+    runs-on: codeberg-tiny-lazy
+    steps:
+      - name: Clone the repository
+        uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - name: Checkout the target branch and clean it up
+        run: |
+          git checkout pages || git switch --orphan pages
+          rm -Rfv $(ls -A | egrep -v '^(\.git|LICENSE)$')
+
+      - name: Download generated files
+        uses: https://code.forgejo.org/actions/download-artifact@v3
+        with:
+          name: Generated files
+
+      - name: Publish the website
+        run: |
+          git config user.email codeberg-ci
+          git config user.name "Codeberg CI"
+          echo "=== Files being committed ==="
+          ls -la
+          git add .
+          git commit --allow-empty --message "Codeberg build for ${GITHUB_SHA}"
+          git push origin pages
+```
+5. Create a .domains file in the public directory and enter `branch.repo-name.username.codeberg.page`, which will be your default domain. If you want to add a custom domain, please check [this article]((https://codeberg.org/Codeberg/pages-server/src/branch/main/README.md).
+
+Commit your changes and push them to Codeberg. Codeberg will automatically deploy your site for you.
+
+Your website should now be published! When you push changes to your Astro project's repository, the Codeberg CI pipeline will automatically deploy them for you.
