@@ -1,0 +1,356 @@
+---
+title: بناء مواقع Astro باستخدام أدوات الذكاء الاصطناعي
+sidebar:
+  label: البناء بالذكاء الاصطناعي
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+i18nReady: true
+description: موارد ونصائح لبناء مواقع Astro بمساعدة أدوات الذكاء الاصطناعي
+---
+
+import { Steps, LinkButton, Card, Tabs, TabItem } from '@astrojs/starlight/components';
+
+تتمتع المحررات وأدوات البرمجة المعتمدة على الذكاء الاصطناعي عادةً بمعرفة جيدة بواجهات برمجة التطبيقات (APIs) والمفاهيم الأساسية لإطار **Astro**.  
+لكن قد تستخدم بعض هذه الأدوات واجهات قديمة أو تفتقر إلى معرفة بالميزات الجديدة أو التغييرات الحديثة في الإطار.
+
+يشرح هذا الدليل كيفية تحسين أداء أدوات الذكاء الاصطناعي عبر تزويدها بأحدث معلومات **Astro**، مع تقديم أفضل الممارسات لبناء المواقع باستخدام الذكاء الاصطناعي كمساعد برمجي.
+
+## ملفات السياق (Context Files)
+
+يوفّر **Astro** ملفات [`llms.txt`](https://docs.astro.build/llms.txt) و[`llms-full.txt`](https://docs.astro.build/llms-full.txt)، وهي تحتوي على محتوى التوثيق الكامل بصيغة مبسّطة ومهيّأة لأدوات الذكاء الاصطناعي.  
+تُعتبر هذه الملفات نسخًا ثابتة من توثيق **Astro** بصيغة Markdown منظمة وسهلة التحليل، ويمكن لبعض الأدوات اكتشافها تلقائيًا عند تحديد مصدر الوثائق كالتالي: `https://docs.astro.build`.
+
+ورغم أن هذه الملفات توفر وصولًا مباشرًا وسهلًا للمحتوى، إلا أنها كبيرة الحجم وتستهلك عددًا كبيرًا من الرموز (tokens) عند استخدامها بشكل مباشر، كما تحتاج إلى تحديث دوري لمواكبة آخر التغييرات.  
+لذلك يُفضّل استخدامها كخيار احتياطي فقط عندما لا تتوفر طريقة أحدث للوصول إلى التوثيق.  
+أما الخيار الأكثر كفاءة فهو **خادم MCP الخاص بوثائق Astro** الذي يوفّر بحثًا لحظيًا في الوثائق ويُحدث تلقائيًا.
+
+## خادم وثائق Astro MCP
+
+لضمان امتلاك أدوات الذكاء الاصطناعي أحدث معرفة حول **Astro**، يمكن ربطها بخادم **Astro Docs MCP (Model Context Protocol)**.  
+يتيح هذا الخادم الوصول الفوري إلى آخر التحديثات في التوثيق، مما يساعد الأدوات على تجنّب التوصيات القديمة والالتزام بأفضل الممارسات الحديثة.
+
+:::tip[ما هو MCP؟]
+[Model Context Protocol](https://modelcontextprotocol.io/) هو معيار موحّد يسمح لأدوات الذكاء الاصطناعي بالوصول إلى مصادر البيانات الخارجية والخدمات المساندة.
+:::
+
+على عكس النماذج التي تعتمد على بيانات ثابتة، يتيح خادم **MCP** الوصول إلى أحدث إصدار من وثائق **Astro** مباشرةً عبر الإنترنت.  
+الخادم مجاني ومفتوح المصدر ويعمل عن بُعد دون الحاجة إلى أي تثبيت محلي.
+
+يستخدم خادم وثائق **Astro MCP** واجهة [kapa.ai](https://www.kapa.ai/) للحفاظ على فهرس محدّث دائمًا لمحتوى التوثيق.
+
+### تفاصيل الخادم
+
+- **الاسم**: Astro Docs  
+- **الرابط (URL)**: `https://mcp.docs.astro.build/mcp`  
+- **نظام النقل (Transport)**: Streamable HTTP  
+
+### التثبيت
+
+تختلف طريقة إعداد الخادم باختلاف أداة تطوير الذكاء الاصطناعي المستخدمة.  
+قد يُشار إلى خوادم MCP في بعض الأدوات بمصطلحات أخرى مثل *Connectors* أو *Adapters* أو *Extensions* أو *Plugins*.
+
+#### الإعداد اليدوي
+
+تدعم العديد من الأدوات تنسيق JSON موحّد لإعداد خوادم MCP.  
+في حال لم تكن هناك تعليمات خاصة بالأداة التي تستخدمها، يمكنك إضافة خادم **Astro Docs MCP** يدويًا عبر تضمين التهيئة التالية في إعدادات MCP الخاصة بأداتك:
+
+<Tabs>
+  <TabItem label="Streamable HTTP">
+    ```json title="mcp.json" {3-6}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "http",
+          "url": "https://mcp.docs.astro.build/mcp"
+        }
+      }
+    }
+    ```
+  </TabItem>
+  <TabItem label="Local Proxy">
+    ```json title="mcp.json" {3-7}
+    {
+      "mcpServers": {
+        "Astro docs": {
+          "type": "stdio",
+          "command": "npx",
+          "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+        }
+      }
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+#### Claude Code CLI
+
+[Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview) هي أداة برمجة ذكية تعمل عبر سطر الأوامر (CLI).  
+يؤدي تفعيل خادم **Astro Docs MCP** إلى تمكينها من الوصول إلى أحدث وثائق **Astro** أثناء إنشاء الأكواد البرمجية.
+
+لتثبيت الخادم، استخدم الأمر التالي في الطرفية (Terminal):
+
+```shell
+claude mcp add --transport http astro-docs https://mcp.docs.astro.build/mcp
+```
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Claude Code](https://docs.anthropic.com/en/docs/claude-code/mcp)
+
+---
+
+#### Claude Code GitHub Action
+
+يوفّر **Claude Code** أيضًا **إجراءً (Action)** خاصًا بـ **GitHub** يمكن استخدامه لتنفيذ الأوامر تلقائيًا استجابةً لأحداث معينة داخل المستودع.  
+ومن خلال تفعيل خادم **Astro Docs MCP**، يمكن لهذا الإجراء الوصول إلى أحدث توثيق أثناء الرد على التعليقات أو إنشاء أكواد لمشاريع **Astro**.
+
+يمكنك ضبط الإجراء ليستخدم خادم **Astro Docs MCP** للوصول إلى الوثائق بإضافة التكوين التالي داخل ملف مهام GitHub Workflow:
+
+```yaml title=".github/workflows/claude.yml" {5-14}
+# ...بقية إعدادات سير العمل (Workflow)
+- uses: anthropics/claude-code-action@beta
+  with:
+    anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+    mcp_config: |
+      {
+        "mcpServers": {
+          "astro-docs": {
+            "type": "http",
+            "url": "https://mcp.docs.astro.build/mcp"
+          }
+        }
+      }
+    allowed_tools: "mcp__astro-docs__search_astro_docs" 
+```
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Claude Code GitHub Action](https://github.com/anthropics/claude-code-action?tab=readme-ov-file#using-custom-mcp-configuration)
+
+#### Cursor
+
+[Cursor](https://cursor.com) هو محرر أكواد يعتمد على الذكاء الاصطناعي.  
+إضافة خادم **Astro Docs MCP** إلى **Cursor** تتيح له الوصول إلى أحدث وثائق **Astro** أثناء تنفيذ المهام البرمجية أو المساعدة في التطوير.
+
+لتثبيت الخادم، اضغط على الزر أدناه:
+
+<LinkButton href="cursor://anysphere.cursor-deeplink/mcp/install?name=Astro%20docs&config=eyJ1cmwiOiJodHRwczovL21jcC5kb2NzLmFzdHJvLmJ1aWxkL21jcCJ9">إضافة إلى Cursor</LinkButton>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Cursor](https://docs.cursor.com/context/mcp)
+
+---
+
+#### Visual Studio Code
+
+يدعم [Visual Studio Code](https://code.visualstudio.com) خوادم **MCP** عند استخدام **Copilot Chat**.  
+إضافة خادم **Astro Docs MCP** تتيح للمحرر الوصول إلى أحدث توثيق لـ **Astro** عند الإجابة عن الأسئلة أو أثناء تنفيذ المهام البرمجية.
+
+لتثبيته، اضغط على الزر أدناه:
+
+<LinkButton href="vscode:mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22url%22%3A%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%7D">إضافة إلى VS Code</LinkButton>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع VS Code](https://code.visualstudio.com/docs/copilot/chat/mcp-servers#_add-an-mcp-server)
+
+---
+
+#### Warp
+
+[Warp](https://warp.dev) (المعروف سابقًا باسم Warp Terminal) هو بيئة تطوير تعتمد على الذكاء الاصطناعي وتدعم العمل بعدة وكلاء (Agents) في وقت واحد.  
+إضافة خادم **Astro Docs MCP** تتيح لـ **Warp** الوصول إلى أحدث وثائق **Astro** أثناء الإجابة على الأسئلة أو تنفيذ المهام البرمجية.
+
+<Steps>
+
+1. افتح إعدادات Warp وانتقل إلى **AI > MCP Servers > Manage MCP Servers**.  
+2. اضغط على **Add** لإضافة خادم جديد.  
+3. أدخل الإعدادات التالية، ويمكنك اختيار تفعيل الخادم تلقائيًا عند التشغيل باستخدام الخاصية `start_on_launch`:
+   ```json title="MCP Configuration" {3-9}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"],
+         "env": {},
+         "working_directory": null,
+         "start_on_launch": true
+       }
+     }
+   }
+   ```
+4. اضغط **Save** لحفظ الإعدادات.
+
+</Steps>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Warp](https://docs.warp.dev/knowledge-and-collaboration/mcp)
+
+#### Claude.ai / Claude Desktop
+
+يُعد [Claude.ai](https://claude.ai) مساعدًا ذكيًا عامًا متعدد الاستخدامات.  
+إضافة خادم **Astro Docs MCP** تمكّنه من الوصول إلى أحدث وثائق **Astro** عند الإجابة على الأسئلة أو توليد الأكواد الخاصة بالمشاريع.
+
+<Steps>
+
+1. انتقل إلى [إعدادات الموصلات في Claude.ai](https://claude.ai/settings/connectors).  
+2. اضغط على **"Add custom connector"** (إضافة موصل مخصص)، وقد تحتاج إلى التمرير للأسفل للوصول إلى هذا الخيار.  
+3. أدخل رابط الخادم التالي: `https://mcp.docs.astro.build/mcp`.  
+4. حدّد الاسم ليكون **"Astro docs"**.
+
+</Steps>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Claude.ai](https://support.anthropic.com/en/articles/10168395-setting-up-integrations-on-claude-ai#h_cda40ecb32)
+
+---
+
+#### Windsurf
+
+يُعد [Windsurf](https://windsurf.com/) أداة برمجة ذكية مدعومة بالذكاء الاصطناعي، متوفرة كمحرر مستقل أو كمكون إضافي (Plugin) لمحررات الأكواد المختلفة.  
+يمكنه استخدام خادم **Astro Docs MCP** للوصول إلى أحدث وثائق **Astro** أثناء تنفيذ المهام البرمجية.
+
+لا يدعم **Windsurf** بروتوكول **Streaming HTTP** بشكل مباشر، لذا يتطلب إعداد وكيل (Proxy) محلي عبر التكوين التالي:
+
+<Steps>
+
+1. افتح الملف `~/.codeium/windsurf/mcp_config.json` في محرر الأكواد لديك.  
+2. أضف الإعدادات التالية ضمن تكوين MCP الخاص بـ **Windsurf**:
+
+   ```json title="MCP Configuration" {3-6}
+   {
+     "mcpServers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. احفظ التغييرات ثم أعد تشغيل **Windsurf** لتفعيل الإعداد.
+
+</Steps>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Windsurf](https://docs.windsurf.com/windsurf/cascade/mcp#mcp-config-json)
+
+#### Gemini CLI
+
+تُعد **Gemini CLI** أداة برمجة تعتمد على الذكاء الاصطناعي وتعمل من خلال سطر الأوامر.  
+يمكنها استخدام خادم **Astro Docs MCP** للوصول إلى أحدث وثائق **Astro** أثناء إنشاء الأكواد البرمجية.
+
+يمكنك ضبط خوادم MCP على مستوى النظام عبر الملف `~/.gemini/settings.json`  
+أو داخل ملف إعدادات خاص بالمشروع في المسار `.gemini/settings.json`.
+
+```json title=".gemini/settings.json" {3-5}
+{
+  "mcpServers": {
+    "Astro docs": {
+      "httpUrl": "https://mcp.docs.astro.build/mcp"
+    }
+  }
+}
+```
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Gemini CLI](https://github.com/google-gemini/gemini-cli/blob/main/docs/tools/mcp-server.md)
+
+---
+
+#### Zed
+
+يدعم [Zed](https://zed.dev) خوادم **MCP** عند استخدام ميزاته المدعومة بالذكاء الاصطناعي.  
+يمكنه الاستفادة من خادم **Astro Docs MCP** للوصول إلى أحدث التوثيقات أثناء تنفيذ المهام البرمجية.
+
+لا يدعم **Zed** بروتوكول **Streaming HTTP** بشكل مباشر، لذلك يتطلب إعداد وكيل (Proxy) محلي عبر التكوين التالي:
+
+<Steps>
+
+1. افتح الملف `~/.config/zed/settings.json` في محرر الأكواد.  
+2. أضف الإعداد التالي ضمن إعدادات MCP الخاصة بـ **Zed**:
+
+   ```json title="MCP Configuration" {3-6}
+   {
+     "context_servers": {
+       "Astro docs": {
+         "command": "npx",
+         "args": ["-y", "mcp-remote", "https://mcp.docs.astro.build/mcp"]
+       }
+     }
+   }
+   ```
+3. احفظ التغييرات بعد الانتهاء.
+
+</Steps>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Zed](https://zed.dev/docs/ai/mcp)
+
+#### ChatGPT
+
+:::caution[توفر محدود]
+تكامل خوادم **MCP** متاح فقط لمستخدمي **ChatGPT Pro** و**Team** و**Enterprise**، كما أن إعدادها أكثر تعقيدًا مقارنةً بالأدوات الأخرى.
+:::
+
+راجع [توثيق OpenAI الخاص بخوادم MCP](https://platform.openai.com/docs/mcp#test-and-connect-your-mcp-server) للحصول على إرشادات الإعداد التفصيلية.
+
+---
+
+#### Raycast
+
+يمكن لـ [Raycast](https://www.raycast.com/) الاتصال بخوادم **MCP** لتعزيز قدراته الذكية.  
+تتطلب ميزات الذكاء الاصطناعي (بما في ذلك MCP) اشتراك **Raycast Pro**، لذا تأكد من الترقية قبل التثبيت.  
+إضافة خادم **Astro Docs MCP** تتيح لـ **Raycast** الوصول إلى أحدث توثيق لـ **Astro** أثناء الإجابة على الأسئلة أو تنفيذ المهام البرمجية.
+
+لتثبيت الخادم، اضغط على الزر أدناه:
+
+<LinkButton href="raycast://mcp/install?%7B%22name%22%3A%22Astro%20docs%22%2C%22type%22%3A%22stdio%22%2C%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%20%22mcp-remote%22%2C%20%22https%3A%2F%2Fmcp.docs.astro.build%2Fmcp%22%5D%7D">إضافة إلى Raycast</LinkButton>
+
+[مزيد من المعلومات حول استخدام خوادم MCP مع Raycast](https://manual.raycast.com/model-context-protocol)
+
+---
+
+### الاستخدام
+
+بعد إعداد الخادم، يمكنك سؤال أداة الذكاء الاصطناعي الخاصة بك عن أي شيء يتعلق بـ **Astro**، وستقوم بجلب المعلومات مباشرة من أحدث التوثيقات.  
+تتمكن أدوات البرمجة الذكية من الرجوع إلى أحدث الوثائق أثناء تنفيذ الأكواد، كما يمكن للدردشة الذكية الإجابة بدقة عن ميزات **Astro** وواجهاته وأفضل ممارساته.
+
+:::note[تذكير]
+يوفّر خادم **Astro Docs MCP** وصولًا مباشرًا إلى التوثيق المحدث،  
+لكن أدوات الذكاء الاصطناعي تظل مسؤولة عن تفسير هذه المعلومات وتوليد الأكواد.  
+لذلك يُنصح دائمًا بمراجعة الأكواد الناتجة واختبارها بعناية قبل استخدامها في الإنتاج.
+:::
+
+---
+
+### استكشاف الأخطاء وإصلاحها
+
+إذا واجهت مشاكل أثناء الإعداد أو الاستخدام:
+
+- تأكد من أن أداتك تدعم نقل البيانات عبر **Streamable HTTP**.  
+- تحقق من صحة رابط الخادم: `https://mcp.docs.astro.build/mcp`.  
+- تأكد من أن أداتك تملك اتصالًا بالإنترنت.  
+- راجع وثائق الدمج الخاصة بخوادم MCP للأداة التي تستخدمها.
+
+وإذا استمرت المشكلة، يمكنك فتح بلاغ في [مستودع خادم Astro Docs MCP](https://github.com/withastro/docs-mcp/issues).
+
+---
+
+## دعم الذكاء الاصطناعي عبر Discord
+
+تعتمد التقنية نفسها التي تشغّل خادم **Astro MCP** على روبوت دردشة في [خادم Discord الخاص بـ Astro](https://astro.build/chat) لتقديم دعم فوري.  
+انتقل إلى قناة **#support-ai** لطرح أسئلتك حول **Astro** أو كود مشروعك بلغة طبيعية.  
+تُنشأ المحادثات تلقائيًا في خيوط (Threads)، ويمكنك متابعة النقاش بعدد غير محدود من الأسئلة.
+
+> **ملاحظة:** المحادثات مع الروبوت عامة وتخضع لقواعد السلوك العامة في الخادم.  
+> لا يشارك أعضاء الدعم المتطوعون في هذه القناة بشكل مباشر.  
+> إذا كنت تحتاج مساعدة من المجتمع، يرجى إنشاء موضوع جديد في قناة **#support**.
+
+---
+
+## نصائح لتطوير مشاريع Astro باستخدام الذكاء الاصطناعي
+
+- **ابدأ من القوالب:**  
+  بدلاً من البدء من الصفر، اطلب من أداة الذكاء الاصطناعي إنشاء مشروع باستخدام [قالب Astro جاهز](https://astro.build/themes/)  
+  أو استخدم الأمر `npm create astro@latest` مع تحديد خيار القالب.
+
+- **استخدم `astro add` للإضافات الرسمية:**  
+  اطلب من الأداة استخدام أوامر مثل `astro add tailwind` أو `astro add react` لإضافة التكاملات الرسمية.  
+  أما الحزم الأخرى، فقم بتثبيتها عبر مدير الحزم (npm أو pnpm أو yarn) بدل تعديل `package.json` يدويًا.
+
+- **تحقق من واجهات البرمجة الحالية:**  
+  قد تعتمد بعض الأدوات على أنماط قديمة.  
+  اطلب منها دائمًا مراجعة التوثيق الأحدث، خصوصًا لميزات مثل **Sessions** و**Actions**  
+  أو الميزات التي تم تحديثها بشكل كبير مثل **Content Collections**.
+
+- **استخدم قواعد المشروع:**  
+  إذا كانت أداتك تدعم ذلك، قم بإعداد قواعد مشروعك (Project Rules) لتطبيق أفضل الممارسات ومعايير الأكواد تلقائيًا.
