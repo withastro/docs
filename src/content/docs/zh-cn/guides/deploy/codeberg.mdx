@@ -15,73 +15,87 @@ import { Steps } from '@astrojs/starlight/components';
 <Steps>
 1. 在[这里](https://codeberg.org/Codeberg-e.V./requests/issues)提起一个 Issue，标签选择 `ci` ，`Expected Resource Usage` 选 `medium`，`I would also like the following users to be added` 填 `@自己的 Codeberg 用户名`，其他自己看着填，等待审批通过。
 
-2. 在仓库根目录中，新建 `.forgejo` 文件夹，在 `.forgejo` 文件夹下再新建 `workflows` 文件夹。
-3. 在文件夹中添加 `astro.yaml` 文件，文件代码示例如下：
+2.
+3. 在仓库根目录中，新建 `.forgejo` 文件夹，在 `.forgejo` 文件夹下再新建 `workflows` 文件夹。
+4. 在文件夹中添加 `astro.yaml` 文件，文件代码示例如下：
 ```
 name: Deploy Astro site to Pages
+
 on:
+  # Runs on pushes targeting the default branch
   push:
     branches:
-      - main  # 只在推送到 main 分支时触发
-  workflow_dispatch:  # 允许手动触发
+      # If you want to build from a different branch, change it here.
+      - main
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
 jobs:
   build:
+    # You can find the list of available runners on https://codeberg.org/actions/meta, or run one yourself.
     runs-on: codeberg-tiny-lazy
-    container:
-      image: node:20  # 使用 Node.js 20 作为基础镜像
     steps:
-    - name: 检查 .domains 文件
+      - name: Clone the repository
+        uses: https://code.forgejo.org/actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+      - name: check .domains files
         run: |
           git ls-files public/.domains
           ls -la public/
           ls -la public/.domains || echo ".domains not found"
-      - name: 检出代码
-        uses: https://code.forgejo.org/actions/checkout@v4
+      - name: Setup Node.js
+        uses: https://code.forgejo.org/actions/setup-node@v4
         with:
-          submodules: recursive
-          fetch-depth: 0
-      - name: 安装依赖
+          node-version: 22
+      - name: Install dependencies
         run: npm install
-      - name: 构建 Astro 静态文件
-        run: npm run build  # 使用 Astro 的构建命令
-      - name: 上传构建产物
+      - name: Build Astro site
+        run: npm run build
+
+      - name: Upload generated files
         uses: https://code.forgejo.org/actions/upload-artifact@v3
         with:
           name: Generated files
-          path: dist/  # Astro 默认输出目录
+          path: dist/
           include-hidden-files: true
+      
   deploy:
-    needs: [build]  # 依赖 build 作业完成
+    needs: [ build ]
     runs-on: codeberg-tiny-lazy
     steps:
-      - name: 检出代码
+      - name: Clone the repository
         uses: https://code.forgejo.org/actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
-      - name: 切换到 pages 分支并清理
+
+      - name: Checkout the target branch and clean it up
         run: |
           git checkout pages || git switch --orphan pages
           rm -Rfv $(ls -A | egrep -v '^(\.git|LICENSE)$')
-      - name: 下载构建产物
+
+      - name: Download generated files
         uses: https://code.forgejo.org/actions/download-artifact@v3
         with:
           name: Generated files
-      - name: 发布网站
+
+      - name: Publish the website
         run: |
-          git config user.email "codeberg-ci@example.com"
+          git config user.email codeberg-ci
           git config user.name "Codeberg CI"
-          echo "=== 正在提交的文件 ==="
+          echo "=== Files being committed ==="
           ls -la
           git add .
-          git commit --allow-empty -m "Codeberg build for ${GITHUB_SHA}"
+          git commit --allow-empty --message "Codeberg build for ${GITHUB_SHA}"
           git push origin pages
 
 ```
 
-4. 在 `public` 目录下新建 `.domains` 文件，输入 `分支.仓库名.用户名.codeberg.page`，这就是你的默认域名。如果要添加自定义域名，请查看[这篇文章](https://codeberg.org/Codeberg/pages-server/src/branch/main/README.md)。
+5. 在 `public` 目录下新建 `.domains` 文件，输入 `分支.仓库名.用户名.codeberg.page`，这就是你的默认域名。如果要添加自定义域名，请查看[这篇文章](https://codeberg.org/Codeberg/pages-server/src/branch/main/README.md)。
 
-5. 提交你的更改并将其推送到 Codeberg ，Codeberg 会为你自动部署 。
+6. 提交你的更改并将其推送到 Codeberg ，Codeberg 会为你自动部署 。
 
 </Steps>
 
