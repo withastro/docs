@@ -1,0 +1,173 @@
+---
+title: Astro 사이트를 Juno에 배포하기
+description: Juno를 사용하여 웹에 Astro 사이트를 배포하는 방법
+sidebar:
+  label: Juno
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Juno](https://juno.build)는 자체 호스팅의 개인 정보 보호 및 제어 기능을 통해 정적 웹사이트를 호스팅하고, 웹 애플리케이션을 빌드하고, 서버리스 함수를 실행할 수 있는 오픈 소스 서버리스 플랫폼입니다.
+
+## 컨테이너 생성하기
+
+<Steps>
+1. [Juno Console](https://console.juno.build)에 로그인하세요.
+
+2. 런치패드에서 **Launch a new satellite** 버튼(프로젝트 컨테이너)을 클릭하세요.
+
+3. **name**을 입력하고 **Website**를 선택하세요.
+
+4. **Create a Satellite**으로 확인하세요.
+
+5. 그러면 플랫폼에서 리소스를 프로비저닝합니다.
+
+6. 프로세스가 완료되면 Continue를 클릭하여 개요 페이지에 액세스하세요.
+</Steps>
+
+## 프로젝트 구성하기
+
+Astro 프로젝트는 정적 사이트로 Juno에 배포할 수 있습니다.
+
+프로젝트 루트에 `juno.config.mjs` 파일을 만들고, `PROD_SATELLITE_ID`를 이전에 생성한 Satellite의 ID로 바꾸세요.
+
+```javascript title="juno.config.mjs"
+import { defineConfig } from '@junobuild/config';
+
+/** @type {import('@junobuild/config').JunoConfig} */
+export default defineConfig({
+  satellite: {
+    ids: {
+      production: '<PROD_SATELLITE_ID>'
+    },
+    source: 'dist',
+    predeploy: ['npm run build']
+  }
+});
+```
+
+## 배포 방법
+
+GitHub Actions 또는 CLI(명령줄 인터페이스)를 사용하여 배포할 수 있습니다.
+
+### GitHub Actions 배포
+
+<Steps>
+  1. Satellite 개요에서 **Setup** 탭으로 이동하세요.
+
+  2. **Add an access key**를 클릭하세요.
+
+  3. 기본 옵션으로 새 키를 생성하세요. **Submit**을 클릭하세요.
+
+  4. 성공적으로 생성되면 **Secret token**이 표시됩니다. 값을 복사하여 GitHub 리포지토리 또는 조직에 [암호화된 비밀](https://docs.github.com/ko/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)로 저장하세요. 이때 키는 `JUNO_TOKEN`을 사용하세요.
+
+  5. 리포지토리의 `.github/workflows` 하위 폴더에 `deploy.yml` 파일을 생성하세요.
+
+  6. 다음 워크플로 구성을 추가하세요.
+  
+      ```yaml title=".github/workflows/deploy.yml"
+      name: Deploy to Juno
+    
+      on:
+        workflow_dispatch:
+        push:
+          branches: [main]
+
+      jobs:
+        deploy:
+          runs-on: ubuntu-latest
+          steps:
+            - name: Check out the repo
+              uses: actions/checkout@v4
+        
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 24
+                registry-url: "https://registry.npmjs.org"
+        
+            - name: Install Dependencies
+              run: npm ci
+        
+            - name: Deploy to Juno
+              uses: junobuild/juno-action@main
+              with:
+                args: hosting deploy
+              env:
+                JUNO_TOKEN: ${{ secrets.JUNO_TOKEN }}
+      ```
+</Steps>
+
+### CLI 배포
+
+<Steps>
+
+  1. CLI를 설치하세요.
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+          ```shell
+          npm i -g @junobuild/cli
+          ```
+        </Fragment>
+        <Fragment slot="pnpm">
+          ```shell
+          pnpm add -g @junobuild/cli
+          ```
+        </Fragment>
+        <Fragment slot="yarn">
+          ```shell
+          yarn global add @junobuild/cli
+          ```
+        </Fragment>
+      </PackageManagerTabs>
+  
+  2. CLI를 인증하세요. 그러면 Juno Console이 열립니다.
+  
+      ```bash
+      juno login
+      ```
+
+      :::tip
+      액세스 토큰은 터미널을 식별하는 데 사용됩니다. 그렇기 때문에 CLI에서 비밀번호로 암호화할 것인지 묻는 것입니다.
+      보안상의 이유로 그렇게 하는 것이 좋습니다.
+      :::
+  
+  3. 브라우저 창에서 **Authorize**를 클릭하여 권한을 부여하세요.
+  
+  4. 사이트를 배포하세요.
+
+      ```bash
+      juno hosting deploy
+      ```
+
+</Steps>
+
+## 가이드
+
+- [Juno와 Astro 사용하기](https://juno.build/docs/guides/astro)
+- [GitHub Actions로 배포하기](https://juno.build/docs/category/deployment)
+- [직접 배포하기](https://juno.build/docs/guides/manual-deployment)
+
+## 예시
+
+준비된 Astro 템플릿으로 웹사이트를 빠르게 구성하세요.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm create juno@latest -- --template astro-starter
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm create juno -- --template astro-starter
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn create juno -- --template astro-starter
+    ```
+  </Fragment>
+</PackageManagerTabs>
