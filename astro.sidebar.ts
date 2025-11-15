@@ -152,6 +152,7 @@ export const sidebar = [
 					'reference/experimental-flags/static-import-meta-env',
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/fail-on-prerender-conflict',
+					'reference/experimental-flags/svg-optimization',
 				],
 			}),
 			'reference/legacy-flags',
