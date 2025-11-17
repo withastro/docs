@@ -4,7 +4,7 @@ sidebar:
   label: 어댑터 API
 i18nReady: true
 ---
-
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { FileTree } from '@astrojs/starlight/components';
 
@@ -12,18 +12,18 @@ Astro는 서버 측 렌더링(SSR)으로 알려진 요청 시 렌더링을 위�
 
 ## 어댑터란 무엇입니까?
 
-어댑터는 요청 시 서버 렌더링을 위한 엔트리포인트 제공하는 특별한 종류의 [통합](/ko/reference/integrations-reference/)입니다. 어댑터는 두 가지 작업을 수행합니다.
+어댑터는 요청 시 서버 렌더링을 위한 엔트리포인트 제공하는 특별한 종류의 [통합](/ko/reference/integrations-reference/)입니다. 어댑터는 전체 통합 API에 접근할 수 있으며, 다음 두 가지 작업을 수행합니다.
 
 - 요청 처리를 위한 호스트별 API를 구현합니다.
 - 호스트 규칙에 따라 빌드를 구성합니다.
 
-## 어댑터 빌드
+## 어댑터 만들기
 
-어댑터는 [통합](/ko/reference/integrations-reference/)이며 통합이 수행할 수 있는 모든 작업을 수행할 수 있습니다.
+통합을 만들고 [`astro:config:done`](/ko/reference/integrations-reference/#astroconfigdone) 훅에서 `setAdapter()` 함수를 호출하세요. 이를 통해 서버 엔트리포인트를 정의할 수 있으며 어댑터에서 지원하는 기능도 정의할 수 있습니다.
 
-어댑터는 __반드시__ 다음과 같이 `astro:config:done` 후크에서 `setAdapter` API를 호출해야 합니다.
+다음은 Astro 정적 출력을 안정적으로 지원하며 서버 엔트리포인트를 포함하는 어댑터를 생성하는 예시입니다.
 
-```js title="my-adapter.mjs"
+```js title="my-adapter.mjs" {5-13} "setAdapter"
 export default function createIntegration() {
   return {
     name: '@example/my-adapter',
@@ -33,8 +33,8 @@ export default function createIntegration() {
           name: '@example/my-adapter',
           serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
-              staticOutput: 'stable'
-          }  
+            staticOutput: 'stable'
+          }
         });
       },
     },
@@ -42,104 +42,226 @@ export default function createIntegration() {
 }
 ```
 
-`setAdapter`에 전달된 객체는 다음과 같이 정의됩니다.
+`setAdapter()` 함수는 다음 속성을 포함하는 객체를 받습니다.
 
-```ts
-interface AstroAdapter {
-  name: string;
-  serverEntrypoint?: string;
-  exports?: string[];
-  adapterFeatures: AstroAdapterFeatures;
-  supportedAstroFeatures: AstroAdapterFeatureMap;
- 	client?: {
-		/**
-		 * Astro의 내부 fetch 호출에 (액션, 뷰 전환, 서버 아일랜드, 프리페치) 주입할 헤더입니다.
-		 * 헤더 객체 또는 헤더를 반환하는 함수가 될 수 있습니다.
-		 */
-		internalFetchHeaders?: Record<string, string> | (() => Record<string, string>);
-		/**
-		 * 모든 자산 URL (이미지, 스타일시트, 스크립트 등)에 추가할 쿼리 매개변수입니다.
-		 * 배포 버전 또는 기타 메타데이터를 추적해야 하는 어댑터에 유용합니다.
-		 */
-		assetQueryParams?: URLSearchParams;
-	};
-}
+### `name`
 
-export interface AstroAdapterFeatures {
-	/**
-	 * Astro 미들웨어와 통신할 에지 기능을 생성합니다.
-	 */
-	edgeMiddleware: boolean;
-	/**
-	 * 어댑터가 의도하는 빌드 출력 유형을 결정합니다. 기본값은 `server`입니다.
-	 */
-		buildOutput?: 'static' | 'server';
-}
+<p>
 
-export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated' | 'limited';
+**타입:** `string`
+</p>
 
-export type AdapterSupportWithMessage = {
-	support: Exclude<AdapterSupportsKind, 'stable'>;
-	message: string;
-	suppress?: 'default' | 'all';
-};
+어댑터의 고유한 이름을 정의합니다. 이 이름은 로깅에 사용됩니다.
 
-export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
+### `serverEntrypoint`
 
-export type AstroAdapterFeatureMap = {
-  /**
-   * 어댑터는 정적 페이지를 제공할 수 있습니다.
-   */
-  staticOutput?: AdapterSupport;
-  /**
-   * 어댑터는 정적이거나 서버를 통해 렌더링되는 페이지를 제공할 수 있습니다.
-   */
-  hybridOutput?: AdapterSupport;
-  /**
-   * 어댑터는 요청 시 렌더링되는 페이지를 제공할 수 있습니다.
-   */
-   serverOutput?: AdapterSupport;
-  /**
-	 * 어댑터는 i18n 도메인을 지원할 수 있습니다.
-	 */
-	i18nDomains?: AdapterSupport;
-	/**
-	 * 어댑터는 `astro:env/server`에서 내보낸 `getSecret`을 지원할 수 있습니다.
-	 */
-	envGetSecret?: AdapterSupport;
-  /**
-   * 어댑터는 Sharp 이미지 서비스를 지원합니다.
-   */
-  sharpImageService?: AdapterSupport;
-};
-```
+<p>
 
-속성은 다음과 같습니다.
+**타입:** `string | URL`
+</p>
 
-* __name__: 로깅에 사용되는 어댑터의 고유 이름입니다.
-* __serverEntrypoint__: 요청 시 서버 렌더링의 엔트리포인트입니다.
-* __exports__: `createExports`와 함께 사용되는 경우 명명된 내보내기 배열입니다 (아래 설명 참조).
-* __adapterFeatures__: 어댑터에서 지원해야 하는 특정 기능을 활성화하는 객체입니다.
-  이러한 기능은 빌드된 출력을 변경하며 어댑터는 다양한 출력을 처리하기 위해 적절한 로직을 구현해야 합니다.
-* __supportedAstroFeatures__: Astro 내장 기능 맵입니다. 이를 통해 Astro는 어댑터가 지원할 수 없거나 지원하지 않는 기능을 판단하여 적절한 오류 메시지를 제공할 수 있습니다.
+요청 시 렌더링을 위한 엔트리포인트를 정의합니다.
 
-### 서버 엔트리포인트
+<ReadMore> [서버 엔트리포인트를 만드는 방법](#서버-엔트리포인트-만들기)에 대해 자세히 알아보세요.</ReadMore>
 
-Astro의 어댑터 API는 모든 유형의 호스트와 작동하려고 시도하며 호스트 API를 준수하는 유연한 방법을 제공합니다.
+### `supportedAstroFeatures`
 
-#### Exports
+<p>
 
-일부 서버리스 호스트는 `handler`와 같은 함수를 내보낼 것을 기대합니다.
+**타입:** `AstroAdapterFeatureMap`<br />
+<Since v="3.0.0" />
+</p>
 
-```js
-export function handler(event, context) {
-  // ...
+어댑터가 지원하는 Astro 내장 기능에 대한 맵입니다. 이를 통해 Astro는 어댑터가 어떤 기능을 지원하는지 파악하여 적절한 오류 메시지를 제공할 수 있습니다.
+
+<ReadMore>어댑터가 구성할 수 있는 [사용 가능한 Astro의 기능](#astro-기능)을 알아보세요.</ReadMore>
+
+### `adapterFeatures`
+
+<p>
+
+**타입:** `AstroAdapterFeatures`<br />
+<Since v="3.0.0" />
+</p>
+
+빌드 출력을 변경하는 [어댑터의 기능](#어댑터-기능) 중 어댑터가 지원하는 기능을 지정하는 객체입니다.
+
+### `args`
+
+<p>
+
+**타입:** `any`
+</p>
+
+런타임에 어댑터의 서버 엔트리포인트로 전달될 JSON으로 직렬화 가능한 값입니다. 이는 빌드 시 필요한 구성(예: 경로, 비밀)을 포함하는 객체를 서버 런타임 코드로 전달하는 데 유용합니다.
+
+다음은 Astro가 생성한 자산의 위치를 식별하는 속성을 가진 `args` 객체를 정의하는 예시입니다.
+
+```js title="my-adapter.mjs" {9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          args: {
+            assets: config.build.assets
+          }
+        });
+      },
+    },
+  };
 }
 ```
 
-어댑터 API를 사용하면 `serverEntrypoint`에 `createExports`를 구현하여 이를 달성할 수 있습니다.
+### `client`
 
-```js
+<p>
+
+**타입:** `{ internalFetchHeaders?: Record<string, string> | () => Record<string, string>; assetQueryParams?: URLSearchParams; }`<br />
+<Since v="5.15.0" />
+</p>
+
+Astro의 클라이언트 측 코드를 위한 구성 객체입니다.
+
+#### `internalFetchHeaders`
+
+<p>
+
+**타입:** `Record<string, string> | () => Record<string, string>`
+</p>
+
+Astro의 내부 fetch 호출(예: 액션, 뷰 전환, 서버 아일랜드, 프리페치)에 주입할 헤더를 정의합니다. 헤더 객체 또는 헤더를 반환하는 함수일 수 있습니다.
+
+다음은 환경 변수에서 `DEPLOY_ID`를 검색하여 헤더 이름을 키로, 배포 ID를 값으로 하는 객체를 반환하는 예시입니다.
+
+```js title="my-adapter.mjs" {9-14}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          client: {
+            internalFetchHeaders: () => {
+              const deployId = process.env.DEPLOY_ID;
+              return deployId ? { 'Your-Header-ID': deployId } : {};
+            },
+          },
+        });
+      },
+    },
+  };
+}
+```
+
+#### `assetQueryParams`
+
+<p>
+
+**타입:** `URLSearchParams`
+</p>
+
+모든 자산 URL(예: 이미지, 스타일시트, 스크립트 등)에 추가할 쿼리 매개변수를 정의합니다. 이는 배포 버전 또는 기타 메타데이터를 추적해야 하는 어댑터에 유용합니다.
+
+다음은 환경 변수에서 `DEPLOY_ID`를 검색하여 사용자 정의 검색 매개변수 이름을 키로, 배포 ID를 값으로 하는 객체를 반환하는 예시입니다.
+
+```js title="my-adapter.mjs" {9-13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          client: {
+            assetQueryParams: process.env.DEPLOY_ID
+              ? new URLSearchParams({ yourParam: process.env.DEPLOY_ID })
+              : undefined,
+          },
+        });
+      },
+    },
+  };
+}
+```
+
+### `exports`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+서버 엔트리포인트의 [`createExports()` 함수](#createexports)와 함께 사용할 명명된 내보내기 배열을 정의합니다.
+
+다음은 `createExports()`가 `handler`라는 내보내기를 제공한다고 가정하는 예시입니다.
+
+```js title="my-adapter.mjs" {9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          exports: ['handler']
+        });
+      },
+    },
+  };
+}
+```
+
+### `previewEntrypoint`
+
+<p>
+
+**타입:** `string | URL`<br />
+<Since v="1.5.0" />
+</p>
+
+`astro preview`가 실행될 때 빌드된 서버를 시작하는 어댑터 패키지 내 모듈의 경로 또는 ID를 정의합니다.
+
+```js title="my-adapter.mjs" {9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          previewEntrypoint: '@example/my-adapter/preview.js',
+        });
+      },
+    },
+  };
+}
+```
+
+## 서버 엔트리포인트 만들기
+
+특정 호스트에서 요청 시 렌더링을 활성화하려면 서버 측 요청 중에 실행되는 파일을 만들어야 합니다. Astro의 어댑터 API는 모든 유형의 호스트와 함께 작동하려고 시도하며, 호스트 API를 준수하는 유연한 방법을 제공합니다.
+
+### `createExports()`
+
+<p>
+
+타입: `(manifest: SSRManifest, options: any) => Record<string, any>`
+</p>
+
+SSR 매니페스트를 첫 번째 인수로, 어댑터의 [`args`](#args)를 포함하는 객체를 두 번째 인수로 받는 내보낸 함수입니다. 이 함수는 호스트에서 요구하는 내보내기를 제공해야 합니다.
+
+예를 들어, 일부 서버리스 호스트는 `handler()` 함수를 내보내도록 요구합니다. 어댑터 API를 사용하면 서버 엔트리포인트에서 `createExports()`를 구현하여 이를 달성할 수 있습니다.
+
+```js title="my-adapter/server.js"
 import { App } from 'astro/app';
 
 export function createExports(manifest) {
@@ -153,7 +275,7 @@ export function createExports(manifest) {
 }
 ```
 
-그런 다음 `setAdapter`를 호출하는 통합에서 `exports`에 이 이름을 제공합니다.
+그런 다음 `setAdapter()`를 호출하는 통합에서 [`exports`](#exports)에 이 이름을 제공합니다.
 
 ```js title="my-adapter.mjs" ins={9}
 export default function createIntegration() {
@@ -172,11 +294,34 @@ export default function createIntegration() {
 }
 ```
 
-#### Start
+어댑터의 [`args`](#args)는 `createExports()`의 두 번째 인수를 통해 접근할 수 있습니다. 이는 서버 엔트리포인트에서 빌드 시 필요한 구성에 접근해야 할 때 유용할 수 있습니다. 예를 들어, 서버는 Astro가 생성한 자산의 위치를 식별해야 할 수 있습니다.
 
-일부 호스트는 포트를 수신하여 서버를 직접 *시작*하기를 기대합니다. 이러한 유형의 호스트의 경우 어댑터 API를 사용하면 번들 스크립트가 실행될 때 호출되는 `start` 함수를 내보낼 수 있습니다.
+```js title="my-adapter/server.js" {4} "args"
+import { App } from 'astro/app';
 
-```js
+export function createExports(manifest, args) {
+  const assetsPath = args.assets;
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+### `start()`
+
+<p>
+
+타입: `(manifest: SSRManifest, options: any) => Record<string, any>`
+</p>
+
+SSR 매니페스트를 첫 번째 인수로 받고, 어댑터의 [`args`](#args)를 포함하는 객체를 두 번째 인수로 받는 내보낸 함수입니다.
+
+일부 호스트는 사용자가 직접 서버를 *시작*하도록 요구합니다. 예를 들어, 포트에서 리스닝하는 것입니다. 이러한 유형의 호스트의 경우 어댑터 API를 사용하면 번들 스크립트가 실행될 때 호출되는 `start()` 함수를 내보낼 수 있습니다.
+
+```js title="my-adapter/server.js"
 import { App } from 'astro/app';
 
 export function start(manifest) {
@@ -188,9 +333,11 @@ export function start(manifest) {
 }
 ```
 
-#### `astro/app`
+### `astro/app`
 
-이 모듈은 `astro build`를 통해 사전 빌드된 페이지를 렌더링하는 데 사용됩니다. Astro는 표준 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 및 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체를 사용합니다. 요청/응답에 대해 다른 API를 사용하는 호스트는 어댑터에서 이러한 유형으로 변환해야 합니다.
+이 모듈은 `astro build`를 통해 사전 빌드된 페이지를 렌더링하는 데 사용됩니다. Astro는 표준 [`Request`](https://developer.mozilla.org/ko/docs/Web/API/Request) 및 [`Response`](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체를 사용합니다. 요청/응답에 대해 다른 API를 사용하는 호스트는 어댑터에서 이러한 유형으로 변환해야 합니다.
+
+`App` 생성자는 SSR 매니페스트를 필수 인수로 받습니다. 그리고 선택적으로 스트리밍을 활성화하거나 비활성화하는 인수를 받을 수 있으며, 기본값은 `true`입니다.
 
 ```js
 import { App } from 'astro/app';
@@ -209,14 +356,14 @@ export function start(manifest) {
 
 다음과 같은 메서드가 제공됩니다.
 
-##### `app.render()`
+#### `app.render()`
 
 <p>
 
 **타입:** `(request: Request, options?: RenderOptions) => Promise<Response>`
 </p>
 
-이 메서드는 요청과 일치하는 Astro 페이지를 호출하고 렌더링한 후 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체에 Promise를 반환합니다. 이는 페이지를 렌더링하지 않는 API 경로에도 적용됩니다.
+이 메서드는 필수 `request` 인수와 선택적 `RenderOptions` 객체를 받습니다. 이 메서드는 요청과 일치하는 Astro 페이지를 호출하고, 렌더링한 다음, [`Response`](https://developer.mozilla.org/ko/docs/Web/API/Response) 객체에 대한 Promise를 반환합니다. 이 기능은 페이지를 렌더링하지 않는 API 라우트에도 적용됩니다.
 
 ```js
 const response = await app.render(request);
@@ -229,7 +376,7 @@ const response = await app.render(request);
 **타입:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-`app.render()` 메서드는 필수 `request` 인수와 [`addCookieHeader`](#addcookieheader), [`clientAddress`](#clientaddress), [`locals`](#locals), [`prerenderedErrorPageFetch`](#prerenderederrorpagefetch), [`routeData`](#routedata)에 대한 선택적 `RenderOptions` 객체를 허용합니다.
+렌더링을 제어하기 위해 사용하는 객체이며, 다음 속성을 포함합니다.
 
 ###### `addCookieHeader`
 
@@ -241,7 +388,7 @@ const response = await app.render(request);
 
 `Astro.cookie.set()`이 작성한 모든 쿠키를 응답 헤더에 자동으로 추가할지 여부입니다.
 
-`true`로 설정하면 응답의 `Set-Cookie` 헤더에 쉼표로 구분된 키-값 쌍으로 추가됩니다. 표준 `response.headers.getSetCookie()` API를 사용하여 개별적으로 읽을 수 있습니다. `false` (기본값)로 설정하면 `App.getSetCookieFromResponse(response)`에서만 쿠키를 사용할 수 있습니다.
+`true`로 설정하면 응답의 `Set-Cookie` 헤더에 쉼표로 구분된 키-값 쌍으로 추가됩니다. 표준 `response.headers.getSetCookie()` API를 사용하여 개별적으로 읽을 수 있습니다. `false`(기본값)로 설정하면 [`App.getSetCookieFromResponse(response)`](#appgetsetcookiefromresponse)에서만 쿠키를 사용할 수 있습니다.
 
 ```js
 const response = await app.render(request, { addCookieHeader: true });
@@ -271,7 +418,7 @@ const response = await app.render(request, { clientAddress });
 **타입:** `object`
 </p>
 
-요청 수명 주기 동안 정보를 저장하고 액세스하는 데 사용되는 [`context.locals` 객체](/ko/reference/api-reference/#locals)입니다.
+요청 수명 주기 동안 정보를 저장하고 접근하는 데 사용되는 [`context.locals` 객체](/ko/reference/api-reference/#locals)입니다.
 
 아래 예시에서는 `x-private-header`라는 헤더를 읽고 이를 객체로 구문 분석한 후 `locals`에 전달하려고 시도합니다. 그런 다음 [미들웨어 함수](/ko/guides/middleware/)에 전달될 수 있습니다.
 
@@ -279,15 +426,15 @@ const response = await app.render(request, { clientAddress });
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
-    if (privateHeader) {
-        locals = JSON.parse(privateHeader);
-    }
+  if (privateHeader) {
+    locals = JSON.parse(privateHeader);
+  }
 } finally {
-    const response = await app.render(request, { locals });
+  const response = await app.render(request, { locals });
 }
 ```
 
-###### `prerenderedErrorPageFetch`
+###### `prerenderedErrorPageFetch()`
 
 <p>
 
@@ -302,22 +449,23 @@ try {
 
 다음 예제는 HTTP 호출을 수행하는 대신 디스크에서 `500.html`과 `404.html`을 읽습니다.
 
-```js "prerenderedErrorPageFetch"
+```ts "prerenderedErrorPageFetch"
 return app.render(request, {
   prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
     if (url.includes("/500")) {
-        const content = await fs.promises.readFile("500.html", "utf-8");
-        return new Response(content, {
-          status: 500,
-          headers: { "Content-Type": "text/html" },
-        });
+      const content = await fs.promises.readFile("500.html", "utf-8");
+      return new Response(content, {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      });
     }
 
     const content = await fs.promises.readFile("404.html", "utf-8");
-      return new Response(content, {
-        status: 404,
-        headers: { "Content-Type": "text/html" },
-      });
+    return new Response(content, {
+      status: 404,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
 });
 ```
 
@@ -331,26 +479,26 @@ return app.render(request, {
 **기본값:** `app.match(request)`
 </p>
 
-렌더링할 경로를 이미 알고 있는 경우 [`integrationRouteData`](/ko/reference/integrations-reference/#integrationroutedata-타입-참조)에 대한 값을 제공하세요. 그렇게 하면 렌더링할 경로를 결정하기 위해 [`app.match`](#appmatch)에 대한 내부 호출을 우회하게 됩니다.
+렌더링할 경로를 이미 알고 있는 경우 [`integrationRouteData`](/ko/reference/integrations-reference/#integrationroutedata-타입-참조)에 대한 값을 제공하세요. 그렇게 하면 렌더링할 경로를 결정하기 위해 [`app.match()`](#appmatch)에 대한 내부 호출을 우회하게 됩니다.
 
 ```js "routeData"
 const routeData = app.match(request);
 if (routeData) {
-    return app.render(request, { routeData });
+  return app.render(request, { routeData });
 } else {
-    /* 어댑터별 404 응답 */
-    return new Response(..., { status: 404 });
+  /* 어댑터에 따른 404 응답 */
+  return new Response(..., { status: 404 });
 }
 ```
 
-##### `app.match()`
+#### `app.match()`
 
 <p>
 
-**타입:** `(request: Request) => RouteData | undefined`
+**타입:** `(request: Request, allowPrerenderedRoutes = false) => RouteData | undefined`
 </p>
 
-이 메서드는 요청이 Astro 앱의 라우팅 규칙과 일치하는지 확인하는 데 사용됩니다.
+Astro 앱의 라우팅 규칙에 요청이 일치하는지 확인합니다.
 
 ```js
 if(app.match(request)) {
@@ -360,32 +508,292 @@ if(app.match(request)) {
 
 Astro가 `404.astro` 파일을 제공하면 404를 처리하기 때문에 일반적으로 `.match`를 사용하지 않고 `app.render(request)`를 호출할 수 있습니다. 404를 다른 방식으로 처리하려면 `app.match(request)`를 사용하세요.
 
-## `astro add`를 통한 설치 허용
+기본적으로 사전 렌더링된 라우트는 일치하더라도 반환되지 않습니다. 이 동작은 두 번째 인수에 `true`를 사용하여 변경할 수 있습니다.
 
-[`astro add` 명령](/ko/reference/cli-reference/#astro-add)을 사용하면 사용자가 프로젝트에 통합 및 어댑터를 쉽게 추가할 수 있습니다. 이 도구를 사용하여 _여러분의_ 어댑터를 설치하려면 **`package.json` 파일의 `keywords` 필드에 `astro-adapter`를 추가하세요**:
+#### `app.getAdapterLogger()`
 
-```json
-{
-  "name": "example",
-  "keywords": ["astro-adapter"],
+<p>
+
+**타입:** `() => AstroIntegrationLogger`<br />
+<Since v="v3.0.0" />
+</p>
+
+어댑터의 런타임 환경에서 사용할 수 있는 [Astro 로거 인스턴스](/ko/reference/integrations-reference/#astrointegrationlogger)를 반환합니다.
+
+```js "logger"
+const logger = app.getAdapterLogger();
+try {
+  /* 오류가 발생할 수 있는 일부 로직 */
+} catch {
+  logger.error("Your custom error message using Astro logger.");
 }
 ```
 
-[어댑터를 npm에 게시](https://docs.npmjs.com/cli/v8/commands/npm-publish)한 후, `astro add example`을 실행하면 `package.json` 파일에 지정된 피어 종속성과 함께 패키지가 설치됩니다. 또한 사용자에게 프로젝트 구성을 수동으로 업데이트하도록 지시할 것입니다.
+#### `app.getAllowedDomains()`
+
+<p>
+
+**타입:** `() => Partial<RemotePattern>[] | undefined`<br />
+<Since v="5.14.2" />
+</p>
+
+요청 시 렌더링을 사용할 때 [사용자 구성에서 정의된](/ko/reference/configuration-reference/#securityalloweddomains) 수신 요청에 대한 허용된 호스트 패턴 목록을 반환합니다.
+
+#### `app.removeBase()`
+
+<p>
+
+**타입:** `(pathname: string) => string`<br />
+<Since v="1.6.4" />
+</p>
+
+주어진 경로에서 기본 경로를 제거합니다. 이는 파일 시스템에서 자산을 조회해야 할 때 유용합니다.
+
+#### `app.setCookieHeaders()`
+
+<p>
+
+**타입:** `(response: Response) => Generator<string, string[], any>`<br />
+<Since v="1.4.0" />
+</p>
+
+`Response` 객체에서 개별 쿠키 헤더 값을 생성하는 제너레이터를 반환합니다. 이는 요청 처리 중에 설정되었을 수 있는 여러 쿠키를 올바르게 처리하는 데 사용됩니다.
+
+다음은 응답에서 얻은 각 헤더에 대해 `Set-Cookie` 헤더를 추가하는 예시입니다.
+
+```js
+for (const setCookieHeader of app.setCookieHeaders(response)) {
+  response.headers.append('Set-Cookie', setCookieHeader);
+}
+```
+
+#### `App.getSetCookieFromResponse()`
+
+<p>
+
+**타입:** `(response: Response) => Generator<string, string[]>`<br />
+<Since v="4.2.0" />
+</p>
+
+`Response` 객체에서 개별 쿠키 헤더 값을 생성하는 제너레이터를 반환합니다. 이는 [`app.setCookieHeaders()`](#appsetcookieheaders)와 동일하게 작동하지만, 언제든지 사용할 수 있는 정적 메서드입니다.
+
+다음은 응답에서 얻은 각 헤더에 대해 `Set-Cookie` 헤더를 추가하는 예시입니다.
+
+```js
+for (const cookie of App.getSetCookieFromResponse(response)) {
+  response.headers.append('Set-Cookie', cookie);
+}
+```
+
+#### `App.validateForwardedHost()`
+
+<p>
+
+**타입:** `(forwardedHost: string, allowedDomains?: Partial<RemotePattern>[], protocol?: string = 'https') => boolean`<br />
+<Since v="5.14.2" />
+</p>
+
+`forwardedHost`가 [`allowedDomains`](/ko/reference/configuration-reference/#securityalloweddomains) 중 하나와 일치하는지 확인합니다. 이 정적 메서드는 호스트 프로토콜을 재정의할 수 있는 세 번째 인수를 받으며, 기본값은 `https`입니다.
+
+다음은 헤더에서 `forwardedHost`를 가져와 호스트가 허용된 도메인과 일치하는지 확인하는 예시입니다.
+
+```js {4-6}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const forwardedHost = event.request.headers.get('X-Forwarded-Host');
+    if (App.validateForwardedHost(forwardedHost, manifest.allowedDomains)) {
+      /* 추가 작업 */
+    }
+  });
+}
+```
+
+#### `App.sanitizeHost()`
+
+<p>
+
+**타입:** `(hostname: string | undefined) => string | undefined`<br />
+<Since v="5.15.5" />
+</p>
+
+경로 구분 기호를 포함하는 모든 이름을 거부하여 호스트 이름의 유효성을 검증합니다. 호스트 이름이 유효하지 않으면 이 정적 메서드는 `undefined`를 반환합니다.
+
+다음은 헤더에서 `forwardedHost`를 검색하여 정리하는 예시입니다.
+
+```js {4}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const forwardedHost = event.request.headers.get('X-Forwarded-Host');
+    const sanitized = App.sanitizeHost(forwardedHost);
+  });
+}
+```
+
+#### `App.validateForwardedHeaders()`
+
+<p>
+
+**타입:** `(forwardedProtocol?: string, forwardedHost?: string, forwardedPort?: string, allowedDomains?: Partial<RemotePattern>[]) => { protocol?: string; host?: string; port?: string }`<br />
+<Since v="5.15.5" />
+</p>
+
+전달된 프로토콜, 호스트, 포트를 `allowedDomains`와 비교하여 유효성을 검사합니다. 이 정적 메서드는 유효한 값을 반환하거나, 거부된 헤더의 경우 `undefined`를 반환합니다.
+
+다음 예시는 수신된 매니페스트에 정의된 승인된 도메인에 대해 전달된 헤더의 유효성을 검사합니다.
+
+```js {3-8}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const validated = App.validateForwardedHeaders(
+      request.headers.get('X-Forwarded-Proto') ?? undefined,
+      request.headers.get('X-Forwarded-Host') ?? undefined,
+      request.headers.get('X-Forwarded-Port') ?? undefined,
+      manifest.allowedDomains,
+    );
+  });
+}
+```
+
+### `astro/app/node`
+
+[`astro/app`](#astroapp)과 마찬가지로 이 모듈은 `astro build`를 통해 사전 빌드된 페이지를 렌더링하는 데 사용됩니다. 이를 통해 `App`에서 사용 가능한 모든 메서드와 Node 환경에 유용한 추가 메서드를 제공하는 `NodeApp`을 만들 수 있습니다.
+
+`NodeApp` 생성자는 필수 SSR 매니페스트 인수를 받습니다. 그리고 스트리밍을 활성화하거나 비활성화하는 선택적 인수를 받을 수 있으며 기본값은 `true`입니다.
+
+```js
+import { NodeApp } from 'astro/app/node';
+import http from 'http';
+
+export function start(manifest) {
+  const nodeApp = new NodeApp(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      nodeApp.render(event.request)
+    );
+  });
+}
+```
+
+다음 추가 메서드가 제공됩니다.
+
+#### `nodeApp.render()`
+
+<p>
+
+**타입:** `(request: NodeRequest | Request, options?: RenderOptions) => Promise<Response>`<br />
+<Since v="4.0.0" />
+</p>
+
+[`app.render()`](#apprender)를 확장하여 첫 번째 인수로 표준 `Request` 객체 외에 [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 객체도 받을 수 있습니다. 두 번째 인수는 [렌더링을 제어](#renderoptions)할 수 있는 선택적 객체입니다.
+
+```js
+const response = await nodeApp.render(request);
+```
+
+#### `nodeApp.match()`
+
+<p>
+
+**타입:** `(req: NodeRequest | Request, allowPrerenderedRoutes?: boolean) => RouteData | undefined`
+</p>
+
+[`app.match()`](#appmatch)를 확장하여 표준 `Request` 객체 외에도 [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 객체도 받을 수 있습니다.
+
+```js
+if(nodeApp.match(request)) {
+  const response = await nodeApp.render(request);
+}
+```
+
+#### `nodeApp.headersMap`
+
+<p>
+
+**타입:** `NodeAppHeadersJson | undefined`<br />
+**기본값:** `undefined`<br />
+<Since v="5.11.0" />
+</p>
+
+헤더 구성이 포함된 배열입니다. 각 항목은 경로 이름과 해당 라우트에 적용될 헤더 목록을 매핑합니다. 이는 사전 렌더링된 라우트에 CSP 지시어와 같은 헤더를 적용하는 데 유용합니다.
+
+#### `nodeApp.setHeadersMap()`
+
+<p>
+
+**타입:** `(headers: NodeAppHeadersJson) => void`<br />
+<Since v="5.11.0" />
+</p>
+
+`NodeApp` 인스턴스로 [헤더 구성](#nodeappheadersmap)을 로드합니다.
+
+```js
+nodeApp.setHeadersMap([
+  {
+    pathname: "/blog",
+    headers: [
+      { key: "Content-Security-Policy", value: "default-src 'self'" },
+    ]
+  }
+]);
+```
+
+#### `NodeApp.createRequest()`
+
+<p>
+
+**타입:** `(req: NodeRequest, options?: { skipBody?: boolean; allowedDomains?: Partial<RemotePattern>[]; }) => Request`<br />
+<Since v="4.2.0" />
+</p>
+
+NodeJS의 `IncomingMessage`를 표준 `Request` 객체로 변환합니다. 이 정적 메서드는 두 번째 인수로 선택적 객체를 받아 본문을 무시할지 여부와 [`allowedDomains`](/ko/reference/configuration-reference/#securityalloweddomains)를 정의할 수 있으며, 기본값은 `false`입니다.
+
+다음 예시는 `Request`를 생성하고 `app.render()`에 전달합니다.
+
+```js {5}
+import { NodeApp } from 'astro/app/node';
+import { createServer } from 'node:http';
+
+const server = createServer(async (req, res) => {
+  const request = NodeApp.createRequest(req);
+  const response = await app.render(request);
+})
+```
+
+#### `NodeApp.writeResponse()`
+
+<p>
+
+**타입:** `(source: Response, destination: ServerResponse) => Promise<ServerResponse<IncomingMessage> | undefined>`<br />
+<Since v="4.2.0" />
+</p>
+
+웹 표준 `Response`를 NodeJS 서버 응답으로 스트리밍합니다. 이 정적 메서드는 `Response` 객체와 초기 `ServerResponse`를 받아 `ServerResponse` 객체의 Promise를 반환합니다.
+
+다음 예시는 `Request`를 생성하고 `app.render()`에 전달하며 응답을 작성합니다.
+
+```js {7}
+import { NodeApp } from 'astro/app/node';
+import { createServer } from 'node:http';
+
+const server = createServer(async (req, res) => {
+  const request = NodeApp.createRequest(req);
+  const response = await app.render(request);
+  await NodeApp.writeResponse(response, res);
+})
+```
 
 ## Astro 기능
 
-<p><Since v="3.0.0" /></p>
-
-Astro 기능은 어댑터가 Astro에 기능을 지원할 수 있는지 여부와 어댑터의 지원 수준을 알려주는 방법입니다.
+Astro 기능은 어댑터가 특정 기능을 지원할 수 있는지 여부와 지원 수준을 Astro에 알리는 방법입니다.
 
 이러한 속성을 사용할 때 Astro는 다음을 수행합니다.
 - 특정 유효성 검사를 실행합니다.
 - 로그에 컨텍스트 정보를 내보냅니다.
 
-이러한 작업은 기능의 지원 여부, 지원 수준, [원하는 로깅의 양](#suppress), 사용자의 자체 구성에 따라 다르게 실행됩니다.
+이러한 작업은 지원되거나 지원되지 않는 기능, 지원 수준, [원하는 로깅 양](#suppress), 사용자의 자체 구성을 기반으로 실행됩니다.
 
-다음 구성은 이 어댑터가 Sharp 기반의 내장 이미지 서비스에 대한 실험적 지원을 가지고 있음을 Astro에 알려줍니다.
+다음 구성은 이 어댑터가 Sharp 기반 내장 이미지 서비스에 대한 실험적 지원을 제공한다고 Astro에 알립니다.
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -406,7 +814,7 @@ export default function createIntegration() {
 }
 ```
 
-Sharp 이미지 서비스가 사용되는 경우, Astro는 어댑터의 지원 상태에 따라 터미널에 경고와 오류를 기록할 것입니다.
+Sharp 이미지 서비스를 사용하는 경우, Astro는 어댑터의 지원에 따라 터미널에 경고 및 오류 메시지를 기록합니다.
 
 ```
 [@example/my-adapter] The feature is experimental and subject to issues or changes.
@@ -414,7 +822,7 @@ Sharp 이미지 서비스가 사용되는 경우, Astro는 어댑터의 지원 �
 [@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
 ```
 
-사용자에게 더 많은 맥락을 제공하기 위해 추가적인 메시지를 제공할 수 있습니다:
+사용자에게 추가적인 컨텍스트를 제공하기 위해 메시지를 추가할 수 있습니다.
 
 ```js title="my-adapter.mjs" ins={9-14}
 export default function createIntegration() {
@@ -438,17 +846,325 @@ export default function createIntegration() {
 }
 ```
 
-### `suppress`
+이 객체에는 다음과 같은 구성 가능한 기능이 포함되어 있습니다.
+
+### `staticOutput`
 
 <p>
 
-  **타입:** `'default' | 'all'`<br />
-  <Since v="5.9.0" />
+**타입:** [`AdapterSupport`](#adaptersupport)
 </p>
 
-어댑터의 기능 지원 여부에 대한 로그 메시지 중 일부 또는 전부를 표시하지 않도록 설정하는 옵션입니다.
+어댑터가 정적 페이지를 제공할 수 있는지 정의합니다.
 
-Astro의 기본 로그 메시지가 사용자 지정 `message`와 함께 사용될 때 중복되거나 혼란을 줄 수 있다면, `suppress: "default"` 옵션을 사용하여 기본 메시지를 숨기고 사용자 지정 메시지만 로깅할 수 있습니다.
+### `hybridOutput`
+
+<p>
+
+**타입:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+정적 페이지와 요청 시 렌더링되는 페이지가 혼합된 사이트를 어댑터가 제공할 수 있는지 정의합니다.
+
+### `serverOutput`
+
+<p>
+
+**타입:** [`AdapterSupport`](#adaptersupport)
+</p>
+
+어댑터가 요청 시 렌더링되는 페이지를 제공할 수 있는지 정의합니다.
+
+### `i18nDomains`
+
+<p>
+
+**타입:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.3.0" />
+</p>
+
+어댑터가 다국어 도메인을 지원할 수 있는지 정의합니다.
+
+### `envGetSecret`
+
+<p>
+
+**타입:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.10.0" />
+</p>
+
+어댑터가 [`astro:env/server`](/ko/reference/modules/astro-env/)에서 내보낸 `getSecret()`을 지원할 수 있는지 정의합니다. 이 기능이 활성화되면 어댑터에서 `env.schema`에 구성한 비밀을 검색할 수 있습니다.
+
+다음 예시는 [유효한 `AdapterSupportsKind` 값](#adaptersupportskind)을 어댑터에 전달하여 해당 기능을 활성화합니다.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            envGetSecret: 'stable'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+`astro/env/setup` 모듈을 사용하면 `getSecret()`에 대한 구현을 제공할 수 있습니다. [서버 엔트리포인트](#서버-엔트리포인트-만들기)에서 가능한 한 빨리 `setGetEnv()`를 호출하세요.
+
+```js ins={2,4}
+import { App } from 'astro/app';
+import { setGetEnv } from "astro/env/setup"
+
+setGetEnv((key) => process.env[key])
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+  const handler = (event, context) => {
+    // ...
+  };
+  
+  return { handler };
+}
+```
+
+어댑터가 비밀을 지원하며 요청과 연결된 환경 변수가 있을 때는 `getSecret()`을 호출하기 전에 `setGetEnv()`를 먼저 호출해야 합니다.
+
+```js ins={3,14}
+import type { SSRManifest } from 'astro';
+import { App } from 'astro/app';
+import { setGetEnv } from 'astro/env/setup';
+import { createGetEnv } from '../utils/env.js';
+
+type Env = {
+  [key: string]: unknown;
+};
+
+export function createExports(manifest: SSRManifest) {
+  const app = new App(manifest);
+
+  const fetch = async (request: Request, env: Env) => {
+    setGetEnv(createGetEnv(env));
+
+    const response = await app.render(request);
+
+    return response;
+  };
+
+  return { default: { fetch } };
+}
+```
+
+### `sharpImageService`
+
+<p>
+
+**타입:** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="5.0.0" />
+</p>
+
+어댑터가 내장 Sharp 이미지 서비스를 사용하여 이미지 변환을 지원하는지 정의합니다.
+
+## 어댑터 기능
+
+생성된 파일의 출력을 변경하는 기능들의 집합입니다. 어댑터가 이러한 기능을 채택하면 특정 훅에서 추가 정보를 얻게 되며, 다양한 출력을 처리하기 위한 적절한 로직을 구현해야 합니다.
+
+### `edgeMiddleware`
+
+<p>
+
+**타입:** `boolean`
+</p>
+
+빌드할 때, 요청 시 렌더링되는 미들웨어 코드가 번들링되는지 여부를 정의합니다.
+
+활성화되면 미들웨어 코드가 번들링되지 않으며, 빌드하는 동안 모든 페이지에서 가져올 수 없게 됩니다.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+그런 다음 `middlewareEntryPoint`와 파일 시스템 상의 물리적 파일에 대한 `URL`을 제공하는 [`astro:build:ssr`](/ko/reference/integrations-reference/#astrobuildssr) 훅을 사용합니다.
+
+```js title="my-adapter.mjs" ins={15-20}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+        // 이 속성이 존재하는지 확인하세요. 어댑터가 해당 기능을 채택하지 않은 경우 `undefined`가 됩니다.
+        if (middlewareEntryPoint) {
+          createEdgeMiddleware(middlewareEntryPoint)
+        }
+      }  
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+  // 번들러를 사용하여 새 물리적 파일을 생성합니다.
+}
+```
+
+### `buildOutput`
+
+<p>
+
+**타입:** `"static" | "server"`<br />
+**기본값:** `"server"`<br />
+<Since v="5.0.0" />
+</p>
+
+빌드에 대한 특정 출력 형태를 강제할 수 있습니다. 이는 특정 출력 유형으로만 작동하는 어댑터에 유용할 수 있습니다. 예를 들어, 어댑터가 정적 웹사이트를 예상하지만 호스트별 파일을 생성하기 위해 어댑터를 사용할 수 있습니다. 지정되지 않은 경우 기본값은 `server`입니다.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            buildOutput: 'static'
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+
+**타입:** `boolean`<br />
+<Since v="5.9.3" />
+</p>
+
+어댑터가 정적 페이지에 대한 응답 헤더 설정을 실험적으로 지원하는지 여부입니다. 이 기능이 활성화되면 Astro는 정적 페이지에서 발생한 `Headers`의 맵을 반환합니다. 이 `experimentalRouteToHeaders` 맵은 기본 HTTP 헤더를 변경할 수 있는 `_headers`와 같은 파일을 생성하기 위해 [`astro:build:generated` 훅](/ko/reference/integrations-reference/#astrobuildgenerated)에서 사용할 수 있습니다.
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            experimentalStaticHeaders: true,
+          },
+        });
+      },
+      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
+        // `experimentalRouteToHeaders`를 사용하여 원하는 가상 호스트의 구성 파일을 생성하세요.
+      },
+    },
+  };
+}
+```
+
+헤더의 값은 애플리케이션에서 활성화 및 사용되는 기능에 따라 변경될 수 있습니다. 예를 들어, [CSP가 활성화된 경우](/ko/reference/experimental-flags/csp/), `<meta http-equiv="content-security-policy">` 요소가 정적 페이지에 추가되지 않습니다. 대신, 해당 `content`는 `experimentalRouteToHeaders` 맵에서 사용할 수 있습니다.
+
+## 어댑터 타입 참조
+
+### `AdapterSupport`
+
+<p>
+
+**타입:** <code><a href="#adaptersupport">AdapterSupportsKind</a> | <a href="#adaptersupportwithmessage">AdapterSupportWithMessage</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+기능에 대한 지원 수준을 설명하는 유효한 형식들의 합집합입니다.
+
+### `AdapterSupportsKind`
+
+<p>
+
+**타입:** `"deprecated" | "experimental" | "limited" | "stable" | "unsupported"`
+</p>
+
+어댑터에서 기능에 대한 지원 수준을 정의합니다.
+* `"deprecated"`: 향후 버전에 완전히 제거하기 전에 기능 지원을 더 이상 사용하지 않기로 결정한 경우 사용합니다.
+* `"experimental"`: 기능 지원을 추가하지만, 문제가 발생하거나 호환성이 깨지는 변경이 예상되는 경우 사용합니다.
+* `"limited"`: 전체 기능의 일부만 지원하는 경우 사용합니다.
+* `"stable"`: 기능이 완전히 지원되는 경우 사용합니다.
+* `"unsupported"`: 어댑터에서 이 기능이 지원되지 않으므로 사용자가 프로젝트 빌드 시 문제가 발생할 수 있음을 사용자에게 경고합니다.
+
+### `AdapterSupportWithMessage`
+
+<p>
+
+<Since v="5.0.0" />
+</p>
+
+기능에 대한 지원 수준과 사용자 콘솔에 기록될 메시지를 정의할 수 있는 객체입니다. 이 객체에는 다음 속성이 포함됩니다.
+
+#### `support`
+
+<p>
+
+**타입:** <code>Exclude\<<a href="#adaptersupportskind">AdapterSupportsKind</a>, "stable"\></code>
+</p>
+
+어댑터에서 기능에 대한 지원 수준을 정의합니다.
+
+#### `message`
+
+<p>
+
+**타입:** `string`
+</p>
+
+어댑터가 기능을 지원하는 것에 대해 기록할 사용자 정의 메시지를 정의합니다.
+
+#### `suppress`
+
+<p>
+
+**타입:** `"default" | "all"`<br />
+<Since v="5.9.0" />
+</p>
+
+어댑터가 기능 지원에 대한 일부 또는 모든 로깅 메시지를 표시하지 않도록 하는 옵션입니다.
+
+Astro의 기본 로깅 메시지가 필요하지 않거나 [사용자 정의 `message`](#message)와 함께 사용할 때 유저에게 혼란을 줄 수 있는 경우, `suppress: "default"`를 사용하여 기본 메시지를 제거하고 사용자 정의 메시지만 로깅할 수 있습니다.
 
 ```js title="my-adapter.mjs" ins={13}
 export default function createIntegration() {
@@ -463,7 +1179,7 @@ export default function createIntegration() {
             sharpImageService: {
               support: 'limited',
               message: 'The adapter has limited support for Sharp. It will be used for images during build time, but will not work at runtime.',
-              suppress: 'default' // 사용자 지정 메시지는 기본값보다 더 상세합니다.
+              suppress: 'default' // 사용자 정의 메시지가 기본 메시지보다 자세합니다.
             }
           } 
         });
@@ -473,7 +1189,7 @@ export default function createIntegration() {
 }
 ```
 
-또한 `suppress: "all"`을 사용하여 기능 지원 관련 메시지를 모두 표시하지 않을 수도 있습니다. 이 옵션은 해당 기능을 사용하지 않는 구성 설정이 있는 경우와 같이 이러한 메시지가 사용자에게 도움이 되지 않는 특정 상황에 유용합니다. 예를 들어, 어댑터에서 Sharp 지원에 대한 메시지를 기록하지 않도록 선택할 수 있습니다.
+`suppress: "all"`을 사용하여 기능 지원에 관한 모든 메시지를 표시하지 않을 수도 있습니다. 이는 특정 컨텍스트에서 사용자에게 이러한 메시지가 도움이 되지 않는 경우(예: 해당 기능을 사용하지 않는 구성 설정이 있는 경우)에 유용합니다. 예를 들어, 어댑터에서 Sharp 지원에 관한 모든 메시지 로깅을 방지할 수 있습니다.
 
 ```js title="my-adapter.mjs" ins={13}
 export default function createIntegration() {
@@ -498,208 +1214,15 @@ export default function createIntegration() {
 }
 ```
 
-## 어댑터 기능
+## `astro add`를 통한 설치 허용
 
-내보낸 파일의 출력을 변경하는 기능 세트입니다. 어댑터가 이러한 기능을 선택하면 특정 후크에서 추가 정보를 얻게 됩니다.
+[`astro add` 명령](/ko/reference/cli-reference/#astro-add)을 사용하면 사용자가 프로젝트에 통합 및 어댑터를 쉽게 추가할 수 있습니다. 이 명령어로 어댑터를 설치할 수 있도록 하려면 **`package.json`의 `keywords` 필드에 `astro-adapter`를 추가하세요.**
 
-### `edgeMiddleware`
-
-<p>
-
-**타입:** `boolean`
-</p>
-
-요청 시 렌더링되는 미들웨어 코드가 빌드 타임에 번들링될지 여부를 정의합니다.
-
-활성화되면, 이는 빌드 타임에 모든 페이지에서 미들웨어 코드가 번들링되고 가져와지는 것을 방지합니다:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-    },
-  };
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
 }
 ```
 
-그런 다음, 파일 시스템의 실제 파일에 대한 `URL`인 `middlewareEntryPoint`를 제공하는 [`astro:build:ssr`](/ko/reference/integrations-reference/#astrobuildssr) 훅을 사용합니다.
-
-```js title="my-adapter.mjs" ins={15-20}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ middlewareEntryPoint }) => {
-          // 이 속성이 존재하는지 확인하는 것을 잊지 마세요. 어댑터가 이 기능을 사용하도록 설정하지 않은 경우 `undefined`가 될 것입니다.
-          if (middlewareEntryPoint) {
-             createEdgeMiddleware(middlewareEntryPoint)
-          }
-      }  
-    },
-  };
-}
-
-function createEdgeMiddleware(middlewareEntryPoint) {
-    // 번들러를 사용하여 새로운 물리적 파일을 생성하세요.
-}
-```
-
-### envGetSecret
-
-<p>
-
-**타입:** `AdapterSupportsKind`
-</p>
-
-이는 어댑터가 `env.schema`에서 사용자가 구성한 비밀을 검색할 수 있도록 하는 기능입니다.
-
-어댑터에 유효한 `AdapterSupportsKind` 값을 전달하여 기능을 활성화하세요:
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            envGetSecret: 'stable'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-`astro/env/setup` 모듈을 통해 `getSecret()` 구현을 제공할 수 있습니다. 서버 엔트리포인트에서 가능한 한 빨리 `setGetEnv()`를 호출하세요:
-
-```js ins={2,4}
-import { App } from 'astro/app';
-import { setGetEnv } from "astro/env/setup"
-
-setGetEnv((key) => process.env[key])
-
-export function createExports(manifest) {
-  const app = new App(manifest);
-  const handler = (event, context) => {
-    // ...
-  };
-  
-  return { handler };
-}
-```
-
-비밀을 지원하는 경우, 환경 변수가 요청에 연결되어 있을 때 `getSecret()` 전에 `setGetEnv()`를 호출해야 합니다:
-
-```js ins={3,14}
-import type { SSRManifest } from 'astro';
-import { App } from 'astro/app';
-import { setGetEnv } from 'astro/env/setup';
-import { createGetEnv } from '../utils/env.js';
-
-type Env = {
-	[key: string]: unknown;
-};
-
-export function createExports(manifest: SSRManifest) {
-	const app = new App(manifest);
-	
-	const fetch = async (request: Request, env: Env) => {
-		setGetEnv(createGetEnv(env));
-		
-		const response = await app.render(request);
-		
-		return response;
-	};
-	
-	return { default: { fetch } };
-}
-```
-
-### buildOutput
-
-<p>
-
-**타입:** `'static' | 'server'`<br />
-<Since v="5.0.0" />
-</p>
-
-이 속성을 사용하면 빌드의 특정 출력 형태를 강제할 수 있습니다. 이는 특정 출력 유형에서만 작동하는 어댑터에 유용할 수 있습니다. 예를 들어, 어댑터가 정적 웹사이트를 기대하지만 호스트별 파일을 생성하기 위해 어댑터를 사용하는 경우가 있습니다. 지정하지 않으면 기본값은 `server`입니다.
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            buildOutput: 'static'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-### experimentalStaticHeaders
-
-<p>
-
-**타입:** `true | false`<br />
-<Since v="5.9.3" />
-</p>
-
-이 기능을 활성화하면 Astro는 정적 페이지에서 내보낸 `Headers` 맵을 반환합니다. 이 맵은 `experimentalRouteToHeaders`이며, `astro:build:generated` 훅에서 사용할 수 있습니다.
-
-헤더 값은 애플리케이션에서 활성화되거나 사용되는 기능에 따라 변경될 수 있습니다.
-
-예를 들어, CSP가 활성화된 경우 `<meta http-equiv="content-security-policy">` 요소는 정적 페이지에 추가되지 않습니다. 대신 `experimentalRouteToHeaders` 맵에서 해당 `content`를 사용할 수 있습니다.
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-            experimentalStaticHeaders: true,
-          },
-        });
-      },
-      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
-        // `experimentalRouteToHeaders`를 사용하여 원하는 가상 호스트의 구성 파일을 생성하세요.
-      },
-    },
-  };
-}
-```
+[어댑터를 npm에 게시](https://docs.npmjs.com/cli/v8/commands/npm-publish)하면 `astro add example`을 실행할 때 `package.json`에 지정된 피어 종속성과 함께 패키지를 설치하고 사용자에게 프로젝트 구성을 수동으로 업데이트하도록 안내합니다.
