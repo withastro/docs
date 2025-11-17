@@ -125,7 +125,7 @@ export class ProgressStore {
 		ProgressStore.pageState.lists[listKey] = { primary: [], secondary: [] };
 	}
 
-	public static initaliseSubList(listKey: string, type: SubListType, length: number): void {
+	public static initialiseSubList(listKey: string, type: SubListType, length: number): void {
 		if (ProgressStore.pageState.lists[listKey][type].length === length) return;
 		ProgressStore.pageState.lists[listKey][type] = Array.from({ length }, () => false);
 		ProgressStore.store();
