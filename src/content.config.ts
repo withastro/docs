@@ -23,6 +23,7 @@ export const baseSchema = z.object({
 
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
+	service: z.string(),
 });
 
 export const backendSchema = baseSchema.extend({
@@ -120,6 +121,8 @@ export type IntegrationCategory = z.infer<typeof integrationSchema>['category'];
 export const isBackendEntry = createIsDocsEntry('backend');
 
 export const isCmsEntry = createIsDocsEntry('cms');
+
+export const isDeployEntry = createIsDocsEntry('deploy');
 
 export const isIntegrationEntry = createIsDocsEntry('integration');
 
