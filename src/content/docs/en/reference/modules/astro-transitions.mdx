@@ -23,12 +23,17 @@ For features and usage examples, [see our View Transitions guide](/en/guides/vie
 ## Imports from `astro:transitions`
 
 ```ts
-import { ClientRouter, fade, slide } from 'astro:transitions';
+import {
+  ClientRouter,
+  createAnimationScope,
+  fade,
+  slide,
+} from 'astro:transitions';
 ```
 
 ### `<ClientRouter />`
 
-<p><Since v="3.0.0" /></p>
+<p><Since v="5.0.0" /></p>
 
 Opt in to using view transitions on individual pages by importing and adding the `<ClientRouter />` routing component to `<head>` on every desired page.
 
@@ -48,6 +53,18 @@ import { ClientRouter } from 'astro:transitions';
 ```
 
 See more about how to [control the router](/en/guides/view-transitions/#router-control) and [add transition directives](/en/guides/view-transitions/#transition-directives) to page elements and components.
+
+The `<ClientRouter />` component accepts the following props:
+
+<h4>`fallback`</h4>
+
+<p>
+
+**Type:** [`Fallback`](#fallback)<br />
+**Default:** `animate`
+</p>
+
+Defines the fallback strategy to use for browsers that do not support the [View Transitions API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API).
 
 ### `fade`
 
@@ -93,16 +110,80 @@ import { slide } from 'astro:transitions';
 <div transition:animate={slide({ duration: '0.4s' })} />
 ```
 
+### `createAnimationScope()`
+
+<p>
+
+**Type:** `(transitionName: string, animations: Record<string,TransitionAnimationPair>) => { scope: string; styles: string; }`<br />
+<Since v="3.6.0" />
+</p>
+
+Defines custom animations with fine-grained control over navigation directions. This takes a transition name and an object to configure animation pairs (e.g., `left`/`right`). This low-level API only generates the `scope` and `styles`. You are still responsible for defining CSS keyframes and associating the appropriate direction with an event listener tied to the [`astro:before-preparation` event](#astrobefore-preparation).
+
+This can be useful when you need custom directional animations like an interface allowing the user to navigate between north, south, east, and west.
+
+The following example creates a custom animation for a top-to-bottom navigable gallery, associates the direction in an event listener, and defines the CSS animations:
+
+```astro title="src/components/Main.astro"
+---
+import { createAnimationScope } from "astro:transitions";
+
+const { scope, styles } = createAnimationScope("gallery", {
+  north: {
+    new: { name: "slideFromTop" },
+    old: { name: "slideFromBottom" },
+  },
+  south: {
+    new: { name: "slideFromBottom" },
+    old: { name: "slideFromTop" },
+  },
+});
+---
+
+<main data-astro-transition-scope={scope}>
+  <Fragment set:html={styles} />
+  <a href="/next" data-direction="north">Go North</a>
+  <a href="/prev" data-direction="south">Go South</a>
+</main>
+
+<script>
+  document.addEventListener("astro:before-preparation", (event) => {
+    if (event.sourceElement instanceof HTMLAnchorElement) {
+      event.direction = event.sourceElement.dataset.direction ?? "south";
+    }
+  });
+</script>
+
+<style>
+  @keyframes slideFromTop {
+    from { transform: translateY(-100%); }
+    to { transform: translateY(0); }
+  }
+
+  @keyframes slideFromBottom {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+</style>
+```
+
 ## Imports from `astro:transitions/client`
 
 ```astro
 <script>
-  import { 
+  import {
+    getFallback,
+    isTransitionBeforePreparationEvent,
+    isTransitionBeforeSwapEvent,
     navigate,
     supportsViewTransitions,
-    transitionEnabledOnThisPage,
-    getFallback,
     swapFunctions,
+    transitionEnabledOnThisPage,
+    TRANSITION_AFTER_PREPARATION,
+    TRANSITION_AFTER_SWAP,
+    TRANSITION_BEFORE_PREPARATION,
+    TRANSITION_BEFORE_SWAP,
+    TRANSITION_PAGE_LOAD,
   } from 'astro:transitions/client';
 </script>
 ```
@@ -196,11 +277,11 @@ The element that triggered this navigation, if any. This element will be availab
 
 Whether or not view transitions are supported and enabled in the current browser.
 
-### `transitionEnabledOnThisPage`
+### `transitionEnabledOnThisPage()`
 
 <p>
 
-**Type:** `boolean`<br />
+**Type:** `() => boolean`<br />
 <Since v="3.2.0" />
 </p>
 
@@ -210,18 +291,19 @@ Whether or not the current page has view transitions enabled for client-side nav
 
 <p>
 
-**Type:** `() => 'none' | 'animate' | 'swap'`<br />
+**Type:** <code>() => <a href="#fallback">Fallback</a></code><br />
 <Since v="3.6.0" />
 </p>
 
-Returns the fallback strategy to use in browsers that do not support view transitions.
+Returns the fallback strategy to use in browsers that do not support view transitions. This returns `animate` by default when the strategy has not been overridden.
 
-See the guide on [Fallback control](/en/guides/view-transitions/#fallback-control) for how to choose and configure the fallback behavior.
+<ReadMore>See the guide on [Fallback control](/en/guides/view-transitions/#fallback-control) for how to choose and configure the fallback behavior.</ReadMore>
 
 ### `swapFunctions`
 
 <p>
 
+**Type:** `object`<br />
 <Since v="4.15.0" />
 </p>
 
@@ -277,6 +359,287 @@ Stores the element in focus on the current page and returns a function that when
 </p>
 
 Replaces the old body with the new body. Then, goes through every element in the old body that should be persisted and have a matching element in the new body and swaps the old element back in place.
+
+### `isTransitionBeforePreparationEvent`
+
+<p>
+
+**Type:** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+Determines whether the given value matches a [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent). This can be useful when you need to narrow the type of an event in an event listener.
+
+```astro title="src/pages/index.astro" "isTransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforePreparationEvent,
+    TRANSITION_BEFORE_PREPARATION,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforePreparationEvent(event) ? 1 : 2;
+    /* do something with setting */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+### `isTransitionBeforeSwapEvent`
+
+<p>
+
+**Type:** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+Determines whether the given value matches a [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent). This can be useful when you need to narrow the type of an event in an event listener.
+
+```astro title="src/pages/index.astro" "isTransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforeSwapEvent,
+    TRANSITION_BEFORE_SWAP,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforeSwapEvent(event) ? 1 : 2;
+    /* do something with setting */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
+### `TRANSITION_BEFORE_PREPARATION`
+
+<p>
+
+**Type:** `'astro:before-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+A constant to avoid writing the `astro:before-preparation` event name in plain text when you define an event.
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_PREPARATION"
+---
+---
+
+<script>
+import { TRANSITION_BEFORE_PREPARATION } from "astro:transitions/client";
+
+document.addEventListener(TRANSITION_BEFORE_PREPARATION, () => {
+  /* the listener logic */
+});
+</script>
+```
+
+### `TRANSITION_AFTER_PREPARATION`
+
+<p>
+
+**Type:** `'astro:after-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+A constant to avoid writing the `astro:after-preparation` event name in plain text when you define an event.
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_PREPARATION"
+---
+---
+
+<script>
+import { TRANSITION_AFTER_PREPARATION } from "astro:transitions/client";
+
+document.addEventListener(TRANSITION_AFTER_PREPARATION, () => {
+  /* the listener logic */
+});
+</script>
+```
+
+### `TRANSITION_BEFORE_SWAP`
+
+<p>
+
+**Type:** `'astro:before-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+A constant to avoid writing the `astro:before-swap` event name in plain text when you define an event.
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_SWAP"
+---
+---
+
+<script>
+import { TRANSITION_BEFORE_SWAP } from "astro:transitions/client";
+
+document.addEventListener(TRANSITION_BEFORE_SWAP, () => {
+  /* the listener logic */
+});
+</script>
+```
+
+### `TRANSITION_AFTER_SWAP`
+
+<p>
+
+**Type:** `'astro:after-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+A constant to avoid writing the `astro:after-swap` event name in plain text when you define an event.
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_SWAP"
+---
+---
+
+<script>
+import { TRANSITION_AFTER_SWAP } from "astro:transitions/client";
+
+document.addEventListener(TRANSITION_AFTER_SWAP, () => {
+  /* the listener logic */
+});
+</script>
+```
+
+### `TRANSITION_PAGE_LOAD`
+
+<p>
+
+**Type:** `'astro:page-load'`<br />
+<Since v="3.6.0" />
+</p>
+
+A constant to avoid writing the `astro:page-load` event name in plain text when you define an event.
+
+```astro title="src/pages/index.astro" "TRANSITION_PAGE_LOAD"
+---
+---
+
+<script>
+import { TRANSITION_PAGE_LOAD } from "astro:transitions/client";
+
+document.addEventListener(TRANSITION_PAGE_LOAD, () => {
+  /* the listener logic */
+});
+</script>
+```
+
+## `astro:transitions/client` types
+
+```astro
+<script>
+  import type {
+    Direction,
+    Fallback,
+    NavigationTypeString,
+    Options,
+    TransitionBeforePreparationEvent,
+    TransitionBeforeSwapEvent,
+  } from 'astro:transitions/client';
+</script>
+```
+
+### `Direction`
+
+<p>
+
+**Type:** `'forward' | 'back'`<br />
+<Since v="3.2.0" />
+</p>
+
+A union of animation directions:
+- `forward`: navigating to the next page in the history or to a new page.
+- `back`: navigating to the previous page in the history.
+
+### `Fallback`
+
+<p>
+
+**Type:** `'none' | 'animate' | 'swap'`<br />
+<Since v="3.2.0" />
+</p>
+
+A union of fallback strategies to use in browsers that do not support view transitions:
+- `animate`: Astro will simulate view transitions using custom attributes before updating page content.
+- `swap`: Astro will not attempt to animate the page. Instead, the old page will be immediately replaced by the new one.
+- `none`: Astro will not do any animated page transitions at all. Instead, you will get full page navigation in non-supporting browsers.
+
+<ReadMore>Learn more about [controlling the fallback strategy](/en/guides/view-transitions/#fallback-control) with the `ClientRouter`.</ReadMore>
+
+### `NavigationTypeString`
+
+<p>
+
+**Type:** `'push' | 'replace' | 'traverse'`<br />
+<Since v="3.6.0" />
+</p>
+
+A union of supported history navigation events.
+
+### `TransitionBeforePreparationEvent`
+
+<p>
+
+**Type:** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+Represents an [`astro:before-preparation` event](#astrobefore-preparation). This can be useful to type the event received by a listener:
+
+```astro title="src/pages/index.astro" "TransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_PREPARATION,
+    type TransitionBeforePreparationEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforePreparationEvent) {
+    /* do something */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+### `TransitionBeforeSwapEvent`
+
+<p>
+
+**Type:** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+Represents an [`astro:before-swap` event](#astrobefore-swap). This can be useful to type the event received by a listener:
+
+```astro title="src/pages/index.astro" "TransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_SWAP,
+    type TransitionBeforeSwapEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforeSwapEvent) {
+    /* do something */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
 
 ## Lifecycle events
 
@@ -342,7 +705,7 @@ When view transitions is enabled on the page, code that would normally execute o
 
 <p>
 
-**Type:** `URL`
+**Type:** `any`
 </p>
 
 Arbitrary data defined during navigation.
@@ -373,7 +736,7 @@ The document for the next page in the navigation. The contents of this document 
 
 <p>
 
-**Type:** `'push' | 'replace' | 'traverse'`
+**Type:** [`NavigationTypeString`](#navigationtypestring)
 </p>
 
 Which kind of history navigation is happening.
@@ -389,10 +752,7 @@ Which kind of history navigation is happening.
 **Type:** `Direction`
 </p>
 
-The direction of the transition.
-- `forward`: navigating to the next page in the history or to a new page.
-- `back`: navigating to the previous page in the history.
-- Anything else some other listener might have set.
+The direction of the transition. This can be a predefined [`Direction`](#direction) or anything else some other listener might have set.
 
 #### `from`
 
