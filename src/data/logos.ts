@@ -7,6 +7,7 @@ export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
+	deployhq: { file: 'deployhq.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
@@ -20,6 +21,7 @@ export const logos = LogoCheck({
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
+	juno: { file: 'juno.svg', padding: '0' },
 	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
@@ -108,7 +110,9 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
+	zephyr: { file: 'zephyr.svg', padding: '0' },
 	seenode: { file: 'seenode.svg', padding: '.2em' },
+	jekyllpad: { file: 'jekyllpad.svg', padding: '0.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
