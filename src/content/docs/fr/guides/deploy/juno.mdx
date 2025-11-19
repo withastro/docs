@@ -1,0 +1,173 @@
+---
+title: Déployer votre site Astro sur Juno
+description: Comment déployer votre site Astro sur le web à l'aide de Juno.
+sidebar:
+  label: Juno
+type: deploy
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Juno](https://juno.build) est une plateforme serverless open source permettant d'héberger des sites web statiques, de créer des applications web et d'exécuter des fonctions serverless avec la confidentialité et le contrôle de l'auto-hébergement.
+
+## Créer votre conteneur
+
+<Steps>
+1. Connectez-vous à la [console de Juno](https://console.juno.build).
+
+2. Cliquez sur le bouton **Launch a new satellite** (le conteneur pour votre projet) depuis la rampe de lancement.
+
+3. Saisissez un nom (**name**) et sélectionnez **Website**
+
+4. Confirmez avec **Create a Satellite**
+  
+5. La plateforme mettra ensuite ses ressources à disposition.
+  
+6. Une fois le processus terminé, cliquez sur **Continue** pour accéder à la page de présentation.
+</Steps>
+
+## Configurer votre projet
+
+Votre projet Astro peut être déployé sur Juno en tant que site statique.
+
+Créez un fichier `juno.config.mjs` à la racine de votre projet et remplacez `PROD_SATELLITE_ID` par l'ID du satellite que vous avez créé précédemment.
+
+```javascript title="juno.config.mjs"
+import { defineConfig } from '@junobuild/config';
+
+/** @type {import('@junobuild/config').JunoConfig} */
+export default defineConfig({
+  satellite: {
+    ids: {
+      production: '<PROD_SATELLITE_ID>'
+    },
+    source: 'dist',
+    predeploy: ['npm run build']
+  }
+});
+```
+
+## Comment déployer
+
+Vous pouvez déployer en utilisant soit GitHub Actions, soit l'interface de ligne de commande (CLI).
+
+### Déploiement avec GitHub Actions
+
+<Steps>
+  1. Depuis la vue d'ensemble de votre satellite, accédez à l'onglet **Setup**.
+  
+  2. Cliquez sur **Add an access key** (« Ajouter une clé d'accès »).
+  
+  3. Générez une nouvelle clé avec l'option par défaut. Cliquez sur **Submit**.
+  
+  4. Une fois la création réussie, un **jeton secret** sera affiché. Copiez sa valeur et enregistrez-la comme [secret chiffré](https://docs.github.com/fr/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets) dans votre dépôt ou organisation GitHub, en utilisant la clé `JUNO_TOKEN`.
+  
+  5. Créez un fichier `deploy.yml` dans le sous-dossier `.github/workflows` de votre dépôt.
+
+  6. Ajoutez la configuration de flux de travail suivante :
+  
+      ```yaml title=".github/workflows/deploy.yml"
+      name: Déploiement sur Juno
+    
+      on:
+        workflow_dispatch:
+        push:
+          branches: [main]
+
+      jobs:
+        deploy:
+          runs-on: ubuntu-latest
+          steps:
+            - name: Récupérer le dépôt
+              uses: actions/checkout@v4
+        
+            - uses: actions/setup-node@v4
+              with:
+                node-version: 24
+                registry-url: "https://registry.npmjs.org"
+        
+            - name: Installer les dépendances
+              run: npm ci
+        
+            - name: Déploiement sur Juno
+              uses: junobuild/juno-action@main
+              with:
+                args: hosting deploy
+              env:
+                JUNO_TOKEN: ${{ secrets.JUNO_TOKEN }}
+      ```
+</Steps>
+
+### Déploiement avec la CLI
+
+<Steps>
+
+  1. Installez la CLI
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+          ```shell
+          npm i -g @junobuild/cli
+          ```
+        </Fragment>
+        <Fragment slot="pnpm">
+          ```shell
+          pnpm add -g @junobuild/cli
+          ```
+        </Fragment>
+        <Fragment slot="yarn">
+          ```shell
+          yarn global add @junobuild/cli
+          ```
+        </Fragment>
+      </PackageManagerTabs>
+  
+  2. Authentifiez-vous via la CLI. Cela ouvrira la console Juno.
+  
+      ```bash
+      juno login
+      ```
+
+      :::tip
+      Un jeton d'accès est utilisé pour identifier votre terminal. C'est pourquoi la CLI vous demande si vous souhaitez le chiffrer avec un mot de passe.
+      Pour des raisons de sécurité, il est recommandé de le faire.
+      :::
+  
+  3. Dans la fenêtre du navigateur, cliquez sur **Authorize** pour accorder l'autorisation.
+  
+  4. Déployez votre site :
+
+      ```bash
+      juno hosting deploy
+      ```
+
+</Steps>
+
+## Guides
+
+- [Utiliser Juno avec Astro (Anglais)](https://juno.build/docs/guides/astro)
+- [Déploiement avec GitHub Actions (Anglais)](https://juno.build/docs/category/deployment)
+- [Déploiement manuel (Anglais)](https://juno.build/docs/guides/manual-deployment)
+
+## Exemples
+
+Créez rapidement un site web grâce à un modèle Astro prêt à l'emploi.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm create juno@latest -- --template astro-starter
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm create juno -- --template astro-starter
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn create juno -- --template astro-starter
+    ```
+  </Fragment>
+</PackageManagerTabs>
