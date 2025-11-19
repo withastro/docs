@@ -24,6 +24,7 @@ export const baseSchema = z.object({
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
 	service: z.string(),
+	supports: z.array(z.enum(['static', 'ssr'])).default(['static']),
 });
 
 export const backendSchema = baseSchema.extend({
