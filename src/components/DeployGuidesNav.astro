@@ -3,7 +3,6 @@ import { englishPages } from '~/content';
 import { getLanguageFromURL } from '~/util/path-utils';
 import { isDeployEntry } from '~/content.config';
 import CardsNav from './NavGrid/CardsNav.astro';
-import { isLogoKey } from '~/data/logos';
 
 export interface Props {
 	minimal?: boolean;
@@ -15,19 +14,17 @@ const lang = getLanguageFromURL(Astro.url.pathname);
 const enPages = englishPages.filter(isDeployEntry);
 
 const links = enPages
-	.sort((a, b) => {
-		// Sort alphabetically.
-		return a.data.service.toLowerCase() > b.data.service.toLowerCase() ? 1 : -1;
-	})
+	// Sort alphabetically.
+	.sort((a, b) => (a.id > b.id ? 1 : -1))
 	.map((page) => {
-		const { service } = page.data;
+		const { logo, sidebar, supports } = page.data;
+		if (!sidebar.label) throw new Error('Deploy guides must always include a sidebar label.');
 		const pageUrl = '/' + page.id.replace('en/', `${lang}/`) + '/';
-		const logo = isLogoKey(page.id.split('/').pop());
-		const { supports } = page.data;
-		const tags = Object.fromEntries(supports.map((s) => [s, Astro.locals.t(`deploy.${s}Tag`)!]))
-		return { title: service, href: pageUrl, logo, tags };
+		const tags = Object.fromEntries(supports.map((s) => [s, Astro.locals.t(`deploy.${s}Tag`)!]));
+		return { title: sidebar.label, href: pageUrl, logo, tags };
 	});
 ---
+
 <section>
 	<CardsNav minimal={minimal} links={links} />
 </section>
