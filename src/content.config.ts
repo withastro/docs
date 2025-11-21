@@ -181,4 +181,13 @@ export const collections = {
 		},
 		schema: z.object({ version: z.string() }),
 	}),
+	astroContributors: defineCollection({
+		loader: async () => {
+			const { data } = await fetch('https://astro.badg.es/api/v1/top-contributors.json').then(
+				(res) => res.json()
+			);
+			return data.map((contributor: any) => ({ id: contributor.username, ...contributor }));
+		},
+		schema: z.object({ avatar_url: z.string() }),
+	}),
 };
