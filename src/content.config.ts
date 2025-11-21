@@ -152,10 +152,10 @@ export const collections = {
 		loader: file('src/data/contributors.json'),
 		schema: contributorSchema,
 	}),
+	// Latest versions of official Astro npm packages.
 	packages: defineCollection({
 		loader: async () => {
 			const packages = [
-				'astro',
 				'@astrojs/alpinejs',
 				'@astrojs/cloudflare',
 				'@astrojs/db',
@@ -172,18 +172,13 @@ export const collections = {
 				'@astrojs/svelte',
 				'@astrojs/vercel',
 				'@astrojs/vue',
+				'astro',
 			];
+			// See https://github.com/antfu/fast-npm-meta
 			const url = `https://npm.antfu.dev/${packages.join('+')}`;
 			const data = await fetch(url).then((res) => res.json());
-			return data.map((pkg: any) => ({
-				id: pkg.name,
-				name: pkg.name,
-				version: pkg.version,
-			}));
+			return data.map((pkg: any) => ({ id: pkg.name, version: pkg.version }));
 		},
-		schema: z.object({
-			name: z.string(),
-			version: z.string(),
-		}),
+		schema: z.object({ version: z.string() }),
 	}),
 };
