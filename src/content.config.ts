@@ -152,4 +152,38 @@ export const collections = {
 		loader: file('src/data/contributors.json'),
 		schema: contributorSchema,
 	}),
+	packages: defineCollection({
+		loader: async () => {
+			const packages = [
+				'astro',
+				'@astrojs/alpinejs',
+				'@astrojs/cloudflare',
+				'@astrojs/db',
+				'@astrojs/markdoc',
+				'@astrojs/mdx',
+				'@astrojs/netlify',
+				'@astrojs/node',
+				'@astrojs/partytown',
+				'@astrojs/preact',
+				'@astrojs/react',
+				'@astrojs/rss',
+				'@astrojs/sitemap',
+				'@astrojs/solid-js',
+				'@astrojs/svelte',
+				'@astrojs/vercel',
+				'@astrojs/vue',
+			];
+			const url = `https://npm.antfu.dev/${packages.join('+')}`;
+			const data = await fetch(url).then((res) => res.json());
+			return data.map((pkg: any) => ({
+				id: pkg.name,
+				name: pkg.name,
+				version: pkg.version,
+			}));
+		},
+		schema: z.object({
+			name: z.string(),
+			version: z.string(),
+		}),
+	}),
 };
