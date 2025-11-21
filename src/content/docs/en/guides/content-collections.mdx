@@ -71,7 +71,7 @@ Collections may not be your solution if:
 
 ## Types of collections
 
-**[Build-time content collections](#build-time-content-collections)** are updated at build time, and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness, such as live stock prices.
+[Build-time content collections](#build-time-content-collections) are updated at build time, and data is saved to a storage layer. This provides excellent performance for most content, but may not be suitable for frequently updating data sources requiring up-to-the-moment data freshness, such as live stock prices.
 
 For the best performance and scalability, use build-time content collections when one or more of these is true:
 
@@ -85,7 +85,7 @@ For the best performance and scalability, use build-time content collections whe
 See [the official Astro blog starter template](https://github.com/withastro/astro/tree/latest/examples/blog) to get up and running quickly with an example of using the [built-in `glob()` loader](#the-glob-loader) and [defining a schema](#defining-the-collection-schema) for a collection of local Markdown or MDX blog posts.
 :::
 
-**[Live content collections](#live-content-collections)** fetch their data at runtime rather than build time. This allows you to access frequently updated data from CMSs, APIs, databases, or other sources using a unified API, without needing to rebuild your site when the data changes. However, this can come at a performance cost since data is fetched at each request and returned directly with no data store persistence.
+[Live content collections](#live-content-collections) fetch their data at runtime rather than build time. This allows you to access frequently updated data from CMSs, APIs, databases, or other sources using a unified API, without needing to rebuild your site when the data changes. However, this can come at a performance cost since data is fetched at each request and returned directly with no data store persistence.
 
 Live content collections are designed for data that changes frequently and needs to be up-to-date when a page is requested. Consider using them when one or more of these is true:
 
@@ -163,7 +163,7 @@ Astro provides two built-in loader functions (`glob()` and `file()`) for fetchin
 
 The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) fetches entries from directories of Markdown, MDX, Markdoc, JSON, YAML, or TOML files from anywhere on the filesystem. If you store your content entries locally using one file per entry, such as a directory of blog posts, then the `glob()` loader is all you need to access your content.
 
-This loader accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a `base` file path of where your files are located. Each entry's `id` will be automatically generated from its file name.
+This loader requires a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a `base` file path of where your files are located. An `id` for each entry will be automatically generated from its file name. You can use the [`generateID()`](/en/reference/content-loader-reference/#generateid) helper function if you need to transform these IDs to match a specific requirement.
 
 ```ts  title="src/content.config.ts" {5}
 import { defineCollection } from 'astro:content';
@@ -178,9 +178,10 @@ export const collections = { blog };
 
 #### The `file()` loader
 
-The [`file()` loader](/en/reference/content-loader-reference/#file-loader) fetches multiple entries from a single local file. This is useful if your content entries are stored as multiple objects within a single JSON or TOML file. Each entry in the file must have a unique `id` key property.
+The [`file()` loader](/en/reference/content-loader-reference/#file-loader) fetches multiple entries from a single local `file` defined in your collection. Use this loader when you have a JSON, YAML, or TOML data file that can be parsed as an array of objects. Each entry in the file must have a unique `id` key property. 
 
-It accepts a file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
+The `file()` loader will automatically detect and parse (based on their file extension) a single array of objects from JSON and YAML files, and will treat each top-level table as an independent entry in TOML files. 
+
 
 ```ts  title="src/content.config.ts" {5}
 import { defineCollection } from 'astro:content';
@@ -193,13 +194,11 @@ const dogs = defineCollection({
 export const collections = { dogs };
 ```
 
-##### `parser` function
+##### Parsing other data formats
 
-The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `csv-parse`) to create a collection from a file's contents.
+Support for parsing JSON, YAML, and TOML files into collection entries is built-in (unless you have a [nested JSON document](#nested-json-documents)). To load your collection from other file types, such as `.csv`, you will need to create a [parser function](/en/reference/content-loader-reference/#parser).
 
-The `file()` loader will automatically detect and parse (based on their file extension) a single array of objects from JSON and YAML files, and will treat each top-level table as an independent entry in TOML files. Support for these file types is built-in, and there is no need for a `parser` unless you have a [nested JSON document](#nested-json-documents). To use other files, such as `.csv`, you will need to create a parser function.
-
-The following example shows importing a CSV parser, then loading a `cats` collection into your project by passing both a file path and `parser` function to the `file()` loader:
+The following example shows importing a third-party CSV parser, then defining a `cats` collection by passing both a `file` path and an options object containing a `parser` function to the `file()` loader:
 
 ```typescript title="src/content.config.ts" {3} "parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })"
 import { defineCollection } from "astro:content";
