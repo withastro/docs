@@ -1,0 +1,179 @@
+---
+title: 실험적 SVG 최적화
+sidebar:
+  label: SVG 최적화
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean | object`<br />
+**기본값:** `false`<br />
+<Since v="5.16.0" />
+</p>
+
+이 실험적인 기능은 빌드 시점에 [SVGO](https://svgo.dev/)를 사용하여 [SVG 컴포넌트](/ko/guides/images/#svg-컴포넌트)를 자동으로 최적화합니다.
+
+이 기능을 활성화하면 컴포넌트로 사용되는 SVG 파일이 시각적 품질을 유지하면서 더 작은 파일 크기와 더 나은 성능을 위해 최적화됩니다. 이를 통해 불필요한 메타데이터, 주석, 중복된 코드를 제거하여 SVG 자산의 크기를 크게 줄일 수 있습니다.
+
+이 기능을 활성화하려면 Astro 구성에서 `true`로 설정하세요.
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    svgo: true
+  }
+})
+```
+
+## 사용 방법
+
+이 기능을 활용하기 위해 SVG 컴포넌트의 사용 방법을 변경할 필요는 없습니다. 실험적 `svgo`를 활성화하면 가져온 모든 SVG 컴포넌트 파일이 자동으로 최적화됩니다.
+
+```astro title="src/pages/index.astro"
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo />
+```
+
+SVG는 빌드 과정에서 최적화되어 프로덕션 빌드 시 파일 크기를 줄입니다.
+
+이 최적화는 프로젝트 내 모든 SVG 컴포넌트 가져오기에 적용됩니다. 특정 컴포넌트를 제외할 수는 없습니다.
+
+## 구성
+
+최적화 동작을 사용자 정의하기 위해 [SVGO 구성 객체](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335)를 전달할 수 있습니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeViewBox',
+          active: false
+        }
+      ]
+    }
+  }
+})
+```
+
+### `plugins`
+
+**타입:** `Array<string | PluginConfig>`<br />
+**기본값:** `[]`
+
+SVG 컴포넌트 가져오기를 최적화하는 데 사용될 [SVGO 플러그인](https://svgo.dev/docs/plugins/)의 배열입니다.
+
+이는 SVGO의 `preset-default` 플러그인 모음을 포함하여 ID 이름으로 모든 플러그인을 포함할 수 있습니다. 플러그인은 필요에 따라 활성화하거나 비활성화하기 위해 `name`과 `active` 상태를 모두 포함하는 객체로 전달될 수도 있습니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeViewBox',
+          active: false
+        }
+      ]
+    }
+  }
+})
+```
+
+### 기타 구성 옵션
+
+[다른 SVGO 구성 옵션](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335)(예: `floatPrecision` 및 `multipass`)을 구성 객체에 직접 전달할 수도 있습니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      floatPrecision: 2,
+      multipass: true
+    }
+  }
+})
+```
+
+## 일반적인 사용 사례
+
+SVGO는 각 플러그인을 개별적으로 추가하는 것보다 더 편리한 최적화가 포함된 다양한 [기본 플러그인 목록](https://svgo.dev/docs/preset-default/)을 제공합니다. 하지만 필요에 따라 더 구체적으로 사용자 정의해야 할 수도 있습니다. 예를 들어, 특정 항목을 제거하거나 상황에 따라 더 적극적으로 정리할 수 있습니다.
+
+### 특정 속성 유지하기
+
+SVGO가 기본적으로 제거하는 `viewBox`와 같은 특정 SVG 속성을 유지하고 싶을 수도 있습니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeViewBox',
+          active: false // viewBox 속성을 유지합니다.
+        }
+      ]
+    }
+  }
+})
+```
+
+### 특정 요소 제거하기
+
+플러그인을 구성하여 메타데이터 또는 숨겨진 레이어와 같이 원치 않는 특정 요소를 제거할 수 있습니다. 많은 플러그인이 이미 `preset-default`에 포함되어 있으므로 해당 동작만 구성하면 됩니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeMetadata',
+          active: true
+        }
+      ]
+    }
+  }
+})
+```
+
+### 정밀도 사용자 정의하기
+
+경로 데이터의 숫자 값 정밀도를 제어합니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      floatPrecision: 2
+    }
+  }
+})
+```
+
+## 동작 방식
+
+SVG 최적화는 런타임이 아닌 빌드 과정에서 발생합니다.
+
+- **개발 모드**에서는 더 빠른 재빌드 시간과 원활한 개발 경험을 보장하기 위해 SVG 파일이 최적화되지 않습니다.
+- **프로덕션 빌드**에서는 가져온 모든 SVG 파일이 빌드 과정에서 한 번 최적화되어 파일 크기를 줄입니다.
+- **런타임 오버헤드**는 없으며, 최적화된 SVG는 사전 처리된 정적 자산으로 제공됩니다.
+
+최적화 과정에서 빌드 시간이 약간 증가할 수 있지만, 사용자에게 더 작은 파일 크기와 더 빠른 페이지 로드를 제공합니다.
+
+## 추가 자료
+
+- [SVGO 문서](https://svgo.dev/)
