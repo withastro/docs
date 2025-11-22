@@ -26,6 +26,7 @@ export const logos = LogoCheck({
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
+	firebase: { file: 'firebase.svg', padding: '.1875em' },
 	'google-firebase': { file: 'firebase.svg', padding: '.1875em' },
 	hashnode: { file: 'hashnode.png', padding: '.1875em' },
 	heroku: { file: 'heroku.svg', padding: '.25em' },
@@ -116,5 +117,5 @@ export const logos = LogoCheck({
 });
 
 export type LogoKey = keyof typeof logos;
-const logoKeys = Object.keys(logos) as [LogoKey, ...LogoKey[]];
+export const logoKeys = Object.keys(logos) as [LogoKey, ...LogoKey[]];
 export const isLogoKey = (val: string | undefined) => z.enum(logoKeys).parse(val);

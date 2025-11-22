@@ -1,7 +1,8 @@
 ---
+import { englishPages } from '~/content';
 import { getLanguageFromURL } from '~/util/path-utils';
+import { isDeployEntry } from '~/content.config';
 import CardsNav from './NavGrid/CardsNav.astro';
-import type { LogoKey } from '~/data/logos';
 
 export interface Props {
 	minimal?: boolean;
@@ -10,54 +11,20 @@ export interface Props {
 const { minimal } = Astro.props as Props;
 
 const lang = getLanguageFromURL(Astro.url.pathname);
+const enPages = englishPages.filter(isDeployEntry);
 
-interface Service {
-	title: string;
-	slug: LogoKey;
-	supports: ['ssr', 'static'] | ['ssr'] | ['static'];
-}
-
-const services: Service[] = [
-	{ title: 'Netlify', slug: 'netlify', supports: ['ssr', 'static'] },
-	{ title: 'Vercel', slug: 'vercel', supports: ['ssr', 'static'] },
-	{ title: 'Deno Deploy', slug: 'deno', supports: ['ssr', 'static'] },
-	{ title: 'GitHub Pages', slug: 'github', supports: ['static'] },
-	{ title: 'GitLab Pages', slug: 'gitlab', supports: ['static'] },
-	{ title: 'Cloudflare Pages', slug: 'cloudflare', supports: ['ssr', 'static'] },
-	{ title: 'AWS', slug: 'aws', supports: ['ssr', 'static'] },
-	{ title: 'AWS via Flightcontrol', slug: 'flightcontrol', supports: ['ssr', 'static'] },
-	{ title: 'AWS via SST', slug: 'sst', supports: ['ssr', 'static'] },
-	{ title: 'Clever Cloud', slug: 'clever-cloud', supports: ['ssr', 'static'] },
-	{ title: 'Azion', slug: 'azion', supports: ['ssr', 'static'] },
-	{ title: 'Google Cloud', slug: 'google-cloud', supports: ['ssr', 'static'] },
-	{ title: 'Google Firebase', slug: 'google-firebase', supports: ['ssr', 'static'] },
-	{ title: 'Heroku', slug: 'heroku', supports: ['static'] },
-	{ title: 'Microsoft Azure', slug: 'microsoft-azure', supports: ['static'] },
-	{ title: 'Buddy', slug: 'buddy', supports: ['static'] },
-	{ title: 'DeployHQ', slug: 'deployhq', supports: ['static'] },
-	{ title: 'Fleek', slug: 'fleek', supports: ['static'] },
-	{ title: 'Fly.io', slug: 'flyio', supports: ['ssr', 'static'] },
-	{ title: 'Juno', slug: 'juno', supports: ['static'] },
-	{ title: 'Railway', slug: 'railway', supports: ['ssr', 'static'] },
-	{ title: 'Render', slug: 'render', supports: ['static'] },
-	{ title: 'Stormkit', slug: 'stormkit', supports: ['static'] },
-	{ title: 'Surge', slug: 'surge', supports: ['static'] },
-	{ title: 'Cleavr', slug: 'cleavr', supports: ['ssr', 'static'] },
-	{ title: 'Kinsta', slug: 'kinsta', supports: ['ssr', 'static'] },
-	{ title: 'Zeabur', slug: 'zeabur', supports: ['ssr', 'static'] },
-	{ title: 'Zerops', slug: 'zerops', supports: ['ssr', 'static'] },
-	{ title: 'CloudRay', slug: 'cloudray', supports: ['static'] },
-	{ title: 'Seenode', slug: 'seenode', supports: ['ssr'] },
-	{ title: 'Zephyr', slug: 'zephyr', supports: ['static'] },
-];
+const links = enPages
+	// Sort alphabetically.
+	.sort((a, b) => (a.id > b.id ? 1 : -1))
+	.map((page) => {
+		const { logo, sidebar, supports } = page.data;
+		if (!sidebar.label) throw new Error('Deploy guides must always include a sidebar label.');
+		const pageUrl = '/' + page.id.replace('en/', `${lang}/`) + '/';
+		const tags = Object.fromEntries(supports.map((s) => [s, Astro.locals.t(`deploy.${s}Tag`)!]));
+		return { title: sidebar.label, href: pageUrl, logo, tags };
+	});
 ---
 
-<CardsNav
-	minimal={minimal}
-	links={services.map(({ title, slug, supports }) => ({
-		title,
-		href: `/${lang}/guides/deploy/${slug}/`,
-		logo: slug,
-		tags: Object.fromEntries(supports.map((s) => [s, Astro.locals.t(`deploy.${s}Tag`)!])),
-	}))}
-/>
+<section>
+	<CardsNav minimal={minimal} links={links} />
+</section>
