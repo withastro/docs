@@ -21,6 +21,7 @@ export const logos = LogoCheck({
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
+	juno: { file: 'juno.svg', padding: '0' },
 	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
@@ -111,6 +112,7 @@ export const logos = LogoCheck({
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
 	zephyr: { file: 'zephyr.svg', padding: '0' },
 	seenode: { file: 'seenode.svg', padding: '.2em' },
+	jekyllpad: { file: 'jekyllpad.svg', padding: '0.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
