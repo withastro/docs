@@ -1,0 +1,179 @@
+---
+title: Optimisation expérimentale des SVG
+sidebar:
+  label: Optimisation des SVG
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type :** `boolean | object`<br />
+**Par défaut :** `false`<br />
+<Since v="5.16.0" />
+</p>
+
+Cette fonctionnalité expérimentale permet l'optimisation automatique de vos [composants SVG](/fr/guides/images/#composants-svg) à l'aide de [SVGO](https://svgo.dev/) au moment de la compilation.
+
+Quand cette option est activée, vos fichiers SVG importés et utilisés comme composants seront optimisés afin de réduire leur taille et d'améliorer leurs performances, tout en préservant leur qualité visuelle. Cela peut réduire considérablement la taille de vos fichiers SVG en supprimant les métadonnées inutiles, les commentaires et le code redondant.
+
+Pour activer cette fonctionnalité avec les paramètres par défaut, définissez-la sur `true` dans votre configuration d'Astro :
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    svgo: true
+  }
+})
+```
+
+## Utilisation
+
+Aucune modification de l'utilisation des composants SVG n'est requise pour bénéficier de cette fonctionnalité. Avec la fonctionnalité expérimentale `svgo` activée, tous vos fichiers de composants SVG importés seront automatiquement optimisés :
+
+```astro title="src/pages/index.astro"
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo />
+```
+
+Le fichier SVG sera optimisé lors du processus de compilation, ce qui permettra de réduire la taille des fichiers dans votre version de production.
+
+Notez que cette optimisation s'applique à toutes les importations de composants SVG de votre projet. Il n'est pas possible de la désactiver composant par composant.
+
+## Configuration
+
+Vous pouvez transmettre un [objet de configuration SVGO](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335) pour personnaliser le comportement d'optimisation :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeViewBox',
+          active: false
+        }
+      ]
+    }
+  }
+})
+```
+
+### `plugins`
+
+**Type :** `Array<string | PluginConfig>`<br />
+**Par défaut :** `[]`
+
+Un tableau de [modules d'extension SVGO](https://svgo.dev/docs/plugins/) qui seront utilisés pour optimiser vos importations de composants SVG.
+
+Cela peut inclure n'importe quel module d'extension par son identifiant, y compris la collection de modules d'extension par défaut (`preset-default`) de SVGO. Un module d'extension peut éventuellement être transmis sous forme d'objet incluant à la fois son nom (`name`) et son état (`active`), afin de l'activer ou de le désactiver selon les besoins.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeViewBox',
+          active: false
+        }
+      ]
+    }
+  }
+})
+```
+
+### Autres options de configuration
+
+Vous pouvez également transmettre [d'autres options de configuration SVGO](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), telles que `floatPrecision` et `multipass`, directement à votre objet de configuration :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      floatPrecision: 2,
+      multipass: true
+    }
+  }
+})
+```
+
+## Cas d'utilisation courants
+
+SVGO propose une [liste complète des modules d'extension par défaut](https://svgo.dev/docs/preset-default/) avec des optimisations prédéfinies, plus pratique que l'ajout individuel de chaque module d'extension. Toutefois, vous devrez peut-être le personnaliser davantage en fonction de vos besoins. Par exemple, il pourrait supprimer des éléments ou effectuer un nettoyage trop agressif pour votre situation.
+
+### Conserver des attributs spécifiques
+
+Vous souhaiterez peut-être conserver certains attributs SVG, tels que `viewBox`, que SVGO supprime par défaut :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeViewBox',
+          active: false // Conserver l'attribut viewBox
+        }
+      ]
+    }
+  }
+})
+```
+
+### Supprimer des éléments spécifiques
+
+Vous pouvez configurer les modules d'extension pour supprimer des éléments indésirables spécifiques tels que les métadonnées ou les calques cachés. Notez que de nombreux modules d'extension sont déjà inclus dans `preset-default`, vous n'aurez donc généralement qu'à configurer leur comportement.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      plugins: [
+        'preset-default',
+        {
+          name: 'removeMetadata',
+          active: true
+        }
+      ]
+    }
+  }
+})
+```
+
+### Précision personnalisée
+
+Contrôlez la précision des valeurs numériques dans les données de chemin :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    svgo: {
+      floatPrecision: 2
+    }
+  }
+})
+```
+
+## Comment ça marche
+
+L'optimisation SVG a lieu pendant le processus de compilation, et non lors de l'exécution :
+
+- En **mode développement**, les fichiers SVG ne sont pas optimisés afin de garantir des temps de recompilation plus rapides et une expérience de développement plus fluide.
+- Dans les **versions de production**, tous les fichiers SVG importés sont optimisés une seule fois lors du processus de compilation, ce qui permet de réduire leur taille.
+- Il n'y a **aucune surcharge pour l'environnement d'exécution** - les SVG optimisés sont servis en tant que ressources statiques prétraitées.
+
+Bien que le processus d'optimisation puisse légèrement augmenter vos temps de compilation, il en résulte des fichiers plus petits et des chargements de page plus rapides pour vos utilisateurs.
+
+## Lectures complémentaires
+
+- [Documentation de SVGO](https://svgo.dev/)
