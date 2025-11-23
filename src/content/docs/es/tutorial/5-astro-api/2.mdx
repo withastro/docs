@@ -64,12 +64,12 @@ Puedes crear conjuntos completos de páginas de forma dinámica utilizando archi
 
     Asegúrate de dar a cada ruta de tu array los nuevos props, y luego haz que esos props estén disponibles para tu plantilla de componentes fuera de tu función.
 
-    ```astro title="src/pages/tags/[tag].astro" ins={5,18} "props: {posts: allPosts}" 
+    ```astro title="src/pages/tags/[tag].astro" ins={5,18} ins="props: {posts: allPosts}" 
     ---
     import BaseLayout from '../../layouts/BaseLayout.astro';
 
     export async function getStaticPaths() {
-      const allPosts = await Astro.glob('../posts/*.md');
+      const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
 
       return [
         {params: {tag: "astro"}, props: {posts: allPosts}},
@@ -78,7 +78,7 @@ Puedes crear conjuntos completos de páginas de forma dinámica utilizando archi
         {params: {tag: "bloguear"}, props: {posts: allPosts}},
         {params: {tag: "contratiempos"}, props: {posts: allPosts}},
         {params: {tag: "aprender en público"}, props: {posts: allPosts}}
-      ]
+      ];
     }
     
     const { tag } = Astro.params;
@@ -86,13 +86,13 @@ Puedes crear conjuntos completos de páginas de forma dinámica utilizando archi
     ---
     ```
 
-2. Filtra tu lista de entradas para incluir solo las entradas que contengan la etiqueta propia de la página.
+2. Filtra tu lista de entradas, usando el soporte integrado de TypeScript de Astro, para incluir solo las entradas que contengan la etiqueta propia de la página.
 
-    ```astro title="/src/pages/tags/[tag].astro" ins={4}
+    ```astro title="src/pages/tags/[tag].astro" ins={4}
     ---
     const { tag } = Astro.params;
     const { posts } = Astro.props;
-    const filteredPosts = posts.filter((post) => post.frontmatter.tags?.includes(tag));
+    const filteredPosts = posts.filter((post: any) => post.frontmatter.tags?.includes(tag));
     ---
     ```
 
@@ -102,7 +102,7 @@ Puedes crear conjuntos completos de páginas de forma dinámica utilizando archi
     <BaseLayout pageTitle={tag}>   
       <p>Entradas etiquetadas con {tag}</p>
       <ul>
-        {filteredPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
       </ul>
     </BaseLayout>
     ```
@@ -113,8 +113,8 @@ Puedes crear conjuntos completos de páginas de forma dinámica utilizando archi
     <BaseLayout pageTitle={tag}>
       <p>Entradas etiquetadas con {tag}</p>
       <ul>
-        {filteredPosts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
-        {filteredPosts.map(post => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+        {filteredPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {filteredPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
       </ul>
     </BaseLayout>
     ```
@@ -128,7 +128,7 @@ Puedes crear conjuntos completos de páginas de forma dinámica utilizando archi
 
 Para cada uno de los siguientes, indica si el código está escrito **dentro** de la función `getStaticPath()`, o **fuera** de ella.
 
-1. La llamada `Astro.glob()` para recibir información sobre todos tus archivos `.md` para pasar a cada ruta de página.
+1. La llamada `import.meta.glob()` para recibir información sobre todos tus archivos `.md` para pasar a cada ruta de página.
 
     <MultipleChoice>
     <Option isCorrect>dentro `getStaticPaths`</Option>
@@ -173,7 +173,7 @@ Aunque parezca un reto, puedes intentar seguir los pasos para construir esta fun
 
    Vuelve a revisar cada una de tus páginas Markdown existentes y asegúrate de que cada entrada contenga un array `tags` en su frontmatter. Incluso si sólo tienes una etiqueta, debería estar escrita como un array, por ejemplo, `tags: ["blogging"]`.
 
-2. Crea un array con todas las etiquetas existentes
+2. Crea un array con todas las etiquetas existentes usando el soporte integrado de TypeScript de Astro
 
    Añade el siguiente código para obtener una lista de todas las etiquetas utilizadas en las entradas de tu blog.
 
@@ -182,9 +182,10 @@ Aunque parezca un reto, puedes intentar seguir los pasos para construir esta fun
    import BaseLayout from '../../layouts/BaseLayout.astro';
 
    export async function getStaticPaths() {
-    const allPosts = await Astro.glob('../posts/*.md');
+    const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
     
-    const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+    const uniqueTags = [...new Set(allPosts.map((post: any) => post.frontmatter.tags).flat())];
+   }
    ```
 
    <details>
@@ -210,7 +211,7 @@ Aunque parezca un reto, puedes intentar seguir los pasos para construir esta fun
          ]
  
      return uniqueTags.map((tag) => {
-       const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+       const filteredPosts = allPosts.filter((post: any) => post.frontmatter.tags.includes(tag));
        return {
          params: { tag },
          props: { posts: filteredPosts },
@@ -230,8 +231,8 @@ Aunque parezca un reto, puedes intentar seguir los pasos para construir esta fun
    ---
    <!-- -->
    <ul>
-       {filteredPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
-       {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+       {filteredPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+       {posts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
    </ul>
    ```
 </Steps>
@@ -246,12 +247,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import BlogPost from '../../components/BlogPost.astro';
 
 export async function getStaticPaths() {
-  const allPosts = await Astro.glob('../posts/*.md');
+  const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
   
-  const uniqueTags = [...new Set(allPosts.map((post) => post.frontmatter.tags).flat())];
+  const uniqueTags = [...new Set(allPosts.map((post: any) => post.frontmatter.tags).flat())];
 
   return uniqueTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) => post.frontmatter.tags.includes(tag));
+    const filteredPosts = allPosts.filter((post: any) => post.frontmatter.tags.includes(tag));
     return {
       params: { tag },
       props: { posts: filteredPosts },
@@ -265,7 +266,7 @@ const { posts } = Astro.props;
 <BaseLayout pageTitle={tag}>
   <p>Posts etiquetados con {tag}</p>
   <ul>
-    {posts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
+    {posts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title}/>)}
   </ul>
 </BaseLayout>
 ```
