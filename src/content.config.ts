@@ -31,7 +31,7 @@ export const deploySchema = baseSchema.extend({
 export const backendSchema = baseSchema.extend({
 	type: z.literal('backend'),
 	stub: z.boolean().default(false),
-	service: z.string(),
+	logo: z.enum(logoKeys),
 });
 
 export const cmsSchema = baseSchema.extend({
