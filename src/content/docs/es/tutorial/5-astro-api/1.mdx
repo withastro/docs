@@ -4,7 +4,7 @@ title: Crear un archivo de entradas de blog
 i18nReady: true
 description: |-
   Tutorial: Construye tu primer blog de Astro -
-  Utiliza Astro.glob() para acceder a los datos de los archivos de tu proyecto
+  Utiliza import.meta.glob() para acceder a los datos de los archivos de tu proyecto
 ---
 import Box from '~/components/tutorial/Box.astro';
 import Checklist from '~/components/Checklist.astro';
@@ -18,19 +18,19 @@ import { Steps } from '@astrojs/starlight/components';
 Ahora que ya tienes unas cuantas entradas de blog a las que enlazar, ¡es hora de configurar la página Blog para que cree una lista de ellas automáticamente!
 
 <PreCheck>
-  - Acceder a los datos de todos tus puestos a la vez utilizando `Astro.glob()`.
+  - Acceder a los datos de todos tus puestos a la vez utilizando `import.meta.glob()`.
   - Mostrar una lista de entradas generada dinámicamente en la página del blog
   - Refactorizar para utilizar un componente `<BlogPost />` para cada elemento de la lista
 </PreCheck>
 
 ## Muestra dinámicamente una lista de entradas
 <Steps>
-1. Añade el siguiente código a `blog.astro` para devolver información sobre todos tus archivos Markdown. `Astro.glob()` devolverá un array de objetos, uno por cada entrada del blog.
+1. Añade el siguiente código a `blog.astro` para devolver información sobre todos tus archivos Markdown. `import.meta.glob()` devolverá un array de objetos, uno por cada entrada del blog.
 
     ```astro title="src/pages/blog.astro" ins={3}
     ---
     import BaseLayout from '../layouts/BaseLayout.astro'
-    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const allPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
     const pageTitle = "Mi blog de aprendizaje de Astro";
     ---
     <BaseLayout pageTitle={pageTitle}>
@@ -49,7 +49,7 @@ Ahora que ya tienes unas cuantas entradas de blog a las que enlazar, ¡es hora d
     ```astro title="src/pages/blog.astro" del={9,10,11} ins={13}
     ---
     import BaseLayout from '../layouts/BaseLayout.astro'
-    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const allPosts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
     const pageTitle = "Mi blog de aprendizaje de Astro";
     ---
     <BaseLayout pageTitle={pageTitle}>
@@ -59,12 +59,12 @@ Ahora que ya tienes unas cuantas entradas de blog a las que enlazar, ¡es hora d
         <li><a href="/posts/post-2/">Publicación 2</a></li>
         <li><a href="/posts/post-3/">Publicación 3</a></li>
 
-        {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+        {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
       </ul>
     </BaseLayout>
     ```
 
-    La lista completa de entradas de tu blog se genera ahora dinámicamente, mapeando sobre el array devuelto por `Astro.glob()`.
+    La lista completa de entradas de tu blog se genera de manera dinámica usando el soporte integrado de TypeScript de Astro, mapeando sobre el arreglo devuelto por `import.meta.glob()`.
 
 3. Añade una nueva entrada de blog creando un nuevo archivo `post-4.md` en `src/pages/posts/` y añadiendo algo de contenido Markdown. Asegúrate de incluir al menos las propiedades frontmatter utilizadas a continuación.
 
@@ -80,7 +80,7 @@ Ahora que ya tienes unas cuantas entradas de blog a las que enlazar, ¡es hora d
     pubDate: 2022-08-08
     tags: ["astro", "éxitos"]
     ---
-    Esta entrada debería aparecer con las demás entradas de mi blog, porque `Astro.glob()` está devolviendo una lista de todas mis entradas para crear mi lista.
+    Esta entrada debería aparecer con las demás entradas de mi blog, porque `import.meta.glob()` está devolviendo una lista de todas mis entradas para crear mi lista.
     ```
 
 4. Vuelve a visitar la página de tu blog en la vista previa de tu navegador en `http://localhost:4321/blog` y busca una lista actualizada con cuatro elementos, incluida tu nueva entrada de blog
@@ -93,8 +93,8 @@ Intenta por tu cuenta realizar todos los cambios necesarios en tu proyecto de As
 
 ```astro title="src/pages/blog.astro" del={2} ins={3}
 <ul>
-  {allPosts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
-  {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+  {allPosts.map((post: any) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+  {allPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
 </ul>
 ```
 
@@ -141,7 +141,7 @@ Intenta por tu cuenta realizar todos los cambios necesarios en tu proyecto de As
     ---
     import BaseLayout from '../layouts/BaseLayout.astro';
     import BlogPost from '../components/BlogPost.astro';
-    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const allPosts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
     const pageTitle = "Mi blog de aprendizaje de Astro";
     ---
     ```
@@ -161,13 +161,13 @@ Intenta por tu cuenta realizar todos los cambios necesarios en tu proyecto de As
     ---
     import BaseLayout from '../layouts/BaseLayout.astro';
     import BlogPost from '../components/BlogPost.astro';
-    const allPosts = await Astro.glob('../pages/posts/*.md');
+    const allPosts = Object.values(import.meta.glob('../pages/posts/*.md', { eager: true }));
     const pageTitle = "Mi blog de aprendizaje de Astro"
     ---
     <BaseLayout pageTitle={pageTitle}>
       <p>Aquí es donde publicaré sobre mi viaje de aprendizaje de Astro.</p>
       <ul>
-        {allPosts.map((post) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
+        {allPosts.map((post: any) => <BlogPost url={post.url} title={post.frontmatter.title} />)}
       </ul>
     </BaseLayout>
     ```
@@ -186,7 +186,7 @@ Si tu componente de Astro contiene la siguiente línea de código:
 
 ```astro
 ---
-const myPosts = await Astro.glob('../pages/posts/*.md');
+const myPosts = Object.values(await import.meta.glob('./posts/*.md', { eager:  true }));
 ---
 ```
 
@@ -248,4 +248,4 @@ Elige la sintaxis que podrías escribir para representar:
 
 ### Recursos
 
-- [`Astro.glob()` Documentación API](/es/reference/api-reference/#astroglob)
+- [Importando patrones *glob* en Astro](/es/guides/imports/#importmetaglob)

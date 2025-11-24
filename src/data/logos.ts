@@ -7,11 +7,13 @@ export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
+	deployhq: { file: 'deployhq.svg', padding: '.1625em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
 	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
+	'craft-cross-cms': { file: 'craft-cross-cms.svg', padding: '.225em' },
 	crystallize: { file: 'crystallize.svg', padding: '.1875em' },
 	'create-react-app': { file: 'create-react-app.svg', padding: '.1875em' },
 	datocms: { file: 'datocms.svg', padding: '0.25em 0.25em 0.25em 0.3em' },
@@ -19,11 +21,12 @@ export const logos = LogoCheck({
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flotiq: { file: 'flotiq.svg', padding: '.05em' },
 	flyio: { file: 'flyio.svg', padding: '.1625em' },
+	juno: { file: 'juno.svg', padding: '0' },
 	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
 	gitlab: { file: 'gitlab.svg', padding: '0' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
-	'google-firebase': { file: 'firebase.svg', padding: '.1875em' },
+	firebase: { file: 'firebase.svg', padding: '.1875em' },
 	hashnode: { file: 'hashnode.png', padding: '.1875em' },
 	heroku: { file: 'heroku.svg', padding: '.25em' },
 	'microsoft-azure': { file: 'microsoft-azure.svg', padding: '.1625em .1625em .2125em' },
@@ -83,7 +86,7 @@ export const logos = LogoCheck({
 	docusaurus: { file: 'docusaurus.svg', padding: '.225em' },
 	nuxtjs: { file: 'nuxtjs.svg', padding: '.25em' },
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
-	appwriteio: { file: 'appwriteio.svg', padding: '.2em' },
+	appwrite: { file: 'appwriteio.svg', padding: '.2em' },
 	supabase: { file: 'supabase.svg', padding: '.2em' },
 	turso: { file: 'turso.svg', padding: '.2em' },
 	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
@@ -108,8 +111,11 @@ export const logos = LogoCheck({
 	neon: { file: 'neon.svg', padding: '.2em' },
 	studiocms: { file: 'studiocms.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
+	zephyr: { file: 'zephyr.svg', padding: '0' },
+	seenode: { file: 'seenode.svg', padding: '.2em' },
+	jekyllpad: { file: 'jekyllpad.svg', padding: '0.2em' },
 });
 
 export type LogoKey = keyof typeof logos;
-const logoKeys = Object.keys(logos) as [LogoKey, ...LogoKey[]];
+export const logoKeys = Object.keys(logos) as [LogoKey, ...LogoKey[]];
 export const isLogoKey = (val: string | undefined) => z.enum(logoKeys).parse(val);

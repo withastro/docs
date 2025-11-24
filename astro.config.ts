@@ -6,8 +6,9 @@ import remarkSmartypants from 'remark-smartypants';
 import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
-import { makeLocalesConfig } from './config/locales';
+import { localesConfig } from './config/locales';
 import { starlightPluginLlmsTxt } from './config/plugins/llms-txt';
+import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 
@@ -49,7 +50,7 @@ export default defineConfig({
 				baseUrl: 'https://github.com/withastro/docs/edit/main',
 			},
 			defaultLocale: 'en',
-			locales: makeLocalesConfig(),
+			locales: localesConfig,
 			sidebar,
 			social: [
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/astro' },
@@ -68,7 +69,7 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
-			plugins: [starlightPluginLlmsTxt()],
+			plugins: [starlightPluginSmokeTest(), starlightPluginLlmsTxt()],
 		}),
 		sitemap(),
 	],

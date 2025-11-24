@@ -9,11 +9,10 @@ category: adapter
 i18nReady: true
 ---
 
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
-
 
 This adapter allows Astro to deploy your [on-demand rendered routes and features](/en/guides/on-demand-rendering/) to [Cloudflare](https://www.cloudflare.com/), including [server islands](/en/guides/server-islands/), [actions](/en/guides/actions/), and [sessions](/en/guides/sessions/).
 
@@ -54,36 +53,69 @@ Now, you can enable [on-demand rendering per page](/en/guides/on-demand-renderin
 
 ### Manual Install
 
-First, add the `@astrojs/cloudflare` adapter to your project's dependencies using your preferred package manager.
+<Steps>
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```sh
-  npm install @astrojs/cloudflare
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```sh
-  pnpm add @astrojs/cloudflare
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```sh
-  yarn add @astrojs/cloudflare
-  ```
-  </Fragment>
-</PackageManagerTabs>
+1. Add the `@astrojs/cloudflare` adapter to your project's dependencies using your preferred package manager.
 
-Then, add the adapter to your `astro.config.mjs` file:
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npm install @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm add @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn add @astrojs/cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
 
-```js title="astro.config.mjs" ins={2,5}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+2. Add the adapter to your `astro.config.mjs` file:
 
-export default defineConfig({
-  adapter: cloudflare(),
-});
-```
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      adapter: cloudflare(),
+    });
+    ```
+
+3. Create a [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/):
+
+    ```jsonc title="wrangler.jsonc"
+    {
+      "main": "dist/_worker.js/index.js",
+      "name": "my-astro-app",
+      // Update to today's date
+      "compatibility_date": "2025-03-25",
+      "compatibility_flags": [
+        "nodejs_compat",
+        "global_fetch_strictly_public"
+      ],
+      "assets": {
+        "binding": "ASSETS",
+        "directory": "./dist"
+      },
+      "observability": {
+        "enabled": true
+      }
+    }
+    ```
+
+4. Create a `.assetsignore` file in your `public/` folder, and add the following lines to it:
+
+      ```txt title="public/.assetsignore"
+      _worker.js
+      _routes.json
+      ```
+
+</Steps>
 
 ## Options
 
@@ -343,8 +375,7 @@ export function createExports(manifest: SSRManifest) {
 
 ### Usage
 
-The Cloudflare runtime gives you access to environment variables and bindings to Cloudflare resources.
-The Cloudflare runtime uses bindings found in the `wrangler.toml`/`wrangler.json` configuration file. 
+The Cloudflare runtime gives you access to environment variables and bindings to Cloudflare resources defined in your `wrangler.toml`/`wrangler.jsonc` configuration file.
 
 You can access the bindings from `Astro.locals.runtime`:
 
@@ -370,9 +401,9 @@ See the [list of all supported bindings](https://developers.cloudflare.com/worke
 
 The Cloudflare runtime treats environment variables as a type of binding.
 
-For example, you can define an [environment variable](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) in `wrangler.json` as follows:
+For example, you can define an [environment variable](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) in `wrangler.jsonc` as follows:
 
-```json title="wrangler.json"
+```jsonc title="wrangler.jsonc"
 {
   "vars" : {
     "MY_VARIABLE": "test"
@@ -498,8 +529,8 @@ Astro automatically configures [Workers KV](https://developers.cloudflare.com/kv
 2. Declare the KV namespace in your Wrangler config, setting the namespace ID to the one returned by the previous command:
 
     <Tabs>
-      <TabItem label="wrangler.json">
-        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+      <TabItem label="wrangler.jsonc">
+        ```json title="wrangler.jsonc" "<KV_NAMESPACE_ID>"
         {
           "kv_namespaces": [
             {
@@ -605,7 +636,7 @@ To use [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) to run 
 For Workers:
 
 ```json title="package.json"
-"preview": "wrangler dev ./dist"
+"preview": "wrangler dev"
 ```
 
 For Pages:

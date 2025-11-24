@@ -82,7 +82,7 @@ body {
     });
     ```
     
-    [대체 글꼴 패밀리](#fallbacks) 정의, 다운로드할 [`weights`](#weights) 및 [`styles`](#styles)와 같은 더 많은 구성 옵션을 사용할 수 있으며, 일부는 선택한 제공자에 따라 다릅니다.
+    [대체 글꼴 패밀리](#fallbacks) 정의, 다운로드할 [`weights`](#weights), [`styles`](#styles), [`subsets`](#subsets)과 같은 더 많은 구성 옵션을 사용할 수 있으며, 일부는 선택한 제공자에 따라 다릅니다.
         
     자세한 내용은 전체 [구성 참조](#글꼴-구성-참조)를 확인하세요.
 
@@ -152,7 +152,9 @@ body {
 
 ## 사용 가능한 원격 글꼴 제공자
 
-Astro는 대부분의 [unifont](https://github.com/unjs/unifont/) 제공자를 다시 내보냅니다. 다음은 기본적으로 지원되는 제공자입니다.
+Astro는 대부분의 [unifont](https://github.com/unjs/unifont/) 제공자를 다시 내보냅니다. 또한, 모든 unifont 제공자에 대해 [사용자 정의 Astro 글꼴 제공자](#나만의-글꼴-제공자-구축하기)를 만들 수도 있습니다.
+
+다음 제공자는 기본적으로 제공됩니다.
 
 - [Adobe](https://fonts.adobe.com/)
 - [Bunny](https://fonts.bunny.net/)
@@ -167,8 +169,10 @@ Astro는 대부분의 [unifont](https://github.com/unjs/unifont/) 제공자를 �
 <TabItem label="Adobe">
 
 ```js
-provider: fontProviders.adobe({ id: process.env.ADOBE_ID })
+provider: fontProviders.adobe({ id: 'your-id' })
 ```
+
+[Astro 구성 파일에서 환경 변수](/ko/guides/environment-variables/#astro-구성-파일)로 로드된 ID를 Adobe 글꼴 제공자에 전달하세요.
 
 </TabItem>
 
@@ -216,8 +220,6 @@ provider: fontProviders.google({
 
 </Tabs>
 
-어떤 unifont 제공자에 대해서든 [사용자 정의 Astro 글꼴 제공자](#나만의-글꼴-제공자-구축하기)를 만들 수도 있습니다.
-
 ## 사용 예시
 
 ```js title="astro.config.mjs"
@@ -233,26 +235,26 @@ export default defineConfig({
         // 기본값은 다음과 같습니다.
         // weights: [400] ,
         // styles: ["normal", "italics"],
-        // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+        // subsets: ["latin"],
         // fallbacks: ["sans-serif"], 
       },
       {
         name: "Inter",
         cssVariable: "--font-inter",
         provider: fontProviders.fontsource(),
-        // 실제로 사용할 굵기를 지정합니다.
+        // 실제로 사용할 두께를 지정합니다.
         weights: [400, 500, 600, 700],
         // 실제로 사용할 스타일을 지정합니다.
         styles: ["normal"],
         // 페이지에 사용된 문자에 대한 글꼴 파일만 다운로드합니다.
-        subsets: ["cyrillic"],
+        subsets: ["latin", "cyrillic"],
       },
       {
         name: "JetBrains Mono",
         cssVariable: "--font-jetbrains-mono",
         provider: fontProviders.fontsource(),
         // 페이지에 사용된 문자에 대한 글꼴 파일만 다운로드합니다.
-        subsets: ["latin"],
+        subsets: ["latin", "latin-ext"],
         // 의도한 모습과 일치하는 대체 글꼴 패밀리를 사용합니다.
         fallbacks: ["monospace"],
       },
@@ -260,7 +262,7 @@ export default defineConfig({
         name: "Poppins",
         cssVariable: "--font-poppins",
         provider: "local",
-        // 굵기와 스타일이 지정되지 않았으므로
+        // 두께와 스타일이 지정되지 않았으므로
         // Astro는 각 변형에 대해 추론을 시도합니다.
         variants: [
           {
@@ -311,7 +313,7 @@ import { Font } from 'astro:assets';
 
 <p>
 
-**타입:** `boolean`<br />
+**타입:** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
 **기본값:** `false`
 </p>
 
@@ -323,6 +325,79 @@ import { Font } from 'astro:assets';
 ---
 
 <Font cssVariable="--font-roboto" preload />
+```
+
+`preload` 지시어를 사용하면 브라우저가 페이지를 로드하면서 가능한 모든 글꼴 링크를 즉시 다운로드하기 시작합니다. 
+
+#### 세분화된 프리로드
+
+<p>
+<Since v="5.15.0" />
+</p>
+
+항상 모든 글꼴 링크를 미리 로드하고 싶지는 않을 수 있습니다. 이는 다른 중요한 리소스 로드를 차단하거나 현재 페이지에 필요하지 않은 글꼴을 다운로드할 수 있기 때문입니다.
+
+미리 로드할 글꼴 파일을 선택적으로 제어하려면 `weight`, `style` 또는 `subset`의 모든 조합을 설명하는 객체 배열을 제공할 수 있습니다.
+
+다음은 `400`의 두께 또는 `latin` 하위 집합에서 `normal` 스타일의 글꼴 파일만 미리 로드하는 예시입니다.
+
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from 'astro:assets';
+---
+
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: 'latin', style: 'normal' },
+    { weight: '400' },
+  ]}
+/>
+```
+
+가변 두께를 가진 글꼴 파일은 범위 내 두께가 요청된 경우 미리 로드됩니다. 예를 들어, 두께가 `100 900`인 글꼴 파일은 `preload` 객체에 `400`이 지정된 경우에 포함됩니다.
+
+## 프로그래밍 방식으로 글꼴 데이터에 접근하기
+
+`getFontData()` 함수는 [API 라우트](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)에서 사용하거나, 자체 메타 태그를 생성하는 것과 같이 프로그래밍 방식으로 저수준 글꼴 패밀리 데이터를 가져오기 위한 것입니다.
+
+### `getFontData()`
+<p>
+
+**타입:** `(cssVariable: CssVariable) => FontData[]`<br />
+<Since v="5.14.0" />
+</p>
+
+지정된 [`cssVariable`](#cssvariable-1)에 대한 `src`, `weight`, `style`을 포함하는 `FontData` 객체의 배열을 반환합니다.
+
+다음은 [satori](https://github.com/vercel/satori)를 사용하여 OpenGraph 이미지를 생성할 때 URL로부터 글꼴 버퍼를 가져오기 위해 `getFontData()`를 사용하는 예시입니다.
+
+```tsx title="src/pages/og.png.ts" "getFontData(\"--font-roboto\")" "data[0].src[0].url"
+import type{ APIRoute } from "astro"
+import { getFontData } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = getFontData("--font-roboto")
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await fetch(new URL(data[0].src[0].url, context.url.origin)).then(res => res.arrayBuffer()),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
 ```
 
 ## 글꼴 구성 참조
@@ -434,7 +509,7 @@ optimizedFallbacks: false
 
 ### 원격 글꼴 속성
 
-원격 글꼴에 대한 추가 구성 옵션을 사용할 수 있습니다. 예를 들어 특정 글꼴 두께나 스타일만 다운로드하는 등, [글꼴 제공자](#사용-가능한-원격-글꼴-제공자)로부터 로드되는 데이터를 사용자 정의하려면 이러한 옵션을 설정하세요.
+원격 글꼴에 대한 추가 구성 옵션을 사용할 수 있습니다. 예를 들어 특정 글꼴 두께나 스타일만 다운로드하는 등, [글꼴 제공자](#사용-가능한-원격-글꼴-제공자)로부터 로드되는 데이터를 사용자 정의하려면 이러한 옵션을 설정하세요. 더 세부적인 제어를 위해 [세분화된 구성](#세분화된-원격-글꼴-구성)을 사용할 수 있습니다.
 
 내부적으로 이러한 옵션은 [unifont](https://github.com/unjs/unifont/)에 의해 처리됩니다. 일부 속성은 일부 제공업체에서 지원되지 않을 수 있으며, 각 제공업체에서 다르게 처리될 수 있습니다.
 
@@ -477,7 +552,7 @@ styles: ["normal", "oblique"]
 <p>
 
 **타입:** `string[]`<br />
-**기본값:** `["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"]`
+**기본값:** `["latin"]`
 </p>
 
 미리 로드할 [글꼴 하위 집합](https://knaap.dev/posts/font-subsetting/) 목록을 정의합니다.
@@ -714,6 +789,43 @@ export default defineConfig({
 });
 ```
 
+## 세분화된 원격 글꼴 구성
+
+<p>
+
+<Since v="5.15.6" />
+</p>
+
+글꼴 패밀리는 두께와 스타일과 같은 속성의 조합으로 정의됩니다(예: `weights: [500, 600]` 및 `styles: ["normal", "bold"]`). 하지만 이러한 속성들의 특정 조합만 다운로드하고 싶을 수 있습니다.
+
+어떤 글꼴 파일을 다운로드할지 더 세부적으로 제어하기 위해 동일한 글꼴(동일한 `cssVariable`, `name`, `provider` 속성 사용)을 다른 조합으로 여러 번 지정할 수 있습니다. Astro는 결과를 병합하고 필요한 파일만 다운로드합니다. 예를 들어, normal `500` 및 `600` 두께를 다운로드하면서 italic `500`만 다운로드하는 것이 가능합니다.
+
+```js
+// astro.config.mjs
+import { defineConfig, fontProviders } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--roboto",
+        provider: fontProviders.google(),
+        weights: [500, 600],
+        styles: ["normal"]
+      },
+      {
+        name: "Roboto",
+        cssVariable: "--roboto",
+        provider: fontProviders.google(),
+        weights: [500],
+        styles: ["italic"]
+      }
+    ]
+  }
+})
+```
+
 ## 나만의 글꼴 제공자 구축하기
 
 [내장된 제공자](#사용-가능한-원격-글꼴-제공자) 중 하나를 사용하고 싶지 않다면 (예: 타사 unifont 제공자를 사용하거나 개인 레지스트리를 위해 무언가를 구축하려는 경우) 직접 구축할 수 있습니다.
@@ -784,11 +896,17 @@ Astro 글꼴 제공자는 구성 객체와 실제 구현의 두 부분으로 구
 3. 글꼴 구성에 사용자 정의 제공자를 추가합니다.
 
     ```js title="astro.config.mjs" ins="myProvider()"
-    fonts: [{
-      provider: fontProviders.myProvider(),
-      name: "Custom Font",
-      cssVariable: "--font-custom"
-     }]
+    import { defineConfig } from "astro/config";
+    import { myProvider } from "./provider/config";
+
+    export default defineConfig({
+      experimental: {
+        fonts: [{
+          provider: myProvider(),
+          // ...
+        }]
+      }
+    });
     ```
 
 </Steps>
@@ -801,4 +919,4 @@ Astro 글꼴 제공자는 구성 객체와 실제 구현의 두 부분으로 구
 
 ## 더 읽을거리
 
-이 실험적인 API에 대한 자세한 내용과 피드백을 제공하려면 [글꼴 RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md)를 참조하세요.
+이 실험적인 API에 대한 자세한 내용과 피드백을 제공하려면 [글꼴 RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0055-fonts.md)를 참조하세요.

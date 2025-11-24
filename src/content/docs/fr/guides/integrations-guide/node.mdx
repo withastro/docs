@@ -11,6 +11,7 @@ i18nReady: true
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 Cet adaptateur permet à Astro de déployer vos [routes et fonctionnalités rendues à la demande](/fr/guides/on-demand-rendering/) vers des cibles Node, y compris [les îlots de serveurs](/fr/guides/server-islands/), les [actions](/fr/guides/actions/) et les [sessions](/fr/guides/sessions/).
 
@@ -282,18 +283,6 @@ Vous pouvez passer le chemin vers votre clé et votre certificat via les variabl
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### Variables de l'environnement d'exécution
-
-Si un fichier `.env` contenant des variables d'environnement est présent lors de l'exécution du processus de compilation, ces valeurs seront codées en dur dans la sortie, tout comme lors de la génération d'un site web statique.
-
-Pendant la compilation, les variables d'exécution doivent être absentes du fichier `.env`, et vous devez fournir à Astro toutes les variables d'environnement attendues au moment de l'exécution : `VARIABLE_1=valeur-fictive astro build`. Ceci signale à Astro que la valeur réelle sera disponible lors de l'exécution de l'application compilée. La valeur fictive sera ignorée par le processus de compilation, et Astro utilisera la valeur fournie à l'exécution.
-
-Dans le cas de multiples variables d'environnement, stockez-les dans un fichier séparé (par exemple `.env.runtime`) de `.env`. Lancez la compilation avec la commande suivante :
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### Ressources
 
 En mode standalone, les ressources de votre dossier `dist/client/` sont servies par le serveur standalone. Vous pouvez déployer ces ressources sur un CDN, auquel cas le serveur ne les servira jamais. Mais dans certains cas, comme les sites intranet, il est possible de servir les ressources statiques directement depuis le serveur d'application.
@@ -309,3 +298,39 @@ Cache-Control: public, max-age=31536000, immutable
 L'[API Sessions](/fr/guides/sessions/) d'Astro vous permet de stocker facilement les données utilisateur entre chaque requête. Ceci peut être utilisé pour des éléments tels que les données et préférences utilisateur, les paniers d'achat et les identifiants d'authentification. Contrairement au stockage des cookies, la taille des données est illimitée et elles peuvent être restaurées sur différents appareils.
 
 Astro utilise le système de fichiers local pour le stockage des sessions avec l'adaptateur Node. Si vous préférez utiliser un autre pilote de stockage de session, vous pouvez le spécifier dans votre configuration Astro. Consultez [la référence de configuration `session`](/fr/reference/configuration-reference/#sessiondriver) pour plus de détails.
+
+## Variables d'environnement
+
+Lorsque vous utilisez des secrets avec [`astro:env`](/fr/guides/environment-variables/#variables-denvironnement-avec-sûreté-du-typage) ou `process.env` au moment de l'exécution, ni Astro ni l'adaptateur ne chargent les variables d'environnement pour vous.
+
+Certains hôtes peuvent exposer les variables d’environnement que vous configurez via leur tableau de bord pendant la compilation et lors de l’exécution. Consultez la documentation de votre hôte pour définir et utiliser les variables d'environnement au sein de la plate-forme concernée.
+
+Lors de l'auto-hébergement, vous pouvez charger des variables d'environnement via des commandes CLI ou des fichiers de configuration, selon le cas :
+
+<Tabs>
+  <TabItem label="Intégré à la commande">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>
