@@ -157,4 +157,42 @@ export const collections = {
 		loader: file('src/data/contributors.json'),
 		schema: contributorSchema,
 	}),
+	// Latest versions of official Astro npm packages.
+	packages: defineCollection({
+		loader: async () => {
+			const packages = [
+				'@astrojs/alpinejs',
+				'@astrojs/cloudflare',
+				'@astrojs/db',
+				'@astrojs/markdoc',
+				'@astrojs/mdx',
+				'@astrojs/netlify',
+				'@astrojs/node',
+				'@astrojs/partytown',
+				'@astrojs/preact',
+				'@astrojs/react',
+				'@astrojs/rss',
+				'@astrojs/sitemap',
+				'@astrojs/solid-js',
+				'@astrojs/svelte',
+				'@astrojs/vercel',
+				'@astrojs/vue',
+				'astro',
+			];
+			// See https://github.com/antfu/fast-npm-meta
+			const url = `https://npm.antfu.dev/${packages.join('+')}`;
+			const data = await fetch(url).then((res) => res.json());
+			return data.map((pkg: any) => ({ id: pkg.name, version: pkg.version }));
+		},
+		schema: z.object({ version: z.string() }),
+	}),
+	astroContributors: defineCollection({
+		loader: async () => {
+			const { data } = await fetch('https://astro.badg.es/api/v1/top-contributors.json').then(
+				(res) => res.json()
+			);
+			return data.map((contributor: any) => ({ id: contributor.username, ...contributor }));
+		},
+		schema: z.object({ avatar_url: z.string() }),
+	}),
 };
