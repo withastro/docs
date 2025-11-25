@@ -19,23 +19,25 @@ Middleware allows you to intercept requests and responses and inject behaviors d
 ```js
 import { 
   sequence,
-  createContext,
-  trySerializeLocals,
   defineMiddleware,
- } from 'astro:middleware';
+} from 'astro:middleware';
 ```
 
 ### `defineMiddleware()`
 
-You can import and use the utility function `defineMiddleware()` to take advantage of type safety:
+<p>
 
-```ts
-// src/middleware.ts
+**Type:** `(fn: MiddlewareHandler) => MiddlewareHandler`
+</p>
+
+A function for defining a middleware function with type safety. When you use this utility, the `context` and `next` arguments are automatically typed, and you get a Typescript error when you try to return a value type not supported in your middleware.
+
+```ts title="src/middleware.ts"
 import { defineMiddleware } from "astro:middleware";
 
-// `context` and `next` are automatically typed
+// `context` is typed with `APIContext` and `next` is typed with `MiddlewareNext`
 export const onRequest = defineMiddleware((context, next) => {
-
+  /* your middleware logic */
 });
 ```
 
@@ -51,24 +53,54 @@ A function that accepts middleware functions as arguments, and will execute them
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
 
-async function validation(_, next) {...}
-async function auth(_, next) {...}
-async function greeting(_, next) {...}
+async function validation(context, next) {/* ... */}
+async function auth(context, next) {/* ... */}
+async function greeting(context, next) {/* ... */}
 
 export const onRequest = sequence(validation, auth, greeting);
+```
+
+## Imports from `astro/middleware`
+
+```js
+import {
+  createContext,
+  defineMiddleware,
+  sequence,
+  trySerializeLocals,
+} from "astro/middleware";
 ```
 
 ### `createContext()`
 
 <p>
 
-**Type:** `(context: CreateContext) => APIContext`<br />
+**Type:** <code>(context: <a href="#createcontext-1">CreateContext</a>) => <a href="/en/reference/api-reference/">APIContext</a></code><br />
 <Since v="2.8.0" />
 </p>
 
-A low-level API to create an [`APIContext`](/en/reference/api-reference/)to be passed to an Astro middleware `onRequest()` function.
+A low-level API to create an [`APIContext`](/en/reference/api-reference/)to be passed to an Astro middleware [`onRequest()` function](#onrequest).
 
 This function can be used by integrations/adapters to programmatically execute the Astro middleware.
+
+### `sequence()`
+
+<p>
+
+**Type:** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+</p>
+
+A function that accepts middleware functions as arguments, and will execute them in the order in which they are passed. 
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(context, next) {/* ... */}
+async function auth(context, next) {/* ... */}
+async function greeting(context, next) {/* ... */}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
 
 ### `trySerializeLocals()`
 
@@ -79,6 +111,72 @@ This function can be used by integrations/adapters to programmatically execute t
 </p>
 
 A low-level API that takes in any value and tries to return a serialized version (a string) of it. If the value cannot be serialized, the function will throw a runtime error.
+
+## `astro/middleware` types
+
+```js
+import type {
+  CreateContext,
+} from "astro/middleware";
+```
+
+### `CreateContext`
+
+<p>
+
+**Type:** `{ request: Request; params?: Params; userDefinedLocales?: string[]; defaultLocale: string; locals: App.Locals; }`<br />
+<Since v="2.8.0" />
+</p>
+
+An object to [create a context](#createcontext) to be passed to an Astro middleware. This contains the following properties:
+
+#### `request`
+
+<p>
+
+**Type:** `Request`
+</p>
+
+The incoming [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+
+#### `params`
+
+<p>
+
+**Type:** `Params`
+</p>
+
+An object containing the optional parameters to be passed to [`Astro.params`](/en/reference/api-reference/#params).
+
+#### `userDefinedLocales`
+
+<p>
+
+**Type:** `string[]`<br />
+<Since v="3.5.0" />
+</p>
+
+A list of supported locales defined in the [user's `i18n` configuration](/en/reference/configuration-reference/#i18nlocales).
+
+#### `defaultLocale`
+
+<p>
+
+**Type:** `string`<br />
+<Since v="4.16.0" />
+</p>
+
+The default locale defined in the [user's `i18n` configuration](/en/reference/configuration-reference/#i18ndefaultlocale).
+
+#### `locals`
+
+<p>
+
+**Type:** `App.Locals`<br />
+<Since v="5.0.0" />
+</p>
+
+An object for storing arbitrary information from a middleware, accessible to the user via [`Astro.locals`](/en/reference/api-reference/#locals).
 
 ## Middleware exports
 
@@ -92,10 +190,10 @@ A required exported function from `src/middleware.js` that will be called before
 
 ```js title="src/middleware.js"
 export function onRequest (context, next) {
-    // intercept response data from a request
-    // optionally, transform the response
-    // return a Response directly, or the result of calling `next()`
-    return next();
+  // intercept response data from a request
+  // optionally, transform the response
+  // return a Response directly, or the result of calling `next()`
+  return next();
 };
 ```
 
