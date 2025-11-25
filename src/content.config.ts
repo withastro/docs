@@ -3,6 +3,7 @@ import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
 import { defineCollection, z, type CollectionEntry } from 'astro:content';
 import { file } from 'astro/loaders';
 import { AstroDocsI18nSchema } from './content/i18n-schema';
+import { logoKeys } from './data/logos';
 
 export const baseSchema = z.object({
 	type: z.literal('base').optional().default('base'),
@@ -23,12 +24,14 @@ export const baseSchema = z.object({
 
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
+	logo: z.enum(logoKeys),
+	supports: z.array(z.enum(['static', 'ssr'])),
 });
 
 export const backendSchema = baseSchema.extend({
 	type: z.literal('backend'),
 	stub: z.boolean().default(false),
-	service: z.string(),
+	logo: z.enum(logoKeys),
 });
 
 export const cmsSchema = baseSchema.extend({
@@ -120,6 +123,8 @@ export type IntegrationCategory = z.infer<typeof integrationSchema>['category'];
 export const isBackendEntry = createIsDocsEntry('backend');
 
 export const isCmsEntry = createIsDocsEntry('cms');
+
+export const isDeployEntry = createIsDocsEntry('deploy');
 
 export const isIntegrationEntry = createIsDocsEntry('integration');
 
