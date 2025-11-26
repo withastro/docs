@@ -538,13 +538,17 @@ console.log(entry?.data.displayPrice); // e.g., "$29.99"
 Live loaders can provide cache hints to help with response caching. You can use this data to send HTTP cache headers or otherwise inform your caching strategy.
 
 ```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
+import type { MyData } from "./types";
+
 export function myLoader(config): LiveLoader<MyData> {
   return {
     name: 'cached-loader',
     loadCollection: async ({ filter }) => {
-      // ... fetch data
+      const products = await loadStoreProducts(filter);
       return {
-        entries: data.map((item) => ({
+        entries: products.map((item) => ({
           id: item.id,
           data: item,
           // You can optionally provide cache hints for each entry
@@ -556,13 +560,13 @@ export function myLoader(config): LiveLoader<MyData> {
           // All fields are optional, and are combined with each entry's cache hints
           // tags are merged from all entries
           // lastModified is the most recent lastModified of all entries and the collection
-          lastModified: new Date(item.lastModified),
+          lastModified: getLastModifiedDate(products),
           tags: ['products'],
         },
       };
     },
     loadEntry: async ({ filter }) => {
-      // ... fetch single item
+      const item = await loadStoreProduct(filter);
       return {
         id: item.id,
         data: item,
