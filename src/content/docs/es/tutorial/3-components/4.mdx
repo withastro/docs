@@ -14,75 +14,66 @@ import Option from '~/components/tutorial/Option.astro';
 import PreCheck from '~/components/tutorial/PreCheck.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-Añadamos un menú hamburguesa para abrir y cerrar los enlaces en pantallas de dispositivos móviles, lo que requiere cierta interactividad con el cliente.
+Añadamos un botón para abrir y cerrar los enlaces en pantallas de dispositivos móviles, lo que requiere cierta interactividad con el cliente.
 
 <PreCheck>
-  - Crear un componente de menú de hamburguesa
+  - Crear un componente de menú
   - Escribir un `<script>` para que los visitantes de tu sitio puedan abrir y cerrar el menú de navegación
   - Mover tu JavaScript a un archivo `.js`.
 </PreCheck>
 
-## Construye un componente Hamburger
+## Construye un componente Menu
 
-Crea un componente `<Hamburger />` para abrir y cerrar tu menú móvil.
+Crea un componente `<Menu />` para abrir y cerrar tu menú móvil.
 
 <Steps>
-1. Crea un archivo llamado `Hamburger.astro` en `src/components/`.
+1. Crea un archivo llamado `Menu.astro` en `src/components/`.
   
 
-2. Copia el siguiente código en tu componente. Esto representará tu menú "hamburguesa" de 3 líneas para abrir y cerrar tus enlaces de navegación en móvil. (Añadirás los nuevos estilos CSS a `global.css` más tarde).
+2. Copia el siguiente código en tu componente. Este crea un botón que se usará para alternar la visibilidad de los enlaces de navegación en dispositivos móviles. (Más adelante agregarás los nuevos estilos CSS en `global.css`.)
 
-    ```astro title="src/components/Hamburger.astro"
+    ```astro title="src/components/Menu.astro"
     --- 
     ---
-    <div class="hamburger">
-      <span class="line"></span>
-      <span class="line"></span>
-      <span class="line"></span>
-    </div>
+    <button aria-expanded="false" aria-controls="main-menu" class="menu">
+      Menu
+    </button>
     ```
 
-3. Coloca este nuevo componente `<Hamburger />` justo antes de tu componente `<Navigation />` en `Header.astro`. 
+3. Coloca este nuevo componente `<Menu />` justo antes de tu componente `<Navigation />` en `Header.astro`. 
 
     <details>
     <summary>¡Enséñame el código!</summary>
 
       ```astro title="src/components/Header.astro" ins={2,7}
       ---
-      import Hamburger from './Hamburger.astro';
+      import Menu from './Menu.astro';
       import Navigation from './Navigation.astro';
       ---
       <header>
         <nav>
-          <Hamburger />
+          <Menu />
           <Navigation />
         </nav>
       </header>
       ```
       </details>
 
-4. Añade los siguientes estilos para tu componente Hamburger:
+4. Añade los siguientes estilos para tu componente menu, incluyendo algunos estilos responsivos:
 
-    ```css title="src/styles/global.css" ins={2-13, 56-58}
+    ```css title="src/styles/global.css" ins={2-9, 33-35, 51-53}
     /* estilos de la barra de navegación*/
-    .hamburger {
-      padding-right: 20px;
-      cursor: pointer;
-    }
-
-    .hamburger .line {
-      display: block;
-      width: 40px;
-      height: 5px;
-      margin-bottom: 10px;
-      background-color: #ff9776;
+    .menu {
+      background-color: #0d0950;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 5px 10px;
     }
 
     .nav-links {
       width: 100%;
-      top: 5rem;
-      left: 48px;
-      background-color: #ff9776;
       display: none;
       margin: 0;
     }
@@ -95,13 +86,15 @@ Crea un componente `<Hamburger />` para abrir y cerrar tu menú móvil.
       font-size: 1.2rem;
       font-weight: bold;
       text-transform: uppercase;
+      color: #0d0950;
     }
 
-    .nav-links a:hover, a:focus {
+    .nav-links a:hover,
+    .nav-links a:focus {
       background-color: #ff9776;
     }
 
-    .expanded {
+    :has(.menu[aria-expanded="true"]) .nav-links {
       display: unset;
     }
 
@@ -119,7 +112,7 @@ Crea un componente `<Hamburger />` para abrir y cerrar tu menú móvil.
         padding: 15px 20px;
       }
 
-      .hamburger {
+      .menu {
         display: none;
       }
     }
@@ -129,18 +122,21 @@ Crea un componente `<Hamburger />` para abrir y cerrar tu menú móvil.
 
 ## Escribe tu primera etiqueta script
 
-Tu encabezado aún no es **interactivo** porque no puede responder a la entrada del usuario, como hacer clic en el menú hamburguesa para mostrar u ocultar los enlaces de navegación. 
+Tu encabezado aún no es **interactivo** porque no puede responder a la entrada del usuario, como hacer clic en el menú para mostrar u ocultar los enlaces de navegación. 
 
 La adición de una etiqueta `<script>` proporciona JavaScript del lado del cliente para "escuchar" un evento del usuario y luego responder en consecuencia
 
 <Steps>
 1. Añade la siguiente etiqueta `<script>` a `index.astro`, justo antes de la etiqueta de cierre `</body>`.
 
-    ```astro title="src/pages/index.astro" ins={2-6}
+    ```astro title="src/pages/index.astro" ins={2-9}
       <Footer />
       <script>
-        document.querySelector('.hamburger').addEventListener('click', () => {
-          document.querySelector('.nav-links').classList.toggle('expanded');
+        const menu = document.querySelector('.menu');
+
+        menu?.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', `${!isExpanded}`);
         });
       </script>
     </body>
@@ -157,18 +153,24 @@ En lugar de escribir JavaScript directamente en cada página, puedes mover el co
 1. Crea `src/scripts/menu.js` (tendrás que crear una nueva carpeta `/scripts/`) y mueve tu JavaScript a ella.
 
     ```js title="src/scripts/menu.js"
-    document.querySelector('.hamburger').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('expanded');
+    const menu = document.querySelector('.menu');
+
+    menu?.addEventListener('click', () => {
+      const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+      menu.setAttribute('aria-expanded', `${!isExpanded}`);
     });
     ```
 
 2. Sustituye el contenido de la etiqueta `<script>` en `index.astro` por la siguiente importación de archivos:
 
-    ```astro title="src/pages/index.astro" ins={7} del={3-5}
+    ```astro title="src/pages/index.astro" ins={10} del={3-8}
       <Footer />
       <script>
-        document.querySelector('.hamburger').addEventListener('click', () => {
-          document.querySelector('.nav-links').classList.toggle('expanded');
+        const menu = document.querySelector('.menu');
+
+        menu?.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', `${!isExpanded}`);
         });
 
         import "../scripts/menu.js";
@@ -176,7 +178,7 @@ En lugar de escribir JavaScript directamente en cada página, puedes mover el co
     </body>
     ```
 
-3. Comprueba de nuevo la vista previa del navegador a un tamaño más pequeño y verifica que el menú hamburguesa todavía abre y cierra los enlaces de tu navegación.
+3. Comprueba de nuevo la vista previa del navegador a un tamaño más pequeño y verifica que el menú todavía abre y cierra los enlaces de tu navegación.
 
 
 4. Añade la misma etiqueta `<script>` con la importación a tus otras dos páginas, `about.astro` y `blog.astro` y comprueba que tienes un encabezado responsivo e interactivo en cada página.
