@@ -159,13 +159,15 @@ You can choose to [generate page routes](#generating-routes-from-content) from y
 
 ## Build-time collection loaders
 
-Astro provides two built-in loaders (`glob()` and `file()`) for fetching your local content at build time. To fetch remote data at build time, you can [build a custom loader](#custom-build-time-loaders) or use [community-published loader integrations](https://astro.build/integrations/2/?search=&categories%5B%5D=loaders) for common data sources such as Obsidian vaults, GitHub repositories, or Bluesky posts.
+Astro provides two built-in loaders (`glob()` and `file()`) for fetching your local content at build time. Pass the location of your data in your project or on your filesystem, and these loaders will automatically handle your data and update the persistent data store content layer.
+
+To fetch remote data at build time, you can [build a custom loader](#custom-build-time-loaders) by writing your own `load()` function to retrieve your data and update the data store. Or, you can use any [third-party or community-published loader integration](https://astro.build/integrations/2/?search=&categories%5B%5D=loaders). Several already exist for popular content management systems as well as common data sources such as Obsidian vaults, GitHub repositories, or Bluesky posts.
 
 ### The `glob()` loader
 
 The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) fetches entries from directories of Markdown, MDX, Markdoc, JSON, YAML, or TOML files from anywhere on the filesystem. If you store your content entries locally as separate files, such as a directory of blog posts, then the `glob()` loader is all you need to access your content.
 
-This loader requires a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a `base` file path of where your files are located. An `id` for each entry will be automatically generated from its file name, but you can [define custom IDs](#defining-custom-ids) if needed.
+This loader requires a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a `base` file path of where your files are located. A unique `id` for each entry will be automatically generated from its file name, but you can [define custom IDs](#defining-custom-ids) if needed.
 
 ```ts  title="src/content.config.ts" {5}
 import { defineCollection } from 'astro:content';
@@ -180,9 +182,9 @@ export const collections = { blog };
 
 #### Defining custom IDs
 
-When using the [`glob()` loader](#the-glob-loader) with Markdown, MDX, Markdoc, JSON, or TOML files, every content entry [`id`](/en/reference/modules/astro-content/#id) is automatically generated in an URL-friendly format based on the content filename. This `id` is used to query the entry directly from your collection. It is also useful when [creating new pages and URLs from your content](#generating-routes-from-content).
+When using the [`glob()` loader](#the-glob-loader) with Markdown, MDX, Markdoc, JSON, or TOML files, every content entry [`id`](/en/reference/modules/astro-content/#id) is automatically generated in an URL-friendly format based on the content filename. This unique `id` is used to query the entry directly from your collection. It is also useful when [creating new pages and URLs from your content](#generating-routes-from-content).
 
-You can override an entry’s generated `id` by adding your own `slug` property to the file frontmatter or data object for JSON files. This is similar to the “permalink” feature of other web frameworks.
+You can override a single entry’s generated `id` by adding your own `slug` property to the file frontmatter or data object for JSON files. This is similar to the “permalink” feature of other web frameworks.
 
 ```md title="src/blog/1.md" {3}
 ---
@@ -200,7 +202,7 @@ Your blog post content here.
 }
 ```
 
-You can also transform each collection entry `id` programmatically using the [`generateID()` helper function](/en/reference/content-loader-reference/#generateid) when you define your build-time collection:
+You can also transform all entry `id`s for a collection programmatically after they are slugified. Define your transformation using the [`generateID()` helper function](/en/reference/content-loader-reference/#generateid) when you define your build-time collection. For example, you may wish to revert the default behavior of converting uppercase letters to lowercase:
 
 ```js title="src/content.config.ts"
 const authors = defineCollection({
@@ -234,6 +236,7 @@ Each entry object in the file must have a unique `id` key property so that the e
 You can provide your entries as an array of objects with an `id` property, or in object form where the unique `id` is the key:
 
 ```json title="src/data/dogs.json"
+// Specify an `id` property in each object of an array
 [
   { "id": "poodle", "coat": "curly", "shedding": "low" },
   { "id": "afghan", "coat": "short", "shedding": "low" }
@@ -241,6 +244,7 @@ You can provide your entries as an array of objects with an `id` property, or in
 ```
 
 ```json title="src/data/dogs.json"
+// Each key will be used as the `id`
 {
   "poodle": { "coat": "curly", "shedding": "low" },
   "afghan": { "coat": "silky", "shedding": "low" }
@@ -249,7 +253,7 @@ You can provide your entries as an array of objects with an `id` property, or in
 
 #### Parsing other data formats
 
-Support for parsing JSON, YAML, and TOML files into collection entries is built-in (unless you have a [nested JSON document](#nested-json-documents)). To load your collection from unsupported file types, such as `.csv`, you will need to create a [parser function](/en/reference/content-loader-reference/#parser).
+Support for parsing single JSON, YAML, and TOML files into collection entries withe the `file()` loader is built-in (unless you have a [nested JSON document](#nested-json-documents)). To load your collection from unsupported file types, such as `.csv`, you will need to create a [parser function](/en/reference/content-loader-reference/#parser).
 
 The following example shows importing a third-party CSV parser then passing a custom `parser` function to the `file()` loader:
 
@@ -289,9 +293,9 @@ const cats = defineCollection({
 
 ### Custom build-time loaders
 
-You can build a custom loader using the [Content Loader API](/en/reference/content-loader-reference/) to fetch remote content from any data source, such as a CMS, a database, or an API endpoint.
+You can build a custom loader using the [Content Loader API](/en/reference/content-loader-reference/) to fetch remote content from any data source, such as a CMS, a database, or an API endpoint. A loader can be a single inline async function that fetches and returns data. Custom [object loaders](#object-loaders) offer more precise control over data handling, and also interact with the persistent data store.
 
-Using a loader to fetch your data will automatically create a collection from your remote data. This gives you all the benefits of local collections, including collection-specific API helpers such as `getCollection()` and `render()` to [query and display your data](#querying-build-time-collections), as well as schema validation.
+Using a custom loader to fetch your data will automatically create a collection from your remote data. This gives you all the benefits of local collections, including collection-specific API helpers such as `getCollection()` and `render()` to [query and display your data](#querying-build-time-collections), as well as schema validation.
 
 :::tip
 Find community-built and third-party loaders in the [Astro integrations directory](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
