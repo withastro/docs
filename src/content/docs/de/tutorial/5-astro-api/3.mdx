@@ -1,0 +1,442 @@
+---
+type: tutorial
+title: Erstelle eine Tag-Indexseite
+description: |-
+  Tutorial: Erstelle deinen ersten Astro-Blog —
+  Nutze alles, was du bisher gelernt hast, um eine Tag-Indexseite zu erstellen
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Jetzt, wo du für jedes Tag eine eigene Seite hast, kannst du Links zu diesen Seiten erstellen.
+
+<PreCheck>
+  - eine neue Seite mit dem Routing-Muster `/pages/folder/index.astro` hinzuzufügen
+  - eine Liste aller deiner eindeutigen Tags anzuzeigen und sie mit den jeweiligen Tag-Seiten zu verlinken
+  - deine Website mit Navigationslinks zu dieser neuen Tags-Seite zu aktualisieren
+</PreCheck>
+
+## Verwende das Routing-Muster `/pages/folder/index.astro`
+
+Um eine Tag-Index-Seite zu deiner Website hinzuzufügen, kannst du eine neue Datei unter `src/pages/tags.astro` erstellen.
+
+Da du aber schon das Verzeichnis `/tags/` hast, kannst du ein anderes Routing-Muster in Astro nutzen und alle deine Dateien, die mit Tags zu tun haben, zusammenhalten.
+
+<Box icon="puzzle-piece">
+
+## Probier es selbst aus – Erstelle eine Tag-Indexseite
+
+<Steps>
+1. Erstelle eine neue Datei `index.astro` im Verzeichnis `src/pages/tags/`.
+
+2. Gehe zu `http://localhost:4321/tags` und überprüfe, ob deine Website jetzt eine Seite unter dieser URL enthält.
+   Sie ist leer, aber sie ist vorhanden.
+
+3. Erstelle eine minimale Seite unter `src/pages/tags/index.astro`, die dein Layout verwendet.
+   Das hast du schon einmal gemacht!
+
+    <details>
+      <summary>Erweitere, um die Schritte anzuzeigen</summary>
+      <Steps>
+      1. Erstelle eine neue Seitenkomponente in `src/pages/tags/`.
+
+          <details>
+          <summary>Zeige den Dateinamen an</summary>
+          ```
+          index.astro
+          ```
+          </details>
+
+      2. Importiere und verwende dein `<BaseLayout>`.
+
+          <details>
+          <summary>Code anzeigen</summary>
+          ```astro title=" src/pages/tags/index.astro"
+          ---
+          import BaseLayout from '../../layouts/BaseLayout.astro';
+          ---
+          <BaseLayout></BaseLayout>
+          ```
+          </details>
+
+      3. Leg einen Seitentitel fest und übergib ihn als Komponentenattribut an dein Layout.
+
+          <details>
+          <summary>Code anzeigen</summary>
+          ```astro title="src/pages/tags/index.astro" ins={3} "pageTitle"
+          ---
+          import BaseLayout from '../../layouts/BaseLayout.astro';
+          const pageTitle = "Tag-Index";
+          ---
+          <BaseLayout pageTitle={pageTitle}></BaseLayout>
+          ```
+          </details>
+      </Steps>
+    </details>
+
+4. Schau dir die Vorschau in deinem Browser nochmal an.
+   Du solltest jetzt eine formatierte Seite haben, die bereit ist, mit Inhalten gefüllt zu werden!
+</Steps>
+</Box>
+
+## Erstelle ein Array mit Tags
+
+Du hast zuvor Elemente aus einem Array mit `map()` in einer Liste angezeigt. Wie würde es aussehen, wenn du ein Array mit all deinen Tags definierst und diese dann in einer Liste auf dieser Seite anzeigst?
+
+<details>
+    <summary>Code anzeigen</summary>
+    
+    ```astro title="src/pages/tags/index.astro"
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';    
+    const tags = ['astro', 'blogging', 'öffentlich lernen', 'erfolge', 'rückschläge', 'community']
+    const pageTitle = "Tag-Index";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <ul>
+        {tags.map((tag) => <li>{tag}</li>)}
+      </ul>
+    </BaseLayout>
+    ```
+</details>
+
+Das geht schon, aber dann musst du jedes Mal, wenn du in einem neuen Blogbeitrag ein neues Tag verwendest, zu dieser Datei zurückkehren und dein Array aktualisieren.
+
+Zum Glück kennst du schon eine Möglichkeit, die Daten aus all deinen Markdown-Dateien in einer einzigen Codezeile abzurufen und dann eine Liste aller deiner Tags zurückzugeben.
+
+<Steps>
+1. Füge die Codezeile in das Frontmatter-Skript der Datei `src/pages/tags/index.astro` ein, welche deiner Seite Zugriff auf die Daten aller `.md`-Blogpost-Dateien gibt.
+
+    <details>
+    <summary>Code anzeigen</summary>
+    ```astro title = "src/pages/tags/index.astro" ins={3}
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+    const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+    const pageTitle = "Tag-Index";
+    ---
+    ```
+    </details>
+
+2. Füge als Nächstes die folgende JavaScript-Zeile zu deiner Seitenkomponente hinzu. Das ist derselbe Code, der auf der integrierten TypeScript-Unterstützung von Astro basiert, den du in `src/pages/tags/[tag].astro` benutzt hast, um eine Liste eindeutiger Tags zurückzugeben.
+
+    ```astro title = "src/pages/tags/index.astro" ins={4}
+    ---
+    import BaseLayout from '../../layouts/BaseLayout.astro';
+    const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+    const tags = [...new Set(allPosts.map((post: any) => post.frontmatter.tags).flat())];
+    const pageTitle = "Tag-Index";
+    ---
+    
+    ```
+</Steps>
+
+## Erstelle deine Liste mit Tags
+
+Anstatt diesmal Elemente in einer ungeordneten Liste zu erstellen, erstelle für jedes Element ein `<p>` innerhalb eines `<div>`.
+Das Muster sollte dir bekannt vorkommen!
+
+<Steps>
+1. Füge den folgenden Code zu deiner Komponentenvorlage hinzu:
+
+    ```astro title="src/pages/tags/index.astro" ins={2}
+    <BaseLayout pageTitle={pageTitle}>
+      <div>{tags.map((tag) => <p>{tag}</p>)}</div>
+    </BaseLayout>
+    ```
+    Überprüfe in der Vorschau deines Browsers, ob deine Tags aufgelistet sind. Wenn bei Blogbeiträgen Tags fehlen oder diese falsch formatiert sind, zeigt dir die integrierte TypeScript-Unterstützung von Astro Fehler an, damit du deinen Code überprüfen und korrigieren kannst.
+
+2. Damit jeder Tag mit seiner eigenen Seite verlinkt ist, füge den folgenden `<a>`-Link zu jedem Tag-Namen hinzu:
+
+    ```astro title="src/pages/tags/index.astro" '/tags/${tag}'
+    <BaseLayout pageTitle={pageTitle}>
+      <div>
+        {tags.map((tag) => (
+          <p><a href={`/tags/${tag}`}>{tag}</a></p>
+        ))}
+      </div>
+    </BaseLayout>
+    ```
+</Steps>
+
+## Füge Styles zu deiner Tag-Liste hinzu
+
+<Steps>
+1. Füge die folgenden CSS-Klassen hinzu, um sowohl dein `<div>` als auch jedes `<p>` zu stylen, das generiert wird.
+   Hinweis: Astro verwendet HTML-Syntax zum Hinzufügen von Klassennamen!
+
+    ```astro title="src/pages/tags/index.astro" 'class="tags"' 'class="tag"'
+    <BaseLayout pageTitle={pageTitle}>
+      <div class="tags">
+        {tags.map((tag) => (
+          <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+        ))}
+      </div>
+    </BaseLayout>
+    ```
+
+2. Leg diese neuen CSS-Klassen fest, indem du den folgenden `<style>`-Tag zu dieser Seite hinzufügst:
+
+    ```astro title="src/pages/tags/index.astro"
+    <style>
+      a {
+        color: #00539F;
+      }
+
+      .tags {
+        display: flex; 
+        flex-wrap: wrap; 
+      }
+
+      .tag {
+        margin: 0.25em;
+        border: dotted 1px #a1a1a1;
+        border-radius: .5em;
+        padding: .5em 1em;
+        font-size: 1.15em;
+        background-color: #F8FCFD;
+      }
+    </style>
+    ```
+
+3. Schau dir die Vorschau in deinem Browser unter `http://localhost:4321/tags` an, um zu überprüfen, ob du ein paar neue Stile hast und ob jeder der Tags auf der Seite einen funktionierenden Link zu seiner eigenen individuellen Tag-Seite hat.
+</Steps>
+
+### Code überprüfen
+
+So sollte deine neue Seite aussehen:
+
+```astro title="src/pages/tags/index.astro"
+--- 
+import BaseLayout from '../../layouts/BaseLayout.astro';
+const allPosts = Object.values(import.meta.glob('../posts/*.md', { eager: true }));
+const tags = [...new Set(allPosts.map((post: any) => post.frontmatter.tags).flat())];
+const pageTitle = "Tag-Index";
+---
+<BaseLayout pageTitle={pageTitle}>
+  <div class="tags">
+    {tags.map((tag) => (
+      <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+    ))}
+  </div>
+</BaseLayout>
+<style>
+  a {
+    color: #00539F;
+  }
+
+  .tags {
+    display: flex; 
+    flex-wrap: wrap; 
+  }
+
+  .tag {
+    margin: 0.25em;
+    border: dotted 1px #a1a1a1;
+    border-radius: .5em;
+    padding: .5em 1em;
+    font-size: 1.15em;
+    background-color: #F8FCFD;
+  }
+</style>
+```
+
+## Füge diese Seite zu deiner Navigation hinzu
+
+Im Moment kannst du zu `http://localhost:4321/tags` navigieren und diese Seite sehen.
+Von dieser Seite aus kannst du auf Links zu deinen einzelnen Tag-Seiten klicken.
+
+Aber du musst diese Seiten noch von anderen Seiten deiner Website aus auffindbar machen.
+
+<Steps>
+1. Füge in deiner Komponente `Navigation.astro` einen Link zu dieser neuen Tag-Indexseite ein.
+
+    <details>
+    <summary>Code anzeigen</summary>
+    ```astro title="src/components/Navigation.astro" ins={4}
+    <a href="/">Startseite</a>
+    <a href="/about/">Über mich</a>
+    <a href="/blog/">Blog</a>
+    <a href="/tags/">Tags</a>
+    ```
+    </details>
+</Steps>
+
+<Box icon="puzzle-piece">
+
+## Challenge: Füge Tags in dein Blogpost-Layout ein
+
+Du hast jetzt den ganzen Code geschrieben, den du brauchst, um auch eine Liste von Tags in jedem Blogpost anzuzeigen und sie mit ihren Tag-Seiten zu verlinken. Du hast bereits Arbeit geleistet, die du wiederverwenden kannst!
+
+Mach die folgenden Schritte und überprüf deine Arbeit, indem du sie mit dem [endgültigen Code-Beispiel](#code-überprüfung-markdownpostlayout) vergleichst.
+
+<Steps>
+1. Kopier `<div class="tags">...</div>` und `<style>...</style>` aus `src/pages/tags/index.astro` und verwende sie in `MarkdownPostLayout.astro`: 
+
+    ```astro title="src/layouts/MarkdownPostLayout.astro" ins={11-15, 19-37}
+    ---
+    import BaseLayout from './BaseLayout.astro';
+    const { frontmatter } = Astro.props;
+    --- 
+    <BaseLayout pageTitle={frontmatter.title}>
+      <p>{frontmatter.pubDate.toString().slice(0,10)}</p>
+      <p><em>{frontmatter.description}</em></p>
+      <p>Geschrieben von: {frontmatter.author}</p>
+      <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} /> 
+
+      <div class="tags">
+        {tags.map((tag: string) => (
+          <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+        ))}
+      </div>
+
+      <slot />
+    </BaseLayout>
+    <style>
+      a {
+        color: #00539F;
+      }
+
+      .tags {
+        display: flex; 
+        flex-wrap: wrap; 
+      }
+
+      .tag {
+        margin: 0.25em;
+        border: dotted 1px #a1a1a1;
+        border-radius: .5em;
+        padding: .5em 1em;
+        font-size: 1.15em;
+        background-color: #F8FCFD;
+      }
+    </style>
+    ```
+</Steps>
+
+Bevor dieser Code funktioniert, musst du **eine kleine Änderung** an dem Code vornehmen, den du in `MarkdownPostLayout.astro` eingefügt hast. Kannst du herausfinden, um welche Änderung es sich handelt?
+
+<details>
+<summary>Gib mir einen Hinweis</summary>
+
+Wie sind die anderen Props (z. B. Titel, Autor usw.) in deiner Layoutvorlage geschrieben? Wie erhält dein Layout Props aus einem einzelnen Blogbeitrag?
+</details>
+
+<details>
+<summary>Gib mir noch einen Hinweis!</summary>
+
+Um Props (übermittelte Werte) aus einem `.md`-Blogbeitrag in deinem Layout zu verwenden, z. B. Tags, musst du dem Wert ein bestimmtes Wort voranstellen.
+
+<details>
+<summary>Code anzeigen</summary>
+
+```astro title="src/layouts/MarkdownPostLayout.astro" "frontmatter"
+    <div class="tags">
+      {frontmatter.tags.map((tag: string) => (
+        <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+      ))}
+    </div>
+```
+</details>
+</details>
+</Box>
+
+### Code-Überprüfung: MarkdownPostLayout
+
+Um deine Arbeit zu überprüfen oder wenn du einfach nur einen vollständigen, korrekten Code zum Kopieren in `MarkdownPostLayout.astro` haben möchtest, sollte deine Astro-Komponente wie folgt aussehen:
+
+```astro title="src/layouts/MarkdownPostLayout.astro"
+---
+import BaseLayout from './BaseLayout.astro';
+const { frontmatter } = Astro.props;
+--- 
+<BaseLayout pageTitle={frontmatter.title}>
+  <p><em>{frontmatter.description}</em></p>
+  <p>{frontmatter.pubDate.toString().slice(0,10)}</p>
+
+  <p>Geschrieben von: {frontmatter.author}</p>
+
+  <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} /> 
+
+  <div class="tags">
+    {frontmatter.tags.map((tag: string) => (
+      <p class="tag"><a href={`/tags/${tag}`}>{tag}</a></p>
+    ))}
+  </div>
+
+  <slot />
+</BaseLayout>
+<style>
+  a {
+    color: #00539F;
+  }
+
+  .tags {
+    display: flex; 
+    flex-wrap: wrap; 
+  }
+
+  .tag {
+    margin: 0.25em;
+    border: dotted 1px #a1a1a1;
+    border-radius: .5em;
+    padding: .5em 1em;
+    font-size: 1.15em;
+    background-color: #F8FCFD;
+  }
+</style>
+```
+
+<Box icon="question-mark">
+
+### Test dein Wissen
+
+Ordne jeden Dateipfad einem zweiten Dateipfad zu, der eine Seite mit derselben Route erstellt.
+
+1. `src/pages/categories.astro`
+
+    <MultipleChoice>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option>`src/pages/posts/index.astro`</Option>
+      <Option>`src/components/shoes/Shoe.astro`</Option>
+      <Option isCorrect>`src/pages/categories/index.astro`</Option>
+    </MultipleChoice>
+
+2. `src/pages/posts.astro`
+
+    <MultipleChoice>
+      <Option>`src/pages/products/shoes.astro`</Option>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option isCorrect>`src/pages/posts/index.astro`</Option>
+      <Option>`src/pages/categories/index.astro`</Option>
+    </MultipleChoice>
+
+3. `src/pages/products/shoes/index.astro`
+
+    <MultipleChoice>
+      <Option isCorrect>`src/pages/products/shoes.astro`</Option>
+      <Option>`src/pages/posts/post.astro`</Option>
+      <Option>`src/pages/posts/index.astro`</Option>
+      <Option>`src/components/shoes/Shoe.astro`</Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## Checkliste
+
+<Checklist>
+- [ ] Ich kann die Routing-Funktion `/pages/folder/index.astro` von Astro nutzen.
+</Checklist>
+</Box>
+
+### Ressourcen
+
+- [Statisches Routing in Astro](/de/guides/routing/#static-routes)
