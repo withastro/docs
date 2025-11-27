@@ -10,21 +10,21 @@ tableOfContents:
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
-Astro's  Content Loader API allows you to load your data from any source, local or remote, and interact with Astro's content layer to manage your [content collections](/en/guides/content-collections/). 
+Astro's  Content Loader API allows you to load your data from any source, local or remote, and interact with Astro's content layer to manage your [content collections](/en/guides/content-collections/).
 
-## What is a loader?
+This API includes two ready-to-use loaders for content stored locally. It also provides tools for building your own custom objects that can load data from any source into content collections.
 
-Astro loaders are objects or functions that load data into [content collections](/en/guides/content-collections/), which can then be used in pages and components. Every content collection must be defined with a `loader` property in order to retrieve and handle data.
+<ReadMore>Learn more about [using build-time loaders](/en/guides/content-collections/#build-time-collection-loaders) or [accessing live data from live loaders](/en/guides/content-collections/#accessing-live-data) with guided explanations and example usage in the content collections guide.</ReadMore>
 
-{/* The [built-in `glob()` and `file()` loaders](#built-in-loaders) are used at build time to load content from the file system. You can also create your own [build-time loaders](/en/guides/content-collections/#custom-build-time-loaders) or [live loaders](/en/guides/content-collections/#creating-a-live-loader) to load content from other sources.
+## Build-time loaders
 
- Every content collection must be defined with a `loader` property in order to retrieve and handle data. For build-time collections, you must define a loader inline in your project's `src/content.config.ts` file or share an object loader between multiple collections. For live collections, you'll need to create your own live loader and import it in your `src/live.config.ts` file. In both cases, you can even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library. */}
+Build-time loaders are objects with a [`load()` method](#load) that is called at build time to fetch data and update the data store. This object can also define a schema for the entries, which can be used to validate the data and generate static types.
 
-## Built-in loaders
+Astro's `glob()` and `file()` loaders are examples of object loaders that are provided out-of-the-box for use with local content. For remote content, no prebuilt loaders are provided. You will have to build an object loader or use a community-published loader to retrieve remote content and interact with the data store.
 
-Astro provides two loaders to fetch your collections local collections at build time.
+For simple data fetching, you can also define a loader as an async function that returns an array or object containing entries.
 
-<ReadMore>Learn more about [using build-time loaders](/en/guides/content-collections/#build-time-collection-loaders) with guided explanations and example usage.</ReadMore>
+
 
 ### `glob()` loader
 
@@ -157,47 +157,6 @@ An optional object with the following properties:
 
 A callback function to create a collection from a file’s contents. Use it when you need to process files other than JSON, YAML, or TOML that not supported by default (e.g. `.csv`) or when using [nested `.json` documents](/en/guides/content-collections/#nested-json-documents).
 
-## Loader types
-
-Loaders can be defined either as a simple function that returns an array of entries or with the more powerful object Content Loader API for more control over the loading process. 
-
-### Inline loaders
-
-An inline loader is an async function that returns an array or object containing entries. Use this for simple loaders, particularly those that are defined inline in the `src/content.config.ts` file.
-
-The function can be async and must return either an array of entries that each contain a unique `id` field, or an object where each key is a unique ID and each value is the entry. Whenever the loader is invoked, it will clear the store and reload all the entries. 
-
-```ts title="src/content.config.ts"
-import { defineCollection } from "astro:content";
-
-const countries = defineCollection({
-  loader: async () => {
-    const response = await fetch("https://restcountries.com/v3.1/all");
-    const data = await response.json();
-    // Must return an array of entries with an id property
-    // or an object with IDs as keys and entries as values
-    return data.map((country) => ({
-      id: country.cca3,
-      ...country,
-    }));
-  },
-});
-
-export const collections = { countries };
-```
-
-### Object loaders
-
-You can define loaders as an object with a [`load()` method](#load) that is called at build time to fetch data and update the data store. This object can also define a schema for the entries, which can be used to validate the data and generate static types.
-
-Astro's `glob()` and `file()` loaders are examples of object loaders that are provided out-of-the-box for use with local content. For remote content, no prebuilt loaders are provided. You will have to build an object loader or use a community-published loader to retrieve remote content and interact with the data store.
-
-### Live loaders
-
-The Live Loader API is built to handle querying any data in real time. Live loaders can filter incoming data and verify content with type safety. Since live loaders fetch data fresh upon every request, there is no data store to update. These loaders are designed to return either data or an `Error` object to allow you to handle errors gracefully.
-
-## Building a custom loader
-
 ### Building an object loader
 
 The Content Loader API is flexible and full-featured, allowing for a variety of data fetching options. It is possible to build both simple and complex loaders. Your custom loader will depend on both the source and the shape of your data, as well as how you choose to manage the persistent data storage layer.
@@ -217,7 +176,7 @@ The `load()` function returned in the loader object defines how your content is 
 
 #### Providing a schema
 
-Providing a Zod [`schema`](#schema) in your loader allows you to validate your fetched content entries with [`parseData()`](#parsedata) before adding them to the data [store](#store). This schema will also be used to define the collection and provide type safety and editor tooling when one does not exist in `src/content.config.ts`. You do not also need a schema defined in the content collection.
+Providing a Zod [`schema`](#schema) in your loader allows you to validate your fetched content entries with [`parseData()`](#parsedata) before adding them to the data [store](#store). This schema will also be used as the collection's default schema when one does not exist in `src/content.config.ts` to provide type safety and editor tooling. You do not also need a schema defined in the content collection if the loader provides this property.
 
 However, if the content collection also [defines a schema](/en/guides/content-collections/#defining-the-collection-schema), that schema will be used instead of your loader's schema. This is to allow users of your loader to extend its schema, or transform data for use in their project. If you are [publishing and distributing a loader](#distributing-your-loader) for others to use, you may wish to document this behavior and encourage users not to define a collection schema themselves, or how to do so safely if they need data returned in a different format.
 
@@ -280,11 +239,44 @@ const blog = defineCollection({
 export const collections = { blog };
 ```
 
+### Defining a loader as a function
+
+For simple data fetches that do not need custom data store handling, validation, logging, or any other helpers provided by the [build-time loader object](#the-loader-object), you can define your loader as a function.
+
+The function can be async and must return either an array of entries that each contain a unique `id` field, or an object where each key is a unique ID and each value is the entry.
+
+This pattern provides a convenient shorthand to accomplish the basic tasks normally performed by the `load()` function to [load collections into the data store](/#loading-collections-into-the-data-store). At build-time, the loader will automatically clear the data store and reload all the entries. No further customization options or helpers for data handling are provided.
+
+These loaders are often simple enough that you may choose to define them inline in the `src/content.config.ts` file:
+
+```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+
+const countries = defineCollection({
+  loader: async () => {
+    const response = await fetch("https://restcountries.com/v3.1/all");
+    const data = await response.json();
+    // Must return an array of entries with an id property
+    // or an object with IDs as keys and entries as values
+    return data.map((country) => ({
+      id: country.cca3,
+      ...country,
+    }));
+  },
+});
+
+export const collections = { countries };
+```
+
+## Live Loaders
+
+The Live Loader API is built to handle querying any data in real time. Live loaders can filter incoming data and verify content with type safety. Since live loaders fetch data fresh upon every request, there is no data store to update. These loaders are designed to return either data or an `Error` object to allow you to handle errors gracefully.
+
 ### Building a live loader
 
 Most live loaders will export a function that accepts configuration options and returns a [live loader object](#the-liveloader-object) including a `name` for your loader and two methods to define how to load both a collection of entries and a single entry: `loadCollection()` and `loadEntry()`. 
 
-#### Loading live collections
+#### Loading live data
 
 To return data about your collection, you must provide a [`loadCollection()`](#loadcollection) function that fetches data, and returns an array of content [`entries`](#entries-1) or an error. 
 
@@ -610,7 +602,7 @@ if (cacheHint?.lastModified) {
 Cache hints only provide values that can be used in other parts of your project and do not automatically cause the response to be cached by Astro. You can use them to create your own caching strategy, such as setting HTTP headers or using a CDN.
 :::
 
-### Distributing your loader
+## Distributing your loader
 
 Loaders can be defined in your site or as a separate npm package. If you want to share your loader with the community, you can [publish it to npm with the `withastro` and `astro-loader` keywords](/en/reference/publish-to-npm/#packagejson-data).
 
