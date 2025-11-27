@@ -3,6 +3,7 @@ title: 视图过渡动画
 description: 在 Astro 中通过视图过渡动画实现页面之间的无缝导航。
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro'
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
@@ -317,7 +318,7 @@ const customTransition = {
 
 ### 触发导航
 
-你还可以使用 `navigate` 方法在通常不被 `<ClientRouter />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
+你还可以使用 [`navigate()`](/zh-cn/reference/modules/astro-transitions/#navigate) 方法在通常不被 `<ClientRouter />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
 
 下面的示例展示了一个当访客选择菜单中的选项时导航到另一个页面的 Astro 组件：
 
@@ -442,6 +443,30 @@ import { ClientRouter } from "astro:transitions";
 ```astro title="src/components/Form.astro"
 <form action="/contact" data-astro-reload>
 ```
+
+### 使用用户输入进行导航
+
+`navigate()` API 不会对传递给它的 URL 执行无害化处理。如果你使用用户输入来确定导航的 URL，你应该在将输入传递给 `navigate()` 之前对其进行验证。
+
+例如，如果在使用前没有对传入值进行无害化处理，`?redirect` query 参数可能会被用于导航到外部网站（`?redirect=http://example.com`）或执行任意代码（`?redirect=javascript:alert('Evil code')`）。
+
+一种安全的实现方式是确保只能重定向到一组已知路径：
+
+```astro title="src/pages/index.astro"
+<script>
+  import { navigate } from 'astro:transitions/client';
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const allowedPaths = ['/home', '/about', '/contact'];
+  if (allowedPaths.includes(redirect)) {
+    navigate(redirect);
+  }
+</script>
+```
+
+所需的具体净化措施取决于你的网站以及你想要允许的内容范围。
+
+<ReadMore>如果将用户输入与 `navigate()` API 一起使用，请考虑启用 Astro 的 [实验性内容安全策略功能](/zh-cn/reference/experimental-flags/csp/)，来帮助防范跨站脚本攻击（XSS）的风险。</ReadMore>
 
 ## 回退控制
 
