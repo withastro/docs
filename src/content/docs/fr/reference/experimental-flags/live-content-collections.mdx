@@ -538,13 +538,17 @@ console.log(entry?.data.displayPrice); // p. ex. "29,99€"
 Les chargeurs en ligne peuvent fournir des indications de cache pour aider à la mise en cache des réponses. Vous pouvez utiliser ces données pour envoyer des en-têtes de cache HTTP ou optimiser votre stratégie de mise en cache.
 
 ```ts title="mon-chargeur.ts"
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
+import type { MyData } from "./types";
+
 export function myLoader(config): LiveLoader<MyData> {
   return {
     name: 'cached-loader',
     loadCollection: async ({ filter }) => {
-      // ... récupérer des données
+      const products = await loadStoreProducts(filter);
       return {
-        entries: data.map((item) => ({
+        entries: products.map((item) => ({
           id: item.id,
           data: item,
           // Vous pouvez éventuellement fournir des indications de cache pour chaque entrée
@@ -556,13 +560,13 @@ export function myLoader(config): LiveLoader<MyData> {
           // Tous les champs sont facultatifs et sont combinés avec les indications de cache de chaque entrée
           // les étiquettes sont fusionnées à partir de toutes les entrées
           // lastModified est la dernière modification la plus récente de toutes les entrées et de la collection
-          lastModified: new Date(item.lastModified),
+          lastModified: getLastModifiedDate(products),
           tags: ['produits'],
         },
       };
     },
     loadEntry: async ({ filter }) => {
-      // ... récupérer un seul élément
+      const item = await loadStoreProduct(filter);
       return {
         id: item.id,
         data: item,
