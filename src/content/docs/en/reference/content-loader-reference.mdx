@@ -3,6 +3,9 @@ title: Astro Content Loader API
 sidebar:
   label: Content Loader API
 i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
 ---
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
@@ -11,15 +14,17 @@ Astro's  Content Loader API allows you to load your data from any source, local 
 
 ## What is a loader?
 
-Astro loaders are objects or functions that allow you to load data into [content collections](/en/guides/content-collections/), which can then be used in pages and components. The [built-in `glob()` and `file()` loaders](#built-in-loaders) are used at build time to load content from the file system. You can also create your own [build-time loaders](/en/guides/content-collections/#custom-build-time-loaders) or [live loaders](/en/guides/content-collections/#creating-a-live-loader) to load content from other sources.
+Astro loaders are objects or functions that load data into [content collections](/en/guides/content-collections/), which can then be used in pages and components. Every content collection must be defined with a `loader` property in order to retrieve and handle data.
 
-Each collection needs to define a loader as its data source. For build-time collections, you can define a loader inline in your project's `src/content.config.ts` file or share an object loader between multiple collections. For live collections, you'll need to create your own live loader and import it in your `src/live.config.ts` file. In both cases, you can even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library.
+{/* The [built-in `glob()` and `file()` loaders](#built-in-loaders) are used at build time to load content from the file system. You can also create your own [build-time loaders](/en/guides/content-collections/#custom-build-time-loaders) or [live loaders](/en/guides/content-collections/#creating-a-live-loader) to load content from other sources.
+
+ Every content collection must be defined with a `loader` property in order to retrieve and handle data. For build-time collections, you must define a loader inline in your project's `src/content.config.ts` file or share an object loader between multiple collections. For live collections, you'll need to create your own live loader and import it in your `src/live.config.ts` file. In both cases, you can even [publish your loader to NPM as a package](/en/reference/publish-to-npm/) to share with others and be included in our integrations library. */}
 
 ## Built-in loaders
 
-Astro provides two built-in loaders to help you fetch your collections. Both offer options to suit a wide range of use cases.
+Astro provides two loaders to fetch your collections local collections at build time.
 
-<ReadMore>Learn more about [using built-time loaders](/en/guides/content-collections/#defining-build-time-content-collections) with guided explanations and example usage.</ReadMore>
+<ReadMore>Learn more about [using build-time loaders](/en/guides/content-collections/#build-time-collection-loaders) with guided explanations and example usage.</ReadMore>
 
 ### `glob()` loader
 
@@ -99,9 +104,11 @@ By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to
 <Since v="5.0.0" />
 </p>
 
-The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with IDs as keys and entries as values. It supports JSON, YAML, or TOML files and you can provide a custom `parser` for data files it cannot parse by default.
+The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with IDs as keys and entries as values.
 
-This loader accepts a `fileName` property and an optional object as second argument:
+It supports JSON, YAML, or TOML files and you can provide a custom `parser` for data files it cannot parse by default.
+
+This loader accepts a `fileName` property and an optional options object as second argument:
 
 ```ts title="src/content.config.ts" {2,6,10-12}
 import { defineCollection } from 'astro:content';
@@ -175,30 +182,65 @@ const countries = defineCollection({
 
 ### Object loaders
 
-You can also define a loader as an object with a [`load()` method](#load) that is called at build time to fetch data and update the data store. It allows [entries](#dataentry) to be updated incrementally, or for the store to be cleared only when necessary. It can also define a schema for the entries, which can be used to validate the data and generate static types. 
+You can define loaders as an object with a [`load()` method](#load) that is called at build time to fetch data and update the data store. This object can also define a schema for the entries, which can be used to validate the data and generate static types.
 
-The recommended pattern is to define a function that accepts configuration options and returns the loader object, in the same way that you would normally define an Astro integration or Vite plugin. 
+Astro's `glob()` and `file()` loaders are examples of object loaders that are provided out-of-the-box for use with local content. For remote content, no prebuilt loaders are provided. You will have to build an object loader or use a community-published loader to retrieve remote content and interact with the data store.
 
+#### Building a custom object loader
+
+The Content Loader API is flexible and full-featured, allowing for a variety of data fetching options. It is possible to build both simple and complex loaders. Your custom loader will depend on both the source and the shape of your data, as well as how you choose to manage the persistent data storage layer.
+
+Most loaders will export a function that accepts configuration options and returns a [loader object](#the-loader-object) including a `name` for your loader, a `load()` method, and a `schema` defining your entries.
+
+##### Loading collections into the data store
+
+The `load()` function returned in the loader object defines how your content is fetched, parsed, validated and updated. It accepts a `context` object that allows you to customize your data handling in a variety of ways and interact with the data store. A typical `load()` function will:
+
+- Fetch your data from a source.
+- Clear the existing data store.
+- Parse and validate your data entries according to a provided schema.
+- Update the data store with new entries.
+
+<ReadMore>See the full [`LoaderContext`](#loadercontext) list of properties for all options available to the `load()` function.</ReadMore>
+
+##### Providing a schema
+
+The `load()` function also has access to the `schema` returned by the loader object. Providing this schema allows you to validate your data before it is added to the data store. This can also be used in your collection configuration as the collection schema property to provide type safety while working with your collection data in your Astro project. However, this schema will be overridden by any schema defined for the collection in the `src/content.config.ts` file.
+
+##### Loader example
+
+The following example shows a loader that fetches data from a provided feed URL (using a custom `loadFeedData` utility) and updates the data store with new entries each time the site is built:
 
 ```ts title="src/loader.ts"
-import type { Loader, LoaderContext } from 'astro/loaders';
+// 1. Import the `Loader` type and any other dependencies needed
+import type { Loader } from 'astro/loaders';
 import { z } from 'astro:content';
 import { loadFeedData } from "./feed.js";
 
-// Define any options that the loader needs
+// 2. Define any options that your loader needs
 export function myLoader(options: { url: string, apiKey: string }): Loader {
-  // Configure the loader
   const feedUrl = new URL(options.url);
-  // Return a loader object
+  // 3. Return a loader object
   return {
     name: "my-loader",
-    // Called when updating the collection.
-    load: async (context: LoaderContext): Promise<void> => {
-      // Load data and update the store
-      const response = await loadFeedData(feedUrl, options.apiKey);
+    load: async ({ store, parseData }) => {
+      const feed = await loadFeedData(feedUrl, options.apiKey);
+      
+      store.clear();
+      
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
     },
-    // Optionally, define the schema of an entry.
-    // It will be overridden by user-defined schema.
+}
+    // 4. Define the schema of an entry.
     schema: async () => z.object({
       // ...
     })
@@ -206,7 +248,9 @@ export function myLoader(options: { url: string, apiKey: string }): Loader {
 }
 ```
 
-These configuration options can then be set when defining a collection:
+##### Defining your collection with your loader
+
+Use your custom loader as the value of the `loader` property when you define your collection in `src/content.config.ts`. Configuration options can be passed to your loader as arguments:
 
 ```ts title="src/content.config.ts"  {2,5-8}  
 import { defineCollection } from 'astro:content';
@@ -222,7 +266,31 @@ const blog = defineCollection({
 
 ### Live loaders
 
-A live loader is an object with two methods: `loadCollection()` and `loadEntry()` that should handle errors gracefully and return either data or an `Error` object.
+The Live Loader API is built to handle querying any data in real time. Live loaders can filter incoming data and verify content with type safety. Since live loaders fetch data fresh upon every request, there is no data store to update. These loaders are designed to return either data or an `Error` object to allow you to handle errors gracefully.
+
+#### Building a custom live loader
+
+Most live loaders will export a function that accepts configuration options and returns a [live loader object](#the-liveloader-object) including a `name` for your loader, two methods to define how to load both a collection of entries and a single entry: `loadCollection()` and `loadEntry()`. 
+
+##### Loading live collections
+
+To return data about your collection, you must provide a [`loadCollection()`](#loadcollection) function that fetches data, and returns an array of content [`entries-1`](#entries) or an error. 
+
+To return a single live colledction entry, you must provide a [`loadEntry()`](#loadentry) function that fetches data filtered for a given `id`, and returns a single [`entry`](#livedataentry), `undefined`, or an error.
+
+The data fetching for both of these functions is typically done using a [`try...catch` statement](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch).
+
+<ReadMore>See the full [Live Loader API](#live-loader-api) for more about the functions and types available for building your live loader.</ReadMore>
+
+##### Type safety in live loaders
+
+Live loaders do not include a schema property. Instead, you can provide type safety by [defining a Zod schema for your collection](/en/guides/content-collections/#using-zod-schemas-with-live-collections) in `src/live.config.ts`, or by passing generic types to the `LiveLoader` interface for the data they return.
+
+You can [define the types](#defining-data-types) for your collection and entry data, as well as [custom filter types](#defining-custom-filter-types) for querying, and [custom error types](#creating-live-loader-error-types) for error handling in the live loader itself.
+
+##### Example live loader
+
+The following example shows a live loader that defines data fetching from a CMS (using a custom `fetchFromCMS` utility) for both a collection of entries and a single entry, including type safety and error handling:
 
 ```ts title="src/article-loader.ts"
 import type { LiveLoader } from 'astro/loaders';
@@ -276,6 +344,9 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
         return {
           id: article.id,
           data: article,
+          rendered: {
+            html: article.htmlContent,
+          },
         };
       } catch (error) {
         return {
@@ -287,7 +358,277 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
 }
 ```
 
-<ReadMore>See [how to create a live loader](/en/guides/content-collections/#creating-a-live-loader) with example usage.</ReadMore>
+##### Defining your live collection with your loader
+
+Use your custom live loader as the value of the `loader` property when you define your collection in `src/live.config.ts`. Configuration options can be passed to your loader as arguments:
+
+```ts title="src/live.config.ts"  {2,5-7}  
+import { defineLiveCollection } from 'astro:content';
+import { articleLoader } from './article-loader.ts';
+
+const blog = defineLiveCollection({
+  loader: articleLoader({
+    apiKey: "my-secret",
+  }),
+});
+```
+
+##### Defining data types
+
+Live loaders can choose to pass generic types to the `LiveLoader` interface for the data they return. This allows TypeScript to provide type checking and autocompletion when working with the data in your components.
+
+```ts title="store-loader.ts" "LiveLoader<Product>" "type Product"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+export function storeLoader(): LiveLoader<Product> {
+  // ...
+}
+```
+
+When you use `getLiveCollection()` or `getLiveEntry()` to access your live data, TypeScript will infer the types based on the loader's definition:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+const { entry: product } = await getLiveEntry('products', '123');
+// TypeScript knows product.data is of type Product
+console.log(product?.data.name);
+---
+```
+
+##### Error handling in live loaders
+
+Live loaders return an [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) subclass for errors. You can create [custom error types](#creating-live-loader-error-types) and use them for more specific error handling if needed. If an error is thrown in the live loader, it will be caught and returned, wrapped in a `LiveCollectionError`.
+
+Astro will generate some errors itself, depending on the response from the live loader:
+
+- If `loadEntry` returns `undefined`, Astro will return a `LiveEntryNotFoundError` to the user.
+- If a schema is defined for the collection and the data does not match the schema, Astro will return a `LiveCollectionValidationError`.
+- If the loader returns an invalid cache hint, Astro will return a `LiveCollectionCacheHintError`. The `cacheHint` field is optional, so if you do not have valid data to return, you can simply omit it.
+
+```ts title="my-loader.ts" {10-12}
+import type { LiveLoader } from 'astro/loaders';
+import type { MyData } from "./types";
+import { MyLoaderError } from './errors.js';
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Return your custom error type
+      return {
+        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+##### Creating live loader error types
+
+You can create custom error types for [errors returned by your loader](#error-handling-in-live-loaders) and pass them as a generic to get proper typing:
+
+```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import type { MyData } from "./types"
+
+export class MyLoaderError extends Error {
+  constructor(message: string, public code?: string) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+  return {
+    name: 'my-loader',
+    loadCollection: async ({ filter }) => {
+      // Return your custom error type
+      return {
+        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+When you use `getLiveCollection()` or `getLiveEntry()`, TypeScript will infer the custom error type, allowing you to handle it appropriately:
+
+```astro
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+import { MyLoaderError } from "../my-loader";
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+if (error) {
+  if (error instanceof MyLoaderError) {
+    console.error(`Loader error: ${error.message} (code: ${error.code})`);
+  } else {
+    console.error(`Unexpected error: ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+##### Defining custom filter types
+
+Live loaders can define custom filter types for both `getLiveCollection()` and `getLiveEntry()`. This enables type-safe querying that matches your API's capabilities, making it easier for users to discover available filters and ensure they are used correctly. If you include JSDoc comments in your filter types, the user will see these in their IDE as hints when using the loader.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** Minimum price to filter products */
+  minPrice?: number;
+  /** Maximum price to filter products */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** Alias for `sku` */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'product-loader',
+    loadCollection: async ({ filter }) => {
+      // filter is typed as CollectionFilter
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // filter is typed as EntryFilter | { id: string }
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('Product not found'),
+        };
+      }
+      return {
+        id: product.sku,
+        entry: product,
+      };
+    },
+  };
+}
+```
+
+##### Cache hints
+
+Live loaders can provide cache hints to help with response caching. You can use this data to send HTTP cache headers or otherwise inform your caching strategy.
+
+```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
+import type { MyData } from "./types";
+
+export function myLoader(config): LiveLoader<MyData> {
+  return {
+    name: 'cached-loader',
+    loadCollection: async ({ filter }) => {
+      const products = await loadStoreProducts(filter);
+      return {
+        entries: products.map((item) => ({
+          id: item.id,
+          data: item,
+          // You can optionally provide cache hints for each entry
+          cacheHint: {
+            tags: [`product-${item.id}`, `category-${item.category}`],
+          },
+        })),
+        cacheHint: {
+          // All fields are optional, and are combined with each entry's cache hints
+          // tags are merged from all entries
+          // lastModified is the most recent lastModified of all entries and the collection
+          lastModified: getLastModifiedDate(products),
+          tags: ['products'],
+        },
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      const item = await loadStoreProduct(filter);
+      return {
+        id: item.id,
+        data: item,
+        cacheHint: {
+          lastModified: new Date(item.lastModified),
+          tags: [`product-${item.id}`, `category-${item.category}`],
+        },
+      };
+    },
+  };
+}
+```
+
+You can then use these hints in your pages:
+
+```astro title="src/pages/store/[id].astro"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+// Apply cache hints to response headers
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+:::note
+Cache hints only provide values that can be used in other parts of your project and do not automatically cause the response to be cached by Astro. You can use them to create your own caching strategy, such as setting HTTP headers or using a CDN.
+:::
+
+#### Distributing your loader
+
+Loaders can be defined in your site or as a separate npm package. If you want to share your loader with the community, you can [publish it to npm with the `withastro` and `astro-loader` keywords](/en/reference/publish-to-npm/#packagejson-data).
+
+The live loader should export a function that returns the `LiveLoader` object, allowing users to configure it with their own settings.
 
 ## Object loader API
 
@@ -313,7 +654,7 @@ A unique name for the loader, used in logs and [for conditional loading](/en/ref
 **Type**: <code>(context: <a href="#loadercontext">LoaderContext</a>) => Promise&lt;void&gt;</code>
 </p>
 
-An async function that is called at build time to load data and update the store. See [`LoaderContext`](#loadercontext) for more information.
+An async function that is called at build time to load data and update the store. It is passed a [`LoaderContext`](#loadercontext) object that contains helper functions and properties for writing your loader's implementation logic, as well as the `store` database and methods for interacting with it.
 
 #### `schema`
 
@@ -324,7 +665,9 @@ An async function that is called at build time to load data and update the store
 
 An optional [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data and also to generate TypeScript types for the collection.
 
-If a function is provided, it will be called at build time before `load()` to generate the schema. You can use this to dynamically generate the schema based on the configuration options or by introspecting an API. 
+If a function is provided, it will be called at build time before `load()` to generate the schema. You can use this to dynamically generate the schema based on the configuration options or by introspecting an API.
+
+If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
 
 ### `LoaderContext`
 
@@ -370,7 +713,25 @@ meta.set("lastModified", new Date().toISOString());
 **Type**: [`AstroIntegrationLogger`](/en/reference/integrations-reference/#astrointegrationlogger)
 </p>
 
-A logger that can be used to log messages to the console. Use this instead of `console.log` for more helpful logs that include the loader name in the log message. See [`AstroIntegrationLogger`](/en/reference/integrations-reference/#astrointegrationlogger) for more information.
+A logger that can be used to log messages to the console. Use this instead of `console.log` for more helpful logs that include loader-specific content such as the loader name or information about the loading process in the log message. See [`AstroIntegrationLogger`](/en/reference/integrations-reference/#astrointegrationlogger) for more information.
+
+```ts title="Extract from the file() loader" {10} "logger"
+return {
+  name: 'file-loader',
+  load: async ({ config, store, logger, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
 
 #### `config`
 
@@ -380,6 +741,24 @@ A logger that can be used to log messages to the console. Use this instead of `c
 </p>
 
 The full, resolved Astro configuration object with all defaults applied. See [the configuration reference](/en/reference/configuration-reference/) for more information.
+
+```ts title="Extract from the file() loader" {4} "config"
+return {
+  name: 'file-loader',
+  load: async ({ config, store, logger, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
 
 #### `parseData`
 
@@ -429,7 +808,7 @@ export function feedLoader({ url }): Loader {
 
 Renders a Markdown string to HTML, returning a `RenderedContent` object.
 
-This allows you to render Markdown content directly within your loaders using the same Markdown processing as Astro's built-in `glob` loader and provides access to the `render()` function and `<Content />` component for [rendering body content](/en/guides/content-collections/#rendering-body-content).
+This allows you to render Markdown content directly within your loaders using the same Markdown processing as Astro's built-in `glob()` loader and provides access to the `render()` function and `<Content />` component for [rendering body content](/en/guides/content-collections/#rendering-body-content).
 
 Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content).
 
@@ -807,3 +1186,157 @@ This object is passed to the [`loadEntry()` method](#loadentry) of the loader an
 </p>
 
 An object describing the filters supported by your loader.
+
+
+### LiveDataEntry
+
+```ts
+export interface LiveDataEntry<TData extends Record<string, any> = Record<string, unknown>> {
+	/** The ID of the entry. Unique per collection. */
+	id: string;
+	/** The parsed entry data */
+	data: TData;
+	/** Optional rendered content */
+	rendered?: {
+		html: string;
+	};
+	/** A hint for how to cache this entry */
+	cacheHint?: CacheHint;
+}
+```
+
+This is the type object that is returned by the [`loadEntry()`](#loadentry) method. It contains the following properties:
+
+#### `id`
+<p>
+
+**Type**: `string`
+</p>
+
+An identifier for the entry, which must be unique within the collection. This is the key used with `getLiveEntry()` for that collection. 
+
+#### `data`
+
+<p>
+
+**Type**: `Record<string, unknown>`
+</p>
+
+The actual data for the entry. When a user accesses the collection, this will have TypeScript types generated according to the collection schema.
+
+It is the loader's responsibility to validate and parse the data before returning it.
+
+
+#### `rendered`
+
+<p>
+
+**Type**: `{html: string}`
+</p>
+
+An object with an entry's rendered content if it has been rendered to HTML. For example, this can be the rendered content of a Markdown entry, or HTML from a CMS.
+
+If this field is provided, then [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) are available to render the entry in a page.
+
+If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
+
+If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
+
+#### `cacheHint`
+
+See [`CacheHint`](#cachehint-4).
+
+### `LiveDataCollection`
+
+```ts
+export interface LiveDataCollection<TData extends Record<string, any> = Record<string, unknown>> {
+	entries: Array<LiveDataEntry<TData>>;
+	/** A hint for how to cache this collection. Individual entries can also have cache hints */
+	cacheHint?: CacheHint;
+}
+```
+This is the type object that is returned by the [`loadCollection()`](#loadcollection) method. It contains the following properties:
+
+#### `entries`
+
+An array of [`LiveDataEntry`](#livedataentry) objects.
+
+#### `cacheHint`
+
+See [`CacheHint`](#cachehint-4).
+
+
+### `LiveDataCollectionResult`
+
+```ts
+export interface LiveDataCollectionResult<
+	TData extends Record<string, any> = Record<string, unknown>,
+	TError extends Error = Error,
+> {
+	entries?: Array<LiveDataEntry<TData>>;
+	error?: TError | LiveCollectionError;
+	cacheHint?: CacheHint;
+}
+```
+
+#### `entries`
+
+An array of [`LiveDataEntry`](#livedataentry) objects returned by the loader.
+
+#### `error`
+
+The error returned if the loader failed to load the collection.
+
+#### `cacheHint`
+
+See [`CacheHint`](#cachehint-4).
+
+
+### `LiveDataEntryResult`
+
+```ts
+export interface LiveDataEntryResult<
+	TData extends Record<string, any> = Record<string, unknown>,
+	TError extends Error = Error,
+> {
+	entry?: LiveDataEntry<TData>;
+	error?: TError | LiveCollectionError;
+	cacheHint?: CacheHint;
+}
+```
+
+#### `entry`
+
+The [`LiveDataEntry`](#livedataentry) object returned by the loader.
+
+#### `error`
+
+The error returned if the loader failed to load the entry.
+
+#### `cacheHint`
+
+See [`CacheHint`](#cachehint-4).
+
+
+### CacheHint
+
+This is the type object returned by `cacheHint`. It contains the following properties: 
+
+#### `tags`
+
+ // All fields are optional, and are combined with each entry's cache hints
+          // tags are merged from all entries
+          // 
+
+#### `lastModified`
+
+The most recent last modified time of all entries and the collection
+
+```ts
+export interface CacheHint {
+	/** Cache tags */
+	tags?: Array<string>;
+	/** Last modified time of the content */
+	lastModified?: Date;
+}
+```
