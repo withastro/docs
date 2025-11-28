@@ -97,6 +97,150 @@ Astro v6.0 upgrades to Vite v7.0 as the development server and production bundle
 
 If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vite.dev/guide/migration) for their breaking changes and upgrade your project as needed.
 
+## Environment API Changes
+
+Astro v6.0 introduces significant changes to how Astro manages different runtime environments (client, server, and prerender) using Vite's new Environments API. Integration and adapter maintainers should pay special attention to these changes.
+
+### Vite Environments API Integration
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Build configuration and dev server interactions now use Vite's new Environments API. Integration hooks and HMR access patterns have changed.
+
+#### What should I do?
+
+**For integrations using `astro:build:setup`:**
+
+The hook is now called once with all environments, instead of being called separately for each build target. Remove the `target` parameter and use `vite.environments` to configure specific environments:
+
+```ts title="my-integration.mjs" del={3-6} ins={3-5}
+{
+  hooks: {
+    'astro:build:setup': ({ target, vite }) => {
+      if (target === 'client') {
+        vite.build.minify = false;
+      }
+    }
+  }
+}
+```
+
+```ts title="my-integration.mjs"
+{
+  hooks: {
+    'astro:build:setup': ({ vite }) => {
+      vite.environments.client.build.minify = false;
+    }
+  }
+}
+```
+
+**For dev toolbar and integration code accessing HMR:**
+
+Replace `server.hot.send()` with `server.environments.client.hot.send()`:
+
+```ts del={1} ins={2}
+server.hot.send(event)
+server.environments.client.hot.send(event)
+```
+
+<ReadMore>Learn more about [Vite Environments API](https://vite.dev/guide/api-environment) and [integration hooks](/en/reference/integrations-reference/#astrobuildsetup).</ReadMore>
+
+### SSRManifest Structure Changes
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+The `SSRManifest` interface has structural changes. If you're reading values from the manifest in integrations, note these changes:
+
+#### What should I do?
+
+**Path properties are now `URL` objects:**
+
+When accessing path properties like `srcDir`, `outDir`, `cacheDir`, `publicDir`, `buildClientDir`, and `buildServerDir`, they are now `URL` objects instead of URL strings. If you were treating them as strings, you'll need to handle the `URL` object:
+
+```ts del={1} ins={2}
+const srcPath = manifest.srcDir; // was a URL string like "file:///path/to/src"
+const srcPath = manifest.srcDir; // now a URL object
+```
+
+**New properties available:**
+
+The manifest now includes:
+- `rootDir: URL` — Root directory of the project
+- `assetsDir: string` — Directory containing built assets
+- `serverLike: boolean` — Whether this is a server-like environment
+- `logLevel: LoggerLevel` — Logging level
+
+**Removed `hrefRoot` property:**
+
+The `hrefRoot` property is no longer available on the manifest.
+
+**Async methods for dynamic data:**
+
+When accessing `serverIslandMappings` and `sessionDriver`, they are now async methods:
+
+```ts del={1,2} ins={3,4}
+const mappings = manifest.serverIslandMappings;
+const driver = manifest.sessionDriver;
+const mappings = await manifest.serverIslandMappings?.();
+const driver = await manifest.sessionDriver?.();
+```
+
+<ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/).</ReadMore>
+
+### RouteData.generate() Removed
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+The `generate()` method on `RouteData` has been removed. Route generation is now handled internally by Astro.
+
+#### What should I do?
+
+Remove any calls to `route.generate()` in your code. This method is no longer needed:
+
+```ts del={1}
+const generated = route.generate(params);
+```
+
+<ReadMore>Learn more about [routing](/en/guides/routing/).</ReadMore>
+
+### Percent-Encoding Security Fix
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Routes with `%25` (percent-encoded percent sign) in filenames are no longer supported in static builds for security reasons.
+
+#### What should I do?
+
+If you have route files with `%25` in the filename, rename them to use a different character:
+
+```bash del={1} ins={2}
+src/pages/test%25file.astro
+src/pages/test-file.astro
+```
+
+This restriction prevents encoding-based security bypasses where `%25` decodes to `%`, potentially leading to ambiguous or invalid encoding sequences.
+
+### astro:ssr-manifest Virtual Module Removed
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+The `astro:ssr-manifest` virtual module has been removed entirely. It is no longer used by integrations or internally by Astro.
+
+#### What should I do?
+
+If your integration or code imports from `astro:ssr-manifest`, use `astro:config/server` instead to access configuration values:
+
+```ts del={1} ins={2,3}
+import { manifest } from 'astro:ssr-manifest';
+import { srcDir, outDir, root } from 'astro:config/server';
+// Use srcDir, outDir, root, etc. for configuration values
+```
+
+The manifest is now passed directly through integration hooks and adapter APIs rather than through a virtual module. For build-specific manifest data, use the `astro:build:ssr` integration hook which receives the manifest as a parameter.
+
+<ReadMore>Learn more about [the `astro:config` virtual module](/en/reference/modules/astro-config/).</ReadMore>
+
 ## Legacy
 
 The following features are now considered legacy features. They should function normally but are no longer recommended and are in maintenance mode. They will see no future improvements and documentation will not be updated. These features will eventually be deprecated, and then removed entirely.
