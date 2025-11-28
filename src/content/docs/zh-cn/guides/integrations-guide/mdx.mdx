@@ -172,7 +172,7 @@ author: 'Houston'
 
 在 [MDX 文档](https://mdxjs.com/docs/what-is-mdx/#esm)中查看有关使用导入和导出语句的更多示例。
 
-```mdx title="src/blog/post-1.mdx" {4,9}
+```mdx title="src/blog/post-1.mdx" {4,10}
 ---
 title: 我的第一篇博客
 ---
@@ -184,36 +184,11 @@ import ReactCounter from '../components/ReactCounter.jsx';
 
 <ReactCounter client:load />
 ```
-
-#### 使用导入的 MDX 自定义组件
-
-渲染导入的 MDX 内容时，可以通过 `components` 属性传递 [自定义组件](#将自定义组件分配给-html-元素)。
-
-```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
----
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
----
-<!-- 为 # 语法创建自定义<h1>， _并且_ 在`content.mdx`中应用任何自定义组件 -->
-<Content components={{...components, h1: Heading }} />
-```
-
-:::note
-在 MDX 文件中定义并导出的自定义组件必须通过 `components` 属性导入并传递回 `<Content />` 组件。
-:::
-
 #### 将自定义组件分配给 HTML 元素
 
 使用 MDX，你可以将 Markdown 语法映射到自定义组件，而不是它们的标准 HTML 元素。这允许你以标准的 Markdown 语法编写，但是将特殊的组件样式应用于所选的元素。
 
-将自定义组件导入 `.mdx`文件，然后将标准 HTML 元素映射到自定义组件的 `components` 对象以导出：
-
-```mdx title="src/blog/posts/post-1.mdx"
-import Blockquote from '../components/Blockquote.astro';
-export const components = {blockquote: Blockquote}
-
-> 这个引用将是自定义引用块组件。
-```
+例如，你可以创建一个 `Blockquote.astro` 组件来为 `<blockquote>` 内容提供自定义样式：
 
 ```astro title="src/components/Blockquote.astro"
 ---
@@ -224,7 +199,52 @@ const props = Astro.props;
   <slot /> <!-- 请务必为子组件添加 `<slot/>`！ -->
 </blockquote>
 ```
+
+将你的自定义组件导入 `.mdx`文件，然后将标准 HTML 元素映射到自定义组件的 `components` 对象以导出：
+
+```mdx title="src/blog/posts/post-1.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> 这个引用将是自定义引用块组件。
+```
 访问 [MDX 网站](https://mdxjs.com/table-of-components/)，了解可以覆盖为自定义组件的 HTML 元素的完整列表。
+
+:::note
+在 MDX 文件中定义并导出的自定义组件必须始终先被导入，然后通过 `components` 属性传回给 `<Content />` 组件。
+:::
+
+#### 将 `components` 传给 MDX 内容
+
+在使用 `<Content />` 组件渲染导入的 MDX 内容时（包括使用内容集合渲染 MDX 条目），可以通过 `components` 属性传入自定义组件。这些组件必须先被导入，才能使 `<Content />` 组件可用。
+
+`components` 对象将 HTML 元素名称（`h1`、`h2`、`blockquote` 等）映射到你的自定义组件。你也可以使用扩展运算符（...）[包含从 MDX 文件本身导出的所有组件](#将自定义组件分配给-html-元素)，这些组件也必须作为 `components` 从你的 MDX 文件中导入。
+
+如果你直接从单个文件导入 MDX 在 Astro 组件中使用，请同时导入 `Content` 组件以及你 MDX 文件中导出的任何组件。
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}" {2}
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- 为 # 语法创建自定义<h1>， _并且_ 在`content.mdx`中应用任何自定义组件 -->
+<Content components={{...components, h1: Heading }} />
+```
+
+如果你的 MDX 文件是内容集合中的一条条目，则使用来自 `astro:content` 的 `render()` 函数来访问 `<Content />` 组件。
+
+下面的示例通过 `components` 属性向 `<Content />` 组件传入一个自定义标题，以取代所有 `<h1>` HTML 元素：
+
+
+```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
+---
+import { getEntry, render } from 'astro:content';
+import CustomHeading from '../../components/CustomHeading.astro';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await render(entry);
+---
+<Content components={{ h1: CustomHeading }} />
+```
 
 ## 配置
 
@@ -379,7 +399,7 @@ export default defineConfig({
 <p><Since pkg="@astrojs/mdx" v="3.0.0" /></p>
 以前称为 `customComponentNames`。
 
-`optimize` 的一个可选属性，用于防止 MDX 优化器处理某些元素名称，例如通过 components 属性传递给导入的 MDX 内容的[自定义组件](/zh-cn/guides/integrations-guide/mdx/#使用导入的-mdx-自定义组件)。
+`optimize` 的一个可选属性，用于防止 MDX 优化器处理某些元素名称，例如通过 components 属性传递给导入的 MDX 内容的[自定义组件](/zh-cn/guides/integrations-guide/mdx/#将-components-传给-mdx-内容)。
 
 你需要将这些组件从优化中排除，因为优化器会急切地将内容转换为静态字符串，这将破坏需要动态呈现的自定义组件。
 
