@@ -302,11 +302,11 @@ import { fetchFromCMS } from './cms-client.js';
 interface Article {
   id: string;
   title: string;
-  content: string;
+  htmlContent: string;
   author: string;
 }
 
-export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article, Record<string, any>, Record<string, any>> {
   return {
     name: 'article-loader',
     loadCollection: async ({ filter }) => {
@@ -323,7 +323,7 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
             data: article,
           })),
         };
-      } catch (error) {
+      } catch (error: any) {
         return {
           error: new Error(`Failed to load articles: ${error.message}`),
         };
@@ -351,7 +351,7 @@ export function articleLoader(config: { apiKey: string }): LiveLoader<Article> {
             html: article.htmlContent,
           },
         };
-      } catch (error) {
+      } catch (error: any) {
         return {
           error: new Error(`Failed to load article: ${error.message}`),
         };
@@ -391,12 +391,12 @@ Astro will generate some errors itself, depending on the response from the live 
 ```ts title="my-loader.ts" {10-12}
 import type { LiveLoader } from 'astro/loaders';
 import type { MyData } from "./types";
-import { MyLoaderError } from './errors.js';
+import { MyLoaderError } from './errors';
 
-export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
   return {
     name: 'my-loader',
-    loadCollection: async ({ filter }) => {
+    loadCollection: async () => {
       // Return your custom error type
       return {
         error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
@@ -425,10 +425,10 @@ export class MyLoaderError extends Error {
   }
 }
 
-export function myLoader(config): LiveLoader<MyData, undefined, undefined, MyLoaderError> {
+export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
   return {
     name: 'my-loader',
-    loadCollection: async ({ filter }) => {
+    loadCollection: async () => {
       // Return your custom error type
       return {
         error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
@@ -534,9 +534,9 @@ Live loaders can provide cache hints to help with response caching. You can use 
 ```ts title="my-loader.ts"
 import type { LiveLoader } from "astro/loaders";
 import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
-import type { MyData } from "./types";
+import type { MyData, MyProductFilters, MyProductsFilters } from "./types";
 
-export function myLoader(config): LiveLoader<MyData> {
+export function myLoader(config): LiveLoader<MyData, MyProductFilters, MyProductsFilters> {
   return {
     name: 'cached-loader',
     loadCollection: async ({ filter }) => {
@@ -610,7 +610,7 @@ Cache hints only provide values that can be used in other parts of your project 
 
 Loaders can be defined in your site or as a separate npm package. If you want to share your loader with the community, you can [publish it to npm with the `withastro` and `astro-loader` keywords](/en/reference/publish-to-npm/#packagejson-data).
 
-The live loader should export a function that returns the `LiveLoader` object, allowing users to configure it with their own settings.
+A loader should export a function that returns a `LiveLoader` object for live loaders or a `Loader` object for build-time loaders, allowing users to configure it with their own settings.
 
 ## Object loader API
 
@@ -629,7 +629,7 @@ The loader object has the following properties:
 
 A unique name for the loader, used in logs and [for conditional loading](/en/reference/integrations-reference/#refreshcontent-option).
 
-#### `load`
+#### `load()`
 
 <p>
 
@@ -742,7 +742,7 @@ return {
 };
 ```
 
-#### `parseData`
+#### `parseData()`
 
 <p>
 
@@ -780,7 +780,7 @@ export function feedLoader({ url }): Loader {
 }
 ```
 
-#### `renderMarkdown`
+#### `renderMarkdown()`
 
 <p>
 
@@ -819,7 +819,7 @@ export function myLoader(settings): Loader {
 }
 ```
 
-#### `generateDigest`
+#### `generateDigest()`
 
 <p>
 
@@ -919,7 +919,7 @@ export function myLoader(options: { url: string }): Loader {
 
 The data store is a loader's interface to the content collection data. It is a key-value (KV) store, scoped to the collection, and therefore a loader can only access the data for its own collection.
 
-#### `get`
+#### `get()`
 
 <p>
 
@@ -934,7 +934,7 @@ const existingEntry = store.get("my-entry");
 
 The returned object is a [`DataEntry`](#dataentry) object.
 
-#### `set`
+#### `set()`
 
 <p>
 
@@ -962,16 +962,16 @@ Used after data has been [validated and parsed](#parsedata) to add an entry to t
     }
 ```
 
-#### `entries`
+#### `entries()`
 
 <p>
 
-**Type**: `() => Array<[id: string, DataEntry]>`
+**Type**: <code>() => Array\<[id: string, <a href="#dataentry">DataEntry</a>]\></code>
 </p>
 
 Get all entries in the collection as an array of key-value pairs.
 
-#### `keys`
+#### `keys()`
 
 <p>
 
@@ -980,16 +980,16 @@ Get all entries in the collection as an array of key-value pairs.
 
 Get all the keys of the entries in the collection.
 
-#### `values`
+#### `values()`
 
 <p>
 
-**Type**: `() => Array<DataEntry>`
+**Type**: <code>() => Array\<<a href="#dataentry">DataEntry</a>\></code>
 </p>
 
 Get all entries in the collection as an array.
 
-#### `delete`
+#### `delete()`
 
 <p>
 
@@ -998,7 +998,7 @@ Get all entries in the collection as an array.
 
 Delete an entry from the store by its ID.
 
-#### `clear`
+#### `clear()`
 
 <p>
 
@@ -1007,7 +1007,7 @@ Delete an entry from the store by its ID.
 
 Clear all entries from the collection.
 
-#### `has`
+#### `has()`
 
 <p>
 
@@ -1027,7 +1027,7 @@ This is the type of the object that is stored in the data store. It has the foll
 **Type**: `string`
 </p>
 
-An identifier for the entry, which must be unique within the collection. This is used to look up the entry in the store and is the key used with `getEntry` for that collection. 
+An identifier for the entry, which must be unique within the collection. This is used to look up the entry in the store and is the key used with [`getEntry()`](/en/reference/modules/astro-content/#getentry) for that collection. 
 
 #### `data`
 
@@ -1038,7 +1038,7 @@ An identifier for the entry, which must be unique within the collection. This is
 
 The actual data for the entry. When a user accesses the collection, this will have TypeScript types generated according to the collection schema.
 
-It is the loader's responsibility to use [`parseData`](#parsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
+It is the loader's responsibility to use [`parseData()`](#parsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
 
 #### `filePath`
 
