@@ -3,6 +3,7 @@ title: Transitions de vue
 description: Permettre une navigation fluide entre les pages dans Astro grâce aux transitions de vue.
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro'
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
@@ -15,7 +16,7 @@ Les transitions de vue et la prise en charge du routage côté client d'Astro so
 - La possibilité de [personnaliser entièrement tous les aspects de l'animation de transition](#personnalisation-des-animations) et de créer vos propres animations.
 - Un moyen de transporter des éléments HTML de la page actuelle à la suivante pendant la navigation.
 - L'option d'[empêcher la navigation côté client pour les liens qui ne sont pas des pages](#contrôle-du-routeur).
-- Le [contrôle du comportement de secours](#gestion-de-solution-de-secours) pour les navigateurs qui ne prennent pas encore en charge les API de Transition de Vue.
+- Le [contrôle du comportement de repli](#contrôle-de-la-stratégie-de-repli) pour les navigateurs qui ne prennent pas encore en charge les API de Transition de Vue.
 - La prise en charge automatique de [`prefers-reduced-motion`](#prefers-reduced-motion).
 
 :::note
@@ -33,7 +34,7 @@ Cela présente certains avantages, comme l’état partagé entre les pages et l
 L'ajout du composant intégré `<ClientRouter />` d'Astro :
 - [intercepte la navigation de la page](#processus-de-navigation-du-côté-client) et vous donne un contrôle considérable sur ce processus.
 - étend et améliore certaines fonctionnalités des API de transition de vue/navigation.
-- vous permet de [configurer des stratégies de secours](#gestion-de-solution-de-secours) lorsque [la prise en charge native du navigateur fait défaut](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
+- vous permet de [configurer des stratégies de repli](#contrôle-de-la-stratégie-de-repli) lorsque [la prise en charge native du navigateur fait défaut](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
 
 Cependant, à mesure que les API des navigateurs et les standards Web évoluent, l'utilisation du routage côté client d'Astro (`<ClientRouter />`) pour cette fonctionnalité supplémentaire [deviendra de plus en plus inutile](https://astro.build/blog/future-of-astro-zero-js-view-transitions/). Nous vous recommandons de vous tenir informé de l'état actuel des API des navigateurs afin de [déterminer si vous avez toujours besoin du routage côté client d'Astro](https://events-3bg.pages.dev/jotter/astro-view-transitions/) pour les fonctionnalités que vous utilisez.
 
@@ -319,7 +320,7 @@ Les liens avec l'attribut `data-astro-reload` seront ignorés par le routeur et 
 
 ### Déclenchement de la navigation
 
-Vous pouvez aussi déclencher la navigation côté client via des événements qui ne sont pas normalement écoutés par le routeur `<ClientRouter />` en utilisant `navigate`. Cette fonction du module `astro:transitions/client` peut être utilisée dans les scripts et dans les composants du framework qui sont hydratés avec une [directive client](/fr/reference/directives-reference/#directives-client).
+Vous pouvez aussi déclencher la navigation côté client via des événements qui ne sont pas normalement écoutés par le routeur `<ClientRouter />` en utilisant [`navigate()`](/fr/reference/modules/astro-transitions/#navigate). Cette fonction du module `astro:transitions/client` peut être utilisée dans les scripts et dans les composants du framework qui sont hydratés avec une [directive client](/fr/reference/directives-reference/#directives-client).
 
 L'exemple suivant montre un composant Astro qui permet à un visiteur de naviguer vers une autre page qu'il sélectionne dans un menu :
 
@@ -446,9 +447,35 @@ Vous pouvez refuser les transitions de routeur sur un formulaire individuel en u
 <form action="/contact" data-astro-reload>
 ```
 
-## Gestion de solution de secours
+### Naviguer en utilisant la saisie de l'utilisateur
 
-Le routeur `<ClientRouter />` fonctionne mieux dans les navigateurs qui prennent en charge les Transitions de Vue (c'est-à-dire les navigateurs Chromium), mais inclut également une prise en charge de secours par défaut pour les autres navigateurs. Même si le navigateur ne prend pas en charge l'API de Transitions de Vue, le routeur client d'Astro peut tout de même fournir une navigation dans le navigateur en utilisant l'une des options de secours.
+L'API `navigate()` n'effectue aucun nettoyage des URL qui lui sont transmises. Si vous utilisez les données saisies par l'utilisateur pour déterminer l'URL vers laquelle naviguer, vous devez valider ces données avant de les transmettre à `navigate()`.
+
+Par exemple, un paramètre de requête `?redirect` pourrait être utilisé pour naviguer hors de votre site (`?redirect=http://example.com`) ou pour exécuter du code arbitraire (`?redirect=javascript:alert('Code malveillant')`) si la valeur n'est pas nettoyée avant utilisation.
+
+Une façon de mettre cela en œuvre en toute sécurité consiste à s'assurer que la redirection n'est possible que pour une série de chemins connus :
+
+```astro title="src/pages/index.astro"
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const allowedPaths = ['/home', '/a-propos', '/contact'];
+
+  if (allowedPaths.includes(redirect)) {
+    navigate(redirect);
+  }
+</script>
+```
+
+Le type exact de nettoyage dont vous aurez besoin dépendra de votre site et de ce que vous souhaitez autoriser.
+
+<ReadMore>Envisagez d’activer la [fonctionnalité expérimentale de politique de sécurité du contenu](/fr/reference/experimental-flags/csp/) d’Astro pour vous protéger contre les risques de script intersite (XSS) si vous utilisez la saisie des utilisateurs avec l’API `navigate()`.</ReadMore>
+
+## Contrôle de la stratégie de repli
+
+Le routeur `<ClientRouter />` fonctionne mieux dans les navigateurs qui prennent en charge les Transitions de Vue (c'est-à-dire les navigateurs Chromium), mais inclut également par défaut une stratégie de repli pour les autres navigateurs. Même si le navigateur ne prend pas en charge l'API des Transitions de Vue, le routeur client d'Astro peut tout de même assurer la navigation dans le navigateur grâce à l'une des options de repli.
 
 En fonction de la prise en charge du navigateur, vous devrez peut-être définir explicitement les [directives de transition](#directives-de-transition) `name` ou `animate` sur les éléments que vous souhaitez animer pour une expérience comparable sur tous les navigateurs :
 
@@ -459,7 +486,7 @@ import Layout from "../layouts/LayoutUsingClientRouter.astro";
 <title transition:animate="fade">À propos de mon site</title>
 ```
 
-Vous pouvez remplacer la prise en charge de secours par défaut d'Astro en ajoutant une propriété `fallback` sur le composant `<ClientRouter />` et en la définissant sur `swap` ou `none` :
+Vous pouvez remplacer la stratégie de repli par défaut d'Astro en ajoutant une propriété `fallback` sur le composant `<ClientRouter />` et en la définissant sur `swap` ou `none` :
 
 - `animate` (par défaut, recommandé) : Astro simulera des transitions de vues en utilisant des attributs personnalisés avant de mettre à jour le contenu de la page.
 - `swap` : Astro n'essaiera pas d'animer la page. Au lieu de cela, l'ancienne page sera immédiatement remplacée par la nouvelle.
