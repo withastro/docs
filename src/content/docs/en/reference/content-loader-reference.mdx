@@ -1124,7 +1124,7 @@ This section shows the API for defining a [live loader](#live-loaders).
 **Type:** `LiveLoader<TData, TEntryFilter, TCollectionFilter, TError>`
 </p>
 
-A loader function returns an object describing how to fetch data from your source. When using TypeScript, this object is typed with the `LiveLoader` generic type to provide [type safety in your loader](/en/guides/content-collections/#type-safety-in-live-loaders). This type accepts the following type parameters, in this order:
+A loader function returns an object describing how to fetch data from your source. When using TypeScript, you can use the `LiveLoader` generic type to provide [type safety in your loader](/en/guides/content-collections/#type-safety-in-live-loaders). This type accepts the following type parameters, in this order:
 
 - **`TData`** (defaults to `Record<string, unknown>`): The data structure of each entry returned by the loader.
 - **`TEntryFilter`** (defaults to `never`): The filter object type accepted by [`getLiveEntry()`](/en/reference/modules/astro-content/#getliveentry). Use `never` when you don't support filtering single entries.
@@ -1190,26 +1190,12 @@ This object is passed to the [`loadEntry()` method](#loadentry) of the loader an
 An object describing the [filters supported by your loader](#defining-custom-filter-types).
 
 
-### LiveDataEntry
-
-```ts
-export interface LiveDataEntry<TData extends Record<string, any> = Record<string, unknown>> {
-	/** The ID of the entry. Unique per collection. */
-	id: string;
-	/** The parsed entry data */
-	data: TData;
-	/** Optional rendered content */
-	rendered?: {
-		html: string;
-	};
-	/** A hint for how to cache this entry */
-	cacheHint?: CacheHint;
-}
-```
+### `LiveDataEntry`
 
 This is the type object that is returned by the [`loadEntry()`](#loadentry) method. It contains the following properties:
 
 #### `id`
+
 <p>
 
 **Type**: `string`
@@ -1228,12 +1214,11 @@ The actual data for the entry. When a user accesses the collection, this will ha
 
 It is the loader's responsibility to validate and parse the data before returning it.
 
-
 #### `rendered`
 
 <p>
 
-**Type**: `{html: string}`
+**Type**: `{ html: string }`
 </p>
 
 An object with an entry's rendered content if it has been rendered to HTML. For example, this can be the rendered content of a Markdown entry, or HTML from a CMS.
@@ -1242,21 +1227,17 @@ If this field is provided, then [the `render()` function and `<Content />` compo
 
 If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
 
-If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
-
 #### `cacheHint`
 
-See [`CacheHint`](#cachehint-4).
+<p>
+
+**Type:** [`CacheHint`](#cachehint-4)
+</p>
+
+An optional object to provide a hint for how to cache this specific entry.
 
 ### `LiveDataCollection`
 
-```ts
-export interface LiveDataCollection<TData extends Record<string, any> = Record<string, unknown>> {
-	entries: Array<LiveDataEntry<TData>>;
-	/** A hint for how to cache this collection. Individual entries can also have cache hints */
-	cacheHint?: CacheHint;
-}
-```
 This is the type object that is returned by the [`loadCollection()`](#loadcollection) method. It contains the following properties:
 
 #### `entries`
@@ -1270,8 +1251,12 @@ An array of [`LiveDataEntry`](#livedataentry) objects.
 
 #### `cacheHint`
 
-See [`CacheHint`](#cachehint-4).
+<p>
 
+**Type:** [`CacheHint`](#cachehint-4)
+</p>
+
+An optional object providing guidance on how to cache this collection. This object will be merged with the cache hints defined for each individual entry, if provided.
 
 ### `LiveDataCollectionResult`
 
@@ -1299,14 +1284,14 @@ An array of [`LiveDataEntry`](#livedataentry) objects returned by the loader.
 
 <p>
 
-**Type:** <code><a href="#creating-live-loader-error-types">CustomError</a> | LiveCollectionError</code>
+**Type:** `TError | LiveCollectionError`
 </p>
 
-The error returned if the loader failed to load the collection.
+The error returned if the loader failed to load the collection. This can be a custom error extending the `Error` class or a built-in error.
 
 #### `cacheHint`
 
-See [`CacheHint`](#cachehint-4).
+See [`CacheHint`](#cachehint-1).
 
 
 ### `LiveDataEntryResult`
@@ -1335,19 +1320,19 @@ The [`LiveDataEntry`](#livedataentry) object returned by the loader.
 
 <p>
 
-**Type:** <code><a href="#creating-live-loader-error-types">CustomError</a> | LiveCollectionError</code>
+**Type:** `TError | LiveCollectionError`
 </p>
 
-The error returned if the loader failed to load the entry.
+The error returned if the loader failed to load the entry. This can be a custom error extending the `Error` class or a built-in error.
 
 #### `cacheHint`
 
-See [`CacheHint`](#cachehint-4).
+See [`CacheHint`](#cachehint).
 
 
-### CacheHint
+### `CacheHint`
 
-This is the type object returned by `cacheHint`. It contains the following properties: 
+An object that loaders can return through the `cacheHint` property in [`LiveDataCollection`](#livedatacollection) or [`LiveDataEntry`](#livedataentry) to provide hints to assist in caching the response. This contains the following properties: 
 
 #### `tags`
 
@@ -1356,9 +1341,18 @@ This is the type object returned by `cacheHint`. It contains the following prope
 **Type:** `Array<string>`
 </p>
 
- // All fields are optional, and are combined with each entry's cache hints
-          // tags are merged from all entries
-          // 
+An array of string identifiers allowing fine-grained cache control. This allows you to group related content and selectively invalidate cached responses when specific content changes.
+
+The following example defines cache hint tags for a collection of posts filtered by author:
+
+```ts
+return {
+  /* ... */
+  cacheHint: {
+    tags: ["posts", `posts-${filter.author}`],
+  },
+};
+```
 
 #### `lastModified`
 
@@ -1367,13 +1361,15 @@ This is the type object returned by `cacheHint`. It contains the following prope
 **Type:** `Date`
 </p>
 
-The most recent last modified time of all entries and the collection
+The date of the last modification of the content (e.g., the last update of an entry in a collection). This can be used to set HTTP cache headers like [`Last-Modified`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Last-Modified) and [`If-Modified-Since`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/If-Modified-Since).
+
+The following example defines a cache hint for a single product using its last update date:
 
 ```ts
-export interface CacheHint {
-	/** Cache tags */
-	tags?: Array<string>;
-	/** Last modified time of the content */
-	lastModified?: Date;
-}
+return {
+  /* ... */
+  cacheHint: {
+    lastModified: new Date(product.updatedAt)
+  },
+};
 ```
