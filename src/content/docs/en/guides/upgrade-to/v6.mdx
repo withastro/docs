@@ -571,30 +571,35 @@ Astro 6.0 removes the following functions, classes and types that may no longer 
 
 #### What should I do?
 
-Review your Actions and remove all imports from non-exported utilities, e.g. `ActionInputError`:
+Replace all occurrences of the `serializeActionResult()` and `deserializeActionResult()` with `getActionContext()`:
 
-```ts title="src/actions/index.ts" del={1,9-12} ins={2,13-16}
-import { defineAction, ActionInputError } from "astro:actions";
-import { defineAction, ActionError } from "astro:actions";
+```ts title="src/middleware.ts" del={2} ins={3,6}
+import { defineMiddleware } from 'astro:middleware';
+import { serializeActionResult, deserializeActionResult } from 'astro:actions';
+import { getActionContext } from 'astro:actions';
 
-export const server = {
-  getUserOrThrow: defineAction({
-    accept: 'form',
-    handler: async (_, { locals }) => {
-      if (locals.user?.name !== 'trueberryless') {
-        throw new ActionInputError({
-          code: 'BAD_REQUEST',
-          message: 'Felix may not log in',
-        });
-        throw new ActionError({
-          code: 'BAD_REQUEST',
-          message: 'Felix may still not log in',
-        });
-      }
-      return locals.user;
-    },
-  }),
-}
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { serializeActionResult, deserializeActionResult } = getActionContext(context);
+  // ...
+});
+```
+
+Remove any occurrences of the other removed exports:
+
+```ts del={1-13}
+import {
+  ACTION_ERROR_CODES,
+  ActionInputError,
+  appendForwardSlash,
+  astroCalledServerError,
+  callSafely,
+  formDataToObject,
+  getActionQueryString,
+  type Actions,
+  type ActionAccept,
+  type AstroActionContext,
+  type SerializedActionResult,
+} from 'astro:actions';
 ```
 
 <ReadMore>Learn more about all utilities available in the [Actions API Reference](/en/reference/modules/astro-actions/).</ReadMore>
