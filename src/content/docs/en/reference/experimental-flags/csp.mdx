@@ -188,7 +188,7 @@ After the build, the `<meta>` element will instead apply your sources to the `st
 </head>
 ```
 
-### Adding values for subclasses
+##### Adding values for subclasses
 
 You can also use this field to add valid values that belong to [`script-src-attr`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-attr), [`script-src-elem`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-elem), [`style-src-attr`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-attr) and [`style-src-elem`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-elem), such as `unsafe-hashes` and `unsafe-inline`.
 
@@ -229,6 +229,47 @@ After the build, `style-src` and `script-src` directives will contain the `'unsa
 </head>
 ```
 
+##### Multiple resources
+
+When resources are inserted multiple times or from multiple sources (e.g. defined in your `csp` config and added using [the CSP runtime API](#runtime-apis)), Astro will remove any duplicates, and merge the new ones.
+
+In the following example, the directives `img-src https://global.cdn.example.org` and `default-src https://global.cdn.example.org` are set in `csp` configuration and will be applied to all pages.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "img-src https://global.cdn.example.org",
+        "default-src https://global.cdn.example.org"
+      ]
+    }
+  }
+})
+```
+
+Additionally, on an individual page, the resources `img-src https://vendor.cdn.example.org/` and `default-src https://global.cdn.example.org/ https://vendor.cdn.example.org/` are added using the [Astro.csp.insertDirective](#cspinsertdirective).
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertDirective("img-src https://vendor.cdn.example.org")
+Astro.csp.insertDirective("default-src https://global.cdn.example.org https://vendor.cdn.example.org")
+---
+```
+
+During the build, the resources of the directives `image-src` and `default-src` for the `index.html` page are merged and deduplicated to create the appropriate headers.
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+        image-src https://global.cdn.example.org https://vendor.cdn.example.org;
+        default-src https://global.cdn.example.org https://vendor.cdn.example.org;
+    "
+  >
+</head>
+```
 
 
 #### `hashes`
