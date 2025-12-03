@@ -181,6 +181,8 @@ Providing a Zod [`schema`](#schema) in your loader allows you to validate your f
 
 However, if the content collection also [defines a schema](/en/guides/content-collections/#defining-the-collection-schema), that schema will be used instead of your loader's schema. This is to allow users of your loader to extend its schema, or transform data for use in their project. If you are [publishing and distributing a loader](#distributing-your-loader) for others to use, you may wish to document this behavior and encourage users not to define a collection schema themselves, or how to do so safely if they need data returned in a different format.
 
+If you need to dynamically generate the schema based on the configuration options or by introspecting an API, you can use [`createSchema()`](#createschema) instead.
+
 #### Loader example
 
 The following example shows a loader that fetches data from a provided feed URL (using a custom `loadFeedData` utility) and updates the data store with new entries each time the site is built:
@@ -658,6 +660,57 @@ An async function that is called at build time to load data and update the store
 An optional [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data and also to generate TypeScript types for the collection.
 
 If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
+
+#### `createSchema()`
+
+<p>
+
+**Type**: `() => Promise<{ schema: ZodSchema; types: string }>`
+<Since v="6.0.0" />
+</p>
+
+An optional async function that returns an object containing a [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) and types. It is used to dynamically generate the schema based on the configuration options or by introspecting an API.
+
+If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
+
+The returned `types` contents will be written to a TypeScript file, and must export a `Collection` type or interface:
+
+```ts title="src/feed-loader.ts" ins={27-32}
+import type { Loader } from 'astro/loaders';
+import { z } from 'astro/zod';
+import { loadFeedData, getSchema, getTypes } from "./feed.js";
+
+export function myLoader(options: { url: string, apiKey: string }) {
+  const feedUrl = new URL(options.url);
+
+  return {
+    name: "feed-loader",
+    load: async ({ store, parseData }) => {
+      const feed = await loadFeedData(feedUrl, options.apiKey);
+
+      store.clear();
+
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+    generateSchema: async () => {
+      const schema = await getSchema();
+      const types = await getTypes();
+
+      return { schema, types };
+    },
+  } satisfies Loader;
+}
+```
 
 ### `LoaderContext`
 
