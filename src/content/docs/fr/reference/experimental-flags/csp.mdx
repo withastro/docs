@@ -188,7 +188,7 @@ Après la compilation, l'élément `<meta>` appliquera à la place vos sources a
 </head>
 ```
 
-### Ajout de valeurs pour les sous-classes
+##### Ajout de valeurs pour les sous-classes
 
 Vous pouvez également utiliser ce champ pour ajouter des valeurs valides appartenant à [`script-src-attr`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-attr), [`script-src-elem`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-elem), [`style-src-attr`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-attr) et [`style-src-elem`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-elem), tels que `unsafe-hashes` et `unsafe-inline`.
 
@@ -229,6 +229,47 @@ Après la compilation, les directives `style-src` et `script-src` contiendront l
 </head>
 ```
 
+##### Ressources multiples
+
+Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple, définies dans votre configuration `csp` et ajoutées à l'aide des [API CSP de l'environnement d'exécution](#api-de-lenvironnement-dexécution)), Astro supprimera tous les doublons et fusionnera les nouveaux.
+
+Dans l'exemple suivant, les directives `img-src https://global.cdn.example.org` et `default-src https://global.cdn.example.org` sont définies dans la configuration `csp` et seront appliquées à toutes les pages.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "img-src https://global.cdn.example.org",
+        "default-src https://global.cdn.example.org"
+      ]
+    }
+  }
+})
+```
+
+De plus, sur une page individuelle, les ressources `img-src https://vendor.cdn.example.org/` et `default-src https://global.cdn.example.org/ https://vendor.cdn.example.org/` sont ajoutées à l'aide de la [Astro.csp.insertDirective](#cspinsertdirective).
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertDirective("img-src https://vendor.cdn.example.org")
+Astro.csp.insertDirective("default-src https://global.cdn.example.org https://vendor.cdn.example.org")
+---
+```
+
+Lors de la compilation, les ressources des directives `image-src` et `default-src` pour la page `index.html` sont fusionnées et dédupliquées pour créer les en-têtes appropriés.
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+        image-src https://global.cdn.example.org https://vendor.cdn.example.org;
+        default-src https://global.cdn.example.org https://vendor.cdn.example.org;
+    "
+  >
+</head>
+```
 
 
 #### `hashes`
