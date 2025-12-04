@@ -82,7 +82,7 @@ export class HtmlPage {
 		// Provide commonly used data as properties
 		this.anchors = DomUtils.getElementsByTagName('a', parser.dom, true)
 			.map(el => ({
-				// Pass the strings through Buffer to allow Node to reallocate them into independent memroy
+				// Pass the strings through Buffer to allow Node to reallocate them into independent memory
 				// instead of using slices of the original large string containing the full HTML document.
 				//
 				// This reduces memory usage significantly, at time of writing, 2.1Gib -> 300MiB.

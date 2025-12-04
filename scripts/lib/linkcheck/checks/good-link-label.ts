@@ -1,4 +1,3 @@
-import { DomUtils } from 'htmlparser2';
 import kleur from 'kleur';
 import { dedentMd } from '../../output.mjs';
 import { CheckBase, type CheckHtmlPageContext } from '../base/check';
