@@ -1,4 +1,3 @@
-import { DomUtils } from 'htmlparser2';
 import kleur from 'kleur';
 import { dedentMd } from '../../output.mjs';
 import { CheckBase, type CheckHtmlPageContext } from '../base/check';
@@ -20,7 +19,7 @@ export class GoodLabels extends CheckBase {
 		if (context.page.isLanguageFallback) return;
 
 		context.page.anchors.forEach((anchor) => {
-			const linkLabel = DomUtils.innerText(anchor)
+			const linkLabel = anchor.label
 				.replace(/[\n\s\t]+/g, ' ')
 				.trim();
 
@@ -28,7 +27,7 @@ export class GoodLabels extends CheckBase {
 
 			context.report({
 				type: GoodLabels.BadLabel,
-				linkHref: anchor.attribs.href,
+				linkHref: anchor.href,
 				annotationText: dedentMd`Found link label “${linkLabel}”.
 						Please use descriptive accessible text for labels instead
 						of short undescriptive labels like “here” or “read more”.`,
