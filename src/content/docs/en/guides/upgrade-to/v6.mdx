@@ -631,6 +631,49 @@ export const server = {
 
 <ReadMore>Learn more about [rewrites](/en/guides/routing/#rewrites).</ReadMore>
 
+### Removed: schema function signature (Content Loader API)
+
+In Astro 5.x, a content loader could choose to define a schema as a function instead of defining a Zod schema object for validation. This is useful to dynamically generate the schema based on the configuration options or by introspecting an API.
+
+Astro 6.0 removes this signature and introduces a new `createSchema()` property as a replacement for those who still want to dynamically define a schema in their content loader. 
+
+Providing a schema function in the old way will log a warning message that the loader's schema is being ignored, but otherwise the loader will continue to work as if no schema had been provided. In a future major version, loaders that provide a schema function will throw an error and cannot be used.
+
+#### What should I do?
+
+If you are building a content loader and using a function to dynamically return a collection `schema` property, you must remove your existing function and use the new `createSchema()` property to define your schema instead.
+
+For example, you can reproduce Astro's previous behavior by using `zod-to-ts` directly with `createSchema()` and any previous function logic:
+
+```ts del={11} ins={2,12-22}
+import type { Loader } from 'astro/loaders'
+import { createTypeAlias, zodToTs } from 'zod-to-ts'
+import { getSchemaFromApi } from './utils'
+
+function myLoader() {
+  return {
+    name: 'my-loader',
+    load: async (context) => {
+      // ...
+    },
+    schema: async () => await getSchemaFromApi(),
+    createSchema: async () => {
+      const schema = await getSchemaFromApi()
+      const identifier = 'Entry'
+      const { node } = zodToTs(schema, identifier)
+      const typeAlias = createTypeAlias(node, identifier)
+
+      return {
+        schema,
+        types: `export ${typeAlias}`
+      }
+    }
+  } satisfies Loader
+}
+```
+
+<ReadMore>Learn more about [`createSchema()`](/en/reference/content-loader-reference/#createschema) in the Content Loader API reference.</ReadMore>
+
 ### Experimental Flags
 
 Experimental flags allow you to opt in to features while they are in early development. Astro may also use experimental flags to test breaking changes to default behavior. The following experimental flags have been removed in Astro 6.0 and are now stable, or the new default behavior.
@@ -1007,6 +1050,36 @@ export function getStaticPaths() {
 ```
 
 <ReadMore>Learn more about [dynamic SSG routes with `getStaticPaths()`](/en/guides/routing/#static-ssg-mode).</ReadMore>
+
+### Changed: schema types are inferred instead of generated (Content Loader API)
+
+<SourcePR number="14759" title="feat: loader.createSchema()" />
+
+In Astro 5.x, the types for content collections were generated using `zod-to-ts` when provided by a content loader and not defined by a user-provided schema.
+
+Astro 6.0 removes this behavior: types are no longer generated using `zod-to-ts`. Instead, types are inferred.
+
+#### What should I do?
+
+If you are providing a `schema` in a content loader, you must use the [TypeScript' `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator):
+
+```ts del={3,11} ins={4,12}
+import type { Loader } from 'astro/loaders'
+
+function myLoader(): Loader {
+function myLoader() {
+  return {
+    name: 'my-loader',
+    load: async (context) => {
+      // ...
+    },
+    schema: z.object({/* ... */})
+  }
+  } satisfies Loader
+}
+```
+
+<ReadMore>Learn more about [defining loader schema types](/en/reference/content-loader-reference/#the-loader-object).</ReadMore>
 
 ## Community Resources
 
