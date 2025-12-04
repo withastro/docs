@@ -82,9 +82,13 @@ export class HtmlPage {
 		// Provide commonly used data as properties
 		this.anchors = DomUtils.getElementsByTagName('a', parser.dom, true)
 			.map(el => ({
-				label: DomUtils.innerText(el),
-				name: el.attribs.name,
-				href: el.attribs.href,
+				// Pass the strings through Buffer to allow Node to reallocate them into independent memroy
+				// instead of using slices of the original large string containing the full HTML document.
+				//
+				// This reduces memory usage significantly, at time of writing, 2.1Gib -> 300MiB.
+				label: Buffer.from(DomUtils.innerText(el)).toString(),
+				name: el.attribs.name && Buffer.from(el.attribs.name).toString(),
+				href: el.attribs.href && Buffer.from(el.attribs.href).toString(),
 			}));
 
 		// Build a list of unique link hrefs on the page
@@ -94,7 +98,9 @@ export class HtmlPage {
 		const anchorNames = this.anchors
 			.map((el) => el.name)
 			.filter((name) => name !== undefined);
-		const ids = parser.findAll((el) => Boolean(el.attribs.id)).map((el) => el.attribs.id);
+		const ids = parser.findAll((el) => Boolean(el.attribs.id))
+			// Same reason as above.
+			.map((el) => Buffer.from(el.attribs.id).toString());
 		this.hashes = [...anchorNames, ...ids].map((name) => `#${name}`);
 
 		// Check if the page redirects somewhere else using meta refresh
