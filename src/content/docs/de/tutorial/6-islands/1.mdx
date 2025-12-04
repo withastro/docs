@@ -1,0 +1,225 @@
+---
+type: tutorial
+title: Erstelle deine erste Astro-Island
+description: |-
+  Tutorial: Erstelle deinen ersten Astro-Blog —
+  Verwende eine Preact-Komponente, um deine Besucher mit einer zufällig ausgewählten Begrüßung zu empfangen
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import Spoiler from '~/components/Spoiler.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+Verwende eine Preact-Komponente, um deine Besucher:innen mit einer zufällig ausgewählten Willkommensnachricht zu begrüßen!
+
+<PreCheck>
+  - Preact zu deinem Astro-Projekt hinzuzufügen
+  - Astro-Islands (Preact-`.jsx`-Komponenten) auf deiner Startseite einzubinden
+  - `client:`-Direktiven zu verwenden, um Islands interaktiv zu machen
+</PreCheck>
+
+## Füge Preact zu deinem Astro-Projekt hinzu
+
+<Steps>
+1. Falls dein Entwicklungsserver läuft, beende ihn, um auf das Terminal zugreifen zu können (<kbd>Strg + C</kbd>/<kbd>Control + C</kbd>).
+
+2. Aktiviere die Unterstützung für Preact-Komponenten in deinem Astro-Projekt mit einem einzigen Befehl:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npx astro add preact
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add preact
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn astro add preact
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. Folge den Anweisungen in der Konsole, um das Hinzufügen von Preact zu deinem Projekt zu bestätigen.
+</Steps>
+
+## Füge ein Preact-Begrüßungsbanner hinzu
+
+Diese Komponente nimmt ein Array mit Begrüßungen als Prop entgegen und wählt zufällig eine davon als Willkommensnachricht aus. Nutzende können auf eine Schaltfläche klicken, um eine neue zufällige Nachricht zu erhalten.
+
+<Steps>
+1. Erstelle im Verzeichnis `src/components/` eine neue Datei mit dem Namen `Greeting.jsx`.
+
+    Beachte die Dateiendung `.jsx`. Diese Datei wird in Preact und nicht in Astro geschrieben.
+
+2. Füge folgenden Code in `Greeting.jsx` ein:
+
+    ```jsx title="src/components/Greeting.jsx"
+    import { useState } from 'preact/hooks';
+
+    export default function Greeting({messages}) {
+
+      const randomMessage = () => messages[(Math.floor(Math.random() * messages.length))];
+      
+      const [greeting, setGreeting] = useState(messages[0]);
+
+      return (
+        <div> 
+          <h3>{greeting}! Danke für deinen Besuch!</h3>
+          <button onClick={() => setGreeting(randomMessage())}>
+            Neue Begrüßung
+          </button>
+        </div>
+      );
+    }
+    ```
+
+3. Importiere und verwende diese Komponente auf deiner Startseite `index.astro`.
+
+    ```astro title="src/pages/index.astro" ins={3,8}
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Startseite";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>Mein großartiger Blog-Untertitel</h2>
+      <Greeting messages={["Hey", "Hallo", "Moin", "Servus"]} />
+    </BaseLayout>
+    ```
+
+    Sieh dir die Vorschau in deinem Browser an: Du solltest eine zufällige Begrüßung sehen – aber die Schaltfläche funktioniert noch nicht!
+
+
+4. Füge eine zweite `<Greeting />`-Komponente mit der Direktive `client:load` hinzu.
+
+    ```astro title="src/pages/index.astro" ins={9} "client:load"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    import Greeting from '../components/Greeting';
+    const pageTitle = "Startseite";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>Mein großartiger Blog-Untertitel</h2>
+      <Greeting messages={["Hey", "Hallo", "Moin", "Servus"]} />
+      <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+    </BaseLayout>
+    ```
+
+  5. Lade deine Seite neu und vergleiche beide Komponenten. Die zweite Schaltfläche funktioniert, weil die Direktive `client:load` Astro anweist, das JavaScript beim _Laden_ der Seite an den _Client_ zu senden und dort auszuführen. So wird die Komponente interaktiv. Dies nennt man eine **hydrated**-Komponente.
+  
+  6. Sobald du den Unterschied verstanden hast, entferne die nicht-hydrierte Greeting-Komponente:
+
+      ```astro title="src/pages/index.astro" del={8} "client:load"
+      ---
+      import BaseLayout from '../layouts/BaseLayout.astro';
+      import Greeting from '../components/Greeting';
+      const pageTitle = "Startseite";
+      ---
+      <BaseLayout pageTitle={pageTitle}>
+        <h2>Mein großartiger Blog-Untertitel</h2>
+        <Greeting messages={["Hey", "Hallo", "Moin", "Servus"]} />
+        <Greeting client:load messages={["Hej", "Hallo", "Hola", "Habari"]} />
+      </BaseLayout>
+      ```
+</Steps>
+
+<Box icon="question-mark">
+
+### Analysiere das Muster
+
+Es gibt mehrere `client:`-Direktiven. Jede sendet das JavaScript zu einem anderen Zeitpunkt an den Client. `client:visible` zum Beispiel sendet das JavaScript einer Komponente erst, wenn sie auf der Seite sichtbar wird.
+
+Betrachte eine Astro-Komponente mit folgendem Code:
+
+```astro
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import AstroBanner from '../components/AstroBanner.astro';
+import PreactBanner from '../components/PreactBanner';
+import SvelteCounter from '../components/SvelteCounter.svelte';
+---
+<BaseLayout>
+  <AstroBanner />
+  <PreactBanner />
+  <PreactBanner client:load />
+  <SvelteCounter />
+  <SvelteCounter client:visible />
+</BaseLayout>
+```
+
+1. Welche der fünf Komponenten werden **hydriert**, also als Astro-Islands mit JavaScript an den Client gesendet?
+
+    <p>
+      <Spoiler>`<PreactBanner client:load />` und `<SvelteCounter client:visible />` werden hydriert.</Spoiler>
+    </p>
+
+2. In welcher Hinsicht sind die beiden `<PreactBanner />`-Komponenten gleich, und worin unterscheiden sie sich?
+
+    <p>
+      <Spoiler>**Gleich:** Beide zeigen dieselben HTML-Elemente und sehen anfangs gleich aus. **Unterschiedlich:** Die Komponente mit der Direktive `client:load` wird nach dem Laden der Seite erneut gerendert und ihre interaktiven Elemente funktionieren.</Spoiler>
+    </p>
+
+3. Angenommen, die `SvelteCounter`-Komponente zeigt eine Zahl und eine Schaltfläche, um sie zu erhöhen. Wenn du nur die veröffentlichte Seite siehst, aber nicht den Code – wie würdest du erkennen, welche der beiden `<SvelteCounter />`-Komponenten `client:visible` verwendet? 
+
+    <p>
+      <Spoiler>Klicke auf die Schaltfläche und sieh, welche reagiert. Wenn sie auf deine Eingabe reagiert, hat sie eine `client:`-Direktive.</Spoiler>
+    </p>
+</Box>
+
+<Box icon="question-mark">
+
+### Teste dein Wissen
+
+Bei jeder der folgenden Komponenten: Was wird an den Browser gesendet?
+
+1. `<ReactCounter client:load />`
+
+    <MultipleChoice>
+      <Option>
+        Nur HTML und CSS
+      </Option>
+      <Option isCorrect>
+        HTML, CSS und JavaScript
+      </Option>
+    </MultipleChoice>
+
+2. `<SvelteCard />`
+
+    <MultipleChoice>
+      <Option isCorrect>
+        Nur HTML und CSS
+      </Option>
+      <Option>
+        HTML, CSS und JavaScript 
+      </Option>
+    </MultipleChoice>
+</Box>
+
+<Box icon="check-list">
+
+## Checkliste
+
+<Checklist>
+- [ ] Ich kann eine Astro-Integration installieren.
+- [ ] Ich kann UI-Framework-Komponenten in ihrer eigenen Sprache schreiben.
+- [ ] Ich kann eine `client:`-Direktive für die Hydratation meiner UI-Framework-Komponenten verwenden.
+</Checklist>
+</Box>
+
+### Ressourcen
+
+- [Astro-Integrationshandbuch](/de/guides/integrations-guide/)
+
+- [UI-Framework-Komponenten in Astro verwenden](/de/guides/framework-components/#using-framework-components)
+
+- [Astro-Referenz zu `client:`-Direktiven](/de/reference/directives-reference/#client-directives)
