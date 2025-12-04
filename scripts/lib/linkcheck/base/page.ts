@@ -50,12 +50,11 @@ export class HtmlPage {
 	 */
 	readonly isRedirect: boolean;
 	/**
-	 * Indicator whether the page has a main content block.
+	 * Indicates whether the page contains content.
 	 *
-	 * Prefers the first `<article>` element, with a fallback to `<body>` if no article was found,
-	 * and finally set to `false` if the page even doesn't have a body (a partial or invalid page).
+	 * Set to `false` if the page even doesn't have a `<body>` element (a partial or invalid page).
 	 */
-	readonly hasMainContent: boolean;
+	readonly hasContent: boolean;
 	/**
 	 * The language of the page's main content.
 	 *
@@ -126,7 +125,7 @@ export class HtmlPage {
 			parser.findFirst((el) => el.tagName.toLowerCase() === 'main') ||
 			parser.findFirst((el) => el.tagName.toLowerCase() === 'body');
 
-		this.hasMainContent = Boolean(mainContent);
+		this.hasContent = Boolean(mainContent);
 
 		// Attempt to determine the main content language by traversing the tree upwards
 		// until we find an element with a `lang` attribute
