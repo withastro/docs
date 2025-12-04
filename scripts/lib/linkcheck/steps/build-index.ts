@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
-import type { LinkCheckerOptions } from '../base/base';
-import { HtmlPage, type AllPagesByPathname } from '../base/page';
+import type { LinkCheckerOptions } from '../base/base.ts';
+import { HtmlPage, type AllPagesByPathname } from '../base/page.ts';
 
 /**
  * Reads sitemaps from the build output and extracts all unique pathnames.
