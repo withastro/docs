@@ -25,7 +25,7 @@ export class HtmlPage {
 		label: string;
 		name: string;
 		href: string;
-	}>
+	}>;
 	/**
 	 * A list of unique link hrefs on the page.
 	 */
@@ -79,25 +79,23 @@ export class HtmlPage {
 		this.pathname = pathname;
 
 		// Provide commonly used data as properties
-		this.anchors = DomUtils.getElementsByTagName('a', parser.dom, true)
-			.map(el => ({
-				// Pass the strings through Buffer to allow Node to reallocate them into independent memory
-				// instead of using slices of the original large string containing the full HTML document.
-				//
-				// This reduces memory usage significantly, at time of writing, 2.1Gib -> 300MiB.
-				label: Buffer.from(DomUtils.innerText(el)).toString(),
-				name: el.attribs.name && Buffer.from(el.attribs.name).toString(),
-				href: el.attribs.href && Buffer.from(el.attribs.href).toString(),
-			}));
+		this.anchors = DomUtils.getElementsByTagName('a', parser.dom, true).map((el) => ({
+			// Pass the strings through Buffer to allow Node to reallocate them into independent memory
+			// instead of using slices of the original large string containing the full HTML document.
+			//
+			// This reduces memory usage significantly, at time of writing, 2.1Gib -> 300MiB.
+			label: Buffer.from(DomUtils.innerText(el)).toString(),
+			name: el.attribs.name && Buffer.from(el.attribs.name).toString(),
+			href: el.attribs.href && Buffer.from(el.attribs.href).toString(),
+		}));
 
 		// Build a list of unique link hrefs on the page
 		this.uniqueLinkHrefs = [...new Set(this.anchors.map((el) => decodeURI(el.href)))];
 
 		// Build a list of hashes that can be used as URL fragments to jump to parts of the page
-		const anchorNames = this.anchors
-			.map((el) => el.name)
-			.filter((name) => name !== undefined);
-		const ids = parser.findAll((el) => Boolean(el.attribs.id))
+		const anchorNames = this.anchors.map((el) => el.name).filter((name) => name !== undefined);
+		const ids = parser
+			.findAll((el) => Boolean(el.attribs.id))
 			// Same reason as above.
 			.map((el) => Buffer.from(el.attribs.id).toString());
 		this.hashes = [...anchorNames, ...ids].map((name) => `#${name}`);
@@ -164,7 +162,7 @@ export class HtmlPage {
 }
 
 class DocumentParser {
-	constructor(public readonly dom: Document) { }
+	constructor(public readonly dom: Document) {}
 
 	findFirst(test: (elem: Element) => boolean) {
 		return DomUtils.findOne(test, this.dom.children);

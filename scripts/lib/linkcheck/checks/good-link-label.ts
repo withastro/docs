@@ -19,9 +19,7 @@ export class GoodLabels extends CheckBase {
 		if (context.page.isLanguageFallback) return;
 
 		context.page.anchors.forEach((anchor) => {
-			const linkLabel = anchor.label
-				.replace(/[\n\s\t]+/g, ' ')
-				.trim();
+			const linkLabel = anchor.label.replace(/[\n\s\t]+/g, ' ').trim();
 
 			if (!blocklist.has(linkLabel.toLowerCase())) return;
 
