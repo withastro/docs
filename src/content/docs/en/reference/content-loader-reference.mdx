@@ -10,7 +10,7 @@ tableOfContents:
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
-Astro's  Content Loader API allows you to load your data from any source, local or remote, and interact with Astro's content layer to manage your [content collections](/en/guides/content-collections/).
+Astro's Content Loader API allows you to load your data from any source, local or remote, and interact with Astro's content layer to manage your [content collections](/en/guides/content-collections/).
 
 This API includes two ready-to-use loaders for content stored locally. It also provides tools for building your own custom objects that can load data from any source into content collections.
 
@@ -181,6 +181,8 @@ Providing a Zod [`schema`](#schema) in your loader allows you to validate your f
 
 However, if the content collection also [defines a schema](/en/guides/content-collections/#defining-the-collection-schema), that schema will be used instead of your loader's schema. This is to allow users of your loader to extend its schema, or transform data for use in their project. If you are [publishing and distributing a loader](#distributing-your-loader) for others to use, you may wish to document this behavior and encourage users not to define a collection schema themselves, or how to do so safely if they need data returned in a different format.
 
+If you need to dynamically generate the schema based on the configuration options or by introspecting an API, you can use [`createSchema()`](#createschema) instead.
+
 #### Loader example
 
 The following example shows a loader that fetches data from a provided feed URL (using a custom `loadFeedData` utility) and updates the data store with new entries each time the site is built:
@@ -192,7 +194,7 @@ import { z } from 'astro/zod';
 import { loadFeedData } from "./feed.js";
 
 // 2. Define any options that your loader needs
-export function myLoader(options: { url: string, apiKey: string }): Loader {
+export function myLoader(options: { url: string, apiKey: string }) {
   const feedUrl = new URL(options.url);
   // 3. Return a loader object
   return {
@@ -218,7 +220,7 @@ export function myLoader(options: { url: string, apiKey: string }): Loader {
     schema: z.object({
       // ...
     })
-  };
+  } satisfies Loader;
 }
 ```
 
@@ -625,7 +627,17 @@ This section shows the API for defining an [object loader](#object-loaders).
 
 ### The `Loader` object
 
-The loader object has the following properties:
+
+<p>
+
+**Type:** `Loader`
+</p>
+
+A loader function returns an object with [two required properties](#loader-properties). In addition to providing a name for the loader, this object describes how to fetch the collection data.
+
+Optionally, you can return a third property defining a schema to validate your collection entries. Use the [Typescript `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator) instead of a return type annotation to provide type safety inside your loader object and to preserve type inference when your loader is used in a collection.
+
+#### Loader properties
 
 #### `name`
 
@@ -651,15 +663,71 @@ An async function that is called at build time to load data and update the store
 
 <p>
 
-**Type**: `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+**Type**: `ZodSchema`
 <Since v="5.0.0" />
 </p>
 
 An optional [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data and also to generate TypeScript types for the collection.
 
-If a function is provided, it will be called at build time before `load()` to generate the schema. You can use this to dynamically generate the schema based on the configuration options or by introspecting an API.
+When you need to dynamically generate the schema at build time based on configuration options or by introspecting an API, use [`createSchema()`](#createschema) instead.
 
 If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
+
+#### `createSchema()`
+
+<p>
+
+**Type**: `() => Promise<{ schema: ZodSchema; types: string }>`
+<Since v="6.0.0" />
+</p>
+
+An optional async function that returns an object containing a [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) and types. It is used to dynamically generate the schema at build time based on the configuration options or by introspecting an API.
+
+When you only need to provide a static schema, provide a Zod validation object using [`schema`](#schema) instead.
+
+If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
+
+The returned `types` contents will be written to a TypeScript file, and must export an `Entry` type or interface:
+
+```ts title="src/feed-loader.ts" ins={27-35}
+import type { Loader } from 'astro/loaders';
+import { z } from 'astro/zod';
+import { loadFeedData, getSchema, getTypes } from "./feed.js";
+
+export function myLoader(options: { url: string, apiKey: string }) {
+  const feedUrl = new URL(options.url);
+
+  return {
+    name: "feed-loader",
+    load: async ({ store, parseData }) => {
+      const feed = await loadFeedData(feedUrl, options.apiKey);
+
+      store.clear();
+
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+    createSchema: async () => {
+      const schema = await getSchema();
+      const types = await getTypes();
+
+      return {
+      	schema,
+      	types: `export type Entry = ${types}`,
+      };
+    },
+  } satisfies Loader;
+}
+```
 
 ### `LoaderContext`
 
@@ -771,7 +839,7 @@ Validates and parses the data according to the collection schema. Pass data to t
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }): Loader {
+export function feedLoader({ url }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
@@ -792,7 +860,7 @@ export function feedLoader({ url }): Loader {
         });
       }
     },
-  };
+  } satisfies Loader;
 }
 ```
 
@@ -814,7 +882,7 @@ Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataen
 import type { Loader } from 'astro/loaders';
 import { loadFromCMS } from './cms.js';
 
-export function myLoader(settings): Loader {
+export function myLoader(settings) {
   return {
     name: 'cms-loader',
     async load({ renderMarkdown, store }) {
@@ -831,7 +899,7 @@ export function myLoader(settings): Loader {
         });
       }
     },
-  };
+  } satisfies Loader;
 }
 ```
 
@@ -849,7 +917,7 @@ Generates a non-cryptographic content digest of an object or string. This can be
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }): Loader {
+export function feedLoader({ url }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
@@ -874,7 +942,7 @@ export function feedLoader({ url }): Loader {
         });
       }
     },
-  };
+  } satisfies Loader;
 }
 ```
 
@@ -920,7 +988,7 @@ If the loader has been triggered by an integration, this may optionally contain 
 import type { Loader } from "astro/loaders";
 import { processWebhook } from "./lib/webhooks";
 
-export function myLoader(options: { url: string }): Loader {
+export function myLoader(options: { url: string }) {
   return {
     name: "my-loader",
     load: async ({ refreshContextData, store, logger }) => {
@@ -930,7 +998,7 @@ export function myLoader(options: { url: string }): Loader {
       }
       // ...
     },
-  };
+  } satisfies Loader;
 }
 ```
 
