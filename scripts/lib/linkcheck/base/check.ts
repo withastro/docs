@@ -1,6 +1,6 @@
 import { join } from 'node:path';
-import type { LinkIssue } from './issue';
-import type { AllPagesByPathname, HtmlPage } from './page';
+import type { LinkIssue } from './issue.ts';
+import type { AllPagesByPathname, HtmlPage } from './page.ts';
 import { existsSync } from 'node:fs';
 
 export interface CheckHtmlPageContext {

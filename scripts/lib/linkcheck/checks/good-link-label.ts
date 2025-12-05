@@ -1,7 +1,7 @@
 import kleur from 'kleur';
 import { dedentMd } from '../../output.mjs';
-import { CheckBase, type CheckHtmlPageContext } from '../base/check';
-import { IssueType } from '../base/issue';
+import { CheckBase, type CheckHtmlPageContext } from '../base/check.ts';
+import { IssueType } from '../base/issue.ts';
 
 /** List of labels that are insufficiently descriptive for a link. */
 const blocklist = new Set(['read more', 'click here', 'here', 'more']);
