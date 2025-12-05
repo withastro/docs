@@ -437,6 +437,141 @@ const secret = env.DB_PASSWORD;
 
 Cloudflare environment variables and secrets are compatible with the [`astro:env` API](/en/guides/environment-variables/#type-safe-environment-variables).
 
+### Environment variables and vite modes
+
+Both vite and wrangler support multiple configurations of environment variables and secrets so that you can use different variables in
+development, staging, or production. Unfortunately, there is a naming problem since they are called different things; vite and astro call them
+[modes](https://vite.dev/guide/env-and-mode) and wrangler calls them [environments](https://developers.cloudflare.com/workers/wrangler/environments/).
+Just to be extra confusing vite also has environments but those are totally unrelated.
+
+While astro (via vite) and wrangler support loading environment variables from a variety of files,
+the following are the ones shared between them both and are therefore recommended: `.env`, `.env.local`, `.env.mode`, and `.env.mode.local`.  Only variables
+prefixed by `PUBLIC_` will be available to the client, while all variables are accessible from the server.  Both vite and wrangler will separately read these files.
+To work best with cloudflare, here is a recommended setup:
+
+* Add a rule `.env*.local` to `.gitignore`.  All secrets used during development will only appear in `.local` files and never be committed.
+* Use the `.env`, `.env.development`, `.env.staging`, `.env.production` only for PUBLIC variables or variables in the server code which are safe to commit to git.
+  Make sure `.env.development`, `.env.staging`, and `.env.production` contain the same variables, just with different values.
+* Use the `.env.development.local` file for secrets during development (not committed to git).
+* Use the [SecretsStore](https://developers.cloudflare.com/secrets-store/) or [secrets](https://developers.cloudflare.com/workers/configuration/secrets/)
+  for staging and production.  Make sure the secret names match what is in `.env.development.local`.
+
+Finally, you must ensure that the vite mode and wrangler environment are both set to the same thing when building and during development.  To do so, use the astro `--mode` argument,
+the wrangler `--env` argument, and the `CLOUDFLARE_ENV` variable in your package.json file.
+
+Here is an example:
+
+```text title=".env.development"
+PUBLIC_FIRE_LASER_API=http://localhost:6123
+PUBLIC_FEATURE_SHARK_LASERS=true
+GOOGLE_OAUTH_CLIENT_ID=1234...
+```
+
+```text title=".env.development.local"
+GOOGLE_OAUTH_CLIENT_SECRET=aeawef..
+BETTER_AUTH_SECRET=12345...
+```
+
+```text title=".env.staging"
+PUBLIC_FIRE_LASER_API=https://myworker-staging.me.workers.dev/api/fire
+PUBLIC_FEATURE_SHARK_LASERS=true
+GOOGLE_OAUTH_CLIENT_ID=1234...
+```
+
+```text title=".env.production"
+PUBLIC_FIRE_LASER_API=https://sharks.example.com/api/fire
+PUBLIC_FEATURE_SHARK_LASERS=false
+GOOGLE_OAUTH_CLIENT_ID=1234...
+```
+
+```jsonc title="wrangler.jsonc"
+{
+  "env": {
+    "development": {
+      "d1_databases": [
+        {
+          "binding": "website_db",
+          "database_name": "website-db-development",
+          "database_id": "1235..."
+        }
+      ]
+    },
+    "staging": {
+      "d1_databases": [
+        {
+          "binding": "website_db",
+          "database_name": "website-db-staging",
+          "database_id": "1235..."
+        }
+      ],
+      "secrets_store_secrets": [
+        {
+          "binding": "GOOGLE_OAUTH_CLIENT_SECRET",
+          "store_id": "website-secrets-staging",
+          "secret_name": "GOOGLE_OAUTH_CLIENT_SECRET"
+        },
+        {
+          "binding": "BETTER_AUTH_SECRET",
+          "store_id": "website-secrets-staging",
+          "secret_name": "BETTER_AUTH_SECRET"
+        }
+      ]
+    },
+    "production": {
+      "d1_databases": [
+        {
+          "binding": "website_db",
+          "database_name": "website-db-production",
+          "database_id": "1235..."
+        }
+      ],
+      "secrets_store_secrets": [
+        {
+          "binding": "GOOGLE_OAUTH_CLIENT_SECRET",
+          "store_id": "website-secrets-production",
+          "secret_name": "GOOGLE_OAUTH_CLIENT_SECRET"
+        },
+        {
+          "binding": "BETTER_AUTH_SECRET",
+          "store_id": "website-secrets-production",
+          "secret_name": "BETTER_AUTH_SECRET"
+        }
+      ]
+    }
+  }
+}
+```
+
+```json title="package.json"
+{
+  "scripts": {
+    "dev": "CLOUDFLARE_ENV=development astro dev --mode development",
+    "build:staging": "CLOUDFLARE_ENV=staging astro build --mode staging",
+    "build:production": "CLOUDFLARE_ENV=production astro build --mode production",
+    "deploy:staging": "run build:staging && wrangler deploy --env staging",
+    "deploy:production": "run build:production && wrangler deploy --env production",
+  }
+}
+```
+
+```ts title="astro.config.ts"
+{
+  adapter: cloudflare({
+    platformProxy: {
+      environment: process.env.CLOUDFLARE_ENV
+    }
+  })
+}
+```
+
+Notice how the secrets are loaded from `.env.development.local` during development but from two different secret stores with staging and production, while the regular
+environment variables are committed to git in files.
+
+At runtime, the variables will be available in two places.
+First, any variables appearing in `.env` files can be accessed via `import.meta.env.PUBLIC_FEATURE_SHARK_LASERS` as explained by
+the [vite modes](https://vite.dev/guide/env-and-mode).
+Secondly, the same environment variables along with the secrets are available at `Astro.context.locals.runtime.env`.
+
 ### Typing
 
 `wrangler` provides a `types` command to generate TypeScript types for the bindings. This allows you to type locals without the need to manually type them. Refer to the [Cloudflare documentation](https://developers.cloudflare.com/workers/wrangler/commands/#types) for more information.
@@ -472,6 +607,25 @@ declare namespace App {
   }
 }
 ```
+
+If you are using [environment variables](https://vite.dev/guide/env-and-mode#intellisense-for-typescript) and wish to extend the types to `import.meta.env`,
+you can also add
+
+```ts title="src/env.d.ts"
+type PublicEnv = {
+  [K in keyof Cloudflare.Env as K extends `PUBLIC_${infer Rest}`
+    ? K
+    : never]: Cloudflare.Env[K];
+};
+
+interface ImportMetaEnv extends PublicEnv {}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+This will take all public environment variables detected by wrangler and make them available on `import.meta.env`.
 
 ## Cloudflare Platform
 
