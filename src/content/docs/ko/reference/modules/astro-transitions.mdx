@@ -23,12 +23,16 @@ import ReadMore from '~/components/ReadMore.astro';
 ## `astro:transitions`에서 가져오기
 
 ```ts
-import { ClientRouter, fade, slide } from 'astro:transitions';
+import {
+  ClientRouter,
+  fade,
+  slide,
+} from 'astro:transitions';
 ```
 
 ### `<ClientRouter />`
 
-<p><Since v="3.0.0" /></p>
+<p><Since v="5.0.0" /></p>
 
 원하는 모든 페이지의 `<head>`에 `<ClientRouter />` 라우팅 컴포넌트를 가져오고 추가하여 개별 페이지에서 트랜지션을 사용하도록 선택합니다.
 
@@ -48,6 +52,18 @@ import { ClientRouter } from 'astro:transitions';
 ```
 
 페이지 요소와 컴포넌트에 [라우터 제어](/ko/guides/view-transitions/#라우터-제어) 및 [전환 지시어를 추가](/ko/guides/view-transitions/#전환-지시어)하는 방법에 대해 자세히 알아보세요.
+
+`<ClientRouter />` 컴포넌트는 다음 props를 허용합니다.
+
+<h4>`fallback`</h4>
+
+<p>
+
+**타입:** [`Fallback`](#fallback)<br />
+**기본값:** `animate`
+</p>
+
+[뷰 전환 API](https://developer.mozilla.org/ko/docs/Web/API/View_Transition_API)를 지원하지 않는 브라우저에서 사용할 대체 전략을 정의합니다.
 
 ### `fade`
 
@@ -95,16 +111,22 @@ import { slide } from 'astro:transitions';
 
 ## `astro:transitions/client`에서 가져오기
 
-```astro
-<script>
-  import {
-    navigate,
-    supportsViewTransitions,
-    transitionEnabledOnThisPage,
-    getFallback,
-    swapFunctions,
-  } from 'astro:transitions/client';
-</script>
+```ts
+import {
+  getFallback,
+  navigate,
+  supportsViewTransitions,
+  swapFunctions,
+  transitionEnabledOnThisPage,
+  /* 다음 항목들은 v6에서 사용 중단될 예정입니다. */
+  isTransitionBeforePreparationEvent,
+  isTransitionBeforeSwapEvent,
+  TRANSITION_AFTER_PREPARATION,
+  TRANSITION_AFTER_SWAP,
+  TRANSITION_BEFORE_PREPARATION,
+  TRANSITION_BEFORE_SWAP,
+  TRANSITION_PAGE_LOAD,
+} from 'astro:transitions/client';
 ```
 
 ### `navigate()`
@@ -115,7 +137,7 @@ import { slide } from 'astro:transitions';
 <Since v="3.2.0" />
 </p>
 
-뷰 전환 API를 사용하여 지정된 `href`로 탐색을 실행하는 함수입니다.
+뷰 전환 API를 사용하여 지정된 `href`로 탐색을 실행합니다.
 
 이 함수 시그니처는 [브라우저 Navigation API의 `navigate` 함수](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate)를 기반으로 합니다. 이 함수는 Navigation API를 기반으로 하지만, 페이지를 다시 로드하지 않고 탐색할 수 있도록 [History API](https://developer.mozilla.org/ko/docs/Web/API/History_API) 위에 구현되어 있습니다.
 
@@ -184,9 +206,9 @@ import { slide } from 'astro:transitions';
 <Since v="3.6.0" />
 </p>
 
-존재하는 경우, 이 탐색을 트리거한 요소입니다. 이 요소는 다음 이벤트에서 사용할 수 있습니다:
-- `astro:before-preparation`
-- `astro:before-swap`
+존재하는 경우, 이 탐색을 트리거한 요소입니다. 이 요소는 다음 이벤트에서 사용할 수 있습니다.
+- [`astro:before-preparation`](#astrobefore-preparation-이벤트)
+- [`astro:before-swap`](#astrobefore-swap-이벤트)
 
 ### `supportsViewTransitions`
 
@@ -198,11 +220,11 @@ import { slide } from 'astro:transitions';
 
 현재 브라우저에서 트랜지션이 지원되고 활성화되어 있는지 여부입니다.
 
-### `transitionEnabledOnThisPage`
+### `transitionEnabledOnThisPage()`
 
 <p>
 
-**타입:** `boolean`<br />
+**타입:** `() => boolean`<br />
 <Since v="3.2.0" />
 </p>
 
@@ -212,18 +234,20 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**타입:** `() => 'none' | 'animate' | 'swap'`<br />
+**타입:** <code>() => <a href="#fallback">Fallback</a></code><br />
+**기본값:** `animate`<br />
 <Since v="3.6.0" />
 </p>
 
-트랜지션을 지원하지 않는 브라우저에서 사용할 대체 전략을 반환합니다.
+트랜지션을 지원하지 않는 브라우저에서 사용할 대체 전략을 반환합니다. (기본값은 `animate`)
 
-대체 동작을 선택하고 구성하는 방법은 [대체 제어](/ko/guides/view-transitions/#대체-옵션) 가이드를 참조하세요.
+<ReadMore>대체 동작을 선택하고 구성하는 방법은 [대체 제어](/ko/guides/view-transitions/#대체-옵션) 가이드를 참조하세요.</ReadMore>
 
 ### `swapFunctions`
 
 <p>
 
+**타입:** `object`<br />
 <Since v="4.15.0" />
 </p>
 
@@ -280,9 +304,326 @@ Astro의 기본 교체 함수를 빌드하는 데 사용되는 유틸리티 함�
 
 이전 body를 새 body로 교체합니다. 그런 다음 이전 body에서 유지되어야 하는 모든 요소를 검토하고 새 body에서 일치하는 요소를 찾아 이전 요소를 다시 제자리로 바꿉니다.
 
+### 더 이상 지원되지 않는 기능
+
+다음 가져오기 항목들은 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+
+<h4>`isTransitionBeforePreparationEvent()`</h4>
+
+<p>
+
+**타입:** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+지정된 값이 [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent)와 일치하는지 여부를 결정합니다. 이는 이벤트 리스너에서 이벤트의 타입을 좁혀야 할 때 유용할 수 있습니다.
+
+```astro title="src/pages/index.astro" "isTransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforePreparationEvent,
+    TRANSITION_BEFORE_PREPARATION,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforePreparationEvent(event) ? 1 : 2;
+    /* 설정을 사용한 작업 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+<h4>`isTransitionBeforeSwapEvent()`</h4>
+
+<p>
+
+**타입:** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+주어진 값이 [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent)와 일치하는지 여부를 결정합니다. 이는 이벤트 리스너에서 이벤트의 타입을 좁혀야 할 때 유용할 수 있습니다.
+
+```astro title="src/pages/index.astro" "isTransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforeSwapEvent,
+    TRANSITION_BEFORE_SWAP,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforeSwapEvent(event) ? 1 : 2;
+    /* 설정을 사용한 작업 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
+<h4>`TRANSITION_BEFORE_PREPARATION`</h4>
+
+<p>
+
+**타입:** `'astro:before-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+이벤트를 정의할 때 `astro:before-preparation` 이벤트 이름을 일반 텍스트로 작성하는 것을 피하기 위한 상수입니다.
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_PREPARATION"
+---
+---
+
+<script>
+  import { TRANSITION_BEFORE_PREPARATION } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, () => {
+    /* 리스너 로직 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_AFTER_PREPARATION`</h4>
+
+<p>
+
+**타입:** `'astro:after-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+이벤트를 정의할 때 `astro:after-preparation` 이벤트 이름을 일반 텍스트로 작성하는 것을 피하기 위한 상수입니다.
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_PREPARATION"
+---
+---
+
+<script>
+  import { TRANSITION_AFTER_PREPARATION } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_AFTER_PREPARATION, () => {
+    /* 리스너 로직 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_BEFORE_SWAP`</h4>
+
+<p>
+
+**타입:** `'astro:before-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+이벤트를 정의할 때 `astro:before-swap` 이벤트 이름을 일반 텍스트로 작성하는 것을 피하기 위한 상수입니다.
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_SWAP"
+---
+---
+
+<script>
+  import { TRANSITION_BEFORE_SWAP } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, () => {
+    /* 리스너 로직 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_AFTER_SWAP`</h4>
+
+<p>
+
+**타입:** `'astro:after-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+이벤트를 정의할 때 `astro:after-swap` 이벤트 이름을 일반 텍스트로 작성하는 것을 피하기 위한 상수입니다.
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_SWAP"
+---
+---
+
+<script>
+  import { TRANSITION_AFTER_SWAP } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_AFTER_SWAP, () => {
+    /* 리스너 로직 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_PAGE_LOAD`</h4>
+
+<p>
+
+**타입:** `'astro:page-load'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[사용 중단 예정]
+이 함수는 v6에서 사용 중단될 예정입니다. 프로젝트에서 계속 사용할 수 있지만, 지금 코드를 업데이트하는 것이 좋습니다.
+:::
+
+이벤트를 정의할 때 `astro:page-load` 이벤트 이름을 일반 텍스트로 작성하는 것을 피하기 위한 상수입니다.
+
+```astro title="src/pages/index.astro" "TRANSITION_PAGE_LOAD"
+---
+---
+
+<script>
+  import { TRANSITION_PAGE_LOAD } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_PAGE_LOAD, () => {
+    /* 리스너 로직 */
+  });
+</script>
+```
+
+## `astro:transitions/client` types
+
+```ts
+import type {
+  Direction,
+  Fallback,
+  NavigationTypeString,
+  Options,
+  TransitionBeforePreparationEvent,
+  TransitionBeforeSwapEvent,
+} from 'astro:transitions/client';
+```
+
+### `Direction`
+
+<p>
+
+**타입:** `'forward' | 'back'`<br />
+<Since v="3.2.0" />
+</p>
+
+애니메이션 방향의 유니온입니다.
+- `forward`: 기록에서 다음 페이지로 이동하거나 새 페이지로 이동합니다.
+- `back`: 기록에서 이전 페이지로 이동합니다.
+
+### `Fallback`
+
+<p>
+
+**타입:** `'none' | 'animate' | 'swap'`<br />
+<Since v="3.2.0" />
+</p>
+
+뷰 전환을 지원하지 않는 브라우저에서 사용할 대체 전략의 유니온입니다.
+- `animate`: Astro는 페이지 콘텐츠를 업데이트하기 전에 사용자 정의 속성을 사용하여 뷰 전환을 시뮬레이션합니다.
+- `swap`: Astro는 페이지를 애니메이션하려고 시도하지 않습니다. 대신, 이전 페이지는 새 페이지로 즉시 교체됩니다.
+- `none`: Astro는 어떠한 애니메이션 페이지 전환도 수행하지 않습니다. 대신, 뷰 전환을 지원하지 않는 브라우저에서는 전체 페이지 탐색이 이루어집니다.
+
+<ReadMore>`ClientRouter`를 사용하여 [대체 전략 제어](/ko/guides/view-transitions/#대체-옵션)에 대해 자세히 알아보세요.</ReadMore>
+
+### `NavigationTypeString`
+
+<p>
+
+**타입:** `'push' | 'replace' | 'traverse'`<br />
+<Since v="3.6.0" />
+</p>
+
+지원되는 히스토리 탐색 이벤트의 유니온입니다.
+
+### `TransitionBeforePreparationEvent`
+
+<p>
+
+**타입:** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+[`astro:before-preparation` 이벤트](#astrobefore-preparation-이벤트)를 나타냅니다. 이는 리스너가 받는 이벤트의 타입을 지정하는 데 유용할 수 있습니다.
+
+```astro title="src/pages/index.astro" "TransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_PREPARATION,
+    type TransitionBeforePreparationEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforePreparationEvent) {
+    /* 추가 작업 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+### `TransitionBeforeSwapEvent`
+
+<p>
+
+**타입:** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+[`astro:before-swap` 이벤트](#astrobefore-swap-이벤트)를 나타냅니다. 이는 리스너가 받는 이벤트의 타입을 지정하는 데 유용할 수 있습니다.
+
+```astro title="src/pages/index.astro" "TransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_SWAP,
+    type TransitionBeforeSwapEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforeSwapEvent) {
+    /* 추가 작업 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
 ## 라이프사이클 이벤트
 
 ### `astro:before-preparation` 이벤트
+
+<p>
+
+**타입:** [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent)<br />
+<Since v="3.6.0" />
+</p>
 
 뷰 전환 라우터를 사용하여 탐색을 시작할 때 전송되는 이벤트입니다. 이 이벤트는 요청이 이루어지고 브라우저 상태가 변경되기 전에 발생합니다.
 
@@ -290,23 +631,35 @@ Astro의 기본 교체 함수를 빌드하는 데 사용되는 유틸리티 함�
 - [`info`](#info)
 - [`sourceElement`](#sourceelement)
 - [`navigationType`](#navigationtype)
-- [`direction`](#direction)
+- [`direction`](#direction-1)
 - [`from`](#from)
 - [`to`](#to)
 - [`formData`](#formdata)
 - [`loader()`](#loader)
 
-이 이벤트의 사용 방법에 대한 자세한 내용은 [뷰 전환 가이드](/ko/guides/view-transitions/#astrobefore-preparation)에서 확인하세요.
+<ReadMore>이 이벤트의 사용 방법에 대한 자세한 내용은 [뷰 전환 가이드](/ko/guides/view-transitions/#astrobefore-preparation)에서 확인하세요.</ReadMore>
 
 ### `astro:after-preparation` 이벤트
+
+<p>
+
+**타입:** `Event`<br />
+<Since v="3.6.0" />
+</p>
 
 뷰 전환 라우터를 사용하는 탐색에서 다음 페이지가 로드된 후 전송되는 이벤트입니다.
 
 이 이벤트에는 속성이 없습니다.
 
-이 이벤트의 사용 방법에 대한 자세한 내용은 [뷰 전환 가이드](/ko/guides/view-transitions/#astroafter-preparation)에서 확인하세요.
+<ReadMore>이 이벤트의 사용 방법에 대한 자세한 내용은 [뷰 전환 가이드](/ko/guides/view-transitions/#astroafter-preparation)에서 확인하세요.</ReadMore>
 
 ### `astro:before-swap` 이벤트
+
+<p>
+
+**타입:** [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent)<br />
+<Since v="3.6.0" />
+</p>
 
 다음 페이지가 구문 분석되고, 준비되고, 트랜지션을 준비하면서 문서에 링크된 후, 문서 간 콘텐츠가 교환되기 전에 전송되는 이벤트입니다.
 
@@ -316,21 +669,31 @@ Astro의 기본 교체 함수를 빌드하는 데 사용되는 유틸리티 함�
 - [`info`](#info)
 - [`sourceElement`](#sourceelement)
 - [`navigationType`](#navigationtype)
-- [`direction`](#direction)
+- [`direction`](#direction-1)
 - [`from`](#from)
 - [`to`](#to)
 - [`viewTransition`](#viewtransition)
 - [`swap()`](#swap)
 
-이 이벤트의 사용 방법에 대한 자세한 내용은 [뷰 전환 가이드](/ko/guides/view-transitions/#astrobefore-swap)에서 확인하세요.
+<ReadMore>이 이벤트의 사용 방법에 대한 자세한 내용은 [뷰 전환 가이드](/ko/guides/view-transitions/#astrobefore-swap)에서 확인하세요.</ReadMore>
 
 ### `astro:after-swap` 이벤트
+
+<p>
+
+**타입:** `Event`
+</p>
 
 페이지의 콘텐츠가 교체된 후, 트랜지션이 끝나기 전에 전달되는 이벤트입니다.
 
 기록 항목과 스크롤 위치가 업데이트된 후, 이 이벤트가 트리거됩니다.
 
 ### `astro:page-load` 이벤트
+
+<p>
+
+**타입:** `Event`
+</p>
 
 트랜지션을 사용하는 탐색이나 브라우저의 기본 기능으로 페이지 로드가 완료된 후 전달되는 이벤트입니다.
 
@@ -340,11 +703,13 @@ Astro의 기본 교체 함수를 빌드하는 데 사용되는 유틸리티 함�
 
 <p><Since v="3.6.0" /></p>
 
+다음 속성들은 [`astro:before-preparation`](#astrobefore-preparation-이벤트) 및 [`astro:before-swap`](#astrobefore-swap-이벤트) 이벤트에서 모두 사용할 수 있지만, 일부 속성은 둘 중 하나에서만 사용할 수 있습니다.
+
 #### `info`
 
 <p>
 
-**타입:** `URL`
+**타입:** `any`
 </p>
 
 탐색 중에 정의된 임의의 데이터입니다.
@@ -375,26 +740,24 @@ Astro의 기본 교체 함수를 빌드하는 데 사용되는 유틸리티 함�
 
 <p>
 
-**타입:** `'push' | 'replace' | 'traverse'`
+**타입:** [`NavigationTypeString`](#navigationtypestring)
 </p>
 
 어떤 종류의 기록 탐색이 일어나고 있나요.
 - `push`: 새 페이지에 대한 새 `NavigationHistoryEntry`가 만들어지고 있습니다.
 - `replace`: 현재 `NavigationHistoryEntry`가 새 페이지의 항목으로 대체되고 있습니다.
-- `traverse`: `NavigationHistoryEntry`이 생성되지 않습니다. 히스토리 내 위치가 변경되고 있습니다.
-  순회 방향은 [`direction` 속성](#direction)에서 지정됩니다.
+- `traverse`: `NavigationHistoryEntry`이 생성되지 않습니다. 히스토리 내 위치가 변경됩니다. 순회 방향은 [`direction` 속성](#direction-1)에서 지정됩니다.
 
 #### `direction`
 
 <p>
 
-**타입:** `Direction`
+**타입:** `string`
 </p>
 
-트랜지션 방향입니다.
-- `forward`: 기록의 다음 페이지 또는 새 페이지로 이동합니다.
-- `back`: 기록의 이전 페이지로 이동합니다.
-- 다른 리스너가 설정했을 수 있는 기타 모든 항목.
+전환의 방향을 나타냅니다.
+* [`astro:before-preparation` 이벤트](#astrobefore-preparation-이벤트)에서는 방향을 사용자 정의하는 데 사용할 수 있습니다. 이 속성은 쓰기가 가능하며 모든 문자열을 허용합니다.
+* [`astro:before-swap` 이벤트](#astrobefore-swap-이벤트)에서는 전환 방향을 검색하는 데 사용할 수 있습니다. 이 속성은 읽기 전용이며, 그 값은 미리 정의된 [`Direction`](#direction)이거나 `astro:before-preparation` 이벤트 리스너가 설정했을 수도 있는 모든 문자열일 수 있습니다.
 
 #### `from`
 
@@ -419,12 +782,11 @@ The URL of the page initiating the navigation.
 
 <p>
 
-**타입:** `FormData | undefined`
+**타입:** `FormData | undefined`<br />
+**사용 가능:** [`astro:before-preparation` 이벤트](#astrobefore-preparation-이벤트)
 </p>
 
-`POST` 요청을 위한 `FormData` 객체입니다.
-
-이 속성을 설정하면 일반적인 `GET` 요청 대신 지정된 양식 데이터 객체를 콘텐츠로 하는 `POST` 요청이 [`to` URL](#to)로 전송됩니다.
+설정된 경우, 일반적인 `GET` 요청 대신, 주어진 `FormData` 객체를 콘텐츠로 하는 `POST` 요청이 [`to` URL](#to)로 전송됩니다.
 
 트랜지션이 활성화된 HTML 양식을 제출할 때 이 필드는 양식의 데이터로 자동 설정됩니다. [`navigate()` 함수](#navigate)를 사용하는 경우 이 값은 옵션에 지정된 것과 동일합니다.
 
@@ -432,7 +794,8 @@ The URL of the page initiating the navigation.
 
 <p>
 
-**타입:** `() => Promise<void>`
+**타입:** `() => Promise<void>`<br />
+**사용 가능:** [`astro:before-preparation` 이벤트](#astrobefore-preparation-이벤트)
 </p>
 
 탐색에서 다음 단계 (다음 페이지 로딩)를 구현합니다. 이 구현을 재정의하여 동작을 추가할 수 있습니다.
@@ -441,7 +804,8 @@ The URL of the page initiating the navigation.
 
 <p>
 
-**타입:** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+**타입:** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)<br />
+**사용 가능:** [`astro:before-swap` 이벤트](#astrobefore-swap-이벤트)
 </p>
 
 이 탐색에 사용된 트랜지션 객체입니다. [뷰 전환 API](https://developer.mozilla.org/ko/docs/Web/API/View_Transitions_API)를 지원하지 않는 브라우저에서는 편의를 위해 동일한 API를 구현하지만 DOM 통합이 없는 객체입니다.
@@ -450,17 +814,16 @@ The URL of the page initiating the navigation.
 
 <p>
 
-**타입:** `() => void`
+**타입:** `() => void`<br />
+**사용 가능:** [`astro:before-swap` 이벤트](#astrobefore-swap-이벤트)
 </p>
 
-문서 교체 로직을 구현합니다.
-
-[사용자 지정 교체 함수를 구현](/ko/guides/view-transitions/#사용자-정의-교체-함수-구현)하는 방법에 대한 자세한 내용은 뷰 전환 가이드를 참조하세요.
-
-기본적으로 이 구현은 다음 함수를 순서대로 호출합니다:
+기본 문서 교체 로직을 호출합니다. 기본적으로 이 구현은 다음 함수들을 순서대로 호출합니다.
 
 1. [`deselectScripts()`](#deselectscripts)
 2. [`swapRootAttributes()`](#swaprootattributes)
 3. [`swapHeadElements()`](#swapheadelements)
 4. [`saveFocus()`](#savefocus)
 5. [`swapBodyElement()`](#swapbodyelement)
+
+<ReadMore>뷰 전환 가이드에서 [사용자 정의 교체를 함수 구현하는 방법](/ko/guides/view-transitions/#사용자-정의-교체-함수-구현)에 대해 자세히 알아보세요.</ReadMore>
