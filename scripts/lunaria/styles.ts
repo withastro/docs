@@ -1,4 +1,4 @@
-import { html } from './components';
+import { html } from './components.ts';
 
 export const BaseStyles = html`
 	<style>
