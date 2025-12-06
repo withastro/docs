@@ -146,7 +146,7 @@ Ces propriétés sont ajoutées à toutes les pages et **remplacent complètemen
 <Since v="5.9.0" />
 </p>
 
-Une liste de sources valides pour les directives `script-src` et `style-src`.
+Une liste de sources valides pour les directives `script-src` et `style-src`, y compris [les valeurs pour les sous-classes](#ajout-de-valeurs-pour-les-sous-classes).
 
 Les directives `script-src` et `style-src` sont gérées par Astro par défaut et utilisent la ressource `'self'`. Cela signifie que les scripts et les styles ne peuvent être téléchargés que par l'hôte actuel (généralement le site web actuel).
 
@@ -187,6 +187,90 @@ Après la compilation, l'élément `<meta>` appliquera à la place vos sources a
   >
 </head>
 ```
+
+##### Ajout de valeurs pour les sous-classes
+
+Vous pouvez également utiliser ce champ pour ajouter des valeurs valides appartenant à [`script-src-attr`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-attr), [`script-src-elem`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-elem), [`style-src-attr`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-attr) et [`style-src-elem`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-elem), tels que `unsafe-hashes` et `unsafe-inline`.
+
+Par exemple, si vous disposez d'une bibliothèque externe qui ajoute des scripts ou des styles incorporés à certains éléments HTML de la page, vous pouvez ajouter `unsafe-inline` pour indiquer au navigateur qu'ils peuvent être rendus en toute sécurité.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "'unsafe-inline'"
+        ]
+      },
+      scriptDirective: {
+        resources: [
+          "'unsafe-inline'"
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, les directives `style-src` et `script-src` contiendront la ressource `'unsafe-line'` :
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+      script-src 'unsafe-line'; 
+      style-src 'unsafe-line';
+    "
+  >
+</head>
+```
+
+##### Ressources multiples
+
+Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple, définies dans votre configuration `csp` et ajoutées à l'aide des [API CSP de l'environnement d'exécution](#api-de-lenvironnement-dexécution)), Astro supprimera tous les doublons et fusionnera les nouveaux.
+
+Dans l'exemple suivant, les directives `img-src https://global.cdn.example.org` et `default-src https://global.cdn.example.org` sont définies dans la configuration `csp` et seront appliquées à toutes les pages.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "img-src https://global.cdn.example.org",
+        "default-src https://global.cdn.example.org"
+      ]
+    }
+  }
+})
+```
+
+De plus, sur une page individuelle, les ressources `img-src https://vendor.cdn.example.org/` et `default-src https://global.cdn.example.org/ https://vendor.cdn.example.org/` sont ajoutées à l'aide de la [Astro.csp.insertDirective](#cspinsertdirective).
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertDirective("img-src https://vendor.cdn.example.org")
+Astro.csp.insertDirective("default-src https://global.cdn.example.org https://vendor.cdn.example.org")
+---
+```
+
+Lors de la compilation, les ressources des directives `image-src` et `default-src` pour la page `index.html` sont fusionnées et dédupliquées pour créer les en-têtes appropriés.
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+        image-src https://global.cdn.example.org https://vendor.cdn.example.org;
+        default-src https://global.cdn.example.org https://vendor.cdn.example.org;
+    "
+  >
+</head>
+```
+
 
 #### `hashes`
 
