@@ -1,8 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
-import type { LinkCheckerOptions } from '../base/base';
-import { HtmlPage, type AllPagesByPathname } from '../base/page';
+import type { LinkCheckerOptions } from '../base/base.ts';
+import { HtmlPage, type AllPagesByPathname } from '../base/page.ts';
 
 /**
  * Reads sitemaps from the build output and extracts all unique pathnames.
@@ -51,7 +51,7 @@ function parsePage(pathname: string, options: LinkCheckerOptions): HtmlPage {
 		const htmlPage = new HtmlPage({ html, href, pathname });
 
 		// Do not allow pages without main content unless they are a redirect
-		if (!htmlPage.isRedirect && !htmlPage.mainContent)
+		if (!htmlPage.isRedirect && !htmlPage.hasContent)
 			throw new Error('Failed to find main content - page has no <article> or <body>');
 
 		// Do not allow pages without a main content "lang" attribute unless they are a redirect
