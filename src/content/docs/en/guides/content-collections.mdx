@@ -64,16 +64,19 @@ To define collections, you must create a `src/content.config.ts` file in your pr
 
 ```ts title="src/content.config.ts"
 // 1. Import utilities from `astro:content`
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 
 // 2. Import loader(s)
 import { glob, file } from 'astro/loaders';
 
-// 3. Define your collection(s)
+// 3. Import Zod
+import { z } from 'astro/zod';
+
+// 4. Define your collection(s)
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. Export a single `collections` object to register your collection(s)
+// 5. Export a single `collections` object to register your collection(s)
 export const collections = { blog, dogs };
 ```
 
@@ -89,9 +92,10 @@ The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creat
 
 The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
 
-```ts  title="src/content.config.ts" {5,9}
-import { defineCollection, z } from 'astro:content';
+```ts  title="src/content.config.ts" {6,10}
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders'; // Not available with legacy API
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -208,11 +212,12 @@ Schemas also power Astro's automatic TypeScript typings for your content. When y
 In order for Astro to recognize a new or updated schema, you may need to restart the dev server or [sync the content layer](/en/reference/cli-reference/#astro-dev) (<code>s + enter</code>) to define the `astro:content` module.
 :::
 
-Every frontmatter or data property of your collection entries must be defined using a Zod data type:
+Every frontmatter or data property of your collection entries must be defined using a [Zod data type](/en/reference/modules/astro-zod/#common-data-type-validators):
 
-```ts title="src/content.config.ts" {6-11,15-19}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // Not available with legacy API
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -239,43 +244,13 @@ export const collections = { blog, dogs };
 
 Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's data within a collection *and* provide automatic TypeScript types when you go to query content from inside your project.
 
-To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod. 
+To use Zod in Astro, import the `z` utility from `"astro/zod"`. This is a re-export of the Zod library, and it supports all of the features of Zod. 
 
-```ts
-// Example: A cheatsheet of many common Zod datatypes
-import { z, defineCollection } from 'astro:content';
-
-defineCollection({
-  schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    author: z.string().default('Anonymous'),
-    language: z.enum(['en', 'es']),
-    tags: z.array(z.string()),
-    footnote: z.string().optional(),
-
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(), // e.g. 2024-09-17
-
-    // Transform a date string (e.g. "2022-07-08") to a Date object
-    updatedDate: z.string().transform((str) => new Date(str)),
-
-    authorContact: z.string().email(),
-    canonicalURL: z.string().url(),
-  })
-})
-```
-
-<ReadMore>See [Zod's README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.</ReadMore>
+<ReadMore>See the [`z` utility reference](/en/reference/modules/astro-zod/) for a cheatsheet of common datatypes and to learn how Zod works and what features are available.</ReadMore>
 
 ##### Zod schema methods
 
-All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
+All [Zod schema methods](/en/reference/modules/astro-zod/#using-zod-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
 
 #### Defining collection references
 
@@ -286,8 +261,9 @@ With the [`reference()` function](/en/reference/modules/astro-content/#reference
 A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference, z } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
