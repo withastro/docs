@@ -1,0 +1,120 @@
+---
+title: Zod API Reference
+sidebar:
+  label: 'astro/zod'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import ReadMore from '~/components/ReadMore.astro';
+
+[Zod](https://github.com/colinhacks/zod) is a TypeScript-based schema declaration and validation library. This allows you to define schemas you can use to validate data and transform data, from a simple type (e.g. `string`, `number`) to complex data structures (e.g. nested objects).
+
+The `astro/zod` module exposes a re-export of Zod that gives you access to all the features of Zod v3. By using this module, you do not need to install Zod yourself. This also ensures that your project uses the same API versions as Astro when using features such as [Content Collections](/en/guides/content-collections/) or [Actions](/en/guides/actions/).
+
+<ReadMore>See [Zod v3 website](https://v3.zod.dev/) for complete documentation on how Zod works and what features are available.</ReadMore>
+
+## Imports from `astro/zod`
+
+```ts
+import { z } from 'astro/zod';
+```
+
+### `z`
+
+<p>
+
+**Type:** `object`
+</p>
+
+The `z` utility gives you access to validators for a wide range of data types, methods and types for working with your data.
+
+<ReadMore>Learn more about the `z` utility in [Zod documentation](https://v3.zod.dev/?id=basic-usage)</ReadMore>
+
+#### Common data type validators
+
+With Zod, you can validate any type of data, such as [primitives](https://v3.zod.dev/?id=primitives), [objects](https://v3.zod.dev/?id=objects), [arrays](https://v3.zod.dev/?id=arrays) and more.
+
+The following example shows a cheatsheet of many common Zod data types to create a `user` schema:
+
+```ts
+import { z } from 'astro/zod';
+
+const user = z.object({
+  username: z.string(),
+  name: z.string().min(2),
+  email: z.string().email(),
+  role: z.enum(["admin", "editor"]),
+  language: z.enum(["en", "fr", "es"]).default("en"),
+  hobbies: z.array(z.string()),
+  age: z.number(),
+  isEmailConfirmed: z.boolean(),
+  inscriptionDate: z.date(),
+  website: z.string().url().optional(),
+});
+```
+
+#### Extracting a Typescript type
+
+Zod allows you to create a Typescript type from any schema [using Zod type inference](https://v3.zod.dev/?id=type-inference). This can be useful for describing an expected data structure when [defining component props](/en/guides/typescript/#component-props).
+
+The following example create a `User` type based on the previous schema:
+
+```ts
+type User = z.infer<typeof user>;
+
+/* The `User` type will be:
+ * type User = {
+ *   username: string;
+ *   name: string;
+ *   email: string;
+ *   role: "admin" | "editor";
+ *   language: "en" | "fr" | "es";
+ *   hobbies: string[];
+ *   age: number;
+ *   isEmailConfirmed: boolean;
+ *   inscriptionDate: Date;
+ *   website?: string | undefined;
+ * }
+ */
+```
+
+#### Using Zod methods
+
+Zod provides various [schema methods](https://v3.zod.dev/?id=schema-methods) to customize error messages, transform data, or create custom validation logics.
+
+```ts
+// Customize the error message
+const nonEmptyStrings = z.string().array().nonempty({
+  message: "Can't be empty!",
+});
+
+// Validate a data from a schema
+nonEmptyStrings.parse([]); // will throws our custom error
+
+// Create an object from a URL for a decorative img
+const decorativeImg = z.string().transform((value) => {
+  return { src: value, alt: "" };
+});
+
+// Create a custom validator and error message for a string
+const constrainedString = z
+  .string()
+  .refine((val) => val.length > 0 && val.length <= 255, {
+    message: "Must be between 1 and 255 characters.",
+  });
+```
+
+### Individual imports
+
+Alternatively, you can import all the Zod validators, methods and types available in the [`z` utility](#z) directly from the module.
+
+The following example imports `coerce` to create a `Date` object from a date string:
+
+```ts
+import { coerce } from 'astro/zod';
+
+const publishedOn = coerce.date();
+const publicationDate = publishedOn.parse("2025-12-03");
+```
