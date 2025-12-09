@@ -1,7 +1,7 @@
 import type { AnnotationProperties } from '@actions/core';
 import { formatCount } from '../../output.mjs';
-import type { CheckBase } from './check';
-import type { HtmlPage } from './page';
+import type { CheckBase } from './check.ts';
+import type { HtmlPage } from './page.ts';
 
 export interface LinkIssue {
 	type: IssueType;

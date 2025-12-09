@@ -1,0 +1,229 @@
+---
+type: tutorial
+title: Erstelle dein erstes Layout
+description: |-
+  Tutorial: Erstelle deinen ersten Astro-Blog —
+  Refaktoriere gemeinsame Elemente in ein wiederverwendbares Seiten-Layout
+i18nReady: true
+---
+
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import Option from '~/components/tutorial/Option.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+<PreCheck>
+  - gemeinsame Elemente in ein Seiten-Layout zu refaktorieren (refactor)
+  - ein Astro-`<slot />`-Element zu verwenden, um Seiteninhalte innerhalb eines Layouts zu platzieren
+  - seitenspezifische Werte als Props an dein Layout zu übergeben
+</PreCheck>
+
+Du hast noch einige Astro-Komponenten, die auf jeder Seite wiederholt gerendert werden. Es ist Zeit für eine weitere Refaktorierung (Refactoring), um ein gemeinsames Seiten-Layout zu erstellen!
+
+## Erstelle deine erste Layout-Komponente
+
+<Steps>
+1. Erstelle eine neue Datei unter `src/layouts/BaseLayout.astro`. (Du musst vorher einen neuen Ordner `layouts` anlegen.)
+
+2. Kopiere den **gesamten Inhalt** von `index.astro` in deine neue Datei `BaseLayout.astro`.
+
+    ```astro title="src/layouts/BaseLayout.astro"
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "Startseite";
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+</Steps>
+
+## Verwende dein Layout auf einer Seite
+
+<Steps>
+3. Ersetze den Code in `src/pages/index.astro` durch Folgendes:
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "Startseite";
+    ---
+    <BaseLayout>
+      <h2>Mein großartiger Blog-Untertitel</h2>
+    </BaseLayout>
+    ```
+
+4. Prüfe die Vorschau im Browser erneut, um zu sehen, was sich geändert hat (Spoiler: vielleicht *nicht* viel).
+
+5. Füge ein `<slot />`-Element in `src/layouts/BaseLayout.astro` direkt oberhalb des Footer-Elements hinzu, und prüfe dann die Vorschau deiner Startseite, um zu sehen, was sich diesmal tatsächlich geändert hat!
+
+    ```astro title="src/layouts/BaseLayout.astro" ins={18}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "Startseite";
+    ---
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <meta name="generator" content={Astro.generator} />
+        <title>{pageTitle}</title>
+      </head>
+      <body>
+        <Header />
+        <h1>{pageTitle}</h1>
+        <slot />
+        <Footer />
+        <script>
+          import "../scripts/menu.js";
+        </script>
+      </body>
+    </html>
+    ```
+</Steps>
+
+Das `<slot />`-Element ermöglicht es, **Kindelemente** einzufügen (oder „einzuschieben“), die zwischen den öffnenden und schließenden `<Component></Component>`-Tags in jede `Component.astro`-Datei geschrieben werden.
+
+## Übergib seitenspezifische Werte als Props
+
+<Steps>
+6. Übergib den Seitentitel von `index.astro` an dein Layout über ein Komponenten-Attribut:
+
+    ```astro title="src/pages/index.astro" 'pageTitle={pageTitle}'
+    ---
+    import BaseLayout from '../layouts/BaseLayout.astro';
+    const pageTitle = "Startseite";
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <h2>Mein großartiger Blog-Untertitel</h2>
+    </BaseLayout>
+    ```
+
+7. Passe das Skript deiner `BaseLayout.astro`-Komponente an, sodass es den Seitentitel über `Astro.props` erhält, anstatt ihn als Konstante zu definieren.
+
+    ```astro title="src/layouts/BaseLayout.astro" del={5} ins={6}
+    ---
+    import Header from '../components/Header.astro';
+    import Footer from '../components/Footer.astro';
+    import '../styles/global.css';
+    const pageTitle = "Startseite";
+    const { pageTitle } = Astro.props;
+    ---
+    ```
+
+8. Prüfe die Browser-Vorschau, um sicherzustellen, dass sich der Seitentitel nicht verändert hat. Er wird nun dynamisch gerendert, und jede einzelne Seite kann jetzt ihren eigenen Titel an das Layout übergeben.
+</Steps>
+
+<Box icon="puzzle-piece">
+
+## Probiere es selbst – Verwende dein Layout überall
+
+**Refaktoriere** deine anderen Seiten (`blog.astro` und `about.astro`), sodass sie dein neues `<BaseLayout>`-Element verwenden, um die gemeinsamen Seitenelemente zu rendern.
+
+Denk daran:
+
+- Übergib einen Seitentitel als Prop über ein Komponenten-Attribut.
+
+- Lass das Layout für das HTML-Rendering aller gemeinsamen Elemente verantwortlich sein.
+
+- Verschiebe vorhandene `<style>`-Tags aus dem `<head>` der Seite in die Seiten-HTML-Vorlage, wenn du diese Styles behalten möchtest.
+
+- Lösche alles von jeder einzelnen Seite, was nun vom Layout übernommen wird, einschließlich:
+
+  - HTML-Elemente
+  - Komponenten und deren Imports
+  - CSS-Regeln in einem `<style>`-Tag (z. B. `<h1>` auf der Über mich-Seite)
+  - `<script>`-Tags
+
+:::note[Behalte deine „Über mich“-Seite-Styles]
+Wenn du `<BaseLayout>` für deine `about.astro`-Seite verwendest, verlierst du das `<style>`-Tag, das zuvor im `<head>` dieser Seite war. Um weiterhin nur auf Seitenebene mit Astro-Scoped-Styles zu stylen, verschiebe das `<style>`-Tag in den Body der Seiten-Komponente. So kannst du **Elemente, die in dieser Seiten-Komponente erstellt wurden**, weiter stylen (z. B. deine Liste von Skills).
+
+Da dein `<h1>` jetzt vom Layout erstellt wird, kannst du das Attribut `is:global` zu deinem Style-Tag hinzufügen, um jedes Element auf dieser Seite zu beeinflussen, einschließlich derjenigen, die von anderen Komponenten erstellte werden: `<style is:global define:vars={{ skillColor, fontWeight, textCase }}>`
+:::
+</Box>
+
+<Box icon="question-mark">
+
+### Teste dein Wissen
+
+1. Eine Astro-Komponente (`.astro`-Datei) kann fungieren als:
+
+    <MultipleChoice>
+      <Option>Seite</Option>
+      <Option>UI-Komponente</Option>
+      <Option>Layout</Option>
+      <Option isCorrect>alle oben genannten, weil Astro-Komponenten so vielseitig sind! 🏗️</Option>
+    </MultipleChoice>
+
+2. Um einen Seitentitel auf der Seite anzuzeigen, kannst du:
+
+    <MultipleChoice>
+      <Option>
+        ein Standard-HTML-Element auf der Seite mit statischem Text verwenden (z. B. `<h1>Startseite</h1>`)
+      </Option>
+      <Option>
+        ein Standard-HTML-Element auf der Seite verwenden, das auf eine im Frontmatter-Skript definierte Variable verweist (z. B. `<h1>{pageTitle}</h1>`)
+      </Option>
+      <Option>
+        eine Layout-Komponente auf der Seite verwenden und den Titel als Komponenten-Attribut übergeben (z. B. `<BaseLayout title="Startseite" />` oder `<BaseLayout title={pageTitle} />`)
+      </Option>
+      <Option isCorrect>
+        alle oben genannten, weil Astro es dir erlaubt, normales HTML zu verwenden oder es mit einem Skript und Komponenten aufzuwerten! 💪
+      </Option>
+    </MultipleChoice>
+
+3. Informationen können von einer Komponente zur anderen übergeben werden durch:
+
+    <MultipleChoice>
+      <Option>
+        das Importieren einer UI-Komponente und das Rendern in der Vorlage einer anderen Komponente
+      </Option>
+      <Option>
+        Props an eine Komponente übergeben, wo sie über ein Komponenten-Attribut gerendert wird
+      </Option>
+      <Option>
+        HTML-Inhalte senden, die innerhalb einer anderen Komponente über einen `<slot />`-Platzhalter gerendert werden
+      </Option>
+      <Option isCorrect>
+        alle oben genannten, weil Astro auf komponentenbasiertes Design ausgelegt ist! 🧩
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+<Box icon="check-list">
+
+## Checkliste
+
+<Checklist>
+- [ ] Ich kann eine Astro-Layout-Komponente mit einem `<slot />` erstellen.
+- [ ] Ich kann seitenspezifische Eigenschaften an ein Layout übergeben.
+</Checklist>
+</Box>
+
+### Ressourcen
+
+- [Astro-Layout-Komponenten](/de/basics/layouts/)
+
+- [Astro `<slot />`](/de/basics/astro-components/#slots)

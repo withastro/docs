@@ -18,10 +18,14 @@ export class HtmlPage {
 	 * Example: `/en/getting-started/`
 	 */
 	readonly pathname: string;
-
-	readonly dom: Document;
-
-	readonly anchors: Element[];
+	/**
+	 * A list of all anchor elements on the page.
+	 */
+	readonly anchors: Array<{
+		label: string;
+		name: string;
+		href: string;
+	}>;
 	/**
 	 * A list of unique link hrefs on the page.
 	 */
@@ -46,12 +50,11 @@ export class HtmlPage {
 	 */
 	readonly isRedirect: boolean;
 	/**
-	 * The element containing the page's main content.
+	 * Indicates whether the page contains content.
 	 *
-	 * Prefers the first `<article>` element, with a fallback to `<body>` if no article was found,
-	 * and finally `null` if the page even doesn't have a body.
+	 * Set to `false` if the page even doesn't have a `<body>` element (a partial or invalid page).
 	 */
-	readonly mainContent: Element | null;
+	readonly hasContent: boolean;
 	/**
 	 * The language of the page's main content.
 	 *
@@ -71,25 +74,34 @@ export class HtmlPage {
 
 	constructor({ html, href, pathname }: { html: string; href: string; pathname: string }) {
 		// Attempt to read the HTML file and parse its DOM
-		this.dom = parseDocument(html);
+		const parser = new DocumentParser(parseDocument(html));
 		this.href = href;
 		this.pathname = pathname;
 
 		// Provide commonly used data as properties
-		this.anchors = DomUtils.getElementsByTagName('a', this.dom, true);
+		this.anchors = DomUtils.getElementsByTagName('a', parser.dom, true).map((el) => ({
+			// Pass the strings through Buffer to allow Node to reallocate them into independent memory
+			// instead of using slices of the original large string containing the full HTML document.
+			//
+			// This reduces memory usage significantly, at time of writing, 2.1Gib -> 300MiB.
+			label: Buffer.from(DomUtils.innerText(el)).toString(),
+			name: el.attribs.name && Buffer.from(el.attribs.name).toString(),
+			href: el.attribs.href && Buffer.from(el.attribs.href).toString(),
+		}));
 
 		// Build a list of unique link hrefs on the page
-		this.uniqueLinkHrefs = [...new Set(this.anchors.map((el) => decodeURI(el.attribs.href)))];
+		this.uniqueLinkHrefs = [...new Set(this.anchors.map((el) => decodeURI(el.href)))];
 
 		// Build a list of hashes that can be used as URL fragments to jump to parts of the page
-		const anchorNames = this.anchors
-			.map((el) => el.attribs.name)
-			.filter((name) => name !== undefined);
-		const ids = this.findAll((el) => Boolean(el.attribs.id)).map((el) => el.attribs.id);
+		const anchorNames = this.anchors.map((el) => el.name).filter((name) => name !== undefined);
+		const ids = parser
+			.findAll((el) => Boolean(el.attribs.id))
+			// Same reason as above.
+			.map((el) => Buffer.from(el.attribs.id).toString());
 		this.hashes = [...anchorNames, ...ids].map((name) => `#${name}`);
 
 		// Check if the page redirects somewhere else using meta refresh
-		const metaRefreshElement = this.findFirst(
+		const metaRefreshElement = parser.findFirst(
 			(el) =>
 				el.tagName.toLowerCase() === 'meta' && el.attribs['http-equiv']?.toLowerCase() === 'refresh'
 		);
@@ -99,7 +111,7 @@ export class HtmlPage {
 		this.isRedirect = Boolean(this.redirectTargetUrl);
 
 		// Get the page's canonical URL (if any)
-		const linkCanonicalElement = this.findFirst(
+		const linkCanonicalElement = parser.findFirst(
 			(el) =>
 				el.tagName.toLowerCase() === 'link' && el.attribs['rel']?.toLowerCase() === 'canonical'
 		);
@@ -107,14 +119,16 @@ export class HtmlPage {
 			(linkCanonicalElement && new URL(linkCanonicalElement.attribs['href'])) || null;
 
 		// Attempt to find the page's main content element
-		this.mainContent =
-			this.findFirst((el) => el.tagName.toLowerCase() === 'main') ||
-			this.findFirst((el) => el.tagName.toLowerCase() === 'body');
+		const mainContent =
+			parser.findFirst((el) => el.tagName.toLowerCase() === 'main') ||
+			parser.findFirst((el) => el.tagName.toLowerCase() === 'body');
+
+		this.hasContent = Boolean(mainContent);
 
 		// Attempt to determine the main content language by traversing the tree upwards
 		// until we find an element with a `lang` attribute
 		const mainContentParentWithLang =
-			this.mainContent && this.findParent(this.mainContent, (el) => Boolean(el.attribs?.lang));
+			mainContent && parser.findParent(mainContent, (el) => Boolean(el.attribs?.lang));
 		this.mainContentLang = mainContentParentWithLang?.attribs.lang || null;
 
 		// Attempt to determine the page's pathname-based language
@@ -123,23 +137,6 @@ export class HtmlPage {
 		// Detect if this is a language fallback page
 		this.isLanguageFallback =
 			Boolean(this.pathnameLang) && this.pathnameLang !== 'en' && this.mainContentLang === 'en';
-	}
-
-	findFirst(test: (elem: Element) => boolean) {
-		return DomUtils.findOne(test, this.dom.children);
-	}
-
-	findAll(test: (elem: Element) => boolean) {
-		return DomUtils.findAll(test, this.dom.children);
-	}
-
-	findParent(start: Element, test: (elem: Element) => boolean) {
-		let el: Element | null = start;
-		while (el) {
-			if (test(el)) return el;
-			el = DomUtils.getParent(el) as Element;
-		}
-		return null;
 	}
 
 	/**
@@ -161,5 +158,26 @@ export class HtmlPage {
 		// Only return parts that look like a two-letter language code
 		// with optional two-letter country code
 		if (firstPathPart.match(/^[a-z]{2}(-[a-zA-Z]{2})?$/)) return firstPathPart;
+	}
+}
+
+class DocumentParser {
+	constructor(public readonly dom: Document) {}
+
+	findFirst(test: (elem: Element) => boolean) {
+		return DomUtils.findOne(test, this.dom.children);
+	}
+
+	findAll(test: (elem: Element) => boolean) {
+		return DomUtils.findAll(test, this.dom.children);
+	}
+
+	findParent(start: Element, test: (elem: Element) => boolean) {
+		let el: Element | null = start;
+		while (el) {
+			if (test(el)) return el;
+			el = DomUtils.getParent(el) as Element;
+		}
+		return null;
 	}
 }
