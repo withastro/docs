@@ -5,7 +5,7 @@ import {
 	type LunariaStatus,
 	type StatusEntry,
 } from '@lunariajs/core';
-import { BaseStyles, CustomStyles } from './styles';
+import { BaseStyles, CustomStyles } from './styles.ts';
 
 export function html(
 	strings: TemplateStringsArray,

@@ -127,6 +127,7 @@ export const sidebar = [
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-transitions',
+					'reference/modules/astro-zod',
 				],
 			}),
 			group('reference.other', {
