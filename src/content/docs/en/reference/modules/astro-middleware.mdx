@@ -191,7 +191,9 @@ import type {
 **Type:** <code>(context: <a href="/en/reference/api-reference/">APIContext</a>, next: <a href="#middlewarenext">MiddlewareNext</a>) => Promise\<Response\> | Response | Promise\<void\> | void</code>
 </p>
 
-Represents an Astro middleware function. This is useful to get type safety when you are not able to use [`defineMiddleware()`](#definemiddleware).
+Represents an Astro middleware function. Middleware handlers receive two arguments and can either return a `Response` directly or call `next()` to invoke the next middleware in the chain. Alternatively, you can use [`defineMiddleware()`](#definemiddleware) to get type safety for your middleware.
+
+The following example imports the `MiddlewareHandler` type to get type safety in the `onRequest()` function:
 
 ```ts title="src/middleware.ts"
 import type { MiddlewareHandler } from "astro";
@@ -207,12 +209,10 @@ A middleware handler receives the following properties:
 
 <p>
 
-**Type:** `APIContext`
+**Type:** [`APIContext`](/en/reference/api-reference/)
 </p>
 
-The first argument of `onRequest()` is a context object. It mirrors many of the `Astro` global properties.
-
-<ReadMore>See [Endpoint contexts](/en/reference/api-reference/) for more information about the context object.</ReadMore>
+An [Astro context](/en/reference/api-reference/) object mirroring many of the `Astro` global properties.
 
 #### `next()`
 
@@ -221,9 +221,22 @@ The first argument of `onRequest()` is a context object. It mirrors many of the 
 **Type:** [`MiddlewareNext`](#middlewarenext)<br />
 </p>
 
-The second argument of `onRequest()` is a function that calls all the subsequent middleware in the chain and returns a `Response`. For example, other middleware could modify the HTML body of a response and awaiting the result of `next()` would allow your middleware to respond to those changes.
+A function that calls all the subsequent middleware in the chain and returns a `Response`. For example, other middleware could modify the HTML body of a response and awaiting the result of `next()` would allow your middleware to respond to those changes.
 
 Since Astro v4.13.0, `next()` accepts an optional URL path parameter in the form of a string, `URL`, or `Request` to [rewrite](/en/guides/routing/#rewrites) the current request without retriggering a new rendering phase.
+
+The following example uses `next()` to serve content from a different path when the current path matches `/old-path`:
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  if (context.url.pathname === '/old-path') {
+    return next('/new-path');
+  }
+  return next();
+};
+```
 
 ### `MiddlewareNext`
 
@@ -232,7 +245,7 @@ Since Astro v4.13.0, `next()` accepts an optional URL path parameter in the form
 **Type:** <code>(rewritePayload?: <a href="#rewritepayload">RewritePayload</a>) => Promise\<Response\></code><br />
 </p>
 
-Represents the `next()` function passed to middleware handlers. This function takes an optional URL path parameter to rewrite the current `Request` to a different location without triggering a new rendering phase.
+Represents the [`next()` function](#next) passed to middleware handlers.
 
 ### `RewritePayload`
 
