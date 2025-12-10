@@ -90,6 +90,7 @@ export const sidebar = [
 					group('guides.upgrade.major', {
 						collapsed: true,
 						items: [
+							'guides/upgrade-to/v6',
 							'guides/upgrade-to/v5',
 							'guides/upgrade-to/v4',
 							'guides/upgrade-to/v3',
@@ -126,6 +127,7 @@ export const sidebar = [
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-transitions',
+					'reference/modules/astro-zod',
 				],
 			}),
 			group('reference.other', {
@@ -144,7 +146,6 @@ export const sidebar = [
 					'reference/experimental-flags',
 					'reference/experimental-flags/csp',
 					'reference/experimental-flags/fonts',
-					'reference/experimental-flags/live-content-collections',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',

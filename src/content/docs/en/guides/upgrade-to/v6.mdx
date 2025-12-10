@@ -97,6 +97,20 @@ Astro v6.0 upgrades to Vite v7.0 as the development server and production bundle
 
 If you are using Vite-specific plugins, configuration, or APIs, check the [Vite migration guide](https://vite.dev/guide/migration) for their breaking changes and upgrade your project as needed.
 
+### Vite Environment API
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Astro v6.0 introduces significant changes to how Astro manages different runtime environments (client, server, and prerender) after an internal refactor to use [Vite's new Environments API](https://vite.dev/guide/api-environment).
+
+Integration and adapter maintainers should pay special attention to changes affecting these parts of the Integration API and Adapter API (full details included below with other breaking changes to these APIs):
+
+- [integration hooks and HMR access patterns](#changed-integration-hooks-and-hmr-access-patterns-integration-api)
+- [`SSRManifest` structure](#changed-ssrmanifest-interface-structure-adapter-api)
+- [generating routes with `RouteData`](#removed-routedatagenerate-adapter-api)
+- [routes with percent-encoded percent signs (e.g. `%25`)](#removed-percent-encoding-in-routes)
+- [`astro:ssr-manifest` virtual module](#removed-astrossr-manifest-virtual-module-integration-api)
+
 ## Legacy
 
 The following features are now considered legacy features. They should function normally but are no longer recommended and are in maintenance mode. They will see no future improvements and documentation will not be updated. These features will eventually be deprecated, and then removed entirely.
@@ -155,6 +169,75 @@ someLogic(build.assetsPrefix)
 
 <ReadMore>Read more about the [`astro:config` virtual modules](/en/reference/modules/astro-config/).</ReadMore>
 
+### Deprecated: `astro:schema` and `z` from `astro:content`
+
+<SourcePR number="14923" title="feat!: consolidate zod export" />
+
+In Astro 5.x, `astro:schema` was introduced as an alias of `astro/zod`. `z` was also exported from `astro:content` for convenience. However this occasionally created confusion for users who were unsure about where they should be importing from.
+
+Astro 6.0 deprecates `astro:schema` and `z` from `astro:content` in favor of `astro/zod`.
+
+#### What should I do?
+
+Replace any occurrences of `astro:schema` with `astro/zod`:
+
+```ts del={1} ins={2}
+import { z } from "astro:schema"
+import { z } from "astro/zod"
+```
+
+Remove `z` from your `astro:content` imports and import `z` separately from `astro/zod` instead: 
+
+```ts title="src/content.config.ts" del={1} ins={2-3}
+import { defineCollection, z } from "astro:content"
+import { defineCollection } from "astro:content"
+import { z } from "astro/zod"
+```
+
+<ReadMore>See more about [defining collection schemas with Zod](/en/guides/content-collections/#defining-datatypes-with-zod).</ReadMore>
+
+### Deprecated: exposed `astro:transitions` internals
+
+<SourcePR number="14989" title="feat!: deprecate transitions exports" />
+
+In Astro 5.x, some internals were exported from `astro:transitions` and `astro:transitions/client` that were not meant to be exposed for public use.
+
+Astro 6.0 removes the following functions and types as exports from the `astro:transitions` and `astro:transitions/client` virtual modules. These can no longer be imported in your project files:
+
+- `createAnimationScope()`
+- `isTransitionBeforePreparationEvent()`
+- `isTransitionBeforeSwapEvent()`
+- `TRANSITION_BEFORE_PREPARATION`
+- `TRANSITION_AFTER_PREPARATION`
+- `TRANSITION_BEFORE_SWAP`
+- `TRANSITION_AFTER_SWAP`
+- `TRANSITION_PAGE_LOAD`
+
+#### What should I do?
+
+Remove any occurrences of `createAnimationScope()`:
+
+```ts del={1}
+import { createAnimationScope } from 'astro:transitions';
+```
+
+Update any occurrences of the other deprecated exports:
+
+```ts del={1-4,6,9} ins={7,10}
+import {
+  isTransitionBeforePreparationEvent,
+  TRANSITION_AFTER_SWAP,
+} from 'astro:transitions/client';
+
+console.log(isTransitionBeforePreparationEvent(event));
+console.log(event.type === 'astro:before-preparation');
+
+console.log(TRANSITION_AFTER_SWAP);
+console.log('astro:after-swap');
+```
+
+<ReadMore>Learn more about all utilities available in the [View Transitions Router API Reference](/en/reference/modules/astro-transitions/).</ReadMore>
+
 ## Removed
 
 The following features have now been entirely removed from the code base and can no longer be used. Some of these features may have continued to work in your project even after deprecation. Others may have silently had no effect.
@@ -194,7 +277,7 @@ If you have [content collections errors](/en/reference/error-reference/#content-
 
 <details>
 <summary>no content collections configuration file</summary>
-Create `src/content.config.ts` and [define your collections](/en/guides/content-collections/#defining-collections) in it.
+Create `src/content.config.ts` and [define your collections](/en/guides/content-collections/#defining-build-time-content-collections) in it.
 </details>
 
 <details>
@@ -205,11 +288,12 @@ Rename and move this file to `src/content.config.ts`
 <details>
 <summary>a collection that does not define a `loader`/ ([`ContentCollectionMissingALoaderError`](/en/reference/errors/content-collection-missing-loader/))</summary>
 
-Import [Astro's built-in `glob()` loader](/en/guides/content-collections/#built-in-loaders) and define the `pattern` and `base` for your collection entries:
+Import [Astro's built-in `glob()` loader](/en/guides/content-collections/#the-glob-loader) and define the `pattern` and `base` for your collection entries:
 
-```ts ins={3,6}
+```ts ins={4,7}
 // src/content.config.ts
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
@@ -228,9 +312,10 @@ const blog = defineCollection({
 <summary>a collection that defines a collection type (`type: 'content'` or `type: 'data'`) / ([`ContentCollectionInvalidTypeError`](/en/reference/errors/content-collection-invalid-type/))</summary>
 There are no longer different types of collections. This must be deleted from your collection definition.
 
-```ts del={7}
+```ts del={8}
 // src/content.config.ts
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
@@ -367,6 +452,118 @@ Where appropriate, consider using [content collections](/en/guides/content-colle
 You may also wish to consider using glob packages from NPM, such as [`fast-glob`](https://www.npmjs.com/package/fast-glob).
 
 <ReadMore>Learn more about [importing files with `import.meta.glob`](/en/guides/imports/#importmetaglob).</ReadMore>
+
+### Removed: exposed `astro:actions` internals
+
+<SourcePR number="14844" title="refactor: cleanup public actions API"/>
+
+In Astro 5.x, some internals were exported from `astro:actions` that were not meant to be exposed for public use.
+
+Astro 6.0 removes the following functions, classes and types as exports from the `astro:actions` virtual module. These can no longer be imported in your project files:
+
+- `ACTION_ERROR_CODES`
+- `ActionInputError`
+- `appendForwardSlash`
+- `astroCalledServerError`
+- `callSafely`
+- `deserializeActionResult`
+- `formDataToObject`
+- `getActionQueryString`
+- `serializeActionResult`
+- `type Actions`
+- `type ActionAccept`
+- `type AstroActionContext`
+- `type SerializedActionResult`
+
+#### What should I do?
+
+Replace all imports of `serializeActionResult()` and `deserializeActionResult()` with `getActionContext()`. These two methods are now available through `getActionContext()`:
+
+```ts title="src/middleware.ts" del={2} ins={3,6}
+import { defineMiddleware } from 'astro:middleware';
+import { serializeActionResult, deserializeActionResult } from 'astro:actions';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { serializeActionResult, deserializeActionResult } = getActionContext(context);
+  // ...
+});
+```
+
+Remove any occurrences of the other removed exports:
+
+```ts del={1-13}
+import {
+  ACTION_ERROR_CODES,
+  ActionInputError,
+  appendForwardSlash,
+  astroCalledServerError,
+  callSafely,
+  formDataToObject,
+  getActionQueryString,
+  type Actions,
+  type ActionAccept,
+  type AstroActionContext,
+  type SerializedActionResult,
+} from 'astro:actions';
+```
+
+<ReadMore>Learn more about all utilities available in the [Actions API Reference](/en/reference/modules/astro-actions/).</ReadMore>
+
+### Removed: Percent-Encoding in routes
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+In Astro 5.x, it was possible to include a percent-encoded percent sign (`%25`) in filenames.
+
+Astro 6.0 removes support for the characters `%25` in filenames for security reasons. This restriction prevents encoding-based security bypasses where `%25` decodes to `%`, potentially leading to ambiguous or invalid encoding sequences.
+
+#### What should I do?
+
+If you have route files with `%25` in the filename, rename them to use a different character:
+
+```bash del={1} ins={2}
+src/pages/test%25file.astro
+src/pages/test-file.astro
+```
+
+### Removed: `astro:ssr-manifest` virtual module (Integration API)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+In Astro 5.x, the deprecated `astro:ssr-manifest` virtual module could still be used to access configuration values.
+
+Astro 6.0 removes the `astro:ssr-manifest` virtual module entirely. It is no longer used by integrations or internally by Astro. The manifest is now passed directly through integration hooks and adapter APIs rather than through a virtual module. For build-specific manifest data, use the `astro:build:ssr` integration hook, which receives the manifest as a parameter.
+
+#### What should I do?
+
+If your integration or code imports from `astro:ssr-manifest`, use `astro:config/server` instead to access configuration values:
+
+```ts del={1} ins={2,3}
+import { manifest } from 'astro:ssr-manifest';
+import { srcDir, outDir, root } from 'astro:config/server';
+// Use srcDir, outDir, root, etc. for configuration values
+```
+
+<ReadMore>Learn more about [the `astro:config` virtual module](/en/reference/modules/astro-config/).</ReadMore>
+
+### Removed: `RouteData.generate()` (Adapter API)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+In Astro 5.x, routes could be generated using the `generate()` method on `RouteData`.
+
+Astro 6.0 removes `RouteData.generate()` because route generation is now handled internally by Astro.
+
+#### What should I do?
+
+Remove any calls to `route.generate()` in your code. This method is no longer needed:
+
+```ts del={1}
+const generated = route.generate(params);
+```
+
+<ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/).</ReadMore>
 
 ### Removed: `routes` on `astro:build:done` hook (Integration API)
 
@@ -546,6 +743,49 @@ export const server = {
 ```
 
 <ReadMore>Learn more about [rewrites](/en/guides/routing/#rewrites).</ReadMore>
+
+### Removed: schema function signature (Content Loader API)
+
+In Astro 5.x, a content loader could choose to define a schema as a function instead of defining a Zod schema object for validation. This is useful to dynamically generate the schema based on the configuration options or by introspecting an API.
+
+Astro 6.0 removes this signature and introduces a new `createSchema()` property as a replacement for those who still want to dynamically define a schema in their content loader. 
+
+Providing a schema function in the old way will log a warning message that the loader's schema is being ignored, but otherwise the loader will continue to work as if no schema had been provided. In a future major version, loaders that provide a schema function will throw an error and cannot be used.
+
+#### What should I do?
+
+If you are building a content loader and using a function to dynamically return a collection `schema` property, you must remove your existing function and use the new `createSchema()` property to define your schema instead.
+
+For example, you can reproduce Astro's previous behavior by using `zod-to-ts` directly with `createSchema()` and any previous function logic:
+
+```ts del={11} ins={2,12-22}
+import type { Loader } from 'astro/loaders'
+import { createTypeAlias, zodToTs } from 'zod-to-ts'
+import { getSchemaFromApi } from './utils'
+
+function myLoader() {
+  return {
+    name: 'my-loader',
+    load: async (context) => {
+      // ...
+    },
+    schema: async () => await getSchemaFromApi(),
+    createSchema: async () => {
+      const schema = await getSchemaFromApi()
+      const identifier = 'Entry'
+      const { node } = zodToTs(schema, identifier)
+      const typeAlias = createTypeAlias(node, identifier)
+
+      return {
+        schema,
+        types: `export ${typeAlias}`
+      }
+    }
+  } satisfies Loader
+}
+```
+
+<ReadMore>Learn more about [`createSchema()`](/en/reference/content-loader-reference/#createschema) in the Content Loader API reference.</ReadMore>
 
 ### Experimental Flags
 
@@ -977,6 +1217,106 @@ export default defineWorkspace([
 ```
 
 <ReadMore>Learn more about [testing Astro components with the Container API](/en/guides/testing/).</ReadMore>
+
+### Changed: Integration hooks and HMR access patterns (Integration API)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+In Astro 5.x, Astro relied on certain patterns for integration hooks and HMR access that were incompatible with or could be improved by integrating Vite's Environment API.
+
+Astro 6.0 uses Vite's new Environment API for build configuration and dev server interactions. This primarily enables dev mode in runtimes like workerd, but means that some integration hooks and HMR access patterns have changed.
+
+#### What should I do?
+
+**For integrations using `astro:build:setup`:**
+
+The hook is now called once with all environments configured (`ssr`, `client`, `prerender`), instead of being called separately for each build target. Remove the `target` parameter and use `vite.environments` to configure specific environments:
+
+```ts title="my-integration.mjs" del={3-7} ins={8-10}
+{
+  hooks: {
+    'astro:build:setup': ({ target, vite }) => {
+      if (target === 'client') {
+        vite.build.minify = false;
+      }
+    }
+    'astro:build:setup': ({ vite }) => {
+      vite.environments.client.build.minify = false;
+    }
+  }
+}
+```
+
+**For dev toolbar and integration code accessing HMR:**
+
+Replace `server.hot.send()` with `server.environments.client.hot.send()`:
+
+```ts del={1} ins={2}
+server.hot.send(event)
+server.environments.client.hot.send(event)
+```
+
+<ReadMore>Learn more about the [Vite Environment API](https://vite.dev/guide/api-environment) and Astro [integration hooks](/en/reference/integrations-reference/#astrobuildsetup).</ReadMore>
+
+### Changed: `SSRManifest` interface structure (Adapter API)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+In Astro 5.x, path properties of the `SSRManifest` interface like `srcDir`, `outDir`, `cacheDir`, `publicDir`, `buildClientDir`, and `buildServerDir` were URL strings.
+
+Astro 6.0 changes the form of these path properties to `URL` objects instead of URL strings. With this change, several new properties are now available on the manifest, and others have been updated or removed.
+
+#### What should I do?
+
+If you were treating these path properties as strings, you will now need to handle the `URL` object. For example, you will now need to access the `href` property of the `URL` object:
+
+```ts del={2} ins={3}
+// To retrieve the same format (e.g., "file:///path/to/src"), make the following change:
+const srcPath = manifest.srcDir;
+const srcPath = manifest.srcDir.href;
+```
+
+If you were accessing the `hrefRoot` property, you will need to remove it, as it is no longer available on the manifest.
+
+Update any use of `serverIslandMappings` and `sessionDriver`. These are now async methods:
+
+```ts del={1,2} ins={3,4}
+const mappings = manifest.serverIslandMappings;
+const driver = manifest.sessionDriver;
+const mappings = await manifest.serverIslandMappings?.();
+const driver = await manifest.sessionDriver?.();
+```
+
+<ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/).</ReadMore>
+### Changed: schema types are inferred instead of generated (Content Loader API)
+
+<SourcePR number="14759" title="feat: loader.createSchema()" />
+
+In Astro 5.x, the types for content collections were generated using `zod-to-ts` when provided by a content loader and not defined by a user-provided schema.
+
+Astro 6.0 removes this behavior: types are no longer generated using `zod-to-ts`. Instead, types are inferred.
+
+#### What should I do?
+
+If you are providing a `schema` in a content loader, you must use the [TypeScript' `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator):
+
+```ts del={3,11} ins={4,12}
+import type { Loader } from 'astro/loaders'
+
+function myLoader(): Loader {
+function myLoader() {
+  return {
+    name: 'my-loader',
+    load: async (context) => {
+      // ...
+    },
+    schema: z.object({/* ... */})
+  }
+  } satisfies Loader
+}
+```
+
+<ReadMore>Learn more about [defining loader schema types](/en/reference/content-loader-reference/#the-loader-object).</ReadMore>
 
 ## Community Resources
 

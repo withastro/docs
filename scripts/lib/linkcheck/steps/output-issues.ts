@@ -1,9 +1,9 @@
 import core from '@actions/core';
 import kleur from 'kleur';
 import { dedentMd, formatCount } from '../../output.mjs';
-import type { LinkCheckerState } from '../base/base';
-import type { IssueType, LinkIssue } from '../base/issue';
-import type { HtmlPage } from '../base/page';
+import type { LinkCheckerState } from '../base/base.ts';
+import type { IssueType, LinkIssue } from '../base/issue.ts';
+import type { HtmlPage } from '../base/page.ts';
 
 /**
  * Outputs the result of the link check to the console.
@@ -69,7 +69,7 @@ export function outputIssues(linkIssues: LinkIssue[], state: LinkCheckerState) {
 		const warningText = dedentMd`*** Warning:
 			${formatCount(issuesNotFoundInSource, 'issue was|issues were')}
 			found in the build output, but not the Markdown source.
-			
+
 			If you just changed or autofixed the source, please perform a fresh build.
 
 			If not, search for issues in non-Markdown sources (e.g. components, HTML).`;
