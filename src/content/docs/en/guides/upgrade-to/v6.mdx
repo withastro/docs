@@ -119,23 +119,21 @@ Astro v6.0 upgrades to Zod 4, a major dependency update that may require changes
 
 If you have custom Zod schemas in your `content.config.ts` or other configuration files, you'll need to update them for Zod 4. Refer to the [Zod migration guide](https://zod.dev/v4/changelog) for detailed changes in the Zod API.
 
-Notably, many `string()` formats have been deprecated (e.g. `z.string().email()`, `z.string.url()`), and their APIs have been moved to the top-level z namespace. You may need to update how you validate form input for your Astro Actions:
+Notably, [many `string()` formats have been deprecated](https://zod.dev/v4/changelog#deprecates-email-etc) (e.g. `z.string().email()`, `z.string.url()`), and their APIs have been moved to the top-level `z` namespace. You may need to update how you validate form input for your Astro Actions:
 
- ```ts title="src/actions/index.ts" ins={8} del={7}
-  import { defineAction } from 'astro:actions';
-  import { z } from 'astro/zod';
-  export const server = {
-    newsletter: defineAction({
-      accept: 'form',
-      input: z.object({
-        email: z.string().email(),
-        email: z.email(),
-        terms: z.boolean(),
-      }),
-      handler: async ({ email, terms }) => { /* ... */ },
-    })
-  }
-  ```
+```ts title="src/actions/index.ts" ins={2} del={1}
+email: z.string().email(),
+email: z.email(),
+```
+
+Additionally, Zod has made some [changes to handling error messages](https://zod.dev/v4/changelog#error-customization) and has dropped support for a custom `errorsMap` which was useful to redefine or translate your error messages. You may need to update any custom error messages:
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+z.string().min(5, { message: "Too short." });
+z.string().min(5, { error: "Too short." });
+```
+
+These are only some of the many changes upgrading from Zod 3 to Zod 4. If you encounter any issues with your Zod schemas after upgrading to Astro 6, please consult the [Zod 4 changelog](https://zod.dev/v4/changelog) for complete upgrade guidance.
 
 Additionally, if you use [`.default()` with transforms](https://zod.dev/v4/changelog#default-updates), you may need to update your schemas. In Zod 4, default values must match the output type (after transforms), not the input type. The default value short-circuits parsing when the input is `undefined`:
 
