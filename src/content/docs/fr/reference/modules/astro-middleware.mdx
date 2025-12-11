@@ -16,26 +16,29 @@ Un middleware vous permet d'intercepter les requêtes et les réponses et d'inje
 
 ## Importations depuis `astro:middleware`
 
+Les fonctions d'assistance suivantes sont importées du module middleware virtuel :
+
 ```js
 import { 
-  sequence,
-  createContext,
-  trySerializeLocals,
   defineMiddleware,
- } from 'astro:middleware';
+  sequence,
+} from 'astro:middleware';
 ```
 
 ### `defineMiddleware()`
 
-Vous pouvez importer et utiliser la fonction utilitaire `defineMiddleware()` pour bénéficier de la sûreté du typage :
+<p>
 
-```ts
-// src/middleware.ts
+**Type :** <code>(fn: <a href="#middlewarehandler">MiddlewareHandler</a>) => MiddlewareHandler</code>
+</p>
+
+Une fonction permettant de définir une fonction middleware avec sûreté du typage. Lorsque vous utilisez cet utilitaire, les arguments [`context`](#context) et [`next()`](#next) sont automatiquement typés, et vous obtiendrez une erreur Typescript si vous essayez de renvoyer une [valeur non prise en charge dans votre middleware](#middlewarehandler).
+
+```ts title="src/middleware.ts"
 import { defineMiddleware } from "astro:middleware";
 
-// `context` et `next` sont automatiquement typés
 export const onRequest = defineMiddleware((context, next) => {
-
+  /* la logique de votre middleware */
 });
 ```
 
@@ -43,7 +46,7 @@ export const onRequest = defineMiddleware((context, next) => {
 
 <p>
 
-**Type :** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+**Type :** <code>(...handlers: <a href="#middlewarehandler">MiddlewareHandler</a>[]) => MiddlewareHandler</code>
 </p>
 
 Une fonction qui accepte des fonctions de middleware comme arguments et les exécutera dans l'ordre dans lequel elles sont transmises.
@@ -51,24 +54,45 @@ Une fonction qui accepte des fonctions de middleware comme arguments et les exé
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
 
-async function validation(_, next) {...}
-async function auth(_, next) {...}
-async function greeting(_, next) {...}
+async function validation(context, next) {/* ... */}
+async function auth(context, next) {/* ... */}
+async function greeting(context, next) {/* ... */}
 
 export const onRequest = sequence(validation, auth, greeting);
+```
+
+## Importations depuis `astro/middleware`
+
+Les fonctions d'assistance suivantes peuvent être importées depuis le module middleware standard lors de la création d'une [intégration Astro](/fr/reference/integrations-reference/) :
+
+```js
+import {
+  createContext,
+  defineMiddleware,
+  sequence,
+  trySerializeLocals,
+} from "astro/middleware";
 ```
 
 ### `createContext()`
 
 <p>
 
-**Type :** `(context: CreateContext) => APIContext`<br />
+**Type :** <code>(context: <a href="#createcontext-1">CreateContext</a>) => <a href="/fr/reference/api-reference/">APIContext</a></code><br />
 <Since v="2.8.0" />
 </p>
 
-Une API de bas niveau pour créer un objet [`APIContext`](/fr/reference/api-reference/) à transmettre à une fonction `onRequest()` du middleware d'Astro.
+Une API de bas niveau pour créer un objet [`APIContext`](/fr/reference/api-reference/) à transmettre à une [fonction `onRequest()`](#onrequest) d'un middleware d'Astro.
 
 Cette fonction peut être utilisée par les intégrations/adaptateurs pour exécuter par programmation le middleware d'Astro.
+
+### `defineMiddleware()`
+
+Voir [`defineMiddleware()`](#definemiddleware) de `astro:middleware`.
+
+### `sequence()`
+
+Voir [`sequence()`](#sequence) de `astro:middleware`.
 
 ### `trySerializeLocals()`
 
@@ -80,13 +104,166 @@ Cette fonction peut être utilisée par les intégrations/adaptateurs pour exéc
 
 Une API de bas niveau qui prend n'importe quelle valeur et tente d'en renvoyer une version sérialisée (une chaîne de caractères). Si la valeur ne peut pas être sérialisée, la fonction générera une erreur d'exécution.
 
-## Exportations de middleware
+## Types d'`astro/middleware`
+
+Les types suivants sont importés du module middleware standard :
+
+```js
+import type {
+  CreateContext,
+} from "astro/middleware";
+```
+
+### `CreateContext`
+
+<p>
+
+**Type :** `{ request: Request; params?: Params; userDefinedLocales?: string[]; defaultLocale: string; locals: App.Locals; }`<br />
+<Since v="2.8.0" />
+</p>
+
+Un objet pour [créer un contexte](#createcontext) à transmettre à un middleware Astro. Il contient les propriétés suivantes :
+
+#### `request`
+
+<p>
+
+**Type :** `Request`
+</p>
+
+L'objet [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request) entrant.
+
+#### `params`
+
+<p>
+
+**Type :** `Params`
+</p>
+
+Un objet contenant les paramètres optionnels à transmettre à [`Astro.params`](/fr/reference/api-reference/#params).
+
+#### `userDefinedLocales`
+
+<p>
+
+**Type :** `string[]`<br />
+<Since v="3.5.0" />
+</p>
+
+Une liste des paramètres régionaux pris en charge définis dans la [configuration `i18n` de l'utilisateur](/fr/reference/configuration-reference/#i18nlocales).
+
+#### `defaultLocale`
+
+<p>
+
+**Type :** `string`<br />
+<Since v="4.16.0" />
+</p>
+
+Le paramètre régional par défaut défini dans la [configuration `i18n` de l'utilisateur](/fr/reference/configuration-reference/#i18ndefaultlocale).
+
+#### `locals`
+
+<p>
+
+**Type :** `App.Locals`<br />
+<Since v="5.0.0" />
+</p>
+
+Un objet permettant de stocker des informations arbitraires provenant d'un middleware, accessible à l'utilisateur via [`Astro.locals`](/fr/reference/api-reference/#locals).
+
+<ReadMore>Apprenez-en davantage sur [le stockage des données dans `locals`](/fr/guides/middleware/#stocker-des-données-dans-contextlocals) avec un exemple d'utilisation.</ReadMore>
+
+## Types d'`astro`
+
+```js
+import type {
+  MiddlewareHandler,
+  MiddlewareNext,
+  RewritePayload,
+} from "astro";
+```
+
+### `MiddlewareHandler`
+
+<p>
+
+**Type :** <code>(context: <a href="/fr/reference/api-reference/">APIContext</a>, next: <a href="#middlewarenext">MiddlewareNext</a>) => Promise\<Response\> | Response | Promise\<void\> | void</code>
+</p>
+
+Représente une fonction middleware pour Astro. Les gestionnaires de middleware reçoivent deux arguments et peuvent soit renvoyer directement un objet `Response`, soit appeler `next()` pour invoquer le middleware suivant dans la chaîne. Vous pouvez également utiliser [`defineMiddleware()`](#definemiddleware) pour garantir la sûreté du typage pour votre middleware.
+
+L'exemple suivant importe le type `MiddlewareHandler` pour garantir la sûreté du typage dans la fonction [`onRequest()`](#onrequest) :
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  /* la logique du middleware */
+};
+```
+
+Un gestionnaire de middleware reçoit les propriétés suivantes :
+
+#### `context`
+
+<p>
+
+**Type :** [`APIContext`](/fr/reference/api-reference/)
+</p>
+
+Un objet de [contexte Astro](/fr/reference/api-reference/) reflétant de nombreuses propriétés globales disponibles dans `Astro`.
+
+#### `next()`
+
+<p>
+
+**Type :** [`MiddlewareNext`](#middlewarenext)<br />
+</p>
+
+Une fonction qui appelle tous les middlewares suivants dans la chaîne et renvoie un objet `Response`. Par exemple, d'autres middlewares pourraient modifier le corps HTML d'une réponse et l'attente du résultat de `next()` permettrait à votre middleware de réagir à ces modifications.
+
+Depuis Astro v4.13.0, `next()` accepte un paramètre de chemin d'URL facultatif sous la forme d'une chaîne de caractères, d'une `URL` ou d'un objet `Request` pour [réécrire](/fr/guides/routing/#réécritures) la requête actuelle sans déclencher une nouvelle phase de rendu.
+
+L'exemple suivant utilise `next()` pour diffuser du contenu à partir d'un chemin différent lorsque le chemin actuel correspond à `/ancien-chemin` :
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  if (context.url.pathname === '/ancien-chemin') {
+    return next('/nouveau-chemin');
+  }
+  return next();
+};
+```
+
+### `MiddlewareNext`
+
+<p>
+
+**Type :** <code>(rewritePayload?: <a href="#rewritepayload">RewritePayload</a>) => Promise\<Response\></code><br />
+</p>
+
+Représente la fonction [`next()`](#next) transmise aux gestionnaires de middleware.
+
+### `RewritePayload`
+
+<p>
+
+**Type :** `string | URL | Request`<br />
+<Since v="4.13.0" />
+</p>
+
+Représente la destination d'une [réécriture](/fr/guides/routing/#réécritures) lorsqu'elle est transmise à la fonction [`next()`](#next).
+
+## Exportations depuis un middleware
 
 Lors de la définition du middleware de votre projet dans `src/middleware.js`, exportez les fonctions définies par l'utilisateur suivantes :
 
 ### `onRequest()`
 
-**Type :** `(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+**Type :** [`MiddlewareHandler`](#middlewarehandler)
 
 Une fonction requise exportée depuis `src/middleware.js` qui sera appelée avant le rendu de chaque page ou route d'API. Elle reçoit deux arguments : [context](#context) et [next()](#next). `onRequest()` doit renvoyer une réponse (`Response`) : soit directement, soit en appelant `next()`.
 
@@ -98,27 +275,3 @@ export function onRequest (context, next) {
     return next();
 };
 ```
-
-Votre fonction `onRequest()` sera appelée avec les arguments suivants :
-
-#### `context`
-
-<p>
-
-**Type :** `APIContext`
-</p>
-
-Le premier argument de `onRequest()` est un objet de contexte. Il reflète de nombreuses propriétés globales d'`Astro`.
-
-<ReadMore>Consultez [Contextes de point de terminaison](/fr/reference/api-reference/) pour plus d'informations sur l'objet de contexte.</ReadMore>
-
-#### `next()`
-
-<p>
-
-**Type :** `(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
-</p>
-
-Le deuxième argument de `onRequest()` est une fonction qui appelle tous les middlewares suivants de la chaîne et renvoie une `Response`. Par exemple, un autre middleware pourrait modifier le corps HTML d'une réponse et attendre le résultat de `next()` permettrait à votre middleware de répondre à ces modifications.
-
-Depuis Astro v4.13.0, `next()` accepte un paramètre de chemin d'URL facultatif sous la forme d'une chaîne de caractères, d'une `URL` ou d'un objet `Request` pour [réécrire](/fr/guides/routing/#réécritures) la requête actuelle sans déclencher une nouvelle phase de rendu.
