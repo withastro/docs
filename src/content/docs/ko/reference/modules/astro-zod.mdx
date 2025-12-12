@@ -1,0 +1,120 @@
+---
+title: Zod API 참조
+sidebar:
+  label: 'astro/zod'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import ReadMore from '~/components/ReadMore.astro';
+
+[Zod](https://github.com/colinhacks/zod)는 TypeScript 기반의 스키마 선언 및 유효성 검사 라이브러리입니다. 이를 통해 간단한 타입(예: `string`, `number`)부터 복잡한 데이터 구조(예: 중첩 객체)에 이르기까지 데이터를 검증하고 변환하는 데 사용할 수 있는 스키마를 정의할 수 있습니다.
+
+`astro/zod` 모듈은 Zod v3의 모든 기능에 접근할 수 있도록 Zod를 다시 내보냅니다. 이 모듈을 사용하면 Zod를 직접 설치할 필요가 없습니다. 또한 [콘텐츠 컬렉션](/ko/guides/content-collections/) 또는 [액션](/ko/guides/actions/)과 같은 기능을 사용할 때 프로젝트가 Astro와 동일한 API 버전을 사용하도록 보장합니다.
+
+<ReadMore>Zod의 작동 방식과 사용 가능한 기능에 대한 전체 문서는 [Zod v3 웹사이트](https://v3.zod.dev/)를 참조하세요.</ReadMore>
+
+## `astro/zod`에서 가져오기
+
+```ts
+import { z } from 'astro/zod';
+```
+
+### `z`
+
+<p>
+
+**타입:** `object`
+</p>
+
+`z` 유틸리티는 다양한 데이터 타입에 대한 유효성 검사기, 데이터 작업에 필요한 메서드 및 타입에 접근할 수 있게 해줍니다.
+
+<ReadMore>`z` 유틸리티에 대한 자세한 내용은 [Zod 문서](https://v3.zod.dev/?id=basic-usage)에서 확인하세요.</ReadMore>
+
+#### 일반적인 데이터 타입 유효성 검사기
+
+Zod를 사용하면 [원시 타입](https://v3.zod.dev/?id=primitives), [객체](https://v3.zod.dev/?id=objects), [배열](https://v3.zod.dev/?id=arrays) 등 모든 종류의 데이터의 유효성을 검사할 수 있습니다.
+
+다음 예시는 `user` 스키마를 생성하기 위한 다양한 일반적인 Zod 데이터 타입의 치트시트를 보여줍니다.
+
+```ts
+import { z } from 'astro/zod';
+
+const user = z.object({
+  username: z.string(),
+  name: z.string().min(2),
+  email: z.string().email(),
+  role: z.enum(["admin", "editor"]),
+  language: z.enum(["en", "fr", "es"]).default("en"),
+  hobbies: z.array(z.string()),
+  age: z.number(),
+  isEmailConfirmed: z.boolean(),
+  inscriptionDate: z.date(),
+  website: z.string().url().optional(),
+});
+```
+
+#### Typescript 타입을 추출하기
+
+Zod를 사용하면 [Zod의 타입 추론](https://v3.zod.dev/?id=type-inference)을 통해 어떤 스키마에서도 TypeScript 타입을 생성할 수 있습니다. 이는 [컴포넌트 props 정의](/ko/guides/typescript/#컴포넌트-props) 시 예상되는 데이터 구조를 설명하는 데 유용할 수 있습니다.
+
+다음 예시는 이전 스키마를 기반으로 `User` 타입을 생성합니다.
+
+```ts
+type User = z.infer<typeof user>;
+
+/* 생성되는 `User` 타입은 다음과 같습니다.
+ * type User = {
+ *   username: string;
+ *   name: string;
+ *   email: string;
+ *   role: "admin" | "editor";
+ *   language: "en" | "fr" | "es";
+ *   hobbies: string[];
+ *   age: number;
+ *   isEmailConfirmed: boolean;
+ *   inscriptionDate: Date;
+ *   website?: string | undefined;
+ * }
+ */
+```
+
+#### Zod 메서드 사용하기
+
+Zod는 오류 메시지를 사용자 정의하거나, 데이터를 변환하거나, 사용자 정의 유효성 검사 로직을 생성하는 등 다양한 [스키마 메서드](https://v3.zod.dev/?id=schema-methods)를 제공합니다.
+
+```ts
+// 오류 메시지 사용자 정의
+const nonEmptyStrings = z.string().array().nonempty({
+  message: "Can't be empty!",
+});
+
+// 스키마에서 데이터 유효성 검사
+nonEmptyStrings.parse([]); // 사용자 정의 오류가 발생합니다.
+
+// 장식용 이미지의 URL에서 객체 생성
+const decorativeImg = z.string().transform((value) => {
+  return { src: value, alt: "" };
+});
+
+// 문자열에 대한 사용자 정의 유효성 검사기와 오류 메시지 생성
+const constrainedString = z
+  .string()
+  .refine((val) => val.length > 0 && val.length <= 255, {
+    message: "Must be between 1 and 255 characters.",
+  });
+```
+
+### 직접 가져오기
+
+대신, 모듈에서 [`z` 유틸리티](#z)에 있는 모든 Zod 유효성 검사기, 메서드 및 타입을 직접 가져올 수 있습니다.
+
+다음 예시는 날짜 문자열로부터 `Date` 객체를 생성하기 위해 `coerce`를 가져옵니다.
+
+```ts
+import { coerce } from 'astro/zod';
+
+const publishedOn = coerce.date();
+const publicationDate = publishedOn.parse("2025-12-03");
+```
