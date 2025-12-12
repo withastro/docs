@@ -146,7 +146,7 @@ These properties are added to all pages and **completely override Astro's defaul
 <Since v="5.9.0" />
 </p>
 
-A list of valid sources for the `script-src` and `style-src` directives.
+A list of valid sources for the `script-src` and `style-src` directives, including [values for subclasses](#adding-values-for-subclasses).
 
 The `script-src` and `style-src` directives are handled by Astro by default, and use the `'self'` resource. This means that scripts and styles can only be downloaded by the current host (usually the current website).
 
@@ -187,6 +187,90 @@ After the build, the `<meta>` element will instead apply your sources to the `st
   >
 </head>
 ```
+
+##### Adding values for subclasses
+
+You can also use this field to add valid values that belong to [`script-src-attr`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-attr), [`script-src-elem`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-elem), [`style-src-attr`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-attr) and [`style-src-elem`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-elem), such as `unsafe-hashes` and `unsafe-inline`.
+
+For example, if you have an external library that adds scripts or inline styles to some HTML elements of the page, you can add `unsafe-inline` to tell the browser that they are safe to render.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "'unsafe-inline'"
+        ]
+      },
+      scriptDirective: {
+        resources: [
+          "'unsafe-inline'"
+        ]
+      }
+    }
+  }
+});
+```
+
+After the build, `style-src` and `script-src` directives will contain the `'unsafe-line'` resource:
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+      script-src 'unsafe-line'; 
+      style-src 'unsafe-line';
+    "
+  >
+</head>
+```
+
+##### Multiple resources
+
+When resources are inserted multiple times or from multiple sources (e.g. defined in your `csp` config and added using [the CSP runtime API](#runtime-apis)), Astro will remove any duplicates, and merge the new ones.
+
+In the following example, the directives `img-src https://global.cdn.example.org` and `default-src https://global.cdn.example.org` are set in `csp` configuration and will be applied to all pages.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "img-src https://global.cdn.example.org",
+        "default-src https://global.cdn.example.org"
+      ]
+    }
+  }
+})
+```
+
+Additionally, on an individual page, the resources `img-src https://vendor.cdn.example.org/` and `default-src https://global.cdn.example.org/ https://vendor.cdn.example.org/` are added using the [Astro.csp.insertDirective](#cspinsertdirective).
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertDirective("img-src https://vendor.cdn.example.org")
+Astro.csp.insertDirective("default-src https://global.cdn.example.org https://vendor.cdn.example.org")
+---
+```
+
+During the build, the resources of the directives `image-src` and `default-src` for the `index.html` page are merged and deduplicated to create the appropriate headers.
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+        image-src https://global.cdn.example.org https://vendor.cdn.example.org;
+        default-src https://global.cdn.example.org https://vendor.cdn.example.org;
+    "
+  >
+</head>
+```
+
 
 #### `hashes`
 
