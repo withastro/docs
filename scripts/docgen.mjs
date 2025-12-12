@@ -96,7 +96,7 @@ export async function run() {
 	result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
 
 	// Make self-referencing anchor links relative
-	result = result.replace(/\/en\/reference\/configuration-reference\/#/g, '#');
+	result = result.replace(/(?<=\]\()\/en\/reference\/configuration-reference\/#([^)\s]+)/g, '#$1');
 
 	console.timeEnd(task);
 	task = 'Update configuration-reference.mdx';
