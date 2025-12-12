@@ -1,7 +1,7 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: "Los geht's",
+	start: 'Los geht’s',
 	'start.welcome': 'Willkommen, Welt!',
 	'start.newProject': 'Ein neues Projekt starten',
 	'start.config': 'Konfiguration',

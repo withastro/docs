@@ -1,0 +1,120 @@
+---
+title: Référence de l'API Zod
+sidebar:
+  label: 'astro/zod'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import ReadMore from '~/components/ReadMore.astro';
+
+[Zod](https://github.com/colinhacks/zod) est une bibliothèque de déclaration et de validation de schémas reposant sur TypeScript. Elle vous permet de définir des schémas que vous pouvez utiliser pour valider et transformer des données, d'un type simple (par exemple `string`, `number`) à des structures de données complexes (par exemple des objets imbriqués).
+
+Le module `astro/zod` expose une réexportation de Zod qui vous donne accès à toutes les fonctionnalités de Zod v3. Grâce à ce module, vous n'avez pas besoin d'installer Zod vous-même. Cela garantit également que votre projet utilise la même version des API qu'Astro lors de l'utilisation de fonctionnalités telles que les [collections de contenu](/fr/guides/content-collections/) ou les [actions](/fr/guides/actions/).
+
+<ReadMore>Consultez le [site web de Zod v3](https://v3.zod.dev/) pour obtenir la documentation complète sur le fonctionnement de Zod et les fonctionnalités disponibles.</ReadMore>
+
+## Importations depuis `astro/zod`
+
+```ts
+import { z } from 'astro/zod';
+```
+
+### `z`
+
+<p>
+
+**Type :** `object`
+</p>
+
+L'utilitaire `z` vous donne accès à des validateurs pour un large éventail de types de données, des méthodes et des types pour travailler avec vos données.
+
+<ReadMore>Apprenez-en plus sur l'utilitaire `z` dans la [documentation de Zod](https://v3.zod.dev/?id=basic-usage).</ReadMore>
+
+#### Validateurs de types de données courants
+
+Avec Zod, vous pouvez valider tout type de données, comme les [primitives](https://v3.zod.dev/?id=primitives), les [objets](https://v3.zod.dev/?id=objects), les [tableaux](https://v3.zod.dev/?id=arrays) et plus encore.
+
+L'exemple suivant présente un aide-mémoire regroupant de nombreux types de données courants avec Zod pour créer un schéma `user` :
+
+```ts
+import { z } from 'astro/zod';
+
+const user = z.object({
+  username: z.string(),
+  name: z.string().min(2),
+  email: z.string().email(),
+  role: z.enum(["admin", "editor"]),
+  language: z.enum(["en", "fr", "es"]).default("en"),
+  hobbies: z.array(z.string()),
+  age: z.number(),
+  isEmailConfirmed: z.boolean(),
+  inscriptionDate: z.date(),
+  website: z.string().url().optional(),
+});
+```
+
+#### Extraction d'un type Typescript
+
+Zod vous permet de créer un type Typescript à partir de n'importe quel schéma [en utilisant l'inférence de type Zod](https://v3.zod.dev/?id=type-inference). Cela peut s'avérer utile pour décrire la structure de données attendue lors de la [définition des propriétés d'un composant](/fr/guides/typescript/#les-props-de-composants).
+
+L'exemple suivant crée un type `User` reposant sur le schéma précédent :
+
+```ts
+type User = z.infer<typeof user>;
+
+/* Le type `User` sera :
+ * type User = {
+ *   username: string;
+ *   name: string;
+ *   email: string;
+ *   role: "admin" | "editor";
+ *   language: "en" | "fr" | "es";
+ *   hobbies: string[];
+ *   age: number;
+ *   isEmailConfirmed: boolean;
+ *   inscriptionDate: Date;
+ *   website?: string | undefined;
+ * }
+ */
+```
+
+#### Utilisation des méthodes de Zod
+
+Zod fournit diverses [méthodes de schéma](https://v3.zod.dev/?id=schema-methods) pour personnaliser les messages d'erreur, transformer les données ou créer des logiques de validation personnalisées.
+
+```ts
+// Personnaliser le message d'erreur
+const nonEmptyStrings = z.string().array().nonempty({
+  message: "Ne peut pas être vide !",
+});
+
+// Valider des données à partir d'un schéma
+nonEmptyStrings.parse([]); // générera notre erreur personnalisée
+
+// Créer un objet à partir d'une URL pour une image décorative
+const decorativeImg = z.string().transform((value) => {
+  return { src: value, alt: "" };
+});
+
+// Créer un validateur personnalisé et un message d'erreur pour une chaîne de caractères.
+const constrainedString = z
+  .string()
+  .refine((val) => val.length > 0 && val.length <= 255, {
+    message: "Doit contenir entre 1 et 255 caractères.",
+  });
+```
+
+### Importations individuelles
+
+Vous pouvez également importer tous les validateurs, méthodes et types Zod disponibles dans l'[utilitaire `z`](#z) directement depuis le module.
+
+L'exemple suivant importe `coerce` pour créer un objet `Date` à partir d'une date sous forme de chaîne de caractères :
+
+```ts
+import { coerce } from 'astro/zod';
+
+const publishedOn = coerce.date();
+const publicationDate = publishedOn.parse("2025-12-03");
+```
