@@ -3,6 +3,7 @@ title: View transitions
 description: Enable seamless navigation between pages in Astro with view transitions.
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro'
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
@@ -319,7 +320,7 @@ Links with the `data-astro-reload` attribute will be ignored by the router and a
 
 ### Trigger navigation
 
-You can also trigger client-side navigation via events not normally listened to by the `<ClientRouter />` router using `navigate`. This function from the `astro:transitions/client` module can be used in scripts, and in framework components that are hydrated with a [client directive](/en/reference/directives-reference/#client-directives).
+You can also trigger client-side navigation via events not normally listened to by the `<ClientRouter />` router using [`navigate()`](/en/reference/modules/astro-transitions/#navigate). This function from the `astro:transitions/client` module can be used in scripts, and in framework components that are hydrated with a [client directive](/en/reference/directives-reference/#client-directives).
 
 The following example shows an Astro component that navigates a visitor to another page they select from a menu:
 
@@ -390,17 +391,9 @@ import { ClientRouter } from "astro:transitions";
 </html>
 ```
 
-The `navigate` method takes these arguments:
-
-- `href` (required) - The new page to navigate to.
-- `options` - An optional object with the following properties:
-	- `history`: `"push"` | `"replace"` | `"auto"`
-		- `"push"`: the router will use `history.pushState` to create a new entry in the browser history. 
-		- `"replace"`: the router will use `history.replaceState` to update the URL without adding a new entry into navigation.
-		- `"auto"` (default): the router will attempt `history.pushState`, but if the URL is not one that can be transitioned to, the current URL will remain with no changes to the browser history.
-  - `formData`: A [`FormData`](https://developer.mozilla.org/en-US/docs/Web/API/FormData) object for `POST` requests.
-
 For backward and forward navigation through the browser history, you can combine `navigate()` with the built-in `history.back()`, `history.forward()` and `history.go()` functions of the browser. If `navigate()` is called during the server-side render of your component, it has no effect.
+
+<ReadMore>See the `astro:transitions` reference for more information about the [`navigate()` options](/en/reference/modules/astro-transitions/#navigate).</ReadMore>
 
 ### Replace entries in the browser history
 
@@ -408,9 +401,7 @@ Normally, each time you navigate, a new entry is written to the browser's histor
 
 The `<ClientRouter />` router allows you to overwrite history entries by adding the `data-astro-history` attribute to any individual `<a>` tag.
 
-The `data-astro-history` attribute can be set to the same three values as the [`history` option of the `navigate()` function](#trigger-navigation): 
-
-`data-astro-history`: `"push"` | `"replace"` | `"auto"`
+The `data-astro-history` attribute can be set to the same three values as the [`history` option of the `navigate()` function](/en/reference/modules/astro-transitions/#history-option): 
 
 - `"push"`: the router will use `history.pushState` to create a new entry in the browser history. 
 - `"replace"`: the router will use `history.replaceState` to update the URL without adding a new entry into navigation.
@@ -445,6 +436,32 @@ You can opt out of router transitions on any individual form using the `data-ast
 ```astro title="src/components/Form.astro"
 <form action="/contact" data-astro-reload>
 ```
+
+### Navigating with user input
+
+The `navigate()` API does not perform sanitization on the URLs passed to it. If you are using user input to determine the URL to navigate to, you should validate the input before passing it to `navigate()`.
+
+For example, a `?redirect` query parameter could be used to navigate away from your site (`?redirect=http://example.com`) or to execute arbitrary code (`?redirect=javascript:alert('Evil code')`) if the value is not sanitized before use.
+
+One way to implement this safely is to ensure only a set of known paths can be redirected to:
+
+```astro title="src/pages/index.astro"
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const allowedPaths = ['/home', '/about', '/contact'];
+
+  if (allowedPaths.includes(redirect)) {
+    navigate(redirect);
+  }
+</script>
+```
+
+The exact kind of sanitization you need will depend on your site and what you want to allow.
+
+<ReadMore>Consider enabling Astro’s [experimental Content Security Policy feature](/en/reference/experimental-flags/csp/) to help protect against cross-site scripting (XSS) risks if using user input with the `navigate()` API.</ReadMore>
 
 ## Fallback control
 
@@ -605,7 +622,7 @@ This event is used:
 - To alter loading, such as loading content you've defined in a template rather than from the external URL.
 - To change the `direction` of the navigation (which is usually either `forward` or `backward`) for custom animation.
 
-Here is an example of using the `astro:before-preparation` event to load a spinner before the content is loaded and stop it immediately after loading. Note that using the `loader` callback in this way allows asynchronous execution of code. 
+Here is an example of using the `astro:before-preparation` event to load a spinner before the content is loaded and stop it immediately after loading. Note that using the [`loader` callback](/en/reference/modules/astro-transitions/#loader) in this way allows asynchronous execution of code. 
 
 ```astro
 <script is:inline>
@@ -677,7 +694,7 @@ At this point of the lifecycle, you could choose to define your own swap impleme
 
 <p><Since v="4.15.0" /></p>
 
-The `swapFunctions` object of the `astro:transitions/client` module provides five utility functions that handle specific swap-related tasks, including handling document attributes, page elements, and script execution. These functions can be used directly to define a custom swap implementation.
+The [`swapFunctions` object](/en/reference/modules/astro-transitions/#swapfunctions) of the `astro:transitions/client` module provides five utility functions that handle specific swap-related tasks, including handling document attributes, page elements, and script execution. These functions can be used directly to define a custom swap implementation.
 
 The following example demonstrates how to use these functions to recreate Astro's built-in swap implementation:
 
