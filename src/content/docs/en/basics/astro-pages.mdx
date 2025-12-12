@@ -115,7 +115,7 @@ During development, if you have a `500.astro`, the error thrown at runtime is lo
 
 <p><Since v="4.11.0" /></p>
 
-`src/pages/500.astro` is a special page that is automatically passed an `error` prop for any error thrown during rendering. This allows you to use the details of an error (e.g. from a page, from middleware, etc.) to display information to your visitor.
+`src/pages/500.astro` is a special page that is automatically passed an `error` prop for error thrown during rendering. This allows you to use the details of an error (e.g. from a page, from middleware, etc.) to display information to your visitor.
 
 The `error` prop's data type can be anything, which may affect how you type or use the value in your code:
 
@@ -131,6 +131,37 @@ const { error } = Astro.props;
 ```
 
 To avoid leaking sensitive information when displaying content from the `error` prop, consider evaluating the error first, and returning appropriate content based on the error thrown. For example, you should avoid displaying the error's stack as it contains information about how your code is structured on the server.
+
+:::caution
+Astro streams content to the browser as it is rendered. If an error occurs in a component template after the initial response headers have been sent, the server cannot trigger the 500 error page.
+:::
+
+To ensure that errors are captured by the 500 page, try to perform data fetching and validation in the frontmatter. Errors thrown here happen before rendering begins, allowing the server to display the error page.
+
+If you must catch errors that occur during rendering (e.g. inside a component's template), you can use middleware to buffer the response. This forces the entire page to render in memory before sending anything to the browser.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from "astro:middleware";
+
+export const onRequest = defineMiddleware(async (_, next) => {
+  const response = await next();
+
+  // Important: must filter out non-HTML requests here!
+
+  try {
+    const html = await response.text();
+    return new Response(html, {
+      status: response.status,
+      headers: response.headers,
+    });
+  } catch (error) {
+    throw error;
+  }
+});
+```
+:::note
+Buffering the response in middleware disables streaming for that page, which may delay the Time to First Byte (TTFB). Use this only if capturing rendering errors is critical for your application. 
+:::
 
 ## Page Partials
 
