@@ -1,6 +1,6 @@
 import kleur from 'kleur';
-import { CheckBase, type CheckHtmlPageContext } from '../base/check';
-import { IssueType } from '../base/issue';
+import { CheckBase, type CheckHtmlPageContext } from '../base/check.ts';
+import { IssueType } from '../base/issue.ts';
 
 export class RelativeUrl extends CheckBase {
 	private static readonly AbsoluteLink = new IssueType({
