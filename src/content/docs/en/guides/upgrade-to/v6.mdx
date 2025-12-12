@@ -111,6 +111,55 @@ Integration and adapter maintainers should pay special attention to changes affe
 - [routes with percent-encoded percent signs (e.g. `%25`)](#removed-percent-encoding-in-routes)
 - [`astro:ssr-manifest` virtual module](#removed-astrossr-manifest-virtual-module-integration-api)
 
+### Zod 4
+
+Astro v6.0 upgrades to Zod 4, a major dependency update that may require changes to custom Zod schemas in your project.
+
+#### What should I do?
+
+If you have custom Zod schemas in your `content.config.ts` or other configuration files, you'll need to update them for Zod 4. Refer to the [Zod migration guide](https://zod.dev/v4/changelog) for detailed changes in the Zod API.
+
+Notably, [many `string()` formats have been deprecated](https://zod.dev/v4/changelog#deprecates-email-etc) (e.g. `z.string().email()`, `z.string.url()`), and their APIs have been moved to the top-level `z` namespace. You may need to update how you validate form input for your Astro Actions:
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+email: z.string().email(),
+email: z.email(),
+```
+
+Additionally, Zod has made some [changes to handling error messages](https://zod.dev/v4/changelog#error-customization) and has dropped support for a custom `errorsMap` which was useful to redefine or translate your error messages. You may need to update any custom error messages:
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+z.string().min(5, { message: "Too short." });
+z.string().min(5, { error: "Too short." });
+```
+
+Also, if you use [`.default()` with transforms](https://zod.dev/v4/changelog#default-updates), you may need to update your schemas. In Zod 4, default values must match the output type (after transforms), not the input type. The default value short-circuits parsing when the input is `undefined`:
+
+```ts title="src/content.config.ts" del={5-6} ins={7-8}
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  schema: z.object({
+    // Zod 3: default matched input type (string)
+    views: z.string().transform(Number).default("0"),
+    // Zod 4: default must match output type (number)
+    views: z.string().transform(Number).default(0),
+  })
+});
+```
+
+For the old behavior where defaults are parsed, use the new `.prefault()` method.
+
+These are only some of the many changes upgrading from Zod 3 to Zod 4. If you encounter any issues with your Zod schemas after upgrading to Astro 6, please consult the [Zod 4 changelog](https://zod.dev/v4/changelog) for complete upgrade guidance.
+
+You can ensure you're the same version of Zod that Astro uses internally by [importing Zod from `astro/zod`](#deprecated-astroschema-and-z-from-astrocontent).
+
+```ts
+import { z } from 'astro/zod';
+```
+
+<ReadMore>See more about [the `astro/zod` module](/en/reference/modules/astro-zod/).</ReadMore>
+
 ## Legacy
 
 The following features are now considered legacy features. They should function normally but are no longer recommended and are in maintenance mode. They will see no future improvements and documentation will not be updated. These features will eventually be deprecated, and then removed entirely.
