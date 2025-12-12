@@ -64,16 +64,19 @@ Pour définir des collections, vous devez créer un fichier `src/content.config.
 
 ```ts title="src/content.config.ts"
 // 1. Importer des utilitaires depuis `astro:content`
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 
 // 2. Importer un ou plusieurs chargeurs
 import { glob, file } from 'astro/loaders';
 
-// 3. Définir votre/vos collection(s)
+// 3. Importer Zod
+import { z } from 'astro/zod';
+
+// 4. Définir votre/vos collection(s)
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. Exporter un seul objet « collections » pour enregistrer votre/vos collection(s)
+// 5. Exporter un seul objet `collections` pour enregistrer votre/vos collection(s)
 export const collections = { blog, dogs };
 ```
 
@@ -89,9 +92,10 @@ Le [chargeur `glob()`](/fr/reference/content-loader-reference/#le-chargeur-glob)
 
 Le [chargeur `file()`](/fr/reference/content-loader-reference/#le-chargeur-file) crée plusieurs entrées à partir d'un seul fichier local. Chaque entrée du fichier doit avoir un nom de propriété `id` unique. Il accepte un chemin de fichier `base` vers votre fichier et éventuellement une [fonction `parser`](#fonction-parser) pour les fichiers de données qu'il ne peut pas analyser automatiquement. Utilisez ce chargeur lorsque votre fichier de données peut être analysé comme un tableau d'objets.
 
-```ts  title="src/content.config.ts" {5,9}
-import { defineCollection, z } from 'astro:content';
+```ts  title="src/content.config.ts" {6,10}
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders'; // Non disponible avec l'API héritée
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -208,11 +212,12 @@ Les schémas alimentent également les typages automatiques TypeScript d'Astro p
 Pour qu'Astro reconnaisse un schéma nouveau ou mis à jour, vous devrez peut-être redémarrer le serveur de développement ou [synchroniser la couche de contenu](/fr/reference/cli-reference/#astro-dev) (<code>s + Entrée</code>) pour définir le module `astro:content`.
 :::
 
-Chaque frontmatter ou propriété de données de vos entrées de collection doit être défini à l’aide d’un type de données Zod :
+Chaque frontmatter ou propriété de données de vos entrées de collection doit être défini à l’aide d’un [type de données Zod](/fr/reference/modules/astro-zod/#validateurs-de-types-de-données-courants) :
 
-```ts title="src/content.config.ts" {6-11,15-19}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // Non disponible avec l'API héritée
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -239,43 +244,13 @@ export const collections = { blog, dogs };
 
 Astro utilise [Zod](https://github.com/colinhacks/zod) pour alimenter ses schémas de contenu. Avec Zod, Astro est capable de valider les données de chaque fichier au sein d'une collection *et* de fournir des types TypeScript automatiques lorsque vous interrogez le contenu à partir de votre projet.
 
-Pour utiliser Zod dans Astro, importez l'utilitaire `z` depuis `"astro:content"`. Il s'agit d'une réexportation de la bibliothèque Zod, et elle prend en charge toutes les fonctionnalités de Zod.
+Pour utiliser Zod dans Astro, importez l'utilitaire `z` depuis `"astro/zod"`. Il s'agit d'une réexportation de la bibliothèque Zod, et elle prend en charge toutes les fonctionnalités de Zod.
 
-```ts
-// Exemple : une aide-mémoire de nombreux types de données Zod courants
-import { z, defineCollection } from 'astro:content';
-
-defineCollection({
-  schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    author: z.string().default('Anonyme'),
-    language: z.enum(['en', 'es']),
-    tags: z.array(z.string()),
-    footnote: z.string().optional(),
-
-    // En YAML, les dates écrites sans guillemets sont interprétées comme des objets Date
-    publishDate: z.date(), // par exemple 2024-09-17
-
-    // Transformer une chaîne de date (par exemple « 2022-07-08 ») en objet Date
-    updatedDate: z.string().transform((str) => new Date(str)),
-
-    authorContact: z.string().email(),
-    canonicalURL: z.string().url(),
-  })
-})
-```
-
-<ReadMore>Consultez [le fichier README de Zod](https://github.com/colinhacks/zod) pour obtenir une documentation complète sur le fonctionnement de Zod et les fonctionnalités disponibles.</ReadMore>
+<ReadMore>Consultez la [référence de l'utilitaire `z`](/fr/reference/modules/astro-zod/) pour obtenir un aide-mémoire des types de données courants et pour apprendre comment Zod fonctionne et quelles fonctionnalités sont disponibles.</ReadMore>
 
 ##### Méthodes de schéma Zod
 
-Toutes [les méthodes de schéma Zod](https://zod.dev/?id=schema-methods) (p. ex. `.parse()`, `.transform()`) sont disponibles, avec certaines limitations. Notamment, l'exécution de contrôles de validation personnalisés sur les images à l'aide de `image().refine()` n'est pas prise en charge.
+Toutes [les méthodes de schéma Zod](/fr/reference/modules/astro-zod/#utilisation-des-méthodes-de-zod) (p. ex. `.parse()`, `.transform()`) sont disponibles, avec certaines limitations. Notamment, l'exécution de contrôles de validation personnalisés sur les images à l'aide de `image().refine()` n'est pas prise en charge.
 
 #### Définition des références de collection
 
@@ -286,8 +261,9 @@ Avec la [fonction `reference()`](/fr/reference/modules/astro-content/#reference)
 Un exemple courant est un article de blog qui fait référence à des profils d'auteur réutilisables stockés au format JSON ou à des URL d'articles associés stockées dans la même collection :
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference, z } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),

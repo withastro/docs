@@ -538,13 +538,17 @@ console.log(entry?.data.displayPrice); // 예: "$29.99"
 라이브 로더는 응답 캐싱을 돕기 위해 캐시 힌트를 제공할 수 있습니다. 이 데이터를 사용하여 HTTP 캐시 헤더를 전송하거나 캐싱 전략에 대한 정보를 얻을 수 있습니다.
 
 ```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
+import type { MyData } from "./types";
+
 export function myLoader(config): LiveLoader<MyData> {
   return {
     name: 'cached-loader',
     loadCollection: async ({ filter }) => {
-      // ... 데이터 가져오기
+      const products = await loadStoreProducts(filter);
       return {
-        entries: data.map((item) => ({
+        entries: products.map((item) => ({
           id: item.id,
           data: item,
           // 각 항목에 대한 캐시 힌트를 선택적으로 제공할 수 있습니다.
@@ -556,13 +560,13 @@ export function myLoader(config): LiveLoader<MyData> {
           // 모든 필드는 선택 사항이며, 각 항목의 캐시 힌트와 결합됩니다.
           // 태그는 모든 항목에서 병합됩니다.
           // lastModified는 모든 항목과 컬렉션 중에서 가장 최근의 lastModified입니다.
-          lastModified: new Date(item.lastModified),
+          lastModified: getLastModifiedDate(products),
           tags: ['products'],
         },
       };
     },
     loadEntry: async ({ filter }) => {
-      // ... 단일 항목 가져오기
+      const item = await loadStoreProduct(filter);
       return {
         id: item.id,
         data: item,
