@@ -1048,3 +1048,162 @@ Loads a session by ID. In normal use, a session is loaded automatically from the
   </TabItem>
 
 </Tabs>
+
+### `csp`
+
+
+<p>
+
+**Type**: `AstroSharedContextCsp`
+<Since v="6.0.0" />
+</p>
+
+Astro's CSP runtime APIs enable support for [Content Security Policy (CSP)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP) to help minimize certain types of security threats by controlling which resources a document is allowed to load. This provides additional protection against [cross-site scripting (XSS)](https://developer.mozilla.org/en-US/docs/Glossary/Cross-site_scripting) attacks.
+
+You can customize the `<meta>` element per page from the `Astro` global inside `.astro` components, or the `APIContext` type in endpoints and middleware.
+
+When resources are inserted multiple times or from multiple sources (e.g. defined in your [`csp` config](/en/reference/configuration-reference/#securitycsp) and added using the following CSP runtime APIs, Astro will merge and deduplicate all resources to create your `<meta>` element.
+
+
+#### `insertDirective`
+
+<p>
+
+**Type:** `(directive: CspDirective) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+Adds a single directive to the current page. You can call this method multiple times to add additional directives.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertDirective("default-src 'self'");
+Astro.csp.insertDirective("img-src 'self' https://images.cdn.example.com");
+---
+```
+
+After the build, the `<meta>` element for this individual page will incorporate your additional directives alongside the existing `script-src` and `style-src` directives:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  default-src 'self'; 
+  img-src 'self' https://images.cdn.example.com;
+  script-src 'self' 'sha256-somehash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+#### `insertStyleResource`
+
+<p>
+
+**Type:** `(resource: string) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+Inserts a new resource to be used for the `style-src` directive.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertStyleResource("https://styles.cdn.example.com");
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your source to the default `style-src` directive:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src https://styles.cdn.example.com 'sha256-somehash';
+  "
+>
+```
+
+#### `insertStyleHash`
+
+<p>
+
+**Type:** `(hash: CspHash) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+Adds a new hash to the `style-src` directive.
+
+```astro  title="src/pages/index.astro"
+---
+Astro.csp.insertStyleHash("sha512-styleHash");
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your hash to the default `style-src` directive:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
+#### `insertScriptResource`
+
+<p>
+
+**Type:** `(resource: string) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+Inserts a new valid source to be used for the `script-src` directive.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertScriptResource("https://scripts.cdn.example.com");
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your source to the default `script-src` directive:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src https://scripts.cdn.example.com 'sha256-somehash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+#### `insertScriptHash`
+
+<p>
+
+**Type:** `(hash: CspHash) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+Adds a new hash to the `script-src` directive.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertScriptHash("sha512-scriptHash");
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your hash to the default `script-src` directive:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
