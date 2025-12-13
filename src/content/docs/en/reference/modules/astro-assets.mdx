@@ -750,16 +750,17 @@ Determines whether a given remote resource, identified by its source URL, is all
 ```ts
 import { isRemoteAllowed } from 'astro/assets/utils';
 
-const testImageURL = 'https://example.com/images/test.jpg';
+const url = new URL('https://example.com/images/test.jpg');
 const domains = ['example.com', 'anotherdomain.com'];
 const remotePatterns = [
-  { protocol: 'https', hostname: 'images.example.com', pathname: '/**' }, // Allow any path under this hostname
+  {
+    protocol: 'https',
+    hostname: 'images.example.com',
+    pathname: '/**', // Allow any path under this hostname
+  }
 ];
 
-const url = new URL(testImageURL);
-const isAllowed = isRemoteAllowed(url.href, { domains, remotePatterns });
-
-console.log(`Is the remote image allowed? ${isAllowed}`);
+isRemoteAllowed(url.href, { domains, remotePatterns }); // Output: `true`
 ```
 
 ### `matchHostname()`
@@ -775,18 +776,10 @@ Matches a given URL's hostname against a specified hostname, with optional suppo
 ```ts
 import { matchHostname } from 'astro/assets/utils';
 
-const testURL = new URL('https://sub.example.com/path/to/resource');
+const url = new URL('https://sub.example.com/path/to/resource');
 
-// Example usage of matchHostname
-const hostnameToMatch = 'example.com';
-
-// Match without wildcard
-const isMatchWithoutWildcard = matchHostname(testURL, hostnameToMatch);
-console.log(`Does the hostname match without wildcard? ${isMatchWithoutWildcard}`); // Output: false
-
-// Match with wildcard
-const isMatchWithWildcard = matchHostname(testURL, hostnameToMatch, true);
-console.log(`Does the hostname match with wildcard? ${isMatchWithWildcard}`); // Output: true
+matchHostname(url, 'example.com'); // Output: `false`
+matchHostname(url, 'example.com', true); // Output: `true`
 ```
 
 ### `matchPathname()`
@@ -804,17 +797,9 @@ import { matchPathname } from 'astro/assets/utils';
 
 const testURL = new URL('https://example.com/images/photo.jpg');
 
-// Example pathname to match
-const pathnameToMatch = '/images/photo.jpg';
-
-// Match without wildcard
-const isMatchWithoutWildcard = matchPathname(testURL, pathnameToMatch);
-console.log(`Does the pathname match without wildcard? ${isMatchWithoutWildcard}`); // Output: true
-
-// Match with wildcard
-const wildcardPathname = '/images/*';
-const isMatchWithWildcard = matchPathname(testURL, wildcardPathname, true);
-console.log(`Does the pathname match with wildcard? ${isMatchWithWildcard}`); // Output: true
+matchPathname(testURL, '/images/photo.jpg'); // Output: `true`
+matchPathname(testURL, '/images/'); // Output: `false`
+matchPathname(testURL, '/images/*', true); // Output: `true`
 ```
 
 ### `matchPattern()`
@@ -830,20 +815,14 @@ Evaluates whether a given URL matches the specified remote pattern based on prot
 ```ts
 import { matchPattern } from 'astro/assets/utils';
 
-const testURL = new URL('https://images.example.com/photos/test.jpg');
-
-// Define a remote pattern to match the URL
+const url = new URL('https://images.example.com/photos/test.jpg');
 const remotePattern = {
   protocol: 'https',
   hostname: 'images.example.com',
-  pathname: '/photos/**', // Wildcard to allow all files under /photos/
-  port: '', // Optional: Match any port or leave empty for default
+  pathname: '/photos/**', // Allow all files under /photos/
 };
 
-// Check if the URL matches the remote pattern
-const isPatternMatched = matchPattern(testURL, remotePattern);
-
-console.log(`Does the URL match the remote pattern? ${isPatternMatched}`); // Output: true
+matchPattern(url, remotePattern); // Output: `true`
 ```
 
 ### `matchPort()`
@@ -851,6 +830,7 @@ console.log(`Does the URL match the remote pattern? ${isPatternMatched}`); // Ou
 <p>
 
 **Type:** `(url: URL, port?: string) => boolean`<br />
+**Default:** `true`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -859,23 +839,11 @@ Checks if the given URL's port matches the specified port. If no port is provide
 ```ts
 import { matchPort } from 'astro/assets/utils';
 
-const testURL1 = new URL('https://example.com:8080/resource');
-const testURL2 = new URL('https://example.com/resource');
+const urlWithPort = new URL('https://example.com:8080/resource');
+const urlWithoutPort = new URL('https://example.com/resource');
 
-// Example usage of matchPort
-const portToMatch = '8080';
-
-// Match a URL with a port specified
-const isPortMatch1 = matchPort(testURL1, portToMatch);
-console.log(`Does the port match? ${isPortMatch1}`); // Output: true
-
-// Match a URL without a port specified (default port will be assumed)
-const isPortMatch2 = matchPort(testURL2, portToMatch);
-console.log(`Does the port match? ${isPortMatch2}`); // Output: false
-
-// Check a URL without explicitly providing a port (defaults to true if port is undefined)
-const isPortMatch3 = matchPort(testURL1);
-console.log(`Does the port match (no port specified)? ${isPortMatch3}`); // Output: true
+matchPort(urlWithPort, '8080'); // Output: `true`
+matchPort(urlWithoutPort, '8080'); // Output: `false`
 ```
 
 ### `matchProtocol()`
@@ -967,7 +935,7 @@ const resolvedLocal = await resolveSrc(localImage);
 // Example value: `{ src: '/@fs/home/username/dev/astro-project/src/images/photo.jpg', width: 800, height: 600, format: 'jpg' }`
 
 const resolvedRemote = await resolveSrc("https://example.com/remote-img.jpg");
-// Will be `"https://example.com/remote-img.jpg"`
+// Value: `"https://example.com/remote-img.jpg"`
 
 const resolvedDynamic = await resolveSrc(import("./images/dynamic-image.jpg"))
 // Example value: `{ src: '/@fs/home/username/dev/astro-project/src/images/dynamic-image.jpg', width: 800, height: 600, format: 'jpg' }`
