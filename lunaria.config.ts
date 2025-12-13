@@ -123,7 +123,7 @@ export default defineConfig({
 	],
 	tracking: {
 		localizableProperty: 'i18nReady',
-		ignoredKeywords: [
+		ignoreKeywords: [
 			'lunaria-ignore',
 			'typo',
 			'en-only',
