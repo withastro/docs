@@ -3,6 +3,7 @@ title: 视图过渡动画
 description: 在 Astro 中通过视图过渡动画实现页面之间的无缝导航。
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro'
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
@@ -317,7 +318,7 @@ const customTransition = {
 
 ### 触发导航
 
-你还可以使用 `navigate` 方法在通常不被 `<ClientRouter />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
+你还可以使用 [`navigate()`](/zh-cn/reference/modules/astro-transitions/#navigate) 方法在通常不被 `<ClientRouter />` 路由器监听的事件里触发客户端导航。该函数来自于 `astro:transitions/client` 模块，可以在任何客户端脚本和通过[客户端指令](/zh-cn/reference/directives-reference/#客户端指令)激活了的客户端组件中使用。
 
 下面的示例展示了一个当访客选择菜单中的选项时导航到另一个页面的 Astro 组件：
 
@@ -387,17 +388,9 @@ import { ClientRouter } from "astro:transitions";
 </html>
 ```
 
-`navigate` 方法接受以下参数：
-
--  `href`（必需项）- 要导航到的新页面。
--  `options` - 一个可选的对象，具有以下属性：
-	- `history`: `"push"` | `"replace"` | `"auto"`
-		- `"push"`: 路由器将使用 `history.pushState` 在浏览器历史中创建一个新条目。
-		- `"replace"`: 路由器将使用 `history.replaceState` 更新 URL，而不向导航添加新条目。
-		- `"auto"`（默认）: 路由器将尝试使用 `history.pushState`，但如果无法转换到指定的 URL，则当前 URL 将保持不变，浏览器历史不会发生变化。
-  - `formData`: 一个 `POST` 请求的 [`FormData`](https://developer.mozilla.org/zh-CN/docs/Web/API/FormData) 对象。
-
 要想通过浏览器的历史记录进行后退和前进导航，你可以将 `navigate()` 与浏览器内置的 `history.back()`、`history.forward()` 和 `history.go()` 等函数结合使用。如果 `navigate()` 在服务器渲染时被调用，它不会有任何效果。
+
+<ReadMore>查看 `astro:transitions` 参考获得关于 [`navigate()` 选项](/zh-cn/reference/modules/astro-transitions/#navigate) 的更多信息。</ReadMore>
 
 ### 替换浏览器历史条目
 
@@ -405,9 +398,7 @@ import { ClientRouter } from "astro:transitions";
 
 `<ClientRouter />` 路由器器允许你通过向任何单独的 `<a>` 标签添加 `data-astro-history` 属性来覆盖历史记录条目。
 
-`data-astro-history` 属性可以设置为与 [`navigate()` 函数的 `history` 选项](#触发导航)相同的三个值：
-
-`data-astro-history`: `"push"` | `"replace"` | `"auto"`
+`data-astro-history` 属性可以设置为与 [`navigate()` 函数的 `history` 选项](/zh-cn/reference/modules/astro-transitions/#history-选项)相同的三个值：
 
 -  `'push'`：路由器将使用 `history.pushState` 在浏览器历史记录中创建一个新条目。
 -  `'replace'`：路由器将使用 `history.replaceState` 更新 URL 而不添加新的导航条目。
@@ -442,6 +433,30 @@ import { ClientRouter } from "astro:transitions";
 ```astro title="src/components/Form.astro"
 <form action="/contact" data-astro-reload>
 ```
+
+### 使用用户输入进行导航
+
+`navigate()` API 不会对传递给它的 URL 执行无害化处理。如果你使用用户输入来确定导航的 URL，你应该在将输入传递给 `navigate()` 之前对其进行验证。
+
+例如，如果在使用前没有对传入值进行无害化处理，`?redirect` query 参数可能会被用于导航到外部网站（`?redirect=http://example.com`）或执行任意代码（`?redirect=javascript:alert('Evil code')`）。
+
+一种安全的实现方式是确保只能重定向到一组已知路径：
+
+```astro title="src/pages/index.astro"
+<script>
+  import { navigate } from 'astro:transitions/client';
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const allowedPaths = ['/home', '/about', '/contact'];
+  if (allowedPaths.includes(redirect)) {
+    navigate(redirect);
+  }
+</script>
+```
+
+所需的具体净化措施取决于你的网站以及你想要允许的内容范围。
+
+<ReadMore>如果将用户输入与 `navigate()` API 一起使用，请考虑启用 Astro 的 [实验性内容安全策略功能](/zh-cn/reference/experimental-flags/csp/)，来帮助防范跨站脚本攻击（XSS）的风险。</ReadMore>
 
 ## 回退控制
 
@@ -602,7 +617,7 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 - 更改加载内容，例如从模板中加载而不是从外部 URL 加载。
 - 在加载时更改 `direction`（通常为 `forward` 或 `backward`）以进行自定义动画。
 
-以下示例展示了如何在内容加载前使用 `astro:before-preparation` 事件加载一个加载指示器，并在加载完成后立即停止它。请注意，以这种方式使用 `loader` 回调允许异步执行代码。
+以下示例展示了如何在内容加载前使用 `astro:before-preparation` 事件加载一个加载指示器，并在加载完成后立即停止它。请注意，以这种方式使用 [`loader`](/zh-cn/reference/modules/astro-transitions/#loader) 回调允许异步执行代码。
 
 ```astro
 <script is:inline>
@@ -674,7 +689,7 @@ Astro 的视图过渡动画 API 生命周期事件顺序如下：
 
 <p><Since v="4.15.0" /></p>
 
-`astro:transitions/client` 模块的 `swapFunctions` 对象提供了五个处理特定交换相关任务的工具函数，包括处理文档属性、页面元素和脚本执行。这些函数可以直接用于定义自定义的交换实现。
+`astro:transitions/client` 模块的 [`swapFunctions` 对象](/zh-cn/reference/modules/astro-transitions/#swapfunctions)提供了五个处理特定交换相关任务的工具函数，包括处理文档属性、页面元素和脚本执行。这些函数可以直接用于定义自定义的交换实现。
 
 以下示例演示了如何使用这些函数重新创建 Astro 的内置交换实现：
 
