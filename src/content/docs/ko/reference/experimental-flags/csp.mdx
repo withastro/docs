@@ -146,7 +146,7 @@ export default defineConfig({
 <Since v="5.9.0" />
 </p>
 
-`script-src` 및 `style-src` 지시어에 유효한 소스 목록입니다.
+`script-src` 및 `style-src` 지시어에 대한 유효한 소스 목록으로, [하위 클래스 값](#하위-클래스-값-추가하기)을 포함합니다.
 
 기본적으로 `script-src` 및 `style-src` 지시어는 Astro에서 처리하며 `'self'` 리소스를 사용합니다. 즉, 스크립트와 스타일은 현재 호스트 (일반적으로 현재 웹사이트)에서만 다운로드할 수 있습니다.
 
@@ -183,6 +183,89 @@ export default defineConfig({
     content="
       script-src https://cdn.example.com 'sha256-somehash'; 
       style-src 'self' https://styles.cdn.example.com 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+##### 하위 클래스 값 추가하기
+
+이 필드를 사용하여 [`script-src-attr`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-attr), [`script-src-elem`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/script-src-elem), [`style-src-attr`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-attr), [`style-src-elem`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Content-Security-Policy/style-src-elem)에 속하는 유효한 값 (예: `unsafe-hashes` 및 `unsafe-inline`)을 추가할 수도 있습니다.
+
+예를 들어, 페이지의 일부 HTML 요소에 스크립트나 인라인 스타일을 추가하는 외부 라이브러리를 사용하는 경우, 브라우저에 안전하게 렌더링할 수 있다는 것을 알리기 위해 `unsafe-inline`을 추가할 수 있습니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "'unsafe-inline'"
+        ]
+      },
+      scriptDirective: {
+        resources: [
+          "'unsafe-inline'"
+        ]
+      }
+    }
+  }
+});
+```
+
+빌드 후, `style-src` 및 `script-src` 지시어에 `'unsafe-inline'` 리소스가 포함됩니다.
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+      script-src 'unsafe-line'; 
+      style-src 'unsafe-line';
+    "
+  >
+</head>
+```
+
+##### 다중 리소스
+
+리소스를 여러 번 또는 여러 소스 (예: `csp` 구성에 정의된 것과 [CSP 런타임 API](#런타임-api)를 사용하여 추가된 것)로부터 삽입할 때, Astro는 중복을 제거하고 새로운 리소스들을 병합합니다.
+
+다음 예시에서 `img-src https://global.cdn.example.org` 및 `default-src https://global.cdn.example.org` 지시어는 `csp` 구성에 설정되어 모든 페이지에 적용됩니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    csp: {
+      directives: [
+        "img-src https://global.cdn.example.org",
+        "default-src https://global.cdn.example.org"
+      ]
+    }
+  }
+})
+```
+
+또한, 개별 페이지에서는 [Astro.csp.insertDirective](#cspinsertdirective)를 사용하여 `img-src https://vendor.cdn.example.org/` 및 `default-src https://global.cdn.example.org/ https://vendor.cdn.example.org/` 리소스가 추가됩니다.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp.insertDirective("img-src https://vendor.cdn.example.org")
+Astro.csp.insertDirective("default-src https://global.cdn.example.org https://vendor.cdn.example.org")
+---
+```
+
+빌드 과정에서 `index.html` 페이지에 대한 `image-src` 및 `default-src` 지시어의 리소스는 병합되고 중복이 제거되어 적절한 헤더를 생성합니다.
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy" 
+    content="
+        image-src https://global.cdn.example.org https://vendor.cdn.example.org;
+        default-src https://global.cdn.example.org https://vendor.cdn.example.org;
     "
   >
 </head>

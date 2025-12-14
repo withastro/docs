@@ -1,8 +1,7 @@
-import { DomUtils } from 'htmlparser2';
 import kleur from 'kleur';
 import { dedentMd } from '../../output.mjs';
-import { CheckBase, type CheckHtmlPageContext } from '../base/check';
-import { IssueType } from '../base/issue';
+import { CheckBase, type CheckHtmlPageContext } from '../base/check.ts';
+import { IssueType } from '../base/issue.ts';
 
 /** List of labels that are insufficiently descriptive for a link. */
 const blocklist = new Set(['read more', 'click here', 'here', 'more']);
@@ -20,15 +19,13 @@ export class GoodLabels extends CheckBase {
 		if (context.page.isLanguageFallback) return;
 
 		context.page.anchors.forEach((anchor) => {
-			const linkLabel = DomUtils.innerText(anchor)
-				.replace(/[\n\s\t]+/g, ' ')
-				.trim();
+			const linkLabel = anchor.label.replace(/[\n\s\t]+/g, ' ').trim();
 
 			if (!blocklist.has(linkLabel.toLowerCase())) return;
 
 			context.report({
 				type: GoodLabels.BadLabel,
-				linkHref: anchor.attribs.href,
+				linkHref: anchor.href,
 				annotationText: dedentMd`Found link label “${linkLabel}”.
 						Please use descriptive accessible text for labels instead
 						of short undescriptive labels like “here” or “read more”.`,

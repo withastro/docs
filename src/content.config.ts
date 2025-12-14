@@ -22,6 +22,7 @@ export const baseSchema = z.object({
 		.optional(),
 });
 
+// Third-party guide schemas (deploy, backend, cms, media)
 export const deploySchema = baseSchema.extend({
 	type: z.literal('deploy'),
 	logo: z.enum(logoKeys),
@@ -37,9 +38,16 @@ export const backendSchema = baseSchema.extend({
 export const cmsSchema = baseSchema.extend({
 	type: z.literal('cms'),
 	stub: z.boolean().default(false),
-	service: z.string(),
+	logo: z.enum(logoKeys),
 });
 
+export const mediaSchema = baseSchema.extend({
+	type: z.literal('media'),
+	stub: z.boolean().default(false),
+	logo: z.enum(logoKeys),
+});
+
+// Our other schemas (integration, migration, tutorial, recipe)
 export const integrationSchema = baseSchema.extend({
 	type: z.literal('integration'),
 	title: z
@@ -50,12 +58,6 @@ export const integrationSchema = baseSchema.extend({
 		),
 	category: z.enum(['renderer', 'adapter', 'other']),
 	githubIntegrationURL: z.string().url(),
-});
-
-export const mediaSchema = baseSchema.extend({
-	type: z.literal('media'),
-	stub: z.boolean().default(false),
-	service: z.string(),
 });
 
 export const migrationSchema = baseSchema.extend({
