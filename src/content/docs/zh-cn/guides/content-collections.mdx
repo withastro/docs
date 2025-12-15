@@ -66,16 +66,19 @@ Astro 5.0 引入了内容层（Content Layer）API，用于定义和查询内容
 
 ```ts title="src/content.config.ts"
 // 1. 从 `astro:content` 导入工具函数
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 
 // 2. 导入加载器
 import { glob, file } from 'astro/loaders';
 
-// 3. 定义你的集合
+// 3. 导入 Zod
+import { z } from 'astro/zod';
+
+// 4. 定义你的集合
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. 导出一个 `collections` 对象来注册你的集合
+// 5. 导出一个 `collections` 对象来注册你的集合
 export const collections = { blog, dogs };
 ```
 
@@ -91,9 +94,10 @@ Astro 提供了 [两个内置的加载器函数（`glob()` 和 `file()`）](/zh-
 
 [`file()` 加载器](/zh-cn/reference/content-loader-reference/#file-加载器) 从单个本地文件创建多个条目。文件中的每个条目必须有一个唯一的 `id` 键属性。它接受一个 相对你的文件的 `base` 文件路径，以及一个可选的 [`parser` 函数](#parser-函数) 用于它无法自动解析的数据文件。当你的数据文件可以解析为对象数组时，请使用此加载器。
 
-```ts  title="src/content.config.ts" {5,9}
-import { defineCollection, z } from 'astro:content';
+```ts  title="src/content.config.ts" {6,10}
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders'; // 不适用于旧版 API
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -210,11 +214,12 @@ const countries = defineCollection({
 为了让 Astro 识别新的或更新后的模式，你可能需要重启开发服务器，或者 [同步内容层](/zh-cn/reference/cli-reference/#astro-dev) (<code>s + enter</code>) 来定义 `astro:content` 模块。
 :::
 
-集合条目的每个 frontmatter 或数据属性都必须使用 Zod 数据类型定义：
+集合条目的每个 frontmatter 或数据属性都必须使用 [Zod 数据类型](/zh-cn/reference/modules/astro-zod/#common-data-type-validators)定义：
 
-```ts title="src/content.config.ts" {6-11,15-19}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // 不适用于旧版 API
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -241,43 +246,13 @@ export const collections = { blog, dogs };
 
 Astro 使用 [Zod](https://github.com/colinhacks/zod) 来支持其内容模式。使用 Zod，Astro 能够验证集合中每个文件的数据，并在你查询内容时提供自动的 TypeScript 类型。
 
-要在 Astro 中使用 Zod，请从 `"astro:content"` 导入 `z` 工具函数。这是 Zod 库的重新导出，支持 Zod 的所有功能。
+要在 Astro 中使用 Zod，请从 `"astro/zod"` 导入 `z` 工具函数。这是 Zod 库的重新导出，它支持 Zod 的所有功能。
 
-```ts
-// 示例：许多常见 Zod 数据类型的备忘单
-import { z, defineCollection } from 'astro:content';
-
-defineCollection({
-  schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    author: z.string().default('Anonymous'),
-    language: z.enum(['en', 'es']),
-    tags: z.array(z.string()),
-    footnote: z.string().optional(),
-
-    // 在 YAML 中，不带引号的日期被解释为 Date 对象
-    publishDate: z.date(), // 例如 2024-09-17
-
-    // 将日期字符串（例如 “2022-07-08”）转换为 Date 对象
-    updatedDate: z.string().transform((str) => new Date(str)),
-
-    authorContact: z.string().email(),
-    canonicalURL: z.string().url(),
-  })
-})
-```
-
-<ReadMore>有关 Zod 如何工作及其可用功能的完整文档，请参阅 [Zod 的 README](https://github.com/colinhacks/zod)。</ReadMore>
+<ReadMore>请参阅 [`z` 实用参考](/zh-cn/reference/modules/astro-zod/) 以查看常用数据类型速查表并了解 Zod 的工作原理及可用功能。</ReadMore>
 
 ##### Zod 模式方法
 
-所有 [Zod 模式方法](https://zod.dev/?id=schema-methods)（例如 `.parse()`、`.transform()`）都可用，但有一些限制。特别是，使用 `image().refine()` 对图像执行自定义验证检查是不支持的。
+所有 [Zod 模式方法](/zh-cn/reference/modules/astro-zod/#using-zod-methods)（例如 `.parse()`、`.transform()`）都可用，但有一些限制。特别是，使用 `image().refine()` 对图像执行自定义验证检查是不支持的。
 
 #### 定义集合引用
 
@@ -288,8 +263,9 @@ defineCollection({
 一个常见的例子是一个引用存储为 JSON 的可重用作者配置文件的博客文章，或者存储在同一集合中的相关文章 URL：
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference, z } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
