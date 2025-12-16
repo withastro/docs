@@ -23,12 +23,16 @@ import ReadMore from '~/components/ReadMore.astro';
 ## 从 `astro:transitions` 导入
 
 ```ts
-import { ClientRouter, fade, slide } from 'astro:transitions';
+import {
+  ClientRouter,
+  fade,
+  slide,
+} from 'astro:transitions';
 ```
 
 ### `<ClientRouter />`
 
-<p><Since v="3.0.0" /></p>
+<p><Since v="5.0.0" /></p>
 
 通过将 `<ClientRouter />` 路由组件导入并添加到每个所需页面的 `<head>` 部分，以选择在各个页面上使用视图过渡动画。
 
@@ -48,6 +52,18 @@ import { ClientRouter } from 'astro:transitions';
 ```
 
 查看有关如何 [控制路由器](/zh-cn/guides/view-transitions/#路由器控制)以及 [添加过渡指令](/zh-cn/guides/view-transitions/#过渡动画指令) 到页面元素和组件的更多信息。
+
+`<ClientRouter />` 组件接受以下参数：
+
+<h4>`fallback`</h4>
+
+<p>
+
+**类型：** [`Fallback`](#fallback)<br />
+**默认值：** `animate`
+</p>
+
+定义在不支持 [视图过渡API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) 的浏览器上使用的回退策略。
 
 ### `fade`
 
@@ -96,15 +112,21 @@ import { slide } from 'astro:transitions';
 ## 从 `astro:transitions/client` 导入
 
 ```astro
-<script>
-  import { 
-    navigate,
-    supportsViewTransitions,
-    transitionEnabledOnThisPage,
-    getFallback,
-    swapFunctions,
-  } from 'astro:transitions/client';
-</script>
+import {
+  getFallback,
+  navigate,
+  supportsViewTransitions,
+  swapFunctions,
+  transitionEnabledOnThisPage,
+  /* 以下将在v6版本中弃用: */
+  isTransitionBeforePreparationEvent,
+  isTransitionBeforeSwapEvent,
+  TRANSITION_AFTER_PREPARATION,
+  TRANSITION_AFTER_SWAP,
+  TRANSITION_BEFORE_PREPARATION,
+  TRANSITION_BEFORE_SWAP,
+  TRANSITION_PAGE_LOAD,
+} from 'astro:transitions/client';
 ```
 
 ### `navigate()`
@@ -115,9 +137,11 @@ import { slide } from 'astro:transitions';
 <Since v="3.2.0" />
 </p>
 
-一个使用视图过渡 API 导航到给定 `href` 的函数。
+使用视图过渡 API 导航到给定 `href`。
 
 此函数签名基于 [浏览器 Navigation API 中的 `navigate` 函数](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate)。虽然基于 Navigation API，但此函数是在 [History API](https://developer.mozilla.org/zh-CN/docs/Web/API/History_API) 之上实现的，以允许在不重新加载页面的情况下进行导航。
+
+`navigate()` 函数不会对 `href` 参数进行无害化处理。若使用用户输入来确定导航目标 URL，[请对输入进行无害化处理](/zh-cn/guides/view-transitions/#使用用户输入进行导航)。
 
 #### `history` 选项
 
@@ -170,7 +194,7 @@ import { slide } from 'astro:transitions';
 <Since v="3.6.0" />
 </p>
 
-与导航相关的 `NavitationHistoryEntry` 对象中关联的任意数据。此数据可以通过 [`history.getState` 函数](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) 从 History API 中检索。
+与导航相关的 `NavigationHistoryEntry` 对象中关联的任意数据。此数据可以通过 [`history.getState` 函数](https://developer.mozilla.org/en-US/docs/Web/API/NavigationHistoryEntry/getState) 从 History API 中检索。
 
 此选项模仿了浏览器 Navigation API 中的 [`state` 选项](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate#state)。
 
@@ -183,8 +207,8 @@ import { slide } from 'astro:transitions';
 </p>
 
 此导航的触发元素，如果有的话。此元素将在以下事件中可用：
-- `astro:before-preparation`
-- `astro:before-swap`
+- [`astro:before-preparation`](#astrobefore-preparation-事件)
+- [`astro:before-swap`](#astrobefore-swap-事件)
 
 ### `supportsViewTransitions`
 
@@ -196,11 +220,11 @@ import { slide } from 'astro:transitions';
 
 当前浏览器是否支持并启用视图过渡。
 
-### `transitionEnabledOnThisPage`
+### `transitionEnabledOnThisPage()`
 
 <p>
 
-**类型：**`boolean`<br />
+**类型：**`() => boolean`<br />
 <Since v="3.2.0" />
 </p>
 
@@ -210,18 +234,20 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**类型：**`() => 'none' | 'animate' | 'swap'`<br />
+**类型：** <code>() => <a href="#fallback">Fallback</a></code><br />
+**默认值：** `animate`<br />
 <Since v="3.6.0" />
 </p>
 
-返回在浏览器不支持视图过渡时使用的回退策略。
+返回在浏览器不支持视图过渡时使用的回退策略（默认 `animate`）。
 
-有关如何选择和配置回退行为的详细信息，请参阅 [回退控制](/zh-cn/guides/view-transitions/#回退控制) 指南。
+<ReadMore>有关如何选择和配置回退行为的详细信息，请参阅 [回退控制](/zh-cn/guides/view-transitions/#回退控制) 指南。</ReadMore>
 
 ### `swapFunctions`
 
 <p>
 
+**类型：** `object`<br />
 <Since v="4.15.0" />
 </p>
 
@@ -277,9 +303,327 @@ import { slide } from 'astro:transitions';
 
 用新 document 的 body 替换旧的 body。然后，遍历旧 body 中应持久化的每个元素，并在新 body 中找到匹配的元素，将旧元素交换回原位。
 
+### 已弃用的导入项
+
+以下导入项计划在 v6 版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+
+<h4>`isTransitionBeforePreparationEvent()`</h4>
+
+<p>
+
+**类型：** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此函数计划在 v6 版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+判断给定值是否匹配 [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent) 类型。当需要在事件监听器中缩小事件类型范围时，此功能非常实用。
+
+```astro title="src/pages/index.astro" "isTransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforePreparationEvent,
+    TRANSITION_BEFORE_PREPARATION,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforePreparationEvent(event) ? 1 : 2;
+    /* 对设置进行一些操作 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+<h4>`isTransitionBeforeSwapEvent()`</h4>
+
+<p>
+
+**类型：** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此函数计划在 v6 版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+判断给定值是否匹配 [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent) 类型。当需要在事件监听器中缩小事件类型范围时，此功能非常实用。
+
+```astro title="src/pages/index.astro" "isTransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforeSwapEvent,
+    TRANSITION_BEFORE_SWAP,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforeSwapEvent(event) ? 1 : 2;
+    /* 对设置进行一些操作 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
+<h4>`TRANSITION_BEFORE_PREPARATION`</h4>
+
+<p>
+
+**类型：** `'astro:before-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此常量计划在 v6 版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+一个常量，用于在定义事件时避免直接以明文形式书写 `astro:before-preparation` 事件名称。
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_PREPARATION"
+---
+---
+
+<script>
+  import { TRANSITION_BEFORE_PREPARATION } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, () => {
+    /* 监听逻辑 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_AFTER_PREPARATION`</h4>
+
+<p>
+
+**类型：** `'astro:after-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此常量计划在 v6版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+一个常量，用于在定义事件时避免直接以明文形式书写 `astro:after-preparation` 事件名称。
+
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_PREPARATION"
+---
+---
+
+<script>
+  import { TRANSITION_AFTER_PREPARATION } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_AFTER_PREPARATION, () => {
+    /* 监听逻辑 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_BEFORE_SWAP`</h4>
+
+<p>
+
+**类型：** `'astro:before-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此常量计划在 v6版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+一个常量，用于在定义事件时避免直接以明文形式书写 `astro:before-swap` 事件名称。
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_SWAP"
+---
+---
+
+<script>
+  import { TRANSITION_BEFORE_SWAP } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, () => {
+    /* 监听逻辑 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_AFTER_SWAP`</h4>
+
+<p>
+
+**类型：** `'astro:after-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此常量计划在 v6版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+一个常量，用于在定义事件时避免直接以明文形式书写 `astro:after-swap` 事件名称。
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_SWAP"
+---
+---
+
+<script>
+  import { TRANSITION_AFTER_SWAP } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_AFTER_SWAP, () => {
+    /* 监听逻辑 */
+  });
+</script>
+```
+
+<h4>`TRANSITION_PAGE_LOAD`</h4>
+
+<p>
+
+**类型：** `'astro:page-load'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[计划弃用]
+此常量计划在 v6版本中弃用。你仍可在项目中使用它们，但建议现在就更新代码。
+:::
+
+一个常量，用于在定义事件时避免直接以明文形式书写 `astro:page-load` 事件名称。
+
+```astro title="src/pages/index.astro" "TRANSITION_PAGE_LOAD"
+---
+---
+
+<script>
+  import { TRANSITION_PAGE_LOAD } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_PAGE_LOAD, () => {
+    /* 监听逻辑 */
+  });
+</script>
+```
+
+## `astro:transitions/client` 类型
+
+```ts
+import type {
+  Direction,
+  Fallback,
+  NavigationTypeString,
+  Options,
+  TransitionBeforePreparationEvent,
+  TransitionBeforeSwapEvent,
+} from 'astro:transitions/client';
+```
+
+### `Direction`
+
+<p>
+
+**类型：** `'forward' | 'back'`<br />
+<Since v="3.2.0" />
+</p>
+
+动画方向的联合类型：
+- `forward`：导航到历史记录中的下一页或新页面。
+- `back`：导航到历史记录中的上一页。
+
+### `Fallback`
+
+<p>
+
+**类型：** `'none' | 'animate' | 'swap'`<br />
+<Since v="3.2.0" />
+</p>
+
+在不支持视图过渡的浏览器中使用的一套回退策略：
+- `animate`：Astro 会在更新页面内容之前使用自定义属性来模拟视图过渡。
+- `swap`：Astro 将不会尝试对页面进行动画处理。相反，旧页面将被新页面立即替换。
+- `none`：Astro 不会执行任何动画页面过渡。相反，在不支持动画页面过渡的浏览器中，你将获得完整的页面导航。
+
+<ReadMore>学习如何使用 `ClientRouter` [控制回退策略](/zh-cn/guides/view-transitions/#回退控制)。</ReadMore>
+
+### `NavigationTypeString`
+
+<p>
+
+**类型：** `'push' | 'replace' | 'traverse'`<br />
+<Since v="3.6.0" />
+</p>
+
+受支持的历史导航事件的联合类型。
+
+### `TransitionBeforePreparationEvent`
+
+<p>
+
+**类型：** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+表示一个 [`astro:before-preparation` 事件](#astrobefore-preparation-事件)。这对于为监听器接收到的事件指定类型很有用：
+
+```astro title="src/pages/index.astro" "TransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_PREPARATION,
+    type TransitionBeforePreparationEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforePreparationEvent) {
+    /* 业务逻辑 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+### `TransitionBeforeSwapEvent`
+
+<p>
+
+**类型：** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+表示一个 [`astro:before-swap` 事件](#astrobefore-swap-事件)。这对于为监听器接收到的事件指定类型很有用：
+
+```astro title="src/pages/index.astro" "TransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_SWAP,
+    type TransitionBeforeSwapEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforeSwapEvent) {
+    /* 业务逻辑 */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
 ## 生命周期事件
 
 ### `astro:before-preparation` 事件
+
+<p>
+
+**类型：** [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent)<br />
+<Since v="3.6.0" />
+</p>
 
 使用视图过渡路由开始导航时触发的事件。此事件发生在任何请求之前，并且不会更改任何浏览器状态。
 
@@ -287,23 +631,35 @@ import { slide } from 'astro:transitions';
 - [`info`](#info)
 - [`sourceElement`](#sourceelement)
 - [`navigationType`](#navigationtype)
-- [`direction`](#direction)
+- [`direction`](#direction-1)
 - [`from`](#from)
 - [`to`](#to)
 - [`formData`](#formdata)
 - [`loader()`](#loader)
 
-有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-preparation)。
+<ReadMore>有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-preparation)。</ReadMore>
 
 ### `astro:after-preparation` 事件
+
+<p>
+
+**类型：** `Event`<br />
+<Since v="3.6.0" />
+</p>
 
 使用视图过渡路由加载导航中的下一个页面后触发的事件。
 
 此事件没有属性。
 
-有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astroafter-preparation)。
+<ReadMore>有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astroafter-preparation)。</ReadMore>
 
 ### `astro:before-swap` 事件
+
+<p>
+
+**类型：** [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent)<br />
+<Since v="3.6.0" />
+</p>
 
 在视图过渡中导航的下一个页面解析、准备并链接到 document 后，但在任何内容在 document 之间交换之前触发的事件。
 
@@ -313,21 +669,31 @@ import { slide } from 'astro:transitions';
 - [`info`](#info)
 - [`sourceElement`](#sourceelement)
 - [`navigationType`](#navigationtype)
-- [`direction`](#direction)
+- [`direction`](#direction-1)
 - [`from`](#from)
 - [`to`](#to)
 - [`viewTransition`](#viewtransition)
 - [`swap`](#swap)
 
-有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-swap)。
+<ReadMore>有关如何使用此事件的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#astrobefore-swap)。</ReadMore>
 
 ### `astro:after-swap` 事件
+
+<p>
+
+**类型：** `Event`
+</p>
 
 在视图过渡中导航的下一个页面内容交换后，但在视图过渡结束之前触发的事件。
 
 在触发此事件时，历史记录条目和滚动位置已经更新。
 
 ### `astro:page-load` 事件
+
+<p>
+
+**类型：** `Event`
+</p>
 
 在页面完成加载后触发的事件，无论是通过视图过渡导航还是浏览器原生导航。
 
@@ -337,11 +703,13 @@ import { slide } from 'astro:transitions';
 
 <p><Since v="3.6.0" /></p>
 
+以下属性在 [`astro:before-preparation`](#astrobefore-preparation-事件) 和 [`astro:before-swap`](#astrobefore-swap-事件) 事件中是通用的，但有些属性仅在其中一个事件中可用。
+
 #### `info`
 
 <p>
 
-**类型：**`URL`
+**类型：**`any`
 </p>
 
 在导航期间定义的任意数据。
@@ -372,26 +740,24 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**类型：**`'push' | 'replace' | 'traverse'`
+**类型：** [`NavigationTypeString`](#navigationtypestring)
 </p>
 
 正在发生的导航类型。
 - `push`: 正在为新页面创建一个新的 `NavigationHistoryEntry`。
 - `replace`: 当前的 `NavigationHistoryEntry` 正在被新页面的条目替换。
-- `traverse`: 没有创建 `NavigationHistoryEntry`。历史记录中的位置正在改变。
-  遍历的方向由 [`direction` 属性](#direction) 给出
+- `traverse`: 没有创建 `NavigationHistoryEntry`。历史记录中的位置正在改变。遍历的方向由 [`direction` 属性](#direction-1) 给出
 
 #### `direction`
 
 <p>
 
-**类型：**`Direction`
+**类型：**`string`
 </p>
 
 过渡的方向。
-- `forward`: 在历史记录中导航到下一个页面或新页面。
-- `back`: 在历史记录中导航到前一个页面。
-- 其他监听器可能设置的任何其他内容。
+* 在 [`astro:before-preparation` 事件](#astrobefore-preparation-事件) 中，可用于定义自定义方向。该属性可写，接受任意字符串。
+* 在 [`astro:before-swap` 事件](#astrobefore-swap-事件) 中，可用于检索过渡方向。该属性为只读，其值可以是预定义的 [`Direction`](#direction)，或任何由 `astro:before-preparation` 事件监听器设置的字符串。
 
 #### `from`
 
@@ -415,12 +781,11 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**类型：**`FormData | undefined`
+**类型：**`FormData | undefined`<br />
+**可用于：** [`astro:before-preparation` 事件](#astrobefore-preparation-事件)
 </p>
 
-一个用于 `POST` 请求的 `FormData` 对象。
-
-当此属性设置时，将使用给定的表单数据对象作为内容发送 `POST` 请求到 [`to` URL](#to)，而不是正常的 `GET` 请求。
+设置后，将向 [`to `URL] 发送一个 `POST` 请求，并以给定的 `FormData` 对象作为内容，而不是常规的 `GET` 请求。
 
 当提交一个带有视图过渡的 HTML 表单时，此字段会自动设置为表单中的数据。当使用 [`navigate()` 函数](#navigate) 时，此值与给定的选项相同。
 
@@ -428,7 +793,8 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**类型：**`() => Promise<void>`
+**类型：**`() => Promise<void>`<br />
+**可用于：** [`astro:before-preparation` 事件](#astrobefore-preparation-事件)
 </p>
 
 在导航过程中下个阶段的实现（加载下一个页面）。此实现可以覆盖以添加额外的行为。
@@ -437,7 +803,8 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**类型：**[`ViewTransition`](https://developer.mozilla.org/zh-CN/docs/Web/API/ViewTransition)
+**类型：**[`ViewTransition`](https://developer.mozilla.org/zh-CN/docs/Web/API/ViewTransition)<br />
+**可用于：** [`astro:before-swap` 事件](#astrobefore-swap-事件)
 </p>
 
 在导航过程中使用的视图过渡对象。在浏览器不支持 [视图过渡 API](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API) 的情况下，这是一个对象，实现了相同的 API 以方便使用，但没有 DOM 集成。
@@ -446,17 +813,16 @@ import { slide } from 'astro:transitions';
 
 <p>
 
-**类型：**`() => void`
+**类型：**`() => void`<br />
+**可用于：** [`astro:before-swap` 事件](#astrobefore-swap-事件)
 </p>
 
-document 交换逻辑的实现。
-
-有关如何构建自定义交换函数的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#构建自定义交换函数).
-
-默认情况下，此实现将按顺序调用以下函数：
+调用默认的文档替换逻辑。默认情况下，此实现将按以下顺序调用这些函数：
 
 1. [`deselectScripts()`](#deselectscripts)
 2. [`swapRootAttributes()`](#swaprootattributes)
 3. [`swapHeadElements()`](#swapheadelements)
 4. [`saveFocus()`](#savefocus)
 5. [`swapBodyElement()`](#swapbodyelement)
+
+<ReadMore>有关如何构建自定义交换函数的详细信息，请参阅 [视图过渡指南](/zh-cn/guides/view-transitions/#构建自定义交换函数)。</ReadMore>
