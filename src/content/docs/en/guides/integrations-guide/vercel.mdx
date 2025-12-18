@@ -259,7 +259,9 @@ By default, an ISR function caches for the duration of your deployment. You can 
 
 ##### Time-based invalidation
 
-You can change the length of time to cache routes this by configuring an `expiration` value in seconds:
+You can change the length of time to cache routes by configuring an `expiration` value in seconds.
+
+By default or when using `false`, the pages will stay cached as long as the current deployment is in production. This means cached ISR pages can only be invalidated through [on-demand invalidation](#on-demand-invalidation). Note that in this case, any custom `Cache-Control` headers returned from your pages (for example, if you want to have shorter TTLs on pages with third-party API calls) won't work. To make them work, you have to set an `expiration` time.
 
 ```js title="astro.config.mjs" {7-10}
 import { defineConfig } from 'astro/config';
@@ -276,11 +278,10 @@ export default defineConfig({
 });
 ```
 
-##### Excluding paths from caching
+##### On-demand invalidation
 
-To implement Vercel's [Draft mode](https://vercel.com/docs/build-output-api/v3/features#draft-mode), or [On-Demand Incremental Static Regeneration (ISR)](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr), you can create a bypass token and provide it to the `isr` config along with any routes to exclude from caching:
-
-```js title="astro.config.mjs" {6-15}
+To programmatically invalidate cached pages, create a bypass token and provide it to the `isr` config:
+```js title="astro.config.mjs" {6-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
@@ -289,11 +290,33 @@ export default defineConfig({
         isr: {
             // A secret random string that you create.
             bypassToken: "005556d774a8",
+        }
+    })
+})
+```
+
+You can then invalidate a cached page by sending a HEAD or GET request to the page URL with the `x-prerender-revalidate` header set to your bypass token. See [Vercel's on-demand ISR documentation](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr) for details.
+
+
+##### Draft mode
+
+To bypass the ISR cache and render fresh content (e.g., for previewing unpublished CMS content), use [Vercel's Draft mode](https://vercel.com/docs/build-output-api/v3/features#draft-mode). This also requires a `bypassToken` configured as shown above.
+
+##### Excluding paths from caching
+
+Use the `exclude` option to prevent specific routes from being cached by ISR. These paths will always be rendered fresh on each request:
+```js title="astro.config.mjs" {6-13}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+    adapter: vercel({
+        isr: {
             // Paths that will always be served fresh.
             exclude: [
-              '/preview', 
-              '/auth/[page]',
-              /^\/api\/.+/ // Regular expressions supported since @astrojs/vercel@v8.1.0
+                '/preview',
+                '/auth/[page]',
+                /^\/api\/.+/ // Regular expressions supported since @astrojs/vercel@v8.1.0
             ]
         }
     })
