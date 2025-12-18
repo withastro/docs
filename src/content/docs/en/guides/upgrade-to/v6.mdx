@@ -24,19 +24,19 @@ Update your project's version of Astro to the latest version using your package 
   <Fragment slot="npm">
   ```shell
   # Upgrade Astro and official integrations together
-  npx @astrojs/upgrade
+  npx @astrojs/upgrade alpha
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
   # Upgrade Astro and official integrations together
-  pnpm dlx @astrojs/upgrade
+  pnpm dlx @astrojs/upgrade alpha
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
   # Upgrade Astro and official integrations together
-  yarn dlx @astrojs/upgrade
+  yarn dlx @astrojs/upgrade alpha
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -110,6 +110,72 @@ Integration and adapter maintainers should pay special attention to changes affe
 - [generating routes with `RouteData`](#removed-routedatagenerate-adapter-api)
 - [routes with percent-encoded percent signs (e.g. `%25`)](#removed-percent-encoding-in-routes)
 - [`astro:ssr-manifest` virtual module](#removed-astrossr-manifest-virtual-module-integration-api)
+
+### Zod 4
+
+Astro v6.0 upgrades to Zod 4, a major dependency update that may require changes to custom Zod schemas in your project.
+
+#### What should I do?
+
+If you have custom Zod schemas in your `content.config.ts` or other configuration files, you'll need to update them for Zod 4. Refer to the [Zod migration guide](https://zod.dev/v4/changelog) for detailed changes in the Zod API.
+
+Notably, [many `string()` formats have been deprecated](https://zod.dev/v4/changelog#deprecates-email-etc) (e.g. `z.string().email()`, `z.string.url()`), and their APIs have been moved to the top-level `z` namespace. You may need to update how you validate form input for your Astro Actions:
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+email: z.string().email(),
+email: z.email(),
+```
+
+Additionally, Zod has made some [changes to handling error messages](https://zod.dev/v4/changelog#error-customization) and has dropped support for a custom `errorsMap` which was useful to redefine or translate your error messages. You may need to update any custom error messages:
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+z.string().min(5, { message: "Too short." });
+z.string().min(5, { error: "Too short." });
+```
+
+Also, if you use [`.default()` with transforms](https://zod.dev/v4/changelog#default-updates), you may need to update your schemas. In Zod 4, default values must match the output type (after transforms), not the input type. The default value short-circuits parsing when the input is `undefined`:
+
+```ts title="src/content.config.ts" del={5-6} ins={7-8}
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  schema: z.object({
+    // Zod 3: default matched input type (string)
+    views: z.string().transform(Number).default("0"),
+    // Zod 4: default must match output type (number)
+    views: z.string().transform(Number).default(0),
+  })
+});
+```
+
+For the old behavior where defaults are parsed, use the new `.prefault()` method.
+
+These are only some of the many changes upgrading from Zod 3 to Zod 4. If you encounter any issues with your Zod schemas after upgrading to Astro 6, please consult the [Zod 4 changelog](https://zod.dev/v4/changelog) for complete upgrade guidance.
+
+Additionally, a [community codemod](https://github.com/nicoespeon/zod-v3-to-v4), which can potentially automate some of these changes when migrating from Zod 3 to Zod 4, is also available.
+
+You can ensure you're the same version of Zod that Astro uses internally by [importing Zod from `astro/zod`](#deprecated-astroschema-and-z-from-astrocontent).
+
+```ts
+import { z } from 'astro/zod';
+```
+
+<ReadMore>See more about [the `astro/zod` module](/en/reference/modules/astro-zod/).</ReadMore>
+
+### Official Astro integrations
+
+All of [Astro's official server adapters](/en/guides/on-demand-rendering/#server-adapters) have also updated to a new major version to accompany the upgrade to Vite v7.0 with Vite's Environment API as the development server and production bundler.
+
+In particular, Astro's Cloudflare adapter has undergone significant changes, and breaking changes to your existing Cloudflare setup are expected.
+
+#### What should I do?
+
+If you are using an Astro adapter for on-demand rendering or other platform-specific features, please check your specific adapter's changelog for upgrade guidance:
+
+- [`@astrojs/cloudflare` CHANGELOG](https://github.com/withastro/astro/blob/next/packages/integrations/cloudflare/CHANGELOG.md)
+- [`@astrojs/netlify` CHANGELOG](https://github.com/withastro/astro/blob/next/packages/integrations/netlify/CHANGELOG.md)
+- [`@astrojs/node` CHANGELOG](https://github.com/withastro/astro/blob/next/packages/integrations/node/CHANGELOG.md)
+- [`@astrojs/vercel` CHANGELOG](https://github.com/withastro/astro/blob/next/packages/integrations/vercel/CHANGELOG.md)
 
 ## Legacy
 
@@ -251,7 +317,7 @@ Projects now containing these removed features will be unable to build, and ther
 
 In Astro 5.x, it was still possible to use [the original Content Collections API first introduced in Astro v2.0](https://astro.build/blog/introducing-content-collections/), **either through a `legacy` configuration flag or via built-in backwards compatibility**. These methods allowed you to upgrade to Astro v5 even if you were not yet ready or able to update your existing content collections to those powered by the new Content Layer API.
 
-**Astro v6.0 removes this previously deprecated Content Collections API support entirely, including the `legacy.collections` flag **and some existing backwards compatibility that was not previously behind a flag**. All content collections must now use [the Content Layer API introduced in Astro v5.0](https://astro.build/blog/content-layer-deep-dive/) that powers all content collections. **No backwards compatibility support is available.**
+Astro v6.0 removes this previously deprecated Content Collections API support entirely, including the `legacy.collections` flag **and some existing backwards compatibility that was not previously behind a flag**. All content collections must now use [the Content Layer API introduced in Astro v5.0](https://astro.build/blog/content-layer-deep-dive/) that powers all content collections. **No backwards compatibility support is available.**
 
 #### What should I do?
 
@@ -424,7 +490,7 @@ const result = await emitESMImage(imageId, false, false);
 const result = await emitImageMetadata(imageId);
 ```
 
-<ReadMore>Read more about [`emitImageMetadata()`](/en/reference/image-service-reference/#emitimagemetadata).</ReadMore>
+<ReadMore>Read more about [`emitImageMetadata()`](/en/reference/modules/astro-assets/#emitimagemetadata).</ReadMore>
 
 ### Removed: `Astro.glob()`
 
@@ -851,6 +917,18 @@ export default defineConfig({
 })
 ```
 
+If you are using manual routing, you may also need to update your middleware configuration:
+
+```js title="src/middleware.js" del={4} ins={5}
+import { middleware } from "astro:i18n"; // Astro's own i18n routing config
+
+export const onRequest = middleware({
+  prefixDefaultLocale: false,
+  prefixDefaultLocale: true,
+  redirectToDefaultLocale: true,
+})
+```
+
 <ReadMore>Learn more about [Internationalization routing](/en/guides/internationalization/#routing).</ReadMore>
 
 ### Changed: `<script>` and `<style>` tags are rendered in the order they are defined
@@ -895,7 +973,7 @@ Review your `<script>` and `<style>` tags to make sure they behave as desired. Y
 
 ## Breaking Changes
 
-The following changes are considered breaking changes in Astro v5.0. Breaking changes may or may not provide temporary backwards compatibility. If you were using these features, you may have to update your code as recommended in each entry.
+The following changes are considered breaking changes in Astro v6.0. Breaking changes may or may not provide temporary backwards compatibility. If you were using these features, you may have to update your code as recommended in each entry.
 
 ### Changed: endpoints with a file extension cannot be accessed with a trailing slash
 
@@ -1023,7 +1101,7 @@ If you have manual links to headings, you may need to update the anchor link val
 will now generate the following HTML with a trailing hyphen in the heading `id`:
 
 ```html ins="-"
-<h2 id="picture-"><code>&lt;Picture /&gt;</h2>
+<h2 id="picture-"><code>&lt;Picture /&gt;</code></h2>
 ```
 
 and must now be linked to as:
@@ -1318,9 +1396,11 @@ function myLoader() {
 
 <ReadMore>Learn more about [defining loader schema types](/en/reference/content-loader-reference/#the-loader-object).</ReadMore>
 
+{/* 
 ## Community Resources
 
-Know a good resource for Astro v5.0? [Edit this page](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v6.mdx) and add a link below!
+Know a good resource for Astro v6.0? [Edit this page](https://github.com/withastro/docs/edit/main/src/content/docs/en/guides/upgrade-to/v6.mdx) and add a link below!
+*/}
 
 ## Known Issues
 
