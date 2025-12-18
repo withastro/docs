@@ -41,27 +41,31 @@ Some drivers may need extra packages to be installed. Some drivers may also requ
 
 A session driver is made of two parts:
 
-- The [driver config](#the-session-driver-config), which lets Astro know what implementation to use at runtime and what options to forward
+- The [driver config](#the-session-driver-config), which lets Astro know what implementation to use at runtime and what config to forward
 - The [driver implementation](#the-session-driver-implementation), which handles the storage logic at runtime
 
 ### The session driver config
 
-The following example registers a custom driver in the Astro config:
+A session driver config is a function that accepts an optional [config](#config) and returns a `SessionDriverConfig` object, containing the aforementioned config and the runtime [entrypoint](#entrypoint).
+
+The following example defines a memory driver config:
 
 ```ts title="driver/config.ts"
 import type { SessionDriverConfig } from 'astro'
 
-export interface Options {
+export interface Config {
     max?: number;
 }
 
-export function memoryDriver(options: Options = {}): SessionDriverConfig {
+export function memoryDriver(config: Config = {}): SessionDriverConfig {
     return {
         entrypoint: new URL('./runtime.js', import.meta.url),
-        options,
+        config,
     }
 }
 ```
+
+It is then registered in the Astro config:
 
 ```ts title="astro.config.ts"
 import { defineConfig } from 'astro/config'
@@ -76,37 +80,39 @@ export default defineConfig({
 })
 ```
 
-Although the `driver` is an object, we recommend providing driver as functions so you can type its options.
-
 #### `entrypoint`
 
 <p>
 
 **Type:** `string | URL`
+<Since v="6.0.0" />
 </p>
 
 Defines the entrypoint for the [driver implementation](#the-session-driver-implementation).
 
-#### `options`
+#### `config`
 
 <p>
 
 **Type:** `Record<string, any> | undefined`
+<Since v="6.0.0" />
 </p>
 
-Defines the serializable options passed to [driver implementation](#the-session-driver-implementation) at runtime.
+Defines the serializable config passed to [driver implementation](#the-session-driver-implementation) at runtime.
 
 ### The session driver implementation
+
+A session driver implementation is a module that returns a default function. It accepts the driver [config](#config), and returns a `SessionDriver`. It is responsible for [storing](#setitem), [retrieving](#getitem) and [deleting][#removeitem] data when using session methods such as `context.session.set()`.
 
 The following example implements a memory driver:
 
 ```ts title="driver/runtime.ts"
 import type { SessionDriver } from 'astro'
-import type { Options } from './config'
+import type { Config } from './config'
 import { LRUCache } from 'lru-cache'
 
-export default function(options: Options): SessionDriver {
-    const cache = new LRUCache({ max: options.max })
+export default function(config: Config): SessionDriver {
+    const cache = new LRUCache({ max: config.max })
     return {
         setItem: async (key, value) => {
             cache.set(key, value)
@@ -121,13 +127,12 @@ export default function(options: Options): SessionDriver {
 }
 ```
 
-The implementatio entrypoint must return a default function that accepts the driver options, and return a `SessionDriver`.
-
 #### `setItem()`
 
 <p>
 
 **Type:** `(key: string, value: any) => Promise<void>`
+<Since v="6.0.0" />
 </p>
 
 Defines a function that sets session data by key.
@@ -137,6 +142,7 @@ Defines a function that sets session data by key.
 <p>
 
 **Type:** `(key: string) => Promise<any>`
+<Since v="6.0.0" />
 </p>
 
 Defines a function that retrieves session data by key.
@@ -146,47 +152,39 @@ Defines a function that retrieves session data by key.
 <p>
 
 **Type:** `(key: string) => Promise<void>`
+<Since v="6.0.0" />
 </p>
 
 Defines a function that removes session data by key.
 
 ## Unstorage compatibility
 
-The `SessionDriver` type is compatible with unstorage's driver type. That means you can use an unstorage export as entrypoint:
+Untorage driver types are compatible with Astro's `SessionDriver` type.
 
-```ts title="driver/config.ts"
+That means you can use an unstorage package export as an [entrypoint](#entrypoint). For example:
+
+```ts title="driver/config.ts" {5}
 import type { SessionDriverConfig } from 'astro'
 
 export function configuredRedisDriver(): SessionDriverConfig {
     return {
         entrypoint: 'unstorage/drivers/redis',
-        options: {
+        config: {
             tls: true
         }
     }
 }
 ```
 
-```ts title="astro.config.ts"
-import { defineConfig } from 'astro/config'
-import { configuredRedisDriver } from './driver/config'
-
-export default defineConfig({
-    session: {
-        driver: configuredRedisDriver()
-    }
-})
-```
-
 Or directly in the implementation. For example:
 
-```ts title="driver/runtime.ts"
+```ts title="driver/runtime.ts" {2}
 import type { SessionDriver } from 'astro'
 import redisDriver from "unstorage/drivers/redis";
 
-export default function(options): SessionDriver {
+export default function(config): SessionDriver {
     return redisDriver({
-        ...options,
+        ...config,
         tls: true
     })
 }
