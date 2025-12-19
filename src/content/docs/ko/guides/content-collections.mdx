@@ -64,16 +64,19 @@ Astro v5.0에서는 콘텐츠 컬렉션을 정의하고 쿼리하기 위한 Cont
 
 ```ts title="src/content.config.ts"
 // 1. `astro:content`에서 유틸리티 가져오기
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 
 // 2. 로더 가져오기
 import { glob, file } from 'astro/loaders';
 
-// 3. 컬렉션 정의
+// 3. Zod 가져오기
+import { z } from 'astro/zod';
+
+// 4. 컬렉션 정의
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. 컬렉션을 등록하기 위해 단일 `collections` 객체 내보내기
+// 5. 컬렉션을 등록하기 위해 단일 `collections` 객체 내보내기
 export const collections = { blog, dogs };
 ```
 
@@ -89,9 +92,10 @@ Astro는 로컬 콘텐츠를 가져오기 위한 [두 가지 내장 로더 함�
 
 [`file()` 로더](/ko/reference/content-loader-reference/#file-로더)는 단일 로컬 파일에서 여러 항목을 생성합니다. 파일의 각 항목에는 고유한 `id` 키 속성이 있어야 합니다. 이 로더는 파일의 `base` 파일 경로를 인자로 받고 자동으로 분석할 수 없는 파일을 위해 선택적으로 [`parser` 함수](#parser-함수)를 인자로 받습니다. 데이터 파일을 객체 배열로 구문 분석할 수 있는 경우 이 로더를 사용합니다.
 
-```ts  title="src/content.config.ts" {5,9}
-import { defineCollection, z } from 'astro:content';
+```ts  title="src/content.config.ts" {6,10}
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders'; // 레거시 API에서는 사용 불가능
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -208,11 +212,12 @@ Astro 통합이나 Vite 플러그인을 만드는 것처럼, [로더를 NPM 패�
 Astro가 새 스키마 또는 업데이트된 스키마를 인식하려면 개발 서버를 다시 시작하거나 [콘텐츠 레이어 동기화](/ko/reference/cli-reference/#astro-dev) (<code>s + enter</code>)를 통해 `astro:content` 모듈을 정의해야 할 수도 있습니다.
 :::
 
-컬렉션 항목의 모든 프런트매터나 데이터 속성은 Zod 데이터 타입을 사용하여 정의되어야 합니다:
+컬렉션 항목의 모든 프런트매터나 데이터 속성은 [Zod의 데이터 타입](/ko/reference/modules/astro-zod/#일반적인-데이터-타입-유효성-검사기)을 사용하여 정의되어야 합니다.
 
-```ts title="src/content.config.ts" {6-11,15-19}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // 레거시 API에서는 사용 불가능
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -239,43 +244,13 @@ export const collections = { blog, dogs };
 
 Astro는 콘텐츠 스키마를 위해 [Zod](https://github.com/colinhacks/zod)를 사용합니다. Astro는 Zod를 통해 컬렉션의 모든 파일의 데이터를 검증하고, 프로젝트에서 콘텐츠를 쿼리할 때 자동으로 TypeScript 타입을 제공할 수 있습니다.
 
-Astro에서 Zod를 사용하려면 `"astro:content"`에서 `z` 유틸리티를 가져옵니다. 이는 Zod 라이브러리를 다시 내보낸 것으로, Zod의 모든 기능을 지원합니다.
+Astro에서 Zod를 사용하려면 `"astro/zod"`에서 `z` 유틸리티를 가져와야 합니다. 이는 Zod 라이브러리를 다시 내보낸 것으로, Zod의 모든 기능을 지원합니다.
 
-```ts
-// 예시: 자주 사용되는 Zod 데이터 타입 치트 시트
-import { z, defineCollection } from 'astro:content';
-
-defineCollection({
-  schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    author: z.string().default('Anonymous'),
-    language: z.enum(['en', 'es']),
-    tags: z.array(z.string()),
-    footnote: z.string().optional(),
-
-    // YAML에서 따옴표로 감싸지 않은 날짜는 Date 객체로 해석됩니다
-    publishDate: z.date(), // e.g. 2024-09-17
-
-    // 날짜 문자열(예: "2022-07-08")을 Date 객체로 변환
-    updatedDate: z.string().transform((str) => new Date(str)),
-
-    authorContact: z.string().email(),
-    canonicalURL: z.string().url(),
-  })
-})
-```
-
-<ReadMore>[Zod의 README](https://github.com/colinhacks/zod)에서 Zod의 작동 방식과 사용 가능한 기능에 대한 전체 문서를 확인하세요.</ReadMore>
+<ReadMore>일반적인 데이터 타입 치트 시트와 Zod의 작동 방식 및 사용 가능한 기능에 대해 알아보려면 [`z` 유틸리티 참조](/ko/reference/modules/astro-zod/)를 확인하세요.</ReadMore>
 
 ##### Zod 스키마 메서드
 
-모든 [Zod 스키마 메서드](https://zod.dev/?id=schema-methods)(예: `.parse()`, `.transform()`)는 일부 제한사항과 함께 사용할 수 있습니다. 특히 `image().refine()`을 사용한 이미지의 사용자 정의 유효성 검사는 지원되지 않습니다.
+모든 [Zod 스키마 메서드](/ko/reference/modules/astro-zod/#zod-메서드-사용하기)(예: `.parse()`, `.transform()`)는 일부 제한사항과 함께 사용할 수 있습니다. 특히 `image().refine()`을 사용한 이미지의 사용자 정의 유효성 검사는 지원되지 않습니다.
 
 #### 컬렉션 참조 정의
 
@@ -286,8 +261,9 @@ Collections API의 [`reference()` 함수](/ko/reference/modules/astro-content/#r
 일반적인 예시로는 JSON으로 저장된 재사용 가능한 작성자 프로필을 참조하거나, 같은 컬렉션에 저장된 관련 게시물 URL을 참조하는 블로그 게시물이 있습니다:
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference, z } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
