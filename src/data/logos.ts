@@ -17,6 +17,7 @@ export const logos = LogoCheck({
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
 	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
+	codeberg: { file: 'codeberg.svg',padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
 	contentful: { file: 'contentful.svg', padding: '.05em' },
