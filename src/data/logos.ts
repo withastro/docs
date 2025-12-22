@@ -34,6 +34,7 @@ export const logos = LogoCheck({
 	docusaurus: { file: 'docusaurus.svg', padding: '.225em' },
 	drupal: { file: 'drupal.svg', padding: '.12em' },
 	eleventy: { file: 'eleventy.svg', padding: '.075em .05em .05em' },
+	'edgeone-pages': { file: 'edgeone-pages.svg', padding: '.1875em' },
 	firebase: { file: 'firebase.svg', padding: '.1875em' },
 	fleek: { file: 'fleek.svg', padding: '0.1000em' },
 	flightcontrol: { file: 'flightcontrol.svg', padding: '.225em' },
