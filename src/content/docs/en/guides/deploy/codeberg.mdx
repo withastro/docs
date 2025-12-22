@@ -1,0 +1,117 @@
+---
+title: 部署你的 Astro 站点至 Codeberg Pages
+description: 如何使用 Codeberg Pages 将你的 Astro 网站部署到网络上。
+sidebar:
+  label: Codeberg Pages
+type: deploy
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+你可以使用 [Codeberg Pages](https://codeberg.page/) 直接从 [Codeberg](https://codeberg.org) 上的仓库部署 Astro 网站。
+
+## 如何部署
+
+你可以使用 Codeberg CI 来自动构建和部署站点，从而将 Astro 网站部署到 Codeberg Pages。为此，你的源代码必须托管在 Codeberg 上，并完成以下操作：
+
+<Steps>
+  <ol>
+    <li>
+      在 <a href="https://codeberg.org/Codeberg-e.V./requests/issues">这里</a> 提起一个 Issue，标签选择 <code>ci</code>，<code>Expected Resource Usage</code> 选 <code>medium</code>，在 <code>I would also like the following users to be added</code> 填入 <code>@你的 Codeberg 用户名</code>，其余按需填写，等待审批通过。
+    </li>
+
+    <li>
+      在仓库根目录中新建 <code>.forgejo</code> 文件夹，并在其下新建 <code>workflows</code> 文件夹（即路径 <code>.forgejo/workflows/</code>）。
+    </li>
+
+    <li>
+      在 <code>.forgejo/workflows</code> 中添加一个名为 <code>astro.yaml</code> 的工作流文件，示例内容如下：
+      ```yaml
+      name: Deploy Astro site to Pages
+
+      on:
+        push:
+          branches:
+            - main    # 只在推送到 main 分支时触发
+        workflow_dispatch:  # 允许手动触发
+
+      jobs:
+        build:
+          runs-on: codeberg-tiny-lazy
+          container:
+            image: node:20  # 使用 Node.js 20 作为基础镜像
+          steps:
+            - name: 检查 public/.domains 文件
+              run: |
+                git ls-files public/.domains || echo ".domains not tracked"
+                ls -la public/ || true
+                ls -la public/.domains || echo ".domains not found"
+
+            - name: 检出代码
+              uses: https://code.forgejo.org/actions/checkout@v4
+              with:
+                submodules: recursive
+                fetch-depth: 0
+
+            - name: 安装依赖
+              run: npm install
+
+            - name: 构建 Astro 静态文件
+              run: npm run build  # 使用 Astro 的构建命令
+
+            - name: 上传构建产物
+              uses: https://code.forgejo.org/actions/upload-artifact@v3
+              with:
+                name: Generated files
+                path: dist/  # Astro 默认输出目录
+                include-hidden-files: true
+
+        deploy:
+          needs: [build]
+          runs-on: codeberg-tiny-lazy
+          steps:
+            - name: 检出代码
+              uses: https://code.forgejo.org/actions/checkout@v4
+              with:
+                submodules: recursive
+                fetch-depth: 0
+
+            - name: 切换到 pages 分支并清理
+              run: |
+                # 如果 pages 分支不存在则创建 pages 分支
+                git checkout pages || git switch --orphan pages
+                # 删除除了 .git 和 LICENSE（如需保留其他文件可调整）以外的所有文件
+                rm -Rfv $(ls -A | egrep -v '^(\.git|LICENSE)$' || true)
+
+            - name: 下载构建产物
+              uses: https://code.forgejo.org/actions/download-artifact@v3
+              with:
+                name: Generated files
+
+            - name: 发布网站
+              run: |
+                git config user.email "codeberg-ci@example.com"
+                git config user.name "Codeberg CI"
+                echo "=== 正在提交的文件 ==="
+                ls -la
+                git add .
+                # 使用本地提交的 short sha 作为提交信息，避免依赖特定 CI 环境变量
+                SHA=$(git rev-parse --short HEAD || echo "ci-build")
+                git commit --allow-empty -m "Codeberg build for ${SHA}"
+                git push origin pages
+      ```
+    </li>
+
+    <li>
+      在项目的 <code>public</code> 目录下创建 <code>.domains</code> 文件，内容为你的默认域名，例如：
+      <pre><code>branches.repo.username.codeberg.page</code></pre>
+      （示例格式：<code>分支.仓库名.用户名.codeberg.page</code>）。如需添加自定义域名，请参考 Codeberg Pages 的文档：<https://codeberg.org/Codeberg/pages-server/src/branch/main/README.md>。
+    </li>
+
+    <li>
+      提交并推送更改到 Codeberg。Codeberg CI 在构建并上传 artifacts 后会将生成的静态文件推送到 <code>pages</code> 分支，从而由 Codeberg Pages 发布你的网站。
+    </li>
+  </ol>
+</Steps>
+
+你的网站现在应该可以发布了！当你将更改推送到 Astro 项目的仓库时，Codeberg CI 流水线将自动为你部署它们。
