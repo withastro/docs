@@ -1,0 +1,775 @@
+---
+title: アクション (Actions)
+description: どこからでも呼び出せる型安全なサーバー関数を作成する方法を学びます。
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astroアクションを使用すると、型安全なバックエンド関数を定義し、呼び出すことができます。アクションは、データのフェッチ、JSONのパース、および入力のバリデーションを自動的に行います。これにより、[APIエンドポイント](/ja/guides/endpoints/)を使用する場合と比較して、ボイラープレートを大幅に削減できます。
+
+クライアントとサーバー間のシームレスな通信のために、APIエンドポイントの代わりにアクションを使用してください。主なメリットは以下の通りです：
+
+- [Zodバリデーション](/ja/reference/modules/astro-zod/)を使用して、JSONやフォームデータの入力を自動的にバリデーションします。
+- クライアント、さらには[HTMLフォームのaction属性](#htmlフォームのアクションから呼び出す)からも呼び出し可能な型安全な関数を生成します。手動で `fetch()` を呼び出す必要はありません。
+- [`ActionError`](/ja/reference/modules/astro-actions/#actionerror) オブジェクトを使用して、バックエンドのエラーを標準化します。
+
+
+
+## 基本的な使い方
+
+アクションは、`src/actions/index.ts` からエクスポートされる `server` オブジェクト内で定義します：
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+
+```
+
+定義したアクションは、`astro:actions` モジュールから関数として利用可能です。`actions` をインポートして、[UIフレームワークのコンポーネント](/ja/guides/framework-components/)内や、[フォームのPOSTリクエスト](#htmlフォームのアクションから呼び出す)、またはAstroコンポーネントの `<script>` タグ内で呼び出します。
+
+アクションを呼び出すと、JSONシリアル化された結果を含む `data` 、またはスローされたエラーを含む `error` のいずれかを持つオブジェクトが返されます。
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### 最初のアクションを作成する
+
+以下の手順に従って、アクションを定義し、Astroページの `script` タグ内で呼び出してみましょう。
+
+<Steps>
+
+1. `src/actions/index.ts` ファイルを作成し、`server` オブジェクトをエクスポートします。
+    ```ts title="src/actions/index.ts"
+    export const server = {
+      // アクションの宣言
+    }
+    ```
+
+2. `astro:actions` から `defineAction()` ユーティリティを、`astro/zod` から `z` オブジェクトをインポートします。
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      // アクションの宣言
+    }
+    ```
+
+3. `defineAction()` ユーティリティを使用して `getGreeting` アクションを定義します。`input` プロパティは [Zodスキーマ(EN)](/ja/reference/modules/astro-zod/#common-data-type-validators) を使用して入力パラメータをバリデーションするために使用され、`handler()` 関数にはサーバーで実行されるバックエンドロジックを含めます。
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `こんにちは、${input.name}さん！`
+        }
+      })
+    }
+    ```
+
+
+4. ボタンをクリックしたときに `getGreeting` アクションを使用してテキスト文を取得するAstroコンポーネントを作成します。
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>テキスト文を取得</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // アクションからのテキスト文をアラートで表示します
+    });
+    </script>
+    ```
+
+
+5. アクションを使用するには、`astro:actions` から `actions` をインポートし、クリックの `handler` 内で `actions.getGreeting()` を呼び出します。`name` オプションはサーバー上のアクションの `handler()` に送信され、エラーがなければ結果が `data` プロパティとして返されます。
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>テキスト文を取得</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // アクションから取得したテキスト文をアラートで表示
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>[`defineAction()`](/ja/reference/modules/astro-actions/#defineaction) とそのプロパティの詳細については、アクションAPIドキュメントを参照してください。</ReadMore>
+
+## アクションの整理
+
+プロジェクト内のすべてのアクションは、`src/actions/index.ts` ファイルの `server` オブジェクトからエクスポートする必要があります。アクションはインラインで定義することも、別のファイルに定義を移動してインポートすることも可能です。また、関連する関数をネストしたオブジェクトとしてグループ化することもできます。
+
+例えば、ユーザー関連のアクションをまとめるために `src/actions/user.ts` を作成し、`getUser` と `createUser` の定義を一つの `user` オブジェクトの中にネストできます。
+
+```ts title="src/actions/user.ts"
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+
+```
+
+次に、この `user` オブジェクトを `src/actions/index.ts` にインポートし、他のアクションと並んで `server` オブジェクトのトップレベルキーとして追加できます。
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+
+```
+
+これで、すべてのユーザーアクションが `actions.user` オブジェクトから呼び出せます。
+
+- `actions.user.getUser()`
+- `actions.user.createUser()`
+
+## 返されたデータの処理
+
+アクションは、`handler()` の型安全な戻り値を含む `data` 、またはバックエンドのエラーを含む `error` のいずれかを持つオブジェクトを返します。エラーは、`input` プロパティによるバリデーションエラー、または `handler()` 内でスローされたエラーに由来する可能性があります。
+
+アクションは、[Devalueライブラリ](https://github.com/Rich-Harris/devalue)を使用して、Date、Map、Set、URLなどを処理できるカスタムデータ形式を返します。そのため、通常のJSONのようにネットワークレスポンスを簡単にプレビューすることはできません。デバッグの際は、代わりにアクションから返された `data` オブジェクトを検査してください。
+
+<ReadMore>詳細は [`handler()` APIリファレンス](/ja/reference/modules/astro-actions/#handler-property) を参照してください。</ReadMore>
+
+### エラーのチェック
+
+`data` プロパティを使用する前に、`error` が存在するかどうかを確認するのがベストプラクティスです。これによりエラーを事前に処理でき、`undefined` のチェックなしで `data` が定義されていることが保証されます。
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // エラーケースの処理
+  return;
+}
+// `data` を使用
+
+```
+
+### エラーチェックなしで `data` に直接アクセスする
+
+プロトタイピング中や、エラーをキャッチしてくれるライブラリを使用している場合など、エラーハンドリングをスキップしたいときは、アクション呼び出し時に `.orThrow()` プロパティを使用して、エラーを返す代わりにエラーをスローさせます。これにより、アクションの `data` が直接返されます。
+
+以下の例では、投稿にいいねをした後、アクションの `handler` から更新されたいいねの数を `number` として返す `likePost()` アクションを呼び出しています：
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ type: number
+```
+
+### アクション内でのバックエンドエラーの処理
+
+データベースのエントリが見つからない場合の `NOT_FOUND` や、ユーザーがログインしていない場合の `UNAUTHORIZED` など、アクションの `handler()` からエラーをスローするには、提供されている `ActionError` を使用できます。これには、単に `undefined` を返すよりも2つの大きな利点があります。
+
+- `404 - Not found` や `401 - Unauthorized` といったステータスコードを設定できます。これにより、開発時や本番環境でのエラーデバッグにおいて、各リクエストのステータスコードを確認できるようになります。
+- アプリケーションコードでは、すべてのエラーがアクション結果の `error` オブジェクトに渡されます。これにより、データに対する `undefined` チェックが不要になり、何が問題だったかに応じてユーザーに適切なフィードバックを表示できます。
+
+#### `ActionError` の作成
+
+エラーをスローするには、`astro:actions`モジュールから[`ActionError()`クラス](/ja/reference/modules/astro-actions/#actionerror)をインポートします。人間が読める形式のステータス`code`（例：`"NOT_FOUND"`や`"BAD_REQUEST"`）と、オプションでエラーの詳細情報を提供する`message`を渡します。
+
+この例では、「user-session」クッキーを確認し、ログインしていない場合に `likePost` アクションからエラーをスローしています：
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro/zod";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "ユーザーはログインしている必要があります。",
+        });
+      }
+      // それ以外の場合、投稿にいいねをする
+    },
+  }),
+};
+```
+
+#### `ActionError` の処理
+
+このエラーを処理するには、アプリケーションからアクションを呼び出し、`error` プロパティが存在するかどうかを確認します。このプロパティは `ActionError` 型であり、設定した `code` と `message` を含んでいます。
+
+この例では、`LikeButton.tsx` コンポーネントがクリックされたときに `likePost()` アクションを呼び出します。認証エラーが発生した場合、`error.code` 属性を使用してログインリンクを表示するかどうかを決定します。
+
+```tsx title=src/components/LikeButton.tsx ins="if (error?.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">いいねをするにはログインしてください。</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // 予期しないエラーのための早期リターン
+        else if (error) return;
+        // いいね数を更新
+      }}>
+        いいね
+      </button>
+    </>
+  )
+}
+
+```
+
+### クライアントサイドのリダイレクト
+
+クライアントからアクションを呼び出す際、`react-router` のようなクライアントサイドライブラリと統合したり、Astroの [`navigate()` 関数](/ja/guides/view-transitions/#trigger-navigation) を使用して、アクションが成功したときに新しいページにリダイレクトしたりできます。
+
+この例では、`logout` アクションが正常に完了した後、ホームページに遷移します：
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      ログアウト
+    </button>
+  );
+}
+
+```
+
+## アクションでフォームデータを受け取る
+
+アクションはデフォルトでJSONデータを受け入れます。HTMLフォームからフォームデータを受け入れるには、`defineAction()` の呼び出しで `accept: 'form'` を設定します：
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+
+```
+
+### フォーム入力でのバリデータ使用
+
+アクションが[フォームデータを受け入れるように設定されている](/ja/reference/modules/astro-actions/#accept-property)場合、任意のZodバリデータを使用してフィールドをバリデーションできます（例：日付入力のための `z.coerce.date()`）。`.refine()`、`.transform()`、`.pipe()` などの拡張関数も `z.object()` バリデータ上でサポートされています。
+
+さらに、Astroは利便性のために、以下のフィールド入力タイプに対して内部で特別な処理を提供しています：
+
+- `number` タイプの入力は `z.number()` を使用してバリデーションできます。
+- `checkbox` タイプの入力は `z.coerce.boolean()` を使用してバリデーションできます。
+- `file` タイプの入力は `z.instanceof(File)` を使用してバリデーションできます。
+- 同じ `name` を持つ複数の入力は `z.array(/* バリデータ */)` を使用してバリデーションできます。
+- その他のすべての入力は `z.string()` を使用してバリデーションできます。
+
+空の入力でフォームが送信された場合、出力タイプが `input` バリデータと一致しないことがあります。空の値は、配列やブーリアンをバリデーションする場合を除き、`null` に変換されます。たとえば、`text` タイプの入力が空の値で送信された場合、結果は空文字列 (`""`) ではなく `null` になります。
+
+異なるバリデータのユニオン（結合）を適用するには、`z.discriminatedUnion()` ラッパーを使用して、特定のフォームフィールドに基づいて型を絞り込みます。この例では、ユーザーの「作成」または「更新」のいずれかのフォーム送信を受け入れ、`type` という名前のフォームフィールドを使用して、どのオブジェクトに対してバリデーションするかを決定します：
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // `type` フィールドの値が `create` の場合に一致
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // `type` フィールドの値が `update` の場合に一致
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input は { type: 'create', name: string, email: string }
+      } else {
+        // input は { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+
+```
+
+### フォームデータのバリデーション
+
+アクションは、送信されたフォームデータをオブジェクトにパースします。その際、各入力の `name` 属性の値をオブジェクトのキーとして使用します。たとえば、`<input name="search">` を含むフォームは、 `{ search: 'ユーザーの入力内容' }` のようなオブジェクトにパースされます。アクションの `input` スキーマはこのオブジェクトをバリデーションするために使用されます。
+
+パースされたオブジェクトではなく、アクションの `handler` で生の `FormData` オブジェクトを受け取るには、アクション定義で `input` プロパティを省略します。
+
+以下の例は、ユーザーのメールアドレスを受け取り、「利用規約」への同意チェックボックスを必須とする、バリデーション済みのニュースレター登録フォームを示しています。
+
+<Steps>
+
+1. 各入力に一意の `name` 属性を持つHTMLフォームコンポーネントを作成します：
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">メールアドレス</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        利用規約に同意します
+      </label>
+      <button>登録する</button>
+    </form>
+    ```
+
+
+2. 送信されたフォームを処理するための `newsletter` アクションを定義します。 `email` フィールドを `z.string().email()` バリデータでバリデーションし、 `terms` チェックボックスを `z.boolean()` でバリデーションします：
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.string().email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>利用可能なすべてのフォームバリデータについては、[`input` APIリファレンス](/ja/reference/modules/astro-actions/#input-validator) を参照してください。</ReadMore>
+3. HTMLフォームに `<script>` を追加して、ユーザー入力を送信します。この例では、フォームのデフォルトの送信動作をオーバーライドして `actions.newsletter()` を呼び出し、 `navigate()` 関数を使用して `/confirmation` にリダイレクトします：
+    ```astro title=src/components/Newsletter.astro ins={11-22} collapse={2-8}
+    <form>
+      <label for="email">メールアドレス</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        利用規約に同意します
+      </label>
+      <button>登録する</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>フォームデータを送信する別の方法については、[「HTMLフォームのactionからアクションを呼び出す」](#htmlフォームのアクションから呼び出す) を参照してください。</ReadMore>
+
+</Steps>
+
+### フォーム入力エラーの表示
+
+`required`、`type="email"`、`pattern` などの [ネイティブHTMLフォームバリデーション属性](https://developer.mozilla.org/docs/Learn/Forms/Form_validation#using_built-in_form_validation) を使用して、送信前にフォーム入力をバリデーションできます。バックエンドでのより複雑な `input` バリデーションには、提供されている [`isInputError()`](/ja/reference/modules/astro-actions/#isinputerror) ユーティリティ関数を使用できます。
+
+入力エラーを取得するには、 `isInputError()` ユーティリティを使用して、エラーが無効な入力によって引き起こされたものかどうかを確認します。入力エラーには、バリデーションに失敗した入力名ごとのメッセージを含む `fields` オブジェクトが含まれます。これらのメッセージを使用して、ユーザーに修正を促すことができます。
+
+この例では、 `isInputError()` でエラーを確認し、次にメールフィールドにエラーがあるかどうかを確認してから、最終的にエラーからメッセージを作成します。JavaScriptのDOM操作やお好みのUIフレームワークを使用して、このメッセージをユーザーに表示できます。
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // 入力エラーの処理
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+
+```
+
+## HTMLフォームのアクションから呼び出す
+
+:::note
+フォームアクションを使用してアクションを呼び出す場合、ページはオンデマンドレンダリングされる必要があります。このAPIを使用する前に、[ページでプリレンダリングが無効になっていること](/ja/guides/on-demand-rendering/)を確認してください。
+:::
+
+標準的な属性を `<form>` 要素に設定するだけで、JavaScriptなしでのフォーム送信を有効にできます。クライアントサイドのJavaScriptなしでフォームを送信する方法は、JavaScriptの読み込みに失敗した場合のフォールバックとして、あるいはサーバー側で完全にフォームを処理したい場合に役立ちます。
+
+サーバー側で [Astro.getActionResult()](/ja/reference/api-reference/#getactionresult) を呼び出すと、フォーム送信の結果（`data` または `error`）が返されます。これを使用して、動的なリダイレクト、フォームエラーの処理、UIの更新などが可能になります。
+
+HTMLフォームからアクションを呼び出すには、 `<form>` に `method="POST"` を追加し、フォームの `action` 属性にアクションを設定します。たとえば `action={actions.logout}` のようにします。これにより、サーバーが自動的に処理されるクエリ文字列を使用するように `action` 属性が設定されます。
+
+たとえば、このAstroコンポーネントはボタンがクリックされたときに `logout` アクションを呼び出し、現在のページをリロードします：
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>ログアウト</button>
+</form>
+
+```
+
+Zodによる適切なスキーマバリデーションのために、 `<form>` 要素に追加の属性が必要になる場合があります。たとえば、ファイルのアップロードを含めるには、 `enctype="multipart/form-data"` を追加して、ファイルが `z.instanceof(File)` で正しく認識される形式で送信されるようにします：
+
+```astro title="src/components/FileUploadForm.astro"
+---
+import { actions } from 'astro:actions';
+---
+<form method="POST" action={actions.upload} enctype="multipart/form-data" >
+  <label for="file">ファイルをアップロード</label>
+  <input type="file" id="file" name="file" />
+  <button type="submit">送信</button>
+</form>
+```
+
+### アクション成功時のリダイレクト
+
+成功時に新しいルートにリダイレクトする必要がある場合は、サーバー上のアクションの結果を使用できます。一般的な例は、商品レコードを作成し、新しい商品のページ（例：`/products/[id]`）にリダイレクトすることです。
+
+たとえば、生成された商品IDを返す `createProduct` アクションがあるとします：
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+Astroコンポーネントで `Astro.getActionResult()` を呼び出すことで、アクションの結果を取得できます。これは、アクションが呼び出されたときには `data` または `error` プロパティを含むオブジェクトを返し、このリクエスト中にアクションが呼び出されなかった場合には `undefined` を返します。
+
+`data` プロパティを使用して、 `Astro.redirect()` で使用するURLを構築します：
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### フォームアクションエラーの処理
+
+フォームを含むAstroコンポーネント内で `Astro.getActionResult()` を呼び出すと、カスタムエラー処理のために `data` および `error` オブジェクトにアクセスできます。
+
+これは、 `newsletter` アクションが失敗した場合の一般的なエラーメッセージの例です：
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">サインアップできません。後でもう一度お試しください。</p>
+)}
+<form method="POST" action={actions.newsletter}>
+  <label>
+    メールアドレス
+    <input required type="email" name="email" />
+  </label>
+  <button>登録する</button>
+</form>
+```
+
+さらにカスタマイズするには、[`isInputError()` ユーティリティを使用して](/ja/guides/actions/#フォーム入力エラーの表示)、エラーが無効な入力によって引き起こされたものかどうかを確認できます。
+
+この例では、無効なメールアドレスが送信されたときに、 `email` 入力フィールドの下にエラーバナーをレンダリングします：
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={actions.newsletter}>
+  <label>
+    メールアドレス
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>登録する</button>
+</form>
+```
+
+#### エラー時の入力値の保持
+
+フォームが送信されると、通常入力内容はクリアされます。入力値を保持するには、 [ビュー遷移（View Transitions）を有効にし](/ja/guides/view-transitions/#enabling-view-transitions-spa-mode) 、各入力に `transition:persist` ディレクティブを適用します：
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+
+```
+
+### フォームアクションの結果でUIを更新する
+
+アクションの戻り値を使用して、成功時にユーザーに通知を表示するには、アクションを `Astro.getActionResult()` に渡します。返された `data` プロパティを使用して、表示したいUIをレンダリングします。
+
+この例では、 `addToCart` アクションによって返された `productName` プロパティを使用して、成功メッセージを表示します。
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">{result.data.productName} をカートに追加しました</p>
+)}
+
+<!--...-->
+```
+
+### 高度な設定：セッションを使用してアクション結果を永続化する
+
+<p><Since v="5.0.0" /></p>
+
+アクションの結果はPOST送信として表示されます。つまり、ユーザーがページを閉じて再度開いた場合、結果は `undefined` に戻ります。また、ユーザーがページを更新しようとすると、「フォームの再送信を確認しますか？」というダイアログが表示されます。
+
+この動作をカスタマイズするには、ミドルウェアを追加してアクションの結果を直接処理することができます。アクションの結果は、クッキーやセッションストレージを使用して永続化することができます。
+
+まず、[ミドルウェアファイルを作成](/ja/guides/middleware/) し、 `astro:actions` から [`getActionContext()` ユーティリティ](/ja/reference/modules/astro-actions/#getactioncontext)をインポートします。この関数は、受信したアクションリクエストに関する情報（アクションの `handler` や、アクションがHTMLフォームから呼び出されたかどうかなど）を含む `action` オブジェクトを返します。また、`getActionContext()` は、`Astro.getActionResult()` によって返される値をプログラムで設定するための `setActionResult()` および `serializeActionResult()` 関数も返します：
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... アクションの結果を処理
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+HTMLフォームの結果を永続化するための一般的な手法は、 [POST / Redirect / GET パターン](https://en.wikipedia.org/wiki/Post/Redirect/Get) です。このリダイレクトにより、ページ更新時の「フォーム再送信の確認」ダイアログがなくなり、アクションの結果をユーザーセッション全体で永続化できるようになります。
+
+この例では、[Netlify サーバーアダプター](/ja/guides/integrations-guide/netlify/) がインストールされている状態で、Netlify Blobを使用したセッションストレージを利用して、すべてのフォーム送信にPOST / Redirect / GETパターンを適用しています。アクションの結果はセッションストアに書き込まれ、リダイレクト後にセッションIDを使用して取得されます：
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // プリレンダリングされたページのリクエストはスキップ
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // Netlify Blob でアクションの結果を永続化するためのストアを作成
+  const actionStore = getStore("action-session");
+  
+  // アクションの結果がクッキーとして転送されている場合、
+  // `Astro.getActionResult()` からアクセスできるように設定
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // オプション：レンダリング後にセッションを削除
+    // ご自身の方針で自由に永続化処理を実装してください
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // HTMLフォームアクションからアクションが呼び出された場合、
+  // アクションのhandlerを呼び出し、遷移先ページへリダイレクトします
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // アクションの結果をセッションストレージに保存
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // セッションIDをクッキーで渡します
+    // ページにリダイレクトされた後に取得します
+    context.cookies.set("action-session-id", sessionId);
+  
+    // エラー時は前のページにリダイレクト
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "内部エラー: Action POST リクエストに Referer が含まれていません。",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // 成功時は遷移先ページにリダイレクト
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## アクション使用時のセキュリティ
+
+アクションは、アクション名に基づいた公開エンドポイントとしてアクセス可能です。たとえば、アクション `blog.like()` は `/_actions/blog.like` からアクセスできます。これはアクション結果のユニットテストや本番環境のエラーデバッグに便利です。しかし、これはAPIエンドポイントやオンデマンドレンダリングされるページと同様の **認可（Authorization）チェックを行う必要がある** ことを意味します。
+
+### アクションハンドラー内でのユーザー認可
+
+アクションリクエストを認可するには、アクションの `handler` 内に認証チェックを追加します。セッション管理やユーザー情報の処理には、[認証ライブラリ](/ja/guides/authentication/) を使用するのが一般的です。
+
+アクションは、ミドルウェアから `context.locals` を通じて渡されたプロパティにアクセスするために、[`APIContext` オブジェクトのサブセット](/ja/reference/modules/astro-actions/#actionapicontext) を公開しています。ユーザーが認可されていない場合は、 `UNAUTHORIZED` コードを使用して `ActionError` を起こすことができます：
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
+
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* 成功時のデータ */ };
+    }
+  })
+}
+```
+
+### ミドルウェアでのアクション制限
+
+<p><Since v="5.0.0" /></p>
+
+Astroは、アクションごとの権限レベルやレート制限を尊重するために、アクションの `handler` 内でユーザーセッションを認可することを推奨しています。ただし、ミドルウェアからすべてのアクション（または一部のアクション）へのリクエストを制限することも可能です。
+
+ミドルウェアから [`getActionContext()` 関数](/ja/reference/modules/astro-actions/#getactioncontext) を使用して、インバウンドのアクションリクエストに関する情報を取得します。これには、アクション名や、そのアクションがクライアントサイドのリモートプロシージャコール（RPC）関数（例： `actions.blog.like()`）から呼び出されたのか、HTMLフォームから呼び出されたのかが含まれます。
+
+この例は、有効なセッション・トークンを持たないすべてのアクションリクエストを拒否します。チェックに失敗した場合は、「Forbidden」レスポンスが返されます。注記：この方法は、セッションが存在する場合にのみアクションにアクセスできるようにするためのものですが、安全な認可の代わりにはなりません。
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // アクションがクライアントサイドの関数から呼び出されたかチェック
+  if (action?.calledFrom === 'rpc') {
+    // 呼び出されている場合、ユーザーセッション・トークンをチェック
+    if (!context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* セッション・トークン */);
+  return next();
+});
+```
+
+## Astroコンポーネントやサーバーエンドポイントからのアクションの呼び出し
+
+Astroコンポーネントのスクリプト内から、 `Astro.callAction()` ラッパーを使用して直接アクションを呼び出すことができます（[サーバーエンドポイント](/ja/guides/endpoints/#server-endpoints-api-routes)を使用している場合は`context.callAction()`）。これは、アクションのロジックを他のサーバーコードで再利用する際によく行われます。
+
+第1引数にアクションを渡し、第2引数に入力パラメータを渡します。これにより、クライアントでアクションを呼び出すときに受け取るのと同じ `data` および `error` オブジェクトが返されます：
+
+```astro title="src/pages/products.astro" {6}
+---
+import { actions } from 'astro:actions';
+
+const searchQuery = Astro.url.searchParams.get('search');
+if (searchQuery) {
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
+  // 結果の処理
+}
+---
+```
