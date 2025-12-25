@@ -19,26 +19,33 @@ Action 帮助你构建一个类型安全的后端，你可以从客户端代码�
 ## 从 `astro:actions` 导入
 
 ```js
-import { 
+import {
+  ACTION_QUERY_PARAMS,
+  ActionError,
   actions,
   defineAction,
-  isInputError,
+  getActionContext,
+  getActionPath,
   isActionError,
-  ActionError,
+  isInputError,
  } from 'astro:actions';
 ```
 
 ### `defineAction()`
 
 <p>
-<Since v="4.15.0" />
+
+**类型：** <code>(\{ accept, input, handler \}) => <a href="#actionclient">ActionClient</a></code>
 </p>
 
-`defineAction()` 函数接受一个 [`handler()`](#handler-属性) 函数，其中包含在调用 Action 时要运行的服务器逻辑，以及一个可选的 [`input`](#input-验证器) 属性，用于在运行时验证输入参数。
+一个用于在 `src/actions/index.ts` 中定义新的 actions 的工具函数。它接受一个 [`handler()`](#handler-属性) 函数，其中包含在调用 Action 时要运行的服务器逻辑，以及一个可选的 [`input`](#input-验证器) 属性，用于在运行时验证输入参数。
 
-```ts
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
 export const server = {
-    getGreeting: defineAction({
+  getGreeting: defineAction({
     input: z.object({
       name: z.string(),
     }),
@@ -53,12 +60,12 @@ export const server = {
 
 <p>
 
-**类型：**`(input, context) => any`
+**类型：**<code>(input: TInputSchema, context: <a href="#actionapicontext">ActionAPIContext</a>) => TOutput | Promise\<TOutput\></code>
 </p>
 
-`defineAction()` 函数接受一个 `handler()` 函数，其中包含在调用 Action 时要运行的服务器逻辑。此函数可以返回数据，这些数据将自动序列化并发送给调用者。
+一个必要的函数，其中包含在调用 Action 时要运行的服务器逻辑。`handler()` 函数返回的数据将自动序列化并发送给调用者。
 
-`handler()` 函数被调用时，接受用户输入作为其第一个参数。如果设置了 [`input`](#input-验证器) 验证器，那么用户输入将在传递给 `handler()` 前进行验证。第二个参数是一个 `context` 对象，包含大多数 Astro 的 [标准端点上下文](/zh-cn/reference/api-reference/)，不包括 `getActionResult()`, `callAction()`, 和 `redirect()`。
+`handler()` 函数被调用时，接受用户输入作为其第一个参数。如果设置了 [`input`](#input-验证器) 验证器，那么用户输入将在传递给 `handler()` 前进行验证。第二个参数是 [Astro 的 `context` 对象的一个子集](#actionapicontext)。
 
 返回值使用 [devalue 库](https://github.com/Rich-Harris/devalue) 进行解析。它支持 JSON 值，以及 `Date()`, `Map()`, `Set()`, 或 `URL()` 的实例。
 
@@ -69,66 +76,58 @@ export const server = {
 **类型：**`ZodType | undefined`
 </p>
 
-可选的 `input` 属性接受一个 Zod 验证器（例如，Zod 对象，Zod 可区分联合），用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
+一个可选的属性，接受一个 [Zod 验证器](/zh-cn/reference/modules/astro-zod/#common-data-type-validators)（例如，Zod 对象，Zod 可区分联合），用于在运行时验证处理程序的输入。如果 action 验证失败，将返回 [`BAD_REQUEST` 错误](#actionerror) 并跳过 `handler`。
 
 如果省略 `input`，则 `handler` 将接收 JSON 请求的 `unknown` 类型的输入，以及表单请求的 `FormData` 类型。
 
-##### 与 `accept: 'form'` 一起使用
+#### `accept` 属性
 
-如果你的 action 接受表单输入，请使用 `z.object()` 验证器将表单数据自动解析为类型化对象。所有 Zod 验证器均支持表单数据字段（例如 `z.coerce.date()` ）。为方便你验证以下类型的字段输入，Astro 在底层还提供了特殊处理：
+<p>
 
-- 使用 `z.number()` 验证类型为 `number` 的输入
-- 使用 `z.coerce.boolean()` 验证类型为 `checkbox` 的输入
-- 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
-- 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
-- 使用 `z.string()` 验证所有其他输入
+**类型：**`"form" | "json"`<br />
+**默认值：**`json`
+</p>
 
-`z.object()` 验证器还支持包括 `.refine()`, `.transform()`, 和 `.pipe()` 在内的扩展函数。
+定义某个 action 所期望的格式：
+* 当你的 action 接收 `Formdata` 时使用 `form`。
+* 在所有其他情况下，使用默认的 `json`
 
-要搭配应用不同验证器的组合，请使用 `z.discriminatedUnion()` 包装器，它根据表单的特定字段以缩小类型范围。此示例通过接受表单提交以判断是 “创建(create)” 或是 “更新(update)” 了一名用户信息，判断时使用表单域的 `type` 属性字段来确定要验证的对象：
+当你的 action 接受表单输入时，`z.object()` 验证器会自动将 `FormData` 解析为类型化对象。所有 Zod 验证器均受支持，可用于验证你的输入。
 
-```ts
-import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+<ReadMore>在 Actions 指南中 [了解如何将验证器与表单输入一起使用](/zh-cn/guides/actions/#在表单输入中使用验证器)，包括示例用法和特殊输入处理。</ReadMore>
 
-export const server = {
-  changeUser: defineAction({
-    accept: 'form',
-    input: z.discriminatedUnion('type', [
-      z.object({
-        // 当 `type` 字段中的值含有 `create` 时匹配
-        type: z.literal('create'),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-      z.object({
-        // 当 `type` 字段中的值含有 `update` 时匹配
-        type: z.literal('update'),
-        id: z.number(),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-    ]),
-    async handler(input) {
-      if (input.type === 'create') {
-        // input 为 { type: 'create', name: string, email: string }
-      } else {
-        // input 为 { type: 'update', id: number, name: string, email: string }
-      }
-    },
-  }),
-};
+### `actions`
+
+<p>
+
+**类型：**<code>Record\<string, <a href="#actionclient">ActionClient</a>\></code>
+</p>
+
+一个包含了你所有的 action 的对象，action 名称作为键，并关联到一个用于调用该 action 的函数。
+
+```astro title="src/pages/index.astro" {5,8}
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
 ```
+
+为了让 Astro 识别此属性，你可能需要重启开发服务器或 [运行 astro sync 命令](/zh-cn/reference/cli-reference/#astro-sync)（`s + enter`车）。
 
 ### `isInputError()`
 
 <p>
 
-**类型：**<code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
-<Since v="4.15.0" />
+**类型：**`(error?: unknown) => boolean`
 </p>
 
-`isInputError()` 函数常用于检查 `ActionError` 是否是输入验证错误。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
+一个常用于检查 [`ActionError`](#actionerror) 是否是输入验证错误的工具函数。当 `input` 验证器是 `z.object()` 时，输入错误包括一个 `fields` 对象，其中错误消息按名称分组。
 
 <ReadMore> 
 更多关于使用 `isInputError()` 的信息，请参见 [表单输入错误指南](/zh-cn/guides/actions/#展示表单输入错误)。
@@ -138,66 +137,109 @@ export const server = {
 
 <p>
 
-**类型：** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
-<Since v="4.15.0" />
+**类型：**`(error?: unknown) => boolean`
 </p>
 
-`isActionError()` 工具函数用于检查你的 action 是否引发了 [handler 属性](/zh-cn/reference/modules/astro-actions/#handler-属性) 中的 `ActionError`。这在缩小 `try / catch` 块中的泛型错误的类型时很有用。
+一个用于检查你的 action 是否引发了 [handler 属性](/zh-cn/reference/modules/astro-actions/#handler-属性) 中的 [`ActionError`](#actionerror) 的工具函数。这在缩小泛型错误的类型时很有用。
+
+```astro title="src/pages/index.astro" {9-12} "isActionError"
+---
+---
+
+<script>
+import { isActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (isActionError(error)) {
+    // 处理 action 特定的错误
+    console.log(error.code);
+  }
+}
+</script>
+```
 
 ### `ActionError`
 
-<p>
-<Since v="4.15.0" />
-</p>
-
 `ActionError` 构造函数常用于在 `handler()` 函数中抛出错误。它接受一个 `code` 属性，描述发生的错误（例如：`"UNAUTHORIZED"`），以及一个可选的 `message` 属性，提供进一步的细节。
+
+下面的示例在用户未登录时创建一个新的 `ActionError`：
+
+```ts title="src/actions/index.ts" {8-11} "ActionError"
+import { defineAction, ActionError } from "astro:actions";
+
+export const server = {
+  getUserOrThrow: defineAction({
+    accept: 'form',
+    handler: async (_, { locals }) => {
+      if (locals.user?.name !== 'florian') {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'Not logged in',
+        });
+      }
+      return locals.user;
+    },
+  }),
+}
+```
+
+
+你还可以使用 `ActionError` 在处理某个 action 的结果时缩小错误类型范围：
+
+```astro title="src/pages/index.astro" {9-12} "ActionError"
+---
+---
+
+<script>
+import { ActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (error instanceof ActionError) {
+    // 处理 action 特定的错误
+    console.log(error.code);
+  }
+}
+</script>
+```
 
 #### `code`
 
 <p>
-<Since v="4.15.0" />
+
+**类型：**<code><a href="#actionerrorcode">ActionErrorCode</a></code>
 </p>
 
-`code` 属性接受所有 HTTP 状态码的人类可读版本。以下是支持的 code：
-
-- `BAD_REQUEST` (400): 客户端发送了无效的输入。当 action `input` 验证器验证失败时会抛出此错误。
-- `UNAUTHORIZED` (401): 客户端缺乏有效的身份验证凭据。
-- `FORBIDDEN` (403): 客户端无权访问资源。
-- `NOT_FOUND` (404): 服务器找不到请求的资源。
-- `METHOD_NOT_SUPPORTED` (405): 服务器不支持请求的方法。
-- `TIMEOUT` (408): 服务器在处理请求时超时。
-- `CONFLICT` (409): 服务器无法更新资源，因为存在冲突。
-- `PRECONDITION_FAILED` (412): 服务器不满足请求的前提条件。
-- `PAYLOAD_TOO_LARGE` (413): 服务器无法处理请求，因为负载过大。
-- `UNSUPPORTED_MEDIA_TYPE` (415): 服务器不支持请求的媒体类型。注意：Actions 已经检查了 JSON 和表单请求的 [`Content-Type` 标头](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Content-Type)，所以你可能不需要手动引发此代码。
-- `UNPROCESSABLE_CONTENT` (422): 服务器无法处理请求，因为存在语义错误。
-- `TOO_MANY_REQUESTS` (429): 服务器已超出指定的速率限制。
-- `CLIENT_CLOSED_REQUEST` (499): 客户端在服务器响应之前关闭了请求。
-- `INTERNAL_SERVER_ERROR` (500): 服务器意外失败。
-- `NOT_IMPLEMENTED` (501): 服务器不支持请求的功能。
-- `BAD_GATEWAY` (502): 服务器从上游服务器接收到无效响应。
-- `SERVICE_UNAVAILABLE` (503): 服务器暂时不可用。
-- `GATEWAY_TIMEOUT` (504): 服务器从上游服务器接收到超时。
+定义一个 [HTTP 状态码](#actionerrorcode) 的人类可读版本。
 
 #### `message`
 
 <p>
-<Since v="4.15.0" />
+
+**类型：** `string`
 </p>
 
-`message` 属性接受一个字符串。（例如："用户必须登录。"）
+一个用于描述错误的可选参数。（例如："用户必须登录。"）
+
+#### `stack`
+
+<p>
+
+**类型：**`string`
+</p>
+
+用于传递堆栈跟踪的可选属性。
 
 ### `getActionContext()`
 
 <p>
 
-**类型：** `(context: APIContext) => ActionMiddlewareContext`
+**类型：**<code>(context: <a href="/zh-cn/reference/api-reference/">APIContext</a>) => AstroActionContext</code><br />
 <Since v="5.0.0" />
 </p>
 
-`getActionContext()` 是从你的中间件处理程序中调用的函数，用于检索有关入站 action 请求的信息。
-
-此函数返回一个 `action` 对象，其中包含有关请求的信息，以及 `setActionResult()` 和 `serializeActionResult()` 函数，用于以编程方式设置 `Astro.getActionResult()` 返回的值。
+一个从你的中间件处理程序中调用的函数，用于检索有关入站 action 请求的信息。此函数返回一个 `action` 对象，其中包含有关请求的信息，以及 `setActionResult()` 和 `serializeActionResult()` 函数，用于以编程方式设置 `Astro.getActionResult()` 返回的值。
 
 `getActionContext()` 运行你使用中间件以编程方式获取和设置 action 结果，允许你从 HTML 表单中持久化 action 结果，通过添加安全检查来限制 action 请求，等等。
 
@@ -219,12 +261,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**类型：** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+**类型：**<code>\{ calledFrom: "rpc" | "form"; name: string; handler: () => Promise\<<a href="#saferesult">SafeResult</a>\>; \} | undefined</code>
 </p>
 
-`action` 是一个包含有关入站 action 请求的信息的对象。
-
- 它可以从 `getActionContext()` 中获取，并提供 action 名称、handler 以及 action 是否是从客户端 RPC 函数（例如 `actions.newsletter()`）或 HTML 表单 action 中调用的。
+一个包含有关入站 action 请求的信息的对象。它可以从 `getActionContext()` 中获取，并提供 action 名称、handler 以及 action 是否是从客户端 RPC 函数（例如 `actions.newsletter()`）或 HTML 表单 action 中调用的。
 
 ```ts title="src/middleware.ts" {6}
 import { defineMiddleware } from 'astro:middleware';
@@ -239,6 +279,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+##### `calledFrom`
+
+<p>
+
+**类型：**`"rpc" | "form"`
+</p>
+
+该 action 是通过 RPC 函数调用还是通过 HTML 表单的 action 调用。
+
+##### `name`
+
+<p>
+
+**类型：**`string`
+</p>
+
+action 的名称。用于在重定向期间跟踪 action 结果的来源。
+
+##### `handler()`
+
+<p>
+
+**类型：**<code>() => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+</p>
+
+以编程方式调用一个 action 以获取结果。
+
 #### `setActionResult()`
 
 <p>
@@ -246,7 +313,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 **类型：** `(actionName: string, actionResult: SerializedActionResult) => void`
 </p>
 
-`setActionResult()` 是一个以编程方式设置中间件中 `Astro.getActionResult()` 返回值的函数。它接受 action 名称和由 [`serializeActionResult()`](#serializeactionresult) 序列化的 action 结果。
+一个以编程方式设置中间件中 `Astro.getActionResult()` 返回值的函数。它接受 action 名称和由 [`serializeActionResult()`](#serializeactionresult) 序列化的 action 结果。从中间件调用此函数将禁用 Astro 自身的 action 结果处理。
 
 当从 HTML 表单中调用 action 以持久化和加载结果时，这很有用。
 
@@ -270,10 +337,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**类型：** `(result: SafeResult<any, any>) => SerializedActionResult`
+**类型：**<code>(res: <a href="#saferesult">SafeResult</a>) => SerializedActionResult</code>
 </p>
 
-`serializeActionResult()` 会将 action 结果序列化为 JSON 以进行持久化。这对于正确处理 `Map` 或 `Date` 等非 JSON 返回值以及 `ActionError` 对象是必需的。
+将 action 结果序列化为 JSON 以进行持久化。这对于正确处理 `Map` 或 `Date` 等非 JSON 返回值以及 `ActionError` 对象是必需的。
 
 要把序列化后的 action 结果传递给 `setActionResult()` 时调用此函数：
 
@@ -295,20 +362,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**类型：** `(result: SerializedActionResult) => SafeResult<any, any>`
+**类型：**<code>(res: SerializedActionResult) => <a href="#saferesult">SafeResult</a></code>
 </p>
 
-`deserializeActionResult()` 将反转 `serializeActionResult()` 的效果，并将 action 结果返回到其原始状态。这对于访问序列化的 action 结果上的 `data` 和 `error` 对象很有用。
+反转 [`serializeActionResult()`](#serializeactionresult) 的效果，并将 action 结果返回到其原始状态。这对于访问序列化的 action 结果上的 `data` 和 `error` 对象很有用。
 
 ### `getActionPath()`
 
 <p>
 
-**类型：** `(action: ActionClient<any, any, any>) => string`
+**类型：**<code>(action: <a href="#actionclient">ActionClient</a>) => string</code>
 <Since v="5.1.0" />
 </p>
 
-`getActionPath()` 工具方法接受一个 action 并返回一个 URL 路径，以便你可以直接将 action 调用作为 `fetch()` 操作执行。这允许你在调用 action 时提供诸如自定义标头之类的详细信息。然后，你可以根据需要 [处理自定义格式化的返回数据](/zh-cn/guides/actions/#处理返回的数据)，就像直接调用 action 一样。
+一个工具函数，接受一个 action 并返回一个 URL 路径，以便你可以直接将 action 调用作为 `fetch()` 操作执行。这允许你在调用 action 时提供诸如自定义标头之类的详细信息。然后，你可以根据需要 [处理自定义格式化的返回数据](/zh-cn/guides/actions/#处理返回的数据)，就像直接调用 action 一样。
 
 下面的示例展示了如何调用一个定义的 `like` action，传递 `Authorization` 标头和 [`keepalive`](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive) 选项：
 
@@ -342,3 +409,199 @@ navigator.sendBeacon(
 )
 </script>
 ```
+
+### `ACTION_QUERY_PARAMS`
+
+<p>
+
+**类型：**`{ actionName: string, actionPayload: string }`
+</p>
+
+一个包含 Astro 在处理表单 action 提交时内部使用的查询参数名称的对象。
+
+当你使用 action 提交表单时，以下查询参数会被添加到 URL 中以跟踪该 action 调用：
+* `actionName` - 包含正在调用的 action 名称的查询参数
+* `actionPayload` - 包含序列化表单数据的查询参数
+
+当你需要在表单提交后清理 URL 时，此常量非常有用。例如，在重定向期间，你可能希望移除与 action 相关的查询参数：
+
+```ts title="src/pages/api/contact.ts" "ACTION_QUERY_PARAMS"
+import type { APIRoute } from "astro";
+import { ACTION_QUERY_PARAMS } from 'astro:actions'
+
+export const GET: APIRoute = ({ params, request }) => {
+  const link = request.url.searchParams;
+  link.delete(ACTION_QUERY_PARAMS.actionName);
+  link.delete(ACTION_QUERY_PARAMS.actionPayload);
+
+  return redirect(link, 303);
+};
+```
+
+## `astro:actions` 类型
+
+```ts
+import type {
+  ActionAPIContext,
+  ActionClient,
+  ActionErrorCode,
+  ActionInputSchema,
+  ActionReturnType,
+  SafeResult,
+ } from 'astro:actions';
+```
+
+### `ActionAPIContext`
+
+[Astro 上下文对象](/zh-cn/reference/api-reference/) 的子集。以下属性不可用：`callAction`、`getActionResult`、`props` 和 `redirect`。
+
+### `ActionClient`
+
+<p>
+
+**类型：**
+* <code>(input?: any) => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+* `{ queryString?: string; orThrow: (input?: any) => Promise<Awaited<TOutput>>; }`
+</p>
+
+表示要在客户端调用的 action。你可以将其作为一个函数使用，该函数接收输入数据并返回一个包含 action 结果或验证错误的 [`SafeResult` 对象](#saferesult) 的 Promise。
+
+下面的示例展示了在点赞计数增加失败时如何使用 `if` 语句提供错误处理：
+
+```astro title="src/pages/posts/post-1.astro" "data" "error"
+---
+---
+
+<!-- 你的模板代码 -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const { data: updatedLikes, error } = await actions.likePost({ postId: post?.id });
+  if (error) {
+    /* 处理错误 */
+  }
+})
+</script>
+```
+
+或者，你可以将其作为一个对象来使用，以便访问 `queryString` 和另一个叫做 `orThrow()` 的方法。
+
+#### `queryString` 属性
+
+<p>
+
+**类型：**`string`
+</p>
+
+可用于构建表单 action URL 的 action 的字符串表示。当你的表单组件在多个地方使用但提交时需要重定向到不同 URL 时，这会很有用。
+
+下面的示例使用 `queryString` 构建一个 URL，该 URL 将通过自定义属性传递给表单的 `action` 属性：
+
+```astro title="src/pages/postal-service.astro" "queryString"
+---
+import { actions } from 'astro:actions';
+import FeedbackForm from "../components/FeedbackForm.astro";
+
+const feedbackUrl = new URL('/feedback', Astro.url);
+feedbackUrl.search = actions.myAction.queryString;
+---
+<FeedbackForm sendTo={feedbackUrl.pathname} />
+```
+
+#### `orThrow()` 属性
+
+<p>
+
+**类型：**`(input?: any) => Promise<Awaited<TOutput>>`
+</p>
+
+一种在失败时抛出错误而不是返回错误的方法。当你更希望使用异常而不是错误处理时，这很有用。
+
+下面的示例在递增点赞数失败时使用 `orThrow()` 来跳过错误处理：
+
+```astro title="src/pages/posts/post-1.astro" "orThrow"
+---
+---
+
+<!-- 你的模板代码 -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const updatedLikes = await actions.likePost.orThrow({ postId: post?.id });
+})
+</script>
+```
+
+### `ActionErrorCode`
+
+<p>
+
+**类型：**`string`
+</p>
+
+[由 IANA 定义](https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml) 的一组标准 HTTP 状态代码的联合类型，使用可读的人类版本作为大写字符串并以下划线分隔（例如 `BAD_REQUEST` 或 `PAYLOAD_TOO_LARGE`）。
+
+### `ActionInputSchema`
+
+<p>
+
+**类型：**`ZodType`
+<Since v="5.16.0" />
+</p>
+
+一种工具类型，它基于 Zod 模式自动推断某 action 作输入的 TypeScript 类型。这在你希望在自己的类型定义中将某个 action 的 [`input` 验证器类型](#input-验证器) 作为对象引用时非常有用。
+
+当未提供 [`input` 验证器](#input-验证器) 时，返回 `never`。
+
+下面的示例在名为 `contact` 的 action 上使用 `ActionInputSchema` 来：
+
+* 检索该 action 输入的 Zod 模式类型。
+* 检索该 action 验证器所期望的输入类型。
+
+```astro title="src/components/Form.astro" {5}
+---
+import { actions, ActionInputSchema } from 'astro:actions';
+import { z } from 'astro/zod';
+
+type ContactSchema = ActionInputSchema<typeof actions.contact>;
+type ContactInput = z.input<ContactSchema>;
+---
+```
+
+### `ActionReturnType`
+
+<p>
+
+**类型：**<code>Awaited\<ReturnType\<ActionHandler\>\></code>
+</p>
+
+一种工具类型，用于从 [action handler](#defineaction) 中提取输出类型。它会解包 Promise（如果处理器是异步的）和 `ReturnType`，以提供 [实际的输出类型](#saferesult)。如果你需要在自己的类型定义中引用某个 action 的输出类型，这会很有用。
+
+下面的示例使用 `ActionReturnType` 来获取名为 `contact` 的 action 的预期输出类型：
+
+```astro title="src/components/Form.astro" {4}
+---
+import { actions, ActionReturnType } from 'astro:actions';
+
+type ContactResult = ActionReturnType<typeof actions.contact>;
+---
+```
+
+### `SafeResult`
+
+<p>
+
+**类型：**`{ data: TOutput, error: undefined } | { data: undefined, error: ActionError }`
+</p>
+
+表示 action 调用的结果：
+* 成功时，`data` 包含 action 的输出，`error` 是 `undefined`。
+* 失败时，`error` 包含一个 [`ActionError`](#actionerror)，其中包含验证错误或运行时错误，`data` 是 `undefined`。
