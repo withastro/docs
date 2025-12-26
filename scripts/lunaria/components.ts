@@ -5,7 +5,7 @@ import {
 	type LunariaStatus,
 	type StatusEntry,
 } from '@lunariajs/core';
-import { BaseStyles, CustomStyles } from './styles';
+import { BaseStyles, CustomStyles } from './styles.ts';
 
 export function html(
 	strings: TemplateStringsArray,
@@ -283,7 +283,7 @@ export const ContentDetailsLinks = (
 			links.history(
 				fileStatus.source.path,
 				'git' in localization
-					? new Date(localization.git.latestTrackedChange.date).toISOString()
+					? new Date(localization.git.latestTrackedCommit.date).toISOString()
 					: undefined
 			),
 			'source change history'

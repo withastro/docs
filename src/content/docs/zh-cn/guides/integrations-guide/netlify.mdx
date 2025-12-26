@@ -133,7 +133,7 @@ const {
 <h1>你好，来自{city}的友好访客！</h1>
 ```
 
-如果你使用 TypeScript，你可以通过更新 `src/env.d.ts` 来使用 `NetlifyLocals` 来获得正确的类型：
+如果你使用 TypeScript，你可以通过更新 `src/env.d.ts` 来使用 `NetlifyLocals` 来 [获得正确的类型](/zh-cn/guides/typescript/#扩展全局类型)：
 
 ```ts title="src/env.d.ts"
 type NetlifyLocals = import('@astrojs/netlify').NetlifyLocals
@@ -242,6 +242,22 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 
 使用 [细粒度缓存控制](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/)，Netlify 支持标准缓存头，例如 `CDN-Cache-Control` 或 `Vary`。请参阅文档，了解如何实现例如 TTL 或 SWR 缓存：https://docs.netlify.com/platform/caching
 
+### 偏差保护
+
+<p><Since v="6.6.0" pkg="@astrojs/netlify" /></p>
+
+Netlify 的偏差保护确保用户在部署过程中访问你的站点时，仍能从同一部署版本获取内容。Netlify 适配器会通过将当前部署 ID 注入内部请求，自动为 Astro 的功能（如 actions、server islands、视图过渡和预取请求）配置偏差保护。这可防止在活动部署期间客户端与服务器之间出现版本不匹配。
+
+虽然 Astro 会自动为其内置功能添加偏差保护标头，但如果你向自己的网站发起自定义的 fetch 请求，你可以使用 `DEPLOY_ID` 环境变量手动加入该标头：
+
+```js
+const response = await fetch('/api/endpoint', {
+  headers: {
+    'X-Netlify-Deploy-ID': import.meta.env.DEPLOY_ID,
+  },
+});
+```
+
 ### 包括或排除 Netlify Functions 中的文件
 
 当使用 Netlify 部署按需渲染的 Astro 网站时，生成功能会自动跟踪并包含服务器依赖。然而，你可能需要自定义哪些文件应该被包含在你的 Netlify Funcitons 中。
@@ -318,6 +334,105 @@ export default defineConfig({
       './src/**/*.test.js'
     ]
   }),
+});
+```
+
+
+### 本地开发功能
+
+当运行 `astro dev` 时，适配器会启用若干 Netlify 平台功能，以确保开发环境尽可能与生产环境一致。这些功能包括：
+
+- 一个本地的 [Netlify 图像 CDN](https://docs.netlify.com/build/image-cdn/overview/) 服务器。默认情况下用于 [图像支持](#netlify-图片-cdn-支持)
+- 一个本地的 [Netlify Blobs](https://docs.netlify.com/build/data-and-storage/netlify-blobs/) 服务器。默认情况下用于 [sessions](#sessions)
+- 来自你的 Netlify 配置的 [重定向、重写](https://docs.netlify.com/manage/routing/redirects/overview/) 和 [headers](https://docs.netlify.com/manage/routing/headers/)
+- 按需渲染的页面中访问的 [Netlify 边缘上下文](#从你的站点访问-edge-上下文)
+- 来自你的 Netlify 站点的 [环境变量](https://docs.netlify.com/build/environment-variables/overview/)
+
+当您的本地站点使用 `netlify link` [链接到 Netlify 站点](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/#link-and-unlink-sites) 时，这些功能效果最佳。
+
+你可以在适配器配置中的 [`devFeatures`](#devfeatures) 选项启用或禁用其中的一些功能。默认情况下，除环境变量外，所有功能均已启用。
+
+#### `devFeatures`
+
+<p>
+**类型：** `boolean | object`<br />
+**默认值：** `{ images: true, environmentVariables: false }`<br />
+<Since v="6.5.1" pkg="@astrojs/netlify"/>
+</p>
+
+`devFeatures` 可以是布尔值，用于启用或禁用所有功能，或者是一个对象，用来启用特定功能。
+
+```js title="astro.config.mjs" ins={7-12}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    devFeatures: {
+      // 在开发中启用 Netlify 图像 CDN 支持. 默认为 true。
+      images: false, 
+      // 在开发环境中注入 Netlify 环境变量。默认值为 false。
+      environmentVariables: true, 
+    },
+  }),
+});
+```
+
+##### `devFeatures.images`
+
+<p>
+**类型：** `boolean`<br />
+**默认值：** `true`<br />
+<Since v="6.5.1" pkg="@astrojs/netlify"/>
+</p>
+
+在开发中启用对本地 [Netlify 图像 CDN](https://docs.netlify.com/build/image-cdn/overview/) 的支持。
+
+这使用的是 Netlify 图像 CDN 的本地版本，而不是默认的 Astro 图像服务。
+
+##### `devFeatures.environmentVariables`
+
+<p>
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="6.5.1" pkg="@astrojs/netlify"/>
+</p>
+
+将来自你的 Netlify 站点的环境变量注入到开发环境中。
+
+这使得你可以在开发环境中使用与生产环境相同的值。有关更多信息，包括如何为不同环境使用不同变量，请参阅 [Netlify 关于环境变量的文档](https://docs.netlify.com/build/environment-variables/overview/)。
+
+## 实验性功能
+
+以下功能当前可用，但在未来更新中可能会发生破坏性变更。如果你在项目中使用这些功能，请密切关注 [`@astrojs/netlify` CHANGELOG](https://github.com/withastro/astro/tree/main/packages/integrations/netlify/CHANGELOG.md) 以获取最新动态。
+
+
+### `experimentalStaticHeaders`
+
+<p>
+  **类型：** `boolean` <br />
+  **默认值：** `false`<br />
+  <Since v="6.4.0"  pkg="@astrojs/netlify"/>
+</p>
+
+启用在 Netlify 配置中为预渲染页面指定自定义标头。
+
+启用后，当 Astro 功能（如内容安全策略）提供静态标头时，适配器会将其 [保存在框架 API 配置文件中](https://docs.netlify.com/frameworks-api/#headers)。
+
+例如，当启用 [实验性的内容安全策略](/zh-cn/reference/experimental-flags/csp/) 时，可以使用 `experimentalStaticHeaders` 将 CSP `headers` 添加到你的 Netlify 配置中，而不是创建 `<meta>` 元素：
+
+```js title="astro.config.mjs" {9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: netlify({
+    experimentalStaticHeaders: true 
+  })
 });
 ```
 

@@ -404,6 +404,42 @@ export default defineConfig({
 
 如果 "origin" 头与请求的 `pathname` 不匹配，Astro 将返回 403 状态码，并不会渲染该页面。
 
+#### security.allowedDomains
+
+<p>
+
+**类型：** `Array<RemotePattern>`<br />
+**默认值：** `[]`<br />
+<Since v="5.14.2" />
+</p>
+
+定义了一个在使用 SSR 时允许的主机模式列表。配置后，Astro 会将 `X-Forwarded-Host` header 与这些模式进行验证以确保安全。如果 header 不符合任何允许的模式，则该 header 会被忽略，改用请求的原始主机。
+
+这样可以防止主机 header 注入攻击，恶意行为者可能通过发送精心构造的 `X-Forwarded-Host` header 来操纵 `Astro.url` 的值。
+
+每个模式可以指定 `protocol`、`hostname` 和 `port`。如果提供了这三项中的任意项，都会进行验证。模式支持通配符以实现灵活的主机名匹配：
+
+```js
+{
+  security: {
+    // 示例：允许通过 HTTPS 访问 example.com 的任意子域
+    allowedDomains: [
+      {
+        hostname: '**.example.com',
+        protocol: 'https'
+      },
+      {
+        hostname: 'staging.myapp.com',
+        protocol: 'https',
+        port: '443'
+      }
+    ]
+  }
+}
+```
+
+如果未配置，`X-Forwarded-Host` header 不会被信任并将被忽略。
+
 ### vite
 
 <p>
@@ -718,6 +754,25 @@ export default defineConfig({
 ```js
 {
   server: { port: 8080 }
+}
+```
+
+### server.allowedHosts
+
+<p>
+
+**类型：** `Array<string> | true`<br />
+**默认值：** `[]`<br />
+<Since v="5.4.0" />
+</p>
+
+一个主机名列表，Astro 允许响应这些主机名。当该值设置为 `true` 时，任何主机名都是允许的。
+
+```js
+{
+  server: {
+  	allowedHosts: ['staging.example.com', 'qa.example.com']
+  }
 }
 ```
 
@@ -1092,49 +1147,77 @@ prefetch: {
   - 以 '/**' 结尾允许所有子路由 ('startsWith')。
   - 以 '/*' 结尾只允许一级子路由。
 
-### image.experimentalLayout
+### image.responsiveStyles
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `false`<br />
+<Since v="5.10.0" />
+</p>
+
+是否为响应式图片自动添加全局样式。除非你打算自己为图片设置样式，否则应该启用此选项。
+
+此选项仅在通过配置或在图片组件上使用 `layout` 属性将 `layout` 设置为 `constrained`、`full-width` 或 `fixed` 时使用。
+
+更多信息请参阅[图片文档](/zh-cn/guides/images/#响应式图像行为)。
+
+### image.layout
 
 <p>
 
 **类型：** `ImageLayout`<br />
-**默认值：** `undefined`
+**默认值：** `undefined`<br />
+<Since v="5.10.0" />
 </p>
 
-响应式图像的默认布局类型。可以通过图像组件上的 `layout` 属性进行覆盖。需要启用 `experimental.responsiveImages` 标志。
-
+响应式图像的默认布局类型。可以被图像组件上的 `layout` 属性覆盖。
 - `constrained` - 图像将缩放以适应容器，保持其纵横比，但不会超过指定的尺寸。
 - `fixed` - 图像将保持其原始尺寸。
 - `full-width` - 图像将缩放以适应容器，并保持其纵横比。
 
-### image.experimentalObjectFit
+更多详情请参阅 [`layout` 组件属性](/zh-cn/reference/modules/astro-assets/#layout)。
+
+### image.objectFit
 
 <p>
 
 **类型：** `ImageFit`<br />
-**默认值：** `"cover"`
+**默认值：** `"cover"`<br />
+<Since v="5.10.0" />
 </p>
 
-响应式图像的默认 object-fit 值。可以通过图像组件上的 `fit` 属性进行覆盖。需要启用 `experimental.responsiveImages` 标志。
+响应式图像的 [`object-fit` CSS 属性值](https://developer.mozilla.org/zh-CN/docs/Web/CSS/object-fit)。可以被图像组件上的 `fit` 属性覆盖。
+需要设置 `layout` 的值。
 
-### image.experimentalObjectPosition
+更多详情请参阅 [`fit` 组件属性](/zh-cn/reference/modules/astro-assets/#fit)。
+
+### image.objectPosition
 
 <p>
 
 **类型：** `string`<br />
-**默认值：** `"center"`
+**默认值：** `"center"`<br />
+<Since v="5.10.0" />
 </p>
 
-响应式图像的默认 object-position 值。可以通过图像组件上的 `position` 属性进行覆盖。需要启用 `experimental.responsiveImages` 标志。
+响应式图像的默认 [`object-position` CSS 属性值](https://developer.mozilla.org/zh-CN/docs/Web/CSS/object-position)。可以被图像组件上的 `position` 属性覆盖。
+需要设置 `layout` 的值。
 
-### image.experimentalBreakpoints
+更多详情请参阅 [`position` 组件属性](/zh-cn/reference/modules/astro-assets/#position)。
+
+### image.breakpoints
 
 <p>
 
 **类型：** `Array<number>`<br />
-**默认值：** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`
+**默认值：** `[640, 750, 828, 1080, 1280, 1668, 2048, 2560] | [640, 750, 828, 960, 1080, 1280, 1668, 1920, 2048, 2560, 3200, 3840, 4480, 5120, 6016]`<br />
+<Since v="5.10.0" />
 </p>
 
-用于生成响应式图像的断点。需要启用 `experimental.responsiveImages` 标志。通常不使用完整列表，而是根据源和输出大小进行过滤。使用的默认值取决于是使用本地还是远程图像服务。对于远程服务，使用更全面的列表，因为只生成所需的尺寸。对于本地服务，列表较短，以减少生成的图像数量。
+用于生成响应式图像的断点。需要设置 `layout` 的值。完整列表通常不使用，
+而是根据源和输出大小进行过滤。使用的默认值取决于使用的是本地还是远程图像服务。对于远程服务，
+使用更全面的列表，因为只生成所需的尺寸。对于本地服务，列表较短以减少生成的图像数量。
 
 ## Markdown 选项
 
@@ -1678,4 +1761,3 @@ export default defineConfig({
   }
 })
 ```
-

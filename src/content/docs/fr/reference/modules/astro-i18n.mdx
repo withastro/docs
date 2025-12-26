@@ -40,6 +40,10 @@ import {
   notFound,
   middleware,
   requestHasLocale,
+  normalizeTheLocale,
+  pathHasLocale,
+  toCodes,
+  toPaths
  } from 'astro:i18n';
 ```
 
@@ -204,7 +208,7 @@ getLocaleByPath("french"); // renvoie "fr" car c'est le premier code configuré
 Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
 :::
 
-Une fonction qui renvoie une `Response` qui redirige vers les paramètres régionaux utilisés par défaut (`defaultLocale`). Il accepte un code d’état de redirection valide facultatif.
+Une fonction qui renvoie une `Response` qui redirige vers les paramètres régionaux utilisés par défaut (`defaultLocale`). Elle accepte un code d’état de redirection valide facultatif.
 
 ```js title="middleware.js"
 import { defineMiddleware } from "astro:middleware";
@@ -291,7 +295,7 @@ Disponible uniquement lorsque `i18n.routing` est défini sur `"manual"`
 
 Une fonction qui vous permet de créer par programmation le middleware i18n d'Astro.
 
-Cette function est utile lorsque vous souhaitez continuer à utiliser la logique i18n par défaut tout en ajoutant quelques exceptions pour votre site.
+Cette fonction est utile lorsque vous souhaitez continuer à utiliser la logique i18n par défaut tout en ajoutant quelques exceptions pour votre site.
   
 ```js title="middleware.js"
 import { middleware } from "astro:i18n";
@@ -336,4 +340,117 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
   return new Response("Non trouvée", { status: 404 });
 })
+```
+
+### `normalizeTheLocale()`
+
+<p>
+
+**Type :** `(locale: string) => string`
+</p>
+
+Remplace les traits de soulignement (`_`) par des tirets (`-`) dans les paramètres régionaux donnés avant de renvoyer une version en minuscules.
+
+```astro title="src/pages/index.astro"
+---
+import { normalizeTheLocale } from "astro:i18n";
+
+normalizeTheLocale("it_VT") // renvoie `it-vt`
+// En supposant que les paramètres régionaux actuels soient `"pt-PT"` :
+normalizeTheLocale(Astro.currentLocale) // renvoie `pt-pt`
+---
+```
+
+### `pathHasLocale()`
+
+<p>
+
+**Type :** `(path: string) => boolean`<br />
+<Since v="4.6.0" />
+</p>
+
+Vérifie si le chemin d'accès spécifié contient l'un des paramètres régionaux configurés.
+
+Cela permet d'éviter des erreurs avant d'utiliser un utilitaire i18n qui dépend d'un paramètre régional contenu dans le chemin d'une URL.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: [
+      { codes: ["it-VT", "it"], path: "italiano" },
+      "es"
+    ]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { pathHasLocale } from "astro:i18n";
+
+pathHasLocale("italiano"); // renvoie `true`
+pathHasLocale("es"); // renvoie `true`
+pathHasLocale('/es/blog/'); // renvoie `true`
+pathHasLocale("it-VT"); // renvoie `false`
+---
+```
+
+### `toCodes()`
+
+<p>
+
+**Type :** `(locales: Locales) => string[]`<br />
+<Since v="4.0.0" />
+</p>
+
+Récupère les codes de paramètres régionaux configurés pour chaque paramètre régional défini dans votre configuration. Lorsqu'il existe plusieurs codes associés à un paramètre régional, seul le premier sera ajouté au tableau.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: [
+      { codes: ["it-VT", "it"], path: "italiano" },
+      "es"
+    ]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { i18n } from "astro:config/client";
+import { toCodes } from "astro:i18n";
+
+toCodes(i18n!.locales); // ["it-VT", "es"]
+---
+```
+
+### `toPaths()`
+
+<p>
+
+**Type :** `(locales: Locales) => string[]`<br />
+<Since v="4.0.0" />
+</p>
+
+Récupère les chemins des paramètres régionaux configurés pour chaque paramètre régional défini dans votre configuration.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: [
+      { codes: ["it-VT", "it"], path: "italiano" },
+      "es"
+    ]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { i18n } from "astro:config/client";
+import { toPaths } from "astro:i18n";
+
+toPaths(i18n!.locales); // ["italiano", "es"]
+---
 ```

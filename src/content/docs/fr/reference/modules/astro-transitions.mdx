@@ -23,12 +23,16 @@ Pour des fonctionnalités et des exemples d'utilisation, [consultez notre guide 
 ## Importations depuis `astro:transitions`
 
 ```ts
-import { ClientRouter, fade, slide } from 'astro:transitions';
+import {
+  ClientRouter,
+  fade,
+  slide,
+} from 'astro:transitions';
 ```
 
 ### `<ClientRouter />`
 
-<p><Since v="3.0.0" /></p>
+<p><Since v="5.0.0" /></p>
 
 Choisissez d'utiliser les transitions de vue sur des pages individuelles en important et en ajoutant le composant de routage `<ClientRouter />` dans la balise `<head>` sur chaque page souhaitée.
 
@@ -48,6 +52,18 @@ import { ClientRouter } from 'astro:transitions';
 ```
 
 Découvrez comment [contrôler le routeur](/fr/guides/view-transitions/#contrôle-du-routeur) et [ajouter des directives de transition](/fr/guides/view-transitions/#directives-de-transition) aux éléments et composants de la page.
+
+Le composant `<ClientRouter />` accepte les props suivantes :
+
+<h4>`fallback`</h4>
+
+<p>
+
+**Type :** [`Fallback`](#fallback)<br />
+**Par défaut :** `animate`
+</p>
+
+Définit la stratégie de repli à utiliser pour les navigateurs qui ne prennent pas en charge l'[API des Transitions de vue](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API).
 
 ### `fade`
 
@@ -95,16 +111,22 @@ import { slide } from 'astro:transitions';
 
 ## Importations depuis `astro:transitions/client`
 
-```astro
-<script>
-  import { 
-    navigate,
-    supportsViewTransitions,
-    transitionEnabledOnThisPage,
-    getFallback,
-    swapFunctions,
-  } from 'astro:transitions/client';
-</script>
+```ts
+import {
+  getFallback,
+  navigate,
+  supportsViewTransitions,
+  swapFunctions,
+  transitionEnabledOnThisPage,
+  /* Les importations suivantes sont programmées pour être dépréciées dans la v6 : */
+  isTransitionBeforePreparationEvent,
+  isTransitionBeforeSwapEvent,
+  TRANSITION_AFTER_PREPARATION,
+  TRANSITION_AFTER_SWAP,
+  TRANSITION_BEFORE_PREPARATION,
+  TRANSITION_BEFORE_SWAP,
+  TRANSITION_PAGE_LOAD,
+} from 'astro:transitions/client';
 ```
 
 ### `navigate()`
@@ -115,9 +137,11 @@ import { slide } from 'astro:transitions';
 <Since v="3.2.0" />
 </p>
 
-Une fonction qui exécute une navigation vers le `href` donné à l'aide de l'API Transitions de Vue.
+Exécute une navigation vers le `href` donné à l'aide de l'API Transitions de Vue.
 
 Cette signature de fonction est basée sur la fonction [`navigate` de l'API Navigation du navigateur](https://developer.mozilla.org/en-US/docs/Web/API/Navigation/navigate). Bien que basée sur l'API Navigation, cette fonction est implémentée sur l'[API History](https://developer.mozilla.org/fr/docs/Web/API/History_API) pour permettre la navigation sans recharger la page.
+
+`navigate()` n'effectue aucun nettoyage du paramètre `href`. [Nettoyez la saisie de l'utilisateur](/fr/guides/view-transitions/#naviguer-en-utilisant-la-saisie-de-lutilisateur) si vous l'utilisez pour déterminer l'URL vers laquelle naviguer.
 
 #### Option `history`
 
@@ -183,8 +207,8 @@ Cette option imite l'[option `state`](https://developer.mozilla.org/en-US/docs/W
 </p>
 
 L'élément qui a déclenché cette navigation, le cas échéant. Cet élément sera disponible dans les événements suivants :
-- `astro:before-preparation`
-- `astro:before-swap`
+- [`astro:before-preparation`](#événement-astrobefore-preparation)
+- [`astro:before-swap`](#événement-astrobefore-swap)
 
 ### `supportsViewTransitions`
 
@@ -196,11 +220,11 @@ L'élément qui a déclenché cette navigation, le cas échéant. Cet élément 
 
 Indique si les transitions de vue sont prises en charge et activées dans le navigateur actuel.
 
-### `transitionEnabledOnThisPage`
+### `transitionEnabledOnThisPage()`
 
 <p>
 
-**Type :** `boolean`<br />
+**Type :** `() => boolean`<br />
 <Since v="3.2.0" />
 </p>
 
@@ -210,18 +234,20 @@ Indique si la page actuelle comporte ou non des transitions d'affichage activée
 
 <p>
 
-**Type :** `() => 'none' | 'animate' | 'swap'`<br />
+**Type :** <code>() => <a href="#fallback">Fallback</a></code><br />
+**Par défaut :** `animate`<br />
 <Since v="3.6.0" />
 </p>
 
-Renvoie la stratégie de secours à utiliser dans les navigateurs qui ne prennent pas en charge les transitions de vue.
+Renvoie la stratégie de repli à utiliser (`animate` par défault) dans les navigateurs qui ne prennent pas en charge les transitions de vue.
 
-Voir le guide sur la [Gestion de solution de secours](/fr/guides/view-transitions/#gestion-de-solution-de-secours) pour savoir comment choisir et configurer le comportement de repli.
+<ReadMore>Consultez le guide sur le [contrôle de la stratégie de repli](/fr/guides/view-transitions/#contrôle-de-la-stratégie-de-repli) pour savoir comment choisir et configurer le comportement de repli.</ReadMore>
 
 ### `swapFunctions`
 
 <p>
 
+**Type :** `object`<br />
 <Since v="4.15.0" />
 </p>
 
@@ -278,9 +304,326 @@ Stocke l'élément focalisé sur la page actuelle et renvoie une fonction qui, l
 
 Remplace l'ancien corps par le nouveau. Ensuite, il passe en revue chaque élément de l'ancien corps qui doit être conservé et qui possède un élément correspondant dans le nouveau corps avant de remplacer l'ancien élément en place.
 
+### Importations dépréciées
+
+Les importations suivantes seront dépréciées dans la version 6. Vous pouvez toujours les utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+
+<h4>`isTransitionBeforePreparationEvent()`</h4>
+
+<p>
+
+**Type :** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette fonction est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Détermine si la valeur donnée correspond à un événement [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent). Cela peut s'avérer utile lorsque vous devez préciser le type d'événement dans un écouteur d'événements.
+
+```astro title="src/pages/index.astro" "isTransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforePreparationEvent,
+    TRANSITION_BEFORE_PREPARATION,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforePreparationEvent(event) ? 1 : 2;
+    /* faire quelque chose avec `setting` */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+<h4>`isTransitionBeforeSwapEvent()`</h4>
+
+<p>
+
+**Type :** `(value: any) => boolean`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette fonction est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Détermine si la valeur donnée correspond à un événement [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent). Cela peut s'avérer utile lorsque vous devez préciser le type d'événement dans un écouteur d'événements.
+
+```astro title="src/pages/index.astro" "isTransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    isTransitionBeforeSwapEvent,
+    TRANSITION_BEFORE_SWAP,
+  } from "astro:transitions/client";
+
+  function listener(event: Event) {
+    const setting = isTransitionBeforeSwapEvent(event) ? 1 : 2;
+    /* faire quelque chose avec `setting` */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
+<h4>`TRANSITION_BEFORE_PREPARATION`</h4>
+
+<p>
+
+**Type :** `'astro:before-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette constante est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Une constante permettant d'éviter d'écrire le nom de l'événement `astro:before-preparation` à la main lors de la définition d'un événement.
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_PREPARATION"
+---
+---
+
+<script>
+  import { TRANSITION_BEFORE_PREPARATION } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, () => {
+    /* la logique de l'écouteur d'événements */
+  });
+</script>
+```
+
+<h4>`TRANSITION_AFTER_PREPARATION`</h4>
+
+<p>
+
+**Type :** `'astro:after-preparation'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette constante est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Une constante permettant d'éviter d'écrire le nom de l'événement `astro:after-preparation` à la main lors de la définition d'un événement.
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_PREPARATION"
+---
+---
+
+<script>
+  import { TRANSITION_AFTER_PREPARATION } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_AFTER_PREPARATION, () => {
+    /* la logique de l'écouteur d'événements */
+  });
+</script>
+```
+
+<h4>`TRANSITION_BEFORE_SWAP`</h4>
+
+<p>
+
+**Type :** `'astro:before-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette constante est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Une constante permettant d'éviter d'écrire le nom de l'événement `astro:before-swap` à la main lors de la définition d'un événement.
+
+```astro title="src/pages/index.astro" "TRANSITION_BEFORE_SWAP"
+---
+---
+
+<script>
+  import { TRANSITION_BEFORE_SWAP } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, () => {
+    /* la logique de l'écouteur d'événements */
+  });
+</script>
+```
+
+<h4>`TRANSITION_AFTER_SWAP`</h4>
+
+<p>
+
+**Type :** `'astro:after-swap'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette constante est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Une constante permettant d'éviter d'écrire le nom de l'événement `astro:after-swap` à la main lors de la définition d'un événement.
+
+```astro title="src/pages/index.astro" "TRANSITION_AFTER_SWAP"
+---
+---
+
+<script>
+  import { TRANSITION_AFTER_SWAP } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_AFTER_SWAP, () => {
+    /* la logique de l'écouteur d'événements */
+  });
+</script>
+```
+
+<h4>`TRANSITION_PAGE_LOAD`</h4>
+
+<p>
+
+**Type :** `'astro:page-load'`<br />
+<Since v="3.6.0" />
+</p>
+
+:::caution[Dépréciation programmée]
+Cette constante est programmée pour être dépréciée dans la v6. Vous pouvez toujours l'utiliser dans votre projet, mais vous préférerez peut-être mettre à jour votre code maintenant.
+:::
+
+Une constante permettant d'éviter d'écrire le nom de l'événement `astro:page-load` à la main lors de la définition d'un événement.
+
+```astro title="src/pages/index.astro" "TRANSITION_PAGE_LOAD"
+---
+---
+
+<script>
+  import { TRANSITION_PAGE_LOAD } from "astro:transitions/client";
+
+  document.addEventListener(TRANSITION_PAGE_LOAD, () => {
+    /* la logique de l'écouteur d'événements */
+  });
+</script>
+```
+
+## Types de `astro:transitions/client`
+
+```ts
+import type {
+  Direction,
+  Fallback,
+  NavigationTypeString,
+  Options,
+  TransitionBeforePreparationEvent,
+  TransitionBeforeSwapEvent,
+} from 'astro:transitions/client';
+```
+
+### `Direction`
+
+<p>
+
+**Type :** `'forward' | 'back'`<br />
+<Since v="3.2.0" />
+</p>
+
+Une union de directions d'animation :
+- `forward` : navigation vers la page suivante dans l'historique ou vers une nouvelle page.
+- `back` : navigation vers la page précédente dans l'historique.
+
+### `Fallback`
+
+<p>
+
+**Type :** `'none' | 'animate' | 'swap'`<br />
+<Since v="3.2.0" />
+</p>
+
+Une union des stratégies de repli à utiliser dans les navigateurs qui ne prennent pas en charge les transitions de vue :
+- `animate` : Astro simulera les transitions de vue à l’aide d’attributs personnalisés avant de mettre à jour le contenu de la page.
+- `swap` : Astro ne tentera pas d’animer la page. À la place, l’ancienne page sera immédiatement remplacée par la nouvelle.
+- `none` : Astro n'effectuera aucune transition de page animée. À la place, vous obtiendrez une navigation pleine page dans les navigateurs non compatibles.
+
+<ReadMore>Apprenez-en davantage sur [le contrôle de la stratégie de repli](/fr/guides/view-transitions/#contrôle-de-la-stratégie-de-repli) avec `ClientRouter`.</ReadMore>
+
+### `NavigationTypeString`
+
+<p>
+
+**Type :** `'push' | 'replace' | 'traverse'`<br />
+<Since v="3.6.0" />
+</p>
+
+Une union d'événements de navigation historique pris en charge.
+
+### `TransitionBeforePreparationEvent`
+
+<p>
+
+**Type :** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+Représente un événement [`astro:before-preparation`](#événement-astrobefore-preparation). Cela peut être utile pour définir le type d'un événement reçu par un écouteur :
+
+```astro title="src/pages/index.astro" "TransitionBeforePreparationEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_PREPARATION,
+    type TransitionBeforePreparationEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforePreparationEvent) {
+    /* faire quelque chose */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_PREPARATION, listener);
+</script>
+```
+
+### `TransitionBeforeSwapEvent`
+
+<p>
+
+**Type :** `Event`<br />
+<Since v="3.6.0" />
+</p>
+
+Représente un événement [`astro:before-swap`](#événement-astrobefore-swap). Cela peut être utile pour définir le type d'un événement reçu par un écouteur :
+
+```astro title="src/pages/index.astro" "TransitionBeforeSwapEvent"
+---
+---
+
+<script>
+  import {
+    TRANSITION_BEFORE_SWAP,
+    type TransitionBeforeSwapEvent
+  } from "astro:transitions/client";
+
+  function listener(event: TransitionBeforeSwapEvent) {
+    /* faire quelque chose */
+  }
+
+  document.addEventListener(TRANSITION_BEFORE_SWAP, listener);
+</script>
+```
+
 ## Événements du cycle de vie
 
 ### Événement `astro:before-preparation`
+
+<p>
+
+**Type :** [`TransitionBeforePreparationEvent`](#transitionbeforepreparationevent)<br />
+<Since v="3.6.0" />
+</p>
 
 Un événement déclenché au début d'une navigation à l'aide du routeur Transitions de Vue. Cet événement se produit avant toute demande et tout changement d'état du navigateur.
 
@@ -288,23 +631,35 @@ Cet événement possède les attributs suivants :
 - [`info`](#info)
 - [`sourceElement`](#sourceelement)
 - [`navigationType`](#navigationtype)
-- [`direction`](#direction)
+- [`direction`](#direction-1)
 - [`from`](#from)
 - [`to`](#to)
 - [`formData`](#formdata)
 - [`loader`](#loader)
 
-Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astrobefore-preparation).
+<ReadMore>Pour en savoir plus sur la façon d'utiliser cet événement, consultez le [guide des transitions de vue](/fr/guides/view-transitions/#astrobefore-preparation).</ReadMore>
 
 ### Événement `astro:after-preparation`
+
+<p>
+
+**Type :** `Event`<br />
+<Since v="3.6.0" />
+</p>
 
 Un événement envoyé après le chargement de la page suivante dans une navigation utilisant le routeur Transitions de Vue.
 
 Cet événement n'a aucun attribut.
 
-Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astroafter-preparation).
+<ReadMore>Pour en savoir plus sur la façon d'utiliser cet événement, consultez le [guide des transitions de vue](/fr/guides/view-transitions/#astroafter-preparation).</ReadMore>
 
 ### Événement `astro:before-swap`
+
+<p>
+
+**Type :** [`TransitionBeforeSwapEvent`](#transitionbeforeswapevent)<br />
+<Since v="3.6.0" />
+</p>
 
 Un événement envoyé après que la page suivante est analysée, préparée et liée à un document en prévision de la transition, mais avant que tout contenu ne soit échangé entre les documents.
 
@@ -314,21 +669,31 @@ Cet événement possède les attributs suivants :
 - [`info`](#info)
 - [`sourceElement`](#sourceelement)
 - [`navigationType`](#navigationtype)
-- [`direction`](#direction)
+- [`direction`](#direction-1)
 - [`from`](#from)
 - [`to`](#to)
 - [`viewTransition`](#viewtransition)
 - [`swap`](#swap)
 
-Pour en savoir plus sur l'utilisation de cet événement, consultez le [Guide des Transitions de Vue](/fr/guides/view-transitions/#astrobefore-swap).
+<ReadMore>Pour en savoir plus sur la façon d'utiliser cet événement, consultez le [guide des transitions de vue](/fr/guides/view-transitions/#astrobefore-swap).</ReadMore>
 
 ### Événement `astro:after-swap`
+
+<p>
+
+**Type :** `Event`
+</p>
 
 Un événement envoyé après que le contenu de la page a été échangé mais avant la fin de la transition de vue.
 
 L'entrée de l'historique et la position de défilement ont déjà été mises à jour lorsque cet événement est déclenché.
 
 ### Événement `astro:page-load`
+
+<p>
+
+**Type :** `Event`
+</p>
 
 Un événement envoyé une fois le chargement d'une page terminé, qu'il s'agisse d'une navigation utilisant des transitions de vue ou native du navigateur.
 
@@ -338,11 +703,13 @@ Lorsque les transitions de vue sont activées sur la page, le code qui s'exécut
 
 <p><Since v="3.6.0" /></p>
 
+Les attributs suivants sont communs aux événements [`astro:before-preparation`](#événement-astrobefore-preparation) et [`astro:before-swap`](#événement-astrobefore-swap), à l'exception de certains qui ne sont disponibles qu'avec l'un ou l'autre.
+
 #### `info`
 
 <p>
 
-**Type :** `URL`
+**Type :** `any`
 </p>
 
 Données arbitraires définies lors de la navigation.
@@ -373,26 +740,24 @@ Le document de la page suivante dans la navigation. Le contenu de ce document se
 
 <p>
 
-**Type :** `'push' | 'replace' | 'traverse'`
+**Type :** [`NavigationTypeString`](#navigationtypestring)
 </p>
 
 Quel type de navigation dans l'historique est en cours.
 - `push` : une nouvelle `NavigationHistoryEntry` est en cours de création pour la nouvelle page.
 - `replace` : l'actuelle `NavigationHistoryEntry` est remplacée par une entrée pour la nouvelle page.
-- `traverse` : aucune `NavigationHistoryEntry` n'est créée. La position dans l'historique change.
-  La direction du parcours est donnée sur l'[attribut `direction`](#direction)
+- `traverse` : aucune entrée dans l'historique de navigation (`NavigationHistoryEntry`) n'est créée. La position dans l'historique change. Le sens de la navigation est indiqué par l'[attribut `direction`](#direction-1).
 
 #### `direction`
 
 <p>
 
-**Type :** `Direction`
+**Type :** `string`
 </p>
 
 La direction de la transition.
-- `forward` : naviguer vers la page suivante de l'historique ou vers une nouvelle page.
-- `back` : naviguer vers la page précédente de l'historique.
-- Tout ce qu’un autre écouteur d'événement aurait pu définir.
+* Dans un [événement `astro:before-preparation`](#événement-astrobefore-preparation), cette propriété peut être utilisée pour définir des directions personnalisées. Elle est modifiable et accepte n'importe quelle chaîne de caractères.
+* Dans un [événement `astro:before-swap`](#événement-astrobefore-swap), cette propriété peut être utilisée pour récupérer la direction de la transition. Elle est en lecture seule et sa valeur peut être une [`Direction`](#direction) prédéfinie ou toute chaîne de caractères définie qu'un écouteur d'événement `astro:before-preparation` pourrait avoir définie.
 
 #### `from`
 
@@ -416,12 +781,11 @@ L'URL de la page vers laquelle on navigue. Cette propriété peut être modifié
 
 <p>
 
-**Type :** `FormData | undefined`
+**Type :** `FormData | undefined`<br />
+**Disponible dans :** [événement `astro:before-preparation`](#événement-astrobefore-preparation)
 </p>
 
-Un objet `FormData` pour les requêtes `POST`.
-
-Lorsque cet attribut est défini, une requête `POST` sera envoyée à l'[URL`to`](#to) avec l'objet de données de formulaire donné comme contenu au lieu de la requête `GET` normale.
+Lorsque cet attribut est défini, une requête `POST` sera envoyée à l'URL [URL `to`](#to) avec l'objet `FormData` donné comme contenu au lieu de la requête `GET` normale.
 
 Lors de la soumission d'un formulaire HTML avec les transitions de vue activées, ce champ est automatiquement défini sur les données du formulaire. Lorsque vous utilisez la [fonction `navigate()`](#navigate), cette valeur est la même que celle donnée dans les options.
 
@@ -429,7 +793,8 @@ Lors de la soumission d'un formulaire HTML avec les transitions de vue activées
 
 <p>
 
-**Type :** `() => Promise<void>`
+**Type :** `() => Promise<void>`<br />
+**Disponible dans :** [événement `astro:before-preparation`](#événement-astrobefore-preparation)
 </p>
 
 Implémentation de la phase suivante dans la navigation (chargement de la page suivante). Cette implémentation peut être surchargée pour ajouter un comportement supplémentaire.
@@ -438,7 +803,8 @@ Implémentation de la phase suivante dans la navigation (chargement de la page s
 
 <p>
 
-**Type :** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)
+**Type :** [`ViewTransition`](https://developer.mozilla.org/en-US/docs/Web/API/ViewTransition)<br />
+**Disponible dans :** [événement `astro:before-swap`](#événement-astrobefore-swap)
 </p>
 
 L'objet de transition de vue utilisé dans cette navigation. Sur les navigateurs qui ne prennent pas en charge l'[API de Transitions de Vue](https://developer.mozilla.org/en-US/docs/Web/API/View_Transitions_API), il s'agit d'un objet implémentant la même API pour plus de commodité, mais sans l'intégration DOM.
@@ -447,17 +813,16 @@ L'objet de transition de vue utilisé dans cette navigation. Sur les navigateurs
 
 <p>
 
-**Type :** `() => void`
+**Type :** `() => void`<br />
+**Disponible dans :** [événement `astro:before-swap`](#événement-astrobefore-swap)
 </p>
 
-Mise en place de la logique d'échange de documents.
-
-Apprenez-en davantage sur la façon de [créer votre propre fonction d'échange personnalisée](/fr/guides/view-transitions/#créer-une-fonction-déchange-personnalisée) dans le guide Transitions de Vue.
-
-Par défaut, cette implémentation appellera les fonctions suivantes dans l’ordre :
+Appelle la logique d'échange de documents par défaut. Cette implémentation appellera, par défaut, les fonctions suivantes dans cet ordre :
 
 1. [`deselectScripts()`](#deselectscripts)
 2. [`swapRootAttributes()`](#swaprootattributes)
 3. [`swapHeadElements()`](#swapheadelements)
 4. [`saveFocus()`](#savefocus)
 5. [`swapBodyElement()`](#swapbodyelement)
+
+<ReadMore>Pour en savoir plus sur la [création d'une fonction d'échange personnalisée](/fr/guides/view-transitions/#créer-une-fonction-déchange-personnalisée), consultez le guide des transitions de vue.</ReadMore>

@@ -16,26 +16,29 @@ import ReadMore from '~/components/ReadMore.astro';
 
 ## `astro:middleware`에서 가져오기
 
+다음 도우미 함수는 가상 미들웨어 모듈에서 가져옵니다.
+
 ```js
-import {
-  sequence,
-  createContext,
-  trySerializeLocals,
+import { 
   defineMiddleware,
- } from 'astro:middleware';
+  sequence,
+} from 'astro:middleware';
 ```
 
 ### `defineMiddleware()`
 
-타입 안전성을 활용하기 위해 유틸리티 함수 `defineMiddleware()`를 가져와 사용할 수 있습니다:
+<p>
 
-```ts
-// src/middleware.ts
+**타입:** <code>(fn: <a href="#middlewarehandler">MiddlewareHandler</a>) => MiddlewareHandler</code>
+</p>
+
+타입 안전성을 갖춘 미들웨어 함수를 정의하기 위한 함수입니다. 이 유틸리티를 사용하면 [`context`](#context) 및 [`next()`](#next) 인수에 대한 타입이 자동으로 지정되며, [미들웨어에서 지원되지 않는 값](#middlewarehandler)을 반환하려고 하면 TypeScript 오류가 발생합니다.
+
+```ts title="src/middleware.ts"
 import { defineMiddleware } from "astro:middleware";
 
-// `context` 및 `next`의 타입이 자동으로 설정됩니다.
 export const onRequest = defineMiddleware((context, next) => {
-
+  /* 미들웨어 로직 */
 });
 ```
 
@@ -43,7 +46,7 @@ export const onRequest = defineMiddleware((context, next) => {
 
 <p>
 
-**타입:** `(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+**타입:** <code>(...handlers: <a href="#middlewarehandler">MiddlewareHandler</a>[]) => MiddlewareHandler</code>
 </p>
 
 미들웨어 함수를 인수로 받아 전달된 순서대로 실행하는 함수입니다.
@@ -51,24 +54,45 @@ export const onRequest = defineMiddleware((context, next) => {
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
 
-async function validation(_, next) {...}
-async function auth(_, next) {...}
-async function greeting(_, next) {...}
+async function validation(context, next) {/* ... */}
+async function auth(context, next) {/* ... */}
+async function greeting(context, next) {/* ... */}
 
 export const onRequest = sequence(validation, auth, greeting);
+```
+
+## `astro/middleware`에서 가져오기
+
+다음 도우미 함수는 [Astro 통합](/ko/reference/integrations-reference/)을 빌드할 때 일반 미들웨어 모듈에서 가져올 수 있습니다.
+
+```js
+import {
+  createContext,
+  defineMiddleware,
+  sequence,
+  trySerializeLocals,
+} from "astro/middleware";
 ```
 
 ### `createContext()`
 
 <p>
 
-**타입:** `(context: CreateContext) => APIContext`<br />
+**타입:** <code>(context: <a href="#createcontext-1">CreateContext</a>) => <a href="/ko/reference/api-reference/">APIContext</a></code><br />
 <Since v="2.8.0" />
 </p>
 
-Astro 미들웨어 `onRequest()` 함수에 전달될 [`APIContext`](/ko/reference/api-reference/)를 생성하는 저수준 API입니다.
+Astro 미들웨어 [`onRequest()` 함수](#onrequest)에 전달될 [`APIContext`](/ko/reference/api-reference/)를 생성하는 저수준 API입니다.
 
 이 함수는 Astro 미들웨어를 프로그래밍 방식으로 실행하기 위해 통합/어댑터에서 사용할 수 있습니다.
+
+### `defineMiddleware()`
+
+`astro:middleware`의 [`defineMiddleware()`](#definemiddleware)를 확인하세요.
+
+### `sequence()`
+
+`astro:middleware`의 [`sequence()`](#sequence)를 확인하세요.
 
 ### `trySerializeLocals()`
 
@@ -78,47 +102,176 @@ Astro 미들웨어 `onRequest()` 함수에 전달될 [`APIContext`](/ko/referenc
 <Since v="2.8.0" />
 </p>
 
-모든 값을 받아들여 해당 값의 직렬화된 버전 (문자열)을 반환하려고 시도하는  저수준 API입니다. 값을 직렬화할 수 없으면 함수에서 런타임 오류가 발생합니다.
+모든 값을 받아들여 해당 값의 직렬화된 버전 (문자열)을 반환하려고 시도하는 저수준 API입니다. 값을 직렬화할 수 없으면 함수에서 런타임 오류가 발생합니다.
 
-## 미들웨어 내보내기
+## `astro/middleware` 타입
 
-프로젝트의 미들웨어를 `src/middleware.js`에서 정의할 때, 다음 사용자 정의 함수를 내보내세요:
+다음 타입은 일반 미들웨어 모듈에서 가져옵니다.
 
-### `onRequest()`
+```js
+import type {
+  CreateContext,
+} from "astro/middleware";
+```
 
-**타입:** `(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+### `CreateContext`
 
-모든 페이지 또는 API 경로를 렌더링하기 전에 호출되는 `src/middleware.js`에서 내보낸 필수 함수입니다. 두 개의 인수 [context](#context) 및 [next()](#next)를 전달받습니다. `onRequest()`는 `Response`를 직접 반환하거나 `next()`를 호출하여 반환해야 합니다.
+<p>
 
-```js title="src/middleware.js"
-export function onRequest (context, next) {
-    // 요청의 응답 데이터를 가로챕니다.
-    // 선택적으로 응답을 변환합니다.
-    // Response를 직접 반환하거나 `next()` 호출 결과를 반환합니다.
-    return next();
+**타입:** `{ request: Request; params?: Params; userDefinedLocales?: string[]; defaultLocale: string; locals: App.Locals; }`<br />
+<Since v="2.8.0" />
+</p>
+
+Astro 미들웨어에 전달될 [컨텍스트](#createcontext)를 생성하는 객체입니다. 이 객체는 다음 속성을 포함합니다.
+
+#### `request`
+
+<p>
+
+**타입:** `Request`
+</p>
+
+들어오는 [`Request`](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체입니다.
+
+#### `params`
+
+<p>
+
+**타입:** `Params`
+</p>
+
+[`Astro.params`](/ko/reference/api-reference/#params)에 전달될 선택적 매개변수를 포함하는 객체입니다.
+
+#### `userDefinedLocales`
+
+<p>
+
+**타입:** `string[]`<br />
+<Since v="3.5.0" />
+</p>
+
+[사용자의 `i18n` 구성](/ko/reference/configuration-reference/#i18nlocales)에 정의된 지원되는 로케일 목록입니다.
+
+#### `defaultLocale`
+
+<p>
+
+**타입:** `string`<br />
+<Since v="4.16.0" />
+</p>
+
+[사용자의 `i18n` 구성](/ko/reference/configuration-reference/#i18ndefaultlocale)에 정의된 기본 로케일입니다.
+
+#### `locals`
+
+<p>
+
+**타입:** `App.Locals`<br />
+<Since v="5.0.0" />
+</p>
+
+미들웨어에서 임의의 정보를 저장하는 객체로, 사용자는 [`Astro.locals`](/ko/reference/api-reference/#locals)를 통해 접근할 수 있습니다.
+
+<ReadMore>예시 사용법을 통해 [`locals`에 데이터를 저장하는 방법](/ko/guides/middleware/#contextlocals에-데이터-저장)을 자세히 알아보세요.</ReadMore>
+
+## `astro` 타입
+
+```js
+import type {
+  MiddlewareHandler,
+  MiddlewareNext,
+  RewritePayload,
+} from "astro";
+```
+
+### `MiddlewareHandler`
+
+<p>
+
+**타입:** <code>(context: <a href="/ko/reference/api-reference/">APIContext</a>, next: <a href="#middlewarenext">MiddlewareNext</a>) => Promise\<Response\> | Response | Promise\<void\> | void</code>
+</p>
+
+Astro 미들웨어 함수를 나타냅니다. 미들웨어 핸들러는 두 개의 인수를 받으며, `Response`를 직접 반환하거나 체인의 다음 미들웨어를 호출하기 위해 `next()`를 호출할 수 있습니다. 또는 [`defineMiddleware()`](#definemiddleware)를 사용하여 미들웨어에 대한 타입 안전성을 확보할 수 있습니다.
+
+다음 예시는 [`onRequest()`](#onrequest) 함수에서 타입 안전성을 확보하기 위해 `MiddlewareHandler` 타입을 가져오는 방법을 보여줍니다.
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  /* 미들웨어 로직 */
 };
 ```
 
-`onRequest()` 함수는 다음 인자를 전달받아 호출됩니다.
+미들웨어 핸들러는 다음 속성을 받습니다.
 
 #### `context`
 
 <p>
 
-**타입:** `APIContext`
+**타입:** [`APIContext`](/ko/reference/api-reference/)
 </p>
 
-`onRequest()`의 첫 번째 인수는 컨텍스트 객체입니다. 이는 많은 `Astro` 전역 프로퍼티를 반영합니다.
-
-<ReadMore>컨텍스트 객체에 대해 더 자세히 알아보기 위해 [엔드포인트 컨텍스트](/ko/reference/api-reference/)를 방문하세요.</ReadMore>
+`Astro` 전역 속성의 많은 부분을 반영하는 [Astro 컨텍스트](/ko/reference/api-reference/) 객체입니다.
 
 #### `next()`
 
 <p>
 
-**타입:** `(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
+**타입:** [`MiddlewareNext`](#middlewarenext)<br />
 </p>
 
-`onRequest()`의 두 번째 인수는 체인의 모든 후속 미들웨어를 호출하고 `Response`를 반환하는 함수입니다. 예를 들어, 다른 미들웨어가 응답의 HTML 본문을 수정할 수 있으며 `next()`의 결과를 기다리면 미들웨어가 이러한 변경 사항에 응답할 수 있습니다.
+체인에 있는 모든 후속 미들웨어를 호출하고 `Response`를 반환하는 함수입니다. 예를 들어, 다른 미들웨어가 HTML 본문을 수정했다면 `next()`의 결과를 기다림으로써 해당 변경사항을 반영한 응답을 만들 수 있습니다.
 
-Astro v4.13.0부터 `next()`는 새 렌더링 단계를 다시 트리거하지 않고 현재 요청을 [리라이트](/ko/guides/routing/#url-재작성-rewrites)하기 위해 문자열 형식의 선택적 URL 경로 매개 변수인 `URL` 또는 `Request`를 허용합니다.
+Astro v4.13.0부터 `next()`는 문자열, `URL`, `Request` 형태의 선택적 URL 경로 매개변수를 받아 새로운 렌더링 단계를 다시 실행하지 않고 현재 요청을 [다시 작성](/ko/guides/routing/#url-재작성-rewrites)할 수 있습니다.
+
+아래 예시는 현재 경로가 `/old-path`와 일치할 때 `next()`를 사용하여 다른 경로의 콘텐츠를 제공하는 방법을 보여줍니다.
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  if (context.url.pathname === '/old-path') {
+    return next('/new-path');
+  }
+  return next();
+};
+```
+
+### `MiddlewareNext`
+
+<p>
+
+**타입:** <code>(rewritePayload?: <a href="#rewritepayload">RewritePayload</a>) => Promise\<Response\></code><br />
+</p>
+
+미들웨어 핸들러로 전달되는 [`next()` 함수](#next)를 나타냅니다.
+
+### `RewritePayload`
+
+<p>
+
+**타입:** `string | URL | Request`<br />
+<Since v="4.13.0" />
+</p>
+
+[`next()`](#next) 함수에 전달될 경우, [리라이트](/ko/guides/routing/#url-재작성-rewrites)의 목적지를 나타냅니다.
+
+## 미들웨어 내보내기
+
+프로젝트의 미들웨어를 `src/middleware.js`에 정의할 때, 다음 사용자 정의 함수를 내보내야 합니다.
+
+### `onRequest()`
+
+**타입:** [`MiddlewareHandler`](#middlewarehandler)
+
+`src/middleware.js`에서 반드시 내보내야 하는 함수로, 모든 페이지 또는 API 라우트를 렌더링하기 전에 호출됩니다. 이 함수는 두 개의 인자 [`context`](#context)와 [`next()`](#next)를 받습니다. `onRequest()`는 `Response`를 반환해야 하며, 이는 직접 반환할 수도 있고 `next()`를 호출하여 반환할 수도 있습니다.
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+  // 요청의 응답 데이터를 가로챕니다.
+  // 필요하다면 응답을 변환합니다.
+  // Response를 직접 반환하거나 `next()`의 호출 결과를 반환합니다.
+  return next();
+};
+```

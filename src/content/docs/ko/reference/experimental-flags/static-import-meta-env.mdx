@@ -1,0 +1,88 @@
+---
+title: 실험적 비공개 메타 환경 변수 인라이닝
+sidebar:
+  label: 비공개 메타 환경 변수 인라이닝
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="5.13.0" />
+</p>
+
+:::tip[Astro 6.0 미리보기]
+이 기능으로 활성화된 동작은 Astro 6.0의 기본 동작이 됩니다.
+
+원할 때마다 이 플래그를 추가할 수 있습니다. 그러면 더 빨리 이점을 누릴 수 있고, 다음 주요 Astro 버전에 맞게 프로젝트 코드를 업데이트하지 않아도 됩니다.
+:::
+
+Astro에서는 [환경 변수에 대해 타입 안전 스키마](/ko/guides/environment-variables/#타입-안전-환경-변수)를 구성할 수 있으며, `astro:env`를 통해 가져온 변수를 예상되는 타입으로 변환합니다. 이렇게 하면 변수가 공개인지 비공개인지, 클라이언트에서 사용할 수 있는지 빌드 시점에 서버에서만 사용할 수 있는지, 값의 데이터 타입이 무엇인지 쉽게 확인하고 관리할 수 있으므로 Astro에서 환경 변수를 사용하는 데 권장되는 방식입니다.
+
+그러나 필요한 경우 `process.env`와 `import.meta.env`를 통해 환경 변수에 직접 액세스할 수 있습니다. 이는 Astro 5.0에서 `astro:env`가 추가되기 전에 Astro에서 환경 변수를 사용할 수 있는 유일한 방법이었으며, `import.meta.env`를 사용할 때는 더 이상 필요하지 않은 이전 버전의 Astro를 위한 일부 로직이 포함되어 있습니다.
+
+`experimental.staticImportMetaEnv` 플래그는 [Vite의 환경 변수 처리](https://ko.vite.dev/guide/env-and-mode.html#env-variables)에 맞게 `import.meta.env`에 직접 액세스할 때의 동작을 업데이트하고, `import.meta.env` 값이 항상 인라인으로 표시되도록 합니다.
+
+현재 공개되지 않은 환경 변수는 `process.env`에 대한 참조로 대체됩니다. 또한 Astro는 `import.meta.env`를 통해 사용되는 환경 변수 값의 타입을 변환할 수 있으므로 문자열 `"true"` (부울 값으로 변환됨) 및 `"1"` (숫자로 변환됨)과 같은 일부 값에 대한 액세스가 차단될 수 있습니다.
+
+`experimental.staticImportMetaEnv` 플래그는 Astro의 기본 동작을 단순화하여 더 쉽게 이해하고 사용할 수 있도록 합니다. Astro는 더 이상 `import.meta.env` 환경 변수를 `process.env` 호출로 대체하지 않으며 값을 강제로 변환하지도 않습니다.
+
+이 기능을 사용하려면 Astro 구성에서 실험적 플래그를 추가하세요.
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from "astro/config"
+
+export default defineConfig({
+  experimental: {
+    staticImportMetaEnv: true,
+  }
+})
+```
+
+## 사용하기
+
+이 실험적 플래그를 활성화하면 더 이상 문자열 값이 부울이나 숫자로 변환되지 않으며 `import.meta.env` 값이 `process.env` 호출로 바뀌지도 않습니다. 이렇게 하면 Astro에서 `import.meta.env`의 동작이 [Vite](https://ko.vite.dev/guide/env-and-mode.html#env-variables)와 일치하게 됩니다.
+
+향후 주요 버전의 Astro에서는 이 동작이 기본 동작으로 전환되지만, `experimental.staticImportMetaEnv` 플래그를 사용하여 향후 동작을 미리 선택할 수 있습니다. 그리고 필요하다면, 이에 따라 [프로젝트를 업데이트](#프로젝트-업데이트)합니다.
+
+### 프로젝트 업데이트
+
+강제 변환에 의존하는 경우 프로젝트 코드를 업데이트하여 수동으로 적용해야 할 수도 있습니다.
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.ENABLED;
+const enabled: boolean = import.meta.env.ENABLED === "true";
+```
+
+`process.env`로의 변환에 의존하고 있었다면 프로젝트 코드를 업데이트하여 수동으로 적용해야 할 수도 있습니다.
+
+```ts title="src/components/MyComponent.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.DB_PASSWORD;
+const enabled: boolean = process.env.DB_PASSWORD;
+```
+
+타입을 업데이트해야 할 수도 있습니다.
+
+```ts title="src/env.d.ts" del={3-4} ins={5,12-16}
+interface ImportMetaEnv {
+  readonly PUBLIC_POKEAPI: string;
+  readonly DB_PASSWORD: string;
+  readonly ENABLED: boolean;
+  readonly ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+namespace NodeJS {
+  interface ProcessEnv {
+    DB_PASSWORD: string;
+  }
+}
+```
+
+Astro에서 환경 변수를 더 많이 제어해야 하는 경우 [`astro:env`](/ko/guides/environment-variables/)를 사용하는 것이 좋습니다.

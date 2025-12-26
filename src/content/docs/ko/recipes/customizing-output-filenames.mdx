@@ -1,0 +1,104 @@
+---
+title: 빌드 출력의 파일 이름 사용자 정의하기
+description: Vite의 Rollup 옵션을 사용하여 Astro 프로젝트의 JavaScript, CSS, 이미지와 같은 빌드된 자산의 명명 패턴을 변경하는 방법을 알아보세요.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+기본적으로 `astro build` 명령은 [프로젝트 소스](/ko/basics/project-structure/#src)에서 빌드한 자산 (예: `src/` 디렉터리에 있는 JavaScript 및 CSS 파일)을 `_astro` 디렉터리에 해시된 파일 이름으로 (예: `_astro/index.DRf8L97S.js`) 출력하여 장기 캐싱에 유용하게 사용할 수 있습니다.
+
+일반적으로는 필요하지 않지만 필요한 경우 출력 파일 이름을 사용자 정의할 수 있습니다. 예를 들어 광고 차단기를 트리거할 수 있는 이름의 스크립트 (예: `ads.js`)가 있거나 특정 명명 규칙에 따라 자산을 구성하려는 경우 유용할 수 있습니다. Rollup의 output 옵션을 사용자 정의하면 프로젝트의 빌드 구조를 더 잘 제어할 수 있어 특정 조직 또는 배포 요구 사항을 충족할 수 있습니다.
+
+## 레시피
+
+이 레시피는 다음과 같은 구조 및 명명 패턴으로 빌드된 자산을 출력하기 위해 `vite.build.rollupOptions`를 구성합니다.
+-   JavaScript 항목 파일 (예: 페이지 또는 레이아웃과 직접 연결된 스크립트): `dist/js/[name]-[hash].js`
+-   JavaScript 코드 분할 청크 (예: 동적으로 가져온 컴포넌트 또는 공유 모듈): `dist/js/chunks/[name]-[hash].js`
+-   기타 자산 (예: CSS, 이미지, 글꼴): `dist/static/[name]-[hash][extname]` (예: `dist/static/styles-a1b2c3d4.css`, `dist/static/logo-e5f6g7h8.svg`)
+
+<Steps>
+
+1.  Vite Rollup Output 옵션을 추가합니다.
+    
+    다음 `vite.build.rollupOptions.output` 구성을 포함하도록 `astro.config.mjs`를 수정합니다. 여기에서 Rollup의 [`entryFileNames`](https://rollupjs.org/configuration-options/#output-entryfilenames), [`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames), [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames)를 사용하여 자산의 사용자 정의 명명 패턴을 정의할 수 있습니다.
+
+    ```javascript title="astro.config.mjs" ins
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // ...
+      vite: {
+        build: {
+          rollupOptions: {
+            output: {
+              // `outDir`에 상대적인 경로 이름
+              entryFileNames: 'js/[name]-[hash].js',
+              chunkFileNames: 'js/chunks/[name]-[hash].js',
+              assetFileNames: 'static/[name]-[hash][extname]',
+            },
+          },
+        },
+      },
+    });
+    ```
+
+    이 예시는 다음과 같은 파일 이름 자리 표시자를 사용합니다.
+    *   `[name]`: 파일의 원래 이름 (확장자 및 경로 없음)
+    *   `[hash]`: 파일에 대해 생성된 콘텐츠 기반 해시로, 캐시 버스팅에 중요합니다. 길이를 지정할 수도 있습니다 (예: `[hash:8]`). 이렇게 하면 자산을 업데이트할 때 파일 이름이 변경되어 브라우저가 오래된 캐시 버전을 제공하는 대신 새 버전을 다운로드하도록 할 수 있습니다.
+    *   `[extname]`: 선행 점을 포함한 원본 파일 확장자 (예: `.js`, `.css`, `.svg`)
+
+    <ReadMore>    
+    이러한 옵션에 사용할 수 있는 자리 표시자 및 고급 패턴의 전체 목록은 [Rollup 구성 문서](https://rollupjs.org/configuration-options/)를 참조하세요.
+    </ReadMore>
+
+2.  프로젝트를 빌드합니다.
+    
+    이러한 파일 이름 사용자 정의는 프로덕션 빌드 출력에만 적용되므로 프로젝트의 빌드 명령을 실행해야 합니다.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run build
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm build
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn build
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. 빌드가 완료되면 [출력 디렉터리](/ko/reference/configuration-reference/#outdir) (기본적으로 `dist/`)를 확인합니다.
+    
+    프로젝트 `src`의 빌드 자산이 새 패턴에 따라 이름이 지정되고 구성되었는지 확인합니다. ([`public/` 디렉터리](/ko/basics/project-structure/#public)의 파일은 출력 디렉터리에 직접 복사되며 이러한 Rollup 명명 옵션의 영향을 받지 않습니다.)
+    
+    프로젝트의 콘텐츠에 따라 빌드 폴더는 이제 다음과 같은 모습이 됩니다.
+
+    <FileTree>
+    - dist/
+      - js/
+        - index-a1b2c3d4.js
+        - chunks/
+          - common-e5f6g7h8.js
+      - img/
+        - logo-i9j0k1l2.png
+      - fonts/
+        - myfont-q2w3e4r5.woff2
+      - static_assets/
+        - styles-m3n4o5p6.css
+      - index.html
+      - about/
+        - index.html
+      - ... (기타 HTML 파일 및 공개 자산)
+    </FileTree>
+
+</Steps>

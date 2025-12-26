@@ -26,7 +26,7 @@ Astro provides two built-in loaders to help you fetch your collections. Both off
 <Since v="5.0.0" />
 </p>
 
-The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, and YAML files.
+The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, YAML, and TOML files.
 
 This loader accepts an object with the following properties: `pattern`, `base` (optional), and `generateId` (optional).
 
@@ -99,7 +99,7 @@ By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to
 <Since v="5.0.0" />
 </p>
 
-The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with IDs as keys and entries as values. It supports JSON or YAML, and you can provide a custom `parser` for data files it cannot parse by default.
+The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with IDs as keys and entries as values. It supports JSON, YAML, or TOML files and you can provide a custom `parser` for data files it cannot parse by default.
 
 This loader accepts a `fileName` property and an optional object as second argument:
 
@@ -183,7 +183,7 @@ The recommended pattern is to define a function that accepts configuration optio
 
 ```ts title=loader.ts
 import type { Loader, LoaderContext } from 'astro/loaders';
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import { loadFeedData } from "./feed.js";
 
 // Define any options that the loader needs
@@ -209,9 +209,10 @@ export function myLoader(options: { url: string, apiKey: string }): Loader {
 
 These configuration options can then be set when defining a collection:
 
-```ts title="src/content.config.ts"  {2,5-8}  
-import { defineCollection, z } from 'astro:content';  
-import myLoader from '../../loader.ts';  
+```ts title="src/content.config.ts"  {3,6-9}  
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import myLoader from '../../loader.ts';
 
 const blog = defineCollection({  
   loader: myLoader({
@@ -344,6 +345,45 @@ export function feedLoader({ url }): Loader {
         store.set({
           id,
           data,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `renderMarkdown`
+
+<p>
+
+**Type**: `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+Renders a Markdown string to HTML, returning a `RenderedContent` object.
+
+This allows you to render Markdown content directly within your loaders using the same Markdown processing as Astro's built-in `glob` loader and provides access to the `render()` function and `<Content />` component for [rendering body content](/en/guides/content-collections/#rendering-body-content).
+
+Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content).
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set({
+          id: entry.id,
+          data: entry,
+          // Assume each entry has a 'content' field with markdown content
+          rendered: await renderMarkdown(entry.content),
         });
       }
     },
@@ -618,7 +658,7 @@ The format of the `RenderedContent` object is:
 	/** Rendered HTML string. If present then `render(entry)` will return a component that renders this HTML. */
 	html: string;
 	metadata?: {
-		/** Any images that are present in this entry. Relative to the {@link DataEntry} filePath. */
+		/** Any images that are present in this entry. Relative to the DataEntry filePath. */
 		imagePaths?: Array<string>;
 		/** Any headings that are present in this file. Returned as `headings` from `render()` */
 		headings?: MarkdownHeading[];
@@ -629,3 +669,5 @@ The format of the `RenderedContent` object is:
 	};
 }
 ```
+
+If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.

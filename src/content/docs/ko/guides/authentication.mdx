@@ -11,148 +11,13 @@ import ReadMore from '~/components/ReadMore.astro'
 
 인증 및 승인은 웹사이트 또는 앱에 대한 액세스를 관리하는 두 가지 보안 프로세스입니다. 인증은 방문자의 신원을 확인하는 반면, 승인은 보호 구역 및 자원에 대한 접근 권한을 부여합니다.
 
-인증을 사용하면 사이트의 특정 영역을 로그인한 개인에 맞춰 사용자 정의할 수 있으며 개인 정보 또는 비공개 정보를 최대한 보호할 수 있습니다. 인증 라이브러리 (예: [Auth.js](https://authjs.dev/), [Clerk](https://clerk.com))는 이메일 로그인 및 OAuth 공급자와 같은 다양한 인증 방법을 위한 유틸리티를 제공합니다.
+인증을 사용하면 사이트의 특정 영역을 로그인한 개인에 맞춰 사용자 정의할 수 있으며 개인 정보 또는 비공개 정보를 최대한 보호할 수 있습니다. 인증 라이브러리 (예: [Better Auth](https://better-auth.com/), [Clerk](https://clerk.com))는 이메일 로그인 및 OAuth 공급자와 같은 다양한 인증 방법을 위한 유틸리티를 제공합니다.
 
 :::tip
 Astro에 대한 공식 인증 솔루션은 없지만 통합 디렉터리에서 [커뮤니티 "인증" 통합](https://astro.build/integrations/?search=auth)을 찾을 수 있습니다.
 :::
 
-<ReadMore>이러한 백엔드 서비스에 대한 전용 가이드에서 [Supabase로 인증을 추가](/ko/guides/backend/supabase/#supabase로-인증-추가)하거나 [Firebase로 인증을 추가](/ko/guides/backend/google-firebase/#firebase로-인증-추가)하는 방법을 알아보세요.</ReadMore>
-
-## Auth.js
-
-Auth.js는 프레임워크에 구애받지 않는 인증 솔루션입니다. Astro용 커뮤니티 프레임워크 어댑터 [`auth-astro`](https://www.npmjs.com/package/auth-astro)를 사용할 수 있습니다.
-
-### 설치
-
-선호하는 패키지 관리자로 `astro add` 명령을 사용하여 `auth-astro` 통합을 추가하세요.
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npx astro add auth-astro
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm astro add auth-astro
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn astro add auth-astro
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-#### 수동 설치
-
-`auth-astro`를 수동으로 설치하려면 패키지 관리자로 필요한 패키지를 설치하세요.
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm install auth-astro @auth/core@^0.18.6
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm add auth-astro @auth/core@^0.18.6
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn add auth-astro @auth/core@^0.18.6
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-그런 다음 `integrations` 속성을 사용하여 `astro.config.*` 파일에 통합을 적용합니다.
-
-```ts title="astro.config.mjs" ins={2,6}
-import { defineConfig } from 'astro/config';
-import auth from 'auth-astro';
-
-export default defineConfig({
-  // ...
-  integrations: [auth()],
-});
-```
-
-### 구성
-
-프로젝트의 루트 디렉터리에 `auth.config.ts` 파일을 생성합니다. 필요한 환경 변수와 함께 지원하려는 인증 [공급자](https://authjs.dev/getting-started/providers) 또는 메서드를 추가하세요.
-
-```ts title="auth.config.ts"
-import GitHub from '@auth/core/providers/github';
-import { defineConfig } from 'auth-astro';
-
-export default defineConfig({
-	providers: [
-		GitHub({
-			clientId: import.meta.env.GITHUB_CLIENT_ID,
-			clientSecret: import.meta.env.GITHUB_CLIENT_SECRET,
-		}),
-	],
-});
-```
-
-아직 존재하지 않는 경우 프로젝트 루트에 `.env` 파일을 생성합니다. 다음 두 가지 환경 변수를 추가합니다. `AUTH_SECRET`은 최소 32자의 비공개 문자열이어야 합니다.
-
-```sh title=".env"
-AUTH_TRUST_HOST=true
-AUTH_SECRET=<my-auth-secret>
-```
-
-### 사용
-
-script 태그 또는 클라이언트 측 프레임워크 컴포넌트에서 `auth-astro/client` 모듈을 사용하여 로그인 및 로그아웃 버튼을 추가할 수 있습니다.
-
-```astro title="src/pages/index.astro" {9}
----
-import Layout from 'src/layouts/Base.astro';
----
-<Layout>
-  <button id="login">Login</button>
-  <button id="logout">Logout</button>
-
-  <script>
-    const { signIn, signOut } = await import("auth-astro/client")
-    document.querySelector("#login").onclick = () => signIn("github")
-    document.querySelector("#logout").onclick = () => signOut()
-  </script>
-</Layout>
-```
-
-`getSession` 메서드를 사용하여 사용자 세션을 가져올 수 있습니다.
-
-```astro title="src/pages/index.astro" {3,5}
----
-import Layout from 'src/layouts/Base.astro';
-import { getSession } from 'auth-astro/server';
-
-const session = await getSession(Astro.request);
----
-<Layout>
-  {
-    session ? (
-      <p>Welcome {session.user?.name}</p>
-    ) : (
-      <p>Not logged in</p>
-    )
-  }
-</Layout>
-```
-
-### 다음 단계
-
-- [GitHub의 `auth-astro`](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
-- [Auth.js 문서](https://authjs.dev/)
-
-### 다음 단계
-
-- [`auth-astro` on GitHub](https://github.com/nowaythatworked/auth-astro?tab=readme-ov-file#auth-astro)
-- [Auth.js documentation](https://authjs.dev/)
+<ReadMore>이러한 백엔드 서비스에 대한 전용 가이드에서 [Supabase로 인증을 추가](/ko/guides/backend/supabase/#supabase로-인증-추가)하거나 [Firebase로 인증을 추가](/ko/guides/backend/firebase/#firebase로-인증-추가)하는 방법을 알아보세요.</ReadMore>
 
 ## Better Auth
 
@@ -189,7 +54,9 @@ Astro를 즉시 지원하며, 이를 사용하여 Astro 프로젝트에 인증�
 ```ts title="src/pages/api/auth/[...all].ts"
 import { auth } from "../../../lib/auth"; // Better Auth 인스턴스를 가져옵니다.
 import type { APIRoute } from "astro";
- 
+
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
 export const ALL: APIRoute = async (ctx) => {
 	return auth.handler(ctx.request);
 };
@@ -271,7 +138,9 @@ import Layout from 'src/layouts/Base.astro';
 ```astro title="src/pages/index.astro"
 ---
 import { auth } from "../../../lib/auth"; // Better Auth 인스턴스를 가져옵니다.
- 
+
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
 const session = await auth.api.getSession({
 	headers: Astro.request.headers,
 });
@@ -300,10 +169,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 ### 다음 단계
 
-- [Better Auth Astro Guide](https://www.better-auth.com/docs/integrations/astro)
-- [Better Auth Astro Example](https://github.com/better-auth/better-auth/tree/main/examples/astro-example)
-- [Better Auth Documentation](https://www.better-auth.com/docs)
-- [Better Auth GitHub Repository](https://github.com/better-auth/better-auth)
+- [Better Auth + Astro 가이드](https://www.better-auth.com/docs/integrations/astro)
+- [Better Auth + Astro 예시](https://github.com/better-auth/examples/tree/main/astro-example)
+- [Better Auth 문서](https://www.better-auth.com/docs)
+- [Better Auth GitHub 리포지토리](https://github.com/better-auth/better-auth)
 
 ## Clerk
 
@@ -343,6 +212,8 @@ Clerk는 사용자의 인증 상태에 따라 페이지의 표시 여부를 제�
 ---
 import Layout from 'src/layouts/Base.astro';
 import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
 ---
 <Layout>
     <SignedIn>

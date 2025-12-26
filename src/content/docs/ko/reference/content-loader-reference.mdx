@@ -26,7 +26,7 @@ Astro는 컬렉션을 가져오는 데 도움이 되는 두 가지 내장 로더
 <Since v="5.0.0" />
 </p>
 
-`glob()` 로더는 파일 시스템의 어디에서나 파일 디렉터리로부터 항목들을 생성합니다. 지원되는 파일 형식은 Markdown, MDX, Markdoc, JSON 및 YAML 파일입니다.
+`glob()` 로더는 파일 시스템의 어디에서나 파일 디렉터리로부터 항목들을 생성합니다. 지원되는 파일 형식은 Markdown, MDX, Markdoc, JSON, YAML 및 TOML 파일입니다.
 
 이 로더는 다음과 같은 속성을 가진 객체를 받습니다: `pattern`, `base`(선택사항), 그리고 `generateId`(선택사항).
 
@@ -98,7 +98,7 @@ const authors = defineCollection({
 <Since v="5.0.0" />
 </p>
 
-`file()` 로더는 고유한 `id` 필드를 가진 객체의 배열을 포함하는 단일 파일 또는 ID를 키로, 항목을 값으로 가지는 객체로부터 항목을 생성합니다. JSON 또는 YAML을 지원하며, 기본적으로 파싱할 수 없는 데이터 파일을 위해 사용자 정의 `parser`를 제공할 수 있습니다.
+`file()` 로더는 고유한 `id` 필드를 가진 객체의 배열을 포함하는 단일 파일 또는 ID를 키로, 항목을 값으로 가지는 객체로부터 항목을 생성합니다. JSON, YAML 또는 TOML 파일을 지원하며, 기본적으로 파싱할 수 없는 데이터 파일을 위해 사용자 정의 `parser`를 제공할 수 있습니다.
 
 이 로더는 `fileName` 속성을 받으며, 선택적으로 두 번째 인수로 객체를 받습니다.
 
@@ -181,7 +181,7 @@ const countries = defineCollection({
 
 ```ts title=loader.ts
 import type { Loader, LoaderContext } from 'astro/loaders';
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import { loadFeedData } from "./feed.js";
 
 // 로더에 필요한 모든 옵션을 정의
@@ -205,11 +205,12 @@ export function myLoader(options: { url: string, apiKey: string }): Loader {
 }
 ```
 
-이러한 구성 옵션은 컬렉션을 정의할 때 설정할 수 있습니다:
+이러한 구성 옵션은 컬렉션을 정의할 때 설정할 수 있습니다.
 
-```ts title="src/content.config.ts"  {2,5-8}  
-import { defineCollection, z } from 'astro:content';  
-import myLoader from '../../loader.ts';  
+```ts title="src/content.config.ts"  {3,6-9}  
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import myLoader from '../../loader.ts';
 
 const blog = defineCollection({  
   loader: myLoader({
@@ -342,6 +343,45 @@ export function feedLoader({ url }): Loader {
         store.set({
           id,
           data,
+        });
+      }
+    },
+  };
+}
+```
+
+#### `renderMarkdown`
+
+<p>
+
+**타입**: `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+`RenderedContent` 객체를 반환하면서 Markdown 문자열을 HTML로 렌더링합니다.
+
+이 기능을 사용하면 Astro의 내장 `glob` 로더와 동일한 Markdown 처리 방식을 사용하여 로더에서 Markdown 콘텐츠를 직접 렌더링할 수 있습니다. 또한 [본문 콘텐츠를 렌더링](/ko/guides/content-collections/#본문-콘텐츠-렌더링)하기 위한 `render()` 함수와 `<Content />` 컴포넌트에 접근할 수도 있습니다.
+
+사용자가 [페이지에서 콘텐츠를 렌더링](/ko/guides/content-collections/#본문-콘텐츠-렌더링)할 수 있도록 이 객체를 [DataEntry](#dataentry) 객체의 [rendered](#rendered) 필드에 할당하세요.
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set({
+          id: entry.id,
+          data: entry,
+          // 각 항목에 Markdown 콘텐츠를 나타내는 'content' 필드가 있다고 가정합니다.
+          rendered: await renderMarkdown(entry.content),
         });
       }
     },
@@ -616,7 +656,7 @@ ID로 항목이 스토어에 존재하는지 확인합니다.
 	/** 렌더링된 HTML 문자열입니다. 존재하는 경우 `render(entry)`는 이 HTML을 렌더링하는 컴포넌트를 반환합니다. */
 	html: string;
 	metadata?: {
-		/** 이 항목에 존재하는 모든 이미지입니다. {@link DataEntry} filePath를 기준으로 합니다. */
+		/** 이 항목에 존재하는 모든 이미지입니다. DataEntry의 filePath를 기준으로 합니다. */
 		imagePaths?: Array<string>;
 		/** 이 파일에 존재하는 모든 제목입니다. `render()`에서 `headings`로 반환됩니다 */
 		headings?: MarkdownHeading[];
@@ -627,3 +667,5 @@ ID로 항목이 스토어에 존재하는지 확인합니다.
 	};
 }
 ```
+
+항목에 Markdown 콘텐츠가 있는 경우 [`renderMarkdown()`](#rendermarkdown) 함수를 사용하여 Markdown 문자열에서 이 객체를 생성할 수 있습니다.

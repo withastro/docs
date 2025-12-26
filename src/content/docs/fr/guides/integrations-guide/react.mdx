@@ -1,7 +1,7 @@
 ---
 type: integration
 title: '@astrojs/react'
-description: "Apprenez à utiliser l'intégration du framework @astrojs/react pour étendre la prise en charge des composants dans votre projet Astro."
+description: "Apprenez à utiliser l'intégration de framework @astrojs/react pour étendre la prise en charge des composants dans votre projet Astro."
 sidebar:
   label: React
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
@@ -9,6 +9,7 @@ category: renderer
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
 Cette **[intégration Astro][astro-integration]** permet le rendu et l'hydratation côté client pour vos composants [React](https://react.dev/).
 
@@ -110,9 +111,82 @@ Et ajoutez le code suivant au fichier `tsconfig.json`.
 
 Pour utiliser votre premier composant React dans Astro, dirigez-vous vers notre [documentation sur les frameworks UI][astro-ui-frameworks]. Vous y découvrirez :
 
-* 📦 comment les composants du cadre sont chargés,
+* 📦 comment les composants de framework sont chargés,
 * 💧 les options d'hydratation côté client, et
-* 🤝 les possibilités de mélanger et d'imbriquer les cadres.
+* 🤝 les possibilités de mélanger et d'imbriquer les frameworks.
+
+## Intégrer des actions avec `useActionState()`
+
+L'intégration `@astrojs/react` fournit deux fonctions à utiliser avec les [actions d'Astro][astro-actions] : `withState()` et `getActionState()`.
+
+Celles-ci sont utilisées avec le [hook useActionState() de React](https://fr.react.dev/reference/react/useActionState) afin de lire et de mettre à jour l'état côté client lorsque des actions sont déclenchées au moment de la soumission du formulaire.
+
+### `withState()`
+
+<p>
+
+**Type :** `(action: FormFn<T>) => (state: T, formData: FormData) => FormFn<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Vous pouvez transmettre `withState()` et l'action que vous souhaitez déclencher au hook `useActionState()` de React en tant que fonction d'action du formulaire. L'exemple ci-dessous transmet une action `like` pour augmenter un compteur, avec un état initial de `0` mention « J'aime ».
+
+```jsx title="Like.tsx" ins={2,7} "useActionState"
+import { actions } from 'astro:actions';
+import { withState } from '@astrojs/react/actions';
+import { useActionState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState(
+    withState(actions.like),
+    { data: 0, error: undefined }, // mentions « J'aime » et erreurs initiales
+  );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="postId" value={postId} />
+      <button disabled={pending}>{state.data} ❤️</button>
+    </form>
+  );
+}
+```
+
+La fonction `withState()` fera correspondre les types d'actions avec les attentes de React et préservera les métadonnées utilisées pour l'amélioration progressive, lui permettant de fonctionner même lorsque JavaScript est désactivé sur l'appareil de l'utilisateur.
+
+### `getActionState()`
+
+<p>
+
+**Type :** `(context: ActionAPIContext) => Promise<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Vous pouvez accéder à l'état enregistré par `useActionState()` sur le serveur dans votre gestionnaire d'actions (`handler`) à l'aide de `getActionState()`. Cette méthode accepte le [contexte de l'API d'Astro](/fr/reference/api-reference/#lobjet-de-contexte), et éventuellement, vous pouvez appliquer un type au résultat.
+
+L'exemple ci-dessous récupère la valeur actuelle des mentions « J'aime » à partir d'un compteur, typée en tant que nombre, afin de créer une action `like` incrémentielle :
+
+```ts title="actions.ts" ins={3,11}
+import { defineAction, type SafeResult } from 'astro:actions';
+import { z } from 'astro/zod';
+import { getActionState } from '@astrojs/react/actions';
+
+export const server = {
+  like: defineAction({
+    input: z.object({
+      postId: z.string(),
+    }),
+    handler: async ({ postId }, ctx) => {
+      const { data: currentLikes = 0, error } = await getActionState<SafeResult<any, number>>(ctx);
+      
+      // gérer les erreurs
+      if (error) throw error;
+
+      // écrire dans la base de données
+      return currentLikes + 1;
+    },
+  })
+};
+```
 
 ## Options
 
@@ -149,11 +223,11 @@ export default defineConfig({
 });
 ```
 
-### Traitement des éléments enfants (Children parsing)
+### Analyse syntaxique des éléments enfants
 
-Les enfants passés dans un composant React depuis un composant Astro sont analysés comme des chaînes simples, et non comme des nœuds React.
+Les enfants transmis dans un composant React depuis un composant Astro sont analysés comme des chaînes de caractères simples, et non comme des nœuds React.
 
-Par exemple, le `<ReactComponent />` ci-dessous ne recevra qu'un seul élément enfant :
+Par exemple, le composant `<ReactComponent />` ci-dessous ne recevra qu'un seul élément enfant :
 
 ```astro
 ---
@@ -168,7 +242,7 @@ import ReactComponent from './ReactComponent';
 
 Si vous utilisez une bibliothèque qui *attend* que plus d'un élément enfant soit passé, par exemple pour qu'elle puisse placer certains éléments à différents endroits, vous pourriez trouver cela bloquant.
 
-Vous pouvez définir le drapeau expérimental `experimentalReactChildren` pour dire à Astro de toujours passer les enfants à React en tant que nœuds DOM virtuels React. Il y a un coût d'exécution à cela, mais cela peut aider à la compatibilité.
+Vous pouvez utiliser l'option expérimentale `experimentalReactChildren` pour dire à Astro de toujours passer les enfants à React en tant que nœuds DOM virtuels React. Il y a un coût d'exécution à cela, mais cela peut aider à la compatibilité.
 
 Vous pouvez activer cette option dans la configuration de l'intégration de React :
 

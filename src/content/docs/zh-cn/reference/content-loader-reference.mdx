@@ -26,7 +26,7 @@ Astro 提供两种内置加载器以帮助你获取你的集合。两者都提�
 <Since v="5.0.0" />
 </p>
 
-`glob()` 加载器从文件系统中任何位置的文件目录创建条目。支持的文件类型包括 Markdown、MDX、Markdoc、JSON 和 YAML 文件。
+`glob()` 加载器从文件系统中任何位置的文件目录创建条目。支持的文件类型包括 Markdown、MDX、Markdoc、JSON、YAML 和 TOML 文件。
 
 该加载器接受具有以下属性的对象：`pattern`、`base`（可选）以及 `generateId`（可选）。
 
@@ -99,7 +99,7 @@ const authors = defineCollection({
 <Since v="5.0.0" />
 </p>
 
-`file()` 加载器从单个文件创建条目，该文件包含具有唯一 `id` 字段的对象数组或是一个以 ID 作为键、条目作为值的对象。它支持 JSON 或 YAML，你可以为默认情况下无法解析的数据文件提供一个自定义 `parser`。
+`file()` 加载器从单个文件创建条目，该文件包含具有唯一 `id` 字段的对象数组或是一个以 ID 作为键、条目作为值的对象。它支持 JSON、YAML 或者 TOML 文件，你可以为默认情况下无法解析的数据文件提供一个自定义 `parser`。
 
 该加载器接受一个 `fileName` 属性和一个可选对象作为第二个参数：
 
@@ -182,7 +182,7 @@ const countries = defineCollection({
 
 ```ts title=loader.ts
 import type { Loader, LoaderContext } from 'astro/loaders';
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 import { loadFeedData } from "./feed.js";
 
 // 定义加载器需要的任何选项
@@ -208,9 +208,10 @@ export function myLoader(options: { url: string, apiKey: string }): Loader {
 
 然后就可以在定义集合时设置这些配置选项：
 
-```ts title="src/content.config.ts"  {2,5-8}  
-import { defineCollection, z } from 'astro:content';  
-import myLoader from '../../loader.ts';  
+```ts title="src/content.config.ts"  {3,6-9}  
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import myLoader from '../../loader.ts';
 
 const blog = defineCollection({  
   loader: myLoader({
@@ -343,6 +344,46 @@ export function feedLoader({ url }): Loader {
         store.set({
           id,
           data,
+        });
+      }
+    },
+  };
+}
+```
+
+
+#### `renderMarkdown`
+
+<p>
+
+**类型：** `(markdown: string) => Promise<RenderedContent>`
+<Since v="5.9.0" />
+</p>
+
+用于将 Markdown 字符串渲染为 HTML，返回一个 `RenderedContent` 对象。
+
+该功能允许你在加载器中直接渲染 Markdown 内容，其处理逻辑与 Astro 内置的 `glob` 加载器完全一致，该功能可以调用 `render()` 函数处理原始内容，并使用 `<Content />` 组件 [渲染正文内容](/zh-cn/guides/content-collections/#渲染正文内容)。
+
+将该对象分配给 [DataEntry](#dataentry) 对象的 [rendered](#rendered) 字段，以允许用户 [在页面中渲染内容](/zh-cn/guides/content-collections/#渲染正文内容)。
+
+```ts title=loader.ts {16-17}
+import type { Loader } from 'astro/loaders';
+import { loadFromCMS } from './cms.js';
+
+export function myLoader(settings): Loader {
+  return {
+    name: 'cms-loader',
+    async load({ renderMarkdown, store }) {
+      const entries = await loadFromCMS();
+
+      store.clear();
+
+      for (const entry of entries) {
+        store.set({
+          id: entry.id,
+          data: entry,
+          // 假设每个条目都包含一个带有 markdown 内容的 'content' 字段
+          rendered: await renderMarkdown(entry.content),
         });
       }
     },
@@ -617,7 +658,7 @@ const existingEntry = store.get("my-entry");
 	/** 渲染的 HTML 字符串。如果存在，则 `render(entry)` 将会返回渲染该 HTML 的组件。 */
 	html: string;
 	metadata?: {
-		/** 此条目中存在的任何图像。相对于 {@link DataEntry} 文件路径。 */
+		/** 此条目中存在的任何图像。相对于 DataEntry 文件路径。 */
 		imagePaths?: Array<string>;
 		/** 此文件中存在的任何标题。从 `render()` 中作为 `headings` 返回。 */
 		headings?: MarkdownHeading[];
@@ -628,3 +669,5 @@ const existingEntry = store.get("my-entry");
 	};
 }
 ```
+
+如果条目含有 Markdown 内容，那么你就可以使用 [`renderMarkdown()`](#rendermarkdown) 函数从 Markdown 字符串中生成该对象。

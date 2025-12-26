@@ -1,7 +1,7 @@
 import kleur from 'kleur';
 import { dedentMd } from '../../output.mjs';
-import { CheckBase, type CheckHtmlPageContext } from '../base/check';
-import { IssueType } from '../base/issue';
+import { CheckBase, type CheckHtmlPageContext } from '../base/check.ts';
+import { IssueType } from '../base/issue.ts';
 
 export class TargetExists extends CheckBase {
 	private static readonly BrokenPageLink = new IssueType({
@@ -21,6 +21,11 @@ export class TargetExists extends CheckBase {
 
 			// Report links to missing pages
 			if (!linkedPage) {
+				// If it's not a page it may be a file
+				if (this.findFileByPathname(context, url.pathname)) {
+					return;
+				}
+
 				context.report({
 					type: TargetExists.BrokenPageLink,
 					linkHref,

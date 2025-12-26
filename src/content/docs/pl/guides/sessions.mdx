@@ -1,0 +1,162 @@
+---
+title: Sesje
+description: Udostępnianie danych pomiędzy żądaniami dla stron renderowanych na żądanie
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+Sesje są używane do udostępniania danych pomiędzy żądaniami dla [stron renderowanych na żądanie](/pl/guides/on-demand-rendering/). 
+
+W odróznieniu do plików [`cookies`](/pl/guides/on-demand-rendering/#cookies), sesje są przechowywane na serwerze. Dzięki temu możesz przechowywać większe ilości danych bez obaw o ograniczenia rozmiaru czy problemy z bezpieczeństwem.
+Sesje są przydatne do przechowywania takich informacji jak dane użytkownika, zawartość koszyka czy stan formularzy. Sesje działają bez potrzeby użycia JavaScriptu po stronie klienta.
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // Niepotrzebne przy output'cie z serwera
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+## Konfiguracja Sesji
+
+Sesje wymagają sterownika magazynu do przechowywania danych sesji. Niektóre adaptery, takie jak: [Node](/pl/guides/integrations-guide/node/#sessions), [Cloudflare](/pl/guides/integrations-guide/cloudflare/#sessions), i [Netlify](/pl/guides/integrations-guide/netlify/#sessions) automatycznie konfigurują domyślny sterownik. Pozostałe wymagają ręcznej konfiguracji. [ręczna konfiguracja sterownika](/pl/reference/configuration-reference/#sessiondriver). 
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+<ReadMore>
+  Zobacz [opcje konfiguracji sesji](/pl/reference/configuration-reference/#session-options) aby uzyskać więcej informacji na temat konfiguracji sterownika magazynu oraz innych opcji konfiguracyjnych.
+</ReadMore>
+
+
+## Interakcja z danymi Sesji
+
+Obiekt [`session`](/pl/reference/api-reference/#session) Pozwala na interakcję z przechowywanym stanem (state) użytkownika (np. dodanie przedmiotów do koszyka) oraz z identyfikatorem (ID) sesji (np. usunięcie pliku cookie zawierającego ID sesji podczas wylogowywania). Objekt jest dostępny jako `Astro.session` w komponentach i stronach Astro oraz jako obiekt `context.session` w endpointach API, middleware i akcjach.
+
+Sesja jest generowana automatycznie przy pierwszym użyciu i może zostać ponownie wygenerowana w dowolnym momencie przy użyciu [`session.regenerate()`](/pl/reference/api-reference/#regenerate) albo usunięta za pomocą [`session.destroy()`](/pl/reference/api-reference/#destroy).
+
+W wielu przypadkach, wystarczy użycie [`session.get()`](/pl/reference/api-reference/#get) i [`session.set()`](/pl/reference/api-reference/#set). 
+
+<ReadMore>
+Zobacz [dokumentację API sesji](/pl/reference/api-reference/#session) po więcej szczegółów.
+</ReadMore>
+
+### Komponenty i strony Astro
+
+W komponentach i stronach`.astro` , możliwe jest uzyskanie dostępu do obiektu sesji za pośrednictwem globalnego obiektu Astro. Na przykład, aby wyświetlić liczbę przedmiotów w koszyku:
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // Niepotrzebne przy output'cie z serwera
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### Endpointy API
+
+W endpointach API, obiekt sesji dostępny jest w obiekcie `context`. Dla przykładu, dodanie przedmiotu do koszyka:
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+	const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### Akcje (Actions)
+
+W przypadku akcji, obiekt sesji dostępny jest w obiekcie `context`. Dla przykładu, dodanie przedmiotu do koszyka:
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro:schema';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### Middleware
+
+:::note
+Sesje nie są obsługiwane w middleware działającym na krawędzi (edge middleware).
+:::
+
+W middleware, obiekt sesji dostępny jest w obiekcie `context`. Dla przykładu, ustawienie ostatniej wizyty (`lastVisit`) podczas sesji:
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Typy danych Sesji
+
+Domyślnie dane sesji są nietypowane. Dowolne dane (typ danych) mogą być przechowywane pod dowolnym kluczem. Wartości są serializowane i deserializowane przy użyciu biblioteki [devalue](https://github.com/Rich-Harris/devalue), tej samej, która jest używana w kolekcjach treści (content collections) oraz w akcjach (actions). Obsługiwane typy danych są takie same i obejmują: ciągi znaków (stringi), liczby, obiekty `Date`, `Map`, `Set`, `URL`, tablice oraz zwykłe obiekty (plain objects).
+
+Opcjonalnie można zdefiniować [typy TypeScript](/pl/guides/typescript/#extending-global-types) dla danych sesji, tworząc plik `src/env.d.ts`  i dodając deklarację typu `App.SessionData`:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+Umożliwia to dostęp do danych sesji z wykorzystaniem sprawdzania typów (type-checking) oraz autouzupełniania w edytorze:
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+Służy to wyłącznie do sprawdzania typów i nie wpływa na działanie sesji w czasie wykonywania (runtime).
+Należy zachować szczególną ostrożność przy zmianie typu, gdy użytkownicy mają już zapisane dane w sesji, ponieważ może to spowodować błędy w czasie działania.
+:::

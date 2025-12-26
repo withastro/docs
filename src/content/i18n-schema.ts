@@ -2,7 +2,6 @@ import { z } from 'astro/zod';
 
 export const AstroDocsI18nSchema = z
 	.object({
-		'a11y.sectionLink': z.string(),
 		// Site settings
 		'site.title': z.string(),
 		// Left Sidebar
@@ -56,6 +55,7 @@ export const AstroDocsI18nSchema = z
 		// Tutorial Navigation
 		'tutorial.trackerLabel': z.string(),
 		'tutorial.unit': z.string(),
+		'tutorial.title.prefix': z.string(),
 		// Tutorial
 		'tutorial.getReady': z.string(),
 		// Code snippet vocabulary

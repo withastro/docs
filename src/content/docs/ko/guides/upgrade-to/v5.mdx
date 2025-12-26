@@ -363,6 +363,54 @@ export default defineConfig({
 
 <ReadMore>[Astro의 요청 시 렌더링](/ko/guides/on-demand-rendering/)에 대해 자세히 알아보세요.</ReadMore>
 
+### 제거됨: 라우트에서 동적 `prerender` 값 지원
+
+<SourcePR number="11824" title="Merge output:hybrid and output:static" />
+
+Astro 4.x에서는 환경 변수를 사용하여 라우트의 `prerender` 내보내기 값을 동적으로 설정할 수 있었습니다. (예: `export const prerender = import.meta.env.SOME_VAR`)
+
+Astro v5.0에서는 `prerender` 내보내기의 동적 값 지원이 제거되었습니다. 정적 값인 `true` 및 `false`만 사용할 수 있습니다.
+
+#### 무엇을 해야 하나요?
+
+<Steps>
+
+1. 라우트에서 모든 동적 `prerender` 내보내기를 제거합니다.
+
+    ```astro title="src/pages/blog/[slug].astro" del={2}
+    ---
+    export const prerender = import.meta.env.SOME_VAR;
+    ---
+    ```
+
+2. 동적이어야 하는 `prerender` 값을 설정하기 위해 `astro.config.mjs` 파일에서 Astro 통합의 `"astro:route:setup"` 훅을 사용합니다.
+
+    ```js title="astro.config.mjs" {6-19}
+    import { defineConfig } from 'astro/config';
+    import { loadEnv } from 'vite';
+
+    export default defineConfig({
+      integrations: [
+        {
+          name: 'set-prerender',
+          hooks: {
+            'astro:route:setup': ({ route }) => {
+              // .env 파일에서 환경 변수를 로드합니다. (필요한 경우)
+              const { PRERENDER } = loadEnv(process.env.NODE_ENV, process.cwd(), '');
+              // 파일 이름과 일치하는 라우트를 찾습니다.
+              if (route.component.endsWith('/blog/[slug].astro')) {
+                // 필요에 따라 라우트에 prerender 값을 설정합니다.
+                route.prerender = PRERENDER;
+              }
+            },
+          },
+        }
+      ],
+    });
+    ```
+
+</Steps>
+
 ### 제거됨: Squoosh 이미지 서비스
 
 <SourcePR number="11770" title="remove the squoosh image service"/>
@@ -553,13 +601,11 @@ const { showAlert } = Astro.props;
 }
 ```
 
-<ReadMore>[Astro에서 `script` 태그 사용](/ko/guides/client-side-scripts/#astro에서-script-사용하기)에 대해 자세히 알아보세요.</ReadMore>
+<ReadMore>[Astro에서 `script` 태그 사용](/ko/guides/client-side-scripts/)에 대해 자세히 알아보세요.</ReadMore>
 
 ## 주요 변경 사항
 
 다음 변경 사항들은 Astro v5.0에서 주요 변경 사항으로 간주됩니다. 주요 변경 사항은 일시적인 하위 호환성을 제공하거나 제공하지 않을 수 있습니다. 이러한 기능들을 사용하고 있었다면, 각 항목에서 권장하는 대로 코드를 업데이트해야 할 수 있습니다.
-
-{/* v4.x 프로젝트의 문서를 참조해야 하는 경우, [v5.0 출시 이전의 (더 이상 유지보수되지 않는) 문서 스냅샷](https://docs-git-v3-docs-unmaintained-astrodotbuild.vercel.app/)을 찾아볼 수 있습니다. */}
 
 ### 이름 변경: `<ViewTransitions />` 컴포넌트
 
@@ -671,7 +717,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 	if (payload) {
 		const { actionName, actionResult } = payload.json();
 		setActionResult(actionName, actionResult);
-		context.cookies.delete('ACTION_PAYLOAD');
+		context.cookies.delete('ACTION_PAYLOAD', { path: '/' });
 		return next();
 	}
 
@@ -683,6 +729,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
 		context.cookies.set('ACTION_PAYLOAD', {
 			actionName: action.name,
 			actionResult: serializeActionResult(actionResult),
+		}, {
+			path: '/',
+			httpOnly: true,
+			sameSite: 'lax',
+			maxAge: 60
 		});
 
 		if (actionResult.error) {
@@ -1053,7 +1104,7 @@ function useRoute(route: IntegrationRouteData) {
 }
 ```
 
-<ReadMore>[`IntegrationRouteData`에 대한 API 참조](/ko/reference/integrations-reference/#integrationroutedata-타입-참조)를 확인하세요.</ReadMore>
+<ReadMore>[`IntegrationRouteData`에 대한 API 참조](/ko/reference/integrations-reference/#integrationroutedata)를 확인하세요.</ReadMore>
 
 ### 변경됨: `distURL`은 이제 배열입니다 (통합 API)
 
@@ -1080,7 +1131,7 @@ if (route.distURL) {
 }
 ```
 
-<ReadMore>[`IntegrationRouteData`에 대한 API 참조](/ko/reference/integrations-reference/#integrationroutedata-타입-참조)를 확인하세요.</ReadMore>
+<ReadMore>[`IntegrationRouteData`에 대한 API 참조](/ko/reference/integrations-reference/#integrationroutedata)를 확인하세요.</ReadMore>
 
 ### 변경됨: `app.render()`에 전달되는 인수 (어댑터 API)
 

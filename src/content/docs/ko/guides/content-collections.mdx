@@ -23,7 +23,7 @@ Astro v5.0에서는 콘텐츠 컬렉션을 정의하고 쿼리하기 위한 Cont
 
 구조적으로 유사한 데이터 집합에서 **컬렉션**을 정의할 수 있습니다. 블로그 게시물의 디렉터리, 제품 항목의 JSON 파일 또는 동일한 모양의 여러 항목을 나타내는 모든 데이터가 여기에 해당할 수 있습니다.
 
-프로젝트 또는 파일 시스템에 로컬로 저장된 컬렉션에는 Markdown, MDX, Markdoc, YAML 또는 JSON 파일 항목이 있을 수 있습니다:
+프로젝트 또는 파일 시스템에 로컬로 저장된 컬렉션에는 Markdown, MDX, Markdoc, YAML, TOML 또는 JSON 파일 항목이 있을 수 있습니다:
 
 <FileTree>
 - src/
@@ -64,16 +64,19 @@ Astro v5.0에서는 콘텐츠 컬렉션을 정의하고 쿼리하기 위한 Cont
 
 ```ts title="src/content.config.ts"
 // 1. `astro:content`에서 유틸리티 가져오기
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 
 // 2. 로더 가져오기
 import { glob, file } from 'astro/loaders';
 
-// 3. 컬렉션 정의
+// 3. Zod 가져오기
+import { z } from 'astro/zod';
+
+// 4. 컬렉션 정의
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. 컬렉션을 등록하기 위해 단일 `collections` 객체 내보내기
+// 5. 컬렉션을 등록하기 위해 단일 `collections` 객체 내보내기
 export const collections = { blog, dogs };
 ```
 
@@ -85,13 +88,14 @@ Content Layer API를 사용하면 프로젝트에 로컬로 저장하든 원격�
 
 Astro는 로컬 콘텐츠를 가져오기 위한 [두 가지 내장 로더 함수](/ko/reference/content-loader-reference/#내장-로더) (`glob()` 및 `file()`)와 자체 로더를 구성하고 원격 데이터를 가져오기 위한 API에 대한 액세스를 제공합니다.
 
-[`glob()` 로더](/ko/reference/content-loader-reference/#glob-로더)는 파일 시스템 어디에서나 Markdown, MDX, Markdoc, JSON 또는 YAML 파일 디렉터리에서 항목을 만듭니다. [micromatch](https://github.com/micromatch/micromatch#matching-features)에서 지원하는 glob 패턴을 사용하여 일치시킬 항목 파일의 `pattern`과 파일 위치의 기본 파일 경로를 받습니다. 각 항목의 `id`는 파일 이름으로부터 자동으로 생성됩니다. 항목당 파일이 하나씩 있을 때 이 로더를 사용합니다.
+[`glob()` 로더](/ko/reference/content-loader-reference/#glob-로더)는 파일 시스템 어디에서나 Markdown, MDX, Markdoc, JSON, YAML 또는 TOML 파일 디렉터리에서 항목을 만듭니다. [micromatch](https://github.com/micromatch/micromatch#matching-features)에서 지원하는 glob 패턴을 사용하여 일치시킬 항목 파일의 `pattern`과 파일 위치의 기본 파일 경로를 받습니다. 각 항목의 `id`는 파일 이름으로부터 자동으로 생성됩니다. 항목당 파일이 하나씩 있을 때 이 로더를 사용합니다.
 
 [`file()` 로더](/ko/reference/content-loader-reference/#file-로더)는 단일 로컬 파일에서 여러 항목을 생성합니다. 파일의 각 항목에는 고유한 `id` 키 속성이 있어야 합니다. 이 로더는 파일의 `base` 파일 경로를 인자로 받고 자동으로 분석할 수 없는 파일을 위해 선택적으로 [`parser` 함수](#parser-함수)를 인자로 받습니다. 데이터 파일을 객체 배열로 구문 분석할 수 있는 경우 이 로더를 사용합니다.
 
-```ts  title="src/content.config.ts" {5,9}
-import { defineCollection, z } from 'astro:content';
+```ts  title="src/content.config.ts" {6,10}
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders'; // 레거시 API에서는 사용 불가능
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -122,34 +126,16 @@ export const collections = { blog, dogs, probes };
 
 ##### `parser` 함수
 
-`file()` 로더는 `parser` 함수를 정의하는 두 번째 인수를 받습니다. 이를 통해 사용자 정의 구문 분석기(예: `toml.parse` 또는 `csv-parse`)를 지정하여 파일 콘텐츠에서 컬렉션을 생성할 수 있습니다.
+`file()` 로더는 `parser` 함수를 정의하는 두 번째 인수를 받습니다. 이를 통해 사용자 정의 구문 분석기(예: `csv-parse`)를 지정하여 파일 콘텐츠에서 컬렉션을 생성할 수 있습니다.
 
-`file()` 로더는 [중첩된 JSON 문서](#중첩된-json-문서)가 없는 한 `parser`가 필요 없이 JSON 및 YAML 파일에서(파일 확장자에 따라) 단일 객체 배열을 자동으로 감지하고 구문 분석합니다. `.toml` 및 `.csv`와 같은 다른 파일을 사용하려면 파서 함수를 만들어야 합니다.
+`file()` 로더는 JSON 및 YAML 파일에서 단일 객체 배열을 자동으로 감지하고 구문 분석하며 (파일 확장자에 따라), TOML 파일의 각 최상위 테이블을 독립된 항목으로 취급합니다. 기본적으로 이러한 파일 형식을 지원하며, [중첩된 JSON 문서](#중첩된-json-문서)가 없는 한 `parser`가 필요하지 않습니다. `.csv`와 같은 다른 파일을 사용하려면 파서 함수를 만들어야 합니다.
 
-다음 예시에서는 `.toml` 파일을 사용하여 콘텐츠 컬렉션 `dogs`를 정의합니다:
-
-```toml title="src/data/dogs.toml"
-[[dogs]]
-id = "..."
-age = "..."
-
-[[dogs]]
-id = "..."
-age = "..."
-```
-
-TOML의 파서를 가져온 후 파일 경로와 `parser` 함수를 모두 `file()` 로더에 전달하여 `dogs` 컬렉션을 프로젝트에 로드할 수 있습니다. 비슷한 과정을 통해 `.csv` 파일에서 `cats` 컬렉션을 정의할 수 있습니다:
+다음 예시는 CSV 파서를 가져온 다음 파일 경로와 `parser` 함수를 모두 `file()` 로더에 전달하여 프로젝트에 `cats` 컬렉션을 로드하는 방법을 보여줍니다.
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
-import { parse as parseToml } from "toml";
 import { parse as parseCsv } from "csv-parse/sync";
-
-const dogs = defineCollection({
-  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
-  schema: /* ... */
-})
 
 const cats = defineCollection({
   loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
@@ -222,11 +208,16 @@ Astro 통합이나 Vite 플러그인을 만드는 것처럼, [로더를 NPM 패�
 
 스키마는 또한 Astro의 자동 TypeScript 타입 생성 기능을 제공합니다. 컬렉션에 스키마를 정의하면 Astro는 자동으로 TypeScript 인터페이스를 생성하고 적용합니다. 그 결과 컬렉션을 쿼리할 때 속성 자동 완성과 타입 검사를 포함한 완전한 TypeScript 지원을 받을 수 있습니다.
 
-컬렉션 항목의 모든 프런트매터나 데이터 속성은 Zod 데이터 타입을 사용하여 정의되어야 합니다:
+:::tip
+Astro가 새 스키마 또는 업데이트된 스키마를 인식하려면 개발 서버를 다시 시작하거나 [콘텐츠 레이어 동기화](/ko/reference/cli-reference/#astro-dev) (<code>s + enter</code>)를 통해 `astro:content` 모듈을 정의해야 할 수도 있습니다.
+:::
 
-```ts title="src/content.config.ts" {6-11,15-19}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // 레거시 API에서는 사용 불가능
+컬렉션 항목의 모든 프런트매터나 데이터 속성은 [Zod의 데이터 타입](/ko/reference/modules/astro-zod/#일반적인-데이터-타입-유효성-검사기)을 사용하여 정의되어야 합니다.
+
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -253,43 +244,13 @@ export const collections = { blog, dogs };
 
 Astro는 콘텐츠 스키마를 위해 [Zod](https://github.com/colinhacks/zod)를 사용합니다. Astro는 Zod를 통해 컬렉션의 모든 파일의 데이터를 검증하고, 프로젝트에서 콘텐츠를 쿼리할 때 자동으로 TypeScript 타입을 제공할 수 있습니다.
 
-Astro에서 Zod를 사용하려면 `"astro:content"`에서 `z` 유틸리티를 가져옵니다. 이는 Zod 라이브러리를 다시 내보낸 것으로, Zod의 모든 기능을 지원합니다.
+Astro에서 Zod를 사용하려면 `"astro/zod"`에서 `z` 유틸리티를 가져와야 합니다. 이는 Zod 라이브러리를 다시 내보낸 것으로, Zod의 모든 기능을 지원합니다.
 
-```ts
-// 예시: 자주 사용되는 Zod 데이터 타입 치트 시트
-import { z, defineCollection } from 'astro:content';
-
-defineCollection({
-  schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    author: z.string().default('Anonymous'),
-    language: z.enum(['en', 'es']),
-    tags: z.array(z.string()),
-    footnote: z.string().optional(),
-
-    // YAML에서 따옴표로 감싸지 않은 날짜는 Date 객체로 해석됩니다
-    publishDate: z.date(), // e.g. 2024-09-17
-
-    // 날짜 문자열(예: "2022-07-08")을 Date 객체로 변환
-    updatedDate: z.string().transform((str) => new Date(str)),
-
-    authorContact: z.string().email(),
-    canonicalURL: z.string().url(),
-  })
-})
-```
-
-<ReadMore>[Zod의 README](https://github.com/colinhacks/zod)에서 Zod의 작동 방식과 사용 가능한 기능에 대한 전체 문서를 확인하세요.</ReadMore>
+<ReadMore>일반적인 데이터 타입 치트 시트와 Zod의 작동 방식 및 사용 가능한 기능에 대해 알아보려면 [`z` 유틸리티 참조](/ko/reference/modules/astro-zod/)를 확인하세요.</ReadMore>
 
 ##### Zod 스키마 메서드
 
-모든 [Zod 스키마 메서드](https://zod.dev/?id=schema-methods)(예: `.parse()`, `.transform()`)는 일부 제한사항과 함께 사용할 수 있습니다. 특히 `image().refine()`을 사용한 이미지의 사용자 정의 유효성 검사는 지원되지 않습니다.
+모든 [Zod 스키마 메서드](/ko/reference/modules/astro-zod/#zod-메서드-사용하기)(예: `.parse()`, `.transform()`)는 일부 제한사항과 함께 사용할 수 있습니다. 특히 `image().refine()`을 사용한 이미지의 사용자 정의 유효성 검사는 지원되지 않습니다.
 
 #### 컬렉션 참조 정의
 
@@ -300,8 +261,9 @@ Collections API의 [`reference()` 함수](/ko/reference/modules/astro-content/#r
 일반적인 예시로는 JSON으로 저장된 재사용 가능한 작성자 프로필을 참조하거나, 같은 컬렉션에 저장된 관련 게시물 URL을 참조하는 블로그 게시물이 있습니다:
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference, z } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
@@ -383,6 +345,18 @@ const poodleData = await getEntry('dogs', 'poodle');
 
 ```
 
+생성된 컬렉션의 정렬 순서는 비결정적이며 플랫폼에 따라 다릅니다. 즉, `getCollection()`을 호출할 때 항목을 특정 순서 (예: 날짜별로 정렬된 블로그 게시물)로 반환해야 하는 경우, 컬렉션 항목을 직접 정렬해야 합니다.
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
 <ReadMore>[`CollectionEntry` 타입](/ko/reference/modules/astro-content/#collectionentry)이 반환하는 전체 속성 목록을 확인하세요.</ReadMore>
 
 ### Astro 템플릿에서 콘텐츠 사용
@@ -419,6 +393,8 @@ const { Content, headings } = await render(entry);
 <p>Published on: {entry.data.published.toDateString()}</p>
 <Content />
 ```
+
+<ReadMore>MDX 항목을 다룰 때, [사용자 정의 컴포넌트를 `<Content />`에 전달](/ko/guides/integrations-guide/mdx/#components를-mdx-콘텐츠로-전달하기)하여 HTML 요소를 사용자 정의 대안으로 대체할 수도 있습니다.</ReadMore>
 
 #### 콘텐츠를 props로 전달
 
@@ -567,6 +543,73 @@ const { Content } = await render(post);
 :::tip
 [GitHub의 블로그 튜토리얼 데모 코드](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages)의 `src/pages/` 폴더를 살펴보면 블로그 게시물 목록, 태그 페이지 등과 같은 블로그 기능을 위해 컬렉션으로부터 페이지를 생성하는 전체 예시를 확인할 수 있습니다!
 :::
+
+## 컬렉션 JSON 스키마
+
+<p><Since v="4.13.0" /></p>
+
+Astro는 컬렉션용 [JSON 스키마](https://json-schema.org/) 파일을 자동으로 생성하며, 이를 편집기에서 사용하면 데이터 파일에 대한 IntelliSense 및 타입 검사를 받을 수 있습니다.
+
+프로젝트의 각 컬렉션에 대해 JSON 스키마 파일이 생성되어 `.astro/collections/` 디렉터리에 출력됩니다.
+예를 들어, `authors`와 `posts`라는 두 컬렉션이 있다면, Astro는 `.astro/collections/authors.schema.json`와 `.astro/collections/posts.schema.json`을 생성합니다.
+
+### JSON 파일에서 JSON 스키마 사용하기
+
+JSON 파일에서 `$schema` 필드를 설정하여 Astro가 생성한 스키마를 직접 지정할 수 있습니다.
+값은 데이터 파일에서 스키마까지의 상대 파일 경로여야 합니다.
+다음은 `src/data/authors/`에 있는 데이터 파일이 `authors` 컬렉션용으로 생성된 스키마를 사용하는 예시입니다.
+
+```json title="src/data/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+#### VS Code에서 JSON 파일 그룹에 스키마 사용하기
+
+VS Code에서 [`json.schemas` 설정](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)을 사용하여 컬렉션 내 모든 파일에 적용할 스키마를 구성할 수 있습니다.
+다음은 `src/data/authors/` 디렉터리 내 모든 파일이 `authors` 컬렉션용으로 생성된 스키마를 사용하는 예시입니다.
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/data/authors/**"],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
+### VS Code에서 YAML 파일의 스키마 사용하기
+
+VS Code에서 [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) 확장 기능을 사용하면 YAML 파일에서 JSON 스키마를 사용할 수 있습니다.
+이 확장 기능을 설치하면 특수 주석 구문을 사용하여 YAML 파일에서 스키마를 참조할 수 있습니다.
+
+```yaml title="src/data/authors/armand.yml" ins={1}
+# yaml-language-server: $schema=../../../.astro/collections/authors.schema.json
+name: Armand
+skills:
+  - Astro
+  - Starlight
+```
+
+#### VS Code에서 YAML 파일 그룹에 스키마 사용하기
+
+Red Hat YAML 확장 기능을 사용하면 `yaml.schemas` 설정을 통해 컬렉션 내 모든 YAML 파일에 적용할 스키마를 구성할 수 있습니다.
+다음은 `src/data/authors/` 디렉터리 내 모든 YAML 파일이 `authors` 컬렉션용으로 생성된 스키마를 사용하는 예시입니다.
+
+```json
+{
+  "yaml.schemas": {
+    "./.astro/collections/authors.schema.json": ["/src/content/authors/*.yml"]
+  }
+}
+```
+
+자세한 내용은 Red Hat YAML 확장 기능 문서의 [“Associating schemas”](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas)를 참조하세요.
 
 ## 컬렉션 생성이 필요한 경우
 

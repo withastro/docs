@@ -10,6 +10,8 @@ i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 This adapter allows Astro to deploy your [on-demand rendered routes and features](/en/guides/on-demand-rendering/) to Node targets, including [server islands](/en/guides/server-islands/), [actions](/en/guides/actions/), and [sessions](/en/guides/sessions/).
 
@@ -103,6 +105,87 @@ export default defineConfig({
   adapter: node({
     mode: 'middleware',
   }),
+});
+```
+
+### `experimentalDisableStreaming`
+
+<p>
+**Type:** `boolean` <br />
+**Default:** `false`<br />
+<Since v="9.3.0" pkg="@astrojs/node" />
+</p>
+
+Disables Astro's default [HTML streaming](/en/guides/on-demand-rendering/#html-streaming) for pages rendered on demand.
+
+HTML streaming helps with performance and generally provides a better visitor experience. In most cases, disabling streaming is not recommended.
+
+However, when you need to disable HTML streaming (e.g. your host only supports non-streamed HTML caching at the CDN level), you can opt out of the default behavior:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    mode: 'standalone',
+    experimentalDisableStreaming: true,
+  }),
+});
+```
+
+### `experimentalStaticHeaders`
+
+<p>
+  **Type:** `boolean` <br />
+  **Default:** `false`<br />
+  <Since v="9.3.0"  pkg="@astrojs/node"/>
+</p>
+
+If enabled, the adapter will serve the headers of prerendered pages using the `Response` object when provided by Astro features, such as Content Security Policy.
+
+For example, when [experimental Content Security Policy](/en/reference/experimental-flags/csp/) is enabled, `experimentalStaticHeaders` can be used to add the CSP headers to the `Response` object instead of creating a `<meta>` element:
+
+```js title="astro.config.mjs" {10}
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  experimental: {
+    csp: true
+  },
+  adapter: node({
+    mode: 'standalone',
+    experimentalStaticHeaders: true,
+  })
+});
+```
+
+### `experimentalErrorPageHost`
+
+<p>
+  **Type:** `string | URL` <br />
+  **Default:** `undefined`<br />
+  <Since v="9.4.0" pkg="@astrojs/node"/>
+</p>
+
+Specifies an alternate host for loading prerendered [custom error pages](/en/basics/astro-pages/#custom-404-error-page).
+
+Astro needs to be able to load your 404 page in order to return it in a response. By default, Astro will load prerendered custom error pages from the same host as the one that the request is made to. For example, if a request is made to `https://example.com/nonexistent-page`, Astro will attempt to load the prerendered error page from `https://example.com/404.html`.
+
+Use `experimentalErrorPageHost` when your custom error page must be loaded from a different host, such as when the server is running behind a reverse proxy or in a container that may not have access to the external host URL. You can also use this when it is more efficient to load the prerendered error page from localhost rather than via the public internet.
+
+The value can be a string or a URL object. It must be a fully-qualified URL, including the protocol (e.g., `http://localhost:4321`). Astro will always load the prerendered error page from the root path, and any path or query parameters will be ignored.
+
+```js
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    // Load pages from localhost, not the public URL.
+    experimentalErrorPageHost: 'http://localhost:4321',
+  })
 });
 ```
 
@@ -200,18 +283,6 @@ You can pass the path to your key and certification via the environment variable
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### Runtime environment variables
-
-If an `.env` file containing environment variables is present when the build process is run, these values will be hard-coded in the output, just as when generating a static website.
-
-During the build, the runtime variables must be absent from the `.env` file, and you must provide Astro with every environment variable to expect at run-time: `VARIABLE_1=placeholder astro build`. This signals to Astro that the actual value will be available when the built application is run. The placeholder value will be ignored by the build process, and Astro will use the value provided at run-time.
-
-In the case of multiple run-time variables, store them in a separate file (e.g. `.env.runtime`) from `.env`. Start the build with the following command:
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### Assets
 
 In standalone mode, assets in your `dist/client/` folder are served via the standalone server. You might be deploying these assets to a CDN, in which case the server will never actually be serving them. But in some cases, such as intranet sites, it's fine to serve static assets directly from the application server.
@@ -227,3 +298,39 @@ Cache-Control: public, max-age=31536000, immutable
 The Astro [Sessions API](/en/guides/sessions/) allows you to easily store user data between requests. This can be used for things like user data and preferences, shopping carts, and authentication credentials. Unlike cookie storage, there are no size limits on the data, and it can be restored on different devices. 
 
 Astro uses the local filesystem for session storage when using the Node adapter. If you would prefer to use a different session storage driver, you can specify it in your Astro config. See [the `session` configuration reference](/en/reference/configuration-reference/#sessiondriver) for more details.
+
+## Environment variables
+
+When using the [`astro:env`](/en/guides/environment-variables/#type-safe-environment-variables) secrets or `process.env` at runtime, neither Astro nor the adapter loads environment variables for you. 
+
+Some hosts may expose the environment variables you configure through their dashboard during the build and at runtime. Check your host's documentation for setting and using environment variables within the specific platform.
+
+When self-hosting, you can load environment variables through CLI commands or configuration files as appropriate:
+
+<Tabs>
+  <TabItem label="Inline">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx @dotenvx/dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>

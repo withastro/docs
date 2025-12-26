@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
-import { indexOfHref, LinkCheckerState, type LinkCheckerOptions } from '../base/base';
-import type { LinkIssue } from '../base/issue';
-import type { AllPagesByPathname, HtmlPage } from '../base/page';
+import { indexOfHref, LinkCheckerState, type LinkCheckerOptions } from '../base/base.ts';
+import type { LinkIssue } from '../base/issue.ts';
+import type { AllPagesByPathname, HtmlPage } from '../base/page.ts';
 
 /**
  * Goes through all pre-parsed and indexed pages, runs all configured checks,
@@ -38,6 +38,7 @@ function findLinkIssuesOnPage(
 			baseUrl: options.baseUrl,
 			page,
 			checkSingleLinkHref,
+			buildOutputDir: options.buildOutputDir,
 			report: (issueData) => {
 				// Do not add the issue found in the HTML build output
 				// if it was just autofixed in the source file

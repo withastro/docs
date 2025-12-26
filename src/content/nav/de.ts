@@ -1,7 +1,7 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: "Los geht's",
+	start: 'Los geht’s',
 	'start.welcome': 'Willkommen, Welt!',
 	'start.newProject': 'Ein neues Projekt starten',
 	'start.config': 'Konfiguration',
@@ -13,7 +13,7 @@ export default navDictionary({
 	'guides.content': 'Inhalte zu deiner Website hinzufügen',
 	'guides.serverRendering': 'Server-Rendering',
 	'guides.upgrade': 'Aktualisierung',
-	'guides.upgrade.major': 'Große Aktualisierungs&shy;anleitungen',
+	'guides.upgrade.major': 'Große Aktualisierungs­anleitungen',
 	'guides.recipes': 'Praktische Beispiele',
 
 	reference: 'Referenz',

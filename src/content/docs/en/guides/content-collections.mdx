@@ -23,7 +23,7 @@ Projects may continue using the legacy Content Collections API introduced in Ast
 
 You can define a **collection** from a set of data that is structurally similar. This can be a directory of blog posts, a JSON file of product items, or any data that represents multiple items of the same shape.
 
-Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, YAML, or JSON files:
+Collections stored locally in your project or on your filesystem can have entries of Markdown, MDX, Markdoc, YAML, TOML, or JSON files:
 
 <FileTree>
 - src/
@@ -64,16 +64,19 @@ To define collections, you must create a `src/content.config.ts` file in your pr
 
 ```ts title="src/content.config.ts"
 // 1. Import utilities from `astro:content`
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 
 // 2. Import loader(s)
 import { glob, file } from 'astro/loaders';
 
-// 3. Define your collection(s)
+// 3. Import Zod
+import { z } from 'astro/zod';
+
+// 4. Define your collection(s)
 const blog = defineCollection({ /* ... */ });
 const dogs = defineCollection({ /* ... */ });
 
-// 4. Export a single `collections` object to register your collection(s)
+// 5. Export a single `collections` object to register your collection(s)
 export const collections = { blog, dogs };
 ```
 
@@ -85,13 +88,14 @@ The Content Layer API allows you to fetch your content (whether stored locally i
 
 Astro provides [two built-in loader functions](/en/reference/content-loader-reference/#built-in-loaders) (`glob()` and `file()`) for fetching your local content, as well as access to the API to construct your own loader and fetch remote data.
 
-The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, or YAML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
+The [`glob()` loader](/en/reference/content-loader-reference/#glob-loader) creates entries from directories of Markdown, MDX, Markdoc, JSON, YAML, or TOML files from anywhere on the filesystem. It accepts a `pattern` of entry files to match using glob patterns supported by [micromatch](https://github.com/micromatch/micromatch#matching-features), and a base file path of where your files are located. Each entry's `id` will be automatically generated from its file name. Use this loader when you have one file per entry.
 
 The [`file()` loader](/en/reference/content-loader-reference/#file-loader) creates multiple entries from a single local file. Each entry in the file must have a unique `id` key property. It accepts a `base` file path to your file and optionally a [`parser` function](#parser-function) for data files it cannot parse automatically. Use this loader when your data file can be parsed as an array of objects.
 
-```ts  title="src/content.config.ts" {5,9}
-import { defineCollection, z } from 'astro:content';
+```ts  title="src/content.config.ts" {6,10}
+import { defineCollection } from 'astro:content';
 import { glob, file } from 'astro/loaders'; // Not available with legacy API
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -122,34 +126,16 @@ export const collections = { blog, dogs, probes };
 
 ##### `parser` function
 
-The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `toml.parse` or `csv-parse`) to create a collection from a file's contents.
+The `file()` loader accepts a second argument that defines a `parser` function. This allows you to specify a custom parser (e.g. `csv-parse`) to create a collection from a file's contents.
 
-The `file()` loader will automatically detect and parse a single array of objects from JSON and YAML files (based on their file extension) with no need for a `parser` unless you have a [nested JSON document](#nested-json-documents). To use other files, such as `.toml` and `.csv`, you will need a to create a parser function.
+The `file()` loader will automatically detect and parse (based on their file extension) a single array of objects from JSON and YAML files, and will treat each top-level table as an independent entry in TOML files. Support for these file types is built-in, and there is no need for a `parser` unless you have a [nested JSON document](#nested-json-documents). To use other files, such as `.csv`, you will need to create a parser function.
 
-The following example defines a content collection `dogs` using a `.toml` file:
-
-```toml title="src/data/dogs.toml"
-[[dogs]]
-id = "..."
-age = "..."
-
-[[dogs]]
-id = "..."
-age = "..."
-```
-
-After importing TOML's parser, you can load the `dogs` collection into your project by passing both a file path and `parser` function to the `file()` loader. A similar process can be used to define a `cats` collection from a `.csv` file:
+The following example shows importing a CSV parser, then loading a `cats` collection into your project by passing both a file path and `parser` function to the `file()` loader:
 
 ```typescript title="src/content.config.ts"
 import { defineCollection } from "astro:content";
 import { file } from "astro/loaders";
-import { parse as parseToml } from "toml";
 import { parse as parseCsv } from "csv-parse/sync";
-
-const dogs = defineCollection({
-  loader: file("src/data/dogs.toml", { parser: (text) => parseToml(text).dogs }),
-  schema: /* ... */
-})
 
 const cats = defineCollection({
   loader: file("src/data/cats.csv", { parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })})
@@ -222,11 +208,16 @@ Schemas enforce consistent frontmatter or entry data within a collection through
 
 Schemas also power Astro's automatic TypeScript typings for your content. When you define a schema for your collection, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your collection, including property autocompletion and type-checking.
 
-Every frontmatter or data property of your collection entries must be defined using a Zod data type:
+:::tip
+In order for Astro to recognize a new or updated schema, you may need to restart the dev server or [sync the content layer](/en/reference/cli-reference/#astro-dev) (<code>s + enter</code>) to define the `astro:content` module.
+:::
 
-```ts title="src/content.config.ts" {6-11,15-19}
-import { defineCollection, z } from 'astro:content';
-import { glob, file } from 'astro/loaders'; // Not available with legacy API
+Every frontmatter or data property of your collection entries must be defined using a [Zod data type](/en/reference/modules/astro-zod/#common-data-type-validators):
+
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { glob, file } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -253,43 +244,13 @@ export const collections = { blog, dogs };
 
 Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's data within a collection *and* provide automatic TypeScript types when you go to query content from inside your project.
 
-To use Zod in Astro, import the `z` utility from `"astro:content"`. This is a re-export of the Zod library, and it supports all of the features of Zod. 
+To use Zod in Astro, import the `z` utility from `"astro/zod"`. This is a re-export of the Zod library, and it supports all of the features of Zod. 
 
-```ts
-// Example: A cheatsheet of many common Zod datatypes
-import { z, defineCollection } from 'astro:content';
-
-defineCollection({
-  schema: z.object({
-    isDraft: z.boolean(),
-    title: z.string(),
-    sortOrder: z.number(),
-    image: z.object({
-      src: z.string(),
-      alt: z.string(),
-    }),
-    author: z.string().default('Anonymous'),
-    language: z.enum(['en', 'es']),
-    tags: z.array(z.string()),
-    footnote: z.string().optional(),
-
-    // In YAML, dates written without quotes around them are interpreted as Date objects
-    publishDate: z.date(), // e.g. 2024-09-17
-
-    // Transform a date string (e.g. "2022-07-08") to a Date object
-    updatedDate: z.string().transform((str) => new Date(str)),
-
-    authorContact: z.string().email(),
-    canonicalURL: z.string().url(),
-  })
-})
-```
-
-<ReadMore>See [Zod's README](https://github.com/colinhacks/zod) for complete documentation on how Zod works and what features are available.</ReadMore>
+<ReadMore>See the [`z` utility reference](/en/reference/modules/astro-zod/) for a cheatsheet of common datatypes and to learn how Zod works and what features are available.</ReadMore>
 
 ##### Zod schema methods
 
-All [Zod schema methods](https://zod.dev/?id=schema-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
+All [Zod schema methods](/en/reference/modules/astro-zod/#using-zod-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
 
 #### Defining collection references
 
@@ -300,8 +261,9 @@ With the [`reference()` function](/en/reference/modules/astro-content/#reference
 A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference, z } from 'astro:content';
+import { defineCollection, reference } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/[^_]*.md', base: "./src/data/blog" }),
@@ -383,6 +345,19 @@ const poodleData = await getEntry('dogs', 'poodle');
 
 
 ```
+
+The sort order of generated collections is non-deterministic and platform-dependent. This means that if you are calling `getCollection()` and need your entries returned in a specific order (e.g. blog posts sorted by date), you must sort the collection entries yourself:
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
 <ReadMore>See the full list of properties returned by the [`CollectionEntry` type](/en/reference/modules/astro-content/#collectionentry).</ReadMore>
 
 ### Using content in Astro templates
@@ -402,7 +377,7 @@ const posts = await getCollection('blog');
   ))}
 </ul>
 ```
-#### Rendering body content 
+#### Rendering body content
 
 Once queried, you can render Markdown and MDX entries to HTML using the [`render()`](/en/reference/modules/astro-content/#render) function property. Calling this function gives you access to rendered HTML content, including both a `<Content />` component and a list of all rendered headings.
 
@@ -420,6 +395,8 @@ const { Content, headings } = await render(entry);
 <p>Published on: {entry.data.published.toDateString()}</p>
 <Content />
 ```
+
+<ReadMore>When working with MDX entries, you can also [pass your own components to `<Content />`](/en/guides/integrations-guide/mdx/#passing-components-to-mdx-content) to replace HTML elements with custom alternatives.</ReadMore>
 
 #### Passing content as props
 
@@ -569,6 +546,73 @@ const { Content } = await render(post);
 :::tip
 Explore the `src/pages/` folder of the [blog tutorial demo code on GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) to see full examples of creating pages from your collections for blog features like a list of blog posts, tags pages, and more!
 :::
+
+## Collection JSON Schemas
+
+<p><Since v="4.13.0" /></p>
+
+Astro auto-generates [JSON Schema](https://json-schema.org/) files for collections, which you can use in your editor to get IntelliSense and type-checking for data files.
+
+A JSON Schema file is generated for each collection in your project and output to the `.astro/collections/` directory.
+For example, if you have two collections, one named `authors` and another named `posts`, Astro will generate `.astro/collections/authors.schema.json` and `.astro/collections/posts.schema.json`.
+
+### Use JSON Schemas in JSON files
+
+You can manually point to an Astro-generated schema by setting the `$schema` field in your JSON file.
+The value should be a relative file path from the data file to the schema.
+In the following example, a data file in `src/data/authors/` uses the schema generated for the `authors` collection:
+
+```json title="src/data/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+#### Use a schema for a group of JSON files in VS Code
+
+In VS Code, you can configure a schema to apply for all files in a collection using the [`json.schemas` setting](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings).
+In the following example, all files in the `src/data/authors/` directory will use the schema generated for the `authors` collection:
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/data/authors/**"],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
+### Use schemas in YAML files in VS Code
+
+In VS Code, you can add support for using JSON schemas in YAML files using the [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) extension.
+With this extension installed, you can reference a schema in a YAML file using a special comment syntax:
+
+```yaml title="src/data/authors/armand.yml" ins={1}
+# yaml-language-server: $schema=../../../.astro/collections/authors.schema.json
+name: Armand
+skills:
+  - Astro
+  - Starlight
+```
+
+#### Use schemas for a group of YAML files in VS Code
+
+With the Red Hat YAML extension, you can configure a schema to apply for all YAML files in a collection using the `yaml.schemas` setting.
+In the following example, all YAML files in the `src/data/authors/` directory will use the schema generated for the `authors` collection:
+
+```json
+{
+  "yaml.schemas": {
+    "./.astro/collections/authors.schema.json": ["/src/content/authors/*.yml"]
+  }
+}
+```
+
+See [“Associating schemas”](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas) in the Red Hat YAML extension documentation for more details.
 
 ## When to create a collection
 

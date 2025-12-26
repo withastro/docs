@@ -20,7 +20,9 @@ import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 此实验性功能允许你通过统一、完全可定制且类型安全的 API，来使用这些来源的字体：本地文件系统，字体提供商（例如：Google、Fontsource、Bunny）。
 
-网络字体会影响网页在加载时间和渲染时的性能。此 API 将通过自动化的 [网页字体优化](https://web.dev/learn/performance/optimize-web-fonts)，包括预加载、自定义回退内容和强约定的默认配置来帮助你维持网站的高性能表现，同时规避常见问题，如下载不必要的字体文件。
+网络字体会影响网页在加载时间和渲染时的性能。此 API 将通过自动化的 [网页字体优化](https://web.dev/learn/performance/optimize-web-fonts)，包括预加载、自定义回退内容和强约定的默认配置来帮助你维持网站的高性能表现。[查看常见的用法示例](#用法示例)。
+
+字体 API 通过下载并缓存字体以从你的网站提供字体，从而专注于性能和隐私。这可以避免将用户数据发送到第三方站点，并确保为所有访客提供一致的字体集合。
 
 要启用该功能，请在 `experimental.fonts` 对象中，配置至少一个字体：
 
@@ -58,7 +60,7 @@ body {
 
 <Steps>
 
-1. `experimental.fonts` 接受以数组类型传入字体对象。每个字体，必须指定 `provider`（提供商）、`name`（字体名称）并定义 `cssVaruable` 来指向所使用的字体。
+1. `experimental.fonts` 接受以数组类型传入字体对象。每个字体，必须指定 `provider`（提供商）、`name`（字体名称）并定义 `cssVariable` 来指向所使用的字体。
 
     - [`provider`](#provider)：你可以从 [内置的远程提供商](#可用的远程字体提供商) 列表中挑选，构建你个人的 [自定义字体提供商](#创建自己的字体提供商)，或是使用 [本地提供商](#本地字体-variants) 来注册本地字体文件。
     - [`name`](#name)：选择一个提供商所支持的字体。
@@ -216,6 +218,70 @@ provider: fontProviders.google({
 
 你也可以使用任意的 unifont 提供商 [创建自定义 Astro 字体提供商](#创建自己的字体提供商)。
 
+## 用法示例
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--font-roboto"
+        provider: fontProviders.google(),
+        // 默认包含项：
+        // weights: [400] ,
+        // styles: ["normal", "italics"],
+        // subsets: ["cyrillic-ext", "cyrillic", "greek-ext", "greek", "vietnamese", "latin-ext", "latin"],
+        // fallbacks: ["sans-serif"], 
+      },
+      {
+        name: "Inter",
+        cssVariable: "--font-inter",
+        provider: fontProviders.fontsource(),
+        // 指定实际应用的字重
+        weights: [400, 500, 600, 700],
+        // 指定实际应用的字体样式
+        styles: ["normal"],
+        // 仅为页面上使用的字符下载字体文件
+        subsets: ["cyrillic"],
+      },
+      {
+        name: "JetBrains Mono",
+        cssVariable: "--font-jetbrains-mono",
+        provider: fontProviders.fontsource(),
+        // 仅为页面上使用的字符下载字体文件
+        subsets: ["latin"],
+        // 使用与预期外观相匹配的回退字体系列
+        fallbacks: ["monospace"],
+      },
+      {
+        name: "Poppins",
+        cssVariable: "--font-poppins",
+        provider: "local",
+        // 未指定字重和字体样式时，
+        // Astro 将会为每种 Variant 进行推测
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    ],
+  }
+});
+```
+
 ## `<Font />` 组件参考
 
 该组件输出样式标签，并且能够选择性的为给定字体输出预加载链接。
@@ -257,6 +323,49 @@ import { Font } from 'astro:assets';
 ---
 
 <Font cssVariable="--font-roboto" preload />
+```
+
+## 以编程方式访问字体数据
+
+`getFontData()` 函数旨在通过编程方式获取更底层的字体数据，例如在 [API 路由](/zh-cn/guides/endpoints/#服务器端点api-路由) 中使用，或用于生成自定义的元标签。
+
+### `getFontData()`
+<p>
+
+**类型：** `(cssVariable: CssVariable) => FontData[]`<br />
+<Since v="5.14.0" />
+</p>
+
+返回与指定 [`cssVariable`](#cssvariable-1) 对应的 `FontData` 对象数组，每个对象包含 `src`、`weight` 和 `style` 属性。
+
+以下示例演示了在使用 [satori](https://github.com/vercel/satori) 生成 OpenGraph 图片时，如何通过 `getFontData()` 从 URL 获取字体缓冲区数据：
+
+```tsx title="src/pages/og.png.ts" "getFontData(\"--font-roboto\")" "data[0].src[0].url"
+import type{ APIRoute } from "astro"
+import { getFontData } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = getFontData("--font-roboto")
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await fetch(new URL(data[0].src[0].url, context.url.origin)).then(res => res.arrayBuffer()),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
 ```
 
 ## 字体配置参考
@@ -350,7 +459,7 @@ fallbacks: ["CustomFont", "serif"]
 fallbacks: []
 ```
 
-如果 `fallbacks` 数组中最后的一个字体是 [通用字体族名](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-family#generic-name)，Astro 将会尝试使用字体度量（font metrics）来生成 [优化后的字体回退](https://developer.chrome.com/blog/font-fallbacks)。要禁用这种优化过程，可将 `optimizedFallbacks` 设置为 false。
+指定至少一个与你字体外观预期相匹配的 [通用字体族名](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-family#generic-name)，Astro 将会尝试使用字体度量（font metrics）来生成 [优化后的字体回退](https://developer.chrome.com/blog/font-fallbacks)。要禁用这种优化过程，可将 `optimizedFallbacks` 设置为 false。
 
 #### optimizedFallbacks
 
@@ -734,4 +843,4 @@ export default defineConfig({
 
 ## 延伸阅读
 
-有关此实验性 API 的全部详细信息或需提供反馈，请参见 [字体 RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0052-fonts.md)。
+有关此实验性 API 的全部详细信息或需提供反馈，请参见 [字体 RFC](https://github.com/withastro/roadmap/blob/rfc/fonts/proposals/0055-fonts.md)。
