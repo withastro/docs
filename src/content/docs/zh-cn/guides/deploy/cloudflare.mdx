@@ -11,6 +11,7 @@ i18nReady: true
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
 import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
 你可以通过 [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/) 和 [Cloudflare Pages](https://pages.cloudflare.com/) 来部署全栈应用，包括前端的静态资源和后端的 API，以及按需渲染站点。
 
@@ -47,47 +48,53 @@ Cloudflare 更建议为新项目使用 Cloudflare Workers。对于现有的、�
 2. 如果你的站点使用了按需渲染，安装 [`@astrojs/cloudflare` 适配器](/zh-cn/guides/integrations-guide/cloudflare/)。
 
     该步骤将会安装适配器，并对你的 `astro.config.mjs` 文件进行适当的调整。
-    
-      ```bash
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
       npx astro add cloudflare
       ```
-      
-      接下来，在你的 `public/` 文件夹中创建一个 `.assetsignore` 文件，并向其添加以下内容：
-      ```txt title="public/.assetsignore"
-      _worker.js
-      _routes.json
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm astro add cloudflare
       ```
-  
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn astro add cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
     <ReadMore>阅读更多有关 [Astro 中的按需渲染](/zh-cn/guides/on-demand-rendering/)的内容。</ReadMore>
 
 3. 创建一个 [Wrangler 配置项文件](https://developers.cloudflare.com/workers/wrangler/configuration/)。
 
+    运行 `astro add cloudflare` 将会为你创建此文件；如果你没有使用适配器，则需要自行创建。
+
     <StaticSsrTabs>
       <Fragment slot="static">
-        ```jsonc
-        // wrangler.jsonc
+        ```jsonc title="wrangler.jsonc"
         {
-          "$schema": "node_modules/wrangler/config-schema.json",
           "name": "my-astro-app",
-          // 更新为今天的日期
-          "compatibility_date": "2025-03-25",
+          "compatibility_date": "YYYY-MM-DD", // 更新为你部署当天的日期
           "assets": {
             "directory": "./dist",
-            "not_found_handling": "404-page" // 如果你有自定义的 `src/pages/404.astro` 页面
           }
         }
         ```
       </Fragment>
       <Fragment slot="ssr">
-        ```jsonc
-        // wrangler.jsonc
+        ```jsonc title="wrangler.jsonc"
         {
-          "$schema": "node_modules/wrangler/config-schema.json",
+          "main": "dist/_worker.js/index.js",
           "name": "my-astro-app",
-          "main": "./dist/_worker.js/index.js",
-          // 更新为今天的日期
-          "compatibility_date": "2025-03-25",
-          "compatibility_flags": ["nodejs_compat"],
+          "compatibility_date": "YYYY-MM-DD", // 更新为你部署当天的日期
+          "compatibility_flags": [
+            "nodejs_compat",
+            "global_fetch_strictly_public"
+          ],
           "assets": {
             "binding": "ASSETS",
             "directory": "./dist"
@@ -96,7 +103,7 @@ Cloudflare 更建议为新项目使用 Cloudflare Workers。对于现有的、�
             "enabled": true
           }
         }
-    ```
+        ```
       </Fragment>
     </StaticSsrTabs>
 
@@ -144,36 +151,123 @@ Cloudflare 更建议为新项目使用 Cloudflare Workers。对于现有的、�
 <Steps>
 1. 安装 [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)。
 
-    ```bash
-    npm install wrangler@latest --save-dev
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npm install wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm add wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn add wrangler@latest --dev
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 
 2. 如果你的站点使用了按需渲染，安装 [`@astrojs/cloudflare` 适配器](/zh-cn/guides/integrations-guide/cloudflare/)。
-    
+
     该步骤将会安装适配器，并对你的 `astro.config.mjs` 文件进行适当的调整。
-    
-      ```bash
-      npx astro add cloudflare
+
+       <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro add cloudflare
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+3. 创建一个 [Wrangler 配置项文件](https://developers.cloudflare.com/workers/wrangler/configuration/)。
+
+    由于 Cloudflare 建议新项目使用 Workers 而不是 Pages，`astro add cloudflare` 命令会创建 `wrangler.jsonc` 和 `public/.assetsignore` 文件，这些是 Workers 项目特有的。你需要删除 `public/.assetsignore` 文件并修改你的 `wrangler.jsonc` 文件。如果你没有使用适配器，则需要自行创建。
+
+    确保你的 `wrangler.jsonc` 文件结构如下：
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+      ```jsonc title="wrangler.jsonc"
+      {
+        "name": "my-astro-app",
+        "compatibility_date": "YYYY-MM-DD", // 更新为你部署当天的日期
+        "pages_build_output_dir": "./dist"
+      }
       ```
-      
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // 更新为你部署当天的日期
+          "compatibility_flags": [
+            "nodejs_compat",
+            "disable_nodejs_process_v2"
+          ],
+          "pages_build_output_dir": "./dist"
+        }
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
     <ReadMore>阅读更多有关 [Astro 中的按需渲染](/zh-cn/guides/on-demand-rendering/) 的内容。</ReadMore>
 
 3. 使用 Wrangler 对你的项目进行本地预览。
 
-    ```bash
-    npx astro build && npx wrangler pages dev ./dist
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 
 4. 使用 `npx wrangler deploy` 命令进行部署。
 
-    ```bash
-    npx astro build && npx wrangler pages deploy ./dist
-    ```
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
 </Steps>
 
 在你的资源上传之后，Wrangler 将会提供一个预览 URL 用以让你检视自己的网站。
 
-### 如何使用 Git 来部署站点
+### 如何使用 CI/CD 部署站点
 
 <Steps>
 1. 推送代码至 Git 仓库（例如：GitHub、GitLab）。
@@ -189,6 +283,21 @@ Cloudflare 更建议为新项目使用 Cloudflare Workers。对于现有的、�
 </Steps>
 
 ## 故障排除
+
+### 404 行为
+
+对于 Workers 项目，如果你想使用自定义 404 页面，则需要设置 `not_found_handling`。你可以在 Cloudflare 文档的 [Routing behavior 部分](https://developers.cloudflare.com/workers/static-assets/#routing-behavior) 了解更多信息。
+
+```jsonc title="wrangler.jsonc"
+{
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+对于 Pages 项目，如果你包含了自定义 404 页面，它会默认被使用。否则，Pages 将默认使用 [Cloudflare 的单页应用渲染行为](https://developers.cloudflare.com/pages/configuration/serving-pages/#single-page-application-spa-rendering)，重定向到主页而不是显示 404 页面。
 
 ### 客户端 hydration
 
