@@ -142,7 +142,7 @@ export function addSourceFileAnnotations(linkIssues: LinkIssue[], options: LinkC
  *
  * If no existing file is found, returns `undefined`.
  */
-export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
+function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
 	const possibleSourceFilePaths = [
 		path.join(pageSourceDir, pathname, '.') + '.md',
 		path.join(pageSourceDir, pathname, 'index.md'),
