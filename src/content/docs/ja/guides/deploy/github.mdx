@@ -1,0 +1,166 @@
+---
+title: AstroサイトをGitHub Pagesにデプロイする
+description: GitHub Pagesを使用してAstroサイトをWebに公開する方法。
+sidebar:
+  label: GitHub Pages
+type: deploy
+logo: github
+supports: ['static']
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[GitHub Pages](https://pages.github.com/)を使用して、プリレンダリングされた静的なAstroサイトをホストできます。  
+[GitHub Actions](https://github.com/features/actions)を使い、[GitHub.com](https://github.com/)上のリポジトリから直接デプロイできます。
+
+## デプロイ方法
+
+Astroは、最小限の設定でプロジェクトをGitHub Pagesにデプロイするための[公式GitHub Action](https://github.com/withastro/action)を提供しています。これはGitHub Pagesへの推奨されるデプロイ方法です。
+
+以下の手順に従って、GitHub Actionを使用してAstroサイトをGitHub Pagesにデプロイしてください。これにより、リポジトリからGitHub URL（例：`https://<username>.github.io/<my-repo>`）でサイトが作成されます。デプロイ後、オプションで[カスタムドメインを設定](#github-urlをカスタムドメインに変更する)して、好みのドメイン（例：`https://example.com`）でサイトを公開できます。
+
+<Steps>
+1. プロジェクト内に`.github/workflows/deploy.yml`ファイルを作成し、以下のYAMLを貼り付けます。
+
+    ```yaml title="deploy.yml"
+    name: Deploy to GitHub Pages
+
+    on:
+      # `main`ブランチにプッシュするたびにワークフローをトリガーします。
+      # 別のブランチを使用している場合は、`main`をそのブランチ名に置き換えてください。
+      push:
+        branches: [ main ]
+      # GitHub上のActionsタブからこのワークフローを手動で実行できます。
+      workflow_dispatch:
+      
+    # このジョブがリポジトリをクローンし、ページデプロイメントを作成することを許可します。
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout your repository using git
+            uses: actions/checkout@v5
+          - name: Install, build, and upload your site
+            uses: withastro/action@v5
+            # with:
+              # path: . # リポジトリ内のAstroプロジェクトのルート位置です。（オプション）
+              # node-version: 24 # サイトのビルドに使用するNodeのバージョンです。デフォルトは22です。（オプション）
+              # package-manager: pnpm@latest # 依存関係のインストールとサイトのビルドに使用するNodeパッケージマネージャーです。ロックファイルに基づいて自動検出されます。（オプション）
+              # build-cmd: pnpm run build # サイトをビルドするためのコマンドです。デフォルトでパッケージのbuildスクリプトを実行します。（オプション）
+            # env:
+              # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # 変数の値にはシングルクォートを使用してください。（オプション）
+
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v4
+    ```
+
+    Astro actionはオプションの入力を受け取ります。`with:`行と使用したい入力のコメントアウトを外して設定します。
+
+    サイトにパブリックな環境変数が必要な場合は、`env:` 行のコメントアウトを外して追加します。（プライベートな環境変数の追加については、[シークレットの設定に関するGitHubドキュメント](https://docs.github.com/ja/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository)を参照してください。）
+    
+    :::caution
+    公式のAstro [action](https://github.com/withastro/action)は、ロックファイルをスキャンして使用しているパッケージマネージャー（`npm`、`yarn`、`pnpm`、または`bun`）を検出します。パッケージマネージャーが自動的に生成した`package-lock.json`、`yarn.lock`、`pnpm-lock.yaml`、または`bun.lockb`ファイルをリポジトリにコミットしてください。
+    :::
+
+2. Astroの設定ファイルで、[`site`](/ja/reference/configuration-reference/#site)にデプロイ先のGitHub URLを設定します。
+
+    ```js title="astro.config.mjs" ins={4}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://astronaut.github.io',
+    })
+    ```
+
+    `site`の値は以下のいずれかである必要があります：
+
+    - ユーザー名に基づくURL：`https://<username>.github.io`
+    - [GitHub Organizationのプライベートサイト](https://docs.github.com/ja/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site)用に自動生成されるランダムなURL：`https://<random-string>.pages.github.io/`
+
+3. `astro.config.mjs`で、[`base`](/ja/reference/configuration-reference/#base)の値を設定します（通常は必須です）。
+
+      GitHub Pagesでは、ユーザー名とリポジトリ名に基づいたアドレス（例：`https://<username>/github.io/<my-repo>/`）でサイトが公開されます。`base`にリポジトリ名を設定することで、Astroがサイトのルートをデフォルトの`/`ではなく`/my-repo`として認識できるようになります。リポジトリ名が`<username>.github.io`形式（例：`https://github.com/username/username.github.io/`）の場合は、この手順をスキップできます。
+
+      `base`をスラッシュで始まるリポジトリ名に設定します（例：`/my-repo`）：
+
+      ```js title="astro.config.mjs" ins={4-5}
+      import { defineConfig } from 'astro/config'
+  
+      export default defineConfig({
+        site: 'https://astronaut.github.io',
+        base: '/my-repo',
+      })
+      ```
+
+      :::caution[`base`を設定した場合の内部リンク]
+      この値を設定した場合、すべての内部リンクに`base`値のプレフィックスを付ける必要があります：
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">About</a>
+      ```
+  
+      詳細は[`base`の設定](/ja/reference/configuration-reference/#base)を参照してください。
+      :::
+
+4. GitHubでリポジトリの**Settings** > **Pages**に移動します。
+
+5. サイトの**Source**として**GitHub Actions**を選択します。
+
+</Steps>
+
+Astroプロジェクトのリポジトリに変更をプッシュすると、GitHub ActionがGitHub URLに自動的にデプロイを行います。
+
+## GitHub URLをカスタムドメインに変更する
+
+[GitHub URLでGitHub Pagesにデプロイ](#デプロイ方法)した後、カスタムドメインを設定できます。これにより、ユーザーは`https://<username>.github.io`ではなく、カスタムドメイン`https://example.com`でサイトにアクセスできるようになります。
+
+<Steps>
+
+1. [ドメインプロバイダーでDNSを設定](https://docs.github.com/ja/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain)します。
+2. プロジェクトに`./public/CNAME`ファイルを追加します。
+
+    `public/`フォルダー内に、カスタムドメインを1行で指定するファイルを作成します：
+    ```js title="public/CNAME"
+    sub.example.com
+    ```
+
+    これにより、サイトは`user.github.io`ではなくカスタムドメインでデプロイされます。
+
+3. Astroの設定ファイルで、`site`の値をカスタムドメインに更新します。`base`の値は設定せず、存在する場合は削除してください：
+
+    ```js title="astro.config.mjs" ins={4} del={5}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://example.com',
+      base: '/my-repo'
+    })
+    ```
+
+4. 必要に応じて、すべての内部リンクから`base`プレフィックスを削除します：
+
+    ```astro del="/my-repo"
+    <a href="/my-repo/about">About</a>
+    ```
+
+</Steps>
+
+## 例
+
+- [GitHub Pages Deploymentスターターテンプレート](https://github.com/hkbertoson/github-pages)
+- [Starlight Flexoki Theme（本番サイト）](https://delucis.github.io/starlight-theme-flexoki/)
+- [Expressive Code Color Chips（本番サイト）](https://delucis.github.io/expressive-code-color-chips/)
+- [Starlight Markdown Blocks（本番サイト）](https://delucis.github.io/starlight-markdown-blocks/)
