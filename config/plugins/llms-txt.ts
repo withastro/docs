@@ -53,7 +53,7 @@ export const starlightPluginLlmsTxt = () =>
 				label: 'Backend Services',
 				description:
 					'advice on how to integrate backend services like Firebase, Sentry, and Supabase in an Astro project',
-				paths: ['en/guides/migrate-to-astro/**'],
+				paths: ['en/guides/backend/**'],
 			},
 			{
 				label: 'Migration Guides',
