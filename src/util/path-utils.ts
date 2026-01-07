@@ -3,16 +3,6 @@ export function getLanguageFromURL(pathname: string) {
 	return langCodeMatch ? langCodeMatch[1] : 'en';
 }
 
-/** Remove \ and / from beginning of string */
-export function removeLeadingSlash(path: string) {
-	return path.replace(/^[/\\]+/, '');
-}
-
-/** Remove \ and / from end of string */
-export function removeTrailingSlash(path: string) {
-	return path.replace(/[/\\]+$/, '');
-}
-
 /** Get a page’s slug, without the language prefix (e.g. `'en/migrate'` => `'migrate'`). */
 export const stripLangFromSlug = (slug: string) => slug.split('/').slice(1).join('/');
 
