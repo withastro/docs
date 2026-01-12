@@ -24,7 +24,7 @@ Actions 是在 `src/actions/index.ts` 中导出的 `server` 对象中定义的�
 
 ```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   myAction: defineAction({ /* ... */ })
@@ -62,22 +62,22 @@ async () => {
     }
     ```
 
-2. 导入 `astro:actions` 中的 `defineAction()` 工具以及 `astro:schema` 中的 `z` 对象。
+2. 导入 `astro:actions` 中的 `defineAction()` 工具以及 `astro/zod` 中的 `z` 对象。
 
     ```ts ins={1-2} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
-    import { z } from 'astro:schema';
+    import { z } from 'astro/zod';
 
     export const server = {
       // action 声明
     }
     ```
 
-3. 使用 `defineAction()` 工具定义一个 `getGreeting` action。`input` 属性将使用 [Zod](https://zod.dev) scheme 验证输入参数，`handler()` 函数包含要在服务器上运行的后端逻辑。
+3. 使用 `defineAction()` 工具定义一个 `getGreeting` action。`input` 属性将使用 [Zod schema](/zh-cn/reference/modules/astro-zod/#common-data-type-validators) scheme 验证输入参数，`handler()` 函数包含要在服务器上运行的后端逻辑。
 
     ```ts ins={5-12} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
-    import { z } from 'astro:schema';
+    import { z } from 'astro/zod';
 
     export const server = {
       getGreeting: defineAction({
@@ -206,13 +206,13 @@ const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
 
 #### 创建一个 `ActionError`
 
-为了抛出一个错误，从 `astro:actions` 模块中导入 `ActionError()` 类。传递一个人类可读的状态 `code`（例如 `"NOT_FOUND"` 或 `"BAD_REQUEST"`），以及一个可选的 `message` 以提供有关错误的更多信息。
+为了抛出一个错误，从 `astro:actions` 模块中导入 [`ActionError()` 类](/zh-cn/reference/modules/astro-actions/#actionerror)。传递一个人类可读的状态 `code`（例如 `"NOT_FOUND"` 或 `"BAD_REQUEST"`），以及一个可选的 `message` 以提供有关错误的更多信息。
 
 当用户并未登录，且在检查了假设的 “use-session” cookie 进行身份验证后，这个例子从 `likePost` action 抛出一个错误：
 
 ```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
 import { defineAction, ActionError } from "astro:actions";
-import { z } from "astro:schema";
+import { z } from "astro/zod";
 
 export const server = {
   likePost: defineAction({
@@ -289,7 +289,7 @@ Actions 默认接受 JSON 数据。要接受来自 HTML 表单的表单数据，
 
 ```ts title="src/actions/index.ts" ins={6}
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   comment: defineAction({
@@ -298,6 +298,55 @@ export const server = {
     handler: async (input) => { /* ... */ },
   })
 }
+```
+
+### 在表单输入中使用验证器
+
+当你的 action [配置为接受表单数据](/zh-cn/reference/modules/astro-actions/#accept-属性) 时，你可以使用任何 Zod 验证器来验证字段（例如用于日期输入的 `z.coerce.date()`）。在 `z.object()` 验证器上也支持扩展函数，包括 `.refine()`、`.transform()` 和 `.pipe()`。
+
+此外，Astro 在底层为你提供了特殊处理，以便方便地验证以下类型的字段输入：
+
+- 使用 `z.number()` 验证类型为 `number` 的输入
+- 使用 `z.coerce.boolean()` 验证类型为 `checkbox` 的输入
+- 使用 `z.instanceof(File)` 验证类型为 `file` 的输入
+- 使用 `z.array(/* validator */)` 验证相同 `name` 的多个输入
+- 使用 `z.string()` 验证所有其他输入
+
+当你的表单提交时若包含空输入，输出类型可能与你的 `input` 校验器不匹配。空值会被转换为 `null`，但在验证数组或布尔值时除外。例如，如果一个类型为 `text` 的输入以空值提交，结果将是 `null`，而不是空字符串（`""`）。
+
+要应用不同验证器的并集，请使用 `z.discriminatedUnion()` 包装器，根据特定表单字段缩小类型。此示例接受 “create” 或 “update” 用户的表单提交，使用名称为 `type` 的表单字段来确定应针对哪个对象进行验证：
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // 当 `type` 字段的值为 `create` 时匹配
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // 当 `type` 字段的值为 `update` 时匹配
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // 输入为 { type: 'create', name: string, email: string }
+      } else {
+        // 输入为 { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
 ```
 
 ### 校验表单数据
@@ -328,7 +377,7 @@ Actions 将解析提交的表单数据为一个对象，使用每个输入的 `n
 
     ```ts title="src/actions/index.ts" ins={5-12}
     import { defineAction } from 'astro:actions';
-    import { z } from 'astro:schema';
+    import { z } from 'astro/zod';
 
     export const server = {
       newsletter: defineAction({
@@ -442,7 +491,7 @@ import { actions } from 'astro:actions';
 
 ```ts title="src/actions/index.ts" mark={10}
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   createProduct: defineAction({
@@ -655,7 +704,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 要授权 action 请求，请在 action handler 中添加身份验证检查。你可能希望使用 [身份验证库](/zh-cn/guides/authentication/) 来处理会话管理和用户信息。
 
-Action 公开完整的 APIContext 对象，以访问从中间件传递的属性，使用 `context.locals`。当用户未经授权时，你可以使用 `UNAUTHORIZED` 代码引发 `ActionError`：
+Action 公开 [`APIContext` 对象的一个子集](/zh-cn/reference/modules/astro-actions/#actionapicontext)，以访问从中间件传递的属性，使用 `context.locals`。当用户未经授权时，你可以使用 `UNAUTHORIZED` 代码引发 `ActionError`：
 
 ```ts title="src/actions/index.ts" {6-8}
 import { defineAction, ActionError } from 'astro:actions';
@@ -678,7 +727,7 @@ export const server = {
 
 Astro 建议从 action handler 中授权用户会话，以遵从每个 action 的权限级别和速率限制。但是，你也可以从中间件中拦截所有 action 请求（或一组 action 请求）。
 
-使用 `getActionContext()` 函数从你的中间件中检索有关任何传入 action 请求的信息。这包括 action 名称以及该 action 是否是使用客户端远程过程调用（RPC）函数（例如 `actions.blog.like()`）或 HTML 表单调用的。
+使用 [`getActionContext()` 函数](/zh-cn/reference/modules/astro-actions/#getactioncontext) 从你的中间件中检索有关任何传入 action 请求的信息。这包括 action 名称以及该 action 是否是使用客户端远程过程调用（RPC）函数（例如 `actions.blog.like()`）或 HTML 表单调用的。
 
 以下示例拒绝所有没有有效会话令牌的 action 请求。如果检查失败，将返回一个 “Forbidden” 响应。注意：此方法确保只有在会话存在时才能访问 action，但不是安全授权的替代品。
 
