@@ -90,7 +90,7 @@ Now, you can enable [on-demand rendering per page](/en/guides/on-demand-renderin
    });
    ```
 
-3. Optionally, create a [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/) if you need custom settings, or to declare Cloudflare bindings (KV, D1, Durable Objects, etc.):
+3. Astro will automatically generate a default configuration, using the package.json name field or the folder name as Worker name. You can optionally create a [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/) if you need custom settings. This example declares Cloudflare KV bindings:
 
    ```jsonc title="wrangler.jsonc"
    {
@@ -99,9 +99,6 @@ Now, you can enable [on-demand rendering per page](/en/guides/on-demand-renderin
      // "kv_namespaces": [{ "binding": "MY_KV", "id": "<namespace_id>" }]
    }
    ```
-
-   For simple projects without bindings, you can skip this step as Astro will generate a default configuration automatically. The Worker name will be based on the `package.json` name field or the folder name.
-
 </Steps>
 
 ## Options
@@ -111,9 +108,8 @@ The Cloudflare adapter accepts the following options:
 ### `cloudflareModules`
 
 <p>
-  **Type:** `boolean`
-  <br />
-  **Default:** `true`
+**Type:** `boolean`<br />
+**Default:** `true`
 </p>
 
 Enables [imports of `.wasm`, `.bin`, and `.txt` modules](#cloudflare-module-imports).
@@ -123,9 +119,8 @@ This functionality is enabled by default. If you'd like to disable, set `cloudfl
 ### `imageService`
 
 <p>
-  **Type:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom'`
-  <br />
-  **Default:** `'compile'`
+**Type:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom'`<br />
+**Default:** `'compile'`
 </p>
 
 Determines which image service is used by the adapter. The adapter will default to `compile` mode when an incompatible image service is configured. Otherwise, it will use the globally configured image service:
@@ -150,13 +145,12 @@ export default defineConfig({
 ### `sessionKVBindingName`
 
 <p>
-  **Type:** `string`
-  <br />
-  **Default:** `SESSION`
-  <Since v="5.6.0" />
+**Type:** `string`<br />
+**Default:** `SESSION`
+<Since v="5.6.0" />
 </p>
 
-Sets the name of the KV binding used for session storage. The KV namespace is automatically provisioned when you deploy. By default, the binding is named `SESSION`, but you can change it if you define the binding manually in your wrangler config. See [Sessions](#sessions) for more information.
+Sets the name of the KV binding used for session storage. By default, rhe KV namespace is automatically provisioned when you deploy, and is named `SESSION`. You can change this name by setting the binding manually in your wrangler config. See [Sessions](#sessions) for more information.
 
 ```js title="astro.config.mjs" "MY_SESSION_BINDING"
 export default defineConfig({
@@ -179,12 +173,11 @@ export default defineConfig({
 ### `imagesBindingName`
 
 <p>
-  **Type:** `string`
-  <br />
-  **Default:** `IMAGES`
+**Type:** `string`<br />
+**Default:** `IMAGES`
 </p>
 
-Sets the name of the Images binding used when [`imageService`](#imageservice) is set to `cloudflare-binding`. The binding is automatically provisioned when you deploy. By default, the binding is named `IMAGES`, but you can change it if you define the binding manually in your wrangler config.
+Sets the name of the Images binding used when [`imageService`](#imageservice) is set to `cloudflare-binding`. By default, the binding is automatically provisioned when you deploy and the binding is named `IMAGES`. You can change it by setting the binding manually in your wrangler config:  
 
 ```js title="astro.config.mjs" "MY_IMAGES"
 export default defineConfig({
@@ -211,16 +204,9 @@ The Cloudflare runtime gives you access to environment variables, bindings to Cl
 
 ### Environment variables and bindings
 
-Environment variables and bindings defined in your `wrangler.jsonc` configuration file are accessed by importing `env` from `cloudflare:workers`:
+Environment variables and bindings defined in your `wrangler.jsonc` configuration file.
 
-```astro title="src/pages/index.astro"
----
-import { env } from 'cloudflare:workers';
 
-const myVariable = env.MY_VARIABLE;
-const myKVNamespace = env.MY_KV;
----
-```
 
 Define [environment variables](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) in `wrangler.jsonc`:
 
@@ -246,7 +232,18 @@ To set secrets for local development, add a `.dev.vars` file to the root of the 
 DB_PASSWORD=myPassword
 ```
 
-As well as being available to import from `"cloudflare:workers"`, Cloudflare environment variables and secrets are compatible with the [`astro:env` API](/en/guides/environment-variables/#type-safe-environment-variables):
+Cloudflare environment variables and secrets can be imported from `"cloudflare:workers"`:
+
+```astro title="src/pages/index.astro"
+---
+import { env } from 'cloudflare:workers';
+
+const myVariable = env.MY_VARIABLE;
+const myKVNamespace = env.MY_KV;
+---
+```
+
+They are also compatible with the [`astro:env` API](/en/guides/environment-variables/#type-safe-environment-variables):
 
 ```js
 import { MY_VARIABLE } from 'astro:env/server';
@@ -326,7 +323,7 @@ Astro automatically configures [Workers KV](https://developers.cloudflare.com/kv
 
 ```astro title="src/components/CartButton.astro"
 ---
-export const prerender = false;
+export const prerender = false; // Not needed in 'server' mode  
 const cart = await Astro.session?.get('cart');
 ---
 
@@ -369,7 +366,7 @@ While this example is trivial, Wasm can be used to accelerate computationally in
 
 ## Node.js compatibility
 
-Cloudflare Workers supports a growing subset of Node.js runtime APIs through the `nodejs_compat` compatibility flag. This includes commonly used modules like `node:buffer`, `node:crypto`, `node:path`, and many others. See the [full list of supported Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs) in Cloudflare's documentation.
+Cloudflare Workers support most Node.js runtime APIs through the `nodejs_compat` compatibility flag. This includes commonly used modules like `node:buffer`, `node:crypto`, `node:path`, and many others. See the [full list of supported Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs) in Cloudflare's documentation.
 
 To enable Node.js compatibility, add the `nodejs_compat` flag to your Wrangler configuration:
 
@@ -382,7 +379,7 @@ To enable Node.js compatibility, add the `nodejs_compat` flag to your Wrangler c
 Then use the `node:*` import syntax in your server-side code:
 
 ```js title="src/pages/api/endpoint.js"
-export const prerender = false;
+export const prerender = false; // Not needed in 'server' mode  
 import { Buffer } from 'node:buffer';
 ```
 
@@ -396,7 +393,7 @@ After building your project with `astro build`, use `astro preview` to test your
 
 ### Meaningful error messages
 
-Currently, errors during running your application in Wrangler are not very useful, due to the minification of your code. For better debugging, add `vite.build.minify = false` to your `astro.config.mjs`:
+By default, errors occurring while running your application in Wrangler are minified. For better debugging, add `vite.build.minify = false` to your `astro.config.mjs`:  
 
 ```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
@@ -427,8 +424,8 @@ Cloudflare recommends migrating from Pages to Workers for new projects. See Clou
     export default defineConfig({
       adapter: cloudflare(),
       build: {
-        client: './dist',
-        server: './dist/_worker.js',
+        client: './',
+        server: './_worker.js',
       },
     });
     ```
