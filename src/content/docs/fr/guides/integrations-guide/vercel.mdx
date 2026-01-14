@@ -259,9 +259,11 @@ Par défaut, une fonction ISR est mise en cache pour la durée de votre déploie
 
 ##### Invalidation basée sur le temps
 
-Vous pouvez modifier la durée de mise en cache des routes en configurant une valeur `expiration` en secondes :
+Par défaut, lorsque l'ISR est activée, les routes utilisent [la protection du cache de Vercel](https://vercel.com/docs/incremental-static-regeneration#differences-between-isr-and-cache-control-headers) et tous les en-têtes Cache-Control sont ignorés. Configurer une valeur d'`expiration` (en secondes) permet de contrôler la durée de mise en cache des routes. Cela signifie que les directives Cache-Control définies par votre application sont également respectées.
 
-```js title="astro.config.mjs" {7-10}
+L'exemple suivant définit `expiration` pour mettre en cache toutes les pages lors de la première requête et les conserver pendant 1 jour :
+
+```js title="astro.config.mjs" {7-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
@@ -269,31 +271,52 @@ export default defineConfig({
   // ...
   adapter: vercel({
     isr: {
-      // met en cache toutes les pages à la première demande et les sauvegarde pendant 1 jour
       expiration: 60 * 60 * 24,
     },
   }),
 });
 ```
 
-##### Exclusion des chemins d'accès de la mise en cache
+##### Invalidation à la demande
 
-Pour mettre en œuvre le [Mode brouillon](https://vercel.com/docs/build-output-api/v3/features#draft-mode) ou la [Régénération statique incrémentale (RSI) à la demande](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr) de Vercel, vous pouvez créer un jeton de contournement et le fournir à la configuration `isr` avec toutes les routes à exclure de la mise en cache :
-
-```js title="astro.config.mjs" {6-15}
+Pour invalider par programmation les pages mises en cache, créez un jeton de contournement et fournissez-le dans la configuration de l'`isr` :
+```js title="astro.config.mjs" {6-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
     adapter: vercel({
         isr: {
-            // Une chaîne aléatoire secrète que vous créez.
+            // Une chaîne de caractères aléatoire et secrète que vous créez.
             bypassToken: "005556d774a8",
-            // Des chemins qui seront toujours fraîchement servis.
+        }
+    })
+})
+```
+
+Vous pouvez ensuite invalider une page mise en cache en envoyant une requête HEAD ou GET à l'URL de la page avec l'en-tête `x-prerender-revalidate` défini sur votre jeton de contournement. Consultez la [documentation sur l'ISR à la demande de Vercel](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr) pour plus de détails.
+
+
+##### Mode brouillon
+
+Pour contourner le cache ISR et afficher du contenu actualisé (par exemple, pour prévisualiser du contenu CMS non publié), utilisez le [mode brouillon de Vercel](https://vercel.com/docs/build-output-api/v3/features#draft-mode). Cela nécessite [de définir `bypassToken`](#invalidation-à-la-demande) dans votre configuration et de réutiliser sa valeur dans vos pages pour [définir un cookie](/fr/guides/on-demand-rendering/#cookies) nommé `__prerender_bypass`.
+
+##### Exclusion des chemins d'accès de la mise en cache
+
+Utilisez l'option `exclude` pour empêcher la mise en cache de certaines routes par l'ISR. Ces chemins seront toujours affichés avec du contenu actualisé à chaque requête :
+
+```js title="astro.config.mjs" {6-13}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+    adapter: vercel({
+        isr: {
+            // Des chemins affichant toujours du contenu à jour.
             exclude: [
-              '/preview', 
-              '/auth/[page]',
-              /^\/api\/.+/ // Expressions régulières prises en charge depuis @astrojs/vercel@v8.1.0
+                '/preview',
+                '/auth/[page]',
+                /^\/api\/.+/ // Expressions régulières prises en charge depuis @astrojs/vercel@v8.1.0
             ]
         }
     })
