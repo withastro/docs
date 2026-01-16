@@ -152,7 +152,7 @@ body {
 
 ## Available remote font providers
 
-Astro re-exports most [unifont](https://github.com/unjs/unifont/) providers. You can also [make a custom Astro font provider](#build-your-own-font-provider) for any unifont provider.
+Astro exports a few built-in providers, based on [unifont](https://github.com/unjs/unifont/) providers. You can also [make a custom Astro font provider](#build-your-own-font-provider).
 
 The following providers have built-in support:
 
@@ -161,6 +161,7 @@ The following providers have built-in support:
 - [Fontshare](https://www.fontshare.com/)
 - [Fontsource](https://fontsource.org/)
 - [Google](https://fonts.google.com/)
+- [Google Icons](https://fonts.google.com/icons)
 
 To use a built-in remote provider, configure `provider` with the appropriate value for your chosen font provider:
 
@@ -206,12 +207,34 @@ provider: fontProviders.fontsource()
 provider: fontProviders.google()
 ```
 
-Additionally, the `google()` font provider accepts all options available for the [unifont Google `ProviderOption`](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26):
+Additionally, the `google()` font provider accepts all options available for the [unifont Google provider](https://github.com/unjs/unifont/#options-1):
 
 ```js
 provider: fontProviders.google({
 	glyphs: {
 		Roboto: ["a"]
+	}
+})
+```
+
+</TabItem>
+
+<TabItem label="Google Icons">
+
+<p>
+<Since v="5.16.9" />
+</p>
+
+```js
+provider: fontProviders.googleicons()
+```
+
+Additionally, the `googleicons()` font provider accepts all options available for the [unifont Google Icons options](https://github.com/unjs/unifont/#options-2):
+
+```js
+provider: fontProviders.googleicons({
+	glyphs: {
+		"Material Symbols Outlined": ["arrow_right", "favorite", "arrow_drop_down"]
 	}
 })
 ```
@@ -512,9 +535,9 @@ optimizedFallbacks: false
 
 ### Remote font properties
 
-Further configuration options are available for remote fonts. Set these to customize the data loaded from your [font provider](#available-remote-font-providers), for example to only download certain font weights or styles. For more control, more [granular configuration](#granular-remote-font-configuration) is available.
+Further configuration options are available for remote fonts. Set these to customize the data loaded from your [font provider](#available-remote-font-providers), for example, to only download certain font weights or styles. For more control, more [granular configuration](#granular-remote-font-configuration) is available.
 
-Under the hood, these options are handled by [unifont](https://github.com/unjs/unifont/). Some properties may not be supported by some providers and may be handled differently by each provider.
+Each provider is responsible for handling these options, so availability and support for the following properties may vary.
 
 #### weights
 
@@ -846,88 +869,162 @@ export default defineConfig({
 
 ## Build your own font provider
 
-If you do not wish to use one of the [built-in providers](#available-remote-font-providers) (eg. you want to use a 3rd-party unifont provider or build something for a private registry), you can build your own.
+If you do not wish to use one of the [built-in providers](#available-remote-font-providers) (e.g. you want to use a [3rd-party unifont provider](#supporting-a-3rd-party-unifont-provider) or [build something for a private registry](#supporting-a-private-registry)), you can build your own.
 
-An Astro font provider is made up of two parts: the config object and the actual implementation.
+The preferred method for implementing a custom font provider is to export a function that returns [the `FontProvider` object](#the-font-provider-object) and takes the [configuration](#config) as a parameter.
 
-<Steps>
+### The font provider object
 
-1. Create a function that returns a `FontProvider` config object containing:
+The experimental Fonts API allows you to access fonts in a unified way. Each family requires the use of an Astro Font Provider to retrieve font faces.
 
-    - `entrypoint`: A URL, a path relative to the root, or a package import.
-    - `config`: An optional serializable object passed to the unifont provider.
+A `FontProvider` is an object containing required [`name`](#name-1) and [`resolveFont()`](#resolvefont) properties. It also has optional [`config`](#config), [`init()`](#init) and [`listFonts()`](#listfonts) properties available.
 
-    <Tabs>
+#### `name`
 
-    <TabItem label="Without config">
+<p>
 
-    ```ts title="provider/config.ts"
-    import type { FontProvider } from 'astro';
+**Type:** `string`
+</p>
 
-    export function myProvider(): FontProvider {
-      return {
-        entrypoint: new URL('./implementation.js', import.meta.url)
-      };
-    };
-    ```
+A unique name for the provider, used in logs and for identification.
 
-    </TabItem>
+#### `resolveFont()`
 
-    <TabItem label="With config">
+<p>
 
-    ```ts title="provider/config.ts"
-    import type { FontProvider } from 'astro';
+**Type:** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
 
-    interface Config {
-      // ...
-    };
+Used to retrieve and return font face data based on the given options.
 
-    export function myProvider(config: Config): FontProvider {
-      return {
-        entrypoint: new URL('./implementation.js', import.meta.url),
-        config
-      };
-    };
-    ```
+#### `config`
 
-    </TabItem>
+<p>
 
-    </Tabs>
+**Type:** `Record<string, any>`<br />
+**Default:** `undefined`
+</p>
 
-2. Create a second file to export your unifont `provider` implementation:
+A serializable object, used for identification.
 
-    ```ts title="implementation.ts"
-    import { defineFontProvider } from "unifont";
+#### `init()`
 
-    export const provider = defineFontProvider("my-provider", async (options, ctx) => {
-        // fetch/define your custom fonts
-        // ...
-    });
-    ```
+<p>
 
-    :::tip
+**Type:** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**Default:** `undefined`
+</p>
 
-    You can check out [the source code for unifont's providers](https://github.com/unjs/unifont/blob/main/src/providers/) to learn more about how to create a unifont provider.
+Optional callback, used to perform any initialization logic. Its context contains a `storage` object, useful for caching.
 
-    :::
+#### `listFonts()`
 
-3. Add your custom provider to your font configuration.
+<p>
 
-    ```js title="astro.config.mjs" ins="myProvider()"
-    import { defineConfig } from "astro/config";
-    import { myProvider } from "./provider/config";
+**Type:** `() => Awaitable<string[] | undefined>`<br />
+**Default:** `undefined`
+</p>
 
-    export default defineConfig({
-      experimental: {
-        fonts: [{
-          provider: myProvider(),
-          // ...
-        }]
+Optional callback, used to return the list of available font names.
+
+### Supporting a private registry
+
+The following example defines a font provider for a private registry:
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...options }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
       }
-    });
-    ```
+      return undefined;
+    },
+  };
+}
+```
 
-</Steps>
+You can then register this font provider in the Astro config:
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider({
+              token: "..."
+            }),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+### Supporting a 3rd-party unifont provider
+
+You can define an Astro font provider using a unifont provider under the hood:
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from 'unifont';
+import { acmeProvider, type AcmeOptions } from '@acme/unifont-provider'
+
+function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+You can then register this font provider in the Astro config:
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider({/* ... */}),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
 
 ## Caching
 
