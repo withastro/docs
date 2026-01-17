@@ -1,8 +1,9 @@
 ---
 title: レイアウト
-description: レイアウトの紹介です。Astroコンポーネントの一種で、共通のレイアウトのためにページ間で共有されます。
+description: Astroにおけるレイアウトの紹介です。
 i18nReady: true
 ---
+
 import ReadMore from '~/components/ReadMore.astro'
 
 **レイアウト**は、ページテンプレートのような再利用可能なUI構造を作成するために使用される[Astroコンポーネント](/ja/basics/astro-components/)です。
@@ -45,11 +46,11 @@ const { title } = Astro.props
     </article>
     <Footer />
   </body>
-   <style>
-     h1 {
-       font-size: 2rem;
-     }
-   </style>
+  <style>
+    h1 {
+      font-size: 2rem;
+    }
+  </style>
 </html>
 ```
 
@@ -62,17 +63,51 @@ import MySiteLayout from '../layouts/MySiteLayout.astro';
 </MySiteLayout>
 ```
 
-<ReadMore> [スロット](/ja/basics/astro-components/#スロット)についてもっと学ぶ。</ReadMore>
+<ReadMore>[スロット](/ja/basics/astro-components/#スロット)についてもっと学ぶ。</ReadMore>
+
+## レイアウトでTypeScriptを使用する
+
+どのAstroレイアウトでも、propsに型を定義することで、型安全性と自動補完を導入できます:
+
+```astro ins={2-7} title="src/components/MyLayout.astro"
+---
+interface Props { 
+  title: string;
+  description: string;
+  publishDate: string;
+  viewCount: number;
+}
+const { title, description, publishDate, viewCount } = Astro.props;
+---
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={description}>
+    <title>{title}</title>
+  </head>
+  <body>
+    <header>
+      <p>Published on {publishDate}</p>
+      <p>Viewed by {viewCount} folks</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
 
 ## Markdownのレイアウト
 
-ページレイアウトは、ページフォーマットをもたない[MarkdownページとMDXページ](/ja/guides/markdown-content/#individual-markdown-pages)に対して特に便利です。
+ページレイアウトは、ページフォーマットをもたない個別のMarkdownページにとって特に便利です。
 
-Astroでは、`layout`というフロントマターの特別なプロパティを使用して、ページのレイアウトとして使用する`.astro`コンポーネントを指定できます。
+Astroは、[ファイルベースルーティングを使用して`src/pages/`内に配置される個別の`.md`ファイル](/ja/guides/markdown-content/#individual-markdown-pages)向けに、特別な`layout`フロントマタープロパティを提供しています。これにより、ページレイアウトとして使用する`.astro`コンポーネントを指定できます。このコンポーネントを使用すると、メタタグ(例: `<meta charset="utf-8">`)やスタイルなどの`<head>`コンテンツをMarkdownページに提供できます。デフォルトでは、指定されたコンポーネントはMarkdownファイルからデータに自動的にアクセスできます。
+
+ただし[コンテンツコレクション](/ja/guides/content-collections/)を使ってコンテンツをクエリ・レンダリングする場合、このプロパティは特別なものとして認識されません。
 
 ```markdown title="src/pages/page.md" {2} 
 ---
-layout: ../layouts/BaseLayout.astro
+layout: ../layouts/BlogPostLayout.astro
 title: "Hello, World!"
 author: "Matthew Phillips"
 date: "2022年8月9日"
@@ -81,24 +116,25 @@ date: "2022年8月9日"
 
 `layout`プロパティは、Astroが提供する唯一の特別なプロパティです。
 
-`src/pages/`内のMarkdownとMDXファイルの両方で使用できます。
+`src/pages/`内のMarkdownファイルで使用できます。
 
 ```
 
-MarkdownまたはMDXページの典型的なレイアウトは以下を含みます。
+Markdownページの典型的なレイアウトは以下を含みます。
 
-1. MarkdownまたはMDXページのフロントマターとその他のデータにアクセスするための`frontmatter`プロパティ。
-2. ページのMarkdownやMDXコンテンツをレンダリングする場所を示すためのデフォルトの[`<slot />`](/ja/basics/astro-components/#スロット)。
+1. Markdownページのフロントマターとその他のデータにアクセスするための`frontmatter`プロパティ。
+2. ページのMarkdownコンテンツをレンダリングする場所を示すためのデフォルトの[`<slot />`](/ja/basics/astro-components/#スロット)。
 
-```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+```astro title="src/layouts/BlogPostLayout.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-// src/layouts/BaseLayout.astro
 // 1. frontmatter propによりフロントマターとその他のデータにアクセスできます
 const { frontmatter } = Astro.props;
 ---
 <html>
   <head>
     <!-- スタイルやmetaタグなど、その他のhead要素をここに追加します -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
     <title>{frontmatter.title}</title>
   </head>
   <body>
@@ -111,9 +147,9 @@ const { frontmatter } = Astro.props;
 </html>
 ```
 
-`MarkdownLayoutProps`または`MDXLayoutProps`を使用して、レイアウトの[`Props`型](/ja/guides/typescript/#component-props)を設定できます。
+`MarkdownLayoutProps`を使用して、レイアウトの[`Props`型](/ja/guides/typescript/#component-props)を設定できます。
 
-```astro title="src/layouts/BaseLayout.astro" ins={2,4-9}
+```astro title="src/layouts/BlogPostLayout.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
 
@@ -130,6 +166,7 @@ const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
+    <meta charset="utf-8">
     <link rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.title}</title>
   </head>
@@ -143,7 +180,7 @@ const { frontmatter, url } = Astro.props;
 
 ### MarkdownレイアウトのProps
 
-MarkdownとMDXレイアウトは、`Astro.props`を介して次の情報にアクセスできます。
+Markdownレイアウトは、`Astro.props`を介して次の情報にアクセスできます。
 
 - **`file`** - ファイルの絶対パス（たとえば`/home/user/projects/.../file.md`）。
 - **`url`** - ページであれば、そのページのURL（`/en/guides/markdown-content`）。
@@ -151,58 +188,22 @@ MarkdownとMDXレイアウトは、`Astro.props`を介して次の情報にア�
   - **`frontmatter.file`** - トップレベルの`file`プロパティと同じ。
   - **`frontmatter.url`** - トップレベルの`url`プロパティと同じ。
 - **`headings`** - MarkdownまたはMDXドキュメントの見出し（`h1 -> h6`）と、関連するメタデータのリスト。このリストは次の型に従います：`{ depth: number; slug: string; text: string }[]`。
-- **(Markdownのみ) `rawContent()`** - 生のMarkdownドキュメントを文字列として返す関数。
-- **(Markdownのみ) `compiledContent()`** - HTML文字列にコンパイルしたMarkdownドキュメントを返す関数。
-
-Markdownのブログ記事がレイアウトに渡す`Astro.props`オブジェクトは以下のようになるでしょう。
-
-```js
-Astro.props = {
-  file: "/home/user/projects/.../file.md",
-  url: "/en/guides/markdown-content/",
-  frontmatter: {
-    /** ブログ記事のフロントマター */
-    title: "Astro 0.18 Release",
-    date: "Tuesday, July 27 2021",
-    author: "Matthew Phillips",
-    description: "Astro 0.18 is our biggest release since Astro launch.",
-    /** 生成された値 */
-    file: "/home/user/projects/.../file.md",
-    url: "/en/guides/markdown-content/"
-  },
-  headings: [
-    {
-      "depth": 1,
-      "text": "Astro 0.18 Release",
-      "slug": "astro-018-release"
-    },
-    {
-      "depth": 2,
-      "text": "Responsive partial hydration",
-      "slug": "responsive-partial-hydration"
-    }
-    /* ... */
-  ],
-
-  /** Markdownでのみ利用可能 */
-  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
-  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
-}
-```
+- **`rawContent()`** - 生のMarkdownドキュメントを文字列として返す関数。
+- **`compiledContent()`** - MarkdownドキュメントをHTML文字列にコンパイルして返すasync関数。
 
 :::note
-MarkdownとMDXのレイアウトは、ファイルが[エクスポートしたプロパティ](/ja/guides/markdown-content/#importing-markdown)のすべてに`Astro.props`からアクセスできますが、**いくつかの重要な違いがあります**。
+Markdownレイアウトは、`Astro.props`からMarkdownファイルの[利用可能なプロパティ](/ja/guides/markdown-content/#available-properties)すべてにアクセスできますが、**2つの重要な違いがあります:**
 
 * 見出し情報（つまり`h1 -> h6`要素）は、`getHeadings()`関数ではなく、`headings`配列を介して利用できます。
 
 * `file`と`url`は、ネストされた`frontmatter`プロパティ（つまり`frontmatter.url`と`frontmatter.file`）としても利用できます。
-
-* フロントマターの外部で定義された値（たとえばMDXの`export`文）は利用できません。代わりに[レイアウトをインポート](#レイアウトを手動でインポートするmdx)してください。
 :::
 
 ### レイアウトを手動でインポートする（MDX）
 
-MDXレイアウトに、フロントマターには存在しない（または存在しようがない）情報を渡す必要がある場合があります。この場合、代わりに[`<Layout />`コンポーネント](/ja/basics/layouts/)をインポートして使用し、他のコンポーネントと同様にpropsを渡せます。
+MDXファイルのフロントマターでも、特別なMarkdownの`layout`プロパティを使って、同じように指定したレイアウトコンポーネントへ`frontmatter`と`headings`のpropsを直接渡すことができます。
+
+MDXレイアウトに、フロントマターには存在しない（または存在しようがない）情報を渡すには、代わりに`<Layout />`コンポーネントをインポートして使用できます。これは他のAstroコンポーネントと同じように動作し、propsは自動で受け取りません。必要なpropsを直接渡してください。
 
 ```mdx title="src/pages/posts/first-post.mdx" ins={6} del={2} /</?BaseLayout>/ /</?BaseLayout title={frontmatter.title} fancyJsHelper={fancyJsHelper}>/
 ---
@@ -223,39 +224,28 @@ export function fancyJsHelper() {
 
 すると、レイアウトの`Astro.props`を介して値が利用でき、MDXコンテンツは`<slot />`コンポーネントが書かれている場所に挿入されます。
 
-```astro /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
+```astro title="src/layouts/BaseLayout.astro" /{?title}?/ "fancyJsHelper" "{fancyJsHelper()}"
 ---
-// src/layouts/BaseLayout.astro
 const { title, fancyJsHelper } = Astro.props;
 ---
-<!-- -->
-<h1>{title}</h1>
-<slot /> <!-- コンテンツはここに挿入されます -->
-<p>{fancyJsHelper()}</p>
-<!-- -->
-```
-
-<ReadMore> [MarkdownとMDXのガイド](/ja/guides/markdown-content/)でAstroのMarkdownとMDXサポートについてもっと学ぶ。</ReadMore>
-
-## `.md`、`.mdx`、`.astro`に対し同一のレイアウトを使用する
-
-一つのAstroレイアウトで、`.md`と`.mdx`ファイルの`frontmatter`オブジェクトと、`.astro`ファイルから渡された名前付きのpropsを受け取るように書くことができます。
-
-以下の例では、レイアウトは、フロントマターのYAMLの`title`プロパティまたは`title`属性を渡すAstroコンポーネントからページタイトルを受け取ってそれを表示します。
-
-```astro /{?title}?/ /Astro.props[.a-z]*/
----
-// src/components/MyLayout.astro
-const { title } = Astro.props.frontmatter || Astro.props;
----
 <html>
-  <head></head>
+  <head>
+    <!-- -->
+    <meta charset="utf-8">
+  </head>
   <body>
+    <!-- -->
     <h1>{title}</h1>
-    <slot />
+    <slot /> <!-- your content is injected here -->
+    <p>{fancyJsHelper()}</p>
+    <!-- -->
   </body>
 </html>
 ```
+
+レイアウトを使用する場合(frontmatterの`layout`プロパティを使用するか、レイアウトをインポートするかに関わらず)、レイアウトに `<meta charset="utf-8">` タグを含める必要があります。AstroはMDXページにこのタグを自動的に追加しなくなったためです。
+
+<ReadMore>[Markdownのガイド](/ja/guides/markdown-content/)でAstroのMarkdownとMDXサポートについてもっと学ぶ。</ReadMore>
 
 ## レイアウトの入れ子
 
