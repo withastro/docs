@@ -66,6 +66,32 @@ Larger contributions to the docs are encouraged after participating in Issues an
 
 <!-- ## Who Are We? -->
 
+## First-Time Contributor Quick Start
+
+If this is your first time contributing to Astro Docs, we recommend starting with one of the small, high-impact tasks below. These contributions are quick to review and help you get familiar with our workflow.
+
+### Recommended first contributions
+
+- Fix typos, grammar issues, or broken links on existing documentation pages
+- Clarify confusing sentences or explanations
+- Improve code comments or short examples for readability
+- Open an issue for documentation that feels outdated, unclear, or incorrect
+
+### Where to look
+
+- Browse files in `src/content/docs/en/`
+- Look for Issues labeled `good first issue` or `help wanted`
+- Use the “Edit this page” button on docs.astro.build to make small changes directly
+
+### Tips for success
+
+- Keep your first PR small and focused
+- Avoid reformatting entire files
+- Use clear commit messages (e.g. `docs: clarify explanation of partial hydration`)
+- If unsure, open an Issue or Discussion before making large changes
+
+Starting small is the best way to learn the Astro Docs contribution process and build confidence for larger contributions.
+
 ## Making a New Issue
 
 If you're unsure which type of contribution best represents your concern, please [make a new issue](https://github.com/withastro/docs/issues/new)!
