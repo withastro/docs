@@ -9,7 +9,7 @@ category: adapter
 i18nReady: true
 ---
 
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { Tabs, TabItem, Steps } from '@astrojs/starlight/components';
@@ -52,36 +52,69 @@ Astro 包含了一个 `astro add` 命令，用于自动设置官方集成。如�
 
 ### 手动安装
 
-首先，使用合适的包管理器将 `@astrojs/cloudflare` 适配器添加到项目的依赖项中。
+<Steps>
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```sh
-  npm install @astrojs/cloudflare
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```sh
-  pnpm add @astrojs/cloudflare
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```sh
-  yarn add @astrojs/cloudflare
-  ```
-  </Fragment>
-</PackageManagerTabs>
+1. 使用合适的包管理器将 `@astrojs/cloudflare` 适配器添加到项目的依赖项中。
 
-然后，将适配器添加到 `astro.config.mjs` 文件中：
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npm install @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm add @astrojs/cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn add @astrojs/cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
 
-```js title="astro.config.mjs" ins={2,5}
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
+2. 将适配器添加到 `astro.config.mjs` 文件中：
 
-export default defineConfig({
-  adapter: cloudflare(),
-});
-```
+    ```js title="astro.config.mjs" ins={2,5}
+    import { defineConfig } from 'astro/config';
+    import cloudflare from '@astrojs/cloudflare';
+
+    export default defineConfig({
+      adapter: cloudflare(),
+    });
+    ```
+
+3. 创建一个 [Wrangler 配置项文件](https://developers.cloudflare.com/workers/wrangler/configuration/)：
+
+    ```jsonc title="wrangler.jsonc"
+    {
+      "main": "dist/_worker.js/index.js",
+      "name": "my-astro-app",
+      // 更新为今天的日期
+      "compatibility_date": "2025-03-25",
+      "compatibility_flags": [
+        "nodejs_compat",
+        "global_fetch_strictly_public"
+      ],
+      "assets": {
+        "binding": "ASSETS",
+        "directory": "./dist"
+      },
+      "observability": {
+        "enabled": true
+      }
+    }
+    ```
+
+4. 在你的 `public/` 文件夹中创建一个 `.assetsignore` 文件，并向其添加以下内容：
+
+      ```txt title="public/.assetsignore"
+      _worker.js
+      _routes.json
+      ```
+
+</Steps>
 
 ## 选项
 
@@ -340,9 +373,7 @@ export function createExports(manifest: SSRManifest) {
 
 ### 用例
 
-Cloudflare 运行时允许你访问环境变量并绑定 Cloudflare 资源。
-
-Cloudflare 运行时使用在 `wrangler.toml`/`wrangler.json` 配置文件中找到的绑定。
+Cloudflare 运行时允许你访问在 `wrangler.toml`/`wrangler.jsonc` 配置文件中定义的环境变量和 Cloudflare 资源绑定。
 
 你可以从 `Astro.locals.runtime` 中访问绑定：
 
@@ -367,9 +398,9 @@ export function GET(context) {
 
 CloudFlare 运行时将环境变量视为一种绑定。
 
-例如，你可以在 `wrangler.json` 中对 [环境变量](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) 进行如下定义：
+例如，你可以在 `wrangler.jsonc` 中对 [环境变量](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) 进行如下定义：
 
-```json title="wrangler.json"
+```jsonc title="wrangler.jsonc"
 {
   "vars" : {
     "MY_VARIABLE": "test"
@@ -495,8 +526,8 @@ Astro [Session API](/zh-cn/guides/sessions/) 允许你在请求间，轻松地�
 2. 在你的 Wrangler 配置文件中，声明 KV 命名空间，ID 是运行上一个命令时所返回的内容：
 
     <Tabs>
-      <TabItem label="wrangler.json">
-        ```json title="wrangler.json" "<KV_NAMESPACE_ID>"
+      <TabItem label="wrangler.jsonc">
+        ```json title="wrangler.jsonc" "<KV_NAMESPACE_ID>"
         {
           "kv_namespaces": [
             {
@@ -600,7 +631,7 @@ export default defineConfig({
 对于 Workers：
 
 ```json title="package.json"
-"preview": "wrangler dev ./dist"
+"preview": "wrangler dev"
 ```
 
 对于 Pages：
