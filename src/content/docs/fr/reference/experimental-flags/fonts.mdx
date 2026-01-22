@@ -82,7 +82,7 @@ body {
     });
     ```
 
-    Plus d'options de configuration, telles que la définition de [familles de polices de repli](#fallbacks) ainsi que les [graisses (`weights`)](#weights), [`styles`](#styles) et [`subsets`](#subsets) à télécharger, sont disponibles et certaines dépendront du fournisseur choisi.
+    Plus d'options de configuration, telles que la définition de [familles de polices de repli](#fallbacks) ainsi que les [graisses (`weights`)](#weights), [`styles`](#styles), [`subsets`](#subsets) et [`formats`](#formats) à télécharger, sont disponibles et certaines dépendront du fournisseur choisi.
     
     Consultez la [référence de configuration](#référence-de-configuration-des-polices) complète pour en savoir plus.
 
@@ -152,7 +152,7 @@ body {
 
 ## Fournisseurs de polices distantes disponibles
 
-Astro réexporte la plupart des fournisseurs [unifont](https://github.com/unjs/unifont/). Vous pouvez également [créer un fournisseur de polices Astro personnalisé](#créer-votre-propre-fournisseur-de-polices) pour n'importe quel fournisseur unifont.
+Astro exporte quelques fournisseurs intégrés, basés sur [unifont](https://github.com/unjs/unifont/). Vous pouvez également [créer un fournisseur de polices Astro personnalisé](#créer-votre-propre-fournisseur-de-polices).
 
 Les fournisseurs suivants disposent d'une prise en charge intégrée :
 
@@ -161,6 +161,7 @@ Les fournisseurs suivants disposent d'une prise en charge intégrée :
 - [Fontshare](https://www.fontshare.com/)
 - [Fontsource](https://fontsource.org/)
 - [Google](https://fonts.google.com/)
+- [Google Icons](https://fonts.google.com/icons)
 
 Pour utiliser un fournisseur distant intégré, configurez `provider` avec la valeur appropriée pour le fournisseur de polices choisi :
 
@@ -206,12 +207,34 @@ provider: fontProviders.fontsource()
 provider: fontProviders.google()
 ```
 
-En complément, le fournisseur de polices `google()` accepte toutes les options disponibles dans l'interface [`ProviderOption` d'unifont pour Google](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26) :
+En complément, le fournisseur de polices `google()` accepte toutes les options disponibles dans le [fournisseur d'unifont pour Google](https://github.com/unjs/unifont/#options-1) :
 
 ```js
 provider: fontProviders.google({
 	glyphs: {
 		Roboto: ["a"]
+	}
+})
+```
+
+</TabItem>
+
+<TabItem label="Google Icons">
+
+<p>
+<Since v="5.16.9" />
+</p>
+
+```js
+provider: fontProviders.googleicons()
+```
+
+En complément, le fournisseur de polices `googleicons()` accepte toutes les options disponibles dans les [options Google Icons d'unifont](https://github.com/unjs/unifont/#options-2):
+
+```js
+provider: fontProviders.googleicons({
+	glyphs: {
+		"Material Symbols Outlined": ["arrow_right", "favorite", "arrow_drop_down"]
 	}
 })
 ```
@@ -237,6 +260,7 @@ export default defineConfig({
         // styles: ["normal", "italics"],
         // subsets: ["latin"],
         // fallbacks: ["sans-serif"], 
+        // formats: ["woff2"],
       },
       {
         name: "Inter",
@@ -248,6 +272,8 @@ export default defineConfig({
         styles: ["normal"],
         // Télécharger uniquement les fichiers de polices pour les caractères utilisés sur la page
         subsets: ["latin", "cyrillic"],
+        // Télécharger plus de formats de police
+        formats: ["woff2", "woff"],
       },
       {
         name: "JetBrains Mono",
@@ -426,7 +452,7 @@ export default defineConfig({
 
 <p>
 
-**Type :** `AstroFontProvider | "local"`
+**Type :** `FontProvider | "local"`
 </p>
 
 La source de vos fichiers de polices. Vous pouvez utiliser un [fournisseur intégré](#fournisseurs-de-polices-distantes-disponibles), créer votre propre [fournisseur personnalisé](#créer-votre-propre-fournisseur-de-polices) ou définir `local` pour utiliser les fichiers de polices locaux :
@@ -511,7 +537,7 @@ optimizedFallbacks: false
 
 D'autres options de configuration sont disponibles pour les polices distantes. Définissez-les pour personnaliser les données chargées depuis votre [fournisseur de polices](#fournisseurs-de-polices-distantes-disponibles), par exemple pour télécharger uniquement certains styles ou graisses de police. Pour un contrôle plus précis, une [configuration granulaire](#configuration-granulaire-des-polices-distantes) est disponible.
 
-Sous le capot, ces options sont gérées par [unifont](https://github.com/unjs/unifont/). Certaines propriétés peuvent ne pas être prises en charge par certains fournisseurs et être gérées différemment par chacun.
+Chaque fournisseur est responsable de la gestion de ces options, donc la disponibilité et la prise en charge des propriétés suivantes peuvent varier.
 
 #### weights
 
@@ -559,6 +585,21 @@ Définit une liste de [sous-ensembles de polices](https://knaap.dev/posts/font-s
 
 ```js
 subsets: ["latin"]
+```
+
+#### formats
+
+<p>
+
+**Type :** `("woff2" | "woff" | "otf" | "ttf" | "eot")[]`<br />
+**Par défaut :** `["woff2"]`
+<Since v="5.16.7" />
+</p>
+
+Un tableau de [formats de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/src#formats_de_police) :
+
+```js
+formats: ["woff2", "woff"]
 ```
 
 #### display
@@ -828,88 +869,162 @@ export default defineConfig({
 
 ## Créer votre propre fournisseur de polices
 
-Si vous ne souhaitez pas utiliser l'un des [fournisseurs intégrés](#fournisseurs-de-polices-distantes-disponibles) (par exemple, vous souhaitez utiliser un fournisseur de polices unifont tiers ou créer quelque chose pour un registre privé), vous pouvez créer le vôtre.
+Si vous ne souhaitez pas utiliser l'un des [fournisseurs intégrés](#fournisseurs-de-polices-distantes-disponibles) (par exemple, vous souhaitez utiliser un [fournisseur de polices unifont tiers](#prendre-en-charge-un-fournisseur-unifont-tiers) ou [créer quelque chose pour un registre privé](#prendre-en-charge-un-registre-privé)), vous pouvez créer le vôtre.
 
-Un fournisseur de polices Astro est composé de deux parties : l'objet de configuration et l'implémentation réelle.
+La méthode préférée pour implémenter un fournisseur de polices personnalisé est d'exporter une fonction qui retourne [l'objet `FontProvider`](#lobjet-fournisseur-de-polices) et prend la configuration en paramètre.
 
-<Steps>
+### L'objet fournisseur de polices
 
-1. À l'aide de l'assistant de type `defineAstroFontProvider()`, créez une fonction qui renvoie un objet de configuration de fournisseur de polices contenant :
+L'API expérimentale des polices vous permet d'accéder aux polices de manière unifiée. Chaque famille requiert l'utilisation d'un fournisseur de polices Astro pour récupérer les polices de caractères.
 
-    - `entrypoint` : Une URL, un chemin relatif à la racine ou une importation de package.
-    - `config` : Un objet sérialisable facultatif transmis au fournisseur unifont.
+Un `FontProvider` est un objet qui contient les propriétés requises [`name`](#name-1) et [`resolveFont()`](#resolvefont). Il a aussi les propriétés optionnelles [`config`](#config), [`init()`](#init) et [`listFonts()`](#listfonts) de disponibles.
 
-    <Tabs>
+#### `name`
 
-    <TabItem label="Sans configuration">
+<p>
 
-    ```ts title="provider/config.ts"
-    import { defineAstroFontProvider } from 'astro/config';
+**Type :** `string`
+</p>
 
-    export function myProvider() {
-        return defineAstroFontProvider({
-            entrypoint: new URL('./implementation.js', import.meta.url)
-        });
-    };
-    ```
+Un nom unique pour le fournisseur, utilisé dans les logs et pour l'identification.
 
-    </TabItem>
+#### `resolveFont()`
 
-    <TabItem label="Avec configuration">
+<p>
 
-    ```ts title="provider/config.ts"
-    import { defineAstroFontProvider } from 'astro/config';
+**Type :** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
 
-    interface Config {
-        // ...
-    };
+Utilisée pour récupérer et retourner les données d'une police de caractères à partir des options données.
 
-    export function myProvider(config: Config) {
-        return defineAstroFontProvider({
-            entrypoint: new URL('./implementation.js', import.meta.url),
-            config
-        });
-    };
-    ```
+#### `config`
 
-    </TabItem>
+<p>
 
-    </Tabs>
+**Type :** `Record<string, any>`<br />
+**Par défaut :** `undefined`
+</p>
 
-2. Créez un deuxième fichier pour exporter votre implémentation de fournisseur unifont :
+Un objet sérialisable, utilisé pour l'identification.
 
-    ```ts title="implementation.ts"
-    import { defineFontProvider } from "unifont";
+#### `init()`
 
-    export const provider = defineFontProvider("mon-fournisseur", async (options, ctx) => {
-        // récupérer/définir vos polices personnalisées
-        // ...
-    });
-    ```
+<p>
 
-    :::tip
+**Type :** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**Par défaut :** `undefined`
+</p>
 
-    Vous pouvez consulter [le code source des fournisseurs d'unifont](https://github.com/unjs/unifont/blob/main/src/providers/) pour en savoir plus sur la création d'un fournisseur unifont.
+Une fonction de rappel optionnelle, utilisée pour exécuter une logique d'initialisation. Son contexte contient un objet `storage`, utile pour la mise en cache.
 
-    :::
+#### `listFonts()`
 
-3. Ajoutez votre fournisseur personnalisé à votre configuration de police.
+<p>
 
-    ```js title="astro.config.mjs" ins="myProvider()"
-    import { defineConfig } from "astro/config";
-    import { myProvider } from "./provider/config";
+**Type :** `() => Awaitable<string[] | undefined>`<br />
+**Par défaut :** `undefined`
+</p>
 
-    export default defineConfig({
-      experimental: {
-        fonts: [{
-          provider: myProvider(),
-          // ...
-        }]
+Fonction de rappel optionnelle, utilisée pour retourner la liste des noms de polices disponibles.
+
+### Prendre en charge un registre privé
+
+L'exemple suivant définit un fournisseur de polices pour un registre privé :
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...options }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
       }
-    });
-    ```
+      return undefined;
+    },
+  };
+}
+```
 
-</Steps>
+Vous pouvez ensuite enregistrer ce fournisseur de polices dans la configuration Astro :
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider({
+              token: "..."
+            }),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+### Prendre en charge un fournisseur unifont tiers
+
+Vous pouvez définir un fournisseur de polices Astro utilisant un fournisseur unifont sous le capot :
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from 'unifont';
+import { acmeProvider, type AcmeOptions } from '@acme/unifont-provider'
+
+function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+Vous pouvez ensuite enregistrer ce fournisseur de polices dans la configuration Astro :
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider({/* ... */}),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
 
 ## Mise en cache
 
