@@ -138,6 +138,7 @@ export const sidebar = [
 					'reference/image-service-reference',
 					'reference/dev-toolbar-app-reference',
 					'reference/session-driver-reference',
+					'reference/font-provider-reference',
 					'reference/container-reference',
 					'reference/programmatic-reference',
 				],
