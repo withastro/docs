@@ -11,6 +11,10 @@ import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import { Tabs, TabItem } from '@astrojs/starlight/components';
 
+<p>
+<Since v="6.0.0" />
+</p>
+
 The [Fonts API](#TODO:) allows you to access fonts in a unified way. Each family requires the use of an Astro Font Provider, which either downloads font files from a remote service or loads local font files from disk.
 
 ## Built-in providers
@@ -124,10 +128,6 @@ Allows setting variable axis configuration:
 
 ### Google Icons
 
-<p>
-<Since v="5.16.9" />
-</p>
-
 Retrieves fonts from [Google Icons](https://fonts.google.com/icons):
 
 ```js
@@ -158,10 +158,6 @@ when resolving the new Material Symbols icons, allows specifying a list of glyph
 ```
 
 ### Local
-
-<p>
-<Since v="5.16.13" />
-</p>
 
 Retrieves fonts from disk:
 
@@ -329,3 +325,415 @@ export default defineConfig({
     }
 });
 ```
+
+## Building a font provider
+
+If you do not wish to use one of the [built-in providers](#built-in-providers) (e.g. you want to use a [3rd-party unifont provider](#supporting-a-3rd-party-unifont-provider) or [build something for a private registry](#supporting-a-private-registry)), you can build your own.
+
+The preferred method for implementing a custom font provider is to export a function that returns [the `FontProvider` object](#the-font-provider-object) and takes the [configuration](#config) as a parameter.
+
+### The font provider object
+
+A `FontProvider` is an object containing required [`name`](#name-1) and [`resolveFont()`](#resolvefont) properties. It also has optional [`config`](#config), [`init()`](#init) and [`listFonts()`](#listfonts) properties available.
+
+The `FontProvider` type accepts a generic for family [options](#TODO:).
+
+#### `name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+A unique name for the provider, used in logs and for identification.
+
+#### `resolveFont()`
+
+<p>
+
+**Type:** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
+
+Used to retrieve and return font face data based on the given options.
+
+#### `config`
+
+<p>
+
+**Type:** `Record<string, any>`<br />
+**Default:** `undefined`
+</p>
+
+A serializable object, used for identification.
+
+#### `init()`
+
+<p>
+
+**Type:** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**Default:** `undefined`
+</p>
+
+Optional callback, used to perform any initialization logic.
+
+##### `context.storage`
+
+<p>
+
+**Type:** `Storage`
+</p>
+
+Useful for caching
+
+##### `context.root`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+The project root, useful for resolving local files paths.
+
+#### `listFonts()`
+
+<p>
+
+**Type:** `() => Awaitable<string[] | undefined>`<br />
+**Default:** `undefined`
+</p>
+
+Optional callback, used to return the list of available font names.
+
+### Supporting a private registry
+
+The following example defines a font provider for a private registry:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+export function registryFontProvider(): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="font-provider.ts" {4-6,8,13}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="font-provider.ts" {4-6,8,20}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface FamilyOptions {
+  minimal?: boolean;
+}
+
+export function registryFontProvider(): FontProvider<FamilyOptions | undefined> {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    // options is typed as FamilyOptions | undefined
+    resolveFont: ({ familyName, options, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+You can then register this font provider in the Astro config:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider(),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="astro.config.ts" {8}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider({
+              token: "..."
+            }),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="astro.config.ts" {8-10}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider(),
+            options: {
+              minimal: true
+            },
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+</Tabs>
+
+### Supporting a 3rd-party unifont provider
+
+You can define an Astro font provider using a unifont provider under the hood:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="font-provider.ts" {3,5,6-7}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeFamilyOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider<AcmeFamilyOptions | undefined> {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider<AcmeFamilyOptions> | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+You can then register this font provider in the Astro config:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider(),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="astro.config.ts" {8}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider({
+              token: "..."
+            }),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="astro.config.ts" {8-10}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider(),
+            options: {
+              minimal: true
+            },
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+</Tabs>
