@@ -43,6 +43,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre „Hydrierung“.
 | project root (directory)    | das Projektstamm&shy;verzeichnis     | 
 | recipe                      | das Beispiel                         |
+| to release                  | veröffentlichen                      |
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
 | request                     | die Anfrage                          |
 | script                      | das Skript                           |
