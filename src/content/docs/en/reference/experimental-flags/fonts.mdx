@@ -62,7 +62,7 @@ body {
 
 1. `experimental.fonts` accepts an array of font objects. For each font, you must specify a `provider`, the family `name`, and define a `cssVariable` to refer to your font.
 
-    - [`provider`](#provider): You can choose from the list of [built-in remote providers](#available-remote-font-providers), build your own [custom font provider](#build-your-own-font-provider), or use the [local provider](#local-font-variants) to register local font files.
+    - [`provider`](#provider): You can choose from the list of [built-in providers](#available-font-providers) or build your own [custom font provider](#build-your-own-font-provider).
     - [`name`](#name): Choose a font family supported by your provider.
     - [`cssVariable`](#cssvariable-1): Must be a valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable.
 
@@ -150,11 +150,11 @@ body {
 
 </Steps>
 
-## Available remote font providers
+## Available font providers
 
-Astro exports a few built-in providers, based on [unifont](https://github.com/unjs/unifont/) providers. You can also [make a custom Astro font provider](#build-your-own-font-provider).
+Fonts are loaded using a provider, which either downloads font files from a remote service or loads local font files from disk. Astro exports built-in providers for common services. You can also [make a custom Astro font provider](#build-your-own-font-provider).
 
-To use a built-in remote provider, import `fontProviders` and configure [`provider`](#provider) with the appropriate value for your chosen font provider:
+To use a built-in font provider, import `fontProviders` and configure [`provider`](#provider) with the appropriate value for your chosen font provider:
 
 ```js title="astro.config.mjs"
 import { fontProviders } from "astro/config";
@@ -166,6 +166,7 @@ import { fontProviders } from "astro/config";
 - [Fontsource](#fontsource)
 - [Google](#google)
 - [Google Icons](#google-icons)
+- [Local](#local)
 
 ### Adobe
 
@@ -293,6 +294,178 @@ when resolving the new Material Symbols icons, allows specifying a list of glyph
 }
 ```
 
+### Local
+
+<p>
+<Since v="5.16.13" />
+</p>
+
+Retrieves fonts from disk:
+
+```js
+provider: fontProviders.local()
+```
+
+The provider comes with required family specific [options](#options).
+
+#### variants
+
+<p>
+
+**Type:** `LocalFontFamily["variants"]`
+</p>
+
+The `options.variants` property is required. Each variant represents a [`@font-face` declaration](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/) and requires a [`src`](#src).
+
+Additionally, [some other properties](#other-properties) may be specified within each variant.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: fontProviders.local(),
+            name: "Custom",
+            cssVariable: "--font-custom",
+            options: {
+                variants: [
+                    {
+                        weight: 400,
+                        style: "normal",
+                        src: ["./src/assets/fonts/custom-400.woff2"]
+                    },
+                    {
+                        weight: 700,
+                        style: "normal",
+                        src: ["./src/assets/fonts/custom-700.woff2"]
+                    }
+                    // ...
+                ]
+            }
+        }]
+    }
+});
+```
+
+##### weight
+
+<p>
+
+**Type:** `number | string`<br />
+**Default:** `undefined`
+</p>
+
+A [font weight](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight):
+
+```js
+weight: 200
+```
+
+If the associated font is a [variable font](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), you can specify a range of weights:
+
+```js
+weight: "100 900"
+```
+
+When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
+
+##### style
+
+<p>
+
+**Type:** `"normal" | "italic" | "oblique"`<br />
+**Default:** `undefined`
+</p>
+
+A [font style](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
+
+```js
+style: "normal"
+```
+
+When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
+
+##### src
+
+<p>
+
+**Type:** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+Font [sources](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src). It can be a path relative to the root, a package import or a URL. URLs are particularly useful if you inject local fonts through an integration:
+
+<Tabs>
+
+<TabItem label="Relative path">
+
+```js
+src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./custom.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="Package import">
+
+```js
+src: ["my-package/SomeFont.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+We recommend not putting your font files in [the `public/` directory](/en/reference/configuration-reference/#publicdir). Since Astro will copy these files into that folder at build time, this will result in duplicated files in your build output. Instead, store them somewhere else in your project, such as in [`src/`](/en/reference/configuration-reference/#srcdir).
+:::
+
+You can also specify a [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech) by providing objects:
+
+```js
+src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
+```
+
+##### Other properties
+
+The following options from font families are also available for local font families within variants:
+
+- [display](#display)
+- [unicodeRange](#unicoderange)
+- [stretch](#stretch)
+- [featureSettings](#featuresettings)
+- [variationSettings](#variationsettings)
+
+```js title="astro.config.mjs" {15}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: fontProviders.local(),
+            name: "Custom",
+            cssVariable: "--font-custom",
+            options: {
+                variants: [
+                    {
+                        weight: 400,
+                        style: "normal",
+                        src: ["./src/assets/fonts/custom-400.woff2"],
+                        display: "block"
+                    }
+                ]
+            }
+        }]
+    }
+});
+```
 
 ## Usage examples
 
@@ -338,23 +511,25 @@ export default defineConfig({
       {
         name: "Poppins",
         cssVariable: "--font-poppins",
-        provider: "local",
-        // Weight and style are not specified so Astro
-        // will try to infer them for each variant
-        variants: [
-          {
-            src: [
-              "./src/assets/fonts/Poppins-regular.woff2",
-              "./src/assets/fonts/Poppins-regular.woff",
-            ]
-          },
-          {
-            src: [
-              "./src/assets/fonts/Poppins-bold.woff2",
-              "./src/assets/fonts/Poppins-bold.woff",
-            ]
-          },
-        ]
+        provider: fontProviders.local(),
+        options: {
+          // Weight and style are not specified so Astro
+          // will try to infer them for each variant
+          variants: [
+            {
+              src: [
+                "./src/assets/fonts/Poppins-regular.woff2",
+                "./src/assets/fonts/Poppins-regular.woff",
+              ]
+            },
+            {
+              src: [
+                "./src/assets/fonts/Poppins-bold.woff2",
+                "./src/assets/fonts/Poppins-bold.woff",
+              ]
+            },
+          ]
+        }
       }
     ],
   }
@@ -494,34 +669,20 @@ Returns a buffer for the font file from a source URL obtained from [`fontData`](
 
 ## Font configuration reference
 
-All properties of your fonts must be configured in the Astro config. Some properties are common to both remote and local fonts, and other properties are available depending on your chosen font provider.
+All properties of your fonts must be configured in the Astro config. Set these to customize the data loaded from your [font provider](#available-font-providers), for example, to only download certain font weights or styles. For more control, more [granular configuration](#granular-font-configuration) is available.
 
-### Common properties
+Each provider is responsible for handling these options, so availability and support for the following properties may vary.
 
-The following properties are available for remote and local fonts. `provider`, `name`, and `cssVariable` are required.
+[`provider`](#provider), [`name`](#name), and [`cssVariable`](#cssvariable-1) are required.
 
-```js title="astro.config.mjs"
-import { defineConfig, fontProviders } from "astro/config";
-
-export default defineConfig({
-  experimental: {
-    fonts: [{
-      provider: fontProviders.google(),
-      name: "Roboto",
-      cssVariable: "--font-roboto"
-    }]
-  }
-});
-```
-
-#### provider
+### provider
 
 <p>
 
-**Type:** `FontProvider | "local"`
+**Type:** `FontProvider`
 </p>
 
-The source of your font files. You can use a [built-in provider](#available-remote-font-providers), write your own [custom provider](#build-your-own-font-provider), or set to `"local"` to use local font files:
+The source of your font files. You can use a [built-in provider](#available-font-providers) or write your own [custom provider](#build-your-own-font-provider):
 
 ```js title="astro.config.mjs" {6}
 import { defineConfig, fontProviders } from "astro/config";
@@ -537,7 +698,7 @@ export default defineConfig({
 });
 ```
 
-#### name
+### name
 
 <p>
 
@@ -550,7 +711,7 @@ The font family name, as identified by your font provider:
 name: "Roboto"
 ```
 
-#### cssVariable
+### cssVariable
 
 <p>
 
@@ -563,7 +724,7 @@ A valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) of your 
 cssVariable: "--font-roboto"
 ```
 
-#### fallbacks
+### fallbacks
 
 <p>
 
@@ -585,7 +746,7 @@ fallbacks: []
 
 Specify at least a [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name) matching the intended appearance of your font. Astro will then attempt to generate [optimized fallbacks](https://developer.chrome.com/blog/font-fallbacks) using font metrics. To disable this optimization, set `optimizedFallbacks` to false.
 
-#### optimizedFallbacks
+### optimizedFallbacks
 
 <p>
 
@@ -599,13 +760,7 @@ Whether or not to enable Astro's default optimization when generating fallback f
 optimizedFallbacks: false
 ```
 
-### Remote font properties
-
-Further configuration options are available for remote fonts. Set these to customize the data loaded from your [font provider](#available-remote-font-providers), for example, to only download certain font weights or styles. For more control, more [granular configuration](#granular-remote-font-configuration) is available.
-
-Each provider is responsible for handling these options, so availability and support for the following properties may vary.
-
-#### weights
+### weights
 
 <p>
 
@@ -625,7 +780,7 @@ If the associated font is a [variable font](https://developer.mozilla.org/en-US/
 weights: ["100 900"]
 ```
 
-#### styles
+### styles
 
 <p>
 
@@ -639,7 +794,7 @@ An array of [font styles](https://developer.mozilla.org/en-US/docs/Web/CSS/font-
 styles: ["normal", "oblique"]
 ```
 
-#### subsets
+### subsets
 
 <p>
 
@@ -653,7 +808,7 @@ Defines a list of [font subsets](https://knaap.dev/posts/font-subsetting/) to pr
 subsets: ["latin"]
 ```
 
-#### formats
+### formats
 
 <p>
 
@@ -668,7 +823,7 @@ An array of [font formats](https://developer.mozilla.org/en-US/docs/Web/CSS/Refe
 formats: ["woff2", "woff"]
 ```
 
-#### options
+### options
 
 <p>
 
@@ -686,7 +841,7 @@ options: {
 }
 ```
 
-#### display
+### display
 
 <p>
 
@@ -700,7 +855,7 @@ Defines [how a font displays](https://developer.mozilla.org/en-US/docs/Web/CSS/@
 display: "block"
 ```
 
-#### unicodeRange
+### unicodeRange
 
 <p>
 
@@ -716,7 +871,7 @@ This can be useful for localization to avoid unnecessary font downloads when a s
 unicodeRange: ["U+26"]
 ```
 
-#### stretch
+### stretch
 
 <p>
 
@@ -730,7 +885,7 @@ A [font stretch](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/fon
 stretch: "condensed"
 ```
 
-#### featureSettings
+### featureSettings
 
 <p>
 
@@ -744,7 +899,7 @@ Controls the [typographic font features](https://developer.mozilla.org/en-US/doc
 featureSettings: "'smcp' 2"
 ```
 
-#### variationSettings
+### variationSettings
 
 <p>
 
@@ -758,163 +913,7 @@ Font [variation settings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font
 variationSettings: "'xhgt' 0.7"
 ```
 
-
-### Local font `variants`
-
-<p>
-
-**Type:** `LocalFontFamily["variants"]`
-</p>
-
-The `variants` property is required when using local font files. Each variant represents a [`@font-face` declaration](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/) and requires a `weight`, `style`, and `src` value.
-
-Additionally, [some other properties of remote fonts](#other-properties) may be specified within each variant.
-
-```js title="astro.config.mjs"
-import { defineConfig } from "astro/config";
-
-export default defineConfig({
-    experimental: {
-        fonts: [{
-            provider: "local",
-            name: "Custom",
-            cssVariable: "--font-custom",
-            variants: [
-                {
-                    weight: 400,
-                    style: "normal",
-                    src: ["./src/assets/fonts/custom-400.woff2"]
-                },
-                {
-                    weight: 700,
-                    style: "normal",
-                    src: ["./src/assets/fonts/custom-700.woff2"]
-                }
-                // ...
-            ]
-        }]
-    }
-});
-```
-
-#### weight
-
-<p>
-
-**Type:** `number | string`<br />
-**Default:** `undefined`
-</p>
-
-A [font weight](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight):
-
-```js
-weight: 200
-```
-
-If the associated font is a [variable font](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), you can specify a range of weights:
-
-```js
-weight: "100 900"
-```
-
-When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
-
-#### style
-
-<p>
-
-**Type:** `"normal" | "italic" | "oblique"`<br />
-**Default:** `undefined`
-</p>
-
-A [font style](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
-
-```js
-style: "normal"
-```
-
-When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
-
-#### src
-
-<p>
-
-**Type:** `(string | URL | { url: string | URL; tech?: string })[]`
-</p>
-
-Font [sources](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src). It can be a path relative to the root, a package import or a URL. URLs are particularly useful if you inject local fonts through an integration:
-
-<Tabs>
-
-<TabItem label="Relative path">
-
-```js
-src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
-```
-
-</TabItem>
-
-<TabItem label="URL">
-
-```js
-src: [new URL("./custom.ttf", import.meta.url)]
-```
-
-</TabItem>
-
-<TabItem label="Package import">
-
-```js
-src: ["my-package/SomeFont.ttf"]
-```
-
-</TabItem>
-
-</Tabs>
-
-:::caution
-We recommend not putting your font files in [the `public/` directory](/en/reference/configuration-reference/#publicdir). Since Astro will copy these files into that folder at build time, this will result in duplicated files in your build output. Instead, store them somewhere else in your project, such as in [`src/`](/en/reference/configuration-reference/#srcdir).
-:::
-
-You can also specify a [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech) by providing objects:
-
-```js
-src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
-```
-
-#### Other properties
-
-The following options from remote font families are also available for local font families within variants:
-
-- [display](#display)
-- [unicodeRange](#unicoderange)
-- [stretch](#stretch)
-- [featureSettings](#featuresettings)
-- [variationSettings](#variationsettings)
-
-```js title="astro.config.mjs" {14}
-import { defineConfig } from "astro/config";
-
-export default defineConfig({
-    experimental: {
-        fonts: [{
-            provider: "local",
-            name: "Custom",
-            cssVariable: "--font-custom",
-            variants: [
-                {
-                    weight: 400,
-                    style: "normal",
-                    src: ["./src/assets/fonts/custom-400.woff2"],
-                    display: "block"
-                }
-            ]
-        }]
-    }
-});
-```
-
-## Granular remote font configuration
+## Granular font configuration
 
 <p>
 
@@ -953,7 +952,7 @@ export default defineConfig({
 
 ## Build your own font provider
 
-If you do not wish to use one of the [built-in providers](#available-remote-font-providers) (e.g. you want to use a [3rd-party unifont provider](#supporting-a-3rd-party-unifont-provider) or [build something for a private registry](#supporting-a-private-registry)), you can build your own.
+If you do not wish to use one of the [built-in providers](#available-font-providers) (e.g. you want to use a [3rd-party unifont provider](#supporting-a-3rd-party-unifont-provider) or [build something for a private registry](#supporting-a-private-registry)), you can build your own.
 
 The preferred method for implementing a custom font provider is to export a function that returns [the `FontProvider` object](#the-font-provider-object) and takes the [configuration](#config) as a parameter.
 
@@ -1001,7 +1000,25 @@ A serializable object, used for identification.
 **Default:** `undefined`
 </p>
 
-Optional callback, used to perform any initialization logic. Its context contains a `storage` object, useful for caching.
+Optional callback, used to perform any initialization logic.
+
+##### `context.storage`
+
+<p>
+
+**Type:** `Storage`
+</p>
+
+Useful for caching
+
+##### `context.root`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+The project root, useful for resolving local files paths.
 
 #### `listFonts()`
 
