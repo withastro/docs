@@ -4,6 +4,7 @@ sidebar:
   label: Integration API
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro'
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code.
@@ -69,6 +70,7 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:start'?: (options: {
       logger: AstroIntegrationLogger;
+      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
     }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: vite.InlineConfig;
@@ -903,8 +905,46 @@ The address, family and port number supplied by the [`server.address()` method o
 ```js
 'astro:build:start'?: (options: {
   logger: AstroIntegrationLogger;
+  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
 }) => void | Promise<void>;
 ```
+
+
+#### `setPrerenderer()` option
+
+<p>
+
+**Type:** `(prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+A callback function to set a custom prerenderer for the build. This allows adapters to provide their own prerendering logic.
+
+The function accepts either an `AstroPrerenderer` object directly, or a factory function that receives the default prerenderer and returns a custom one. This is useful when you want to wrap or extend the default behavior.
+
+```js
+'astro:build:start': ({ setPrerenderer }) => {
+  setPrerenderer((defaultPrerenderer) => ({
+    name: 'my-prerenderer',
+    async setup() {
+      // Optional: called once before prerendering starts
+    },
+    async getStaticPaths() {
+      // Returns array of { pathname: string, route: RouteData }
+      return defaultPrerenderer.getStaticPaths();
+    },
+    async render(request, routeData) {
+      // request: Request, routeData: RouteData
+      // Returns: Response
+    },
+    async teardown() {
+      // Optional: called after all pages are prerendered
+    }
+  }));
+}
+```
+
+<ReadMore>See the [adapter reference](/en/reference/adapter-reference/#custom-prerenderer) for more details on implementing a custom prerenderer.</ReadMore>
 
 ### `astro:build:setup`
 
