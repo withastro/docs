@@ -11,30 +11,54 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-This guide will show you how to add web fonts to your project and use them in your components.
+This guide will show you how to add [web fonts](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts) to your project and use them in your components.
 
-Astro also provides a way to [use fonts from your filesystem and various font providers through a unified, fully customizable, and type-safe API](#fonts-api).
+Astro provides a way to use fonts [from your filesystem and various font providers](/en/reference/font-provider-reference/#built-in-providers) through a unified, [fully customizable](/en/reference/configuration-reference/#fonts), and type-safe API.
+
+Web fonts can impact page performance at both load time and rendering time. This API helps you keep your site performant with automatic [web font optimizations](https://web.dev/learn/performance/optimize-web-fonts) including preload links, optimized fallbacks, and opinionated defaults. [See common usage examples](#examples).
+
+The Fonts API focuses on performance and privacy by downloading and caching fonts so they're served from your site. This can avoid sending user data to third-party sites, and also ensures that a consistent set of fonts is available to all your visitors.
 
 ## Using a local font file
 
-This example will demonstrate adding a custom font using the font file `DistantGalaxy.woff`.
+This example will demonstrate adding a custom font using the font file `DistantGalaxy.woff2`.
 
 <Steps>
-1. Add your font file to `public/fonts/`.
-2. Add the following `@font-face` statement to your CSS. This could be in a global `.css` file you import, a `<style is:global>` block, or a `<style>` block in a specific layout or component where you want to use this font.
 
-    ```css
-    /* Register your custom font family and tell the browser where to find it. */
-    @font-face {
-      font-family: 'DistantGalaxy';
-      src: url('/fonts/DistantGalaxy.woff') format('woff');
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
-    }
+1. Add your font file inside the [`src/` directory](/en/basics/project-structure/#src), for example `src/assets/fonts/`.
+
+2. Create a new font family in your Astro config file using the [local font provider](/en/reference/font-provider-reference/#local):
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.local(),
+        name: "DistantGalaxy",
+        cssVariable: "--font-distant-galaxy",
+        options: {
+          variants: [{
+            src: ['./src/assets/fonts/DistantGalaxy.woff2'],
+            weight: 'normal',
+            style: 'normal'
+          }]
+        }
+      }]
+    });
     ```
 
-3. Use the `font-family` value from the `@font-face` statement to style elements in your component or layout. In this example, the `<h1>` heading will have the custom font applied, while the paragraph `<p>` will not.
+3. Include styles using the [`<Font />`](/en/reference/modules/astro-assets/#font-) component in the head of your page, usually in a layout:
+
+    ```astro title="src/components/Head.astro"
+    ---
+    import { Font } from "astro:assets";
+    ---
+
+    <Font cssVariable="--font-distant-galaxy" preload />
+    ```
+
+4. Use the `font-family` value from the `@font-face` statement to style elements in your component or layout. In this example, the `<h1>` heading will have the custom font applied, while the paragraph `<p>` will not.
 
     ```astro title="src/pages/example.astro" {9-11}
     ---
@@ -46,126 +70,38 @@ This example will demonstrate adding a custom font using the font file `DistantG
 
     <style>
     h1 {
-      font-family: 'DistantGalaxy', sans-serif;
+      font-family: var("--font-distant-galaxy");
     }
     </style>
     ```
+
 </Steps>
 
 ## Using Fontsource
 
-The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts and other open-source fonts. It provides npm modules you can install for the fonts you want to use.
-
-<Steps>
-1. Find the font you want to use in [Fontsource's catalog](https://fontsource.org/). This example will use [Twinkle Star](https://fontsource.org/fonts/twinkle-star).
-2. Install the package for your chosen font.
-
-    <PackageManagerTabs>
-      <Fragment slot="npm">
-      ```shell
-      npm install @fontsource/twinkle-star
-      ```
-      </Fragment>
-      <Fragment slot="pnpm">
-      ```shell
-      pnpm add @fontsource/twinkle-star
-      ```
-      </Fragment>
-      <Fragment slot="yarn">
-      ```shell
-      yarn add @fontsource/twinkle-star
-      ```
-      </Fragment>
-    </PackageManagerTabs>
-
-    :::tip
-    You'll find the correct package name in the “Quick Installation” section of each font page on Fontsource's website. It will start with `@fontsource/` or `@fontsource-variable/` followed by the name of the font.
-    :::
-
-3. Import the font package in the component where you want to use the font. Usually, you will want to do this in a common layout component to make sure the font is available across your site.
-
-    The import will automatically add the necessary `@font-face` rules needed to set up the font.
-
-    ```astro title="src/layouts/BaseLayout.astro"
-    ---
-    import '@fontsource/twinkle-star';
-    ---
-    ```
-
-4. Use the font's name as shown in the `body` example on its Fontsource page as the `font-family` value. This will work anywhere you can write CSS in your Astro project.
-
-    ```css
-    h1 {
-      font-family: "Twinkle Star", cursive;
-    }
-    ```
-</Steps>
-
-To optimize your website’s rendering times, you may want to preload fonts that are essential for the initial page display.
-See the [Fontsource guide to preloading fonts](https://fontsource.org/docs/getting-started/preload) for more information and usage.
-
-## Register fonts in Tailwind
-
-If you are using [Tailwind](/en/guides/styling/#tailwind), you can use either of the previous methods on this page to install your font, with some modifications. You can either add an [`@font-face` statement for a local font](#using-a-local-font-file) or use [Fontsource's `import` strategy](#using-fontsource) to install your font.
-
-To register your font in Tailwind:
-
-<Steps>
-1. Follow either of the guides above, but skip the final step of adding `font-family` to your CSS.
-2. Add the typeface name to `src/styles/global.css`.
-
-    This example adds `Inter` to the sans-serif font stack.
-
-    ```css title="src/styles/global.css" ins={3-5}
-    @import 'tailwindcss';
-
-    @theme {
-      --font-sans: 'Inter', 'sans-serif'; 
-    }
-    ```
-
-    Now, all sans-serif text (the default with Tailwind) in your project will use your chosen font and the `font-sans` class will also apply the Inter font.
-</Steps>
-
-See [Tailwind's docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values) for more information.
-
-## Fonts API
-
-This feature allows you to use fonts from your filesystem and various font providers (eg. Google, Fontsource, Bunny) through a unified, fully customizable, and type-safe API.
-
-Web fonts can impact page performance at both load time and rendering time. This API helps you keep your site performant with automatic [web font optimizations](https://web.dev/learn/performance/optimize-web-fonts) including preload links, optimized fallbacks, and opinionated defaults. [See common usage examples](#examples).
-
-The Fonts API focuses on performance and privacy by downloading and caching fonts so they're served from your site. This can avoid sending user data to third-party sites, and also ensures that a consistent set of fonts is available to all your visitors.
+The [Fontsource](https://fontsource.org/) project simplifies using Google Fonts and other open-source fonts.
 
 <Steps>
 
-1. `fonts` accepts an array of font objects. For each font, you must specify a `provider`, the family `name`, and define a `cssVariable` to refer to your font.
+1. Find the font you want to use in [Fontsource's catalog](https://fontsource.org/). This example will use [Roboto](https://fontsource.org/fonts/roboto).
 
-    - [`provider`](/en/reference/configuration-reference/#fontprovider): You can choose from the list of [built-in providers](/en/reference/font-provider-reference/#built-in-providers) or build your own [custom font provider](/en/reference/font-provider-reference/#building-a-font-provider).
-    - [`name`](/en/reference/configuration-reference/#fontname): Choose a font family supported by your provider.
-    - [`cssVariable`](/en/reference/configuration-reference/#fontcssvariable): Must be a valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable.
+2. Create a new font family in your Astro config file using the [Fontsource provider](/en/reference/font-provider-reference/#fontsource):
 
-    The following example configures the ["Roboto" family from Google Fonts](https://fonts.google.com/specimen/Roboto):
-
-    ```js title="astro.config.mjs" ins={4-8} ins="fontProviders"
+    ```js title="astro.config.mjs"
     import { defineConfig, fontProviders } from "astro/config";
 
     export default defineConfig({
       fonts: [{
-        provider: fontProviders.google(),
+        provider: fontProviders.fontsource(),
         name: "Roboto",
-        cssVariable: "--font-roboto"
+        cssVariable: "--font-roboto",
       }]
     });
     ```
 
-    More configuration options, such as defining [fallback font families](/en/reference/configuration-reference/#fontfallbacks) and which [`weights`](/en/reference/configuration-reference/#fontweights), [`styles`](/en/reference/configuration-reference/#fontstyles), [`subsets`](/en/reference/configuration-reference/#fontsubsets) and [`formats`](/en/reference/configuration-reference/#fontformats) to download, are available and some will depend on your chosen provider.
-    
-    See the full [configuration reference](/en/reference/configuration-reference/#fonts) to learn more.
+3. Include styles using the [`<Font />`](/en/reference/modules/astro-assets/#font-) component in the head of your page, usually in a layout:
 
-2. Apply styles using the `<Font />` component. It must be imported and added to your page `<head>`. Providing the font's [`cssVariable`](/en/reference/modules/astro-assets/#cssvariable-required) is required, and you can optionally [output preload links](/en/reference/modules/astro-assets/#preload):
-
-    ```astro title="src/components/Head.astro" ins={2, 5}
+    ```astro title="src/components/Head.astro"
     ---
     import { Font } from "astro:assets";
     ---
@@ -173,25 +109,43 @@ The Fonts API focuses on performance and privacy by downloading and caching font
     <Font cssVariable="--font-roboto" preload />
     ```
 
-    This is commonly done in a component such as `Head.astro` that is used in a common site layout.
+4. Use the `font-family` value from the `@font-face` statement to style elements in your component or layout:
 
-    <ReadMore>See the full [`<Font />` component reference](/en/reference/modules/astro-assets/#font-) for more information.</ReadMore>
+4. Use the font's name as shown in the `body` example on its Fontsource page as the `font-family` value. This will work anywhere you can write CSS in your Astro project.
 
-    Since the `<Font />` component generates CSS with font declarations, you can reference the font family using the `cssVariable`:
+    ```astro title="src/pages/example.astro" {9-11}
+    ---
+    ---
 
-    <Tabs>
+    <h1>In a galaxy far, far away...</h1>
 
-    <TabItem label="CSS">
+    <p>Custom fonts make my headings much cooler!</p>
 
-    ```css ins={3}
     <style>
     body {
-        font-family: var(--font-roboto);
+      font-family: var("--font-roboto");
     }
     </style>
     ```
+</Steps>
 
-    </TabItem>
+:::tip
+Astro supports [several font providers](/en/reference/font-provider-reference/#built-in-providers) out of the box.
+:::
+
+## Register fonts in Tailwind
+
+If you are using [Tailwind](/en/guides/styling/#tailwind), you can use either of the previous methods on this page to install your font, with some modifications.
+
+To register your font in Tailwind:
+
+<Steps>
+
+1. Follow either of the guides above, but skip the final step of adding `font-family` to your CSS.
+
+2. Update your Tailwind configuration:
+
+    <Tabs>
 
     <TabItem label="Tailwind CSS 4.0">
 
@@ -224,10 +178,46 @@ The Fonts API focuses on performance and privacy by downloading and caching font
     </TabItem>
 
     </Tabs>
-
 </Steps>
 
-### Examples
+See [Tailwind's docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-custom-values) for more information.
+
+
+## Accessing font data programmatically
+
+The [`fontData`](/en/reference/modules/astro-assets/#fontdata) object allows you to retrieve lower-level font family data programmatically, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) or to generate your own meta tags.
+
+The [`getFontBuffer()`](/en/reference/modules/astro-assets/#getfontbuffer) function can then be used on retrieved URLs to get font buffers, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) to generate OpenGraph images using [satori](https://github.com/vercel/satori), combined with proper [formats](/en/reference/configuration-reference/#fontformats) configuration:
+
+```tsx title="src/pages/og.png.tsx" {2} "fontData[\"--font-roboto\"]" "await getFontBuffer(data[0].src[0].url)"
+import type{ APIRoute } from "astro"
+import { fontData, getFontBuffer } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = fontData["--font-roboto"]
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await getFontBuffer(data[0].src[0].url),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
+```
+
+## Examples
 
 ```js title="astro.config.mjs"
 import { defineConfig, fontProviders } from "astro/config";
@@ -293,42 +283,3 @@ export default defineConfig({
   ],
 });
 ```
-
-### Accessing font data programmatically
-
-The [`fontData`](/en/reference/modules/astro-assets/#fontdata) object allows you to retrieve lower-level font family data programmatically, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) or to generate your own meta tags.
-
-The [`getFontBuffer()`](/en/reference/modules/astro-assets/#getfontbuffer) function can then be used on retrieved URLs to get font buffers, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) to generate OpenGraph images using [satori](https://github.com/vercel/satori), combined with proper [formats](/en/reference/configuration-reference/#fontformats) configuration:
-
-```tsx title="src/pages/og.png.tsx" {2} "fontData[\"--font-roboto\"]" "await getFontBuffer(data[0].src[0].url)"
-import type{ APIRoute } from "astro"
-import { fontData, getFontBuffer } from "astro:assets"
-import satori from "satori"
-
-export const GET: APIRoute = (context) => {
-  const data = fontData["--font-roboto"]
-
-  const svg = await satori(
-    <div style={{ color: "black" }}>hello, world</div>,
-    {
-      width: 600,
-      height: 400,
-      fonts: [
-        {
-          name: "Roboto",
-          data: await getFontBuffer(data[0].src[0].url),
-          weight: 400,
-          style: "normal",
-        },
-      ],
-    },
-  )
-
-  // ...
-}
-```
-
-## More resources
-
-- Learn how web fonts work in [MDN's web fonts guide](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts).
-- Generate CSS for your font with [Font Squirrel's Webfont Generator](https://www.fontsquirrel.com/tools/webfont-generator).
