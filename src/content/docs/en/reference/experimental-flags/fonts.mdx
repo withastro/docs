@@ -44,10 +44,10 @@ Then, add the `<Font />` component and site-wide styling in your `<head>`:
 
 ```astro title="src/components/Head.astro" ins={2,5,8-10}
 ---
-import { Font } from 'astro:assets';
+import { Font } from "astro:assets";
 ---
 
-<Font cssVariable='--font-roboto' preload />
+<Font cssVariable="--font-roboto" preload />
 
 <style>
 body {
@@ -62,7 +62,7 @@ body {
 
 1. `experimental.fonts` accepts an array of font objects. For each font, you must specify a `provider`, the family `name`, and define a `cssVariable` to refer to your font.
 
-    - [`provider`](#provider): You can choose from the list of [built-in remote providers](#available-remote-font-providers), build your own [custom font provider](#build-your-own-font-provider), or use the [local provider](#local-font-variants) to register local font files.
+    - [`provider`](#provider): You can choose from the list of [built-in providers](#available-font-providers) or build your own [custom font provider](#build-your-own-font-provider).
     - [`name`](#name): Choose a font family supported by your provider.
     - [`cssVariable`](#cssvariable-1): Must be a valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) in the form of a CSS variable.
 
@@ -82,7 +82,7 @@ body {
     });
     ```
 
-    More configuration options, such as defining [fallback font families](#fallbacks) and which [`weights`](#weights), [`styles`](#styles) and [`subsets`](#subsets) to download, are available and some will depend on your chosen provider.
+    More configuration options, such as defining [fallback font families](#fallbacks) and which [`weights`](#weights), [`styles`](#styles), [`subsets`](#subsets) and [`formats`](#formats) to download, are available and some will depend on your chosen provider.
     
     See the full [configuration reference](#font-configuration-reference) to learn more.
 
@@ -90,7 +90,7 @@ body {
 
     ```astro title="src/components/Head.astro" ins={2, 5}
     ---
-    import { Font } from 'astro:assets';
+    import { Font } from "astro:assets";
     ---
 
     <Font cssVariable="--font-roboto" preload />
@@ -119,7 +119,7 @@ body {
     <TabItem label="Tailwind CSS 4.0">
 
     ```css title="src/styles/global.css" ins={4} ins="inline"
-    @import 'tailwindcss';
+    @import "tailwindcss";
 
     @theme inline {
         --font-sans: var(--font-roboto);
@@ -150,529 +150,205 @@ body {
 
 </Steps>
 
-## Available remote font providers
+## Available font providers
 
-Astro re-exports most [unifont](https://github.com/unjs/unifont/) providers. You can also [make a custom Astro font provider](#build-your-own-font-provider) for any unifont provider.
+Fonts are loaded using a provider, which either downloads font files from a remote service or loads local font files from disk. Astro exports built-in providers for common services. You can also [make a custom Astro font provider](#build-your-own-font-provider).
 
-The following providers have built-in support:
+To use a built-in font provider, import `fontProviders` and configure [`provider`](#provider) with the appropriate value for your chosen font provider:
 
-- [Adobe](https://fonts.adobe.com/)
-- [Bunny](https://fonts.bunny.net/)
-- [Fontshare](https://www.fontshare.com/)
-- [Fontsource](https://fontsource.org/)
-- [Google](https://fonts.google.com/)
+```js title="astro.config.mjs"
+import { fontProviders } from "astro/config";
+```
 
-To use a built-in remote provider, configure `provider` with the appropriate value for your chosen font provider:
+- [Adobe](#adobe)
+- [Bunny](#bunny)
+- [Fontshare](#fontshare)
+- [Fontsource](#fontsource)
+- [Google](#google)
+- [Google Icons](#google-icons)
+- [Local](#local)
 
-<Tabs>
+### Adobe
 
-<TabItem label="Adobe">
+Retrieves fonts from [Adobe](https://fonts.adobe.com/):
 
 ```js
-provider: fontProviders.adobe({ id: 'your-id' })
+provider: fontProviders.adobe({ id: "your-id" })
 ```
 
 Pass the Adobe font provider an ID loaded as an [environment variable in your Astro config file](/en/guides/environment-variables/#in-the-astro-config-file).
 
-</TabItem>
+### Bunny
 
-<TabItem label="Bunny">
+Retrieves fonts from [Bunny](https://fonts.bunny.net/):
 
 ```js
 provider: fontProviders.bunny()
 ```
 
-</TabItem>
+### Fontshare
 
-<TabItem label="Fontshare">
+Retrieves fonts from [Fontshare](https://www.fontshare.com/):
 
 ```js
 provider: fontProviders.fontshare()
 ```
 
-</TabItem>
+### Fontsource
 
-<TabItem label="Fontsource">
+Retrieves fonts from [Fontsource](https://fontsource.org/):
 
 ```js
 provider: fontProviders.fontsource()
 ```
 
-</TabItem>
+### Google
 
-<TabItem label="Google">
+Retrieves fonts from [Google](https://fonts.google.com/):
 
 ```js
 provider: fontProviders.google()
 ```
 
-Additionally, the `google()` font provider accepts all options available for the [unifont Google `ProviderOption`](https://github.com/unjs/unifont/blob/main/src/providers/google.ts#L10-L26):
+The provider comes with family specific [options](#options).
+
+#### experimental.glyphs
+
+<p>
+
+**Type:** `string[]`
+</p>
+
+Allows specifying a list of glyphs to be included in the font for each font family. This can reduce the size of the font file:
 
 ```js
-provider: fontProviders.google({
-	glyphs: {
-		Roboto: ["a"]
-	}
-})
-```
-
-</TabItem>
-
-</Tabs>
-
-## Usage examples
-
-```js title="astro.config.mjs"
-import { defineConfig, fontProviders } from "astro/config";
-
-export default defineConfig({
-  experimental: {
-    fonts: [
-      {
-        name: "Roboto",
-        cssVariable: "--font-roboto",
-        provider: fontProviders.google(),
-        // Default included:
-        // weights: [400] ,
-        // styles: ["normal", "italics"],
-        // subsets: ["latin"],
-        // fallbacks: ["sans-serif"], 
-      },
-      {
-        name: "Inter",
-        cssVariable: "--font-inter",
-        provider: fontProviders.fontsource(),
-        // Specify weights that are actually used
-        weights: [400, 500, 600, 700],
-        // Specify styles that are actually used
-        styles: ["normal"],
-        // Download only font files for characters used on the page
-        subsets: ["latin", "cyrillic"],
-      },
-      {
-        name: "JetBrains Mono",
-        cssVariable: "--font-jetbrains-mono",
-        provider: fontProviders.fontsource(),
-        // Download only font files for characters used on the page
-        subsets: ["latin", "latin-ext"],
-        // Use a fallback font family matching the intended appearance
-        fallbacks: ["monospace"],
-      },
-      {
-        name: "Poppins",
-        cssVariable: "--font-poppins",
-        provider: "local",
-        // Weight and style are not specified so Astro
-        // will try to infer them for each variant
-        variants: [
-          {
-            src: [
-              "./src/assets/fonts/Poppins-regular.woff2",
-              "./src/assets/fonts/Poppins-regular.woff",
-            ]
-          },
-          {
-            src: [
-              "./src/assets/fonts/Poppins-bold.woff2",
-              "./src/assets/fonts/Poppins-bold.woff",
-            ]
-          },
-        ]
-      }
-    ],
-  }
-});
-```
-
-## `<Font />` component reference
-
-This component outputs style tags and can optionally output preload links for a given font family.
-
-It must be imported and added to your page `<head>`. This is commonly done in a component such as `Head.astro` that is used in a common site layout for global use but may be added to individual pages as needed.
-
-With this component, you have control over which font family is used on which page, and which fonts are preloaded.
-
-### cssVariable
-
-<p>
-
-**Example type:** `"--font-roboto" | "--font-comic-sans" | ...`
-</p>
-
-The [`cssVariable`](#cssvariable-1) registered in your Astro configuration:
-
-```astro title="src/components/Head.astro" "cssVariable"
----
-import { Font } from 'astro:assets';
----
-
-<Font cssVariable="--font-roboto" />
-```
-
-### preload
-
-<p>
-
-**Type:** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
-**Default:** `false`
-</p>
-
-Whether to output [preload links](https://web.dev/learn/performance/optimize-web-fonts#preload) or not:
-
-```astro title="src/components/Head.astro" "preload"
----
-import { Font } from 'astro:assets';
----
-
-<Font cssVariable="--font-roboto" preload />
-```
-
-With the `preload` directive, the browser will immediately begin downloading all possible font links during page load. 
-
-#### Granular preloads
-
-<p>
-<Since v="5.15.0" />
-</p>
-
-You may not always want to preload every font link, as this can block loading other important resources or may download fonts that are not needed for the current page. 
-
-To selectively control which font files are preloaded, you can provide an array of objects describing any combination of font `weight`, `style`, or `subset` to preload.
-
-The following example will only preload font files with a `400` weight or a `normal` style in the `latin` subset:
-
-```astro title="src/components/Head.astro" {7-10}
----
-import { Font } from 'astro:assets';
----
-
-<Font
-  cssVariable="--font-roboto"
-  preload={[
-    { subset: 'latin', style: 'normal' },
-    { weight: '400' },
-  ]}
-/>
-```
-
-Variable weight font files will be preloaded if any weight within its range is requested. For example, a font file for font weight `100 900` will be included when `400` is specified in a `preload` object.
-
-## Accessing font data programmatically
-
-The `getFontData()` function is intended for retrieving lower-level font family data programmatically, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) or to generate your own meta tags.
-
-### `getFontData()`
-<p>
-
-**Type:** `(cssVariable: CssVariable) => FontData[]`<br />
-<Since v="5.14.0" />
-</p>
-
-Returns an array of `FontData` objects for the provided [`cssVariable`](#cssvariable-1), which contains `src`, `weight` and `style`.
-
-The following example uses `getFontData()` to get the font buffer from the URL when using [satori](https://github.com/vercel/satori) to generate OpenGraph images:
-
-```tsx title="src/pages/og.png.ts" "getFontData(\"--font-roboto\")" "data[0].src[0].url"
-import type{ APIRoute } from "astro"
-import { getFontData } from "astro:assets"
-import satori from "satori"
-
-export const GET: APIRoute = (context) => {
-  const data = getFontData("--font-roboto")
-
-  const svg = await satori(
-    <div style={{ color: "black" }}>hello, world</div>,
-    {
-      width: 600,
-      height: 400,
-      fonts: [
-        {
-          name: "Roboto",
-          data: await fetch(new URL(data[0].src[0].url, context.url.origin)).then(res => res.arrayBuffer()),
-          weight: 400,
-          style: "normal",
-        },
-      ],
-    },
-  )
-
+{
   // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
 }
 ```
 
-## Font configuration reference
+#### experimental.variableAxis
 
-All properties of your fonts must be configured in the Astro config. Some properties are common to both remote and local fonts, and other properties are available depending on your chosen font provider.
+<p>
 
-### Common properties
+**Type:** `Partial<Record<VariableAxis, ([string, string] | string)[]>>`
+</p>
 
-The following properties are available for remote and local fonts. `provider`, `name`, and `cssVariable` are required.
+Allows setting variable axis configuration:
 
-```js title="astro.config.mjs"
-import { defineConfig, fontProviders } from "astro/config";
-
-export default defineConfig({
-  experimental: {
-    fonts: [{
-      provider: fontProviders.google(),
-      name: "Roboto",
-      cssVariable: "--font-roboto"
-    }]
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      variableAxis: {
+        slnt: [["-15", "0"]],
+        CASL: [["0", "1"]],
+        CRSV: ["1"],
+        MONO: [["0", "1"]],
+      }
+    }
   }
-});
+}
 ```
 
-#### provider
+### Google Icons
+
+<p>
+<Since v="5.16.9" />
+</p>
+
+Retrieves fonts from [Google Icons](https://fonts.google.com/icons):
+
+```js
+provider: fontProviders.googleicons()
+```
+
+The provider comes with family specific [options](#options).
+
+#### experimental.glyphs
 
 <p>
 
-**Type:** `AstroFontProvider | "local"`
+**Type:** `string[]`
 </p>
 
-The source of your font files. You can use a [built-in provider](#available-remote-font-providers), write your own [custom provider](#build-your-own-font-provider), or set to `"local"` to use local font files:
+when resolving the new Material Symbols icons, allows specifying a list of glyphs to be included in the font for each font family. This can reduce the size of the font file:
 
-```js title="astro.config.mjs" {6}
-import { defineConfig, fontProviders } from "astro/config";
-
-export default defineConfig({
-  experimental: {
-    fonts: [{
-      provider: fontProviders.google(),
-      name: "Roboto",
-      cssVariable: "--font-roboto"
-    }]
+```js
+{
+  // ...
+  provider: fontProviders.googleicons(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
   }
-});
+}
 ```
 
-#### name
+### Local
 
 <p>
-
-**Type:** `string`
+<Since v="5.16.13" />
 </p>
 
-The font family name, as identified by your font provider:
+Retrieves fonts from disk:
 
 ```js
-name: "Roboto"
+provider: fontProviders.local()
 ```
 
-#### cssVariable
+The provider comes with required family specific [options](#options).
 
-<p>
-
-**Type:** `string`
-</p>
-
-A valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) of your choosing in the form of a CSS variable (i.e. starting with `--`):
-
-```js
-cssVariable: "--font-roboto"
-```
-
-#### fallbacks
-
-<p>
-
-**Type:** `string[]`<br />
-**Default:** `["sans-serif"]`
-</p>
-
-An array of fonts to use when your chosen font is unavailable, or loading. Fallback fonts will be chosen in the order listed. The first available font will be used:
-
-```js
-fallbacks: ["CustomFont", "serif"]
-```
-
-To disable fallback fonts completely, configure an empty array:
-
-```js
-fallbacks: []
-```
-
-Specify at least a [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name) matching the intended appearance of your font. Astro will then attempt to generate [optimized fallbacks](https://developer.chrome.com/blog/font-fallbacks) using font metrics. To disable this optimization, set `optimizedFallbacks` to false.
-
-#### optimizedFallbacks
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `true`
-</p>
-
-Whether or not to enable Astro's default optimization when generating fallback fonts. You may disable this default optimization to have full control over how [`fallbacks`](#fallbacks) are generated:
-
-```js
-optimizedFallbacks: false
-```
-
-### Remote font properties
-
-Further configuration options are available for remote fonts. Set these to customize the data loaded from your [font provider](#available-remote-font-providers), for example to only download certain font weights or styles. For more control, more [granular configuration](#granular-remote-font-configuration) is available.
-
-Under the hood, these options are handled by [unifont](https://github.com/unjs/unifont/). Some properties may not be supported by some providers and may be handled differently by each provider.
-
-#### weights
-
-<p>
-
-**Type:** `(number | string)[]`<br />
-**Default:** `[400]`
-</p>
-
-An array of [font weights](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight). If no value is specified in your configuration, only weight `400` is included by default to prevent unnecessary downloads. You will need to include this property to access any other font weights:
-
-```js
-weights: [200, "400", "bold"]
-```
-
-If the associated font is a [variable font](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), you can specify a range of weights:
-
-```js
-weights: ["100 900"]
-```
-
-#### styles
-
-<p>
-
-**Type:** `("normal" | "italic" | "oblique")[]`<br />
-**Default:** `["normal", "italic"]`
-</p>
-
-An array of [font styles](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
-
-```js
-styles: ["normal", "oblique"]
-```
-
-#### subsets
-
-<p>
-
-**Type:** `string[]`<br />
-**Default:** `["latin"]`
-</p>
-
-Defines a list of [font subsets](https://knaap.dev/posts/font-subsetting/) to preload.
-
-```js
-subsets: ["latin"]
-```
-
-#### display
-
-<p>
-
-**Type:** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
-**Default:** `"swap"`
-</p>
-
-Defines [how a font displays](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display) based on when it is downloaded and ready for use:
-
-```js
-display: "block"
-```
-
-#### unicodeRange
-
-<p>
-
-**Type:** `string[]`<br />
-**Default:** `undefined`
-</p>
-
-Determines when a font must be downloaded and used based on a specific [range of unicode characters](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range). If a character on the page matches the configured range, the browser will download the font and all characters will be available for use on the page. To configure a subset of characters preloaded for a single font, see the [subsets](#subsets) property instead.
-
-This can be useful for localization to avoid unnecessary font downloads when a specific part of your website uses a different alphabet and will be displayed with a separate font. For example, a website that offers both English and Japanese versions can prevent the browser from downloading the Japanese font on English versions of the page that do not contain any of the Japanese characters provided in `unicodeRange`.
-
-```js
-unicodeRange: ["U+26"]
-```
-
-#### stretch
-
-<p>
-
-**Type:** `string`<br />
-**Default:** `undefined`
-</p>
-
-A [font stretch](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch):
-
-```js
-stretch: "condensed"
-```
-
-#### featureSettings
-
-<p>
-
-**Type:** `string`<br />
-**Default:** `undefined`
-</p>
-
-Controls the [typographic font features](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings) (e.g. ligatures, small caps, or swashes):
-
-```js
-featureSettings: "'smcp' 2"
-```
-
-#### variationSettings
-
-<p>
-
-**Type:** `string`<br />
-**Default:** `undefined`
-</p>
-
-Font [variation settings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-variation-settings):
-
-```js
-variationSettings: "'xhgt' 0.7"
-```
-
-
-### Local font `variants`
+#### variants
 
 <p>
 
 **Type:** `LocalFontFamily["variants"]`
 </p>
 
-The `variants` property is required when using local font files. Each variant represents a [`@font-face` declaration](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/) and requires a `weight`, `style`, and `src` value.
+The `options.variants` property is required. Each variant represents a [`@font-face` declaration](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/) and requires a [`src`](#src).
 
-Additionally, [some other properties of remote fonts](#other-properties) may be specified within each variant.
+Additionally, [some other properties](#other-properties) may be specified within each variant.
 
 ```js title="astro.config.mjs"
-import { defineConfig } from "astro/config";
+import { defineConfig, fontProviders } from "astro/config";
 
 export default defineConfig({
     experimental: {
         fonts: [{
-            provider: "local",
+            provider: fontProviders.local(),
             name: "Custom",
             cssVariable: "--font-custom",
-            variants: [
-                {
-                    weight: 400,
-                    style: "normal",
-                    src: ["./src/assets/fonts/custom-400.woff2"]
-                },
-                {
-                    weight: 700,
-                    style: "normal",
-                    src: ["./src/assets/fonts/custom-700.woff2"]
-                }
-                // ...
-            ]
+            options: {
+                variants: [
+                    {
+                        weight: 400,
+                        style: "normal",
+                        src: ["./src/assets/fonts/custom-400.woff2"]
+                    },
+                    {
+                        weight: 700,
+                        style: "normal",
+                        src: ["./src/assets/fonts/custom-700.woff2"]
+                    }
+                    // ...
+                ]
+            }
         }]
     }
 });
 ```
 
-#### weight
+##### weight
 
 <p>
 
@@ -694,7 +370,7 @@ weight: "100 900"
 
 When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
 
-#### style
+##### style
 
 <p>
 
@@ -710,7 +386,7 @@ style: "normal"
 
 When the value is not set, by default Astro will try to infer the value based on the first [`source`](#src).
 
-#### src
+##### src
 
 <p>
 
@@ -757,9 +433,9 @@ You can also specify a [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@
 src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
 ```
 
-#### Other properties
+##### Other properties
 
-The following options from remote font families are also available for local font families within variants:
+The following options from font families are also available for local font families within variants:
 
 - [display](#display)
 - [unicodeRange](#unicoderange)
@@ -767,29 +443,477 @@ The following options from remote font families are also available for local fon
 - [featureSettings](#featuresettings)
 - [variationSettings](#variationsettings)
 
-```js title="astro.config.mjs" {14}
-import { defineConfig } from "astro/config";
+```js title="astro.config.mjs" {15}
+import { defineConfig, fontProviders } from "astro/config";
 
 export default defineConfig({
     experimental: {
         fonts: [{
-            provider: "local",
+            provider: fontProviders.local(),
             name: "Custom",
             cssVariable: "--font-custom",
-            variants: [
-                {
-                    weight: 400,
-                    style: "normal",
-                    src: ["./src/assets/fonts/custom-400.woff2"],
-                    display: "block"
-                }
-            ]
+            options: {
+                variants: [
+                    {
+                        weight: 400,
+                        style: "normal",
+                        src: ["./src/assets/fonts/custom-400.woff2"],
+                        display: "block"
+                    }
+                ]
+            }
         }]
     }
 });
 ```
 
-## Granular remote font configuration
+## Usage examples
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [
+      {
+        name: "Roboto",
+        cssVariable: "--font-roboto",
+        provider: fontProviders.google(),
+        // Default included:
+        // weights: [400] ,
+        // styles: ["normal", "italics"],
+        // subsets: ["latin"],
+        // fallbacks: ["sans-serif"], 
+        // formats: ["woff2"],
+      },
+      {
+        name: "Inter",
+        cssVariable: "--font-inter",
+        provider: fontProviders.fontsource(),
+        // Specify weights that are actually used
+        weights: [400, 500, 600, 700],
+        // Specify styles that are actually used
+        styles: ["normal"],
+        // Download only font files for characters used on the page
+        subsets: ["latin", "cyrillic"],
+        // Download more font formats
+        formats: ["woff2", "woff"],
+      },
+      {
+        name: "JetBrains Mono",
+        cssVariable: "--font-jetbrains-mono",
+        provider: fontProviders.fontsource(),
+        // Download only font files for characters used on the page
+        subsets: ["latin", "latin-ext"],
+        // Use a fallback font family matching the intended appearance
+        fallbacks: ["monospace"],
+      },
+      {
+        name: "Poppins",
+        cssVariable: "--font-poppins",
+        provider: fontProviders.local(),
+        options: {
+          // Weight and style are not specified so Astro
+          // will try to infer them for each variant
+          variants: [
+            {
+              src: [
+                "./src/assets/fonts/Poppins-regular.woff2",
+                "./src/assets/fonts/Poppins-regular.woff",
+              ]
+            },
+            {
+              src: [
+                "./src/assets/fonts/Poppins-bold.woff2",
+                "./src/assets/fonts/Poppins-bold.woff",
+              ]
+            },
+          ]
+        }
+      }
+    ],
+  }
+});
+```
+
+## `<Font />` component reference
+
+This component outputs style tags and can optionally output preload links for a given font family.
+
+It must be imported and added to your page `<head>`. This is commonly done in a component such as `Head.astro` that is used in a common site layout for global use but may be added to individual pages as needed.
+
+With this component, you have control over which font family is used on which page, and which fonts are preloaded.
+
+### cssVariable
+
+<p>
+
+**Example type:** `"--font-roboto" | "--font-comic-sans" | ...`
+</p>
+
+The [`cssVariable`](#cssvariable-1) registered in your Astro configuration:
+
+```astro title="src/components/Head.astro" "cssVariable"
+---
+import { Font } from "astro:assets";
+---
+
+<Font cssVariable="--font-roboto" />
+```
+
+### preload
+
+<p>
+
+**Type:** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
+**Default:** `false`
+</p>
+
+Whether to output [preload links](https://web.dev/learn/performance/optimize-web-fonts#preload) or not:
+
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from "astro:assets";
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+With the `preload` directive, the browser will immediately begin downloading all possible font links during page load. 
+
+#### Granular preloads
+
+<p>
+<Since v="5.15.0" />
+</p>
+
+You may not always want to preload every font link, as this can block loading other important resources or may download fonts that are not needed for the current page. 
+
+To selectively control which font files are preloaded, you can provide an array of objects describing any combination of font `weight`, `style`, or `subset` to preload.
+
+The following example will only preload font files with a `400` weight or a `normal` style in the `latin` subset:
+
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from "astro:assets";
+---
+
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: "latin", style: "normal" },
+    { weight: "400" },
+  ]}
+/>
+```
+
+Variable weight font files will be preloaded if any weight within its range is requested. For example, a font file for font weight `100 900` will be included when `400` is specified in a `preload` object.
+
+## Accessing font data programmatically
+
+The [`fontData`](#fontdata) object allows you to retrieve lower-level font family data programmatically, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) or to generate your own meta tags.
+
+The [`getFontBuffer()`](#getfontbuffer) function can then be used on retrieved URLs to get font buffers, for example, in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) to generate OpenGraph images using [satori](https://github.com/vercel/satori), combined with proper [formats](#formats) configuration:
+
+```tsx title="src/pages/og.png.tsx" {2} "fontData[\"--font-roboto\"]" "await getFontBuffer(data[0].src[0].url)"
+import type{ APIRoute } from "astro"
+import { fontData, getFontBuffer } from "astro:assets"
+import satori from "satori"
+
+export const GET: APIRoute = (context) => {
+  const data = fontData["--font-roboto"]
+
+  const svg = await satori(
+    <div style={{ color: "black" }}>hello, world</div>,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await getFontBuffer(data[0].src[0].url),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  )
+
+  // ...
+}
+```
+
+### `fontData`
+
+<p>
+
+**Type:** `Record<CssVariable, Array<FontData>>`<br />
+<Since v="5.16.12" />
+</p>
+
+An object where each key is a [`cssVariable`](#cssvariable-1) and the value is an array describing the associated fonts. Each font is an object containing an array of `src` available for that font and the following optional properties: `weight` and `style`.
+
+### `getFontBuffer()`
+
+<p>
+
+**Type:** `(url: string) => Promise<Buffer>`<br />
+<Since v="5.16.13" />
+</p>
+
+Returns a buffer for the font file from a source URL obtained from [`fontData`](#fontdata).
+
+:::caution
+`getFontBuffer()` is only available on the server. Calling the function on the client will throw an error.
+:::
+
+## Font configuration reference
+
+All properties of your fonts must be configured in the Astro config. Set these to customize the data loaded from your [font provider](#available-font-providers), for example, to only download certain font weights or styles. For more control, more [granular configuration](#granular-font-configuration) is available.
+
+Each provider is responsible for handling these options, so availability and support for the following properties may vary.
+
+[`provider`](#provider), [`name`](#name), and [`cssVariable`](#cssvariable-1) are required.
+
+### provider
+
+<p>
+
+**Type:** `FontProvider`
+</p>
+
+The source of your font files. You can use a [built-in provider](#available-font-providers) or write your own [custom provider](#build-your-own-font-provider):
+
+```js title="astro.config.mjs" {6}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    fonts: [{
+      provider: fontProviders.google(),
+      name: "Roboto",
+      cssVariable: "--font-roboto"
+    }]
+  }
+});
+```
+
+### name
+
+<p>
+
+**Type:** `string`
+</p>
+
+The font family name, as identified by your font provider:
+
+```js
+name: "Roboto"
+```
+
+### cssVariable
+
+<p>
+
+**Type:** `string`
+</p>
+
+A valid [ident](https://developer.mozilla.org/en-US/docs/Web/CSS/ident) of your choosing in the form of a CSS variable (i.e. starting with `--`):
+
+```js
+cssVariable: "--font-roboto"
+```
+
+### fallbacks
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `["sans-serif"]`
+</p>
+
+An array of fonts to use when your chosen font is unavailable, or loading. Fallback fonts will be chosen in the order listed. The first available font will be used:
+
+```js
+fallbacks: ["CustomFont", "serif"]
+```
+
+To disable fallback fonts completely, configure an empty array:
+
+```js
+fallbacks: []
+```
+
+Specify at least a [generic family name](https://developer.mozilla.org/en-US/docs/Web/CSS/font-family#generic-name) matching the intended appearance of your font. Astro will then attempt to generate [optimized fallbacks](https://developer.chrome.com/blog/font-fallbacks) using font metrics. To disable this optimization, set `optimizedFallbacks` to false.
+
+### optimizedFallbacks
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+</p>
+
+Whether or not to enable Astro's default optimization when generating fallback fonts. You may disable this default optimization to have full control over how [`fallbacks`](#fallbacks) are generated:
+
+```js
+optimizedFallbacks: false
+```
+
+### weights
+
+<p>
+
+**Type:** `(number | string)[]`<br />
+**Default:** `[400]`
+</p>
+
+An array of [font weights](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight). If no value is specified in your configuration, only weight `400` is included by default to prevent unnecessary downloads. You will need to include this property to access any other font weights:
+
+```js
+weights: [200, "400", "bold"]
+```
+
+If the associated font is a [variable font](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide), you can specify a range of weights:
+
+```js
+weights: ["100 900"]
+```
+
+### styles
+
+<p>
+
+**Type:** `("normal" | "italic" | "oblique")[]`<br />
+**Default:** `["normal", "italic"]`
+</p>
+
+An array of [font styles](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style):
+
+```js
+styles: ["normal", "oblique"]
+```
+
+### subsets
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `["latin"]`
+</p>
+
+Defines a list of [font subsets](https://knaap.dev/posts/font-subsetting/) to preload.
+
+```js
+subsets: ["latin"]
+```
+
+### formats
+
+<p>
+
+**Type:** `("woff2" | "woff" | "otf" | "ttf" | "eot")[]`<br />
+**Default:** `["woff2"]`
+<Since v="5.16.7" />
+</p>
+
+An array of [font formats](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@font-face/src#font_formats):
+
+```js
+formats: ["woff2", "woff"]
+```
+
+### options
+
+<p>
+
+**Type:** `Record<string, any>`<br />
+<Since v="5.16.12" />
+</p>
+
+An object to pass provider specific options. It is typed automatically based on the font family [provider](#provider):
+
+```js
+options: {
+  experimental: {
+    glyphs: ["a"]
+  }
+}
+```
+
+### display
+
+<p>
+
+**Type:** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
+**Default:** `"swap"`
+</p>
+
+Defines [how a font displays](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-display) based on when it is downloaded and ready for use:
+
+```js
+display: "block"
+```
+
+### unicodeRange
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `undefined`
+</p>
+
+Determines when a font must be downloaded and used based on a specific [range of unicode characters](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/unicode-range). If a character on the page matches the configured range, the browser will download the font and all characters will be available for use on the page. To configure a subset of characters preloaded for a single font, see the [subsets](#subsets) property instead.
+
+This can be useful for localization to avoid unnecessary font downloads when a specific part of your website uses a different alphabet and will be displayed with a separate font. For example, a website that offers both English and Japanese versions can prevent the browser from downloading the Japanese font on English versions of the page that do not contain any of the Japanese characters provided in `unicodeRange`.
+
+```js
+unicodeRange: ["U+26"]
+```
+
+### stretch
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `undefined`
+</p>
+
+A [font stretch](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-stretch):
+
+```js
+stretch: "condensed"
+```
+
+### featureSettings
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `undefined`
+</p>
+
+Controls the [typographic font features](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-feature-settings) (e.g. ligatures, small caps, or swashes):
+
+```js
+featureSettings: "'smcp' 2"
+```
+
+### variationSettings
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `undefined`
+</p>
+
+Font [variation settings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/font-variation-settings):
+
+```js
+variationSettings: "'xhgt' 0.7"
+```
+
+## Granular font configuration
 
 <p>
 
@@ -828,88 +952,417 @@ export default defineConfig({
 
 ## Build your own font provider
 
-If you do not wish to use one of the [built-in providers](#available-remote-font-providers) (eg. you want to use a 3rd-party unifont provider or build something for a private registry), you can build your own.
+If you do not wish to use one of the [built-in providers](#available-font-providers) (e.g. you want to use a [3rd-party unifont provider](#supporting-a-3rd-party-unifont-provider) or [build something for a private registry](#supporting-a-private-registry)), you can build your own.
 
-An Astro font provider is made up of two parts: the config object and the actual implementation.
+The preferred method for implementing a custom font provider is to export a function that returns [the `FontProvider` object](#the-font-provider-object) and takes the [configuration](#config) as a parameter.
 
-<Steps>
+### The font provider object
 
-1. Using the `defineAstroFontProvider()` type helper, create a function that returns a font provider config object containing:
+The experimental Fonts API allows you to access fonts in a unified way. Each family requires the use of an Astro Font Provider to retrieve font faces.
 
-    - `entrypoint`: A URL, a path relative to the root, or a package import.
-    - `config`: An optional serializable object passed to the unifont provider.
+A `FontProvider` is an object containing required [`name`](#name-1) and [`resolveFont()`](#resolvefont) properties. It also has optional [`config`](#config), [`init()`](#init) and [`listFonts()`](#listfonts) properties available.
 
-    <Tabs>
+The `FontProvider` type accepts a generic for family [options](#options).
 
-    <TabItem label="Without config">
+#### `name`
 
-    ```ts title="provider/config.ts"
-    import { defineAstroFontProvider } from 'astro/config';
+<p>
 
-    export function myProvider() {
-        return defineAstroFontProvider({
-            entrypoint: new URL('./implementation.js', import.meta.url)
-        });
-    };
-    ```
+**Type:** `string`
+</p>
 
-    </TabItem>
+A unique name for the provider, used in logs and for identification.
 
-    <TabItem label="With config">
+#### `resolveFont()`
 
-    ```ts title="provider/config.ts"
-    import { defineAstroFontProvider } from 'astro/config';
+<p>
 
-    interface Config {
-        // ...
-    };
+**Type:** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
 
-    export function myProvider(config: Config) {
-        return defineAstroFontProvider({
-            entrypoint: new URL('./implementation.js', import.meta.url),
-            config
-        });
-    };
-    ```
+Used to retrieve and return font face data based on the given options.
 
-    </TabItem>
+#### `config`
 
-    </Tabs>
+<p>
 
-2. Create a second file to export your unifont `provider` implementation:
+**Type:** `Record<string, any>`<br />
+**Default:** `undefined`
+</p>
 
-    ```ts title="implementation.ts"
-    import { defineFontProvider } from "unifont";
+A serializable object, used for identification.
 
-    export const provider = defineFontProvider("my-provider", async (options, ctx) => {
-        // fetch/define your custom fonts
-        // ...
-    });
-    ```
+#### `init()`
 
-    :::tip
+<p>
 
-    You can check out [the source code for unifont's providers](https://github.com/unjs/unifont/blob/main/src/providers/) to learn more about how to create a unifont provider.
+**Type:** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**Default:** `undefined`
+</p>
 
-    :::
+Optional callback, used to perform any initialization logic.
 
-3. Add your custom provider to your font configuration.
+##### `context.storage`
 
-    ```js title="astro.config.mjs" ins="myProvider()"
-    import { defineConfig } from "astro/config";
-    import { myProvider } from "./provider/config";
+<p>
 
-    export default defineConfig({
-      experimental: {
-        fonts: [{
-          provider: myProvider(),
-          // ...
-        }]
+**Type:** `Storage`
+</p>
+
+Useful for caching
+
+##### `context.root`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+The project root, useful for resolving local files paths.
+
+#### `listFonts()`
+
+<p>
+
+**Type:** `() => Awaitable<string[] | undefined>`<br />
+**Default:** `undefined`
+</p>
+
+Optional callback, used to return the list of available font names.
+
+### Supporting a private registry
+
+The following example defines a font provider for a private registry:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+export function registryFontProvider(): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
       }
-    });
-    ```
+      return undefined;
+    },
+  };
+}
+```
 
-</Steps>
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="font-provider.ts" {4-6,8,13}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="font-provider.ts" {4-6,8,20}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface FamilyOptions {
+  minimal?: boolean;
+}
+
+export function registryFontProvider(): FontProvider<FamilyOptions | undefined> {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    // options is typed as FamilyOptions | undefined
+    resolveFont: ({ familyName, options, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+You can then register this font provider in the Astro config:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider(),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="astro.config.ts" {8}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider({
+              token: "..."
+            }),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="astro.config.ts" {8-10}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: registryFontProvider(),
+            options: {
+              minimal: true
+            },
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+</Tabs>
+
+### Supporting a 3rd-party unifont provider
+
+You can define an Astro font provider using a unifont provider under the hood:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="font-provider.ts" {3,5,6-7}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeFamilyOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider<AcmeFamilyOptions | undefined> {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider<AcmeFamilyOptions> | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+You can then register this font provider in the Astro config:
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider(),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Provider options">
+
+```ts title="astro.config.ts" {8}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider({
+              token: "..."
+            }),
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+<TabItem label="Family options">
+
+```ts title="astro.config.ts" {8-10}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+    experimental: {
+        fonts: [{
+            provider: acmeFontProvider(),
+            options: {
+              minimal: true
+            },
+            name: "Custom",
+            cssVariable: "--font-custom"
+        }]
+    }
+});
+```
+
+</TabItem>
+
+</Tabs>
 
 ## Caching
 
