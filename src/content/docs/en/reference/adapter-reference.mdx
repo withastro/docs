@@ -296,13 +296,6 @@ export default function createIntegration() {
 
 Adapters can provide a custom prerenderer to control how pages are prerendered by using the [`setPrerenderer()`](/en/reference/integrations-reference/#setprerenderer-option) function in the `astro:build:start` hook.
 
-An `AstroPrerenderer` object must have a `name` and implement the following methods:
-
-- `getStaticPaths()`: Returns an array of `{ pathname: string, route: RouteData }` objects to prerender
-- `render(request, options)`: Renders a page and returns a `Response`
-- `setup()` (optional): Called once before prerendering starts, useful for starting a preview server
-- `teardown()` (optional): Called after all pages are prerendered, useful for cleanup
-
 The following example shows how an adapter can set a custom prerenderer:
 
 ```js title="my-adapter.mjs"
@@ -343,39 +336,6 @@ export default function createIntegration() {
 ```
 
 The factory function receives the default prerenderer, allowing you to wrap or extend its behavior. This is useful when you only need to customize specific aspects of prerendering.
-
-### `astro:static-paths`
-
-<p><Since v="6.0.0" /></p>
-
-For adapters that need to collect static paths from within their target runtime (e.g., workerd), Astro provides the `astro:static-paths` virtual module. This module exports a `StaticPaths` class that can be used in your server handler to get all paths that need to be prerendered.
-
-```js title="my-adapter/handler.js"
-import { StaticPaths } from 'astro:static-paths';
-
-export function createHandler(app) {
-  return async (request) => {
-    const { pathname } = new URL(request.url);
-    
-    // Endpoint to collect static paths during build
-    if (pathname === '/__astro_static_paths') {
-      const staticPaths = new StaticPaths(app);
-      const paths = await staticPaths.getAll();
-      // Returns array of { pathname: string, route: RouteData }
-      return new Response(JSON.stringify({ paths }));
-    }
-    
-    // ... handle other requests
-  };
-}
-```
-
-The `StaticPaths` class accepts an app instance and provides:
-
-- `getAll()`: Returns a promise that resolves to an array of `{ pathname: string, route: RouteData }` objects representing all paths that should be prerendered.
-
-This module only provides a real implementation in the `prerender` Vite environment. In other environments, it returns a no-op implementation.
-
 
 ## Building a server entrypoint
 
