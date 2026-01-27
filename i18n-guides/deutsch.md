@@ -14,7 +14,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 |:----------------------------|:-------------------------------------|:------------
 | asset                       | Asset                                | Wird nicht übersetzt (gängiger Domänenbegriff).
 | branch                      | der Branch                           | s.o.
-| breaking change             | inkompatible Änderung                | s.o.
+| breaking change             | inkompatible Änderung                |
 | build process               | Erzeugungs- / Erstellungsvorgang     | s.o.
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen „bauen“ oder gar „builden“ merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
@@ -25,7 +25,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | CLI flag                    | die Kommandozeilen&shy;option        |
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur „Option“ verwendet werden.
 | deployment provider         | der Hosting-Anbieter                 |
-| to deprecate                | abkündigen                           | Wird übersetzt, weil sonst flektiert sehr unrund.
+| to deprecate                | Nutzung nicht mehr empfohlen         | _Feature X is deprecated_ → _Die Nutzung von Feature X ist nicht mehr empfohlen_
 | deprecation                 | die Abkündigung                      | Wird nicht übersetzt (gängiger Domänenbegriff).
 | to deploy                   | veröffentlichen                      | Wir vermeiden „ausliefern“ aufgrund der Zweideutigkeit.
 | dev server                  | der Entwicklungsserver               |
