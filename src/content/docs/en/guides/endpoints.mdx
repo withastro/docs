@@ -39,12 +39,12 @@ export async function GET({ params, request }) {
 }
 ```
 
-You can also type your endpoint functions using the `APIRoute` type:
+You can also get type safety in your endpoint functions using the `APIRoute` type with the `satisfies` operator:
 
 ```ts
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = async ({ params, request }) => {...}
+export const GET = (async ({ params, request }) => { /* ... */ }) satisfies APIRoute;
 ```
 
 ### `params` and Dynamic routing
@@ -56,7 +56,7 @@ import type { APIRoute } from "astro";
 
 const usernames = ["Sarah", "Chris", "Yan", "Elian"];
 
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   const id = params.id;
   
   return new Response(
@@ -64,7 +64,7 @@ export const GET: APIRoute = ({ params, request }) => {
       name: usernames[id],
     }),
   );
-};
+}) satisfies APIRoute;
 
 export function getStaticPaths() {
   return [
@@ -76,7 +76,7 @@ export function getStaticPaths() {
 }
 ```
 
-This will generate four JSON endpoints at build time: `/api/0.json`, `/api/1.json`, `/api/2.json` and `/api/3.json`. Dynamic routing with endpoints works the same as it does with pages, but because the endpoint is a function and not a component, [props](/en/reference/routing-reference/#data-passing-with-props) aren't supported.
+This will generate four JSON endpoints at build time: `/api/0.json`, `/api/1.json`, `/api/2.json` and `/api/3.json`. Dynamic routing with endpoints works the same as it does with pages. In static mode, you can [pass props to the endpoint using `getStaticPaths()`](/en/reference/routing-reference/#data-passing-with-props). However, with on-demand rendering, since the endpoint is a function and not a component, passing props is not supported.
 
 ### `request`
 
@@ -85,13 +85,13 @@ All endpoints receive a `request` property, but in static mode, you only have ac
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
       path: new URL(request.url).pathname,
     }),
   );
-};
+}) satisfies APIRoute;
 ```
 
 ## Server Endpoints (API Routes)
@@ -157,37 +157,37 @@ In addition to the `GET` function, you can export a function with the name of an
 You can also export an `ALL` function to match any method that doesn't have a corresponding exported function. If there is a request with no matching method, it will redirect to your site's [404 page](/en/basics/astro-pages/#custom-404-error-page).
 
 ```ts title="src/pages/methods.json.ts"
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
       message: "This was a GET!",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const POST: APIRoute = ({ request }) => {
+export const POST = (({ request }) => {
   return new Response(
     JSON.stringify({
       message: "This was a POST!",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const DELETE: APIRoute = ({ request }) => {
+export const DELETE = (({ request }) => {
   return new Response(
     JSON.stringify({
       message: "This was a DELETE!",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const ALL: APIRoute = ({ request }) => {
+export const ALL = (({ request }) => {
   return new Response(
     JSON.stringify({
       message: `This was a ${request.method}!`,
     }),
   );
-};
+}) satisfies APIRoute;
 ```
 
 If you define a `GET` function but no `HEAD` function, Astro will automatically handle `HEAD` requests by calling the `GET` function and stripping the body from the response.
@@ -199,7 +199,7 @@ If you define a `GET` function but no `HEAD` function, Astro will automatically 
 In SSR mode, the `request` property returns a fully usable [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object that refers to the current request. This allows you to accept data and check headers:
 
 ```ts title="src/pages/test-post.json.ts"
-export const POST: APIRoute = async ({ request }) => {
+export const POST = (async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
     const name = body.name;
@@ -215,7 +215,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
   
   return new Response(null, { status: 400 });
-};
+}) satisfies APIRoute;
 ```
 
 ### Redirects
