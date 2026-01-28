@@ -39,12 +39,12 @@ export async function GET({ params, request }) {
 }
 ```
 
-`APIRoute` 타입을 사용하여 엔드포인트 함수의 타입을 지정할 수도 있습니다.
+`APIRoute` 타입과 `satisfies` 연산자를 사용하여 엔드포인트 함수에서 타입 안전성을 확보할 수도 있습니다.
 
 ```ts
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = async ({ params, request }) => {...}
+export const GET = (async ({ params, request }) => { /* ... */ }) satisfies APIRoute;
 ```
 
 ### `params` 및 동적 라우팅
@@ -56,7 +56,7 @@ import type { APIRoute } from "astro";
 
 const usernames = ["Sarah", "Chris", "Yan", "Elian"];
 
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   const id = params.id;
   
   return new Response(
@@ -64,7 +64,7 @@ export const GET: APIRoute = ({ params, request }) => {
       name: usernames[id],
     }),
   );
-};
+}) satisfies APIRoute;
 
 export function getStaticPaths() {
   return [
@@ -76,7 +76,7 @@ export function getStaticPaths() {
 }
 ```
 
-이렇게 하면 빌드 시 `/api/0.json`, `/api/1.json`, `/api/2.json`, `/api/3.json`의 네 가지 JSON 엔드포인트가 생성됩니다. 엔드포인트의 동적 라우팅은 페이지의 동적 라우팅과 동일하게 작동하지만, 엔드포인트는 컴포넌트가 아닌 함수이므로 [props](/ko/reference/routing-reference/#props를-사용한-데이터-전달)는 지원되지 않습니다.
+이는 빌드 시 `/api/0.json`, `/api/1.json`, `/api/2.json`, `/api/3.json`의 네 가지 JSON 엔드포인트를 생성합니다. 엔드포인트의 동적 라우팅은 페이지와 동일하게 작동합니다. 정적 모드에서는 [`getStaticPaths()`를 사용하여 엔드포인트에 props를 전달](/ko/reference/routing-reference/#props를-사용한-데이터-전달)할 수 있습니다. 하지만 요청 시 렌더링의 경우, 엔드포인트는 컴포넌트가 아닌 함수이므로 props 전달은 지원되지 않습니다.
 
 ### `request`
 
@@ -85,13 +85,13 @@ export function getStaticPaths() {
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
       path: new URL(request.url).pathname,
     }),
   );
-};
+}) satisfies APIRoute;
 ```
 
 ## 서버 엔드포인트 (API 라우트)
@@ -157,37 +157,37 @@ export async function GET({ params, request }) {
 해당하는 내보낸 함수가 없는 모든 메서드와 일치하도록 `ALL` 함수를 내보낼 수도 있습니다. 일치하는 메서드가 없는 요청이 있으면 사이트의 [404 페이지](/ko/basics/astro-pages/#사용자-정의-404-오류-페이지)로 리디렉션됩니다.
 
 ```ts title="src/pages/methods.json.ts"
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
-      message: "GET 메서드",
+      message: "This was a GET!",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const POST: APIRoute = ({ request }) => {
+export const POST = (({ request }) => {
   return new Response(
     JSON.stringify({
-      message: "POST 메서드",
+      message: "This was a POST!",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const DELETE: APIRoute = ({ request }) => {
+export const DELETE = (({ request }) => {
   return new Response(
     JSON.stringify({
-      message: "DELETE 메서드",
+      message: "This was a DELETE!",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const ALL: APIRoute = ({ request }) => {
+export const ALL = (({ request }) => {
   return new Response(
     JSON.stringify({
-      message: `${request.method} 메서드`,
+      message: `This was a ${request.method}!`,
     }),
   );
-};
+}) satisfies APIRoute;
 ```
 
 `GET` 함수는 정의했지만 `HEAD` 함수는 정의하지 않은 경우, Astro는 `GET` 함수를 호출하고 응답에서 본문을 제거하여 `HEAD` 요청을 자동으로 처리합니다.
@@ -199,14 +199,14 @@ export const ALL: APIRoute = ({ request }) => {
 SSR 모드에서 `request` 속성은 현재 요청을 참조하는 완전히 사용 가능한 [`Request`](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체를 반환합니다. 이를 통해 데이터를 수락하고 헤더를 확인할 수 있습니다.
 
 ```ts title="src/pages/test-post.json.ts"
-export const POST: APIRoute = async ({ request }) => {
+export const POST = (async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
     const name = body.name;
     
     return new Response(
       JSON.stringify({
-        message: "이름: " + name,
+        message: "Your name was: " + name,
       }),
       {
         status: 200,
@@ -215,7 +215,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
   
   return new Response(null, { status: 400 });
-};
+}) satisfies APIRoute;
 ```
 
 ### 리디렉션
