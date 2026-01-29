@@ -32,12 +32,15 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | dev toolbar                 | die Entwicklungs&shy;werkzeugleiste  |
 | directory                   | das Verzeichnis                      |
 | domain                      | die Domäne                           |
+| framework                   | das Framework                        | Wird nicht übersetzt (gängiger Domänenbegriff).
 | frontmatter                 | das Frontmatter                      | Wird nicht übersetzt (gängiger Domänenbegriff).
 | frontmatter prop(erty)      | die Frontmatter-Eigenschaft          |
 | frontmatter value           | der Frontmatter-Wert                 |
 | guide                       | die Anleitung                        |
 | to hydrate (an element)     | hydratisieren                        | Falsch hingegen wäre „hydrieren“.
 | island(s)                   | Island(s)                            | „Islands“ bleibt unübersetzt. „Astro“ wird davorgesetzt, um den Feature-Charakter zu betonen. Beim ersten Vorkommen: „(Insel(n))“ ergänzen zur Verständlichkeit.
+| to log                      | protokollieren                       |
+| the logging                 | die Protokollierung                  | Kann im Einzelfall auch mit „Logging“ übersetzt werden.
 | media query                 | Media Query                          | Wird nicht übersetzt (gängiger Domänenbegriff).
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form „Webseite“, um Verwechslungen mit „Website“ zu vermeiden.
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre „Hydrierung“.
