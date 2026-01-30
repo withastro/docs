@@ -3,7 +3,7 @@
 <!-- 🚨 IMPORTANT INFO AS WE PREPARE FOR v6 🚨 -->
 <!-- We are only accepting emergency fixes for v5 docs (typos, links etc.) -->
 <!-- All new feature documentation PRs must use the `v6` branch  -->
-<!-- No new translations will be accepted -->
+<!-- No new translations will be accepted until v6 is released -->
 
 #### Description (required)
 
