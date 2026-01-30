@@ -15,35 +15,33 @@ import Option from '~/components/tutorial/Option.astro';
 import PreCheck from '~/components/tutorial/PreCheck.astro';
 import { Steps } from '@astrojs/starlight/components';
 
-クライアントサイドのインタラクションを必要とするような、モバイルの画面サイズでリンクを開閉するハンバーガーメニューを追加しましょう！
+クライアントサイドのインタラクションを必要とするような、モバイルの画面サイズでナビゲーションメニューを開閉するボタンを追加しましょう！
 
 <PreCheck>
-  - ハンバーガーメニューコンポーネントを作成する
+  - メニューコンポーネントを作成する
   - サイト訪問者がナビゲーションメニューを開閉できるように`<script>`を書く
   - JavaScriptを`.js`ファイルに移動する
 </PreCheck>
 
-## ハンバーガーコンポーネントを作成する
+## メニューコンポーネントを作成する
 
-モバイルメニューを開閉する`<Hamburger />`コンポーネントを作成します。
+モバイルメニューを開閉する`<Menu />`コンポーネントを作成します。
 
 <Steps>
-1. `src/components/`に`Hamburger.astro`という名前のファイルを作成します。
+1. `src/components/`に`Menu.astro`という名前のファイルを作成します。
 
 
-2. 以下のコードをコンポーネントにコピーします。これは、モバイルでナビゲーションリンクを開閉する3行の「ハンバーガー」メニューを表わします。（あとで`global.css`に新しいCSSスタイルを追加します。）
+2. 以下のコードをコンポーネントにコピーします。これは、モバイルデバイスでナビゲーションリンクを開閉するボタンを作成します。（あとで`global.css`に新しいCSSスタイルを追加します。）
 
-    ```astro title="src/components/Hamburger.astro"
+    ```astro title="src/components/Menu.astro"
     --- 
     ---
-    <div class="hamburger">
-      <span class="line"></span>
-      <span class="line"></span>
-      <span class="line"></span>
-    </div>
+    <button aria-expanded="false" aria-controls="main-menu" class="menu">
+      Menu
+    </button>
     ```
 
-3. `Header.astro`の`<Navigation />`コンポーネントの直前に、新しい`<Hamburger />`コンポーネントを配置します。
+3. `Header.astro`の`<Navigation />`コンポーネントの直前に、新しい`<Menu />`コンポーネントを配置します。
 
     <details>
     <summary>コードを表示</summary>
@@ -62,28 +60,21 @@ import { Steps } from '@astrojs/starlight/components';
     ```
     </details>
 
-4. 以下のハンバーガーコンポーネント用スタイルを追加します。
+4. レスポンシブなスタイルを含む以下のメニューコンポーネント用スタイルを追加します。
 
     ```css title="src/styles/global.css" ins={2-13, 56-58}
     /* ナビゲーションのスタイル */
-    .hamburger {
-      padding-right: 20px;
-      cursor: pointer;
-    }
-
-    .hamburger .line {
-      display: block;
-      width: 40px;
-      height: 5px;
-      margin-bottom: 10px;
-      background-color: #ff9776;
+    .menu {
+      background-color: #0d0950;
+      border: none;
+      color: #fff;
+      font-size: 1.2rem;
+      font-weight: bold;
+      padding: 5px 10px;
     }
 
     .nav-links {
       width: 100%;
-      top: 5rem;
-      left: 48px;
-      background-color: #ff9776;
       display: none;
       margin: 0;
     }
@@ -96,13 +87,15 @@ import { Steps } from '@astrojs/starlight/components';
       font-size: 1.2rem;
       font-weight: bold;
       text-transform: uppercase;
+      color: #0d0950;
     }
 
-    .nav-links a:hover, a:focus {
+    .nav-links a:hover,
+    .nav-links a:focus{
       background-color: #ff9776;
     }
 
-    .expanded {
+    :has(.menu[aria-expanded="true"]) .nav-links {
       display: unset;
     }
 
@@ -120,7 +113,7 @@ import { Steps } from '@astrojs/starlight/components';
         padding: 15px 20px;
       }
 
-      .hamburger {
+      .menu {
         display: none;
       }
     }
@@ -129,18 +122,21 @@ import { Steps } from '@astrojs/starlight/components';
 
 ## 初めてのスクリプトタグを書く
 
-ヘッダーはまだ**インタラクティブ**ではありません。ハンバーガーメニューへのクリックに応じてナビゲーションリンクを表示したり非表示にしたりするように、ユーザーの入力に応答することができないからです。
+ヘッダーはまだ**インタラクティブ**ではありません。メニューへのクリックに応じてナビゲーションリンクを表示したり非表示にしたりするように、ユーザーの入力に応答することができないからです。
 
 `<script>`タグを追加すると、クライアントサイドのJavaScriptがユーザーのイベントを「待ち受け（Listen）」、それに応答します。
 
 <Steps>
-1. `index.astro`の`</body>`閉じタグの直前に、以下の`<script>`タグを追加します。
+1. `index.astro`の`</body>`閉じタグの直前に、Astro組み込みのTypeScriptサポートを利用して以下の`<script>`タグを追加します。
 
-    ```astro title="src/pages/index.astro" ins={2-6}
+    ```astro title="src/pages/index.astro" ins={2-9}
       <Footer />
       <script>
-        document.querySelector('.hamburger').addEventListener('click', () => {
-          document.querySelector('.nav-links').classList.toggle('expanded');
+        const menu = document.querySelector('.menu');
+
+        menu?.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', `${!isExpanded}`);
         });
       </script>
     </body>
@@ -157,18 +153,24 @@ import { Steps } from '@astrojs/starlight/components';
 1. （新しく`/scripts/`フォルダを作成した上で）`src/scripts/menu.js`を作成し、JavaScriptをそこに移動します。
 
     ```js title="src/scripts/menu.js"
-    document.querySelector('.hamburger').addEventListener('click', () => {
-      document.querySelector('.nav-links').classList.toggle('expanded');
+    const menu = document.querySelector('.menu');
+
+    menu?.addEventListener('click', () => {
+      const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+      menu.setAttribute('aria-expanded', `${!isExpanded}`);
     });
     ```
 
 2. `index.astro`の`<script>`タグの内容を以下のファイルインポートに置き換えます。
 
-    ```astro title="src/pages/index.astro" ins={7} del={3-5}
+    ```astro title="src/pages/index.astro" ins={10} del={3-8}
       <Footer />
       <script>
-        document.querySelector('.hamburger').addEventListener('click', () => {
-          document.querySelector('.nav-links').classList.toggle('expanded');
+        const menu = document.querySelector('.menu');
+
+        menu?.addEventListener('click', () => {
+          const isExpanded = menu.getAttribute('aria-expanded') === 'true';
+          menu.setAttribute('aria-expanded', `${!isExpanded}`);
         });
 
         import "../scripts/menu.js";
@@ -176,7 +178,7 @@ import { Steps } from '@astrojs/starlight/components';
     </body>
     ```
 
-3. ブラウザのプレビューを再度小さいサイズで開き、ハンバーガーメニューがナビゲーションリンクを開閉することを確認します。
+3. ブラウザのプレビューを再度小さいサイズで開き、メニューがナビゲーションリンクを開閉することを確認します。
 
 
 4. 他の`about.astro`と`blog.astro`の2ページにも同じ`<script>`とインポートを追加し、両ページにレスポンシブでインタラクティブなヘッダーがあることを確認します。
