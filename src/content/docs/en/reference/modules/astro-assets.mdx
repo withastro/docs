@@ -22,10 +22,12 @@ The following helpers are imported from the virtual assets module:
 import {
   Image,
   Picture,
+  Font,
   getImage,
   inferRemoteSize,
   getConfiguredImageService,
   imageConfig,
+  fontData,
 } from 'astro:assets';
 ```
 
@@ -437,6 +439,29 @@ Defines the position of the image crop for a image if the aspect ratio is change
 
 Values match those of CSS `object-position`. Defaults to `center`, or the value of [`image.objectPosition`](/en/reference/configuration-reference/#imageobjectposition) if set. Can be used to override the default `object-position` styles.
 
+#### `background`
+
+<p>
+
+**Type:** `string | undefined`<br />
+<Since v="5.17.0" />
+</p>
+
+The background color to use when flattening an image to transform it into the requested output `format`.
+
+By default, Sharp uses a black background when flattening an image. Specifying a different background color is especially useful when transforming images with transparent backgrounds to a format that does not support transparency (e.g. `.jpeg`):
+
+```astro title="src/components/MyComponent.astro" "background"
+<Image
+  src={myImage}
+  alt="A description of my image"
+  format="jpeg"
+  background="#ffffff"
+/>
+```
+
+Values are passed directly to the image service. Sharp accepts [any value the `color-string` package can parse](https://github.com/Qix-/color-string/blob/master/README.md#parsing).
+
 ### `<Picture />`
 
 <p><Since v="3.3.0" /></p>
@@ -529,6 +554,82 @@ import myImage from "../my_image.png"; // Image is 1600x900
 </picture>
 ```
 
+### `<Font />`
+
+<p><Since v="6.0.0" /></p>
+
+The `<Font />` component outputs style tags and can optionally output preload links for a given font family.
+
+It must be imported and added to your page `<head>`. This is commonly done in a component such as `Head.astro` that is used in a common site layout for global use but may be added to individual pages as needed.
+
+With this component, you have control over which font family is used on which page, and which fonts are preloaded.
+
+```astro title="src/components/Head.astro"
+---
+import { Font } from "astro:assets";
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+The `<Font />` component accepts the following properties:
+
+#### `cssVariable` (required)
+
+<p>
+
+**Type:** `CssVariable`<br />
+**Example type:** `"--font-roboto" | "--font-comic-sans" | ...`
+</p>
+
+The [`cssVariable`](/en/reference/configuration-reference/#fontcssvariable) registered in your Astro configuration:
+
+```astro title="src/components/Head.astro" "cssVariable"
+---
+import { Font } from "astro:assets";
+---
+
+<Font cssVariable="--font-roboto" />
+```
+
+#### `preload`
+
+<p>
+
+**Type:** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
+**Default:** `false`
+</p>
+
+Whether to output [preload links](https://web.dev/learn/performance/optimize-web-fonts#preload) or not. With the `preload` directive, the browser will immediately begin downloading all possible font links during page load:
+
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from "astro:assets";
+---
+
+<Font cssVariable="--font-roboto" preload />
+```
+
+You may not always want to preload every font link, as this can block loading other important resources or may download fonts that are not needed for the current page. 
+
+To selectively control which font files are preloaded, you can provide an array of objects describing any combination of font `weight`, `style`, or `subset` to preload:
+
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from "astro:assets";
+---
+
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: "latin", style: "normal" },
+    { weight: "400" },
+  ]}
+/>
+```
+
+Variable weight font files will be preloaded if any weight within its range is requested. For example, a font file for font weight `100 900` will be included when `400` is specified in a `preload` object.
+
 ### `getImage()`
 
 <p>
@@ -592,6 +693,22 @@ Retrieves the resolved [image service](/en/reference/configuration-reference/#im
 
 The [configuration options for images](/en/reference/configuration-reference/#image-options) set by the user and merged with all defaults.
 
+### `fontData`
+
+<p>
+
+**Type:** <code>Record\<CssVariable, Array\<<a href="#fontdata-1">FontData</a>\>\></code><br />
+<Since v="6.0.0" />
+</p>
+
+An object where each key is a [`cssVariable`](/en/reference/configuration-reference/#fontcssvariable) and the value is an array describing the associated fonts. Each font is an object containing an array of `src` available for that font and the following optional properties: `weight` and `style`:
+
+```ts
+import { fontData } from "astro:assets"
+
+const data = fontData["--font-roboto"]
+```
+
 ## `astro:assets` types
 
 The following types are imported from the virtual assets module:
@@ -600,6 +717,7 @@ The following types are imported from the virtual assets module:
 import type {
   LocalImageProps,
   RemoteImageProps,
+  FontData
 } from "astro/assets";
 ```
 
@@ -624,6 +742,16 @@ Describes the [properties of a local image](#image-). This ensures that [`src`](
 </p>
 
 Describes the [properties of a remote image](#image-). This ensures that when [`inferSize`](#infersize) is not provided or is set to `false`, both [`width` and `height`](#width-and-height-required-for-images-in-public) are required.
+
+### `FontData`
+
+<p>
+
+**Type:** `{ src: Array<{ url: string; format?: string; tech?: string }>; weight?: string; style?: string; }`<br />
+<Since v="6.0.0" />
+</p>
+
+Describes the font data associated with a given font family.
 
 ## Imports from `astro/assets`
 
