@@ -1,4 +1,4 @@
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 
 /** Enforce logo types while preserving exact key type. */
 const LogoCheck = <T extends Record<string, { file: string; padding: string }>>(logos: T) => logos;
