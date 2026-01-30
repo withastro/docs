@@ -1,5 +1,10 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
+<!-- 🚨 IMPORTANT INFO AS WE PREPARE FOR v6 🚨 -->
+<!-- We are only accepting emergency fixes for v5 docs (typos, links etc.) -->
+<!-- All new feature documentation PRs must use the `v6` branch  -->
+<!-- No new translations will be accepted -->
+
 #### Description (required)
 
 <!-- Please describe the change you are proposing, and why -->
