@@ -1,5 +1,10 @@
 <!-- Thank you for opening a PR! We really appreciate you taking the time to help out 🙌 -->
 
+<!-- 🚨 IMPORTANT INFO AS WE PREPARE FOR v6 🚨 -->
+<!-- We are only accepting emergency fixes for v5 docs (typos, links etc.) -->
+<!-- All new feature documentation PRs must use the `v6` branch  -->
+<!-- No new translations will be accepted until v6 is released -->
+
 #### Description (required)
 
 <!-- Please describe the change you are proposing, and why -->
@@ -13,7 +18,7 @@
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
 <!-- 1. Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `5.x`. See astro PR [#](url). -->
+<!-- #### For Astro version: `6.x`. See astro PR [#](url). -->
 
 <!-- 2. Check that your PR includes `<p><Since v="4.x.0" /></p>` and imports the `<Since>` component, if necessary! -->
 
