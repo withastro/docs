@@ -28,9 +28,9 @@ Astro는 컬렉션을 가져오는 데 도움이 되는 두 가지 내장 로더
 
 `glob()` 로더는 파일 시스템의 어디에서나 파일 디렉터리로부터 항목들을 생성합니다. 지원되는 파일 형식은 Markdown, MDX, Markdoc, JSON, YAML 및 TOML 파일입니다.
 
-이 로더는 다음과 같은 속성을 가진 객체를 받습니다: `pattern`, `base`(선택사항), 그리고 `generateId`(선택사항).
+이 로더는 `pattern`, `base`(선택사항), `generateId`(선택사항), `retainBody`(선택사항) 속성을 가진 객체를 받습니다.
 
-```ts title="src/content.config.ts" {2,6,11,16-20}
+```ts title="src/content.config.ts" {2,6,11,17-21, 27-31}
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
@@ -42,6 +42,16 @@ const pages = defineCollection({
 const blog = defineCollection({
   /* blog 디렉터리에 있는 모든 Markdown과 MDX 파일을 가져옵니다. */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const notes = defineCollection({
+  /* notes 디렉터리에 있는 모든 Markdown 파일을 가져오고
+     콘텐츠 파일의 원본 본문이 데이터 스토어에 저장되지 않도록 합니다. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/notes',
+    retainBody: false
+  }),
   schema: /* ... */
 });
 const authors = defineCollection({
@@ -89,6 +99,25 @@ const authors = defineCollection({
 * `data` - 파싱된, 검증되지 않은 항목 데이터
 
 기본적으로 [`github-slugger`](https://github.com/Flet/github-slugger)를 사용하여 [케밥-케이스](https://developer.mozilla.org/ko/docs/Glossary/Kebab_case) 형식의 슬러그를 생성합니다.
+
+#### `retainBody`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`
+<Since v="5.17.0" />
+</p>
+
+콘텐츠 파일의 원본 본문을 데이터 스토어에 저장할지 여부입니다.
+
+`retainBody`가 `false`일 때, [`entry.body`](/ko/reference/modules/astro-content/#body)는 원본 파일 콘텐츠를 포함하는 대신 `undefined`가 됩니다.
+
+이 속성을 `false`로 설정하면 데이터 스토어의 배포 크기를 크게 감소시켜 매우 큰 컬렉션을 가진 사이트에서 크기 제한에 도달하는 것을 방지하는 데 도움이 됩니다.
+
+Markdown 파일의 경우, 렌더링된 본문은 여전히 [`entry.rendered.html` 속성](/ko/reference/content-loader-reference/#rendered)에서 사용할 수 있으며, [`entry.filePath` 속성](/ko/reference/content-loader-reference/#filepath)은 여전히 원본 파일을 가리킵니다. 
+
+MDX 컬렉션의 경우, 스토어에 본문이 더 이상 유지되지 않으므로 컬렉션의 크기가 크게 줄어들 것입니다.
 
 ### `file()` 로더
 
@@ -142,7 +171,7 @@ const products = defineCollection({
 
 <p>
 
-**타입:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+**타입:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>> | Promise<Record<string, Record<string, unknown>> | Array<Record<string, unknown>>>`
 </p>
 
 파일의 콘텐츠에서 컬렉션을 생성하는 콜백 함수입니다. 기본적으로 지원되지 않는 파일(예: `.csv`)을 처리하거나 [중첩된 `.json` 문서](/ko/guides/content-collections/#중첩된-json-문서)를 사용할 때 사용합니다.
