@@ -28,9 +28,9 @@ Astro provides two built-in loaders to help you fetch your collections. Both off
 
 The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, YAML, and TOML files.
 
-This loader accepts an object with the following properties: `pattern`, `base` (optional), and `generateId` (optional).
+This loader accepts an object with the following properties: `pattern`, `base` (optional), `generateId` (optional), and `retainBody` (optional).
 
-```ts title="src/content.config.ts" {2,6,11,17-21}
+```ts title="src/content.config.ts" {2,6,11,17-21, 27-31}
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
@@ -42,6 +42,16 @@ const pages = defineCollection({
 const blog = defineCollection({
   /* Retrieve all Markdown and MDX files in your blog directory. */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const notes = defineCollection({
+  /* Retrieve all Markdown files in your notes directory and prevent
+   * the raw body of content files from being stored in the data store. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/notes',
+    retainBody: false
+  }),
   schema: /* ... */
 });
 const authors = defineCollection({
@@ -90,6 +100,25 @@ A callback function that returns a unique string per entry in a collection. It a
 * `data` - the parsed, unvalidated data of the entry
 
 By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to generate a slug with [kebab-cased](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case) words.
+
+#### `retainBody`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+<Since v="5.17.0" />
+</p>
+
+Whether or not to store the raw body of content files in the data store.
+
+When `retainBody` is `false`, [`entry.body`](/en/reference/modules/astro-content/#body) will be `undefined` instead of containing the raw file contents.
+
+Setting this property to `false` significantly reduces the deployed size of the data store and helps avoid hitting size limits for sites with very large collections.
+
+For Markdown files, the rendered body will still be available in the [`entry.rendered.html` property](/en/reference/content-loader-reference/#rendered), and the [`entry.filePath` property](/en/reference/content-loader-reference/#filepath) will still point to the original file. 
+
+For MDX collections, this will dramatically reduce the size of the collection, as there will no longer be any body retained in the store.
 
 ### `file()` loader
 
@@ -143,7 +172,7 @@ An optional object with the following properties:
 
 <p>
 
-**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+**Type:** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>> | Promise<Record<string, Record<string, unknown>> | Array<Record<string, unknown>>>`
 </p>
 
 A callback function to create a collection from a file’s contents. Use it when you need to process file not supported by default (e.g. `.csv`) or when using [nested `.json` documents](/en/guides/content-collections/#nested-json-documents).
