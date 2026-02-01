@@ -28,9 +28,9 @@ Astro propose deux systèmes de chargement intégrés pour vous aider à récup�
 
 Le chargeur `glob()` crée des entrées à partir de répertoires de fichiers situés n'importe où sur le système de fichiers. Les types de fichiers supportés sont les fichiers Markdown, MDX, Markdoc, JSON, YAML et TOML.
 
-Ce chargeur accepte un objet avec les propriétés suivantes : `pattern`, `base` (optionnel), et `generateId` (optionnel).
+Ce chargeur accepte un objet avec les propriétés suivantes : `pattern`, `base` (optionnel), `generateId` (optionnel) et `retainBody` (optionnel).
 
-```ts title="src/content.config.ts" {2,6,11,17-21}
+```ts title="src/content.config.ts" {2,6,11,17-21, 27-31}
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
@@ -42,6 +42,16 @@ const pages = defineCollection({
 const blog = defineCollection({
   /* Récupère tous les fichiers Markdown et MDX dans le répertoire de votre blog. */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const notes = defineCollection({
+  /* Récupére tous les fichiers Markdown de votre répertoire de notes et empêche
+   * le stockage du contenu brut de ces fichiers dans le magasin de données. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/notes',
+    retainBody: false
+  }),
   schema: /* ... */
 });
 const authors = defineCollection({
@@ -90,6 +100,25 @@ Une fonction de rappel qui renvoie une chaîne de caractères unique pour chaque
 * `data` - les données analysées et non validées de l'entrée
 
 Par défaut, il utilise [`github-slugger`](https://github.com/Flet/github-slugger) pour générer un slug avec des mots au format [kebab-case](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case).
+
+#### `retainBody`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+<Since v="5.17.0" />
+</p>
+
+Détermine s'il faut ou non stocker le contenu brut des fichiers dans le magasin de données.
+
+Lorsque `retainBody` est défini sur `false`, [`entry.body`](/fr/reference/modules/astro-content/#body) sera `undefined` au lieu de contenir le contenu brut du fichier.
+
+Définir cette propriété sur `false` réduit considérablement la taille déployée du magasin de données et permet d'éviter d'atteindre les limites de taille pour les sites comportant de très grandes collections.
+
+Pour les fichiers Markdown, le contenu rendu sera toujours disponible dans la propriété [`entry.rendered.html`](/fr/reference/content-loader-reference/#rendered), et la propriété [`entry.filePath`](/fr/reference/content-loader-reference/#filepath) pointera toujours vers le fichier d'origine.
+
+Pour les collections MDX, cela réduira considérablement leur taille, puisqu'aucun contenu ne sera plus conservé en magasin.
 
 ### Le chargeur `file()`
 
@@ -143,7 +172,7 @@ Un objet optionnel avec les propriétés suivantes :
 
 <p>
 
-**Type :** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+**Type :** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>> | Promise<Record<string, Record<string, unknown>> | Array<Record<string, unknown>>>`
 </p>
 
 Une fonction de rappel pour créer une collection à partir du contenu d'un fichier. Utilisez-la lorsque vous avez besoin de traiter des fichiers non pris en charge par défaut (par exemple `.csv`) ou lorsque vous utilisez des [documents `.json` imbriqués](/fr/guides/content-collections/#documents-json-imbriqués).
