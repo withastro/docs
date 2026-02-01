@@ -14,6 +14,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 |:----------------------------|:-------------------------------------|:------------
 | asset                       | Asset                                | Wird nicht übersetzt (gängiger Domänenbegriff).
 | branch                      | der Branch                           | s.o.
+| breaking change             | inkompatible Änderung                |
 | build process               | Erzeugungs- / Erstellungsvorgang     | s.o.
 | build time                  | Erzeugungs- / Erstellungszeitpunkt   | s.o.
 | to build                    | erzeugen                             | Da die Alternativen „bauen“ oder gar „builden“ merkwürdig klingen, wird diese Übersetzung vermutlich so bleiben.
@@ -24,21 +25,28 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | CLI flag                    | die Kommandozeilen&shy;option        |
 | configuration option        | die Konfigurations&shy;option        | Wenn klar ist, dass es um die Konfiguration geht, kann auch nur „Option“ verwendet werden.
 | deployment provider         | der Hosting-Anbieter                 |
+| to deprecate                | Nutzung nicht mehr empfohlen         | _Feature X is deprecated_ → _Die Nutzung von Feature X ist nicht mehr empfohlen_
+| deprecation                 | die Abkündigung                      | alternativ paraphrasiert, basierend auf der Übersetzung von _to deprecate_ (s.o)
 | to deploy                   | veröffentlichen                      | Wir vermeiden „ausliefern“ aufgrund der Zweideutigkeit.
 | dev server                  | der Entwicklungsserver               |
 | dev toolbar                 | die Entwicklungs&shy;werkzeugleiste  |
 | directory                   | das Verzeichnis                      |
 | domain                      | die Domäne                           |
+| framework                   | das Framework                        | Wird nicht übersetzt (gängiger Domänenbegriff).
 | frontmatter                 | das Frontmatter                      | Wird nicht übersetzt (gängiger Domänenbegriff).
 | frontmatter prop(erty)      | die Frontmatter-Eigenschaft          |
 | frontmatter value           | der Frontmatter-Wert                 |
+| guide                       | die Anleitung                        |
 | to hydrate (an element)     | hydratisieren                        | Falsch hingegen wäre „hydrieren“.
 | island(s)                   | Island(s)                            | „Islands“ bleibt unübersetzt. „Astro“ wird davorgesetzt, um den Feature-Charakter zu betonen. Beim ersten Vorkommen: „(Insel(n))“ ergänzen zur Verständlichkeit.
+| to log                      | protokollieren                       |
+| the logging                 | die Protokollierung                  | Kann im Einzelfall auch mit „Logging“ übersetzt werden.
 | media query                 | Media Query                          | Wird nicht übersetzt (gängiger Domänenbegriff).
 | page                        | die Seite                            | Eine einzelne (HTML-)Seite. Wir vermeiden die längere Form „Webseite“, um Verwechslungen mit „Website“ zu vermeiden.
 | partial hydration           | die partielle Hydratation            | Falsch hingegen wäre „Hydrierung“.
 | project root (directory)    | das Projektstamm&shy;verzeichnis     | 
 | recipe                      | das Beispiel                         |
+| to release                  | veröffentlichen                      |
 | repository                  | das Repository                       | Wird nicht übersetzt (gängiger Domänenbegriff).
 | request                     | die Anfrage                          |
 | script                      | das Skript                           |
@@ -48,6 +56,7 @@ Diese Anleitung soll dazu beitragen, dass sich das Ergebnis beim Lesen trotz all
 | scoped style                | Scoped Style                         | Beim ersten Vorkommen sollte die deutsche Erklärung „(auf Komponenten begrenzte lokale CSS-Stile)“ dahinter ergänzt werden.
 | template                    | die Vorlage                          |
 | UI                          | die Benutzeroberfläche               |
+| to update/upgrade           | aktualisieren                        | als Substantiv „die Aktualisierung“
 | web                         | das Internet                         |
 
 ## Stilrichtlinien (Style Guide)
