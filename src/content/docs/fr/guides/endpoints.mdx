@@ -39,12 +39,12 @@ export async function GET({ params, request }) {
 }
 ```
 
-Vous pouvez également définir le type de vos fonctions de point de terminaison à l'aide du type `APIRoute` :
+Vous pouvez également obtenir la sûreté du typage dans vos fonctions de point de terminaison en utilisant le type `APIRoute` avec l'opérateur `satisfies` :
 
 ```ts
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = async ({ params, request }) => {...}
+export const GET = (async ({ params, request }) => { /* ... */ }) satisfies APIRoute;
 ```
 
 ### `params` et routage dynamique
@@ -56,7 +56,7 @@ import type { APIRoute } from "astro";
 
 const usernames = ["Sarah", "Chris", "Yan", "Elian"];
 
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   const id = params.id;
   
   return new Response(
@@ -64,7 +64,7 @@ export const GET: APIRoute = ({ params, request }) => {
       name: usernames[id],
     }),
   );
-};
+}) satisfies APIRoute;
 
 export function getStaticPaths() {
   return [
@@ -76,7 +76,7 @@ export function getStaticPaths() {
 }
 ```
 
-Cela va générer 4 points de terminaison JSON au moment de la compilaton : `/api/0.json`, `/api/1.json`, `/api/2.json` et `/api/3.json`. Le routage dynamique avec les points de terminaison fonctionne de la même manière qu'avec les pages, mais parce que le point de terminaison est une fonction et non un composant, les [props](/fr/reference/routing-reference/#transmission-de-données-avec-props) ne sont pas prises en charge.
+Cela va générer 4 points de terminaison JSON au moment de la compilaton : `/api/0.json`, `/api/1.json`, `/api/2.json` et `/api/3.json`. Le routage dynamique avec les points de terminaison fonctionne de la même manière qu'avec les pages. En mode statique, vous pouvez [transmettre des props au point de terminaison en utilisant `getStaticPaths()`](/fr/reference/routing-reference/#transmission-de-données-avec-props). Cependant, avec le rendu à la demande, étant donné que le point de terminaison est une fonction et non un composant, la transmission de props n'est pas prise en charge.
 
 ### `request`
 
@@ -85,13 +85,13 @@ Tous les points de terminaison reçoivent une propriété `request`, mais dans l
 ```ts title="src/pages/request-path.json.ts"
 import type { APIRoute } from "astro";
 
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
       path: new URL(request.url).pathname,
     }),
   );
-};
+}) satisfies APIRoute;
 ```
 
 ## Points de terminaison du serveur (Routes API)
@@ -157,37 +157,37 @@ En plus de la fonction `GET`, vous pouvez exporter une fonction avec le nom de n
 Vous pouvez également exporter une fonction `ALL` pour correspondre à n'importe quelle méthode qui n'a pas de fonction exportée correspondante. Si une requête ne correspond à aucune méthode, elle sera redirigée vers la [page 404](/fr/basics/astro-pages/#page-derreur-404-personnalisée) de votre site.
 
 ```ts title="src/pages/methods.json.ts"
-export const GET: APIRoute = ({ params, request }) => {
+export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
       message: "C'était un GET !",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const POST: APIRoute = ({ request }) => {
+export const POST = (({ request }) => {
   return new Response(
     JSON.stringify({
       message: "C'était un POST !",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const DELETE: APIRoute = ({ request }) => {
+export const DELETE = (({ request }) => {
   return new Response(
     JSON.stringify({
       message: "C'était un DELETE !",
     }),
   );
-};
+}) satisfies APIRoute;
 
-export const ALL: APIRoute = ({ request }) => {
+export const ALL = (({ request }) => {
   return new Response(
     JSON.stringify({
       message: `C'était un ${request.method} !`,
     }),
   );
-};
+}) satisfies APIRoute;
 ```
 
 Si vous définissez une fonction `GET` mais pas de fonction `HEAD`, Astro gérera automatiquement les requêtes `HEAD` en appelant la fonction `GET` et en supprimant le corps de la réponse.
@@ -199,7 +199,7 @@ Si vous définissez une fonction `GET` mais pas de fonction `HEAD`, Astro gérer
 En mode de rendu SSR, la propriété `request` renvoie un objet [`Request`](https://developer.mozilla.org/fr-FR/docs/Web/API/Request) entièrement utilisable qui fait référence à la requête en cours. Cela vous permet d'accepter des données et de vérifier les en-têtes :
 
 ```ts title="src/pages/test-post.json.ts"
-export const POST: APIRoute = async ({ request }) => {
+export const POST = (async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
     const name = body.name;
@@ -215,7 +215,7 @@ export const POST: APIRoute = async ({ request }) => {
   }
   
   return new Response(null, { status: 400 });
-};
+}) satisfies APIRoute;
 ```
 
 ### Redirections
