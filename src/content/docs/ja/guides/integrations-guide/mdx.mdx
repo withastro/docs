@@ -6,7 +6,7 @@ sidebar:
   label: MDX
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/mdx/'
 category: other
-i18nReady: false
+i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
@@ -98,11 +98,12 @@ MDXインテグレーションを追加すると、JSX変数、式、コンポ�
 
 ### コンテンツコレクションでMDXを使用する
 
-コンテンツコレクションにMDXファイルを含めるには、[コレクションローダー](/ja/guides/content-collections/)が`.mdx`ファイルからコンテンツをロードするように設定されていることを確認してください。
+コンテンツコレクションにMDXファイルを含めるには、[コレクションローダー](/ja/guides/content-collections/#defining-the-collection-loader)が`.mdx`ファイルからコンテンツをロードするように設定されていることを確認してください。
 
 ```js title="src/content.config.ts" ins="mdx"
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.{md,mdx}", base: "./src/blog" }),
@@ -185,36 +186,11 @@ Here is my counter component, working in MDX:
 <ReactCounter client:load />
 ```
 
-#### インポートされたMDXを使用したカスタムコンポーネント
-
-インポートされたMDXコンテンツをレンダリングする場合、[カスタムコンポーネント](#html要素へのカスタムコンポーネントの割り当て)を`components`プロップを介して渡すことができます。
-
-```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}"
----
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
----
-<!-- # 構文のカスタム<h1>を作成し、「かつ」`content.mdx`で定義されたカスタムコンポーネントを適用します -->
-<Content components={{...components, h1: Heading }} />
-```
-
-:::note
-MDXファイルで定義およびエクスポートされたカスタムコンポーネントは、インポートしてから`components`プロパティを介して`<Content />`コンポーネントに渡す必要があります。
-:::
-
 #### HTML要素へのカスタムコンポーネントの割り当て
 
-MDXを使用すると、Markdown構文を標準のHTML要素の代わりにカスタムコンポーネントにマッピングできます。これにより、標準のMarkdown構文で記述しながら、選択した要素に特別なコンポーネントスタイルを適用できます。
+MDXを使用すると、Markdown構文を標準のHTML要素の代わりにカスタムコンポーネントにマッピングできます。これにより、標準のMarkdown構文で記述しながら、特定の要素に特別なコンポーネントスタイルを適用できます。
 
-カスタムコンポーネントを`.mdx`ファイルにインポートし、標準のHTML要素をカスタムコンポーネントにマッピングする`components`オブジェクトをエクスポートします。
-
-```mdx title="src/blog/posts/post-1.mdx"
-import Blockquote from '../components/Blockquote.astro';
-export const components = {blockquote: Blockquote}
-
-> この引用はカスタムのBlockquoteになります
-```
-
+たとえば、 `<blockquote>` コンテンツにカスタムのスタイルを適用するための`Blockquote.astro`コンポーネントを作成できます。
 
 ```astro title="src/components/Blockquote.astro"
 ---
@@ -225,7 +201,52 @@ const props = Astro.props;
   <slot /> <!-- 子コンテンツには必ず`<slot/>`を追加してください！ -->
 </blockquote>
 ```
+
+カスタムコンポーネントを`.mdx`ファイルにインポートし、標準のHTML要素をカスタムコンポーネントにマッピングする`components`オブジェクトをエクスポートします。
+
+```mdx title="src/blog/posts/post-1.mdx"
+import Blockquote from '../components/Blockquote.astro';
+export const components = {blockquote: Blockquote}
+
+> この引用はカスタムのBlockquoteになります
+```
+
 カスタムコンポーネントとして上書きできるHTML要素の完全なリストについては、[MDXのウェブサイト](https://mdxjs.com/table-of-components/)を参照してください。
+
+:::note
+MDXファイル内で定義およびエクスポートされたカスタムコンポーネントは、常にインポートしてから 、`components`プロパティを介して`<Content />`コンポーネントに渡す必要があります。
+:::
+
+#### `components`をMDXコンテンツに渡す
+
+コンテンツコレクションによるMDXエントリなど、インポートしたMDXコンテンツを`<Content />`コンポーネントでレンダリングする場合`components`propsを介してカスタムコンポーネントを渡すことができます。これらのコンポーネントは、`<Content />`コンポーネントで使用できるようにするために、まずインポートする必要があります。
+
+`components`オブジェクトは、HTML要素名(`h1`、`h2`、`blockquote`など)をカスタムコンポーネントにマッピングします。また、スプレッド演算子(`...`)を使用して、[MDXファイル自体からエクスポートされたすべてのコンポーネント](#html要素へのカスタムコンポーネントの割り当て)を含めることもできます。これらはMDXファイルから`components`としてインポートする必要があります。
+
+Astroコンポーネントで使用するために単一ファイルから直接MDXをインポートする場合は、MDXファイルから`Content`コンポーネントとエクスポートされたコンポーネントの両方をインポートしてください。
+
+```astro title="src/pages/page.astro" "components={{...components, h1: Heading }}" {2}
+---
+import { Content, components } from '../content.mdx';
+import Heading from '../Heading.astro';
+---
+<!-- #構文用のカスタム<h1>を作成し、`content.mdx`で定義されたカスタムコンポーネントを適用します。 -->  
+<Content components={{...components, h1: Heading }} />
+```
+
+MDXファイルがコンテンツコレクションのエントリである場合は、`astro:content`の`render()`関数を使用して`<Content />`コンポーネントにアクセスします。
+
+次の例では、すべての`<h1>`HTML要素の代わりに使用されるカスタム見出しを、`components`propsを介し`<Content />`コンポーネントに渡しています。
+
+```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
+---
+import { getEntry, render } from 'astro:content';
+import CustomHeading from '../../components/CustomHeading.astro';
+const entry = await getEntry('blog', 'post-1');
+const { Content } = await render(entry);
+---
+<Content components={{ h1: CustomHeading }} />
+```
 
 ## 設定
 
@@ -271,8 +292,12 @@ MDXは、remarkおよびrehypeプラグインを文字列として渡すこと�
 
 ### `extendMarkdownConfig`
 
-* **Type:** `boolean`
-* **Default:** `true`
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`<br />
+<Since v="0.15.0" pkg="@astrojs/mdx" />
+</p>
 
 MDXは、デフォルトで[プロジェクトの既存のMarkdown設定](/ja/reference/configuration-reference/#markdown-options)を拡張します。個々のオプションを上書きするには、MDX設定で同等のオプションを指定します。
 
@@ -326,13 +351,25 @@ export default defineConfig({
 
 ### `recmaPlugins`
 
+<p>
+
+**Type:** `PluggableList`<br />
+**Default:** `[]`<br />
+<Since v="0.11.5" pkg="@astrojs/mdx" />
+</p>
+
 これらは、出力[estree](https://github.com/estree/estree)を直接変更するプラグインです。これは、MDXファイルでJavaScript変数を変更または挿入する場合に便利です。
 
 [AST Explorer](https://astexplorer.net/)を使用してestree出力を試したり、[`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/)を使用してJavaScriptノードを検索したりすることをお勧めします。
 
 ### `optimize`
 
-* **Type:** `boolean | { ignoreElementNames?: string[] }`
+<p>
+
+**Type:** `boolean | { ignoreElementNames?: string[] }`<br />
+**Default:** `false`<br />
+<Since v="0.19.5" pkg="@astrojs/mdx" />
+</p>
 
 これは、内部rehypeプラグインを介してビルドとレンダリングを高速化するためにMDX出力を最適化するためのオプションの設定です。これは、多くのMDXファイルがあり、ビルドが遅い場合に役立つ場合があります。ただし、このオプションはエスケープされていないHTMLを生成する可能性があるため、有効にした後もサイトのインタラクティブな部分が正しく機能することを確認してください。
 
@@ -354,12 +391,15 @@ export default defineConfig({
 
 #### `ignoreElementNames`
 
-* **Type:** `string[]`
+<p>
 
-<p><Since pkg="@astrojs/mdx" v="3.0.0" /></p>
+**Type:** `string[]`<br />
+<Since v="3.0.0" pkg="@astrojs/mdx" />
+</p>
+
 以前は`customComponentNames`として知られていました。
 
-`optimize`のオプションプロパティで、MDXオプティマイザが特定の要素名を処理しないようにします。たとえば、[componentsプロップを介してインポートされたMDXコンテンツに渡されるカスタムコンポーネント](/ja/guides/integrations-guide/mdx/#インポートされたmdxを使用したカスタムコンポーネント)などです。
+`optimize`のオプションプロパティで、MDXオプティマイザが特定の要素名を処理しないようにします。たとえば、[components propsを介してインポートされたMDXコンテンツに渡されるカスタムコンポーネント](/ja/guides/integrations-guide/mdx/#componentsをmdxコンテンツに渡す)などです。
 
 オプティマイザはコンテンツを静的文字列に積極的に変換するため、動的にレンダリングする必要があるカスタムコンポーネントが壊れてしまうため、これらのコンポーネントを最適化から除外する必要があります。
 
