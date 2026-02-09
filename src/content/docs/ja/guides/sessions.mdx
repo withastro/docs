@@ -1,0 +1,160 @@
+---
+title: セッション
+description: オンデマンドレンダリングされるページ間でデータを共有する。
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+セッションは、[オンデマンドレンダリングされるページ](/ja/guides/on-demand-rendering/)間でリクエストをまたいでデータを共有するために使用します。
+
+[`cookies`](/ja/guides/on-demand-rendering/#クッキー)とは異なり、セッションはサーバーに保存されるため、サイズ制限やセキュリティの問題を気にすることなく大量のデータを保存できます。ユーザーデータ、ショッピングカート、フォームの状態などの保存に便利で、クライアントサイドのJavaScriptなしで動作します。
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // 'server' outputでは不要
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+## セッションの設定
+
+セッションを使うには、セッションデータを保存するためのストレージドライバーが必要です。[Node](/ja/guides/integrations-guide/node/#セッション)、[Cloudflare](/ja/guides/integrations-guide/cloudflare/#sessions)、[Netlify](/ja/guides/integrations-guide/netlify/#セッション)のアダプターはデフォルトのドライバーを自動的に設定しますが、その他のアダプターでは現在[ドライバーを手動で指定](/ja/reference/configuration-reference/#sessiondriver)する必要があります。
+
+```js title="astro.config.mjs" ins={4}
+  {
+    adapter: vercel(),
+    session: {
+      driver: "redis",
+    },
+  }
+```
+
+<ReadMore>
+  ストレージドライバーの設定やその他の設定可能なオプションの詳細については、[`session`設定オプション](/ja/reference/configuration-reference/#session-options)を参照してください。
+</ReadMore>
+
+
+## セッションデータの操作
+
+[`session`オブジェクト](/ja/reference/api-reference/#session)を使用すれば、保存されたユーザー状態の操作（例: ショッピングカートへのアイテム追加）やセッションIDの操作（例: ログアウト時のセッションIDクッキーの削除）が可能です。このオブジェクトは、Astroコンポーネントやページでは`Astro.session`から、APIエンドポイント、ミドルウェア、アクションでは`context.session`からアクセスできます。
+
+セッションは初回使用時に自動的に生成され、[`session.regenerate()`](/ja/reference/api-reference/#regenerate)でいつでも再生成したり、[`session.destroy()`](/ja/reference/api-reference/#destroy)で破棄したりできます。
+
+多くのユースケースでは、[`session.get()`](/ja/reference/api-reference/#get)と[`session.set()`](/ja/reference/api-reference/#set)のみで十分です。
+
+<ReadMore>
+詳細については、[セッションAPIリファレンス](/ja/reference/api-reference/#session)を参照してください。
+</ReadMore>
+
+### Astroコンポーネントとページ
+
+`.astro`コンポーネントやページでは、グローバルな`Astro`オブジェクトを通じてセッションオブジェクトにアクセスできます。たとえば、ショッピングカート内のアイテム数を表示するには次のようにします。
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // 'server' outputでは不要
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### APIエンドポイント
+
+APIエンドポイントでは、`context`オブジェクトからセッションオブジェクトにアクセスできます。たとえば、ショッピングカートにアイテムを追加するには次のようにします。
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+	const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### アクション
+
+アクションでは、`context`オブジェクトからセッションオブジェクトにアクセスできます。たとえば、ショッピングカートにアイテムを追加するには次のようにします。
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### ミドルウェア
+
+:::note
+エッジミドルウェアではセッションはサポートされていません。
+:::
+
+ミドルウェアでは、`context`オブジェクトからセッションオブジェクトにアクセスできます。たとえば、セッションに最終訪問日時を設定するには次のようにします。
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## セッションデータの型
+
+デフォルトではセッションデータには型がなく、任意のキーに任意のデータを保存できます。値は[devalue](https://github.com/Rich-Harris/devalue)を使用してシリアライズ・デシリアライズされます。これはコンテンツコレクションやアクションで使用されているのと同じライブラリです。そのため、サポートされる型も同じで、文字列、数値、`Date`、`Map`、`Set`、`URL`、配列、プレーンなオブジェクトが含まれます。
+
+`src/env.d.ts`ファイルを作成し、`App.SessionData`型の宣言を追加することで、セッションデータの[TypeScript型を定義](/ja/guides/typescript/#extending-global-types)することもできます。
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+これにより、エディターで型チェックと自動補完を使ってセッションデータにアクセスできるようになります。
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+これは型チェックにのみ使用され、セッションのランタイムの動作には影響しません。ユーザーがセッションにデータを保存した状態で型を変更すると、ランタイムエラーが発生する可能性があるため、十分に注意してください。
+:::
