@@ -294,6 +294,54 @@ export default function createIntegration() {
 }
 ```
 
+
+## Custom prerenderer
+
+<p><Since v="6.0.0" /></p>
+
+Adapters can provide a custom prerenderer to control how pages are prerendered by using the [`setPrerenderer()`](/en/reference/integrations-reference/#setprerenderer-option) function in the `astro:build:start` hook.
+
+The following example shows how an adapter can set a custom prerenderer:
+
+```js title="my-adapter.mjs"
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:build:start': ({ setPrerenderer }) => {
+        setPrerenderer((defaultPrerenderer) => ({
+          name: 'my-prerenderer',
+          async setup() {
+            // Start a preview server
+          },
+          async getStaticPaths() {
+            // Returns array of { pathname: string, route: RouteData }
+            return defaultPrerenderer.getStaticPaths();
+          },
+          async render(request, { routeData }) {
+            // request: Request, options: { routeData: RouteData }
+            // Custom rendering logic, e.g. make HTTP requests to a preview server
+            const response = await fetch(`http://localhost:4321${new URL(request.url).pathname}`);
+            return response;
+          },
+          async teardown() {
+            // Stop the preview server
+          }
+        }));
+      },
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+        });
+      },
+    },
+  };
+}
+```
+
+The factory function receives the default prerenderer, allowing you to wrap or extend its behavior. This is useful when you only need to customize specific aspects of prerendering.
+
 ## Building a server entrypoint
 
 You will need to create a file that executes during server-side requests to enable on-demand rendering with your particular host. Astro's adapter API attempts to work with any type of host and gives a flexible way to conform to the host APIs.
