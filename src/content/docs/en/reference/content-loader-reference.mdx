@@ -34,7 +34,7 @@ For simple data fetching, you can also [define a loader as an async function](#d
 
 The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, YAML, and TOML files.
 
-This loader accepts an object with the following properties: `pattern`, `base` (optional), and `generateId` (optional).
+This loader accepts an object with the following properties: `pattern`, `base` (optional), `generateId` (optional), and `retainBody` (optional).
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -47,6 +47,16 @@ const pages = defineCollection({
 const blog = defineCollection({
   /* Retrieve all Markdown and MDX files in your blog directory. */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+});
+const notes = defineCollection({
+  /* Retrieve all Markdown files in your notes directory and prevent
+   * the raw body of content files from being stored in the data store. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/notes',
+    retainBody: false
+  }),
+  schema: /* ... */
 });
 const authors = defineCollection({
   /* Retrieve all JSON files in your authors directory while retaining
@@ -96,6 +106,25 @@ A callback function that returns a unique string per entry in a collection. It a
 
 By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to generate a slug with [kebab-cased](https://developer.mozilla.org/en-US/docs/Glossary/Kebab_case) words.
 
+#### `retainBody`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+<Since v="5.17.0" />
+</p>
+
+Whether or not to store the raw body of content files in the data store.
+
+When `retainBody` is `false`, [`entry.body`](/en/reference/modules/astro-content/#body) will be `undefined` instead of containing the raw file contents.
+
+Setting this property to `false` significantly reduces the deployed size of the data store and helps avoid hitting size limits for sites with very large collections.
+
+For Markdown files, the rendered body will still be available in the [`entry.rendered.html` property](#renderedhtml), and the [`entry.filePath` property](#filepath) will still point to the original file. 
+
+For MDX collections, this will dramatically reduce the size of the collection, as there will no longer be any body retained in the store.
+
 ### `file()` loader
 
 <p>
@@ -106,7 +135,7 @@ By default it uses [`github-slugger`](https://github.com/Flet/github-slugger) to
 
 The `file()` loader creates entries from a single file that contains an array of objects with a unique `id` field, or an object with IDs as keys and entries as values.
 
-It supports JSON, YAML, or TOML files and you can provide a custom `parser` for data files it cannot parse by default.
+It supports JSON, YAML, or TOML files and you can provide a custom `parser` for data files it cannot parse by default, or to parse data asynchronously.
 
 This loader accepts a `fileName` property and an optional options object as second argument:
 
@@ -868,7 +897,7 @@ export function feedLoader({ url }) {
 
 <p>
 
-**Type**: `(markdown: string) => Promise<RenderedContent>`
+**Type**: `(content: string, options?: { fileURL?: URL }) => Promise<RenderedContent>`
 <Since v="5.9.0" />
 </p>
 
@@ -876,7 +905,7 @@ Renders a Markdown string to HTML, returning a `RenderedContent` object.
 
 This allows you to render Markdown content directly within your loaders using the same Markdown processing as Astro's built-in `glob()` loader and provides access to the `render()` function and `<Content />` component for [rendering body content](/en/guides/content-collections/#rendering-body-content).
 
-Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content).
+Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content). If the Markdown content includes frontmatter, it will be parsed and available in `metadata.frontmatter`. The frontmatter will be excluded from the HTML output.
 
 ```ts title=loader.ts {16-17}
 import type { Loader } from 'astro/loaders';
@@ -900,6 +929,31 @@ export function myLoader(settings) {
       }
     },
   } satisfies Loader;
+}
+```
+
+##### `fileURL`
+
+<p>
+
+**Type**: `URL`
+<Since v="6.0.0" />
+</p>
+
+Specifies the file path to use for resolving relative image paths in Markdown content.
+
+The following example uses the [configured root directory](/en/reference/configuration-reference/#root) to resolve image paths:
+
+```ts title=loader.ts {7}
+for (const file of files) {
+  const content = await readFile(file.path, 'utf8');
+  store.set({
+    id: file.id,
+    data: file.data,
+    rendered: await renderMarkdown(content, {
+      fileURL: new URL(file.path, config.root),
+    }),
+  });
 }
 ```
 
@@ -1185,26 +1239,52 @@ Stores an object with an entry's rendered content and metadata if it has been re
 
 If this field is provided, then [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) are available to render the entry in a page.
 
-The format of the `RenderedContent` object is:
-
-```ts
-{
-	/** Rendered HTML string. If present then `render(entry)` will return a component that renders this HTML. */
-	html: string;
-	metadata?: {
-		/** Any images that are present in this entry. Relative to the DataEntry filePath. */
-		imagePaths?: Array<string>;
-		/** Any headings that are present in this file. Returned as `headings` from `render()` */
-		headings?: MarkdownHeading[];
-		/** Raw frontmatter, parsed from the file. This may include data from remark plugins. */
-		frontmatter?: Record<string, any>;
-		/** Any other metadata that is present in this file. */
-		[key: string]: unknown;
-	};
-}
-```
-
 If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
+
+##### `rendered.html`
+
+<p>
+
+**Type**: `string`
+</p>
+
+Contains the rendered HTML string. This is used by [`render()`](/en/reference/modules/astro-content/#render) to return a component that renders this HTML.
+
+##### `rendered.metadata`
+
+<p>
+
+**Type**: `object | undefined`
+</p>
+
+Describes the metadata present in this file. This includes the `imagePaths`, the `headings`, the `frontmatter`, and any other metadata present in the file. When the file has not been rendered as HTML, this value will be `undefined`.
+
+###### `rendered.metadata.imagePaths`
+
+<p>
+
+**Type**: `string[]`
+</p>
+
+Specifies the list of images paths present in this entry. Each path is relative to the [entry `filePath`](#filepath).
+
+###### `rendered.metadata.headings`
+
+<p>
+
+**Type**: `MarkdownHeading[]`
+</p>
+
+Specifies the list of headings present in this file. Each heading is described by a `depth` determined by the heading level (`h1 -> h6`), a `slug` generated with [`github-slugger`](https://github.com/Flet/github-slugger), and its `text` content.
+
+###### `rendered.metadata.frontmatter`
+
+<p>
+
+**Type**: `Record<string, any>`
+</p>
+
+Describes the raw frontmatter, parsed from the file. This may include [programmatically injected data from remark plugins](/en/guides/markdown-content/#modifying-frontmatter-programmatically).
 
 ## Live loader API
 

@@ -566,10 +566,10 @@ If you were using a custom `workerEntryPoint` configuration in the adapter optio
     }
     ```
 
-3. Update your custom worker entry file to use standard Worker syntax. Import the handler from `@astrojs/cloudflare/entrypoints/server` and export a standard Cloudflare Worker object, alongside any custom exports like Durable Objects:
+3. Update your custom worker entry file to use standard Worker syntax. Import the handler from `@astrojs/cloudflare/handler` and export a standard Cloudflare Worker object, alongside any custom exports like Durable Objects:
 
     ```ts title="src/worker.ts"
-    import handler from '@astrojs/cloudflare/entrypoints/server';
+    import { handle } from '@astrojs/cloudflare/handler';
     import { DurableObject } from 'cloudflare:workers';
 
     export class MyDurableObject extends DurableObject<Env> {
@@ -579,7 +579,7 @@ If you were using a custom `workerEntryPoint` configuration in the adapter optio
     export default {
       async fetch(request, env, ctx) {
         await env.MY_QUEUE.send('log');
-        return handler.fetch(request, env, ctx);
+        return handle(request, env, ctx);
       },
       async queue(batch, _env) {
         let messages = JSON.stringify(batch.messages);
@@ -590,6 +590,23 @@ If you were using a custom `workerEntryPoint` configuration in the adapter optio
 </Steps>
 
 The manifest is now created internally by the adapter, so it does not need to be passed to your handler.
+
+### Removed: `cloudflareModules` option
+
+The `cloudflareModules` adapter option has been removed because it is no longer necessary. Cloudflare natively supports importing `.sql`, `.wasm`, and other module types.
+
+Remove the `cloudflareModules` option from your Cloudflare adapter configuration if you were using it:
+
+```ts title="astro.config.mjs" del={5}
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    cloudflareModules: true
+  })
+});
+```
+
 
 ### New: `astro preview` support
 

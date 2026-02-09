@@ -126,6 +126,7 @@ export const sidebar = [
 					'reference/modules/astro-env',
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
+					'reference/modules/astro-static-paths',
 					'reference/modules/astro-transitions',
 					'reference/modules/astro-zod',
 				],
@@ -138,6 +139,7 @@ export const sidebar = [
 					'reference/image-service-reference',
 					'reference/dev-toolbar-app-reference',
 					'reference/session-driver-reference',
+					'reference/font-provider-reference',
 					'reference/container-reference',
 					'reference/programmatic-reference',
 				],
@@ -145,7 +147,6 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
-					'reference/experimental-flags/fonts',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
