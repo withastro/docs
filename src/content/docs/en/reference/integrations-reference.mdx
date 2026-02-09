@@ -4,6 +4,7 @@ sidebar:
   label: Integration API
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro'
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code.
@@ -69,6 +70,7 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:start'?: (options: {
       logger: AstroIntegrationLogger;
+      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
     }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: vite.InlineConfig;
@@ -903,8 +905,46 @@ The address, family and port number supplied by the [`server.address()` method o
 ```js
 'astro:build:start'?: (options: {
   logger: AstroIntegrationLogger;
+  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
 }) => void | Promise<void>;
 ```
+
+
+#### `setPrerenderer()` option
+
+<p>
+
+**Type:** <code>(prerenderer: <a href="#astroprerenderer">AstroPrerenderer</a> | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void</code><br />
+<Since v="6.0.0" />
+</p>
+
+A callback function to set a custom prerenderer for the build. This allows adapters to provide their own prerendering logic.
+
+The function accepts either an [`AstroPrerenderer` object](#astroprerenderer) directly, or a factory function that receives the default prerenderer and returns a custom one. This is useful when you want to wrap or extend the default behavior.
+
+```js
+'astro:build:start': ({ setPrerenderer }) => {
+  setPrerenderer((defaultPrerenderer) => ({
+    name: 'my-prerenderer',
+    async setup() {
+      // Optional: called once before prerendering starts
+    },
+    async getStaticPaths() {
+      // Returns array of { pathname: string, route: RouteData }
+      return defaultPrerenderer.getStaticPaths();
+    },
+    async render(request, { routeData }) {
+      // request: Request, options: { routeData: RouteData }
+      // Returns: Response
+    },
+    async teardown() {
+      // Optional: called after all pages are prerendered
+    }
+  }));
+}
+```
+
+<ReadMore>See the [adapter reference](/en/reference/adapter-reference/#custom-prerenderer) for more details on implementing a custom prerenderer.</ReadMore>
 
 ### `astro:build:setup`
 
@@ -1344,6 +1384,7 @@ import type {
   AstroIntegrationLogger,
   AstroIntegrationMiddleware,
   AstroMiddlewareInstance,
+  AstroPrerenderer,
   AstroRenderer,
   ClientDirectiveConfig,
   HookParameters,
@@ -1458,6 +1499,61 @@ Defines the import path of the middleware.
 </p>
 
 An object containing an [`onRequest()`](/en/reference/modules/astro-middleware/#onrequest) property defined with the project's middleware function when it exists.
+
+### `AstroPrerenderer`
+
+<p>
+
+**Type:** `string`<br />
+<Since v="6.0.0" />
+</p>
+
+Describes a [custom prerender](/en/reference/adapter-reference/#custom-prerenderer) that adapters can provide to control page prerendering.
+
+#### `AstroPrerenderer.name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Specifies a unique name for the prerender.
+
+#### `AstroPrerenderer.setup()`
+
+<p>
+
+**Type:** `() => Promise<void>`
+</p>
+
+Defines an optional method that will be called once before the prerendering starts. This is useful for starting a preview server.
+
+#### `AstroPrerenderer.getStaticPaths()`
+
+<p>
+
+**Type:** <code>() => Promise\<Array\<\{ pathname: string; route: <a href="#routedata">RouteData</a>; \}\>\></code>
+</p>
+
+Returns a list of objects describing the prerendered route path and its associated data.
+
+#### `AstroPrerenderer.render()`
+
+<p>
+
+**Type:** <code>(request: Request, options: \{ routeData: <a href="#routedata">RouteData</a> \}) => Promise\<Response\></code>
+</p>
+
+Defines an optional method describing how to render a page. This will be called by Astro for each path returned by [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths).
+
+#### `AstroPrerenderer.teardown()`
+
+<p>
+
+**Type:** `() => Promise<void>`
+</p>
+
+Defines an optional method called once all pages are pre-rendered. This is useful for performing cleanup tasks such as stopping a preview server.
 
 ### `AstroRenderer`
 
@@ -2404,7 +2500,7 @@ Describes the [Content Security Policy configuration](/en/reference/configuratio
 **Type:** `'adapter' | 'meta' | 'header' | undefined`
 </p>
 
-Specifies whether CSP directives should be injected as a `meta` element, as a response `header`, or by the [`adapter` when it supports setting response headers](/en/reference/adapter-reference/#experimentalstaticheaders).
+Specifies whether CSP directives should be injected as a `meta` element, as a response `header`, or by the [`adapter` when it supports setting response headers](/en/reference/adapter-reference/#staticheaders).
 
 ##### `SSRManifest.csp.algorithm`
 
