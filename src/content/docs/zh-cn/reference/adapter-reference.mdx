@@ -4,6 +4,7 @@ sidebar:
   label: 适配器 API
 ---
 
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 import { FileTree } from '@astrojs/starlight/components';
 
@@ -11,18 +12,18 @@ Astro 可以轻松部署到任何云托管平台，以实现按需渲染，也�
 
 ## 什么是适配器？
 
-适配器是一种特殊类型的[集成](/zh-cn/reference/integrations-reference/)，它为请求时的服务器渲染提供了入口。适配器包含两项主要功能：
+适配器是一种特殊类型的[集成](/zh-cn/reference/integrations-reference/)，它为请求时的服务器渲染提供了入口。适配器可以访问完整的集成 API，并执行两项操作：
 
 - 实现托管平台的 API，以处理请求。
 - 根据托管平台的约定配置构建过程。
 
 ## 构建适配器
 
-由于适配器是一种[集成](/zh-cn/reference/integrations-reference/)，因此它拥有集成提供的全部能力。
+创建一个集成并在 [`astro:config:done`](/zh-cn/reference/integrations-reference/#astroconfigdone) 钩子中调用 `setAdapter()` 函数。这允许你定义服务器入口点以及适配器支持的功能。
 
-__必须__ 通过在 `astro:config:done` 钩子中调用 `setAdapter` API 来使用适配器，例如：
+以下示例创建了一个具有服务器入口点并对 Astro 静态输出提供稳定支持的适配器：
 
-```js title="my-adapter.mjs"
+```js title="my-adapter.mjs" {5-13} "setAdapter"
 export default function createIntegration() {
   return {
     name: '@example/my-adapter',
@@ -32,7 +33,7 @@ export default function createIntegration() {
           name: '@example/my-adapter',
           serverEntrypoint: '@example/my-adapter/server.js',
           supportedAstroFeatures: {
-              staticOutput: 'stable'
+            staticOutput: 'stable'
           }
         });
       },
@@ -41,94 +42,227 @@ export default function createIntegration() {
 }
 ```
 
-`setAdapter` 的传入参数定义如下：
+`setAdapter()` 函数接受一个包含以下属性的对象：
 
-```ts
-interface AstroAdapter {
-	name: string;
-	serverEntrypoint?: string;
-	previewEntrypoint?: string;
-	exports?: string[];
-	args?: any;
-	adapterFeatures: AstroAdapterFeaturesMap;
-	supportedAstroFeatures?: AstroFeatureMap;
-}
+### `name`
 
-export interface AstroAdapterFeatures {
-	/**
-   * 创建一个与 Astro 中间件通信的边缘函数
-	 */
-	edgeMiddleware: boolean;
-  /**
-   * 确定适配器的构建输出类型。默认为 `server`。
-	 */
-	buildOutput?: 'static' | 'server';
-}
+<p>
 
-export type AdapterSupportsKind = 'unsupported' | 'stable' | 'experimental' | 'deprecated' | 'limited';
+**类型：** `string`
+</p>
 
-export type AdapterSupportWithMessage = {
-	support: Exclude<AdapterSupportsKind, 'stable'>;
-	message: string;
-  suppress?: 'default' | 'all';
-};
+为你的适配器定义一个唯一的名称。这将用于日志记录。
 
-export type AdapterSupport = AdapterSupportsKind | AdapterSupportWithMessage;
+### `serverEntrypoint`
 
-export type AstroAdapterFeatureMap = {
-  /**
-   * 适配器对静态页面的支持
-  */
-  staticOutput?: AdapterSupport;
-  /**
-   * 适配器对静态页面或通过服务器渲染的页面的支持
-   */
-  hybridOutput?: AdapterSupport;
-  /**
-   * 适配器对按需渲染的支持
-   */
-  serverOutput?: AdapterSupport;
-  /**
-   * 适配器对 i18n 域名的支持
-	 */
-	i18nDomains?: AdapterSupport;
-	/**
-   * 适配器对 `astro:env/server` 导出的 `getSecret` 的支持
-	 */
-	envGetSecret?: AdapterSupport;
-  /**
-   * 适配器对 Sharp 图像服务的支持
-   */
-  sharpImageService?: AdapterSupport;
-};
+<p>
 
-```
+**类型：** `string | URL`
+</p>
 
-这些属性分别是：
+定义按需渲染的入口点。
 
-* __name__：适配器的唯一名称，用于日志记录。
-* __serverEntrypoint__：按需服务器渲染的入口。
-* __exports__：导出数组，与 `createExports` 配套使用（在下文中说明）。
-* __adapterFeatures__：一个对象，用于启用适配器必须支持的特定功能。这些功能将改变构建输出，适配器必须实现适当的逻辑来处理不同的输出。
-* __supportedAstroFeatures__：Astro 内置功能的映射。这允许 Astro 确定适配器无法或不愿意支持的功能，以便提供适当的错误消息。
+<ReadMore>了解更多关于 [构建服务器入口点](#构建服务器入口点) 的信息。</ReadMore>
 
-### 服务端入口
+### `supportedAstroFeatures`
 
-Astro 的适配器 API 尝试适配多种类型的托管方，并提供了灵活的配置方式。
+<p>
 
-#### Exports
+**类型：** `AstroAdapterFeatureMap`<br />
+<Since v="3.0.0" />
+</p>
 
-一些无服务架构的托管方会希望你导出一个 `handler` 函数：
+适配器所支持的 Astro 内置功能映射表。这使得 Astro 能够确定适配器支持哪些功能，从而提供相应的错误消息。
 
-```js
-export function handler(event, context) {
-  // ...
+<ReadMore>了解更多关于 [可用的 Astro 特性](#astro-特性) 的信息。</ReadMore>
+
+### `adapterFeatures`
+
+<p>
+
+**类型：** `AstroAdapterFeatures`<br />
+<Since v="3.0.0" />
+</p>
+
+一个对象，用于指定适配器支持哪些 [会改变构建输出的适配器特性](#适配器特性)。
+
+### `args`
+
+<p>
+
+**类型：** `any`
+</p>
+
+一个 JSON 可序列化的值，将在运行时传递给适配器的服务器入口点。这对于将包含构建时配置（例如路径、密钥）的对象传递给服务器运行时代码非常有用。
+
+以下示例定义了一个 `args` 对象，其中包含一个属性，用于标识 Astro 生成的资源所在的位置：
+
+
+```js title="my-adapter.mjs" {9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          args: {
+            assets: config.build.assets
+          }
+        });
+      },
+    },
+  };
 }
 ```
 
-在适配器 API 中，你可以在 `serverEntrypoint` 中实现 `createExports` 方法：
+### `client`
 
-```js
+<p>
+
+**类型：** `{ internalFetchHeaders?: Record<string, string> | () => Record<string, string>; assetQueryParams?: URLSearchParams; }`<br />
+<Since v="5.15.0" />
+</p>
+
+Astro 客户端代码的配置对象。
+
+#### `internalFetchHeaders`
+
+<p>
+
+**类型：** `Record<string, string> | () => Record<string, string>`
+</p>
+
+定义要注入到 Astro 内部 fetch 调用中的请求头（例如 Actions、View Transitions、Server Islands、Prefetch）。这可以是一个 headers 对象或一个返回 headers 的函数。
+
+以下示例从环境变量中检索 `DEPLOY_ID`，如果提供了该变量，则返回一个对象，其中 header 名称作为键，部署 ID 作为值：
+
+```js title="my-adapter.mjs" {9-14}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          client: {
+            internalFetchHeaders: () => {
+              const deployId = process.env.DEPLOY_ID;
+              return deployId ? { 'Your-Header-ID': deployId } : {};
+            },
+          },
+        });
+      },
+    },
+  };
+}
+```
+
+#### `assetQueryParams`
+
+<p>
+
+**类型：** `URLSearchParams`
+</p>
+
+定义要追加到所有资源 URL （例如图片、样式表、脚本）的查询参数。这对于需要跟踪部署版本或其他元数据的适配器非常有用。
+
+以下示例从环境变量中检索 `DEPLOY_ID`，如果提供了该变量，则返回一个对象，其中自定义搜索参数名称作为键，部署 ID 作为值：
+
+```js title="my-adapter.mjs" {9-13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          client: {
+            assetQueryParams: process.env.DEPLOY_ID
+              ? new URLSearchParams({ yourParam: process.env.DEPLOY_ID })
+              : undefined,
+          },
+        });
+      },
+    },
+  };
+}
+```
+
+### `exports`
+
+<p>
+
+**类型：** `string[]`
+</p>
+
+定义一个命名导出数组，与服务器入口点的 [`createExports()` 函数](#createexports) 配合使用。
+
+以下示例假设 `createExports()` 提供了一个名为 `handler` 的导出：
+
+```js title="my-adapter.mjs" {9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          exports: ['handler']
+        });
+      },
+    },
+  };
+}
+```
+
+### `previewEntrypoint`
+
+<p>
+
+**类型：** `string | URL`<br />
+<Since v="1.5.0" />
+</p>
+
+定义适配器包中负责在运行 `astro preview` 时启动已构建服务器的模块的路径或 ID。
+
+```js title="my-adapter.mjs" {9}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ config, setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          previewEntrypoint: '@example/my-adapter/preview.js',
+        });
+      },
+    },
+  };
+}
+```
+
+## 构建服务器入口点
+
+你需要创建一个在服务端请求期间执行的文件，以便为特定的托管平台启用按需渲染。Astro 的适配器 API 旨在与任何类型的托管平台协同工作，并提供了一种灵活的方式来符合托管平台的 API。
+
+### `createExports()`
+
+<p>
+
+**类型：** <code>(manifest: <a href="/zh-cn/reference/integrations-reference/#ssrmanifest">SSRManifest</a>, options: any) => Record\<string, any\></code>
+</p>
+
+一个导出的函数，接受 SSR 清单作为第一个参数，包含适配器 [`args`](#args) 的对象作为第二个参数。这应该提供你的托管平台所需的导出。
+
+例如，某些无服务器托管平台希望你导出一个 `handler()` 函数。使用适配器 API，你可以通过在服务器入口点中实现 `createExports()` 来实现这一点：
+
+```js title="my-adapter/server.js"
 import { App } from 'astro/app';
 
 export function createExports(manifest) {
@@ -142,7 +276,7 @@ export function createExports(manifest) {
 }
 ```
 
-在此之后，你需要在 `setAdapter` 的 `exports` 属性中配置该 `handler`：
+然后在你的集成中，调用 `setAdapter()` 的地方，在 [`exports`](#exports) 中提供此名称：
 
 ```js title="my-adapter.mjs" ins={9}
 export default function createIntegration() {
@@ -161,11 +295,35 @@ export default function createIntegration() {
 }
 ```
 
-#### Start 
+你可以通过 `createExports()` 的第二个参数访问适配器定义的 [`args`](#args)。当你在服务器入口点中需要访问构建时配置时，这非常有用。例如，你的服务器可能需要识别 Astro 生成的资源所在的位置：
 
-有些托管方希望你自行管理服务的**启动**，例如通过监听一个端口的方式。对于这类托管方，可以导出一个 `start` 函数，该函数会在绑定脚本执行时被调用。
 
-```js
+```js title="my-adapter/server.js" {4} "args"
+import { App } from 'astro/app';
+
+export function createExports(manifest, args) {
+  const assetsPath = args.assets;
+
+  const handler = (event, context) => {
+    // ...
+  };
+
+  return { handler };
+}
+```
+
+### `start()`
+
+<p>
+
+**类型：** <code>(manifest: <a href="/zh-cn/reference/integrations-reference/#ssrmanifest">SSRManifest</a>, options: any) => Record\<string, any\></code>
+</p>
+
+一个导出的函数，接受 SSR 清单作为第一个参数，包含适配器 [`args`](#args) 的对象作为第二个参数。
+
+某些托管平台希望你*自己启动*服务器，例如通过监听端口。对于这些类型的托管平台，适配器 API 允许你导出一个 `start()` 函数，该函数将在运行打包脚本时被调用。
+
+```js title="my-adapter/server.js"
 import { App } from 'astro/app';
 
 export function start(manifest) {
@@ -177,9 +335,11 @@ export function start(manifest) {
 }
 ```
 
-#### `astro/app`
+### `astro/app`
 
-该模块用于渲染已通过 `astro build` 命令预构建的页面。Astro 使用标准的 [Request](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 和 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。如果托管方使用不同格式的请求/响应 API，需要在适配器中进行转换处理。
+该模块用于渲染已通过 `astro build` 命令预构建的页面。Astro 使用标准的 [`Request`](https://developer.mozilla.org/zh-CN/docs/Web/API/Request) 和 [`Response`](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 对象。如果托管方使用不同格式的请求/响应 API，需要在适配器中进行转换处理。
+
+`App` 构造函数接受必需的 SSR 清单参数，并可选择接受一个用于启用或禁用流式传输的参数，默认为 `true`。
 
 ```js
 import { App } from 'astro/app';
@@ -198,14 +358,14 @@ export function start(manifest) {
 
 该模块提供以下几个方法：
 
-##### `app.render()`
+#### `app.render()`
 
 <p>
 
 **类型：** `(request: Request, options?: RenderOptions) => Promise<Response>`
 </p>
 
-此方法用于匹配符合请求的 Astro 页面，并返回一个 Promise 对象给 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 。该方法对于不渲染页面的 API 路由同样适用。
+一个方法，接受必需的 `request` 参数和可选的 `RenderOptions` 对象。此方法用于匹配符合请求的 Astro 页面，并返回一个 Promise 对象给 [Response](https://developer.mozilla.org/zh-CN/docs/Web/API/Response) 。该方法对于不渲染页面的 API 路由同样适用。
 
 ```js
 const response = await app.render(request);
@@ -218,7 +378,7 @@ const response = await app.render(request);
 **类型：** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
 </p>
 
-`app.render()` 方法接受一个必填的 `request` 参数，以及一个可选的 `RenderOptions` 对象，用于 [`addCookieHeader`](#addcookieheader)、[`clientAddress`](#clientaddress)、[`locals`](#locals)、[`prerenderedErrorPageFetch`](#prerenderederrorpagefetch) 和 [`routeData`](#routedata)。
+一个控制渲染的对象，包含以下属性：
 
 ###### `addCookieHeader`
 
@@ -232,7 +392,7 @@ const response = await app.render(request);
 是否自动将 `Astro.cookie.set()` 写入的所有 cookie 添加到响应头中。
 
 当设置为 `true` 时，它们将作为逗号分隔的键值对添加到响应的 `Set-Cookie` 头中。你可以使用标准的 `response.headers.getSetCookie()` API 来单独读取它们。
-当设置为 `false`（默认值）时，这些 cookie 只能从 `App.getSetCookieFromResponse(response)` 中获取。
+当设置为 `false`（默认值）时，这些 cookie 只能从 [`App.getSetCookieFromResponse(response)`](#appgetsetcookiefromresponse) 中获取。
 
 ```js
 const response = await app.render(request, { addCookieHeader: true });
@@ -270,15 +430,15 @@ const response = await app.render(request, { clientAddress });
 const privateHeader = request.headers.get("x-private-header");
 let locals = {};
 try {
-    if (privateHeader) {
-        locals = JSON.parse(privateHeader);
-    }
+  if (privateHeader) {
+    locals = JSON.parse(privateHeader);
+  }
 } finally {
-    const response = await app.render(request, { locals });
+  const response = await app.render(request, { locals });
 }
 ```
 
-###### `prerenderedErrorPageFetch`
+###### `prerenderedErrorPageFetch()`
 
 <p>
 
@@ -293,22 +453,23 @@ try {
 
 以下示例读取了磁盘中的 `500.html` 和 `404.html`，而不是执行 HTTP 调用：
 
-```js "prerenderedErrorPageFetch"
+```ts "prerenderedErrorPageFetch"
 return app.render(request, {
   prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
     if (url.includes("/500")) {
-        const content = await fs.promises.readFile("500.html", "utf-8");
-        return new Response(content, {
-          status: 500,
-          headers: { "Content-Type": "text/html" },
-        });
+      const content = await fs.promises.readFile("500.html", "utf-8");
+      return new Response(content, {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      });
     }
 
     const content = await fs.promises.readFile("404.html", "utf-8");
-      return new Response(content, {
-        status: 404,
-        headers: { "Content-Type": "text/html" },
-      });
+    return new Response(content, {
+      status: 404,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
 });
 ```
 
@@ -318,30 +479,30 @@ return app.render(request, {
 
 <p>
 
-**类型：** `RouteData`<br />
+**类型：** [`RouteData`](/zh-cn/reference/integrations-reference/#routedata)<br />
 **默认值：** `app.match(request)`
 </p>
 
-如果你已经知道要渲染的路由，请为 [`integrationRouteData`](/zh-cn/reference/integrations-reference/#integrationroutedata-类型参考) 提供一个值。这样做将绕过内部调用 [`app.match`](#appmatch) 来确定要渲染的路由。
+定义路由信息。如果你已经知道要渲染的路由，这将非常有用。这样做将绕过内部调用 [`app.match()`](#appmatch) 来确定要渲染的路由。
 
 ```js "routeData"
 const routeData = app.match(request);
 if (routeData) {
-    return app.render(request, { routeData });
+  return app.render(request, { routeData });
 } else {
-    /* 特定于适配器的 404 响应 */
-    return new Response(..., { status: 404 });
+  /* 特定于适配器的 404 响应 */
+  return new Response(..., { status: 404 });
 }
 ```
 
-##### `app.match()`
+#### `app.match()`
 
 <p>
 
-**类型：** `(request: Request) => RouteData | undefined`
+**类型：** `(request: Request, allowPrerenderedRoutes = false) => RouteData | undefined`
 </p>
 
-该方法用于判断请求是否匹配 Astro 应用的路由规则。
+判断请求是否匹配 Astro 应用的路由规则。
 
 ```js
 if(app.match(request)) {
@@ -351,32 +512,292 @@ if(app.match(request)) {
 
 通常可以在不使用 `.match` 的情况下调用 `app.render(request)`。因为当配置了 `404.astro` 文件后，Astro 就会自动处理 404 的情况。如果想要自定义处理规则，请使用 `app.match(request)`。
 
-## 使用 `astro add` 安装适配器
+默认情况下，即使匹配到预渲染的路由，也不会返回它们。你可以通过使用 `true` 作为第二个参数来更改此行为。
 
-用户可以使用 [`astro add` 命令](/zh-cn/reference/cli-reference/#astro-add) 轻松地在他们的项目中添加集成和适配器。如果希望其他用户可以使用该命令安装 _你的_ 适配器，**请在 `package.json` 文件的 `keywords` 项中添加 `astro-adapter` 属性**：
+#### `app.getAdapterLogger()`
 
-```json
-{
-  "name": "example",
-  "keywords": ["astro-adapter"],
+<p>
+
+**类型：** `() => AstroIntegrationLogger`<br />
+<Since v="v3.0.0" />
+</p>
+
+返回适配器运行时环境可用的 [Astro 日志记录器实例](/zh-cn/reference/integrations-reference/#astrointegrationlogger)。
+
+```js "logger"
+const logger = app.getAdapterLogger();
+try {
+  /* 某些可能抛出错误的逻辑 */
+} catch {
+  logger.error("使用 Astro 日志记录器的自定义错误消息。");
 }
 ```
 
-当[将适配器发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) 后，执行 `astro add example` 命令，即可安装适配器以及在 `package.json` 文件中指定的对等依赖。我们将指导用户手动更新他们的项目配置。
+#### `app.getAllowedDomains()`
 
-## Astro features
+<p>
 
-<p><Since v="3.0.0" /></p>
+**类型：** `() => Partial<RemotePattern>[] | undefined`<br />
+<Since v="5.14.2" />
+</p>
 
-Astro features 是适配器告诉 Astro 它们是否能够支持某个特性的一种方式，也是适配器支持程度的一种方式。
+返回使用按需渲染时允许的传入请求的托管平台模式列表，[在用户配置中定义](/zh-cn/reference/configuration-reference/#securityalloweddomains)。
 
-当使用这些属性时，Astro 将：
+#### `app.removeBase()`
+
+<p>
+
+**类型：** `(pathname: string) => string`<br />
+<Since v="1.6.4" />
+</p>
+
+从给定路径中移除基础路径。当你需要从文件系统查找资源时，这非常有用。
+
+#### `app.setCookieHeaders()`
+
+<p>
+
+**类型：** `(response: Response) => Generator<string, string[], any>`<br />
+<Since v="1.4.0" />
+</p>
+
+返回一个生成器，从 `Response` 对象中生成单个 cookie 请求头值。这用于正确处理在请求处理期间可能设置的多个 cookie。
+
+以下示例为从响应中获取的每个请求头附加一个 `Set-Cookie`：
+
+```js
+for (const setCookieHeader of app.setCookieHeaders(response)) {
+  response.headers.append('Set-Cookie', setCookieHeader);
+}
+```
+
+#### `App.getSetCookieFromResponse()`
+
+<p>
+
+**类型：** `(response: Response) => Generator<string, string[]>`<br />
+<Since v="4.2.0" />
+</p>
+
+返回一个生成器，从 `Response` 对象中生成单个 cookie 请求头值。这与 [`app.setCookieHeaders()`](#appsetcookieheaders) 的工作方式相同，但可以在任何时候使用，因为它是一个静态方法。
+
+以下示例为从响应中获取的每个请求头附加一个 `Set-Cookie`：
+
+```js
+for (const cookie of App.getSetCookieFromResponse(response)) {
+  response.headers.append('Set-Cookie', cookie);
+}
+```
+
+#### `App.validateForwardedHost()`
+
+<p>
+
+**类型：** `(forwardedHost: string, allowedDomains?: Partial<RemotePattern>[], protocol?: string = 'https') => boolean`<br />
+<Since v="5.14.2" />
+</p>
+
+检查 `forwardedHost` 是否匹配任何给定的 [`allowedDomains`](/zh-cn/reference/configuration-reference/#securityalloweddomains)。此静态方法接受第三个参数，允许你覆盖托管平台协议，默认为 `https`。
+
+以下示例从头中检索 `forwardedHost` 并检查托管平台是否匹配允许的域名：
+
+```js {4-6}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const forwardedHost = event.request.headers.get('X-Forwarded-Host');
+    if (App.validateForwardedHost(forwardedHost, manifest.allowedDomains)) {
+      /* 执行某些操作 */
+    }
+  });
+}
+```
+
+#### `App.sanitizeHost()`
+
+<p>
+
+**类型：** `(hostname: string | undefined) => string | undefined`<br />
+<Since v="5.15.5" />
+</p>
+
+通过拒绝任何包含路径分隔符的名称来验证主机名。当主机名无效时，此静态方法将返回 `undefined`。
+
+以下示例从头中检索 `forwardedHost` 并对其进行清理：
+
+```js {4}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const forwardedHost = event.request.headers.get('X-Forwarded-Host');
+    const sanitized = App.sanitizeHost(forwardedHost);
+  });
+}
+```
+
+#### `App.validateForwardedHeaders()`
+
+<p>
+
+**类型：** `(forwardedProtocol?: string, forwardedHost?: string, forwardedPort?: string, allowedDomains?: Partial<RemotePattern>[]) => { protocol?: string; host?: string; port?: string }`<br />
+<Since v="5.15.5" />
+</p>
+
+根据 `allowedDomains` 验证转发的协议、主机和端口。此静态方法返回验证后的值或对被拒绝的头返回 `undefined`。
+
+以下示例根据接收到的清单中定义的授权域名验证转发的请求头：
+
+```js {3-8}
+export function start(manifest) {
+  addEventListener('fetch', (event) => {
+    const validated = App.validateForwardedHeaders(
+      request.headers.get('X-Forwarded-Proto') ?? undefined,
+      request.headers.get('X-Forwarded-Host') ?? undefined,
+      request.headers.get('X-Forwarded-Port') ?? undefined,
+      manifest.allowedDomains,
+    );
+  });
+}
+```
+
+### `astro/app/node`
+
+与 [`astro/app`](#astroapp) 类似，该模块用于渲染已通过 `astro build` 预构建的页面。这允许你创建一个 `NodeApp`，提供 `App` 中的所有方法以及适用于 Node 环境的附加方法。
+
+`NodeApp` 构造函数接受必需的 SSR 清单参数，并可选择接受一个用于启用或禁用流式传输的参数，默认为 `true`。
+
+```js
+import { NodeApp } from 'astro/app/node';
+import http from 'http';
+
+export function start(manifest) {
+  const nodeApp = new NodeApp(manifest);
+
+  addEventListener('fetch', event => {
+    event.respondWith(
+      nodeApp.render(event.request)
+    );
+  });
+}
+```
+
+提供以下附加方法：
+
+#### `nodeApp.render()`
+
+<p>
+
+**类型：** `(request: NodeRequest | Request, options?: RenderOptions) => Promise<Response>`<br />
+<Since v="4.0.0" />
+</p>
+
+扩展 [`app.render()`](#apprender)，除了标准的 `Request` 对象外，还可以接受 [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 对象作为第一个参数。第二个参数是一个可选对象，允许你 [控制渲染](#renderoptions)。
+
+```js
+const response = await nodeApp.render(request);
+```
+
+#### `nodeApp.match()`
+
+<p>
+
+**类型：** `(req: NodeRequest | Request, allowPrerenderedRoutes?: boolean) => RouteData | undefined`
+</p>
+
+扩展 [`app.match()`](#appmatch)，除了标准的 `Request` 对象外，还可以接受 [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) 对象。
+
+```js
+if(nodeApp.match(request)) {
+  const response = await nodeApp.render(request);
+}
+```
+
+#### `nodeApp.headersMap`
+
+<p>
+
+**类型：** `NodeAppHeadersJson | undefined`<br />
+**默认值：** `undefined`<br />
+<Since v="5.11.0" />
+</p>
+
+包含 headers 请求头配置的数组。每个条目将路径名映射到应该为该路由应用的 headers 的列表。这对于将 CSP 指令等 headers 应用于预渲染路由非常有用。
+
+#### `nodeApp.setHeadersMap()`
+
+<p>
+
+**类型：** `(headers: NodeAppHeadersJson) => void`<br />
+<Since v="5.11.0" />
+</p>
+
+将 [headers 配置](#nodeappheadersmap) 加载到 `NodeApp` 实例中。 
+
+```js
+nodeApp.setHeadersMap([
+  {
+    pathname: "/blog",
+    headers: [
+      { key: "Content-Security-Policy", value: "default-src 'self'" },
+    ]
+  }
+]);
+```
+
+#### `NodeApp.createRequest()`
+
+<p>
+
+**类型：** `(req: NodeRequest, options?: { skipBody?: boolean; allowedDomains?: Partial<RemotePattern>[]; }) => Request`<br />
+<Since v="4.2.0" />
+</p>
+
+将 NodeJS `IncomingMessage` 转换为标准的 `Request` 对象。此静态方法接受一个可选对象作为第二个参数，允许你定义是否应忽略请求体，默认为 `false`，以及 [`allowedDomains`](/zh-cn/reference/configuration-reference/#securityalloweddomains)。
+
+以下示例创建一个 `Request` 并将其传递给 `app.render()`：
+
+```js {5}
+import { NodeApp } from 'astro/app/node';
+import { createServer } from 'node:http';
+
+const server = createServer(async (req, res) => {
+  const request = NodeApp.createRequest(req);
+  const response = await app.render(request);
+})
+```
+
+#### `NodeApp.writeResponse()`
+
+<p>
+
+**类型：** `(source: Response, destination: ServerResponse) => Promise<ServerResponse<IncomingMessage> | undefined>`<br />
+<Since v="4.2.0" />
+</p>
+
+将 Web 标准 `Response` 流式传输到 NodeJS 服务器响应中。此静态方法接受一个 `Response` 对象和初始 `ServerResponse`，然后返回 `ServerResponse` 对象的 promise。
+
+以下示例创建一个 `Request`，将其传递给 `app.render()`，并写入响应：
+
+```js {7}
+import { NodeApp } from 'astro/app/node';
+import { createServer } from 'node:http';
+
+const server = createServer(async (req, res) => {
+  const request = NodeApp.createRequest(req);
+  const response = await app.render(request);
+  await NodeApp.writeResponse(response, res);
+})
+```
+
+## Astro 特性
+
+Astro 特性能是适配器向 Astro 告知其是否支持某项功能以及适配器支持程度的一种方式。
+
+使用这些属性时，Astro 将：
 - 运行特定的验证；
-- 向日志抛出（emit）上下文信息；
+- 向日志发出上下文信息；
 
-这些操作是基于支持或不支持的特性、支持程度、[所需的记录量](#suppress) 以及用户使用的配置来运行的。
+这些操作基于支持或不支持的特性、支持级别、[期望的日志量](#suppress) 和用户自己的配置运行。
 
-以下配置告诉 Astro，该适配器对 Sharp 提供的内置图像服务有实验性支持：
+以下配置告诉 Astro 该适配器对基于 Sharp 的内置图像服务具有实验性支持：
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -397,7 +818,7 @@ export default function createIntegration() {
 }
 ```
 
-如果使用 Sharp 图像服务，Astro 将根据适配器的支持程度向终端输出警告和错误：
+如果使用了 Sharp 图像服务，Astro 将根据适配器的支持情况向终端记录警告和错误：
 
 ```
 [@example/my-adapter] The feature is experimental and subject to issues or changes.
@@ -405,7 +826,7 @@ export default function createIntegration() {
 [@example/my-adapter] The currently selected adapter `@example/my-adapter` is not compatible with the service "Sharp". Your project will NOT be able to build.
 ```
 
-还可以提供一条消息，以便为用户提供更多上下文：
+还可以提供一条消息，向用户提供更多上下文：
 
 ```js title="my-adapter.mjs" ins={9-14}
 export default function createIntegration() {
@@ -419,7 +840,7 @@ export default function createIntegration() {
           supportedAstroFeatures: {
             sharpImageService: {
               support: 'limited',
-              message: 'This adapter has limited support for Sharp, certain features may not work as expected.'
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.'
             }
           } 
         });
@@ -429,80 +850,56 @@ export default function createIntegration() {
 }
 ```
 
-### `suppress`
+该对象包含以下可配置的功能：
+
+### `staticOutput`
 
 <p>
 
-**类型：** `'default' | 'all'`<br />
-<Since v="5.9.0" />
+**类型：** [`AdapterSupport`](#adaptersupport)
 </p>
 
-该选项是用于阻止在日志内容中，展示有关适配器对特性支持情况的部分或全部信息。
+定义适配器是否能够提供静态页面。
 
-如果 Astro 的默认日志信息已经多余，甚至与用户自定义的 `message` 部分混杂在一起，从而导致使用过程中的困惑，那么你可以使用 `suppress: "default"` 来仅显示自定义消息，同时抑制默认日志输出：
-
-```js title="my-adapter.mjs" ins={13}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          supportedAstroFeatures: {
-            sharpImageService: {
-              support: 'limited',
-              message: 'The adapter has limited support for Sharp. It will be used for images during build time, but will not work at runtime.',
-              suppress: 'default' // 自定义信息相较于默认信息会更加详尽
-            }
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-你还可通过 `suppress: "all"` 配置完全抑制该功能的所有相关日志信息。这在特定场景下尤为实用，例如当用户通过配置项明确禁用某功能时，相关提示信息反而会造成干扰。以屏蔽 Sharp 图像处理库的日志为例：
-
-```js title="my-adapter.mjs" ins={13}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          supportedAstroFeatures: {
-            sharpImageService: {
-              support: 'limited',
-              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.',
-              suppress: 'all'
-            }
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-## Adapter features
-
-一组可以改变产出文件输出的特性。当适配器选择这些特性时，它们将在特定的钩子中获得额外的信息。
-
-### `edgeMiddleware`
+### `hybridOutput`
 
 <p>
 
-**类型：** `boolean`
+**类型：** [`AdapterSupport`](#adaptersupport)
 </p>
 
-定义在构建时是否会打包任何按需渲染的中间件代码。
+定义适配器是否能够提供包含静态和按需渲染页面混合的站点。
 
-启用此功能时，会阻止在构建期间将中间件代码打包并导入到所有页面中：
+### `serverOutput`
+
+<p>
+
+**类型：** [`AdapterSupport`](#adaptersupport)
+</p>
+
+定义适配器是否能够提供按需渲染的页面。
+
+### `i18nDomains`
+
+<p>
+
+**类型：** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.3.0" />
+</p>
+
+定义适配器是否能够支持 i18n 域名。
+
+### `envGetSecret`
+
+<p>
+
+**类型：** [`AdapterSupport`](#adaptersupport)<br />
+<Since v="4.10.0" />
+</p>
+
+定义适配器是否能够支持从 [`astro:env/server`](/zh-cn/reference/modules/astro-env/) 导出的 `getSecret()`。启用后，此功能允许你的适配器检索用户在 `env.schema` 中配置的密钥。
+
+以下示例通过向适配器传递 [有效的 `AdapterSupportsKind` 值](#adaptersupportskind) 来启用该功能：
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -513,8 +910,8 @@ export default function createIntegration() {
         setAdapter({
           name: '@example/my-adapter',
           serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
+          supportedAstroFeatures: {
+            envGetSecret: 'stable'
           } 
         });
       },
@@ -523,70 +920,7 @@ export default function createIntegration() {
 }
 ```
 
-然后，使用 [`astro:build:ssr`](/zh-cn/reference/integrations-reference/#astrobuildssr) 钩子，它将为你提供一个 `middlewareEntryPoint`，一个指向文件系统上物理文件的 `URL`。
-
-```js title="my-adapter.mjs" ins={15-19}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              edgeMiddleware: true
-          } 
-        });
-      },
-
-      'astro:build:ssr': ({ middlewareEntryPoint }) => {
-          // 请记住检查此属性是否退出，如果适配器未选择加入该功能，则它将是 `undefined`
-          if (middlewareEntryPoint) {
-             createEdgeMiddleware(middlewareEntryPoint)
-          }
-      }  
-    },
-  };
-}
-
-function createEdgeMiddleware(middlewareEntryPoint) {
-    // 通过你的打包工具生成一个新的物理文件
-}
-```
-
-
-### envGetSecret
-
-<p>
-
-**类型：** `AdapterSupportsKind`
-</p>
-
-此功能允许你的适配器获取用户在 `env.schema` 中配置的密钥。
-
-通过任何有效的 `AdapterSupportsKind` 值传递给适配器来启用此功能：
-
-```js title="my-adapter.mjs" ins={9-11}
-export default function createIntegration() {
-  return {
-    name: '@example/my-adapter',
-    hooks: {
-      'astro:config:done': ({ setAdapter }) => {
-        setAdapter({
-          name: '@example/my-adapter',
-          serverEntrypoint: '@example/my-adapter/server.js',
-          adapterFeatures: {
-              envGetSecret: 'stable'
-          } 
-        });
-      },
-    },
-  };
-}
-```
-
-`astro/env/setup` 模块允许你为 `getSecret()` 提供一个实现。在你的服务器入口中，尽早调用 `setGetEnv()`：
+`astro/env/setup` 模块允许你为 `getSecret()` 提供一个实现。在 [你的服务器入口](#构建服务器入口点) 中，尽早调用 `setGetEnv()`：
 
 ```js ins={2,4}
 import { App } from 'astro/app';
@@ -605,7 +939,7 @@ export function createExports(manifest) {
 }
 ```
 
-如果你支持密钥，请确保在请求时将 `setGetEnv()` 调用在 `getSecret()` 之前：
+如果适配器支持密钥，请确保在环境变量与请求绑定时，先调用 `setGetEnv()`，再调用 `getSecret()`：
 
 ```js ins={3,14}
 import type { SSRManifest } from 'astro';
@@ -632,15 +966,92 @@ export function createExports(manifest: SSRManifest) {
 }
 ```
 
-### buildOutput
+### `sharpImageService`
 
 <p>
 
-**类型：** `'static' | 'server'`<br />
+**类型：** [`AdapterSupport`](#adaptersupport)<br />
 <Since v="5.0.0" />
 </p>
 
-此属性允许你强制指定构建的特定输出形态。这对于只能使用特定输出类型的适配器非常有用，例如，你的适配器可能期望一个静态网站，但使用适配器来创建特定于主机的文件。如果未指定，则默认为 `server`。
+定义适配器是否支持使用内置 Sharp 图像服务进行图像转换。
+
+## 适配器特性
+
+一组改变输出文件内容的特性。当适配器选择使用这些特性时，它们将在特定钩子中获得额外信息，并且必须实现适当的逻辑来处理不同的输出。
+
+### `edgeMiddleware`
+
+<p>
+
+**类型：** `boolean`
+</p>
+
+定义构建时是否将打包任何按需渲染的中间件代码。
+
+启用后，这会阻止中间件代码在构建期间被所有页面打包和导入：
+
+```js title="my-adapter.mjs" ins={9-11}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            edgeMiddleware: true
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+然后，使用钩子 [`astro:build:ssr`](/zh-cn/reference/integrations-reference/#astrobuildssr)，它将给你一个 `middlewareEntryPoint`，即文件系统上物理文件的 `URL`。
+
+```js title="my-adapter.mjs" ins={15-20}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          adapterFeatures: {
+            edgeMiddleware: true
+          } 
+        });
+      },
+
+      'astro:build:ssr': ({ middlewareEntryPoint }) => {
+        // 记得检查此属性是否存在，如果适配器未选择使用该功能，它将返回 `undefined`
+        if (middlewareEntryPoint) {
+          createEdgeMiddleware(middlewareEntryPoint)
+        }
+      }
+    },
+  };
+}
+
+function createEdgeMiddleware(middlewareEntryPoint) {
+  // 使用你的打包器发出一个新的物理文件
+}
+```
+
+### `buildOutput`
+
+<p>
+
+**类型：** `"static" | "server"`<br />
+**默认值：** `"server"`<br />
+<Since v="5.0.0" />
+</p>
+
+允许你强制使用特定的输出形状进行构建。这对于仅适用于特定输出类型的适配器非常有用。例如，你的适配器可能期望静态网站，但使用适配器来创建特定于托管平台的文件。如果未指定，默认为 `server`。
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -661,19 +1072,15 @@ export default function createIntegration() {
 }
 ```
 
-### experimentalStaticHeaders
+### `experimentalStaticHeaders`
 
 <p>
 
-**类型：** `true | false`<br />
+**类型：** `boolean`<br />
 <Since v="5.9.3" />
 </p>
 
-启用该功能后，Astro 将返回静态页面生成的 `Headers` 映射。该映射 `experimentalRouteToHeaders` 可通过 `astro:build:generated` 构建钩子获取。
-
-Headers 的具体值会随应用启用/调用的功能而动态变化。
-
-例如，当启用 CSP（内容安全策略）时，`<meta http-equiv="content-security-policy">` 元素不会被添加至静态页面。取而代之的是，其 `content` 可在 `experimentalRouteToHeaders` 映射中获取。
+适配器是否为静态页面设置响应头提供实验性支持。启用此功能后，Astro 将返回静态页面发出的 `Headers` 的映射。此映射 `experimentalRouteToHeaders` 在 [`astro:build:generated` 钩子](/zh-cn/reference/integrations-reference/#astrobuildgenerated) 中可用，用于生成诸如 `_headers` 之类的文件，允许你对默认 HTTP 请求头进行更改。
 
 ```js title="my-adapter.mjs" ins={9-11}
 export default function createIntegration() {
@@ -690,10 +1097,137 @@ export default function createIntegration() {
         });
       },
       'astro:build:generated': ({ experimentalRouteToHeaders }) => {
-        // 为你所选择的虚拟主机，
-        // 使用 `experimentalRouteToHeaders` 来生成一个配置文件
+        // 使用 `experimentalRouteToHeaders` 为你选择的虚拟主机生成配置文件
       },
     },
   };
 }
 ```
+
+请求头的值可能会根据应用程序启用/使用的功能而变化。例如，如果 [启用了 CSP](/zh-cn/reference/experimental-flags/csp/)，则 `<meta http-equiv="content-security-policy">` 元素不会添加到静态页面。相反，其 `content` 在 `experimentalRouteToHeaders` 映射中可用。 
+
+## 适配器类型引用
+
+### `AdapterSupport`
+
+<p>
+
+**类型：** <code><a href="#adaptersupport">AdapterSupportsKind</a> | <a href="#adaptersupportwithmessage">AdapterSupportWithMessage</a></code><br />
+<Since v="5.0.0" />
+</p>
+
+描述特性支持级别的有效格式的联合类型。
+
+### `AdapterSupportsKind`
+
+<p>
+
+**类型：** `"deprecated" | "experimental" | "limited" | "stable" | "unsupported"`
+</p>
+
+定义适配器对特性的支持级别：
+* 当你的适配器在未来版本中完全移除某个特性之前弃用对该特性的支持时，使用 `"deprecated"`。
+* 当你的适配器添加了对某个特性的支持，但预计会出现问题或重大更改时，使用 `"experimental"`。
+* 当你的适配器仅支持完整特性的子集时，使用 `"limited"`。
+* 当你的适配器完全支持该特性时，使用 `"stable"`。
+* 使用 `"unsupported"` 警告用户他们的项目可能会遇到构建问题，因为你的适配器不支持此特性。
+
+### `AdapterSupportWithMessage`
+
+<p>
+
+<Since v="5.0.0" />
+</p>
+
+一个对象，允许你定义特性的支持程度和要在用户控制台中记录的消息。此对象包含以下属性：
+
+#### `support`
+
+<p>
+
+**类型：** <code>Exclude\<<a href="#adaptersupportskind">AdapterSupportsKind</a>, "stable"\></code>
+</p>
+
+定义适配器对功能的支持程度。
+
+#### `message`
+
+<p>
+
+**类型：** `string`
+</p>
+
+定义关于适配器对特性支持的自定义消息。
+
+#### `suppress`
+
+<p>
+
+**类型：** `"default" | "all"`<br />
+<Since v="5.9.0" />
+</p>
+
+一个选项，用于阻止显示关于适配器对特性支持的部分或所有已记录消息。
+
+如果 Astro 的默认日志消息是多余的，或者与你的 [自定义 `message`](#message) 结合使用时会让用户感到困惑，你可以使用 `suppress: "default"` 来抑制默认消息，仅记录你的消息：
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'The adapter has limited support for Sharp. It will be used for images during build time, but will not work at runtime.',
+              suppress: 'default' // 自定义消息比默认消息更详细
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+你也可以使用 `suppress: "all"` 来抑制有关特性支持的所有消息。当这些消息在特定上下文中对用户没有帮助时，这非常有用，例如当用户有配置设置意味着他们没有使用该特性时。例如，你可以选择阻止从适配器记录任何关于 Sharp 支持的消息：
+
+```js title="my-adapter.mjs" ins={13}
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            sharpImageService: {
+              support: 'limited',
+              message: 'This adapter has limited support for Sharp. Certain features may not work as expected.',
+              suppress: 'all'
+            }
+          } 
+        });
+      },
+    },
+  };
+}
+```
+
+## 允许通过 `astro add` 安装
+
+[`astro add` 命令](/zh-cn/reference/cli-reference/#astro-add) 允许用户轻松地将集成和适配器添加到他们的项目中。要允许你的适配器通过此命令安装，**将 `astro-adapter` 添加到 `package.json` 的 `keywords` 字段中**：
+
+```json
+{
+  "name": "example",
+  "keywords": ["astro-adapter"],
+}
+```
+
+当你 [将适配器发布到 npm](https://docs.npmjs.com/cli/v8/commands/npm-publish) 后，运行 `astro add example` 将安装你的包以及 `package.json` 中指定的任何对等依赖，并指示用户手动更新其项目配置。
