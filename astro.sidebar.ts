@@ -126,6 +126,7 @@ export const sidebar = [
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-transitions',
+					'reference/modules/astro-zod',
 				],
 			}),
 			group('reference.other', {
@@ -152,6 +153,7 @@ export const sidebar = [
 					'reference/experimental-flags/static-import-meta-env',
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/fail-on-prerender-conflict',
+					'reference/experimental-flags/svg-optimization',
 				],
 			}),
 			'reference/legacy-flags',

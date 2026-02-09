@@ -1,9 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { dedentMd } from '../../output.mjs';
-import { indexOfHref, LinkCheckerState, type LinkCheckerOptions } from '../base/base';
-import type { LinkIssue } from '../base/issue';
-import type { AllPagesByPathname, HtmlPage } from '../base/page';
+import { indexOfHref, LinkCheckerState, type LinkCheckerOptions } from '../base/base.ts';
+import type { LinkIssue } from '../base/issue.ts';
+import type { AllPagesByPathname, HtmlPage } from '../base/page.ts';
 
 /**
  * Goes through all pre-parsed and indexed pages, runs all configured checks,
@@ -142,7 +142,7 @@ export function addSourceFileAnnotations(linkIssues: LinkIssue[], options: LinkC
  *
  * If no existing file is found, returns `undefined`.
  */
-export function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
+function tryFindSourceFileForPathname(pathname: string, pageSourceDir: string) {
 	const possibleSourceFilePaths = [
 		path.join(pageSourceDir, pathname, '.') + '.md',
 		path.join(pageSourceDir, pathname, 'index.md'),

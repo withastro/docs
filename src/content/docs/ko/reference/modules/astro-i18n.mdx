@@ -28,7 +28,7 @@ i18n 라우터를 사용하여 프로젝트에 대한 경로를 생성하는 것
 ## `astro:i18n`에서 가져오기
 
 ```js
-import {
+import { 
   getRelativeLocaleUrl,
   getAbsoluteLocaleUrl,
   getRelativeLocaleUrlList,
@@ -40,6 +40,10 @@ import {
   notFound,
   middleware,
   requestHasLocale,
+  normalizeTheLocale,
+  pathHasLocale,
+  toCodes,
+  toPaths
  } from 'astro:i18n';
 ```
 
@@ -334,4 +338,117 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
   return new Response("Not found", { status: 404 });
 })
+```
+
+### `normalizeTheLocale()`
+
+<p>
+
+**타입:** `(locale: string) => string`
+</p>
+
+주어진 로케일의 밑줄(`_`)을 하이픈(`-`)으로 바꾸고 소문자 버전으로 반환합니다.
+
+```astro title="src/pages/index.astro"
+---
+import { normalizeTheLocale } from "astro:i18n";
+
+normalizeTheLocale("it_VT") // `it-vt`를 반환합니다.
+// 현재 로케일이 `"pt-PT"`라고 가정할 때:
+normalizeTheLocale(Astro.currentLocale) // `pt-pt`를 반환합니다.
+---
+```
+
+### `pathHasLocale()`
+
+<p>
+
+**타입:** `(path: string) => boolean`<br />
+<Since v="4.6.0" />
+</p>
+
+주어진 경로에 구성된 로케일이 포함되어 있는지 확인합니다.
+
+이것은 URL 경로의 로케일에 의존하는 i18n 유틸리티를 사용하기 전에 오류를 방지하는 데 유용합니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: [
+      { codes: ["it-VT", "it"], path: "italiano" },
+      "es"
+    ]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { pathHasLocale } from "astro:i18n";
+
+pathHasLocale("italiano"); // `true`를 반환합니다.
+pathHasLocale("es"); // `true`를 반환합니다.
+pathHasLocale('/es/blog/'); // `true`를 반환합니다.
+pathHasLocale("it-VT"); // `false`를 반환합니다.
+---
+```
+
+### `toCodes()`
+
+<p>
+
+**타입:** `(locales: Locales) => string[]`<br />
+<Since v="4.0.0" />
+</p>
+
+구성에서 정의된 각 로케일에 대해 구성된 로케일 코드를 검색합니다. 로케일에 여러 코드가 연결된 경우에는 배열에 첫 번째 코드만 추가됩니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: [
+      { codes: ["it-VT", "it"], path: "italiano" },
+      "es"
+    ]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { i18n } from "astro:config/client";
+import { toCodes } from "astro:i18n";
+
+toCodes(i18n!.locales); // ["it-VT", "es"]
+---
+```
+
+### `toPaths()`
+
+<p>
+
+**타입:** `(locales: Locales) => string[]`<br />
+<Since v="4.0.0" />
+</p>
+
+구성에서 정의된 각 로케일에 대해 구성된 로케일 경로를 검색합니다.
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  i18n: {
+    locales: [
+      { codes: ["it-VT", "it"], path: "italiano" },
+      "es"
+    ]
+  }
+})
+```
+
+```astro title="src/pages/index.astro"
+---
+import { i18n } from "astro:config/client";
+import { toPaths } from "astro:i18n";
+
+toPaths(i18n!.locales); // ["italiano", "es"]
+---
 ```

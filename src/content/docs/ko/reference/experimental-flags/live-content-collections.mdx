@@ -487,7 +487,8 @@ if (error) {
 빌드 타임 컬렉션과 마찬가지로, 라이브 컬렉션에서도 [Zod 스키마](/ko/guides/content-collections/#컬렉션-스키마-정의)를 사용하여 런타임에 데이터를 검증하고 변환할 수 있습니다. 스키마를 정의하면, 컬렉션을 쿼리할 때 [로더의 타입](#타입-안전-데이터)보다 더 높은 우선순위를 가집니다.
 
 ```ts title="src/live.config.ts"
-import { z, defineLiveCollection } from 'astro:content';
+import { defineLiveCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { apiLoader } from './loaders/api-loader';
 
 const products = defineLiveCollection({
@@ -538,13 +539,17 @@ console.log(entry?.data.displayPrice); // 예: "$29.99"
 라이브 로더는 응답 캐싱을 돕기 위해 캐시 힌트를 제공할 수 있습니다. 이 데이터를 사용하여 HTTP 캐시 헤더를 전송하거나 캐싱 전략에 대한 정보를 얻을 수 있습니다.
 
 ```ts title="my-loader.ts"
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
+import type { MyData } from "./types";
+
 export function myLoader(config): LiveLoader<MyData> {
   return {
     name: 'cached-loader',
     loadCollection: async ({ filter }) => {
-      // ... 데이터 가져오기
+      const products = await loadStoreProducts(filter);
       return {
-        entries: data.map((item) => ({
+        entries: products.map((item) => ({
           id: item.id,
           data: item,
           // 각 항목에 대한 캐시 힌트를 선택적으로 제공할 수 있습니다.
@@ -556,13 +561,13 @@ export function myLoader(config): LiveLoader<MyData> {
           // 모든 필드는 선택 사항이며, 각 항목의 캐시 힌트와 결합됩니다.
           // 태그는 모든 항목에서 병합됩니다.
           // lastModified는 모든 항목과 컬렉션 중에서 가장 최근의 lastModified입니다.
-          lastModified: new Date(item.lastModified),
+          lastModified: getLastModifiedDate(products),
           tags: ['products'],
         },
       };
     },
     loadEntry: async ({ filter }) => {
-      // ... 단일 항목 가져오기
+      const item = await loadStoreProduct(filter);
       return {
         id: item.id,
         data: item,

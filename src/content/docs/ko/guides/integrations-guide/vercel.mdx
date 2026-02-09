@@ -259,9 +259,11 @@ ISR 함수 요청에는 정적 모드의 [요청](/ko/reference/api-reference/#r
 
 ##### 시간 기반 무효화
 
-`expiration` 값을 초 단위로 구성하여 경로를 캐시하는 시간을 변경할 수 있습니다.
+기본적으로 ISR이 활성화되면 라우트는 [Vercel의 캐시 보호](https://vercel.com/docs/incremental-static-regeneration#differences-between-isr-and-cache-control-headers)를 사용하며 모든 Cache-Control 헤더는 무시됩니다. `expiration` 값(초 단위)을 구성하여 라우트가 캐시되는 기간을 제어할 수 있습니다. 이는 애플리케이션에서 설정한 Cache-Control 지시어도 무시되지 않고 반영된다는 것을 의미합니다.
 
-```js title="astro.config.mjs" {7-10}
+다음 예시는 첫 번째 요청 시 모든 페이지를 캐시하고 1일 동안 저장하도록 `expiration`을 정의합니다.
+
+```js title="astro.config.mjs" {7-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
@@ -269,18 +271,16 @@ export default defineConfig({
   // ...
   adapter: vercel({
     isr: {
-      // 첫 번째 요청 시 모든 페이지를 캐시하고 1일 동안 저장합니다.
       expiration: 60 * 60 * 24,
     },
   }),
 });
 ```
 
-##### 캐싱에서 경로 제외
+##### 요청 시 무효화
 
-Vercel의 [초안 모드](https://vercel.com/docs/build-output-api/v3/features#draft-mode) 또는 [주문형 증분형 정적 재생성 (ISR)](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr)을 구현하려면 bypass 토큰을 생성하고 이를 캐싱에서 제외할 경로와 함께 `isr` 구성에 제공할 수 있습니다.
-
-```js title="astro.config.mjs" {6-15}
+캐시된 페이지를 프로그래밍 방식으로 무효화하려면 바이패스 토큰을 생성하고 이를 `isr` 구성에 제공하세요.
+```js title="astro.config.mjs" {6-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
@@ -289,9 +289,31 @@ export default defineConfig({
     isr: {
       // 여러분이 생성하는 무작위 비밀 문자열입니다.
       bypassToken: '005556d774a8',
+    }
+  })
+})
+```
+
+캐시된 페이지를 무효화하려면, 페이지 URL로 HEAD 또는 GET 요청을 보내고 `x-prerender-revalidate` 헤더를 바이패스 토큰으로 설정하면 됩니다. 자세한 내용은 [Vercel의 온디맨드 ISR 문서](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr)를 참조하세요.
+
+
+##### 드래프트 모드
+
+ISR 캐시를 우회하고 최신 콘텐츠를 렌더링하려면 (예: 게시되지 않은 CMS 콘텐츠 미리보기), [Vercel의 드래프트 모드](https://vercel.com/docs/build-output-api/v3/features#draft-mode)를 사용하세요. 이를 위해서는 설정에서 [`bypassToken`을 정의](#요청-시-무효화)하고 페이지에서 그 값을 재사용하여 `__prerender_bypass`라는 [쿠키를 설정](/ko/guides/on-demand-rendering/#쿠키)해야 합니다.
+
+##### 캐싱에서 경로 제외
+
+`exclude` 옵션을 사용하여 특정 라우트가 ISR에 의해 캐시되는 것을 방지할 수 있습니다. 이러한 경로는 요청 시 항상 최신 상태로 렌더링됩니다.
+```js title="astro.config.mjs" {6-13}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+adapter: vercel({
+    isr: {
       // 항상 최신 상태로 제공되는 경로입니다.
       exclude: [
-        '/preview', 
+        '/preview',
         '/auth/[page]',
         /^\/api\/.+/ // `@astrojs/vercel@v8.1.0`부터 정규 표현식이 지원됩니다.
       ]

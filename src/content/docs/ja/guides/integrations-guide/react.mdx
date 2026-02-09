@@ -1,20 +1,23 @@
 ---
 type: integration
 title: '@astrojs/react'
-description:  "@astrojs/reactを使用してAstroのコンポーネントサポートを拡張する方法"
+description: '@astrojs/reactフレームワークインテグレーションを使用して、Astroプロジェクトのコンポーネントサポートを拡張する方法を学びます。'
+sidebar:
+  label: React
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
 category: renderer
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
 
-この **[Astroインテグレーション][astro-integration]** は[React](https://react.dev/)コンポーネントのサーバーサイドレンダリング（SSR）とクライアントサイドのハイドレーションを可能にします。
+この[**Astroインテグレーション**][astro-integration]は、[React](https://react.dev/)コンポーネントのレンダリングとクライアントサイドハイドレーションを有効にします。
 
 ## インストール
 
-Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドがあります。これを使用しない場合は、代わりにインテグレーションの[手動インストール](#手動でのインストール)も可能です。
+Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。もしよろしければ、[手動でインテグレーションをインストール](#手動インストール)できます。
 
-`@astrojs/react`をインストールするには、下のコマンドをプロジェクトのディレクトリから実行し、プロンプトに従ってください。
+`@astrojs/react`をインストールするには、プロジェクトディレクトリから次のコマンドを実行し、プロンプトに従ってください。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -34,11 +37,11 @@ Astroには、公式インテグレーションのセットアップを自動化
   </Fragment>
 </PackageManagerTabs>
 
-問題に遭遇した場合、[気軽にGithubで発生した問題についてお知らせください](https://github.com/withastro/astro/issues)。あるいは、以下の手動インストールも試してみてください。
+問題が発生した場合は、[GitHubで報告してください](https://github.com/withastro/astro/issues)。そして、以下の手動インストール手順を試してください。
 
-### 手動でのインストール
+### 手動インストール
 
-最初に`@astrojs/react`パッケージをインストールします。
+まず、`@astrojs/react`パッケージをインストールします。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -58,27 +61,27 @@ Astroには、公式インテグレーションのセットアップを自動化
   </Fragment>
 </PackageManagerTabs>
 
-ほとんどのパッケージマネージャーはpeer dependenciesも一緒にインストールするようになっています。もし "Cannot find package 'react'"（や似たような警告）がAstroをスタートした時に表示された場合、以下の方法で`react`と`react-dom`をインストールする必要があります。
+ほとんどのパッケージマネージャーは、関連するピア依存関係もインストールします。Astroの起動時に`Cannot find package 'react'`（または同様の）警告が表示される場合は、`react`と`react-dom`およびその型定義をインストールする必要があります。
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm install react react-dom
+  npm install react react-dom @types/react @types/react-dom
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm add react react-dom
+  pnpm add react react-dom @types/react @types/react-dom
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn add react react-dom
+  yarn add react react-dom @types/react @types/react-dom
   ```
   </Fragment>
 </PackageManagerTabs>
 
-これらのステップが完了したら、`astro.config.*`の`integrations`プロパティからインテグレーションを有効化する必要があります。
+次に、`integrations`プロパティを使用して、インテグレーションを`astro.config.*`ファイルに適用します。
 
 ```js ins="react()" ins={2} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -90,23 +93,110 @@ export default defineConfig({
 });
 ```
 
-## スターターガイド
-AstroでReactコンポーネントを使用する方法を詳しく知るには、[UIフレームワークドキュメント][astro-ui-frameworks]をご一読ください。ドキュメントからは、
+そして、`tsconfig.json`ファイルに次のコードを追加します。
 
-* 📦 どうコンポーネントがロードされるか
-* 💧 クライアントサイドのハイドレーションオプション
-* 🤝 複数のフレームワークを合わせて使う方法
+```json title="tsconfig.json" ins={5-8}
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  }
+}
+```
 
-について学ぶことが出来ます。
+## はじめに
+
+Astroで最初のReactコンポーネントを使用するには、[UIフレームワークのドキュメント][astro-ui-frameworks]にアクセスしてください。以下について探求します。
+
+* 📦 フレームワークコンポーネントがどのように読み込まれるか
+* 💧 クライアントサイドハイドレーションのオプション
+* 🤝 フレームワークを混在させてネストする機会
+
+## `useActionState()`によるアクションの統合
+
+`@astrojs/react`インテグレーションは、[Astroアクション][astro-actions]で使用するための`withState()`と`getActionState()`の2つの関数を提供します。
+
+これらは、フォーム送信時にアクションをトリガーする際のクライアントサイドの状態の読み取りと更新のために、[ReactのuseActionState()フック](https://react.dev/reference/react/useActionState)とともに使用します。
+
+### `withState()`
+
+<p>
+
+**Type:** `(action: FormFn<T>) => (state: T, formData: FormData) => FormFn<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Reactの`useActionState()`フックに、`withState()`とトリガーしたいアクションをフォームアクション関数として渡せます。以下の例では、`like`アクションを渡して初期状態`0`のカウンターを増加させています。
+
+```jsx title="Like.tsx" ins={2,7} "useActionState"
+import { actions } from 'astro:actions';
+import { withState } from '@astrojs/react/actions';
+import { useActionState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState(
+    withState(actions.like),
+    { data: 0, error: undefined }, // いいねとエラーの初期値
+  );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="postId" value={postId} />
+      <button disabled={pending}>{state.data} ❤️</button>
+    </form>
+  );
+}
+```
+
+`withState()`関数は、アクションの型をReactの期待する型と一致させ、プログレッシブエンハンスメントに使用されるメタデータを保持するため、ユーザーのデバイスでJavaScriptが無効な場合でも動作します。
+
+### `getActionState()`
+
+<p>
+
+**Type:** `(context: ActionAPIContext) => Promise<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+`useActionState()`に保存された状態に、サーバーで`getActionState()`を使用してアクションの`handler`内からアクセスできます。[Astro APIコンテキスト](/ja/reference/api-reference/#the-context-object)を受け取り、オプションで結果に型を適用できます。
+
+以下の例では、`like`アクションを作成するために、カウンターから現在のいいね数を数値型として取得しインクリメントしています。
+
+```ts title="actions.ts" ins={3,11}
+import { defineAction, type SafeResult } from 'astro:actions';
+import { z } from 'astro/zod';
+import { getActionState } from '@astrojs/react/actions';
+
+export const server = {
+  like: defineAction({
+    input: z.object({
+      postId: z.string(),
+    }),
+    handler: async ({ postId }, ctx) => {
+      const { data: currentLikes = 0, error } = await getActionState<SafeResult<any, number>>(ctx);
+
+      // エラーを処理する
+      if (error) throw error;
+
+      // データベースに書き込む
+      return currentLikes + 1;
+    },
+  })
+};
+```
+
 ## オプション
 
-### 複数のJSXフレームワークを一緒に使用する
+### 複数のJSXフレームワークの組み合わせ
 
-（React、Preact、Solidなどの）複数のJSXフレームワークを同一のプロジェクトで使用している場合、 それぞれのコンポーネントに対してどのJSXフレームワークの変換方法を使用するか、Astroが判断する必要があります。JSXフレームワークを一つのみ導入している場合は特別な設定を記述する必要はありません。
+同じプロジェクトで複数のJSXフレームワーク（React、Preact、Solid）を使用している場合、Astroは各コンポーネントに対してどのJSXフレームワーク固有の変換を使用すべきかを判断する必要があります。プロジェクトにJSXフレームワークインテグレーションを1つだけ追加した場合、追加の設定は不要です。
 
-`include`（必須）と`exclude`（任意）オプションを使用して、どのコンポーネントがどのフレームワークを使用するのか設定して下さい。設定では、特定のフレームワークのためのファイルまたはフォルダーを含んだ配列を`include`に含めて下さい。この時複数のファイルパスを含めるためにワイルドカードも使用できます。
+`include`（必須）および`exclude`（任意）設定オプションを使用して、どのファイルがどのフレームワークに属するかを指定します。使用しているフレームワークごとに、`include`にファイルやフォルダの配列を指定します。ワイルドカードを使用して複数のファイルパスを含められます。
 
-Astroは同じフレームワークを使用するコンポーネントをまとめたフォルダー（`/components/react`や`/components/solid`など）を、使用しているフレームワークにつき一つずつ作成することを推奨していますが、必須ではありません。
+共通のフレームワークコンポーネントを同じフォルダに配置すること（例：`/components/react/`や`/components/solid/`）をお勧めしますが、必須ではありません。
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -117,8 +207,8 @@ import vue from '@astrojs/vue';
 import solid from '@astrojs/solid-js';
 
 export default defineConfig({
-  // Astroが複数のフレームワークを同時使用することが以下のコードで可能になります。
-  // JSXフレームワークを一つだけ使用している場合は`include`を含める必要はありません。
+  // 多くのフレームワークを有効にして、さまざまな種類のコンポーネントをサポートします。
+  // JSXフレームワークを1つだけ使用している場合、`include`は不要です！
   integrations: [
     preact({
       include: ['**/preact/*'],
@@ -134,9 +224,10 @@ export default defineConfig({
 ```
 
 ### 子要素のパース
-AstroコンポーネントからReactコンポーネントへ渡される子要素は、Reactノードではなくプレーンな文字列としてパースされます。
 
-例えば、下の`<ReactComponent />`には子要素が一つしか渡されません。
+AstroコンポーネントからReactコンポーネントに渡された子要素は、Reactノードではなくプレーンな文字列としてパースされます。
+
+たとえば、以下の`<ReactComponent />`は単一の子要素のみを受け取ります。
 
 ```astro
 ---
@@ -149,11 +240,11 @@ import ReactComponent from './ReactComponent';
 </ReactComponent>
 ```
 
-異なる場所に異なる要素を挿入する機能などのために、1つ以上の子要素が渡される事を*想定*しているライブラリを使用している場合、この機能が邪魔になるかも知れません。 
+複数の子要素が渡されることを期待するライブラリを使用している場合（たとえば、特定の要素を異なる場所にスロットするため）、これがブロッカーになる可能性があります。
 
-この場合、実験的な`experimentalReactChildren`フラグにより、子要素をReactにvnodeとして必ず渡すようAstroに伝えられます。ランタイム上のコストはありますが、互換性の確保に役立ちます。
+実験的フラグ`experimentalReactChildren`を設定すると、Astroは常にReactの仮想DOMノードとしてReactに子要素を渡すようになります。これにはランタイムコストがかかりますが、互換性の向上に役立ちます。
 
-このオプションは、Reactインテグレーションの設定から有効に出来ます。
+このオプションは、Reactインテグレーションの設定で有効にできます。
 
 ```js title="astro.config.mjs" ins={8}
 import { defineConfig } from 'astro/config';
@@ -169,6 +260,28 @@ export default defineConfig({
 });
 ```
 
+### ストリーミングの無効化（実験的）
+
+AstroはデフォルトでReactコンポーネントの出力をストリーミングします。ただし、`experimentalDisableStreaming`オプションを有効にすることでこの動作を無効にできます。これは、一部のCSS-in-JSソリューションなど、ストリーミングと相性が悪いライブラリをサポートする場合に特に役立ちます。
+
+プロジェクト内のすべてのReactコンポーネントのストリーミングを無効にするには、`@astrojs/react`に`experimentalDisableStreaming: true`を設定します。
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      experimentalDisableStreaming: true,
+    })
+  ]
+});
+```
+
 [astro-integration]: /ja/guides/integrations-guide/
 
-[astro-ui-frameworks]: /ja/guides/framework-components/#フレームワークコンポーネントを利用
+[astro-ui-frameworks]: /ja/guides/framework-components/#using-framework-components
+
+[astro-actions]: /ja/guides/actions/
