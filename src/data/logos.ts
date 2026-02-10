@@ -1,7 +1,16 @@
 import { z } from 'astro:content';
 
+interface Logo {
+	/** Filename for this logo in `public/logos/*`, e.g. `"alpine-js.svg"`. */
+	file: string;
+	/** CSS padding in `em` units to apply around the logo, e.g. `"0.1em"` or `"0.1em 0.2em"`. */
+	padding?: string;
+	/** Accent color to use as the logo background in large applications. */
+	bg?: string;
+}
+
 /** Enforce logo types while preserving exact key type. */
-const LogoCheck = <T extends Record<string, { file: string; padding: string }>>(logos: T) => logos;
+const LogoCheck = <T extends string>(logos: Record<T, Logo>) => logos;
 
 export const logos = LogoCheck({
 	alpinejs: { file: 'alpine-js.svg', padding: '.1875em' },
@@ -15,7 +24,7 @@ export const logos = LogoCheck({
 	caisy: { file: 'caisy.svg', padding: '.05em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
-	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
+	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em', bg: '#034ad8' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
@@ -46,7 +55,7 @@ export const logos = LogoCheck({
 	gitbook: { file: 'gitbook.svg', padding: '.25em' },
 	gitcms: { file: 'gitcms.svg', padding: '0.20em' },
 	github: { file: 'github.svg', padding: '0.125em 0.125em 0.1375em' },
-	gitlab: { file: 'gitlab.svg', padding: '0' },
+	gitlab: { file: 'gitlab.svg' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
 	gridsome: { file: 'gridsome.svg', padding: '.15em' },
 	hashnode: { file: 'hashnode.png', padding: '.1875em' },
@@ -84,7 +93,7 @@ export const logos = LogoCheck({
 	railway: { file: 'railway.svg', padding: '0' },
 	react: { file: 'react.svg', padding: '.2em' },
 	render: { file: 'render.svg', padding: '.1875em' },
-	sanity: { file: 'sanity.svg', padding: '.15em' },
+	sanity: { file: 'sanity.svg', padding: '.15em', bg: '#F03E2F' },
 	seenode: { file: 'seenode.svg', padding: '.2em' },
 	sentry: { file: 'sentry.svg', padding: '.1em' },
 	sitecore: { file: 'sitecore.svg', padding: '.15em' },
