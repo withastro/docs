@@ -106,6 +106,7 @@ export const logos = LogoCheck({
 	'tina-cms': { file: 'tina-cms.svg', padding: '.15em' },
 	turso: { file: 'turso.svg', padding: '.2em' },
 	umbraco: { file: 'umbraco.svg', padding: '.05em' },
+	'vault-cms': { file: 'vault-cms.svg', padding: '0.15em' },
 	vercel: { file: 'vercel.svg', padding: '.3em .3em .35em' },
 	vue: { file: 'vue.svg', padding: '.3em .2em .2em' },
 	vuepress: { file: 'vuepress.png', padding: '.2em .175em .175em' },
