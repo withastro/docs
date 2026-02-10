@@ -24,7 +24,7 @@ export const logos = LogoCheck({
 	caisy: { file: 'caisy.svg', padding: '.05em' },
 	cleavr: { file: 'cleavr.svg', padding: '0.125em 0.125em 0.1375em' },
 	'clever-cloud': { file: 'clever-cloud.svg', padding: '.09em' },
-	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em' },
+	cloudcannon: { file: 'cloudcannon.svg', padding: '.25em', bg: 'var(--sl-color-accent)' },
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
