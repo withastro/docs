@@ -112,6 +112,7 @@ Integration and adapter maintainers should pay special attention to changes affe
 - [generating routes with `RouteData`](#removed-routedatagenerate-adapter-api)
 - [routes with percent-encoded percent signs (e.g. `%25`)](#removed-percent-encoding-in-routes)
 - [`astro:ssr-manifest` virtual module](#removed-astrossr-manifest-virtual-module-integration-api)
+- [`entrypointResolution: "explicit"`](#deprecated-entrypointresolution-explicit-adapter-api)
 
 ### Zod 4
 
@@ -373,6 +374,90 @@ export default defineConfig({
 ```
 
 <ReadMore>Learn more about [available session drivers](/en/reference/session-driver-reference/#building-a-session-driver).</ReadMore>
+
+### Deprecated: `entrypointResolution: "explicit"` (Adapter API)
+
+<SourcePR number="15461" title="feat: improve naming of new adapter api" />
+
+In Astro 5.x, adapters' server entrypoints had to export a `createExports()` function and list the exports in `setAdapter()` `exports`.
+
+Astro 6.0 introduces a simpler yet more powerful way of making server entrypoints. This is opt-in, by passing `entrypointResolution: "auto"` to `setAdapter()`. The default remains `entrypointResolution: "explicit"` (Astro 5.x behavior) for backward compatibility. However, it is deprecated and will be removed in Astro 7 in favor of `entrypointResolution: "auto"`.
+
+#### What should I do?
+
+If you are building an Adapter, follow these steps
+
+<Steps>
+
+1. Update your `setAdapter()`: set `entrypointResolution: "auto"`, remove `exports` and `args`
+
+    ```js title="my-adapter.mjs" ins={3} del={4-5}
+    setAdapter({
+      // ...
+      entrypointResolution: 'auto',
+      exports: ['handler'],
+      args: { assets: config.build.assets }
+    })
+    ```
+
+2. If you were previously using `args`, use a virtual module instead to [pass build-time configuration](/en/reference/adapter-reference/#passing-build-time-configuration).
+
+3. Update your server entrypoint to not rely on `createExports()`:
+
+    ```js title="my-adapter/server.js" del={1-11} ins={12-18}
+    import { App } from 'astro/app';
+
+    export function createExports(manifest) {
+      const app = new App(manifest);
+
+      const handler = (event, context) => {
+        // ...
+      };
+
+      return { handler };
+    }
+    import { createApp } from 'astro/app/entrypoint';
+
+    const app = createApp();
+
+    export const handler = (event, context) => {
+      // ...
+    }
+    ```
+
+4. Update your server entrypoint to not rely on `start()`:
+
+    ```js title="my-adapter/server.js" del={1-9} ins={10-16}
+    import { App } from 'astro/app';
+
+    export function start(manifest) {
+      const app = new App(manifest);
+
+      addEventListener('fetch', event => {
+        // ...
+      });
+    }
+    import { createApp } from 'astro/app/entrypoint';
+
+    const app = createApp();
+
+    addEventListener('fetch', event => {
+      // ...
+    });
+    ```
+
+5. If you were relying on args, use the virtual module instead:
+
+    ```js title="my-adapter/server.js" del={1-3} ins={4}
+    export function createExports(manifest, { assets }) {
+      // ...
+    }
+    import { assets } from 'virtual:@example/my-adapter:config';
+    ```
+
+</Steps>
+
+<ReadMore>Learn more about [the Adapter API](/en/reference/adapter-api/).</ReadMore>
 
 ## Removed
 
@@ -1454,6 +1539,7 @@ const driver = await manifest.sessionDriver?.();
 ```
 
 <ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/).</ReadMore>
+
 ### Changed: schema types are inferred instead of generated (Content Loader API)
 
 <SourcePR number="14759" title="feat: loader.createSchema()" />
