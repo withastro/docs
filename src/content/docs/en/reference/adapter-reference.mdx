@@ -1182,46 +1182,32 @@ export default function createIntegration() {
 The `astro/env/setup` module allows you to provide an implementation for `getSecret()`. In [your server entrypoint](#building-a-server-entrypoint), call `setGetEnv()` as soon as possible:
 
 ```js ins={2,4}
-import { App } from 'astro/app';
+import { createApp } from 'astro/app/entrypoint';
 import { setGetEnv } from "astro/env/setup"
 
 setGetEnv((key) => process.env[key])
 
-export function createExports(manifest) {
-  const app = new App(manifest);
+const app = createApp();
 
-  const handler = (event, context) => {
-    // ...
-  };
-
-  return { handler };
+export async function handler(event, context) {
+  // ...
 }
 ```
 
 If the adapter supports secrets, be sure to call `setGetEnv()` before `getSecret()` when environment variables are tied to the request:
 
-```js ins={3,14}
-import type { SSRManifest } from 'astro';
-import { App } from 'astro/app';
+```js ins={2,8}
+import { createApp } from 'astro/app/entrypoint';
 import { setGetEnv } from 'astro/env/setup';
-import { createGetEnv } from '../utils/env.js';
 
-type Env = {
-  [key: string]: unknown;
-};
+const app = createApp();
 
-export function createExports(manifest: SSRManifest) {
-  const app = new App(manifest);
+export default {
+  async fetch(request: Request, env: Record<string, unknown>) {
+    setGetEnv((key) => env[key]);
 
-  const fetch = async (request: Request, env: Env) => {
-    setGetEnv(createGetEnv(env));
-
-    const response = await app.render(request);
-
-    return response;
-  };
-
-  return { default: { fetch } };
+    return await app.render(request);
+  }
 }
 ```
 
