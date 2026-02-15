@@ -113,4 +113,6 @@ export const starlightPluginLlmsTxt = () =>
 			'en/guides/testing',
 			'en/guides/media/**',
 		],
+		// Use raw Markdown bodies to avoid rendering issues.
+		rawContent: true,
 	});
