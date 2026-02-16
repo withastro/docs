@@ -112,6 +112,7 @@ Integration and adapter maintainers should pay special attention to changes affe
 - [generating routes with `RouteData`](#removed-routedatagenerate-adapter-api)
 - [routes with percent-encoded percent signs (e.g. `%25`)](#removed-percent-encoding-in-routes)
 - [`astro:ssr-manifest` virtual module](#removed-astrossr-manifest-virtual-module-integration-api)
+- [`NodeApp` from `astro/app/node`](#deprecated-nodeapp-from-astroappnode-adapter-api)
 
 ### Zod 4
 
@@ -373,6 +374,45 @@ export default defineConfig({
 ```
 
 <ReadMore>Learn more about [available session drivers](/en/reference/session-driver-reference/#building-a-session-driver).</ReadMore>
+
+### Deprecated: `NodeApp` from `astro/app/node` (Adapter API)
+
+<SourcePR number="15535" title="feat: deprecate NodeApp" />
+
+In Astro 5.x, adapters could implement their server entrypoint using `App` for standard web requests/responses, or `NodeApp` for node requests/responses.
+
+Astro 6.0 deprecates `NodeApp` in favor of `createApp()` and new utilities: `createRequest()` and `writeResponse()`. This allows to have a more consistent API while preserving the same features as before. It also deprecates the `NodeAppHeadersJson` type.
+
+#### What should I do?
+
+If you have built an adapter, update any usage of `NodeApp` with `createApp()`:
+
+```js title="my-adapter/server.js" del={1-12} ins={13-22}
+import { NodeApp } from 'astro/app/node';
+
+export function createExports(manifest) {
+  const app = new NodeApp(manifest);
+
+  const handler = async (req, res) => {
+    const response = await app.render(req);
+    await NodeApp.writeResponse(response, res);
+  };
+
+  return { handler };
+}
+import { createApp } from 'astro/app/entrypoint';
+import { createRequest, writeResponse } from 'astro/app/node';
+
+const app = createApp();
+
+export const handler = async (req, res) => {
+  const request = createRequest(req);
+  const response = await app.render(request);
+  await writeResponse(response, res);
+}
+```
+
+<ReadMore>Learn more about [the `astro/app/node` module](/en/reference/adapter-reference/#astroappnode).</ReadMore>
 
 ## Removed
 
