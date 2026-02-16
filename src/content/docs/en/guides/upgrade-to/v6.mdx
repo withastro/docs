@@ -112,6 +112,7 @@ Integration and adapter maintainers should pay special attention to changes affe
 - [generating routes with `RouteData`](#removed-routedatagenerate-adapter-api)
 - [routes with percent-encoded percent signs (e.g. `%25`)](#removed-percent-encoding-in-routes)
 - [`astro:ssr-manifest` virtual module](#removed-astrossr-manifest-virtual-module-integration-api)
+- [`createExports()` and `start()`](#deprecated-createexports-and-start-adapter-api)
 
 ### Zod 4
 
@@ -373,6 +374,96 @@ export default defineConfig({
 ```
 
 <ReadMore>Learn more about [available session drivers](/en/reference/session-driver-reference/#building-a-session-driver).</ReadMore>
+
+### Deprecated: `createExports()` and `start()` (Adapter API)
+
+<SourcePR number="15461" title="feat: improve naming of new adapter api" />
+
+In Astro 5.x, adapters had to provide the exports required by the host in their server entrypoint using a `createExports()` function before passing them to `setAdapter()` as an `exports` list.
+
+Astro 6.0 introduces a simpler yet more powerful way of making server entrypoints. This relies on passing a new option `entrypointResolution: "auto"` to `setAdapter()`.
+
+However, for backwards compatibility with existing adapters, the default value of `entrypointResolution` (`"explicit"`) mimics Astro 5.x API behavior. This means that your adapters can to continue to function until you can fully migrate your adapter to the `auto` value, as shown below. 
+
+Note that `entrypointResolution: "explicit"` (maintaining v5 API behavior) is considered deprecated usage, but the option has been provided so that no immediate change to your adapter is required and to allow adapter authors time to update. This option will be removed in a future major version in favor of all adapters using `entrypointResolution: "auto"`.
+
+#### What should I do?
+
+If you are an adapter author with a public repository and [include the `astro-adapter` keyword in your `package.json`](/en/reference/publish-to-npm/#categories), the Astro core team will attempt to make a PR to your repository directly to help you migrate your code if you have not yet followed the steps below.
+
+If you are seeing warnings because you are using a community adapter that is not yet updated, please reach out to the adapter author directly to let them know. It is ultimately their responsibility to update their adapters. You can also let the Astro core team know in the [`#integrations` channel of our Discord](https://astro.build/chat) and we will attempt to help the adapter author upgrade.
+
+If you have built an adapter, follow these steps to remove the legacy v5 behaviour:
+
+<Steps>
+
+1. Update your `setAdapter()`: set `entrypointResolution: "auto"`, remove `exports` and `args`
+
+    ```js title="my-adapter.mjs" ins={3} del={4-5}
+    setAdapter({
+      // ...
+      entrypointResolution: 'auto',
+      exports: ['handler'],
+      args: { assets: config.build.assets }
+    })
+    ```
+
+2. Update your server entrypoint to provide any required exports without `createExports()`:
+
+    ```js title="my-adapter/server.js" del={1-11} ins={12-18}
+    import { App } from 'astro/app';
+
+    export function createExports(manifest) {
+      const app = new App(manifest);
+
+      const handler = (event, context) => {
+        // ...
+      };
+
+      return { handler };
+    }
+    import { createApp } from 'astro/app/entrypoint';
+
+    const app = createApp();
+
+    export const handler = (event, context) => {
+      // ...
+    }
+    ```
+
+3. If your adapter provides a `start()` function, update your server entrypoint to call the code directly:
+
+    ```js title="my-adapter/server.js" del={1-9} ins={10-16}
+    import { App } from 'astro/app';
+
+    export function start(manifest) {
+      const app = new App(manifest);
+
+      addEventListener('fetch', event => {
+        // ...
+      });
+    }
+    import { createApp } from 'astro/app/entrypoint';
+
+    const app = createApp();
+
+    addEventListener('fetch', event => {
+      // ...
+    });
+    ```
+
+4. If you were relying on `args`, [create a virtual module to pass the build time configuration](/en/reference/adapter-reference/#passing-build-time-configuration) and import them from the virtual module instead:
+
+    ```js title="my-adapter/server.js" del={1-3} ins={4}
+    export function createExports(manifest, { assets }) {
+      // ...
+    }
+    import { assets } from 'virtual:@example/my-adapter:config';
+    ```
+
+</Steps>
+
+<ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/).</ReadMore>
 
 ## Removed
 
@@ -1502,6 +1593,7 @@ const driver = await manifest.sessionDriver?.();
 ```
 
 <ReadMore>Learn more about [the Adapter API](/en/reference/adapter-reference/).</ReadMore>
+
 ### Changed: schema types are inferred instead of generated (Content Loader API)
 
 <SourcePR number="14759" title="feat: loader.createSchema()" />
