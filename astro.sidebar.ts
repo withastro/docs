@@ -90,6 +90,7 @@ export const sidebar = [
 					group('guides.upgrade.major', {
 						collapsed: true,
 						items: [
+							'guides/upgrade-to/v6',
 							'guides/upgrade-to/v5',
 							'guides/upgrade-to/v4',
 							'guides/upgrade-to/v3',
@@ -125,6 +126,7 @@ export const sidebar = [
 					'reference/modules/astro-env',
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
+					'reference/modules/astro-static-paths',
 					'reference/modules/astro-transitions',
 					'reference/modules/astro-zod',
 				],
@@ -136,6 +138,8 @@ export const sidebar = [
 					'reference/content-loader-reference',
 					'reference/image-service-reference',
 					'reference/dev-toolbar-app-reference',
+					'reference/session-driver-reference',
+					'reference/font-provider-reference',
 					'reference/container-reference',
 					'reference/programmatic-reference',
 				],
@@ -143,17 +147,9 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
-					'reference/experimental-flags/csp',
-					'reference/experimental-flags/fonts',
-					'reference/experimental-flags/live-content-collections',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
-					'reference/experimental-flags/preserve-scripts-order',
-					'reference/experimental-flags/heading-id-compat',
-					'reference/experimental-flags/static-import-meta-env',
 					'reference/experimental-flags/chrome-devtools-workspace',
-					'reference/experimental-flags/fail-on-prerender-conflict',
-					'reference/experimental-flags/svg-optimization',
 				],
 			}),
 			'reference/legacy-flags',
