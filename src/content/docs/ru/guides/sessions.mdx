@@ -1,0 +1,87 @@
+---
+title: Сессии
+description: Обмен данными между запросами для страниц, рендерящихся по запросу.
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+**Сессии** используются для обмена данными между запросами на [страницах, рендерящихся по запросу (on-demand rendering)](/ru/guides/on-demand-rendering/).
+
+В отличие от [`кук (cookies)`](/ru/guides/on-demand-rendering/#куки), данные сессий хранятся на сервере. Это позволяет хранить большие объемы данных, не беспокоясь об ограничениях размера или безопасности. Сессии удобны для хранения данных пользователя, содержимого корзины или состояния форм, и они работают без JavaScript на стороне клиента.
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false;
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} товаров</a>
+```
+
+## Настройка сессий
+
+Для работы сессий требуется драйвер хранилища. Адаптеры [Node](/ru/guides/integrations-guide/node/#sessions), [Cloudflare](/ru/guides/integrations-guide/cloudflare/#sessions) и [Netlify](/ru/guides/integrations-guide/netlify/#sessions) настраивают стандартный драйвер автоматически. Для других адаптеров может потребоваться [указать драйвер вручную](/ru/reference/configuration-reference/#sessiondriver).
+
+```js title="astro.config.mjs"
+{
+  adapter: vercel(),
+  session: {
+    driver: "redis",
+  },
+}
+```
+
+<ReadMore>См. [справочник по настройке сессий](/ru/reference/configuration-reference/#опции-сессий) для получения подробностей.</ReadMore>
+
+## Работа с данными сессии
+
+Объект [`session`](/ru/reference/api-reference/#session) позволяет управлять состоянием пользователя и ID сессии. Он доступен как `Astro.session` в компонентах и страницах Astro, и как `context.session` в эндпойнтах, мидлварах и действиях.
+
+Сессия создается автоматически при первом использовании. Её можно обновить с помощью `session.regenerate()` или удалить через `session.destroy()`.
+
+В большинстве случаев вам понадобятся только методы `session.get()` и `session.set()`.
+
+### Использование в компонентах
+
+```astro title="src/components/CartButton.astro"
+---
+export const prerender = false;
+const cart = await Astro.session?.get('cart');
+---
+<a href="/checkout">🛒 {cart?.length ?? 0} товаров</a>
+```
+
+### Использование в API эндпойнтах
+
+```ts title="src/pages/api/addToCart.ts"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+  const data = await context.request.json();
+  
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  
+  return Response.json(cart);
+}
+```
+
+## Типизация данных сессии
+
+По умолчанию данные сессии не типизированы. Вы можете добавить типы в файле `src/env.d.ts`, описав интерфейс `App.SessionData`:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: { id: string; name: string };
+    cart: string[];
+  }
+}
+```
+
+Это обеспечит автодополнение и проверку типов при использовании `Astro.session.get()`.

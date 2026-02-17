@@ -1,0 +1,86 @@
+---
+title: Добавление RSS-ленты
+description: Добавьте RSS-ленту на свой сайт Astro, чтобы пользователи могли подписываться на обновления.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Astro поддерживает автоматическую генерацию RSS-лент для блогов и других сайтов с часто обновляемым контентом.
+
+## Настройка `@astrojs/rss`
+
+Пакет [`@astrojs/rss`](https://github.com/withastro/astro/tree/main/packages/astro-rss) предоставляет инструменты для создания лент через [API эндпойнты](/ru/guides/endpoints/). Это работает как при статической сборке, так и при использовании [SSR-адаптеров](/ru/guides/on-demand-rendering/).
+
+<Steps>
+1. Установите пакет `@astrojs/rss`:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">```shell npm install @astrojs/rss ```</Fragment>
+      <Fragment slot="pnpm">```shell pnpm add @astrojs/rss ```</Fragment>
+      <Fragment slot="yarn">```shell yarn add @astrojs/rss ```</Fragment>
+    </PackageManagerTabs>
+
+    :::tip
+    Убедитесь, что вы [настроили `site`](/ru/reference/configuration-reference/#site) в `astro.config`. Этот параметр используется для формирования ссылок на ваши статьи.
+    :::
+
+2. Создайте файл в `src/pages/` с расширением `.xml.js` (например, `rss.xml.js`).
+
+3. Импортируйте хелпер `rss` и экспортируйте функцию GET:
+
+    ```js title="src/pages/rss.xml.js"
+    import rss from '@astrojs/rss';
+
+    export function GET(context) {
+      return rss({
+        title: 'Блог Buzz',
+        description: 'Справочник астронавта по звездам',
+        site: context.site,
+        items: [], // см. ниже, как наполнить список
+        customData: `<language>ru-ru</language>`,
+      });
+    }
+    ```
+</Steps>
+
+## Генерация записей (items)
+
+### Использование коллекций контента
+
+Для создания ленты из страниц, управляемых через [коллекции контента](/ru/guides/content-collections/), используйте функцию `getCollection()`:
+
+```js title="src/pages/rss.xml.js"
+import rss from '@astrojs/rss';
+import { getCollection } from 'astro:content';
+
+export async function GET(context) {
+  const blog = await getCollection('blog');
+  return rss({
+    title: 'Блог Buzz',
+    description: 'Справочник астронавта по звездам',
+    site: context.site,
+    items: blog.map((post) => ({
+      title: post.data.title,
+      pubDate: post.data.pubDate,
+      description: post.data.description,
+      link: `/blog/${post.id}/`,
+    })),
+  });
+}
+```
+
+## Автоматическое обнаружение ленты
+
+Чтобы браузеры и читалки могли автоматически найти вашу ленту, добавьте тег `<link>` в секцию `head` вашего основного макета:
+
+```jsx
+<link
+    rel="alternate"
+    type="application/rss+xml"
+    title="Название вашего сайта"
+    href={new URL("rss.xml", Astro.site)}
+/>
+```

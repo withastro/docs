@@ -1,0 +1,182 @@
+---
+title: Astro DB
+description: Узнайте, как использовать Astro DB — полностью управляемую SQL-базу данных, созданную специально для Astro.
+i18nReady: true
+---
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+**Astro DB** — это полностью управляемая SQL-база данных, разработанная специально для экосистемы Astro. Разрабатывайте локально и развертывайте в любую базу данных, совместимую с libSQL.
+
+Astro DB предоставляет комплексное решение для настройки, разработки и выполнения запросов к вашим данным. Локальная база данных создается в `.astro/content.db` автоматически при запуске `astro dev`, что позволяет работать без Docker или подключения к сети.
+
+## Установка
+
+Установите интеграцию [`@astrojs/db`](/ru/guides/integrations-guide/db/) с помощью встроенной команды `astro add`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add db
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add db
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add db
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Определение базы данных
+
+При установке интеграции автоматически создается файл `db/config.ts`, где вы описываете таблицы вашей базы данных:
+
+```ts title="db/config.ts"
+import { defineDb } from 'astro:db';
+
+export default defineDb({
+  tables: { },
+})
+```
+
+### Таблицы
+
+Данные в Astro DB хранятся в SQL-таблицах. Таблицы структурируют данные в строки и столбцы, где столбцы определяют тип данных.
+
+Определите таблицы в `db/config.ts`. Это позволит Astro сгенерировать TypeScript-интерфейсы для выполнения запросов с полной поддержкой автодополнения и проверки типов.
+
+Пример таблицы `Comment` (Комментарий) с текстовыми полями:
+
+```ts title="db/config.ts"
+import { defineDb, defineTable, column } from 'astro:db';
+
+const Comment = defineTable({
+  columns: {
+    author: column.text(),
+    body: column.text(),
+  }
+})
+
+export default defineDb({
+  tables: { Comment },
+})
+```
+
+### Столбцы (Колонки)
+
+Astro DB поддерживает следующие типы данных:
+
+```ts title="db/config.ts"
+const Comment = defineTable({
+  columns: {
+    author: column.text(),    // Строка текста
+    likes: column.number(),   // Число
+    flagged: column.boolean(), // Булево значение (true/false)
+    published: column.date(),  // Дата (объект Date в JS)
+    metadata: column.json(),   // Объект JSON
+  }
+});
+```
+
+### Связи между таблицами
+
+Вы можете устанавливать связи между таблицами, используя ссылки. Обычно для этого используется `id` в качестве первичного ключа.
+
+```ts title="db/config.ts"
+const Author = defineTable({
+  columns: {
+    id: column.number({ primaryKey: true }),
+    name: column.text(),
+  }
+});
+
+const Comment = defineTable({
+  columns: {
+    authorId: column.number({ references: () => Author.columns.id }),
+    body: column.text(),
+  }
+});
+```
+
+## Наполнение данными (Seed)
+
+Для тестирования и разработки вы можете наполнить базу начальными данными. Создайте файл `db/seed.ts` и используйте метод `db.insert`:
+
+```ts title="db/seed.ts"
+import { db, Comment, Author } from 'astro:db';
+
+export default async function() {
+  await db.insert(Author).values([
+    { id: 1, name: "Касим" },
+    { id: 2, name: "Мина" },
+  ]);
+
+  await db.insert(Comment).values([
+    { authorId: 1, body: 'Astro DB — это круто!' },
+    { authorId: 2, body: 'Согласна!'},
+  ])
+}
+```
+
+База данных будет автоматически обновляться при каждом изменении этого файла.
+
+## Подключение к Turso
+
+Astro DB полностью совместима с [Turso](https://turso.tech/) — платформой для libSQL.
+
+<Steps>
+
+1. Установите [Turso CLI](https://docs.turso.tech/cli/installation).
+2. Авторизуйтесь через `turso auth login`.
+3. Создайте базу данных: `turso db create my-db`.
+4. Получите URL: `turso db show my-db`. Установите его в переменную `ASTRO_DB_REMOTE_URL`.
+5. Создайте токен: `turso db tokens create my-db`. Установите его в `ASTRO_DB_APP_TOKEN`.
+6. Отправьте схему в облако: `astro db push --remote`.
+
+</Steps>
+
+## Выполнение запросов
+
+Вы можете работать с БД на любой странице, в эндпойнте или действии Astro, используя ORM Drizzle.
+
+### Выборка (Select)
+
+```astro title="src/pages/index.astro"
+---
+import { db, Comment } from 'astro:db';
+
+const comments = await db.select().from(Comment);
+---
+<h2>Комментарии</h2>
+{comments.map(({ author, body }) => (
+  <article>
+    <p>Автор: {author}</p>
+    <p>{body}</p>
+  </article>
+))}
+```
+
+### Вставка (Insert)
+
+```ts
+import { db, Comment } from 'astro:db';
+
+await db.insert(Comment).values({
+  author: 'Астронавт',
+  body: 'Поехали!'
+});
+```
+
+<ReadMore>Подробности по работе с запросами ищите в [документации Drizzle ORM](https://orm.drizzle.team/docs/select).</ReadMore>
+
+## Обновление схемы базы данных
+
+Если вы изменили структуру таблиц в коде, используйте команду `astro db push --remote`, чтобы применить эти изменения к вашей базе данных в облаке. Команда проверит совместимость изменений и предупредит о возможном риске потери данных.

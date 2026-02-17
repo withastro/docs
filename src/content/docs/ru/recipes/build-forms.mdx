@@ -1,0 +1,65 @@
+---
+title: Создание HTML-форм на страницах Astro
+description: Узнайте, как создавать формы и обрабатывать их отправку прямо в блоке метаданных.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Страницы Astro, рендерящиеся по запросу (SSR), могут самостоятельно обрабатывать формы без использования клиентского JavaScript.
+
+:::tip[Действия (Actions)]
+В Astro v4.15 появились **Actions**, которые предоставляют более удобный и типобезопасный способ работы с формами. Рекомендуем ознакомиться с [руководством по действиям](/ru/guides/actions/).
+:::
+
+## Предварительные требования
+- Проект с установленным [адаптером для сервера](/ru/guides/on-demand-rendering/#серверные-адаптеры).
+
+## Инструкция
+
+<Steps>
+1. Создайте страницу с формой. Обязательно укажите `export const prerender = false`, если ваш проект по умолчанию работает в статическом режиме.
+
+    ```astro title="src/pages/register.astro"
+    ---
+    export const prerender = false;
+
+    if (Astro.request.method === "POST") {
+      try {
+        const data = await Astro.request.formData();
+        const username = data.get("username");
+        const email = data.get("email");
+        // Логика сохранения данных...
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    ---
+    <h1>Регистрация</h1>
+    <form method="POST">
+      <label>
+        Имя пользователя:
+        <input type="text" name="username" required />
+      </label>
+      <label>
+        Email:
+        <input type="email" name="email" required />
+      </label>
+      <button>Зарегистрироваться</button>
+    </form>
+    ```
+
+2. Вы можете добавить серверную валидацию и отображение ошибок. Для этого создайте объект `errors` и проверяйте данные перед выполнением действий.
+
+    ```astro
+    ---
+    const errors = { username: "", email: "" };
+    if (Astro.request.method === "POST") {
+        const data = await Astro.request.formData();
+        if (data.get("username").length < 3) {
+            errors.username = "Имя слишком короткое";
+        }
+    }
+    ---
+    ```
+</Steps>

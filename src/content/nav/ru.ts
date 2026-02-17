@@ -31,5 +31,5 @@ export default navDictionary({
 	'thirdParty.deployment': 'Руководства по развёртыванию',
 	'thirdParty.cms': 'Системы управления контентом',
 	'thirdParty.backend': 'Бэкенд-сервисы',
-	'thirdParty.media': 'Управление цифровыми активами',
+	'thirdParty.media': 'Хостинг изображений и видео',
 });

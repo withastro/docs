@@ -1,0 +1,84 @@
+---
+title: Создание собственного компонента изображения
+description: Узнайте, как создать кастомный компонент изображения с поддержкой медиа-запросов, используя функцию getImage.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Astro предоставляет встроенные компоненты `<Image />` и `<Picture />`. Однако иногда требуются возможности, которые они не поддерживают напрямую. В таких случаях можно использовать функцию `getImage()` для создания собственного решения.
+
+В этом рецепте мы создадим компонент, который отображает разные исходные изображения в зависимости от размера экрана (медиа-запросов).
+
+## Инструкция
+
+<Steps>
+1. Создайте новый компонент и импортируйте функцию `getImage()`:
+
+    ```astro title="src/components/MyCustomImage.astro"
+    ---
+    import { getImage } from "astro:assets";
+    ---
+    ```
+
+2. Определите пропсы (входные параметры). Нам понадобятся URL для мобильной и десктопной версий, а также альтернативный текст.
+
+    ```astro title="src/components/MyCustomImage.astro"
+    ---
+    import type { ImageMetadata } from "astro";
+    import { getImage } from "astro:assets";
+
+    interface Props {
+        mobileImgUrl: string | ImageMetadata;
+        desktopImgUrl: string | ImageMetadata;
+        alt: string;
+    }
+
+    const { mobileImgUrl, desktopImgUrl, alt } = Astro.props;
+    ---
+    ```
+
+3. Подготовьте оптимизированные версии обоих изображений:
+
+    ```astro title="src/components/MyCustomImage.astro"
+    const mobileImg = await getImage({
+        src: mobileImgUrl,
+        format: "webp",
+        width: 400,
+        height: 400,
+    });
+
+    const desktopImg = await getImage({
+        src: desktopImgUrl,
+        format: "webp",
+        width: 1200,
+        height: 400,
+    });
+    ---
+    ```
+
+4. Используйте стандартный HTML-тег `<picture>` для реализации адаптивности:
+
+    ```astro title="src/components/MyCustomImage.astro"
+    <picture>
+        <source media="(max-width: 799px)" srcset={mobileImg.src} />
+        <source media="(min-width: 800px)" srcset={desktopImg.src} />
+        <img src={desktopImg.src} alt={alt} />
+    </picture>
+    ```
+
+5. Используйте ваш новый компонент на любой странице:
+
+    ```astro
+    ---
+    import MyCustomImage from "../components/MyCustomImage.astro";
+    import mobileImg from "../assets/mobile.jpg";
+    import desktopImg from "../assets/desktop.jpg";
+    ---
+    <MyCustomImage 
+      mobileImgUrl={mobileImg} 
+      desktopImgUrl={desktopImg} 
+      alt="Пример адаптивного изображения" 
+    />
+    ```
+</Steps>

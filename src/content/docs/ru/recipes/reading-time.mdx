@@ -1,0 +1,92 @@
+---
+title: Добавление времени чтения
+description: Создайте плагин remark для расчета времени чтения в файлах Markdown или MDX.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Создайте [плагин remark](https://github.com/remarkjs/remark), который добавляет свойство со временем чтения в метаданные (frontmatter) ваших файлов Markdown или MDX. Используйте это свойство для отображения времени чтения на каждой странице.
+
+## Инструкция
+
+<Steps>
+1. Установите вспомогательные пакеты:
+
+    - [`reading-time`](https://www.npmjs.com/package/reading-time) для расчета минут;
+    - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) для извлечения текста из Markdown.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+    npm install reading-time mdast-util-to-string
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+    pnpm add reading-time mdast-util-to-string
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+    yarn add reading-time mdast-util-to-string
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Создайте файл плагина.
+
+    Этот плагин извлекает весь текст из документа и передает его в библиотеку `reading-time`.
+
+    ```js title="remark-reading-time.mjs"
+    import getReadingTime from 'reading-time';
+    import { toString } from 'mdast-util-to-string';
+
+    export function remarkReadingTime() {
+      return function (tree, { data }) {
+        const textOnPage = toString(tree);
+        const readingTime = getReadingTime(textOnPage);
+        // readingTime.text вернет готовую строку, например "3 min read"
+        data.astro.frontmatter.minutesRead = readingTime.text;
+      };
+    }
+    ```
+
+3. Подключите плагин в конфигурации:
+
+    ```js title="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+    import { remarkReadingTime } from './remark-reading-time.mjs';
+
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [remarkReadingTime],
+      },
+    });
+    ```
+
+4. Отобразите время чтения.
+
+    Если вы используете [коллекции контента](/ru/guides/content-collections/), вы можете получить это значение через объект `remarkPluginFrontmatter` после вызова функции `render()`.
+
+    ```astro title="src/pages/posts/[slug].astro"
+    ---
+    import { getCollection, render } from 'astro:content';
+
+    const { entry } = Astro.props;
+    const { remarkPluginFrontmatter } = await render(entry);
+    ---
+    <p>{remarkPluginFrontmatter.minutesRead}</p>
+    ```
+
+    Если вы используете стандартные [макеты для Markdown](/ru/basics/layouts/#макеты-для-markdown), значение будет доступно в `Astro.props.frontmatter`.
+
+    ```astro title="src/layouts/BlogLayout.astro"
+    ---
+    const { minutesRead } = Astro.props.frontmatter;
+    ---
+    <p>{minutesRead}</p>
+    <slot />
+    ```
+</Steps>

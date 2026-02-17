@@ -1,0 +1,71 @@
+---
+title: API сервисов изображений
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Модуль `astro:assets` спроектирован так, чтобы любые сервисы оптимизации могли быть интегрированы поверх Astro.
+
+## Что такое сервис изображений?
+
+Astro поддерживает два типа сервисов: локальные и внешние.
+
+- **Локальные сервисы** выполняют трансформацию напрямую во время сборки или в реальном времени. Это обертки над такими библиотеками, как Sharp или Squoosh.
+- **Внешние сервисы** работают через URL-адреса и добавляют поддержку таких платформ, как Cloudinary или Vercel.
+
+## Создание собственного сервиса
+
+Определение сервиса представляет собой экспортируемый по умолчанию объект с набором обязательных методов («хуков»).
+
+Внешние сервисы должны реализовать метод `getURL()`, который возвращает адрес для атрибута `src` тега `<img>`. Локальные сервисы дополнительно реализуют метод `transform()` для непосредственной обработки данных.
+
+```ts
+import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
+
+const service: ExternalImageService = {
+  getURL(options, imageConfig) {
+    return `https://my-cdn.com/${options.src}?w=${options.width}&q=${options.quality}`;
+  },
+  getHTMLAttributes(options) {
+    return {
+      ...options.attributes,
+      loading: options.loading ?? 'lazy',
+      decoding: options.decoding ?? 'async',
+    };
+  }
+};
+
+export default service;
+```
+
+## Хуки
+
+### `getURL()`
+Возвращает URL-адрес обработанного изображения.
+
+### `parseURL()`
+(Только для локальных сервисов) Разбирает параметры из URL обратно в объект свойств для метода `transform`.
+
+### `transform()`
+(Только для локальных сервисов) Выполняет непосредственную обработку бинарных данных изображения и возвращает результат.
+
+### `getHTMLAttributes()`
+Возвращает дополнительные HTML-атрибуты для итогового тега `<img>`.
+
+### `validateOptions()`
+Позволяет проверять и дополнять параметры, переданные пользователем.
+
+## Конфигурация
+
+Сервис подключается в `astro.config.mjs`:
+
+```js
+export default defineConfig({
+  image: {
+    service: {
+      entrypoint: "your-entrypoint", 
+      config: { /* настройки сервиса */ }
+    }
+  },
+});
+```

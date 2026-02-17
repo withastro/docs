@@ -1,0 +1,90 @@
+---
+title: API адаптеров Astro
+sidebar:
+  label: API адаптеров
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+Astro разработан таким образом, чтобы его можно было легко развернуть у любого облачного провайдера для рендеринга по запросу (SSR). Эта возможность реализуется с помощью **адаптеров**, которые являются разновидностью [интеграций](/ru/reference/integrations-reference/).
+
+## Что такое адаптер?
+
+Адаптер — это специальная интеграция, которая предоставляет точку входа (entrypoint) для серверного рендеринга. Адаптер делает две основные вещи:
+
+- Реализует специфичные для хоста API для обработки запросов.
+- Настраивает сборку проекта согласно требованиям платформы.
+
+## Создание адаптера
+
+Чтобы создать адаптер, необходимо вызвать функцию `setAdapter()` в хуке [`astro:config:done`](/ru/reference/integrations-reference/#astroconfigdone).
+
+Пример базового адаптера:
+
+```js title="my-adapter.mjs"
+export default function createIntegration() {
+  return {
+    name: '@example/my-adapter',
+    hooks: {
+      'astro:config:done': ({ setAdapter }) => {
+        setAdapter({
+          name: '@example/my-adapter',
+          serverEntrypoint: '@example/my-adapter/server.js',
+          supportedAstroFeatures: {
+            staticOutput: 'stable'
+          }
+        });
+      },
+    },
+  };
+}
+```
+
+Функция `setAdapter()` принимает объект со следующими свойствами:
+
+### `name`
+
+Уникальное имя вашего адаптера, используемое для логирования.
+
+### `serverEntrypoint`
+
+Путь к файлу, который будет отвечать за рендеринг по запросу.
+
+### `supportedAstroFeatures`
+
+Карта встроенных возможностей Astro, поддерживаемых адаптером. Это помогает Astro выводить понятные ошибки, если пользователь пытается использовать функцию, не реализованную в адаптере.
+
+### `args`
+
+Объект со значениями, которые будут переданы в точку входа сервера во время выполнения. Это удобно для передачи конфигурации, определенной во время сборки.
+
+## Точка входа сервера (Server Entrypoint)
+
+Для поддержки SSR вам нужно создать файл, который будет выполняться на стороне сервера хоста.
+
+### `createExports()`
+
+Функция, которая принимает манифест SSR и возвращает методы, требуемые хостом (например, `handler`).
+
+```js title="my-adapter/server.js"
+import { App } from 'astro/app';
+
+export function createExports(manifest) {
+  const app = new App(manifest);
+
+  const handler = (event, context) => {
+    // логика обработки запроса
+  };
+
+  return { handler };
+}
+```
+
+### `astro/app`
+
+Этот модуль используется для рендеринга страниц. Он работает со стандартными объектами `Request` и `Response`. Если ваш хост использует другие форматы, адаптер должен выполнить преобразование.
+
+```js
+const response = await app.render(request);
+```

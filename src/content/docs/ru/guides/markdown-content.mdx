@@ -1,0 +1,308 @@
+---
+title: Markdown в Astro
+sidebar:
+  label: Markdown
+description: Узнайте о встроенной поддержке Markdown в Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Markdown](https://daringfireball.net/projects/markdown/) часто используется для написания текстового контента, такого как посты в блогах и документация. Astro включает встроенную поддержку файлов Markdown, которые также могут содержать [метаданные в формате YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) (или [TOML](https://toml.io)) для определения заголовка, описания, тегов и других свойств.
+
+В Astro вы можете писать контент на [GitHub Flavored Markdown](https://github.github.com/gfm/), а затем рендерить его в компонентах `.astro`. Это сочетает в себе привычный формат написания текстов с гибкостью компонентного синтаксиса и архитектуры Astro.
+
+:::tip
+Для расширения функциональности, например добавления компонентов и JSX-выражений прямо в Markdown, используйте [интеграцию `@astrojs/mdx`](/ru/guides/integrations-guide/mdx/), которая позволяет писать контент в формате [MDX](https://mdxjs.com/).
+:::
+
+## Организация Markdown-файлов
+
+Локальные файлы Markdown могут храниться в любом месте вашей директории `src/`. Файлы, расположенные в `src/pages/`, автоматически превратятся в [страницы вашего сайта](#отдельные-страницы-markdown).
+
+Контент и метаданные (frontmatter) Markdown доступны для использования в компонентах через [импорт локальных файлов](#импорт-markdown) или через [запросы к коллекциям контента](#markdown-из-коллекций-контента).
+
+### Импорт файлов или коллекции контента?
+
+Локальные Markdown-файлы можно импортировать в `.astro` компоненты с помощью инструкции `import` (для одного файла) или [`import.meta.glob()`](/ru/guides/imports/#importmetaglob) (для нескольких файлов сразу). [Экспортированные данные](#импорт-markdown) из этих файлов можно использовать в шаблоне компонента.
+
+Если у вас есть группы связанных Markdown-файлов, рекомендуем [определять их как коллекции контента](/ru/guides/content-collections/). Это дает ряд преимуществ, включая возможность хранить файлы в любом месте (даже удаленно), а также обеспечивает проверку типов и IntelliSense в редакторе.
+
+Коллекции используют оптимизированные API для [запросов и рендеринга контента](#markdown-из-коллекций-контента), что удобнее обычного импорта при работе с большим количеством однотипных данных (посты, товары и т. д.).
+
+<ReadMore>Подробнее о том, [когда использовать коллекции контента](/ru/guides/content-collections/#когда-создавать-коллекцию) вместо импорта файлов.</ReadMore>
+
+## Динамические выражения в стиле JSX
+
+После импорта или запроса файлов Markdown вы можете создавать динамические шаблоны в своих `.astro` компонентах, используя данные из метаданных и основной контент.
+
+```md title="src/pages/posts/great-post.md"
+---
+title: 'Самый лучший пост в мире'
+author: 'Ben'
+---
+
+Это мой _отличный_ пост!
+```
+
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+<p>{greatPost.frontmatter.title}</p>
+<p>Автор: {greatPost.frontmatter.author}</p>
+
+{greatPost.compiledContent()}
+
+<p>Архив постов:</p>
+<ul>
+  {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+</ul>
+```
+
+### Доступные свойства
+
+#### Markdown из коллекций контента
+
+При получении данных через `getCollection()` или `getEntry()`, метаданные Markdown доступны в объекте `data` (например, `post.data.title`). Свойство `body` содержит исходный, нескомпилированный текст статьи в виде строки.
+
+Функция [`render()`](/ru/reference/modules/astro-content/#render) возвращает скомпилированный HTML-контент, список заголовков и объект метаданных после применения всех плагинов remark и rehype.
+
+<ReadMore>Подробнее об [использовании контента из коллекций](/ru/guides/content-collections/#использование-в-шаблонах).</ReadMore>
+
+#### Импорт Markdown
+
+При импорте Markdown через `import` или `import.meta.glob()` доступны следующие свойства:
+
+- **`file`** — абсолютный путь к файлу.
+- **`url`** — URL страницы (если файл находится в `src/pages/`).
+- **`frontmatter`** — данные из блока метаданных (YAML или TOML).
+- **`<Content />`** — компонент, возвращающий отрендеренный контент файла.
+- **`rawContent()`** — функция, возвращающая исходный Markdown в виде строки.
+- **`compiledContent()`** — асинхронная функция, возвращающая скомпилированный HTML.
+- **`getHeadings()`** — асинхронная функция, возвращающая массив всех заголовков (`<h1>` — `<h6>`) с их `depth`, `text` и `slug`.
+
+Пример объекта пропсов:
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/ru/guides/markdown-content/",
+  frontmatter: {
+    title: "Релиз Astro 0.18",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 — наш крупнейший релиз с момента запуска.",
+  },
+  getHeadings: () => [
+    {"depth": 1, "text": "Релиз Astro 0.18", "slug": "релиз-astro-018"},
+    /* ... */
+  ],
+  rawContent: () => "# Релиз Astro 0.18\nЧуть более месяца назад...",
+  compiledContent: () => "<h1>Релиз Astro 0.18</h1>\n<p>Чуть более месяца назад...</p>",
+}
+```
+
+## Компонент `<Content />`
+
+Вы можете импортировать компонент `Content` прямо из Markdown-файла. Он возвращает тело файла, отрендеренное в HTML. При желании его можно переименовать.
+
+Аналогично можно [рендерить содержимое записи коллекции](/ru/guides/content-collections/#рендеринг-контента), получив компонент `<Content />` через функцию `render()`.
+
+```astro title="src/pages/content.astro" "Content"
+---
+// Обычный импорт
+import {Content as PromoBanner} from '../components/promoBanner.md';
+
+// Запрос из коллекции
+import { getEntry, render } from 'astro:content';
+
+const product = await getEntry('products', 'shirt');
+const { Content } = await render(product);
+---
+<h2>Акция дня</h2>
+<PromoBanner />
+
+<p>Скидка действует до: {product.data.saleEndDate.toDateString()}</p>
+<Content />
+```
+
+## ID заголовков
+
+Заголовки в Markdown автоматически получают ID, что позволяет создавать якорные ссылки прямо на определенные разделы страницы.
+
+```markdown title="src/pages/page-1.md"
+---
+title: Моя страница
+---
+## Введение
+
+Я могу ссылаться на [заключение](#заключение) внутри этого же файла.
+
+## Заключение
+
+Вы можете открыть `mysite.com/page-1/#введение` в браузере, чтобы перейти сразу к разделу «Введение».
+```
+
+Astro генерирует ID заголовков с помощью библиотеки `github-slugger`.
+
+### ID заголовков и плагины
+
+Astro добавляет атрибут `id` ко всем заголовкам (`<h1>` — `<h6>`) в Markdown и MDX. Вы можете получить эти данные через `getHeadings()` или результат функции `render()`.
+
+Вы можете изменить алгоритм генерации ID, добавив плагин rehype (например, `rehype-slug`). Ваши кастомные ID заменят стандартные.
+
+По умолчанию Astro добавляет ID *после* выполнения ваших плагинов rehype. Если плагину нужен доступ к ID от Astro, используйте плагин `rehypeHeadingIds` вручную:
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPlugin } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPlugin,
+    ],
+  },
+});
+```
+
+## Плагины Markdown
+
+Поддержка Markdown в Astro реализована на базе [remark](https://remark.js.org/) — мощного инструмента парсинга с богатой экосистемой. Другие парсеры, такие как Pandoc или markdown-it, на данный момент не поддерживаются.
+
+По умолчанию Astro применяет плагины [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) и [SmartyPants](https://silvenon.github.io/remark-smartypants/). Это дает такие удобства, как автоматические ссылки из текста и красивое форматирование кавычек и тире.
+
+Вы можете настроить работу remark в `astro.config.mjs`. См. полный список [опций конфигурации Markdown](/ru/reference/configuration-reference/#опции-markdown).
+
+### Добавление плагинов remark и rehype
+
+Astro поддерживает сторонние плагины [remark](https://github.com/remarkjs/remark) и [rehype](https://github.com/rehypejs/rehype). Они позволяют расширить возможности Markdown: автоматически [генерировать оглавление](https://github.com/remarkjs/remark-toc), [добавлять эмодзи](https://github.com/florianeckerstorfer/remark-a11y-emoji) или [стилизовать контент](/ru/guides/styling/#стилизация-markdown).
+
+Пример использования [`remark-toc`](https://github.com/remarkjs/remark-toc) и [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis):
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: 'toc', maxDepth: 3 } ] ],
+    rehypePlugins: [rehypeAccessibleEmojis],
+  },
+});
+```
+
+### Программное изменение метаданных
+
+Вы можете добавлять свойства в блок метаданных (frontmatter) для всех файлов Markdown и MDX с помощью плагинов.
+
+<Steps>
+1. Добавьте свойство в `data.astro.frontmatter` внутри вашего плагина:
+
+    ```js title="example-remark-plugin.mjs"
+    export function exampleRemarkPlugin() {
+      return function (tree, file) {
+        file.data.astro.frontmatter.customProperty = 'Сгенерированное свойство';
+      }
+    }
+    ```
+
+2. Примените плагин в конфиге:
+
+    ```js title="astro.config.mjs"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [exampleRemarkPlugin]
+      },
+    });
+    ```
+</Steps>
+
+Теперь каждый файл будет иметь `customProperty` в своих метаданных.
+
+<RecipeLinks slugs={["ru/recipes/reading-time"]} />
+
+## Отдельные страницы Markdown
+
+:::tip
+[Коллекции контента](/ru/guides/content-collections/) и [импорт Markdown в компоненты .astro](#динамические-выражения-в-стиле-jsx) предоставляют больше возможностей и рекомендуются для большинства случаев. Однако иногда удобно просто добавить файл в `src/pages/` для автоматического создания страницы.
+:::
+
+Astro обрабатывает любой поддерживаемый файл в `src/pages/` как страницу. При размещении там Markdown-файла Astro автоматически создаст маршрут и добавит тег `<meta charset="utf-8">`.
+
+```markdown title="src/pages/page-1.md"
+---
+title: Привет, мир
+---
+
+# Привет!
+
+Этот файл создает страницу по адресу `your-domain.com/page-1/`
+
+Markdown поддерживает:
+- **жирный текст** и _курсив_
+- списки
+- [ссылки](https://astro.build)
+- и многое другое!
+```
+
+### Свойство `layout` в метаданных
+
+Для отдельных Markdown-страниц Astro поддерживает специальное свойство `layout` — относительный путь к [компоненту макета](/ru/basics/layouts/#макеты-для-markdown).
+
+```markdown title="src/pages/posts/post-1.md" {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Astro вкратце
+description: Узнайте, что делает Astro крутым!
+---
+Это пост, написанный на Markdown.
+```
+
+В макете метаданные доступны через `Astro.props.frontmatter`:
+
+```astro title="src/layouts/BlogPostLayout.astro"
+---
+const { frontmatter } = Astro.props;
+---
+<html>
+  <head>
+    <meta charset="utf-8"> <!-- обязательно при использовании layout -->
+  </head>
+  <h1>{frontmatter.title}</h1>
+  <p>{frontmatter.description}</p>
+  <slot /> <!-- контент Markdown вставится сюда -->
+</html>
+```
+
+<ReadMore>Узнайте больше о [макетах для Markdown](/ru/basics/layouts/#макеты-для-markdown).</ReadMore>
+
+## Получение удаленного Markdown
+
+Внутренний процессор Astro не предназначен для обработки Markdown из внешних источников.
+
+Чтобы использовать удаленный Markdown в [коллекциях контента](/ru/guides/content-collections/), вы можете [создать кастомный загрузчик](/ru/guides/content-collections/#создание-кастомного-загрузчика) с доступом к функции [`renderMarkdown()`](/ru/reference/content-loader-reference/#rendermarkdown).
+
+Для прямого рендеринга удаленного Markdown вам потребуется установить свой парсер из NPM (например, `marked`). Учтите, что он не будет использовать настройки Markdown из вашего `astro.config.mjs`.
+
+```astro title="src/pages/remote-example.astro"
+---
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/.../Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```

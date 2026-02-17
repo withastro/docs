@@ -1,0 +1,69 @@
+---
+title: Astro Container API (экспериментально)
+sidebar:
+  label: Container API (экспериментально)
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+
+<p><Since v="4.9.0" /></p>
+
+**Container API** позволяет рендерить компоненты Astro в изоляции.
+
+Этот экспериментальный API на стороне сервера открывает множество возможностей для будущего использования, но в настоящее время его основная область применения — [тестирование вывода компонентов `.astro`](/ru/guides/testing/#vitest-и-container-api) в средах `vite`, таких как `vitest`.
+
+Он также позволяет [вручную загружать скрипты рендеринга](#ручная-загрузка-рендерера) для использования в сторонних средах (например, внутри приложений на PHP или Elixir) вне экосистемы `vite`.
+
+Этот API позволяет [создать новый контейнер](#create), и отрендерить компонент Astro, получив на выходе [строку](#rendertostring) или объект [`Response`](#rendertoresponse).
+
+:::caution
+Этот API является экспериментальным и может претерпеть изменения даже в минорных обновлениях. Актуальную информацию всегда можно найти в чейнджлоге проекта.
+:::
+
+## `create()`
+
+Создает новый экземпляр контейнера.
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+
+const container = await experimental_AstroContainer.create();
+```
+
+## `renderToString()`
+
+Рендерит компонент внутри контейнера и возвращает строку с HTML-кодом.
+
+```js
+import { experimental_AstroContainer } from "astro/container";
+import Card from "../src/components/Card.astro";
+
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card);
+```
+
+## `renderToResponse()`
+
+Аналогичен `renderToString`, но возвращает стандартный объект `Response`.
+
+```js
+const response = await container.renderToResponse(Card);
+```
+
+## Опции рендеринга
+
+Методы рендеринга принимают второй аргумент с дополнительными данными:
+
+- `slots`: для передачи контента в конкретные [слоты](/ru/basics/astro-components/#слоты).
+- `props`: для передачи [входных параметров](/ru/basics/astro-components/#пропсы-компонента) компоненту.
+- `request`: объект `Request` для симуляции конкретного URL или заголовков.
+- `params`: значения для динамических маршрутов.
+- `locals`: данные из [мидлваров](/ru/guides/middleware/).
+
+Пример теста со слотами:
+
+```js
+const result = await container.renderToString(Card, { 
+  slots: { default: "Контент карточки" }
+});
+```

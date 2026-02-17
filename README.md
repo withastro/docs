@@ -1,70 +1,67 @@
-# Astro Docs <picture><source media="(prefers-color-scheme: dark)" srcset="https://astro.build/assets/press/astro-icon-light.png"><source media="(prefers-color-scheme: light)" srcset="https://astro.build/assets/press/astro-icon-dark.png"><img align="right" valign="center" height="79" width="63" src="https://astro.build/assets/press/astro-icon-dark.png" alt="Astro logo" /></picture>
+# Документация Astro <picture><source media="(prefers-color-scheme: dark)" srcset="https://astro.build/assets/press/astro-icon-light.png"><source media="(prefers-color-scheme: light)" srcset="https://astro.build/assets/press/astro-icon-dark.png"><img align="right" valign="center" height="79" width="63" src="https://astro.build/assets/press/astro-icon-dark.png" alt="Логотип Astro" /></picture>
 
+Добро пожаловать всем, кто заглянул в это чудесное место.
 
-To all who come to this happy place: welcome.
+Это репозиторий для [docs.astro.build](https://docs.astro.build/).
+Здесь находится весь исходный код, который мы используем для создания сайта документации.
 
-This is the repo for [docs.astro.build](https://docs.astro.build/).
-This repo contains all the source code we use to build our docs site.
+[![Открыть в CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/github/withastro/docs)
+[![Открыть в Codeflow](https://developer.stackblitz.com/img/open_in_codeflow.svg)](https://pr.new/github.com/withastro/docs)
 
-[![Open with CodeSandbox](https://assets.codesandbox.io/github/button-edit-lime.svg)](https://codesandbox.io/p/github/withastro/docs)
-[![Open in Codeflow](https://developer.stackblitz.com/img/open_in_codeflow.svg)](https://pr.new/github.com/withastro/docs)
+## Мы — Astro
 
-## We are Astro
+Astro — это универсальный веб-фреймворк для создания быстрых сайтов, ориентированных на контент.
+Мы хотим, чтобы каждый мог успешно создавать сайты, и для этого мы помогаем всем понять, как работает Astro.
 
-Astro is an all-in-one web framework for building fast, content-focused websites.
-We want everyone to be successful building sites, and that means helping everyone understand how Astro works.
+## Вы — великолепны
 
-## You are Awesome
+Вы тоже можете помочь сделать документацию лучше.
+Мы рады вашим отзывам.
+Ваши навыки написания текстов, редактирования, перевода, дизайна и разработки очень важны для нас.
+Мы будем рады видеть вас частью нашего сообщества.
 
-You can also help make the docs awesome.
-Your feedback is welcome.
-Your writing, editing, translating, designing, and developing skills are welcome.
-You being a part of our community is welcome.
+## Общайтесь с нами
 
-## Chat with Us
+Узнать больше об Astro, получить поддержку и познакомиться с другими разработчиками можно в [нашем сообществе в Discord](https://astro.build/chat).
 
-You can learn more about Astro, get support, and meet other devs in [our Discord community](https://astro.build/chat).
+## Сообщите о проблеме
 
-## Raise an Issue
+Чего-то не хватает?
+Что-то сбивает с толку?
+Что-то работает не так?
 
-Is something missing?
-Is something confusing?
-Is something wrong?
+Создание новой Проблемы (Issue) помогает нам заметить неполадку!
 
-Creating a new Issue puts a problem on our radar!
+[Проверьте, не сообщали ли о вашей проблеме ранее](https://github.com/withastro/docs/issues), и если нет, [создайте новую](https://github.com/withastro/docs/issues/new/choose).
 
-[See if your issue has already been reported](https://github.com/withastro/docs/issues), and if not, [create a new one](https://github.com/withastro/docs/issues/new/choose).
+## Поделитесь идеей
 
-## Share an Idea
+Можно ли сделать что-то лучше?
+Хотите поделиться с нами идеей?
 
-Could something be better?
-Want to share an idea with us?
+Обсуждения (Discussions) — это ветки, где вы можете оставить отзыв о вещах, которые не обязательно являются проблемами, требующими исправления, но представляют собой идеи для изучения.
 
-Discussions are threads where you can offer feedback on things that might not exactly be problems to be fixed but are ideas to be explored. 
+[Присоединяйтесь к Обсуждениям документации](https://github.com/withastro/docs/discussions), где мы проводим мозговые штурмы, задаем вопросы, делимся надеждами и мечтами...
 
-[Join the Docs Discussions](https://github.com/withastro/docs/discussions) where we brainstorm, ask questions, share hopes and dreams...
+## Исправьте ошибку или внесите вклад
 
-## Make a Fix or Contribution
+Вы нашли опечатку, битую ссылку или что-то другое, что можно быстро исправить?
 
-Did you find a typo, a broken link, or another item with an obvious quick fix?
+Если вы видите проблему и знаете, как её решить, вы можете создать PR (pull request) с изменениями и самостоятельно внести вклад в репозиторий документации.
 
-If you can see what the problem is, and you know how to fix it, then you can make a PR (pull request) with the change and contribute to the docs repo yourself.
+> Хотите внести более крупный вклад? Пожалуйста, сначала ознакомьтесь с [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md)!
 
-> Want to make a larger contribution? Please see [CONTRIBUTING.md](https://github.com/withastro/docs/blob/main/CONTRIBUTING.md) first! 
+## Переведите страницу
 
-## Translate a Page
+Ваш родной язык не английский?
 
-Speak another language natively? 
+Присоединяйтесь к нашей i18n-команде в Discord или заглядывайте в PR, чтобы помочь с рецензированием черновиков переводов!
 
-Join our i18n gang on Discord or jump into the PRs to help with reviewing existing draft translations!
+Ознакомьтесь с выделенным [руководством по i18n](https://contribute.docs.astro.build/guides/i18n/) для получения подробной информации.
 
-Check out the dedicated [i18n guide](https://contribute.docs.astro.build/guides/i18n/) for more details.
+## Дальнейшие шаги
 
-
-## Next Steps
-
-- [Read the docs](https://docs.astro.build/)
-- [Raise an issue](https://github.com/withastro/docs/issues/new)
-- [Participate in a discussion](https://github.com/withastro/docs/discussions)
-- [Join the #docs channel on Discord](https://discord.gg/cZDZU3hJHc)
-
+- [Читать документацию](https://docs.astro.build/ru/getting-started/)
+- [Сообщить о проблеме](https://github.com/withastro/docs/issues/new)
+- [Принять участие в обсуждении](https://github.com/withastro/docs/discussions)
+- [Присоединиться к каналу #docs в Discord](https://discord.gg/cZDZU3hJHc)

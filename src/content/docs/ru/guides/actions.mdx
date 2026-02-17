@@ -1,0 +1,211 @@
+---
+title: Действия (Actions)
+description: Узнайте, как создавать типобезопасные серверные функции, которые можно вызывать откуда угодно.
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+**Действия (Actions)** в Astro позволяют определять и вызывать бэкенд-функции с полной типобезопасностью. Они берут на себя получение данных, парсинг JSON и валидацию входных параметров. Это значительно сокращает количество шаблонного кода по сравнению с использованием обычных [API эндпойнтов](/ru/guides/endpoints/).
+
+Используйте действия вместо API эндпойнтов для удобного взаимодействия между клиентом и сервером:
+
+- Автоматическая валидация JSON и данных форм с помощью [Zod](/ru/reference/modules/astro-zod/).
+- Генерация типобезопасных функций для вызова бэкенда с клиента (и даже [из HTML-форм](#вызов-действий-из-html-форм)). Больше не нужно вручную писать `fetch()`.
+- Стандартизация ошибок бэкенда с помощью объекта [`ActionError`](/ru/reference/modules/astro-actions/#actionerror).
+
+## Базовое использование
+
+Действия определяются в объекте `server`, который экспортируется из файла `src/actions/index.ts`:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+Ваши действия доступны как функции из модуля `astro:actions`. Импортируйте `actions` и вызывайте их на стороне клиента: в [компонентах UI-фреймворков](/ru/guides/framework-components/), в [обработчиках форм](#вызов-действий-из-html-форм) или в тегах `<script>` компонентов Astro.
+
+При вызове действие возвращает объект, содержащий либо `data` с результатом, либо `error` с возникшей ошибкой.
+
+```astro title="src/pages/index.astro"
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### Написание первого действия
+
+Выполните эти шаги, чтобы определить действие и вызвать его в теге `script` на странице Astro.
+
+<Steps>
+
+1. Создайте файл `src/actions/index.ts` и экспортируйте объект `server`.
+
+2. Импортируйте утилиту `defineAction()` из `astro:actions` и объект `z` из `astro/zod`.
+
+3. Используйте `defineAction()` для определения действия `getGreeting`. Свойство `input` используется для валидации параметров через [схему Zod](/ru/reference/modules/astro-zod/), а функция `handler()` содержит логику, которая выполнится на сервере.
+
+    ```ts title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Привет, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4. Создайте компонент Astro с кнопкой, которая при клике будет вызывать ваше действие.
+
+    ```astro title="src/pages/index.astro"
+    <button>Получить приветствие</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // Вызываем действие и получаем данные
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>См. полную документацию по Actions API для подробностей о [`defineAction()`](/ru/reference/modules/astro-actions/#defineaction) и его свойствах.</ReadMore>
+
+## Организация действий
+
+Все действия должны экспортироваться из объекта `server` в файле `src/actions/index.ts`. Вы можете определять их прямо там или выносить в отдельные файлы для удобства.
+
+Например, действия пользователя можно вынести в `src/actions/user.ts`:
+
+```ts title="src/actions/user.ts"
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+Затем импортируйте этот объект в основной файл:
+
+```ts title="src/actions/index.ts"
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+Теперь действия доступны через `actions.user.getUser()` и `actions.user.createUser()`.
+
+## Обработка результатов
+
+Действия возвращают объект с типобезопасным результатом в `data` или ошибкой в `error`. Ошибки могут возникнуть как на этапе валидации `input`, так и внутри самого `handler()`.
+
+Astro использует библиотеку [Devalue](https://github.com/Rich-Harris/devalue) для передачи данных, поэтому действия поддерживают передачу объектов `Date`, `Map`, `Set` и `URL`.
+
+### Проверка на наличие ошибок
+
+Рекомендуется проверять `error` перед использованием `data`. Это гарантирует, что данные определены.
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // обработка ошибок
+  return;
+}
+// работа с data
+```
+
+### Использование `.orThrow()`
+
+Чтобы пропустить ручную проверку ошибок (например, при прототипировании), используйте метод `.orThrow()`. Он выбросит исключение в случае ошибки бэкенда и вернет `data` напрямую.
+
+```ts
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ тип: number
+```
+
+### Генерация ошибок на бэкенде
+
+Вы можете использовать класс `ActionError`, чтобы сообщить о проблеме (например, «не найдено» или «не авторизован»). Это лучше, чем просто возвращать `undefined`, так как позволяет задать HTTP-статус.
+
+```ts title="src/actions/index.ts"
+import { defineAction, ActionError } from "astro:actions";
+
+export const server = {
+  likePost: defineAction({
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "Вы должны войти в систему.",
+        });
+      }
+    },
+  }),
+};
+```
+
+## Работа с формами
+
+По умолчанию действия принимают JSON. Чтобы принимать данные из HTML-формы, установите `accept: 'form'`:
+
+```ts title="src/actions/index.ts"
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object({
+      author: z.string(),
+      content: z.string(),
+    }),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+При отправке формы через `actions.comment(formData)`, Astro автоматически преобразует `FormData` в объект для валидации.
+
+## Безопасность
+
+Действия доступны как публичные эндпойнты (например, `/_actions/myAction`). Поэтому в них **обязательно** нужно проводить те же проверки авторизации, что и в обычных API.
+
+Вы можете проверять права доступа прямо в `handler`, используя `context.locals`, которые передаются из мидлваров:
+
+```ts title="src/actions/index.ts"
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* данные */ };
+    }
+  })
+}
+```

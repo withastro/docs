@@ -1,0 +1,76 @@
+---
+title: Astro Content Loader API
+sidebar:
+  label: Content Loader API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+Content Loader API позволяет загружать данные из любого источника (локального или удаленного) и интегрировать их в [коллекции контента](/ru/guides/content-collections/) Astro.
+
+## Что такое загрузчик (loader)?
+
+Загрузчики Astro отвечают за наполнение коллекций данными. [Встроенные загрузчики `glob()` и `file()`](/ru/guides/content-collections/#встроенные-загрузчики) используются для работы с файловой системой, но вы можете создавать собственные загрузчики для API, баз данных или CMS.
+
+Каждая коллекция должна иметь [загрузчик, определенный в её схеме](/ru/guides/content-collections/#определение-коллекций).
+
+## Встроенные загрузчики
+
+### Загрузчик `glob()`
+
+Создает записи из директорий с файлами. Поддерживает Markdown, MDX, JSON, YAML и TOML.
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+});
+```
+
+### Загрузчик `file()`
+
+Загружает данные из одного файла, содержащего массив объектов.
+
+```ts
+const authors = defineCollection({
+  loader: file("src/data/authors.json"),
+});
+```
+
+## Создание кастомного загрузчика
+
+Вы можете описать загрузчик как объект с методом `load()`, который вызывается во время сборки.
+
+```ts
+import type { Loader, LoaderContext } from 'astro/loaders';
+
+export function myLoader(options: { url: string }): Loader {
+  return {
+    name: "my-loader",
+    load: async (context: LoaderContext): Promise<void> => {
+      const response = await fetch(options.url);
+      const data = await response.json();
+      
+      // Очистка и наполнение хранилища
+      context.store.clear();
+      for (const item of data) {
+        context.store.set({
+          id: item.id,
+          data: item,
+        });
+      }
+    },
+  };
+}
+```
+
+### LoaderContext
+
+Объект, передаваемый в `load()`, содержит:
+- `store`: интерфейс базы данных коллекции.
+- `meta`: хранилище для метаданных (например, токенов синхронизации).
+- `logger`: системный логгер Astro.
+- `parseData`: функция для валидации данных согласно схеме.
+- `renderMarkdown`: утилита для рендеринга Markdown-строк в HTML.

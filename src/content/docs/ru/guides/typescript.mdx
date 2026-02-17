@@ -1,0 +1,182 @@
+---
+title: TypeScript
+description: Узнайте, как использовать встроенную поддержку TypeScript в Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Astro поставляется со встроенной поддержкой [TypeScript](https://www.typescriptlang.org/). Вы можете импортировать файлы `.ts` и `.tsx`, писать TypeScript-код прямо в [компонентах Astro](/ru/basics/astro-components/#скрипт-компонента) и даже использовать файл `astro.config.ts` для конфигурации.
+
+Использование TypeScript помогает предотвратить ошибки на этапе разработки, определяя структуру объектов и компонентов. Например, если вы [типизируете пропсы компонента](#пропсы-компонента), редактор укажет на ошибку, если вы передадите неверный тип данных.
+
+Вам не обязательно писать код на TypeScript, чтобы получать выгоду от него. Astro всегда обрабатывает код компонентов как TypeScript, а [расширение Astro для VS Code](/ru/editor-setup/) предоставляет автодополнение и подсказки на основе типов.
+
+Сервер разработки Astro не выполняет проверку типов, но вы можете использовать [специальную команду](#проверка-типов), чтобы проверить проект на наличие ошибок из терминала.
+
+## Настройка
+
+Стартовые шаблоны Astro включают файл `tsconfig.json`. Даже если вы не пишете на TypeScript, этот файл важен для того, чтобы Astro и VS Code понимали структуру вашего проекта. Некоторые функции (например, импорт npm-пакетов) могут работать некорректно без `tsconfig.json`.
+
+### Шаблоны TSConfig
+
+Astro предлагает три шаблона `tsconfig.json`: `base`, `strict` и `strictest`. Рекомендуется использовать `strict` или `strictest`, если вы планируете писать на TypeScript. Вы можете сравнить их в репозитории [astro/tsconfigs/](https://github.com/withastro/astro/blob/main/packages/astro/tsconfigs/).
+
+Для использования шаблона используйте параметр `extends`:
+
+```json title="tsconfig.json"
+{
+  "extends": "astro/tsconfigs/base"
+}
+```
+
+Мы также рекомендуем настроить `include` и `exclude` следующим образом:
+
+```json title="tsconfig.json" ins={3-4}
+{
+  "extends": "astro/tsconfigs/base",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"]
+}
+```
+
+### Плагин для редактора
+
+Если вы не используете официальное расширение для VS Code, вы можете установить [плагин Astro TypeScript](https://www.npmjs.com/package/@astrojs/ts-plugin). Он позволяет редактору понимать файлы `.astro`.
+
+Обратите внимание, что обычный `tsc` игнорирует файлы `.astro`. Для проверки типов во всем проекте используйте [команду `astro check`](/ru/reference/cli-reference/#astro-check).
+
+## Импорт типов
+
+Всегда используйте явный импорт типов (type imports), чтобы избежать проблем при сборке:
+
+```js del={1} ins={2}
+import { SomeType } from "./script";
+import type { SomeType } from "./script";
+```
+
+Вы можете включить строгую проверку импорта типов в `tsconfig.json`, установив `verbatimModuleSyntax: true`.
+
+## Псевдонимы путей (Import Aliases)
+
+Astro поддерживает псевдонимы путей, настроенные в `tsconfig.json`. Это позволяет избежать длинных относительных путей.
+
+```astro title="src/pages/about/nate.astro"
+---
+import HelloWorld from "@components/HelloWorld.astro";
+import Layout from "@layouts/Layout.astro";
+---
+```
+
+Настройка в `tsconfig.json`:
+
+```json
+{
+  "compilerOptions": {
+    "paths": {
+      "@components/*": ["./src/components/*"],
+      "@layouts/*": ["./src/layouts/*"]
+    }
+  }
+}
+```
+
+## Расширение глобальных типов
+
+Вы можете создать файл `src/env.d.ts` для добавления собственных деклараций типов или чтобы Astro мог подхватить типы, если у вас нет `tsconfig.json`:
+
+```ts title="src/env.d.ts"
+// Декларация глобальной переменной
+declare var myString: string;
+
+// Подключение типов Astro
+/// <reference path="../.astro/types.d.ts" />
+```
+
+### `window` и `globalThis`
+
+Для типизации свойств глобального объекта добавьте их в `env.d.ts`:
+
+```ts title="src/env.d.ts"
+declare var myString: string;
+declare function myFunction(): boolean;
+```
+
+Это добавит типизацию для `globalThis.myString` и `window.myString`.
+
+## Пропсы компонента
+
+Для типизации пропсов добавьте интерфейс `Props` в скрипт компонента. Расширение VS Code автоматически подхватит его.
+
+```astro title="src/components/HelloProps.astro"
+---
+interface Props {
+  name: string;
+  greeting?: string;
+}
+
+const { greeting = "Привет", name } = Astro.props;
+---
+<h2>{greeting}, {name}!</h2>
+```
+
+## Утилиты типов
+
+Astro предоставляет полезные типы в пакете `astro/types`.
+
+### `HTMLAttributes`
+
+Позволяет проверить, что вы используете валидные HTML-атрибуты для конкретного тега:
+
+```astro
+---
+import type { HTMLAttributes } from "astro/types";
+
+type Props = HTMLAttributes<"a">;
+const { href, ...attrs } = Astro.props;
+---
+<a href={href} {...attrs}><slot /></a>
+```
+
+### `ComponentProps`
+
+Позволяет получить типы пропсов другого компонента:
+
+```astro
+---
+import type { ComponentProps } from "astro/types";
+import Button from "./Button.astro";
+
+type ButtonProps = ComponentProps<typeof Button>;
+---
+```
+
+### Полиморфные типы
+
+Полезно для компонентов, которые могут рендериться как разные HTML-теги (например, ссылка или кнопка):
+
+```astro
+---
+import type { HTMLTag, Polymorphic } from "astro/types";
+
+type Props<Tag extends HTMLTag> = Polymorphic<{ as: Tag }>;
+const { as: Tag, ...props } = Astro.props;
+---
+<Tag {...props} />
+```
+
+## Проверка типов
+
+Команды `astro dev` и `astro build` не выполняют проверку типов (они просто транспилируют код). Чтобы предотвратить сборку проекта с ошибками TypeScript, обновите скрипт в `package.json`:
+
+```json title="package.json"
+{
+  "scripts": {
+    "build": "astro check && astro build"
+  }
+}
+```
+
+:::note
+`astro check` проверяет файлы `.astro` и `.ts`. Для проверки типов внутри файлов Svelte или Vue используйте соответствующие инструменты (`svelte-check`, `vue-tsc`).
+:::

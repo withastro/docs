@@ -1,0 +1,105 @@
+---
+title: Переменные окружения
+description: Узнайте, как использовать переменные окружения в проекте Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro предоставляет доступ к [встроенной поддержке переменных окружения в Vite](#встроенная-поддержка-vite) и включает несколько [стандартных переменных](#стандартные-переменные-окружения) для доступа к параметрам проекта.
+
+Также Astro предлагает способ [использования типобезопасных переменных окружения](#типобезопасные-переменные-окружения) через модуль `astro:env`, которыми можно управлять с помощью [схемы в конфигурации](/ru/reference/configuration-reference/#env).
+
+## Встроенная поддержка Vite
+
+Astro использует механизм Vite для работы с переменными окружения, которые статически заменяются во время сборки.
+
+Обратите внимание: на стороне сервера доступны все переменные, но в клиентском коде из соображений безопасности доступны только те, что начинаются с префикса `PUBLIC_`.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+В этом примере `PUBLIC_ANYBODY` будет доступна везде, а `SECRET_PASSWORD` — только на сервере.
+
+:::caution
+Файлы `.env` не загружаются автоматически внутри [файлов конфигурации Astro](#в-конфигурационном-файле-astro).
+:::
+
+## Стандартные переменные окружения
+
+Astro предоставляет несколько переменных «из коробки»:
+
+- `import.meta.env.MODE`: Режим работы сайта (`development` или `production`).
+- `import.meta.env.PROD`: `true`, если сайт запущен в продакшене.
+- `import.meta.env.DEV`: `true`, если сайт запущен в режиме разработки.
+- `import.meta.env.BASE_URL`: Базовый URL, с которого обслуживается сайт (параметр `base` в конфиге).
+- `import.meta.env.SITE`: URL сайта (параметр `site` в конфиге).
+
+## Установка переменных
+
+### Файлы `.env`
+
+Переменные можно хранить в файлах `.env` в корне проекта. Вы также можете использовать файлы вида `.env.production` или `.env.development` для разных режимов.
+
+Команды `astro dev` и `astro build` по умолчанию используют режимы `"development"` и `"production"` соответственно. Вы можете изменить это с помощью флага `--mode`.
+
+### В конфигурационном файле Astro
+
+Для доступа к переменным в `astro.config.mjs` используйте `process.env` (для системных переменных) или хелпер `loadEnv` из Vite для загрузки `.env` файлов вручную.
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+## Типобезопасные переменные окружения
+
+Модуль `astro:env` позволяет описать схему ваших переменных для получения строгой типизации и автоматической валидации.
+
+### Базовое использование
+
+#### Определение схемы
+
+Добавьте параметр `env.schema` в ваш конфиг:
+
+```js title="astro.config.mjs"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+#### Использование переменных
+
+Импортируйте переменные из модулей `/client` или `/server`:
+
+```astro
+---
+import { API_URL } from "astro:env/client";
+import { API_SECRET } from "astro:env/server";
+
+const response = await fetch(`${API_URL}/data`, {
+  headers: { 'Authorization': `Bearer ${API_SECRET}` }
+});
+---
+```
+
+### Типы переменных
+
+- **Public client**: Доступны и на клиенте, и на сервере через `astro:env/client`.
+- **Public server**: Доступны только на сервере через `astro:env/server`.
+- **Secret server**: Секретные данные, не попадающие в клиентскую сборку, доступны только на сервере.
+
+:::note
+**Secret client** переменные не поддерживаются, так как передавать секреты на клиент небезопасно.
+:::

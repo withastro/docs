@@ -1,0 +1,105 @@
+---
+title: Работа с формами через API-маршруты
+description: Узнайте, как использовать JavaScript для отправки данных из форм на API-маршруты в Astro.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import UIFrameworkTabs from "~/components/tabs/UIFrameworkTabs.astro";
+
+Стандартные HTML-формы вызывают перезагрузку страницы при отправке. Чтобы отправить данные без перезагрузки на API-эндпойнт, необходимо перехватить событие отправки с помощью JavaScript.
+
+## Предварительные требования
+- Проект с установленным [адаптером для SSR](/ru/guides/on-demand-rendering/)
+- Установленная интеграция любого [UI-фреймворка](/ru/guides/framework-components/)
+
+## Инструкция
+
+<Steps>
+1. Создайте API-эндпойнт `POST` по адресу `/api/feedback`, который будет принимать данные формы. Используйте `request.formData()` для их обработки.
+
+    ```ts title="src/pages/api/feedback.ts"
+    export const prerender = false;
+    import type { APIRoute } from "astro";
+
+    export const POST: APIRoute = async ({ request }) => {
+      const data = await request.formData();
+      const name = data.get("name");
+      const email = data.get("email");
+      
+      if (!name || !email) {
+        return new Response(JSON.stringify({ message: "Заполните все поля" }), { status: 400 });
+      }
+
+      return new Response(JSON.stringify({ message: "Успешно!" }), { status: 200 });
+    };
+    ```
+
+2. Создайте компонент формы на вашем любимом фреймворке.
+
+    <UIFrameworkTabs>
+      <Fragment slot="react">
+        ```tsx title="src/components/FeedbackForm.tsx"
+        import { useState, FormEvent } from "react";
+
+        export default function Form() {
+          const [responseMessage, setResponseMessage] = useState("");
+
+          async function submit(e: FormEvent<HTMLFormElement>) {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            const response = await fetch("/api/feedback", {
+              method: "POST",
+              body: formData,
+            });
+            const data = await response.json();
+            setResponseMessage(data.message);
+          }
+
+          return (
+            <form onSubmit={submit}>
+              <input type="text" name="name" required placeholder="Имя" />
+              <input type="email" name="email" required placeholder="Email" />
+              <button>Отправить</button>
+              {responseMessage && <p>{responseMessage}</p>}
+            </form>
+          );
+        }
+        ```
+      </Fragment>
+      <Fragment slot="svelte">
+        ```svelte title="src/components/FeedbackForm.svelte"
+        <script lang="ts">
+          let responseMessage: string;
+
+          async function submit(e: SubmitEvent) {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget as HTMLFormElement);
+            const response = await fetch("/api/feedback", {
+              method: "POST",
+              body: formData,
+            });
+            const data = await response.json();
+            responseMessage = data.message;
+          }
+        </script>
+
+        <form on:submit={submit}>
+          <input type="text" name="name" required />
+          <input type="email" name="email" required />
+          <button>Отправить</button>
+          {#if responseMessage}<p>{responseMessage}</p>{/if}
+        </form>
+        ```
+      </Fragment>
+    </UIFrameworkTabs>
+
+3. Добавьте компонент на страницу и не забудьте указать директиву `client:load` для гидратации.
+
+    ```astro
+    ---
+    import FeedbackForm from "../components/FeedbackForm";
+    ---
+    <FeedbackForm client:load />
+    ```
+</Steps>
