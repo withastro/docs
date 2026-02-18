@@ -812,128 +812,50 @@ addEventListener('fetch', (event) => {
 
 ### `astro/app/node`
 
-Just like [`astro/app`](#astroapp), this module is used for rendering pages that have been prebuilt through `astro build`. This allows you to create a `NodeApp` providing all the methods available from `App` and additional methods useful for Node environments.
+This module is used in conjunction with [`astro/app`](#astroapp) to convert a NodeJS `IncomingMessage` into a web-standard `Request` and stream a web-standard `Response` into a NodeJS `ServerResponse`.
 
-The `NodeApp` constructor accepts a required SSR manifest argument, and optionally an argument to enable or disable streaming, defaulting to `true`.
-
-```js
-import { NodeApp } from 'astro/app/node';
-import http from 'http';
-
-const nodeApp = new NodeApp(manifest);
-
-addEventListener('fetch', event => {
-  event.respondWith(
-    nodeApp.render(event.request)
-  );
-});
-```
-
-The following additional methods are provided:
-
-#### `nodeApp.render()`
-
-<p>
-
-**Type:** `(request: NodeRequest | Request, options?: RenderOptions) => Promise<Response>`<br />
-<Since v="4.0.0" />
-</p>
-
-Extends [`app.render()`](#apprender) to also accept [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) objects in addition to standard `Request` objects as the first argument. The second argument is an optional object allowing you to [control the rendering](#renderoptions).
-
-```js
-const response = await nodeApp.render(request);
-```
-
-#### `nodeApp.match()`
-
-<p>
-
-**Type:** `(req: NodeRequest | Request, allowPrerenderedRoutes?: boolean) => RouteData | undefined`
-</p>
-
-Extends [`app.match()`](#appmatch) to also accept [Node.js `IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) objects in addition to standard `Request` objects.
-
-```js
-if(nodeApp.match(request)) {
-  const response = await nodeApp.render(request);
-}
-```
-
-#### `nodeApp.headersMap`
-
-<p>
-
-**Type:** `NodeAppHeadersJson | undefined`<br />
-**Default:** `undefined`<br />
-<Since v="5.11.0" />
-</p>
-
-An array containing the headers configuration. Each entry maps a pathname to a list of headers that should be applied for that route. This is useful for applying headers such as CSP directives to prerendered routes.
-
-#### `nodeApp.setHeadersMap()`
-
-<p>
-
-**Type:** `(headers: NodeAppHeadersJson) => void`<br />
-<Since v="5.11.0" />
-</p>
-
-Loads [headers configuration](#nodeappheadersmap) into the `NodeApp` instance. 
-
-```js
-nodeApp.setHeadersMap([
-  {
-    pathname: "/blog",
-    headers: [
-      { key: "Content-Security-Policy", value: "default-src 'self'" },
-    ]
-  }
-]);
-```
-
-#### `NodeApp.createRequest()`
+#### `createRequest()`
 
 <p>
 
 **Type:** `(req: NodeRequest, options?: { skipBody?: boolean; allowedDomains?: Partial<RemotePattern>[]; }) => Request`<br />
-<Since v="4.2.0" />
+<Since v="6.0.0" />
 </p>
 
-Converts a NodeJS `IncomingMessage` into a standard `Request` object. This static method accepts an optional object as the second argument, allowing you to define if the body should be ignored, defaulting to `false`, and the [`allowedDomains`](/en/reference/configuration-reference/#securityalloweddomains).
+Converts a NodeJS `IncomingMessage` into a standard `Request` object. This function accepts an optional object as the second argument, allowing you to define if the body should be ignored, defaulting to `false`, and the [`allowedDomains`](/en/reference/configuration-reference/#securityalloweddomains).
 
 The following example creates a `Request` and passes it to `app.render()`:
 
 ```js {5}
-import { NodeApp } from 'astro/app/node';
+import { createRequest } from 'astro/app/node';
 import { createServer } from 'node:http';
 
 const server = createServer(async (req, res) => {
-  const request = NodeApp.createRequest(req);
+  const request = createRequest(req);
   const response = await app.render(request);
 })
 ```
 
-#### `NodeApp.writeResponse()`
+#### `writeResponse()`
 
 <p>
 
 **Type:** `(source: Response, destination: ServerResponse) => Promise<ServerResponse<IncomingMessage> | undefined>`<br />
-<Since v="4.2.0" />
+<Since v="6.0.0" />
 </p>
 
-Streams a web-standard `Response` into a NodeJS server response. This static method takes a `Response` object and the initial `ServerResponse` before returning a promise of a `ServerResponse` object.
+Streams a web-standard `Response` into a NodeJS server response. This function takes a `Response` object and the initial `ServerResponse` before returning a promise of a `ServerResponse` object.
 
 The following example creates a `Request`, passes it to `app.render()`, and writes the response:
 
 ```js {7}
-import { NodeApp } from 'astro/app/node';
+import { createRequest, writeResponse } from 'astro/app/node';
 import { createServer } from 'node:http';
 
 const server = createServer(async (req, res) => {
-  const request = NodeApp.createRequest(req);
+  const request = createRequest(req);
   const response = await app.render(request);
-  await NodeApp.writeResponse(response, res);
+  await writeResponse(response, res);
 })
 ```
 
@@ -1192,7 +1114,7 @@ function createEdgeMiddleware(middlewareEntryPoint) {
 <Since v="5.0.0" />
 </p>
 
-Allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type. For example, your adapter might expect a static website, but uses an adapter to create host-specific files. Defaults to `server` if not specified.
+Allows you to force a specific output shape for the build. This can be useful for adapters that only work with a specific output type. For example, your adapter might expect a static website so it can create host-specific files. Defaults to `server` if not specified.
 
 ```js title="my-adapter.mjs" ins={10-12}
 export default function createIntegration() {
@@ -1222,7 +1144,7 @@ export default function createIntegration() {
 <Since v="6.0.0" />
 </p>
 
-Whether or not the adapter provides experimental support for setting response headers for static pages. When this feature is enabled, Astro will return a map of the `Headers` emitted by the static pages. This map `experimentalRouteToHeaders` is available in the [`astro:build:generated` hook](/en/reference/integrations-reference/#astrobuildgenerated) for generating files such as a `_headers` that allows you to make changes to the default HTTP header.
+Whether or not the adapter provides support for setting response headers for static pages. When this feature is enabled, Astro will return a map of the `Headers` emitted by the static pages. This map is available as `routeToHeaders` in the [`astro:build:generated` hook](/en/reference/integrations-reference/#astrobuildgenerated) and can be used to generate platform-specific output that controls HTTP headers, for example, to create a `_headers` file for platforms that support it.
 
 ```js title="my-adapter.mjs" ins={10-12}
 export default function createIntegration() {
@@ -1239,8 +1161,8 @@ export default function createIntegration() {
           },
         });
       },
-      'astro:build:generated': ({ experimentalRouteToHeaders }) => {
-        // use `experimentalRouteToHeaders` to generate a configuration file
+      'astro:build:generated': ({ routeToHeaders }) => {
+        // use `routeToHeaders` to generate a configuration file
         // for your virtual host of choice
       },
     },
@@ -1248,7 +1170,7 @@ export default function createIntegration() {
 }
 ```
 
-The value of the headers might change based on the features enabled/used by the application. For example, if [CSP is enabled](/en/reference/configuration-reference/#securitycsp), the `<meta http-equiv="content-security-policy">` element is not added to the static page. Instead, its `content` is available in the `experimentalRouteToHeaders` map. 
+The value of the headers might change based on the features enabled/used by the application. For example, if [CSP is enabled](/en/reference/configuration-reference/#securitycsp), the `<meta http-equiv="content-security-policy">` element is not added to the static page. Instead, its `content` is available in the `routeToHeaders` map. 
 
 ## Adapter types reference
 
