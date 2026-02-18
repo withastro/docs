@@ -1,6 +1,7 @@
 import { docsLoader, i18nLoader } from '@astrojs/starlight/loaders';
 import { docsSchema, i18nSchema } from '@astrojs/starlight/schema';
-import { defineCollection, z, type CollectionEntry } from 'astro:content';
+import { defineCollection, type CollectionEntry } from 'astro:content';
+import { z } from 'astro/zod';
 import { file } from 'astro/loaders';
 import { AstroDocsI18nSchema } from './content/i18n-schema';
 import { logoKeys } from './data/logos';
@@ -8,7 +9,7 @@ import { logoKeys } from './data/logos';
 export const baseSchema = z.object({
 	type: z.literal('base').optional().default('base'),
 	i18nReady: z.boolean().default(false),
-	githubURL: z.string().url().optional(),
+	githubURL: z.url().optional(),
 	hasREADME: z.boolean().optional(),
 	// Extends Starlight’s default `hero` schema with custom fields.
 	hero: z
@@ -62,7 +63,7 @@ export const integrationSchema = baseSchema.extend({
 			'"title" must start with "@astrojs/" for integration docs.'
 		),
 	category: z.enum(['renderer', 'adapter', 'other']),
-	githubIntegrationURL: z.string().url(),
+	githubIntegrationURL: z.url(),
 });
 
 export const migrationSchema = baseSchema.extend({
