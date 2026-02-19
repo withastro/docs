@@ -39,6 +39,11 @@ export const cmsSchema = baseSchema.extend({
 	type: z.literal('cms'),
 	stub: z.boolean().default(false),
 	logo: z.enum(logoKeys),
+	featuredListing: z
+		.object({
+			tagline: z.string().min(30).max(160),
+		})
+		.optional(),
 });
 
 export const mediaSchema = baseSchema.extend({
