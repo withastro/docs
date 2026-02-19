@@ -280,6 +280,60 @@ export default defineConfig({
 });
 ```
 
+### `appEntrypoint`
+
+<p>
+
+**Type:** `string`<br />
+<Since pkg="@astrojs/react" v="5.0.0" />
+</p>
+
+You can wrap all React islands with a component by setting the `appEntrypoint` option to a root-relative import specifier (for example, `appEntrypoint: "/src/react-app"`). This enables the use of [React Context](https://react.dev/learn/passing-data-deeply-with-context) providers, state management wrappers, and CSS-in-JS providers for all your React islands.
+
+The default export of this file should be a React component that receives the island element as `children`. For ease of typing in a TypeScript environment, you can import `AppEntrypoint` and `AppEntrypointProps` types from `@astrojs/react`.
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      appEntrypoint: '/src/react-app',
+    }),
+  ],
+});
+```
+
+```tsx title="src/react-app.tsx"
+import type { AppEntrypoint } from '@astrojs/react';
+import { ThemeProvider } from './context/theme';
+
+const Wrapper: AppEntrypoint = ({ children }) => {
+  return <ThemeProvider>{children}</ThemeProvider>;
+};
+
+export default Wrapper;
+```
+
+#### Accessing `Astro.locals`
+
+In a server environment, the wrapper component receives `locals`, the full [`Astro.locals`](/en/reference/api-reference/#astrolocals) object. This is only available during server rendering and will be `undefined` on the client.
+
+This is useful for per-request data that both Astro and React need to access, such as a style cache for CSS-in-JS libraries. It also allows you to pass server-determined data straight to your React components without resorting to `window`-based hacks.
+
+```tsx title="src/react-app.tsx" ins={4}
+import type { AppEntrypoint } from '@astrojs/react';
+import { ThemeProvider } from './context/theme';
+
+const Wrapper: AppEntrypoint = ({ children, locals }) => {
+  return <ThemeProvider theme={locals?.theme}>{children}</ThemeProvider>;
+};
+
+export default Wrapper;
+```
+
 [astro-integration]: /en/guides/integrations-guide/
 
 [astro-ui-frameworks]: /en/guides/framework-components/#using-framework-components
