@@ -120,6 +120,7 @@ export const sidebar = [
 				items: [
 					'reference/api-reference',
 					'reference/modules/astro-actions',
+					'reference/modules/astro-app',
 					'reference/modules/astro-assets',
 					'reference/modules/astro-config',
 					'reference/modules/astro-content',
