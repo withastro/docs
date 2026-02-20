@@ -11,6 +11,7 @@ i18nReady: false
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 このアダプターを使用すると、Astroで[オンデマンドでレンダリングされたルートと機能](/ja/guides/on-demand-rendering/)をNodeターゲットにデプロイできます。これには、[サーバーアイランド](/ja/guides/server-islands/)、[アクション](/ja/guides/actions/)、[セッション](/ja/guides/sessions/)が含まれます。
 
@@ -160,6 +161,34 @@ export default defineConfig({
 });
 ```
 
+### `experimentalErrorPageHost`
+
+<p>
+  **Type:** `string | URL` <br />
+  **Default:** `undefined`<br />
+  <Since v="9.4.0" pkg="@astrojs/node"/>
+</p>
+
+事前レンダリングされた[カスタムエラーページ](/ja/basics/astro-pages/#カスタム404エラーページ)を読み込むための代替ホストを指定します。
+
+Astroがレスポンスで404ページを返すためには、ページを読み込める必要があります。デフォルトでは、Astroはリクエストが送信されたホストと同じホストから事前レンダリングされたカスタムエラーページを読み込みます。たとえば、`https://example.com/nonexistent-page`にリクエストが送信された場合、Astroは`https://example.com/404.html`から事前レンダリングされたエラーページを読み込もうとします。
+
+`experimentalErrorPageHost`は、カスタムエラーページを別のホストから読み込む必要がある場合に使用します。たとえば、サーバーがリバースプロキシの背後で実行されている場合や、外部ホストURLにアクセスできないコンテナ内で実行されている場合です。また、パブリックインターネットを経由するよりもlocalhostから事前レンダリングされたエラーページを読み込む方が効率的な場合にも使用できます。
+
+値は文字列またはURLオブジェクトです。プロトコルを含む完全修飾URLである必要があります（例：`http://localhost:4321`）。Astroは常にルートパスから事前レンダリングされたエラーページを読み込み、パスやクエリパラメーターは無視されます。
+
+```js
+import { defineConfig } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({
+    // パブリックURLではなくlocalhostからページを読み込みます。
+    experimentalErrorPageHost: 'http://localhost:4321',
+  })
+});
+```
+
 
 ## 使い方
 
@@ -255,18 +284,6 @@ HOST=0.0.0.0 PORT=4321 node ./dist/server/entry.mjs
 SERVER_KEY_PATH=./private/key.pem SERVER_CERT_PATH=./private/cert.pem node ./dist/server/entry.mjs
 ```
 
-#### ランタイム環境変数
-
-ビルドプロセスの実行時に環境変数を含む`.env`ファイルが存在する場合、これらの値は、静的ウェブサイトを生成する場合と同様に、出力にハードコーディングされます。
-
-ビルド中、ランタイム変数は`.env`ファイルに存在していてはならず、実行時に期待されるすべての環境変数をAstroに提供する必要があります：`VARIABLE_1=placeholder astro build`。これは、ビルドされたアプリケーションが実行されるときに実際の値が利用可能になることをAstroに示します。プレースホルダーの値はビルドプロセスによって無視され、Astroは実行時に提供された値を使用します。
-
-複数のランタイム変数の場合は、`.env`とは別のファイル（例：`.env.runtime`）に保存します。次のコマンドでビルドを開始します。
-
-```sh
-export $(cat .env.runtime) && astro build
-```
-
 #### アセット
 
 スタンドアロンモードでは、`dist/client/`フォルダー内のアセットはスタンドアロンサーバーを介して提供されます。これらのアセットをCDNにデプロイしている場合があり、その場合、サーバーは実際にはそれらを提供しません。しかし、イントラネットサイトなどの場合によっては、アプリケーションサーバーから直接静的アセットを提供しても問題ありません。
@@ -282,3 +299,39 @@ Cache-Control: public, max-age=31536000, immutable
 Astro [Sessions API](/ja/guides/sessions/)を使用すると、リクエスト間でユーザーデータを簡単に保存できます。これは、ユーザーデータや設定、ショッピングカート、認証情報などに使用できます。Cookieストレージとは異なり、データにサイズ制限はなく、別のデバイスで復元できます。
 
 Astroは、Nodeアダプターを使用する場合、セッションストレージにローカルファイルシステムを使用します。別のセッションストレージドライバーを使用したい場合は、Astro設定で指定できます。詳細については、[ `session`設定リファレンス](/ja/reference/configuration-reference/#sessiondriver)を参照してください。
+
+## 環境変数
+
+ランタイムで[`astro:env`](/ja/guides/environment-variables/#type-safe-environment-variables)のシークレットや`process.env`を使用する場合、Astroもアダプターも環境変数を自動的に読み込みません。
+
+一部のホストでは、ダッシュボードで設定した環境変数がビルド時およびランタイムに公開される場合があります。各プラットフォームでの環境変数の設定と使用方法については、ホストのドキュメントを確認してください。
+
+セルフホスティングの場合は、CLIコマンドや設定ファイルを使用して環境変数を読み込めます。
+
+<Tabs>
+  <TabItem label="Inline">
+  ```shell
+  DB_HOST=... DB_PASSWORD=... node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="dotenvx">
+  ```shell
+  npx @dotenvx/dotenvx run -- node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+  <TabItem label="Docker">
+  ```docker title="Dockerfile"
+  FROM node:lts AS runtime
+  WORKDIR /app
+
+  COPY . .
+
+  RUN npm install
+  RUN npm run build
+
+  ENV DB_HOST=...
+  ENV DB_PASSWORD=...
+  CMD node ./dist/server/entry.mjs
+  ```
+  </TabItem>
+</Tabs>
