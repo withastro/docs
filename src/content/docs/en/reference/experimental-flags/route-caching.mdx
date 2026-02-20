@@ -1,0 +1,561 @@
+---
+title: Experimental Route Caching
+sidebar:
+  label: Route Caching
+i18nReady: false
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+
+**Type:** `object`<br />
+**Default:** `undefined`<br />
+
+<Since v="6.0.0" />
+</p>
+
+Enables a platform-agnostic API for caching responses from [on-demand rendered](/en/guides/on-demand-rendering/) pages and endpoints. Cache directives set in your routes are translated into the appropriate headers or runtime behavior depending on your configured cache provider.
+
+Route caching builds on standard [HTTP caching semantics](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) including `max-age` and [`stale-while-revalidate`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate), with support for tag-based and path-based invalidation, config-level route rules, and pluggable cache providers that adapters can set automatically.
+
+This feature requires [on-demand rendering](/en/guides/on-demand-rendering/). Prerendered pages are already static and do not use route caching.
+
+To enable this feature, configure `experimental.cache` with a cache provider in your Astro config:
+
+```js title="astro.config.mjs" ins={2} ins="memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  experimental: {
+    cache: {
+      provider: memoryCache(),
+    },
+  },
+});
+```
+
+## Using route caching
+
+Use `Astro.cache` in `.astro` pages or `context.cache` in API routes and middleware to control caching per request. Cache defaults for groups of routes can also be defined declaratively in your config using [`experimental.routeRules`](#route-rules).
+
+### Setting cache options
+
+Call `cache.set()` with an options object to enable caching for the current response.
+
+The following example caches a page for 2 minutes, serves stale content for 1 minute while revalidating, and tags the response for targeted invalidation:
+
+```astro title="src/pages/index.astro" ins={3-7}
+---
+export const prerender = false; // Not needed in 'server' mode
+
+Astro.cache.set({
+  maxAge: 120,
+  swr: 60,
+  tags: ['home'],
+});
+---
+
+<html><body>Cached page</body></html>
+```
+
+In API routes and middleware, use `context.cache`:
+
+```ts title="src/pages/api/data.ts" ins={2-5}
+export function GET(context) {
+  context.cache.set({
+    maxAge: 300,
+    tags: ['api', 'data'],
+  });
+  return Response.json({ ok: true });
+}
+```
+
+### Opting out of caching
+
+Call `cache.set(false)` to explicitly opt a request out of caching. This is useful when a matched [route rule](#route-rules) would otherwise cache the response:
+
+```astro title="src/pages/dashboard.astro"
+---
+if (isPersonalized) {
+  Astro.cache.set(false);
+}
+---
+```
+
+### Reading cache state
+
+Access the current accumulated cache options via `cache.options`:
+
+```ts title="src/pages/api/debug.ts"
+const { maxAge, swr, tags } = context.cache.options;
+```
+
+### Merge behavior
+
+Multiple calls to `cache.set()` within a single request are merged:
+
+- **Scalar values** (`maxAge`, `swr`, `etag`): last-write-wins
+- **`lastModified`**: most recent date wins
+- **`tags`**: accumulate across all calls
+
+Middleware, layouts, content loaders, and page code can each contribute cache directives independently.
+
+## Using with live content collections
+
+Route caching integrates directly with [live content collections](/en/guides/content-collections/#live-content-collections). `cache.set()` accepts `CacheHint` and `LiveDataEntry` objects natively, allowing cache hints from loaders to be passed through without manually setting headers.
+
+A [live loader](/en/reference/content-loader-reference/) can return a `cacheHint` on individual entries or on the collection as a whole. These hints include `tags` (for targeted invalidation) and `lastModified` (for freshness). When passed to `cache.set()`, they merge with any other cache options already set on the page.
+
+### Passing cache hints from entries
+
+Pass the `cacheHint` returned by `getLiveEntry()` or `getLiveCollection()` directly to `cache.set()`.
+
+The following example passes the loader's cache hint and adds a `maxAge` to control how long the response stays fresh:
+
+```astro title="src/pages/products/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+A `LiveDataEntry` can also be passed directly. Astro extracts its `cacheHint` automatically:
+
+```astro title="src/pages/products/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+Astro.cache.set(entry);
+Astro.cache.set({ maxAge: 300, swr: 60 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+### Invalidating by entry
+
+`cache.invalidate()` also accepts a `LiveDataEntry`, invalidating all cached responses tagged with that entry's cache tags.
+
+The following example invalidates the cached response for a specific product entry:
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('products', 'featured');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
+```
+
+### Collection-level cache hints
+
+When fetching a full collection with `getLiveCollection()`, Astro merges cache hints from the collection response and all individual entries: tags are accumulated and the most recent `lastModified` wins.
+
+The following example passes the merged cache hint from a collection and sets a 10-minute freshness window:
+
+```astro title="src/pages/products/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries, error, cacheHint } = await getLiveCollection('products');
+
+if (error) {
+  return new Response('Error loading products', { status: 500 });
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+
+<ul>
+  {entries.map((p) => <li>{p.data.name}</li>)}
+</ul>
+```
+
+<ReadMore>
+  See the [Content Loader Reference](/en/reference/content-loader-reference/) for more about
+  implementing cache hints in your live loaders.
+</ReadMore>
+
+## Invalidation
+
+Purge cached entries by tag or path using `cache.invalidate()`.
+
+The following example creates an API route that invalidates by tag and by path:
+
+```ts title="src/pages/api/revalidate.ts"
+export async function POST(context) {
+  // Invalidate all entries tagged 'data'
+  await context.cache.invalidate({ tags: ['data'] });
+
+  // Invalidate a specific path
+  await context.cache.invalidate({ path: '/api/data' });
+
+  return Response.json({ purged: true });
+}
+```
+
+Tag-based invalidation removes all cached entries whose tags include any of the provided tags. Path-based invalidation is exact-match only (no glob or wildcard patterns).
+
+## Route rules
+
+<p>
+  <Since v="6.0.0" />
+</p>
+
+`experimental.routeRules` sets default cache options for routes declaratively in your config, without modifying route code. This is useful for applying caching to large groups of routes at once.
+
+The following example caches all API routes with stale-while-revalidate, product pages with a 1-hour freshness window, and blog posts for 5 minutes:
+
+```js title="astro.config.mjs" ins={8-12}
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    cache: {
+      provider: memoryCache(),
+    },
+    routeRules: {
+      '/api/*': { swr: 600 },
+      '/products/*': { cache: { maxAge: 3600, tags: ['products'] } },
+      '/blog/[...slug]': { maxAge: 300, swr: 60 },
+    },
+  },
+});
+```
+
+### Pattern syntax
+
+Route patterns support:
+
+- **Static paths**: `/about`, `/api/health`
+- **Dynamic parameters**: `/products/[id]`, `/blog/[slug]`
+- **Rest parameters**: `/docs/[...path]`
+- **Glob wildcards**: `/api/*`
+
+Patterns use the same matching and priority rules as Astro's [file-based routing](/en/guides/routing/), so more specific patterns take precedence.
+
+### Shortcut and full forms
+
+Route rules support two equivalent forms:
+
+```js title="astro.config.mjs"
+routeRules: {
+  // Flat cache options at the rule level
+  '/api/*': { swr: 600 },
+
+  // Full form: nested under a `cache` key
+  '/api/*': { cache: { swr: 600 } },
+}
+```
+
+When both forms are present, the nested `cache` values take precedence over flat values.
+
+### Merging with per-route `cache.set()`
+
+Per-route `cache.set()` calls merge with config-level route rules. Route code can override or extend the defaults set in config.
+
+## Cache providers
+
+Cache behavior is determined by the configured **cache provider**. Providers fall into two categories:
+
+### CDN providers
+
+CDN providers translate cache directives into response headers (e.g. `CDN-Cache-Control`, `Cache-Tag`) and rely on a CDN or reverse proxy to handle caching. These internal headers are stripped before the response reaches the client.
+
+A CDN provider implements `setHeaders()` to produce the appropriate headers.
+
+### Runtime providers
+
+Runtime providers implement `onRequest()` to intercept requests and cache responses in-process. They add an `X-Astro-Cache` response header for observability:
+
+- **`HIT`**: response served from cache
+- **`MISS`**: response rendered fresh and stored in cache
+- **`STALE`**: stale response served while revalidating in the background
+
+### Built-in memory cache provider
+
+Astro includes a built-in in-memory LRU cache provider suitable for single-instance deployments. Import `memoryCache` from `astro/config`:
+
+```js title="astro.config.mjs" ins="memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    cache: {
+      provider: memoryCache({ max: 500 }),
+    },
+  },
+});
+```
+
+#### `memoryCache()` options
+
+<p>
+
+**Type:** `{ max?: number }`<br />
+**Default:** `{ max: 1000 }`
+
+</p>
+
+##### `max`
+
+<p>
+
+**Type:** `number`<br />
+**Default:** `1000`
+
+</p>
+
+Maximum number of entries to keep in cache. When the cache exceeds this limit, the least recently used entry is evicted.
+
+## Writing a custom cache provider
+
+A cache provider has two parts:
+
+1. **The runtime module** — A file that **default-exports** a `CacheProviderFactory` function. This module is bundled into your SSR output, so it must be runtime-agnostic: avoid Node.js built-in modules (e.g. `node:fs`, `node:path`) unless your target runtime supports them.
+
+2. **The config helper** — A function exported for users to call in `astro.config.mjs`. It returns a `CacheProviderConfig` object (`{ entrypoint, config }`) that tells Astro where to find the runtime module and what options to pass it. This is the same pattern used by `memoryCache()` from `astro/config`.
+
+The following example shows a config helper that accepts typed options and points to a runtime module:
+
+```ts title="my-provider/config.ts"
+import type { CacheProviderConfig } from 'astro';
+
+interface MyProviderOptions {
+  apiKey: string;
+  region?: string;
+}
+
+export function myCache(options: MyProviderOptions): CacheProviderConfig {
+  return {
+    entrypoint: 'my-provider/runtime', // resolved from the project root
+    config: options, // passed to the factory at runtime
+  };
+}
+```
+
+The config helper is then called in the Astro config:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { myCache } from 'my-provider/config';
+
+export default defineConfig({
+  experimental: {
+    cache: {
+      provider: myCache({ apiKey: '...' }),
+    },
+  },
+});
+```
+
+The runtime module default-exports a factory that receives the serialized `config` and returns a `CacheProvider`:
+
+```ts title="my-provider/runtime.ts"
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  return {
+    name: 'my-cache-provider',
+
+    // CDN-style: translate cache options into response headers
+    setHeaders(options) {
+      const headers = new Headers();
+      if (options.maxAge !== undefined) {
+        let value = `max-age=${options.maxAge}`;
+        if (options.swr !== undefined) {
+          value += `, stale-while-revalidate=${options.swr}`;
+        }
+        headers.set('CDN-Cache-Control', value);
+      }
+      if (options.tags?.length) {
+        headers.set('Cache-Tag', options.tags.join(','));
+      }
+      return headers;
+    },
+
+    // Runtime-style: intercept requests (optional)
+    async onRequest(context, next) {
+      // Check cache, call next(), store response...
+      return next();
+    },
+
+    // Handle invalidation requests
+    async invalidate(options) {
+      // Purge by tags or path...
+    },
+  };
+};
+
+export default factory;
+```
+
+### `CacheProvider` interface
+
+#### `name`
+
+<p>
+
+**Type:** `string`
+
+</p>
+
+A unique name for the provider, used in logs and for identification.
+
+#### `setHeaders()`
+
+<p>
+
+**Type:** `(options: CacheOptions) => Headers`
+
+</p>
+
+Optional. Translates cache options into response headers. Called after the response is rendered but before it is sent to the client. These headers are stripped from the final response.
+
+#### `onRequest()`
+
+<p>
+
+**Type:** `(context: { request: Request; url: URL; waitUntil?: (promise: Promise<unknown>) => void }, next: MiddlewareNext) => Promise<Response>`
+
+</p>
+
+Optional. Intercepts requests to implement runtime caching. The `context` includes a `waitUntil` function (when available in the runtime) for background work such as stale-while-revalidate.
+
+#### `invalidate()`
+
+<p>
+
+**Type:** `(options: InvalidateOptions) => Promise<void>`
+
+</p>
+
+Required. Handles purge requests by tag or path.
+
+### `CacheProviderFactory`
+
+<p>
+
+**Type:** `(config: Record<string, any> | undefined) => CacheProvider`
+
+</p>
+
+The factory function type. Receives the provider's serializable config object from the Astro config.
+
+## API reference
+
+### `cache.set()`
+
+<p>
+
+**Type:** `(options: CacheOptions | false) => void`
+
+</p>
+
+Sets cache options for the current request. Pass `false` to opt out of caching.
+
+#### `CacheOptions`
+
+| Property       | Type       | Description                                                                                                              |
+| -------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `maxAge`       | `number`   | Time in seconds the response is considered fresh.                                                                        |
+| `swr`          | `number`   | Stale-while-revalidate window in seconds. Stale content is served while a fresh response is generated in the background. |
+| `tags`         | `string[]` | Cache tags for targeted invalidation. Tags accumulate across multiple `set()` calls.                                     |
+| `lastModified` | `Date`     | When multiple `set()` calls provide `lastModified`, the most recent date wins.                                           |
+| `etag`         | `string`   | Entity tag for conditional requests.                                                                                     |
+
+### `cache.options`
+
+<p>
+
+**Type:** `Readonly<CacheOptions>`
+
+</p>
+
+Read-only snapshot of the current accumulated cache options, including all merged `maxAge`, `swr`, `etag`, `lastModified`, and `tags` values.
+
+### `cache.tags`
+
+<p>
+
+**Type:** `string[]`
+
+</p>
+
+Read-only array of all accumulated cache tags.
+
+### `cache.invalidate()`
+
+<p>
+
+**Type:** `(options: InvalidateOptions) => Promise<void>`
+
+</p>
+
+Purges cached entries. Requires a configured cache provider.
+
+#### `InvalidateOptions`
+
+| Property | Type                 | Description                                                           |
+| -------- | -------------------- | --------------------------------------------------------------------- |
+| `path`   | `string`             | Exact path to invalidate. No glob or wildcard support.                |
+| `tags`   | `string \| string[]` | Tag or tags to invalidate. All entries with matching tags are purged. |
+
+### `CacheProviderConfig`
+
+<p>
+
+**Type:** `{ entrypoint: string \| URL; config?: Record<string, any> }`
+
+</p>
+
+The configuration object passed to `experimental.cache.provider`. Use a helper function (e.g. `memoryCache()`) for type-safe configuration.
+
+## Error handling
+
+### `CacheNotEnabled`
+
+Thrown when `Astro.cache` or `context.cache` is used but `experimental.cache` is not configured. The error message explains how to enable the feature.
+
+### `CacheProviderNotFound`
+
+Thrown at build time when the configured cache provider cannot be resolved. This typically means the package is not installed or the import path is incorrect.
+
+## Dev mode behavior
+
+In dev mode, the cache API is available so route code does not need conditional checks, but no actual caching occurs. `cache.set()` calls are accepted silently, and `cache.invalidate()` is a no-op.
+
+## Further reading
+
+For full details and to give feedback on this experimental API, see the [Route Caching RFC](https://github.com/withastro/roadmap/pull/1245).
