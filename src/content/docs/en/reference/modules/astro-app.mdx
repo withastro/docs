@@ -14,138 +14,6 @@ This module helps you [build a server entrypoint for your adapter](/en/reference
 
 Astro uses the standard [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) and [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) objects. Hosts using a different API for requests/responses should convert to these types in their adapter. For example, Astro exposes [helpers to work with NodeJS](#imports-from-astroappnode).
 
-## `astro/app` types
-
-The following types are imported from the app module:
-
-```ts
-import type {
-  RenderOptions,
-} from "astro/app";
-```
-
-### `RenderOptions`
-
-<p>
-
-**Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
-</p>
-
-Describes the options for controlling the routes rendering.
-
-#### `RenderOptions.addCookieHeader`
-
-<p>
-
-**Type:** `boolean`<br />
-**Default:** `false`
-</p>
-
-Whether or not to automatically add all cookies written by [`Astro.cookie.set()`](/en/reference/api-reference/#cookiesset) to the response headers.
-
-When set to `true`, they will be added to the `Set-Cookie` header of the response as comma-separated key-value pairs. You can use the standard `response.headers.getSetCookie()` API to read them individually.
-
-```js
-const response = await app.render(request, { addCookieHeader: true });
-```
-
-#### `RenderOptions.clientAddress`
-
-<p>
-
-**Type:** `string`<br />
-**Default:** `request[Symbol.for("astro.clientAddress")]`
-</p>
-
-The client IP address that will be made available as [`Astro.clientAddress`](/en/reference/api-reference/#clientaddress) in pages, and as `ctx.clientAddress` in API routes and middleware.
-
-The example below reads the `x-forwarded-for` header and passes it as `clientAddress`. This value becomes available to the user as `Astro.clientAddress`.
-
-```js "clientAddress"
-const clientAddress = request.headers.get("x-forwarded-for");
-const response = await app.render(request, { clientAddress });
-```
-
-#### `RenderOptions.locals`
-
-<p>
-
-**Type:** `object`
-</p>
-
-The [`context.locals` object](/en/reference/api-reference/#locals) used to store and access information during the lifecycle of a request.
-
-The example below reads a header named `x-private-header`, attempts to parse it as an object and pass it to `locals`, which can then be passed to any [middleware function](/en/guides/middleware/).
-
-```js "locals"
-const privateHeader = request.headers.get("x-private-header");
-let locals = {};
-try {
-  if (privateHeader) {
-    locals = JSON.parse(privateHeader);
-  }
-} finally {
-  const response = await app.render(request, { locals });
-}
-```
-
-#### `RenderOptions.prerenderedErrorPageFetch()`
-
-<p>
-
-**Type:** `(url: ErrorPagePath) => Promise<Response>`<br />
-**Default:** `fetch`<br />
-<Since v="5.6.0" />
-</p>
-
-A function that allows you to provide custom implementations for fetching prerendered error pages.
-
-This is used to override the default `fetch()` behavior, for example, when `fetch()` is unavailable or when you cannot call the server from itself.
-
-The following example reads `500.html` and `404.html` from disk instead of performing an HTTP call:
-
-```ts "prerenderedErrorPageFetch"
-return app.render(request, {
-  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
-    if (url.includes("/500")) {
-      const content = await fs.promises.readFile("500.html", "utf-8");
-      return new Response(content, {
-        status: 500,
-        headers: { "Content-Type": "text/html" },
-      });
-    }
-
-    const content = await fs.promises.readFile("404.html", "utf-8");
-    return new Response(content, {
-      status: 404,
-      headers: { "Content-Type": "text/html" },
-    });
-  }
-});
-```
-
-If not provided, Astro will fallback to its default behavior for fetching error pages.
-
-#### `RenderOptions.routeData`
-
-<p>
-
-**Type:** [`RouteData`](/en/reference/integrations-reference/#routedata)<br />
-**Default:** `app.match(request)`
-</p>
-
-Defines the information about a route. This is useful when you already know the route to render. Doing so will bypass the internal call to [`app.match()`](#appmatch) to determine the route to render.
-
-```js "routeData"
-const routeData = app.match(request);
-if (routeData) {
-  return app.render(request, { routeData });
-} else {
-  /* adapter-specific 404 response */
-  return new Response(..., { status: 404 });
-}
-```
-
 ## Imports from `astro/app/entrypoint`
 
 The following helpers are imported from the `entrypoint` directory in the app module:
@@ -358,4 +226,136 @@ const server = createServer(async (req, res) => {
   const response = await app.render(request);
   await writeResponse(response, res);
 })
+```
+
+## `astro/app` types
+
+The following types are imported from the app module:
+
+```ts
+import type {
+  RenderOptions,
+} from "astro/app";
+```
+
+### `RenderOptions`
+
+<p>
+
+**Type:** `{addCookieHeader?: boolean; clientAddress?: string; locals?: object; prerenderedErrorPageFetch?: (url: ErrorPagePath) => Promise<Response>; routeData?: RouteData;}`
+</p>
+
+Describes the options for controlling the routes rendering.
+
+#### `RenderOptions.addCookieHeader`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+</p>
+
+Whether or not to automatically add all cookies written by [`Astro.cookie.set()`](/en/reference/api-reference/#cookiesset) to the response headers.
+
+When set to `true`, they will be added to the `Set-Cookie` header of the response as comma-separated key-value pairs. You can use the standard `response.headers.getSetCookie()` API to read them individually.
+
+```js
+const response = await app.render(request, { addCookieHeader: true });
+```
+
+#### `RenderOptions.clientAddress`
+
+<p>
+
+**Type:** `string`<br />
+**Default:** `request[Symbol.for("astro.clientAddress")]`
+</p>
+
+The client IP address that will be made available as [`Astro.clientAddress`](/en/reference/api-reference/#clientaddress) in pages, and as `ctx.clientAddress` in API routes and middleware.
+
+The example below reads the `x-forwarded-for` header and passes it as `clientAddress`. This value becomes available to the user as `Astro.clientAddress`.
+
+```js "clientAddress"
+const clientAddress = request.headers.get("x-forwarded-for");
+const response = await app.render(request, { clientAddress });
+```
+
+#### `RenderOptions.locals`
+
+<p>
+
+**Type:** `object`
+</p>
+
+The [`context.locals` object](/en/reference/api-reference/#locals) used to store and access information during the lifecycle of a request.
+
+The example below reads a header named `x-private-header`, attempts to parse it as an object and pass it to `locals`, which can then be passed to any [middleware function](/en/guides/middleware/).
+
+```js "locals"
+const privateHeader = request.headers.get("x-private-header");
+let locals = {};
+try {
+  if (privateHeader) {
+    locals = JSON.parse(privateHeader);
+  }
+} finally {
+  const response = await app.render(request, { locals });
+}
+```
+
+#### `RenderOptions.prerenderedErrorPageFetch()`
+
+<p>
+
+**Type:** `(url: ErrorPagePath) => Promise<Response>`<br />
+**Default:** `fetch`<br />
+<Since v="5.6.0" />
+</p>
+
+A function that allows you to provide custom implementations for fetching prerendered error pages.
+
+This is used to override the default `fetch()` behavior, for example, when `fetch()` is unavailable or when you cannot call the server from itself.
+
+The following example reads `500.html` and `404.html` from disk instead of performing an HTTP call:
+
+```ts "prerenderedErrorPageFetch"
+return app.render(request, {
+  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+    if (url.includes("/500")) {
+      const content = await fs.promises.readFile("500.html", "utf-8");
+      return new Response(content, {
+        status: 500,
+        headers: { "Content-Type": "text/html" },
+      });
+    }
+
+    const content = await fs.promises.readFile("404.html", "utf-8");
+    return new Response(content, {
+      status: 404,
+      headers: { "Content-Type": "text/html" },
+    });
+  }
+});
+```
+
+If not provided, Astro will fallback to its default behavior for fetching error pages.
+
+#### `RenderOptions.routeData`
+
+<p>
+
+**Type:** [`RouteData`](/en/reference/integrations-reference/#routedata)<br />
+**Default:** `app.match(request)`
+</p>
+
+Defines the information about a route. This is useful when you already know the route to render. Doing so will bypass the internal call to [`app.match()`](#appmatch) to determine the route to render.
+
+```js "routeData"
+const routeData = app.match(request);
+if (routeData) {
+  return app.render(request, { routeData });
+} else {
+  /* adapter-specific 404 response */
+  return new Response(..., { status: 404 });
+}
 ```
