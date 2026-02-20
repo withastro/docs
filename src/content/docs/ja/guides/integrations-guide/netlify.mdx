@@ -134,7 +134,7 @@ const {
 <h1>{city}から来たフレンドリーな訪問者さん、こんにちは！</h1>
 ```
 
-TypeScriptを使用している場合は、`src/env.d.ts`を更新して`NetlifyLocals`を使用することで、適切な型指定を取得できます。
+TypeScriptを使用している場合は、`src/env.d.ts`を更新して`NetlifyLocals`を使用することで、[適切な型指定を取得](/ja/guides/typescript/#extending-global-types)できます。
 
 ```ts title="src/env.d.ts"
 type NetlifyLocals = import('@astrojs/netlify').NetlifyLocals
@@ -247,6 +247,22 @@ Astro.response.headers.set('CDN-Cache-Control', 'public, max-age=45, must-revali
 [きめ細かなキャッシュ制御](https://www.netlify.com/blog/swr-and-fine-grained-cache-control/)により、Netlifyは`CDN-Cache-Control`や`Vary`などの標準的なキャッシュヘッダーをサポートしています。
 TTL（Time to Live）やSWR（Stale While Revalidate）キャッシングの実装方法については、ドキュメントを参照してください：https://docs.netlify.com/platform/caching
 
+### スキュー保護
+
+<p><Since v="6.6.0" pkg="@astrojs/netlify" /></p>
+
+Netlifyのスキュー保護は、デプロイ中にサイトにアクセスしたユーザーが同じデプロイバージョンのコンテンツを引き続き受け取れるようにします。Netlifyアダプターは、現在のデプロイIDを内部リクエストに注入することで、アクション、サーバーアイランド、ビュートランジション、プリフェッチリクエストなどAstroの各機能に対してスキュー保護を自動的に設定します。これにより、デプロイ中のクライアントとサーバー間のバージョン不一致を防ぎます。
+
+Astroは組み込み機能に対してスキュー保護ヘッダーを自動的に追加しますが、サイトへの独自のfetchリクエストをおこなう場合は、`DEPLOY_ID`環境変数を使用してヘッダーを手動で含められます。
+
+```js
+const response = await fetch('/api/endpoint', {
+  headers: {
+    'X-Netlify-Deploy-ID': import.meta.env.DEPLOY_ID,
+  },
+});
+```
+
 ### Netlify Functionsからのファイルのインクルードまたは除外
 
 オンデマンドレンダリングでAstroサイトをNetlifyにデプロイする場合、生成された関数はサーバーの依存関係を自動的にトレースしてインクルードします。ただし、Netlify Functionsにインクルードするファイルをカスタマイズする必要がある場合があります。
@@ -325,6 +341,71 @@ export default defineConfig({
   }),
 });
 ```
+
+### ローカル開発機能
+
+`astro dev`を実行すると、アダプターはいくつかのNetlifyプラットフォーム機能を有効にし、開発環境を本番環境にできるだけ近づけます。これには以下が含まれます。
+
+- ローカルの[Netlify Image CDN](https://docs.netlify.com/build/image-cdn/overview/)サーバー。デフォルトで[画像](#netlify-image-cdnのサポート)に使用されます。
+- ローカルの[Netlify Blobs](https://docs.netlify.com/build/data-and-storage/netlify-blobs/)サーバー。デフォルトで[セッション](#セッション)に使用されます。
+- Netlify設定の[リダイレクト、リライト](https://docs.netlify.com/manage/routing/redirects/overview/)および[ヘッダー](https://docs.netlify.com/manage/routing/headers/)。
+- オンデマンドページでの[Netlify Edge Context](#サイトからedge-contextにアクセスする)へのアクセス。
+- Netlifyサイトの[環境変数](https://docs.netlify.com/build/environment-variables/overview/)。
+
+これらの機能は、`netlify link`を使用してローカルサイトを[Netlifyサイトにリンク](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/#link-and-unlink-sites)している場合に最も効果的に動作します。
+
+これらの機能の一部は、アダプター設定の[`devFeatures`](#devfeatures)オプションで有効または無効にできます。デフォルトでは、環境変数を除くすべての機能が有効になっています。
+
+#### `devFeatures`
+
+<p>
+**Type:** `boolean | object`<br />
+**Default:** `{ images: true, environmentVariables: false }`<br />
+<Since v="6.5.1" pkg="@astrojs/netlify"/>
+</p>
+
+`devFeatures`オプションには、すべての機能を有効または無効にする真偽値か、特定の機能を有効にするオブジェクトを指定できます。
+
+```js title="astro.config.mjs" ins={7-12}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+
+export default defineConfig({
+  // ...
+  adapter: netlify({
+    devFeatures: {
+      // 開発時にNetlify Image CDNサポートを有効にします。デフォルトはtrueです。
+      images: false,
+      // 開発時にNetlifyの環境変数を注入します。デフォルトはfalseです。
+      environmentVariables: true,
+    },
+  }),
+});
+```
+
+##### `devFeatures.images`
+
+<p>
+**Type:** `boolean`<br />
+**Default:** `true`<br />
+<Since v="6.5.1" pkg="@astrojs/netlify"/>
+</p>
+
+開発時にローカルの[Netlify Image CDN](https://docs.netlify.com/build/image-cdn/overview/)サポートを有効にします。
+
+デフォルトのAstro画像サービスの代わりに、ローカルバージョンのNetlify Image CDNを使用します。 
+
+##### `devFeatures.environmentVariables`
+
+<p>
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="6.5.1" pkg="@astrojs/netlify"/>
+</p>
+
+Netlifyサイトの環境変数を開発環境に注入します。
+
+これにより、本番環境と同じ値を開発時に使用できます。環境ごとに異なる変数を使用する方法など、詳細については[Netlifyの環境変数に関するドキュメント](https://docs.netlify.com/build/environment-variables/overview/)を参照してください。
 
 ## 実験的な機能
 
