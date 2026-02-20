@@ -28,9 +28,9 @@ Astro 提供两种内置加载器以帮助你获取你的集合。两者都提�
 
 `glob()` 加载器从文件系统中任何位置的文件目录创建条目。支持的文件类型包括 Markdown、MDX、Markdoc、JSON、YAML 和 TOML 文件。
 
-该加载器接受具有以下属性的对象：`pattern`、`base`（可选）以及 `generateId`（可选）。
+该加载器接受具有以下属性的对象：`pattern`、`base`（可选）、`generateId`（可选）和 `retainBody`（可选）。
 
-```ts title="src/content.config.ts" {2,6,11,17-21}
+```ts title="src/content.config.ts" {2,6,11,17-21, 27-31}
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
@@ -42,6 +42,16 @@ const pages = defineCollection({
 const blog = defineCollection({
   /* 检索你 blog 目录中的所有 Markdown 和 MDX 文件。 */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
+  schema: /* ... */
+});
+const notes = defineCollection({
+  /* 在你的笔记目录中检索所有 Markdown 文件并防止
+   * 内容文件的原始正文被存储到数据存储中。 */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/notes',
+    retainBody: false
+  }),
   schema: /* ... */
 });
 const authors = defineCollection({
@@ -90,6 +100,25 @@ const authors = defineCollection({
 * `data` - 条目中已解析、未经验证的数据
 
 默认情况下，它使用 [`github-slugger`](https://github.com/Flet/github-slugger) 生成遵循 [烤串命名法](https://developer.mozilla.org/zh-CN/docs/Glossary/Kebab_case) 的 slug。
+
+#### `retainBody`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`
+<Since v="5.17.0" />
+</p>
+
+是否在数据存储中保存内容文件的原始正文。
+
+当 `retainBody` 设置为 `false` 时，[`entry.body`](/zh-cn/reference/modules/astro-content/#body) 将被设置为 `undefined`，而不是包含原始文件内容。
+
+将此属性设置为 `false` 可以显著减少部署的数据存储大小，并有助于避免在拥有非常大集合的网站上触及大小限制。。
+
+对于 Markdown 文件，渲染后的正文仍可在 [`entry.rendered.html` 属性](/zh-cn/reference/content-loader-reference/#rendered) 中获取，且 [`entry.filePath` 属性](/zh-cn/reference/content-loader-reference/#filepath) 仍将指向原始文件。
+
+对于 MDX 集合，这将大幅减小集合的大小，因为存储中将不再保留任何正文。
 
 ### `file()` 加载器
 
@@ -143,7 +172,7 @@ const products = defineCollection({
 
 <p>
 
-**类型：** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>`
+**类型：** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>>  | Promise<Record<string, Record<string, unknown>> | Array<Record<string, unknown>>>`
 </p>
 
 回调函数，用于从文件内容创建一个集合。当你需要处理默认情况下不支持的文件（例如 `.csv`）或使用 [嵌套的 `.json` 文档](/zh-cn/guides/content-collections/#嵌套的-json-文件) 时，请使用它。
