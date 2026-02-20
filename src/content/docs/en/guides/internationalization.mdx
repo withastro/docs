@@ -55,10 +55,45 @@ Your folder names must match the items in `locales` exactly. Include a localized
       - index.astro
 </FileTree>
 
+:::tip[You don’t have to duplicate every page per locale]
+There are two common ways to structure i18n routes:
+
+1. **Per-locale folders** (e.g. `src/pages/fr/...`) — great when each locale has its own page files.
+2. **A single dynamic locale route** (e.g. `src/pages/[...lang]/...`) — useful when your default locale has **no URL prefix** (so `lang` can be `undefined`), or when pages are generated dynamically (e.g. from content collections).
+:::
+
+#### Alternative: dynamic locale routes with `[...lang]`
+
+<FileTree>
+- src
+  - pages
+    - [...lang]
+      - index.astro
+      - blog
+        - [...slug].astro
+</FileTree>
+
 :::note
 The localized folders do not need to be at the root of the `/pages/` folder.
 :::
 
+:::note[Default locale without a URL prefix]
+When `routing.prefixDefaultLocale` is `false` (the default), your default language does **not** have a `/<lang>/` segment in the URL.
+
+If you use a rest-parameter route like `src/pages/[...lang]/...`, include an `undefined` entry in `getStaticPaths()` so Astro also builds the unprefixed default-locale routes:
+
+```js
+export const langParams = [undefined, "fr"]
+
+export function getStaticPaths() {
+  return langParams.map((lang) => ({
+    params: { lang },
+  }))
+}
+```
+
+You can then use `Astro.currentLocale` in your templates for a consistent locale string.
+:::
 
 ### Create links
 
@@ -78,6 +113,60 @@ const aboutURL = getRelativeLocaleUrl("es", "about");
 <a href={getRelativeLocaleUrl('es', 'blog')}>Blog</a>
 <a href={aboutURL}>Acerca</a> 
 ``` 
+
+## Practical tips
+
+### Translate UI strings
+
+Routing localizes URLs, but you still need to translate UI labels (navigation, buttons, etc.). One lightweight approach is to create a dictionary of UI strings and a helper function that picks the right string based on the current locale.
+
+```ts title="src/i18n/ui.ts"
+export const defaultLang = "en"
+
+export const ui = {
+  en: { "nav.home": "Home" },
+  fr: { "nav.home": "Accueil" },
+} as const
+```
+
+```ts title="src/i18n/utils.ts"
+import { ui, defaultLang } from "./ui"
+
+export function useTranslations(lang: keyof typeof ui) {
+  return function t(key: keyof typeof ui[typeof defaultLang]) {
+    return ui[lang][key] || ui[defaultLang][key]
+  }
+}
+```
+
+```astro title="src/components/Nav.astro"
+---
+import { useTranslations } from "../i18n/utils"
+
+const t = useTranslations(Astro.currentLocale)
+---
+<nav>
+  <a href="/">{t("nav.home")}</a>
+</nav>
+```
+
+### Add a language picker
+
+In static mode, a language picker is often the simplest way to let users switch locales. Generate locale-aware links with `getRelativeLocaleUrl()` so you don’t have to handle prefixes manually:
+
+```astro title="src/components/LanguagePicker.astro"
+---
+import { getRelativeLocaleUrl } from "astro:i18n"
+
+// Use the same values you configured in `i18n.locales`
+const locales = ["en", "fr"]
+---
+<ul>
+  {locales.map((locale) => (
+    <li><a href={getRelativeLocaleUrl(locale)}>{locale}</a></li>
+  ))}
+</ul>
+```
 
 ## `routing`
 
