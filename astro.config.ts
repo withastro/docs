@@ -1,5 +1,4 @@
 import starlight from '@astrojs/starlight';
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
@@ -28,9 +27,6 @@ export default defineConfig({
 		]),
 		starlight({
 			title: 'Docs',
-			expressiveCode: {
-				plugins: [pluginCollapsibleSections()],
-			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Hero: './src/components/starlight/Hero.astro',
