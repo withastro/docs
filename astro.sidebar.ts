@@ -150,6 +150,7 @@ export const sidebar = [
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
+					'reference/experimental-flags/queued-rendering',
 				],
 			}),
 			'reference/legacy-flags',
