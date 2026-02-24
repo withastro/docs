@@ -120,6 +120,7 @@ export const sidebar = [
 				items: [
 					'reference/api-reference',
 					'reference/modules/astro-actions',
+					'reference/modules/astro-app',
 					'reference/modules/astro-assets',
 					'reference/modules/astro-config',
 					'reference/modules/astro-content',
@@ -150,6 +151,7 @@ export const sidebar = [
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
+					'reference/experimental-flags/svg-optimization'
 					'reference/experimental-flags/queued-rendering',
 				],
 			}),
