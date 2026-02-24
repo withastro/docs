@@ -152,6 +152,7 @@ export const sidebar = [
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/rust-compiler',
+					'reference/experimental-flags/svg-optimization'
 				],
 			}),
 			'reference/legacy-flags',

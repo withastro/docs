@@ -107,17 +107,19 @@ The Cloudflare adapter accepts the following options:
 ### `imageService`
 
 <p>
-**Type:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom'`<br />
-**Default:** `'compile'`
+**Type:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
+**Default:** `'cloudflare-binding'`
 </p>
 
-Determines which image service is used by the adapter. The adapter will default to `compile` mode when an incompatible image service is configured. Otherwise, it will use the globally configured image service:
+Determines which image service is used by the adapter. The adapter will default to `cloudflare-binding` mode when an incompatible image service is configured. Otherwise, it will use the globally configured image service:
 
 - **`cloudflare`:** Uses the [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) service.
 - **`cloudflare-binding`:** Uses the [Cloudflare Images binding](https://developers.cloudflare.com/images/transform-images/bindings/) for image transformation. The binding is automatically provisioned when you deploy.
 - **`passthrough`:** Uses the existing [`noop`](/en/guides/images/#configure-no-op-passthrough-service) service.
-- **`compile`:** Uses Astro's default service (Sharp), but only on pre-rendered routes at build time. For pages rendered on demand, all `astro:assets` features are disabled.
+- **`compile`:** Uses a combination of internal dependencies to transform images locally at build time for prerendered routes. The noop `passthrough` option is configured for on-demand rendered pages.
 - **`custom`:** Always uses the image service configured in [Image Options](/en/reference/configuration-reference/#image-options). **This option will not check to see whether the configured image service works in Cloudflare's `workerd` runtime.**
+
+It is also possible to configure your image service as an object, setting both a build time and runtime service independently. Currently, `'compile'` is the only available build-time option. The supported runtime options are `'passthrough'` (default) and `'cloudflare-binding'`:
 
 ```js title="astro.config.mjs" ins={6}
 import { defineConfig } from 'astro/config';
@@ -125,7 +127,7 @@ import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({
-    imageService: 'cloudflare-binding',
+    imageService: { build: 'compile', runtime: 'cloudflare-binding' }
   }),
 });
 ```
@@ -608,5 +610,13 @@ The Astro Cloudflare adapter now only supports deploying to Cloudflare Workers b
 <ReadMore>See Cloudflare's [migration guide from Pages to Workers](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/) for detailed migration instructions.</ReadMore>
 
 If you need to continue using Cloudflare Pages, see [Using with Cloudflare Pages](#using-with-cloudflare-pages) for the required manual configuration.
+
+### Changed: `imageService` default
+
+The default value of `imageService` has changed from `'compile'` to `'cloudflare-binding'` for an improved experience when working with images.
+
+The `cloudflare-binding` service uses the [Cloudflare Images binding](https://developers.cloudflare.com/images/transform-images/bindings/) to transform images at runtime, and the binding is automatically provisioned when you deploy.
+
+To revert to the previous behavior, where image transformation was only available on prerendered routes at build time, set `imageService: 'compile'` explicitly in your adapter config.
 
 [astro-integration]: /en/guides/integrations-guide/
