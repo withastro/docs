@@ -21,13 +21,13 @@ import ReadMore from '~/components/ReadMore.astro';
 
 Enables a platform-agnostic API for caching responses from [on-demand rendered](/en/guides/on-demand-rendering/) pages and endpoints. Cache directives set in your routes are translated into the appropriate headers or runtime behavior depending on your configured cache provider.
 
-Route caching builds on standard [HTTP caching semantics](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching) including `max-age` and [`stale-while-revalidate`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate), with support for tag-based and path-based invalidation, config-level route rules, and pluggable cache providers that adapters can set automatically.
+Route caching builds on standard [HTTP caching semantics](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching), including `max-age` and [`stale-while-revalidate`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate), with support for tag-based and path-based invalidation, config-level route rules, and pluggable cache providers that adapters can set automatically.
 
 This feature requires [on-demand rendering](/en/guides/on-demand-rendering/). Prerendered pages are already static and do not use route caching.
 
 To enable this feature, configure `experimental.cache` with a cache provider in your Astro config:
 
-```js title="astro.config.mjs" ins={2} ins="memoryCache"
+```js title="astro.config.mjs" {2,5} ins="memoryCache"
 import { defineConfig, memoryCache } from 'astro/config';
 import node from '@astrojs/node';
 
@@ -51,7 +51,7 @@ Call `cache.set()` with an options object to enable caching for the current resp
 
 The following example caches a page for 2 minutes, serves stale content for 1 minute while revalidating, and tags the response for targeted invalidation:
 
-```astro title="src/pages/index.astro" ins={3-7}
+```astro title="src/pages/index.astro" ins={4-8}
 ---
 export const prerender = false; // Not needed in 'server' mode
 
@@ -111,7 +111,7 @@ Middleware, layouts, content loaders, and page code can each contribute cache di
 
 Route caching integrates directly with [live content collections](/en/guides/content-collections/#live-content-collections). `cache.set()` accepts `CacheHint` and `LiveDataEntry` objects natively, allowing cache hints from loaders to be passed through without manually setting headers.
 
-A [live loader](/en/reference/content-loader-reference/) can return a `cacheHint` on individual entries or on the collection as a whole. These hints include `tags` (for targeted invalidation) and `lastModified` (for freshness). When passed to `cache.set()`, they merge with any other cache options already set on the page.
+A [live loader](/en/reference/content-loader-reference/#live-loaders) can return a `cacheHint` on individual entries or on the collection as a whole. These hints include `tags` (for targeted invalidation) and `lastModified` (for freshness). When passed to `cache.set()`, they merge with any other cache options already set on the page.
 
 ### Passing cache hints from entries
 
@@ -138,7 +138,7 @@ Astro.cache.set({ maxAge: 300 });
 <h1>{entry.data.name}</h1>
 ```
 
-A `LiveDataEntry` can also be passed directly. Astro extracts its `cacheHint` automatically:
+A [`LiveDataEntry`](/en/reference/content-loader-reference/#livedataentry) can also be passed directly. Astro extracts its `cacheHint` automatically:
 
 ```astro title="src/pages/products/[id].astro"
 ---
@@ -177,7 +177,7 @@ export async function POST(context) {
 
 ### Collection-level cache hints
 
-When fetching a full collection with `getLiveCollection()`, Astro merges cache hints from the collection response and all individual entries: tags are accumulated and the most recent `lastModified` wins.
+When fetching a full collection with `getLiveCollection()`, Astro merges cache hints from the collection response and all individual entries: tags are accumulated, and the most recent `lastModified` wins.
 
 The following example passes the merged cache hint from a collection and sets a 10-minute freshness window:
 
@@ -225,7 +225,7 @@ export async function POST(context) {
 }
 ```
 
-Tag-based invalidation removes all cached entries whose tags include any of the provided tags. Path-based invalidation is exact-match only (no glob or wildcard patterns).
+Tag-based invalidation removes all cached entries whose tags include any of the provided tags. Path-based invalidation is exact-match only (no [glob](/en/guides/imports/#glob-patterns) or wildcard patterns).
 
 ## Route rules
 
@@ -263,7 +263,7 @@ Route patterns support:
 - **Rest parameters**: `/docs/[...path]`
 - **Glob wildcards**: `/api/*`
 
-Patterns use the same matching and priority rules as Astro's [file-based routing](/en/guides/routing/), so more specific patterns take precedence.
+Patterns use the same matching and priority rules as Astro's [file-based routing](/en/guides/routing/#route-priority-order), so more specific patterns take precedence.
 
 ### Shortcut and full forms
 
@@ -328,6 +328,8 @@ export default defineConfig({
 
 </p>
 
+To further control how entries are cached, you can use the following options.
+
 ##### `max`
 
 <p>
@@ -345,7 +347,7 @@ A cache provider has two parts:
 
 1. **The runtime module** — A file that **default-exports** a `CacheProviderFactory` function. This module is bundled into your SSR output, so it must be runtime-agnostic: avoid Node.js built-in modules (e.g. `node:fs`, `node:path`) unless your target runtime supports them.
 
-2. **The config helper** — A function exported for users to call in `astro.config.mjs`. It returns a `CacheProviderConfig` object (`{ entrypoint, config }`) that tells Astro where to find the runtime module and what options to pass it. This is the same pattern used by `memoryCache()` from `astro/config`.
+2. **The config helper** — A function exported for users to call in `astro.config.mjs`. It returns a [`CacheProviderConfig` object](#cacheproviderconfig) that tells Astro where to find the runtime module and what options to pass it. This is the same pattern used by `memoryCache()` from `astro/config`.
 
 The following example shows a config helper that accepts typed options and points to a runtime module:
 
@@ -380,7 +382,7 @@ export default defineConfig({
 });
 ```
 
-The runtime module default-exports a factory that receives the serialized `config` and returns a `CacheProvider`:
+The runtime module default-exports a factory that receives the serialized `config` and returns a [`CacheProvider`](#cacheprovider-interface):
 
 ```ts title="my-provider/runtime.ts"
 import type { CacheProviderFactory } from 'astro';
@@ -422,6 +424,8 @@ export default factory;
 ```
 
 ### `CacheProvider` interface
+
+Describes a provider used for caching. This requires the `name` and `invalidate()` properties and accepts optional properties.
 
 #### `name`
 
@@ -499,7 +503,7 @@ Sets cache options for the current request. Pass `false` to opt out of caching.
 
 <p>
 
-**Type:** `Readonly<CacheOptions>`
+**Type:** <code>Readonly\<<a href="#cacheoptions>CacheOptions</a>\></code>
 
 </p>
 
@@ -546,7 +550,7 @@ The configuration object passed to `experimental.cache.provider`. Use a helper f
 
 ### `CacheNotEnabled`
 
-Thrown when `Astro.cache` or `context.cache` is used but `experimental.cache` is not configured. The error message explains how to enable the feature.
+Thrown when `Astro.cache` or `context.cache` is used, but `experimental.cache` is not configured. The error message explains how to enable the feature.
 
 ### `CacheProviderNotFound`
 
@@ -554,7 +558,7 @@ Thrown at build time when the configured cache provider cannot be resolved. This
 
 ## Dev mode behavior
 
-In dev mode, the cache API is available so route code does not need conditional checks, but no actual caching occurs. `cache.set()` calls are accepted silently, and `cache.invalidate()` is a no-op.
+In dev mode, the cache API is available so that route code does not need conditional checks, but no actual caching occurs. `cache.set()` calls are accepted silently, and `cache.invalidate()` is a no-op.
 
 ## Further reading
 
