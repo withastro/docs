@@ -1,0 +1,96 @@
+---
+title: Experimental queued rendering
+sidebar:
+  label: Queued rendering
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type:** `object`<br />
+**Default:** `{ enabled: false }`<br />
+<Since v="6.0.0" />
+</p>
+
+Enables an experimental, more performant rendering infrastructure that is based on a queue instead of recursion. 
+
+By default, Astro renders `.astro`, `.md`, and `.mdx` files using a recursion algorithm. It takes as input a series of components that are serialised in a tree-like structure, and for each node of the tree, Astro calls a render function.
+
+When queued rendering is enabled, Astro traverses all nodes in the tree and emits a [depth-first](https://en.wikipedia.org/wiki/Depth-first_search) list of nodes. This list is then iterated and rendered, without the need of a recursion algorithm. This rendering is more memory efficient, and it should provide more benefits in big projects.
+
+To enable this feature with default settings, set `queuedRendering.enabled` to `true` in your Astro config:
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true
+    }
+  }
+});
+```
+
+In a future major version, Astro will use this new compiler by default, but you can opt in to the future behavior early using the `experimental.queuedRendering` flag.
+
+## Configuration
+
+The queued rendering engine comes with additional, low-level features, which allow you to experiment with other possible optimizations. These optimisations aren't directly part of the queued engine, and may be removed if they are proven inefficient during this experimental phase of testing.
+
+
+### Node pooling
+
+<p>
+
+**Type:** `number`<br />
+**Default:** `1000`<br />
+<Since v="6.0.0" />
+</p>
+
+
+Node pooling is a caching system designed to reuse component nodes across renders. This feature is automatically enabled with a reasonable default according to our early testing. However, you can configure the size of the pool to increase or decrease the number of nodes combined in a single pool according to your project needs. To disable this feature entirely, set `poolSize` to `0`.
+
+The node pooling is very effective when rendering static pages because it saves some memory when building websites with many pages that share the same components.
+
+The node pooling is turned off for pages rendered on demand because these rendering requests do not share memory, and there are therefore no savings to be gained with this strategy.
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true,
+      poolSize: 3000 // use a pool of 3000 nodes
+    }
+  }
+});
+``` 
+   
+### Content caching
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="6.0.0" />
+</p>
+
+
+Content caching is another technique to reuse values (usually strings) during the rendering of a page. Currently, this feature can only be enabled or disabled with no further configuration. It's disabled by default, but when enabled, the experimental queued engine will choose a reasonable default cache size for most large content collections:
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true,
+      contentCache: true
+    }
+  }
+});
+``` 
