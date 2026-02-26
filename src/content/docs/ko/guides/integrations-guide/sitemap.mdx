@@ -395,6 +395,60 @@ export default defineConfig({
 });
 ```
 
+### `chunks`
+
+<p>
+
+**타입:** `Record<string, (item: SitemapItem) => SitemapItem | undefined>`
+<Since v="3.7.0" pkg="@astrojs/sitemap" />
+</p>
+
+사용자 정의 로직에 따라 사이트맵을 여러 파일로 분할할 수 있는 함수 맵입니다. 객체의 각 키는 개별 사이트맵 파일 이름이 되며, 해당 함수는 해당 청크에 포함될 URL을 결정합니다. 이는 웹사이트의 특정 섹션이 매우 자주 변경되어 해당 항목에 대해 다른 변경 빈도를 지정하려는 경우 유용할 수 있습니다.
+
+각 청크 함수는 `SitemapItem`을 받으며 각 항목은 다음 중 하나를 반환합니다.
+* URL이 이 청크에 포함되어야 하는 경우, 수정된 `SitemapItem`
+* URL이 이 청크에 포함되지 않아야 하는 경우, `undefined`
+
+아래 예시는 경로에 따라 URL을 다른 사이트맵 파일로 분할하는 방법을 보여줍니다.
+
+```js title="astro.config.mjs" ins={8-25}
+import { defineConfig } from 'astro/config';
+import sitemap from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      chunks: {
+        'blog': (item) => {
+          if (/blog/.test(item.url)) {
+            item.changefreq = 'weekly';
+            item.lastmod = new Date();
+            item.priority = 0.9;
+            return item;
+          }
+        },
+        'glossary': (item) => {
+          if (/glossary/.test(item.url)) {
+            item.changefreq = 'monthly';
+            item.lastmod = new Date();
+            item.priority = 0.7;
+            return item;
+          }
+        }
+      },
+    }),
+  ],
+});
+```
+
+이 구성은 다음 파일을 생성합니다.
+
+- `sitemap-blog-0.xml`
+- `sitemap-glossary-0.xml`
+
+어떤 청크와도 일치하지 않는 URL은 기본 `sitemap-pages-0.xml` 파일에 배치됩니다.
+
 ### `i18n`
 
 <p>

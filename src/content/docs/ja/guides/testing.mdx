@@ -1,0 +1,411 @@
+---
+title: テスト
+description: Astroでのテスト入門
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Since from '~/components/Since.astro'
+
+テストは、動作するAstroコードを書き、メンテナンスするのに役立ちます。Astroは、Jest、Mocha、Jasmine、[Cypress](https://cypress.io)、[Playwright](https://playwright.dev)など、ユニットテスト、コンポーネントテスト、E2Eテストのための多くの人気ツールをサポートしています。また、React Testing Libraryのようなフレームワーク固有のテストライブラリをインストールして、UIフレームワークコンポーネントをテストすることもできます。
+
+テストフレームワークを使うと、特定の状況においてコードがどのように動作すべきかについての**アサーション**や**期待値**を記述し、それを実際のコードの動作と比較できます。  
+
+## ユニットテストと統合テスト
+
+### Vitest
+
+Viteネイティブのユニットテストフレームワークで、esbuildによるESM・TypeScript・JSXサポートを備えています。 
+
+Astroの`getViteConfig()`ヘルパーを[`vitest.config.ts`設定ファイル](https://vitest.dev/config/)で使用して、Astroプロジェクトの設定でVitestをセットアップします:
+
+```js
+// vitest.config.ts
+/// <reference types="vitest/config" />
+import { getViteConfig } from 'astro/config';
+
+export default getViteConfig({
+  test: {
+    // Vitestの設定オプション
+  },
+});
+```
+
+デフォルトでは、`getViteConfig()`はプロジェクト内のAstro設定ファイルを読み込み、テスト環境に適用しようとします。Astro 4.8以降、テストに適用されるAstro設定をカスタマイズする必要がある場合は、`getViteConfig()`に第2引数を渡します:
+
+```js
+export default getViteConfig(
+  { test: { /* Vitestの設定オプション */ } },
+  {
+    site: 'https://example.com/',
+    trailingSlash: 'always',
+  },
+);
+```
+
+GitHubの[Astro + Vitestスターターテンプレート](https://github.com/withastro/astro/tree/latest/examples/with-vitest)を参照してください。
+
+#### VitestとContainer API
+
+<p><Since v="4.9.0" /></p>
+
+[Container API](/ja/reference/container-reference/)を使用して、Astroコンポーネントをネイティブにテストできます。まず、[上記の説明に従って`vitest`](#vitest)をセットアップし、コンポーネントをテストするための`.test.js`ファイルを作成します:
+
+```js title="example.test.js"
+import { experimental_AstroContainer as AstroContainer } from 'astro/container';
+import { expect, test } from 'vitest';
+import Card from '../src/components/Card.astro';
+
+test('Card with slots', async () => {
+	const container = await AstroContainer.create();
+	const result = await container.renderToString(Card, {
+		slots: {
+			default: 'Card content',
+		},
+	});
+
+	expect(result).toContain('This is a card');
+	expect(result).toContain('Card content');
+});
+```
+
+## E2Eテスト
+
+### Playwright
+
+Playwrightは、モダンなWebアプリ向けのE2Eテストフレームワークです。JavaScriptまたはTypeScriptでPlaywright APIを使用して、Chromium、WebKit、Firefoxを含むすべてのモダンなレンダリングエンジンでAstroコードをテストできます。
+
+#### インストール
+
+[VS Code拡張機能](https://playwright.dev/docs/getting-started-vscode)を使用して、テストを行うことができます。
+
+または、お好みのパッケージマネージャーを使用してAstroプロジェクト内にPlaywrightをインストールできます。CLIの手順に従って、JavaScript/TypeScriptを選択し、テストフォルダに名前を付け、オプションでGitHub Actionsワークフローを追加します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init playwright@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create playwright
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create playwright
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 最初のPlaywrightテストを作成する
+
+<Steps>
+1. テストするページを選択します。この例では、以下の`index.astro`ページをテストします。
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="ja">
+      <head>
+        <title>Astro is awesome!</title>
+        <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen islands architecture." />
+      </head>
+      <body></body>
+    </html>
+    ```
+
+2. 新しいフォルダを作成し、`src/test`に以下のテストファイルを追加します。以下のテストをファイルにコピー＆ペーストして、ページのメタ情報が正しいことを確認します。テストするページに合わせて、ページの`<title>`の値を更新してください。
+
+    ```jsx title="src/test/index.spec.ts" "Astro is awesome!"
+    import { test, expect } from '@playwright/test';
+
+    test('meta is correct', async ({ page }) => {
+      await page.goto("http://localhost:4321/");
+
+      await expect(page).toHaveTitle('Astro is awesome!');
+    });
+    ```
+
+    :::tip[`baseUrl`を設定する]
+    `playwright.config.ts`設定ファイルで[`"baseURL": "http://localhost:4321"`](https://playwright.dev/docs/api/class-testoptions#test-options-base-url)を設定すると、`page.goto("http://localhost:4321/")`の代わりに、より便利な`page.goto("/")`を使用できるようになります。
+    :::
+</Steps>
+
+#### Playwrightテストを実行する
+
+単一のテストまたは複数のテストを同時に実行でき、1つまたは複数のブラウザでテストできます。デフォルトでは、テスト結果はターミナルに表示されます。オプションで、HTMLテストレポーターを開いて完全なレポートを表示し、テスト結果をフィルタリングできます。
+
+<Steps>
+1. 前の例のテストをコマンドラインから実行するには、`test`コマンドを使用します。オプションで、ファイル名を指定して単一のテストだけを実行できます:
+
+    ```sh
+    npx playwright test index.spec.ts
+    ```
+
+2. 完全なHTMLテストレポートを表示するには、以下のコマンドで開きます:
+
+    ```sh
+    npx playwright show-report
+    ```
+</Steps>
+
+:::tip
+本番コードに対してテストを実行すると、実際にデプロイされたサイトにより近い環境でテストできます。
+:::
+
+##### 応用: テスト中に開発サーバーを起動する
+
+Playwright設定ファイルの[`webServer`](https://playwright.dev/docs/test-advanced#launching-a-development-web-server-during-the-tests)オプションを使用すると、テストスクリプトの実行時にPlaywrightにサーバーを起動させることもできます。
+
+以下は、npmを使用する場合に必要な設定とコマンドの例です:
+
+<Steps>
+1. プロジェクトルートの`package.json`ファイルに、`"test:e2e": "playwright test"`のようなテストスクリプトを追加します。
+
+2. `playwright.config.ts`で、`webServer`オブジェクトを追加し、コマンドの値を`npm run preview`に設定します。
+
+    ```js title="playwright.config.ts" ins={4-9} "npm run preview"
+    import { defineConfig } from '@playwright/test';
+    
+    export default defineConfig({
+      webServer: {
+        command: 'npm run preview',
+        url: 'http://localhost:4321/',
+        timeout: 120 * 1000,
+        reuseExistingServer: !process.env.CI,
+      },
+      use: {
+        baseURL: 'http://localhost:4321/',
+      },
+    });
+    ```
+
+3. `npm run build`を実行し、次に`npm run test:e2e`コマンドでPlaywrightテストを実行します。
+</Steps>
+
+Playwrightの詳細については、以下のリンクを参照してください:
+
+- [Playwrightを始める](https://playwright.dev/docs/intro)
+- [開発サーバーを使用する](https://playwright.dev/docs/test-webserver#configuring-a-web-server)
+
+### Cypress
+
+Cypressは、モダンなWeb向けに構築されたフロントエンドテストツールです。CypressでAstroサイトのE2Eテストを書くことができます。
+
+#### インストール
+
+お好みのパッケージマネージャーを使用してCypressをインストールできます。これにより、Cypressがプロジェクトの開発依存関係としてローカルにインストールされます。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install cypress --save-dev
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add --save-dev cypress
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add cypress --dev
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 設定
+
+プロジェクトのルートに、以下の内容で`cypress.config.js`ファイルを作成します:
+
+```js title="cypress.config.js"
+import { defineConfig } from 'cypress'
+
+export default defineConfig({
+  e2e: {
+    supportFile: false
+  }
+})
+```
+
+#### 最初のCypressテストを作成する
+
+<Steps>
+1. テストするページを選択します。この例では、以下の`index.astro`ページをテストします。
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="ja">
+      <head>
+        <title>Astro is awesome!</title>
+        <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen islands architecture." />
+      </head>
+      <body>
+      <h1>Hello world from Astro</h1>
+      </body>
+    </html>
+    ```
+
+2. `cypress/e2e`フォルダに`index.cy.js`ファイルを作成します。以下のテストをファイルに記述して、ページのタイトルとヘッダーが正しいことを確認します。
+
+    ```js title="cypress/e2e/index.cy.js"
+    it('titles are correct', () => {
+      const page = cy.visit('http://localhost:4321');
+
+      page.get('title').should('have.text', 'Astro is awesome!')
+      page.get('h1').should('have.text', 'Hello world from Astro');
+    });
+    ```
+
+    :::tip[`baseUrl`を設定する]
+    `cypress.config.js`設定ファイルで[`"baseUrl": "http://localhost:4321"`](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app#Step-3-Configure-Cypress)を設定すると、より便利なURLとして`cy.visit("http://localhost:4321/")`の代わりに`cy.visit("/")`を使用できます。
+    :::
+</Steps>
+
+#### Cypressテストを実行する
+
+CypressはコマンドラインまたはCypressアプリから実行できます。アプリはテストの実行とデバッグのためのビジュアルインターフェースを提供します。
+
+まず、Cypressが動作中のサイトにアクセスできるように開発サーバーを起動します。
+
+前の例のテストをコマンドラインから実行するには、以下のコマンドを実行します:
+
+```shell
+npx cypress run
+```
+
+または、Cypressアプリを使用してテストを実行するには、以下のコマンドを実行します:
+
+```shell
+npx cypress open
+```
+
+Cypressアプリが起動したら、**E2E Testing**を選択し、テストの実行に使用するブラウザを選択します。
+
+テストの実行が完了すると、テストが成功したことを確認する緑色のチェックマークが出力されます:
+
+```shell title="Output from npx cypress run"
+Running:  index.cy.js                                                                     (1 of 1)
+
+✓ titles are correct (107ms)
+
+1 passing (1s)
+```
+
+:::note[テストを失敗させる]
+テストが本当に機能することを確認するには、`index.astro`ファイルの以下の行を変更します:
+
+ ```astro title="src/pages/index.astro" del={2} ins={3}
+  <body>
+    <h1>Hello world from Astro</h1>
+    <h1>Hello from Astro</h1>
+  </body>
+```
+
+その後、テストを再度実行します。テストが失敗したことを確認する赤い"x"が出力に表示されるはずです。
+:::
+
+#### 次のステップ
+
+Cypressの詳細については、以下のリンクを参照してください:
+
+- [Cypressの紹介](https://docs.cypress.io/guides/core-concepts/introduction-to-cypress)
+- [アプリをテストする](https://docs.cypress.io/guides/end-to-end-testing/testing-your-app)
+
+### NightwatchJS
+
+Nightwatch.jsは、すべての主要なブラウザとそのモバイル版、およびネイティブモバイルアプリケーションをビルトインでサポートする、Web全体でテストを書き、実行し、デバッグするための強力なツールセットを備えたテスト自動化フレームワークです。
+
+#### インストール
+
+お好みのパッケージマネージャーを使用して、AstroプロジェクトにNightwatchJSをインストールできます。CLIの手順に従って、JavaScript/TypeScriptを選択し、テストフォルダに名前を付け、コンポーネントテストとモバイルブラウザでのテストを含めるかどうかを選択します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm init nightwatch@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create nightwatch
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create nightwatch
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+#### 最初のNightwatchテストを作成する
+
+<Steps>
+1. テストするページを選択します。この例では、以下の`index.astro`ページをテストします。
+
+    ```html title="src/pages/index.astro"
+    ---
+    ---
+    <html lang="ja">
+      <head>
+        <title>Astro is awesome!</title>
+        <meta name="description" content="Pull content from anywhere and serve it fast with Astro's next-gen islands architecture." />
+      </head>
+      <body></body>
+    </html>
+    ```
+
+2.  新しいフォルダ`src/test/`を作成し、以下のテストファイルを追加します:
+
+		```js title="src/test/index.js"
+		describe('Astro testing with Nightwatch', function () {
+		    before(browser => browser.navigateTo('http://localhost:4321/'));
+		
+		    it("check that the title is correct", function (browser) {
+		        browser.assert.titleEquals('Astro is awesome!')
+		    });
+		
+		    after(browser => browser.end());
+		});
+		```
+
+    :::tip[`baseUrl`を設定する]
+    `nightwatch.conf.js`設定ファイルで[`"baseURL": "http://localhost:4321"`](https://nightwatchjs.org/guide/reference/settings.html#setting-the-baseurl-property)を設定すると、より便利なURLとして`browser.navigateTo("http://localhost:4321/")`の代わりに`browser.navigateTo("/")`を使用できます。
+    :::
+</Steps>
+
+#### NightwatchJSテストを実行する
+
+単一のテストまたは複数のテストを同時に実行でき、1つまたは複数のブラウザでテストできます。デフォルトでは、テスト結果はターミナルに表示されます。オプションで、HTMLテストレポーターを開いて完全なレポートを表示し、テスト結果をフィルタリングできます。
+
+[NightwatchJS VSCode拡張機能](https://marketplace.visualstudio.com/items?itemName=browserstackcom.nightwatch)を使用するか、以下のCLI手順を使用してテストを実行できます:
+
+<Steps>
+1. すべてのテストを実行するには、ターミナルで以下のコマンドを入力します。オプションで、ファイル名を指定して単一のテストだけを実行できます:
+
+    ```sh
+    npx nightwatch test/index.js
+    ```
+    さらに、`--environment`または`-e`CLI引数を使用して、特定のブラウザでテストを実行できます。関連するブラウザがインストールされていない場合、Nightwatchは[Selenium Manager](https://www.selenium.dev/blog/2022/introducing-selenium-manager/)を使用してセットアップを試みます:
+
+    ```sh
+    npx nightwatch test/index.ts -e firefox
+    ```
+2. 完全なHTMLテストレポートを表示するには、以下のコマンドで開きます:
+
+    ```sh
+    npx nightwatch test/index.ts --open
+    ```
+</Steps>
+
+:::tip
+本番コードに対してテストを実行すると、実際にデプロイされたサイトにより近い環境でテストできます。
+:::
+
+NightwatchJSの詳細については、以下のリンクを参照してください:
+
+  - [Nightwatchの紹介](https://nightwatchjs.org/guide/overview/what-is-nightwatch.html)
+  - [Nightwatchでテストする](https://nightwatchjs.org/guide/writing-tests/introduction.html)

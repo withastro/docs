@@ -16,26 +16,29 @@ import ReadMore from '~/components/ReadMore.astro';
 
 ## 从 `astro:middleware` 导入
 
+以下辅助函数从虚拟中间件模块导入：
+
 ```js
 import { 
-  sequence,
-  createContext,
-  trySerializeLocals,
   defineMiddleware,
- } from 'astro:middleware';
+  sequence,
+} from 'astro:middleware';
 ```
 
 ### `defineMiddleware()`
 
-你可以导入并使用 `defineMiddleware()` 实用函数来提供类型安全：
+<p>
 
-```ts
-// src/middleware.ts
+**类型：** <code>(fn: <a href="#middlewarehandler">MiddlewareHandler</a>) => MiddlewareHandler</code>
+</p>
+
+一个用于定义具有类型安全的中间件函数的函数。当你使用此实用函数时，[`context`](#context) 和 [`next()`](#next) 参数会自动被类型化，如果你尝试返回一个 [不支持的值](#middlewarehandler)，你将会收到 TypeScript 错误。
+
+```ts title="src/middleware.ts"
 import { defineMiddleware } from "astro:middleware";
 
-// `context` 和 `next` 会自动被类型化
 export const onRequest = defineMiddleware((context, next) => {
-
+  /* 你的中间件逻辑 */
 });
 ```
 
@@ -43,7 +46,7 @@ export const onRequest = defineMiddleware((context, next) => {
 
 <p>
 
-**类型：**`(...handlers: MiddlewareHandler[]) => MiddlewareHandler`
+**类型：** <code>(...handlers: <a href="#middlewarehandler">MiddlewareHandler</a>[]) => MiddlewareHandler</code>
 </p>
 
 一个接受中间件函数作为参数的函数，它将按照它们传递的顺序执行它们。
@@ -51,34 +54,208 @@ export const onRequest = defineMiddleware((context, next) => {
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
 
-async function validation(_, next) {...}
-async function auth(_, next) {...}
-async function greeting(_, next) {...}
+async function validation(context, next) {/* ... */}
+async function auth(context, next) {/* ... */}
+async function greeting(context, next) {/* ... */}
 
 export const onRequest = sequence(validation, auth, greeting);
+```
+
+## 从 `astro/middleware` 导入
+
+当你构建 [Astro 集成](/zh-cn/reference/integrations-reference/) 时，可以从常规中间件模块导入以下辅助函数：
+
+```js
+import {
+  createContext,
+  defineMiddleware,
+  sequence,
+  trySerializeLocals,
+} from "astro/middleware";
 ```
 
 ### `createContext()`
 
 <p>
 
-**类型：**`(context: CreateContext) => APIContext`<br />
+**类型：** <code>(context: <a href="#createcontext-1">CreateContext</a>) => <a href="/zh-cn/reference/api-reference/">APIContext</a></code><br />
 <Since v="2.8.0" />
 </p>
 
-一个底层 API，用于创建一个 [`APIContext`](/zh-cn/reference/api-reference/) 以传递给 Astro 中间件的 `onRequest()` 函数。
+一个底层 API，用于创建一个 [`APIContext`](/zh-cn/reference/api-reference/) 以传递给 Astro 中间件的 [`onRequest()` 函数](#onrequest)。
 
-此函数可以由集成/适配器用于执行 Astro 中间件。
+此函数可以由集成/适配器用于以编程方式执行 Astro 中间件。
+
+### `defineMiddleware()`
+
+请参考来自 `astro:middleware` 的 [`defineMiddleware()`](#definemiddleware)。
+
+### `sequence()`
+
+请参考来自 `astro:middleware` 的 [`sequence()`](#sequence)。
 
 ### `trySerializeLocals()`
 
 <p>
 
-**类型：**`(value: unknown) => string`<br />
+**类型：** `(value: unknown) => string`<br />
 <Since v="2.8.0" />
 </p>
 
 一个底层 API，它接受任何值并尝试返回它的序列化版本（一个字符串）。如果该值无法序列化，该函数将抛出一个运行时错误。
+
+## `astro/middleware` 类型
+
+以下类型从常规中间件模块导入：
+
+```js
+import type {
+  CreateContext,
+} from "astro/middleware";
+```
+
+### `CreateContext`
+
+<p>
+
+**类型：** `{ request: Request; params?: Params; userDefinedLocales?: string[]; defaultLocale: string; locals: App.Locals; }`<br />
+<Since v="2.8.0" />
+</p>
+
+一个用于 [创建上下文](#createcontext) 以传递给 Astro 中间件的对象。它包含以下属性：
+
+#### `request`
+
+<p>
+
+**类型：** `Request`
+</p>
+
+传入的 [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) 对象。
+
+#### `params`
+
+<p>
+
+**类型：** `Params`
+</p>
+
+一个包含要传递给 [`Astro.params`](/zh-cn/reference/api-reference/#params) 的可选参数的对象。
+
+#### `userDefinedLocales`
+
+<p>
+
+**类型：** `string[]`<br />
+<Since v="3.5.0" />
+</p>
+
+在 [用户的 `i18n` 配置](/zh-cn/reference/configuration-reference/#i18nlocales) 中定义的支持语言环境列表。
+
+#### `defaultLocale`
+
+<p>
+
+**类型：** `string`<br />
+<Since v="4.16.0" />
+</p>
+
+在 [用户的 `i18n` 配置](/zh-cn/reference/configuration-reference/#i18ndefaultlocale) 中定义的默认语言环境。
+
+#### `locals`
+
+<p>
+
+**类型：** `App.Locals`<br />
+<Since v="5.0.0" />
+</p>
+
+一个用于从中间件存储任意信息的对象，用户可以通过 [`Astro.locals`](/zh-cn/reference/api-reference/#locals) 访问。
+
+<ReadMore>了解更多关于 [在 `locals` 中存储数据](/zh-cn/guides/middleware/#在-contextlocals-中存储数据) 的示例用法。</ReadMore>
+
+## `astro` 类型
+
+```js
+import type {
+  MiddlewareHandler,
+  MiddlewareNext,
+  RewritePayload,
+} from "astro";
+```
+
+### `MiddlewareHandler`
+
+<p>
+
+**类型：** <code>(context: <a href="/zh-cn/reference/api-reference/">APIContext</a>, next: <a href="#middlewarenext">MiddlewareNext</a>) => Promise\<Response\> | Response | Promise\<void\> | void</code>
+</p>
+
+表示一个 Astro 中间件函数。中间件处理程序接收两个参数，可以直接返回一个 `Response`，或者调用 `next()` 来调用链中的下一个中间件。或者，你可以使用 [`defineMiddleware()`](#definemiddleware) 来为你的中间件获得类型安全。
+
+以下示例导入 `MiddlewareHandler` 类型以在 [`onRequest()`](#onrequest) 函数中获得类型安全：
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  /* 中间件逻辑 */
+};
+```
+
+中间件处理程序接收以下属性：
+
+#### `context`
+
+<p>
+
+**类型：** [`APIContext`](/zh-cn/reference/api-reference/)
+</p>
+
+一个反映许多 `Astro` 全局属性的 [Astro 上下文](/zh-cn/reference/api-reference/)对象。
+
+#### `next()`
+
+<p>
+
+**类型：** [`MiddlewareNext`](#middlewarenext)<br />
+</p>
+
+一个调用链中所有后续中间件并返回 `Response` 的函数。例如，其他中间件可以修改响应的 HTML 主体，等待 `next()` 的结果将允许你的中间件响应这些更改。
+
+自从 Astro v4.13.0 起，`next()` 接受一个可选的 URL 路径参数，形式为字符串、`URL` 或 `Request`，用于[重写](/zh-cn/guides/routing/#重写)当前请求而不重新触发新的渲染阶段。
+
+以下示例使用 `next()` 在当前路径匹配 `/old-path` 时提供来自不同路径的内容：
+
+```ts title="src/middleware.ts"
+import type { MiddlewareHandler } from "astro";
+
+export const onRequest: MiddlewareHandler = (context, next) => {
+  if (context.url.pathname === '/old-path') {
+    return next('/new-path');
+  }
+  return next();
+};
+```
+
+### `MiddlewareNext`
+
+<p>
+
+**类型：** <code>(rewritePayload?: <a href="#rewritepayload">RewritePayload</a>) => Promise\<Response\></code><br />
+</p>
+
+表示传递给中间件处理程序的 [`next()` 函数](#next)。
+
+### `RewritePayload`
+
+<p>
+
+**类型：** `string | URL | Request`<br />
+<Since v="4.13.0" />
+</p>
+
+表示传递给 [`next()`](#next) 函数时 [重写](/zh-cn/guides/routing/#重写) 的目标。
 
 ## 中间件导出
 
@@ -86,39 +263,15 @@ export const onRequest = sequence(validation, auth, greeting);
 
 ### `onRequest()`
 
-**类型：**`(context: APIContext, next: MiddlewareNext) => Promise<Response> | Response | Promise<void> | void`
+**类型：** [`MiddlewareHandler`](#middlewarehandler)
 
-一个在 `src/middleware.js` 里的必须导出的函数，它将在每次渲染页面或端点时被调用。它接受两个参数：[context](#context) 和 [next()](#next)。`onRequest()` 必须返回一个 `Response`：要么直接返回，要么通过调用 `next()` 返回。
+一个在 `src/middleware.js` 里的必须导出的函数，它将在每次渲染页面或 API 路由时被调用。它接受两个参数：[`context`](#context) 和 [`next()`](#next)。`onRequest()` 必须返回一个 `Response`：要么直接返回，要么通过调用 `next()` 返回。
 
 ```js title="src/middleware.js"
 export function onRequest (context, next) {
-    // 拦截一个请求的响应数据
-    // 可选修改响应
-    // 直接返回一个 Response 对象，或者调用 `next()` 的结果
-    return next();
+  // 拦截一个请求的响应数据
+  // 可选修改响应
+  // 直接返回一个 Response 对象，或者调用 `next()` 的结果
+  return next();
 };
 ```
-
-你的 `onRequest()` 函数将使用以下参数调用：
-
-#### `context`
-
-<p>
-
-**类型：**`APIContext`
-</p>
-
-`onRequest()` 的第一个参数是一个上下文对象。它反映了许多 `Astro` 全局属性。
-
-<ReadMore>有关更多信息，请参阅 [端点上下文](/zh-cn/reference/api-reference/)。</ReadMore>
-
-#### `next()`
-
-<p>
-
-**类型：**`(rewritePayload?: string | URL | Request) => Promise<Response>`<br />
-</p>
-
-`onRequest()` 的第二个参数是一个调用链中的所有后续中间件，并返回一个 `Response` 的函数。例如，其他中间件可以修改响应的 HTML 主体，等待 `next()` 的结果将允许你的中间件响应这些更改。
-
-自从 Astro v4.13.0，`next()` 接受一个可选的 URL 路径参数，形式为字符串、`URL` 或 `Request`，用于[重写](/zh-cn/guides/routing/#重写)当前请求而不重新触发新的渲染阶段。

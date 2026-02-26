@@ -1,0 +1,100 @@
+---
+title: Sevalla에 Astro 사이트 배포하기
+description: Sevalla를 사용하여 Astro 사이트를 웹에 배포하는 방법.
+type: deploy
+logo: sevalla
+i18nReady: true
+sidebar:
+  label: Sevalla
+supports: ['ssr', 'static']
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[Sevalla](https://sevalla.com/)는 정적 사이트, 애플리케이션 및 데이터베이스를 위한 올인원 호스팅 및 관리 플랫폼입니다.
+
+이 가이드는 Astro 프로젝트를 Sevalla에 배포하는 방법을 자세히 설명합니다.
+
+## 전제 조건
+
+- [**Sevalla** 계정](https://sevalla.com/signup/).
+- [공개 또는 지원되는 비공개 Git 리포지토리](https://docs.sevalla.com/applications/git/overview)(GitHub, GitLab, 또는 Bitbucket)에 푸시된 Astro 프로젝트.
+
+## 정적 사이트 배포
+
+Sevalla의 정적 사이트 호스팅은 사이트를 글로벌 엣지 네트워크에 직접 배포합니다.
+
+<Steps>
+1. Sevalla 대시보드에서 새 [**정적 사이트**](https://docs.sevalla.com/static-sites/get-started/add-a-static-site)를 생성합니다.
+
+2. Git 리포지토리(GitHub, GitLab 또는 Bitbucket)를 연결합니다.
+
+3. 리포지토리 및 브랜치(예: `main`)를 선택합니다.
+
+4. 빌드 설정을 구성합니다:
+
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+
+5. **Create Static Site**을 클릭하여 배포합니다.
+</Steps>
+
+:::note
+Astro는 기본적으로 `output: 'static'`으로 설정되어 있으므로 정적 배포를 위해 추가 구성이 필요하지 않습니다.
+:::
+
+## SSR 배포
+
+Sevalla의 애플리케이션 호스팅은 풀스택 애플리케이션을 지원합니다. Node.js 어댑터를 통해 [주문형 렌더링](/ko/guides/on-demand-rendering/)(서버 측 렌더링)을 사용하여 Astro 프로젝트를 배포할 수 있습니다.
+
+<Steps>
+1. Astro 프로젝트에 [`@astrojs/node` 어댑터](/ko/guides/integrations-guide/node/)를 추가합니다.
+
+   ```bash
+   npx astro add node
+   ```
+
+2. `astro.config.mjs`에서 어댑터를 구성합니다. `mode: 'standalone'`으로 설정하고, 서버가 모든 주소에서 수신하도록 `host: true`가 설정되어 있는지 확인합니다(컨테이너화된 환경에 필요).
+
+   ```js title="astro.config.mjs" {5,6-8,10}
+   import { defineConfig } from 'astro/config';
+   import node from '@astrojs/node';
+
+   export default defineConfig({
+     output: 'server',
+     adapter: node({
+       mode: 'standalone'
+     }),
+     server: {
+       host: true
+     }
+   });
+   ```
+
+3. `package.json`에 빌드된 서버를 실행하는 `start` 스크립트가 있는지 확인합니다:
+
+   ```json title="package.json" {2}
+   "scripts": {
+     "start": "node ./dist/server/entry.mjs"
+   }
+   ```
+
+4. Sevalla 대시보드에서 새 [**애플리케이션**](https://docs.sevalla.com/applications/get-started/add-an-application)을 생성합니다.
+
+5. Git 리포지토리를 연결합니다.
+
+6. 빌드 설정을 구성합니다:
+
+   - **Build Method:** Sevalla는 Node.js 프로젝트를 자동으로 감지합니다(Nixpacks를 통해).
+   - **Build command:** `npm run build`
+   - **Start command:** `npm run start`
+
+7. **Create Application**을 클릭하여 배포합니다.
+</Steps>
+
+## 문제 해결
+
+### 빌드 실패
+Sevalla 대시보드의 [**빌드 로그**](https://docs.sevalla.com/applications/runtime-logs)에서 오류 메시지를 확인하세요. 모든 종속성이 `dependencies`에 있는지 확인하세요(런타임에 필요한 경우 `devDependencies`에 있지 않아야 함).
+
+### Node 버전
+Sevalla에서 선택한 Node.js 버전이 로컬 개발 버전과 일치하는지 확인하세요(`node -v`로 확인).

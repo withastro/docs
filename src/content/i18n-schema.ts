@@ -25,6 +25,8 @@ export const AstroDocsI18nSchema = z
 		'deploy.staticTag': z.string(),
 		// CMS Guides vocabulary
 		'cms.navTitle': z.string(),
+		'cms.featuredSubheading': z.string(),
+		'cms.allSubheading': z.string(),
 		// Media Guides vocabulary
 		'media.navTitle': z.string(),
 		// Migration Guides vocabulary
