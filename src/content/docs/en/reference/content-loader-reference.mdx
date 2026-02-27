@@ -18,7 +18,7 @@ This API includes two ready-to-use loaders for content stored locally. It also p
 
 ## Build-time loaders
 
-Build-time loaders are objects with a [`load()` method](#load) that is called at build time to fetch data and update the data store. This object can also define a schema for the entries, which can be used to validate the data and generate static types.
+Build-time loaders are objects with a [`load()` method](#loaderload) that is called at build time to fetch data and update the data store. This object can also define a schema for the entries, which can be used to validate the data and generate static types.
 
 Astro's [`glob()`](#glob-loader) and [`file()`](#file-loader) loaders are examples of object loaders that are provided out-of-the-box for use with local content. For remote content, no prebuilt loaders are provided. You will have to build an object loader or use a [community-published loader](https://astro.build/integrations/?search=&categories%5B%5D=loaders) to retrieve remote content and interact with the data store.
 
@@ -121,7 +121,7 @@ When `retainBody` is `false`, [`entry.body`](/en/reference/modules/astro-content
 
 Setting this property to `false` significantly reduces the deployed size of the data store and helps avoid hitting size limits for sites with very large collections.
 
-For Markdown files, the rendered body will still be available in the [`entry.rendered.html` property](#renderedhtml), and the [`entry.filePath` property](#filepath) will still point to the original file. 
+For Markdown files, the rendered body will still be available in the [`entry.rendered.html` property](#dataentryrenderedhtml), and the [`entry.filePath` property](#dataentryfilepath) will still point to the original file. 
 
 For MDX collections, this will dramatically reduce the size of the collection, as there will no longer be any body retained in the store.
 
@@ -192,7 +192,7 @@ Most loaders will export a function that accepts configuration options and retur
 
 #### Loading collections into the data store
 
-The [`load()`](#load) function returned in the loader object defines how your content is fetched, parsed, validated and updated. It accepts a `context` object that allows you to customize your data handling in a variety of ways and interact with the data store. A typical `load()` function will:
+The [`load()`](#loaderload) function returned in the loader object defines how your content is fetched, parsed, validated and updated. It accepts a `context` object that allows you to customize your data handling in a variety of ways and interact with the data store. A typical `load()` function will:
 
 - Fetch your data from a source.
 - Clear the existing data store.
@@ -206,11 +206,11 @@ and even the full Astro config, and more.
 
 #### Providing a schema
 
-Providing a Zod [`schema`](#schema) in your loader allows you to validate your fetched content entries with [`parseData()`](#parsedata) before adding them to the data [store](#store). This schema will also be used as the collection's default schema when one does not exist in `src/content.config.ts` to provide type safety and editor tooling. You do not also need a schema defined in the content collection if the loader provides this property.
+Providing a Zod [`schema`](#loaderschema) in your loader allows you to validate your fetched content entries with [`parseData()`](#loadercontextparsedata) before adding them to the data [store](#loadercontextstore). This schema will also be used as the collection's default schema when one does not exist in `src/content.config.ts` to provide type safety and editor tooling. You do not also need a schema defined in the content collection if the loader provides this property.
 
 However, if the content collection also [defines a schema](/en/guides/content-collections/#defining-the-collection-schema), that schema will be used instead of your loader's schema. This is to allow users of your loader to extend its schema, or transform data for use in their project. If you are [publishing and distributing a loader](#distributing-your-loader) for others to use, you may wish to document this behavior and encourage users not to define a collection schema themselves, or how to do so safely if they need data returned in a different format.
 
-If you need to dynamically generate the schema based on the configuration options or by introspecting an API, you can use [`createSchema()`](#createschema) instead.
+If you need to dynamically generate the schema based on the configuration options or by introspecting an API, you can use [`createSchema()`](#loadercreateschema) instead.
 
 #### Loader example
 
@@ -310,9 +310,9 @@ Most live loaders will export a function that accepts configuration options and 
 
 #### Loading live data
 
-To return data about your collection, you must provide a [`loadCollection()`](#loadcollection) function that fetches data, and returns an array of content [`entries`](#entries-1) or an error. 
+To return data about your collection, you must provide a [`loadCollection()`](#liveloaderloadcollection) function that fetches data, and returns an array of content [`entries`](#livedatacollectionentries) or an error. 
 
-To return a single live collection entry, you must provide a [`loadEntry()`](#loadentry) function that fetches data filtered for a given `id`, and returns a single [`entry`](#livedataentry), `undefined`, or an error.
+To return a single live collection entry, you must provide a [`loadEntry()`](#liveloaderloadentry) function that fetches data filtered for a given `id`, and returns a single [`entry`](#livedataentry), `undefined`, or an error.
 
 The data fetching for both of these functions is typically done using a [`try...catch` statement](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/try...catch) to [handle errors when accessing live data](#error-handling-in-live-loaders).
 
@@ -662,13 +662,11 @@ This section shows the API for defining a [build-time object loader](#building-a
 **Type:** `Loader`
 </p>
 
-A loader function returns an object with [two required properties](#loader-properties). In addition to providing a name for the loader, this object describes how to fetch the collection data.
+A loader function returns an object with two required properties. In addition to providing a name for the loader, this object describes how to fetch the collection data.
 
 Optionally, you can return a third property defining a schema to validate your collection entries. Use the [Typescript `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator) instead of a return type annotation to provide type safety inside your loader object and to preserve type inference when your loader is used in a collection.
 
-#### Loader properties
-
-#### `name`
+#### `Loader.name`
 
 <p>
 
@@ -678,7 +676,7 @@ Optionally, you can return a third property defining a schema to validate your c
 
 A unique name for the loader, used in logs and [for conditional loading](/en/reference/integrations-reference/#refreshcontent-option).
 
-#### `load()`
+#### `Loader.load()`
 
 <p>
 
@@ -688,7 +686,7 @@ A unique name for the loader, used in logs and [for conditional loading](/en/ref
 
 An async function that is called at build time to load data and update the store. It is passed a [`LoaderContext`](#loadercontext) object that contains helper functions and properties for writing your loader's implementation logic, as well as the `store` database and methods for interacting with it.
 
-#### `schema`
+#### `Loader.schema`
 
 <p>
 
@@ -698,11 +696,11 @@ An async function that is called at build time to load data and update the store
 
 An optional [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) that defines the shape of the entries. It is used to both validate the data and also to generate TypeScript types for the collection.
 
-When you need to dynamically generate the schema at build time based on configuration options or by introspecting an API, use [`createSchema()`](#createschema) instead.
+When you need to dynamically generate the schema at build time based on configuration options or by introspecting an API, use [`createSchema()`](#loadercreateschema) instead.
 
 If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
 
-#### `createSchema()`
+#### `Loader.createSchema()`
 
 <p>
 
@@ -712,7 +710,7 @@ If present, it will be overridden by any Zod `schema` defined for the collection
 
 An optional async function that returns an object containing a [Zod schema](/en/guides/content-collections/#defining-datatypes-with-zod) and types. It is used to dynamically generate the schema at build time based on the configuration options or by introspecting an API.
 
-When you only need to provide a static schema, provide a Zod validation object using [`schema`](#schema) instead.
+When you only need to provide a static schema, provide a Zod validation object using [`schema`](#loaderschema) instead.
 
 If present, it will be overridden by any Zod `schema` defined for the collection in the `src/content.config.ts` file.
 
@@ -760,9 +758,9 @@ export function myLoader(options: { url: string, apiKey: string }) {
 
 ### `LoaderContext`
 
-This object is passed to the [`load()`](#load) method of the loader, and contains the following properties:
+This object is passed to the [`load()`](#loaderload) method of the loader, and contains the following properties:
 
-#### `collection`
+#### `LoaderContext.collection`
 
 <p>
 
@@ -772,7 +770,7 @@ This object is passed to the [`load()`](#load) method of the loader, and contain
 
 The unique name of the collection. This is the key in the `collections` object in the `src/content.config.ts` file.
 
-#### `store`
+#### `LoaderContext.store`
 
 <p>
 
@@ -782,7 +780,7 @@ The unique name of the collection. This is the key in the `collections` object i
 
 A database to store the actual data. Use this to update the store with new entries. See [`DataStore`](#datastore) for more information.
 
-#### `meta`
+#### `LoaderContext.meta`
 
 <p>
 
@@ -798,7 +796,7 @@ const lastModified = meta.get("lastModified");
 meta.set("lastModified", new Date().toISOString());
 ```
 
-#### `logger`
+#### `LoaderContext.logger`
 
 <p>
 
@@ -826,7 +824,7 @@ return {
 };
 ```
 
-#### `config`
+#### `LoaderContext.config`
 
 <p>
 
@@ -854,7 +852,7 @@ return {
 };
 ```
 
-#### `parseData()`
+#### `LoaderContext.parseData()`
 
 <p>
 
@@ -893,7 +891,7 @@ export function feedLoader({ url }) {
 }
 ```
 
-#### `renderMarkdown()`
+#### `LoaderContext.renderMarkdown()`
 
 <p>
 
@@ -905,7 +903,7 @@ Renders a Markdown string to HTML, returning a `RenderedContent` object.
 
 This allows you to render Markdown content directly within your loaders using the same Markdown processing as Astro's built-in `glob()` loader and provides access to the `render()` function and `<Content />` component for [rendering body content](/en/guides/content-collections/#rendering-body-content).
 
-Assign this object to the [rendered](#rendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content). If the Markdown content includes frontmatter, it will be parsed and available in `metadata.frontmatter`. The frontmatter will be excluded from the HTML output.
+Assign this object to the [rendered](#dataentryrendered) field of the [DataEntry](#dataentry) object to allow users to [render the content in a page](/en/guides/content-collections/#rendering-body-content). If the Markdown content includes frontmatter, it will be parsed and available in `metadata.frontmatter`. The frontmatter will be excluded from the HTML output.
 
 ```ts title=loader.ts {16-17}
 import type { Loader } from 'astro/loaders';
@@ -957,7 +955,7 @@ for (const file of files) {
 }
 ```
 
-#### `generateDigest()`
+#### `LoaderContext.generateDigest()`
 
 <p>
 
@@ -965,7 +963,7 @@ for (const file of files) {
 <Since v="5.0.0" />
 </p>
 
-Generates a non-cryptographic content digest of an object or string. This can be used to track if the data has changed by setting [the `digest` field](#digest) of an entry.
+Generates a non-cryptographic content digest of an object or string. This can be used to track if the data has changed by setting [the `digest` field](#dataentrydigest) of an entry.
 
 ```ts title=loader.ts {20,25}
 import type { Loader } from "astro/loaders";
@@ -1000,7 +998,7 @@ export function feedLoader({ url }) {
 }
 ```
 
-#### `watcher`
+#### `LoaderContext.watcher`
 
 <p>
 
@@ -1028,7 +1026,7 @@ return {
 };
 ```
 
-#### `refreshContextData`
+#### `LoaderContext.refreshContextData`
 
 <p>
 
@@ -1060,7 +1058,7 @@ export function myLoader(options: { url: string }) {
 
 The data store is a loader's interface to the content collection data. It is a key-value (KV) store, scoped to the collection, and therefore a loader can only access the data for its own collection.
 
-#### `get()`
+#### `DataStore.get()`
 
 <p>
 
@@ -1076,7 +1074,7 @@ const existingEntry = store.get("my-entry");
 
 The returned object is a [`DataEntry`](#dataentry) object.
 
-#### `set()`
+#### `DataStore.set()`
 
 <p>
 
@@ -1084,7 +1082,7 @@ The returned object is a [`DataEntry`](#dataentry) object.
 <Since v="5.0.0" />
 </p>
 
-Used after data has been [validated and parsed](#parsedata) to add an entry to the store, returning `true` if the entry was set. This returns `false` when the [`digest`](#digest) property determines that an entry has not changed and should not be updated.
+Used after data has been [validated and parsed](#loadercontextparsedata) to add an entry to the store, returning `true` if the entry was set. This returns `false` when the [`digest`](#dataentrydigest) property determines that an entry has not changed and should not be updated.
 
 ```ts title=loader.ts {8-15}
     for (const item of feed.items) {
@@ -1105,7 +1103,7 @@ Used after data has been [validated and parsed](#parsedata) to add an entry to t
     }
 ```
 
-#### `entries()`
+#### `DataStore.entries()`
 
 <p>
 
@@ -1115,7 +1113,7 @@ Used after data has been [validated and parsed](#parsedata) to add an entry to t
 
 Get all entries in the collection as an array of key-value pairs.
 
-#### `keys()`
+#### `DataStore.keys()`
 
 <p>
 
@@ -1125,7 +1123,7 @@ Get all entries in the collection as an array of key-value pairs.
 
 Get all the keys of the entries in the collection.
 
-#### `values()`
+#### `DataStore.values()`
 
 <p>
 
@@ -1135,7 +1133,7 @@ Get all the keys of the entries in the collection.
 
 Get all entries in the collection as an array.
 
-#### `delete()`
+#### `DataStore.delete()`
 
 <p>
 
@@ -1145,7 +1143,7 @@ Get all entries in the collection as an array.
 
 Delete an entry from the store by its ID.
 
-#### `clear()`
+#### `DataStore.clear()`
 
 <p>
 
@@ -1155,7 +1153,7 @@ Delete an entry from the store by its ID.
 
 Clear all entries from the collection.
 
-#### `has()`
+#### `DataStore.has()`
 
 <p>
 
@@ -1169,7 +1167,7 @@ Check if an entry exists in the store by its ID.
 
 This is the type of the object that is stored in the data store. It has the following properties:
 
-#### `id`
+#### `DataEntry.id`
 
 <p>
 
@@ -1179,7 +1177,7 @@ This is the type of the object that is stored in the data store. It has the foll
 
 An identifier for the entry, which must be unique within the collection. This is used to look up the entry in the store and is the key used with [`getEntry()`](/en/reference/modules/astro-content/#getentry) for that collection. 
 
-#### `data`
+#### `DataEntry.data`
 
 <p>
 
@@ -1189,9 +1187,9 @@ An identifier for the entry, which must be unique within the collection. This is
 
 The actual data for the entry. When a user accesses the collection, this will have TypeScript types generated according to the collection schema.
 
-It is the loader's responsibility to use [`parseData()`](#parsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
+It is the loader's responsibility to use [`parseData()`](#loadercontextparsedata) to validate and parse the data before storing it in the data store: no validation is done when getting or setting the data.
 
-#### `filePath`
+#### `DataEntry.filePath`
 
 <p>
 
@@ -1203,7 +1201,7 @@ A path to the file that is the source of this entry, relative to the root of the
 
 If not set, then any fields in the schema that use [the `image()` helper](/en/guides/images/#images-in-content-collections) will be treated as [public paths](/en/guides/images/#where-to-store-images) and not transformed.
 
-#### `body`
+#### `DataEntry.body`
 
 <p>
 
@@ -1211,9 +1209,9 @@ If not set, then any fields in the schema that use [the `image()` helper](/en/gu
 <Since v="5.0.0" />
 </p>
 
-The raw body of the entry, if applicable. If the entry includes [rendered content](#rendered), then this field can be used to store the raw source. This is optional and is not used internally.
+The raw body of the entry, if applicable. If the entry includes [rendered content](#dataentryrendered), then this field can be used to store the raw source. This is optional and is not used internally.
 
-#### `digest`
+#### `DataEntry.digest`
 
 <p>
 
@@ -1223,11 +1221,11 @@ The raw body of the entry, if applicable. If the entry includes [rendered conten
 
 An optional content digest for the entry. This can be used to check if the data has changed.
 
-When [setting an entry](#set), the entry will only update if the digest does not match an existing entry with the same ID.
+When [setting an entry](#datastoreset), the entry will only update if the digest does not match an existing entry with the same ID.
 
-The format of the digest is up to the loader, but it must be a string that changes when the data changes. This can be done with the [`generateDigest`](#generatedigest) function.
+The format of the digest is up to the loader, but it must be a string that changes when the data changes. This can be done with the [`generateDigest`](#loadercontextgeneratedigest) function.
 
-#### `rendered`
+#### `DataEntry.rendered`
 
 <p>
 
@@ -1239,9 +1237,9 @@ Stores an object with an entry's rendered content and metadata if it has been re
 
 If this field is provided, then [the `render()` function and `<Content />` component](/en/guides/content-collections/#rendering-body-content) are available to render the entry in a page.
 
-If the entry has Markdown content then you can use the [`renderMarkdown()`](#rendermarkdown) function to generate this object from the Markdown string.
+If the entry has Markdown content then you can use the [`renderMarkdown()`](#loadercontextrendermarkdown) function to generate this object from the Markdown string.
 
-##### `rendered.html`
+##### `DataEntry.rendered.html`
 
 <p>
 
@@ -1250,7 +1248,7 @@ If the entry has Markdown content then you can use the [`renderMarkdown()`](#ren
 
 Contains the rendered HTML string. This is used by [`render()`](/en/reference/modules/astro-content/#render) to return a component that renders this HTML.
 
-##### `rendered.metadata`
+##### `DataEntry.rendered.metadata`
 
 <p>
 
@@ -1259,16 +1257,16 @@ Contains the rendered HTML string. This is used by [`render()`](/en/reference/mo
 
 Describes the metadata present in this file. This includes the `imagePaths`, the `headings`, the `frontmatter`, and any other metadata present in the file. When the file has not been rendered as HTML, this value will be `undefined`.
 
-###### `rendered.metadata.imagePaths`
+###### `DataEntry.rendered.metadata.imagePaths`
 
 <p>
 
 **Type**: `string[]`
 </p>
 
-Specifies the list of images paths present in this entry. Each path is relative to the [entry `filePath`](#filepath).
+Specifies the list of images paths present in this entry. Each path is relative to the [entry `filePath`](#dataentryfilepath).
 
-###### `rendered.metadata.headings`
+###### `DataEntry.rendered.metadata.headings`
 
 <p>
 
@@ -1277,7 +1275,7 @@ Specifies the list of images paths present in this entry. Each path is relative 
 
 Specifies the list of headings present in this file. Each heading is described by a `depth` determined by the heading level (`h1 -> h6`), a `slug` generated with [`github-slugger`](https://github.com/Flet/github-slugger), and its `text` content.
 
-###### `rendered.metadata.frontmatter`
+###### `DataEntry.rendered.metadata.frontmatter`
 
 <p>
 
@@ -1300,18 +1298,16 @@ This section shows the API for defining a [live loader](#live-loaders).
 <Since v="6.0.0" />
 </p>
 
-A live loader function returns an object with [three required live loader properties](#live-loader-properties). In addition to providing a name for the loader, this object describes how to fetch both single entries and an entire collection from your live data source.
+A live loader function returns an object with three required live loader properties. In addition to providing a name for the loader, this object describes how to fetch both single entries and an entire collection from your live data source.
 
 Use the `LiveLoader` generic type to provide type safety in your loader. This type accepts the following type parameters, in this order:
 
 - **`TData`** (defaults to `Record<string, unknown>`): The data structure of each entry returned by the loader.
-- **`TEntryFilter`** (defaults to `never`): The filter object type accepted by [`getLiveEntry()`](/en/reference/modules/astro-content/#getliveentry) and accessible in [`loadEntry()`](#loadentry). Use `never` when you don't support filtering single entries.
-- **`TCollectionFilter`** (defaults to `never`): The filter object type accepted by [`getLiveCollection()`](/en/reference/modules/astro-content/#getlivecollection) and accessible in [`loadCollection()`](#loadcollection). Use `never` when you don't support filtering collections.
+- **`TEntryFilter`** (defaults to `never`): The filter object type accepted by [`getLiveEntry()`](/en/reference/modules/astro-content/#getliveentry) and accessible in [`loadEntry()`](#liveloaderloadentry). Use `never` when you don't support filtering single entries.
+- **`TCollectionFilter`** (defaults to `never`): The filter object type accepted by [`getLiveCollection()`](/en/reference/modules/astro-content/#getlivecollection) and accessible in [`loadCollection()`](#liveloaderloadcollection). Use `never` when you don't support filtering collections.
 - **`TError`** (defaults to `Error`): A [custom `Error` class](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error#custom_error_types) that can be returned by the loader for more granular error handling.
 
-#### Live loader properties
-
-##### `name`
+#### `LiveLoader.name`
 
 <p>
 
@@ -1322,7 +1318,7 @@ Use the `LiveLoader` generic type to provide type safety in your loader. This ty
 
 A unique name for the loader, used in logs.
 
-##### `loadCollection()`
+#### `LiveLoader.loadCollection()`
 
 <p>
 
@@ -1332,7 +1328,7 @@ A unique name for the loader, used in logs.
 
 Defines a method to load a collection of entries. This function receives a [context object](#loadcollectioncontext) containing an optional `filter` property and must return the data associated with this collection or the errors.
 
-##### `loadEntry()`
+#### `LiveLoader.loadEntry()`
 
 <p>
 
@@ -1350,9 +1346,9 @@ Defines a method to load a single entry. This function receives a [context objec
 <Since v="6.0.0" />
 </p>
 
-This object is passed to the [`loadCollection()` method](#loadcollection) of the loader and contains the following properties:
+This object is passed to the [`loadCollection()` method](#liveloaderloadcollection) of the loader and contains the following properties:
 
-#### `filter`
+#### `LoadCollectionContext.filter`
 
 <p>
 
@@ -1371,9 +1367,9 @@ An object describing the [filters supported by your loader](#defining-custom-fil
 <Since v="6.0.0" />
 </p>
 
-This object is passed to the [`loadEntry()` method](#loadentry) of the loader and contains the following properties:
+This object is passed to the [`loadEntry()` method](#liveloaderloadentry) of the loader and contains the following properties:
 
-#### `filter`
+#### `LoadEntryContext.filter`
 
 <p>
 
@@ -1389,13 +1385,13 @@ An object describing the [filters supported by your loader](#defining-custom-fil
 
 <p>
 
-**Type:** <code>\{ id: string; data: TData; rendered?: \{ html: string \}; cacheHint?: <a href="#cachehint-2">CacheHint</a>; \}</code>
+**Type:** <code>\{ id: string; data: TData; rendered?: \{ html: string \}; cacheHint?: <a href="#cachehint">CacheHint</a>; \}</code>
 <Since v="6.0.0" />
 </p>
 
-This is the type object that is returned by the [`loadEntry()`](#loadentry) method. It contains the following properties:
+This is the type object that is returned by the [`loadEntry()`](#liveloaderloadentry) method. It contains the following properties:
 
-#### `id`
+#### `LiveDataEntry.id`
 
 <p>
 
@@ -1405,7 +1401,7 @@ This is the type object that is returned by the [`loadEntry()`](#loadentry) meth
 
 An identifier for the entry, which must be unique within the collection. This is the key used with [`getLiveEntry()`](/en/reference/modules/astro-content/#getliveentry) for that collection. 
 
-#### `data`
+#### `LiveDataEntry.data`
 
 <p>
 
@@ -1417,7 +1413,7 @@ The actual data for the entry. When a user accesses the collection, this will ha
 
 It is the loader's responsibility to validate and parse the data before returning it.
 
-#### `rendered`
+#### `LiveDataEntry.rendered`
 
 <p>
 
@@ -1431,11 +1427,11 @@ If this field is provided, then [the `render()` function and `<Content />` compo
 
 If the loader does not return a `rendered` property for an entry, the `<Content />` component will render nothing.
 
-#### `cacheHint`
+#### `LiveDataEntry.cacheHint`
 
 <p>
 
-**Type:** [`CacheHint`](#cachehint-2)
+**Type:** [`CacheHint`](#cachehint)
 <Since v="6.0.0" />
 </p>
 
@@ -1445,13 +1441,13 @@ An optional object to provide a hint for how to cache this specific entry.
 
 <p>
 
-**Type:** <code>\{ entries: Array\<<a href="#livedataentry">LiveDataEntry</a>\<TData\>\>; cacheHint?: <a href="#cachehint-2">CacheHint</a>; \}</code>
+**Type:** <code>\{ entries: Array\<<a href="#livedataentry">LiveDataEntry</a>\<TData\>\>; cacheHint?: <a href="#cachehint">CacheHint</a>; \}</code>
 <Since v="6.0.0" />
 </p>
 
-This is the type object that is returned by the [`loadCollection()`](#loadcollection) method. It contains the following properties:
+This is the type object that is returned by the [`loadCollection()`](#liveloaderloadcollection) method. It contains the following properties:
 
-#### `entries`
+#### `LiveDataCollection.entries`
 
 <p>
 
@@ -1461,11 +1457,11 @@ This is the type object that is returned by the [`loadCollection()`](#loadcollec
 
 An array of [`LiveDataEntry`](#livedataentry) objects.
 
-#### `cacheHint`
+#### `LiveDataCollection.cacheHint`
 
 <p>
 
-**Type:** [`CacheHint`](#cachehint-2)
+**Type:** [`CacheHint`](#cachehint)
 <Since v="6.0.0" />
 </p>
 
@@ -1475,7 +1471,7 @@ An optional object providing guidance on how to cache this collection. This obje
 
 An object that loaders can return through the `cacheHint` property in [`LiveDataCollection`](#livedatacollection) or [`LiveDataEntry`](#livedataentry) to provide hints to assist in caching the response. This contains the following properties: 
 
-#### `tags`
+#### `CacheHint.tags`
 
 <p>
 
@@ -1496,7 +1492,7 @@ return {
 };
 ```
 
-#### `lastModified`
+#### `CacheHint.lastModified`
 
 <p>
 
