@@ -1,0 +1,313 @@
+---
+title: AstroサイトをCloudflareにデプロイする
+description: Cloudflareを使ってAstroサイトをウェブにデプロイする方法
+sidebar:
+  label: Cloudflare
+type: deploy
+logo: cloudflare
+supports: ['ssr', 'static']
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+フロントエンドの静的アセットやバックエンドAPI、オンデマンドレンダリングサイトを含むフルスタックアプリケーションを、[Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/)と[Cloudflare Pages](https://pages.cloudflare.com/)の両方にデプロイできます。
+
+このガイドの内容は次のとおりです。
+
+- [Cloudflare Workersへのデプロイ方法](#cloudflare-workers)
+- [Cloudflare Pagesへのデプロイ方法](#cloudflare-pages)
+
+:::note
+
+Cloudflareは新規プロジェクトにはCloudflare Workersの使用を推奨しています。既存のPagesプロジェクトについては、[Cloudflareの移行ガイド](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/)と[互換性の一覧表](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/#compatibility-matrix)を参照してください。
+
+:::
+
+<ReadMore>Astroプロジェクトでの[Cloudflareランタイムの使用](/ja/guides/integrations-guide/cloudflare/)について詳しく読む。</ReadMore>
+## 前提条件
+
+デプロイするには、以下が必要です。
+
+- Cloudflareアカウント。まだ持っていない場合は、以下の手順の中で無料のCloudflareアカウントを作成できます。
+
+## Cloudflare Workers
+
+### Wranglerによるデプロイ方法
+
+<Steps>
+1. [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)をインストールします。
+
+    ```bash
+    npm install wrangler@latest --save-dev
+    ```
+
+2. サイトでオンデマンドレンダリングを使用する場合は、[`@astrojs/cloudflare`アダプター](/ja/guides/integrations-guide/cloudflare/)をインストールします。
+
+    これにより、アダプターのインストールと`astro.config.mjs`ファイルへの適切な変更が一度に行われます。
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npx astro add cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm astro add cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn astro add cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    <ReadMore>[Astroのオンデマンドレンダリング](/ja/guides/on-demand-rendering/)について詳しく読む。</ReadMore>
+
+3. [Wranglerの設定ファイル](https://developers.cloudflare.com/workers/wrangler/configuration/)を作成します。
+
+    `astro add cloudflare`を実行すると自動的に作成されます。アダプターを使用しない場合は、自分で作成する必要があります。
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // デプロイする日に更新してください
+          "assets": {
+            "directory": "./dist",
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "main": "dist/_worker.js/index.js",
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // デプロイする日に更新してください
+          "compatibility_flags": [
+            "nodejs_compat",
+            "global_fetch_strictly_public"
+          ],
+          "assets": {
+            "binding": "ASSETS",
+            "directory": "./dist"
+          },
+          "observability": {
+            "enabled": true
+          }
+        }
+    ```
+      </Fragment>
+    </StaticSsrTabs>
+
+4. Wranglerを使ってプロジェクトをローカルでプレビューします。
+
+    ```bash
+    npx astro build && npx wrangler dev
+    ```
+
+5. `npx wrangler deploy`を使ってデプロイします。
+
+    ```bash
+    npx astro build && npx wrangler deploy
+    ```
+</Steps>
+
+アセットがアップロードされると、Wranglerがサイトを確認するためのプレビューURLを提供します。
+
+<ReadMore>[Cloudflareランタイム API](/ja/guides/integrations-guide/cloudflare/)（バインディングなど）の使用について詳しく読む。</ReadMore>
+
+### CI/CDによるデプロイ方法
+
+[Workers Builds (BETA)](https://developers.cloudflare.com/workers/ci-cd/builds/)などのCI/CDシステムを使用し、プッシュ時にサイトを自動的にビルド・デプロイすることもできます。
+
+Workers Buildsを使用する場合は次の手順に従ってください。
+
+<Steps>
+1. 上記のWranglerセクションのステップ1〜3に従います。
+
+2. [Cloudflareダッシュボード](https://dash.cloudflare.com/)にログインし、`Workers & Pages`に移動します。そして`Create`を選択します。
+
+3. `Import a repository`で、Gitアカウントを選択し、Astroプロジェクトを含むリポジトリを選択します。
+
+4. プロジェクトを以下の設定で構成します。
+    - Build command: `npx astro build`
+    - Deploy command: `npx wrangler deploy`
+
+5. `Save and Deploy`をクリックします。提供された`workers.dev`サブドメインでWorkerをプレビューできます。
+</Steps>
+
+## Cloudflare Pages
+
+### Wranglerによるデプロイ方法
+
+<Steps>
+1. [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/)をインストールします。
+
+       <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npm install wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm add wrangler@latest --save-dev
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn add wrangler@latest --dev
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+2. サイトでオンデマンドレンダリングを使用する場合は、[`@astrojs/cloudflare`アダプター](/ja/guides/integrations-guide/cloudflare/)をインストールします。
+
+    これにより、アダプターのインストールと`astro.config.mjs`ファイルへの適切な変更が一度に行われます。
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro add cloudflare
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro add cloudflare
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+3. [Wranglerの設定ファイル](https://developers.cloudflare.com/workers/wrangler/configuration/)を作成します。
+
+    Cloudflareは新規プロジェクトにWorkersの使用を推奨しているため、`astro add cloudflare`コマンドはWorkers固有の`wrangler.jsonc`と`public/.assetsignore`ファイルを作成します。`public/.assetsignore`ファイルを削除し、`wrangler.jsonc`ファイルを変更する必要があります。アダプターを使用しない場合は、自分で作成する必要があります。
+
+    `wrangler.jsonc`ファイルが以下のような構造になっていることを確認してください。
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+      ```jsonc title="wrangler.jsonc"
+      {
+        "name": "my-astro-app",
+        "compatibility_date": "YYYY-MM-DD", // デプロイする日に更新してください
+        "pages_build_output_dir": "./dist"
+      }
+      ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // デプロイする日に更新してください
+          "compatibility_flags": [
+            "nodejs_compat",
+            "disable_nodejs_process_v2"
+          ],
+          "pages_build_output_dir": "./dist"
+        }
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+    <ReadMore>[Astroのオンデマンドレンダリング](/ja/guides/on-demand-rendering/)について詳しく読む。</ReadMore>
+
+3. Wranglerを使ってプロジェクトをローカルでプレビューします。
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages dev ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+
+4. `npx wrangler deploy`を使ってデプロイします。
+
+      <PackageManagerTabs>
+        <Fragment slot="npm">
+        ```sh
+        npx astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="pnpm">
+        ```sh
+        pnpm astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+        <Fragment slot="yarn">
+        ```sh
+        yarn astro build && wrangler pages deploy ./dist
+        ```
+        </Fragment>
+      </PackageManagerTabs>
+</Steps>
+
+アセットがアップロードされると、Wranglerがサイトを確認するためのプレビューURLを提供します。
+
+### CI/CDによるサイトのデプロイ方法
+
+<Steps>
+1. コードをgitリポジトリ（GitHub、GitLabなど）にプッシュします。
+
+2. [Cloudflareダッシュボード](https://dash.cloudflare.com/)にログインし、**Compute (Workers) > Workers & Pages**に移動します。そして**Create**を選択し、**Pages**タブを選択します。このようにしてgitリポジトリを接続します。
+
+3. プロジェクトを以下の設定で構成します。
+    - **Framework preset**: `Astro`
+    - **Build command:** `npm run build`
+    - **Build output directory:** `dist`
+
+4. **Save and Deploy**ボタンをクリックします。
+</Steps>
+
+## トラブルシューティング
+
+### 404の動作
+
+Workersプロジェクトでカスタム404ページを配信するには、`not_found_handling`を設定する必要があります。詳しくはCloudflareドキュメントの[ルーティング動作セクション](https://developers.cloudflare.com/workers/static-assets/#routing-behavior)を参照してください。
+
+```jsonc title="wrangler.jsonc"
+{
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+Pagesプロジェクトでは、カスタム404ページを含めるとデフォルトで配信されます。含めない場合、Pagesは[Cloudflareのシングルページアプリケーションレンダリング動作](https://developers.cloudflare.com/pages/configuration/serving-pages/#single-page-application-spa-rendering)をデフォルトとし、404ページを表示する代わりにホームページへリダイレクトします。
+
+### クライアントサイドハイドレーション
+
+CloudflareのAuto Minify設定により、クライアントサイドハイドレーションが失敗する場合があります。コンソールに`Hydration completed but contains mismatches`と表示される場合は、Cloudflareの設定でAuto Minifyを無効にしてください。
+
+### Node.jsランタイムAPI
+
+[Cloudflareアダプター](/ja/guides/integrations-guide/cloudflare/)を使ったオンデマンドレンダリングのプロジェクトをビルドする際に、`[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.`のようなエラーメッセージでサーバーのビルドが失敗する場合があります。
+
+- サーバーサイド環境で使用しているパッケージやインポートが[CloudflareランタイムAPI](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)と互換性がないことを意味します。
+
+- Node.jsランタイムAPIを直接インポートしている場合は、Cloudflareの[Node.jsの互換性](/ja/guides/integrations-guide/cloudflare/#nodejs-compatibility)に関するAstroドキュメントを参照してください。
+
+- Node.jsランタイムAPIをインポートしているパッケージを使用している場合は、パッケージの作者に`node:*`インポート構文をサポートしているか確認してください。サポートしていない場合は、代替パッケージを見つける必要があるかもしれません。
