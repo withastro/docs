@@ -289,7 +289,7 @@ Runtime providers implement `onRequest()` to intercept requests and cache respon
 
 ### Built-in memory cache provider
 
-Astro includes a built-in in-memory LRU cache provider suitable for single-instance deployments. Import `memoryCache` from `astro/config`:
+Astro includes a built-in in-memory LRU runtime cache provider suitable for single-instance deployments. Import `memoryCache` from `astro/config`:
 
 ```js title="astro.config.mjs" ins="memoryCache"
 import { defineConfig, memoryCache } from 'astro/config';
@@ -303,16 +303,26 @@ export default defineConfig({
 });
 ```
 
+#### Cache key behavior
+
+The memory provider automatically normalizes cache keys for better hit rates:
+
+- **Query parameter sorting**: Parameters are sorted alphabetically, so `/page?b=2&a=1` and `/page?a=1&b=2` resolve to the same cache entry.
+- **Tracking parameter exclusion**: Common analytics and tracking parameters (e.g. `utm_source`, `fbclid`, `gclid`) are excluded from the cache key by default. This prevents cache fragmentation from marketing links without affecting your page content.
+- **Vary header support**: When a response includes a [`Vary`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary) header, the memory provider uses the specified request header values to create separate cache entries for each variant. For example, a response with `Vary: Accept-Language` will cache different versions for different languages.
+
+:::note
+The `Cookie` header is always ignored for Vary-based cache keying because it has extremely high cardinality (every user typically has different cookies), making it effectively uncacheable.
+:::
+
 #### `memoryCache()` options
 
 <p>
 
-**Type:** `{ max?: number }`<br />
+**Type:** `{ max?: number; query?: object }`<br />
 **Default:** `{ max: 1000 }`
 
 </p>
-
-To further control how entries are cached, you can use the following options.
 
 ##### `max`
 
@@ -324,6 +334,58 @@ To further control how entries are cached, you can use the following options.
 </p>
 
 Maximum number of entries to keep in cache. When the cache exceeds this limit, the least recently used entry is evicted.
+
+##### `query`
+
+Controls how query parameters are handled in cache keys.
+
+###### `query.sort`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+
+</p>
+
+Sort query parameters alphabetically so that parameter order does not affect the cache key. Set to `false` to disable sorting, and cache URLs with different query parameter order separately. This is useful when parameter order is significant.
+
+###### `query.exclude`
+
+<p>
+
+**Type:** `string[]`<br />
+**Default:** `['utm_*', 'fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'li_fat_id', 'mc_cid', 'mc_eid', '_ga', '_gl', '_hsenc', '_hsmi', '_ke', 'oly_anon_id', 'oly_enc_id', 'rb_clickid', 's_cid', 'vero_id', 'wickedid', 'yclid', '__s', 'ref']`
+
+</p>
+
+Exclude query parameters whose names match these patterns from the cache key. Supports glob wildcards (e.g. `"utm_*"`). Cannot be used together with `include`.
+
+By default, common tracking and analytics parameters are excluded. Set to `[]` to include all query parameters in the cache key:
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { exclude: [] },
+});
+```
+
+###### `query.include`
+
+<p>
+
+**Type:** `string[]`
+
+</p>
+
+Only include these query parameter names in the cache key. All other parameters are ignored, including the default tracking parameter exclusions. Cannot be used together with `exclude`.
+
+The following example only uses `page` and `sort` parameters in the cache key, ignoring all others:
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { include: ['page', 'sort'] },
+});
+```
 
 ## Writing a custom cache provider
 
