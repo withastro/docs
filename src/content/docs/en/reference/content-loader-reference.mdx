@@ -610,7 +610,7 @@ export function myLoader(config): LiveLoader<Product, ProductEntryFilter, Produc
 }
 ```
 
-You can then use these hints in your pages:
+You can then use these hints in your pages. If you have [experimental route caching](/en/reference/experimental-flags/route-caching/) enabled, pass cache hints directly to `Astro.cache.set()`:
 
 ```astro title="src/pages/store/[id].astro"
 ---
@@ -624,7 +624,31 @@ if (error) {
   return Astro.redirect('/404');
 }
 
-// Apply cache hints to response headers
+// Pass cache hints to route caching
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+Without route caching enabled, you can use cache hints to set response headers manually for your own caching strategy:
+
+```astro title="src/pages/store/[id].astro"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
 if (cacheHint?.tags) {
   Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
 }
@@ -639,7 +663,7 @@ if (cacheHint?.lastModified) {
 ```
 
 :::note
-Cache hints only provide values that can be used in other parts of your project and do not automatically cause the response to be cached by Astro. You can use them to create your own caching strategy, such as setting HTTP headers or using a CDN.
+Cache hints do not automatically cause the response to be cached by Astro. They provide values you can pass to [route caching](/en/reference/experimental-flags/route-caching/) or use to implement your own caching strategy.
 :::
 
 ## Distributing your loader
