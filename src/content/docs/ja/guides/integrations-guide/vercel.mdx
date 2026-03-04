@@ -6,7 +6,7 @@ sidebar:
   label: Vercel
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/vercel/'
 category: adapter
-i18nReady: false
+i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
@@ -101,9 +101,12 @@ vercel deploy --prebuilt
 
 ### `webAnalytics`
 
+<p>
+
 **Type:** `VercelWebAnalyticsConfig`<br/>
 **Available for:** Serverless, Static<br/>
 <Since v="3.8.0" pkg="@astrojs/vercel" />
+</p>
 
 `@vercel/analytics@1.3.x`以前では、Astro設定で`webAnalytics: { enabled: true }`を設定して、Vercelの追跡スクリプトをすべてのページに挿入できます。
 
@@ -125,9 +128,12 @@ export default defineConfig({
 
 ### `imagesConfig`
 
+<p>
+
 **Type:** `VercelImageConfig`<br/>
-**Available for:** Serverless, Static
+**Available for:** Serverless, Static<br />
 <Since v="3.3.0" pkg="@astrojs/vercel" />
+</p>
 
 [Vercelの画像最適化API](https://vercel.com/docs/concepts/image-optimization)の設定オプション。[サポートされているパラメーターのリスト](https://vercel.com/docs/build-output-api/v3/configuration#images)については、Vercelの画像設定ドキュメントを参照してください。
 
@@ -150,9 +156,12 @@ export default defineConfig({
 
 ### `imageService`
 
+<p>
+
 **Type:** `boolean`<br/>
-**Available for:** Serverless, Static
+**Available for:** Serverless, Static<br/>
 <Since v="3.3.0" pkg="@astrojs/vercel" />
+</p>
 
 有効にすると、Vercel Image Optimization APIを利用した[画像サービス](/ja/reference/image-service-reference/)が自動的に設定され、本番環境で使用されます。開発環境では、代わりに[`devImageService`](#devimageservice)で指定された画像サービスが使用されます。
 
@@ -191,10 +200,13 @@ import astroLogo from '../assets/logo.png';
 
 ### `devImageService`
 
+<p>
+
 **Type:** `'sharp' | string`<br/>
-**Available for:** Serverless, Static
+**Default:** `sharp`<br />
+**Available for:** Serverless, Static<br />
 <Since v="3.8.0" pkg="@astrojs/vercel" />
-**Default**: `sharp`
+</p>
 
 [imageService](#imageservice)が有効になっている場合に、開発で使用する画像サービスを設定できます。これは、開発マシンにSharpの依存関係をインストールできないが、Squooshなどの別の画像サービスを使用すると開発環境で画像をプレビューできる場合に便利です。ビルドは影響を受けず、常にVercelの画像最適化を使用します。
 
@@ -215,10 +227,13 @@ export default defineConfig({
 
 ### `isr`
 
-**Type:** <code>boolean |   VercelISRConfig</code><br/>
-**Available for:** Serverless
+<p>
+
+**Type:** `boolean | VercelISRConfig`<br/>
+**Default:** `false`<br />
+**Available for:** Serverless<br />
 <Since v="7.2.0" pkg="@astrojs/vercel" />
-**Default**: `false`
+</p>
 
 プロジェクトを[ISR（incremental static regeneration）](https://vercel.com/docs/incremental-static-regeneration)関数としてデプロイできるようにします。これにより、最初のリクエスト後に事前レンダリングされたページと同じ方法でオンデマンドでレンダリングされたページがキャッシュされます。
 
@@ -244,9 +259,11 @@ ISR関数リクエストには、静的モードの[リクエスト](/ja/referen
 
 ##### 時間ベースの無効化
 
-`expiration`値を秒単位で設定することで、ルートをキャッシュする期間を変更できます。
+デフォルトでは、ISRが有効な場合、ルートは[Vercelのキャッシュシールディング](https://vercel.com/docs/incremental-static-regeneration#differences-between-isr-and-cache-control-headers)を使用し、Cache-Controlヘッダーは無視されます。`expiration`値（秒単位）を設定することで、ルートがキャッシュされる期間を制御できます。これにより、アプリケーションで設定したCache-Controlディレクティブも尊重されるようになります。
 
-```js title="astro.config.mjs" {7-10}
+以下の例では、`expiration`を定義して、すべてのページを最初のリクエスト時にキャッシュし、1日間保存します。
+
+```js title="astro.config.mjs" {7-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
@@ -254,18 +271,17 @@ export default defineConfig({
   // ...
   adapter: vercel({
     isr: {
-      // すべてのページを最初のリクエストでキャッシュし、1日間保存します
       expiration: 60 * 60 * 24,
     },
   }),
 });
 ```
 
-##### キャッシュからのパスの除外
+##### オンデマンドの無効化
 
-Vercelの[ドラフトモード](https://vercel.com/docs/build-output-api/v3/features#draft-mode)または[オンデマンドインクリメンタルスタティックリジェネレーション（ISR）](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr)を実装するには、バイパストークンを作成し、キャッシュから除外するルートとともに`isr`設定に提供できます。
+キャッシュされたページをプログラムで無効化するには、バイパストークンを作成して`isr`設定に指定します。
 
-```js title="astro.config.mjs" {6-15}
+```js title="astro.config.mjs" {6-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
@@ -274,11 +290,34 @@ export default defineConfig({
         isr: {
             // 作成した秘密のランダムな文字列。
             bypassToken: "005556d774a8",
-            // 常に最新の状態で提供されるパス。
+        }
+    })
+})
+```
+
+
+キャッシュされたページを無効化するには、`x-prerender-revalidate`ヘッダーにバイパストークンを設定したHEADまたはGETリクエストをページURLに対して送信します。詳細は[VercelのオンデマンドISRドキュメント](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr)を参照してください。
+
+
+##### ドラフトモード
+
+ISRキャッシュをバイパスして新しいコンテンツをレンダリングするには（未公開のCMSコンテンツのプレビューなど）、[Vercelのドラフトモード](https://vercel.com/docs/build-output-api/v3/features#draft-mode)を使用します。これには、設定で[`bypassToken`を定義](#オンデマンドの無効化)し、その値をページ内で再利用して`__prerender_bypass`という名前の[Cookieを設定](/ja/guides/on-demand-rendering/#クッキー)する必要があります。
+
+##### キャッシュからのパスの除外
+
+`exclude`オプションを使用して、特定のルートをISRによるキャッシュから除外できます。これらのパスはリクエストごとに常に新しくレンダリングされます。
+```js title="astro.config.mjs" {6-13}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+    adapter: vercel({
+        isr: {
+            // 常に新しくレンダリングされるパス。
             exclude: [
-              '/preview', 
-              '/auth/[page]',
-              /^\/api\/.+/ // @astrojs/vercel@v8.1.0以降でサポートされている正規表現
+                '/preview',
+                '/auth/[page]',
+                /^\/api\/.+/ // 正規表現は@astrojs/vercel@v8.1.0以降でサポート
             ]
         }
     })
@@ -287,8 +326,11 @@ export default defineConfig({
 
 ### `includeFiles`
 
-**Type** `string[]`<br/>
+<p>
+
+**Type**: `string[]`<br/>
 **Available for** Serverless
+</p>
 
 このプロパティを使用して、ファイルを強制的に関数にバンドルします。これは、不足しているファイルに気付いた場合に役立ちます。
 
@@ -306,8 +348,11 @@ export default defineConfig({
 
 ### `excludeFiles`
 
-**Type** `string[]`<br/>
+<p>
+
+**Type**: `string[]`<br/>
 **Available for** Serverless
+</p>
 
 このプロパティを使用して、通常は含まれるバンドルプロセスからファイルを除外します。
 
@@ -325,8 +370,11 @@ export default defineConfig({
 
 ### `maxDuration`
 
-**Type** `number`<br/>
+<p>
+
+**Type**: `number`<br/>
 **Available for** Serverless
+</p>
 
 このプロパティを使用して、Serverless Functionsがタイムアウトする前に実行できる最大期間（秒単位）を延長または制限します。アカウントプランのデフォルトおよび最大制限については、[Vercelのドキュメント](https://vercel.com/docs/functions/serverless-functions/runtimes#maxduration)を参照してください。
 
@@ -344,9 +392,12 @@ export default defineConfig({
 
 ### `skewProtection`
 
+<p>
+
 **Type:** `boolean`<br/>
-**Available for:** Serverless
+**Available for:** Serverless<br/>
 <Since pkg="@astrojs/vercel" v="7.6.0" />
+</p>
 
 このプロパティを使用して、[Vercel Skew保護](https://vercel.com/docs/deployments/skew-protection)（Vercel ProおよびEnterpriseアカウントで利用可能）を有効にします。
 
@@ -382,7 +433,7 @@ export default defineConfig({
 });
 ```
 
-エッジミドルウェアは、`ctx.locals.vercel.edge`としてVercelの[`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext)にアクセスできます。TypeScriptを使用している場合は、`src/env.d.ts`を更新して`EdgeLocals`を使用することで、適切な型指定を取得できます。
+エッジミドルウェアは、`ctx.locals.vercel.edge`としてVercelの[`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext)にアクセスできます。TypeScriptを使用している場合は、`src/env.d.ts`を更新して`EdgeLocals`を使用することで、[適切な型指定を取得](/ja/guides/typescript/#extending-global-types)できます。
 
 ```ts
 type EdgeLocals = import('@astrojs/vercel').EdgeLocals
