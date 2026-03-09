@@ -1,5 +1,6 @@
 import starlight from '@astrojs/starlight';
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
+import xmdx from 'astro-xmdx';
+import { starlightPreset } from 'astro-xmdx/presets';
 import { defineConfig, sharpImageService } from 'astro/config';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
@@ -28,9 +29,6 @@ export default defineConfig({
 		]),
 		starlight({
 			title: 'Docs',
-			expressiveCode: {
-				plugins: [pluginCollapsibleSections()],
-			},
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Hero: './src/components/starlight/Hero.astro',
@@ -72,6 +70,10 @@ export default defineConfig({
 			plugins: [starlightPluginSmokeTest(), starlightPluginLlmsTxt()],
 		}),
 		sitemap(),
+		xmdx({
+			presets: [starlightPreset({ expressiveCode: false })],
+			expressiveCode: { enabled: true, importSource: '@astrojs/starlight/components' },
+		}),
 	],
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
@@ -94,5 +96,10 @@ export default defineConfig({
 	image: {
 		domains: ['avatars.githubusercontent.com'],
 		service: sharpImageService(),
+	},
+	vite: {
+		ssr: {
+			noExternal: ['xmdx'],
+		},
 	},
 });
