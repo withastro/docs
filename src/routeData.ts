@@ -4,11 +4,38 @@ import { tutorialPages as pages } from '~/content';
 import { stripLangFromSlug } from '~/util/path-utils';
 import { getOgImageUrl } from '~/util/getOgImageUrl';
 import { getTutorialPages } from '~/util/getTutorialPages';
+import { getAbsoluteLocaleUrl } from 'astro:i18n';
 
 export const onRequest = defineRouteMiddleware((context) => {
 	updateHead(context);
 	updateTutorialPagination(context.locals.starlightRoute);
+	updateFallbackCanonicals(context);
 });
+
+/**
+ * Updates the `<link rel="canonical">` for pages using fallback content to point to the original
+ * English version of the page.
+ *
+ * TODO: If we consider this experiment successful, we should upstream the change to Starlight.
+ */
+function updateFallbackCanonicals(context: APIContext) {
+	const { head, isFallback } = context.locals.starlightRoute;
+	if (!isFallback) {
+		return;
+	}
+	const canonicalLink = head.find(
+		(entry) => entry.tag === 'link' && entry.attrs?.rel === 'canonical'
+	);
+	if (!canonicalLink?.attrs?.href || typeof canonicalLink.attrs.href !== 'string') {
+		return;
+	}
+	const { href } = canonicalLink.attrs;
+	const canonicalUrl = new URL(href);
+	canonicalLink.attrs.href = getAbsoluteLocaleUrl(
+		'en',
+		stripLangFromSlug(canonicalUrl.pathname.slice(1))
+	);
+}
 
 function updateHead(context: APIContext) {
 	const { head, entry, isFallback, lang, entryMeta } = context.locals.starlightRoute;
