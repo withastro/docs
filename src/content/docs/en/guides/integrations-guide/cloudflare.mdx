@@ -454,6 +454,36 @@ This change helps you catch issues during development that would have previously
 
 This change is transparent for most projects. If your project had special configuration for `astro dev` or was relying on Node.js-specific behavior in development, adjust your code or configuration accordingly.
 
+### Some dependencies might need to be pre-compiled
+
+Some dependencies might throw some error in the development server or the build. That's usually caused by some Node.js specific syntax such as `require`, `module.exports`, etc. 
+
+This is caused by the new workerd environment, which doesn't support the CommonJS syntax. If you have control over the dependency, you can create a vite plugin and pre-compile the dependency using the `optimiseDeps.include` option.
+
+Here's an example of vite plugin you can use, if, for example you need to pre-compile the dependency `postcss`:
+
+```js ins={8-14}
+function noExternalPlugin() {
+  return {
+    name: "optimise-dependencies",
+    configEnvironment(environment) {
+      // We're only interested in server environments
+      if (environment !== 'client') {
+        return {
+          optimizeDeps: {
+            include: [
+              "postcss"
+              // Or you can use this syntax if you don't depend directly on a dependency
+              "expressive-code > postcss"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 ### Changed: Wrangler entrypoint configuration
 
 Previously, the `main` field in your Wrangler configuration pointed to the built worker file (e.g. `dist/_worker.js/index.js`). With Astro 6, this has changed to point to a new unified entrypoint provided by the Cloudflare adapter: `@astrojs/cloudflare/entrypoints/server`.
