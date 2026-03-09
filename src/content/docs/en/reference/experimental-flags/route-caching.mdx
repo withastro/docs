@@ -45,6 +45,21 @@ export default defineConfig({
 
 Use `Astro.cache` in `.astro` pages or `context.cache` in API routes and middleware to control caching per request. Cache defaults for groups of routes can also be defined declaratively in your config using [`experimental.routeRules`](#route-rules).
 
+### Checking if caching is enabled
+
+Use `cache.enabled` to check whether a cache provider is configured and active. This returns `false` when no provider is configured, or in development mode:
+
+```astro title="src/pages/products/[id].astro" "Astro.cache.enabled"
+---
+if (Astro.cache.enabled) {
+  const tags = await getProductTags(Astro.params.id);
+  Astro.cache.set({ maxAge: 3600, tags });
+}
+---
+```
+
+When caching is not enabled, `cache.set()`, `cache.tags`, and `cache.options` will log a warning, and `cache.invalidate()` will throw an error. Use `cache.enabled` to check before calling these methods.
+
 ### Setting cache options
 
 Call `cache.set()` with an options object to enable caching for the current response.
@@ -528,6 +543,16 @@ The factory function type. Receives the provider's serializable config object fr
 
 ## API reference
 
+### `cache.enabled`
+
+<p>
+
+**Type:** `boolean`
+
+</p>
+
+Whether caching is active. Returns `false` when no cache provider is configured or in development mode. Returns `true` when a cache provider is configured and the app is running in production.
+
 ### `cache.set()`
 
 <p>
@@ -656,7 +681,7 @@ The configuration object passed to `experimental.cache.provider`. Use a helper f
 
 ### `CacheNotEnabled`
 
-Thrown when `Astro.cache` or `context.cache` is used, but `experimental.cache` is not configured. The error message explains how to enable the feature.
+Thrown when `cache.invalidate()` is called without a configured cache provider. Other cache methods (`set()`, `tags`, `options`) no-op when caching is not configured, logging a one-time warning on the first `set()` call.
 
 ### `CacheProviderNotFound`
 
@@ -664,7 +689,7 @@ Thrown at build time when the configured cache provider cannot be resolved. This
 
 ## Dev mode behavior
 
-In dev mode, the cache API is available so that route code does not need conditional checks, but no actual caching occurs. `cache.set()` calls are accepted silently, and `cache.invalidate()` is a no-op.
+In dev mode, the cache API is available so that route code does not need conditional checks, but no actual caching occurs. `cache.enabled` is `false`, and `cache.set()` and `cache.invalidate()` are no-ops.
 
 ## Further reading
 
