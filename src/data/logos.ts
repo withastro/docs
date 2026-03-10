@@ -1,4 +1,4 @@
-import { z } from 'astro:content';
+import { z } from 'astro/zod';
 
 interface Logo {
 	/** Filename for this logo in `public/logos/*`, e.g. `"alpine-js.svg"`. */
