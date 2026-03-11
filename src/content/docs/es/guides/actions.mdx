@@ -24,7 +24,7 @@ Las acciones se definen en un objeto `server` exportado desde `src/actions/index
 
 ```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   myAction: defineAction({ /* ... */ })
@@ -63,11 +63,11 @@ Sigue estos pasos para definir una acción y llamarla desde una etiqueta `script
     }
     ```
 
-2. Importa la utilidad `defineAction()` desde `astro:actions` y el objeto `z` desde `astro:schema`.
+2. Importa la utilidad `defineAction()` desde `astro:actions` y el objeto `z` desde `astro/zod`.
 
     ```ts ins={1-2} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
-    import { z } from 'astro:schema';
+    import { z } from 'astro/zod';
 
     export const server = {
       // declaraciones de acciones
@@ -79,7 +79,7 @@ Sigue estos pasos para definir una acción y llamarla desde una etiqueta `script
 
     ```ts ins={5-12} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
-    import { z } from 'astro:schema';
+    import { z } from 'astro/zod';
 
     export const server = {
       getGreeting: defineAction({
@@ -291,7 +291,7 @@ Las acciones aceptan datos JSON por defecto. Para aceptar datos de formulario de
 
 ```ts title="src/actions/index.ts" ins={6}
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   comment: defineAction({
@@ -300,6 +300,56 @@ export const server = {
     handler: async (input) => { /* ... */ },
   })
 }
+```
+
+### Uso de validadores con entradas de formulario
+
+{/* TODO: add link to "configurada para aceptar datos de formulario" when existing file /es/reference/modules/astro-actions/#propiedad-accept */}
+Cuando tu acción está configurada para aceptar datos de formulario, puedes usar cualquier validador de Zod para validar tus campos (por ejemplo, `z.coerce.date()` para entradas de fecha). Las funciones de extensión, incluyendo `.refine()`, `.transform()` y `.pipe()`, también son compatibles con el validador `z.object()`.
+
+Además, Astro proporciona un manejo especial interno para tu conveniencia para validar los siguientes tipos de campos de entrada:
+
+- Las entradas de tipo `number` se pueden validar usando `z.number()`
+- Las entradas de tipo `checkbox` se pueden validar usando `z.coerce.boolean()`
+- Las entradas de tipo `file` se pueden validar usando `z.instanceof(File)`
+- Las entradas múltiples del mismo `name` se pueden validar usando `z.array(/* validador */)`
+- Todas las demás entradas se pueden validar usando `z.string()`
+
+Cuando envías tu formulario con entradas vacías, el tipo de salida puede no coincidir con tu validador `input`. Los valores vacíos se convierten en `null`, excepto al validar arreglos o booleanos. Por ejemplo, si se envía una entrada de tipo `text` con un valor vacío, el resultado será `null` en lugar de una cadena vacía (`""`).
+
+Para aplicar una unión de diferentes validadores, usa el envoltorio `z.discriminatedUnion()` para reducir el tipo basado en un campo de formulario específico. Este ejemplo acepta el envío de un formulario para "crear" o "actualizar" un usuario, usando el campo del formulario con el nombre `type` para determinar contra qué objeto validar:
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // Coincide cuando el campo `type` tiene el valor `create`
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+      z.object({
+        // Coincide cuando el campo `type` tiene el valor `update`
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.string().email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // el input es { type: 'create', name: string, email: string }
+      } else {
+        // el input es { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
 ```
 
 ### Validación de datos de formulario
@@ -330,7 +380,7 @@ El siguiente ejemplo muestra un formulario validado para la suscripción a un ne
 
     ```ts title="src/actions/index.ts" ins={5-12}
     import { defineAction } from 'astro:actions';
-    import { z } from 'astro:schema';
+    import { z } from 'astro/zod';
 
     export const server = {
       newsletter: defineAction({
@@ -407,8 +457,7 @@ Las páginas deben renderizarse bajo demanda al llamar acciones usando una acci�
 
 Puedes habilitar envíos de formularios sin JavaScript usando atributos estándar en cualquier elemento `<form>`. Los envíos de formularios sin JavaScript del lado cliente pueden ser útiles como respaldo cuando JavaScript no carga o si prefieres manejar formularios completamente desde el servidor.
 
-{/* TODO: add link for spanish */}
-Llamar a Astro.getActionResult() en el servidor devuelve el resultado de tu envío de formulario (`data` o `error`), y puede usarse para redirigir dinámicamente, manejar errores de formulario, actualizar la interfaz y más.
+Llamar a [Astro.getActionResult()](/es/reference/api-reference/#getactionresult) en el servidor devuelve el resultado de tu envío de formulario (`data` o `error`), y puede usarse para redirigir dinámicamente, manejar errores de formulario, actualizar la interfaz y más.
 
 Para llamar una acción desde un formulario HTML, agrega `method="POST"` a tu `<form>`, luego asigna el atributo `action` usando tu acción, por ejemplo `action={actions.logout}`. Esto configurará el atributo `action` con una cadena de consulta que es manejada automáticamente por el servidor.
 
@@ -445,7 +494,7 @@ Por ejemplo, imagina que tienes una acción `createProduct` que devuelve el id d
 
 ```ts title="src/actions/index.ts" mark={10}
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   createProduct: defineAction({
@@ -660,7 +709,8 @@ Las acciones son accesibles como endpoints públicos basados en el nombre de la 
 
 Para autorizar las solicitudes de acción, agrega una verificación de autenticación en el handler de tu acción. Puedes usar [una biblioteca de autenticación](/es/guides/authentication/) para manejar la gestión de sesiones y la información del usuario.
 
-Las acciones exponen el objeto completo `APIContext` para acceder a propiedades pasadas desde middleware usando `context.locals`. Cuando un usuario no está autorizado, puedes lanzar un `ActionError` con el código `UNAUTHORIZED`:
+{/* TODO: add link [un subconjunto de `APIContext` object](/es/reference/modules/astro-actions/#actionapicontext) when astro-actions.mdx exists */}
+Las acciones exponen un subconjunto de `APIContext` object para acceder a propiedades pasadas desde middleware usando `context.locals`. Cuando un usuario no está autorizado, puedes lanzar un `ActionError` con el código `UNAUTHORIZED`:
 
 ```ts title="src/actions/index.ts" {6-8}
 import { defineAction, ActionError } from 'astro:actions';

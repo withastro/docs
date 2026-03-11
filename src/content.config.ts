@@ -188,7 +188,7 @@ export const collections = {
 				'astro',
 			];
 			// See https://github.com/antfu/fast-npm-meta
-			const url = `https://npm.antfu.dev/${packages.join('+')}`;
+			const url = `https://npm.antfu.dev/${encodeURIComponent(packages.join('+'))}`;
 			const data = await fetch(url).then((res) => res.json());
 			return data.map((pkg: any) => ({ id: pkg.name, version: pkg.version }));
 		},
