@@ -51,7 +51,7 @@ Toutes les balises HTML natives, y compris `<img>` et `<svg>`, sont également d
 Pour toutes les images dans les fichiers `.astro`, **la valeur de l'attribut `src` de l'image est déterminée par l'emplacement de votre fichier image** :
 
 - Une image locale dans le dossier `src/` de votre projet utilise une importation à partir du chemin relatif du fichier.
-  
+
   Les composants Image et Picture utilisent directement l'importation nommée (par exemple `src={rocket}`), tandis que la balise `<img>` utilise la propriété d'objet `src` de l'importation (par exemple `src={rocket.src}`).
 
 - Les images distantes et celles présentes dans `public/` utilisent une URL.
@@ -321,7 +321,7 @@ import myImage from '../assets/my_image.png'; // Image est de 1600x900
 
 Les images adaptatives sont des images qui s'ajustent pour améliorer les performances sur différents appareils. Ces images peuvent être redimensionnées pour s'adapter à leur conteneur et peuvent être diffusées dans différentes tailles en fonction de la taille et de la résolution de l'écran de votre visiteur.
 
-Avec les [propriétés d'image adaptatives](/fr/reference/modules/astro-assets/#propriétés-des-images-adaptatives) appliquées aux composants `<Image />` ou `<Picture />`, Astro générera automatiquement les valeurs `srcset` et `sizes` requises pour vos images, et appliquera les [styles nécessaires pour garantir qu'elles se redimensionnent correctement](#styles-des-images-adaptatives).
+Avec la [propriété `layout`](/fr/reference/modules/astro-assets/#layout) appliquée aux composants `<Image />` ou `<Picture />`, Astro générera automatiquement les valeurs `srcset` et `sizes` requises pour vos images, et appliquera les [styles nécessaires pour garantir qu'elles se redimensionnent correctement](#styles-des-images-adaptatives).
 
 Lorsque ce comportement adaptatif est [configuré globalement à l'aide d'`image.layout`](/fr/reference/configuration-reference/#imagelayout), il s'appliquera à tous les composants d'image ainsi qu'à toutes les images locales et distantes utilisant [la syntaxe Markdown `![]()`](/fr/guides/images/#images-dans-les-fichiers-markdown).
 
@@ -442,21 +442,21 @@ Vous pouvez également appliquer la sûreté du typage pour vos ressources `.svg
 ```astro title="src/components/Logo.astro"
 ---
 import type { SvgComponent } from "astro/types";
-import HomeIcon from './Home.svg'
+import HomeIcon from "./Home.svg";
 
 interface Link {
-	url: string
-	text: string
-	icon: SvgComponent
+  url: string;
+  text: string;
+  icon: SvgComponent;
 }
 
 const links: Link[] = [
-	{
-		url: '/',
-		text: 'Accueil',
-		icon: HomeIcon
-	}
-]
+  {
+    url: "/",
+    text: "Accueil",
+    icon: HomeIcon,
+  },
+];
 ---
 ```
 
@@ -580,7 +580,7 @@ Vous pouvez déclarer une image associée à une entrée de collection de conten
 ```md title="src/content/blog/my-post.md" {3}
 ---
 title: "Mon premier article de blog"
-cover: "./firstpostcover.jpeg" # se résoudra en "src/content/blog/firstblogcover.jpeg"
+cover: "./firstpostcover.jpeg" # se résoudra en "src/content/blog/firstpostcover.jpeg"
 coverAlt: "Photographie d'un coucher de soleil derrière une chaîne de montagnes."
 ---
 
@@ -590,8 +590,8 @@ Ceci est un article de blog
 L'assistant `image` pour le schéma des collections de contenu vous permet de valider et d'importer l'image.
 
 ```ts title="src/content.config.ts"
-import { defineCollection } from "astro:content";
-import { z } from "astro/zod";
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 
 const blogCollection = defineCollection({
 	schema: ({ image }) => z.object({
@@ -622,7 +622,7 @@ const allBlogPosts = await getCollection("blog");
 		<div>
 			<Image src={post.data.cover} alt={post.data.coverAlt} />
 			<h2>
-				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+				<a href={"/blog/" + post.id}>{post.data.title}</a>
 			</h2>
 		</div>
 	))
@@ -632,6 +632,24 @@ const allBlogPosts = await getCollection("blog");
 ## Générer des images avec `getImage()`
 
 La fonction `getImage()` est prévue pour générer des images destinées à être utilisées ailleurs que directement en HTML, par exemple dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api). Lorsque vous avez besoin d'options que les composants `<Picture>` et `<Image>` ne prennent pas actuellement en charge, vous pouvez utiliser la fonction `getImage()` pour créer votre propre composant `<Image />` personnalisé.
+
+`getImage()` ne peut être utilisée que côté serveur. Si vous devez utiliser l'URL de l'image résultante côté client (par exemple, dans un script côté client ou un composant de framework), appelez `getImage()` dans le frontmatter et transmettez la `src` résultante au client :
+
+```astro title="src/components/ClientImage.astro"
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png";
+
+const optimizedBackground = await getImage({ src: myBackground, format: "avif" });
+---
+
+<div id="background" data-src={optimizedBackground.src}></div>
+
+<script>
+  const src = document.getElementById("background").dataset.src;
+  // utilisez `src` côté client selon vos besoins
+</script>
+```
 
 <ReadMore>Pour en savoir plus, consultez la [référence `getImage()`](/fr/reference/modules/astro-assets/#getimage).</ReadMore>
 
@@ -659,7 +677,7 @@ pnpm add sharp
 
 ### Configurer le service no-op passthrough
 
-Si votre [adaptateur](https://astro.build/integrations/?search=&categories%5B%5D=adapters) ne prend pas en charge l'optimisation d'image Sharp intégrée à Astro (par exemple Deno, Cloudflare), vous pouvez configurer un service d'image sans opération (ou « no-op » en anglais) pour vous permettre d'utiliser les composants `<Image />` et `<Picture />`. Notez qu'Astro n'effectue aucune transformation ou traitement d'image dans ces environnements. Cependant, vous pouvez toujours profiter des autres avantages de l'utilisation de `astro:assets`, y compris l'absence de décalage cumulatif de la mise en page (CLS), l'application de l'attribut `alt`, et une expérience de création cohérente.
+Si votre [adaptateur](https://astro.build/integrations/?search=&categories%5B%5D=adapters) ne prend pas en charge l'optimisation d'image Sharp intégrée à Astro (par exemple Cloudflare), vous pouvez configurer un service d'image sans opération (ou « no-op » en anglais) pour vous permettre d'utiliser les composants `<Image />` et `<Picture />`. Notez qu'Astro n'effectue aucune transformation ou traitement d'image dans ces environnements. Cependant, vous pouvez toujours profiter des autres avantages de l'utilisation de `astro:assets`, y compris l'absence de décalage cumulatif de la mise en page (CLS), l'application de l'attribut `alt`, et une expérience de création cohérente.
 
 Configurez `passthroughImageService()` pour éviter les traitements d'image Sharp :
 
