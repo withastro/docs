@@ -1,22 +1,28 @@
 ---
-title: API du chargeur de contenu d'Astro
+title: API des chargeurs de contenu d'Astro
 sidebar:
-  label: API du chargeur de contenu
+  label: API des chargeurs de contenu
 i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
 ---
 import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
-L'API du chargeur de contenu d'Astro (Content Loader) vous permet de charger vos données à partir de n'importe quelle source, locale ou distante, et d'interagir avec la couche de contenu d'Astro pour gérer vos [collections de contenu](/fr/guides/content-collections/).
+L'API des chargeurs de contenu d'Astro (Content Loader) vous permet de charger vos données à partir de n'importe quelle source, locale ou distante, et d'interagir avec la couche de contenu d'Astro pour gérer vos [collections de contenu](/fr/guides/content-collections/).
 
-## Qu'est-ce qu'un chargeur ?
+Cette API inclut deux chargeurs prêts à l'emploi pour le contenu stocké localement. Elle fournit également des outils permettant de créer vos propres objets personnalisés capables de charger des données depuis n'importe quelle source dans des collections de contenu.
 
-Les chargeurs Astro vous permettent de charger des données dans des [collections de contenu](/fr/guides/content-collections/), qui peuvent ensuite être utilisées dans des pages et des composants. Les [chargeurs intégrés `glob()` et `file()`](/fr/guides/content-collections/#chargeurs-intégrés) sont utilisés pour charger le contenu du système de fichiers, et vous pouvez créer vos propres chargeurs pour charger le contenu à partir d'autres sources.
+<ReadMore>Apprenez-en davantage sur [l'interrogation des données chargées au moment de la compilation à l'aide de chargeurs](/fr/guides/content-collections/#querying-build-time-collections) ou [l'accès aux données en direct à partir des chargeurs en direct](/fr/guides/content-collections/#accessing-live-data) grâce à des explications guidées et des exemples d'utilisation dans le guide des collections de contenu.</ReadMore>
 
-Chaque collection a besoin [d'un chargeur défini dans son schéma](/fr/guides/content-collections/#définir-le-chargeur-de-collection-loader). Vous pouvez définir un chargeur incorporé au fichier `src/content.config.ts` de votre projet, partager un chargeur entre plusieurs collections, ou même [publier votre chargeur sur NPM en tant que paquet](/fr/reference/publish-to-npm/) à partager avec d'autres et à inclure dans notre bibliothèque d'intégrations.
+## Chargeurs utilisés lors de la compilation
 
-## Chargeurs intégrés
+Les chargeurs utilisés lors de la compilation sont des objets dotés d'une [méthode `load()`](#loaderload) appelée lors de la compilation pour récupérer les données et mettre à jour le magasin de données. Cet objet peut également définir un schéma pour les entrées, qui peut être utilisé pour valider les données et générer des types statiques.
 
-Astro propose deux systèmes de chargement intégrés pour vous aider à récupérer vos collections. Les deux offrent des options qui conviennent à un large choix de cas d'utilisation.
+Les chargeurs [`glob()`](#glob-loader) et [`file()`](#file-loader) d'Astro sont des exemples de chargeurs d'objets fournis prêts à l'emploi pour une utilisation avec du contenu local. Pour le contenu distant, aucun chargeur prédéfini n'est fourni. Vous devrez créer un chargeur d'objets ou utiliser un [chargeur publié par la communauté](https://astro.build/integrations/?search=&categories%5B%5D=loaders) pour récupérer le contenu distant et interagir avec le magasin de données.
+
+Pour une simple récupération de données, vous pouvez également [définir un chargeur en tant qu'une fonction asynchrone](#définir-un-chargeur-comme-une-fonction) qui renvoie un tableau ou un objet contenant des entrées.
 
 ### Le chargeur `glob()`
 
@@ -30,19 +36,17 @@ Le chargeur `glob()` crée des entrées à partir de répertoires de fichiers si
 
 Ce chargeur accepte un objet avec les propriétés suivantes : `pattern`, `base` (optionnel), `generateId` (optionnel) et `retainBody` (optionnel).
 
-```ts title="src/content.config.ts" {2,6,11,17-21, 27-31}
+```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const pages = defineCollection({
   /* Récupère tous les fichiers Markdown dans votre répertoire de pages. */
   loader: glob({ pattern: "**/*.md", base: "./src/data/pages" }),
-  schema: /* ... */
 });
 const blog = defineCollection({
   /* Récupère tous les fichiers Markdown et MDX dans le répertoire de votre blog. */
   loader: glob({ pattern: "**/*.(md|mdx)", base: "./src/data/blog" }),
-  schema: /* ... */
 });
 const notes = defineCollection({
   /* Récupére tous les fichiers Markdown de votre répertoire de notes et empêche
@@ -62,8 +66,9 @@ const authors = defineCollection({
     base: "./src/data/authors",
     generateId: ({ entry }) => entry.replace(/\.json$/, ''),
   }),
-  schema: /* ... */
 });
+
+export const collections = { pages, blog, authors };
 ```
 
 #### `pattern`
@@ -116,7 +121,7 @@ Lorsque `retainBody` est défini sur `false`, [`entry.body`](/fr/reference/modul
 
 Définir cette propriété sur `false` réduit considérablement la taille déployée du magasin de données et permet d'éviter d'atteindre les limites de taille pour les sites comportant de très grandes collections.
 
-Pour les fichiers Markdown, le contenu rendu sera toujours disponible dans la propriété [`entry.rendered.html`](/fr/reference/content-loader-reference/#rendered), et la propriété [`entry.filePath`](/fr/reference/content-loader-reference/#filepath) pointera toujours vers le fichier d'origine.
+Pour les fichiers Markdown, le contenu rendu sera toujours disponible dans la propriété [`entry.rendered.html`](#dataentryrenderedhtml), et la propriété [`entry.filePath`](#dataentryfilepath) pointera toujours vers le fichier d'origine.
 
 Pour les collections MDX, cela réduira considérablement leur taille, puisqu'aucun contenu ne sera plus conservé en magasin.
 
@@ -128,26 +133,28 @@ Pour les collections MDX, cela réduira considérablement leur taille, puisqu'au
 <Since v="5.0.0" />
 </p>
 
-Le chargeur `file()` crée des entrées à partir d'un seul fichier contenant un tableau d'objets avec un champ `id` unique, ou un objet avec des identifiants comme clés et des entrées comme valeurs. Il supporte JSON, YAML ou TOML, et vous pouvez fournir un `parser` personnalisé pour les fichiers de données qu'il ne peut pas analyser par défaut.
+Le chargeur `file()` crée des entrées à partir d'un seul fichier contenant un tableau d'objets avec un champ `id` unique, ou un objet avec des identifiants comme noms de propriété et des entrées comme valeurs.
+
+Il prend en charge les fichiers JSON, YAML ou TOML et vous pouvez fournir un `parser` personnalisé pour les fichiers de données qu'il ne peut pas analyser par défaut, ou pour analyser les données de manière asynchrone.
 
 Ce chargeur accepte une propriété `fileName` et un objet optionnel comme second argument :
 
-```ts title="src/content.config.ts" {2,6,11-13}
+```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
 import { file } from 'astro/loaders';
 
 const authors = defineCollection({
   /* Récupère toutes les entrées d'un fichier JSON. */
   loader: file("src/data/authors.json"),
-  schema: /* ... */
 });
 const products = defineCollection({
   /* Récupère toutes les entrées d'un fichier CSV à l'aide d'un analyseur personnalisé. */
   loader: file("src/data/products.csv", {
     parser: (fileContent) => { /* la logique de votre analyseur */ },
   }),
-  schema: /* ... */
 });
+
+export const collections = { authors, products };
 ```
 
 #### `fileName`
@@ -175,147 +182,634 @@ Un objet optionnel avec les propriétés suivantes :
 **Type :** `(text: string) => Record<string, Record<string, unknown>> | Array<Record<string, unknown>> | Promise<Record<string, Record<string, unknown>> | Array<Record<string, unknown>>>`
 </p>
 
-Une fonction de rappel pour créer une collection à partir du contenu d'un fichier. Utilisez-la lorsque vous avez besoin de traiter des fichiers non pris en charge par défaut (par exemple `.csv`) ou lorsque vous utilisez des [documents `.json` imbriqués](/fr/guides/content-collections/#documents-json-imbriqués).
+Une fonction de rappel pour créer une collection à partir du contenu d'un fichier. Utilisez-la lorsque vous devez traiter des fichiers autres que JSON, YAML ou TOML qui ne sont pas pris en charge par défaut (par exemple, `.csv`) ou lorsque vous utilisez des [documents `.json` imbriqués](/fr/guides/content-collections/#documents-json-imbriqués).
 
-## Types de chargeurs
+### Création d'un chargeur
 
-Les chargeurs peuvent être définis soit comme une simple fonction qui renvoie un tableau d'entrées, soit avec l'API du chargeur de contenu sous forme d'objet plus puissante pour plus de contrôle sur le processus de chargement.
+L'API des chargeurs de contenu est flexible et complète, offrant diverses options de récupération de données. Il est possible de créer des chargeurs simples ou complexes. Votre chargeur personnalisé dépendra à la fois de la source et de la structure de vos données, ainsi que de la manière dont vous choisissez de gérer la couche de stockage persistant des données.
 
-### Chargeurs incorporés
+La plupart des chargeurs exporteront une fonction qui accepte les options de configuration et renvoie un [objet décrivant un chargeur](#the-loader-object) comprenant un nom (`name`) pour votre chargeur, une méthode `load()` et un `schema` définissant vos entrées.
 
-Un chargeur incorporé au document est une fonction asynchrone qui renvoie un tableau ou un objet contenant des entrées. Utilisez-le pour les chargeurs simples, en particulier ceux qui sont définis au sein du fichier `src/content.config.ts`.
+#### Chargement de collections dans le magasin de données
 
-La fonction peut être asynchrone et doit renvoyer soit un tableau d'entrées contenant chacune un champ `id` unique, soit un objet où chaque clé est un ID unique et chaque valeur est l'entrée. Chaque fois que le chargeur est appelé, il efface le magasin et recharge toutes les entrées.
+La fonction [`load()`](#loaderload) renvoyée dans l'objet loader définit comment votre contenu est récupéré, analysé, validé et mis à jour. Il accepte un objet `context` qui vous permet de personnaliser la gestion de vos données de diverses manières et d'interagir avec le magasin de données. Une fonction `load()` typique va :
+
+- Récupérer vos données à partir d'une source.
+- Effacer le magasin de données existant.
+- Analyser et valider vos données selon un schéma fourni.
+- Mettre à jour le magasin de données avec les nouvelles entrées.
+
+La méthode `load()` fournit également des fonctions d'assistance pour enregistrer des messages dans la console, générer du contenu en HTML, surveiller les modifications en mode développement et recharger les données, donner accès aux métadonnées
+et même à la configuration complète d'Astro, et bien plus encore.
+
+<ReadMore>Consultez la liste complète des propriétés de [`LoaderContext`](#loadercontext) pour connaître toutes les options disponibles pour la fonction `load()`.</ReadMore>
+
+#### Fournir un schéma
+
+Fournir un [`schema`](#loaderschema) Zod dans votre chargeur vous permet de valider les entrées de contenu récupérées avec [`parseData()`](#loadercontextparsedata) avant de les ajouter au [magasin](#loadercontextstore) de données. Ce schéma sera également utilisé comme schéma par défaut de la collection si aucun schéma n'est défini dans `src/content.config.ts`, afin de garantir la sûreté du typage et l'accès aux outils de l'éditeur. Vous n'avez pas non plus besoin de définir un schéma dans la collection de contenu si le chargeur fournit cette propriété.
+
+Toutefois, si la collection de contenu [définit également un schéma](/fr/guides/content-collections/#defining-the-collection-schema), ce schéma sera utilisé à la place de celui de votre chargeur. Ceci permet aux utilisateurs de votre chargeur d'étendre son schéma ou de transformer des données pour leurs projets. Si vous [publiez et distribuez un chargeur](#distributing-your-loader), vous souhaiterez peut-être documenter ce comportement et inciter les utilisateurs à ne pas définir eux-mêmes de schéma de collection, ou leur indiquer comment le faire en toute sécurité s'ils ont besoin de données renvoyées dans un format différent.
+
+Si vous devez générer dynamiquement le schéma en fonction des options de configuration ou en introspectant une API, vous pouvez utiliser [`createSchema()`](#loadercreateschema) à la place.
+
+#### Exemple de chargeur
+
+L'exemple suivant montre un chargeur qui récupère des données à partir d'une URL de flux fournie (à l'aide d'un utilitaire `loadFeedData` personnalisé) et met à jour le magasin de données avec de nouvelles entrées à chaque fois que le site est compilé :
+
+```ts title="src/feed-loader.ts"
+// 1. Importer le type `Loader` et toutes les autres dépendances nécessaires.
+import type { Loader } from 'astro/loaders';
+import { z } from 'astro/zod';
+import { loadFeedData } from "./feed.js";
+
+// 2. Définir les options requises par votre chargeur
+export function myLoader(options: { url: string, apiKey: string }) {
+  const feedUrl = new URL(options.url);
+  // 3. Renvoyer un objet décrivant le chargeur
+  return {
+    name: "feed-loader",
+    load: async ({ store, parseData }) => {
+      const feed = await loadFeedData(feedUrl, options.apiKey);
+
+      store.clear();
+
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+    // 4. Définir le schéma d'une entrée.
+    schema: z.object({
+      // ...
+    })
+  } satisfies Loader;
+}
+```
+
+#### Définir votre collection avec votre chargeur
+
+Utilisez votre chargeur personnalisé comme valeur de la propriété `loader` lorsque vous définissez votre collection dans `src/content.config.ts`. Les options de configuration peuvent être transmises à votre chargeur en tant qu'arguments :
+
+```ts title="src/content.config.ts" 
+import { defineCollection } from 'astro:content';
+import { feedLoader } from './feed-loader.ts';
+
+const blog = defineCollection({
+  loader: feedLoader({
+    url: "https://api.example.com/articles",
+    apiKey: "mon-secret",
+  }),
+});
+
+export const collections = { blog };
+```
+
+### Définir un chargeur sous forme de fonction
+
+Pour les extractions de données simples qui ne nécessitent pas de gestion personnalisée du magasin de données, de validation, de journalisation ou d'autres aides fournies par l'[objet de chargement utilisé au moment de la compilation](#the-loader-object), vous pouvez définir votre chargeur sous forme de fonction.
+
+La fonction peut être asynchrone et doit renvoyer soit un tableau d'entrées contenant chacune un champ `id` unique, soit un objet où chaque nom de propriété est un identifiant unique et chaque valeur représente l'entrée.
+
+Ce modèle fournit un raccourci pratique pour accomplir les tâches de base normalement effectuées par la fonction `load()` pour [charger les collections dans le magasin de données](#loading-collections-into-the-data-store). Lors de la compilation, le chargeur effacera automatiquement le magasin de données et rechargera toutes les entrées. Aucune autre option de personnalisation ni fonction d'assistance pour la gestion des données n'est fournie.
+
+Ces chargeurs sont souvent suffisamment simples pour que vous puissiez choisir de les définir directement dans le fichier `src/content.config.ts` :
 
 ```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+
 const countries = defineCollection({
   loader: async () => {
     const response = await fetch("https://restcountries.com/v3.1/all");
     const data = await response.json();
     // Doit renvoyer un tableau d'entrées avec une propriété id
-    // ou un objet avec des identifiants comme clés et des entrées comme valeurs
+    // ou un objet dont les noms de propriétés sont les identifiants et les valeurs les entrées
     return data.map((country) => ({
       id: country.cca3,
       ...country,
     }));
   },
-  schema: /* ... */
 });
+
+export const collections = { countries };
 ```
 
-### Chargeurs sous forme d'objet
+## Chargeurs en direct
 
-Un chargeur est un objet doté d'une méthode `load()` qui est appelée au moment de la compilation pour récupérer des données et mettre à jour le magasin de données. Il permet de mettre à jour les entrées de manière incrémentielle ou de vider le magasin uniquement lorsque cela est nécessaire. Il peut également définir un schéma pour les entrées, qui peut être utilisé pour valider les données et générer des types statiques.
+L'API des chargeurs en direct est conçue pour interroger n'importe quelle donnée en temps réel. Les chargeurs en direct peuvent filtrer les données entrantes et vérifier leur contenu en garantissant la sûreté du typage. Étant donné que les chargeurs en direct récupèrent les données à jour à chaque requête, il n'y a pas de magasin de données à mettre à jour. Ces chargeurs sont conçus pour renvoyer soit des données, soit un objet `Error` afin de vous permettre de gérer les erreurs en douceur.
 
-Le modèle recommandé consiste à définir une fonction qui accepte les options de configuration et renvoie l'objet chargeur, de la même manière que vous définiriez normalement une intégration Astro ou un module d'extension Vite.
+### Création d'un chargeur en direct
 
+La plupart des chargeurs en direct exporteront une fonction qui accepte les options de configuration et renvoie un [objet décrivant un chargeur en direct](#the-liveloader-object) comprenant un `nom` pour votre chargeur et deux méthodes pour définir comment charger votre collection d'entrées et comment charger une seule entrée : `loadCollection()` et `loadEntry()`.
 
-```ts title=loader.ts
-import type { Loader, LoaderContext } from 'astro/loaders';
-import { z } from 'astro/zod';
-import { loadFeedData } from "./feed.js";
+#### Chargement des données en direct
 
-// Définir toutes les options dont le chargeur a besoin
-export function myLoader(options: { url: string, apiKey: string }): Loader {
-  // Configurer le chargeur
-  const feedUrl = new URL(options.url);
-  // Renvoyer un objet chargeur
+Pour renvoyer des données à propos de votre collection, vous devez fournir une fonction [`loadCollection()`](#liveloaderloadcollection) qui récupère les données et renvoie un tableau d'[entrées (`entries`)](#livedatacollectionentries) de contenu ou une erreur.
+
+Pour renvoyer une seule entrée de collection en direct, vous devez fournir une fonction [`loadEntry()`](#liveloaderloadentry) qui récupère des données filtrées pour un `id` donné et renvoie une seule [entrée (`entry`)](#livedataentry), `undefined` ou une erreur.
+
+La récupération des données pour ces deux fonctions est généralement effectuée à l'aide d'une [instruction `try...catch`](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Statements/try...catch) pour [gérer les erreurs lors de l'accès aux données en direct](#error-handling-in-live-loaders).
+
+<ReadMore>Consultez l'intégralité de l'[API des chargeurs en direct](#live-loader-api) pour en savoir plus sur les fonctions et les types disponibles pour la création de votre chargeur en direct.</ReadMore>
+
+#### Fourniture d'un schéma pour les chargeurs en direct
+
+Les chargeurs en direct ne comportent pas de propriété de schéma. Vous pouvez toutefois garantir la sûreté du typage en [définissant un schéma Zod pour votre collection](/fr/guides/content-collections/#using-zod-schemas-with-live-collections) dans `src/live.config.ts`, ou en passant des types génériques à l'interface `LiveLoader` pour les données qu'ils renvoient.
+
+#### Exemple de chargeur en direct
+
+L'exemple suivant montre un chargeur en direct qui définit la récupération de données à partir d'un CMS (à l'aide d'un utilitaire `fetchFromCMS` personnalisé) pour une collection d'entrées et une entrée unique, incluant la sûreté du typage et la gestion des erreurs :
+
+```ts title="src/article-loader.ts"
+import type { LiveLoader } from 'astro/loaders';
+import { fetchFromCMS } from './cms-client.js';
+
+interface Article {
+  id: string;
+  title: string;
+  htmlContent: string;
+  author: string;
+}
+
+interface EntryFilter {
+  id: string;
+}
+
+interface CollectionFilter {
+  author?: string;
+}
+
+export function articleLoader(config: { apiKey: string }): LiveLoader<Article, EntryFilter, CollectionFilter> {
   return {
-    name: "my-loader",
-    // Appelé lors de la mise à jour de la collection.
-    load: async (context: LoaderContext): Promise<void> => {
-      // Charger les données et mettre à jour le magasin
-      const response = await loadFeedData(feedUrl, options.apiKey);
+    name: 'article-loader',
+    loadCollection: async ({ filter }) => {
+      try {
+        const articles = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          filter,
+        });
+
+        return {
+          entries: articles.map((article) => ({
+            id: article.id,
+            data: article,
+          })),
+        };
+      } catch (error) {
+        return {
+          error: new Error('Impossible de charger les articles', { cause: error }),
+        };
+      }
     },
-    // En option, définir le schéma d'une entrée.
-    // Il sera remplacé par le schéma défini par l'utilisateur.
-    schema: async () => z.object({
-      // ...
-    })
+    loadEntry: async ({ filter }) => {
+      try {
+        // Le filtre sera { id: "un-id" } lorsqu'il sera appelé avec une chaîne de caractères.
+        const article = await fetchFromCMS({
+          apiKey: config.apiKey,
+          type: 'article',
+          id: filter.id,
+        });
+
+        if (!article) {
+          return {
+            error: new Error('Article introuvable'),
+          };
+        }
+
+        return {
+          id: article.id,
+          data: article,
+          rendered: {
+            html: article.htmlContent,
+          },
+        };
+      } catch (error) {
+        return {
+          error: new Error("Impossible de charger l'article", { cause: error }),
+        };
+      }
+    },
   };
 }
 ```
 
-Ces options de configuration peuvent ensuite être définies lors de la définition d'une collection :
+#### Définir votre collection en direct avec votre chargeur
 
-```ts title="src/content.config.ts"  {3,6-9}  
-import { defineCollection } from 'astro:content';
-import { z } from 'astro/zod';
-import myLoader from '../../loader.ts';
+Utilisez votre chargeur en direct personnalisé comme valeur de la propriété `loader` lorsque vous définissez votre collection dans `src/live.config.ts`. Les options de configuration peuvent être transmises à votre chargeur en tant qu'arguments :
 
-const blog = defineCollection({  
-  loader: myLoader({
-    url: "https://api.example.com/posts",
+```ts title="src/live.config.ts"  {2,5-7}  
+import { defineLiveCollection } from 'astro:content';
+import { articleLoader } from './article-loader.ts';
+
+const blog = defineLiveCollection({
+  loader: articleLoader({
     apiKey: "mon-secret",
-  }),  
-  schema: /* ... */  
-});  
+  }),
+});
+
+export const collections = { blog };
 ```
+
+#### Gestion des erreurs dans les chargeurs en direct
+
+Les chargeurs en direct renvoient une sous-classe [Error](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Error) pour les erreurs. Vous pouvez créer des [types d'erreurs personnalisés](#creating-live-loader-error-types) et les utiliser pour une gestion des erreurs plus spécifique si nécessaire. Si une erreur est émise dans le chargeur en direct, elle sera interceptée et renvoyée, encapsulée dans un `LiveCollectionError`.
+
+Astro générera lui-même certaines erreurs, en fonction de la réponse du chargeur en direct :
+
+- Si `loadEntry` renvoie `undefined`, Astro renverra une erreur `LiveEntryNotFoundError` à l'utilisateur.
+- Si un schéma est défini pour la collection et que les données ne correspondent pas au schéma, Astro renverra une erreur `LiveCollectionValidationError`.
+- Si le chargeur renvoie une indication de cache invalide, Astro renverra une exception `LiveCollectionCacheHintError`. Le champ `cacheHint` est facultatif ; si vous n'avez pas de données valides à renvoyer, vous pouvez simplement l'omettre.
+
+```ts title="mon-chargeur.ts" {10-12}
+import type { LiveLoader } from 'astro/loaders';
+import type { MyData } from "./types";
+import { MyLoaderError } from './errors';
+
+export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
+  return {
+    name: 'mon-chargeur',
+    loadCollection: async () => {
+      // Renvoyer votre type d'erreur personnalisé
+      return {
+        error: new MyLoaderError('Échec du chargement', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+##### Création des types d'erreurs du chargeur en direct
+
+Vous pouvez créer des types d'erreurs personnalisés pour les [erreurs renvoyées par votre chargeur](#error-handling-in-live-loaders) et les transmettre en tant que type générique pour obtenir un typage correct :
+
+```ts title="mon-chargeur.ts"
+import type { LiveLoader } from "astro/loaders";
+import type { MyData } from "./types"
+
+export class MyLoaderError extends Error {
+  constructor(message: string, public code?: string) {
+    super(message);
+    this.name = 'MyLoaderError';
+  }
+}
+
+export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
+  return {
+    name: 'mon-chargeur',
+    loadCollection: async () => {
+      // Renvoyer votre type d'erreur personnalisé
+      return {
+        error: new MyLoaderError('Échec du chargement', 'LOAD_ERROR'),
+      };
+    },
+    // ...
+  };
+}
+```
+
+Lorsque vous utilisez `getLiveCollection()` ou `getLiveEntry()`, TypeScript déduira le type d'erreur personnalisé, vous permettant ainsi de gérer l'erreur de manière appropriée :
+
+```astro
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry } from 'astro:content';
+import { MyLoaderError } from "../my-loader";
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+if (error) {
+  if (error instanceof MyLoaderError) {
+    console.error(`Erreur du chargeur : ${error.message} (code : ${error.code})`);
+  } else {
+    console.error(`Erreur inattendue : ${error.message}`);
+  }
+  return Astro.rewrite('/500');
+}
+---
+```
+
+#### Définition de types de filtres personnalisés
+
+Les chargeurs en direct peuvent définir des types de filtres personnalisés pour `getLiveCollection()` et `getLiveEntry()`. Cela permet d'effectuer des requêtes bénéficiant de la sûreté du typage et adaptées aux capacités de votre API, ce qui facilite la découverte des filtres disponibles par les utilisateurs et leur permet de s'assurer de leur utilisation correcte. Si vous incluez des commentaires JSDoc dans les types de vos filtres, l'utilisateur les verra dans son IDE sous forme d'indications lors de l'utilisation du chargeur.
+
+```ts title="store-loader.ts" "EntryFilter, CollectionFilter" {6,8}
+import type { LiveLoader } from 'astro/loaders';
+import { fetchProduct, fetchCategory, type Product } from './store-client';
+
+interface CollectionFilter {
+  category?: string;
+  /** Prix minimum pour filtrer les produits */
+  minPrice?: number;
+  /** Prix maximum pour filtrer les produits */
+  maxPrice?: number;
+}
+
+interface EntryFilter {
+  /** Alias pour `sku` */
+  id?: string;
+  slug?: string;
+  sku?: string;
+}
+
+export function productLoader(config: {
+  apiKey: string;
+  endpoint: string;
+}): LiveLoader<Product, EntryFilter, CollectionFilter> {
+  return {
+    name: 'product-loader',
+    loadCollection: async ({ filter }) => {
+      // Le filtre est de type `CollectionFilter`
+      const data = await fetchCategory({
+        apiKey: config.apiKey,
+        category: filter?.category ?? 'all',
+        minPrice: filter?.minPrice,
+        maxPrice: filter?.maxPrice,
+      });
+
+      return {
+        entries: data.products.map((product) => ({
+          id: product.sku,
+          data: product,
+        })),
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      // Le filtre est de type `EntryFilter | { id: string }`
+      const product = await fetchProduct({
+        apiKey: config.apiKey,
+        slug: filter.slug,
+        sku: filter.sku || filter.id,
+      });
+      if (!product) {
+        return {
+          error: new Error('Produit introuvable'),
+        };
+      }
+      return {
+        id: product.sku,
+        data: product,
+      };
+    },
+  };
+}
+```
+
+#### Indications de cache
+
+Les chargeurs en direct peuvent fournir des indications de cache pour faciliter la mise en cache des réponses. Vous pouvez utiliser ces données pour envoyer des en-têtes de cache HTTP ou pour orienter votre stratégie de mise en cache.
+
+```ts title="mon-chargeur.ts"
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
+import type { Product, ProductEntryFilter, ProductCollectionFilter } from "./types";
+
+export function myLoader(config): LiveLoader<Product, ProductEntryFilter, ProductCollectionFilter> {
+  return {
+    name: 'cached-loader',
+    loadCollection: async ({ filter }) => {
+      const products = await loadStoreProducts(filter);
+      return {
+        entries: products.map((item) => ({
+          id: item.id,
+          data: item,
+          // Vous pouvez éventuellement fournir des indications de cache pour chaque entrée.
+          cacheHint: {
+            tags: [`produit-${item.id}`, `categorie-${item.category}`],
+          },
+        })),
+        cacheHint: {
+          // Tous les champs sont facultatifs et sont combinés aux indications de cache de chaque entrée.
+          // Les étiquettes (`tags`) sont fusionnées à partir de toutes les entrées
+          // `lastModified` est la dernière valeur de `lastModified` dans toutes les entrées et dans la collection
+          lastModified: getLastModifiedDate(products),
+          tags: ['produits'],
+        },
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      const item = await loadStoreProduct(filter);
+      return {
+        id: item.id,
+        data: item,
+        cacheHint: {
+          lastModified: new Date(item.lastModified),
+          tags: [`produit-${item.id}`, `categorie-${item.category}`],
+        },
+      };
+    },
+  };
+}
+```
+
+Vous pouvez ensuite utiliser ces indications dans vos pages. Si vous avez activé la [mise en cache expérimentale des routes](/fr/reference/experimental-flags/route-caching/), transmettez directement les indications de cache à `Astro.cache.set()` :
+
+```astro title="src/pages/store/[id].astro"
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('produits', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+// Transmettre les indications de cache à la mise en cache des routes
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+Sans la mise en cache des routes activée, vous pouvez utiliser des indications de cache pour définir manuellement les en-têtes de réponse pour votre propre stratégie de mise en cache :
+
+```astro title="src/pages/store/[id].astro"
+---
+export const prerender = false; // Pas nécessaire en mode `server`
+
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('produits', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+
+<h1>{entry.data.name}</h1>
+<p>{entry.data.description}</p>
+```
+
+:::note
+Les indications de cache n'entraînent pas automatiquement la mise en cache de la réponse par Astro. Elles fournissent des valeurs que vous pouvez transmettre à la [mise en cache des routes](/fr/reference/experimental-flags/route-caching/) ou utiliser pour implémenter votre propre stratégie de mise en cache.
+:::
+
+## Distribuer votre chargeur
+
+Les chargeurs peuvent être définis sur votre site ou sous forme de paquet npm distinct. Si vous souhaitez partager votre chargeur avec la communauté, vous pouvez [le publier sur npm avec les mots-clés `withastro` et `astro-loader`](/fr/reference/publish-to-npm/#données-du-fichier-packagejson).
+
+Un chargeur doit exporter une fonction qui renvoie un objet `LiveLoader` pour les chargeurs en direct ou un objet `Loader` pour les chargeurs utilisés au moment de la compilation, permettant aux utilisateurs de le configurer avec leurs propres paramètres.
 
 ## API des chargeurs sous forme d'objet
 
-L'API pour les [chargeurs incorporés](#chargeurs-incorporés) est très simple et est présentée ci-dessus. Cette section présente l'API permettant de définir un chargeur sous forme d'objet.
+<p><Since v="5.0.0" /></p>
+
+Cette section présente l'API permettant de définir un [chargeur sous forme d'objet utilisé au moment de la compilation](#building-a-loader).
 
 ### L'objet `Loader`
 
-L'objet chargeur possède les propriétés suivantes :
-
-#### `name`
 
 <p>
 
-**Type** : `string`
+**Type :** `Loader`
+</p>
+
+Une fonction de chargeur renvoie un objet comportant deux propriétés obligatoires. En plus de fournir un nom pour le chargeur, cet objet décrit comment récupérer les données de la collection.
+
+Vous pouvez également renvoyer une troisième propriété définissant un schéma pour valider les entrées de votre collection. Utilisez l'opérateur [`satisfies` de TypeScript](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator) au lieu d'une annotation de type de retour afin de garantir la sûreté du typage au sein de votre objet de chargeur et de préserver l'inférence de type lorsque celui-ci est utilisé dans une collection.
+
+#### `Loader.name`
+
+<p>
+
+**Type :** `string`
+<Since v="5.0.0" />
 </p>
 
 Un nom unique pour le chargeur, utilisé dans les logs et [pour le chargement conditionnel](/fr/reference/integrations-reference/#option-refreshcontent).
 
-#### `load`
+#### `Loader.load()`
 
 <p>
 
-**Type** : <code>(context: <a href="#loadercontext">LoaderContext</a>) => Promise&lt;void&gt;</code>
+**Type :** <code>(context: <a href="#loadercontext">LoaderContext</a>) => Promise&lt;void&gt;</code>
+<Since v="5.0.0" />
 </p>
 
-Une fonction asynchrone qui est appelée au moment de la compilation pour charger les données et mettre à jour le magasin. Voir [`LoaderContext`](#loadercontext) pour plus d'informations.
+Une fonction asynchrone appelée lors de la compilation pour charger les données et mettre à jour le magasin. Elle reçoit un objet [`LoaderContext`](#loadercontext) contenant des fonctions et propriétés utilitaires pour l'implémentation du chargeur, ainsi que la base de données `store` et les méthodes permettant d'interagir avec elle.
 
-#### `schema`
+#### `Loader.schema`
 
 <p>
 
-**Type** : `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+**Type :** `ZodSchema | Promise<ZodSchema> | (() => ZodSchema | Promise<ZodSchema>)`
+<Since v="5.0.0" />
 </p>
 
 Un [schéma Zod](/fr/guides/content-collections/#définition-des-types-de-données-avec-zod) facultatif qui définit la forme des entrées. Il est utilisé à la fois pour valider les données et pour générer des types TypeScript pour la collection.
 
-Si une fonction est fournie, elle sera appelée au moment de la compilation avant `load()` pour générer le schéma. Vous pouvez l'utiliser pour générer dynamiquement le schéma en fonction des options de configuration ou en introspectant une API.
+Lorsque vous devez générer dynamiquement le schéma au moment de la compilation en fonction des options de configuration ou en introspectant une API, utilisez plutôt [`createSchema()`](#loadercreateschema).
 
-### `LoaderContext`
+Si la propriété est présente, elle sera remplacée par tout schéma Zod défini pour la collection dans le fichier `src/content.config.ts`.n fonction des options de configuration ou en introspectant une API.
 
-Cet objet est passé à la méthode `load()` du chargeur et contient les propriétés suivantes :
-
-#### `collection`
+#### `Loader.createSchema()`
 
 <p>
 
-**Type** : `string`
+**Type :** `() => Promise<{ schema: ZodSchema; types: string }>`
+<Since v="6.0.0" />
+</p>
+
+Une fonction asynchrone optionnelle qui renvoie un objet contenant un [schéma Zod](/fr/guides/content-collections/#définition-des-types-de-données-avec-zod) et des types. Elle permet de générer dynamiquement le schéma lors de la compilation, en fonction des options de configuration ou par introspection d'une API.
+
+Lorsque vous n'avez besoin de fournir qu'un schéma statique, fournissez plutôt un objet de validation Zod en utilisant [`schema`](#loaderschema).
+
+Si elle est présente, elle sera remplacée par tout schéma Zod défini pour la collection dans le fichier `src/content.config.ts`.
+
+Le contenu de `types` renvoyé sera écrit dans un fichier TypeScript et devra exporter un type ou une interface `Entry` :
+
+```ts title="src/feed-loader.ts" ins={27-35}
+import type { Loader } from 'astro/loaders';
+import { z } from 'astro/zod';
+import { loadFeedData, getSchema, getTypes } from "./feed.js";
+
+export function myLoader(options: { url: string, apiKey: string }) {
+  const feedUrl = new URL(options.url);
+
+  return {
+    name: "feed-loader",
+    load: async ({ store, parseData }) => {
+      const feed = await loadFeedData(feedUrl, options.apiKey);
+
+      store.clear();
+
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        store.set({
+          id,
+          data,
+        });
+      }
+    },
+    createSchema: async () => {
+      const schema = await getSchema();
+      const types = await getTypes();
+
+      return {
+      	schema,
+      	types: `export type Entry = ${types}`,
+      };
+    },
+  } satisfies Loader;
+}
+```
+
+### `LoaderContext`
+
+Cet objet est passé à la méthode [`load()`](#loaderload) du chargeur et contient les propriétés suivantes :
+
+#### `LoaderContext.collection`
+
+<p>
+
+**Type :** `string`
+<Since v="5.0.0" />
 </p>
 
 Le nom unique de la collection. Il s'agit de la clé dans l'objet `collections` dans le fichier `src/content.config.ts`.
 
-#### `store`
+#### `LoaderContext.store`
 
 <p>
 
-**Type** : [`DataStore`](#datastore)
+**Type :** [`DataStore`](#datastore)
+<Since v="5.0.0" />
 </p>
 
 Une magasin de données pour stocker les données réelles. Utilisez-le pour mettre à jour le magasin avec de nouvelles entrées. Voir [`DataStore`](#datastore) pour plus d'informations.
 
-#### `meta`
+#### `LoaderContext.meta`
 
 <p>
 
-**Type** : `MetaStore`
+**Type :** `MetaStore`
+<Since v="5.0.0" />
 </p>
 
 Un magasin de clés-valeurs avec une portée limitée à la collection, conçu pour des choses comme la synchronisation des jetons et des heures de dernière modification. Ces métadonnées sont conservées entre les compilations avec les données de la collection, mais ne sont disponibles qu'à l'intérieur du chargeur.
@@ -326,38 +820,77 @@ const lastModified = meta.get("lastModified");
 meta.set("lastModified", new Date().toISOString());
 ```
 
-#### `logger`
+#### `LoaderContext.logger`
 
 <p>
 
-**Type** : [`AstroIntegrationLogger`](/fr/reference/integrations-reference/#astrointegrationlogger)
+**Type :** [`AstroIntegrationLogger`](/fr/reference/integrations-reference/#astrointegrationlogger)
+<Since v="5.0.0" />
 </p>
 
-Un enregistreur qui peut être utilisé pour enregistrer des messages dans la console. Utilisez-le à la place de `console.log` pour des enregistrements plus utiles qui incluent le nom du chargeur dans le message affiché. Voir [`AstroIntegrationLogger`](/fr/reference/integrations-reference/#astrointegrationlogger) pour plus d'informations.
+Un outil de journalisation permettant d'enregistrer des messages dans la console. Utilisez-le plutôt que `console.log` pour obtenir des journaux plus détaillés contenant des informations spécifiques au chargeur, comme son nom ou des détails sur le processus de chargement. Consultez [`AstroIntegrationLogger`](/fr/reference/integrations-reference/#astrointegrationlogger) pour plus d'informations.
 
-#### `config`
+```ts title="Extrait du chargeur file()" {10} "logger"
+return {
+  name: 'file-loader',
+  load: async ({ config, store, logger, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
+
+#### `LoaderContext.config`
 
 <p>
 
-**Type** : `AstroConfig`
+**Type :** `AstroConfig`
+<Since v="5.0.0" />
 </p>
 
 L'objet de configuration d'Astro complet et résolu avec toutes les valeurs par défaut appliquées. Consultez [la référence de configuration](/fr/reference/configuration-reference/) pour plus d'informations.
 
-#### `parseData`
+```ts title="Extrait du chargeur file()" {4} "config"
+return {
+  name: 'file-loader',
+  load: async ({ config, store, logger, watcher }) => {
+    const url = new URL(fileName, config.root);
+    const filePath = fileURLToPath(url);
+    await syncData(filePath, store);
+
+    watcher?.on('change', async (changedPath) => {
+      if (changedPath === filePath) {
+        logger.info(`Reloading data from ${fileName}`);
+        await syncData(filePath, store);
+      }
+    });
+  },
+};
+```
+
+#### `LoaderContext.parseData()`
 
 <p>
 
-**Type** : `(props: ParseDataOptions<TData>) => Promise<TData>`
+**Type :** `(props: ParseDataOptions<TData>) => Promise<TData>`
+<Since v="5.0.0" />
 </p>
 
 Valide et analyse les données conformément au schéma de la collection. Transmettez les données à cette fonction pour les valider et les analyser avant de les stocker dans le magasin de données.
 
-```ts title=loader.ts {14-17}
+```ts title=loader.ts {15-18}
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }): Loader {
+export function feedLoader({ url }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
@@ -367,8 +900,9 @@ export function feedLoader({ url }): Loader {
       store.clear();
 
       for (const item of feed.items) {
+        const id = item.guid;
         const data = await parseData({
-          id: item.guid,
+          id,
           data: item,
         });
         store.set({
@@ -377,29 +911,29 @@ export function feedLoader({ url }): Loader {
         });
       }
     },
-  };
+  } satisfies Loader;
 }
 ```
 
-#### `renderMarkdown`
+#### `LoaderContext.renderMarkdown()`
 
 <p>
 
-**Type** : `(markdown: string) => Promise<RenderedContent>`
+**Type :** `(content: string, options?: { fileURL?: URL }) => Promise<RenderedContent>`
 <Since v="5.9.0" />
 </p>
 
 Restitue une chaîne Markdown en HTML, renvoyant un objet `RenderedContent`.
 
-Cela vous permet de restituer le contenu Markdown directement dans vos chargeurs en utilisant le même traitement Markdown que le chargeur `glob` intégré d'Astro et donne accès à la fonction `render()` et au composant `<Content />` pour [la restitution du contenu](/fr/guides/content-collections/#restitution-du-contenu).
+Cela vous permet de restituer le contenu Markdown directement dans vos chargeurs en utilisant le même traitement Markdown que le chargeur `glob()` intégré d'Astro et donne accès à la fonction `render()` et au composant `<Content />` pour [la restitution du contenu](/fr/guides/content-collections/#restitution-du-contenu).
 
-Affecter cet objet au champ [`rendered`](#rendered) de l'objet [DataEntry](#dataentry) pour permettre aux utilisateurs d'[afficher le contenu dans une page](/fr/guides/content-collections/#restitution-du-contenu).
+Attribuez cet objet au champ [`rendered`](#dataentryrendered) de l'objet [`DataEntry`](#dataentry) pour permettre aux utilisateurs d'[afficher le contenu dans une page](/fr/guides/content-collections/#restitution-du-contenu). Si le contenu Markdown inclut un frontmatter, celui-ci sera analysé et disponible dans `metadata.frontmatter`. Les métadonnées seront exclues du rendu HTML.
 
 ```ts title=loader.ts {16-17}
 import type { Loader } from 'astro/loaders';
 import { loadFromCMS } from './cms.js';
 
-export function myLoader(settings): Loader {
+export function myLoader(settings) {
   return {
     name: 'cms-loader',
     async load({ renderMarkdown, store }) {
@@ -416,24 +950,50 @@ export function myLoader(settings): Loader {
         });
       }
     },
-  };
+  } satisfies Loader;
 }
 ```
 
-#### `generateDigest`
+##### `LoaderContext.fileURL`
 
 <p>
 
-**Type** : `(data: Record<string, unknown> | string) => string`
+**Type :** `URL`
+<Since v="6.0.0" />
 </p>
 
-Génère un résumé de contenu non cryptographique d'un objet ou d'une chaîne de caractères. Cela peut être utilisé pour suivre si les données ont changé en définissant [le champ `digest`](#digest) d'une entrée.
+Spécifie le chemin d'accès au fichier à utiliser pour résoudre les chemins d'image relatifs dans le contenu Markdown.
+
+L'exemple suivant utilise le [répertoire racine configuré](/fr/reference/configuration-reference/#root) pour résoudre les chemins d'accès aux images :
+
+```ts title=loader.ts {7}
+for (const file of files) {
+  const content = await readFile(file.path, 'utf8');
+  store.set({
+    id: file.id,
+    data: file.data,
+    rendered: await renderMarkdown(content, {
+      fileURL: new URL(file.path, config.root),
+    }),
+  });
+}
+```
+
+#### `LoaderContext.generateDigest()`
+
+<p>
+
+**Type :** `(data: Record<string, unknown> | string) => string`
+<Since v="5.0.0" />
+</p>
+
+Génère un résumé de contenu non cryptographique d'un objet ou d'une chaîne de caractères. Cela peut être utilisé pour suivre si les données ont changé en définissant [le champ `digest`](#dataentrydigest) d'une entrée.
 
 ```ts title=loader.ts {19,24}
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }): Loader {
+export function feedLoader({ url }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
@@ -443,8 +1003,9 @@ export function feedLoader({ url }): Loader {
       store.clear();
 
       for (const item of feed.items) {
+        const id = item.guid;
         const data = await parseData({
-          id: item.guid,
+          id,
           data: item,
         });
 
@@ -457,15 +1018,16 @@ export function feedLoader({ url }): Loader {
         });
       }
     },
-  };
+  } satisfies Loader;
 }
 ```
 
-#### `watcher`
+#### `LoaderContext.watcher`
 
 <p>
 
-**Type** : `FSWatcher`
+**Type :** `FSWatcher`
+<Since v="5.0.0" />
 </p>
 
 En mode dev, il s'agit d'un observateur de système de fichiers qui peut être utilisé pour déclencher des mises à jour. Voir [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver) pour plus d'informations.
@@ -488,17 +1050,21 @@ return {
 };
 ```
 
-#### `refreshContextData`
+#### `LoaderContext.refreshContextData`
 
 <p>
 
-**Type** : `Record<string, unknown>`
+**Type :** `Record<string, unknown>`
+<Since v="5.0.0" />
 </p>
 
 Si le chargeur a été déclenché par une intégration, il peut éventuellement contenir des données supplémentaires définies par cette intégration. Il n'est défini que lorsque le chargeur est déclenché par une intégration. Consultez la référence du hook [`astro:server:setup`](/fr/reference/integrations-reference/#option-refreshcontent) pour plus d'informations.
 
-```ts title=loader.ts {5-8}
-export function myLoader(options: { url: string }): Loader {
+```ts title=loader.ts {8-11}
+import type { Loader } from "astro/loaders";
+import { processWebhook } from "./lib/webhooks";
+
+export function myLoader(options: { url: string }) {
   return {
     name: "mon-chargeur",
     load: async ({ refreshContextData, store, logger }) => {
@@ -508,7 +1074,7 @@ export function myLoader(options: { url: string }): Loader {
       }
       // ...
     },
-  };
+  } satisfies Loader;
 }
 ```
 
@@ -516,11 +1082,12 @@ export function myLoader(options: { url: string }): Loader {
 
 Le magasin de données est l'interface d'un chargeur vers les données de la collection de contenu. Il s'agit d'un magasin clé-valeur (abrégé KV en anglais), limité à la collection, et par conséquent, un chargeur ne peut accéder qu'aux données de sa propre collection.
 
-#### `get`
+#### `DataStore.get()`
 
 <p>
 
-**Type** : <code>(key: string) => <a href="#dataentry">DataEntry</a> | undefined</code>
+**Type :** <code>(key: string) => <a href="#dataentry">DataEntry</a> | undefined</code>
+<Since v="5.0.0" />
 </p>
 
 Obtenir une entrée du magasin par son ID. Renvoie `undefined` si l'entrée n'existe pas.
@@ -531,19 +1098,21 @@ const existingEntry = store.get("my-entry");
 
 L'objet renvoyé est un objet [`DataEntry`](#dataentry).
 
-#### `set`
+#### `DataStore.set()`
 
 <p>
 
-**Type** : <code>(entry: <a href="#dataentry">DataEntry</a>) => boolean</code>
+**Type :** <code>(entry: <a href="#dataentry">DataEntry</a>) => boolean</code>
+<Since v="5.0.0" />
 </p>
 
-Utilisé après que les données ont été [validées et analysées](#parsedata) pour ajouter une entrée au magasin, renvoyant `true` si l'entrée a été définie. Renvoie `false` lorsque la propriété [`digest`](#digest) détermine qu'une entrée n'a pas changé et ne doit pas être mise à jour.
+Utilisé après que les données ont été [validées et analysées](#loadercontextparsedata) pour ajouter une entrée au magasin, renvoyant `true` si l'entrée a été définie. Renvoie `false` lorsque la propriété [`digest`](#dataentrydigest) détermine qu'une entrée n'a pas changé et ne doit pas être mise à jour.
 
-```ts title=loader.ts {7-14}
+```ts title=loader.ts {8-15}
     for (const item of feed.items) {
+      const id = item.guid;
       const data = await parseData({
-        id: item.guid,
+        id,
         data: item,
       });
       const digest = generateDigest(data);
@@ -558,56 +1127,62 @@ Utilisé après que les données ont été [validées et analysées](#parsedata)
     }
 ```
 
-#### `entries`
+#### `DataStore.entries()`
 
 <p>
 
-**Type** : `() => Array<[id: string, DataEntry]>`
+**Type :** <code>() => Array\<[id: string, <a href="#dataentry">DataEntry</a>]\></code>
+<Since v="5.0.0" />
 </p>
 
 Obtenir toutes les entrées de la collection sous forme de tableau de paires clé-valeur.
 
-#### `keys`
+#### `DataStore.keys()`
 
 <p>
 
-**Type** : `() => Array<string>`
+**Type :** `() => Array<string>`
+<Since v="5.0.0" />
 </p>
 
 Obtenir toutes les clés des entrées de la collection.
 
-#### `values`
+#### `DataStore.values()`
 
 <p>
 
-**Type** : `() => Array<DataEntry>`
+**Type :** <code>() => Array\<<a href="#dataentry">DataEntry</a>\></code>
+<Since v="5.0.0" />
 </p>
 
 Obtenir toutes les entrées de la collection sous forme de tableau.
 
-#### `delete`
+#### `DataStore.delete()`
 
 <p>
 
-**Type** : `(key: string) => void`
+**Type :** `(key: string) => void`
+<Since v="5.0.0" />
 </p>
 
 Supprimer une entrée du magasin par son ID.
 
-#### `clear`
+#### `DataStore.clear()`
 
 <p>
 
-**Type** : `() => void`
+**Type :** `() => void`
+<Since v="5.0.0" />
 </p>
 
 Effacer toutes les entrées de la collection.
 
-#### `has`
+#### `DataStore.has()`
 
 <p>
 
-**Type** : `(key: string) => boolean`
+**Type :** `(key: string) => boolean`
+<Since v="5.0.0" />
 </p>
 
 Vérifier si une entrée existe dans le magasin par son ID.
@@ -616,87 +1191,348 @@ Vérifier si une entrée existe dans le magasin par son ID.
 
 Il s'agit du type d'objet stocké dans le magasin de données. Il possède les propriétés suivantes :
 
-#### `id`
+#### `DataEntry.id`
 
 <p>
 
-**Type** : `string`
+**Type :** `string`
+<Since v="5.0.0" />
 </p>
 
 Un identifiant pour l'entrée, qui doit être unique dans la collection. Il est utilisé pour rechercher l'entrée dans le magasin et constitue la clé utilisée avec `getEntry` pour cette collection.
 
-#### `data`
+#### `DataEntry.data`
 
 <p>
 
-**Type** : `Record<string, unknown>`
+**Type :** `Record<string, unknown>`
+<Since v="5.0.0" />
 </p>
 
 Les données réelles de l'entrée. Lorsqu'un utilisateur accède à la collection, des types TypeScript seront générés selon le schéma de la collection.
 
-Il est de la responsabilité du chargeur d'utiliser [`parseData`](#parsedata) pour valider et analyser les données avant de les stocker dans le magasin de données : aucune validation n'est effectuée lors de l'obtention ou de la définition des données.
+Il est de la responsabilité du chargeur d'utiliser [`parseData`](#loadercontextparsedata) pour valider et analyser les données avant de les stocker dans le magasin de données : aucune validation n'est effectuée lors de l'obtention ou de la définition des données.
 
-#### `filePath`
+#### `DataEntry.filePath`
 
 <p>
 
-**Type** : `string | undefined`
+**Type :** `string | undefined`
+<Since v="5.0.0" />
 </p>
 
 Chemin d'accès au fichier source de cette entrée, par rapport à la racine du site. Cela s'applique uniquement aux chargeurs basés sur des fichiers et est utilisé pour résoudre des chemins tels que des images ou d'autres ressources.
 
 S'il n'est pas défini, tous les champs du schéma qui utilisent [l'assistant `image()`](/fr/guides/images/#images-dans-les-collections-de-contenu) seront traités comme des [chemins publics](/fr/guides/images/#où-stocker-les-images) et non transformés.
 
-#### `body`
+#### `DataEntry.body`
 
 <p>
 
-**Type** : `string | undefined`
+**Type :** `string | undefined`
+<Since v="5.0.0" />
 </p>
 
-Le corps brut de l'entrée, le cas échéant. Si l'entrée inclut du [contenu rendu](#rendered), ce champ peut être utilisé pour stocker la source brute. Ceci est facultatif et n'est pas utilisé en interne.
+Le corps brut de l'entrée, le cas échéant. Si l'entrée inclut du [contenu rendu](#dataentryrendered), ce champ peut être utilisé pour stocker la source brute. Ceci est facultatif et n'est pas utilisé en interne.
 
-#### `digest`
+#### `DataEntry.digest`
 
 <p>
 
-**Type** : `string | undefined`
+**Type :** `string | undefined`
+<Since v="5.0.0" />
 </p>
 
 Un résumé facultatif du contenu de l'entrée qui peut être utilisé pour vérifier si les données ont changé.
 
-Lors de [la définition d'une entrée](#set), l'entrée ne sera mise à jour que si le résumé ne correspond pas à une entrée existante avec le même ID.
+Lors de [la définition d'une entrée](#datastoreset), l'entrée ne sera mise à jour que si le résumé ne correspond pas à une entrée existante avec le même ID.
 
-Le format du résumé dépend du chargeur, mais il doit s'agir d'une chaîne de caractères qui change lorsque les données changent. Cela peut être fait avec la fonction [`generateDigest`](#generatedigest).
+Le format du résumé dépend du chargeur, mais il doit s'agir d'une chaîne de caractères qui change lorsque les données changent. Cela peut être fait avec la fonction [`generateDigest`](#loadercontextgeneratedigest).
 
-#### `rendered`
+#### `DataEntry.rendered`
 
 <p>
 
-**Type** : `RenderedContent | undefined`
+**Type :** `RenderedContent | undefined`
+<Since v="5.0.0" />
 </p>
 
 Stocke un objet avec le contenu rendu et les métadonnées d'une entrée si elle a été rendue au format HTML. Par exemple, cela peut être utilisé pour stocker le contenu rendu d'une entrée Markdown ou du code HTML d'un CMS.
 
 Si ce champ est fourni, alors [la fonction `render()` et le composant `<Content />`](/fr/guides/content-collections/#restitution-du-contenu) sont disponibles pour restituer l'entrée dans une page.
 
-Le format de l'objet `RenderedContent` est :
+Si l'entrée contient du contenu Markdown, vous pouvez utiliser la fonction [`renderMarkdown()`](#loadercontextrendermarkdown) pour générer cet objet à partir de la chaîne de caractères au format Markdown.
+
+##### `DataEntry.rendered.html`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Contient la chaîne de caractères rendue au format HTML. Celle-ci est utilisée par [`render()`](/fr/reference/modules/astro-content/#render) pour renvoyer un composant qui effectue le rendu de ce HTML.
+
+##### `DataEntry.rendered.metadata`
+
+<p>
+
+**Type :** `object | undefined`
+</p>
+
+Décrit les métadonnées présentes dans ce fichier. Cela inclut les chemins d'accès aux images (`imagePaths`), les titres (`headings`), le `frontmatter` et toutes autres métadonnées présentes dans le fichier. Si le fichier n'a pas été rendu au format HTML, cette valeur sera `undefined`.
+
+###### `DataEntry.rendered.metadata.imagePaths`
+
+<p>
+
+**Type :** `string[]`
+</p>
+
+Spécifie la liste des chemins d'accès aux images présentes dans cette entrée. Chaque chemin est relatif au [chemin de l'entrée (`filePath`)] (#dataentryfilepath).
+
+###### `DataEntry.rendered.metadata.headings`
+
+<p>
+
+**Type :** `MarkdownHeading[]`
+</p>
+
+Spécifie la liste des titres présents dans ce fichier. Chaque titre est décrit par une profondeur (`depth`) déterminée par le niveau du titre (`h1 -> h6`), un `slug` généré avec [`github-slugger`](https://github.com/Flet/github-slugger), et son contenu (`text`).
+
+###### `DataEntry.rendered.metadata.frontmatter`
+
+<p>
+
+**Type :** `Record<string, any>`
+</p>
+
+Décrit le frontmatter brut, analysé à partir du fichier. Cela peut inclure [des données injectées par programmation à partir de modules d'extension Remark](/fr/guides/markdown-content/#modifying-frontmatter-programmatically).
+
+## API des chargeurs en direct
+
+<p><Since v="6.0.0" /></p>
+
+Cette section présente l'API permettant de définir un [chargeur en direct](#live-loaders).
+
+### L'objet `LiveLoader`
+
+<p>
+
+**Type :** `LiveLoader<TData, TEntryFilter, TCollectionFilter, TError>`
+<Since v="6.0.0" />
+</p>
+
+Une fonction de chargement en direct renvoie un objet comportant trois propriétés obligatoires. En plus de fournir un nom pour le chargeur, cet objet décrit comment récupérer des entrées individuelles et une collection entière à partir de votre source de données en direct.
+
+Utilisez le type générique `LiveLoader` pour garantir la sûreté du typage dans votre chargeur. Ce type accepte les paramètres de type suivants, dans cet ordre :
+
+- **`TData`** (par défaut `Record<string, inconnu>`) : La structure de données de chaque entrée renvoyée par le chargeur.
+- **`TEntryFilter`** (par défaut : `never`) : Type d’objet filtre accepté par [`getLiveEntry()`](/fr/reference/modules/astro-content/#getliveentry) et accessible dans [`loadEntry()`](#liveloaderloadentry). Utilisez `never` si vous ne prenez pas en charge le filtrage des entrées individuelles.
+- **`TCollectionFilter`** (par défaut : `never`) : Type d’objet filtre accepté par [`getLiveCollection()`](/fr/reference/modules/astro-content/#getlivecollection) et accessible dans [`loadCollection()`](#liveloaderloadcollection). Utilisez `never` lorsque vous ne prenez pas en charge le filtrage des collections.
+- **`TError`** (par défaut `Error`) : Une [classe `Error` personnalisée](https://developer.mozilla.org/fr/docs/Web/JavaScript/Reference/Global_Objects/Error#types_derreur_personnalisés) qui peut être renvoyée par le chargeur pour une gestion des erreurs plus granulaire.
+
+#### `LiveLoader.name`
+
+<p>
+
+**Type :** `string`
+<Since v="6.0.0" />
+</p>
+
+
+Un nom unique pour le chargeur, utilisé dans les journaux.
+
+#### `LiveLoader.loadCollection()`
+
+<p>
+
+**Type :** <code>(context: <a href="#loadcollectioncontext">LoadCollectionContext</a>\<TCollectionFilter\>) => Promise\<<a href="#livedatacollection">LiveDataCollection</a>\<TData\> | \{ error: TError; \}\></code>
+<Since v="6.0.0" />
+</p>
+
+Définit une méthode pour charger une collection d'entrées. Cette fonction reçoit un [objet de contexte](#loadcollectioncontext) contenant une propriété `filter` facultative et doit renvoyer les données associées à cette collection ou les erreurs.
+
+#### `LiveLoader.loadEntry()`
+
+<p>
+
+**Type :** <code>(context: <a href="#loadentrycontext">LoadEntryContext</a>\<TEntryFilter\>) => Promise\<<a href="#livedataentry">LiveDataEntry</a>\<TData\> | undefined | \{ error: TError; \}\></code>
+<Since v="6.0.0" />
+</p>
+
+Définit une méthode pour charger une seule entrée. Cette fonction reçoit un [objet de contexte](#loadentrycontext) contenant une propriété `filter` et renvoie soit les données associées à l'entrée demandée, `undefined` lorsque l'entrée est introuvable, soit les erreurs.
+
+### `LoadCollectionContext`
+
+<p>
+
+**Type :** `{ filter?: TCollectionFilter; }`
+<Since v="6.0.0" />
+</p>
+
+Cet objet est transmis à la méthode [`loadCollection()`](#liveloaderloadcollection) du chargeur et contient les propriétés suivantes :
+
+#### `LoadCollectionContext.filter`
+
+<p>
+
+**Type :** `Record<string, any> | never`<br />
+**Default:** `never`
+<Since v="6.0.0" />
+</p>
+
+Un objet décrivant les [filtres pris en charge par votre chargeur](#defining-custom-filter-types).
+
+### `LoadEntryContext`
+
+<p>
+
+**Type :** `{ filter: TEntryFilter; }`
+<Since v="6.0.0" />
+</p>
+
+Cet objet est transmis à la méthode [`loadEntry()`](#liveloaderloadentry) du chargeur et contient les propriétés suivantes :
+
+#### `LoadEntryContext.filter`
+
+<p>
+
+**Type :** `Record<string, any> | never`<br />
+**Default:** `never`
+<Since v="6.0.0" />
+</p>
+
+Un objet décrivant les [filtres pris en charge par votre chargeur](#defining-custom-filter-types).
+
+
+### `LiveDataEntry`
+
+<p>
+
+**Type :** <code>\{ id: string; data: TData; rendered?: \{ html: string \}; cacheHint?: <a href="#cachehint">CacheHint</a>; \}</code>
+<Since v="6.0.0" />
+</p>
+
+Il s'agit de l'objet de type renvoyé par la méthode [`loadEntry()`](#liveloaderloadentry). Il contient les propriétés suivantes :
+
+#### `LiveDataEntry.id`
+
+<p>
+
+**Type :** `string`
+<Since v="6.0.0" />
+</p>
+
+Un identifiant pour l'entrée, qui doit être unique au sein de la collection. Il s'agit du nom de propriété utilisé avec [`getLiveEntry()`](/fr/reference/modules/astro-content/#getliveentry) pour cette collection.
+
+#### `LiveDataEntry.data`
+
+<p>
+
+**Type :** `Record<string, unknown>`
+<Since v="6.0.0" />
+</p>
+
+Les données réelles de l'entrée. Lorsqu'un utilisateur accède à la collection, des types TypeScript sont générés conformément au schéma de la collection.
+
+Il incombe au chargeur de valider et d'analyser les données avant de les renvoyer.
+
+#### `LiveDataEntry.rendered`
+
+<p>
+
+**Type :** `{ html: string }`
+<Since v="6.0.0" />
+</p>
+
+Un objet contenant le contenu rendu d'une entrée si celle-ci a été convertie en HTML. Par exemple, il peut s'agir du contenu rendu d'une entrée Markdown ou du code HTML provenant d'un CMS.
+
+Si ce champ est fourni, alors [la fonction `render()` et le composant `<Content />`](/fr/guides/content-collections/#rendering-body-content) sont disponibles pour afficher l'entrée dans une page.
+
+Si le chargeur ne renvoie pas de propriété `rendered` pour une entrée, le composant `<Content />` ne génèrera rien.
+
+#### `LiveDataEntry.cacheHint`
+
+<p>
+
+**Type :** [`CacheHint`](#cachehint)
+<Since v="6.0.0" />
+</p>
+
+Un objet optionnel fournissant une indication sur la manière de mettre en cache cette entrée spécifique.
+
+### `LiveDataCollection`
+
+<p>
+
+**Type :** <code>\{ entries: Array\<<a href="#livedataentry">LiveDataEntry</a>\<TData\>\>; cacheHint?: <a href="#cachehint">CacheHint</a>; \}</code>
+<Since v="6.0.0" />
+</p>
+
+Il s'agit du type d'objet renvoyé par la méthode [`loadCollection()`](#liveloaderloadcollection). Il contient les propriétés suivantes :
+
+#### `LiveDataCollection.entries`
+
+<p>
+
+**Type :** <code>Array\<<a href="#livedataentry">LiveDataEntry</a>\<TData\>\></code>
+<Since v="6.0.0" />
+</p>
+
+Un tableau d'objets [`LiveDataEntry`](#livedataentry).
+
+#### `LiveDataCollection.cacheHint`
+
+<p>
+
+**Type :** [`CacheHint`](#cachehint)
+<Since v="6.0.0" />
+</p>
+
+Un objet optionnel fournissant des indications sur la manière de mettre en cache cette collection. Cet objet sera fusionné avec les indications de cache définies pour chaque entrée individuelle, si elles sont fournies.
+
+### `CacheHint`
+
+Un objet que les chargeurs peuvent renvoyer via la propriété `cacheHint` dans [`LiveDataCollection`](#livedatacollection) ou [`LiveDataEntry`](#livedataentry) pour fournir des indications pour aider à la mise en cache de la réponse. Cet objet contient les propriétés suivantes :
+
+#### `CacheHint.tags`
+
+<p>
+
+**Type :** `Array<string>`
+<Since v="6.0.0" />
+</p>
+
+Un tableau d'identifiants de chaînes de caractères permettant un contrôle précis du cache. Cela vous permet de regrouper du contenu similaire et d'invalider sélectivement les réponses mises en cache lorsque certains contenus sont modifiés.
+
+L'exemple suivant définit des étiquettes d'indication de cache pour une collection d'articles filtrés par auteur :
 
 ```ts
-{
-	/** Chaîne HTML rendue. Si elle est présente, `render(entry)` renverra un composant qui restitue ce code HTML. */
-	html: string;
-	metadata?: {
-		/** Toutes les images présentes dans cette entrée. Relatives au chemin d'accès au fichier DataEntry. */
-		imagePaths?: Array<string>;
-		/** Tous les titres présents dans ce fichier. Renvoyé comme `headings` par `render()` */
-		headings?: MarkdownHeading[];
-		/** Frontmatter brut, analysé à partir du fichier. Cela peut inclure des données provenant de modules d'extension Remark. */
-		frontmatter?: Record<string, any>;
-		/** Toute autre métadonnée présente dans ce fichier. */
-		[key: string]: unknown;
-	};
-}
+return {
+  /* ... */
+  cacheHint: {
+    tags: ["articles", `articles-${filter.author}`],
+  },
+};
 ```
 
-Si l'entrée contient du contenu Markdown, vous pouvez utiliser la fonction [`renderMarkdown()`](#rendermarkdown) pour générer cet objet à partir de la chaîne Markdown.
+#### `CacheHint.lastModified`
+
+<p>
+
+**Type :** `Date`
+<Since v="6.0.0" />
+</p>
+
+La date de la dernière modification du contenu (par exemple, la dernière mise à jour d'une entrée dans une collection). Cette date peut être utilisée pour définir des en-têtes de cache HTTP tels que [`Last-Modified`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Last-Modified) et [`If-Modified-Since`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/If-Modified-Since).
+
+L'exemple suivant définit une indication de cache pour un seul produit en utilisant sa date de dernière mise à jour :
+
+```ts
+return {
+  /* ... */
+  cacheHint: {
+    lastModified: new Date(product.updatedAt)
+  },
+};
+```
