@@ -5,27 +5,37 @@ sidebar:
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
-  maxHeadingLevel: 6
+  maxHeadingLevel: 3
 ---
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
 <p><Since v="2.0.0" /></p>
 
-Les collections de contenu proposent des API pour configurer et interroger vos documents Markdown ou MDX dans `src/content/`. Pour connaître les fonctionnalités et les exemples d'utilisation, [consultez notre guide sur les collections de contenu](/fr/guides/content-collections/).
+Les collections de contenu consommées lors de la compilation offrent des API permettant de configurer, d'interroger et d'effectuer le rendu de vos fichiers Markdown, MDX, Markdoc, YAML, TOML ou JSON locaux, ainsi que du contenu distant.
+
+<p><Since v="6.0.0" /></p>
+
+Les collections de contenu en direct offrent des API permettant de configurer, d'interroger et d'afficher des données en direct, actualisées en temps réel, provenant de sources distantes.
+
+Pour les fonctionnalités et des exemples d'utilisation, [consultez notre guide sur les collections de contenu](/fr/guides/content-collections/).
 
 ## Importations depuis `astro:content`
 
 ```js
-import { 
+import {
   defineCollection,
+  defineLiveCollection,
   getCollection,
+  getLiveCollection,
   getEntry,
+  getLiveEntry,
   getEntries,
   reference,
   render
- } from 'astro:content';
+} from 'astro:content';
 ```
+
 ### `defineCollection()`
 
 <p>
@@ -34,11 +44,11 @@ import {
 <Since v="2.0.0" />
 </p>
 
-`defineCollection()` est un utilitaire pour configurer une collection dans un fichier `src/content.config.*`.
+Un utilitaire pour configurer une collection dans un fichier `src/content.config.*`.
 
 ```ts title="src/content.config.ts"
-import { defineCollection } from "astro:content";
-import { z } from "astro/zod";
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
@@ -50,7 +60,7 @@ const blog = defineCollection({
 });
 
 // Exposez votre collection définie à Astro
-// avec l'exportation `collections`
+// avec l'exportation de `collections`
 export const collections = { blog };
 ```
 
@@ -64,9 +74,9 @@ Cette fonction accepte les propriétés suivantes :
 <Since v="5.0.0" />
 </p>
 
-Un `loader` est soit un objet, soit une fonction qui vous permet de charger des données à partir de n'importe quelle source, locale ou distante, dans des collections de contenu.
+Un objet ou une fonction permettant de charger des données depuis n'importe quelle source, locale ou distante, dans une collection de contenu consommée lors de la compilation. (Pour les collections en direct, consultez la propriété [`loader` pour les chargeurs en direct](#loader-1).)
 
-[Consultez le guide « Collection de contenu »](/fr/guides/content-collections/#définir-le-chargeur-de-collection-loader) pour un exemple d'utilisation.
+<ReadMore>Découvrez les [chargeurs de collections appelés lors de la compilation](/fr/guides/content-collections/#chargeurs-de-collections-appelés-lors-de-la-compilation) avec des explications guidées et des exemples d'utilisation.</ReadMore>
 
 #### `schema`
 
@@ -76,26 +86,79 @@ Un `loader` est soit un objet, soit une fonction qui vous permet de charger des 
 <Since v="2.0.0" />
 </p>
 
-`schema` est un objet Zod facultatif pour configurer le type et la forme du document pour une collection. Chaque valeur doit utiliser [un validateur Zod](/fr/reference/modules/astro-zod/#validateurs-de-types-de-données-courants).
+Un objet, ou une fonction Zod, optionnel qui renvoie un objet Zod pour configurer le type et la structure des métadonnées d'un document pour une collection. Chaque valeur doit utiliser un validateur Zod. (Pour les collections en direct, consultez la propriété `schema` des collections en direct.)
 
-[Consultez le guide Collections de contenu](/fr/guides/content-collections/#définition-dun-schéma-de-collection) pour un exemple d'utilisation.
+<ReadMore>Découvrez la [définition d'un schéma de collection](/fr/guides/content-collections/#définition-dun-schéma-de-collection) à l'aide de Zod avec des explications guidées, des exemples d'utilisation et des types de données courants.</ReadMore>
+
+### `defineLiveCollection()`
+
+<p>
+
+**Type :** `(config: LiveCollectionConfig) => LiveCollectionConfig`
+<Since v="6.0.0" />
+</p>
+
+Un utilitaire permettant de configurer une collection en direct dans un fichier `src/live.config.*`.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@example/astro-loader';
+
+const produits = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.example.com/v1',
+  }),
+});
+
+// Exposez votre collection définie à Astro
+// avec l'exportation de `collections`
+export const collections = { produits };
+```
+
+Cette fonction accepte les propriétés suivantes :
+
+#### `loader`
+
+<p>
+
+**Type :** `LiveLoader`
+<Since v="6.0.0" />
+</p>
+
+Un objet permettant de charger des données à l'exécution depuis une source distante dans une collection de contenu en direct. (Pour les collections consommées lors de la compilation, voir la propriété [`loader` utilisée au moment de la compilation](#loader).)
+
+<ReadMore>Apprenez comment [créer un chargeur en direct](/fr/guides/content-collections/#création-dun-chargeur-en-direct) avec des explications guidées et des exemples d'utilisation.</ReadMore>
+
+#### `schema`
+
+<p>
+
+**Type :** <code>ZodType</code>
+<Since v="6.0.0" />
+</p>
+
+Un objet Zod optionnel permet de configurer le type et la structure de vos données pour une collection en direct. Chaque valeur doit utiliser [un validateur Zod](https://github.com/colinhacks/zod). (Pour les collections consommées lors de la compilation, consultez la propriété [`schema` utilisée au moment de la compilation](#schema).)
+
+Lorsque vous définissez un schéma, celui-ci aura la priorité sur les [types du chargeur en direct](/fr/reference/content-loader-reference/#api-des-chargeurs-en-direct) lorsque vous interrogez la collection.
+
+<ReadMore>Apprenez à [utiliser les schémas Zod avec les collections en direct](/fr/guides/content-collections/#utilisation-des-schémas-zod-avec-des-collections-en-direct) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
 
 ### `reference()`
 
 <p>
 
-**Type :** `(collection: string) => ZodEffects<ZodString, { collection, id: string }>`<br />
+**Type :** <code>(collection: <a href="#collectionkey">CollectionKey</a>) => ZodEffects\<ZodString, \{ collection: CollectionKey, id: string \}\></code><br />
 <Since v="2.5.0" />
 </p>
 
-La fonction `reference()` est utilisée dans la configuration du contenu pour définir une relation, ou « référence », entre une collection et une autre. Elle accepte un nom de collection et transforme la référence en un objet contenant le nom de la collection et l'identifiant de référence.
-
+Une fonction utilisée dans la configuration du contenu pour définir une relation, ou « référence », entre une collection et une autre. Elle accepte un nom de collection et transforme la référence en un objet contenant le nom de la collection et l'identifiant de référence.
 
 Cet exemple définit les références d'un auteur de blog à la collection `authors` et un tableau d'articles associés à la même collection `blog` :
 
 ```ts
-import { defineCollection, reference } from "astro:content";
-import { z } from "astro/zod";
+import { defineCollection, reference } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob, file } from 'astro/loaders';
 
 const blog = defineCollection({
@@ -115,6 +178,7 @@ const authors = defineCollection({
 
 export const collections = { blog, authors };
 ```
+
 La validation des entrées référencées se produit au moment de l'exécution lors de l'utilisation de `getEntry()` ou `getEntries()` :
 
 ```astro title="src/pages/[posts].astro"
@@ -122,25 +186,25 @@ La validation des entrées référencées se produit au moment de l'exécution l
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ```
 
-[Consultez le guide Collections de contenu](/fr/guides/content-collections/#définition-des-références-de-collection) pour un exemple d'utilisation.
+<ReadMore>Apprenez à [définir et utiliser les références de collection](/fr/guides/content-collections/#définition-des-références-de-collection) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
 
 ### `getCollection()`
 
 <p>
 
-**Type :** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+**Type :** <code>(collection: <a href="#collectionkey">CollectionKey</a>, filter?: (entry: <a href="#collectionentry">CollectionEntry</a>) => boolean) => CollectionEntry[]</code>
 <Since v="2.0.0" />
 </p>
 
-`getCollection()` est une fonction qui récupère une liste d'entrées de collection de contenu par nom de collection.
+Une fonction qui récupère une liste d'entrées de collection de contenu par nom de collection.
 
 Elle renvoie tous les éléments de la collection par défaut et accepte une fonction facultative `filter` pour affiner les propriétés d'entrée. Cela vous permet d'interroger uniquement certains éléments d'une collection en fonction de `id` ou des valeurs du frontmatter via l'objet `data`.
 
-```astro
+```astro title="src/pages/blog/index.astro"
 ---
 import { getCollection } from 'astro:content';
 
-// Récupère toutes les entrées `src/content/blog/`
+// Récupère toutes les entrées `src/data/blog/`
 const allBlogPosts = await getCollection('blog');
 
 // Ne renvoie que les messages avec `draft: true` dans le frontmatter
@@ -150,21 +214,47 @@ const draftBlogPosts = await getCollection('blog', ({ data }) => {
 ---
 ```
 
-[Consultez le guide Collections de contenu](/fr/guides/content-collections/#interroger-les-collections) pour un exemple d'utilisation.
+<ReadMore>Apprenez à [interroger les collections consommées lors de la compilation](/fr/guides/content-collections/#interroger-les-collections-consommées-lors-de-la-compilation) avec des explications guidées et des exemples d'utilisation.</ReadMore>
+
+### `getLiveCollection()`
+
+<p>
+
+**Type :** <code>(collection: string, filter?: LiveLoaderCollectionFilterType) => Promise\<<a href="#livedatacollectionresult">LiveDataCollectionResult</a>\></code>
+<Since v="6.0.0" />
+</p>
+
+Une fonction qui récupère la liste des entrées de collection de contenu en direct par nom de collection.
+
+Elle renvoie par défaut tous les éléments de la collection et accepte un objet `filter` optionnel dont la structure est définie par le chargeur de la collection. Cela vous permet d'interroger uniquement certains éléments d'une collection ou de récupérer des données sous un format différent, selon les capacités de votre API.
+
+```astro title="src/pages/boutique/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+// Récupérer toutes les entrées de produits depuis votre API
+const { entries: allProducts } = await getLiveCollection('produits');
+
+// Ne renvoyer que les produits qui devraient être mis en avant.
+const { entries: featuredProducts } = await getLiveCollection('produits', { featured: true });
+---
+```
+
+<ReadMore>Apprenez comment [accéder aux données des collections en direct](/fr/guides/content-collections/#accès-aux-données-en-direct) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
 
 ### `getEntry()`
 
 <p>
 
-**Types :**
-* `(collection: string, id: string) => Promise<CollectionEntry<collection> | undefined>`
-* `({ collection: string, id: string }) => Promise<CollectionEntry<collection> | undefined>`
+**Types :**
+* <code>(collection: <a href="#collectionkey">CollectionKey</a>, id: string) => Promise\<<a href="#collectionentry">CollectionEntry</a> | undefined\></code>
+* <code>(\{ collection: <a href="#collectionkey">CollectionKey</a>, id: string \}) => Promise\<<a href="#collectionentry">CollectionEntry</a> | undefined\></code>
 <Since v="2.5.0" />
 </p>
 
-`getEntry()` est une fonction qui récupère une seule entrée de collection par nom de collection et l'entrée `id`. `getEntry()` peut également être utilisée pour obtenir des entrées référencées pour accéder aux propriétés `data` ou `body` :
+Une fonction qui récupère une seule entrée de collection par nom de collection et l'entrée `id`. `getEntry()` peut également être utilisée pour obtenir des entrées référencées pour accéder aux propriétés `data` ou `body` :
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 import { getEntry } from 'astro:content';
 
@@ -179,19 +269,43 @@ const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 ---
 ```
 
-Consultez le guide Collections de contenu pour des exemples d'[interrogation des entrées de collection](/fr/guides/content-collections/#interroger-les-collections).
+<ReadMore>Apprenez-en davantage sur [l'interrogation des collections consommée lors de la compilation](/fr/guides/content-collections/#interroger-les-collections-consommées-lors-de-la-compilation) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
+
+### `getLiveEntry()`
+
+<p>
+
+**Type :** <code>(collection: string, filter: string | LiveLoaderEntryFilterType) => Promise\<<a href="#livedataentryresult">LiveDataEntryResult</a>\></code>
+<Since v="6.0.0" />
+</p>
+
+Une fonction qui récupère une seule entrée de collection en direct par nom de collection et un filtre facultatif, soit sous forme de chaîne de caractères correspondant à l'`id`, soit sous forme d'objet avec sûreté du typage.
+
+```astro title="src/pages/blog/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry: liveCollectionsPost } = await getLiveEntry('blog', Astro.params.id);
+const { entry: mattDraft } = await getLiveEntry('blog', {
+  status: 'draft',
+  author: 'matt',
+});
+---
+```
+
+<ReadMore>Apprenez comment [accéder aux données des collections en direct](/fr/guides/content-collections/#accès-aux-données-en-direct) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
 
 ### `getEntries()`
 
 <p>
 
-**Type :** `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+**Type :** <code>(\{ collection: <a href="#collectionkey">CollectionKey</a>, id: string \}[]) => <a href="#collectionentry">CollectionEntry</a>[]</code>
 <Since v="2.5.0" />
 </p>
 
-`getEntries()` est une fonction qui récupère plusieurs entrées dans une même collection. Ceci est utile pour [renvoyer un tableau d'entrées référencées](/fr/guides/content-collections/#définition-des-références-de-collection) afin d'accéder à leurs propriétés associées `data` et `body`.
+Une fonction qui récupère plusieurs entrées dans une même collection. Ceci est utile pour [renvoyer un tableau d'entrées référencées](/fr/guides/content-collections/#définition-des-références-de-collection) afin d'accéder à leurs propriétés associées `data` et `body`.
 
-```astro
+```astro title="src/pages/blog/enterprise/index.astro"
 ---
 import { getEntries, getEntry } from 'astro:content';
 
@@ -206,7 +320,7 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**Type :** `(entry: CollectionEntry) => Promise<RenderedEntry>`
+**Type :** <code>(entry: <a href="#collectionentry">CollectionEntry</a>) => Promise\<RenderResult\></code>
 <Since v="5.0.0" />
 </p>
 
@@ -216,20 +330,20 @@ Une fonction permettant de compiler une entrée donnée pour le rendu. Elle renv
 - `headings` - Une liste générée de titres, [reflétant l'utilitaire `getHeadings()` d'Astro](/fr/guides/markdown-content/#propriétés-disponibles) sur les importations Markdown et MDX.
 - `remarkPluginFrontmatter ` - L'objet frontmatter modifié après que tous les [modules d'extension Remark ou Rehype ont été appliqués](/fr/guides/markdown-content/#modification-programmatique-du-frontmatter). Définit sur le type `any`.
 
-```astro
+```astro title="src/pages/blog/article-1.astro"
 ---
 import { getEntry, render } from 'astro:content';
-const entry = await getEntry('blog', 'entry-1');
+const entry = await getEntry('blog', 'article-1');
 
 if (!entry) {
    // Gérer l'erreur, par exemple :
-  throw new Error('Could not find blog post 1');
+  throw new Error("Impossible de trouver l'article de blog 1");
 }
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 ---
 ```
 
-[Consultez le guide collections de contenu](/fr/guides/content-collections/#restitution-du-contenu) pour un exemple d'utilisation.
+<ReadMore>Apprenez comment [restituer le contenu des entrées](/fr/guides/content-collections/#restitution-du-contenu) avec des explications guidées et des exemples d'utilisation.</ReadMore>
 
 ## Types d'`astro:content`
 
@@ -237,10 +351,8 @@ const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 import type {
   CollectionEntry,
   CollectionKey,
-  ContentCollectionKey,
-  DataCollectionKey,
   SchemaContext,
- } from 'astro:content';
+} from 'astro:content';
 ```
 
 ### `CollectionEntry`
@@ -251,47 +363,81 @@ Les fonctions de requête, notamment [`getCollection()`](#getcollection), [`getE
 import type { CollectionEntry } from 'astro:content';
 ```
 
-`CollectionEntry` est un type générique. Utilisez-le avec le nom de la collection que vous interrogez.
+Un type générique à utiliser avec le nom de la collection interrogée pour représenter une entrée unique de cette collection.
 Par exemple, une entrée de votre collection `blog` aurait le type `CollectionEntry<'blog'>`.
 
 Chaque `CollectionEntry` est un objet avec les valeurs suivantes :
 
-#### `id`
+#### `CollectionEntry.id`
+
+<p>
 
 **Type :** `string`
+</p>
 
 Un identifiant unique. Notez que tous les identifiants du chargeur `glob()` intégré d'Astro sont transformés en slug.
 
-#### `collection`
+#### `CollectionEntry.collection`
 
-**Exemple de type :** `'blog' | 'authors' | ...`
+<p>
+
+**Type :** [`CollectionKey`](#collectionkey)
+</p>
 
 Le nom d'une collection dans laquelle se trouvent les entrées. Il s'agit du nom utilisé pour référencer la collection dans votre schéma et dans les fonctions de requête.
 
-#### `data`
+#### `CollectionEntry.data`
+
+<p>
 
 **Type :** `CollectionSchema<TCollectionName>`
+</p>
 
 Un objet de propriétés provenant du frontmatter et déduit de votre schéma de collection ([voir la référence `defineCollection()`](#definecollection)). La valeur par défaut est `any` si aucun schéma n'est configuré.
 
-#### `body`
+#### `CollectionEntry.body`
+
+<p>
 
 **Type :** `string | undefined`
+</p>
 
 Une chaîne de caractères contenant le corps brut et non compilé du document Markdown ou MDX.
 
 Notez que si [`retainBody`](/fr/reference/content-loader-reference/#retainbody) est défini sur `false`, cette valeur sera `undefined` au lieu de contenir le contenu brut du fichier.
 
+#### `CollectionEntry.rendered`
+
+<p>
+
+**Type :** `RenderedContent | undefined`
+</p>
+
+Le contenu rendu d'une entrée tel qu'[enregistré par votre chargeur](/fr/reference/content-loader-reference/#dataentryrendered). Par exemple, il peut s'agir du contenu rendu d'une entrée Markdown ou de code HTML provenant d'un CMS.
+
+#### `CollectionEntry.filePath`
+
+<p>
+
+**Type :** `string | undefined`
+</p>
+
+Le chemin d'accès à une entrée relative à votre répertoire de projet. Cette valeur n'est disponible que pour les entrées locales.
+
 ### `CollectionKey`
 
-<p><Since v="3.1.0" /></p>
+<p>
+
+**Exemple de type :** `'blog' | 'authors' | ...`<br />
+<Since v="3.1.0" />
+</p>
 
 Une union de chaînes de caractères de tous les noms de collections définis dans votre fichier `src/content.config.*`. Ce type peut être utile lors de la définition d'une fonction générique enveloppant la fonction intégrée `getCollection()`.
 
-```ts
+```ts title="src/utils/collections.ts"
 import { type CollectionKey, getCollection } from 'astro:content';
 
-async function queryCollection(collection: CollectionKey) {
+export async function queryCollection(collection: CollectionKey) {
   return getCollection(collection, ({ data }) => {
     return data.draft !== true;
   });
@@ -306,9 +452,10 @@ Il inclut la propriété suivante :
 
 - `image` - L'assistant de schéma `image()` qui vous permet [d'utiliser des images locales dans les collections de contenu](/fr/guides/images/#images-dans-les-collections-de-contenu)
 
-```ts
+```ts title="src/content.config.ts" "SchemaContext" {5-9,13,16}
 import { defineCollection, type SchemaContext } from "astro:content";
-import { z } from "astro/zod";
+import { z } from 'astro/zod';
+import { glob } from 'astro/loaders';
 
 export const imageSchema = ({ image }: SchemaContext) =>
     z.object({
@@ -317,11 +464,214 @@ export const imageSchema = ({ image }: SchemaContext) =>
     });
 
 const blog = defineCollection({
-  loader: /* ... */,
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: ({ image }) => z.object({
     title: z.string(),
     permalink: z.string().optional(),
     image: imageSchema({ image })
   }),
 });
+```
+
+## Types d'`astro`
+
+```ts
+import type {
+  LiveDataCollectionResult,
+  LiveDataEntryResult,
+} from "astro";
+```
+
+### `LiveDataCollectionResult`
+
+<p>
+
+**Type :** <code>\{ entries?: Array\<<a href="/fr/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\>\>; error?: TError | LiveCollectionError; cacheHint?: <a href="/fr/reference/content-loader-reference/#cachehint">CacheHint</a>; \}</code><br />
+<Since v="6.0.0" />
+</p>
+
+Un objet renvoyé par [`getLiveCollection()`](#getlivecollection) contenant les données récupérées par le chargeur en direct. Il possède les propriétés suivantes :
+
+#### `LiveDataCollectionResult.entries`
+
+<p>
+
+**Type :** <code>Array\<<a href="/fr/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\>\> | undefined</code>
+</p>
+
+Un tableau d'objets [`LiveDataEntry`](/fr/reference/content-loader-reference/#livedataentry) renvoyés par le chargeur.
+
+L'exemple suivant accède aux entrées renvoyées par une collection en direct nommée `produits` :
+
+```astro title="src/pages/boutique/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries: allProducts } = await getLiveCollection('produits');
+---
+```
+
+<ReadMore>Apprenez comment [accéder aux données en direct](/fr/guides/content-collections/#accès-aux-données-en-direct) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
+
+#### `LiveDataCollectionResult.error`
+
+<p>
+
+**Type :** `TError | LiveCollectionError | undefined`
+</p>
+
+Une erreur renvoyée lorsque le chargeur n'a pas pu charger la collection. Il peut s'agir d'une erreur personnalisée définie par le chargeur ou d'une erreur intégrée.
+
+L'exemple suivant accède à l'erreur renvoyée lors de la récupération de données à partir d'une collection en direct nommée `produits` :
+
+```astro title="src/pages/boutique/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { error } = await getLiveCollection('produits');
+---
+```
+
+<ReadMore>Apprenez-en davantage sur la [gestion des erreurs](/fr/guides/content-collections/#gestion-des-erreurs) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
+
+#### `LiveDataCollectionResult.cacheHint`
+
+<p>
+
+**Type :** <code><a href="/fr/reference/content-loader-reference/#cachehint">CacheHint</a> | undefined</code>
+</p>
+
+Un objet fournissant des instructions sur la manière de mettre en cache cette collection.
+
+Si vous avez activé la [mise en cache expérimentale des routes](/fr/reference/experimental-flags/route-caching/), transmettez directement l'indication de cache à `Astro.cache.set()` :
+
+```astro title="src/pages/boutique/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+export const prerender = false; // Pas nécessaire en mode `server`
+
+const { cacheHint } = await getLiveCollection('produits');
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+```
+
+Vous pouvez également utiliser les indications de cache pour définir manuellement les en-têtes de réponse :
+
+```astro title="src/pages/boutique/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { cacheHint } = await getLiveCollection('produits');
+
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+```
+
+### `LiveDataEntryResult`
+
+<p>
+
+**Type :** <code>\{ entry?: <a href="/fr/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\>; error?: TError | LiveCollectionError; cacheHint?: <a href="/fr/reference/content-loader-reference/#cachehint">CacheHint</a>; }</code><br />
+<Since v="6.0.0" />
+</p>
+
+Un objet renvoyé par [`getLiveEntry()`](#getliveentry) contenant les données récupérées par le chargeur en direct. Il possède les propriétés suivantes :
+
+#### `LiveDataEntryResult.entry`
+
+<p>
+
+**Type :** <code><a href="/fr/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\> | undefined</code>
+</p>
+
+L'objet [`LiveDataEntry`](/fr/reference/content-loader-reference/#livedataentry) renvoyé par le chargeur.
+
+L'exemple suivant accède à l'entrée demandée dans une collection en direct nommée `produits` :
+
+```astro title="src/pages/boutique/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry } = await getLiveEntry('produits', Astro.params.id);
+---
+```
+
+<ReadMore>Apprenez comment [accéder aux données en direct](/fr/guides/content-collections/#accès-aux-données-en-direct) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
+
+#### `LiveDataEntryResult.error`
+
+<p>
+
+**Type :** `TError | LiveCollectionError | undefined`
+</p>
+
+Une erreur renvoyée lorsque le chargeur n'a pas pu charger l'entrée. Il peut s'agir d'une erreur personnalisée définie par le chargeur ou d'une erreur intégrée.
+
+L'exemple suivant accède à l'entrée demandée dans une collection en direct nommée `produits` et à toute erreur, et redirige vers la page 404 si une erreur existe :
+
+```astro title="src/pages/boutique/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('produits', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+---
+<h1>{entry.data.name}</h1>
+```
+
+<ReadMore>Apprenez-en davantage sur la [gestion des erreurs](/fr/guides/content-collections/#gestion-des-erreurs) grâce à des explications guidées et des exemples d'utilisation.</ReadMore>
+
+#### `LiveDataEntryResult.cacheHint`
+
+<p>
+
+**Type :** <code><a href="/fr/reference/content-loader-reference/#cachehint">CacheHint</a> | undefined</code>
+</p>
+
+Un objet fournissant des données pouvant servir à définir une stratégie de mise en cache.
+
+Si vous avez activé la [mise en cache expérimentale des routes](/fr/reference/experimental-flags/route-caching/), transmettez directement l'indication de cache à `Astro.cache.set()` :
+
+```astro title="src/pages/boutique/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+export const prerender = false; // Pas nécessaire en mode `server`
+
+const { cacheHint } = await getLiveEntry('produits', Astro.params.id);
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 300 });
+---
+```
+
+Vous pouvez également utiliser les indications de cache pour définir manuellement les en-têtes de réponse :
+
+```astro title="src/pages/boutique/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { cacheHint } = await getLiveEntry('produits', Astro.params.id);
+
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
 ```
