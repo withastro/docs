@@ -4,6 +4,7 @@ sidebar:
   label: API des intégrations
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro'
 
 **Les intégrations d'Astro** ajoutent de nouvelles fonctionnalités et de nouveaux comportements à votre projet avec seulement quelques lignes de code.
@@ -69,17 +70,16 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:start'?: (options: {
       logger: AstroIntegrationLogger;
+      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
     }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: vite.InlineConfig;
       pages: Map<string, PageBuildData>;
-      target: 'client' | 'server';
       updateConfig: (newConfig: vite.InlineConfig) => void;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
     'astro:build:ssr'?: (options: {
       manifest: SerializedSSRManifest;
-      entryPoints: Map<IntegrationRouteData, URL>;
       middlewareEntryPoint: URL | undefined;
       logger: AstroIntegrationLogger;
     }) => void | Promise<void>;
@@ -905,8 +905,46 @@ L'adresse, la famille et le numéro de port fournis par la [méthode `server.add
 ```js
 'astro:build:start'?: (options: {
   logger: AstroIntegrationLogger;
+  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
 }) => void | Promise<void>;
 ```
+
+
+#### Option `setPrerenderer()`
+
+<p>
+
+**Type :** <code>(prerenderer: <a href="#astroprerenderer">AstroPrerenderer</a> | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void</code><br />
+<Since v="6.0.0" />
+</p>
+
+Une fonction de rappel permettant de définir un prérendu personnalisé pour la compilation. Cela permet aux adaptateurs de fournir leur propre logique de prérendu.
+
+Cette fonction accepte soit un objet [`AstroPrerenderer`](#astroprerenderer) directement, soit une fonction de fabrique qui reçoit le prérendu par défaut et en renvoie un personnalisé. Ceci est utile lorsque vous souhaitez encapsuler ou étendre le comportement par défaut.
+
+```js
+'astro:build:start': ({ setPrerenderer }) => {
+  setPrerenderer((defaultPrerenderer) => ({
+    name: 'my-prerenderer',
+    async setup() {
+      // Facultatif : appelé une fois avant le début du prérendu
+    },
+    async getStaticPaths() {
+      // Renvoie un tableau de { pathname: string, route: RouteData }
+      return defaultPrerenderer.getStaticPaths();
+    },
+    async render(request, { routeData }) {
+      // request : Request, options: { routeData: RouteData }
+      // Renvoie : Response
+    },
+    async teardown() {
+      // Facultatif : appelé une fois toutes les pages pré-rendues.
+    }
+  }));
+}
+```
+
+<ReadMore>Consultez la [référence de l'adaptateur](/fr/reference/adapter-reference/#moteur-de-prérendu-personnalisé) pour plus de détails sur la mise en œuvre d'un prérendu personnalisé.</ReadMore>
 
 ### `astro:build:setup`
 
@@ -922,7 +960,6 @@ L'adresse, la famille et le numéro de port fournis par la [méthode `server.add
 'astro:build:setup'?: (options: {
   vite: vite.InlineConfig;
   pages: Map<string, PageBuildData>;
-  target: 'client' | 'server';
   updateConfig: (newConfig: vite.InlineConfig) => void;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
@@ -1028,30 +1065,6 @@ Définit une chaîne de caractères pouvant être résolue en un chemin d'accès
 
 Une liste des styles à afficher dans la page. Chaque style indique sa profondeur dans l'arborescence des composants (`depth`) et son ordre d'affichage sur la page (`order`), ainsi que s'il doit être appliqué en tant que style incorporé à la page ou style externe.
 
-#### Option `target`
-
-<p>
-
-**Type :** `'client' | 'server'`
-</p>
-
-La compilation est divisée en deux phases distinctes : `client` et `server`. Cette option vous permet de déterminer la phase de compilation en cours.
-
-Cela peut être utilisé pour effectuer une action uniquement dans une phase spécifique :
-
-```js
-export default {
-  name: 'mon-integration',
-  hooks: {
-    'astro:build:setup': ({ target }) => {
-      if (target === "server") {
-        // faire quelque chose dans la phase de compilation du serveur
-      }
-    },
-  }
-}
-```
-
 #### Option `updateConfig()`
 
 <p>
@@ -1087,13 +1100,11 @@ export default {
 **Quand :** Une fois la compilation SSR pour la production terminée.
 
 **Pourquoi :** Pour accéder au manifeste SSR et à la carte des points d'entrée émis. Ceci est utile lors de la création de compilations SSR personnalisées dans des modules d'extension ou des intégrations.
-- `entryPoints` fait correspondre une route de page au fichier physique émis après la compilation,
 - `middlewareEntryPoint` est le chemin d'accès au système de fichiers du middleware.
 
 ```js
 'astro:build:ssr'?: (options: {
   manifest: SerializedSSRManifest;
-  entryPoints: Map<IntegrationRouteData, URL>;
   middlewareEntryPoint: URL | undefined;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
@@ -1123,6 +1134,69 @@ export default {
   },
 }
 ```
+
+##### `manifest.rootDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.rootDir`](#ssrmanifestrootdir).
+
+##### `manifest.srcDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.srcDir`](#ssrmanifestsrcdir).
+
+##### `manifest.cacheDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.cacheDir`](#ssrmanifestcachedir).
+
+##### `manifest.outDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.outDir`](#ssrmanifestoutdir).
+
+##### `manifest.publicDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.publicDir`](#ssrmanifestpublicdir).
+
+##### `manifest.buildClientDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.buildClientDir`](#ssrmanifestbuildclientdir).
+
+##### `manifest.buildServerDir`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie une version sérialisée de [`SSRManifest.buildServerDir`](#ssrmanifestbuildserverdir).
 
 ##### `manifest.routes`
 
@@ -1171,16 +1245,6 @@ Définit un tableau de paires clé-valeur où chaque entrée est un tuple. Le pr
 
 Définit un tableau de paires clé-valeur où le premier élément est le nom de la directive (par exemple `load`, `visible`) et le second est le code d'implémentation de la directive.
 
-##### `manifest.serverIslandNameMap`
-
-<p>
-
-**Type :** `[string, string][]`<br />
-<Since v="4.12.0" />
-</p>
-
-Définit un tableau de paires clé-valeur où chaque entrée est un tuple. Le premier élément est le chemin du composant et le second est le nom attribué.
-
 ##### `manifest.key`
 
 <p>
@@ -1190,29 +1254,6 @@ Définit un tableau de paires clé-valeur où chaque entrée est un tuple. Le pr
 </p>
 
 Spécifie la clé cryptographique, sérialisée sous forme de chaîne de caractères, utilisée pour chiffrer les propriétés de l'îlôt de serveur.
-
-#### Option `entryPoints`
-
-<p>
-
-**Type :** <code>Map\<<a href="#integrationroutedata">IntegrationRouteData</a>, URL\></code><br />
-<Since v="2.7.0" />
-</p>
-
-Un objet `Map` des points d'entrée émis avec `IntegrationRouteData` comme nom de propriété et l'URL du fichier physique comme valeur.
-
-```js
-export default {
-  name: 'mon-integration',
-  hooks: {
-    'astro:build:ssr': ({ entryPoints }) => {
-      entryPoints.forEach((url) => {
-        console.log(url.href);
-      });
-    },
-  },
-}
-```
 
 #### Option `middlewareEntryPoint`
 
@@ -1295,8 +1336,6 @@ export default {
 'astro:build:done'?: (options: {
   pages: { pathname: string }[];
   dir: URL;
-  /** @deprecated Utilisez la Map `assets` et le nouveau hook `astro:routes:resolved`*/
-  routes: IntegrationRouteData[];
   assets: Map<string, URL[]>;
   logger: AstroIntegrationLogger;
 }) => void | Promise<void>;
@@ -1330,24 +1369,6 @@ export default function myIntegration() {
   }
 }
 ```
-
-#### Option `routes`
-
-:::caution
-Cette propriété est dépréciée depuis la version 5.0. Consultez le [guide de migration](/fr/guides/upgrade-to/v5/#déprécié--routes-sur-le-hook-astrobuilddoneapi-des-intégrations).
-:::
-
-<p>
-
-**Type :** [`IntegrationRouteData[]`](#integrationroutedata)
-</p>
-
-Une liste de toutes les routes générées avec leurs métadonnées associées.
-
-Vous pouvez référencer le type `IntegrationRouteData` complet ci-dessous, mais les propriétés les plus courantes sont les suivantes :
-
-- `component` - le chemin du fichier d'entrée par rapport à la racine du projet
-- `pathname` - l'URL du fichier de sortie (non définie pour les routes utilisant les paramètres `[dynamic]` et `[...spread]`)
 
 #### Option `assets`
 
@@ -1386,6 +1407,27 @@ declare global {
 
 Astro réserve le préfixe `astro:` pour les futurs hooks intégrés. Veuillez choisir un préfixe différent lorsque vous nommez votre hook personnalisé.
 
+## Environnements Vite d'Astro
+
+Astro hérite des environnements fournis par défaut par Vite, `ssr` et `client`.
+
+Astro crée également deux autres environnements :
+- `prerender` est un environnement utilisé pendant la phase de compilation (`build`) et il sert à générer des pages statiques.
+- `astro` est un environnement utilisé pendant le développement, et il est utilisé comme environnement SSR « secondaire » lorsque l'environnement `ssr` de Vite [n'est pas un environnement de développement exécutable](https://vite.dev/guide/api-environment-frameworks#runnabledevenvironment).
+
+Les [environnements Vite](https://vite.dev/guide/api-environment) d'Astro vous permettent d'optimiser les modules d'extension Vite de votre intégration pour différents environnements. L'une des principales utilisations des environnements Vite est la possibilité d'exécuter et de configurer conditionnellement les modules d'extension Vite de votre intégration :
+
+```js
+resolveId(id) {
+  if (id === '\0virtual:foo') {
+    if (this.environment.name === 'client') {
+      throw new Error("Il s'agit d'un module serveur uniquement");
+    }
+    return 'export const foo = "bar"';
+  }
+}
+```
+
 ## Référence des types des intégrations
 
 Les types suivants peuvent être importés depuis le module `astro` :
@@ -1395,6 +1437,7 @@ import type {
   AstroIntegrationLogger,
   AstroIntegrationMiddleware,
   AstroMiddlewareInstance,
+  AstroPrerenderer,
   AstroRenderer,
   ClientDirectiveConfig,
   HookParameters,
@@ -1408,8 +1451,6 @@ import type {
   SSRLoadedRendererValue,
   SSRManifest,
   ValidRedirectStatus,
-  // Les éléments suivants sont dépréciés :
-  IntegrationRouteData,
 } from "astro";
 ```
 
@@ -1512,6 +1553,61 @@ Définit le chemin d'importation du middleware.
 
 Un objet contenant une propriété [`onRequest()`](/fr/reference/modules/astro-middleware/#onrequest) définie avec la fonction middleware du projet lorsqu'elle existe.
 
+### `AstroPrerenderer`
+
+<p>
+
+**Type :** `string`<br />
+<Since v="6.0.0" />
+</p>
+
+Décrit un [prérendu personnalisé](/fr/reference/adapter-reference/#moteur-de-prérendu-personnalisé) que les adaptateurs peuvent fournir pour contrôler le prérendu des pages.
+
+#### `AstroPrerenderer.name`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie un nom unique pour le prérendu.
+
+#### `AstroPrerenderer.setup()`
+
+<p>
+
+**Type :** `() => Promise<void>`
+</p>
+
+Définit une méthode facultative qui sera appelée une seule fois avant le début du prérendu. Ceci est utile pour démarrer un serveur de prévisualisation.
+
+#### `AstroPrerenderer.getStaticPaths()`
+
+<p>
+
+**Type :** <code>() => Promise\<Array\<\{ pathname: string; route: <a href="#routedata">RouteData</a>; \}\>\></code>
+</p>
+
+Renvoie une liste d'objets décrivant le chemin de la route pré-rendue et ses données associées.
+
+#### `AstroPrerenderer.render()`
+
+<p>
+
+**Type :** <code>(request: Request, options: \{ routeData: <a href="#routedata">RouteData</a> \}) => Promise\<Response\></code>
+</p>
+
+Définit une méthode facultative décrivant comment afficher une page. Celle-ci sera appelée par Astro pour chaque chemin renvoyé par [`getStaticPaths()`](/fr/reference/routing-reference/#getstaticpaths).
+
+#### `AstroPrerenderer.teardown()`
+
+<p>
+
+**Type :** `() => Promise<void>`
+</p>
+
+Définit une méthode facultative appelée une fois que toutes les pages sont pré-rendues. Ceci est utile pour effectuer des tâches de nettoyage telles que l'arrêt d'un serveur de prévisualisation.
+
 ### `AstroRenderer`
 
 <p>
@@ -1595,14 +1691,15 @@ Un sous-ensemble de [`RouteData`](#routedata) avec des propriétés réattribué
 
 ```ts
 interface IntegrationResolvedRoute extends Pick<
-		RouteData,
-		'generate' | 'params' | 'pathname' | 'segments' | 'type' | 'redirect' | 'origin'
-	> & {
-	pattern: RouteData['route'];
-	patternRegex: RouteData['pattern'];
-	entrypoint: RouteData['component'];
-	isPrerendered: RouteData['prerender'];
-	redirectRoute?: IntegrationResolvedRoute;
+    RouteData,
+    'params' | 'pathname' | 'segments' | 'type' | 'redirect' | 'origin'
+  > & {
+  pattern: RouteData['route'];
+  patternRegex: RouteData['pattern'];
+  entrypoint: RouteData['component'];
+  isPrerendered: RouteData['prerender'];
+  redirectRoute?: IntegrationResolvedRoute;
+  generate: (data?: any) => string;
 }
 ```
 
@@ -1658,6 +1755,22 @@ Détermine si la route utilise le [rendu à la demande](/fr/guides/on-demand-ren
 
 Lorsque la valeur de `IntegrationResolvedRoute.type` est `redirect`, la valeur sera la `IntegrationResolvedRoute` vers laquelle rediriger. Sinon, la valeur sera indéfinie.
 
+#### `IntegrationResolvedRoute.generate()`
+
+<p>
+
+**Type :** `(data?: any) => string`<br />
+<Since v="6.0.0" />
+</p>
+
+Une fonction qui fournit les paramètres optionnels de la route, les interpole avec le modèle de route et renvoie le nom du chemin de la route.
+
+Par exemple, avec une route telle que `/blog/[...id].astro`, la fonction `generate()` pourrait renvoyer :
+
+```js
+generate({ id: 'presentation' }) // renverra `/blog/presentation`
+```
+
 ### `RedirectConfig`
 
 <p>
@@ -1692,21 +1805,6 @@ Définit le modèle de route actuel. Voici quelques exemples de chemins associé
 
 Spécifie l'URL du composant source.
 
-#### `RouteData.generate()`
-
-<p>
-
-**Type :** `(data?: any) => string`
-</p>
-
-Fonction qui fournit les paramètres facultatifs de la route, les interpole avec le modèle de route et renvoie le nom de chemin de la route.
-
-Par exemple, avec une route telle que `/blog/[...id].astro`, la fonction `generate()` pourrait renvoyer :
-
-```js
-generate({ id: 'presentation' }) // affichera `/blog/presentation`
-```
-
 #### `RouteData.params`
 
 <p>
@@ -1729,11 +1827,11 @@ Pour les routes classiques, la valeur sera le chemin d’accès de l’URL où c
 
 <p>
 
-**Type :** `URL[]  | undefined`<br />
+**Type :** `URL[]`<br />
 <Since v="5.0.0" />
 </p>
 
-Définit les chemins d'accès aux fichiers physiques émis par cette route. Lorsqu'une route n'est pas pré-rendue, la valeur est soit `undefined`, soit un tableau vide.
+Définit les chemins d'accès aux fichiers physiques émis par cette route. Lorsqu'une route n'est pas pré-rendue, la valeur est un tableau vide.
 
 #### `RouteData.pattern`
 
@@ -1991,16 +2089,6 @@ Renvoie un script d'hydratation spécifique au framework qui doit être injecté
 
 Un objet contenant la configuration de compilation et les métadonnées du projet que les adaptateurs serveur utilisent au moment de l'exécution pour servir des pages rendues à la demande.
 
-#### `SSRManifest.hrefRoot`
-
-<p>
-
-**Type :** `string`<br />
-<Since v="4.12.0" />
-</p>
-
-Spécifie le chemin racine utilisé pour générer les URL.
-
 #### `SSRManifest.adapterName`
 
 <p>
@@ -2142,6 +2230,16 @@ Spécifie le [préfixe configuré pour les liens vers les ressources générées
 
 Une liste des moteurs de rendu (par exemple React, Vue, Svelte, MDX) disponibles pour le serveur.
 
+#### `SSRManifest.serverLike`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="6.0.0" />
+</p>
+
+Détermine si cette application utilise des routes rendues à la demande.
+
 #### `SSRManifest.clientDirectives`
 
 <p>
@@ -2219,15 +2317,6 @@ Une fonction permettant de récupérer une instance du composant de page.
 
 Une [fonction middleware Astro](/fr/reference/modules/astro-middleware/#onrequest) lorsqu'elle est définie dans le projet utilisateur.
 
-##### `SSRManifest.pageModule.renderers`
-
-<p>
-
-**Type :** <code><a href="#ssrloadedrenderer">SSRLoadedRenderer</a>[]</code>
-</p>
-
-Une liste des moteurs de rendu qu'un serveur peut utiliser pour cette page.
-
 #### `SSRManifest.pageMap`
 
 <p>
@@ -2237,7 +2326,17 @@ Une liste des moteurs de rendu qu'un serveur peut utiliser pour cette page.
 
 Définit une correspondance entre les chemins des composants et leurs instances importables.
 
-#### `SSRManifest.serverIslandMap`
+#### `SSRManifest.serverIslandMappings`
+
+<p>
+
+**Type :** `() => Promise<ServerIslandMappings> | ServerIslandMappings`<br />
+<Since v="6.0.0" />
+</p>
+
+Un objet, ou une fonction qui renvoie un objet, décrivant les correspondances des îlots de serveurs disponibles.
+
+##### `SSRManifest.serverIslandMappings.serverIslandMap`
 
 <p>
 
@@ -2247,7 +2346,7 @@ Définit une correspondance entre les chemins des composants et leurs instances 
 
 Définit une correspondance entre les identifiants des îlôts de serveur et leurs instances de composants.
 
-#### `SSRManifest.serverIslandNameMap`
+##### `SSRManifest.serverIslandMappings.serverIslandNameMap`
 
 <p>
 
@@ -2351,6 +2450,16 @@ Définit une instance pour charger le middleware.
 
 Un objet, ou une fonction qui renvoie un objet, avec une propriété `server` qui associe les noms d'actions à leurs fonctions exécutables.
 
+#### `SSRManifest.sessionDriver()`
+
+<p>
+
+**Type :** `() => Promise<{ default: SessionDriverFactory | null }>`<br />
+<Since v="6.0.0" />
+</p>
+
+Récupère le [pilote de session configuré](/fr/reference/configuration-reference/#sessiondriver) lorsqu'il est activé.
+
 #### `SSRManifest.checkOrigin`
 
 <p>
@@ -2384,7 +2493,7 @@ Un objet contenant la [configuration de session résolue](/fr/reference/configur
 
 <p>
 
-**Type :** `string | URL`<br />
+**Type :** `URL`<br />
 <Since v="5.2.0" />
 </p>
 
@@ -2394,7 +2503,7 @@ Spécifie le [répertoire configuré pour la mise en cache des artefacts de comp
 
 <p>
 
-**Type :** `string | URL`<br />
+**Type :** `URL`<br />
 <Since v="5.2.0" />
 </p>
 
@@ -2404,27 +2513,47 @@ Spécifie le [répertoire configuré à partir duquel Astro lira le site](/fr/re
 
 <p>
 
-**Type :** `string | URL`<br />
+**Type :** `URL`<br />
 <Since v="5.2.0" />
 </p>
 
 Spécifie le [répertoire configuré dans lequel écrire la version compilée](/fr/reference/configuration-reference/#outdir).
 
+#### `SSRManifest.rootDir`
+
+<p>
+
+**Type :** `URL`<br />
+<Since v="6.0.0" />
+</p>
+
+Spécifie l'URL résolue pour le [répertoire configuré comme racine du projet](/fr/reference/configuration-reference/#root).
+
 #### `SSRManifest.publicDir`
 
 <p>
 
-**Type :** `string | URL`<br />
+**Type :** `URL`<br />
 <Since v="5.2.0" />
 </p>
 
 Spécifie le [répertoire configuré pour les ressources statiques](/fr/reference/configuration-reference/#publicdir).
 
+#### `SSRManifest.assetsDir`
+
+<p>
+
+**Type :** `string`<br />
+<Since v="6.0.0" />
+</p>
+
+Spécifie le [répertoire configuré pour les ressources générées](/fr/reference/configuration-reference/#buildassets) dans la sortie de la compilation.
+
 #### `SSRManifest.buildClientDir`
 
 <p>
 
-**Type :** `string | URL`<br />
+**Type :** `URL`<br />
 <Since v="5.2.0" />
 </p>
 
@@ -2434,7 +2563,7 @@ Détermine le chemin d'accès dans le répertoire de compilation où les artefac
 
 <p>
 
-**Type :** `string | URL`<br />
+**Type :** `URL`<br />
 <Since v="5.2.0" />
 </p>
 
@@ -2448,7 +2577,7 @@ Détermine le chemin d'accès où les artefacts de compilation côté serveur so
 <Since v="5.9.0" />
 </p>
 
-Décrit la [configuration de la stratégie de sécurité du contenu](/fr/reference/configuration-reference/).
+Décrit la [configuration de la stratégie de sécurité du contenu](/fr/reference/configuration-reference/#securitycsp).
 
 ##### `SSRManifest.csp.cspDestination`
 
@@ -2457,7 +2586,7 @@ Décrit la [configuration de la stratégie de sécurité du contenu](/fr/referen
 **Type :** `'adapter' | 'meta' | 'header' | undefined`
 </p>
 
-Spécifie si les directives CSP doivent être injectées en tant qu'élément `meta`, en tant qu'en-tête de réponse, ou par l'[`adapter` lorsqu'il prend en charge la définition des en-têtes de réponse](/fr/reference/adapter-reference/#experimentalstaticheaders).
+Spécifie si les directives CSP doivent être injectées en tant qu'élément `meta`, en tant qu'en-tête de réponse, ou par l'[`adapter` lorsqu'il prend en charge la définition des en-têtes de réponse](/fr/reference/adapter-reference/#staticheaders).
 
 ##### `SSRManifest.csp.algorithm`
 
@@ -2466,7 +2595,7 @@ Spécifie si les directives CSP doivent être injectées en tant qu'élément `m
 **Type :** `'SHA-256' | 'SHA-384' | 'SHA-512'`
 </p>
 
-Spécifie la [fonction de hachage configurée](/fr/reference/configuration-reference/).
+Spécifie la [fonction de hachage configurée](/fr/reference/configuration-reference/#securitycspalgorithm).
 
 ##### `SSRManifest.csp.scriptHashes`
 
@@ -2475,7 +2604,7 @@ Spécifie la [fonction de hachage configurée](/fr/reference/configuration-refer
 **Type :** `string[]`
 </p>
 
-Spécifie une liste des hachages générés pour les scripts du projet et des [hachages fournis par l'utilisateur](/fr/reference/configuration-reference/) pour les scripts externes.
+Spécifie une liste des hachages générés pour les scripts du projet et des [hachages fournis par l'utilisateur](/fr/reference/configuration-reference/#securitycspscriptdirectivehashes) pour les scripts externes.
 
 ##### `SSRManifest.csp.scriptResources`
 
@@ -2484,7 +2613,7 @@ Spécifie une liste des hachages générés pour les scripts du projet et des [h
 **Type :** `string[]`
 </p>
 
-Spécifie une liste de sources valides combinant les [ressources de script configurées](/fr/reference/configuration-reference/) et les [ressources de script injectées](/fr/reference/api-reference/).
+Spécifie une liste de sources valides combinant les [ressources de script configurées](/fr/reference/configuration-reference/#securitycspscriptdirectiveresources) et les [ressources de script injectées](/fr/reference/api-reference/#cspinsertscriptresource).
 
 ##### `SSRManifest.csp.isStrictDynamic`
 
@@ -2493,7 +2622,7 @@ Spécifie une liste de sources valides combinant les [ressources de script confi
 **Type :** `boolean`
 </p>
 
-Détermine si la prise en charge de l'[injection de script dynamique est activée dans la configuration](/fr/reference/configuration-reference/).
+Détermine si la prise en charge de l'[injection de script dynamique est activée dans la configuration](/fr/reference/configuration-reference/#securitycspscriptdirectivestrictdynamic).
 
 ##### `SSRManifest.csp.styleHashes`
 
@@ -2502,7 +2631,7 @@ Détermine si la prise en charge de l'[injection de script dynamique est activé
 **Type :** `string[]`
 </p>
 
-Spécifie une liste des hachages générés pour les styles du projet et des [hachages fournis par l'utilisateur](/fr/reference/configuration-reference/) pour les styles externes.
+Spécifie une liste des hachages générés pour les styles du projet et des [hachages fournis par l'utilisateur](/fr/reference/configuration-reference/#securitycspstyledirectivehashes) pour les styles externes.
 
 ##### `SSRManifest.csp.styleResources`
 
@@ -2511,7 +2640,7 @@ Spécifie une liste des hachages générés pour les styles du projet et des [ha
 **Type :** `string[]`
 </p>
 
-Spécifie une liste de sources valides combinant les [ressources de style configurées](/fr/reference/configuration-reference/) et les [ressources de style injectées](/fr/reference/api-reference/).
+Spécifie une liste de sources valides combinant les [ressources de style configurées](/fr/reference/configuration-reference/#securitycspstyledirectiveresources) et les [ressources de style injectées](/fr/reference/api-reference/#cspinsertstyleresource).
 
 ##### `SSRManifest.csp.directives`
 
@@ -2520,7 +2649,50 @@ Spécifie une liste de sources valides combinant les [ressources de style config
 **Type :** `CspDirective[]`
 </p>
 
-Spécifie la [liste configurée des sources valides](/fr/reference/configuration-reference/) pour des types de contenu spécifiques.
+Spécifie la [liste configurée des sources valides](/fr/reference/configuration-reference/#securitycspdirectives) pour des types de contenu spécifiques.
+
+#### `SSRManifest.devToolbar`
+
+<p>
+
+**Type :** `{ enabled: boolean; latestAstroVersion: string | undefined; debugInfoOutput: string | undefined; }`<br />
+<Since v="6.0.0" />
+</p>
+
+Décrit les paramètres résolus de la barre d'outils de développement.
+
+##### `SSRManifest.devToolbar.enabled`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="6.0.0" />
+</p>
+
+Détermine [si la barre d'outils de développement est activée](/fr/reference/configuration-reference/#devtoolbarenabled).
+
+##### `SSRManifest.devToolbar.latestAstroVersion`
+
+<p>
+
+**Type :** `string | undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Indique la dernière version disponible d'Astro. Ceci permet d'informer l'utilisateur, via la barre d'outils de développement, lorsqu'une mise à jour est disponible. La valeur sera `undefined` si l'une des conditions suivantes est remplie :
+- la vérification échoue ou n'est pas encore terminée
+- l'utilisateur a désactivé la vérification
+- l'utilisateur utilise déjà la dernière version
+
+##### `SSRManifest.devToolbar.debugInfoOutput`
+
+<p>
+
+**Type :** `string | undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Définit les [informations de débogage](/fr/reference/cli-reference/#astro-info) sérialisées transmises à la barre d'outils de développement pour affichage.
 
 #### `SSRManifest.internalFetchHeaders`
 
@@ -2531,6 +2703,16 @@ Spécifie la [liste configurée des sources valides](/fr/reference/configuration
 </p>
 
 Spécifie les en-têtes qui sont automatiquement ajoutés aux requêtes de récupération internes effectuées lors du rendu.
+
+#### `SSRManifest.logLevel`
+
+<p>
+
+**Type :** `"error" | "warn" | "debug" | "info" | "silent"`<br />
+<Since v="6.0.0" />
+</p>
+
+Spécifie le [niveau de journalisation de Vite](https://vite.dev/config/shared-options#loglevel).
 
 ### `ValidRedirectStatus`
 
