@@ -3,130 +3,314 @@ title: Utiliser des polices personnalisées
 sidebar:
   label: Polices d'écriture
 description: >-
-  Vous souhaitez ajouter des polices d'écritures personnalisées à un site Astro ? Utilisez Google Fonts 
+  Vous souhaitez ajouter des polices d'écriture personnalisées à un site Astro ? Utilisez Google Fonts
   avec Fontsource ou ajoutez une police de votre choix.
 i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
-import { Steps } from '@astrojs/starlight/components'
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
-Ce guide vous montrera comment ajouter des polices web à votre projet et les utiliser dans vos composants.
+Ce guide vous montrera comment ajouter des [polices web](https://developer.mozilla.org/fr/docs/Learn_web_development/Core/Text_styling/Web_fonts) à votre projet et les utiliser dans vos composants.
 
-## Utilisation d'un fichier d'une police locale
+Astro offre la possibilité d'utiliser des polices provenant de votre système de fichiers et de divers fournisseurs de polices (par exemple Fontsource, Google) via une API unifiée, [entièrement personnalisable](/fr/reference/configuration-reference/#fonts) et avec sûreté du typage.
 
-Cet exemple illustrera l'ajout d'une police personnalisée en utilisant le fichier de police `DistantGalaxy.woff`.
+Les polices web peuvent avoir un impact sur les performances des pages, tant au moment du chargement qu'au moment du rendu. Cette API vous aide à maintenir les performances de votre site grâce à des [optimisations de polices web](https://web.dev/learn/performance/optimize-web-fonts) automatiques, notamment des liens de préchargement, des solutions de repli optimisées et des valeurs par défaut personnalisées. [Consultez des exemples d'utilisation courants](#exemples).
 
-<Steps>
-1. Ajoutez votre fichier de police à `public/fonts/`.
-2. Ajoutez la déclaration `@font-face` suivante à votre CSS. Cela peut être dans un fichier `.css` global que vous importez, un bloc `<style is:global>`, ou un bloc `<style>` dans une mise en page ou un composant spécifique où vous voulez utiliser cette police.
+L'API des polices privilégie la performance et la confidentialité en téléchargeant et en mettant en cache les polices afin qu'elles soient diffusées depuis votre site. Cela permet d'éviter l'envoi de données utilisateur à des sites tiers et garantit également la mise à disposition d'un ensemble de polices cohérent pour tous vos visiteurs.
 
-    ```css
-    /* Enregistrer votre famille de polices personnalisée et indiquer au navigateur où la trouver. */
-    @font-face {
-      font-family: 'DistantGalaxy';
-      src: url('/fonts/DistantGalaxy.woff') format('woff');
-      font-weight: normal;
-      font-style: normal;
-      font-display: swap;
-    }
-    ```
+## Configuration de polices personnalisées
 
-3. Utilisez la valeur `font-family` de l'instruction `@font-face` pour mettre en forme les éléments de votre composant ou de votre mise en page. Dans cet exemple, le titre `<h1>` aura la police personnalisée appliquée, alors que le paragraphe `<p>` ne l'aura pas.
+L'enregistrement des polices personnalisées pour votre projet Astro se fait via [l'option `fonts`](/fr/reference/configuration-reference/#fonts) dans la configuration d'Astro.
 
-    ```astro title="src/pages/example.astro" {9-11}
-    ---
-    ---
+Pour chaque police que vous souhaitez utiliser, vous devez spécifier son [nom](/fr/reference/configuration-reference/#fontname), une [variable CSS](/fr/reference/configuration-reference/#fontcssvariable) et un fournisseur de polices pour Astro.
 
-    <h1>Dans une galaxie très, très lointaine...</h1>
+Astro fournit une prise en charge intégrée des fournisseurs de polices les plus populaires : Adobe, Bunny, Fontshare, Fontsource, Google, Google Icons et NPM, ainsi que la possibilité d’utiliser vos propres fichiers de polices locaux. De plus, vous pouvez [personnaliser davantage votre configuration de police](#configuration-granulaire-des-polices) pour optimiser les performances et l'expérience des visiteurs.
 
-    <p>Les polices personnalisées rendent mes titres beaucoup plus cool !</p>
 
-    <style>
-    h1 {
-      font-family: 'DistantGalaxy', sans-serif;
-    }
-    </style>
-    ```
-</Steps>
+### Utilisation d'un fichier de police local
 
-## Utilisation de Fontsource
-
-Le projet [Fontsource](https://fontsource.org/) simplifie l'utilisation de Google Fonts et d'autres polices open source. Il fournit les modules npm que vous pouvez installer pour les polices que vous souhaitez utiliser.
+Cet exemple démontrera comment ajouter une police personnalisée en utilisant le fichier de police `DistantGalaxy.woff2`.
 
 <Steps>
-1. Trouvez la police que vous souhaitez dans le [catalogue Fontsource](https://fontsource.org/fonts). Pour cet exemple, on utilisera la police [Twinkle Star](https://fontsource.org/fonts/twinkle-star).
-2. Installez le paquet pour la police que vous avez choisie.
 
-    <PackageManagerTabs>
-      <Fragment slot="npm">
-      ```shell
-      npm install @fontsource/twinkle-star
-      ```
-      </Fragment>
-      <Fragment slot="pnpm">
-      ```shell
-      pnpm add @fontsource/twinkle-star
-      ```
-      </Fragment>
-      <Fragment slot="yarn">
-      ```shell
-      yarn add @fontsource/twinkle-star
-      ```
-      </Fragment>
-    </PackageManagerTabs>
+1. Ajoutez votre fichier de police dans le [dossier `src/`](/fr/basics/project-structure/#src), par exemple `src/assets/fonts/`.
 
-    :::tip
-    Vous trouverez le nom du paquet correct dans la section « Quick Installation » (installation rapide) de chaque page de police sur le site de Fontsource. Il commence par `@fontsource/` ou `@fontsource-variable/` suivi du nom de la police.
-    :::
+2. Créez une nouvelle famille de polices dans votre fichier de configuration d'Astro en utilisant le [fournisseur de polices local](/fr/reference/font-provider-reference/#local) et spécifiez les variantes à inclure :
 
-3. Importez le paquet de polices dans le composant où vous souhaitez utiliser la police. Généralement, vous voudrez le faire dans un composant de mise en page commun pour vous assurer que la police est disponible sur l'ensemble de votre site.
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
 
-    L'importation ajoutera automatiquement les règles `@font-face` nécessaires pour configurer la police.
-
-    ```astro title="src/layouts/BaseLayout.astro"
-    ---
-    import '@fontsource/twinkle-star';
-    ---
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.local(),
+        name: "DistantGalaxy",
+        cssVariable: "--font-distant-galaxy",
+        options: {
+          variants: [{
+            src: ['./src/assets/fonts/DistantGalaxy.woff2'],
+            weight: 'normal',
+            style: 'normal'
+          }]
+        }
+      }]
+    });
     ```
+3. Votre police est maintenant configurée et prête à être [ajoutée à l'en-tête de votre page](#application-de-polices-personnalisées) afin qu'elle puisse être utilisée dans votre projet.
 
-4. Utilisez le nom de la police comme indiqué dans l'exemple `body` sur sa page Fontsource comme valeur `font-family`. Cela fonctionnera partout où vous pouvez écrire du CSS dans votre projet Astro.
-
-    ```css
-    h1 {
-      font-family: "Twinkle Star", cursive;
-    }
-    ```
 </Steps>
 
-Pour optimiser les temps de rendu de votre site Web, vous souhaiterez peut-être précharger les polices essentielles à l’affichage initial de la page.
-Consultez le [guide Fontsource sur le préchargement des polices](https://fontsource.org/docs/getting-started/preload) pour plus d'informations et d'utilisation.
+### Utilisation de Fontsource
 
-## Enregistrer des polices dans Tailwind
+Astro prend en charge [plusieurs fournisseurs de polices](/fr/reference/font-provider-reference/#built-in-providers) nativement, y compris la prise en charge de [Fontsource](https://fontsource.org/) qui simplifie l'utilisation de Google Fonts et d'autres polices open-source.
 
-Si vous utilisez [Tailwind](/fr/guides/styling/#tailwind), vous pouvez utiliser l'une ou l'autre des méthodes précédentes de cette page pour installer votre police, avec quelques modifications. Vous pouvez soit ajouter une déclaration [`@font-face` pour une police locale](#utilisation-dun-fichier-dune-police-locale) ou utiliser la [stratégie `import` de Fontsource](#utilisation-de-fontsource) pour installer votre police.
-
-Pour enregistrer votre police dans Tailwind :
+L'exemple suivant utilisera Fontsource pour ajouter la prise en charge des polices personnalisées, mais le processus est similaire pour tous les fournisseurs de polices intégrés à Astro (par exemple, [Adobe](https://fonts.adobe.com/), [Bunny](https://fonts.bunny)).
 
 <Steps>
-1. Suivez l'un ou l'autre des guides ci-dessus, mais sautez l'étape finale qui consiste à ajouter `font-family` à votre CSS.
-2. Ajoutez le nom de la police à `src/styles/global.css`.
 
-    Cet exemple ajoute `Inter` à la pile de polices sans-serif.
+1. Trouvez la police que vous souhaitez utiliser dans le catalogue de [Fontsource](https://fontsource.org/). Cet exemple utilisera [Roboto](https://fontsource.org/fonts/roboto).
 
-    ```css title="src/styles/global.css" ins={3-5}
-    @import 'tailwindcss';
+2. Créez une nouvelle famille de polices dans votre fichier de configuration d'Astro en utilisant le [fournisseur Fontsource](/fr/reference/font-provider-reference/#fontsource) :
 
-    @theme {
-      --font-sans: 'Inter', 'sans-serif'; 
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.fontsource(),
+        name: "Roboto",
+        cssVariable: "--font-roboto",
+      }]
+    });
+    ```
+3. Votre police est maintenant configurée et prête à être [ajoutée à l'en-tête de votre page](#application-de-polices-personnalisées) afin qu'elle puisse être utilisée dans votre projet.
+
+</Steps>
+
+## Application de polices personnalisées
+
+Une fois [la police configurée](#configuration-de-polices-personnalisées), elle doit être ajoutée à l'en-tête de votre page avec une variable CSS d'identification. Vous pourrez ensuite utiliser cette variable pour définir les styles de votre page.
+
+<Steps>
+
+1. Importez et incluez le composant [`<Font />`](/fr/reference/modules/astro-assets/#font-) avec la propriété `cssVariable` requise dans l'en-tête de votre page, généralement dans un composant `Head.astro` dédié ou directement dans un composant de [mise en page](/fr/basics/layouts/) :
+
+    ```astro title="src/layouts/Layout.astro" ins={2,7}
+    ---
+    import { Font } from "astro:assets";
+    ---
+
+    <html>
+      <head>
+        <Font cssVariable="--font-distant-galaxy" preload />
+      </head>
+      <body>
+        <slot />
+      </body>
+    </html>
+    ```
+
+2. Dans n'importe quelle page générée avec cette mise en page, comprenant le composant de mise en page lui-même, vous pouvez désormais définir des styles avec la variable CSS (`cssVariable`) de votre police pour appliquer votre police personnalisée.
+
+    Dans l'exemple suivant, le titre `<h1>` aura la police personnalisée appliquée, tandis que le paragraphe `<p>` ne l'aura pas.
+
+    ```astro title="src/pages/example.astro" ins={10-12}
+    ---
+    import Layout from "../layouts/Layout.astro";
+    ---
+    <Layout>
+      <h1>Dans une galaxie très, très lointaine...</h1>
+
+      <p>Les polices personnalisées rendent mes titres beaucoup plus sympas !</p>
+
+      <style>
+      h1 {
+        font-family: var(--font-distant-galaxy);
+      }
+      </style>
+    </Layout>
+    ```
+
+</Steps>
+
+## Enregistrer les polices avec Tailwind
+
+Si vous utilisez [Tailwind](/fr/guides/styling/#tailwind) pour la mise en forme, vous n'appliquerez pas vos styles avec la propriété CSS `font-face`.
+
+À la place, après avoir [configuré votre police personnalisée](#configuration-de-polices-personnalisées) et [l'avoir ajoutée à l'en-tête de votre page](#application-de-polices-personnalisées), vous devrez mettre à jour votre configuration de Tailwind pour enregistrer votre police :
+
+    <Tabs>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import "tailwindcss";
+
+    @theme inline {
+        --font-sans: var(--font-roboto);
     }
     ```
 
-    Maintenant, tout le texte sans-serif (le texte par défaut de Tailwind) dans votre projet utilisera la police choisie et la classe `font-sans` appliquera également la police Inter.
-</Steps>
+    </TabItem>
 
-Voir la documentation de [Tailwind sur l'ajout de polices personnalisées](https://tailwindcss.com/docs/font-family#using-custom-values) pour plus d'information.
+    <TabItem label="Tailwind CSS 3.0">
 
-## Plus de ressources
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+    content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+    theme: {
+        extend: {},
+        fontFamily: {
+            sans: ["var(--font-roboto)"]
+        }
+    },
+    plugins: []
+    };
+    ```
 
-- Apprendre comment fonctionnent les polices web dans le [Guide des polices web de MDN](https://developer.mozilla.org/fr/docs/Learn/CSS/Styling_text/Web_fonts).
-- Générez du CSS pour votre police avec [le générateur de polices web de Font Squirrel](https://www.fontsquirrel.com/tools/webfont-generator).
+    </TabItem>
+
+    </Tabs>
+
+Consultez [la documentation de Tailwind sur l'ajout de familles de polices personnalisées](https://tailwindcss.com/docs/font-family#using-custom-values) pour plus d'informations.
+
+
+## Accéder aux données de police par programmation
+
+L'objet [`fontData`](/fr/reference/modules/astro-assets/#fontdata) vous permet de récupérer par programmation des données de famille de polices de bas niveau. Par exemple, vous pouvez l'utiliser dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api) pour générer des images OpenGraph à l'aide de [satori](https://github.com/vercel/satori), combiné avec une configuration de [formats](/fr/reference/configuration-reference/#fontformats) appropriée :
+
+```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
+import type{ APIRoute } from "astro";
+import { fontData } from "astro:assets";
+import satori from "satori";
+import { html } from "satori-html";
+
+export const GET: APIRoute = async (context) => {
+  const data = fontData["--font-roboto"];
+
+  const svg = await satori(
+    html`<div style="color: black;">hello, world</div>`,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data: await fetch(
+            new URL(data[0].src[0].url, context.url.origin),
+          ).then((res) => res.arrayBuffer()),
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  );
+
+  // ...
+}
+```
+
+## Configuration granulaire des polices
+
+Une famille de polices est définie par une combinaison de propriétés telles que les graisses et les styles (par exemple `weights: [500, 600]` et `styles: ["normal", "bold"]`), mais vous pouvez vouloir télécharger uniquement certaines combinaisons de celles-ci.
+
+Pour un meilleur contrôle sur les fichiers de police téléchargés, vous pouvez spécifier la même police (c'est-à-dire avec les mêmes propriétés `cssVariable`, `name` et `provider`) plusieurs fois avec différentes combinaisons. Astro fusionnera les résultats et téléchargera uniquement les fichiers nécessaires. Par exemple, il est possible de télécharger les polices normales `500` et `600` tout en téléchargeant uniquement la police italique `500` :
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500, 600],
+      styles: ["normal"]
+    },
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500],
+      styles: ["italic"]
+    }
+  ]
+});
+```
+
+## Mise en cache
+
+L'implémentation de la mise en cache de l'API des polices a été conçue pour être pratique en développement et efficace en production. Lors des compilations, les fichiers de polices sont copiés dans le répertoire de sortie `_astro/fonts`, ce qui leur permet de bénéficier de la mise en cache HTTP des ressources statiques (généralement pendant un an).
+
+Pour vider le cache en mode développement, supprimez le répertoire `.astro/fonts`. Pour vider le cache de compilation, supprimez le répertoire `node_modules/.astro/fonts`.
+
+## Exemples
+
+La fonctionnalité des polices d'Astro repose sur des options de configuration flexibles. La configuration des polices dans votre propre projet peut différer des exemples simplifiés. Les exemples suivants sont donc fournis pour illustrer à quoi peuvent ressembler différentes configurations de police en production.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--font-roboto",
+      provider: fontProviders.google(),
+      // Inclus par défaut :
+      // weights: [400] ,
+      // styles: ["normal", "italic"],
+      // subsets: ["latin"],
+      // fallbacks: ["sans-serif"], 
+      // formats: ["woff2"],
+    },
+    {
+      name: "Inter",
+      cssVariable: "--font-inter",
+      provider: fontProviders.fontsource(),
+      // Spécifier les graisses réellement utilisées
+      weights: [400, 500, 600, 700],
+      // Spécifier les styles réellement utilisés
+      styles: ["normal"],
+      // Télécharger uniquement les fichiers de police pour les caractères utilisés sur la page.
+      subsets: ["latin", "cyrillic"],
+      // Télécharger plus de formats de police
+      formats: ["woff2", "woff"],
+    },
+    {
+      name: "JetBrains Mono",
+      cssVariable: "--font-jetbrains-mono",
+      provider: fontProviders.fontsource(),
+      // Télécharger uniquement les fichiers de police pour les caractères utilisés sur la page.
+      subsets: ["latin", "latin-ext"],
+      // Utiliser une police de caractères de repli correspondant à l'apparence souhaitée
+      fallbacks: ["monospace"],
+    },
+    {
+      name: "Poppins",
+      cssVariable: "--font-poppins",
+      provider: fontProviders.local(),
+      options: {
+        // La graisse et le style ne sont pas précisés, donc Astro
+        // tentera de les déduire pour chaque variante.
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    }
+  ],
+});
+```
