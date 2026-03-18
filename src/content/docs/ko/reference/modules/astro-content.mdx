@@ -5,27 +5,37 @@ sidebar:
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
-  maxHeadingLevel: 6
+  maxHeadingLevel: 3
 ---
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
 <p><Since v="2.0.0" /></p>
 
-콘텐츠 컬렉션은 `src/content/`에서 Markdown 또는 MDX 문서를 구성하고 쿼리하는 API를 제공합니다. 기능 및 사용 예시는 [콘텐츠 컬렉션 가이드를 참조하세요](/ko/guides/content-collections/).
+빌드 타임 콘텐츠 컬렉션은 로컬 Markdown, MDX, Markdoc, YAML, TOML, JSON 파일 및 원격 콘텐츠를 구성, 쿼리 및 렌더링할 수 있는 API를 제공합니다.
 
-## `astro:content`에서 가져오기
+<p><Since v="6.0.0" /></p>
+
+라이브 콘텐츠 컬렉션은 원격 소스로부터 최신의 라이브 데이터를 구성, 쿼리 및 렌더링할 수 있는 API를 제공합니다.
+
+기능 및 사용 예시는 [콘텐츠 컬렉션 가이드](/ko/guides/content-collections/)를 참조하세요.
+
+## `astro:content`로부터 가져오기
 
 ```js
 import {
   defineCollection,
+  defineLiveCollection,
   getCollection,
+  getLiveCollection,
   getEntry,
+  getLiveEntry,
   getEntries,
   reference,
   render
- } from 'astro:content';
+} from 'astro:content';
 ```
+
 ### `defineCollection()`
 
 <p>
@@ -34,11 +44,11 @@ import {
 <Since v="2.0.0" />
 </p>
 
-`defineCollection()`은 `src/content.config.*` 파일에 컬렉션을 구성하는 유틸리티입니다.
+`src/content.config.*` 파일에서 컬렉션을 구성하기 위한 유틸리티입니다.
 
 ```ts title="src/content.config.ts"
-import { defineCollection } from "astro:content";
-import { z } from "astro/zod";
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
 const blog = defineCollection({
@@ -53,7 +63,7 @@ const blog = defineCollection({
 export const collections = { blog };
 ```
 
-이 함수는 다음 속성을 허용합니다.
+이 함수는 다음 속성을 허용합니다:
 
 #### `loader`
 
@@ -63,9 +73,9 @@ export const collections = { blog };
 <Since v="5.0.0" />
 </p>
 
-`loader`는 로컬 또는 원격 소스에서 콘텐츠 컬렉션으로 데이터를 로드할 수 있게 해주는 객체 또는 함수입니다.
+로컬 또는 원격 등 모든 소스에서 빌드 타임 콘텐츠 컬렉션으로 데이터를 로드할 수 있게 해주는 객체 또는 함수입니다. (라이브 컬렉션의 경우, [라이브 `loader`](#loader-1) 속성을 참조하세요.)
 
-예시 사용법은 [`콘텐츠 컬렉션` 가이드](/ko/guides/content-collections/#컬렉션-loader-정의)를 참조하세요.
+<ReadMore>가이드 설명 및 사용 예시를 통해 [빌드 타임 컬렉션 로더](/ko/guides/content-collections/#빌드-타임-컬렉션-로더)에 대해 알아보세요.</ReadMore>
 
 #### `schema`
 
@@ -75,33 +85,86 @@ export const collections = { blog };
 <Since v="2.0.0" />
 </p>
 
-`schema`는 컬렉션에 대한 문서 프런트매터의 타입과 모양을 구성하는 선택적 Zod 객체입니다. 각 값은 [Zod 유효성 검사기](/ko/reference/modules/astro-zod/#일반적인-데이터-타입-유효성-검사기)를 사용해야 합니다.
+컬렉션에 대한 문서 프론트매터의 타입과 형태를 구성하기 위해 Zod 객체를 반환하는 선택적 Zod 객체 또는 함수입니다. 각 값은 [Zod 유효성 검사기](/ko/reference/modules/astro-zod/#일반적인-데이터-타입-유효성-검사기)를 사용해야 합니다. (라이브 컬렉션의 경우, [라이브 `schema`](#schema-1) 속성을 참조하세요.)
 
-사용 예시는 [`콘텐츠 컬렉션` 가이드를 참조하세요](/ko/guides/content-collections/#컬렉션-스키마-정의).
+<ReadMore>가이드 설명, 사용 예시 및 공통 데이터 타입을 통해 Zod를 사용한 [컬렉션 스키마를 정의하는 방법](/ko/guides/content-collections/#컬렉션-스키마-정의하기)에 대해 알아보세요.</ReadMore>
+
+### `defineLiveCollection()`
+
+<p>
+
+**타입:** `(config: LiveCollectionConfig) => LiveCollectionConfig`
+<Since v="6.0.0" />
+</p>
+
+`src/live.config.*` 파일에서 라이브 컬렉션을 구성하기 위한 유틸리티입니다.
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@example/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.example.com/v1',
+  }),
+});
+
+// `collections` 내보내기를 통해 정의된 컬렉션을 Astro에 노출합니다.
+export const collections = { products };
+```
+
+이 함수는 다음 속성을 허용합니다:
+
+#### `loader`
+
+<p>
+
+**타입:** `LiveLoader`
+<Since v="6.0.0" />
+</p>
+
+런타임에 원격 소스에서 라이브 콘텐츠 컬렉션으로 데이터를 로드할 수 있게 해주는 객체입니다. (빌드 타임 컬렉션의 경우, [빌드 타임 `loader`](#loader) 속성을 참조하세요.)
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [라이브 로더를 생성하는 방법](/ko/guides/content-collections/#라이브-로더-만들기)에 대해 알아보세요.</ReadMore>
+
+#### `schema`
+
+<p>
+
+**타입:** <code>ZodType</code>
+<Since v="6.0.0" />
+</p>
+
+라이브 컬렉션에 대한 데이터의 타입과 형태를 구성하기 위한 선택적 Zod 객체입니다. 각 값은 [Zod 유효성 검사기](https://github.com/colinhacks/zod)를 사용해야 합니다. (빌드 타임 컬렉션의 경우, [빌드 타임 `schema`](#schema) 속성을 참조하세요.)
+
+스키마를 정의하면 컬렉션을 쿼리할 때 [라이브 로더의 타입](/ko/reference/content-loader-reference/#라이브-로더-api)보다 우선 적용됩니다.
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [라이브 컬렉션에서 Zod 스키마 사용하는 방법](/ko/guides/content-collections/#라이브-컬렉션에서-zod-스키마-사용하기)에 대해 알아보세요.</ReadMore>
 
 ### `reference()`
 
 <p>
 
-**타입:** `(collection: string) => ZodEffects<ZodString, { collection, id: string }>`<br />
+**타입:** <code>(collection: <a href="#collectionkey">CollectionKey</a>) => ZodEffects\<ZodString, \{ collection: CollectionKey, id: string \}\></code><br />
 <Since v="2.5.0" />
 </p>
 
-`reference()` 함수는 콘텐츠 구성에서 하나의 컬렉션과 다른 컬렉션의 관계, 즉 "참조"를 정의하는 데 사용됩니다. 이 함수는 컬렉션 이름을 받아서 참조를 컬렉션 이름과 참조 ID를 포함하는 객체로 변환합니다.
+콘텐츠 구성에서 한 컬렉션과 다른 컬렉션 간의 관계 또는 "참조"를 정의하는 데 사용되는 함수입니다. 컬렉션 이름을 인자로 받아 참조를 컬렉션 이름과 참조 ID를 포함하는 객체로 변환합니다.
 
-이 예시에서는 `authors` 컬렉션에 대한 블로그 작성자의 참조와 동일한 `blog` 컬렉션에 대한 관련 게시물 배열을 정의합니다.
+이 예시는 블로그 작성자를 `authors` 컬렉션으로 참조하고, 관련 게시물 배열을 동일한 `blog` 컬렉션으로 참조하도록 정의합니다:
 
-```ts
-import { defineCollection, reference } from "astro:content";
-import { z } from "astro/zod";
+```ts title="src/content.config.ts"
+import { defineCollection, reference } from 'astro:content';
+import { z } from 'astro/zod';
 import { glob, file } from 'astro/loaders';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: z.object({
-    // `id`로 `authors` 컬렉션에서 단일 저자 참조
+    // `id`를 통해 `authors` 컬렉션에서 단일 작성자를 참조합니다.
     author: reference('authors'),
-    // `slug`의 `blog` 컬렉션에서 관련 게시물 배열을 참조하세요.
+    // `slug`를 통해 `blog` 컬렉션에서 관련 게시물 배열을 참조합니다.
     relatedPosts: z.array(reference('blog')),
   })
 });
@@ -113,89 +176,140 @@ const authors = defineCollection({
 
 export const collections = { blog, authors };
 ```
-참조된 항목의 유효성 검사는 `getEntry()` 또는 `getEntries()`를 사용할 때 런타임에 수행됩니다.
+
+참조된 엔트리에 대한 유효성 검사는 `getEntry()` 또는 `getEntries()`를 사용할 때 런타임에 발생합니다:
 
 ```astro title="src/pages/[posts].astro"
-// 참조된 항목이 유효하지 않으면 undefined를 반환합니다.
+// 참조된 엔트리가 유효하지 않은 경우 undefined를 반환합니다.
 const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 ```
 
-사용 예시는 [`콘텐츠 컬렉션` 가이드를 참조하세요](/ko/guides/content-collections/#컬렉션-참조-정의).
+<ReadMore>가이드 설명 및 사용 예시를 통해 [컬렉션 참조 정의 및 사용](/ko/guides/content-collections/#컬렉션-참조-정의하기) 방법에 대해 알아보세요.</ReadMore>
 
 ### `getCollection()`
 
 <p>
 
-**타입:** `(collection: string, filter?: (entry: CollectionEntry<collection>) => boolean) => CollectionEntry<collection>[]`
+**타입:** <code>(collection: <a href="#collectionkey">CollectionKey</a>, filter?: (entry: <a href="#collectionentry">CollectionEntry</a>) => boolean) => CollectionEntry[]</code>
 <Since v="2.0.0" />
 </p>
 
-`getCollection()`은 컬렉션 이름별로 콘텐츠 컬렉션 항목 목록을 검색하는 함수입니다.
+컬렉션 이름으로 콘텐츠 컬렉션 엔트리 목록을 검색하는 함수입니다.
 
-기본적으로 컬렉션의 모든 항목을 반환하고 항목 속성별로 범위를 좁힐 수 있는 선택적 `filter` 함수를 허용합니다. 이를 통해 `data` 객체를 통해 `id` 또는 프런트매터 값을 기반으로 컬렉션의 일부 항목만 쿼리할 수 있습니다.
+기본적으로 컬렉션의 모든 항목을 반환하며, 엔트리 속성에 따라 범위를 좁히기 위한 선택적 `filter` 함수를 허용합니다. 이를 통해 `id`나 `data` 객체를 통한 프론트매터 값을 기반으로 컬렉션의 일부 항목만 쿼리할 수 있습니다.
 
-```astro
+```astro title="src/pages/blog/index.astro"
 ---
 import { getCollection } from 'astro:content';
 
-// 모든 `src/content/blog/` 항목을 가져옵니다.
+// 모든 `src/data/blog/` 엔트리를 가져옵니다.
 const allBlogPosts = await getCollection('blog');
 
-// 프런트매터에 `draft: true`가 포함된 게시물만 반환합니다.
+// 프론트매터에 `draft: true`가 있는 게시물만 반환합니다.
 const draftBlogPosts = await getCollection('blog', ({ data }) => {
   return data.draft === true;
 });
 ---
 ```
 
-사용 예시는 [`콘텐츠 컬렉션` 가이드를 참조하세요](/ko/guides/content-collections/#컬렉션-쿼리).
+<ReadMore>가이드 설명 및 사용 예시를 통한 [빌드 타임 컬렉션 쿼리](/ko/guides/content-collections/#빌드-타임-컬렉션-쿼리하기) 방법에 대해 알아보세요.</ReadMore>
+
+### `getLiveCollection()`
+
+<p>
+
+**타입:** <code>(collection: string, filter?: LiveLoaderCollectionFilterType) => Promise\<<a href="#livedatacollectionresult">LiveDataCollectionResult</a>\></code>
+<Since v="6.0.0" />
+</p>
+
+컬렉션 이름으로 라이브 콘텐츠 컬렉션 엔트리 목록을 검색하는 함수입니다.
+
+기본적으로 컬렉션의 모든 항목을 반환하며, 컬렉션의 로더에 의해 형태가 정의되는 선택적 `filter` 객체를 허용합니다. 이를 통해 API 기능에 따라 컬렉션의 일부 항목만 쿼리하거나 다른 형태의 데이터를 검색할 수 있습니다.
+
+```astro title="src/pages/shop/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+// API에서 모든 `products` 엔트리를 가져옵니다.
+const { entries: allProducts } = await getLiveCollection('products');
+
+// 추천 상품인 `products`만 반환합니다.
+const { entries: featuredProducts } = await getLiveCollection('products', { featured: true });
+---
+```
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [라이브 컬렉션 데이터 액세스](/ko/guides/content-collections/#라이브-데이터-액세스하기) 방법에 대해 알아보세요.</ReadMore>
 
 ### `getEntry()`
 
 <p>
 
 **타입:**
-* `(collection: string, id: string) => Promise<CollectionEntry<collection> | undefined>`
-* `({ collection: string, id: string }) => Promise<CollectionEntry<collection> | undefined>`
+* <code>(collection: <a href="#collectionkey">CollectionKey</a>, id: string) => Promise\<<a href="#collectionentry">CollectionEntry</a> | undefined\></code>
+* <code>(\{ collection: <a href="#collectionkey">CollectionKey</a>, id: string \}) => Promise\<<a href="#collectionentry">CollectionEntry</a> | undefined\></code>
 <Since v="2.5.0" />
 </p>
 
-`getEntry()`는 컬렉션 이름과 항목 `id`로 단일 컬렉션 항목을 검색하는 함수입니다. `getEntry()`는 참조된 항목의 `data` 또는 `body` 속성에 접근하기 위해서도 사용될 수 있습니다:
+컬렉션 이름과 엔트리 `id`를 통해 단일 컬렉션 엔트리를 검색하는 함수입니다. `getEntry()`는 `data` 또는 `body` 속성에 액세스하기 위해 참조된 엔트리를 가져오는 데에도 사용될 수 있습니다:
 
-```astro
+```astro title="src/pages/index.astro"
 ---
 import { getEntry } from 'astro:content';
 
-// `src/content/blog/enterprise.md` 가져오기
+// `src/content/blog/enterprise.md`를 가져옵니다.
 const enterprisePost = await getEntry('blog', 'enterprise');
 
-// `src/content/captains/picard.json` 가져오기
+// `src/content/captains/picard.json`을 가져옵니다.
 const picardProfile = await getEntry('captains', 'picard');
 
-// `data.captain`이 참조하는 프로필 가져오기
+// `data.captain`에 의해 참조된 프로필을 가져옵니다.
 const enterpriseCaptainProfile = await getEntry(enterprisePost.data.captain);
 ---
 ```
 
-[컬렉션 항목 쿼리](/ko/guides/content-collections/#컬렉션-쿼리)의 예시는 `콘텐츠 컬렉션` 가이드를 참조하세요.
+<ReadMore>가이드 설명 및 사용 예시를 통해 [빌드 타임 컬렉션 쿼리](/ko/guides/content-collections/#빌드-타임-컬렉션-쿼리하기) 방법에 대해 자세히 알아보세요.</ReadMore>
+
+### `getLiveEntry()`
+
+<p>
+
+**타입:** <code>(collection: string, filter: string | LiveLoaderEntryFilterType) => Promise\<<a href="#livedataentryresult">LiveDataEntryResult</a>\></code>
+<Since v="6.0.0" />
+</p>
+
+컬렉션 이름과 선택적 필터(`id` 문자열 또는 타입 안정성이 보장된 객체)를 통해 단일 라이브 컬렉션 엔트리를 검색하는 함수입니다.
+
+```astro title="src/pages/blog/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry: liveCollectionsPost } = await getLiveEntry('blog', Astro.params.id);
+const { entry: mattDraft } = await getLiveEntry('blog', {
+  status: 'draft',
+  author: 'matt',
+});
+---
+```
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [라이브 컬렉션 데이터에 액세스](/ko/guides/content-collections/#라이브-데이터-액세스하기)하는 방법에 대해 알아보세요.</ReadMore>
 
 ### `getEntries()`
 
 <p>
 
-**타입:** `(Array<{ collection: string, id: string }>) => Array<CollectionEntry<collection>>`
+**타입:** <code>(\{ collection: <a href="#collectionkey">CollectionKey</a>, id: string \}[]) => <a href="#collectionentry">CollectionEntry</a>[]</code>
 <Since v="2.5.0" />
 </p>
 
-`getEntries()`는 동일한 컬렉션에서 여러 컬렉션 항목을 검색하는 함수입니다. 이는 [참조된 항목의 배열을 반환](/ko/guides/content-collections/#컬렉션-참조-정의)하여 관련 `data` 및 `body` 속성에 액세스하는 데 유용합니다.
+동일한 컬렉션에서 여러 컬렉션 엔트리를 검색하는 함수입니다. 이는 [참조된 엔트리 배열을 반환](/ko/guides/content-collections/#컬렉션-참조-정의하기)하여 관련 `data` 및 `body` 속성에 액세스하는 데 유용합니다.
 
-```astro
+```astro title="src/pages/blog/enterprise/index.astro"
 ---
 import { getEntries, getEntry } from 'astro:content';
 
 const enterprisePost = await getEntry('blog', 'enterprise');
 
-// `data.relatedPosts`에 의해 참조되는 관련 게시물 가져오기
+// `data.relatedPosts`에 의해 참조된 관련 게시물을 가져옵니다.
 const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts);
 ---
 ```
@@ -204,30 +318,30 @@ const enterpriseRelatedPosts = await getEntries(enterprisePost.data.relatedPosts
 
 <p>
 
-**타입:** `(entry: CollectionEntry) => Promise<RenderedEntry>`
+**타입:** <code>(entry: <a href="#collectionentry">CollectionEntry</a>) => Promise\<RenderResult\></code>
 <Since v="5.0.0" />
 </p>
 
-렌더링을 위해 주어진 항목을 컴파일하는 함수입니다. 다음 속성들을 반환합니다:
+렌더링을 위해 주어진 엔트리를 컴파일하는 함수입니다. 이 함수는 다음 속성들을 반환합니다:
 
 - `<Content />` - Astro 파일에서 문서의 내용을 렌더링하는 데 사용되는 컴포넌트입니다.
-- `headings` - Markdown 및 MDX 가져오기에 대해 생성된 제목 목록, [Astro의 `getHeadings()` 유틸리티 미러링](/ko/guides/markdown-content/#사용-가능한-속성).
-- `remarkPluginFrontmatter ` - [remark 또는 rehype 플러그인이 적용된 후](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기) 수정된 frontmatter 객체. `any` 타입으로 설정됩니다.
+- `headings` - Markdown 및 MDX 가져오기 시 [Astro의 `getHeadings()` 유틸리티를 반영](/ko/guides/markdown-content/#사용-가능한-속성)하여 생성된 헤딩 목록입니다.
+- `remarkPluginFrontmatter` - [remark 또는 rehype 플러그인이 적용된 후](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기) 수정된 프론트매터 객체입니다. `any` 타입으로 설정됩니다.
 
-```astro
+```astro title="src/pages/blog/entry-1.astro"
 ---
 import { getEntry, render } from 'astro:content';
 const entry = await getEntry('blog', 'entry-1');
 
 if (!entry) {
-   // 오류 처리, 예시:
+   // 예를 들어 다음과 같이 에러를 처리합니다:
   throw new Error('Could not find blog post 1');
 }
 const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 ---
 ```
 
-사용 예시는 [`콘텐츠 컬렉션` 가이드를 참조하세요](/ko/guides/content-collections/#본문-콘텐츠-렌더링).
+<ReadMore>가이드 설명 및 사용 예시를 통해 [엔트리 본문 콘텐츠를 렌더링](/ko/guides/content-collections/#본문-콘텐츠-렌더링하기)하는 방법에 대해 알아보세요.</ReadMore>
 
 ## `astro:content` 타입
 
@@ -235,61 +349,93 @@ const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 import type {
   CollectionEntry,
   CollectionKey,
-  ContentCollectionKey,
-  DataCollectionKey,
   SchemaContext,
- } from 'astro:content';
+} from 'astro:content';
 ```
 
 ### `CollectionEntry`
 
-[`getCollection()`](#getcollection), [`getEntry()`](#getentry), [`getEntries()`](#getentries)를 포함한 쿼리 함수는 각각 `CollectionEntry` 타입의 항목을 반환합니다. 이 타입은 `astro:content`에서 유틸리티로 사용할 수 있습니다.
+[`getCollection()`](#getcollection), [`getEntry()`](#getentry), [`getEntries()`](#getentries)를 포함한 쿼리 함수들은 각각 `CollectionEntry` 타입의 엔트리를 반환합니다. 이 타입은 `astro:content`에서 유틸리티로 사용할 수 있습니다:
 
 ```ts
 import type { CollectionEntry } from 'astro:content';
 ```
 
-`CollectionEntry`는 제네릭 타입입니다. 이 타입을 쿼리하려는 컬렉션의 이름과 함께 사용하세요.
-예를 들어, `blog` 컬렉션의 항목은 `CollectionEntry<'blog'>`와 같은 타입을 가질 것입니다.
+쿼리 중인 컬렉션의 이름과 함께 사용하여 해당 컬렉션의 단일 엔트리를 나타내는 제네릭 타입입니다.
+예를 들어, `blog` 컬렉션의 엔트리는 `CollectionEntry<'blog'>` 타입을 갖게 됩니다.
 
-각 `CollectionEntry`는 다음 값을 가지는 객체입니다.
+각 `CollectionEntry`는 다음 값을 포함하는 객체입니다:
 
-#### `id`
+#### `CollectionEntry.id`
 
-**타입 예시:** `'author-1' | 'author-2' | ...`
+<p>
 
-고유 ID입니다. Astro의 내장 `glob()` 로더의 모든 ID가 슬러그화된다는 점에 유의하세요.
+**타입:** `string`
+</p>
 
-#### `collection`
+고유 ID입니다. Astro의 내장 `glob()` 로더를 통한 모든 ID는 슬러그화됩니다.
 
-**타입 예시:** `'blog' | 'authors' | ...`
+#### `CollectionEntry.collection`
 
-항목이 위치한 컬렉션의 이름입니다. 이는 스키마 및 쿼리 함수에서 컬렉션을 참조하는 데 사용되는 이름입니다.
+<p>
 
-#### `data`
+**타입:** [`CollectionKey`](#collectionkey)
+</p>
+
+엔트리가 위치한 컬렉션의 이름입니다. 이는 스키마 및 쿼리 함수에서 컬렉션을 참조하는 데 사용되는 이름입니다.
+
+#### `CollectionEntry.data`
+
+<p>
 
 **타입:** `CollectionSchema<TCollectionName>`
+</p>
 
-컬렉션 스키마에서 추론된 프런트매터 속성의 객체입니다 ([`defineCollection()` 참조를 확인하세요](#definecollection)). 스키마가 구성되지 않은 경우 기본값은 `any`입니다.
+컬렉션 스키마에서 추론된 프론트매터 속성 객체입니다 ([`defineCollection()` 참조](#definecollection)). 스키마가 구성되지 않은 경우 기본값은 `any`입니다.
 
-#### `body`
+#### `CollectionEntry.body`
+
+<p>
 
 **타입:** `string | undefined`
+</p>
 
-Markdown 또는 MDX 문서의 컴파일되지 않은 원시 본문을 포함하는 문자열입니다.
+Markdown 또는 MDX 문서의 컴파일되지 않은 원본 본문을 포함하는 문자열입니다.
 
-[`retainBody`](/ko/reference/content-loader-reference/#retainbody)가 `false`로 설정된 경우, 이 값은 원본 파일 내용을 포함하는 대신 `undefined`가 됩니다.
+[`retainBody`](/ko/reference/content-loader-reference/#retainbody)가 `false`로 설정된 경우, 이 값은 원본 파일 내용 대신 `undefined`가 됩니다.
+
+#### `CollectionEntry.rendered`
+
+<p>
+
+**타입:** `RenderedContent | undefined`
+</p>
+
+[로더에 의해 저장된](/ko/reference/content-loader-reference/#dataentryrendered) 엔트리의 렌더링된 콘텐츠입니다. 예를 들어, Markdown 엔트리의 렌더링된 내용이나 CMS의 HTML일 수 있습니다.
+
+#### `CollectionEntry.filePath`
+
+<p>
+
+**타입:** `string | undefined`
+</p>
+
+프로젝트 디렉토리에 대한 엔트리의 상대 경로입니다. 이 값은 로컬 엔트리에 대해서만 사용할 수 있습니다.
 
 ### `CollectionKey`
 
-<p><Since v="3.1.0" /></p>
+<p>
 
-`src/content.config.*` 파일에 정의된 모든 컬렉션 이름의 문자열 유니온 타입입니다. 이 타입은 내장된 `getCollection()`을 래핑하는 제네릭 함수를 정의할 때 유용할 수 있습니다.
+**예시 타입:** `'blog' | 'authors' | ...`<br />
+<Since v="3.1.0" />
+</p>
 
-```ts
+`src/content.config.*` 파일에 정의된 모든 컬렉션 이름의 문자열 유니온입니다. 이 타입은 내장 `getCollection()`을 래핑하는 제네릭 함수를 정의할 때 유용할 수 있습니다.
+
+```ts title="src/utils/collections.ts"
 import { type CollectionKey, getCollection } from 'astro:content';
 
-async function queryCollection(collection: CollectionKey) {
+export async function queryCollection(collection: CollectionKey) {
   return getCollection(collection, ({ data }) => {
     return data.draft !== true;
   });
@@ -298,15 +444,16 @@ async function queryCollection(collection: CollectionKey) {
 
 ### `SchemaContext`
 
-`defineCollection`이 `schema`의 함수 모양을 위해 사용하는 `context` 객체입니다. 이 타입은 여러 컬렉션에 대해 재사용 가능한 스키마를 구축할 때 유용할 수 있습니다.
+`defineCollection`이 `schema` 함수의 인자로 사용하는 `context` 객체입니다. 이 타입은 여러 컬렉션에서 재사용 가능한 스키마를 빌드할 때 유용할 수 있습니다.
 
-여기에는 다음 속성이 포함됩니다.
+이 객체는 다음 속성을 포함합니다:
 
-- `image` - [콘텐츠 컬렉션에서 로컬 이미지를 사용](/ko/guides/images/#콘텐츠-컬렉션의-이미지)할 수 있게 해주는 `image()` 스키마 도우미
+- `image` - [콘텐츠 컬렉션에서 로컬 이미지를 사용할 수 있게 해주는](/ko/guides/images/#콘텐츠-컬렉션의-이미지) `image()` 스키마 헬퍼입니다.
 
-```ts
+```ts title="src/content.config.ts" "SchemaContext" {5-9,13,16}
 import { defineCollection, type SchemaContext } from "astro:content";
-import { z } from "astro/zod";
+import { z } from 'astro/zod';
+import { glob } from 'astro/loaders';
 
 export const imageSchema = ({ image }: SchemaContext) =>
     z.object({
@@ -315,11 +462,214 @@ export const imageSchema = ({ image }: SchemaContext) =>
     });
 
 const blog = defineCollection({
-  loader: /* ... */,
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: ({ image }) => z.object({
     title: z.string(),
     permalink: z.string().optional(),
     image: imageSchema({ image })
   }),
 });
+```
+
+## `astro` 타입
+
+```ts
+import type {
+  LiveDataCollectionResult,
+  LiveDataEntryResult,
+} from "astro";
+```
+
+### `LiveDataCollectionResult`
+
+<p>
+
+**타입:** <code>\{ entries?: Array\<<a href="/ko/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\>\>; error?: TError | LiveCollectionError; cacheHint?: <a href="/ko/reference/content-loader-reference/#cachehint">CacheHint</a>; \}</code><br />
+<Since v="6.0.0" />
+</p>
+
+[`getLiveCollection()`](#getlivecollection)에 의해 반환되는 객체로, 라이브 로더에서 가져온 데이터를 포함합니다. 다음 속성들을 갖습니다:
+
+#### `LiveDataCollectionResult.entries`
+
+<p>
+
+**타입:** <code>Array\<<a href="/ko/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\>\> | undefined</code>
+</p>
+
+로더에 의해 반환된 [`LiveDataEntry`](/ko/reference/content-loader-reference/#livedataentry) 객체들의 배열입니다.
+
+다음 예시는 `products`라는 이름의 라이브 컬렉션에 대해 반환된 엔트리에 액세스합니다:
+
+```astro title="src/pages/shop/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries: allProducts } = await getLiveCollection('products');
+---
+```
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [라이브 데이터 액세스](/ko/guides/content-collections/#라이브-데이터-액세스하기) 방법에 대해 알아보세요.</ReadMore>
+
+#### `LiveDataCollectionResult.error`
+
+<p>
+
+**타입:** `TError | LiveCollectionError | undefined`
+</p>
+
+로더가 컬렉션을 로드하는 데 실패했을 때 반환되는 에러입니다. 로더에서 정의한 커스텀 에러이거나 내장 에러일 수 있습니다.
+
+다음 예시는 `products`라는 이름의 라이브 컬렉션에서 데이터를 검색할 때 반환된 에러에 액세스합니다:
+
+```astro title="src/pages/shop/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { error } = await getLiveCollection('products');
+---
+```
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [에러 처리 방법](/ko/guides/content-collections/#오류-처리)에 대해 자세히 알아보세요.</ReadMore>
+
+#### `LiveDataCollectionResult.cacheHint`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/content-loader-reference/#cachehint">CacheHint</a> | undefined</code>
+</p>
+
+이 컬렉션을 캐시하는 방법에 대한 지침을 제공하는 객체입니다.
+
+[실험적 라우트 캐싱](/ko/reference/experimental-flags/route-caching/)이 활성화된 경우, 캐시 힌트를 `Astro.cache.set()`에 직접 전달하세요:
+
+```astro title="src/pages/shop/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+const { cacheHint } = await getLiveCollection('products');
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+```
+
+캐시 힌트를 사용하여 응답 헤더를 수동으로 설정할 수도 있습니다:
+
+```astro title="src/pages/shop/index.astro"
+---
+import { getLiveCollection } from 'astro:content';
+
+const { cacheHint } = await getLiveCollection('products');
+
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
+```
+
+### `LiveDataEntryResult`
+
+<p>
+
+**타입:** <code>\{ entry?: <a href="/ko/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\>; error?: TError | LiveCollectionError; cacheHint?: <a href="/ko/reference/content-loader-reference/#cachehint">CacheHint</a>; }</code><br />
+<Since v="6.0.0" />
+</p>
+
+[`getLiveEntry()`](#getliveentry)에 의해 반환되는 객체로, 라이브 로더에서 가져온 데이터를 포함합니다. 다음 속성들을 갖습니다:
+
+#### `LiveDataEntryResult.entry`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/content-loader-reference/#livedataentry">LiveDataEntry</a>\<TData\> | undefined</code>
+</p>
+
+로더에 의해 반환된 [`LiveDataEntry`](/ko/reference/content-loader-reference/#livedataentry) 객체입니다.
+
+다음 예시는 `products`라는 이름의 라이브 컬렉션에서 요청된 엔트리에 액세스합니다:
+
+```astro title="src/pages/shop/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry } = await getLiveEntry('products', Astro.params.id);
+---
+```
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [라이브 데이터 액세스](/ko/guides/content-collections/#라이브-데이터-액세스하기) 방법에 대해 알아보세요.</ReadMore>
+
+#### `LiveDataEntryResult.error`
+
+<p>
+
+**타입:** `TError | LiveCollectionError | undefined`
+</p>
+
+로더가 엔트리를 로드하는 데 실패했을 때 반환되는 에러입니다. 로더에서 정의한 커스텀 에러이거나 내장 에러일 수 있습니다.
+
+다음 예시는 `products`라는 이름의 라이브 컬렉션에서 요청된 엔트리와 에러에 액세스하며, 에러가 있는 경우 404 페이지로 리다이렉트합니다:
+
+```astro title="src/pages/shop/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+---
+<h1>{entry.data.name}</h1>
+```
+
+<ReadMore>가이드 설명 및 사용 예시를 통해 [에러 처리 방법](/ko/guides/content-collections/#오류-처리)에 대해 자세히 알아보세요.</ReadMore>
+
+#### `LiveDataEntryResult.cacheHint`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/content-loader-reference/#cachehint">CacheHint</a> | undefined</code>
+</p>
+
+캐싱 전략을 결정하는 데 사용될 수 있는 데이터를 제공하는 객체입니다.
+
+[실험적 라우트 캐싱](/ko/reference/experimental-flags/route-caching/)이 활성화된 경우, 캐시 힌트를 `Astro.cache.set()`에 직접 전달하세요:
+
+```astro title="src/pages/shop/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
+
+const { cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 300 });
+---
+```
+
+캐시 힌트를 사용하여 응답 헤더를 수동으로 설정할 수도 있습니다:
+
+```astro title="src/pages/shop/[id].astro"
+---
+import { getLiveEntry } from 'astro:content';
+
+const { cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (cacheHint?.tags) {
+  Astro.response.headers.set('Cache-Tag', cacheHint.tags.join(','));
+}
+if (cacheHint?.lastModified) {
+  Astro.response.headers.set('Last-Modified', cacheHint.lastModified.toUTCString());
+}
+---
 ```
