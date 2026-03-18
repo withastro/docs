@@ -19,13 +19,15 @@ Astro fournit des composants intégrés et des fonctions d'aide pour optimiser e
 Les utilitaires suivants sont importés depuis le module virtuel des ressources :
 
 ```js
-import { 
+import {
   Image,
   Picture,
+  Font,
   getImage,
   inferRemoteSize,
   getConfiguredImageService,
   imageConfig,
+  fontData,
 } from 'astro:assets';
 ```
 
@@ -33,7 +35,6 @@ import {
 
 Le composant `<Image />` optimise et transforme les images.
 
-Ce composant peut également être utilisé pour créer des [images adaptatives](#propriétés-des-images-adaptatives) qui peuvent s'ajuster en fonction de la taille de leur conteneur ou de la taille et de la résolution de l'écran d'un appareil.
 
 ```astro title="src/components/MonComposant.astro"
 ---
@@ -59,7 +60,7 @@ import monImage from "../assets/mon_image.png"; // Image a une résolution de 16
 />
 ```
 
-Le composant `<Image />` accepte les propriétés listées ci-dessous et les [propriétés d'image adaptatives](#propriétés-des-images-adaptatives) en plus de toutes les propriétés acceptées par la balise HTML `<img>`.
+Le composant `<Image />` accepte les propriétés listées ci-dessous en plus de toutes les propriétés acceptées par la balise HTML `<img>`.
 
 #### `src` (obligatoire)
 
@@ -144,7 +145,7 @@ Cependant, ces deux propriétés sont requises pour les images stockées dans vo
 
 Une liste de densités de pixels à générer pour l'image.
 
-L'attribut `densities` n'est pas compatible avec les [images adaptatives](#propriétés-des-images-adaptatives) utilisant une propriété `layout` ou lorsqu'`image.layout` est définie dans la configuration, et sera ignoré s'il est défini.
+L'attribut `densities` n'est pas compatible avec l'utilisation de la propriété `layout` ou du paramètre de configuration `image.layout`, et sera ignoré s'il est défini.
 
 Si elle est fournie, cette valeur sera utilisée pour générer un attribut `srcset` sur la balise `<img>`. Ne fournissez pas de valeur pour `widths` lorsque vous utilisez cette valeur.
 
@@ -191,7 +192,7 @@ Une liste de largeurs à générer pour l'image.
 
 Si elle est fournie, cette valeur sera utilisée pour générer un attribut `srcset` sur la balise `<img>`. Une [propriété `sizes`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes) doit également être fournie.
 
-Les attributs `widths` et `sizes` seront automatiquement générés pour les images adaptatives à l'aide d'une propriété `layout`. Fournir ces valeurs n'est généralement pas nécessaire, mais peut remplacer les valeurs générées automatiquement.
+Les attributs `widths` et `sizes` seront automatiquement générés pour les images utilisant une propriété `layout`. Fournir ces valeurs n'est généralement pas nécessaire, mais elles peuvent servir à remplacer les valeurs générées automatiquement.
 
 Ne fournissez pas de valeur pour `densities` lorsque vous utilisez cette valeur. Une seule de ces deux valeurs peut être utilisée pour générer un `srcset`.
 
@@ -244,7 +245,7 @@ import monImage from '../assets/mon_image.png'; // La résolution de l'image est
 
 Spécifie la largeur de la mise en page de l'image pour chaque valeur d'une liste de conditions de média. Doit être fourni lors de la spécification de largeurs (`widths`).
 
-Les attributs `widths` et `sizes` seront automatiquement générés pour les images adaptatives à l'aide d'une propriété `layout`. Fournir ces valeurs n'est généralement pas nécessaire, mais peut remplacer les valeurs générées automatiquement.
+Les attributs `widths` et `sizes` seront automatiquement générés pour les images utilisant une propriété `layout`. Fournir ces valeurs n'est généralement pas nécessaire, mais elles peuvent servir à remplacer les valeurs générées automatiquement.
 
 L'attribut `sizes` généré pour les images contraintes (`constrained`) et pleine largeur (`full-width`) suppose que l'image s'affiche presque sur toute la largeur de l'écran lorsque la fenêtre d'affichage est plus petite que la largeur de l'image. Si la différence est significative (par exemple, si l'image est affichée sur plusieurs colonnes sur un petit écran), vous devrez peut-être ajuster manuellement l'attribut `sizes` pour obtenir de meilleurs résultats.
 
@@ -324,6 +325,120 @@ fetchpriority="high"
 
 Ces attributs individuels peuvent toujours être définis manuellement si vous devez les personnaliser davantage.
 
+#### `layout`
+
+<p>
+
+**Type :** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**Par défaut :** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+Détermine comment l'image doit être redimensionnée lorsque la taille de son conteneur change. Peut être utilisée pour remplacer la valeur configurée par défaut pour [`image.layout`](/fr/reference/configuration-reference/#imagelayout).
+
+```astro title=MonComposant.astro
+---
+import { Image } from 'astro:assets';
+import monImage from '../assets/mon_image.png';
+---
+<Image src={monImage} alt="Une description de mon image" layout='constrained' width={800} height={600} />
+```
+
+Lorsqu'une mise en page est définie, les attributs `srcset` et `sizes` sont générés automatiquement en fonction des dimensions de l'image et du type de mise en page. Le composant `<Image />` précédent générera le code HTML suivant :
+
+```html
+<img
+  src="/_astro/mon_image.hash3.webp"
+  srcset="/_astro/mon_image.hash1.webp 640w,
+      /_astro/mon_image.hash2.webp 750w,
+      /_astro/mon_image.hash3.webp 800w,
+      /_astro/mon_image.hash4.webp 828w,
+      /_astro/mon_image.hash5.webp 1080w,
+      /_astro/mon_image.hash6.webp 1280w,
+      /_astro/mon_image.hash7.webp 1600w"
+  alt="Une description de mon image"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+
+`layout` prend en charge les valeurs suivantes :
+
+- `constrained` - L'image sera redimensionnée pour s'adapter au conteneur, en conservant son rapport hauteur/largeur, mais ne sera pas agrandie au-delà de la largeur et de la hauteur spécifiées, ni au-delà des dimensions originales de l'image.
+
+  Utilisez cette option si vous souhaitez que l'image s'affiche à la taille demandée lorsque cela est possible, mais qu'elle soit redimensionnée pour s'adapter aux écrans plus petits. Cela correspond au comportement par défaut des images avec Tailwind. En cas de doute, il s'agit probablement de la mise en page que vous devriez choisir.
+
+- `full-width` - L'image s'adaptera à la largeur du conteneur, en conservant ses proportions.
+
+  Utilisez ceci pour les images de couverture ou les autres images qui doivent occuper toute la largeur de la page.
+
+- `fixed` - L'image conservera les dimensions demandées et ne sera pas redimensionnée. Elle générera un `srcset` pour prendre en charge les écrans haute densité, mais pas pour les différentes tailles d'écran.
+
+  Utilisez cette option si l'image ne sera pas redimensionnée, par exemple pour des icônes ou des logos plus petits que la largeur de l'écran, ou pour d'autres images dans un conteneur à largeur fixe.
+
+- `none` - L'image ne sera pas adaptative. Aucun attribut `srcset` ni `sizes` ne sera généré automatiquement, et aucun style ne sera appliqué.
+
+  Ceci est utile si vous avez activé une mise en page par défaut, mais que vous souhaitez la désactiver pour une image spécifique.
+
+Par exemple, si la mise en page par défaut est définie sur `constrained`, vous pouvez remplacer la propriété `layout` de chaque image :
+
+```astro title="src/components/MonComposant.astro"
+---
+import { Image } from 'astro:assets';
+import monImage from '../assets/mon_image.png';
+---
+<Image src={monImage} alt="Cela utilisera une mise en page contrainte" width={800} height={600} />
+<Image src={monImage} alt="Cela utilisera une mise en page pleine largeur" layout="full-width" />
+<Image src={monImage} alt="Cela désactivera les images adaptatives" layout="none" />
+```
+
+La valeur de `layout` définit également les styles par défaut appliqués à la balise `<img>` pour déterminer comment l'image doit être redimensionnée en fonction de son conteneur :
+
+```css title="Styles des images adaptatives"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+#### `fit`
+
+<p>
+
+**Type :** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**Par défaut :** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+Définit comment une image doit être recadrée si son rapport hauteur/largeur est modifié.
+
+Les valeurs correspondent à celles de la propriété CSS `object-fit`. Par défaut, `cover`, ou la valeur de [`image.objectFit`](/fr/reference/configuration-reference/#imageobjectfit) si elle est définie. Peut être utilisée pour remplacer les styles par défaut de `object-fit`.
+
+#### `position`
+
+<p>
+
+**Type :** `string` <br />
+**Par défaut :** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+Définit la position du recadrage d'une image si son rapport hauteur/largeur est modifié.
+
+Les valeurs correspondent à celles de la propriété CSS `object-position`. Par défaut, la valeur est `center`, ou la valeur de [`image.objectPosition`](/fr/reference/configuration-reference/#imageobjectposition) si elle est définie. Peut être utilisé pour remplacer les styles par défaut de `object-position`.
+
 #### `background`
 
 <p>
@@ -337,12 +452,8 @@ La couleur d'arrière-plan à utiliser lors de l'aplatissement d'une image pour 
 Par défaut, Sharp utilise un fond noir lors de l'aplatissement d'une image. Spécifier une couleur de fond différente est particulièrement utile lors de la conversion d'images à fond transparent vers un format ne prenant pas en charge la transparence (par exemple, `.jpeg`).
 
 ```astro title="src/components/MonComposant.astro" "background"
----
-import { Image } from 'astro:assets';
-import myImage from '../assets/mon_image.png';
----
 <Image
-  src={myImage}
+  src={monImage}
   alt="Une description de mon image"
   format="jpeg"
   background="#ffffff"
@@ -357,7 +468,6 @@ Les valeurs sont transmises directement au service d'images. Sharp accepte [tout
 
 Le composant `<Picture />` génère une image optimisée avec plusieurs formats et/ou tailles.
 
-Ce composant peut également être utilisé pour créer des [images adaptatives](#propriétés-des-images-adaptatives) qui peuvent s'ajuster en fonction de la taille de leur conteneur ou de la taille et de la résolution de l'écran d'un appareil.
 
 ```astro title="src/pages/index.astro"
 ---
@@ -385,7 +495,7 @@ import monImage from "../assets/mon_image.png"; // La résolution de l'image est
 </picture>
 ```
 
-`<Picture />` accepte toutes les propriétés du [composant `<Image />`](#image-), y compris les [propriétés d'image adaptatives](#propriétés-des-images-adaptatives), en plus des suivantes :
+`<Picture />` accepte toutes les propriétés du [composant `<Image />`](#image-) en plus des suivantes :
 
 #### `formats`
 
@@ -444,123 +554,81 @@ import monImage from "../mon_image.png"; // La résolution de l'image est de 160
 </picture>
 ```
 
-### Propriétés des images adaptatives
+### `<Font />`
 
-La définition de la propriété [`layout`](#layout) sur un composant [`<Image />`](#image-) ou [`<Picture />`](#picture-) crée une image adaptative et active des paramètres de propriété supplémentaires.
+<p><Since v="6.0.0" /></p>
 
-```astro title="src/components/MonComposant.astro"
+Le composant `<Font />` génère des balises de style et peut éventuellement générer des liens de préchargement pour une famille de polices donnée.
+
+Il doit être importé et ajouté dans l'élément `<head>` votre page. Cela se fait généralement dans un composant tel que `Head.astro`, utilisé dans la mise en page commune d'un site pour une utilisation globale, mais qui peut être ajouté à des pages individuelles selon les besoins.
+
+Ce composant vous permet de contrôler quelle famille de polices est utilisée sur quelle page, et quelles polices sont préchargées.
+
+```astro title="src/components/Head.astro"
 ---
-import { Image } from 'astro:assets';
-import monImage from '../assets/mon_image.png';
+import { Font } from "astro:assets";
 ---
-<Image src={monImage} alt="Une description de mon image." layout='constrained' width={800} height={600} />
+
+<Font cssVariable="--font-roboto" preload />
 ```
 
- Lorsqu'une mise en page est définie, les attributs `srcset` et `sizes` sont automatiquement générés en fonction des dimensions de l'image et du type de mise en page. Le composant `<Image />` précédent générera la sortie HTML suivante :
+Le composant `<Font />` accepte les propriétés suivantes :
 
-```html
-<img
-  src="/_astro/mon_image.hash3.webp"
-  srcset="/_astro/mon_image.hash1.webp 640w,
-      /_astro/mon_image.hash2.webp 750w,
-      /_astro/mon_image.hash3.webp 800w,
-      /_astro/mon_image.hash4.webp 828w,
-      /_astro/mon_image.hash5.webp 1080w,
-      /_astro/mon_image.hash6.webp 1280w,
-      /_astro/mon_image.hash7.webp 1600w"
-  alt="Une description de mon image"
-  sizes="(min-width: 800px) 800px, 100vw"
-  loading="lazy"
-  decoding="async"
-  fetchpriority="auto"
-  width="800"
-  height="600"
-  style="--fit: cover; --pos: center;"
-  data-astro-image="constrained"
->
-```
-La valeur de `layout` définit également les styles par défaut appliqués à la balise `<img>` pour déterminer comment l'image doit être redimensionnée en fonction de son conteneur :
-
-```css title="Styles des images adaptatives"
-:where([data-astro-image]) {
-	object-fit: var(--fit);
-	object-position: var(--pos);
-}
-:where([data-astro-image='full-width']) {
-	width: 100%;
-}
-:where([data-astro-image='constrained']) {
-	max-width: 100%;
-}
-```
-
-Vous pouvez remplacer les styles par défaut `object-fit` et `object-position` en définissant les props [`fit`](#fit) et [`position`](#position) sur le composant `<Image />` ou `<Picture />`.
-
-
-##### `layout`
+#### `cssVariable` (requise)
 
 <p>
 
-**Type :** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
-**Par défault :** `image.layout | 'none'` <br />
-<Since v="5.10.0" />
+**Type :** `CssVariable`<br />
+**Exemple de type :** `"--font-roboto" | "--font-comic-sans" | ...`
 </p>
 
-Définit une [image adaptative](#propriétés-des-images-adaptatives) et détermine son redimensionnement lorsque son conteneur change de taille. Peut être utilisé pour remplacer la valeur par défaut configurée pour [`image.layout`](/fr/reference/configuration-reference/#imagelayout).
+La [variable CSS (`cssVariable`)](/fr/reference/configuration-reference/#fontcssvariable) enregistrée dans votre configuration d'Astro :
 
-- `constrained` - L'image sera réduite pour s'adapter au conteneur, en conservant son rapport hauteur/largeur, mais ne sera pas agrandie au-delà de la largeur (`width`) et de la hauteur (`height`) spécifiées, ou des dimensions d'origine de l'image.
-
-  Utilisez cette option si vous souhaitez que l'image s'affiche à la taille souhaitée, si possible, mais qu'elle soit réduite pour s'adapter aux écrans plus petits. Cela correspond au comportement par défaut des images avec Tailwind. En cas de doute, c'est probablement la mise en page à choisir.
-
-- `full-width` - L'image sera mise à l'échelle pour s'adapter à la largeur du conteneur, en conservant son rapport hauteur/largeur.
-
-  Utilisez ceci pour les images de couverture ou d’autres images qui doivent occuper toute la largeur de la page.
-
-- `fixed` - L'image conservera les dimensions demandées et ne sera pas redimensionnée. Un `srcset` sera généré pour prendre en charge les affichages haute densité, mais pas pour les différentes tailles d'écran.
-
-  Utilisez cette option si l'image ne peut pas être redimensionnée, par exemple des icônes ou des logos plus petits que la largeur de l'écran, ou d'autres images dans un conteneur à largeur fixe.
-
-- `none` - L'image ne sera pas adaptative. Aucun attribut `srcset` ou `sizes` ne sera généré automatiquement et aucun style ne sera appliqué.
-
-  Ceci est utile si vous avez activé une mise en page par défaut, mais que vous souhaitez la désactiver pour une image spécifique.
-
-Par exemple, avec la valeur `constrained` définie comme mise en page par défaut, vous pouvez remplacer la propriété `layout` de n'importe quelle image individuelle :
-
-```astro title="src/components/MonComposant.astro"
+```astro title="src/components/Head.astro" "cssVariable"
 ---
-import { Image } from 'astro:assets';
-import monImage from '../assets/mon_image.png';
+import { Font } from "astro:assets";
 ---
-<Image src={monImage} alt="Cela utilisera une mise en page contrainte" width={800} height={600} />
-<Image src={monImage} alt="Cela utilisera une mise en page pleine largeur" layout="full-width" />
-<Image src={monImage} alt="Cela désactivera les images adaptatives" layout="none" />
+
+<Font cssVariable="--font-roboto" />
 ```
 
-##### `fit`
+#### `preload`
 
 <p>
 
-**Type :** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
-**Par défault :** `image.objectFit | 'cover'` <br />
-<Since v="5.10.0" />
+**Type :** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
+**Par défaut :** `false`
 </p>
 
-Activée lorsque la propriété [`layout`](#layout) est définie ou configurée. Définit comment une image adaptative doit être recadrée si son rapport hauteur/largeur est modifié.
+Détermine s'il faut afficher [les liens de préchargement](https://web.dev/learn/performance/optimize-web-fonts#preload). Avec la directive `preload`, le navigateur commencera immédiatement à télécharger tous les liens de police disponibles lors du chargement de la page.
 
-Les valeurs correspondent à celles de la propriété CSS `object-fit`. La valeur par défaut est `cover` ou la valeur de [`image.objectFit`](/fr/reference/configuration-reference/#imageobjectfit) si elle est définie. Peut être utilisée pour remplacer les styles par défaut de `object-fit`.
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from "astro:assets";
+---
 
-##### `position`
+<Font cssVariable="--font-roboto" preload />
+```
 
-<p>
+Il n'est pas toujours souhaitable de précharger tous les liens de police, car cela peut bloquer le chargement d'autres ressources importantes ou télécharger des polices inutiles pour la page actuelle.
 
-**Type :** `string` <br />
-**Par défault :** `image.objectPosition | 'center'` <br />
-<Since v="5.10.0" />
-</p>
+Pour contrôler sélectivement les fichiers de police à précharger, vous pouvez fournir un tableau d'objets décrivant toute combinaison de graisse (`weight`), `style` ou sous-ensemble (`subset`) de police à précharger :
 
-Activée lorsque la propriété [`layout`](#layout) est définie ou configurée. Définit la position du recadrage de l'image pour une image adaptative si le rapport hauteur/largeur est modifié.
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from "astro:assets";
+---
 
-Les valeurs correspondent à celles de la propriété CSS `object-position`. La valeur par défaut est `center` ou la valeur de [`image.objectPosition`](/fr/reference/configuration-reference/#imageobjectposition) si elle est définie. Peut être utilisée pour remplacer les styles par défaut de la propriété `object-position`.
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: "latin", style: "normal" },
+    { weight: "400" },
+  ]}
+/>
+```
+
+Les fichiers de polices à graisse variable seront préchargés si une graisse comprise dans leur plage est demandée. Par exemple, un fichier de police pour la graisse `100 900` sera inclus si `400` est spécifié dans un objet `preload`.
 
 ### `getImage()`
 
@@ -570,7 +638,9 @@ Les valeurs correspondent à celles de la propriété CSS `object-position`. La 
 </p>
 
 :::caution
-`getImage()` s'appuie sur des API serveur uniquement et interrompt la génération lorsqu'elle est utilisée sur le client.
+La fonction `getImage()` repose sur des API réservées au serveur et générera une erreur côté client.
+
+Si vous avez besoin de l'URL de l'image résultante côté client, vous pouvez [transmettre au client la `src` obtenue par un appel à `getImage()` effectué sur le serveur](/fr/guides/images/#générer-des-images-avec-getimage).
 :::
 
 La fonction `getImage()` est prévue pour générer des images destinées à être utilisées ailleurs que directement en HTML, par exemple dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api). Elle vous permet également de créer votre propre composant `<Image />` personnalisé.
@@ -625,6 +695,22 @@ Récupère le [service d'image](/fr/reference/configuration-reference/#imageserv
 
 Les [options de configuration pour les images](/fr/reference/configuration-reference/#options-dimages) définies par l'utilisateur et fusionnées avec toutes les valeurs par défaut.
 
+### `fontData`
+
+<p>
+
+**Type :** <code>Record\<CssVariable, Array\<<a href="#fontdata-1">FontData</a>\>\></code><br />
+<Since v="6.0.0" />
+</p>
+
+Un objet où chaque clé est une [variable CSS (`cssVariable`)](/fr/reference/configuration-reference/#fontcssvariable) et la valeur est un tableau décrivant les polices associées. Chaque police est un objet contenant un tableau de `src` disponibles pour cette police et les propriétés facultatives suivantes : `weight` et `style` :
+
+```ts
+import { fontData } from "astro:assets"
+
+const data = fontData["--font-roboto"]
+```
+
 ## Types d'`astro:assets`
 
 Les types suivants sont importés depuis le module virtuel des ressources :
@@ -633,6 +719,7 @@ Les types suivants sont importés depuis le module virtuel des ressources :
 import type {
   LocalImageProps,
   RemoteImageProps,
+  FontData
 } from "astro/assets";
 ```
 
@@ -657,6 +744,16 @@ Décrit les [propriétés d'une image locale](#image-). Cela garantit que [`src`
 </p>
 
 Décrit les [propriétés d'une image distante](#image-). Cela garantit que lorsque [`inferSize`](#infersize) n'est pas fourni ou est défini sur `false`, les propriétés [`width` et `height`](#width-et-height-obligatoires-pour-les-images-dans-public) sont toutes deux requises.
+
+### `FontData`
+
+<p>
+
+**Type :** `{ src: Array<{ url: string; format?: string; tech?: string }>; weight?: string; style?: string; }`<br />
+<Since v="6.0.0" />
+</p>
+
+Décrit les données de police associées à une famille de polices donnée.
 
 ## Importations depuis `astro/assets`
 
@@ -751,12 +848,11 @@ import {
   resolveSrc,
   imageMetadata,
   emitImageMetadata,
+  emitClientAsset,
   getOrigQueryParams,
   inferRemoteSize,
   propsToFilename,
   hashTransform,
-  /* Les éléments suivants sont dépréciés : */
-  emitESMImage,
 } from "astro/assets/utils";
 ```
 
@@ -854,7 +950,7 @@ matchPattern(url, remotePattern); // Sortie : `true`
 <p>
 
 **Type :** `(url: URL, port?: string) => boolean`<br />
-**Default:** `true`<br />
+**Par défaut :** `true`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -875,7 +971,7 @@ matchPort(urlWithoutPort, '8080'); // Sortie : `false`
 <p>
 
 **Type :** `(url: URL, protocol?: string) => boolean`<br />
-**Default:** `true`<br />
+**Par défaut :** `true`<br />
 <Since v="4.0.0" />
 </p>
 
@@ -945,7 +1041,7 @@ isRemoteImage(localImage); // Sortie : `false`
 
 <p>
 
-**Type :** <code>(src: <a href="#src-2">UnresolvedImageTransform['src']</a>) => Promise\<string | <a href="#imagemetadata-1">ImageMetadata</a>\></code><br />
+**Type :** <code>(src: <a href="#unresolvedimagetransformsrc">UnresolvedImageTransform['src']</a>) => Promise\<string | <a href="#imagemetadata-1">ImageMetadata</a>\></code><br />
 <Since v="4.0.0" />
 </p>
 
@@ -1014,6 +1110,38 @@ const metadata = await emitImageMetadata(imageId);
 //    format: 'jpg',
 //    contents: Uint8Array([...])
 // }
+```
+
+
+### `emitClientAsset()`
+
+<p>
+
+**Type :** <code>(pluginContext: <a href="https://rollupjs.org/plugin-development/#plugin-context">Rollup.PluginContext</a>, options: Rollup.EmitFile) => string</code><br />
+
+<Since v="6.0.0" />
+</p>
+
+Génère une ressource client qui sera déplacée vers le répertoire client des ressources (p. ex. `dist/client/_astro/`) lors des compilations SSR. Cette fonction est destinée aux développeurs d'intégrations qui doivent générer des ressources (telles que des images) à partir de contenu rendu côté serveur et accessibles côté client.
+
+Utilisez ceci directement au lieu de [Rollup `pluginContext.emitFile()`](https://rollupjs.org/plugin-development/#this-emitfile) lorsque vous travaillez dans un contexte de module d'extension pour Vite et que vous avez besoin que la ressource émise soit déplacée vers le répertoire de sortie du client.
+
+```ts
+import { emitClientAsset } from 'astro/assets/utils';
+
+function myVitePlugin() {
+  return {
+    name: 'my-plugin',
+    transform(code, id) {
+      const handle = emitClientAsset(this, {
+        type: 'asset',
+        name: 'my-image.png',
+        source: imageBuffer,
+      });
+      // Renvoie l'identifiant de la ressource similaire à `emitFile()`
+    }
+  }
+}
 ```
 
 ### `getOrigQueryParams()`
@@ -1118,38 +1246,6 @@ const hash = hashTransform(transform, imageService, propertiesToHash);
 // Exemple de valeur : 'd41d8cd98f00b204e9800998ecf8427e'
 ```
 
-### `emitESMImage()`
-
-:::caution[Dépréciée]
-Utilisez plutôt la fonction [`emitImageMetadata`](#emitimagemetadata).
-:::
-
-<p>
-
-**Type :** <code>(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: Rollup.EmitFile) => Promise\<(<a href="#imagemetadata-1">ImageMetadata</a> & \{ contents?: Buffer \}) | undefined\></code><br />
-<Since v="4.0.0" />
-</p>
-
-
-Traite un fichier image et émet ses métadonnées et, éventuellement, son contenu. En mode compilation, la fonction utilise `fileEmitter` pour générer une référence de ressource. En mode développement, cela se résout en une URL de fichier local avec des paramètres de requête pour les métadonnées.
-
-```ts
-import { emitESMImage } from 'astro/assets/utils';
-
-const imageId = '/images/photo.jpg';
-const unusedWatchMode = false; // Déprécié, inutilisé
-const unusedExperimentalSvgEnabled = false; // Définissez cette valeur sur `true` uniquement si vous utilisez SVG et souhaitez que les données du fichier soient intégrées.
-const image = await emitESMImage(imageId, unusedWatchMode, unusedExperimentalSvgEnabled);
-// Exemple de valeur :
-// {
-//    src: '/@fs/home/nom-utilisateur/dev/projet-astro/src/images/photo.jpg?origWidth=800&origHeight=600&origFormat=jpg',
-//    width: 800,
-//    height: 600,
-//    format: 'jpg',
-//    contents: Uint8Array([...])
-// }
-```
-
 ## Types d'`astro`
 
 ```ts
@@ -1180,7 +1276,7 @@ import type {
 
 Décrit le résultat de la transformation après l'appel à [`getImage()`](/fr/reference/modules/astro-assets/#getimage).
 
-#### `attributes`
+#### `GetImageResult.attributes`
 
 <p>
 
@@ -1189,7 +1285,7 @@ Décrit le résultat de la transformation après l'appel à [`getImage()`](/fr/r
 
 Définit les attributs HTML supplémentaires nécessaires au rendu de l'image (par exemple, largeur, hauteur, style).
 
-#### `options`
+#### `GetImageResult.options`
 
 <p>
 
@@ -1198,7 +1294,7 @@ Définit les attributs HTML supplémentaires nécessaires au rendu de l'image (p
 
 Décrit les paramètres de transformation après validation.
 
-#### `rawOptions`
+#### `GetImageResult.rawOptions`
 
 <p>
 
@@ -1207,7 +1303,7 @@ Décrit les paramètres de transformation après validation.
 
 Décrit les paramètres de transformation d'origine.
 
-#### `src`
+#### `GetImageResult.src`
 
 <p>
 
@@ -1216,7 +1312,7 @@ Décrit les paramètres de transformation d'origine.
 
 Le chemin d'accès à l'image générée.
 
-#### `srcSet`
+#### `GetImageResult.srcSet`
 
 <p>
 
@@ -1226,7 +1322,7 @@ Le chemin d'accès à l'image générée.
 
 Un objet décrivant comment générer l'attribut [`srcset`](https://developer.mozilla.org/fr/docs/Web/HTML/Reference/Elements/img#srcset).
 
-##### `values`
+##### `GetImageResult.srcSet.values`
 
 <p>
 
@@ -1235,7 +1331,7 @@ Un objet décrivant comment générer l'attribut [`srcset`](https://developer.mo
 
 Un tableau de valeurs générées où chaque entrée comprend une URL et un descripteur de taille. Celui-ci peut être utilisé pour générer manuellement la valeur de l'attribut `srcset`.
 
-##### `attribute`
+##### `GetImageResult.srcSet.attribute`
 
 <p>
 
@@ -1253,7 +1349,7 @@ Une valeur prête à être utilisée dans l'attribut `srcset`.
 
 Définit les options acceptées par le service de transformation d'images. Ceci contient une propriété `src` obligatoire, des propriétés prédéfinies facultatives et toutes les propriétés supplémentaires requises par le service d'images :
 
-#### `src`
+#### `ImageTransform.src`
 
 <p>
 
@@ -1262,7 +1358,7 @@ Définit les options acceptées par le service de transformation d'images. Ceci 
 
 Définit le chemin d'accès à une image locale dans le répertoire `public`, l'URL d'une image distante ou les données d'une image importée.
 
-#### `width`
+#### `ImageTransform.width`
 
 <p>
 
@@ -1271,7 +1367,7 @@ Définit le chemin d'accès à une image locale dans le répertoire `public`, l'
 
 La largeur de l'image.
 
-#### `height`
+#### `ImageTransform.height`
 
 <p>
 
@@ -1280,7 +1376,7 @@ La largeur de l'image.
 
 La hauteur de l'image.
 
-#### `widths`
+#### `ImageTransform.widths`
 
 <p>
 
@@ -1290,7 +1386,7 @@ La hauteur de l'image.
 
 Une liste de largeurs à générer pour l'image.
 
-#### `densities`
+#### `ImageTransform.densities`
 
 <p>
 
@@ -1300,7 +1396,7 @@ Une liste de largeurs à générer pour l'image.
 
 Une liste de densités de pixels à générer pour l'image.
 
-#### `quality`
+#### `ImageTransform.quality`
 
 <p>
 
@@ -1309,7 +1405,7 @@ Une liste de densités de pixels à générer pour l'image.
 
 La qualité souhaitée pour l'image de sortie.
 
-#### `format`
+#### `ImageTransform.format`
 
 <p>
 
@@ -1318,7 +1414,7 @@ La qualité souhaitée pour l'image de sortie.
 
 Le format souhaité pour l'image de sortie.
 
-#### `fit`
+#### `ImageTransform.fit`
 
 <p>
 
@@ -1328,7 +1424,7 @@ Le format souhaité pour l'image de sortie.
 
 Définit une liste de valeurs autorisées pour la propriété CSS `object-fit`, extensible avec n'importe quelle chaîne de caractères.
 
-#### `position`
+#### `ImageTransform.position`
 
 <p>
 
@@ -1347,7 +1443,7 @@ Contrôle la valeur de la propriété CSS `object-position`.
 
 Représente une image avec des options de transformation. Ceci contient les mêmes propriétés que le type [`ImageTransform`](#imagetransform) avec un type `src` différent et une propriété `inferSize` supplémentaire.
 
-#### `src`
+#### `UnresolvedImageTransform.src`
 
 <p>
 
@@ -1356,7 +1452,7 @@ Représente une image avec des options de transformation. Ceci contient les mêm
 
 Le chemin d'accès à une image importée ou située dans le répertoire `public`, ou l'URL d'une image distante.
 
-#### `inferSize`
+#### `UnresolvedImageTransform.inferSize`
 
 <p>
 
@@ -1377,7 +1473,7 @@ Détermine si la largeur et la hauteur de l'image doivent être déduites.
 
 Décrit les données collectées lors de l'importation d'images. Ceci contient les propriétés suivantes :
 
-#### `src`
+#### `ImageMetadata.src`
 
 <p>
 
@@ -1386,7 +1482,7 @@ Décrit les données collectées lors de l'importation d'images. Ceci contient l
 
 Le chemin absolu de l'image sur le système de fichiers.
 
-#### `width`
+#### `ImageMetadata.width`
 
 <p>
 
@@ -1395,7 +1491,7 @@ Le chemin absolu de l'image sur le système de fichiers.
 
 La largeur de l'image.
 
-#### `height`
+#### `ImageMetadata.height`
 
 <p>
 
@@ -1404,7 +1500,7 @@ La largeur de l'image.
 
 La hauteur de l'image.
 
-#### `format`
+#### `ImageMetadata.format`
 
 <p>
 
@@ -1413,7 +1509,7 @@ La hauteur de l'image.
 
 Le format de l'image.
 
-#### `orientation`
+#### `ImageMetadata.orientation`
 
 <p>
 
@@ -1514,7 +1610,7 @@ Définit les hooks qu'un service local de transformation d'images doit fournir. 
 
 Décrit l'objet de configuration d'un service d'images. Celui-ci contient les propriétés suivantes :
 
-#### `entrypoint`
+#### `ImageServiceConfig.entrypoint`
 
 <p>
 
@@ -1523,7 +1619,7 @@ Décrit l'objet de configuration d'un service d'images. Celui-ci contient les pr
 
 Un paquet ou un chemin d'accès au module de service d'images. Il peut s'agir du service Sharp intégré à Astro ou d'un service tiers.
 
-#### `config`
+#### `ImageServiceConfig.config`
 
 <p>
 
