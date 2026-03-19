@@ -324,7 +324,7 @@ import myImage from '../assets/my_image.png'; // 1600x900의 이미지
 
 반응형 이미지는 다양한 기기에서 성능을 개선하기 위해 조정되는 이미지입니다. 이러한 이미지는 컨테이너에 맞게 크기가 조정될 수 있으며 방문자의 화면 크기와 해상도에 따라 다양한 크기로 제공될 수 있습니다.
 
-`<Image />` 또는 `<Picture />` 컴포넌트에 [반응형 이미지 속성](/ko/reference/modules/astro-assets/#반응형-이미지-속성)을 적용하면 Astro는 이미지에 필요한 `srcset` 및 `sizes` 값을 생성하고 필요한 [스타일을 적용하여 이미지 크기가 올바르게 조정](#반응형-이미지-스타일)되도록 합니다.
+`<Image />` 또는 `<Picture />` 컴포넌트에 [layout 속성](/ko/reference/modules/astro-assets/#layout)을 적용하면 Astro는 이미지에 필요한 `srcset` 및 `sizes` 값을 생성하고 필요한 [스타일을 적용하여 이미지 크기가 올바르게 조정](#반응형-이미지-스타일)되도록 합니다.
 
 이 반응형 동작이 [`image.layout`을 사용하여 전역적으로 구성](/ko/reference/configuration-reference/#imagelayout)되면 모든 이미지 컴포넌트와 [Markdown의 `![]()` 구문](/ko/guides/images/#markdown-파일의-이미지)을 사용하는 모든 로컬 및 원격 이미지에 적용됩니다.
 
@@ -444,21 +444,21 @@ import Logo from '../assets/logo.svg';
 ```astro title="src/components/Logo.astro"
 ---
 import type { SvgComponent } from "astro/types";
-import HomeIcon from './Home.svg'
+import HomeIcon from "./Home.svg";
 
 interface Link {
-	url: string
-	text: string
-	icon: SvgComponent
+  url: string;
+  text: string;
+  icon: SvgComponent;
 }
 
 const links: Link[] = [
-	{
-		url: '/',
-		text: 'Home',
-		icon: HomeIcon
-	}
-]
+  {
+    url: "/",
+    text: "Home",
+    icon: HomeIcon,
+  },
+];
 ---
 ```
 
@@ -584,7 +584,7 @@ export default defineConfig({
 ```md title="src/content/blog/my-post.md" {3}
 ---
 title: "My first blog post"
-cover: "./firstpostcover.jpeg" # "src/content/blog/firstblogcover.jpeg"로 해석됩니다.
+cover: "./firstpostcover.jpeg" # "src/content/blog/firstpostcover.jpeg"로 해석됩니다.
 coverAlt: "A photograph of a sunset behind a mountain range."
 ---
 
@@ -594,8 +594,8 @@ This is a blog post
 콘텐츠 컬렉션 스키마의 `image` 도우미를 사용하면 이미지를 검증하고 가져올 수 있습니다.
 
 ```ts title="src/content.config.ts"
-import { defineCollection } from "astro:content";
-import { z } from "astro/zod";
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 
 const blogCollection = defineCollection({
 	schema: ({ image }) => z.object({
@@ -626,7 +626,7 @@ const allBlogPosts = await getCollection("blog");
 		<div>
 			<Image src={post.data.cover} alt={post.data.coverAlt} />
 			<h2>
-				<a href={"/blog/" + post.slug}>{post.data.title}</a>
+				<a href={"/blog/" + post.id}>{post.data.title}</a>
 			</h2>
 		</div>
 	))
@@ -636,6 +636,24 @@ const allBlogPosts = await getCollection("blog");
 ## `getImage()`를 사용하여 이미지 생성하기
 
 `getImage()` 함수는 HTML이 아닌 다른 곳 (예: [API 경로](/ko/guides/endpoints/#서버-엔드포인트-api-라우트))에서 사용할 이미지를 생성하기 위한 것입니다. 현재 `<Picture>` 및 `<Image>` 컴포넌트가 지원하지 않는 옵션이 필요한 경우, `getImage()` 함수를 사용하여 사용자 정의 `<Image />` 컴포넌트를 생성할 수 있습니다.
+
+`getImage()`는 서버에서만 사용할 수 있습니다. 클라이언트 (예: 클라이언트 측 스크립트 또는 프레임워크 컴포넌트)에서 결과 이미지 URL을 사용해야 하는 경우, 프런트매터에서 `getImage()`를 호출하고 결과 `src`를 클라이언트에 전달하세요.
+
+```astro title="src/components/ClientImage.astro"
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png";
+
+const optimizedBackground = await getImage({ src: myBackground, format: "avif" });
+---
+
+<div id="background" data-src={optimizedBackground.src}></div>
+
+<script>
+  const src = document.getElementById("background").dataset.src;
+  // 필요에 따라 클라이언트 측에서 src 사용
+</script>
+```
 
 <ReadMore>[`getImage()` 참조](/ko/reference/modules/astro-assets/#getimage)에서 자세히 알아보세요.</ReadMore>
 
@@ -663,7 +681,7 @@ pnpm add sharp
 
 ### 무작동 패스스루 서비스 구성
 
-[어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters)가 Astro의 내장 Sharp 이미지 최적화를 지원하지 않는 경우 (예: Deno, Cloudflare) `<Image />` 및 `<Picture />` 컴포넌트를 사용할 수 있도록 무작동 이미지 서비스를 구성할 수 있습니다. Astro는 이러한 환경에서 이미지 변환 및 처리를 수행하지 않습니다. 그러나 CLS (Cumulative Layout Shift) 없음, 강제된 `alt` 속성 및 일관된 작성 환경을 포함하여 `astro:assets` 사용의 다른 이점을 계속 누릴 수 있습니다.
+[어댑터](https://astro.build/integrations/?search=&categories%5B%5D=adapters)가 Astro의 내장 Sharp 이미지 최적화를 지원하지 않는 경우 (예: Cloudflare) `<Image />` 및 `<Picture />` 컴포넌트를 사용할 수 있도록 무작동 이미지 서비스를 구성할 수 있습니다. Astro는 이러한 환경에서 이미지 변환 및 처리를 수행하지 않습니다. 그러나 CLS (Cumulative Layout Shift) 없음, 강제된 `alt` 속성 및 일관된 작성 환경을 포함하여 `astro:assets` 사용의 다른 이점을 계속 누릴 수 있습니다.
 
 Sharp의 이미지 처리를 방지하려면 `passthroughImageService()`를 구성하세요.
 
