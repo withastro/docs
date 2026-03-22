@@ -109,6 +109,7 @@ Astro v6.0 introduces significant changes to how Astro manages different runtime
 
 Integration and adapter maintainers should pay special attention to changes affecting these parts of the Integration API and Adapter API (full details included below with other breaking changes to these APIs):
 
+- [Rollup output file name config path](#changed-rollup-output-file-name-config-path-vite-config)
 - [integration hooks and HMR access patterns](#changed-integration-hooks-and-hmr-access-patterns-integration-api)
 - [`SSRManifest` structure](#changed-ssrmanifest-interface-structure-adapter-api)
 - [generating routes with `RouteData`](#removed-routedatagenerate-adapter-api)
@@ -247,7 +248,7 @@ Astro 6.0 deprecates this object for `getStaticPaths()` to avoid confusion and i
 
 #### What should I do?
 
-Update your `getStaticPaths()` function if you were attempting to access any `Astro` properties inside its scope. Remove `Astro.generator` entirely, and replace all occurrences of `Astro.site()` with `import.meta.env.SITE`:
+Update your `getStaticPaths()` function if you were attempting to access any `Astro` properties inside its scope. Remove `Astro.generator` entirely, and replace all occurrences of `Astro.site` with `import.meta.env.SITE`:
 
 ```astro title="src/pages/blog/[slug].astro" del={5,6} ins={7}
 ---
@@ -267,7 +268,7 @@ export async function getStaticPaths() {
 
 <SourcePR number="14461" title="feat: deprecate import.meta.env.ASSETS_PREFIX"/>
 
-In Astro 5.x, it was possible to access `build.assetsPrefix` in your Astro config via the built-in environment variable `import.meta.env.ASSETS_PREFIX`. However, Astro v5.7.0 introduced the `astro:config` virtual model to expose a non-exhaustive, serializable, type-safe version of the Astro configuration which included access to `build.assetsPrefix` directly. This became the preferred way to access the prefix for Astro-generated asset links when set, although the environment variable still existed.
+In Astro 5.x, it was possible to access `build.assetsPrefix` in your Astro config via the built-in environment variable `import.meta.env.ASSETS_PREFIX`. However, Astro v5.7.0 introduced the `astro:config` virtual module to expose a non-exhaustive, serializable, type-safe version of the Astro configuration which included access to `build.assetsPrefix` directly. This became the preferred way to access the prefix for Astro-generated asset links when set, although the environment variable still existed.
 
 Astro 6.0 deprecates this variable in favor of `build.assetsPrefix` from the `astro:config/server` module.
 
@@ -283,7 +284,7 @@ someLogic(import.meta.env.ASSETS_PREFIX)
 someLogic(build.assetsPrefix)
 ```
 
-<ReadMore>Read more about the [`astro:config` virtual modules](/en/reference/modules/astro-config/).</ReadMore>
+<ReadMore>Read more about the [`astro:config` virtual module](/en/reference/modules/astro-config/).</ReadMore>
 
 ### Deprecated: `astro:schema` and `z` from `astro:content`
 
@@ -645,7 +646,7 @@ Replace both methods with [`getEntry()`](/en/reference/modules/astro-content/#ge
 
 <details>
 <summary>legacy collection querying and rendering methods that depend on a `slug` property / ([`ContentSchemaContainsSlugError`](/en/reference/errors/content-schema-contains-slug-error/))</summary>
-Previously, the `id` was based on the filename, and there was a `slug` property that could be used in a URL. Now the [CollectionEntry](/en/reference/modules/astro-content/#collectionentry) `id` is a slug. If you need access to the filename (previously available as the `id`), use the `filePath` property. Replace instances of `slug` with `id`:
+Previously, the `id` was based on the filename, and there was a `slug` property that could be used in a URL. Now the [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) `id` is a slug. If you need access to the filename (previously available as the `id`), use the `filePath` property. Replace instances of `slug` with `id`:
 
 ```astro ins={6} del={5} title="src/pages/[slug].astro"
 ---
@@ -1630,6 +1631,36 @@ export default defineConfig({
 ```
 
 <ReadMore>Learn more about [testing Astro components](/en/guides/testing/).</ReadMore>
+
+### Changed: Rollup output file name config path (Vite config)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+In Astro 5.x, custom Rollup output file name options for client assets could be configured at `vite.build.rollupOptions.output`.
+
+Astro 6.0 scopes client build output configuration to Vite's client environment. If you customize `entryFileNames`, `chunkFileNames`, or `assetFileNames` for client assets, use `vite.environments.client.build.rollupOptions.output`.
+
+#### What should I do?
+
+Move your config from `vite.build.rollupOptions.output` to `vite.environments.client.build.rollupOptions.output`:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  vite: {
+    environments: {
+      client: {
+        build: {
+          rollupOptions: {
+            output: {
+              entryFileNames: 'js/[name]-[hash].js',
+            },
+          },
+        },
+      },
+    },
+  },
+});
+```
 
 ### Changed: Integration hooks and HMR access patterns (Integration API)
 
