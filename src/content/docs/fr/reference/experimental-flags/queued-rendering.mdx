@@ -1,0 +1,96 @@
+---
+title: Rendu en file d'attente expérimental
+sidebar:
+  label: Rendu en file d'attente
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type :** `object`<br />
+**Par défaut :** `{ enabled: false }`<br />
+<Since v="6.0.0" />
+</p>
+
+Permet de mettre en place une infrastructure de rendu expérimentale et plus performante, reposant sur une file d'attente plutôt que sur la récursivité.
+
+Par défaut, Astro traite les fichiers `.astro`, `.md` et `.mdx` à l'aide d'un algorithme récursif. Il prend en entrée une série de composants sérialisés sous forme d'arbre, et pour chaque nœud de cet arbre, Astro appelle une fonction de rendu.
+
+Lorsque le rendu en file d'attente est activé, Astro parcourt tous les nœuds de l'arbre et génère une liste de nœuds par [recherche en profondeur](https://fr.wikipedia.org/wiki/Algorithme_de_parcours_en_profondeur). Cette liste est ensuite parcourue et rendue, sans nécessiter d'algorithme récursif. Ce rendu est plus économe en mémoire et s'avère particulièrement avantageux pour les grands projets.
+
+Pour activer cette fonctionnalité avec les paramètres par défaut, définissez `queuedRendering.enabled` sur `true` dans votre configuration d'Astro :
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true
+    }
+  }
+});
+```
+
+Dans une future version majeure, Astro utilisera ce nouveau compilateur par défaut, mais vous pouvez activer ce comportement futur dès maintenant en utilisant l'option `experimental.queuedRendering`.
+
+## Configuration
+
+Le moteur de rendu en file d'attente intègre des fonctionnalités supplémentaires de bas niveau, permettant d'expérimenter d'autres optimisations. Ces optimisations ne font pas directement partie du moteur de mise en file d'attente et pourront être supprimées si elles s'avèrent inefficaces au cours de cette phase expérimentale de test.
+
+
+### Regroupement de nœuds
+
+<p>
+
+**Type :** `number`<br />
+**Par défaut :** `1000`<br />
+<Since v="6.0.0" />
+</p>
+
+
+Le regroupement de nœuds est un système de mise en cache conçu pour réutiliser les nœuds de composants entre les rendus. Cette fonctionnalité est automatiquement activée avec une valeur par défaut raisonnable d'après nos premiers tests. Vous pouvez toutefois configurer la taille du groupe pour augmenter ou diminuer le nombre de nœuds combinés dans un seul groupe en fonction des besoins de votre projet. Pour désactiver complètement cette fonctionnalité, définissez `poolSize` sur `0`.
+
+Le regroupement de nœuds est très efficace lors du rendu de pages statiques car il permet d'économiser de la mémoire lors de la création de sites web comportant de nombreuses pages partageant les mêmes composants.
+
+Le regroupement de nœuds est désactivé pour les pages rendues à la demande, car ces requêtes de rendu ne partagent pas la mémoire et, par conséquent, cette stratégie ne permet pas de réaliser d'économies.
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true,
+      poolSize: 3000 // utiliser un groupe de 3000 nœuds
+    }
+  }
+});
+``` 
+   
+### Mise en cache du contenu
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="6.0.0" />
+</p>
+
+
+La mise en cache du contenu est une autre technique permettant de réutiliser des valeurs (généralement des chaînes de caractères) lors du rendu d'une page. Actuellement, cette fonctionnalité peut uniquement être activée ou désactivée sans configuration supplémentaire. Elle est désactivée par défaut, mais lorsqu'elle est activée, le moteur de mise en file d'attente expérimental choisira une taille de cache par défaut adaptée à la plupart des grandes collections de contenu.
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true,
+      contentCache: true
+    }
+  }
+});
+``` 
