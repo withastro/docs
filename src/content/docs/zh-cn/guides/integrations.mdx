@@ -1,0 +1,590 @@
+---
+title: 使用集成
+description: 了解如何为你的 Astro 项目添加、配置和构建集成。
+i18nReady: true
+---
+
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+
+
+使用 **Astro 集成**只需几行代码就能为你的项目添加新的功能和行为。你可以使用官方集成，[社区构建的集成](#寻找更多集成)，甚至可以 [构建自己的自定义集成](#构建自己的集成)。
+
+集成能够...
+
+- 使用 [渲染器](/zh-cn/guides/framework-components/) 解锁 React、Vue、Svelte、Solid 和其他流行的 UI 框架。
+- 使用 [SSR 适配器](/zh-cn/guides/on-demand-rendering/) 启用按需渲染。
+- 只需几行代码就能整合 MDX 和 Partytown 等工具。
+- 为你的项目添加新功能，如自动生成网站地图。
+- 编写自定义代码，与构建过程、开发服务器等挂钩。
+
+:::tip[集成目录]
+在我们的 [集成目录](https://astro.build/integrations/) 中浏览或搜索数百个官方和社区集成的完整集成。在这里你找到可以添加到你的 Astro 项目中的包，涵盖了身份验证、分析、性能、SEO、无障碍、UI、开发者工具等场景。
+:::
+
+## 官方集成
+
+以下集成由 Astro 维护。
+
+<IntegrationsNav />
+
+## 自动集成设置
+
+Astro 包含了一个 `astro add` 命令来自动设置官方集成。许多社区插件也可以使用这个命令添加。请查阅每个集成的文档，以确定是否支持 `astro add`，或者你是否需要[手动安装](#手动安装)。
+
+只需用你的包管理器运行 `astro add` 命令，我们的自动集成向导将更新你的配置文件并安装任何必要的依赖。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+甚至还可以同时配置多个集成！
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react sitemap partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react sitemap partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react sitemap partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::note[处理集成依赖]
+如果你在添加集成后看到 `"Cannot find package '[package-name]'` 或其他类似警告，这意味着你的包管理器可能没有安装[对等依赖](https://nodejs.org/en/blog/npm/peer-dependencies/)。要安装这些缺失的包，请运行以下命令：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install [package-name]
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add [package-name]
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add [package-name]
+  ```
+  </Fragment>
+</PackageManagerTabs>
+:::
+
+## 手动安装
+
+Astro 集成总是添加在 `astro.config.mjs` 文件中的 `integrations` 属性。
+
+有三种常见的方法来导入集成到你的 Astro 项目：
+
+1. [安装 npm 包集成](#安装-npm-包)。
+2. 从项目内部的本地文件导入你自己的集成。
+3. 直接在配置文件中内联编写集成。
+
+    ```js
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import installedIntegration from '@astrojs/vue';
+    import localIntegration from './my-integration.js';
+
+    export default defineConfig({
+      integrations: [
+        // 1. 从已安装的 npm 包中导入
+        installedIntegration(),
+        // 2. 从本地 JS 文件导入
+        localIntegration(),
+        // 3. 内联对象
+        {name: 'namespace:id', hooks: { /* ... */ }},
+      ]
+    });
+    ```
+
+查看[集成 API](/zh-cn/reference/integrations-reference/) 参考资料，了解所有不同的集成编写方式。
+
+#### 安装 NPM 包
+
+使用包管理器安装 NPM 包集成，然后手动更新 `astro.config.mjs`。
+
+例如，安装 `@astrojs/sitemap` 集成：
+
+<Steps>
+1. 使用你偏好的包管理器将集成安装到项目依赖中：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/sitemap
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/sitemap
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/sitemap
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. 将集成导入到你的 `astro.config.mjs` 文件，并将其连同任何配置选项添加到你的 `integrations[]` 数组中：
+
+    ```js title="astro.config.mjs" ins={2} ins="sitemap()"
+    import { defineConfig } from 'astro/config';
+    import sitemap from '@astrojs/sitemap';
+
+    export default defineConfig({
+      // ...
+      integrations: [sitemap()],
+      // ...
+    });
+    ```
+
+    请注意，不同的集成可能有不同的配置设置。阅读每个集成的文档，并将任何必要的配置选项应用到 `astro.config.mjs` 中你所选择的集成上。
+</Steps>
+
+### 自定义选项
+
+集成几乎都是以工厂函数的形式编写的，并返回真实的集成对象。这使得你可以通过向工厂函数传递参数和选项定制集成。
+
+```js
+integrations: [
+  // 示例：用函数参数来定制你的集成
+  sitemap({filter: true})
+]
+```
+
+### 切换集成
+
+你可以切换集成启用状态，而不用担心遗留的 `undefined` 和布尔值问题，Astro 会自动忽略假值的集成。
+
+```js
+integrations: [
+  // 示例：在 Windows 上跳过网站地图的构建
+  process.platform !== 'win32' && sitemap()
+]
+```
+
+## 更新集成
+
+要同时更新所有官方集成，运行 `@astrojs/upgrade` 命令。它会把 Astro 和所有官方集成更新到最新版本。
+
+### 自动更新
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 同时升级 Astro 和官方集成到最新版本
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 同时升级 Astro 和官方集成到最新版本
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 同时升级 Astro 和官方集成到最新版本
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 手动更新
+
+要手动更新一个或多个集成，使用你的包管理器对应的命令。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 示例：升级 React 和 Partytown 集成
+  npm install @astrojs/react@latest @astrojs/partytown@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 示例：升级 React 和 Partytown 集成
+  pnpm add @astrojs/react@latest @astrojs/partytown@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 示例：升级 React 和 Partytown 集成
+  yarn add @astrojs/react@latest @astrojs/partytown@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 移除集成
+
+<Steps>
+1. 要移除某个集成，首先从你的项目中卸载它。
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm uninstall @astrojs/react
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm remove @astrojs/react
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn remove @astrojs/react
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. 接下来，从 `astro.config.*` 文件中移除该集成：
+
+    ```js title="astro.config.mjs" del={3,7}
+    import { defineConfig } from 'astro/config';
+
+    import react from '@astrojs/react';
+
+    export default defineConfig({
+      integrations: [
+        react()
+      ]
+    });
+    ```
+</Steps>
+
+## 寻找更多集成
+
+你可以在 [Astro 集成目录](https://astro.build/integrations/)中找到许多由社区开发的集成。点击链接查看详细的使用和配置说明。
+
+## 构建自己的集成
+
+Astro 的集成 API 受到 Rollup 和 Vite 的启发，其设计使任何曾经写过 Rollup 或 Vite 插件的人都感到熟悉。
+
+查看[集成 API](/zh-cn/reference/integrations-reference/)，了解集成的作用以及如何自己编写一个集成。
+
+## 将你的集成发布到 npm
+
+创建了一个新的 Astro 组件？**发布到 [npm](https://npmjs.com/)**！
+
+发布 Astro 组件是个很好跨项目复用现有内容，并最大程度与 Astro 社群分享的方式。Astro 组件可以直接发布到 npm 以及从中安装，和其他 JavaScript 包一样。
+
+正在寻找灵感？不妨看看一些受人喜欢的[主题](https://astro.build/themes/)和[组件](https://astro.build/integrations/)。你也可以[在 npm 中搜索](https://www.npmjs.com/search?q=keywords:astro-component)查看所有公开分类。
+
+:::tip[不想独自出发？]
+查看社群驱动、开箱即用的 [Astro 社区组件模板](https://github.com/astro-community/component-template)。
+:::
+
+### 快速开始
+
+你可以使用已经配置好的模板快速开始开发你的组件。
+
+```bash
+# 在新目录下初始化 Astro 组件模板
+npm create astro@latest my-new-component-directory -- --template component
+# yarn
+yarn create astro my-new-component-directory --template component
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template component
+```
+
+### 创建模块
+
+:::note[必要条件]
+在开始前，请先对以下内容有最基本的了解：
+
+- [Node 模块](https://docs.npmjs.com/creating-node-js-modules)
+- [模块 Manifest (`package.json`)](https://docs.npmjs.com/creating-a-package-json-file)
+- [工作区](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
+
+请使用**工作区**来配置你的新模块开发环境。它使得你可以无需再复制 Astro 即可开发组件。
+
+<FileTree>
+- my-new-component-directory/
+  - demo/
+    - ... 测试和文档
+  - package.json
+  - packages/
+    - my-component/
+      - index.js
+      - package.json
+      - ... 其他模块所使用的文件
+</FileTree>
+
+在这个名叫 `my-project` 的示例中创建名为 `my-component` 的单一模块以及一个用于测试并展示组件的 `demo/` 目录。
+
+在你的项目根目录下的 `package.json` 配置以下内容：
+
+```json
+{
+  "name": "my-project",
+  "workspaces": ["demo", "packages/*"]
+}
+```
+
+在这个示例中，`packages` 目录下同时开发着多个模块。也可以在你安装 Astro 进行测试的 `demo` 目录中引用这些模块。
+
+```shell
+npm create astro@latest demo -- --template minimal
+# yarn
+yarn create astro my-new-component-directory --template minimal
+# pnpm
+pnpm create astro@latest my-new-component-directory -- --template minimal
+```
+
+这两个初始文件构成了你的个人模块：`package.json` 和 `index.js`。
+
+### `package.json`
+
+模块目录下的 `package.json` 包括了所有与你的模块相关的信息，如它的描述、依赖和其他模块的元数据。
+
+```json
+{
+  "name": "my-component",
+  "description": "Component description",
+  "version": "1.0.0",
+  "homepage": "https://github.com/owner/project#readme",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  },
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
+  "keywords": ["astro","astro-component", "...", "..."]
+}
+```
+
+#### `description`
+
+一个帮助其他人了解模块用途的简要描述。
+
+
+```json
+{
+  "description": "An Astro Element Generator"
+}
+```
+
+#### `type`
+
+Node.js 和 Astro 用来解析 `index.js` 文件所用模块格式。
+
+```json
+{
+  "type": "module"
+}
+```
+
+使用 `"type": "module"` 以便你的 `index.js` 可以用作 `import` 和 `export` 的入口。
+
+#### `homepage`
+
+项目主页链接。
+
+```json
+{
+  "homepage": "https://github.com/owner/project#readme"
+}
+```
+
+它可以很好地将用户引向项目的在线示例、文档或是主页。
+
+#### `exports`
+
+当使用模块名称导入时的入口文件。
+
+```json
+{
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  }
+}
+```
+
+在这个示例中，导入 `my-component` 会使用 `index.js`。而当导入 `my-component/astro` 或 `my-component/react` 则会分别使用 `MyAstroComponent.astro` 和 `MyReactComponent.jsx`。
+
+#### `files`
+
+一个可选的优化项，它可以在通过分发给 npm 运给用户的模块中排除不必要的文件。请注意，**只有在此列出的文件才会打包到在你的模块中**，所以如果你增加或改变了模块运行所需的文件，你必须相应地更新这个列表。
+
+```json
+{
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"]
+}
+```
+
+#### `keywords`
+
+一些与组件相关的关键词，用来帮助别人[在 npm 上](https://www.npmjs.com/search?q=keywords:astro-component,withastro)和任何其他检索目录上找到你的组件。
+
+添加特殊关键词 `astro-component`、`astro-integration` 或 `withastro`，以最大限度地提高它在 Astro 生态系统中的可发现性。
+
+```json
+{
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
+}
+```
+
+:::tip
+关键词也会在 [集成库](https://astro.build/integrations/) 中使用！[查看关于所有我们在 npm 中使用的关键词](#集成库)
+:::
+
+---
+
+### `index.js`
+
+每当你使用包时的主要**入口函数**
+
+```js
+export { default as MyAstroComponent } from './MyAstroComponent.astro';
+
+export { default as MyReactComponent } from './MyReactComponent.jsx';
+```
+
+这使得你可以将多个组件打包到一个接口中。
+
+#### 示例：使用命名导入
+
+```astro
+---
+import { MyAstroComponent } from 'my-component';
+import { MyReactComponent } from 'my-component';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+#### 示例：使用命名空间导入
+
+```astro
+---
+import * as Example from 'example-astro-component';
+---
+<Example.MyAstroComponent />
+<Example.MyReactComponent />
+```
+
+#### 示例：使用独立导入
+
+```astro
+---
+import MyAstroComponent from 'example-astro-component/astro';
+import MyReactComponent from 'example-astro-component/react';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+---
+
+### 开发模块
+
+Astro 没有专门针对开发的模块模式。作为替代的是，你可以在项目中使用示例项目来开发和测试模块。它可以是一个用于开发的私有站点或是一个公开的示例/文档站点。
+
+如果你是从一个现有的项目中提取出的组件，你甚至可以继续使用该项目来开发提取出的组件。
+
+### 测试组件
+
+目前 Astro 并未提供测试运行器。**（如果你有兴趣帮忙，[欢迎加入我们的 Discord！](https://astro.build/chat)）**。
+
+同时，我们目前对测试的建议有：
+
+<Steps>
+1. 在 `demo/src/pages` 目录下添加用于测试的 `fixtures` 目录。
+
+2. 为你想运行的每个测试添加一个新的页面。
+
+3. 每个页面应该包括组件需要测试的不同用法。
+
+4. 运行 `astro build` 进行构建，然后比较 `dist/__fixtures__/` 目录的输出与预期间的差异。
+
+    <FileTree>
+    - my-project/demo/src/pages/\_\_fixtures\_\_/
+      - test-name-01.astro
+      - test-name-02.astro
+      - test-name-03.astro
+    </FileTree>
+</Steps>
+
+### 发布组件
+
+当模块准备就绪后，你可以使用 `npm publish` 命令将其发布到 npm。如果发布失败，请确保你已经使用 `npm login` 登录了 npm 账号，并 `package.json` 文件没有问题。如果发布成功，那就好了！
+
+注意 Astro 模块没有 `build` 步骤。Astro 本身支持的任何类型文件（例如 `.astro`、`.ts`、`.jsx` 和 `.css`）都可以直接发布，无需构建步骤。
+
+如果你需要使用 Astro 本身不支持的文件类型，请在模块中增加一个构建步骤。
+
+### 集成库
+
+欢迎通过[集成库](https://astro.build/integrations/)分享你的辛勤工作。
+
+:::tip
+如果在构建你的集成过程中需要帮助，或者只是想要认识其他集成构建者？我们在 [Discord 服务器](https://astro.build/chat)上设有专门的 `#integrations` 频道。过来打个招呼吧！
+:::
+
+#### `package.json` 数据
+
+该库每周自动更新，拉入每一个使用 `astro-component`、`astro-integration` 或者 `withastro` 关键字发布到 npm 的模块。
+
+它会从模块的 `package.json` 文件中读取 `name`、`description`、`repository` 和 `homepage` 数据。
+
+添加头像是凸显品牌的好方法。在你的的模块发布后，你可以[在 GitHub 提交一个 issue](https://github.com/withastro/astro.build/issues/new/choose)并附上你的头像，我们会把它添加到列表中。
+
+:::tip
+需要覆盖从 npm 读取的信息？没问题！[提交带有更新后信息的 issue](https://github.com/withastro/astro.build/issues/new/choose)。我们将使用自定义信息替代 `name`、`description` 或 `homepage`。
+:::
+
+#### 分类
+
+除了必要的 `astro-component`、`astro-integration` 或 `withastro` 关键词外，我们也会使用特殊的关键词将模块进行分类。包括以下任一关键词都会将你的集成添加到相应的分类中。
+
+| 分类         | 关键词                                         |
+|------------ | --------------------------------------------- |
+| 无障碍辅助功能 | `a11y`, `accessibility`                       |
+| 适配器        | `astro-adapter`                              |
+| 统计         | `analytics`                                   |
+| CSS + UI    | `css`, `ui`, `icon`, `icons`, `renderer`      |
+| 框架         | `renderer`                                    |
+| 内容加载器    | `astro-loader`                                |
+| 图片 + 媒体   | `media`, `image`, `images`, `video`, `audio`  |
+| 性能 + SEO   | `performance`, `perf`, `seo`, `optimization`  |
+| 开发工具栏    | `devtools`, `dev-overlay`, `dev-toolbar`      |
+| 工具类       | `tooling`, `utils`, `utility`                 |
+
+不包含任何与类别匹配的关键字的包将显示为 `Uncategorized`。
+
+### 分享
+
+我们鼓励你分享创造，我们真的很喜欢看到有才华的 Astronauts 创作。来吧，在我们的 [Discord 服务器](https://astro.build/chat)中与我们分享你的创作，或者在 Twitter 中提及[@astrodotbuild](https://twitter.com/astrodotbuild)!
