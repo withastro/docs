@@ -1,13 +1,10 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: 'Начало',
-	'start.welcome': 'Привет, мир!',
-	'start.newProject': 'Создание нового проекта',
-	'start.config': 'Настройка',
-	'start.migrate': 'Переход на Astro',
-
 	guides: 'Руководства и рецепты',
+	'guides.welcome': 'Привет, мир!',
+	'guides.newProject': 'Создание нового проекта',
+	'guides.config': 'Настройка',
 	'guides.routing': 'Маршрутизация и навигация',
 	'guides.ui': 'Создание пользовательского интерфейса',
 	'guides.content': 'Добавление контента на сайт',
@@ -15,6 +12,7 @@ export default navDictionary({
 	'guides.upgrade': 'Обновление',
 	'guides.upgrade.major': 'Руководства по важным обновлениям',
 	'guides.recipes': 'Пошаговые инструкции',
+	'guides.migrate': 'Переход на Astro',
 
 	reference: 'Справочник',
 	'reference.runtime': 'Runtime API',
@@ -22,14 +20,11 @@ export default navDictionary({
 	'reference.syntax': 'Синтаксис шаблонов Astro',
 	'reference.experimental': 'Экспериментальные функции',
 
-	integrations: 'Интеграции',
-	'integrations.ui': 'UI-фреймворки',
-	'integrations.adapters': 'Адаптеры',
-	'integrations.other': 'Другие официальные интеграции',
-
-	thirdParty: 'Сторонние сервисы',
-	'thirdParty.deployment': 'Руководства по развёртыванию',
-	'thirdParty.cms': 'Системы управления контентом',
-	'thirdParty.backend': 'Бэкенд-сервисы',
-	'thirdParty.media': 'Управление цифровыми активами',
+	'ecosystem.integrations.ui': 'UI-фреймворки',
+	'ecosystem.integrations.adapters': 'Адаптеры',
+	'ecosystem.integrations.other': 'Другие официальные интеграции',
+	'ecosystem.deployment': 'Руководства по развёртыванию',
+	'ecosystem.cms': 'Системы управления контентом',
+	'ecosystem.backend': 'Бэкенд-сервисы',
+	'ecosystem.media': 'Управление цифровыми активами',
 });

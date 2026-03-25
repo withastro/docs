@@ -1,13 +1,10 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: 'Los geht’s',
-	'start.welcome': 'Willkommen, Welt!',
-	'start.newProject': 'Ein neues Projekt starten',
-	'start.config': 'Konfiguration',
-	'start.migrate': 'Zu Astro migrieren',
-
 	guides: 'Anleitungen und Beispiele',
+	'guides.welcome': 'Willkommen, Welt!',
+	'guides.newProject': 'Ein neues Projekt starten',
+	'guides.config': 'Konfiguration',
 	'guides.routing': 'Routen und Navigation',
 	'guides.ui': 'Baue deine Benutzeroberfläche',
 	'guides.content': 'Inhalte zu deiner Website hinzufügen',
@@ -15,6 +12,7 @@ export default navDictionary({
 	'guides.upgrade': 'Aktualisierung',
 	'guides.upgrade.major': 'Große Aktualisierungs­anleitungen',
 	'guides.recipes': 'Praktische Beispiele',
+	'guides.migrate': 'Zu Astro migrieren',
 
 	reference: 'Referenz',
 	'reference.runtime': 'Laufzeit-API',
@@ -22,14 +20,11 @@ export default navDictionary({
 	'reference.syntax': 'Astro-Vorlagen-Syntax',
 	'reference.experimental': 'Experimentelle Funktionen',
 
-	integrations: 'Integrationen',
-	'integrations.ui': 'UI-Frameworks',
-	'integrations.adapters': 'Adapter',
-	'integrations.other': 'Andere offizielle Integrationen',
-
-	thirdParty: 'Dienste von Drittanbietern',
-	'thirdParty.deployment': 'Einrichtungsanleitung',
-	'thirdParty.cms': 'Content Management System',
-	'thirdParty.backend': 'Backend-Dienste',
-	'thirdParty.media': 'Medienhosting & DAM',
+	'ecosystem.integrations.ui': 'UI-Frameworks',
+	'ecosystem.integrations.adapters': 'Adapter',
+	'ecosystem.integrations.other': 'Andere offizielle Integrationen',
+	'ecosystem.deployment': 'Einrichtungsanleitung',
+	'ecosystem.cms': 'Content Management System',
+	'ecosystem.backend': 'Backend-Dienste',
+	'ecosystem.media': 'Medienhosting & DAM',
 });
