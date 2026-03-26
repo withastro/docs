@@ -1,13 +1,10 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: '开始',
-	'start.welcome': '欢迎，世界！',
-	'start.newProject': '开始新项目',
-	'start.config': '配置',
-	'start.migrate': '迁移到 Astro',
-
 	guides: '指南',
+	'guides.welcome': '欢迎，世界！',
+	'guides.newProject': '开始新项目',
+	'guides.config': '配置',
 	'guides.routing': '路由导航',
 	'guides.ui': '构建你的 UI',
 	'guides.content': '向你的网站添加内容',
@@ -15,6 +12,7 @@ export default navDictionary({
 	'guides.upgrade': '升级',
 	'guides.upgrade.major': '主版本升级指南',
 	'guides.recipes': '操作方案',
+	'guides.migrate': '迁移到 Astro',
 
 	reference: '参考',
 	'reference.runtime': '运行时 API',
@@ -22,14 +20,11 @@ export default navDictionary({
 	'reference.syntax': 'Astro 模板语法',
 	'reference.experimental': '实验性功能',
 
-	integrations: '集成',
-	'integrations.ui': 'UI 框架',
-	'integrations.adapters': '适配器',
-	'integrations.other': '其他官方集成',
-
-	thirdParty: '第三方服务',
-	'thirdParty.deployment': '部署指南',
-	'thirdParty.cms': '内容管理系统',
-	'thirdParty.backend': '后端服务',
-	'thirdParty.media': '图像和视频托管',
+	'ecosystem.integrations.ui': 'UI 框架',
+	'ecosystem.integrations.adapters': '适配器',
+	'ecosystem.integrations.other': '其他官方集成',
+	'ecosystem.deployment': '部署指南',
+	'ecosystem.cms': '内容管理系统',
+	'ecosystem.backend': '后端服务',
+	'ecosystem.media': '图像和视频托管',
 });

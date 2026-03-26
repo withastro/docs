@@ -49,13 +49,18 @@ const makeId = (label: string) => '__tab-' + label.toLowerCase().replaceAll(/\s+
 
 /** Get the icon for a group. Update the icon names in the array to change the icons associated with a group. */
 const getIcon = (index: number) =>
-	(['rocket', 'open-book', 'information', 'puzzle', 'setting'] as const)[index];
+	(['rocket', 'open-book', 'information', 'puzzle'] as const)[index];
 
 /** Determine if an array of sidebar items contains the current page.  */
 const isCurrent = (sidebar: SidebarEntry[]): boolean =>
 	sidebar
 		.map((entry) => (entry.type === 'link' ? entry.isCurrent : isCurrent(entry.entries)))
 		.some((entry) => entry === true);
+
+// If no tab has the current page, default to the Guide tab (index 1).
+const anyTabIsCurrent = sidebar.some(({ entries }) => isCurrent(entries));
+const isInitial = (entries: SidebarEntry[], index: number) =>
+	anyTabIsCurrent ? isCurrent(entries) : index === 1;
 ---
 
 <SidebarPersister>
@@ -63,15 +68,15 @@ const isCurrent = (sidebar: SidebarEntry[]): boolean =>
 		<Fragment slot="tab-list">
 			{
 				sidebar.map(({ label, entries }, index) => (
-					<TabListItem id={makeId(label)} initial={isCurrent(entries)} class="tab-item">
+					<TabListItem id={makeId(label)} initial={isInitial(entries, index)} class="tab-item">
 						<Icon class="icon" name={getIcon(index)} /> {label}
 					</TabListItem>
 				))
 			}
 		</Fragment>
 		{
-			sidebar.map(({ label, entries }) => (
-				<TabPanel id={makeId(label)} initial={isCurrent(entries)}>
+			sidebar.map(({ label, entries }, index) => (
+				<TabPanel id={makeId(label)} initial={isInitial(entries, index)}>
 					<SidebarSublist sublist={entries} />
 				</TabPanel>
 			))
