@@ -10,41 +10,39 @@ import { group } from './config/sidebar';
  *
  */
 export const sidebar = [
-	// Start tab
-	group('start', {
+	// Tutorial tab
+	group('tutorial', {
 		items: [
-			'getting-started',
-			group('start.welcome', {
-				items: [
-					'concepts/why-astro',
-					'concepts/islands',
-					'tutorial/0-introduction',
-					'astro-courses',
-				],
+			'tutorial/0-introduction',
+			'tutorial/1-setup',
+			'tutorial/2-pages',
+			'tutorial/3-components',
+			'tutorial/4-layouts',
+			'tutorial/5-astro-api',
+			'tutorial/6-islands',
+		],
+	}),
+
+	// Guide tab
+	group('guides', {
+		items: [
+			group('guides.welcome', {
+				items: ['concepts/why-astro', 'concepts/islands', 'astro-courses'],
 			}),
-			group('start.newProject', {
+			group('guides.newProject', {
 				items: ['install-and-setup', 'basics/project-structure', 'develop-and-build'],
 			}),
-			group('start.config', {
+			group('guides.config', {
 				items: [
 					'guides/configuring-astro',
 					'editor-setup',
 					'guides/typescript',
 					'guides/environment-variables',
+					'guides/integrations',
 					'guides/build-with-ai',
 					'guides/dev-toolbar',
 				],
 			}),
-			group('start.migrate', {
-				collapsed: true,
-				autogenerate: { directory: 'guides/migrate-to-astro' },
-			}),
-		],
-	}),
-
-	// Guides tab
-	group('guides', {
-		items: [
 			group('guides.routing', {
 				items: [
 					'basics/astro-pages',
@@ -102,6 +100,10 @@ export const sidebar = [
 			}),
 			'guides/troubleshooting',
 			group('guides.recipes', { collapsed: true, autogenerate: { directory: 'recipes' } }),
+			group('guides.migrate', {
+				collapsed: true,
+				autogenerate: { directory: 'guides/migrate-to-astro' },
+			}),
 			'contribute',
 		],
 	}),
@@ -162,11 +164,11 @@ export const sidebar = [
 		],
 	}),
 
-	// Integrations tab
-	group('integrations', {
+	// Ecosystem tab
+	group('ecosystem', {
 		items: [
-			'guides/integrations-guide',
-			group('integrations.ui', {
+			group('ecosystem.integrations.ui', {
+				collapsed: true,
 				items: [
 					'guides/integrations-guide/alpinejs',
 					'guides/integrations-guide/preact',
@@ -176,7 +178,8 @@ export const sidebar = [
 					'guides/integrations-guide/vue',
 				],
 			}),
-			group('integrations.adapters', {
+			group('ecosystem.integrations.adapters', {
+				collapsed: true,
 				items: [
 					'guides/integrations-guide/cloudflare',
 					'guides/integrations-guide/netlify',
@@ -184,7 +187,8 @@ export const sidebar = [
 					'guides/integrations-guide/vercel',
 				],
 			}),
-			group('integrations.other', {
+			group('ecosystem.integrations.other', {
+				collapsed: true,
 				items: [
 					'guides/integrations-guide/db',
 					'guides/integrations-guide/markdoc',
@@ -193,26 +197,19 @@ export const sidebar = [
 					'guides/integrations-guide/sitemap',
 				],
 			}),
-			'reference/publish-to-npm',
-		],
-	}),
-
-	// Third-party services tab
-	group('thirdParty', {
-		items: [
-			group('thirdParty.deployment', {
+			group('ecosystem.deployment', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/deploy' },
 			}),
-			group('thirdParty.cms', {
+			group('ecosystem.cms', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/cms' },
 			}),
-			group('thirdParty.backend', {
+			group('ecosystem.backend', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/backend' },
 			}),
-			group('thirdParty.media', {
+			group('ecosystem.media', {
 				collapsed: true,
 				autogenerate: { directory: 'guides/media' },
 			}),
