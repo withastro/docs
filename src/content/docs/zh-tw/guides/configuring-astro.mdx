@@ -1,0 +1,122 @@
+---
+title: 組態概觀
+description: 認識設定和自訂新專案與開發環境的各種方式。
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+Astro 是個靈活、不強制規定的框架，允許你以許多不同的方式設定專案。這代表開始一個新專案時可能會感到不知所措：設定 Astro 專案並沒有「唯一最佳方式」！
+
+這個「組態」章節的指南會協助你熟悉各種檔案，讓你能設定和自訂專案與開發環境的各個面向。
+
+如果這是你的第一個 Astro 專案，或是你已經好一陣子沒有設定新專案了，可以參考下面的指南和文件來取得協助。
+
+## Astro 組態檔
+
+[Astro 組態檔](/zh-tw/reference/configuration-reference/)是一個 JavaScript 檔案，包含在每個起始模板的根目錄中：
+
+```js
+// astro.config.mjs
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  // 在這裡加入你的組態選項...
+});
+```
+
+只有在你有東西要設定時才需要它，但大多數專案都會使用。`defineConfig()` 輔助函式在你的 IDE 中提供自動 IntelliSense，也是你加入所有組態選項的地方，用來告訴 Astro 如何建置並將你的專案算繪成 HTML。
+
+大多數情況下建議使用預設的 `.mjs` 格式，想在組態檔撰寫 TypeScript 則可用 `.ts`。此外也支援 `astro.config.js`。
+
+<ReadMore>閱讀 Astro 的[組態參考](/zh-tw/reference/configuration-reference/)以取得所有支援組態選項的完整概覽。</ReadMore>
+
+## TypeScript 組態檔
+
+每個 Astro 起始模板都在你的專案中包含一個 `tsconfig.json` 檔案。Astro 的[元件腳本](/zh-tw/basics/astro-components/#元件腳本)就是 TypeScript，它提供了 Astro 的編輯器工具支援，並讓你可以選擇性地為自己的專案程式碼加入型別檢查語法。
+
+使用 `tsconfig.json` 檔案來設定會在你的程式碼上執行型別檢查的 TypeScript 範本、設定 TypeScript 外掛、設定匯入別名等。
+
+<ReadMore>閱讀 Astro 的 [TypeScript 指南](/zh-tw/guides/typescript/)以取得 TypeScript 選項和 Astro 內建工具型別的完整概覽。</ReadMore>
+
+## 開發體驗
+
+在開發模式下工作時，你可以利用程式編輯器和其他工具來改善 Astro 的開發體驗。
+
+Astro 提供自己的官方 VS Code 延伸模組，也相容於其他幾種熱門的編輯器工具。Astro 還提供一個可自訂的工具列，會在開發伺服器執行時顯示在你的瀏覽器預覽中。你可以安裝甚至自己開發工具列應用程式來取得額外功能。
+
+<ReadMore>閱讀 Astro 的[編輯器設定選項](/zh-tw/editor-setup/)和[使用開發工具列](/zh-tw/guides/dev-toolbar/)指南，了解如何自訂你的開發體驗。</ReadMore>
+
+## 常見新專案任務
+
+以下是你可能會在新 Astro 專案中選擇進行的一些初始步驟。
+
+### 加入部署網域
+
+為了產生 sitemap 和建立標準網址（canonical URL），請在 [`site`](/zh-tw/reference/configuration-reference/#site) 選項中設定你的部署網址。如果你要部署到一個路徑（例如 `www.example.com/docs`），也可以為專案根目錄設定 [`base`](/zh-tw/reference/configuration-reference/#base)。
+
+此外，不同的部署主機對於網址末尾的斜線可能有不同的行為（例如 `example.com/about` 和 `example.com/about/`）。一旦你的網站部署完成，你可能需要設定 [`trailingSlash`](/zh-tw/reference/configuration-reference/#trailingslash) 偏好。
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  site: "https://www.example.com",
+  base: "/docs",
+  trailingSlash: "always",
+});
+```
+
+### 加入網站中繼資料
+
+Astro 不會將組態檔用於常見的 SEO 或 meta 資料，只用於建置專案程式碼並將其算繪成 HTML 所需的資訊。
+
+取而代之，這些資訊會使用標準的 HTML `<link>` 和 `<meta>` 標籤加入到頁面的 `<head>` 中，就像在撰寫一般的 HTML 頁面一樣。
+
+Astro 網站的一個常見模式是建立一個 `<Head />` [`.astro` 元件](/zh-tw/basics/astro-components/)，可以加入到共用的[版面元件](/zh-tw/basics/layouts/)中，讓它套用到所有頁面。
+
+```astro title="src/components/MainLayout.astro"
+---
+import Head from "./Head.astro";
+
+const { ...props } = Astro.props;
+---
+<html>
+  <head>
+    <meta charset="utf-8">
+    <Head />
+    <!-- 其他 head 元素 -->
+  </head>
+  <body>
+    <!-- 頁面內容放在這裡 -->
+  </body>
+</html>
+```
+
+因為 `Head.astro` 只是一個普通的 Astro 元件，你可以匯入檔案並接收從其他元件傳來的 props，例如特定的頁面標題。
+
+```astro title="src/components/Head.astro"
+---
+import Favicon from "../assets/Favicon.astro";
+import SomeOtherTags from "./SomeOtherTags.astro";
+
+const { title = "My Astro Website", ...props } = Astro.props;
+---
+<link rel="sitemap" href="/sitemap-index.xml">
+<title>{title}</title>
+<meta name="description" content="Welcome to my new Astro site!">
+
+<!-- 網站分析 -->
+<script data-goatcounter="https://my-account.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+
+<!-- Open Graph 標籤 -->
+<meta property="og:title" content="My New Astro Website" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://www.example.com/" />
+<meta property="og:description" content="Welcome to my new Astro site!" />
+<meta property="og:image" content="https://www.example.com/_astro/seo-banner.BZD7kegZ.webp">
+<meta property="og:image:alt" content="">
+
+<SomeOtherTags />
+
+<Favicon />
+```
