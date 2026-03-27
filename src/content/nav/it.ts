@@ -1,18 +1,18 @@
-export default {
-	start: 'Inizia',
-	'start.welcome': 'Benvenuto, mondo!', // Not sure about what this ment (I just added the direct translation)
-	'start.newProject': 'Inizia un nuovo progetto',
-	'start.config': 'Configurazione',
-	'start.migrate': 'Migra ad Astro',
+import { navDictionary } from '../../util/navDictionary';
 
+export default navDictionary({
 	guides: 'Guide e ricette',
-	'guides.routing': 'Routing e navigazione', // There's not really an italian word for routing, I always use the English word, I could use a direct translation but would feel off
+	'guides.welcome': 'Benvenuto, mondo!',
+	'guides.newProject': 'Inizia un nuovo progetto',
+	'guides.config': 'Configurazione',
+	'guides.routing': 'Routing e navigazione',
 	'guides.ui': 'Costruisci la tua UI',
 	'guides.content': 'Aggiungi contenuti al tuo sito',
 	'guides.serverRendering': 'Rendering lato server',
 	'guides.upgrade': 'Aggiornamento',
 	'guides.upgrade.major': 'Guide agli aggiornamenti principali',
 	'guides.recipes': 'Guide pratiche',
+	'guides.migrate': 'Migra ad Astro',
 
 	reference: 'Riferimenti',
 	'reference.runtime': 'API Runtime',
@@ -20,14 +20,11 @@ export default {
 	'reference.syntax': 'Sintassi dei template Astro',
 	'reference.experimental': 'Funzionalità sperimentali',
 
-	integrations: 'Integrazioni',
-	'integrations.ui': 'Framework UI',
-	'integrations.adapters': 'Adattatori',
-	'integrations.other': 'Altre integrazioni ufficiali',
-
-	thirdParty: 'Servizi di terze parti',
-	'thirdParty.deployment': 'Guide al deploy',
-	'thirdParty.cms': 'Sistemi di gestione dei contenuti', // This is quite long, maybe we don't translate it entirely or use the achronim
-	'thirdParty.backend': 'Servizi backend',
-	'thirdParty.media': 'Hosting di immagini e video',
-};
+	'ecosystem.integrations.ui': 'Framework UI',
+	'ecosystem.integrations.adapters': 'Adattatori',
+	'ecosystem.integrations.other': 'Altre integrazioni ufficiali',
+	'ecosystem.deployment': 'Guide al deploy',
+	'ecosystem.cms': 'Sistemi di gestione dei contenuti',
+	'ecosystem.backend': 'Servizi backend',
+	'ecosystem.media': 'Hosting di immagini e video',
+});
