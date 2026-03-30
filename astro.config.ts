@@ -1,5 +1,4 @@
 import starlight from '@astrojs/starlight';
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
@@ -11,6 +10,9 @@ import { starlightPluginLlmsTxt } from './config/plugins/llms-txt';
 import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
+import { tasklistEnhancerPlugin } from './config/plugins/tryckeri-tasklist-enhancer';
+import { fallbackLangPlugin } from './config/plugins/tryckeri-fallback-lang';
+import mdx from '@astrojs/mdx';
 
 /* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
 const NETLIFY_PREVIEW_SITE = process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL;
@@ -28,9 +30,7 @@ export default defineConfig({
 		]),
 		starlight({
 			title: 'Docs',
-			expressiveCode: {
-				plugins: [pluginCollapsibleSections()],
-			},
+			expressiveCode: false,
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Hero: './src/components/starlight/Hero.astro',
@@ -72,6 +72,11 @@ export default defineConfig({
 			plugins: [starlightPluginSmokeTest(), starlightPluginLlmsTxt()],
 		}),
 		sitemap(),
+		mdx({
+			optimize: true,
+			mdastPlugins: [fallbackLangPlugin()],
+			hastPlugins: [tasklistEnhancerPlugin()],
+		}),
 	],
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
@@ -90,6 +95,9 @@ export default defineConfig({
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
 		],
+	},
+	experimental: {
+		rustCompiler: true,
 	},
 	image: {
 		domains: ['avatars.githubusercontent.com'],
