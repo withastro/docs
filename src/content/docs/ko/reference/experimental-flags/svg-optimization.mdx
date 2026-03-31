@@ -48,17 +48,22 @@ SVG는 빌드 과정에서 최적화되어 프로덕션 빌드 시 파일 크기
 
 ## 구성
 
-최적화 동작을 사용자 정의하기 위해 [SVGO 구성 객체](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335)를 전달할 수 있습니다.
+최적화 동작을 사용자 정의하기 위해 [SVGO 구성 객체](https://github.com/svg/svgo#configuration)를 전달할 수 있습니다.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
+      multipass: true,
+      floatPrecision: 2,
       plugins: [
         'preset-default',
+        'removeXMLNS',
         {
-          name: 'removeViewBox',
-          active: false
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
         }
       ]
     }
@@ -73,17 +78,34 @@ export default defineConfig({
 
 SVG 컴포넌트 가져오기를 최적화하는 데 사용될 [SVGO 플러그인](https://svgo.dev/docs/plugins/)의 배열입니다.
 
-이는 SVGO의 `preset-default` 플러그인 모음을 포함하여 ID 이름으로 모든 플러그인을 포함할 수 있습니다. 플러그인은 필요에 따라 활성화하거나 비활성화하기 위해 `name`과 `active` 상태를 모두 포함하는 객체로 전달될 수도 있습니다.
+여기에는 SVGO의 [`preset-default`](https://svgo.dev/docs/preset-default/) 플러그인 컬렉션, 개별 내장 플러그인 또는 [커스텀 플러그인](https://svgo.dev/docs/plugins-api/)이 포함될 수 있습니다.
+
+플러그인의 기본 구성을 사용하려면 배열에 이름을 추가하세요. 더 세밀하게 제어하려면 `overrides` 매개변수를 사용하여 `preset-default` 내의 특정 플러그인을 사용자 정의하거나, 플러그인의 `name`이 포함된 객체를 전달하여 개별 매개변수를 재정의하세요.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeViewBox',
-          active: false
+          name: 'preset-default',
+          params: {
+            overrides: {
+              convertPathData: false,
+              convertTransform: {
+                degPrecision: 1,
+                transformPrecision: 3
+              },
+              inlineStyles: false
+            },
+          },
+        },
+        'removeXMLNS',
+        {
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
         }
       ]
     }
@@ -93,36 +115,42 @@ export default defineConfig({
 
 ### 기타 구성 옵션
 
-[다른 SVGO 구성 옵션](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335)(예: `floatPrecision` 및 `multipass`)을 구성 객체에 직접 전달할 수도 있습니다.
+특히 `floatPrecision` 및 `multipass`를 비롯하여 구성 객체에 직접 전달할 수 있는 몇 가지 [SVGO 구성 옵션](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335)이 있습니다.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
-      floatPrecision: 2,
-      multipass: true
+      multipass: true,
+      floatPrecision: 2
     }
   }
 })
 ```
 
+`multipass` 옵션은 더 이상 최적화할 수 없을 때까지 최적화 엔진을 여러 번 실행할지 여부를 설정합니다. `floatPrecision` 옵션은 전역적으로 유지할 소수점 자릿수를 설정하지만, 플러그인의 `params` 속성에 사용자 정의 값을 지정하여 특정 플러그인에 대해 재정의할 수 있습니다.
+
 ## 일반적인 사용 사례
 
-SVGO는 각 플러그인을 개별적으로 추가하는 것보다 더 편리한 최적화가 포함된 다양한 [기본 플러그인 목록](https://svgo.dev/docs/preset-default/)을 제공합니다. 하지만 필요에 따라 더 구체적으로 사용자 정의해야 할 수도 있습니다. 예를 들어, 특정 항목을 제거하거나 상황에 따라 더 적극적으로 정리할 수 있습니다.
+SVGO는 권장되는 최적화가 포함된 광범위한 [기본 플러그인 목록](https://svgo.dev/docs/preset-default/)을 제공합니다. 이 프리셋을 사용하는 것이 각 플러그인을 개별적으로 추가하는 것보다 편리하지만, 추가적인 사용자 정의가 필요할 수 있습니다. 예를 들어, 특히 애니메이션을 사용하는 경우 상황에 따라 항목을 매우 공격적으로 제거하거나 정리할 수 있습니다.
 
 ### 특정 속성 유지하기
 
-SVGO가 기본적으로 제거하는 `viewBox`와 같은 특정 SVG 속성을 유지하고 싶을 수도 있습니다.
+SVGO가 기본적으로 인라인화하거나 제거하는 `<style>`과 같은 특정 SVG 속성 및 요소를 유지하고 싶을 수 있습니다.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeViewBox',
-          active: false // viewBox 속성을 유지합니다.
+          name: 'preset-default',
+          params: {
+            overrides: {
+              inlineStyles: false, // CSP 해싱을 위해 스타일 요소를 유지합니다
+              removeDesc: false // 내용에 관계없이 요소를 유지합니다
+            }
+          }
         }
       ]
     }
@@ -150,15 +178,24 @@ export default defineConfig({
 })
 ```
 
-### 정밀도 사용자 정의하기
+### 현대적인 HTML5에서의 인라인화를 위한 최적화
 
-경로 데이터의 숫자 값 정밀도를 제어합니다.
+인라인 SVG는 `xmlns` 속성이 필요하지 않으며 SVG 2 사양으로 안전하게 변환될 수 있습니다. 이러한 목적으로 `removeXMLNS` 및 `removeXlink` 플러그인을 사용하는 것을 권장합니다:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
-      floatPrecision: 2
+      plugins: [
+        'preset-default',
+        'removeXMLNS',
+        {
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
+        }
+      ]
     }
   }
 })
