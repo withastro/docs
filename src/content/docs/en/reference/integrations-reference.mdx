@@ -2063,19 +2063,23 @@ Specifies the name identifier for the renderer.
 
 <p>
 
-**Type:** `AsyncRendererComponentFn<boolean>`
+**Type:** `(Component: any, props: Record<string, any>, children: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<boolean>`
 </p>
 
-Determines whether the renderer should handle the component.
+Determines whether the renderer should handle the component. Called for each registered renderer until one returns `true`.
+
+The function receives the component constructor or function, its props, slot content, and an optional [`metadata`](#astrocomponentmetadata) object containing information about the component's hydration directive and source.
 
 #### `SSRLoadedRendererValue.renderToStaticMarkup()`
 
 <p>
 
-**Type:** `AsyncRendererComponentFn<{ html: string; attrs?: Record<string, string>; }>`
+**Type:** `(Component: any, props: Record<string, any>, children: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<{ html: string; attrs?: Record<string, string>; }>`
 </p>
 
 Renders a framework component to static HTML markup on the server.
+
+The function receives the component constructor or function, its props, slot content, and an optional [`metadata`](#astrocomponentmetadata) object. Renderers can use `metadata` to determine whether the component will be hydrated on the client, which can be useful for conditionally including client-side hydration state.
 
 #### `SSRLoadedRendererValue.supportsAstroStaticSlot`
 
@@ -2096,6 +2100,79 @@ Indicates whether the renderer supports Astro's static slot optimization. When t
 </p>
 
 Returns a framework-specific hydration script that must be injected into the HTML before the first component that uses this renderer.
+
+### `AstroComponentMetadata`
+
+<p>
+
+**Type:** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+An object passed as the fourth argument to a renderer's [`check()`](#ssrloadedrenderervaluecheck) and [`renderToStaticMarkup()`](#ssrloadedrenderervaluerendertostaticmarkup) functions. Contains information about the component being rendered, including its hydration directive.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The display name of the component, used for error messages and debugging.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**Type:** `'load' | 'idle' | 'visible' | 'media' | 'only' | undefined`
+</p>
+
+The [client directive](/en/reference/directives-reference/#client-directives) used on the component, if any. When `undefined`, the component will not be hydrated on the client.
+
+Renderers can use this value to conditionally include client-side hydration state. For example, a renderer can skip serializing transfer state for components that will not be hydrated:
+
+```ts
+async function renderToStaticMarkup(Component, props, children, metadata) {
+  const willHydrate = !!metadata?.hydrate;
+  // Skip serializing hydration state if the component won't be hydrated
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**Type:** `any`
+</p>
+
+Additional arguments for the hydration directive. For example, the value of `client:media="(max-width: 768px)"` would be `"(max-width: 768px)"`. For `client:only="react"`, the value would be `"react"`.
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**Type:** `string | undefined`
+</p>
+
+The URL of the component's source file.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**Type:** `{ value: string; namespace?: boolean } | undefined`
+</p>
+
+Information about the component's export. The `value` property is the name of the export (e.g. `"default"` for default exports).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**Type:** `true`
+</p>
+
+Always `true`. Indicates that Astro supports the static slot optimization for this component. Renderers that set [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot) to `true` can use this in combination with [`hydrate`](#astrocomponentmetadatahydrate) to determine how to render slots.
 
 ### `SSRManifest`
 
