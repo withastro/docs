@@ -207,7 +207,7 @@ import netlify from '@astrojs/netlify';
 
 Étendez Astro avec des intégrations personnalisées. Les intégrations sont votre guichet unique pour ajouter la prise en charge de frameworks (comme Solid.js), de nouvelles fonctionnalités (comme les plans de site) et de nouvelles bibliothèques (comme Partytown).
 
-Lisez notre [Guide sur les intégrations](/fr/guides/integrations-guide/) pour obtenir de l'aide pour démarrer avec les intégrations Astro.
+Lisez notre [Guide sur les intégrations](/fr/guides/integrations/) pour obtenir de l'aide pour démarrer avec les intégrations Astro.
 
 ```js
 import react from '@astrojs/react';
@@ -355,6 +355,59 @@ L'utilisation de `'class'` est utile lorsque vous voulez vous assurer que les s�
 L'utilisation de `'where'` vous donne plus de contrôle sur la spécificité, mais nécessite que vous utilisiez des sélecteurs, des calques et d'autres outils de plus grande spécificité pour contrôler quels sélecteurs sont appliqués.
 L'utilisation d'`'attribut'` est utile lorsque vous manipulez l'attribut `class` des éléments et que vous devez éviter les conflits entre votre propre logique de style et l'application des styles par Astro.
 
+### prerenderConflictBehavior
+
+<p>
+
+**Type :** `'error' | 'warn' | 'ignore'`<br />
+**Par défaut :** `'warn'`<br />
+<Since v="6.0" />
+</p>
+
+Détermine le comportement par défaut lorsque deux routes génèrent la même URL pré-rendue :
+- `error` : faire échouer la compilation et afficher une erreur, vous obligeant à résoudre le conflit.
+- `warn` (par défaut) : afficher un avertissement en cas de conflit, mais effectuer la compilation en utilisant la route prioritaire.
+- `ignore` : compiler silencieusement en utilisant la route prioritaire en cas de conflit.
+
+```js
+{
+  prerenderConflictBehavior: 'error'
+}
+```
+
+### vite
+
+<p>
+
+**Type :** `ViteUserConfig`
+</p>
+
+Transmettez des options de configuration supplémentaires à Vite. Utile lorsqu'Astro ne prend pas en charge certaines configurations avancées dont vous pourriez avoir besoin.
+
+Consultez la documentation complète de l'objet de configuration `vite` sur [vite.dev](https://vite.dev/config/).
+
+#### Exemples
+
+```js
+{
+  vite: {
+    ssr: {
+      // Exemple : Forcer un paquet défectueux à ignorer le traitement SSR, si nécessaire
+      external: ['paquet-npm-defectueux'],
+    }
+  }
+}
+```
+
+```js
+{
+  vite: {
+    // Exemple : Ajouter des modules d'extension personnalisés pour Vite directement à votre projet Astro
+    plugins: [monModuleExtension()],
+  }
+}
+```
+
 ### security
 
 <p>
@@ -413,6 +466,9 @@ Cela empêche les attaques par injection d'en-tête d'hôte, dans lesquelles des
 Chaque modèle peut spécifier le protocole (`protocol`), le nom d'hôle (`hostname`) et le `port`. Les trois sont validés s'ils sont fournis.
 Les modèles prennent en charge les caractères génériques pour une correspondance flexible des noms d'hôte :
 
+- `*.example.com` - correspond exactement à un seul niveau de sous-domaine (par exemple, `sub.example.com` mais pas `deep.sub.example.com`).
+- `**.example.com` - correspond à n'importe quelle profondeur de sous-domaine (par exemple, à la fois `sub.example.com` et `deep.sub.example.com`)
+
 ```js
 {
   security: {
@@ -432,39 +488,382 @@ Les modèles prennent en charge les caractères génériques pour une correspond
 }
 ```
 
-Lorsqu'ils ne sont pas configurés, les en-têtes `X-Forwarded-Host` ne sont pas considérés comme fiables et seront ignorés.
-
-### vite
-
-<p>
-
-**Type :** `ViteUserConfig`
-</p>
-
-Transmet des options de configuration supplémentaires à Vite. Utile lorsqu'Astro ne prend pas en charge certaines configurations avancées dont vous pourriez avoir besoin.
-
-Consultez la documentation complète de l'objet de configuration `vite` sur [vite.dev](https://vite.dev/config/).
-
-#### Exemples
+Dans certains contextes spécifiques (par exemple, les applications derrière des proxys inverses de confiance avec des domaines dynamiques), vous devrez peut-être autoriser tous les domaines. Pour ce faire, utilisez un objet vide :
 
 ```js
 {
-  vite: {
-    ssr: {
-      // Exemple : Forcer un paquet défectueux à ignorer le traitement SSR, si nécessaire
-      external: ['paquet-npm-cassé'],
-    }
+  security: {
+    // Autoriser tout domaine - à utiliser uniquement en cas de besoin
+    allowedDomains: [{}]
   }
 }
 ```
 
+Lorsqu'ils ne sont pas configurés, les en-têtes `X-Forwarded-Host` ne sont pas considérés comme fiables et seront ignorés.
+
+#### security.actionBodySizeLimit
+
+<p>
+
+**Type :** `number`<br />
+**Par défaut :** `1048576` (1 Mo)<br />
+<Since v="5.18.0" />
+</p>
+
+Définit la taille maximale en octets autorisée pour le corps des requêtes d'action.
+
+Par défaut, les corps des requêtes d'action sont limités à 1 Mo (1048576 octets) pour éviter les abus.
+Vous pouvez augmenter cette limite si vos actions doivent accepter des charges utiles plus importantes, par exemple lors du traitement des téléchargements de fichiers.
+
 ```js
-{
-  vite: {
-    // Exemple : Ajouter des modules d'extension personnalisés pour Vite directement dans votre projet Astro
-    plugins: [monExtension()],
+// astro.config.mjs
+export default defineConfig({
+  security: {
+    actionBodySizeLimit: 10 * 1024 * 1024 // 10 Mo
   }
-}
+})
+```
+
+#### security.serverIslandBodySizeLimit
+
+<p>
+
+**Type :** `number`<br />
+**Par défaut :** `1048576` (1 Mo)<br />
+<Since v="6.0.0" />
+</p>
+
+Définit la taille maximale en octets autorisée pour les corps des requêtes d'îlots de serveur, qui contiennent les propriétés chiffrées et le slot HTML transmis au composant d'îlot.
+
+Par défaut, les corps des requêtes des îlots du serveur sont limités à 1 Mo (1048576 octets) pour éviter les abus.
+Vous pouvez augmenter cette limite si vos îlots de serveurs doivent accepter des charges utiles plus importantes.
+
+```js
+// astro.config.mjs
+export default defineConfig({
+  security: {
+    serverIslandBodySizeLimit: 10 * 1024 * 1024 // 10 Mo
+  }
+})
+```
+
+#### security.csp
+
+<p>
+
+**Type :** `boolean | object`<br />
+**Par défaut :** `false`<br />
+<Since v="6.0.0" />
+</p>
+
+Active la prise en charge de la [stratégie de sécurité du contenu (CSP)](https://developer.mozilla.org/fr/docs/Web/HTTP/Guides/CSP) afin de minimiser certains types de menaces en contrôlant les ressources qu'un document est autorisé à charger. Cela offre une protection supplémentaire contre les attaques utilisant des scripts intersites, ou [« cross-site scripting » (XSS)](https://developer.mozilla.org/fr/docs/Glossary/Cross-site_scripting) en Anglais.
+
+L'activation de cette fonctionnalité renforce la sécurité de la gestion par Astro des scripts et styles traités et regroupés par défaut, et vous permet de configurer plus précisément ces types de contenu, ainsi que d'autres.
+
+Cette fonctionnalité présente certaines limitations :
+- Les scripts externes et les styles externes ne sont pas pris en charge par défaut, mais vous pouvez [fournir vos propres hachages](#securitycspscriptdirectivehashes).
+- Les [transitions de vue d'Astro](/fr/guides/view-transitions/) utilisant `<ClientRouter />` ne sont pas prises en charge, mais vous pouvez envisager de [migrer vers l'API native de transition de vue du navigateur](https://events-3bg.pages.dev/jotter/astro-view-transitions/) si vous n'utilisez pas les améliorations d'Astro apportées aux API natives de transition de vue et de navigation.
+- Shiki n'est actuellement pas pris en charge. De par sa conception, les fonctions Shiki utilisent des styles incorporés incompatibles avec l'implémentation CSP d'Astro. Envisagez [d'utiliser `<Prism />`](/fr/guides/syntax-highlighting/#prism-) lorsque votre projet nécessite à la fois CSP et la coloration syntaxique.
+- Les directives `unsafe-inline` sont incompatibles avec l'implémentation CSP d'Astro. Par défaut, Astro générera des hachages pour tous ses scripts regroupés (par exemple, les îlots du client) et tous les navigateurs modernes rejetteront automatiquement `unsafe-inline` lorsqu'il apparaît dans une directive avec un hachage ou un nonce.
+
+:::note
+En raison du fonctionnement du serveur de développement Vite, cette fonctionnalité n'est pas prise en charge en mode `dev`. Vous pouvez toutefois la tester dans votre projet Astro à l'aide des commandes `build` et `preview`.
+:::
+
+Lorsqu'elle est activée, Astro ajoutera un élément `<meta>` à l'intérieur de l'élément `<head>` de chaque page.
+Cet élément aura l'attribut `http-equiv="content-security-policy"`, et l'attribut `content` fournira des valeurs pour les [directives](#securitycspdirectives) `script-src` et `style-src` en fonction des scripts et des styles utilisés dans la page.
+
+```html
+
+<head>
+  <meta
+    http-equiv="content-security-policy"
+    content="
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+Vous pouvez personnaliser davantage l'élément `<meta>` en activant cette fonctionnalité avec un objet de configuration qui inclut des options supplémentaires.
+
+##### security.csp.algorithm
+
+<p>
+
+**Type :** `"SHA-256" | "SHA-384" | "SHA-512"`<br />
+**Par défaut :** `'SHA-256'`<br />
+<Since v="6.0.0" />
+</p>
+
+La [fonction de hachage](https://developer.mozilla.org/fr/docs/Glossary/Hash_function) à utiliser lors de la génération des hachages des styles et des scripts émis par Astro.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+     algorithm: 'SHA-512'
+    }
+  }
+});
+```
+
+##### security.csp.directives
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `[]`<br />
+<Since v="6.0.0" />
+</p>
+
+Une liste de [directives CSP](https://content-security-policy.com/#directive) (en plus de `script-src` et `style-src` incluses par défaut) définissant les sources valides pour des types de contenu spécifiques. Ces directives sont ajoutées à toutes les pages.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      directives: [
+        "default-src 'self'",
+        "img-src 'self' https://images.cdn.example.com"
+      ]
+    }
+  }
+});
+```
+Après la compilation, l'élément `<meta>` ajoutera vos directives à la valeur `content` aux côtés des directives par défaut d'Astro :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    default-src 'self';
+    img-src 'self' 'https://images.cdn.example.com';
+    script-src 'self' 'sha256-somehash';
+    style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+##### security.csp.styleDirective
+
+<p>
+
+**Type :** `CspStyleDirective`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Un objet de configuration qui vous permet de remplacer les sources par défaut de la directive `style-src` avec la propriété [`resources`](#securitycspstyledirectiveresources), ou de fournir des [`hashes`](#securitycspstyledirectivehashes) supplémentaires à afficher.
+
+###### security.csp.styleDirective.hashes
+
+<p>
+
+**Type :** `Array<CspHash>`<br />
+**Par défaut :** `[]`<br />
+<Since v="6.0.0" />
+</p>
+
+Une liste des hachages supplémentaires à afficher.
+
+Vous devez fournir des hachages commençant par `sha384-`, `sha512-` ou `sha256-`. Toute autre valeur entraînera une erreur de validation. Ces hachages sont ajoutés à toutes les pages.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      styleDirective: {
+        hashes: [
+          "sha384-styleHash",
+          "sha512-styleHash",
+          "sha256-styleHash"
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` inclura vos hachages supplémentaires dans les directives `style-src` :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    style-src 'self' 'sha384-styleHash' 'sha512-styleHash' 'sha256-styleHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
+###### security.csp.styleDirective.resources
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `[]`<br />
+<Since v="6.0.0" />
+</p>
+
+Liste des sources valides pour les directives `style-src` permettant de remplacer les sources par défaut d'Astro. Cela n'inclura pas `self` par défaut, et vous devrez l'inclure dans cette liste si vous souhaitez la conserver. Ces ressources sont ajoutées à toutes les pages.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "'self'",
+          "https://styles.cdn.example.com"
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` appliquera vos sources aux directives `style-src` :
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy"
+    content="
+     style-src 'self' https://styles.cdn.example.com 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple définies dans votre configuration `csp` et ajoutées à l'aide de [l'API d'exécution de CSP](/fr/reference/api-reference/#csp)), Astro fusionnera et dédupliquera toutes les ressources pour créer votre élément `<meta>`.
+
+##### security.csp.scriptDirective
+
+<p>
+
+**Type :** `CspScriptDirective`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Un objet de configuration qui vous permet de remplacer les sources par défaut de la directive `script-src` avec la propriété [`resources`](#securitycspscriptdirectiveresources), ou de fournir des [`hashes`](#securitycspscriptdirectivehashes) supplémentaires à afficher.
+
+###### security.csp.scriptDirective.hashes
+
+<p>
+
+**Type :** `Array<CspHash>`<br />
+**Par défaut :** `[]`<br />
+<Since v="6.0.0" />
+</p>
+
+Une liste des hachages supplémentaires à afficher.
+
+Vous devez fournir des hachages commençant par `sha384-`, `sha512-` ou `sha256-`. Toute autre valeur entraînera une erreur de validation. Ces hachages sont ajoutés à toutes les pages.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        hashes: [
+          "sha384-scriptHash",
+          "sha512-scriptHash",
+          "sha256-scriptHash"
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` inclura vos hachages supplémentaires dans les directives `script-src` :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self' 'sha384-scriptHash' 'sha512-scriptHash' 'sha256-scriptHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
+###### security.csp.scriptDirective.resources
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `[]`<br />
+<Since v="6.0.0" />
+</p>
+
+Liste des sources valides pour les directives `script-src` permettant de remplacer les sources par défaut d'Astro. Cela n'inclura pas `self` par défaut, et vous devrez l'inclure dans cette liste si vous souhaitez la conserver. Ces ressources sont ajoutées à toutes les pages.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        resources: [
+          "'self'", "https://cdn.example.com"
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` appliquera plutôt vos sources aux directives `script-src` :
+
+```html
+<head>
+  <meta
+    http-equiv="content-security-policy"
+    content="
+     script-src 'self' https://cdn.example.com 'sha256-somehash';
+    "
+  >
+</head>
+```
+
+Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple définies dans votre configuration `csp` et ajoutées à l'aide de [l'API d'exécution de CSP](/fr/reference/api-reference/#csp)), Astro fusionnera et dédupliquera toutes les ressources pour créer votre élément `<meta>`.
+
+###### security.csp.scriptDirective.strictDynamic
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="6.0.0" />
+</p>
+
+Active [le mot-clé `strict-dynamic`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CSP#the_strict-dynamic_keyword) pour prendre en charge l'injection dynamique de scripts.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        strictDynamic: true
+      }
+    }
+  }
+});
 ```
 
 ## Options de compilation
@@ -831,22 +1230,26 @@ Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations
 
 <p>
 
-**Type :** `string | undefined`<br />
+**Type :** `SessionDriverConfig | undefined`<br />
 <Since v="5.7.0" />
 </p>
 
-Le pilote Unstorage à utiliser pour le stockage de session. Les adaptateurs [Node](/fr/guides/integrations-guide/node/#sessions), [Cloudflare](/fr/guides/integrations-guide/cloudflare/#sessions) et [Netlify](/fr/guides/integrations-guide/netlify/#sessions) configurent automatiquement un pilote par défaut, mais vous pouvez spécifier le vôtre si vous le souhaitez ou si vous utilisez un adaptateur qui n'en fournit pas.
+Le pilote à utiliser pour le stockage de session. Les adaptateurs [Node](/fr/guides/integrations-guide/node/#sessions), [Cloudflare](/fr/guides/integrations-guide/cloudflare/#sessions) et [Netlify](/fr/guides/integrations-guide/netlify/#sessions) configurent automatiquement un pilote par défaut, mais vous pouvez spécifier le vôtre si vous le souhaitez ou si vous utilisez un adaptateur qui n'en fournit pas.
 
-La valeur est le « Nom du pilote » disponible dans la [documentation du pilote Unstorage](https://unstorage.unjs.io/drivers).
+```js title="astro.config.mjs" ins={7-9} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+import vercel from '@astrojs/vercel'
 
-```js title="astro.config.mjs" ins={4}
-{
-  adapter: vercel(),
+export default defineConfig({
+  adapter: vercel()
   session: {
-    driver: "redis",
-  },
-}
+    driver: sessionDrivers.redis({
+      url: process.env.REDIS_URL
+    }),
+  }
+})
 ```
+
 :::note
 Certains pilotes peuvent nécessiter l'installation de paquets supplémentaires, ainsi que la définition de variables d'environnement ou d'identifiants. Voir la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations.
 :::
@@ -859,6 +1262,10 @@ Certains pilotes peuvent nécessiter l'installation de paquets supplémentaires,
 **Par défaut :** `{}`<br />
 <Since v="5.7.0" />
 </p>
+
+:::caution[Déprécié]
+Ce paramètre est déprécié et sera supprimé dans une prochaine version majeure. Transmettez plutôt les options à la fonction du pilote.
+:::
 
 Options spécifiques au pilote à utiliser pour le stockage des sessions. Ces options dépendent du pilote utilisé. Consultez la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations sur les options disponibles pour chaque pilote.
 
@@ -920,7 +1327,7 @@ Alternativement, vous pouvez transmettre un objet avec des options supplémentai
 Une période d'expiration de durée de vie par défaut facultative pour les valeurs de session, en secondes.
 
 Par défaut, les valeurs de session persistent jusqu'à ce qu'elles soient supprimées ou que la session soit détruite, et n'expirent pas automatiquement car un certain laps de temps s'est écoulé.
-Définissez `session.ttl` pour ajouter une période d'expiration par défaut pour vos valeurs de session. Passer une option `ttl` à [`session.set()`](/fr/reference/api-reference/#set) remplacera la valeur globale par défaut pour cette entrée individuelle.
+Définissez `session.ttl` pour ajouter une période d'expiration par défaut pour vos valeurs de session. Passer une option `ttl` à [`session.set()`](/fr/reference/api-reference/#sessionset) remplacera la valeur globale par défaut pour cette entrée individuelle.
 
 ```js title="astro.config.mjs" ins={3-4}
 {
@@ -1077,6 +1484,13 @@ Le point d’entrée du service peut être soit l’un des services inclus, soit
 			 entrypoint: 'astro/assets/services/sharp',
 			 config: {
 				 limitInputPixels: false,
+				 webp: {
+					 effort: 6,
+					 alphaQuality: 80,
+				 },
+				 jpeg: {
+					 mozjpeg: true,
+				 },
       },
 		 },
   },
@@ -1108,6 +1522,62 @@ Définissez le paramètre sur `false` pour contourner la limite de taille des im
 Le [noyau utilisé par défaut pour le redimensionnement des images](https://sharp.pixelplumbing.com/api-resize/#resize) dans le service d'images Sharp.
 
 Par défaut, cette valeur est indéfinie (`undefined`), ce qui correspond au noyau par défaut de Sharp, `lanczos3`.
+
+#### image.service.config.jpeg
+
+<p>
+
+**Type :** `Record<string, any> | undefined`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.1.0" />
+</p>
+
+Les options d'encodage par défaut transmises à `sharp().jpeg()` lors de l'utilisation du service d'images Sharp intégré à Astro.
+
+Cela peut être utilisé avec des options telles que `mozjpeg`, `progressive`, `chromaSubsampling` ou une qualité (`quality`) par défaut.
+Les qualités (`quality`) définies par image avec `<Image />`, `<Picture />` et `getImage()` restent prioritaires.
+
+#### image.service.config.webp
+
+<p>
+
+**Type :** `Record<string, any> | undefined`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.1.0" />
+</p>
+
+Les options d'encodage par défaut transmises à `sharp().webp()` lors de l'utilisation du service d'images Sharp intégré à Astro.
+
+Cela peut être utilisé avec des options telles que `effort`, `alphaQuality`, `lossless`, `nearLossless` ou une qualité (`quality`) par défaut.
+Les qualités (`quality`) définies par image avec `<Image />`, `<Picture />` et `getImage()` restent prioritaires.
+
+#### image.service.config.avif
+
+<p>
+
+**Type :** `Record<string, any> | undefined`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.1.0" />
+</p>
+
+Les options d'encodage par défaut transmises à `sharp().avif()` lors de l'utilisation du service d'images Sharp intégré à Astro.
+
+Cela peut être utilisé avec des options telles que `effort`, `chromaSubsampling`, `bitdepth`, `lossless` ou une qualité (`quality`) par défaut.
+Les qualités (`quality`) définies par image avec `<Image />`, `<Picture />` et `getImage()` restent prioritaires.
+
+#### image.service.config.png
+
+<p>
+
+**Type :** `Record<string, any> | undefined`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.1.0" />
+</p>
+
+Les options d'encodage par défaut transmises à `sharp().png()` lors de l'utilisation du service d'images Sharp intégré à Astro.
+
+Cela peut être utilisé avec des options telles que `compressionLevel`, `effort`, `palette` ou une qualité (`quality`) par défaut.
+Les qualités (`quality`) définies par image avec `<Image />`, `<Picture />` et `getImage()` restent prioritaires.
 
 ### image.domains
 
@@ -1581,13 +2051,13 @@ export default defineConfig({
 <p>
 
 **Type :** `boolean`<br />
-**Par défaut :** `true`<br />
+**Par défaut :** `false`<br />
 <Since v="4.2.0" />
 </p>
 
 Configure si l'URL d'accueil (`/`) générée par `src/pages/index.astro` sera redirigée vers `/[defaultLocale]` lorsque `prefixDefaultLocale: true` est défini.
 
-Définissez `redirectToDefaultLocale: false` pour désactiver cette redirection automatique à la racine de votre site :
+Définissez `redirectToDefaultLocale: true` pour activer cette redirection automatique à la racine de votre site :
 ```js
 // astro.config.mjs
 export default defineConfig({
@@ -1596,7 +2066,7 @@ export default defineConfig({
 		locales: ["en", "fr"],
     routing: {
       prefixDefaultLocale: true,
-      redirectToDefaultLocale: false
+      redirectToDefaultLocale: true
     }
   }
 })
@@ -1699,7 +2169,9 @@ Consultez notre guide pour plus d'informations sur [les variables d'environnemen
 <Since v="5.0.0" />
 </p>
 
-Un objet qui utilise `envField` pour définir le type de données et les propriétés de vos variables d'environnement : `context` (client ou serveur), `access` (public ou secret), une valeur par défaut (`default`) à utiliser et si cette variable d'environnement est facultative (`optional`) ou non (la valeur par défaut est `false`).
+Définit les variables d'environnement à appliquer par la validation Zod et pour lesquelles la prise en charge de TypeScript (par exemple, l'autocomplétion, la sûreté du typage) est disponible. Chaque nom de propriété correspond au nom de la variable et la valeur au type de données et aux validations [définies avec `envField`](/fr/reference/modules/astro-config/#envfield).
+
+Quatre types de données sont pris en charge : chaîne de caractères, nombre, énumération et booléen. Chaque type requiert un contexte (client ou serveur), un niveau d’accès (public ou secret) et des validations supplémentaires, telles qu’une valeur par défaut (`default`) et une indication précisant si la variable est facultative (`false` par défaut).
 
 ```js
 // astro.config.mjs
@@ -1713,46 +2185,6 @@ export default defineConfig({
       API_SECRET: envField.string({ context: "server", access: "secret" }),
     }
   }
-})
-```
-
-`envField` prend en charge quatre types de données : chaîne de caractères, nombre, énumération et booléen. `context` et `access` sont des propriétés obligatoires pour tous les types de données. La liste complète des propriétés disponibles pour chaque type de données est présentée ci-dessous :
-
-```js
-import { envField } from "astro/config"
-
-envField.string({
-   // context & access
-   optional: true,
-   default: "foo",
-   max: 20,
-   min: 1,
-   length: 13,
-   url: true,
-   includes: "oo",
-   startsWith: "f",
-   endsWith: "o",
-})
-envField.number({
-   // context & access
-   optional: true,
-   default: 15,
-   gt: 2,
-   min: 1,
-   lt: 3,
-   max: 4,
-   int: true,
-})
-envField.boolean({
-   // context & access
-   optional: true,
-   default: true,
-})
-envField.enum({
-   // context & access
-   values: ['foo', 'bar', 'baz'], // requis
-   optional: true,
-   default: 'baz',
 })
 ```
 
@@ -1781,4 +2213,266 @@ export default defineConfig({
     validateSecrets: true
   }
 })
+```
+
+## fonts
+
+<p>
+
+**Type :** `Array<FontFamily>`<br />
+**Par défaut :** `[]`<br />
+<Since v="6.0.0" />
+</p>
+
+Configure les polices et vous permet de spécifier certaines options de personnalisation pour chaque police.
+
+Consultez notre guide pour plus d'informations sur [l'utilisation de polices personnalisées dans Astro](/fr/guides/fonts/).
+
+### font.provider
+
+<p>
+
+**Type :** `FontProvider`<br />
+<Since v="6.0.0" />
+</p>
+
+La source de vos fichiers de polices. Vous pouvez utiliser un [fournisseur intégré](/fr/reference/font-provider-reference/#fournisseurs-intégrés) ou créer votre propre [fournisseur personnalisé](/fr/reference/font-provider-reference/#création-dun-fournisseur-de-polices) :
+
+```js
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.google(),
+    name: "Roboto",
+    cssVariable: "--font-roboto"
+  }]
+});
+```
+
+### font.name
+
+<p>
+
+**Type :** `string`<br />
+<Since v="6.0.0" />
+</p>
+
+Le nom de la famille de polices, tel qu'identifié par votre fournisseur de polices :
+
+```js
+name: "Roboto"
+```
+
+### font.cssVariable
+
+<p>
+
+**Type :** `string`<br />
+<Since v="6.0.0" />
+</p>
+
+Un [identifiant](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Values/ident) valide de votre choix sous la forme d'une variable CSS (c'est-à-dire commençant par `--`) :
+
+```js
+cssVariable: "--font-roboto"
+```
+
+### font.fallbacks
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `["sans-serif"]`<br />
+<Since v="6.0.0" />
+</p>
+
+Un tableau de polices à utiliser lorsque la police choisie est indisponible ou en cours de chargement. Les polices de repli seront choisies dans l'ordre indiqué. La première police disponible sera utilisée.
+
+```js
+fallbacks: ["CustomFont", "serif"]
+```
+
+Pour désactiver complètement les polices de repli, configurez un tableau vide :
+
+```js
+fallbacks: []
+```
+
+Spécifiez au moins un [nom de famille générique](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Properties/font-family#generic-name) correspondant à l'apparence souhaitée de votre police. Astro tentera ensuite de générer des [solutions de repli optimisées](https://developer.chrome.com/blog/font-fallbacks) à l'aide de métriques de police. Pour désactiver cette optimisation, définissez `optimizedFallbacks` sur `false`.
+
+### font.optimizedFallbacks
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`<br />
+<Since v="6.0.0" />
+</p>
+
+Détermine s'il faut activer ou non l'optimisation par défaut d'Astro lors de la génération des polices de repli. Vous pouvez désactiver cette optimisation par défaut pour contrôler entièrement la manière dont les [`fallbacks`](#fontfallbacks) sont générés :
+
+```js
+optimizedFallbacks: false
+```
+
+### font.weights
+
+<p>
+
+**Type :** `Array<(number|string)>`<br />
+**Par défaut :** `[400]`<br />
+<Since v="6.0.0" />
+</p>
+
+Un tableau de [graisses de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Properties/font-weight). Si aucune valeur n'est spécifiée dans votre configuration, seule la graisse `400` est incluse par défaut afin d'éviter les téléchargements inutiles. Vous devrez inclure cette propriété pour accéder aux autres graisses de police :
+
+```js
+weights: [200, "400", "bold"]
+```
+
+Si la police associée est une [police variable](https://developer.mozilla.org/fr/docs/Web/CSS/Guides/Fonts/Variable_fonts), vous pouvez spécifier une plage de graisses :
+
+```js
+weights: ["100 900"]
+```
+
+### font.styles
+
+<p>
+
+**Type :** `Array<("normal"|"italic"|"oblique")>`<br />
+**Par défaut :** `["normal", "italic"]`<br />
+<Since v="6.0.0" />
+</p>
+
+Un tableau de [styles de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Properties/font-style) :
+
+```js
+styles: ["normal", "oblique"]
+```
+
+### font.subsets
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `["latin"]`<br />
+<Since v="6.0.0" />
+</p>
+
+Définit une liste de [sous-ensembles de polices](https://knaap.dev/posts/font-subsetting/) à précharger.
+
+```js
+subsets: ["latin"]
+```
+
+### font.formats
+
+<p>
+
+**Type :** `Array<("woff2"|"woff"|"otf"|"ttf"|"eot")>`<br />
+**Par défaut :** `["woff2"]`<br />
+<Since v="6.0.0" />
+</p>
+
+Un tableau de [formats de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/src#formats_de_police) :
+
+```js
+formats: ["woff2", "woff"]
+```
+
+### font.options
+
+<p>
+
+**Type :** `Record<string, any>`<br />
+<Since v="6.0.0" />
+</p>
+
+Un objet permettant de transmettre des options spécifiques au fournisseur. Son type est déterminé automatiquement en fonction du [fournisseur](#fontprovider) de la famille de polices :
+
+```js
+options: {
+  experimental: {
+    glyphs: ["a"]
+  }
+}
+```
+
+### font.display
+
+<p>
+
+**Type :** `"auto" | "block" | "swap" | "fallback" | "optional"`<br />
+**Par défaut :** `"swap"`<br />
+<Since v="6.0.0" />
+</p>
+
+Définit [comment une police s'affiche](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/font-display) en fonction du moment où elle est téléchargée et prête à l'emploi :
+
+```js
+display: "block"
+```
+
+### font.unicodeRange
+
+<p>
+
+**Type :** `Array<string>`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Détermine quand une police doit être téléchargée et utilisée en fonction d'une [plage de caractères Unicode](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/unicode-range). Si un caractère de la page correspond à la plage configurée, le navigateur téléchargera la police et tous les caractères seront disponibles pour une utilisation sur la page. Pour configurer un sous-ensemble de caractères préchargés pour une seule police, consultez plutôt la propriété [subsets](#fontsubsets).
+
+Cela peut s'avérer utile pour la localisation afin d'éviter les téléchargements de polices inutiles lorsqu'une partie spécifique de votre site web utilise un alphabet différent et sera affichée avec une police distincte. Par exemple, un site web proposant des versions anglaise et japonaise peut empêcher le navigateur de télécharger la police japonaise sur les versions anglaises de la page qui ne contiennent aucun des caractères japonais fournis dans `unicodeRange`.
+
+```js
+unicodeRange: ["U+26"]
+```
+
+### font.stretch
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Un [étirement de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/font-stretch) :
+
+```js
+stretch: "condensed"
+```
+
+### font.featureSettings
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Contrôle les [fonctionnalités typographiques de la police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/font-feature-settings) (par exemple, les ligatures, les petites capitales ou les ornements) :
+
+```js
+featureSettings: "'smcp' 2"
+```
+
+### font.variationSettings
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Les [paramètres de variation](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/font-variation-settings) de police :
+
+```js
+variationSettings: "'xhgt' 0.7"
 ```

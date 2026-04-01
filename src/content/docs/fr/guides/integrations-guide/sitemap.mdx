@@ -193,14 +193,14 @@ export default defineConfig({
 });
 ```
 
-### `filter`
+### `filter()`
 
 <p>
 
 **Type :** `(page: string) => boolean`
 </p>
 
-Toutes les pages sont incluses par défaut dans votre sitemap. En ajoutant une fonction `filter` personnalisée, vous pouvez filtrer les pages incluses par URL.
+Toutes les pages sont incluses par défaut dans votre sitemap. En ajoutant une fonction `filter()` personnalisée, vous pouvez filtrer les pages incluses par URL.
 
 ```js title="astro.config.mjs" ins={8}
 import { defineConfig } from 'astro/config';
@@ -318,7 +318,7 @@ export default defineConfig({
 
 <p>
 
-**Type :** `{ changefreq?: ChangeFreq; lastmod?: Date; priority?: number; }`
+**Type :** <code>\{ changefreq?: <a href="#changefreq">ChangeFreq</a>; lastmod?: Date; priority?: number; \}</code>
 <Since v="0.2.0" pkg="@astrojs/sitemap" />
 </p>
 
@@ -346,46 +346,32 @@ export default defineConfig({
 });
 ```
 
-### `serialize`
+### `serialize()`
 
 <p>
 
-**Type :** `(item: SitemapItem) => SitemapItem | Promise<SitemapItem | undefined> | undefined`
+**Type :** <code>(item: <a href="#sitemapitem">SitemapItem</a>) => SitemapItem | Promise\<SitemapItem | undefined\> | undefined</code>
 </p>
 
-Une fonction appelée pour chaque entrée du plan du site juste avant l'écriture sur le disque. Cette fonction peut être asynchrone.
+Génère une représentation modifiable de chaque entrée du plan de site avant de renvoyer un [`SitemapItem`](#sitemapitem) ou `undefined` pour la supprimer du plan de site. Cette fonction peut être asynchrone et est appelée pour chaque entrée du plan de site juste avant l'écriture sur le disque.
 
-Elle reçoit en paramètre un objet `SitemapItem` qui peut avoir ces propriétés :
-
-* `url` (URL absolue de la page). C'est la seule propriété dont la présence est garantie sur `SitemapItem`.
-* `changefreq`
-* `lastmod` (date au format ISO, type `String`)
-* `priority`
-* `links`.
-
-Cette propriété `links` contient une liste `LinkItem` de pages alternatives, y compris une page parent.
-
-Le type `LinkItem` a deux champs : `url` (l'URL pleinement qualifiée de la version de cette page pour la langue spécifiée) et `lang` (un code de langue pris en charge et ciblé par cette version de la page).
-
-La fonction `serialize` doit retourner `SitemapItem`, touché ou non.
-
-L'exemple ci-dessous montre la possibilité d'ajouter individuellement des propriétés spécifiques au sitemap.
+L'exemple suivant filtre une page du plan de site et met à jour une entrée spécifique pour modifier ses propriétés `changefreq`, `lastmod` et `priority` :
 
 ```js title="astro.config.mjs" ins={8-18}
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://example.com',
   integrations: [
     sitemap({
       serialize(item) {
-        if (/exclure-du-sitemap/.test(item.url)) {
+        if (/exclus-du-plan-de-site/.test(item.url)) {
           return undefined;
         }
         if (/votre-page-speciale/.test(item.url)) {
-          item.changefreq = 'daily';
-          item.lastmod = new Date();
+          item.changefreq = ChangeFreqEnum.DAILY;
+          item.lastmod = new Date().toISOString();
           item.priority = 0.9;
         }
         return item;
@@ -399,13 +385,13 @@ export default defineConfig({
 
 <p>
 
-**Type :** `Record<string, (item: SitemapItem) => SitemapItem | undefined>`
+**Type :** <code>Record\<string, (item: <a href="#sitemapitem">SitemapItem</a>) => SitemapItem | undefined\></code>
 <Since v="3.7.0" pkg="@astrojs/sitemap" />
 </p>
 
 Une association de fonctions qui vous permet de diviser votre plan de site en plusieurs fichiers selon une logique personnalisée. Chaque nom de propriété dans l'objet devient le nom d'un fichier sitemap distinct, et sa fonction correspondante détermine quelles URL seront incluses dans ce fragment. Cela peut s'avérer utile, par exemple, si une section spécifique de votre site web change très souvent et que vous souhaitez spécifier une fréquence de changement différente pour ses entrées.
 
-Chaque fonction de fragment reçoit un `SitemapItem` et, pour chaque élément, renvoie soit :
+Chaque fonction de fragment reçoit un [`SitemapItem`](#sitemapitem) et, pour chaque élément, renvoie soit :
 * l'élément `SitemapItem` modifié, si l'URL doit être incluse dans ce fragment
 * `undefined`, si l'URL ne doit pas être incluse dans ce fragment
 
@@ -413,7 +399,7 @@ L'exemple ci-dessous montre comment répartir les URL dans différents fichiers 
 
 ```js title="astro.config.mjs" ins={8-25}
 import { defineConfig } from 'astro/config';
-import sitemap from '@astrojs/sitemap';
+import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
 
 export default defineConfig({
   site: 'https://example.com',
@@ -422,16 +408,16 @@ export default defineConfig({
       chunks: {
         'blog': (item) => {
           if (/blog/.test(item.url)) {
-            item.changefreq = 'weekly';
-            item.lastmod = new Date();
+            item.changefreq = ChangeFreqEnum.WEEKLY;
+            item.lastmod = new Date().toISOString();
             item.priority = 0.9;
             return item;
           }
         },
         'glossaire': (item) => {
-          if (/glossary/.test(item.url)) {
-            item.changefreq = 'monthly';
-            item.lastmod = new Date();
+          if (/glossaire/.test(item.url)) {
+            item.changefreq = ChangeFreqEnum.MONTHLY;
+            item.lastmod = new Date().toISOString();
             item.priority = 0.7;
             return item;
           }
@@ -602,9 +588,167 @@ export default defineConfig({
 });
 ```
 
+## Référence des utilitaires d'Astro Sitemap
+
+```ts
+import {
+  ChangeFreqEnum,
+} from "@astrojs/sitemap";
+```
+
+### `ChangeFreqEnum`
+
+<p>
+
+<Since pkg="@astrojs/sitemap" v="1.3.2" />
+</p>
+
+Une [énumération Typescript](https://www.typescriptlang.org/docs/handbook/enums.html) où chaque nom de propriété est la version en majuscules d'une valeur valide définie dans la [spécification de `<changefreq>`](https://www.sitemaps.org/protocol.html#changefreqdef).
+
+L'exemple suivant utilise `serialize()` pour mettre à jour la valeur [`changefreq`](#sitemapitemchangefreq) de l'index du blog :
+
+```js title="astro.config.mjs" {10} "ChangeFreqEnum"
+import { defineConfig } from 'astro/config';
+import sitemap, { ChangeFreqEnum } from '@astrojs/sitemap';
+
+export default defineConfig({
+  site: 'https://example.com',
+  integrations: [
+    sitemap({
+      serialize(item) {
+        if (/blog/.test(item.url)) {
+          item.changefreq = ChangeFreqEnum.DAILY;
+        }
+
+        return item;
+      },
+    }),
+  ],
+});
+```
+
+## Référence des types d'Astro Sitemap
+
+```ts
+import type {
+  ChangeFreq,
+  LinkItem,
+  SitemapItem,
+  SitemapOptions,
+} from "@astrojs/sitemap";
+```
+
+### `ChangeFreq`
+
+<p>
+
+**Type :** `"daily" | "monthly" | "always" | "hourly" | "weekly" | "yearly" | "never"`
+</p>
+
+Une union de valeurs valides permettant d'indiquer la fréquence de mise à jour d'une entrée.
+
+### `LinkItem`
+
+<p>
+
+**Type :** `{ lang: string; hreflang?: string; url: string; }`
+</p>
+
+Décrit l'URL d'une page. Il peut s'agir de la version par défaut du document ou de l'une de ses traductions.
+
+#### `LinkItem.lang`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie le code de langue pris en charge par cette version de la page. Lorsqu'une valeur est définie, vous n'avez pas besoin de définir également [`hreflang`](#linkitemhreflang).
+
+#### `LinkItem.hreflang`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie le code de langue pris en charge par cette version de la page. Lorsqu'une valeur est définie, vous n'avez pas besoin de définir également [`lang`](#linkitemlang).
+
+#### `LinkItem.url`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Indique l'URL absolue de la page pour la langue spécifiée.
+
+### `SitemapItem`
+
+<p>
+
+**Type :** `{ url: string; lastmod?: string | undefined; changefreq?: ChangeFreqEnum | undefined; priority?: number | undefined; links?: LinkItem[] | undefined; }`
+</p>
+
+Décrit une entrée dans un plan de site. Ceci contient son `url` et des propriétés optionnelles supplémentaires.
+
+#### `SitemapItem.url`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie l'URL absolue de la page.
+
+#### `SitemapItem.lastmod`
+
+<p>
+
+**Type :** `string | undefined`
+</p>
+
+Définit la date de dernière modification de la page au format ISO sous forme de chaîne de caractères.
+
+#### `SitemapItem.changefreq`
+
+<p>
+
+**Type :** <code><a href="#changefreqenum">ChangeFreqEnum</a> | undefined</code>
+</p>
+
+Définit la fréquence probable de modification de la page.
+
+#### `SitemapItem.priority`
+
+<p>
+
+**Type :** `number | undefined`
+</p>
+
+Définit la priorité de cette URL par rapport aux autres URL de votre site. La valeur doit être un nombre compris entre `0.0` et `1.0`.
+
+#### `SitemapItem.links`
+
+<p>
+
+**Type :** <code><a href="#linkitem">LinkItem</a>[] | undefined</code>
+</p>
+
+Définit une liste de pages alternatives, y compris la page actuelle.
+
+### `SitemapOptions`
+
+<p>
+
+**Type :** `object`
+</p>
+
+Décrit les [options de configuration](#configuration).
+
 ## Exemples
 
 * Le site officiel d'Astro utilise Astro Sitemap pour générer [son plan du site](https://astro.build/sitemap-index.xml).
 * [Parcourir les projets avec Astro Sitemap sur GitHub](https://github.com/search?q=%22%40astrojs%2Fsitemap%22+path%3Apackage.json\&type=Code) pour plus d'exemples !
 
-[astro-integration]: /fr/guides/integrations-guide/
+[astro-integration]: /fr/guides/integrations/

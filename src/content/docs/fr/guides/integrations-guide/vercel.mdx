@@ -412,27 +412,56 @@ export default defineConfig({
 });
 ```
 
+### `staticHeaders`
+
+<p>
+**Type :** `boolean`<br/>
+**Par défaut :** `false`<br />
+**Disponible pour :** Serverless <br/>
+<Since pkg="@astrojs/vercel" v="10.0.0" />
+</p>
+
+Permet de spécifier des en-têtes personnalisés pour les pages pré-rendues dans la configuration de Vercel.
+
+Si cette option est activée, l'adaptateur enregistrera [les en-têtes statiques dans le fichier `vercel.json` de Vercel](https://vercel.com/docs/project-configuration#headers) lorsqu'ils sont fournis par les fonctionnalités d'Astro, telles que la stratégie de sécurité du contenu.
+
+Par exemple, lorsque la [stratégie de sécurité du contenu](/fr/reference/configuration-reference/#securitycsp) est activée, `staticHeaders` peut être utilisé pour ajouter des en-têtes (`headers`) CSP à votre configuration Vercel, au lieu de créer un élément `<meta>` :
+
+```js title="astro.config.mjs" {9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+  security: {
+    csp: true
+  },
+  adapter: vercel({
+    staticHeaders: true 
+  })
+});
+```
+
 ### Exécution du middleware Astro sur les fonctions Vercel Edge
 
-L’adaptateur `@astrojs/vercel` peut créer une [fonction edge](https://vercel.com/docs/functions/edge-functions) à partir d’un middleware Astro dans votre base de code. Lorsque `edgeMiddleware` est activé, une fonction edge exécute votre code middleware pour toutes les demandes, y compris les ressources statiques, les pages pré-rendues et les pages rendues à la demande.
+L’adaptateur `@astrojs/vercel` peut créer une [fonction edge](https://vercel.com/docs/functions/edge-functions) à partir d’un middleware Astro dans votre base de code. Lorsque [`middlewareMode`](/fr/reference/adapter-reference/#middlewaremode) est défini sur `'edge'`, une fonction edge exécute votre code middleware pour toutes les requêtes, y compris les ressources statiques, les pages pré-rendues et les pages rendues à la demande.
 
 Pour les pages rendues à la demande, l'objet `context.locals` est sérialisé en utilisant du JSON et envoyé dans un en-tête pour la fonction serverless, qui effectue le rendu. Comme mesure de sécurité, la fonction serverless refusera de servir les requêtes avec une réponse `403 Forbidden` à moins qu'elles ne proviennent de la fonction edge générée.
 
-Il s'agit d'une fonctionnalité opt-in, et l'option `edgeMiddleware` doit être positionnée à `true` :
+Il s'agit d'une fonctionnalité optionnelle. Pour l'activer, définissez `middlewareMode` sur `'edge'` :
 
-```js title="astro.config.mjs" "edgeMiddleware: true"
+```js title="astro.config.mjs" "middlewareMode: 'edge'"
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
   // ...
   adapter: vercel({
-    edgeMiddleware: true,
+    middlewareMode: 'edge',
   }),
 });
 ```
 
-L'Edge Middleware a accès au [`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext) de Vercel avec `ctx.locals.vercel.edge`. Si vous utilisez TypeScript, vous pouvez [obtenir les types appropriés](/fr/guides/typescript/#extension-des-types-globaux) en mettant à jour `src/env.d.ts` pour utiliser `EdgeLocals` :
+Le middleware Edge a accès au [contexte de requête (`RequestContext`)](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext) de Vercel avec `ctx.locals.vercel.edge`. Si vous utilisez TypeScript, vous pouvez [obtenir les types appropriés](/fr/guides/typescript/#extension-des-types-globaux) en mettant à jour `src/env.d.ts` pour utiliser `EdgeLocals` :
 
 ```ts
 type EdgeLocals = import('@astrojs/vercel').EdgeLocals
@@ -504,37 +533,4 @@ L'adaptateur `@astrojs/vercel` prend en charge des versions spécifiques de Node
 
 Consultez la [documentation de Vercel](https://vercel.com/docs/functions/serverless-functions/runtimes/node-js#default-and-available-versions) pour en savoir plus.
 
-## Fonctionnalités expérimentales
-
-Les fonctionnalités suivantes sont également disponibles, mais peuvent être sujettes à des modifications non rétrocompatibles lors de futures mises à jour. Veuillez suivre attentivement le [journal des modifications de `@astrojs/vercel`](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/CHANGELOG.md) pour être informés des mises à jour si vous utilisez ces fonctionnalités dans votre projet.
-
-### `experimentalStaticHeaders`
-
-<p>
-**Type :** `boolean`<br/>
-**Par défaut :** `false`<br />
-**Disponible pour :** Serverless <br/>
-<Since pkg="@astrojs/vercel" v="8.2.0" />
-</p>
-
-Active la définition d'en-têtes personnalisés pour les pages pré-rendues dans la configuration de Vercel.
-
-Si cette option est activée, l'adaptateur enregistrera [les en-têtes statiques dans le fichier `vercel.json` de Vercel](https://vercel.com/docs/project-configuration#headers) lorsqu'ils sont fournis par les fonctionnalités d'Astro, telles que la politique de sécurité du contenu.
-
-Par exemple, lorsque la [politique de sécurité du contenu](/fr/reference/configuration-reference/) est activée, `experimentalStaticHeaders` peut être utilisée pour ajouter les en-têtes CSP (`headers`) à votre configuration Vercel, au lieu de créer un élément `<meta>` :
-
-```js title="astro.config.mjs" {9}
-import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel';
-
-export default defineConfig({
-  security: {
-    csp: true
-  },
-  adapter: vercel({
-    experimentalStaticHeaders: true 
-  })
-});
-```
-
-[astro-integration]: /fr/guides/integrations-guide/
+[astro-integration]: /fr/guides/integrations/
