@@ -1,5 +1,6 @@
 import { defineHastPlugin } from 'tryckeri';
 import type { HastNode } from 'tryckeri';
+import type { Element, ElementContent } from 'hast';
 
 /**
  * Tryckeri HAST plugin to enhance the output of GitHub-Flavored Markdown's task lists.
@@ -13,72 +14,70 @@ export function tasklistEnhancerPlugin() {
 		name: 'tasklist-enhancer',
 		createOnce() {
 			return {
-				element(node: HastNode, ctx: any): HastNode | void {
-					// Add contains-task-list class to <ul> parents of task list items
-					if (node.tagName === 'ul' && hasCheckboxChild(node)) {
-						ctx.setProperty(node, 'className', ['contains-task-list']);
-						return;
-					}
-
-					// Match <li> elements containing a checkbox input
-					if (node.tagName !== 'li') return;
-
-					const children = node.children;
-					if (!children) return;
-
-					const result = findCheckboxInSubtree(node);
-					if (!result) return;
-
-					const { parent, index } = result;
-					const parentChildren = parent.children!;
-
-					const head = parentChildren.slice(0, index + 1);
-					const tail = parentChildren.slice(index + 1);
-					const label = h('label', {}, [...head, h('span', {}, tail)]);
-
-					// Build new li with restructured children
-					let newChildren: HastNode[];
-					if (parent === node) {
-						// Input was a direct child of the li
-						newChildren = [label];
-					} else {
-						// Input was inside a child element (e.g. <p>) — clone that child
-						newChildren = children.map((child) =>
-							child === parent ? h(parent.tagName!, parent.properties ?? {}, [label]) : child
-						);
-					}
-
-					return {
-						type: 'element',
-						tagName: node.tagName,
-						properties: {
-							...(node.properties ?? {}),
-							className: ['task-list-item'],
+				element: [
+					{
+						filter: ['ul'],
+						visit(node, ctx) {
+							if (hasCheckboxChild(node)) {
+								ctx.setProperty(node, 'className', ['contains-task-list']);
+							}
 						},
-						children: newChildren,
-						data: null,
-					};
-				},
+					},
+					{
+						filter: ['li'],
+						visit(node) {
+							const children = node.children;
+
+							const result = findCheckboxInSubtree(node);
+							if (!result) return;
+
+							const { parent, index } = result;
+							const parentChildren = parent.children;
+
+							const head = parentChildren.slice(0, index + 1);
+							const tail = parentChildren.slice(index + 1);
+							const label = h('label', {}, [...head, h('span', {}, tail)]);
+
+							// Build new li with restructured children
+							let newChildren: ElementContent[];
+							if (parent === node) {
+								// Input was a direct child of the li
+								newChildren = [label];
+							} else {
+								// Input was inside a child element (e.g. <p>) — clone that child
+								newChildren = children.map((child) =>
+									child === parent ? h(parent.tagName, parent.properties ?? {}, [label]) : child
+								);
+							}
+
+							return {
+								type: 'element',
+								tagName: node.tagName,
+								properties: {
+									...node.properties,
+									className: ['task-list-item'],
+								},
+								children: newChildren,
+							} satisfies Element as unknown as HastNode;
+						},
+					},
+				],
 			};
 		},
 	});
 }
 
 /** Check if a <ul> has any direct <li> children containing a checkbox. */
-function hasCheckboxChild(ul: HastNode): boolean {
-	if (!ul.children) return false;
+function hasCheckboxChild(ul: Element): boolean {
 	return ul.children.some(
 		(li) => li.type === 'element' && li.tagName === 'li' && findCheckboxInSubtree(li) !== undefined
 	);
 }
 
 /** Depth-first search for a checkbox `<input>`, returning its direct parent and index. */
-function findCheckboxInSubtree(node: HastNode): { parent: HastNode; index: number } | undefined {
-	const children = node.children;
-	if (!children) return;
-
-	for (let i = 0; i < children.length; i++) {
-		const child = children[i]!;
+function findCheckboxInSubtree(node: Element): { parent: Element; index: number } | undefined {
+	for (let i = 0; i < node.children.length; i++) {
+		const child = node.children[i]!;
 		if (
 			child.type === 'element' &&
 			child.tagName === 'input' &&
@@ -88,18 +87,19 @@ function findCheckboxInSubtree(node: HastNode): { parent: HastNode; index: numbe
 		}
 	}
 
-	for (const child of children) {
-		const result = findCheckboxInSubtree(child);
-		if (result) return result;
+	for (const child of node.children) {
+		if (child.type === 'element') {
+			const result = findCheckboxInSubtree(child);
+			if (result) return result;
+		}
 	}
 }
 
-function h(tag: string, properties: Record<string, unknown>, children: HastNode[]): HastNode {
+function h(tag: string, properties: Element['properties'], children: ElementContent[]): Element {
 	return {
 		type: 'element',
 		tagName: tag,
 		properties,
 		children,
-		data: null,
-	} as HastNode;
+	};
 }
