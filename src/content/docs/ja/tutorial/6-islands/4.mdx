@@ -1,0 +1,362 @@
+---
+type: tutorial
+title: '任意: コンテンツコレクションを作る'
+description: |-
+  「初めてのAstroブログ」チュートリアル -
+  ファイルベースのルーティングからコンテンツコレクションへブログを移行する
+i18nReady: true
+head:
+  - tag: title
+    content: 'ブログ作成チュートリアル: コンテンツコレクションを作る | Docs'
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import Box from '~/components/tutorial/Box.astro';
+import Checklist from '~/components/Checklist.astro';
+import MultipleChoice from '~/components/tutorial/MultipleChoice.astro';
+import PreCheck from '~/components/tutorial/PreCheck.astro';
+import Option from '~/components/tutorial/Option.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+以上でAstroの[組み込みのファイルベースルーティング](/ja/guides/routing/#static-routes)を使ったブログができましたが、これを[コンテンツコレクション](/ja/guides/content-collections/)を使うように更新していきましょう。ブログ記事のような、似たようなコンテンツのグループを管理するうえで、コンテンツコレクションは非常に強力です。
+
+<PreCheck>
+  - ブログ記事のフォルダーを`src/blog/`に移動する
+  - ブログ記事のフロントマターを定義するスキーマを作成する
+  - `getCollection()`でブログ記事のコンテンツとメタデータを取得する
+</PreCheck>
+
+## 学ぶ: ページとコレクション
+
+コンテンツコレクションを使う場合でも、`src/pages/`フォルダーは「About Me」ページのような、個別のページ用には引き続き使います。ただし、ブログ記事をこの特別なフォルダーの外に移すことで、ブログ一覧の生成や各記事の表示に、より強力でパフォーマンスの高いAPIが使えるようになります。
+
+同時に、各記事に共通する構造を定義する **[スキーマ](/ja/guides/content-collections/#defining-the-collection-schema)** を用意でき、Astroが[Zod](https://zod.dev/)（TypeScript向けのスキーマ宣言・検証ライブラリ）を通じてその構造どおりかどうかを検証してくれることで、コードエディター上でもより的確なガイドや補完を受けられるようになります。スキーマでは、説明や著者などのフロントマターのプロパティを必須にするかどうか、文字列や配列などの各プロパティの型を何にするかを指定できます。結果として、多くの間違いを早い段階で発見でき、問題箇所をはっきり示すエラーメッセージが得られます。
+
+詳しくはガイドの[Astroのコンテンツコレクション](/ja/guides/content-collections/)を読むか、以下の手順に沿って、基本的なブログを`src/pages/posts/`から`src/blog/`へ移行してみてください。
+
+<Box icon="question-mark">
+### 確認テスト
+
+1. `src/pages/`に残すべきなのは、どの種類のページですか？
+
+    <MultipleChoice>
+      <Option>
+        同じ基本的な構造とメタデータを持つブログ記事
+      </Option>
+      <Option>
+        ECサイトの商品ページ
+      </Option>
+      <Option isCorrect>
+        連絡先ページのように、似たページが複数ないもの
+      </Option>
+    </MultipleChoice>
+
+2. ブログ記事をコンテンツコレクションに移す**利点にならない**ものはどれですか？
+
+    <MultipleChoice>
+      <Option isCorrect>
+         各ファイルに対してページが自動的に生成される
+      </Option>
+      <Option>
+        Astroが各ファイルについてより多くを把握するため、エラーメッセージが改善される
+      </Option>
+      <Option>
+        よりパフォーマンスの高い関数で、データ取得が改善される
+      </Option>
+    </MultipleChoice>
+
+3. コンテンツコレクションでTypeScriptを使うと. . .
+    <MultipleChoice>
+      <Option>
+        不快な気持ちになる
+      </Option>
+      <Option isCorrect>
+        コレクションを理解・検証し、エディター支援を提供してくれる
+      </Option>
+      <Option>
+        `tsconfig.json`で`strictest`を設定する必要がある
+      </Option>
+    </MultipleChoice>
+
+</Box>
+
+以下の手順では、「初めてのAstroブログ」チュートリアルの最終成果を、ブログ記事用のコンテンツコレクションを追加して拡張する方法を示します。
+
+## 依存関係をアップグレードする
+
+ターミナルで次のコマンドを実行し、Astroとすべてのインテグレーションをそれぞれ最新にアップグレードします。
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      # Astroと公式インテグレーションをまとめてアップグレード
+      npx @astrojs/upgrade
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      # Astroと公式インテグレーションをまとめてアップグレード
+      pnpm dlx @astrojs/upgrade
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      # Astroと公式インテグレーションをまとめてアップグレード
+      yarn dlx @astrojs/upgrade
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+## 記事用のコレクションを作成する
+
+<Steps>
+1. `src/blog/`という名前の新しい**コレクション**（フォルダー）を作成します。
+
+2. 既存のブログ記事（`.md`ファイル）をすべて`src/pages/posts/`から、この新しいコレクションへ移動します。
+
+3. `postsCollection`用の[スキーマを定義する](/ja/guides/content-collections/#defining-the-collection-schema)ために`src/content.config.ts`ファイルを作成します。既存のブログチュートリアルのコードに合わせ、記事のフロントマターで使っているプロパティをすべて定義するために、次の内容をファイルに追加します。
+
+    ```ts title="src/content.config.ts"
+    // glob ローダーをインポートする
+    import { glob } from "astro/loaders";
+    // `astro:content` からユーティリティをインポートする
+    import { defineCollection } from "astro:content";
+    // Zod をインポートする
+    import { z } from "astro/zod";
+    // 各コレクションの loader と schema を定義する
+    const blog = defineCollection({
+        loader: glob({ pattern: '**/[^_]*.md', base: "./src/blog" }),
+        schema: z.object({
+          title: z.string(),
+          pubDate: z.date(),
+          description: z.string(),
+          author: z.string(),
+          image: z.object({
+            url: z.string(),
+            alt: z.string()
+          }),
+          tags: z.array(z.string())
+        })
+    });
+    // コレクションを登録するため、collections オブジェクトをエクスポートする
+    export const collections = { blog };
+    ```
+
+4. Astroにスキーマを認識させるには、開発サーバを終了（`Ctrl + C`）して再起動し、チュートリアルを続けます。これで`astro:content`モジュールが定義されます。
+</Steps>
+
+## コレクションからページを生成する
+
+<Steps>
+1. `src/pages/posts/[...slug].astro`という名前のページファイルを作成します。コレクション内に置いたMarkdownやMDXは、Astroのファイルベースルーティングでは自動的にはページになりません。そのため、各ブログ記事を生成するためのページを自分で用意する必要があります。
+
+2. 次のコードを追加して[コレクションをクエリし](/ja/guides/content-collections/#querying-build-time-collections)、生成する各ページでスラッグと記事本文が使えるようにします。
+
+    ```astro title="src/pages/posts/[...slug].astro"
+    ---
+    import { getCollection, render } from 'astro:content';
+
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map(post => ({
+        params: { slug: post.id }, props: { post },
+      }));
+    }
+
+    const { post } = Astro.props;
+    const { Content } = await render(post);
+    ---
+    ```
+
+3. Markdown用レイアウトのなかで記事の`<Content />`をレンダリングします。これですべての記事に共通のレイアウトを指定できます。
+
+    ```astro title="src/pages/posts/[...slug].astro" ins={3,15-17}
+    ---
+    import { getCollection, render } from 'astro:content';
+    import MarkdownPostLayout from '../../layouts/MarkdownPostLayout.astro';
+
+    export async function getStaticPaths() {
+      const posts = await getCollection('blog');
+      return posts.map(post => ({
+        params: { slug: post.id }, props: { post },
+      }));
+    }
+
+    const { post } = Astro.props;
+    const { Content } = await render(post);
+    ---
+    <MarkdownPostLayout frontmatter={post.data}>
+      <Content />
+    </MarkdownPostLayout>
+    ```
+
+4. 各記事のフロントマターから`layout`の指定を削除します。レンダリング時にレイアウトでラップされるようになったため、このプロパティはもう不要です。
+
+    ```md title="src/content/posts/post-1.md" del={2}
+    ---
+    layout: ../../layouts/MarkdownPostLayout.astro
+    title: '私の最初のブログ記事'
+    pubDate: 2022-07-01
+    ...
+    ---
+    ```
+</Steps>
+
+## `import.meta.glob()`を`getCollection()`に置き換える
+
+<Steps>
+5. チュートリアルのブログページ（`src/pages/blog.astro`）のようにブログ記事の一覧がある箇所では、Markdownファイルからコンテンツとメタデータを取得する方法として、`import.meta.glob()`を[`getCollection()`](/ja/reference/modules/astro-content/#getcollection)に置き換える必要があります。
+
+    ```astro title="src/pages/blog.astro" "post.data" "getCollection(\"blog\")" "/posts/${post.id}/" del={7} ins={2,8}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "私のAstro学習ブログ";
+    const allPosts = Object.values(import.meta.glob("../pages/posts/*.md", { eager: true }));
+    const allPosts = await getCollection("blog");
+    ---
+    ```
+
+6. 各`post`に対して返されるデータの参照も更新します。フロントマターの値は、各オブジェクトの`data`プロパティにあります。また、コレクションを使う場合、各`post`オブジェクトが持つのは完全なURLではなく、ページの`slug`です。
+
+    ```astro title="src/pages/blog.astro" "data" "/posts/$\{post.id\}/" del={14} ins={15}
+    ---
+    import { getCollection } from "astro:content";
+    import BaseLayout from "../layouts/BaseLayout.astro";
+    import BlogPost from "../components/BlogPost.astro";
+
+    const pageTitle = "私のAstro学習ブログ";
+    const allPosts = await getCollection("blog");
+    ---
+    <BaseLayout pageTitle={pageTitle}>
+      <p>ここには、私がAstroを学んでいく旅の様子を投稿します。</p>
+      <ul>
+        {
+          allPosts.map((post) => (
+            <BlogPost url={post.url} title={post.frontmatter.title} />)}
+            <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />
+          ))
+        }
+      </ul>
+    </BaseLayout> 
+    ```
+
+7. チュートリアルのブログプロジェクトでは、`src/pages/tags/[tag].astro`でタグごとのページを動的に生成し、`src/pages/tags/index.astro`でタグ一覧を表示しています。
+   
+          次の2つのファイルにも、上と同じ変更を適用します。
+      
+          - `import.meta.glob()`の代わりに`getCollection("blog")`ですべてのブログ記事のデータを取得する
+          - `frontmatter`の代わりに`data`ですべてのフロントマターの値にアクセスする
+          - 記事の`slug`を`/posts/`パスに足してページのURLを作る
+        
+        個別のタグページを生成するページは、次のようになります。
+
+        ```astro title="src/pages/tags/[tag].astro" "post.data.tags" "getCollection(\"blog\")" "post.data.title" ins={2} "/posts/${post.id}/"
+        ---
+        import { getCollection } from "astro:content";
+        import BaseLayout from "../../layouts/BaseLayout.astro";
+        import BlogPost from "../../components/BlogPost.astro";
+
+        export async function getStaticPaths() {
+          const allPosts = await getCollection("blog");
+          const uniqueTags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+
+          return uniqueTags.map((tag) => {
+            const filteredPosts = allPosts.filter((post) =>
+              post.data.tags.includes(tag)
+            );
+            return {
+              params: { tag },
+              props: { posts: filteredPosts },
+            };
+          });
+        }
+        
+        const { tag } = Astro.params;
+        const { posts } = Astro.props;
+        ---
+
+        <BaseLayout pageTitle={tag}>
+          <p>{tag}のタグが付いた記事</p>
+          <ul>
+            { posts.map((post) => <BlogPost url={`/posts/${post.id}/`} title={post.data.title} />) }
+          </ul>
+        </BaseLayout>
+        ```
+
+        <Box icon="puzzle-piece">
+          ### やってみよう - タグインデックスページのクエリを更新する
+
+          `src/pages/tags/index.astro`で、ブログ記事に使われているタグを取得するために`getCollection`をインポートして使います。[上記と同じ手順](#importmetaglobをgetcollectionに置き換える)に従ってください。
+
+          <details>
+          <summary>コードを表示</summary>
+          ```astro title="src/pages/tags/index.astro" "post.data" "getCollection(\"blog\")" ins={2}
+          ---
+          import { getCollection } from "astro:content";
+          import BaseLayout from "../../layouts/BaseLayout.astro";     
+          const allPosts = await getCollection("blog");
+          const tags = [...new Set(allPosts.map((post) => post.data.tags).flat())];
+          const pageTitle = "タグインデックス";
+          ---
+          <!-- ... -->
+          ```
+          </details>
+      </Box>
+</Steps>
+
+## スキーマに合わせてフロントマターを更新する
+
+必要に応じて、レイアウトなどプロジェクト全体で使用しているフロントマターの値のうち、コレクションのスキーマと一致していないものを更新します。
+
+ブログチュートリアルの例では、`pubDate`は文字列でした。一方、記事のフロントマターの型を定義するスキーマに従うと、`pubDate`は`Date`オブジェクトになります。これを利用して、`Date`オブジェクトで使えるメソッドで日付を整形できます。
+
+ブログ記事のレイアウトで日付を表示するには、`toLocaleDateString()`メソッドで文字列に変換します。
+
+```astro title="src/layouts/MarkdownPostLayout.astro" ins="toString()"
+<!-- ... -->
+<BaseLayout pageTitle={frontmatter.title}>
+    <p>{frontmatter.pubDate.toLocaleDateString()}</p>
+    <p><em>{frontmatter.description}</em></p>
+    <p>著者: {frontmatter.author}</p>
+    <img src={frontmatter.image.url} width="300" alt={frontmatter.image.alt} />
+<!-- ... -->
+```
+
+## RSSの関数を更新する
+
+チュートリアルのブログプロジェクトにはRSSフィードが含まれています。この関数でも`getCollection()`を使ってブログ記事の情報を返す必要があります。返された`data`オブジェクトからRSSの各項目を生成します。
+
+    ```js title="src/pages/rss.xml.js" del={2,11} ins={3,6,12-17}
+    import rss from '@astrojs/rss';
+    import { pagesGlobToRssItems } from '@astrojs/rss';
+    import { getCollection } from 'astro:content';
+
+    export async function GET(context) {
+      const posts = await getCollection("blog");
+      return rss({
+        title: 'Astro学習者 | ブログ',
+        description: 'Astroを学ぶ旅',
+        site: context.site,
+        items: await pagesGlobToRssItems(import.meta.glob('./**/*.md')),
+        items: posts.map((post) => ({
+          title: post.data.title,
+          pubDate: post.data.pubDate,
+          description: post.data.description,
+          link: `/posts/${post.id}/`,
+        })),
+        customData: `<language>ja-jp</language>`,
+      })
+    }
+    ```
+
+コンテンツコレクションを使ったブログチュートリアルの完全な例は、チュートリアルリポジトリの[コンテンツコレクションブランチ](https://github.com/withastro/blog-tutorial-demo/tree/content-collections)を参照してください。
+
+<Box icon="check-list">
+
+## チェックリスト
+<Checklist>
+- [ ] コンテンツコレクションを使って、似たコンテンツのグループを管理し、パフォーマンスや整理のしやすさを向上させられる。
+</Checklist>
+</Box>
