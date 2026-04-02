@@ -1,7 +1,9 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	guides: '가이드 및 레시피',
+	tutorial: '튜토리얼',
+
+	guides: '가이드',
 	'guides.welcome': '환영합니다!',
 	'guides.newProject': '새 프로젝트 시작',
 	'guides.config': '구성',
@@ -20,11 +22,12 @@ export default navDictionary({
 	'reference.syntax': 'Astro 템플릿 구문',
 	'reference.experimental': '실험적 기능',
 
+	ecosystem: '생태계',
 	'ecosystem.integrations.ui': 'UI 프레임워크',
 	'ecosystem.integrations.adapters': '어댑터',
 	'ecosystem.integrations.other': '기타 공식 통합',
 	'ecosystem.deployment': '배포 가이드',
 	'ecosystem.cms': '콘텐츠 관리 시스템',
 	'ecosystem.backend': '백엔드 서비스',
-	'ecosystem.media': '미디어 호스팅 및 DAM',
+	'ecosystem.media': '이미지 및 비디오 호스팅',
 });
