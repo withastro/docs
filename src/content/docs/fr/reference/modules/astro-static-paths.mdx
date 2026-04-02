@@ -1,0 +1,74 @@
+---
+title: Référence de l'API des chemins statiques
+sidebar:
+  label: 'astro:static-paths'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+<p><Since v="6.0.0" /></p>
+
+Ce module fournit des utilitaires pour aider les adaptateurs à collecter les chemins statiques depuis leur environnement d'exécution cible (par exemple, `workerd`). Il n'offre une implémentation fonctionnelle que dans l'environnement `prerender` de Vite. Dans les autres environnements, il renvoie une implémentation sans opération.
+
+## Importations depuis `astro:static-paths`
+
+```js
+import { 
+  StaticPaths,
+} from 'astro:static-paths';
+```
+
+### `StaticPaths`
+
+Permet aux adaptateurs de collecter tous les chemins qui doivent être pré-rendus à partir de leur environnement d'exécution cible. Ceci est utile lors de la [mise en œuvre d'un pré-rendu personnalisé](/fr/reference/adapter-reference/#moteur-de-prérendu-personnalisé) exécuté dans un environnement non-Node :
+
+Le constructeur `StaticPaths` accepte un [manifeste SSR](/fr/reference/integrations-reference/#ssrmanifest) obligatoire et un objet décrivant le cache de routes et fournissant une méthode d'accès au composant utilisé pour le rendu de la route. La méthode préférée pour initialiser une instance `StaticPaths` consiste à lui passer une [instance d'application](/fr/reference/modules/astro-app/#linstance-app).
+
+L'exemple suivant initialise une instance `StaticPaths` à partir d'une application dans un point d'entrée de serveur d'adaptateur :
+
+```js title="my-adapter/server.js"
+import { createApp } from 'astro/app/entrypoint';
+import { StaticPaths } from 'astro:static-paths';
+
+const app = createApp();
+const staticPaths = new StaticPaths(app);
+
+export const handler = (event, context) => {
+  // faire quelque chose avec `staticPaths`
+};
+```
+
+#### `StaticPaths.getAll()`
+
+<p>
+
+**Type :** <code>() => Promise\<Array\<\{ pathname: string, route: <a href="/fr/reference/integrations-reference/#routedata">RouteData</a> \}\>\></code>
+</p>
+
+Récupère tous les chemins qui doivent être pré-rendus. Cette fonction renvoie une promesse qui se résout en un tableau d'objets décrivant le chemin de la route et ses données.
+
+L'exemple suivant collecte tous les chemins statiques à pré-générer avant de les renvoyer en tant que `Response` dans un gestionnaire d'adaptateur :
+
+```js title="my-adapter/handler.js"
+import { StaticPaths } from 'astro:static-paths';
+
+export function createHandler(app) {
+  return async (request) => {
+    const { pathname } = new URL(request.url);
+    
+    // Point de terminaison pour collecter les chemins statiques lors de la compilation
+    if (pathname === '/__astro_static_paths') {
+      const staticPaths = new StaticPaths(app);
+      const paths = await staticPaths.getAll();
+      // Renvoie un tableau de { pathname: string, route: RouteData }
+      return new Response(JSON.stringify({ paths }));
+    }
+    
+    // ... traiter d'autres requêtes
+  };
+}
+```
