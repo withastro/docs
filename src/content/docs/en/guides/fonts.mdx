@@ -178,16 +178,31 @@ See [Tailwind's docs on adding custom font families](https://tailwindcss.com/doc
 
 ## Accessing font data programmatically
 
-The [`fontData`](/en/reference/modules/astro-assets/#fontdata) object allows you to retrieve lower-level font family data programmatically. For example, you can use it in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) to generate OpenGraph images using [satori](https://github.com/vercel/satori), combined with proper [formats](/en/reference/configuration-reference/#fontformats) configuration:
+Astro exposes a low-level API for accessing font family data programmatically through the [`fontData`](/en/reference/modules/astro-assets/#fontdata) object. This can be useful for advanced use cases where you need direct access to font files, such as generating OpenGraph images with [satori](https://github.com/vercel/satori) in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes).
+
+This low-level API gives you access to all font files downloaded by Astro for your project, along with their metadata. This means that you are responsible for filtering font files to find the specific file you need, and for resolving the file path to use based on the build output structure.
+
+The following example generates an OpenGraph image in a static file endpoint, assuming that only one font has been configured with a [format supported by Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts):
 
 ```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
-import type{ APIRoute } from "astro";
+import type { APIRoute } from "astro";
 import { fontData } from "astro:assets";
+import { outDir } from "astro:config/server";
+import { readFile } from "node:fs/promises";
 import satori from "satori";
 import { html } from "satori-html";
+import sharp from "sharp";
 
 export const GET: APIRoute = async (context) => {
-  const data = fontData["--font-roboto"];
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("Cannot find the font path.");
+  }
+
+  const data = import.meta.env.DEV
+    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
+    : await readFile(new URL(`.${fontPath}`, outDir));
 
   const svg = await satori(
     html`<div style="color: black;">hello, world</div>`,
@@ -197,9 +212,7 @@ export const GET: APIRoute = async (context) => {
       fonts: [
         {
           name: "Roboto",
-          data: await fetch(
-            new URL(data[0].src[0].url, context.url.origin),
-          ).then((res) => res.arrayBuffer()),
+          data,
           weight: 400,
           style: "normal",
         },
@@ -207,8 +220,17 @@ export const GET: APIRoute = async (context) => {
     },
   );
 
-  // ...
-}
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
 ```
 
 ## Granular font configuration
