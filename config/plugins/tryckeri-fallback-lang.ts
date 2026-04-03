@@ -10,22 +10,15 @@ export function fallbackLangPlugin() {
 	return defineMdastPlugin({
 		name: 'fallback-lang',
 		createOnce() {
-			let currentFilename: string;
-
 			return {
-				// At runtime, wrapInstance calls before(fileContext, visitorContext)
-				before(fileContext: any) {
-					currentFilename = fileContext.filename;
-				},
-
-				link(node: MdastNode, context: any) {
-					const pageUrl = mdFilePathToUrl(currentFilename, pageSourceDir, baseUrl);
+				link(node, context) {
+					const pageUrl = mdFilePathToUrl(context.filename, pageSourceDir, baseUrl);
 					const pageLang = getLanguageCodeFromPathname(pageUrl.pathname);
 
 					// Ignore pages without language prefix and English pages
 					if (!pageLang || pageLang === 'en') return;
 
-					const linkUrl = new URL(node.url!, pageUrl);
+					const linkUrl = new URL(node.url, pageUrl);
 
 					// Ignore external links
 					if (pageUrl.host !== linkUrl.host) return;
@@ -35,10 +28,7 @@ export function fallbackLangPlugin() {
 					if (!linkLang) return;
 
 					// Ignore link targets that have a valid source file
-					const linkSourceFileName = tryFindSourceFileForPathname(
-						linkUrl.pathname,
-						pageSourceDir
-					);
+					const linkSourceFileName = tryFindSourceFileForPathname(linkUrl.pathname, pageSourceDir);
 					if (linkSourceFileName) return;
 
 					context.appendChild(node, {
