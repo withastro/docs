@@ -48,17 +48,22 @@ Notez que cette optimisation s'applique à toutes les importations de composants
 
 ## Configuration
 
-Vous pouvez transmettre un [objet de configuration SVGO](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335) pour personnaliser le comportement d'optimisation :
+Vous pouvez transmettre un [objet de configuration SVGO](https://github.com/svg/svgo#configuration) pour personnaliser le comportement d'optimisation :
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
+      multipass: true,
+      floatPrecision: 2,
       plugins: [
         'preset-default',
+        'removeXMLNS',
         {
-          name: 'removeViewBox',
-          active: false
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
         }
       ]
     }
@@ -73,17 +78,34 @@ export default defineConfig({
 
 Un tableau de [modules d'extension SVGO](https://svgo.dev/docs/plugins/) qui seront utilisés pour optimiser vos importations de composants SVG.
 
-Cela peut inclure n'importe quel module d'extension par son identifiant, y compris la collection de modules d'extension par défaut (`preset-default`) de SVGO. Un module d'extension peut éventuellement être transmis sous forme d'objet incluant à la fois son nom (`name`) et son état (`active`), afin de l'activer ou de le désactiver selon les besoins.
+Cela peut inclure la collection de modules d'extension [`preset-default`](https://svgo.dev/docs/preset-default/) de SVGO, des modules d'extension intégrés individuels ou des [modules d'extension personnalisés](https://svgo.dev/docs/plugins-api/).
+
+Pour utiliser la configuration par défaut d'un module d'extension, ajoutez son nom au tableau. Si vous avez besoin de plus de contrôle, utilisez le paramètre `overrides` pour personnaliser des modules d'extension spécifiques au sein de `preset-default`, ou transmettez un objet contenant le nom (`name`) d'un module d'extension pour modifier ses paramètres individuels.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeViewBox',
-          active: false
+          name: 'preset-default',
+          params: {
+            overrides: {
+              convertPathData: false,
+              convertTransform: {
+                degPrecision: 1,
+                transformPrecision: 3
+              },
+              inlineStyles: false
+            },
+          },
+        },
+        'removeXMLNS',
+        {
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
         }
       ]
     }
@@ -93,36 +115,42 @@ export default defineConfig({
 
 ### Autres options de configuration
 
-Vous pouvez également transmettre [d'autres options de configuration SVGO](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), telles que `floatPrecision` et `multipass`, directement à votre objet de configuration :
+Il existe quelques [options de configuration pour SVGO](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), notamment `floatPrecision` et `multipass`, qui peuvent être transmises directement à votre objet de configuration :
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
-      floatPrecision: 2,
-      multipass: true
+      multipass: true,
+      floatPrecision: 2
     }
   }
 })
 ```
 
+L'option `multipass` détermine si le moteur d'optimisation doit être exécuté plusieurs fois jusqu'à ce qu'aucune optimisation supplémentaire ne soit trouvée. L'option `floatPrecision` définit le nombre de décimales à conserver globalement, mais peut être redéfinie pour un module d'extension spécifique en indiquant une valeur personnalisée dans sa propriété `params`.
+
 ## Cas d'utilisation courants
 
-SVGO propose une [liste complète des modules d'extension par défaut](https://svgo.dev/docs/preset-default/) avec des optimisations prédéfinies, plus pratique que l'ajout individuel de chaque module d'extension. Toutefois, vous devrez peut-être le personnaliser davantage en fonction de vos besoins. Par exemple, il pourrait supprimer des éléments ou effectuer un nettoyage trop agressif pour votre situation.
+SVGO propose une [liste complète des modules d'extension par défaut](https://svgo.dev/docs/preset-default/) avec des optimisations prédéfinies. Bien que l'utilisation de ce préréglage soit plus pratique que l'ajout individuel de chaque module d'extension, vous pourriez avoir besoin de le personnaliser davantage. Par exemple, il peut supprimer des éléments ou effectuer un nettoyage trop agressif pour votre situation, notamment lors de l'utilisation d'animations.
 
 ### Conserver des attributs spécifiques
 
-Vous souhaiterez peut-être conserver certains attributs SVG, tels que `viewBox`, que SVGO supprime par défaut :
+Vous souhaiterez peut-être conserver certains attributs et éléments SVG, tels que `<style>`, que SVGO incorpore dans la balise ou supprime par défaut :
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeViewBox',
-          active: false // Conserver l'attribut viewBox
+          name: 'preset-default',
+          params: {
+            overrides: {
+              inlineStyles: false, // Préserver les éléments de style pour le hachage CSP
+              removeDesc: false // Conserver l'élément quel que soit son contenu
+            }
+          }
         }
       ]
     }
@@ -139,26 +167,42 @@ export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeMetadata',
-          active: true
-        }
+          name: 'preset-default',
+          params: {
+            overrides: {
+              removeHiddenElems: {
+                isHidden: false,
+                displayNone: false
+              }
+            },
+          },
+        },
+        'removeRasterImages'
       ]
     }
   }
 })
 ```
 
-### Précision personnalisée
+### Optimiser pour l'incorporation dans du HTML5 moderne
 
-Contrôlez la précision des valeurs numériques dans les données de chemin :
+Les SVG incorporés ne nécessitent pas l'attribut `xmlns` et peuvent être convertis sans risque au format SVG 2. Les modules d'extension `removeXMLNS` et `removeXlink` sont recommandés à cet effet.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
-      floatPrecision: 2
+      plugins: [
+        'preset-default',
+        'removeXMLNS',
+        {
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
+        }
+      ]
     }
   }
 })
