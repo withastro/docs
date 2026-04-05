@@ -1,0 +1,196 @@
+---
+title: Astro Session Driver API
+sidebar:
+  label: セッションドライバー API
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+
+Astroの[セッション](/ja/guides/sessions/)を使用すると、オンデマンドでレンダリングされるページの型間でデータを共有できます。これには、セッションデータを保存するためのAstroセッションドライバーが必要です。
+
+## ビルトインドライバー
+
+Astroは、`astro/config`からビルトインのセッションドライバーをエクスポートしています。
+
+```js
+import { sessionDrivers } from 'astro/config'
+```
+
+任意の[unstorageドライバー](https://unstorage.unjs.io/drivers)を使用できます。例：
+
+```js title="astro.config.mjs" ins={5-7} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+
+export default defineConfig({
+    session: {
+        driver: sessionDrivers.redis({
+            url: process.env.REDIS_URL
+        }),
+    }
+})
+```
+
+:::note
+一部のドライバーでは、追加のパッケージのインストールが必要になる場合があります。また、環境変数や認証情報の設定が必要なドライバーもあります。詳細は[Unstorageのドキュメント](https://unstorage.unjs.io/drivers)を参照してください。
+:::
+
+## セッションドライバーの構築
+
+セッションドライバーは、次の2つの要素で構成されます。
+
+  - **[ドライバー設定](#セッションドライバーの構築)**：実行時にどの実装を使用するか、およびどの設定を転送するかをAstroに伝えます。
+  - **[ドライバーの実装](#セッションドライバーの実装)**：実行時のストレージロジックを処理します。
+
+### セッションドライバーの設定
+
+`SessionDriverConfig`は、必須の実行時[`entrypoint`](#entrypoint)（エントリポイント）と、オプションの[`config`](#config)を含むオブジェクトです。推奨される実装方法は、オプションのパラメータとして設定を受け取り、このオブジェクトを返す関数をエクスポートすることです。
+
+以下の例では、メモリドライバーの設定を定義しています。
+
+```ts title="driver/config.ts"
+import type { SessionDriverConfig } from 'astro'
+
+export interface Config {
+    max?: number;
+}
+
+export function memoryDriver(config: Config = {}): SessionDriverConfig {
+    return {
+        entrypoint: new URL('./runtime.js', import.meta.url),
+        config,
+    }
+}
+```
+
+その後、Astroの設定ファイルを登録します。
+
+```ts title="astro.config.ts"
+import { defineConfig } from 'astro/config'
+import { memoryDriver } from './driver/config'
+
+export default defineConfig({
+    session: {
+        driver: memoryDriver({
+            max: 500
+        })
+    }
+})
+```
+
+#### `entrypoint`
+
+<p>
+
+**型:** `string | URL`
+<Since v="6.0.0" />
+
+</p>
+
+[ドライバーの実装](#セッションドライバーの実装)のためのエントリポイントを定義します。
+
+#### `config`
+
+<p>
+
+**型:** `Record<string, any> | undefined`
+<Since v="6.0.0" />
+
+</p>
+
+実行時に[ドライバーの実装](#セッションドライバーの実装)に渡される、シリアライズ可能な設定を定義します。
+
+### セッションドライバーの実装
+
+`SessionDriver`は、[実行時にセッションを使用する](/ja/reference/api-reference/#session)際（例：`context.session.set()`）に、データの[保存](#setitem)、[取得](#getitem)、[削除](#removeitem)を担当するオブジェクトです。セッションドライバーモジュールで、[ドライバー設定](#config)をパラメータとして受け取るデフォルト関数をエクスポートすることで実装できます。
+
+以下の例では、メモリドライバーを実装しています。
+
+```ts title="driver/runtime.ts"
+import type { SessionDriver } from 'astro'
+import type { Config } from './config'
+import { LRUCache } from 'lru-cache'
+
+export default function(config: Config): SessionDriver {
+    const cache = new LRUCache({ max: config.max })
+    return {
+        setItem: async (key, value) => {
+            cache.set(key, value)
+        },
+        getItem: async (key) => {
+            return cache.get(key)
+        },
+        removeItem: async (key) => {
+            cache.delete(key)
+        },
+    }
+}
+```
+
+#### `setItem()`
+
+<p>
+
+**型:** `(key: string, value: any) => Promise<void>`
+<Since v="6.0.0" />
+
+</p>
+
+キーによってセッションデータを設定する関数を定義します。
+
+#### `getitem()`
+
+<p>
+
+**型:** `(key: string) => Promise<any>`
+<Since v="6.0.0" />
+
+</p>
+
+キーによってセッションデータを取得する関数を定義します。
+
+#### `removeItem()`
+
+<p>
+
+**型:** `(key: string) => Promise<void>`
+<Since v="6.0.0" />
+
+</p>
+
+キーによってセッションデータを削除する関数を定義します。
+
+## Unstorageとの互換性
+
+Unstorageのドライバー型は、Astroの`SessionDriver`型と互換性があります。
+
+つまり、Unstorageパッケージのエクスポートを[エントリポイント](#entrypoint)として使用できます。例：
+
+```ts title="driver/config.ts" {5}
+import type { SessionDriverConfig } from 'astro'
+
+export function configuredRedisDriver(): SessionDriverConfig {
+    return {
+        entrypoint: 'unstorage/drivers/redis',
+        config: {
+            tls: true
+        }
+    }
+}
+```
+
+あるいは、実装の中でUnstorageドライバーを直接インポートして使用することも可能です。例：
+
+```ts title="driver/runtime.ts" {2}
+import type { SessionDriver } from 'astro'
+import redisDriver from "unstorage/drivers/redis";
+
+export default function(config): SessionDriver {
+    return redisDriver({
+        ...config,
+        tls: true
+    })
+}
+```
