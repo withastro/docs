@@ -82,6 +82,7 @@ export const logos = LogoCheck({
 	nuxtjs: { file: 'nuxtjs.svg', padding: '.25em' },
 	optimizely: { file: 'optimizely.svg', padding: '.2em' },
 	partytown: { file: 'partytown.svg', padding: '.2em .2em .25em .25em' },
+	'pages-cms': { file: 'pages-cms.svg', padding: '.15em .15em' },
 	payload: { file: 'payload.svg', padding: '.3em .25em .3em .3em' },
 	pelican: { file: 'pelican.svg', padding: '.25em .225em .25em .25em' },
 	preact: { file: 'preact.svg', padding: '.1875em' },
