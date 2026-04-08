@@ -1698,6 +1698,7 @@ interface IntegrationResolvedRoute extends Pick<
   entrypoint: RouteData['component'];
   isPrerendered: RouteData['prerender'];
   redirectRoute?: IntegrationResolvedRoute;
+  fallbackRoutes: IntegrationResolvedRoute[];
   generate: (data?: any) => string;
 }
 ```
@@ -1753,6 +1754,16 @@ interface IntegrationResolvedRoute extends Pick<
 </p>
 
 `IntegrationResolvedRoute.type`의 값이 `redirect`인 경우, 값은 리디렉션할 `IntegrationResolvedRoute`가 됩니다. 그렇지 않으면 값은 undefined가 됩니다.
+
+#### `IntegrationResolvedRoute.fallbackRoutes`
+
+<p>
+
+**타입:** `IntegrationResolvedRoute[]`<br />
+<Since v="6.1.0" />
+</p>
+
+프로젝트에서 [대체 라우트가 포함된 i18n](/ko/guides/internationalization/#대체하기)을 사용하는 경우, 요청된 로케일을 사용할 수 없을 때 이 라우트가 대체되는 라우트 목록이 값으로 설정됩니다. 대체 콘텐츠는 `i18n.routing.fallbackType`에 따라 리디렉션 또는 리라이트로 제공될 수 있습니다. 그렇지 않은 경우 값은 빈 배열이 됩니다.
 
 #### `IntegrationResolvedRoute.generate()`
 
@@ -2051,19 +2062,23 @@ generate({ id: 'presentation' }) // `/blog/presentation`를 출력합니다.
 
 <p>
 
-**타입:** `AsyncRendererComponentFn<boolean>`
+**타입:** `(Component: any, props: Record<string, any>, children: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<boolean>`
 </p>
 
-렌더러가 해당 컴포넌트를 처리해야 할지 여부를 결정합니다.
+렌더러가 해당 컴포넌트를 처리해야 하는지 여부를 결정합니다. 등록된 각 렌더러 중 하나가 `true`를 반환할 때까지 순차적으로 호출됩니다.
+
+이 함수는 컴포넌트 생성자 또는 함수, props, 슬롯 콘텐츠, 그리고 컴포넌트의 하이드레이션 지시어 및 소스에 대한 정보를 포함하는 선택적 [`metadata`](#astrocomponentmetadata) 객체를 인자로 받습니다.
 
 #### `SSRLoadedRendererValue.renderToStaticMarkup()`
 
 <p>
 
-**타입:** `AsyncRendererComponentFn<{ html: string; attrs?: Record<string, string>; }>`
+**타입:** `(Component: any, props: Record<string, any>, children: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<{ html: string; attrs?: Record<string, string>; }>`
 </p>
 
 프레임워크 컴포넌트를 서버에서 정적 HTML 마크업으로 렌더링합니다.
+
+이 함수는 컴포넌트 생성자 또는 함수, props, 슬롯 콘텐츠, 그리고 선택 사항인 [`metadata`](#astrocomponentmetadata) 객체를 인자로 받습니다. 렌더러는 `metadata`를 사용하여 컴포넌트가 클라이언트에서 하이드레이션될지 여부를 결정할 수 있으며, 이는 클라이언트 측 하이드레이션 상태를 조건부로 포함하는 데 유용할 수 있습니다.
 
 #### `SSRLoadedRendererValue.supportsAstroStaticSlot`
 
@@ -2084,6 +2099,79 @@ generate({ id: 'presentation' }) // `/blog/presentation`를 출력합니다.
 </p>
 
 첫 번째 컴포넌트가 이 렌더러를 사용하기 전, HTML에 주입되어야 하는 프레임워크별 하이드레이션 스크립트를 반환합니다.
+
+### `AstroComponentMetadata`
+
+<p>
+
+**타입:** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+렌더러의 [`check()`](#ssrloadedrenderervaluecheck) 및 [`renderToStaticMarkup()`](#ssrloadedrenderervaluerendertostaticmarkup) 함수의 네 번째 인자로 전달되는 객체입니다. 하이드레이션 지시어를 포함하여 렌더링되는 컴포넌트에 대한 정보를 포함합니다.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**타입:** `string`
+</p>
+
+에러 메시지 및 디버깅에 사용되는 컴포넌트의 표시 이름입니다.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**타입:** `'load' | 'idle' | 'visible' | 'media' | 'only' | undefined`
+</p>
+
+컴포넌트에 사용된 [클라이언트 지시어](/ko/reference/directives-reference/#클라이언트-지시어)입니다 (있는 경우). `undefined`인 경우 컴포넌트는 클라이언트에서 하이드레이션되지 않습니다.
+
+렌더러는 이 값을 사용하여 조건부로 클라이언트 측 하이드레이션 상태를 포함할 수 있습니다. 예를 들어, 렌더러는 하이드레이션되지 않을 컴포넌트에 대해 전송 상태 직렬화를 건너뛸 수 있습니다.
+
+```ts
+async function renderToStaticMarkup(Component, props, children, metadata) {
+  const willHydrate = !!metadata?.hydrate;
+  // 컴포넌트가 하이드레이션되지 않는 경우 하이드레이션 상태 직렬화 건너뛰기
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**타입:** `any`
+</p>
+
+하이드레이션 지시어에 대한 추가 인자입니다. 예를 들어, `client:media="(max-width: 768px)"`의 값은 `"(max-width: 768px)"`가 됩니다. `client:only="react"`의 경우 값은 `"react"`가 됩니다.
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**타입:** `string | undefined`
+</p>
+
+컴포넌트 소스 파일의 URL입니다.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**타입:** `{ value: string; namespace?: boolean } | undefined`
+</p>
+
+컴포넌트 내보내기에 대한 정보입니다. `value` 속성은 내보내기의 이름입니다 (예: 기본 내보내기의 경우 `"default"`).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**타입:** `true`
+</p>
+
+항상 `true`입니다. Astro가 이 컴포넌트에 대해 정적 슬롯 최적화를 지원함을 나타냅니다. [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot)을 `true`로 설정한 렌더러는 이를 [`hydrate`](#astrocomponentmetadatahydrate)와 결합하여 슬롯을 렌더링하는 방법을 결정할 수 있습니다.
 
 ### `SSRManifest`
 
