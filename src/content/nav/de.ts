@@ -20,6 +20,7 @@ export default navDictionary({
 	'reference.syntax': 'Astro-Vorlagen-Syntax',
 	'reference.experimental': 'Experimentelle Funktionen',
 
+	ecosystem: 'Ökosystem',
 	'ecosystem.integrations.ui': 'UI-Frameworks',
 	'ecosystem.integrations.adapters': 'Adapter',
 	'ecosystem.integrations.other': 'Andere offizielle Integrationen',
