@@ -260,6 +260,8 @@ export default function createIntegration() {
 }
 ```
 
+<ReadMore>[프리뷰 엔트리포인트를 만드는 방법](#프리뷰-엔트리포인트-만들기)에 대해 자세히 알아보세요.</ReadMore>
+
 ### `args`
 
 <p>
@@ -476,6 +478,29 @@ const app = createApp();
 export async function handler(event, context) {
   // ...
 }
+```
+
+## 프리뷰 엔트리포인트 만들기
+
+어댑터가 [하이브리드 출력](#hybridoutput) 또는 [서버 출력](#serveroutput)을 지원하는 경우, [`astro preview`](/ko/reference/cli-reference/#astro-preview) 지원을 활성화하기 위해 프리뷰 엔트리포인트를 제공할 수 있습니다. 정적 출력에는 프리뷰 엔트리포인트가 필요하지 않습니다.
+
+프리뷰 엔트리포인트를 등록하려면, [서버 매개변수](#previewserverparams)를 인수로 받아 [`PreviewServer`](#previewserver)를 반환하는 함수를 모듈의 기본 내보내기로 만드세요. 그런 다음 어댑터의 [`previewEntrypoint`](#previewentrypoint) 값으로 모듈 경로를 지정하세요.
+
+다음 예시는 사용자 정의 `createServer()` 함수를 사용하여 프리뷰 서버를 생성하고 이를 반환하는 엔트리포인트를 구현합니다:
+
+```ts title="my-adapter/preview.ts"
+import type { CreatePreviewServer } from 'astro';
+import { createServer } from './utils/server';
+
+const createPreviewServer: CreatePreviewServer = async (config) => {
+  const host = config.host ?? '0.0.0.0';
+  const port = config.port ?? 4321;
+  const server = createServer(host, port);
+
+  return server;
+};
+
+export default createPreviewServer;
 ```
 
 ## Astro 기능
@@ -793,7 +818,7 @@ export default function createIntegration() {
 }
 ```
 
-헤더의 값은 애플리케이션에서 활성화 및 사용되는 기능에 따라 변경될 수 있습니다. 예를 들어, [CSP가 활성화된 경우](/ko/reference/configuration-reference/), `<meta http-equiv="content-security-policy">` 요소가 정적 페이지에 추가되지 않습니다. 대신, 해당 `content`는 `routeToHeaders` 맵에서 사용할 수 있습니다.
+헤더의 값은 애플리케이션에서 활성화 및 사용되는 기능에 따라 변경될 수 있습니다. 예를 들어, [CSP가 활성화된 경우](/ko/reference/configuration-reference/#securitycsp), `<meta http-equiv="content-security-policy">` 요소가 정적 페이지에 추가되지 않습니다. 대신, 해당 `content`는 `routeToHeaders` 맵에서 사용할 수 있습니다.
 
 ### `preserveBuildClientDir`
 
@@ -804,9 +829,9 @@ export default function createIntegration() {
 <Since v="6.0.0" />
 </p>
 
-`true`일 때, 정적 빌드는 `outDir`에 직접 출력하는 대신 `client/server` 디렉토리 구조를 보존합니다. 이는 정적 빌드가 자산에 `build.client`를 사용하도록 보장하여 서버 빌드와의 일관성을 유지합니다.
+`true`일 때, 정적 빌드는 `outDir`에 직접 출력하는 대신 `client/server` 디렉터리 구조를 보존합니다. 이는 정적 빌드가 자산에 `build.client`를 사용하도록 보장하여 서버 빌드와의 일관성을 유지합니다.
 
-이는 빌드 출력 유형에 관계없이 특정 디렉토리 구조를 요구하는 어댑터(예: 특정 파일 구성 요구 사항이 있는 플랫폼에 배포)에 유용합니다.
+이는 빌드 출력 유형에 관계없이 특정 디렉터리 구조를 요구하는 어댑터(예: 특정 파일 구성 요구 사항이 있는 플랫폼에 배포)에 유용합니다.
 
 ```js title="my-adapter.mjs" ins={10-12}
 export default function createIntegration() {
@@ -829,6 +854,20 @@ export default function createIntegration() {
 ```
 
 ## 어댑터 타입 참조
+
+다음 타입들은 `astro` 모듈에서 가져올 수 있습니다:
+
+```ts
+import type {
+  AdapterSupport,
+  AdapterSupportsKind,
+  AdapterSupportWithMessage,
+  MiddlewareMode,
+  CreatePreviewServer,
+  PreviewServer,
+  PreviewServerParams,
+} from "astro";
+```
 
 ### `AdapterSupport`
 
@@ -952,6 +991,160 @@ export default function createIntegration() {
 </p>
 
 미들웨어가 실행되는 모드를 설명하는 유효한 형식들의 유니온입니다.
+
+### `CreatePreviewServer`
+
+<p>
+
+**타입:** <code>(params: <a href="#previewserverparams">PreviewServerParams</a>) => <a href="#previewserver">PreviewServer</a> | Promise\<<a href="#previewserver">PreviewServer</a>\></code>
+</p>
+
+[`astro preview`](/ko/reference/cli-reference/#astro-preview)가 실행될 때 프리뷰 서버를 시작하기 위해 어댑터가 내보내야 하는 함수를 정의합니다.
+
+### `PreviewServer`
+
+<p>
+
+**타입:** `{ host?: string; port: number; closed(): Promise<void>; stop(): Promise<void>; }`
+</p>
+
+어댑터의 프리뷰 서버 인스턴스를 설명합니다.
+
+#### `PreviewServer.host`
+
+<p>
+
+**타입:** `string | undefined`
+</p>
+
+프리뷰 서버가 수신 대기 중인 호스트를 정의합니다.
+
+#### `PreviewServer.port`
+
+<p>
+
+**타입:** `number`
+</p>
+
+프리뷰 서버가 수신 대기 중인 포트를 정의합니다.
+
+#### `PreviewServer.closed()`
+
+<p>
+
+**타입:** `() => Promise<void>`
+</p>
+
+프리뷰 서버가 닫혔을 때 실행되는 함수를 정의합니다.
+
+#### `PreviewServer.stop()`
+
+<p>
+
+**타입:** `() => Promise<void>`
+</p>
+
+프리뷰 서버를 중지하고 필요한 정리를 수행하는 함수를 정의합니다.
+
+### `PreviewServerParams`
+
+<p>
+
+**타입:** `object`
+</p>
+
+프리뷰 서버를 위한 구성을 정의합니다.
+
+#### `PreviewServerParams.outDir`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+빌드를 위해 [구성된 출력 디렉터리](/ko/reference/configuration-reference/#outdir)입니다.
+
+#### `PreviewServerParams.client`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+빌드를 위해 [구성된 클라이언트 자산 디렉터리](/ko/reference/configuration-reference/#buildclient)입니다.
+
+#### `PreviewServerParams.server`
+
+<p>
+
+**타입:** `URL`<br />
+<Since v="6.0.0" />
+</p>
+
+SSR로 빌드할 때 [구성된 서버 JavaScript용 디렉터리](/ko/reference/configuration-reference/#buildserver)입니다.
+
+#### `PreviewServerParams.serverEntrypoint`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+Astro에서 생성한 빌드된 서버 엔트리 모듈입니다.
+
+#### `PreviewServerParams.host`
+
+<p>
+
+**타입:** `string | undefined`
+</p>
+
+서버 프리뷰가 수신 대기할 [구성된 호스트](/ko/reference/configuration-reference/#serverhost)를 지정합니다.
+
+#### `PreviewServerParams.port`
+
+<p>
+
+**타입:** `number`
+</p>
+
+서버 프리뷰가 수신 대기할 [구성된 포트](/ko/reference/configuration-reference/#serverport)를 정의합니다.
+
+#### `PreviewServerParams.base`
+
+<p>
+
+**타입:** `string`
+</p>
+
+배포할 [구성된 기본 경로](/ko/reference/configuration-reference/#base)를 지정합니다.
+
+#### `PreviewServerParams.logger`
+
+<p>
+
+**타입:** [`AstroIntegrationLogger`](/ko/reference/integrations-reference/#astrointegrationlogger)
+</p>
+
+프리뷰 서버가 실행 중일 때 로그를 기록하는 데 사용할 수 있는 Astro 로거 인스턴스를 정의합니다.
+
+#### `PreviewServerParams.headers`
+
+<p>
+
+**타입:** `OutgoingHttpHeaders | undefined`
+</p>
+
+[구성된 HTTP 응답 헤더](/ko/reference/configuration-reference/#serverheaders)를 설명합니다.
+
+#### `PreviewServerParams.root`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+프로젝트의 [구성된 루트 디렉터리](/ko/reference/configuration-reference/#root)를 지정합니다.
 
 ## `astro add`를 통한 설치 허용
 
