@@ -1,0 +1,338 @@
+---
+title: Astro Renderer API
+sidebar:
+  label: Renderer API
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro is designed to support any UI framework and content format. This ability is powered by renderers, which are [integrations](/en/reference/integrations-reference/). See the [front-end frameworks](/en/guides/framework-components/) to learn how to use UI components from different frameworks in Astro.
+
+## What is a renderer?
+
+A renderer is a special kind of [integration](/en/reference/integrations-reference/) that teaches Astro how to render a specific file format (e.g. a framework component or a MDX file). A renderer consists of two parts:
+- a server module imported during development and production builds to render components to HTML
+- an optional client module imported in the browser to hydrate components with [client directives](/en/reference/directives-reference/#client-directives).
+
+## Building a renderer
+
+When you need to add support for a new file format in Astro, create an integration and call `addRenderer()` in the [`astro:config:setup`](/en/reference/integrations-reference/#astroconfigsetup) hook. This allows you to define the [server entrypoint](#building-a-server-entrypoint) that Astro should use for rendering components. Optionally, you can also define the [client entrypoint](#building-a-client-entrypoint) used for hydration.
+
+The following example shows how to register a renderer in an Astro integration:
+
+```ts title="my-renderer/index.js" {5-11}
+export default function createIntegration() {
+  return {
+    name: "@example/my-renderer",
+    hooks: {
+      "astro:config:setup": ({ addRenderer }) => {
+        addRenderer({
+          name: "@example/my-renderer",
+          clientEntrypoint: "@example/my-renderer/client.js",
+          serverEntrypoint: "@example/my-renderer/server.js",
+        });
+      },
+    },
+  };
+}
+```
+
+## Building a server entrypoint
+
+You will need to create a file that runs during server-side rendering and defines how to render the file format or the component syntax. The server module must default-export an object that implements the [`SSRLoadedRendererValue`](#ssrloadedrenderervalue) interface.
+
+The following example shows a minimal server-side renderer implementing `check()` and `renderToStaticMarkup()`:
+
+```ts title="my-renderer/server.ts"
+import type { AstroComponentMetadata, NamedSSRLoadedRendererValue } from 'astro';
+
+async function check(Component: unknown) {
+	return typeof Component === 'function' && Boolean((Component as any).$$exampleRenderer);
+}
+
+async function renderToStaticMarkup(
+	Component: any,
+	props: Record<string, unknown>,
+	slots: Record<string, string>,
+	metadata?: AstroComponentMetadata,
+) {
+	const rendered = Component(props);
+
+	return {
+		attrs: metadata?.hydrate ? { 'data-my-renderer': 'true' } : undefined,
+		html: `<${rendered.tag}>${rendered.text}${slots.default ?? ''}</${rendered.tag}>`,
+	};
+}
+
+const renderer: NamedSSRLoadedRendererValue = {
+	name: 'my-renderer',
+	check,
+	renderToStaticMarkup,
+};
+
+export default renderer;
+```
+
+## Building a client entrypoint
+
+When your renderer supports [client directives](/en/reference/directives-reference/#client-directives), create a client entrypoint that defines how to hydrate components in the browser. The client module must default-export a function that receives the island element and returns an async hydrator function.
+
+```ts title="my-renderer/client.ts"
+export default (element: HTMLElement) =>
+	async (
+		Component: any,
+		props: Record<string, unknown>,
+		slots: Record<string, string>,
+		{ client }: { client: string },
+	) => {
+		const rendered = Component({ ...props, slots });
+
+		if (client === 'only') {
+			element.innerHTML = '';
+		}
+
+		const node = document.createElement(rendered.tag);
+		node.textContent = rendered.text;
+		element.appendChild(node);
+
+		element.addEventListener('astro:unmount', () => node.remove(), { once: true });
+	};
+```
+
+## Renderer types reference
+
+The following types can be imported from the `astro` module:
+
+```ts
+import type {
+  AstroComponentMetadata,
+  AstroRenderer,
+  AsyncRendererComponentFn,
+  NamedSSRLoadedRendererValue,
+  SSRLoadedRenderer,
+  SSRLoadedRendererValue,
+} from "astro";
+```
+
+### `AstroComponentMetadata`
+
+<p>
+
+**Type:** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+An object passed as the fourth argument to a renderer's [`check()`](#ssrloadedrenderervaluecheck) and [`renderToStaticMarkup()`](#ssrloadedrenderervaluerendertostaticmarkup) functions. Contains information about the component being rendered, including its hydration directive.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Defines the component name Astro uses in diagnostics and error messages.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**Type:** `'load' | 'idle' | 'visible' | 'media' | 'only' | undefined`
+</p>
+
+Defines the [client directive](/en/reference/directives-reference/#client-directives) used on the component, if any. When `undefined`, the component will not be hydrated on the client.
+
+Renderers can use this value to conditionally include client-side hydration state. For example, a renderer can skip serializing transfer state for components that will not be hydrated:
+
+```ts
+async function renderToStaticMarkup(Component, props, children, metadata) {
+  const willHydrate = !!metadata?.hydrate;
+  // Skip serializing hydration state if the component won't be hydrated
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**Type:** `any`
+</p>
+
+Specifies the additional arguments passed to the hydration directive. For example, the value of `client:media="(max-width: 768px)"` would be `"(max-width: 768px)"`. For `client:only="react"`, the value would be `"react"`.
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Defines the URL of the component's source file.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**Type:** `{ value: string; namespace?: boolean }`
+</p>
+
+Describes the component's export Astro will load on the client for hydrated components.
+
+##### `AstroComponentMetadata.componentExport.namespace`
+
+<p>
+
+**Type:** `boolean`
+</p>
+
+Indicates whether the export is a namespace export.
+
+##### `AstroComponentMetadata.componentExport.value`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Indicates the name of the export (e.g. `"default"` for default exports).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**Type:** `true`
+</p>
+
+Always `true`. Indicates that Astro supports the static slot optimization for this component. Renderers that set [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot) to `true` can use this in combination with [`hydrate`](#astrocomponentmetadatahydrate) to determine how to render slots.
+
+### `AstroRenderer`
+
+<p>
+
+**Type:** `{ name: string; clientEntrypoint?: string | URL; serverEntrypoint: string | URL; }`
+</p>
+
+Describes a [renderer added by an integration](/en/reference/integrations-reference/#addrenderer-option).
+
+#### `AstroRenderer.name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Defines the unique renderer's public name. This is used in error messages, logs, and for custom `client:only` hints such as `<MyComponent client:only="example-renderer" />`.
+
+#### `AstroRenderer.clientEntrypoint`
+
+<p>
+
+**Type:** `string | URL`
+</p>
+
+Defines the import path of the renderer that runs on the client whenever your component is used.
+
+#### `AstroRenderer.serverEntrypoint`
+
+<p>
+
+**Type:** `string | URL`
+</p>
+
+Defines the import path of the renderer that runs during server-side requests or static builds whenever your component is used.
+
+### `AsyncRendererComponentFn`
+
+<p>
+
+**Type:** `(Component: any, props: any, slots: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<T>`
+</p>
+
+Takes the component's constructor or function, its props, the slot contents, and an optional [`metadata`](#astrocomponentmetadata) object, then returns a promise that resolves to a value matching the passed generic type.
+
+Renderers can use `metadata` to determine whether the component will be hydrated on the client, which can be useful for conditionally including client-side hydration state.
+
+### `NamedSSRLoadedRendererValue`
+
+Extends [`SSRLoadedRendererValue`](#ssrloadedrenderervalue) with a required `name` property.
+
+### `SSRLoadedRenderer`
+
+<p>
+
+**Type:** `Pick<AstroRenderer, 'name' | 'clientEntrypoint'> & { ssr: SSRLoadedRendererValue; }`
+</p>
+
+Describes a renderer available for the server to use. This is a subset of [`AstroRenderer`](#astrorenderer) with additional properties.
+
+#### `SSRLoadedRenderer.ssr`
+
+<p>
+
+**Type:** [`SSRLoadedRendererValue`](#ssrloadedrenderervalue)
+</p>
+
+Defines the functions and configuration used by the server for this framework.
+
+### `SSRLoadedRendererValue`
+
+<p>
+
+**Type:** `{ name?: string; check: AsyncRendererComponentFn<boolean>; renderToStaticMarkup: AsyncRendererComponentFn<{ html: string; attrs?: Record<string, string>; }>; supportsAstroStaticSlot?: boolean; renderHydrationScript?: () => string; }`
+</p>
+
+Describes the server renderer module that Astro loads from `serverEntrypoint`.
+
+#### `SSRLoadedRendererValue.name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Defines the renderer name when the server renderer needs to carry its own name. When not provided, Astro will reuse the name defined in [`AstroRenderer`](#astrorenderer).
+
+#### `SSRLoadedRendererValue.check()`
+
+<p>
+
+**Type:** `AsyncRendererComponentFn<boolean>`
+</p>
+
+Determines whether the renderer can handle a component. Return `true` only for compatible components. Return `false` for everything else.
+
+#### `SSRLoadedRendererValue.renderToStaticMarkup()`
+
+<p>
+
+**Type:** `AsyncRendererComponentFn<{ html: string; attrs?: Record<string, string>; }>`
+</p>
+
+Renders a compatible component to an HTML string on the server.
+
+Return `attrs` to add renderer-specific attributes to the generated `<astro-island>` element when the component hydrates.
+
+#### `SSRLoadedRendererValue.supportsAstroStaticSlot`
+
+<p>
+
+**Type:** `boolean`<br />
+<Since v="2.5.0" />
+</p>
+
+Indicates whether the renderer supports Astro's static slot optimization. When true, Astro prevents the removal of nested slots within islands.
+
+#### `SSRLoadedRendererValue.renderHydrationScript()`
+
+<p>
+
+**Type:** `() => string`<br />
+<Since v="4.1.0" />
+</p>
+
+Returns an HTML string to inject once per page before the first hydrated component handled by this renderer. This is useful for renderers that need page-level hydration setup.

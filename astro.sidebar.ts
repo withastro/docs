@@ -138,6 +138,7 @@ export const sidebar = [
 				items: [
 					'reference/integrations-reference',
 					'reference/adapter-reference',
+					'reference/renderer-reference',
 					'reference/content-loader-reference',
 					'reference/image-service-reference',
 					'reference/dev-toolbar-app-reference',
