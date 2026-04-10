@@ -1,0 +1,827 @@
+---
+title: API des fournisseurs de polices d'Astro
+sidebar:
+  label: API des fournisseurs de polices
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+<Since v="6.0.0" />
+</p>
+
+L'[API des polices](/fr/guides/fonts/) vous permet d'accéder aux polices de manière unifiée. Chaque famille nécessite l'utilisation d'un fournisseur de polices pour Astro, qui télécharge les fichiers de polices à partir d'un service distant ou charge les fichiers de polices locaux depuis le disque.
+
+## Fournisseurs intégrés
+
+Astro exporte les fournisseurs de polices intégrés depuis `astro/config` :
+
+```js
+import { fontProviders } from 'astro/config'
+```
+
+Pour utiliser un fournisseur de polices intégré, définissez [`provider`](/fr/reference/configuration-reference/#fontprovider) avec la valeur appropriée pour le fournisseur de polices que vous avez choisi :
+
+- [Adobe](#adobe)
+- [Bunny](#bunny)
+- [Fontshare](#fontshare)
+- [Fontsource](#fontsource)
+- [Google](#google)
+- [Google Icons](#google-icons)
+- [Locales](#locales)
+- [NPM](#npm)
+
+### Adobe
+
+Récupère les polices depuis [Adobe](https://fonts.adobe.com/) :
+
+```js
+provider: fontProviders.adobe({ id: "your-id" })
+```
+
+Transmettez au fournisseur de polices Adobe un ID chargé en tant que [variable d'environnement dans votre fichier de configuration d'Astro](/fr/guides/environment-variables/#dans-le-fichier-de-configuration-dastro).
+
+### Bunny
+
+Récupère les polices depuis [Bunny](https://fonts.bunny.net/) :
+
+```js
+provider: fontProviders.bunny()
+```
+
+### Fontshare
+
+Récupère les polices depuis [Fontshare](https://www.fontshare.com/) :
+
+```js
+provider: fontProviders.fontshare()
+```
+
+### Fontsource
+
+Récupère les polices depuis [Fontsource](https://fontsource.org/) :
+
+```js
+provider: fontProviders.fontsource()
+```
+
+### Google
+
+Récupère les polices depuis [Google](https://fonts.google.com/) :
+
+```js
+provider: fontProviders.google()
+```
+
+Le fournisseur est livré avec les options suivantes, spécifiques à la famille, qui peuvent être ajoutées dans l'[objet `font.options`](/fr/reference/configuration-reference/#fontoptions).
+
+#### `experimental.glyphs`
+
+<p>
+
+**Type :** `string[]`
+</p>
+
+Permet de spécifier une liste de glyphes à inclure dans la police pour chaque famille de polices. Cela peut réduire la taille du fichier de police :
+
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
+}
+```
+
+#### `experimental.variableAxis`
+
+<p>
+
+**Type :** `Partial<Record<VariableAxis, ([string, string] | string)[]>>`
+</p>
+
+Permet de configurer les axes variables :
+
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      variableAxis: {
+        slnt: [["-15", "0"]],
+        CASL: [["0", "1"]],
+        CRSV: ["1"],
+        MONO: [["0", "1"]],
+      }
+    }
+  }
+}
+```
+
+### Google Icons
+
+Récupère les polices depuis [Google Icons](https://fonts.google.com/icons) :
+
+```js
+provider: fontProviders.googleicons()
+```
+
+Le fournisseur est livré avec les options suivantes, spécifiques à la famille, qui peuvent être ajoutées dans l'[objet `font.options`](/fr/reference/configuration-reference/#fontoptions).
+
+#### `experimental.glyphs`
+
+<p>
+
+**Type :** `string[]`
+</p>
+
+Lors de la résolution des nouvelles icônes Material Symbols, il est possible de spécifier une liste de glyphes à inclure dans la police pour chaque famille de polices. Cela peut réduire la taille du fichier de police :
+
+```js
+{
+  // ...
+  provider: fontProviders.googleicons(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
+}
+```
+
+### Locales
+
+Récupère les polices depuis le disque :
+
+```js
+provider: fontProviders.local()
+```
+
+Le fournisseur exige que les [variantes (`variants`)](#variants) soient définies dans l'objet [`font.options`](/fr/reference/configuration-reference/#fontoptions).
+
+#### `variants`
+
+<p>
+
+**Type :** `LocalFontFamily["variants"]`
+</p>
+
+La propriété `options.variants` est obligatoire. Chaque variante représente une [déclaration `@font-face`](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face) et nécessite une [`src`](#src).
+
+De plus, [d'autres propriétés](#autres-propriétés) peuvent être spécifiées dans chaque variante.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Personnalisee",
+    cssVariable: "--police-personnalisee",
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: ["./src/assets/fonts/personnalisee-400.woff2"]
+        },
+        {
+          weight: 700,
+          style: "normal",
+          src: ["./src/assets/fonts/personnalisee-700.woff2"]
+        }
+        // ...
+      ]
+    }
+  }]
+});
+```
+
+##### `weight`
+
+<p>
+
+**Type :** `number | string`<br />
+**Par défaut :** `undefined`
+</p>
+
+Une [graisse de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Properties/font-weight) :
+
+```js
+weight: 200
+```
+
+Si la police associée est une [police variable](https://developer.mozilla.org/fr/docs/Web/CSS/Guides/Fonts/Variable_fonts), vous pouvez spécifier une plage de graisses :
+
+```js
+weight: "100 900"
+```
+
+Lorsque la valeur n'est pas définie, Astro essaiera par défaut de déduire la valeur en fonction de la première [`source`](#src).
+
+##### `style`
+
+<p>
+
+**Type :** `"normal" | "italic" | "oblique"`<br />
+**Par défaut :** `undefined`
+</p>
+
+Un [style de police](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Properties/font-style) :
+
+```js
+style: "normal"
+```
+
+Lorsque la valeur n'est pas définie, Astro essaiera par défaut de déduire la valeur en fonction de la première [`source`](#src).
+
+##### `src`
+
+<p>
+
+**Type :** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+Les [sources](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/src) de la police. Il peut s'agir d'un chemin relatif à la racine, d'une importation de paquet ou d'une URL. Les URL sont particulièrement utiles si vous injectez des polices locales via une intégration :
+
+<Tabs>
+
+<TabItem label="Chemin relatif">
+
+```js
+src: ["./src/assets/fonts/MaPolice.woff2", "./src/assets/fonts/MaPolice.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./personnalisee.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="Importation de paquets">
+
+```js
+src: ["mon-paquet/UnePolice.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+Nous vous recommandons de ne pas placer vos fichiers de police dans [le dossier `public/`](/fr/reference/configuration-reference/#publicdir). Étant donné qu'Astro copiera ces fichiers dans ce dossier au moment de la compilation, cela entraînera la présence de fichiers dupliqués dans le résultat de votre compilation. Il est préférable de les stocker ailleurs dans votre projet, par exemple dans [`src/`](/fr/reference/configuration-reference/#srcdir).
+:::
+
+Vous pouvez également spécifier une [tech](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/At-rules/@font-face/src#tech) en fournissant des objets :
+
+```js
+src: [{ url:"./src/assets/fonts/MaPolice.woff2", tech: "color-COLRv1" }]
+```
+
+##### Autres propriétés
+
+Les options suivantes issues des familles de polices sont également disponibles pour les familles de polices locales au sein des variantes :
+
+- [display](/fr/reference/configuration-reference/#fontdisplay)
+- [unicodeRange](/fr/reference/configuration-reference/#fontunicoderange)
+- [stretch](/fr/reference/configuration-reference/#fontstretch)
+- [featureSettings](/fr/reference/configuration-reference/#fontfeaturesettings)
+- [variationSettings](/fr/reference/configuration-reference/#fontvariationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Personnalisee",
+    cssVariable: "--police-personnalisee",
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: ["./src/assets/fonts/personnalisee-400.woff2"],
+          display: "block"
+        }
+      ]
+    }
+  }]
+});
+```
+
+### NPM
+
+Récupère les polices à partir de paquets NPM, soit à partir des paquets installés localement dans `node_modules`, soit à partir d'un CDN :
+
+```js
+provider: fontProviders.npm()
+```
+
+Le fournisseur détecte automatiquement les polices à partir des dépendances dans votre fichier `package.json` et peut résoudre les polices à partir de paquets comme `@fontsource/*`, `@fontsource-variable/*` et d'autres paquets de polices connus.
+
+#### Options du fournisseur
+
+Le fournisseur NPM accepte les options de configuration suivantes :
+
+##### `cdn`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'https://cdn.jsdelivr.net/npm'`
+</p>
+
+CDN à utiliser pour récupérer les paquets npm à distance :
+
+```js
+provider: fontProviders.npm({ cdn: 'https://esm.sh' })
+```
+
+##### `remote`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+</p>
+
+Indique s'il faut utiliser le CDN en cas d'échec de la résolution locale. Définissez cette valeur sur `false` pour n'utiliser que les paquets installés localement.
+
+```js
+provider: fontProviders.npm({ remote: false })
+```
+
+#### Options de la famille
+
+Le fournisseur est livré avec les options suivantes, spécifiques à la famille, qui peuvent être ajoutées dans l'objet [`font.options`](/fr/reference/configuration-reference/#fontoptions).
+
+##### `package`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** Détecté automatiquement ou déduit du nom de la famille
+</p>
+
+Le nom du paquet NPM. S'il n'est pas spécifié, le fournisseur tentera de trouver la famille de polices dans les modèles de paquets de polices connus ou de la déduire en fonction des conventions de Fontsource :
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    package: '@fontsource/roboto'
+  }
+}
+```
+
+##### `version`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'latest'`
+</p>
+
+La version du paquet (utilisée uniquement pour la résolution CDN) :
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    version: '5.0.0'
+  }
+}
+```
+
+##### `file`
+
+<p>
+
+**Type :** `string`<br />
+**Par défaut :** `'index.css'`
+</p>
+
+Le fichier CSS d'entrée à analyser à partir du paquet :
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    file: 'latin.css'
+  }
+}
+```
+
+## Création d'un fournisseur de polices
+
+Si vous ne souhaitez pas utiliser l'un des [fournisseurs intégrés](#fournisseurs-intégrés) (par exemple, si vous souhaitez utiliser un [fournisseur unifont tiers](#prise-en-charge-dun-fournisseur-unifont-tiers) ou [créer quelque chose pour un registre privé](#prise-en-charge-dun-registre-privé)), vous pouvez créer le vôtre.
+
+La méthode préférée pour implémenter un fournisseur de polices personnalisé consiste à exporter une fonction qui renvoie [l'objet `FontProvider`](#lobjet-du-fournisseur-de-polices) et prend la [configuration](#config) en tant que paramètre.
+
+### L'objet du fournisseur de polices
+
+Un `FontProvider` est un objet contenant les propriétés obligatoires [`name`](#name) et [`resolveFont()`](#resolvefont). Il possède également des propriétés facultatives : [`config`](#config), [`init()`](#init) et [`listFonts()`](#listfonts).
+
+Le type `FontProvider` accepte un générique pour les [options](/fr/reference/configuration-reference/#fontoptions) de famille.
+
+#### `name`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Un nom unique pour le fournisseur, utilisé dans les journaux et à des fins d'identification.
+
+#### `resolveFont()`
+
+<p>
+
+**Type :** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
+
+Utilisé pour récupérer et renvoyer les données de police de caractères en fonction des options données.
+
+#### `config`
+
+<p>
+
+**Type :** `Record<string, any>`<br />
+**Par défaut :** `undefined`
+</p>
+
+Un objet sérialisable, utilisé à des fins d'identification.
+
+#### `init()`
+
+<p>
+
+**Type :** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**Par défaut :** `undefined`
+</p>
+
+Fonction de rappel facultative, utilisée pour exécuter toute logique d'initialisation.
+
+##### `context.storage`
+
+<p>
+
+**Type :** `Storage`
+</p>
+
+Utile pour la mise en cache.
+
+##### `context.root`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+La racine du projet, utile pour résoudre les chemins d'accès aux fichiers locaux.
+
+#### `listFonts()`
+
+<p>
+
+**Type :** `() => Awaitable<string[] | undefined>`<br />
+**Par défaut :** `undefined`
+</p>
+
+Fonction de rappel facultative, utilisée pour renvoyer la liste des noms de polices disponibles.
+
+### Prise en charge d'un registre privé
+
+L'exemple suivant définit un fournisseur de polices pour un registre privé :
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+export function registryFontProvider(): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registre",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="Options du fournisseur">
+
+```ts title="font-provider.ts" {4-6,8,13}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registre",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="Options de la famille">
+
+```ts title="font-provider.ts" {4-6,8,20}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface FamilyOptions {
+  minimal?: boolean;
+}
+
+export function registryFontProvider(): FontProvider<FamilyOptions | undefined> {
+  let data: Fonts = {}
+
+  return {
+    name: "registre",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    // options est typé en tant que FamilyOptions | undefined
+    resolveFont: ({ familyName, options, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+Vous pouvez ensuite enregistrer ce fournisseur de polices dans la configuration d'Astro :
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider(),
+    name: "Personalisee",
+    cssVariable: "--police-personalisee"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="Options du fournisseur">
+
+```ts title="astro.config.ts" {7}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider({
+      token: "..."
+    }),
+    name: "Personalisee",
+    cssVariable: "--police-personalisee"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="Options de la famille">
+
+```ts title="astro.config.ts" {7-9}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider(),
+    options: {
+      minimal: true
+    },
+    name: "Personalisee",
+    cssVariable: "--police-personalisee"
+  }]
+});
+```
+
+</TabItem>
+
+</Tabs>
+
+### Prise en charge d'un fournisseur Unifont tiers
+
+Vous pouvez définir un fournisseur de polices pour Astro en utilisant un fournisseur Unifont en interne :
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="Options du fournisseur">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="Options de la famille">
+
+```ts title="font-provider.ts" {3,5,6-7}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeFamilyOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider<AcmeFamilyOptions | undefined> {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider<AcmeFamilyOptions> | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+Vous pouvez ensuite enregistrer ce fournisseur de polices dans la configuration d'Astro :
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="Simple">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider(),
+    name: "Personnalisee",
+    cssVariable: "--police-personnalisee"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="Options du fournisseur">
+
+```ts title="astro.config.ts" {7}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider({
+      token: "..."
+    }),
+    name: "Personnalisee",
+    cssVariable: "--police-personnalisee"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="Options de la famille">
+
+```ts title="astro.config.ts" {7-9}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider(),
+    options: {
+      minimal: true
+    },
+    name: "Personnalisee",
+    cssVariable: "--police-personnalisee"
+  }]
+});
+```
+
+</TabItem>
+
+</Tabs>

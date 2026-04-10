@@ -48,17 +48,22 @@ Note that this optimization applies to every SVG component import in your projec
 
 ## Configuration
 
-You can pass a [SVGO configuration object](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335) to customize optimization behavior:
+You can pass an [SVGO configuration object](https://github.com/svg/svgo#configuration) to customize optimization behavior:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
+      multipass: true,
+      floatPrecision: 2,
       plugins: [
         'preset-default',
+        'removeXMLNS',
         {
-          name: 'removeViewBox',
-          active: false
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
         }
       ]
     }
@@ -73,17 +78,34 @@ export default defineConfig({
 
 An array of [SVGO plugins](https://svgo.dev/docs/plugins/) that will be used to optimize your SVG component imports.
 
-This can include any plugins by ID name, including SVGO's `preset-default` collection of plugins. A plugin can optionally be passed as an object including both its `name` and `active` status, to enable or disable as necessary.
+This can include SVGO's [`preset-default`](https://svgo.dev/docs/preset-default/) plugin collection, individual built-in plugins, or [custom plugins](https://svgo.dev/docs/plugins-api/). 
+
+To use a plugin’s default configuration, add its name to the array. If you need more control, use the `overrides` parameter to customize specific plugins within `preset-default`, or pass an object with a plugin's `name` to override its individual parameters.
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeViewBox',
-          active: false
+          name: 'preset-default',
+          params: {
+            overrides: {
+              convertPathData: false,
+              convertTransform: {
+                degPrecision: 1,
+                transformPrecision: 3
+              },
+              inlineStyles: false
+            },
+          },
+        },
+        'removeXMLNS',
+        {
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
         }
       ]
     }
@@ -93,36 +115,42 @@ export default defineConfig({
 
 ### Other configuration options
 
-You can also pass [other SVGO configuration options](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), such as `floatPrecision` and `multipass`, directly to your config object:
+There are a few [SVGO configuration options](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), especially `floatPrecision` and `multipass`, that can be passed directly to your config object:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
-      floatPrecision: 2,
-      multipass: true
+      multipass: true,
+      floatPrecision: 2
     }
   }
 })
 ```
 
+The `multipass` option sets whether to run the optimization engine multiple times until no further optimizations are found. The `floatPrecision` option sets the number of decimal places to preserve globally, but can be overridden for a specific plugin by specifying a custom value in its `params` property.
+
 ## Common use cases
 
-SVGO provides an extensive [default plugin list](https://svgo.dev/docs/preset-default/) with opinionated optimizations that is more convenient than adding each plugin individually. However, you may need to customize it further for your needs. For example, it may remove items or clean up too aggressively for your situation.
+SVGO provides an extensive [default plugin list](https://svgo.dev/docs/preset-default/) with opinionated optimizations. While using this preset is more convenient than adding each plugin individually, you may need to customize it further. For example, it may remove items or clean up too aggressively for your situation, especially when using animations.
 
 ### Preserve specific attributes
 
-You may want to preserve certain SVG attributes, such as the `viewBox`, that SVGO removes by default:
+You may want to preserve certain SVG attributes and elements, such as `<style>`, that SVGO inlines or removes by default:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeViewBox',
-          active: false // Preserve viewBox attribute
+          name: 'preset-default',
+          params: {
+            overrides: {
+              inlineStyles: false, // Preserve style elements for CSP hashing
+              removeDesc: false // Keep element regardless of contents
+            }
+          }
         }
       ]
     }
@@ -139,26 +167,42 @@ export default defineConfig({
   experimental: {
     svgo: {
       plugins: [
-        'preset-default',
         {
-          name: 'removeMetadata',
-          active: true
-        }
+          name: 'preset-default',
+          params: {
+            overrides: {
+              removeHiddenElems: {
+                isHidden: false,
+                displayNone: false
+              }
+            },
+          },
+        },
+        'removeRasterImages'
       ]
     }
   }
 })
 ```
 
-### Custom precision
+### Optimize for inlining in modern HTML5
 
-Control the precision of numeric values in path data:
+Inline SVG does not require the `xmlns` attribute and can be safely converted to the SVG 2 specification. The `removeXMLNS` and `removeXlink` plugins are recommended for this purpose:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   experimental: {
     svgo: {
-      floatPrecision: 2
+      plugins: [
+        'preset-default',
+        'removeXMLNS',
+        {
+          name: "removeXlink",
+          params: {
+            includeLegacy: true
+          }
+        }
+      ]
     }
   }
 })

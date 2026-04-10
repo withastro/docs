@@ -1,13 +1,10 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	start: 'ابدأ',
-	'start.welcome': 'مرحباً بك في العالم!',
-	'start.newProject': 'ابدأ مشروعاً جديداً',
-	'start.config': 'الإعدادات',
-	'start.migrate': 'الانتقال إلى Astro',
-
 	guides: 'الإرشادات والوصفات',
+	'guides.welcome': 'مرحباً بك في العالم!',
+	'guides.newProject': 'ابدأ مشروعاً جديداً',
+	'guides.config': 'الإعدادات',
 	'guides.routing': 'التوجيه والتنقل',
 	'guides.ui': 'بناء واجهة المستخدم',
 	'guides.content': 'إضافة محتوى لموقعك',
@@ -15,6 +12,7 @@ export default navDictionary({
 	'guides.upgrade': 'التحديث',
 	'guides.upgrade.major': 'إرشادات التحديثات الرئيسية',
 	'guides.recipes': 'وصفات كيفية العمل',
+	'guides.migrate': 'الانتقال إلى Astro',
 
 	reference: 'المراجع',
 	'reference.runtime': 'واجهة برمجة التطبيقات وقت التشغيل',
@@ -22,14 +20,11 @@ export default navDictionary({
 	'reference.syntax': 'بناء قوالب Astro',
 	'reference.experimental': 'الميزات التجريبية',
 
-	integrations: 'التكاملات',
-	'integrations.ui': 'أطر عمل واجهة المستخدم',
-	'integrations.adapters': 'المحولات',
-	'integrations.other': 'التكاملات الرسمية الأخرى',
-
-	thirdParty: 'خدمات الطرف الثالث',
-	'thirdParty.deployment': 'إرشادات النشر',
-	'thirdParty.cms': 'أنظمة إدارة المحتوى',
-	'thirdParty.backend': 'خدمات الخلفية',
-	'thirdParty.media': 'استضافة الصور والفيديو',
+	'ecosystem.integrations.ui': 'أطر عمل واجهة المستخدم',
+	'ecosystem.integrations.adapters': 'المحولات',
+	'ecosystem.integrations.other': 'التكاملات الرسمية الأخرى',
+	'ecosystem.deployment': 'إرشادات النشر',
+	'ecosystem.cms': 'أنظمة إدارة المحتوى',
+	'ecosystem.backend': 'خدمات الخلفية',
+	'ecosystem.media': 'استضافة الصور والفيديو',
 });
