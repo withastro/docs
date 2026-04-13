@@ -1,0 +1,827 @@
+---
+title: Astro 폰트 제공자 API
+sidebar:
+  label: 폰트 제공자 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+<Since v="6.0.0" />
+</p>
+
+[폰트 API](/ko/guides/fonts/)를 사용하면 통합된 방식으로 폰트에 액세스할 수 있습니다. 각 패밀리에는 원격 서비스에서 폰트 파일을 다운로드하거나 디스크에서 로컬 폰트 파일을 로드하는 Astro 폰트 제공자가 필요합니다.
+
+## 내장 제공자
+
+Astro는 `astro/config`에서 내장 폰트 제공자를 내보냅니다.
+
+```js
+import { fontProviders } from 'astro/config'
+```
+
+내장 폰트 제공자를 사용하려면 [`provider`](/ko/reference/configuration-reference/#fontprovider)를 선택한 제공자에 적합한 값으로 설정하세요.
+
+- [Adobe](#adobe)
+- [Bunny](#bunny)
+- [Fontshare](#fontshare)
+- [Fontsource](#fontsource)
+- [Google](#google)
+- [Google Icons](#google-icons)
+- [Local](#로컬)
+- [NPM](#npm)
+
+### Adobe
+
+[Adobe](https://fonts.adobe.com/)에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.adobe({ id: "your-id" })
+```
+
+Adobe 폰트 제공자에 [Astro 구성 파일의 환경 변수](/ko/guides/environment-variables/#astro-구성-파일)로 로드된 ID를 전달하세요.
+
+### Bunny
+
+[Bunny](https://fonts.bunny.net/)에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.bunny()
+```
+
+### Fontshare
+
+[Fontshare](https://www.fontshare.com/)에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.fontshare()
+```
+
+### Fontsource
+
+[Fontsource](https://fontsource.org/)에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.fontsource()
+```
+
+### Google
+
+[Google](https://fonts.google.com/)에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.google()
+```
+
+이 제공자에는 [`font.options` 객체](/ko/reference/configuration-reference/#fontoptions)에 추가할 수 있는 다음과 같은 패밀리별 옵션이 포함되어 있습니다.
+
+#### `experimental.glyphs`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+각 폰트 패밀리에 포함될 글리프 목록을 지정할 수 있습니다. 이를 통해 폰트 파일의 크기를 줄일 수 있습니다.
+
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
+}
+```
+
+#### `experimental.variableAxis`
+
+<p>
+
+**타입:** `Partial<Record<VariableAxis, ([string, string] | string)[]>>`
+</p>
+
+가변 축 구성을 설정할 수 있습니다.
+
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      variableAxis: {
+        slnt: [["-15", "0"]],
+        CASL: [["0", "1"]],
+        CRSV: ["1"],
+        MONO: [["0", "1"]],
+      }
+    }
+  }
+}
+```
+
+### Google Icons
+
+[Google Icons](https://fonts.google.com/icons)에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.googleicons()
+```
+
+이 제공자에는 [`font.options` 객체](/ko/reference/configuration-reference/#fontoptions)에 추가할 수 있는 다음과 같은 패밀리별 옵션이 포함되어 있습니다.
+
+#### `experimental.glyphs`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+새로운 Material Symbols 아이콘을 해석할 때, 각 폰트 패밀리에 포함될 글리프 목록을 지정할 수 있습니다. 이를 통해 폰트 파일의 크기를 줄일 수 있습니다.
+
+```js
+{
+  // ...
+  provider: fontProviders.googleicons(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
+}
+```
+
+### 로컬
+
+디스크에서 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.local()
+```
+
+이 제공자는 [`font.options` 객체](/ko/reference/configuration-reference/#fontoptions)에 [`variants`](#variants)가 정의되어 있어야 합니다.
+
+#### `variants`
+
+<p>
+
+**타입:** `LocalFontFamily["variants"]`
+</p>
+
+`options.variants` 속성은 필수입니다. 각 변형은 [`@font-face` 선언](https://developer.mozilla.org/ko/docs/Web/CSS/Reference/At-rules/@font-face)을 나타내며 [`src`](#src)가 필요합니다.
+
+또한 각 변형 내에 [기타 다른 속성들](#기타-속성)을 지정할 수 있습니다.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Custom",
+    cssVariable: "--font-custom",
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: ["./src/assets/fonts/custom-400.woff2"]
+        },
+        {
+          weight: 700,
+          style: "normal",
+          src: ["./src/assets/fonts/custom-700.woff2"]
+        }
+        // ...
+      ]
+    }
+  }]
+});
+```
+
+##### `weight`
+
+<p>
+
+**타입:** `number | string`<br />
+**기본값:** `undefined`
+</p>
+
+[폰트 두께](https://developer.mozilla.org/ko/docs/Web/CSS/Reference/Properties/font-weight)입니다.
+
+```js
+weight: 200
+```
+
+연관된 폰트가 [가변 폰트](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)인 경우 두께 범위를 지정할 수 있습니다.
+
+```js
+weight: "100 900"
+```
+
+값이 설정되지 않은 경우, Astro는 기본적으로 첫 번째 [`source`](#src)를 기반으로 값을 유추하려고 시도합니다.
+
+##### `style`
+
+<p>
+
+**타입:** `"normal" | "italic" | "oblique"`<br />
+**기본값:** `undefined`
+</p>
+
+[폰트 스타일](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style)입니다.
+
+```js
+style: "normal"
+```
+
+값이 설정되지 않은 경우, Astro는 기본적으로 첫 번째 [`source`](#src)를 기반으로 값을 유추하려고 시도합니다.
+
+##### `src`
+
+<p>
+
+**타입:** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+폰트 [소스](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src)입니다. 루트에 대한 상대 경로, 패키지 가져오기 또는 URL일 수 있습니다. 통합을 통해 로컬 폰트를 주입하는 경우 URL이 특히 유용합니다.
+
+<Tabs>
+
+<TabItem label="상대 경로">
+
+```js
+src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./custom.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="패키지 가져오기">
+
+```js
+src: ["my-package/SomeFont.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+폰트 파일을 [`public/` 디렉터리](/ko/reference/configuration-reference/#publicdir)에 두지 않는 것을 권장합니다. Astro는 빌드 시 이 파일들을 해당 폴더로 복사하므로 빌드 출력에 파일이 중복될 수 있습니다. 대신 [`src/`](/ko/reference/configuration-reference/#srcdir)와 같은 프로젝트의 다른 위치에 저장하세요.
+:::
+
+객체를 제공하여 [tech](https://developer.mozilla.org/en-US/docs/Web/CSS/@font-face/src#tech)를 지정할 수도 있습니다.
+
+```js
+src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
+```
+
+##### 기타 속성
+
+폰트 패밀리의 다음 옵션들도 변형 내의 로컬 폰트 패밀리에 사용할 수 있습니다.
+
+- [display](/ko/reference/configuration-reference/#fontdisplay)
+- [unicodeRange](/ko/reference/configuration-reference/#fontunicoderange)
+- [stretch](/ko/reference/configuration-reference/#fontstretch)
+- [featureSettings](/ko/reference/configuration-reference/#fontfeaturesettings)
+- [variationSettings](/ko/reference/configuration-reference/#fontvariationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Custom",
+    cssVariable: "--font-custom",
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: ["./src/assets/fonts/custom-400.woff2"],
+          display: "block"
+        }
+      ]
+    }
+  }]
+});
+```
+
+### NPM
+
+`node_modules`에 로컬로 설치된 패키지 또는 CDN에서 NPM 패키지의 폰트를 가져옵니다.
+
+```js
+provider: fontProviders.npm()
+```
+
+제공자는 `package.json` 의존성에서 폰트를 자동으로 감지하며 `@fontsource/*`, `@fontsource-variable/*` 및 기타 알려진 폰트 패키지의 폰트를 해석할 수 있습니다.
+
+#### 제공자 옵션
+
+NPM 제공자는 다음 구성 옵션을 허용합니다.
+
+##### `cdn`
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `'https://cdn.jsdelivr.net/npm'`
+</p>
+
+npm 패키지를 원격으로 가져오는 데 사용할 CDN입니다.
+
+```js
+provider: fontProviders.npm({ cdn: 'https://esm.sh' })
+```
+
+##### `remote`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`
+</p>
+
+로컬 해석에 실패했을 때 CDN에서 가져오기로 대체할지 여부입니다. 로컬에 설치된 패키지에서만 해석하려면 `false`로 설정하세요.
+
+```js
+provider: fontProviders.npm({ remote: false })
+```
+
+#### 패밀리 옵션
+
+이 제공자에는 [`font.options` 객체](/ko/reference/configuration-reference/#fontoptions)에 추가할 수 있는 다음과 같은 패밀리별 옵션이 포함되어 있습니다.
+
+##### `package`
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** 자동 감지되거나 패밀리 이름에서 유추됨
+</p>
+
+NPM 패키지 이름입니다. 지정하지 않으면 제공자는 알려진 폰트 패키지 패턴에서 폰트 패밀리를 찾거나 Fontsource 규칙에 따라 유추하려고 시도합니다.
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    package: '@fontsource/roboto'
+  }
+}
+```
+
+##### `version`
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `'latest'`
+</p>
+
+패키지의 버전입니다 (CDN 해석에만 사용됨).
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    version: '5.0.0'
+  }
+}
+```
+
+##### `file`
+
+<p>
+
+**타입:** `string`<br />
+**기본값:** `'index.css'`
+</p>
+
+패키지에서 파싱할 엔트리 CSS 파일입니다.
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    file: 'latin.css'
+  }
+}
+```
+
+## 폰트 제공자 만들기
+
+[내장 제공자](#내장-제공자) 중 하나를 사용하고 싶지 않은 경우 (예: [서드파티 유니폰트 제공자](#서드파티-유니폰트-제공자-지원)를 사용하거나 [비공개 레지스트리를 위한 무언가](#비공개-레지스트리-지원)를 구축하려는 경우) 직접 만들 수 있습니다.
+
+커스텀 폰트 제공자를 구현하는 권장 방법은 [`FontProvider` 객체](#폰트-제공자-객체)를 반환하고 [구성](#config)을 매개변수로 받는 함수를 내보내는 것입니다.
+
+### 폰트 제공자 객체
+
+`FontProvider`는 필수 [`name`](#name) 및 [`resolveFont()`](#resolvefont) 속성을 포함하는 객체입니다. 또한 선택적으로 [`config`](#config), [`init()`](#init), [`listFonts()`](#listfonts) 속성을 사용할 수도 있습니다.
+
+`FontProvider` 타입은 패밀리 [옵션](/ko/reference/configuration-reference/#fontoptions)에 대한 제네릭을 허용합니다.
+
+#### `name`
+
+<p>
+
+**타입:** `string`
+</p>
+
+로그 및 식별에 사용되는 제공자의 고유 이름입니다.
+
+#### `resolveFont()`
+
+<p>
+
+**타입:** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
+
+주어진 옵션을 기반으로 폰트 페이스 데이터를 조회하고 반환하는 데 사용됩니다.
+
+#### `config`
+
+<p>
+
+**타입:** `Record<string, any>`<br />
+**기본값:** `undefined`
+</p>
+
+식별에 사용되는 직렬화 가능한 객체입니다.
+
+#### `init()`
+
+<p>
+
+**타입:** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**기본값:** `undefined`
+</p>
+
+초기화 로직을 수행하는 데 사용되는 선택적 콜백입니다.
+
+##### `context.storage`
+
+<p>
+
+**타입:** `Storage`
+</p>
+
+캐싱에 유용합니다.
+
+##### `context.root`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+프로젝트 루트로, 로컬 파일 경로를 해석하는 데 유용합니다.
+
+#### `listFonts()`
+
+<p>
+
+**타입:** `() => Awaitable<string[] | undefined>`<br />
+**기본값:** `undefined`
+</p>
+
+사용 가능한 폰트 이름 목록을 반환하는 데 사용되는 선택적 콜백입니다.
+
+### 비공개 레지스트리 지원
+
+다음 예시는 비공개 레지스트리를 위한 폰트 제공자를 정의합니다.
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="기본">
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+export function registryFontProvider(): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="제공자 옵션">
+
+```ts title="font-provider.ts" {4-6,8,13}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="패밀리 옵션">
+
+```ts title="font-provider.ts" {4-6,8,20}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface FamilyOptions {
+  minimal?: boolean;
+}
+
+export function registryFontProvider(): FontProvider<FamilyOptions | undefined> {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    // 옵션의 타입은 FamilyOptions | undefined 입니다.
+    resolveFont: ({ familyName, options, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+그 후 Astro 구성에 이 폰트 제공자를 등록할 수 있습니다.
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="기본">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider(),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="제공자 옵션">
+
+```ts title="astro.config.ts" {7}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider({
+      token: "..."
+    }),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="패밀리 옵션">
+
+```ts title="astro.config.ts" {7-9}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider(),
+    options: {
+      minimal: true
+    },
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+</Tabs>
+
+### 서드파티 유니폰트 제공자 지원
+
+내부적으로 유니폰트 제공자를 사용하여 Astro 폰트 제공자를 정의할 수 있습니다.
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="기본">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="제공자 옵션">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="패밀리 옵션">
+
+```ts title="font-provider.ts" {3,5,6-7}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeFamilyOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider<AcmeFamilyOptions | undefined> {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider<AcmeFamilyOptions> | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+그 후 Astro 구성에 이 폰트 제공자를 등록할 수 있습니다.
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="기본">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider(),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="제공자 옵션">
+
+```ts title="astro.config.ts" {7}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider({
+      token: "..."
+    }),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="패밀리 옵션">
+
+```ts title="astro.config.ts" {7-9}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider(),
+    options: {
+      minimal: true
+    },
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+</Tabs>
