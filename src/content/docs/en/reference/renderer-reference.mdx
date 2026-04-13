@@ -15,7 +15,7 @@ Astro is designed to support any UI frameworks. This ability is powered by rende
 
 ## What is a renderer?
 
-A renderer is a special kind of [integration](/en/reference/integrations-reference/) that tell Astro how to detect and render component syntaxes it does not handle natively, such as [UI framework components](/en/guides/framework-components/). A renderer consists of two parts:
+A renderer is a special kind of [integration](/en/reference/integrations-reference/) that tells Astro how to detect and render component syntaxes it does not handle natively, such as [UI framework components](/en/guides/framework-components/). A renderer consists of two parts:
 - a server module imported during development and production builds to render components to HTML
 - an optional client module imported in the browser to hydrate components with [client directives](/en/reference/directives-reference/#client-directives).
 
@@ -52,27 +52,27 @@ The following example shows a minimal server-side renderer implementing `check()
 import type { AstroComponentMetadata, NamedSSRLoadedRendererValue } from 'astro';
 
 async function check(Component: unknown) {
-	return typeof Component === 'function' && Boolean((Component as any).$$exampleRenderer);
+  return typeof Component === 'function' && Component.name === 'MyCustomComponent';
 }
 
 async function renderToStaticMarkup(
-	Component: any,
-	props: Record<string, unknown>,
-	slots: Record<string, string>,
-	metadata?: AstroComponentMetadata,
+  Component: any,
+  props: Record<string, unknown>,
+  slots: Record<string, string>,
+  metadata?: AstroComponentMetadata,
 ) {
-	const rendered = Component(props);
+  const rendered = Component(props);
 
-	return {
-		attrs: metadata?.hydrate ? { 'data-my-renderer': 'true' } : undefined,
-		html: `<${rendered.tag}>${rendered.text}${slots.default ?? ''}</${rendered.tag}>`,
-	};
+  return {
+    attrs: metadata?.hydrate ? { 'data-my-renderer': 'true' } : undefined,
+    html: `<${rendered.tag}>${rendered.text}${slots.default ?? ''}</${rendered.tag}>`,
+  };
 }
 
 const renderer: NamedSSRLoadedRendererValue = {
-	name: 'my-renderer',
-	check,
-	renderToStaticMarkup,
+  name: 'my-renderer',
+  check,
+  renderToStaticMarkup,
 };
 
 export default renderer;
@@ -82,26 +82,28 @@ export default renderer;
 
 When your renderer supports [client directives](/en/reference/directives-reference/#client-directives), create a client entrypoint that defines how to hydrate components in the browser. The client module must default-export a function that receives the island element and returns an async hydrator function.
 
+The following example shows a minimal client entrypoint that hydrates components in the browser:
+
 ```ts title="my-renderer/client.ts"
 export default (element: HTMLElement) =>
-	async (
-		Component: any,
-		props: Record<string, unknown>,
-		slots: Record<string, string>,
-		{ client }: { client: string },
-	) => {
-		const rendered = Component({ ...props, slots });
+  async (
+    Component: any,
+    props: Record<string, unknown>,
+    slots: Record<string, string>,
+    { client }: { client: string },
+  ) => {
+    const rendered = Component({ ...props, slots });
 
-		if (client === 'only') {
-			element.innerHTML = '';
-		}
+    if (client === 'only') {
+      element.innerHTML = '';
+    }
 
-		const node = document.createElement(rendered.tag);
-		node.textContent = rendered.text;
-		element.appendChild(node);
+    const node = document.createElement(rendered.tag);
+    node.textContent = rendered.text;
+    element.appendChild(node);
 
-		element.addEventListener('astro:unmount', () => node.remove(), { once: true });
-	};
+    element.addEventListener('astro:unmount', () => node.remove(), { once: true });
+  };
 ```
 
 ## Renderer types reference
