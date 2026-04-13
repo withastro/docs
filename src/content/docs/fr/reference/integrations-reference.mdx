@@ -2063,19 +2063,23 @@ Spécifie le nom identifiant le moteur de rendu.
 
 <p>
 
-**Type :** `AsyncRendererComponentFn<boolean>`
+**Type :** `(Component: any, props: Record<string, any>, children: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<boolean>`
 </p>
 
-Détermine si le moteur de rendu doit gérer le composant.
+Détermine si le moteur de rendu doit gérer le composant. Appelée pour chaque moteur de rendu enregistré jusqu'à ce que l'un d'eux renvoie `true`.
+
+La fonction reçoit le constructeur ou la fonction du composant, ses propriétés, le contenu du slot et un objet optionnel [`metadata`](#astrocomponentmetadata) contenant des informations sur la directive d'hydratation et la source du composant.
 
 #### `SSRLoadedRendererValue.renderToStaticMarkup()`
 
 <p>
 
-**Type :** `AsyncRendererComponentFn<{ html: string; attrs?: Record<string, string>; }>`
+**Type :** `(Component: any, props: Record<string, any>, children: Record<string, string>, metadata?: AstroComponentMetadata) => Promise<{ html: string; attrs?: Record<string, string>; }>`
 </p>
 
 Génère un composant de framework sous forme de balisage HTML statique sur le serveur.
+
+La fonction reçoit le constructeur ou la fonction du composant, ses propriétés, le contenu du slot et un objet [`metadata`](#astrocomponentmetadata) optionnel. Les moteurs de rendu peuvent utiliser `metadata` pour déterminer si le composant sera hydraté côté client, ce qui peut s'avérer utile pour inclure conditionnellement l'état d'hydratation côté client.
 
 #### `SSRLoadedRendererValue.supportsAstroStaticSlot`
 
@@ -2096,6 +2100,79 @@ Indique si le moteur de rendu prend en charge l'optimisation des slots statiques
 </p>
 
 Renvoie un script d'hydratation spécifique au framework qui doit être injecté dans le HTML avant le premier composant utilisant ce moteur de rendu.
+
+### `AstroComponentMetadata`
+
+<p>
+
+**Type :** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+Un objet transmis en tant que quatrième argument aux fonctions [`check()`](#ssrloadedrenderervaluecheck) et [`renderToStaticMarkup()`](#ssrloadedrenderervaluerendertostaticmarkup) d'un moteur de rendu. Contient des informations sur le composant rendu, y compris sa directive d'hydratation.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Le nom d'affichage du composant, utilisé pour les messages d'erreur et le débogage.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**Type :** `'load' | 'idle' | 'visible' | 'media' | 'only' | undefined`
+</p>
+
+La [directive client](/fr/reference/directives-reference/#directives-client) utilisée sur le composant, le cas échéant. Lorsque la valeur est `undefined`, le composant ne sera pas hydraté côté client.
+
+Les moteurs de rendu peuvent utiliser cette valeur pour inclure conditionnellement l'état d'hydratation côté client. Par exemple, un moteur de rendu peut ignorer la sérialisation de l'état de transfert pour les composants qui ne seront pas hydratés :
+
+```ts
+async function renderToStaticMarkup(Component, props, children, metadata) {
+  const willHydrate = !!metadata?.hydrate;
+  // Ignorer la sérialisation de l'état d'hydratation quand le composant ne sera pas hydraté.
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**Type :** `any`
+</p>
+
+Arguments supplémentaires pour la directive d'hydratation. Par exemple, la valeur de `client:media="(max-width: 768px)"` serait `"(max-width: 768px)"`. Pour `client:only="react"`, la valeur serait `"react"`.
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**Type :** `string | undefined`
+</p>
+
+L'URL du fichier source du composant.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**Type :** `{ value: string; namespace?: boolean } | undefined`
+</p>
+
+Informations relatives à l'exportation du composant. La propriété `value` correspond au nom de l'exportation (par exemple, `"default"` pour les exportations par défaut).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**Type :** `true`
+</p>
+
+Toujours `true`. Indique qu'Astro prend en charge l'optimisation statique des slots pour ce composant. Les moteurs de rendu qui définissent [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot) sur `true` peuvent l'utiliser en combinaison avec [`hydrate`](#astrocomponentmetadatahydrate) pour déterminer comment rendre les slots.
 
 ### `SSRManifest`
 
