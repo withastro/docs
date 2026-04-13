@@ -133,6 +133,27 @@ Une fois [la police configurée](#configuration-de-polices-personnalisées), ell
 
 </Steps>
 
+## Préchargement des polices
+
+Le préchargement des polices doit être utilisé avec parcimonie, car il peut bloquer le chargement d'autres ressources importantes ou télécharger des polices inutiles pour la page actuelle. Envisagez de précharger uniquement les polices essentielles, nécessaires à l'affichage du contenu visible au-dessus de la ligne de flottaison.
+
+Pour précharger une police, transmettez la [`propriété preload`](/fr/reference/modules/astro-assets/#preload) au composant `<Font />` correspondant. Si plusieurs fichiers correspondent à une police, vous pouvez également spécifier lequel précharger en transmettant un tableau.
+
+```astro title="src/layouts/Layout.astro" {7}
+---
+import { Font } from "astro:assets";
+---
+
+<html>
+  <head>
+    <Font cssVariable="--font-distant-galaxy" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
 ## Enregistrer les polices avec Tailwind
 
 Si vous utilisez [Tailwind](/fr/guides/styling/#tailwind) pour la mise en forme, vous n'appliquerez pas vos styles avec la propriété CSS `font-face`.
@@ -175,19 +196,116 @@ Si vous utilisez [Tailwind](/fr/guides/styling/#tailwind) pour la mise en forme,
 
 Consultez [la documentation de Tailwind sur l'ajout de familles de polices personnalisées](https://tailwindcss.com/docs/font-family#using-a-custom-value) pour plus d'informations.
 
+## Utilisation de polices variables
+
+Pour utiliser des [polices variables](https://developer.mozilla.org/fr/docs/Web/CSS/Guides/Fonts/Variable_fonts) dans votre projet, indiquez la plage de graisses disponible au lieu des graisses individuelles dans la configuration de votre fournisseur.
+
+<Tabs>
+<TabItem label="Fournisseur local">
+
+Lorsque vous [utilisez un fichier de police local](#utilisation-dun-fichier-de-police-local), vous pouvez indiquer que la police est variable en définissant la [propriété `weight` de la variante](/fr/reference/font-provider-reference/#weight) avec une chaîne de caractères correspondant à la plage de graisses exacte disponible pour la police.
+
+L'exemple suivant configure Inter en tant que police variable locale avec la plage de graisses disponible :
+
+```js title="astro.config.mjs" {11}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Inter",
+    cssVariable: "--font-inter",
+    options: {
+      variants: [
+        {
+          weight: "100 900",
+          style: "normal",
+          src: ["./src/assets/fonts/InterVariable.woff2"],
+        },
+      ],
+    },
+  }]
+});
+```
+
+</TabItem>
+<TabItem label="Autres fournisseurs">
+
+Lorsque vous utilisez [d'autres fournisseurs (par exemple Fontsource)](#utilisation-de-fontsource) qui prennent en charge les polices variables, vous pouvez demander la version variable d'une police en définissant la [propriété `weights`](/fr/reference/configuration-reference/#fontweights) avec un tableau contenant la plage exacte de graisses disponibles pour la police.
+
+L'exemple suivant télécharge [Fira Code depuis Fontsource](https://fontsource.org/fonts/fira-code) en tant que police variable avec la plage de graisses disponible :
+
+```js title="astro.config.mjs" {9}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    cssVariable: "--font-fira-code",
+    name: "Fira Code",
+    provider: fontProviders.fontsource(),
+    styles: ["normal"],
+    weights: ["300 700"],
+  }]
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Personnalisation des polices de repli
+
+Les polices de repli sont utilisées lorsque la police principale n'a pas encore été chargée, contient des caractères manquants ou ne peut pas être chargée pour une raison quelconque. Lorsque la police de repli diffère considérablement de la police principale, des décalages de mise en page peuvent se produire lors du chargement de la page.
+
+Pour éviter cela, Astro tente automatiquement de générer des polices de repli optimisées à partir de la dernière [police de repli définie](/fr/reference/configuration-reference/#fontfallbacks) si elle appartient à une [famille de polices générique](https://developer.mozilla.org/fr/docs/Web/CSS/Reference/Properties/font-family#generic-name). Il utilise par défaut la police `sans-serif`, mais celle-ci peut ne pas correspondre à l'apparence souhaitée de votre police principale. Vous pouvez la régler dans votre configuration de police :
+
+```mjs title="astro.config.mjs" {8}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Cousine",
+    cssVariable: "--font-cousine",
+    fallbacks: ["monospace"]
+  }]
+});
+```
+
+Vous pouvez également choisir de ne pas utiliser l'optimisation par défaut en définissant [`font.optimizedFallbacks`](/fr/reference/configuration-reference/#fontoptimizedfallbacks) sur `false` dans votre configuration de police. Astro utilisera alors les polices de repli spécifiées dans votre configuration sans aucun traitement automatique supplémentaire.
 
 ## Accéder aux données de police par programmation
 
-L'objet [`fontData`](/fr/reference/modules/astro-assets/#fontdata) vous permet de récupérer par programmation des données de famille de polices de bas niveau. Par exemple, vous pouvez l'utiliser dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api) pour générer des images OpenGraph à l'aide de [satori](https://github.com/vercel/satori), combiné avec une configuration de [formats](/fr/reference/configuration-reference/#fontformats) appropriée :
+Astro expose une API de bas niveau permettant d'accéder par programmation aux données des familles de polices via l'objet [`fontData`](/fr/reference/modules/astro-assets/#fontdata). Ceci peut s'avérer utile pour des cas d'utilisation avancés nécessitant un accès direct aux fichiers de polices, comme la génération d'images OpenGraph avec [Satori](https://github.com/vercel/satori) dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api).
+
+Cette API de bas niveau vous donne accès à tous les fichiers de polices téléchargés par Astro pour votre projet, ainsi qu'à leurs métadonnées. Cela signifie que vous êtes responsable du filtrage des fichiers de polices pour trouver le fichier spécifique dont vous avez besoin, et de la résolution du chemin du fichier à utiliser en fonction de la structure de sortie de la compilation.
+
+:::note
+L'API actuelle présente une [limitation connue qui vous oblige à charger manuellement le fichier de police](https://github.com/withastro/astro/issues/16139) à partir du chemin de sortie au moment de la compilation.
+
+Une nouvelle API est en cours de développement pour simplifier ce processus et sera disponible dans une future version. Vous pouvez vous abonner au ticket GitHub pour suivre son avancement.
+:::
+
+L'exemple suivant génère une image OpenGraph dans un point de terminaison de fichier statique, en supposant qu'une seule [police et son format ont été configurés](/fr/reference/configuration-reference/#fontformats) avec un [format pris en charge par Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts) :
 
 ```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
-import type{ APIRoute } from "astro";
+import type { APIRoute } from "astro";
 import { fontData } from "astro:assets";
+import { outDir } from "astro:config/server";
+import { readFile } from "node:fs/promises";
 import satori from "satori";
 import { html } from "satori-html";
+import sharp from "sharp";
 
 export const GET: APIRoute = async (context) => {
-  const data = fontData["--font-roboto"];
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("Impossible de trouver le chemin de la police.");
+  }
+
+  const data = import.meta.env.DEV
+    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
+    : await readFile(new URL(`.${fontPath}`, outDir));
 
   const svg = await satori(
     html`<div style="color: black;">hello, world</div>`,
@@ -197,9 +315,7 @@ export const GET: APIRoute = async (context) => {
       fonts: [
         {
           name: "Roboto",
-          data: await fetch(
-            new URL(data[0].src[0].url, context.url.origin),
-          ).then((res) => res.arrayBuffer()),
+          data,
           weight: 400,
           style: "normal",
         },
@@ -207,8 +323,17 @@ export const GET: APIRoute = async (context) => {
     },
   );
 
-  // ...
-}
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
 ```
 
 ## Configuration granulaire des polices
