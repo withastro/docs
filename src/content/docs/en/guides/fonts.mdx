@@ -133,6 +133,27 @@ After [a font is configured](#configuring-custom-fonts), it must be added to you
 
 </Steps>
 
+## Preloading fonts
+
+Font preloading should be done sparingly, as it can block the loading of other important resources or download fonts that are unnecessary for the current page. Consider preloading only the most essential fonts, necessary for displaying content visible above the fold.
+
+To preload a font, pass the [`preload` property](/en/reference/modules/astro-assets/#preload) to the corresponding `<Font />` component. If multiple files correspond to a font, you can also specify which one to preload by passing an array.
+
+```astro title="src/layouts/Layout.astro" {7}
+---
+import { Font } from "astro:assets";
+---
+
+<html>
+  <head>
+    <Font cssVariable="--font-distant-galaxy" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
 ## Register fonts in Tailwind
 
 If you are using [Tailwind](/en/guides/styling/#tailwind) for styling, you will not apply your styles with the `font-face` CSS property.
@@ -175,19 +196,116 @@ Instead, after [configuring your custom font](#configuring-custom-fonts) and [ad
 
 See [Tailwind's docs on adding custom font families](https://tailwindcss.com/docs/font-family#using-a-custom-value) for more information.
 
+## Using variable fonts
+
+To use [variable fonts](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) in your project, specify the available weight range instead of individual weights in your provider's configuration.
+
+<Tabs>
+<TabItem label="Local provider">
+
+When [using a local font file](#using-a-local-font-file), you can specify that the font is variable by setting the [`weight` property of the variant](/en/reference/font-provider-reference/#weight) to a string corresponding to the exact weight range available for the font.
+
+The following example configures Inter as a local variable font with the available weight range:
+
+```js title="astro.config.mjs" {11}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Inter",
+    cssVariable: "--font-inter",
+    options: {
+      variants: [
+        {
+          weight: "100 900",
+          style: "normal",
+          src: ["./src/assets/fonts/InterVariable.woff2"],
+        },
+      ],
+    },
+  }]
+});
+```
+
+</TabItem>
+<TabItem label="Other providers">
+
+When using [other providers (e.g. Fontsource)](#using-fontsource), that support variable fonts, you can request the variable version of a font by setting the [`weights` property](/en/reference/configuration-reference/#fontweights) with an array containing the exact range of weights available for the font.
+
+The following example downloads [Fira Code from Fontsource](https://fontsource.org/fonts/fira-code) as a variable font with the available weight range:
+
+```js title="astro.config.mjs" {9}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    cssVariable: "--font-fira-code",
+    name: "Fira Code",
+    provider: fontProviders.fontsource(),
+    styles: ["normal"],
+    weights: ["300 700"],
+  }]
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Customizing font fallbacks
+
+Fallback fonts are used when the primary font has not yet loaded, contains missing characters, or cannot be loaded for any reason. When the fallback font differs significantly from the primary font, layout shifts may occur during page loading. 
+
+To avoid this, Astro automatically tries to generate optimized fallback fonts from the last [defined fallback](/en/reference/configuration-reference/#fontfallbacks) if it is a [generic font family](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family#generic-name). It uses `sans-serif` by default, but it may not match the desired appearance of your primary font. You can adjust it in your font configuration:
+
+```mjs title="astro.config.mjs" {8}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Cousine",
+    cssVariable: "--font-cousine",
+    fallbacks: ["monospace"]
+  }]
+});
+```
+
+You can also opt out of the default optimization by setting [`font.optimizedFallbacks`](/en/reference/configuration-reference/#fontoptimizedfallbacks) to `false` in your font configuration. Astro will then use the fallback fonts specified in your configuration without any additional automatic processing.
 
 ## Accessing font data programmatically
 
-The [`fontData`](/en/reference/modules/astro-assets/#fontdata) object allows you to retrieve lower-level font family data programmatically. For example, you can use it in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes) to generate OpenGraph images using [satori](https://github.com/vercel/satori), combined with proper [formats](/en/reference/configuration-reference/#fontformats) configuration:
+Astro exposes a low-level API for accessing font family data programmatically through the [`fontData`](/en/reference/modules/astro-assets/#fontdata) object. This can be useful for advanced use cases where you need direct access to font files, such as generating OpenGraph images with [Satori](https://github.com/vercel/satori) in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes).
+
+This low-level API gives you access to all font files downloaded by Astro for your project, along with their metadata. This means that you are responsible for filtering font files to find the specific file you need, and for resolving the file path to use based on the build output structure.
+
+:::note
+The current API has a [known limitation that requires you to manually load the font file](https://github.com/withastro/astro/issues/16139) from the output path at build time.
+
+A new API is being developed to simplify this process and will be available in a future release. You can subscribe to the GitHub issue to follow its progress.
+:::
+
+The following example generates an OpenGraph image in a static file endpoint, assuming that only [one font and its format have been configured](/en/reference/configuration-reference/#fontformats) with a [format supported by Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts):
 
 ```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
-import type{ APIRoute } from "astro";
+import type { APIRoute } from "astro";
 import { fontData } from "astro:assets";
+import { outDir } from "astro:config/server";
+import { readFile } from "node:fs/promises";
 import satori from "satori";
 import { html } from "satori-html";
+import sharp from "sharp";
 
 export const GET: APIRoute = async (context) => {
-  const data = fontData["--font-roboto"];
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("Cannot find the font path.");
+  }
+
+  const data = import.meta.env.DEV
+    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
+    : await readFile(new URL(`.${fontPath}`, outDir));
 
   const svg = await satori(
     html`<div style="color: black;">hello, world</div>`,
@@ -197,9 +315,7 @@ export const GET: APIRoute = async (context) => {
       fonts: [
         {
           name: "Roboto",
-          data: await fetch(
-            new URL(data[0].src[0].url, context.url.origin),
-          ).then((res) => res.arrayBuffer()),
+          data,
           weight: 400,
           style: "normal",
         },
@@ -207,8 +323,17 @@ export const GET: APIRoute = async (context) => {
     },
   );
 
-  // ...
-}
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
 ```
 
 ## Granular font configuration
