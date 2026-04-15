@@ -1,11 +1,10 @@
 export default {
-	start: 'Start',
-	'start.welcome': 'Welcome, world!',
-	'start.newProject': 'Start a new project',
-	'start.config': 'Configuration',
-	'start.migrate': 'Migrate to Astro',
+	tutorial: 'Tutorial',
 
-	guides: 'Guides and recipes',
+	guides: 'Guide',
+	'guides.welcome': 'Welcome, world!',
+	'guides.newProject': 'Start a new project',
+	'guides.config': 'Configuration',
 	'guides.routing': 'Routing and navigation',
 	'guides.ui': 'Build your UI',
 	'guides.content': 'Add content to your site',
@@ -13,6 +12,7 @@ export default {
 	'guides.upgrade': 'Upgrade',
 	'guides.upgrade.major': 'Major upgrade guides',
 	'guides.recipes': 'How-to recipes',
+	'guides.migrate': 'Migrate to Astro',
 
 	reference: 'Reference',
 	'reference.runtime': 'Runtime API',
@@ -20,14 +20,12 @@ export default {
 	'reference.syntax': 'Astro Template Syntax',
 	'reference.experimental': 'Experimental features',
 
-	integrations: 'Integrations',
-	'integrations.ui': 'UI frameworks',
-	'integrations.adapters': 'Adapters',
-	'integrations.other': 'Other official integrations',
-
-	thirdParty: 'Third-party services',
-	'thirdParty.deployment': 'Deployment guides',
-	'thirdParty.cms': 'Content management systems',
-	'thirdParty.backend': 'Backend services',
-	'thirdParty.media': 'Image and video hosting',
+	ecosystem: 'Ecosystem',
+	'ecosystem.integrations.ui': 'UI frameworks',
+	'ecosystem.integrations.adapters': 'Adapters',
+	'ecosystem.integrations.other': 'Other official integrations',
+	'ecosystem.deployment': 'Deployment guides',
+	'ecosystem.cms': 'Content management systems',
+	'ecosystem.backend': 'Backend services',
+	'ecosystem.media': 'Image and video hosting',
 };
