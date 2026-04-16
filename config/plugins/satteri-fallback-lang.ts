@@ -1,7 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { defineMdastPlugin } from 'tryckeri';
-import type { MdastNode } from 'tryckeri';
+import { defineMdastPlugin } from 'satteri';
 
 const pageSourceDir = path.resolve('./src/content/docs');
 const baseUrl = 'https://docs.astro.build/';
@@ -9,34 +8,30 @@ const baseUrl = 'https://docs.astro.build/';
 export function fallbackLangPlugin() {
 	return defineMdastPlugin({
 		name: 'fallback-lang',
-		createOnce() {
-			return {
-				link(node, context) {
-					const pageUrl = mdFilePathToUrl(context.filename, pageSourceDir, baseUrl);
-					const pageLang = getLanguageCodeFromPathname(pageUrl.pathname);
+		link(node, context) {
+			const pageUrl = mdFilePathToUrl(context.filename, pageSourceDir, baseUrl);
+			const pageLang = getLanguageCodeFromPathname(pageUrl.pathname);
 
-					// Ignore pages without language prefix and English pages
-					if (!pageLang || pageLang === 'en') return;
+			// Ignore pages without language prefix and English pages
+			if (!pageLang || pageLang === 'en') return;
 
-					const linkUrl = new URL(node.url, pageUrl);
+			const linkUrl = new URL(node.url, pageUrl);
 
-					// Ignore external links
-					if (pageUrl.host !== linkUrl.host) return;
+			// Ignore external links
+			if (pageUrl.host !== linkUrl.host) return;
 
-					// Ignore link targets without language prefix
-					const linkLang = getLanguageCodeFromPathname(linkUrl.pathname);
-					if (!linkLang) return;
+			// Ignore link targets without language prefix
+			const linkLang = getLanguageCodeFromPathname(linkUrl.pathname);
+			if (!linkLang) return;
 
-					// Ignore link targets that have a valid source file
-					const linkSourceFileName = tryFindSourceFileForPathname(linkUrl.pathname, pageSourceDir);
-					if (linkSourceFileName) return;
+			// Ignore link targets that have a valid source file
+			const linkSourceFileName = tryFindSourceFileForPathname(linkUrl.pathname, pageSourceDir);
+			if (linkSourceFileName) return;
 
-					context.appendChild(node, {
-						type: 'text',
-						value: '\u00A0(EN)',
-					} as MdastNode);
-				},
-			};
+			context.appendChild(node, {
+				type: 'text',
+				value: '\u00A0(EN)',
+			});
 		},
 	});
 }

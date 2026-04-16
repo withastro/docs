@@ -10,8 +10,8 @@ import { starlightPluginLlmsTxt } from './config/plugins/llms-txt';
 import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
-import { tasklistEnhancerPlugin } from './config/plugins/tryckeri-tasklist-enhancer';
-import { fallbackLangPlugin } from './config/plugins/tryckeri-fallback-lang';
+import { tasklistEnhancerPlugin } from './config/plugins/satteri-tasklist-enhancer';
+import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
 import mdx from '@astrojs/mdx';
 
 /* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
@@ -74,8 +74,6 @@ export default defineConfig({
 		sitemap(),
 		mdx({
 			optimize: true,
-			mdastPlugins: [fallbackLangPlugin()],
-			hastPlugins: [tasklistEnhancerPlugin()],
 		}),
 	],
 	trailingSlash: 'always',
@@ -98,6 +96,13 @@ export default defineConfig({
 	},
 	experimental: {
 		rustCompiler: true,
+		nativeMarkdown: {
+			mdastPlugins: [fallbackLangPlugin()],
+			hastPlugins: [tasklistEnhancerPlugin()],
+			features: {
+				directive: true,
+			},
+		},
 	},
 	image: {
 		domains: ['avatars.githubusercontent.com'],
