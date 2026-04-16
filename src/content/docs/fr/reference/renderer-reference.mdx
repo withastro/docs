@@ -1,0 +1,330 @@
+---
+title: API des moteurs de rendu d'Astro
+sidebar:
+  label: API des moteurs de rendu
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro est conçu pour être compatible avec n'importe quel framework d'interface utilisateur. Cette capacité repose sur des moteurs de rendu, qui sont des [intégrations](/fr/reference/integrations-reference/). Consultez le [guide des frameworks front-end](/fr/guides/framework-components/) pour découvrir comment utiliser les composants d'interface utilisateur de différents frameworks dans Astro.
+
+## Qu'est-ce qu'un moteur de rendu ?
+
+Un moteur de rendu est un type particulier d'[intégration](/fr/reference/integrations-reference/) qui indique à Astro comment détecter et effectuer le rendu des syntaxes de composants qu'il ne gère pas nativement, telles que les [composants de frameworks d'interface utilisateur](/fr/guides/framework-components/). Un moteur de rendu se compose de deux parties :
+- un module serveur importé lors des phases de développement et de production pour effectuer le rendu des composants en HTML.
+- un module client optionnel importé dans le navigateur pour hydrater les composants avec des [directives client](/fr/reference/directives-reference/#directives-client).
+
+## Création d'un moteur de rendu
+
+Lorsque vous devez ajouter la prise en charge d'une nouvelle syntaxe de composant dans Astro, créez une intégration et appelez `addRenderer()` dans le hook [`astro:config:setup`](/fr/reference/integrations-reference/#astroconfigsetup). Cela vous permet de définir le [point d'entrée du serveur](#création-dun-point-dentrée-de-serveur) qu'Astro doit utiliser pour le rendu des composants. Optionnellement, vous pouvez également définir le [point d'entrée du client](#création-dun-point-dentrée-de-client) utilisé pour l'hydratation.
+
+L'exemple suivant montre comment enregistrer un moteur de rendu dans une intégration Astro :
+
+```ts title="mon-moteur-de-rendu/index.js" {5-11}
+export default function createIntegration() {
+  return {
+    name: "@exemple/mon-moteur-de-rendu",
+    hooks: {
+      "astro:config:setup": ({ addRenderer }) => {
+        addRenderer({
+          name: "@exemple/mon-moteur-de-rendu",
+          clientEntrypoint: "@exemple/mon-moteur-de-rendu/client.js",
+          serverEntrypoint: "@exemple/mon-moteur-de-rendu/serveur.js",
+        });
+      },
+    },
+  };
+}
+```
+
+## Création d'un point d'entrée de serveur
+
+Vous devrez créer un fichier qui s'exécute lors du rendu côté serveur et qui définit comment effectuer le rendu de la syntaxe des composants. Le module serveur doit exporter par défaut un objet qui implémente l'interface [`SSRLoadedRendererValue`](#ssrloadedrenderervalue).
+
+L'exemple suivant montre un moteur de rendu côté serveur minimal implémentant `check()` et `renderToStaticMarkup()` :
+
+```ts title="mon-moteur-de-rendu/serveur.ts"
+import type { AstroComponentMetadata, NamedSSRLoadedRendererValue } from 'astro';
+
+async function check(Component: unknown) {
+  return typeof Component === 'function' && Component.name === 'MonComposantPersonnalise';
+}
+
+async function renderToStaticMarkup(
+  Component: any,
+  props: Record<string, unknown>,
+  slots: Record<string, string>,
+  metadata?: AstroComponentMetadata,
+) {
+  const rendered = Component(props);
+
+  return {
+    attrs: metadata?.hydrate ? { 'data-mon-moteur-de-rendu': 'true' } : undefined,
+    html: `<${rendered.tag}>${rendered.text}${slots.default ?? ''}</${rendered.tag}>`,
+  };
+}
+
+const renderer: NamedSSRLoadedRendererValue = {
+  name: 'mon-moteur-de-rendu',
+  check,
+  renderToStaticMarkup,
+};
+
+export default renderer;
+```
+
+## Création d'un point d'entrée de client
+
+Lorsque votre moteur de rendu prend en charge les [directives client](/fr/reference/directives-reference/#directives-client), créez un point d'entrée client qui définit comment hydrater les composants dans le navigateur. Le module client doit exporter par défaut une fonction recevant l'élément de l'îlot et renvoyant une fonction d'hydratation asynchrone.
+
+Astro déclenche un événement personnalisé `astro:unmount` sur l'élément racine de l'îlot chaque fois qu'un îlot est supprimé de la page. Vous pouvez écouter cet événement dans votre point d'entrée client pour nettoyer l'état de toute application montée.
+
+L'exemple suivant montre un point d'entrée client minimal qui hydrate les composants dans le navigateur :
+
+```ts title="mon-moteur-de-rendu/client.ts"
+export default (element: HTMLElement) =>
+  async (
+    Component: any,
+    props: Record<string, unknown>,
+    slots: Record<string, string>,
+    { client }: { client: string },
+  ) => {
+    const rendered = Component({ ...props, slots });
+
+    if (client === 'only') {
+      element.innerHTML = '';
+    }
+
+    const node = document.createElement(rendered.tag);
+    node.textContent = rendered.text;
+    element.appendChild(node);
+
+    element.addEventListener('astro:unmount', () => node.remove(), { once: true });
+  };
+```
+
+## Référence des types du moteur de rendu
+
+Les types suivants peuvent être importés depuis le module `astro` :
+
+```ts
+import type {
+  AstroComponentMetadata,
+  AstroRenderer,
+  NamedSSRLoadedRendererValue,
+  SSRLoadedRenderer,
+  SSRLoadedRendererValue,
+} from "astro";
+```
+
+### `AstroComponentMetadata`
+
+<p>
+
+**Type :** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+Contient des informations sur le composant en cours de rendu, y compris sa directive d'hydratation.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Définit le nom du composant, utilisé pour les messages d'erreur et le débogage.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**Type :** `'load' | 'idle' | 'visible' | 'media' | 'only'`
+</p>
+
+Définit la [directive client](/fr/reference/directives-reference/#directives-client) utilisée sur le composant. Si aucune valeur n'est fournie, le composant ne sera pas hydraté côté client.
+
+Les moteurs de rendu peuvent utiliser cette valeur pour inclure conditionnellement l'état d'hydratation côté client. Par exemple, un moteur de rendu peut ignorer la sérialisation de l'état de transfert pour les composants qui ne seront pas hydratés :
+
+```ts
+async function renderToStaticMarkup(Component, props, children, metadata) {
+  const willHydrate = !!metadata?.hydrate;
+  // Ignorer la sérialisation de l'état d'hydratation si le composant ne sera pas hydraté.
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**Type :** `any`
+</p>
+
+Spécifie les arguments supplémentaires passés à la directive d'hydratation.
+
+Par exemple, cela pourrait être la chaîne de caractères correspondant à la requête média définie dans `client:media` (c'est-à-dire `"(max-width: 768px)"`) ou l'indication du moteur de rendu pour `client:only` (c'est-à-dire `"react"`).
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Définit l'URL du fichier source du composant.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**Type :** `{ value: string; namespace?: boolean }`
+</p>
+
+Décrit l'exportation du composant qu'Astro chargera côté client pour les composants hydratés.
+
+##### `AstroComponentMetadata.componentExport.namespace`
+
+<p>
+
+**Type :** `boolean`
+</p>
+
+Indique si l'exportation est une exportation d'espace de noms.
+
+##### `AstroComponentMetadata.componentExport.value`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Définit le nom de l'exportation (par exemple `"default"` pour les exportations par défaut).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**Type :** `true`
+</p>
+
+Indique qu'Astro prend en charge l'optimisation des slots statiques pour ce composant. Les moteurs de rendu qui définissent [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot) sur `true` peuvent utiliser cela en combinaison avec [`hydrate`](#astrocomponentmetadatahydrate) pour déterminer comment effectuer le rendu des slots.
+
+### `AstroRenderer`
+
+<p>
+
+**Type :** `{ name: string; clientEntrypoint?: string | URL; serverEntrypoint: string | URL; }`
+</p>
+
+Décrit un [moteur de rendu de composant ajouté par une intégration](/fr/reference/integrations-reference/#option-addrenderer).
+
+#### `AstroRenderer.name`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Définit le nom public unique du moteur de rendu.
+
+#### `AstroRenderer.clientEntrypoint`
+
+<p>
+
+**Type :** `string | URL`
+</p>
+
+Définit le chemin d'importation du moteur de rendu qui s'exécute côté client chaque fois que votre composant est utilisé.
+
+#### `AstroRenderer.serverEntrypoint`
+
+<p>
+
+**Type :** `string | URL`
+</p>
+
+Définit le chemin d'importation du moteur de rendu qui s'exécute lors des requêtes côté serveur ou des compilations statiques chaque fois que votre composant est utilisé.
+
+### `NamedSSRLoadedRendererValue`
+
+Étend [`SSRLoadedRendererValue`](#ssrloadedrenderervalue) avec une propriété `name` obligatoire.
+
+### `SSRLoadedRenderer`
+
+<p>
+
+**Type :** <code>Pick\<<a href="#astrorenderer">AstroRenderer</a>, 'name' | 'clientEntrypoint'\> & \{ ssr: <a href="#ssrloadedrenderervalue">SSRLoadedRendererValue</a>; \}</code>
+</p>
+
+Décrit un moteur de rendu disponible pour le serveur. Il s'agit d'un sous-ensemble de [`AstroRenderer`](#astrorenderer) avec des propriétés supplémentaires.
+
+#### `SSRLoadedRenderer.ssr`
+
+<p>
+
+**Type :** [`SSRLoadedRendererValue`](#ssrloadedrenderervalue)
+</p>
+
+Définit les fonctions et la configuration utilisées par le serveur pour ce framework.
+
+### `SSRLoadedRendererValue`
+
+<p>
+
+**Type :** `object`
+</p>
+
+Contient les fonctions et la configuration nécessaires pour effectuer le rendu des composants côté serveur à partir d'un framework UI spécifique.
+
+#### `SSRLoadedRendererValue.name`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie le nom identifiant le moteur de rendu.
+
+#### `SSRLoadedRendererValue.check()`
+
+<p>
+
+**Type :** <code>(Component: any, props: any, slots: Record\<string, string\>, metadata?: <a href="#astrocomponentmetadata">AstroComponentMetadata</a>) => Promise\<boolean\></code>
+</p>
+
+Détermine si le moteur de rendu peut gérer un composant. Cette fonction est appelée pour chaque moteur de rendu enregistré jusqu'à ce que l'un d'eux renvoie `true`.
+
+#### `SSRLoadedRendererValue.renderToStaticMarkup()`
+
+<p>
+
+**Type :** <code>(Component: any, props: any, slots: Record\<string, string\>, metadata?: <a href="#astrocomponentmetadata">AstroComponentMetadata</a>) => Promise\<\{ html: string; attrs?: Record\<string, string\>; \}\></code>
+</p>
+
+Effectue le rendu d'un composant de framework côté serveur et renvoie la chaîne HTML résultante ainsi que les attributs optionnels à transmettre au point d'entrée côté client.
+
+#### `SSRLoadedRendererValue.supportsAstroStaticSlot`
+
+<p>
+
+**Type :** `boolean`<br />
+<Since v="2.5.0" />
+</p>
+
+Indique si le moteur de rendu prend en charge l'optimisation des slots statiques d'Astro. Lorsque cette option est activée, Astro empêche la suppression des slots imbriqués au sein des îlots.
+
+#### `SSRLoadedRendererValue.renderHydrationScript()`
+
+<p>
+
+**Type :** `() => string`<br />
+<Since v="4.1.0" />
+</p>
+
+Renvoie une chaîne HTML à injecter une seule fois par page, avant le premier composant hydraté géré par ce moteur de rendu. Ceci est utile pour les moteurs de rendu nécessitant une configuration d'hydratation au niveau de la page.
