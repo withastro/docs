@@ -1,0 +1,191 @@
+---
+title: API des pilotes de session d'Astro
+sidebar:
+  label: API des pilotes de session
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+
+Les [sessions](/fr/guides/sessions/) d'Astro permettent de partager des données entre les requêtes pour les pages rendues à la demande. Elles nécessitent un pilote de session Astro pour stocker les données de session.
+
+## Pilotes intégrés
+
+Astro exporte des pilotes de session intégrés depuis `astro/config` :
+
+```js
+import { sessionDrivers } from 'astro/config'
+```
+
+N'importe quel [pilote unstorage](https://unstorage.unjs.io/drivers) peut être utilisé, par exemple :
+
+```js title="astro.config.mjs" ins={5-7} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+
+export default defineConfig({
+    session: {
+        driver: sessionDrivers.redis({
+            url: process.env.REDIS_URL
+        }),
+    }
+})
+```
+
+:::note
+Certains pilotes peuvent nécessiter l'installation de paquets supplémentaires. D'autres peuvent également exiger la configuration de variables d'environnement ou d'identifiants. Consultez la [documentation d'Unstorage](https://unstorage.unjs.io/drivers) pour plus d'informations.
+:::
+
+## Création d'un pilote de session
+
+Un pilote de session est composé de deux parties :
+
+- La [configuration du pilote](#la-configuration-du-pilote-de-session), qui indique à Astro quelle implémentation utiliser lors de l'exécution et quelle configuration transmettre
+- L'[implémentation du pilote](#limplémentation-du-pilote-de-session), qui gère la logique de stockage à l'exécution
+
+### La configuration du pilote de session
+
+Un `SessionDriverConfig` est un objet contenant un [point d'entrée d'exécution (`entrypoint`)](#entrypoint) obligatoire et une [`config`](#config) facultative. La méthode privilégiée pour l'implémenter consiste à exporter une fonction qui renvoie cet objet et prend la configuration comme paramètre optionnel.
+
+L'exemple suivant définit une configuration de pilote de mémoire :
+
+```ts title="driver/config.ts"
+import type { SessionDriverConfig } from 'astro'
+
+export interface Config {
+    max?: number;
+}
+
+export function memoryDriver(config: Config = {}): SessionDriverConfig {
+    return {
+        entrypoint: new URL('./runtime.js', import.meta.url),
+        config,
+    }
+}
+```
+
+Il est ensuite enregistré dans la configuration d'Astro :
+
+```ts title="astro.config.ts"
+import { defineConfig } from 'astro/config'
+import { memoryDriver } from './driver/config'
+
+export default defineConfig({
+    session: {
+        driver: memoryDriver({
+            max: 500
+        })
+    }
+})
+```
+
+#### `entrypoint`
+
+<p>
+
+**Type :** `string | URL`
+<Since v="6.0.0" />
+</p>
+
+Définit le point d'entrée pour l'[implémentation du pilote](#limplémentation-du-pilote-de-session).
+
+#### `config`
+
+<p>
+
+**Type :** `Record<string, any> | undefined`
+<Since v="6.0.0" />
+</p>
+
+Définit la configuration sérialisable transmise à [l'implémentation du pilote](#limplémentation-du-pilote-de-session) au moment de l'exécution.
+
+### L'implémentation du pilote de session
+
+`SessionDriver` est un objet responsable du [stockage](#setitem), de la [récupération](#getitem) et de la [suppression](#removeitem) des données lors de l'[utilisation de sessions à l'exécution](/fr/reference/api-reference/#session) (par exemple `context.session.set()`). Vous pouvez l'implémenter dans votre module de pilote de session en exportant une fonction par défaut qui accepte la [configuration du pilote](#config) en tant que paramètre.
+
+L'exemple suivant implémente un pilote de mémoire :
+
+```ts title="driver/runtime.ts"
+import type { SessionDriver } from 'astro'
+import type { Config } from './config'
+import { LRUCache } from 'lru-cache'
+
+export default function(config: Config): SessionDriver {
+    const cache = new LRUCache({ max: config.max })
+    return {
+        setItem: async (key, value) => {
+            cache.set(key, value)
+        },
+        getItem: async (key) => {
+            return cache.get(key)
+        },
+        removeItem: async (key) => {
+            cache.delete(key)
+        },
+    }
+}
+```
+
+#### `setItem()`
+
+<p>
+
+**Type :** `(key: string, value: any) => Promise<void>`
+<Since v="6.0.0" />
+</p>
+
+Définit une fonction qui définit les données de session par nom de propriété.
+
+#### `getItem()`
+
+<p>
+
+**Type :** `(key: string) => Promise<any>`
+<Since v="6.0.0" />
+</p>
+
+Définit une fonction qui récupère les données de session par nom de propriété.
+
+#### `removeItem()`
+
+<p>
+
+**Type :** `(key: string) => Promise<void>`
+<Since v="6.0.0" />
+</p>
+
+Définit une fonction qui supprime les données de session par nom de propriété.
+
+## Compatibilité avec Unstorage
+
+Les types de pilotes d'Unstorage sont compatibles avec le type `SessionDriver` d'Astro.
+
+Cela signifie que vous pouvez utiliser une exportation de paquet Unstorage comme [point d'entrée](#entrypoint). Par exemple :
+
+```ts title="driver/config.ts" {5}
+import type { SessionDriverConfig } from 'astro'
+
+export function configuredRedisDriver(): SessionDriverConfig {
+    return {
+        entrypoint: 'unstorage/drivers/redis',
+        config: {
+            tls: true
+        }
+    }
+}
+```
+
+Vous pouvez également importer et utiliser directement un pilote Unstorage dans l'implémentation. Par exemple :
+
+```ts title="driver/runtime.ts" {2}
+import type { SessionDriver } from 'astro'
+import redisDriver from "unstorage/drivers/redis";
+
+export default function(config): SessionDriver {
+    return redisDriver({
+        ...config,
+        tls: true
+    })
+}
+```

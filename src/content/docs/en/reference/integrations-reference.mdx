@@ -9,7 +9,7 @@ import Since from '~/components/Since.astro'
 
 **Astro Integrations** add new functionality and behaviors for your project with only a few lines of code.
 
-This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations-guide/) guide instead.
+This reference page is for anyone writing their own integration. To learn how to use an integration in your project, check out our [Using Integrations](/en/guides/integrations/) guide instead.
 
 ## Examples
 
@@ -194,18 +194,11 @@ export default {
 
 <p>
 
-**Type:** <code>(renderer: <a href="#astrorenderer">AstroRenderer</a>) => void;</code><br />
+**Type:** <code>(renderer: <a href="/en/reference/renderer-reference/#astrorenderer">AstroRenderer</a>) => void;</code><br />
 **Examples:** [`svelte`](https://github.com/withastro/astro/blob/main/packages/integrations/svelte/src/index.ts), [`react`](https://github.com/withastro/astro/blob/main/packages/integrations/react/src/index.ts), [`preact`](https://github.com/withastro/astro/blob/main/packages/integrations/preact/src/index.ts), [`vue`](https://github.com/withastro/astro/blob/main/packages/integrations/vue/src/index.ts), [`solid`](https://github.com/withastro/astro/blob/main/packages/integrations/solid/src/index.ts)
 </p>
 
-A callback function to add a component framework renderer (i.e. React, Vue, Svelte, etc). You can browse the examples and type definition above for more advanced options, but here are the 2 main options to be aware of:
-
-- `clientEntrypoint` - path to a file that executes on the client whenever your component is used. This is mainly for rendering or hydrating your component with JS.
-- `serverEntrypoint` - path to a file that executes during server-side requests or static builds whenever your component is used. These should render components to static markup, with hooks for hydration where applicable. [React's `renderToString` callback](https://react.dev/reference/react-dom/server/renderToString) is a classic example.
-
-<p><Since v="5.0.0" /></p>
-
-The functions `clientEntrypoint` and `serverEntrypoint` accept a `URL`.
+A callback function to [add a component framework renderer](/en/reference/renderer-reference/) (i.e. React, Vue, Svelte, etc).
 
 #### `addWatchFile()` option
 
@@ -1438,7 +1431,6 @@ import type {
   AstroIntegrationMiddleware,
   AstroMiddlewareInstance,
   AstroPrerenderer,
-  AstroRenderer,
   ClientDirectiveConfig,
   HookParameters,
   IntegrationResolvedRoute,
@@ -1447,8 +1439,6 @@ import type {
   RoutePart,
   RouteType,
   SSRComponentMetadata,
-  SSRLoadedRenderer,
-  SSRLoadedRendererValue,
   SSRManifest,
   ValidRedirectStatus,
 } from "astro";
@@ -1608,42 +1598,6 @@ Defines an optional method describing how to render a page. This will be called 
 
 Defines an optional method called once all pages are pre-rendered. This is useful for performing cleanup tasks such as stopping a preview server.
 
-### `AstroRenderer`
-
-<p>
-
-**Type:** `{ name: string; clientEntrypoint?: string | URL; serverEntrypoint: string | URL; }`
-</p>
-
-Describes a [component framework renderer added by an integration](#addrenderer-option).
-
-#### `AstroRenderer.name`
-
-<p>
-
-**Type:** `string`
-</p>
-
-The name of the component framework renderer.
-
-#### `AstroRenderer.clientEntrypoint`
-
-<p>
-
-**Type:** `string | URL`
-</p>
-
-Defines the import path of the renderer that runs on the client whenever your component is used.
-
-#### `AstroRenderer.serverEntrypoint`
-
-<p>
-
-**Type:** `string | URL`
-</p>
-
-Defines the import path of the renderer that runs during server-side requests or static builds whenever your component is used.
-
 ### `ClientDirectiveConfig`
 
 <p>
@@ -1699,6 +1653,7 @@ interface IntegrationResolvedRoute extends Pick<
   entrypoint: RouteData['component'];
   isPrerendered: RouteData['prerender'];
   redirectRoute?: IntegrationResolvedRoute;
+  fallbackRoutes: IntegrationResolvedRoute[];
   generate: (data?: any) => string;
 }
 ```
@@ -1754,6 +1709,17 @@ Determines whether the route use [on demand rendering](/en/guides/on-demand-rend
 </p>
 
 When the value of `IntegrationResolvedRoute.type` is `redirect`, the value will be the `IntegrationResolvedRoute` to redirect to. Otherwise, the value will be undefined.
+
+#### `IntegrationResolvedRoute.fallbackRoutes`
+
+<p>
+
+**Type:** `IntegrationResolvedRoute[]`<br />
+<Since v="6.1.0" />
+</p>
+
+When the project uses [i18n with fallback routes](/en/guides/internationalization/#fallback), the value will be a list of the routes this route falls back to when the requested locale isn't available. The fallback content may be served as a redirect or rewrite depending on `i18n.routing.fallbackType`. Otherwise, the value will be an empty array.
+
 
 #### `IntegrationResolvedRoute.generate()`
 
@@ -2016,75 +1982,6 @@ A description of how to render head content from this component, including wheth
 
 Determines whether the component contains the head content.
 
-### `SSRLoadedRenderer`
-
-<p>
-
-**Type:** `{ name: string; clientEntrypoint?: string | URL; ssr: SSRLoadedRendererValue; }`
-</p>
-
-Describes a renderer available for the server to use. This is a subset of [`AstroRenderer`](#astrorenderer) with additional properties.
-
-#### `SSRLoadedRenderer.ssr`
-
-<p>
-
-**Type:** [`SSRLoadedRendererValue`](#ssrloadedrenderervalue)
-</p>
-
-Defines the functions and configuration used by the server for this framework.
-
-### `SSRLoadedRendererValue`
-
-Contains the functions and configuration necessary to render components on the server from a specific UI framework.
-
-#### `SSRLoadedRendererValue.name`
-
-<p>
-
-**Type:** `string`
-</p>
-
-Specifies the name identifier for the renderer.
-
-#### `SSRLoadedRendererValue.check()`
-
-<p>
-
-**Type:** `AsyncRendererComponentFn<boolean>`
-</p>
-
-Determines whether the renderer should handle the component.
-
-#### `SSRLoadedRendererValue.renderToStaticMarkup()`
-
-<p>
-
-**Type:** `AsyncRendererComponentFn<{ html: string; attrs?: Record<string, string>; }>`
-</p>
-
-Renders a framework component to static HTML markup on the server.
-
-#### `SSRLoadedRendererValue.supportsAstroStaticSlot`
-
-<p>
-
-**Type:** `boolean`<br />
-<Since v="2.5.0" />
-</p>
-
-Indicates whether the renderer supports Astro's static slot optimization. When true, Astro prevents the removal of nested slots within islands.
-
-#### `SSRLoadedRendererValue.renderHydrationScript()`
-
-<p>
-
-**Type:** `() => string`<br />
-<Since v="4.1.0" />
-</p>
-
-Returns a framework-specific hydration script that must be injected into the HTML before the first component that uses this renderer.
-
 ### `SSRManifest`
 
 An object containing build configuration and project metadata that the server adapters use at runtime to serve on-demand rendered pages.
@@ -2225,7 +2122,7 @@ Specifies the [configured prefix for Astro-generated asset links](/en/reference/
 
 <p>
 
-**Type:** <code><a href="#ssrloadedrenderer">SSRLoadedRenderer</a>[]</code>
+**Type:** <code><a href="/en/reference/renderer-reference/#ssrloadedrenderer">SSRLoadedRenderer</a>[]</code>
 </p>
 
 A list of renderers (e.g. React, Vue, Svelte, MDX) available for the server to use.
@@ -2292,7 +2189,7 @@ Defines a mapping of component identifiers to their build metadata. Each entry c
 
 <p>
 
-**Type:** `{ page: ImportComponentInstance; onRequest?: MiddlewareHandler; renderers: SSRLoadedRenderer[]; }`<br />
+**Type:** `{ page: ImportComponentInstance; onRequest?: MiddlewareHandler; }`<br />
 <Since v="2.7.0" />
 </p>
 
