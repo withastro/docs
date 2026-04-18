@@ -1,0 +1,782 @@
+---
+title: 樣式與 CSS
+description: >-
+  了解如何在 Astro 中為元件設定樣式，使用 scoped styles、外部 CSS，
+  以及 Sass、PostCSS 等工具。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+
+Astro 的設計讓你能輕鬆設定樣式與撰寫 CSS。可以直接在 Astro 元件中撰寫自己的 CSS，或匯入你慣用的 CSS 函式庫，例如 [Tailwind][tailwind]。也支援進階的樣式語言，例如 [Sass][sass] 和 [Less][less]。
+
+## 在 Astro 中設定樣式
+
+為 Astro 元件設定樣式就跟在元件或頁面模板中加上 `<style>` 標籤一樣簡單。當你在 Astro 元件中放入 `<style>` 標籤時，Astro 會自動偵測 CSS 並為你處理樣式。
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red; }
+</style>
+```
+
+### Scoped Styles
+
+Astro 的 `<style>` CSS 規則**預設會自動 scoped**。Scoped styles 會在背後編譯成只套用於同一個元件內所撰寫的 HTML。你在 Astro 元件中撰寫的 CSS 會自動封裝在該元件內。
+
+這段 CSS：
+```astro title="src/pages/index.astro"
+<style>
+  h1 {
+    color: red;
+  }
+
+  .text {
+    color: blue;
+  }
+</style>
+```
+
+會編譯成：
+```astro
+<style>
+  h1[data-astro-cid-hhnqfkh6] {
+     color: red;
+  }
+
+  .text[data-astro-cid-hhnqfkh6] {
+    color: blue;
+  }
+</style>
+```
+
+
+Scoped styles 不會外洩，也不會影響你網站的其他部分。在 Astro 中，使用低特異性的選擇器（例如 `h1 {}` 或 `p {}`）是沒問題的，因為它們在最終輸出中會帶有 scope 編譯。
+
+Scoped styles 也不會套用到模板中包含的其他 Astro 元件。如果你需要為子元件設定樣式，可以考慮把該元件包在一個你能設定樣式的 `<div>`（或其他元素）裡。
+
+Scoped styles 的特異性會被保留，讓它們能與其他 CSS 檔案或 CSS 函式庫一致地共存，同時保有防止樣式外洩到元件之外的明確邊界。
+
+### 全域樣式
+
+雖然我們建議大部分元件使用 scoped styles，但你終究會遇到需要撰寫全域、不 scoped 的 CSS 的合理理由。可以使用 `<style is:global>` 屬性，主動排除 CSS 自動 scoping。
+
+```astro title="src/components/GlobalStyles.astro" "is:global"
+<style is:global>
+  /* Unscoped, delivered as-is to the browser.
+     Applies to all <h1> tags on your site. */
+  h1 { color: red; }
+</style>
+```
+
+你也可以在同一個 `<style>` 標籤中，透過 `:global()` 選擇器混合全域與 scoped 的 CSS 規則。這是一個強大的模式，能將 CSS 樣式套用到元件的子元素。
+
+```astro title="src/components/MixedStyles.astro" ":global(h1)"
+<style>
+  /* Scoped to this component, only. */
+  h1 { color: red; }
+  /* Mixed: Applies to child `h1` elements only. */
+  article :global(h1) {
+    color: blue;
+  }
+</style>
+<h1>Title</h1>
+<article><slot /></article>
+```
+
+這是為部落格文章、或內容由 CMS 驅動且存在於 Astro 之外的文件設定樣式的好方法。但要小心：外觀會因是否有特定父元件而不同的元件，可能會難以排除問題。
+
+Scoped styles 應盡可能地頻繁使用。全域樣式則只在必要時使用。
+
+### 用 `class:list` 組合 class
+
+如果你需要動態組合元素上的 class，可以在 `.astro` 檔案中使用 `class:list` 工具屬性。
+
+```astro title="src/components/ClassList.astro" /class:list={.*}/
+---
+const { isRed } = Astro.props;
+---
+<!-- If `isRed` is truthy, class will be "box red". -->
+<!-- If `isRed` is falsy, class will be "box". -->
+<div class:list={['box', { red: isRed }]}><slot /></div>
+
+<style>
+  .box { border: 1px solid blue; }
+  .red { border-color: red; }
+</style>
+```
+
+<ReadMore>更多關於 `class:list` 的資訊，請見[指令參考](/zh-tw/reference/directives-reference/#classlist)頁面。</ReadMore>
+
+### CSS 變數
+
+<p><Since v="0.21.0" /></p>
+
+Astro 的 `<style>` 可以參考頁面上任何可用的 CSS 變數。你也可以使用 `define:vars` 指令，直接從元件 frontmatter 傳入 CSS 變數。
+
+```astro title="src/components/DefineVars.astro" /define:vars={{.*}}/ /var\\(.*\\)/
+---
+const foregroundColor = "rgb(221 243 228)";
+const backgroundColor = "rgb(24 121 78)";
+---
+<style define:vars={{ foregroundColor, backgroundColor }}>
+  h1 {
+    background-color: var(--backgroundColor);
+    color: var(--foregroundColor);
+  }
+</style>
+<h1>Hello</h1>
+```
+
+<ReadMore>更多關於 `define:vars` 的資訊，請見[指令參考](/zh-tw/reference/directives-reference/#definevars)頁面。</ReadMore>
+
+
+### 把 `class` 傳給子元件
+
+在 Astro 中，HTML 屬性（例如 `class`）不會自動傳遞到子元件。
+
+請改在子元件中接收一個 `class` prop，並把它套用到根元素上。解構時必須重新命名，因為 `class` 是 JavaScript 的[保留字](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words)。
+
+如果使用預設的 scoped style 策略，你也必須傳入 `data-astro-cid-*` 屬性。可以透過把 props 的 `...rest` 傳入元件來達成。如果你已將 `scopedStyleStrategy` 改為 `'class'` 或 `'where'`，就不需要 `...rest` prop。
+
+```astro title="src/components/MyComponent.astro" {2,4}
+---
+const { class: className, ...rest } = Astro.props;
+---
+<div class={className} {...rest}>
+  <slot/>
+</div>
+```
+
+```astro title="src/pages/index.astro"
+---
+import MyComponent from "../components/MyComponent.astro"
+---
+<style>
+  .red {
+    color: red;
+  }
+</style>
+<MyComponent class="red">This will be red!</MyComponent>
+```
+
+:::note[來自父元件的 scoped styles]
+由於 `data-astro-cid-*` 屬性會把子元件納入父元件的 scope 中，樣式有可能從父元件層疊到子元件。為避免造成非預期的副作用，請確保子元件中使用獨特的 class 名稱。
+:::
+
+### 行內樣式
+
+你可以使用 `style` 屬性為 HTML 元素設定行內樣式。它可以是一段 CSS 字串，或是一個 CSS 屬性的物件：
+
+```astro title="src/pages/index.astro"
+// These are equivalent:
+<p style={{ color: "brown", textDecoration: "underline" }}>My text</p>
+<p style="color: brown; text-decoration: underline;">My text</p>
+```
+
+## 外部樣式
+
+有兩種方式可以解析外部全域樣式表：對位於專案來源中的檔案使用 ESM 匯入，以及對 `public/` 目錄中的檔案或位於專案外部的檔案使用絕對 URL 連結。
+
+<ReadMore>更多關於使用位於 `public/` 或 `src/` 中的[靜態資產](/zh-tw/guides/imports/)。</ReadMore>
+
+### 匯入本地樣式表
+
+:::caution[使用 npm 套件？]
+從 npm 套件匯入時可能需要更新你的 `astro.config`。請見下方的[「從 npm 套件匯入樣式表」章節](#從-npm-套件匯入樣式表)。
+:::
+
+你可以在 Astro 元件 frontmatter 中使用 ESM 匯入語法匯入樣式表。CSS 匯入的運作方式就和 [Astro 元件中其他任何 ESM 匯入](/zh-tw/basics/astro-components/#the-component-script)一樣，路徑應**相對於元件**，並必須寫在元件腳本的**最上方**，與其他匯入放在一起。
+
+```astro title="src/pages/index.astro" {4}
+---
+// Astro will bundle and optimize this CSS for you automatically
+// This also works for preprocessor files like .scss, .styl, etc.
+import '../styles/utils.css';
+---
+<html><!-- Your page here --></html>
+```
+
+任何 JavaScript 檔案中都支援透過 ESM 的 CSS `import`，包括像 React 與 Preact 的 JSX 元件。這對於為 React 元件撰寫細緻的、單元件的樣式很有用。
+
+### 從 npm 套件匯入樣式表
+
+你也可能需要從外部 npm 套件載入樣式表。對於像 [Open Props](https://open-props.style/) 這類工具來說特別常見。如果你的套件**建議使用副檔名**（例如 `package-name/styles.css` 而非 `package-name/styles`），這應該就會跟任何本地樣式表一樣運作：
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/styles.css';
+---
+<html><!-- Your page here --></html>
+```
+
+如果你的套件**沒有建議使用副檔名**（例如 `package-name/styles`），你需要先更新 Astro 設定！
+
+假設你正從 `package-name` 匯入一個叫 `normalize` 的 CSS 檔案（沒寫副檔名）。為了確保我們能正確預先算繪你的頁面，請把 `package-name` 加入 [`vite.ssr.noExternal` 陣列](https://vite.dev/config/ssr-options.html#ssr-noexternal)：
+
+```js ins={7}
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: ['package-name'],
+    }
+  }
+})
+```
+
+:::note
+這是一個 [Vite 特有的設定](https://vite.dev/config/ssr-options.html#ssr-noexternal)，與 [Astro SSR](/zh-tw/guides/on-demand-rendering/) _無關_（也不需要它）。
+:::
+
+現在你可以自由匯入 `package-name/normalize`。Astro 會像其他本地樣式表一樣把它打包並最佳化。
+
+
+```astro {3}
+---
+// src/pages/random-page.astro
+import 'package-name/normalize';
+---
+<html><!-- Your page here --></html>
+```
+
+### 透過「link」標籤載入靜態樣式表
+
+你也可以使用 `<link>` 元素在頁面上載入樣式表。它應該是一個指向 `/public` 目錄中 CSS 檔案的絕對 URL 路徑，或是指向外部網站的 URL。不支援相對路徑的 `<link>` href 值。
+
+```astro title="src/pages/index.astro" {3,5}
+<head>
+  <!-- Local: /public/styles/global.css -->
+  <link rel="stylesheet" href="/styles/global.css" />
+  <!-- External -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.24.1/themes/prism-tomorrow.css" />
+</head>
+```
+
+由於這個方法使用 `public/` 目錄，會跳過 Astro 提供的常規 CSS 處理、打包與最佳化。如果你需要這些轉換，請改用上面的[匯入樣式表](#匯入本地樣式表)方法。
+
+## 層疊順序
+
+Astro 元件有時必須處理多個 CSS 來源。例如，你的元件可能匯入一個 CSS 樣式表、包含自己的 `<style>` 標籤，*又*算繪在一個會匯入 CSS 的 layout 中。
+
+當有衝突的 CSS 規則套用到同一個元素時，瀏覽器會先依_特異性_、再依_出現順序_決定要顯示哪個值。
+
+如果某條規則比另一條更_特異_，無論它出現在哪裡，它的值都會優先：
+
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: red }
+  div > h1 {
+    color: purple
+  }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+如果兩條規則特異性相同，則依_出現順序_判斷，最後一條規則的值優先：
+```astro title="src/components/MyComponent.astro"
+<style>
+  h1 { color: purple }
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+Astro 的 CSS 規則依以下出現順序判斷：
+
+- **head 中的 `<link>` 標籤**（最低優先順序）
+- **匯入的樣式**
+- **scoped styles**（最高優先順序）
+
+### Scoped Styles
+
+依你為 [`scopedStyleStrategy`](/zh-tw/reference/configuration-reference/#scopedstylestrategy) 選擇的值，scoped styles 可能會、也可能不會增加 [CLASS 欄的特異性](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity#class_column)。
+
+不過，[scoped styles](#scoped-styles) 在出現順序上永遠是最後。因此，這些樣式會優先於同特異性的其他樣式。例如，如果你匯入的樣式表與某個 scoped style 衝突，scoped style 的值會生效：
+
+```css title="src/components/make-it-purple.css"
+h1 {
+  color: purple;
+}
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be red!
+  </h1>
+</div>
+```
+
+如果匯入的樣式更特異，scoped styles 會被覆寫。特異性較高的樣式會優先於 scoped style：
+
+```css title="src/components/make-it-purple.css"
+#intro {
+  color: purple;
+}
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1 id="intro">
+    This header will be purple!
+  </h1>
+</div>
+```
+
+### 匯入順序
+
+當你在 Astro 元件中匯入多個樣式表時，CSS 規則依匯入的順序判斷。較高的特異性永遠決定要顯示哪些樣式，無論 CSS 何時被判斷。但當衝突樣式特異性相同時，_最後匯入_的勝出：
+
+```css title="src/components/make-it-purple.css"
+div > h1 {
+  color: purple;
+}
+```
+```css title="src/components/make-it-green.css"
+div > h1 {
+  color: green;
+}
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-green.css"
+import "./make-it-purple.css"
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+雖然 `<style>` 標籤是 scoped，只會套用到宣告它們的元件上，但_匯入的_ CSS 仍會「外洩」。匯入一個元件就會套用該元件匯入的任何 CSS，即使該元件從未被使用：
+
+```astro title="src/components/PurpleComponent.astro"
+---
+import "./make-it-purple.css"
+---
+<div>
+  <h1>I import purple CSS.</h1>
+</div>
+```
+```astro title="src/components/MyComponent.astro"
+---
+import "./make-it-green.css"
+import PurpleComponent from "./PurpleComponent.astro";
+---
+<style>
+  h1 { color: red }
+</style>
+<div>
+  <h1>
+    This header will be purple!
+  </h1>
+</div>
+```
+
+:::tip
+Astro 中常見的模式是在 [Layout 元件](/zh-tw/basics/layouts/)中匯入全域 CSS。請務必在其他匯入之前匯入 Layout 元件，使其優先順序最低。
+:::
+
+### Link 標籤
+透過 [link 標籤載入](#透過link標籤載入靜態樣式表)的樣式表會依順序判斷，且早於 Astro 檔案中的其他樣式。因此，這些樣式的優先順序會低於匯入的樣式表與 scoped styles：
+
+```astro title="src/pages/index.astro"
+---
+import "../components/make-it-purple.css"
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+		<link rel="stylesheet" href="/styles/make-it-blue.css" />
+	</head>
+	<body>
+		<div>
+			<h1>This will be purple</h1>
+		</div>
+	</body>
+</html>
+```
+
+## Tailwind
+
+Astro 內建支援將熱門的 CSS 函式庫、工具和框架加入你的專案，例如 [Tailwind](https://tailwindcss.com) 等等！
+
+Astro 同時支援 Tailwind 3 和 4。你可以用 CLI 指令[透過 Vite 外掛為專案加入 Tailwind 4 支援](#加入-tailwind-4)，或手動安裝舊版相依套件以加入 [Tailwind 3 支援（透過 Astro 整合）](#舊版-tailwind-3-支援)。
+
+要[把 Astro 專案從 Tailwind 3 升級到 4](#從-tailwind-3-升級)，你需要同時加入 Tailwind 4 支援、並移除舊版 Tailwind 3 支援。
+
+### 加入 Tailwind 4
+
+在 Astro `>=5.2.0` 中，使用對應你套件管理器的 `astro add tailwind` 指令來安裝官方的 Vite Tailwind 外掛。要為更舊版本的 Astro 加入 Tailwind 4 支援，請依照 [Tailwind 文件中的指示][tailwind]，手動加入 `@tailwindcss/vite` Vite 外掛。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npx astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm astro add tailwind
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn astro add tailwind
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+接著，把 `tailwindcss` 匯入到 `src/styles/global.css`（或你選擇的其他 CSS 檔案），讓 Tailwind 的 class 可以在你的 Astro 專案中使用。如果你是用 `astro add tailwind` 指令安裝 Vite 外掛，這個含有匯入語句的檔案會預設為你建立。
+
+```css title="src/styles/global.css"
+@import "tailwindcss";
+```
+
+把這個檔案匯入到你想套用 Tailwind 的頁面中。通常會在 layout 元件中匯入，這樣所有共用該 layout 的頁面就都能使用 Tailwind 樣式：
+
+```astro title="src/layouts/Layout.astro"
+---
+import "../styles/global.css";
+---
+```
+
+### 從 Tailwind 3 升級
+
+依以下步驟，把使用 Tailwind v3（透過 `@astrojs/tailwind` 整合）的 Astro 專案升級到 Tailwind 4（透過 [`@tailwindcss/vite` 外掛](https://tailwindcss.com/docs/installation/framework-guides/astro)）。
+
+<Steps>
+1. 透過 CLI（用於最新版本的 Astro）或手動加入 Vite 外掛，[為你的專案加入 Tailwind 4 支援](#加入-tailwind-4)。
+
+2. 從你的專案中移除 `@astrojs/tailwind` 整合：
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm uninstall @astrojs/tailwind
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm remove @astrojs/tailwind
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn remove @astrojs/tailwind
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. 從你的 `astro.config.mjs` 中移除 `@astrojs/tailwind` 整合：
+
+    ```js title="astro.config.mjs" del={2} del="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+
+4. 接著，依 [Tailwind 的 v4 升級指南](https://tailwindcss.com/docs/upgrade-guide#changes-from-v3)升級你的專案。
+</Steps>
+
+### 舊版 Tailwind 3 支援
+
+要加入（或保留）Tailwind 3 的支援，你需要同時安裝 `tailwindcss@3` 和官方的 Astro Tailwind 整合 `@astrojs/tailwind`。手動安裝這些相依套件僅用於舊版 Tailwind 3 相容性，Tailwind 4 並不需要。你也會需要一份[舊版 Tailwind 設定](https://v3.tailwindcss.com/docs/configuration#creating-your-configuration-file)：
+
+<Steps>
+1. 用你慣用的套件管理器，把 Tailwind 與 Astro Tailwind 整合安裝到你的專案相依套件中：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add tailwindcss@3 @astrojs/tailwind
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. 把整合匯入到你的 `astro.config.mjs` 檔案，並加入到 `integrations[]` 陣列中：
+
+    ```js title="astro.config.mjs" ins={2} ins="tailwind()"
+    import { defineConfig } from 'astro/config';
+    import tailwind from '@astrojs/tailwind';
+
+    export default defineConfig({
+      // ...
+      integrations: [tailwind()],
+      // ...
+    });
+    ```
+3. 在你專案的根目錄建立 `tailwind.config.mjs` 檔案。可以用以下指令為你產生一份基本設定檔：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm dlx tailwindcss init
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn dlx tailwindcss init
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+4. 把以下基本設定加入到你的 `tailwind.config.mjs` 檔案中：
+
+    ```ts title="tailwind.config.mjs" ins={3}
+    /** @type {import('tailwindcss').Config} */
+    export default {
+      content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
+      theme: {
+        extend: {},
+      },
+      plugins: [],
+    };
+    ```
+</Steps>
+
+<RecipeLinks slugs={["en/recipes/tailwind-rendered-markdown"]}/>
+
+## CSS 預處理器
+
+Astro 透過 [Vite][vite-preprocessors] 支援 CSS 預處理器，例如 [Sass][sass]、[Stylus][stylus] 與 [Less][less]。
+
+### Sass 與 SCSS
+
+ ```shell
+ npm install sass
+ ```
+
+在 `.astro` 檔案中使用 `<style lang="scss">` 或 `<style lang="sass">`。
+
+### Stylus
+
+```shell
+npm install stylus
+```
+
+在 `.astro` 檔案中使用 `<style lang="styl">` 或 `<style lang="stylus">`。
+
+### Less
+
+```shell
+npm install less
+```
+
+在 `.astro` 檔案中使用 `<style lang="less">`。
+
+### LightningCSS
+
+```shell
+npm install lightningcss
+```
+
+更新你 `astro.config.mjs` 中的 `vite` 設定：
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from 'astro/config'
+
+export default defineConfig({
+  vite: {
+    css: {
+      transformer: "lightningcss",
+    },
+  },
+})
+
+```
+
+### 在框架元件中
+
+你也可以在 JS 框架中使用上述所有 CSS 預處理器！請務必遵循各框架推薦的模式：
+
+- **React** / **Preact**：`import Styles from './styles.module.scss';`
+- **Vue**：`<style lang="scss">`
+- **Svelte**：`<style lang="scss">`
+
+## PostCSS
+
+Astro 內建 PostCSS，作為 [Vite](https://vite.dev/guide/features.html#postcss) 的一部分。要為你的專案設定 PostCSS，請在專案根目錄建立 `postcss.config.cjs` 檔案。安裝外掛後（例如 `npm install autoprefixer`），可以用 `require()` 匯入它們。
+
+```js title="postcss.config.cjs" ins={3-4}
+module.exports = {
+  plugins: [
+    require('autoprefixer'),
+    require('cssnano'),
+  ],
+};
+```
+
+
+## 框架與函式庫
+
+### 📘 React / Preact
+
+`.jsx` 檔案同時支援全域 CSS 和 CSS Modules。要啟用後者，請使用 `.module.css` 副檔名（如果使用 Sass，則為 `.module.scss` 或 `.module.sass`）。
+
+```jsx title="src/components/MyReactComponent.jsx" /[a-z]+(\\.module\\.css)/
+import './global.css'; // include global CSS
+import Styles from './styles.module.css'; // Use CSS Modules (must end in `.module.css`, `.module.scss`, or `.module.sass`!)
+```
+
+### 📗 Vue
+
+Astro 中的 Vue 支援與 `vue-loader` 相同的方法：
+
+- [vue-loader - Scoped CSS][vue-scoped]
+- [vue-loader - CSS Modules][vue-css-modules]
+
+### 📕 Svelte
+
+Astro 中的 Svelte 也完全如預期般運作：[Svelte 樣式文件][svelte-style]。
+
+## Markdown 樣式
+
+任何 Astro 樣式設定方式都可以用在 [Markdown layout 元件](/zh-tw/basics/layouts/#markdown-layouts)中，但不同方法對你的頁面會產生不同的樣式效果。
+
+你可以把[匯入的樣式表](#外部樣式)加入到包覆頁面內容的 layout 中，為你的 Markdown 內容套用全域樣式。也可以在 layout 元件中以 [`<style is:global>` 標籤](#全域樣式)為 Markdown 設定樣式。注意任何加入的樣式都受 [Astro 的層疊順序](#層疊順序)影響，你應該仔細檢查算繪後的頁面，以確保樣式如預期般套用。
+
+你也可以加入 CSS 整合，包括 [Tailwind](/zh-tw/recipes/tailwind-rendered-markdown/)。如果你使用 Tailwind，[typography 外掛](https://tailwindcss.com/docs/typography-plugin)對於設定 Markdown 樣式可能會很有用。
+
+## Production
+
+### 控制打包
+
+當 Astro 為 production 部署建置你的網站時，會壓縮並把你的 CSS 合併成 chunk。網站上每個頁面都會有自己的 chunk，此外，多個頁面之間共享的 CSS 還會被進一步切分成獨立的 chunk 以利重用。
+
+不過，當你有多個頁面共享樣式時，某些共享的 chunk 可能會變得非常小。如果它們全部被分別傳送，會導致大量樣式表請求並影響網站效能。因此，Astro 預設只會將 HTML 中大於 4kB 的樣式表以 `<link rel="stylesheet">` 標籤連結，較小的則內聯為 `<style type="text/css">`。這個做法在額外請求數量與可在頁面之間快取的 CSS 量之間取得平衡。
+
+你可以用 `assetsInlineLimit` vite 建置選項來設定樣式表會被外部連結的大小（單位為 byte）。注意這個選項也會影響 script 和圖片的內聯。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  vite: {
+    build: {
+      assetsInlineLimit: 1024,
+    }
+  };
+});
+```
+
+如果你希望所有專案樣式都保持外部，可以設定 `inlineStylesheets` 建置選項。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  build: {
+    inlineStylesheets: 'never'
+  }
+});
+```
+
+你也可以把這個選項設為 `'always'`，讓所有樣式表都被內聯。
+
+## 進階
+
+:::caution
+繞過 Astro 內建 CSS 打包時要小心！樣式不會自動被包含在建置輸出中，你必須自行確保所引用的檔案有正確包含在最終的頁面輸出中。
+:::
+
+### `?raw` CSS 匯入
+
+進階用例下，CSS 可以直接從硬碟讀取，不被 Astro 打包或最佳化。當你需要對某段 CSS 完全控制、又需要繞過 Astro 自動 CSS 處理時，這會很有用。
+
+不建議大多數使用者這麼做。
+
+```astro title="src/components/RawInlineStyles.astro" "?raw"
+---
+// Advanced example! Not recommended for most users.
+import rawStylesCSS from '../styles/main.css?raw';
+---
+<style is:inline set:html={rawStylesCSS}></style>
+```
+
+完整細節請見 [Vite 文件](https://vite.dev/guide/assets.html#importing-asset-as-string)。
+### `?url` CSS 匯入
+
+進階用例下，你可以為專案 `src/` 目錄中的 CSS 檔案匯入直接的 URL 參考。當你需要完全控制 CSS 檔案如何在頁面上載入時，這會很有用。但這會讓該 CSS 檔案無法與你頁面其他 CSS 一起被最佳化。
+
+不建議大多數使用者這麼做。請改把你的 CSS 檔案放在 `public/` 中以取得一致的 URL 參考。
+
+:::caution
+用 `?url` 匯入較小的 CSS 檔案時，可能會在最終建置中以 data URL 形式回傳該 CSS 檔案的 base64 編碼內容。請改寫程式碼以支援編碼後的 data URL（`data:text/css;base64,...`），或將 [`vite.build.assetsInlineLimit`](https://vite.dev/config/#build-assetsinlinelimit) 設定選項設為 `0` 來停用這個功能。
+:::
+
+```astro title="src/components/RawStylesUrl.astro" "?url"
+---
+// Advanced example! Not recommended for most users.
+import stylesUrl from '../styles/main.css?url';
+---
+<link rel="preload" href={stylesUrl} as="style">
+<link rel="stylesheet" href={stylesUrl}>
+```
+
+完整細節請見 [Vite 文件](https://vite.dev/guide/assets.html#importing-asset-as-url)。
+
+
+[less]: https://lesscss.org/
+[sass]: https://sass-lang.com/
+[stylus]: https://stylus-lang.com/
+[svelte-style]: https://svelte.dev/docs#component-format-style
+[tailwind]: https://tailwindcss.com/docs/installation/framework-guides/astro
+[vite-preprocessors]: https://vite.dev/guide/features.html#css-pre-processors
+[vue-css-modules]: https://vue-loader.vuejs.org/guide/css-modules.html
+[vue-scoped]: https://vue-loader.vuejs.org/guide/scoped-css.html
