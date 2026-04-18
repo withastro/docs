@@ -1,0 +1,779 @@
+---
+title: View Transitions
+description: 透過 view transitions 在 Astro 頁面之間實現無縫導覽。
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+import Since from '~/components/Since.astro'
+import { Steps } from '@astrojs/starlight/components'
+
+[View transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API) 是不同網頁視圖之間的動畫轉場。它們是相當受歡迎的設計選擇，用來在訪客在應用程式的不同狀態或視圖之間切換時，維持視覺上的連續性。
+
+Astro 的 view transitions 與客戶端路由支援由 [View Transitions 瀏覽器 API](https://developer.chrome.com/docs/web-platform/view-transitions/) 所驅動，也包含：
+
+- 一些[內建動畫選項](#內建動畫指令)，例如 `fade`、`slide` 與 `none`。
+- 支援前進與後退導覽動畫。
+- 完整[自訂轉場動畫各方面](#自訂動畫)的能力，以及建立你自己的動畫。
+- 在導覽期間把 HTML 元素從目前頁面延續到下一頁。
+- [為非頁面連結停用客戶端導覽](#停用客戶端導覽)的選項。
+- 為尚未支援 View Transition API 的瀏覽器提供[備用行為控制](#備用控制)。
+- 自動支援 [`prefers-reduced-motion`](#prefers-reduced-motion)。
+
+:::note
+預設情況下，每個頁面都會使用一般、整頁式的瀏覽器導覽。你必須主動啟用 view transitions，並可以依頁面或全站使用它們。
+:::
+
+## 瀏覽器原生 view transitions 與 Astro `<ClientRouter />` 的差異
+
+[瀏覽器原生、跨文件的 view transitions](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#basic_mpa_view_transition)可以在 Astro 中使用，為多頁面應用程式（MPA）中不同文件之間的導覽加入動畫，通常能提供類似單頁應用程式客戶端路由的體驗。它們不會改變多頁面應用程式的核心功能，也不會影響任何既有的腳本，或為你的頁面載入額外的 JavaScript。它們只是加上動畫而已。
+
+對於 View Transition API 尚未完整支援的進階客戶端路由與 view transition 功能，Astro 提供一個內建、輕量的元件，讓你可以啟用客戶端路由，並把你的多頁面應用程式變成帶有流暢導覽動畫的[單頁應用程式](#啟用-view-transitionsspa-模式)。
+
+這會帶來一些好處，例如跨頁面共享狀態與持久化元素，也有一些缺點，例如導覽後需要手動重新初始化腳本或狀態。
+
+加入 Astro 內建的 `<ClientRouter />` 元件：
+- 會[攔截頁面導覽](#客戶端導覽流程)，讓你能深入控制這個過程。
+- 擴充並增強部分 View Transition / Navigation API 功能。
+- 讓你可以[設定備用策略](#備用控制)，應付[瀏覽器原生支援尚不足](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility)的情況。
+
+然而，隨著瀏覽器 API 與 web 標準發展，為了這些額外功能而使用 Astro 的 `<ClientRouter />` [將愈來愈沒有必要](https://astro.build/blog/future-of-astro-zero-js-view-transitions/)。我們建議持續關注瀏覽器 API 的現況，這樣你就能針對所使用的特定功能，[決定是否仍然需要 Astro 的客戶端路由](https://events-3bg.pages.dev/jotter/astro-view-transitions/)。
+
+## 啟用 view transitions（SPA 模式）
+
+匯入 `<ClientRouter />` 元件，並加入到你共用的 `<head>` 或共用版面元件中。Astro 會根據新舊頁面的相似處建立預設的頁面動畫，並為不支援的瀏覽器提供備用行為。
+
+以下範例示範把 Astro 預設的頁面導覽動畫套用到整站，並包含不支援瀏覽器的預設備用控制選項，做法是把這個元件匯入並加入到 `<CommonHead />` Astro 元件中：
+
+```astro title="src/components/CommonHead.astro" ins={2,12}
+---
+import { ClientRouter } from "astro:transitions";
+---
+<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<meta name="generator" content={Astro.generator} />
+
+<!-- Primary Meta Tags -->
+<title>{title}</title>
+<meta name="title" content={title} />
+<meta name="description" content={description} />
+
+<ClientRouter />
+```
+
+啟用 Astro 預設的客戶端導覽不需要其他設定！
+
+使用[轉場指令](#轉場指令)或在個別元素上[覆寫預設的客戶端導覽](#停用客戶端導覽)，以進行更細緻的控制。
+
+## 轉場指令
+
+Astro 會自動為新舊頁面上對應的元素指派一個共用、唯一的 `view-transition-name`。這組對應元素會根據元素類型與在 DOM 中的位置推斷得出。
+
+在 `.astro` 元件的頁面元素上使用可選的 `transition:*` 指令，可在導覽期間對頁面轉場行為進行更細緻的控制。
+
+- `transition:name`：讓你覆寫 Astro 預設的新舊內容動畫配對，並[指定一個轉場名稱](#為轉場命名)來關聯一組 DOM 元素。
+- `transition:animate`：讓你在以新元素取代舊元素時覆寫 Astro 預設的動畫，指定動畫類型。請使用 Astro 的[內建動畫指令](#內建動畫指令)或[建立自訂轉場動畫](#自訂動畫)。
+- `transition:persist`：讓你覆寫 Astro 預設的「以新元素取代舊元素」行為，改為在導覽到其他頁面時[保留元件與 HTML 元素](#維持狀態)。
+
+### 為轉場命名
+
+有時你可能會想或需要自行指定對應的 view transition 元素。你可以用 `transition:name` 指令為一對元素指定名稱。
+
+```astro title="src/pages/old-page.astro"
+<aside transition:name="hero">
+```
+
+```astro title="src/pages/new-page.astro"
+<aside transition:name="hero">
+```
+
+請注意，所提供的 `transition:name` 值在每個頁面上只能使用一次。當 Astro 無法自行推斷出適當的名稱時，或你想更精確控制元素配對時，請手動設定。
+
+### 維持狀態
+
+<p><Since v="2.10.0" /></p>
+
+你可以使用 `transition:persist` 指令，在頁面導覽之間保留元件與 HTML 元素（而不是取代它們）。
+
+舉例來說，當你導覽到另一個包含相同 video 元素的頁面時，以下的 `<video>` 會繼續播放。這對前進與後退導覽都有效。
+
+```astro title="src/components/Video.astro" "transition:persist"
+<video controls muted autoplay transition:persist>
+  <source
+    src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4"
+    type="video/mp4"
+  />
+</video>
+```
+
+你也可以把這個指令用在 [Astro 島嶼](/zh-tw/concepts/islands/)上（帶有 [`client:` 指令](/zh-tw/reference/directives-reference/#client-directives)的 UI 框架元件）。如果該元件在下一頁也存在，舊頁面中的島嶼**連同其目前狀態**會繼續顯示，而不會被新頁面中的島嶼取代。
+
+在以下範例中，在含有 `<Counter />` 元件（且帶有 `transition:persist` 屬性）的頁面間來回導覽時，元件內部的計數狀態不會被重設。
+
+```astro title="components/Header.astro" "transition:persist"
+<Counter client:load transition:persist initialCount={5} />
+```
+
+:::note[已知限制]
+並非所有狀態都能這樣保留。即使使用 `transition:persist`，在 view transitions 期間仍無法避免 CSS 動畫的重新開始與 iframe 的重新載入。
+:::
+
+如果島嶼或元素在兩個頁面間位於不同元件中，你也可以[手動識別對應元素](#為轉場命名)。
+
+```astro title="src/pages/old-page.astro" "video" 'transition:name="media-player"'
+<video
+  controls
+  muted
+  autoplay
+  transition:name="media-player"
+  transition:persist
+/>
+```
+
+```astro title="src/pages/new-page.astro" "MyVideo" 'transition:name="media-player"'
+<MyVideo
+  controls
+  muted
+  autoplay
+  transition:name="media-player"
+  transition:persist
+/>
+```
+
+作為便利的簡寫，`transition:persist` 也可以直接把轉場名稱當作值：
+
+```astro title="src/pages/index.astro" 'transition:persist="media-player"'
+<video controls muted autoplay transition:persist="media-player">
+```
+
+#### `transition:persist-props`
+
+<p><Since v="4.5.0" /></p>
+
+這讓你可以控制島嶼的 props 在導覽時是否要被保留。
+
+預設情況下，當你為島嶼加上 `transition:persist` 時，狀態會在導覽後被保留，但你的元件會以新的 props 重新算繪。這在元件接收頁面專屬的 props（例如目前頁面的 `title`）時很有用。
+
+你可以透過在 `transition:persist` 之外再加上 `transition:persist-props` 來覆寫這個行為。加上這個指令後，除了保留現有狀態，島嶼現有的 props 也會被保留（不會以新值重新算繪）。
+
+### 內建動畫指令
+
+Astro 內建一些可覆寫預設 `fade` 轉場的動畫。在個別元素上加入 `transition:animate` 指令，可客製化特定轉場的行為。
+
+- `fade`（預設）：一種有主見的交叉淡入淡出動畫。舊內容淡出、新內容淡入。
+- `initial`：退出 Astro 有主見的交叉淡入淡出動畫，改用瀏覽器的預設樣式。
+- `slide`：一種舊內容向左滑出、新內容從右側滑入的動畫。後退導覽時動畫相反。
+- `none`：停用瀏覽器預設動畫。用在頁面的 `<html>` 元素上，可停用頁面上所有元素的預設淡入淡出。
+
+結合這些指令就能完整控制頁面動畫。在 `<html>` 元素上設定頁面預設，並依需要在個別元素上覆寫。
+
+以下範例為主體內容產生滑動動畫，同時停用頁面其餘部分的瀏覽器預設淡入淡出動畫：
+
+```astro
+---
+import CommonHead from "../components/CommonHead.astro";
+---
+
+<html transition:name="root" transition:animate="none">
+  <head>
+    <CommonHead />
+  </head>
+  <body>
+    <header>
+      ...
+    </header>
+    <!-- 在單一元素上覆寫頁面預設 -->
+    <main transition:animate="slide">
+      ...
+    </main>
+  </body>
+</html>
+```
+
+### 自訂動畫
+
+你可以使用任何 CSS 動畫屬性客製化轉場的各方面。
+
+要客製化內建動畫，請先從 `astro:transitions` 匯入該動畫，再傳入客製化選項。
+
+以下範例客製化內建 `fade` 動畫的持續時間：
+
+```astro
+---
+import { fade } from "astro:transitions";
+---
+<header transition:animate={fade({ duration: "0.4s" })}>
+```
+
+你也可以依照以下型別，同時定義前進與後退行為，以及新舊頁面，來定義自己的動畫並搭配 `transition:animate` 使用：
+
+```ts
+export interface TransitionAnimation {
+  name: string; // keyframe 的名稱
+  delay?: number | string;
+  duration?: number | string;
+  easing?: string;
+	fillMode?: string;
+	direction?: string;
+}
+
+export interface TransitionAnimationPair {
+	old: TransitionAnimation | TransitionAnimation[];
+	new: TransitionAnimation | TransitionAnimation[];
+}
+
+export interface TransitionDirectionalAnimations {
+	forwards: TransitionAnimationPair;
+	backwards: TransitionAnimationPair;
+}
+```
+
+以下範例展示在根版面檔案內 `<style is:global>` 標籤中，定義一個自訂 `bump` 動畫所需的所有屬性：
+
+```astro title="src/layouts/Layout.astro"
+---
+import { ClientRouter } from "astro:transitions";
+---
+<html lang="en">
+  <head>
+    <ClientRouter />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+
+<style is:global>
+  @keyframes bump {
+    0% {
+      opacity: 0;
+      transform: scale(1) translateX(200px);
+    }
+    50% {
+      opacity: 0.5;
+      transform: scale(1.1);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1) translateX(0);
+    }
+  }
+</style>
+```
+
+該動畫的行為必須在每個使用該動畫的元件 frontmatter 中定義：
+
+```astro title="src/pages/index.astro"
+---
+const anim = {
+  old: {
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in",
+    direction: "reverse",
+  },
+  new: {
+    name: "bump",
+    duration: "0.5s",
+    easing: "ease-in-out",
+  },
+};
+
+const customTransition = {
+  forwards: anim,
+  backwards: anim,
+};
+---
+<header transition:animate={customTransition}> ... </header>
+```
+
+在定義自訂動畫時，你有相當大的彈性。為了達成你想要的效果，你可能會想考慮一些不尋常的組合，例如為前進與後退使用不同物件，或為新舊頁面提供不同的 keyframe 動畫。
+
+## 路由控制
+
+`<ClientRouter />` 路由器會透過監聽以下事件來處理導覽：
+
+- 對 `<a>` 元素的點擊。
+- 前進與後退導覽事件。
+
+以下選項讓你可以進一步控制路由器中發生導覽的時機：
+
+- `data-astro-reload`：`<a>` 標籤的屬性，用來[強制整頁式導覽](#停用客戶端導覽)
+- `data-astro-history="auto | push | replace"`：`<a>` 標籤的屬性，用來[控制瀏覽器歷史紀錄](#覆寫瀏覽器歷史紀錄)
+- `navigate(href, options)`：任何客戶端腳本或客戶端元件都可以使用的方法，用來[觸發導覽](#觸發導覽)
+
+### 停用客戶端導覽
+
+有些情況你無法透過客戶端路由進行導覽，因為涉及的兩個頁面都必須使用 `<ClientRouter />` 路由器才能避免整頁重新載入。你可能也不希望每次導覽變更都走客戶端路由，而偏好在特定路由上使用傳統頁面導覽。
+
+你可以在任何 `<a>` 或 `<form>` 標籤加上 `data-astro-reload` 屬性，為個別連結停用客戶端路由。這個屬性會覆寫任何現有的 `<ClientRouter />` 元件，改為在導覽時觸發瀏覽器重新整理。
+
+以下範例示範只有從首頁導覽到某篇文章時才停用客戶端路由。當你從文章列表頁導覽到同一個文章頁時，仍能在共用元素（例如主視覺圖片）上使用動畫：
+
+```astro title="src/pages/index.astro"
+<a href="/articles/emperor-penguins" data-astro-reload>
+```
+
+```astro title="src/pages/articles.astro"
+<a href="/articles/emperor-penguins">
+```
+
+帶有 `data-astro-reload` 屬性的連結會被路由器忽略，並走整頁式導覽。
+
+### 觸發導覽
+
+你也可以透過 [`navigate()`](/zh-tw/reference/modules/astro-transitions/#navigate) 觸發客戶端導覽，用於 `<ClientRouter />` 路由器平常不會監聽的事件。這個來自 `astro:transitions/client` 模組的函式可在腳本以及透過[客戶端指令](/zh-tw/reference/directives-reference/#client-directives)注水的框架元件中使用。
+
+以下範例展示一個 Astro 元件，它會讓訪客從選單中選擇一個選項後導覽到對應頁面：
+
+```astro title="src/components/Form.astro"
+<script>
+  import { navigate } from "astro:transitions/client";
+
+  // 自動導覽到所選的選項。
+  document.querySelector("select").onchange = (event) => {
+    let href = event.target.value;
+    navigate(href);
+  };
+</script>
+<select>
+  <option value="/play">Play</option>
+  <option value="/blog">Blog</option>
+  <option value="/about">About</option>
+  <option value="/contact">Contact</option>
+</select>
+```
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/Form.astro";
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+	<head>
+		<ClientRouter />
+	</head>
+	<body>
+		<Form />
+	</body>
+</html>
+```
+
+以下範例在 React 的 `<Form />` 元件中使用 `navigate()` 實作相同功能：
+
+```js title="src/components/Form.jsx"
+import { navigate } from "astro:transitions/client";
+
+export default function Form() {
+  return (
+    <select onChange={(e) => navigate(e.target.value)}>
+      <option value="/play">Play</option>
+      <option value="/blog">Blog</option>
+      <option value="/about">About</option>
+      <option value="/contact">Contact</option>
+    </select>
+  );
+}
+```
+
+接著可以把 `<Form />` 元件以客戶端指令算繪到一個使用 `<ClientRouter />` 路由器的 Astro 頁面：
+
+```astro title="src/pages/index.astro"
+---
+import Form from "../components/Form.jsx";
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+	<head>
+		<ClientRouter />
+	</head>
+	<body>
+		<Form client:load />
+	</body>
+</html>
+```
+
+若要透過瀏覽器歷史紀錄進行前進與後退導覽，你可以把 `navigate()` 搭配瀏覽器內建的 `history.back()`、`history.forward()` 與 `history.go()` 函式使用。如果在元件的伺服器端算繪期間呼叫 `navigate()`，它不會有任何效果。
+
+<ReadMore>更多資訊請參閱 `astro:transitions` 參考中的 [`navigate()` 選項](/zh-tw/reference/modules/astro-transitions/#navigate)。</ReadMore>
+
+### 覆寫瀏覽器歷史紀錄
+
+通常每次導覽都會在瀏覽器歷史紀錄中寫入一筆新紀錄。這讓你可以用瀏覽器的 `back` 與 `forward` 按鈕在頁面間移動。
+
+`<ClientRouter />` 路由器讓你可以在任何個別的 `<a>` 標籤上加上 `data-astro-history` 屬性來覆寫歷史紀錄。
+
+`data-astro-history` 屬性可以設定為與 [`navigate()` 函式的 `history` 選項](/zh-tw/reference/modules/astro-transitions/#history-option)相同的三個值：
+
+- `"push"`：路由器會使用 `history.pushState` 在瀏覽器歷史紀錄中建立新一筆紀錄。
+- `"replace"`：路由器會使用 `history.replaceState` 更新 URL，而不在導覽中加入新紀錄。
+- `"auto"`（預設）：路由器會嘗試 `history.pushState`，但如果該 URL 無法進行轉場，目前 URL 會保留不變，瀏覽器歷史紀錄也不會變動。
+
+以下範例會導覽到 `/main` 頁面，但不會在瀏覽歷史中加入新紀錄。相反地，它會重複使用歷史紀錄中目前的那一筆（`/confirmation`）並覆寫它。
+
+```astro title="src/pages/confirmation.astro"
+<a href="/main" data-astro-history="replace">
+```
+
+這會讓你從 `/main` 頁面往回走時，瀏覽器不會顯示 `/confirmation` 頁面，而是它之前的那一頁。
+
+### 搭配表單的轉場
+
+<p><Since v="4.0.0" /></p>
+
+`<ClientRouter />` 路由器會從 `<form>` 元素觸發頁面內轉場，支援 `GET` 與 `POST` 請求。
+
+預設情況下，當你的 `method` 設為 `POST` 時，Astro 會把表單資料以 `multipart/form-data` 送出。如果你想符合網頁瀏覽器的預設行為，請使用 `enctype` 屬性，把資料以 `application/x-www-form-urlencoded` 編碼送出：
+
+```astro title="src/components/Form.astro"
+<form
+  action="/contact"
+  method="POST"
+  enctype="application/x-www-form-urlencoded"
+>
+```
+
+你可以透過 `data-astro-reload` 屬性讓任何個別表單停用路由器轉場：
+
+```astro title="src/components/Form.astro"
+<form action="/contact" data-astro-reload>
+```
+
+### 使用使用者輸入進行導覽
+
+`navigate()` API 不會對傳入的 URL 做任何清理。如果你使用使用者輸入決定要導覽到的 URL，在把它傳給 `navigate()` 之前，應該先驗證該輸入。
+
+舉例來說，如果未先清理就使用，`?redirect` 查詢參數可能被用來把訪客導覽離開你的網站（`?redirect=http://example.com`），或執行任意程式碼（`?redirect=javascript:alert('Evil code')`）。
+
+一種安全的做法是確保只有已知的路徑可以被重新導向：
+
+```astro title="src/pages/index.astro"
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const allowedPaths = ['/home', '/about', '/contact'];
+
+  if (allowedPaths.includes(redirect)) {
+    navigate(redirect);
+  }
+</script>
+```
+
+你需要什麼樣的清理，取決於你的網站以及你想允許的內容。
+
+<ReadMore>如果使用使用者輸入搭配 `navigate()` API，可以考慮啟用 Astro 的[內容安全政策功能](/zh-tw/reference/configuration-reference/#securitycsp)，有助於防範跨站指令碼攻擊（XSS）風險。</ReadMore>
+
+## 備用控制
+
+`<ClientRouter />` 路由器在支援 View Transitions 的瀏覽器（也就是 Chromium 系瀏覽器）中運作最佳，但也內含對其他瀏覽器的預設備用支援。即使瀏覽器不支援 View Transitions API，Astro 的客戶端路由器仍可使用其中一種備用選項，在瀏覽器中提供導覽。
+
+視瀏覽器支援情況而定，你可能需要在想要執行動畫的元素上明確設定 `name` 或 `animate` [轉場指令](#轉場指令)，以在所有瀏覽器中獲得相近的體驗：
+
+```astro title="src/pages/about.astro"
+---
+import Layout from "../layouts/LayoutUsingClientRouter.astro";
+---
+<title transition:animate="fade">About my site</title>
+```
+
+你可以在 `<ClientRouter />` 元件上加入 `fallback` 屬性，並把它設為 `swap` 或 `none` 來覆寫 Astro 的預設備用支援：
+
+- `animate`（預設，建議）：Astro 會在更新頁面內容前，使用自訂屬性模擬 view transitions。
+- `swap`：Astro 不會嘗試為頁面加上動畫。相對地，舊頁面會立即被新頁面取代。
+- `none`：Astro 完全不執行任何動畫式的頁面轉場。相對地，在不支援的瀏覽器中會走整頁式導覽。
+
+```astro
+---
+import { ClientRouter } from "astro:transitions";
+---
+<title>My site</title>
+
+<ClientRouter fallback="swap" />
+```
+
+:::note[已知限制]
+`initial` 瀏覽器動畫並不會由 Astro 模擬。因此使用這個動畫的任何元素目前不會產生動畫效果。
+:::
+
+## 客戶端導覽流程
+
+使用 `<ClientRouter />` 路由器時，會依下列步驟產生 Astro 的客戶端導覽：
+
+<Steps>
+1. 你網站的訪客透過下列任一動作觸發導覽：
+    - 點擊內部連結到你網站另一個頁面的 `<a>` 標籤。
+    - 點擊返回按鈕。
+    - 點擊前進按鈕。
+2. 路由器開始抓取下一個頁面。
+3. 路由器為 HTML 元素加上 `data-astro-transition` 屬性，並依情況設為 `"forward"` 或 `"back"`。
+4. 路由器呼叫 `document.startViewTransition`。這會觸發瀏覽器自己的 [view transition 流程](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API/Using#the_view_transition_process)。重要的是，瀏覽器會擷取目前頁面狀態的截圖。
+5. 在 `startViewTransition` 回呼內，路由器會執行一次 __swap__（替換），包含下列一連串事件：
+
+    - `<head>` 的內容會被替換，其中某些元素會保留：
+      - 如果新頁面存在相同的樣式表 DOM 節點，就會保留，以避免 FOUC。
+      - 如果新頁面存在這些腳本，就會保留。
+      - 任何帶有 `transition:persist` 的其他 head 元素，只要新頁面有對應元素，就會保留。
+      
+    - `<body>` 會完全被新頁面的 body 取代。
+    
+    - 帶有 `transition:persist` 標記的元素，只要新頁面存在對應元素，就會被移到新的 DOM 中。
+    
+    - 如有需要會還原捲動位置。
+    
+    - `astro:after-swap` 事件會在 `document` 上觸發。這是 __swap__ 流程的結束。
+    
+6. 路由器會等待所有新樣式表載入完成，才算轉場結束。
+7. 路由器執行頁面上新加入的任何腳本。
+8. `astro:page-load` 事件觸發。這是導覽流程的結束。
+</Steps>
+
+## 腳本在 view transitions 下的行為
+
+當你把 view transitions 加入到既有 Astro 專案時，你的部分腳本可能不會像過去整頁重新整理時一樣在導覽後重新執行。請使用下列資訊確保你的腳本如預期執行。
+
+### 腳本順序
+
+在使用 `<ClientRouter />` 元件的頁面間導覽時，腳本會依序執行以符合瀏覽器行為。
+
+### 腳本重新執行
+
+[打包後的模組腳本](/zh-tw/guides/client-side-scripts/#腳本處理)（Astro 中的預設腳本）只會執行一次。初次執行之後，即使轉場後該腳本在新頁面上仍存在，也會被忽略。
+
+與打包後的模組腳本不同，[行內腳本](/zh-tw/guides/client-side-scripts/#未處理的腳本)有可能在使用者瀏覽網站期間重新執行，只要該腳本存在的頁面被多次造訪。當訪客導覽到沒有該腳本的頁面後，又回到含有該腳本的頁面時，行內腳本也可能重新執行。
+
+有了 view transitions，某些腳本可能不會像整頁重新整理時那樣在導覽後重新執行。[客戶端路由期間有幾個事件可供你監聽](#生命週期事件)，並在事件發生時觸發動作。你可以把既有腳本包在事件監聽器中，確保它在導覽週期中的正確時機執行。
+
+以下範例把行動版「漢堡」選單的腳本包在 `astro:page-load` 事件監聽器中，該事件在頁面導覽結束時觸發，讓選單在導覽到新頁面後仍能對點擊做出反應：
+
+```js title="src/scripts/menu.js" ins={1,5}
+document.addEventListener("astro:page-load", () => {
+  document.querySelector(".hamburger").addEventListener("click", () => {
+    document.querySelector(".nav-links").classList.toggle("expanded");
+  });
+});
+```
+
+以下範例展示一個函式會對 `astro:after-swap` 事件做出反應，該事件在新頁面取代舊頁面之後、DOM 元素繪製到螢幕之前立即發生。這樣可以透過在新頁面算繪前檢查並在必要時設定深色模式主題，避免頁面導覽後短暫閃出淺色模式：
+
+```astro title="src/components/ThemeToggle.astro"
+<script is:inline>
+  function applyTheme() {
+    localStorage.theme === "dark"
+      ? document.documentElement.classList.add("dark")
+      : document.documentElement.classList.remove("dark");
+  }
+
+  document.addEventListener("astro:after-swap", applyTheme);
+  applyTheme(); 
+</script>
+```
+
+#### `data-astro-rerun`
+
+<p><Since v="4.5.0" /></p>
+
+要強制行內腳本在每次轉場後都重新執行，請加上 `data-astro-rerun` 屬性。為腳本加上任何屬性也會隱含加上 `is:inline`，因此這個功能只能用於未被 Astro 打包處理的腳本。
+
+```astro
+<script is:inline data-astro-rerun>...</script>
+```
+
+要確保腳本在客戶端導覽期間每次頁面載入時都執行，應由[生命週期事件](#生命週期事件)觸發執行。舉例來說，`DOMContentLoaded` 的事件監聽器可以替換成 [`astro:page-load`](/zh-tw/guides/view-transitions/#astropage-load) 生命週期事件。
+
+如果你有在行內腳本中設定全域狀態的程式碼，這段狀態需要考量到腳本可能會被執行多次。請在 `<script>` 標籤中檢查全域狀態，並盡可能有條件地執行程式碼。這能奏效是因為 `window` 會被保留：
+
+```astro
+<script is:inline>
+  if (!window.SomeGlobal) {
+    window.SomeGlobal = {};
+  }
+</script>
+```
+
+## 生命週期事件
+
+`<ClientRouter />` 路由器會在導覽期間於 `document` 上觸發多個事件。這些事件為導覽生命週期提供了掛勾，讓你可以做一些事，例如顯示「新頁面正在載入」的指示、覆寫預設行為，以及在導覽完成時還原狀態。
+
+導覽流程包括一個**準備**階段（載入新內容）、**DOM 替換**階段（舊頁面內容被新頁面內容取代），以及**完成**階段（執行腳本、回報載入完成、進行清理工作）。
+
+Astro 的 View Transition API 生命週期事件依序為：
+
+- [`astro:before-preparation`](#astrobefore-preparation)
+- [`astro:after-preparation`](#astroafter-preparation)
+- [`astro:before-swap`](#astrobefore-swap)
+- [`astro:after-swap`](#astroafter-swap)
+- [`astro:page-load`](#astropage-load)
+
+:::tip
+`before-` 事件讓你可以影響並修改即將發生的動作，而 `after-` 事件則是某階段已完成的通知。
+:::
+
+雖然有些動作可以在任何事件期間觸發，但為了達到最佳效果，某些工作只能在特定事件期間進行，例如在準備前顯示載入指示器，或在替換內容前覆寫動畫配對。
+
+### `astro:before-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+在準備階段一開始觸發的事件，此時導覽已啟動（例如使用者已點擊連結），但內容尚未載入。
+
+這個事件可用於：
+
+- 在載入開始前做一些事，例如顯示載入指示器。
+- 變更載入方式，例如從你在模板中定義的內容載入，而非從外部 URL 載入。
+- 為自訂動畫變更導覽的 `direction`（通常為 `forward` 或 `backward`）。
+
+以下範例使用 `astro:before-preparation` 事件在內容載入前顯示指示器，並在載入後立即停止。請注意，以這種方式使用 [`loader` 回呼](/zh-tw/reference/modules/astro-transitions/#loader)能讓你的程式碼非同步執行。
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-preparation", (event) => {
+    const originalLoader = event.loader;
+    event.loader = async function () {
+      const { startSpinner } = await import("./spinner.js");
+      const stop = startSpinner();
+      await originalLoader();
+      stop();
+    };
+  });
+</script>
+```
+
+### `astro:after-preparation`
+
+<p><Since v="3.6.0" /></p>
+
+在準備階段結束時觸發的事件，此時新頁面內容已載入並解析為文件。這個事件發生在 view transitions 階段之前。
+
+以下範例使用 `astro:before-preparation` 事件啟動載入指示器，並使用 `astro:after-preparation` 事件停止它：
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-preparation", () => {
+    document.querySelector("#loading").classList.add("show");
+  });
+  document.addEventListener("astro:after-preparation", () => {
+    document.querySelector("#loading").classList.remove("show");
+  });
+</script>
+```
+
+這是比上面範例更單純的載入指示器版本：如果監聽器的所有程式碼都可以同步執行，就不需要掛勾 `loader` 回呼。
+
+### `astro:before-swap`
+
+<p><Since v="3.6.0" /></p>
+
+在新文件（於準備階段產生）取代目前文件之前觸發的事件。這個事件發生在 view transition 內部，此時使用者仍看到舊頁面的截圖。
+
+這個事件可用於在 swap 發生之前進行變更。事件上的 `newDocument` 屬性代表即將到來的文件。以下範例確保瀏覽器在 `localStorage` 中的明暗模式偏好被帶到新頁面：
+
+```astro
+<script>
+  document.addEventListener("astro:before-swap", (event) => {
+    event.newDocument.documentElement.dataset.theme =
+      localStorage.getItem("darkMode") ? "dark" : "light";
+  });
+</script>
+```
+
+`astro:before-swap` 事件也可以用來改變 swap 的*實作*。預設的 swap 實作會比對 head 內容、把 __持久化__ 元素從舊文件移到 `newDocument`，接著把整個 `body` 替換為新文件的 body。
+
+在生命週期的這個時間點，你可以選擇定義自己的 swap 實作，例如比對整個既有文件的內容（其他路由器的做法）：
+
+```astro
+<script is:inline>
+  document.addEventListener("astro:before-swap", (event) => {
+    event.swap = () => {
+      diff(document, event.newDocument);
+    };
+  });
+</script>
+```
+
+#### 建立自訂 swap 函式
+
+<p><Since v="4.15.0" /></p>
+
+`astro:transitions/client` 模組的 [`swapFunctions` 物件](/zh-tw/reference/modules/astro-transitions/#swapfunctions)提供五個處理特定 swap 相關工作（包含處理文件屬性、頁面元素與腳本執行）的工具函式。這些函式可以直接用來定義自訂的 swap 實作。
+
+以下範例示範如何使用這些函式，重新實作 Astro 內建的 swap 行為：
+
+```astro
+<script>
+  import { swapFunctions } from "astro:transitions/client";
+  
+  // 以 `doc` 替代 `window.document`
+  function mySwap(doc: Document) {
+    swapFunctions.deselectScripts(doc);
+    swapFunctions.swapRootAttributes(doc);
+    swapFunctions.swapHeadElements(doc);
+    const restoreFocusFunction = swapFunctions.saveFocus();
+    swapFunctions.swapBodyElement(doc.body, document.body);
+    restoreFocusFunction();
+  }
+  
+  document.addEventListener("astro:before-swap", (event) => {
+    event.swap = () => mySwap(event.newDocument);
+  });
+<script>
+```
+
+自訂 swap 實作可以從這個模板開始，並依需要以自訂邏輯加入或取代個別步驟。
+
+### `astro:after-swap`
+
+新頁面取代舊頁面後立即觸發的事件。你可以在 `document` 上監聽這個事件，並觸發在新頁面 DOM 元素算繪以及腳本執行之前會發生的動作。
+
+在**即將離開的頁面**上監聽這個事件，適合用來傳遞與還原任何需要轉移到新頁面的 DOM 狀態。
+
+這是生命週期中最後仍可安全進行某些工作的時機，例如加上深色模式 class（`<html class="dark-mode">`），但你可能會希望在更早的事件中完成。
+
+`astro:after-swap` 事件在瀏覽器歷史紀錄已更新且捲動位置已設定後立即發生。
+因此，鎖定這個事件的一個用途是覆寫歷史導覽的預設捲動還原。以下範例在每次導覽時，把水平與垂直捲動位置重設到頁面的左上角：
+
+```js
+document.addEventListener("astro:after-swap", () =>
+  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+);
+```
+
+### `astro:page-load`
+
+在頁面導覽結束時觸發的事件，此時新頁面已對使用者可見、阻塞性樣式與腳本也已載入。你可以在 `document` 上監聽這個事件。
+
+`<ClientRouter />` 元件在預先算繪頁面的初始導覽、以及後續任何前進或後退導覽時都會觸發這個事件。
+
+你可以使用這個事件在每次頁面導覽時執行程式碼，例如設定在導覽期間會遺失的事件監聽器：
+
+```astro
+<script>
+  document.addEventListener("astro:page-load", () => {
+    // 這會在初次頁面載入與每次導覽後執行。
+    setupStuff(); // 例如加入事件監聽器
+  });
+</script>
+```
+
+## 無障礙
+
+啟用客戶端路由與頁面轉場動畫都會帶來無障礙挑戰，而 Astro 的目標是盡可能讓啟用 View Transitions 的網站在預設情況下就具備無障礙性。
+
+### 路由宣告
+
+<p><Since v="3.2.0" /></p>
+
+`<ClientRouter />` 元件內建一個路由宣告器，用於客戶端路由期間的頁面導覽。啟用它不需要任何設定或動作。
+
+輔助技術會在導覽後透過宣讀新頁面標題，讓訪客知道頁面已變更。使用傳統整頁重新整理的伺服器端路由時，這會在新頁面載入後自動發生。在客戶端路由下，這個動作由 `<ClientRouter />` 元件執行。
+
+為了在客戶端路由中加入路由宣告，元件會為新頁面加入一個 `aria-live` 屬性設為 `assertive` 的元素。這會告訴輔助技術（AT）立即宣讀。元件也會依優先順序檢查下列項目來決定宣讀文字：
+
+- `<title>`（如果存在）。
+- 它找到的第一個 `<h1>`。
+- 頁面的 `pathname`。
+
+為了無障礙性，我們強烈建議你永遠在每個頁面都包含 `<title>`。
+
+### `prefers-reduced-motion`
+
+Astro 的 `<ClientRouter />` 元件包含一個 CSS media query，會在偵測到 [`prefers-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion) 設定時，停用*所有* view transition 動畫（包含備用動畫）。瀏覽器會直接替換 DOM 元素，而不執行動畫。
