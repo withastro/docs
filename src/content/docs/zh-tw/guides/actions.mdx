@@ -1,0 +1,770 @@
+---
+title: Actions
+description: 了解如何建立可在任何地方呼叫、具型別安全的伺服器端函式。
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="4.15" /></p>
+
+Astro Actions 讓你能以型別安全的方式定義並呼叫後端函式。Actions 會為你處理資料抓取、JSON 解析以及輸入驗證。相較於使用 [API 端點](/zh-tw/guides/endpoints/)，這能大幅減少樣板程式碼。
+
+使用 actions 取代 API 端點，可以讓你的客戶端與伺服器端程式碼之間溝通無縫，並且可以：
+
+- 自動使用 [Zod 驗證](/zh-tw/reference/modules/astro-zod/)驗證 JSON 與表單資料輸入。
+- 產生型別安全的函式，讓你從客戶端（甚至[從 HTML 表單 action](#從-html-表單-action-呼叫-actions)）呼叫後端。不需要手動呼叫 `fetch()`。
+- 透過 [`ActionError`](/zh-tw/reference/modules/astro-actions/#actionerror) 物件標準化後端錯誤。
+
+## 基本用法
+
+Actions 定義在由 `src/actions/index.ts` 匯出的 `server` 物件中：
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  myAction: defineAction({ /* ... */ })
+}
+```
+
+你的 actions 可以透過 `astro:actions` 模組以函式的形式取得。匯入 `actions` 並在客戶端 [UI 框架元件](/zh-tw/guides/framework-components/)、[表單 POST 請求](#從-html-表單-action-呼叫-actions)，或是在 Astro 元件中使用 `<script>` 標籤內呼叫它們。
+
+呼叫 action 時，它會回傳一個物件，可能包含已序列化為 JSON 的 `data`，或是包含丟出錯誤的 `error`。
+
+```astro title="src/pages/index.astro"
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
+```
+
+### 撰寫你的第一個 action
+
+依照以下步驟，在 Astro 頁面的 `script` 標籤中定義並呼叫一個 action。
+
+<Steps>
+
+1. 建立一個 `src/actions/index.ts` 檔案並匯出一個 `server` 物件。
+
+    ```ts title="src/actions/index.ts"
+    export const server = {
+      // action 宣告
+    }
+    ```
+
+2. 從 `astro:actions` 匯入 `defineAction()` 工具，以及從 `astro/zod` 匯入 `z` 物件。
+
+    ```ts ins={1-2} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      // action 宣告
+    }
+    ```
+
+3. 使用 `defineAction()` 工具定義一個 `getGreeting` action。`input` 屬性會用 [Zod 綱要](/zh-tw/reference/modules/astro-zod/#common-data-type-validators)驗證輸入參數，而 `handler()` 函式則包含要在伺服器執行的後端邏輯。
+
+    ```ts ins={5-12} title="src/actions/index.ts"
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      getGreeting: defineAction({
+        input: z.object({
+          name: z.string(),
+        }),
+        handler: async (input) => {
+          return `Hello, ${input.name}!`
+        }
+      })
+    }
+    ```
+
+4. 建立一個 Astro 元件，內含一個按鈕；點擊時會透過你的 `getGreeting` action 抓取問候語。
+
+    ```astro title="src/pages/index.astro"
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // 顯示含有 action 問候語的彈出 alert
+    });
+    </script>
+    ```
+
+5. 要使用你的 action，請從 `astro:actions` 匯入 `actions`，然後在點擊處理函式中呼叫 `actions.getGreeting()`。`name` 選項會傳到伺服器端你 action 的 `handler()`；若沒有錯誤，結果會透過 `data` 屬性取得。
+
+    ```astro title="src/pages/index.astro" ins={7, 12-13}
+    ---
+    ---
+
+    <button>Get greeting</button>
+
+    <script>
+    import { actions } from 'astro:actions';
+
+    const button = document.querySelector('button');
+    button?.addEventListener('click', async () => {
+      // 顯示含有 action 問候語的彈出 alert
+      const { data, error } = await actions.getGreeting({ name: "Houston" });
+      if (!error) alert(data);
+    })
+    </script>
+    ```
+
+</Steps>
+
+<ReadMore>關於 [`defineAction()`](/zh-tw/reference/modules/astro-actions/#defineaction) 及其屬性的細節，請見完整的 Actions API 文件。</ReadMore>
+
+## 組織 actions
+
+你專案中所有的 actions 必須由 `src/actions/index.ts` 檔案的 `server` 物件匯出。你可以內嵌定義 actions，也可以把 action 定義移到獨立的檔案再匯入。你甚至可以把相關函式分組到巢狀物件中。
+
+舉例來說，要把所有使用者 actions 放在一起，你可以建立一個 `src/actions/user.ts` 檔案，把 `getUser` 與 `createUser` 的定義都放在單一的 `user` 物件中。
+
+```ts title="src/actions/user.ts"
+import { defineAction } from 'astro:actions';
+
+export const user = {
+  getUser: defineAction(/* ... */),
+  createUser: defineAction(/* ... */),
+}
+```
+
+接著，你可以把這個 `user` 物件匯入到 `src/actions/index.ts` 檔案，與其他 actions 並列加入 `server` 物件的最上層：
+
+```ts title="src/actions/index.ts" ins={1,5}
+import { user } from './user';
+
+export const server = {
+  myAction: defineAction({ /* ... */ }),
+  user,
+}
+```
+
+現在，所有你的使用者 actions 都可以透過 `actions.user` 物件呼叫：
+
+- `actions.user.getUser()`
+- `actions.user.createUser()`
+
+
+## 處理回傳的資料
+
+Actions 回傳一個物件，內含具型別安全的 `handler()` 回傳值 `data`，或是含有後端錯誤的 `error`。錯誤可能來自 `input` 屬性的驗證錯誤，或來自 `handler()` 內丟出的錯誤。
+
+Actions 使用客製化的資料格式回傳，能處理 Date、Map、Set 與 URL，背後[透過 Devalue 函式庫](https://github.com/Rich-Harris/devalue)。因此，你無法像一般 JSON 那樣輕鬆地從網路檢視回應。偵錯時，你可以檢視 actions 回傳的 `data` 物件。
+
+<ReadMore>完整細節[請見 `handler()` API 參考](/zh-tw/reference/modules/astro-actions/#handler-property)。</ReadMore>
+
+### 檢查錯誤
+
+最佳做法是在使用 `data` 屬性之前先檢查是否存在 `error`。這讓你可以事先處理錯誤，並確保 `data` 是已定義的，而不需要另外檢查是否為 `undefined`。
+
+```ts
+const { data, error } = await actions.example();
+
+if (error) {
+  // 處理錯誤情境
+  return;
+}
+// 使用 `data`
+```
+
+### 不經錯誤檢查直接存取 `data`
+
+若要略過錯誤處理（例如在開發原型時，或使用會幫你捕捉錯誤的函式庫時），可以在你的 action 呼叫上使用 `.orThrow()` 屬性，讓它丟出錯誤而非回傳 `error`。這會直接回傳 action 的 `data`。
+
+以下範例呼叫一個 `likePost()` action，它會從 action `handler` 回傳更新後的按讚數（型別為 `number`）：
+
+```ts ins="orThrow"
+const updatedLikes = await actions.likePost.orThrow({ postId: 'example' });
+//    ^ 型別：number
+```
+
+### 在你的 action 中處理後端錯誤
+
+你可以使用內建的 `ActionError` 從你 action 的 `handler()` 中丟出錯誤，例如資料庫項目不存在時丟出「找不到」，或使用者未登入時丟出「未授權」。與回傳 `undefined` 相比，這有兩個主要好處：
+
+
+- 你可以設定狀態碼，例如 `404 - Not found` 或 `401 - Unauthorized`。這讓你能看到每個請求的狀態碼，改善開發與正式環境中的錯誤偵錯。
+
+- 在你的應用程式程式碼中，所有錯誤都會被傳到 action 結果的 `error` 物件上。這避免對 `data` 做 `undefined` 檢查，並讓你可以依問題類型為使用者顯示針對性的回饋。
+
+#### 建立 `ActionError`
+
+要丟出錯誤，請從 `astro:actions` 模組匯入 [`ActionError()` 類別](/zh-tw/reference/modules/astro-actions/#actionerror)。傳入一個人類可讀的狀態 `code`（例如 `"NOT_FOUND"` 或 `"BAD_REQUEST"`），以及可選的 `message` 來提供更多關於該錯誤的資訊。
+
+以下範例在使用者尚未登入時，於 `likePost` action 中丟出錯誤（在檢查假設的 "user-session" cookie 以進行驗證後）：
+
+```ts title="src/actions/index.ts" ins=/ActionError(?= )/ ins={9-12}
+import { defineAction, ActionError } from "astro:actions";
+import { z } from "astro/zod";
+
+export const server = {
+  likePost: defineAction({
+    input: z.object({ postId: z.string() }),
+    handler: async (input, ctx) => {
+      if (!ctx.cookies.has('user-session')) {
+        throw new ActionError({
+          code: "UNAUTHORIZED",
+          message: "User must be logged in.",
+        });
+      }
+      // 否則就按讚
+    },
+  }),
+};
+```
+
+#### 處理 `ActionError`
+
+要處理這個錯誤，你可以從應用程式呼叫 action 並檢查是否有 `error` 屬性。這個屬性的型別會是 `ActionError`，並包含你的 `code` 與 `message`。
+
+以下範例中，`LikeButton.tsx` 元件在被點擊時呼叫 `likePost()` action。若發生驗證錯誤，會使用 `error.code` 屬性決定是否顯示登入連結：
+
+```tsx title=src/components/LikeButton.tsx ins="if (error?.code === 'UNAUTHORIZED') setShowLogin(true);"
+import { actions } from 'astro:actions';
+import { useState } from 'preact/hooks';
+
+export function LikeButton({ postId }: { postId: string }) {
+  const [showLogin, setShowLogin] = useState(false);
+  return (
+    <>
+      {
+        showLogin && <a href="/signin">Log in to like a post.</a>
+      }
+      <button onClick={async () => {
+        const { data, error } = await actions.likePost({ postId });
+        if (error?.code === 'UNAUTHORIZED') setShowLogin(true);
+        // 非預期錯誤，提前返回
+        else if (error) return;
+        // 更新按讚數
+      }}>
+        Like
+      </button>
+    </>
+  )
+}
+```
+
+### 處理客戶端重新導向
+
+從客戶端呼叫 actions 時，你可以與像是 `react-router` 這類的客戶端函式庫整合，也可以使用 Astro 的 [`navigate()` 函式](/zh-tw/guides/view-transitions/#觸發導覽)，在 action 成功時重新導向到新頁面。
+
+以下範例在 `logout` action 成功回傳後導覽到首頁：
+
+```tsx title=src/pages/LogoutButton.tsx {2,7-8}
+import { actions } from 'astro:actions';
+import { navigate } from 'astro:transitions/client';
+
+export function LogoutButton() {
+  return (
+    <button onClick={async () => {
+      const { error } = await actions.logout();
+      if (!error) navigate('/');
+    }}>
+      Logout
+    </button>
+  );
+}
+```
+
+## 在 action 中接收表單資料
+
+Actions 預設接受 JSON 資料。若要從 HTML 表單接收表單資料，請在 `defineAction()` 呼叫中設定 `accept: 'form'`：
+
+```ts title="src/actions/index.ts" ins={6}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  comment: defineAction({
+    accept: 'form',
+    input: z.object(/* ... */),
+    handler: async (input) => { /* ... */ },
+  })
+}
+```
+
+### 搭配表單輸入使用驗證器
+
+當你的 action 被[設定為接受表單資料](/zh-tw/reference/modules/astro-actions/#accept-property)時，你可以使用任何 Zod 驗證器驗證欄位（例如對日期輸入使用 `z.coerce.date()`）。延伸函式包括 `.refine()`、`.transform()` 與 `.pipe()` 在 `z.object()` 驗證器上也支援。
+
+此外，Astro 在底層為以下欄位輸入型別提供特殊處理以方便驗證：
+
+- 型別為 `number` 的輸入可以用 `z.number()` 驗證
+- 型別為 `checkbox` 的輸入可以用 `z.coerce.boolean()` 驗證
+- 型別為 `file` 的輸入可以用 `z.instanceof(File)` 驗證
+- 多個同名 (`name`) 的輸入可以用 `z.array(/* 驗證器 */)` 驗證
+- 其他所有輸入可以用 `z.string()` 驗證
+
+當你的表單以空輸入送出時，輸出型別可能不符合你的 `input` 驗證器。空值會被轉換成 `null`，除非驗證的是陣列或布林值。舉例來說，若 `text` 型別的輸入以空值送出，結果會是 `null` 而不是空字串（`""`）。
+
+要套用不同驗證器的聯集，請使用 `z.discriminatedUnion()` 包裝器，根據特定表單欄位縮小型別。以下範例接收表單送出以「建立」或「更新」使用者，使用名為 `type` 的表單欄位決定要驗證哪個物件：
+
+```ts title="src/actions/index.ts" {7-21} "create" "update"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  changeUser: defineAction({
+    accept: 'form',
+    input: z.discriminatedUnion('type', [
+      z.object({
+        // 當 `type` 欄位值為 `create` 時比對
+        type: z.literal('create'),
+        name: z.string(),
+        email: z.email(),
+      }),
+      z.object({
+        // 當 `type` 欄位值為 `update` 時比對
+        type: z.literal('update'),
+        id: z.number(),
+        name: z.string(),
+        email: z.email(),
+      }),
+    ]),
+    async handler(input) {
+      if (input.type === 'create') {
+        // input 為 { type: 'create', name: string, email: string }
+      } else {
+        // input 為 { type: 'update', id: number, name: string, email: string }
+      }
+    },
+  }),
+};
+```
+
+### 驗證表單資料
+
+Actions 會把送出的表單資料解析為物件，使用每個輸入 `name` 屬性的值作為物件的鍵。舉例來說，含有 `<input name="search">` 的表單會被解析為類似 `{ search: 'user input' }` 的物件。你 action 的 `input` 綱要會被用來驗證這個物件。
+
+若要在 action handler 中接收原始的 `FormData` 物件（而非解析過的物件），請在 action 定義中省略 `input` 屬性。
+
+以下範例展示一個驗證過的電子報註冊表單，接收使用者的電子郵件，並要求勾選「服務條款」同意的 checkbox。
+
+<Steps>
+
+1. 建立一個 HTML 表單元件，每個輸入都有唯一的 `name` 屬性：
+
+    ```astro title="src/components/Newsletter.astro" /name="\w+"/
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+    ```
+
+2. 定義一個 `newsletter` action 來處理送出的表單。使用 `z.email()` 驗證器驗證 `email` 欄位，並用 `z.boolean()` 驗證 `terms` checkbox：
+
+    ```ts title="src/actions/index.ts" ins={5-12}
+    import { defineAction } from 'astro:actions';
+    import { z } from 'astro/zod';
+
+    export const server = {
+      newsletter: defineAction({
+        accept: 'form',
+        input: z.object({
+          email: z.email(),
+          terms: z.boolean(),
+        }),
+        handler: async ({ email, terms }) => { /* ... */ },
+      })
+    }
+    ```
+
+    <ReadMore>所有可用的表單驗證器請見 [`input` API 參考](/zh-tw/reference/modules/astro-actions/#input-validator)。</ReadMore>
+
+3. 為 HTML 表單加上一個 `<script>` 以送出使用者輸入。以下範例覆寫了表單的預設送出行為，改為呼叫 `actions.newsletter()`，並以 `navigate()` 函式重新導向到 `/confirmation`：
+
+    ```astro title=src/components/Newsletter.astro ins={11-22} collapse={2-8}
+    <form>
+      <label for="email">E-mail</label>
+      <input id="email" required type="email" name="email" />
+      <label>
+        <input required type="checkbox" name="terms">
+        I agree to the terms of service
+      </label>
+      <button>Sign up</button>
+    </form>
+
+    <script>
+      import { actions } from 'astro:actions';
+      import { navigate } from 'astro:transitions/client';
+
+      const form = document.querySelector('form');
+      form?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+        const { error } = await actions.newsletter(formData);
+        if (!error) navigate('/confirmation');
+      })
+    </script>
+    ```
+
+    <ReadMore>另一種送出表單資料的方式請見[「從 HTML 表單 action 呼叫 actions」](#從-html-表單-action-呼叫-actions)。</ReadMore>
+
+</Steps>
+
+### 顯示表單輸入錯誤
+
+你可以在送出之前，使用 [HTML 表單原生驗證屬性](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation)（例如 `required`、`type="email"` 與 `pattern`）驗證表單輸入。對於較複雜的後端 `input` 驗證，可以使用內建的 [`isInputError()`](/zh-tw/reference/modules/astro-actions/#isinputerror) 工具函式。
+
+要取得輸入錯誤，使用 `isInputError()` 工具檢查錯誤是否由無效的輸入造成。輸入錯誤包含一個 `fields` 物件，內含每個未通過驗證的輸入名稱對應的訊息。你可以用這些訊息提示使用者修正他們的送出內容。
+
+以下範例使用 `isInputError()` 檢查錯誤，再檢查錯誤是否在 email 欄位，最後用這些錯誤組出訊息。你可以用 JavaScript DOM 操作或你偏好的 UI 框架，把這則訊息顯示給使用者。
+
+```js /isInputError(?= )/ {5-12}
+import { actions, isInputError } from 'astro:actions';
+
+const form = document.querySelector('form');
+const formData = new FormData(form);
+const { error } = await actions.newsletter(formData);
+if (isInputError(error)) {
+  // 處理輸入錯誤。
+  if (error.fields.email) {
+    const message = error.fields.email.join(', ');
+  }
+}
+```
+
+## 從 HTML 表單 action 呼叫 actions
+
+:::note
+透過表單 action 呼叫 actions 時，頁面必須為隨需算繪。使用此 API 前請[確認該頁面已停用預先算繪](/zh-tw/guides/on-demand-rendering/#啟用隨需算繪)。
+:::
+
+你可以在任何 `<form>` 元素上使用標準屬性，啟用零 JavaScript 的表單送出。不需要客戶端 JavaScript 的表單送出，在 JavaScript 載入失敗時可作為備用方案，或在你偏好完全從伺服器處理表單時也很實用。
+
+在伺服器呼叫 [Astro.getActionResult()](/zh-tw/reference/api-reference/#getactionresult) 會回傳你表單送出的結果（`data` 或 `error`），可用於動態重新導向、處理表單錯誤、更新 UI 等。
+
+要從 HTML 表單呼叫 action，請為你的 `<form>` 加上 `method="POST"`，接著用你的 action 設定表單的 `action` 屬性，例如 `action={actions.logout}`。這會把 `action` 屬性設為由伺服器自動處理的查詢字串。
+
+舉例來說，以下 Astro 元件會在按鈕被點擊時呼叫 `logout` action 並重新載入目前頁面：
+
+```astro title="src/components/LogoutButton.astro"
+---
+import { actions } from 'astro:actions';
+---
+
+<form method="POST" action={actions.logout}>
+  <button>Log out</button>
+</form>
+```
+
+`<form>` 元素上可能需要額外屬性，才能讓 Zod 正確驗證綱要。舉例來說，要包含檔案上傳，請加上 `enctype="multipart/form-data"`，確保檔案以 `z.instanceof(File)` 能正確辨識的格式送出：
+
+```astro title="src/components/FileUploadForm.astro"
+---
+import { actions } from 'astro:actions';
+---
+<form method="POST" action={actions.upload} enctype="multipart/form-data" >
+  <label for="file">Upload File</label>
+  <input type="file" id="file" name="file" />
+  <button type="submit">Submit</button>
+</form>
+```
+
+### action 成功時重新導向
+
+若你需要在成功時重新導向到新路由，可以在伺服器上使用 action 的結果。常見的例子是建立商品紀錄後，重新導向到新商品的頁面，例如 `/products/[id]`。
+
+舉例來說，假設你有一個 `createProduct` action，會回傳產生的商品 id：
+
+```ts title="src/actions/index.ts" mark={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  createProduct: defineAction({
+    accept: 'form',
+    input: z.object({ /* ... */ }),
+    handler: async (input) => {
+      const product = await persistToDatabase(input);
+      return { id: product.id };
+    },
+  })
+}
+```
+
+你可以在 Astro 元件中呼叫 `Astro.getActionResult()` 取得 action 結果。當 action 被呼叫時，這會回傳一個包含 `data` 或 `error` 屬性的物件；若本次請求沒有呼叫該 action，則回傳 `undefined`。
+
+使用 `data` 屬性組出 URL，搭配 `Astro.redirect()` 使用：
+
+```astro title="src/pages/products/create.astro" {4-7}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.createProduct);
+if (result && !result.error) {
+  return Astro.redirect(`/products/${result.data.id}`);
+}
+---
+
+<form method="POST" action={actions.createProduct}>
+  <!--...-->
+</form>
+```
+
+### 處理表單 action 錯誤
+
+在含有表單的 Astro 元件中呼叫 `Astro.getActionResult()`，讓你能存取 `data` 與 `error` 物件以做客製化錯誤處理。
+
+以下範例在 `newsletter` action 失敗時顯示一般的失敗訊息：
+
+```astro title="src/pages/index.astro" {4,7-9}
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+---
+
+{result?.error && (
+  <p class="error">Unable to sign up. Please try again later.</p>
+)}
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" />
+  </label>
+  <button>Sign up</button>
+</form>
+```
+
+若需要更多客製化，你可以[使用 `isInputError()` 工具](#顯示表單輸入錯誤)檢查錯誤是否由無效輸入造成。
+
+以下範例在送出無效電子郵件時，在 `email` 輸入欄位下方算繪一個錯誤提示：
+
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+---
+import { actions, isInputError } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
+---
+
+<form method="POST" action={actions.newsletter}>
+  <label>
+    E-mail
+    <input required type="email" name="email" aria-describedby="error" />
+  </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
+  <button>Sign up</button>
+</form>
+```
+
+#### 在錯誤時保留輸入值
+
+每次表單送出時，輸入都會被清空。要讓輸入值保留，你可以[啟用 view transitions](/zh-tw/guides/view-transitions/#啟用-view-transitionsspa-模式)，並為每個輸入套用 `transition:persist` 指令：
+
+```astro ins="transition:persist"
+<input transition:persist required type="email" name="email" />
+```
+
+### 用表單 action 結果更新 UI
+
+要使用 action 的回傳值在成功時對使用者顯示通知，請把 action 傳給 `Astro.getActionResult()`。使用回傳的 `data` 屬性算繪你想顯示的 UI。
+
+以下範例使用 `addToCart` action 回傳的 `productName` 屬性顯示成功訊息。
+
+```astro title="src/pages/products/[slug].astro"
+---
+import { actions } from 'astro:actions';
+
+const result = Astro.getActionResult(actions.addToCart);
+---
+
+{result && !result.error && (
+  <p class="success">Added {result.data.productName} to cart</p>
+)}
+
+<!--...-->
+```
+
+### 進階：以 session 保留 action 結果
+
+<p><Since v="5.0.0" /></p>
+
+Action 結果是以 POST 送出的形式顯示。這代表當使用者關閉頁面再回來造訪時，結果會被重置為 `undefined`。如果使用者嘗試重新整理頁面，也會看到「確認重新送出表單？」對話框。
+
+要客製化這個行為，你可以加入中介層手動處理 action 結果。你可以選擇使用 cookie 或 session 儲存來保留 action 結果。
+
+從[建立中介層檔案](/zh-tw/guides/middleware/)開始，並從 `astro:actions` 匯入 [`getActionContext()` 工具](/zh-tw/reference/modules/astro-actions/#getactioncontext)。這個函式會回傳一個 `action` 物件，內含關於進來的 action 請求的資訊，包括 action handler 以及該 action 是否從 HTML 表單呼叫。`getActionContext()` 也會回傳 `setActionResult()` 與 `serializeActionResult()` 函式，用以程式方式設定 `Astro.getActionResult()` 回傳的值：
+
+```ts title="src/middleware.ts" {2,5}
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action, setActionResult, serializeActionResult } = getActionContext(context);
+  if (action?.calledFrom === 'form') {
+    const result = await action.handler();
+    // ... 處理 action 結果
+    setActionResult(action.name, serializeActionResult(result));
+  }
+  return next();
+});
+```
+
+保留 HTML 表單結果的常見做法是 [POST / Redirect / GET 模式](https://en.wikipedia.org/wiki/Post/Redirect/Get)。這個重新導向可以在頁面重新整理時移除「確認重新送出表單？」對話框，並讓 action 結果在整個使用者 session 期間得以保留。
+
+以下範例在安裝了 [Netlify 伺服器配接器](/zh-tw/guides/integrations-guide/netlify/)的情況下，對所有表單送出套用 POST / Redirect / GET 模式。Action 結果會透過 [Netlify Blob](https://docs.netlify.com/blobs/overview/) 寫入 session 儲存區，並在重新導向後以 session ID 取回：
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+import { randomUUID } from "node:crypto";
+import { getStore } from "@netlify/blobs";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  // 跳過預先算繪頁面的請求
+  if (context.isPrerendered) return next();
+  
+  const { action, setActionResult, serializeActionResult } =
+    getActionContext(context);
+  // 建立 Blob store，用 Netlify Blob 保留 action 結果
+  const actionStore = getStore("action-session");
+  
+  // 如果 action 結果是以 cookie 轉送的，把結果設定為
+  // 可從 `Astro.getActionResult()` 存取
+  const sessionId = context.cookies.get("action-session-id")?.value;
+  const session = sessionId
+    ? await actionStore.get(sessionId, {
+        type: "json",
+      })
+    : undefined;
+  
+  if (session) {
+    setActionResult(session.actionName, session.actionResult);
+  
+    // 選用：在頁面算繪後刪除 session。
+    // 歡迎你實作自己的保留策略
+    await actionStore.delete(sessionId);
+    context.cookies.delete("action-session-id");
+    return next();
+  }
+  
+  // 如果 action 是從 HTML 表單 action 呼叫，
+  // 呼叫 action handler 並重新導向到目標頁面
+  if (action?.calledFrom === "form") {
+    const actionResult = await action.handler();
+  
+    // 使用 session 儲存保留 action 結果
+    const sessionId = randomUUID();
+    await actionStore.setJSON(sessionId, {
+      actionName: action.name,
+      actionResult: serializeActionResult(actionResult),
+    });
+  
+    // 把 session ID 作為 cookie 傳遞，
+    // 以便在重新導向到該頁面後取回
+    context.cookies.set("action-session-id", sessionId);
+  
+    // 發生錯誤時回到前一個頁面
+    if (actionResult.error) {
+      const referer = context.request.headers.get("Referer");
+      if (!referer) {
+        throw new Error(
+          "Internal: Referer unexpectedly missing from Action POST request.",
+        );
+      }
+      return context.redirect(referer);
+    }
+    // 成功時重新導向到目標頁面
+    return context.redirect(context.originPathname);
+  }
+  
+  return next();
+});
+```
+
+## 使用 actions 時的安全性
+
+Actions 會依其名稱以公開端點的形式提供。舉例來說，`blog.like()` action 會可以在 `/_actions/blog.like` 存取。這對單元測試 action 結果與偵錯正式環境錯誤很有用。然而，這代表你**必須**採用與考量 API 端點及隨需算繪頁面時相同的授權檢查。
+
+### 從 action handler 授權使用者
+
+要授權 action 請求，請在 action handler 中加上驗證檢查。你可能會想使用[驗證函式庫](/zh-tw/guides/authentication/)來處理 session 管理與使用者資訊。
+
+Actions 會公開 [`APIContext` 物件的子集](/zh-tw/reference/modules/astro-actions/#actionapicontext)，讓你可以透過 `context.locals` 存取由中介層傳遞的屬性。當使用者未被授權時，你可以用 `UNAUTHORIZED` 狀態碼拋出 `ActionError`：
+
+```ts title="src/actions/index.ts" {6-8}
+import { defineAction, ActionError } from 'astro:actions';
+
+export const server = {
+  getUserSettings: defineAction({
+    handler: async (_input, context) => {
+      if (!context.locals.user) {
+        throw new ActionError({ code: 'UNAUTHORIZED' });
+      }
+      return { /* 成功時的資料 */ };
+    }
+  })
+}
+```
+
+### 從中介層管控 actions
+
+<p><Since v="5.0.0" /></p>
+
+Astro 建議在你的 action handler 中授權使用者 session，以按 action 逐一遵守權限等級與流量限制。不過，你也可以從中介層管控對所有 actions（或部分 actions）的請求。
+
+從中介層中使用 [`getActionContext()` 函式](/zh-tw/reference/modules/astro-actions/#getactioncontext)取得任何進來的 action 請求資訊。這包括 action 名稱，以及該 action 是透過客戶端遠端程序呼叫（RPC）函式（例如 `actions.blog.like()`）或是 HTML 表單呼叫。
+
+以下範例拒絕所有沒有有效 session token 的 action 請求。若檢查失敗，會回傳「Forbidden」回應。注意：這個方法能確保 actions 只在有 session 時才可存取，但它*不能*取代安全的授權機制。
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { action } = getActionContext(context);
+  // 檢查該 action 是否由客戶端函式呼叫
+  if (action?.calledFrom === 'rpc') {
+    // 若是，檢查是否有使用者 session token
+    if (!context.cookies.has('user-session')) {
+      return new Response('Forbidden', { status: 403 });
+    }
+  }
+  
+  context.cookies.set('user-session', /* session token */);
+  return next();
+});
+```
+
+## 從 Astro 元件與伺服器端點呼叫 actions
+
+你可以在 Astro 元件腳本中透過 `Astro.callAction()` 包裝器直接呼叫 actions（若使用[伺服器端點](/zh-tw/guides/endpoints/#server-endpoints-api-routes)則使用 `context.callAction()`）。這常用於在其他伺服器程式碼中重用 actions 的邏輯。
+
+把 action 作為第一個引數、輸入參數作為第二個引數傳入。這會回傳與你在客戶端呼叫 actions 時相同的 `data` 與 `error` 物件：
+
+```astro title="src/pages/products.astro" {6}
+---
+import { actions } from 'astro:actions';
+
+const searchQuery = Astro.url.searchParams.get('search');
+if (searchQuery) {
+  const { data, error } = await Astro.callAction(actions.findProduct, { query: searchQuery });
+  // 處理結果
+}
+---
+```
