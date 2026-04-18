@@ -1,0 +1,243 @@
+---
+title: 端點
+description: 了解如何建立能提供任何種類資料的端點
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+Astro 讓你可以建立客製化端點，提供任何種類的資料。你可以用這個功能產生圖片、提供 RSS 文件，或把它們當作 API 路由，為你的網站打造完整的 API。
+
+在靜態產生的網站中，你的客製化端點會在建置階段被呼叫以產生靜態檔案。若你啟用 [SSR](/zh-tw/guides/on-demand-rendering/) 模式，客製化端點就會轉為即時的伺服器端點，在請求時被呼叫。靜態端點與 SSR 端點的定義方式相近，但 SSR 端點支援額外的功能。
+
+## 靜態檔案端點
+
+要建立客製化端點，請在 `/pages` 目錄中加入一個 `.js` 或 `.ts` 檔案。`.js` 或 `.ts` 副檔名會在建置程序中被移除，因此檔名應該包含你想建立的資料副檔名。舉例來說，`src/pages/data.json.ts` 會建置出一個 `/data.json` 端點。
+
+端點會匯出一個 `GET` 函式（可選擇為 `async`），它會接收一個[情境物件](/zh-tw/reference/api-reference/)，其屬性類似 `Astro` 全域物件。這裡它回傳一個帶有 `name` 與 `url` 的 [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) 物件；Astro 會在建置階段呼叫它，並用 body 的內容產生檔案。
+
+```ts title="src/pages/builtwith.json.ts"
+// 輸出：/builtwith.json
+export function GET({ params, request }) {
+  return new Response(
+    JSON.stringify({
+      name: "Astro",
+      url: "https://astro.build/",
+    }),
+  );
+}
+```
+
+從 Astro v3.0 開始，回傳的 `Response` 物件已不再需要包含 `encoding` 屬性。舉例來說，要產生一張二進位的 `.png` 圖片：
+
+```ts title="src/pages/astro-logo.png.ts" {6}
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  
+  return new Response(await response.arrayBuffer());
+}
+```
+
+你也可以搭配 `satisfies` 運算子使用 `APIRoute` 型別，為端點函式取得型別安全：
+
+```ts
+import type { APIRoute } from "astro";
+
+export const GET = (async ({ params, request }) => { /* ... */ }) satisfies APIRoute;
+```
+
+請注意，若端點的 URL 包含副檔名（例如 `src/pages/sitemap.xml.ts`），不論你的 [`build.trailingSlash`](/zh-tw/reference/configuration-reference/#trailingslash) 設定為何，都只能以不帶尾端斜線（例如 `/sitemap.xml`）存取。
+
+### `params` 與動態路由
+
+端點支援與頁面相同的[動態路由](/zh-tw/guides/routing/#dynamic-routes)功能。把檔名命名為帶有方括號的參數名稱，並匯出一個 [`getStaticPaths()` 函式](/zh-tw/reference/routing-reference/#getstaticpaths)。接著，你可以透過傳給端點函式的 `params` 屬性存取參數：
+
+```ts title="src/pages/api/[id].json.ts"
+import type { APIRoute } from "astro";
+
+const usernames = ["Sarah", "Chris", "Yan", "Elian"];
+
+export const GET = (({ params, request }) => {
+  const id = params.id;
+  
+  return new Response(
+    JSON.stringify({
+      name: usernames[id],
+    }),
+  );
+}) satisfies APIRoute;
+
+export function getStaticPaths() {
+  return [
+    { params: { id: "0" } },
+    { params: { id: "1" } },
+    { params: { id: "2" } },
+    { params: { id: "3" } },
+  ];
+}
+```
+
+這會在建置階段產生四個 JSON 端點：`/api/0.json`、`/api/1.json`、`/api/2.json` 與 `/api/3.json`。端點的動態路由運作方式與頁面相同。在靜態模式下，你可以[透過 `getStaticPaths()` 把 props 傳給端點](/zh-tw/reference/routing-reference/#data-passing-with-props)。但在隨需算繪時，因為端點是函式而非元件，不支援傳遞 props。
+
+### `request`
+
+所有端點都會收到 `request` 屬性，但在靜態模式下，你只能存取 `request.url`。它會回傳目前端點的完整 URL，運作方式與頁面的 [Astro.request.url](/zh-tw/reference/api-reference/#request) 相同。
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from "astro";
+
+export const GET = (({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      path: new URL(request.url).pathname,
+    }),
+  );
+}) satisfies APIRoute;
+```
+
+## 伺服器端點（API 路由）
+
+靜態檔案端點一節所述的所有內容，在 SSR 模式下也都可以使用：檔案可以匯出一個 `GET` 函式，它會收到一個[情境物件](/zh-tw/reference/api-reference/)，其屬性類似 `Astro` 全域物件。
+
+不過，與 `static` 模式不同，當你為某個路由啟用隨需算繪時，端點會在被請求時才建置。這解鎖了建置階段無法使用的新功能，並讓你能建立 API 路由：在執行階段監聽請求，並在伺服器上安全地執行程式碼。
+
+在 `server` 模式下，你的路由預設會隨需算繪。在 `static` 模式下，則必須在每個客製化端點中以 `export const prerender = false` 停用預先算繪。
+
+<RecipeLinks slugs={["en/recipes/call-endpoints" ]}/>
+
+:::note
+在嘗試這些範例之前，請務必[啟用隨需算繪模式](/zh-tw/guides/on-demand-rendering/)，並在 `static` 模式下停用預先算繪。
+:::
+
+伺服器端點不用匯出 `getStaticPaths` 就能存取 `params`，也可以回傳 `Response` 物件，讓你設定狀態碼與標頭：
+
+```js title="src/pages/[id].json.js"
+import { getProduct } from "../db";
+
+export async function GET({ params }) {
+  const id = params.id;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Not found",
+    });
+  }
+
+  return new Response(JSON.stringify(product), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+```
+
+這會對任何符合動態路由的請求做出回應。舉例來說，若我們導覽到 `/helmet.json`，`params.id` 會被設為 `helmet`。若 `helmet` 存在於模擬的商品資料庫中，端點就會使用 `Response` 物件回傳 JSON 以及成功的 [HTTP 狀態碼](https://developer.mozilla.org/en-US/docs/Web/API/Response/status)。若不存在，則以 `Response` 物件回傳 `404`。
+
+在 SSR 模式下，某些服務供應商需要 `Content-Type` 標頭才能回傳圖片。這種情況下，請使用 `Response` 物件指定 `headers` 屬性。舉例來說，要產生一張二進位的 `.png` 圖片：
+
+```ts title="src/pages/astro-logo.png.ts"
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  const buffer = Buffer.from(await response.arrayBuffer());
+  
+  return new Response(buffer, {
+    headers: { "Content-Type": "image/png" },
+  });
+}
+```
+
+### HTTP 方法
+
+除了 `GET` 函式之外，你還可以用任何 [HTTP 方法](https://developer.mozilla.org/en-US/docs/Web/HTTP/Methods)的名稱匯出函式。當請求進來時，Astro 會檢查方法並呼叫對應的函式。
+
+你也可以匯出一個 `ALL` 函式，用來比對任何沒有對應匯出函式的方法。如果請求的方法沒有任何比對成功的函式，就會被重新導向到你網站的 [404 頁面](/zh-tw/basics/astro-pages/#自訂-404-錯誤頁面)。
+
+```ts title="src/pages/methods.json.ts"
+export const GET = (({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "This was a GET!",
+    }),
+  );
+}) satisfies APIRoute;
+
+export const POST = (({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "This was a POST!",
+    }),
+  );
+}) satisfies APIRoute;
+
+export const DELETE = (({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "This was a DELETE!",
+    }),
+  );
+}) satisfies APIRoute;
+
+export const ALL = (({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: `This was a ${request.method}!`,
+    }),
+  );
+}) satisfies APIRoute;
+```
+
+如果你定義了 `GET` 函式但沒有 `HEAD` 函式，Astro 會自動透過呼叫 `GET` 函式並移除回應的 body，來處理 `HEAD` 請求。
+
+<RecipeLinks slugs={["en/recipes/captcha", "en/recipes/build-forms-api" ]}/>
+
+### `request`
+
+在 SSR 模式下，`request` 屬性會回傳一個完整可用的 [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) 物件，指向目前的請求。這讓你可以接收資料並檢查標頭：
+
+```ts title="src/pages/test-post.json.ts"
+export const POST = (async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    
+    return new Response(
+      JSON.stringify({
+        message: "Your name was: " + name,
+      }),
+      {
+        status: 200,
+      },
+    );
+  }
+  
+  return new Response(null, { status: 400 });
+}) satisfies APIRoute;
+```
+
+### 重新導向
+
+端點情境會匯出一個類似 `Astro.redirect` 的 `redirect()` 工具：
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from "../db";
+
+export async function GET({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Not found",
+    });
+  }
+
+  return redirect(link, 307);
+}
+```
