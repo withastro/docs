@@ -1,0 +1,606 @@
+---
+title: 使用整合
+description: 了解如何為你的 Astro 專案新增、設定與建置整合。
+i18nReady: true
+---
+
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+
+**Astro 整合**只需幾行程式碼，就能為你的專案新增功能與行為。你可以使用官方整合、[由社群建置的整合](#尋找更多整合)，甚至[自行建置客製化的整合](#建置你自己的整合)。
+
+整合可以……
+
+- 透過[算繪器](/zh-tw/guides/framework-components/)解鎖 React、Vue、Svelte、Solid 以及其他熱門的 UI 框架。
+- 透過 [SSR 配接器](/zh-tw/guides/on-demand-rendering/)啟用隨需算繪。
+- 用幾行程式碼整合 MDX、Partytown 等工具。
+- 為你的專案新增功能，例如自動產生 sitemap。
+- 撰寫客製化程式碼，嵌入到建置程序、開發伺服器等。
+
+:::tip[整合目錄]
+在我們的[整合目錄](https://astro.build/integrations/)瀏覽或搜尋數以百計的官方與社群整合。為你的 Astro 專案尋找各種軟體包，涵蓋身分驗證、分析、效能、SEO、無障礙功能、UI、開發者工具等。
+:::
+
+## 官方整合
+
+以下整合由 Astro 維護。
+
+<IntegrationsNav />
+
+## 自動設定整合
+
+Astro 內建 `astro add` 指令，可自動設定官方整合。數個社群外掛也可用這個指令來新增。請查閱各整合自己的文件，了解是否支援 `astro add`，或是否必須[手動安裝](#手動安裝)。
+
+使用你所選擇的套件管理器執行 `astro add` 指令，我們的自動整合精靈就會更新你的設定檔，並安裝所有必要的相依套件。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+甚至可以一次新增多個整合！
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react sitemap partytown
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react sitemap partytown
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react sitemap partytown
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+:::note[處理整合的相依套件]
+如果新增整合後，你看到類似 `Cannot find package '[package-name]'` 的警告，表示你的套件管理器可能沒有幫你安裝 [peer dependencies](https://nodejs.org/en/blog/npm/peer-dependencies/)。要安裝這些遺漏的軟體包，請執行以下指令：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install [package-name]
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add [package-name]
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add [package-name]
+  ```
+  </Fragment>
+</PackageManagerTabs>
+:::
+
+### 手動安裝
+
+Astro 整合一律透過 `astro.config.mjs` 檔案中的 `integrations` 屬性新增。
+
+要把整合匯入到 Astro 專案，通常有三種方式：
+
+1. [安裝 npm 軟體包整合](#安裝-npm-軟體包)。
+2. 從你專案內的本機檔案匯入自己的整合。
+3. 直接在設定檔裡，以行內（inline）方式撰寫整合。
+
+    ```js
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import installedIntegration from '@astrojs/vue';
+    import localIntegration from './my-integration.js';
+
+    export default defineConfig({
+      integrations: [
+        // 1. 從已安裝的 npm 軟體包匯入
+        installedIntegration(),
+        // 2. 從本機 JS 檔匯入
+        localIntegration(),
+        // 3. 行內物件
+        { name: 'namespace:id', hooks: { /* ... */ } },
+      ]
+    });
+    ```
+
+查看[整合 API](/zh-tw/reference/integrations-reference/) 參考，了解撰寫整合的各種方式。
+
+#### 安裝 npm 軟體包
+
+使用套件管理器安裝 npm 軟體包整合，接著手動更新 `astro.config.mjs`。
+
+例如要安裝 `@astrojs/sitemap` 整合：
+
+<Steps>
+1. 使用你偏好的套件管理器，把整合安裝到專案的相依套件：
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @astrojs/sitemap
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm add @astrojs/sitemap
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @astrojs/sitemap
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. 在 `astro.config.mjs` 檔案中匯入整合，並連同任何設定選項一併加入 `integrations[]` 陣列：
+
+    ```js title="astro.config.mjs" ins={2} ins="sitemap()"
+    import { defineConfig } from 'astro/config';
+    import sitemap from '@astrojs/sitemap';
+
+    export default defineConfig({
+      // ...
+      integrations: [sitemap()],
+      // ...
+    });
+    ```
+
+    請注意，不同整合可能有不同的設定。請閱讀各整合的文件，並在 `astro.config.mjs` 中為你所選擇的整合套用任何必要的設定選項。
+</Steps>
+
+### 自訂選項
+
+整合幾乎都寫成工廠函式，會回傳實際的整合物件。這讓你可以將引數與選項傳給工廠函式，為你的專案客製化該整合。
+
+```js
+integrations: [
+  // 範例：用函式引數客製化你的整合
+  sitemap({ filter: true })
+]
+```
+
+### 開關整合
+
+Falsy 值的整合會被忽略，因此你可以開關整合，而不必擔心殘留的 `undefined` 或布林值。
+
+```js
+integrations: [
+  // 範例：在 Windows 上略過建置 sitemap
+  process.platform !== 'win32' && sitemap()
+]
+```
+
+## 升級整合
+
+若要一次升級所有官方整合，請執行 `@astrojs/upgrade` 指令。這會將 Astro 和所有官方整合一併升級到最新版本。
+
+### 自動升級
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 將 Astro 與官方整合一併升級到最新版
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 將 Astro 與官方整合一併升級到最新版
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 將 Astro 與官方整合一併升級到最新版
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 手動升級
+
+要手動升級一個或多個整合，請針對你的套件管理器使用對應的指令。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 範例：升級 React 與 Partytown 整合
+  npm install @astrojs/react@latest @astrojs/partytown@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 範例：升級 React 與 Partytown 整合
+  pnpm add @astrojs/react@latest @astrojs/partytown@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 範例：升級 React 與 Partytown 整合
+  yarn add @astrojs/react@latest @astrojs/partytown@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 移除整合
+
+<Steps>
+1. 要移除整合，請先從你的專案解除安裝該整合。
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm uninstall @astrojs/react
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm remove @astrojs/react
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn remove @astrojs/react
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. 接著，從 `astro.config.*` 檔案中移除該整合：
+
+    ```js title="astro.config.mjs" del={2,6}
+    import { defineConfig } from 'astro/config';
+    import react from '@astrojs/react';
+
+    export default defineConfig({
+      integrations: [
+        react()
+      ]
+    });
+    ```
+</Steps>
+
+## 尋找更多整合
+
+你可以在 [Astro 整合目錄](https://astro.build/integrations/)找到許多由社群開發的整合。前往該目錄並點擊連結，可看到詳細的用法與設定說明。
+
+## 建置你自己的整合
+
+Astro 的整合 API 受到 Rollup 和 Vite 的啟發，對於曾經撰寫過 Rollup 或 Vite 外掛的人來說會很熟悉。
+
+查看[整合 API](/zh-tw/reference/integrations-reference/) 參考，了解整合可以做什麼，以及如何自行撰寫整合。
+
+## 將你的整合發佈到 npm
+
+發佈 Astro 元件是個好方法，可以讓你跨專案重複使用既有的成果，並與更廣大的 Astro 社群分享。Astro 元件可以像其他 JavaScript 軟體包一樣直接發佈到 npm，並從 npm 安裝。
+
+在找靈感嗎？請查看我們精選的 Astro 社群[佈景主題](https://astro.build/themes/)與[元件](https://astro.build/integrations/)。你也可以[搜尋 npm](https://www.npmjs.com/search?q=keywords:astro-component,withastro) 查看完整的公開目錄。
+
+:::tip[不想獨自開始嗎？]
+看看 [Astro 社群的元件模板](https://github.com/Princesseuh/component-template)，這是一個由社群支援、開箱即用的模板！
+:::
+
+### 快速入門
+
+要快速開始開發你的元件，你可以使用已為你設定好的模板。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # 在新的目錄中初始化 Astro 元件模板
+  npm create astro@latest my-new-component-directory -- --template component
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # 在新的目錄中初始化 Astro 元件模板
+  pnpm create astro@latest my-new-component-directory -- --template component
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # 在新的目錄中初始化 Astro 元件模板
+  yarn create astro my-new-component-directory --template component
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 建立軟體包
+
+:::note[先備知識]
+在深入之前，若你已對以下事項有基本了解會很有幫助：
+
+- [Node Modules](https://docs.npmjs.com/creating-node-js-modules)
+- [軟體包宣告檔（`package.json`）](https://docs.npmjs.com/creating-a-package-json-file)
+- [工作區（Workspaces）](https://docs.npmjs.com/cli/v7/configuring-npm/package-json#workspaces)
+:::
+
+要建立新的軟體包，請把你的開發環境設定為在專案內使用**工作區（workspaces）**。這讓你能夠在開發元件的同時，搭配一份可運作的 Astro 副本。
+
+<FileTree>
+- my-new-component-directory/
+  - demo/
+    - ... 用於測試與展示
+  - package.json
+  - packages/
+    - my-component/
+      - index.js
+      - package.json
+      - ... 此軟體包所用的其他檔案
+</FileTree>
+
+這個範例命名為 `my-project`，建立一個內含單一軟體包 `my-component` 的專案，並有一個 `demo/` 目錄用於測試與展示元件。
+
+這會在專案根目錄的 `package.json` 檔案中設定：
+
+```json
+{
+  "name": "my-project",
+  "workspaces": ["demo", "packages/*"]
+}
+```
+
+在此範例中，可以從 `packages` 目錄一起開發多個軟體包。這些軟體包也可以從 `demo` 引用，在該目錄中你可以安裝一份可運作的 Astro 副本。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create astro@latest demo -- --template minimal
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create astro@latest demo -- --template minimal
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create astro demo --template minimal
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+你個別軟體包會由兩個初始檔案組成：`package.json` 與 `index.js`。
+
+#### `package.json`
+
+軟體包目錄中的 `package.json` 包含所有與該軟體包相關的資訊，包括其描述、相依套件以及其他軟體包中介資料。
+
+```json
+{
+  "name": "my-component",
+  "description": "Component description",
+  "version": "1.0.0",
+  "homepage": "https://github.com/owner/project#readme",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  },
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"],
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
+}
+```
+
+##### `description`
+
+對你的元件的簡短描述，用來幫助他人了解元件的用途。
+
+```json
+{
+  "description": "An Astro Element Generator"
+}
+```
+
+##### `type`
+
+供 Node.js 與 Astro 解讀你的 `index.js` 檔案時所使用的模組格式。
+
+```json
+{
+  "type": "module"
+}
+```
+
+請使用 `"type": "module"`，讓你的 `index.js` 能作為 `import` 與 `export` 的進入點。
+
+##### `homepage`
+
+專案首頁的 URL。
+
+```json
+{
+  "homepage": "https://github.com/owner/project#readme"
+}
+```
+
+這是個好方法，可以將使用者導向你專案的線上示範、文件或首頁。
+
+##### `exports`
+
+軟體包被以名稱匯入時的進入點。
+
+```json
+{
+  "exports": {
+    ".": "./index.js",
+    "./astro": "./MyAstroComponent.astro",
+    "./react": "./MyReactComponent.jsx"
+  }
+}
+```
+
+在這個範例中，匯入 `my-component` 會使用 `index.js`，而匯入 `my-component/astro` 或 `my-component/react` 會分別使用 `MyAstroComponent.astro` 或 `MyReactComponent.jsx`。
+
+##### `files`
+
+可選的最佳化，用來將不必要的檔案排除在透過 npm 出貨給使用者的軟體包之外。請注意，**只有列在這裡的檔案會包含在你的軟體包中**，因此如果你新增或變更了軟體包運作所需的檔案，你必須同步更新這份清單。
+
+```json
+{
+  "files": ["index.js", "MyAstroComponent.astro", "MyReactComponent.jsx"]
+}
+```
+
+##### `keywords`
+
+與你的元件相關的關鍵字陣列，用來幫助他人在 npm 以及其他搜尋目錄中[找到你的元件](https://www.npmjs.com/search?q=keywords:astro-component,withastro)。
+
+新增 `astro-component`、`astro-integration` 或 `withastro` 作為特殊關鍵字，最大化它在 Astro 生態系中被發現的機會。
+
+```json
+{
+  "keywords": ["astro-component", "withastro", "... etc", "... etc"]
+}
+```
+
+:::tip
+關鍵字也會被我們的[整合函式庫](https://astro.build/integrations/)使用！[請見下方](#整合函式庫)完整的關鍵字清單，這些是我們在 npm 中搜尋的關鍵字。
+:::
+
+---
+
+#### `index.js`
+
+每當你的軟體包被匯入時所使用的主要**軟體包進入點**。
+
+```js
+export { default as MyAstroComponent } from './MyAstroComponent.astro';
+export { default as MyReactComponent } from './MyReactComponent.jsx';
+```
+
+這讓你可以把多個元件打包在一起，提供一個單一的介面。
+
+##### 範例：使用具名匯入
+
+```astro
+---
+import { MyAstroComponent } from 'my-component';
+import { MyReactComponent } from 'my-component';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+##### 範例：使用命名空間匯入
+
+```astro
+---
+import * as Example from 'example-astro-component';
+---
+<Example.MyAstroComponent />
+<Example.MyReactComponent />
+```
+
+##### 範例：使用個別匯入
+
+```astro
+---
+import MyAstroComponent from 'example-astro-component/astro';
+import MyReactComponent from 'example-astro-component/react';
+---
+<MyAstroComponent />
+<MyReactComponent />
+```
+
+---
+
+### 開發你的軟體包
+
+Astro 並沒有專門的「軟體包模式」供開發使用。你應該改用一個 demo 專案，在其中開發與測試你的軟體包。這可以是一個只用於開發的私人網站，也可以是你軟體包的公開 demo / 說明文件網站。
+
+如果你是從既有的專案中抽離出元件，你甚至可以繼續使用該專案來開發這些剛抽離出來的元件。
+
+### 測試你的元件
+
+Astro 目前並未附帶測試執行器。_（如果你有興趣幫忙，[請到 Discord 與我們聯繫！](https://astro.build/chat)）_
+
+在此之前，我們目前建議的測試方式是：
+
+<Steps>
+1. 在 `demo/src/pages` 目錄中加入一個 `fixtures` 測試目錄。
+
+2. 為每個你想執行的測試各新增一個頁面。
+
+3. 每個頁面應包含一些你想測試的不同元件用法。
+
+4. 執行 `astro build` 建置你的 fixtures，接著比較 `dist/__fixtures__/` 目錄的輸出是否符合你的預期。
+   <FileTree>
+   - my-project/demo/src/pages/\_\_fixtures\_\_/
+     - test-name-01.astro
+     - test-name-02.astro
+     - test-name-03.astro
+   </FileTree>
+</Steps>
+
+
+### 發佈你的元件
+
+當你的軟體包準備好後，可以使用 `npm publish` 指令將它發佈到 npm。如果失敗了，請確認你已透過 `npm login` 登入，且 `package.json` 正確。如果成功了，大功告成！
+
+請注意，Astro 軟體包不需要任何 `build` 步驟。任何 Astro 原生支援的檔案類型，例如 `.astro`、`.ts`、`.jsx` 和 `.css`，都可以直接發佈，不需要建置步驟。
+
+若你需要 Astro 並未原生支援的其他檔案類型，請為你的軟體包新增建置步驟。這項進階練習就交給你了。
+
+### 整合函式庫
+
+將你的整合新增到我們的[整合函式庫](https://astro.build/integrations/)，分享你的辛勤成果！
+
+:::tip
+在建置整合時需要幫助，或者只是想認識其他的整合開發者？我們的 [Discord 伺服器](https://astro.build/chat)上有一個專屬的 `#integrations` 頻道。歡迎來打聲招呼！
+:::
+
+#### `package.json` 資料
+
+該函式庫每週會自動更新，拉取每一個發佈到 npm 且帶有 `astro-component`、`astro-integration` 或 `withastro` 關鍵字的軟體包。
+
+整合函式庫會從你的 `package.json` 讀取 `name`、`description`、`repository` 與 `homepage` 資料。
+
+頭像是在函式庫中凸顯你品牌的好方法！當你的軟體包發佈後，你可以[開一個 GitHub issue](https://github.com/withastro/astro.build/issues/new/choose) 並附上你的頭像，我們會將它加到你的項目中。
+
+:::tip
+需要覆寫我們函式庫從 npm 讀取的資訊嗎？沒問題！[開一個 issue](https://github.com/withastro/astro.build/issues/new/choose) 並附上更新後的資訊，我們會確保改用客製化的 `name`、`description` 或 `homepage`。
+:::
+
+#### 類別
+
+除了必要的 `astro-component`、`astro-integration` 或 `withastro` 關鍵字之外，還有一些特殊關鍵字用來自動整理軟體包。在軟體包中加入下列任一關鍵字，你的整合就會被加到我們整合函式庫中對應的類別。
+
+| 類別              | 關鍵字                                        |
+|------------------ | -------------------------------------------- |
+| 無障礙            | `a11y`、`accessibility`                      |
+| 配接器            | `astro-adapter`                              |
+| 分析              | `analytics`                                  |
+| CSS + UI          | `css`、`ui`、`icon`、`icons`、`renderer`     |
+| 框架              | `renderer`                                   |
+| 內容載入器        | `astro-loader`                               |
+| 圖片 + 媒體       | `media`、`image`、`images`、`video`、`audio` |
+| 效能 + SEO        | `performance`、`perf`、`seo`、`optimization` |
+| 開發工具列        | `devtools`、`dev-overlay`、`dev-toolbar`     |
+| 工具              | `tooling`、`utils`、`utility`                |
+
+沒有任何關鍵字符合類別的軟體包，會顯示為 `Uncategorized`（未分類）。
+
+### 分享
+
+我們鼓勵你分享自己的成果，我們也非常樂於看到我們才華洋溢的 Astronaut 們創造了什麼。歡迎來到我們的 [Discord](https://astro.build/chat) 分享你的作品，或是在推文中提及 [@astrodotbuild](https://twitter.com/astrodotbuild)！
