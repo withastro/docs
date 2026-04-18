@@ -1,0 +1,165 @@
+---
+title: Sessions
+description: 在隨需算繪頁面的多次請求之間共享資料。
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+<Since v="5.7.0" />
+</p>
+
+Sessions 用於在[隨需算繪頁面](/zh-tw/guides/on-demand-rendering/)的多次請求之間共享資料。
+
+與 [`cookies`](/zh-tw/guides/on-demand-rendering/#cookies) 不同，session 儲存在伺服器上，因此你可以儲存較大量的資料，而不需擔心大小限制或安全性問題。它們很適合用來儲存使用者資料、購物車、表單狀態等；並且不需要任何客戶端 JavaScript 就能運作：
+
+```astro title="src/components/CartButton.astro" {3}
+---
+export const prerender = false; // 使用 'server' 輸出時不需要
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+## 設定 sessions
+
+Sessions 需要一個儲存驅動程式來儲存 session 資料。[Node](/zh-tw/guides/integrations-guide/node/#sessions)、[Cloudflare](/zh-tw/guides/integrations-guide/cloudflare/#sessions) 與 [Netlify](/zh-tw/guides/integrations-guide/netlify/#sessions) 配接器會自動為你設定預設的驅動程式，但其他配接器目前需要你[手動指定驅動程式](/zh-tw/reference/configuration-reference/#sessiondriver)。
+
+```js title="astro.config.mjs" ins={7-9} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+import vercel from '@astrojs/vercel'
+
+export default defineConfig({
+  adapter: vercel()
+  session: {
+    driver: sessionDrivers.redis({
+      url: process.env.REDIS_URL
+    }),
+  }
+})
+```
+
+<ReadMore>
+  關於設定儲存驅動程式與其他可設定選項的更多細節，請參閱 [`session` 設定選項](/zh-tw/reference/configuration-reference/#session-options)。
+</ReadMore>
+
+
+## 與 session 資料互動
+
+[`session` 物件](/zh-tw/reference/api-reference/#session)讓你可以與儲存的使用者狀態（例如新增商品到購物車）以及 session ID（例如登出時刪除 session ID cookie）互動。這個物件在 Astro 元件與頁面中可透過 `Astro.session` 存取，在 API 端點、中介層與 actions 中則可透過 `context.session` 物件存取。
+
+Session 會在首次被使用時自動產生，可以隨時使用 [`session.regenerate()`](/zh-tw/reference/api-reference/#sessionregenerate) 重新產生，或用 [`session.destroy()`](/zh-tw/reference/api-reference/#sessiondestroy) 銷毀。
+
+對於多數使用情境，你只會需要使用 [`session.get()`](/zh-tw/reference/api-reference/#sessionget) 與 [`session.set()`](/zh-tw/reference/api-reference/#sessionset)。
+
+<ReadMore>
+更多細節請見 [Sessions API 參考](/zh-tw/reference/api-reference/#session)。
+</ReadMore>
+
+### Astro 元件與頁面
+
+在 `.astro` 元件與頁面中，你可以透過全域 `Astro` 物件存取 session 物件。舉例來說，顯示購物車中的商品數量：
+
+```astro title="src/components/CartButton.astro" "Astro.session"
+---
+export const prerender = false; // 使用 'server' 輸出時不需要
+const cart = await Astro.session?.get('cart');
+---
+
+<a href="/checkout">🛒 {cart?.length ?? 0} items</a>
+```
+
+### API 端點
+
+在 API 端點中，session 物件可在 `context` 物件上取得。舉例來說，把商品加入購物車：
+
+```ts title="src/pages/api/addToCart.ts" "context.session"
+export async function POST(context: APIContext) {
+  const cart = await context.session?.get('cart') || [];
+	const data = await context.request.json<{ item: string }>();
+  if(!data?.item) {
+    return new Response('Item is required', { status: 400 });
+  }
+  cart.push(data.item);
+  await context.session?.set('cart', cart);
+  return Response.json(cart);
+}
+```
+
+### Actions
+
+在 actions 中，session 物件可在 `context` 物件上取得。舉例來說，把商品加入購物車：
+
+```ts title="src/actions/addToCart.ts" "context.session"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  addToCart: defineAction({
+    input: z.object({ productId: z.string() }),
+    handler: async (input, context) => {
+      const cart = await context.session?.get('cart');
+      cart.push(input.productId);
+      await context.session?.set('cart', cart);
+      return cart;
+    },
+  }),
+};
+```
+
+### 中介層
+
+:::note
+邊緣中介層（edge middleware）不支援 sessions。
+:::
+
+在中介層中，session 物件可在 `context` 物件上取得。舉例來說，在 session 中設定上次造訪時間：
+
+```ts title="src/middleware.ts" "context.session"
+import { defineMiddleware } from 'astro:middleware';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  context.session?.set('lastVisit', new Date());
+  return next();
+});
+```
+
+## Session 資料型別
+
+預設情況下，session 資料沒有型別，你可以在任何鍵下儲存任意資料。值會透過 [devalue](https://github.com/Rich-Harris/devalue) 進行序列化與反序列化，內容合集與 actions 也是使用同一個函式庫。這代表支援的型別相同，包含字串、數字、`Date`、`Map`、`Set`、`URL`、陣列以及一般物件。
+
+你可以選擇透過建立一個 `src/env.d.ts` 檔案並為 `App.SessionData` 型別加上宣告，為你的 session 資料[定義 TypeScript 型別](/zh-tw/guides/typescript/#擴充全域型別)：
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface SessionData {
+    user: {
+      id: string;
+      name: string;
+    };
+    cart: string[];
+  }
+}
+```
+
+這樣你就可以在存取 session 資料時享有型別檢查以及編輯器中的自動完成：
+
+```ts title="src/components/CartButton.astro"
+---
+const cart = await Astro.session?.get('cart');
+// const cart: string[] | undefined
+
+const something = await Astro.session?.get('something');
+// const something: any
+
+Astro.session?.set('user', { id: 1, name: 'Houston' });
+// Error: Argument of type '{ id: number; name: string }' is not assignable to parameter of type '{ id: string; name: string; }'.
+---
+```
+
+:::caution
+這僅用於型別檢查，不會影響 session 的執行期行為。若已經有使用者在 session 中儲存了資料，變更型別時請格外小心，這可能導致執行期錯誤。
+:::
