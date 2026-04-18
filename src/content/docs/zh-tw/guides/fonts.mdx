@@ -1,0 +1,441 @@
+---
+title: 使用自訂字型
+sidebar:
+  label: 字型
+description: >-
+  想為 Astro 網站加入一些自訂字樣嗎？使用 Google Fonts
+  搭配 Fontsource，或加入你自選的字型。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+本指南會告訴你如何為你的專案加入[網頁字型](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts)，並在元件中使用這些字型。
+
+Astro 透過一個統一、[完全可自訂](/zh-tw/reference/configuration-reference/#fonts)、具型別安全的 API，提供一種方式來使用你檔案系統上的字型以及各家字型提供者（例如 Fontsource、Google）的字型。
+
+網頁字型可能在載入與算繪階段影響頁面效能。這個 API 透過自動化的[網頁字型最佳化](https://web.dev/learn/performance/optimize-web-fonts)（包含 preload 連結、最佳化的備用字型以及有主見的預設值），幫助你的網站保持高效能。[請參閱常見使用範例](#範例)。
+
+Fonts API 著重於效能與隱私：它會下載並快取字型，讓字型由你自己的網站提供。這可以避免將使用者資料傳給第三方網站，也能確保所有訪客都能使用一致的字型。
+
+## 設定自訂字型
+
+要為你的 Astro 專案註冊自訂字型，請透過 Astro 設定中的 [`fonts` 選項](/zh-tw/reference/configuration-reference/#fonts)。
+
+對於每個你想使用的字型，必須指定其[名稱](/zh-tw/reference/configuration-reference/#fontname)、一個 [CSS 變數](/zh-tw/reference/configuration-reference/#fontcssvariable)以及一個 Astro 字型提供者。
+
+Astro [內建支援最熱門的字型提供者](/zh-tw/reference/font-provider-reference/#built-in-providers)：Adobe、Bunny、Fontshare、Fontsource、Google、Google Icons 與 NPM，以及使用你自己的本機字型檔。此外，你可以[進一步客製化字型設定](#細粒度字型設定)以最佳化效能與訪客體驗。
+
+
+### 使用本機字型檔
+
+以下範例示範如何使用字型檔 `DistantGalaxy.woff2` 加入自訂字型。
+
+<Steps>
+
+1. 把你的字型檔放在 [`src/` 目錄](/zh-tw/basics/project-structure/#src)內，例如 `src/assets/fonts/`。
+
+2. 在你的 Astro 設定檔中使用[本機字型提供者](/zh-tw/reference/font-provider-reference/#local)建立一個新的字型家族，並指定要包含的變體：
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.local(),
+        name: "DistantGalaxy",
+        cssVariable: "--font-distant-galaxy",
+        options: {
+          variants: [{
+            src: ['./src/assets/fonts/DistantGalaxy.woff2'],
+            weight: 'normal',
+            style: 'normal'
+          }]
+        }
+      }]
+    });
+    ```
+3. 你的字型現在已設定好，準備好[加入你的頁面 head](#套用自訂字型)，讓它能在你的專案中使用。
+
+</Steps>
+
+### 使用 Fontsource
+
+Astro 開箱即用支援[多種字型提供者](/zh-tw/reference/font-provider-reference/#built-in-providers)，包括對 [Fontsource](https://fontsource.org/) 的支援，能簡化 Google Fonts 與其他開源字型的使用。
+
+以下範例會使用 Fontsource 加入自訂字型支援，但對於 Astro 任何內建字型提供者（例如 [Adobe](https://fonts.adobe.com/)、[Bunny](https://fonts.bunny.net/)）的流程都相似。
+
+<Steps>
+
+1. 在 [Fontsource 的目錄](https://fontsource.org/)中找到你想使用的字型。以下範例將使用 [Roboto](https://fontsource.org/fonts/roboto)。
+
+2. 在你的 Astro 設定檔中使用 [Fontsource 提供者](/zh-tw/reference/font-provider-reference/#fontsource)建立新的字型家族：
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.fontsource(),
+        name: "Roboto",
+        cssVariable: "--font-roboto",
+      }]
+    });
+    ```
+3. 你的字型現在已設定好，準備好[加入你的頁面 head](#套用自訂字型)，讓它能在你的專案中使用。
+
+</Steps>
+
+## 套用自訂字型
+
+[字型設定完成](#設定自訂字型)後，必須把它連同識別用的 CSS 變數加入你的頁面 head。接著，你就可以在定義頁面樣式時使用這個變數。
+
+<Steps>
+
+1. 在你的頁面 head 中匯入並使用 [`<Font />`](/zh-tw/reference/modules/astro-assets/#font-) 元件，並帶上必要的 `cssVariable` 屬性。通常是放在專屬的 `Head.astro` 元件中，或直接放在[版面](/zh-tw/basics/layouts/)元件中：
+
+    ```astro title="src/layouts/Layout.astro" ins={2,7}
+    ---
+    import { Font } from "astro:assets";
+    ---
+
+    <html>
+      <head>
+        <Font cssVariable="--font-distant-galaxy" />
+      </head>
+      <body>
+        <slot />
+      </body>
+    </html>
+    ```
+
+2. 在任何使用該版面算繪的頁面（包含版面元件本身）上，你現在都可以用字型的 `cssVariable` 來定義樣式，以套用你的自訂字型。
+
+    以下範例中，`<h1>` 標題會套用自訂字型，而段落 `<p>` 則不會。
+
+    ```astro title="src/pages/example.astro" ins={10-12}
+    ---
+    import Layout from "../layouts/Layout.astro";
+    ---
+    <Layout>
+      <h1>In a galaxy far, far away...</h1>
+
+      <p>Custom fonts make my headings much cooler!</p>
+
+      <style>
+      h1 {
+        font-family: var(--font-distant-galaxy);
+      }
+      </style>
+    </Layout>
+    ```
+
+</Steps>
+
+## 預先載入字型
+
+字型的 preload 應該謹慎使用，因為它可能阻擋其他重要資源的載入，或下載目前頁面不需要的字型。請考慮只 preload 最關鍵、顯示首屏內容所需的字型。
+
+要 preload 字型，請把 [`preload` 屬性](/zh-tw/reference/modules/astro-assets/#preload) 傳給對應的 `<Font />` 元件。如果一個字型對應多個檔案，你也可以傳入陣列指定要 preload 哪一個。
+
+```astro title="src/layouts/Layout.astro" {7}
+---
+import { Font } from "astro:assets";
+---
+
+<html>
+  <head>
+    <Font cssVariable="--font-distant-galaxy" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+## 在 Tailwind 中註冊字型
+
+如果你使用 [Tailwind](/zh-tw/guides/styling/#tailwind) 設定樣式，就不會透過 `font-face` CSS 屬性套用樣式。
+
+相對地，在[設定好自訂字型](#設定自訂字型)並[加入頁面 head](#套用自訂字型)之後，你需要更新 Tailwind 設定來註冊你的字型：
+
+    <Tabs>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import "tailwindcss";
+
+    @theme inline {
+      --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+      content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+      theme: {
+        extend: {},
+        fontFamily: {
+          sans: ["var(--font-roboto)"]
+        }
+      },
+      plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+更多資訊請參閱 [Tailwind 文件關於加入自訂字型家族的說明](https://tailwindcss.com/docs/font-family#using-a-custom-value)。
+
+## 使用可變字型
+
+要在你的專案中使用[可變字型](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)，請在提供者設定中指定可用的字重範圍，而不是個別字重。
+
+<Tabs>
+<TabItem label="本機提供者">
+
+[使用本機字型檔](#使用本機字型檔)時，你可以把變體的 [`weight` 屬性](/zh-tw/reference/font-provider-reference/#weight)設為對應字型實際可用字重範圍的字串，指定字型為可變字型。
+
+以下範例把 Inter 設為本機可變字型，並帶上可用的字重範圍：
+
+```js title="astro.config.mjs" {11}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Inter",
+    cssVariable: "--font-inter",
+    options: {
+      variants: [
+        {
+          weight: "100 900",
+          style: "normal",
+          src: ["./src/assets/fonts/InterVariable.woff2"],
+        },
+      ],
+    },
+  }]
+});
+```
+
+</TabItem>
+<TabItem label="其他提供者">
+
+當你使用支援可變字型的[其他提供者（例如 Fontsource）](#使用-fontsource)時，可以把 [`weights` 屬性](/zh-tw/reference/configuration-reference/#fontweights)設為一個陣列，內含字型實際可用字重範圍，以要求該字型的可變版本。
+
+以下範例從 [Fontsource 下載 Fira Code](https://fontsource.org/fonts/fira-code)，作為帶有可用字重範圍的可變字型：
+
+```js title="astro.config.mjs" {9}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    cssVariable: "--font-fira-code",
+    name: "Fira Code",
+    provider: fontProviders.fontsource(),
+    styles: ["normal"],
+    weights: ["300 700"],
+  }]
+});
+```
+
+</TabItem>
+</Tabs>
+
+## 客製化字型備用方案
+
+當主要字型尚未載入、缺少某些字元，或因任何原因無法載入時，就會使用備用字型。如果備用字型與主要字型差異明顯，頁面載入期間可能會發生版面位移。
+
+為避免這個情況，Astro 會自動嘗試根據你最後[定義的備用字型](/zh-tw/reference/configuration-reference/#fontfallbacks)（如果它是[通用字型家族](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family#generic-name)）產生最佳化的備用字型。預設會使用 `sans-serif`，但它可能與你主要字型期望的外觀不符。你可以在字型設定中調整：
+
+```mjs title="astro.config.mjs" {8}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Cousine",
+    cssVariable: "--font-cousine",
+    fallbacks: ["monospace"]
+  }]
+});
+```
+
+你也可以在字型設定中把 [`font.optimizedFallbacks`](/zh-tw/reference/configuration-reference/#fontoptimizedfallbacks) 設為 `false`，退出預設的最佳化。這樣 Astro 就會直接使用你設定的備用字型，而不做任何額外的自動處理。
+
+## 以程式方式存取字型資料
+
+Astro 透過 [`fontData`](/zh-tw/reference/modules/astro-assets/#fontdata) 物件提供一個底層 API，讓你以程式方式存取字型家族資料。這對於需要直接存取字型檔的進階情境很有用，例如在 [API 路由](/zh-tw/guides/endpoints/#server-endpoints-api-routes)中使用 [Satori](https://github.com/vercel/satori) 產生 OpenGraph 圖片。
+
+這個底層 API 讓你可以取得 Astro 為你的專案下載的所有字型檔以及它們的中介資料。這代表你要負責從字型檔中篩選出你需要的那一個，並根據建置輸出結構解析出要使用的檔案路徑。
+
+:::note
+目前的 API 有一個[已知限制，要求你在建置階段手動從輸出路徑載入字型檔](https://github.com/withastro/astro/issues/16139)。
+
+我們正在開發新的 API 來簡化這個流程，未來版本會推出。你可以訂閱該 GitHub issue 追蹤進度。
+:::
+
+以下範例在一個靜態檔案端點中產生 OpenGraph 圖片，假設專案中[只設定了一個字型，且其格式](/zh-tw/reference/configuration-reference/#fontformats) [Satori 支援](https://github.com/vercel/satori?tab=readme-ov-file#fonts)：
+
+```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
+import type { APIRoute } from "astro";
+import { fontData } from "astro:assets";
+import { outDir } from "astro:config/server";
+import { readFile } from "node:fs/promises";
+import satori from "satori";
+import { html } from "satori-html";
+import sharp from "sharp";
+
+export const GET: APIRoute = async (context) => {
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("Cannot find the font path.");
+  }
+
+  const data = import.meta.env.DEV
+    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
+    : await readFile(new URL(`.${fontPath}`, outDir));
+
+  const svg = await satori(
+    html`<div style="color: black;">hello, world</div>`,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data,
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  );
+
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
+```
+
+## 細粒度字型設定
+
+一個字型家族是由多個屬性組合定義的，例如字重與樣式（例如 `weights: [500, 600]` 以及 `styles: ["normal", "bold"]`），但你可能只想下載其中某些組合。
+
+若要更精確控制要下載哪些字型檔，你可以多次指定同一個字型（亦即具有相同的 `cssVariable`、`name` 與 `provider` 屬性）以不同組合設定。Astro 會合併結果，只下載需要的檔案。舉例來說，可以下載 normal 的 `500` 與 `600`，同時只下載 italic 的 `500`：
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500, 600],
+      styles: ["normal"]
+    },
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500],
+      styles: ["italic"]
+    }
+  ]
+});
+```
+
+## 快取
+
+Fonts API 的快取實作在開發時講求實用、在正式環境中講求效率。建置期間，字型檔會被複製到 `_astro/fonts` 輸出目錄，讓它們能受益於靜態資產的 HTTP 快取（通常為一年）。
+
+若要在開發階段清除快取，請移除 `.astro/fonts` 目錄。要清除建置快取，請移除 `node_modules/.astro/fonts` 目錄。
+
+## 範例
+
+Astro 的字型功能是基於彈性的設定選項。你自己的專案字型設定可能和簡化過的範例不同，因此下列提供在正式環境中可能會使用的各種字型設定範例。
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--font-roboto",
+      provider: fontProviders.google(),
+      // 預設已包含：
+      // weights: [400] ,
+      // styles: ["normal", "italic"],
+      // subsets: ["latin"],
+      // fallbacks: ["sans-serif"], 
+      // formats: ["woff2"],
+    },
+    {
+      name: "Inter",
+      cssVariable: "--font-inter",
+      provider: fontProviders.fontsource(),
+      // 指定實際會使用的字重
+      weights: [400, 500, 600, 700],
+      // 指定實際會使用的樣式
+      styles: ["normal"],
+      // 只下載頁面上實際使用的字元的字型檔
+      subsets: ["latin", "cyrillic"],
+      // 下載更多字型格式
+      formats: ["woff2", "woff"],
+    },
+    {
+      name: "JetBrains Mono",
+      cssVariable: "--font-jetbrains-mono",
+      provider: fontProviders.fontsource(),
+      // 只下載頁面上實際使用的字元的字型檔
+      subsets: ["latin", "latin-ext"],
+      // 使用符合期望外觀的備用字型家族
+      fallbacks: ["monospace"],
+    },
+    {
+      name: "Poppins",
+      cssVariable: "--font-poppins",
+      provider: fontProviders.local(),
+      options: {
+        // 未指定 weight 與 style，
+        // Astro 會嘗試為每個變體自行推斷
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    }
+  ],
+});
+```
