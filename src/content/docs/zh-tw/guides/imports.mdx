@@ -1,0 +1,389 @@
+---
+title: 匯入參考
+description: 了解如何把不同類型的檔案匯入你的 Astro 專案。
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import ReadMore from '~/components/ReadMore.astro'
+
+Astro 幾乎零設定就支援大多數靜態資產。你可以在專案的任何 JavaScript（包含 Astro frontmatter）中使用 `import` 語句，Astro 會在最終建置中包含該靜態資產經過建置、最佳化的副本。CSS 與 `<style>` 標籤內也支援 `@import`。
+
+## 支援的檔案類型
+
+Astro 開箱即用支援以下檔案類型：
+
+- Astro 元件（`.astro`）
+- Markdown（`.md`、`.markdown` 等）
+- JavaScript（`.js`、`.mjs`）
+- TypeScript（`.ts`）
+- NPM 套件
+- JSON（`.json`）
+- CSS（`.css`）
+- CSS Modules（`.module.css`）
+- 圖片與資產（`.svg`、`.jpg`、`.png` 等）
+
+此外，你可以擴充 Astro 以支援不同的 [UI 框架](/zh-tw/guides/framework-components/)，例如 React、Svelte 和 Vue 元件。你也可以安裝 [Astro MDX 整合](/zh-tw/guides/integrations-guide/mdx/)或 [Astro Markdoc 整合](/zh-tw/guides/integrations-guide/markdoc/)，以在你的專案中使用 `.mdx` 或 `.mdoc` 檔案。
+
+### `public/` 中的檔案
+
+你可以把任何靜態資產放在專案的 [`public/` 目錄](/zh-tw/basics/project-structure/#public)中，Astro 會原封不動地直接複製到最終建置裡。`public/` 檔案不會被 Astro 建置或打包，這表示任何類型的檔案都受支援。
+
+你可以在 HTML 模板中直接用 URL 路徑參考 `public/` 檔案。
+
+```astro
+// To link to /public/reports/annual/2024.pdf
+Download the <a href="/reports/annual/2024.pdf">2024 annual statement as a PDF</a>.
+
+// To display /public/assets/cats/ginger.jpg
+<img src="/assets/cats/ginger.jpg" alt="An orange cat sleeping on a bed.">
+```
+
+## 匯入語句
+
+Astro 使用 ESM，即瀏覽器中支援的 [`import`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/import#syntax) 與 [`export`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/export) 語法。
+
+### JavaScript
+
+```js
+import { getUser } from './user.js';
+```
+
+JavaScript 可以用一般的 ESM `import` 與 `export` 語法匯入。
+
+:::note[匯入 JSX 檔案]
+
+要算繪 JSX/TSX 檔案，需要一個適當的 [UI 框架](/zh-tw/guides/framework-components/)（[React](/zh-tw/guides/integrations-guide/react/)、[Preact](/zh-tw/guides/integrations-guide/preact/) 或 [Solid](/zh-tw/guides/integrations-guide/solid-js/)）。
+請在需要時使用 `.jsx`/`.tsx` 副檔名，因為 Astro 不支援在 `.js`/`.ts` 檔案中使用 JSX。
+
+:::
+
+### TypeScript
+
+```js
+import { getUser } from './user';
+import type { UserType } from './user';
+```
+
+Astro 內建支援 [TypeScript](https://www.typescriptlang.org/)。你可以在 Astro 專案中直接匯入 `.ts` 與 `.tsx` 檔案，甚至可以直接在 [Astro 元件腳本](/zh-tw/basics/astro-components/#the-component-script) 與任何 [script 標籤](/zh-tw/guides/client-side-scripts/)中撰寫 TypeScript 程式碼。
+
+**Astro 本身不會執行任何型別檢查。** 型別檢查應該在 Astro 之外處理，交給你的 IDE 或透過獨立腳本。對於 Astro 檔案的型別檢查，Astro 提供了 [`astro check` 指令](/zh-tw/reference/cli-reference/#astro-check)。
+
+:::note[TypeScript 與副檔名]
+依 [TypeScript 的模組解析規則](https://www.typescriptlang.org/docs/handbook/module-resolution.html)，匯入 TypeScript 檔案時不應使用 `.ts` 和 `.tsx` 副檔名。請改用 `.js`/`.jsx` 副檔名，或完全省略副檔名。
+
+```ts
+import { getUser } from './user.js'; // user.ts
+import MyComponent from "./MyComponent"; // MyComponent.tsx
+```
+
+:::
+
+<ReadMore>更多關於 [Astro 中的 TypeScript 支援](/zh-tw/guides/typescript/)的內容。</ReadMore>
+
+
+### NPM 套件
+
+如果你安裝了 NPM 套件，可以在 Astro 中匯入它。
+
+```astro
+---
+import { Icon } from 'astro-icon';
+---
+```
+如果某個套件以舊格式發佈，Astro 會嘗試把它轉換成 ESM，好讓 `import` 語句能運作。某些情況下，你可能需要調整 [`vite` 設定](/zh-tw/reference/configuration-reference/#vite)才能讓它運作。
+
+:::caution
+有些套件依賴瀏覽器環境。Astro 元件在伺服器上執行，所以在 frontmatter 中匯入這些套件可能會[導致錯誤](/zh-tw/guides/troubleshooting/#document-or-window-is-not-defined)。
+:::
+
+### JSON
+
+```js
+// Load the JSON object via the default export
+import json from './data.json';
+```
+
+Astro 支援直接把 JSON 檔案匯入到應用程式中。匯入的檔案會在預設匯入中回傳完整的 JSON 物件。
+
+### CSS
+
+```js
+// Load and inject 'style.css' onto the page
+import './style.css';
+```
+
+Astro 支援直接把 CSS 檔案匯入到應用程式中。匯入的樣式不會暴露任何 export，但匯入會自動把這些樣式加到頁面上。這預設適用於所有 CSS 檔案，並可透過外掛支援像 Sass、Less 這類編譯為 CSS 的語言。
+
+<ReadMore>更多進階 CSS 匯入用例，例如為 CSS 檔案取得直接的 URL 參考、或把 CSS 當作字串匯入，請見[樣式指南](/zh-tw/guides/styling/#advanced)。</ReadMore>
+
+### CSS Modules
+
+```jsx
+// 1. Converts './style.module.css' classnames to unique, scoped values.
+// 2. Returns an object mapping the original classnames to their final, scoped value.
+import styles from './style.module.css';
+
+// This example uses JSX, but you can use CSS Modules with any framework.
+return <div className={styles.error}>Your Error Message</div>;
+```
+
+Astro 透過 `[name].module.css` 命名慣例支援 CSS Modules。和任何 CSS 檔案一樣，匯入會自動把 CSS 套用到頁面上。不過，CSS Modules 會匯出一個特殊的預設 `styles` 物件，把你原本的 class 名稱對應到獨一無二的識別字。
+
+CSS Modules 藉由為你的樣式表產生獨一無二的 class 名稱，幫助你在前端強制達成元件範圍與隔離。
+
+### 其他資產
+
+```jsx
+// Returns an object with `src` and other properties
+import imgReference from './image.png';
+import svgReference from './image.svg';
+
+// HTML or UI Framework components use this to render the image
+<img src={imgReference.src} alt="image description" />;
+
+// The Astro `<Image />` and `<Picture />` components access `src` by default
+<Image src={imgReference} alt="image description">
+```
+
+上面未明確提到的其他所有資產都可以透過 ESM `import` 匯入，會回傳最終建置後的資產 URL 參考（例如 `/_astro/my-video.C7vXpQtF.mp4`），而不是物件。
+
+這在以 URL 參考非 JS 資產時會很有用，例如建立一個 `src` 屬性指向該圖片的 video 元素。
+
+也可以依[專案結構頁面](/zh-tw/basics/project-structure/#public)的說明，把圖片與其他資產放在 `public/` 資料夾中。
+
+<ReadMore>更多關於附加 Vite 匯入參數（例如 `?url`、`?raw`）的內容，請見 [Vite 的靜態資產處理指南](https://vite.dev/guide/assets.html)。</ReadMore>
+
+:::note
+基於無障礙考量，鼓勵為 `<img>` 標籤加上 **alt 文字**！別忘了在你的圖片元素加上 `alt="有幫助的說明"` 屬性。如果圖片純粹是裝飾用途，則可以讓屬性保持空值。
+:::
+
+## 別名
+
+**別名**是為匯入建立捷徑的方法。
+
+別名對於有很多目錄或相對路徑匯入的程式碼庫來說，能改善開發體驗。
+
+```astro title="src/pages/about/company.astro" del="../../components" del="../../assets"
+---
+import Button from '../../components/controls/Button.astro';
+import logoUrl from '../../assets/logo.png?url';
+---
+```
+
+在這個例子中，開發者需要理解 `src/pages/about/company.astro`、`src/components/controls/Button.astro` 和 `src/assets/logo.png` 之間的目錄樹關係。之後，如果 `company.astro` 檔案被移動，這些匯入也需要跟著更新。
+
+你可以在 `tsconfig.json` 中加入匯入別名。
+
+```json title="tsconfig.json" ins={4-5}
+{
+  "compilerOptions": {
+    "paths": {
+      "@components/*": ["./src/components/*"],
+      "@assets/*": ["./src/assets/*"]
+    }
+  }
+}
+```
+
+在這個設定變更之後，開發伺服器會自動重新啟動。現在你可以在專案的任何地方使用別名匯入：
+
+```astro title="src/pages/about/company.astro" ins="@components" ins="@assets"
+---
+import Button from '@components/controls/Button.astro';
+import logoUrl from '@assets/logo.png?url';
+---
+```
+
+## `import.meta.glob()`
+
+[Vite 的 `import.meta.glob()`](https://vite.dev/guide/features.html#glob-import) 可以用 glob 模式一次找出符合路徑的多個檔案並匯入。
+
+`import.meta.glob()` 以一個相對的 [glob 模式](#glob-模式)作為參數，用來比對你想匯入的本地檔案。它會回傳每個符合檔案的 exports 陣列。若要預先載入所有符合的模組，請把 `{ eager: true }` 傳入作為第二個參數：
+
+```astro title="src/components/my-component.astro" {3,4}
+---
+// imports all files that end with `.md` in `./src/pages/post/`
+const matches = import.meta.glob('../pages/post/*.md', { eager: true }); 
+const posts = Object.values(matches);
+---
+<!-- Renders an <article> for the first 5 blog posts -->
+<div>
+{posts.slice(0, 4).map((post) => (
+  <article>
+    <h2>{post.frontmatter.title}</h2>
+    <p>{post.frontmatter.description}</p>
+    <a href={post.url}>Read more</a>
+  </article>
+))}
+</div>
+```
+
+透過 `import.meta.glob` 匯入的 Astro 元件型別為 [`AstroInstance`](#astro-檔案)。你可以用每個元件實例的 `default` 屬性來算繪它：
+
+```astro title="src/pages/component-library.astro" {8}
+---
+// imports all files that end with `.astro` in `./src/components/`
+const components = Object.values(import.meta.glob('../components/*.astro', { eager: true }));
+---
+<!-- Display all of our components -->
+{components.map((component) => (
+  <div>
+    <component.default size={24} />
+  </div>
+))}
+```
+
+### 支援的值
+
+Vite 的 `import.meta.glob()` 函式只支援靜態字串字面值。它不支援動態變數與字串插值。
+
+常見的解法是改為匯入一個較大的、涵蓋所有你需要的檔案集合，然後再篩選：
+
+```astro {6-7}
+---
+// src/components/featured.astro
+const { postSlug } = Astro.props;
+const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
+
+const posts = Object.values(import.meta.glob("../pages/blog/*.md", { eager: true }));
+const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+---
+
+<p>
+  Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+</p>
+```
+
+### 匯入型別工具
+
+#### Markdown 檔案
+
+透過 `import.meta.glob()` 載入的 Markdown 檔案回傳以下的 `MarkdownInstance` 介面：
+
+```ts
+export interface MarkdownInstance<T extends Record<string, any>> {
+  /* Any data specified in this file's YAML/TOML frontmatter */
+	frontmatter: T;
+  /* The absolute file path of this file */
+	file: string;
+  /* The rendered path of this file */
+	url: string | undefined;
+  /* Astro Component that renders the contents of this file */
+	Content: AstroComponentFactory;
+  /** (Markdown only) Raw Markdown file content, excluding layout HTML and YAML/TOML frontmatter */
+	rawContent(): string;
+  /** (Markdown only) Markdown file compiled to HTML, excluding layout HTML */
+	compiledContent(): string;
+  /* Function that returns an array of the h1...h6 elements in this file */
+	getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
+	default: AstroComponentFactory;
+}
+```
+
+你可以選擇以 TypeScript 泛型為 `frontmatter` 變數提供型別。
+
+```astro
+---
+import type { MarkdownInstance } from 'astro';
+interface Frontmatter {
+    title: string;
+    description?: string;
+}
+
+const posts = Object.values(import.meta.glob<MarkdownInstance<Frontmatter>>('./posts/**/*.md', { eager: true }));
+---
+
+<ul>
+  {posts.map(post => <li>{post.frontmatter.title}</li>)}
+</ul>
+```
+
+#### Astro 檔案
+
+Astro 檔案有以下介面：
+
+```ts
+export interface AstroInstance {
+  /* The file path of this file */
+  file: string;
+  /* The URL for this file (if it is in the pages directory) */
+	url: string | undefined;
+	default: AstroComponentFactory;
+}
+```
+
+#### 其他檔案
+
+其他檔案可能有各種不同的介面，但如果你確切知道某種未被識別的檔案類型內容是什麼，`import.meta.glob()` 也接受 TypeScript 泛型。
+
+```ts
+---
+interface CustomDataFile {
+  default: Record<string, any>;
+}
+const data = import.meta.glob<CustomDataFile>('../data/**/*.js');
+---
+```
+
+### Glob 模式
+
+glob 模式是支援特殊萬用字元的檔案路徑。可以用來一次參考你專案中的多個檔案。
+
+例如，glob 模式 `./pages/**/*.{md,mdx}` 從 pages 子目錄開始，搜尋其所有子目錄（`/**`），並比對結尾為 `.md` 或 `.mdx` 的任何檔名（`/*`、`.{md,mdx}`）。
+
+#### Astro 中的 Glob 模式
+
+要搭配 `import.meta.glob()` 使用，glob 模式必須是字串字面值，不能包含任何變數。
+
+此外，glob 模式必須以下列之一開頭：
+- `./`（從目前目錄開始）
+- `../`（從上層目錄開始）
+- `/`（從專案根目錄開始）
+ 
+[更多關於 glob 模式語法的內容](https://github.com/micromatch/picomatch#globbing-features)。
+
+### `import.meta.glob()` vs `getCollection()`
+
+[內容集合](/zh-tw/guides/content-collections/)提供[效能好、以內容為重心的 API](/zh-tw/reference/modules/astro-content/)來載入多個檔案，作為 `import.meta.glob()` 的替代。使用 `getCollection()` 和 `getLiveCollection()` 來查詢你的集合並回傳內容條目。
+
+## WASM
+
+```js
+// Loads and initializes the requested WASM file
+const wasm = await WebAssembly.instantiateStreaming(fetch('/example.wasm'));
+```
+
+Astro 支援使用瀏覽器的 [`WebAssembly`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/WebAssembly) API，將 WASM 檔案直接載入到應用程式中。
+
+
+## Node 內建模組
+
+Astro 使用 Node 較新的 `node:` 前綴支援 Node.js 內建模組，但有一些限制。開發和 production 之間可能有差異，某些功能可能與隨需算繪不相容。部分[配接器](/zh-tw/guides/on-demand-rendering/)可能也與這些內建模組不相容，或需要設定才能支援子集（例如 [Cloudflare Workers](/zh-tw/guides/integrations-guide/cloudflare/) 或 [Deno](https://github.com/denoland/deno-astro-adapter)）。
+
+以下範例從 Node 匯入 `util` 模組來解析媒體類型（MIME）：
+
+```astro title="src/components/MyComponent.astro"
+---
+// Example: import the "util" built-in from Node.js
+import util from 'node:util';
+
+export interface Props {
+  mimeType: string,
+}
+
+const mime = new util.MIMEType(Astro.props.mimeType)
+---
+
+<span>Type: {mime.type}</span>
+<span>SubType: {mime.subtype}</span>
+```
+
+## 擴充檔案類型支援
+
+透過 **Vite** 與相容的 **Rollup** 外掛，你可以匯入 Astro 原生不支援的檔案類型。在 Vite 文件的[尋找外掛](https://vite.dev/guide/using-plugins.html#finding-plugins)章節可以找到你需要的外掛。
+
+:::note[外掛設定]
+關於設定選項與如何正確安裝，請參閱外掛的文件。
+:::
+
+<RecipeLinks slugs={["en/recipes/add-yaml-support"]} />
