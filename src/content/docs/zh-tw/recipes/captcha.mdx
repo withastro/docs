@@ -1,0 +1,80 @@
+---
+title: 驗證 Captcha
+description: 了解如何建立 API 路由並從客戶端呼叫它。
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[伺服器端點](/zh-tw/guides/endpoints/#server-endpoints-api-routes)可作為 REST API 端點，用來執行身份驗證、資料庫存取與驗證等功能，無需把敏感資料暴露給客戶端。
+
+在這份操作指南中，我們會用一個 API 路由來驗證 Google reCAPTCHA v3，且不會把密鑰暴露給客戶端。
+
+## 前置需求
+
+- 已啟用 [SSR](/zh-tw/guides/on-demand-rendering/)（`output: 'server'`）的專案
+
+## 操作指南
+
+<Steps>
+1. 建立一個接收 recaptcha 資料的 `POST` 端點，並用 reCAPTCHA 的 API 驗證它。在這裡你可以安全地定義機密值或讀取環境變數。
+
+    ```js title="src/pages/recaptcha.js"
+    export async function POST({ request }) {
+      const data = await request.json();
+
+      const recaptchaURL = 'https://www.google.com/recaptcha/api/siteverify';
+      const requestHeaders = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      };
+      const requestBody = new URLSearchParams({
+        secret: "YOUR_SITE_SECRET_KEY",   // This can be an environment variable
+        response: data.recaptcha          // The token passed in from the client
+      });
+
+      const response = await fetch(recaptchaURL, {
+        method: "POST",
+        headers: requestHeaders,
+        body: requestBody.toString()
+      });
+
+      const responseData = await response.json();
+
+      return new Response(JSON.stringify(responseData), { status: 200 });
+    }
+    ```
+
+2. 在客戶端腳本中使用 `fetch` 存取你的端點：
+
+    ```astro title="src/pages/index.astro"
+    <html>
+      <head>
+        <script is:inline src="https://www.google.com/recaptcha/api.js"></script>
+      </head>
+
+      <body>
+        <button class="g-recaptcha" 
+          data-sitekey="PUBLIC_SITE_KEY" 
+          data-callback="onSubmit" 
+          data-action="submit"> Click me to verify the captcha challenge! </button>
+
+        <script is:inline>
+          function onSubmit(token) {
+            fetch("/recaptcha", {
+              method: "POST",
+              body: JSON.stringify({ recaptcha: token })
+            })
+            .then((response) => response.json())
+            .then((gResponse) => {
+              if (gResponse.success) {
+                // Captcha verification was a success
+              } else {
+                // Captcha verification failed
+              }
+            })
+          }
+        </script>
+      </body>
+    </html>
+    ```
+</Steps>
