@@ -1,0 +1,287 @@
+---
+title: 身分驗證
+description: Astro 中身分驗證的入門介紹
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+身分驗證（authentication）與授權（authorization）是管理網站或應用程式存取權的兩種安全程序。身分驗證確認訪客的身分，授權則賦予其存取受保護區域與資源的權限。
+
+身分驗證讓你能為已登入的使用者客製化網站區域，並為個人或私密資訊提供最高程度的保護。身分驗證函式庫（例如 [Better Auth](https://better-auth.com/)、[Clerk](https://clerk.com)）提供多種身分驗證方式的工具，例如電子郵件登入與 OAuth 提供者。
+
+:::tip
+Astro 沒有官方的身分驗證解決方案，但你可以在整合目錄中找到[社群「auth」整合](https://astro.build/integrations/?search=auth)。
+:::
+
+<ReadMore>請參閱我們針對這些後端服務的專屬指南，了解如何[使用 Supabase 加入身分驗證](/zh-tw/guides/backend/supabase/#adding-authentication-with-supabase)、[使用 Firebase 加入身分驗證](/zh-tw/guides/backend/firebase/#adding-authentication-with-firebase)，或[使用 Scalekit 加入身分驗證](/zh-tw/guides/backend/scalekit/#adding-authentication-with-scalekit)。</ReadMore>
+
+## Better Auth
+
+Better Auth 是一個與框架無關、TypeScript 的身分驗證（與授權）框架。它提供一套開箱即用的完整功能，並包含一個外掛生態系，可簡化進階功能的加入。
+
+它原生支援 Astro，你可以用它為你的 Astro 專案加入身分驗證。
+
+### 安裝
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+詳細的設定步驟請見 [Better Auth 安裝指南](https://www.better-auth.com/docs/installation)。
+
+### 設定
+
+依據 [Better Auth 安裝指南](https://www.better-auth.com/docs/installation#configure-database)設定你的資料庫表格以儲存使用者資料，以及你偏好的身分驗證方式。接著，你需要在 Astro 專案中掛載 Better Auth 的 handler。
+
+```ts title="src/pages/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // 匯入你的 Better Auth 實例
+import type { APIRoute } from "astro";
+
+export const prerender = false; // 在 'server' 模式下不需要
+
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+更多資訊請見 [Better Auth 的 Astro 指南](https://www.better-auth.com/docs/integrations/astro)。
+
+### 使用方式
+
+Better Auth 提供一個 `createAuthClient` 輔助工具，支援多種框架，包括 Vanilla JS、React、Vue、Svelte 與 Solid。
+
+舉例來說，若要為 React 建立 client，從 `'better-auth/react'` 匯入該輔助工具：
+
+
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+一旦 client 設定好後，你就可以用它在 Astro 元件或任何特定框架的檔案中對使用者進行身分驗證。以下範例使用你設定的 `signIn()` 與 `signOut()` 函式，加入登入或登出的功能。
+
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+---
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("./lib/auth-client")
+    document.querySelector("#login").onclick = () => signIn.social({
+      provider: "github",
+      callbackURL: "/dashboard",
+    })
+    document.querySelector("#logout").onclick = () => signOut()
+  </script>
+</Layout>
+```
+
+接著你可以在伺服器端程式碼中使用 `auth` 物件取得使用者的 session 資料。以下範例透過顯示已驗證使用者的姓名，為頁面內容增添個人化：
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../../../lib/auth"; // 匯入你的 Better Auth 實例
+
+export const prerender = false; // 在 'server' 模式下不需要
+ 
+const session = await auth.api.getSession({
+	headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+你也可以使用 `auth` 物件，透過中介層保護你的路由。以下範例檢查嘗試存取已登入 dashboard 路由的使用者是否已驗證，若否，則把他們重新導向到首頁。
+
+```ts title="src/middleware.ts"
+import { auth } from "../../../auth"; // 匯入你的 Better Auth 實例
+import { defineMiddleware } from "astro:middleware";
+ 
+export const onRequest = defineMiddleware(async (context, next) => {
+	const isAuthed = await auth.api
+		.getSession({
+			headers: context.request.headers,
+		})
+	if (context.url.pathname === "/dashboard" && !isAuthed) {
+		return context.redirect("/");
+	}
+	return next();
+});
+```
+
+### 後續步驟
+
+- [Better Auth 的 Astro 指南](https://www.better-auth.com/docs/integrations/astro)
+- [Better Auth 的 Astro 範例](https://github.com/better-auth/examples/tree/main/astro-example)
+- [Better Auth 文件](https://www.better-auth.com/docs)
+- [Better Auth GitHub 儲存庫](https://github.com/better-auth/better-auth)
+
+## Clerk
+
+Clerk 是一整套可嵌入的 UI、彈性的 API，以及用於對使用者進行身分驗證與管理的管理後台。現已提供 [Astro 官方 Clerk SDK](https://clerk.com/docs/references/astro/overview)。
+
+### 安裝
+
+用你偏好的套件管理器安裝 `@clerk/astro`。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 設定
+
+請依照 [Clerk 官方的 Astro 快速上手指南](https://clerk.com/docs/quickstarts/astro)，在你的 Astro 專案中設定 Clerk 整合與中介層。
+
+### 使用方式
+
+Clerk 提供一組元件，讓你可以根據使用者的身分驗證狀態控制頁面的可見性。對未登入使用者顯示登入按鈕，取代已登入使用者才看得到的內容：
+
+```astro title="src/pages/index.astro"
+---
+import Layout from 'src/layouts/Base.astro';
+import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+
+export const prerender = false; // 在 'server' 模式下不需要
+---
+
+<Layout>
+    <SignedIn>
+        <UserButton />
+    </SignedIn>
+    <SignedOut>
+        <SignInButton />
+    </SignedOut>
+</Layout>
+```
+
+Clerk 也讓你可以在伺服器上透過中介層保護路由。指定要保護的路由，並提示未驗證的使用者登入：
+
+```ts title="src/middleware.ts"
+import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+
+const isProtectedRoute = createRouteMatcher([
+  '/dashboard(.*)',
+  '/forum(.*)',
+]);
+
+export const onRequest = clerkMiddleware((auth, context) => {
+  if (!auth().userId && isProtectedRoute(context.request)) {
+    return auth().redirectToSignIn();
+  }
+});
+```
+
+### 後續步驟
+
+- 閱讀 [`@clerk/astro` 官方文件](https://clerk.com/docs/references/astro/overview)
+- 從 [Clerk + Astro 快速上手專案](https://github.com/clerk/clerk-astro-quickstart)的範本開始
+
+## Lucia
+
+[Lucia](https://lucia-auth.com/) 是一個資源，用於在多種框架（包含 Astro）中實作基於 session 的身分驗證。
+
+### 指南
+
+<Steps>
+
+1. 使用你選擇的資料庫建立一個[基本的 session API](https://lucia-auth.com/sessions/basic-api/)。
+2. 使用端點與中介層加入 [session cookies](https://lucia-auth.com/sessions/cookies/astro)。
+3. 使用你已實作的 API 實作 [GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro)。
+
+</Steps>
+
+### 範例
+
+- [Astro 中的 GitHub OAuth 範例](https://github.com/lucia-auth/example-astro-github-oauth)
+- [Astro 中的 Google OAuth 範例](https://github.com/lucia-auth/example-astro-google-oauth)
+- [Astro 中帶有 2FA 的電子郵件與密碼範例](https://github.com/lucia-auth/example-astro-email-password-2fa)
+- [Astro 中帶有 2FA 與 WebAuthn 的電子郵件與密碼範例](https://github.com/lucia-auth/example-astro-email-password-webauthn)
+
+## Scalekit
+
+[Scalekit](https://scalekit.com/) 是專為 B2B 與 AI 應用程式打造的身分驗證平台。它提供社群登入、企業 SSO、Magic Link 等功能，並會替你管理完整的 OAuth 2.0 / OIDC 流程，讓你直接取得 token 與使用者檔案，而不需要自行建立任何登入 UI。單一 Scalekit 環境支援多個應用程式，因此使用者只需登入一次，就能在你所有產品（例如 `app.yourcompany.com` 與 `docs.yourcompany.com`）上共用同一個 session。
+
+### 指南
+
+請依照 [Scalekit 與 Astro 指南](/zh-tw/guides/backend/scalekit/)，透過社群登入、企業 SSO 等方式，為你的 Astro SSR 專案加入身分驗證。
+
+### 範例
+
+- [搭配 Scalekit 身分驗證的 Astro 部落格教學（Authorization Code 流程）](https://github.com/scalekit-developers/astro-scalekit-auth-example)
+- [Scalekit 開發者文件網站原始碼（PKCE 流程，不使用 SDK）](https://github.com/scalekit-inc/developer-docs)
+
+## 社群資源
+
+- [在 Astro 與 Azure Static Web App 中使用 Microsoft Entra Id EasyAuth](https://agramont.net/blog/entra-id-easyauth-with-astro/)
