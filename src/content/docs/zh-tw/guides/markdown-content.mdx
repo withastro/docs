@@ -1,0 +1,421 @@
+---
+title: Astro 中的 Markdown
+sidebar:
+  label: Markdown
+description: 了解 Astro 對 Markdown 的內建支援。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+[Markdown](https://daringfireball.net/projects/markdown/) 常用來撰寫文字較多的內容，例如部落格文章與文件。Astro 內建支援 Markdown 檔案，可以包含 [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f)（或 [TOML](https://toml.io)）來定義自訂屬性，例如標題、描述與標籤。
+
+在 Astro 中，你可以使用 [GitHub Flavored Markdown](https://github.github.com/gfm/) 撰寫內容，然後在 `.astro` 元件中算繪。這把為內容設計、熟悉的撰寫格式，與 Astro 元件語法和架構的彈性結合在一起。
+
+:::tip
+若想要更多功能，例如在 Markdown 中使用元件與 JSX 表達式，可以加入 [`@astrojs/mdx` 整合](/zh-tw/guides/integrations-guide/mdx/)，改用 [MDX](https://mdxjs.com/) 撰寫 Markdown 內容。
+:::
+
+## 組織 Markdown 檔案
+
+你的本地 Markdown 檔案可以放在 `src/` 目錄底下的任何位置。位於 `src/pages/` 中的 Markdown 檔案會自動產生[網站上的 Markdown 頁面](#個別-markdown-頁面)。
+
+你的 Markdown 內容與 frontmatter 屬性可以透過[本地檔案匯入](#匯入-markdown)，或[由內容集合輔助函式查詢並算繪取得的資料](#來自內容集合查詢的-markdown)，在元件中使用。
+
+### 檔案匯入 vs 內容集合查詢
+
+本地 Markdown 可以使用 `import` 語句匯入單一檔案到 `.astro` 元件中，也可以用 [Vite 的 `import.meta.glob()`](/zh-tw/guides/imports/#importmetaglob) 一次查詢多個檔案。接著就可以在 `.astro` 元件中使用[從這些 Markdown 檔案匯出的資料](#匯入-markdown)。
+
+如果你有一組組相關的 Markdown 檔案，可以考慮[把它們定義為集合](/zh-tw/guides/content-collections/)。這帶來幾個好處，包括可以把 Markdown 檔案放在檔案系統的任何位置，甚至放在遠端。
+
+集合採用為內容量身打造、最佳化的 API 來[查詢並算繪你的 Markdown 內容](#來自內容集合查詢的-markdown)，而不是用檔案匯入。集合適合用於結構相同的資料集，例如部落格文章或商品。當你在 schema 中定義好結構後，還能取得驗證、型別安全與編輯器中的 IntelliSense。
+
+<ReadMore>更多關於[何時該使用內容集合](/zh-tw/guides/content-collections/#when-to-create-a-collection)而非檔案匯入的內容。</ReadMore>
+
+## 類 JSX 動態表達式
+
+匯入或查詢 Markdown 檔案後，你可以在 `.astro` 元件中撰寫動態 HTML 模板，包含 frontmatter 資料與內文。
+
+```md title="src/pages/posts/great-post.md"
+---
+title: 'The greatest post of all time'
+author: 'Ben'
+---
+
+Here is my _great_ post!
+```
+
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+<p>{greatPost.frontmatter.title}</p>
+<p>Written by: {greatPost.frontmatter.author}</p>
+
+{greatPost.compiledContent()}
+
+<p>Post Archive:</p>
+<ul>
+  {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+</ul>
+```
+
+### 可用屬性
+
+#### 來自內容集合查詢的 Markdown
+
+當你用輔助函式 `getCollection()` 或 `getEntry()` 從集合取得資料時，Markdown 的 frontmatter 屬性會在 `data` 物件上（例如 `post.data.title`）。此外，`body` 包含未編譯的原始內文字串。
+
+[`render()`](/zh-tw/reference/modules/astro-content/#render) 函式會回傳 Markdown 內文、自動產生的標題清單，以及在套用任何 remark 或 rehype 外掛之後的 frontmatter 物件。
+
+<ReadMore>更多關於[使用集合查詢回傳的內容](/zh-tw/guides/content-collections/#using-content-in-astro-templates)的內容。</ReadMore>
+
+#### 匯入 Markdown
+
+當你用 `import` 或 `import.meta.glob()` 匯入 Markdown 時，`.astro` 元件中可以使用以下匯出的屬性：
+
+- **`file`** — 絕對檔案路徑（例如 `/home/user/projects/.../file.md`）。
+- **`url`** — 頁面的 URL（例如 `/zh-tw/guides/markdown-content`）。
+- **`frontmatter`** — 包含檔案 YAML（或 TOML）frontmatter 中指定的任何資料。
+- **`<Content />`** — 一個元件，會回傳檔案算繪後的完整內容。
+- **`rawContent()`** — 一個函式，會以字串形式回傳原始 Markdown 文件。
+- **`compiledContent()`** — 一個非同步函式，會回傳編譯為 HTML 字串的 Markdown 文件。
+- **`getHeadings()`** — 一個非同步函式，會回傳檔案中所有標題（`<h1>` 到 `<h6>`）的陣列，型別為 `{ depth: number; slug: string; text: string }[]`。每個標題的 `slug` 對應到該標題自動產生的 ID，可用於錨點連結。
+
+一個範例 Markdown 部落格文章可能會傳入以下的 `Astro.props` 物件：
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
+  frontmatter: {
+    /** Frontmatter from a blog post */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+  },
+  getHeadings: () => [
+    {"depth": 1, "text": "Astro 0.18 Release", "slug": "astro-018-release"},
+    {"depth": 2, "text": "Responsive partial hydration", "slug": "responsive-partial-hydration"}
+    /* ... */
+  ],
+  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
+}
+```
+
+
+## `<Content />` 元件
+
+從 Markdown 檔案中匯入 `Content` 即可使用 `<Content />` 元件。這個元件會回傳檔案完整的內文，並算繪為 HTML。你可以選擇將 `Content` 重新命名為任何你偏好的元件名稱。
+
+你也可以類似地透過算繪一個 `<Content />` 元件，[算繪 Markdown 集合條目的 HTML 內容](/zh-tw/guides/content-collections/#rendering-body-content)。
+
+```astro title="src/pages/content.astro" "Content"
+---
+// Import statement
+import {Content as PromoBanner} from '../components/promoBanner.md';
+
+// Collections query
+import { getEntry, render } from 'astro:content';
+
+const product = await getEntry('products', 'shirt');
+const { Content } = await render(product);
+---
+<h2>Today's promo</h2>
+<PromoBanner />
+
+<p>Sale Ends: {product.data.saleEndDate.toDateString()}</p>
+<Content />
+```
+
+## 標題 ID
+
+在 Markdown 中撰寫標題會自動產生錨點連結，讓你可以直接連結到頁面中的特定段落。
+
+```markdown title="src/pages/page-1.md"
+---
+title: My page of content
+---
+## Introduction
+
+I can link internally to [my conclusion](#conclusion) on the same page when writing Markdown.
+
+## Conclusion
+
+I can visit `https://example.com/page-1/#introduction` in a browser to navigate directly to my Introduction.
+```
+
+Astro 根據 `github-slugger` 產生標題的 `id`。更多範例可以在 [github-slugger 文件](https://github.com/Flet/github-slugger#usage)中找到。
+
+### 標題 ID 與外掛
+
+Astro 會在 Markdown 與 MDX 檔案中所有標題元素（`<h1>` 到 `<h6>`）注入 `id` 屬性。你可以從匯入檔案的 [Markdown 匯出屬性](#可用屬性)中的 `getHeadings()` 工具取得這份資料；或在[使用內容集合查詢回傳的 Markdown](#來自內容集合查詢的-markdown) 時，從 `render()` 函式取得。
+
+你可以加入會注入 `id` 屬性的 rehype 外掛（例如 `rehype-slug`）來自訂這些標題 ID。你的自訂 ID（而非 Astro 的預設值）會反映在 HTML 輸出與 `getHeadings()` 回傳的項目中。
+
+預設情況下，Astro 會在你的 rehype 外掛執行完畢之後才注入 `id` 屬性。如果你的某個自訂 rehype 外掛需要存取 Astro 注入的 ID，可以直接匯入並使用 Astro 的 `rehypeHeadingIds` 外掛。記得把 `rehypeHeadingIds` 放在依賴它的外掛之前：
+
+```js title="astro.config.mjs" ins={2, 8}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      rehypeHeadingIds,
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
+
+## Markdown 外掛
+
+Astro 對 Markdown 的支援由 [remark](https://remark.js.org/) 提供，這是一個強大、有活躍生態系的解析與處理工具。其他 Markdown 解析器，例如 Pandoc 和 markdown-it，目前並不支援。
+
+Astro 預設套用 [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) 與 [SmartyPants](https://github.com/silvenon/remark-smartypants) 外掛。這帶來一些便利功能，例如把文字自動轉為可點選的連結，以及為[引號和破折號](https://daringfireball.net/projects/smartypants/)做格式調整。
+
+你可以在 `astro.config.mjs` 中自訂 remark 解析 Markdown 的方式。完整選項清單請見 [Markdown 設定選項](/zh-tw/reference/configuration-reference/#markdown-options)。
+
+### 加入 remark 與 rehype 外掛
+
+Astro 支援為 Markdown 加入第三方的 [remark](https://github.com/remarkjs/remark) 與 [rehype](https://github.com/rehypejs/rehype) 外掛。這些外掛能讓你的 Markdown 擴充新功能，例如[自動產生目錄](https://github.com/remarkjs/remark-toc)、[套用無障礙 emoji 標籤](https://github.com/florianeckerstorfer/remark-a11y-emoji)，以及[為你的 Markdown 加上樣式](/zh-tw/guides/styling/#markdown-styling)。
+
+我們鼓勵你瀏覽 [awesome-remark](https://github.com/remarkjs/awesome-remark) 與 [awesome-rehype](https://github.com/rehypejs/awesome-rehype) 找熱門的外掛！每個外掛各自的安裝指示請看其 README。
+
+下面這個範例為 Markdown 檔案套用 [`remark-toc`](https://github.com/remarkjs/remark-toc) 與 [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis)：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import remarkToc from 'remark-toc';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: 'toc', maxDepth: 3 } ] ],
+    rehypePlugins: [rehypeAccessibleEmojis],
+  },
+});
+```
+
+### 自訂外掛
+
+要自訂某個外掛，請在外掛之後以巢狀陣列的形式提供一個選項物件。
+
+下面這個範例加入了 [`remarkToc` 外掛的 heading 選項](https://github.com/remarkjs/remark-toc#options)來改變目錄的位置，以及 [`rehype-autolink-headings` 外掛的 `behavior` 選項](https://github.com/rehypejs/rehype-autolink-headings#options)，把錨點標籤加在標題文字之後。
+
+```js title="astro.config.mjs"
+import remarkToc from 'remark-toc';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+export default {
+  markdown: {
+    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
+    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+  },
+}
+```
+
+### 以程式方式修改 frontmatter
+
+你可以用 [remark 或 rehype 外掛](#markdown-外掛)為所有 Markdown 與 MDX 檔案加入 frontmatter 屬性。
+
+<Steps>
+1. 從外掛 `file` 引數的 `data.astro.frontmatter` 屬性附加一個 `customProperty`：
+
+    ```js title="example-remark-plugin.mjs"
+    export function exampleRemarkPlugin() {
+      // All remark and rehype plugins return a separate function
+      return function (tree, file) {
+        file.data.astro.frontmatter.customProperty = 'Generated property';
+      }
+    }
+    ```
+
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter` 包含指定 Markdown 或 MDX 文件的所有屬性。這讓你可以修改既有的 frontmatter 屬性，或從既有 frontmatter 計算出新屬性。
+    :::
+
+2. 把這個外掛套用到你的 `markdown` 或 `mdx` 整合設定：
+
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      markdown: {
+        remarkPlugins: [exampleRemarkPlugin]
+      },
+    });
+    ```
+
+    或
+
+    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    import { defineConfig } from 'astro/config';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      integrations: [
+        mdx({
+          remarkPlugins: [exampleRemarkPlugin],
+        }),
+      ],
+    });
+    ```
+</Steps>
+
+現在每個 Markdown 或 MDX 檔案的 frontmatter 都會有 `customProperty`，並可在[匯入 markdown](#匯入-markdown) 與 [layout 中的 `Astro.props.frontmatter` 屬性](#frontmatter-layout-屬性)取得。
+
+<RecipeLinks slugs={["en/recipes/reading-time"]} />
+
+### 從 MDX 延伸 Markdown 設定
+
+Astro 的 MDX 整合預設會延伸[你專案既有的 Markdown 設定](/zh-tw/reference/configuration-reference/#markdown-options)。要覆寫個別選項，可以在 MDX 設定中指定對應的選項。
+
+下面的範例停用 GitHub-Flavored Markdown，並為 MDX 檔案套用一組不同的 remark 外掛：
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    remarkPlugins: [remarkPlugin1],
+    gfm: true,
+  },
+  integrations: [
+    mdx({
+      // `syntaxHighlight` inherited from Markdown
+
+      // Markdown `remarkPlugins` ignored,
+      // only `remarkPlugin2` applied.
+      remarkPlugins: [remarkPlugin2],
+      // `gfm` overridden to `false`
+      gfm: false,
+    })
+  ]
+});
+```
+
+要避免 MDX 從 Markdown 設定延伸而來，將 [`extendMarkdownConfig` 選項](/zh-tw/guides/integrations-guide/mdx/#extendmarkdownconfig)（預設為啟用）設為 `false`：
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    remarkPlugins: [remarkPlugin],
+  },
+  integrations: [
+    mdx({
+      // Markdown config now ignored
+      extendMarkdownConfig: false,
+      // No `remarkPlugins` applied
+    })
+  ]
+});
+```
+
+## 個別 Markdown 頁面
+
+:::tip
+[內容集合](/zh-tw/guides/content-collections/)與[把 Markdown 匯入到 `.astro` 元件](#類-jsx-動態表達式)為算繪 Markdown 提供更多功能，是處理大部分內容的推薦做法。但有時你會想要單純把檔案丟進 `src/pages/`、由 Astro 自動為你建立簡單頁面的便利。
+:::
+
+Astro 會把 [`/src/pages/` 目錄中任何受支援的檔案](/zh-tw/basics/astro-pages/#supported-page-files)當作頁面，包括 `.md` 與其他 Markdown 檔案類型。
+
+把檔案放在這個目錄或其任何子目錄，會以該檔案的路徑名稱自動建立頁面路由，並把 Markdown 內容算繪為 HTML 後顯示。Astro 會自動為你的頁面加上 `<meta charset="utf-8">` 標籤，方便撰寫非 ASCII 內容。
+
+```markdown title="src/pages/page-1.md"
+---
+title: Hello, World
+---
+
+# Hi there!
+
+This Markdown file creates a page at `your-domain.com/page-1/`
+
+It probably isn't styled much, but Markdown does support:
+- **bold** and _italics._
+- lists
+- [links](https://astro.build)
+- <p>HTML elements</p>
+- and more!
+```
+
+### Frontmatter `layout` 屬性
+
+為了補足個別 Markdown 頁面有限的功能，Astro 提供一個特殊的 frontmatter `layout` 屬性，它是指向 Astro [Markdown layout 元件](/zh-tw/basics/layouts/#markdown-layouts)的相對路徑。當你使用[內容集合](/zh-tw/guides/content-collections/)查詢與算繪 Markdown 內容時，`layout` 不是特殊屬性，且不保證會在其原本用途之外被支援。
+
+如果你的 Markdown 檔案位於 `src/pages/` 中，建立一個 layout 元件並在這個 layout 屬性中加入它，為你的 Markdown 內容包上一層頁面外殼。
+
+```markdown title="src/pages/posts/post-1.md" {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Astro in brief
+author: Himanshu
+description: Find out what makes Astro awesome!
+---
+This is a post written in Markdown.
+```
+
+這個 layout 元件就是一般的 Astro 元件，它有[自動可用的特定屬性](/zh-tw/basics/layouts/#markdown-layout-props)可透過 `Astro.props` 在你的 Astro 模板中存取。例如，你可以透過 `Astro.props.frontmatter` 存取 Markdown 檔案的 frontmatter 屬性：
+
+```astro title="src/layouts/BlogPostLayout.astro" /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+  <head>
+    <!-- ... -->
+    <meta charset="utf-8"> // no longer added by default
+  </head>
+  <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>Post author: {frontmatter.author}</h2>
+  <p>{frontmatter.description}</p>
+  <slot /> <!-- Markdown content is injected here -->
+  <!-- ... -->
+</html>
+```
+
+當你使用 frontmatter 的 `layout` 屬性時，必須在 layout 中加入 `<meta charset="utf-8">` 標籤，因為 Astro 不再自動加上。你現在也可以在 layout 元件中[為你的 Markdown 加上樣式](/zh-tw/guides/styling/#markdown-styling)。
+
+<ReadMore>了解更多關於 [Markdown Layouts](/zh-tw/basics/layouts/#markdown-layouts) 的內容。</ReadMore>
+
+## 抓取遠端 Markdown
+
+Astro 內部的 Markdown 處理器無法用於處理遠端 Markdown。
+
+要為[內容集合](/zh-tw/guides/content-collections/)抓取遠端 Markdown，你可以[建置一個自訂載入器](/zh-tw/guides/content-collections/#custom-build-time-loaders)，從中存取 [`renderMarkdown()` 函式](/zh-tw/reference/content-loader-reference/#loadercontextrendermarkdown)。
+
+要直接抓取遠端 Markdown 並算繪為 HTML，你需要從 NPM 安裝並設定自己的 Markdown 解析器。這不會繼承你已設定的任何 Astro 內建 Markdown 設定。
+
+在專案中實作前，請務必了解這些限制，並考慮改用內容集合載入器來抓取遠端 Markdown。
+
+```astro title="src/pages/remote-example.astro"
+---
+// Example: Fetch Markdown from a remote API
+// and render it to HTML, at runtime.
+// Using "marked" (https://github.com/markedjs/marked)
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```
