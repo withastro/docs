@@ -1,0 +1,121 @@
+---
+title: 伺服器群島
+description: 將高效能的靜態 HTML 與動態的伺服器端算繪內容結合。
+i18nReady: true
+---
+
+伺服器群島讓你能個別隨需算繪動態或個人化的「島嶼」，同時不犧牲頁面其餘部分的效能。
+
+這代表你的訪客能更快看到頁面上最重要的部分，也讓你的主要內容得以更積極地被快取，進而提供更快的效能。
+
+## 伺服器群島元件
+
+伺服器群島是一個一般在伺服器端算繪的 [Astro 元件](/zh-tw/basics/astro-components/)，被指示延後算繪直到其內容可用為止。
+
+你的頁面會立即以任何指定的[備用內容作為預留位置](#伺服器群島的備用內容)算繪出來。接著，元件自身的內容會在客戶端抓取並在可用時顯示。
+
+[安裝好配接器](/zh-tw/guides/on-demand-rendering/#伺服器配接器)以執行延後算繪後，為頁面上的任何元件加上 [`server:defer` 指令](/zh-tw/reference/directives-reference/#server-directives)，即可把它轉為獨立的島嶼：
+
+```astro title="src/pages/index.astro" "server:defer"
+---
+import Avatar from '../components/Avatar.astro';
+---
+<Avatar server:defer />
+```
+
+這些元件可以做[你在使用配接器的隨需算繪頁面中平常做的任何事](/zh-tw/guides/on-demand-rendering/#隨需算繪功能)，例如抓取內容、存取 cookie：
+
+```astro title="src/components/Avatar.astro"
+---
+import { getUserAvatar } from '../sessions';
+const userSession = Astro.cookies.get('session');
+const avatarURL = await getUserAvatar(userSession);
+---
+<img alt="User avatar" src={avatarURL} />
+```
+
+### 將 props 傳遞給伺服器群島
+
+傳遞給伺服器群島元件的 props 必須是[可序列化的](https://developer.mozilla.org/en-US/docs/Glossary/Serialization)：能被轉換成適合透過網路傳輸或儲存的格式。此外，Astro 並不會序列化所有可序列化的資料結構。因此，能作為 props 傳遞給伺服器群島的內容有一些限制。
+
+值得注意的是，函式無法傳遞給標記為 `server:defer` 的元件，因為函式無法被序列化。帶有循環參照的物件也無法被序列化。
+
+以下 prop 型別受支援：
+一般物件、`number`、`string`、`Array`、`Map`、`Set`、`RegExp`、`Date`、`BigInt`、`URL`、`Uint8Array`、`Uint16Array`、`Uint32Array` 與 `Infinity`
+
+## 伺服器群島的備用內容
+
+當你在元件上使用 `server:defer` 屬性延後其算繪時，可以使用內建的具名 `"fallback"` 插槽「塞入」預設的載入內容。
+
+你的備用內容會在頁面載入時與頁面其餘部分一起算繪出來，並在元件內容可用時被取代。
+
+要加入備用內容，請在傳給伺服器群島元件的子項（其他元件或 HTML 元素）上加上 `slot="fallback"`：
+
+```astro
+---
+import Avatar from '../components/Avatar.astro';
+import GenericAvatar from '../components/GenericAvatar.astro';
+---
+<Avatar server:defer>
+  <GenericAvatar slot="fallback" />
+</Avatar>
+```
+
+備用內容可以是諸如：
+
+- 通用頭像，取代使用者自己的頭像。
+- 預留位置的 UI，例如自訂訊息。
+- 載入指示器，例如轉圈動畫。
+
+
+## 運作方式
+
+伺服器群島的實作大多發生在建置階段：元件內容會被替換成一小段腳本。
+
+每個標記為 `server:defer` 的島嶼會被拆到自己獨立的特殊路由，腳本會在執行階段抓取該路由。Astro 建置你的網站時，會省略該元件並在原地注入一段腳本，以及任何你標記為 `slot="fallback"` 的內容。
+
+當頁面在瀏覽器載入時，這些元件會被送到一個特殊端點請求，由該端點算繪並回傳 HTML。這代表使用者會立刻看到頁面上最關鍵的部分。備用內容會顯示一小段時間，接著動態島嶼會被載入取而代之。
+
+每座島嶼都獨立於其他部分載入。這代表較慢的島嶼不會延遲你其餘個人化內容的可用時間。
+
+這種算繪模式天生便於移植。它不依賴任何伺服器基礎架構，因此可以與你選擇的任何主機搭配使用，從 Docker 容器中的 Node.js 伺服器到你選擇的無伺服器供應商皆可。
+
+## 快取
+
+伺服器群島的資料透過 `GET` 請求取回，並把 props 以加密字串的形式放在 URL query 中傳遞。這讓資料可以透過標準的 [`Cache-Control` HTTP 標頭](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)指令進行快取。
+
+然而，基於實務考量以及避免造成阻斷服務問題，[瀏覽器會把 URL 長度限制在最多 2048 位元組](https://chromium.googlesource.com/chromium/src/+/master/docs/security/url_display_guidelines/url_display_guidelines.md#url-length)。如果你的 query 字串讓 URL 超過這個上限，Astro 改為送出一個 `POST` 請求，並把所有 props 放在 body 中。
+
+`POST` 請求並不會被瀏覽器快取，因為它們用於提交資料，可能造成資料完整性或安全問題。因此，你專案中任何既有的快取邏輯都會失效。只要可能，請只把必要的 props 傳給伺服器群島，避免傳送整個資料物件與陣列，讓 query 保持精簡。
+
+## 在伺服器群島中存取頁面 URL
+
+在多數情況下，你的伺服器群島元件可以像一般元件一樣，透過[傳遞 props](/zh-tw/basics/astro-components/#元件參數) 取得呈現它的頁面資訊。
+
+然而，伺服器群島會在獨立於頁面請求之外的隔離情境中執行。伺服器群島元件中的 `Astro.url` 與 `Astro.request.url` 都會回傳類似 `/_server-islands/Avatar` 的 URL，而非瀏覽器中目前頁面的 URL。此外，若你正在預先算繪該頁面，你將無法取得諸如查詢參數等資訊來作為 props 傳遞。
+
+要取得頁面 URL 的資訊，你可以檢查 [Referer](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Referer) 標頭，它會包含正在瀏覽器中載入該島嶼的頁面位址：
+
+```astro
+---
+const referer = Astro.request.headers.get('Referer');
+const url = new URL(referer);
+const productId = url.searchParams.get('product');
+---
+```
+
+## 重複使用加密金鑰
+
+Astro 使用[密碼學](https://developer.mozilla.org/en-US/docs/Glossary/Cryptography)加密傳遞給伺服器群島的 props，以保護敏感資料不被意外暴露。這個加密仰賴一把新的、隨機的金鑰，在每次建置時產生並嵌入到伺服器 bundle 中。
+
+大多數部署主機會自動讓你的前端與後端保持同步。不過，若你使用滾動式部署、多區域託管，或是會快取含有伺服器群島頁面的 CDN，你可能會需要一把固定的加密金鑰。
+
+在滾動式部署環境（例如 Kubernetes）中，你的前端資產（負責加密 props）與後端函式（負責解密 props）可能會暫時使用不同的金鑰；或是當 CDN 仍在提供以舊金鑰建置的頁面時，傳給你伺服器群島的加密 props 就無法被解密。
+
+在這些情境下，請使用 Astro CLI 產生一把可重複使用、已編碼的加密金鑰，並在建置環境中設為環境變數：
+
+```shell
+astro create-key
+```
+
+用這個值設定 `ASTRO_KEY` 環境變數（例如在 `.env` 檔中），並把它納入你的 CI/CD 或主機的建置設定。這能確保同一把金鑰一直在產生的 bundle 中被重複使用，讓加密與解密持續保持同步。
