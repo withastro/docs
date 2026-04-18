@@ -1,0 +1,227 @@
+---
+title: 腳本與事件處理
+description: >-
+  如何使用瀏覽器原生 JavaScript API 為 Astro 元件加入
+  客戶端互動性。
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+你可以透過元件模板中的 `<script>` 標籤，把 JavaScript 送到瀏覽器，並為 Astro 元件新增功能。
+
+腳本能為你的網站加入互動性，例如處理事件或動態更新內容，而不需要 [UI 框架](/zh-tw/guides/framework-components/)（像是 React、Svelte 或 Vue）。這可以避免傳送框架 JavaScript 的額外負擔，也不需要你另外學習任何框架就能打造功能完整的網站或應用程式。
+
+## 客戶端腳本
+
+腳本可以用來附加事件監聽器、傳送分析資料、播放動畫，以及 JavaScript 在網頁上能做的所有事情。
+
+Astro 會自動為標準 HTML `<script>` 標籤加上打包、TypeScript 等增強功能。細節請參閱 [Astro 如何處理腳本](#腳本處理)。
+
+```astro title="src/components/ConfettiButton.astro"
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // 從 npm 軟體包匯入。
+  import confetti from 'canvas-confetti';
+
+  // 在頁面上找到我們元件的 DOM。
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // 加入事件監聽器，按鈕被點擊時會噴灑彩帶。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+<ReadMore>請參閱[腳本何時不會被處理](#未處理的腳本)，以排解腳本行為問題，或了解如何刻意停用這些處理。</ReadMore>
+
+
+## 腳本處理
+
+預設情況下，Astro 會以下列方式處理不含任何屬性（除了 `src` 以外）的 `<script>` 標籤：
+
+- **TypeScript 支援：** 所有腳本預設都是 TypeScript。
+- **匯入打包：** 匯入本機檔案或 npm 模組，這些會一起被打包。
+- **Type Module：** 已處理的腳本會自動變成 [`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)。
+- **去除重複：** 如果一個含有 `<script>` 的元件在頁面上多次被使用，該腳本只會被包含一次。
+- **自動行內化：** 如果腳本夠小，Astro 會直接把它行內嵌入到 HTML，以減少請求次數。
+```astro title="src/components/Example.astro"
+<script>
+  // 已處理！已打包！支援 TypeScript！
+  // 可以匯入本機腳本與 npm 軟體包。
+</script>
+```
+
+### 未處理的腳本
+
+如果 `<script>` 標籤帶有除了 `src` 以外的任何屬性，Astro 就不會處理它。
+
+你可以加上 [`is:inline`](/zh-tw/reference/directives-reference/#isinline) 指令，刻意讓某個腳本退出處理流程。
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // 會原樣算繪到 HTML 中！
+  // 未經轉換：沒有 TypeScript，Astro 也不會解析 import。
+  // 如果用在元件裡，這段程式碼會在每個實例中重複出現。
+</script>
+```
+
+### 在頁面中引入 JavaScript 檔案
+
+你可能會想把腳本寫成獨立的 `.js` / `.ts` 檔，或需要參照另一台伺服器上的外部腳本。你可以在 `<script>` 標籤的 `src` 屬性中引用它們。
+
+#### 匯入本機腳本
+
+**何時使用：** 當你的腳本位於 `src/` 內。
+
+Astro 會依[腳本處理規則](#腳本處理)處理這些腳本。
+
+```astro title="src/components/LocalScripts.astro"
+<!-- 指向 `src/scripts/local.js` 腳本的相對路徑 -->
+<script src="../scripts/local.js"></script>
+
+<!-- 對本機 TypeScript 檔案也適用 -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### 載入外部腳本
+
+**何時使用：** 當你的 JavaScript 檔案位於 `public/` 內或在 CDN 上。
+
+要載入專案 `src/` 資料夾之外的腳本，請加上 `is:inline` 指令。這種做法會跳過前述匯入腳本時由 Astro 提供的 JavaScript 處理、打包與最佳化。
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- 指向 `public/my-script.js` 腳本的絕對路徑 -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- 遠端伺服器上腳本的完整 URL -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## 常見的腳本模式
+
+### 處理 `onclick` 與其他事件
+
+有些 UI 框架會使用客製化語法處理事件，例如 `onClick={...}`（React/Preact）或 `@click="..."`（Vue）。Astro 更貼近標準 HTML，不會為事件使用客製化語法。
+
+相對地，你可以在 `<script>` 標籤中使用 [`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener) 處理使用者互動。
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">Click me!</button>
+
+<script>
+  // 找到頁面上所有帶有 `alert` class 的按鈕。
+  const buttons = document.querySelectorAll('button.alert');
+
+  // 處理每個按鈕的點擊。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('Button was clicked!');
+    });
+  });
+</script>
+```
+
+如果頁面上有多個 `<AlertButton />` 元件，Astro 不會多次執行腳本。腳本會被打包，每個頁面只包含一次。使用 `querySelectorAll` 可以確保這段腳本把事件監聽器掛到頁面上所有帶有 `alert` class 的按鈕。
+
+
+### 以自訂元素實作 Web Components
+
+你可以使用 Web Components 標準，建立擁有自訂行為的 HTML 元素。在 `.astro` 元件中定義[自訂元素](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements)，讓你不用依賴 UI 框架函式庫就能建立互動式元件。
+
+在這個範例中，我們定義了一個新的 `<astro-heart>` HTML 元素，它會追蹤你點擊愛心按鈕的次數，並用最新的數字更新 `<span>`。
+
+```astro title="src/components/AstroHeart.astro"
+<!-- 將元件元素包在我們的自訂元素 "astro-heart" 中。 -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // 為我們這種新的 HTML 元素定義行為。
+  class AstroHeart extends HTMLElement {
+    connectedCallback() {
+      let count = 0;
+
+      const heartButton = this.querySelector('button');
+      const countSpan = this.querySelector('span');
+
+      // 每次按鈕被點擊時，更新次數。
+			heartButton.addEventListener('click', () => {
+        count++;
+        countSpan.textContent = count.toString();
+      });
+		}
+  }
+
+  // 告訴瀏覽器 <astro-heart> 元素要使用我們的 AstroHeart 類別。
+  customElements.define('astro-heart', AstroHeart);
+</script>
+```
+
+這裡使用自訂元素有兩個好處：
+
+1. 不用透過 `document.querySelector()` 搜尋整個頁面，而可以使用 `this.querySelector()`，它只會在目前的自訂元素實例中搜尋。這讓你更容易一次只處理某個元件實例的子元素。
+
+2. 雖然 `<script>` 只會執行一次，但每當瀏覽器在頁面上發現 `<astro-heart>` 時，就會執行我們自訂元素的 `connectedCallback()` 方法。這代表即使你打算在一個頁面上多次使用這個元件，你也可以安心地一次只為一個元件撰寫程式碼。
+
+<ReadMore>關於自訂元素的更多資訊，可以參閱 [web.dev 的「可重複使用的 Web Components」指南](https://web.dev/custom-elements-v1/)以及 [MDN 對自訂元素的介紹](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements)。</ReadMore>
+
+
+### 把 frontmatter 的變數傳給腳本
+
+在 Astro 元件中，[frontmatter](/zh-tw/basics/astro-components/#元件腳本)（夾在 `---` 之間）的程式碼會在伺服器上執行，並不會在瀏覽器中可用。
+
+要把伺服器端變數傳給客戶端腳本，請把它們存在 HTML 元素的 [`data-*` 屬性](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes)上。接著腳本就可以透過 `dataset` 屬性存取這些值。
+
+在以下範例元件中，`message` 參數會存到 `data-message` 屬性，讓自訂元素在瀏覽器中可以透過 `this.dataset.message` 讀取該參數的值。
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'Welcome, world!' } = Astro.props;
+---
+
+<!-- 將 message 參數存成 data 屬性。 -->
+<astro-greet data-message={message}>
+  <button>Say hi!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    connectedCallback() {
+      // 從 data 屬性讀取訊息。
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button.addEventListener('click', () => {
+        alert(message);
+      });
+		}
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+現在我們可以多次使用這個元件，並且每個都能顯示不同的訊息。
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- 使用預設訊息：「Welcome, world!」 -->
+<AstroGreet />
+
+<!-- 使用作為 props 傳入的自訂訊息。 -->
+<AstroGreet message="Lovely day to build components!" />
+<AstroGreet message="Glad you made it! 👋" />
+```
+
+:::tip[你知道嗎？]
+當你把 props 傳給像 React 這類 UI 框架寫的元件時，Astro 背後其實就是這樣運作的！對於帶有 `client:*` 指令的元件，Astro 會建立一個 `<astro-island>` 自訂元素，並透過 `props` 屬性將你伺服器端的 props 儲存在 HTML 輸出中。
+:::
+
+### 結合腳本與 UI 框架
+
+由 UI 框架算繪的元素，在 `<script>` 標籤執行時可能尚未準備好。如果你的腳本也需要處理 [UI 框架元件](/zh-tw/guides/framework-components/)，建議使用自訂元素。
