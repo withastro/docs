@@ -1,0 +1,289 @@
+---
+title: 隨需算繪
+description: 搭配配接器，依需求產生由伺服器算繪的頁面與路由。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import IntegrationsNav from '~/components/IntegrationsNav.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+你的 Astro 專案程式碼必須**算繪**為 HTML，才能顯示在網頁上。
+
+預設情況下，Astro 頁面、路由與 API 端點會在建置階段預先算繪為靜態頁面。不過，你可以選擇在請求路由時，讓部分或全部路由由伺服器隨需算繪。
+
+隨需算繪的頁面與路由會在每次造訪時產生，可以為每位瀏覽者量身客製。舉例來說，隨需算繪的頁面可以為已登入的使用者顯示其帳號資訊，或顯示剛更新的資料，而不需要重新建置整個網站。
+
+在請求時於伺服器上進行的隨需算繪，也稱作**伺服器端算繪（server-side rendering，SSR）**。
+
+## 伺服器配接器
+
+要讓任何頁面能隨需算繪，你必須加入一個**配接器**。每個配接器都能讓 Astro 輸出一段腳本，讓你的專案在特定**執行環境**（例如 Netlify、Cloudflare）上執行；該環境會在頁面被請求時在伺服器上執行程式碼並產生頁面。
+
+即使你的網站完全是靜態、不做任何隨需算繪，你可能還是會想加入配接器。舉例來說，[Netlify 配接器](/zh-tw/guides/integrations-guide/netlify/)啟用 Netlify 的 Image CDN，而[伺服器群島](/zh-tw/guides/server-islands/)需要安裝配接器才能在元件上使用 `server:defer`。
+
+<IntegrationsNav category="adapter"/>
+
+Astro 維護 [Node.js](https://nodejs.org/)、[Netlify](https://www.netlify.com/)、[Vercel](https://vercel.com/) 與 [Cloudflare](https://www.cloudflare.com/) 的官方配接器。你可以在[我們的整合目錄中找到官方與社群配接器](https://astro.build/integrations/?search=&categories%5B%5D=adapters)，請選擇對應你[部署環境](/zh-tw/guides/deploy/)的那一個。
+
+### 加入配接器
+
+你可以使用下列 `astro add` 指令加入任何[由 Astro 官方維護的配接器整合](/zh-tw/guides/integrations/#官方整合)。這會一步到位地安裝配接器，並為你的 `astro.config.mjs` 檔案做對應變更。
+
+舉例來說，要安裝 Netlify 配接器，執行：
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add netlify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add netlify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+你也可以[手動安裝 NPM 軟體包](/zh-tw/guides/integrations/#安裝-npm-軟體包)（例如 `@astrojs/netlify`）並自行更新 `astro.config.mjs` 來加入配接器。
+
+請注意，不同的配接器可能有不同的設定。請閱讀各配接器的文件，並在 `astro.config.mjs` 中為你所選擇的配接器套用任何必要的設定選項。
+
+## 啟用隨需算繪
+
+**預設情況下，你整個 Astro 網站都會被預先算繪**，靜態 HTML 頁面會傳送到瀏覽器。然而，你可以在任何需要伺服器算繪的路由上停用預先算繪，例如一個檢查 cookie 並顯示個人化內容的頁面。
+
+首先，[加入你伺服器執行環境的配接器整合](#加入配接器)，以在你的 Astro 專案中啟用隨需伺服器算繪。
+
+接著，在想要隨需算繪的個別頁面或端點頂端加上 `export const prerender = false`。網站其餘部分仍會維持靜態：
+
+```astro title="src/pages/page-rendered-on-demand.astro" ins={2}
+---
+export const prerender = false
+---
+<html>
+<!--
+這個內容會由伺服器隨需算繪！
+只要加上伺服器執行環境的配接器整合即可！
+其他所有頁面在建置階段仍為靜態產生！
+-->
+<html>
+```
+
+以下範例示範停用預先算繪，讓端點每次被命中時都顯示一個隨機數字：
+
+```js title="src/pages/randomnumber.js" ins={1}
+export const prerender = false;
+
+export async function GET() {
+  let number = Math.random();
+  return new Response(
+    JSON.stringify({
+      number,
+      message: `Here's a random number: ${number}`,
+    }),
+  );
+}
+```
+### `'server'` 模式
+
+對於**高度動態的應用程式**，加入配接器後，你可以[把建置輸出設定為 `output: 'server'`](/zh-tw/reference/configuration-reference/#output)，**讓所有頁面預設都由伺服器算繪**。這等同於在每個頁面上停用預先算繪。
+
+接著，如有需要，你可以選擇預先算繪任何不需伺服器執行的個別頁面，例如隱私政策或關於頁面。
+
+```astro title="src/pages/about-my-app.astro" ins={2}
+---
+export const prerender = true
+---
+<html>
+<!--
+已設定 `output: 'server'`，但此頁面為靜態！
+我網站的其餘部分是隨需算繪的！
+-->
+<html>
+```
+
+在任何頁面或路由上加上 `export const prerender = true`，即可預先算繪為靜態頁面或端點：
+
+```js title="src/pages/myendpoint.js" ins={1}
+export const prerender = true;
+
+export async function GET() {
+  return new Response(
+    JSON.stringify({
+      message: `This is my static endpoint`,
+    }),
+  );
+}
+```
+
+:::tip
+在確認**大部分或全部**頁面都會是隨需算繪之前，先從預設的 `'static'` 模式開始！這能確保你的網站效能儘可能好，不用仰賴伺服器函式去算繪靜態內容。
+
+`'server'` 輸出模式不會帶來任何額外功能。它只是切換預設的算繪行為。
+:::
+
+<ReadMore>更多關於 [`output` 設定](/zh-tw/reference/configuration-reference/#output)的說明請見設定參考。</ReadMore>
+
+
+## 隨需算繪功能
+
+### HTML 串流
+
+有了 HTML 串流，一份文件會被切成多個區塊，依序透過網路傳送，並以該順序在頁面上算繪。Astro 在隨需算繪中使用 HTML 串流，把每個元件算繪完就立刻送到瀏覽器。這能確保使用者儘快看到你的 HTML；不過網路狀況可能導致大型文件下載較慢，而等待資料抓取也可能阻塞頁面算繪。
+
+<RecipeLinks slugs={["en/recipes/streaming-improve-page-performance"]}/>
+
+:::caution
+修改 [Response 標頭](https://developer.mozilla.org/en-US/docs/Glossary/Response_header)的功能只能在**頁面層級**使用。（你無法在元件中使用，包含版面元件。）等到 Astro 執行元件程式碼時，它已經送出 Response 標頭，無法再修改。
+
+:::
+
+### Cookies
+
+隨需算繪的頁面或 API 端點可以檢查、設定、取得以及刪除 cookie。
+
+以下範例為頁面瀏覽計數器更新 cookie 的值：
+
+```astro title="src/pages/index.astro" {6,7,12}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+let counter = 0
+
+if (Astro.cookies.has('counter')) {
+  const cookie = Astro.cookies.get('counter')
+  const value = cookie?.number()
+  if (value !== undefined && !isNaN(value)) counter = value + 1
+}
+
+Astro.cookies.set('counter', String(counter))
+---
+<html>
+  <h1>Counter = {counter}</h1>
+</html>
+```
+
+更多 [`Astro.cookies` 與 `AstroCookie` 型別](/zh-tw/reference/api-reference/#cookies)的細節請見 API 參考。
+
+### `Response`
+
+[`Astro.response`](/zh-tw/reference/api-reference/#response) 是標準的 [`ResponseInit`](https://developer.mozilla.org/en-US/docs/Web/API/Response/Response#options) 物件。它可以用來設定回應的狀態與標頭。
+
+以下範例在商品不存在時，為商品頁面設定回應狀態與狀態文字：
+
+```astro title="src/pages/product/[id].astro" {10,11}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 找不到商品
+if (!product) {
+  Astro.response.status = 404;
+  Astro.response.statusText = 'Not found';
+}
+---
+<html>
+  <!-- 頁面內容⋯⋯ -->
+</html>
+```
+
+#### `Astro.response.headers`
+
+你可以透過 `Astro.response.headers` 物件設定標頭：
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+Astro.response.headers.set('Cache-Control', 'public, max-age=3600');
+---
+<html>
+  <!-- 頁面內容⋯⋯ -->
+</html>
+```
+
+#### 回傳 `Response` 物件
+
+你也可以從任何使用隨需算繪的頁面直接回傳 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response) 物件，不論是手動建立，或透過 [`Astro.redirect`](/zh-tw/reference/api-reference/#redirect)。
+
+以下範例在動態頁面中查詢資料庫中的 ID，如果商品不存在就回傳 404；如果商品已不販售就把使用者重新導向到另一個頁面；否則顯示該商品：
+
+```astro title="src/pages/product/[id].astro" {10-13, 18}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { getProduct } from '../api';
+
+const product = await getProduct(Astro.params.id);
+
+// 找不到商品
+if (!product) {
+  return new Response(null, {
+    status: 404,
+    statusText: 'Not found'
+  });
+}
+
+// 商品已不販售
+if (!product.isAvailable) {
+  return Astro.redirect("/products", 301);
+}
+---
+<html>
+  <!-- 頁面內容⋯⋯ -->
+</html>
+```
+
+### `Request`
+
+`Astro.request` 是標準的 [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) 物件。它可用來取得請求的 `url`、`headers`、`method`，甚至 body。
+
+對於非靜態產生的頁面，你可以從這個物件取得額外資訊。
+
+#### `Astro.request.headers`
+
+請求的標頭可透過 `Astro.request.headers` 取得。運作方式類似瀏覽器的 [`Request.headers`](https://developer.mozilla.org/en-US/docs/Web/API/Request/headers)。它是一個 [Headers](https://developer.mozilla.org/en-US/docs/Web/API/Headers) 物件，讓你取出例如 cookie 等標頭。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+const cookie = Astro.request.headers.get('cookie');
+// ...
+---
+<html>
+  <!-- 頁面內容⋯⋯ -->
+</html>
+```
+
+#### `Astro.request.method`
+
+請求使用的 HTTP 方法可透過 `Astro.request.method` 取得。運作方式類似瀏覽器的 [`Request.method`](https://developer.mozilla.org/en-US/docs/Web/API/Request/method)，回傳請求所使用 HTTP 方法的字串。
+
+```astro title="src/pages/index.astro" {4}
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+console.log(Astro.request.method) // GET（在瀏覽器中瀏覽到頁面時）
+---
+```
+
+更多 [`Astro.request`](/zh-tw/reference/api-reference/#request) 的細節請見 API 參考。
+
+### 伺服器端點
+
+伺服器端點（也稱作 **API 路由**）是從 `src/pages/` 資料夾中 `.js` 或 `.ts` 檔案匯出的特殊函式。這是隨需伺服器端算繪的強大功能，API 路由能在伺服器上安全地執行程式碼。
+
+該函式接受一個[端點情境](/zh-tw/reference/api-reference/)，並回傳一個 [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response)。
+
+更多資訊請見我們的[端點指南](/zh-tw/guides/endpoints/#server-endpoints-api-routes)。
