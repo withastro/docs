@@ -1,0 +1,271 @@
+---
+title: Prefetch
+description: 預先抓取連結，帶來更迅速的頁面間導覽。
+i18nReady: true
+---
+
+import { Steps } from '@astrojs/starlight/components'
+import Since from '~/components/Since.astro'
+
+頁面載入時間對網站的可用性與整體使用體驗有重大影響。Astro 的**可選式預先抓取（opt-in prefetching）**能在訪客與網站互動時，為你的多頁面應用程式（MPA）帶來近乎即時的頁面導覽。
+
+## 啟用預先抓取
+
+你可以透過 `prefetch` 設定啟用預先抓取：
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: true
+});
+```
+
+預先抓取腳本會被加入到你網站所有頁面。接著你可以在任何 `<a />` 連結上加入 `data-astro-prefetch` 屬性，主動啟用預先抓取。當你把游標移到連結上時，腳本就會在背景抓取該頁面。
+
+```html
+<a href="/about" data-astro-prefetch>
+```
+
+請注意，預先抓取只會對站內連結生效，對外部連結無效。
+
+## 預先抓取設定
+
+`prefetch` 設定也接受一個選項物件，用來進一步客製化預先抓取。
+
+### 預先抓取策略
+
+Astro 支援 4 種預先抓取策略，因應不同使用情境：
+
+- `hover`（預設）：當你把游標移至連結或聚焦於連結時進行預先抓取。
+- `tap`：在你點擊連結的前一刻進行預先抓取。
+- `viewport`：當連結進入可視區域時進行預先抓取。
+- `load`：頁面載入後預先抓取頁面上所有連結。
+
+你可以透過 `data-astro-prefetch` 屬性，為個別連結指定策略：
+
+```html
+<a href="/about" data-astro-prefetch="tap">About</a>
+```
+
+每種策略都經過微調，只在需要時才預先抓取，以節省使用者的頻寬。舉例來說：
+
+- 若訪客使用[省流量模式](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)或處於[較慢的網路連線](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)，預先抓取會退回到 `tap` 策略。
+- 快速地把游標掃過或捲動通過連結時，並不會觸發預先抓取。
+
+### 預設的預先抓取策略
+
+加上 `data-astro-prefetch` 屬性時的預設預先抓取策略是 `hover`。若要變更，可以在 `astro.config.mjs` 中設定 [`prefetch.defaultStrategy`](/zh-tw/reference/configuration-reference/#prefetchdefaultstrategy)：
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    defaultStrategy: 'viewport'
+  }
+});
+```
+
+### 預設預先抓取所有連結
+
+如果你想要預先抓取所有連結（包含沒有 `data-astro-prefetch` 屬性的連結），可以把 [`prefetch.prefetchAll`](/zh-tw/reference/configuration-reference/#prefetchprefetchall) 設為 `true`：
+
+```js title="astro.config.mjs" ins={4-6}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  prefetch: {
+    prefetchAll: true
+  }
+});
+```
+
+接著，你可以透過設定 `data-astro-prefetch="false"` 讓個別連結退出預先抓取：
+
+```html
+<a href="/about" data-astro-prefetch="false">About</a>
+```
+
+所有連結的預設預先抓取策略可透過 `prefetch.defaultStrategy` 變更，請參閱[預設的預先抓取策略](#預設的預先抓取策略)一節。
+
+## 以程式方式預先抓取
+
+由於部分導覽可能不會以 `<a />` 連結形式呈現，你也可以透過 `astro:prefetch` 模組的 `prefetch()` API 以程式方式預先抓取：
+
+```astro
+<button id="btn">Click me</button>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const btn = document.getElementById('btn');
+  btn.addEventListener('click', () => {
+    prefetch('/about');
+  });
+</script>
+```
+
+`prefetch()` API 同樣會偵測[省流量模式](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/saveData)與[較慢的網路連線](https://developer.mozilla.org/en-US/docs/Web/API/NetworkInformation/effectiveType)，只在需要時才預先抓取。
+
+要忽略慢速連線偵測，可以使用 `ignoreSlowConnection` 選項：
+
+```js
+// 即使處於省流量模式或慢速連線也預先抓取
+prefetch('/about', { ignoreSlowConnection: true });
+```
+
+### `eagerness`
+
+<p>
+**型別：** `'immediate' | 'eager' | 'moderate' | 'conservative'`<br />
+**預設值：** `'immediate'`<br />
+<Since v="5.6.0" />
+</p>
+
+啟用實驗性 [`clientPrerender`](/zh-tw/reference/experimental-flags/client-prerender/) 旗標後，你可以在 `prefetch()` 上使用 `eagerness` 選項，建議瀏覽器多積極地預先抓取或預先算繪連結目標。
+
+這遵循 [Speculation Rules API](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/script/type/speculationrules#eagerness) 所描述的相同 API，預設值為 `immediate`（最積極的選項）。依積極程度遞減排序，其他選項為 `eager`、`moderate` 與 `conservative`。
+
+`eagerness` 選項讓你可以在減少等待時間的好處，以及訪客的頻寬、記憶體與 CPU 成本之間取得平衡。某些瀏覽器（例如 Chrome）設有[限制以防過度預測](https://developer.chrome.com/blog/speculation-rules-improvements#chrome-limits)（預先算繪／預先抓取過多連結）。
+
+ ```astro
+---
+---
+<script>
+// 以 `experimental.clientPrerender` 控制預先抓取的積極程度
+import { prefetch } from 'astro:prefetch';
+
+// 此頁面耗費大量資源
+prefetch('/data-heavy-dashboard', { eagerness: 'conservative' });
+
+// 此頁面對訪客的流程很關鍵
+prefetch('/getting-started'); // 預設為 `{ eagerness: 'immediate' }`
+
+// 此頁面可能不會被造訪
+prefetch('/terms-of-service', { eagerness: 'moderate' });
+</script>
+```
+
+要以程式方式對大量連結使用 `prefetch()`，你可以把 `eagerness` 設為 `'moderate'`，利用[先進先出（FIFO）](https://en.wikipedia.org/wiki/FIFO_(computing_and_electronics))策略與瀏覽器啟發式演算法，讓瀏覽器決定何時以及以什麼順序預先算繪／預先抓取：
+
+```astro "{eagerness: 'moderate'}"
+<a class="link-moderate" href="/nice-link-1">A Nice Link 1</a>
+<a class="link-moderate" href="/nice-link-2">A Nice Link 2</a>
+<a class="link-moderate" href="/nice-link-3">A Nice Link 3</a>
+<a class="link-moderate" href="/nice-link-4">A Nice Link 4</a>
+...
+<a class="link-moderate" href="/nice-link-20">A Nice Link 20</a>
+
+<script>
+  import { prefetch } from 'astro:prefetch';
+
+  const linkModerate = document.getElementsByClassName('link-moderate');
+  linkModerate.forEach((link) => prefetch(link.getAttribute('href'), {eagerness: 'moderate'}));
+  
+</script>
+```
+
+請務必只在客戶端腳本中匯入 `prefetch()`，因為它依賴瀏覽器 API。
+
+## 搭配 View Transitions 使用
+
+當你在頁面上使用 [Astro 的 `<ClientRouter />`](/zh-tw/guides/view-transitions/#啟用-view-transitionsspa-模式) 時，預先抓取預設也會啟用。它會設定預設 `{ prefetchAll: true }`，為頁面上[所有連結啟用預先抓取](#預設預先抓取所有連結)。
+
+你可以在 `astro.config.mjs` 中客製化預先抓取設定，以覆寫預設值。舉例來說：
+  
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 完全停用預先抓取
+  prefetch: false
+});
+```
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  // 保留預先抓取，但只對帶有 `data-astro-prefetch` 的連結啟用
+  prefetch: {
+    prefetchAll: false
+  }
+});
+```
+
+## 瀏覽器支援
+
+若瀏覽器支援，Astro 的預先抓取會使用 [`<link rel="prefetch">`](https://developer.mozilla.org/en-US/docs/Web/HTML/Attributes/rel/prefetch)，否則會退回到 [`fetch()` API](https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API)。
+
+最常見的瀏覽器都支援 Astro 的預先抓取，但有細微差異：
+
+### Chrome
+
+Chrome 支援 `<link rel="prefetch">`。預先抓取會如預期運作。
+
+它也完整支援 [Speculation Rules API](https://developer.mozilla.org/en-US/docs/Web/API/Speculation_Rules_API) 的 `<script type="speculationrules">`，可用來進一步描述[預先抓取策略與規則](#eagerness)，提升 Chrome 使用者的體驗。你需要啟用 [`clientPrerender`](/zh-tw/reference/experimental-flags/client-prerender/) 實驗性功能，才能搭配 `prefetch()` 使用此功能。
+
+### Firefox
+
+Firefox 支援 `<link rel="prefetch">`，但可能顯示錯誤或完全失敗：
+
+ - 若沒有明確的快取標頭（例如 [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) 或 [`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires)），預先抓取會報錯 `NS_BINDING_ABORTED`。
+- 即使發生錯誤，若回應帶有適當的 [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag) 標頭，在導覽時仍會重複使用。
+- 否則，如果發生錯誤且沒有其他快取標頭，預先抓取就無法運作。
+
+### Safari
+
+Safari 不支援 `<link rel="prefetch">`，會退回到 `fetch()` API，這需要設定快取標頭（例如 [`Cache-Control`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)、[`Expires`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Expires) 與 [`ETag`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag)）。否則預先抓取無法運作。
+
+**邊緣情況：** `ETag` 標頭在隱私瀏覽視窗中無效。
+
+### 建議做法
+
+為了在所有瀏覽器中都有最好的支援，請確認你的頁面帶有適當的快取標頭。
+
+對於靜態或預先算繪的頁面，`ETag` 標頭通常會由部署平台自動設定，預期開箱即用。
+
+對於動態與伺服器端算繪的頁面，請依頁面內容自行設定適當的快取標頭。更多資訊請見 [MDN 的 HTTP 快取文件](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)。
+
+## 從 `@astrojs/prefetch` 遷移
+
+`@astrojs/prefetch` 整合自 v3.5.0 起被棄用，不再維護。請依以下指示遷移到取代此整合的 Astro 內建預先抓取。
+
+<Steps>
+1. 移除 `@astrojs/prefetch` 整合，並在 `astro.config.mjs` 中啟用 `prefetch` 設定：
+
+    ```js title="astro.config.mjs" ins={6} del={2,5}
+    import { defineConfig } from 'astro/config';
+    import prefetch from '@astrojs/prefetch';
+
+    export default defineConfig({
+      integrations: [prefetch()],
+      prefetch: true
+    });
+    ```
+
+2. 從 `@astrojs/prefetch` 的設定選項轉換：
+
+    - 棄用的整合使用 `selector` 設定選項，指定哪些連結在進入可視區域時應被預先抓取。
+
+      請改為在這些個別連結上加上 `data-astro-prefetch="viewport"`。
+
+      ```html
+      <a href="/about" data-astro-prefetch="viewport">
+      ```
+
+    - 棄用的整合使用 `intentSelector` 設定選項，指定哪些連結在游標移上或聚焦時應被預先抓取。
+
+      請改為在這些個別連結上加上 `data-astro-prefetch` 或 `data-astro-prefetch="hover"`：
+
+      ```html
+      <!-- 如果 `defaultStrategy` 設為 `hover`（預設），你可以省略值 -->
+      <a href="/about" data-astro-prefetch>
+
+      <!-- 否則，你可以明確定義預先抓取策略 -->
+      <a href="/about" data-astro-prefetch="hover">
+      ```
+
+    - 來自 `@astrojs/prefetch` 的 `throttles` 選項已不再需要，因為新的預先抓取功能會自動最佳地排程並預先抓取。
+</Steps>
