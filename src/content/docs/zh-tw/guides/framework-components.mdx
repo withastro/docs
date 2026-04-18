@@ -1,0 +1,245 @@
+---
+title: 前端框架
+description: 運用 React、Svelte 等框架建置你的 Astro 網站。
+i18nReady: true
+---
+import IntegrationsNav from '~/components/IntegrationsNav.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+建置 Astro 網站時，無須捨棄你喜愛的元件框架。使用你所選擇的 UI 框架建立 Astro [群島](/zh-tw/concepts/islands/)。
+
+## 官方前端框架整合
+
+Astro 透過官方整合支援多種熱門框架，包含 [React](https://react.dev/)、[Preact](https://preactjs.com/)、[Svelte](https://svelte.dev/)、[Vue](https://vuejs.org/)、[SolidJS](https://www.solidjs.com/) 與 [AlpineJS](https://alpinejs.dev/)。
+
+在我們的整合目錄中，還能找到更多[由社群維護的框架整合](https://astro.build/integrations/?search=&categories%5B%5D=frameworks)（例如 Angular、Qwik、Elm）。
+
+<IntegrationsNav category="renderer" />
+
+## 安裝整合
+
+你可以在專案中安裝並設定一個或多個 Astro 整合。
+
+關於安裝與設定 Astro 整合的更多細節，請參閱[整合指南](/zh-tw/guides/integrations/)。
+
+:::tip
+想看看你所選框架的範例嗎？造訪 [astro.new](https://astro.new/latest/frameworks) 並挑選其中一個框架模板。
+:::
+
+## 使用框架元件
+
+在 Astro 頁面、版面與元件中使用 JavaScript 框架元件，就跟使用 Astro 元件一樣！所有元件可以一起放在 `/src/components`，或依你喜歡的方式組織。
+
+要使用框架元件，可在 Astro 元件腳本中從相對路徑匯入。接著在元件模板中，與其他元件、HTML 元素以及類 JSX 表達式一併使用。
+
+```astro title="src/pages/static-components.astro" ins={2,7}
+---
+import MyReactComponent from '../components/MyReactComponent.jsx';
+---
+<html>
+  <body>
+    <h1>在 Astro 直接使用 React 元件！</h1>
+    <MyReactComponent />
+  </body>
+</html>
+```
+
+預設情況下，你的框架元件只會在伺服器端算繪為靜態 HTML。這對於無須互動的模板元件很實用，並能避免向客戶端傳送任何不必要的 JavaScript。
+
+## 為互動元件注水
+
+使用 [`client:*` 指令](/zh-tw/reference/directives-reference/#client-directives)可讓框架元件變成互動式（注水）。這些是元件的屬性，用來決定元件的 JavaScript 何時要送到瀏覽器。
+
+除了 `client:only` 之外的所有客戶端指令，你的元件都會先在伺服器端算繪以產生靜態 HTML。元件的 JavaScript 會根據你所選擇的指令送到瀏覽器，接著元件就會注水並變成可互動。
+
+```astro title="src/pages/interactive-components.astro" /client:\S+/
+---
+// 範例：在瀏覽器中為框架元件注水。
+import InteractiveButton from '../components/InteractiveButton.jsx';
+import InteractiveCounter from '../components/InteractiveCounter.jsx';
+import InteractiveModal from '../components/InteractiveModal.svelte';
+---
+<!-- 此元件的 JS 會在頁面載入時開始匯入 -->
+<InteractiveButton client:load />
+
+<!-- 此元件的 JS 不會送到客戶端，直到使用者向下捲動、
+且元件在頁面上可見為止 -->
+<InteractiveCounter client:visible />
+
+<!-- 此元件不會在伺服器端算繪，但會在頁面載入時於客戶端算繪 -->
+<InteractiveModal client:only="svelte" />
+```
+
+算繪元件所需的 JavaScript 框架（React、Svelte 等）會連同元件自身的 JavaScript 一起送到瀏覽器。若頁面上有兩個或以上的元件使用同一個框架，該框架只會送一次。
+
+:::note[無障礙]
+大部分特定於框架的無障礙模式，在 Astro 中使用這些元件時應能維持原本行為。請務必選擇合適的客戶端指令，以確保所有與無障礙相關的 JavaScript 都能在適當時機正確載入並執行！
+:::
+
+### 可用的水合作用指令
+
+UI 框架元件可使用多個水合作用指令：`client:load`、`client:idle`、`client:visible`、`client:media={QUERY}` 與 `client:only={FRAMEWORK}`。
+
+<ReadMore>關於這些水合作用指令及其用法的完整說明，請參閱[指令參考](/zh-tw/reference/directives-reference/#client-directives)頁面。</ReadMore>
+
+## 混用多種框架
+
+你可以在同一個 Astro 元件中匯入並算繪來自多個框架的元件。
+
+```astro title="src/pages/mixing-frameworks.astro"
+---
+// 範例：在同一頁面混用多種框架元件。
+import MyReactComponent from '../components/MyReactComponent.jsx';
+import MySvelteComponent from '../components/MySvelteComponent.svelte';
+import MyVueComponent from '../components/MyVueComponent.vue';
+---
+<div>
+  <MySvelteComponent />
+  <MyReactComponent />
+  <MyVueComponent />
+</div>
+```
+
+Astro 會依檔案副檔名辨識並算繪你的元件。要區分使用相同副檔名的框架（例如 React 與 Preact），[算繪多個 JSX 框架時需要額外的設定](/zh-tw/guides/integrations-guide/react/#combining-multiple-jsx-frameworks)。
+
+:::caution
+只有 **Astro** 元件（`.astro`）可以包含來自多個框架的元件。
+:::
+
+## 將參數傳遞給框架元件
+
+你可以從 Astro 元件將參數傳給框架元件：
+
+```astro title="src/pages/frameworks-props.astro"
+---
+import TodoList from '../components/TodoList.jsx';
+import Counter from '../components/Counter.svelte';
+---
+<div>
+  <TodoList initialTodos={["learn Astro", "review PRs"]} />
+  <Counter startingCount={1} />
+</div>
+```
+
+
+
+
+[使用 `client:*` 指令](/zh-tw/reference/directives-reference/#client-directives)傳遞給互動式框架元件的參數，必須先[序列化](https://developer.mozilla.org/en-US/docs/Glossary/Serialization)：轉換成適合透過網路傳輸或儲存的格式。然而，Astro 並不會序列化每一種資料結構。因此，對於能作為參數傳遞給已注水元件的內容，會有一些限制。
+
+以下參數型別受支援：
+一般物件、`number`、`string`、`Array`、`Map`、`Set`、`RegExp`、`Date`、`BigInt`、`URL`、`Uint8Array`、`Uint16Array`、`Uint32Array` 與 `Infinity`
+
+傳遞給元件且未受支援的資料結構（例如函式）只能在元件的伺服器端算繪期間使用，無法用來提供互動性。舉例來說，不支援將函式傳遞給已注水的元件，因為 Astro 無法以能在客戶端執行的方式，把函式從伺服器傳遞過去。
+
+## 將子元素傳遞給框架元件
+
+在 Astro 元件裡，你**可以**將子元素傳給框架元件。各框架都有自己引用這些子元素的方式：React、Preact 與 Solid 都使用名為 `children` 的特殊參數，而 Svelte 與 Vue 則使用 `<slot />` 元素。
+
+
+```astro title="src/pages/component-children.astro" {5}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+---
+<MyReactSidebar>
+  <p>這是一個包含一些文字與按鈕的側邊欄。</p>
+</MyReactSidebar>
+```
+
+此外，你還可以使用[具名插槽](/zh-tw/basics/astro-components/#具名插槽)將特定的子元素組合在一起。
+
+對於 React、Preact 與 Solid，這些插槽會被轉換成最上層的參數。使用 `kebab-case` 的插槽名稱會被轉換成 `camelCase`。
+
+```astro title="src/pages/named-slots.astro" /slot="(.*)"/
+---
+import MySidebar from '../components/MySidebar.jsx';
+---
+<MySidebar>
+  <h2 slot="title">選單</h2>
+  <p>這是一個包含一些文字與按鈕的側邊欄。</p>
+  <ul slot="social-links">
+    <li><a href="https://twitter.com/astrodotbuild">Twitter</a></li>
+    <li><a href="https://github.com/withastro">GitHub</a></li>
+  </ul>
+</MySidebar>
+```
+
+```jsx /{props.(title|socialLinks)}/
+// src/components/MySidebar.jsx
+export default function MySidebar(props) {
+  return (
+    <aside>
+      <header>{props.title}</header>
+      <main>{props.children}</main>
+      <footer>{props.socialLinks}</footer>
+    </aside>
+  )
+}
+```
+
+對於 Svelte 與 Vue，可以使用帶有 `name` 屬性的 `<slot>` 元素引用這些插槽。使用 `kebab-case` 的插槽名稱會被保留。
+
+```jsx /slot name="(.*)"/
+// src/components/MySidebar.svelte
+<aside>
+  <header><slot name="title" /></header>
+  <main><slot /></main>
+  <footer><slot name="social-links" /></footer>
+</aside>
+```
+
+## 巢狀框架元件
+
+在 Astro 檔案裡，框架元件的子元素也可以是已注水的元件。這代表你可以遞迴地將任一這些框架的元件巢狀嵌入。
+
+```astro title="src/pages/nested-components.astro" {9-10}
+---
+import MyReactSidebar from '../components/MyReactSidebar.jsx';
+import MyReactButton from '../components/MyReactButton.jsx';
+import MySvelteButton from '../components/MySvelteButton.svelte';
+---
+<MyReactSidebar>
+  <p>這是一個包含一些文字與按鈕的側邊欄。</p>
+  <div slot="actions">
+    <MyReactButton client:idle />
+    <MySvelteButton client:idle />
+  </div>
+</MyReactSidebar>
+```
+
+:::caution
+請注意：框架元件檔案本身（例如 `.jsx`、`.svelte`）無法混用多種框架。
+:::
+
+這讓你能夠以偏好的 JavaScript 框架建置整個「應用程式」，並透過父層元件將其算繪到 Astro 頁面中。
+
+:::note
+即使 Astro 元件內含已注水的框架元件，Astro 元件仍一律算繪為靜態 HTML。這代表你只能傳遞不會進行任何 HTML 算繪的參數。從 Astro 元件向框架元件傳遞 React 的「render props」並不會運作，因為 Astro 元件無法提供這種模式所需的客戶端執行環境行為。請改用具名插槽。
+:::
+
+## 我可以在框架元件裡使用 Astro 元件嗎？
+
+任何 UI 框架元件都會成為該框架的一座「島嶼」。這些元件必須完全以該框架的有效程式碼撰寫，只能使用該框架自身的匯入與軟體包。你無法在 UI 框架元件（例如 `.jsx` 或 `.svelte`）內匯入 `.astro` 元件。
+
+不過，你可以在 **`.astro` 元件內**使用 [Astro 的 `<slot />` 模式](/zh-tw/basics/astro-components/#插槽)，將 Astro 元件產生的靜態內容作為子元素傳遞給框架元件。
+
+```astro title="src/pages/astro-children.astro" {6}
+---
+import MyReactComponent from  '../components/MyReactComponent.jsx';
+import MyAstroComponent from '../components/MyAstroComponent.astro';
+---
+<MyReactComponent>
+  <MyAstroComponent slot="name" />
+</MyReactComponent>
+```
+
+## 我可以為 Astro 元件注水嗎？
+
+如果嘗試用 `client:` 修飾符為 Astro 元件注水，你會得到錯誤。
+
+[Astro 元件](/zh-tw/basics/astro-components/)是只有 HTML 的模板元件，沒有客戶端執行環境。不過，你可以在 Astro 元件的模板裡使用 `<script>` 標籤，把在全域範疇執行的 JavaScript 送到瀏覽器。
+
+<ReadMore>進一步了解 [Astro 元件中的客戶端 `<script>` 標籤](/zh-tw/guides/client-side-scripts/)</ReadMore>
+
+[mdn-io]: https://developer.mozilla.org/en-US/docs/Web/API/Intersection_Observer_API
+[mdn-ric]: https://developer.mozilla.org/en-US/docs/Web/API/Window/requestIdleCallback
+[mdn-mm]: https://developer.mozilla.org/en-US/docs/Web/API/Window/matchMedia
