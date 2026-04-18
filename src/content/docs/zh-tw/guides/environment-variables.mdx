@@ -1,0 +1,352 @@
+---
+title: 使用環境變數
+sidebar:
+  label: 環境變數
+description: 了解如何在 Astro 專案中使用環境變數。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro 讓你可以使用 [Vite 內建的環境變數支援](#vite-內建支援)，並內含一些[專案預設的環境變數](#預設環境變數)，讓你能取得目前專案的設定值（例如 `site`、`base`）、判斷專案目前是在開發或正式環境中執行等。
+
+Astro 也提供一種[以型別安全使用與組織環境變數](#型別安全的環境變數)的方式。它可以在 Astro 情境中使用（例如 Astro 元件、路由與端點、UI 框架元件、中介層），並透過 [Astro 設定中的綱要](/zh-tw/reference/configuration-reference/#env)管理。
+
+## Vite 內建支援
+
+Astro 使用 Vite 內建的環境變數支援；這些變數會在建置階段被靜態替換，並讓你能[使用 Vite 的任何方法](https://vite.dev/guide/env-and-mode.html)處理它們。
+
+請注意，雖然*所有*環境變數在伺服器端程式碼中都可用，但基於安全考量，只有以 `PUBLIC_` 作為前綴的環境變數才能在客戶端程式碼中使用。
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+在這個範例中，`PUBLIC_ANYBODY`（可透過 `import.meta.env.PUBLIC_ANYBODY` 存取）在伺服器或客戶端程式碼中都可用，而 `SECRET_PASSWORD`（可透過 `import.meta.env.SECRET_PASSWORD` 存取）則只能在伺服器端使用。
+
+:::caution
+`.env` 檔不會在[設定檔](#在-astro-設定檔中)內被載入。
+:::
+
+### TypeScript 的 IntelliSense
+
+預設情況下，Astro 會在 `astro/client.d.ts` 中提供 `import.meta.env` 的型別定義。
+
+雖然你可以在 `.env.[mode]` 檔中定義更多客製化的環境變數，你可能會想為使用者自訂、以 `PUBLIC_` 作為前綴的環境變數取得 TypeScript IntelliSense。
+
+要達成這點，你可以在 `src/` 建立 `env.d.ts` 以[擴充全域型別](/zh-tw/guides/typescript/#擴充全域型別)，並這樣設定 `ImportMetaEnv`：
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // 更多環境變數⋯⋯
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## 預設環境變數
+
+Astro 內建幾個預設的環境變數：
+
+- `import.meta.env.MODE`：你網站執行時所使用的模式。執行 `astro dev` 時為 `development`；執行 `astro build` 時為 `production`。
+- `import.meta.env.PROD`：網站在正式環境執行時為 `true`；否則為 `false`。
+- `import.meta.env.DEV`：網站在開發環境執行時為 `true`；否則為 `false`。一律與 `import.meta.env.PROD` 相反。
+- `import.meta.env.BASE_URL`：你網站被提供服務的基底 URL，由 [`base` 設定選項](/zh-tw/reference/configuration-reference/#base)決定。
+- `import.meta.env.SITE`：設定為你專案 `astro.config` 中指定的 [`site` 選項](/zh-tw/reference/configuration-reference/#site)。
+
+把它們當作其他環境變數一樣使用：
+
+```ts utils.ts
+const isProd = import.meta.env.PROD;
+const isDev = import.meta.env.DEV;
+```
+
+## 設定環境變數
+
+### `.env` 檔
+
+環境變數可以從你專案目錄中的 `.env` 檔載入。
+
+只要在專案目錄中建立一個 `.env` 檔並加入一些變數即可：
+
+```ini title=".env"
+# 這個變數只有在伺服器端執行時才會可用！
+DB_PASSWORD="foobar"
+
+# 這個變數在任何地方都可用！
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+你也可以在檔名中加上 `.production`、`.development` 或任何客製化的模式名稱（例如 `.env.testing`、`.env.staging`）。這讓你在不同時機能使用不同的環境變數組合。
+
+`astro dev` 與 `astro build` 指令的預設模式分別是 `"development"` 與 `"production"`。你可以搭配 [`--mode` 旗標](/zh-tw/reference/cli-reference/#--mode-string)執行這些指令，傳入不同的 `mode` 值並載入對應的 `.env` 檔。
+
+這讓你可以執行開發伺服器或在連線到不同 API 的情況下建置網站：
+
+<PackageManagerTabs>
+ <Fragment slot="npm">
+    ```shell
+    # 連線到「staging」API 執行開發伺服器
+    npm run astro dev -- --mode staging
+
+    # 建置連線到「production」API 的網站，並附上額外的偵錯資訊
+    npm run astro build -- --devOutput
+
+    # 建置連線到「testing」API 的網站
+    npm run astro build -- --mode testing
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    # 連線到「staging」API 執行開發伺服器
+    pnpm astro dev --mode staging
+
+    # 建置連線到「production」API 的網站，並附上額外的偵錯資訊
+    pnpm astro build --devOutput
+
+    # 建置連線到「testing」API 的網站
+    pnpm astro build --mode testing
+    ```
+ </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    # 連線到「staging」API 執行開發伺服器
+    yarn astro dev --mode staging
+
+    # 建置連線到「production」API 的網站，並附上額外的偵錯資訊
+    yarn astro build --devOutput
+
+    # 建置連線到「testing」API 的網站
+    yarn astro build --mode testing
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+更多關於 `.env` 檔的資訊，[請見 Vite 文件](https://vite.dev/guide/env-and-mode.html#env-files)。
+
+### 在 Astro 設定檔中
+
+Astro 會在載入其他檔案之前先評估設定檔。這代表你無法在 `astro.config.mjs` 中透過 `import.meta.env` 取得 `.env` 檔中設定的環境變數。
+
+你可以在設定檔中使用 `process.env` 取得其他環境變數，例如[由 CLI 設定](#使用-cli)的那些。
+
+你也可以使用 [Vite 的 `loadEnv` 輔助工具](https://main.vite.dev/config/#using-environment-variables-in-config)手動載入 `.env` 檔：
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+:::note
+`pnpm` 不允許你匯入沒有直接安裝在專案中的模組。如果你使用 `pnpm`，就需要安裝 `vite` 才能使用 `loadEnv` 輔助工具。
+
+```sh
+pnpm add -D vite
+```
+:::
+
+### 使用 CLI
+
+你也可以在執行專案時加上環境變數：
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+## 取得環境變數
+
+在 Astro 中，環境變數使用 `import.meta.env`（搭配 [ES2020 新增的 `import.meta` 功能](https://tc39.es/ecma262/2020/#prod-ImportMeta)）存取，而非使用 `process.env`。
+
+舉例來說，使用 `import.meta.env.PUBLIC_POKEAPI` 取得 `PUBLIC_POKEAPI` 環境變數。
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// 當 import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// 當 import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+使用 SSR 時，環境變數可以在執行階段取得，依你所使用的 SSR 配接器而定。大多數配接器可以用 `process.env` 取得環境變數，但某些配接器的做法不同。對於 Deno 配接器，你會使用 `Deno.env.get()`。使用 Cloudflare 配接器時請參閱[如何存取 Cloudflare 執行環境](/zh-tw/guides/integrations-guide/cloudflare/#cloudflare-runtime)以處理環境變數。Astro 會先從伺服器環境中檢查變數，若不存在，再到 `.env` 檔案中尋找。
+
+## 型別安全的環境變數
+
+`astro:env` API 讓你可以為[已設定的環境變數](#設定環境變數)設定一個具型別安全的綱要。這讓你可以指明變數該在伺服器或客戶端可用、定義其資料型別，以及其他屬性。
+
+<ReadMore>正在開發配接器？請參閱如何[讓配接器與 `astro:env` 相容](/zh-tw/reference/adapter-reference/#envgetsecret)。</ReadMore>
+
+### 基本用法
+
+#### 定義你的綱要
+
+要設定綱要，請為你的 Astro 設定加上 `env.schema` 選項：
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
+```
+
+接著，你可以使用 `envField` 輔助工具[註冊字串、數字、列舉或布林型別的變數](#資料型別)。透過為每個變數提供 `context`（`"client"` 或 `"server"`）與 `access`（`"secret"` 或 `"public"`），定義[環境變數的類型](#變數類型)，並在物件中傳入 `optional` 或 `default` 等其他屬性：
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+執行 `astro dev` 或 `astro build` 時會為你產生型別，但你也可以執行 `astro sync` 只產生型別。
+
+#### 使用綱要中的變數
+
+從合適的 `/client` 或 `/server` 模組匯入並使用你定義的變數：
+
+```astro
+---
+import { API_URL } from "astro:env/client";
+import { API_SECRET_TOKEN } from "astro:env/server";
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
+	},
+})
+---
+
+<script>
+  import { API_URL } from "astro:env/client";
+  
+  fetch(`${API_URL}/ping`)
+</script>
+```
+
+### 變數類型
+
+環境變數有三種類型，由你綱要中 `context`（`"client"` 或 `"server"`）與 `access`（`"secret"` 或 `"public"`）設定的組合決定：
+
+- **公開的客戶端變數**：這些變數最終會同時出現在你的客戶端與伺服器端 bundle 中，可以透過 `astro:env/client` 模組從客戶端或伺服器端存取：
+
+   ```js
+   import { API_URL } from "astro:env/client";
+   ```
+
+- **公開的伺服器端變數**：這些變數最終會出現在你的伺服器端 bundle 中，可以透過 `astro:env/server` 模組在伺服器端存取：
+
+   ```js
+   import { PORT } from "astro:env/server";
+   ```
+
+- **祕密的伺服器端變數**：這些變數不會是最終 bundle 的一部分，可以透過 `astro:env/server` 模組在伺服器端存取：
+
+   ```js
+   import { API_SECRET } from "astro:env/server";
+   ```
+
+   預設情況下，每當有任何東西從 `astro:env/server` 模組匯入時，所有祕密變數都會被驗證。這代表即使祕密變數沒有被匯入，也可能會被驗證。你可能需要[傳入假的環境變數](#設定環境變數)以在建置期間通過這項驗證。
+
+   你也可以[設定 `validateSecrets: true`](/zh-tw/reference/configuration-reference/#envvalidatesecrets)，讓啟動時就進行祕密變數驗證。
+
+:::note
+**祕密的客戶端變數**不支援，因為沒有安全的方式把這類資料送到客戶端。因此，你無法在綱要中同時設定 `context: "client"` 與 `access: "secret"`。
+:::
+
+### 資料型別
+
+目前支援四種資料型別：字串、數字、列舉與布林：
+
+```js
+import { envField } from "astro/config";
+
+envField.string({
+   // context 與 access
+   optional: true,
+   default: "foo",
+})
+
+envField.number({
+   // context 與 access
+   optional: true,
+   default: 15,
+})
+
+envField.boolean({
+   // context 與 access
+   optional: true,
+   default: true,
+})
+
+envField.enum({
+   // context 與 access
+   values: ["foo", "bar", "baz"],
+   optional: true,
+   default: "baz",
+})
+```
+
+<ReadMore>完整的驗證欄位清單請見 [`envField` API 參考](/zh-tw/reference/modules/astro-config/#envfield)。</ReadMore>
+
+### 動態取得祕密變數
+
+儘管你已經定義了綱要，你仍可能想取回某個祕密變數的原始值，或取回綱要中未定義的祕密變數。這種情況下，你可以使用由 `astro:env/server` 匯出的 `getSecret()`：
+
+```js
+import {
+   FOO, // boolean
+   getSecret
+} from "astro:env/server";
+
+getSecret("FOO"); // string | undefined
+```
+
+<ReadMore>更多資訊請見 [API 參考](/zh-tw/reference/modules/astro-env/#getsecret)。</ReadMore>
+
+### 限制
+
+`astro:env` 是一個虛擬模組，這代表它只能在 Astro 情境中使用。舉例來說，你可以在下列地方使用：
+
+- 中介層
+- Astro 路由與端點
+- Astro 元件
+- 框架元件
+- 模組
+
+你無法在下列地方使用，而必須改用 `process.env`：
+
+- `astro.config.mjs`
+- 腳本
