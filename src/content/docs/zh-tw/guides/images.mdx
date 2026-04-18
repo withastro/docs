@@ -1,0 +1,715 @@
+---
+title: 圖片
+description: 了解如何在 Astro 中使用圖片。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import { Steps } from '@astrojs/starlight/components'
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro 提供多種在網站上使用圖片的方式：圖片可以存在你專案內的本機檔案、從外部 URL 連結，或由 CMS 或 CDN 管理。
+
+Astro 提供內建的 [`<Image />`](#image-) 與 [`<Picture />`](#picture-) Astro 元件、[Markdown 圖片語法](#markdown-檔案中的圖片)（`![]()`）處理、[SVG 元件](#svg-元件)，以及[產生圖片的函式](#用-getimage-產生圖片)，來為圖片進行最佳化或轉換。此外，你可以設定[預設自動調整大小的響應式圖片](#響應式圖片行為)，或是在個別的 image 與 picture 元件上設定響應式屬性。
+
+你也可以在 `.astro` 或 Markdown 檔案中使用原生的 HTML 元素、或針對你的檔案類型使用標準寫法（例如 MDX 與 JSX 中的 `<img />`）處理圖片與 SVG 檔案。但 Astro 不會對這些圖片執行任何處理或最佳化。
+
+Astro 也沒有原生的影片支援，處理影片最佳化與串流的需求，我們建議選擇[託管影片服務](/zh-tw/guides/media/)。
+
+<ReadMore>完整的 API 參考請見 [`<Image />`](/zh-tw/reference/modules/astro-assets/#image-) 與 [`<Picture />`](/zh-tw/reference/modules/astro-assets/#picture-) 元件。</ReadMore>
+
+## 圖片儲存位置
+
+### `src/` 與 `public/`
+
+我們建議儘可能把本機圖片放在 `src/`，讓 Astro 可以轉換、最佳化並打包它們。放在 `public/` 目錄的檔案在建置時一律會原樣提供或複製到建置資料夾，不經處理。
+
+放在 `src/` 的本機圖片可以被你專案中所有檔案以檔案匯入的方式使用：`.astro`、`.md`、`.mdx`、`.mdoc`，以及其他 UI 框架。圖片可以放在任何資料夾，也可以與內容放在一起。
+
+若你想避免任何處理，請把圖片放到 `public/` 資料夾。這些圖片會以你網域上的 URL 路徑形式提供給專案檔案使用，並讓你擁有直接可公開存取的連結。舉例來說，網站的 favicon 通常會放在這個資料夾的根目錄，方便瀏覽器辨識。
+
+### 遠端圖片
+
+你也可以選擇把圖片儲存在遠端的[內容管理系統（CMS）](/zh-tw/guides/cms/)或[數位資產管理（DAM）](/zh-tw/guides/media/)平台。Astro 可以透過 API 遠端抓取你的資料，或透過完整的 URL 路徑顯示圖片。
+
+為了處理外部來源時有額外的保護，Astro 的 image 元件與輔助函式只會處理（例如最佳化、轉換）[你在設定中指定為授權的圖片來源](#授權遠端圖片)的圖片。來自其他來源的遠端圖片將會顯示而不會被處理。
+
+## `.astro` 檔案中的圖片
+
+<p>
+
+**可選用：** `<Image />`、`<Picture />`、`<img>`、`<svg>`、SVG 元件
+</p>
+
+Astro 的模板語言讓你可以用 Astro [`<Image />`](/zh-tw/reference/modules/astro-assets/#image-) 元件算繪已最佳化的圖片，並用 Astro [`<Picture />`](/zh-tw/reference/modules/astro-assets/#picture-) 元件產生多種尺寸與格式。這兩個元件也接受[響應式圖片屬性](#響應式圖片行為)，依容器大小調整尺寸，並根據裝置螢幕大小與解析度作出反應。
+
+此外，在 `.astro` 元件中，你可以匯入並把 [SVG 檔案當作 Astro 元件使用](#svg-元件)。
+
+所有原生 HTML 標籤，包括 `<img>` 與 `<svg>`，在 `.astro` 元件中也都可用。[用 HTML 標籤算繪的圖片](#用-html-img-標籤顯示未處理的圖片)不會被處理（例如最佳化、轉換），會原樣複製到建置資料夾。
+
+對於 `.astro` 檔案中的所有圖片，**`src` 屬性的值取決於你圖片檔案的位置**：
+
+- 來自專案 `src/` 資料夾的本機圖片要使用相對路徑的匯入。
+
+  image 與 picture 元件直接使用具名匯入（例如 `src={rocket}`），而 `<img>` 標籤則使用匯入物件的 `src` 屬性（例如 `src={rocket.src}`）。
+
+- 遠端圖片與 `public/` 中的圖片使用 URL 路徑。
+
+  遠端圖片要提供完整 URL（例如 `src="https://www.example.com/images/my-remote-image.jpg"`），或者對應到你 `public/` 資料夾中檔案位置的相對 URL 路徑（例如對於位於 `public/images/my-public-image.jpg` 的圖片，使用 `src="/images/my-public-image.jpg"`）。
+
+```astro title="src/pages/blog/my-images.astro"
+---
+import { Image } from 'astro:assets';
+import localBirdImage from '../../images/subfolder/localBirdImage.png';
+---
+<Image src={localBirdImage} alt="一隻鳥停在蛋窩上。" />
+<Image src="/images/bird-in-public-folder.jpg" alt="一隻鳥。" width="50" height="50" />
+<Image src="https://example.com/remote-bird.jpg" alt="一隻鳥。" width="50" height="50" />
+
+<img src={localBirdImage.src} alt="一隻鳥停在蛋窩上。">
+<img src="/images/bird-in-public-folder.jpg" alt="一隻鳥。">
+<img src="https://example.com/remote-bird.jpg" alt="一隻鳥。">
+```
+
+<ReadMore>完整的 API 參考（含必要與可選屬性）請見 [`<Image />`](/zh-tw/reference/modules/astro-assets/#image-) 與 [`<Picture />`](/zh-tw/reference/modules/astro-assets/#picture-) 元件。</ReadMore>
+
+<RecipeLinks slugs={["en/recipes/dynamically-importing-images" ]}/>
+
+
+## Markdown 檔案中的圖片
+
+<p>
+
+**可選用：** `![]()`、`<img>`（搭配 public 或遠端圖片）
+</p>
+
+在 `.md` 檔案中使用標準 Markdown `![alt](src)` 語法。存在 `src/` 的本機圖片與遠端圖片都會被處理與最佳化。當你[全域設定響應式圖片](/zh-tw/reference/configuration-reference/#imagelayout)時，這些圖片也會是[響應式](#響應式圖片行為)的。
+
+放在 `public/` 資料夾的圖片一律不會被最佳化。
+
+```md
+<!-- src/pages/post-1.md -->
+
+# 我的 Markdown 頁面
+
+<!-- 存在 src/assets/ 的本機圖片 -->
+<!-- 使用相對檔案路徑或 import 別名 -->
+![繁星點點的夜空。](../assets/stars.png)
+
+<!-- 存在 public/images/ 的圖片 -->
+<!-- 使用相對於 public/ 的檔案路徑 -->
+![繁星點點的夜空。](/images/stars.png)
+
+<!-- 其他伺服器上的遠端圖片 -->
+<!-- 使用圖片的完整 URL -->
+![Astro](https://example.com/images/remote-image.png)
+```
+
+HTML `<img>` 標籤也可以用來顯示放在 `public/` 的圖片或遠端圖片，不會進行任何圖片最佳化或處理。然而，`<img>` 不支援放在 `src` 的本機圖片。
+
+`<Image />` 與 `<Picture />` 元件在 `.md` 檔案中無法使用。如果你需要更多控制圖片屬性的能力，建議使用 [Astro 的 MDX 整合](/zh-tw/guides/integrations-guide/mdx/)來支援 `.mdx` 檔案格式。MDX 讓你可以使用更多 [MDX 中可用的圖片選項](#mdx-檔案中的圖片)，包括把元件與 Markdown 語法結合。
+
+## MDX 檔案中的圖片
+
+<p>
+
+**可選用：** `<Image />`、`<Picture />`、`<img />`、`![]()`、SVG 元件
+</p>
+
+你可以在 `.mdx` 檔案中使用 Astro 的 `<Image />` 與 `<Picture />` 元件，只要同時匯入元件與圖片即可。使用方式就跟在 [`.astro` 檔案中使用](#astro-檔案中的圖片)一樣。JSX `<img />` 標籤也支援未處理的圖片，並[使用與 HTML `<img>` 標籤相同的圖片匯入方式](#用-html-img-標籤顯示未處理的圖片)。
+
+此外，也支援[標準 Markdown `![alt](src)` 語法](#markdown-檔案中的圖片)，且不需要匯入。
+
+```mdx title="src/pages/post-1.mdx"
+---
+title: My Page title
+---
+import { Image } from 'astro:assets';
+import rocket from '../assets/rocket.png';
+
+# 我的 MDX 頁面
+
+// 存在同一資料夾的本機圖片
+![Houston in the wild](houston.png)
+
+// 存在 src/assets/ 的本機圖片
+<Image src={rocket} alt="太空中的火箭。" />
+<img src={rocket.src} alt="太空中的火箭。" />
+![太空中的火箭](../assets/rocket.png)
+
+// 存在 public/images/ 的圖片
+<Image src="/images/stars.png" alt="繁星點點的夜空。" />
+<img src="/images/stars.png" alt="繁星點點的夜空。" />
+![繁星點點的夜空。](/images/stars.png)
+
+// 其他伺服器上的遠端圖片
+<Image src="https://example.com/images/remote-image.png" />
+<img src="https://example.com/images/remote-image.png" />
+![Astro](https://example.com/images/remote-image.png)
+
+```
+
+<ReadMore>完整的 API 參考請見 [`<Image />`](/zh-tw/reference/modules/astro-assets/#image-) 與 [`<Picture />`](/zh-tw/reference/modules/astro-assets/#picture-) 元件。</ReadMore>
+
+## UI 框架元件中的圖片
+
+<p>
+
+**圖片選項：** 框架自己的 image 語法（例如 JSX 中的 `<img />`、Svelte 中的 `<img>`）
+</p>
+
+[本機圖片必須先匯入](#用-html-img-標籤顯示未處理的圖片)才能存取其 `src` 等屬性。接著，就可以用該框架自己的 image 語法照常算繪：
+
+```jsx title="src/components/ReactImage.jsx"
+import stars from "../assets/stars.png";
+
+export default function ReactImage() {
+  return (
+    <img src={stars.src} alt="繁星點點的夜空。" />
+  )
+}
+```
+
+```svelte title="src/components/SvelteImage.svelte"
+<script>
+  import stars from '../assets/stars.png';
+</script>
+
+<img src={stars.src} alt="繁星點點的夜空。" />
+
+```
+
+Astro 元件（例如 `<Image />`、`<Picture />`、SVG 元件）在 UI 框架元件裡無法使用，因為[客戶端島嶼必須只包含符合該框架的有效程式碼](/zh-tw/guides/framework-components/#我可以在框架元件裡使用-astro-元件嗎)。
+
+不過，你可以把這些元件產生的靜態內容，在 `.astro` 檔案內[作為子元素](/zh-tw/guides/framework-components/#將子元素傳遞給框架元件)，或透過[具名 `<slot/>`](/zh-tw/guides/framework-components/#我可以在框架元件裡使用-astro-元件嗎)傳遞給框架元件：
+
+
+```astro title="src/components/ImageWrapper.astro"
+---
+import ReactComponent from './ReactComponent.jsx';
+import { Image } from 'astro:assets';
+import stars from '~/stars/docline.png';
+---
+
+<ReactComponent>
+  <Image src={stars} alt="繁星點點的夜空。" />
+</ReactComponent>
+```
+
+## 處理圖片的 Astro 元件
+
+Astro 為圖片提供兩個內建 Astro 元件（`<Image />` 與 `<Picture />`），也讓你可以匯入 SVG 檔案並把它們當作 Astro 元件使用。這些元件可用於任何能匯入並算繪 `.astro` 元件的檔案。
+
+### `<Image />`
+
+使用內建的 `<Image />` Astro 元件來顯示下列圖片的最佳化版本：
+
+- 位於 `src/` 資料夾的本機圖片
+- 來自授權來源的[已設定遠端圖片](#授權遠端圖片)
+
+`<Image />` 可以轉換本機或授權遠端圖片的尺寸、檔案類型與品質，讓你掌控顯示出來的圖片。對於預算繪的頁面，這個轉換發生在建置階段。當你的頁面隨需算繪時，這個轉換會在頁面被檢視時即時發生。產生的 `<img>` 標籤包含 `alt`、`loading` 與 `decoding` 屬性，並會推斷圖片尺寸以避免累積版面位移（Cumulative Layout Shift，CLS）。
+
+:::note[什麼是累積版面位移？]
+[累積版面位移（CLS）](https://web.dev/cls/)是一項核心 Web 指標（Core Web Vital），用來衡量頁面在載入期間有多少內容發生位移。`<Image />` 元件會自動為圖片設定正確的 `width` 與 `height`，以最佳化 CLS。
+:::
+
+```astro title="src/components/MyComponent.astro"
+---
+// 匯入 Image 元件與圖片
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // 圖片為 1600x900
+---
+
+<!-- `alt` 在 Image 元件上是必要屬性 -->
+<Image src={myImage} alt="我的圖片描述。" />
+```
+
+```html
+<!-- 預算繪的輸出 -->
+<!-- 圖片已最佳化，也強制加上正確的屬性 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  alt="我的圖片描述。"
+/>
+
+<!-- 隨需算繪的輸出 -->
+<!-- src 會使用隨需產生的端點 -->
+<img
+  src="/_image?href=%2F_astro%2Fmy_image.hash.webp&amp;w=1600&amp;h=900&amp;f=webp"
+  <!-- ... -->
+/>
+```
+
+`<Image />` 元件接受[數個元件屬性](/zh-tw/reference/modules/astro-assets/#image-)，以及 HTML `<img>` 標籤所接受的任何屬性。
+
+以下範例為 image 元件提供一個 `class`，最終會套用到輸出的 `<img>` 元素。
+
+```astro title="src/pages/index.astro" 'class="my-class"'
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+
+<!-- `alt` 在 Image 元件上是必要屬性 -->
+<Image src={myImage} alt="" class="my-class" />
+```
+
+```html 'class="my-class"'
+<!-- 預算繪的輸出 -->
+<img
+  src="/_astro/my_image.hash.webp"
+  width="1600"
+  height="900"
+  decoding="async"
+  loading="lazy"
+  class="my-class"
+  alt=""
+/>
+
+```
+
+:::tip
+你也可以把 `<Image />` 元件用於 `public/` 資料夾中的圖片，或是未在專案中特別設定的遠端圖片，即使這些圖片不會被最佳化或處理。產生的圖片會等同於使用 HTML `<img>` 的結果。
+
+然而，對所有圖片都使用 image 元件能帶來一致的撰寫體驗，並且即使是未最佳化的圖片，也能避免累積版面位移（CLS）。
+:::
+
+### `<Picture />`
+
+<p><Since v="3.3.0" /></p>
+
+使用內建的 `<Picture />` Astro 元件產生一個帶有多種格式或尺寸的 `<picture>` 標籤。這讓你可以指定要顯示的偏好檔案格式，同時提供備用格式。像 [`<Image />` 元件](#image-)一樣，預算繪頁面的圖片會在建置階段被處理。當你的頁面隨需算繪時，處理會在頁面被檢視時即時發生。
+
+以下範例使用 `<Picture />` 元件把本機的 `.png` 檔案轉換為對 web 友善的 `avif` 與 `webp` 格式，以及在需要時可作為備用顯示的 `.png` `<img>`：
+
+```astro title="src/pages/index.astro"
+---
+import { Picture } from 'astro:assets';
+import myImage from '../assets/my_image.png'; // 圖片為 1600x900
+---
+
+<!-- `alt` 在 Picture 元件上是必要屬性 -->
+<Picture src={myImage} formats={['avif', 'webp']} alt="我的圖片描述。" />
+```
+
+```html
+<!-- 預算繪的輸出 -->
+<picture>
+  <source srcset="/_astro/my_image.hash.avif" type="image/avif" />
+  <source srcset="/_astro/my_image.hash.webp" type="image/webp" />
+  <img
+    src="/_astro/my_image.hash.png"
+    width="1600"
+    height="900"
+    decoding="async"
+    loading="lazy"
+    alt="我的圖片描述。"
+  />
+</picture>
+```
+
+<ReadMore>關於 [`<Picture />` 元件的屬性](/zh-tw/reference/modules/astro-assets/#picture-)細節，請參閱 `astro:assets` 參考。</ReadMore>
+
+### 響應式圖片行為
+
+ <p><Since v="5.10.0" /></p>
+
+響應式圖片是會依不同裝置調整以提升效能的圖片。這些圖片可以調整大小以符合容器，也可以根據訪客的螢幕大小與解析度提供不同尺寸。
+
+把 [layout 屬性](/zh-tw/reference/modules/astro-assets/#layout)套用到 `<Image />` 或 `<Picture />` 元件後，Astro 會自動為你的圖片產生所需的 `srcset` 與 `sizes` 值，並套用必要的[樣式以確保它們能正確調整大小](#響應式圖片樣式)。
+
+當這個響應式行為[以 `image.layout` 全域設定](/zh-tw/reference/configuration-reference/#imagelayout)後，它會套用到所有 image 元件，也會套用到任何使用 [Markdown `![]()` 語法](/zh-tw/guides/images/#markdown-檔案中的圖片)的本機與遠端圖片。
+
+放在 `public/` 資料夾的圖片永遠不會被最佳化，也不支援響應式圖片。
+
+:::note
+一張響應式圖片會產生多張不同尺寸的圖片，讓瀏覽器能為訪客顯示最合適的那一張。
+
+對預算繪頁面而言，這會在建置期間發生，並可能增加專案的建置時間，尤其當你有大量圖片時。
+
+對隨需算繪的頁面而言，圖片會在頁面被造訪時依需求產生。這不會影響建置時間，但可能會增加圖片顯示時所執行的圖片轉換次數。依你使用的圖片服務而定，這可能會產生額外費用。
+:::
+
+<ReadMore>關於[響應式圖片的更多說明，請見 MDN web docs](https://developer.mozilla.org/en-US/docs/Web/HTML/Guides/Responsive_images)。</ReadMore>
+
+#### 響應式圖片產生的 HTML 輸出
+
+當 layout 被設定後（不論是預設或在個別元件上設定），圖片都會根據其尺寸與 layout 類型，自動產生 `srcset` 與 `sizes` 屬性。使用 `constrained` 與 `full-width` layout 的圖片會套用樣式，確保它們會依容器調整大小。
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="我的圖片描述。" layout='constrained' width={800} height={600} />
+```
+
+在預算繪頁面上，此 `<Image />` 元件會產生以下 HTML 輸出：
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="我的圖片描述"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+
+#### 響應式圖片樣式
+
+設定 [`image.responsiveStyles: true`](/zh-tw/reference/configuration-reference/#imageresponsivestyles) 會套用少量全域樣式，確保你的圖片能正確調整大小。大多數情況下，你會希望預設啟用這項功能；若沒有額外樣式，你的圖片不會是響應式的。
+
+不過，如果你偏好自行處理響應式圖片樣式，或是需要在[使用 Tailwind 4 時覆寫這些預設值](#搭配-tailwind-4-的響應式圖片)，請保持預設值 `false`。
+
+Astro 套用的全域樣式會依 layout 類型而定，設計上要為產生的 `srcset` 與 `sizes` 屬性帶來最好的效果。以下是預設樣式：
+
+```css title="響應式圖片樣式"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+這些樣式使用 [`:where()` 虛擬類別](https://developer.mozilla.org/en-US/docs/Web/CSS/:where)，其[優先度](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_cascade/Specificity)為 0，這代表用你自己的樣式很容易覆寫。任何 CSS 選擇器的優先度都會高於 `:where()`，因此你可以輕鬆用自己的樣式針對圖片覆寫這些樣式。
+
+你可以在 `<Image />` 或 `<Picture />` 元件上設定 `fit` 與 `position` 參數，以逐圖片覆寫 `object-fit` 與 `object-position` 樣式。
+
+#### 搭配 Tailwind 4 的響應式圖片
+
+Tailwind 4 與 Astro 的預設響應式樣式相容。不過，Tailwind 使用 [cascade layers](https://developer.mozilla.org/en-US/docs/Web/CSS/@layer)，這代表其規則的優先度永遠低於不使用 layers 的規則，包括 Astro 的響應式樣式。因此，Astro 的樣式會優先於 Tailwind 的樣式。若要改用 Tailwind 規則而不是 Astro 的預設樣式，請不要啟用 [Astro 的預設響應式樣式](/zh-tw/reference/configuration-reference/#imageresponsivestyles)。
+
+
+### SVG 元件
+<p><Since v="5.7.0" /></p>
+
+Astro 讓你可以匯入 SVG 檔案並把它們當作 Astro 元件使用。Astro 會把 SVG 內容行內嵌入到你的 HTML 輸出中。
+
+引用任何本機 `.svg` 檔案的預設匯入。由於這個匯入會被視為 Astro 元件，你必須使用與[使用動態標籤](/zh-tw/reference/astro-syntax/#動態標籤)時相同的慣例（例如大寫開頭）。
+
+```astro title="src/components/MyAstroComponent.astro"
+---
+import Logo from './path/to/svg/file.svg';
+---
+
+<Logo />
+```
+
+就像 `<Image />` 或任何其他 Astro 元件一樣，你的 SVG 元件在 UI 框架元件裡無法使用，但可以在 `.astro` 元件中[傳遞給框架元件](#ui-框架元件中的圖片)。
+
+#### SVG 元件屬性
+
+你可以傳入 `width`、`height`、`fill`、`stroke` 等參數，以及 [原生 `<svg>` 元素](https://developer.mozilla.org/en-US/docs/Web/SVG/Element/svg)所接受的任何屬性。這些屬性會自動套用到底層的 `<svg>` 元素。如果某個屬性存在於原始的 `.svg` 檔案中，並且也傳給了元件，則傳給元件的值會覆寫原本的值。
+
+
+```astro title="src/components/MyAstroComponent.astro"
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo width={64} height={64} fill="currentColor" />
+```
+
+#### `SvgComponent` 型別
+
+<Since v="5.14.0" />
+
+你也可以使用 `SvgComponent` 型別，為你的 `.svg` 資產強制執行型別安全：
+
+```astro title="src/components/Logo.astro"
+---
+import type { SvgComponent } from "astro/types";
+import HomeIcon from "./Home.svg";
+
+interface Link {
+  url: string;
+  text: string;
+  icon: SvgComponent;
+}
+
+const links: Link[] = [
+  {
+    url: "/",
+    text: "Home",
+    icon: HomeIcon,
+  },
+];
+---
+```
+
+### 建立客製化的 image 元件
+
+你可以把 `<Image />` 或 `<Picture/>` 元件包在另一個 Astro 元件裡，建立客製化、可重複使用的 image 元件。這讓你可以一次設定預設的屬性與樣式。
+
+舉例來說，你可以為部落格文章的圖片建立一個元件，透過 props 接收屬性，並為每張圖片套用一致的樣式：
+
+```astro title="src/components/BlogPostImage.astro"
+---
+import { Image } from 'astro:assets';
+
+const { src, ...attrs } = Astro.props;
+---
+<Image src={src} {...attrs} />
+
+<style>
+  img {
+    margin-block: 2.5rem;
+    border-radius: 0.75rem;
+  }
+</style>
+```
+
+## 用 HTML `<img>` 標籤顯示未處理的圖片
+
+[Astro 模板語法](/zh-tw/reference/astro-syntax/)也支援直接撰寫 `<img>` 標籤，讓你完全掌控最終輸出。這些圖片不會被處理與最佳化。它接受所有 HTML `<img>` 標籤的屬性，而唯一必要的屬性是 `src`。然而，我們強烈建議加上[用於無障礙的 `alt` 屬性](#替代文字)。
+
+### `src/` 中的圖片
+
+本機圖片必須從現有 `.astro` 檔案的相對路徑匯入，或者你也可以設定並使用[匯入別名](/zh-tw/guides/imports/#別名)。接著，你就可以存取圖片的 `src` 與其他屬性，供 `<img>` 標籤使用。
+
+匯入的圖片資產符合 [`ImageMetadata` 型別](/zh-tw/reference/modules/astro-assets/#imagemetadata-1)，具有以下簽章：
+
+```ts
+interface ImageMetadata {
+  src: string;
+  width: number;
+  height: number;
+  format: string;
+}
+```
+
+以下範例使用圖片自己的 `height` 與 `width` 屬性，避免累積版面位移（CLS）並改善核心 Web 指標：
+
+```astro title="src/pages/posts/post-1.astro" "myDog.width" "myDog.height"
+---
+// 匯入本機圖片
+import myDog from '../../images/pets/local-dog.jpg';
+---
+// 存取圖片的屬性
+<img src={myDog.src} width={myDog.width} height={myDog.height} alt="一隻正在吠叫的狗。" />
+```
+
+### `public/` 中的圖片
+對於位於 `public/` 的圖片，請把相對於 public 資料夾的檔案路徑當作 `src` 的值：
+
+```astro '"/images/public-cat.jpg"'
+<img src="/images/public-cat.jpg" alt="一隻熟睡的貓。" >
+```
+
+### 遠端圖片
+
+對於遠端圖片，把圖片的完整 URL 當作 `src` 的值：
+
+```astro '"https://example.com/remote-cat.jpg"'
+<img src="https://example.com/remote-cat.jpg" alt="一隻熟睡的貓。" >
+```
+
+### `<Image />` 與 `<img>` 的抉擇
+
+`<Image />` 元件會最佳化你的圖片，並根據原本的寬高比推斷 width 與 height（對於它能處理的圖片），以避免 CLS。只要有可能，這是在 `.astro` 檔案中使用圖片的優先選擇。
+
+當你無法使用 `<Image />` 元件時，請使用 HTML `<img>` 元素，例如：
+  - 對於不支援的圖片格式
+  - 你不希望圖片被 Astro 最佳化
+  - 需要在客戶端動態存取並變更 `src` 屬性
+
+
+## 使用來自 CMS 或 CDN 的圖片
+
+Image CDN 可以搭配[所有 Astro 圖片選項](#astro-檔案中的圖片)使用。把圖片的完整 URL 當作 `<Image />` 元件、`<img>` 標籤或 Markdown 記號中 `src` 屬性的值。要對遠端圖片進行最佳化，也請[設定你授權的網域或 URL 樣式](#授權遠端圖片)。
+
+此外，CDN 可能會提供自己的 SDK，讓整合到 Astro 專案中更容易。舉例來說，Cloudinary 支援一個 [Astro SDK](https://astro.cloudinary.dev/)，讓你可以透過它們的 `CldImage` 元件輕鬆放入圖片，或一個 [Node.js SDK](https://cloudinary.com/documentation/node_integration) 可在 Node.js 環境中產生 URL，搭配 `<img>` 標籤使用。
+
+<ReadMore>完整的 API 參考請見 [`<Image />`](/zh-tw/reference/modules/astro-assets/#image-) 與 [`<Picture />`](/zh-tw/reference/modules/astro-assets/#picture-) 元件。</ReadMore>
+
+## 授權遠端圖片
+
+你可以使用 [`image.domains`](/zh-tw/reference/configuration-reference/#imagedomains) 與 [`image.remotePatterns`](/zh-tw/reference/configuration-reference/#imageremotepatterns) 為圖片最佳化設定授權的圖片來源 URL 網域與樣式清單。這個設定是一層額外的安全防護，在你顯示外部來源的圖片時保護你的網站。
+
+來自其他來源的遠端圖片不會被最佳化，但對這些圖片使用 `<Image />` 元件仍可避免累積版面位移（CLS）。
+
+舉例來說，以下設定只會允許對來自 `astro.build` 的遠端圖片進行最佳化：
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    domains: ["astro.build"],
+  }
+});
+```
+
+以下設定只允許對來自 HTTPS 主機的遠端圖片進行最佳化：
+
+```ts
+// astro.config.mjs
+export default defineConfig({
+  image: {
+    remotePatterns: [{ protocol: "https" }],
+  }
+});
+```
+
+## 內容合集中的圖片
+
+你可以在 frontmatter 中為內容合集項目宣告相關的圖片，例如部落格文章的封面圖片，使用相對於目前資料夾的路徑：
+
+```md title="src/content/blog/my-post.md" {3}
+---
+title: "My first blog post"
+cover: "./firstpostcover.jpeg" # 會解析為 "src/content/blog/firstpostcover.jpeg"
+coverAlt: "山脈後方夕陽的照片。"
+---
+
+這是一篇部落格文章
+```
+
+內容合集綱要的 `image` 輔助工具讓你可以驗證並匯入圖片。
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+
+const blogCollection = defineCollection({
+	schema: ({ image }) => z.object({
+		title: z.string(),
+		cover: image(),
+		coverAlt: z.string(),
+	}),
+});
+
+export const collections = {
+	blog: blogCollection,
+};
+```
+
+圖片會被匯入並轉換成中介資料，讓你可以把它當作 `src` 傳給 Astro 元件中的 `<Image/>`、`<img>` 或 `getImage()`。
+
+以下範例展示一個部落格索引頁，根據前面的綱要算繪每篇部落格文章的封面照片與標題：
+
+```astro title="src/pages/blog.astro" {10}
+---
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+const allBlogPosts = await getCollection("blog");
+---
+
+{
+	allBlogPosts.map((post) => (
+		<div>
+			<Image src={post.data.cover} alt={post.data.coverAlt} />
+			<h2>
+				<a href={"/blog/" + post.id}>{post.data.title}</a>
+			</h2>
+		</div>
+	))
+}
+```
+
+## 用 `getImage()` 產生圖片
+
+`getImage()` 函式用於產生不會直接用在 HTML 中的圖片，例如在 [API 路由](/zh-tw/guides/endpoints/#server-endpoints-api-routes)中。當你需要 `<Picture>` 與 `<Image>` 元件目前不支援的選項時，你可以使用 `getImage()` 函式建立自己的客製化 `<Image />` 元件。
+
+`getImage()` 只能在伺服器端使用。如果你需要在客戶端使用產生的圖片 URL（例如在客戶端腳本或框架元件中），請在 frontmatter 內呼叫 `getImage()`，並把產生的 `src` 傳到客戶端：
+
+```astro title="src/components/ClientImage.astro"
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png";
+
+const optimizedBackground = await getImage({ src: myBackground, format: "avif" });
+---
+
+<div id="background" data-src={optimizedBackground.src}></div>
+
+<script>
+  const src = document.getElementById("background").dataset.src;
+  // 依需要在客戶端使用 src
+</script>
+```
+
+<ReadMore>更多說明請見 [`getImage()` 參考](/zh-tw/reference/modules/astro-assets/#getimage)。</ReadMore>
+
+<RecipeLinks slugs={["en/recipes/build-custom-img-component" ]}/>
+
+## 替代文字
+
+不是所有使用者都能用同樣的方式看到圖片，所以在使用圖片時，無障礙功能是特別重要的考量。請使用 `alt` 屬性為圖片提供[具描述性的替代文字](https://www.w3.org/WAI/tutorials/images/)。
+
+這個屬性對 `<Image />` 與 `<Picture />` 元件都是必要的。如果沒有提供替代文字，就會顯示一則有用的錯誤訊息，提醒你加上 `alt` 屬性。
+
+如果圖片僅是裝飾性（例如對於理解頁面沒有幫助），請設定 `alt=""`，讓螢幕閱讀器知道要忽略這張圖片。
+
+## 預設的圖片服務
+
+`astro:assets` 使用 [Sharp](https://github.com/lovell/sharp) 作為預設的圖片服務。你可以用 [`image.service`](/zh-tw/reference/configuration-reference/#imageservice) 選項進一步設定圖片服務。
+
+:::note
+當你使用像 `pnpm` 這種[嚴格的套件管理器](https://pnpm.io/pnpm-vs-npm#npms-flat-tree)時，即使 Sharp 是 Astro 的相依套件，你可能仍需要手動把 Sharp 安裝到專案中：
+
+```bash
+pnpm add sharp
+```
+:::
+
+### 設定 no-op 直通服務
+
+如果你的[配接器](https://astro.build/integrations/?search=&categories%5B%5D=adapters)不支援 Astro 內建的 Sharp 圖片最佳化（例如 Cloudflare），你可以設定 no-op 圖片服務，讓你仍然可以使用 `<Image />` 與 `<Picture />` 元件。請注意，Astro 在這些環境下不會執行任何圖片轉換與處理。不過，你仍然能享有使用 `astro:assets` 的其他好處，包括沒有累積版面位移（CLS）、強制要求 `alt` 屬性，以及一致的撰寫體驗。
+
+設定 `passthroughImageService()` 以避免 Sharp 圖片處理：
+
+```js title="astro.config.mjs" ins={4-6} "passthroughImageService"
+import { defineConfig, passthroughImageService } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
+```
+
+## 資產快取
+
+Astro 在建置網站期間會把處理過的圖片資產儲存到快取目錄，本機圖片與[來自授權來源的遠端圖片](#授權遠端圖片)皆然。透過在多次建置之間保留快取目錄，已處理的資產可以重複使用，改善建置時間與頻寬使用量。
+
+預設的快取目錄是 `./node_modules/.astro`，不過可以透過 [`cacheDir`](/zh-tw/reference/configuration-reference/#cachedir) 設定選項變更。
+
+### 遠端圖片
+
+資產快取中的遠端圖片是依 [HTTP 快取](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching)來管理，並會遵循遠端伺服器回傳的 [Cache-Control 標頭](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control)。
+若 Cache-Control 標頭允許，圖片就會被快取，並在它們不再[新鮮](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#fresh_and_stale_based_on_age)之前持續被使用。
+
+#### 重新驗證
+
+<p><Since v="5.1.0" /></p>
+
+[重新驗證](https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching#validation)會向遠端伺服器確認過期的快取圖片是否仍然是最新的，進而減少頻寬使用與建置時間。如果伺服器表示圖片仍然新鮮，就會重複使用快取版本；否則會重新下載圖片。
+
+重新驗證需要遠端伺服器在回應中送出 [Last-Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Last-Modified) 或 [Etag（實體標籤）](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag)標頭。此功能適用於支援 [If-Modified-Since](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-Modified-Since) 與 [If-None-Match](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/If-None-Match) 標頭的遠端伺服器。
+
+## 社群整合
+
+有多個第三方[社群圖片整合](https://astro.build/integrations?search=images)，可在你的 Astro 專案中為圖片進行最佳化並協助處理。
