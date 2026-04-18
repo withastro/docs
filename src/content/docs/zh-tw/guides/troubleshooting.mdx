@@ -1,0 +1,228 @@
+---
+title: 疑難排解
+description: 需要幫助嗎？卡關了嗎？我們為你準備了解方。
+i18nReady: true
+---
+
+Astro 提供多種不同的工具，協助你排解疑難並為程式碼除錯。
+
+## 訣竅與技巧
+
+### 用 `console.log()` 除錯
+
+`console.log()` 是為 Astro 程式碼除錯的簡單卻熱門方法。`console.log()` 語句寫在哪裡，會決定你的除錯輸出印在哪裡：
+
+```astro
+---
+console.log('嗨！我是伺服器。這會記錄到 Astro 正在執行的終端機。');
+---
+
+<script>
+console.log('嗨！我是客戶端。這會記錄到瀏覽器的開發人員主控台。');
+</script>
+```
+
+在 Astro 的 frontmatter 中的 `console.log()` 語句，一律會輸出到執行 Astro CLI 的**終端機**。這是因為 Astro 在伺服器上執行，絕不會在瀏覽器中執行。
+
+在 Astro `<script>` 標籤內撰寫或匯入的程式碼則會在瀏覽器中執行。任何 `console.log()` 語句或其他除錯輸出，都會印在**瀏覽器的主控台**。
+
+### 為框架元件除錯
+
+[框架元件](/zh-tw/guides/framework-components/)（例如 React 與 Svelte）很特別：它們預設會在伺服器端算繪，這代表 `console.log()` 的除錯輸出會出現在終端機。然而，它們也可以在瀏覽器中注水，這可能會讓你的除錯紀錄同時出現在瀏覽器中。
+
+這對於除錯伺服器輸出與瀏覽器中已注水元件的差異很有幫助。
+
+### Astro `<Debug />` 元件
+
+為了幫助你為 Astro 元件除錯，Astro 提供內建的 `<Debug />` 元件，可直接將任何值算繪到你元件的 HTML 模板中。
+
+這個元件讓你可以在客戶端檢視值，完全不需要 JavaScript。不用在終端機與瀏覽器之間來回切換，就能快速在瀏覽器中除錯。
+
+```astro {2,7}
+---
+import { Debug } from 'astro:components';
+const sum = (a, b) => a + b;
+---
+
+<!-- 範例：在瀏覽器輸出 {answer: 6} -->
+<Debug answer={sum(2, 4)} />
+```
+
+Debug 元件支援多種語法選項，能讓除錯更有彈性、更簡潔：
+
+```astro {2,7-9}
+---
+import { Debug } from 'astro:components';
+const sum = (a, b) => a + b;
+const answer = sum(2, 4);
+---
+<!-- 範例：以下三種寫法等價。 -->
+<Debug answer={sum(2, 4)} />
+<Debug {{answer: sum(2, 4)}} />
+<Debug {answer} />
+```
+
+## 常見錯誤訊息
+
+以下是一些你可能在終端機看到的常見錯誤訊息、它們可能的含意，以及該如何處理。完整的 Astro 錯誤清單請見我們的[完整錯誤參考指南](/zh-tw/reference/error-reference/)。
+
+### Cannot use import statement outside a module
+
+在 Astro 元件中，`<script>` 標籤預設會作為 [JS 模組](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)載入。如果你在標籤上加了 [`is:inline` 指令](/zh-tw/reference/directives-reference/#isinline)或其他屬性，這個預設行為就會被移除。
+
+**解決方法**：如果你為 `<script>` 標籤加上任何屬性，就必須同時加上 `type="module"` 屬性才能使用 import 語句。
+
+**狀態**：Astro 預期的行為，合乎設計。
+
+**不確定這是不是你遇到的問題嗎？**
+看看是否有其他人已回報[這個 issue](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)！
+
+### `document`（或 `window`）is not defined
+
+當你嘗試在伺服器上存取 `document` 或 `window` 時，就會發生這個錯誤。
+
+Astro 元件在伺服器上執行，因此在 frontmatter 中無法存取這些瀏覽器特有的物件。
+
+框架元件預設會在伺服器上執行，因此在算繪時存取 `document` 或 `window` 也可能發生這個錯誤。
+
+**解決方法**：找出呼叫 `document` 或 `window` 的程式碼。如果你並沒有直接使用 `document` 或 `window`，卻仍然發生這個錯誤，請檢查你所匯入的軟體包是否本來就只該在客戶端執行。
+
+- 若程式碼位於 Astro 元件中，請把它移到 frontmatter 之外的 `<script>` 標籤內。這會告訴 Astro 在客戶端執行這段程式碼，讓 `document` 與 `window` 可用。
+
+- 若程式碼位於框架元件中，請嘗試在算繪後透過生命週期方法存取這些物件（例如 React 的 [`useEffect()`](https://react.dev/reference/react/useEffect)、Vue 的 [`onMounted()`](https://vuejs.org/api/composition-api-lifecycle.html#onmounted)、Svelte 的 [`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount)）。請使用 [client:](/zh-tw/reference/directives-reference/#client-directives) 指令（例如 `client:load`）告訴框架元件在客戶端注水，才會執行這些生命週期方法。你也可以加上 [`client:only`](/zh-tw/reference/directives-reference/#clientonly) 指令，完全阻止該元件在伺服器上算繪。
+
+**狀態**：Astro 預期的行為，合乎設計。
+
+### Expected a default export
+
+當你嘗試匯入或算繪一個無效的元件，或是一個無法正常運作的元件時，可能會拋出這個錯誤。（這個特定訊息是因為在 Astro 中匯入 UI 元件的運作方式而出現的。）
+
+**解決方法**：試著檢查你所匯入並算繪的任何元件是否有錯誤，並確認它能正確運作。考慮從 [astro.new](https://astro.new) 開啟一個 Astro 起始範本，在最小化的 Astro 專案中單獨為你的元件排除問題。
+
+**狀態**：Astro 預期的行為，合乎設計。
+
+### Refused to execute inline script
+
+你可能會在瀏覽器主控台看到以下錯誤紀錄：
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+這代表你網站的[內容安全政策](https://developer.mozilla.org/en-US/docs/Web/HTTP/CSP)（Content Security Policy，CSP）禁止執行行內 `<script>` 標籤，而 Astro 預設會輸出這類標籤。
+
+**解決方法：** 更新你的 CSP，加入 `script-src: 'unsafe-inline'` 以允許行內腳本執行。或者，你也可以使用 [`astro-shield`](https://github.com/KindSpells/astro-shield) 這類第三方整合來為你產生 CSP 標頭。
+
+## 常見陷阱
+
+### 我的元件沒有算繪
+
+首先，請確認你已在 [`.astro` 元件腳本](/zh-tw/basics/astro-components/#元件腳本)或 [`.mdx` 檔案](/zh-tw/guides/integrations-guide/mdx/#using-components-in-mdx)中**匯入該元件**。
+
+接著檢查你的 import 語句：
+
+- 你的 import 是否指向錯誤的位置？（檢查匯入路徑。）
+
+- 你的 import 是否與被匯入的元件同名？（檢查你的元件名稱，並確認它[遵循 `.astro` 語法](/zh-tw/reference/astro-syntax/#astro-和-jsx-的差異)。）
+
+- 你的 import 是否包含副檔名？（檢查被匯入的檔案是否包含副檔名，例如 `.astro`、`.md`、`.vue`、`.svelte`。注意：**只有** `.js(x)` 和 `.ts(x)` 檔案不需要副檔名。）
+
+### 我的元件沒有互動性
+
+如果你的元件有算繪出來（見上文）但對使用者的互動沒有反應，那麼你可能少了為元件注水的 [`client:*` 指令](/zh-tw/reference/directives-reference/#client-directives)。
+
+[UI 框架元件預設不會在客戶端注水](/zh-tw/guides/framework-components/#為互動元件注水)。若沒有提供 `client:*` 指令，其 HTML 會算繪到頁面上但不會附帶 JavaScript。
+
+:::tip
+[Astro 元件](/zh-tw/basics/astro-components/)是只有 HTML 的模板元件，沒有客戶端執行環境。不過，你可以在 Astro 元件的模板裡使用 `<script>` 標籤，把在全域範圍執行的 JavaScript 送到瀏覽器。
+:::
+
+### Cannot find package 'X'
+
+如果你在啟動 Astro 時看到 `"Cannot find package 'react'"`（或類似）警告，這代表你需要把該軟體包安裝到專案中。並非所有的套件管理器都會自動為你安裝對等相依套件（peer dependencies）。如果你使用 Node v16+ 並搭配 npm，則應該不用擔心這一節的內容。
+
+舉例來說，React 是 `@astrojs/react` 整合的對等相依套件。這表示你應該與整合一起安裝官方的 `react` 和 `react-dom` 軟體包。整合之後就會自動從這些軟體包中取用。
+
+```shell ins="react react-dom"
+# 範例：一併安裝整合與框架
+npm install @astrojs/react react react-dom
+```
+關於如何為 Astro 加入框架算繪器、CSS 工具以及其他軟體包的說明，請參閱 [Astro 的整合指南](/zh-tw/guides/integrations/)。
+
+### 搭配 Yarn 2+（Berry）使用 Astro
+
+Yarn 2+（又稱 Berry）採用一種名為 [Plug'n'Play（PnP）](https://yarnpkg.com/features/pnp)的技術來儲存與管理 Node 模組，這在使用 `create astro` 初始化新 Astro 專案時，或在使用 Astro 時，可能會[造成問題](https://github.com/withastro/astro/issues/3450)。解決辦法是把 `.yarnrc.yml` 裡的 [`nodeLinker` 屬性](https://yarnpkg.com/configuration/yarnrc#nodeLinker)設為 `node-modules`：
+
+```yaml title=".yarnrc.yml"
+nodeLinker: "node-modules"
+```
+
+### 在 monorepo 中為 Astro 加入相依套件
+
+在 monorepo 設定下使用 Astro 時，專案相依套件應加到各專案自己的 `package.json` 檔案中。
+
+然而，你也可能希望在 monorepo 根目錄使用 Astro（例如 [Nx 專案建議在根目錄安裝相依套件](https://github.com/nrwl/nx/issues/3023#issuecomment-630558318)）。在這種情況下，請手動把 Astro 相關的相依套件（例如 `@astrojs/vue`、`astro-component-lib`）加到 Astro 設定的 `vite.ssr.noExternal` 區塊，以確保這些相依套件能被正確安裝與打包：
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: [
+        '@astrojs/vue',
+        'astro-component-lib',
+      ]
+    }
+  }
+})
+```
+
+### 在元件中使用 `<head>`
+
+在 Astro 中，使用 `<head>` 標籤的運作方式就跟其他 HTML 標籤一樣：它不會被移到頁面的最上方，也不會與既有的 `<head>` 合併。因此，你通常在整個頁面中只會想使用一個 `<head>` 標籤。我們建議把這個唯一的 `<head>` 及其內容寫在[版面元件](/zh-tw/basics/layouts/)裡。
+
+### 包含了非預期的 `<style>`
+
+你可能會注意到，匯入元件的 `<style>` 標籤即使該元件沒有出現在最終輸出中，還是被包含在你的 HTML 原始碼裡。舉例來說，對於[有條件算繪](/zh-tw/reference/astro-syntax/#動態-html)卻未顯示的元件就會發生這種情況。
+
+Astro 的建置程序以模組相依圖為基礎：一旦元件被納入模板，其 `<style>` 標籤就會被處理、最佳化並打包，不論它最終是否出現在輸出中。
+
+### 在 Markdown 中跳脫特殊字元
+
+某些字元在 Markdown 中有特殊意義。如果你想顯示它們，可能需要改用不同的語法。要做到這點，可以改用這些字元的 [HTML 實體](https://developer.mozilla.org/en-US/docs/Glossary/Entity)。
+
+舉例來說，要避免 `<` 被解讀為 HTML 元素的開頭，請寫成 `&lt;`。
+
+## 建立最小重現案例
+
+為程式碼排除問題時，建立一個可以分享的**最小重現案例**會很有幫助。這是一個較小、簡化過的 Astro 專案，可以展示你遇到的問題。在全新專案裡備妥一個可重現問題的版本，有助於確認這是可重複發生的問題，而不是由你個人環境或既有專案中的其他因素所引起。
+
+在我們的支援討論串中請求協助時，分享最小重現案例很有幫助；而向 Astro 回報 bug 時，通常也會要求提供。
+
+### 透過 [astro.new](https://astro.new/repro) 建立一個 StackBlitz
+
+你可以使用 [astro.new](https://astro.new/repro) 一鍵建立一個新的 Astro 專案。對於最小重現案例，我們強烈建議從 [StackBlitz](https://stackblitz.com) 中執行的最小（空白）範例開始，並盡量少加額外程式碼。
+
+StackBlitz 會在瀏覽器中執行這個 Astro 專案，獨立於你的本機環境之外。它也會提供一個可分享的連結，讓任何 Astro 維護者或支援小組成員都能在自己的本機環境之外檢視你的最小重現案例。這代表每個人都會看到完全相同的專案，包含相同的設定與相依套件，也讓其他人更容易協助你排除程式碼問題。如果問題可以重現，你就可以確認問題本身出在 Astro 程式碼，進而放心地提交 bug 報告。
+
+請注意，並不是每個問題都能在 StackBlitz 中重現。舉例來說，你的問題可能取決於特定環境或套件管理器，也可能牽涉到 StackBlitz 不支援的 HTML Streaming。遇到這種情況，請使用 CLI 建立一個新的最小（空白）Astro 專案、重現問題，並上傳到 GitHub 儲存庫。這時不要分享 StackBlitz 的網址，而是提供你最小重現案例的 GitHub 儲存庫連結。
+### 最少的程式碼
+
+當你的空專案建好後，請依照步驟重現問題。這可能包含安裝軟體包、變更設定以及撰寫程式碼。
+
+你只需要加入重現問題所需的最少量程式碼。請勿重現既有專案中的其他元素，也請移除所有與問題無直接關聯的程式碼。
+
+### 建立 issue
+
+如果你的問題可以重現，那麼就可以建立 issue、提交 bug 報告了！
+
+前往 GitHub 上對應的 Astro 儲存庫，開啟一個新 issue。大多數儲存庫都有 issue 範本，會詢問你問題或要求提供提交所需的資訊。請務必按照這些範本填寫，因為如果你沒有提供我們需要的資訊，我們就必須向你詢問……這樣就沒有人能處理你的 issue 了！
+
+請附上你 StackBlitz（或必要時的 GitHub 儲存庫）上最小重現案例的連結。先簡述預期行為與實際行為的差異，以提供問題脈絡。接著，提供清楚、逐步的說明，指引他人如何在 Astro 專案中重現問題。
+
+## 還需要更多協助嗎？
+
+歡迎到我們的 [Discord](https://astro.build/chat)，在 `#support` 討論頻道中說明你的問題。我們一直樂意協助！
+
+請造訪目前的 [Astro 待處理 Issue](https://github.com/withastro/astro/issues/)，看看你遇到的是否為已知問題，或是提交 bug 報告。
+
+你也可以造訪 [Roadmap 討論串](https://github.com/withastro/roadmap/discussions)，看看你是否遇到了 Astro 已知的限制，並查看是否已有與你使用情境相關的提案。
