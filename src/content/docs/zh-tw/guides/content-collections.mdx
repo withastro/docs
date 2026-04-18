@@ -1,0 +1,936 @@
+---
+title: 內容合集
+description: >-
+  以型別安全的方式管理你的內容。
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+import ReadMore from "~/components/ReadMore.astro"
+
+<p><Since v="2.0.0" /></p>
+
+**內容合集**是在任何 Astro 專案中管理內容集合的最佳方式：部落格文章、商品說明、角色檔案、食譜，或是任何結構化內容。合集能協助你組織並查詢文件，在編輯器中啟用 IntelliSense 與型別檢查，並為所有內容自動提供 TypeScript 型別安全。
+
+Astro 提供高效能、可擴充的 API，能從任何地方載入、查詢並算繪內容：儲存在你專案本機、遠端主機，或從頻繁更新的來源即時抓取皆可。
+
+## 什麼是內容合集？
+
+內容合集是一組相關、結構相同的資料。這些資料可以儲存在本機的一個或多個檔案中（例如，一個資料夾內是各別的 Markdown 格式部落格文章，或是一個 JSON 檔內是商品說明），也可以從遠端來源抓取，像是資料庫、CMS 或 API 端點。合集中的每個成員稱為一個項目。
+
+<FileTree>
+- src/
+- **newsletter/** 「newsletter」合集
+  - week-1.md 合集項目
+  - week-2.md 合集項目
+  - week-3.md 合集項目
+- **authors/** 「author」合集
+  - authors.json 包含所有合集項目的單一檔案
+</FileTree>
+
+合集由項目的位置與形狀定義，並提供一種方便的方式來查詢、算繪你的內容與相關中介資料。只要你有一組相關的資料或內容存於相同位置、共享相同結構，就可以建立合集。
+
+[有兩種內容合集](#合集種類)可讓你處理在建置階段或請求時抓取的資料。不論是建置階段合集或即時更新的合集，都會用到：
+
+- 必要的 `loader`（載入器），用來從資料所在的地方取回你的內容與中介資料，並透過以內容為核心的 API 供你的專案使用。
+- 可選的合集 `schema`（綱要），讓你為每個項目定義預期的形狀，達成型別安全、自動完成，以及在編輯器中的驗證。
+
+儲存在專案本機或檔案系統上的合集，可以使用 Astro [內建的建置階段載入器](#建置階段合集載入器)之一，從 Markdown、MDX、Markdoc、YAML、TOML 或 JSON 檔案抓取資料。把 Astro 指向你內容的位置、定義資料形狀，你就可以立刻開始做部落格或其他以內容為主、幾乎全靜態的網站！
+
+透過[社群開發的載入器](https://astro.build/integrations/?search=&categories%5B%5D=loaders)，或自行建置[客製化的建置階段合集載入器](#客製化建置階段載入器)或[即時載入器](#建立即時載入器)，你可以在建置階段或依需求即時從任何外部來源（例如 CMS、資料庫或 headless 付款系統）抓取遠端資料。
+
+### 合集種類
+
+[建置階段內容合集](#定義建置階段內容合集)會在建置階段更新，並把資料儲存到儲存層。這對於大多數內容都能提供絕佳的效能，但可能不適合頻繁更新、需要即時新鮮資料的資料來源，例如即時股價。
+
+當以下任一項為真時，使用建置階段內容合集最能發揮效能與可擴充性：
+
+- **效能是關鍵**，且你希望在建置階段預先算繪資料。
+- **你的資料相對靜態**（例如部落格文章、文件、商品說明）。
+- **你希望從建置階段最佳化**與快取中受益。
+- **你需要處理 MDX** 或 **執行圖片最佳化**。
+- **你的資料可以抓取一次並在多次建置中重複使用**。
+
+:::tip[快速上手]
+請參閱[官方 Astro 部落格範本](https://github.com/withastro/astro/tree/latest/examples/blog)，以一個使用[內建 `glob()` 載入器](#glob-載入器)以及[為本機 Markdown 或 MDX 部落格文章合集定義綱要](#定義合集綱要)的範例快速上手。
+:::
+
+[即時內容合集](#即時內容合集)會在執行階段抓取資料，而非建置階段。這讓你可以透過統一的 API 取得 CMS、API、資料庫或其他來源的頻繁更新資料，而在資料變動時不需要重新建置網站。然而，這會帶來效能上的代價，因為每次請求都會抓取資料，且會直接回傳而不會持久化到資料儲存區。
+
+即時內容合集專為變動頻繁、在頁面被請求時需要即時更新的資料而設計。當以下任一項為真時，可以考慮使用：
+
+- **你需要即時資訊**（例如使用者專屬資料、目前的庫存水位）。
+- **你想要避免頻繁重新建置**內容經常變動的網站。
+- **你的資料更新很頻繁**（例如即時的商品庫存、價格、供應狀況）。
+- **你需要根據使用者輸入或請求參數，向資料來源傳遞動態篩選條件**。
+- **你正在為 CMS 打造預覽功能**，讓編輯者能立刻看到草稿內容。
+
+兩種合集可以同時存在於同一個專案，因此你可以依每個資料來源個別選擇最適合的合集類型。舉例來說，建置階段合集可以管理商品說明，而即時合集可以管理內容庫存。
+
+兩種合集使用相似的 API（例如 `getCollection()` 與 `getLiveCollection()`），因此不論你選擇哪一種，操作合集都會覺得熟悉，同時仍能清楚知道自己正在使用哪一種合集。
+
+我們建議儘可能使用建置階段內容合集，並在你的內容需要即時更新、且可以接受效能權衡時才使用即時合集。此外，與建置階段合集相比，即時內容合集有一些限制：
+
+- **不支援 MDX**：MDX 無法在執行階段算繪
+- **不支援圖片最佳化**：圖片無法在執行階段處理
+- **效能考量**：每次請求都會抓取資料（除非有快取）
+- **無資料儲存區持久化**：資料不會儲存到內容層的資料儲存區
+
+### 何時建立合集
+
+在以下情況把你的資料定義為合集：
+
+- 你有多個檔案或資料需要整理，它們共享同樣的整體結構（例如一個目錄內是 Markdown 寫的部落格文章，它們都有相同的 frontmatter 屬性）。
+- 你有既有內容儲存在遠端（例如 CMS），想利用合集輔助函式，而不是使用 `fetch()` 或 SDK。
+- 你需要在建置階段抓取（數以萬計的）相關資料，並需要一種在規模下仍能運作的查詢與快取方式。
+
+使用合集的大部分好處來自：
+
+- 定義共通的資料形狀，用來驗證某個項目是否「正確」或「完整」，避免在正式環境中出錯。
+- 以內容為核心的 API，讓在頁面上匯入並算繪內容時的查詢更直覺（例如 `getCollection()`，而不是 `import.meta.glob()`）。
+- 能同時使用內建載入器，以及取用底層的[內容載入器 API](/zh-tw/reference/content-loader-reference/) 來取回你的內容。另外還有多個第三方與社群開發的載入器，你也可以自行建置客製化載入器從任何地方抓取資料。
+- 效能與可擴充性。建置階段內容合集的資料可以在多次建置之間快取，適合數以萬計的內容項目。
+
+### 何時不要建立合集
+
+當你有多筆內容必須共享相同屬性時，合集能提供絕佳的結構、安全性與組織性。
+
+但在以下情境，合集可能不是你的解方：
+
+- 你只有一個或少數幾個不同的內容頁面。請考慮直接以你的內容[建立個別頁面元件](/zh-tw/basics/astro-pages/)，例如 `src/pages/about.astro`。
+- 你要顯示 Astro 不會處理的檔案，例如 PDF。請把這些靜態資產放到專案的 [`public/` 目錄](/zh-tw/basics/project-structure/#public)。
+- 你的資料來源有自己的 SDK／用戶端函式庫可以匯入使用，但與內容載入器不相容或並未提供載入器，而你偏好直接使用該 SDK。
+
+## 合集的 TypeScript 設定
+
+內容合集依靠 TypeScript 在你的編輯器中提供 Zod 驗證、IntelliSense 與型別檢查。預設情況下，當你用 `create astro` CLI 指令建立新專案時，Astro 會設定一份 [`strict` TypeScript 範本](/zh-tw/guides/typescript/#tsconfig-範本)。Astro 的 `strict` 與 `strictest` 兩套範本都已包含專案使用內容合集所需的 TypeScript 設定。
+
+如果你把這個設定改成了 `base`（因為你的專案不寫 TypeScript），或者沒有使用 Astro 任何內建範本，你也必須在 `tsconfig.json` 中加入下列 `compilerOptions` 才能使用內容合集：
+
+```json title="tsconfig.json" ins={4-7}
+{
+  "extends": "astro/tsconfigs/base",
+  // 使用 `strict` 或 `strictest` 時不需要
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+## 定義建置階段內容合集
+
+所有的建置階段內容合集都定義在一個特殊的 `src/content.config.ts` 檔案中（也支援 `.js` 與 `.mjs` 副檔名），透過 `defineCollection()` 定義，並匯出一個單一的 collections 物件供你的專案使用。
+
+每個合集會設定：
+- 一個[建置階段 `loader`](#建置階段合集載入器)，指向資料來源（必要）
+- 一個[建置階段 `schema`](#定義合集綱要) 來達成型別安全（可選，但強烈建議！）
+
+```ts title="src/content.config.ts"
+// 1. 從 `astro:content` 匯入工具
+import { defineCollection } from 'astro:content';
+
+// 2. 匯入載入器
+import { glob, file } from 'astro/loaders';
+
+// 3. 匯入 Zod
+import { z } from 'astro/zod';
+
+// 4. 為每個合集定義 `loader` 與 `schema`
+const blog = defineCollection({
+  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+
+// 5. 匯出單一的 `collections` 物件以註冊你的合集
+export const collections = { blog };
+```
+
+接著你可以使用專用的 `getCollection()` 與 `getEntry()` 函式[查詢建置階段合集資料](#查詢建置階段合集)並算繪內容。
+
+你可以選擇在建置階段從建置階段合集項目[產生頁面路由](#從內容產生路由)，打造完全靜態、預先算繪的網站。你也可以選擇隨需算繪建置階段合集，等頁面第一次被請求時再建置。當你有大量頁面（例如數千或數萬個）、希望延後建置靜態頁面直到真正需要時，這種做法很有用。
+
+## 建置階段合集載入器
+
+Astro 提供兩個內建載入器（`glob()` 與 `file()`），可在建置階段抓取你的本機內容。把資料在專案或檔案系統上的位置傳給這些載入器，它們就會自動處理你的資料，並更新持久化的資料儲存區內容層。
+
+若要在建置階段抓取遠端資料，你可以[建立客製化載入器](#客製化建置階段載入器)來取回資料並更新資料儲存區。你也可以使用任何[第三方或社群發佈的載入器整合](https://astro.build/integrations/2/?search=&categories%5B%5D=loaders)。現已有多個載入器支援熱門 CMS 以及常見資料來源，例如 Obsidian vault、GitHub 儲存庫或 Bluesky 貼文。
+
+### `glob()` 載入器
+
+[`glob()` 載入器](/zh-tw/reference/content-loader-reference/#glob-loader)會從檔案系統上任何位置的 Markdown、MDX、Markdoc、JSON、YAML 或 TOML 檔案目錄中抓取項目。如果你把內容項目以個別檔案（例如一個裝著部落格文章的目錄）儲存在本機，那麼 `glob()` 載入器就足以存取你的內容。
+
+這個載入器需要一個用來比對項目檔案的 `pattern`，使用 [micromatch](https://github.com/micromatch/micromatch#matching-features) 支援的 glob 樣式，以及一個指向檔案所在位置的 `base` 路徑。每個項目會自動從其檔名產生唯一的 `id`，但必要時你也可以[定義客製化 ID](#定義客製化-id)。
+
+```ts  title="src/content.config.ts" {5}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+});
+
+export const collections = { blog };
+```
+
+#### 定義客製化 ID
+
+當你對 Markdown、MDX、Markdoc、JSON 或 TOML 檔案使用 [`glob()` 載入器](#glob-載入器)時，每個內容項目的 [`id`](/zh-tw/reference/modules/astro-content/#collectionentryid) 會自動根據內容檔名產生，格式對 URL 友善。這個唯一的 `id` 可用來直接從合集查詢該項目。在[從內容產生新頁面與 URL](#從內容產生路由) 時也很實用。
+
+你可以在檔案 frontmatter 中（或 JSON 檔的資料物件中）加入自己的 `slug` 屬性，覆寫單一項目自動產生的 `id`。這類似其他 web 框架的「permalink」功能。
+
+```md title="src/blog/1.md" {3}
+---
+title: My Blog Post
+slug: my-custom-id/supports/slashes
+---
+Your blog post content here.
+```
+
+```json title="src/categories/1.json" {3}
+{
+  "title": "My Category",
+  "slug": "my-custom-id/supports/slashes",
+  "description": "Your category description here."
+}
+```
+
+你也可以在定義建置階段合集時，把選項傳給 `glob()` 載入器的 [`generateID()` 輔助函式](/zh-tw/reference/content-loader-reference/#generateid)，調整 `id` 的產生方式。舉例來說，你可能想為某個合集還原「把大寫字母轉成小寫」的預設行為：
+
+```js title="src/content.config.ts"
+const authors = defineCollection({
+  /* 取出 authors 目錄中所有 JSON 檔，
+   * 同時在 ID 中保留大寫字母。*/
+  loader: glob({
+    pattern: '**/*.json',
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+  }),
+});
+```
+
+### `file()` 載入器
+
+[`file()` 載入器](/zh-tw/reference/content-loader-reference/#file-loader)會從你合集中定義的單一本機檔案抓取多個項目。`file()` 載入器會自動偵測並解析（依副檔名）JSON 與 YAML 檔案中的單一物件陣列，並將 TOML 檔案中的每個最上層 table 視為獨立的項目。
+
+```ts  title="src/content.config.ts" {5}
+import { defineCollection } from 'astro:content';
+import { file } from 'astro/loaders';
+
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+});
+
+export const collections = { dogs };
+```
+
+檔案中每個項目物件必須有一個唯一的 `id` 鍵屬性，這樣項目才能被識別與查詢。與 `glob()` 載入器不同，`file()` 載入器不會自動為每個項目產生 ID。
+
+你可以把項目以帶有 `id` 屬性的物件陣列提供，或以物件形式提供（其中唯一的 `id` 就是鍵）：
+
+```json title="src/data/dogs.json"
+// 在陣列的每個物件中指定 `id` 屬性
+[
+  { "id": "poodle", "coat": "curly", "shedding": "low" },
+  { "id": "afghan", "coat": "short", "shedding": "low" }
+]
+```
+
+```json title="src/data/dogs.json"
+// 每個鍵都會被當成 `id`
+{
+  "poodle": { "coat": "curly", "shedding": "low" },
+  "afghan": { "coat": "silky", "shedding": "low" }
+}
+```
+
+#### 解析其他資料格式
+
+`file()` 載入器內建支援把單一 JSON、YAML 與 TOML 檔案解析為合集項目（除非是[巢狀 JSON 文件](#巢狀-json-文件)）。要從不支援的檔案類型（例如 `.csv`）載入合集，你必須建立一個[解析器函式](/zh-tw/reference/content-loader-reference/#parser)。視需要，這個函式也可以是 async（例如要從網路抓取檔案，或你的解析器本身就是非同步）。
+
+以下範例示範匯入第三方 CSV 解析器，接著把客製化的 `parser` 函式傳給 `file()` 載入器：
+
+```typescript title="src/content.config.ts" {3} "parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })"
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+import { parse as parseCsv } from "csv-parse/sync";
+
+const cats = defineCollection({
+  loader: file("src/data/cats.csv", {
+    parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true }),
+  }),
+});
+```
+
+##### 巢狀 `.json` 文件
+
+`parser()` 引數可用來從巢狀 JSON 文件載入單一合集。舉例來說，這個 JSON 檔包含多個合集：
+
+```json title="src/data/pets.json"
+{"dogs": [{}], "cats": [{}]}
+```
+
+你可以為每個合集把客製化的 `parser()` 函式傳給 `file()` 載入器，使用 Astro 內建的 JSON 解析把這些合集拆開：
+
+```typescript title="src/content.config.ts"
+import { file } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
+const dogs = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
+});
+const cats = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).cats })
+});
+```
+
+### 客製化建置階段載入器
+
+你可以使用內容載入器 API [建立客製化載入器](/zh-tw/reference/content-loader-reference/#building-a-loader)，從任何資料來源（例如 CMS、資料庫或 API 端點）抓取遠端內容。
+
+接著，在你的合集設定中匯入並定義客製化載入器，傳入所有必要的值：
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { myLoader } from './loader.ts';
+
+const blog = defineCollection({
+  loader: myLoader({
+    url: "https://api.example.com/posts",
+    apiKey: "my-secret",
+  }),
+});
+```
+
+:::tip
+在 [Astro 整合目錄](https://astro.build/integrations/?search=&categories%5B%5D=loaders)中尋找社群開發與第三方的載入器。
+:::
+
+使用客製化載入器抓取你的資料時，會自動從遠端資料建立一個合集。這讓你擁有本機合集的所有好處，包括合集專用的 API 輔助工具（例如 `getCollection()` 與 `render()`），可用來[查詢並顯示你的資料](#查詢建置階段合集)，以及綱要驗證。
+
+就像建立 Astro 整合或 Vite 外掛一樣，你可以[把你的載入器發佈為 npm 軟體包](/zh-tw/guides/integrations/)供他人使用。
+
+<ReadMore>完整的[內容載入器 API](/zh-tw/reference/content-loader-reference/)請參閱說明，當中有建置自訂載入器的範例。</ReadMore>
+
+## 定義合集綱要
+
+綱要透過 Zod 驗證，強制合集內的 frontmatter 或項目資料維持一致。綱要可**保證**當你需要引用或查詢時，這些資料以可預期的形式存在。如果有任何檔案違反其合集綱要，Astro 會提供有用的錯誤訊息讓你知道。
+
+綱要也驅動了 Astro 為你內容自動產生的 TypeScript 型別。當你為合集定義綱要時，Astro 會自動產生並套用一個 TypeScript 介面。最終的結果是：當你查詢合集時享有完整的 TypeScript 支援，包括屬性自動完成與型別檢查。
+
+:::tip
+為了讓 Astro 識別出新的或更新過的綱要，你可能需要重新啟動開發伺服器，或[同步內容層](/zh-tw/reference/cli-reference/#astro-dev)（<code>s + enter</code>）以定義 `astro:content` 模組。
+:::
+
+提供 `schema` 是可選的，但強烈建議！如果你選擇使用綱要，則合集項目的每個 frontmatter 或資料屬性都必須使用 [Zod 資料型別](/zh-tw/reference/modules/astro-zod/#common-data-type-validators)定義：
+
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import { glob, file } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  })
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+### 使用 Zod 定義資料型別
+
+Astro 使用 [Zod](https://github.com/colinhacks/zod) 驅動其內容綱要。有了 Zod，Astro 就能驗證合集中每個檔案的資料，*並且*在你從專案內部查詢內容時自動提供 TypeScript 型別。
+
+要在 Astro 中使用 Zod，請從 `"astro/zod"` 匯入 `z` 工具。這是 Zod 函式庫的重新匯出，支援 Zod 4 的所有功能。
+
+<ReadMore>常見資料型別的速查表，以及了解 Zod 的運作方式與可用功能，請參閱 [`z` 工具參考](/zh-tw/reference/modules/astro-zod/)。</ReadMore>
+
+#### Zod 綱要方法
+
+所有 [Zod 綱要方法](/zh-tw/reference/modules/astro-zod/#using-zod-methods)（例如 `.parse()`、`.transform()`）皆可使用，但有一些限制。值得注意的是，使用 `image().refine()` 對圖片執行客製化驗證檢查是不支援的。
+
+### 定義合集參照
+
+合集項目也可以「參照」其他相關項目。
+
+透過 [`reference()` 函式](/zh-tw/reference/modules/astro-content/#reference)，你可以在合集綱要中把某個屬性定義為來自另一個合集的項目。舉例來說，你可以要求每個 `space-shuttle` 項目都包含一個 `pilot` 屬性，並使用 `pilot` 合集自己的綱要進行型別檢查、自動完成與驗證。
+
+常見的例子是：部落格文章參照儲存在 JSON 中可重複使用的作者檔案，或參照儲存在同一個合集內的相關文章 URL：
+
+```ts title="src/content.config.ts"
+import { defineCollection, reference } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    title: z.string(),
+    // 以 `id` 參照 `authors` 合集中的一位作者
+    author: reference('authors'),
+    // 以 `id` 參照 `blog` 合集中的相關文章陣列
+    relatedPosts: z.array(reference('blog')),
+  })
+});
+
+const authors = defineCollection({
+  loader: glob({ pattern: '**/*.json', base: "./src/data/authors" }),
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.url(),
+  })
+});
+
+export const collections = { blog, authors };
+```
+
+以下範例中，部落格文章指定了相關文章的 `id`，以及文章作者的 `id`：
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "Welcome to my blog"
+author: ben-holmes # 參照 `src/data/authors/ben-holmes.json`
+relatedPosts:
+- about-me # 參照 `src/content/blog/about-me.md`
+- my-year-in-review # 參照 `src/content/blog/my-year-in-review.md`
+---
+```
+
+這些參照會被轉換成包含 `collection` 鍵與 `id` 鍵的物件，讓你能輕鬆[在模板中查詢它們](#存取被參照的資料)。
+
+## 查詢建置階段合集
+
+Astro 提供輔助函式讓你查詢建置階段合集，並回傳一個或多個內容項目。
+
+- [`getCollection()`](/zh-tw/reference/modules/astro-content/#getcollection) 抓取整個合集，回傳項目陣列。
+- [`getEntry()`](/zh-tw/reference/modules/astro-content/#getentry) 從合集中抓取單一項目。
+
+這些函式會回傳項目，帶有唯一的 `id`、包含所有已定義屬性的 `data` 物件，並且會回傳一個 `body`，內含未編譯的 Markdown、MDX 或 Markdoc 文件原始內容。
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection, getEntry } from 'astro:content';
+
+// 取得合集中所有項目。
+// 需要把合集名稱作為引數。
+const allBlogPosts = await getCollection('blog');
+
+// 從合集中取得單一項目。
+// 需要合集名稱與 `id`
+const poodleData = await getEntry('dogs', 'poodle');
+---
+```
+
+產生的合集排序順序並不具決定性，且依平台而異。這代表如果你呼叫 `getCollection()` 並需要項目以特定順序回傳（例如部落格文章依日期排序），就必須自行排序合集項目：
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
+<ReadMore>[`CollectionEntry` 型別](/zh-tw/reference/modules/astro-content/#collectionentry)所回傳的完整屬性清單請參閱說明。</ReadMore>
+
+### 在 Astro 模板中使用內容
+
+查詢合集後，你可以直接在 Astro 元件模板中存取每個項目的內容與中介資料。
+
+舉例來說，你可以建立一個連結到部落格文章的清單，使用 `data` 屬性顯示項目 frontmatter 的資訊：
+
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+---
+<h1>我的文章</h1>
+<ul>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
+  ))}
+</ul>
+```
+
+### 算繪本文內容
+
+一旦查詢完成，你可以使用 `astro:content` 的 [`render()`](/zh-tw/reference/modules/astro-content/#render) 函式將 Markdown 與 MDX 項目算繪成 HTML。呼叫此函式後，你會取得已算繪的 HTML 內容，包括 `<Content />` 元件以及所有已算繪標題的清單。
+
+```astro title="src/pages/blog/post-1.astro" {2,6,10}
+---
+import { getEntry, render } from 'astro:content';
+
+const entry = await getEntry('blog', 'post-1');
+
+const { Content } = await render(entry);
+---
+<h1>{entry.data.title}</h1>
+<p>發佈於：{entry.data.published.toDateString()}</p>
+<Content />
+```
+
+<ReadMore>處理 MDX 項目時，你也可以[將自己的元件傳給 `<Content />`](/zh-tw/guides/integrations-guide/mdx/#passing-components-to-mdx-content)，以客製化替代元素取代 HTML 元素。</ReadMore>
+
+#### 以 props 傳遞內容
+
+元件也可以把整個合集項目當作參數傳遞。
+
+你可以使用 [`CollectionEntry`](/zh-tw/reference/modules/astro-content/#collectionentry) 工具，為元件的參數使用 TypeScript 提供正確型別。這個工具接受一個字串引數，對應你合集綱要的名稱，並會繼承該合集綱要的所有屬性。
+
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` 會符合你 'blog' 合集綱要的型別
+const { post } = Astro.props;
+---
+```
+
+### 過濾合集查詢
+
+`getCollection()` 接受一個可選的「filter」回呼函式，讓你依項目的 `id` 或 `data` 屬性過濾查詢結果。
+
+你可以用它依任何內容條件進行過濾。舉例來說，你可以依 `draft` 等屬性過濾，避免任何草稿文章被發佈到部落格上：
+
+```astro title="src/pages/blog.astro"
+---
+// 範例：過濾掉 `draft: true` 的內容項目
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+---
+```
+
+你也可以建立草稿頁面，讓它在開發伺服器執行時可用，但在正式版建置時不會建置出來：
+
+```astro title="src/pages/blog.astro"
+---
+// 範例：僅在正式版建置時過濾掉 `draft: true` 的內容項目
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+---
+```
+
+filter 引數也支援依合集內的巢狀目錄過濾。由於 `id` 包含完整的巢狀路徑，你可以依每個 `id` 的開頭過濾，只回傳特定巢狀目錄中的項目：
+
+```astro title="src/pages/blog.astro"
+---
+// 範例：依合集內的子目錄過濾項目
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+---
+```
+
+### 存取被參照的資料
+
+要存取[在綱要中定義的參照](#定義合集參照)，請先查詢合集項目。你的參照會在回傳的 `data` 物件上（例如 `entry.data.author` 與 `entry.data.relatedPosts`）。
+
+接著，你可以再次使用 `getEntry()` 函式（或 `getEntries()` 取回多個被參照的項目），把這些回傳的值傳入。綱要中的 `reference()` 函式會把這些值轉換成一或多個 `collection` 與 `id` 物件，作為查詢這些相關資料的便利方式。
+
+
+```astro title="src/pages/blog/adventures-in-space.astro"
+---
+import { getEntry, getEntries } from 'astro:content';
+
+// 首先，查詢一篇部落格文章
+const blogPost = await getEntry('blog', 'Adventures in Space');
+
+// 取回單一被參照的項目：這篇文章的作者
+// 等同於查詢 `{collection: "authors", id: "ben-holmes"}`
+const author = await getEntry(blogPost.data.author);
+
+// 取回被參照項目的陣列：所有相關文章
+// 等同於查詢 `[{collection: "blog", id: "visiting-mars"}, {collection: "blog", id: "leaving-earth-for-the-first-time"}]`
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>作者：{author.data.name}</p>
+
+<!-- ... -->
+
+<h2>你可能也會喜歡：</h2>
+{relatedPosts.map(post => (
+  <a href={post.id}>{post.data.title}</a>
+))}
+```
+
+## 從內容產生路由
+
+內容合集儲存在 `src/pages/` 目錄之外。這代表 Astro 的[以檔案為基礎的路由](/zh-tw/guides/routing/)預設不會為你的合集項目產生頁面或路由。
+
+如果你想為每個合集項目（例如個別部落格文章）產生 HTML 頁面，你必須手動建立新的[動態路由](/zh-tw/guides/routing/#dynamic-routes)。動態路由會把傳入的請求參數（例如 `src/pages/blog/[...id].astro` 中的 `Astro.params.id`）對應起來，抓取每個頁面正確的項目。
+
+實際產生路由的方法會依你的頁面是預算繪（預設）還是由伺服器隨需算繪而有所不同。
+
+### 建置為靜態輸出（預設）
+
+如果你用建置階段合集建置靜態網站（Astro 的預設行為），請使用 [`getStaticPaths()`](/zh-tw/reference/routing-reference/#getstaticpaths) 函式在建置期間從單一頁面元件（例如 `src/pages/[id].astro`）建立多個頁面。
+
+在 `getStaticPaths()` 內呼叫 `getCollection()`，讓合集資料可用來建置靜態路由。接著，用每個內容項目的 `id` 屬性建立個別的 URL 路徑。每個頁面會收到整個合集項目作為 prop，[在你的頁面模板中使用](#在-astro-模板中使用內容)。
+
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
+---
+import { getCollection, render } from 'astro:content';
+// 1. 為每個合集項目產生新的路徑
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+// 2. 在模板中，你可以直接從 prop 取得項目
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+這會為 `blog` 合集中的每個項目產生一個頁面路由。舉例來說，位於 `src/blog/hello-world.md` 的項目 `id` 為 `hello-world`，因此其最終 URL 會是 `/posts/hello-world/`。
+
+:::note
+如果你的客製化 slug 包含 `/` 字元以產生多個路徑片段的 URL，在此動態路由頁面的 `.astro` 檔名中必須使用 [rest 參數（例如 `[...id]`）](/zh-tw/guides/routing/#rest-parameters)。
+:::
+
+### 在請求時隨需建置路由
+
+安裝了用於[隨需算繪](/zh-tw/guides/on-demand-rendering/)的配接器後，你就可以在請求時產生動態頁面路由。首先，檢查請求（使用 `Astro.request` 或 `Astro.params`）依需求找到 slug，接著使用 Astro 的某個內容合集輔助函式抓取它：
+
+- [`getEntry()`](/zh-tw/reference/modules/astro-content/#getentry) 適用於建置階段合集頁面，在第一次請求時產生一次。
+- [`getLiveEntry()`](/zh-tw/reference/modules/astro-content/#getliveentry) 適用於即時合集頁面，其資料在每次請求時（重新）抓取。
+
+
+```astro title="src/pages/posts/[id].astro"
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { getEntry, render } from "astro:content";
+
+// 1. 從傳入的伺服器請求取得 slug
+const { id } = Astro.params;
+if (id === undefined) {
+	return Astro.redirect("/404");
+}
+
+// 2. 用請求的 slug 直接查詢該項目
+const post = await getEntry("blog", id);
+
+// 3. 如果項目不存在，則重新導向
+if (post === undefined) {
+	return Astro.redirect("/404");
+}
+
+// 4. 在模板中把項目算繪成 HTML
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+:::tip
+探索 [GitHub 上部落格教學的示範程式碼](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages)中的 `src/pages/` 資料夾，看看如何從你的合集建立動態頁面（包含部落格文章清單、標籤頁等部落格功能）的完整範例！
+:::
+
+## 即時內容合集
+
+即時合集使用的 API 與建置階段內容合集不同，不過其設定與輔助函式的設計讓人覺得熟悉。
+
+主要差異包括：
+
+1. **執行時機**：在請求時執行，而非建置階段
+2. **設定檔**：使用 `src/live.config.ts`，而非 `src/content.config.ts`
+3. **合集定義**：使用 `defineLiveCollection()`，而非 `defineCollection()`
+4. **Loader API**：實作 `loadCollection` 與 `loadEntry` 方法，而非 `load` 方法
+5. **資料回傳**：直接回傳資料，而不是儲存到資料儲存區
+6. **面向使用者的函式**：使用 `getLiveCollection()` / `getLiveEntry()`，而非 `getCollection()` / `getEntry()`
+
+此外，你必須為即時合集資料設定用於[隨需算繪](/zh-tw/guides/on-demand-rendering/)的配接器。
+
+請在特殊檔案 `src/live.config.ts` 中定義你的即時合集（若你有建置階段合集，這個檔案與 `src/content.config.ts` 分開）。
+
+每個合集會設定：
+- 一個[即時 `loader`](#建立即時載入器)，指向資料來源，並可選擇性達成型別安全（必要）
+- 一個[即時合集 `schema`](#搭配即時合集使用-zod-綱要) 來達成型別安全（可選）
+
+與建置階段合集不同，目前沒有內建的即時載入器可用。你必須為你的特定資料來源[建立客製化即時載入器](#建立即時載入器)，或找一個第三方載入器傳給即時合集的 `loader` 屬性。
+
+你可以選擇在即時載入器中[包含型別安全](/zh-tw/reference/content-loader-reference/#the-liveloader-object)。因此，為即時合集[定義 Zod `schema`](#搭配即時合集使用-zod-綱要) 是可選的。然而，如果你有提供，它會優先於即時載入器的型別。
+
+```ts title="src/live.config.ts"
+// 定義即時合集以存取即時資料
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+// 匯出單一的 `collections` 物件以註冊你的合集
+export const collections = { products };
+```
+
+接著你可以使用專用的 `getLiveCollection()` 與 `getLiveEntry()` 函式[存取你的即時資料](#存取即時資料)並算繪內容。
+
+你可以隨需[從你的即時合集項目產生頁面路由](#從內容產生路由)，每次請求時都重新抓取最新資料，而不需要像[建置階段合集](#定義建置階段內容合集)那樣重新建置網站。當取得即時、分秒更新的資料比讓內容在高效能、跨網站建置持續留存的資料儲存層中可用更重要時，這會很有用。
+
+### 建立即時載入器
+
+你可以使用即時載入器 API 建置客製化的[即時載入器](/zh-tw/reference/content-loader-reference/#live-loaders)，在請求時從任何資料來源（例如 CMS、資料庫或 API 端點）即時抓取最新的遠端內容。你必須告訴即時載入器如何從你希望的資料來源抓取並回傳內容項目，並為資料請求失敗提供錯誤處理。
+
+使用即時載入器抓取資料時，會自動從遠端資料建立合集。這讓你擁有 Astro 內容合集的所有好處，包括合集專用的 API 輔助工具（例如 `getLiveCollection()` 與 `render()`）可用來[查詢並顯示你的資料](#查詢建置階段合集)，以及有用的錯誤處理。
+
+:::tip
+在 [Astro 整合目錄](https://astro.build/integrations/?search=&categories%5B%5D=loaders)中尋找社群開發與第三方的即時載入器。
+:::
+
+<ReadMore>使用即時載入器 API [建立即時載入器](/zh-tw/reference/content-loader-reference/#building-a-live-loader)的基本知識請參閱說明</ReadMore>
+
+### 搭配即時合集使用 Zod 綱要
+
+你可以搭配即時合集使用 Zod 綱要，在執行階段驗證與轉換資料。這個 Zod 驗證的運作方式與[建置階段合集的綱要](#定義合集綱要)相同。
+
+當你為即時合集定義綱要時，查詢合集時它會優先於[即時載入器的型別](/zh-tw/reference/content-loader-reference/#the-liveloader-object)：
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // 轉換 API 的 category 格式
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // 將日期強制轉型為 Date 物件
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // 增加一個格式化的價格欄位
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+當你搭配即時合集使用 Zod 綱要時，驗證錯誤會自動被捕捉並以 `AstroError` 物件回傳：
+
+```astro title="src/pages/store/index.astro"
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { LiveCollectionValidationError } from 'astro/content/runtime';
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// 你可以特別處理驗證錯誤
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript 知道 entry.data 是符合你 Zod 綱要的型別，而非 loader 的型別
+console.log(entry?.data.displayPrice); // 例如 "$29.99"
+---
+```
+
+<ReadMore>完整的 Zod 運作方式與可用功能文件，請參閱 [Zod 的 README](https://github.com/colinhacks/zod)。</ReadMore>
+
+
+### 存取即時資料
+
+Astro 提供即時合集的輔助函式，讓你能在每次請求時存取即時資料並回傳一個（或多個）內容項目。這些函式的用法與[建置階段合集對應的函式](#查詢建置階段合集)相似。
+
+- [`getLiveCollection()`](/zh-tw/reference/modules/astro-content/#getlivecollection) 抓取整個合集，回傳項目陣列。
+- [`getLiveEntry()`](/zh-tw/reference/modules/astro-content/#getliveentry) 從合集抓取單一項目。
+
+這些函式回傳的項目帶有唯一的 `id`，以及包含即時載入器所有已定義屬性的 `data` 物件。使用以 npm 軟體包發佈的第三方或社群載入器時，請查閱它們自己的說明文件以了解資料的預期形狀。
+
+你可以使用這些函式存取你的即時資料，傳入合集名稱與可選的過濾條件。
+
+```astro title="src/pages/store/[slug].astro"
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { getLiveCollection, getLiveEntry } from 'astro:content';
+
+// 使用載入器專用的過濾條件
+const { entries: draftArticles } = await getLiveCollection('articles', {
+  status: 'draft',
+  author: 'john-doe',
+});
+
+// 以 ID 取得特定商品
+const { entry: product } = await getLiveEntry('products', Astro.params.slug);
+---
+```
+
+#### 算繪內容
+
+如果你的即時載入器[回傳了 `rendered` 屬性](/zh-tw/reference/content-loader-reference/#livedataentryrendered)，你就可以使用 [`render()` 函式與 `<Content />` 元件](#算繪本文內容)直接在頁面中算繪內容，使用的方法與建置階段合集相同。
+
+你也可以存取[即時載入器回傳的任何錯誤](/zh-tw/reference/content-loader-reference/#error-handling-in-live-loaders)，例如在內容無法顯示時，rewrite 到 404 頁面：
+
+```astro title="src/pages/store/[id].astro" "render(entry)" "<Content />"
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { getLiveEntry, render } from 'astro:content';
+const { entry, error } = await getLiveEntry('articles', Astro.params.id);
+if (error) {
+  return Astro.rewrite('/404');
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+#### 錯誤處理
+
+即時載入器可能因網路問題、API 錯誤或驗證問題而失敗。此 API 的設計讓錯誤處理是明確的。
+
+當你呼叫 `getLiveCollection()` 或 `getLiveEntry()` 時，錯誤會是以下其中一種：
+
+- 載入器定義的錯誤類型（如果它回傳了錯誤）
+- `LiveEntryNotFoundError`：找不到項目
+- `LiveCollectionValidationError`：合集資料不符合預期的綱要
+- `LiveCollectionCacheHintError`：快取提示無效
+- `LiveCollectionError`：其他錯誤，例如載入器中未捕捉的丟出錯誤
+
+你可以在執行階段使用 `instanceof` 檢查錯誤的類型：
+
+```astro title="src/pages/store/[id].astro" "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // 在 'server' 模式下不需要
+
+import { LiveEntryNotFoundError } from 'astro/content/runtime';
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  if (error instanceof LiveEntryNotFoundError) {
+    console.error(`找不到商品：${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`載入商品時發生錯誤：${error.message}`);
+    return Astro.redirect('/500');
+  }
+}
+---
+```
+
+## 在編輯器中使用 JSON Schema 檔案
+
+<p><Since v="4.13.0" /></p>
+
+Astro 會自動為合集產生 [JSON Schema](https://json-schema.org/) 檔案，你可以在編輯器中使用它們取得資料檔案的 IntelliSense 與型別檢查。
+
+專案中每個合集都會產生一個 JSON Schema 檔案，輸出到 `.astro/collections/` 目錄。
+舉例來說，如果你有兩個合集，一個命名為 `authors`，另一個命名為 `posts`，Astro 就會產生 `.astro/collections/authors.schema.json` 與 `.astro/collections/posts.schema.json`。
+
+<h3>在 JSON 檔案中使用 JSON Schema</h3>
+
+你可以在 JSON 檔案中設定 `$schema` 欄位，手動指向 Astro 產生的綱要。
+該值應為從資料檔到綱要檔的相對路徑。
+以下範例中，`src/data/authors/` 裡的一個資料檔使用了為 `authors` 合集產生的綱要：
+
+```json title="src/data/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+<h4>在 VS Code 中為一群 JSON 檔案使用綱要</h4>
+
+在 VS Code 中，你可以使用 [`json.schemas` 設定](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)把一個綱要套用到合集中的所有檔案。
+以下範例中，`src/data/authors/` 目錄裡的所有檔案都會使用為 `authors` 合集產生的綱要：
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/data/authors/**"],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
+<h3>在 VS Code 的 YAML 檔案中使用綱要</h3>
+
+在 VS Code 中，你可以透過 [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml) 延伸模組，讓 YAML 檔案支援 JSON 綱要。
+安裝此延伸模組後，你可以在 YAML 檔案中用特殊的註解語法引用綱要：
+
+```yaml title="src/data/authors/armand.yml" ins={1}
+# yaml-language-server: $schema=../../../.astro/collections/authors.schema.json
+name: Armand
+skills:
+  - Astro
+  - Starlight
+```
+
+<h4>在 VS Code 中為一群 YAML 檔案使用綱要</h4>
+
+有了 Red Hat YAML 延伸模組，你可以使用 `yaml.schemas` 設定把一個綱要套用到合集中所有的 YAML 檔案。
+以下範例中，`src/data/authors/` 目錄裡所有 YAML 檔案都會使用為 `authors` 合集產生的綱要：
+
+```json
+{
+  "yaml.schemas": {
+    "./.astro/collections/authors.schema.json": ["/src/content/authors/*.yml"]
+  }
+}
+```
+
+進一步的細節請參閱 Red Hat YAML 延伸模組文件中的[「Associating schemas」](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas)一節。
