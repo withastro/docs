@@ -1,0 +1,283 @@
+---
+title: 中介層
+description: 了解如何在 Astro 中使用中介層。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+
+**中介層**讓你可以攔截請求與回應，並在每次頁面或端點即將被算繪時動態注入行為。對於所有預算繪的頁面，這個算繪會在建置階段發生；對於隨需算繪的頁面，則會在路由被請求時發生，使[諸如 cookie 與標頭等額外的 SSR 功能](/zh-tw/guides/on-demand-rendering/#隨需算繪功能)可供使用。
+
+中介層也讓你可以透過修改 `locals` 物件，在各端點與頁面之間設定並共享請求相關的資訊；`locals` 物件可在所有 Astro 元件與 API 端點中取得。即使在建置階段執行中介層時，這個物件也能使用。
+
+## 基本用法
+
+<Steps>
+1. 建立 `src/middleware.js|ts`（或者也可以建立 `src/middleware/index.js|ts`）。
+
+2. 在這個檔案中匯出一個 [`onRequest()`](/zh-tw/reference/modules/astro-middleware/#onrequest) 函式，可傳入一個 [`context` 物件](#context-物件)以及 `next()` 函式。這必須是具名匯出，而非預設匯出。
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // 攔截請求中的資料
+        // 可視需要修改 `locals` 的屬性
+        context.locals.title = "New title";
+
+        // 回傳一個 Response，或是呼叫 `next()` 的結果
+        return next();
+    };
+    ```
+
+3. 在任何 `.astro` 檔案中，透過 `Astro.locals` 存取回應資料。
+
+    ```astro title="src/components/Component.astro"
+    ---
+    const data = Astro.locals;
+    ---
+    <h1>{data.title}</h1>
+    <p>This {data.property} is from middleware.</p>
+    ```
+</Steps>
+
+### `context` 物件
+
+[`context`](/zh-tw/reference/api-reference/) 物件包含在算繪過程中會提供給其他中介層、API 路由與 `.astro` 路由的資訊。
+
+這是傳給 `onRequest()` 的一個可選引數，可能包含 `locals` 物件，以及任何要在算繪期間共享的其他屬性。舉例來說，`context` 物件可能包含用於驗證的 cookie。
+
+### 在 `context.locals` 中儲存資料
+
+`context.locals` 是一個可以在中介層內部被操作的物件。
+
+這個 `locals` 物件會跨請求處理流程被傳遞，並可作為 [`APIContext`](/zh-tw/reference/api-reference/#locals) 與 [`AstroGlobal`](/zh-tw/reference/api-reference/#locals) 的屬性取得。這讓資料可以在中介層、API 路由與 `.astro` 頁面之間共享。這對於在整個算繪步驟中儲存請求相關資料（例如使用者資料）很有用。
+
+:::tip[整合的屬性]
+[整合](/zh-tw/guides/integrations/)可能會透過 `locals` 物件設定屬性並提供功能。如果你使用了整合，請查閱其文件，確保你不會覆寫它的任何屬性，或做多餘的工作。
+:::
+
+你可以把任何型別的資料儲存在 `locals` 裡：字串、數字，甚至是函式與 map 等複雜資料型別。
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // 攔截請求中的資料
+    // 可視需要修改 `locals` 的屬性
+    context.locals.user.name = "John Wick";
+    context.locals.welcomeTitle = () => {
+        return "Welcome back " + locals.user.name;
+    };
+
+    // 回傳一個 Response，或是呼叫 `next()` 的結果
+    return next();
+};
+```
+
+接著你可以在任何 `.astro` 檔案中透過 `Astro.locals` 使用這些資訊。
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+const data = Astro.locals;
+---
+<h1>{title}</h1>
+<p>This {data.property} is from middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* 對每筆訂單做些什麼 */}</li>;
+    })}
+</ul>
+```
+
+`locals` 是一個只在單一 Astro 路由中存在的物件；當你的路由頁面算繪完畢時，`locals` 就不再存在，而是會建立一個新的。需要在多次頁面請求間持續存在的資訊，必須儲存在其他地方。
+
+:::note
+`locals` 的值無法在執行階段被覆寫。這麼做會有清除使用者所儲存所有資訊的風險。Astro 會進行檢查，若 `locals` 被覆寫就會丟出錯誤。
+:::
+
+## 範例：遮蔽敏感資訊
+
+以下範例使用中介層把「PRIVATE INFO」替換為「REDACTED」，讓你能在頁面上算繪修改過的 HTML：
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+## 中介層型別
+
+你可以匯入並使用工具函式 [`defineMiddleware()`](/zh-tw/reference/modules/astro-middleware/#definemiddleware) 來享受型別安全：
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` 與 `next` 會自動取得型別
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+如果你用 JsDoc 享受型別安全，可以改用 `MiddlewareHandler`：
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareHandler}
+ */
+// `context` 與 `next` 會自動取得型別
+export const onRequest = (context, next) => {
+
+};
+```
+
+要為 `Astro.locals` 內的資訊定義型別，讓你在 `.astro` 檔案與中介層程式碼中享有自動完成，請[擴充全域型別](/zh-tw/guides/typescript/#擴充全域型別)，在 `env.d.ts` 檔案中宣告全域命名空間：
+
+```ts title="src/env.d.ts"
+type User = {
+  id: number;
+  name: string;
+};
+
+declare namespace App {
+  interface Locals {
+    user: User;
+    welcomeTitle: () => string;
+    orders: Map<string, object>;
+    session: import("./lib/server/session").Session | null;
+  }
+}
+```
+
+接著在中介層檔案內，你就可以享受自動完成與型別安全。
+
+## 串接中介層
+
+多個中介層可以使用 [`sequence()`](/zh-tw/reference/modules/astro-middleware/#sequence) 按指定順序串接起來：
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+
+async function auth(_, next) {
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
+}
+
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+主控台會依下列順序輸出：
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```
+
+## 改寫
+
+<p><Since v="4.13.0" /></p>
+
+`APIContext` 提供一個名為 [`rewrite()`](/zh-tw/reference/api-reference/#rewrite) 的方法，運作方式與 [Astro.rewrite](/zh-tw/guides/routing/#rewrites) 相同。
+
+在中介層中使用 `context.rewrite()`，可以顯示其他頁面的內容，而不會把你的訪客[重新導向](/zh-tw/guides/routing/#dynamic-redirects)到新頁面。這會觸發一個新的算繪階段，使所有中介層重新執行。
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // 如果使用者尚未登入，更新 Request 以算繪 `/login` 路由，
+    // 並加上標頭，表明使用者成功登入後應被送往何處。
+    // 重新執行中介層。
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+你也可以為 `next()` 函式傳入一個可選的 URL 路徑參數，以改寫目前的 `Request`，而不觸發新的算繪階段。改寫路徑的位置可以是字串、URL 或 `Request`：
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // 如果使用者尚未登入，更新 Request 以算繪 `/login` 路由，
+    // 並加上標頭，表明使用者成功登入後應被送往何處。
+    // 將新的 `context` 傳給後續的中介層。
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+`next()` 函式接受與 [`Astro.rewrite()` 函式](/zh-tw/reference/api-reference/#rewrite)相同的 payload。改寫路徑的位置可以是字串、URL 或 `Request`。
+
+當你透過 [sequence()](#串接中介層) 串接多個中介層函式時，把路徑送進 `next()` 會就地改寫 `Request`，中介層不會再次執行。鏈中下一個中介層函式會收到帶著已更新 `context` 的新 `Request`。
+
+以這種形式呼叫 `next()` 會以舊的 `ctx.request` 建立一個新的 `Request` 物件。這代表在此改寫前後嘗試消費 `Request.body` 都會丟出執行期錯誤。這個錯誤在 [使用 HTML 表單的 Astro Actions](/zh-tw/guides/actions/#call-actions-from-an-html-form-action)中經常出現。遇到這種情況時，我們建議從你的 Astro 模板中用 `Astro.rewrite()` 處理改寫，而不是使用中介層。
+
+```js title="src/middleware.js"
+// 目前 URL 為 https://example.com/blog
+
+// 第一個中介層函式
+async function first(context, next) {
+  console.log(context.url.pathname) // 這裡會印出 "/blog"
+  // 改寫到新路由（首頁），
+  // 回傳的 `context` 會被傳給下一個函式
+  return next("/")
+}
+
+// 目前 URL 仍是 https://example.com/blog
+
+// 第二個中介層函式
+async function second(context, next) {
+  // 收到更新後的 `context`
+  console.log(context.url.pathname) // 這裡會印出 "/"
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
+## 錯誤頁面
+
+即使找不到符合的路由，中介層仍會嘗試對所有隨需算繪的頁面執行，包括 Astro 預設的（空白）404 頁面以及任何自訂 404 頁面。但這段程式碼是否執行，仍由[配接器](/zh-tw/guides/on-demand-rendering/)決定；某些配接器可能會提供平台特有的錯誤頁面。
+
+在提供 500 錯誤頁面（包括自訂的 500 頁面）前，中介層也會嘗試執行，除非伺服器錯誤發生在中介層本身的執行中。如果你的中介層沒有成功執行，你將無法使用 `Astro.locals` 來算繪 500 頁面。
