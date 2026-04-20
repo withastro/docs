@@ -76,6 +76,9 @@ export default defineConfig({
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
+	experimental: {
+		rustCompiler: true,
+	},
 	markdown: {
 		// Override with our own config
 		smartypants: false,
