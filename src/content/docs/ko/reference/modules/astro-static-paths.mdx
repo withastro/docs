@@ -1,0 +1,74 @@
+---
+title: Static Paths API 참조
+sidebar:
+  label: 'astro:static-paths'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+<p><Since v="6.0.0" /></p>
+
+이 모듈은 어댑터가 대상 런타임(예: `workerd`) 내에서 정적 경로를 수집할 수 있도록 돕는 유틸리티를 제공합니다. 이 모듈은 `prerender` Vite 환경에서만 실제 구현을 제공하며, 다른 환경에서는 아무런 동작도 수행하지 않는(no-op) 구현을 반환합니다.
+
+## `astro:static-paths`에서 가져오기
+
+```js
+import { 
+  StaticPaths,
+} from 'astro:static-paths';
+```
+
+### `StaticPaths`
+
+어댑터가 대상 런타임 내에서 사전 렌더링이 필요한 모든 경로를 수집할 수 있게 해줍니다. 이는 Node가 아닌 환경에서 실행되는 [사용자 정의 사전 렌더러를 구현](/ko/reference/adapter-reference/#사용자-정의-사전-렌더러)할 때 유용합니다.
+
+`StaticPaths` 생성자는 필수 항목인 [SSR 매니페스트](/ko/reference/integrations-reference/#ssrmanifest)와 라우트 캐시를 설명하고 라우트를 렌더링하는 데 사용되는 컴포넌트에 접근하는 메서드를 제공하는 객체를 인자로 받습니다. `StaticPaths` 인스턴스를 초기화하는 권장 방법은 [앱 인스턴스](/ko/reference/modules/astro-app/#app-인스턴스)를 전달하는 것입니다.
+
+다음 예시는 어댑터 서버 진입점에서 앱을 통해 `StaticPaths` 인스턴스를 초기화합니다:
+
+```js title="my-adapter/server.js"
+import { createApp } from 'astro/app/entrypoint';
+import { StaticPaths } from 'astro:static-paths';
+
+const app = createApp();
+const staticPaths = new StaticPaths(app);
+
+export const handler = (event, context) => {
+  // `staticPaths`를 사용하여 무언가 수행합니다.
+};
+```
+
+#### `StaticPaths.getAll()`
+
+<p>
+
+**타입:** <code>() => Promise\<Array\<\{ pathname: string, route: <a href="/ko/reference/integrations-reference/#routedata">RouteData</a> \}\>\></code>
+</p>
+
+사전 렌더링해야 하는 모든 경로를 검색합니다. 이 메서드는 라우트 경로와 해당 데이터를 설명하는 객체 배열로 분석되는 Promise를 반환합니다.
+
+다음 예시는 어댑터 핸들러에서 사전 렌더링할 모든 정적 경로를 수집하고 이를 `Response`로 반환하는 과정을 보여줍니다:
+
+```js title="my-adapter/handler.js"
+import { StaticPaths } from 'astro:static-paths';
+
+export function createHandler(app) {
+  return async (request) => {
+    const { pathname } = new URL(request.url);
+
+    // 빌드 중 정적 경로를 수집하기 위한 엔드포인트
+    if (pathname === '/__astro_static_paths') {
+      const staticPaths = new StaticPaths(app);
+      const paths = await staticPaths.getAll();
+      // { pathname: string, route: RouteData } 배열을 반환합니다.
+      return new Response(JSON.stringify({ paths }));
+    }
+
+    // ... 다른 요청 처리
+  };
+}
+```
