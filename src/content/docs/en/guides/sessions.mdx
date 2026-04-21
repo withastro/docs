@@ -35,17 +35,47 @@ import vercel from '@astrojs/vercel'
 export default defineConfig({
   adapter: vercel()
   session: {
-    driver: sessionDrivers.redis({
-      url: process.env.REDIS_URL
+    driver: sessionDrivers.lruCache({
+      max: 800,
     }),
   }
 })
 ```
 
-<ReadMore>
-  See [the `session` configuration option](/en/reference/configuration-reference/#session-options) for more details on setting a storage driver, and other configurable options.
-</ReadMore>
+When you need to override options at runtime using environment variables, you can define the driver in a separate file and use the module as [entrypoint for the session driver](/en/reference/session-driver-reference/#entrypoint) in your configuration.
 
+The following example configures the Redis driver with runtime variables in a file located in your `src` directory:
+
+```ts title="src/session-driver.ts"
+import type { SessionDriverConfig } from "astro";
+import { sessionDrivers } from "astro/config";
+
+export default function (): SessionDriverConfig {
+  return sessionDrivers.redis({
+    url: process.env.REDIS_URL,
+  });
+}
+```
+
+You can then reference this file as the driver entrypoint in your Astro configuration:
+
+```js title="astro.config.mjs" {7-9}
+import { defineConfig, sessionDrivers } from 'astro/config'
+import vercel from '@astrojs/vercel'
+
+export default defineConfig({
+  adapter: vercel(),
+  session: {
+    driver: {
+      entrypoint: new URL('./src/session-driver.ts', import.meta.url),
+    }
+  }
+})
+```
+
+<ReadMore>
+See [the `session` configuration option](/en/reference/configuration-reference/#session-options) for more details on setting a storage driver, and other configurable options.
+</ReadMore>
 
 ## Interacting with session data
 
