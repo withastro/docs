@@ -130,6 +130,25 @@ export default defineConfig({
 });
 ```
 
+### `logHandlers.compose`
+
+A particular function that allows using multiple loggers. The same message is broadcasted to all loggers. The function accepts an arbitrary number of logger configurations.logHandlers
+
+The following example composes the console logger and JSON logger using the default log level:
+
+```js title="astro.config.mjs"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.compose(
+      logHandlers.console(),
+      logHandlers.json()
+    )
+  }
+});
+```
+
 ## Custom loggers
 
 You can create a custom logger by providing the correct configuration to the `logger` setting. It accepts an object with a mandatory `entrypoint`, the module where the logger is exported, and an optional configuration to pass to the logger. The configuration must be serializable.  
@@ -141,7 +160,7 @@ When you define a custom logger, you are in charge of all logs, even the ones em
 The following example defines a custom logger exported by the `@org/custom-logger` package and accepting only one parameter to configure the logging `level`:
 
 ```js title="astro.config.mjs"
-import { defineConfig, logHandlers } from 'astro/config';
+import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   experimental: {
@@ -219,6 +238,54 @@ export default defineConfig({
     logger: logHandlers.json({ level: "warn" })
   }
 });
-``` 
+```
+
+We will expose an utility form the `astro/logger` package to check the log level.
+
+```js
+import { matchesLevel } from "astro/logger"
+
+matchesLevel("error", "info");
+```
 
 
+## Types reference
+
+The following types can be imported from the `astro` specifier.
+
+### `AstroLoggerDestination`
+
+This is the interface that custom loggers must implement. The following can be implemented:
+- `write(message: AstroLoggerMessage) => void`: a mandatory method that accepts a `AstroLoggerMessage`. It's called for every log.
+- `flush() => Promise<void> | void`: an optional function that is called at end of each request. Useful for advanced loggers for flushing logger messages while keeping the connection to the destination alive.
+- `close() => Promise<void> | void`: an optional function that is called before a server is shut down. This is a function usually called by adapters such as `@astrojs/node`. 
+
+### `AstroLoggerLevel`
+
+The level of the message.
+
+### `AstroLoggerMessage`
+
+The incoming object from the `AstroLoggerDestination.write` function:
+- `message: string`: the message being logged.
+- `level`: the level of the message.
+- `label`: an arbitrary label assigned to the log message.
+- `newLine`: whether this message should add a trailing newline.
+
+## APIs reference 
+
+The following APIs can me imported from the `astro/logger` specifier.
+
+### `matchesLevel`
+
+`matchesLevel(messageLevel: AstroLoggerLevel, configuredLevel: AstroLoggerLevel): boolean`
+
+Given two [logger level](#log-level), it returns whether the first level matches the second level. 
+
+```js
+import { matchesLevel } from "astro/logger"
+
+matchesLevel("error", "info"); // true
+matchesLevel("info", "error"); // false
+
+```
