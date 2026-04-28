@@ -1,0 +1,330 @@
+---
+title: Astro 렌더러 API
+sidebar:
+  label: 렌더러 API
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro는 모든 UI 프레임워크를 지원하도록 설계되었습니다. 이 기능은 [통합](/ko/reference/integrations-reference/)인 렌더러에 의해 제공됩니다. Astro에서 다양한 프레임워크의 UI 컴포넌트를 사용하는 방법을 알아보려면 [프론트엔드 프레임워크 가이드](/ko/guides/framework-components/)를 참조하세요.
+
+## 렌더러란?
+
+렌더러는 Astro가 기본적으로 처리하지 않는 컴포넌트 구문(예: [UI 프레임워크 컴포넌트](/ko/guides/framework-components/))을 감지하고 렌더링하는 방법을 Astro에게 알려주는 특별한 종류의 [통합](/ko/reference/integrations-reference/)입니다. 렌더러는 두 부분으로 구성됩니다:
+- 개발 및 프로덕션 빌드 중에 컴포넌트를 HTML로 렌더링하기 위해 가져오는 서버 모듈
+- 브라우저에서 컴포넌트를 하이드레이션하기 위해 [클라이언트 지시어](/ko/reference/directives-reference/#클라이언트-지시어)로 선택적으로 가져오는 클라이언트 모듈
+
+## 렌더러 구축
+
+새로운 컴포넌트 구문을 지원해야 할 때, 통합을 생성하고 [`astro:config:setup`](/ko/reference/integrations-reference/#astroconfigsetup) 훅에서 `addRenderer()`를 호출하세요. 이를 통해 컴포넌트 렌더링에 사용할 [서버 엔트리포인트](#서버-엔트리포인트-구축)를 정의할 수 있습니다. 선택적으로 하이드레이션에 사용할 [클라이언트 엔트리포인트](#클라이언트-엔트리포인트-구축)도 정의할 수 있습니다.
+
+다음 예시는 Astro 통합에서 렌더러를 등록하는 방법을 보여줍니다:
+
+```ts title="my-renderer/index.js" {5-11}
+export default function createIntegration() {
+  return {
+    name: "@example/my-renderer",
+    hooks: {
+      "astro:config:setup": ({ addRenderer }) => {
+        addRenderer({
+          name: "@example/my-renderer",
+          clientEntrypoint: "@example/my-renderer/client.js",
+          serverEntrypoint: "@example/my-renderer/server.js",
+        });
+      },
+    },
+  };
+}
+```
+
+## 서버 엔트리포인트 구축
+
+서버 측 렌더링 중에 실행되고 컴포넌트 구문을 렌더링하는 방법을 정의하는 파일을 생성해야 합니다. 서버 모듈은 [`SSRLoadedRendererValue`](#ssrloadedrenderervalue) 인터페이스를 구현하는 객체를 기본으로 내보내야 합니다.
+
+다음 예시는 `check()`와 `renderToStaticMarkup()`을 구현하는 최소한의 서버 측 렌더러를 보여줍니다:
+
+```ts title="my-renderer/server.ts"
+import type { AstroComponentMetadata, NamedSSRLoadedRendererValue } from 'astro';
+
+async function check(Component: unknown) {
+  return typeof Component === 'function' && Component.name === 'MyCustomComponent';
+}
+
+async function renderToStaticMarkup(
+  Component: any,
+  props: Record<string, unknown>,
+  slots: Record<string, string>,
+  metadata?: AstroComponentMetadata,
+) {
+  const rendered = Component(props);
+
+  return {
+    attrs: metadata?.hydrate ? { 'data-my-renderer': 'true' } : undefined,
+    html: `<${rendered.tag}>${rendered.text}${slots.default ?? ''}</${rendered.tag}>`,
+  };
+}
+
+const renderer: NamedSSRLoadedRendererValue = {
+  name: 'my-renderer',
+  check,
+  renderToStaticMarkup,
+};
+
+export default renderer;
+```
+
+## 클라이언트 엔트리포인트 구축
+
+렌더러에서 [클라이언트 지시어](/ko/reference/directives-reference/#클라이언트-지시어)를 지원하는 경우, 브라우저에서 컴포넌트를 하이드레이션하는 방법을 정의하는 클라이언트 엔트리포인트를 만드세요. 클라이언트 모듈은 아일랜드 요소를 수신하고 비동기 하이드레이션 함수를 반환하는 함수를 기본으로 내보내야 합니다.
+
+Astro는 아일랜드가 페이지에서 제거될 때마다 아일랜드의 루트 요소에서 사용자 정의 `astro:unmount` 이벤트를 디스패치합니다. 이 이벤트를 클라이언트 엔트리포인트에서 수신하여 마운트된 애플리케이션 상태를 정리할 수 있습니다.
+
+다음 예시는 브라우저에서 컴포넌트를 하이드레이션하는 최소한의 클라이언트 엔트리포인트를 보여줍니다:
+
+```ts title="my-renderer/client.ts"
+export default (element: HTMLElement) =>
+  async (
+    Component: any,
+    props: Record<string, unknown>,
+    slots: Record<string, string>,
+    { client }: { client: string },
+  ) => {
+    const rendered = Component({ ...props, slots });
+
+    if (client === 'only') {
+      element.innerHTML = '';
+    }
+
+    const node = document.createElement(rendered.tag);
+    node.textContent = rendered.text;
+    element.appendChild(node);
+
+    element.addEventListener('astro:unmount', () => node.remove(), { once: true });
+  };
+```
+
+## 렌더러 타입 참조
+
+다음 타입들은 `astro` 모듈에서 가져올 수 있습니다:
+
+```ts
+import type {
+  AstroComponentMetadata,
+  AstroRenderer,
+  NamedSSRLoadedRendererValue,
+  SSRLoadedRenderer,
+  SSRLoadedRendererValue,
+} from "astro";
+```
+
+### `AstroComponentMetadata`
+
+<p>
+
+**타입:** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+렌더링되는 컴포넌트에 대한 정보(하이드레이션 지시어 포함)를 포함합니다.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**타입:** `string`
+</p>
+
+컴포넌트 이름을 정의하며, 오류 메시지 및 디버깅에 사용됩니다.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**타입:** `'load' | 'idle' | 'visible' | 'media' | 'only'`
+</p>
+
+컴포넌트에서 사용되는 [클라이언트 지시어](/ko/reference/directives-reference/#클라이언트-지시어)를 정의합니다. 값이 제공되지 않으면 컴포넌트는 클라이언트에서 하이드레이션되지 않습니다.
+
+렌더러는 이 값을 사용하여 조건부로 클라이언트 측 하이드레이션 상태를 포함할 수 있습니다. 예를 들어, 렌더러는 하이드레이션되지 않을 컴포넌트에 대한 전송 상태 직렬화를 건너뛸 수 있습니다:
+
+```ts
+async function renderToStaticMarkup(Component, props, children, metadata) {
+  const willHydrate = !!metadata?.hydrate;
+  // 하이드레이션되지 않을 컴포넌트의 경우 전송 상태 직렬화 건너뛰기
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**타입:** `any`
+</p>
+
+하이드레이션 지시어에 전달되는 추가 인수를 지정합니다.
+
+예를 들어, `client:media`의 미디어 쿼리 문자열(예: `"(max-width: 768px)"`) 또는 `client:only`의 렌더러 힌트(예: `"react"`)가 될 수 있습니다.
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**타입:** `string`
+</p>
+
+컴포넌트 소스 파일의 URL을 정의합니다.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**타입:** `{ value: string; namespace?: boolean }`
+</p>
+
+하이드레이션된 컴포넌트에 대해 Astro가 클라이언트에서 로드할 컴포넌트의 내보내기를 설명합니다.
+
+##### `AstroComponentMetadata.componentExport.namespace`
+
+<p>
+
+**타입:** `boolean`
+</p>
+
+내보내기가 네임스페이스 내보내기인지 나타냅니다.
+
+##### `AstroComponentMetadata.componentExport.value`
+
+<p>
+
+**타입:** `string`
+</p>
+
+내보내기의 이름을 정의합니다(예: 기본 내보내기의 경우 `"default"`).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**타입:** `true`
+</p>
+
+Astro가 이 컴포넌트에 대해 정적 슬롯 최적화를 지원함을 나타냅니다. [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot)을 `true`로 설정한 렌더러는 이것을 [`hydrate`](#astrocomponentmetadatahydrate)와 조합하여 슬롯을 렌더링하는 방법을 결정하는 데 사용할 수 있습니다.
+
+### `AstroRenderer`
+
+<p>
+
+**타입:** `{ name: string; clientEntrypoint?: string | URL; serverEntrypoint: string | URL; }`
+</p>
+
+[통합에 의해 추가된 컴포넌트 렌더러](/ko/reference/integrations-reference/#addrenderer-옵션)를 설명합니다.
+
+#### `AstroRenderer.name`
+
+<p>
+
+**타입:** `string`
+</p>
+
+고유한 렌더러의 공개 이름을 정의합니다.
+
+#### `AstroRenderer.clientEntrypoint`
+
+<p>
+
+**타입:** `string | URL`
+</p>
+
+컴포넌트가 사용될 때 클라이언트에서 실행되는 렌더러의 import 경로를 정의합니다.
+
+#### `AstroRenderer.serverEntrypoint`
+
+<p>
+
+**타입:** `string | URL`
+</p>
+
+컴포넌트가 사용될 때 서버 측 요청 또는 정적 빌드 중에 실행되는 렌더러의 import 경로를 정의합니다.
+
+### `NamedSSRLoadedRendererValue`
+
+[`SSRLoadedRendererValue`](#ssrloadedrenderervalue)를 필수 `name` 속성과 함께 확장합니다.
+
+### `SSRLoadedRenderer`
+
+<p>
+
+**타입:** <code>Pick\<<a href="#astrorenderer">AstroRenderer</a>, 'name' | 'clientEntrypoint'\> & \{ ssr: <a href="#ssrloadedrenderervalue">SSRLoadedRendererValue</a>; \}</code>
+</p>
+
+서버에서 사용할 수 있는 렌더러를 설명합니다. 이는 추가 속성이 있는 [`AstroRenderer`](#astrorenderer)의 하위 집합입니다.
+
+#### `SSRLoadedRenderer.ssr`
+
+<p>
+
+**타입:** [`SSRLoadedRendererValue`](#ssrloadedrenderervalue)
+</p>
+
+이 프레임워크를 사용할 때 서버에서 사용되는 함수와 구성을 정의합니다.
+
+### `SSRLoadedRendererValue`
+
+<p>
+
+**타입:** `object`
+</p>
+
+특정 UI 프레임워크를 사용할 때 서버에서 컴포넌트를 렌더링하는 데 필요한 함수와 구성을 포함합니다.
+
+#### `SSRLoadedRendererValue.name`
+
+<p>
+
+**타입:** `string`
+</p>
+
+렌더러의 이름 식별자를 지정합니다.
+
+#### `SSRLoadedRendererValue.check()`
+
+<p>
+
+**타입:** <code>(Component: any, props: any, slots: Record\<string, string\>, metadata?: <a href="#astrocomponentmetadata">AstroComponentMetadata</a>) => Promise\<boolean\></code>
+</p>
+
+렌더러가 컴포넌트를 처리할 수 있는지 확인합니다. 이 함수는 등록된 각 렌더러에서 `true`를 반환할 때까지 호출됩니다.
+
+#### `SSRLoadedRendererValue.renderToStaticMarkup()`
+
+<p>
+
+**타입:** <code>(Component: any, props: any, slots: Record\<string, string\>, metadata?: <a href="#astrocomponentmetadata">AstroComponentMetadata</a>) => Promise\<\{ html: string; attrs?: Record\<string, string\>; \}\></code>
+</p>
+
+서버에서 프레임워크 컴포넌트를 렌더링하고, 그 결과로 생성된 HTML 문자열과 함께 클라이언트 엔트리포인트에 전달될 수 있는 선택적 속성들을 반환합니다.
+
+#### `SSRLoadedRendererValue.supportsAstroStaticSlot`
+
+<p>
+
+**타입:** `boolean`<br />
+<Since v="2.5.0" />
+</p>
+
+렌더러가 Astro의 정적 슬롯 최적화를 지원하는지 나타냅니다. true일 때, Astro는 아일랜드 내에서 중첩된 슬롯 제거를 방지합니다.
+
+#### `SSRLoadedRendererValue.renderHydrationScript()`
+
+<p>
+
+**타입:** `() => string`<br />
+<Since v="4.1.0" />
+</p>
+
+이 렌더러에서 처리하는 첫 번째 하이드레이션된 컴포넌트 이전에 페이지에 한 번 삽입할 HTML 문자열을 반환합니다. 페이지 수준의 하이드레이션 설정이 필요한 렌더러에 유용합니다.
