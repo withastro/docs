@@ -148,7 +148,100 @@ const state = new FetchState(request);
 
 `FetchState` tracks the matched route, cookies, session providers, and other per-request data. All handler functions require it as their first argument.
 
-Call `state.finalizeAll()` after the response is produced to persist any session mutations.
+#### Properties
+
+##### `state.request`
+
+**Type:** `Request`
+
+The incoming [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+
+##### `state.url`
+
+**Type:** `URL`
+
+A normalized [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) derived from the request.
+
+##### `state.pathname`
+
+**Type:** `string`
+
+The base-stripped, decoded pathname of the request (e.g. `/about` or `/blog/my-post`).
+
+##### `state.routeData`
+
+**Type:** `RouteData | undefined`
+
+The matched route for this request, if any. This is resolved automatically when the `FetchState` is created.
+
+##### `state.cookies`
+
+**Type:** `AstroCookies`
+
+An [`AstroCookies`](/en/reference/api-reference/#astrocookies) instance for reading and setting cookies on this request.
+
+##### `state.locals`
+
+**Type:** `App.Locals`
+
+A request-scoped object for storing custom data. This is the same `locals` object available in [middleware](/en/guides/middleware/) and [API routes](/en/guides/endpoints/#server-endpoints-api-routes).
+
+##### `state.params`
+
+**Type:** `Params | undefined`
+
+Route parameters derived from the matched route and pathname (e.g. `{ slug: 'my-post' }` for a `[slug].astro` route).
+
+##### `state.status`
+
+**Type:** `number`
+
+**Default:** `200`
+
+The HTTP status code for the response. You can set this before rendering to control the response status (e.g. `state.status = 404`).
+
+#### Methods
+
+##### `state.rewrite(payload)`
+
+Triggers a [rewrite](/en/guides/routing/#rewrites) to a different route. The `payload` can be a pathname string (`'/other-page'`), a URL, or a `Request`:
+
+```ts
+const response = await state.rewrite('/other-page');
+```
+
+##### `state.provide(key, provider)`
+
+Registers a context provider under the given key. The provider's `create` function is called lazily on the first `state.resolve(key)`, and its optional `finalize` callback runs during `state.finalizeAll()`:
+
+```ts
+state.provide('myService', {
+  create: () => new MyService(),
+  finalize: (service) => service.close(),
+});
+```
+
+##### `state.resolve(key)`
+
+Returns the value for a previously registered provider, calling its `create` function on first access. Returns `undefined` if no provider was registered for the key:
+
+```ts
+const service = state.resolve('myService');
+```
+
+##### `state.finalizeAll()`
+
+Runs all registered provider `finalize` callbacks. Call this after the response is produced, typically in a `finally` block, to persist session data and clean up resources:
+
+```ts
+await sessions(state);
+try {
+  // ...render pipeline...
+  return response;
+} finally {
+  await state.finalizeAll();
+}
+```
 
 ### `astro(state)`
 
