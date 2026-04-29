@@ -319,6 +319,15 @@ npx astro db shell --query "SELECT * FROM Comment;" --remote
 
 ## Astro DB 유틸리티 참조
 
+다음 유틸리티는 `astro:db` 모듈에서 가져옵니다:
+
+```ts
+import {
+  isDbError,
+  getDbError
+} from "astro:db";
+```
+
 ### `isDbError()`
 
 <p>
@@ -327,7 +336,7 @@ npx astro db shell --query "SELECT * FROM Comment;" --remote
 <Since v="0.9.1" pkg="@astrojs/db" />
 </p>
 
-`isDbError()` 함수는 오류가 libSQL 데이터베이스 예외인지 확인합니다. 여기에는 참조 사용 시 외래 키 제약 조건 오류가 포함되거나 데이터 삽입 시 필드 누락이 포함될 수 있습니다. `isDbError()`를 try / catch 블록과 결합하여 애플리케이션의 데이터베이스 오류를 처리할 수 있습니다.
+오류가 libSQL 데이터베이스 예외인지 확인합니다. 여기에는 참조 사용 시 외래 키 제약 조건 오류가 포함되거나 데이터 삽입 시 필드 누락이 포함될 수 있습니다. `isDbError()`를 try / catch 블록과 결합하여 애플리케이션의 데이터베이스 오류를 처리할 수 있습니다.
 
 ```ts title="src/pages/api/comment/[id].ts" "idDbError"
 import { db, Comment, isDbError } from 'astro:db';
@@ -342,6 +351,39 @@ export const POST: APIRoute = (ctx) => {
   } catch (e) {
     if (isDbError(e)) {
       return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
+
+### `getDbError()`
+
+<p>
+
+**타입:** `(err: unknown) => LibsqlError | undefined`<br />
+<Since v="0.21.0" pkg="@astrojs/db" />
+</p>
+
+오류의 원인을 탐색하여 기저에 있는 libSQL 데이터베이스 예외를 찾습니다. 이 함수는 `LibsqlError`를 반환하거나, 오류가 libSQL에서 발생한 것이 아니면 `undefined`를 반환합니다. 이는 다른 오류(예: `DrizzleQueryError`)가 데이터베이스 오류를 감싸고 있을 때 유용합니다.
+
+다음 예시는 발생한 예외에서 데이터베이스 오류를 추출하고 응답에 오류 코드와 메시지를 반환합니다.
+
+```ts title="src/pages/api/comment/[id].ts" "getDbError"
+import { getDbError } from 'astro:db';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    const dbError = getDbError(e);
+    if (dbError) {
+      return new Response(`Database error: ${dbError.code}\n\n${dbError.message}`, { status: 400 });
     }
     return new Response('An unexpected error occurred', { status: 500 });
   }
