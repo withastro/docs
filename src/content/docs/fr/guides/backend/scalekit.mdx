@@ -1,0 +1,314 @@
+---
+title: Scalekit & Astro
+description: Ajouter l'authentification à votre projet Astro avec Scalekit
+sidebar:
+  label: Scalekit
+type: backend
+logo: scalekit
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+import { FileTree } from '@astrojs/starlight/components';
+
+[Scalekit](https://scalekit.com/) est une plateforme d'authentification conçue pour les applications B2B et d'IA. Elle propose la connexion via les réseaux sociaux, l'authentification unique (SSO) d'entreprise, les liens magiques et bien plus encore, en gérant l'intégralité du flux OAuth 2.0 / OIDC afin que vous récupériez des jetons et un profil utilisateur sans avoir à créer d'interface utilisateur de connexion. Un seul environnement Scalekit prend en charge plusieurs applications (par exemple, `app.votreentreprise.com` et `doc.votreentreprise.com`), de sorte que vos utilisateurs s'authentifient une seule fois et partagent la même session pour toutes vos plateformes.
+
+## Initialisation de Scalekit dans Astro
+
+### Prérequis
+
+- Un compte et un environnement Scalekit. Si vous n'en avez pas, vous pouvez vous inscrire gratuitement sur [scalekit.com](https://scalekit.com/) et créer un nouvel environnement.
+- Un projet Astro avec [`output: 'server'` activé pour le rendu à la demande](/fr/guides/on-demand-rendering/).
+- Les identifiants Scalekit pour votre environnement. Vous pouvez les trouver dans la section **Settings > API Credentials** (Paramètres > Identifiants de l'API) de votre tableau de bord Scalekit.
+  - `SCALEKIT_ENVIRONMENT_URL` : L'URL de votre environnement Scalekit.
+  - `SCALEKIT_CLIENT_ID` : L'identifiant de votre client Scalekit.
+  - `SCALEKIT_CLIENT_SECRET` : Le secret de votre client Scalekit.
+  - `SCALEKIT_REDIRECT_URI` : L'URL de rappel vers laquelle Scalekit redirigera après la connexion (par exemple, `http://localhost:4321/api/auth/callback`). Enregistrez cette URL dans votre tableau de bord Scalekit sous **Settings > Redirects** (Paramètres > Redirections).
+
+### Ajouter les identifiants Scalekit
+
+Pour ajouter vos identifiants Scalekit à votre projet Astro, ajoutez ce qui suit à votre fichier `.env` :
+
+```ini title=".env"
+SCALEKIT_ENVIRONMENT_URL=URL_DE_VOTRE_ENVIRONNEMENT_SCALEKIT
+SCALEKIT_CLIENT_ID=ID_DE_VOTRE_CLIENT_SCALEKIT
+SCALEKIT_CLIENT_SECRET=SECRET_DE_VOTRE_CLIENT_SCALEKIT
+SCALEKIT_REDIRECT_URI=http://localhost:4321/api/auth/callback
+```
+
+Ces variables d'environnement sont désormais disponibles dans votre projet.
+
+Si vous souhaitez bénéficier de l'IntelliSense pour vos variables d'environnement, modifiez ou créez le fichier `env.d.ts` dans votre répertoire `src/` et ajoutez ce qui suit :
+
+```ts title="src/env.d.ts"
+/// <reference types="astro/client" />
+
+interface ImportMetaEnv {
+  readonly SCALEKIT_ENVIRONMENT_URL: string;
+  readonly SCALEKIT_CLIENT_ID: string;
+  readonly SCALEKIT_CLIENT_SECRET: string;
+  readonly SCALEKIT_REDIRECT_URI: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+declare namespace App {
+  interface Locals {
+    user?: {
+      sub: string;
+      email?: string;
+      name?: string;
+    };
+  }
+}
+```
+
+<ReadMore>En savoir plus sur les [variables d'environnement](/fr/guides/environment-variables/) et les fichiers `.env` dans Astro.</ReadMore>
+
+Votre projet devrait maintenant inclure les fichiers suivants :
+
+<FileTree title="Structure du projet">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Installer les dépendances
+
+Pour se connecter à Scalekit, installez `@scalekit-sdk/node` dans votre projet.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @scalekit-sdk/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @scalekit-sdk/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @scalekit-sdk/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, créez un dossier nommé `lib` dans votre répertoire `src/` et ajoutez-y un fichier pour le client Scalekit :
+
+```ts title="src/lib/scalekit.ts"
+import { ScalekitClient } from "@scalekit-sdk/node";
+
+export const scalekit = new ScalekitClient(
+  import.meta.env.SCALEKIT_ENVIRONMENT_URL,
+  import.meta.env.SCALEKIT_CLIENT_ID,
+  import.meta.env.SCALEKIT_CLIENT_SECRET,
+);
+
+export const REDIRECT_URI =
+  import.meta.env.SCALEKIT_REDIRECT_URI ?? "http://localhost:4321/api/auth/callback";
+```
+
+Votre projet devrait maintenant inclure les fichiers suivants :
+
+<FileTree title="Structure du projet">
+- src/
+  - lib/
+    - **scalekit.ts**
+  - env.d.ts
+- .env
+- package.json
+</FileTree>
+
+## Ajouter l'authentification avec Scalekit
+
+Scalekit gère l'authentification via un flux de redirection OAuth 2.0 / OIDC standard. Votre application envoie les utilisateurs à Scalekit, ils se connectent, et Scalekit les redirige vers votre URL de rappel avec un code d'autorisation que vous échangez contre des jetons. Ce guide utilise le flux « Authorization Code » (code d'autorisation) avec un secret pour le client, ce qui est approprié pour les applications rendues côté serveur.
+
+:::tip
+Si vous préférez ne pas utiliser de secret pour le client, Scalekit prend également en charge le [flux PKCE](https://docs.scalekit.com/authenticate/fsa/multiapp/single-page-app/). Le [site de documentation pour développeurs de Scalekit](https://github.com/scalekit-inc/developer-docs) est un projet Astro open-source qui montre une implémentation complète de PKCE sans SDK.
+:::
+
+### Créer des points de terminaison de serveur pour l'authentification
+
+Pour ajouter l'authentification à votre projet, vous devrez créer trois points de terminaison de serveur :
+
+- `GET /api/auth/login` : redirige les utilisateurs vers Scalekit pour se connecter.
+- `GET /api/auth/callback` : échange le code d'autorisation contre des jetons et définit les cookies de session.
+- `GET /api/auth/logout` : supprime les cookies de session et termine la session Scalekit.
+
+Créez ces points de terminaison dans le répertoire `src/pages/api/auth/` de votre projet. Ce dernier devrait maintenant inclure ces nouveaux fichiers :
+
+<FileTree title="Structure du projet">
+- src/
+  - lib/
+    - scalekit.ts
+  - pages/
+    - api/
+      - auth/
+        - **login.ts**
+        - **callback.ts**
+        - **logout.ts**
+  - env.d.ts
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+`login.ts` génère une URL d'autorisation et redirige l'utilisateur vers Scalekit pour se connecter.
+
+```ts title="src/pages/api/auth/login.ts"
+import type { APIRoute } from "astro";
+import { scalekit, REDIRECT_URI } from "../../../lib/scalekit";
+
+export const GET: APIRoute = async () => {
+  const url = scalekit.getAuthorizationUrl(REDIRECT_URI, {
+    scopes: ["openid", "profile", "email", "offline_access"],
+  });
+  return Response.redirect(url);
+};
+```
+
+`callback.ts` reçoit le code d'autorisation de Scalekit, l'échange contre des jetons et les enregistre dans des cookies HttpOnly.
+
+```ts title="src/pages/api/auth/callback.ts"
+import type { APIRoute } from "astro";
+import { scalekit, REDIRECT_URI } from "../../../lib/scalekit";
+
+export const GET: APIRoute = async ({ request, cookies }) => {
+  const url = new URL(request.url);
+  const code = url.searchParams.get("code");
+
+  if (!code) {
+    return Response.redirect(new URL("/", request.url).origin);
+  }
+
+  const { user, idToken, accessToken, refreshToken } =
+    await scalekit.authenticateWithCode(code, REDIRECT_URI);
+
+  const secure = url.protocol === "https:";
+  const cookieOptions = { httpOnly: true, path: "/", sameSite: "lax" as const, secure };
+
+  cookies.set("sk-id-token", idToken, cookieOptions);
+  cookies.set("sk-access-token", accessToken, cookieOptions);
+  cookies.set("sk-refresh-token", refreshToken, cookieOptions);
+
+  return Response.redirect(new URL("/", request.url).origin);
+};
+```
+
+`logout.ts` supprime les cookies de session et redirige vers le point de terminaison de déconnexion de Scalekit pour terminer la session Scalekit.
+
+```ts title="src/pages/api/auth/logout.ts"
+import type { APIRoute } from "astro";
+import { scalekit } from "../../../lib/scalekit";
+
+export const GET: APIRoute = async ({ request, cookies }) => {
+  const idToken = cookies.get("sk-id-token")?.value;
+
+  cookies.delete("sk-id-token", { path: "/" });
+  cookies.delete("sk-access-token", { path: "/" });
+  cookies.delete("sk-refresh-token", { path: "/" });
+
+  const logoutUrl = scalekit.getLogoutUrl({
+    idTokenHint: idToken,
+    postLogoutRedirectUri: new URL("/", request.url).origin,
+  });
+
+  return Response.redirect(logoutUrl);
+};
+```
+
+:::note
+L'URI `postLogoutRedirectUri` transmise à `getLogoutUrl()` doit être enregistrée comme URI de redirection post-déconnexion et être autorisée dans votre tableau de bord Scalekit, sinon Scalekit rejettera la demande de déconnexion.
+:::
+
+### Ajouter un middleware de session
+
+Créez un fichier `src/middleware.ts` pour valider le jeton d'accès à chaque requête et remplir `Astro.locals.user` avec le profil de l'utilisateur authentifié. Lorsque le jeton d'accès a expiré, le middleware le rafraîchit automatiquement en utilisant le jeton de rafraîchissement.
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from "astro:middleware";
+import type { IdTokenClaim } from "@scalekit-sdk/node";
+import { scalekit } from "./lib/scalekit";
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const accessToken = context.cookies.get("sk-access-token")?.value;
+
+  if (accessToken) {
+    try {
+      const claims = await scalekit.validateToken<IdTokenClaim>(accessToken);
+      context.locals.user = {
+        sub: claims.sub,
+        email: claims.email,
+        name: claims.name,
+      };
+    } catch {
+      // Jeton d'accès invalide ou expiré — essayer de l'actualiser
+      const refreshToken = context.cookies.get("sk-refresh-token")?.value;
+      if (refreshToken) {
+        try {
+          const { accessToken: newToken } =
+            await scalekit.refreshAccessToken(refreshToken);
+
+          const secure = new URL(context.request.url).protocol === "https:";
+          context.cookies.set("sk-access-token", newToken, {
+            httpOnly: true,
+            path: "/",
+            sameSite: "lax",
+            secure,
+          });
+
+          const claims = await scalekit.validateToken<IdTokenClaim>(newToken);
+          context.locals.user = {
+            sub: claims.sub,
+            email: claims.email,
+            name: claims.name,
+          };
+        } catch {
+          // Échec de l'actualisation — supprimer les cookies de session
+          context.cookies.delete("sk-id-token", { path: "/" });
+          context.cookies.delete("sk-access-token", { path: "/" });
+          context.cookies.delete("sk-refresh-token", { path: "/" });
+        }
+      }
+    }
+  }
+
+  return next();
+});
+```
+
+### Création d'une page authentifiée
+
+Maintenant que votre middleware remplit `Astro.locals.user`, vous pouvez créer des pages qui affichent un contenu différent en fonction de l'état d'authentification.
+
+`dashboard.astro` est une page accessible uniquement aux utilisateurs authentifiés. Elle lit l'utilisateur à partir de `Astro.locals`, défini par le middleware, et redirige vers la page d'accueil si l'utilisateur n'est pas connecté.
+
+```astro title="src/pages/dashboard.astro"
+---
+import Layout from "../layouts/Layout.astro";
+
+const user = Astro.locals.user;
+
+if (!user) {
+  return Astro.redirect("/");
+}
+---
+
+<Layout title="Dashboard">
+  <h1>Bienvenue, {user.name ?? user.email}</h1>
+  <p>Vous êtes connecté.</p>
+  <a href="/api/auth/logout">Se déconnecter</a>
+</Layout>
+```
+
+## Ressources communautaires
+
+- [Documentation du SDK Node.js de Scalekit](https://github.com/scalekit-inc/scalekit-sdk-node)
+- [Tutoriel de création de blog d'Astro avec l'authentification Scalekit (flux de code d'autorisation)](https://github.com/scalekit-developers/astro-scalekit-auth-example)
+- [Source du site de documentation pour développeurs de Scalekit (flux PKCE, sans SDK)](https://github.com/scalekit-inc/developer-docs)
