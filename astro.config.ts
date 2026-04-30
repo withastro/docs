@@ -77,7 +77,7 @@ export default defineConfig({
 		}),
 		sitemap(),
 		mdx({
-			optimize: false,
+			optimize: true,
 		}),
 	],
 	trailingSlash: 'always',
