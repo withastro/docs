@@ -1,4 +1,6 @@
 import { h as _h, type Properties } from 'hastscript';
+import { directiveToMarkdown } from 'mdast-util-directive';
+import { toMarkdown } from 'mdast-util-to-markdown';
 import { defineMdastPlugin } from 'satteri';
 
 import type { Paragraph as P, PhrasingContent } from 'mdast';
@@ -153,4 +155,39 @@ export function asidesPlugin(options?: RemarkRehypePluginOptions) {
 			);
 		},
 	});
+}
+
+/**
+ * Mirror of Starlight's `remarkDirectivesRestoration` for Sätteri. Serializes
+ * any leftover text or leaf directive back to its source Markdown form so that
+ * incidental colon syntax in user content (e.g. `x:y` inside a heading) doesn't
+ * silently disappear when no plugin claims the directive.
+ *
+ * Container directives are intentionally left alone — upstream restores text
+ * and leaf directives only.
+ */
+export function directivesRestorationPlugin() {
+	return defineMdastPlugin({
+		name: 'directives-restoration',
+		textDirective(node) {
+			return { type: 'text', value: serializeDirective(node) };
+		},
+		leafDirective(node) {
+			return {
+				type: 'paragraph',
+				children: [{ type: 'text', value: serializeDirective(node) }],
+			};
+		},
+	});
+}
+
+/**
+ * `mdast-util-to-markdown` appends a trailing newline to satisfy the POSIX
+ * "complete file" contract; strip it so the restored text fits inline.
+ *
+ * @see https://github.com/syntax-tree/mdast-util-to-markdown/blob/fd6a508cc619b862f75b762dcf876c6b8315d330/lib/index.js#L79-L85
+ */
+function serializeDirective(node: Parameters<typeof toMarkdown>[0]): string {
+	const md = toMarkdown(node, { extensions: [directiveToMarkdown()] });
+	return md.at(-1) === '\n' ? md.slice(0, -1) : md;
 }

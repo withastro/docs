@@ -14,6 +14,7 @@ import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
 import {
 	asidesPlugin,
 	autolinkHeadingsPlugin,
+	directivesRestorationPlugin,
 	rtlCodeSupportPlugin,
 } from './config/plugins/starlight';
 import mdx from '@astrojs/mdx';
@@ -101,7 +102,7 @@ export default defineConfig({
 	experimental: {
 		rustCompiler: true,
 		nativeMarkdown: {
-			mdastPlugins: [fallbackLangPlugin(), asidesPlugin()],
+			mdastPlugins: [fallbackLangPlugin(), asidesPlugin(), directivesRestorationPlugin()],
 			hastPlugins: [tasklistEnhancerPlugin(), rtlCodeSupportPlugin(), autolinkHeadingsPlugin()],
 			features: {
 				directive: true,
