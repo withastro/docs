@@ -66,7 +66,7 @@ Définit un nom unique pour votre adaptateur. Ce nom sera utilisé pour la journ
 :::caution[Dépréciée]
 `entrypointResolution: "explicit"` est dépréciée. `entrypointResolution: "auto"` deviendra le comportement par défaut, et unique, dans une future version majeure.
 
-Découvrez [comment migrer](/fr/guides/upgrade-to/v6/#deprecated-createexports-and-start-adapter-api).
+Découvrez [comment migrer](/fr/guides/upgrade-to/v6/#dépréciation-createexports-et-start-api-des-adaptateurs).
 :::
 
 Spécifie la méthode qu'Astro utilisera pour résoudre le point d'entrée du serveur : `"auto"` (recommandée) ou `"explicit"` (par défaut, mais dépréciée) :
@@ -260,6 +260,8 @@ export default function createIntegration() {
 }
 ```
 
+<ReadMore>Apprenez-en davantage sur la façon de [créer un point d'entrée de prévisualisation](#création-dun-point-dentrée-de-prévisualisation).</ReadMore>
+
 ### `args`
 
 <p>
@@ -268,7 +270,7 @@ export default function createIntegration() {
 </p>
 
 :::caution[Dépréciée]
-Cette propriété est obsolète et sera supprimée dans une future version majeure. Apprenez comment [mettre à jour votre adaptateur avec `entrypointResolution: "auto"`](/fr/guides/upgrade-to/v6/#deprecated-createexports-and-start-adapter-api).
+Cette propriété est obsolète et sera supprimée dans une future version majeure. Apprenez comment [mettre à jour votre adaptateur avec `entrypointResolution: "auto"`](/fr/guides/upgrade-to/v6/#dépréciation-createexports-et-start-api-des-adaptateurs).
 :::
 
 Une valeur sérialisable en JSON qui sera transmise au point d'entrée du serveur de l'adaptateur au moment de l'exécution. Ceci est utile pour transmettre un objet contenant la configuration de compilation (par exemple, les chemins d'accès, les secrets) au code de l'environnement d'exécution de votre serveur.
@@ -303,7 +305,7 @@ export default function createIntegration() {
 </p>
 
 :::caution[Dépréciée]
-Cette propriété est obsolète et sera supprimée dans une future version majeure. Apprenez comment [mettre à jour votre adaptateur avec `entrypointResolution: "auto"`](/fr/guides/upgrade-to/v6/#deprecated-createexports-and-start-adapter-api).
+Cette propriété est obsolète et sera supprimée dans une future version majeure. Apprenez comment [mettre à jour votre adaptateur avec `entrypointResolution: "auto"`](/fr/guides/upgrade-to/v6/#dépréciation-createexports-et-start-api-des-adaptateurs).
 :::
 
 Définit un tableau d'exportations nommées à utiliser en conjonction avec la fonction `createExports()` de votre point d'entrée de serveur.
@@ -376,7 +378,7 @@ export default function createIntegration() {
 
 La fonction de fabrique reçoit le moteur de prérendu par défaut, ce qui vous permet d'encapsuler ou d'étendre son comportement. Ceci est utile lorsque vous n'avez besoin de personnaliser que certains aspects du prérendu.
 
-### Création d'un point d'entrée de serveur
+## Création d'un point d'entrée de serveur
 
 Vous devrez créer un fichier qui s'exécute lors des requêtes côté serveur afin d'activer le rendu à la demande avec votre hébergeur. L'API des adaptateurs d'Astro tente de fonctionner avec n'importe quel type d'hébergeur et offre une méthode flexible pour se conformer aux API de l'hébergeur.
 
@@ -476,6 +478,29 @@ const app = createApp();
 export async function handler(event, context) {
   // ...
 }
+```
+
+## Création d'un point d'entrée de prévisualisation
+
+Lorsque votre adaptateur prend en charge la [sortie hybride](#hybridoutput) ou [serveur](#serveroutput), vous pouvez fournir un point d'entrée de prévisualisation pour activer la prise en charge de [`astro preview`](/fr/reference/cli-reference/#astro-preview). La sortie statique ne nécessite pas de point d'entrée de prévisualisation.
+
+Pour enregistrer un point d'entrée de prévisualisation, faites en sorte que l'exportation par défaut du module soit une fonction qui accepte les [paramètres du serveur](#previewserverparams) en argument et renvoie un [serveur de prévisualisation (`PreviewServer`)](#previewserver). Ensuite, spécifiez le chemin du module comme valeur pour [`previewEntrypoint`](#previewentrypoint) dans votre adaptateur.
+
+L'exemple suivant implémente un point d'entrée qui crée un serveur de prévisualisation en utilisant une fonction `createServer()` personnalisée avant de le renvoyer :
+
+```ts title="mon-adaptateur/previsualisation.ts"
+import type { CreatePreviewServer } from 'astro';
+import { createServer } from './utilitaires/serveur';
+
+const createPreviewServer: CreatePreviewServer = async (config) => {
+  const host = config.host ?? '0.0.0.0';
+  const port = config.port ?? 4321;
+  const server = createServer(host, port);
+
+  return server;
+};
+
+export default createPreviewServer;
 ```
 
 ## Fonctionnalités d'Astro
@@ -831,6 +856,20 @@ export default function createIntegration() {
 
 ## Référence des types des adaptateurs
 
+Les types suivants peuvent être importés depuis le module `astro` :
+
+```ts
+import type {
+  AdapterSupport,
+  AdapterSupportsKind,
+  AdapterSupportWithMessage,
+  MiddlewareMode,
+  CreatePreviewServer,
+  PreviewServer,
+  PreviewServerParams,
+} from "astro";
+```
+
 ### `AdapterSupport`
 
 <p>
@@ -953,6 +992,160 @@ export default function createIntegration() {
 </p>
 
 Une union de formats valides pour décrire le mode d'exécution du middleware.
+
+### `CreatePreviewServer`
+
+<p>
+
+**Type :** <code>(params: <a href="#previewserverparams">PreviewServerParams</a>) => <a href="#previewserver">PreviewServer</a> | Promise\<<a href="#previewserver">PreviewServer</a>\></code>
+</p>
+
+Décrit la fonction qu'un adaptateur doit exporter pour démarrer un serveur de prévisualisation lorsque [`astro preview`](/fr/reference/cli-reference/#astro-preview) est exécuté.
+
+### `PreviewServer`
+
+<p>
+
+**Type :** `{ host?: string; port: number; closed(): Promise<void>; stop(): Promise<void>; }`
+</p>
+
+Décrit une instance de serveur de prévisualisation pour l'adaptateur.
+
+#### `PreviewServer.host`
+
+<p>
+
+**Type :** `string | undefined`
+</p>
+
+Définit l'hôte sur lequel le serveur de prévisualisation écoute.
+
+#### `PreviewServer.port`
+
+<p>
+
+**Type :** `number`
+</p>
+
+Définit le port sur lequel le serveur de prévisualisation écoute.
+
+#### `PreviewServer.closed()`
+
+<p>
+
+**Type :** `() => Promise<void>`
+</p>
+
+Définit une fonction qui se résout lorsque le serveur de prévisualisation est fermé.
+
+#### `PreviewServer.stop()`
+
+<p>
+
+**Type :** `() => Promise<void>`
+</p>
+
+Définit une fonction pour arrêter le serveur de prévisualisation et effectuer tout nettoyage nécessaire.
+
+### `PreviewServerParams`
+
+<p>
+
+**Type :** `object`
+</p>
+
+Décrit la configuration du serveur de prévisualisation.
+
+#### `PreviewServerParams.outDir`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+Le [répertoire de sortie configuré](/fr/reference/configuration-reference/#outdir) pour la compilation.
+
+#### `PreviewServerParams.client`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+Le [répertoire des ressources client configuré](/fr/reference/configuration-reference/#buildclient) pour la compilation.
+
+#### `PreviewServerParams.server`
+
+<p>
+
+**Type :** `URL`<br />
+<Since v="6.0.0" />
+</p>
+
+Le [répertoire configuré pour le JavaScript côté serveur](/fr/reference/configuration-reference/#buildserver) lors de la compilation pour SSR.
+
+#### `PreviewServerParams.serverEntrypoint`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+Le module d'entrée du serveur compilé et généré par Astro.
+
+#### `PreviewServerParams.host`
+
+<p>
+
+**Type :** `string | undefined`
+</p>
+
+Indique l'[hôte configuré](/fr/reference/configuration-reference/#serverhost) sur lequel le serveur de prévisualisation doit écouter.
+
+#### `PreviewServerParams.port`
+
+<p>
+
+**Type :** `number`
+</p>
+
+Définit le [port configuré](/fr/reference/configuration-reference/#serverport) sur lequel le serveur de prévisualisation doit écouter.
+
+#### `PreviewServerParams.base`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Spécifie le [chemin de base configuré](/fr/reference/configuration-reference/#base) vers lequel déployer.
+
+#### `PreviewServerParams.logger`
+
+<p>
+
+**Type :** [`AstroIntegrationLogger`](/fr/reference/integrations-reference/#astrointegrationlogger)
+</p>
+
+Définit une instance du journaliseur d'Astro qui peut être utilisée pour écrire des journaux lorsque le serveur de prévisualisation est en cours d'exécution.
+
+#### `PreviewServerParams.headers`
+
+<p>
+
+**Type :** `OutgoingHttpHeaders | undefined`
+</p>
+
+Décrit les [en-têtes de réponse HTTP configurés](/fr/reference/configuration-reference/#serverheaders).
+
+#### `PreviewServerParams.root`
+
+<p>
+
+**Type :** `URL`
+</p>
+
+Indique le [répertoire racine configuré](/fr/reference/configuration-reference/#root) du projet.
 
 ## Autoriser l'installation via `astro add`
 

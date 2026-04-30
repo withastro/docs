@@ -138,6 +138,7 @@ export const sidebar = [
 				items: [
 					'reference/integrations-reference',
 					'reference/adapter-reference',
+					'reference/renderer-reference',
 					'reference/content-loader-reference',
 					'reference/image-service-reference',
 					'reference/dev-toolbar-app-reference',
@@ -157,6 +158,7 @@ export const sidebar = [
 					'reference/experimental-flags/svg-optimization',
 					'reference/experimental-flags/queued-rendering',
 					'reference/experimental-flags/rust-compiler',
+					'reference/experimental-flags/logger',
 				],
 			}),
 			'reference/legacy-flags',
