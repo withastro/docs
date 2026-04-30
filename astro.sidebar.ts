@@ -158,6 +158,7 @@ export const sidebar = [
 					'reference/experimental-flags/svg-optimization',
 					'reference/experimental-flags/queued-rendering',
 					'reference/experimental-flags/rust-compiler',
+					'reference/experimental-flags/logger',
 				],
 			}),
 			'reference/legacy-flags',
