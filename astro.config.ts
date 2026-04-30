@@ -12,6 +12,11 @@ import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhance
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 import { tasklistEnhancerPlugin } from './config/plugins/satteri-tasklist-enhancer';
 import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
+import {
+	asidesPlugin,
+	autolinkHeadingsPlugin,
+	rtlCodeSupportPlugin,
+} from './config/plugins/starlight';
 import mdx from '@astrojs/mdx';
 
 /* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
@@ -73,7 +78,7 @@ export default defineConfig({
 		}),
 		sitemap(),
 		mdx({
-			optimize: true,
+			optimize: false,
 		}),
 	],
 	trailingSlash: 'always',
@@ -97,10 +102,13 @@ export default defineConfig({
 	experimental: {
 		rustCompiler: true,
 		nativeMarkdown: {
-			mdastPlugins: [fallbackLangPlugin()],
-			hastPlugins: [tasklistEnhancerPlugin()],
+			mdastPlugins: [fallbackLangPlugin(), asidesPlugin()],
+			hastPlugins: [tasklistEnhancerPlugin(), rtlCodeSupportPlugin(), autolinkHeadingsPlugin()],
 			features: {
 				directive: true,
+				smartPunctuation: {
+					dashes: false,
+				},
 			},
 		},
 	},
