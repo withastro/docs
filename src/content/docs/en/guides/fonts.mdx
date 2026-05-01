@@ -275,23 +275,20 @@ You can also opt out of the default optimization by setting [`font.optimizedFall
 
 ## Accessing font data programmatically
 
-Astro exposes a low-level API for accessing font family data programmatically through the [`fontData`](/en/reference/modules/astro-assets/#fontdata) object. This can be useful for advanced use cases where you need direct access to font files, such as generating OpenGraph images with [Satori](https://github.com/vercel/satori) in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes).
+Astro exposes low-level APIs for accessing data programmatically:
 
-This low-level API gives you access to all font files downloaded by Astro for your project, along with their metadata. This means that you are responsible for filtering font files to find the specific file you need, and for resolving the file path to use based on the build output structure.
+- Font family data through the [`fontData`](/en/reference/modules/astro-assets/#fontdata) object
+- Font file URLs with the [`experimental_getFontFileURL()`](/en/reference/modules/astro-assets/#experimental_getfontfileurl) function.
 
-:::note
-The current API has a [known limitation that requires you to manually load the font file](https://github.com/withastro/astro/issues/16139) from the output path at build time.
+This can be useful for advanced use cases where you need direct access to font files, such as generating OpenGraph images with [Satori](https://github.com/vercel/satori) in an [API Route](/en/guides/endpoints/#server-endpoints-api-routes).
 
-A new API is being developed to simplify this process and will be available in a future release. You can subscribe to the GitHub issue to follow its progress.
-:::
+The `fontData` object gives you access to all font files downloaded by Astro for your project, along with their metadata. This means that you are responsible for filtering font files to find the specific file you need, and for fetching data after resolving URLs.
 
 The following example generates an OpenGraph image in a static file endpoint, assuming that only [one font and its format have been configured](/en/reference/configuration-reference/#fontformats) with a [format supported by Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts):
 
-```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
+```tsx title="src/pages/og.png.ts" {2,14-15} "fontData[\"--font-roboto\"]"
 import type { APIRoute } from "astro";
-import { fontData } from "astro:assets";
-import { outDir } from "astro:config/server";
-import { readFile } from "node:fs/promises";
+import { fontData, experimental_getFontFileURL } from "astro:assets";
 import satori from "satori";
 import { html } from "satori-html";
 import sharp from "sharp";
@@ -303,9 +300,8 @@ export const GET: APIRoute = async (context) => {
     throw new Error("Cannot find the font path.");
   }
 
-  const data = import.meta.env.DEV
-    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
-    : await readFile(new URL(`.${fontPath}`, outDir));
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  const data = await fetch(url).then((res) => res.arrayBuffer());
 
   const svg = await satori(
     html`<div style="color: black;">hello, world</div>`,
