@@ -7,7 +7,6 @@ import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
 import { localesConfig } from './config/locales';
-import { starlightPluginLlmsTxt } from './config/plugins/llms-txt';
 import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
@@ -69,13 +68,16 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
-			plugins: [starlightPluginSmokeTest(), starlightPluginLlmsTxt()],
+			plugins: [starlightPluginSmokeTest()],
 		}),
 		sitemap(),
 	],
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
+	experimental: {
+		rustCompiler: true,
+	},
 	markdown: {
 		// Override with our own config
 		smartypants: false,
