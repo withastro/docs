@@ -1,6 +1,8 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
+	tutorial: 'Tutorial',
+
 	guides: 'Anleitungen und Beispiele',
 	'guides.welcome': 'Willkommen, Welt!',
 	'guides.newProject': 'Ein neues Projekt starten',
