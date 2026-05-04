@@ -317,7 +317,16 @@ L'exemple suivant sélectionne toutes les lignes d'une table `Comment` dans une 
 npx astro db shell --query "SELECT * FROM Comment;" --remote
 ```
 
-## Référence de l'utilitaire Astro DB
+## Référence des utilitaires d'Astro DB
+
+Les utilitaires suivants sont importés depuis le module `astro:db` :
+
+```ts
+import {
+  isDbError,
+  getDbError
+} from "astro:db";
+```
 
 ### `isDbError()`
 
@@ -327,7 +336,7 @@ npx astro db shell --query "SELECT * FROM Comment;" --remote
 <Since v="0.9.1" pkg="@astrojs/db" />
 </p>
 
-La fonction `isDbError()` vérifie si une erreur est une exception de la base de données libSQL. Il peut s'agir d'une erreur de contrainte de clé étrangère lors de l'utilisation de références, ou de champs manquants lors de l'insertion de données. Vous pouvez combiner `isDbError()` avec un bloc try/catch pour gérer les erreurs de base de données dans votre application :
+Vérifie si une erreur est une exception de la base de données libSQL. Il peut s'agir d'une erreur de contrainte de clé étrangère lors de l'utilisation de références, ou de champs manquants lors de l'insertion de données. Vous pouvez combiner `isDbError()` avec un bloc try/catch pour gérer les erreurs de base de données dans votre application :
 
 ```ts title="src/pages/api/comment/[id].ts" "idDbError"
 import { db, Comment, isDbError } from 'astro:db';
@@ -342,6 +351,39 @@ export const POST: APIRoute = (ctx) => {
   } catch (e) {
     if (isDbError(e)) {
       return new Response(`Impossible d'insérer un commentaire avec l'id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response("Une erreur inattendue s'est produite", { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
+
+### `getDbError()`
+
+<p>
+
+**Type :** `(err: unknown) => LibsqlError | undefined`<br />
+<Since v="0.21.0" pkg="@astrojs/db" />
+</p>
+
+Parcourt la chaîne de causes d'une erreur pour trouver l'exception sous-jacente de la base de données libSQL. Elle renvoie `LibsqlError` ou `undefined` si l'erreur ne provient pas de LibSQL. Cela est utile lorsqu'une autre erreur (par exemple, `DrizzleQueryError`) peut envelopper l'erreur de base de données.
+
+L'exemple suivant extrait l'erreur de base de données d'une exception interceptée et renvoie le code d'erreur et le message dans la réponse :
+
+```ts title="src/pages/api/comment/[id].ts" "getDbError"
+import { getDbError } from 'astro:db';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    const dbError = getDbError(e);
+    if (dbError) {
+      return new Response(`Erreur de base de données : ${dbError.code}\n\n${dbError.message}`, { status: 400 });
     }
     return new Response("Une erreur inattendue s'est produite", { status: 500 });
   }
