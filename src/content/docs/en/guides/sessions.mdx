@@ -50,11 +50,11 @@ See [the `session` configuration option](/en/reference/configuration-reference/#
 
 ### Overriding the configuration at runtime
 
-By default, session drivers are configured at build time and any environment variables used will be inlined into the build. This means you cannot override the configuration at runtime.
+By default, session drivers are configured at build time and any [environment variables](https://docs.astro.build/en/guides/environment-variables/) used will be inlined into the build. This means you cannot override the configuration at runtime.
 
 When you need a different configuration (e.g. to connect to an external service), define it in a separate file. Then use that file as the [driver's entrypoint](/en/reference/session-driver-reference/#entrypoint).
 
-The following example takes advantage of [Unstorage compatibility](/en/reference/session-driver-reference/#unstorage-compatibility) to configure the Redis driver in its own entry point:
+The following example takes advantage of [Unstorage compatibility](/en/reference/session-driver-reference/#unstorage-compatibility) to configure the Redis driver in its own entrypoint:
 
 <Steps>
 1. Install the [`unstorage` package](https://unstorage.unjs.io/guide):
@@ -80,22 +80,27 @@ The following example takes advantage of [Unstorage compatibility](/en/reference
     ```ts title="src/session-driver.ts"
     import type { SessionDriver } from "astro";
     import redisDriver from "unstorage/drivers/redis";
+    import { REDIS_HOST, REDIS_PORT } from "astro:env";
 
     export default function (): SessionDriver {
       return redisDriver({
-        host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT,
+        host: REDIS_HOST,
+        port: REDIS_PORT,
       });
     }
     ```
 
 3. Use this file as the driver's entrypoint in your Astro configuration:
-    ```js title="astro.config.mjs" {7-9}
-    import { defineConfig, sessionDrivers } from "astro/config";
+    ```js title="astro.config.mjs" {11-13}
+    import { defineConfig, envField, sessionDrivers } from "astro/config";
     import vercel from "@astrojs/vercel";
 
     export default defineConfig({
       adapter: vercel(),
+      env: {
+        REDIS_HOST: envField.string({ context: "server", access: "public", default: "localhost" }),
+        REDIS_PORT: envField.number({ context: "server", access: "public", default: 6379 }),
+      },
       session: {
         driver: {
           entrypoint: new URL('./src/session-driver.ts', import.meta.url),
@@ -103,7 +108,6 @@ The following example takes advantage of [Unstorage compatibility](/en/reference
       }
     });
     ```
-
 </Steps>
 
 ## Interacting with session data
