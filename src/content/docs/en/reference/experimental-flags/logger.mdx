@@ -1,0 +1,328 @@
+---
+title: Experimental logger
+sidebar:
+  label: Logger
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type:** `object`<br />
+**Default:** `undefined`<br />
+<Since v="6.2.0" />
+</p>
+
+Enables an experimental, custom logger that can be controlled by the user. 
+
+When provided, the user has total control over the logs emitted by Astro. Additionally, the feature comes with some built-in loggers that can be used via the new `logHandlers`.
+
+The following example enables the built-in JSON logger, with a pretty output:
+
+```js title="astro.config.mjs" {5} ins="logHandlers"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true })
+  }
+});
+```
+
+Alternatively, you can enable JSON logging for the `dev`, `build`, and `sync` commands using the `--experimentalJson` flag:
+
+```shell
+astro dev --experimentalJson
+astro sync --experimentalJson
+astro build --experimentalJson
+```
+
+
+## Built-in loggers
+
+The feature comes with three built-in loggers.
+
+### `logHandlers.json`
+
+A logger that outputs messages in a JSON format. A log would look like this:
+```json
+{ "message": "<the message>", "label": "router", "level": "info", "time": "<UNIX timestamp>"  }
+```
+
+#### JSON logger options
+
+<p>
+**Type:** `{ pretty: boolean; level: AstroLoggerLevel; }`<br />
+**Default:** `{ pretty: false, level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+The `json` logger accepts the following options:
+
+- `pretty`: when `true`, the JSON log is printed on multiple lines. Defaults to `false`.
+- `level`: the [level](#log-level) of logs that should be printed.
+
+```js title="astro.config.mjs" {5} ins="json"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true })
+  }
+});
+```
+
+### `logHandlers.console`
+
+A logger that prints messages using the `console` as its destination. Based on the level of the message, it uses different channels:
+
+- `error` messages are printed using `console.error()`.
+- `warn` messages are printed using `console.warn()`.
+- `info` messages are printed using `console.info()`.
+
+#### Console logger options
+
+<p>
+**Type:** `{ level: AstroLoggerLevel }`<br />
+**Default:** `{ level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+The `console` logger accepts the following options:
+
+- `level`: the [level](#log-level) of logs that should be printed.
+
+```js title="astro.config.mjs" {5} ins="console"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.console({ level: 'warn' })
+  }
+});
+```
+
+### `logHandlers.node`
+
+A logger that prints messages to [`process.stdout`](https://nodejs.org/api/process.html#processstdout) and [`process.stderr`](https://nodejs.org/api/process.html#processstderr). Level `error` messages are printed to `stderr`, while the others are printed to `stdout`.
+
+This is Astro's default logger.
+
+#### Node logger options
+
+<p>
+**Type:** `{ level: AstroLoggerLevel }`<br />
+**Default:** `{ level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+The `node` logger accepts the following options:
+
+- `level`: the [level](#log-level) of logs that should be printed.
+
+```js title="astro.config.mjs" {5} ins="node"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.node({ level: 'warn' })
+  }
+});
+```
+
+### `logHandlers.compose`
+
+A particular function that allows configuring multiple loggers in an arbitrary order. The same message is broadcast to all loggers.
+
+The following example composes the console logger and JSON logger using the default log level:
+
+```js title="astro.config.mjs"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.compose(
+      logHandlers.console(),
+      logHandlers.json()
+    )
+  }
+});
+```
+
+## Custom loggers
+
+You can create a custom logger by providing the correct configuration to the `logger` setting. It accepts an object with a mandatory `entrypoint`, the module where the logger is exported, and an optional configuration to pass to the logger. The configuration must be serializable.  
+
+The logger function must be exported as `default`.
+
+When you define a custom logger, you are in charge of all logs, even the ones emitted by Astro. 
+
+The following example defines a custom logger exported by the `@org/custom-logger` package and accepting only one parameter to configure the logging `level`:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: {
+      entrypoint: "@org/custom-logger",
+      config: {
+        level: "warn"
+      }
+    }
+  }
+});
+```
+
+The following example implements a minimal logger returning an [`AstroLoggerDestination` object](#astrologgerdestination) with the required `write()` function:
+
+```ts title="@org/custom-logger/index.ts"
+import type { 
+  AstroLoggerLevel, 
+  AstroLoggerDestination, 
+  AstroLoggerMessage 
+} from "astro";
+import { matchesLevel } from "astro/logger"; 
+
+type LoggerOptions = {
+  level: AstroLoggerLevel
+}
+
+function orgLogger(options: LoggerOptions = {}): AstroLoggerDestination {
+  const { level = 'info' } = options;
+  return {
+    write(message: AstroLoggerMessage) {
+      // Use this utility to understand if the message should be printed 
+      if (matchesLevel(message.level, level)) {
+        // log message somewhere and take the level into consideration
+      }
+    }
+  }
+}
+
+export default orgLogger;
+```
+
+## Runtime
+
+The [context object](/en/reference/api-reference/#the-context-object) now exposes a `logger` object containing the following functions:
+
+- `error()`, which emits a message with `error` level. 
+- `warn()`, which emits a message with `warn` level. 
+- `info()`, which emits a message with `info` level. 
+
+```astro
+---
+Astro.logger.error("This is an error");
+Astro.logger.warn("This is a warning");
+Astro.logger.info("This is an info");
+---
+```
+
+## Log level
+
+A level is an internal, arbitrary score assigned to each message. When a logger is configured with a certain level, only the messages with a level equal to or higher are printed.
+
+There are three levels, from the highest to the lowest score:
+1. `error`
+2. `warn`
+3. `info`
+
+The following example configures the JSON logger to print only messages that have the `warn` level or higher:
+
+```js title="astro.config.mjs" {5} ins='level: "warn"'
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ level: "warn" })
+  }
+});
+```
+
+The `astro/logger` package exposes a [`matchesLevel()`](#matcheslevel) helper to check the log level. This can be useful when [building a custom logger](#custom-loggers).
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info");
+```
+
+
+## Types reference
+
+The following types can be imported from the `astro` specifier.
+
+### `AstroLoggerDestination`
+
+This is the interface that custom loggers must implement.
+
+#### `AstroLoggerDestination.write()`
+
+<p>
+
+**Type:** `(message: AstroLoggerMessage) => void`
+</p>
+
+A mandatory method called for each log and accepting an [`AstroLoggerMessage`](#astrologgermessage).
+
+#### `AstroLoggerDestination.flush()`
+
+<p>
+
+**Type:** `() => Promise<void> | void`
+</p>
+
+An optional function called at the end of each request. This is useful for advanced loggers that need to flush log messages while keeping the connection to the destination alive.
+
+#### `AstroLoggerDestination.close()`
+
+<p>
+
+**Type:** `() => Promise<void> | void`
+</p>
+
+An optional function called before a server is shut down. This function is usually called by adapters such as `@astrojs/node`.
+
+### `AstroLoggerLevel`
+
+The level of the message. Available variants:
+- `'debug'`
+- `'info'`
+- `'warn'`
+- `'error'`
+- `'silent'`
+
+### `AstroLoggerMessage`
+
+<p>
+
+**Type:** `{ label: string | null; level: AstroLoggerLevel; message: string;	newLine: boolean; }`
+</p>
+The incoming object from the [`AstroLoggerDestination.write()`](#astrologgerdestinationwrite) function:
+- `message`: the message being logged.
+- `level`: the level of the message.
+- `label`: an arbitrary label assigned to the log message.
+- `newLine`: whether this message should add a trailing newline.
+
+## APIs reference 
+
+The following APIs can be imported from the `astro/logger` specifier.
+
+### `matchesLevel`
+
+<p>
+
+**Type:** `matchesLevel(messageLevel: AstroLoggerLevel, configuredLevel: AstroLoggerLevel) => boolean`
+</p>
+
+Given two [log levels](#log-level), it returns whether the first level matches the second level. 
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info"); // true
+matchesLevel("info", "error"); // false
+
+```

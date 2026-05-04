@@ -1,0 +1,328 @@
+---
+title: 실험적 로거
+sidebar:
+  label: 로거
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**타입:** `object`<br />
+**기본값:** `undefined`<br />
+<Since v="6.2.0" />
+</p>
+
+사용자가 제어할 수 있는 실험적인 커스텀 로거를 활성화합니다.
+
+이 설정이 제공되면 사용자는 Astro에서 내보내는 로그를 완전히 제어할 수 있습니다. 또한 이 기능에는 새로운 `logHandlers`를 통해 사용할 수 있는 몇 가지 내장 로거가 포함되어 있습니다.
+
+다음 예시는 가독성 있는 출력 형식을 사용하는 내장 JSON 로거를 활성화합니다.
+
+```js title="astro.config.mjs" {5} ins="logHandlers"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true })
+  }
+});
+```
+
+또는 `--experimentalJson` 플래그를 사용하면 `dev`, `build`, `sync` 명령어 실행 시 JSON 로깅을 사용할 수 있습니다.
+
+```shell
+astro dev --experimentalJson
+astro sync --experimentalJson
+astro build --experimentalJson
+```
+
+
+## 내장 로거
+
+이 기능에는 세 가지 내장 로거가 포함되어 있습니다.
+
+### `logHandlers.json`
+
+메시지를 JSON 형식으로 출력하는 로거입니다. 로그는 다음과 같은 형태입니다.
+```json
+{ "message": "<the message>", "label": "router", "level": "info", "time": "<UNIX timestamp>"  }
+```
+
+#### JSON 로거 옵션
+
+<p>
+**타입:** `{ pretty: boolean; level: AstroLoggerLevel; }`<br />
+**기본값:** `{ pretty: false, level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+`json` 로거는 다음 옵션을 허용합니다.
+
+- `pretty`: `true`일 경우 JSON 로그가 여러 줄로 출력됩니다. 기본값은 `false`입니다.
+- `level`: 출력할 로그의 [레벨](#로그-레벨)입니다.
+
+```js title="astro.config.mjs" {5} ins="json"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true })
+  }
+});
+```
+
+### `logHandlers.console`
+
+`console`을 출력 대상으로 사용하는 로거입니다. 메시지 레벨에 따라 서로 다른 채널을 사용합니다.
+
+- `error` 메시지는 `console.error()`를 사용하여 출력됩니다.
+- `warn` 메시지는 `console.warn()`을 사용하여 출력됩니다.
+- `info` 메시지는 `console.info()`를 사용하여 출력됩니다.
+
+#### Console 로거 옵션
+
+<p>
+**타입:** `{ level: AstroLoggerLevel }`<br />
+**기본값:** `{ level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+`console` 로거는 다음 옵션을 허용합니다.
+
+- `level`: 출력할 로그의 [레벨](#로그-레벨)입니다.
+
+```js title="astro.config.mjs" {5} ins="console"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.console({ level: 'warn' })
+  }
+});
+```
+
+### `logHandlers.node`
+
+메시지를 [`process.stdout`](https://nodejs.org/api/process.html#processstdout) 및 [`process.stderr`](https://nodejs.org/api/process.html#processstderr)로 출력하는 로거입니다. `error` 레벨 메시지는 `stderr`로 출력되며, 나머지는 `stdout`으로 출력됩니다.
+
+Astro의 기본 로거입니다.
+
+#### Node 로거 옵션
+
+<p>
+**타입:** `{ level: AstroLoggerLevel }`<br />
+**기본값:** `{ level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+`node` 로거는 다음 옵션을 허용합니다.
+
+- `level`: 출력할 로그의 [레벨](#로그-레벨)입니다.
+
+```js title="astro.config.mjs" {5} ins="node"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.node({ level: 'warn' })
+  }
+});
+```
+
+### `logHandlers.compose`
+
+여러 로거를 임의의 순서로 구성할 수 있게 해주는 특별한 함수입니다. 동일한 메시지가 모든 로거에 전달됩니다.
+
+다음 예시는 기본 로그 레벨을 사용하여 콘솔 로거와 JSON 로거를 조합합니다.
+
+```js title="astro.config.mjs"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.compose(
+      logHandlers.console(),
+      logHandlers.json()
+    )
+  }
+});
+```
+
+## 커스텀 로거
+
+`logger` 설정에 적절한 구성을 제공하여 커스텀 로거를 만들 수 있습니다. 이 설정은 로거가 내보내지는 모듈을 지정하는 필수 `entrypoint`와 로거에 전달할 선택적 구성을 포함한 객체를 사용합니다. 구성은 직렬화 가능해야 합니다.
+
+로거 함수는 `default`로 내보내야 합니다.
+
+커스텀 로거를 정의하면 Astro에서 출력하는 로그를 포함한 모든 로그를 직접 관리하게 됩니다.
+
+다음 예시는 `@org/custom-logger` 패키지에서 내보내는 커스텀 로거를 정의하며, 로깅 `level`을 구성하기 위한 하나의 매개변수만 받습니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: {
+      entrypoint: "@org/custom-logger",
+      config: {
+        level: "warn"
+      }
+    }
+  }
+});
+```
+
+다음 예시는 필수 `write()` 함수를 포함하는 [`AstroLoggerDestination` 객체](#astrologgerdestination)를 반환하는 최소한의 로거를 구현합니다.
+
+```ts title="@org/custom-logger/index.ts"
+import type { 
+  AstroLoggerLevel, 
+  AstroLoggerDestination, 
+  AstroLoggerMessage 
+} from "astro";
+import { matchesLevel } from "astro/logger"; 
+
+type LoggerOptions = {
+  level: AstroLoggerLevel
+}
+
+function orgLogger(options: LoggerOptions = {}): AstroLoggerDestination {
+  const { level = 'info' } = options;
+  return {
+    write(message: AstroLoggerMessage) {
+      // 이 유틸리티를 사용하여 메시지를 출력해야 하는지 확인합니다.
+      if (matchesLevel(message.level, level)) {
+        // 메시지를 적절한 위치에 기록하고 로그 레벨을 반영합니다.
+      }
+    }
+  }
+}
+
+export default orgLogger;
+```
+
+## 런타임
+
+이제 [컨텍스트 객체](/ko/reference/api-reference/#컨텍스트-객체)는 다음 함수를 포함하는 `logger` 객체를 노출합니다.
+
+- `error()`: `error` 레벨의 메시지를 내보냅니다.
+- `warn()`: `warn` 레벨의 메시지를 내보냅니다.
+- `info()`: `info` 레벨의 메시지를 내보냅니다.
+
+```astro
+---
+Astro.logger.error("에러입니다");
+Astro.logger.warn("경고입니다");
+Astro.logger.info("정보입니다");
+---
+```
+
+## 로그 레벨
+
+레벨은 각 메시지에 할당되는 내부적인 점수입니다. 로거가 특정 레벨로 구성되면 해당 레벨 이상인 메시지만 출력됩니다.
+
+가장 높은 점수부터 가장 낮은 점수까지 세 가지 레벨이 있습니다.
+1. `error`
+2. `warn`
+3. `info`
+
+다음 예시는 JSON 로거가 `warn` 레벨 이상의 메시지만 출력하도록 구성합니다.
+
+```js title="astro.config.mjs" {5} ins='level: "warn"'
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ level: "warn" })
+  }
+});
+```
+
+`astro/logger` 패키지는 로그 레벨을 확인하기 위해 [`matchesLevel()`](#matcheslevel) 헬퍼를 노출합니다. 이는 [커스텀 로거를 빌드할 때](#커스텀-로거) 유용할 수 있습니다.
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info");
+```
+
+
+## 타입 참조
+
+다음 타입은 `astro` 식별자에서 가져올 수 있습니다.
+
+### `AstroLoggerDestination`
+
+커스텀 로거가 구현해야 하는 인터페이스입니다.
+
+#### `AstroLoggerDestination.write()`
+
+<p>
+
+**타입:** `(message: AstroLoggerMessage) => void`
+</p>
+
+각 로그에 대해 호출되는 필수 메서드이며 [`AstroLoggerMessage`](#astrologgermessage)를 인자로 받습니다.
+
+#### `AstroLoggerDestination.flush()`
+
+<p>
+
+**타입:** `() => Promise<void> | void`
+</p>
+
+각 요청이 끝날 때 호출되는 선택적 함수입니다. 출력 대상과의 연결을 유지하면서 로그 메시지를 플러시해야 하는 고급 로거에 유용합니다.
+
+#### `AstroLoggerDestination.close()`
+
+<p>
+
+**타입:** `() => Promise<void> | void`
+</p>
+
+서버가 종료되기 전에 호출되는 선택적 함수입니다. 이 함수는 일반적으로 `@astrojs/node`와 같은 어댑터에 의해 호출됩니다.
+
+### `AstroLoggerLevel`
+
+메시지 레벨입니다. 사용 가능한 레벨은 다음과 같습니다.
+- `'debug'`
+- `'info'`
+- `'warn'`
+- `'error'`
+- `'silent'`
+
+### `AstroLoggerMessage`
+
+<p>
+
+**타입:** `{ label: string | null; level: AstroLoggerLevel; message: string;	newLine: boolean; }`
+</p>
+[`AstroLoggerDestination.write()`](#astrologgerdestinationwrite) 함수로부터 들어오는 객체입니다.
+- `message`: 로깅되는 메시지입니다.
+- `level`: 메시지의 레벨입니다.
+- `label`: 로그 메시지에 할당된 임의의 레이블입니다.
+- `newLine`: 이 메시지가 후행 줄바꿈을 추가해야 하는지 여부입니다.
+
+## API 참조
+
+다음 API는 `astro/logger` 식별자에서 가져올 수 있습니다.
+
+### `matchesLevel`
+
+<p>
+
+**타입:** `matchesLevel(messageLevel: AstroLoggerLevel, configuredLevel: AstroLoggerLevel) => boolean`
+</p>
+
+두 개의 [로그 레벨](#로그-레벨)이 주어졌을 때, 첫 번째 레벨이 두 번째 레벨 이상인지 여부를 반환합니다.
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info"); // true
+matchesLevel("info", "error"); // false
+
+```

@@ -9,30 +9,30 @@ import Since from '~/components/Since.astro'
 
 <p>
 
-**Type:** `boolean | object`<br />
+**Type:** `SvgOptimizer`<br />
 **Default:** `false`<br />
 <Since v="5.16.0" />
 </p>
 
-This experimental feature enables automatic optimization of your [SVG components](/en/guides/images/#svg-components) using [SVGO](https://svgo.dev/) during build time.
+This experimental feature enables automatic optimization of your [SVG components](/en/guides/images/#svg-components) at build time.
 
 When enabled, your imported SVG files used as components will be optimized for smaller file sizes and better performance while maintaining visual quality. This can significantly reduce the size of your SVG assets by removing unnecessary metadata, comments, and redundant code.
 
-To enable this feature with default settings, set it to `true` in your Astro config:
+To enable this feature, import the `svgoOptimizer()` helper in your Astro config and assign it to the experimental `svgOptimizer` flag:
 
 ```js title="astro.config.mjs" ins={5}
-import { defineConfig } from "astro/config"
+import { defineConfig, svgoOptimizer } from "astro/config";
 
 export default defineConfig({
   experimental: {
-    svgo: true
+    svgOptimizer: svgoOptimizer()
   }
-})
+});
 ```
 
 ## Usage
 
-No change to using SVG components is required to take advantage of this feature. With experimental `svgo` enabled, all your SVG component import files will be automatically optimized:
+No change to using SVG components is required to take advantage of this feature. With experimental SVG optimization enabled, all your SVG component import files will be automatically optimized:
 
 ```astro title="src/pages/index.astro"
 ---
@@ -46,32 +46,36 @@ The SVG will be optimized during the build process, resulting in smaller file si
 
 Note that this optimization applies to every SVG component import in your project. It is not possible to opt out on a per-component basis.
 
-## Configuration
+## SVGO
 
-You can pass an [SVGO configuration object](https://github.com/svg/svgo#configuration) to customize optimization behavior:
+Astro provides one built-in optimizer using [SVGO](https://svgo.dev/):
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      multipass: true,
-      floatPrecision: 2,
-      plugins: [
-        'preset-default',
-        'removeXMLNS',
-        {
-          name: "removeXlink",
-          params: {
-            includeLegacy: true
-          }
-        }
-      ]
-    }
-  }
-})
+```js
+import { svgoOptimizer } from "astro/config"
 ```
 
-### `plugins`
+### Configuration
+
+You can pass an object containing [SVGO configuration options](https://github.com/svg/svgo#configuration) to customize optimization behavior:
+
+```js
+svgoOptimizer({
+  multipass: true,
+  floatPrecision: 2,
+  plugins: [
+    'preset-default',
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
+    }
+  ]
+});
+```
+
+#### `plugins`
 
 **Type:** `Array<string | PluginConfig>`<br />
 **Default:** `[]`
@@ -82,55 +86,47 @@ This can include SVGO's [`preset-default`](https://svgo.dev/docs/preset-default/
 
 To use a plugin’s default configuration, add its name to the array. If you need more control, use the `overrides` parameter to customize specific plugins within `preset-default`, or pass an object with a plugin's `name` to override its individual parameters.
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              convertPathData: false,
-              convertTransform: {
-                degPrecision: 1,
-                transformPrecision: 3
-              },
-              inlineStyles: false
-            },
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          convertPathData: false,
+          convertTransform: {
+            degPrecision: 1,
+            transformPrecision: 3
           },
+          inlineStyles: false
         },
-        'removeXMLNS',
-        {
-          name: "removeXlink",
-          params: {
-            includeLegacy: true
-          }
-        }
-      ]
+      },
+    },
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
     }
-  }
-})
+  ]
+});
 ```
 
-### Other configuration options
+#### Other configuration options
 
 There are a few [SVGO configuration options](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), especially `floatPrecision` and `multipass`, that can be passed directly to your config object:
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      multipass: true,
-      floatPrecision: 2
-    }
-  }
-})
+```js
+svgoOptimizer({
+  multipass: true,
+  floatPrecision: 2,
+});
 ```
 
 The `multipass` option sets whether to run the optimization engine multiple times until no further optimizations are found. The `floatPrecision` option sets the number of decimal places to preserve globally, but can be overridden for a specific plugin by specifying a custom value in its `params` property.
 
-## Common use cases
+### Common use cases
 
 SVGO provides an extensive [default plugin list](https://svgo.dev/docs/preset-default/) with opinionated optimizations. While using this preset is more convenient than adding each plugin individually, you may need to customize it further. For example, it may remove items or clean up too aggressively for your situation, especially when using animations.
 
@@ -138,75 +134,102 @@ SVGO provides an extensive [default plugin list](https://svgo.dev/docs/preset-de
 
 You may want to preserve certain SVG attributes and elements, such as `<style>`, that SVGO inlines or removes by default:
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              inlineStyles: false, // Preserve style elements for CSP hashing
-              removeDesc: false // Keep element regardless of contents
-            }
-          }
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          inlineStyles: false, // Preserve style elements for CSP hashing
+          removeDesc: false // Keep element regardless of contents
         }
-      ]
+      }
     }
-  }
-})
+  ]
+});
 ```
 
 ### Remove specific elements
 
 You can configure plugins to remove specific unwanted elements like metadata or hidden layers. Note that many plugins are already included in `preset-default`, so you typically only need to configure their behavior:
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              removeHiddenElems: {
-                isHidden: false,
-                displayNone: false
-              }
-            },
-          },
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          removeHiddenElems: {
+            isHidden: false,
+            displayNone: false
+          }
         },
-        'removeRasterImages'
-      ]
-    }
-  }
-})
+      },
+    },
+    'removeRasterImages'
+  ]
+});
 ```
 
 ### Optimize for inlining in modern HTML5
 
 Inline SVG does not require the `xmlns` attribute and can be safely converted to the SVG 2 specification. The `removeXMLNS` and `removeXlink` plugins are recommended for this purpose:
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        'preset-default',
-        'removeXMLNS',
-        {
-          name: "removeXlink",
-          params: {
-            includeLegacy: true
-          }
-        }
-      ]
+```js
+svgoOptimizer({
+  plugins: [
+    'preset-default',
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
     }
-  }
-})
+  ]
+});
 ```
+
+## Building an SVG optimizer
+
+<p>
+
+<Since v="6.2.0" />
+</p>
+
+The preferred method for implementing a custom SVG optimizer is to export a function that returns the `SvgOptimizer` object and takes the configuration as a parameter:
+
+```ts
+import type { SvgOptimizer } from "astro";
+import { optimize, type Options } from "./optimizer";
+
+export function mySvgOptimizer(options?: Options): SvgOptimizer {
+  return {
+    name: "my-optimizer",
+    optimize: (contents) => optimize(contents, options),
+  }
+}
+```
+
+### `name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+A unique name for the optimizer, used in logs.
+
+### `optimize()`
+
+<p>
+
+**Type:** `(contents: string) => string | Promise<string>`
+</p>
+
+Processes the SVG contents.
 
 ## How it works
 
@@ -217,7 +240,3 @@ SVG optimization happens during the build process, not at runtime:
 - There is **no runtime overhead** - optimized SVGs are served as pre-processed static assets.
 
 While the optimization process may slightly increase your build times, the result is smaller file sizes and faster page loads for your users.
-
-## Further reading
-
-- [SVGO documentation](https://svgo.dev/)
