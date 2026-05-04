@@ -319,6 +319,15 @@ npx astro db shell --query "SELECT * FROM Comment;" --remote
 
 ## Astro DB utility reference
 
+The following utilities are imported from the `astro:db` module:
+
+```ts
+import {
+  isDbError,
+  getDbError
+} from "astro:db";
+```
+
 ### `isDbError()`
 
 <p>
@@ -327,7 +336,7 @@ npx astro db shell --query "SELECT * FROM Comment;" --remote
 <Since v="0.9.1" pkg="@astrojs/db" />
 </p>
 
-The `isDbError()` function checks if an error is a libSQL database exception. This may include a foreign key constraint error when using references, or missing fields when inserting data. You can combine `isDbError()` with a try / catch block to handle database errors in your application:
+Checks if an error is a libSQL database exception. This may include a foreign key constraint error when using references, or missing fields when inserting data. You can combine `isDbError()` with a try / catch block to handle database errors in your application:
 
 ```ts title="src/pages/api/comment/[id].ts" "idDbError"
 import { db, Comment, isDbError } from 'astro:db';
@@ -342,6 +351,39 @@ export const POST: APIRoute = (ctx) => {
   } catch (e) {
     if (isDbError(e)) {
       return new Response(`Cannot insert comment with id ${id}\n\n${e.message}`, { status: 400 });
+    }
+    return new Response('An unexpected error occurred', { status: 500 });
+  }
+
+  return new Response(null, { status: 201 });
+};
+```
+
+### `getDbError()`
+
+<p>
+
+**Type:** `(err: unknown) => LibsqlError | undefined`<br />
+<Since v="0.21.0" pkg="@astrojs/db" />
+</p>
+
+Walks through an error's cause chain to find the underlying libSQL database exception. This returns a `LibsqlError` or `undefined` if the error is not from LibSQL. This is useful when another error (e.g. `DrizzleQueryError`) may wrap the database error.
+
+The following example extracts the database error from a caught exception and returns the error code and message in the response:
+
+```ts title="src/pages/api/comment/[id].ts" "getDbError"
+import { getDbError } from 'astro:db';
+
+export const POST: APIRoute = (ctx) => {
+  try {
+    await db.insert(Comment).values({
+      id: ctx.params.id,
+      content: 'Hello, world!'
+    });
+  } catch (e) {
+    const dbError = getDbError(e);
+    if (dbError) {
+      return new Response(`Database error: ${dbError.code}\n\n${dbError.message}`, { status: 400 });
     }
     return new Response('An unexpected error occurred', { status: 500 });
   }

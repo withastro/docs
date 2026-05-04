@@ -1,0 +1,1768 @@
+---
+title: Mise à niveau vers Astro v6
+description: Comment mettre à niveau votre projet vers Astro v6.0.
+sidebar:
+  label: v6.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+Ce guide vous aidera à migrer d'Astro v5 vers Astro v6.
+
+Vous devez d'abord mettre à niveau un ancien projet vers la v5 ? Consultez notre [ancien guide de migration](/fr/guides/upgrade-to/v5/).
+
+Besoin de consulter la documentation de la v5 ? Visitez cette [ancienne version de la documentation (instantané de la v5.18.0 non maintenu)](https://v5.docs.astro.build/).
+
+## Mise à niveau d'Astro
+
+Mettez à niveau la version d'Astro de votre projet vers la dernière version à l'aide de votre gestionnaire de paquets :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Mettre à niveau Astro et les intégrations officielles simultanément
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Mettre à niveau Astro et les intégrations officielles simultanément
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Mettre à niveau Astro et les intégrations officielles simultanément
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Vous pouvez également [mettre à niveau manuellement vos intégrations Astro](/fr/guides/integrations/#mise-à-niveau-manuelle) si nécessaire, et vous devrez peut-être également mettre à niveau d'autres dépendances de votre projet.
+
+:::note[Devriez-vous continuer ?]
+Après la mise à niveau d'Astro, vous n'aurez peut-être même pas besoin d'apporter de modifications à votre projet !
+
+Toutefois, si vous constatez des erreurs ou un comportement inattendu, veuillez vérifier ci-dessous ce qui a changé et qui pourrait nécessiter une mise à jour dans votre projet.
+:::
+
+Astro v6.0 inclut des [changements potentiellement non rétrocompatibles](#changements-avec-rupture-de-compatibilité), ainsi que la suppression et la dépréciation de certaines fonctionnalités.
+
+Si votre projet ne fonctionne pas comme prévu après la mise à niveau vers la version 6.0, consultez ce guide pour obtenir un aperçu de tous les changements non rétrocompatibles et des instructions sur la façon de mettre à jour votre code source.
+
+Consultez [le journal des modifications d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) pour obtenir les notes de version complètes.
+
+## Mise à niveau des dépendances
+
+Toute mise à jour majeure des dépendances d'Astro peut entraîner des modifications non rétrocompatibles dans votre projet.
+
+### Node 22
+
+<SourcePR number="14427" title="feat!: drop node 18 and 20"/>
+
+Node 18 a atteint sa fin de vie en mars 2025 et Node 20 est programmé pour atteindre sa fin de vie en avril 2026.
+
+Astro v6.0 abandonne entièrement la prise en charge de Node 18 et de Node 20 afin que tous les utilisateurs d'Astro puissent profiter des fonctionnalités plus modernes de Node.
+
+#### Que devrais-je faire ?
+
+Vérifiez que votre environnement de développement et votre environnement de déploiement utilisent **Node `22.12.0` ou une version supérieure**.
+
+<Steps>
+1. Vérifiez votre version locale de Node en utilisant :
+
+    ```sh
+    node -v
+    ```
+
+2. Consultez la documentation de votre [environnement de déploiement](/fr/guides/deploy/) pour vérifier qu'il prend en charge Node 22.
+
+    Vous pouvez définir Node `22.12.0` pour votre projet Astro soit dans un paramètre de configuration du tableau de bord, soit dans un fichier `.nvmrc`.
+
+    ```bash title=".nvmrc"
+    22.12.0
+    ```
+</Steps>
+
+### Vite 7.0
+
+<SourcePR number="14445" title="feat: update vite"/>
+
+Astro v6.0 est mis à niveau vers Vite v7.0 en tant que serveur de développement et outil de regroupement pour la production.
+
+#### Que devrais-je faire ?
+
+Si vous utilisez des modules d'extension, une configuration ou des API spécifiques à Vite, consultez le [guide de migration de Vite](https://vite.dev/guide/migration) pour connaître les changements non rétrocompatibles et mettez à jour votre projet en conséquence.
+
+L'utilisation de [l'utilitaire `getViteConfig()` d'Astro](/fr/guides/testing/#vitest) nécessite au moins Vitest v3.2 ou la v4.1 beta 5.
+
+### API Environment de Vite
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Astro v6.0 introduit des changements importants dans la façon dont Astro gère les différents environnements d'exécution (client, serveur et pré-rendu) après une refactorisation interne pour utiliser [la nouvelle API Environments de Vite](https://vite.dev/guide/api-environment).
+
+#### Que devrais-je faire ?
+
+Les responsables de la maintenance d'intégrations et d'adaptateurs doivent porter une attention particulière aux modifications affectant ces parties de l'API des intégrations et de l'API des adaptateurs (tous les détails sont fournis ci-dessous, ainsi que d'autres modifications non rétrocompatibles apportées à ces API) :
+
+- [nom de la configuration Rollup pour les chemins de fichier de sortie](#modification-nom-de-la-configuration-rollup-pour-les-chemins-de-fichier-de-sortie-configuration-de-vite)
+- [hooks des intégrations et modèles d'accès HMR](#modification-hooks-des-intégrations-et-modèles-daccès-à-hmr-api-des-intégrations)
+- [structure de `SSRManifest`](#modification-structure-de-linterface-ssrmanifest-api-des-adaptateurs)
+- [génération de routes avec `RouteData`](#suppression-routedatagenerate-api-des-adaptateurs)
+- [routes avec des signes de pourcentage encodés (p. ex. `%25`)](#suppression-encodage-en-pourcentage-dans-les-routes)
+- [module virtuel `astro:ssr-manifest`](#suppression-module-virtuel-astrossr-manifest-api-des-intégrations)
+- [`NodeApp` dans `astro/app/node`](#dépréciation-nodeapp-dans-astroappnode-api-des-adaptateurs)
+- [`loadManifest()` et `loadApp()` dans `astro/app/node`](#dépréciation-loadmanifest-et-loadapp-dans-astroappnode-api-des-adaptateurs)
+- [`createExports()` et `start()`](#dépréciation-createexports-et-start-api-des-adaptateurs)
+
+### Zod 4
+
+Astro v6.0 est mis à niveau vers Zod 4, une mise à jour majeure des dépendances qui peut nécessiter des modifications des schémas Zod personnalisés dans votre projet.
+
+#### Que devrais-je faire ?
+
+Si vous avez des schémas Zod personnalisés dans votre fichier `content.config.ts` ou d'autres fichiers de configuration, vous devrez les mettre à jour pour Zod 4. Consultez le [guide de migration de Zod](https://zod.dev/v4/changelog) pour obtenir des informations détaillées sur les modifications apportées à l'API de Zod.
+
+Notamment, [de nombreux formats reposant sur `string()` ont été dépréciés](https://zod.dev/v4/changelog#deprecates-email-etc) (par exemple, `z.string().email()`, `z.string.url()`), et leurs API ont été déplacées vers l'espace de noms `z` de niveau supérieur. Vous devrez peut-être mettre à jour la façon dont vous validez les formulaires avec vos actions Astro.
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+email: z.string().email(),
+email: z.email(),
+```
+
+De plus, Zod a apporté quelques [modifications à la gestion des messages d'erreur](https://zod.dev/v4/changelog#error-customization) et a abandonné la prise en charge de la personnalisation de la table associative des erreurs (`errorsMap`) qui était utile pour redéfinir ou traduire vos messages d'erreur. Vous devrez peut-être mettre à jour vos messages d'erreur personnalisés :
+
+```ts title="src/actions/index.ts" ins={2} del={1}
+z.string().min(5, { message: "Trop court." });
+z.string().min(5, { error: "Trop court." });
+```
+
+De plus, si vous utilisez [`.default()` avec des transformations](https://zod.dev/v4/changelog#default-updates), vous devrez peut-être mettre à jour vos schémas. Dans Zod 4, les valeurs par défaut doivent correspondre au type de sortie (après transformations), et non au type d'entrée. La valeur par défaut interrompt l'analyse syntaxique lorsque l'entrée est `undefined` :
+
+```ts title="src/content.config.ts" del={5-6} ins={7-8}
+import { z } from 'astro/zod';
+
+const blog = defineCollection({
+  schema: z.object({
+    // Zod 3 : le type par défaut correspondait au type d'entrée (string)
+    views: z.string().transform(Number).default("0"),
+    // Zod 4 : le type par défaut doit correspondre au type de sortie (number).
+    views: z.string().transform(Number).default(0),
+  })
+});
+```
+
+Pour retrouver l'ancien comportement où les valeurs par défaut sont analysées, utilisez la nouvelle méthode `.prefault()`.
+
+Ce ne sont là que quelques-uns des nombreux changements apportés par la mise à niveau de Zod 3 à Zod 4. Si vous rencontrez des problèmes avec vos schémas Zod après la mise à niveau vers Astro 6, veuillez consulter le [journal des modifications de Zod 4](https://zod.dev/v4/changelog) pour obtenir des instructions de mise à niveau complètes.
+
+De plus, un [codemod communautaire](https://github.com/nicoespeon/zod-v3-to-v4), qui peut potentiellement automatiser certains de ces changements lors de la migration de Zod 3 vers Zod 4, est également disponible.
+
+Vous pouvez vous assurer que vous utilisez la même version de Zod qu'Astro utilise en interne en [important Zod depuis `astro/zod`](#dépréciation-astroschema-et-z-dans-astrocontent).
+
+```ts
+import { z } from 'astro/zod';
+```
+
+<ReadMore>Voir plus d'informations sur [le module `astro/zod`](/fr/reference/modules/astro-zod/).</ReadMore>
+
+### Shiki 4.0
+
+<SourcePR number="15726" title="chore(deps): update shiki to v4"/>
+
+Astro v6.0 est mis à niveau vers Shiki v4.0 pour la coloration syntaxique.
+
+#### Que devrais-je faire ?
+
+Si vous utilisez des API spécifiques à Shiki, consultez le [guide de migration de Shiki](https://shiki.style/blog/v4) pour connaître les changements non rétrocompatibles et mettez à jour votre projet en conséquence.
+
+### Intégrations officielles d'Astro
+
+Tous les [adaptateurs de serveur officiels d'Astro](/fr/guides/on-demand-rendering/#adaptateurs-de-serveur) ont également été mis à jour vers une nouvelle version majeure pour accompagner la mise à niveau vers Vite v7.0 avec l'API Environment de Vite comme serveur de développement et outil de regroupement pour la production.
+
+Plus particulièrement, l'adaptateur Cloudflare d'Astro a subi des modifications importantes, et des changements non rétrocompatibles avec votre configuration Cloudflare existante sont à prévoir.
+
+<ReadMore>Consultez les [instructions de mise à niveau de l'adaptateur Cloudflare](/fr/guides/integrations-guide/cloudflare/#mise-à-niveau-vers-v13-et-astro-6) pour obtenir des conseils de migration détaillés.</ReadMore>
+
+#### Que devrais-je faire ?
+
+Si vous utilisez un adaptateur Astro pour le rendu à la demande ou d'autres fonctionnalités spécifiques à la plateforme, veuillez consulter le journal des modifications de votre adaptateur pour obtenir des instructions de mise à niveau :
+
+- [Journal des modifications de `@astrojs/cloudflare`](https://github.com/withastro/astro/blob/next/packages/integrations/cloudflare/CHANGELOG.md)
+- [Journal des modifications de `@astrojs/netlify`](https://github.com/withastro/astro/blob/next/packages/integrations/netlify/CHANGELOG.md)
+- [Journal des modifications de `@astrojs/node`](https://github.com/withastro/astro/blob/next/packages/integrations/node/CHANGELOG.md)
+- [Journal des modifications de `@astrojs/vercel`](https://github.com/withastro/astro/blob/next/packages/integrations/vercel/CHANGELOG.md)
+
+## Héritages
+
+Les fonctionnalités suivantes sont désormais considérées comme des fonctionnalités héritées. Elles devraient fonctionner normalement, mais leur utilisation n'est plus recommandée et elles sont en mode maintenance. Elles ne bénéficieront d'aucune amélioration et leur documentation ne sera plus mise à jour. Ces fonctionnalités seront progressivement dépréciées, puis supprimées définitivement.
+
+### Héritage : rétrocompatibilité des collections de contenu
+
+Dans Astro 5.x, les projets pouvaient retarder la mise à niveau vers la nouvelle API de couche de contenu introduite pour les collections de contenu en raison d'une rétrocompatibilité automatique existante qui n'était pas auparavant protégée par une option. Cela signifiait qu'il était possible de passer d'Astro 4 à Astro 5 sans mettre à jour vos collections de contenu, même si vous n'aviez pas activé l'option `legacy.collections`. Les projets pouvaient être compilés, et aucun message d'erreur ou d'avertissement n'était affiché.
+
+Astro v6.0 supprime cette prise en charge automatique des collections de contenu héritées, ainsi que [l'option `legacy.collections`](#suppression-collections-de-contenu-héritées). Toutes les collections de contenu doivent désormais utiliser [l'API de couche de contenu introduite dans Astro v5.0](https://astro.build/blog/content-layer-deep-dive/) qui alimente toutes les collections de contenu.
+
+#### Que devrais-je faire ?
+
+Si vous rencontrez des erreurs de collections de contenu après la mise à jour vers la v6, [vérifiez si votre projet contient une fonctionnalité héritée supprimée](#si-vous-avez) qui pourrait nécessiter une mise à jour vers l'API de couche de contenu.
+
+<ReadMore>Consultez [le guide de mise à niveau d'Astro v5](/fr/guides/upgrade-to/v5/#héritage--api-des-collections-de-contenu-de-la-v20) pour obtenir des instructions détaillées sur la mise à niveau des collections héritées vers la nouvelle API de couche de contenu.</ReadMore>
+
+Si vous ne pouvez pas effectuer la mise à jour immédiatement, vous pouvez activer [l'option `legacy.collectionsBackwardsCompat`](/fr/reference/legacy-flags/#collectionsbackwardscompat) comme outil d'assistance temporaire à la migration :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  legacy: {
+    collectionsBackwardsCompat: true,
+  },
+});
+```
+
+Cette option préserve certaines fonctionnalités héritées des collections de contenu de la v4 :
+
+- Prend en charge le fichier de configuration hérité `src/content/config.ts`
+- Prend en charge `type: 'content'` et `type: 'data'` sans chargeurs
+- Préserve les API d'entrée héritées : `entry.slug` et `entry.render()`
+- Utilise des identifiants d'entrée reposant sur le chemin au lieu d'identifiants reposant sur le slug.
+
+**Il s'agit d'un outil d'assistance à la migration temporaire.** Migrez vos collections vers l'API de couche de contenu dès que possible, puis désactivez cette option.
+
+## Dépréciations
+
+Les fonctionnalités dépréciées suivantes ne sont plus prises en charge et ne sont plus documentées. Veuillez mettre à jour votre projet en conséquence.
+
+Certaines fonctionnalités dépréciées peuvent continuer à fonctionner temporairement jusqu'à leur suppression définitive. D'autres peuvent rester sans effet ou générer une erreur vous invitant à mettre à jour votre code.
+
+### Dépréciation : `Astro` dans `getStaticPaths()`
+
+<SourcePR number="14432" title="feat: deprecate Astro in getStaticPaths"/>
+
+Dans Astro 5.x, il était possible d'accéder à un objet `Astro` dans `getStaticPaths()`. Cependant, bien qu'étant typé de la même manière que l'objet `Astro` accessible dans le frontmatter, cet objet ne possédait que les propriétés `site` et `generator`. Cela pouvait engendrer une confusion quant aux propriétés de l'objet `Astro` disponibles dans `getStaticPaths()`.
+
+Astro 6.0 déprécie cet objet dans `getStaticPaths()` afin d'éviter toute confusion et améliore la gestion des erreurs lors de la tentative d'accès à des valeurs `Astro` indisponibles. L'utilisation de `Astro.site` ou `Astro.generator` dans `getStaticPaths()` générera désormais un avertissement de dépréciation, et l'accès à toute autre propriété générera une erreur spécifique accompagnée d'un message explicatif. Dans une future version majeure, cet objet sera entièrement supprimé, et l'accès à `Astro.site` ou `Astro.generator` générera également une erreur.
+
+#### Que devrais-je faire ?
+
+Mettez à jour votre fonction `getStaticPaths()` si vous tentiez d'accéder à des propriétés `Astro` dans sa portée. Supprimez entièrement `Astro.generator` et remplacez toutes les occurrences de `Astro.site` par `import.meta.env.SITE` :
+
+```astro title="src/pages/blog/[slug].astro" del={5,6} ins={7}
+---
+import { getPages } from "../../../utils/data";
+
+export async function getStaticPaths() {
+  console.log(Astro.generator);
+  return getPages(Astro.site);
+  return getPages(import.meta.env.SITE);
+}
+---
+```
+
+<ReadMore>En savoir plus sur les [variables d'environnement intégrées telles que `import.meta.env.SITE`](/fr/guides/environment-variables/#variables-denvironnement-par-défaut) qui sont accessibles lors de [l'utilisation de `getStaticPaths()` pour générer dynamiquement des routes statiques](/fr/guides/routing/#mode-statique-ssg).</ReadMore>
+
+### Dépréciation : `import.meta.env.ASSETS_PREFIX`
+
+<SourcePR number="14461" title="feat: deprecate import.meta.env.ASSETS_PREFIX"/>
+
+Dans Astro 5.x, il était possible d'accéder à `build.assetsPrefix` dans votre configuration d'Astro via la variable d'environnement intégrée `import.meta.env.ASSETS_PREFIX`. Cependant, Astro v5.7.0 a introduit le module virtuel `astro:config` pour exposer une version non exhaustive, sérialisable et avec sûreté du typage de la configuration d'Astro qui incluait un accès direct à `build.assetsPrefix`. Ceci est devenue la méthode privilégiée pour accéder au préfixe des liens vers les ressources générées par Astro, même si la variable d'environnement restait disponible.
+
+Astro 6.0 déprécie cette variable au profit de `build.assetsPrefix` du module `astro:config/server`.
+
+#### Que devrais-je faire ?
+
+Remplacez toutes les occurrences de `import.meta.env.ASSETS_PREFIX` par l'importation de `build.assetsPrefix` depuis `astro:config/server`. Il s'agit d'un remplacement direct permettant de conserver la valeur existante, et aucune autre modification de votre code ne devrait être nécessaire :
+
+```ts del={4} ins={2,5}
+import { someLogic } from "./utils"
+import { build } from "astro:config/server"
+
+someLogic(import.meta.env.ASSETS_PREFIX)
+someLogic(build.assetsPrefix)
+```
+
+<ReadMore>En savoir plus sur le module virtuel [`astro:config`](/fr/reference/modules/astro-config/).</ReadMore>
+
+### Dépréciation : `astro:schema` et `z` dans `astro:content`
+
+<SourcePR number="14923" title="feat!: consolidate zod export" />
+
+Dans Astro 5.x, `astro:schema` a été introduit comme un alias de `astro/zod`. Par commodité, `z` était également exporté depuis `astro:content`. Cependant, cela créait parfois de la confusion chez les utilisateurs qui ne savaient pas exactement d'où importer les données.
+
+Astro 6.0 déprécie `astro:schema` et `z` dans `astro:content` au profit de `astro/zod`.
+
+#### Que devrais-je faire ?
+
+Remplacez toutes les occurrences de `astro:schema` par `astro/zod` :
+
+```ts del={1} ins={2}
+import { z } from "astro:schema"
+import { z } from "astro/zod"
+```
+
+Supprimez `z` de vos importations depuis `astro:content` et, à la place, importez `z` séparément depuis `astro/zod` :
+
+```ts title="src/content.config.ts" del={1} ins={2-3}
+import { defineCollection, z } from "astro:content"
+import { defineCollection } from "astro:content"
+import { z } from "astro/zod"
+```
+
+<ReadMore>Consultez plus d'informations sur [la définition des schémas de collection avec Zod](/fr/guides/content-collections/#définition-des-types-de-données-avec-zod).</ReadMore>
+
+### Dépréciation : code interne exposé dans `astro:transitions`
+
+<SourcePR number="14989" title="feat!: deprecate transitions exports" />
+
+Dans Astro 5.x, certains éléments internes étaient exportés depuis `astro:transitions` et `astro:transitions/client` alors qu'ils n'étaient pas destinés à être exposés au public.
+
+Astro 6.0 supprime les fonctions et types suivants en tant qu'exportations des modules virtuels `astro:transitions` et `astro:transitions/client`. Ces éléments ne peuvent plus être importés dans vos fichiers de projet :
+
+- `createAnimationScope()`
+- `isTransitionBeforePreparationEvent()`
+- `isTransitionBeforeSwapEvent()`
+- `TRANSITION_BEFORE_PREPARATION`
+- `TRANSITION_AFTER_PREPARATION`
+- `TRANSITION_BEFORE_SWAP`
+- `TRANSITION_AFTER_SWAP`
+- `TRANSITION_PAGE_LOAD`
+
+#### Que devrais-je faire ?
+
+Supprimez toutes les occurrences de `createAnimationScope()` :
+
+```ts del={1}
+import { createAnimationScope } from 'astro:transitions';
+```
+
+Mettez à jour toutes les occurrences des autres exportations obsolètes :
+
+```ts del={1-4,6,9} ins={7,10}
+import {
+  isTransitionBeforePreparationEvent,
+  TRANSITION_AFTER_SWAP,
+} from 'astro:transitions/client';
+
+console.log(isTransitionBeforePreparationEvent(event));
+console.log(event.type === 'astro:before-preparation');
+
+console.log(TRANSITION_AFTER_SWAP);
+console.log('astro:after-swap');
+```
+
+<ReadMore>Apprenez-en davantage sur tous les utilitaires disponibles dans la [référence de l'API du routeur des transitions de vue](/fr/reference/modules/astro-transitions/).</ReadMore>
+
+### Dépréciation : signature de type `string` du pilote de session
+
+<SourcePR number="15006" title="feat(sessions): drivers" />
+
+Dans Astro 5.x, n'importe quel nom de [fournisseur unstorage](https://unstorage.unjs.io/drivers) ou un point d'entrée personnalisé pouvait être fourni pour définir un pilote de session, et des options étaient également fournies directement dans la configuration de `session`. Nous avons toutefois estimé que cette API était limitée et incohérente avec d'autres parties de la configuration Astro.
+
+Astro 6.0 abandonne la signature de type `string` du pilote et ses options au profit d'une nouvelle configuration sous forme d'objet.
+
+#### Que devrais-je faire ?
+
+Mettez à jour la configuration de vos sessions pour utiliser les pilotes de session (`sessionDrivers`) nouvellement exportés :
+
+```js title="astro.config.mjs" del={1,6-9} ins={2,10-12}
+import { defineConfig } from 'astro/config'
+import { defineConfig, sessionDrivers } from 'astro/config'
+
+export default defineConfig({
+  session: {
+    driver: 'redis',
+    options: {
+      url: process.env.REDIS_URL
+    },
+    driver: sessionDrivers.redis({
+      url: process.env.REDIS_URL
+    }),
+    cookie: {
+      secure: true
+    },
+    ttl: 3600
+  }
+})
+```
+
+<ReadMore>Apprenez-en davantage sur les [pilotes de session disponibles](/fr/reference/session-driver-reference/#création-dun-pilote-de-session).</ReadMore>
+
+### Dépréciation : `NodeApp` dans `astro/app/node` (API des adaptateurs)
+
+<SourcePR number="15535" title="feat: deprecate NodeApp" />
+
+Dans Astro 5.x, les adaptateurs pouvaient implémenter leur point d'entrée serveur en utilisant `App` pour les requêtes/réponses Web standard, ou `NodeApp` pour les requêtes/réponses Node.
+
+Astro 6.0 déprécie `NodeApp` au profit de `createApp()` et de nouveaux utilitaires : `createRequest()` et `writeResponse()`. Ceci permet une API plus cohérente tout en conservant les mêmes fonctionnalités. Il déprécie également le type `NodeAppHeadersJson`.
+
+#### Que devrais-je faire ?
+
+Si vous avez créé un adaptateur, remplacez toute utilisation de `NodeApp` par `createApp()` :
+
+```js title="mon-adaptateur/server.js" del={1-12} ins={13-22}
+import { NodeApp } from 'astro/app/node';
+
+export function createExports(manifest) {
+  const app = new NodeApp(manifest);
+
+  const handler = async (req, res) => {
+    const response = await app.render(req);
+    await NodeApp.writeResponse(response, res);
+  };
+
+  return { handler };
+}
+import { createApp } from 'astro/app/entrypoint';
+import { createRequest, writeResponse } from 'astro/app/node';
+
+const app = createApp();
+
+export const handler = async (req, res) => {
+  const request = createRequest(req);
+  const response = await app.render(request);
+  await writeResponse(response, res);
+}
+```
+
+<ReadMore>Apprenez-en davantage sur [le module `astro/app/node`](/fr/reference/modules/astro-app/#importations-depuis-astroappnode).</ReadMore>
+
+### Dépréciation : `loadManifest()` et `loadApp()` dans `astro/app/node` (API des adaptateurs)
+
+<SourcePR number="15535" title="feat: deprecate NodeApp" />
+
+Dans Astro 5.x, `astro/app/node` exposait les utilitaires `loadManifest()` et `loadApp()` permettant de charger le manifeste SSR ou une instance `NodeApp` à partir d'une instance `URL`. Cependant, ces utilitaires n'étaient pas documentés et leur utilisation est désormais déconseillée avec l'API des adaptateurs de la v6.
+
+Astro 6.0 déprécie ces deux fonctions.
+
+#### Que devrais-je faire ?
+
+Si vous avez créé un adaptateur, supprimez `loadManifest()` et remplacez `loadApp()` par `createApp()` :
+
+```js title="mon-adaptateur/server.js" del={1-5} ins={6-8}
+import { loadManifest, loadApp, NodeApp } from 'astro/app/node';
+
+const manifest = await loadManifest(new URL(import.meta.url));
+const app1 = new NodeApp(loadManifest);
+const app2 = await loadApp(new URL(import.meta.url));
+import { createApp } from 'astro/app/entrypoint';
+
+const app = createApp();
+```
+
+<ReadMore>Apprenez-en davantage sur [le module `astro/app/entrypoint`](/fr/reference/modules/astro-app/#importations-depuis-astroappentrypoint).</ReadMore>
+
+### Dépréciation : `createExports()` et `start()` (API des adaptateurs)
+
+<SourcePR number="15461" title="feat: improve naming of new adapter api" />
+
+Dans Astro 5.x, les adaptateurs devaient fournir les exportations requises par l'hébergeur dans leur point d'entrée de serveur en utilisant une fonction `createExports()` avant de les transmettre à `setAdapter()` sous forme d'une liste d'exportations (`exports`).
+
+Astro 6.0 introduit une méthode plus simple mais aussi plus puissante pour créer des points d'entrée de serveur. Cela nécessite de transmettre une nouvelle option `entrypointResolution: "auto"` à `setAdapter()`.
+
+Toutefois, pour assurer la rétrocompatibilité avec les adaptateurs existants, la valeur par défaut de `entrypointResolution` (`"explicit"`) imite le comportement de l'API d'Astro 5.x. Cela signifie que vos adaptateurs peuvent continuer à fonctionner jusqu'à ce que vous puissiez entièrement migrer votre adaptateur vers la valeur `auto`, comme indiqué ci-dessous.
+
+Notez que `entrypointResolution: "explicit"` (maintien du comportement de l'API v5) est considéré comme une utilisation dépréciée, mais l'option a été fournie afin qu'aucune modification immédiate de votre adaptateur ne soit requise et pour permettre aux auteurs d'adaptateurs de prendre le temps de mettre à jour. Cette option sera supprimée dans une future version majeure au profit de l'utilisation de `entrypointResolution: "auto"` par tous les adaptateurs.
+
+#### Que devrais-je faire ?
+
+Si vous êtes un auteur d'adaptateur avec un dépôt public et que vous [incluez le mot-clé `astro-adapter` dans votre fichier `package.json`](/fr/guides/integrations/#catégories), l'équipe principale d'Astro tentera de créer une PR directement dans votre dépôt pour vous aider à migrer votre code si vous n'avez pas encore suivi les étapes ci-dessous.
+
+Si vous voyez des avertissements parce que vous utilisez un adaptateur communautaire qui n'est pas encore mis à jour, veuillez contacter directement l'auteur de l'adaptateur pour l'en informer. Il est de sa responsabilité de mettre à jour ses adaptateurs. Vous pouvez également en informer l'équipe principale d'Astro dans le canal [`#integrations` de notre Discord](https://astro.build/chat) et nous tenterons d'aider l'auteur de l'adaptateur à effectuer la mise à jour.
+
+Si vous avez créé un adaptateur, suivez ces étapes pour supprimer le comportement hérité de la v5 :
+
+<Steps>
+
+1. Mettez à jour votre fonction `setAdapter()` : définissez `entrypointResolution: "auto"`, supprimez `exports` et `args`.
+
+    ```js title="mon-adaptateur.mjs" ins={3} del={4-5}
+    setAdapter({
+      // ...
+      entrypointResolution: 'auto',
+      exports: ['handler'],
+      args: { assets: config.build.assets }
+    })
+    ```
+
+2. Mettez à jour le point d'entrée de votre serveur pour fournir les exportations requises sans utiliser `createExports()` :
+
+    ```js title="mon-adaptateur/server.js" del={1-11} ins={12-18}
+    import { App } from 'astro/app';
+
+    export function createExports(manifest) {
+      const app = new App(manifest);
+
+      const handler = (event, context) => {
+        // ...
+      };
+
+      return { handler };
+    }
+    import { createApp } from 'astro/app/entrypoint';
+
+    const app = createApp();
+
+    export const handler = (event, context) => {
+      // ...
+    }
+    ```
+
+3. Si votre adaptateur fournit une fonction `start()`, mettez à jour le point d'entrée de votre serveur pour appeler directement le code :
+
+    ```js title="mon-adaptateur/server.js" del={1-9} ins={10-16}
+    import { App } from 'astro/app';
+
+    export function start(manifest) {
+      const app = new App(manifest);
+
+      addEventListener('fetch', event => {
+        // ...
+      });
+    }
+    import { createApp } from 'astro/app/entrypoint';
+
+    const app = createApp();
+
+    addEventListener('fetch', event => {
+      // ...
+    });
+    ```
+
+4. Si vous utilisiez `args`, [créez un module virtuel pour transmettre la configuration au moment de la compilation](/fr/reference/adapter-reference/#transmission-de-la-configuration-de-compilation) et importez-les plutôt depuis ce module virtuel :
+
+    ```js title="mon-adaptateur/server.js" del={1-3} ins={4}
+    export function createExports(manifest, { assets }) {
+      // ...
+    }
+    import { assets } from 'virtual:@example/mon-adaptateur:config';
+    ```
+
+</Steps>
+
+<ReadMore>Apprenez-en davantage sur [l'API des adaptateurs](/fr/reference/adapter-reference/).</ReadMore>
+
+## Suppressions
+
+Les fonctionnalités suivantes ont été entièrement supprimées du code source et ne peuvent plus être utilisées. Certaines d'entre elles ont pu continuer à fonctionner dans votre projet malgré leur dépréciation. D'autres ont pu être restées silencieuses et sans effet.
+
+Désormais, les projets contenant ces fonctionnalités supprimées ne pourront plus être compilés, et il n'y aura plus aucune documentation vous encourageant à les supprimer.
+
+
+### Suppression : collections de contenu héritées
+
+<SourcePR number="14407" title="fix: remove legacy content collections"/>
+
+Dans Astro 5.x, il était encore possible d'utiliser [l'API des collections de contenu originale introduite pour la première fois dans Astro v2.0](https://astro.build/blog/introducing-content-collections/), **soit par le biais d'une option de configuration activable sous `legacy`, soit par le biais d'une rétrocompatibilité intégrée**. Ces méthodes vous permettaient de migrer vers Astro v5 même si vous n'étiez pas encore prêt ou en mesure de mettre à jour vos collections de contenu existantes vers celles alimentées par la nouvelle API de couche de contenu.
+
+Astro v6.0 supprime entièrement cette prise en charge de l'API des collections de contenu précédemment dépréciée, y compris l'option `legacy.collections` **et certaines rétrocompatibilités existantes qui n'étaient pas auparavant protégées par une option**. Toutes les collections de contenu doivent désormais utiliser [l'API de couche de contenu introduite dans Astro v5.0](https://astro.build/blog/content-layer-deep-dive/) qui alimente toutes les collections de contenu. **Aucune rétrocompatibilité n'est disponible.**
+
+#### Que devrais-je faire ?
+
+Si vous aviez précédemment activé l'option héritée, vous devez la supprimer.
+
+```ts title="astro.config.mjs" del={5}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  legacy: {
+    collections: true,
+  }
+})
+```
+
+De plus, si vous n'avez pas mis à jour vos collections pour Astro v5.0, assurez-vous que vos collections de contenu sont **entièrement mises à jour** pour la nouvelle API.
+
+Astro v5.x intégrait une certaine rétrocompatibilité automatique permettant aux collections de contenu de continuer à fonctionner même si elles n'avaient pas été mises à jour pour utiliser la nouvelle API. Par conséquent, vos collections v5 peuvent contenir une ou plusieurs fonctionnalités héritées qui nécessitent une mise à jour vers la nouvelle API de la v6, même si votre projet fonctionnait sans erreur auparavant.
+
+Si vous rencontrez des [erreurs de collections de contenu](/fr/reference/error-reference/#erreurs-des-collections-de-contenu) ou des avertissements après la mise à niveau vers la v6, utilisez la liste suivante pour vous aider à identifier et à mettre à niveau les fonctionnalités héritées qui peuvent exister dans votre code.
+
+##### Si vous avez...
+
+<details>
+<summary>aucun fichier de configuration pour les collections de contenu</summary>
+Créez `src/content.config.ts` et [définissez-y vos collections](/fr/guides/content-collections/#définition-de-collections-de-contenu-consommées-lors-de-la-compilation).
+</details>
+
+<details>
+<summary>un fichier de configuration à l'emplacement `src/content/config.ts` / ([`LegacyContentConfigError`](/fr/reference/errors/legacy-content-config-error/))</summary>
+Renommez et déplacez ce fichier vers `src/content.config.ts`
+</details>
+
+<details>
+<summary>une collection qui ne définit pas de chargeur (`loader`) / ([`ContentCollectionMissingALoaderError`](/fr/reference/errors/content-collection-missing-loader/))</summary>
+
+Importez [le chargeur `glob()` intégré d'Astro](/fr/guides/content-collections/#le-chargeur-glob) et définissez un modèle (`pattern`) et un chemin de `base` pour les entrées de votre collection :
+
+```ts ins={4,7}
+// src/content.config.ts
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+```
+</details>
+
+<details>
+<summary>une collection qui définit un type de collection (`type: 'content'` ou `type: 'data'`) / ([`ContentCollectionInvalidTypeError`](/fr/reference/errors/content-collection-invalid-type/))</summary>
+Il n'existe plus de différents types de collections. Cette propriété doit être supprimée de la définition de votre collection.
+
+```ts del={8}
+// src/content.config.ts
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  // Pour la couche de contenu, vous ne définissez plus de `type`.
+  type: 'content',
+  loader: glob({ pattern: '**/[^_]*.{md,mdx}', base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+```
+</details>
+
+<details>
+<summary>des méthodes d'interrogation de collection héritées `getDataEntryById()` et `getEntryBySlug()` / ([`GetEntryDeprecationError`](/fr/reference/errors/get-entry-deprecation-error/))</summary>
+Remplacez les deux méthodes par [`getEntry()`](/fr/reference/modules/astro-content/#getentry).
+
+</details>
+
+<details>
+<summary>des méthodes d'interrogation et de rendu de collections héritées qui dépendent d'une propriété `slug` / ([`ContentSchemaContainsSlugError`](/fr/reference/errors/content-schema-contains-slug-error/))</summary>
+Auparavant, l'`id` reposait sur le nom du fichier, et il existait une propriété `slug` qui pouvait être utilisée dans une URL. Désormais, l'`id`  de [`CollectionEntry`](/fr/reference/modules/astro-content/#collectionentry) est un slug. Si vous avez besoin d'accéder au nom du fichier (auparavant disponible via l'`id`), utilisez la propriété `filePath`. Remplacez les occurrences de `slug` par `id`.
+
+```astro ins={6} del={5} title="src/pages/[slug].astro"
+---
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    params: { slug: post.id },
+    props: post,
+  }));
+}
+---
+```
+</details>
+
+<details>
+<summary>du contenu restitué à l'aide de `entry.render()`</summary>
+Les entrées de collection ne possèdent plus de méthode `render()`. À la place, importez la fonction `render()` depuis `astro:content` et utilisez `render(entry)` :
+
+```astro title="src/pages/index.astro" ins=", render" del={6} ins={7}
+---
+import { getEntry, render } from 'astro:content';
+
+const post = await getEntry('pages', 'accueil');
+
+const { Content, headings } = await post.render();
+const { Content, headings } = await render(post);
+---
+<Content />
+```
+
+</details>
+
+<ReadMore>Consultez [le guide de mise à niveau d'Astro v5](/fr/guides/upgrade-to/v5/#héritage--api-des-collections-de-contenu-de-la-v20) pour obtenir des conseils antérieurs sur la rétrocompatibilité des collections héritées dans Astro v5 et des instructions étape par étape complètes pour la mise à niveau des collections héritées vers la nouvelle API de couche de contenu.</ReadMore>
+
+### Suppression : composant `<ViewTransitions />`
+
+<SourcePR number="14400" title="Remove deprecated ViewTransitions component"/>
+
+Dans Astro 5.0, le composant `<ViewTransitions />` a été renommé `<ClientRouter />` afin de clarifier son rôle. Ce nouveau nom indique plus clairement que les fonctionnalités offertes par le composant de routage `<ClientRouter />` d'Astro diffèrent légèrement de celles du routeur MPA natif reposant sur CSS. Cependant, une version dépréciée du composant `<ViewTransitions />` existait encore et pouvait fonctionner dans Astro 5.x.
+
+Astro 6.0 supprime entièrement le composant `<ViewTransitions />` et celui-ci ne peut plus être utilisé dans votre projet. Remplacez-le par le composant `<ClientRouter />` pour continuer à utiliser ces fonctionnalités.
+
+#### Que devrais-je faire ?
+
+Remplacez toutes les occurrences de l'importation et du composant `ViewTransitions` par `ClientRouter` :
+
+```astro title="src/layouts/MaMiseEnPage.astro" del={1,7} ins={2,8}
+import { ViewTransitions } from 'astro:transitions';
+import { ClientRouter } from 'astro:transitions';
+
+<html>
+  <head>
+    ...
+    <ViewTransitions />
+    <ClientRouter />
+  </head>
+</html>
+```
+
+<ReadMore>En savoir plus sur [les transitions de vue et le routage côté client dans Astro](/fr/guides/view-transitions/).</ReadMore>
+
+### Suppression : `emitESMImage()`
+
+<SourcePR number="14426" title="feat!: remove emitESMImage()"/>
+
+Dans Astro 5.6.2, la fonction `emitESMImage()` a été dépréciée au profit de `emitImageMetadata()`, qui supprime deux arguments dépréciés qui n'étaient pas destinés à être exposés au public : `_watchMode` et `experimentalSvgEnabled`.
+
+Astro 6.0 supprime complètement la fonction `emitESMImage()`. Utilisez `emitImageMetadata()` pour conserver le comportement actuel.
+
+#### Que devrais-je faire ?
+
+Remplacez toutes les occurrences de `emitESMImage()` par `emitImageMetadata()` et supprimez les arguments inutilisés :
+
+```ts del={1,5} ins={2,6}
+import { emitESMImage } from 'astro/assets/utils';
+import { emitImageMetadata } from 'astro/assets/utils';
+
+const imageId = '/images/photo.jpg';
+const result = await emitESMImage(imageId, false, false);
+const result = await emitImageMetadata(imageId);
+```
+
+<ReadMore>En savoir plus sur [`emitImageMetadata()`](/fr/reference/modules/astro-assets/#emitimagemetadata).</ReadMore>
+
+### Suppression : `Astro.glob()`
+
+<SourcePR number="14421" title="feat!: remove Astro.glob"/>
+
+Dans Astro 5.0, `Astro.glob()` a été déprécié au profit de l'utilisation de `getCollection()` pour interroger vos collections et de `import.meta.glob()` pour interroger d'autres fichiers sources de votre projet.
+
+Astro 6.0 supprime complètement `Astro.glob()`. Utilisez `import.meta.glob()` pour conserver le comportement actuel.
+
+#### Que devrais-je faire ?
+
+Remplacez toutes les occurrences de `Astro.glob()` par `import.meta.glob()`. Notez que `import.meta.glob()` ne renvoie plus de `Promise`, vous devrez donc peut-être adapter votre code en conséquence. Vous ne devriez pas avoir besoin de mettre à jour vos [motifs glob](/fr/guides/imports/#motifs-glob).
+
+```astro title="src/pages/blog.astro" del={2} ins={3}
+---
+const posts = await Astro.glob('./articles/*.md');
+const posts = Object.values(import.meta.glob('./articles/*.md', { eager: true }));
+---
+
+{posts.map((post) => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+```
+
+Le cas échéant, envisagez d'utiliser les [collections de contenu](/fr/guides/content-collections/) pour organiser votre contenu, qui dispose de ses propres fonctions d'interrogation plus récentes et plus performantes.
+
+Vous pouvez également envisager d'utiliser des paquets glob depuis NPM, tels que [`fast-glob`](https://www.npmjs.com/package/fast-glob).
+
+<ReadMore>Apprenez-en davantage sur [l'importation de fichiers avec `import.meta.glob`](/fr/guides/imports/#importmetaglob).</ReadMore>
+
+### Suppression : code interne exposé dans `astro:actions`
+
+<SourcePR number="14844" title="refactor: cleanup public actions API"/>
+
+Dans Astro 5.x, certains éléments internes étaient exportés depuis `astro:actions` alors qu'ils n'étaient pas destinés à être exposés au public.
+
+Astro 6.0 supprime les fonctions, classes et types suivants en tant qu'exportations du module virtuel `astro:actions`. Ces éléments ne peuvent plus être importés dans les fichiers de votre projet :
+
+- `ACTION_ERROR_CODES`
+- `ActionInputError`
+- `appendForwardSlash`
+- `astroCalledServerError`
+- `callSafely`
+- `deserializeActionResult`
+- `formDataToObject`
+- `getActionQueryString`
+- `serializeActionResult`
+- `type Actions`
+- `type ActionAccept`
+- `type AstroActionContext`
+- `type SerializedActionResult`
+
+#### Que devrais-je faire ?
+
+Remplacez toutes les importations de `serializeActionResult()` et `deserializeActionResult()` par `getActionContext()`. Ces deux méthodes sont désormais disponibles via `getActionContext()` :
+
+```ts title="src/middleware.ts" del={2} ins={3,6}
+import { defineMiddleware } from 'astro:middleware';
+import { serializeActionResult, deserializeActionResult } from 'astro:actions';
+import { getActionContext } from 'astro:actions';
+
+export const onRequest = defineMiddleware(async (context, next) => {
+  const { serializeActionResult, deserializeActionResult } = getActionContext(context);
+  // ...
+});
+```
+
+Supprimez toutes les occurrences des autres exportations supprimées :
+
+```ts del={1-13}
+import {
+  ACTION_ERROR_CODES,
+  ActionInputError,
+  appendForwardSlash,
+  astroCalledServerError,
+  callSafely,
+  formDataToObject,
+  getActionQueryString,
+  type Actions,
+  type ActionAccept,
+  type AstroActionContext,
+  type SerializedActionResult,
+} from 'astro:actions';
+```
+
+<ReadMore>Apprenez-en davantage sur tous les utilitaires disponibles dans la [référence de l'API des actions](/fr/reference/modules/astro-actions/).</ReadMore>
+
+### Suppression : Encodage en pourcentage dans les routes
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Dans Astro 5.x, il était possible d'inclure un signe de pourcentage encodé (`%25`) dans les noms de fichiers.
+
+Astro 6.0 supprime la prise en charge des caractères `%25` dans les noms de fichiers pour des raisons de sécurité. Cette restriction empêche les contournements de sécurité basés sur l'encodage où `%25` est décodé en `%`, ce qui pourrait entraîner des séquences d'encodage ambiguës ou invalides.
+
+#### Que devrais-je faire ?
+
+Si vous avez des fichiers de routage dont le nom contient `%25`, renommez-les en utilisant un caractère différent :
+
+```bash del={1} ins={2}
+src/pages/fichier%25test.astro
+src/pages/fichier-test.astro
+```
+
+### Suppression : Module virtuel `astro:ssr-manifest` (API des intégrations)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Dans Astro 5.x, le module virtuel déprécié `astro:ssr-manifest` pouvait encore être utilisé pour accéder aux valeurs de configuration.
+
+Astro 6.0 supprime entièrement le module virtuel `astro:ssr-manifest`. Il n'est plus utilisé ni par les intégrations ni en interne par Astro. Le manifeste est désormais transmis directement via les hooks des intégrations et les API des adaptateurs, sans passer par un module virtuel. Pour les données de manifeste spécifiques à une compilation, utilisez le hook `astro:build:ssr` des intégrations, qui reçoit le manifeste en tant que paramètre.
+
+#### Que devrais-je faire ?
+
+Si votre intégration ou votre code importe depuis `astro:ssr-manifest`, utilisez plutôt `astro:config/server` pour accéder aux valeurs de configuration :
+
+```ts del={1} ins={2,3}
+import { manifest } from 'astro:ssr-manifest';
+import { srcDir, outDir, root } from 'astro:config/server';
+// Utilisez srcDir, outDir, root, etc. pour les valeurs de configuration
+```
+
+<ReadMore>Apprenez-en davantage sur [le module virtuel `astro:config`](/fr/reference/modules/astro-config/).</ReadMore>
+
+### Suppression : `RouteData.generate()` (API des adaptateurs)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Dans Astro 5.x, les routes pouvaient être générées à l'aide de la méthode `generate()` dans `RouteData`.
+
+Astro 6.0 supprime `RouteData.generate()` car la génération des routes est désormais gérée en interne par Astro.
+
+#### Que devrais-je faire ?
+
+Supprimez tous les appels à `route.generate()` dans votre code. Cette méthode n'est plus nécessaire :
+
+```ts del={1}
+const generated = route.generate(params);
+```
+
+<ReadMore>Apprenez-en davantage sur [l'API des adaptateurs](/fr/reference/adapter-reference/).</ReadMore>
+
+### Suppression : `routes` dans le hook `astro:build:done` (API des intégrations)
+
+<SourcePR number="14446" title="feat: cleanup integration api"/>
+
+Dans Astro 5.0, l'accès à `routes` dans le hook `astro:build:done` a été déprécié.
+
+Astro 6.0 supprime entièrement le tableau `routes` transmis à ce hook. À la place, le hook `astro:routes:resolved` devrait être utilisé.
+
+#### Que devrais-je faire ?
+
+Supprimez toute instance de `routes` transmise à `astro:build:done` et remplacez-la par le nouveau hook `astro:routes:resolved`. Accédez à `distURL` dans la table associative `assets` nouvellement exposée :
+
+```js title="mon-integration.mjs" ins={2,6-8,11,13-18} del={10}
+const integration = () => {
+    let routes
+    return {
+        name: 'mon-integration',
+        hooks: {
+            'astro:routes:resolved': (params) => {
+                routes = params.routes
+            },
+            'astro:build:done': ({
+                routes
+                assets
+            }) => {
+                for (const route of routes) {
+                    const distURL = assets.get(route.pattern)
+                    if (distURL) {
+                        Object.assign(route, { distURL })
+                    }
+                }
+                console.log(routes)
+            }
+        }
+    }
+}
+```
+
+<ReadMore>Apprenez-en davantage sur [le hook `astro:routes:resolved` de l'API des intégrations](/fr/reference/integrations-reference/#astroroutesresolved) pour la création d'intégrations.</ReadMore>
+
+### Suppression : `entryPoints` dans le hook `astro:build:ssr` (API des intégrations)
+
+<SourcePR number="14446" title="feat: cleanup integration api"/>
+
+Dans Astro 5.0, [`functionPerRoute` a été dépréciée](/fr/guides/upgrade-to/v5/#déprécié--functionperroute-api-des-adaptateurs). Cela signifiait que `entryPoints` dans le hook `astro:build:ssr` était toujours vide.
+
+Astro 6.0 supprime entièrement la table associative `entryPoints` transmise à ce hook.
+
+#### Que devrais-je faire ?
+
+Supprimez toute instance de `entryPoints` transmise à `astro:build:ssr` :
+
+```js title="mon-integration.mjs" del={6}
+const integration = () => {
+    return {
+        name: 'mon-integration',
+        hooks: {
+            'astro:build:ssr': (params) => {
+                someLogic(params.entryPoints)
+            },
+        }
+    }
+}
+```
+
+### Suppression : ancienne signature d'`app.render()` (API des adaptateurs)
+
+<SourcePR number="14462" title="feat: clean deprecated APIs"/>
+
+Dans Astro 4.0, la signature d'`app.render()` qui permettait de transmettre `routeData` et `locals` en tant qu'arguments optionnels a été dépréciée au profit d'un seul argument optionnel nommé `renderOptions`.
+
+Astro 6.0 supprime entièrement cette signature. Toute tentative de transmission de l'un de ces arguments séparément entraînera désormais une erreur dans votre projet.
+
+#### Que devrais-je faire ?
+
+Vérifiez vos appels à `app.render()` et transmettez `routeData` et `locals` en tant que propriétés d'un objet plutôt qu'en tant que plusieurs arguments indépendants :
+
+```ts title="mon-adaptateur/entrypoint.ts" del={1} ins={2}
+app.render(request, routeData, locals)
+app.render(request, { routeData, locals })
+```
+
+<ReadMore>Apprenez-en davantage sur l'[API des adaptateurs](/fr/reference/adapter-reference/).</ReadMore>
+
+### Suppression : `app.setManifestData()` (API des adaptateurs)
+
+<SourcePR number="14758" title="chore(astro)!: remove app.setManifestData()"/>
+
+Dans Astro 5.0, la méthode `app.setManifestData()` était disponible dans `App` et `NodeApp`, mais elle n'est plus utilisée ni nécessaire.
+
+Astro 6.0 supprime entièrement cette méthode.
+
+#### Que devrais-je faire ?
+
+Supprimez tout appel à `app.setManifestData()`. Si vous devez mettre à jour le manifeste, créez une nouvelle instance de `App`.
+
+<ReadMore>Apprenez-en davantage sur l'[API des adaptateurs](/fr/reference/adapter-reference/).</ReadMore>
+
+### Suppression : Propriété `handleForms` pour le composant `<ClientRouter />`
+
+<SourcePR number="14462" title="feat: clean deprecated APIs"/>
+
+Dans Astro 4.0, la propriété `handleForms` du composant `<ClientRouter />` a été dépréciée, car il n'était plus nécessaire d'activer la gestion des événements `submit` pour les éléments `form`. Cette fonctionnalité est désormais intégrée par défaut et, si la propriété est toujours présente dans votre projet, elle n'a aucun impact sur la soumission des formulaires.
+
+Astro 6.0 supprime entièrement cette propriété et il est désormais impératif de la supprimer pour éviter les erreurs dans votre projet.
+
+#### Que devrais-je faire ?
+
+Supprimez la propriété `handleForms` de votre composant `<ClientRouter />` si elle existe. Elle n'apporte aucune fonctionnalité supplémentaire, et sa suppression ne devrait donc modifier aucun comportement de votre projet.
+
+```astro title="src/pages/index.astro" del="handleForms"
+---
+import { ClientRouter } from "astro:transitions";
+---
+<html>
+  <head>
+    <ClientRouter handleForms />
+  </head>
+  <body>
+    <!-- quelque chose ici -->
+  </body>
+</html>
+```
+
+<ReadMore>Apprenez-en davantage sur les [transitions avec les formulaires](/fr/guides/view-transitions/#transitions-avec-les-formulaires).</ReadMore>
+
+### Suppression : Option `with` de `prefetch()`
+
+<SourcePR number="14462" title="feat: clean deprecated APIs"/>
+
+Dans Astro 4.8.4, l'option `with` de la fonction programmatique `prefetch()` a été dépréciée au profit d'un comportement par défaut plus judicieux qui ne nécessitait plus de spécifier la priorité de préchargement pour chaque page.
+
+Astro 6.0 supprime entièrement cette option et il n'est plus possible de configurer la priorité de préchargement à l'aide de l'option `with`. Toute tentative en ce sens entraînera désormais des erreurs.
+
+Par défaut, le préchargement d'Astro utilise désormais une approche automatique qui tentera toujours d'utiliser `<link rel="prefetch>` si elle est prise en charge, ou utilisera `fetch()` par défaut.
+
+#### Que devrais-je faire ?
+
+Vérifiez vos appels à `prefetch()` et supprimez l'option `with` si elle existe encore :
+
+```ts del={1} ins={2}
+prefetch('/a-propos', { with: 'fetch' });
+prefetch('/a-propos');
+```
+
+<ReadMore>Apprenez-en davantage sur le [préchargement](/fr/guides/prefetch/).</ReadMore>
+
+### Suppression : `rewrite()` depuis le contexte des actions
+
+<SourcePR number="14477" title="feat!: remove rewrite from action context"/>
+
+Dans Astro 5.5.6, la méthode `ActionAPIContext.rewrite()` a été dépréciée car il convient d'utiliser des points de terminaison personnalisés à la place des réécritures.
+
+Astro 6.0 supprime entièrement la méthode `rewrite()` de `ActionAPIContext` et celle-ci ne peut plus être utilisée.
+
+#### Que devrais-je faire ?
+
+Examinez vos gestionnaires d'actions et supprimez tout appel à `rewrite()` :
+
+
+```ts title="src/actions/index.ts" del={10}
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  getGreeting: defineAction({
+    input: z.object({
+      // ...
+    }),
+    handler: async (input, context) => {
+      context.rewrite('/')
+      // ...
+    }
+  })
+}
+```
+
+<ReadMore>Apprenez-en davantage sur les [réécritures](/fr/guides/routing/#réécritures).</ReadMore>
+
+### Suppression : Signature de la fonction de schéma (API des chargeurs de contenu)
+
+<SourcePR number="14759" title="feat: loader.createSchema()" />
+
+Dans Astro 5.x, un chargeur de contenu pouvait choisir de définir un schéma sous forme de fonction au lieu de définir un objet de schéma Zod pour la validation. Ceci est utile pour générer dynamiquement le schéma en fonction des options de configuration ou par introspection d'une API.
+
+Astro 6.0 supprime cette signature et introduit une nouvelle propriété `createSchema()` en remplacement pour ceux qui souhaitent toujours définir dynamiquement un schéma dans leur chargeur de contenu.
+
+Fournir une fonction de schéma de l'ancienne manière générera un avertissement indiquant que le schéma du chargeur est ignoré, mais ce dernier continuera de fonctionner comme si aucun schéma n'avait été fourni. Dans une future version majeure, les chargeurs fournissant une fonction de schéma généreront une erreur et ne pourront plus être utilisés.
+
+#### Que devrais-je faire ?
+
+Si vous créez un chargeur de contenu et utilisez une fonction pour renvoyer dynamiquement une propriété `schema` de collection, vous devez supprimer votre fonction existante et utiliser la nouvelle propriété `createSchema()` pour définir votre schéma à la place.
+
+Par exemple, vous pouvez reproduire le comportement précédent d'Astro en utilisant directement `zod-to-ts` avec `createSchema()` et n'importe quelle logique de fonction précédente :
+
+```ts del={11} ins={2,12-22}
+import type { Loader } from 'astro/loaders'
+import { createTypeAlias, zodToTs } from 'zod-to-ts'
+import { getSchemaFromApi } from './utils'
+
+function myLoader() {
+  return {
+    name: 'mon-chargeur',
+    load: async (context) => {
+      // ...
+    },
+    schema: async () => await getSchemaFromApi(),
+    createSchema: async () => {
+      const schema = await getSchemaFromApi()
+      const identifier = 'Entry'
+      const { node } = zodToTs(schema, identifier)
+      const typeAlias = createTypeAlias(node, identifier)
+
+      return {
+        schema,
+        types: `export ${typeAlias}`
+      }
+    }
+  } satisfies Loader
+}
+```
+
+<ReadMore>Apprenez-en davantage sur [`createSchema()`](/fr/reference/content-loader-reference/#loadercreateschema) dans la référence de l'API des chargeurs de contenu.</ReadMore>
+
+### Suppression : pilote de session `test`
+
+<SourcePR number="15006" title="feat(sessions): drivers" />
+
+Dans Astro 5.x, le pilote de session interne `test` était exporté dans les types de configuration Astro, mais il n'était pas destiné à être exposé pour un usage public.
+
+Astro 6.0 supprime le pilote de session `test` car il n'est plus utilisé en interne pour tester `context.session`.
+
+#### Que devrais-je faire ?
+
+Il est peu probable que vous utilisiez cette API interne. Si c'est le cas, vous devez supprimer toute utilisation du pilote de session `test` :
+
+```js title="astro.config.mjs" del={2,6-9}
+import { defineConfig } from 'astro/config'
+import { createMockStorage } from './utils'
+
+export default defineConfig({
+  session: {
+    driver: 'test',
+    options: {
+      mockStorage: createMockStorage()
+    }
+  }
+})
+```
+
+<ReadMore>Apprenez-en davantage sur l'[API des pilotes de session](/fr/reference/session-driver-reference/).</ReadMore>
+
+### Suppression : prise en charge des fichiers de configuration CommonJS
+
+<SourcePR number="15192" title="Drop cjs config support" />
+
+Dans Astro 5.x, le fichier de configuration Astro pouvait utiliser l'une des extensions suivantes : `.mjs`, `.js`, `.ts`, `.mts`, `.cjs` et `.cts`.
+
+Astro 6.0 supprime les extensions `.cjs` et `.cts`.
+
+#### Que devrais-je faire ?
+
+Si vous avez un fichier `astro.config.cjs` ou `astro.config.cts`, mettez-le à jour pour utiliser les extensions prises en charge : `.mjs`, `.js`, `.ts` ou `.mts`.
+
+<ReadMore>Apprenez-en davantage sur le [fichier de configuration d'Astro](/fr/guides/configuring-astro/#le-fichier-de-configuration-dastro).</ReadMore>
+
+### Options expérimentales
+
+Les options expérimentales vous permettent d'activer des fonctionnalités en cours de développement. Astro peut également utiliser des options expérimentales pour tester des modifications du comportement par défaut avec rupture de compatibilité. Les options expérimentales suivantes ont été supprimées dans Astro 6.0 et sont désormais stables, ou constituent le nouveau comportement par défaut.
+
+Supprimez ces options expérimentales dans la configuration d'Astro si vous les utilisiez précédemment :
+
+```js del={5-11} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    csp: true,
+    fonts: true,
+    liveContentCollections: true,
+    preserveScriptOrder: true,
+    staticImportMetaEnv: true,
+    headingIdCompat: true,
+    failOnPrerenderConflict: true
+  },
+})
+```
+
+#### Fonctionnalités expérimentales désormais stables :
+
+- `csp` (Consultez la [référence de configuration de `security.csp`](/fr/reference/configuration-reference/#securitycsp) pour en savoir plus sur la stratégie de sécurité du contenu.)
+- `fonts` (Consultez le [guide des polices](/fr/guides/fonts/) mis à jour pour en savoir plus sur l'ajout de polices personnalisées dans votre projet.)
+- `liveContentCollections` (Consultez la [documentation sur les collections de contenu](/fr/guides/content-collections/) mise à jour pour en savoir plus sur les collections en direct.)
+- `failOnPrerenderConflict` (Consultez la nouvelle option de configuration [`prerenderConflictBehavior`](/fr/reference/configuration-reference/#prerenderconflictbehavior).)
+
+#### Nouveau comportement par défaut ou recommandé :
+
+- `preserveScriptOrder` (Voir ci-dessous pour les changements non rétrocompatibles concernant le [comportement par défaut des balises `<script>` et `<style>`](#modification-les-balises-script-et-style-sont-générées-dans-lordre-où-elles-sont-définies).)
+- `staticImportMetaEnv` (Voir ci-dessous les changements non rétrocompatibles apportés à [`import.meta.env`](#modification-les-valeurs-de-importmetaenv-sont-toujours-incorporées).)
+- `headingIdCompat` (Voir ci-dessous les changements non rétrocompatibles apportés à la [génération des identifiants de titre dans Markdown](#modification-génération-didentifiants-de-titres-markdown).)
+
+<ReadMore>Découvrez de nouvelles fonctionnalités passionnantes et bien plus encore dans [l'article de blog de la v6.0](https://astro.build/blog/astro-6/).</ReadMore>
+
+## Comportements par défaut modifiés
+
+Certains comportements par défaut ont changé dans Astro v6.0 et le code de votre projet devra peut-être être mis à jour pour tenir compte de ces changements.
+
+Dans la plupart des cas, la seule action nécessaire consiste à examiner le déploiement de votre projet existant et à vous assurer qu'il continue de fonctionner comme prévu, en mettant à jour votre code si nécessaire. Dans certains cas, il peut exister un paramètre de configuration vous permettant de continuer à utiliser le comportement par défaut précédent.
+
+### Modification : valeur par défaut de `i18n.routing.redirectToDefaultLocale`
+
+<SourcePR number="14406" title="feat(astro)!: update i18n.redirectToDefaultLocale default"/>
+
+Dans Astro v5.0, la valeur par défaut de `i18n.routing.redirectToDefaultLocale` était `true`. Combinée à la valeur par défaut `false` de `i18n.routing.prefixDefaultLocale`, cette option pouvait entraîner des boucles infinies.
+
+Dans Astro v6.0, la valeur par défaut de `i18n.routing.redirectToDefaultLocale` est désormais `false`. De plus, elle ne peut être utilisée que si `i18n.routing.prefixDefaultLocale` est définie sur `true`.
+
+#### Que devrais-je faire ?
+
+Vérifiez votre configuration de `i18n` dans Astro car vous devrez peut-être maintenant définir explicitement les valeurs de `redirectToDefaultLocale` et `prefixDefaultLocale` pour recréer le comportement précédent de votre projet.
+
+```js ins={7} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  i18n: {
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: true
+    }
+  }
+})
+```
+
+Si vous utilisez le routage manuel, vous devrez peut-être également mettre à jour la configuration de votre middleware :
+
+```js title="src/middleware.js" del={4} ins={5}
+import { middleware } from "astro:i18n"; // Configuration de routage i18n propre à Astro
+
+export const onRequest = middleware({
+  prefixDefaultLocale: false,
+  prefixDefaultLocale: true,
+  redirectToDefaultLocale: true,
+})
+```
+
+<ReadMore>Apprenez-en davantage sur [le routage avec l'internationalisation](/fr/guides/internationalization/#routing).</ReadMore>
+
+### Modification : Les balises `<script>` et `<style>` sont générées dans l'ordre où elles sont définies.
+
+<SourcePR number="14480" title="feat: stabilize experimental preserveScriptOrder option"/>
+
+Dans Astro v5.5, l'option `experimental.preserveScriptOrder` a été introduite pour générer plusieurs balises `<style>` et `<script>` dans le même ordre que celui dans lequel elles ont été déclarées dans le code source. Astro 5.x inversait cet ordre dans le code HTML généré. Cela pouvait entraîner des résultats inattendus, par exemple, l'écrasement de styles CSS par des balises de style définies précédemment lors de la génération du site.
+
+Astro 6.0 supprime cette option expérimentale et en fait le nouveau comportement par défaut d'Astro : les scripts et les styles sont désormais générés dans l'ordre défini dans votre code.
+
+#### Que devrais-je faire ?
+
+Si vous utilisiez auparavant cette fonctionnalité expérimentale, vous devez [supprimer cette option expérimentale de votre configuration](#options-expérimentales) car elle n'existe plus.
+
+Vérifiez vos balises `<script>` et `<style>` pour vous assurer qu'elles se comportent comme prévu. Il vous faudra peut-être inverser leur ordre :
+
+```astro title="src/components/MonComposant.astro" del={4,10,15,19} ins={5,11,16,20}
+<p>Je suis un composant</p>
+<style>
+  body {
+    background: red;
+    background: yellow;
+  }
+</style>
+<style>
+  body {
+    background: yellow;
+    background: red;
+  }
+</style>
+<script>
+    console.log("hello")
+    console.log("world")
+</script>
+<script>
+    console.log("world!")
+    console.log("hello!")
+</script>
+```
+
+<ReadMore>En savoir plus sur l'utilisation des balises [`script`](/fr/guides/client-side-scripts/) et [`style`](/fr/guides/styling/).</ReadMore>
+
+### Modification : Manière dont les styles d'images adaptatives sont émis
+
+<SourcePR number="15407" title="support responsive images"/>
+
+Dans Astro 5.x, les images étaient calculées au moment de l'exécution et les styles `fit` et `pos` des images adaptatives étaient injectés dans un attribut `style`. Cela ne permettait pas la compatibilité avec la stratégie de sécurité du contenu (CSP) d'Astro pour de nombreuses raisons.
+
+Astro 6 génère les styles des images dans un module virtuel au moment de la compilation en fonction de la configuration du projet, ce qui donne lieu à un hachage pour la classe et à des attributs `data-*` pour appliquer un style adaptatif à vos images.
+
+#### Que devrais-je faire ?
+
+Vérifiez visuellement vos images pour vous assurer qu'elles s'affichent correctement. Il s'agit d'un détail d'implémentation qui ne devrait pas affecter l'utilisation prévue des images adaptatives.
+
+Toutefois, si vous utilisiez les styles précédemment générés et incorporés à la balise de vos images :
+
+```html
+<img style="--fit: <value>; --pos: <value>" >
+```
+
+Alors, vous devrez mettre à jour le code de votre projet pour prendre en compte les nouveaux attributs `data-*` :
+
+```html
+<img class="__a_HaSh350" data-astro-fit="value" data-astro-pos="value" >
+```
+
+## Changements avec rupture de compatibilité
+
+Les modifications suivantes sont considérées comme des changements avec rupture de compatibilité dans Astro v6.0. Ceux-ci peuvent ou non assurer une rétrocompatibilité temporaire. Si vous utilisiez ces fonctionnalités, vous devrez peut-être mettre à jour votre code comme indiqué dans chaque entrée.
+
+### Modification : Les points de terminaison avec une extension de fichier ne sont pas accessibles avec une barre oblique finale
+
+<SourcePR number="14457" title="feat!: trailing slash never for endpoints with file extension"/>
+
+Dans Astro v5.0, les points de terminaison personnalisés dont l'URL se terminait par une extension de fichier (par exemple `/src/pages/sitemap.xml.ts`) pouvaient être accessibles avec une barre oblique finale (`/sitemap.xml/`) ou sans (`/sitemap.xml`), quelle que soit la valeur configurée pour `build.trailingSlash`.
+
+Dans Astro v6.0, ces points de terminaison ne sont accessibles que sans barre oblique finale. Ceci est valable quelle que soit votre configuration dans `build.trailingSlash`.
+
+#### Que devrais-je faire ?
+
+Vérifiez les liens vers vos points de terminaison personnalisés qui incluent une extension de fichier dans l'URL et supprimez les barres obliques finales :
+
+```html del={1} ins={2} title="src/pages/index.astro"
+<a href="/sitemap.xml/">Sitemap</a>
+<a href="/sitemap.xml">Sitemap</a>
+```
+
+<ReadMore>Apprenez-en davantage sur les [points de terminaison personnalisés](/fr/guides/endpoints/).</ReadMore>
+
+### Modification : Les valeurs de `import.meta.env` sont toujours incorporées
+
+<SourcePR number="14485" title="feat: stabilize static import meta env"/>
+
+Dans Astro 5.13, l'option `experimental.staticImportMetaEnv` a été introduite pour mettre à jour le comportement lors de l'accès direct à `import.meta.env` afin de s'aligner sur [la gestion des variables d'environnement de Vite](https://vite.dev/guide/env-and-mode.html#env-variables) et garantit que les valeurs de `import.meta.env` sont toujours incorporées.
+
+Dans Astro 5.x, les variables d'environnement non publiques étaient remplacées par une référence à `process.env`. De plus, Astro pouvait également convertir le type des valeurs des variables d'environnement utilisées via `import.meta.env`, ce qui pouvait empêcher l'accès à certaines valeurs telles que les chaînes de caractères `"true"` (convertie en booléen) et `"1"` (convertie en nombre).
+
+Astro 6 supprime cette option expérimentale et en fait le nouveau comportement par défaut d'Astro : les valeurs `import.meta.env` sont toujours incorporées et jamais converties en un autre type.
+
+#### Que devrais-je faire ?
+
+Si vous utilisiez auparavant cette fonctionnalité expérimentale, vous devez [supprimer cette option expérimentale de votre configuration](#options-expérimentales) car elle n'existe plus.
+
+Si vous utilisiez la conversion en un autre type, vous devrez peut-être mettre à jour le code de votre projet pour l'appliquer manuellement :
+
+```ts title="src/components/MonComposant.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.ENABLED;
+const enabled: boolean = import.meta.env.ENABLED === "true";
+```
+
+Si vous comptiez sur la transformation en `process.env`, vous devrez peut-être mettre à jour le code de votre projet pour l'appliquer manuellement :
+
+```ts title="src/components/MonComposant.astro" del={1} ins={2}
+const enabled: boolean = import.meta.env.DB_PASSWORD;
+const enabled: boolean = process.env.DB_PASSWORD;
+```
+
+Vous devrez peut-être également mettre à jour les types :
+
+```ts title="src/env.d.ts" del={3-4} ins={5,12-16}
+interface ImportMetaEnv {
+  readonly PUBLIC_POKEAPI: string;
+  readonly DB_PASSWORD: string;
+  readonly ENABLED: boolean;
+  readonly ENABLED: string;
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+
+namespace NodeJS {
+  interface ProcessEnv {
+    DB_PASSWORD: string;
+  }
+}
+```
+
+Si vous avez besoin de plus de contrôle sur les variables d'environnement dans Astro, nous vous recommandons d'utiliser `astro:env`.
+
+<ReadMore>Apprenez-en davantage sur les [variables d'environnement](/fr/guides/environment-variables/) dans Astro, y compris `astro:env`.</ReadMore>
+
+### Modification : Recadrage par défaut dans le service d'images par défaut
+
+<SourcePR number="14629" title="feat(assets): Always allow cropping and never upscale" />
+
+Dans Astro 5.0, le service d'images par défaut n'appliquait le recadrage que lorsque l'option `fit` était fournie.
+
+Astro 6.0 applique le recadrage par défaut sans nécessiter la configuration de l'option `fit`.
+
+#### Que devrais-je faire ?
+
+Aucune modification n'est nécessaire pour vos images recadrées existantes, car la propriété `fit` reste valide. Toutefois, si vous aviez précédemment défini `fit` sur `contain` (sa valeur par défaut) afin de recadrer vos images, vous pouvez désormais supprimer cette option et obtenir le même comportement de recadrage en spécifiant uniquement `width` et `height` :
+
+```ts title="src/components/MonImage.astro" del={5} ins={6}
+---
+import { Image } from 'astro:assets';
+import monImage from '../assets/photo.jpg';
+---
+<Image src={monImage} width={400} height={300} fit="contain" />
+<Image src={monImage} width={400} height={300} />
+```
+
+### Modification : Ne jamais agrandir les images dans le service d'images par défaut
+
+<SourcePR number="14629" title="feat(assets): Always allow cropping and never upscale" />
+
+Dans Astro 5.x, le service d'images par défaut agrandissait les images lorsque les dimensions demandées étaient supérieures à celles de l'image source.
+
+Astro 6.0 supprime ce comportement : le service d'images par défaut ne procède jamais à une mise à l'échelle des images.
+
+#### Que devrais-je faire ?
+
+Vérifiez vos images et mettez à jour leurs dimensions si nécessaire. Si vous devez agrandir des images, vous pouvez envisager de le faire manuellement ou d'utiliser un service d'images personnalisé prenant en charge l'agrandissement.
+
+### Modification : Rastérisation SVG
+
+<SourcePR number="15180" title="add support for SVG rasterization" />
+
+Dans Astro v5.x, le service d'images Sharp par défaut d'Astro était incapable de convertir les fichiers SVG en fichiers matriciels (par exemple PNG, WebP). Par conséquent, le composant `<Image />` ignorait toute valeur définie pour `format` lors de l'optimisation et de la transformation des fichiers SVG.
+
+Astro 6.0 prend désormais en charge la rastérisation SVG. Ceci est soumis à [de nombreuses limitations](https://github.com/lovell/sharp/issues?q=is%3Aissue%20state%3Aopen%20svg), par exemple, les SVG avec des polices intégrées peuvent ne pas être convertis correctement. Néanmoins, lorsque la propriété `format` est définie, le service d'images tentera de convertir les images SVG.
+
+#### Que devrais-je faire ?
+
+Si vous comptiez auparavant sur le fait que le service d'images ignorait automatiquement la conversion des SVG, vous devez désormais vérifier le format de vos images au préalable afin d'éviter la conversion des SVG en images matricielles :
+
+```astro del={1} ins={3-7}
+<Image src={imagePouvantEtreUnSvg} format="avif" alt="exemple" />
+
+<Image
+	src={imagePouvantEtreUnSvg}
+	format={imagePouvantEtreUnSvg.format === "svg" ? "svg" : "avif"}
+	alt="exemple"
+/>
+```
+
+<ReadMore>Apprenez-en davantage sur [la propriété d'image `format`](/fr/reference/modules/astro-assets/#format).</ReadMore>
+
+### Modification : `getImage()` émet une erreur lorsqu'elle est appelée côté client.
+
+<SourcePR number="15800" title="feat: disallow getImage on the client" />
+
+Dans Astro 5.x, l'appel de `getImage()` depuis `astro:assets` côté client échouait silencieusement ou produisait des résultats incorrects.
+
+Astro 6.0 génère une erreur d'exécution lorsque `getImage()` est appelée côté client.
+
+#### Que devrais-je faire ?
+
+Appelez `getImage()` sur le serveur et transmettez plutôt la `src` résultante au client :
+
+```astro title="src/components/ClientImage.astro" {5, 8, 11}
+---
+import { getImage } from "astro:assets";
+import myBackground from "../background.png";
+
+const optimizedBackground = await getImage({ src: myBackground, format: "avif" });
+---
+
+<div id="background" data-src={optimizedBackground.src}></div>
+
+<script>
+  const src = document.getElementById("background").dataset.src;
+  // utilisez src côté client selon vos besoins
+</script>
+```
+
+<ReadMore>Consultez [générer des images avec `getImage()`](/fr/guides/images/#générer-des-images-avec-getimage) pour un exemple complet.</ReadMore>
+
+### Modification : Génération d'identifiants de titres Markdown
+
+<SourcePR number="14494" title="feat!: stabilize experimental.headingIdCompat"/>
+
+Dans Astro 5.x, une étape de traitement supplémentaire par défaut pour Markdown supprimait les tirets finaux des identifiants des titres de section se terminant par des caractères spéciaux. Cela permettait d'obtenir une valeur pour `id` plus propre, mais pouvait entraîner des incompatibilités lors du rendu de votre Markdown sur différentes plateformes.
+
+Dans Astro 5.5, l'option `experimental.headingIdCompat` a été introduite pour vous permettre de rendre les ID générés par Astro pour les titres Markdown compatibles avec les plateformes courantes comme GitHub et npm, en utilisant le paquet populaire [`github-slugger`](https://github.com/Flet/github-slugger).
+
+Astro 6.0 supprime cette option expérimentale et en fait le nouveau comportement par défaut d'Astro : les tirets finaux des identifiants des titres se terminant par des caractères spéciaux ne sont plus supprimés.
+
+#### Que devrais-je faire ?
+
+Si vous avez des liens manuels vers des titres, vous devrez peut-être mettre à jour la valeur du lien d'ancrage en ajoutant un tiret à la fin. Par exemple, le titre Markdown suivant :
+
+```md
+## `<Picture />`
+```
+
+générera désormais le code HTML suivant avec un tiret final dans l'`id` du titre :
+
+```html ins="-"
+<h2 id="picture-"><code>&lt;Picture /&gt;</code></h2>
+```
+
+et doit maintenant être lié comme suit :
+
+```markdown ins="-"
+Consultez [le composant Picture](/fr/guides/images/#picture-) pour plus de détails.
+```
+
+Si vous utilisiez auparavant la fonctionnalité expérimentale pour imposer des tirets de fin, vous devez [supprimer cette option expérimentale de votre configuration](#options-expérimentales) car elle n'existe plus.
+
+Si vous utilisiez auparavant directement le module d'extension `rehypeHeadingIds` pour assurer la compatibilité, supprimez l'option `headingIdCompat` car elle n'existe plus :
+
+```js title="astro.config.mjs" del={8} ins={9}
+import { defineConfig } from 'astro/config';
+import { rehypeHeadingIds } from '@astrojs/markdown-remark';
+import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+export default defineConfig({
+  markdown: {
+    rehypePlugins: [
+      [rehypeHeadingIds, { headingIdCompat: true }],
+      [rehypeHeadingIds],
+      otherPluginThatReliesOnHeadingIDs,
+    ],
+  },
+});
+```
+
+Si vous souhaitez conserver l'ancien système de génération d'identifiants pour des raisons de rétrocompatibilité, vous pouvez créer un module d'extension rehype personnalisé qui générera des identifiants de titres similaires à ceux d'Astro 5.x. Cela vous permettra de continuer à utiliser vos liens d'ancrage existants sans ajouter de tirets à la fin.
+
+<details>
+
+<summary>Créer un module d'extension rehype personnalisé pour supprimer les tirets finaux</summary>
+
+<Steps>
+
+1. Installez les dépendances requises :
+
+   <PackageManagerTabs>
+   <Fragment slot="npm">
+   ```sh
+   npm i github-slugger hast-util-heading-rank unist-util-visit hast-util-to-string
+   ```
+   </Fragment>
+   <Fragment slot="pnpm">
+   ```sh
+   pnpm add github-slugger hast-util-heading-rank unist-util-visit hast-util-to-string
+   ```
+   </Fragment>
+   <Fragment slot="yarn">
+   ```sh
+   yarn add github-slugger hast-util-heading-rank unist-util-visit hast-util-to-string
+   ```
+   </Fragment>
+   </PackageManagerTabs>
+
+2. Créez un module d'extension rehype personnalisé qui générera des identifiants de titres comme Astro v5 :
+
+   ```js title="plugins/rehype-slug.mjs"
+   import GithubSlugger from 'github-slugger';
+   import { headingRank } from 'hast-util-heading-rank';
+   import { visit } from 'unist-util-visit';
+   import { toString } from 'hast-util-to-string';
+
+   const slugs = new GithubSlugger();
+
+   export function rehypeSlug() {
+     /**
+      * @param {import('hast').Root} tree
+      */
+     return (tree) => {
+       slugs.reset();
+       visit(tree, 'element', (node) => {
+         if (headingRank(node) && !node.properties.id) {
+           let slug = slugs.slug(toString(node));
+           // Supprimer les tirets finaux comme dans Astro v5 et les versions antérieures :
+           if (slug.endsWith('-')) slug = slug.slice(0, -1);
+           node.properties.id = slug;
+         }
+       });
+     };
+   }
+   ```
+
+3. Ajoutez le module d'extension personnalisé à votre configuration de Markdown dans `astro.config.mjs` :
+
+   ```js title="astro.config.mjs" ins={2} ins="rehypeSlug"
+   import { defineConfig } from 'astro/config';
+   import { rehypeSlug } from './plugins/rehype-slug';
+
+   export default defineConfig({
+     markdown: {
+       rehypePlugins: [rehypeSlug],
+     },
+   });
+   ```
+
+</Steps>
+
+</details>
+
+<ReadMore>Apprenez-en davantage sur les [ID de titre](/fr/guides/markdown-content/#id-des-titres).</ReadMore>
+
+### Modification : `getStaticPaths()` ne peut pas renvoyer de paramètres de type nombre
+
+<SourcePR number="14586" title="fix!: disallow number in getStaticPaths params"/>
+
+Dans Astro 5.x, `getStaticPaths()` pouvait renvoyer des `params` de type numérique, qui étaient systématiquement convertis en chaîne de caractères par Astro. Cependant, cela pouvait prêter à confusion car cela entrait en conflit avec les types de `Astro.params`.
+
+Astro 6.0 supprime ce comportement : `getStaticPaths()` doit désormais renvoyer une chaîne de caractères ou des valeurs indéfinies dans `params`.
+
+#### Que devrais-je faire ?
+
+Examinez vos routes dynamiques utilisant `getStaticPaths()` et convertissez les paramètres numériques en chaînes de caractères :
+
+```astro title="src/pages/post/[id]/[label].astro" del={6,13} ins={7,14}
+---
+export function getStaticPaths() {
+  return [
+    {
+      params: {
+        id: 1,
+        id: "1",
+        label: "foo",
+      }
+    },
+    {
+      params: {
+        id: 2,
+        id: "2",
+        label: "bar",
+      }
+    },
+  ]
+}
+---
+```
+
+<ReadMore>Apprenez-en davantage sur [les routes SSG dynamiques avec `getStaticPaths()`](/fr/guides/routing/#mode-statique-ssg).</ReadMore>
+
+### Modification : Les composants Astro ne peuvent pas être rendus dans les environnements clients de Vitest (API des conteneurs)
+
+<SourcePR number="14895" title="feat: remove Vitest workaround for client environment"/>
+
+Dans Astro 5.x, le rendu d'un composant Astro côté client était interdit. Cependant, nous avons temporairement autorisé ce comportement dans les environnements clients de Vitest tels que `jsdom` ou `happy-dom` en utilisant l'[API des conteneurs expérimentale](/fr/reference/container-reference/).
+
+Astro 6.0 supprime la possibilité d'effectuer le rendu des composants Astro dans les environnements clients de Vitest : les tests qui effectuent le rendu de composants Astro doivent désormais s'exécuter dans un environnement serveur comme `node`.
+
+#### Que devrais-je faire ? 
+
+Si vous utilisez Vitest pour exécuter des tests qui effectuent le rendu de composants Astro dans des environnements clients comme `jsdom` ou `happy-dom`, mettez à jour votre configuration de Vitest pour utiliser l'environnement `node` dans ce cas :
+```ts title="vitest.config.ts" del={5} ins={6}
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+  test: {
+    environment: 'jsdom',
+    environment: 'node',
+  },
+});
+```
+
+<ReadMore>Apprenez-en davantage sur les [tests de composants Astro](/fr/guides/testing/).</ReadMore>
+
+### Modification : Nom de la configuration Rollup pour les chemins de fichier de sortie (configuration de Vite)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Dans Astro 5.x, les options de personnalisation des noms des fichiers de sortie de Rollup pour les ressources client pouvaient être configurées dans `vite.build.rollupOptions.output`.
+
+Astro 6.0 configure la sortie de compilation du client dans l'environnement client de Vite. Si vous personnalisez `entryFileNames`, `chunkFileNames` ou `assetFileNames` pour les ressources client, utilisez `vite.environments.client.build.rollupOptions.output`.
+
+#### Que devrais-je faire ?
+
+Déplacez votre configuration de `vite.build.rollupOptions.output` vers `vite.environments.client.build.rollupOptions.output` :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  vite: {
+    environments: {
+      client: {
+        build: {
+          rollupOptions: {
+            output: {
+              entryFileNames: 'js/[name]-[hash].js',
+            },
+          },
+        },
+      },
+    },
+  },
+});
+```
+
+### Modification : Hooks des intégrations et modèles d'accès à HMR (API des intégrations)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Dans Astro 5.x, Astro s'appuyait sur certains modèles pour les hooks des intégrations et l'accès HMR qui étaient incompatibles avec l'API Environment de Vite ou pouvaient être améliorés par son intégration.
+
+Astro 6.0 utilise la nouvelle API Environment de Vite pour la configuration des compilations et les interactions avec le serveur de développement. Cela active principalement le mode développement dans les environnements d'exécution comme workerd, mais cela signifie que certains hooks des intégrations et modèles d'accès à HMR ont changé.
+
+#### Que devrais-je faire ?
+
+**Pour les intégrations utilisant `astro:build:setup` :**
+
+Le hook est désormais appelé une seule fois avec tous les environnements configurés (`ssr`, `client`, `prerender`), au lieu d'être appelé séparément pour chaque cible de compilation. Supprimez le paramètre `target` et utilisez `vite.environments` pour configurer des environnements spécifiques :
+
+```ts title="mon-integration.mjs" del={3-7} ins={8-10}
+{
+  hooks: {
+    'astro:build:setup': ({ target, vite }) => {
+      if (target === 'client') {
+        vite.build.minify = false;
+      }
+    }
+    'astro:build:setup': ({ vite }) => {
+      vite.environments.client.build.minify = false;
+    }
+  }
+}
+```
+
+**Pour la barre d'outils de développement et le code des intégrations accédant à HMR :**
+
+Remplacez `server.hot.send()` par `server.environments.client.hot.send()` :
+
+```ts del={1} ins={2}
+server.hot.send(event)
+server.environments.client.hot.send(event)
+```
+
+<ReadMore>Apprenez-en davantage sur l'[API Environment de Vite](https://vite.dev/guide/api-environment) et les [hooks des intégrations](/fr/reference/integrations-reference/#astrobuildsetup) d'Astro.</ReadMore>
+
+### Modification : Structure de l'interface `SSRManifest` (API des adaptateurs)
+
+<SourcePR number="14306" title="feat: integrate vite environments"/>
+
+Dans Astro 5.x, les propriétés de chemin de l'interface `SSRManifest` telles que `srcDir`, `outDir`, `cacheDir`, `publicDir`, `buildClientDir` et `buildServerDir` étaient des URL sous forme de chaînes de caractères.
+
+Astro 6.0 modifie le format de ces propriétés de chemin, qui deviennent des objets `URL` au lieu de chaînes de caractères. Suite à cette modification, plusieurs nouvelles propriétés sont désormais disponibles dans le manifeste, tandis que d'autres ont été mises à jour ou supprimées.
+
+#### Que devrais-je faire ?
+
+Si vous traitiez ces propriétés de chemin comme des chaînes de caractères, vous devrez désormais manipuler l'objet `URL`. Par exemple, vous devrez maintenant accéder à la propriété `href` de l'objet `URL` :
+
+```ts del={2} ins={3}
+// Pour récupérer le même format (par exemple, `file:///chemin/vers/src`), effectuez la modification suivante :
+const srcPath = manifest.srcDir;
+const srcPath = manifest.srcDir.href;
+```
+
+Si vous accédiez à la propriété `hrefRoot`, vous devrez la supprimer, car elle n'est plus disponible dans le manifeste.
+
+Mettez à jour toute utilisation de `serverIslandMappings` et `sessionDriver`. Ce sont désormais des méthodes asynchrones :
+
+```ts del={1,2} ins={3,4}
+const mappings = manifest.serverIslandMappings;
+const driver = manifest.sessionDriver;
+const mappings = await manifest.serverIslandMappings?.();
+const driver = await manifest.sessionDriver?.();
+```
+
+<ReadMore>Apprenez-en davantage sur [l'API des adaptateurs](/fr/reference/adapter-reference/).</ReadMore>
+
+### Modification : Les types des schémas sont déduits au lieu d'être générés (API des chargeurs de contenu).
+
+<SourcePR number="14759" title="feat: loader.createSchema()" />
+
+Dans Astro 5.x, les types des collections de contenu étaient générés à l'aide de `zod-to-ts` lorsqu'ils étaient fournis par un chargeur de contenu et non définis par un schéma fourni par l'utilisateur.
+
+Astro 6.0 supprime ce comportement : les types ne sont plus générés à l'aide de `zod-to-ts`. Ils sont désormais déduits.
+
+#### Que devrais-je faire ?
+
+Si vous fournissez un `schema` dans un chargeur de contenu, vous devez utiliser l'[opérateur `satisfies` de TypeScript](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator) :
+
+```ts del={3,11} ins={4,12}
+import type { Loader } from 'astro/loaders'
+
+function myLoader(): Loader {
+function myLoader() {
+  return {
+    name: 'mon-chargeur',
+    load: async (context) => {
+      // ...
+    },
+    schema: z.object({/* ... */})
+  }
+  } satisfies Loader
+}
+```
+
+<ReadMore>Apprenez-en davantage sur [la définition des types de schémas de chargeur](/fr/reference/content-loader-reference/#lobjet-loader).</ReadMore>
+
+## Problèmes connus
+
+Veuillez consulter [les tickets d'Astro sur GitHub](https://github.com/withastro/astro/issues/) pour tout problème signalé, ou pour soumettre un ticket vous-même.
