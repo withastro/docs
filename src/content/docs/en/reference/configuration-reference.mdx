@@ -331,20 +331,23 @@ The value can be either an absolute file system path or a path relative to the p
 
 <p>
 
-**Type:** `boolean`<br />
+**Type:** `boolean | "jsx"`<br />
 **Default:** `true`
 </p>
 
-This is an option to minify your HTML output and reduce the size of your HTML files.
+Controls how Astro handles whitespace in your HTML. This affects both development mode and the final build output.
 
-By default, Astro removes whitespace from your HTML, including line breaks, from `.astro` components in a lossless manner.
-Some whitespace may be kept as needed to preserve the visual rendering of your HTML. This occurs both in development mode and in the final build.
+By default, Astro removes whitespace from your HTML, including line breaks, in a lossless manner from `.astro` components. Some whitespace may be preserved as needed to maintain the visual rendering of your HTML.
 
-To disable HTML compression, set `compressHTML` to false.
+Setting this option to `"jsx"` instead applies the JSX whitespace stripping rules used by frameworks like React. Leading and trailing whitespace is only preserved when explicitly included in the source code through constructs such as `{" "}`, and is otherwise removed entirely.
+
+Setting this option to false disables HTML compression and preserves all whitespace.
 
 ```js
 {
   compressHTML: false
+  // or:
+  // compressHTML: 'jsx'
 }
 ```
 
@@ -1228,23 +1231,25 @@ Set custom HTTP response headers to be sent in `astro dev` and `astro preview`.
 </p>
 
 Configures session storage for your Astro project. This is used to store session data in a persistent way, so that it can be accessed across different requests.
-Some adapters may provide a default session driver, but you can override it with your own configuration.
 
-See [the sessions guide](/en/guides/sessions/) for more information.
+Some adapters may provide a default session driver, but you can override it with your own configuration:
 
 ```js title="astro.config.mjs"
-  {
-    session: {
-      // The name of the Unstorage driver
-      driver: 'redis',
-      // The required options depend on the driver
-      options: {
-        url: process.env.REDIS_URL,
-      },
-      ttl: 3600, // 1 hour
-    }
+import { defineConfig, sessionDrivers } from 'astro/config';
+
+export default defineConfig({
+  session: {
+    driver: sessionDrivers.redis({
+      // The options are driver-dependent and some may be required.
+      url: process.env.REDIS_URL
+    }),
   }
+});
 ```
+
+Session drivers are configured at build time. This means environment variables used in the driver configuration are inlined. You must create your own driver entrypoint to [override the configuration at runtime](/en/guides/sessions/#overriding-the-configuration-at-runtime).
+
+See [the sessions guide](/en/guides/sessions/) for more information.
 
 ### session.driver
 
@@ -1658,14 +1663,15 @@ Defines a list of permitted image source URL patterns for remote image optimizat
 }
 ```
 
-You can use wildcards to define the permitted `hostname` and `pathname` values as described below. Otherwise, only the exact values provided will be configured:
-`hostname`:
-  - Start with '**.' to allow all subdomains ('endsWith').
-  - Start with '*.' to allow only one level of subdomain.
+You can use wildcards to define the permitted `hostname` and `pathname` values as described below. Otherwise, only the exact values provided will be configured.
 
-`pathname`:
-  - End with '/**' to allow all sub-routes ('startsWith').
-  - End with '/*' to allow only one level of sub-route.
+`hostname` patterns:
+  - Start with `**.` to allow all subdomains (like `endsWith`).
+  - Start with `*.` to allow only one level of subdomain.
+
+`pathname` patterns:
+  - End with `/**` to allow all sub-routes (like `startsWith`).
+  - End with `/*` to allow only one level of sub-route.
 
 ### image.responsiveStyles
 
@@ -2505,4 +2511,3 @@ Font [variation settings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font
 ```js
 variationSettings: "'xhgt' 0.7"
 ```
-
