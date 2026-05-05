@@ -113,6 +113,55 @@ import { Image } from 'astro:assets';
 
 The component-level `width` and `height` set the rendered HTML dimensions. The values inside `transformation` control the ImageKit server-side resize.
 
+### AI-powered transformations
+
+ImageKit transformations include AI effects that can be applied through the same `transformation` prop:
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<!-- Remove background -->
+<Image
+  src="/product.jpg"
+  width={500}
+  height={500}
+  alt="Product with background removed"
+  transformation={[{ aiRemoveBackground: true }]}
+/>
+
+<!-- Upscale a low-resolution image -->
+<Image
+  src="/thumbnail.jpg"
+  width={1024}
+  height={1024}
+  alt="Upscaled image"
+  transformation={[{ aiUpscale: true }]}
+/>
+
+<!-- Generative fill to extend an image to a new aspect ratio -->
+<Image
+  src="/portrait.jpg"
+  width={1600}
+  height={900}
+  alt="Image extended with generative fill"
+  transformation={[
+    { width: 1600, height: 900, cropMode: 'pad_resize', background: 'genfill' },
+  ]}
+/>
+
+<!-- AI drop shadow -->
+<Image
+  src="/product.png"
+  width={500}
+  height={500}
+  alt="Product with AI drop shadow"
+  transformation={[{ aiDropShadow: true }]}
+/>
+```
+
+See the [supported transformations reference](https://imagekit.io/docs/integration/astro#supported-transformations) for the full list, including overlays, smart cropping (`focus: 'auto'`, `focus: 'face'`), and other effects.
+
 ## Using ImageKit videos
 
 Add videos to your `.astro` components with the `<Video />` component. It accepts standard HTML video attributes alongside ImageKit-specific props such as `transformation` and `urlEndpoint`.
@@ -200,7 +249,61 @@ export const GET: APIRoute = () => {
 };
 ```
 
-The browser then fetches this endpoint and passes the returned `signature`, `token`, and `expire` to the `upload()` function from [`@imagekit/javascript`](https://github.com/imagekit-developer/imagekit-javascript).
+The browser then fetches this endpoint and passes the returned `signature`, `token`, `expire`, and `publicKey` to the `upload()` function from [`@imagekit/javascript`](https://github.com/imagekit-developer/imagekit-javascript). Install it as a direct dependency:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/javascript
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/javascript
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/javascript
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+A minimal upload form on a `.astro` page:
+
+```astro title="src/pages/upload.astro"
+<input type="file" id="file-input" />
+<button id="upload-btn">Upload</button>
+<progress id="upload-progress" value="0" max="100"></progress>
+
+<script>
+  import { upload } from '@imagekit/javascript';
+
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+  const progress = document.getElementById('upload-progress') as HTMLProgressElement;
+
+  uploadBtn.addEventListener('click', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    const auth = await fetch('/api/upload-auth').then((r) => r.json());
+
+    const result = await upload({
+      ...auth,
+      file,
+      fileName: file.name,
+      onProgress: (e) => {
+        progress.value = (e.loaded / e.total) * 100;
+      },
+    });
+
+    console.log('Uploaded:', result);
+  });
+</script>
+```
+
+See [the official guide](https://imagekit.io/docs/integration/astro#uploading-files) for full error handling and abort signals.
 
 ## Loading from your ImageKit Media Library
 
@@ -226,11 +329,13 @@ Install the Node SDK as a dev dependency:
   </Fragment>
 </PackageManagerTabs>
 
-Then define a collection backed by `client.assets.list()`:
+Then define a collection backed by `client.assets.list()`. The Node SDK returns an array of `File | Folder` objects, so pass `type: 'file'` to exclude folders and `fileType: 'image'` to limit results to images. Use the `Files.File` type guard so each entry is correctly typed before mapping it into your collection schema:
 
 ```ts title="src/content.config.ts"
-import { defineCollection, z } from 'astro:content';
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
 import ImageKit from '@imagekit/nodejs';
+import type { Files } from '@imagekit/nodejs/resources/files/files';
 
 const client = new ImageKit({
   privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
@@ -239,19 +344,23 @@ const client = new ImageKit({
 const gallery = defineCollection({
   loader: async () => {
     const assets = await client.assets.list({
-      type: 'file',
-      fileType: 'image',
+      type: 'file',       // exclude folders
+      fileType: 'image',  // only image files
+      skip: 0,
       limit: 50,
     });
 
     return assets
-      .filter((asset) => asset.type === 'file' && !!asset.fileId && !!asset.url)
+      .filter((asset): asset is Files.File =>
+        asset.type === 'file' && !!asset.fileId && !!asset.url
+      )
       .map((asset) => ({
-        id: asset.fileId,
-        url: asset.url,
+        id: asset.fileId ?? '',
+        url: asset.url ?? '',
         width: asset.width ?? 0,
         height: asset.height ?? 0,
         name: asset.name ?? '',
+        tags: asset.tags ?? [],
       }));
   },
   schema: z.object({
@@ -259,11 +368,14 @@ const gallery = defineCollection({
     width: z.number(),
     height: z.number(),
     name: z.string(),
+    tags: z.array(z.string()),
   }),
 });
 
 export const collections = { gallery };
 ```
+
+After adding the collection, run `astro sync` (or start the dev server) so Astro generates the collection types used by `getCollection()`.
 
 Render the collection with `<Image>` from `astro:assets`. The integration generates the ImageKit CDN URL with the requested transformations:
 
