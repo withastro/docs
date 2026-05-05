@@ -1,0 +1,311 @@
+---
+title: ImageKit & Astro
+description: Add images and videos to your Astro project using ImageKit
+sidebar:
+  label: ImageKit
+type: media
+stub: false
+logo: imagekit
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[ImageKit](https://imagekit.io) is a real-time media optimization and delivery platform with a global CDN, a built-in Digital Asset Manager (DAM), and a URL-based transformation API for images and videos.
+
+When delivering through ImageKit, you get automatic format conversion (AVIF, WebP), automatic quality, responsive images, AI-powered transformations (background removal, generative fill, upscaling), and adaptive video streaming.
+
+## Using ImageKit in Astro
+
+The [ImageKit Astro SDK](https://github.com/imagekit-developer/imagekit-astro) registers a custom [image service](/en/reference/image-service-reference/) that re-routes Astro's built-in `<Image />` and `<Picture />` components, plus Markdown and MDX images, through ImageKit. Local imports continue to be processed by Astro's built-in sharp service, so the integration can be added to an existing project without breaking existing assets.
+
+The SDK also provides a `<Video />` component, an `<OgImage />` component for social cards, and a server-side helper for issuing client-side upload tokens.
+
+For pure URL building or browser uploads in any framework, you can also use the lower-level [ImageKit JavaScript SDK](https://github.com/imagekit-developer/imagekit-javascript). For server-side asset management (uploading, listing, deleting, metadata), use the [ImageKit Node.js SDK](https://github.com/imagekit-developer/imagekit-nodejs).
+
+## Prerequisites
+
+- An existing Astro project
+- An [ImageKit account](https://imagekit.io/registration/)
+
+## Installing the ImageKit Astro SDK
+
+Install the SDK by running the appropriate command for your package manager:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Configuring your account
+
+Create a new `.env` file in the root of your project and add your ImageKit credentials:
+
+```shell title=".env"
+IMAGEKIT_URL_ENDPOINT="https://ik.imagekit.io/<your_imagekit_id>"
+
+# Only needed if you generate upload auth tokens on the server
+PUBLIC_IMAGEKIT_PUBLIC_KEY="<Your Public Key>"
+IMAGEKIT_PRIVATE_KEY="<Your Private Key>"
+```
+
+Then register the integration in `astro.config.mjs`:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import imagekit from '@imagekit/astro/integration';
+
+export default defineConfig({
+  integrations: [imagekit()],
+});
+```
+
+You can also pass `urlEndpoint` directly to the integration instead of using the environment variable:
+
+```js title="astro.config.mjs"
+imagekit({
+  urlEndpoint: 'https://ik.imagekit.io/<your_imagekit_id>',
+}),
+```
+
+## Using ImageKit images
+
+With the integration installed, Astro's built-in `<Image />` and `<Picture />` components route requests through ImageKit and apply automatic format and quality optimization, responsive `srcset`, and lazy loading.
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<Image
+  src="/sample.jpg"
+  width={800}
+  height={600}
+  alt="A sample image"
+/>
+```
+
+The integration adds an additional `transformation` prop on `<Image />`, `<Picture />`, and `getImage()` for applying any [ImageKit transformation](https://imagekit.io/docs/transformations) — cropping, focus, AI effects, overlays, and more:
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<Image
+  src="/portrait.jpg"
+  width={500}
+  height={500}
+  alt="Cropped portrait"
+  transformation={[{ width: 500, height: 500, focus: 'face' }]}
+/>
+```
+
+The component-level `width` and `height` set the rendered HTML dimensions. The values inside `transformation` control the ImageKit server-side resize.
+
+## Using ImageKit videos
+
+Add videos to your `.astro` components with the `<Video />` component. It accepts standard HTML video attributes alongside ImageKit-specific props such as `transformation` and `urlEndpoint`.
+
+```astro title="Component.astro"
+---
+import { Video } from '@imagekit/astro';
+---
+<Video
+  src="/sample.mp4"
+  width={1280}
+  height={720}
+  controls
+/>
+```
+
+To resize the video on ImageKit's side, pass dimensions inside `transformation`:
+
+```astro title="Component.astro"
+<Video
+  src="/sample.mp4"
+  width={640}
+  height={360}
+  transformation={[{ width: 640, height: 360 }]}
+  controls
+/>
+```
+
+## Generating Open Graph image URLs
+
+Use the `<OgImage />` component to render OpenGraph and Twitter Card `<meta>` tags pointing at an ImageKit-optimized image. Place it inside your layout's `<head>`.
+
+```astro title="Layout.astro"
+---
+import { OgImage } from '@imagekit/astro';
+---
+<html>
+  <head>
+    <OgImage
+      src="/og-banner.jpg"
+      title="My page title"
+      description="Preview description for social cards"
+      alt="OG image description"
+    />
+  </head>
+  <body><slot /></body>
+</html>
+```
+
+If you need just a URL instead of the rendered tags, use the `getOgImageUrl()` helper:
+
+```astro title="Layout.astro"
+---
+import { getOgImageUrl } from '@imagekit/astro';
+
+const ogImage = getOgImageUrl({
+  src: '/og-banner.jpg',
+  transformation: [{ width: 1200, height: 630 }],
+});
+---
+<meta property="og:image" content={ogImage} />
+```
+
+## Enabling client-side uploads
+
+To upload files directly from the browser, generate a short-lived authentication token on the server using the `getUploadAuthParams()` helper from `@imagekit/astro/server`. The private key stays server-side and is never sent to the browser.
+
+This requires an [adapter](/en/guides/on-demand-rendering/) so the endpoint runs on demand:
+
+```ts title="src/pages/api/upload-auth.ts"
+import type { APIRoute } from 'astro';
+import { getUploadAuthParams } from '@imagekit/astro/server';
+
+export const prerender = false;
+
+export const GET: APIRoute = () => {
+  const authParams = getUploadAuthParams({
+    privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+    publicKey: import.meta.env.PUBLIC_IMAGEKIT_PUBLIC_KEY,
+  });
+
+  return new Response(JSON.stringify(authParams), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+```
+
+The browser then fetches this endpoint and passes the returned `signature`, `token`, and `expire` to the `upload()` function from [`@imagekit/javascript`](https://github.com/imagekit-developer/imagekit-javascript).
+
+## Loading from your ImageKit Media Library
+
+You can use [Astro Content Collections](/en/guides/content-collections/) together with the [`@imagekit/nodejs`](https://www.npmjs.com/package/@imagekit/nodejs) SDK to power gallery and listing pages directly from your ImageKit Media Library.
+
+Install the Node SDK as a dev dependency:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install -D @imagekit/nodejs
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add -D @imagekit/nodejs
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add -D @imagekit/nodejs
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Then define a collection backed by `client.assets.list()`:
+
+```ts title="src/content.config.ts"
+import { defineCollection, z } from 'astro:content';
+import ImageKit from '@imagekit/nodejs';
+
+const client = new ImageKit({
+  privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+});
+
+const gallery = defineCollection({
+  loader: async () => {
+    const assets = await client.assets.list({
+      type: 'file',
+      fileType: 'image',
+      limit: 50,
+    });
+
+    return assets
+      .filter((asset) => asset.type === 'file' && !!asset.fileId && !!asset.url)
+      .map((asset) => ({
+        id: asset.fileId,
+        url: asset.url,
+        width: asset.width ?? 0,
+        height: asset.height ?? 0,
+        name: asset.name ?? '',
+      }));
+  },
+  schema: z.object({
+    url: z.string().url(),
+    width: z.number(),
+    height: z.number(),
+    name: z.string(),
+  }),
+});
+
+export const collections = { gallery };
+```
+
+Render the collection with `<Image>` from `astro:assets`. The integration generates the ImageKit CDN URL with the requested transformations:
+
+```astro title="src/pages/gallery.astro"
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+
+const photos = await getCollection('gallery');
+---
+{photos.map(({ data }) => (
+  <Image
+    src={data.url}
+    width={data.width}
+    height={data.height}
+    alt={data.name}
+    transformation={[{ width: 400, height: 300, focus: 'auto' }]}
+  />
+))}
+```
+
+## Using ImageKit in Node.js
+
+For server-side workflows such as bulk uploads, listing assets, or deleting files, use the official [`@imagekit/nodejs`](https://www.npmjs.com/package/@imagekit/nodejs) SDK directly:
+
+```ts title="src/pages/api/upload.ts"
+import ImageKit from '@imagekit/nodejs';
+
+const client = new ImageKit({
+  privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+});
+
+await client.files.upload({
+  file: '<file path, buffer, or URL>',
+  fileName: 'sample.jpg',
+});
+```
+
+## Official resources
+
+- [ImageKit Astro SDK](https://github.com/imagekit-developer/imagekit-astro)
+- [ImageKit Astro integration documentation](https://imagekit.io/docs/integration/astro)
+- [ImageKit JavaScript SDK](https://github.com/imagekit-developer/imagekit-javascript)
+- [ImageKit Node.js SDK](https://github.com/imagekit-developer/imagekit-nodejs)
+- [ImageKit transformation reference](https://imagekit.io/docs/transformations)

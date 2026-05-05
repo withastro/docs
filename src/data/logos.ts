@@ -63,6 +63,7 @@ export const logos = LogoCheck({
 	hugo: { file: 'hugo.svg', padding: '.125em' },
 	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	image: { file: 'astro-image.svg', padding: '.1875em' },
+	imagekit: { file: 'imagekit.svg', padding: '.15em' },
 	juno: { file: 'juno.svg', padding: '0' },
 	jekyll: { file: 'jekyll.png', padding: '.1em .05em 0' },
 	jekyllpad: { file: 'jekyllpad.svg', padding: '0.2em' },
