@@ -1,5 +1,4 @@
 import starlight from '@astrojs/starlight';
-import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
@@ -10,6 +9,15 @@ import { localesConfig } from './config/locales';
 import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
+import { tasklistEnhancerPlugin } from './config/plugins/satteri-tasklist-enhancer';
+import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
+import {
+	asidesPlugin,
+	autolinkHeadingsPlugin,
+	directivesRestorationPlugin,
+	rtlCodeSupportPlugin,
+} from './config/plugins/starlight';
+import mdx from '@astrojs/mdx';
 
 /* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
 const NETLIFY_PREVIEW_SITE = process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL;
@@ -27,9 +35,7 @@ export default defineConfig({
 		]),
 		starlight({
 			title: 'Docs',
-			expressiveCode: {
-				plugins: [pluginCollapsibleSections()],
-			},
+			expressiveCode: false,
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Hero: './src/components/starlight/Hero.astro',
@@ -71,13 +77,13 @@ export default defineConfig({
 			plugins: [starlightPluginSmokeTest()],
 		}),
 		sitemap(),
+		mdx({
+			optimize: true,
+		}),
 	],
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
-	experimental: {
-		rustCompiler: true,
-	},
 	markdown: {
 		// Override with our own config
 		smartypants: false,
@@ -92,6 +98,19 @@ export default defineConfig({
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
 		],
+	},
+	experimental: {
+		rustCompiler: true,
+		nativeMarkdown: {
+			mdastPlugins: [fallbackLangPlugin(), asidesPlugin(), directivesRestorationPlugin()],
+			hastPlugins: [tasklistEnhancerPlugin(), rtlCodeSupportPlugin(), autolinkHeadingsPlugin()],
+			features: {
+				directive: true,
+				smartPunctuation: {
+					dashes: false,
+				},
+			},
+		},
 	},
 	image: {
 		domains: ['avatars.githubusercontent.com'],
