@@ -275,23 +275,20 @@ Vous pouvez également choisir de ne pas utiliser l'optimisation par défaut en 
 
 ## Accéder aux données de police par programmation
 
-Astro expose une API de bas niveau permettant d'accéder par programmation aux données des familles de polices via l'objet [`fontData`](/fr/reference/modules/astro-assets/#fontdata). Ceci peut s'avérer utile pour des cas d'utilisation avancés nécessitant un accès direct aux fichiers de polices, comme la génération d'images OpenGraph avec [Satori](https://github.com/vercel/satori) dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api).
+Astro expose des API de bas niveau pour accéder aux données par programmation :
 
-Cette API de bas niveau vous donne accès à tous les fichiers de polices téléchargés par Astro pour votre projet, ainsi qu'à leurs métadonnées. Cela signifie que vous êtes responsable du filtrage des fichiers de polices pour trouver le fichier spécifique dont vous avez besoin, et de la résolution du chemin du fichier à utiliser en fonction de la structure de sortie de la compilation.
+- Les données des familles de polices via l'objet [`fontData`](/fr/reference/modules/astro-assets/#fontdata)
+- Les URL des fichiers de polices avec la fonction [`experimental_getFontFileURL()`](/fr/reference/modules/astro-assets/#experimental_getfontfileurl)
 
-:::note
-L'API actuelle présente une [limitation connue qui vous oblige à charger manuellement le fichier de police](https://github.com/withastro/astro/issues/16139) à partir du chemin de sortie au moment de la compilation.
+Cela peut être utile pour des cas d'utilisation avancés nécessitant un accès direct aux fichiers de polices, comme la génération d'images OpenGraph avec [Satori](https://github.com/vercel/satori) dans une [route d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api).
 
-Une nouvelle API est en cours de développement pour simplifier ce processus et sera disponible dans une future version. Vous pouvez vous abonner au ticket GitHub pour suivre son avancement.
-:::
+L'objet `fontData` vous donne accès à tous les fichiers de polices téléchargés par Astro pour votre projet, ainsi qu'à leurs métadonnées. Cela signifie que vous êtes responsable du filtrage des fichiers de polices pour trouver le fichier spécifique dont vous avez besoin, et de la récupération des données après avoir résolu les URL.
 
 L'exemple suivant génère une image OpenGraph dans un point de terminaison de fichier statique, en supposant qu'une seule [police et son format ont été configurés](/fr/reference/configuration-reference/#fontformats) avec un [format pris en charge par Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts) :
 
-```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
+```tsx title="src/pages/og.png.ts" {2,14-15} "fontData[\"--font-roboto\"]"
 import type { APIRoute } from "astro";
-import { fontData } from "astro:assets";
-import { outDir } from "astro:config/server";
-import { readFile } from "node:fs/promises";
+import { fontData, experimental_getFontFileURL } from "astro:assets";
 import satori from "satori";
 import { html } from "satori-html";
 import sharp from "sharp";
@@ -303,9 +300,8 @@ export const GET: APIRoute = async (context) => {
     throw new Error("Impossible de trouver le chemin de la police.");
   }
 
-  const data = import.meta.env.DEV
-    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
-    : await readFile(new URL(`.${fontPath}`, outDir));
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  const data = await fetch(url).then((res) => res.arrayBuffer());
 
   const svg = await satori(
     html`<div style="color: black;">hello, world</div>`,
