@@ -1,0 +1,126 @@
+---
+title: Headless Statamic и Astro
+description: Добавьте контент в проект Astro, используя Statamic в качестве CMS
+sidebar:
+  label: Statamic
+type: cms
+stub: false
+logo: statamic
+i18nReady: true
+---
+import Grid from '~/components/FluidGrid.astro'
+import Card from '~/components/ShowcaseCard.astro'
+
+[Statamic](https://statamic.com/) — это современная файловая CMS. Она позволяет разработчикам легко создавать динамические веб-сайты и приложения, предоставляя редакторам контента интуитивно понятный и удобный интерфейс для управления контентом.
+
+## Интеграция с Astro
+
+Statamic поставляется со встроенными [REST API](https://statamic.dev/rest-api) и [GraphQL API](https://statamic.dev/graphql) для подключения ваших данных к Astro.
+
+### Предварительные требования
+
+Для начала вам понадобится следующее:
+
+1. REST API и GraphQL API доступны только в Pro-версии Statamic. Вы можете бесплатно попробовать Pro-версию на [локальном компьютере](https://statamic.dev/tips/how-to-enable-statamic-pro#trial-mode).
+2. **Проект Astro** — если вам ещё нужен проект Astro, наше [руководство по установке](/ru/install-and-setup/) поможет вам быстро начать работу.
+3. **Сайт на Statamic** — если вам нужен сайт на Statamic, [это руководство](https://statamic.dev/quick-start-guide) поможет вам начать.
+Не забудьте [включить REST API](https://statamic.dev/rest-api#enable-the-api) или [GraphQL API](https://statamic.dev/graphql#enable-graphql), добавив `STATAMIC_API_ENABLED=true` или `STATAMIC_GRAPHQL_ENABLED=true` в файл `.env`, и включите необходимые ресурсы в конфигурационном файле API.
+
+:::caution
+Все примеры предполагают, что на вашем сайте есть коллекция `posts` с чертежом под названием `post`, и этот чертёж имеет поле title (тип поля text) и content (тип поля markdown).
+:::
+
+### Получение данных
+:::caution
+Если вы используете Statamic и Astro на локальном компьютере, не забудьте использовать `127.0.0.1` вместо `localhost` при получении данных через API.
+
+При запросе с сервера Astro `localhost` не обрабатывается правильно, как в браузере, и любой запрос к любому API завершится неудачей.
+:::
+
+#### REST API
+
+Получите данные Statamic из URL REST API вашего сайта. По умолчанию это `https://[YOUR-SITE]/api/`. Затем вы можете отобразить свойства данных, используя директиву Astro `set:html={}`.
+
+Например, для отображения списка заголовков и их контента из выбранной [коллекции](https://statamic.dev/collections):
+
+```astro title="src/pages/index.astro"
+---
+const res = await fetch("https://[YOUR-SITE]/api/collections/posts/entries?sort=-date")
+const posts = await res.json()
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  posts.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+#### GraphQL
+
+Получите данные Statamic с помощью URL GraphQL API вашего сайта. По умолчанию это `https://[YOUR-SITE]/graphql/`. Затем вы можете отобразить свойства данных, используя директиву Astro `set:html={}`.
+
+Например, для отображения списка заголовков и их контента из выбранной [коллекции](https://statamic.dev/collections):
+
+```astro title="src/pages/index.astro"
+---
+const graphqlQuery = {
+  query: `
+    query Entries($page: Int, $locale: String) {
+      entries(
+        collection: "posts"
+        sort: "date asc"
+        limit: 20
+        page: $page
+        filter: { locale: $locale }
+      ) {
+        current_page
+        has_more_pages
+        data {
+          title
+          ... on Entry_Posts_Post {
+              content
+            }
+        }
+      }
+    }
+  `,
+  variables: {
+    page: page,
+    locale: locale,
+  },
+};
+
+const res = await fetch("https://[YOUR-SITE]/graphql", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify(graphqlQuery),
+})
+
+const { data } = await res.json();
+const entries = data?.entries;
+---
+<h1>Astro + Statamic 🚀</h1>
+{
+  entries.data.map((post) => (
+      <h2 set:html={post.title} />
+      <p set:html={post.content} />
+  ))
+}
+```
+
+### Публикация вашего сайта
+
+Для развёртывания сайта Astro посетите наши [руководства по развёртыванию](/ru/guides/deploy/) и следуйте инструкциям для выбранного вами хостинг-провайдера.
+
+## Ресурсы сообщества
+
+- [Как создать статический сайт, используя Statamic как headless CMS](https://buddy.works/guides/statamic-rest-api)
+- [Реализация живых превью в headless Statamic с использованием Astro](https://maciekpalmowski.dev/implementing-live-previews-in-headless-statamic-when-using-astro/)
+
+## Темы
+
+<Grid>
+  <Card title="Creek" href="https://astro.build/themes/details/creek/" thumbnail="creek.png"/>
+</Grid>
