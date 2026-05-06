@@ -1,0 +1,242 @@
+---
+title: 実験的なSVG最適化
+sidebar:
+  label: SVG最適化
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `SvgOptimizer`<br />
+**Default:** `undefined`<br />
+<Since v="5.16.0" />
+</p>
+
+この実験的な機能を有効にすると、ビルド時に[SVGコンポーネント](/ja/guides/images/#svgコンポーネント)を自動的に最適化できます。
+
+有効にすると、コンポーネントとしてインポートされたSVGファイルは、視覚的な品質を維持しながら、ファイルサイズの縮小とパフォーマンスの向上のために最適化されます。不要なメタデータ、コメント、冗長なコードを削除することで、SVGアセットのサイズを大幅に削減できます。
+
+この機能を有効にするには、Astroの設定ファイルで`svgoOptimizer()`ヘルパーをインポートし、実験的な`svgOptimizer`フラグに割り当てます。
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig, svgoOptimizer } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    svgOptimizer: svgoOptimizer()
+  }
+});
+```
+
+## 使い方
+
+この機能を活用するために、SVGコンポーネントの使い方を変更する必要はありません。実験的なSVG最適化を有効にすると、すべてのSVGコンポーネントのインポートファイルが自動的に最適化されます。
+
+```astro title="src/pages/index.astro"
+---
+import Logo from '../assets/logo.svg';
+---
+
+<Logo />
+```
+
+SVGはビルドプロセス中に最適化され、本番ビルドでのファイルサイズが小さくなります。
+
+この最適化はプロジェクト内のすべてのSVGコンポーネントのインポートに適用されます。コンポーネント単位でオプトアウトすることはできません。
+
+## SVGO
+
+Astroは[SVGO](https://svgo.dev/)を使用した1つの組み込みオプティマイザーを提供しています。
+
+```js
+import { svgoOptimizer } from "astro/config"
+```
+
+### 設定
+
+最適化の動作をカスタマイズするために、[SVGOの設定オプション](https://github.com/svg/svgo#configuration)を含むオブジェクトを渡すことができます。
+
+```js
+svgoOptimizer({
+  multipass: true,
+  floatPrecision: 2,
+  plugins: [
+    'preset-default',
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
+    }
+  ]
+});
+```
+
+#### `plugins`
+
+**Type:** `Array<string | PluginConfig>`<br />
+**Default:** `[]`
+
+SVGコンポーネントのインポートを最適化するために使用する[SVGOプラグイン](https://svgo.dev/docs/plugins/)の配列です。
+
+SVGOの[`preset-default`](https://svgo.dev/docs/preset-default/)プラグインコレクション、個別の組み込みプラグイン、または[カスタムプラグイン](https://svgo.dev/docs/plugins-api/)を含めることができます。
+
+プラグインのデフォルト設定を使用するには、その名前を配列に追加します。より細かく制御したい場合は、`overrides`パラメーターを使用して`preset-default`内の特定のプラグインをカスタマイズするか、プラグインの`name`を含むオブジェクトを渡して個々のパラメーターをオーバーライドします。
+
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          convertPathData: false,
+          convertTransform: {
+            degPrecision: 1,
+            transformPrecision: 3
+          },
+          inlineStyles: false
+        },
+      },
+    },
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
+    }
+  ]
+});
+```
+
+#### その他の設定オプション
+
+特に`floatPrecision`と`multipass`など、いくつかの[SVGOの設定オプション](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335)を設定オブジェクトに直接渡すことができます。
+
+```js
+svgoOptimizer({
+  multipass: true,
+  floatPrecision: 2,
+});
+```
+
+`multipass`オプションは、最適化エンジンをこれ以上最適化が見つからなくなるまで複数回実行するかどうかを設定します。`floatPrecision`オプションは小数点以下の桁数をグローバルに設定しますが、プラグインの`params`プロパティにカスタム値を指定することで、特定のプラグインに対してオーバーライドできます。
+
+### 一般的なユースケース
+
+SVGOは、独自の判断による最適化を行う広範な[デフォルトプラグインリスト](https://svgo.dev/docs/preset-default/)を提供しています。このプリセットを使用する方が各プラグインを個別に追加するよりも便利ですが、さらにカスタマイズが必要な場合もあります。たとえば、特にアニメーションを使用する場合、状況によっては要素を削除したりクリーンアップしすぎることがあります。
+
+### 特定の属性を保持する
+
+SVGOがデフォルトでインライン化または削除する`<style>`などの特定のSVG属性や要素を保持したい場合があります。
+
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          inlineStyles: false, // Preserve style elements for CSP hashing
+          removeDesc: false // Keep element regardless of contents
+        }
+      }
+    }
+  ]
+});
+```
+
+### 特定の要素を削除する
+
+メタデータや非表示レイヤーなど、不要な特定の要素を削除するようにプラグインを設定できます。多くのプラグインはすでに`preset-default`に含まれているため、通常はその動作を設定するだけで十分です。
+
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          removeHiddenElems: {
+            isHidden: false,
+            displayNone: false
+          }
+        },
+      },
+    },
+    'removeRasterImages'
+  ]
+});
+```
+
+### 最新のHTML5へのインライン化に最適化する
+
+インラインSVGは`xmlns`属性を必要とせず、SVG 2仕様に安全に変換できます。この目的のために`removeXMLNS`と`removeXlink`プラグインを使用することをお勧めします。
+
+```js
+svgoOptimizer({
+  plugins: [
+    'preset-default',
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
+    }
+  ]
+});
+```
+
+## SVGオプティマイザーの構築
+
+<p>
+
+<Since v="6.2.0" />
+</p>
+
+カスタムSVGオプティマイザーを実装するための推奨する方法は、設定をパラメーターとして受け取り、`SvgOptimizer`オブジェクトを返す関数をエクスポートすることです。
+
+```ts
+import type { SvgOptimizer } from "astro";
+import { optimize, type Options } from "./optimizer";
+
+export function mySvgOptimizer(options?: Options): SvgOptimizer {
+  return {
+    name: "my-optimizer",
+    optimize: (contents) => optimize(contents, options),
+  }
+}
+```
+
+### `name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+ログで使用されるオプティマイザーの一意の名前です。
+
+### `optimize()`
+
+<p>
+
+**Type:** `(contents: string) => string | Promise<string>`
+</p>
+
+SVGのコンテンツを処理します。
+
+## 仕組み
+
+SVG最適化はランタイムではなく、ビルドプロセス中に行われます。
+
+- **開発モード**では、より高速な再ビルド時間とスムーズな開発体験を確保するために、SVGファイルは最適化されません。
+- **本番ビルド**では、インポートされたすべてのSVGファイルがビルドプロセス中に一度最適化され、ファイルサイズが小さくなります。
+- **ランタイムオーバーヘッドはありません** - 最適化されたSVGは事前に処理された静的アセットとして配信されます。
+
+最適化プロセスによってビルド時間がわずかに増加する場合がありますが、その結果としてファイルサイズが小さくなり、ユーザーのページ読み込みが速くなります。
