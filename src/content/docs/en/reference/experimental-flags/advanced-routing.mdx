@@ -1,0 +1,410 @@
+---
+title: Experimental advanced routing
+sidebar:
+  label: Advanced routing
+i18nReady: false
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="6.3.0" />
+</p>
+
+Enables `src/app.ts` as a custom request pipeline entrypoint, giving you full control over how Astro handles incoming requests.
+
+By default, Astro handles every request with a built-in pipeline that runs trailing-slash normalization, redirects, sessions, actions, user middleware, page rendering, i18n, and caching in a fixed order. Advanced routing lets you replace this pipeline with your own, composing Astro's built-in handler functions with custom logic in any order you choose.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    advancedRouting: true,
+  },
+});
+```
+
+## Creating `src/app.ts`
+
+When `advancedRouting` is enabled, create a `src/app.ts` (or `.js`, `.mjs`, `.mts`) file that default-exports an object with a `fetch` method. The `fetch` method receives a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and must return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
+If no `src/app.ts` file exists (or `advancedRouting` is not enabled), Astro uses its built-in pipeline, which runs all features automatically.
+
+### Using `astro()`
+
+The easiest way to get started is with the [`astro()` handler](#astro), which runs Astro's full built-in pipeline (sessions, cache, redirects, trailing-slash, actions, middleware, pages, and i18n) in the default order. This lets you add custom logic before or after Astro without changing how the internal pipeline works:
+
+```ts title="src/app.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    // Custom pre-processing, runs before any Astro handler
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/dashboard')) {
+      const cookie = request.headers.get('cookie') ?? '';
+      if (!cookie.includes('session=')) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: '/login' },
+        });
+      }
+    }
+
+    const response = await astro(state);
+
+    // Custom post-processing, runs after Astro renders
+    response.headers.set('X-Powered-By', 'Astro');
+    return response;
+  },
+};
+```
+
+For many use cases, such as adding auth guards, request logging, and custom headers, `astro()` is all you need.
+
+### Composing individual handlers
+
+When you need more control over the pipeline order, or want to omit certain features entirely, you can compose individual handler functions from `astro/fetch`:
+
+```ts title="src/app.ts"
+import {
+  FetchState,
+  sessions,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    await sessions(state);
+    try {
+      const actionResponse = await actions(state);
+      if (actionResponse) return actionResponse;
+
+      const response = await middleware(state, (s) => pages(s));
+      return i18n(state, response);
+    } finally {
+      await state.finalizeAll();
+    }
+  },
+};
+```
+
+Each function operates on a [`FetchState` object](#fetchstate) that tracks per-request data like the matched route, cookies, and session. You can call them in any order and mix them with your own logic.
+
+## Adding custom logic
+
+The main benefit of advanced routing is the ability to insert custom logic anywhere in the request pipeline. You can run code before Astro touches the request, between pipeline stages, or after the response is produced.
+
+The [`astro()` handler](#astro) is the simplest way to add pre- or post-processing around the full pipeline. When you need to insert logic *between* specific stages, such as running custom code after actions but before page rendering, compose the individual handlers instead:
+
+```ts title="src/app.ts"
+import {
+  FetchState,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    // Custom logic between actions and page rendering
+    console.log(`Rendering ${new URL(request.url).pathname}`);
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
+```
+
+## `astro/fetch` handler reference
+
+All handler functions are imported from `astro/fetch` and operate on a `FetchState` object.
+
+### `FetchState`
+
+The per-request state object. Create one at the start of your `fetch` method:
+
+```ts
+import { FetchState } from 'astro/fetch';
+
+const state = new FetchState(request);
+```
+
+`FetchState` tracks the matched route, cookies, session providers, and other per-request data. All handler functions require it as their first argument.
+
+#### Properties
+
+##### `state.request`
+
+**Type:** `Request`
+
+The incoming [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+
+##### `state.url`
+
+**Type:** `URL`
+
+A normalized [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) derived from the request.
+
+##### `state.pathname`
+
+**Type:** `string`
+
+The base-stripped, decoded pathname of the request (e.g. `/about` or `/blog/my-post`).
+
+##### `state.routeData`
+
+**Type:** `RouteData | undefined`
+
+The matched route for this request, if any. This is resolved automatically when the `FetchState` is created.
+
+##### `state.cookies`
+
+**Type:** `AstroCookies`
+
+An [`AstroCookies`](/en/reference/api-reference/#cookies) instance for reading and setting cookies on this request.
+
+##### `state.locals`
+
+**Type:** `App.Locals`
+
+A request-scoped object for storing custom data. This is the same `locals` object available in [middleware](/en/guides/middleware/) and [API routes](/en/guides/endpoints/#server-endpoints-api-routes).
+
+##### `state.params`
+
+**Type:** `Params | undefined`
+
+Route parameters derived from the matched route and pathname (e.g. `{ slug: 'my-post' }` for a `[slug].astro` route).
+
+##### `state.status`
+
+<p>
+
+**Type:** `number`<br />
+**Default:** `200`
+</p>
+
+The HTTP status code for the response. You can set this before rendering to control the response status (e.g. `state.status = 404`).
+
+#### Methods
+
+##### `state.rewrite()`
+
+<p>
+
+**Type:** <code>(payload: <a href="/en/reference/modules/astro-middleware/#rewritepayload">RewritePayload</a>) => Promise\<Response\></code>
+</p>
+
+Triggers a [rewrite](/en/guides/routing/#rewrites) to a different route. The `payload` can be a pathname string (`'/other-page'`), a URL, or a `Request`:
+
+```ts
+const response = await state.rewrite('/other-page');
+```
+
+##### `state.provide()`
+
+<p>
+
+**Type:** `(key: string, provider: ContextProvider<T>) => void`
+</p>
+
+Registers a context provider under the given key. The provider's `create()` function is called lazily on the first [`state.resolve()`](#stateresolve), and its optional `finalize()` callback runs during [`state.finalizeAll()`](#statefinalizeall):
+
+```ts
+state.provide('myService', {
+  create: () => new MyService(),
+  finalize: (service) => service.close(),
+});
+```
+
+##### `state.resolve()`
+
+<p>
+
+**Type:** `(key: string) => T | undefined`
+</p>
+
+Returns the value for a previously registered provider, calling its `create` function on first access. Returns `undefined` if no provider was registered for the key:
+
+```ts
+const service = state.resolve('myService');
+```
+
+##### `state.finalizeAll()`
+
+<p>
+
+**Type:** `() => Promise<void> | void`
+</p>
+
+Runs all registered provider `finalize` callbacks. Call this after the response is produced, typically in a `finally` block, to persist session data and clean up resources:
+
+```ts
+await sessions(state);
+try {
+  // ...render pipeline...
+  return response;
+} finally {
+  await state.finalizeAll();
+}
+```
+
+### `astro()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+The all-in-one handler that runs the full Astro pipeline (sessions, cache, redirects, trailing-slash, actions, middleware, pages, and i18n) in the default order. Use this when you want to add logic before or after Astro without changing the internal pipeline order:
+
+```ts title="src/app.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // custom pre-processing here...
+    const response = await astro(state);
+    // custom post-processing here...
+    return response;
+  },
+};
+```
+
+### `pages()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+Dispatches the request to the matched Astro route (page, endpoint, or fallback). This is the core rendering handler, and most custom pipelines will include it.
+
+### `middleware()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>, next: (state: FetchState) => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Runs Astro's middleware chain (from `src/middleware.ts`). The `next` callback is called at the bottom of the chain to produce the response, typically by calling `pages()`:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+```
+
+### `actions()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response | undefined\> | undefined</code>
+</p>
+
+Handles [Astro Actions](/en/guides/actions/) (RPC and form submissions). Returns a `Response` for RPC actions, or `undefined` for form actions and non-action requests. Check the return value to decide whether to continue rendering:
+
+```ts
+const actionResponse = await actions(state);
+if (actionResponse) return actionResponse;
+// otherwise continue to page rendering...
+```
+
+### `sessions()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
+</p>
+
+Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted when `state.finalizeAll()` is called. Call this early in the pipeline, and call `finalizeAll()` in a `finally` block:
+
+```ts
+await sessions(state);
+try {
+  // ...render pipeline...
+} finally {
+  await state.finalizeAll();
+}
+```
+
+### `i18n()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>, response: Response) => Promise\<Response\></code>
+</p>
+
+Post-processes a response against your [i18n configuration](/en/guides/internationalization/). Handles locale redirects, 404s for invalid locales, and fallback routing. Call this after rendering:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+return i18n(state, response);
+```
+
+### `redirects()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
+</p>
+
+Handles redirect routes defined in your [Astro config](/en/reference/configuration-reference/#redirects). Returns a redirect `Response` if the matched route is a redirect, or `undefined` if the caller should continue processing.
+
+### `cache()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>, next: () => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Wraps a render callback with [cache](/en/reference/experimental-flags/route-caching/) provider logic. Handles runtime caching, CDN-based providers, and the no-cache case.
+
+### `trailingSlash()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Response | undefined</code>
+</p>
+
+Checks if the request pathname needs [trailing-slash](/en/reference/configuration-reference/#trailingslash) normalization and returns a redirect `Response` if so. Returns `undefined` when no redirect is needed.
+
+## Using with Hono
+
+Astro also provides Hono-compatible wrappers for all handler functions via `astro/hono`. If you prefer to use [Hono](https://hono.dev/) as your routing framework, you can export a Hono app from `src/app.ts`:
+
+```ts title="src/app.ts"
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+
+const app = new Hono();
+
+// Hono middleware
+app.use(logger());
+
+// Astro handlers (as Hono middleware)
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
+
+The `astro/hono` module exports the same handler names as `astro/fetch` (`astro`, `pages`, `middleware`, `actions`, `sessions`, `redirects`, `cache`, `i18n`, `trailingSlash`), but each returns a Hono middleware function. This lets you mix Astro handlers with any Hono middleware from the ecosystem.
