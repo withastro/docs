@@ -273,23 +273,20 @@ export default defineConfig({
 
 ## 프로그래밍 방식으로 글꼴 데이터에 접근
 
-Astro는 [`fontData`](/ko/reference/modules/astro-assets/#fontdata) 객체를 통해 글꼴 패밀리 데이터에 프로그래밍 방식으로 접근할 수 있는 저수준 API를 제공합니다. 이는 [API 라우트](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)에서 [Satori](https://github.com/vercel/satori)를 사용하여 오픈 그래프 이미지를 생성하는 것과 같이 글꼴 파일에 직접 접근해야 하는 고급 사용 사례에 유용할 수 있습니다.
+Astro는 프로그래밍 방식으로 데이터에 액세스할 수 있는 로우레벨 API를 제공합니다:
 
-이 저수준 API는 Astro가 프로젝트를 위해 다운로드한 모든 글꼴 파일과 해당 메타데이터에 접근할 수 있도록 해줍니다. 이는 필요한 특정 글꼴 파일을 찾기 위해 글꼴 파일을 필터링하고, 빌드 출력 구조를 기반으로 사용할 파일 경로를 결정하는 것은 사용자 책임이라는 것을 의미합니다.
+- [`fontData`](/ko/reference/modules/astro-assets/#fontdata) 객체를 통한 글꼴 패밀리 데이터
+- [`experimental_getFontFileURL()`](/ko/reference/modules/astro-assets/#experimental_getfontfileurl) 함수를 통한 글꼴 파일 URL
 
-:::note
-현재 API에는 빌드 시 출력 경로에서 [글꼴 파일을 수동으로 로드해야 하는 알려진 제한](https://github.com/withastro/astro/issues/16139)이 있습니다.
+이는 [API 라우트](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)에서 [Satori](https://github.com/vercel/satori)를 사용하여 오픈 그래프 이미지를 생성하는 경우와 같이 글꼴 파일에 직접 액세스해야 하는 고급 사용 사례에서 유용할 수 있습니다.
 
-이 과정을 간소화하기 위한 새로운 API가 개발 중이며 향후 릴리스에서 제공될 예정입니다. GitHub 이슈를 구독하여 진행 상황을 확인할 수 있습니다.
-:::
+`fontData` 객체를 사용하면 Astro가 프로젝트를 위해 다운로드한 모든 글꼴 파일과 메타데이터에 액세스할 수 있습니다. 즉, 필요한 특정 파일을 찾기 위해 글꼴 파일을 필터링하고 URL 확인 후 데이터를 가져오는 과정은 사용자가 직접 처리해야 합니다.
 
 다음 예시는 [하나의 글꼴과 그 형식이 구성되었으며](/ko/reference/configuration-reference/#fontformats), [Satori가 지원하는 형식](https://github.com/vercel/satori?tab=readme-ov-file#fonts)이라고 가정하고 정적 파일 엔드포인트에서 오픈 그래프 이미지를 생성합니다:
 
-```tsx title="src/pages/og.png.ts" {2} "fontData[\"--font-roboto\"]"
+```tsx title="src/pages/og.png.ts" {2,14-15} "fontData[\"--font-roboto\"]"
 import type { APIRoute } from "astro";
-import { fontData } from "astro:assets";
-import { outDir } from "astro:config/server";
-import { readFile } from "node:fs/promises";
+import { fontData, experimental_getFontFileURL } from "astro:assets";
 import satori from "satori";
 import { html } from "satori-html";
 import sharp from "sharp";
@@ -301,9 +298,8 @@ export const GET: APIRoute = async (context) => {
     throw new Error("Cannot find the font path.");
   }
 
-  const data = import.meta.env.DEV
-    ? await fetch(new URL(fontPath, context.url.origin)).then(async (res) => res.arrayBuffer())
-    : await readFile(new URL(`.${fontPath}`, outDir));
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  const data = await fetch(url).then((res) => res.arrayBuffer());
 
   const svg = await satori(
     html`<div style="color: black;">hello, world</div>`,
