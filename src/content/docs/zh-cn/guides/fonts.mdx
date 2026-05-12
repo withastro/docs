@@ -1,0 +1,434 @@
+---
+title: 使用自定义字体
+sidebar:
+  label: 字体
+description: >-
+  想为 Astro 网站添加一些自定义字体吗？通过 Fontsource 使用 Google Fonts，或添加你选择的字体。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+本指南将向你展示如何向项目添加 [Web 字体](https://developer.mozilla.org/zh-CN/docs/Learn/CSS/Styling_text/Web_fonts)，并在组件中使用它们。
+
+Astro 提供了一种通过统一的、[完全可定制](/zh-cn/reference/configuration-reference/#fonts)且类型安全的 API 来使用文件系统和各种字体提供商（例如 Fontsource、Google）的字体。
+
+Web 字体可能会影响加载和渲染时的页面性能。此 API 通过自动进行 [Web 字体优化](https://web.dev/learn/performance/optimize-web-fonts)（包括预加载链接、优化的回退字体和默认配置）来帮助你保持网站性能。[查看常用示例](#示例)。
+
+Fonts API 专注于性能和隐私，它会下载和缓存字体，以便从你的网站提供字体服务。这可以避免将用户数据发送到第三方站点，并确保所有访问者都可以使用一致的字体集。
+
+## 配置自定义字体
+
+通过在 Astro 配置中使用 [`fonts` 选项](/zh-cn/reference/configuration-reference/#fonts) 来注册自定义字体。
+
+对于你想使用的每种字体，你必须指定其 [名称](/zh-cn/reference/configuration-reference/#fontname)、[CSS 变量](/zh-cn/reference/configuration-reference/#fontcssvariable) 和一个 Astro 字体提供商。
+
+Astro 提供对 [最流行的字体提供商的内置支持](/zh-cn/reference/font-provider-reference/#built-in-providers)：Adobe、Bunny、Fontshare、Fontsource、Google、Google Icons 和 NPM，以及使用你自己的本地字体文件。此外，你还可以 [进一步自定义字体配置](#细粒度字体配置) 以优化性能和访客体验。
+
+### 使用本地字体文件
+
+以下示例将演示如何使用字体文件 `DistantGalaxy.woff2` 添加自定义字体。
+
+<Steps>
+
+1. 将字体文件添加到 [`src/` 目录](/zh-cn/basics/project-structure/#src) 中，例如 `src/assets/fonts/`。
+
+2. 使用 [本地字体提供商](/zh-cn/reference/font-provider-reference/#local) 在 Astro 配置文件中创建一个新的字体系列，并指定要包含的变体：
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.local(),
+        name: "DistantGalaxy",
+        cssVariable: "--font-distant-galaxy",
+        options: {
+          variants: [{
+            src: ['./src/assets/fonts/DistantGalaxy.woff2'],
+            weight: 'normal',
+            style: 'normal'
+          }]
+        }
+      }]
+    });
+    ```
+3. 现在你的字体已配置完毕，可以 [添加到页面头部](#应用自定义字体)，以便在项目中使用。
+
+</Steps>
+
+### 使用 Fontsource
+
+Astro 开箱即用地支持 [多种字体提供商](/zh-cn/reference/font-provider-reference/#built-in-providers)，包括对 [Fontsource](https://fontsource.org/) 的支持，它简化了 Google Fonts 和其他开源字体的使用。
+
+以下示例将使用 Fontsource 添加自定义字体支持，但该过程适用于任何 Astro 内置字体提供商（例如 [Adobe](https://fonts.adobe.com/)、[Bunny](https://fonts.bunny.net/)）。
+
+<Steps>
+
+1. 在 [Fontsource 的目录](https://fontsource.org/) 中找到你想使用的字体。本示例将使用 [Roboto](https://fontsource.org/fonts/roboto)。
+
+2. 使用 [Fontsource 提供商](/zh-cn/reference/font-provider-reference/#fontsource) 在 Astro 配置文件中创建一个新的字体系列：
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.fontsource(),
+        name: "Roboto",
+        cssVariable: "--font-roboto",
+      }]
+    });
+    ```
+3. 现在你的字体已配置完毕，可以 [添加到页面头部](#应用自定义字体)，以便在项目中使用。
+
+</Steps>
+
+## 应用自定义字体
+
+[字体配置完成](#配置自定义字体) 后，必须使用标识 CSS 变量将其添加到页面头部。然后，你就可以在定义页面样式时使用此变量。
+
+<Steps>
+
+1. 在你的页面头部中导入并包含 [`<Font />`](/zh-cn/reference/modules/astro-assets/#font-) 组件，并使用必需的 `cssVariable` 属性，通常是在专用的 `Head.astro` 组件或直接放在 [布局](/zh-cn/basics/layouts/) 组件中：
+
+    ```astro title="src/layouts/Layout.astro" ins={2,7}
+    ---
+    import { Font } from "astro:assets";
+    ---
+
+    <html>
+      <head>
+        <Font cssVariable="--font-distant-galaxy" />
+      </head>
+      <body>
+        <slot />
+      </body>
+    </html>
+    ```
+
+2. 在使用该布局渲染的任何页面（包括布局组件本身）中，你现在可以使用字体的 `cssVariable` 来定义样式，以应用自定义字体。
+
+    以下示例中，`<h1>` 标题将应用自定义字体，而段落 `<p>` 则不会。
+
+    ```astro title="src/pages/example.astro" ins={10-12}
+    ---
+    import Layout from "../layouts/Layout.astro";
+    ---
+    <Layout>
+      <h1>在遥远的星系中……</h1>
+
+      <p>自定义字体让我的标题更酷了！</p>
+
+      <style>
+      h1 {
+        font-family: var(--font-distant-galaxy);
+      }
+      </style>
+    </Layout>
+    ```
+
+</Steps>
+
+## 预加载字体
+
+字体预加载应谨慎使用，因为它可能会阻止其他重要资源的加载，或下载当前页面不必要的字体。考虑只预加载最基本的字体，即显示首屏内容所必需的字体。
+
+要预加载字体，请将 [`preload` 属性](/zh-cn/reference/modules/astro-assets/#preload) 传递给相应的 `<Font />` 组件。如果一个字体对应多个文件，你还可以通过传递数组来指定要预加载的文件。
+
+```astro title="src/layouts/Layout.astro" {7}
+---
+import { Font } from "astro:assets";
+---
+
+<html>
+  <head>
+    <Font cssVariable="--font-distant-galaxy" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+## 在 Tailwind 中注册字体
+
+如果你使用 [Tailwind](/zh-cn/guides/styling/#tailwind) 进行样式设计，你不会使用 CSS `font-face` 属性来应用样式。
+
+相反，在 [配置自定义字体](#配置自定义字体) 并 [将其添加到页面头部](#应用自定义字体) 之后，你需要更新 Tailwind 配置来注册字体：
+
+    <Tabs>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import "tailwindcss";
+
+    @theme inline {
+      --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+      content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+      theme: {
+        extend: {},
+        fontFamily: {
+          sans: ["var(--font-roboto)"]
+        }
+      },
+      plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+有关更多信息，请参阅 [Tailwind 关于添加自定义字体系列的文档](https://tailwindcss.com/docs/font-family#using-a-custom-value)。
+
+## 使用可变字体
+
+要在项目中使用 [可变字体](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)，请在提供商的配置中指定可用的权重范围，而不是单独的权重。
+
+<Tabs>
+<TabItem label="本地提供商">
+
+[使用本地字体文件](#使用本地字体文件) 时，你可以通过将变体的 [`weight` 属性](/zh-cn/reference/font-provider-reference/#weight) 设置为与字体可用权重范围完全对应的字符串来指定字体是可变的。
+
+以下示例将 Inter 配置为具有可用权重范围的本地可变字体：
+
+```js title="astro.config.mjs" {11}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Inter",
+    cssVariable: "--font-inter",
+    options: {
+      variants: [
+        {
+          weight: "100 900",
+          style: "normal",
+          src: ["./src/assets/fonts/InterVariable.woff2"],
+        },
+      ],
+    },
+  }]
+});
+```
+
+</TabItem>
+<TabItem label="其他提供商">
+
+使用支持可变字体的 [其他提供商（如 Fontsource）](#使用-fontsource) 时，你可以通过将 [`weights` 属性](/zh-cn/reference/configuration-reference/#fontweights) 设置为包含字体可用权重范围的数组来请求字体的可变版本。
+
+以下示例从 Fontsource 下载 [Fira Code](https://fontsource.org/fonts/fira-code) 作为具有可用权重范围的可变字体：
+
+```js title="astro.config.mjs" {9}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    cssVariable: "--font-fira-code",
+    name: "Fira Code",
+    provider: fontProviders.fontsource(),
+    styles: ["normal"],
+    weights: ["300 700"],
+  }]
+});
+```
+
+</TabItem>
+</Tabs>
+
+## 自定义字体回退
+
+当主要字体尚未加载、包含缺失字符或因任何原因无法加载时，会使用回退字体。当回退字体与主要字体差异显著时，页面加载过程中可能会发生布局偏移。
+
+为避免这种情况，Astro 会自动尝试从最后一个 [定义的字体回退](/zh-cn/reference/configuration-reference/#fontfallbacks) 生成优化的回退字体，如果它是 [通用字体系列](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-family#%E9%80%9A%E7%94%A8%E5%AD%97%E4%BD%93%E7%B1%BB%E5%9E%8B) 的话。默认使用 `sans-serif`，但它可能与你的主要字体的预期外观不匹配。你可以在字体配置中进行调整：
+
+```mjs title="astro.config.mjs" {8}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Cousine",
+    cssVariable: "--font-cousine",
+    fallbacks: ["monospace"]
+  }]
+});
+```
+
+你也可以通过在字体配置中将 [`font.optimizedFallbacks`](/zh-cn/reference/configuration-reference/#fontoptimizedfallbacks) 设置为 `false` 来退出默认优化。Astro 将使用你在配置中指定的回退字体，而无需任何额外的自动处理。
+
+## 以编程方式访问字体数据
+
+Astro 公开了用于以编程方式访问数据的底层 API：
+
+- 通过 [`fontData`](/zh-cn/reference/modules/astro-assets/#fontdata) 对象获取字体系列数据
+- 通过 [`experimental_getFontFileURL()`](/zh-cn/reference/modules/astro-assets/#experimental_getfontfileurl) 函数获取字体文件 URL
+
+这对于需要直接访问字体文件的高级用例非常有用，例如在 [API 路由](/zh-cn/guides/endpoints/#服务器端点api-路由) 中使用 [Satori](https://github.com/vercel/satori) 生成 OpenGraph 图像。
+
+`fontData` 对象可以让你访问 Astro 为项目下载的所有字体文件及其元数据。这意味着你需要负责筛选字体文件以找到你需要的特定文件，并在解析 URL 后获取数据。
+
+以下示例在静态文件端点中生成 OpenGraph 图像，假设只 [配置了一种字体及其格式](/zh-cn/reference/configuration-reference/#fontformats)，且其 [格式受 Satori 支持](https://github.com/vercel/satori?tab=readme-ov-file#fonts)：
+
+```tsx title="src/pages/og.png.ts" {2,14-15} "fontData[\"--font-roboto\"]"
+import type { APIRoute } from "astro";
+import { fontData, experimental_getFontFileURL } from "astro:assets";
+import satori from "satori";
+import { html } from "satori-html";
+import sharp from "sharp";
+
+export const GET: APIRoute = async (context) => {
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("找不到字体路径。");
+  }
+
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  const data = await fetch(url).then((res) => res.arrayBuffer());
+
+  const svg = await satori(
+    html`<div style="color: black;">hello, world</div>`,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data,
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  );
+
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
+```
+
+## 细粒度字体配置
+
+一个字体系列由权重和样式等属性的组合定义（例如 `weights: [500, 600]` 和 `styles: ["normal", "bold"]`），但你可能只想下载这些属性的某些组合。
+
+为了更精确地控制下载哪些字体文件，你可以使用不同的组合多次指定相同的字体（即具有相同的 `cssVariable`、`name` 和 `provider` 属性）。Astro 将合并结果并只下载所需的文件。例如，可以只下载正常的 `500` 和 `600` 权重，而只下载斜体的 `500`：
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500, 600],
+      styles: ["normal"]
+    },
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500],
+      styles: ["italic"]
+    }
+  ]
+});
+```
+
+## 缓存
+
+Fonts API 的缓存实现设计为在开发中实用，在生产中高效。在构建期间，字体文件会被复制到 `_astro/fonts` 输出目录，以便它们可以从静态资产的 HTTP 缓存（通常为一年）中受益。
+
+要清除开发中的缓存，请删除 `.astro/fonts` 目录。要清除构建缓存，请删除 `node_modules/.astro/fonts` 目录。
+
+## 示例
+
+Astro 的字体功能基于灵活的配置选项。你自己的项目的字体配置可能与简化示例有所不同，因此以下示例展示了各种字体配置在生产环境中的可能样子。
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--font-roboto",
+      provider: fontProviders.google(),
+      // 默认包含：
+      // weights: [400] ,
+      // styles: ["normal", "italic"],
+      // subsets: ["latin"],
+      // fallbacks: ["sans-serif"], 
+      // formats: ["woff2"],
+    },
+    {
+      name: "Inter",
+      cssVariable: "--font-inter",
+      provider: fontProviders.fontsource(),
+      // 指定实际使用的权重
+      weights: [400, 500, 600, 700],
+      // 指定实际使用的样式
+      styles: ["normal"],
+      // 仅下载页面上使用的字符的字体文件
+      subsets: ["latin", "cyrillic"],
+      // 下载更多字体格式
+      formats: ["woff2", "woff"],
+    },
+    {
+      name: "JetBrains Mono",
+      cssVariable: "--font-jetbrains-mono",
+      provider: fontProviders.fontsource(),
+      // 仅下载页面上使用的字符的字体文件
+      subsets: ["latin", "latin-ext"],
+      // 使用与预期外观匹配的回退字体系列
+      fallbacks: ["monospace"],
+    },
+    {
+      name: "Poppins",
+      cssVariable: "--font-poppins",
+      provider: fontProviders.local(),
+      options: {
+        // 未指定权重和样式，Astro 将尝试为每个变体推断它们
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    }
+  ],
+});
+```
