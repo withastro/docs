@@ -1,0 +1,437 @@
+---
+title: Использование пользовательских шрифтов
+sidebar:
+  label: Шрифты
+description: >-
+  Хотите добавить собственные шрифты на сайт Astro? Используйте Google Fonts
+  с Fontsource или добавьте выбранный шрифт самостоятельно.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Это руководство покажет вам, как добавить [веб-шрифты](https://developer.mozilla.org/ru/docs/Learn/CSS/Styling_text/Web_fonts) в ваш проект и использовать их в своих компонентах.
+
+Astro предоставляет способ использования шрифтов из файловой системы и различных провайдеров шрифтов (например, Fontsource, Google) через единый, [полностью настраиваемый](/ru/reference/configuration-reference/#fonts) и типобезопасный API.
+
+Веб-шрифты могут влиять на производительность страницы как во время загрузки, так и во время рендеринга. Этот API помогает сохранять производительность сайта благодаря автоматическим [оптимизациям веб-шрифтов](https://web.dev/learn/performance/optimize-web-fonts), включая ссылки предзагрузки, оптимизированные запасные шрифты продуманные настройки по умолчанию. [См. общие примеры использования](#примеры).
+
+API шрифтов фокусируется на производительности и конфиденциальности, загружая и кэшируя шрифты таким образом, чтобы они обслуживались с вашего сайта. Это позволяет избежать отправки пользовательских данных на сторонние сайты, а также гарантирует, что согласованный набор шрифтов доступен всем вашим посетителям.
+
+## Настройка пользовательских шрифтов
+
+Регистрация пользовательских шрифтов для вашего проекта Astro выполняется через [опцию `fonts`](/ru/reference/configuration-reference/#fonts) в конфигурации Astro.
+
+Для каждого шрифта, который вы хотите использовать, необходимо указать его [имя](/ru/reference/configuration-reference/#fontname), [CSS-переменную](/ru/reference/configuration-reference/#fontcssvariable) и провайдера шрифтов Astro.
+
+Astro предоставляет [встроенную поддержку самых популярных провайдеров шрифтов](/ru/reference/font-provider-reference/#built-in-providers): Adobe, Bunny, Fontshare, Fontsource, Google, Google Icons и NPM, а также использование собственных локальных файлов шрифтов. Кроме того, вы можете [дополнительно настроить конфигурацию шрифтов](#гранулярная-конфигурация-шрифтов) для оптимизации производительности и удобства посетителей.
+
+
+### Использование локального файла шрифта
+
+В этом примере показано добавление пользовательского шрифта с использованием файла шрифта `DistantGalaxy.woff2`.
+
+<Steps>
+
+1. Добавьте файл шрифта в [директорию `src/`](/ru/basics/project-structure/#src), например, `src/assets/fonts/`.
+
+2. Создайте новое семейство шрифтов в файле конфигурации Astro, используя [локального провайдера шрифтов](/ru/reference/font-provider-reference/#local), и укажите переменные для включения:
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.local(),
+        name: "DistantGalaxy",
+        cssVariable: "--font-distant-galaxy",
+        options: {
+          variants: [{
+            src: ['./src/assets/fonts/DistantGalaxy.woff2'],
+            weight: 'normal',
+            style: 'normal'
+          }]
+        }
+      }]
+    });
+    ```
+3. Ваш шрифт настроен и готов к [добавлению в заголовок страницы](#применение-пользовательских-шрифтов), чтобы его можно было использовать в проекте.
+
+</Steps>
+
+### Использование Fontsource
+
+Astro поддерживает [несколько провайдеров шрифтов](/ru/reference/font-provider-reference/#built-in-providers) из коробки, включая поддержку [Fontsource](https://fontsource.org/), что упрощает использование Google Fonts и других шрифтов с открытым исходным кодом.
+
+В следующем примере для добавления поддержки пользовательского шрифта используется Fontsource, но процесс аналогичен для любого другого встроенного в Astro провайдера (например, [Adobe](https://fonts.adobe.com/) или [Bunny](https://fonts.bunny.net/)).
+
+<Steps>
+
+1. Найдите нужный шрифт в [каталоге Fontsource](https://fontsource.org/). В этом примере будет использоваться [Roboto](https://fontsource.org/fonts/roboto).
+
+2. Создайте новое семейство шрифтов в файле конфигурации Astro, используя [провайдера Fontsource](/ru/reference/font-provider-reference/#fontsource):
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.fontsource(),
+        name: "Roboto",
+        cssVariable: "--font-roboto",
+      }]
+    });
+    ```
+3. Ваш шрифт настроен и готов к [добавлению в заголовок страницы](#применение-пользовательских-шрифтов), чтобы его можно было использовать в проекте.
+
+</Steps>
+
+## Применение пользовательских шрифтов
+
+После того как [шрифт настроен](#настройка-пользовательских-шрифтов), его необходимо добавить в заголовок страницы с соответствующей CSS-переменной. Затем вы можете использовать эту переменную при определении стилей страницы.
+
+<Steps>
+
+1. Импортируйте и включите компонент [`<Font />`](/ru/reference/modules/astro-assets/#font-) с необходимым свойством `cssVariable` в заголовок (тег head) вашей страницы, обычно в специализированный компонент `Head.astro` или непосредственно в [компонент макета (layout)](/ru/basics/layouts/):
+
+    ```astro title="src/layouts/Layout.astro" ins={2,7}
+    ---
+    import { Font } from "astro:assets";
+    ---
+
+    <html>
+      <head>
+        <Font cssVariable="--font-distant-galaxy" />
+      </head>
+      <body>
+        <slot />
+      </body>
+    </html>
+    ```
+
+2. На любой странице, использующей этот макет (включая сам компонент макета), вы теперь можете определять стили с помощью `cssVariable` вашего шрифта для его применения.
+
+    В следующем примере к заголовку `<h1>` будет применен пользовательский шрифт, а к абзацу `<p>` — нет.
+
+    ```astro title="src/pages/example.astro" ins={10-12}
+    ---
+    import Layout from "../layouts/Layout.astro";
+    ---
+    <Layout>
+      <h1>In a galaxy far, far away...</h1>
+
+      <p>Custom fonts make my headings much cooler!</p>
+
+      <style>
+      h1 {
+        font-family: var(--font-distant-galaxy);
+      }
+      </style>
+    </Layout>
+    ```
+
+</Steps>
+
+## Предварительная загрузка шрифтов
+
+Предварительную загрузку (preloading) шрифтов следует использовать в меру, так как она может блокировать загрузку других важных ресурсов или загружать шрифты, которые не нужны для текущей страницы. Рассмотрите возможность предварительной загрузки только самых важных шрифтов, необходимых для отображения контента, видимого в первом экране (above-the-fold).
+
+Чтобы предварительно загрузить шрифт, передайте свойство [`preload`](/ru/reference/modules/astro-assets/#preload) соответствующему компоненту `<Font />`. Если шрифту соответствует несколько файлов, вы также можете указать, какой из них нужно предварительно загрузить, передав массив.
+
+```astro title="src/layouts/Layout.astro" {7}
+---
+import { Font } from "astro:assets";
+---
+
+<html>
+  <head>
+    <Font cssVariable="--font-distant-galaxy" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+## Регистрация шрифтов в Tailwind
+
+Если вы используете [Tailwind](/ru/guides/styling/#tailwind) для стилизации, вы не будете применять свои стили с помощью CSS-свойства `font-face`.
+
+Вместо этого, после [настройки пользовательского шрифта](#настройка-пользовательских-шрифтов) и [добавления его в заголовок страницы](#применение-пользовательских-шрифтов), вам нужно обновить конфигурацию Tailwind, чтобы зарегистрировать ваш шрифт:
+
+    <Tabs>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import "tailwindcss";
+
+    @theme inline {
+      --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+      content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+      theme: {
+        extend: {},
+        fontFamily: {
+          sans: ["var(--font-roboto)"]
+        }
+      },
+      plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+См. [документацию Tailwind по добавлению пользовательских семейств шрифтов](https://tailwindcss.com/docs/font-family#using-a-custom-value) для получения дополнительной информации.
+
+## Использование вариативных шрифтов
+
+Чтобы использовать [вариативные шрифты](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) в своем проекте, укажите доступный диапазон начертаний (weight) вместо отдельных значений в конфигурации вашего провайдера.
+
+<Tabs>
+<TabItem label="Локальный провайдер">
+
+При [использовании локального файла шрифта](#использование-локального-файла-шрифта) вы можете указать, что шрифт является вариативным, установив [свойство `weight` варианта](/ru/reference/font-provider-reference/#weight) в строку, соответствующую точному диапазону начертаний, доступному для шрифта.
+
+В следующем примере Inter настраивается как локальный вариативный шрифт с доступным диапазоном начертаний:
+
+```js title="astro.config.mjs" {11}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Inter",
+    cssVariable: "--font-inter",
+    options: {
+      variants: [
+        {
+          weight: "100 900",
+          style: "normal",
+          src: ["./src/assets/fonts/InterVariable.woff2"],
+        },
+      ],
+    },
+  }]
+});
+```
+
+</TabItem>
+<TabItem label="Другие провайдеры">
+
+При использовании [других провайдеров (например, Fontsource)](#использование-fontsource), которые поддерживают вариативные шрифты, вы можете запросить вариативную версию шрифта, установив [свойство `weights`](/ru/reference/configuration-reference/#fontweights) с массивом, содержащим точный диапазон доступных для шрифта начертаний.
+
+В следующем примере Fira Code загружается из [Fontsource](https://fontsource.org/fonts/fira-code) как вариативный шрифт с доступным диапазоном начертаний:
+
+```js title="astro.config.mjs" {9}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    cssVariable: "--font-fira-code",
+    name: "Fira Code",
+    provider: fontProviders.fontsource(),
+    styles: ["normal"],
+    weights: ["300 700"],
+  }]
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Настройка запасных шрифтов
+
+Запасные шрифты используются, когда основной шрифт еще не загружен, содержит недостающие символы или не может быть загружен по какой-либо причине. Когда запасной шрифт существенно отличается от основного, во время загрузки страницы могут возникать сдвиги макета.
+
+Чтобы избежать этого, Astro автоматически пытается сгенерировать оптимизированные запасные шрифты из последнего [определенного запасного шрифта](/ru/reference/configuration-reference/#fontfallbacks), если это [общее семейство шрифтов](https://developer.mozilla.org/ru/docs/Web/CSS/Reference/Properties/font-family#generic-name). По умолчанию используется `sans-serif`, но он может не соответствовать желаемому внешнему виду вашего основного шрифта. Вы можете настроить его в конфигурации шрифта:
+
+```mjs title="astro.config.mjs" {8}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Cousine",
+    cssVariable: "--font-cousine",
+    fallbacks: ["monospace"]
+  }]
+});
+```
+
+Вы также можете отказаться от автоматической оптимизации, установив [`font.optimizedFallbacks`](/ru/reference/configuration-reference/#fontoptimizedfallbacks) в `false` в вашей конфигурации шрифта. Тогда Astro будет использовать запасные шрифты, указанные в вашей конфигурации, без какой-либо дополнительной обработки.
+
+## Программный доступ к данным шрифтов
+
+Astro предоставляет низкоуровневые API для программного доступа к данным:
+
+- Данные семейств шрифтов через объект [`fontData`](/ru/reference/modules/astro-assets/#fontdata);
+- URL-адреса файлов шрифтов с помощью функции [`experimental_getFontFileURL()`](/ru/reference/modules/astro-assets/#experimental_getfontfileurl).
+
+Это может быть полезно для продвинутых сценариев, где вам нужен прямой доступ к файлам шрифтов, например, для создания OpenGraph-изображений с помощью [Satori](https://github.com/vercel/satori) в [API-маршруте](/ru/guides/endpoints/#серверные-эндпойнты-api-маршруты).
+
+Объект `fontData` дает вам доступ ко всем файлам шрифтов, загруженным Astro для вашего проекта, вместе с их метаданными. Это означает, что вы сами отвечаете за фильтрацию файлов шрифтов, чтобы найти нужный файл, и за получение данных после разрешения URL-адресов.
+
+В следующем примере генерируется OpenGraph-изображение в эндпоинте статического файла, предполагая, что был [настроен только один шрифт и его формат](/ru/reference/configuration-reference/#fontformats) с [форматом, поддерживаемым Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts):
+
+```tsx title="src/pages/og.png.ts" {2,14-15} "fontData[\"--font-roboto\"]"
+import type { APIRoute } from "astro";
+import { fontData, experimental_getFontFileURL } from "astro:assets";
+import satori from "satori";
+import { html } from "satori-html";
+import sharp from "sharp";
+
+export const GET: APIRoute = async (context) => {
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("Cannot find the font path.");
+  }
+
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  const data = await fetch(url).then((res) => res.arrayBuffer());
+
+  const svg = await satori(
+    html`<div style="color: black;">hello, world</div>`,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data,
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  );
+
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
+```
+
+## Гранулярная конфигурация шрифтов
+
+Семейство шрифтов определяется комбинацией свойств, таких как начертания и стиль (например, `weights: [500, 600]` и `styles: ["normal", "bold"]`), но вы можете захотеть загрузить только определенные комбинации этих свойств.
+
+Для большего контроля над тем, какие файлы шрифтов загружаются, вы можете указать один и тот же шрифт (т.е. с одинаковыми свойствами `cssVariable`, `name` и `provider`) несколько раз с разными комбинациями. Astro объединит результаты и загрузит только необходимые файлы. Например, можно загрузить обычный (normal) шрифт с толщиной `500` и `600`, при этом загрузив только курсивный (italic) шрифт с толщиной `500`:
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500, 600],
+      styles: ["normal"]
+    },
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500],
+      styles: ["italic"]
+    }
+  ]
+});
+```
+
+## Кэширование
+
+Реализация кэширования API шрифтов была разработана так, чтобы быть практичной при разработке и эффективной в продакшене. Во время сборки файлы шрифтов копируются в выходную директорию `_astro/fonts`, чтобы они могли использовать HTTP-кэширование статических ресурсов (обычно один год).
+
+Чтобы очистить кэш при разработке, удалите директорию `.astro/fonts`. Чтобы очистить кэш сборки, удалите директорию `node_modules/.astro/fonts`.
+
+## Примеры
+
+Функционал шрифтов Astro основан на гибких параметрах конфигурации. Конфигурация шрифтов в вашем проекте может отличаться от упрощенных примеров, поэтому ниже приведены примеры того, как могут выглядеть различные конфигурации шрифтов при использовании в продакшене.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--font-roboto",
+      provider: fontProviders.google(),
+      // По умолчанию включено:
+      // weights: [400] ,
+      // styles: ["normal", "italic"],
+      // subsets: ["latin"],
+      // fallbacks: ["sans-serif"], 
+      // formats: ["woff2"],
+    },
+    {
+      name: "Inter",
+      cssVariable: "--font-inter",
+      provider: fontProviders.fontsource(),
+      // Укажите веса, которые действительно используются
+      weights: [400, 500, 600, 700],
+      // Укажите стили, которые действительно используются
+      styles: ["normal"],
+      // Загружать только файлы шрифтов для символов, используемых на странице
+      subsets: ["latin", "cyrillic"],
+      // Загружать больше форматов шрифтов
+      formats: ["woff2", "woff"],
+    },
+    {
+      name: "JetBrains Mono",
+      cssVariable: "--font-jetbrains-mono",
+      provider: fontProviders.fontsource(),
+      // Загружать только файлы шрифтов для символов, используемых на странице
+      subsets: ["latin", "latin-ext"],
+      // Использовать запасное семейство шрифтов, соответствующее задуманному виду
+      fallbacks: ["monospace"],
+    },
+    {
+      name: "Poppins",
+      cssVariable: "--font-poppins",
+      provider: fontProviders.local(),
+      options: {
+        // Вес и стиль не указаны, поэтому Astro
+        // попытается определить их для каждого варианта
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    }
+  ],
+});
+```
