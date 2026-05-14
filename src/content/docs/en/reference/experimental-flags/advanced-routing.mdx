@@ -34,6 +34,22 @@ When `advancedRouting` is enabled, create a `src/app.ts` (or `.js`, `.mjs`, `.mt
 
 If no `src/app.ts` file exists (or `advancedRouting` is not enabled), Astro uses its built-in pipeline, which runs all features automatically.
 
+You can optionally import the `Fetchable` type from `astro` to type-check your entrypoint:
+
+```ts title="src/app.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    // ...
+  },
+} satisfies Fetchable;
+```
+
+:::tip
+To rename the entrypoint file or disable the feature entirely, use the [`fetchFile`](/en/reference/configuration-reference/#fetchfile) config option.
+:::
+
 ### Using `astro()`
 
 The easiest way to get started is with the [`astro()` handler](#astro), which runs Astro's full built-in pipeline (sessions, cache, redirects, trailing-slash, actions, middleware, pages, and i18n) in the default order. This lets you add custom logic before or after Astro without changing how the internal pipeline works:
@@ -202,6 +218,21 @@ Route parameters derived from the matched route and pathname (e.g. `{ slug: 'my-
 
 The HTTP status code for the response. You can set this before rendering to control the response status (e.g. `state.status = 404`).
 
+##### `state.response`
+
+<p>
+
+**Type:** `Response | undefined`<br />
+**Default:** `undefined`
+</p>
+
+The `Response` produced by handlers after rendering completes. This is set automatically by [`pages()`](#pages) and [`middleware()`](#middleware), allowing you to inspect or use the response later in the pipeline:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// state.response is now the same object as response
+```
+
 #### Methods
 
 ##### `state.rewrite()`
@@ -264,6 +295,20 @@ try {
   await state.finalizeAll();
 }
 ```
+
+### Typing custom providers with `App.Providers`
+
+When you register custom context providers with [`state.provide()`](#stateprovide), you can declare their types using the `App.Providers` interface so that `Astro` and `ctx` are fully typed in your components and middleware:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface Providers {
+    oauth: import('./lib/oauth').OAuthSession;
+  }
+}
+```
+
+After declaring a provider, `ctx.oauth` (and `Astro.oauth` in `.astro` files) will be typed automatically.
 
 ### `astro()`
 
