@@ -88,6 +88,7 @@ export const sidebar = [
 					group('guides.upgrade.major', {
 						collapsed: true,
 						items: [
+							'guides/upgrade-to/v7',
 							'guides/upgrade-to/v6',
 							'guides/upgrade-to/v5',
 							'guides/upgrade-to/v4',
