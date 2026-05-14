@@ -4,6 +4,8 @@ description: Partagez des données entre les requêtes de pages rendues à la de
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
@@ -35,17 +37,78 @@ import vercel from '@astrojs/vercel'
 export default defineConfig({
   adapter: vercel()
   session: {
-    driver: sessionDrivers.redis({
-      url: process.env.REDIS_URL
+    driver: sessionDrivers.lruCache({
+      max: 800,
     }),
   }
 })
 ```
 
 <ReadMore>
-  Consultez [l'option de configuration `session`](/fr/reference/configuration-reference/#options-des-sessions) pour plus de détails sur la configuration d'un pilote de stockage et d'autres options configurables.
+Consultez [l'option de configuration `session`](/fr/reference/configuration-reference/#options-des-sessions) pour plus de détails sur la configuration d'un pilote de stockage et d'autres options configurables.
 </ReadMore>
 
+### Remplacement de la configuration lors de l'exécution
+
+Par défaut, les pilotes de session sont configurés au moment de la compilation, et toute [variable d'environnement](/fr/guides/environment-variables/) utilisée sera incorporée au code compilé. Cela signifie que vous ne pouvez pas remplacer la configuration lors de l'exécution.
+
+Lorsque vous avez besoin d'une configuration différente (p. ex. pour vous connecter à un service externe), définissez-la dans un fichier séparé. Utilisez ensuite ce fichier comme [point d'entrée du pilote](/fr/reference/session-driver-reference/#entrypoint).
+
+L'exemple suivant tire parti de la [compatibilité avec Unstorage](/fr/reference/session-driver-reference/#compatibilité-avec-unstorage) pour configurer le pilote Redis dans son propre point d'entrée :
+
+<Steps>
+1. Installez le [paquet `unstorage`](https://unstorage.unjs.io/guide) :
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npm install unstorage
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm add unstorage
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn add unstorage
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Créez un fichier pour la configuration du pilote (par exemple `src/pilote-session.ts`) et exportez une fonction par défaut qui renvoie l'instance du pilote :
+    ```ts title="src/pilote-session.ts"
+    import type { SessionDriver } from "astro";
+    import redisDriver from "unstorage/drivers/redis";
+    import { REDIS_HOST, REDIS_PORT } from "astro:env";
+
+    export default function (): SessionDriver {
+      return redisDriver({
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+      });
+    }
+    ```
+
+3. Utilisez ce fichier comme point d'entrée du pilote dans votre configuration d'Astro :
+    ```js title="astro.config.mjs" {11-13}
+    import { defineConfig, envField, sessionDrivers } from "astro/config";
+    import vercel from "@astrojs/vercel";
+
+    export default defineConfig({
+      adapter: vercel(),
+      env: {
+        REDIS_HOST: envField.string({ context: "server", access: "public", default: "localhost" }),
+        REDIS_PORT: envField.number({ context: "server", access: "public", default: 6379 }),
+      },
+      session: {
+        driver: {
+          entrypoint: new URL('./src/pilote-session.ts', import.meta.url),
+        }
+      }
+    });
+    ```
+</Steps>
 
 ## Interaction avec les données de session
 

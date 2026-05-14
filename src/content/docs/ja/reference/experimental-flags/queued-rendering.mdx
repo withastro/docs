@@ -1,0 +1,93 @@
+---
+title: 実験的なキューレンダリング
+sidebar:
+  label: キューレンダリング
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type:** `object`<br />
+**Default:** `{ enabled: false }`<br />
+<Since v="6.0.0" />
+</p>
+
+再帰ではなくキューに基づいた、より高パフォーマンスな実験的レンダリング基盤を有効にします。
+
+デフォルトでは、Astroは再帰アルゴリズムを使用して`.astro`・`.md`・`.mdx`ファイルをレンダリングします。ツリー構造にシリアライズされた一連のコンポーネントを入力として受け取り、ツリーの各ノードに対してAstroはレンダリング関数を呼び出します。
+
+キューレンダリングを有効にすると、Astroはツリー内のすべてのノードを走査し、[深さ優先](https://en.wikipedia.org/wiki/Depth-first_search)のノードリストを生成します。このリストは再帰アルゴリズムを使わずに順番にレンダリングされます。このレンダリング方式はメモリ効率が高く、大規模なプロジェクトでより大きな効果が期待できます。
+
+デフォルト設定でこの機能を有効にするには、Astroの設定で`queuedRendering.enabled`を`true`に設定します。
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true
+    }
+  }
+});
+```
+
+将来のメジャーバージョンでは、Astroはデフォルトでこの新しいコンパイラーを使用するようになりますが、`experimental.queuedRendering`フラグを使用することで、いち早く将来の動作を試すことができます。
+
+## 設定
+
+キューレンダリングエンジンには追加の低レベル機能が用意されており、その他の最適化を実験することができます。これらの最適化はキューエンジン自体の直接的な機能ではなく、この実験フェーズのテスト中に非効率と判明した場合は削除される可能性があります。
+
+### ノードプーリング
+
+<p>
+
+**Type:** `number`<br />
+**Default:** `1000`<br />
+<Since v="6.0.0" />
+</p>
+
+ノードプーリングは、レンダリング間でコンポーネントノードを再利用するためのキャッシュシステムです。この機能は初期テストに基づいた合理的なデフォルト値で自動的に有効になります。ただし、プロジェクトのニーズに合わせて1つのプールに含まれるノード数を増減するため、プールのサイズを設定できます。この機能を完全に無効にするには、`poolSize`を`0`に設定します。
+
+ノードプーリングは静的ページのレンダリングに非常に効果的です。同じコンポーネントを共有する多くのページを持つウェブサイトをビルドする際に、メモリを節約できます。
+
+オンデマンドレンダリングのページでは、レンダリングリクエスト間でメモリを共有しないため、この戦略によるメモリ節約の効果がなく、ノードプーリングは無効になります。
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true,
+      poolSize: 3000 // 3000ノードのプールを使用する
+    }
+  }
+});
+```
+
+### コンテンツキャッシング
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="6.0.0" />
+</p>
+
+コンテンツキャッシングは、ページのレンダリング中に値（通常は文字列）を再利用するもう一つの技法です。現在、この機能は有効・無効の切り替えのみで、追加の設定はできません。デフォルトでは無効ですが、有効にすると実験的なキューエンジンがほとんどの大規模コンテンツコレクションに対して合理的なデフォルトキャッシュサイズを選択します。
+
+```js title="astro.config.mjs" ins={7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    queuedRendering: {
+      enabled: true,
+      contentCache: true
+    }
+  }
+});
+```
