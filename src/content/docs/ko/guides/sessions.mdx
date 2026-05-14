@@ -3,6 +3,9 @@ title: 세션
 description: 요청 시 렌더링되는 페이지에 대한 요청 간에 데이터를 공유합니다.
 i18nReady: true
 ---
+
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
@@ -34,17 +37,78 @@ import vercel from '@astrojs/vercel'
 export default defineConfig({
   adapter: vercel()
   session: {
-    driver: sessionDrivers.redis({
-      url: process.env.REDIS_URL
+    driver: sessionDrivers.lruCache({
+      max: 800,
     }),
   }
 })
 ```
 
 <ReadMore>
-  스토리지 드라이버 설정 및 기타 구성 가능한 옵션에 대한 자세한 내용은 [`session` 구성 옵션](/ko/reference/configuration-reference/#세션-옵션)을 참조하세요.
+스토리지 드라이버 설정 및 기타 구성 가능한 옵션에 대한 자세한 내용은 [`session` 구성 옵션](/ko/reference/configuration-reference/#세션-옵션)을 참조하세요.
 </ReadMore>
 
+### 런타임에 구성 재정의하기
+
+기본적으로 세션 드라이버는 빌드 시점에 구성되며, 사용된 모든 [환경 변수](/ko/guides/environment-variables/)는 빌드 결과물에 포함됩니다. 즉, 런타임에는 구성을 재정의할 수 없습니다.
+
+다른 구성이 필요한 경우 (예: 외부 서비스에 연결), 이를 별도의 파일에 정의하세요. 그런 다음 해당 파일을 [드라이버의 진입점](/ko/reference/session-driver-reference/#entrypoint)으로 사용하세요.
+
+다음 예시는 [Unstorage 호환성](/ko/reference/session-driver-reference/#unstorage-호환성)을 활용하여 고유한 진입점에서 Redis 드라이버를 구성하는 방법을 보여줍니다.
+
+<Steps>
+1. [`unstorage` 패키지](https://unstorage.unjs.io/guide)를 설치합니다.
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npm install unstorage
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm add unstorage
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn add unstorage
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. 드라이버 구성을 위한 파일 (예: `src/session-driver.ts`)을 만들고 드라이버 인스턴스를 반환하는 기본 함수를 내보냅니다.
+    ```ts title="src/session-driver.ts"
+    import type { SessionDriver } from "astro";
+    import redisDriver from "unstorage/drivers/redis";
+    import { REDIS_HOST, REDIS_PORT } from "astro:env";
+
+    export default function (): SessionDriver {
+      return redisDriver({
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+      });
+    }
+    ```
+
+3. Astro 설정에서 이 파일을 드라이버의 진입점으로 사용합니다.
+    ```js title="astro.config.mjs" {11-13}
+    import { defineConfig, envField, sessionDrivers } from "astro/config";
+    import vercel from "@astrojs/vercel";
+
+    export default defineConfig({
+      adapter: vercel(),
+      env: {
+        REDIS_HOST: envField.string({ context: "server", access: "public", default: "localhost" }),
+        REDIS_PORT: envField.number({ context: "server", access: "public", default: 6379 }),
+      },
+      session: {
+        driver: {
+          entrypoint: new URL('./src/session-driver.ts', import.meta.url),
+        }
+      }
+    });
+    ```
+</Steps>
 
 ## 세션 데이터와 상호작용
 
