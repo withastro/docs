@@ -9,30 +9,30 @@ import Since from '~/components/Since.astro'
 
 <p>
 
-**Type :** `boolean | object`<br />
-**Par défaut :** `false`<br />
+**Type :** `SvgOptimizer`<br />
+**Par défaut :** `undefined`<br />
 <Since v="5.16.0" />
 </p>
 
-Cette fonctionnalité expérimentale permet l'optimisation automatique de vos [composants SVG](/fr/guides/images/#composants-svg) à l'aide de [SVGO](https://svgo.dev/) au moment de la compilation.
+Cette fonctionnalité expérimentale permet l'optimisation automatique de vos [composants SVG](/fr/guides/images/#composants-svg) au moment de la compilation.
 
 Quand cette option est activée, vos fichiers SVG importés et utilisés comme composants seront optimisés afin de réduire leur taille et d'améliorer leurs performances, tout en préservant leur qualité visuelle. Cela peut réduire considérablement la taille de vos fichiers SVG en supprimant les métadonnées inutiles, les commentaires et le code redondant.
 
-Pour activer cette fonctionnalité avec les paramètres par défaut, définissez-la sur `true` dans votre configuration d'Astro :
+Pour activer cette fonctionnalité, importez la fonction utilitaire `svgoOptimizer()` dans votre configuration d'Astro et assignez-la à l'option expérimentale `svgOptimizer` :
 
 ```js title="astro.config.mjs" ins={5}
-import { defineConfig } from "astro/config"
+import { defineConfig, svgoOptimizer } from "astro/config";
 
 export default defineConfig({
   experimental: {
-    svgo: true
+    svgOptimizer: svgoOptimizer()
   }
-})
+});
 ```
 
 ## Utilisation
 
-Aucune modification de l'utilisation des composants SVG n'est requise pour bénéficier de cette fonctionnalité. Avec la fonctionnalité expérimentale `svgo` activée, tous vos fichiers de composants SVG importés seront automatiquement optimisés :
+Aucune modification de l'utilisation des composants SVG n'est requise pour bénéficier de cette fonctionnalité. Avec l'optimisation SVG expérimentale activée, tous vos fichiers de composants SVG importés seront automatiquement optimisés :
 
 ```astro title="src/pages/index.astro"
 ---
@@ -46,32 +46,36 @@ Le fichier SVG sera optimisé lors du processus de compilation, ce qui permettra
 
 Notez que cette optimisation s'applique à toutes les importations de composants SVG de votre projet. Il n'est pas possible de la désactiver composant par composant.
 
-## Configuration
+## SVGO
+
+Astro fournit un optimiseur intégré utilisant [SVGO](https://svgo.dev/) :
+
+```js
+import { svgoOptimizer } from "astro/config"
+```
+
+### Configuration
 
 Vous pouvez transmettre un [objet de configuration SVGO](https://github.com/svg/svgo#configuration) pour personnaliser le comportement d'optimisation :
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      multipass: true,
-      floatPrecision: 2,
-      plugins: [
-        'preset-default',
-        'removeXMLNS',
-        {
-          name: "removeXlink",
-          params: {
-            includeLegacy: true
-          }
-        }
-      ]
+```js
+svgoOptimizer({
+  multipass: true,
+  floatPrecision: 2,
+  plugins: [
+    'preset-default',
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
     }
-  }
-})
+  ]
+});
 ```
 
-### `plugins`
+#### `plugins`
 
 **Type :** `Array<string | PluginConfig>`<br />
 **Par défaut :** `[]`
@@ -82,55 +86,47 @@ Cela peut inclure la collection de modules d'extension [`preset-default`](https:
 
 Pour utiliser la configuration par défaut d'un module d'extension, ajoutez son nom au tableau. Si vous avez besoin de plus de contrôle, utilisez le paramètre `overrides` pour personnaliser des modules d'extension spécifiques au sein de `preset-default`, ou transmettez un objet contenant le nom (`name`) d'un module d'extension pour modifier ses paramètres individuels.
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              convertPathData: false,
-              convertTransform: {
-                degPrecision: 1,
-                transformPrecision: 3
-              },
-              inlineStyles: false
-            },
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          convertPathData: false,
+          convertTransform: {
+            degPrecision: 1,
+            transformPrecision: 3
           },
+          inlineStyles: false
         },
-        'removeXMLNS',
-        {
-          name: "removeXlink",
-          params: {
-            includeLegacy: true
-          }
-        }
-      ]
+      },
+    },
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
     }
-  }
-})
+  ]
+});
 ```
 
-### Autres options de configuration
+#### Autres options de configuration
 
 Il existe quelques [options de configuration pour SVGO](https://github.com/svg/svgo/blob/66d503a48c6c95661726262a3068053c429b06a9/lib/types.ts#L335), notamment `floatPrecision` et `multipass`, qui peuvent être transmises directement à votre objet de configuration :
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      multipass: true,
-      floatPrecision: 2
-    }
-  }
-})
+```js
+svgoOptimizer({
+  multipass: true,
+  floatPrecision: 2,
+});
 ```
 
 L'option `multipass` détermine si le moteur d'optimisation doit être exécuté plusieurs fois jusqu'à ce qu'aucune optimisation supplémentaire ne soit trouvée. L'option `floatPrecision` définit le nombre de décimales à conserver globalement, mais peut être redéfinie pour un module d'extension spécifique en indiquant une valeur personnalisée dans sa propriété `params`.
 
-## Cas d'utilisation courants
+### Cas d'utilisation courants
 
 SVGO propose une [liste complète des modules d'extension par défaut](https://svgo.dev/docs/preset-default/) avec des optimisations prédéfinies. Bien que l'utilisation de ce préréglage soit plus pratique que l'ajout individuel de chaque module d'extension, vous pourriez avoir besoin de le personnaliser davantage. Par exemple, il peut supprimer des éléments ou effectuer un nettoyage trop agressif pour votre situation, notamment lors de l'utilisation d'animations.
 
@@ -138,75 +134,102 @@ SVGO propose une [liste complète des modules d'extension par défaut](https://s
 
 Vous souhaiterez peut-être conserver certains attributs et éléments SVG, tels que `<style>`, que SVGO incorpore dans la balise ou supprime par défaut :
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              inlineStyles: false, // Préserver les éléments de style pour le hachage CSP
-              removeDesc: false // Conserver l'élément quel que soit son contenu
-            }
-          }
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          inlineStyles: false, // Préserver les éléments de style pour le hachage CSP
+          removeDesc: false // Conserver l'élément quel que soit son contenu
         }
-      ]
+      }
     }
-  }
-})
+  ]
+});
 ```
 
 ### Supprimer des éléments spécifiques
 
 Vous pouvez configurer les modules d'extension pour supprimer des éléments indésirables spécifiques tels que les métadonnées ou les calques cachés. Notez que de nombreux modules d'extension sont déjà inclus dans `preset-default`, vous n'aurez donc généralement qu'à configurer leur comportement.
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        {
-          name: 'preset-default',
-          params: {
-            overrides: {
-              removeHiddenElems: {
-                isHidden: false,
-                displayNone: false
-              }
-            },
-          },
+```js
+svgoOptimizer({
+  plugins: [
+    {
+      name: 'preset-default',
+      params: {
+        overrides: {
+          removeHiddenElems: {
+            isHidden: false,
+            displayNone: false
+          }
         },
-        'removeRasterImages'
-      ]
-    }
-  }
-})
+      },
+    },
+    'removeRasterImages'
+  ]
+});
 ```
 
 ### Optimiser pour l'incorporation dans du HTML5 moderne
 
 Les SVG incorporés ne nécessitent pas l'attribut `xmlns` et peuvent être convertis sans risque au format SVG 2. Les modules d'extension `removeXMLNS` et `removeXlink` sont recommandés à cet effet.
 
-```js title="astro.config.mjs"
-export default defineConfig({
-  experimental: {
-    svgo: {
-      plugins: [
-        'preset-default',
-        'removeXMLNS',
-        {
-          name: "removeXlink",
-          params: {
-            includeLegacy: true
-          }
-        }
-      ]
+```js
+svgoOptimizer({
+  plugins: [
+    'preset-default',
+    'removeXMLNS',
+    {
+      name: "removeXlink",
+      params: {
+        includeLegacy: true
+      }
     }
-  }
-})
+  ]
+});
 ```
+
+## Créer un optimiseur SVG
+
+<p>
+
+<Since v="6.2.0" />
+</p>
+
+La méthode recommandée pour implémenter un optimiseur SVG personnalisé consiste à exporter une fonction qui renvoie l'objet `SvgOptimizer` et prend la configuration en paramètre :
+
+```ts
+import type { SvgOptimizer } from "astro";
+import { optimize, type Options } from "./optimizer";
+
+export function mySvgOptimizer(options?: Options): SvgOptimizer {
+  return {
+    name: "mon-optimiseur",
+    optimize: (contents) => optimize(contents, options),
+  }
+}
+```
+
+### `name`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Un nom unique pour l'optimiseur, utilisé dans les journaux.
+
+### `optimize()`
+
+<p>
+
+**Type :** `(contents: string) => string | Promise<string>`
+</p>
+
+Traite le contenu SVG.
 
 ## Comment ça marche
 
@@ -217,7 +240,3 @@ L'optimisation SVG a lieu pendant le processus de compilation, et non lors de l'
 - Il n'y a **aucune surcharge pour l'environnement d'exécution** - les SVG optimisés sont servis en tant que ressources statiques prétraitées.
 
 Bien que le processus d'optimisation puisse légèrement augmenter vos temps de compilation, il en résulte des fichiers plus petits et des chargements de page plus rapides pour vos utilisateurs.
-
-## Lectures complémentaires
-
-- [Documentation de SVGO](https://svgo.dev/)
