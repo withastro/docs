@@ -60,6 +60,7 @@ export const logos = LogoCheck({
 	gridsome: { file: 'gridsome.svg', padding: '.15em' },
 	hashnode: { file: 'hashnode.png', padding: '.1875em' },
 	heroku: { file: 'heroku.svg', padding: '.25em' },
+	hostinger: { file: 'hostinger.svg', padding: '.2em' },
 	hugo: { file: 'hugo.svg', padding: '.125em' },
 	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	image: { file: 'astro-image.svg', padding: '.1875em' },
