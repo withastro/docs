@@ -34,6 +34,46 @@ Lorsque `advancedRouting` est activé, créez un fichier `src/app.ts` (ou `.js`,
 
 Si aucun fichier `src/app.ts` n'existe (ou si `advancedRouting` n'est pas activée), Astro utilise son pipeline intégré, qui exécute automatiquement toutes les fonctionnalités.
 
+Vous pouvez éventuellement importer le type `Fetchable` depuis `astro` pour vérifier le type de votre point d'entrée :
+
+```ts title="src/app.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    // ...
+  },
+} satisfies Fetchable;
+```
+
+### Personnalisation du fichier de point d'entrée
+
+Par défaut, Astro recherche `src/app.ts` comme point d'entrée du routage avancé. Transmettez un objet à `advancedRouting` avec une option `fetchFile` pour utiliser un fichier différent :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: 'fetch.ts',
+    },
+  },
+});
+```
+
+Avec cette configuration, Astro recherchera `src/fetch.ts` au lieu de `src/app.ts`.
+
+Définissez `fetchFile` sur `null` pour désactiver complètement le point d'entrée. Cela est utile si vous avez déjà un fichier `src/app.ts` utilisé à d'autres fins :
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: null,
+    },
+  },
+});
+```
+
 ### Utilisation de `astro()`
 
 La manière la plus simple de commencer est d'utiliser le gestionnaire [`astro()`](#astro), qui exécute l'intégralité du pipeline intégré d'Astro (sessions, cache, redirections, barres obliques finales, actions, middleware, pages et i18n) dans l'ordre par défaut. Cela vous permet d'ajouter une logique personnalisée avant ou après Astro sans modifier le fonctionnement du pipeline interne :
@@ -132,6 +172,20 @@ export default {
 };
 ```
 
+## Définition du type des fournisseurs personnalisés avec `App.Providers`
+
+Lorsque vous enregistrez des fournisseurs de contexte personnalisés avec [`state.provide()`](#stateprovide), vous pouvez déclarer leurs types en utilisant l'interface `App.Providers` afin que `Astro` et `ctx` soient entièrement typés dans vos composants et middleware :
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface Providers {
+    oauth: import('./lib/oauth').OAuthSession;
+  }
+}
+```
+
+Après avoir déclaré un fournisseur, `ctx.oauth` (et `Astro.oauth` dans les fichiers `.astro`) sera typé automatiquement.
+
 ## Référence des gestionnaires d'`astro/fetch`
 
 Toutes les fonctions de gestion sont importées depuis `astro/fetch` et opèrent sur un objet `FetchState`.
@@ -201,6 +255,21 @@ Les paramètres de la route dérivés de la route correspondante et du chemin (p
 </p>
 
 Le code de statut HTTP pour la réponse. Vous pouvez le définir avant le rendu pour contrôler le statut de la réponse (par exemple `state.status = 404`).
+
+##### `state.response`
+
+<p>
+
+**Type :** `Response | undefined`<br />
+**Par défaut :** `undefined`
+</p>
+
+La réponse (`Response`) produite par les gestionnaires après le rendu. Elle est définie automatiquement par [`pages()`](#pages) et [`middleware()`](#middleware), ce qui vous permet d'inspecter ou d'utiliser la réponse plus tard dans le pipeline :
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// state.response est maintenant le même objet que response
+```
 
 #### Méthodes
 
