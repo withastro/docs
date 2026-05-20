@@ -1,0 +1,479 @@
+---
+title: 실험적인 고급 라우팅
+sidebar:
+  label: 고급 라우팅
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="6.3.0" />
+</p>
+
+`src/app.ts`를 사용자 정의 요청 파이프라인의 진입점으로 활성화하여, Astro가 들어오는 요청을 처리하는 방식을 완전히 제어할 수 있습니다.
+
+기본적으로 Astro는 트레일링 슬래시 정규화, 리다이렉트, 세션, 액션, 사용자 미들웨어, 페이지 렌더링, i18n, 캐싱을 정해진 순서대로 실행하는 내장 파이프라인으로 모든 요청을 처리합니다. 고급 라우팅을 사용하면 이 파이프라인을 직접 구현한 것으로 대체할 수 있으며, Astro의 내장 핸들러 함수를 원하는 순서로 조합하고 그 사이에 사용자 정의 로직을 추가할 수 있습니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    advancedRouting: true,
+  },
+});
+```
+
+## `src/app.ts` 생성하기
+
+`advancedRouting`이 활성화되면, `fetch` 메서드를 포함한 객체를 기본 내보내기(default export)하는 `src/app.ts`(또는 `.js`, `.mjs`, `.mts`) 파일을 생성하세요. `fetch` 메서드는 표준 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체를 받고 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 반환해야 합니다.
+
+`src/app.ts` 파일이 없거나 `advancedRouting`이 활성화되지 않은 경우, Astro는 모든 기능을 자동으로 실행하는 내장 파이프라인을 사용합니다.
+
+`astro`에서 `Fetchable` 타입을 선택적으로 가져와 진입점의 타입을 검사할 수 있습니다:
+
+```ts title="src/app.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    // ...
+  },
+} satisfies Fetchable;
+```
+
+### 진입점 파일 사용자 지정
+
+기본적으로 Astro는 고급 라우팅 진입점으로 `src/app.ts` 파일을 사용합니다. 다른 파일을 사용하려면 `fetchFile` 옵션이 포함된 객체를 `advancedRouting`에 전달하세요:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: 'fetch.ts',
+    },
+  },
+});
+```
+
+이 구성을 사용하면 Astro는 `src/app.ts` 대신 `src/fetch.ts` 파일을 사용합니다.
+
+`fetchFile`을 `null`로 설정하면 진입점을 완전히 비활성화할 수 있습니다. 이는 `src/app.ts` 파일을 이미 다른 용도로 사용하고 있는 경우에 유용합니다:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: null,
+    },
+  },
+});
+```
+
+### `astro()` 사용하기
+
+가장 쉬운 시작 방법은 [`astro()` 핸들러](#astro)를 사용하는 것입니다. 이 핸들러는 Astro의 전체 내장 파이프라인(세션, 캐시, 리다이렉트, 트레일링 슬래시, 액션, 미들웨어, 페이지, i18n)을 기본 순서대로 실행합니다. 이를 통해 내부 파이프라인의 동작 방식을 변경하지 않고도 Astro 파이프라인 실행 전후에 사용자 정의 로직을 추가할 수 있습니다:
+
+```ts title="src/app.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    // Astro 핸들러 전에 실행되는 사용자 정의 전처리 로직
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/dashboard')) {
+      const cookie = request.headers.get('cookie') ?? '';
+      if (!cookie.includes('session=')) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: '/login' },
+        });
+      }
+    }
+
+    const response = await astro(state);
+
+    // Astro 렌더링 후에 실행되는 사용자 정의 후처리 로직
+    response.headers.set('X-Powered-By', 'Astro');
+    return response;
+  },
+};
+```
+
+인증 가드 추가, 요청 로깅, 사용자 정의 헤더 추가와 같은 대부분의 사용 사례에서는 `astro()`만으로 충분합니다.
+
+### 개별 핸들러 조합하기
+
+파이프라인 순서를 더 세밀하게 제어하거나 특정 기능을 완전히 제외하고 싶은 경우, `astro/fetch`에서 제공하는 개별 핸들러 함수를 조합할 수 있습니다:
+
+```ts title="src/app.ts"
+import {
+  FetchState,
+  sessions,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    await sessions(state);
+    try {
+      const actionResponse = await actions(state);
+      if (actionResponse) return actionResponse;
+
+      const response = await middleware(state, (s) => pages(s));
+      return i18n(state, response);
+    } finally {
+      await state.finalizeAll();
+    }
+  },
+};
+```
+
+각 함수는 일치하는 경로, 쿠키, 세션과 같은 요청별 데이터를 추적하는 [`FetchState` 객체](#fetchstate)를 기반으로 동작합니다. 이를 원하는 순서대로 호출하고 사용자 정의 로직과 함께 사용할 수 있습니다.
+
+## 사용자 정의 로직 추가하기
+
+고급 라우팅의 주요 이점은 요청 파이프라인의 어느 위치에든 사용자 정의 로직을 삽입할 수 있다는 점입니다. Astro가 요청을 처리하기 전, 파이프라인 단계 사이, 또는 응답이 생성된 후에 코드를 실행할 수 있습니다.
+
+[`astro()` 핸들러](#astro)는 전체 파이프라인 전후에 전처리 또는 후처리를 추가하는 가장 간단한 방법입니다. 액션 실행 후 페이지 렌더링 전과 같이 특정 단계 *사이*에 로직을 삽입해야 하는 경우에는 대신 개별 핸들러를 조합하세요:
+
+```ts title="src/app.ts"
+import {
+  FetchState,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    // 액션과 페이지 렌더링 사이의 사용자 정의 로직
+    console.log(`Rendering ${new URL(request.url).pathname}`);
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
+```
+
+## `App.Providers`를 사용하여 사용자 정의 프로바이더 타입 지정하기
+
+[`state.provide()`](#stateprovide)를 사용하여 사용자 정의 컨텍스트 프로바이더를 등록할 때, `App.Providers` 인터페이스를 사용하여 해당 타입을 선언할 수 있습니다. 이를 통해 컴포넌트와 미들웨어에서 `Astro`와 `ctx`의 타입이 완벽하게 지정됩니다:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface Providers {
+    oauth: import('./lib/oauth').OAuthSession;
+  }
+}
+```
+
+프로바이더를 선언하면 `ctx.oauth` (및 `.astro` 파일의 `Astro.oauth`)의 타입이 자동으로 지정됩니다.
+
+## `astro/fetch` 핸들러 참조
+
+모든 핸들러 함수는 `astro/fetch`에서 가져오며 `FetchState` 객체를 기반으로 동작합니다.
+
+### `FetchState`
+
+요청별 상태 객체입니다. `fetch` 메서드 시작 부분에서 생성하세요:
+
+```ts
+import { FetchState } from 'astro/fetch';
+
+const state = new FetchState(request);
+```
+
+`FetchState`는 일치하는 경로, 쿠키, 세션 프로바이더 및 기타 요청별 데이터를 추적합니다. 모든 핸들러 함수는 이를 첫 번째 인자로 사용합니다.
+
+#### 속성
+
+##### `state.request`
+
+**타입:** `Request`
+
+수신된 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체입니다.
+
+##### `state.url`
+
+**타입:** `URL`
+
+요청에서 파생된 정규화된 [URL](https://developer.mozilla.org/ko/docs/Web/API/URL)입니다.
+
+##### `state.pathname`
+
+**타입:** `string`
+
+기본 경로가 제거되고 디코딩된 요청 경로입니다 (예: `/about` 또는 `/blog/my-post`).
+
+##### `state.routeData`
+
+**타입:** `RouteData | undefined`
+
+이 요청과 일치하는 경로 데이터입니다(있는 경우). 이는 `FetchState`가 생성될 때 자동으로 결정됩니다.
+
+##### `state.cookies`
+
+**타입:** `AstroCookies`
+
+이 요청의 쿠키를 읽고 설정하기 위한 [`AstroCookies`](/ko/reference/api-reference/#cookies) 인스턴스입니다.
+
+##### `state.locals`
+
+**타입:** `App.Locals`
+
+사용자 정의 데이터를 저장하기 위한 요청 범위의 객체입니다. 이는 [미들웨어](/ko/guides/middleware/) 및 [API 경로](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)에서 사용할 수 있는 `locals` 객체와 동일합니다.
+
+##### `state.params`
+
+**타입:** `Params | undefined`
+
+일치하는 경로와 요청 경로에서 파생된 경로 매개변수입니다 (예: `[slug].astro` 경로의 경우 `{ slug: 'my-post' }`).
+
+##### `state.status`
+
+<p>
+
+**타입:** `number`<br />
+**기본값:** `200`
+</p>
+
+응답의 HTTP 상태 코드입니다. 렌더링 전에 이를 설정하여 응답 상태를 제어할 수 있습니다 (예: `state.status = 404`).
+
+##### `state.response`
+
+<p>
+
+**타입:** `Response | undefined`<br />
+**기본값:** `undefined`
+</p>
+
+렌더링이 완료된 후 핸들러에 의해 생성된 `Response`입니다. 이는 [`pages()`](#pages) 및 [`middleware()`](#middleware)에 의해 자동으로 설정되어, 파이프라인의 뒷부분에서 응답을 검사하거나 사용할 수 있게 해줍니다:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// 이제 state.response는 response와 동일한 객체입니다
+```
+
+#### 메서드
+
+##### `state.rewrite()`
+
+<p>
+
+**타입:** <code>(payload: <a href="/ko/reference/modules/astro-middleware/#rewritepayload">RewritePayload</a>) => Promise\<Response\></code>
+</p>
+
+다른 경로로 [리라이트](/ko/guides/routing/#url-재작성-rewrites)를 수행합니다. `payload`는 경로 문자열(`'/other-page'`), URL 또는 `Request`가 될 수 있습니다:
+
+```ts
+const response = await state.rewrite('/other-page');
+```
+
+##### `state.provide()`
+
+<p>
+
+**타입:** `(key: string, provider: ContextProvider<T>) => void`
+</p>
+
+지정된 키 아래에 컨텍스트 프로바이더를 등록합니다. 프로바이더의 `create()` 함수는 [`state.resolve()`](#stateresolve)가 처음 호출될 때 지연 호출되며, 선택적인 `finalize()` 콜백은 [`state.finalizeAll()`](#statefinalizeall) 실행 중 호출됩니다:
+
+```ts
+state.provide('myService', {
+  create: () => new MyService(),
+  finalize: (service) => service.close(),
+});
+```
+
+##### `state.resolve()`
+
+<p>
+
+**타입:** `(key: string) => T | undefined`
+</p>
+
+이전에 등록된 프로바이더의 값을 반환하며, 첫 접근 시 `create` 함수를 호출합니다. 해당 키로 등록된 프로바이더가 없으면 `undefined`를 반환합니다:
+
+```ts
+const service = state.resolve('myService');
+```
+
+##### `state.finalizeAll()`
+
+<p>
+
+**타입:** `() => Promise<void> | void`
+</p>
+
+등록된 모든 프로바이더의 `finalize` 콜백을 실행합니다. 세션 데이터를 저장하고 리소스를 정리하기 위해 일반적으로 `finally` 블록에서 응답 생성 후 이 메서드를 호출합니다:
+
+```ts
+await sessions(state);
+try {
+  // ...렌더 파이프라인...
+  return response;
+} finally {
+  await state.finalizeAll();
+}
+```
+
+### `astro()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+Astro의 전체 파이프라인(세션, 캐시, 리다이렉트, 트레일링 슬래시, 액션, 미들웨어, 페이지, i18n)을 기본 순서대로 실행하는 올인원 핸들러입니다. 내부 파이프라인 순서를 변경하지 않고 Astro 파이프라인 실행 전후에 로직을 추가하고 싶을 때 사용하세요:
+
+```ts title="src/app.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // 사용자 정의 전처리...
+    const response = await astro(state);
+    // 사용자 정의 후처리...
+    return response;
+  },
+};
+```
+
+### `pages()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+요청을 일치하는 Astro 경로(페이지, 엔드포인트 또는 폴백)로 전달합니다. 이는 핵심 렌더링 핸들러이며, 대부분의 사용자 정의 파이프라인에서 사용됩니다.
+
+### `middleware()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>, next: (state: FetchState) => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Astro의 미들웨어 체인(`src/middleware.ts`에서 정의)을 실행합니다. `next` 콜백은 체인의 마지막에서 응답을 생성하기 위해 호출되며, 일반적으로 `pages()`를 호출합니다:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+```
+
+### `actions()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response | undefined\> | undefined</code>
+</p>
+
+[Astro 액션](/ko/guides/actions/)(RPC 및 폼 제출)을 처리합니다. RPC 액션에 대해서는 `Response`를 반환하고, 폼 액션 및 액션이 아닌 요청에 대해서는 `undefined`를 반환합니다. 반환 값을 확인하여 렌더링을 계속할지 결정하세요:
+
+```ts
+const actionResponse = await actions(state);
+if (actionResponse) return actionResponse;
+// 그렇지 않으면 페이지 렌더링을 계속합니다...
+```
+
+### `sessions()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
+</p>
+
+[세션](/ko/guides/sessions/) 프로바이더를 등록합니다. 세션은 코드에서 `ctx.session`에 접근할 때 지연 생성되며, `state.finalizeAll()`이 호출될 때 저장됩니다. 파이프라인 초기에 이를 호출하고, `finally` 블록에서 `finalizeAll()`을 호출하세요:
+
+```ts
+await sessions(state);
+try {
+  // ...렌더 파이프라인...
+} finally {
+  await state.finalizeAll();
+}
+```
+
+### `i18n()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>, response: Response) => Promise\<Response\></code>
+</p>
+
+[i18n 설정](/ko/guides/internationalization/)에 따라 응답을 후처리합니다. 로케일 리다이렉트, 유효하지 않은 로케일에 대한 404 처리 및 폴백 라우팅을 처리합니다. 렌더링 후에 이를 호출하세요:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+return i18n(state, response);
+```
+
+### `redirects()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
+</p>
+
+[Astro 설정](/ko/reference/configuration-reference/#redirects)에 정의된 리다이렉트 경로를 처리합니다. 일치하는 경로가 리다이렉트인 경우 리다이렉트 `Response`를 반환하고, 그렇지 않으면 호출자가 처리를 계속할 수 있도록 `undefined`를 반환합니다.
+
+### `cache()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>, next: () => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+렌더링 콜백을 [캐시](/ko/reference/experimental-flags/route-caching/) 프로바이더 로직으로 래핑합니다. 런타임 캐싱, CDN 기반 프로바이더 및 캐시가 없는 경우를 처리합니다.
+
+### `trailingSlash()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Response | undefined</code>
+</p>
+
+요청 경로에 [트레일링 슬래시](/ko/reference/configuration-reference/#trailingslash) 정규화가 필요한지 확인하고, 필요한 경우 리다이렉트 `Response`를 반환합니다. 리다이렉트가 필요하지 않으면 `undefined`를 반환합니다.
+
+## Hono와 함께 사용하기
+
+Astro는 또한 `astro/hono`를 통해 모든 핸들러 함수에 대한 Hono 호환 래퍼를 제공합니다. [Hono](https://hono.dev/)를 라우팅 프레임워크로 사용하고 싶다면 `src/app.ts`에서 Hono 앱을 내보낼 수 있습니다:
+
+```ts title="src/app.ts"
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+
+const app = new Hono();
+
+// Hono 미들웨어
+app.use(logger());
+
+// Hono 미들웨어로 사용하는 Astro 핸들러
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
+
+`astro/hono` 모듈은 `astro/fetch`와 동일한 핸들러 이름(`astro`, `pages`, `middleware`, `actions`, `sessions`, `redirects`, `cache`, `i18n`, `trailingSlash`)을 내보내지만, 각각은 Hono 미들웨어 함수를 반환합니다. 이를 통해 Astro 핸들러를 Hono 생태계의 다양한 미들웨어와 함께 사용할 수 있습니다.
