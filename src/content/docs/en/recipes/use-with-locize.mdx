@@ -1,0 +1,151 @@
+---
+title: Use Locize for translation management
+description: Learn how to sync translations from Locize at build time using locize-cli, alongside Astro's built-in i18n routing.
+i18nReady: true
+type: recipe
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Locize](https://www.locize.com/?from=astro-docs) is a translation management system created by the maintainers of [i18next](https://www.i18next.com). It provides a translator UI, AI-assisted translation, version history, and CDN delivery, and supports the i18next JSON v4 format natively. This recipe shows how to sync translations from Locize at build time using [`locize-cli`](https://github.com/locize/locize-cli) and feed them into a small `t()` helper that pairs with Astro's [built-in i18n routing](/en/guides/internationalization/).
+
+## Prerequisites
+
+- An Astro project using [built-in i18n routing](/en/guides/internationalization/).
+- A free [Locize](https://www.locize.com/?from=astro-docs) account and project. When the new-project wizard asks for an **i18n format**, pick **i18next JSON v4** (the default).
+
+## Recipe
+
+<Steps>
+1. Install `locize-cli` as a dev dependency.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install --save-dev locize-cli
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add --save-dev locize-cli
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add --dev locize-cli
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Add `downloadLocales` and `syncLocales` scripts to your `package.json`. `download` pulls the latest published translations from the Locize CDN into your repo; `sync` uploads any keys present locally but missing in Locize.
+
+    ```json
+    {
+      "scripts": {
+        "downloadLocales": "locize download --project-id=<your-project-id> --ver=latest --cdn-type=standard --clean=true --path=./src/i18n/locales",
+        "syncLocales": "locize sync --project-id=<your-project-id> --ver=latest --cdn-type=standard --api-key=<your-write-api-key> --path=./src/i18n/locales --dry=true"
+      }
+    }
+    ```
+
+    :::note
+    Locize ships two CDN infrastructures: **Standard** at `api.lite.locize.app` (BunnyCDN-backed, the default for new projects) and **Pro** at `api.locize.app` (CloudFront-backed, paid, supports private downloads). Set `--cdn-type=standard` or `--cdn-type=pro` to match your project.
+    :::
+
+3. Run `npm run downloadLocales` to populate `src/i18n/locales/`. Locize emits one JSON file per namespace per language, so the folder structure looks like:
+
+    <FileTree>
+    - src/
+      - i18n/
+        - locales/
+          - en/
+            - common.json
+            - index.json
+          - de/
+            - common.json
+            - index.json
+    </FileTree>
+
+    Make this a `prebuild` hook (or run it in CI before `astro build`) so the bundled JSON is always fresh.
+
+4. Assemble the per-namespace JSON files into a flat, type-safe lookup tree in `src/i18n/ui.ts`. Astro doesn't have a notion of i18n namespaces, so we prefix each key with its namespace at module load time, so `t('common.headTitle')` resolves to the right value without runtime parsing.
+
+    ```ts title="src/i18n/ui.ts"
+    import enCommon from './locales/en/common.json' with { type: 'json' };
+    import enIndex  from './locales/en/index.json'  with { type: 'json' };
+    import deCommon from './locales/de/common.json' with { type: 'json' };
+    import deIndex  from './locales/de/index.json'  with { type: 'json' };
+
+    type Messages = Record<string, string>;
+
+    const prefix = (ns: string, obj: Messages): Messages =>
+      Object.fromEntries(
+        Object.entries(obj).map(([k, v]) => [`${ns}.${k}`, v])
+      );
+
+    export const ui = {
+      en: { ...prefix('common', enCommon), ...prefix('index', enIndex) },
+      de: { ...prefix('common', deCommon), ...prefix('index', deIndex) },
+    } as const;
+
+    export const defaultLang = 'en';
+    export type Lang = keyof typeof ui;
+    export type TranslationKey = keyof typeof ui[typeof defaultLang];
+    ```
+
+5. Create a `useTranslations(lang)` helper that returns a `t()` function. This is the same pattern as Astro's own [i18n recipe](/en/recipes/i18n/), with a small extension for `{name}`-style interpolation:
+
+    ```ts title="src/i18n/utils.ts"
+    import { ui, defaultLang, type Lang, type TranslationKey } from './ui';
+
+    export function useTranslations(lang: Lang) {
+      return function t(
+        key: TranslationKey,
+        values?: Record<string, string | number>
+      ): string {
+        const raw = ui[lang][key] ?? ui[defaultLang][key] ?? key;
+        if (!values) return raw;
+        return raw.replace(/\{(\w+)\}/g, (_, k: string) =>
+          values[k] !== undefined ? String(values[k]) : `{${k}}`
+        );
+      };
+    }
+    ```
+
+6. Use the helper from any page or component. With Astro's built-in i18n routing, the locale arrives as `Astro.currentLocale` (or as a route param under dynamic `[lang]/` pages):
+
+    ```astro title="src/pages/[lang]/index.astro"
+    ---
+    import { ui, type Lang } from '../../i18n/ui';
+    import { useTranslations } from '../../i18n/utils';
+
+    export function getStaticPaths() {
+      return Object.keys(ui).map(lang => ({ params: { lang } }));
+    }
+
+    const { lang } = Astro.params as { lang: Lang };
+    const t = useTranslations(lang);
+    ---
+
+    <h1>{t('index.title', { name: 'Astro' })}</h1>
+    ```
+</Steps>
+
+## Pushing new keys back to Locize
+
+Astro builds are static, so there's no runtime `saveMissing` from production pages. New keys reach Locize via:
+
+- `npm run syncLocales` (drop the `--dry=true` flag to push) — `locize-cli` uploads any keys present locally but missing in Locize. CI-friendly, no write key in the browser.
+- Static extraction via [`i18next-cli`](https://github.com/i18next/i18next-cli) — scans your `.astro` source for `t('…')` calls, writes new keys into the local JSON, then sync up as above.
+- The Locize web app — add keys directly in the editor and pull them down with `downloadLocales` before the next build.
+
+If you need runtime `saveMissing`, live CDN-backed fetching, or the [Locize in-context editor](https://github.com/locize/locize), mount a framework island via `@astrojs/<framework>` and use [`i18next-locize-backend`](https://github.com/locize/i18next-locize-backend) inside it — Astro's static layer handles the routing, the island handles the runtime.
+
+## Resources
+
+- [Locize platform docs](https://www.locize.com/docs?from=astro-docs)
+- [Step-by-step blog walkthrough with full example repo](https://www.locize.com/blog/astro-i18n?from=astro-docs)
+- [`locize-cli`](https://github.com/locize/locize-cli) — the build-time sync tool
+- [`locize-astro-example`](https://github.com/locize/locize-astro-example) — complete Astro 6 + Locize reference implementation
