@@ -1,0 +1,243 @@
+---
+title: エンドポイント
+description: 任意の種類のデータを配信するためのカスタムエンドポイントを作成する方法を学びます。
+i18nReady: true
+---
+import RecipeLinks from "~/components/RecipeLinks.astro";
+
+Astroでは、任意の種類のデータを配信するためのカスタムエンドポイントを作成できます。これを使って画像を生成したり、RSSドキュメントを公開したり、APIルートとしてサイト用の本格的なAPIを構築したりできます。
+
+静的に生成されるサイトでは、カスタムエンドポイントはビルド時に呼び出され、静的ファイルを生成します。[SSR](/ja/guides/on-demand-rendering/)モードを有効にすると、カスタムエンドポイントはリクエストに応じて呼び出される動的なサーバーエンドポイントになります。静的エンドポイントとSSRエンドポイントの定義方法はほぼ同じですが、SSRエンドポイントではより多くの機能が利用できます。
+
+## 静的ファイルエンドポイント
+
+カスタムエンドポイントを作成するには、`/pages`ディレクトリに`.js`または`.ts`ファイルを追加します。ビルドの過程で`.js`や`.ts`の拡張子は取り除かれるため、ファイル名には作成したいデータの拡張子を含める必要があります。たとえば、`src/pages/data.json.ts`からは`/data.json`エンドポイントが生成されます。
+
+エンドポイントは、`Astro`グローバルに似たプロパティをもつ[コンテキストオブジェクト](/ja/reference/api-reference/)を受け取る`GET`関数（任意で`async`）をエクスポートします。以下の例では、`name`と`url`を含む[`Response`](https://developer.mozilla.org/ja/docs/Web/API/Response)オブジェクトを返しており、Astroはこれをビルド時に呼び出し、ボディの内容を使ってファイルを生成します。
+
+```ts title="src/pages/builtwith.json.ts"
+// 出力: /builtwith.json
+export function GET({ params, request }) {
+  return new Response(
+    JSON.stringify({
+      name: "Astro",
+      url: "https://astro.build/",
+    }),
+  );
+}
+```
+
+Astro v3.0以降では、返却される`Response`オブジェクトに`encoding`プロパティを含める必要はなくなりました。たとえばバイナリの`.png`画像を生成するには、次のようにします。
+
+```ts title="src/pages/astro-logo.png.ts" {6}
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  
+  return new Response(await response.arrayBuffer());
+}
+```
+
+また、`APIRoute`型を`satisfies`演算子とあわせて使うことで、エンドポイント関数に型安全性をもたせることもできます。
+
+```ts
+import type { APIRoute } from "astro";
+
+export const GET = (async ({ params, request }) => { /* ... */ }) satisfies APIRoute;
+```
+
+なお、URLにファイル拡張子を含むエンドポイント（例: `src/pages/sitemap.xml.ts`）は、[`build.trailingSlash`](/ja/reference/configuration-reference/#trailingslash)の設定に関わらず、末尾のスラッシュなし（例: `/sitemap.xml`）でのみアクセスできます。
+
+### `params`と動的ルーティング
+
+エンドポイントは、ページと同じ[動的ルーティング](/ja/guides/routing/#dynamic-routes)機能をサポートしています。ファイル名を角括弧で囲んだパラメータ名にして、[`getStaticPaths()`関数](/ja/reference/routing-reference/#getstaticpaths)をエクスポートしましょう。すると、エンドポイント関数に渡される`params`プロパティを通じて、そのパラメータにアクセスできます。
+
+```ts title="src/pages/api/[id].json.ts"
+import type { APIRoute } from "astro";
+
+const usernames = ["Sarah", "Chris", "Yan", "Elian"];
+
+export const GET = (({ params, request }) => {
+  const id = params.id;
+  
+  return new Response(
+    JSON.stringify({
+      name: usernames[id],
+    }),
+  );
+}) satisfies APIRoute;
+
+export function getStaticPaths() {
+  return [
+    { params: { id: "0" } },
+    { params: { id: "1" } },
+    { params: { id: "2" } },
+    { params: { id: "3" } },
+  ];
+}
+```
+
+これにより、ビルド時に`/api/0.json`、`/api/1.json`、`/api/2.json`、`/api/3.json`という4つのJSONエンドポイントが生成されます。エンドポイントでの動的ルーティングは、ページの場合と同じように動作します。静的モードでは、[`getStaticPaths()`を使ってエンドポイントにpropsを渡せます](/ja/reference/routing-reference/#data-passing-with-props)。ただし、オンデマンドレンダリングでは、エンドポイントはコンポーネントではなく関数であるため、propsを渡すことはできません。
+
+### `request`
+
+すべてのエンドポイントは`request`プロパティを受け取りますが、静的モードでアクセスできるのは`request.url`だけです。これは現在のエンドポイントの完全なURLを返し、ページにおける[Astro.request.url](/ja/reference/api-reference/#request)と同じように動作します。
+
+```ts title="src/pages/request-path.json.ts"
+import type { APIRoute } from "astro";
+
+export const GET = (({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      path: new URL(request.url).pathname,
+    }),
+  );
+}) satisfies APIRoute;
+```
+
+## サーバーエンドポイント（APIルート）
+
+静的ファイルエンドポイントのセクションで説明した内容は、すべてSSRモードでも利用できます。ファイルは、`Astro`グローバルに似たプロパティをもつ[コンテキストオブジェクト](/ja/reference/api-reference/)を受け取る`GET`関数をエクスポートできます。
+
+ただし`static`モードとは異なり、ルートでオンデマンドレンダリングを有効にすると、エンドポイントはリクエスト時に実行されます。これにより、ビルド時には利用できなかった新しい機能が使えるようになり、リクエストを待ち受けて、実行時にサーバー上で安全にコードを実行するAPIルートを構築できます。
+
+`server`モードでは、ルートはデフォルトでオンデマンドレンダリングされます。`static`モードでは、カスタムエンドポイントごとに`export const prerender = false`を指定して、プリレンダリングを無効にする必要があります。
+
+<RecipeLinks slugs={["ja/recipes/call-endpoints" ]}/>
+
+:::note
+これらの例を試す前に、必ず[オンデマンドレンダリングモードを有効化](/ja/guides/on-demand-rendering/)し、`static`モードではプリレンダリングを無効にしてください。
+:::
+
+サーバーエンドポイントでは、`getStaticPaths`をエクスポートしなくても`params`にアクセスできます。また`Response`オブジェクトを返せるため、ステータスコードやヘッダーを設定できます。
+
+```js title="src/pages/[id].json.js"
+import { getProduct } from "../db";
+
+export async function GET({ params }) {
+  const id = params.id;
+  const product = await getProduct(id);
+
+  if (!product) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Not found",
+    });
+  }
+
+  return new Response(JSON.stringify(product), {
+    status: 200,
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+}
+```
+
+これは、動的ルートにマッチするすべてのリクエストに応答します。たとえば`/helmet.json`にアクセスすると、`params.id`には`helmet`が設定されます。モックの商品データベースに`helmet`が存在する場合、エンドポイントは`Response`オブジェクトを使ってJSONで応答し、成功を表す[HTTPステータスコード](https://developer.mozilla.org/ja/docs/Web/API/Response/status)を返します。存在しない場合は、`Response`オブジェクトを使って`404`で応答します。
+
+SSRモードでは、画像を返すために`Content-Type`ヘッダーを必要とするプロバイダーがあります。その場合は、`Response`オブジェクトで`headers`プロパティを指定します。たとえばバイナリの`.png`画像を返すには、次のようにします。
+
+```ts title="src/pages/astro-logo.png.ts"
+export async function GET({ params, request }) {
+  const response = await fetch(
+    "https://docs.astro.build/assets/full-logo-light.png",
+  );
+  const buffer = Buffer.from(await response.arrayBuffer());
+  
+  return new Response(buffer, {
+    headers: { "Content-Type": "image/png" },
+  });
+}
+```
+
+### HTTPメソッド
+
+`GET`関数に加えて、任意の[HTTPメソッド](https://developer.mozilla.org/ja/docs/Web/HTTP/Methods)の名前で関数をエクスポートできます。リクエストが届くと、Astroはそのメソッドを確認し、対応する関数を呼び出します。
+
+また、対応する関数がエクスポートされていないメソッドすべてにマッチさせるために、`ALL`関数をエクスポートすることもできます。マッチするメソッドがないリクエストの場合は、サイトの[404ページ](/ja/basics/astro-pages/#カスタム404エラーページ)にリダイレクトされます。
+
+```ts title="src/pages/methods.json.ts"
+export const GET = (({ params, request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "GETリクエストを受け取りました！",
+    }),
+  );
+}) satisfies APIRoute;
+
+export const POST = (({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "POSTリクエストを受け取りました！",
+    }),
+  );
+}) satisfies APIRoute;
+
+export const DELETE = (({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: "DELETEリクエストを受け取りました！",
+    }),
+  );
+}) satisfies APIRoute;
+
+export const ALL = (({ request }) => {
+  return new Response(
+    JSON.stringify({
+      message: `${request.method}リクエストを受け取りました！`,
+    }),
+  );
+}) satisfies APIRoute;
+```
+
+`GET`関数を定義していて`HEAD`関数を定義していない場合、Astroは`GET`関数を呼び出してレスポンスからボディを取り除くことで、`HEAD`リクエストを自動的に処理します。
+
+<RecipeLinks slugs={["en/recipes/captcha", "en/recipes/build-forms-api" ]}/>
+
+### `request`
+
+SSRモードでは、`request`プロパティは現在のリクエストを表わす、すべての機能を利用可能な[`Request`](https://developer.mozilla.org/ja/docs/Web/API/Request)オブジェクトを返します。これにより、データを受け取ったり、ヘッダーを確認したりできます。
+
+```ts title="src/pages/test-post.json.ts"
+export const POST = (async ({ request }) => {
+  if (request.headers.get("Content-Type") === "application/json") {
+    const body = await request.json();
+    const name = body.name;
+    
+    return new Response(
+      JSON.stringify({
+        message: "あなたの名前は: " + name,
+      }),
+      {
+        status: 200,
+      },
+    );
+  }
+  
+  return new Response(null, { status: 400 });
+}) satisfies APIRoute;
+```
+
+### リダイレクト
+
+エンドポイントのコンテキストは、`Astro.redirect`に似た`redirect()`ユーティリティをエクスポートしています。
+
+```js title="src/pages/links/[id].js" {14}
+import { getLinkUrl } from "../db";
+
+export async function GET({ params, redirect }) {
+  const { id } = params;
+  const link = await getLinkUrl(id);
+
+  if (!link) {
+    return new Response(null, {
+      status: 404,
+      statusText: "Not found",
+    });
+  }
+
+  return redirect(link, 307);
+}
+```
