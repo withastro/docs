@@ -99,10 +99,13 @@ export const sidebar = [
 				],
 			}),
 			'guides/troubleshooting',
-			group('guides.recipes', { collapsed: true, autogenerate: { directory: 'recipes' } }),
+			group('guides.recipes', {
+				collapsed: true,
+				items: [{ autogenerate: { directory: 'recipes' } }],
+			}),
 			group('guides.migrate', {
 				collapsed: true,
-				autogenerate: { directory: 'guides/migrate-to-astro' },
+				items: [{ autogenerate: { directory: 'guides/migrate-to-astro' } }],
 			}),
 			'contribute',
 		],
@@ -158,6 +161,7 @@ export const sidebar = [
 					'reference/experimental-flags/svg-optimization',
 					'reference/experimental-flags/queued-rendering',
 					'reference/experimental-flags/rust-compiler',
+					'reference/experimental-flags/advanced-routing',
 					'reference/experimental-flags/logger',
 				],
 			}),
@@ -201,19 +205,19 @@ export const sidebar = [
 			}),
 			group('ecosystem.deployment', {
 				collapsed: true,
-				autogenerate: { directory: 'guides/deploy' },
+				items: [{ autogenerate: { directory: 'guides/deploy' } }],
 			}),
 			group('ecosystem.cms', {
 				collapsed: true,
-				autogenerate: { directory: 'guides/cms' },
+				items: [{ autogenerate: { directory: 'guides/cms' } }],
 			}),
 			group('ecosystem.backend', {
 				collapsed: true,
-				autogenerate: { directory: 'guides/backend' },
+				items: [{ autogenerate: { directory: 'guides/backend' } }],
 			}),
 			group('ecosystem.media', {
 				collapsed: true,
-				autogenerate: { directory: 'guides/media' },
+				items: [{ autogenerate: { directory: 'guides/media' } }],
 			}),
 			'guides/ecommerce',
 			'guides/authentication',
