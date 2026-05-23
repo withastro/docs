@@ -262,10 +262,11 @@ You can configure how your MDX is rendered with the following options:
 
 ### Options inherited from Markdown config
 
-All [`markdown` configuration options](/en/reference/configuration-reference/#markdown-options) can be configured separately in the MDX integration. This includes remark and rehype plugins, syntax highlighting, and more. Options will default to those in your Markdown config ([see the `extendMarkdownConfig` option](#extendmarkdownconfig) to modify this).
+All [`markdown` configuration options](/en/reference/configuration-reference/#markdown-options) can be configured separately in the MDX integration, including the [Markdown processor](#processor), syntax highlighting, and more. Options will default to those in your Markdown config ([see the `extendMarkdownConfig` option](#extendmarkdownconfig) to modify this).
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import remarkToc from 'remark-toc';
 import rehypePresetMinify from 'rehype-preset-minify';
@@ -276,18 +277,15 @@ export default defineConfig({
     mdx({
       syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
-      remarkPlugins: [remarkToc],
-      rehypePlugins: [rehypePresetMinify],
-      remarkRehype: { footnoteLabel: 'Footnotes' },
-      gfm: false,
+      processor: unified({
+        remarkPlugins: [remarkToc],
+        rehypePlugins: [rehypePresetMinify],
+        remarkRehype: { footnoteLabel: 'Footnotes' },
+      }),
     }),
   ],
 });
 ```
-
-:::caution
-MDX does not support passing remark and rehype plugins as a string. You should install, import, and apply the plugin function instead.
-:::
 
 <ReadMore>See the [Markdown Options reference](/en/reference/configuration-reference/#markdown-options) for a complete list of options.</ReadMore>
 
@@ -300,9 +298,9 @@ MDX does not support passing remark and rehype plugins as a string. You should i
 <Since v="6.0.0" pkg="@astrojs/mdx" />
 </p>
 
-By default, `.mdx` files render through the same Markdown processor as your `.md` files — remark and rehype, unless you've opted in to [Sätteri](/en/guides/markdown-content/#using-the-sätteri-processor). Set `processor` to use a different processor — or the same processor with different options — for `.mdx` files only.
+By default, `.mdx` files render through the same [Markdown processor](/en/guides/markdown-content/#choosing-a-markdown-processor) as your `.md` files. Set `processor` to use a different processor — or the same processor with different options — for `.mdx` files only.
 
-For example, to keep remark/rehype for `.md` files while rendering `.mdx` files with Sätteri:
+For example, to keep the default remark/rehype processor for `.md` files while rendering `.mdx` files with [Sätteri](https://satteri.bruits.org/):
 
 ```js title="astro.config.mjs"
 import { defineConfig, satteri } from 'astro/config';
@@ -326,28 +324,26 @@ export default defineConfig({
 
 MDX will extend [your project's existing Markdown configuration](/en/reference/configuration-reference/#markdown-options) by default. To override individual options, you can specify their equivalent in your MDX configuration.
 
-For example, say you need to disable GitHub-Flavored Markdown and apply a different set of remark plugins for MDX files. You can apply these options like so, with `extendMarkdownConfig` enabled by default:
+For example, say you need a different syntax highlighter and a different set of plugins for `.mdx` files. You can apply these options like so, with `extendMarkdownConfig` enabled by default:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
-    syntaxHighlight: 'prism',
-    remarkPlugins: [remarkPlugin1],
-    gfm: true,
+    syntaxHighlight: 'shiki',
+    processor: unified({ remarkPlugins: [remarkPlugin1] }),
   },
   integrations: [
     mdx({
       // `syntaxHighlight` inherited from Markdown
 
-      // Markdown `remarkPlugins` ignored,
-      // only `remarkPlugin2` applied.
-      remarkPlugins: [remarkPlugin2],
-      // `gfm` overridden to `false`
-      gfm: false,
+      // Markdown `processor` ignored,
+      // `.mdx` files use this processor instead.
+      processor: unified({ remarkPlugins: [remarkPlugin2] }),
     }),
   ],
 });
@@ -357,18 +353,19 @@ You may also need to disable `markdown` config extension in MDX. For this, set `
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
-    remarkPlugins: [remarkPlugin1],
+    processor: unified({ remarkPlugins: [remarkPlugin] }),
   },
   integrations: [
     mdx({
       // Markdown config now ignored
       extendMarkdownConfig: false,
-      // No `remarkPlugins` applied
+      // Default `unified()` processor used
     }),
   ],
 });
