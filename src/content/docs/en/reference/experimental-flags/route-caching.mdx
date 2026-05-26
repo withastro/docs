@@ -409,6 +409,79 @@ memoryCache({
 });
 ```
 
+## Adapter cache providers
+
+Astro's first-party adapters for Cloudflare, Netlify, and Vercel each provide a CDN cache provider that maps cache directives to the platform's native cache headers and invalidation API. Use the provider that matches your deployment target.
+
+Each provider automatically tags cached responses with the request path so that `cache.invalidate({ path })` works on platforms that only support tag-based purges.
+
+### Cloudflare
+
+Import `cacheCloudflare()` from `@astrojs/cloudflare/cache` and set it as your cache provider:
+
+```js title="astro.config.mjs" ins={3,8}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
+
+export default defineConfig({
+  adapter: cloudflare(),
+  experimental: {
+    cache: {
+      provider: cacheCloudflare(),
+    },
+  },
+});
+```
+
+The provider sets `Cloudflare-CDN-Cache-Control` and `Cache-Tag` headers, which are read by Cloudflare's built-in Worker cache. The adapter enables Worker caching automatically when a Cloudflare cache provider is configured. Both tag-based and path-based invalidation are supported.
+
+If you enable the [`CF_VERSION_METADATA`](https://developers.cloudflare.com/workers/runtime-apis/bindings/version-metadata/) binding in your Worker config, responses are also tagged with the Worker version that produced them, so a deploy or rollback can purge only the entries written by a specific version.
+
+### Netlify
+
+Import `cacheNetlify()` from `@astrojs/netlify/cache` and set it as your cache provider:
+
+```js title="astro.config.mjs" ins={3,8}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
+
+export default defineConfig({
+  adapter: netlify(),
+  experimental: {
+    cache: {
+      provider: cacheNetlify(),
+    },
+  },
+});
+```
+
+The provider sets `Netlify-CDN-Cache-Control` and `Netlify-Cache-Tag` headers. Cached responses use Netlify's [durable cache](https://docs.netlify.com/platform/caching/#durable-directive) so they are shared across all edge nodes, reducing function invocations.
+
+Both tag-based and path-based invalidation are supported, using `purgeCache()` from `@netlify/functions` under the hood.
+
+### Vercel
+
+Import `cacheVercel()` from `@astrojs/vercel/cache` and set it as your cache provider:
+
+```js title="astro.config.mjs" ins={3,8}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+import { cacheVercel } from '@astrojs/vercel/cache';
+
+export default defineConfig({
+  adapter: vercel(),
+  experimental: {
+    cache: {
+      provider: cacheVercel(),
+    },
+  },
+});
+```
+
+The provider sets `Vercel-CDN-Cache-Control` and `Vercel-Cache-Tag` headers on responses. Both tag-based and path-based invalidation are supported, using `invalidateByTag()` from `@vercel/functions` under the hood. Tag invalidation is a soft invalidation: cached responses are marked as stale and revalidated in the background using stale-while-revalidate.
+
 ## Writing a custom cache provider
 
 A cache provider has two parts:
@@ -416,6 +489,8 @@ A cache provider has two parts:
 1. **The runtime module** — A file that **default-exports** a `CacheProviderFactory` function. This module is bundled into your SSR output, so it must be runtime-agnostic: avoid Node.js built-in modules (e.g. `node:fs`, `node:path`) unless your target runtime supports them.
 
 2. **The config helper** — A function exported for users to call in `astro.config.mjs`. It returns a [`CacheProviderConfig` object](#cacheproviderconfig) that tells Astro where to find the runtime module and what options to pass it. This is the same pattern used by `memoryCache()` from `astro/config`.
+
+Astro exports shared helpers for CDN provider authors from `astro/cache/provider-utils`, including `buildCacheControlDirectives()` for generating cache-control header values, `pathTag()` for generating path-based invalidation tags, `setConditionalHeaders()` for `Last-Modified` and `ETag`, and `collectInvalidationTags()` for normalizing invalidation options. These are the same helpers used by the first-party Cloudflare, Netlify, and Vercel providers.
 
 The following example shows a config helper that accepts typed options and points to a runtime module:
 
@@ -460,7 +535,7 @@ const factory: CacheProviderFactory = (config) => {
     name: 'my-cache-provider',
 
     // CDN-style: translate cache options into response headers
-    setHeaders(options) {
+    setHeaders(options, request) {
       const headers = new Headers();
       if (options.maxAge !== undefined) {
         let value = `max-age=${options.maxAge}`;
@@ -509,11 +584,13 @@ A unique name for the provider, used in logs and for identification.
 
 <p>
 
-**Type:** `(options: CacheOptions) => Headers`
+**Type:** `(options: CacheOptions, request: Request) => Headers`
 
 </p>
 
 Translates cache options into response headers. Called after the response is rendered but before it is sent to the client. These headers are stripped from the final response.
+
+The incoming `request` is passed as a second argument so a provider can read the URL or request headers, for example to auto-tag responses with their pathname for path-based invalidation.
 
 #### `onRequest()`
 
