@@ -78,27 +78,53 @@ If you are using Vite-specific plugins, configuration, or APIs, check the [Vite 
 
 Most Astro users should be able to upgrade without any changes to their project code. This is primarily a breaking change for Astro integrations and plugins that depend on Vite internals.
 
-### Rust Compiler
+### Experimental Flags
 
-The Rust-based Astro compiler, previously available as an experimental flag (`experimental.rustCompiler`), is now the default and only compiler in Astro 7. The Rust compiler delivers significantly faster build times compared to the previous Go-based compiler.
+Experimental flags allow you to opt in to features while they are in early development. The following experimental flags have been removed in Astro 7.0 and are now stable, or the new default behavior.
 
-##### What should I do?
+Remove these experimental flags from your Astro config if you were previously using them:
 
-No action is required for most projects. The Rust compiler is a drop-in replacement for the Go-based compiler.
-
-If you had previously opted in to the Rust compiler via the experimental flag, you can now remove it from your configuration:
-
-```js title="astro.config.mjs" del={4-6}
+```js del={5-7} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   experimental: {
     rustCompiler: true,
+    advancedRouting: true,
+    routeCaching: true,
   },
-});
+})
 ```
 
-If you encounter any issues with the Rust compiler, please report them on [GitHub](https://github.com/withastro/astro/issues).
+#### Experimental features now stable:
+
+- `rustCompiler`: The Rust-based Astro compiler is now the default and only compiler, replacing the previous Go-based compiler. No action is required for most projects. If you encounter any issues, please report them on [GitHub](https://github.com/withastro/astro/issues).
+
+- `advancedRouting`: Advanced routing is now enabled by default. See the [advanced routing guide](/en/guides/advanced-routing/) for more information. Note that `src/app.ts` is now a [reserved file name](#reserved-file-name-srcappts).
+
+- `routeCaching`: Route caching is now enabled by default for improved performance.
+
+### Reserved file name: `src/app.ts`
+
+Astro v7.0 introduces [advanced routing](/en/guides/advanced-routing/), which uses `src/app.ts` (or `src/app.js`) as a special file name, similar to `src/middleware.ts`. Astro will automatically import this file to configure routing behavior.
+
+If your project already has a `src/app.ts` file used for other purposes, Astro will attempt to process it as an advanced routing configuration, which may cause unexpected errors.
+
+#### What should I do?
+
+If you have an existing `src/app.ts` file that is not related to advanced routing, you have two options:
+
+**Rename your file** to something else (e.g. `src/application.ts`, `src/main.ts`), and update any imports that reference it.
+
+**Disable advanced routing** by setting `fetchFile: null` in your Astro config:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: null,
+});
+```
 
 ## Removed
 
@@ -146,3 +172,26 @@ Replace any occurrence of the other APIs using the [lifecycle event names](/en/r
 ```
 
 <ReadMore>Learn more about all utilities available in the [View Transitions Router API Reference](/en/reference/modules/astro-transitions/).</ReadMore>
+You can also point `fetchFile` to a different file name if you want to use advanced routing but need to keep `src/app.ts` for another purpose:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: './src/router.ts',
+});
+```
+
+### Removed: `@astrojs/db`
+
+The `@astrojs/db` package has been removed in Astro v7.0 and is no longer maintained.
+
+#### What should I do?
+
+Remove `@astrojs/db` from your project's dependencies and replace it with one of the following alternatives:
+
+- **Node.js built-in SQLite**: Node.js now includes a built-in [`node:sqlite`](https://nodejs.org/api/sqlite.html) module (available since Node.js v22.5.0). This is a good option if you are using the Node.js adapter and were using `@astrojs/db` for local SQLite storage.
+
+- **[Drizzle ORM](https://orm.drizzle.team/)**: If you were using `@astrojs/db` for its Drizzle-based schema and query API, you can use Drizzle directly with any supported database.
+
+- **Other database libraries**: Use any database library that suits your deployment platform (e.g. [Turso](https://turso.tech/), [PlanetScale](https://planetscale.com/), [Neon](https://neon.tech/)).
