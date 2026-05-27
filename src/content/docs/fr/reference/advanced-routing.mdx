@@ -1,5 +1,5 @@
 ---
-title: Routage avancé expérimental
+title: Routage avancé
 sidebar:
   label: Routage avancé
 i18nReady: false
@@ -8,35 +8,22 @@ i18nReady: false
 import Since from '~/components/Since.astro'
 
 <p>
-
-**Type :** `boolean`<br />
-**Par défaut :** `false`<br />
-<Since v="6.3.0" />
+<Since v="7.0.0" />
 </p>
 
-Active `src/app.ts` comme point d'entrée personnalisé du pipeline de requêtes, vous donnant un contrôle total sur la manière dont Astro gère les requêtes entrantes.
+Active `src/fetch.ts` comme point d'entrée personnalisé du pipeline de requêtes, vous donnant un contrôle total sur la manière dont Astro gère les requêtes entrantes.
 
 Par défaut, Astro gère chaque requête avec un pipeline intégré qui exécute la normalisation des barres obliques finales, les redirections, les sessions, les actions, les middleware utilisateur, le rendu des pages, l'internationalisation (i18n) et la mise en cache dans un ordre fixe. Le routage avancé vous permet de remplacer ce pipeline par le vôtre, en composant les fonctions de gestion intégrées d'Astro avec une logique personnalisée dans l'ordre de votre choix.
 
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
+## Création de `src/fetch.ts`
 
-export default defineConfig({
-  experimental: {
-    advancedRouting: true,
-  },
-});
-```
+Créez un fichier `src/fetch.ts` (ou `.js`, `.mjs`, `.mts`) qui exporte par défaut un objet doté d'une méthode `fetch`. La méthode `fetch` reçoit un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard et doit renvoyer un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response).
 
-## Création de `src/app.ts`
-
-Lorsque `advancedRouting` est activé, créez un fichier `src/app.ts` (ou `.js`, `.mjs`, `.mts`) qui exporte par défaut un objet doté d'une méthode `fetch`. La méthode `fetch` reçoit un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard et doit renvoyer un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response).
-
-Si aucun fichier `src/app.ts` n'existe (ou si `advancedRouting` n'est pas activée), Astro utilise son pipeline intégré, qui exécute automatiquement toutes les fonctionnalités.
+Si aucun fichier `src/fetch.ts` n'existe, Astro utilise son pipeline intégré, qui exécute automatiquement toutes les fonctionnalités.
 
 Vous pouvez éventuellement importer le type `Fetchable` depuis `astro` pour vérifier le type de votre point d'entrée :
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import type { Fetchable } from 'astro';
 
 export default {
@@ -48,29 +35,21 @@ export default {
 
 ### Personnalisation du fichier de point d'entrée
 
-Par défaut, Astro recherche `src/app.ts` comme point d'entrée du routage avancé. Transmettez un objet à `advancedRouting` avec une option `fetchFile` pour utiliser un fichier différent :
+Par défaut, Astro recherche `src/fetch.ts` comme point d'entrée du routage avancé. Définissez l'option `fetchFile` pour utiliser un fichier différent :
 
 ```js title="astro.config.mjs"
 export default defineConfig({
-  experimental: {
-    advancedRouting: {
-      fetchFile: 'fetch.ts',
-    },
-  },
+  fetchFile: 'handler',
 });
 ```
 
-Avec cette configuration, Astro recherchera `src/fetch.ts` au lieu de `src/app.ts`.
+Avec cette configuration, Astro recherchera `src/handler.ts` au lieu de `src/fetch.ts`.
 
-Définissez `fetchFile` sur `null` pour désactiver complètement le point d'entrée. Cela est utile si vous avez déjà un fichier `src/app.ts` utilisé à d'autres fins :
+Définissez `fetchFile` sur `null` pour désactiver complètement le point d'entrée. Cela est utile si vous avez déjà un fichier `src/fetch.ts` utilisé à d'autres fins :
 
 ```js title="astro.config.mjs"
 export default defineConfig({
-  experimental: {
-    advancedRouting: {
-      fetchFile: null,
-    },
-  },
+  fetchFile: null,
 });
 ```
 
@@ -78,7 +57,7 @@ export default defineConfig({
 
 La manière la plus simple de commencer est d'utiliser le gestionnaire [`astro()`](#astro), qui exécute l'intégralité du pipeline intégré d'Astro (sessions, cache, redirections, barres obliques finales, actions, middleware, pages et i18n) dans l'ordre par défaut. Cela vous permet d'ajouter une logique personnalisée avant ou après Astro sans modifier le fonctionnement du pipeline interne :
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
 
 export default {
@@ -112,7 +91,7 @@ Pour de nombreux cas d'utilisation, tels que l'ajout de gardes d'authentificatio
 
 Lorsque vous avez besoin de plus de contrôle sur l'ordre du pipeline, ou si vous souhaitez omettre certaines fonctionnalités, vous pouvez composer des fonctions de gestion individuelles à partir de `astro/fetch` :
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import {
   FetchState,
   sessions,
@@ -147,7 +126,7 @@ Le principal avantage du routage avancé est la possibilité d'insérer une logi
 
 Le [gestionnaire `astro()`](#astro) est le moyen le plus simple d'ajouter un prétraitement ou un post-traitement autour de l'ensemble du pipeline. Lorsque vous devez insérer une logique *entre* des étapes spécifiques, comme exécuter du code personnalisé après les actions mais avant le rendu de la page, composez plutôt les gestionnaires individuels :
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import {
   FetchState,
   actions,
@@ -343,7 +322,7 @@ try {
 
 Le gestionnaire tout-en-un qui exécute l'ensemble du pipeline d'Astro (sessions, cache, redirections, barre oblique finale, actions, middleware, pages et i18n) dans l'ordre par défaut. Utilisez ceci lorsque vous souhaitez ajouter une logique avant ou après Astro sans modifier l'ordre interne du pipeline :
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
 
 export default {
@@ -455,9 +434,9 @@ Vérifie si le chemin d'accès à la requête nécessite une normalisation des [
 
 ## Utilisation avec Hono
 
-Astro fournit également des enveloppes compatibles avec Hono pour toutes les fonctions de gestion via `astro/hono`. Si vous préférez utiliser [Hono](https://hono.dev/) comme framework de routage, vous pouvez exporter une application Hono depuis `src/app.ts` :
+Astro fournit également des enveloppes compatibles avec Hono pour toutes les fonctions de gestion via `astro/hono`. Si vous préférez utiliser [Hono](https://hono.dev/) comme framework de routage, vous pouvez exporter une application Hono depuis `src/fetch.ts` :
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { actions, middleware, pages, i18n } from 'astro/hono';
