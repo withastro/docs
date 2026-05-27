@@ -1,5 +1,5 @@
 ---
-title: 실험적인 고급 라우팅
+title: 고급 라우팅
 sidebar:
   label: 고급 라우팅
 i18nReady: true
@@ -8,35 +8,22 @@ i18nReady: true
 import Since from '~/components/Since.astro'
 
 <p>
-
-**타입:** `boolean`<br />
-**기본값:** `false`<br />
-<Since v="6.3.0" />
+<Since v="7.0.0" />
 </p>
 
-`src/app.ts`를 사용자 정의 요청 파이프라인의 진입점으로 활성화하여, Astro가 들어오는 요청을 처리하는 방식을 완전히 제어할 수 있습니다.
+`src/fetch.ts`를 사용자 정의 요청 파이프라인의 진입점으로 활성화하여, Astro가 들어오는 요청을 처리하는 방식을 완전히 제어할 수 있습니다.
 
 기본적으로 Astro는 트레일링 슬래시 정규화, 리다이렉트, 세션, 액션, 사용자 미들웨어, 페이지 렌더링, i18n, 캐싱을 정해진 순서대로 실행하는 내장 파이프라인으로 모든 요청을 처리합니다. 고급 라우팅을 사용하면 이 파이프라인을 직접 구현한 것으로 대체할 수 있으며, Astro의 내장 핸들러 함수를 원하는 순서로 조합하고 그 사이에 사용자 정의 로직을 추가할 수 있습니다.
 
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
+## `src/fetch.ts` 생성하기
 
-export default defineConfig({
-  experimental: {
-    advancedRouting: true,
-  },
-});
-```
+`fetch` 메서드를 포함한 객체를 기본 내보내기(default export)하는 `src/fetch.ts`(또는 `.js`, `.mjs`, `.mts`) 파일을 생성하세요. `fetch` 메서드는 표준 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체를 받고 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 반환해야 합니다.
 
-## `src/app.ts` 생성하기
-
-`advancedRouting`이 활성화되면, `fetch` 메서드를 포함한 객체를 기본 내보내기(default export)하는 `src/app.ts`(또는 `.js`, `.mjs`, `.mts`) 파일을 생성하세요. `fetch` 메서드는 표준 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체를 받고 [Response](https://developer.mozilla.org/ko/docs/Web/API/Response)를 반환해야 합니다.
-
-`src/app.ts` 파일이 없거나 `advancedRouting`이 활성화되지 않은 경우, Astro는 모든 기능을 자동으로 실행하는 내장 파이프라인을 사용합니다.
+`src/fetch.ts` 파일이 없는 경우, Astro는 모든 기능을 자동으로 실행하는 내장 파이프라인을 사용합니다.
 
 `astro`에서 `Fetchable` 타입을 선택적으로 가져와 진입점의 타입을 검사할 수 있습니다:
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import type { Fetchable } from 'astro';
 
 export default {
@@ -48,29 +35,21 @@ export default {
 
 ### 진입점 파일 사용자 지정
 
-기본적으로 Astro는 고급 라우팅 진입점으로 `src/app.ts` 파일을 사용합니다. 다른 파일을 사용하려면 `fetchFile` 옵션이 포함된 객체를 `advancedRouting`에 전달하세요:
+기본적으로 Astro는 고급 라우팅 진입점으로 `src/fetch.ts` 파일을 사용합니다. 다른 파일을 사용하려면 `fetchFile` 옵션을 설정하세요:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
-  experimental: {
-    advancedRouting: {
-      fetchFile: 'fetch.ts',
-    },
-  },
+  fetchFile: 'handler',
 });
 ```
 
-이 구성을 사용하면 Astro는 `src/app.ts` 대신 `src/fetch.ts` 파일을 사용합니다.
+이 구성을 사용하면 Astro는 `src/fetch.ts` 대신 `src/handler.ts` 파일을 사용합니다.
 
-`fetchFile`을 `null`로 설정하면 진입점을 완전히 비활성화할 수 있습니다. 이는 `src/app.ts` 파일을 이미 다른 용도로 사용하고 있는 경우에 유용합니다:
+`fetchFile`을 `null`로 설정하면 진입점을 완전히 비활성화할 수 있습니다. 이는 `src/fetch.ts` 파일을 이미 다른 용도로 사용하고 있는 경우에 유용합니다:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
-  experimental: {
-    advancedRouting: {
-      fetchFile: null,
-    },
-  },
+  fetchFile: null,
 });
 ```
 
@@ -78,7 +57,7 @@ export default defineConfig({
 
 가장 쉬운 시작 방법은 [`astro()` 핸들러](#astro)를 사용하는 것입니다. 이 핸들러는 Astro의 전체 내장 파이프라인(세션, 캐시, 리다이렉트, 트레일링 슬래시, 액션, 미들웨어, 페이지, i18n)을 기본 순서대로 실행합니다. 이를 통해 내부 파이프라인의 동작 방식을 변경하지 않고도 Astro 파이프라인 실행 전후에 사용자 정의 로직을 추가할 수 있습니다:
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
 
 export default {
@@ -112,7 +91,7 @@ export default {
 
 파이프라인 순서를 더 세밀하게 제어하거나 특정 기능을 완전히 제외하고 싶은 경우, `astro/fetch`에서 제공하는 개별 핸들러 함수를 조합할 수 있습니다:
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import {
   FetchState,
   sessions,
@@ -147,7 +126,7 @@ export default {
 
 [`astro()` 핸들러](#astro)는 전체 파이프라인 전후에 전처리 또는 후처리를 추가하는 가장 간단한 방법입니다. 액션 실행 후 페이지 렌더링 전과 같이 특정 단계 *사이*에 로직을 삽입해야 하는 경우에는 대신 개별 핸들러를 조합하세요:
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import {
   FetchState,
   actions,
@@ -343,7 +322,7 @@ try {
 
 Astro의 전체 파이프라인(세션, 캐시, 리다이렉트, 트레일링 슬래시, 액션, 미들웨어, 페이지, i18n)을 기본 순서대로 실행하는 올인원 핸들러입니다. 내부 파이프라인 순서를 변경하지 않고 Astro 파이프라인 실행 전후에 로직을 추가하고 싶을 때 사용하세요:
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
 
 export default {
@@ -455,9 +434,9 @@ return i18n(state, response);
 
 ## Hono와 함께 사용하기
 
-Astro는 또한 `astro/hono`를 통해 모든 핸들러 함수에 대한 Hono 호환 래퍼를 제공합니다. [Hono](https://hono.dev/)를 라우팅 프레임워크로 사용하고 싶다면 `src/app.ts`에서 Hono 앱을 내보낼 수 있습니다:
+Astro는 또한 `astro/hono`를 통해 모든 핸들러 함수에 대한 Hono 호환 래퍼를 제공합니다. [Hono](https://hono.dev/)를 라우팅 프레임워크로 사용하고 싶다면 `src/fetch.ts`에서 Hono 앱을 내보낼 수 있습니다:
 
-```ts title="src/app.ts"
+```ts title="src/fetch.ts"
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
 import { actions, middleware, pages, i18n } from 'astro/hono';
