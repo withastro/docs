@@ -133,7 +133,7 @@ Algunas palabras tienen un equivalente en español que debe usarse de manera uni
 > [!TIP]
 > A veces puede ser útil, para facilitar la búsqueda o comprensión de un concepto, proponer en algunos lugares, con mesura, dos versiones. Por ejemplo: `the component props` podría traducirse como `los props (o « propiedades ») del componente`.
 
-## 📝 Consejos estilísticos
+## 📝 Consejos sobre estilos.
 
 ### Los títulos
 
