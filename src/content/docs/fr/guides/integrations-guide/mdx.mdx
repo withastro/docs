@@ -255,16 +255,18 @@ Une fois l'intégration MDX installée, aucune configuration n'est nécessaire p
 Vous pouvez configurer le rendu de votre MDX à l'aide des options suivantes :
 
 * [Options héritées de la configuration Markdown](#options-héritées-de-la-configuration-markdown)
+* [`processor`](#processor)
 * [`extendMarkdownConfig`](#extendmarkdownconfig)
 * [`recmaPlugins`](#recmaplugins)
 * [`optimize`](#optimize)
 
 ### Options héritées de la configuration Markdown
 
-Toutes les [options de configuration `markdown`](/fr/reference/configuration-reference/#options-de-markdown) peuvent être configurées séparément dans l'intégration MDX. Cela inclut les modules d'extension remark et rehype, la coloration syntaxique, et plus encore. Les options seront par défaut celles de votre configuration Markdown ([voir l'option `extendMarkdownConfig`](#extendmarkdownconfig) pour les modifier).
+Toutes les [options de configuration `markdown`](/fr/reference/configuration-reference/#options-de-markdown) peuvent être configurées séparément dans l'intégration MDX, y compris le [processeur Markdown](#processor). Cela inclut les modules d'extension remark et rehype, la coloration syntaxique, et plus encore. Les options seront par défaut celles de votre configuration Markdown ([voir l'option `extendMarkdownConfig`](#extendmarkdownconfig) pour les modifier).
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 import remarkToc from 'remark-toc';
 import rehypePresetMinify from 'rehype-preset-minify';
@@ -275,20 +277,43 @@ export default defineConfig({
     mdx({
       syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
-      remarkPlugins: [remarkToc],
-      rehypePlugins: [rehypePresetMinify],
-      remarkRehype: { footnoteLabel: 'Notes de bas de page' },
-      gfm: false,
+      processor: unified({
+        remarkPlugins: [remarkToc],
+        rehypePlugins: [rehypePresetMinify],
+        remarkRehype: { footnoteLabel: 'Notes de bas de page' },
+        gfm: false
+      }),
     }),
   ],
 });
 ```
 
-:::caution
-MDX ne prend pas en charge la transmission de modules d'extension remark et rehype sous la forme d'une chaîne de caractères. Vous devez installer, importer et appliquer la fonction du module d'extension à la place.
-:::
-
 <ReadMore>Voir la [référence des options Markdown](/fr/reference/configuration-reference/#options-de-markdown) pour une liste complète des options.</ReadMore>
+
+### `processor`
+
+<p>
+
+**Type :** `MarkdownProcessor`<br />
+**Par défaut :** hérité de [`markdown.processor`](/fr/reference/configuration-reference/#markdownprocessor)<br />
+<Since v="6.0.0" pkg="@astrojs/mdx" />
+</p>
+
+Par défaut, les fichiers `.mdx` sont traités via le même [processeur Markdown](/fr/guides/markdown-content/#choisir-un-processeur-markdown) que vos fichiers `.md`. Définissez `processor` pour utiliser un processeur différent, ou le même processeur avec des options différentes, uniquement pour les fichiers `.mdx`.
+
+Par exemple, pour conserver le processeur remark/rehype par défaut pour les fichiers `.md` tout en traitant les fichiers `.mdx` avec [Sätteri](https://satteri.bruits.org/) en utilisant `@astrojs/markdown-satteri` :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  integrations: [
+    mdx({ processor: satteri() }),
+  ],
+});
+```
 
 ### `extendMarkdownConfig`
 
@@ -301,28 +326,27 @@ MDX ne prend pas en charge la transmission de modules d'extension remark et rehy
 
 MDX étend par défaut [la configuration Markdown existante de votre projet](/fr/reference/configuration-reference/#options-de-markdown). Pour remplacer certaines options, vous pouvez spécifier leur équivalent dans votre configuration MDX.
 
-Par exemple, supposons que vous avez besoin de désactiver GitHub-Flavored Markdown et d'appliquer un ensemble différent de modules d'extension remark pour les fichiers MDX. Vous pouvez appliquer ces options comme suit, avec `extendMarkdownConfig` activée par défaut :
+Par exemple, supposons que vous avez besoin d'une coloration syntaxique différente et d'un ensemble différent de modules d'extension pour les fichiers `.mdx`. Vous pouvez appliquer ces options comme suit, avec `extendMarkdownConfig` activée par défaut :
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
     syntaxHighlight: 'prism',
-    remarkPlugins: [remarkPlugin1],
-    gfm: true,
+    processor: unified({ remarkPlugins: [remarkPlugin1] }),
   },
   integrations: [
     mdx({
-      // `syntaxHighlight` héritée de Markdown
+      // `syntaxHighlight` de Markdown remplacée,
+      // les fichiers `.mdx` utilisent Shiki à la place.
+      syntaxHighlight: 'shiki',
 
-      // `remarkPlugins` de Markdown ignorés,
-      // seulement `remarkPlugin2` est appliqué.
-      remarkPlugins: [remarkPlugin2],
-      // `gfm` remplacée par `false`
-      gfm: false,
+      // `markdown.processor` est remplacée pour les fichiers `.mdx` par cette option
+      processor: unified({ remarkPlugins: [remarkPlugin2] }),
     }),
   ],
 });
@@ -332,18 +356,19 @@ Vous pouvez également avoir besoin de désactiver l'extension de la configurati
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
-    remarkPlugins: [remarkPlugin1],
+    processor: unified({ remarkPlugins: [remarkPlugin] }),
   },
   integrations: [
     mdx({
       // La configuration Markdown est désormais ignorée
       extendMarkdownConfig: false,
-      // aucun `remarkPlugins` n'est appliqué
+      // Processeur `unified()` par défaut utilisé
     }),
   ],
 });
