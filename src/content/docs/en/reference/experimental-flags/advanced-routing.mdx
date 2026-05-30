@@ -34,6 +34,46 @@ When `advancedRouting` is enabled, create a `src/app.ts` (or `.js`, `.mjs`, `.mt
 
 If no `src/app.ts` file exists (or `advancedRouting` is not enabled), Astro uses its built-in pipeline, which runs all features automatically.
 
+You can optionally import the `Fetchable` type from `astro` to type-check your entrypoint:
+
+```ts title="src/app.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    // ...
+  },
+} satisfies Fetchable;
+```
+
+### Customizing the entrypoint file
+
+By default, Astro looks for `src/app.ts` as the advanced routing entrypoint. Pass an object to `advancedRouting` with a `fetchFile` option to use a different file:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: 'fetch.ts',
+    },
+  },
+});
+```
+
+With this configuration, Astro will look for `src/fetch.ts` instead of `src/app.ts`.
+
+Set `fetchFile` to `null` to disable the entrypoint entirely. This is useful if you already have a `src/app.ts` file used for other purposes:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: null,
+    },
+  },
+});
+```
+
 ### Using `astro()`
 
 The easiest way to get started is with the [`astro()` handler](#astro), which runs Astro's full built-in pipeline (sessions, cache, redirects, trailing-slash, actions, middleware, pages, and i18n) in the default order. This lets you add custom logic before or after Astro without changing how the internal pipeline works:
@@ -132,6 +172,20 @@ export default {
 };
 ```
 
+## Typing custom providers with `App.Providers`
+
+When you register custom context providers with [`state.provide()`](#stateprovide), you can declare their types using the `App.Providers` interface so that `Astro` and `ctx` are fully typed in your components and middleware:
+
+```ts title="src/env.d.ts"
+declare namespace App {
+  interface Providers {
+    oauth: import('./lib/oauth').OAuthSession;
+  }
+}
+```
+
+After declaring a provider, `ctx.oauth` (and `Astro.oauth` in `.astro` files) will be typed automatically.
+
 ## `astro/fetch` handler reference
 
 All handler functions are imported from `astro/fetch` and operate on a `FetchState` object.
@@ -201,6 +255,21 @@ Route parameters derived from the matched route and pathname (e.g. `{ slug: 'my-
 </p>
 
 The HTTP status code for the response. You can set this before rendering to control the response status (e.g. `state.status = 404`).
+
+##### `state.response`
+
+<p>
+
+**Type:** `Response | undefined`<br />
+**Default:** `undefined`
+</p>
+
+The `Response` produced by handlers after rendering completes. This is set automatically by [`pages()`](#pages) and [`middleware()`](#middleware), allowing you to inspect or use the response later in the pipeline:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// state.response is now the same object as response
+```
 
 #### Methods
 
@@ -408,3 +477,53 @@ export default app;
 ```
 
 The `astro/hono` module exports the same handler names as `astro/fetch` (`astro`, `pages`, `middleware`, `actions`, `sessions`, `redirects`, `cache`, `i18n`, `trailingSlash`), but each returns a Hono middleware function. This lets you mix Astro handlers with any Hono middleware from the ecosystem.
+
+## Cloudflare adapter
+
+The [`@astrojs/cloudflare`](/en/guides/integrations-guide/cloudflare/) adapter provides companion handlers that apply Cloudflare-specific setup to your advanced routing pipeline. These handlers configure session KV binding injection, static asset serving via the `ASSETS` binding, `Astro.locals.cfContext`, client address from the `cf-connecting-ip` header, `waitUntil`, and prerendered error page fetching.
+
+You can use the `astro/fetch` and `astro/hono` APIs from `src/app.ts` on Cloudflare without these handlers. The adapter's default entrypoint takes care of Cloudflare-specific setup for you. These companion handlers are useful when you already have a [custom worker entrypoint](https://developers.cloudflare.com/workers/wrangler/configuration/#inheritable-keys) (`src/worker.ts`), for example, to export a Durable Object, and want to use the advanced routing APIs directly from that file instead.
+
+When using these handlers in your worker entrypoint, they replace the functionality of the adapter's default handler, so you should not use both at the same time. Place the Cloudflare handler before other Astro handlers so that bindings and locals are available to the rest of the pipeline.
+
+### `@astrojs/cloudflare/fetch`
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+For use with `astro/fetch`. The `cf()` function receives a `FetchState`, the Cloudflare `env`, and the `ExecutionContext`. It returns a `Response` for static asset hits, or `undefined` when the request should continue to Astro rendering:
+
+```ts title="src/worker.ts"
+import { astro, FetchState } from 'astro/fetch';
+import { cf } from '@astrojs/cloudflare/fetch';
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const state = new FetchState(request);
+    const asset = await cf(state, env, ctx);
+    if (asset) return asset;
+    return astro(state);
+  },
+};
+```
+
+### `@astrojs/cloudflare/hono`
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+For use with `astro/hono`. The `cf()` function returns a Hono middleware that reads `env` and `executionCtx` from the Hono context automatically:
+
+```ts title="src/worker.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { cf } from '@astrojs/cloudflare/hono';
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use(cf());
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
