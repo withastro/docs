@@ -88,6 +88,7 @@ export const sidebar = [
 					group('guides.upgrade.major', {
 						collapsed: true,
 						items: [
+							'guides/upgrade-to/v7',
 							'guides/upgrade-to/v6',
 							'guides/upgrade-to/v5',
 							'guides/upgrade-to/v4',
@@ -160,7 +161,6 @@ export const sidebar = [
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/svg-optimization',
 					'reference/experimental-flags/queued-rendering',
-					'reference/experimental-flags/rust-compiler',
 					'reference/experimental-flags/advanced-routing',
 					'reference/experimental-flags/logger',
 				],
