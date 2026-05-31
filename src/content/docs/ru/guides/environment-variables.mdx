@@ -1,0 +1,352 @@
+---
+title: Использование переменных окружения
+sidebar:
+  label: Переменные окружения
+description: Узнайте, как использовать переменные окружения в проекте Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro предоставляет доступ к [встроенной поддержке переменных окружения Vite](#встроенная-поддержка-vite) и включает некоторые [переменные окружения по умолчанию для вашего проекта](#переменные-окружения-по-умолчанию), которые позволяют получить доступ к значениям конфигурации вашего текущего проекта (например, `site`, `base`), узнать, запущен ли ваш проект в режиме разработки или в продакшене, и многое другое.
+
+Astro также предоставляет способ [использовать и организовывать ваши переменные окружения с типизацией](#типизированные-переменные-окружения). Он доступен для использования внутри контекста Astro (например, в компонентах Astro, маршрутах и эндпойнтах, компонентах UI-фреймворков, мидлварах) и управляется с помощью [схемы в вашей конфигурации Astro](/ru/reference/configuration-reference/#env).
+
+## Встроенная поддержка Vite
+
+Astro использует встроенную поддержку переменных окружения Vite, которые статически заменяются во время сборки, и позволяет [использовать любой из его методов](https://vite.dev/guide/env-and-mode.html) для работы с ними.
+
+Обратите внимание, что хотя _все_ переменные окружения доступны в серверном коде, в целях безопасности только переменные окружения с префиксом `PUBLIC_` доступны в клиентском коде.
+
+```ini title=".env"
+SECRET_PASSWORD=password123
+PUBLIC_ANYBODY=there
+```
+
+В этом примере `PUBLIC_ANYBODY` (доступная через `import.meta.env.PUBLIC_ANYBODY`) будет доступна в серверном или клиентском коде, в то время как `SECRET_PASSWORD` (доступная через `import.meta.env.SECRET_PASSWORD`) будет доступна только на стороне сервера.
+
+:::caution
+Файлы `.env` не загружаются внутри [конфигурационных файлов](#в-конфигурационном-файле-astro).
+:::
+
+### IntelliSense для TypeScript
+
+По умолчанию Astro предоставляет определение типов для `import.meta.env` в `astro/client.d.ts`.
+
+Хотя вы можете определить больше пользовательских переменных окружения в файлах `.env.[mode]`, вы можете захотеть получить IntelliSense от TypeScript для пользовательских переменных окружения с префиксом `PUBLIC_`.
+
+Для этого вы можете создать файл `env.d.ts` в `src/`, чтобы [расширить глобальные типы](/ru/guides/typescript/#extending-global-types) и настроить `ImportMetaEnv` следующим образом:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DB_PASSWORD: string;
+  readonly PUBLIC_POKEAPI: string;
+  // больше переменных окружения...
+}
+
+interface ImportMeta {
+  readonly env: ImportMetaEnv;
+}
+```
+
+## Переменные окружения по умолчанию
+
+Astro включает несколько переменных окружения "из коробки":
+
+- `import.meta.env.MODE`: Режим, в котором запущен ваш сайт. Это `development` при запуске `astro dev` и `production` при запуске `astro build`.
+- `import.meta.env.PROD`: `true`, если ваш сайт запущен в продакшене; иначе `false`.
+- `import.meta.env.DEV`: `true`, если ваш сайт запущен в режиме разработки; иначе `false`. Всегда противоположно `import.meta.env.PROD`.
+- `import.meta.env.BASE_URL`: Базовый URL, с которого обслуживается ваш сайт. Определяется [опцией конфигурации `base`](/ru/reference/configuration-reference/#base).
+- `import.meta.env.SITE`: Устанавливается в соответствии с [опцией `site`](/ru/reference/configuration-reference/#site), указанной в `astro.config` вашего проекта.
+
+Используйте их как любые другие переменные окружения.
+
+```ts utils.ts
+const isProd = import.meta.env.PROD;
+const isDev = import.meta.env.DEV;
+```
+
+## Установка переменных окружения
+
+### Файлы `.env`
+
+Переменные окружения могут быть загружены из файлов `.env` в директории вашего проекта.
+
+Просто создайте файл `.env` в корневой директории проекта и добавьте в него переменные.
+
+```ini title=".env"
+# Это будет доступно только при запуске на сервере!
+DB_PASSWORD="foobar"
+
+# Это будет доступно везде!
+PUBLIC_POKEAPI="https://pokeapi.co/api/v2"
+```
+
+Вы также можете добавить `.production`, `.development` или имя собственного режима к самому имени файла (например, `.env.testing`, `.env.staging`). Это позволяет использовать разные наборы переменных окружения в разных случаях.
+
+Команды `astro dev` и `astro build` по умолчанию используют режимы `"development"` и `"production"` соответственно. Вы можете запускать эти команды с [флагом `--mode`](/ru/reference/cli-reference/#--mode-string), чтобы передать другое значение для `mode` и загрузить соответствующий файл `.env`.
+
+Это позволяет запускать сервер разработки или собирать сайт, подключаясь к различным API:
+
+<PackageManagerTabs>
+ <Fragment slot="npm">
+    ```shell
+    # Запуск сервера разработки с подключением к API "staging"
+    npm run astro dev -- --mode staging
+
+    # Сборка сайта, который подключается к API "production" с дополнительной отладочной информацией
+    npm run astro build -- --devOutput
+
+    # Сборка сайта, который подключается к API "testing"
+    npm run astro build -- --mode testing
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    # Запуск сервера разработки с подключением к API "staging"
+    pnpm astro dev --mode staging
+
+    # Сборка сайта, который подключается к API "production" с дополнительной отладочной информацией
+    pnpm astro build --devOutput
+
+    # Сборка сайта, который подключается к API "testing"
+    pnpm astro build --mode testing
+    ```
+ </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    # Запуск сервера разработки с подключением к API "staging"
+    yarn astro dev --mode staging
+
+    # Сборка сайта, который подключается к API "production" с дополнительной отладочной информацией
+    yarn astro build --devOutput
+
+    # Сборка сайта, который подключается к API "testing"
+    yarn astro build --mode testing
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+Для получения дополнительной информации о файлах `.env` [см. документацию Vite](https://vite.dev/guide/env-and-mode.html#env-files).
+
+### В конфигурационном файле Astro
+
+Astro обрабатывает конфигурационные файлы до загрузки остальных файлов. Это означает, что вы не можете использовать `import.meta.env` в `astro.config.mjs` для доступа к переменным окружения, которые были заданы в файлах `.env`.
+
+Вы можете использовать `process.env` в конфигурационном файле для доступа к другим переменным окружения, например, к тем, которые [заданы через CLI](#использование-cli).
+
+Вы также можете использовать [служебную функцию `loadEnv` в Vite](https://main.vite.dev/config/#using-environment-variables-in-config), чтобы вручную загрузить файлы `.env`.
+
+```js title="astro.config.mjs"
+import { loadEnv } from "vite";
+
+const { SECRET_PASSWORD } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+```
+
+:::note
+`pnpm` не позволяет импортировать модули, которые не установлены непосредственно в вашем проекте. Если вы используете `pnpm`, вам нужно будет установить `vite`, чтобы использовать функцию `loadEnv`.
+
+```sh
+pnpm add -D vite
+```
+:::
+
+### Использование CLI
+
+Вы также можете добавлять переменные окружения при запуске проекта:
+
+<PackageManagerTabs>
+ <Fragment slot="yarn">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 yarn run dev
+    ```
+ </Fragment>
+ <Fragment slot="npm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 npm run dev
+    ```
+ </Fragment>
+ <Fragment slot="pnpm">
+    ```shell
+    PUBLIC_POKEAPI=https://pokeapi.co/api/v2 pnpm run dev
+    ```
+ </Fragment>
+</PackageManagerTabs>
+
+## Получение переменных окружения
+
+Доступ к переменным окружения в Astro осуществляется через `import.meta.env`, используя [возможность `import.meta`, добавленную в ES2020](https://tc39.es/ecma262/2020/#prod-ImportMeta), вместо `process.env`.
+
+Например, используйте `import.meta.env.PUBLIC_POKEAPI`, чтобы получить переменную окружения `PUBLIC_POKEAPI`.
+
+```js /(?<!//.*)import.meta.env.[A-Z_]+/
+// Когда import.meta.env.SSR === true
+const data = await db(import.meta.env.DB_PASSWORD);
+
+// Когда import.meta.env.SSR === false
+const data = fetch(`${import.meta.env.PUBLIC_POKEAPI}/pokemon/squirtle`);
+```
+
+При использовании SSR переменные окружения могут быть доступны во время выполнения в зависимости от используемого SSR-адаптера. В большинстве адаптеров доступ к переменным окружения осуществляется через `process.env`, однако некоторые адаптеры работают иначе. Для адаптера Deno используется `Deno.env.get()`. Узнайте, как [получить доступ к рантайму Cloudflare](/ru/guides/integrations-guide/cloudflare/#cloudflare-runtime) для обработки переменных окружения при использовании адаптера Cloudflare. Astro сначала проверит переменные окружения сервера, и если они не существуют, то будет искать их в файлах `.env`.
+
+## Типизированные переменные окружения
+
+API `astro:env` позволяет настроить типизированную схему для [переменных окружения, которые вы установили](#установка-переменных-окружения). Это позволяет указать, должны ли они быть доступны на сервере или клиенте, определить их тип данных и дополнительные свойства.
+
+<ReadMore>Разрабатываете адаптер? Узнайте, как [сделать адаптер совместимым с `astro:env`](/ru/reference/adapter-reference/#envgetsecret).</ReadMore>
+
+### Базовое использование
+
+#### Определение схемы
+
+Чтобы настроить схему, добавьте опцию `env.schema` в конфигурацию Astro:
+
+```js title="astro.config.mjs" ins={4-8}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      // ...
+    }
+  }
+})
+```
+
+Затем вы можете [зарегистрировать переменные как строку, число, enum или булево значение](#типы-данных), используя `envField`. Определите [тип переменной окружения](#типы-переменных), указав `context` (`"client"` или `"server"`) и `access` (`"secret"` или `"public"`) для каждой переменной, и передайте любые дополнительные свойства, такие как `optional` или `default`, в объекте:
+
+```js title="astro.config.mjs" ins="envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({ context: "client", access: "public", optional: true }),
+      PORT: envField.number({ context: "server", access: "public", default: 4321 }),
+      API_SECRET: envField.string({ context: "server", access: "secret" }),
+    }
+  }
+})
+```
+
+Типы будут сгенерированы для вас при запуске `astro dev` или `astro build`, но вы можете запустить `astro sync` только для генерации типов.
+
+#### Использование переменных из вашей схемы
+
+Импортируйте и используйте определенные переменные из соответствующего модуля `/client` или `/server`:
+
+```astro
+---
+import { API_URL } from "astro:env/client";
+import { API_SECRET_TOKEN } from "astro:env/server";
+
+const data = await fetch(`${API_URL}/users`, {
+	method: "GET",
+	headers: {
+		"Content-Type": "application/json",
+		"Authorization": `Bearer ${API_SECRET_TOKEN}`
+	},
+})
+---
+
+<script>
+  import { API_URL } from "astro:env/client";
+  
+  fetch(`${API_URL}/ping`)
+</script>
+```
+
+### Типы переменных
+
+Существует три вида переменных окружения, определяемых комбинацией настроек `context` (`"client"` или `"server"`) и `access` (`"secret"` или `"public"`), заданных в вашей схеме:
+
+- **Публичные клиентские переменные**: Эти переменные попадают как в финальный клиентский, так и в серверный бандлы, и к ним можно получить доступ как с клиента, так и с сервера через модуль `astro:env/client`:
+
+   ```js
+   import { API_URL } from "astro:env/client";
+   ```
+
+- **Публичные серверные переменные**: Эти переменные попадают в ваш финальный серверный бандл и к ним можно получить доступ на сервере через модуль `astro:env/server`:
+
+   ```js
+   import { PORT } from "astro:env/server";
+   ```
+
+- **Секретные серверные переменные**: Эти переменные не являются частью вашего финального бандла и к ним можно получить доступ на сервере через модуль `astro:env/server`:
+
+   ```js
+   import { API_SECRET } from "astro:env/server";
+   ```
+
+   По умолчанию все секреты валидируются каждый раз, когда что-либо импортируется из модуля `astro:env/server`. Это означает, что секреты могут быть провалидированы даже если они не импортированы. Вам может потребоваться [передать фиктивные переменные окружения](#установка-переменных-окружения), чтобы удовлетворить этой валидации во время сборки.
+
+   Вы также можете включить валидацию секретов при запуске, [настроив `validateSecrets: true`](/ru/reference/configuration-reference/#envvalidatesecrets).
+
+:::note
+**Секретные клиентские переменные** не поддерживаются, так как не существует безопасного способа отправить эти данные клиенту. Поэтому в схеме невозможно настроить одновременно `context: "client"` и `access: "secret"`.
+:::
+
+### Типы данных
+
+В настоящее время поддерживаются четыре типа данных: строки, числа, enum и булева значения:
+
+```js
+import { envField } from "astro/config";
+
+envField.string({
+   // context и access
+   optional: true,
+   default: "foo",
+})
+
+envField.number({
+   // context и access
+   optional: true,
+   default: 15,
+})
+
+envField.boolean({
+   // context и access
+   optional: true,
+   default: true,
+})
+
+envField.enum({
+   // context и access
+   values: ["foo", "bar", "baz"],
+   optional: true,
+   default: "baz",
+})
+```
+
+<ReadMore>Для получения полного списка полей валидации см. [справочник по API `envField`](/ru/reference/modules/astro-config/#envfield).</ReadMore>
+
+### Динамическое получение секретов
+
+Несмотря на определение схемы, вы можете захотеть получить необработанное значение конкретного секрета или получить секреты, не определенные в вашей схеме. В этом случае вы можете использовать `getSecret()` из `astro:env/server`:
+
+```js
+import {
+   FOO, // boolean
+   getSecret
+} from "astro:env/server";
+
+getSecret("FOO"); // string | undefined
+```
+
+<ReadMore>Узнайте больше в [справочнике по API](/ru/reference/modules/astro-env/#getsecret).</ReadMore>
+
+### Ограничения
+
+`astro:env` — это виртуальный модуль, что означает, что его можно использовать только внутри контекста Astro. Например, вы можете использовать его в:
+
+- Мидлварах
+- Маршрутах и эндпойнтах Astro
+- Компонентах Astro
+- Компонентах фреймворков
+- Модулях
+
+Вы не можете использовать его в следующих случаях и должны будете прибегнуть к `process.env`:
+
+- `astro.config.mjs`
+- Скриптах
