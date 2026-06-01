@@ -1,0 +1,328 @@
+---
+title: Journaliseur expérimental
+sidebar:
+  label: Journaliseur
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+
+<p>
+
+**Type :** `object`<br />
+**Par défaut :** `undefined`<br />
+<Since v="6.2.0" />
+</p>
+
+Active un journaliseur expérimental et personnalisable qui peut être contrôlé par l'utilisateur.
+
+Lorsque fourni, l'utilisateur a un contrôle total sur les journaux émis par Astro. De plus, la fonctionnalité est livrée avec quelques journaliseurs intégrés qui peuvent être utilisés via les nouveaux gestionnaires de journalisation (`logHandlers`).
+
+L'exemple suivant active le journaliseur JSON intégré, avec une sortie formatée :
+
+```js title="astro.config.mjs" {5} ins="logHandlers"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true })
+  }
+});
+```
+
+Vous pouvez également activer la journalisation JSON pour les commandes `dev`, `build` et `sync` à l'aide de l'option `--experimentalJson` :
+
+```shell
+astro dev --experimentalJson
+astro sync --experimentalJson
+astro build --experimentalJson
+```
+
+
+## Journaliseurs intégrés
+
+Cette fonctionnalité inclut trois enregistreurs intégrés.
+
+### `logHandlers.json`
+
+Un journaliseur qui produit des messages au format JSON. Un journal ressemblerait à ceci :
+```json
+{ "message": "<le message>", "label": "routeur", "level": "info", "time": "<timestamp UNIX>"  }
+```
+
+#### Options du journaliseur JSON
+
+<p>
+**Type :** `{ pretty: boolean; level: AstroLoggerLevel; }`<br />
+**Par défaut :** `{ pretty: false, level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+Le journaliseur `json` accepte les options suivantes :
+
+- `pretty` : lorsque la valeur est `true`, le journal JSON est affiché sur plusieurs lignes. La valeur par défaut est `false`.
+- `level` : le [niveau](#niveau-de-journalisation) des journaux qui doivent être affichés.
+
+```js title="astro.config.mjs" {5} ins="json"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true })
+  }
+});
+```
+
+### `logHandlers.console`
+
+Un journaliseur qui affiche les messages en utilisant la `console` comme destination. En fonction du niveau du message, il utilise différents canaux :
+
+- Les messages d'erreur (`error`) sont affichés en utilisant `console.error()`.
+- Les messages d'avertissement (`warn`) sont affichés en utilisant `console.warn()`.
+- Les messages d'information (`info`) sont affichés en utilisant `console.info()`.
+
+#### Options du journaliseur console
+
+<p>
+**Type :** `{ level: AstroLoggerLevel }`<br />
+**Par défaut :** `{ level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+Le journaliseur `console` accepte les options suivantes :
+
+- `level` : le [niveau](#niveau-de-journalisation) des journaux qui doivent être affichés.
+
+```js title="astro.config.mjs" {5} ins="console"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.console({ level: 'warn' })
+  }
+});
+```
+
+### `logHandlers.node`
+
+Un journaliseur qui affiche les messages dans [`process.stdout`](https://nodejs.org/api/process.html#processstdout) et [`process.stderr`](https://nodejs.org/api/process.html#processstderr). Les messages de niveau `error` sont affichés dans `stderr`, tandis que les autres sont affichés dans `stdout`.
+
+C'est le journaliseur par défaut d'Astro.
+
+#### Options du journaliseur Node
+
+<p>
+**Type :** `{ level: AstroLoggerLevel }`<br />
+**Par défaut :** `{ level: 'info' }`
+<Since v="6.2.0" />
+</p>
+
+Le journaliseur `node` accepte les options suivantes :
+
+- `level` : le [niveau](#niveau-de-journalisation) des journaux qui doivent être affichés.
+
+```js title="astro.config.mjs" {5} ins="node"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.node({ level: 'warn' })
+  }
+});
+```
+
+### `logHandlers.compose`
+
+Une fonction particulière qui permet de configurer plusieurs journaliseurs dans un ordre arbitraire. Le même message est diffusé à tous les journaliseurs.
+
+L'exemple suivant compose le journaliseur console et le journaliseur JSON en utilisant le niveau de journalisation par défaut :
+
+```js title="astro.config.mjs"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.compose(
+      logHandlers.console(),
+      logHandlers.json()
+    )
+  }
+});
+```
+
+## Journaliseurs personnalisés
+
+Vous pouvez créer un journaliseur personnalisé en fournissant la configuration correcte au paramètre `logger`. Il accepte un objet avec un point d'entrée (`entrypoint`) obligatoire, le module depuis lequel le journaliseur est exporté, et une configuration facultative à transmettre au journaliseur. La configuration doit être sérialisable.  
+
+La fonction du journaliseur doit être exportée en tant que `default`.
+
+Lorsque vous définissez un journaliseur personnalisé, vous êtes responsable de tous les journaux, même ceux émis par Astro.
+
+L'exemple suivant définit un journaliseur personnalisé exporté par le package `@org/journaliseur-personnalise` et n'acceptant qu'un seul paramètre pour configurer le niveau (`level`) de journalisation :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: {
+      entrypoint: "@org/journaliseur-personnalise",
+      config: {
+        level: "warn"
+      }
+    }
+  }
+});
+```
+
+L'exemple suivant implémente un journaliseur minimal renvoyant un [objet `AstroLoggerDestination`](#astrologgerdestination) avec la fonction `write()` requise :
+
+```ts title="@org/journaliseur-personnalise/index.ts"
+import type { 
+  AstroLoggerLevel, 
+  AstroLoggerDestination, 
+  AstroLoggerMessage 
+} from "astro";
+import { matchesLevel } from "astro/logger"; 
+
+type LoggerOptions = {
+  level: AstroLoggerLevel
+}
+
+function orgLogger(options: LoggerOptions = {}): AstroLoggerDestination {
+  const { level = 'info' } = options;
+  return {
+    write(message: AstroLoggerMessage) {
+      // Utilisez cet utilitaire pour comprendre si le message doit être affiché
+      if (matchesLevel(message.level, level)) {
+        // journalisez le message quelque part en tenant compte du niveau
+      }
+    }
+  }
+}
+
+export default orgLogger;
+```
+
+## Environnement d'exécution
+
+L'[objet de contexte](/fr/reference/api-reference/#lobjet-de-contexte) expose désormais un objet `logger` contenant les fonctions suivantes :
+
+- `error()`, qui émet un message avec le niveau `error`. 
+- `warn()`, qui émet un message avec le niveau `warn`. 
+- `info()`, qui émet un message avec le niveau `info`. 
+
+```astro
+---
+Astro.logger.error("Ceci est une erreur");
+Astro.logger.warn("Ceci est un avertissement");
+Astro.logger.info("Ceci est une information");
+---
+```
+
+## Niveau de journalisation
+
+Un niveau est un score interne et arbitraire attribué à chaque message. Lorsqu'un journaliseur est configuré avec un certain niveau, seuls les messages ayant un niveau égal ou supérieur sont affichés.
+
+Il existe trois niveaux, du score le plus élevé au score le plus bas :
+1. `error`
+2. `warn`
+3. `info`
+
+L'exemple suivant configure le journaliseur JSON pour n'afficher que les messages ayant le niveau `warn` ou supérieur :
+
+```js title="astro.config.mjs" {5} ins='level: "warn"'
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ level: "warn" })
+  }
+});
+```
+
+Le paquet `astro/logger` expose une fonction utilitaire [`matchesLevel()`](#matcheslevel) pour vérifier le niveau de journalisation. Cela peut être utile lors de la [création d'un journaliseur personnalisé](#journaliseurs-personnalisés).
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info");
+```
+
+
+## Référence des types
+
+Les types suivants peuvent être importés depuis le module `astro`.
+
+### `AstroLoggerDestination`
+
+Ceci est l'interface que les journaliseurs personnalisés doivent implémenter.
+
+#### `AstroLoggerDestination.write()`
+
+<p>
+
+**Type :** `(message: AstroLoggerMessage) => void`
+</p>
+
+Une méthode obligatoire appelée pour chaque journal et acceptant un objet [`AstroLoggerMessage`](#astrologgermessage).
+
+#### `AstroLoggerDestination.flush()`
+
+<p>
+
+**Type :** `() => Promise<void> | void`
+</p>
+
+Une fonction facultative appelée à la fin de chaque requête. Cela est utile pour les journaliseurs avancés qui doivent vider les messages de journal tout en maintenant la connexion avec la destination active.
+
+#### `AstroLoggerDestination.close()`
+
+<p>
+
+**Type :** `() => Promise<void> | void`
+</p>
+
+Une fonction facultative appelée avant l'arrêt d'un serveur. Cette fonction est généralement appelée par des adaptateurs tels que `@astrojs/node`.
+
+### `AstroLoggerLevel`
+
+Le niveau du message. Variantes disponibles :
+- `'debug'`
+- `'info'`
+- `'warn'`
+- `'error'`
+- `'silent'`
+
+### `AstroLoggerMessage`
+
+<p>
+
+**Type :** `{ label: string | null; level: AstroLoggerLevel; message: string;	newLine: boolean; }`
+</p>
+L'objet entrant de la fonction [`AstroLoggerDestination.write()`](#astrologgerdestinationwrite) :
+- `message` : le message à journaliser.
+- `level` : le niveau du message.
+- `label` : une étiquette arbitraire attribuée au message du journal.
+- `newLine` : indique si ce message doit ajouter une nouvelle ligne à la fin.
+
+## Référence des APIs
+
+Les APIs suivantes peuvent être importées depuis le module `astro/logger`.
+
+### `matchesLevel`
+
+<p>
+
+**Type :** `matchesLevel(messageLevel: AstroLoggerLevel, configuredLevel: AstroLoggerLevel) => boolean`
+</p>
+
+Étant donné deux [niveaux de journalisation](#niveau-de-journalisation), cette fonction renvoie si le premier niveau correspond au second niveau. 
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info"); // true
+matchesLevel("info", "error"); // false
+
+```
