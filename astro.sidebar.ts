@@ -80,6 +80,7 @@ export const sidebar = [
 					'guides/server-islands',
 					'guides/actions',
 					'guides/sessions',
+					'guides/caching',
 				],
 			}),
 			group('guides.upgrade', {
