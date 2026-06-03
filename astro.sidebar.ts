@@ -131,6 +131,8 @@ export const sidebar = [
 					'reference/modules/astro-config',
 					'reference/modules/astro-content',
 					'reference/modules/astro-env',
+					'reference/modules/astro-fetch',
+					'reference/modules/astro-hono',
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-static-paths',
