@@ -353,23 +353,25 @@ const cart = await Astro.session?.get('cart');
 向 Cloudflare KV 写入数据在区域间遵循[最终一致性](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency)。这意味着变更在同一区域立即生效，但在全球范围同步可能需要最多 60 秒。对于大多数用户来说，这一点不会产生影响，因为他们在请求之间不太可能切换区域，但某些使用场景仍需考量，比如使用 VPN 的用户。
 :::
 
-## Cloudflare Module Imports
+## Cloudflare 模块导入
 
-The Cloudflare `workerd` runtime supports imports of some [non-standard module types](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules). Most additional file types are also available in Astro:
+Cloudflare 的 `workerd` 运行时支持导入某些[非标准模块类型](https://developers.cloudflare.com/workers/wrangler/bundling/#including-non-javascript-modules)。大多数其他文件类型在 Astro 中同样可用：
 
-- `.wasm` or `.wasm?module`: exports a [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module) that can then be instantiated
-- `.bin`: exports an [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer) of the raw binary contents of the file
-- `.txt`: exports a string of the file contents
+- `.wasm` 或 `.wasm?module`：导出 [`WebAssembly.Module`](https://developer.mozilla.org/en-US/docs/WebAssembly/JavaScript_interface/Module)，之后可对其进行实例化
 
-All module types export a single default value. Modules can be imported both from server-side rendered pages, or from prerendered pages for static site generation.
+- `.bin`：导出文件的原始二进制内容所对应的 [`ArrayBuffer`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer)
 
-The following is an example of importing a Wasm module that then responds to requests by adding the request's number parameters together.
+- `.txt`：导出文件内容所对应的字符串
+
+所有模块类型均导出一个默认值。这些模块既可以从服务端渲染页面中导入，也可以从用于静态站点生成的预渲染页面中导入。
+
+下面是一个导入 Wasm 模块的示例，该模块通过将请求中的数字参数相加来响应请求。
 
 ```js title="pages/add/[a]/[b].js"
-// Import the WebAssembly module
+// 导入 WebAssembly 模块
 import mod from '../util/add.wasm';
 
-// Instantiate first in order to use it
+// 先进行实例化，然后使用它。
 const addModule: any = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
@@ -381,11 +383,11 @@ export async function GET(context) {
 
 While this example is trivial, Wasm can be used to accelerate computationally intensive operations which do not involve significant I/O such as embedding an image processing library, or embedding a small pre-indexed database for search over a read-only dataset.
 
-## Node.js compatibility
+## Node.js 兼容性
 
-Cloudflare Workers support most Node.js runtime APIs through the `nodejs_compat` compatibility flag. This includes commonly used modules like `node:buffer`, `node:crypto`, `node:path`, and many others. See the [full list of supported Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs) in Cloudflare's documentation.
+Cloudflare Workers 通过 `nodejs_compat` 兼容性标志支持大多数 Node.js 运行时 API。这包括常用的模块，如 `node:buffer`，`node:crypto`，`node:path` 等。有关支持的 [Node.js API的完整列表](https://developers.cloudflare.com/workers/runtime-apis/nodejs)，请参阅 Cloudflare 文档。
 
-To enable Node.js compatibility, add the `nodejs_compat` flag to your Wrangler configuration:
+要启用 Node.js 兼容性，请在你的 Wrangler 配置中添加 `nodejs_compat` 标志：
 
 ```jsonc title="wrangler.jsonc"
 {
@@ -393,24 +395,24 @@ To enable Node.js compatibility, add the `nodejs_compat` flag to your Wrangler c
 }
 ```
 
-Then use the `node:*` import syntax in your server-side code:
+然后在你的服务端代码中使用 `node:*` 导入：
 
 ```js title="src/pages/api/endpoint.js"
-export const prerender = false; // Not needed in 'server' mode  
+export const prerender = false; // 在 'server' 模式中不需要  
 import { Buffer } from 'node:buffer';
 ```
 
-For Node.js APIs not yet supported in the Workers runtime, Wrangler can inject polyfills (requires `nodejs_compat` and a compatibility date of 2024-09-23 or later).
+对于 Workers 运行时尚未支持的 Node.js API，Wrangler 可以注入 polyfills（需要 `nodejs_compat` 以及兼容性日期为 2024 年 9 月 23 日或之后）。
 
-<ReadMore>See the [Cloudflare documentation on Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) for the complete list of supported APIs and configuration details.</ReadMore>
+<ReadMore>有关支持的 API 完整列表和配置详情，请参阅 [Cloudflare 关于 Node.js 兼容性的文档](https://developers.cloudflare.com/workers/runtime-apis/nodejs/)。</ReadMore>
 
-## Local preview
+## 本地预览
 
-After building your project with `astro build`, use `astro preview` to test your Cloudflare Workers application locally. The preview runs using Cloudflare's `workerd` runtime, closely mirroring production behavior.
+使用 `astro build` 构建项目后，可以使用 `astro preview` 在本地测试你的 Cloudflare Workers 应用。该预览会使用 Cloudflare 的 `workerd` 运行时，其运行行为与生产环境高度一致，
 
-### Meaningful error messages
+### 有意义的错误信息
 
-By default, errors occurring while running your application in Wrangler are minified. For better debugging, add `vite.build.minify = false` to your `astro.config.mjs`:  
+默认情况下，在 Wrangler 中运行应用时发生的错误会被压缩。为了更好地调试，请在 `astro.config.mjs` 中添加 `vite.build.minify = false`：
 
 ```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
@@ -423,7 +425,7 @@ export default defineConfig({
 });
 ```
 
-## Upgrading to v13 and Astro 6
+## 升级到 v13 和 Astro 6
 
 Astro 6 brings significant improvements to the Cloudflare development experience and requires `@astrojs/cloudflare` v13 or later. Now, `astro dev` uses Cloudflare's Vite plugin and `workerd` runtime to closely mirror production behavior.
 
