@@ -71,7 +71,6 @@ export const sidebar = [
 					'guides/content-collections',
 					'guides/images',
 					'guides/data-fetching',
-					'guides/astro-db',
 				],
 			}),
 			group('guides.serverRendering', {
