@@ -872,17 +872,21 @@ if (error) {
 
 <p><Since v="7.0.0" /></p>
 
-[Route caching](/en/guides/caching/) integrates directly with live content collections. [`cache.set()`](/en/reference/api-reference/#cacheset) accepts `CacheHint` and `LiveDataEntry` objects natively, allowing cache hints from loaders to be passed through without manually setting headers.
+When live loaders provide [cache hints](/en/reference/content-loader-reference/#live-loaders), `getLiveEntry()` and `getLiveCollection()` return a `cacheHint` object. This allows you to control the [caching behavior](/en/guides/caching/) of your routes without manually setting headers.
 
-A [live loader](/en/reference/content-loader-reference/#live-loaders) can return a `cacheHint` on individual entries or on the collection as a whole. These hints include `tags` (for targeted invalidation) and `lastModified` (for freshness). When passed to [`cache.set()`](/en/reference/api-reference/#cacheset), they merge with any other cache options already set on the page.
+Cache hints include [`tags`](/en/reference/content-loader-reference/#cachehinttags) for targeted invalidation and [`lastModified`](/en/reference/content-loader-reference/#cachehintlastmodified) to keep cached data fresh. You can also combine the cache hints with your own [cache options](/en/reference/cache-provider-reference/#cacheoptions) to further customize caching behavior. 
 
-#### Passing cache hints from entries
+<ReadMore>
+See the [Content Loader Reference](/en/reference/content-loader-reference/) for more about implementing cache hints in your live loaders.
+</ReadMore>
 
-Pass the `cacheHint` returned by `getLiveEntry()` or `getLiveCollection()` directly to [`cache.set()`](/en/reference/api-reference/#cacheset).
+#### Entry-level cache hints
+
+Pass the `cacheHint` returned by `getLiveEntry()` to [`Astro.cache.set()`](/en/reference/api-reference/#cacheset) to apply the loader's recommended caching strategy.
 
 The following example passes the loader's cache hint and adds a `maxAge` to control how long the response stays fresh:
 
-```astro title="src/pages/products/[id].astro"
+```astro title="src/pages/products/[id].astro" {4,10-12}
 ---
 import { getLiveEntry } from 'astro:content';
 
@@ -895,15 +899,16 @@ if (error) {
 if (cacheHint) {
   Astro.cache.set(cacheHint);
 }
+
 Astro.cache.set({ maxAge: 300 });
 ---
 
 <h1>{entry.data.name}</h1>
 ```
 
-A [`LiveDataEntry`](/en/reference/content-loader-reference/#livedataentry) can also be passed directly. Astro extracts its `cacheHint` automatically:
+You can also pass a [`LiveDataEntry`](/en/reference/content-loader-reference/#livedataentry) directly to let Astro extract its `cacheHint` automatically:
 
-```astro title="src/pages/products/[id].astro"
+```astro title="src/pages/products/[id].astro" {4,10}
 ---
 import { getLiveEntry } from 'astro:content';
 
@@ -920,31 +925,13 @@ Astro.cache.set({ maxAge: 300, swr: 60 });
 <h1>{entry.data.name}</h1>
 ```
 
-#### Invalidating by entry
-
-[`cache.invalidate()`](/en/reference/api-reference/#cacheinvalidate) accepts a `LiveDataEntry`, invalidating all cached responses tagged with that entry's cache tags.
-
-The following example invalidates the cached response for a specific product entry:
-
-```ts title="src/pages/api/revalidate.ts"
-import { getLiveEntry } from 'astro:content';
-
-export async function POST(context) {
-  const { entry } = await getLiveEntry('products', 'featured');
-  if (entry) {
-    await context.cache.invalidate(entry);
-  }
-  return Response.json({ ok: true });
-}
-```
-
 #### Collection-level cache hints
 
 When fetching a full collection with `getLiveCollection()`, Astro merges cache hints from the collection response and all individual entries: tags are accumulated, and the most recent `lastModified` wins.
 
 The following example passes the merged cache hint from a collection and sets a 10-minute freshness window:
 
-```astro title="src/pages/products/index.astro"
+```astro title="src/pages/products/index.astro" {4,10-12}
 ---
 import { getLiveCollection } from 'astro:content';
 
@@ -965,9 +952,23 @@ Astro.cache.set({ maxAge: 600 });
 </ul>
 ```
 
-<ReadMore>
-See the [Content Loader Reference](/en/reference/content-loader-reference/) for more about implementing cache hints in your live loaders.
-</ReadMore>
+#### Invalidating by entry
+
+You can invalidate cached entries by passing a `LiveDataEntry` to [`cache.invalidate()`](/en/reference/api-reference/#cacheinvalidate). This allows you to target specific cached responses for invalidation based on the entry's cache tags, without needing to clear the entire cache.
+
+The following example invalidates the cached response for a specific product entry:
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('products', 'featured');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
+```
 
 ## Using JSON Schema files in your editor
 
