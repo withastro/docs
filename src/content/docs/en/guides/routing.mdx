@@ -580,13 +580,13 @@ In this example, only `src/pages/index.astro` and `src/pages/projects/project1.m
 
 <p><Since v="7.0.0" /></p>
 
-By default, Astro handles every request with a built-in pipeline that runs trailing-slash normalization, redirects, sessions, actions, user middleware, page rendering, i18n, and caching in a fixed order. This pipeline is designed to cover the most common use cases for routing and request handling, but it may not fit every project’s needs.
+By default, Astro handles every request with a built-in pipeline that runs the handlers in a fixed order: trailing-slash normalization, redirects, sessions, actions, user middleware, page rendering, i18n, and caching. This pipeline is designed to cover the most common use cases for routing and request handling, but it may not fit every project’s needs.
 
-Astro's advanced routing lets you replace this pipeline with your own, composing Astro's built-in handler functions with custom logic in any order you choose. This gives you full control over how Astro handles incoming requests. You can choose which built-in features to use and where to use them. You can also add your own custom logic anywhere in the pipeline.
+Astro's advanced routing allows you to replace this pipeline with your own. You can choose which built-in features to use and where to use them. You can also add your own custom logic anywhere in the pipeline. This gives you full control over how Astro handles incoming requests.
 
-### Enabling advanced routing
+### Overriding the default pipeline
 
-Create a `src/fetch.ts` file that default-exports an object with a `fetch()` method. This method receives a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and must return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+When the default pipeline does not fit your needs, you can override it by creating a `src/fetch.ts` file that default-exports an object with a `fetch()` method. This method receives a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and must return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
 ```ts title="src/fetch.ts"
 import type { Fetchable } from 'astro';
@@ -599,19 +599,19 @@ export default {
 } satisfies Fetchable;
 ```
 
-Astro supports several file formats for its advanced routing configuration: `.ts`, `.js`, `.mjs`, and `.mts`. We recommend using `.js` in most cases or `.ts` if you need TypeScript support.
+Astro supports several file formats for its advanced routing entrypoint: `.ts`, `.js`, `.mjs`, and `.mts`. We recommend using `.js` in most cases or `.ts` if you need TypeScript support.
 
 ### Customizing the entrypoint file
 
-By default, Astro looks for `src/fetch.ts` as the advanced routing entrypoint. Set the `fetchFile` option to use a different file:
+By default, Astro looks for `src/fetch.ts` as the advanced routing entrypoint. You can change this by setting the `fetchFile` option in your Astro config file.
+
+The following example tells Astro to look for `src/handler.ts` instead of `src/fetch.ts`:
 
 ```js title="astro.config.mjs"
 export default defineConfig({
   fetchFile: 'handler',
 });
 ```
-
-With this configuration, Astro will look for `src/handler.ts` instead of `src/fetch.ts`.
 
 Set `fetchFile` to `null` to disable the entrypoint entirely. This is useful if you already have a `src/fetch.ts` file used for other purposes:
 
@@ -627,7 +627,9 @@ export default defineConfig({
 
 ### Using the full built-in pipeline
 
-The easiest way to get started is with the [`astro()` handler](/en/reference/modules/astro-fetch/#astro), which runs Astro's full built-in pipeline (sessions, cache, redirects, trailing-slash, actions, middleware, pages, and i18n) in the default order. This lets you add custom logic before or after Astro without changing how the internal pipeline works:
+The easiest way to use advanced routing is to run the full built-in pipeline with the [`astro()` handler](/en/reference/modules/astro-fetch/#astro). This lets you add custom logic before or after Astro without changing how the internal pipeline works.
+
+The following example checks if a user can access a dashboard before running the Astro pipeline, and adds a custom header to the response once Astro has finished running:
 
 ```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
@@ -661,7 +663,9 @@ For many use cases, such as adding auth guards, request logging, and custom head
 
 ### Composing individual handlers
 
-When you need more control over the pipeline order, or want to omit certain features entirely, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/):
+For more precise control over the pipeline execution order, or to omit certain features, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/). Each handler operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data, such as the matched route, cookies, and session. You can call them in any order and mix them with your own logic.
+
+The following example only runs the handlers for the features used in the project:
 
 ```ts title="src/fetch.ts"
 import {
@@ -689,8 +693,6 @@ export default {
   },
 };
 ```
-
-Each function operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data like the matched route, cookies, and session. You can call them in any order and mix them with your own logic.
 
 ### Adding custom logic
 
