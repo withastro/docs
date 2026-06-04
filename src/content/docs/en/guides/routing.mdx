@@ -584,7 +584,7 @@ By default, Astro handles every request with a built-in pipeline that runs the h
 
 Astro's advanced routing allows you to replace this pipeline with your own. You can choose which built-in features to use and where to use them. You can also add your own custom logic anywhere in the pipeline. This gives you full control over how Astro handles incoming requests.
 
-### Overriding the default pipeline
+### Creating a custom entrypoint
 
 When the default pipeline does not fit your needs, you can override it by creating a `src/fetch.ts` file that default-exports an object with a `fetch()` method. This method receives a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and must return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
 
@@ -601,7 +601,7 @@ export default {
 
 Astro supports several file formats for its advanced routing entrypoint: `.ts`, `.js`, `.mjs`, and `.mts`. We recommend using `.js` in most cases or `.ts` if you need TypeScript support.
 
-### Customizing the entrypoint file
+### Changing the entrypoint filename
 
 By default, Astro looks for `src/fetch.ts` as the advanced routing entrypoint. You can change this by setting the `fetchFile` option in your Astro config file.
 
@@ -625,9 +625,18 @@ export default defineConfig({
 });
 ```
 
-### Using the full built-in pipeline
+### Adding custom logic
 
-The easiest way to use advanced routing is to run the full built-in pipeline with the [`astro()` handler](/en/reference/modules/astro-fetch/#astro). This lets you add custom logic before or after Astro without changing how the internal pipeline works.
+The main benefit of advanced routing is the ability to insert custom logic into the request pipeline. You can run code before Astro touches the request, between pipeline stages, or after the response is produced.
+
+You can do this in two ways:
+
+- Use the [`astro()` handler](/en/reference/modules/astro-fetch/#astro) to run the full built-in pipeline, and add logic before or after it.
+- Compose individual handlers from [`astro/fetch`](/en/reference/modules/astro-fetch/) for more control over execution order.
+
+#### Running the full pipeline with `astro()`
+
+Use [`astro()`](/en/reference/modules/astro-fetch/#astro) when you want to keep Astro's built-in routing behavior, but need custom logic around it. This approach preserves the default pipeline order and lets you add pre-processing and post-processing in one place. For many use cases, such as adding auth guards, request logging, and custom headers, `astro()` is all you need.
 
 The following example checks if a user can access a dashboard before running the Astro pipeline, and adds a custom header to the response once Astro has finished running:
 
@@ -659,13 +668,11 @@ export default {
 };
 ```
 
-For many use cases, such as adding auth guards, request logging, and custom headers, `astro()` is all you need.
+#### Composing individual handlers
 
-### Composing individual handlers
+When you need more control over the pipeline execution order, or want to omit certain features, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/). Each handler operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data, such as the matched route, cookies, and session. You can call handlers in any order and insert custom logic between stages.
 
-For more precise control over the pipeline execution order, or to omit certain features, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/). Each handler operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data, such as the matched route, cookies, and session. You can call them in any order and mix them with your own logic.
-
-The following example only runs the handlers for the features used in the project:
+The following example runs only the handlers used in the project and adds custom logic after actions and before page rendering:
 
 ```ts title="src/fetch.ts"
 import {
@@ -685,6 +692,9 @@ export default {
       const actionResponse = await actions(state);
       if (actionResponse) return actionResponse;
 
+      // Custom logic between actions and page rendering
+      console.log(`Rendering ${new URL(request.url).pathname}`);
+
       const response = await middleware(state, (s) => pages(s));
       return i18n(state, response);
     } finally {
@@ -694,40 +704,9 @@ export default {
 };
 ```
 
-### Adding custom logic
+### Typing custom context providers
 
-The main benefit of advanced routing is the ability to insert custom logic anywhere in the request pipeline. You can run code before Astro touches the request, between pipeline stages, or after the response is produced.
-
-The [`astro()` handler](/en/reference/modules/astro-fetch/#astro) is the simplest way to add pre- or post-processing around the full pipeline. When you need to insert logic *between* specific stages, such as running custom code after actions but before page rendering, compose the individual handlers instead:
-
-```ts title="src/fetch.ts"
-import {
-  FetchState,
-  actions,
-  middleware,
-  pages,
-  i18n,
-} from 'astro/fetch';
-
-export default {
-  async fetch(request: Request): Promise<Response> {
-    const state = new FetchState(request);
-
-    const actionResponse = await actions(state);
-    if (actionResponse) return actionResponse;
-
-    // Custom logic between actions and page rendering
-    console.log(`Rendering ${new URL(request.url).pathname}`);
-
-    const response = await middleware(state, (s) => pages(s));
-    return i18n(state, response);
-  },
-};
-```
-
-### Custom context providers types
-
-By default, custom context providers registered with [`state.provide()`](/en/reference/modules/astro-fetch/#stateprovide) are not typed, and can contain any value. To type the information, you can [extend the global types](/en/guides/typescript/#extending-global-types) by declaring an `App.Providers` interface in a `env.d.ts` file in your project. This gives you type safety and autocompletion for your custom providers when using `Astro` and `ctx` in your components and middleware.
+By default, custom context providers registered with [`state.provide()`](/en/reference/modules/astro-fetch/#stateprovide) are not typed and can contain any value. You can type them by [extending global types](/en/guides/typescript/#extending-global-types) and declaring an `App.Providers` interface in an `env.d.ts` file. This gives you type safety and autocompletion for your custom providers when using `Astro` and `ctx` in your components and middleware.
 
 The following example declares a custom `oauth` provider that contains an `OAuthSession` object imported from a local module:
 
