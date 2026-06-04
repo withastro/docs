@@ -6,7 +6,6 @@ i18nReady: true
 ---
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
-import { Tabs, TabItem } from '@astrojs/starlight/components';
 
 <p>
 
@@ -57,6 +56,8 @@ export default defineConfig({
 **Default:** `{ max: 1000 }`
 </p>
 
+Configures the in-memory cache provider.
+
 #### `max`
 
 <p>
@@ -65,9 +66,14 @@ export default defineConfig({
 **Default:** `1000`
 </p>
 
-Maximum number of entries to keep in cache. When the cache exceeds this limit, the least recently used entry is evicted.
+Defines the maximum number of entries to keep in cache. When the cache exceeds this limit, the least recently used entry is evicted.
 
 #### `query`
+
+<p>
+
+**Type:** `{ sort?: boolean; include?: string[]; exclude?: string[]; }`<br />
+</p>
 
 Controls how query parameters are handled in cache keys.
 
@@ -79,7 +85,9 @@ Controls how query parameters are handled in cache keys.
 **Default:** `true`
 </p>
 
-Sort query parameters alphabetically so that parameter order does not affect the cache key. Set to `false` to disable sorting, and cache URLs with different query parameter order separately. This is useful when parameter order is significant.
+Determines whether query parameters should be sorted alphabetically. This is useful when parameter order is significant and to ensure that their order does not affect the cache key.
+
+Set to `false` to disable sorting, and cache URLs with different query parameter orders separately.
 
 ##### `query.exclude`
 
@@ -89,15 +97,17 @@ Sort query parameters alphabetically so that parameter order does not affect the
 **Default:** `['utm_*', 'fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'li_fat_id', 'mc_cid', 'mc_eid', '_ga', '_gl', '_hsenc', '_hsmi', '_ke', 'oly_anon_id', 'oly_enc_id', 'rb_clickid', 's_cid', 'vero_id', 'wickedid', 'yclid', '__s', 'ref']`
 </p>
 
-Exclude query parameters whose names match these patterns from the cache key. Supports glob wildcards (e.g. `"utm_*"`). Cannot be used together with `include`.
+Lists the query parameters to exclude from the cache key. This supports glob wildcards (e.g. `"utm_*"`) and, by default, excludes common tracking and analytics parameters.
 
-By default, common tracking and analytics parameters are excluded. Set to `[]` to include all query parameters in the cache key:
+Set to `[]` to include all query parameters in the cache key:
 
 ```js title="astro.config.mjs"
 memoryCache({
   query: { exclude: [] },
 });
 ```
+
+An error is thrown if used together with [`include`](#queryinclude).
 
 ##### `query.include`
 
@@ -106,7 +116,7 @@ memoryCache({
 **Type:** `string[]`
 </p>
 
-Only include these query parameter names in the cache key. All other parameters are ignored, including the default tracking parameter exclusions. Cannot be used together with `exclude`.
+Lists the query parameter names to include in the cache key. When set, all other parameters are ignored, including default tracking parameter exclusions.
 
 The following example only uses `page` and `sort` parameters in the cache key, ignoring all others:
 
@@ -115,6 +125,8 @@ memoryCache({
   query: { include: ['page', 'sort'] },
 });
 ```
+
+An error is thrown if used together with [`exclude`](#queryexclude).
 
 ### Cache key behavior
 
@@ -134,7 +146,7 @@ A cache provider has two parts:
 
 1. **The runtime module** — A file that **default-exports** a `CacheProviderFactory` function. This module is bundled into your SSR output, so it must be runtime-agnostic: avoid Node.js built-in modules (e.g. `node:fs`, `node:path`) unless your target runtime supports them.
 
-2. **The config helper** — A function exported for users to call in `astro.config.mjs`. It returns a [`CacheProviderConfig` object](#cacheproviderconfig) that tells Astro where to find the runtime module and what options to pass it. This is the same pattern used by `memoryCache()` from `astro/config`.
+2. **The config helper** — A function exported for users to call in `astro.config.mjs`. It returns a [`CacheProviderConfig` object](#cacheproviderconfig) that tells Astro where to find the runtime module and what options to pass it. This is the same pattern used by the built-in [`memoryCache()` provider](#built-in-memory-cache-provider).
 
 The following example shows a config helper that accepts typed options and points to a runtime module:
 
@@ -226,6 +238,10 @@ import type {
 
 ### `CacheOptions`
 
+Describes the options passed to a cache provider.
+
+<ReadMore>Learn how to [use cache options](/en/guides/caching/#setting-cache-options) to control caching behavior.</ReadMore>
+
 #### `CacheOptions.maxAge`
 
 <p>
@@ -251,7 +267,7 @@ Specifies the stale-while-revalidate window in seconds. Stale content is served 
 **Type:** `string[]`
 </p>
 
-A list of cache tags for targeted invalidation. Tags accumulate across multiple `set()` calls.
+A list of cache tags for targeted invalidation. Tags accumulate across multiple [`cache.set()`](/en/reference/api-reference/#cacheset) calls.
 
 #### `CacheOptions.lastModified`
 
@@ -260,7 +276,7 @@ A list of cache tags for targeted invalidation. Tags accumulate across multiple 
 **Type:** `Date`
 </p>
 
-Indicates the most recent modification date. When multiple calls to `set()` provide `lastModified`, the most recent call takes precedence.
+Indicates the most recent modification date. When multiple calls to [`cache.set()`](/en/reference/api-reference/#cacheset) provide `lastModified`, the most recent call takes precedence.
 
 #### `CacheOptions.etag`
 
