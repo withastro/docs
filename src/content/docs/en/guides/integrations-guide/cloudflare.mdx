@@ -662,6 +662,66 @@ Since Astro 6.0, the integration relies on the Cloudflare Vite plugin and this b
 
 To deploy to a specific Cloudflare environment, prefix your command with the `CLOUDFLARE_ENV` variable. For example, the command `CLOUDFLARE_ENV=some-env astro build && wrangler deploy` will build your Astro project and deploy it with Wrangler using the `some-env` environment.
 
+#### Multi-environment deployments with `platformProxy`
+
+When deploying to multiple Cloudflare environments (e.g., production and preview), you need to configure three things that must match:
+
+1. **`CLOUDFLARE_ENV` environment variable** — set during build
+2. **`[env.<name>]` section in wrangler.toml** — environment-specific bindings
+3. **`platformProxy.environment`** in adapter config — tells the Vite plugin which environment to use during dev/build
+
+Here's a complete example for a project with `production` and `development` environments:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    platformProxy: {
+      // Use CLOUDFLARE_ENV to select the right [env.<name>] section from wrangler.toml
+      environment: process.env.CLOUDFLARE_ENV,
+    },
+  }),
+});
+```
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "my-astro-app",
+  "compatibility_date": "2024-12-18",
+  "compatibility_flags": ["nodejs_compat"],
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "assets": { "directory": "./dist", "binding": "ASSETS" },
+
+  // Default production bindings
+  "kv_namespaces": [
+    { "binding": "SESSION", "id": "production-kv-id" }
+  ],
+
+  // Development-specific bindings
+  [env.development]
+  "name": "my-astro-app-dev",
+  "kv_namespaces": [
+    { "binding": "SESSION", "id": "development-kv-id" }
+  ]
+}
+```
+
+Then build and deploy for each environment:
+
+```sh
+# Production
+CLOUDFLARE_ENV=production astro build && wrangler deploy
+
+# Development/preview
+CLOUDFLARE_ENV=development astro build && wrangler deploy --env development
+```
+
+:::caution[Environment names must match]
+The value of `CLOUDFLARE_ENV` must exactly match the `[env.<name>]` section name in your wrangler config. If they don't match, the Vite plugin won't find the correct bindings during the build, and your Worker may fail to access KV namespaces, D1 databases, or other resources.
+:::
+
 <ReadMore>Learn how to update your [Cloudflare environments](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/) in the [Migrate from wrangler dev guide](https://developers.cloudflare.com/workers/vite-plugin/reference/migrating-from-wrangler-dev/#cloudflare-environments).</ReadMore>
 
 [astro-integration]: /en/guides/integrations/
