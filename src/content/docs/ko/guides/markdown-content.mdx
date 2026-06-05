@@ -9,7 +9,7 @@ import Since from '~/components/Since.astro';
 import { FileTree } from '@astrojs/starlight/components';
 import RecipeLinks from "~/components/RecipeLinks.astro";
 import ReadMore from '~/components/ReadMore.astro';
-import { Steps } from '@astrojs/starlight/components';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 [Markdown](https://daringfireball.net/projects/markdown/)은 일반적으로 블로그 게시물 및 문서와 같이 텍스트가 많은 콘텐츠를 작성하는 데 사용됩니다. Astro에는 title, description, tags와 같은 사용자 정의 속성을 정의하기 위해 [프런트매터 YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) (또는 [TOML](https://toml.io))을 포함할 수 있는 Markdown 파일에 대한 기본 지원이 포함되어 있습니다.
 
@@ -156,77 +156,137 @@ Astro는 `github-slugger`를 기반으로 제목의 `id`를 생성합니다. 더
 
 Astro는 Markdown과 MDX 파일의 모든 제목 요소(`<h1>`부터 `<h6>`)에 `id` 속성을 주입합니다. 이 데이터는 가져온 파일의 [Markdown 내보내기 속성](#사용-가능한-속성)으로 제공되는 `getHeadings()` 유틸리티를 통해, 또는 [콘텐츠 컬렉션 쿼리에서 반환된 Markdown을 사용할 때](#콘텐츠-컬렉션-쿼리의-markdown)는 `render()` 함수를 통해 가져올 수 있습니다.
 
-`id` 속성 (예: `rehype-slug`)을 삽입하는 rehype 플러그인을 추가하여 이러한 제목 ID를 맞춤설정할 수 있습니다. Astro의 기본값 대신 사용자 정의 ID가 HTML 출력과 `getHeadings()`에 의해 반환된 항목에 반영됩니다.
+[Markdown 프로세서](#markdown-프로세서-선택하기) 플러그인(예: `rehype-slug`)을 사용해 `id` 속성을 삽입함으로써 이러한 제목 ID를 사용자 지정할 수 있습니다. 사용자 지정 ID는 Astro의 기본 ID 대신 HTML 출력과 `getHeadings()`가 반환하는 항목에 반영됩니다.
 
-기본적으로 Astro는 rehype 플러그인이 실행된 후 `id` 속성을 주입합니다. 사용자 정의 rehype 플러그인 중 하나가 Astro에서 삽입한 ID에 액세스해야 하는 경우 Astro의 `rehypeHeadingIds` 플러그인을 직접 가져와 사용할 수 있습니다. 이를 사용하는 플러그인 앞에 `rehypeHeadingIds`를 추가하세요.
+Astro는 사용자 지정 플러그인이 실행된 후 `id` 속성을 삽입하므로, 플러그인에서 설정한 모든 ID는 유지됩니다. 사용자 지정 플러그인 중 하나가 Astro가 삽입한 ID에 접근해야 하는 경우, Astro의 제목 ID 플러그인을 가져와 해당 ID에 의존하는 플러그인보다 먼저 배치할 수 있습니다:
 
-```js title="astro.config.mjs" ins={2, 8}
-import { defineConfig } from 'astro/config';
-import { rehypeHeadingIds } from '@astrojs/markdown-remark';
-import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Unified">
+    ```js title="astro.config.mjs" ins={2-3, 9}
+    import { defineConfig } from 'astro/config';
+    import { unified, rehypeHeadingIds } from '@astrojs/markdown-remark';
+    import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
 
-export default defineConfig({
-  markdown: {
-    rehypePlugins: [
-      rehypeHeadingIds,
-      otherPluginThatReliesOnHeadingIDs,
-    ],
-  },
-});
-```
+    export default defineConfig({
+      markdown: {
+        processor: unified({
+          rehypePlugins: [
+            rehypeHeadingIds,
+            otherPluginThatReliesOnHeadingIDs,
+          ],
+        }),
+      },
+    });
+    ```
+  </TabItem>
+  <TabItem label="Sätteri">
+    ```js title="astro.config.mjs" ins={2-3, 9}
+    import { defineConfig } from 'astro/config';
+    import { satteri, satteriHeadingIdsPlugin } from '@astrojs/markdown-satteri';
+    import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+    export default defineConfig({
+      markdown: {
+        processor: satteri({
+          hastPlugins: [
+            satteriHeadingIdsPlugin(),
+            otherPluginThatReliesOnHeadingIDs,
+          ],
+        }),
+      },
+    });
+    ```
+  </TabItem>
+</Tabs>
 
 ## Markdown 플러그인
 
-Astro의 Markdown 지원은 활성 생태계를 갖춘 강력한 구문 분석 및 처리 도구인 [remark](https://remark.js.org/)를 통해 제공됩니다. Pandoc 및 markdown-it과 같은 다른 Markdown 파서는 현재 지원되지 않습니다.
+Astro는 설정 가능한 **Markdown 프로세서**를 사용해 Markdown을 렌더링합니다. 기본적으로는 활발한 플러그인 생태계를 갖춘 [remark](https://remark.js.org/) 및 [rehype](https://github.com/rehypejs/rehype)의 [unified](https://unifiedjs.com/) 파이프라인을 사용합니다.
 
-Astro는 기본적으로 [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) 및 [SmartyPants](https://github.com/silvenon/remark-smartypants) 플러그인을 적용합니다. 이는 텍스트에서 클릭 가능한 링크 생성, [인용 및 em-dashes](https://daringfireball.net/projects/smartypants/) 서식 지정과 같은 몇 가지 장점을 제공합니다.
+Astro는 [GitHub-Flavored Markdown](https://github.github.com/gfm/)과 [SmartyPants](https://daringfireball.net/projects/smartypants/)를 자동으로 적용합니다. 이를 통해 텍스트에서 클릭 가능한 링크를 생성하고, 인용 부호 및 em dash(긴 대시)의 서식을 지정하는 등의 편리한 기능을 사용할 수 있습니다.
 
-`astro.config.mjs` 파일에서 remark가 Markdown을 구문 분석하는 방법을 사용자 정의할 수 있습니다. [Markdown 구성 옵션](/ko/reference/configuration-reference/#markdown-옵션)의 전체 목록을 확인하세요.
+플러그인을 사용해 Markdown 처리를 확장하거나, 추가 파서 기능을 활성화하거나, [완전히 다른 프로세서로 전환](#sätteri-프로세서로-전환하기)할 수 있습니다. 전체 [Markdown 구성 옵션](/ko/reference/configuration-reference/#markdown-옵션) 목록도 확인해 보세요.
 
-### remark 및 rehype 플러그인 추가하기
+### Markdown 프로세서 선택하기
 
-Astro는 Markdown에 대한 타사 [remark](https://github.com/remarkjs/remark) 및 [rehype](https://github.com/rehypejs/rehype) 플러그인 추가를 지원합니다. 이러한 플러그인을 사용하면 [목차 자동 생성](https://github.com/remarkjs/remark-toc), [접근 가능한 이모티콘 라벨 적용](https://github.com/florianeckerstorfer/remark-a11y-emoji), [Markdown 스타일 지정](/ko/guides/styling/#markdown-스타일링)과 같은 새로운 기능으로 Markdown을 확장할 수 있습니다.
+[`markdown.processor` 옵션](/ko/reference/configuration-reference/#markdownprocessor)은 `.md` 및 `.mdx` 파일을 렌더링할 엔진을 제어합니다. Astro는 두 가지 공식 옵션을 제공합니다.
+
+- **`unified()`** (기본값): 풍부한 플러그인 생태계를 갖춘 [remark](https://remark.js.org/) 및 [rehype](https://github.com/rehypejs/rehype) 파이프라인입니다.
+- **`satteri()`**: 자체 플러그인 모델을 갖춘 [Sätteri](https://satteri.bruits.org/) 파이프라인입니다. 더 빠른 Markdown 및 MDX 컴파일러로, 별도로 설치해야 하는 `@astrojs/markdown-satteri` 패키지를 통해 제공됩니다.
+
+### remark 및 rehype 플러그인 사용하기
+
+기본 `unified()` 프로세서는 서드파티 [remark](https://github.com/remarkjs/remark) 및 [rehype](https://github.com/rehypejs/rehype) 플러그인을 지원합니다. 이러한 플러그인을 사용하면 [목차 자동 생성](https://github.com/remarkjs/remark-toc), [접근 가능한 이모지 레이블 적용](https://github.com/florianeckerstorfer/remark-a11y-emoji), [Markdown 스타일 적용](/ko/guides/styling/#markdown-스타일링)과 같은 새로운 기능으로 Markdown을 확장할 수 있습니다.
 
 [awesome-remark](https://github.com/remarkjs/awesome-remark) 및 [awesome-rehype](https://github.com/rehypejs/awesome-rehype)와 같은 인기 플러그인들을 찾아보시기 바랍니다! 구체적인 설치 지침은 각 플러그인의 자체 README를 참조하세요.
 
-이 예시에서는 Markdown 파일에 [`remark-toc`](https://github.com/remarkjs/remark-toc) 및 [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis)를 적용합니다.
+`@astrojs/markdown-remark`에서 `unified`를 가져온 뒤, `markdown.processor`를 통해 플러그인을 전달하세요. 이 예시에서는 Markdown 파일에 [`remark-toc`](https://github.com/remarkjs/remark-toc) 및 [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis)를 적용합니다.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import remarkToc from 'remark-toc';
 import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 
 export default defineConfig({
   markdown: {
-    // .md 및 .mdx 파일에 적용됨
-    remarkPlugins: [ [remarkToc, { heading: 'toc', maxDepth: 3 } ] ],
-    rehypePlugins: [rehypeAccessibleEmojis],
+    processor: unified({
+      remarkPlugins: [[remarkToc, { heading: 'toc', maxDepth: 3 }]],
+      rehypePlugins: [rehypeAccessibleEmojis],
+    }),
   },
 });
 ```
 
-### 플러그인 사용자 정의
+### Remark 또는 rehype 플러그인 사용자 정의하기
 
 플러그인을 사용자 정의하려면 중첩 배열에서 플러그인 뒤에 옵션 객체를 제공하세요.
 
 아래 예시에서는 [`remarkToc` 플러그인에 heading 옵션을 추가](https://github.com/remarkjs/remark-toc#options)하여 목차 위치를 변경하고, [`rehype-autolink-headings` 플러그인에 `behavior` 옵션을 추가](https://github.com/rehypejs/rehype-autolink-headings#options)하여 제목 텍스트 뒤에 앵커 태그를 추가했습니다.
 
 ```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import remarkToc from 'remark-toc';
 import rehypeSlug from 'rehype-slug';
 import rehypeAutolinkHeadings from 'rehype-autolink-headings';
 
-export default {
+export default defineConfig({
   markdown: {
-    remarkPlugins: [ [remarkToc, { heading: "contents"} ] ],
-    rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+    processor: unified({
+      remarkPlugins: [[remarkToc, { heading: 'contents' }]],
+      rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+    }),
   },
-}
+});
 ```
+
+### Sätteri 프로세서로 전환하기
+
+remark 및 rehype 대신 [Sätteri](https://satteri.bruits.org/)를 사용하려면 `@astrojs/markdown-satteri`를 설치한 다음 `satteri`를 가져와 `markdown.processor`에 전달하세요:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+import { myMdastPlugin } from './my-satteri-plugin.mjs';
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      mdastPlugins: [myMdastPlugin()],
+      features: { directive: true, definitionList: true },
+    }),
+  },
+});
+```
+
+Sätteri 프로세서는 `mdastPlugins` 및 `hastPlugins`를 통해 자체 플러그인을 사용할 수 있으며, `features`를 통해 선택적 파서 기능을 활성화하거나 비활성화할 수 있습니다. 사용 가능한 플러그인과 기능에 대해서는 [Sätteri 문서](https://satteri.bruits.org/docs/)를 참조하세요.
+
+프로세서를 전환하면 `.md` 및 `.mdx` 파일 모두에서 remark 및 rehype 대신 Sätteri가 사용됩니다. 구성에 포함된 remark 또는 rehype 플러그인은 적용되지 않습니다. Sätteri를 `.mdx` 파일에만 사용하려면 [MDX 통합의 `processor` 옵션](/ko/guides/integrations-guide/mdx/#processor)을 설정하세요.
 
 ### 프로그래밍 방식으로 프런트매터 수정하기
 
-[remark 또는 rehype 플러그인](#markdown-플러그인)을 사용하여 모든 Markdown 및 MDX 파일에 프런트매터 속성을 추가할 수 있습니다.
+[remark/rehype 프로세서](#remark-및-rehype-플러그인-사용하기)를 사용하는 경우, remark 또는 rehype 플러그인을 통해 모든 Markdown 및 MDX 파일에 프런트매터 속성을 추가할 수 있습니다.
 
 <Steps>
 1. 플러그인의 `file` 인수에서 `data.astro.frontmatter` 속성에 `customProperty`를 추가합니다.
@@ -248,27 +308,30 @@ export default {
 
 2. 이 플러그인을 `markdown` 또는 `mdx` 통합 구성에 적용하세요.
 
-    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    ```js title="astro.config.mjs" {2,3,7}
     import { defineConfig } from 'astro/config';
+    import { unified } from '@astrojs/markdown-remark';
     import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
     export default defineConfig({
       markdown: {
-        remarkPlugins: [exampleRemarkPlugin]
+        processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
       },
     });
     ```
 
     또는
 
-    ```js title="astro.config.mjs" "import { exampleRemarkPlugin } from './example-remark-plugin.mjs';" "remarkPlugins: [exampleRemarkPlugin],"
+    ```js title="astro.config.mjs" {3,4,9}
     import { defineConfig } from 'astro/config';
+    import mdx from '@astrojs/mdx';
+    import { unified } from '@astrojs/markdown-remark';
     import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
 
     export default defineConfig({
       integrations: [
         mdx({
-          remarkPlugins: [exampleRemarkPlugin],
+          processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
         }),
       ],
     });
@@ -281,29 +344,27 @@ export default {
 
 ### MDX에서 Markdown 구성 확장
 
-Astro의 MDX 통합은 기본적으로 [프로젝트의 기존 Markdown 구성](/ko/reference/configuration-reference/#markdown-옵션)을 확장합니다. 개별 옵션을 재정의하려면 MDX 구성에서 해당 옵션을 지정하면 됩니다.
+Astro의 MDX 통합은 기본적으로 [프로젝트의 기존 Markdown 구성](/ko/reference/configuration-reference/#markdown-옵션)을 확장하며, 여기에는 [Markdown 프로세서](#markdown-프로세서-선택하기)도 포함됩니다. 개별 옵션을 재정의하려면 MDX 구성에서 해당 옵션을 지정하면 됩니다.
 
-다음 예시에서는 GitHub 기반 Markdown을 비활성화하고 MDX 파일에 대해 다른 remark 플러그인 세트를 적용합니다.
+다음 예시는 `.md` 파일과 `.mdx` 파일에 서로 다른 구문 강조 도구와 플러그인 세트를 사용하는 방법을 보여줍니다.
 
 ```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   markdown: {
     syntaxHighlight: 'prism',
-    remarkPlugins: [remarkPlugin1],
-    gfm: true,
+    processor: unified({ remarkPlugins: [remarkPlugin1] }),
   },
   integrations: [
     mdx({
-      // Markdown에서 상속된 `syntaxHighlight`
+      // `.mdx` 파일에서는 이 옵션이 `markdown.syntaxHighlight`를 재정의합니다.
+      syntaxHighlight: 'shiki',
 
-      // Markdown `remarkPlugins`가 무시되었습니다.
-      // `remarkPlugin2`만 적용됩니다.
-      remarkPlugins: [remarkPlugin2],
-      // `gfm`이 `false`로 재정의됨
-      gfm: false,
+      // `.mdx` 파일에서는 이 옵션이 `markdown.processor`를 다른 remark 플러그인으로 재정의합니다.
+      processor: unified({ remarkPlugins: [remarkPlugin2] }),
     })
   ]
 });
@@ -313,17 +374,18 @@ MDX에서 Markdown 구성을 확장하지 않으려면 [`extendMarkdownConfig` �
 
 ```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   markdown: {
-    remarkPlugins: [remarkPlugin],
+    processor: unified({ remarkPlugins: [remarkPlugin] }),
   },
   integrations: [
     mdx({
-      // Markdown 구성은 이제 무시됩니다.
+      // 이제 Markdown 구성이 무시됩니다.
       extendMarkdownConfig: false,
-      // 'remarkPlugins'가 적용되지 않았습니다.
+      // 플러그인 없이 기본 `unified()` 프로세서가 사용됩니다.
     })
   ]
 });
