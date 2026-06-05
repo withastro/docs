@@ -670,57 +670,151 @@ When deploying to multiple Cloudflare environments (e.g., production and preview
 2. **`[env.<name>]` section in wrangler.toml** — environment-specific bindings
 3. **`platformProxy.environment`** in adapter config — tells the Vite plugin which environment to use during dev/build
 
-Here's a complete example for a project with `production` and `development` environments:
+##### Correct: all three match
+
+**`CLOUDFLARE_ENV=production`** — everything uses `production`:
 
 ```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import cloudflare from '@astrojs/cloudflare';
-
-export default defineConfig({
-  adapter: cloudflare({
-    platformProxy: {
-      // Use CLOUDFLARE_ENV to select the right [env.<name>] section from wrangler.toml
-      environment: process.env.CLOUDFLARE_ENV,
-    },
-  }),
-});
+adapter: cloudflare({
+  platformProxy: {
+    environment: process.env.CLOUDFLARE_ENV, // "production"
+  },
+}),
 ```
 
 ```jsonc title="wrangler.jsonc"
 {
-  "name": "my-astro-app",
-  "compatibility_date": "2024-12-18",
-  "compatibility_flags": ["nodejs_compat"],
-  "main": "@astrojs/cloudflare/entrypoints/server",
-  "assets": { "directory": "./dist", "binding": "ASSETS" },
-
-  // Default production bindings
+  "name": "my-app",
   "kv_namespaces": [
-    { "binding": "SESSION", "id": "production-kv-id" }
+    { "binding": "SESSION", "id": "prod-kv-abc123" }
   ],
 
-  // Development-specific bindings
-  [env.development]
-  "name": "my-astro-app-dev",
-  "kv_namespaces": [
-    { "binding": "SESSION", "id": "development-kv-id" }
-  ]
+  "env.production": {
+    "name": "my-app-production",
+    "kv_namespaces": [
+      { "binding": "SESSION", "id": "prod-kv-abc123" }
+    ]
+  },
+
+  "env.development": {
+    "name": "my-app-dev",
+    "kv_namespaces": [
+      { "binding": "SESSION", "id": "dev-kv-xyz789" }
+    ]
+  }
 }
 ```
 
-Then build and deploy for each environment:
+```sh
+CLOUDFLARE_ENV=production astro build && wrangler deploy --env production
+# ✓ platformProxy reads "production"
+# ✓ wrangler.toml has "env.production" section
+# ✓ wrangler deploys to "production" environment
+```
+
+---
+
+**`CLOUDFLARE_ENV=development`** — same config, different env:
 
 ```sh
-# Production
-CLOUDFLARE_ENV=production astro build && wrangler deploy
-
-# Development/preview
 CLOUDFLARE_ENV=development astro build && wrangler deploy --env development
+# ✓ platformProxy reads "development"
+# ✓ wrangler.toml has "env.development" section
+# ✓ wrangler deploys to "development" environment
+```
+
+---
+
+##### Incorrect: `CLOUDFLARE_ENV` doesn't match any `[env.*]` section
+
+```jsonc title="wrangler.jsonc"
+{
+  "env.production": { ... },
+  "env.development": { ... }
+  // No "env.staging" section
+}
+```
+
+```sh
+CLOUDFLARE_ENV=staging astro build && wrangler deploy --env staging
+# ✗ platformProxy reads "staging" — no matching section in wrangler.toml
+# ✗ Vite plugin uses top-level (production) bindings instead
+# ✗ Build succeeds but uses wrong KV/D1 bindings
+```
+
+---
+
+##### Incorrect: `platformProxy` missing — Vite plugin ignores `CLOUDFLARE_ENV`
+
+```js title="astro.config.mjs"
+adapter: cloudflare({
+  // platformProxy not set
+}),
+```
+
+```sh
+CLOUDFLARE_ENV=development astro build && wrangler deploy --env development
+# ✗ platformProxy not configured — Vite plugin doesn't read CLOUDFLARE_ENV
+# ✗ astro dev uses top-level (production) bindings
+# ✗ Build may work but dev server has wrong bindings
+```
+
+---
+
+##### Incorrect: `wrangler deploy --env` doesn't match build env
+
+```js title="astro.config.mjs"
+adapter: cloudflare({
+  platformProxy: {
+    environment: process.env.CLOUDFLARE_ENV, // "development"
+  },
+}),
+```
+
+```sh
+CLOUDFLARE_ENV=development astro build && wrangler deploy --env production
+# ✗ Build used "development" bindings (KV id: dev-kv-xyz789)
+# ✗ Deploy targets "production" environment (expects prod-kv-abc123)
+# ✗ Worker runs with dev bindings in production
+```
+
+---
+
+##### Correct: hardcoded for single-environment projects
+
+If you only have one environment, hardcoding is fine:
+
+```js title="astro.config.mjs"
+adapter: cloudflare({
+  platformProxy: {
+    environment: 'production', // hardcoded
+  },
+}),
+```
+
+```sh
+astro build && wrangler deploy
+# ✓ Always uses production bindings
+# ✓ No CLOUDFLARE_ENV needed
 ```
 
 :::caution[Environment names must match]
 The value of `CLOUDFLARE_ENV` must exactly match the `[env.<name>]` section name in your wrangler config. If they don't match, the Vite plugin won't find the correct bindings during the build, and your Worker may fail to access KV namespaces, D1 databases, or other resources.
 :::
+
+#### Further reading
+
+<details>
+<summary>Issues and PRs that contributed to this solution</summary>
+
+- [PR #11445](https://github.com/withastro/docs/pull/11445) — Added `platformProxy.environment` option docs
+- [PR #13578](https://github.com/withastro/docs/pull/13578) — Added `CLOUDFLARE_ENV` variable docs
+- [#15917](https://github.com/withastro/astro/issues/15917) — Users documented the three-way matching workaround
+- [#16031](https://github.com/withastro/astro/issues/16031) — Same issue, suggested `cloudflareEnv` adapter option
+- [#14540](https://github.com/withastro/astro/issues/14540) — Independent discovery of the same workaround
+- [#13897](https://github.com/withastro/docs/issues/13897) — Misleading env vars documentation
+
+</details>
 
 <ReadMore>Learn how to update your [Cloudflare environments](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/) in the [Migrate from wrangler dev guide](https://developers.cloudflare.com/workers/vite-plugin/reference/migrating-from-wrangler-dev/#cloudflare-environments).</ReadMore>
 
