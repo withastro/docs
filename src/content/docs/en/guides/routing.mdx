@@ -677,7 +677,6 @@ The following example runs only the handlers used in the project and adds custom
 ```ts title="src/fetch.ts"
 import {
   FetchState,
-  sessions,
   actions,
   middleware,
   pages,
@@ -687,38 +686,18 @@ import {
 export default {
   async fetch(request: Request): Promise<Response> {
     const state = new FetchState(request);
-    await sessions(state);
-    try {
-      const actionResponse = await actions(state);
-      if (actionResponse) return actionResponse;
 
-      // Custom logic between actions and page rendering
-      console.log(`Rendering ${new URL(request.url).pathname}`);
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
 
-      const response = await middleware(state, (s) => pages(s));
-      return i18n(state, response);
-    } finally {
-      await state.finalizeAll();
-    }
+    // Custom logic between actions and page rendering
+    console.log(`Rendering ${new URL(request.url).pathname}`);
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
   },
 };
 ```
-
-### Typing custom context providers
-
-By default, custom context providers registered with [`state.provide()`](/en/reference/modules/astro-fetch/#stateprovide) are not typed and can contain any value. You can type them by [extending global types](/en/guides/typescript/#extending-global-types) and declaring an `App.Providers` interface in an `env.d.ts` file. This gives you type safety and autocompletion for your custom providers when using `Astro` and `ctx` in your components and middleware.
-
-The following example declares a custom `oauth` provider that contains an `OAuthSession` object imported from a local module:
-
-```ts title="src/env.d.ts"
-declare namespace App {
-  interface Providers {
-    oauth: import('./lib/oauth').OAuthSession;
-  }
-}
-```
-
-After declaring a provider, `ctx.oauth` (and `Astro.oauth` in `.astro` files) will be typed automatically.
 
 ### Using with Hono
 

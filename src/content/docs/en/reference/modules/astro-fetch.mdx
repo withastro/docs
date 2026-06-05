@@ -150,56 +150,6 @@ Triggers a [rewrite](/en/guides/routing/#rewrites) to a different route. The `pa
 const response = await state.rewrite('/other-page');
 ```
 
-##### `state.provide()`
-
-<p>
-
-**Type:** `(key: string, provider: ContextProvider<T>) => void`
-</p>
-
-Registers a context provider under the given key. The provider's `create()` function is called lazily on the first [`state.resolve()`](#stateresolve), and its optional `finalize()` callback runs during [`state.finalizeAll()`](#statefinalizeall):
-
-```ts
-state.provide('myService', {
-  create: () => new MyService(),
-  finalize: (service) => service.close(),
-});
-```
-
-<ReadMore>Learn how to [add type safety to custom context providers](/en/guides/routing/#typing-custom-context-providers) in the advanced routing guide.</ReadMore>
-
-##### `state.resolve()`
-
-<p>
-
-**Type:** `(key: string) => T | undefined`
-</p>
-
-Returns the value for a previously registered provider, calling its `create()` function on first access. Returns `undefined` if no provider was registered for the key:
-
-```ts
-const service = state.resolve('myService');
-```
-
-##### `state.finalizeAll()`
-
-<p>
-
-**Type:** `() => Promise<void> | void`
-</p>
-
-Runs all registered provider `finalize()` callbacks. Call this after the response is produced, typically in a `finally` block, to persist session data and clean up resources:
-
-```ts
-await sessions(state);
-try {
-  // ...render pipeline...
-  return response;
-} finally {
-  await state.finalizeAll();
-}
-```
-
 ### `astro()`
 
 <p>
@@ -299,15 +249,11 @@ Handles redirect routes defined in your [Astro config](/en/reference/configurati
 **Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
 </p>
 
-Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted when `state.finalizeAll()` is called. Call this early in the pipeline, and call `finalizeAll()` in a `finally` block:
+Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted automatically at the end of the request. Call this early in the pipeline (before middleware runs):
 
 ```ts
 await sessions(state);
-try {
-  // ...render pipeline...
-} finally {
-  await state.finalizeAll();
-}
+// ...render pipeline...
 ```
 
 ### `trailingSlash()`
