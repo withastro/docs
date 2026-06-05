@@ -115,7 +115,6 @@ export default {
 ```ts title="src/app.ts"
 import {
   FetchState,
-  sessions,
   actions,
   middleware,
   pages,
@@ -125,16 +124,12 @@ import {
 export default {
   async fetch(request: Request): Promise<Response> {
     const state = new FetchState(request);
-    await sessions(state);
-    try {
-      const actionResponse = await actions(state);
-      if (actionResponse) return actionResponse;
 
-      const response = await middleware(state, (s) => pages(s));
-      return i18n(state, response);
-    } finally {
-      await state.finalizeAll();
-    }
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
   },
 };
 ```
@@ -171,20 +166,6 @@ export default {
   },
 };
 ```
-
-## `App.Providers`를 사용하여 사용자 정의 프로바이더 타입 지정하기
-
-[`state.provide()`](#stateprovide)를 사용하여 사용자 정의 컨텍스트 프로바이더를 등록할 때, `App.Providers` 인터페이스를 사용하여 해당 타입을 선언할 수 있습니다. 이를 통해 컴포넌트와 미들웨어에서 `Astro`와 `ctx`의 타입이 완벽하게 지정됩니다:
-
-```ts title="src/env.d.ts"
-declare namespace App {
-  interface Providers {
-    oauth: import('./lib/oauth').OAuthSession;
-  }
-}
-```
-
-프로바이더를 선언하면 `ctx.oauth` (및 `.astro` 파일의 `Astro.oauth`)의 타입이 자동으로 지정됩니다.
 
 ## `astro/fetch` 핸들러 참조
 
@@ -286,54 +267,6 @@ const response = await middleware(state, (s) => pages(s));
 const response = await state.rewrite('/other-page');
 ```
 
-##### `state.provide()`
-
-<p>
-
-**타입:** `(key: string, provider: ContextProvider<T>) => void`
-</p>
-
-지정된 키 아래에 컨텍스트 프로바이더를 등록합니다. 프로바이더의 `create()` 함수는 [`state.resolve()`](#stateresolve)가 처음 호출될 때 지연 호출되며, 선택적인 `finalize()` 콜백은 [`state.finalizeAll()`](#statefinalizeall) 실행 중 호출됩니다:
-
-```ts
-state.provide('myService', {
-  create: () => new MyService(),
-  finalize: (service) => service.close(),
-});
-```
-
-##### `state.resolve()`
-
-<p>
-
-**타입:** `(key: string) => T | undefined`
-</p>
-
-이전에 등록된 프로바이더의 값을 반환하며, 첫 접근 시 `create` 함수를 호출합니다. 해당 키로 등록된 프로바이더가 없으면 `undefined`를 반환합니다:
-
-```ts
-const service = state.resolve('myService');
-```
-
-##### `state.finalizeAll()`
-
-<p>
-
-**타입:** `() => Promise<void> | void`
-</p>
-
-등록된 모든 프로바이더의 `finalize` 콜백을 실행합니다. 세션 데이터를 저장하고 리소스를 정리하기 위해 일반적으로 `finally` 블록에서 응답 생성 후 이 메서드를 호출합니다:
-
-```ts
-await sessions(state);
-try {
-  // ...렌더 파이프라인...
-  return response;
-} finally {
-  await state.finalizeAll();
-}
-```
-
 ### `astro()`
 
 <p>
@@ -401,15 +334,11 @@ if (actionResponse) return actionResponse;
 **타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
 </p>
 
-[세션](/ko/guides/sessions/) 프로바이더를 등록합니다. 세션은 코드에서 `ctx.session`에 접근할 때 지연 생성되며, `state.finalizeAll()`이 호출될 때 저장됩니다. 파이프라인 초기에 이를 호출하고, `finally` 블록에서 `finalizeAll()`을 호출하세요:
+[세션](/ko/guides/sessions/) 프로바이더를 등록합니다. 세션은 코드에서 `ctx.session`에 접근할 때 지연 생성되며, 요청이 끝날 때 자동으로 저장됩니다. 미들웨어가 실행되기 전에 파이프라인 초기에 이를 호출하세요:
 
 ```ts
 await sessions(state);
-try {
-  // ...렌더 파이프라인...
-} finally {
-  await state.finalizeAll();
-}
+// ...렌더 파이프라인...
 ```
 
 ### `i18n()`
