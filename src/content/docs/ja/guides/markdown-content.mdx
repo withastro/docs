@@ -1,0 +1,484 @@
+---
+title: AstroにおけるMarkdown
+sidebar:
+  label: Markdown
+description: Astro組み込みのMarkdownサポートについて学びます。
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import { FileTree } from '@astrojs/starlight/components';
+import RecipeLinks from "~/components/RecipeLinks.astro";
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+[Markdown](https://daringfireball.net/projects/markdown/)は、ブログ記事やドキュメントなど、テキストを多く含むコンテンツを書くためによく使われます。Astroには、タイトル、説明、タグなどのカスタムプロパティを定義するための[フロントマターYAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f)（または[TOML](https://toml.io)）も含められる、Markdownファイルの組み込みサポートが備わっています。
+
+Astroでは、[GitHub Flavored Markdown](https://github.github.com/gfm/)でコンテンツを書き、それを`.astro`コンポーネント内でレンダリングできます。これにより、コンテンツ向けに設計された使い慣れた記述形式と、Astroのコンポーネント構文・アーキテクチャの柔軟性を組み合わせることができます。
+
+:::tip
+コンポーネントやJSX式をMarkdownに含めるなど、追加の機能を利用したい場合は、[`@astrojs/mdx`インテグレーション](/ja/guides/integrations-guide/mdx/)を追加して、Markdownコンテンツを[MDX](https://mdxjs.com/)で記述してください。
+:::
+
+## Markdownファイルの整理
+
+ローカルのMarkdownファイルは、`src/`ディレクトリ内のどこにでも配置できます。`src/pages/`内に配置されたMarkdownファイルは、[サイト上にMarkdownページ](#個別のmarkdownページ)を自動的に生成します。
+
+Markdownのコンテンツとフロントマタープロパティは、[ローカルファイルのインポート](#markdownのインポート)を通じて、あるいは[コンテンツコレクションのヘルパー関数で取得したデータからクエリしてレンダリングする](#コンテンツコレクションのクエリから取得したmarkdown)際に、コンポーネントから利用できます。
+
+### ファイルインポートとコンテンツコレクションのクエリ
+
+ローカルのMarkdownは、単一のファイルであれば`import`文で、複数のファイルを一度にクエリしたい場合は[Viteの`import.meta.glob()`](/ja/guides/imports/#importmetaglob)を使って、`.astro`コンポーネントにインポートできます。[Markdownファイルからエクスポートされるデータ](#markdownのインポート)は、このようにして`.astro`コンポーネント内で利用できます。
+
+関連するMarkdownファイルのグループがある場合は、[コレクションとして定義する](/ja/guides/content-collections/)ことを検討してください。コレクションには、ファイルシステム上の任意の場所やリモートにMarkdownファイルを保存できるなど、いくつかの利点があります。
+
+コレクションでは、ファイルインポートではなく、[Markdownコンテンツのクエリとレンダリング](#コンテンツコレクションのクエリから取得したmarkdown)に特化した最適化されたAPIを使用します。コレクションは、ブログ記事や製品情報など、同じ構造を共有するデータセットを対象としています。スキーマでその構造を定義すれば、バリデーション、型安全性、エディタ上のインテリセンスも得られます。
+
+<ReadMore>ファイルインポートの代わりに[コンテンツコレクションを使うべきタイミング](/ja/guides/content-collections/#when-to-create-a-collection)について詳しく見る。</ReadMore>
+
+## JSXのような動的な式
+
+Markdownファイルをインポートまたはクエリしたあと、フロントマターのデータや本文を含む動的なHTMLテンプレートを`.astro`コンポーネント内で記述できます。
+
+```md title="src/pages/posts/great-post.md"
+---
+title: '史上もっとも素晴らしい投稿'
+author: 'Ben'
+---
+
+これが私の_素晴らしい_投稿です！
+```
+
+```astro title="src/pages/my-posts.astro"
+---
+import * as greatPost from './posts/great-post.md';
+const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
+---
+
+<p>{greatPost.frontmatter.title}</p>
+<p>執筆者: {greatPost.frontmatter.author}</p>
+
+{greatPost.compiledContent()}
+
+<p>過去の投稿:</p>
+<ul>
+  {posts.map(post => <li><a href={post.url}>{post.frontmatter.title}</a></li>)}
+</ul>
+```
+
+### 利用可能なプロパティ
+
+#### コンテンツコレクションのクエリから取得したMarkdown
+
+`getCollection()`や`getEntry()`といったヘルパー関数でコレクションからデータを取得する場合、Markdownのフロントマタープロパティは`data`オブジェクト経由で利用できます（例: `post.data.title`）。さらに、`body`にはコンパイルされていない生の本文コンテンツが文字列として含まれます。
+
+[`render()`](/ja/reference/modules/astro-content/#render)関数は、Markdownの本文、生成された見出しのリスト、およびremarkやrehypeプラグインが適用されたあとの変更済みフロントマターオブジェクトを返します。
+
+<ReadMore>[コレクションのクエリから返されたコンテンツの使い方](/ja/guides/content-collections/#using-content-in-astro-templates)について詳しく見る。</ReadMore>
+
+#### Markdownのインポート
+
+`import`または`import.meta.glob()`を使ってMarkdownをインポートした場合、`.astro`コンポーネント内で以下のエクスポートされたプロパティが利用できます。
+
+- **`file`** - ファイルの絶対パス（例: `/home/user/projects/.../file.md`）。
+- **`url`** - ページのURL（例: `/en/guides/markdown-content`）。
+- **`frontmatter`** - ファイルのYAML（またはTOML）フロントマターで指定されたデータ。
+- **`<Content />`** - ファイルの完全なレンダリング済みコンテンツを返すコンポーネント。
+- **`rawContent()`** - 生のMarkdownドキュメントを文字列として返す関数。
+- **`compiledContent()`** - MarkdownドキュメントをHTML文字列にコンパイルして返す非同期関数。
+- **`getHeadings()`** - ファイル内のすべての見出し（`<h1>`から`<h6>`）の配列を、`{ depth: number; slug: string; text: string }[]`型で返す非同期関数。各見出しの`slug`は、その見出しに対して生成されるIDに対応しており、アンカーリンクに利用できます。
+
+たとえばMarkdownのブログ記事では、次のような`Astro.props`オブジェクトが渡されます。
+
+```js
+Astro.props = {
+  file: "/home/user/projects/.../file.md",
+  url: "/en/guides/markdown-content/",
+  frontmatter: {
+    /** Frontmatter from a blog post */
+    title: "Astro 0.18 Release",
+    date: "Tuesday, July 27 2021",
+    author: "Matthew Phillips",
+    description: "Astro 0.18 is our biggest release since Astro launch.",
+  },
+  getHeadings: () => [
+    {"depth": 1, "text": "Astro 0.18 Release", "slug": "astro-018-release"},
+    {"depth": 2, "text": "Responsive partial hydration", "slug": "responsive-partial-hydration"}
+    /* ... */
+  ],
+  rawContent: () => "# Astro 0.18 Release\nA little over a month ago, the first public beta [...]",
+  compiledContent: () => "<h1>Astro 0.18 Release</h1>\n<p>A little over a month ago, the first public beta [...]</p>",
+}
+```
+
+
+## `<Content />`コンポーネント
+
+`<Content />`コンポーネントは、Markdownファイルから`Content`をインポートすることで利用できます。このコンポーネントは、ファイルの本文全体をHTMLにレンダリングして返します。`Content`は好みの名前にリネームすることもできます。
+
+同様に、`<Content />`コンポーネントをレンダリングすることで、[Markdownコレクションエントリの本文をHTMLとしてレンダリング](/ja/guides/content-collections/#rendering-body-content)できます。
+
+```astro title="src/pages/content.astro" "Content"
+---
+// import文
+import {Content as PromoBanner} from '../components/promoBanner.md';
+
+// コレクションのクエリ
+import { getEntry, render } from 'astro:content';
+
+const product = await getEntry('products', 'shirt');
+const { Content } = await render(product);
+---
+<h2>本日のキャンペーン</h2>
+<PromoBanner />
+
+<p>セール終了日: {product.data.saleEndDate.toDateString()}</p>
+<Content />
+```
+
+## 見出しID
+
+Markdownで見出しを書くと、ページ内の特定のセクションに直接リンクできるアンカーリンクが自動的に付与されます。
+
+```markdown title="src/pages/page-1.md"
+---
+title: コンテンツのページ
+---
+## はじめに
+
+Markdownを書く際、同じページ内の[結論](#結論)に内部リンクできます。
+
+## 結論
+
+ブラウザで`https://example.com/page-1/#はじめに`を開けば、「はじめに」へ直接遷移できます。
+```
+
+Astroは、`github-slugger`に基づいて見出しの`id`を生成します。その他の例は[github-sluggerのドキュメント](https://github.com/Flet/github-slugger#usage)を参照してください。
+
+### 見出しIDとプラグイン
+
+Astroは、MarkdownおよびMDXファイル内のすべての見出し要素（`<h1>`から`<h6>`）に`id`属性を注入します。このデータは、インポートしたファイルの[Markdownエクスポートプロパティ](#利用可能なプロパティ)として提供される`getHeadings()`ユーティリティ、または[コンテンツコレクションのクエリから返されたMarkdownを使う](#コンテンツコレクションのクエリから取得したmarkdown)際の`render()`関数から取得できます。
+
+これらの見出しIDは、`id`属性を注入する[Markdownプロセッサ](#markdownプロセッサの選択)のプラグイン（例: `rehype-slug`）でカスタマイズできます。これにより、Astroのデフォルトの代わりにカスタムIDが、HTML出力と`getHeadings()`が返す項目に反映されます。
+
+Astroは、カスタムプラグインの実行後に`id`属性を注入するため、プラグインによってセットされたIDは保持されます。カスタムプラグインがAstroによって注入されたIDにアクセスする必要がある場合は、Astroの見出しIDプラグインをインポートし、それに依存するプラグインより前に配置してください。
+
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Unified">
+    ```js title="astro.config.mjs" ins={2-3, 9}
+    import { defineConfig } from 'astro/config';
+    import { unified, rehypeHeadingIds } from '@astrojs/markdown-remark';
+    import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified({
+          rehypePlugins: [
+            rehypeHeadingIds,
+            otherPluginThatReliesOnHeadingIDs,
+          ],
+        }),
+      },
+    });
+    ```
+  </TabItem>
+  <TabItem label="Sätteri">
+    ```js title="astro.config.mjs" ins={2-3, 9}
+    import { defineConfig } from 'astro/config';
+    import { satteri, satteriHeadingIdsPlugin } from '@astrojs/markdown-satteri';
+    import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+    export default defineConfig({
+      markdown: {
+        processor: satteri({
+          hastPlugins: [
+            satteriHeadingIdsPlugin(),
+            otherPluginThatReliesOnHeadingIDs,
+          ],
+        }),
+      },
+    });
+    ```
+  </TabItem>
+</Tabs>
+
+## Markdownプラグイン
+
+Astroは、設定可能な**Markdownプロセッサ**を使ってMarkdownをレンダリングします。デフォルトでは、活発なプラグインエコシステムをもつ[remark](https://remark.js.org/)と[rehype](https://github.com/rehypejs/rehype)の[unified](https://unifiedjs.com/)パイプラインを使用します。
+
+Astroは、[GitHub Flavored Markdown](https://github.github.com/gfm/)と[SmartyPants](https://daringfireball.net/projects/smartypants/)を自動的に適用します。これにより、テキストからクリック可能なリンクを生成したり、引用符やemダッシュをフォーマットしたりといった便利な機能が利用できます。
+
+プラグインを追加してMarkdownの処理を拡張したり、追加のパーサー機能を有効にしたり、[まったく別のプロセッサに切り替える](#sätteriプロセッサへの切り替え)こともできます。[Markdownの設定オプション](/ja/reference/configuration-reference/#markdown-options)の一覧も参照してください。
+
+### Markdownプロセッサの選択
+
+[`markdown.processor`オプション](/ja/reference/configuration-reference/#markdownprocessor)で、`.md`および`.mdx`ファイルをレンダリングするエンジンを制御します。Astroは公式に2つのオプションを提供しています。
+
+- **`unified()`**（デフォルト）: [remark](https://remark.js.org/)と[rehype](https://github.com/rehypejs/rehype)のパイプラインで、大規模なプラグインエコシステムをもちます。
+- **`satteri()`**: ネイティブの[Sätteri](https://satteri.bruits.org/)パイプラインで、独自のプラグインモデルを備えたより高速なMarkdownおよびMDXコンパイラです。`@astrojs/markdown-satteri`から提供され、別途インストールする必要があります。
+
+### remarkおよびrehypeプラグインの利用
+
+デフォルトの`unified()`プロセッサは、サードパーティの[remark](https://github.com/remarkjs/remark)および[rehype](https://github.com/rehypejs/rehype)プラグインを受け付けます。これらのプラグインを使うと、[目次の自動生成](https://github.com/remarkjs/remark-toc)、[アクセシブルな絵文字ラベルの適用](https://github.com/florianeckerstorfer/remark-a11y-emoji)、[Markdownのスタイリング](/ja/guides/styling/#markdown-styling)など、新しい機能でMarkdownを拡張できます。
+
+人気のプラグインを探すには、[awesome-remark](https://github.com/remarkjs/awesome-remark)と[awesome-rehype](https://github.com/rehypejs/awesome-rehype)を見てみることをおすすめします。具体的なインストール手順は、各プラグインのREADMEを参照してください。
+
+`@astrojs/markdown-remark`から`unified`をインポートし、`markdown.processor`を通じてプラグインを渡します。次の例では、Markdownファイルに[`remark-toc`](https://github.com/remarkjs/remark-toc)と[`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis)を適用しています。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import remarkToc from 'remark-toc';
+import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [[remarkToc, { heading: 'toc', maxDepth: 3 }]],
+      rehypePlugins: [rehypeAccessibleEmojis],
+    }),
+  },
+});
+```
+
+### remarkおよびrehypeプラグインのカスタマイズ
+
+プラグインをカスタマイズするには、ネストした配列の中で、プラグインの後にオプションオブジェクトを渡します。
+
+以下の例では、目次の配置場所を変えるために[`remarkToc`プラグインに`heading`オプション](https://github.com/remarkjs/remark-toc#options)を追加し、見出しテキストの後ろにアンカータグを追加するために[`rehype-autolink-headings`プラグインに`behavior`オプション](https://github.com/rehypejs/rehype-autolink-headings#options)を追加しています。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import remarkToc from 'remark-toc';
+import rehypeSlug from 'rehype-slug';
+import rehypeAutolinkHeadings from 'rehype-autolink-headings';
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [[remarkToc, { heading: 'contents' }]],
+      rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
+    }),
+  },
+});
+```
+
+### Sätteriプロセッサへの切り替え
+
+remarkとrehypeの代わりに[Sätteri](https://satteri.bruits.org/)を使うには、`@astrojs/markdown-satteri`をインストールし、`satteri`をインポートして`markdown.processor`に渡します。
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+import { myMdastPlugin } from './my-satteri-plugin.mjs';
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      mdastPlugins: [myMdastPlugin()],
+      features: { directive: true, definitionList: true },
+    }),
+  },
+});
+```
+
+Sätteriプロセッサは、`mdastPlugins`と`hastPlugins`を通じて独自のプラグインを受け付け、`features`を通じて任意のパーサー機能の有効化を切り替えます。利用可能なプラグインと機能については、[Sätteriのドキュメント](https://satteri.bruits.org/docs/)を参照してください。
+
+プロセッサを切り替えると、`.md`と`.mdx`の両方のファイルでremarkとrehypeが置き換えられます。設定にあるremarkまたはrehypeのプラグインは適用されなくなります。`.mdx`ファイルにのみSätteriを使いたい場合は、代わりに[MDXインテグレーションの`processor`オプション](/ja/guides/integrations-guide/mdx/#processor)を設定してください。
+
+### プログラムによるフロントマターの変更
+
+[remark/rehypeプロセッサ](#remarkおよびrehypeプラグインの利用)を使用している場合、remarkまたはrehypeプラグインを使って、すべてのMarkdownおよびMDXファイルにフロントマタープロパティを追加できます。
+
+<Steps>
+1. プラグインの`file`引数の`data.astro.frontmatter`プロパティに、`customProperty`を追加します。
+
+    ```js title="example-remark-plugin.mjs"
+    export function exampleRemarkPlugin() {
+      // remarkおよびrehypeプラグインはすべて別の関数を返す
+      return function (tree, file) {
+        file.data.astro.frontmatter.customProperty = 'Generated property';
+      }
+    }
+    ```
+
+    :::tip
+    <Since v="2.0.0" />
+
+    `data.astro.frontmatter`には、対象のMarkdownまたはMDXドキュメントのすべてのプロパティが含まれます。これにより、既存のフロントマタープロパティを変更したり、既存のフロントマターから新しいプロパティを計算したりできます。
+    :::
+
+2. このプラグインを`markdown`または`mdx`インテグレーションの設定に適用します。
+
+    ```js title="astro.config.mjs" {2,3,7}
+    import { defineConfig } from 'astro/config';
+    import { unified } from '@astrojs/markdown-remark';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
+      },
+    });
+    ```
+
+    または
+
+    ```js title="astro.config.mjs" {3,4,9}
+    import { defineConfig } from 'astro/config';
+    import mdx from '@astrojs/mdx';
+    import { unified } from '@astrojs/markdown-remark';
+    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+
+    export default defineConfig({
+      integrations: [
+        mdx({
+          processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
+        }),
+      ],
+    });
+    ```
+</Steps>
+
+これで、すべてのMarkdownまたはMDXファイルのフロントマターに`customProperty`が含まれるようになり、[Markdownのインポート](#markdownのインポート)時や[レイアウトの`Astro.props.frontmatter`プロパティ](#フロントマターのlayoutプロパティ)から利用できるようになります。
+
+<RecipeLinks slugs={["ja/recipes/reading-time"]} />
+
+### MDXからMarkdown設定を拡張する
+
+AstroのMDXインテグレーションは、デフォルトで[プロジェクトの既存のMarkdown設定](/ja/reference/configuration-reference/#markdown-options)を拡張し、[Markdownプロセッサ](#markdownプロセッサの選択)もその対象となります。個別のオプションを上書きするには、MDXの設定で同等のオプションを指定します。
+
+次の例では、`.mdx`ファイルに対して`.md`ファイルとは異なるシンタックスハイライターと異なるプラグインのセットを使用しています。
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    syntaxHighlight: 'prism',
+    processor: unified({ remarkPlugins: [remarkPlugin1] }),
+  },
+  integrations: [
+    mdx({
+      // `.mdx`ファイルでは、`markdown.syntaxHighlight`がこのオプションで上書きされる
+      syntaxHighlight: 'shiki',
+
+      // `.mdx`ファイルでは、`markdown.processor`が異なるremarkプラグインで上書きされる
+      processor: unified({ remarkPlugins: [remarkPlugin2] }),
+    })
+  ]
+});
+```
+
+MDXからMarkdown設定を拡張したくない場合は、[`extendMarkdownConfig`オプション](/ja/guides/integrations-guide/mdx/#extendmarkdownconfig)（デフォルトで有効）を`false`に設定します。
+
+```ts title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import mdx from '@astrojs/mdx';
+
+export default defineConfig({
+  markdown: {
+    processor: unified({ remarkPlugins: [remarkPlugin] }),
+  },
+  integrations: [
+    mdx({
+      // Markdown設定は無視される
+      extendMarkdownConfig: false,
+      // プラグインなしのデフォルト`unified()`プロセッサが使用される
+    })
+  ]
+});
+```
+
+## 個別のMarkdownページ
+
+:::tip
+[コンテンツコレクション](/ja/guides/content-collections/)と[Markdownを`.astro`コンポーネントにインポートする方法](#jsxのような動的な式)は、Markdownをレンダリングするためのより多くの機能を提供しており、ほとんどのコンテンツを扱う際に推奨されるアプローチです。とはいえ、`src/pages/`にファイルを追加するだけでシンプルなページを自動的に作成できる手軽さが欲しい場合もあるでしょう。
+:::
+
+Astroは、[`/src/pages/`ディレクトリ内のサポートされているすべてのファイル](/ja/basics/astro-pages/#サポートしているページファイル)をページとして扱い、`.md`やその他のMarkdownファイルタイプも対象に含まれます。
+
+このディレクトリやそのサブディレクトリにファイルを配置すると、ファイルのパス名を使ったページルートが自動的に構築され、HTMLにレンダリングされたMarkdownコンテンツが表示されます。非ASCIIコンテンツを書きやすくするため、Astroはページに`<meta charset="utf-8">`タグを自動的に追加します。
+
+```markdown title="src/pages/page-1.md"
+---
+title: Hello, World
+---
+
+# こんにちは！
+
+このMarkdownファイルは、`your-domain.com/page-1/`にページを作成します。
+
+スタイルはほとんど当たっていないかもしれませんが、Markdownは以下のような記法をサポートしています。
+- **太字**と_イタリック_
+- リスト
+- [リンク](https://astro.build)
+- <p>HTML要素</p>
+- などなど！
+```
+
+### フロントマターの`layout`プロパティ
+
+個別のMarkdownページは機能が限られているため、Astroはそれを補う特別なフロントマタープロパティとして`layout`を提供しています。これはAstroの[Markdownレイアウトコンポーネント](/ja/basics/layouts/#markdownのレイアウト)への相対パスです。`layout`は、[コンテンツコレクション](/ja/guides/content-collections/)を使ってMarkdownコンテンツをクエリ・レンダリングする際の特別なプロパティではなく、本来の用途以外でのサポートは保証されません。
+
+Markdownファイルが`src/pages/`内にある場合は、レイアウトコンポーネントを作成し、このlayoutプロパティに指定することで、Markdownコンテンツの周りにページのシェルを与えられます。
+
+```markdown title="src/pages/posts/post-1.md" {2}
+---
+layout: ../../layouts/BlogPostLayout.astro
+title: Astroの概要
+author: Himanshu
+description: Astroが素晴らしい理由を見つけよう！
+---
+これはMarkdownで書かれた投稿です。
+```
+
+このレイアウトコンポーネントは通常のAstroコンポーネントですが、Astroテンプレートの`Astro.props`を通じて[特定のプロパティが自動的に利用可能](/ja/basics/layouts/#markdownレイアウトのprops)になります。たとえば、Markdownファイルのフロントマタープロパティには`Astro.props.frontmatter`からアクセスできます。
+
+```astro title="src/layouts/BlogPostLayout.astro" /frontmatter(?:.\w+)?/
+---
+const {frontmatter} = Astro.props;
+---
+<html>
+  <head>
+    <!-- ... -->
+    <meta charset="utf-8"> // デフォルトでは追加されなくなる
+  </head>
+  <!-- ... -->
+  <h1>{frontmatter.title}</h1>
+  <h2>投稿者: {frontmatter.author}</h2>
+  <p>{frontmatter.description}</p>
+  <slot /> <!-- ここにMarkdownコンテンツが挿入される -->
+  <!-- ... -->
+</html>
+```
+
+フロントマターの`layout`プロパティを使用する場合、Astroは`<meta charset="utf-8">`タグを自動的に追加しなくなるため、レイアウト内に自分で含める必要があります。また、レイアウトコンポーネント内で[Markdownにスタイルを当てる](/ja/guides/styling/#markdown-styling)こともできます。
+
+<ReadMore>[Markdownレイアウト](/ja/basics/layouts/#markdownのレイアウト)について詳しく学ぶ。</ReadMore>
+
+## リモートのMarkdownの取得
+
+Astro内部のMarkdownプロセッサは、リモートのMarkdownを処理するためには利用できません。
+
+[コンテンツコレクション](/ja/guides/content-collections/)で使うためにリモートのMarkdownを取得するには、[`renderMarkdown()`関数](/ja/reference/content-loader-reference/#loadercontextrendermarkdown)にアクセスできる[カスタムローダーを作成](/ja/guides/content-collections/#custom-build-time-loaders)します。
+
+リモートのMarkdownを直接取得してHTMLにレンダリングするには、NPMから自分でMarkdownパーサーをインストールして設定する必要があります。この場合、Astro組み込みのMarkdown設定は引き継がれません。
+
+プロジェクトに実装する前にこうした制約を理解し、代わりにコンテンツコレクションのローダーを使ってリモートのMarkdownを取得できないか検討してください。
+
+```astro title="src/pages/remote-example.astro"
+---
+// 例: リモートAPIからMarkdownを取得し、
+// 実行時にHTMLへレンダリングする。
+// "marked"（https://github.com/markedjs/marked）を使用
+import { marked } from 'marked';
+const response = await fetch('https://raw.githubusercontent.com/wiki/adam-p/markdown-here/Markdown-Cheatsheet.md');
+const markdown = await response.text();
+const content = marked.parse(markdown);
+---
+<article set:html={content} />
+```
