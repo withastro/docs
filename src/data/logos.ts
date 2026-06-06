@@ -127,6 +127,7 @@ export const logos = LogoCheck({
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	zephyr: { file: 'zephyr.svg', padding: '0' },
+	zero: { file: 'zero.svg', padding: '.15em' },
 	zerops: { file: 'zerops.svg', padding: '.2em' },
 });
 
