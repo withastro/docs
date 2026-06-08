@@ -115,7 +115,6 @@ Lorsque vous avez besoin de plus de contrôle sur l'ordre du pipeline, ou si vou
 ```ts title="src/app.ts"
 import {
   FetchState,
-  sessions,
   actions,
   middleware,
   pages,
@@ -125,16 +124,12 @@ import {
 export default {
   async fetch(request: Request): Promise<Response> {
     const state = new FetchState(request);
-    await sessions(state);
-    try {
-      const actionResponse = await actions(state);
-      if (actionResponse) return actionResponse;
 
-      const response = await middleware(state, (s) => pages(s));
-      return i18n(state, response);
-    } finally {
-      await state.finalizeAll();
-    }
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
   },
 };
 ```
@@ -171,20 +166,6 @@ export default {
   },
 };
 ```
-
-## Définition du type des fournisseurs personnalisés avec `App.Providers`
-
-Lorsque vous enregistrez des fournisseurs de contexte personnalisés avec [`state.provide()`](#stateprovide), vous pouvez déclarer leurs types en utilisant l'interface `App.Providers` afin que `Astro` et `ctx` soient entièrement typés dans vos composants et middleware :
-
-```ts title="src/env.d.ts"
-declare namespace App {
-  interface Providers {
-    oauth: import('./lib/oauth').OAuthSession;
-  }
-}
-```
-
-Après avoir déclaré un fournisseur, `ctx.oauth` (et `Astro.oauth` dans les fichiers `.astro`) sera typé automatiquement.
 
 ## Référence des gestionnaires d'`astro/fetch`
 
@@ -286,54 +267,6 @@ Déclenche une [réécriture](/fr/guides/routing/#réécritures) vers une autre 
 const response = await state.rewrite('/autre-page');
 ```
 
-##### `state.provide()`
-
-<p>
-
-**Type :** `(key: string, provider: ContextProvider<T>) => void`
-</p>
-
-Enregistre un fournisseur de contexte sous le nom de propriété donné. La fonction `create()` du fournisseur est appelée de manière paresseuse lors du premier [`state.resolve()`](#stateresolve), et son rappel optionnel `finalize()` s'exécute lors de [`state.finalizeAll()`](#statefinalizeall) :
-
-```ts
-state.provide('monService', {
-  create: () => new MonService(),
-  finalize: (service) => service.close(),
-});
-```
-
-##### `state.resolve()`
-
-<p>
-
-**Type :** `(key: string) => T | undefined`
-</p>
-
-Renvoie la valeur d'un fournisseur précédemment enregistré, en appelant sa fonction `create` lors du premier accès. Renvoie `undefined` si aucun fournisseur n'a été enregistré pour le nom de propriété :
-
-```ts
-const service = state.resolve('monService');
-```
-
-##### `state.finalizeAll()`
-
-<p>
-
-**Type :** `() => Promise<void> | void`
-</p>
-
-Exécute tous les rappels `finalize` des fournisseurs enregistrés. Appelez ceci après que la réponse a été produite, généralement dans un bloc `finally`, pour persister les données de session et nettoyer les ressources :
-
-```ts
-await sessions(state);
-try {
-  // ...pipeline de rendu...
-  return response;
-} finally {
-  await state.finalizeAll();
-}
-```
-
 ### `astro()`
 
 <p>
@@ -401,15 +334,11 @@ if (actionResponse) return actionResponse;
 **Type :** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
 </p>
 
-Enregistre le fournisseur de [sessions](/fr/guides/sessions/). Les sessions sont créées de manière paresseuse lorsque votre code accède à `ctx.session` et sont persistées lorsque `state.finalizeAll()` est appelé. Appelez ceci tôt dans le pipeline, et appelez `finalizeAll()` dans un bloc `finally` :
+Enregistre le fournisseur de [sessions](/fr/guides/sessions/). Les sessions sont créées de manière paresseuse lorsque votre code accède à `ctx.session` et sont persistées automatiquement à la fin de la requête. Appelez ceci tôt dans le pipeline (avant l'exécution du middleware) :
 
 ```ts
 await sessions(state);
-try {
-  // ...pipeline de rendu...
-} finally {
-  await state.finalizeAll();
-}
+// ...pipeline de rendu...
 ```
 
 ### `i18n()`
@@ -477,3 +406,53 @@ export default app;
 ```
 
 Le module `astro/hono` exporte les mêmes noms de gestionnaires que `astro/fetch` (`astro`, `pages`, `middleware`, `actions`, `sessions`, `redirects`, `cache`, `i18n`, `trailingSlash`), mais chacun renvoie une fonction middleware Hono. Cela vous permet de mélanger les gestionnaires d'Astro avec n'importe quel middleware Hono de l'écosystème.
+
+## Adaptateur Cloudflare
+
+L'adaptateur [`@astrojs/cloudflare`](/fr/guides/integrations-guide/cloudflare/) fournit des gestionnaires complémentaires qui appliquent une configuration spécifique à Cloudflare à votre pipeline de routage avancé. Ces gestionnaires configurent l'injection de liaison KV pour les sessions, la diffusion de ressources statiques via la liaison `ASSETS`, `Astro.locals.cfContext`, l'adresse du client à partir de l'en-tête `cf-connecting-ip`, `waitUntil` et la récupération des pages d'erreur pré-rendues.
+
+Vous pouvez utiliser les API `astro/fetch` et `astro/hono` depuis `src/app.ts` sur Cloudflare sans ces gestionnaires. Le point d'entrée par défaut de l'adaptateur prend en charge la configuration spécifique à Cloudflare pour vous. Ces gestionnaires complémentaires sont utiles lorsque vous avez déjà un [point d'entrée de worker personnalisé](https://developers.cloudflare.com/workers/wrangler/configuration/#inheritable-keys) (`src/worker.ts`), par exemple, pour exporter un objet durable (Durable Object), et que vous souhaitez utiliser les API de routage avancé directement depuis ce fichier.
+
+Lorsque vous utilisez ces gestionnaires dans votre point d'entrée de worker, ils remplacent la fonctionnalité du gestionnaire par défaut de l'adaptateur, vous ne devez donc pas utiliser les deux en même temps. Placez le gestionnaire Cloudflare avant les autres gestionnaires d'Astro afin que les liaisons et les locaux soient disponibles pour le reste du pipeline.
+
+### `@astrojs/cloudflare/fetch`
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+Pour une utilisation avec `astro/fetch`. La fonction `cf()` reçoit un objet `FetchState`, l'`env` de Cloudflare et le contexte d'exécution (`ExecutionContext`). Elle renvoie une réponse (`Response`) pour les accès aux ressources statiques, ou `undefined` lorsque la requête doit se poursuivre avec le rendu d'Astro :
+
+```ts title="src/worker.ts"
+import { astro, FetchState } from 'astro/fetch';
+import { cf } from '@astrojs/cloudflare/fetch';
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const state = new FetchState(request);
+    const asset = await cf(state, env, ctx);
+    if (asset) return asset;
+    return astro(state);
+  },
+};
+```
+
+### `@astrojs/cloudflare/hono`
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+Pour une utilisation avec `astro/hono`. La fonction `cf()` renvoie un middleware Hono qui lit automatiquement `env` et `executionCtx` depuis le contexte d'Hono :
+
+```ts title="src/worker.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { cf } from '@astrojs/cloudflare/hono';
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use(cf());
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```

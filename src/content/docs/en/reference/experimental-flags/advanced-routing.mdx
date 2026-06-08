@@ -115,7 +115,6 @@ When you need more control over the pipeline order, or want to omit certain feat
 ```ts title="src/app.ts"
 import {
   FetchState,
-  sessions,
   actions,
   middleware,
   pages,
@@ -125,16 +124,12 @@ import {
 export default {
   async fetch(request: Request): Promise<Response> {
     const state = new FetchState(request);
-    await sessions(state);
-    try {
-      const actionResponse = await actions(state);
-      if (actionResponse) return actionResponse;
 
-      const response = await middleware(state, (s) => pages(s));
-      return i18n(state, response);
-    } finally {
-      await state.finalizeAll();
-    }
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
   },
 };
 ```
@@ -171,20 +166,6 @@ export default {
   },
 };
 ```
-
-## Typing custom providers with `App.Providers`
-
-When you register custom context providers with [`state.provide()`](#stateprovide), you can declare their types using the `App.Providers` interface so that `Astro` and `ctx` are fully typed in your components and middleware:
-
-```ts title="src/env.d.ts"
-declare namespace App {
-  interface Providers {
-    oauth: import('./lib/oauth').OAuthSession;
-  }
-}
-```
-
-After declaring a provider, `ctx.oauth` (and `Astro.oauth` in `.astro` files) will be typed automatically.
 
 ## `astro/fetch` handler reference
 
@@ -286,54 +267,6 @@ Triggers a [rewrite](/en/guides/routing/#rewrites) to a different route. The `pa
 const response = await state.rewrite('/other-page');
 ```
 
-##### `state.provide()`
-
-<p>
-
-**Type:** `(key: string, provider: ContextProvider<T>) => void`
-</p>
-
-Registers a context provider under the given key. The provider's `create()` function is called lazily on the first [`state.resolve()`](#stateresolve), and its optional `finalize()` callback runs during [`state.finalizeAll()`](#statefinalizeall):
-
-```ts
-state.provide('myService', {
-  create: () => new MyService(),
-  finalize: (service) => service.close(),
-});
-```
-
-##### `state.resolve()`
-
-<p>
-
-**Type:** `(key: string) => T | undefined`
-</p>
-
-Returns the value for a previously registered provider, calling its `create` function on first access. Returns `undefined` if no provider was registered for the key:
-
-```ts
-const service = state.resolve('myService');
-```
-
-##### `state.finalizeAll()`
-
-<p>
-
-**Type:** `() => Promise<void> | void`
-</p>
-
-Runs all registered provider `finalize` callbacks. Call this after the response is produced, typically in a `finally` block, to persist session data and clean up resources:
-
-```ts
-await sessions(state);
-try {
-  // ...render pipeline...
-  return response;
-} finally {
-  await state.finalizeAll();
-}
-```
-
 ### `astro()`
 
 <p>
@@ -401,15 +334,11 @@ if (actionResponse) return actionResponse;
 **Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
 </p>
 
-Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted when `state.finalizeAll()` is called. Call this early in the pipeline, and call `finalizeAll()` in a `finally` block:
+Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted automatically at the end of the request. Call this early in the pipeline (before middleware runs):
 
 ```ts
 await sessions(state);
-try {
-  // ...render pipeline...
-} finally {
-  await state.finalizeAll();
-}
+// ...render pipeline...
 ```
 
 ### `i18n()`
