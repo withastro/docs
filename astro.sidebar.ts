@@ -194,7 +194,6 @@ export const sidebar = [
 			group('ecosystem.integrations.other', {
 				collapsed: true,
 				items: [
-					'guides/integrations-guide/db',
 					'guides/integrations-guide/markdoc',
 					'guides/integrations-guide/mdx',
 					'guides/integrations-guide/partytown',
