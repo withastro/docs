@@ -407,6 +407,39 @@ export default app;
 
 The `astro/hono` module exports the same handler names as `astro/fetch` (`astro`, `pages`, `middleware`, `actions`, `sessions`, `redirects`, `cache`, `i18n`, `trailingSlash`), but each returns a Hono middleware function. This lets you mix Astro handlers with any Hono middleware from the ecosystem.
 
+The `astro/hono` module also exports the following helpers.
+
+### `getFetchState()`
+
+<p>
+
+**Type:** <code>(context: HonoContext) => <a href="#fetchstate">FetchState</a></code><br />
+<Since v="7.0.0" />
+</p>
+
+Retrieves or lazily creates a [`FetchState`](#fetchstate) from a Hono context object. This is the same function used internally by all the Astro Hono middleware wrappers, and it ensures a single `FetchState` instance is shared across all middleware for a given request.
+
+Use `getFetchState()` when writing custom Hono middleware that needs to read or modify Astro's per-request state (e.g. `locals`, `cookies`, `routeData`):
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { getFetchState, pages } from 'astro/hono';
+
+const app = new Hono();
+
+app.use(async (context, next) => {
+  const state = getFetchState(context);
+  state.locals.message = 'Hello from custom middleware';
+  await next();
+});
+
+app.use(pages());
+
+export default app;
+```
+
+This gives third-party packages and custom middleware the same access to Astro's request state that the built-in Hono handlers have, ensuring both `astro/fetch` and `astro/hono` have equal extensibility.
+
 ## Cloudflare adapter
 
 The [`@astrojs/cloudflare`](/en/guides/integrations-guide/cloudflare/) adapter provides companion handlers that apply Cloudflare-specific setup to your advanced routing pipeline. These handlers configure session KV binding injection, static asset serving via the `ASSETS` binding, `Astro.locals.cfContext`, client address from the `cf-connecting-ip` header, `waitUntil`, and prerendered error page fetching.
