@@ -80,6 +80,7 @@ export const sidebar = [
 					'guides/server-islands',
 					'guides/actions',
 					'guides/sessions',
+					'guides/caching',
 				],
 			}),
 			group('guides.upgrade', {
@@ -148,6 +149,7 @@ export const sidebar = [
 					'reference/dev-toolbar-app-reference',
 					'reference/session-driver-reference',
 					'reference/font-provider-reference',
+					'reference/cache-provider-reference',
 					'reference/container-reference',
 					'reference/programmatic-reference',
 				],
@@ -155,7 +157,6 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
-					'reference/experimental-flags/route-caching',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
