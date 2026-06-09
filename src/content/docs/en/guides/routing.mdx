@@ -575,3 +575,149 @@ In this example, only `src/pages/index.astro` and `src/pages/projects/project1.m
     - _utils.js
     - **project1.md**
 </FileTree>
+
+## Advanced routing
+
+<p><Since v="7.0.0" /></p>
+
+By default, Astro handles every request with a built-in pipeline that runs the handlers in a fixed order: trailing-slash normalization, redirects, sessions, actions, user middleware, page rendering, i18n, and caching. This pipeline is designed to cover the most common use cases for routing and request handling, but it may not fit every project’s needs.
+
+Astro's advanced routing allows you to replace this pipeline with your own. You can choose which built-in features to use and where to use them. You can also add your own custom logic anywhere in the pipeline. This gives you full control over how Astro handles incoming requests.
+
+### Creating a custom entrypoint
+
+When the default pipeline does not fit your needs, you can override it by creating a `src/fetch.ts` file that default-exports an object with a `fetch()` method. This method receives a standard [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) and must return a [Response](https://developer.mozilla.org/en-US/docs/Web/API/Response).
+
+```ts title="src/fetch.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request) {
+    // Your custom request handling logic here
+    return new Response("Hello from advanced routing!");
+  }
+} satisfies Fetchable;
+```
+
+Astro supports several file formats for its advanced routing entrypoint: `.ts`, `.js`, `.mjs`, and `.mts`. We recommend using `.js` in most cases or `.ts` if you need TypeScript support.
+
+### Changing the entrypoint filename
+
+By default, Astro looks for `src/fetch.ts` as the advanced routing entrypoint. You can change this by setting the `fetchFile` option in your Astro config file.
+
+The following example tells Astro to look for `src/handler.ts` instead of `src/fetch.ts`:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  fetchFile: 'handler',
+});
+```
+
+Set `fetchFile` to `null` to disable the entrypoint entirely. This is useful if you already have a `src/fetch.ts` file used for other purposes:
+
+```js title="astro.config.mjs"
+export default defineConfig({
+  experimental: {
+    advancedRouting: {
+      fetchFile: null,
+    },
+  },
+});
+```
+
+### Adding custom logic
+
+The main benefit of advanced routing is the ability to insert custom logic into the request pipeline. You can run code before Astro touches the request, between pipeline stages, or after the response is produced.
+
+You can do this in two ways:
+
+- Use the [`astro()` handler](/en/reference/modules/astro-fetch/#astro) to run the full built-in pipeline, and add logic before or after it.
+- Compose individual handlers from [`astro/fetch`](/en/reference/modules/astro-fetch/) or [`astro/hono`](/en/reference/modules/astro-hono/) for more control over execution order.
+
+#### Running the full pipeline with `astro()`
+
+Use [`astro()`](/en/reference/modules/astro-fetch/#astro) when you want to keep Astro's built-in routing behavior, but need custom logic around it. This approach preserves the default pipeline order and lets you add pre-processing and post-processing in one place. For many use cases, such as adding auth guards, request logging, and custom headers, `astro()` is all you need.
+
+The following example checks if a user can access a dashboard before running the Astro pipeline, and adds a custom header to the response once Astro has finished running:
+
+```ts title="src/fetch.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    // Custom pre-processing, runs before any Astro handler
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/dashboard')) {
+      const cookie = request.headers.get('cookie') ?? '';
+      if (!cookie.includes('session=')) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: '/login' },
+        });
+      }
+    }
+
+    const response = await astro(state);
+
+    // Custom post-processing, runs after Astro renders
+    response.headers.set('X-Powered-By', 'Astro');
+    return response;
+  },
+};
+```
+
+#### Composing individual handlers
+
+When you need more control over the pipeline execution order, or want to omit certain features, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/). Each handler operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data, such as the matched route, cookies, and session. You can call handlers in any order and insert custom logic between stages.
+
+The following example runs only the handlers used in the project and adds custom logic after actions and before page rendering:
+
+```ts title="src/fetch.ts"
+import {
+  FetchState,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    // Custom logic between actions and page rendering
+    console.log(`Rendering ${new URL(request.url).pathname}`);
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
+```
+
+### Using with Hono
+
+Astro also provides Hono-compatible wrappers for all handler functions via [`astro/hono`](/en/reference/modules/astro-hono/). If you prefer to use [Hono](https://hono.dev/) as your routing framework, you can export a Hono app from `src/fetch.ts`:
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+
+const app = new Hono();
+
+// Hono middleware
+app.use(logger());
+
+// Astro handlers (as Hono middleware)
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```

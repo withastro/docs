@@ -1,0 +1,266 @@
+---
+title: Fetch routing API reference
+sidebar:
+  label: 'astro/fetch'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+<p><Since v="7.0.0" /></p>
+
+The `astro/fetch` module provides [advanced routing](/en/guides/routing/#advanced-routing) handlers built on top of the standard Fetch API.
+
+## Imports from `astro/fetch`
+
+```ts
+import {
+  FetchState,
+  astro,
+  actions,
+  cache,
+  i18n,
+  middleware,
+  pages,
+  redirects,
+  sessions,
+  trailingSlash,
+} from "astro/fetch";
+```
+
+### `FetchState`
+
+The per-request state object. Create one at the start of your `fetch` method:
+
+```ts
+import { FetchState } from 'astro/fetch';
+
+const state = new FetchState(request);
+```
+
+`FetchState` tracks the matched route, cookies, session providers, and other per-request data. All handler functions require it as their first argument.
+
+<ReadMore>Learn how to [compose handlers](/en/guides/routing/#composing-individual-handlers) with `FetchState` in the advanced routing guide.</ReadMore>
+
+#### Properties
+
+##### `state.request`
+
+<p>
+
+**Type:** `Request`
+</p>
+
+The incoming [Request](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+
+##### `state.url`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+A normalized [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) derived from the request.
+
+##### `state.pathname`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The base-stripped, decoded pathname of the request (e.g. `/about` or `/blog/my-post`).
+
+##### `state.routeData`
+
+<p>
+
+**Type:** <code><a href="/en/reference/integrations-reference/#routedata">RouteData</a> | undefined</code>
+</p>
+
+The matched route for this request, if any. This is resolved automatically when the `FetchState` is created.
+
+##### `state.cookies`
+
+<p>
+
+**Type:** `AstroCookies`
+</p>
+
+An [`AstroCookies`](/en/reference/api-reference/#cookies) instance for reading and setting cookies on this request.
+
+##### `state.locals`
+
+<p>
+
+**Type:** `App.Locals`
+</p>
+
+A request-scoped object for storing custom data. This is the same [`locals`](/en/reference/api-reference/#locals) object available in [middleware](/en/guides/middleware/) and [API routes](/en/guides/endpoints/#server-endpoints-api-routes).
+
+##### `state.params`
+
+<p>
+
+**Type:** `Params | undefined`
+</p>
+
+Route parameters derived from the matched route and pathname (e.g. `{ slug: 'my-post' }` for a `[slug].astro` route).
+
+##### `state.status`
+
+<p>
+
+**Type:** `number`<br />
+**Default:** `200`
+</p>
+
+The HTTP status code for the response. You can set this before rendering to control the response status (e.g. `state.status = 404`).
+
+##### `state.response`
+
+<p>
+
+**Type:** `Response | undefined`<br />
+**Default:** `undefined`
+</p>
+
+The `Response` produced by handlers after rendering completes. This is set automatically by [`pages()`](#pages) and [`middleware()`](#middleware), allowing you to inspect or use the response later in the pipeline:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// state.response is now the same object as response
+```
+
+#### Methods
+
+##### `state.rewrite()`
+
+<p>
+
+**Type:** <code>(payload: <a href="/en/reference/modules/astro-middleware/#rewritepayload">RewritePayload</a>) => Promise\<Response\></code>
+</p>
+
+Triggers a [rewrite](/en/guides/routing/#rewrites) to a different route. The `payload` can be a pathname string (`'/other-page'`), a URL, or a `Request`:
+
+```ts
+const response = await state.rewrite('/other-page');
+```
+
+### `astro()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+The all-in-one handler that runs the full Astro pipeline (sessions, cache, redirects, trailing-slash, actions, middleware, pages, and i18n) in the default order. Use this when you want to add logic before or after Astro without changing the internal pipeline order:
+
+```ts title="src/fetch.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // custom pre-processing here...
+    const response = await astro(state);
+    // custom post-processing here...
+    return response;
+  },
+};
+```
+
+### `actions()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response | undefined\> | undefined</code>
+</p>
+
+Handles [Astro Actions](/en/guides/actions/) (RPC and form submissions). Returns a `Response` for RPC actions, or `undefined` for form actions and non-action requests. Check the return value to decide whether to continue rendering:
+
+```ts
+const actionResponse = await actions(state);
+if (actionResponse) return actionResponse;
+// otherwise continue to page rendering...
+```
+
+### `cache()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>, next: () => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Wraps a render callback with [cache](/en/reference/experimental-flags/route-caching/) provider logic. Handles runtime caching, CDN-based providers, and the no-cache case.
+
+### `i18n()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>, response: Response) => Promise\<Response\></code>
+</p>
+
+Post-processes a response against your [i18n configuration](/en/guides/internationalization/). Handles locale redirects, 404s for invalid locales, and fallback routing. Call this after rendering:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+return i18n(state, response);
+```
+
+### `middleware()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>, next: (state: FetchState) => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Runs Astro's middleware chain (from `src/middleware.ts`). The `next` callback is called at the bottom of the chain to produce the response, typically by calling `pages()`:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+```
+
+### `pages()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+Dispatches the request to the matched Astro route (page, endpoint, or fallback). This is the core rendering handler, and most custom pipelines will include it.
+
+### `redirects()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
+</p>
+
+Handles redirect routes defined in your [Astro config](/en/reference/configuration-reference/#redirects). Returns a redirect `Response` if the matched route is a redirect, or `undefined` if the caller should continue processing.
+
+### `sessions()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
+</p>
+
+Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted automatically at the end of the request. Call this early in the pipeline (before middleware runs):
+
+```ts
+await sessions(state);
+// ...render pipeline...
+```
+
+### `trailingSlash()`
+
+<p>
+
+**Type:** <code>(state: <a href="#fetchstate">FetchState</a>) => Response | undefined</code>
+</p>
+
+Checks if the request pathname needs [trailing-slash](/en/reference/configuration-reference/#trailingslash) normalization and returns a redirect `Response` if so. Returns `undefined` when no redirect is needed.
