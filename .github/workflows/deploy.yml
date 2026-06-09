@@ -1,0 +1,82 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Automatically cancel in-progress actions on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  NODE_OPTIONS: "--max_old_space_size=8192"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Deploy to production
+        if: github.ref == 'refs/heads/main'
+        run: pnpm wrangler deploy
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Deploy preview
+        if: github.event_name == 'pull_request'
+        id: preview
+        run: |
+          BRANCH="${{ github.head_ref }}"
+          # Sanitize branch name for alias (lowercase, alphanumeric and dashes only)
+          ALIAS=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^-//' | sed 's/-$//')
+          pnpm wrangler versions upload --preview-alias "$ALIAS" 2>&1 | tee /tmp/wrangler-output.txt
+          PREVIEW_URL="https://${ALIAS}-astro-docs.astro-docs.workers.dev"
+          echo "preview_url=$PREVIEW_URL" >> "$GITHUB_OUTPUT"
+          echo "alias=$ALIAS" >> "$GITHUB_OUTPUT"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
+      - name: Comment preview URL on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        with:
+          script: |
+            const previewUrl = '${{ steps.preview.outputs.preview_url }}';
+            const body = `**Preview deployment**\n\n${previewUrl}`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes('**Preview deployment**'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
