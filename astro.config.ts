@@ -11,8 +11,9 @@ import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 
-const previewSite = process.env.WORKERS_CI_BRANCH
-	? `https://${process.env.WORKERS_CI_BRANCH}.previews.docs.astro.build/`
+const previewBranch = process.env.GITHUB_HEAD_REF;
+const previewSite = previewBranch
+	? `https://${previewBranch}.previews.docs.astro.build/`
 	: undefined;
 
 const site = previewSite || 'https://docs.astro.build/';
