@@ -71,7 +71,6 @@ export const sidebar = [
 					'guides/content-collections',
 					'guides/images',
 					'guides/data-fetching',
-					'guides/astro-db',
 				],
 			}),
 			group('guides.serverRendering', {
@@ -131,6 +130,8 @@ export const sidebar = [
 					'reference/modules/astro-config',
 					'reference/modules/astro-content',
 					'reference/modules/astro-env',
+					'reference/modules/astro-fetch',
+					'reference/modules/astro-hono',
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-static-paths',
@@ -161,7 +162,6 @@ export const sidebar = [
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/svg-optimization',
-					'reference/experimental-flags/advanced-routing',
 				],
 			}),
 			'reference/legacy-flags',
@@ -195,7 +195,6 @@ export const sidebar = [
 			group('ecosystem.integrations.other', {
 				collapsed: true,
 				items: [
-					'guides/integrations-guide/db',
 					'guides/integrations-guide/markdoc',
 					'guides/integrations-guide/mdx',
 					'guides/integrations-guide/partytown',
