@@ -1,0 +1,437 @@
+---
+title: Utilizzare font personalizzati
+sidebar:
+  label: font
+description: >-
+  Vuoi aggiungere dei font tipografici personalizzati a un sito web Astro? Usa Google Fonts
+  con Fontsource oppure aggiungi un font a tua scelta.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+
+Questa quida ti mostrerà come aggiungere [font web](https://developer.mozilla.org/en-US/docs/Learn/CSS/Styling_text/Web_fonts) al tuo progetto e usarli nei tuoi componenti.
+
+Astro fornisce un modo per usare i font dal tuo filesystem e da vari fornitori di font (es. Fontsource, Google) attraverso un'API unificata, [completamente personalizzabile](/it/reference/configuration-reference/#fonts), e con la sicurezza dei tipi.
+
+I font Web possono influire sulle prestazioni della pagina sia al momento del caricamento che del rendering. Questa API ti aiuta a mantenere il tuo sito performante con [ottimizzazioni dei font web](https://web.dev/learn/performance/optimize-web-fonts) automatiche inclusi collegamenti precaricati, alternative ottimizzate, e impostazioni predefinite rigide. [Vedere esempi di utilizzo comune](#esempi).
+
+L'API Fonts si concentra sulle prestazioni e la privacy scaricando e memorizzando nella cache i font così che possano essere serviti al tuo sito. Questo può evitare di inviare i dati degli utenti a siti terzi, e inoltre assicura che un ricco set di font sia disponibile a tutti i tuoi visitatori.
+
+## Configurare font personalizzati
+
+Si possono registrare font personalizzati per il tuo progetto Astro attraverso [l'opzione `fonts`](/it/reference/configuration-reference/#fonts) nella tua configurazione di Astro.
+
+Per ogni font che vuoi usare, devi specificare il suo [nome](/it/reference/configuration-reference/#fontname), una [variabile CSS](/it/reference/configuration-reference/#fontcssvariable), e un fornitore di font di Astro.
+
+Astro fornisce [supporto integrato per i fornitori di font più popolari](/it/reference/font-provider-reference/#built-in-providers): Adobe, Bunny, Fontshare, Fontsource, Google, Google Icons e NPM, così come l'utilizzo dei tuoi file di font locali. Inoltre, puoi [personalizzare ulteriormente la configurazione del tuo font](#configurazione-granulare-del-font) per ottimizzare le prestazioni e l'esperienza del visitatore.
+
+
+### Usare un file di font locale
+
+Questo esempio dimostrerà come aggiungere un font personalizzato usando il file di font `DistantGalaxy.woff2`.
+
+<Steps>
+
+1. Aggiungi il file di font nella [cartella `src/`](/it/basics/project-structure/#src), per esempio `src/assets/fonts/`.
+
+2. Crea una nuova famiglia di font nel tuo file di configurazione di Astro usando [il fornitore di font locale](/it/reference/font-provider-reference/#local) e specifica le varianti da includere:
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.local(),
+        name: "DistantGalaxy",
+        cssVariable: "--font-distant-galaxy",
+        options: {
+          variants: [{
+            src: ['./src/assets/fonts/DistantGalaxy.woff2'],
+            weight: 'normal',
+            style: 'normal'
+          }]
+        }
+      }]
+    });
+    ```
+3. Il tuo font è ora configurato e pronto per essere [aggiunto all'head della tua pagina](#applicare-font-personalizzati) così da poter essere usato nel tuo progetto.
+
+</Steps>
+
+### Usare Fontsource
+
+Astro supporta [molti fornitori di font](/it/reference/font-provider-reference/#built-in-providers) pronti all'uso, includendo il supporto per [Fontsource](https://fontsource.org/) che semplifica l'uso di Google Fonts e altri font open-source.
+
+L'esempio seguente userà Fontsource per aggiungere il supporto a un font personalizzato, ma il processo è simile per tutti i fornitori di font integrati in Astro (es. [Adobe](https://fonts.adobe.com/), [Bunny](https://fonts.bunny.net/)).
+
+<Steps>
+
+1. Trova il font che vuoi usare nel [catalogo di Fontsource](https://fontsource.org/). Questo esempio userà [Roboto](https://fontsource.org/fonts/roboto).
+
+2. Crea una nuova famiglia di font nel tuo file di configurazione di Astro usando il [fornitore Fontsource](/it/reference/font-provider-reference/#fontsource):
+
+    ```js title="astro.config.mjs"
+    import { defineConfig, fontProviders } from "astro/config";
+
+    export default defineConfig({
+      fonts: [{
+        provider: fontProviders.fontsource(),
+        name: "Roboto",
+        cssVariable: "--font-roboto",
+      }]
+    });
+    ```
+3. Il tuo font ora è configurato e pronto per essere [aggiunto all'head della tua pagina](#applicare-font-personalizzati) così da poter essere usato nel tuo progetto.
+
+</Steps>
+
+## Applicare font personalizzati
+
+Dopo che [un font è configurato](#configurare-font-personalizzati), deve essere aggiunto all'head della tua pagina con una variabile CSS identificativa. Quindi, puoi usare questa variabile quando definisci gli stili della tua pagina.
+
+<Steps>
+
+1. Importa e includi il componente [`<Font />`](/it/reference/modules/astro-assets/#font-) con la proprietà richiesta `cssVariable` nell'head della tua pagina, normalmente in un componente dedicato `Head.astro` o direttamente in un componente [layout](/it/basics/layouts/):
+
+    ```astro title="src/layouts/Layout.astro" ins={2,7}
+    ---
+    import { Font } from "astro:assets";
+    ---
+
+    <html>
+      <head>
+        <Font cssVariable="--font-distant-galaxy" />
+      </head>
+      <body>
+        <slot />
+      </body>
+    </html>
+    ```
+
+2. In ogni pagina renderizzata con quel layout, incluso il componente layout stesso, puoi ora definire gli stili con la tua `cssVariable` del font per applicare il tuo font personalizzato.
+
+    Nell'esempio seguente, il titolo `<h1>` avrà applicato il font personalizzato, mentre il paragrafo `<p>` no.
+
+    ```astro title="src/pages/example.astro" ins={10-12}
+    ---
+    import Layout from "../layouts/Layout.astro";
+    ---
+    <Layout>
+      <h1>In a galaxy far, far away...</h1>
+
+      <p>Custom fonts make my headings much cooler!</p>
+
+      <style>
+      h1 {
+        font-family: var(--font-distant-galaxy);
+      }
+      </style>
+    </Layout>
+    ```
+
+</Steps>
+
+## Precaricare i font
+
+Il precaricamento dei font dovrebbero essere fatto con moderazione, in quanto potrebbe bloccare il caricamente di altre risorse importanti o scaricare font che non sono necessari per la pagina corrente. Considera di precaricare solo i font essenziali, necessari per visualizzare il contenuto visibile nella parte superiore della pagina.
+
+Per precaricare un font, passa la [proprietà `preload`](/it/reference/modules/astro-assets/#preload) al componente corrispondente `<Font />`. Se ad un font corrispondono più file, puoi specificare quali precaricare passando un array.
+
+```astro title="src/layouts/Layout.astro" {7}
+---
+import { Font } from "astro:assets";
+---
+
+<html>
+  <head>
+    <Font cssVariable="--font-distant-galaxy" preload />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>
+```
+
+## Registrare font in Tailwind
+
+Se stai usando [Tailwind](/it/guides/styling/#tailwind) per gli stili, non applicherai i tuoi stili con la proprietà CSS `font-face`.
+
+Invece, dopo [aver configurato il tuo font personalizzato](#configurare-font-personalizzati) e [averlo aggiunto all'head della tua pagina](#applicare-font-personalizzati), dovrai aggiornare la tua configurazione di Tailwind per registrare il tuo font:
+
+    <Tabs>
+
+    <TabItem label="Tailwind CSS 4.0">
+
+    ```css title="src/styles/global.css" ins={4} ins="inline"
+    @import "tailwindcss";
+
+    @theme inline {
+      --font-sans: var(--font-roboto);
+    }
+    ```
+
+    </TabItem>
+
+    <TabItem label="Tailwind CSS 3.0">
+
+    ```js title="tailwind.config.mjs" ins={6-8}
+    /** @type {import("tailwindcss").Config} */
+    export default {
+      content: ["./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}"],
+      theme: {
+        extend: {},
+        fontFamily: {
+          sans: ["var(--font-roboto)"]
+        }
+      },
+      plugins: []
+    };
+    ```
+
+    </TabItem>
+
+    </Tabs>
+
+Vedere la [documentazione di Tailwind per aggiungere famiglie di font personalizzate](https://tailwindcss.com/docs/font-family#using-a-custom-value) per maggiori informazioni.
+
+## Usare font variabili
+
+Per usare [font variabili](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) nel tuo progetto, specifica il range di spessori disponibili invece di singoli spessori nella configurazione del tuo provider.
+
+<Tabs>
+<TabItem label="Local provider">
+
+Quando [si usa un file di font locale](#usare-un-file-di-font-locale), puoi specificare che il font sia variabile impostando la [proprietà `weight` della variante](/it/reference/font-provider-reference/#weight) in una stringa corrispondente al preciso range di spessori disponibili per quel font.
+
+L'esempio seguente configura Inter come un font variabile locale con il range di spessori disponibili:
+
+```js title="astro.config.mjs" {11}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Inter",
+    cssVariable: "--font-inter",
+    options: {
+      variants: [
+        {
+          weight: "100 900",
+          style: "normal",
+          src: ["./src/assets/fonts/InterVariable.woff2"],
+        },
+      ],
+    },
+  }]
+});
+```
+
+</TabItem>
+<TabItem label="Other providers">
+
+Quando si usano [altri fornitori (es. Fontsource)](#usare-fontsource), che supportano font variabili, puoi richiedere la versione variabile di un font impostando la [proprietà `weights`](/it/reference/configuration-reference/#fontweights) con un array contenente il range preciso di spessori disponibili per il font.
+
+L'esempio seguente scarica [Fira Code da Fontsource](https://fontsource.org/fonts/fira-code) come font variabile con il range di spessori disponibili:
+
+```js title="astro.config.mjs" {9}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    cssVariable: "--font-fira-code",
+    name: "Fira Code",
+    provider: fontProviders.fontsource(),
+    styles: ["normal"],
+    weights: ["300 700"],
+  }]
+});
+```
+
+</TabItem>
+</Tabs>
+
+## Personalizzare font alternativi
+
+I font alternativi sono usati quando il font primario non è stato ancora caricato, contiene caratteri mancanti, o per qualche ragione non può essere caricato. Quando il font alternativo differisce significativamente dal font primario, durante il caricamento della pagina si potrebbe verificare uno spostamento del layout. 
+
+Per evitarlo, Astro prova automaticamente a generare font alternativi ottimizzati dall'ultima [alternativa definita](/it/reference/configuration-reference/#fontfallbacks) se è una [famiglia di font generica](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/Properties/font-family#generic-name). Usa `sans-serif` per impostazione predefinta, ma potrebbe non coincidere con l'aspetto desiderato del tuo font primario. Puoi aggiustarlo nella configurazione del tuo font:
+
+```mjs title="astro.config.mjs" {8}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.fontsource(),
+    name: "Cousine",
+    cssVariable: "--font-cousine",
+    fallbacks: ["monospace"]
+  }]
+});
+```
+
+Puoi anche optare per l'ottimizzazione predefinita impostando [`font.optimizedFallbacks`](/it/reference/configuration-reference/#fontoptimizedfallbacks) in `false` nella configurazione del tuo font. Astro userà quindi i font alternativi specificati nella tua configurazione senza altre ulteriori elaborazioni automatiche.
+
+## Accedere ai dati dei font tramite codice
+
+Astro espone API di basso livello per accedere ai dati attraverso il codice:
+
+- I dati della famiglia di font attraverso l'oggetto [`fontData`](/it/reference/modules/astro-assets/#fontdata)
+- Gli URL del file di font con la funzione [`experimental_getFontFileURL()`](/it/reference/modules/astro-assets/#experimental_getfontfileurl).
+
+Questo può essere utile per casi d'uso avanzati dove è necessario un accesso diretto ai file di font, come generare immagini OpenGraph con [Satori](https://github.com/vercel/satori) in una [Route API](/it/guides/endpoints/#server-endpoints-api-routes).
+
+L'oggetto `fontData` dà l'accesso a tutti i file di font scaricati da Astro per il tuo progetto, insieme ai loro metadati. Questo significa che sei responsabile di filtrare i file di font per trovare il file specifico che ti serve, e di recuperare i dati dopo avere risolto gli URL.
+
+L'esempio seguente genera un'immagine OpenGraph in un file statico come punto di accesso, assumendo che [sia stato configurato un solo font e il suo formato](/it/reference/configuration-reference/#fontformats) con un [formato supportato da Satori](https://github.com/vercel/satori?tab=readme-ov-file#fonts):
+
+```tsx title="src/pages/og.png.ts" {2,14-15} "fontData[\"--font-roboto\"]"
+import type { APIRoute } from "astro";
+import { fontData, experimental_getFontFileURL } from "astro:assets";
+import satori from "satori";
+import { html } from "satori-html";
+import sharp from "sharp";
+
+export const GET: APIRoute = async (context) => {
+  const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+  if (fontPath === undefined) {
+    throw new Error("Cannot find the font path.");
+  }
+
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  const data = await fetch(url).then((res) => res.arrayBuffer());
+
+  const svg = await satori(
+    html`<div style="color: black;">hello, world</div>`,
+    {
+      width: 600,
+      height: 400,
+      fonts: [
+        {
+          name: "Roboto",
+          data,
+          weight: 400,
+          style: "normal",
+        },
+      ],
+    },
+  );
+
+  const pngBuffer = await sharp(Buffer.from(svg))
+    .resize(600, 400)
+    .png()
+    .toBuffer();
+
+  return new Response(new Uint8Array(pngBuffer), {
+    headers: {
+      "Content-Type": "image/png",
+    },
+  });
+};
+```
+
+## Configurazione granulare del font
+
+Una famiglia di font è definita da una combinazione di proprietà come whights e styles (es. `weights: [500, 600]` e `styles: ["normal", "bold"]`), ma si può voler scaricare solo alcune loro combinazioni.
+
+Per un maggior controllo su quali file di font vengono scaricati, puoi specificare lo stesso font (es. con le stesse proprietà `cssVariable`, `name`, e `provider`) molte volte con combinazioni differenti. Astro unirà i risultati e scaricherà solo i file richiesti. Per esempio, è possibile scaricare normal `500` e `600` mentre si scarica solo italic `500`:
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500, 600],
+      styles: ["normal"]
+    },
+    {
+      name: "Roboto",
+      cssVariable: "--roboto",
+      provider: fontProviders.google(),
+      weights: [500],
+      styles: ["italic"]
+    }
+  ]
+});
+```
+
+## Memorizzare nella cache
+
+L'implementazione della memorizzazione nella cache dell'API Fonts è stata disegnata per essere pratica nella fase di sviluppo ed efficiente in quella di produzione. Durante le compilazioni, i file di font sono copiati nella cartella di output `_astro/fonts`, così da poter beneficiare della memorizzazione nella cache degli asset statici (normalmente un anno).
+
+Per pulire la cache nella fase di sviluppo, cancella la cartella `.astro/fonts`. Per pulire la cache di compilazione, cancella la cartella `node_modules/.astro/fonts`.
+
+## Esempi
+
+La funzionalità font di Astro è basata su opzioni di configurazione flessibili. La configurazione del font del tuo progetto potrebbe apparire diversa dagli esempi semplificati, quindi vengono forniti i seguenti esempi per mostrare come possono apparire varie configurazioni di font quando usate in produzione.
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [
+    {
+      name: "Roboto",
+      cssVariable: "--font-roboto",
+      provider: fontProviders.google(),
+      // Default included:
+      // weights: [400] ,
+      // styles: ["normal", "italic"],
+      // subsets: ["latin"],
+      // fallbacks: ["sans-serif"], 
+      // formats: ["woff2"],
+    },
+    {
+      name: "Inter",
+      cssVariable: "--font-inter",
+      provider: fontProviders.fontsource(),
+      // Specify weights that are actually used
+      weights: [400, 500, 600, 700],
+      // Specify styles that are actually used
+      styles: ["normal"],
+      // Download only font files for characters used on the page
+      subsets: ["latin", "cyrillic"],
+      // Download more font formats
+      formats: ["woff2", "woff"],
+    },
+    {
+      name: "JetBrains Mono",
+      cssVariable: "--font-jetbrains-mono",
+      provider: fontProviders.fontsource(),
+      // Download only font files for characters used on the page
+      subsets: ["latin", "latin-ext"],
+      // Use a fallback font family matching the intended appearance
+      fallbacks: ["monospace"],
+    },
+    {
+      name: "Poppins",
+      cssVariable: "--font-poppins",
+      provider: fontProviders.local(),
+      options: {
+        // Weight and style are not specified so Astro
+        // will try to infer them for each variant
+        variants: [
+          {
+            src: [
+              "./src/assets/fonts/Poppins-regular.woff2",
+              "./src/assets/fonts/Poppins-regular.woff",
+            ]
+          },
+          {
+            src: [
+              "./src/assets/fonts/Poppins-bold.woff2",
+              "./src/assets/fonts/Poppins-bold.woff",
+            ]
+          },
+        ]
+      }
+    }
+  ],
+});
+```
