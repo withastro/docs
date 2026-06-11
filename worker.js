@@ -1,4 +1,14 @@
 /* global URL, Response */
+
+/**
+ * Worker that serves localized 404 pages.
+ *
+ * When a request doesn't match any static asset, this checks if the URL starts
+ * with a language prefix (e.g. /fr/, /ja/) and serves the corresponding
+ * localized 404 page (e.g. /fr/404/index.html) with a 404 status code.
+ *
+ * For non-localized 404s, the default asset response is returned as-is.
+ */
 export default {
 	async fetch(request, env) {
 		const response = await env.ASSETS.fetch(request);
