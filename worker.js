@@ -11,15 +11,19 @@
  */
 export default {
 	async fetch(request, env) {
+		// Try to serve the request from static assets
 		const response = await env.ASSETS.fetch(request);
 
 		if (response.status === 404) {
 			const url = new URL(request.url);
+			// Extract the language prefix, e.g. "fr" from "/fr/some/page"
 			const firstSegment = url.pathname.split('/')[1];
 			if (firstSegment) {
+				// Try to fetch the localized 404 page for this language
 				const localizedNotFound = await env.ASSETS.fetch(
 					new URL(`/${firstSegment}/404/index.html`, url.origin)
 				);
+				// If a localized 404 page exists, serve it with a 404 status
 				if (localizedNotFound.status === 200) {
 					return new Response(localizedNotFound.body, {
 						status: 404,
