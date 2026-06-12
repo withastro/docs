@@ -7,6 +7,12 @@ on:
 
 permissions: {}
 
+# Cancel older preview runs for the same branch so a stale deploy doesn't
+# overwrite the comment from a newer one.
+concurrency:
+  group: preview-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
 jobs:
   deploy-preview:
     if: >-
@@ -38,13 +44,19 @@ jobs:
           script: |
             const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
             const previewUrl = '${{ steps.metadata.outputs.preview_url }}';
-            const body = `**Preview deployment**\n\n🔄 Deployment in progress...\n\n${previewUrl}`;
+            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
+            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const body = `**Preview deployment**\n\n`
+              + `🔄 Deployment in progress...\n\n`
+              + `- **Latest commit:** ${commitSHA}\n`
+              + `- **Preview:** ${previewUrl}\n`
+              + `- **Workflow run:** [View logs](${runUrl})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-            const existing = comments.find(c => c.body.includes('**Preview deployment**'));
+            const existing = comments.find(c => c.user.login === 'github-actions[bot]' && c.body.includes('**Preview deployment**'));
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
@@ -81,13 +93,19 @@ jobs:
           script: |
             const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
             const previewUrl = '${{ steps.metadata.outputs.preview_url }}';
-            const body = `**Preview deployment**\n\n✅ Deployment complete!\n\n${previewUrl}`;
+            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
+            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const body = `**Preview deployment**\n\n`
+              + `✅ Deployment complete!\n\n`
+              + `- **Latest commit:** ${commitSHA}\n`
+              + `- **Preview:** ${previewUrl}\n`
+              + `- **Workflow run:** [View logs](${runUrl})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-            const existing = comments.find(c => c.body.includes('**Preview deployment**'));
+            const existing = comments.find(c => c.user.login === 'github-actions[bot]' && c.body.includes('**Preview deployment**'));
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
@@ -103,14 +121,18 @@ jobs:
         with:
           script: |
             const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
+            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
             const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
-            const body = `**Preview deployment**\n\n❌ Deployment failed. Check the [workflow run](${runUrl}) for details.`;
+            const body = `**Preview deployment**\n\n`
+              + `❌ Deployment failed!\n\n`
+              + `- **Latest commit:** ${commitSHA}\n`
+              + `- **Workflow run:** [View logs](${runUrl})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
               issue_number: prNumber,
             });
-            const existing = comments.find(c => c.body.includes('**Preview deployment**'));
+            const existing = comments.find(c => c.user.login === 'github-actions[bot]' && c.body.includes('**Preview deployment**'));
             if (existing) {
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
