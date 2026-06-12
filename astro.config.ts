@@ -14,7 +14,7 @@ import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 
 // https://astro.build/config
 export default defineConfig({
-	site: 'https://docs.astro.build/',
+	site: 'https://v4.docs.astro.build/',
 	integrations: [
 		starlight({
 			title: 'Docs',
