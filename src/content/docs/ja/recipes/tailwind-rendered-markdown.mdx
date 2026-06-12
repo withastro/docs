@@ -1,0 +1,99 @@
+---
+title: TailwindタイポグラフィでレンダリングされたMarkdownにスタイルを適用する
+description: '@tailwind/typographyを使ってレンダリングされたMarkdownにスタイルを適用する方法を紹介します。'
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Tailwind](https://tailwindcss.com)のTypographyプラグインを使用して、Astroの[**コンテンツコレクション**](/ja/guides/content-collections/)などのソースからレンダリングされたMarkdownにスタイルを適用できます。
+
+このレシピでは、Tailwindのユーティリティクラスを使ってMarkdownコンテンツにスタイルを適用するための、再利用可能なAstroコンポーネントの作り方を紹介します。
+
+## 前提条件
+
+以下の条件を満たすAstroプロジェクト：
+
+- [TailwindのViteプラグイン](/ja/guides/styling/#tailwind)がインストールされていること
+- Astroの[コンテンツコレクション](/ja/guides/content-collections/)を使用していること
+
+## `@tailwindcss/typography`のセットアップ
+
+まず、お好みのパッケージマネージャーで`@tailwindcss/typography`をインストールします。
+
+<PackageManagerTabs>
+ 	<Fragment slot="npm">
+	```shell 
+	npm install -D @tailwindcss/typography
+	```
+	</Fragment>
+  	<Fragment slot="pnpm">
+	```shell 
+	pnpm add -D @tailwindcss/typography
+	```
+	</Fragment>
+  	<Fragment slot="yarn">
+	```shell
+	yarn add --dev @tailwindcss/typography
+	```
+	</Fragment>
+</PackageManagerTabs>
+
+次に、TailwindのCSSファイルでパッケージをプラグインとして追加します。
+
+```css title="src/styles/global.css" ins={2}
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+```
+
+## レシピ
+
+<Steps>
+1. レンダリングされたMarkdown用に`<slot />`を持つ`<div>`でラップする`<Prose />`コンポーネントを作成します。親要素に`prose`スタイルクラスと任意の[Tailwind要素モディファイアー](https://tailwindcss.com/docs/typography-plugin#element-modifiers)を追加します。
+
+    ```astro title="src/components/Prose.astro"
+    ---
+    ---
+    <div 
+      class="prose dark:prose-invert 
+      prose-h1:font-bold prose-h1:text-xl 
+      prose-a:text-blue-600 prose-p:text-justify prose-img:rounded-xl 
+      prose-headings:underline">
+      <slot />
+    </div>
+    ```
+    :::tip
+    `@tailwindcss/typography`プラグインは[**要素モディファイアー**](https://tailwindcss.com/docs/typography-plugin#element-modifiers)を使用して、`prose`クラスを持つコンテナの子コンポーネントにスタイルを適用します。
+
+    これらのモディファイアーは以下の一般的な構文に従います。
+
+      ```
+      prose-[element]:class-to-apply
+      ``` 
+
+    たとえば、`prose-h1:font-bold`はすべての`<h1>`タグに`font-bold`のTailwindクラスを適用します。
+    :::
+
+2. Markdownをレンダリングしたいページでコレクションエントリーを取得します。`await render(entry)`から取得した`<Content />`コンポーネントを`<Prose />`の子として渡し、MarkdownコンテンツをTailwindのスタイルでラップします。
+
+    ```astro title="src/pages/index.astro"
+    ---
+    import Prose from '../components/Prose.astro';
+    import Layout from '../layouts/Layout.astro';
+    import { getEntry, render } from 'astro:content';
+
+    const entry = await getEntry('collection', 'entry');
+    const { Content } = await render(entry);
+    ---
+    <Layout>
+      <Prose>
+        <Content />
+      </Prose>
+    </Layout>
+    ```
+</Steps>
+
+## 参考リソース
+
+- [Tailwind Typographyのドキュメント](https://tailwindcss.com/docs/typography-plugin)
