@@ -662,6 +662,55 @@ Since Astro 6.0, the integration relies on the Cloudflare Vite plugin and this b
 
 To deploy to a specific Cloudflare environment, prefix your command with the `CLOUDFLARE_ENV` variable. For example, the command `CLOUDFLARE_ENV=some-env astro build && wrangler deploy` will build your Astro project and deploy it with Wrangler using the `some-env` environment.
 
+#### Multi-environment deployments with `platformProxy`
+
+When deploying to multiple Cloudflare environments, three things must match:
+
+1. **`CLOUDFLARE_ENV`** — environment variable set during build
+2. **`[env.<name>]`** — section in wrangler.toml with environment-specific bindings
+3. **`platformProxy.environment`** — adapter option that tells the Vite plugin which environment to use
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    platformProxy: {
+      environment: process.env.CLOUDFLARE_ENV,
+    },
+  }),
+});
+```
+
+```jsonc title="wrangler.jsonc"
+{
+  "name": "my-app",
+  "kv_namespaces": [
+    { "binding": "SESSION", "id": "prod-kv-abc123" }
+  ],
+
+  "env.development": {
+    "name": "my-app-dev",
+    "kv_namespaces": [
+      { "binding": "SESSION", "id": "dev-kv-xyz789" }
+    ]
+  }
+}
+```
+
+```sh
+# Production (uses top-level bindings)
+CLOUDFLARE_ENV=production astro build && wrangler deploy
+
+# Development (uses env.development bindings)
+CLOUDFLARE_ENV=development astro build && wrangler deploy --env development
+```
+
+:::caution[Environment names must match]
+The value of `CLOUDFLARE_ENV` must exactly match the `[env.<name>]` section name in your wrangler config. If they don't match, the Vite plugin won't find the correct bindings, and your Worker may fail to access KV namespaces, D1 databases, or other resources.
+:::
+
 <ReadMore>Learn how to update your [Cloudflare environments](https://developers.cloudflare.com/workers/vite-plugin/reference/cloudflare-environments/) in the [Migrate from wrangler dev guide](https://developers.cloudflare.com/workers/vite-plugin/reference/migrating-from-wrangler-dev/#cloudflare-environments).</ReadMore>
 
 [astro-integration]: /en/guides/integrations/
