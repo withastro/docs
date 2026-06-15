@@ -63,7 +63,6 @@ const rules = [
 	['/:lang/reference/experimental-flags/live-content-collections/', '/:lang/guides/content-collections/#live-content-collections'],
 	['/:lang/reference/experimental-flags/preserve-scripts-order/', '/:lang/guides/client-side-scripts/'],
 	['/:lang/reference/experimental-flags/static-import-meta-env/', '/:lang/guides/environment-variables/'],
-	['/:lang/reference/experimental-flags/advanced-routing/', '/:lang/guides/routing/'],
 
 	// Very old docs site redirects
 	['/reference/renderer-reference', '/en/reference/renderer-reference/'],
