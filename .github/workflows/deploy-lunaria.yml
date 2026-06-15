@@ -1,0 +1,36 @@
+name: Deploy Lunaria
+
+on:
+  push:
+    branches: [main]
+
+# Cancel older runs so we always deploy the latest translation status.
+concurrency:
+  group: lunaria-deploy
+  cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+        with:
+          fetch-depth: 0
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - name: Build Lunaria
+        run: pnpm lunaria:build
+
+      - name: Deploy
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy --config wrangler.lunaria.jsonc
