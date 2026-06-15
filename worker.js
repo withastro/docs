@@ -78,7 +78,6 @@ const rules = [
 	['/lighthouse/*', '/en/guides/migrate-to-astro/'],
 	['/en/guides/debugging', '/en/guides/troubleshooting/'],
 	['/en/quick-started', '/en/installation/'],
-	['/:lang/guides/astro-db/', '/en/guides/integrations-guide/db/'],
 
 	// Redirect root to English homepage
 	['/', '/en/getting-started/'],
