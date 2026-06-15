@@ -49,20 +49,41 @@ const rules = [
 	['/:lang/basics/astro-syntax/', '/:lang/reference/astro-syntax/'],
 	['/:lang/reference/experimental-flags/sessions/', '/:lang/guides/sessions/'],
 	['/:lang/reference/experimental-flags/svg/', '/:lang/guides/images/'],
-	['/:lang/reference/experimental-flags/serialized-configuration/', '/:lang/reference/modules/astro-config/'],
+	[
+		'/:lang/reference/experimental-flags/serialized-configuration/',
+		'/:lang/reference/modules/astro-config/',
+	],
 	['/:lang/reference/experimental-flags/responsive-images/', '/:lang/guides/images/'],
 	['/:lang/guides/deploy/sst/', '/:lang/guides/deploy/aws-via-sst/'],
 	['/:lang/guides/deploy/flightcontrol/', '/:lang/guides/deploy/aws-via-flightcontrol/'],
 	['/:lang/guides/deploy/google-firebase/', '/:lang/guides/deploy/firebase/'],
 	['/:lang/guides/backend/google-firebase/', '/:lang/guides/backend/firebase/'],
 	['/:lang/guides/backend/appwriteio/', '/:lang/guides/backend/appwrite/'],
-	['/:lang/reference/experimental-flags/csp/', '/:lang/reference/configuration-reference/#securitycsp'],
-	['/:lang/reference/experimental-flags/fail-on-prerender-conflict/', '/:lang/reference/configuration-reference/#prerenderconflictbehavior'],
+	[
+		'/:lang/reference/experimental-flags/csp/',
+		'/:lang/reference/configuration-reference/#securitycsp',
+	],
+	[
+		'/:lang/reference/experimental-flags/fail-on-prerender-conflict/',
+		'/:lang/reference/configuration-reference/#prerenderconflictbehavior',
+	],
 	['/:lang/reference/experimental-flags/fonts/', '/:lang/guides/fonts/'],
-	['/:lang/reference/experimental-flags/heading-id-compat/', '/:lang/guides/markdown-content/#heading-ids'],
-	['/:lang/reference/experimental-flags/live-content-collections/', '/:lang/guides/content-collections/#live-content-collections'],
-	['/:lang/reference/experimental-flags/preserve-scripts-order/', '/:lang/guides/client-side-scripts/'],
-	['/:lang/reference/experimental-flags/static-import-meta-env/', '/:lang/guides/environment-variables/'],
+	[
+		'/:lang/reference/experimental-flags/heading-id-compat/',
+		'/:lang/guides/markdown-content/#heading-ids',
+	],
+	[
+		'/:lang/reference/experimental-flags/live-content-collections/',
+		'/:lang/guides/content-collections/#live-content-collections',
+	],
+	[
+		'/:lang/reference/experimental-flags/preserve-scripts-order/',
+		'/:lang/guides/client-side-scripts/',
+	],
+	[
+		'/:lang/reference/experimental-flags/static-import-meta-env/',
+		'/:lang/guides/environment-variables/',
+	],
 
 	// Very old docs site redirects
 	['/reference/renderer-reference', '/en/reference/renderer-reference/'],
