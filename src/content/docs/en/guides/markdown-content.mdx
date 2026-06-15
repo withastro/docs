@@ -10,6 +10,7 @@ import { FileTree } from '@astrojs/starlight/components';
 import RecipeLinks from "~/components/RecipeLinks.astro";
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 [Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown files that can also include [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) (or [TOML](https://toml.io)) to define custom properties such as a title, description, and tags.
 
@@ -72,7 +73,7 @@ const posts = Object.values(import.meta.glob('./posts/*.md', { eager: true }));
 
 When fetching data from your collections with the helper functions `getCollection()` or `getEntry()`, your Markdown's frontmatter properties are available on a `data` object (e.g. `post.data.title`). Additionally, `body` contains the raw, uncompiled body content as a string.
 
-The [`render()`](/en/reference/modules/astro-content/#render) function returns your Markdown body content, a generated list of headings, as well as a modified frontmatter object after any remark or rehype plugins have been applied.
+The [`render()`](/en/reference/modules/astro-content/#render) function returns your Markdown body content, a generated list of headings, as well as a modified frontmatter object after any Markdown plugins have been applied.
 
 <ReadMore>Read more about [using content returned by a collections query](/en/guides/content-collections/#using-content-in-astro-templates).</ReadMore>
 
@@ -164,24 +165,6 @@ You can customize these heading IDs with a [Markdown processor](#choosing-a-mark
 Astro injects `id` attributes after your custom plugins have run, so any ID set by a plugin is preserved. If one of your custom plugins needs to access the IDs injected by Astro, you can import Astro's heading ids plugin and place it before any plugins that rely on it:
 
 <Tabs syncKey="markdown-processor">
-  <TabItem label="Unified">
-    ```js title="astro.config.mjs" ins={2-3, 9}
-    import { defineConfig } from 'astro/config';
-    import { unified, rehypeHeadingIds } from '@astrojs/markdown-remark';
-    import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
-
-    export default defineConfig({
-      markdown: {
-        processor: unified({
-          rehypePlugins: [
-            rehypeHeadingIds,
-            otherPluginThatReliesOnHeadingIDs,
-          ],
-        }),
-      },
-    });
-    ```
-  </TabItem>
   <TabItem label="Sätteri">
     ```js title="astro.config.mjs" ins={2-3, 9}
     import { defineConfig } from 'astro/config';
@@ -200,30 +183,104 @@ Astro injects `id` attributes after your custom plugins have run, so any ID set 
     });
     ```
   </TabItem>
+  <TabItem label="Unified">
+    ```js title="astro.config.mjs" ins={2-3, 9}
+    import { defineConfig } from 'astro/config';
+    import { unified, rehypeHeadingIds } from '@astrojs/markdown-remark';
+    import { otherPluginThatReliesOnHeadingIDs } from 'some/plugin/source';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified({
+          rehypePlugins: [
+            rehypeHeadingIds,
+            otherPluginThatReliesOnHeadingIDs,
+          ],
+        }),
+      },
+    });
+    ```
+  </TabItem>
 </Tabs>
 
 ## Markdown Plugins
 
-Astro renders Markdown using a configurable **Markdown processor**. By default, this is the [unified](https://unifiedjs.com/) pipeline of [remark](https://remark.js.org/) and [rehype](https://github.com/rehypejs/rehype), with an active plugin ecosystem.
+Astro renders Markdown using a configurable **Markdown processor**. By default, this is [Sätteri](https://satteri.bruits.org/), Astro's native Markdown and MDX pipeline, included with Astro.
 
 Astro applies [GitHub-Flavored Markdown](https://github.github.com/gfm/) and [SmartyPants](https://daringfireball.net/projects/smartypants/) automatically. This brings some niceties like generating clickable links from text, and formatting for quotations and em-dashes.
 
-You can extend Markdown processing with plugins, enable additional parser features, or [switch to a different processor entirely](#switching-to-the-sätteri-processor). See the full list of [Markdown configuration options](/en/reference/configuration-reference/#markdown-options).
+You can extend Markdown processing with plugins, enable additional parser features, or [switch to a different processor entirely](#switching-to-the-unified-processor). See the full list of [Markdown configuration options](/en/reference/configuration-reference/#markdown-options).
 
 ### Choosing a Markdown processor
 
 The [`markdown.processor` option](/en/reference/configuration-reference/#markdownprocessor) controls which engine renders your `.md` and `.mdx` files. Astro provides two official options:
 
-- **`unified()`** (default): the [remark](https://remark.js.org/) and [rehype](https://github.com/rehypejs/rehype) pipeline, with its large plugin ecosystem.
-- **`satteri()`**: the native [Sätteri](https://satteri.bruits.org/) pipeline, a faster Markdown and MDX compiler with its own plugin model. Provided by `@astrojs/markdown-satteri`, which you install separately.
+- **`satteri()`** (default): the native [Sätteri](https://satteri.bruits.org/) pipeline, a fast Markdown and MDX compiler with its own plugin model. Included with Astro, so no extra installation is needed.
+- **`unified()`**: the [remark](https://remark.js.org/) and [rehype](https://github.com/rehypejs/rehype) pipeline, with its large plugin ecosystem. Provided by `@astrojs/markdown-remark`, which you install separately.
 
-### Using remark and rehype plugins
+### Using Sätteri plugins and features
 
-The default `unified()` processor accepts third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling).
+The default `satteri()` processor accepts its own plugins through `mdastPlugins` and `hastPlugins`, and toggles optional parser features through `features`. See the [Sätteri documentation](https://satteri.bruits.org/docs/) for the available plugins and features.
+
+Import `satteri` from `@astrojs/markdown-satteri` and pass your options to it through `markdown.processor`. This example adds an mdast plugin and enables the `directive` parser feature:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+import { myMdastPlugin } from './my-satteri-plugin.mjs';
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      mdastPlugins: [myMdastPlugin()],
+      features: { directive: true },
+    }),
+  },
+});
+```
+
+### Switching to the unified processor
+
+To use [remark and rehype](https://unifiedjs.com/) instead of Sätteri, install `@astrojs/markdown-remark`, then import `unified` and pass it to `markdown.processor`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/markdown-remark
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/markdown-remark
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/markdown-remark
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+
+export default defineConfig({
+  markdown: {
+    processor: unified(),
+  },
+});
+```
+
+Switching processors replaces Sätteri for both `.md` and `.mdx` files. Any Sätteri plugins in your config will not apply. To use remark and rehype only for `.mdx` files, set the [`processor` option on the MDX integration](/en/guides/integrations-guide/mdx/#processor) instead.
+
+#### Using remark and rehype plugins
+
+The `unified()` processor accepts third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling).
 
 We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins! See each plugin's own README for specific installation instructions.
 
-Import `unified` from `@astrojs/markdown-remark` and pass your plugins to it through `markdown.processor`. This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) and [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) to Markdown files:
+After [switching to the `unified()` processor](#switching-to-the-unified-processor), pass your plugins to it through `markdown.processor`. This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) and [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) to Markdown files:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -241,7 +298,7 @@ export default defineConfig({
 });
 ```
 
-### Customizing a remark or rehype plugin
+#### Customizing a remark or rehype plugin
 
 In order to customize a plugin, provide an options object after it in a nested array.
 
@@ -263,29 +320,6 @@ export default defineConfig({
   },
 });
 ```
-
-### Switching to the Sätteri processor
-
-To use [Sätteri](https://satteri.bruits.org/) instead of remark and rehype, install `@astrojs/markdown-satteri`, then import `satteri` and pass it to `markdown.processor`:
-
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import { myMdastPlugin } from './my-satteri-plugin.mjs';
-
-export default defineConfig({
-  markdown: {
-    processor: satteri({
-      mdastPlugins: [myMdastPlugin()],
-      features: { directive: true },
-    }),
-  },
-});
-```
-
-The Sätteri processor accepts its own plugins through `mdastPlugins` and `hastPlugins`, and toggles optional parser features through `features`. See the [Sätteri documentation](https://satteri.bruits.org/docs/) for the available plugins and features.
-
-Switching processors replaces remark and rehype for both `.md` and `.mdx` files. Any remark or rehype plugins in your config will not apply. To use Sätteri only for `.mdx` files, set the [`processor` option on the MDX integration](/en/guides/integrations-guide/mdx/#processor) instead.
 
 ### Modifying frontmatter programmatically
 
@@ -353,21 +387,21 @@ The following example uses a different syntax highlighter and a different set of
 
 ```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   markdown: {
     syntaxHighlight: 'prism',
-    processor: unified({ remarkPlugins: [remarkPlugin1] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
       // `markdown.syntaxHighlight` gets overridden for `.mdx` files by this option
       syntaxHighlight: 'shiki',
 
-      // `markdown.processor` gets overridden for `.mdx` files with a different remark plugin
-      processor: unified({ remarkPlugins: [remarkPlugin2] }),
+      // `markdown.processor` gets overridden for `.mdx` files with a different plugin
+      processor: satteri({ mdastPlugins: [mdastPlugin2] }),
     })
   ]
 });
@@ -377,18 +411,18 @@ To avoid extending your Markdown config from MDX, set [the `extendMarkdownConfig
 
 ```ts title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   markdown: {
-    processor: unified({ remarkPlugins: [remarkPlugin] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin] }),
   },
   integrations: [
     mdx({
       // Markdown config now ignored
       extendMarkdownConfig: false,
-      // Default `unified()` processor used with no plugins
+      // Default `satteri()` processor used with no plugins
     })
   ]
 });
