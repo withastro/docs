@@ -69,9 +69,15 @@ jobs:
           mkdir -p pr-metadata
           echo "${{ github.event.pull_request.number }}" > pr-metadata/pr_number
           BRANCH="${{ github.head_ref }}"
-          # Sanitize branch name into a valid subdomain: lowercase, replace non-alphanumeric chars with hyphens, strip leading/trailing hyphens.
-          # Used as the subdomain for the preview URL, e.g. "my-branch.previews.docs.astro.build".
+          # Sanitize branch name into a valid Wrangler preview alias.
+          # Wrangler validates aliases against /^[a-z](?:[a-z0-9-]*[a-z0-9])?$/i so the
+          # alias must start with a letter, contain only [a-z0-9-], and end with a letter
+          # or digit. It is also used as the subdomain for the preview URL, e.g.
+          # "my-branch.previews.docs.astro.build".
           ALIAS=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^-//' | sed 's/-$//')
+          # Prefix "pr-" if the alias starts with a digit (e.g. branch "260616") so it
+          # satisfies the "must start with a letter" rule.
+          [[ "$ALIAS" =~ ^[0-9] ]] && ALIAS="pr-$ALIAS"
           echo "$ALIAS" > pr-metadata/preview_alias
           echo "https://${ALIAS}.previews.docs.astro.build" > pr-metadata/preview_url
 
