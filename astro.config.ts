@@ -76,9 +76,6 @@ export default defineConfig({
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
-	experimental: {
-		rustCompiler: true,
-	},
 	markdown: {
 		processor: satteri({
 			features: {
