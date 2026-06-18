@@ -10,10 +10,12 @@ import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { tasklistEnhancerPlugin } from './config/plugins/satteri-tasklist-enhancer';
 import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
 
-/* https://docs.netlify.com/configure-builds/environment-variables/#read-only-variables */
-const NETLIFY_PREVIEW_SITE = process.env.CONTEXT !== 'production' && process.env.DEPLOY_PRIME_URL;
+const previewBranch = process.env.GITHUB_HEAD_REF;
+const previewSite = previewBranch
+	? `https://${previewBranch}.previews.docs.astro.build/`
+	: undefined;
 
-const site = NETLIFY_PREVIEW_SITE || 'https://docs.astro.build/';
+const site = previewSite || 'https://docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
