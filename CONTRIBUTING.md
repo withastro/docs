@@ -168,9 +168,9 @@ This will let the Astro docs team know you have some changes to propose. At this
 
 Please include a clear title. The description will be pre-filled with questions that you can answer by editing right in the text field.
 
-Every pull request generates a preview of the docs site, including your proposed changes, using **Netlify** for anyone to see.
+Every pull request generates a preview of the docs site, including your proposed changes, using **Cloudflare Workers** for anyone to see.
 
-Use the **Deploy Preview** link in your pull request to review and share your changes.
+Use the **Preview deployment** link in your pull request to review and share your changes.
 
 The docs site will be automatically updated whenever pull requests are merged.
 
@@ -203,6 +203,28 @@ In the terminal on your computer:
 1. Go to [the “Pull” GitHub app page](https://github.com/apps/pull)
 2. Click <kbd>Install</kbd>
 3. Follow the instructions to select your fork
+
+## Creating a Version Branch
+
+When a new major version of Astro is released, the current `main` branch becomes a version branch (e.g. `v7`) to preserve the docs for that version. Since `main` already has the Cloudflare Workers deployment infrastructure, only a few changes are needed:
+
+### 1. On the new version branch
+
+After branching from `main`, update these files:
+
+- **`wrangler.jsonc`** — Change the `name` field to match the version (e.g. `"name": "docs-v7"`).
+- **`astro.config.ts`** — Change the `site` URL to the versioned subdomain (e.g. `'https://v7.docs.astro.build/'`).
+
+### 2. On `main`
+
+Update `.github/workflows/deploy.yml` to include the new version branch:
+
+- Add the branch name to the `push.branches` list (e.g. `[main, v4, v5, v6, v7]`).
+- Add a corresponding `github.ref == 'refs/heads/v7'` condition to the Deploy step's `if` block.
+
+### 3. In the Cloudflare dashboard
+
+- After the first successful deploy, go to the Worker's settings (e.g. `docs-v7`) -> **Domains & Routes** and add the custom domain (e.g. `v7.docs.astro.build`).
 
 ## Next Steps
 

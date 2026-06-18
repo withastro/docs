@@ -33,19 +33,19 @@ Update your project's version of Astro to the latest version using your package 
   <Fragment slot="npm">
   ```shell
   # Upgrade Astro and official integrations together
-  npx @astrojs/upgrade alpha
+  npx @astrojs/upgrade beta
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```shell
   # Upgrade Astro and official integrations together
-  pnpm dlx @astrojs/upgrade alpha
+  pnpm dlx @astrojs/upgrade beta
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```shell
   # Upgrade Astro and official integrations together
-  yarn dlx @astrojs/upgrade alpha
+  yarn dlx @astrojs/upgrade beta
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -84,28 +84,130 @@ Experimental flags allow you to opt in to features while they are in early devel
 
 Remove these experimental flags from your Astro config if you were previously using them:
 
-```js del={5-6} title="astro.config.mjs"
+```js del={5-10} title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 
 export default defineConfig({
   experimental: {
+    logger: logHandlers.json({ pretty: true }),
+    queuedRendering: {
+      enabled: true,
+    },
     rustCompiler: true,
+    advancedRouting: true,
     routeCaching: true,
   },
-});
+})
 ```
 
 #### Experimental features now stable:
 
+- `logger`: The new logging system is now stable and the experimental flag is no longer needed to use it. If you were using this flag, you can now set your logger directly in the top-level `logger` field of your Astro config.
+
+- `queuedRendering`: Queued rendering is now the default behavior, and the experimental flag has been removed. No action is required to enable this feature in your project. All projects now benefit from the improved performance.
+
 - `rustCompiler`: The Rust-based Astro compiler is now the default and only compiler, replacing the previous Go-based compiler. No action is required for most projects. If you encounter any issues, please report them on [GitHub](https://github.com/withastro/astro/issues).
 
+- `advancedRouting`: Advanced routing is now enabled by default. See the [advanced routing guide](/en/guides/routing/#advanced-routing) for more information. Note that `src/fetch.ts` is now a [reserved file name](#reserved-file-name-srcfetchts).
+
 - `routeCaching`: Route caching is now enabled by default for improved performance.
+
+### Reserved file name: `src/fetch.ts`
+
+Astro v7.0 introduces [advanced routing](/en/guides/routing/#advanced-routing), which uses `src/fetch.ts` (or `src/fetch.js`) as a special file name, similar to `src/middleware.ts`. Astro will automatically import this file to configure routing behavior.
+
+If your project already has a `src/fetch.ts` file used for other purposes, Astro will attempt to process it as an advanced routing configuration, which may cause unexpected errors.
+
+#### What should I do?
+
+If you have an existing `src/fetch.ts` file that is not related to advanced routing, you have two options:
+
+* **Configure `fetchFile`**: you can specify a different filename or `null` to disable advanced routing. This is useful if you want to keep using `src/fetch.ts` for another purpose, or don't need advanced routing features:
+
+    ```js title="astro.config.mjs" ins={5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // specify a different file for advanced routing configuration:
+      fetchFile: './src/router.ts',
+      // or disable advanced routing entirely:
+      // fetchFile: null,
+    });
+    ```
+
+* **Rename your file** to something else (e.g. `src/fetcher.ts`, `src/main.ts`), and update any imports that reference it.
+
+### New default Markdown processor: Sätteri
+
+<SourcePR number="16966" title="feat: make Sätteri the default Markdown pipeline" />
+
+Astro now renders your `.md` and `.mdx` files with [Sätteri](https://satteri.bruits.org/), its native Markdown pipeline, instead of the remark/rehype pipeline. As a result, `@astrojs/markdown-remark` is no longer installed by default.
+
+#### What should I do?
+
+If you don't use remark or rehype plugins, you don't need to do anything. Your Markdown and MDX will now be rendered by Sätteri, which applies GitHub-Flavored Markdown and SmartyPants just like before.
+
+If you depend on remark and rehype plugins, you can port them to [Sätteri MDAST or HAST plugins](https://satteri.bruits.org/docs/plugins/). If you depend on recma plugins, or if you are not yet ready or able to port your remark and rehype plugins, you can [stay on the `unified()` pipeline](/en/guides/markdown-content/#switching-to-the-unified-processor).
+
+To keep using unified plugins:
+
+<Steps>
+
+1. Install `@astrojs/markdown-remark`:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/markdown-remark
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Set [`unified()` as your Markdown processor](/en/guides/markdown-content/#switching-to-the-unified-processor):
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import { unified } from '@astrojs/markdown-remark';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified(),
+      },
+    });
+    ```
+</Steps>
+
+The deprecated `markdown.remarkPlugins`, `markdown.rehypePlugins`, and `markdown.remarkRehype` options still work, but now also require `@astrojs/markdown-remark` to be installed.
 
 ## Removed
 
 The following features have now been entirely removed from the code base and can no longer be used. Some of these features may have continued to work in your project even after deprecation. Others may have silently had no effect.
 
 Projects now containing these removed features will be unable to build, and there will no longer be any supporting documentation prompting you to remove these features.
+
+### Removed: `@astrojs/db`
+
+The `@astrojs/db` package has been removed in Astro v7.0 and is no longer maintained.
+
+#### What should I do?
+
+Remove `@astrojs/db` from your project's dependencies and replace it with one of the following alternatives:
+
+- **Node.js built-in SQLite**: Node.js now includes a built-in [`node:sqlite`](https://nodejs.org/api/sqlite.html) module (available since Node.js v22.5.0). This is a good option if you are using the Node.js adapter and were using `@astrojs/db` for local SQLite storage.
+
+- **[Drizzle ORM](https://orm.drizzle.team/)**: If you were using `@astrojs/db` for its Drizzle-based schema and query API, you can use Drizzle directly with any supported database.
+
+- **Other database libraries**: Use any database library that suits your deployment platform (e.g. [Turso](https://turso.tech/), [PlanetScale](https://planetscale.com/), [Neon](https://neon.tech/)).
 
 ### Removed: exposed `astro:transitions` internals
 
