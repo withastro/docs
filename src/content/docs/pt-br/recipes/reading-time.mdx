@@ -1,0 +1,120 @@
+---
+title: Adicionar tempo de leitura
+description: Construa um plugin remark para adicionar tempo de leitura aos seus arquivos Markdown ou MDX.
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Crie um [plugin remark](https://github.com/remarkjs/remark) que adiciona uma propriedade de tempo de leitura ao frontmatter dos seus arquivos Markdown ou MDX. Use essa propriedade para exibir o tempo de leitura de cada página.
+
+## Receita
+
+<Steps>
+1. Instale os seguintes pacotes:
+    - [`reading-time`](https://www.npmjs.com/package/reading-time) para calcular os minutos de leitura
+    - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) para extrair todo o texto do seu markdown
+    - [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark) para usar [o processador `unified()`](/pt-br/guides/markdown-content/#using-remark-and-rehype-plugins):
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+    npm install reading-time mdast-util-to-string @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+    pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+    yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Crie um plugin remark.
+
+    Este plugin usa o pacote `mdast-util-to-string` para obter o texto do arquivo Markdown. Esse texto é então passado ao pacote `reading-time` para calcular o tempo de leitura em minutos.
+
+    ```js title="remark-reading-time.mjs"
+    import getReadingTime from 'reading-time';
+    import { toString } from 'mdast-util-to-string';
+
+    export function remarkReadingTime() {
+      return function (tree, { data }) {
+        const textOnPage = toString(tree);
+        const readingTime = getReadingTime(textOnPage);
+        // readingTime.text nos dará os minutos de leitura como uma string amigável,
+        // ou seja, "3 min read"
+        data.astro.frontmatter.minutesRead = readingTime.text;
+      };
+    }
+    ```
+
+3. Adicione o plugin à sua configuração:
+
+    ```js title="astro.config.mjs" {1,3,7-9}
+    import { unified } from '@astrojs/markdown-remark';
+    import { defineConfig } from 'astro/config';
+    import { remarkReadingTime } from './remark-reading-time.mjs';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified({
+          remarkPlugins: [remarkReadingTime],
+        }),
+      },
+    });
+    ```
+
+    Agora todos os documentos Markdown terão uma propriedade `minutesRead` calculada em seu frontmatter.
+
+4. Exiba o tempo de leitura
+
+    Se suas postagens do blog estão armazenadas em uma [coleção de conteúdo](/pt-br/guides/content-collections/), acesse o `remarkPluginFrontmatter` a partir da função `render(entry)`. Em seguida, renderize `minutesRead` no seu template, em qualquer lugar onde quiser que ele apareça.
+
+    ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+    ---
+    import { getCollection, render } from 'astro:content';
+
+    export async function getStaticPaths() {
+      const blog = await getCollection('blog');
+      return blog.map(entry => ({
+        params: { slug: entry.id },
+        props: { entry },
+      }));
+    }
+
+    const { entry } = Astro.props;
+    const { Content, remarkPluginFrontmatter } = await render(entry);
+    ---
+
+    <html>
+      <head>...</head>
+      <body>
+        ...
+        <p>{remarkPluginFrontmatter.minutesRead}</p>
+        ...
+      </body>
+    </html>
+    ```
+
+    Se você está usando um [layout Markdown](/pt-br/basics/layouts/#markdown-layouts), use a propriedade de frontmatter `minutesRead` de `Astro.props` no template do seu layout.
+
+    ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+    ---
+    const { minutesRead } = Astro.props.frontmatter;
+    ---
+
+    <html>
+      <head>...</head>
+      <body>
+        <p>{minutesRead}</p>
+        <slot />
+      </body>
+    </html>
+    ```
+</Steps>
