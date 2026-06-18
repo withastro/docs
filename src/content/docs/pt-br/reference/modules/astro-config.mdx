@@ -8,6 +8,7 @@ tableOfContents:
   maxHeadingLevel: 6
 ---
 
+import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 
 <p><Since v="5.7.0" /></p>
@@ -18,6 +19,8 @@ Todos os valores de configuração disponíveis podem ser acessados a partir de 
 
 ## Importando de `astro:config/client`
 
+Os seguintes helpers são importados do diretório `client` do módulo de configuração virtual.
+
 ```js
 import {
   i18n, 
@@ -25,6 +28,7 @@ import {
   base,
   build,
   site,
+  compressHTML,
 } from "astro:config/client";
 ```
 Utilize este submódulo para código do lado do cliente:
@@ -48,10 +52,13 @@ Veja mais sobre as configurações de importação disponíveis em `astro:config
 - [`base`](/pt-br/reference/configuration-reference/#base)
 - [`build.format`](/pt-br/reference/configuration-reference/#buildformat)
 - [`site`](/pt-br/reference/configuration-reference/#site)
+- [`compressHTML`](/pt-br/reference/configuration-reference/#compresshtml)
 
 
 
 ## Importando de `astro:config/server`
+
+Os seguintes helpers são importados do diretório `server` do módulo de configuração virtual.
 
 ```js
 import {
@@ -65,6 +72,7 @@ import {
   outDir,
   publicDir,
   root,
+  compressHTML,
 } from "astro:config/server";
 ```
 
@@ -95,7 +103,7 @@ export default function() {
         let file = new URL("result.json", outDir);
         // gerar dados a partir de alguma operação
         let data = JSON.stringify([]);
-        writeFileSync(fileURLToPath(path), data, "utf-8");
+        writeFileSync(fileURLToPath(file), data, "utf-8");
       }
     }
   }
@@ -110,7 +118,6 @@ Veja mais sobre as configurações de importação disponíveis em `astro:config
 - [`build.format`](/pt-br/reference/configuration-reference/#buildformat)
 - [`build.client`](/pt-br/reference/configuration-reference/#buildclient)
 - [`build.server`](/pt-br/reference/configuration-reference/#buildserver)
-- [`build.serverEntry`](/pt-br/reference/configuration-reference/#buildserverentry)
 - [`build.assetsPrefix`](/pt-br/reference/configuration-reference/#buildassetsprefix)
 - [`site`](/pt-br/reference/configuration-reference/#site)
 - [`srcDir`](/pt-br/reference/configuration-reference/#srcdir)
@@ -118,3 +125,250 @@ Veja mais sobre as configurações de importação disponíveis em `astro:config
 - [`outDir`](/pt-br/reference/configuration-reference/#outdir)
 - [`publicDir`](/pt-br/reference/configuration-reference/#publicdir)
 - [`root`](/pt-br/reference/configuration-reference/#root)
+- [`compressHTML`](/pt-br/reference/configuration-reference/#compresshtml)
+
+## Importando de `astro/config`
+
+Os seguintes helpers são importados do módulo de configuração comum:
+
+```js
+import {
+  defineConfig,
+  envField,
+  fontProviders,
+  getViteConfig,
+  mergeConfig,
+  passthroughImageService,
+  sessionDrivers,
+  sharpImageService,
+  validateConfig,
+} from "astro/config";
+```
+
+### `defineConfig()`
+
+<p>
+
+**Tipo:** <code>(config: <a href="/pt-br/reference/configuration-reference/">AstroUserConfig</a>) => AstroUserConfig</code>
+</p>
+
+Configura seu projeto com segurança de tipos [em um arquivo de configuração do Astro suportado](/pt-br/guides/configuring-astro/#the-astro-config-file).
+
+### `envField`
+
+<p>
+
+**Tipo:** `object`<br />
+<Since v="5.0.0" />
+</p>
+
+Descreve os tipos de dados suportados ao [definir variáveis de ambiente](/pt-br/reference/configuration-reference/#envschema).
+
+Cada tipo de dado deve definir o [tipo da variável](/pt-br/guides/environment-variables/#variable-types) com `context` (`"client"` ou `"server"`) e `access` (`"secret"` ou `"public"`). Além disso, você pode definir um valor `default`, especificar se a variável é `optional` (padrão `false`) e alguns tipos de dados fornecem métodos de validação opcionais.
+
+<ReadMore>Saiba mais sobre [usar variáveis de ambiente com segurança de tipos](/pt-br/guides/environment-variables/#type-safe-environment-variables) em seu projeto Astro.</ReadMore>
+
+#### `envField.string()`
+
+<p>
+
+**Tipo:** `(options: StringFieldInput) => StringField`
+</p>
+
+Define uma variável de ambiente do tipo string. Você pode realizar [validação de string com Zod](https://zod.dev/api#strings) usando as seguintes propriedades: `max`, `min`, `length`, `url`, `includes`, `startsWith` e `endsWith`.
+
+O exemplo a seguir define o formato esperado para uma variável de ambiente que armazena uma URL de API:
+
+```js title="astro.config.mjs" "envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_URL: envField.string({
+        context: "client",
+        access: "public",
+        optional: false,
+        default: "",
+        min: 12,
+        url: true,
+        includes: "astro",
+        startsWith: "https",
+      }),
+    }
+  }
+})
+```
+
+#### `envField.number()`
+
+<p>
+
+**Tipo:** `(options: NumberFieldInput) => NumberField`
+</p>
+
+Define uma variável de ambiente do tipo number. Você pode realizar [validação de número com Zod](https://zod.dev/api#numbers) usando as seguintes propriedades: `gt`, `lt`, `min`, `max` e `int`.
+
+O exemplo a seguir define o formato esperado para uma variável de ambiente que armazena uma porta de API:
+
+```js title="astro.config.mjs" "envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      API_PORT: envField.number({
+        context: "server",
+        access: "public",
+        optional: true,
+        default: 4321,
+        min: 2,
+        int: true,
+      }),
+    }
+  }
+})
+```
+
+#### `envField.boolean()`
+
+<p>
+
+**Tipo:** `(options: BooleanFieldInput) => BooleanField`
+</p>
+
+Define uma variável de ambiente do tipo boolean.
+
+O exemplo a seguir define o formato esperado para uma variável de ambiente que armazena se a análise de dados está habilitada:
+
+```js title="astro.config.mjs" "envField"
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      ANALYTICS_ENABLED: envField.boolean({
+        context: "client",
+        access: "public",
+        optional: true,
+        default: true,
+      }),
+    }
+  }
+})
+```
+
+#### `envField.enum()`
+
+<p>
+
+**Tipo:** `(options: EnumFieldInput<T>) => EnumField`
+</p>
+
+Define uma variável de ambiente do tipo enum fornecendo os `values` permitidos como um array.
+
+O exemplo a seguir define o formato esperado para uma variável de ambiente que armazena o modo de depuração configurado:
+
+```js title="astro.config.mjs" "envField" {9}
+import { defineConfig, envField } from "astro/config";
+
+export default defineConfig({
+  env: {
+    schema: {
+      DEBUG_MODE: envField.enum({
+        context: "server",
+        access: "public",
+        values: ['info', 'warnings', 'errors'], // obrigatório
+        optional: true,
+        default: 'errors',
+      }),
+    }
+  }
+})
+```
+
+### `fontProviders`
+
+<p>
+
+**Tipo:** `object`<br />
+<Since v="6.0.0" />
+</p>
+
+Descreve o [provedor integrado](/pt-br/reference/font-provider-reference/#built-in-providers) usado [para obter a fonte configurada](/pt-br/reference/configuration-reference/#fontprovider).
+
+### `getViteConfig()`
+
+<p>
+
+**Tipo:** <code>(userViteConfig: <a href="/pt-br/reference/configuration-reference/#vite">ViteUserConfig</a>, inlineAstroConfig?: <a href="/pt-br/reference/configuration-reference/">AstroInlineConfig</a>) => ViteUserConfigFn</code>
+</p>
+
+Obtém a configuração do Vite a ser usada mesclando um objeto de configuração personalizado do Vite e um objeto de configuração opcional do Astro. Isso é útil [para configurar o Vitest para testes](/pt-br/guides/testing/#vitest).
+
+### `mergeConfig()`
+
+Veja [`mergeConfig()` na referência da API Programática](/pt-br/reference/programmatic-reference/#mergeconfig).
+
+### `passthroughImageService()`
+
+<p>
+
+**Tipo:** <code>() => <a href="/pt-br/reference/modules/astro-assets/#imageserviceconfig">ImageServiceConfig</a></code>
+</p>
+
+Obtém um serviço de imagem no-op. Isso é útil quando seu adaptador não oferece suporte à otimização de imagem integrada do Astro com Sharp e você deseja [usar os componentes `<Image />` e `<Picture />`](/pt-br/guides/images/#astro-components-for-images).
+
+O exemplo a seguir define `passthroughImageService()` como serviço de imagem no arquivo de configuração do Astro para evitar o processamento de imagem do Sharp:
+
+```js title="astro.config.mjs" "passthroughImageService"
+import { defineConfig, passthroughImageService } from "astro/config";
+
+export default defineConfig({
+  image: {
+    service: passthroughImageService()
+  }
+});
+```
+
+<ReadMore>Saiba mais sobre [configurar um serviço de passagem no-op](/pt-br/guides/images/#configure-no-op-passthrough-service).</ReadMore>
+
+### `sessionDrivers`
+
+<p>
+
+**Tipo:** `object`<br />
+<Since v="5.7.0" />
+</p>
+
+Descreve o [driver integrado](/pt-br/reference/session-driver-reference/#built-in-drivers) usado [para armazenamento de sessão](/pt-br/reference/configuration-reference/#session-options).
+
+O exemplo a seguir configura o driver do Redis para habilitar sessões:
+
+```js title="astro.config.mjs" "sessionDrivers"
+import { defineConfig, sessionDrivers } from "astro/config";
+
+export default defineConfig({
+  session: {
+    driver: sessionDrivers.redis({
+      url: process.env.REDIS_URL
+    }),
+  }
+})
+```
+
+<ReadMore>Saiba mais sobre [usar sessões](/pt-br/guides/sessions/) em seu projeto Astro.</ReadMore>
+
+### `sharpImageService()`
+
+<p>
+
+**Tipo:** <code>(config?: SharpImageServiceConfig) => <a href="/pt-br/reference/modules/astro-assets/#imageserviceconfig">ImageServiceConfig</a></code><br />
+<Since v="2.4.1" />
+</p>
+
+Obtém o serviço Sharp usado para processar os assets de imagem do Astro. Ele aceita um objeto opcional descrevendo as [opções de configuração do Sharp](/pt-br/reference/configuration-reference/#imageservice).
+
+### `validateConfig()`
+
+Veja [`validateConfig()` na referência da API Programática](/pt-br/reference/programmatic-reference/#validateconfig).
