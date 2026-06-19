@@ -105,9 +105,69 @@ export default defineConfig({
 
 - `queuedRendering`: Queued rendering is now the default behavior, and the experimental flag has been removed. No action is required to enable this feature in your project. All projects now benefit from the improved performance.
 
-- `rustCompiler`: The Rust-based Astro compiler is now the default and only compiler, replacing the previous Go-based compiler. No action is required for most projects. If you encounter any issues, please report them on [GitHub](https://github.com/withastro/astro/issues).
+- `rustCompiler`: The Rust-based Astro compiler is now the default and only compiler, replacing the previous Go-based compiler. See [Rust compiler](#rust-compiler) for details on behavior changes that may affect your project.
 
 - `advancedRouting`: Advanced routing is now enabled by default. See the [advanced routing guide](/en/guides/routing/#advanced-routing) for more information. Note that `src/fetch.ts` is now a [reserved file name](#reserved-file-name-srcfetchts).
+
+### Rust compiler
+
+<SourcePR number="16462" title="feat!: make Rust compiler the default and only compiler" />
+
+Astro v7.0 replaces the previous Go-based compiler with a new Rust-based compiler. The new compiler is faster, but is also **stricter about invalid HTML syntax**. Templates that previously built without errors may now fail.
+
+The Rust compiler enforces two key changes:
+
+1. **Unclosed tags now produce errors.** The previous compiler silently accepted unclosed HTML and component tags. The Rust compiler requires all non-void elements to have a matching closing tag.
+
+2. **Semantically invalid HTML is no longer auto-corrected.** The previous compiler would silently reorder or restructure invalid HTML to match the [HTML parsing specification](https://html.spec.whatwg.org/multipage/parsing.html) (e.g. moving elements out of `<p>` tags where block elements are not allowed). The Rust compiler does not attempt to correct your markup and instead passes it through as-is, leaving the browser to handle it. This may cause different rendered output for previously "tolerated" invalid markup.
+
+#### What should I do?
+
+Run your build after upgrading. If you see compiler errors about unexpected tokens or unclosed tags, add the missing closing tags:
+
+```astro del={2} ins={3}
+<!-- Before: unclosed tags that the Go compiler silently accepted -->
+<p>Hello world
+<p>Hello world</p>
+
+<!-- Void elements like <br>, <img>, <input>, and <hr> do not need closing tags -->
+```
+
+```astro del={4-5} ins={7-9}
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+  <p>Content here
+
+<Layout>
+  <p>Content here</p>
+</Layout>
+```
+
+If your rendered HTML output has changed after upgrading, inspect your templates for invalid HTML nesting that the previous compiler was silently correcting. For example, placing a `<div>` inside a `<p>` is invalid HTML. The previous compiler would restructure this for you, but the Rust compiler will not:
+
+```astro
+<!-- Invalid nesting: <div> is not allowed inside <p> -->
+<!-- The browser will close the <p> early, which may break your layout -->
+<p>
+  <div>This will not be inside the paragraph</div>
+</p>
+
+<!-- Fix: use a valid container instead -->
+<div>
+  <div>This is correctly nested</div>
+</div>
+```
+
+#### CSS output differences
+
+The Rust compiler processes CSS differently, which may cause minor visual differences in your built output:
+
+- **Color values may be serialized differently.** Named colors like `rebeccapurple` may become hex values like `#639` in the built CSS. This does not change the visual appearance of your site.
+- **`url()` values may gain or lose quotes.** For example, `url(/path)` may become `url('/path')` or vice versa. This does not affect functionality.
+
+These differences are cosmetic and do not require any action unless you have tests or tools that rely on exact CSS string matching.
 
 ### Reserved file name: `src/fetch.ts`
 
