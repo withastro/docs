@@ -85,6 +85,7 @@ const rules = [
 		'/:lang/guides/environment-variables/',
 	],
 	['/:lang/reference/experimental-flags/advanced-routing/', '/:lang/guides/routing/'],
+	['/:lang/reference/experimental-flags/route-caching/', '/:lang/guides/caching/'],
 
 	// Very old docs site redirects
 	['/reference/renderer-reference', '/en/reference/renderer-reference/'],
