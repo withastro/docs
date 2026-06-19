@@ -218,6 +218,67 @@ const factory: CacheProviderFactory = (config) => {
 export default factory;
 ```
 
+When writing a CDN provider, Astro provides [shared utilities](#cache-provider-utilities) for building cache-control headers and path-based invalidation tags.
+
+## Cache provider utilities
+
+Astro exports shared helpers for CDN provider authors from `astro/cache/provider-utils`. These are the same helpers used by the first-party Netlify, Vercel, and Cloudflare providers.
+
+```ts
+import {
+  buildCacheControlDirectives,
+  pathTag,
+  setConditionalHeaders,
+  collectInvalidationTags,
+  normalizeTags,
+} from 'astro/cache/provider-utils';
+```
+
+### `buildCacheControlDirectives()`
+
+<p>
+
+**Type:** <code>(options: <a href="#cacheoptions">CacheOptions</a>, extraDirectives?: string[]) => string | undefined</code>
+</p>
+
+Builds a cache-control directive string (e.g. `"public, max-age=300, stale-while-revalidate=60"`) from `CacheOptions`, without a header name so each provider can apply its own (such as `Netlify-CDN-Cache-Control` or `Cloudflare-CDN-Cache-Control`). Pass `extraDirectives` to prepend platform directives such as `public` or `durable`. Returns `undefined` when there are no caching directives.
+
+### `pathTag()`
+
+<p>
+
+**Type:** `(path: string) => string`
+</p>
+
+Generates a cache tag for a given path (`astro-path:{path}`). Used to support [`invalidate({ path })`](/en/reference/api-reference/#cacheinvalidate) on platforms that only offer tag-based purging.
+
+### `setConditionalHeaders()`
+
+<p>
+
+**Type:** <code>(headers: Headers, options: <a href="#cacheoptions">CacheOptions</a>) => void</code>
+</p>
+
+Sets `Last-Modified` and `ETag` headers on a `Headers` object from the corresponding `CacheOptions` values.
+
+### `collectInvalidationTags()`
+
+<p>
+
+**Type:** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => string[]</code>
+</p>
+
+Collects all tags needed to invalidate the given options, including the path tag when `options.path` is set. Used by providers that implement path invalidation via tags rather than native path purge.
+
+### `normalizeTags()`
+
+<p>
+
+**Type:** `(tags: string | string[] | undefined) => string[]`
+</p>
+
+Normalizes a tag value to a flat string array.
+
 ## Cache provider types reference
 
 The following types can be imported from the `astro` module:
@@ -299,10 +360,12 @@ A unique name for the provider, used in logs and for identification.
 #### `CacheProvider.setHeaders()`
 <p>
 
-**Type:** <code>(options: <a href="#cacheoptions">CacheOptions</a>) => Headers</code>
+**Type:** <code>(options: <a href="#cacheoptions">CacheOptions</a>, request: Request) => Headers</code>
 </p>
 
 Translates cache options into response headers. This is called after the response is rendered but before it is sent to the client. These headers are stripped from the final response.
+
+The incoming `request` is passed as a second argument so a provider can read the URL or request headers. This can be useful to auto-tag responses with their pathname for path-based invalidation.
 
 #### `CacheProvider.onRequest()`
 
