@@ -32,6 +32,92 @@ export default defineConfig({
 
 You can then use [`Astro.cache`](/en/reference/api-reference/#cache) in your `.astro` pages (or `context.cache` for API routes and middleware) to control caching per request. Cache defaults for groups of routes can also be defined declaratively in your config using [`routeRules`](#route-rules).
 
+If you deploy to Netlify, Vercel, or Cloudflare, use the adapter's [CDN cache provider](#adapter-cache-providers) instead of the in-memory provider.
+
+## Adapter cache providers
+
+Astro's first-party adapters for Netlify, Vercel, and Cloudflare each provide a CDN cache provider that maps cache directives to the platform's native cache headers and invalidation API. Rather than storing responses in memory, these push your caching directives to the host's edge network, and cache hits are served straight from the CDN without invoking your server function.
+
+For now, you configure these providers manually, as shown below. In a future release, the Netlify and Vercel providers will be enabled automatically by their adapters. The Cloudflare provider requires a feature that is currently in private beta.
+
+Each provider automatically tags cached responses with the request path, so `cache.invalidate({ path })` works on platforms that only support tag-based purges.
+
+### Netlify
+
+<p>
+
+<Since pkg="@astrojs/netlify" v="8.0.0" />
+</p>
+
+Import `cacheNetlify()` from `@astrojs/netlify/cache` and set it as your cache provider:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
+
+export default defineConfig({
+  adapter: netlify(),
+  cache: {
+    provider: cacheNetlify(),
+  },
+});
+```
+
+The provider sets `Netlify-CDN-Cache-Control` and `Netlify-Cache-Tag` headers. Cached responses use Netlify's [durable cache](https://docs.netlify.com/platform/caching/#durable-directive) so they are shared across all edge nodes, reducing function invocations. Both tag-based and path-based invalidation are supported.
+
+### Vercel
+
+<p>
+
+<Since pkg="@astrojs/vercel" v="11.0.0" />
+</p>
+
+Import `cacheVercel()` from `@astrojs/vercel/cache` and set it as your cache provider:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+import { cacheVercel } from '@astrojs/vercel/cache';
+
+export default defineConfig({
+  adapter: vercel(),
+  cache: {
+    provider: cacheVercel(),
+  },
+});
+```
+
+The provider sets `Vercel-CDN-Cache-Control` and `Vercel-Cache-Tag` headers. Both tag-based and path-based invalidation are supported. Tag invalidation is a soft invalidation: cached responses are marked as stale and revalidated in the background using stale-while-revalidate.
+
+### Cloudflare
+
+<p>
+
+<Since pkg="@astrojs/cloudflare" v="14.0.0" />
+</p>
+
+:::caution[Private beta]
+The Cloudflare provider requires the Cloudflare Workers Cache feature, which is currently in private beta. Without beta access it does not work and should not be used: Cloudflare Workers run in front of the cache, so cached responses are never served, and calling [`cache.invalidate()`](/en/reference/api-reference/#cacheinvalidate) throws an error. Only configure this provider if your account has access to the beta.
+:::
+
+Import `cacheCloudflare()` from `@astrojs/cloudflare/cache` and set it as your cache provider:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
+
+export default defineConfig({
+  adapter: cloudflare(),
+  cache: {
+    provider: cacheCloudflare(),
+  },
+});
+```
+
+The provider sets `Cloudflare-CDN-Cache-Control` and `Cache-Tag` headers, which are read by Cloudflare's built-in Worker cache. The adapter enables Worker caching automatically when a Cloudflare cache provider is configured. Both tag-based and path-based invalidation are supported.
+
 ## Interacting with the cache
 
 The [`cache` object](/en/reference/api-reference/#cache) provides methods for setting cache options, invalidating entries, and checking the current cache state. This object is available in your `.astro` pages as `Astro.cache`, and in API routes and middleware as `context.cache`.
@@ -153,8 +239,8 @@ export default defineConfig({
     provider: memoryCache(),
   },
   routeRules: {
-    '/api/*': { swr: 600 },
-    '/products/*': { maxAge: 3600, tags: ['products'] },
+    '/api/[...path]': { swr: 600 },
+    '/products/[...slug]': { maxAge: 3600, tags: ['products'] },
     '/blog/[...slug]': { maxAge: 300, swr: 60 },
   },
 });
@@ -165,8 +251,7 @@ The following route patterns are supported:
 - **Static paths**: `/about`, `/api/health`
 - **Dynamic parameters**: `/products/[id]`, `/blog/[slug]`
 - **Rest parameters**: `/docs/[...path]`
-- **Glob wildcards**: `/api/*`
 
-Patterns use the same matching and priority rules as Astro's [file-based routing](/en/guides/routing/#route-priority-order), so more specific patterns take precedence.
+Patterns use the same syntax, matching, and priority rules as Astro's [file-based routing](/en/guides/routing/#route-priority-order), so more specific patterns take precedence. Glob wildcards such as `*` are not supported; use a `[...rest]` parameter to match a group of routes (for example, `/api/[...path]` to match everything under `/api`).
 
 Per-route [`cache.set()`](/en/reference/api-reference/#cacheset) calls merge with config-level route rules. Route code can override or extend the defaults set in config. For example, a route rule might set a default `maxAge` for all product pages, but individual pages can call `cache.set()` to customize or disable caching as needed.
