@@ -1,0 +1,286 @@
+---
+title: ミドルウェア
+description: Astroでミドルウェアを使う方法を学びます。
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+
+**ミドルウェア**を使うと、ページやエンドポイントがレンダリングされる直前に、毎回リクエストとレスポンスをインターセプトして動的に振る舞いを差し込めます。ページのレンダリングは、事前レンダリングされるすべてのページではビルド時におこなわれますが、オンデマンドにレンダリングされるページではルートがリクエストされたときにおこなわれ、[CookieやヘッダーといったSSR向けの追加機能](/ja/guides/on-demand-rendering/#オンデマンドレンダリングの機能)を利用できるようになります。
+
+ミドルウェアでは、すべてのAstroコンポーネントとAPIエンドポイントで利用できる`locals`オブジェクトを変更することで、リクエスト固有の情報を設定し、エンドポイントやページ間で共有することもできます。このオブジェクトは、ミドルウェアがビルド時に実行される場合でも利用できます。
+
+## 基本的な使い方
+
+<Steps>
+1. `src/middleware.js|ts`を作成します。（あるいは`src/middleware/index.js|ts`を作成してもかまいません。）
+
+2. このファイル内で、[`context`オブジェクト](#contextオブジェクト)と`next()`関数を受け取れる[`onRequest()`](/ja/reference/modules/astro-middleware/#onrequest)関数をエクスポートします。これはデフォルトエクスポートにしてはいけません。
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // リクエストからのデータをインターセプトする
+        // 必要に応じて、`locals`のプロパティを変更する
+        context.locals.title = "New title";
+        context.locals.property = "information";
+
+        // Response、または`next()`を呼び出した結果を返す
+        return next();
+    };
+    ```
+
+3. 任意の`.astro`ファイル内で、`Astro.locals`を使ってレスポンスのデータにアクセスします。
+
+    ```astro title="src/components/Component.astro"
+    ---
+    const data = Astro.locals;
+    ---
+    <h1>{data.title}</h1>
+    <p>この{data.property}はミドルウェアから取得しています。</p>
+    ```
+</Steps>
+
+### `context`オブジェクト
+
+[`context`](/ja/reference/api-reference/)オブジェクトには、レンダリングの過程で他のミドルウェアやAPIルート、`.astro`ルートへ受け渡される情報が含まれます。
+
+これは`onRequest()`に渡されるオプションの引数で、`locals`オブジェクトのほか、レンダリング中に共有したい任意の追加プロパティを含められます。たとえば、`context`オブジェクトには認証に使うCookieを含められます。
+
+### `context.locals`へのデータの保存
+
+`context.locals`は、ミドルウェア内で変更可能なオブジェクトです。
+
+この`locals`オブジェクトはリクエストの処理プロセス全体に引き継がれ、[`APIContext`](/ja/reference/api-reference/#locals)と[`AstroGlobal`](/ja/reference/api-reference/#locals)のプロパティとして利用できます。これにより、ミドルウェアやAPIルート、`.astro`ページ間でデータを共有できます。ユーザーデータのようなリクエスト固有のデータを、レンダリングの各ステップをまたいで保存するのに便利です。
+
+:::tip[インテグレーションのプロパティ]
+[インテグレーション](/ja/guides/integrations/)は、`locals`オブジェクトを通じてプロパティを設定したり機能を提供したりする場合があります。インテグレーションを使っている場合は、そのプロパティを上書きしたり不要な処理をおこなったりしないよう、ドキュメントを確認してください。
+:::
+
+`locals`には、文字列や数値はもちろん、関数やMapといった複雑なデータ型まで、あらゆる種類のデータを保存できます。
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // リクエストからのデータをインターセプトする
+    // 必要に応じて、`locals`のプロパティを変更する
+    context.locals.user = { id: 1, name: "John Wick" };
+    context.locals.welcomeTitle = () => {
+        return "Welcome back " + context.locals.user.name;
+    };
+    context.locals.orders = new Map([["1", { product: "socks" }]]);
+    context.locals.property = "information";
+
+    // Response、または`next()`を呼び出した結果を返す
+    return next();
+};
+```
+
+これで、任意の`.astro`ファイル内で`Astro.locals`を使ってこの情報を利用できます。
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+const data = Astro.locals;
+---
+<h1>{title}</h1>
+<p>この{data.property}はミドルウェアから取得しています。</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* 各注文に対して何らかの処理をおこなう */}</li>;
+    })}
+</ul>
+```
+
+`locals`は、単一のAstroルート内で生成され消滅するオブジェクトです。ルートのページがレンダリングされ終わると`locals`は存在しなくなり、新たに別のものが作成されます。複数のページリクエストをまたいで保持する必要がある情報は、別の場所に保存しなければなりません。
+
+:::note
+`locals`の値は実行時に上書きできません。上書きすると、ユーザーが保存したすべての情報が消えてしまうおそれがあるためです。Astroはチェックをおこない、`locals`が上書きされた場合はエラーをスローします。
+:::
+
+## 例: 機密情報の秘匿
+
+以下の例では、ミドルウェアを使って「PRIVATE INFO」という文字列を「REDACTED」に置き換え、修正後のHTMLをページにレンダリングできるようにしています。
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+## ミドルウェアの型
+
+型安全性の恩恵を受けるために、ユーティリティ関数[`defineMiddleware()`](/ja/reference/modules/astro-middleware/#definemiddleware)をインポートして使用できます。
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context`と`next`には自動的に型が付く
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+代わりにJsDocで型安全にしたい場合は、`MiddlewareHandler`を使用できます。
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareHandler}
+ */
+// `context`と`next`には自動的に型が付く
+export const onRequest = (context, next) => {
+
+};
+```
+
+`Astro.locals`内の情報に型を付けると、`.astro`ファイルやミドルウェアのコード内で自動補完が効くようになります。型を付けるには、`env.d.ts`ファイルでグローバル名前空間を宣言して[グローバル型を拡張](/ja/guides/typescript/#extending-global-types)します。
+
+```ts title="src/env.d.ts"
+type User = {
+  id: number;
+  name: string;
+};
+
+declare namespace App {
+  interface Locals {
+    user: User;
+    welcomeTitle: () => string;
+    orders: Map<string, object>;
+    session: import("./lib/server/session").Session | null;
+  }
+}
+```
+
+これで、ミドルウェアファイル内で自動補完と型安全性の恩恵を受けられます。
+
+## ミドルウェアを連結する
+
+[`sequence()`](/ja/reference/modules/astro-middleware/#sequence)を使うと、複数のミドルウェアを指定した順序で連結できます。
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+
+async function auth(_, next) {
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
+}
+
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+これにより、コンソールへの出力は次の順序になります。
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```
+
+## リライト
+
+<p><Since v="4.13.0" /></p>
+
+`APIContext`は[`rewrite()`](/ja/reference/api-reference/#rewrite)というメソッドを公開しています。これは[Astro.rewrite](/ja/guides/routing/#rewrites)と同じように動作します。
+
+ミドルウェア内で`context.rewrite()`を使うと、訪問者を新しいページに[リダイレクト](/ja/guides/routing/#dynamic-redirects)することなく、別のページのコンテンツを表示できます。これは新しいレンダリングフェーズを引き起こし、すべてのミドルウェアが再実行されます。
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // ユーザーがログインしていない場合、`/login`ルートをレンダリングするようにRequestを更新し、
+    // ログイン成功後にユーザーを送るべき場所を示すヘッダーを追加する。
+    // ミドルウェアを再実行する。
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+また、`next()`関数にオプションのURLパスパラメータを渡すことで、新しいレンダリングフェーズを再度引き起こすことなく、現在の`Request`をリライトすることもできます。リライト先のパスは、文字列、URL、または`Request`として指定できます。
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // ユーザーがログインしていない場合、`/login`ルートをレンダリングするようにRequestを更新し、
+    // ログイン成功後にユーザーを送るべき場所を示すヘッダーを追加する。
+    // 後続のミドルウェアに新しい`context`を返す。
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+`next()`関数は、[`Astro.rewrite()`関数](/ja/reference/api-reference/#rewrite)と同じペイロードを受け取ります。リライト先のパスは、文字列、URL、または`Request`として指定できます。
+
+[sequence()](#ミドルウェアを連結する)で複数のミドルウェア関数を連結している場合、`next()`にパスを渡すと`Request`がその場でリライトされ、ミドルウェアは再実行されません。チェーン内の次のミドルウェア関数は、更新された`context`をもつ新しい`Request`を受け取ります。
+
+このシグネチャで`next()`を呼び出すと、元の`ctx.request`を使って新しい`Request`オブジェクトが作成されます。そのため、このリライトの前後を問わず`Request.body`を消費しようとすると、実行時エラーがスローされます。このエラーは、[HTMLフォームを使うAstroアクション](/ja/guides/actions/#htmlフォームのアクションから呼び出す)でよく発生します。こうした場合は、ミドルウェアを使うのではなく、Astroテンプレート内で`Astro.rewrite()`を使ってリライトを処理することをおすすめします。
+
+```js title="src/middleware.js"
+// 現在のURLはhttps://example.com/blog
+
+// 1つ目のミドルウェア関数
+async function first(context, next) {
+  console.log(context.url.pathname) // "/blog"とログに出力される
+  // 新しいルート、つまりホームページにリライトする
+  // 次の関数に渡される、更新された`context`を返す
+  return next("/")
+}
+
+// 現在のURLは依然としてhttps://example.com/blog
+
+// 2つ目のミドルウェア関数
+async function second(context, next) {
+  // 更新された`context`を受け取る
+  console.log(context.url.pathname) // "/"とログに出力される
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
+## エラーページ
+
+ミドルウェアは、一致するルートが見つからない場合でも、オンデマンドでレンダリングされるすべてのページに対して実行を試みます。これにはAstroのデフォルトの（中身が空の）404ページや、任意のカスタム404ページも含まれます。ただし、そのコードを実行するかどうかは[アダプター](/ja/guides/on-demand-rendering/)に委ねられています。アダプターによっては、代わりにプラットフォーム固有のエラーページを提供する場合もあります。
+
+ミドルウェアは、カスタム500ページを含む500エラーページを提供する前にも実行を試みます。ただし、ミドルウェア自体の実行中にサーバーエラーが発生した場合は除きます。ミドルウェアが正常に実行されない場合、500ページのレンダリングに`Astro.locals`を利用できません。
