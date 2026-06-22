@@ -25,6 +25,7 @@ export default defineConfig({
 			expressiveCode: {
 				plugins: [pluginCollapsibleSections()],
 			},
+			customCss: ['./src/styles/custom.css'],
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Hero: './src/components/starlight/Hero.astro',
