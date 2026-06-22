@@ -84,6 +84,8 @@ const rules = [
 		'/:lang/reference/experimental-flags/static-import-meta-env/',
 		'/:lang/guides/environment-variables/',
 	],
+	['/:lang/reference/experimental-flags/advanced-routing/', '/:lang/guides/routing/'],
+	['/:lang/reference/experimental-flags/route-caching/', '/:lang/guides/caching/'],
 
 	// Very old docs site redirects
 	['/reference/renderer-reference', '/en/reference/renderer-reference/'],
@@ -99,6 +101,7 @@ const rules = [
 	['/lighthouse/*', '/en/guides/migrate-to-astro/'],
 	['/en/guides/debugging', '/en/guides/troubleshooting/'],
 	['/en/quick-started', '/en/installation/'],
+	['/:lang/guides/astro-db/', '/:lang/guides/integrations-guide/db/'],
 
 	// Redirect root to English homepage
 	['/', '/en/getting-started/'],

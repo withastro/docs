@@ -171,7 +171,6 @@ export const collections = {
 			const packages = [
 				'@astrojs/alpinejs',
 				'@astrojs/cloudflare',
-				'@astrojs/db',
 				'@astrojs/markdoc',
 				'@astrojs/mdx',
 				'@astrojs/netlify',
