@@ -31,6 +31,12 @@ class LinkChecker {
 
 		// Get the pathnames of all content pages from the sitemap contained in the build output
 		const pagePathnames = getPagePathnamesFromSitemap(options);
+		if (pagePathnames.length === 0) {
+			throw new Error(
+				`No page pathnames were found in sitemap files from "${options.buildOutputDir}". ` +
+					`This usually means sitemap URLs did not match expected format.`
+			);
+		}
 
 		// Parse all pages referenced by the sitemap and build an index of their contents
 		const allPages = parsePages(pagePathnames, options);
