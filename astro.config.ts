@@ -7,20 +7,14 @@ import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
 import { localesConfig } from './config/locales';
+import { getSiteUrl } from './config/site';
 import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 
-const previewBranch = process.env.GITHUB_HEAD_REF;
-const previewSite = previewBranch
-	? `https://${previewBranch}.previews.docs.astro.build/`
-	: undefined;
-
-const site = previewSite || 'https://docs.astro.build/';
-
 // https://astro.build/config
 export default defineConfig({
-	site,
+	site: getSiteUrl(),
 	integrations: [
 		devServerFileWatcher([
 			'./config/**', // Custom plugins and integrations
