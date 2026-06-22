@@ -8,7 +8,6 @@ import { getPagePathnamesFromSitemap, parsePages } from './lib/linkcheck/steps/b
 import { addSourceFileAnnotations, findLinkIssues } from './lib/linkcheck/steps/find-issues.ts';
 import { handlePossibleAutofix } from './lib/linkcheck/steps/optional-autofix.ts';
 import { outputAnnotationsForGitHub, outputIssues } from './lib/linkcheck/steps/output-issues.ts';
-import { getSiteOrigin } from '../config/site.ts';
 
 /**
  * Contains all link checking logic.
@@ -66,7 +65,7 @@ class LinkChecker {
 
 // Use our class to check for link issues
 const linkChecker = new LinkChecker({
-	baseUrl: getSiteOrigin(),
+	baseUrl: 'https://docs.astro.build',
 	buildOutputDir: './dist',
 	pageSourceDir: './src/content/docs',
 	checks: [
