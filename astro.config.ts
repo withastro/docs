@@ -16,7 +16,7 @@ const previewSite = previewBranch
 	? `https://${previewBranch}.previews.docs.astro.build/`
 	: undefined;
 
-const site = previewSite || 'https://docs.astro.build/';
+const site = previewSite || 'https://v6.docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
