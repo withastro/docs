@@ -11,16 +11,9 @@ import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
 
-const previewBranch = process.env.GITHUB_HEAD_REF;
-const previewSite = previewBranch
-	? `https://${previewBranch}.previews.docs.astro.build/`
-	: undefined;
-
-const site = previewSite || 'https://v6.docs.astro.build/';
-
 // https://astro.build/config
 export default defineConfig({
-	site,
+	site: 'https://docs.astro.build/',
 	integrations: [
 		devServerFileWatcher([
 			'./config/**', // Custom plugins and integrations
@@ -32,6 +25,7 @@ export default defineConfig({
 			expressiveCode: {
 				plugins: [pluginCollapsibleSections()],
 			},
+			customCss: ['./src/styles/custom.css'],
 			components: {
 				EditLink: './src/components/starlight/EditLink.astro',
 				Hero: './src/components/starlight/Hero.astro',
