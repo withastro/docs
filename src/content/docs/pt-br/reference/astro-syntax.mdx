@@ -1,12 +1,9 @@
 ---
-title: Sintaxe do Astro
-description: Uma introdução à sintaxe de componente .astro .
+title: Referência às expressões de modelo
 i18nReady: true
 ---
 
-**Se você conhece HTML, já sabe o suficiente para escrever seu primeiro componente Astro.**
-
-A sintaxe de componente Astro é uma extensão do HTML. A sintaxe foi [projetada para soar familiar a qualquer um com experiência em escrever HTML ou JSX](#diferenças-entre-astro-e-jsx), e adiciona suporte para incluir componentes e expressões JavaScript.
+A sintaxe de componente Astro é uma extensão do HTML. A sintaxe foi projetada para soar familiar a qualquer um com experiência em escrever HTML ou JSX, e adiciona suporte para incluir componentes e expressões JavaScript.
 
 
 ## Expressões parecidas com JSX
@@ -172,5 +169,142 @@ No Astro, você pode usar comentários HTML padrão ou comentários no estilo Ja
 ```
 
 :::caution
-Os comentários no estilo HTML serão incluídos no DOM do navegador, enquanto os JS serão ignorados. Para deixar mensagens TODO ou outras explicações somente em desenvolvimento, você pode querer usar comentários no estilo JavaScript.
+Os comentários no estilo HTML serão incluídos no DOM do navegador, enquanto os JS serão ignorados. Para deixar mensagens TODO ou outras explicações somente em desenvolvimento, você pode querer usar comentários no estilo JavaScript em vez disso.
 :::
+
+
+## Utilitários de componente
+
+### `Astro.slots`
+
+`Astro.slots` contém funções utilitárias para modificar os filhos passados via slot de um componente Astro.
+
+#### `Astro.slots.has()`
+
+<p>
+
+**Tipo:** `(slotName: string) => boolean`
+</p>
+
+Você pode verificar se existe conteúdo para um nome de slot específico com `Astro.slots.has()`. Pode ser útil quando você quer envolver o conteúdo de um slot, mas só quer mostrar os elementos envolvidos quando o slot estiver em uso.
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>More</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**Tipo:** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+Você pode renderizar o conteúdo de um slot em uma string do HTML de forma assíncrona usando `Astro.slots.render()`.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+Isso é para casos de uso avançados! Na maioria das vezes, é mais simples renderizar o conteúdo de um slot com o [elemento <slot />](/pt-br/basics/astro-components/#slots).
+:::
+
+`Astro.slots.render()` aceita um segundo argumento opcional: um array de parâmetros que irão ser passados para qualquer função filho. Pode ser útil para componentes utilitários personalizados.
+
+Por exemplo, o componente `<Shout />` converte sua propriedade `message` para maiúsculas e passa para o slot padrão:
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+Uma função de *callback* passada para um filho do componente `<Shout />` vai receber o parâmetro `message` completamente maiúsculo:
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message) => <div>{message}</div>}
+</Shout>
+
+<!-- É mostrado como <div>SLOTS!</div> -->
+```
+
+Funções de callback podem ser passadas para slots nomeados dentro de uma tag HTML com o atributo `slot`. Esse elemento é usado apenas para transferir o callback para um slot nomeado e não será renderizado na página.
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+Use um elemento HTML padrão para a tag ou qualquer tag minúscula (ex.: `<fragment>` em vez de `<Fragment />`) que não será interpretada como um componente. Não use o elemento HTML `<slot>` pois ele será interpretado como um slot do Astro.
+
+### `Astro.self`
+
+`Astro.self` permite que componentes Astro sejam chamados recursivamente. Esse comportamento permite que você renderize um componente Astro a partir dele mesmo usando `<Astro.self>` no template do componente. Isso pode ajudar a iterar grandes conjuntos de dados e estruturas de dados aninhadas.
+
+```astro
+---
+// NestedList.astro
+const { items } = Astro.props;
+---
+<ul class="nested-list">
+  {items.map((item) => (
+    <li>
+      <!-- Se houver alguma estrutura de dados aninhada, renderizamos `<Astro.self>` -->
+      <!-- e as propriedades podem ser passadas através da chamada recursiva -->
+      {Array.isArray(item) ? (
+        <Astro.self items={item} />
+      ) : (
+        item
+      )}
+    </li>
+  ))}
+</ul>
+```
+
+Esse componente poderia então ser usado dessa maneira:
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+E renderizaria o HTML dessa maneira:
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
