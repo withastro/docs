@@ -10,7 +10,7 @@ import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
 import { tasklistEnhancerPlugin } from './config/plugins/satteri-tasklist-enhancer';
 import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
 
-const previewBranch = process.env.GITHUB_HEAD_REF;
+const previewBranch = process.env.GITHUB_JOB !== 'linkcheck' && process.env.GITHUB_HEAD_REF;
 const previewSite = previewBranch
 	? `https://${previewBranch}.previews.docs.astro.build/`
 	: undefined;
