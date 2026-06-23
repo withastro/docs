@@ -575,3 +575,149 @@ Dans cet exemple, seuls `src/pages/index.astro` et `src/pages/projets/projet1.md
     - _utilitaires.js
     - **projet1.md**
 </FileTree>
+
+## Routage avancé
+
+<p><Since v="7.0.0" /></p>
+
+Par défaut, Astro gère chaque requête avec un pipeline intégré qui exécute les gestionnaires dans un ordre fixe : normalisation des barres obliques finales, redirections, sessions, actions, middleware utilisateur, rendu des pages, internationalisation (i18n) et mise en cache. Ce pipeline est conçu pour couvrir les cas d'utilisation les plus courants en matière de routage et de gestion des requêtes, mais il peut ne pas convenir aux besoins de tous les projets.
+
+Le routage avancé d'Astro vous permet de remplacer ce pipeline par le vôtre. Vous pouvez choisir les fonctionnalités intégrées à utiliser et où les utiliser. Vous pouvez également ajouter votre propre logique personnalisée n'importe où dans le pipeline. Cela vous donne un contrôle total sur la manière dont Astro gère les requêtes entrantes.
+
+### Création d'un point d'entrée personnalisé
+
+Lorsque le pipeline par défaut ne répond pas à vos besoins, vous pouvez le remplacer en créant un fichier `src/fetch.ts` qui exporte par défaut un objet avec une méthode `fetch()`. Cette méthode reçoit un objet [Request](https://developer.mozilla.org/fr/docs/Web/API/Request) standard et doit renvoyer un objet [Response](https://developer.mozilla.org/fr/docs/Web/API/Response).
+
+```ts title="src/fetch.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request) {
+    // Votre logique de gestion des requêtes personnalisée ici
+    return new Response("Bonjour depuis le routage avancé !");
+  }
+} satisfies Fetchable;
+```
+
+Astro prend en charge plusieurs formats de fichiers pour son point d'entrée de routage avancé : `.ts`, `.js`, `.mjs` et `.mts`. Nous recommandons d'utiliser `.js` dans la plupart des cas ou `.ts` si vous avez besoin de la prise en charge de TypeScript.
+
+### Changer le nom du fichier du point d'entrée
+
+Par défaut, Astro recherche `src/fetch.ts` comme point d'entrée du routage avancé. Vous pouvez le modifier en définissant l'option [`fetchFile`](/fr/reference/configuration-reference/#fetchfile) dans votre fichier de configuration d'Astro.
+
+L'exemple suivant indique à Astro de rechercher `src/handler.ts` au lieu de `src/fetch.ts` :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: 'handler',
+});
+```
+
+Définissez `fetchFile` sur `null` pour désactiver complètement le point d'entrée. Cela est utile si vous avez déjà un fichier `src/fetch.ts` utilisé à d'autres fins :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: null,
+});
+```
+
+### Ajouter une logique personnalisée
+
+Le principal avantage du routage avancé est la possibilité d'insérer une logique personnalisée dans le pipeline de requêtes. Vous pouvez exécuter du code avant qu'Astro ne traite la requête, entre les étapes du pipeline ou après la production de la réponse.
+
+Vous pouvez le faire de deux manières :
+
+- Utilisez le gestionnaire [`astro()`](/fr/reference/modules/astro-fetch/#astro) pour exécuter le pipeline intégré complet et ajouter une logique avant ou après.
+- Composez des gestionnaires individuels à partir de [`astro/fetch`](/fr/reference/modules/astro-fetch/) ou [`astro/hono`](/fr/reference/modules/astro-hono/) pour un contrôle plus précis de l'ordre d'exécution.
+
+#### Exécution du pipeline complet avec `astro()`
+
+Utilisez [`astro()`](/fr/reference/modules/astro-fetch/#astro) lorsque vous souhaitez conserver le comportement de routage intégré d'Astro, mais avez besoin d'une logique personnalisée autour. Cette approche préserve l'ordre du pipeline par défaut et vous permet d'ajouter un pré-traitement et un post-traitement en un seul endroit. Pour de nombreux cas d'utilisation, tels que l'ajout de gardes d'authentification, la journalisation des requêtes et les en-têtes personnalisés, `astro()` est tout ce dont vous avez besoin.
+
+L'exemple suivant vérifie si un utilisateur peut accéder à un tableau de bord avant d'exécuter le pipeline d'Astro, et ajoute un en-tête personnalisé à la réponse une fois qu'Astro a terminé l'exécution :
+
+```ts title="src/fetch.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    // Pré-traitement personnalisé, s'exécute avant tout gestionnaire d'Astro
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/tableau-de-bord')) {
+      const cookie = request.headers.get('cookie') ?? '';
+      if (!cookie.includes('session=')) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: '/connexion' },
+        });
+      }
+    }
+
+    const response = await astro(state);
+
+    // Post-traitement personnalisé, s'exécute après le rendu d'Astro
+    response.headers.set('X-Powered-By', 'Astro');
+    return response;
+  },
+};
+```
+
+#### Composition de gestionnaires individuels
+
+Lorsque vous avez besoin de plus de contrôle sur l'ordre d'exécution du pipeline, ou si vous souhaitez omettre certaines fonctionnalités, vous pouvez composer des fonctions de gestionnaire individuelles à partir de [`astro/fetch`](/fr/reference/modules/astro-fetch/). Chaque gestionnaire agit sur un [objet `FetchState`](/fr/reference/modules/astro-fetch/#fetchstate) qui suit les données par requête, telles que la route correspondante, les cookies et la session. Vous pouvez appeler les gestionnaires dans n'importe quel ordre et insérer une logique personnalisée entre les étapes.
+
+L'exemple suivant exécute uniquement les gestionnaires utilisés dans le projet et ajoute une logique personnalisée après les actions et avant le rendu de la page :
+
+```ts title="src/fetch.ts"
+import {
+  FetchState,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    // Logique personnalisée entre les actions et le rendu de la page
+    console.log(`Rendu de ${new URL(request.url).pathname}`);
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
+```
+
+### Utilisation avec Hono
+
+Astro fournit également des enveloppes compatibles avec Hono pour toutes les fonctions de gestionnaire via [`astro/hono`](/fr/reference/modules/astro-hono/). Si vous préférez utiliser [Hono](https://hono.dev/) comme framework de routage, vous pouvez exporter une application Hono depuis `src/fetch.ts` :
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+
+const app = new Hono();
+
+// Middleware Hono
+app.use(logger());
+
+// Gestionnaires d'Astro (en tant que middleware Hono)
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
