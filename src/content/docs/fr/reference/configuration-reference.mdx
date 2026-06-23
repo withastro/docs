@@ -320,20 +320,23 @@ La valeur peut être soit un chemin absolu du système de fichiers, soit un chem
 
 <p>
 
-**Type :** `boolean`<br />
+**Type :** `boolean | "jsx"`<br />
 **Par défaut :** `true`
 </p>
 
-Il s'agit d'une option permettant de minimiser votre sortie HTML et de réduire la taille de vos fichiers HTML.
+Contrôle la façon dont Astro gère les espaces dans votre code HTML. Cela affecte à la fois le mode de développement et le résultat final de la compilation.
 
-Par défaut, Astro supprime des composants `.astro` les espaces présents dans votre HTML, y compris les sauts de ligne, sans perte.
-Certains espaces peuvent être conservés si nécessaire pour préserver le rendu visuel de votre HTML. Cela se produit à la fois en mode développement et dans la version finale.
+Par défaut, Astro supprime les espaces de votre code HTML, y compris les sauts de ligne, dans les composants `.astro` de manière sans perte. Certains espaces peuvent être conservés si nécessaire pour maintenir le rendu visuel de votre HTML.
 
-Pour désactiver la compression HTML, définissez `compressHTML` sur false.
+Depuis la version 6.2.0, cette option peut également être définie sur `"jsx"`, Astro appliquera les règles de suppression des espaces JSX utilisées par des frameworks comme React. Les espaces de début et de fin ne sont conservés que lorsqu'ils sont explicitement inclus dans le code source via des constructions telles que `{" "}`, et sont sinon entièrement supprimés.
+
+Définir cette option sur `false` désactive la compression HTML et préserve tous les espaces.
 
 ```js
 {
   compressHTML: false
+  // ou :
+  // compressHTML: 'jsx'
 }
 ```
 
@@ -1208,23 +1211,25 @@ Définit les en-têtes de réponse HTTP personnalisés à envoyer dans `astro de
 </p>
 
 Configure le stockage de session pour votre projet Astro. Ceci permet de stocker les données de session de manière persistante, afin qu'elles soient accessibles lors de différentes requêtes.
-Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration.
 
-Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations.
+Certains adaptateurs peuvent fournir un pilote de session par défaut, mais vous pouvez le remplacer par votre propre configuration:
 
 ```js title="astro.config.mjs"
-  {
-    session: {
-      // Le nom du pilote Unstorage
-      driver: 'redis',
-      // Les options requises dépendent du pilote
-      options: {
-        url: process.env.REDIS_URL,
-      },
-      ttl: 3600, // 1 heure
-    }
+import { defineConfig, sessionDrivers } from 'astro/config';
+
+export default defineConfig({
+  session: {
+    driver: sessionDrivers.redis({
+      // Les options dépendent du pilote et certaines peuvent être requises.
+      url: process.env.REDIS_URL
+    }),
   }
+});
 ```
+
+Les pilotes de session sont configurés lors de la compilation. Cela signifie que les variables d'environnement utilisées dans la configuration du pilote sont intégrées. Vous devez créer votre propre point d'entrée de pilote pour [remplacer la configuration au moment de l'exécution](/fr/guides/sessions/#remplacement-de-la-configuration-lors-de-lexécution).
+
+Consultez [le guide des sessions](/fr/guides/sessions/) pour plus d'informations.
 
 ### session.driver
 
@@ -1579,6 +1584,19 @@ Les options d'encodage par défaut transmises à `sharp().png()` lors de l'utili
 Cela peut être utilisé avec des options telles que `compressionLevel`, `effort`, `palette` ou une qualité (`quality`) par défaut.
 Les qualités (`quality`) définies par image avec `<Image />`, `<Picture />` et `getImage()` restent prioritaires.
 
+### image.dangerouslyProcessSVG
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="6.3.0" />
+</p>
+
+Permet aux images SVG d'être traitées par le pipeline d'optimisation des images.
+
+Cette option est désactivée par défaut car les SVG spécifiquement formés peuvent être extrêmement coûteux à traiter et utilisés par des acteurs malveillants pour exécuter des attaques par déni de service. N'activez cette option que si vous faites confiance à la source de vos images SVG et comprenez les risques liés à leur traitement.
+
 ### image.domains
 
 <p>
@@ -1631,14 +1649,17 @@ Définit une liste de modèles d’URL autorisés comme source d’images pour l
 }
 ```
 
-Vous pouvez utiliser des caractères génériques pour définir les valeurs autorisées pour `hostname` et `pathname` comme décrit ci-dessous. Sinon, seules les valeurs exactes fournies seront configurées :
-`hostname` :
-  - Commencez avec `**.` pour autoriser tous les sous-domaines (`endsWith`).
-  - Commencez avec `*.` pour autoriser un seul niveau de sous-domaine.
+Vous pouvez utiliser des caractères génériques pour définir les valeurs autorisées pour `hostname` et `pathname` comme décrit ci-dessous. Sinon, seules les valeurs exactes fournies seront configurées.
 
-`pathname` :
-  - Terminez par `/**` pour autoriser toutes les sous-routes (`startsWith`).
+Modèles `hostname` :
+  - Commencez par `**.` pour autoriser tous les sous-domaines (comme `endsWith`).
+  - Commencez par `*.` pour autoriser un seul niveau de sous-domaine.
+
+Modèles `pathname` :
+  - Terminez par `/**` pour autoriser toutes les sous-routes (comme `startsWith`).
   - Terminez par `/*` pour autoriser un seul niveau de sous-route.
+
+Les redirections HTTP sont également suivies lorsqu'une URL d'image correspond à un modèle distant. L'URL de destination finale doit figurer parmi les modèles distants autorisés pour être chargée.
 
 ### image.responsiveStyles
 
@@ -1823,6 +1844,10 @@ export default defineConfig({
 
 ### markdown.remarkPlugins
 
+:::caution[Dépréciée]
+Transmettez `remarkPlugins` à `unified({ remarkPlugins })` importée depuis `@astrojs/markdown-remark` et définissez-la plutôt dans `markdown.processor`. Sera supprimée dans une prochaine mise à jour majeure.
+:::
+
 <p>
 
 **Type :** `RemarkPlugins`
@@ -1841,6 +1866,10 @@ import remarkToc from 'remark-toc';
 
 ### markdown.rehypePlugins
 
+:::caution[Dépréciée]
+Transmettez `rehypePlugins` à `unified({ rehypePlugins })` importée depuis `@astrojs/markdown-remark` et définissez-la plutôt dans `markdown.processor`. Sera supprimée dans une prochaine mise à jour majeure.
+:::
+
 <p>
 
 **Type :** `RehypePlugins`
@@ -1858,6 +1887,10 @@ import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 ```
 
 ### markdown.gfm
+
+:::caution[Dépréciée]
+Transmettez plutôt `gfm` à votre processeur (par exemple `unified({ gfm: false })`). Sera supprimée dans une prochaine mise à jour majeure.
+:::
 
 <p>
 
@@ -1878,6 +1911,10 @@ Astro utilise [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm)
 
 ### markdown.smartypants
 
+:::caution[Dépréciée]
+Transmettez plutôt `smartypants` à votre processeur (par exemple `unified({ smartypants: false })`). Sera supprimée dans une prochaine mise à jour majeure.
+:::
+
 <p>
 
 **Type :** `boolean`<br />
@@ -1897,6 +1934,10 @@ Astro utilise le [formatteur SmartyPants](https://daringfireball.net/projects/sm
 
 ### markdown.remarkRehype
 
+:::caution[Dépréciée]
+Transmettez plutôt `remarkRehype` à `unified({ remarkRehype })` importée depuis `@astrojs/markdown-remark` et définissez-la dans `markdown.processor`. Sera supprimée dans une prochaine mise à jour majeure.
+:::
+
 <p>
 
 **Type :** `RemarkRehype`
@@ -1911,6 +1952,32 @@ Transmet des options à [remark-rehype](https://github.com/remarkjs/remark-rehyp
     remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
   },
 };
+```
+
+### markdown.processor
+
+<p>
+
+**Type :** `MarkdownProcessor`<br />
+<Since v="6.4.0" />
+</p>
+
+Configure le processeur Markdown utilisé pour le rendu des fichiers `.md`. Par défaut, il s'agit de `unified()` importée de
+`@astrojs/markdown-remark` (le pipeline remark/rehype).
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import remarkToc from 'remark-toc';
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [remarkToc],
+    }),
+  },
+});
 ```
 
 ## i18n
