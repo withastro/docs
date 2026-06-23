@@ -12,21 +12,14 @@ export function getPagePathnamesFromSitemap(options: LinkCheckerOptions) {
 	const distContents = fs.readdirSync(options.buildOutputDir);
 	const sitemaps = distContents.filter((path) => /^sitemap-\d+\.xml$/.test(path));
 
-	const sitemapRegex = /<loc>(.*?)<\/loc>/gi;
+	const sitemapRegex = new RegExp(`<loc>${options.baseUrl}(/.*?)</loc>`, 'ig');
 	const uniquePagePaths = new Set<string>();
 
 	for (const filename of sitemaps) {
 		const sitemapFilePath = path.join(options.buildOutputDir, filename);
 		const sitemap = fs.readFileSync(sitemapFilePath, 'utf8');
-		for (const match of sitemap.matchAll(sitemapRegex)) {
-			const loc = match[1];
-			try {
-				const pathname = new URL(loc).pathname;
-				if (pathname) uniquePagePaths.add(pathname);
-			} catch {
-				// Ignore malformed entries in sitemap data.
-			}
-		}
+		const paths = Array.from(sitemap.matchAll(sitemapRegex), (m) => m[1]);
+		paths.forEach((path) => uniquePagePaths.add(path));
 	}
 
 	return Array.from(uniquePagePaths);
