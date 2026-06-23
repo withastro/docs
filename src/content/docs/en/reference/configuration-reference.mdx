@@ -332,22 +332,22 @@ The value can be either an absolute file system path or a path relative to the p
 <p>
 
 **Type:** `boolean | "jsx"`<br />
-**Default:** `true`
+**Default:** `'jsx'`
 </p>
 
 Controls how Astro handles whitespace in your HTML. This affects both development mode and the final build output.
 
-By default, Astro removes whitespace from your HTML, including line breaks, in a lossless manner from `.astro` components. Some whitespace may be preserved as needed to maintain the visual rendering of your HTML.
+Since v7.0,  Astro applies by default the JSX whitespace rules used by frameworks like React. This removes whitespace and line breaks around elements, collapses multi-line text onto a single line, and preserves whitespace within a single line (e.g. a space between two inline elements). To keep a space that would otherwise be removed, include it explicitly in the source through constructs such as `{" "}`.
 
-Setting this option to `"jsx"` instead applies the JSX whitespace stripping rules used by frameworks like React. Leading and trailing whitespace is only preserved when explicitly included in the source code through constructs such as `{" "}`, and is otherwise removed entirely.
+Setting this option to `true` instead removes whitespace, including line breaks, in a lossless manner from `.astro` components. Some whitespace may be preserved as needed to maintain the visual rendering of your HTML.
 
-Setting this option to false disables HTML compression and preserves all whitespace.
+Setting this option to `false` disables HTML compression and preserves all whitespace.
 
 ```js
 {
-  compressHTML: false
+  compressHTML: true
   // or:
-  // compressHTML: 'jsx'
+  // compressHTML: false
 }
 ```
 
@@ -1223,6 +1223,103 @@ Pass a full URL string (e.g. "http://example.com") or a pathname (e.g. "/about")
 
 Set custom HTTP response headers to be sent in `astro dev` and `astro preview`.
 
+## fetchFile
+
+<p>
+
+**Type:** `string | null`<br />
+**Default:** `'fetch'`<br />
+<Since v="7.0.0" />
+</p>
+
+Customizes the file used as the fetch entrypoint inside `srcDir`.
+Defaults to `'fetch'`, meaning Astro looks for `src/fetch.ts` (or `.js` / `.mjs` / `.mts`).
+
+The fetch file allows you to compose Astro's request pipeline with the
+Web Fetch standard or your own Hono middleware.
+
+If you already have a `src/fetch.ts` file in use for other purposes, define a
+different filename or set the value to `null` to disable the entrypoint:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: 'handler',
+});
+```
+
+Learn more about customizing the request pipeline in the [advanced routing guide](/en/guides/routing/#advanced-routing).
+
+## Logger Options
+
+<p>
+
+**Type:** `LoggerHandlerConfig`<br />
+**Default:** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+Configures how Astro logs messages during development and production.
+
+By default, Astro uses a built-in logger that outputs human-friendly logs to the console. You can customize this behavior by providing [your own logger handler](/en/reference/logger-reference/#custom-loggers) or by using one of the [built-in log handlers](/en/reference/logger-reference/#built-in-loggers):
+
+```js
+// astro.config.mjs
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ level: 'info' })
+});
+```
+
+See [the logger API reference](/en/reference/logger-reference/) for more information.
+
+### logger.entrypoint
+
+<p>
+
+**Type:** `string`<br />
+<Since v="7.0.0" />
+</p>
+
+The entrypoint of the log handler. This can be a path to a file in your project or an npm package:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/astro-logger",
+  }
+});
+```
+
+### logger.config
+
+<p>
+
+**Type:** `Record<string, unknown> | undefined`<br />
+**Default:** `{}`<br />
+<Since v="7.0.0" />
+</p>
+
+The configuration object for the log handler. The options depend on the configured logger.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/astro-logger",
+    config: {
+     level: "error"
+    }
+  }
+});
+```
+
 ## Session Options
 
 <p>
@@ -1611,6 +1708,19 @@ The default encoder options passed to `sharp().png()` when using Astro's built-i
 This can be used for options such as `compressionLevel`, `effort`, `palette`, or a default `quality`.
 Per-image `quality` values from `<Image />`, `<Picture />`, and `getImage()` still take precedence.
 
+### image.dangerouslyProcessSVG
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="6.3.0" />
+</p>
+
+Allows SVG source images to be processed by the image optimization pipeline.
+
+This is disabled by default as specifically formed SVGs can be prohibitively expensive to process and used by malicious actors to execute denial of service attacks. Only enable this option if you trust the source of your SVG images and understand the risks of processing them.
+
 ### image.domains
 
 <p>
@@ -1672,6 +1782,8 @@ You can use wildcards to define the permitted `hostname` and `pathname` values a
 `pathname` patterns:
   - End with `/**` to allow all sub-routes (like `startsWith`).
   - End with `/*` to allow only one level of sub-route.
+
+HTTP redirects are also followed when an image URL matches a remote pattern. The final destination URL must be among the allowed remote patterns to be loaded.
 
 ### image.responsiveStyles
 
@@ -1861,6 +1973,11 @@ export default defineConfig({
 
 ### markdown.remarkPlugins
 
+
+:::caution[Deprecated]
+Pass `remarkPlugins` to `unified({ remarkPlugins })` from `@astrojs/markdown-remark` and set it as `markdown.processor` instead. Will be removed in a future major.
+:::
+
 <p>
 
 **Type:** `RemarkPlugins`
@@ -1879,6 +1996,11 @@ import remarkToc from 'remark-toc';
 
 ### markdown.rehypePlugins
 
+
+:::caution[Deprecated]
+Pass `rehypePlugins` to `unified({ rehypePlugins })` from `@astrojs/markdown-remark` and set it as `markdown.processor` instead. Will be removed in a future major.
+:::
+
 <p>
 
 **Type:** `RehypePlugins`
@@ -1896,6 +2018,11 @@ import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 ```
 
 ### markdown.gfm
+
+
+:::caution[Deprecated]
+Pass `gfm` to your processor instead (e.g. `unified({ gfm: false })`). Will be removed in a future major.
+:::
 
 <p>
 
@@ -1916,6 +2043,11 @@ Astro uses [GitHub-flavored Markdown](https://github.com/remarkjs/remark-gfm) by
 
 ### markdown.smartypants
 
+
+:::caution[Deprecated]
+Pass `smartypants` to your processor instead (e.g. `unified({ smartypants: false })`). Will be removed in a future major.
+:::
+
 <p>
 
 **Type:** `boolean | Smartypants`<br />
@@ -1931,6 +2063,11 @@ For more control over typography, you can instead specify a configuration object
 
 ### markdown.remarkRehype
 
+
+:::caution[Deprecated]
+Pass `remarkRehype` to `unified({ remarkRehype })` from `@astrojs/markdown-remark` and set it as `markdown.processor` instead. Will be removed in a future major.
+:::
+
 <p>
 
 **Type:** `RemarkRehype`
@@ -1945,6 +2082,48 @@ Pass options to [remark-rehype](https://github.com/remarkjs/remark-rehype#api).
     remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
   },
 };
+```
+
+### markdown.processor
+
+<p>
+
+**Type:** `MarkdownProcessor`<br />
+<Since v="6.4.0" />
+</p>
+
+Configures the Markdown processor used to render `.md` files. Defaults to `satteri()` from
+`@astrojs/markdown-satteri`, Astro's native Markdown pipeline.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      features: { gfm: false },
+    }),
+  },
+});
+```
+
+To keep the remark/rehype pipeline, install `@astrojs/markdown-remark` and pass `unified()`:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import remarkToc from 'remark-toc';
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [remarkToc],
+    }),
+  },
+});
 ```
 
 ## i18n
@@ -2511,3 +2690,80 @@ Font [variation settings](https://developer.mozilla.org/en-US/docs/Web/CSS/@font
 ```js
 variationSettings: "'xhgt' 0.7"
 ```
+
+## cache
+
+<p>
+
+**Type:** `object`<br />
+**Default:** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+Enables route caching for SSR responses. Provides a platform-agnostic API
+for caching rendered pages and API responses, with pluggable providers
+that adapters can configure automatically.
+
+```js
+// astro.config.mjs
+import { memoryCache } from 'astro/config';
+
+{
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/blog/[...path]': { maxAge: 300, swr: 60 },
+  },
+}
+```
+
+Use `Astro.cache.set()` in routes and `context.cache.set()` in middleware
+or API routes to control caching per-request.
+
+### cache.provider
+
+<p>
+
+**Type:** `CacheProviderConfig`<br />
+<Since v="7.0.0" />
+</p>
+
+A provider that controls how responses are cached.
+
+Use the provider's config function to get type-safe configuration:
+
+```js
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  cache: { provider: memoryCache() },
+});
+```
+
+## routeRules
+
+<p>
+
+**Type:** `Record<string, RouteRule>`<br />
+**Default:** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+Route patterns mapped to cache rules.
+Uses the same `[param]` and `[...rest]` syntax as [file-based routing](/en/guides/routing/#route-priority-order).
+Use a `[...rest]` parameter to match a group of routes:
+
+```js
+// astro.config.mjs
+import { memoryCache } from 'astro/config';
+
+{
+  cache: { provider: memoryCache() },
+  routeRules: {
+    '/api/[...path]': { swr: 600 },
+    '/products/[...slug]': { maxAge: 3600, tags: ['products'] },
+  },
+}
+```
+
