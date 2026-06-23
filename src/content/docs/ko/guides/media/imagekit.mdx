@@ -1,0 +1,487 @@
+---
+title: ImageKit & Astro
+description: ImageKit을 사용하여 Astro 프로젝트에 이미지와 비디오 추가하기
+sidebar:
+  label: ImageKit
+type: media
+stub: false
+logo: imagekit
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[ImageKit](https://imagekit.io)는 글로벌 CDN, 내장 디지털 자산 관리(DAM), 그리고 이미지와 비디오를 위한 URL 기반 변환 API를 제공하는 실시간 미디어 최적화 및 전달 플랫폼입니다.
+
+ImageKit을 통해 미디어를 제공하면 자동 형식 변환(AVIF, WebP), 자동 품질 최적화, 반응형 이미지, AI 기반 변환(배경 제거, 생성형 채우기, 업스케일링) 및 적응형 비디오 스트리밍 기능을 활용할 수 있습니다.
+
+## Astro에서 ImageKit 사용하기
+
+[ImageKit Astro SDK](https://github.com/imagekit-developer/imagekit-astro)는 Astro의 내장 `<Image />` 및 `<Picture />` 컴포넌트, 그리고 Markdown 및 MDX 이미지의 요청을 ImageKit을 통해 재라우팅하는 커스텀 [이미지 서비스](/ko/reference/image-service-reference/)를 등록합니다. 로컬에서 가져온 이미지는 Astro의 내장 Sharp 서비스가 계속 처리하므로, 기존 프로젝트에 통합 기능을 추가해도 기존 에셋이 깨지지 않습니다.
+
+또한 이 SDK는 `<Video />` 컴포넌트, 소셜 카드용 `<OgImage />` 컴포넌트, 그리고 클라이언트 측 업로드 토큰을 발행하기 위한 서버 측 헬퍼를 제공합니다.
+
+순수한 URL 생성이나 모든 프레임워크에서의 브라우저 업로드를 위해서는 더 낮은 수준의 [ImageKit JavaScript SDK](https://github.com/imagekit-developer/imagekit-javascript)를 사용할 수 있습니다. 서버 측 자산 관리(업로드, 나열, 삭제, 메타데이터 관리)를 위해서는 [ImageKit Node.js SDK](https://github.com/imagekit-developer/imagekit-nodejs)를 사용하세요.
+
+## 사전 요구 사항
+
+- 기존 Astro 프로젝트
+- [ImageKit 계정](https://imagekit.io/registration/)
+
+## ImageKit Astro SDK 설치하기
+
+사용 중인 패키지 관리자에 맞는 명령어를 실행하여 SDK를 설치하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 계정 구성하기
+
+프로젝트 루트에 새 `.env` 파일을 생성하고 ImageKit 자격 증명을 추가하세요:
+
+```shell title=".env"
+IMAGEKIT_URL_ENDPOINT="https://ik.imagekit.io/<your_imagekit_id>"
+
+# 서버에서 업로드 인증 토큰을 생성하는 경우에만 필요
+PUBLIC_IMAGEKIT_PUBLIC_KEY="<공개 키>"
+IMAGEKIT_PRIVATE_KEY="<개인 키>"
+```
+
+그런 다음 `astro.config.mjs`에서 통합을 등록하세요:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import imagekit from '@imagekit/astro/integration';
+
+export default defineConfig({
+  integrations: [imagekit()],
+});
+```
+
+환경 변수를 사용하는 대신 `urlEndpoint`를 통합에 직접 전달할 수도 있습니다:
+
+```js title="astro.config.mjs"
+imagekit({
+  urlEndpoint: 'https://ik.imagekit.io/<your_imagekit_id>',
+}),
+```
+
+## ImageKit 이미지 사용하기
+
+통합을 설치하면 Astro의 내장 `<Image />` 및 `<Picture />` 컴포넌트가 ImageKit을 통해 요청을 처리하며, 자동 포맷 및 품질 최적화, 반응형 `srcset`, 그리고 지연 로딩을 적용합니다.
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<Image
+  src="/sample.jpg"
+  width={800}
+  height={600}
+  alt="샘플 이미지"
+/>
+```
+
+이 통합은 `<Image />`, `<Picture />`, `getImage()`에 추가적인 `transformation` 속성을 제공하여 [ImageKit 변환](https://imagekit.io/docs/transformations)(예: 자르기, 초점 조정, AI 효과, 오버레이)을 적용할 수 있게 해줍니다:
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<Image
+  src="/portrait.jpg"
+  width={500}
+  height={500}
+  alt="잘라낸 인물 사진"
+  transformation={[{ width: 500, height: 500, focus: 'face' }]}
+/>
+```
+
+컴포넌트 수준의 `width`와 `height`는 렌더링되는 HTML의 크기를 설정합니다. `transformation` 내부의 값은 ImageKit 서버 측에서 수행되는 크기 조정을 제어합니다.
+
+### AI 기반 변환
+
+ImageKit 변환에는 동일한 `transformation` 속성을 통해 적용할 수 있는 AI 효과도 포함되어 있습니다:
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<!-- 배경 제거 -->
+<Image
+  src="/product.jpg"
+  width={500}
+  height={500}
+  alt="배경이 제거된 제품"
+  transformation={[{ aiRemoveBackground: true }]}
+/>
+
+<!-- 저해상도 이미지 업스케일 -->
+<Image
+  src="/thumbnail.jpg"
+  width={1024}
+  height={1024}
+  alt="업스케일된 이미지"
+  transformation={[{ aiUpscale: true }]}
+/>
+
+<!-- 생성형 채우기를 사용하여 새로운 종횡비로 이미지 확장 -->
+<Image
+  src="/portrait.jpg"
+  width={1600}
+  height={900}
+  alt="생성형 채우기로 확장된 이미지"
+  transformation={[
+    { width: 1600, height: 900, cropMode: 'pad_resize', background: 'genfill' },
+  ]}
+/>
+
+<!-- AI 드롭 섀도 -->
+<Image
+  src="/product.png"
+  width={500}
+  height={500}
+  alt="AI 드롭 섀도가 적용된 제품"
+  transformation={[{ aiDropShadow: true }]}
+/>
+```
+
+오버레이, 스마트 크롭(`focus: 'auto'`, `focus: 'face'`) 및 기타 효과를 포함한 전체 목록은 [ImageKit 문서의 지원되는 변환 참조](https://imagekit.io/docs/integration/astro#supported-transformations)를 확인하세요.
+
+## ImageKit 비디오 사용하기
+
+`.astro` 컴포넌트에 `<Video />` 컴포넌트를 사용하여 비디오를 추가할 수 있습니다. 이 컴포넌트는 표준 HTML 비디오 속성과 함께 `transformation`, `urlEndpoint` 등의 [ImageKit 전용 속성](https://imagekit.io/docs/integration/astro#video-component)도 지원합니다.
+
+```astro title="Component.astro"
+---
+import { Video } from '@imagekit/astro';
+---
+<Video
+  src="/sample.mp4"
+  width={1280}
+  height={720}
+  controls
+/>
+```
+
+ImageKit 측에서 비디오 크기를 조정하려면 `transformation` 내부에 크기 값을 전달하세요:
+
+```astro title="Component.astro"
+<Video
+  src="/sample.mp4"
+  width={640}
+  height={360}
+  transformation={[{ width: 640, height: 360 }]}
+  controls
+/>
+```
+
+## ImageKit 비디오 플레이어
+
+[`@imagekit/video-player`](https://github.com/imagekit-developer/imagekit-video-player) 패키지는 `@imagekit/video-player/astro` 서브 경로를 통해 전용 Astro 통합을 내보냅니다. 이 패키지는 전체 TypeScript 타입([`IKPlayerOptions`](https://imagekit.io/docs/video-player/overview#ikplayer-options), [`SourceOptions`](https://imagekit.io/docs/video-player/overview#source-options))을 포함한 네이티브 `IKVideoPlayer` Astro 컴포넌트를 제공하며, 프레임워크 어댑터 없이 `.astro` 파일에서 직접 사용할 수 있습니다.
+
+이 플레이어는 [Video.js](https://videojs.com/)를 기반으로 하며 AI 생성 자막 및 챕터, 50개 이상의 언어로 자동 번역, 노래방 스타일의 단어 강조, 탐색 썸네일, 플로팅 스티키 플레이어, 적응형 비트레이트 스트리밍(HLS/DASH) 기능을 포함합니다. 수동으로 전사 작업을 할 필요가 없습니다.
+
+패키지 설치:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/video-player
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/video-player
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/video-player
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그 다음 모든 `.astro` 파일에서 `IKVideoPlayer` 컴포넌트를 사용하세요:
+
+```astro title="VideoPlayer.astro"
+---
+import { IKVideoPlayer } from '@imagekit/video-player/astro';
+import '@imagekit/video-player/styles.css';
+
+const ikOptions = {
+  imagekitId: 'YOUR_IMAGEKIT_ID',
+  seekThumbnails: true,
+};
+
+const source = {
+  src: 'https://ik.imagekit.io/your_imagekit_id/video.mp4',
+  chapters: true,          // AI 생성 챕터 마커
+  textTracks: [{
+    autoGenerate: true,    // AI 음성-텍스트 변환 자막
+    default: true,
+    highlightWords: true,  // 단어 단위 강조
+    translations: [
+      { langCode: 'es', label: 'Spanish' },
+      { langCode: 'fr', label: 'French' },
+    ],
+  }],
+};
+---
+
+<IKVideoPlayer ikOptions={ikOptions} source={source} />
+```
+
+`chapters: true`를 설정하면 플레이어가 비디오 콘텐츠에서 챕터 마커를 자동으로 생성합니다. `textTracks`에서 `autoGenerate: true`를 설정하면 `.srt` 파일 없이도 AI 음성-텍스트 변환 자막이 생성됩니다. `translations`의 각 항목은 해당 언어로 자동 생성된 자막 트랙을 추가합니다.
+
+:::note
+Video Player SDK는 현재 베타 버전입니다. 프로덕션 환경에서 사용하기 전에 충분히 테스트하세요. 재생 목록, 쇼핑 가능한 비디오 및 서명된 URL 지원을 포함한 옵션 전체 목록은 [ImageKit 문서의 비디오 플레이어 개요](https://imagekit.io/docs/video-player/overview)를 참조하세요.
+:::
+
+## Open Graph 이미지 URL 생성하기
+
+`<OgImage />` 컴포넌트를 사용하여 ImageKit으로 최적화된 이미지를 가리키는 OpenGraph 및 Twitter 카드 `<meta>` 태그를 렌더링하세요. 레이아웃의 `<head>` 내부에 배치합니다.
+
+```astro title="Layout.astro"
+---
+import { OgImage } from '@imagekit/astro';
+---
+<html>
+  <head>
+    <OgImage
+      src="/og-banner.jpg"
+      title="내 페이지 제목"
+      description="소셜 카드를 위한 미리보기 설명"
+      alt="OG 이미지 설명"
+    />
+  </head>
+  <body><slot /></body>
+</html>
+```
+
+렌더링된 태그 대신 URL만 필요한 경우 `getOgImageUrl()` 헬퍼를 사용하세요:
+
+```astro title="Layout.astro"
+---
+import { getOgImageUrl } from '@imagekit/astro';
+
+const ogImage = getOgImageUrl({
+  src: '/og-banner.jpg',
+  transformation: [{ width: 1200, height: 630 }],
+});
+---
+<meta property="og:image" content={ogImage} />
+```
+
+지원되는 전체 속성 목록은 [ImageKit OG 컴포넌트 문서](https://imagekit.io/docs/integration/astro#og-image-component)를 확인하세요.
+
+## 클라이언트 측 업로드 활성화
+
+브라우저에서 직접 파일을 업로드하려면 `@imagekit/astro/server`의 `getUploadAuthParams()` 헬퍼를 사용하여 서버에서 단기 인증 토큰을 생성하세요. 개인 키는 서버 측에 유지되며 브라우저로 전송되지 않습니다.
+
+이 작업은 엔드포인트가 온디맨드 방식으로 실행되도록 [어댑터](/ko/guides/on-demand-rendering/)가 필요합니다:
+
+```ts title="src/pages/api/upload-auth.ts"
+import type { APIRoute } from 'astro';
+import { getUploadAuthParams } from '@imagekit/astro/server';
+
+export const prerender = false; // 'server' 모드에서는 불필요
+
+export const GET: APIRoute = () => {
+  const authParams = getUploadAuthParams({
+    privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+    publicKey: import.meta.env.PUBLIC_IMAGEKIT_PUBLIC_KEY,
+  });
+
+  return new Response(JSON.stringify(authParams), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+```
+
+브라우저는 이 엔드포인트를 가져와 반환된 `signature`, `token`, `expire`, `publicKey`를 [`@imagekit/javascript`](https://github.com/imagekit-developer/imagekit-javascript)의 `upload()` 함수에 전달합니다. 직접 의존성으로 설치하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/javascript
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/javascript
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/javascript
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+`.astro` 페이지의 최소 업로드 양식:
+
+```astro title="src/pages/upload.astro"
+<input type="file" id="file-input" />
+<button id="upload-btn">업로드</button>
+<progress id="upload-progress" value="0" max="100"></progress>
+
+<script>
+  import { upload } from '@imagekit/javascript';
+
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+  const progress = document.getElementById('upload-progress') as HTMLProgressElement;
+
+  uploadBtn.addEventListener('click', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    const auth = await fetch('/api/upload-auth').then((r) => r.json());
+
+    const result = await upload({
+      ...auth,
+      file,
+      fileName: file.name,
+      onProgress: (e) => {
+        progress.value = (e.loaded / e.total) * 100;
+      },
+    });
+
+    console.log('업로드 완료:', result);
+  });
+</script>
+```
+
+전체 오류 처리 및 중단 신호에 대해서는 [ImageKit 가이드](https://imagekit.io/docs/integration/astro#uploading-files)를 참조하세요.
+
+## ImageKit 미디어 라이브러리에서 불러오기
+
+[Astro 콘텐츠 컬렉션](/ko/guides/content-collections/)과 [`@imagekit/nodejs`](https://www.npmjs.com/package/@imagekit/nodejs) SDK를 함께 사용하면 ImageKit 미디어 라이브러리에서 직접 갤러리 및 목록 페이지를 구성할 수 있습니다.
+
+Node SDK를 개발 의존성으로 설치하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install -D @imagekit/nodejs
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add -D @imagekit/nodejs
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add -D @imagekit/nodejs
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그 다음 `client.assets.list()`를 기반으로 컬렉션을 정의하세요. Node SDK는 `File | Folder` 객체 배열을 반환합니다. 이미지만 결과에 포함하려면 `type: 'file'`을 전달하여 폴더를 제외하고 `fileType: 'image'`를 설정하세요. `Files.File` 타입 가드를 사용하여 각 항목이 컬렉션 스키마에 매핑되기 전에 올바르게 타이핑되도록 하세요:
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import ImageKit from '@imagekit/nodejs';
+import type { Files } from '@imagekit/nodejs/resources/files/files';
+
+const client = new ImageKit({
+  privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+});
+
+const gallery = defineCollection({
+  loader: async () => {
+    const assets = await client.assets.list({
+      type: 'file',       // 폴더 제외
+      fileType: 'image',  // 이미지 파일만
+      skip: 0,
+      limit: 50,
+    });
+
+    return assets
+      .filter((asset): asset is Files.File =>
+        asset.type === 'file' && !!asset.fileId && !!asset.url
+      )
+      .map((asset) => ({
+        id: asset.fileId ?? '',
+        url: asset.url ?? '',
+        width: asset.width ?? 0,
+        height: asset.height ?? 0,
+        name: asset.name ?? '',
+        tags: asset.tags ?? [],
+      }));
+  },
+  schema: z.object({
+    url: z.string().url(),
+    width: z.number(),
+    height: z.number(),
+    name: z.string(),
+    tags: z.array(z.string()),
+  }),
+});
+
+export const collections = { gallery };
+```
+
+컬렉션을 추가한 후 [`astro sync`](/ko/reference/cli-reference/#astro-sync)를 실행(또는 개발 서버 시작)하여 `getCollection()`에서 사용할 컬렉션 타입을 생성하세요.
+
+`astro:assets`의 `<Image>`를 사용하여 컬렉션을 렌더링하세요. 통합 기능이 요청된 변환을 적용한 ImageKit CDN URL을 생성합니다:
+
+```astro title="src/pages/gallery.astro"
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+
+const photos = await getCollection('gallery');
+---
+{photos.map(({ data }) => (
+  <Image
+    src={data.url}
+    width={data.width}
+    height={data.height}
+    alt={data.name}
+    transformation={[{ width: 400, height: 300, focus: 'auto' }]}
+  />
+))}
+```
+
+## Node.js에서 ImageKit 사용하기
+
+대량 업로드, 자산 나열 또는 파일 삭제와 같은 서버 측 워크플로우에는 공식 [`@imagekit/nodejs`](https://www.npmjs.com/package/@imagekit/nodejs) SDK를 직접 사용하세요:
+
+```ts title="src/pages/api/upload.ts"
+import ImageKit from '@imagekit/nodejs';
+
+const client = new ImageKit({
+  privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+});
+
+await client.files.upload({
+  file: '<파일 경로, 버퍼 또는 URL>',
+  fileName: 'sample.jpg',
+});
+```
+
+## 공식 리소스
+
+- [ImageKit Astro SDK](https://github.com/imagekit-developer/imagekit-astro)
+- [ImageKit Astro 통합 문서](https://imagekit.io/docs/integration/astro)
+- [ImageKit JavaScript SDK](https://github.com/imagekit-developer/imagekit-javascript)
+- [ImageKit Node.js SDK](https://github.com/imagekit-developer/imagekit-nodejs)
+- [ImageKit 변환 참조](https://imagekit.io/docs/transformations)
