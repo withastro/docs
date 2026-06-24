@@ -1,0 +1,384 @@
+---
+title: Astro v7へのアップグレード
+description: プロジェクトをAstro v7.0にアップグレードする方法。
+sidebar:
+  label: v7.0
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+:::tip[コーディングエージェントを使用していますか？]
+このプロンプトをコピーしてプロジェクトをアップグレードしてください:
+
+```
+Upgrade my Astro project to v7. Follow the migration guide at
+https://docs.astro.build/en/guides/upgrade-to/v7/
+```
+:::
+
+このガイドでは、Astro v6からAstro v7への移行方法を説明します。
+
+先にv6へのアップグレードが必要ですか？[以前の移行ガイド](/ja/guides/upgrade-to/v6/)を確認してください。
+
+v6のドキュメントが必要ですか？[以前のバージョンのドキュメントサイト（メンテナンスされていないv6のスナップショット）](https://v6.docs.astro.build/)を確認してください。
+
+## Astroのアップグレード
+
+パッケージマネージャーを使用して、プロジェクトのAstroを最新バージョンに更新します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astroと公式インテグレーションをまとめてアップグレード
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astroと公式インテグレーションをまとめてアップグレード
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astroと公式インテグレーションをまとめてアップグレード
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+必要に応じて[Astroインテグレーションを手動でアップグレード](/ja/guides/integrations/#manual-upgrading)することもできます。また、プロジェクト内の他の依存関係のアップグレードが必要になる場合もあります。
+
+:::note[これで終わりですか？]
+Astroをアップグレードした後、プロジェクトに変更を加える必要がまったくない場合もあります！
+
+ただし、エラーや予期しない動作に気づいた場合は、以下を読んでプロジェクトの更新が必要な変更点がないか確認してください。
+:::
+
+Astro v7.0には、[破壊的な変更の可能性がある項目](#破壊的な変更)に加え、以前に非推奨となった一部の機能の削除が含まれています。
+
+v7.0へのアップグレード後にプロジェクトが期待どおりに動作しない場合は、このガイドで破壊的な変更の概要とコードベースの更新手順を確認してください。
+
+完全なリリースノートについては[Astroのchangelog](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)を見てください。
+
+## 破壊的な変更
+
+### 依存関係のアップグレード
+
+#### Vite 8
+
+Astro v7.0では、開発サーバーおよびプロダクションバンドラーとして使用するViteが[v8](https://vite.dev/blog/announcing-vite8)にアップグレードされました。
+
+##### どうすればよいですか？
+
+Vite固有のプラグイン、設定、またはAPIを使用している場合は、[Vite 8の移行ガイド](https://vite.dev/guide/migration)で破壊的な変更を確認し、必要に応じてプロジェクトをアップグレードしてください。
+
+ほとんどのAstroユーザーは、プロジェクトのコードを変更することなくアップグレードできるはずです。これは主に、Viteの内部に依存するAstroのインテグレーションやプラグインに対する破壊的な変更です。
+
+### 実験的フラグ
+
+実験的フラグを使用すると、開発の初期段階にある機能をオプトインで利用できます。以下の実験的フラグはAstro 7.0で削除され、安定版または新しいデフォルトの動作になりました。
+
+これらの実験的フラグを以前に使用していた場合は、Astroの設定から削除してください。
+
+```js del={5-16} ins={18-23} title="astro.config.mjs"
+import { defineConfig, logHandlers, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true }),
+    queuedRendering: {
+      enabled: true,
+    },
+    rustCompiler: true,
+    advancedRouting: true,
+    cache: {
+      provider: memoryCache(),
+    },
+    routeRules: {
+      '/blog/[...path]': { maxAge: 300, swr: 60 },
+    },
+  },
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/blog/[...path]': { maxAge: 300, swr: 60 },
+  },
+})
+```
+
+#### 安定版になった実験的機能:
+
+- `logger`: 新しいロギングシステムが安定版になり、使用するために実験的フラグが不要になりました。このフラグを使用していた場合は、Astro設定のトップレベルの`logger`フィールドにロガーを直接設定できるようになりました。
+
+- `queuedRendering`: キューによるレンダリング（queued rendering）がデフォルトの動作になり、実験的フラグは削除されました。この機能をプロジェクトで有効にするための操作は不要です。すべてのプロジェクトがパフォーマンスの向上の恩恵を受けられるようになりました。
+
+- `rustCompiler`: RustベースのAstroコンパイラがデフォルトかつ唯一のコンパイラとなり、従来のGoベースのコンパイラを置き換えました。プロジェクトに影響を与える可能性のある動作の変更点の詳細については、[Rustコンパイラ](#rustコンパイラ)を確認してください。
+
+- `advancedRouting`: 高度なルーティングがデフォルトで有効になりました。詳細については[高度なルーティングのガイド](/ja/guides/routing/#advanced-routing)を確認してください。なお、`src/fetch.ts`は[予約済みのファイル名](#予約済みのファイル名-srcfetchts)になりました。
+
+- `cache`: ルートキャッシュが安定版になりました。この機能を使用していた場合は、`cache`と`routeRules`を`experimental`ブロックの外に移動するよう設定を更新してください。
+
+### Rustコンパイラ
+
+<SourcePR number="16462" title="feat!: make Rust compiler the default and only compiler" />
+
+Astro v7.0では、従来のGoベースのコンパイラが新しいRustベースのコンパイラに置き換えられました。新しいコンパイラはより高速ですが、**無効なHTML構文に対してより厳格**でもあります。以前はエラーなくビルドできていたテンプレートが、失敗するようになる場合があります。
+
+Rustコンパイラには、2つの重要な変更点があります。
+
+1. **閉じられていないタグがエラーになります。** 従来のコンパイラは、閉じられていないHTMLタグやコンポーネントタグを暗黙的に受け入れていました。Rustコンパイラでは、すべての非空要素（non-void要素）に対応する閉じタグが必要です。
+
+2. **意味的に無効なHTMLが自動修正されなくなります。** 従来のコンパイラは、[HTMLのパース仕様](https://html.spec.whatwg.org/multipage/parsing.html)に合わせて、無効なHTMLを暗黙的に並べ替えたり再構成したりしていました（例：ブロック要素が許可されていない`<p>`タグの外に要素を移動するなど）。Rustコンパイラはマークアップを修正しようとせず、そのまま通過させてブラウザに処理を委ねます。これにより、以前は「許容」されていた無効なマークアップのレンダリング結果が変わる場合があります。
+
+#### どうすればよいですか？
+
+アップグレード後にビルドを実行してください。予期しないトークンや閉じられていないタグに関するコンパイラエラーが表示された場合は、不足している閉じタグを追加してください:
+
+```astro del={2} ins={3}
+<!-- 変更前: Goコンパイラが暗黙的に受け入れていた閉じられていないタグ -->
+<p>Hello world
+<p>Hello world</p>
+
+<!-- <br>、<img>、<input>、<hr>などの空要素には閉じタグは不要です -->
+```
+
+```astro del={4-5} ins={7-9}
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+  <p>ここにコンテンツ
+
+<Layout>
+  <p>ここにコンテンツ</p>
+</Layout>
+```
+
+アップグレード後にレンダリングされるHTMLの出力が変わった場合は、従来のコンパイラが暗黙的に修正していた無効なHTMLのネストがないか、テンプレートを確認してください。たとえば、`<div>`を`<p>`の内側に配置するのは無効なHTMLです。従来のコンパイラはこれを再構成してくれましたが、Rustコンパイラはそうしません:
+
+```astro
+<!-- 無効なネスト: <div>は<p>の内側では許可されていません -->
+<!-- ブラウザは<p>を早めに閉じるため、レイアウトが崩れる可能性があります -->
+<p>
+  <div>これは段落の内側には入りません</div>
+</p>
+
+<!-- 修正: 代わりに有効なコンテナを使用します -->
+<div>
+  <div>これは正しくネストされています</div>
+</div>
+```
+
+#### CSS出力の違い
+
+Rustコンパイラは、CSSを異なる方法で処理します。これにより、ビルドされた出力に軽微な見た目の違いが生じる場合があります。
+
+- **色の値のシリアライズ方法が異なる場合があります。** `rebeccapurple`のような名前付きの色が、ビルドされたCSSでは`#639`のような16進数値になることがあります。これによってサイトの見た目が変わることはありません。
+- **`url()`の値で引用符が追加または削除される場合があります。** たとえば、`url(/path)`が`url('/path')`になったり、その逆になったりすることがあります。これによって機能に影響はありません。
+
+これらの違いは見た目上のものであり、CSS文字列の完全一致に依存するテストやツールを使用していない限り、対応は不要です。
+
+### 予約済みのファイル名: `src/fetch.ts`
+
+Astro v7.0では[高度なルーティング](/ja/guides/routing/#advanced-routing)が導入され、`src/middleware.ts`と同様に、`src/fetch.ts`（または`src/fetch.js`）が特別なファイル名として使用されるようになりました。Astroはこのファイルを自動的にインポートし、ルーティングの動作を設定します。
+
+プロジェクトに別の目的で使用している`src/fetch.ts`ファイルがすでに存在する場合、Astroはそれを高度なルーティングの設定として処理しようとし、予期しないエラーが発生する可能性があります。
+
+#### どうすればよいですか？
+
+高度なルーティングとは無関係な既存の`src/fetch.ts`ファイルがある場合は、2つの選択肢があります。
+
+* **`fetchFile`を設定する**: 別のファイル名を指定するか、`null`を指定して高度なルーティングを無効にできます。これは、`src/fetch.ts`を別の目的で引き続き使用したい場合や、高度なルーティング機能が不要な場合に便利です。
+
+    ```js title="astro.config.mjs" ins={5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // 高度なルーティングの設定に別のファイルを指定する:
+      fetchFile: './src/router.ts',
+      // または高度なルーティングを完全に無効にする:
+      // fetchFile: null,
+    });
+    ```
+
+* **ファイルをリネームする**: 別の名前（例：`src/fetcher.ts`、`src/main.ts`）に変更し、それを参照しているインポートをすべて更新してください。
+
+### 新しいデフォルトのMarkdownプロセッサー: Sätteri
+
+<SourcePR number="16966" title="feat: make Sätteri the default Markdown pipeline" />
+
+Astroは、`.md`および`.mdx`ファイルを、remark/rehypeパイプラインの代わりに、ネイティブのMarkdownパイプラインである[Sätteri](https://satteri.bruits.org/)でレンダリングするようになりました。その結果、`@astrojs/markdown-remark`はデフォルトではインストールされなくなりました。
+
+#### どうすればよいですか？
+
+remarkやrehypeのプラグインを使用していない場合は、何もする必要はありません。MarkdownとMDXはSätteriでレンダリングされるようになり、これまでと同様にGitHub Flavored MarkdownとSmartyPantsが適用されます。
+
+remarkやrehypeのプラグインに依存している場合は、それらを[SätteriのMDASTまたはHASTプラグイン](https://satteri.bruits.org/docs/plugins/)に移植できます。recmaプラグインに依存している場合や、remarkおよびrehypeプラグインを移植する準備がまだ整っていない、または移植できない場合は、[`unified()`パイプラインを使い続ける](/ja/guides/markdown-content/#switching-to-the-unified-processor)ことができます。
+
+unifiedプラグインを引き続き使用するには、以下のようにします。
+
+<Steps>
+
+1. `@astrojs/markdown-remark`をインストールします:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/markdown-remark
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. [`unified()`をMarkdownプロセッサーとして設定](/ja/guides/markdown-content/#switching-to-the-unified-processor)します:
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import { unified } from '@astrojs/markdown-remark';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified(),
+      },
+    });
+    ```
+</Steps>
+
+非推奨のとなった`markdown.remarkPlugins`、`markdown.rehypePlugins`、`markdown.remarkRehype`オプションは引き続き動作しますが、現在は`@astrojs/markdown-remark`のインストールも必要になります。
+
+### 新しいデフォルトの空白処理: `compressHTML: 'jsx'`
+
+<SourcePR number="16965" title="feat: make jsx whitespace handling the default" />
+
+Astro v6.xでは、空白処理にデフォルトでHTMLを考慮した圧縮が使用されていました。これは、Astroが[HTMLのルールに従って](https://developer.mozilla.org/ja/docs/Web/CSS/Guides/Text/Whitespace#html_%E3%81%AE%E3%83%9B%E3%83%AF%E3%82%A4%E3%83%88%E3%82%B9%E3%83%9A%E3%83%BC%E3%82%B9%E3%81%AE%E5%87%A6%E7%90%86%E6%96%B9%E6%B3%95)インライン要素間の単一のスペースを保持することを意味します。
+
+Astro v7.0では、[`compressHTML`](/ja/reference/configuration-reference/#compresshtml)のデフォルト値が`true`から`'jsx'`に変更されました。これにより、AstroはReactのようなフレームワークと同じように、デフォルトでJSXのルールを使用してHTMLから空白を取り除くようになりました。
+
+以下の例は、Astro v6.xでは`hello world`とレンダリングされていましたが、Astro v7.0では`helloworld`とレンダリングされます。
+
+```astro title="src/components/Example.astro"
+<span>hello</span>
+<em>world</em>
+```
+
+#### どうすればよいですか？
+
+要素間のスペースが期待どおりにレンダリングされているか、ウェブサイトを目視で確認してください。それ以上の対応は不要な場合もあります。
+
+一部のスペースが失われていることに気づいた場合は、[インライン要素](https://developer.mozilla.org/ja/docs/Glossary/Inline-level_content)を使用しているコンポーネントやページを特定してください。そして、`{" "}`を使用してこれらの要素間に明示的なスペースを追加するよう更新してください。
+
+```astro title="src/components/Example.astro" del={1-2} ins={3}
+<span>hello</span>
+<em>world</em>
+<span>hello</span> <em>world</em>
+```
+
+以前の動作を維持したい場合は、`compressHTML`を`true`に設定してください。また、`compressHTML: false`を使用してすべての空白を保持することもできます。
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  compressHTML: true,
+});
+```
+
+## 非推奨
+
+以下の非推奨機能はサポートされなくなり、ドキュメントにも記載されなくなりました。プロジェクトを適切に更新してください。
+
+一部の非推奨機能は、完全に削除されるまで一時的に動作し続ける場合があります。その他の機能は、何も起こらず無視されるか、コードの更新を促すエラーをスローする場合があります。
+
+### 非推奨: インテグレーションパッケージのルートからの`getContainerRenderer()`
+
+<SourcePR number="17093" title="fix(integrations): Export container renderers from a dedicated export path to fix bundling issues" />
+
+Astro 6.xでは、Container APIで使用する[`getContainerRenderer()`](/ja/reference/container-reference/#adding-a-renderer-through-the-container-api)ヘルパーを、公式インテグレーションのパッケージのルート（例：`@astrojs/react`）からインポートしていました。これにより、Container APIだけが必要な場合でも、バンドラーがパッケージのルートから無関係なビルド時専用のエクスポートを取り込んでしまう可能性がありました。
+
+Astro 7.0では、インテグレーションのパッケージのルートから`getContainerRenderer()`をインポートすることを非推奨とし、代わりに専用の`container-renderer`エントリーポイントの使用が推奨されます。
+
+#### どうすればよいですか？
+
+各公式インテグレーションについて、Container APIのインポートを新しい`container-renderer`エントリーポイントを使用するように更新してください。
+
+```diff
+- import { getContainerRenderer } from '@astrojs/react';
++ import { getContainerRenderer } from '@astrojs/react/container-renderer';
+```
+
+このエントリーポイントは、`@astrojs/react`、`@astrojs/preact`、`@astrojs/solid-js`、`@astrojs/svelte`、`@astrojs/vue`、`@astrojs/mdx`で利用できます。
+
+## 削除
+
+以下の機能はコードベースから完全に削除され、使用できなくなりました。一部の機能は非推奨化後もプロジェクト内で動作し続けていた場合があります。また、何も起こらず無視されていた機能もあります。
+
+削除された機能がプロジェクトに残っている場合、ビルドが失敗します。これらの機能の削除を促すドキュメントも今後は提供されません。
+
+### 削除: `@astrojs/db`
+
+`@astrojs/db`パッケージはAstro v7.0で削除され、メンテナンスされなくなりました。
+
+#### どうすればよいですか？
+
+`@astrojs/db`をプロジェクトの依存関係から削除し、以下のいずれかの代替手段に置き換えてください。
+
+- **Node.js組み込みのSQLite**: Node.jsには組み込みの[`node:sqlite`](https://nodejs.org/api/sqlite.html)モジュールが含まれるようになりました（Node.js v22.5.0以降で利用可能）。Node.jsアダプターを使用していて、ローカルのSQLiteストレージのために`@astrojs/db`を使用していた場合は、これが適した選択肢です。
+
+- **[Drizzle ORM](https://orm.drizzle.team/)**: `@astrojs/db`のDrizzleベースのスキーマおよびクエリAPIのために使用していた場合は、サポートされている任意のデータベースでDrizzleを直接使用できます。
+
+- **その他のデータベースライブラリ**: デプロイ先のプラットフォームに適した任意のデータベースライブラリ（例：[Turso](https://turso.tech/)、[PlanetScale](https://planetscale.com/)、[Neon](https://neon.tech/)）を使用してください。
+
+### 削除: 公開されていた`astro:transitions`の内部API
+
+<SourcePR number="16725" title="feat: remove deprecated astro:transitions internals" />
+
+Astro 6.xでは、`astro:transitions`および`astro:transitions/client`で利用可能だった一部のヘルパーが非推奨となりました。
+
+Astro 7.0では、以下のAPIをプロジェクト内で使用できなくなりました。
+- `TRANSITION_BEFORE_PREPARATION`
+- `TRANSITION_AFTER_PREPARATION`
+- `TRANSITION_BEFORE_SWAP`
+- `TRANSITION_AFTER_SWAP`
+- `TRANSITION_PAGE_LOAD`
+- `isTransitionBeforePreparationEvent()`
+- `isTransitionBeforeSwapEvent()`
+- `createAnimationScope()`
+
+#### どうすればよいですか？
+
+`createAnimationScope()`の使用箇所をすべて削除してください。
+
+```diff
+-import { createAnimationScope } from 'astro:transitions';
+```
+
+その他のAPIの使用箇所は、[ライフサイクルイベント名](/ja/reference/modules/astro-transitions/#lifecycle-events)を直接使用するように置き換えてください。
+
+```diff
+-import {
+-	TRANSITION_AFTER_SWAP,
+-	isTransitionBeforePreparationEvent,
+-} from 'astro:transitions/client';
+
+-console.log(isTransitionBeforePreparationEvent(event));
++console.log(event.type === 'astro:before-preparation');
+
+-console.log(TRANSITION_AFTER_SWAP);
++console.log('astro:after-swap');
+```
+
+<ReadMore>[ビュートランジションルーターAPIリファレンス](/ja/reference/modules/astro-transitions/)で、利用可能なすべてのユーティリティを確認してください。</ReadMore>
