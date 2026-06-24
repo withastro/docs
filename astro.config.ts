@@ -1,17 +1,16 @@
 import starlight from '@astrojs/starlight';
+import { satteri } from '@astrojs/markdown-satteri';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
-import rehypeSlug from 'rehype-slug';
-import remarkSmartypants from 'remark-smartypants';
 import { sidebar } from './astro.sidebar';
 import { devServerFileWatcher } from './config/integrations/dev-server-file-watcher';
 import { sitemap } from './config/integrations/sitemap';
 import { localesConfig } from './config/locales';
 import { starlightPluginSmokeTest } from './config/plugins/smoke-test';
-import { rehypeTasklistEnhancer } from './config/plugins/rehype-tasklist-enhancer';
-import { remarkFallbackLang } from './config/plugins/remark-fallback-lang';
+import { tasklistEnhancerPlugin } from './config/plugins/satteri-tasklist-enhancer';
+import { fallbackLangPlugin } from './config/plugins/satteri-fallback-lang';
 
-const previewBranch = process.env.GITHUB_HEAD_REF;
+const previewBranch = process.env.GITHUB_JOB !== 'linkcheck' && process.env.GITHUB_HEAD_REF;
 const previewSite = previewBranch
 	? `https://${previewBranch}.previews.docs.astro.build/`
 	: undefined;
@@ -77,23 +76,16 @@ export default defineConfig({
 	trailingSlash: 'always',
 	scopedStyleStrategy: 'where',
 	compressHTML: false,
-	experimental: {
-		rustCompiler: true,
-	},
 	markdown: {
-		// Override with our own config
-		smartypants: false,
-		remarkPlugins: [
-			// @ts-expect-error — `remark-smartypants` type is not matching Astro’s for some reason even though they both use unified’s `Plugin` type
-			[remarkSmartypants, { dashes: false }],
-			// Add our custom plugin that marks links to fallback language pages
-			remarkFallbackLang(),
-		],
-		rehypePlugins: [
-			rehypeSlug,
-			// Tweak GFM task list syntax
-			rehypeTasklistEnhancer(),
-		],
+		processor: satteri({
+			features: {
+				smartPunctuation: {
+					dashes: false,
+				},
+			},
+			hastPlugins: [tasklistEnhancerPlugin()],
+			mdastPlugins: [fallbackLangPlugin()],
+		}),
 	},
 	image: {
 		domains: ['avatars.githubusercontent.com'],
