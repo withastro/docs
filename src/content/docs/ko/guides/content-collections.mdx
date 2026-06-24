@@ -891,6 +891,108 @@ if (error) {
 ---
 ```
 
+### 라이브 데이터 캐싱
+
+<p><Since v="7.0.0" /></p>
+
+라이브 로더가 [캐시 힌트](/ko/reference/content-loader-reference/#라이브-로더)를 제공하면, `getLiveEntry()` 및 `getLiveCollection()`은 `cacheHint` 객체를 반환합니다. 이를 통해 헤더를 수동으로 설정하지 않고도 라우트의 [캐싱 동작](/ko/guides/caching/)을 제어할 수 있습니다.
+
+캐시 힌트에는 특정 대상을 무효화하기 위한 [`tags`](/ko/reference/content-loader-reference/#cachehinttags)와 캐시된 데이터를 최신 상태로 유지하기 위한 [`lastModified`](/ko/reference/content-loader-reference/#cachehintlastmodified)가 포함되어 있습니다. 또한 캐시 힌트를 자신만의 [캐시 옵션](/ko/reference/cache-provider-reference/#cacheoptions)과 결합하여 캐싱 동작을 더욱 세부적으로 커스텀할 수 있습니다.
+
+<ReadMore>
+라이브 로더에서 캐시 힌트를 구현하는 방법에 대한 자세한 내용은 [콘텐츠 로더 참조](/ko/reference/content-loader-reference/)를 확인하세요.
+</ReadMore>
+
+#### 엔트리 수준 캐시 힌트
+
+`getLiveEntry()`가 반환한 `cacheHint`를 [`Astro.cache.set()`](/ko/reference/api-reference/#cacheset)에 전달하여 로더가 권장하는 캐싱 전략을 적용하세요.
+
+다음 예제는 로더의 캐시 힌트를 전달하고 `maxAge`를 추가하여 응답이 최신 상태를 유지하는 시간을 제어합니다.
+
+```astro title="src/pages/products/[id].astro" {4,10-12}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+또한 [`LiveDataEntry`](/ko/reference/content-loader-reference/#livedataentry)를 직접 전달하여 Astro가 `cacheHint`를 자동으로 추출하도록 할 수도 있습니다.
+
+```astro title="src/pages/products/[id].astro" {4,10}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+Astro.cache.set(entry);
+Astro.cache.set({ maxAge: 300, swr: 60 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+#### 컬렉션 수준 캐시 힌트
+
+`getLiveCollection()`으로 전체 컬렉션을 가져올 때, Astro는 컬렉션 응답과 모든 개별 엔트리의 캐시 힌트를 병합합니다. 태그는 누적되며, 가장 최근의 `lastModified`가 적용됩니다.
+
+다음 예제는 컬렉션에서 병합된 캐시 힌트를 전달하고 10분의 유효 기간(최신 상태 유지 시간)을 설정합니다.
+
+```astro title="src/pages/products/index.astro" {4,10-12}
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries, error, cacheHint } = await getLiveCollection('products');
+
+if (error) {
+  return new Response('Error loading products', { status: 500 });
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+
+<ul>
+  {entries.map((p) => <li>{p.data.name}</li>)}
+</ul>
+```
+
+#### 엔트리별 무효화
+
+`LiveDataEntry`를 [`cache.invalidate()`](/ko/reference/api-reference/#cacheinvalidate)에 전달하여 캐시된 엔트리를 무효화할 수 있습니다. 이를 통해 전체 캐시를 지울 필요 없이 엔트리의 캐시 태그를 기반으로 특정 캐시 응답만 선택하여 무효화할 수 있습니다.
+
+다음 예제는 특정 제품 엔트리에 대한 캐시된 응답을 무효화합니다.
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('products', 'featured');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
+```
+
 ## 편집기에서 JSON 스키마 파일 사용하기
 
 <p><Since v="4.13.0" /></p>
