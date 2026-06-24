@@ -1,0 +1,257 @@
+---
+title: 라우트 캐싱
+description: Astro의 캐싱 기능 소개.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+<p><Since v="7.0.0" /></p>
+
+Astro는 [온디맨드 렌더링](/ko/guides/on-demand-rendering/) 페이지 및 엔드포인트의 응답을 캐싱하기 위해 플랫폼에 종속되지 않는 API를 제공합니다. 라우트에 설정된 캐시 지시어는 구성된 캐시 프로바이더에 따라 적절한 HTTP 헤더나 런타임 동작으로 변환됩니다.
+
+라우트 캐싱은 [`max-age`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Cache-Control#max-age) 및 [`stale-while-revalidate`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate)를 포함한 표준 [HTTP 캐싱 표준 규칙](https://developer.mozilla.org/ko/docs/Web/HTTP/Guides/Caching)을 기반으로 작동합니다. 또한 태그 기반 및 경로 기반 무효화, 설정 수준의 라우트 규칙, 어댑터가 자동으로 구성할 수 있는 플러그인 형태의 캐시 프로바이더를 지원합니다.
+
+## 캐싱 설정
+
+라우트 캐싱을 사용하려면 런타임에 캐싱을 어떻게 처리할지 결정하는 캐시 프로바이더가 필요합니다. 기본적으로 [내장 인메모리 프로바이더](/ko/reference/cache-provider-reference/#내장-인메모리-프로바이더)를 제공하며, 고급 사용 사례나 특정 런타임 환경에 맞춘 커스텀 프로바이더를 직접 구현하여 사용할 수도 있습니다.
+
+이 기능을 활성화하려면 Astro 설정 파일에서 [캐시 프로바이더](/ko/reference/cache-provider-reference/)를 지정해 주세요.
+
+```js title="astro.config.mjs" {6-8} "memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+});
+```
+
+그런 다음 `.astro` 페이지에서는 [`Astro.cache`](/ko/reference/api-reference/#cache)를, API 라우트 및 미들웨어에서는 `context.cache`를 사용하여 요청별로 캐싱을 제어할 수 있습니다. 특정 라우트 그룹에 대한 캐시 기본값은 [`routeRules`](#라우트-규칙) 옵션을 사용하여 설정 파일에서 선언적으로 정의할 수도 있습니다.
+
+Netlify, Vercel, 또는 Cloudflare 환경에 배포하는 경우, 인메모리 프로바이더 대신 각 어댑터가 제공하는 실험적 단계의 [CDN 캐시 프로바이더](#어댑터-캐시-프로바이더)를 사용할 수 있습니다.
+
+## 어댑터 캐시 프로바이더
+
+Netlify, Vercel, Cloudflare를 지원하는 Astro의 공식 어댑터는 캐시 지시어를 각 플랫폼의 네이티브 캐시 헤더 및 무효화 API에 매핑해 주는 실험적 CDN 캐시 프로바이더를 제공합니다. 이 프로바이더들은 응답을 메모리에 저장하는 대신 호스팅 플랫폼의 엣지 네트워크로 캐시 지시어를 푸시합니다. 따라서 캐시 히트가 발생하면 서버리스 함수를 따로 실행하지 않고 CDN에서 곧바로 응답을 제공합니다.
+
+현재 실험적 단계에서는 아래 안내와 같이 프로바이더를 직접 수동으로 활성화해야 합니다. 향후 정식 릴리스 버전에서는 Netlify 및 Vercel 프로바이더가 어댑터에 의해 자동으로 활성화될 예정입니다. Cloudflare 프로바이더의 경우 현재 프라이빗 베타 진행 중인 특정 기능이 필요합니다.
+
+각 프로바이더는 캐시된 응답에 요청 경로 태그를 자동으로 지정하므로, 태그 기반의 캐시 퍼지만 지원하는 플랫폼이더라도 [`cache.invalidate({ path })`](/ko/reference/api-reference/#cacheinvalidate) 함수가 정상적으로 동작합니다.
+
+### Netlify
+
+<p>
+
+<Since pkg="@astrojs/netlify" v="8.0.0" />
+</p>
+
+`@astrojs/netlify/cache`에서 `cacheNetlify()`를 가져와 캐시 공급자로 설정하세요:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
+
+export default defineConfig({
+  adapter: netlify(),
+  cache: {
+    provider: cacheNetlify(),
+  },
+});
+```
+
+이 프로바이더는 `Netlify-CDN-Cache-Control` 및 `Netlify-Cache-Tag` 헤더를 설정합니다. 캐시된 응답은 Netlify의 [지속형 캐시](https://docs.netlify.com/platform/caching/#durable-directive)를 사용하여 모든 엣지 노드에서 공유되므로 함수 호출을 줄여줍니다. 태그 기반 및 경로 기반 무효화가 모두 지원됩니다.
+
+### Vercel
+
+<p>
+
+<Since pkg="@astrojs/vercel" v="11.0.0" />
+</p>
+
+`@astrojs/vercel/cache`에서 `cacheVercel()`을 가져와 캐시 공급자로 설정하세요:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+import { cacheVercel } from '@astrojs/vercel/cache';
+
+export default defineConfig({
+  adapter: vercel(),
+  cache: {
+    provider: cacheVercel(),
+  },
+});
+```
+
+이 프로바이더는 `Vercel-CDN-Cache-Control` 및 `Vercel-Cache-Tag` 헤더를 설정합니다. 태그 기반 및 경로 기반 무효화가 모두 지원됩니다. 태그 무효화는 소프트 무효화 방식으로 처리되며, 캐시된 응답을 만료 상태로 표시한 뒤 stale-while-revalidate를 활용해 백그라운드에서 재검증을 진행합니다.
+
+### Cloudflare
+
+<p>
+
+<Since pkg="@astrojs/cloudflare" v="14.0.0" />
+</p>
+
+:::caution[프라이빗 베타]
+Cloudflare 프로바이더는 현재 프라이빗 베타 단계에 있는 Cloudflare Workers Cache 기능이 필요합니다. 베타 접근 권한이 없다면 설정한 헤더가 무시되며, `cache.invalidate()`를 호출할 때 오류가 발생합니다.
+:::
+
+`@astrojs/cloudflare/cache`에서 `cacheCloudflare()`를 가져와 캐시 공급자로 설정하세요:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
+
+export default defineConfig({
+  adapter: cloudflare(),
+  cache: {
+    provider: cacheCloudflare(),
+  },
+});
+```
+
+이 프로바이더는 `Cloudflare-CDN-Cache-Control` 및 `Cache-Tag` 헤더를 설정합니다. Cloudflare 캐시 프로바이더가 설정되면 어댑터가 자동으로 워커 캐싱을 활성화합니다. 태그 기반 및 경로 기반 무효화가 모두 지원됩니다.
+
+## 캐시와 상호작용하기
+
+[`cache` 객체](/ko/reference/api-reference/#cache)는 캐시 옵션 설정, 캐시 항목 무효화, 현재 캐시 상태 확인을 위한 메서드를 제공합니다. 이 객체는 `.astro` 페이지에서 `Astro.cache`로 사용할 수 있으며, API 라우트 및 미들웨어에서는 `context.cache`로 접근할 수 있습니다.
+
+<ReadMore>자세한 내용은 [캐시 API 참조](/ko/reference/api-reference/#cache)를 확인하세요.</ReadMore>
+
+### 캐싱 활성화 여부 확인
+
+캐싱이 구성되지 않은 경우, `cache.set()`, `cache.tags`, `cache.options`는 경고를 기록하고 `cache.invalidate()`는 에러를 발생시킵니다. 이를 방지하려면 [`cache.enabled`](/ko/reference/api-reference/#cacheenabled)를 사용하여 조건부 체크 내에 캐싱 로직을 감싸세요. 공급자가 구성되지 않았거나 개발 모드인 경우 값은 항상 `false`입니다.
+
+```astro title="src/pages/products/[id].astro" "Astro.cache.enabled"
+---
+if (Astro.cache.enabled) {
+  const tags = await getProductTags(Astro.params.id);
+  Astro.cache.set({ maxAge: 3600, tags });
+}
+---
+```
+
+### 캐시 옵션 설정
+
+현재 응답에 대한 캐싱을 활성화하려면 옵션 객체를 전달하여 [`cache.set()`](/ko/reference/api-reference/#cacheset)을 호출하세요.
+
+다음 예시는 페이지를 2분 동안 캐싱하고, 재검증이 진행되는 1분 동안은 기존 캐시 콘텐츠를 제공하며, 특정 항목을 무효화할 수 있도록 응답에 태그를 지정하는 코드입니다.
+
+```astro title="src/pages/index.astro" {4-8}
+---
+export const prerender = false; // 'server' 모드에서는 필요 없음
+
+Astro.cache.set({
+  maxAge: 120,
+  swr: 60,
+  tags: ['home'],
+});
+---
+
+<html><body>Cached page</body></html>
+```
+
+API 라우트 및 미들웨어에서는 `context.cache`를 사용하세요:
+
+```ts title="src/pages/api/data.ts" {2-5}
+export function GET(context) {
+  context.cache.set({
+    maxAge: 300,
+    tags: ['api', 'data'],
+  });
+  return Response.json({ ok: true });
+}
+```
+
+### 캐싱 제외하기
+
+요청을 캐싱에서 명시적으로 제외하려면 `false` 값을 전달하여 [`cache.set()`](/ko/reference/api-reference/#cacheset)을 호출하세요. 이는 일치하는 [라우트 규칙](#라우트-규칙)에 의해 응답이 자동으로 캐싱되는 것을 방지하고 싶을 때 유용합니다:
+
+```astro title="src/pages/dashboard.astro"
+---
+if (isPersonalized) {
+  Astro.cache.set(false);
+}
+---
+```
+
+### 캐시 상태 확인하기
+
+[`cache.options`](/ko/reference/api-reference/#cacheoptions)를 통해 현재까지 누적된 캐시 옵션에 접근할 수 있습니다. 이는 디버깅할 때나, 현재 상태를 기반으로 조건에 따라 캐싱 설정을 변경하고 싶을 때 유용합니다:
+
+```ts title="src/pages/api/debug.ts"
+const { maxAge, swr, tags } = context.cache.options;
+```
+
+### 캐시 항목 무효화하기
+
+[`cache.invalidate()`](/ko/reference/api-reference/#cacheinvalidate)를 사용하여 태그나 경로별로 캐시된 항목을 제거할 수 있습니다. 이는 콘텐츠 업데이트나 사용자 작업 등으로 인해 기존 캐시가 만료되었을 때, 프로그래밍 방식으로 캐시된 콘텐츠를 삭제하는 데 유용합니다.
+
+다음 예시는 태그와 경로를 기준으로 캐시를 무효화하는 API 라우트를 생성하는 방법을 보여줍니다:
+
+```ts title="src/pages/api/revalidate.ts"
+export async function POST(context) {
+  // 'data' 태그가 지정된 모든 항목 무효화
+  await context.cache.invalidate({ tags: ['data'] });
+
+  // 특정 경로 무효화
+  await context.cache.invalidate({ path: '/api/data' });
+
+  return Response.json({ purged: true });
+}
+```
+
+태그 기반 무효화는 제공된 태그를 하나라도 포함하는 모든 캐시 항목을 제거합니다. 경로 기반 무효화는 정확히 일치하는 경로에만 적용됩니다([glob](/ko/guides/imports/#glob-패턴) 또는 와일드카드 패턴은 지원되지 않음).
+
+## 병합 방식
+
+단일 요청 내에서 [`cache.set()`](/ko/reference/api-reference/#cacheset)을 여러 번 호출하는 경우, 다음 규칙에 따라 설정이 병합됩니다:
+
+- **스칼라 값** (`maxAge`, `swr`, `etag`): 마지막에 설정된 값이 우선 적용됩니다.
+- **`lastModified`**: 가장 최근 날짜가 우선 적용됩니다.
+- **`tags`**: 호출될 때마다 태그가 누적됩니다.
+
+미들웨어, 레이아웃, 콘텐츠 로더, 페이지 코드는 각각 독립적으로 캐시 지시어를 설정할 수 있습니다.
+
+## 개발 모드에서의 동작
+
+개발 모드에서도 캐시 API 자체는 사용할 수 있으므로 라우트 코드에서 별도의 조건문 검사를 작성하지 않아도 되지만, 실제 캐싱은 수행되지 않습니다. [`cache.enabled`](/ko/reference/api-reference/#cacheenabled) 값은 `false`가 되며, [`cache.set()`](/ko/reference/api-reference/#cacheset)과 [`cache.invalidate()`](/ko/reference/api-reference/#cacheinvalidate)를 호출해도 아무런 동작도 하지 않습니다. 로컬에서 캐싱을 테스트하려면 사이트를 빌드한 후 미리보기 기능을 사용하세요.
+
+## 라우트 규칙
+
+라우트 규칙을 사용하면 설정 파일에서 여러 라우트 그룹의 캐싱 방식을 선언적으로 정의할 수 있습니다. 이는 수많은 라우트에 캐싱 설정을 한 번에 일괄 적용할 때 유용합니다.
+
+다음 예시는 모든 API 라우트에 stale-while-revalidate 방식을 적용하고, 상품 페이지는 1시간 동안 최신 상태를 유지하도록 설정하며, 블로그 게시물은 5분 동안 캐싱하는 방법을 보여줍니다:
+
+```js title="astro.config.mjs" {9-13}
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/api/[...path]': { swr: 600 },
+    '/products/[...slug]': { maxAge: 3600, tags: ['products'] },
+    '/blog/[...slug]': { maxAge: 300, swr: 60 },
+  },
+});
+```
+
+지원하는 라우트 패턴은 다음과 같습니다:
+
+- **정적 경로**: `/about`, `/api/health`
+- **동적 매개변수**: `/products/[id]`, `/blog/[slug]`
+- **나머지 매개변수**: `/docs/[...path]`
+
+라우트 패턴은 Astro의 [파일 기반 라우팅](/ko/guides/routing/#라우트-우선-순위)과 동일한 구문, 매칭, 우선순위 규칙을 사용하므로, 더 구체적으로 정의된 패턴이 우선 적용됩니다. `*`와 같은 Glob 와일드카드는 지원되지 않습니다. 특정 경로 그룹을 한 번에 매칭하려면 `[...rest]` 매개변수를 사용해야 합니다. 예를 들어 `/api/[...path]`를 사용하면 `/api` 하위의 모든 경로를 매칭할 수 있습니다.
+
+개별 라우트에서의 [`cache.set()`](/ko/reference/api-reference/#cacheset) 호출은 프로젝트 설정 수준의 라우트 규칙과 병합됩니다. 즉, 라우트 파일 내의 코드가 설정 파일에 지정된 기본값을 재정의하거나 확장할 수 있습니다. 예를 들어, 라우트 규칙을 통해 모든 상품 페이지에 기본 `maxAge`를 설정해 두었더라도, 특정 페이지에서 `cache.set()`을 호출하여 필요에 따라 캐싱 설정을 변경하거나 비활성화하는 것이 가능합니다.
