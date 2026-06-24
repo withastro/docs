@@ -1,0 +1,384 @@
+---
+title: Astro v7로 업그레이드
+description: 프로젝트를 Astro v7.0으로 업그레이드하는 방법.
+sidebar:
+  label: v7.0
+i18nReady: false
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+:::tip[코딩 에이전트를 사용하시나요?]
+프로젝트 업그레이드를 위해 다음 프롬프트를 복사하세요:
+
+```
+Upgrade my Astro project to v7. Follow the migration guide at
+https://docs.astro.build/ko/guides/upgrade-to/v7/
+```
+:::
+
+이 가이드는 Astro v6에서 v7으로 마이그레이션하는 과정을 안내합니다.
+
+이전 프로젝트를 먼저 v6으로 업그레이드해야 하나요? [이전 마이그레이션 가이드](/ko/guides/upgrade-to/v6/)를 확인하세요.
+
+v6 문서를 확인해야 하나요? [이전 버전 문서 사이트(유지보수되지 않는 v6 스냅샷)](https://v6.docs.astro.build/ko/getting-started/)을 방문하세요.
+
+## Astro 업그레이드
+
+패키지 관리자를 사용하여 프로젝트의 Astro 버전을 최신 버전으로 업데이트하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Astro 및 공식 통합 기능을 함께 업그레이드
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Astro 및 공식 통합 기능을 함께 업그레이드
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Astro 및 공식 통합 기능을 함께 업그레이드
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+필요한 경우 [Astro 통합을 수동으로 업그레이드](/ko/guides/integrations/#수동-업그레이드)할 수 있으며, 프로젝트의 다른 의존성도 업그레이드해야 할 수 있습니다.
+
+:::note[계속 읽어야 할까요?]
+Astro를 업그레이드한 후에는 프로젝트를 전혀 변경할 필요가 없을 수도 있습니다!
+
+하지만 오류나 예상치 못한 동작이 발생하면, 아래에서 프로젝트 업데이트가 필요할 수 있는 변경 사항을 확인해 보세요.
+:::
+
+Astro v7.0에는 [잠재적인 단절적 변경 사항](#단절적-변경-사항)과 이전에 지원이 중단되었던 일부 기능의 제거가 포함되어 있습니다.
+
+v7.0으로 업그레이드한 후 프로젝트가 예상대로 작동하지 않으면, 이 가이드에서 모든 단절적 변경 사항에 대한 개요와 코드베이스 업데이트 방법을 확인하세요.
+
+전체 릴리스 노트는 [Astro 변경 로그](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md)를 참조하세요.
+
+## 단절적 변경 사항
+
+### 의존성 업그레이드
+
+#### Vite 8
+
+Astro v7.0에서는 개발 서버 및 프로덕션 번들러가 [Vite 8](https://ko.vite.dev/blog/announcing-vite8)로 업그레이드되었습니다.
+
+##### 무엇을 해야 하나요?
+
+Vite 전용 플러그인, 설정, 또는 API를 사용하는 경우, [Vite 8 마이그레이션 가이드](https://ko.vite.dev/guide/migration)에서 단절적 변경 사항을 확인하고 필요에 따라 프로젝트를 업그레이드하세요.
+
+대부분의 Astro 사용자는 프로젝트 코드를 변경하지 않고도 업그레이드할 수 있습니다. 이번 변경은 주로 Vite 내부 구조에 의존하는 Astro 통합 및 플러그인에 영향을 미치는 단절적 변경 사항입니다.
+
+### 실험적 플래그
+
+실험적 플래그를 사용하면 초기 개발 단계에 있는 기능을 미리 활성화하여 적용해 볼 수 있습니다. 다음 실험적 플래그는 Astro 7.0에서 제거되었으며, 이제 정식 기능으로 안정화되었거나 새로운 기본 동작이 되었습니다.
+
+이전에 이 플래그들을 사용하고 있었다면 Astro 설정 파일에서 제거하세요.
+
+```js del={5-16} ins={18-23} title="astro.config.mjs"
+import { defineConfig, logHandlers, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true }),
+    queuedRendering: {
+      enabled: true,
+    },
+    rustCompiler: true,
+    advancedRouting: true,
+    cache: {
+      provider: memoryCache(),
+    },
+    routeRules: {
+      '/blog/[...path]': { maxAge: 300, swr: 60 },
+    },
+  },
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/blog/[...path]': { maxAge: 300, swr: 60 },
+  },
+})
+```
+
+#### 정식 기능으로 안정화된 실험적 기능:
+
+- `logger`: 새로운 로깅 시스템이 안정화되어 더 이상 실험적 플래그가 필요하지 않습니다. 이 플래그를 사용 중이었다면, 이제 Astro 설정의 최상위 `logger` 필드에서 직접 로거를 설정할 수 있습니다.
+
+- `queuedRendering`: 큐 렌더링이 이제 기본 동작이 되었으며 실험적 플래그가 제거되었습니다. 프로젝트에서 이 기능을 활성화하기 위해 별도의 조치는 필요하지 않습니다. 이제 모든 프로젝트에서 향상된 성능을 경험할 수 있습니다.
+
+- `rustCompiler`: Rust 기반 Astro 컴파일러가 이제 기본이자 유일한 컴파일러가 되어, 이전의 Go 기반 컴파일러를 대체합니다. 프로젝트에 영향을 줄 수 있는 동작 변경 사항은 [Rust 컴파일러](#rust-컴파일러) 섹션을 참조하세요.
+
+- `advancedRouting`: 고급 라우팅이 이제 기본으로 활성화됩니다. 자세한 내용은 [고급 라우팅 가이드](/ko/guides/routing/#고급-라우팅)를 참조하세요. `src/fetch.ts`는 이제 [예약된 파일 이름](#예약된-파일-이름-srcfetchts)이 되었습니다.
+
+- `cache`: 라우트 캐싱이 안정화되었습니다. 이 기능을 사용 중이었다면, 설정을 업데이트하여 `cache` 및 `routeRules`를 `experimental` 블록 밖으로 이동하세요.
+
+### Rust 컴파일러
+
+<SourcePR number="16462" title="feat!: make Rust compiler the default and only compiler" />
+
+Astro v7.0은 이전 Go 기반 컴파일러를 새로운 Rust 기반 컴파일러로 대체합니다. 새 컴파일러는 더 빠르지만, **잘못된 HTML 구문에 대해 더 엄격합니다**. 이전에는 오류 없이 빌드되던 템플릿이 이제 실패할 수 있습니다.
+
+Rust 컴파일러에는 다음과 같은 두 가지 주요 변경 사항이 적용됩니다:
+
+1. **닫히지 않은 태그는 이제 오류가 발생합니다.** 이전 컴파일러는 닫히지 않은 HTML 및 컴포넌트 태그를 별다른 오류 없이 받아들였습니다. 이제 Rust 컴파일러는 빈 요소가 아닌 모든 요소가 닫는 태그를 가질 것을 요구합니다.
+
+2. **의미론적으로 올바르지 않은 HTML은 더 이상 자동 수정되지 않습니다.** 이전 컴파일러는 [HTML 파싱 사양](https://html.spec.whatwg.org/multipage/parsing.html)에 맞게 잘못된 HTML을 자동으로 재정렬하거나 재구성했습니다 (예: 블록 요소가 허용되지 않는 `<p>` 태그 밖으로 요소를 이동). Rust 컴파일러는 마크업을 수정하지 않고 그대로 전달하여 브라우저가 처리하도록 합니다. 이로 인해 이전에 "용인되던" 잘못된 마크업의 렌더링 결과가 달라질 수 있습니다.
+
+#### 무엇을 해야 하나요?
+
+업그레이드 후 빌드를 실행해 보세요. 만약 예상치 못한 토큰이나 닫히지 않은 태그에 대한 컴파일러 오류가 발생하면, 누락된 닫는 태그를 추가해야 합니다.
+
+```astro del={2} ins={3}
+<!-- 이전: Go 컴파일러가 별다른 오류 없이 허용하던 닫히지 않은 태그 -->
+<p>Hello world
+<p>Hello world</p>
+
+<!-- <br>, <img>, <input>, <hr> 같은 빈 요소는 닫는 태그가 필요 없습니다 -->
+```
+
+```astro del={4-5} ins={7-9}
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+  <p>Content here
+
+<Layout>
+  <p>Content here</p>
+</Layout>
+```
+
+업그레이드 후 렌더링된 HTML 출력이 변경되었다면, 이전 컴파일러가 별다른 경고 없이 자동으로 수정해 주던 올바르지 않은 HTML 중첩 구조가 있는지 템플릿을 검사해 보세요. 예를 들어 `<p>` 내부에 `<div>`를 배치하는 것은 잘못된 HTML 구조입니다. 이전 컴파일러는 이를 자동으로 재구성해 주었지만, Rust 컴파일러는 수정하지 않습니다.
+
+```astro
+<!-- 잘못된 중첩: <p> 내부에는 <div>가 허용되지 않습니다 -->
+<!-- 브라우저가 <p> 태그를 조기에 닫아버려 레이아웃이 깨질 수 있습니다 -->
+<p>
+  <div>이 요소는 문단 내부에 포함되지 않습니다</div>
+</p>
+
+<!-- 수정: 올바른 컨테이너를 사용하세요 -->
+<div>
+  <div>올바르게 중첩된 구조입니다</div>
+</div>
+```
+
+#### CSS 빌드 결과물의 차이
+
+Rust 컴파일러는 CSS를 다르게 처리하므로, 빌드된 출력 파일 내의 텍스트 표기에 사소한 차이가 발생할 수 있습니다.
+
+- **색상 값이 다르게 직렬화될 수 있습니다.** `rebeccapurple`과 같은 색상 이름이 빌드된 CSS 파일에서는 `#639`와 같은 16진수 값으로 변환될 수 있습니다. 이는 실제 사이트 화면에 표시되는 모습에는 아무런 영향을 주지 않습니다.
+- **`url()` 값에 따옴표가 추가되거나 제거될 수 있습니다.** 예를 들어 `url(/path)`가 `url('/path')`로 바뀌거나 그 반대로 바뀔 수 있습니다. 이 역시 기능상으로는 영향을 미치지 않습니다.
+
+이러한 차이는 단순히 코드 표현상의 변화일 뿐이므로, 정확한 CSS 문자열 일치 여부를 검사하는 테스트나 도구를 고수해야 하는 상황이 아니라면 별도의 작업을 수행할 필요가 없습니다.
+
+### 예약된 파일 이름: `src/fetch.ts`
+
+Astro v7.0에 도입된 [고급 라우팅](/ko/guides/routing/#고급-라우팅)은 `src/middleware.ts`와 유사하게 `src/fetch.ts`(또는 `src/fetch.js`)를 특수 파일 이름으로 사용합니다. Astro는 라우팅 동작을 구성하기 위해 이 파일을 자동으로 가져옵니다.
+
+만약 프로젝트에 이미 다른 용도로 사용 중인 `src/fetch.ts` 파일이 있다면, Astro가 이를 고급 라우팅 설정 파일로 인식하여 처리하기 때문에 예상치 못한 오류가 발생할 수 있습니다.
+
+#### 무엇을 해야 하나요?
+
+고급 라우팅과 관련 없는 기존 `src/fetch.ts` 파일이 있다면 다음 두 가지 방법 중 하나를 선택할 수 있습니다.
+
+* **`fetchFile` 설정**: 다른 파일 이름을 지정하거나 `null`을 설정하여 고급 라우팅을 비활성화할 수 있습니다. `src/fetch.ts`를 다른 용도로 계속 유지하고 싶거나 고급 라우팅 기능이 필요하지 않은 경우에 유용합니다.
+
+    ```js title="astro.config.mjs" ins={5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // 고급 라우팅 설정을 위해 다른 파일 지정:
+      fetchFile: './src/router.ts',
+      // 또는 고급 라우팅을 완전히 비활성화:
+      // fetchFile: null,
+    });
+    ```
+
+* **파일 이름 변경**: 파일 이름을 다른 이름(예: `src/fetcher.ts`, `src/main.ts`)으로 변경하고, 해당 파일을 참조하는 모든 가져오기 경로를 업데이트하세요.
+
+### 새로운 기본 Markdown 프로세서: Sätteri
+
+<SourcePR number="16966" title="feat: make Sätteri the default Markdown pipeline" />
+
+Astro는 이제 remark/rehype 파이프라인 대신 자체 내장 Markdown 파이프라인인 [Sätteri](https://satteri.bruits.org/)를 사용하여 `.md` 및 `.mdx` 파일을 렌더링합니다. 이에 따라 `@astrojs/markdown-remark` 패키지는 더 이상 기본으로 설치되지 않습니다.
+
+#### 무엇을 해야 하나요?
+
+remark 또는 rehype 플러그인을 사용하지 않는다면 따로 변경할 항목이 없습니다. 이제 Sätteri가 이전과 동일하게 GitHub Flavored Markdown 및 SmartyPants를 적용하여 Markdown 및 MDX 파일을 렌더링합니다.
+
+remark 및 rehype 플러그인에 의존하고 있다면, 해당 플러그인을 [Sätteri MDAST 또는 HAST 플러그인](https://satteri.bruits.org/docs/plugins/)으로 포팅할 수 있습니다. 만약 recma 플러그인을 사용 중이거나 아직 Sätteri로 플러그인을 포팅할 준비가 되지 않았다면, [기존 `unified()` 파이프라인을 계속 유지](/ko/guides/markdown-content/#unified-프로세서로-전환하기)할 수도 있습니다.
+
+unified 플러그인을 계속 사용하려면 다음과 같이 설정하세요.
+
+<Steps>
+
+1. `@astrojs/markdown-remark`를 설치하세요:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/markdown-remark
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. [`unified()`를 Markdown 프로세서로 설정하세요](/ko/guides/markdown-content/#unified-프로세서로-전환하기):
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import { unified } from '@astrojs/markdown-remark';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified(),
+      },
+    });
+    ```
+</Steps>
+
+지원 중단된 `markdown.remarkPlugins`, `markdown.rehypePlugins`, `markdown.remarkRehype` 옵션은 여전히 작동하지만, 이제 `@astrojs/markdown-remark` 패키지를 반드시 설치해야 합니다.
+
+### 새로운 기본 공백 처리: `compressHTML: 'jsx'`
+
+<SourcePR number="16965" title="feat: make jsx whitespace handling the default" />
+
+Astro v6.x에서는 공백 처리에 기본적으로 HTML 규칙을 인식하는 압축 방식을 사용했습니다. 즉, Astro는 [HTML 명세 규칙](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Text/Whitespace#how_does_html_process_whitespace)에 따라 인라인 요소 사이의 단일 공백을 그대로 보존했습니다.
+
+Astro v7.0부터는 [`compressHTML`](/ko/reference/configuration-reference/#compresshtml)의 기본값이 `true`에서 `'jsx'`로 변경됩니다. 이제 Astro는 React와 같은 프레임워크의 작동 방식과 동일하게, 기본적으로 JSX 규칙을 적용하여 HTML에서 공백을 제거합니다.
+
+예를 들어 다음 코드의 경우, Astro v6.x에서는 `hello world`로 렌더링되었으나 Astro v7.0에서는 `helloworld`로 렌더링됩니다.
+
+```astro title="src/components/Example.astro"
+<span>hello</span>
+<em>world</em>
+```
+
+#### 무엇을 해야 하나요?
+
+웹사이트를 시각적으로 확인하여 요소 사이의 공백이 의도한 대로 잘 렌더링되는지 점검해 보세요. 별도의 추가 조치 없이 그대로 사용하셔도 무방할 수 있습니다.
+
+만약 일부 공백이 누락된 것을 발견했다면, [인라인 요소](https://developer.mozilla.org/ko/docs/Glossary/Inline-level_content)를 사용 중인 컴포넌트와 페이지를 확인해 보세요. 그 후 아래와 같이 `{" "}`를 사용하거나 요소 사이에 명시적인 공백을 추가하는 방식으로 코드를 업데이트해야 합니다.
+
+```astro title="src/components/Example.astro" del={1-2} ins={3}
+<span>hello</span>
+<em>world</em>
+<span>hello</span> <em>world</em>
+```
+
+이전 v6.x 버전과 동일한 방식으로 공백을 처리하고 싶다면 `compressHTML` 옵션을 `true`로 설정하세요. 모든 공백을 압축하지 않고 그대로 보존하려면 `compressHTML: false`를 사용할 수도 있습니다.
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  compressHTML: true,
+});
+```
+
+## 지원 중단된 기능
+
+다음 지원 중단된 기능들은 이제 더 이상 지원되지 않으며 관련 문서도 제공되지 않습니다. 이에 따라 프로젝트를 업데이트해 주세요.
+
+일부 지원 중단된 기능은 완전히 제거되기 전까지 일시적으로 계속 작동할 수도 있습니다. 하지만 어떤 기능들은 별다른 경고 없이 아무런 동작을 하지 않거나, 코드를 업데이트해야 한다는 오류가 발생할 수도 있습니다.
+
+### 지원 중단: 통합 패키지 루트에서의 `getContainerRenderer()` 가져오기
+
+<SourcePR number="17093" title="fix(integrations): Export container renderers from a dedicated export path to fix bundling issues" />
+
+Astro 6.x에서는 컨테이너 API와 함께 사용하는 [`getContainerRenderer()`](/ko/reference/container-reference/#컨테이너-api를-통해-렌더러-추가하기) 헬퍼 함수를 공식 통합 패키지의 루트(예: `@astrojs/react`)에서 가져왔습니다. 이 때문에 컨테이너 API만 필요한 상황임에도, 번들러가 빌드 타임에만 필요한 무관한 내보내기 코드까지 패키지 루트에서 함께 끌어오는 문제가 발생할 수 있었습니다.
+
+Astro 7.0에서는 통합 패키지 루트에서 직접 `getContainerRenderer()`를 가져오는 방식을 지원 중단하며, 대신 전용 `container-renderer` 엔트리포인트를 사용하도록 권장합니다.
+
+#### 무엇을 해야 하나요?
+
+공식 통합 패키지별로 제공되는 새로운 `container-renderer` 엔트리포인트를 사용하도록 컨테이너 API의 가져오기 경로를 업데이트하세요.
+
+```diff
+- import { getContainerRenderer } from '@astrojs/react';
++ import { getContainerRenderer } from '@astrojs/react/container-renderer';
+```
+
+이 엔트리포인트는 `@astrojs/react`, `@astrojs/preact`, `@astrojs/solid-js`, `@astrojs/svelte`, `@astrojs/vue`, `@astrojs/mdx` 패키지에서 사용할 수 있습니다.
+
+## 제거된 기능
+
+다음 기능들은 이제 코드베이스에서 완전히 제거되어 더 이상 사용할 수 없습니다. 이 중 일부는 지원 중단 이후에도 프로젝트에서 한동안 계속 작동했거나, 별다른 경고 없이 아무런 동작을 하지 않았을 수 있습니다.
+
+제거된 기능이 포함된 프로젝트는 이제 빌드가 불가능하며, 해당 기능을 제거하도록 안내하는 지원 문서도 더 이상 제공되지 않습니다.
+
+### 제거: `@astrojs/db`
+
+`@astrojs/db` 패키지는 Astro v7.0에서 완전히 제거되었으며, 더 이상 유지보수되지 않습니다.
+
+#### 무엇을 해야 하나요?
+
+프로젝트의 의존성에서 `@astrojs/db`를 제거하고, 다음 대안 중 하나를 선택해 대체하세요.
+
+- **Node.js 내장 SQLite**: Node.js에 내장된 [`node:sqlite`](https://nodejs.org/api/sqlite.html) 모듈을 활용할 수 있습니다 (Node.js v22.5.0부터 지원). Node.js 어댑터를 사용하면서 로컬 SQLite 저장소 용도로 `@astrojs/db`를 쓰고 있었다면 아주 좋은 대안입니다.
+
+- **[Drizzle ORM](https://orm.drizzle.team/)**: Drizzle 기반의 스키마 및 쿼리 API를 활용하기 위해 `@astrojs/db`를 사용했던 경우라면, 이제 Drizzle을 지원하는 모든 데이터베이스와 직접 연결하여 사용할 수 있습니다.
+
+- **기타 데이터베이스 라이브러리**: 프로젝트를 배포하는 플랫폼에 가장 잘 맞는 데이터베이스 라이브러리([Turso](https://turso.tech/), [PlanetScale](https://planetscale.com/), [Neon](https://neon.tech/) 등)를 자유롭게 선택하여 사용하세요.
+
+### 제거: 노출되었던 `astro:transitions` 내부
+
+<SourcePR number="16725" title="feat: remove deprecated astro:transitions internals" />
+
+Astro 6.x에서는 `astro:transitions` 및 `astro:transitions/client`에서 제공하던 일부 헬퍼 함수들이 지원 중단되었습니다.
+
+Astro 7.0부터는 다음 API들을 프로젝트에서 더 이상 사용할 수 없습니다.
+- `TRANSITION_BEFORE_PREPARATION`
+- `TRANSITION_AFTER_PREPARATION`
+- `TRANSITION_BEFORE_SWAP`
+- `TRANSITION_AFTER_SWAP`
+- `TRANSITION_PAGE_LOAD`
+- `isTransitionBeforePreparationEvent()`
+- `isTransitionBeforeSwapEvent()`
+- `createAnimationScope()`
+
+#### 무엇을 해야 하나요?
+
+`createAnimationScope()`를 가져오거나 사용하는 코드를 모두 제거하세요.
+
+```diff
+-import { createAnimationScope } from 'astro:transitions';
+```
+
+나머지 API들은 아래 예시와 같이 [수명 주기 이벤트 이름](/ko/reference/modules/astro-transitions/#라이프사이클-이벤트)을 직접 사용하도록 변경하세요.
+
+```diff
+-import {
+-	TRANSITION_AFTER_SWAP,
+-	isTransitionBeforePreparationEvent,
+-} from 'astro:transitions/client';
+
+-console.log(isTransitionBeforePreparationEvent(event));
++console.log(event.type === 'astro:before-preparation');
+
+-console.log(TRANSITION_AFTER_SWAP);
++console.log('astro:after-swap');
+```
+
+<ReadMore>[뷰 전환 라우터 API 참조](/ko/reference/modules/astro-transitions/)에서 제공하는 모든 유틸리티에 대해 자세히 알아보세요.</ReadMore>
