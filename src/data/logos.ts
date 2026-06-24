@@ -124,6 +124,7 @@ export const logos = LogoCheck({
 	vue: { file: 'vue.svg', padding: '.3em .2em .2em' },
 	vuepress: { file: 'vuepress.png', padding: '.2em .175em .175em' },
 	wordpress: { file: 'wordpress.svg', padding: '.2em' },
+	workos: { file: 'workos.svg', padding: '0' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	zephyr: { file: 'zephyr.svg', padding: '0' },
