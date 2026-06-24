@@ -1,0 +1,450 @@
+---
+title: WorkOS AuthKit
+description: Add authentication to your Astro project with WorkOS AuthKit
+sidebar:
+  label: WorkOS AuthKit
+type: backend
+logo: workos
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { FileTree } from '@astrojs/starlight/components';
+
+[WorkOS AuthKit](https://workos.com/docs/user-management) provides hosted authentication and user management for B2B applications. The official `@workos/authkit-astro` integration adds session validation, automatic token refresh, PKCE sign-in, route protection, server-rendered auth components, and a client-side auth store to an Astro project.
+
+## Initializing WorkOS AuthKit in Astro
+
+### Prerequisites
+
+- A WorkOS account and project. If you don't have one, create one in the [WorkOS dashboard](https://dashboard.workos.com).
+- An Astro project with [`output: 'server'` for on-demand rendering](/en/guides/on-demand-rendering/) enabled.
+- An on-demand rendering adapter, such as [`@astrojs/node`](/en/guides/integrations-guide/node/). If your project already uses another adapter, keep using that adapter.
+- A redirect URI registered in your WorkOS project. For local development, add `http://localhost:4321/callback`.
+- WorkOS credentials for your project:
+  - `WORKOS_CLIENT_ID`: Your WorkOS client ID.
+  - `WORKOS_API_KEY`: Your WorkOS API key.
+  - `WORKOS_REDIRECT_URI`: The callback URL WorkOS redirects to after authentication.
+  - `WORKOS_COOKIE_PASSWORD`: A secret at least 32 characters long, used to encrypt session cookies.
+
+### Installing dependencies
+
+Run the `astro add` command for your package manager. This installs `@workos/authkit-astro`, adds the integration to your Astro config, and installs the required WorkOS Node SDK peer dependency.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add @workos/authkit-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add @workos/authkit-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add @workos/authkit-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+If you prefer to install the integration manually, install both packages:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @workos/authkit-astro @workos-inc/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @workos/authkit-astro @workos-inc/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @workos/authkit-astro @workos-inc/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Adding WorkOS credentials
+
+Add your WorkOS credentials to your `.env` file:
+
+```ini title=".env"
+WORKOS_CLIENT_ID=client_...
+WORKOS_API_KEY=sk_test_...
+```
+
+These are available on your [WorkOS dashboard](https://dashboard.workos.com). 
+
+Next, register a callback URL (typically, `http://localhost:4321/callback`) as a redirect URI in the same dashboard:
+
+```ini title=".env"
+WORKOS_REDIRECT_URI=http://localhost:4321/callback
+```
+
+Finally, add a secure cookie password to your `.env` file:
+
+```ini title=".env"
+WORKOS_COOKIE_PASSWORD=YOUR_32_CHARACTER_COOKIE_PASSWORD
+```
+
+Also, be sure to register `http://localhost:4321/callback` as a redirect URI in the same dashboard.
+
+Your `WORKOS_COOKIE_PASSWORD` password must be 32 characters long. You can generate a secure password by using 
+a tool like [the 1Password generator](https://1password.com/password-generator/) or the `openssl` library via the command line:
+
+```ini title="Generate a strong cookie password"
+openssl rand -base64 32
+```
+
+The refresh token is considered sensitive as it can be used to re-authenticate, which is why the session is encrypted before storing it in a session cookie.
+
+The WorkOS integration declares these variables in `astro:env`, so you do not need to add manual TypeScript declarations when using the integration.
+
+<ReadMore>Read more about [environment variables](/en/guides/environment-variables/) and `.env` files in Astro.</ReadMore>
+
+Your project should now include these files:
+
+<FileTree title="Project Structure">
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Configuring the integration
+
+Add the WorkOS integration to your Astro config. The example below uses the Node adapter, but you can keep your existing on-demand rendering adapter if your project already has one configured.
+
+```js title="astro.config.mjs"
+import node from '@astrojs/node';
+import authkit from '@workos/authkit-astro';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({ mode: 'standalone' }),
+  integrations: [
+    authkit({
+      protectedRoutes: ['/dashboard', '/orgs/:slug/admin'],
+    }),
+  ],
+});
+```
+
+The integration automatically adds middleware, typed `Astro.locals.auth`, the `/login`, `/signup`, `/callback`, and `/logout` routes, and a client session endpoint at `/_authkit/me`.
+
+## Adding authentication with WorkOS AuthKit
+
+Visit `/login` in your browser to start the AuthKit sign-in flow. After authentication, WorkOS redirects to `/callback`, the integration sets the session cookie, and the user returns to the protected page they originally requested.
+
+### Showing authentication state
+
+Import the WorkOS components in a shared layout. The components are server-rendered on request-rendered pages, so the branch that does not match the current auth state is not sent to the browser.
+
+```astro title="src/layouts/Layout.astro"
+---
+import {
+  AuthState,
+  Impersonation,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@workos/authkit-astro/components';
+
+interface Props {
+  title?: string;
+}
+
+const { title = 'Astro AuthKit' } = Astro.props;
+---
+
+<html lang="en">
+  <head>
+    <title>{title}</title>
+    <AuthState />
+  </head>
+  <body>
+    <Impersonation />
+    <header>
+      <a href="/">Home</a>
+      <a href="/dashboard">Dashboard</a>
+      <SignedIn>
+        <UserButton profilePath="/account" />
+      </SignedIn>
+      <SignedOut>
+        <SignInButton returnTo="/dashboard">Sign in</SignInButton>
+        <SignUpButton returnTo="/dashboard">Sign up</SignUpButton>
+      </SignedOut>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
+
+Your project should now include this file:
+
+<FileTree title="Project Structure">
+- src/
+  - layouts/
+    - **Layout.astro**
+- .env
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Creating an authenticated page
+
+Routes listed in `protectedRoutes` redirect anonymous visitors to `/login`. You can also check `Astro.locals.auth` directly in a page or endpoint. The `auth` object is a discriminated union on `user`, so checking `if (!auth.user)` narrows the signed-in values for TypeScript.
+
+```astro title="src/pages/dashboard.astro"
+---
+import {
+  OrganizationProfile,
+  Show,
+  SignOutButton,
+  UserProfile,
+} from '@workos/authkit-astro/components';
+import Layout from '../layouts/Layout.astro';
+
+const { auth } = Astro.locals;
+
+if (!auth.user) {
+  return auth.redirectToSignIn();
+}
+---
+
+<Layout title="Dashboard">
+  <h1>Welcome, {auth.user.firstName ?? auth.user.email}</h1>
+
+  <UserProfile />
+  <OrganizationProfile showPermissions />
+
+  <Show when={{ permission: 'billing:manage' }}>
+    <a href="/billing">Manage billing</a>
+    <p slot="fallback">You do not have billing access.</p>
+  </Show>
+
+  <SignOutButton>Sign out</SignOutButton>
+</Layout>
+```
+
+The signed-in `auth` object includes `user`, `sessionId`, `accessToken`, `claims`, `organizationId`, `role`, `roles`, `permissions`, `entitlements`, `featureFlags`, and `impersonator`. Use `auth.has()` to check a role, permission, entitlement, or feature flag:
+
+```astro title="src/pages/admin.astro"
+---
+const { auth } = Astro.locals;
+
+if (!auth.user) {
+  return auth.redirectToSignIn();
+}
+
+if (!auth.has({ role: 'admin' })) {
+  return new Response(null, { status: 403 });
+}
+---
+
+<h1>Admin</h1>
+```
+
+### Protecting route patterns
+
+The `protectedRoutes` option accepts plain path prefixes and `path-to-regexp` patterns. A plain string such as `/dashboard` also protects nested paths like `/dashboard/settings`. Patterns such as `/orgs/:slug/admin` match a full pathname.
+
+```js title="astro.config.mjs"
+import authkit from '@workos/authkit-astro';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'server',
+  integrations: [
+    authkit({
+      protectedRoutes: [
+        '/dashboard',
+        '/orgs/:slug/admin',
+        '/files/:path*',
+        '/users/:id(\\d+)',
+      ],
+    }),
+  ],
+});
+```
+
+For route matching in your own middleware, use `createRouteMatcher()`:
+
+```ts title="src/middleware.ts"
+import { defineMiddleware } from 'astro:middleware';
+import { createRouteMatcher } from '@workos/authkit-astro';
+
+const isAdminRoute = createRouteMatcher(['/admin(.*)', '/orgs/:slug/admin']);
+
+export const onRequest = defineMiddleware((context, next) => {
+  const { auth } = context.locals;
+
+  if (!isAdminRoute(context.url)) {
+    return next();
+  }
+
+  if (!auth.user) {
+    return auth.redirectToSignIn();
+  }
+
+  if (!auth.has({ role: 'admin' })) {
+    return new Response(null, { status: 403 });
+  }
+
+  return next();
+});
+```
+
+### Using auth state in client islands
+
+`<AuthState />` serializes a client-safe session snapshot into the page. Client islands can read that state from `@workos/authkit-astro/client` or, in React islands, from `@workos/authkit-astro/react`.
+
+```tsx title="src/components/UserBadge.tsx"
+import { useUser } from '@workos/authkit-astro/react';
+
+export function UserBadge() {
+  const { user, isLoaded } = useUser();
+
+  if (!isLoaded) return null;
+
+  return <span>{user ? user.email : 'Signed out'}</span>;
+}
+```
+
+The client store does not include the access token. Use `Astro.locals.auth.accessToken` only on the server.
+
+### Using auth components on prerendered pages
+
+Pages with `export const prerender = true` build without a request, so there is no request-time session. On prerendered pages, `<SignedIn>`, `<SignedOut>`, and `<Show>` defer to the client auth store after hydration.
+
+Do not put private data inside a client-gated branch on a prerendered page. That content is present in the static HTML before the client decides whether to show or hide it. Add `serverOnly` when a prerendered page must not include gated children in its HTML:
+
+```astro
+---
+import { Show, SignedIn } from '@workos/authkit-astro/components';
+---
+
+<SignedIn serverOnly>
+  <a href="/dashboard">Dashboard</a>
+</SignedIn>
+
+<Show when={{ permission: 'billing:manage' }} serverOnly>
+  <a href="/billing">Manage billing</a>
+  <p slot="fallback">Not available.</p>
+</Show>
+```
+
+## Working with organizations
+
+Use `switchToOrganization()` to update the active organization for the current session. This refreshes the session cookie with an access token scoped to the selected organization.
+
+```ts title="src/pages/api/switch-org.ts"
+import type { APIRoute } from 'astro';
+import { switchToOrganization } from '@workos/authkit-astro';
+
+export const POST: APIRoute = async (context) => {
+  const formData = await context.request.formData();
+  const organizationId = formData.get('organizationId')?.toString();
+
+  if (!organizationId) {
+    return new Response('Organization ID is required', { status: 400 });
+  }
+
+  await switchToOrganization(context, organizationId);
+  return context.redirect('/dashboard');
+};
+```
+
+Then render an organization switcher with the organizations your app has loaded for the user:
+
+```astro
+---
+import { OrganizationSwitcher } from '@workos/authkit-astro/components';
+---
+
+<OrganizationSwitcher
+  action="/api/switch-org"
+  organizations={[
+    { id: 'org_123', name: 'Acme' },
+    { id: 'org_456', name: 'Globex' },
+  ]}
+/>
+```
+
+## Using WorkOS APIs and webhooks
+
+The integration can return a configured WorkOS Node client for server-side API calls:
+
+```ts
+import { getWorkOS } from '@workos/authkit-astro';
+
+if (auth.organizationId) {
+  const organization = await getWorkOS().organizations.getOrganization(auth.organizationId);
+}
+```
+
+To verify WorkOS webhook events, add `WORKOS_WEBHOOK_SECRET` to your environment variables and use `verifyWebhook()` in an endpoint:
+
+```ts title="src/pages/api/webhooks.ts"
+import type { APIRoute } from 'astro';
+import { verifyWebhook } from '@workos/authkit-astro';
+
+export const POST: APIRoute = async (context) => {
+  const event = await verifyWebhook(context);
+
+  if (event.event === 'user.created') {
+    // Handle the event.
+  }
+
+  return new Response(null, { status: 200 });
+};
+```
+
+## Manual setup
+
+The integration handles most projects automatically. For advanced use cases, you can disable injected routes or wire the handlers yourself.
+
+```ts title="src/pages/login.ts"
+export { handleSignIn as GET } from '@workos/authkit-astro';
+```
+
+```ts title="src/pages/callback.ts"
+import { createCallbackHandler } from '@workos/authkit-astro';
+
+export const GET = createCallbackHandler({
+  errorRedirect: '/login',
+  onSuccess: (_context, { authResponse }) => {
+    console.log('signed in', authResponse.user.id);
+  },
+});
+```
+
+```js title="astro.config.mjs"
+import authkit from '@workos/authkit-astro';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'server',
+  integrations: [
+    authkit({
+      injectRoutes: false,
+      hydrateClient: true,
+    }),
+  ],
+});
+```
+
+## Community Resources
+
+- [WorkOS AuthKit documentation](https://workos.com/docs/user-management)
+- [WorkOS Node SDK documentation](https://workos.com/docs/reference/client-libraries/node)
+- [`@workos/authkit-astro` on npm](https://www.npmjs.com/package/@workos/authkit-astro)

@@ -282,6 +282,156 @@ Follow the [Scalekit & Astro guide](/en/guides/backend/scalekit/) to add authent
 - [Astro blog tutorial with Scalekit authentication (Authorization Code flow)](https://github.com/scalekit-developers/astro-scalekit-auth-example)
 - [Scalekit developer docs site source (PKCE flow, no SDK)](https://github.com/scalekit-inc/developer-docs)
 
+## WorkOS AuthKit
+
+[WorkOS AuthKit](https://workos.com/docs/user-management) provides hosted authentication and user management for B2B applications. The official `@workos/authkit-astro` integration adds session validation, automatic token refresh, PKCE sign-in, route protection, server-rendered auth components, and a client-side auth store to an Astro project.
+
+### Installation
+
+Run the `astro add` command for your package manager to install the integration and add it to your Astro config:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add @workos/authkit-astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add @workos/authkit-astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add @workos/authkit-astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+If you prefer to install manually, install both the Astro integration and the required WorkOS Node SDK peer dependency:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @workos/authkit-astro @workos-inc/node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @workos/authkit-astro @workos-inc/node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @workos/authkit-astro @workos-inc/node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuration
+
+WorkOS AuthKit requires [on-demand rendering](/en/guides/on-demand-rendering/): its middleware, the `/login`, `/signup`, `/callback`, and `/logout` routes, and the client session endpoint all run per request. Set `output: 'server'` and add a server adapter such as [`@astrojs/node`](/en/guides/integrations-guide/node/). If your project already uses another adapter, keep using that adapter.
+
+Add the WorkOS integration to your Astro config and protect any routes that require a signed-in user:
+
+```js title="astro.config.mjs"
+import node from '@astrojs/node';
+import authkit from '@workos/authkit-astro';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  output: 'server',
+  adapter: node({ mode: 'standalone' }),
+  integrations: [
+    authkit({
+      protectedRoutes: ['/dashboard'],
+    }),
+  ],
+});
+```
+
+:::note
+Ensure that the import is called `authkit` and not `workosAuthKit` to avoid a runtime error.
+:::
+
+
+Then, add your WorkOS credentials to your `.env` file:
+
+```ini title=".env"
+WORKOS_CLIENT_ID=client_...
+WORKOS_API_KEY=sk_test_...
+```
+
+These are available on your [WorkOS dashboard](https://dashboard.workos.com). 
+
+Next, register a callback URL (typically, `http://localhost:4321/callback`) as a redirect URI in the same dashboard:
+
+```ini title=".env"
+WORKOS_REDIRECT_URI=http://localhost:4321/callback
+```
+
+Finally, add a secure cookie password to your `.env` file:
+
+```ini title=".env"
+WORKOS_COOKIE_PASSWORD=YOUR_32_CHARACTER_COOKIE_PASSWORD
+```
+
+Also, be sure to register `http://localhost:4321/callback` as a redirect URI in the same dashboard.
+
+Your `WORKOS_COOKIE_PASSWORD` password must be 32 characters long. You can generate a secure password by using 
+a tool like [the 1Password generator](https://1password.com/password-generator/) or the `openssl` library via the command line:
+
+```ini title="Generate a strong cookie password"
+openssl rand -base64 32
+```
+
+The refresh token is considered sensitive as it can be used to re-authenticate, which is why the session is encrypted before storing it in a session cookie.
+
+### Usage
+
+WorkOS provides server-rendered components for showing UI based on the current authentication state:
+
+```astro title="src/pages/index.astro"
+---
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@workos/authkit-astro/components';
+---
+
+<SignedIn>
+  <UserButton />
+</SignedIn>
+<SignedOut>
+  <SignInButton returnTo="/dashboard">Sign in</SignInButton>
+  <SignUpButton returnTo="/dashboard">Sign up</SignUpButton>
+</SignedOut>
+```
+
+You can also use `Astro.locals.auth` to protect pages or endpoints on the server:
+
+```astro title="src/pages/dashboard.astro"
+---
+const { auth } = Astro.locals;
+
+if (!auth.user) {
+  return auth.redirectToSignIn();
+}
+---
+
+<h1>Welcome, {auth.user.firstName ?? auth.user.email}</h1>
+```
+
+### Next Steps
+
+Follow the [WorkOS AuthKit & Astro guide](/en/guides/backend/workos/) to add authentication to your Astro SSR project using hosted sign-in, organization sessions, roles, permissions, and more.
+
+- [`@workos/authkit-astro` package](https://www.npmjs.com/package/@workos/authkit-astro)
+- [WorkOS AuthKit documentation](https://workos.com/docs/user-management)
+
 ## Community Resources
 
 - [Using Microsoft Entra Id EasyAuth with Astro and Azure Static Web App](https://agramont.net/blog/entra-id-easyauth-with-astro/)
