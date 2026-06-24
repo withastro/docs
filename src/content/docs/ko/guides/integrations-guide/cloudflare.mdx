@@ -426,6 +426,58 @@ export default defineConfig({
 });
 ```
 
+## 고급 라우팅 사용
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+Cloudflare 어댑터는 [고급 라우팅 파이프라인](/ko/guides/routing/#고급-라우팅)에 Cloudflare 전용 설정을 적용하는 보조 핸들러를 제공합니다. 이 핸들러들은 세션 KV 바인딩 주입, `ASSETS` 바인딩을 통한 정적 자산 제공, `Astro.locals.cfContext`, `cf-connecting-ip` 헤더에서 가져온 클라이언트 주소, `waitUntil` 및 사전 렌더링된 오류 페이지 가져오기 기능을 구성합니다.
+
+이러한 핸들러 없이도 Cloudflare에서 `src/fetch.ts`의 [`astro/fetch`](/ko/reference/modules/astro-fetch/) 및 [`astro/hono`](/ko/reference/modules/astro-hono/) API를 사용할 수 있습니다. 어댑터의 기본 엔트리포인트가 Cloudflare 전용 설정을 자동으로 처리해 주기 때문입니다. 이러한 보조 핸들러는 예를 들어 Durable Object를 내보내기 위해 이미 [사용자 지정 워커 엔트리포인트](https://developers.cloudflare.com/workers/wrangler/configuration/#inheritable-keys)(`src/worker.ts`)가 있고, 해당 파일에서 직접 고급 라우팅 API를 사용하려는 경우에 유용합니다.
+
+워커 엔트리포인트에서 이 핸들러들을 사용하면 어댑터의 기본 핸들러 기능을 대체하므로, 두 가지를 동시에 사용해서는 안 됩니다. Cloudflare 핸들러를 다른 Astro 핸들러보다 앞서 배치하여 바인딩과 locals를 나머지 파이프라인에서 사용할 수 있도록 하세요.
+
+### Fetch API 사용
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+[`astro/fetch`](/ko/reference/modules/astro-fetch/)와 함께 사용하기 위한 API입니다. `@astrojs/cloudflare/fetch`에서 가져온 `cf()` 함수는 [`FetchState`](/ko/reference/modules/astro-fetch/#fetchstate), Cloudflare `env`, 그리고 `ExecutionContext`를 인자로 받습니다. 이 함수는 정적 자산과 일치할 때는 `Response`를 반환하고, 요청이 Astro 렌더링으로 계속 진행되어야 할 때는 `undefined`를 반환합니다.
+
+```ts title="src/worker.ts"
+import { astro, FetchState } from 'astro/fetch';
+import { cf } from '@astrojs/cloudflare/fetch';
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const state = new FetchState(request);
+    const asset = await cf(state, env, ctx);
+    if (asset) return asset;
+    return astro(state);
+  },
+};
+```
+
+### Hono 사용
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+[`astro/hono`](/ko/reference/modules/astro-hono/)와 함께 사용하기 위한 API입니다. `@astrojs/cloudflare/hono`에서 가져온 `cf()` 함수는 Hono 컨텍스트에서 `env`와 `executionCtx`를 자동으로 읽어오는 Hono 미들웨어를 반환합니다.
+
+```ts title="src/worker.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { cf } from '@astrojs/cloudflare/hono';
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use(cf());
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
+
 ## v13 및 Astro 6로 업그레이드하기
 
 Astro 6는 Cloudflare 개발 환경에 상당한 개선 사항을 제공하며 `@astrojs/cloudflare` v13 이상이 필요합니다. 이제 `astro dev`는 프로덕션 동작과 매우 유사하도록 Cloudflare의 Vite 플러그인과 `workerd` 런타임을 사용합니다.
