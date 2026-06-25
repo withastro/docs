@@ -1,22 +1,25 @@
 import fs from 'fs';
-import type { Root } from 'mdast';
 import path from 'path';
-import type { Plugin, Transformer } from 'unified';
-import { visit } from 'unist-util-visit';
+import { fileURLToPath } from 'url';
+import { defineMdastPlugin } from 'satteri';
 
-export function remarkFallbackLang(): Plugin<[], Root> {
-	const pageSourceDir = path.resolve('./src/content/docs');
-	const baseUrl = 'https://docs.astro.build/';
+const pageSourceDir = path.resolve('./src/content/docs');
+const baseUrl = 'https://docs.astro.build/';
 
-	const transformer: Transformer<Root> = (tree, file) => {
-		const pageUrl = mdFilePathToUrl(file.path, pageSourceDir, baseUrl);
-		const pageLang = getLanguageCodeFromPathname(pageUrl.pathname);
+export function fallbackLangPlugin() {
+	return defineMdastPlugin({
+		name: 'fallback-lang',
+		link(node, ctx) {
+			const mdFilePath = ctx.fileURL ? fileURLToPath(ctx.fileURL) : undefined;
+			if (!mdFilePath) return;
 
-		// Ignore pages without language prefix and English pages
-		if (!pageLang || pageLang === 'en') return;
+			const pageUrl = mdFilePathToUrl(mdFilePath, pageSourceDir, baseUrl);
+			const pageLang = getLanguageCodeFromPathname(pageUrl.pathname);
 
-		visit(tree, 'link', (link) => {
-			const linkUrl = new URL(link.url, pageUrl);
+			// Ignore pages without language prefix and English pages
+			if (!pageLang || pageLang === 'en') return;
+
+			const linkUrl = new URL(node.url, pageUrl);
 
 			// Ignore external links
 			if (pageUrl.host !== linkUrl.host) return;
@@ -29,16 +32,12 @@ export function remarkFallbackLang(): Plugin<[], Root> {
 			const linkSourceFileName = tryFindSourceFileForPathname(linkUrl.pathname, pageSourceDir);
 			if (linkSourceFileName) return;
 
-			link.children.push({
+			ctx.appendChild(node, {
 				type: 'text',
-				value: `\u00A0(EN)`,
+				value: '\u00A0(EN)',
 			});
-		});
-	};
-
-	return function attacher() {
-		return transformer;
-	};
+		},
+	});
 }
 
 function mdFilePathToUrl(mdFilePath: string, pageSourceDir: string, baseUrl: string) {
