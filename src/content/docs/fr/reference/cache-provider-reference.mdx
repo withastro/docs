@@ -1,0 +1,426 @@
+---
+title: API des fournisseurs de cache d'Astro
+sidebar:
+  label: API des fournisseurs de cache
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+
+<Since v="7.0.0" />
+</p>
+
+L'API des fournisseurs de cache d'Astro permet de configurer et de gérer le comportement de [mise en cache des routes](/fr/guides/caching/). Cette API inclut une prise en charge intégrée d'un fournisseur de cache en mémoire et la possibilité de créer des fournisseurs personnalisés pour diverses stratégies de mise en cache et environnements d'exécution.
+
+## Qu'est-ce qu'un fournisseur de cache ?
+
+Le comportement du cache est déterminé par le **fournisseur de cache** configuré. Les fournisseurs se répartissent en deux catégories :
+
+### Fournisseurs pour CDN
+
+Les fournisseurs pour CDN traduisent les directives de cache en en-têtes de réponse (par exemple, `CDN-Cache-Control`, `Cache-Tag`) et s'appuient sur un CDN ou un proxy inverse pour gérer la mise en cache. Ces en-têtes internes sont supprimés avant que la réponse n'atteigne le client.
+
+Un fournisseur pour CDN implémente `setHeaders()` pour produire les en-têtes appropriés.
+
+### Fournisseurs pour l'environnement d'exécution
+
+Les fournisseurs pour l'environnement d'exécution implémentent `onRequest()` afin d'intercepter les requêtes et de mettre en cache les réponses en mémoire. Ils ajoutent un en-tête de réponse `X-Astro-Cache` pour l'observabilité :
+
+- **`HIT`** : réponse servie depuis le cache
+- **`MISS`** : réponse actualisée et stockée dans le cache
+- **`STALE`** : réponse périmée servie pendant la revalidation en arrière-plan
+
+## Fournisseur de cache en mémoire intégré
+
+Astro inclut un fournisseur de cache LRU en mémoire intégré pour l'environnement d'exécution, adapté aux déploiements à instance unique. Importez `memoryCache()` depuis `astro/config` :
+
+```js title="astro.config.mjs" ins="memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  cache: {
+    provider: memoryCache({ max: 500 }),
+  },
+});
+```
+
+### Options de `memoryCache()`
+
+<p>
+
+**Type :** `{ max?: number; query?: object }`<br />
+**Par défaut :** `{ max: 1000 }`
+</p>
+
+Configure le fournisseur de cache en mémoire.
+
+#### `max`
+
+<p>
+
+**Type :** `number`<br />
+**Par défaut :** `1000`
+</p>
+
+Définit le nombre maximum d'entrées à conserver dans le cache. Lorsque le cache dépasse cette limite, l'entrée la moins récemment utilisée est supprimée.
+
+#### `query`
+
+<p>
+
+**Type :** `{ sort?: boolean; include?: string[]; exclude?: string[]; }`<br />
+</p>
+
+Contrôle la manière dont les paramètres de requête sont gérés dans les clés de cache.
+
+##### `query.sort`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `true`
+</p>
+
+Détermine si les paramètres de requête doivent être triés par ordre alphabétique. Ceci est utile lorsque l'ordre des paramètres est important et pour garantir que leur ordre n'affecte pas la clé de cache.
+
+Définissez l'option sur `false` pour désactiver le tri et mettre en cache les URL avec des ordres de paramètres de requête différents séparément.
+
+##### `query.exclude`
+
+<p>
+
+**Type :** `string[]`<br />
+**Par défaut :** `['utm_*', 'fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'li_fat_id', 'mc_cid', 'mc_eid', '_ga', '_gl', '_hsenc', '_hsmi', '_ke', 'oly_anon_id', 'oly_enc_id', 'rb_clickid', 's_cid', 'vero_id', 'wickedid', 'yclid', '__s', 'ref']`
+</p>
+
+Liste les paramètres de requête à exclure de la clé de cache. Cela prend en charge les caractères génériques glob (par exemple `"utm_*"`) et, par défaut, exclut les paramètres de suivi et de mesure d'audience courants.
+
+Définissez sur `[]` pour inclure tous les paramètres de requête dans la clé de cache :
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { exclude: [] },
+});
+```
+
+Une erreur est émise en cas d'utilisation conjointe avec [`include`](#queryinclude).
+
+##### `query.include`
+
+<p>
+
+**Type :** `string[]`
+</p>
+
+Liste les noms des paramètres de requête à inclure dans la clé de cache. Lorsqu'elle est définie, tous les autres paramètres sont ignorés, y compris les exclusions de paramètres de suivi par défaut.
+
+L'exemple suivant n'utilise que les paramètres `page` et `sort` dans la clé de cache, en ignorant tous les autres :
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { include: ['page', 'sort'] },
+});
+```
+
+Une erreur est émise en cas d'utilisation conjointe avec [`exclude`](#queryexclude).
+
+### Comportement des clés de cache
+
+Le fournisseur de mémoire normalise automatiquement les clés de cache pour de meilleurs taux de réussite :
+
+- **Tri des paramètres de requête** : Les paramètres sont triés par ordre alphabétique, donc `/page?b=2&a=1` et `/page?a=1&b=2` correspondent à la même entrée de cache.
+- **Exclusion des paramètres de suivi** : Les paramètres de mesure d'audience et de suivi courants (par exemple, `utm_source`, `fbclid`, `gclid`) sont exclus de la clé de cache par défaut. Cela empêche la fragmentation du cache à partir des liens marketing sans affecter le contenu de votre page.
+- **Prise en charge de l'en-tête Vary** : Lorsqu'une réponse inclut un en-tête [`Vary`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Vary), le fournisseur de mémoire utilise les valeurs des en-têtes de requête spécifiés pour créer des entrées de cache distinctes pour chaque variante. Par exemple, une réponse avec `Vary: Accept-Language` mettra en cache différentes versions pour différentes langues.
+
+:::note
+L'en-tête `Cookie` est toujours ignoré pour le système de clés de cache reposant sur Vary car sa cardinalité est extrêmement élevée (chaque utilisateur a généralement des cookies différents), ce qui le rend effectivement impossible à mettre en cache.
+:::
+
+## Création d'un fournisseur de cache personnalisé
+
+Un fournisseur de cache se compose de deux parties :
+
+1. **Le module d'exécution** — Un fichier qui **exporte par défaut** une fonction `CacheProviderFactory`. Ce module est intégré à votre sortie SSR, il doit donc être indépendant de l'environnement d'exécution : évitez les modules intégrés de Node.js (par exemple `node:fs`, `node:path`) sauf si votre environnement d'exécution cible les prend en charge.
+
+2. **L'assistant de configuration** — Une fonction exportée que les utilisateurs peuvent appeler dans `astro.config.mjs`. Elle renvoie un [objet `CacheProviderConfig`](#cacheproviderconfig) qui indique à Astro où trouver le module d'exécution et quelles options lui transmettre. Il s'agit du même modèle que celui utilisé par le fournisseur intégré [`memoryCache()`](#built-in-memory-cache-provider).
+
+L'exemple suivant montre un assistant de configuration qui accepte des options typées et pointe vers un module d'exécution :
+
+```ts title="my-provider/config.ts"
+import type { CacheProviderConfig } from 'astro';
+
+interface MyProviderOptions {
+  apiKey: string;
+  region?: string;
+}
+
+export function myCache(options: MyProviderOptions): CacheProviderConfig {
+  return {
+    entrypoint: 'my-provider/runtime', // résolu depuis la racine du projet
+    config: options, // transmis à la fabrique lors de l'exécution
+  };
+}
+```
+
+L'assistant de configuration est ensuite appelé dans la configuration d'Astro :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { myCache } from 'my-provider/config';
+
+export default defineConfig({
+  cache: {
+    provider: myCache({ apiKey: '...' }),
+  },
+});
+```
+
+Le module d'exécution exporte par défaut une fabrique qui reçoit la `config` sérialisée et renvoie un [`CacheProvider`](#cacheprovider) :
+
+```ts title="my-provider/runtime.ts"
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  return {
+    name: 'my-cache-provider',
+
+    // Style CDN : traduire les options de cache en en-têtes de réponse
+    setHeaders(options) {
+      const headers = new Headers();
+      if (options.maxAge !== undefined) {
+        let value = `max-age=${options.maxAge}`;
+        if (options.swr !== undefined) {
+          value += `, stale-while-revalidate=${options.swr}`;
+        }
+        headers.set('CDN-Cache-Control', value);
+      }
+      if (options.tags?.length) {
+        headers.set('Cache-Tag', options.tags.join(','));
+      }
+      return headers;
+    },
+
+    // Style environnement d'exécution : intercepter les requêtes (facultatif)
+    async onRequest(context, next) {
+      // Vérifier le cache, appeler next(), stocker la réponse...
+      return next();
+    },
+
+    // Gérer les demandes d'invalidation
+    async invalidate(options) {
+      // Purger par étiquettes ou chemin...
+    },
+  };
+};
+
+export default factory;
+```
+
+Lors de la création d'un fournisseur CDN, Astro fournit des [utilitaires partagés](#cache-provider-utilities) pour créer des en-têtes de contrôle de cache et des étiquettes d'invalidation reposant sur les chemins.
+
+## Utilitaires pour les fournisseurs de cache
+
+Astro exporte des utilitaires partagés pour les auteurs de fournisseurs de CDN depuis `astro/cache/provider-utils`. Il s'agit des mêmes utilitaires que ceux utilisés par les fournisseurs officiels Netlify, Vercel et Cloudflare.
+
+```ts
+import {
+  buildCacheControlDirectives,
+  pathTag,
+  setConditionalHeaders,
+  collectInvalidationTags,
+  normalizeTags,
+} from 'astro/cache/provider-utils';
+```
+
+### `buildCacheControlDirectives()`
+
+<p>
+
+**Type :** <code>(options: <a href="#cacheoptions">CacheOptions</a>, extraDirectives?: string[]) => string | undefined</code>
+</p>
+
+Génère une chaîne de directives `cache-control` (p. ex. `"public, max-age=300, stale-while-revalidate=60"`) à partir de `CacheOptions`, sans inclure le nom de l'en-tête, afin que chaque fournisseur puisse appliquer le sien (comme `Netlify-CDN-Cache-Control` ou `Cloudflare-CDN-Cache-Control`). Utilisez le paramètre `extraDirectives` pour ajouter en début de chaîne des directives spécifiques à la plateforme, telles que `public` ou `durable`. Renvoie `undefined` en l'absence de directives de mise en cache.
+
+### `pathTag()`
+
+<p>
+
+**Type :** `(path: string) => string`
+</p>
+
+Génère une étiquette de cache pour un chemin donné (`astro-path:{path}`). Utilisé pour prendre en charge [`invalidate({ path })`](/fr/reference/api-reference/#cacheinvalidate) sur les plateformes qui n'offrent que la purge reposant sur les étiquettes.
+
+### `setConditionalHeaders()`
+
+<p>
+
+**Type :** <code>(headers: Headers, options: <a href="#cacheoptions">CacheOptions</a>) => void</code>
+</p>
+
+Définit les en-têtes `Last-Modified` et `ETag` dans un objet `Headers` à partir des valeurs correspondantes de `CacheOptions`.
+
+### `collectInvalidationTags()`
+
+<p>
+
+**Type :** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => string[]</code>
+</p>
+
+Collecte toutes les étiquettes nécessaires pour invalider les options données, y compris l'étiquette de chemin lorsque `options.path` est défini. Utilisé par les fournisseurs qui implémentent l'invalidation par chemin via des étiquettes plutôt que par purge native de chemin.
+
+### `normalizeTags()`
+
+<p>
+
+**Type :** `(tags: string | string[] | undefined) => string[]`
+</p>
+
+Normalise la valeur d'une étiquette en un tableau de chaînes de caractères plat.
+
+## Référence des types de fournisseurs de cache
+
+Les types suivants peuvent être importés depuis le module `astro` :
+
+```ts
+import type {
+  CacheOptions,
+  CacheProvider,
+  CacheProviderConfig,
+  CacheProviderFactory,
+  InvalidateOptions,
+} from "astro";
+```
+
+### `CacheOptions`
+
+Décrit les options transmises à un fournisseur de cache.
+
+<ReadMore>Découvrez comment [utiliser les options de cache](/fr/guides/caching/#définir-les-options-de-cache) pour contrôler le comportement de mise en cache.</ReadMore>
+
+#### `CacheOptions.maxAge`
+
+<p>
+
+**Type :** `number`
+</p>
+
+Définit le temps en secondes pendant lequel la réponse est considérée comme fraîche.
+
+#### `CacheOptions.swr`
+
+<p>
+
+**Type :** `number`
+</p>
+
+Spécifie la durée de la fenêtre « stale-while-revalidate » en secondes. Un contenu périmé est servi pendant qu'une réponse actualisée est générée en arrière-plan.
+
+#### `CacheOptions.tags`
+
+<p>
+
+**Type :** `string[]`
+</p>
+
+Une liste d'étiquettes de cache pour une invalidation ciblée. Les étiquettes s'accumulent au fil des appels successifs à [`cache.set()`](/fr/reference/api-reference/#cacheset).
+
+#### `CacheOptions.lastModified`
+
+<p>
+
+**Type :** `Date`
+</p>
+
+Indique la date de dernière modification. Lorsque plusieurs appels à [`cache.set()`](/fr/reference/api-reference/#cacheset) fournissent `lastModified`, l'appel le plus récent prévaut.
+
+#### `CacheOptions.etag`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Indique l'étiquette d'entité pour les requêtes conditionnelles.
+
+### `CacheProvider`
+
+Décrit un fournisseur utilisé pour la mise en cache. Cela nécessite les propriétés `name` et `invalidate()` et accepte des propriétés optionnelles.
+
+#### `CacheProvider.name`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Un nom unique pour le fournisseur, utilisé dans les journaux et pour l'identification.
+
+#### `CacheProvider.setHeaders()`
+<p>
+
+**Type :** <code>(options: <a href="#cacheoptions">CacheOptions</a>, request: Request) => Headers</code>
+</p>
+
+Convertit les options de mise en cache en en-têtes de réponse. Cette fonction est appelée après le rendu de la réponse, mais avant son envoi au client. Ces en-têtes sont retirés de la réponse finale.
+
+La requête (`request`) entrante est transmise en tant que second argument, ce qui permet au fournisseur de lire l'URL ou les en-têtes de la requête. Cela peut s'avérer utile pour étiqueter automatiquement les réponses avec leur chemin d'accès en vue d'une invalidation reposant sur le chemin.
+
+#### `CacheProvider.onRequest()`
+
+<p>
+
+**Type :** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void \}, next: <a href="/fr/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
+</p>
+
+Intercepte les requêtes pour mettre en œuvre la mise en cache à l'exécution. L'objet `context` inclut une fonction `waitUntil()` (lorsqu'elle est disponible dans l'environnement d'exécution) pour les tâches en arrière-plan, telles que la stratégie « stale-while-revalidate ».
+
+#### `CacheProvider.invalidate()`
+
+<p>
+
+**Type :** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => Promise\<void\></code>
+</p>
+
+Gère les demandes de purge par étiquette ou par chemin.
+
+### `CacheProviderConfig`
+
+<p>
+
+**Type :** `{ entrypoint: string | URL; config?: Record<string, any> }`
+</p>
+
+L'objet de configuration transmis à `cache.provider`. Utilisez une fonction d'assistance (par exemple, `memoryCache()`) pour une configuration garantissant la sûreté du typage.
+
+### `CacheProviderFactory`
+
+<p>
+
+**Type :** <code>(config: Record\<string, any\> | undefined) => <a href="#cacheprovider">CacheProvider</a></code>
+</p>
+
+Le type de fonction de fabrique. Reçoit l'objet de configuration sérialisable du fournisseur issu de la configuration d'Astro.
+
+### `InvalidateOptions`
+
+Décrit les options transmises à la méthode `invalidate()` du fournisseur.
+
+#### `InvalidateOptions.path`
+
+<p>
+
+**Type :** `string`
+</p>
+
+Chemin exact à invalider. Pas de prise en charge des motifs glob ou des caractères génériques.
+
+#### `InvalidateOptions.tags`
+
+<p>
+
+**Type :** `string | string[]`
+</p>
+
+Étiquette ou étiquettes à invalider. Toutes les entrées avec des étiquettes correspondantes sont purgées.
