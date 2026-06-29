@@ -428,6 +428,58 @@ export default defineConfig({
 });
 ```
 
+## Utilisation du routage avancé
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+L'adaptateur Cloudflare fournit des gestionnaires complémentaires qui appliquent une configuration spécifique à Cloudflare à votre [pipeline de routage avancé](/fr/guides/routing/#routage-avancé). Ces gestionnaires configurent l'injection de liaisons KV pour les sessions, la diffusion de ressources statiques via la liaison `ASSETS`, `Astro.locals.cfContext`, l'adresse du client à partir de l'en-tête `cf-connecting-ip`, `waitUntil` et la récupération des pages d'erreur pré-rendues.
+
+Vous pouvez utiliser les API [`astro/fetch`](/fr/reference/modules/astro-fetch/) et [`astro/hono`](/fr/reference/modules/astro-hono/) depuis `src/fetch.ts` sur Cloudflare sans ces gestionnaires. Le point d'entrée par défaut de l'adaptateur prend en charge la configuration spécifique à Cloudflare pour vous. Ces gestionnaires complémentaires sont utiles lorsque vous avez déjà un [point d'entrée personnalisé pour worker](https://developers.cloudflare.com/workers/wrangler/configuration/#inheritable-keys) (`src/worker.ts`), par exemple, pour exporter un Durable Object, et que vous souhaitez utiliser directement les API de routage avancé depuis ce fichier.
+
+Lorsque vous utilisez ces gestionnaires dans le point d'entrée de votre worker, ils remplacent la fonctionnalité du gestionnaire par défaut de l'adaptateur, vous ne devez donc pas utiliser les deux en même temps. Placez le gestionnaire Cloudflare avant les autres gestionnaires Astro afin que les liaisons et les variables locales soient disponibles pour le reste du pipeline.
+
+### Avec l'API Fetch
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+Pour une utilisation avec [`astro/fetch`](/fr/reference/modules/astro-fetch/). La fonction `cf()` importée depuis `@astrojs/cloudflare/fetch` reçoit un objet [`FetchState`](/fr/reference/modules/astro-fetch/#fetchstate), l'environnement Cloudflare (`env`) et le contexte d'exécution (`ExecutionContext`). Elle renvoie une réponse (`Response`) pour les accès aux ressources statiques, ou `undefined` lorsque la requête doit se poursuivre avec le rendu Astro :
+
+```ts title="src/worker.ts"
+import { astro, FetchState } from 'astro/fetch';
+import { cf } from '@astrojs/cloudflare/fetch';
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const state = new FetchState(request);
+    const asset = await cf(state, env, ctx);
+    if (asset) return asset;
+    return astro(state);
+  },
+};
+```
+
+### Avec Hono
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+Pour une utilisation avec [`astro/hono`](/fr/reference/modules/astro-hono/). La fonction `cf()` importée depuis `@astrojs/cloudflare/hono` renvoie un middleware Hono qui lit automatiquement `env` et `executionCtx` depuis le contexte Hono :
+
+```ts title="src/worker.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { cf } from '@astrojs/cloudflare/hono';
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use(cf());
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
+
 ## Mise à niveau vers v13 et Astro 6
 
 Astro 6 apporte des améliorations significatives à l'expérience de développement avec Cloudflare et nécessite `@astrojs/cloudflare` v13 ou une version ultérieure. Désormais, `astro dev` utilise le module d'extension Vite de Cloudflare et l'environnement d'exécution `workerd` pour reproduire fidèlement le comportement en production.
