@@ -431,26 +431,23 @@ Paginated route names should use the same `[bracket]` syntax as a standard dynam
 
 You can use the `paginate()` function to generate these pages for an array of values like so:
 
-```astro title="src/pages/astronauts/[page].astro" /{ (paginate) }/ /paginate\\(.*\\);/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
+```astro /{ (paginate) }/ /paginate\\(.*\\);/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-import type { GetStaticPaths } from "astro";
-
-export const getStaticPaths = (({ paginate }) => {
+// src/pages/astronauts/[page].astro
+export function getStaticPaths({ paginate }) {
   const astronautPages = [
     { astronaut: "Neil Armstrong" },
     { astronaut: "Buzz Aldrin" },
     { astronaut: "Sally Ride" },
     { astronaut: "John Glenn" },
   ];
-
+  
   // Generate pages from our array of astronauts, with 2 to a page
   return paginate(astronautPages, { pageSize: 2 });
-}) satisfies GetStaticPaths;
-
+}
 // All paginated data is passed on the "page" prop
 const { page } = Astro.props;
 ---
-
 <!-- Display the current page number. `Astro.params.page` can also be used! -->
 <h1>Page {page.currentPage}</h1>
 <ul>
@@ -505,11 +502,8 @@ The following example displays current information for the page along with links
 ```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
 ---
 // src/pages/astronauts/[page].astro
-import type { GetStaticPaths } from "astro";
-
 // Paginate same list of `{ astronaut }` objects as the previous example
-export const getStaticPaths = (({ paginate }) => { /* ... */}) satisfies GetStaticPaths;
-
+export function getStaticPaths({ paginate }) { /* ... */ }
 const { page } = Astro.props;
 ---
 <h1>Page {page.currentPage}</h1>
@@ -539,32 +533,26 @@ Nested pagination works by returning an array of `paginate()` results from `getS
 
 In the following example, we will implement nested pagination to build the URLs listed above:
 
-```astro title="src/pages/[tag]/[page].astro" /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
+```astro /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
 ---
-import type { GetStaticPaths } from "astro";
-
-export const getStaticPaths = (({ paginate }) => {
+// src/pages/[tag]/[page].astro
+export function getStaticPaths({ paginate }) {
   const allTags = ["red", "blue", "green"];
-  const allPosts = Object.values(
-    import.meta.glob("../pages/post/*.md", { eager: true }),
-  );
+  const allPosts = Object.values(import.meta.glob("../pages/post/*.md", { eager: true }));
   // For every tag, return a `paginate()` result.
   // Make sure that you pass `{ params: { tag }}` to `paginate()`
   // so that Astro knows which tag grouping the result is for.
   return allTags.flatMap((tag) => {
-    const filteredPosts = allPosts.filter(
-      (post: any) => post.frontmatter.tag === tag,
-    );
+    const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
     return paginate(filteredPosts, {
       params: { tag },
-      pageSize: 10,
+      pageSize: 10
     });
   });
-}) satisfies GetStaticPaths;
+}
 
 const { page } = Astro.props;
 const params = Astro.params;
----
 ```
 
 ## Excluding pages
