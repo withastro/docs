@@ -71,7 +71,6 @@ export const sidebar = [
 					'guides/content-collections',
 					'guides/images',
 					'guides/data-fetching',
-					'guides/astro-db',
 				],
 			}),
 			group('guides.serverRendering', {
@@ -80,6 +79,7 @@ export const sidebar = [
 					'guides/server-islands',
 					'guides/actions',
 					'guides/sessions',
+					'guides/caching',
 				],
 			}),
 			group('guides.upgrade', {
@@ -88,6 +88,7 @@ export const sidebar = [
 					group('guides.upgrade.major', {
 						collapsed: true,
 						items: [
+							'guides/upgrade-to/v7',
 							'guides/upgrade-to/v6',
 							'guides/upgrade-to/v5',
 							'guides/upgrade-to/v4',
@@ -130,6 +131,8 @@ export const sidebar = [
 					'reference/modules/astro-config',
 					'reference/modules/astro-content',
 					'reference/modules/astro-env',
+					'reference/modules/astro-fetch',
+					'reference/modules/astro-hono',
 					'reference/modules/astro-i18n',
 					'reference/modules/astro-middleware',
 					'reference/modules/astro-static-paths',
@@ -147,6 +150,8 @@ export const sidebar = [
 					'reference/dev-toolbar-app-reference',
 					'reference/session-driver-reference',
 					'reference/font-provider-reference',
+					'reference/cache-provider-reference',
+					'reference/logger-reference',
 					'reference/container-reference',
 					'reference/programmatic-reference',
 				],
@@ -154,15 +159,10 @@ export const sidebar = [
 			group('reference.experimental', {
 				items: [
 					'reference/experimental-flags',
-					'reference/experimental-flags/route-caching',
 					'reference/experimental-flags/client-prerender',
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/svg-optimization',
-					'reference/experimental-flags/queued-rendering',
-					'reference/experimental-flags/rust-compiler',
-					'reference/experimental-flags/advanced-routing',
-					'reference/experimental-flags/logger',
 				],
 			}),
 			'reference/legacy-flags',
@@ -196,7 +196,6 @@ export const sidebar = [
 			group('ecosystem.integrations.other', {
 				collapsed: true,
 				items: [
-					'guides/integrations-guide/db',
 					'guides/integrations-guide/markdoc',
 					'guides/integrations-guide/mdx',
 					'guides/integrations-guide/partytown',

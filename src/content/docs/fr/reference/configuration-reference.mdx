@@ -321,22 +321,22 @@ La valeur peut être soit un chemin absolu du système de fichiers, soit un chem
 <p>
 
 **Type :** `boolean | "jsx"`<br />
-**Par défaut :** `true`
+**Par défaut :** `'jsx'`
 </p>
 
 Contrôle la façon dont Astro gère les espaces dans votre code HTML. Cela affecte à la fois le mode de développement et le résultat final de la compilation.
 
-Par défaut, Astro supprime les espaces de votre code HTML, y compris les sauts de ligne, dans les composants `.astro` de manière sans perte. Certains espaces peuvent être conservés si nécessaire pour maintenir le rendu visuel de votre HTML.
+Depuis la v7.0, Astro applique par défaut les règles d'espacement de JSX utilisées par des frameworks comme React. Cela supprime les espaces et les sauts de ligne autour des éléments, condense le texte multiligne sur une seule ligne et préserve les espaces à l'intérieur d'une même ligne (par exemple, un espace entre deux éléments en ligne). Pour conserver un espace qui serait autrement supprimé, incluez-le explicitement dans le code source à l'aide de constructions telles que `{" "}`.
 
-Depuis la version 6.2.0, cette option peut également être définie sur `"jsx"`, Astro appliquera les règles de suppression des espaces JSX utilisées par des frameworks comme React. Les espaces de début et de fin ne sont conservés que lorsqu'ils sont explicitement inclus dans le code source via des constructions telles que `{" "}`, et sont sinon entièrement supprimés.
+Définir cette option sur `true` supprime les espaces, y compris les sauts de ligne, des composants `.astro` sans être destructif. Certains espaces peuvent être conservés si nécessaire pour maintenir le rendu visuel de votre HTML.
 
 Définir cette option sur `false` désactive la compression HTML et préserve tous les espaces.
 
 ```js
 {
-  compressHTML: false
+  compressHTML: true
   // ou :
-  // compressHTML: 'jsx'
+  // compressHTML: false
 }
 ```
 
@@ -1203,6 +1203,101 @@ Passez une URL complète (par exemple `"http://example.com"`) ou un chemin d'acc
 
 Définit les en-têtes de réponse HTTP personnalisés à envoyer dans `astro dev` et `astro preview`.
 
+## fetchFile
+
+<p>
+
+**Type :** `string | null`<br />
+**Par défaut :** `'fetch'`<br />
+<Since v="7.0.0" />
+</p>
+
+Personnalise le fichier utilisé comme point d'entrée pour les requêtes dans `srcDir`.
+Par défaut, il s'agit de `'fetch'`, ce qui signifie qu'Astro recherche `src/fetch.ts` (ou `.js` / `.mjs` / `.mts`).
+
+Le fichier fetch permet de composer le pipeline de requêtes d'Astro avec la norme Web Fetch ou votre propre middleware Hono.
+
+Si vous avez déjà un fichier `src/fetch.ts` utilisé à d'autres fins, définissez un nom de fichier différent ou définissez la valeur sur `null` pour désactiver le point d'entrée :
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: 'handler',
+});
+```
+
+En savoir plus sur la personnalisation du pipeline de requêtes dans le [guide de routage avancé](/fr/guides/routing/#routage-avancé).
+
+## Options du journaliseur
+
+<p>
+
+**Type :** `LoggerHandlerConfig`<br />
+**Par défaut :** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+Configure comment Astro consigne les messages en mode développement et en production.
+
+Par défaut, Astro utilise un journaliseur intégré qui génère des journaux conviviaux dans la console. Vous pouvez personnaliser ce comportement en fournissant [votre propre gestionnaire de journalisation](/fr/reference/logger-reference/#custom-loggers) ou en utilisant l'un des [gestionnaires de journalisation intégrés](/fr/reference/logger-reference/#built-in-loggers) :
+
+```js
+// astro.config.mjs
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ level: 'info' })
+});
+```
+
+Consultez [la référence de l'API de journalisation](/fr/reference/logger-reference/) pour plus d'informations.
+
+### logger.entrypoint
+
+<p>
+
+**Type :** `string`<br />
+<Since v="7.0.0" />
+</p>
+
+Le point d'entrée du gestionnaire de journalisation. Il peut s'agir d'un chemin vers un fichier de votre projet ou d'un paquet npm :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/astro-logger",
+  }
+});
+```
+
+### logger.config
+
+<p>
+
+**Type :** `Record<string, unknown> | undefined`<br />
+**Par défaut :** `{}`<br />
+<Since v="7.0.0" />
+</p>
+
+L'objet de configuration pour le gestionnaire de journalisation. Les options dépendent du journaliseur configuré.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/astro-logger",
+    config: {
+     level: "error"
+    }
+  }
+});
+```
+
 ## Options des sessions
 
 <p>
@@ -1962,8 +2057,24 @@ Transmet des options à [remark-rehype](https://github.com/remarkjs/remark-rehyp
 <Since v="6.4.0" />
 </p>
 
-Configure le processeur Markdown utilisé pour le rendu des fichiers `.md`. Par défaut, il s'agit de `unified()` importée de
-`@astrojs/markdown-remark` (le pipeline remark/rehype).
+Configure le processeur Markdown utilisé pour le rendu des fichiers `.md`. Par défaut, il s'agit de `satteri()` importé depuis
+`@astrojs/markdown-satteri`, le pipeline Markdown natif d'Astro.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      features: { gfm: false },
+    }),
+  },
+});
+```
+
+Pour garder le pipeline remark/rehype, installez `@astrojs/markdown-remark` et transmettez `unified()` :
 
 ```js
 // astro.config.mjs
@@ -2542,4 +2653,78 @@ Les [paramètres de variation](https://developer.mozilla.org/fr/docs/Web/CSS/Ref
 
 ```js
 variationSettings: "'xhgt' 0.7"
+```
+
+## cache
+
+<p>
+
+**Type :** `object`<br />
+**Par défaut :** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+Active la mise en cache des routes pour les réponses SSR. Fournit une API indépendante de la plateforme pour la mise en cache des pages rendues et des réponses de l'API, avec des fournisseurs modulables que les adaptateurs peuvent configurer automatiquement.
+
+```js
+// astro.config.mjs
+import { memoryCache } from 'astro/config';
+
+{
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/blog/[...chemin]': { maxAge: 300, swr: 60 },
+  },
+}
+```
+
+Utilisez `Astro.cache.set()` dans les routes et `context.cache.set()` dans les middlewares
+ou les routes d'API pour contrôler la mise en cache par requête.
+
+### cache.provider
+
+<p>
+
+**Type :** `CacheProviderConfig`<br />
+<Since v="7.0.0" />
+</p>
+
+Un fournisseur qui contrôle la manière dont les réponses sont mises en cache.
+
+Utilisez la fonction de configuration du fournisseur pour obtenir une configuration avec sûreté du typage :
+
+```js
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  cache: { provider: memoryCache() },
+});
+```
+
+## routeRules
+
+<p>
+
+**Type :** `Record<string, RouteRule>`<br />
+**Par défaut :** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+Les modèles de route associés aux règles de cache.
+Utilise la même syntaxe `[param]` et `[...rest]` que [le routage basé sur les fichiers](/fr/guides/routing/#ordre-de-priorité-des-routes).
+Utilisez un paramètre `[...rest]` pour correspondre à un groupe de routes :
+
+```js
+// astro.config.mjs
+import { memoryCache } from 'astro/config';
+
+{
+  cache: { provider: memoryCache() },
+  routeRules: {
+    '/api/[...chemin]': { swr: 600 },
+    '/produits/[...slug]': { maxAge: 3600, tags: ['produits'] },
+  },
+}
 ```
