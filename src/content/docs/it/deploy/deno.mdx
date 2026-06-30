@@ -1,0 +1,354 @@
+---
+title: Distribuisci il tuo sito Astro con Deno
+description: Come distribuire il tuo sito Astro sul Web usando Deno.
+sidebar:
+  label: Deno Deploy
+type: deploy
+logo: deno
+supports: ['ssr', 'static']
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Puoi distribuire un sito Astro statico o renderizzato on-demand usando Deno, sia sul tuo stesso server, o su [Deno Deploy](https://deno.com/deploy), un sistema distribuito che esegue JavaScript, TypeScript, e al limite WebAssembly, in tutto il mondo.
+
+Questa guida include le istruzioni per eseguire il tuo sito Astro sul tuo stesso server con Deno, e distribuire su Deno Deploy attraverso GitHub Actions o Deno Deploy CLI.
+
+## Requisiti
+
+Questa guida presuppone che hai già [Deno](https://deno.com/) intallato.
+
+## Configurazione Del Progetto
+
+Il tuo progetto Astro può essere distribuito come sito statico, o come sito renderizzato on-demand.
+
+### Sito Statico
+
+Il tuo progetto Astro, per impostazione predefinta, è un sito statico. Non hai bisogno di configurazioni extra per distribuire un sito Astro statico con Deno, o su Deno Deploy.
+
+### Adattatore per il rendering on-demand
+
+Per abilitare il rendering on-demand nel tuo progetto Astro usando Deno, e per distribuirlo su Deno Deploy:
+
+<Steps>
+1. Installa [l'adattatore `@deno/astro-adapter`][Adattatore Deno] nelle tue dipendenze del progetto usando il tuo package manager preferito:
+   
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install @deno/astro-adapter
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install @deno/astro-adapter
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn add @deno/astro-adapter
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+2. Aggiorna il tuo file di configuratione del progetto `astro.config.mjs` con le seguenti modifiche.
+
+    ```js ins={3,6-7}
+    // astro.config.mjs
+    import { defineConfig } from 'astro/config';
+    import deno from '@deno/astro-adapter';
+
+    export default defineConfig({
+      output: 'server',
+      adapter: deno(),
+    });
+    ```
+
+3. Aggiorna il tuo script `preview` in `package.json` con le seguenti modifiche.
+
+    ```json del={8} ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "astro preview"
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs"
+      }
+    }
+    ```
+    
+    Puoi ora usare questo comando per vedere l'anteprima del tuo sito Astro di produzione localmente con Deno.
+       
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run preview
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm run preview
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn run preview
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+## Come distribuire
+
+Puoi eseguire il tuo sito Astro sul tuo stesso server, o distribuirlo su Deno Deploy attraverso GitHub Actions o usando Deno Deploy’s CLI (interfaccia a linea di comando).
+
+### Sul tuo stesso server 
+
+<Steps>
+1. Copia il tuo progetto sul tuo server.
+
+2. Installa le dipendenze del progetto usando il tuo package manager preferito:
+   
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm install
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm install
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+3. Compila il tuo sito Astro con il tuo package manager preferito:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm run build
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm run build
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn run build
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+4. Avvia la tua applicazione con il comando seguente:  
+
+   <StaticSsrTabs>
+     <Fragment slot="static">
+       ```bash
+       deno run -A jsr:@std/http/file-server dist
+       ```
+     </Fragment>
+     
+     <Fragment slot="ssr">
+       ```bash
+       deno run -A ./dist/server/entry.mjs
+       ```
+     </Fragment>
+   </StaticSsrTabs>
+</Steps>
+
+### Distribuzione Con GitHub Actions
+
+Se il tuo progetto è salvato su GitHub, il [sito web Deno Deploy](https://dash.deno.com/) ti guiderà nell'impostare le GitHub Actions per distribuire il tuo sito Astro.
+
+<Steps>
+1. Invia il tuo codice su un repository Github pubblico o privato.
+
+2. Accedi a [Deno Deploy](https://dash.deno.com/) con il tuo account GitHub, e clicca su [Nuovo Progetto](https://dash.deno.com).
+
+3. Seleziona il tuo repository, il branch che vuoi distribuire, e seleziona la modalità **GitHub Action**. (Il tuo sito Astro richiede un passaggio di compilazione, e non può usare la modalità Automatica.)
+   
+4. Nel tuo progetto Astro, crea un nuovo file in `.github/workflows/deploy.yml` e incollaci il seguente YAML. Questo è simile allo YAML dato da Deno Deploy, con i passaggi addizionali necessari al tuo sito Astro.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Needed for auth with Deno Deploy
+              contents: read # Needed to clone the repository
+
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v6
+
+              # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+
+              # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: replace with Deno Deploy project name
+                  entrypoint: jsr:@std/http/file-server
+                  root: dist
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```yaml
+        ---
+        // .github/workflows/deploy.yml
+        ---
+        name: Deploy
+        on: [push]
+
+        jobs:
+          deploy:
+            name: Deploy
+            runs-on: ubuntu-latest
+            permissions:
+              id-token: write # Needed for auth with Deno Deploy
+              contents: read # Needed to clone the repository
+
+            steps:
+              - name: Clone repository
+                uses: actions/checkout@v6
+
+              # Not using npm? Change `npm ci` to `yarn install` or `pnpm i`
+              - name: Install dependencies
+                run: npm ci
+
+              # Not using npm? Change `npm run build` to `yarn build` or `pnpm run build`
+              - name: Build Astro
+                run: npm run build
+
+              - name: Upload to Deno Deploy
+                uses: denoland/deployctl@v1
+                with:
+                  project: my-deno-project # TODO: replace with Deno Deploy project name
+                  entrypoint: dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+
+5. Dopo aver effettuato il commit di questo file YAML, e inviato a GitHub sul tuo branch configurato per la distribuzione, la distribuzione dovrebbe iniziare automaticamente!
+
+   Puoi monitorare il progresso usando la scheda "Actions" sulla pagina del tuo repository GitHub, o su [Deno Deploy](https://dash.deno.com).
+</Steps>
+
+### Distribuzione CLI
+
+<Steps>
+1. Installa [Deno Deploy CLI](https://docs.deno.com/deploy/manual/deployctl).
+
+    ```bash
+    deno install -gArf jsr:@deno/deployctl
+    ```
+
+2. Compila il tuo sito Astro con il tuo package manager preferito:
+
+   <PackageManagerTabs>
+     <Fragment slot="npm">
+     ```shell
+     npm run build
+     ```
+     </Fragment>
+     <Fragment slot="pnpm">
+     ```shell
+     pnpm run build
+     ```
+     </Fragment>
+     <Fragment slot="yarn">
+     ```shell
+     yarn run build
+     ```
+     </Fragment>
+   </PackageManagerTabs>
+
+3. Esegui `deployctl` per distribuire!
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```bash
+        cd dist && deployctl deploy jsr:@std/http/file-server
+        ```
+      </Fragment>
+      
+      <Fragment slot="ssr">
+        ```bash
+        deployctl deploy ./dist/server/entry.mjs
+        ```
+      </Fragment>
+    </StaticSsrTabs>
+    
+    Puoi monitorare tutte le tue distribuzioni su [Deno Deploy](https://dash.deno.com).
+
+4. (Opzionale) Per semplificare la compilazione e la distribuzione in un comando, aggiungi uno script `deploy-deno` in `package.json`.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```json ins={9}
+        // package.json
+        {
+          // ...
+          "scripts": {
+          "dev": "astro dev",
+          "start": "astro dev",
+          "build": "astro build",
+          "preview": "astro preview",
+          "deno-deploy": "npm run build && cd dist && deployctl deploy jsr:@std/http/file-server"
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+    ```json ins={9}
+    // package.json
+    {
+      // ...
+      "scripts": {
+        "dev": "astro dev",
+        "start": "astro dev",
+        "build": "astro build",
+        "preview": "deno run --allow-net --allow-read --allow-env ./dist/server/entry.mjs",
+        "deno-deploy": "npm run build && deployctl deploy ./dist/server/entry.mjs"
+      }
+    }
+    ```
+      </Fragment>
+    </StaticSsrTabs>
+    
+    Quindi puoi usare questo comando per compilare e distribuire il tuo sito Astro in un passaggio.
+    
+    ```bash
+    npm run deno-deploy
+    ```
+</Steps>
+
+[Adattatore Deno]: https://github.com/denoland/deno-astro-adapter
