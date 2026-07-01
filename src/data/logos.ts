@@ -65,7 +65,6 @@ export const logos = LogoCheck({
 	hygraph: { file: 'hygraph.svg', padding: '.1em .125em .1em .1em' },
 	image: { file: 'astro-image.svg', padding: '.1875em' },
 	imagekit: { file: 'imagekit.svg', padding: '.15em' },
-	juno: { file: 'juno.svg', padding: '0' },
 	jekyll: { file: 'jekyll.png', padding: '.1em .05em 0' },
 	jekyllpad: { file: 'jekyllpad.svg', padding: '0.2em' },
 	keystatic: { file: 'keystatic.svg', padding: '0' },
@@ -127,6 +126,7 @@ export const logos = LogoCheck({
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
 	zephyr: { file: 'zephyr.svg', padding: '0' },
+	zero: { file: 'zero.svg', padding: '.15em' },
 	zerops: { file: 'zerops.svg', padding: '.2em' },
 });
 
