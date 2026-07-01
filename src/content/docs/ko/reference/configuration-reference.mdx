@@ -336,23 +336,23 @@ Astro가 여러분의 사이트를 읽을 디렉터리를 설정하세요.
 <p>
 
 **타입:** `boolean | "jsx"`<br />
-**기본값:** `true`
+**기본값:** `'jsx'`
 
 </p>
 
 Astro가 HTML의 공백을 처리하는 방식을 제어합니다. 이는 개발 모드와 최종 빌드 출력 모두에 영향을 미칩니다.
 
-기본적으로 Astro는 `.astro` 컴포넌트에서 줄바꿈을 포함한 HTML의 공백을 무손실 방식으로 제거합니다. HTML의 시각적 렌더링을 유지하기 위해 필요한 경우 일부 공백은 보존될 수 있습니다.
+Astro 7.0 버전부터는 React와 같은 프레임워크에서 사용하는 JSX 공백 규칙이 기본적으로 적용됩니다. 이 규칙은 요소 주변의 공백과 줄바꿈을 제거하고, 여러 줄의 텍스트를 한 줄로 합치며, 한 줄 내의 공백(예: 두 인라인 요소 사이의 공백)은 유지합니다. 제거될 공백을 유지하려면 `{" "}`와 같은 구문을 사용하여 소스에 명시적으로 추가해야 합니다.
 
-6.2.0 버전부터 이 옵션을 `"jsx"`로 설정할 수도 있습니다. 이 경우 Astro는 React와 같은 프레임워크에서 사용하는 JSX 공백 제거 규칙을 적용합니다. 앞뒤 공백은 `{" "}`와 같은 구문을 통해 소스 코드에 명시적으로 포함된 경우에만 유지되며, 그렇지 않은 경우에는 완전히 제거됩니다.
+이 옵션을 `true`로 설정하면 기본 JSX 공백 규칙 대신 `.astro` 컴포넌트에서 줄바꿈을 포함한 공백을 손실 없이 제거합니다. HTML의 시각적 렌더링을 유지하기 위해 필요한 경우 일부 공백은 보존될 수 있습니다.
 
-이 옵션을 false로 설정하면 HTML 압축이 비활성화되고 모든 공백이 보존됩니다.
+이 옵션을 `false`로 설정하면 HTML 압축이 비활성화되고 모든 공백이 보존됩니다.
 
 ```js
 {
-  compressHTML: false
-  // 또는:
-  // compressHTML: 'jsx'
+  compressHTML: true
+  // 또는
+  // compressHTML: false
 }
 ```
 
@@ -1217,6 +1217,101 @@ Astro가 응답하도록 허용된 호스트 이름의 목록입니다. 값이 `
 
 `astro dev` 및 `astro preview`에서 전송되도록 사용자 정의 HTTP 응답 헤더를 설정합니다.
 
+## fetchFile
+
+<p>
+
+**타입:** `string | null`<br />
+**기본값:** `'fetch'`<br />
+<Since v="7.0.0" />
+</p>
+
+`srcDir` 내의 fetch 엔트리포인트 파일을 사용자 정의합니다.
+기본값은 `'fetch'`이며, Astro는 `src/fetch.ts`(또는 `.js` / `.mjs` / `.mts`)를 찾습니다.
+
+fetch 파일을 사용하면 Astro의 요청 파이프라인을 Web Fetch 표준이나 자체 Hono 미들웨어와 함께 구성할 수 있습니다.
+
+이미 다른 용도로 사용 중인 `src/fetch.ts` 파일이 있다면, 다른 파일 이름을 지정하거나 값을 `null`로 설정하여 엔트리포인트를 비활성화하세요:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: 'handler',
+});
+```
+
+요청 파이프라인 사용자 정의에 대한 자세한 내용은 [고급 라우팅 가이드](/ko/guides/routing/#고급-라우팅)를 참조하세요.
+
+## 로거 옵션
+
+<p>
+
+**타입:** `LoggerHandlerConfig`<br />
+**기본값:** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+개발 및 프로덕션 환경에서 Astro가 로그를 기록하는 방식을 구성합니다.
+
+기본적으로 Astro는 콘솔에 사람이 읽기 쉬운 형식의 로그를 출력하는 내장 로거를 사용합니다. [사용자 정의 로거 핸들러](/ko/reference/logger-reference/#사용자-정의-로거)를 제공하거나 [내장 로거 핸들러](/ko/reference/logger-reference/#내장-로거) 중 하나를 사용하여 이 동작을 사용자 정의할 수 있습니다.
+
+```js
+// astro.config.mjs
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ level: 'info' })
+});
+```
+
+자세한 내용은 [로거 API 참조](/ko/reference/logger-reference/)를 확인하세요.
+
+### logger.entrypoint
+
+<p>
+
+**타입:** `string`<br />
+<Since v="7.0.0" />
+</p>
+
+로그 핸들러의 엔트리포인트입니다. 프로젝트 내 파일 경로 또는 npm 패키지를 지정할 수 있습니다:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/astro-logger",
+  }
+});
+```
+
+### logger.config
+
+<p>
+
+**타입:** `Record<string, unknown> | undefined`<br />
+**기본값:** `{}`<br />
+<Since v="7.0.0" />
+</p>
+
+로그 핸들러의 구성 객체입니다. 옵션은 설정된 로거에 따라 달라집니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/astro-logger",
+    config: {
+     level: "error"
+    }
+  }
+});
+```
+
 ## 세션 옵션
 
 <p>
@@ -1473,7 +1568,7 @@ prefetch: {
 ```js
 {
   image: {
-    // 예시: `/custom_endpoint`에서 사용자 지정 이미지 엔드포인트를 사용합니다.
+    // 예시: `/custom_endpoint`에서 사용자 정의 이미지 엔드포인트를 사용합니다.
     endpoint: {
 		 	route: '/custom_endpoint',
 		 	entrypoint: 'src/my_endpoint.ts',
@@ -1785,7 +1880,7 @@ export default defineConfig({
       // 참고: Shiki에는 .astro를 포함하여 수많은 언어가 기본적으로 제공됩니다!
       // https://shiki.style/languages
       langs: [],
-      // 언어에 대한 사용자 지정 별칭을 추가합니다.
+      // 언어에 대한 사용자 정의 별칭을 추가합니다.
       // 별칭을 Shiki 언어 ID에 매핑: https://shiki.style/languages#bundled-languages
       // https://shiki.style/guide/load-lang#custom-language-aliases
       langAlias: {
@@ -1865,6 +1960,11 @@ export default defineConfig({
 
 ### markdown.remarkPlugins
 
+
+:::caution[지원 중단]
+대신 `@astrojs/markdown-remark`의 `unified({ remarkPlugins })`에 `remarkPlugins`를 전달한 뒤, 이를 `markdown.processor`로 설정하세요. 이 옵션은 향후 메이저 버전에서 제거될 예정입니다.
+:::
+
 <p>
 
 **타입:** `RemarkPlugins`
@@ -1884,6 +1984,11 @@ import remarkToc from 'remark-toc';
 
 ### markdown.rehypePlugins
 
+
+:::caution[지원 중단]
+대신 `@astrojs/markdown-remark`의 `unified({ rehypePlugins })`에 `rehypePlugins`를 전달한 뒤, 이를 `markdown.processor`로 설정하세요. 이 옵션은 향후 메이저 버전에서 제거될 예정입니다.
+:::
+
 <p>
 
 **타입:** `RehypePlugins`
@@ -1902,6 +2007,11 @@ import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
 ```
 
 ### markdown.gfm
+
+
+:::caution[지원 중단]
+대신 프로세서에 `gfm`을 전달하세요(예: `unified({ gfm: false })`). 이 옵션은 향후 메이저 버전에서 제거될 예정입니다.
+:::
 
 <p>
 
@@ -1923,6 +2033,11 @@ Astro는 기본적으로 [GitHub 기반 Markdown](https://github.com/remarkjs/re
 
 ### markdown.smartypants
 
+
+:::caution[지원 중단]
+대신 프로세서에 `smartypants`를 전달하세요(예: `unified({ smartypants: false })`). 이 옵션은 향후 메이저 버전에서 제거될 예정입니다.
+:::
+
 <p>
 
 **타입:** `boolean | Smartypants`<br />
@@ -1939,6 +2054,11 @@ Astro는 기본적으로 [GitHub 기반 Markdown](https://github.com/remarkjs/re
 
 ### markdown.remarkRehype
 
+
+:::caution[지원 중단]
+대신 `@astrojs/markdown-remark`의 `unified({ remarkRehype })`에 `remarkRehype`를 전달한 뒤, 이를 `markdown.processor`로 설정하세요. 이 옵션은 향후 메이저 버전에서 제거될 예정입니다.
+:::
+
 <p>
 
 **타입:** `RemarkRehype`
@@ -1954,6 +2074,47 @@ Astro는 기본적으로 [GitHub 기반 Markdown](https://github.com/remarkjs/re
     remarkRehype: { footnoteLabel: "Footnotes", footnoteBackLabel: "Back to reference 1"},
   },
 };
+```
+
+### markdown.processor
+
+<p>
+
+**타입:** `MarkdownProcessor`<br />
+<Since v="6.4.0" />
+</p>
+
+`.md` 파일을 렌더링하는 데 사용되는 Markdown 프로세서를 구성합니다. 기본값은 Astro의 네이티브 Markdown 파이프라인인 `@astrojs/markdown-satteri`의 `satteri()`입니다.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { satteri } from '@astrojs/markdown-satteri';
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      features: { gfm: false },
+    }),
+  },
+});
+```
+
+remark/rehype 파이프라인을 사용하려면 `@astrojs/markdown-remark`를 설치한 다음 `unified()`를 전달하세요:
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+import { unified } from '@astrojs/markdown-remark';
+import remarkToc from 'remark-toc';
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [remarkToc],
+    }),
+  },
+});
 ```
 
 ## i18n
@@ -2523,4 +2684,77 @@ featureSettings: "'smcp' 2"
 
 ```js
 variationSettings: "'xhgt' 0.7"
+```
+
+## cache
+
+<p>
+
+**타입:** `object`<br />
+**기본값:** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+SSR 응답에 대한 라우트 캐싱을 활성화합니다. 렌더링된 페이지와 API 응답을 캐싱하기 위한 플랫폼 독립적인 API를 제공하며, 어댑터가 자동으로 구성할 수 있는 교체 가능한 캐시 제공자를 지원합니다.
+
+```js
+// astro.config.mjs
+import { memoryCache } from 'astro/config';
+
+{
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/blog/[...path]': { maxAge: 300, swr: 60 },
+  },
+}
+```
+
+요청별 캐싱을 제어하려면 라우트에서는 `Astro.cache.set()`을 사용하고, 미들웨어나 API 라우트에서는 `context.cache.set()`을 사용하세요.
+
+### cache.provider
+
+<p>
+
+**타입:** `CacheProviderConfig`<br />
+<Since v="7.0.0" />
+</p>
+
+응답이 캐싱되는 방식을 제어하는 제공자입니다.
+
+제공자의 구성 함수를 사용하여 타입 안전한 구성을 사용할 수 있습니다:
+
+```js
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  cache: { provider: memoryCache() },
+});
+```
+
+## routeRules
+
+<p>
+
+**타입:** `Record<string, RouteRule>`<br />
+**기본값:** `undefined`<br />
+<Since v="7.0.0" />
+</p>
+
+캐시 규칙에 매핑되는 라우트 패턴입니다.
+[파일 기반 라우팅](/ko/guides/routing/#라우트-우선-순위)과 동일한 `[param]` 및 `[...rest]` 구문을 사용합니다.
+여러 라우트를 일치시키려면 `[...rest]` 매개변수를 사용하세요:
+
+```js
+// astro.config.mjs
+import { memoryCache } from 'astro/config';
+
+{
+  cache: { provider: memoryCache() },
+  routeRules: {
+    '/api/[...path]': { swr: 600 },
+    '/products/[...slug]': { maxAge: 3600, tags: ['products'] },
+  },
+}
 ```

@@ -147,7 +147,7 @@ The following properties are available to a `.astro` component when using an `im
 - **`file`** - The absolute file path (e.g. `/home/user/projects/.../file.mdx`).
 - **`url`** - The URL of the page (e.g. `/en/guides/markdown-content`).
 - **`frontmatter`** - Contains any data specified in the file’s YAML/TOML frontmatter.
-- **`getHeadings()`** - An async function that returns an array of all headings (`<h1>` to `<h6>`) in the file with the type: `{ depth: number; slug: string; text: string }[]`. Each heading’s `slug` corresponds to the generated ID for a given heading and can be used for anchor links.
+- **`getHeadings()`** - An async function that returns an array of all headings (`<h1>` to `<h6>`) in the file with the type: `{ depth: number; slug: string; text: string }[]`. Each heading’s `slug` corresponds to the generated ID for a given heading and can be used for anchor links. Headings from imported files are not included.
 - **`<Content />`** - A component that returns the full, rendered contents of the file.
 - **(any `export` value)** - MDX files can also export data with an `export` statement.
 
@@ -266,10 +266,9 @@ All [`markdown` configuration options](/en/reference/configuration-reference/#ma
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
-import remarkToc from 'remark-toc';
-import rehypePresetMinify from 'rehype-preset-minify';
+import { myMdastPlugin } from './my-satteri-plugin.mjs';
 
 export default defineConfig({
   // ...
@@ -277,11 +276,9 @@ export default defineConfig({
     mdx({
       syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
-      processor: unified({
-        remarkPlugins: [remarkToc],
-        rehypePlugins: [rehypePresetMinify],
-        remarkRehype: { footnoteLabel: 'Footnotes' },
-        gfm: false
+      processor: satteri({
+        mdastPlugins: [myMdastPlugin()],
+        features: { gfm: false },
       }),
     }),
   ],
@@ -301,16 +298,16 @@ export default defineConfig({
 
 By default, `.mdx` files render through the same [Markdown processor](/en/guides/markdown-content/#choosing-a-markdown-processor) as your `.md` files. Set `processor` to use a different processor, or the same processor with different options, for `.mdx` files only.
 
-For example, to keep the default remark/rehype processor for `.md` files while rendering `.mdx` files with [Sätteri](https://satteri.bruits.org/) using `@astrojs/markdown-satteri`:
+For example, to keep the default [Sätteri](https://satteri.bruits.org/) processor for `.md` files while rendering `.mdx` files with remark and rehype using `@astrojs/markdown-remark`:
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   integrations: [
-    mdx({ processor: satteri() }),
+    mdx({ processor: unified() }),
   ],
 });
 ```
@@ -330,14 +327,14 @@ For example, say you need a different syntax highlighter and a different set of 
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
     syntaxHighlight: 'prism',
-    processor: unified({ remarkPlugins: [remarkPlugin1] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
@@ -346,7 +343,7 @@ export default defineConfig({
       syntaxHighlight: 'shiki',
 
       // `markdown.processor` gets overridden for `.mdx` files by this option
-      processor: unified({ remarkPlugins: [remarkPlugin2] }),
+      processor: satteri({ mdastPlugins: [mdastPlugin2] }),
     }),
   ],
 });
@@ -356,19 +353,19 @@ You may also need to disable `markdown` config extension in MDX. For this, set `
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
-    processor: unified({ remarkPlugins: [remarkPlugin] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin] }),
   },
   integrations: [
     mdx({
       // Markdown config now ignored
       extendMarkdownConfig: false,
-      // Default `unified()` processor used
+      // Default `satteri()` processor used
     }),
   ],
 });
@@ -384,6 +381,8 @@ export default defineConfig({
 </p>
 
 These are plugins that modify the output [estree](https://github.com/estree/estree) directly. This is useful for modifying or injecting JavaScript variables in your MDX files.
+
+Since Astro v7, the default Markdown processor does not support Recma plugins. If your project depends on them, you can [use the `unified()` processor](/en/guides/markdown-content/#switching-to-the-unified-processor).
 
 We suggest [using AST Explorer](https://astexplorer.net/) to play with estree outputs, and trying [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) for searching across JavaScript nodes.
 
