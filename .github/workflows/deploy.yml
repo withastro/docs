@@ -1,0 +1,90 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main, v4, v5, v6, v7]
+  pull_request:
+
+# Automatically cancel in-progress actions on the same branch
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name == 'pull_request' && github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+permissions: {}
+
+env:
+  NODE_OPTIONS: "--max_old_space_size=8192"
+
+jobs:
+  deploy:
+    if: ${{ github.repository_owner == 'withastro' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Install Tools & Dependencies
+        uses: ./.github/actions/install
+
+      - name: Cache Astro build
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            node_modules/.astro
+            node_modules/.astro-og-canvas
+          key: astro-build-${{ hashFiles('src/**') }}
+          restore-keys: |
+            astro-build-
+
+      - name: Build
+        run: pnpm build
+
+      - name: Deploy
+        if: >-
+          github.ref == 'refs/heads/main' ||
+          github.ref == 'refs/heads/v4' ||
+          github.ref == 'refs/heads/v5' ||
+          github.ref == 'refs/heads/v6' ||
+          github.ref == 'refs/heads/v7'
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          command: deploy
+
+      - name: Upload build output
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: build-output
+          path: |
+            dist/
+            worker.js
+            wrangler.jsonc
+
+      - name: Save PR metadata
+        if: github.event_name == 'pull_request'
+        run: |
+          mkdir -p pr-metadata
+          echo "${{ github.event.pull_request.number }}" > pr-metadata/pr_number
+          BRANCH="${{ github.head_ref }}"
+          # Sanitize branch name into a valid Wrangler preview alias.
+          # Wrangler validates aliases against /^[a-z](?:[a-z0-9-]*[a-z0-9])?$/i so the
+          # alias must start with a letter, contain only [a-z0-9-], and end with a letter
+          # or digit. It is also used as the subdomain for the preview URL, e.g.
+          # "my-branch.previews.docs.astro.build".
+          ALIAS=$(echo "$BRANCH" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9-]/-/g' | sed 's/^-//' | sed 's/-$//')
+          # Prefix "pr-" if the alias starts with a digit (e.g. branch "260616") so it
+          # satisfies the "must start with a letter" rule.
+          [[ "$ALIAS" =~ ^[0-9] ]] && ALIAS="pr-$ALIAS"
+          echo "$ALIAS" > pr-metadata/preview_alias
+          echo "https://${ALIAS}.previews.docs.astro.build" > pr-metadata/preview_url
+
+      - name: Upload PR metadata
+        if: github.event_name == 'pull_request'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: pr-metadata
+          path: pr-metadata/
