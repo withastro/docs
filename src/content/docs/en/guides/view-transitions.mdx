@@ -44,9 +44,13 @@ Import and add the `<ClientRouter />` component to your common `<head>` or share
 
 The example below shows adding Astro's default page navigation animations site-wide, including the default fallback control option for non-supporting browsers, by importing and adding this component to a `<CommonHead />` Astro component:
 
-```astro title="src/components/CommonHead.astro" ins={2,12}
+```astro title="src/components/CommonHead.astro" ins={2,16}
 ---
 import { ClientRouter } from "astro:transitions";
+
+type Props = { title: string; description: string };
+
+const { title, description } = Astro.props;
 ---
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
@@ -328,11 +332,16 @@ The following example shows an Astro component that navigates a visitor to anoth
 <script>
   import { navigate } from "astro:transitions/client";
 
+  const select = document.querySelector("select");
   // Navigate to the selected option automatically.
-  document.querySelector("select").onchange = (event) => {
-    let href = event.target.value;
-    navigate(href);
-  };
+  if (select) {
+    select.onchange = (event) => {
+      if (event.target instanceof HTMLSelectElement) {
+        let href = event.target.value;
+        navigate(href);
+      }
+    };
+  }
 </script>
 <select>
   <option value="/play">Play</option>
@@ -453,7 +462,7 @@ One way to implement this safely is to ensure only a set of known paths can be r
   const redirect = params.get('redirect');
   const allowedPaths = ['/home', '/about', '/contact'];
 
-  if (allowedPaths.includes(redirect)) {
+  if (redirect && allowedPaths.includes(redirect)) {
     navigate(redirect);
   }
 </script>
@@ -715,7 +724,7 @@ The following example demonstrates how to use these functions to recreate Astro'
   document.addEventListener("astro:before-swap", (event) => {
     event.swap = () => mySwap(event.newDocument);
   });
-<script>
+</script>
 ```
 
 Custom swap implementations can start with this template and add or replace individual steps with custom logic as needed.
@@ -731,10 +740,12 @@ This is the latest point in the lifecycle where it is still safe to, for example
 The `astro:after-swap` event occurs immediately after the browser history has been updated and the scroll position has been set. 
 Therefore, one use of targeting this event is to override the default scroll restore for history navigation. The following example resets the horizontal and vertical scroll position to the top left corner of the page for each navigation.
 
-```js
-document.addEventListener("astro:after-swap", () =>
-  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
-);
+```astro
+<script>
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+  );
+</script>
 ```
 
 ### `astro:page-load`
@@ -747,6 +758,8 @@ You can use this event to run code on every page navigation, for example to set 
 
 ```astro
 <script>
+  import { setupStuff } from "../utils.ts";
+
   document.addEventListener("astro:page-load", () => {
     // This runs on first page load and after every navigation.
     setupStuff(); // e.g. add event listeners
