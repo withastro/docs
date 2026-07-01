@@ -1,0 +1,266 @@
+---
+title: Fetch 라우팅 API 참조
+sidebar:
+  label: 'astro/fetch'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+<p><Since v="7.0.0" /></p>
+
+`astro/fetch` 모듈은 표준 Fetch API를 기반으로 구축된 [고급 라우팅](/ko/guides/routing/#고급-라우팅) 핸들러를 제공합니다.
+
+## `astro/fetch`에서 가져오기
+
+```ts
+import {
+  FetchState,
+  astro,
+  actions,
+  cache,
+  i18n,
+  middleware,
+  pages,
+  redirects,
+  sessions,
+  trailingSlash,
+} from "astro/fetch";
+```
+
+### `FetchState`
+
+요청별 상태 객체입니다. `fetch` 메서드의 시작 부분에서 생성하세요:
+
+```ts
+import { FetchState } from 'astro/fetch';
+
+const state = new FetchState(request);
+```
+
+`FetchState`는 일치하는 라우트, 쿠키, 세션 프로바이더 및 기타 요청별 데이터를 추적합니다. 모든 핸들러 함수는 첫 번째 인자로 이 객체를 전달해야 합니다.
+
+<ReadMore>고급 라우팅 가이드에서 `FetchState`를 사용하여 [핸들러를 조합하는 방법](/ko/guides/routing/#개별-핸들러-조합하기)을 알아보세요.</ReadMore>
+
+#### 속성
+
+##### `state.request`
+
+<p>
+
+**타입:** `Request`
+</p>
+
+들어오는 [Request](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체입니다.
+
+##### `state.url`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+요청에서 파생된 정규화된 [URL](https://developer.mozilla.org/ko/docs/Web/API/URL)입니다.
+
+##### `state.pathname`
+
+<p>
+
+**타입:** `string`
+</p>
+
+요청에서 기본 경로를 제외하고 디코딩한 경로명입니다 (예: `/about` 또는 `/blog/my-post`).
+
+##### `state.routeData`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/integrations-reference/#routedata">RouteData</a> | undefined</code>
+</p>
+
+이 요청과 일치하는 라우트입니다 (존재하는 경우). `FetchState`가 생성될 때 자동으로 해석됩니다.
+
+##### `state.cookies`
+
+<p>
+
+**타입:** `AstroCookies`
+</p>
+
+이 요청에 대한 쿠키를 읽고 설정하기 위한 [`AstroCookies`](/ko/reference/api-reference/#cookies) 인스턴스입니다.
+
+##### `state.locals`
+
+<p>
+
+**타입:** `App.Locals`
+</p>
+
+사용자 정의 데이터를 저장하기 위한 요청 스코프의 객체입니다. 이는 [미들웨어](/ko/guides/middleware/) 및 [API 라우트](/ko/guides/endpoints/#서버-엔드포인트-api-라우트)에서 사용할 수 있는 [`locals`](/ko/reference/api-reference/#locals) 객체와 동일합니다.
+
+##### `state.params`
+
+<p>
+
+**타입:** `Params | undefined`
+</p>
+
+일치하는 라우트와 경로명에서 파생된 라우트 매개변수입니다 (예: `[slug].astro` 라우트에 대한 `{ slug: 'my-post' }`).
+
+##### `state.status`
+
+<p>
+
+**타입:** `number`<br />
+**기본값:** `200`
+</p>
+
+응답에 대한 HTTP 상태 코드입니다. 렌더링 전에 이 값을 설정하여 응답 상태를 제어할 수 있습니다 (예: `state.status = 404`).
+
+##### `state.response`
+
+<p>
+
+**타입:** `Response | undefined`<br />
+**기본값:** `undefined`
+</p>
+
+렌더링 완료 후 핸들러에 의해 생성된 `Response`입니다. 이 값은 [`pages()`](#pages) 및 [`middleware()`](#middleware)에 의해 자동으로 설정되며, 파이프라인 후반부에서 응답을 검사하거나 사용할 수 있게 해줍니다:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// state.response는 이제 response와 동일한 객체입니다.
+```
+
+#### 메서드
+
+##### `state.rewrite()`
+
+<p>
+
+**타입:** <code>(payload: <a href="/ko/reference/modules/astro-middleware/#rewritepayload">RewritePayload</a>) => Promise\<Response\></code>
+</p>
+
+다른 라우트로 [리라이트](/ko/guides/routing/#url-재작성-rewrites)를 트리거합니다. `payload`는 경로명 문자열 (`'/other-page'`), URL, 또는 `Request`일 수 있습니다.
+
+```ts
+const response = await state.rewrite('/other-page');
+```
+
+### `astro()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+전체 Astro 파이프라인(세션, 캐시, 리다이렉트, 트레일링 슬래시, 액션, 미들웨어, 페이지, i18n)을 기본 순서로 실행하는 올인원 핸들러입니다. 내부 파이프라인 순서를 변경하지 않고 Astro 실행 전후에 로직을 추가하려는 경우 사용하세요.
+
+```ts title="src/fetch.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // 사용자 정의 전처리
+    const response = await astro(state);
+    // 사용자 정의 후처리
+    return response;
+  },
+};
+```
+
+### `actions()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response | undefined\> | undefined</code>
+</p>
+
+[Astro 액션](/ko/guides/actions/) (RPC 및 폼 제출)을 처리합니다. RPC 액션의 경우 `Response`를 반환하고, 폼 액션이나 액션이 아닌 요청의 경우 `undefined`를 반환합니다. 반환 값을 확인하여 렌더링을 계속할지 결정하세요.
+
+```ts
+const actionResponse = await actions(state);
+if (actionResponse) return actionResponse;
+// 그렇지 않으면 페이지 렌더링을 계속 진행합니다.
+```
+
+### `cache()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>, next: () => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+[캐시](/ko/guides/caching/) 공급자 로직으로 렌더링 콜백을 래핑합니다. 런타임 캐싱, CDN 기반 공급자 및 캐시 없는 경우를 처리합니다.
+
+### `i18n()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>, response: Response) => Promise\<Response\></code>
+</p>
+
+[i18n 설정](/ko/guides/internationalization/)에 따라 응답을 후처리합니다. 로케일 리다이렉트, 잘못된 로케일에 대한 404 및 대체 라우팅을 처리합니다. 렌더링 후 이를 호출하세요:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+return i18n(state, response);
+```
+
+### `middleware()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>, next: (state: FetchState) => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Astro의 미들웨어 체인(`src/middleware.ts`)을 실행합니다. `next` 콜백은 체인의 가장 마지막에 호출되어 응답을 생성하며, 일반적으로 `pages()`를 호출하는 방식으로 동작합니다.
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+```
+
+### `pages()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+요청을 일치하는 Astro 라우트(페이지, 엔드포인트, 또는 폴백)로 전달합니다. 이는 핵심 렌더링 핸들러로, 대부분의 커스텀 파이프라인에 포함됩니다.
+
+### `redirects()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
+</p>
+
+[Astro 설정](/ko/reference/configuration-reference/#redirects)에 정의된 리다이렉트 라우트를 처리합니다. 일치하는 라우트가 리다이렉트인 경우 리다이렉트 `Response`를 반환하고, 호출 측에서 처리를 계속 진행해야 할 때는 `undefined`를 반환합니다.
+
+### `sessions()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
+</p>
+
+[세션](/ko/guides/sessions/) 프로바이더를 등록합니다. 세션은 코드가 `ctx.session`에 접근할 때 지연 생성되며, 요청이 끝날 때 자동으로 저장됩니다. 파이프라인 앞부분(미들웨어가 실행되기 전)에서 이를 호출하세요.
+
+```ts
+await sessions(state);
+// ...렌더링 파이프라인...
+```
+
+### `trailingSlash()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Response | undefined</code>
+</p>
+
+요청 경로명에 [트레일링 슬래시](/ko/reference/configuration-reference/#trailingslash) 정규화가 필요한지 확인하고, 필요한 경우 리다이렉트 `Response`를 반환합니다. 리다이렉트가 필요하지 않을 때는 `undefined`를 반환합니다.
