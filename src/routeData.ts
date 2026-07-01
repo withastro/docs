@@ -41,7 +41,6 @@ function updateHead(context: APIContext) {
 	const is404 = context.url.pathname.endsWith('/404/');
 
 	head.push({ tag: 'meta', attrs: { property: 'og:image', content: canonicalImageSrc.href } });
-	head.push({ tag: 'meta', attrs: { name: 'twitter:image', content: canonicalImageSrc.href } });
 	head.push({ tag: 'meta', attrs: { name: 'twitter:site', content: 'astrodotbuild' } });
 
 	// Algolia docsearch language facet
