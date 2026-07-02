@@ -44,9 +44,13 @@ Importez et ajoutez le composant `<ClientRouter />` à votre en-tête (`<head>`)
 
 L'exemple ci-dessous montre l'ajout des animations de navigation par défaut d'Astro sur l'ensemble du site, y compris l'option de contrôle de repli par défaut pour les navigateurs non compatibles, en important et en ajoutant ce composant à un composant Astro `<CommonHead />` :
 
-```astro title="src/components/CommonHead.astro" ins={2,12}
+```astro title="src/components/CommonHead.astro" ins={2,16}
 ---
 import { ClientRouter } from "astro:transitions";
+
+type Props = { title: string; description: string };
+
+const { title, description } = Astro.props;
 ---
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
@@ -328,11 +332,16 @@ L'exemple suivant montre un composant Astro qui permet à un visiteur de navigue
 <script>
   import { navigate } from "astro:transitions/client";
 
+  const select = document.querySelector("select");
   // Naviguer automatiquement vers l'option sélectionnée.
-  document.querySelector("select").onchange = (event) => {
-    let href = event.target.value;
-    navigate(href);
-  };
+  if (select) {
+    select.onchange = (event) => {
+      if (event.target instanceof HTMLSelectElement) {
+        let href = event.target.value;
+        navigate(href);
+      }
+    };
+  }
 </script>
 <select>
   <option value="/play">Jouer</option>
@@ -453,7 +462,7 @@ Une façon de mettre cela en œuvre en toute sécurité consiste à s'assurer qu
   const redirect = params.get('redirect');
   const allowedPaths = ['/home', '/a-propos', '/contact'];
 
-  if (allowedPaths.includes(redirect)) {
+  if (redirect && allowedPaths.includes(redirect)) {
     navigate(redirect);
   }
 </script>
@@ -715,7 +724,7 @@ L'exemple suivant montre comment utiliser ces fonctions pour recréer l'impléme
   document.addEventListener("astro:before-swap", (event) => {
     event.swap = () => mySwap(event.newDocument);
   });
-<script>
+</script>
 ```
 
 Les implémentations d'échange personnalisées peuvent commencer avec ce modèle et ajouter ou remplacer des étapes individuelles par une logique personnalisée selon les besoins.
@@ -731,10 +740,12 @@ Il s'agit du dernier point du cycle de vie où il est encore possible, par exemp
 L'événement `astro:after-swap` se produit immédiatement après la mise à jour de l'historique du navigateur et la définition de la position de défilement.
 Par conséquent, l'une des utilisations du ciblage de cet événement consiste à remplacer la restauration du défilement par défaut pour la navigation dans l'historique. L'exemple suivant réinitialise la position de défilement horizontale et verticale au coin supérieur gauche de la page pour chaque navigation.
 
-```js
-document.addEventListener("astro:after-swap", () =>
-  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
-);
+```astro
+<script>
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+  );
+</script>
 ```
 
 ### `astro:page-load`
@@ -747,6 +758,8 @@ Vous pouvez utiliser cet événement pour exécuter du code à chaque navigation
 
 ```astro
 <script>
+  import { setupStuff } from "../utils.ts";
+
   document.addEventListener("astro:page-load", () => {
     // Cette opération s'exécute lors du premier chargement de la page et après chaque navigation.
     setupStuff(); // par exemple, ajouter des écouteurs d'événements
