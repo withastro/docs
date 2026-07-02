@@ -13,9 +13,9 @@
 
 <!-- For a new/changed feature in an upcoming Astro release? -->
 <!-- 1. Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `6.x`. See astro PR [#](url). -->
+<!-- #### For Astro version: `7.x`. See astro PR [#](url). -->
 
-<!-- 2. Check that your PR includes `<p><Since v="6.x.x" /></p>` and imports the `<Since>` component, if necessary! -->
+<!-- 2. Check that your PR includes `<p><Since v="7.x.x" /></p>` and imports the `<Since>` component, if necessary! -->
 
 <!-- #### First-time contributor to Astro Docs? -->
 
