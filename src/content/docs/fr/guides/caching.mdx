@@ -1,0 +1,257 @@
+---
+title: Mise en cache des routes
+description: Une introduction à la mise en cache avec Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+<p><Since v="7.0.0" /></p>
+
+Astro fournit une API multiplateformes pour la mise en cache des réponses des pages et des points de terminaison [rendus à la demande](/fr/guides/on-demand-rendering/). Les directives de mise en cache définies dans vos routes sont traduites en en-têtes appropriés ou en un comportement d'exécution spécifique, selon le fournisseur de cache configuré.
+
+La mise en cache des routes s'appuie sur les [sémantiques standard de mise en cache HTTP](https://developer.mozilla.org/fr/docs/Web/HTTP/Guides/Caching), notamment [`max-age`](https://developer.mozilla.org/fr/docs/Web/HTTP/Reference/Headers/Cache-Control#max-age) et [`stale-while-revalidate`](https://developer.mozilla.org/fr/docs/Web/HTTP/Headers/Cache-Control#stale-while-revalidate) et prend en charge l'invalidation par étiquettes ou par chemins, les règles de route définies dans la configuration et les fournisseurs de cache extensibles que les adaptateurs peuvent définir automatiquement.
+
+## Configurer la mise en cache
+
+La mise en cache des routes nécessite un fournisseur de cache pour déterminer comment la mise en cache est implémentée à l'exécution. Un [fournisseur en mémoire intégré](/fr/reference/cache-provider-reference/#fournisseur-de-cache-en-mémoire-intégré) est disponible, et des fournisseurs personnalisés peuvent être implémentés pour des cas d'utilisation avancés et des environnements d'exécution spécifiques.
+
+Pour activer cette fonctionnalité, définissez un [fournisseur de cache](/fr/reference/cache-provider-reference/) dans votre configuration d'Astro :
+
+```js title="astro.config.mjs" {6-8} "memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+});
+```
+
+Vous pouvez ensuite utiliser [`Astro.cache`](/fr/reference/api-reference/#cache) dans vos pages `.astro` (ou `context.cache` pour les routes d'API et les middlewares) pour contrôler la mise en cache par requête. Les valeurs par défaut du cache pour les groupes de routes peuvent également être définies de manière déclarative dans votre configuration à l'aide de [`routeRules`](#règles-de-route).
+
+Si vous déployez sur Netlify, Vercel ou Cloudflare, vous pouvez utiliser le [fournisseur de cache CDN](#fournisseurs-de-cache-des-adaptateurs) expérimental de leurs adaptateurs respectifs au lieu du fournisseur en mémoire.
+
+## Fournisseurs de cache des adaptateurs
+
+Les adaptateurs officiels d'Astro pour Netlify, Vercel et Cloudflare fournissent chacun un fournisseur de cache CDN expérimental qui associe les directives de cache aux en-têtes de cache natifs et à l'API d'invalidation de la plateforme. Plutôt que de stocker les réponses en mémoire, ces directives de mise en cache sont transmises au réseau périphérique de l'hôte, et les accès au cache sont servis directement depuis le CDN sans invoquer votre fonction serveur.
+
+Pendant la phase expérimentale, ces fournisseurs doivent être activés manuellement, comme montré ci-dessous. Dans une future version, les fournisseurs Netlify et Vercel seront activés automatiquement par leurs adaptateurs. Le fournisseur Cloudflare nécessite une fonctionnalité actuellement en bêta privée.
+
+Chaque fournisseur étiquette automatiquement les réponses mises en cache avec le chemin de la requête, de sorte que [`cache.invalidate({ path })`](/fr/reference/api-reference/#cacheinvalidate) fonctionne sur les plateformes qui ne prennent en charge que les purges reposant sur les étiquettes.
+
+### Netlify
+
+<p>
+
+<Since pkg="@astrojs/netlify" v="8.0.0" />
+</p>
+
+Importez `cacheNetlify()` depuis `@astrojs/netlify/cache` et définissez-le comme votre fournisseur de cache :
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
+
+export default defineConfig({
+  adapter: netlify(),
+  cache: {
+    provider: cacheNetlify(),
+  },
+});
+```
+
+Le fournisseur définit les en-têtes `Netlify-CDN-Cache-Control` et `Netlify-Cache-Tag`. Les réponses mises en cache utilisent le [cache durable](https://docs.netlify.com/platform/caching/#durable-directive) de Netlify afin qu'elles soient partagées entre tous les nœuds périphériques, réduisant ainsi les appels de fonction. L'invalidation reposant sur les étiquettes et l'invalidation reposant sur les chemins sont toutes deux prises en charge.
+
+### Vercel
+
+<p>
+
+<Since pkg="@astrojs/vercel" v="11.0.0" />
+</p>
+
+Importez `cacheVercel()` depuis `@astrojs/vercel/cache` et définissez-le comme votre fournisseur de cache :
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+import { cacheVercel } from '@astrojs/vercel/cache';
+
+export default defineConfig({
+  adapter: vercel(),
+  cache: {
+    provider: cacheVercel(),
+  },
+});
+```
+
+Le fournisseur définit les en-têtes `Vercel-CDN-Cache-Control` et `Vercel-Cache-Tag`. L'invalidation reposant sur les étiquettes et l'invalidation reposant sur les chemins sont toutes deux prises en charge. L'invalidation par étiquettes est une invalidation douce : les réponses mises en cache sont marquées comme obsolètes et réactualisées en arrière-plan en utilisant la stratégie « stale-while-revalidate ».
+
+### Cloudflare
+
+<p>
+
+<Since pkg="@astrojs/cloudflare" v="14.0.0" />
+</p>
+
+:::caution[Bêta privée]
+Le fournisseur Cloudflare nécessite la fonctionnalité Workers Cache de Cloudflare, qui est actuellement en bêta privée. Sans accès à la bêta, les en-têtes sont ignorés et l'appel à `cache.invalidate()` générera une erreur.
+:::
+
+Importez `cacheCloudflare()` depuis `@astrojs/cloudflare/cache` et définissez-le comme votre fournisseur de cache :
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
+
+export default defineConfig({
+  adapter: cloudflare(),
+  cache: {
+    provider: cacheCloudflare(),
+  },
+});
+```
+
+Le fournisseur définit les en-têtes `Cloudflare-CDN-Cache-Control` et `Cache-Tag`. L'adaptateur active automatiquement la mise en cache des Workers lorsqu'un fournisseur de cache Cloudflare est configuré. L'invalidation reposant sur les étiquettes et l'invalidation reposant sur les chemins sont toutes deux prises en charge.
+
+## Interaction avec le cache
+
+L'[objet `cache`](/fr/reference/api-reference/#cache) fournit des méthodes pour définir les options de cache, invalider les entrées et vérifier l'état actuel du cache. Cet objet est disponible dans vos pages `.astro` sous le nom `Astro.cache`, et dans les routes d'API et les middlewares sous le nom `context.cache`.
+
+<ReadMore>Consultez la [référence de l'API de cache](/fr/reference/api-reference/#cache) pour plus de détails.</ReadMore>
+
+### Vérification de l'activation de la mise en cache
+
+Lorsque la mise en cache n'est pas configurée, `cache.set()`, `cache.tags` et `cache.options` émettent un avertissement, tandis que `cache.invalidate()` génère une erreur. Pour éviter cela, enveloppez votre logique de mise en cache dans une vérification conditionnelle en utilisant [`cache.enabled`](/fr/reference/api-reference/#cacheenabled). Sa valeur est toujours `false` lorsqu'aucun fournisseur n'est configuré ou en mode développement.
+
+```astro title="src/pages/produits/[id].astro" "Astro.cache.enabled"
+---
+if (Astro.cache.enabled) {
+  const tags = await getProductTags(Astro.params.id);
+  Astro.cache.set({ maxAge: 3600, tags });
+}
+---
+```
+
+### Définir les options de cache
+
+Appelez [`cache.set()`](/fr/reference/api-reference/#cacheset) avec un objet d'options pour activer la mise en cache pour la réponse actuelle.
+
+L'exemple suivant met en cache une page pendant 2 minutes, sert du contenu obsolète pendant 1 minute tout en le réactualisant, et étiquette la réponse pour une invalidation ciblée :
+
+```astro title="src/pages/index.astro" {4-8}
+---
+export const prerender = false; // Non nécessaire en mode 'server'
+
+Astro.cache.set({
+  maxAge: 120,
+  swr: 60,
+  tags: ['accueil'],
+});
+---
+
+<html><body>Page mise en cache</body></html>
+```
+
+Dans les routes d'API et les middlewares, utilisez `context.cache` :
+
+```ts title="src/pages/api/data.ts" {2-5}
+export function GET(context) {
+  context.cache.set({
+    maxAge: 300,
+    tags: ['api', 'data'],
+  });
+  return Response.json({ ok: true });
+}
+```
+
+### Désactivation de la mise en cache
+
+Appelez [`cache.set()`](/fr/reference/api-reference/#cacheset) avec `false` pour désactiver explicitement la mise en cache d'une requête. Cela est utile lorsqu'une [règle de route](#règles-de-route) correspondante mettrait autrement en cache la réponse :
+
+```astro title="src/pages/tableau-de-bord.astro"
+---
+if (isPersonalized) {
+  Astro.cache.set(false);
+}
+---
+```
+
+### Lecture de l'état du cache
+
+Vous pouvez accéder aux options de cache actuellement cumulées via [`cache.options`](/fr/reference/api-reference/#cacheoptions). Cela est utile pour le débogage ou lorsque vous souhaitez modifier conditionnellement la mise en cache en fonction de l'état actuel :
+
+```ts title="src/pages/api/debug.ts"
+const { maxAge, swr, tags } = context.cache.options;
+```
+
+### Invalidation des entrées de cache
+
+Vous pouvez purger les entrées mises en cache par étiquette ou par chemin en utilisant [`cache.invalidate()`](/fr/reference/api-reference/#cacheinvalidate). Cela est utile pour effacer programmatiquement le contenu mis en cache lorsqu'il devient obsolète, par exemple après une mise à jour du contenu ou une action de l'utilisateur.
+
+L'exemple suivant crée une route d'API qui invalide par étiquette et par chemin :
+
+```ts title="src/pages/api/revalidate.ts"
+export async function POST(context) {
+  // Invalider toutes les entrées étiquetées « data »
+  await context.cache.invalidate({ tags: ['data'] });
+
+  // Invalider un chemin spécifique
+  await context.cache.invalidate({ path: '/api/data' });
+
+  return Response.json({ purged: true });
+}
+```
+
+L'invalidation par étiquettes supprime toutes les entrées mises en cache dont les étiquettes incluent l'une des étiquettes fournies. L'invalidation reposant sur le chemin est une correspondance exacte uniquement (pas de [glob](/fr/guides/imports/#motifs-glob) ou de motifs génériques).
+
+## Comportement de fusion
+
+Les appels multiples à [`cache.set()`](/fr/reference/api-reference/#cacheset) au sein d'une seule requête sont fusionnés selon les règles suivantes :
+
+- **Valeurs scalaires** (`maxAge`, `swr`, `etag`) : la dernière écriture l'emporte
+- **`lastModified`** : la date la plus récente l'emporte
+- **`tags`** : cumuler sur l'ensemble des appels
+
+Les middlewares, les mises en page, les chargeurs de contenu et le code de la page peuvent chacun contribuer indépendamment aux directives de cache.
+
+## Comportement en mode développement
+
+En mode développement, l'API de cache est disponible afin que le code de la route n'ait pas besoin de vérifications conditionnelles, mais aucune mise en cache réelle n'a lieu. [`cache.enabled`](/fr/reference/api-reference/#cacheenabled) est défini sur `false`, et [`cache.set()`](/fr/reference/api-reference/#cacheset) et [`cache.invalidate()`](/fr/reference/api-reference/#cacheinvalidate) sont des opérations sans effet. Pour tester votre mise en cache localement, compilez puis prévisualisez votre site.
+
+## Règles de route
+
+Les règles de route vous permettent de définir le comportement de mise en cache pour des groupes de routes de manière déclarative dans votre configuration. Cela est utile pour appliquer la mise en cache à de grands groupes de routes en une seule fois.
+
+L'exemple suivant met en cache toutes les routes d'API avec la stratégie « stale-while-revalidate », les pages de produits avec une fenêtre de fraîcheur d'une heure, et les articles de blog pendant 5 minutes :
+
+```js title="astro.config.mjs" {9-13}
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/api/[...chemin]': { swr: 600 },
+    '/produits/[...slug]': { maxAge: 3600, tags: ['produits'] },
+    '/blog/[...slug]': { maxAge: 300, swr: 60 },
+  },
+});
+```
+
+Les modèles de route suivants sont pris en charge :
+
+- **Chemins statiques** : `/a-propos`, `/api/health`
+- **Paramètres dynamiques** : `/produits/[id]`, `/blog/[slug]`
+- **Paramètres rest** : `/doc/[...chemin]`
+
+Les modèles utilisent la même syntaxe, les mêmes règles de correspondance et de priorité que le [routage reposant sur les fichiers](/fr/guides/routing/#ordre-de-priorité-des-routes) d'Astro, donc les modèles plus spécifiques sont prioritaires. Les caractères génériques glob tels que `*` ne sont pas pris en charge ; utilisez un paramètre du reste (`[...rest]`) pour faire correspondre un groupe de routes (par exemple, `/api/[...chemin]` pour tout ce qui se trouve sous `/api`).
+
+Les appels [`cache.set()`](/fr/reference/api-reference/#cacheset) effectués au niveau de la route fusionnent avec les règles de route définies dans la configuration. Le code de la route peut remplacer ou étendre les valeurs par défaut définies dans la configuration. Par exemple, une règle de route peut définir une valeur `maxAge` par défaut pour toutes les pages de produits, tandis que des pages individuelles peuvent appeler `cache.set()` pour personnaliser ou désactiver la mise en cache selon les besoins.
