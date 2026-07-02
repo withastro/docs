@@ -44,9 +44,13 @@ Astro의 내장 `<ClientRouter />` 컴포넌트는 다음을 수행합니다.
 
 아래 예시는 `<CommonHead />` Astro 컴포넌트에 이 컴포넌트를 가져와 추가하여 Astro의 기본 페이지 탐색 애니메이션을 사이트 전체에 추가하는 방법을 보여줍니다. 여기에는 지원되지 않는 브라우저를 위한 기본 대체 제어 옵션도 포함됩니다.
 
-```astro title="src/components/CommonHead.astro" ins={2,12}
+```astro title="src/components/CommonHead.astro" ins={2,16}
 ---
 import { ClientRouter } from "astro:transitions";
+
+type Props = { title: string; description: string };
+
+const { title, description } = Astro.props;
 ---
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
@@ -328,11 +332,16 @@ const customTransition = {
 <script>
   import { navigate } from "astro:transitions/client";
 
-  // 선택한 옵션으로 이동합니다.
-  document.querySelector("select").onchange = (event) => {
-    let href = event.target.value;
-    navigate(href);
-  };
+  const select = document.querySelector("select");
+  // 선택한 옵션으로 자동으로 이동합니다.
+  if (select) {
+    select.onchange = (event) => {
+      if (event.target instanceof HTMLSelectElement) {
+        let href = event.target.value;
+        navigate(href);
+      }
+    };
+  }
 </script>
 <select>
   <option value="/play">시작</option>
@@ -453,7 +462,7 @@ import { ClientRouter } from "astro:transitions";
   const redirect = params.get('redirect');
   const allowedPaths = ['/home', '/about', '/contact'];
 
-  if (allowedPaths.includes(redirect)) {
+  if (redirect && allowedPaths.includes(redirect)) {
     navigate(redirect);
   }
 </script>
@@ -715,7 +724,7 @@ Astro의 뷰 전환 API 수명 주기 이벤트는 순서대로 다음과 같습
   document.addEventListener("astro:before-swap", (event) => {
     event.swap = () => mySwap(event.newDocument);
   });
-<script>
+</script>
 ```
 
 사용자 정의 교체 구현은 이 템플릿으로 시작하고, 필요에 따라 개별 단계를 사용자 정의 논리로 추가하거나 대체할 수 있습니다.
@@ -731,10 +740,12 @@ Astro의 뷰 전환 API 수명 주기 이벤트는 순서대로 다음과 같습
 `astro:after-swap` 이벤트는 브라우저 기록이 업데이트되고 스크롤 위치가 설정된 직후에 발생합니다.
 따라서 이 이벤트를 대상으로 하는 한 가지 용도는 기록 탐색에 대한 기본 스크롤 복원을 재정의하는 것입니다. 다음 예제는 각 탐색에 대해 가로 및 세로 스크롤 위치를 페이지의 왼쪽 상단 모서리로 재설정합니다.
 
-```js
-document.addEventListener("astro:after-swap", () =>
-  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
-);
+```astro
+<script>
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+  );
+</script>
 ```
 
 ### `astro:page-load`
@@ -747,6 +758,8 @@ document.addEventListener("astro:after-swap", () =>
 
 ```astro
 <script>
+  import { setupStuff } from "../utils.ts";
+  
   document.addEventListener("astro:page-load", () => {
     // 첫 페이지 로딩 시와 모든 탐색 후에 실행됩니다.
     setupStuff(); // 예: 이벤트 리스너 추가
