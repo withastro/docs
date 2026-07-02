@@ -431,10 +431,11 @@ Les noms des routes paginées doivent utiliser la même syntaxe de `[crochets]` 
 
 Vous pouvez utiliser la fonction `paginate()` pour générer ces pages pour un tableau de valeurs comme ceci :
 
-```astro /{ (paginate) }/ /paginate\\(.*\\);/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
+```astro title="src/pages/astronauts/[page].astro" /{ (paginate) }/ /paginate\\(.*\\);/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
 ---
-// src/pages/astronauts/[page].astro
-export function getStaticPaths({ paginate }) {
+import type { GetStaticPaths } from "astro";
+
+export const getStaticPaths = (({ paginate }) => {
   const astronautPages = [
     { astronaut: "Neil Armstrong" },
     { astronaut: "Buzz Aldrin" },
@@ -444,10 +445,12 @@ export function getStaticPaths({ paginate }) {
 
   // Génère des pages à partir de notre tableau d'astronautes, avec 2 par page
   return paginate(astronautPages, { pageSize: 2 });
-}
+}) satisfies GetStaticPaths;
+
 // Toutes les données paginées sont passées dans la propriété « page »
 const { page } = Astro.props;
 ---
+
 <!-- Affiche le numéro de la page actuelle. `Astro.params.page` peut aussi être utilisé ! -->
 <h1>Page {page.currentPage}</h1>
 <ul>
@@ -502,8 +505,11 @@ L'exemple suivant affiche les informations actuelles de la page ainsi que des li
 ```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
 ---
 // src/pages/astronauts/[page].astro
+import type { GetStaticPaths } from "astro";
+
 // Paginer la même liste d'objets `{ astronaut }` que dans l'exemple précédent
-export function getStaticPaths({ paginate }) { /* ... */ }
+export const getStaticPaths = (({ paginate }) => { /* ... */}) satisfies GetStaticPaths;
+
 const { page } = Astro.props;
 ---
 <h1>Page {page.currentPage}</h1>
@@ -533,26 +539,32 @@ La pagination imbriquée fonctionne en renvoyant un tableau de résultats pagin�
 
 Dans l'exemple suivant, nous allons implémenter la pagination imbriquée pour générer les URLs listées ci-dessus :
 
-```astro /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
+```astro title="src/pages/[tag]/[page].astro" /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
 ---
-// src/pages/[tag]/[page].astro
-export function getStaticPaths({ paginate }) {
+import type { GetStaticPaths } from "astro";
+
+export const getStaticPaths = (({ paginate }) => {
   const allTags = ["red", "blue", "green"];
-  const allPosts = Object.values(import.meta.glob("../pages/post/*.md", { eager: true }));
+  const allPosts = Object.values(
+    import.meta.glob("../pages/post/*.md", { eager: true }),
+  );
   // Pour chaque étiquette, renvoyer un résultat paginé (`paginate()`).
   // Assurez-vous de passer `{ params: { tag } }` à la fonction `paginate()`
   // afin qu'Astro sache à quel groupe d'étiquettes le résultat est destiné.
   return allTags.map((tag) => {
-    const filteredPosts = allPosts.filter((post) => post.frontmatter.tag === tag);
+    const filteredPosts = allPosts.filter(
+      (post: any) => post.frontmatter.tag === tag,
+    );
     return paginate(filteredPosts, {
       params: { tag },
-      pageSize: 10
+      pageSize: 10,
     });
   });
-}
+}) satisfies GetStaticPaths;
 
 const { page } = Astro.props;
 const params = Astro.params;
+---
 ```
 
 ## Exclure des pages
