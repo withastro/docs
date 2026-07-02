@@ -59,7 +59,7 @@ import type { APIRoute } from "astro";
 const usernames = ["Sarah", "Chris", "Yan", "Elian"];
 
 export const GET = (({ params, request }) => {
-  const id = params.id;
+  const id = Number(params.id);
   
   return new Response(
     JSON.stringify({
@@ -113,9 +113,10 @@ Veillez à [activer le mode de rendu à la demande](/fr/guides/on-demand-renderi
 Les points de terminaison du serveur peuvent accéder à `params` sans exporter `getStaticPaths`, et ils peuvent retourner un objet `Response`, vous permettant de définir les codes d'état et les en-têtes :
 
 ```js title="src/pages/[id].json.js"
+import type { APIRoute } from "astro";
 import { getProduct } from "../db";
 
-export async function GET({ params }) {
+export const GET = (async ({ params }) => {
   const id = params.id;
   const product = await getProduct(id);
 
@@ -132,7 +133,7 @@ export async function GET({ params }) {
       "Content-Type": "application/json",
     },
   });
-}
+}) satisfies APIRoute;
 ```
 
 Cela répondra à toute requête qui correspond à la route dynamique. Par exemple, si nous naviguons vers `/helmet.json`, `params.id` sera défini sur `helmet`. Si `helmet` existe dans la base de données de produits fictifs, le point de terminaison utilisera un objet `Response` pour répondre en JSON et renvoyer un [code d'état HTTP (Anglais)](https://developer.mozilla.org/en-US/docs/Web/API/Response/status) de succès. Sinon, il utilisera un objet `Response` pour répondre avec une erreur `404`.
@@ -140,16 +141,18 @@ Cela répondra à toute requête qui correspond à la route dynamique. Par exemp
 En mode SSR, certains fournisseurs exigent l'en-tête `Content-Type` pour renvoyer une image. Dans ce cas, utilisez un objet `Response` pour spécifier une propriété `headers`. Par exemple, pour produire une image binaire `.png` :
 
 ```ts title="src/pages/astro-logo.png.ts"
-export async function GET({ params, request }) {
+import type { APIRoute } from "astro";
+
+export const GET = (async ({ params, request }) => {
   const response = await fetch(
     "https://docs.astro.build/assets/full-logo-light.png",
   );
-  const buffer = Buffer.from(await response.arrayBuffer());
-  
+  const buffer = Buffer.from(await response.arrayBuffer()); // nécessite `@types/node` dans vos dépendances pour la sûreté du typage
+
   return new Response(buffer, {
     headers: { "Content-Type": "image/png" },
   });
-}
+}) satisfies APIRoute;
 ```
 
 ### Méthodes HTTP
@@ -159,6 +162,8 @@ En plus de la fonction `GET`, vous pouvez exporter une fonction avec le nom de n
 Vous pouvez également exporter une fonction `ALL` pour correspondre à n'importe quelle méthode qui n'a pas de fonction exportée correspondante. Si une requête ne correspond à aucune méthode, elle sera redirigée vers la [page 404](/fr/basics/astro-pages/#page-derreur-404-personnalisée) de votre site.
 
 ```ts title="src/pages/methods.json.ts"
+import type { APIRoute } from "astro";
+
 export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
@@ -201,6 +206,8 @@ Si vous définissez une fonction `GET` mais pas de fonction `HEAD`, Astro gérer
 En mode de rendu SSR, la propriété `request` renvoie un objet [`Request`](https://developer.mozilla.org/fr-FR/docs/Web/API/Request) entièrement utilisable qui fait référence à la requête en cours. Cela vous permet d'accepter des données et de vérifier les en-têtes :
 
 ```ts title="src/pages/test-post.json.ts"
+import type { APIRoute } from "astro";
+
 export const POST = (async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
@@ -224,10 +231,11 @@ export const POST = (async ({ request }) => {
 
 Le contexte du point de terminaison exporte un utilitaire `redirect()` similaire à `Astro.redirect` :
 
-```js title="src/pages/links/[id].js" {14}
+```js title="src/pages/links/[id].js" {15}
+import type { APIRoute } from "astro";
 import { getLinkUrl } from "../db";
 
-export async function GET({ params, redirect }) {
+export const GET = (async ({ params, redirect }) => {
   const { id } = params;
   const link = await getLinkUrl(id);
 
@@ -239,5 +247,5 @@ export async function GET({ params, redirect }) {
   }
 
   return redirect(link, 307);
-}
+}) satisfies APIRoute;
 ```
