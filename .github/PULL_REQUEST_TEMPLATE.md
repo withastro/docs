@@ -5,8 +5,8 @@
 <!--
 - Describe the change you are proposing, and why.
 - Only make changes to **one language**.
-- If your PR is for a specific version of Astro, check that `<Since v="x.x.x" />` is used where appropriate.
-- Read https://contribute.docs.astro.build/ to understand our contribution guidelines and writing style. This will help us review your PR faster.
+- Use  `<Since v="x.x.x" />` when adding features for a specific version of Astro.
+- Follow additional guidance at https://contribute.docs.astro.build/ for faster reviews.
 -->
 
 #### References
