@@ -9,7 +9,7 @@
 - Read https://contribute.docs.astro.build/ to understand our contribution guidelines and writing style. This will help us review your PR faster.
 -->
 
-#### Related issues (optional)
+#### References
 
 <!-- Optional section. Delete any points that don’t apply. -->
 
