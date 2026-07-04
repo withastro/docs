@@ -425,6 +425,58 @@ export default defineConfig({
 });
 ```
 
+## 使用高级路由
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+Cloudflare 适配器提供了配套处理器，可为你的[高级路由管道](/en/guides/routing/#advanced-routing)应用 Cloudflare 特定的设置。这些处理器负责配置会话 KV 绑定注入，通过 `ASSETS` 绑定提供静态资源服务，`Astro.locals.cfContext`，来自 `cf-connecting-ip` 请求头的客户端地址，`waitUntil` 以及预渲染错误页面的获取。
+
+你可以在 Cloudflare 上通过 `src/fetch.ts` 直接使用 [`astro/fetch`](/en/reference/modules/astro-fetch/) 和 [`astro/hono`](/en/reference/modules/astro-hono/) API。适配器的默认入口点会自动为你处理 Cloudflare 特定的设置。当你已经有一个[自定义 Worker 入口点](https://developers.cloudflare.com/workers/wrangler/configuration/#inheritable-keys)（`src/worker.ts`）时如果需要导出一个 Durable Object，并且希望直接从该文件中使用高级路由 API，这些配套处理器就能派上用场。
+
+在你的 Worker 入口点中使用这些处理器时，它们会替代适配器默认处理器的功能，因此不应同时使用两者。请将 Cloudflare 处理器放在其他 Astro 处理器之前，以确保绑定和 locals 在管道的其余部分可用。
+
+### 配合 Fetch API 使用
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+用于配合  [`astro/fetch`](/en/reference/modules/astro-fetch/) 使用。从 `@astrojs/cloudflare/fetch` 导入的 `cf()` 函数接收一个 [`FetchState`](/en/reference/modules/astro-fetch/#fetchstate)，Cloudflare `env` 和 `ExecutionContext`。它在命中静态资源时返回一个 `Response`，当请求应继续交由 Astro 渲染时返回 `undefined`：
+
+```ts title="src/worker.ts"
+import { astro, FetchState } from 'astro/fetch';
+import { cf } from '@astrojs/cloudflare/fetch';
+
+export default {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext) {
+    const state = new FetchState(request);
+    const asset = await cf(state, env, ctx);
+    if (asset) return asset;
+    return astro(state);
+  },
+};
+```
+
+### 配合 Hono 使用
+
+<p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
+
+用于配合  [`astro/hono`](/en/reference/modules/astro-hono/) 使用。从 `@astrojs/cloudflare/hono` 导入的 `cf()` 函数返回一个 Hono 中间件，它会自动从 Hono 上下文中读取 `env` 和 `executionCtx`：
+
+```ts title="src/worker.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { cf } from '@astrojs/cloudflare/hono';
+
+const app = new Hono<{ Bindings: Env }>();
+
+app.use(cf());
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```
+
 ## 升级到 v13 和 Astro 6
 
 Astro 6 为 Cloudflare 开发体验带来了显著改进，并且需要 `@astrojs/cloudflare` v13 或更高版本。现在，`astro dev` 使用 Cloudflare 的 Vite 插件和 `workerd` 运行时，其运行行为与生产环境高度一致。
