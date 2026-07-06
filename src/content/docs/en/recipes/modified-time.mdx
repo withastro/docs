@@ -7,7 +7,7 @@ type: recipe
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-Learn how to build a [remark plugin](https://github.com/remarkjs/remark) that adds the last modified time to the frontmatter of your Markdown and MDX files. Use this property to  display the modified time in your pages.
+Learn how to build a [remark plugin](https://github.com/remarkjs/remark) that adds the last modified time as a [custom frontmatter property](/en/guides/markdown-content/#modifying-frontmatter-programmatically) of your Markdown and MDX files. Use this property to  display the modified time in your pages.
 
 :::note[Uses Git history]
 This recipe calculates time based on your repository’s Git history and may not be accurate on some deployment platforms. Your host may be performing **shallow clones** which do not retrieve the full git history.
@@ -16,24 +16,22 @@ This recipe calculates time based on your repository’s Git history and may not
 ## Recipe
 
 <Steps>
-1. Install Helper Packages
-
-   Install [`Day.js`](https://www.npmjs.com/package/dayjs) to modify and format times:
+1. Install [`Day.js`](https://www.npmjs.com/package/dayjs) to modify and format times, and [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark) to use [the `unified()` processor](/en/guides/markdown-content/#using-remark-and-rehype-plugins):
 
    <PackageManagerTabs>
      <Fragment slot="npm">
        ```shell
-       npm install dayjs
+       npm install dayjs @astrojs/markdown-remark
        ```
      </Fragment>
      <Fragment slot="pnpm">
        ```shell
-       pnpm add dayjs
+       pnpm add dayjs @astrojs/markdown-remark
        ```
      </Fragment>
      <Fragment slot="yarn">
        ```shell
-       yarn add dayjs
+       yarn add dayjs @astrojs/markdown-remark
        ```
      </Fragment>
    </PackageManagerTabs>
@@ -43,7 +41,7 @@ This recipe calculates time based on your repository’s Git history and may not
     This plugin uses `execSync` to run a Git command that returns the timestamp of the latest commit in ISO 8601 format. The timestamp is then added to the frontmatter of the file.
 
      ```js title="remark-modified-time.mjs"
-     import { execSync } from "child_process";
+     import { execSync } from "node:child_process";
 
      export function remarkModifiedTime() {
        return function (tree, file) {
@@ -75,12 +73,15 @@ This recipe calculates time based on your repository’s Git history and may not
 3. Add the plugin to your config
 
    ```js title="astro.config.mjs"
+   import { unified } from '@astrojs/markdown-remark';
    import { defineConfig } from 'astro/config';
    import { remarkModifiedTime } from './remark-modified-time.mjs';
 
    export default defineConfig({
      markdown: {
-       remarkPlugins: [remarkModifiedTime],
+       processor: unified({
+         remarkPlugins: [remarkModifiedTime],
+       }),
      },
    });
    ```

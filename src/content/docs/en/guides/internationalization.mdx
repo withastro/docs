@@ -24,7 +24,7 @@ You can also choose to [add your own i18n logic in addition to or instead of Ast
 
 ## Configure i18n routing
 
-Both a list of all supported languages ([`locales`](/en/reference/configuration-reference/#i18nlocales)) and a default language ([`defaultLocale`](/en/reference/configuration-reference/#i18ndefaultlocale)), which must be one of the languages listed in `locales`, need to be specified in an `i18n` configuration object. Additionally, you can configure more specific routing and fallback behavior to match your desired URLs.
+In your `i18n` configuration, specify the list of all supported languages ​​([`locales`](/en/reference/configuration-reference/#i18nlocales)) and set one of them as the default language ([`defaultLocale`](/en/reference/configuration-reference/#i18ndefaultlocale)). You can also configure more specific routing and fallback behavior to match your desired URLs.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from "astro/config"
@@ -201,46 +201,46 @@ Astro provides helper functions for your middleware so you can control your own 
 ```js title="src/middleware.js"
 import { defineMiddleware } from "astro:middleware";
 import { redirectToDefaultLocale } from "astro:i18n"; // function available with `manual` routing
-export const onRequest = defineMiddleware(async (ctx, next) => {
-  if (ctx.url.startsWith("/about")) {
+export const onRequest = defineMiddleware((ctx, next) => {
+  if (ctx.url.pathname.startsWith("/about")) {
     return next();
   } else {
-    return redirectToDefaultLocale(302);
+    return redirectToDefaultLocale(ctx, 302);
   }
 })
 ```
 
 #### middleware function
 
-The [`middleware`](#middleware-function) function manually creates Astro's i18n middleware. This allows you to extend Astro's i18n routing instead of completely replacing it. 
+The [`middleware()`](/en/reference/modules/astro-i18n/#middleware) function manually creates Astro's i18n middleware. This allows you to extend Astro's i18n routing instead of completely replacing it. 
 
-You can run `middleware` with [routing options](#routing) in combination with your own middleware, using the [`sequence`](/en/reference/modules/astro-middleware/#sequence) utility to determine the order:
+You can run `middleware()` with [routing options](#routing) in combination with your own middleware, using the [`sequence()`](/en/reference/modules/astro-middleware/#sequence) utility to determine the order:
 
 ```js title="src/middleware.js"
-import {defineMiddleware, sequence} from "astro:middleware";
+import { defineMiddleware, sequence } from "astro:middleware";
 import { middleware } from "astro:i18n"; // Astro's own i18n routing config
 
 export const userMiddleware = defineMiddleware(async (ctx, next) => {
   // this response might come from Astro's i18n middleware, and it might return a 404
   const response = await next();
   // the /about page is an exception and we want to render it
-  if (ctx.url.startsWith("/about")) {
+  if (ctx.url.pathname.startsWith("/about")) {
     return new Response("About page", {
-      status: 200
+      status: 200,
     });
   } else {
     return response;
   }
 });
 
-
 export const onRequest = sequence(
   userMiddleware,
   middleware({
     redirectToDefaultLocale: false,
-    prefixDefaultLocale: true
-  })
-)
+    prefixDefaultLocale: true,
+    fallbackType: "redirect",
+  }),
+);
 ```
 
 ## `domains`

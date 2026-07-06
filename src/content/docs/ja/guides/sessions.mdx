@@ -4,6 +4,8 @@ description: オンデマンドレンダリングされるページ間でデー�
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
@@ -35,17 +37,78 @@ import vercel from '@astrojs/vercel'
 export default defineConfig({
   adapter: vercel()
   session: {
-    driver: sessionDrivers.redis({
-      url: process.env.REDIS_URL
+    driver: sessionDrivers.lruCache({
+      max: 800,
     }),
   }
 })
 ```
 
 <ReadMore>
-  ストレージドライバーの設定やその他の設定可能なオプションの詳細については、[`session`設定オプション](/ja/reference/configuration-reference/#session-options)を参照してください。
+ストレージドライバーの設定やその他の設定可能なオプションの詳細については、[`session`設定オプション](/ja/reference/configuration-reference/#session-options)を参照してください。
 </ReadMore>
 
+### 実行時に設定を上書きする
+
+デフォルトでは、セッションドライバーはビルド時に設定され、使用される[環境変数](/ja/guides/environment-variables/)はすべてビルド成果物にインライン化されます。つまり、実行時に設定を上書きすることはできません。
+
+（外部サービスへの接続などで）異なる設定が必要な場合は、別のファイルでそれを定義します。そして、そのファイルを[ドライバーのエントリポイント](/ja/reference/session-driver-reference/#entrypoint)として使用します。
+
+次の例では、[Unstorageとの互換性](/ja/reference/session-driver-reference/#unstorageとの互換性)を利用して、Redisドライバーを独自のエントリポイントで設定しています。
+
+<Steps>
+1. [`unstorage`パッケージ](https://unstorage.unjs.io/guide)をインストールします。
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npm install unstorage
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm add unstorage
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn add unstorage
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. ドライバー設定用のファイル（例: `src/session-driver.ts`）を作成し、ドライバーインスタンスを返すデフォルト関数をエクスポートします。
+    ```ts title="src/session-driver.ts"
+    import type { SessionDriver } from "astro";
+    import redisDriver from "unstorage/drivers/redis";
+    import { REDIS_HOST, REDIS_PORT } from "astro:env";
+
+    export default function (): SessionDriver {
+      return redisDriver({
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+      });
+    }
+    ```
+
+3. このファイルをAstroの設定ファイルでドライバーのエントリポイントとして使用します。
+    ```js title="astro.config.mjs" {11-13}
+    import { defineConfig, envField, sessionDrivers } from "astro/config";
+    import vercel from "@astrojs/vercel";
+
+    export default defineConfig({
+      adapter: vercel(),
+      env: {
+        REDIS_HOST: envField.string({ context: "server", access: "public", default: "localhost" }),
+        REDIS_PORT: envField.number({ context: "server", access: "public", default: 6379 }),
+      },
+      session: {
+        driver: {
+          entrypoint: new URL('./src/session-driver.ts', import.meta.url),
+        }
+      }
+    });
+    ```
+</Steps>
 
 ## セッションデータの操作
 
@@ -131,7 +194,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 デフォルトではセッションデータには型がなく、任意のキーに任意のデータを保存できます。値は[devalue](https://github.com/Rich-Harris/devalue)を使用してシリアライズ・デシリアライズされます。これはコンテンツコレクションやアクションで使用されているのと同じライブラリです。そのため、サポートされる型も同じで、文字列、数値、`Date`、`Map`、`Set`、`URL`、配列、プレーンなオブジェクトが含まれます。
 
-`src/env.d.ts`ファイルを作成し、`App.SessionData`型の宣言を追加することで、セッションデータの[TypeScript型を定義](/ja/guides/typescript/#extending-global-types)することもできます。
+`src/env.d.ts`ファイルを作成し、`App.SessionData`型の宣言を追加することで、セッションデータの[TypeScript型を定義](/ja/guides/typescript/#グローバル型の拡張)することもできます。
 
 ```ts title="src/env.d.ts"
 declare namespace App {

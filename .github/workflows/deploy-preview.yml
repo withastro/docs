@@ -1,0 +1,146 @@
+name: Deploy Preview
+
+on:
+  workflow_run:
+    workflows: ["Deploy"]
+    types: [completed]
+
+permissions: {}
+
+# Cancel older preview runs for the same branch so a stale deploy doesn't
+# overwrite the comment from a newer one.
+concurrency:
+  group: preview-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    if: >-
+      github.repository_owner == 'withastro' &&
+      github.event.workflow_run.event == 'pull_request' &&
+      github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download PR metadata
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: pr-metadata
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+          path: pr-metadata
+
+      - name: Read PR metadata
+        id: metadata
+        run: |
+          echo "pr_number=$(cat pr-metadata/pr_number)" >> "$GITHUB_OUTPUT"
+          echo "preview_alias=$(cat pr-metadata/preview_alias)" >> "$GITHUB_OUTPUT"
+          echo "preview_url=$(cat pr-metadata/preview_url)" >> "$GITHUB_OUTPUT"
+
+      - name: Comment deployment in progress
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
+            const previewUrl = '${{ steps.metadata.outputs.preview_url }}';
+            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
+            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const body = `**Preview deployment**\n\n`
+              + `🔄 Deployment in progress...\n\n`
+              + `- **Latest commit:** ${commitSHA}\n`
+              + `- **Preview:** ${previewUrl}\n`
+              + `- **Workflow run:** [View logs](${runUrl})`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.user.login === 'github-actions[bot]' && c.body.includes('**Preview deployment**'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body,
+              });
+            }
+
+      - name: Download build output
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: build-output
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ github.token }}
+
+      - name: Deploy preview
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          # Always upload to the main "docs" Worker so previews use the
+          # *.previews.docs.astro.build domain, even for PRs targeting version branches.
+          command: versions upload --name docs --preview-alias "${{ steps.metadata.outputs.preview_alias }}"
+
+      - name: Comment deployment complete
+        if: success()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
+            const previewUrl = '${{ steps.metadata.outputs.preview_url }}';
+            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
+            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const body = `**Preview deployment**\n\n`
+              + `✅ Deployment complete!\n\n`
+              + `- **Latest commit:** ${commitSHA}\n`
+              + `- **Preview:** ${previewUrl}\n`
+              + `- **Workflow run:** [View logs](${runUrl})`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.user.login === 'github-actions[bot]' && c.body.includes('**Preview deployment**'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            }
+
+      - name: Comment deployment failed
+        if: failure()
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
+            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
+            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const body = `**Preview deployment**\n\n`
+              + `❌ Deployment failed!\n\n`
+              + `- **Latest commit:** ${commitSHA}\n`
+              + `- **Workflow run:** [View logs](${runUrl})`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.user.login === 'github-actions[bot]' && c.body.includes('**Preview deployment**'));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            }

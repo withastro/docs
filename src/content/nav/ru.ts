@@ -1,6 +1,8 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
+	tutorial: 'Вводное руководство',
+
 	guides: 'Руководства и рецепты',
 	'guides.welcome': 'Привет, мир!',
 	'guides.newProject': 'Создание нового проекта',
@@ -20,6 +22,7 @@ export default navDictionary({
 	'reference.syntax': 'Синтаксис шаблонов Astro',
 	'reference.experimental': 'Экспериментальные функции',
 
+	ecosystem: 'Экосистема',
 	'ecosystem.integrations.ui': 'UI-фреймворки',
 	'ecosystem.integrations.adapters': 'Адаптеры',
 	'ecosystem.integrations.other': 'Другие официальные интеграции',
