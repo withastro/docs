@@ -266,10 +266,9 @@ Toutes les [options de configuration `markdown`](/fr/reference/configuration-ref
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
-import remarkToc from 'remark-toc';
-import rehypePresetMinify from 'rehype-preset-minify';
+import { myMdastPlugin } from './my-satteri-plugin.mjs';
 
 export default defineConfig({
   // ...
@@ -277,11 +276,9 @@ export default defineConfig({
     mdx({
       syntaxHighlight: 'shiki',
       shikiConfig: { theme: 'dracula' },
-      processor: unified({
-        remarkPlugins: [remarkToc],
-        rehypePlugins: [rehypePresetMinify],
-        remarkRehype: { footnoteLabel: 'Notes de bas de page' },
-        gfm: false
+      processor: satteri({
+        mdastPlugins: [myMdastPlugin()],
+        features: { gfm: false },
       }),
     }),
   ],
@@ -301,16 +298,16 @@ export default defineConfig({
 
 Par défaut, les fichiers `.mdx` sont traités via le même [processeur Markdown](/fr/guides/markdown-content/#choisir-un-processeur-markdown) que vos fichiers `.md`. Définissez `processor` pour utiliser un processeur différent, ou le même processeur avec des options différentes, uniquement pour les fichiers `.mdx`.
 
-Par exemple, pour conserver le processeur remark/rehype par défaut pour les fichiers `.md` tout en traitant les fichiers `.mdx` avec [Sätteri](https://satteri.bruits.org/) en utilisant `@astrojs/markdown-satteri` :
+Par exemple, pour conserver [Sätteri](https://satteri.bruits.org/) comme processeur par défaut pour les fichiers `.md` tout en traitant les fichiers `.mdx` avec remark et rehype à l'aide de `@astrojs/markdown-remark` :
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   integrations: [
-    mdx({ processor: satteri() }),
+    mdx({ processor: unified() }),
   ],
 });
 ```
@@ -330,14 +327,14 @@ Par exemple, supposons que vous avez besoin d'une coloration syntaxique différe
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
     syntaxHighlight: 'prism',
-    processor: unified({ remarkPlugins: [remarkPlugin1] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
@@ -346,7 +343,7 @@ export default defineConfig({
       syntaxHighlight: 'shiki',
 
       // `markdown.processor` est remplacée pour les fichiers `.mdx` par cette option
-      processor: unified({ remarkPlugins: [remarkPlugin2] }),
+      processor: satteri({ mdastPlugins: [mdastPlugin2] }),
     }),
   ],
 });
@@ -356,19 +353,19 @@ Vous pouvez également avoir besoin de désactiver l'extension de la configurati
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   // ...
   markdown: {
-    processor: unified({ remarkPlugins: [remarkPlugin] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin] }),
   },
   integrations: [
     mdx({
       // La configuration Markdown est désormais ignorée
       extendMarkdownConfig: false,
-      // Processeur `unified()` par défaut utilisé
+      // Processeur `satteri()` par défaut utilisé
     }),
   ],
 });
@@ -384,6 +381,8 @@ export default defineConfig({
 </p>
 
 Il s'agit de modules d'extension qui modifient directement la sortie [estree](https://github.com/estree/estree). Ceci est utile pour modifier ou injecter des variables JavaScript dans vos fichiers MDX.
+
+Depuis Astro v7, le processeur Markdown par défaut ne prend pas en charge les modules d'extension Recma. Si votre projet en dépend, vous pouvez [utiliser le processeur `unified()`](/fr/guides/markdown-content/#basculer-vers-le-processeur-unified).
 
 Nous vous suggérons [d'utiliser AST Explorer](https://astexplorer.net/) pour jouer avec les sorties d'estree, et d'essayer [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) pour effectuer des recherches dans les nœuds JavaScript.
 
