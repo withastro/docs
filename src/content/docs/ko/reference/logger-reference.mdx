@@ -1,0 +1,283 @@
+---
+title: Astro 로거 API
+sidebar:
+  label: 로거 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+<p>
+  <Since v="7.0.0" />
+</p>
+
+
+로거 API는 Astro의 로깅 인프라에 대한 더 세밀한 제어를 제공합니다. 이를 통해 기본 콘솔 출력을 사용자 지정 로깅 구현체로 대체하고, 로그 집계 서비스와 연동할 수 있습니다.
+
+이 API는 즉시 사용할 수 있는 세 가지 내장 로거를 제공하며, 자체 로거를 통합하거나 조합할 수 있는 기능도 지원합니다.
+
+## 사용자 정의 로거
+
+`logger` 설정에 적절한 구성을 제공하여 사용자 정의 로거를 생성할 수 있습니다. 이 설정은 로거가 내보내지는 모듈을 지정하는 필수 `entrypoint`와, 로거에 전달되는 선택적 설정 객체를 포함합니다. 해당 설정은 반드시 직렬화 가능해야 합니다.
+
+로거 함수는 반드시 `default` export로 제공되어야 합니다.
+
+사용자 정의 로거를 정의하면 Astro에서 발생하는 로그를 포함하여 모든 로그를 직접 제어하게 됩니다.
+
+다음 예시는 `@org/custom-logger` 패키지에서 export되는 사용자 정의 로거를 정의한 것으로, 로깅 `level`을 설정하기 위한 단일 파라미터를 받습니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/custom-logger",
+    config: {
+      level: "warn"
+    }
+  }
+});
+```
+
+다음 예시는 필수 `write()` 함수를 구현한 [`AstroLoggerDestination` 객체](#astrologgerdestination)를 반환하는 가장 단순한 로거를 구현합니다.
+
+```ts title="@org/custom-logger/index.ts"
+import type { 
+  AstroLoggerLevel, 
+  AstroLoggerDestination, 
+  AstroLoggerMessage 
+} from "astro";
+import { matchesLevel } from "astro/logger"; 
+
+type LoggerOptions = {
+  level: AstroLoggerLevel
+}
+
+function orgLogger(options: LoggerOptions = {}): AstroLoggerDestination {
+  const { level = 'info' } = options;
+  return {
+    write(message: AstroLoggerMessage) {
+      // 이 유틸리티를 사용하여 메시지 출력 여부를 판단합니다.
+      if (matchesLevel(message.level, level)) {
+        // 메시지를 기록하고 로그 레벨을 반영합니다.
+      }
+    }
+  }
+}
+
+export default orgLogger;
+```
+
+이제 [런타임 API](/ko/reference/api-reference/#logger)를 사용하여 페이지 렌더링 중에 자체 로그를 추가할 수 있습니다.
+
+## 로그 레벨
+
+레벨은 각 메시지에 할당되는 내부적으로 정의된 임의의 값입니다. 특정 레벨로 로거를 구성하면 해당 레벨과 같거나 더 높은 레벨의 메시지만 출력됩니다.
+
+높은 심각도에서 낮은 심각도 순으로 세 가지 레벨이 있습니다.
+1. `error`
+2. `warn`
+3. `info`
+
+다음 예시는 JSON 로거가 `warn` 레벨 이상의 메시지만 출력하도록 구성합니다.
+
+```js title="astro.config.mjs" {4} ins='level: "warn"'
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ level: "warn" })
+});
+```
+
+`astro/logger` 패키지는 로그 레벨을 확인하는 [`matchesLevel()`](#matcheslevel) 헬퍼를 노출합니다. 이는 [사용자 정의 로거를 만들 때](#사용자-정의-로거) 유용합니다.
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info");
+```
+
+## 내장 로거
+
+Astro는 애플리케이션에서 사용할 수 있는 내장 로거를 제공합니다.
+
+### `logHandlers.json()`
+
+메시지를 JSON 형식으로 출력하는 로거입니다. 로그는 다음과 같은 형태로 출력됩니다:
+
+```json
+{ "message": "<메시지>", "label": "router", "level": "info", "time": "<UNIX 타임스탬프>"  }
+```
+
+#### JSON 로거 옵션
+
+<p>
+  **타입:** `{ pretty: boolean; level: AstroLoggerLevel; }`<br />
+  **기본값:** `{ pretty: false, level: 'info' }`
+  <Since v="7.0.0" />
+</p>
+
+`json` 로거는 다음 옵션을 지원합니다:
+
+- `pretty`: `true`이면 JSON 로그가 여러 줄로 출력됩니다. 기본값은 `false`입니다.
+- `level`: 출력할 로그의 [레벨](#로그-레벨)입니다.
+
+```js title="astro.config.mjs" {4} ins="json"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ pretty: true })
+});
+```
+
+### `logHandlers.console()`
+
+`console`을 출력 대상으로 사용하는 로거입니다. 메시지 레벨에 따라 서로 다른 메서드를 사용합니다:
+
+- `error` 메시지는 `console.error()`를 사용합니다.
+- `warn` 메시지는 `console.warn()`을 사용합니다.
+- `info` 메시지는 `console.info()`를 사용합니다.
+
+#### 콘솔 로거 옵션
+
+<p>
+  **타입:** `{ level: AstroLoggerLevel }`<br />
+  **기본값:** `{ level: 'info' }`
+  <Since v="7.0.0" />
+</p>
+
+`console` 로거는 다음 옵션을 허용합니다:
+
+- `level`: 출력할 로그의 [레벨](#로그-레벨)입니다.
+
+```js title="astro.config.mjs" {4} ins="console"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.console({ level: 'warn' })
+});
+```
+
+### `logHandlers.node()`
+
+[`process.stdout`](https://nodejs.org/api/process.html#processstdout) 및 [`process.stderr`](https://nodejs.org/api/process.html#processstderr)로 메시지를 출력하는 로거입니다. `error` 레벨 메시지는 `stderr`로 출력되며, 나머지 메시지는 `stdout`으로 출력됩니다.
+
+이 로거는 Astro의 기본 로거입니다.
+
+#### Node 로거 옵션
+
+<p>
+  **타입:** `{ level: AstroLoggerLevel }`<br />
+  **기본값:** `{ level: 'info' }`
+  <Since v="7.0.0" />
+</p>
+
+`node` 로거는 다음 옵션을 허용합니다:
+
+- `level`: 출력할 로그의 [레벨](#로그-레벨)입니다.
+
+```js title="astro.config.mjs" {4} ins="node"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.node({ level: 'warn' })
+});
+```
+
+### `logHandlers.compose()`
+
+여러 로거를 임의의 순서로 구성할 수 있게 해주는 함수입니다. 동일한 메시지가 모든 로거로 브로드캐스트됩니다.
+
+다음 예시는 콘솔 로거와 JSON 로거를 기본 로그 레벨로 조합합니다.
+
+```js title="astro.config.mjs"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.compose(
+    logHandlers.console(),
+    logHandlers.json()
+  )
+});
+```
+
+## 타입 참조
+
+다음 타입들은 `astro`에서 가져올 수 있습니다.
+
+### `AstroLoggerDestination`
+
+사용자 정의 로거가 구현해야 하는 인터페이스입니다.
+
+#### `AstroLoggerDestination.write()`
+
+<p>
+
+  **타입:** `(message: AstroLoggerMessage) => void`
+</p>
+
+각 로그마다 호출되는 필수 메서드이며 [`AstroLoggerMessage`](#astrologgermessage)를 인수로 전달받습니다.
+
+#### `AstroLoggerDestination.flush()`
+
+<p>
+
+  **타입:** `() => Promise<void> | void`
+</p>
+
+각 요청이 끝날 때 호출되는 선택적 함수입니다. 출력 대상과의 연결을 유지하면서 로그를 플러시해야 하는 고급 로거에 유용합니다.
+
+#### `AstroLoggerDestination.close()`
+
+<p>
+
+  **타입:** `() => Promise<void> | void`
+</p>
+
+서버가 종료되기 전에 호출되는 선택적 함수입니다. 이 함수는 일반적으로 `@astrojs/node`와 같은 어댑터에 의해 호출됩니다.
+
+### `AstroLoggerLevel`
+
+<p>
+
+**타입:** `'debug' | 'info' | 'warn' | 'error' | 'silent'`
+</p>
+
+로그의 상세 수준을 지정합니다:
+- `info`, `warn`, `error`: 출력할 최소 [로그 레벨](#로그-레벨)을 정의합니다.
+- `silent`: [`--silent` CLI 플래그](/ko/reference/cli-reference/#--silent)와 동일하며 로그 출력을 하지 않습니다.
+- `debug`: [`--debug` CLI 플래그](/ko/reference/cli-reference/#--verbose)와 동일하며 Vite 로깅을 포함한 상세 로깅을 활성화합니다.
+
+### `AstroLoggerMessage`
+
+<p>
+
+  **타입:** `{ label: string | null; level: AstroLoggerLevel; message: string; newLine: boolean; }`
+</p>
+
+[`AstroLoggerDestination.write()`](#astrologgerdestinationwrite) 함수로 전달되는 객체입니다:
+
+- `message`: 기록되는 메시지입니다.
+- `level`: 메시지의 레벨입니다.
+- `label`: 로그 메시지에 할당된 임의의 라벨입니다.
+- `newLine`: 이 메시지 뒤에 줄바꿈을 추가할지 여부입니다.
+
+
+## API 참조
+
+다음 API는 `astro/logger`에서 가져올 수 있습니다.
+
+### `matchesLevel()`
+
+<p>
+
+  **타입:** `matchesLevel(messageLevel: AstroLoggerLevel, configuredLevel: AstroLoggerLevel) => boolean`
+</p>
+
+두 개의 [로그 레벨](#로그-레벨)이 주어지면, 첫 번째 레벨이 두 번째 레벨과 일치하는지 여부를 반환합니다.
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info"); // true
+matchesLevel("info", "error"); // false
+```
