@@ -203,20 +203,20 @@ Create dictionaries of terms to translate the labels for UI elements around your
     
 2. Create two helper functions: one to detect the page language based on the current URL, and one to get translations strings for different parts of the UI in `src/i18n/utils.ts`:
 
-    ```js
-    // src/i18n/utils.ts
-    import { ui, defaultLang } from './ui';
-    
+    ```ts title="src/i18n/utils.ts"
+    import { ui, defaultLang } from "./ui";
+
     export function getLangFromUrl(url: URL) {
-      const [, lang] = url.pathname.split('/');
+      const [, lang] = url.pathname.split("/");
       if (lang in ui) return lang as keyof typeof ui;
       return defaultLang;
     }
-    
+
     export function useTranslations(lang: keyof typeof ui) {
-      return function t(key: keyof typeof ui[typeof defaultLang]) {
-        return ui[lang][key] || ui[defaultLang][key];
-      }
+      const localizedUI: Record<string, string> = ui[lang];
+      return function t(key: keyof (typeof ui)[typeof defaultLang]) {
+        return key in localizedUI ? localizedUI[key] : ui[defaultLang][key];
+      };
     }
     ```
 
@@ -445,18 +445,24 @@ Translate the routes of your pages for each language.
 
 2. Update the `useTranslatedPath` helper function in `src/i18n/utils.ts` to add router translation logic.
 
-    ```js
-    // src/i18n/utils.ts
+    ```ts title="src/i18n/utils.ts"
     import { ui, defaultLang, showDefaultLang, routes } from './ui';
 
     export function useTranslatedPath(lang: keyof typeof ui) {
       return function translatePath(path: string, l: string = lang) {
-        const pathName = path.replaceAll('/', '')
-        const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
-        const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
-    
-        return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
-      }
+        const pathName = path.replaceAll("/", "");
+        const routeMap: Record<string, string> | undefined =
+          l !== defaultLang && l in routes
+            ? routes[l as keyof typeof routes]
+            : undefined;
+        const translatedPath = routeMap?.[pathName]
+          ? "/" + routeMap[pathName]
+          : path;
+
+        return !showDefaultLang && l === defaultLang
+          ? translatedPath
+          : `/${l}${translatedPath}`;
+      };
     }
     ```
 
@@ -477,10 +483,10 @@ Translate the routes of your pages for each language.
       
       const currentLang = getLangFromUrl(url);
     
-      if (defaultLang === currentLang) {
-        const route = Object.values(routes)[0];
-        return route[path] !== undefined ? route[path] : undefined;
-      }
+    if (defaultLang === currentLang) {
+      const route = Object.values(routes)[0] as Record<string, string>;
+      return route[path];
+    }
       
       const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
           return Object.keys(obj).find((key) => obj[key] === value);
