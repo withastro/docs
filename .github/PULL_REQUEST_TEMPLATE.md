@@ -2,22 +2,22 @@
 
 #### Description (required)
 
-<!-- Please describe the change you are proposing, and why -->
+<!--
+- Describe the change you are proposing, and why.
+- Only make changes to **one language**.
+- Use  `<Since v="x.x.x" />` when adding features for a specific version of Astro.
+- Follow additional guidance at https://contribute.docs.astro.build/ for faster reviews.
+-->
 
-<!-- Please make changes in **one language** only -->
+#### References
 
-#### Related issues & labels (optional)
+<!-- Optional section. Delete any points that don’t apply. -->
 
-- Closes #<!-- Add an issue number if this PR will close it. -->
-- Suggested label: <!-- Help us triage by suggesting one of our labels that describes your PR -->
-
-<!-- For a new/changed feature in an upcoming Astro release? -->
-<!-- 1. Uncomment the line below, update the minor version number if known, and include a PR link -->
-<!-- #### For Astro version: `6.x`. See astro PR [#](url). -->
-
-<!-- 2. Check that your PR includes `<p><Since v="6.x.x" /></p>` and imports the `<Since>` component, if necessary! -->
-
-<!-- #### First-time contributor to Astro Docs? -->
-
-<!-- If you are a member of the Astro Discord, please add your username in the description so we can welcome you there! -->
-<!-- https://astro.build/chat -->
+<!-- If this PR closes an issue, add the issue number below. -->
+- Closes #...
+<!-- If this PR is related to another PR, issue, or discussion, but does not close it, add a link below. -->
+- Related to ...
+<!-- If this PR needs to be merged for a specific Astro release, add the version below. -->
+- For Astro version `x.x.x`
+<!-- First-time contributor to Astro Docs? Add your Discord username below so we can welcome you on the Astro Discord (https://astro.build/chat)! -->
+- Discord username: ...

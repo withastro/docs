@@ -299,7 +299,7 @@ To bind an attribute or component property in an Astro component, change this sy
 
 <p aria-label={message}>...</p>
 <!-- Also support component props -->
-<Header title={"Page"}/>
+<Header title="Page"/>
 ```
 
 ### Nuxt Links to Astro
@@ -367,15 +367,16 @@ To generate multiple pages, replace the function to create routes in your `nuxt.
 ```astro title="src/pages/pokemon/[name].astro"
 ---
 export const getStaticPaths = async () => {
-  const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151")
+  const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
   const resJson = await res.json();
   const pokemons = resJson.results;
-  return pokemons.map(({ name }) => ({
-      params: { name },
-    }))
-}
+  return pokemons.map((pokemon: any) => ({
+    params: { name: pokemon.name },
+  }));
+};
 // ...
 ---
+
 <!-- Your template here -->
 ```
 
@@ -438,7 +439,7 @@ Nuxt utilizes Vue's component styling to generate a page's style.
 
  Similarly, in Astro you can drop in a `<style>` element in your page's template to provide scoped styles to the component.
 
-```astro title="src/pages/index.vue"
+```astro title="src/pages/index.astro"
 ---
 // Your server logic here
 ---
@@ -454,7 +455,7 @@ Nuxt utilizes Vue's component styling to generate a page's style.
 
 `<style>`  tags are `scoped` by default in Astro. To make a `<style>` tag global, mark it with the `is:global` attribute:
 
-```astro title="src/pages/index.vue"
+```astro title="src/pages/index.astro"
 <style is:global> 
 	p {
 		color: red;
@@ -587,7 +588,7 @@ Here's how to recreate that in `src/pages/index.astro`, replacing `asyncData()` 
 
     - `v-for` becomes `.map`.
 
-    - `:attr="val"` becomes `attr={val}`
+    - `:attr="val"` becomes `attr={val}`, except for `key` which is not an attribute of `li` in Astro
 
     - `<NuxtLink>` becomes `<a>`.
 
@@ -596,26 +597,33 @@ Here's how to recreate that in `src/pages/index.astro`, replacing `asyncData()` 
     ```astro title="src/pages/index.astro" ".map" "</a>" "<a" "key={" "}>" "href={" " {pokemon.id}" "} alt={" "src={" "}/>" ">{pokemon.name}<"
     ---
     ---
+
     <ul class="plain-list pokeList">
-        {pokemons.map((pokemon) => (
-            <li class="pokemonListItem" key={pokemon.name}>
-                <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                    <p class="pokemonId">No. {pokemon.id}</p>
-                    <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                    <h2 class="pokemonName">{pokemon.name}</h2>
-                </a>
-            </li>
-        ))}
+      {
+        pokemons.map((pokemon: any) => (
+          <li class="pokemonListItem">
+            <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+              <p class="pokemonId">No. {pokemon.id}</p>
+              <img
+                class="pokemonImage"
+                src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
+                alt={`${pokemon.name} picture`}
+              />
+              <h2 class="pokemonName">{pokemon.name}</h2>
+            </a>
+          </li>
+        ))
+      }
     </ul>
 
     <style>
-    .pokeList {
-      display: grid;
-      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-      gap: 1rem;
-    }
+      .pokeList {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
 
-    /* ... */
+      /* ... */
     </style>
     ```
 
@@ -627,47 +635,53 @@ Here's how to recreate that in `src/pages/index.astro`, replacing `asyncData()` 
     - A `<Layout>` component is imported, and wraps the page templating.
       - Our `head()` Nuxt method is passed to the `<Layout>` component, which is passed to the `<title>` element as a property.
 
-    ```astro ins={2,4-16,19,31} title="src/pages/index.astro"
+    ```astro ins={2,4-16,19,37} title="src/pages/index.astro"
     ---
-    import Layout from '../layouts/layout.astro';
+    import Layout from "../layouts/layout.astro";
 
     const res = await fetch("https://pokeapi.co/api/v2/pokemon?limit=151");
     const resJson = await res.json();
-    const pokemons = resJson.results.map(pokemon => {
-        const name = pokemon.name;
-        // https://pokeapi.co/api/v2/pokemon/1/
-        const url = pokemon.url;
-        const id = url.split("/")[url.split("/").length - 2];
-        return {
-            name,
-            url,
-            id
-        }
+    const pokemons = resJson.results.map((pokemon: any) => {
+      const name = pokemon.name;
+      // https://pokeapi.co/api/v2/pokemon/1/
+      const url = pokemon.url;
+      const id = url.split("/")[url.split("/").length - 2];
+      return {
+        name,
+        url,
+        id,
+      };
     });
     ---
 
     <Layout title="Pokedex: Generation 1">
       <ul class="plain-list pokeList">
-          {pokemons.map((pokemon) => (
-              <li class="pokemonListItem" key={pokemon.name}>
-                  <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
-                      <p class="pokemonId">No. {pokemon.id}</p>
-                      <img class="pokemonImage" src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`} alt={`${pokemon.name} picture`}/>
-                      <h2 class="pokemonName">{pokemon.name}</h2>
-                  </a>
-              </li>
-          ))}
+        {
+          pokemons.map((pokemon: any) => (
+            <li class="pokemonListItem">
+              <a class="pokemonContainer" href={`/pokemon/${pokemon.name}`}>
+                <p class="pokemonId">No. {pokemon.id}</p>
+                <img
+                  class="pokemonImage"
+                  src={`https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${pokemon.id}.png`}
+                  alt={`${pokemon.name} picture`}
+                />
+                <h2 class="pokemonName">{pokemon.name}</h2>
+              </a>
+            </li>
+          ))
+        }
       </ul>
     </Layout>
 
     <style>
-    .pokeList {
-      display: grid;
-      grid-template-columns: repeat( auto-fit, minmax(250px, 1fr) );
-      gap: 1rem;
-    }
+      .pokeList {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
 
-    /* ... */
+      /* ... */
     </style>
     ```
 </Steps>
