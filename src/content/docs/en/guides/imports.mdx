@@ -31,10 +31,10 @@ You can place any static asset in the [`public/` directory](/en/basics/project-s
 You can reference a `public/` file by a URL path directly in your HTML templates.
 
 ```astro
-// To link to /public/reports/annual/2024.pdf
+{/* To link to /public/reports/annual/2024.pdf */}
 Download the <a href="/reports/annual/2024.pdf">2024 annual statement as a PDF</a>.
 
-// To display /public/assets/cats/ginger.jpg
+{/* To display /public/assets/cats/ginger.jpg */}
 <img src="/assets/cats/ginger.jpg" alt="An orange cat sleeping on a bed.">
 ```
 
@@ -118,13 +118,15 @@ Astro supports importing CSS files directly into your application. Imported styl
 
 ### CSS Modules
 
-```jsx
+```astro
+---
 // 1. Converts './style.module.css' classnames to unique, scoped values.
 // 2. Returns an object mapping the original classnames to their final, scoped value.
 import styles from './style.module.css';
+---
 
-// This example uses JSX, but you can use CSS Modules with any framework.
-return <div className={styles.error}>Your Error Message</div>;
+{/* This example uses Astro, but you can use CSS Modules with any framework. */}
+<div className={styles.error}>Your Error Message</div>
 ```
 
 Astro supports CSS Modules using the `[name].module.css` naming convention. Like any CSS file, importing one will automatically apply that CSS to the page. However, CSS Modules export a special default `styles` object that maps your original classnames to unique identifiers.
@@ -133,15 +135,17 @@ CSS Modules help you enforce component scoping & isolation on the frontend with 
 
 ### Other Assets
 
-```jsx
+```astro
+---
 // Returns an object with `src` and other properties
 import imgReference from './image.png';
 import svgReference from './image.svg';
+---
 
-// HTML or UI Framework components use this to render the image
+{/* HTML or UI Framework components use this to render the image */}
 <img src={imgReference.src} alt="image description" />;
 
-// The Astro `<Image />` and `<Picture />` components access `src` by default
+{/* The Astro `<Image />` and `<Picture />` components access `src` by default */}
 <Image src={imgReference} alt="image description">
 ```
 
@@ -203,34 +207,44 @@ import logoUrl from '@assets/logo.png?url';
 ```astro title="src/components/my-component.astro" {3,4}
 ---
 // imports all files that end with `.md` in `./src/pages/post/`
-const matches = import.meta.glob('../pages/post/*.md', { eager: true }); 
+const matches = import.meta.glob("../pages/post/*.md", { eager: true });
 const posts = Object.values(matches);
 ---
+
 <!-- Renders an <article> for the first 5 blog posts -->
 <div>
-{posts.slice(0, 4).map((post) => (
-  <article>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{post.frontmatter.description}</p>
-    <a href={post.url}>Read more</a>
-  </article>
-))}
+  {
+    posts.slice(0, 4).map((post: any) => (
+      <article>
+        <h2>{post.frontmatter.title}</h2>
+        <p>{post.frontmatter.description}</p>
+        <a href={post.url}>Read more</a>
+      </article>
+    ))
+  }
 </div>
 ```
 
 Astro components imported using `import.meta.glob` are of type [`AstroInstance`](#astro-files). You can render each component instance using its `default` property:
 
-```astro title="src/pages/component-library.astro" {8}
+```astro title="src/pages/component-library.astro" {14}
 ---
+import type { AstroInstance } from "astro";
+
 // imports all files that end with `.astro` in `./src/components/`
-const components = Object.values(import.meta.glob('../components/*.astro', { eager: true }));
+const components: AstroInstance[] = Object.values(
+  import.meta.glob("../components/*.astro", { eager: true }),
+);
 ---
-<!-- Display all of our components -->
-{components.map((component) => (
-  <div>
-    <component.default size={24} />
-  </div>
-))}
+
+{/* Display all of our components */}
+{
+  components.map((component) => (
+    <div>
+      <component.default size={24} />
+    </div>
+  ))
+}
 ```
 
 ### Supported Values
@@ -239,18 +253,23 @@ Vite's `import.meta.glob()` function only supports static string literals. It do
 
 A common workaround is to instead import a larger set of files that includes all the files you need, then filter them:
 
-```astro {6-7}
+```astro {5-10} title="src/components/featured.astro"
 ---
-// src/components/featured.astro
 const { postSlug } = Astro.props;
 const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
 
-const posts = Object.values(import.meta.glob("../pages/blog/*.md", { eager: true }));
-const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+const posts = Object.values(
+  import.meta.glob("../pages/blog/*.md", { eager: true }),
+);
+const myFeaturedPost: any = posts.find((post: any) =>
+  post.file.includes(pathToMyFeaturedPost),
+);
 ---
 
 <p>
-  Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+  Take a look at my favorite post, <a href={myFeaturedPost.url}
+    >{myFeaturedPost.frontmatter.title}</a
+  >!
 </p>
 ```
 
