@@ -103,7 +103,7 @@ Some of our English-language pages are generated from outside sources and mainta
 The page's **Edit this page** button should redirect you to the file that should be changed. Alternatively, you can get the correct URL from the file's `githubURL` frontmatter property.
 
 > **Note**
-> All of the generated pages will have a dev-only warning at the top and the `githubURL`frontmatter property.
+> All of the generated pages will have a dev-only warning at the top and the `githubURL` frontmatter property.
 
 When you make a PR with docs changes in another repo, please ping **@withastro/maintainers-docs** so we are aware of the changes made and can properly review your contribution.
 
