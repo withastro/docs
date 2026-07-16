@@ -1086,6 +1086,14 @@ You can customize the `<meta>` element per page from the `Astro` global inside `
 
 When resources are inserted multiple times or from multiple sources (e.g. defined in your [`csp` config](/en/reference/configuration-reference/#securitycsp) and added using the following CSP runtime APIs, Astro will merge and deduplicate all resources to create your `<meta>` element.
 
+:::caution[Scoping to more specific directives]
+When you scope a source or hash to a more specific directive with the `kind` option (`'element'` or `'attribute'`), browsers use that directive instead of the generic `script-src`/`style-src` for its scope, and do not fall back to the generic directive.
+
+Astro automatically moves the hashes it generates for your inline scripts and styles onto the more specific directive so they keep working. However, it does **not** move your generic (`'default'`) resources. If you combine generic resources with more specific resources or hashes for the same directive family, the generic resources will not apply to the specific scope. Astro logs a warning if it detects such a situation.
+
+To fix the issue, move all the resources and hashes to the specific directives.
+:::
+
 
 #### `csp.insertDirective()`
 
@@ -1122,7 +1130,7 @@ content="
 
 <p>
 
-**Type:** `(resource: string) => void`<br />
+**Type:** `(resource: string | { resource: string; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1146,11 +1154,34 @@ content="
 >
 ```
 
+<p><Since v="7.1.0" /></p>
+
+You can also scope a source to a more specific directive by passing an object with a `kind` property. Use `'element'` for `style-src-elem`, `'attribute'` for `style-src-attr`, or `'default'` (the same as a bare string) for `style-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleResource({ resource: "'unsafe-inline'", kind: "attribute" });
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your source to the `style-src-attr` directive, which applies only to inline `style` attributes:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  style-src 'self';
+  style-src-attr 'unsafe-inline';
+  "
+>
+```
+
 #### `csp.insertStyleHash()`
 
 <p>
 
-**Type:** `(hash: CspHash) => void`<br />
+**Type:** `(hash: CspHash | { hash: CspHash; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1174,11 +1205,34 @@ content="
 >
 ```
 
+<p><Since v="7.1.0" /></p>
+
+You can also scope a hash to a more specific directive by passing an object with a `kind` property. Use `'element'` for `style-src-elem`, `'attribute'` for `style-src-attr`, or `'default'` (the same as a bare hash) for `style-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleHash({ hash: "sha512-styleHash", kind: "element" });
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your hash to the `style-src-elem` directive. Astro's automatically generated style hashes also move there, since `style-src-elem` takes precedence over `style-src` for `<style>` and `<link>` elements:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src 'self';
+  style-src-elem 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
 #### `csp.insertScriptResource()`
 
 <p>
 
-**Type:** `(resource: string) => void`<br />
+**Type:** `(resource: string | { resource: string; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1202,11 +1256,34 @@ content="
 >
 ```
 
+<p><Since v="7.1.0" /></p>
+
+You can also scope a source to a more specific directive by passing an object with a `kind` property. Use `'element'` for `script-src-elem`, `'attribute'` for `script-src-attr`, or `'default'` (the same as a bare string) for `script-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptResource({ resource: "https://scripts.cdn.example.com", kind: "element" });
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your source to the `script-src-elem` directive, which governs `<script>` elements:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  script-src-elem https://scripts.cdn.example.com;
+  style-src 'self';
+  "
+>
+```
+
 #### `csp.insertScriptHash()`
 
 <p>
 
-**Type:** `(hash: CspHash) => void`<br />
+**Type:** `(hash: CspHash | { hash: CspHash; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1224,7 +1301,30 @@ After the build, the `<meta>` element for this individual page will add your has
 <meta
 http-equiv="content-security-policy"
 content="
-  script-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  script-src 'self' 'sha256-somehash' 'sha512-scriptHash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+<p><Since v="7.1.0" /></p>
+
+You can also scope a hash to a more specific directive by passing an object with a `kind` property. Use `'element'` for `script-src-elem`, `'attribute'` for `script-src-attr`, or `'default'` (the same as a bare hash) for `script-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptHash({ hash: "sha512-scriptHash", kind: "element" });
+---
+```
+
+After the build, the `<meta>` element for this individual page will add your hash to the `script-src-elem` directive. Astro's automatically generated script hashes also move there, since `script-src-elem` takes precedence over `script-src` for `<script>` elements:
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  script-src-elem 'self' 'sha256-somehash' 'sha512-scriptHash';
   style-src 'self' 'sha256-somehash';
   "
 >
