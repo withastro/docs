@@ -34,7 +34,7 @@ For simple data fetching, you can also [define a loader as an async function](#d
 
 The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, YAML, and TOML files.
 
-This loader accepts an object with the following properties: `pattern`, `base` (optional), `generateId` (optional), and `retainBody` (optional).
+This loader accepts an object with the following properties: `pattern`, `base` (optional), `generateId` (optional), `retainBody` (optional), and `deferRender` (optional).
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -123,6 +123,32 @@ Setting this property to `false` significantly reduces the deployed size of the 
 For Markdown files, the rendered body will still be available in the [`entry.rendered.html` property](#dataentryrenderedhtml), and the [`entry.filePath` property](#dataentryfilepath) will still point to the original file. 
 
 For MDX collections, this will dramatically reduce the size of the collection, as there will no longer be any body retained in the store.
+
+#### `deferRender`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+<Since v="7.1.0" />
+</p>
+
+Whether to defer rendering Markdown entries until they are rendered in a page. When `false` (the default), their rendering occurs eagerly during content sync. This option does not apply to MDX, Markdoc, and data entries (e.g., JSON, YAML).
+
+By default, the `glob()` loader renders each Markdown entry during sync and stores the resulting HTML in the data store. This allows the rendered content to be cached and reused across builds. However, for large collections whose rendered output is much larger than the source, storing all this rendered HTML in memory at once can cause your build to run out of memory.
+
+When `deferRender` is `true`, rendering is instead deferred until each entry is actually rendered in a page, using the same on-demand rendering path that `.mdx` files already use. This keeps memory usage bounded during `astro build` at the cost of the rendered HTML no longer being cached in the data store.
+
+```ts title="src/content.config.ts"
+const docs = defineCollection({
+  /* Defer rendering of a large Markdown collection to avoid running out of memory during the build. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/docs',
+    deferRender: true,
+  }),
+});
+```
 
 ### `file()` loader
 
