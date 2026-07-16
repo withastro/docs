@@ -31,11 +31,11 @@ Vous pouvez placer n'importe quelle ressource statique dans le répertoire [`pub
 Vous pouvez référencer un fichier `public/` par un chemin d'URL directement dans vos modèles HTML.
 
 ```astro
-// Pour faire un lien vers /public/reports/annual/2024.pdf
+{/* Pour faire un lien vers /public/reports/annual/2024.pdf */}
 Télécharger la <a href="/reports/annual/2024.pdf">déclaration annuelle 2024 en PDF</a>.
 
-// Pour afficher /public/assets/cats/ginger.jpg
-<img src="/assets/cats/ginger.jpg" alt="Un chat orange dort sur un lit.">
+{/* Pour afficher /public/assets/cats/ginger.jpg */}
+<img src="/assets/cats/ginger.jpg" alt="Un chat roux dort sur un lit.">
 ```
 
 ## Instructions d'importation
@@ -118,13 +118,15 @@ Astro prend en charge l'importation de fichiers CSS directement dans votre appli
 
 ## Modules CSS
 
-```jsx
+```astro
+---
 // 1. Convertit les noms de classes './style.module.css' en valeurs uniques, portées.
 // 2. Retourne un objet qui associe les noms de classes d'origine à leur valeur portée finale.
 import styles from './style.module.css';
+---
 
-// Cet exemple utilise JSX, mais vous pouvez utiliser les modules CSS avec n'importe quel Framework.
-return <div className={styles.error}>Votre message d'erreur</div>;
+{/* Cet exemple utilise Astro, mais vous pouvez utiliser les modules CSS avec n'importe quel framework. */}
+<div class={styles.error}>Votre message d'erreur</div>
 ```
 
 Astro prend en charge les modules CSS en utilisant la convention de nommage `[nom].module.css`. Comme tout fichier CSS, l'importation d'un module CSS l'appliquera automatiquement à la page. Cependant, les modules CSS exportent un objet spécial par défaut `styles` qui fait correspondre vos noms de classe originaux à des identifiants uniques.
@@ -133,15 +135,17 @@ Les modules CSS vous aident à appliquer la portée et l'isolation des composant
 
 ## Autres ressources
 
-```jsx
+```astro
+---
 // Renvoie un objet avec `src` et d'autres propriétés
 import imgReference from './image.png';
 import svgReference from './image.svg';
+---
 
-// Les composants HTML ou de framework UI utilisent ceci pour restituer l'image
-<img src={imgReference.src} alt="description de l'image" />;
+{/* Les composants HTML ou de framework UI utilisent ceci pour restituer l'image */}
+<img src={imgReference.src} alt="description de l'image" />
 
-// Les composants `<Image />` et `<Picture />` d'Astro accèdent à `src` par défaut
+{/* Les composants `<Image />` et `<Picture />` d'Astro accèdent à `src` par défaut */}
 <Image src={imgReference} alt="description de l'image">
 ```
 
@@ -203,34 +207,44 @@ L'utilitaire [`import.meta.glob()` de Vite](https://vite.dev/guide/features.html
 ```astro title="src/components/my-component.astro" {3,4}
 ---
 // importe tous les fichiers qui se terminent par `.md` dans `./src/pages/post/`
-const matches = import.meta.glob('../pages/post/*.md', { eager: true }); 
+const matches = import.meta.glob("../pages/post/*.md", { eager: true });
 const posts = Object.values(matches);
 ---
+
 <!-- Génère un <article> pour les 5 premiers articles du blog -->
 <div>
-{posts.slice(0, 4).map((post) => (
-  <article>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{post.frontmatter.description}</p>
-    <a href={post.url}>Lire la suite</a>
-  </article>
-))}
+  {
+    posts.slice(0, 4).map((post: any) => (
+      <article>
+        <h2>{post.frontmatter.title}</h2>
+        <p>{post.frontmatter.description}</p>
+        <a href={post.url}>Lire la suite</a>
+      </article>
+    ))
+  }
 </div>
 ```
 
 Les composants Astro importés avec `import.meta.glob` sont de type [`AstroInstance`](#fichiers-astro). Vous pouvez effectuer le rendu de chaque instance de composant en utilisant sa propriété `default` :
 
-```astro title="src/pages/component-library.astro" {8}
+```astro title="src/pages/component-library.astro" {14}
 ---
+import type { AstroInstance } from "astro";
+
 // importe tous les fichiers qui se terminent par `.astro` dans `./src/components/`
-const components = Object.values(import.meta.glob('../components/*.astro', { eager: true }));
+const components: AstroInstance[] = Object.values(
+  import.meta.glob("../components/*.astro", { eager: true }),
+);
 ---
-<!-- Affiche tous nos composants -->
-{components.map((component) => (
-  <div>
-    <component.default size={24} />
-  </div>
-))}
+
+{/* Affiche tous nos composants */}
+{
+  components.map((component) => (
+    <div>
+      <component.default size={24} />
+    </div>
+  ))
+}
 ```
 
 ### Valeurs prises en charge
@@ -239,18 +253,23 @@ La fonction `import.meta.glob()` de Vite ne prend en charge que les chaînes lit
 
 Une solution de contournement courante consiste à importer un ensemble de fichiers plus grand qui inclut tous les fichiers dont vous avez besoin, puis à les filtrer :
 
-```astro {6-7}
+```astro {5-10} title="src/components/featured.astro"
 ---
-// src/components/featured.astro
 const { postSlug } = Astro.props;
 const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
 
-const posts = Object.values(import.meta.glob("../pages/blog/*.md", { eager: true }));
-const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+const posts = Object.values(
+  import.meta.glob("../pages/blog/*.md", { eager: true }),
+);
+const myFeaturedPost: any = posts.find((post: any) =>
+  post.file.includes(pathToMyFeaturedPost),
+);
 ---
 
 <p>
-  Jetez un oeil à mon article préféré, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+  Jetez un oeil à mon article préféré, <a href={myFeaturedPost.url}
+    >{myFeaturedPost.frontmatter.title}</a
+  >!
 </p>
 ```
 
