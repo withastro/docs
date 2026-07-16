@@ -31,10 +31,10 @@ Astro에서는 기본적으로 다음 파일 형식을 지원합니다.
 HTML 템플릿에서 직접 URL 경로로 `public/` 파일을 참조할 수 있습니다.
 
 ```astro
-// /public/reports/annual/2024.pdf 링크
+{/* /public/reports/annual/2024.pdf 링크 */}
 Download the <a href="/reports/annual/2024.pdf">2024 annual statement as a PDF</a>.
 
-// /public/assets/cats/ginger.jpg 표시
+{/* /public/assets/cats/ginger.jpg 표시 */}
 <img src="/assets/cats/ginger.jpg" alt="An orange cat sleeping on a bed.">
 ```
 
@@ -117,13 +117,15 @@ Astro는 CSS 파일을 애플리케이션으로 직접 가져오는 것을 지�
 
 ### CSS 모듈
 
-```jsx
-// 1. './style.module.css' 클래스 이름을 고유한 범위 값으로 변환합니다.
-// 2. 원래 클래스 이름을 최종 범위 값에 매핑하는 객체를 반환합니다.
+```astro
+---
+// 1. './style.module.css' 클래스 이름을 고유하고 범위가 지정된 값으로 변환합니다.
+// 2. 원래 클래스 이름을 최종적으로 범위가 지정된 값에 매핑하는 객체를 반환합니다.
 import styles from './style.module.css';
+---
 
-// 이 예시에서는 JSX를 사용하지만 모든 프레임워크에서 CSS 모듈을 사용할 수 있습니다.
-return <div className={styles.error}>에러 메시지</div>;
+{/* 이 예제는 Astro를 사용하지만, 모든 프레임워크에서 CSS 모듈을 사용할 수 있습니다. */}
+<div className={styles.error}>오류 메시지</div>
 ```
 
 Astro는 `[name].module.css` 명명 규칙을 사용하여 CSS 모듈을 지원합니다. 다른 CSS 파일과 마찬가지로 파일을 가져오면 해당 CSS가 페이지에 자동으로 적용됩니다. 그러나 CSS 모듈은 원래 클래스 이름을 고유 식별자에 매핑하는 특별한 기본 `styles` 객체를 내보냅니다.
@@ -137,10 +139,10 @@ CSS 모듈은 스타일시트에 대해 고유하게 생성된 클래스 이름�
 import imgReference from './image.png';
 import svgReference from './image.svg';
 
-// HTML이나 UI 프레임워크 컴포넌트는 이미지를 렌더링하기 위해 이 방법을 사용합니다.
+{/* HTML이나 UI 프레임워크 컴포넌트는 이미지를 렌더링하기 위해 이 방법을 사용합니다.  */}
 <img src={imgReference.src} alt="이미지 설명" />;
 
-// Astro의 `<Image />` 및 `<Picture />` 컴포넌트는 기본적으로 `src`에 접근합니다.
+{/* Astro의 `<Image />` 및 `<Picture />` 컴포넌트는 기본적으로 `src`에 접근합니다. */}
 <Image src={imgReference} alt="이미지 설명">
 ```
 
@@ -202,18 +204,18 @@ import logoUrl from '@assets/logo.png?url';
 ```astro title="src/components/my-component.astro" {3,4}
 ---
 // `./src/pages/post/`에서 `.md`로 끝나는 모든 파일을 가져옵니다.
-const matches = import.meta.glob('../pages/post/*.md', { eager: true }); 
+const matches = import.meta.glob("../pages/post/*.md", { eager: true });
 const posts = Object.values(matches);
 ---
 
 <!-- 처음 5개의 블로그 게시물에 대한 <article>을 렌더링합니다. -->
 <div>
   {
-    posts.slice(0, 4).map((post) => (
+    posts.slice(0, 4).map((post: any) => (
       <article>
         <h2>{post.frontmatter.title}</h2>
         <p>{post.frontmatter.description}</p>
-        <a href={post.url}>계속 읽기</a>
+        <a href={post.url}>더 알아보기</a>
       </article>
     ))
   }
@@ -222,12 +224,18 @@ const posts = Object.values(matches);
 
 `import.meta.glob`을 사용하여 가져온 Astro 컴포넌트는 [`AstroInstance`](#astro-파일) 타입입니다. `default` 속성을 사용하여 각 컴포넌트 인스턴스를 렌더링할 수 있습니다.
 
-```astro title="src/pages/component-library.astro" {8}
+```astro title="src/pages/component-library.astro" {14}
 ---
-// `./src/components/`에서 `.astro`로 끝나는 모든 파일을 가져옵니다.
-const components = Object.values(import.meta.glob('../components/*.astro', { eager: true }));
+import type { AstroInstance } from "astro";
+
+// `./src/components/`에 있는 `.astro`로 끝나는 모든 파일을 가져옵니다.
+const components: AstroInstance[] = Object.values(
+  import.meta.glob("../components/*.astro", { eager: true }),
+);
 ---
-<!-- 모든 컴포넌트 표시 -->{
+
+{/* 모든 컴포넌트 표시 */}
+{
   components.map((component) => (
     <div>
       <component.default size={24} />
@@ -242,18 +250,23 @@ Vite의 `import.meta.glob()` 함수는 정적 문자열 리터럴만 지원합�
 
 일반적인 해결 방법은 필요한 모든 파일이 포함된 더 큰 파일 세트를 가져온 다음 필터링하는 것입니다:
 
-```astro {6-7}
+```astro {5-10} title="src/components/featured.astro"
 ---
-// src/components/featured.astro
 const { postSlug } = Astro.props;
 const pathToMyFeaturedPost = `src/pages/blog/${postSlug}.md`;
 
-const posts = Object.values(import.meta.glob("../pages/blog/*.md", { eager: true }));
-const myFeaturedPost = posts.find(post => post.file.includes(pathToMyFeaturedPost));
+const posts = Object.values(
+  import.meta.glob("../pages/blog/*.md", { eager: true }),
+);
+const myFeaturedPost: any = posts.find((post: any) =>
+  post.file.includes(pathToMyFeaturedPost),
+);
 ---
 
 <p>
-  Take a look at my favorite post, <a href={myFeaturedPost.url}>{myFeaturedPost.frontmatter.title}</a>!
+  제가 가장 좋아하는 게시물을 확인해 보세요: <a href={myFeaturedPost.url}
+    >{myFeaturedPost.frontmatter.title}</a
+  >!
 </p>
 ```
 
