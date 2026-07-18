@@ -11,37 +11,67 @@ Create a Markdown plugin which adds a reading time property to the frontmatter o
 
 ## Recipe
 
-<Tabs syncKey="markdown-processor">
-  <TabItem label="Sätteri">
-    <Steps>
-    1. Install the following packages:
-        - [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
-        - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
-        - [`@astrojs/markdown-satteri`](https://www.npmjs.com/package/@astrojs/markdown-satteri) to use [the `unified()` processor](/en/guides/markdown-content/#using-remark-and-rehype-plugins):
-        - [`satteri`](https://www.npmjs.com/package/satteri) to create a [Sätteri `mdast` plugin](https://satteri.bruits.org/docs/plugins/#mdast-plugins):
+<Steps>
+1. Install the following packages:
+    - [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
+    - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
+
+    You also need additional packages depending on the Markdown processor you use.
+
+    <Tabs syncKey="markdown-processor">
+      <TabItem label="Sätteri">
+        Install:
+        - [`@astrojs/markdown-satteri`](https://www.npmjs.com/package/@astrojs/markdown-satteri) to use [the `satteri()` processor](/en/guides/markdown-content/#using-sätteri-plugins-and-features)
+        - [`satteri`](https://www.npmjs.com/package/satteri) to create a [Sätteri `mdast` plugin](https://satteri.bruits.org/docs/plugins/#mdast-plugins)
 
         <PackageManagerTabs>
           <Fragment slot="npm">
           ```shell
-        npm install reading-time mdast-util-to-string @astrojs/markdown-satteri satteri
+          npm install reading-time mdast-util-to-string @astrojs/markdown-satteri satteri
           ```
           </Fragment>
           <Fragment slot="pnpm">
           ```shell
-        pnpm add reading-time mdast-util-to-string @astrojs/markdown-satteri satteri
+          pnpm add reading-time mdast-util-to-string @astrojs/markdown-satteri satteri
           ```
           </Fragment>
           <Fragment slot="yarn">
           ```shell
-        yarn add reading-time mdast-util-to-string @astrojs/markdown-satteri satteri
+          yarn add reading-time mdast-util-to-string @astrojs/markdown-satteri satteri
           ```
           </Fragment>
         </PackageManagerTabs>
+      </TabItem>
+      <TabItem label="Unified">
+        Install:
+        - [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark) to use [the `unified()` processor](/en/guides/markdown-content/#using-remark-and-rehype-plugins)
 
-    2. Create a Markdown plugin.
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+        </PackageManagerTabs>
+      </TabItem>
+    </Tabs>
 
-        This plugin uses the `mdast-util-to-string` package to get the Markdown file's text. This text is then passed to the `reading-time` package to calculate the reading time in minutes. 
+2. Create a Markdown plugin.
 
+    This plugin uses the `mdast-util-to-string` package to get the Markdown file's text. This text is then passed to the `reading-time` package to calculate the reading time in minutes.
+
+    <Tabs syncKey="markdown-processor">
+      <TabItem label="Sätteri">
         ```js title="src/mdast/mdast-reading-time.ts"
         import { toString } from 'mdast-util-to-string';
         import getReadingTime from 'reading-time';
@@ -77,106 +107,8 @@ Create a Markdown plugin which adds a reading time property to the frontmatter o
           },
         });
         ```
-
-    3. Add the plugin to your config:
-
-        ```js title="astro.config.mjs" {1,3,7-9}
-        import { satteri } from '@astrojs/markdown-satteri';
-        import { defineConfig } from 'astro/config';
-        import { mdastReadingTimePlugin } from './src/mdast/mdast-reading-time';
-
-        export default defineConfig({
-          markdown: {
-            processor: satteri({
-              mdastPlugins: [mdastReadingTimePlugin],
-            }),
-          },
-        });
-        ```
-
-        Now all Markdown documents will have a calculated `minutesRead` property in their frontmatter. 
-
-    4. Display Reading Time
-
-        If your blog posts are stored in a [content collection](/en/guides/content-collections/), access the `remarkPluginFrontmatter` from the `render(entry)` function. Then, render `minutesRead` in your template wherever you would like it to appear.
-
-        ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
-        ---
-        import { getCollection, render } from "astro:content";
-
-        export async function getStaticPaths() {
-          const blog = await getCollection("blog");
-          return blog.map((entry) => ({
-            params: { slug: entry.id },
-            props: { entry },
-          }));
-        }
-
-        const { entry } = Astro.props;
-        const { Content, remarkPluginFrontmatter } = await render(entry);
-        ---
-
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <title>{entry.data.title}</title>
-          </head>
-          <body>
-            <title>{entry.data.title}</title>
-            <p>{remarkPluginFrontmatter.minutesRead}</p>
-            <Content />
-          </body>
-        </html>
-        ```
-
-        If you're using a [Markdown layout](/en/basics/layouts/#markdown-layouts), use the `minutesRead` frontmatter property from `Astro.props` in your layout template.
-
-        ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
-        ---
-        const { minutesRead } = Astro.props.frontmatter;
-        ---
-
-        <html>
-          <head>
-            <meta charset="utf-8" />
-          </head>
-          <body>
-            <p>{minutesRead}</p>
-            <slot />
-          </body>
-        </html>
-        ```
-    </Steps>
-  </TabItem>
-  <TabItem label="Unified">
-    <Steps>
-    1. Install the following packages:
-        - [`reading-time`](https://www.npmjs.com/package/reading-time) to calculate minutes read
-        - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) to extract all text from your markdown
-        - [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark) to use [the `unified()` processor](/en/guides/markdown-content/#using-remark-and-rehype-plugins):
-
-        <PackageManagerTabs>
-          <Fragment slot="npm">
-          ```shell
-        npm install reading-time mdast-util-to-string @astrojs/markdown-remark
-          ```
-          </Fragment>
-          <Fragment slot="pnpm">
-          ```shell
-        pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
-          ```
-          </Fragment>
-          <Fragment slot="yarn">
-          ```shell
-        yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
-          ```
-          </Fragment>
-        </PackageManagerTabs>
-
-    2. Create a [Markdown plugin](https://github.com/remarkjs/remark).
-
-        This plugin uses the `mdast-util-to-string` package to get the Markdown file's text. This text is then passed to the `reading-time` package to calculate the reading time in minutes. 
-
+      </TabItem>
+      <TabItem label="Unified">
         ```js title="remark-reading-time.mjs"
         import getReadingTime from 'reading-time';
         import { toString } from 'mdast-util-to-string';
@@ -191,9 +123,28 @@ Create a Markdown plugin which adds a reading time property to the frontmatter o
           };
         }
         ```
+      </TabItem>
+    </Tabs>
 
-    3. Add the plugin to your config:
+3. Add the plugin to your config:
 
+    <Tabs syncKey="markdown-processor">
+      <TabItem label="Sätteri">
+        ```js title="astro.config.mjs" {1,3,7-9}
+        import { satteri } from '@astrojs/markdown-satteri';
+        import { defineConfig } from 'astro/config';
+        import { mdastReadingTimePlugin } from './src/mdast/mdast-reading-time';
+
+        export default defineConfig({
+          markdown: {
+            processor: satteri({
+              mdastPlugins: [mdastReadingTimePlugin],
+            }),
+          },
+        });
+        ```
+      </TabItem>
+      <TabItem label="Unified">
         ```js title="astro.config.mjs" {1,3,7-9}
         import { unified } from '@astrojs/markdown-remark';
         import { defineConfig } from 'astro/config';
@@ -207,59 +158,59 @@ Create a Markdown plugin which adds a reading time property to the frontmatter o
           },
         });
         ```
+      </TabItem>
+    </Tabs>
 
-        Now all Markdown documents will have a calculated `minutesRead` property in their frontmatter. 
+    Now all Markdown documents will have a calculated `minutesRead` property in their frontmatter.
 
-    4. Display Reading Time
+4. Display Reading Time
 
-        If your blog posts are stored in a [content collection](/en/guides/content-collections/), access the `remarkPluginFrontmatter` from the `render(entry)` function. Then, render `minutesRead` in your template wherever you would like it to appear.
+    If your blog posts are stored in a [content collection](/en/guides/content-collections/), access the `remarkPluginFrontmatter` from the `render(entry)` function. Then, render `minutesRead` in your template wherever you would like it to appear.
 
-        ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
-        ---
-        import { getCollection, render } from "astro:content";
+    ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
+    ---
+    import { getCollection, render } from "astro:content";
 
-        export async function getStaticPaths() {
-          const blog = await getCollection("blog");
-          return blog.map((entry) => ({
-            params: { slug: entry.id },
-            props: { entry },
-          }));
-        }
+    export async function getStaticPaths() {
+      const blog = await getCollection("blog");
+      return blog.map((entry) => ({
+        params: { slug: entry.id },
+        props: { entry },
+      }));
+    }
 
-        const { entry } = Astro.props;
-        const { Content, remarkPluginFrontmatter } = await render(entry);
-        ---
+    const { entry } = Astro.props;
+    const { Content, remarkPluginFrontmatter } = await render(entry);
+    ---
 
-        <html>
-          <head>
-            <meta charset="utf-8" />
-            <title>{entry.data.title}</title>
-          </head>
-          <body>
-            <title>{entry.data.title}</title>
-            <p>{remarkPluginFrontmatter.minutesRead}</p>
-            <Content />
-          </body>
-        </html>
-        ```
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>{entry.data.title}</title>
+      </head>
+      <body>
+        <title>{entry.data.title}</title>
+        <p>{remarkPluginFrontmatter.minutesRead}</p>
+        <Content />
+      </body>
+    </html>
+    ```
 
-        If you're using a [Markdown layout](/en/basics/layouts/#markdown-layouts), use the `minutesRead` frontmatter property from `Astro.props` in your layout template.
+    If you're using a [Markdown layout](/en/basics/layouts/#markdown-layouts), use the `minutesRead` frontmatter property from `Astro.props` in your layout template.
 
-        ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
-        ---
-        const { minutesRead } = Astro.props.frontmatter;
-        ---
+    ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
+    ---
+    const { minutesRead } = Astro.props.frontmatter;
+    ---
 
-        <html>
-          <head>
-            <meta charset="utf-8" />
-          </head>
-          <body>
-            <p>{minutesRead}</p>
-            <slot />
-          </body>
-        </html>
-        ```
-    </Steps>
-  </TabItem>
-</Tabs>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+      </head>
+      <body>
+        <p>{minutesRead}</p>
+        <slot />
+      </body>
+    </html>
+    ```
+</Steps>
