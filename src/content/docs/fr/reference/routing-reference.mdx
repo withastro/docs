@@ -153,8 +153,8 @@ Par exemple, si vous générez des pages avec des données extraites d'une API d
 ```astro title="src/pages/posts/[id].astro" {9}
 ---
 export async function getStaticPaths() {
-  const response = await fetch('...');
-  const data = await response.json();
+  const response = await fetch("...");
+  const data: any[] = await response.json();
 
   return data.map((post) => {
     return {
@@ -167,6 +167,7 @@ export async function getStaticPaths() {
 const { id } = Astro.params;
 const { post } = Astro.props;
 ---
+
 <h1>{id}: {post.name}</h1>
 ```
 
@@ -189,15 +190,16 @@ L'exemple suivant montre comment localiser vos segments de route et renvoyer un 
 
 ```astro title="src/pages/[...locale]/[files]/[slug].astro" "routePattern" "getLocalizedData"
 ---
+import type { GetStaticPathsOptions } from "astro";
 import { getLocalizedData } from "../../../utils/i18n";
 
-export async function getStaticPaths({ routePattern }) {
-  const response = await fetch('...');
-  const data = await response.json();
+export async function getStaticPaths({ routePattern }: GetStaticPathsOptions) {
+  const response = await fetch("...");
+  const data: any[] = await response.json();
 
   console.log(routePattern); // [...locale]/[files]/[slug]
 
-  // Appelez votre assistant personnalisé avec `routePattern` pour générer les chemins statiques
+  // Appelez votre fonction utilitaire personnalisée avec `routePattern` pour générer les chemins statiques
   return data.flatMap((file) => getLocalizedData(file, routePattern));
 }
 
@@ -220,14 +222,19 @@ L'exemple suivant récupère et transmet 150 éléments à la fonction `paginate
 
 ```astro title="src/pages/pokemon/[page].astro"
 ---
-export async function getStaticPaths({ paginate }) {
+import type { GetStaticPathsOptions } from "astro";
+
+export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
   // Chargez vos données avec fetch(), getCollection(), etc.
   const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=150`);
   const result = await response.json();
   const allPokemon = result.results;
 
   // Renvoyez une collection paginée de chemins pour tous les éléments
-  return paginate(allPokemon, { pageSize: 10 });
+  return paginate(allPokemon, {
+    pageSize: 10,
+    format: (url) => `${url}.html`,
+  });
 }
 
 const { page } = Astro.props;
@@ -240,6 +247,7 @@ const { page } = Astro.props;
   - `pageSize` - Le nombre d'éléments affichés par page (`10` par défaut)
   - `params` - Envoyer des paramètres supplémentaires pour créer des routes dynamiques
   - `props` - Envoyer des props supplémentaires pour qu'elles soient disponibles sur chaque page
+  - `format` - **Depuis la v7.1.0.** Une fonction qui permet de manipuler les URL calculées avant leur rendu.
 
 `paginate()` suppose un nom de fichier de `[page].astro` ou `[...page].astro`. Le paramètre `page` devient le numéro de page dans votre URL :
 
