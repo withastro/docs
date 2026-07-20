@@ -1,0 +1,119 @@
+---
+title: Referencia de la API de Zod
+sidebar:
+  label: 'astro/zod'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+
+[Zod](https://github.com/colinhacks/zod) es una librería de declaración y validación de esquemas basada en TypeScript. Te permite definir esquemas que puedes usar para validar y transformar datos, desde tipos sencillos (p. ej., `string`, `number`) hasta estructuras de datos complejas (p. ej, objetos anidados).
+
+El módulo `astro/zod` expone una reexportación de Zod que te permite acceder a todas las funciones de Zod v4. Al usar este módulo, no es necesario que instales Zod por tu cuenta. Esto también garantiza que tu proyecto use las mismas versiones de la API que usa Astro al usar funciones como [Colecciones de contenido](/es/guides/content-collections/) o [Acciones](/es/guides/actions/).
+
+<ReadMore>Consulta la [página web de Zod](https://zod.dev/) para obtener documentación completa sobre cómo funciona Zod y qué funciones están disponibles.</ReadMore>
+
+## Importa desde `astro/zod`
+
+```ts
+import { z } from 'astro/zod';
+```
+
+### `z`
+
+<p>
+
+**Tipo:** `object`
+</p>
+
+La utilidad `z` te permite acceder a validadores para una amplia variedad de tipos de datos, métodos y tipos para trabajar con tus datos.
+
+<ReadMore>Aprende más sobre la utilidad `z` en la [documentación de Zod](https://zod.dev/basics)</ReadMore>
+
+#### Validadores comunes de tipos de datos
+
+Con Zod, puedes validar cualquier tipo de dato, como [tipos primitivos](https://zod.dev/api#primitives), [objetos](https://zod.dev/api#objects), [listas](https://zod.dev/api#arrays) y mucho más.
+
+El siguiente ejemplo muestra una hoja de referencia con muchos tipos de datos habituales de Zod para crear un esquema `user`:
+
+```ts
+import { z } from 'astro/zod';
+
+const user = z.object({
+  username: z.string(),
+  name: z.string().min(2),
+  email: z.email(),
+  role: z.enum(['admin', 'editor']),
+  language: z.enum(['en', 'fr', 'es']).default('en'),
+  hobbies: z.array(z.string()),
+  age: z.number(),
+  isEmailConfirmed: z.boolean(),
+  inscriptionDate: z.date(),
+  website: z.url().optional(),
+});
+```
+
+#### Extrayendo un tipo de TypeScript
+
+Zod te permite crear un tipo de TypeScript a partir de cualquier esquema [usando la inferencia de tipos de Zod](https://zod.dev/basics#inferring-types). Esto puede resultar útil para describir la estructura de datos esperada al [definir las propiedades de los componentes](/es/guides/typescript/#propiedades-de-componente).
+
+El siguiente ejemplo crea un tipo `User` basado en el esquema anterior:
+
+```ts
+type User = z.infer<typeof user>;
+
+/* El tipo `User` será:
+ * type User = {
+ *   username: string;
+ *   name: string;
+ *   email: string;
+ *   role: 'admin' | 'editor';
+ *   language: 'en' | 'fr' | 'es';
+ *   hobbies: string[];
+ *   age: number;
+ *   isEmailConfirmed: boolean;
+ *   inscriptionDate: Date;
+ *   website?: string | undefined;
+ * }
+ */
+```
+
+#### Uso de los métodos de Zod
+
+Zod ofrece diversos métodos de esquema para [personalizar los mensajes de error](https://zod.dev/error-customization), [transformar datos](https://zod.dev/api#transforms) o crear [lógicas de validación personalizadas](https://zod.dev/api#refinements).
+
+```ts
+// Personalizar el mensaje de error
+const nonEmptyStrings = z.array(z.string()).nonempty('¡No puede estár vacío!');
+
+// Validar un dato de un esquema
+nonEmptyStrings.parse([]); // lanzará nuestro error personalizado
+
+// Crear un objeto a partir de una URL para una imagen decorativa
+const decorativeImg = z.string().transform((value) => {
+  return { src: value, alt: '' };
+});
+
+// Crear un validador personalizado y un mensaje de error para una cadena de texto
+const constrainedString = z
+  .string()
+  .refine((val) => val.length > 0 && val.length <= 255, {
+    error: 'Debe tener entre 1 y 255 caracteres.',
+  });
+```
+
+### Importaciones individuales
+
+Alternativamente, puedes importar todos los validadores, métodos y tipos de Zod disponibles en la [utilidad `z`](#z) directamente desde el módulo.
+
+En el siguiente ejemplo se importa `coerce` para crear un objeto `Date` a partir de una cadena de fecha:
+
+```ts
+import { coerce } from 'astro/zod';
+
+const publishedOn = coerce.date();
+const publicationDate = publishedOn.parse('2025-12-03');
+```

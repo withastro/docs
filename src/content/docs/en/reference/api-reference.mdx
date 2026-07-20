@@ -338,9 +338,14 @@ On prerendered pages, `request.url` does not contain search parameters, like `?t
 
 ```astro "Astro.response"
 ---
-if (condition) {
+import { getPost } from "../api";
+
+const post = await getPost(Astro.params.id);
+
+// No posts found with this ID
+if (!post) {
   Astro.response.status = 404;
-  Astro.response.statusText = 'Not found';
+  Astro.response.statusText = "Not found";
 }
 ---
 ```
@@ -390,12 +395,13 @@ The following example redirects a user to a login page:
   </TabItem>
   <TabItem label="context.redirect()">
     ```ts "redirect"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
+    import { isLoggedIn } from "../utils";
 
     export function GET({ redirect, request }: APIContext) {
-      const cookie = request.headers.get('cookie');
+      const cookie = request.headers.get("cookie");
       if (!isLoggedIn(cookie)) {
-        return redirect('/login', 302);
+        return redirect("/login", 302);
       } else {
         // return user information
       }
@@ -450,10 +456,10 @@ Use a `URL` type when you need to construct the URL path for the rewrite. The fo
   </TabItem>
   <TabItem label="context.rewrite()">
     ```ts
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
-    export function GET({ rewrite }: APIContext) {
-      return rewrite(new URL("../", Astro.url));
+    export function GET({ rewrite, url }: APIContext) {
+      return rewrite(new URL("../", url));
     }
     ```
   </TabItem>
@@ -475,14 +481,16 @@ Use a `Request` type for complete control of the `Request` sent to the server fo
   </TabItem>
   <TabItem label="context.rewrite()">
     ```ts
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
-    export function GET({ rewrite }: APIContext) {
-      return rewrite(new Request(new URL("../", Astro.url), {
-        headers: {
-          "x-custom-header": JSON.stringify(Astro.locals.someValue)
-        }
-      }));
+    export function GET({ locals, rewrite, url }: APIContext) {
+      return rewrite(
+        new Request(new URL("../", url), {
+          headers: {
+            "x-custom-header": JSON.stringify(locals.someValue),
+          },
+        }),
+      );
     }
     ```
   </TabItem>
@@ -507,7 +515,8 @@ Use a `Request` type for complete control of the `Request` sent to the server fo
   </TabItem>
   <TabItem label="context.originPathname">
     ```ts title="src/middleware.ts"
-    import { defineMiddleware } from 'astro:middleware';
+    import { defineMiddleware } from "astro:middleware";
+    import { recordPageVisit } from "./utils/analytics";
 
     export const onRequest = defineMiddleware(async (context, next) => {
       // Record the original pathname before any rewrites
@@ -561,6 +570,8 @@ Astro components and API endpoints can read values from `locals` when they rende
     ```
   </TabItem>
 </Tabs>
+
+<ReadMore>Learn more about [storing data in `locals`](/en/guides/middleware/#storing-data-in-contextlocals) while benefiting from [type safety](/en/guides/middleware/#middleware-types) using Astro middleware.</ReadMore>
 
 ### `preferredLocale`
 
@@ -915,10 +926,10 @@ Returns the value of the given key in the session. If the key does not exist, it
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/cart.ts" "session.get('cart')"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function GET({ session }: APIContext) {
-      const cart = await session.get('cart');
+      const cart = await session?.get("cart");
       return Response.json({ cart });
     }
     ```
@@ -947,14 +958,14 @@ Sets the value of the given key in the session. The value can be any serializabl
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function POST({ session, request }: APIContext) {
-      const cart = await session.get('cart');
+      const cart = (await session?.get("cart")) ?? [];
       const newItem = await request.json();
       cart.push(newItem);
       // Save the updated cart to the session
-      session.set('cart', cart);
+      session?.set("cart", cart);
       return Response.json({ cart });
     }
     ```
@@ -982,13 +993,14 @@ Regenerates the session ID. Call this when a user logs in or escalates their pri
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/login.ts" "session.regenerate()"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
+    import { doLogin } from "../../lib/auth";
 
     export async function POST({ session }: APIContext) {
       // Authenticate the user...
       doLogin();
       // Regenerate the session ID to prevent session fixation attacks
-      session.regenerate();
+      session?.regenerate();
       return Response.json({ success: true });
     }
     ```
@@ -1017,10 +1029,10 @@ Destroys the session, deleting the cookie and the object from the backend. Call 
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/logout.ts" "session.destroy()"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function POST({ session }: APIContext) {
-      session.destroy();
+      session?.destroy();
       return Response.json({ success: true });
     }
     ```
@@ -1042,27 +1054,26 @@ Loads a session by ID. In normal use, a session is loaded automatically from the
     ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
     ---
     // Load the session from a header instead of cookies
-    const sessionId = Astro.request.headers.get('x-session-id');
-    await Astro.session?.load(sessionId);
-    const cart = await Astro.session?.get('cart');
+    const sessionId = Astro.request.headers.get("x-session-id");
+    await Astro.session?.load(sessionId ?? "fallback-session-id");
+    const cart = await Astro.session?.get("cart");
     ---
+
     <h1>Your cart</h1>
     <ul>
-      {cart?.map((item) => (
-        <li>{item.name}</li>
-      ))}
+      {cart?.map((item: any) => <li>{item.name}</li>)}
     </ul>
     ```
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
-    import type { APIRoute } from 'astro';
+    import type { APIRoute } from "astro";
 
     export const GET: APIRoute = async ({ session, request }) => {
       // Load the session from a header instead of cookies
-      const sessionId = request.headers.get('x-session-id');
-      await session.load(sessionId);
-      const cart = await session.get('cart');
+      const sessionId = request.headers.get("x-session-id");
+      await session?.load(sessionId ?? "fallback-session-id");
+      const cart = await session?.get("cart");
       return Response.json({ cart });
     };
     ```
