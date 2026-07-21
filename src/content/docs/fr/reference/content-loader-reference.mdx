@@ -34,7 +34,7 @@ Pour une simple récupération de données, vous pouvez également [définir un 
 
 Le chargeur `glob()` crée des entrées à partir de répertoires de fichiers situés n'importe où sur le système de fichiers. Les types de fichiers pris en charge sont les fichiers Markdown, MDX, Markdoc, JSON, YAML et TOML.
 
-Ce chargeur accepte un objet avec les propriétés suivantes : `pattern`, `base` (optionnel), `generateId` (optionnel) et `retainBody` (optionnel).
+Ce chargeur accepte un objet avec les propriétés suivantes : `pattern`, `base` (optionnel), `generateId` (optionnel), `retainBody` (optionnel) et `deferRender` (optionnel).
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -123,6 +123,32 @@ Définir cette propriété sur `false` réduit considérablement la taille dépl
 Pour les fichiers Markdown, le contenu rendu sera toujours disponible dans la propriété [`entry.rendered.html`](#dataentryrenderedhtml), et la propriété [`entry.filePath`](#dataentryfilepath) pointera toujours vers le fichier d'origine.
 
 Pour les collections MDX, cela réduira considérablement leur taille, puisqu'aucun contenu ne sera plus conservé en magasin.
+
+#### `deferRender`
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`
+<Since v="7.1.0" />
+</p>
+
+Détermine s'il faut différer le rendu des entrées Markdown jusqu'à ce qu'elles soient affichées sur une page. Lorsque la valeur est `false` (valeur par défaut), leur rendu a lieu immédiatement lors de la synchronisation du contenu. Cette option ne s'applique pas à MDX, à Markdoc ni aux entrées de données (p. ex., JSON ou YAML).
+
+Par défaut, le chargeur `glob()` effectue le rendu de chaque entrée Markdown lors de la synchronisation et stocke le HTML résultant dans le magasin de données. Cela permet de mettre en cache le contenu rendu et de le réutiliser lors des compilations ultérieures. Cependant, pour les grandes collections dont le rendu est beaucoup plus volumineux que la source, le stockage simultané de tout ce code HTML rendu en mémoire peut entraîner une saturation de la mémoire lors de la compilation.
+
+Lorsque `deferRender` est définie sur `true`, le rendu est différé jusqu'à ce que chaque entrée soit effectivement affichée sur une page, en utilisant le même mécanisme de rendu à la demande que celui déjà employé par les fichiers `.mdx`. Cela permet de limiter l'utilisation de la mémoire pendant la commande `astro build`, au prix du fait que le HTML rendu n'est plus mis en cache dans le magasin de données.
+
+```ts title="src/content.config.ts"
+const docs = defineCollection({
+  /* Différer le rendu d'une grande collection Markdown pour éviter une saturation de la mémoire pendant la compilation. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/docs',
+    deferRender: true,
+  }),
+});
+```
 
 ### Le chargeur `file()`
 
