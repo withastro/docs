@@ -1,0 +1,109 @@
+---
+title: Personalizar los nombres de los archivos en el resultado de la compilación
+description: Aprende a cambiar el patrón de nomenclatura predeterminado para tus recursos compilados, como JavaScript, CSS e imágenes en Astro mediante las opciones de Rollup de Vite.
+i18nReady: true
+type: recipe
+---
+
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+Por defecto, el comando `astro build` genera los recursos compilados a partir de [el código fuente de tu proyecto](/es/basics/project-structure/#src), como los archivos JavaScript y CSS ubicados en el directorio `src/`, y los guarda en un directorio `_astro` con nombres de archivo con hash (p. ej., `_astro/index.DRf8L97S.js`), lo cual resulta ideal para el almacenamiento en caché a largo plazo.
+
+Aunque normalmente no es necesario, puedes personalizar los nombres de los archivos de salida cuando sea preciso. Por ejemplo, esto puede resultar útil si tienes scripts con nombres que podrían activar los bloqueadores de anuncios (p. ej., `ads.js`), o si deseas organizar tus recursos siguiendo una convención de nomenclatura concreta. Al personalizar las opciones de salida de Rollup, puedes obtener un mayor control sobre la estructura de compilación de tu proyecto, lo que te permite cumplir con requisitos específicos de organización o implementación.
+
+## Receta
+
+Esta receta configura `vite.environments.client.build.rollupOptions` para generar recursos compilados con la siguiente estructura y patrón de nomenclatura:
+-   Archivos de JavaScript (p. ej., scripts directamente asociados a tus páginas o diseños): `dist/js/[name]-[hash].js`
+-   Fragmentos de código JavaScript divididos (p. ej., componentes importados dinámicamente o módulos compartidos): `dist/js/chunks/[name]-[hash].js`
+-   Otros recursos (p. ej., CSS, imágenes, fuentes): `dist/static/[name]-[hash][extensión]` (p. ej., `dist/static/styles-a1b2c3d4.css`, `dist/static/logo-e5f6g7h8.svg`)
+
+<Steps>
+
+1.  Agregar opciones de salida de Vite Rollup.
+
+    Modifica tu archivo `astro.config.mjs` para incluir la siguiente configuración de `vite.environments.client.build.rollupOptions.output`. Aquí es donde puedes definir los patrones de nomenclatura personalizados para tus recursos usando los [`entryFileNames`](https://rollupjs.org/configuration-options/# output-entryfilenames), [`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames) y [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames) de Rollup:
+
+    ```javascript title="astro.config.mjs" ins
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // ...
+      vite: {
+        environments: {
+          client: {
+            build: {
+              rollupOptions: {
+                output: {
+                  // nombres de ruta relativos a `outDir`
+                  entryFileNames: 'js/[name]-[hash].js',
+                  chunkFileNames: 'js/chunks/[name]-[hash].js',
+                  assetFileNames: 'static/[name]-[hash][extname]',
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    ```
+
+    En este ejemplo se usan los siguientes elementos provisionales de nombre de archivo:
+    *   `[name]`: El nombre original del archivo (sin la extensión ni la ruta).
+    *   `[hash]`: Un hash basado en el contenido generado para el archivo, fundamental para evitar el almacenamiento en caché. También puedes especificar una longitud, p. ej., `[hash:8]`. Esto garantiza que, al actualizar un recurso, cambie el nombre del archivo, lo que obliga a los navegadores a descargar la nueva versión en lugar de mostrar una versión obsoleta almacenada en caché.
+    *   `[extname]`: La extensión original del archivo, incluido el punto inicial (p. ej., `.js`, `.css`, `.svg`).
+
+    <ReadMore>
+    Para consultar la lista completa de  provisionales y patrones avanzados disponibles para estas opciones, consulta la [documentación sobre la configuración de Rollup](https://rollupjs.org/configuration-options/).
+    </ReadMore>
+
+2.  Compila tu proyecto.
+
+    Dado que estas personalizaciones de los nombres de archivo solo se aplican al resultado de la compilación de producción, tendrás que ejecutar el comando de compilación de tu proyecto:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run build
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm build
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn build
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. Una vez finalizada la compilación, comprueba tu [directorio de salida](/es/reference/configuration-reference/#outdir) (`dist/` por defecto).
+
+    Comprueba que los recursos de compilación del directorio `src` de tu proyecto estén nombrados y organizados según los nuevos patrones. (Los archivos del [directorio `public/`](/es/basics/project-structure/#public) se copian directamente al directorio de salida y no se ven afectados por estas opciones de nomenclatura de Rollup.)
+
+    En función del contenido específico de tu proyecto, tu carpeta de compilación tendrá ahora un aspecto similar al siguiente:
+
+    <FileTree>
+    - dist/
+      - js/
+        - index-a1b2c3d4.js
+        - chunks/
+          - common-e5f6g7h8.js
+      - img/
+        - logo-i9j0k1l2.png
+      - fonts/
+        - myfont-q2w3e4r5.woff2
+      - static_assets/
+        - styles-m3n4o5p6.css
+      - index.html
+      - about/
+        - index.html
+      - ... (otros archivos HTML y recursos públicos)
+    </FileTree>
+
+</Steps>
