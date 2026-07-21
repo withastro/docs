@@ -1,0 +1,103 @@
+---
+title: Usa la transmisión en continuo para mejorar el rendimiento de las páginas
+description: Aprende a usar la transmisión en continuo para mejorar el rendimiento de la página.
+type: recipe
+i18nReady: true
+---
+
+El SSR de Astro usa transmisión HTML para enviar cada componente al navegador en cuanto está disponible, lo que permite una carga más rápida de la página. Para mejorar aún más el rendimiento de tu página, puedes diseñar tus componentes de forma estratégica para optimizar su carga, evitando las recuperaciones de datos que bloquean la página.
+
+El siguiente ejemplo de refactorización muestra cómo mejorar el rendimiento de la página trasladando las llamadas de recuperación a otros componentes, sacándolas así de un componente en el que bloquean la renderización de la página.
+
+La siguiente página usa la instrucción `await` para cargar algunos datos en su frontmatter. Astro esperará a que se resuelvan todas las llamadas `fetch` antes de enviar cualquier código HTML al navegador.
+
+```astro title="src/pages/index.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<html>
+  <head>
+    <title>Un nombre y un dato</title>
+  </head>
+  <body>
+    <h2>Un nombre</h2>
+    <p>{randomPerson.name.first}</p>
+    <h2>Un dato</h2>
+    <p>{factData.fact}</p>
+  </body>
+</html>
+```
+
+La siguiente página usa la instrucción `await` para cargar algunos datos en su frontmatter. Astro esperará a que se resuelvan todas las llamadas `fetch` antes de enviar cualquier código HTML al navegador.
+
+```astro title="src/components/RandomName.astro"
+---
+const personResponse = await fetch('https://randomuser.me/api/');
+const personData = await personResponse.json();
+const randomPerson = personData.results[0];
+---
+<p>{randomPerson.name.first}</p>
+```
+
+```astro title="src/components/RandomFact.astro"
+---
+const factResponse = await fetch('https://catfact.ninja/fact');
+const factData = await factResponse.json();
+---
+<p>{factData.fact}</p>
+```
+
+La página Astro que se muestra a continuación, al usar estos componentes, puede renderizar partes de la página más rápido.º Las etiquetas `<head>`, `<body>` y `<h2>` ya no quedan bloqueadas por las recuperaciones de datos. A continuación, el servidor recuperará los datos de `RandomName` y `RandomFact` en paralelo y enviará el código HTML resultante al navegador.
+
+```astro title="src/pages/index.astro"
+---
+import RandomName from '../components/RandomName.astro';
+import RandomFact from '../components/RandomFact.astro';
+---
+<html>
+  <head>
+    <title>Un nombre y un dato</title>
+  </head>
+  <body>
+    <h2>Un nombre</h2>
+    <RandomName />
+    <h2>Un dato</h2>
+    <RandomFact />
+  </body>
+</html>
+```
+
+#### Incluir promesas directamente
+
+También puedes incluir promesas directamente en la plantilla. En lugar de bloquear todo el componente, resolverá la promesa en paralelo y solo bloqueará el código de marcado que venga a continuación.
+
+```astro title="src/pages/index.astro"
+---
+const personPromise = fetch('https://randomuser.me/api/')
+  .then(response => response.json())
+  .then(personData => personData.results[0].name.first);
+
+const factPromise = fetch('https://catfact.ninja/fact')
+  .then(response => response.json())
+  .then(factData => factData.fact);
+---
+<html>
+  <head>
+    <title>Un nombre y un dato</title>
+  </head>
+  <body>
+    <h2>Un nombre</h2>
+    <p>{personPromise}</p>
+    <h2>Un dato</h2>
+    <p>{factPromise}</p>
+  </body>
+</html>
+```
+
+En este ejemplo, `Un nombre` se mostrará mientras se cargan `personPromise` y `factPromise`.
+
+Una vez que `personPromise` se haya resuelto, aparecerá `Un dato` y `factPromise` se mostrará cuando haya terminado de cargarse.
