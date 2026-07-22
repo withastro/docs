@@ -34,7 +34,7 @@ Astro의 [`glob()`](#glob-로더) 및 [`file()`](#file-로더) 로더는 로컬 
 
 `glob()` 로더는 파일 시스템의 모든 위치에 있는 파일 디렉터리에서 엔트리를 생성합니다. 지원되는 파일 형식은 Markdown, MDX, Markdoc, JSON, YAML, TOML 파일입니다.
 
-이 로더는 `pattern`, `base` (선택 사항), `generateId` (선택 사항), `retainBody` (선택 사항) 속성을 가진 객체를 인자로 받습니다.
+이 로더는 `pattern`, `base` (선택 사항), `generateId` (선택 사항), `retainBody` (선택 사항), `deferRender` (선택 사항) 속성을 가진 객체를 인자로 받습니다.
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -123,6 +123,32 @@ export const collections = { pages, blog, authors };
 Markdown 파일의 경우 렌더링된 본문은 여전히 [`entry.rendered.html` 속성](#dataentryrenderedhtml)에서 사용할 수 있으며, [`entry.filePath` 속성](#dataentryfilepath)은 여전히 원본 파일을 가리킵니다.
 
 MDX 컬렉션의 경우 저장소에 더 이상 본문이 보존되지 않으므로 컬렉션 크기가 크게 줄어듭니다.
+
+#### `deferRender`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`
+<Since v="7.1.0" />
+</p>
+
+Markdown 엔트리의 렌더링을 페이지에서 실제로 렌더링될 때까지 지연할지 여부입니다. `false`(기본값)인 경우 콘텐츠 동기화 중에 즉시 렌더링됩니다. 이 옵션은 MDX, Markdoc 및 데이터 엔트리(예: JSON, YAML)에는 적용되지 않습니다.
+
+기본적으로 `glob()` 로더는 동기화 중에 각 Markdown 엔트리를 렌더링하고, 생성된 HTML을 데이터 저장소에 저장합니다. 이를 통해 렌더링된 콘텐츠를 캐시하여 여러 빌드에서 재사용할 수 있습니다. 하지만 렌더링 결과가 원본보다 훨씬 큰 대규모 컬렉션의 경우, 렌더링된 HTML을 모두 한 번에 메모리에 저장하면 빌드 중 메모리가 부족해질 수 있습니다.
+
+`deferRender`가 `true`이면 `.mdx` 파일에서 이미 사용하는 것과 동일한 온디맨드 렌더링 방식을 사용하여, 각 엔트리가 페이지에서 실제로 렌더링될 때까지 렌더링을 미룹니다. 이렇게 하면 `astro build` 중 메모리 사용량을 일정하게 유지할 수 있지만, 렌더링된 HTML은 더 이상 데이터 저장소에 캐시되지 않습니다.
+
+```ts title="src/content.config.ts"
+const docs = defineCollection({
+  /* 빌드 중 메모리 부족을 방지하기 위해 대규모 Markdown 컬렉션의 렌더링을 지연합니다. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/docs',
+    deferRender: true,
+  }),
+});
+```
 
 ### `file()` 로더
 
