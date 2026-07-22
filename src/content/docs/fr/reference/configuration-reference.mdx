@@ -668,7 +668,7 @@ Un objet de configuration qui vous permet de remplacer les sources par défaut d
 
 <p>
 
-**Type :** `Array<CspHash>`<br />
+**Type :** `Array<CspHashEntry>`<br />
 **Par défaut :** `[]`<br />
 <Since v="6.0.0" />
 </p>
@@ -676,6 +676,13 @@ Un objet de configuration qui vous permet de remplacer les sources par défaut d
 Une liste des hachages supplémentaires à afficher.
 
 Vous devez fournir des hachages commençant par `sha384-`, `sha512-` ou `sha256-`. Toute autre valeur entraînera une erreur de validation. Ces hachages sont ajoutés à toutes les pages.
+
+Depuis Astro v7.1, chaque entrée peut être une chaîne de caractères ou un objet. L'objet permet de changer la portée du hachage via le champ `kind`. Le champ `kind` accepte :
+- `"element"` : il stockera le hachage dans la directive `style-src-elem`
+- `"attribute"` : il stockera le hachage dans la directive `style-src-attr`
+- `"default"` : il stockera le hachage dans la directive `style-src`
+
+Un hachage par défaut (`"default"`) est placé sur `style-src`, ou sur `style-src-elem` à la place une fois que vous utilisez `kind: "element"`. Il n'est jamais ajouté à `style-src-attr`. Les hachages générés par Astro suivent la même règle.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -706,16 +713,53 @@ Après la compilation, l'élément `<meta>` inclura vos hachages supplémentaire
 >
 ```
 
+En restreignant un hachage à `"element"`, il est stocké dans `style-src-elem` à la place. Les hachages générés par Astro y sont également déplacés :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      styleDirective: {
+        hashes: [{ hash: "sha256-styleHash", kind: "element" }]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` inclura le hachage dans la directive `style-src-elem` à la place de `style-src` :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    style-src 'self';
+    style-src-elem 'self' 'sha256-styleHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
 ###### security.csp.styleDirective.resources
 
 <p>
 
-**Type :** `Array<string>`<br />
+**Type :** `Array<CspResourceEntry>`<br />
 **Par défaut :** `[]`<br />
 <Since v="6.0.0" />
 </p>
 
 Liste des sources valides pour les directives `style-src` permettant de remplacer les sources par défaut d'Astro. Cela n'inclura pas `self` par défaut, et vous devrez l'inclure dans cette liste si vous souhaitez la conserver. Ces ressources sont ajoutées à toutes les pages.
+
+Depuis Astro v7.1, chaque entrée peut être une chaîne de caractères ou un objet. L'objet permet de changer la portée de la source via le champ `kind`. Le champ `kind` accepte :
+- `"element"` : il stockera la source dans la directive `style-src-elem`
+- `"attribute"` : il stockera la source dans la directive `style-src-attr`
+- `"default"` : il stockera la source dans la directive `style-src`
+
+Les sources de type `"attribute"` doivent être l'une des suivantes : `'none'`, `'unsafe-hashes'`, `'unsafe-inline'` ou `'report-sample'`, et `'unsafe-hashes'` ne peut pas être utilisé avec `"element"`. Un cas d'utilisation courant consiste à autoriser les attributs `style` incorporés à des éléments (par exemple, à partir de `define:vars` ou Shiki) avec `{ resource: "'unsafe-inline'", kind: "attribute" }`.
+
+Contrairement à un hachage, une source par défaut (`"default"`) n'est jamais déplacée : elle reste uniquement dans `style-src`. En cas de mélange entre des ressources par défaut et des ressources spécifiques (par exemple `"element"` ou `"attribute"`), Astro émet un avertissement.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -747,6 +791,37 @@ Après la compilation, l'élément `<meta>` appliquera vos sources aux directive
 </head>
 ```
 
+Une source par défaut (`"default"`) n'est pas copiée dans les directives plus spécifiques. Ici, une source par défaut et une source de type `"element"` sont générées dans des directives différentes :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "https://styles.cdn.example.com",
+          { resource: "https://elements.cdn.example.com", kind: "element" }
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` conserve `https://styles.cdn.example.com` uniquement dans `style-src`. Cela signifie que cette valeur n'est pas ajoutée à `style-src-elem` et ne s'applique pas aux éléments `<style>` et `<link>` (le hachage généré, en revanche, y est déplacé) :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    style-src https://styles.cdn.example.com;
+    style-src-elem https://elements.cdn.example.com 'sha256-generatedByAstro';
+  "
+>
+```
+
 Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple définies dans votre configuration `csp` et ajoutées à l'aide de [l'API d'exécution de CSP](/fr/reference/api-reference/#csp)), Astro fusionnera et dédupliquera toutes les ressources pour créer votre élément `<meta>`.
 
 ##### security.csp.scriptDirective
@@ -764,7 +839,7 @@ Un objet de configuration qui vous permet de remplacer les sources par défaut d
 
 <p>
 
-**Type :** `Array<CspHash>`<br />
+**Type :** `Array<CspHashEntry>`<br />
 **Par défaut :** `[]`<br />
 <Since v="6.0.0" />
 </p>
@@ -772,6 +847,13 @@ Un objet de configuration qui vous permet de remplacer les sources par défaut d
 Une liste des hachages supplémentaires à afficher.
 
 Vous devez fournir des hachages commençant par `sha384-`, `sha512-` ou `sha256-`. Toute autre valeur entraînera une erreur de validation. Ces hachages sont ajoutés à toutes les pages.
+
+Depuis Astro v7.1, chaque entrée peut être une chaîne de caractères ou un objet. L'objet permet de changer la portée du hachage via le champ `kind`. Le champ `kind` accepte :
+- `"element"` : il stockera le hachage dans la directive `script-src-elem`
+- `"attribute"` : il stockera le hachage dans la directive `script-src-attr`
+- `"default"` : il stockera le hachage dans la directive `script-src`
+
+Un hachage par défaut (`"default"`) est placé sur `script-src`, ou sur `script-src-elem` à la place une fois que vous utilisez `kind: "element"`. Il n'est jamais ajouté à `script-src-attr`. Les hachages générés par Astro suivent la même règle.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -802,16 +884,53 @@ Après la compilation, l'élément `<meta>` inclura vos hachages supplémentaire
 >
 ```
 
+En restreignant un hachage à `"element"`, il est stocké dans `script-src-elem` à la place. Les hachages générés par Astro y sont également déplacés :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        hashes: [{ hash: "sha256-scriptHash", kind: "element" }]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` inclura le hachage dans la directive `script-src-elem` au lieu de `script-src` :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self';
+    script-src-elem 'self' 'sha256-scriptHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
 ###### security.csp.scriptDirective.resources
 
 <p>
 
-**Type :** `Array<string>`<br />
+**Type :** `Array<CspResourceEntry>`<br />
 **Par défaut :** `[]`<br />
 <Since v="6.0.0" />
 </p>
 
 Liste des sources valides pour les directives `script-src` permettant de remplacer les sources par défaut d'Astro. Cela n'inclura pas `self` par défaut, et vous devrez l'inclure dans cette liste si vous souhaitez la conserver. Ces ressources sont ajoutées à toutes les pages.
+
+Depuis Astro v7.1, chaque entrée peut être une chaîne de caractères ou un objet. L'objet permet de changer la portée de la source via le champ `kind`. Le champ `kind` accepte :
+- `"element"` : il stockera la source dans la directive `script-src-elem`
+- `"attribute"` : il stockera la source dans la directive `script-src-attr`
+- `"default"` : il stockera la source dans la directive `script-src`
+
+Les sources de type `"attribute"` doivent être l'une des suivantes : `'none'`, `'unsafe-hashes'`, `'unsafe-inline'` ou `'report-sample'`, et `'unsafe-hashes'` ne peut pas être utilisé avec `"element"`.
+
+Contrairement à un hachage, une source par défaut (`"default"`) n'est jamais déplacée et reste uniquement dans `script-src`. Cela ne s'applique pas lorsque vous restreignez également la portée des sources de type `"element"` ou `"attribute"`, car les navigateurs ne disposent pas de solution de repli. Astro émet un avertissement lorsque cela se produit. Ajoutez-la également à la directive la plus spécifique, si nécessaire.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -842,6 +961,37 @@ Après la compilation, l'élément `<meta>` appliquera plutôt vos sources aux d
 </head>
 ```
 
+Une source par défaut (`"default"`) n'est pas copiée dans les directives plus spécifiques. Ici, une source par défaut et une source de type `"element"` sont générées dans des directives différentes :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        resources: [
+          "https://cdn.example.com",
+          { resource: "https://elements.cdn.example.com", kind: "element" }
+        ]
+      }
+    }
+  }
+});
+```
+
+Après la compilation, l'élément `<meta>` conserve `https://cdn.example.com` uniquement dans `script-src`. Cela signifie que cette valeur n'est pas ajoutée à `script-src-elem` et ne s'applique pas aux éléments `<script>` (le hachage généré, en revanche, y est déplacé) :
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src https://cdn.example.com;
+    script-src-elem https://elements.cdn.example.com 'sha256-generatedByAstro';
+  "
+>
+```
+
 Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple définies dans votre configuration `csp` et ajoutées à l'aide de [l'API d'exécution de CSP](/fr/reference/api-reference/#csp)), Astro fusionnera et dédupliquera toutes les ressources pour créer votre élément `<meta>`.
 
 ###### security.csp.scriptDirective.strictDynamic
@@ -868,6 +1018,8 @@ export default defineConfig({
   }
 });
 ```
+
+Cela s'applique à `script-src`. Lorsque vous restreignez également les ressources ou les hachages de scripts à `script-src-elem` (en utilisant `kind: "element"`), `script-src-elem` hérite de `strict-dynamic`, de sorte que les éléments `<script>` injectés dynamiquement continuent de fonctionner.
 
 ## Options de compilation
 
@@ -1258,7 +1410,7 @@ Consultez [la référence de l'API de journalisation](/fr/reference/logger-refer
 
 <p>
 
-**Type :** `string`<br />
+**Type :** `string | URL`<br />
 <Since v="7.0.0" />
 </p>
 
