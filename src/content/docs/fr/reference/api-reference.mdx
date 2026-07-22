@@ -336,11 +336,16 @@ Sur les pages pré-rendues, `request.url` ne contient pas de paramètres de rech
 `Astro.response` est utilisé pour définir le `status`, le `statusText` et les `headers` de la réponse d'une page.
 
 
-```astro
+```astro "Astro.response"
 ---
-if(condition) {
+import { getPost } from "../api";
+
+const post = await getPost(Astro.params.id);
+
+// Aucun article trouvé avec cet identifiant
+if (!post) {
   Astro.response.status = 404;
-  Astro.response.statusText = 'Non trouvé';
+  Astro.response.statusText = "Not found";
 }
 ---
 ```
@@ -390,12 +395,13 @@ L'exemple suivant redirige un utilisateur vers une page de connexion :
   </TabItem>
   <TabItem label="context.redirect()">
     ```ts "redirect"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
+    import { isLoggedIn } from "../utils";
 
     export function GET({ redirect, request }: APIContext) {
-      const cookie = request.headers.get('cookie');
+      const cookie = request.headers.get("cookie");
       if (!isLoggedIn(cookie)) {
-        return redirect('/login', 302);
+        return redirect("/login", 302);
       } else {
         // renvoyer les informations de l'utilisateur
       }
@@ -450,10 +456,10 @@ Utilisez un type `URL` lorsque vous devez construire le chemin de l'URL pour la 
   </TabItem>
   <TabItem label="context.rewrite()">
     ```ts
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
-    export function GET({ rewrite }: APIContext) {
-      return rewrite(new URL("../", Astro.url));
+    export function GET({ rewrite, url }: APIContext) {
+      return rewrite(new URL("../", url));
     }
     ```
   </TabItem>
@@ -475,14 +481,16 @@ Utilisez un type `Request` pour un contrôle complet de la requête (`Request`) 
   </TabItem>
   <TabItem label="context.rewrite()">
     ```ts
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
-    export function GET({ rewrite }: APIContext) {
-      return rewrite(new Request(new URL("../", Astro.url), {
-        headers: {
-          "x-custom-header": JSON.stringify(Astro.locals.someValue)
-        }
-      }));
+    export function GET({ locals, rewrite, url }: APIContext) {
+      return rewrite(
+        new Request(new URL("../", url), {
+          headers: {
+            "x-custom-header": JSON.stringify(locals.someValue),
+          },
+        }),
+      );
     }
     ```
   </TabItem>
@@ -507,7 +515,8 @@ Utilisez un type `Request` pour un contrôle complet de la requête (`Request`) 
   </TabItem>
   <TabItem label="context.originPathname">
     ```ts title="src/middleware.ts"
-    import { defineMiddleware } from 'astro:middleware';
+    import { defineMiddleware } from "astro:middleware";
+    import { recordPageVisit } from "./utils/analytics";
 
     export const onRequest = defineMiddleware(async (context, next) => {
       // Enregistre le chemin d'accès d'origine avant toute réécriture
@@ -561,6 +570,8 @@ Les composants Astro et les points de terminaison de l'API peuvent lire les vale
     ```
   </TabItem>
 </Tabs>
+
+<ReadMore>Apprenez-en davantage sur le [stockage de données dans `locals`](/fr/guides/middleware/#stocker-des-données-dans-contextlocals) tout en bénéficiant de la [sûreté du typage](/fr/guides/middleware/#types-du-middleware) en utilisant le middleware d'Astro.</ReadMore>
 
 ### `preferredLocale`
 
@@ -915,10 +926,10 @@ Renvoie la valeur de la clé donnée dans la session. Si la clé n'existe pas, l
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/cart.ts" "session.get('cart')"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function GET({ session }: APIContext) {
-      const cart = await session.get('cart');
+      const cart = await session?.get("cart");
       return Response.json({ cart });
     }
     ```
@@ -947,14 +958,14 @@ Définit la valeur de la clé donnée dans la session. Cette valeur peut être d
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function POST({ session, request }: APIContext) {
-      const cart = await session.get('cart');
+      const cart = (await session?.get("cart")) ?? [];
       const newItem = await request.json();
       cart.push(newItem);
       // Enregistrer le panier mis à jour dans la session
-      session.set('cart', cart);
+      session?.set("cart", cart);
       return Response.json({ cart });
     }
     ```
@@ -982,13 +993,14 @@ Régénère l'ID de session. Appelez cette fonction lorsqu'un utilisateur se con
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/login.ts" "session.regenerate()"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
+    import { doLogin } from "../../lib/auth";
 
     export async function POST({ session }: APIContext) {
       // Authentifier l'utilisateur...
       doLogin();
       // Régénérer l'ID de session pour empêcher les attaques de fixation de session
-      session.regenerate();
+      session?.regenerate();
       return Response.json({ success: true });
     }
     ```
@@ -1017,10 +1029,10 @@ Détruit la session en supprimant le cookie et l'objet du backend. Appelez cette
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/logout.ts" "session.destroy()"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function POST({ session }: APIContext) {
-      session.destroy();
+      session?.destroy();
       return Response.json({ success: true });
     }
     ```
@@ -1042,27 +1054,26 @@ Charge une session par identifiant. En utilisation normale, une session est char
     ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
     ---
     // Charger la session à partir d'un en-tête au lieu de cookies
-    const sessionId = Astro.request.headers.get('x-session-id');
-    await Astro.session?.load(sessionId);
-    const cart = await Astro.session?.get('cart');
+    const sessionId = Astro.request.headers.get("x-session-id");
+    await Astro.session?.load(sessionId ?? "id-de-repli-pour-la-session");
+    const cart = await Astro.session?.get("cart");
     ---
-    <h1>Votre panier</h1>
+
+    <h1>Your cart</h1>
     <ul>
-      {cart?.map((item) => (
-        <li>{item.name}</li>
-      ))}
+      {cart?.map((item: any) => <li>{item.name}</li>)}
     </ul>
     ```
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
-    import type { APIRoute } from 'astro';
+    import type { APIRoute } from "astro";
 
     export const GET: APIRoute = async ({ session, request }) => {
       // Charger la session à partir d'un en-tête au lieu de cookies
-      const sessionId = request.headers.get('x-session-id');
-      await session.load(sessionId);
-      const cart = await session.get('cart');
+      const sessionId = request.headers.get("x-session-id");
+      await session?.load(sessionId ?? "id-de-repli-pour-la-session");
+      const cart = await session?.get("cart");
       return Response.json({ cart });
     };
     ```
@@ -1085,6 +1096,14 @@ Les API d'exécution CSP d'Astro permettent la prise en charge de la [stratégie
 Vous pouvez personnaliser l'élément `<meta>` par page à partir de la variable globale `Astro` dans les composants `.astro`, ou du type `APIContext` dans les points de terminaison et middlewares.
 
 Lorsque des ressources sont insérées plusieurs fois ou à partir de plusieurs sources (par exemple définies dans votre [config `csp`](/fr/reference/configuration-reference/#securitycsp) et ajoutées à l'aide des API d'exécution CSP suivantes, Astro fusionnera et dédupliquera toutes les ressources pour créer votre élément `<meta>`.
+
+:::caution[Restreindre la portée avec des directives plus spécifiques]
+Lorsque vous restreignez la portée d'une source ou d'un hash à une directive plus spécifique à l'aide de l'option `kind` (`'element'` ou `'attribute'`), les navigateurs utilisent cette directive plutôt que la directive générique `script-src` ou `style-src` pour cette portée, sans revenir à la directive générique.
+
+Astro déplace automatiquement les hachages qu'il génère pour vos scripts et styles incorporés à la page vers la directive plus spécifique afin qu'ils continuent de fonctionner. En revanche, il ne déplace **pas** vos ressources génériques (`'default'`). Si vous combinez des ressources génériques avec des ressources ou des hachages plus spécifiques pour la même famille de directives, les ressources génériques ne s'appliqueront pas à la portée spécifique. Astro émet un avertissement s'il détecte une telle situation.
+
+Pour résoudre le problème, déplacez toutes les ressources et tous les hachages vers les directives spécifiques.
+:::
 
 
 #### `csp.insertDirective()`
@@ -1122,7 +1141,7 @@ content="
 
 <p>
 
-**Type :** `(resource: string) => void`<br />
+**Type :** `(resource: string | { resource: string; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1146,11 +1165,34 @@ content="
 >
 ```
 
+<p><Since v="7.1.0" /></p>
+
+Vous pouvez également restreindre la portée d'une source à une directive plus spécifique en transmettant un objet avec une propriété `kind`. Utilisez `'element'` pour `style-src-elem`, `'attribute'` pour `style-src-attr`, ou `'default'` (identique à une chaîne de caractères simple) pour `style-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleResource({ resource: "'unsafe-inline'", kind: "attribute" });
+---
+```
+
+Après la compilation, l'élément `<meta>` de cette page individuelle ajoutera votre source à la directive `style-src-attr`, qui s'applique uniquement aux attributs `style` incorporés dans le HTML :
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  style-src 'self';
+  style-src-attr 'unsafe-inline';
+  "
+>
+```
+
 #### `csp.insertStyleHash()`
 
 <p>
 
-**Type :** `(hash: CspHash) => void`<br />
+**Type :** `(hash: CspHash | { hash: CspHash; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1174,11 +1216,34 @@ content="
 >
 ```
 
+<p><Since v="7.1.0" /></p>
+
+Vous pouvez également restreindre la portée d'un hachage à une directive plus spécifique en transmettant un objet avec une propriété `kind`. Utilisez `'element'` pour `style-src-elem`, `'attribute'` pour `style-src-attr`, ou `'default'` (identique à un hachage simple) pour `style-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleHash({ hash: "sha512-styleHash", kind: "element" });
+---
+```
+
+Après la compilation, l'élément `<meta>` de cette page individuelle ajoutera votre hachage à la directive `style-src-elem`. Les hachages de style générés automatiquement par Astro y sont également déplacés, car `style-src-elem` a la priorité sur `style-src` pour les éléments `<style>` et `<link>` :
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src 'self';
+  style-src-elem 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
 #### `csp.insertScriptResource()`
 
 <p>
 
-**Type :** `(resource: string) => void`<br />
+**Type :** `(resource: string | { resource: string; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1202,11 +1267,34 @@ content="
 >
 ```
 
+<p><Since v="7.1.0" /></p>
+
+Vous pouvez également restreindre la portée d'une source à une directive plus spécifique en transmettant un objet avec une propriété `kind`. Utilisez `'element'` pour `script-src-elem`, `'attribute'` pour `script-src-attr`, ou `'default'` (identique à une chaîne de caractères simple) pour `script-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptResource({ resource: "https://scripts.cdn.example.com", kind: "element" });
+---
+```
+
+Après la compilation, l'élément `<meta>` de cette page individuelle ajoutera votre source à la directive `script-src-elem`, qui régit les éléments `<script>` :
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  script-src-elem https://scripts.cdn.example.com;
+  style-src 'self';
+  "
+>
+```
+
 #### `csp.insertScriptHash()`
 
 <p>
 
-**Type :** `(hash: CspHash) => void`<br />
+**Type :** `(hash: CspHash | { hash: CspHash; kind: 'element' | 'attribute' | 'default' }) => void`<br />
 <Since v="6.0.0" />
 </p>
 
@@ -1225,6 +1313,29 @@ Après la compilation, l'élément `<meta>` de cette page ajoutera votre hachage
 http-equiv="content-security-policy"
 content="
   script-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+<p><Since v="7.1.0" /></p>
+
+Vous pouvez également restreindre la portée d'un hachage à une directive plus spécifique en transmettant un objet avec une propriété `kind`. Utilisez `'element'` pour `script-src-elem`, `'attribute'` pour `script-src-attr`, ou `'default'` (identique à un hachage simple) pour `script-src`.
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptHash({ hash: "sha512-scriptHash", kind: "element" });
+---
+```
+
+Après la compilation, l'élément `<meta>` de cette page individuelle ajoutera votre hachage à la directive `script-src-elem`. Les hachages de script générés automatiquement par Astro y sont également déplacés, car `script-src-elem` a la priorité sur `script-src` pour les éléments `<script>` :
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  script-src-elem 'self' 'sha256-somehash' 'sha512-scriptHash';
   style-src 'self' 'sha256-somehash';
   "
 >
@@ -1291,7 +1402,7 @@ Purge les entrées mises en cache. Nécessite un fournisseur de cache configuré
 
 <p>
 
-  **Type :** `object | undefined`
+  **Type :** [`AstroRuntimeLogger`](/fr/reference/logger-reference/#astroruntimelogger)
   <Since v="7.0.0" />
 </p>
 
