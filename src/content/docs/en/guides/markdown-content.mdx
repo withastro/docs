@@ -6,10 +6,9 @@ description: Learn about Astro's built-in support for Markdown.
 i18nReady: true
 ---
 import Since from '~/components/Since.astro';
-import { FileTree } from '@astrojs/starlight/components';
 import RecipeLinks from "~/components/RecipeLinks.astro";
 import ReadMore from '~/components/ReadMore.astro';
-import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
+import { FileTree, Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 [Markdown](https://daringfireball.net/projects/markdown/) is commonly used to author text-heavy content like blog posts and documentation. Astro includes built-in support for Markdown files that can also include [frontmatter YAML](https://dev.to/paulasantamaria/introduction-to-yaml-125f) (or [TOML](https://toml.io)) to define custom properties such as a title, description, and tags.
@@ -209,20 +208,264 @@ Astro injects `id` attributes after your custom plugins have run, so any ID set 
   </TabItem>
 </Tabs>
 
-## Markdown plugins
+## Markdown processors
 
-Astro renders Markdown using a configurable **Markdown processor**. By default, this is [Sätteri](https://satteri.bruits.org/), Astro's native Markdown and MDX pipeline, included with Astro.
+<p><Since v="6.4.0" /></p>
 
-Astro applies [GitHub-Flavored Markdown](https://github.github.com/gfm/) and [SmartyPants](https://daringfireball.net/projects/smartypants/) automatically. This brings some niceties like generating clickable links from text, and formatting for quotations and em-dashes.
+Astro allows you to configure a Markdown processor responsible for parsing and rendering Markdown and MDX files. You can choose a processor for your entire project or use different processors for Markdown and MDX files. Two official processors are available: [Sätteri](https://satteri.bruits.org/) and [Unified](https://unifiedjs.com/).
 
-You can extend Markdown processing with plugins, enable additional parser features, or [switch to a different processor entirely](#switching-to-the-unified-processor). See the full list of [Markdown configuration options](/en/reference/configuration-reference/#markdown-options).
+Since Astro v7, Sätteri is the default Markdown processor. You can use it to render Markdown and MDX files without any installation or configuration.
 
 ### Choosing a Markdown processor
 
-The [`markdown.processor` option](/en/reference/configuration-reference/#markdownprocessor) controls which engine renders your `.md` and `.mdx` files. Astro provides two official options:
+Astro provides two official Markdown processors:
+- Sätteri is available without installation or, when you need to configure it, by installing the `@astrojs/markdown-satteri` package.
+- Unified is only available by installing the `@astrojs/markdown-remark` package.
 
-- **`satteri()`** (default): the native [Sätteri](https://satteri.bruits.org/) pipeline, a fast Markdown and MDX compiler with its own plugin model. Included with Astro, so no extra installation is needed.
-- **`unified()`**: the [remark](https://remark.js.org/) and [rehype](https://github.com/rehypejs/rehype) pipeline, with its large plugin ecosystem. Provided by `@astrojs/markdown-remark`, which you install separately.
+Each processor offers the same [built-in features](#built-in-features), including support for [GitHub-Flavored Markdown](#github-flavored-markdown) and [smart punctuation](#smart-punctuation). This brings some niceties like generating clickable links from text, and formatting for quotations and em-dashes. You can disable these features, customize them, or add plugins to introduce new ones.
+
+Use Sätteri, the default processor since Astro v7, when you want to benefit from a fast Rust-based Markdown and MDX compiler. It has its own plugin model, and its ecosystem is relatively new. This means you may need to create your own plugins to customize how your Markdown or MDX files are rendered.
+
+Use Unified, the processor used by older versions of Astro, when you want to take advantage of its large ecosystem of [remark](https://remark.js.org/) or [rehype](https://github.com/rehypejs/rehype) plugins, or when you need [recma plugins in your MDX files](/en/guides/integrations-guide/mdx/#recmaplugins).
+
+### Markdown processing configuration
+
+Astro provides [Markdown configuration options](/en/reference/configuration-reference/#markdown-options) that allow you to control [syntax highlighting](/en/guides/syntax-highlighting/) and the [Markdown processor](#choosing-a-markdown-processor). In addition, each Markdown processor offers [configurable features](#built-in-features) and allows you to use plugins to customize the rendering of your Markdown and MDX files.
+
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+    <Steps>
+    1. Install the `@astrojs/markdown-satteri` package to configure the Sätteri processor:
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install @astrojs/markdown-satteri
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add @astrojs/markdown-satteri
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add @astrojs/markdown-satteri
+          ```
+          </Fragment>
+        </PackageManagerTabs>
+
+    2. Import `satteri` from `@astrojs/markdown-satteri` and pass it to the [`markdown.processor`](/en/reference/configuration-reference/#markdownprocessor) option in your Astro configuration file:
+        ```js title="astro.config.mjs"
+        import { defineConfig } from "astro/config";
+        import { satteri } from "@astrojs/markdown-satteri";
+
+        export default defineConfig({
+          markdown: {
+            processor: satteri(),
+          },
+        });
+        ```
+    </Steps>
+  </TabItem>
+  <TabItem label="Unified">
+    <Steps>
+    1. Install the `@astrojs/markdown-remark` package to use unified as your Markdown processor:
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add @astrojs/markdown-remark
+          ```
+          </Fragment>
+        </PackageManagerTabs>
+
+    2. Import `unified` from `@astrojs/markdown-remark` and pass it to the [`markdown.processor`](/en/reference/configuration-reference/#markdownprocessor) option in your Astro configuration file:
+        ```js title="astro.config.mjs"
+        import { defineConfig } from "astro/config";
+        import { unified } from "@astrojs/markdown-remark";
+
+        export default defineConfig({
+          markdown: {
+            processor: unified(),
+          },
+        });
+        ```
+    </Steps>
+  </TabItem>
+</Tabs>
+
+### Built-in features
+
+The two official Markdown processors provide the same features by default. You can disable them, customize them, or add plugins to introduce new features.
+
+#### GitHub-Flavored Markdown
+
+Markdown processors in Astro support [GitHub-Flavored Markdown](https://github.github.com/gfm/) (GFM) by default. This is a superset of the original Markdown specification that adds features like tables, strikethrough, task lists, and footnotes.
+
+If you want to disable GFM, you can set `gfm` to `false` in the processor options:
+
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { satteri } from "@astrojs/markdown-satteri";
+
+  export default defineConfig({
+    markdown: {
+      processor: satteri({ gfm: false }),
+    },
+  });
+  ```
+  </TabItem>
+  <TabItem label="Unified">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { unified } from "@astrojs/markdown-remark";
+
+  export default defineConfig({
+    markdown: {
+      processor: unified({ gfm: false }),
+    },
+  });
+  ```
+  </TabItem>
+</Tabs>
+
+To configure footnotes, pass a configuration object to `gfm.footnotes` for Sätteri or `remarkRehype` for Unified:
+
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { satteri } from "@astrojs/markdown-satteri";
+
+  export default defineConfig({
+    markdown: {
+      processor: satteri({
+        gfm: {
+          footnotes: {
+            backContent: "↑",
+            label: "Notes de bas de page",
+            backLabel: "Retour à la référence {reference}",
+          },
+        },
+      }),
+    },
+  });
+  ```
+
+  <ReadMore>Learn more about [configuring footnotes in Sätteri](https://satteri.bruits.org/docs/features/#customizing-footnotes).</ReadMore>
+  </TabItem>
+  <TabItem label="Unified">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { unified } from "@astrojs/markdown-remark";
+
+  export default defineConfig({
+    markdown: {
+      processor: unified({
+        remarkRehype: {
+          footnoteBackContent: "↑",
+          footnoteBackLabel: "Retour à la référence {reference}",
+          footnoteLabel: "Notes de bas de page",
+        },
+      }),
+    },
+  });
+  ```
+
+  <ReadMore>Learn more about [configuring footnotes with `remark-rehype`](https://github.com/remarkjs/remark-rehype#options).</ReadMore>
+  </TabItem>
+</Tabs>
+
+#### Smart punctuation
+
+Markdown processors in Astro support smart punctuation based on [Smartypants](https://daringfireball.net/projects/smartypants/) by default. This feature automatically converts straight quotes to curly quotes, double hyphens to em dashes, and three dots to ellipses.
+
+If you do not wish to use automatic conversion, you can disable smart punctuation in the processor options:
+
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { satteri } from "@astrojs/markdown-satteri";
+
+  export default defineConfig({
+    markdown: {
+      processor: satteri({ smartPunctuation: false }),
+    },
+  });
+  ```
+  </TabItem>
+  <TabItem label="Unified">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { unified } from "@astrojs/markdown-remark";
+
+  export default defineConfig({
+    markdown: {
+      processor: unified({ smartypants: false }),
+    },
+  });
+  ```
+  </TabItem>
+</Tabs>
+
+For more control over typography, you can instead specify a configuration object in the processor options:
+
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { satteri } from "@astrojs/markdown-satteri";
+
+  export default defineConfig({
+    markdown: {
+      processor: satteri({
+        smartPunctuation: {
+          quotes: true,
+          dashes: false,
+          ellipses: false,
+        },
+      }),
+    },
+  });
+  ```
+
+  <ReadMore>Learn more about [configuring smart punctuation in Sätteri](https://satteri.bruits.org/docs/features/#customizing-smart-punctuation).</ReadMore>
+  </TabItem>
+  <TabItem label="Unified">
+  ```js title="astro.config.mjs"
+  import { defineConfig } from "astro/config";
+  import { unified } from "@astrojs/markdown-remark";
+
+  export default defineConfig({
+    markdown: {
+      processor: unified({
+        smartypants: {
+          quotes: true,
+          dashes: false,
+          ellipses: false,
+        },
+      }),
+    },
+  });
+  ```
+
+  <ReadMore>Learn more about the [properties supported by `retext-smartypants`](https://github.com/retextjs/retext-smartypants?tab=readme-ov-file#fields).</ReadMore>
+  </TabItem>
+</Tabs>
+
+{/* TODO: rework the next sections and update "Modifying frontmatter programmatically" to include Sätteri */}
 
 ### Using Sätteri plugins and features
 
