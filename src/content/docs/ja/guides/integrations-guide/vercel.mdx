@@ -413,27 +413,56 @@ export default defineConfig({
 });
 ```
 
+### `staticHeaders`
+
+<p>
+**Type:** `boolean`<br/>
+**Default:** `false`<br />
+**Available for:** Serverless <br/>
+<Since pkg="@astrojs/vercel" v="10.0.0" />
+</p>
+
+Vercelの設定で事前レンダリングされたページのカスタムヘッダーを指定できるようにします。
+
+有効にすると、アダプターはコンテンツセキュリティポリシーなどのAstroの機能によって提供された[静的ヘッダーをVercelの`vercel.json`ファイル](https://vercel.com/docs/project-configuration#headers)に保存します。
+
+たとえば、[Content Security Policyの設定](/ja/reference/configuration-reference/#securitycsp)を有効にしている場合、`staticHeaders`を使用して、`<meta>`要素を作成する代わりにCSP`headers`をVercel設定に追加できます。
+
+```js title="astro.config.mjs" {9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+
+export default defineConfig({
+  security: {
+    csp: true
+  },
+  adapter: vercel({
+    staticHeaders: true 
+  })
+});
+```
+
 ### Vercel Edge FunctionsでAstroミドルウェアを実行する
 
-`@astrojs/vercel`アダプターは、コードベース内のAstroミドルウェアから[Edge functions](https://vercel.com/docs/functions/edge-functions)を作成できます。`edgeMiddleware`が有効になっている場合、エッジ関数は、静的アセット、事前レンダリングされたページ、オンデマンドでレンダリングされたページを含むすべてのリクエストに対してミドルウェアコードを実行します。
+`@astrojs/vercel`アダプターは、コードベース内のAstroミドルウェアから[Edge functions](https://vercel.com/docs/functions/edge-functions)を作成できます。[`middlewareMode`](/ja/reference/adapter-reference/#middlewaremode)が`'edge'`に設定されている場合、エッジ関数は、静的アセット、事前レンダリングされたページ、オンデマンドでレンダリングされたページを含むすべてのリクエストに対してミドルウェアコードを実行します。
 
 オンデマンドでレンダリングされたページの場合、`context.locals`オブジェクトはJSONを使用してシリアル化され、レンダリングを実行するサーバーレス関数にヘッダーで送信されます。セキュリティ対策として、サーバーレス関数は、生成されたエッジ関数からのリクエストでない限り、`403 Forbidden`レスポンスでリクエストを拒否します。
 
-これはオプトイン機能です。有効にするには、`edgeMiddleware`を`true`に設定します。
+これはオプトイン機能です。有効にするには、`middlewareMode`を`'edge'`に設定します。
 
-```js title="astro.config.mjs" "edgeMiddleware: true"
+```js title="astro.config.mjs" "middlewareMode: 'edge'"
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
 
 export default defineConfig({
   // ...
   adapter: vercel({
-    edgeMiddleware: true,
+    middlewareMode: 'edge',
   }),
 });
 ```
 
-エッジミドルウェアは、`ctx.locals.vercel.edge`としてVercelの[`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext)にアクセスできます。TypeScriptを使用している場合は、`src/env.d.ts`を更新して`EdgeLocals`を使用することで、[適切な型指定を取得](/ja/guides/typescript/#extending-global-types)できます。
+エッジミドルウェアは、`ctx.locals.vercel.edge`としてVercelの[`RequestContext`](https://vercel.com/docs/functions/edge-middleware/middleware-api#requestcontext)にアクセスできます。TypeScriptを使用している場合は、`src/env.d.ts`を更新して`EdgeLocals`を使用することで、[適切な型指定を取得](/ja/guides/typescript/#グローバル型の拡張)できます。
 
 ```ts
 type EdgeLocals = import('@astrojs/vercel').EdgeLocals
@@ -504,38 +533,5 @@ Vercelでセッションを使用する場合、セッションストレージ�
 `@astrojs/vercel`アダプターは、VercelでAstroプロジェクトをデプロイするために特定のNode.jsバージョンをサポートしています。VercelでサポートされているNode.jsバージョンを表示するには、プロジェクトの設定タブをクリックし、「Node.js Version」セクションまでスクロールダウンしてください。
 
 詳細は[Vercelのドキュメント](https://vercel.com/docs/functions/serverless-functions/runtimes/node-js#default-and-available-versions)をご覧ください。
-
-## 実験的な機能
-
-以下の機能も利用可能ですが、将来のアップデートで破壊的な変更が加えられる可能性があります。この機能をプロジェクトで使用している場合は、[`@astrojs/vercel` CHANGELOG](https://github.com/withastro/astro/tree/main/packages/integrations/vercel/CHANGELOG.md)で更新情報を確認してください。
-
-### `experimentalStaticHeaders`
-
-<p>
-  **Type:** `boolean`<br/>
-  **Default:** `false`<br />
-  **Available for:** Serverless <br/>
-  <Since pkg="@astrojs/vercel" v="8.2.0" />
-</p>
-
-Vercelの設定で事前レンダリングされたページのカスタムヘッダーを指定できるようにします。
-
-有効にすると、アダプターはコンテンツセキュリティポリシーなどのAstroの機能によって提供された[静的ヘッダーをVercelの`vercel.json`ファイル](https://vercel.com/docs/project-configuration#headers)に保存します。
-
-たとえば、[CSP設定](/ja/reference/configuration-reference/)を有効にしている場合、`experimentalStaticHeaders`を使用して、`<meta>`要素を作成する代わりにCSP`headers`をVercel設定に追加できます。
-
-```js title="astro.config.mjs" {9}
-import { defineConfig } from 'astro/config';
-import vercel from '@astrojs/vercel';
-
-export default defineConfig({
-  security: {
-    csp: true
-  },
-  adapter: vercel({
-    experimentalStaticHeaders: true 
-  })
-});
-```
 
 [astro-integration]: /ja/guides/integrations/

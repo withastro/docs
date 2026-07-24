@@ -1,0 +1,487 @@
+---
+title: ImageKit & Astro
+description: Ajouter des images et des vidéos à votre projet Astro en utilisant ImageKit
+sidebar:
+  label: ImageKit
+type: media
+stub: false
+logo: imagekit
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[ImageKit](https://imagekit.io) est une plateforme d'optimisation et de diffusion de médias en temps réel avec un CDN mondial, un gestionnaire de ressources numériques intégré (DAM) et une API de transformation reposant sur l'URL pour les images et les vidéos.
+
+Lors de la diffusion via ImageKit, vous bénéficiez d'une conversion automatique de format (AVIF, WebP), d'une qualité automatique, d'images adaptatives, de transformations alimentées par l'IA (suppression de l'arrière-plan, remplissage génératif, mise à l'échelle) et d'une diffusion de vidéo adaptative.
+
+## Utilisation d'ImageKit dans Astro
+
+Le [SDK Astro d'ImageKit](https://github.com/imagekit-developer/imagekit-astro) enregistre un [service d'image](/fr/reference/image-service-reference/) personnalisé qui redirige les composants intégrés `<Image />` et `<Picture />` d'Astro, ainsi que les images Markdown et MDX, via ImageKit. Les importations locales continuent d'être traitées par le service Sharp intégré d'Astro. Cela signifie qu'un projet existant peut ajouter l'intégration sans perturber les ressources existantes.
+
+Le SDK fournit également un composant `<Video />`, un composant `<OgImage />` pour les cartes sociales, et une fonction utilitaire côté serveur pour l'émission de jetons de téléversement côté client.
+
+Pour la construction d'URL pure ou les téléversements depuis un navigateur, quel que soit le framework utilisé, vous pouvez également utiliser le [SDK JavaScript de bas niveau d'ImageKit](https://github.com/imagekit-developer/imagekit-javascript). Pour la gestion des ressources côté serveur (téléversement, liste, suppression, métadonnées), utilisez le [SDK Node.js d'ImageKit](https://github.com/imagekit-developer/imagekit-nodejs).
+
+## Prérequis
+
+- Un projet Astro existant
+- Un [compte ImageKit](https://imagekit.io/registration/)
+
+## Installation du SDK Astro d'ImageKit
+
+Installez le SDK en exécutant la commande appropriée pour votre gestionnaire de paquets :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Configuration de votre compte
+
+Créez un nouveau fichier `.env` à la racine de votre projet et ajoutez vos identifiants ImageKit :
+
+```shell title=".env"
+IMAGEKIT_URL_ENDPOINT="https://ik.imagekit.io/<votre_id_imagekit>"
+
+# Nécessaire uniquement si vous générez des jetons de téléversement côté serveur
+PUBLIC_IMAGEKIT_PUBLIC_KEY="<Votre clé publique>"
+IMAGEKIT_PRIVATE_KEY="<Votre clé privée>"
+```
+
+Ensuite, enregistrez l'intégration dans le fichier `astro.config.mjs` :
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import imagekit from '@imagekit/astro/integration';
+
+export default defineConfig({
+  integrations: [imagekit()],
+});
+```
+
+Vous pouvez également transmettre `urlEndpoint` directement à l'intégration au lieu d'utiliser la variable d'environnement :
+
+```js title="astro.config.mjs"
+imagekit({
+  urlEndpoint: 'https://ik.imagekit.io/<votre_id_imagekit>',
+}),
+```
+
+## Utilisation des images d'ImageKit
+
+Une fois l'intégration installée, les composants intégrés `<Image />` et `<Picture />` d'Astro acheminent les requêtes via ImageKit et appliquent une optimisation automatique du format et de la qualité, un `srcset` adaptatif et un chargement différé.
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<Image
+  src="/example.jpg"
+  width={800}
+  height={600}
+  alt="Un exemple d'image"
+/>
+```
+
+L'intégration ajoute une propriété `transformation` supplémentaire à `<Image />`, `<Picture />` et `getImage()` pour appliquer n'importe quelle [transformation ImageKit](https://imagekit.io/docs/transformations) (par exemple, recadrage, mise au point, effets d'IA, superpositions) :
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<Image
+  src="/portrait.jpg"
+  width={500}
+  height={500}
+  alt="Portrait recadré"
+  transformation={[{ width: 500, height: 500, focus: 'face' }]}
+/>
+```
+
+Les propriétés `width` et `height` au niveau du composant définissent les dimensions HTML rendues. Les valeurs à l'intérieur de `transformation` contrôlent le redimensionnement côté serveur d'ImageKit.
+
+### Transformations alimentées par l'IA
+
+Les transformations d'ImageKit incluent des effets d'IA qui peuvent être appliqués via la même propriété `transformation` :
+
+```astro title="Component.astro"
+---
+import { Image } from 'astro:assets';
+---
+<!-- Supprimer l'arrière-plan -->
+<Image
+  src="/produit.jpg"
+  width={500}
+  height={500}
+  alt="Produit avec arrière-plan supprimé"
+  transformation={[{ aiRemoveBackground: true }]}
+/>
+
+<!-- Améliorer une image basse résolution -->
+<Image
+  src="/vignette.jpg"
+  width={1024}
+  height={1024}
+  alt="Image améliorée"
+  transformation={[{ aiUpscale: true }]}
+/>
+
+<!-- Remplissage génératif pour étendre une image à un nouveau format -->
+<Image
+  src="/portrait.jpg"
+  width={1600}
+  height={900}
+  alt="Image étendue avec remplissage génératif"
+  transformation={[
+    { width: 1600, height: 900, cropMode: 'pad_resize', background: 'genfill' },
+  ]}
+/>
+
+<!-- Ombre portée par IA -->
+<Image
+  src="/produit.png"
+  width={500}
+  height={500}
+  alt="Produit avec ombre portée par IA"
+  transformation={[{ aiDropShadow: true }]}
+/>
+```
+
+Consultez la [référence des transformations prises en charge dans la documentation d'ImageKit](https://imagekit.io/docs/integration/astro#supported-transformations) pour obtenir la liste complète, y compris les superpositions, le recadrage intelligent (`focus: 'auto'`, `focus: 'face'`) et d'autres effets.
+
+## Utilisation des vidéos d'ImageKit
+
+Ajoutez des vidéos à vos composants `.astro` avec le composant `<Video />`. Il accepte les attributs vidéo HTML standard ainsi que les [props spécifiques à ImageKit](https://imagekit.io/docs/integration/astro#video-component) telles que `transformation` et `urlEndpoint`.
+
+```astro title="Component.astro"
+---
+import { Video } from '@imagekit/astro';
+---
+<Video
+  src="/exemple.mp4"
+  width={1280}
+  height={720}
+  controls
+/>
+```
+
+Pour redimensionner la vidéo du côté d'ImageKit, transmettez les dimensions dans `transformation` :
+
+```astro title="Component.astro"
+<Video
+  src="/exemple.mp4"
+  width={640}
+  height={360}
+  transformation={[{ width: 640, height: 360 }]}
+  controls
+/>
+```
+
+## Lecteur vidéo d'ImageKit
+
+Le paquet [`@imagekit/video-player`](https://github.com/imagekit-developer/imagekit-video-player) exporte une intégration dédiée à Astro via le sous-chemin `@imagekit/video-player/astro`. Il fournit un composant Astro natif `IKVideoPlayer` avec des types TypeScript complets ([`IKPlayerOptions`](https://imagekit.io/docs/video-player/overview#ikplayer-options), [`SourceOptions`](https://imagekit.io/docs/video-player/overview#source-options)). Vous pouvez l'utiliser directement dans les fichiers `.astro` sans aucun adaptateur de framework.
+
+Le lecteur est basé sur [Video.js](https://videojs.com/) et inclut des sous-titres et chapitres générés par l'IA, une traduction automatique en plus de 50 langues, une mise en évidence des mots dans le style karaoké, des vignettes de recherche, un lecteur flottant et fixe, ainsi que le streaming à débit adaptatif (HLS/DASH). Aucune transcription manuelle n'est requise.
+
+Installez le paquet :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/video-player
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/video-player
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/video-player
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, utilisez le composant `IKVideoPlayer` dans n'importe quel fichier `.astro` :
+
+```astro title="VideoPlayer.astro"
+---
+import { IKVideoPlayer } from '@imagekit/video-player/astro';
+import '@imagekit/video-player/styles.css';
+
+const ikOptions = {
+  imagekitId: 'VOTRE_ID_IMAGEKIT',
+  seekThumbnails: true,
+};
+
+const source = {
+  src: 'https://ik.imagekit.io/votre_id_imagekit/video.mp4',
+  chapters: true,          // Marqueurs de chapitres générés par l'IA
+  textTracks: [{
+    autoGenerate: true,    // Sous-titres générés par synthèse vocale à l'aide de l'IA
+    default: true,
+    highlightWords: true,  // Mise en évidence des mots
+    translations: [
+      { langCode: 'es', label: 'Espagnol' },
+      { langCode: 'fr', label: 'Français' },
+    ],
+  }],
+};
+---
+
+<IKVideoPlayer ikOptions={ikOptions} source={source} />
+```
+
+Avec `chapters: true`, le lecteur génère automatiquement des marqueurs de chapitres à partir du contenu vidéo. Définir `autoGenerate: true` dans `textTracks` crée des sous-titres par synthèse vocale à l'aide de l'IA sans aucun fichier `.srt`. Chaque entrée dans `translations` ajoute une piste de sous-titres générée automatiquement dans cette langue.
+
+:::note
+Le SDK du lecteur vidéo est actuellement en version bêta. Testez-le minutieusement avant de l'utiliser en production. Consultez la [présentation du lecteur vidéo dans la documentation d'ImageKit](https://imagekit.io/docs/video-player/overview) pour obtenir la liste complète des options, y compris les listes de lecture, les vidéos avec achats intégrés et la prise en charge des URL signées.
+:::
+
+## Génération des URL d'image Open Graph
+
+Utilisez le composant `<OgImage />` pour générer les balises `<meta>` OpenGraph et Twitter Card pointant vers une image optimisée par ImageKit. Placez-le à l'intérieur du `<head>` de votre mise en page.
+
+```astro title="Layout.astro"
+---
+import { OgImage } from '@imagekit/astro';
+---
+<html>
+  <head>
+    <OgImage
+      src="/banniere-og.jpg"
+      title="Le titre de ma page"
+      description="Aperçu de la description pour les cartes sociales"
+      alt="Description de l'image OG"
+    />
+  </head>
+  <body><slot /></body>
+</html>
+```
+
+Si vous avez uniquement besoin d'une URL au lieu des balises générées, utilisez la fonction utilitaire `getOgImageUrl()` :
+
+```astro title="Layout.astro"
+---
+import { getOgImageUrl } from '@imagekit/astro';
+
+const ogImage = getOgImageUrl({
+  src: '/banniere-og.jpg',
+  transformation: [{ width: 1200, height: 630 }],
+});
+---
+<meta property="og:image" content={ogImage} />
+```
+
+Consultez la [documentation du composant OG d'ImageKit](https://imagekit.io/docs/integration/astro#og-image-component) pour obtenir la liste complète des propriétés prises en charge.
+
+## Activation des téléversements côté client
+
+Pour téléverser des fichiers directement depuis le navigateur, générez un jeton d'authentification à courte durée de vie sur le serveur en utilisant la fonction utilitaire `getUploadAuthParams()` disponible depuis `@imagekit/astro/server`. La clé privée reste côté serveur et n'est jamais envoyée au navigateur.
+
+Cela nécessite un [adaptateur](/fr/guides/on-demand-rendering/) pour que le point de terminaison s'exécute à la demande :
+
+```ts title="src/pages/api/upload-auth.ts"
+import type { APIRoute } from 'astro';
+import { getUploadAuthParams } from '@imagekit/astro/server';
+
+export const prerender = false; // Pas nécessaire en mode `server`
+
+export const GET: APIRoute = () => {
+  const authParams = getUploadAuthParams({
+    privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+    publicKey: import.meta.env.PUBLIC_IMAGEKIT_PUBLIC_KEY,
+  });
+
+  return new Response(JSON.stringify(authParams), {
+    headers: { 'Content-Type': 'application/json' },
+  });
+};
+```
+
+Le navigateur récupère ensuite ce point de terminaison et transmet la `signature`, le jeton (`token`), la date d'expiration (`expire`) et la clé publique (`publicKey`) renvoyés à la fonction `upload()` de [`@imagekit/javascript`](https://github.com/imagekit-developer/imagekit-javascript). Installez-le en tant que dépendance directe :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @imagekit/javascript
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @imagekit/javascript
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @imagekit/javascript
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Un formulaire de téléversement minimal sur une page `.astro` :
+
+```astro title="src/pages/upload.astro"
+<input type="file" id="file-input" />
+<button id="upload-btn">Téléverser</button>
+<progress id="upload-progress" value="0" max="100"></progress>
+
+<script>
+  import { upload } from '@imagekit/javascript';
+
+  const fileInput = document.getElementById('file-input') as HTMLInputElement;
+  const uploadBtn = document.getElementById('upload-btn') as HTMLButtonElement;
+  const progress = document.getElementById('upload-progress') as HTMLProgressElement;
+
+  uploadBtn.addEventListener('click', async () => {
+    const file = fileInput.files?.[0];
+    if (!file) return;
+
+    const auth = await fetch('/api/upload-auth').then((r) => r.json());
+
+    const result = await upload({
+      ...auth,
+      file,
+      fileName: file.name,
+      onProgress: (e) => {
+        progress.value = (e.loaded / e.total) * 100;
+      },
+    });
+
+    console.log('Téléversé :', result);
+  });
+</script>
+```
+
+Consultez [le guide d'ImageKit](https://imagekit.io/docs/integration/astro#uploading-files) pour obtenir des informations complètes sur la gestion des erreurs et les signaux d'abandon.
+
+## Chargement depuis votre bibliothèque de médias ImageKit
+
+Vous pouvez utiliser [les collections de contenu d'Astro](/fr/guides/content-collections/) avec le SDK [`@imagekit/nodejs`](https://www.npmjs.com/package/@imagekit/nodejs) pour alimenter les pages de galerie et de liste directement depuis votre bibliothèque de médias ImageKit.
+
+Installez le SDK Node en tant que dépendance de développement :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install -D @imagekit/nodejs
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add -D @imagekit/nodejs
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add -D @imagekit/nodejs
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Ensuite, définissez une collection à l'aide de `client.assets.list()`. Le SDK Node renvoie un tableau d'objets `File | Folder`. Pour limiter les résultats aux images, transmettez `type: 'file'` pour exclure les dossiers et `fileType: 'image'`. Utilisez la protection de type `Files.File` afin que chaque entrée soit correctement typée avant de l'associer dans votre schéma de collection :
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import ImageKit from '@imagekit/nodejs';
+import type { Files } from '@imagekit/nodejs/resources/files/files';
+
+const client = new ImageKit({
+  privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+});
+
+const gallery = defineCollection({
+  loader: async () => {
+    const assets = await client.assets.list({
+      type: 'file',       // exclure les dossiers
+      fileType: 'image',  // uniquement les fichiers image
+      skip: 0,
+      limit: 50,
+    });
+
+    return assets
+      .filter((asset): asset is Files.File =>
+        asset.type === 'file' && !!asset.fileId && !!asset.url
+      )
+      .map((asset) => ({
+        id: asset.fileId ?? '',
+        url: asset.url ?? '',
+        width: asset.width ?? 0,
+        height: asset.height ?? 0,
+        name: asset.name ?? '',
+        tags: asset.tags ?? [],
+      }));
+  },
+  schema: z.object({
+    url: z.string().url(),
+    width: z.number(),
+    height: z.number(),
+    name: z.string(),
+    tags: z.array(z.string()),
+  }),
+});
+
+export const collections = { gallery };
+```
+
+Après avoir ajouté la collection, exécutez [`astro sync`](/fr/reference/cli-reference/#astro-sync) (ou démarrez le serveur de développement) pour générer les types de collection utilisés par `getCollection()`.
+
+Effectuez le rendu de la collection avec `<Image>` de `astro:assets`. L'intégration génère l'URL du CDN d'ImageKit avec les transformations demandées :
+
+```astro title="src/pages/gallery.astro"
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+
+const photos = await getCollection('gallery');
+---
+{photos.map(({ data }) => (
+  <Image
+    src={data.url}
+    width={data.width}
+    height={data.height}
+    alt={data.name}
+    transformation={[{ width: 400, height: 300, focus: 'auto' }]}
+  />
+))}
+```
+
+## Utilisation d'ImageKit dans Node.js
+
+Pour les flux de travail côté serveur tels que les téléversements en masse, la liste des ressources ou la suppression de fichiers, utilisez directement le SDK officiel [`@imagekit/nodejs`](https://www.npmjs.com/package/@imagekit/nodejs) :
+
+```ts title="src/pages/api/upload.ts"
+import ImageKit from '@imagekit/nodejs';
+
+const client = new ImageKit({
+  privateKey: import.meta.env.IMAGEKIT_PRIVATE_KEY,
+});
+
+await client.files.upload({
+  file: '<chemin de fichier, tampon ou URL>',
+  fileName: 'exemple.jpg',
+});
+```
+
+## Ressources officielles
+
+- [SDK Astro d'ImageKit](https://github.com/imagekit-developer/imagekit-astro)
+- [Documentation de l'intégration Astro d'ImageKit](https://imagekit.io/docs/integration/astro)
+- [SDK JavaScript d'ImageKit](https://github.com/imagekit-developer/imagekit-javascript)
+- [SDK Node.js d'ImageKit](https://github.com/imagekit-developer/imagekit-nodejs)
+- [Référence des transformations d'ImageKit](https://imagekit.io/docs/transformations)

@@ -59,7 +59,7 @@ import type { APIRoute } from "astro";
 const usernames = ["Sarah", "Chris", "Yan", "Elian"];
 
 export const GET = (({ params, request }) => {
-  const id = params.id;
+  const id = Number(params.id);
   
   return new Response(
     JSON.stringify({
@@ -113,9 +113,10 @@ export const GET = (({ params, request }) => {
 서버 엔드포인트는 `getStaticPaths`를 내보내지 않고도 `params`에 액세스할 수 있으며, 상태 코드 및 헤더를 설정할 수 있는 `Response` 객체를 반환할 수 있습니다.
 
 ```js title="src/pages/[id].json.js"
+import type { APIRoute } from "astro";
 import { getProduct } from "../db";
 
-export async function GET({ params }) {
+export const GET = (async ({ params }) => {
   const id = params.id;
   const product = await getProduct(id);
 
@@ -132,7 +133,7 @@ export async function GET({ params }) {
       "Content-Type": "application/json",
     },
   });
-}
+}) satisfies APIRoute;
 ```
 
 이렇게 하면 동적 라우트와 일치하는 모든 요청에 응답합니다. 예를 들어 `/helmet.json`으로 이동하면 `params.id`는 `helmet`으로 설정됩니다. `helmet`이 모의 제품 데이터베이스에 존재하면 엔드포인트는 `Response` 객체를 사용하여 JSON으로 응답하고 성공적인 [HTTP 상태 코드](https://developer.mozilla.org/en-US/docs/Web/API/Response/status)를 반환합니다. 그렇지 않으면 `Response` 객체를 사용하여 `404`로 응답합니다.
@@ -140,16 +141,18 @@ export async function GET({ params }) {
 SSR 모드에서는 특정 공급자가 이미지를 반환하기 위해 `Content-Type` 헤더를 요구합니다. 이 경우 `Response` 객체를 사용하여 `headers` 속성을 지정합니다. 예를 들어 바이너리 `.png` 이미지를 생성하려면 다음을 수행합니다.
 
 ```ts title="src/pages/astro-logo.png.ts"
-export async function GET({ params, request }) {
+import type { APIRoute } from "astro";
+
+export const GET = (async ({ params, request }) => {
   const response = await fetch(
     "https://docs.astro.build/assets/full-logo-light.png",
   );
-  const buffer = Buffer.from(await response.arrayBuffer());
-  
+  const buffer = Buffer.from(await response.arrayBuffer()); // 타입 안전성을 위해 의존성에 `@types/node`가 필요합니다.
+
   return new Response(buffer, {
     headers: { "Content-Type": "image/png" },
   });
-}
+}) satisfies APIRoute;
 ```
 
 ### HTTP 메서드
@@ -159,6 +162,8 @@ export async function GET({ params, request }) {
 해당하는 내보낸 함수가 없는 모든 메서드와 일치하도록 `ALL` 함수를 내보낼 수도 있습니다. 일치하는 메서드가 없는 요청이 있으면 사이트의 [404 페이지](/ko/basics/astro-pages/#사용자-정의-404-오류-페이지)로 리디렉션됩니다.
 
 ```ts title="src/pages/methods.json.ts"
+import type { APIRoute } from "astro";
+
 export const GET = (({ params, request }) => {
   return new Response(
     JSON.stringify({
@@ -201,6 +206,8 @@ export const ALL = (({ request }) => {
 SSR 모드에서 `request` 속성은 현재 요청을 참조하는 완전히 사용 가능한 [`Request`](https://developer.mozilla.org/ko/docs/Web/API/Request) 객체를 반환합니다. 이를 통해 데이터를 수락하고 헤더를 확인할 수 있습니다.
 
 ```ts title="src/pages/test-post.json.ts"
+import type { APIRoute } from "astro";
+
 export const POST = (async ({ request }) => {
   if (request.headers.get("Content-Type") === "application/json") {
     const body = await request.json();
@@ -224,10 +231,11 @@ export const POST = (async ({ request }) => {
 
 엔드포인트 컨텍스트는 `Astro.redirect`와 유사한 `redirect()` 유틸리티를 내보냅니다.
 
-```js title="src/pages/links/[id].js" {14}
+```js title="src/pages/links/[id].js" {15}
+import type { APIRoute } from "astro";
 import { getLinkUrl } from "../db";
 
-export async function GET({ params, redirect }) {
+export const GET = (async ({ params, redirect }) => {
   const { id } = params;
   const link = await getLinkUrl(id);
 
@@ -239,5 +247,5 @@ export async function GET({ params, redirect }) {
   }
 
   return redirect(link, 307);
-}
+}) satisfies APIRoute;
 ```

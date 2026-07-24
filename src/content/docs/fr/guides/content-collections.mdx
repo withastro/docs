@@ -208,13 +208,16 @@ Le contenu de votre article de blog ici.
 Vous pouvez également transmettre des options à la [fonction utilitaire `generateID()`](/fr/reference/content-loader-reference/#generateid) du chargeur `glob()` lors de la définition de votre collection consommée lors de la compilation, afin d'ajuster la façon dont les `id` sont générés. Par exemple, vous pouvez souhaiter annuler le comportement par défaut qui consiste à convertir les majuscules en minuscules pour chaque entrée de la collection :
 
 ```js title="src/content.config.ts"
+import { glob } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
 const auteurs = defineCollection({
   /* Récupérer tous les fichiers JSON de votre répertoire d'auteurs tout
    * en conservant les majuscules dans l'identifiant. */
   loader: glob({
-    pattern: '**/*.json',
+    pattern: "**/*.json",
     base: "./src/data/auteurs",
-    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+    generateId: ({ entry }) => entry.replace(/\.json$/, ""),
   }),
 });
 ```
@@ -224,8 +227,8 @@ const auteurs = defineCollection({
 Le [chargeur `file()`](/fr/reference/content-loader-reference/#le-chargeur-file) récupère plusieurs entrées à partir d'un seul fichier local défini dans votre collection. Il détectera et analysera automatiquement (en fonction de l'extension du fichier) un seul tableau d'objets provenant de fichiers JSON et YAML, et traitera chaque table de premier niveau comme une entrée indépendante dans les fichiers TOML.
 
 ```ts  title="src/content.config.ts" {5}
-import { defineCollection } from 'astro:content';
-import { file } from 'astro/loaders';
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
 
 const chiens = defineCollection({
   loader: file("src/data/chiens.json"),
@@ -301,8 +304,8 @@ Vous pouvez [créer un chargeur personnalisé](/fr/reference/content-loader-refe
 Vous pouvez ensuite importer et définir votre chargeur personnalisé dans la configuration de vos collections, en transmettant les valeurs requises :
 
 ```ts title="src/content.config.ts"
-import { defineCollection } from 'astro:content';
-import { monChargeur } from './loader.ts';
+import { defineCollection } from "astro:content";
+import { myLoader } from "./loader.ts";
 
 const blog = defineCollection({
   loader: monChargeur({
@@ -335,9 +338,9 @@ Pour qu'Astro reconnaisse un schéma nouveau ou mis à jour, vous devrez peut-ê
 Fournir un `schema` est facultatif, mais fortement recommandé ! Si vous choisissez d’utiliser un schéma, chaque propriété de vos entrées de collection utilisée dans le frontmatter ou dans vos données doit être définie à l’aide d’un [type de données Zod](/fr/reference/modules/astro-zod/#validateurs-de-types-de-données-courants) :
 
 ```ts title="src/content.config.ts" {7-12,16-20}
-import { defineCollection } from 'astro:content';
-import { z } from 'astro/zod';
-import { glob, file } from 'astro/loaders';
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
+import { glob, file } from "astro/loaders";
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -346,7 +349,7 @@ const blog = defineCollection({
     description: z.string(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-  })
+  }),
 });
 const dogs = defineCollection({
   loader: file("src/data/chiens.json"),
@@ -381,27 +384,27 @@ Avec la fonction [`reference()`](/fr/reference/modules/astro-content/#reference)
 Un exemple courant est un article de blog qui fait référence à des profils d'auteurs réutilisables stockés au format JSON, ou à des URL d'articles connexes enregistrés dans la même collection :
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference } from 'astro:content';
-import { glob } from 'astro/loaders';
-import { z } from 'astro/zod';
+import { defineCollection, reference } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const blog = defineCollection({
-  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
+  loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     // Faire référence à un seul auteur de la collection `authors` par `id`
-    author: reference('authors'),
+    author: reference("authors"),
     // Faire référence à un tableau d'articles connexes de la collection `blog` par `id`
-    relatedPosts: z.array(reference('blog')),
+    relatedPosts: z.array(reference("blog")),
   })
 });
 
 const authors = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: "./src/data/auteurs" }),
+  loader: glob({ pattern: "**/*.json", base: "./src/data/auteurs" }),
   schema: z.object({
     name: z.string(),
     portfolio: z.url(),
-  })
+  }),
 });
 
 export const collections = { blog, authors };
@@ -484,14 +487,19 @@ Une fois interrogées, vous pouvez convertir les entrées Markdown et MDX en HTM
 
 ```astro title="src/pages/blog/article-1.astro" {2,6,10}
 ---
-import { getEntry, render } from 'astro:content';
+import { getEntry, render } from "astro:content";
 
-const entry = await getEntry('blog', 'article-1');
+const entry = await getEntry("blog", "article-1");
+
+if (!entry) {
+  throw new Error("Article introuvable");
+}
 
 const { Content } = await render(entry);
 ---
+
 <h1>{entry.data.title}</h1>
-<p>Publié le : {entry.data.published.toDateString()}</p>
+<p>Publié le : {entry.data.pubDate.toDateString()}</p>
 <Content />
 ```
 
@@ -564,10 +572,15 @@ Ensuite, vous pouvez utiliser à nouveau la fonction `getEntry()` (ou `getEntrie
 
 ```astro title="src/pages/blog/aventures-dans-espace.astro"
 ---
-import { getEntry, getEntries } from 'astro:content';
+import { getEntry, getEntries } from "astro:content";
 
 // Tout d'abord, interroger un article de blog.
-const blogPost = await getEntry('blog', "Aventures dans l'espace");
+const blogPost = await getEntry("blog", "Aventures dans l'espace");
+
+// Si l'article de blog n'existe pas, émettre une erreur
+if (!blogPost) {
+  throw new Error("Article de blog introuvable");
+}
 
 // Récupérer un seul élément de référence : l’auteur de l’article de blog
 // Équivalent à une requête utilisant `{collection: "auteurs", id: "ben-holmes"}`
@@ -584,9 +597,7 @@ const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 <!-- ... -->
 
 <h2>Vous pourriez également aimer :</h2>
-{relatedPosts.map(post => (
-  <a href={post.id}>{post.data.title}</a>
-))}
+{relatedPosts.map((post) => <a href={post.id}>{post.data.title}</a>)}
 ```
 
 ## Générer des routes à partir du contenu
@@ -797,16 +808,20 @@ Vous pouvez utiliser ces fonctions pour accéder à vos données en direct, en t
 ---
 export const prerender = false; // Pas nécessaire en mode `server`
 
-import { getLiveCollection, getLiveEntry } from 'astro:content';
+import { getLiveCollection, getLiveEntry } from "astro:content";
+
+if (!Astro.params.slug) {
+  return Astro.redirect('/404');
+}
 
 // Utiliser des filtres spécifiques au chargeur
-const { entries: draftArticles } = await getLiveCollection('articles', {
-  status: 'brouillon',
-  author: 'john-doe',
+const { entries: draftArticles } = await getLiveCollection("articles", {
+  status: "brouillon",
+  author: "john-doe",
 });
 
 // Obtenir un produit spécifique par son identifiant
-const { entry: product } = await getLiveEntry('produits', Astro.params.slug);
+const { entry: product } = await getLiveEntry("produits", Astro.params.slug);
 ---
 ```
 
@@ -820,10 +835,14 @@ Vous avez également accès à toute [erreur renvoyée par le chargeur en direct
 ---
 export const prerender = false; // Pas nécessaire en mode `server`
 
-import { getLiveEntry, render } from 'astro:content';
-const { entry, error } = await getLiveEntry('articles', Astro.params.id);
-if (error) {
-  return Astro.rewrite('/404');
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+import { getLiveEntry, render } from "astro:content";
+const { entry, error } = await getLiveEntry("articles", Astro.params.id);
+if (!entry || error) {
+  return Astro.rewrite("/404");
 }
 
 const { Content } = await render(entry);
@@ -851,10 +870,14 @@ Vous pouvez utiliser `instanceof` pour vérifier le type d'une erreur lors de l'
 ---
 export const prerender = false; // Pas nécessaire en mode `server`
 
-import { LiveEntryNotFoundError } from 'astro/content/runtime';
-import { getLiveEntry } from 'astro:content';
+import { LiveEntryNotFoundError } from "astro/content/runtime";
+import { getLiveEntry } from "astro:content";
 
-const { entry, error } = await getLiveEntry('produits', Astro.params.id);
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+const { entry, error } = await getLiveEntry("produits", Astro.params.id);
 
 if (error) {
   if (error instanceof LiveEntryNotFoundError) {
@@ -862,10 +885,112 @@ if (error) {
     Astro.response.status = 404;
   } else {
     console.error(`Erreur lors du chargement du produit : ${error.message}`);
-    return Astro.redirect('/500');
+    return Astro.redirect("/500");
   }
 }
 ---
+```
+
+### Mise en cache des données en direct
+
+<p><Since v="7.0.0" /></p>
+
+Lorsque les chargeurs en direct fournissent des [indications de cache](/fr/reference/content-loader-reference/#chargeurs-en-direct), `getLiveEntry()` et `getLiveCollection()` renvoient un objet `cacheHint`. Cela vous permet de contrôler le [comportement de mise en cache](/fr/guides/caching/) de vos routes sans définir manuellement les en-têtes.
+
+Les indications de cache incluent [`tags`](/fr/reference/content-loader-reference/#cachehinttags) pour une invalidation ciblée et [`lastModified`](/fr/reference/content-loader-reference/#cachehintlastmodified) pour garantir la fraîcheur des données en cache. Vous pouvez également combiner les indications de cache avec vos propres [options de cache](/fr/reference/cache-provider-reference/#cacheoptions) pour personnaliser davantage le comportement de mise en cache.
+
+<ReadMore>
+Consultez la [référence du chargeur de contenu](/fr/reference/content-loader-reference/) pour en savoir plus sur la mise en œuvre des indications de cache dans vos chargeurs en direct.
+</ReadMore>
+
+#### Indications de cache au niveau des entrées
+
+Transmettez l'indication de cache (`cacheHint`) renvoyée par `getLiveEntry()` à [`Astro.cache.set()`](/fr/reference/api-reference/#cacheset) pour appliquer la stratégie de mise en cache recommandée par le chargeur.
+
+L'exemple suivant transmet l'indication de cache du chargeur et ajoute `maxAge` pour contrôler la durée de validité de la réponse :
+
+```astro title="src/pages/produits/[id].astro" {4,10-12}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('produits', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+Vous pouvez également transmettre directement un objet [`LiveDataEntry`](/fr/reference/content-loader-reference/#livedataentry) pour permettre à Astro d'extraire automatiquement son indication de cache (`cacheHint`) :
+
+```astro title="src/pages/produits/[id].astro" {4,10}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('produits', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+Astro.cache.set(entry);
+Astro.cache.set({ maxAge: 300, swr: 60 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+#### Indications de cache au niveau des collections
+
+Lors de la récupération d'une collection complète avec `getLiveCollection()`, Astro fusionne les indications de cache de la réponse de la collection et de toutes les entrées individuelles : les étiquettes sont accumulées et la date de dernière modification (`lastModified`) la plus récente est retenue.
+
+L'exemple suivant transmet l'indication de cache fusionnée d'une collection et définit une fenêtre de fraîcheur de 10 minutes :
+
+```astro title="src/pages/produits/index.astro" {4,10-12}
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries, error, cacheHint } = await getLiveCollection('produits');
+
+if (error) {
+  return new Response('Erreur lors du chargement des produits', { status: 500 });
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+
+<ul>
+  {entries.map((p) => <li>{p.data.name}</li>)}
+</ul>
+```
+
+#### Invalidation par entrée
+
+Vous pouvez invalider les entrées mises en cache en transmettant un objet `LiveDataEntry` à [`cache.invalidate()`](/fr/reference/api-reference/#cacheinvalidate). Cela vous permet de cibler des réponses mises en cache spécifiques pour les invalider en fonction des étiquettes de cache de l'entrée, sans avoir à vider l'intégralité du cache.
+
+L'exemple suivant invalide la réponse mise en cache pour une entrée de produit spécifique :
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('produits', 'mis-en-avant');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
 ```
 
 ## Utiliser des fichiers de schéma JSON dans votre éditeur

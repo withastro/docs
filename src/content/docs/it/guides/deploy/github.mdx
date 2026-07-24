@@ -1,0 +1,165 @@
+---
+title: Distribuisci il tuo sito Astro su GitHub Pages
+description: Come distribuire il tuo sito Astro sul web usando GitHub Pages.
+sidebar:
+  label: GitHub Pages
+type: deploy
+logo: github
+supports: ['static']
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Puoi usare [GitHub Pages](https://pages.github.com/) per ospitare un sito web Astro statico e prerenderizzato, direttamente da un repository su [GitHub.com](https://github.com/) usando [GitHub Actions](https://github.com/features/actions).
+
+## Come distribuire
+
+Astro mantiene un'[Action GitHub Astro ufficiale per distribuire il tuo progetto su un GitHub Pages](https://github.com/withastro/action) con una minima configurazione ed è il modo raccomandato per distribuire su GitHub Pages.
+
+Segui le istruzioni che seguono per usare GitHub Action per distribuire il tuo sito Astro su GitHub Pages. Questo creerà un sito web dal tuo repository con un URL GitHub (e.g. `https://<username>.github.io/<my-repo>`). Una volta distribuito, puoi opzionalmente [configurare un dominio personalizzato](#cambia-il-tuo-url-github-in-un-dominio-personalizzato) per distribuire il tuo sito su GitHub Pages con il tuo dominio preferito (e.g. `https://example.com`).
+
+<Steps>
+1. Crea un nuovo file nel tuo progetto in `.github/workflows/deploy.yml` e incollaci lo YAML seguente.
+
+    ```yaml title="deploy.yml"
+    name: Deploy to GitHub Pages
+
+    on:
+      # Attiva il workflow ogni volta che fai il push del ramo `main`
+      # Usi un nome di ramo differente? Sostituisci `main` con il nome del tuo ramo
+      push:
+        branches: [ main ]
+      # Ti permette di eseguire questo workflow manualmente dalle Actions tab su GitHub.
+      workflow_dispatch:
+
+    # Permette a questo lavoro di clonare il repo e creare una distribuzione della pagina
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    jobs:
+      build:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout your repository using git
+            uses: actions/checkout@v7
+          - name: Install, build, and upload your site
+            uses: withastro/action@v6
+            # with:
+              # path: . # La posizione principale del tuo progetto Astro nel repository. (opzionale)
+              # node-version: 24 # La versione specifica di Node che dovrebbe essere usata per compilare il tuo sito. Di default è 24. (opzionale)
+              # package-manager: pnpm@latest # Il gestore di pacchetti che dovrebbe essere usato per installare le dipendenze e compilare il tuo sito. Rilevato automaticamente in base al tuo lockfile. (opzionale)
+              # build-cmd: pnpm run build # Il comando da eseguire per compilare il tuo sito. Di default esegue lo script/task di compilazione del package. (opzionale)
+            # env:
+              # PUBLIC_POKEAPI: 'https://pokeapi.co/api/v2' # Usa le virgolette singole per il valore della variabile. (opzionale)
+
+      deploy:
+        needs: build
+        runs-on: ubuntu-latest
+        environment:
+          name: github-pages
+          url: ${{ steps.deployment.outputs.page_url }}
+        steps:
+          - name: Deploy to GitHub Pages
+            id: deployment
+            uses: actions/deploy-pages@v5
+    ```
+
+     L'action Astro può essere configurata con input opzionali. Forniscili decommentando la linea `with:` e l'input che vuoi usare.
+
+     Se il tuo sito richiede delle variabili d'ambiente pubbliche, decommenta la linea `env:` e aggiungile là. (Vedi la [documentazione GitHub su come impostare i segreti](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/store-information-in-variables#creating-configuration-variables-for-a-repository) per aggiungere variabili d'ambiente private.)
+
+    :::caution[Attenzione]
+    L'[action] Astro ufficiale (https://github.com/withastro/action) cerca un lockfile per individuare il tuo package manager preferito (`npm`, `yarn`, `pnpm`, or `bun`). Dovresti eseguire il commit sul tuo repository del file `package-lock.json`, `yarn.lock`, `pnpm-lock.yaml`, o `bun.lockb` generato automaticamente dal tuo package manager.
+    :::
+
+2. Nel tuo file di configurazione di Astro, imposta [`site`](/it/reference/configuration-reference/#site) sull'URL GitHub del tuo sito distribuito.
+
+    ```js title="astro.config.mjs" ins={4}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://astronaut.github.io',
+    })
+    ```
+
+    Il valore di `site` deve essere uno dei seguenti:
+
+    - Il seguente URL basato sul tuo username: `https://<username>.github.io`
+    - L'URL casuale autogenerato per una [pagina privata dell'Organizzazione di GitHub](https://docs.github.com/en/enterprise-cloud@latest/pages/getting-started-with-github-pages/changing-the-visibility-of-your-github-pages-site): `https://<random-string>.pages.github.io/`
+
+3. In `astro.config.mjs`, configura un valore per [`base`](/it/reference/configuration-reference/#base) (solitamente richiesto).
+
+      GitHub Pages pubblicherà il tuo sito web con un indirizzo che dipende sia dal tuo username che dal nome del repository (e.g. `https://<username>.github.io/<my-repo>/`). Imposta un valore per `base` che specifichi il repository per il tuo sito web. È così che Astro capisce che la posizione principale del tuo sito web è `/my-repo`, invece del predefinito `/`. Puoi saltarlo se il nome del tuo repository corrisponde al pattern speciale `<username>.github.io` (e.g. `https://github.com/username/username.github.io/`)
+
+      Configura `base` come il nome del repository iniziando con un barra (e.g. `/my-repo`):
+
+      ```js title="astro.config.mjs" ins={4-5}
+      import { defineConfig } from 'astro/config'
+
+      export default defineConfig({
+        site: 'https://astronaut.github.io',
+        base: '/my-repo',
+      })
+      ```
+
+      :::caution[link interni con `base` configurato]
+      Quando questo valore è configurato, tutti i tuoi link interni di pagina devono essere preceduti dal valore di `base`:
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">About</a>
+      ```
+
+      Vedi di più su come [configurare un valore di `base`](/it/reference/configuration-reference/#base).
+      :::
+
+4. Su GitHub, vai sulla tab **settings** del tuo repository e trova la sezione **Pages** delle impostazioni.
+
+5. Scegli **GitHub Actions** come **Fonte** del tuo sito.
+
+</Steps>
+
+Quando esegui il push delle modifiche sul repository del tuo progetto Astro, l'Action GitHub le distribuirà automaticamente per te al tuo URL GitHub.
+
+## Cambia il tuo URL GitHub in un dominio personalizzato
+
+Una volta che il tuo progetto Astro è [distribuito su GitHub pages in un URL GitHub](#come-distribuire) seguendo le istruzioni precedenti, puoi configurare un dominio personalizzato. Questo significa che gli utenti possono visitare il tuo sito al tuo dominio personalizzato `https://example.com` invece che `https://<username>.github.io`.
+
+<Steps>
+
+1. [Configura il DNS per il tuo fornitore di dominio](https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site#configuring-a-subdomain).
+2. Aggiungi un record `./public/CNAME` al tuo progetto.
+
+    Crea il file seguente nella tua cartella `public/` con una singola linea di testo che specifichi il tuo dominio personalizzato:
+    ```js title="public/CNAME"
+    sub.example.com
+    ```
+
+    Questo distribuirà il tuo sito al tuo dominio personalizzato invece che `user.github.io`.
+
+3. Nella tua configurazione Astro, aggiorna il valore di `site` con il tuo dominio personalizzato. Non impostare un valore per `base`, e rimuovilo se esiste:
+
+    ```js title="astro.config.mjs" ins={4} del={5}
+    import { defineConfig } from 'astro/config'
+
+    export default defineConfig({
+      site: 'https://example.com',
+      base: '/my-repo'
+    })
+    ```
+
+4. Se necessario, aggiorna tutti i link interni di pagina per rimuovere il prefisso `base`:
+
+    ```astro del="/my-repo"
+    <a href="/my-repo/about">About</a>
+    ```
+
+</Steps>
+
+## Esempi
+
+- [Modello iniziale di Distribuzione di Github Pages](https://github.com/hkbertoson/github-pages)
+- [Tema Starlight Flexoki (sito di produzione)](https://delucis.github.io/starlight-theme-flexoki/)
+- [Campioni di Colore Espressivi per il Codice (sito di produzione)](https://delucis.github.io/expressive-code-color-chips/)
+- [Blocchi Markdown Starlight (sito di produzione)](https://delucis.github.io/starlight-markdown-blocks/)

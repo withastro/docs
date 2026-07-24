@@ -208,13 +208,16 @@ Your blog post content here.
 You can also pass options to the `glob()` loader's [`generateID()` helper function](/en/reference/content-loader-reference/#generateid) when you define your build-time collection to adjust how `id`s are generated. For example, you may wish to revert the default behavior of converting uppercase letters to lowercase for each collection entry:
 
 ```js title="src/content.config.ts"
+import { glob } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
 const authors = defineCollection({
   /* Retrieve all JSON files in your authors directory while retaining
    * uppercase letters in the ID. */
   loader: glob({
-    pattern: '**/*.json',
+    pattern: "**/*.json",
     base: "./src/data/authors",
-    generateId: ({ entry }) => entry.replace(/\.json$/, ''),
+    generateId: ({ entry }) => entry.replace(/\.json$/, ""),
   }),
 });
 ```
@@ -224,8 +227,8 @@ const authors = defineCollection({
 The [`file()` loader](/en/reference/content-loader-reference/#file-loader) fetches multiple entries from a single local file defined in your collection. The `file()` loader will automatically detect and parse (based on the file extension) a single array of objects from JSON and YAML files, and will treat each top-level table as an independent entry in TOML files.
 
 ```ts  title="src/content.config.ts" {5}
-import { defineCollection } from 'astro:content';
-import { file } from 'astro/loaders';
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
 
 const dogs = defineCollection({
   loader: file("src/data/dogs.json"),
@@ -256,7 +259,7 @@ You can provide your entries as an array of objects with an `id` property, or in
 
 #### Parsing other data formats
 
-Support for parsing single JSON, YAML, and TOML files into collection entries with the `file()` loader is built-in (unless you have a [nested JSON document](#nested-json-documents)). To load your collection from unsupported file types, such as `.csv`, you will need to create a [parser function](/en/reference/content-loader-reference/#parser). This function can be made async if required (e.g. to fetch files from the web, or if your parser is asyncronous).
+Support for parsing single JSON, YAML, and TOML files into collection entries with the `file()` loader is built-in (unless you have a [nested JSON document](#nested-json-documents)). To load your collection from unsupported file types, such as `.csv`, you will need to create a [parser function](/en/reference/content-loader-reference/#parser). This function can be made async if required (e.g. to fetch files from the web, or if your parser is asynchronous).
 
 The following example shows importing a third-party CSV parser then passing a custom `parser` function to the `file()` loader:
 
@@ -301,8 +304,8 @@ You can [build a custom loader](/en/reference/content-loader-reference/#building
 Then you can import and define your custom loader in your collections config, passing any required values:
 
 ```ts title="src/content.config.ts"
-import { defineCollection } from 'astro:content';
-import { myLoader } from './loader.ts';
+import { defineCollection } from "astro:content";
+import { myLoader } from "./loader.ts";
 
 const blog = defineCollection({
   loader: myLoader({
@@ -335,9 +338,9 @@ In order for Astro to recognize a new or updated schema, you may need to restart
 Providing a `schema` is optional, but highly recommended! If you choose to use a schema, then every frontmatter or data property of your collection entries must be defined using a [Zod data type](/en/reference/modules/astro-zod/#common-data-type-validators):
 
 ```ts title="src/content.config.ts" {7-12,16-20}
-import { defineCollection } from 'astro:content';
-import { z } from 'astro/zod';
-import { glob, file } from 'astro/loaders';
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
+import { glob, file } from "astro/loaders";
 
 const blog = defineCollection({
   loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
@@ -346,7 +349,7 @@ const blog = defineCollection({
     description: z.string(),
     pubDate: z.coerce.date(),
     updatedDate: z.coerce.date().optional(),
-  })
+  }),
 });
 const dogs = defineCollection({
   loader: file("src/data/dogs.json"),
@@ -381,27 +384,27 @@ With the [`reference()` function](/en/reference/modules/astro-content/#reference
 A common example is a blog post that references reusable author profiles stored as JSON, or related post URLs stored in the same collection:
 
 ```ts title="src/content.config.ts"
-import { defineCollection, reference } from 'astro:content';
-import { glob } from 'astro/loaders';
-import { z } from 'astro/zod';
+import { defineCollection, reference } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
 
 const blog = defineCollection({
-  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
+  loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
   schema: z.object({
     title: z.string(),
     // Reference a single author from the `authors` collection by `id`
-    author: reference('authors'),
+    author: reference("authors"),
     // Reference an array of related posts from the `blog` collection by `id`
-    relatedPosts: z.array(reference('blog')),
-  })
+    relatedPosts: z.array(reference("blog")),
+  }),
 });
 
 const authors = defineCollection({
-  loader: glob({ pattern: '**/*.json', base: "./src/data/authors" }),
+  loader: glob({ pattern: "**/*.json", base: "./src/data/authors" }),
   schema: z.object({
     name: z.string(),
     portfolio: z.url(),
-  })
+  }),
 });
 
 export const collections = { blog, authors };
@@ -484,14 +487,19 @@ Once queried, you can render Markdown and MDX entries to HTML using the [`render
 
 ```astro title="src/pages/blog/post-1.astro" {2,6,10}
 ---
-import { getEntry, render } from 'astro:content';
+import { getEntry, render } from "astro:content";
 
-const entry = await getEntry('blog', 'post-1');
+const entry = await getEntry("blog", "post-1");
+
+if (!entry) {
+  throw new Error("Entry not found");
+}
 
 const { Content } = await render(entry);
 ---
+
 <h1>{entry.data.title}</h1>
-<p>Published on: {entry.data.published.toDateString()}</p>
+<p>Published on: {entry.data.pubDate.toDateString()}</p>
 <Content />
 ```
 
@@ -564,10 +572,15 @@ Then, you can use the `getEntry()` function again (or `getEntries()` to retrieve
 
 ```astro title="src/pages/blog/adventures-in-space.astro"
 ---
-import { getEntry, getEntries } from 'astro:content';
+import { getEntry, getEntries } from "astro:content";
 
 // First, query a blog post
-const blogPost = await getEntry('blog', 'Adventures in Space');
+const blogPost = await getEntry("blog", "Adventures in Space");
+
+// If the blog post doesn't exist, throw an error
+if (!blogPost) {
+  throw new Error("Blog post not found");
+}
 
 // Retrieve a single reference item: the blog post's author
 // Equivalent to querying `{collection: "authors", id: "ben-holmes"}`
@@ -584,9 +597,7 @@ const relatedPosts = await getEntries(blogPost.data.relatedPosts);
 <!-- ... -->
 
 <h2>You might also like:</h2>
-{relatedPosts.map(post => (
-  <a href={post.id}>{post.data.title}</a>
-))}
+{relatedPosts.map((post) => <a href={post.id}>{post.data.title}</a>)}
 ```
 
 ## Generating Routes from Content
@@ -797,16 +808,20 @@ You can use these functions to access your live data, passing the name of the co
 ---
 export const prerender = false; // Not needed in 'server' mode
 
-import { getLiveCollection, getLiveEntry } from 'astro:content';
+import { getLiveCollection, getLiveEntry } from "astro:content";
+
+if (!Astro.params.slug) {
+  return Astro.redirect('/404');
+}
 
 // Use loader-specific filters
-const { entries: draftArticles } = await getLiveCollection('articles', {
-  status: 'draft',
-  author: 'john-doe',
+const { entries: draftArticles } = await getLiveCollection("articles", {
+  status: "draft",
+  author: "john-doe",
 });
 
 // Get a specific product by ID
-const { entry: product } = await getLiveEntry('products', Astro.params.slug);
+const { entry: product } = await getLiveEntry("products", Astro.params.slug);
 ---
 ```
 
@@ -820,10 +835,14 @@ You also have access to any [error returned by the live loader](/en/reference/co
 ---
 export const prerender = false; // Not needed in 'server' mode
 
-import { getLiveEntry, render } from 'astro:content';
-const { entry, error } = await getLiveEntry('articles', Astro.params.id);
-if (error) {
-  return Astro.rewrite('/404');
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+import { getLiveEntry, render } from "astro:content";
+const { entry, error } = await getLiveEntry("articles", Astro.params.id);
+if (!entry || error) {
+  return Astro.rewrite("/404");
 }
 
 const { Content } = await render(entry);
@@ -851,10 +870,14 @@ You can use `instanceof` to check the type of an error at runtime:
 ---
 export const prerender = false; // Not needed in 'server' mode
 
-import { LiveEntryNotFoundError } from 'astro/content/runtime';
-import { getLiveEntry } from 'astro:content';
+import { LiveEntryNotFoundError } from "astro/content/runtime";
+import { getLiveEntry } from "astro:content";
 
-const { entry, error } = await getLiveEntry('products', Astro.params.id);
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+const { entry, error } = await getLiveEntry("products", Astro.params.id);
 
 if (error) {
   if (error instanceof LiveEntryNotFoundError) {
@@ -862,10 +885,112 @@ if (error) {
     Astro.response.status = 404;
   } else {
     console.error(`Error loading product: ${error.message}`);
-    return Astro.redirect('/500');
+    return Astro.redirect("/500");
   }
 }
 ---
+```
+
+### Caching live data
+
+<p><Since v="7.0.0" /></p>
+
+When live loaders provide [cache hints](/en/reference/content-loader-reference/#live-loaders), `getLiveEntry()` and `getLiveCollection()` return a `cacheHint` object. This allows you to control the [caching behavior](/en/guides/caching/) of your routes without manually setting headers.
+
+Cache hints include [`tags`](/en/reference/content-loader-reference/#cachehinttags) for targeted invalidation and [`lastModified`](/en/reference/content-loader-reference/#cachehintlastmodified) to keep cached data fresh. You can also combine the cache hints with your own [cache options](/en/reference/cache-provider-reference/#cacheoptions) to further customize caching behavior. 
+
+<ReadMore>
+See the [Content Loader Reference](/en/reference/content-loader-reference/) for more about implementing cache hints in your live loaders.
+</ReadMore>
+
+#### Entry-level cache hints
+
+Pass the `cacheHint` returned by `getLiveEntry()` to [`Astro.cache.set()`](/en/reference/api-reference/#cacheset) to apply the loader's recommended caching strategy.
+
+The following example passes the loader's cache hint and adds a `maxAge` to control how long the response stays fresh:
+
+```astro title="src/pages/products/[id].astro" {4,10-12}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+You can also pass a [`LiveDataEntry`](/en/reference/content-loader-reference/#livedataentry) directly to let Astro extract its `cacheHint` automatically:
+
+```astro title="src/pages/products/[id].astro" {4,10}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+Astro.cache.set(entry);
+Astro.cache.set({ maxAge: 300, swr: 60 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+#### Collection-level cache hints
+
+When fetching a full collection with `getLiveCollection()`, Astro merges cache hints from the collection response and all individual entries: tags are accumulated, and the most recent `lastModified` wins.
+
+The following example passes the merged cache hint from a collection and sets a 10-minute freshness window:
+
+```astro title="src/pages/products/index.astro" {4,10-12}
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries, error, cacheHint } = await getLiveCollection('products');
+
+if (error) {
+  return new Response('Error loading products', { status: 500 });
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+
+<ul>
+  {entries.map((p) => <li>{p.data.name}</li>)}
+</ul>
+```
+
+#### Invalidating by entry
+
+You can invalidate cached entries by passing a `LiveDataEntry` to [`cache.invalidate()`](/en/reference/api-reference/#cacheinvalidate). This allows you to target specific cached responses for invalidation based on the entry's cache tags, without needing to clear the entire cache.
+
+The following example invalidates the cached response for a specific product entry:
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('products', 'featured');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
 ```
 
 ## Using JSON Schema files in your editor

@@ -1,0 +1,426 @@
+---
+title: Astro 캐시 프로바이더 API
+sidebar:
+  label: 캐시 프로바이더 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+
+<Since v="7.0.0" />
+</p>
+
+Astro 캐시 프로바이더 API를 사용하면 [라우트 캐싱](/ko/guides/caching/) 방식을 설정하고 관리할 수 있습니다. 이 API는 인메모리 캐시 프로바이더를 기본으로 제공하며, 다양한 캐싱 전략과 런타임에 맞춘 커스텀 프로바이더를 생성하는 기능도 지원합니다.
+
+## 캐시 프로바이더란?
+
+캐시 동작은 프로젝트에 설정된 **캐시 프로바이더**에 의해 결정됩니다. 프로바이더는 크게 두 가지 종류로 나뉩니다.
+
+### CDN 프로바이더
+
+CDN 프로바이더는 캐시 지시어를 `CDN-Cache-Control`이나 `Cache-Tag` 같은 응답 헤더로 변환하며, 캐싱 처리를 CDN이나 리버스 프록시에 위임합니다. 이러한 내부 헤더들은 응답이 클라이언트에 도달하기 전에 제거됩니다.
+
+CDN 프로바이더는 알맞은 헤더를 생성하도록 `setHeaders()`를 구현합니다.
+
+### 런타임 프로바이더
+
+런타임 프로바이더는 요청을 가로채서 프로세스 내부에서 응답을 캐싱하도록 `onRequest()`를 구현합니다. 캐시 상태를 확인할 수 있도록 `X-Astro-Cache` 응답 헤더를 추가하며, 헤더 값은 다음과 같습니다:
+
+- **`HIT`**: 캐시된 응답을 반환합니다.
+- **`MISS`**: 응답을 새로 렌더링한 후 캐시에 저장합니다.
+- **`STALE`**: 백그라운드에서 캐시를 재검증하는 동안 만료된 기존 응답을 반환합니다.
+
+## 내장 메모리 캐시 프로바이더
+
+Astro는 단일 인스턴스 배포에 적합한 LRU 기반의 내장 인메모리 런타임 캐시 프로바이더를 제공합니다. 이 프로바이더를 사용하려면 `astro/config`에서 `memoryCache()`를 가져오세요:
+
+```js title="astro.config.mjs" ins="memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  cache: {
+    provider: memoryCache({ max: 500 }),
+  },
+});
+```
+
+### `memoryCache()` 옵션
+
+<p>
+
+**타입:** `{ max?: number; query?: object }`<br />
+**기본값:** `{ max: 1000 }`
+</p>
+
+인메모리 캐시 프로바이더를 설정합니다.
+
+#### `max`
+
+<p>
+
+**타입:** `number`<br />
+**기본값:** `1000`
+</p>
+
+캐시에 유지할 최대 항목 수를 지정합니다. 캐시 항목 수가 이 제한을 초과하면 가장 오랫동안 사용되지 않은 항목이 먼저 제거됩니다.
+
+#### `query`
+
+<p>
+
+**타입:** `{ sort?: boolean; include?: string[]; exclude?: string[]; }`<br />
+</p>
+
+캐시 키를 생성할 때 쿼리 파라미터를 처리하는 방식을 제어합니다.
+
+##### `query.sort`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`
+</p>
+
+쿼리 파라미터를 알파벳순으로 정렬할지 여부를 설정합니다. 파라미터의 순서가 달라지더라도 동일한 캐시 키로 처리되도록 보장하고 싶을 때 유용합니다.
+
+정렬 기능을 끄고 쿼리 파라미터 순서가 다른 URL을 각각 별개의 캐시 항목으로 처리하려면 `false`로 설정하세요.
+
+##### `query.exclude`
+
+<p>
+
+**타입:** `string[]`<br />
+**기본값:** `['utm_*', 'fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'li_fat_id', 'mc_cid', 'mc_eid', '_ga', '_gl', '_hsenc', '_hsmi', '_ke', 'oly_anon_id', 'oly_enc_id', 'rb_clickid', 's_cid', 'vero_id', 'wickedid', 'yclid', '__s', 'ref']`
+</p>
+
+캐시 키 생성 시 제외할 쿼리 파라미터 목록입니다. `utm_*`과 같은 Glob 와일드카드 패턴을 지원하며, 기본적으로 흔히 사용되는 광고 추적 및 분석용 파라미터들을 제외합니다.
+
+모든 쿼리 파라미터를 캐시 키에 포함하려면 `[]`로 설정하세요:
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { exclude: [] },
+});
+```
+
+[`include`](#queryinclude)와 함께 사용하면 오류가 발생합니다.
+
+##### `query.include`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+캐시 키에 포함할 쿼리 파라미터 이름 목록입니다. 이 옵션을 설정하면, 기본으로 적용되는 추적 파라미터 제외 규칙을 포함하여 다른 모든 파라미터는 무시됩니다.
+
+다음 예시는 캐시 키 생성 시 `page`와 `sort` 파라미터만 사용하고 나머지는 모두 무시하는 설정을 보여줍니다:
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { include: ['page', 'sort'] },
+});
+```
+
+[`exclude`](#queryexclude) 옵션과 동시에 사용하면 에러가 발생합니다.
+
+### 캐시 키의 동작 방식
+
+인메모리 프로바이더는 캐시 적중률을 높이기 위해 캐시 키를 자동으로 정규화합니다:
+
+- **쿼리 파라미터 정렬**: 파라미터가 알파벳순으로 정렬되므로, `/page?b=2&a=1`과 `/page?a=1&b=2`는 동일한 캐시 항목으로 처리됩니다.
+- **추적 파라미터 제외**: `utm_source`, `fbclid`, `gclid`와 같은 일반적인 분석 및 추적 파라미터는 기본적으로 캐시 키에서 제외됩니다. 이는 페이지 콘텐츠에는 아무런 영향을 주지 않으면서, 마케팅 링크 유입으로 인해 캐시가 불필요하게 파편화되는 현상을 방지해 줍니다.
+- **Vary 헤더 지원**: 응답에 [`Vary`](https://developer.mozilla.org/ko/docs/Web/HTTP/Headers/Vary) 헤더가 포함되어 있으면, 인메모리 프로바이더는 지정된 요청 헤더 값에 따라 서로 다른 캐시 항목을 생성합니다. 예를 들어 `Vary: Accept-Language` 헤더가 있는 응답은 사용자의 언어 설정별로 각각 다른 버전을 캐싱합니다.
+
+:::note
+`Cookie` 헤더는 사용자마다 값이 다 다른 고유한 특성을 가지기 때문에, Vary 기반의 캐시 키 생성 프로세스에서 항상 무시되며 사실상 캐싱 대상에서 제외됩니다.
+:::
+
+## 커스텀 캐시 프로바이더 작성하기
+
+캐시 프로바이더는 다음 두 가지 요소로 구성됩니다:
+
+1. **런타임 모듈** — `CacheProviderFactory` 함수를 기본 내보내기하는 파일입니다. 이 모듈은 SSR 결과물에 함께 번들되므로 특정 런타임에 종속되지 않아야 합니다. 대상 런타임이 지원하는 경우가 아니라면 `node:fs`나 `node:path` 같은 Node.js 내장 모듈의 사용은 피하세요.
+
+2. **설정 헬퍼** — 사용자가 `astro.config.mjs`에서 호출할 수 있도록 내보낸 함수입니다. 이 함수는 Astro에게 런타임 모듈의 위치와 전달할 옵션을 알려주는 [`CacheProviderConfig` 객체](#cacheproviderconfig)를 반환합니다. 이는 내장된 [`memoryCache()` 프로바이더](#내장-메모리-캐시-프로바이더)가 사용하는 방식과 동일합니다.
+
+다음 예시는 타입이 지정된 옵션을 받아 런타임 모듈을 가리키는 설정 헬퍼를 만드는 방법을 보여줍니다:
+
+```ts title="my-provider/config.ts"
+import type { CacheProviderConfig } from 'astro';
+
+interface MyProviderOptions {
+  apiKey: string;
+  region?: string;
+}
+
+export function myCache(options: MyProviderOptions): CacheProviderConfig {
+  return {
+    entrypoint: 'my-provider/runtime', // 프로젝트 루트에서 해결됨
+    config: options, // 런타임에 팩토리로 전달됨
+  };
+}
+```
+
+설정 헬퍼는 Astro 설정에서 다음과 같이 호출합니다:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { myCache } from 'my-provider/config';
+
+export default defineConfig({
+  cache: {
+    provider: myCache({ apiKey: '...' }),
+  },
+});
+```
+
+런타임 모듈은 직렬화된 `config`를 전달받아 [`CacheProvider`](#cacheprovider)를 반환하는 팩토리 함수를 기본 내보내기합니다:
+
+```ts title="my-provider/runtime.ts"
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  return {
+    name: 'my-cache-provider',
+
+    // CDN 스타일: 캐시 옵션을 응답 헤더로 변환
+    setHeaders(options) {
+      const headers = new Headers();
+      if (options.maxAge !== undefined) {
+        let value = `max-age=${options.maxAge}`;
+        if (options.swr !== undefined) {
+          value += `, stale-while-revalidate=${options.swr}`;
+        }
+        headers.set('CDN-Cache-Control', value);
+      }
+      if (options.tags?.length) {
+        headers.set('Cache-Tag', options.tags.join(','));
+      }
+      return headers;
+    },
+
+    // 런타임 스타일: 필요한 경우 요청 가로채기
+    async onRequest(context, next) {
+      // 캐시 확인, next() 호출, 응답 저장 등의 로직을 처리합니다.
+      return next();
+    },
+
+    // 캐시 무효화 요청 처리
+    async invalidate(options) {
+      // 태그 또는 경로별로 캐시를 삭제하는 로직을 처리합니다.
+    },
+  };
+};
+
+export default factory;
+```
+
+CDN 프로바이더를 작성할 때, Astro는 캐시 제어 헤더나 경로 기반의 무효화 태그를 수월하게 생성할 수 있도록 [공유 유틸리티](#캐시-프로바이더-유틸리티)를 제공합니다.
+
+## 캐시 프로바이더 유틸리티
+
+Astro는 CDN 프로바이더 개발자를 위해 `astro/cache/provider-utils`에서 공유 헬퍼를 제공합니다. 이는 Netlify, Vercel, Cloudflare 등의 공식 프로바이더가 사용하는 것과 동일한 헬퍼입니다.
+
+```ts
+import {
+  buildCacheControlDirectives,
+  pathTag,
+  setConditionalHeaders,
+  collectInvalidationTags,
+  normalizeTags,
+} from 'astro/cache/provider-utils';
+```
+
+### `buildCacheControlDirectives()`
+
+<p>
+
+**타입:** <code>(options: <a href="#cacheoptions">CacheOptions</a>, extraDirectives?: string[]) => string | undefined</code>
+</p>
+
+`CacheOptions`를 바탕으로 캐시 제어 지시어 문자열을 생성합니다. 예를 들어 `"public, max-age=300, stale-while-revalidate=60"`과 같은 문자열이 빌드됩니다. 이때 헤더 이름은 포함되지 않으므로, `Netlify-CDN-Cache-Control`이나 `Cloudflare-CDN-Cache-Control`처럼 각 프로바이더가 원하는 자체 헤더를 직접 적용할 수 있습니다. `public`이나 `durable` 같은 플랫폼 전용 지시어를 앞에 추가하고 싶다면 `extraDirectives`에 전달하면 됩니다. 설정된 캐시 지시어가 없다면 `undefined`를 반환합니다.
+
+### `pathTag()`
+
+<p>
+
+**타입:** `(path: string) => string`
+</p>
+
+주어진 경로에 대한 캐시 태그를 생성하며, 태그 형식은 `astro-path:{path}`입니다. 플랫폼 자체에서 태그 기반의 캐시 삭제 기능만 제공할 때, [`invalidate({ path })`](/ko/reference/api-reference/#cacheinvalidate) 기능을 지원하기 위한 용도로 사용됩니다.
+
+### `setConditionalHeaders()`
+
+<p>
+
+**타입:** <code>(headers: Headers, options: <a href="#cacheoptions">CacheOptions</a>) => void</code>
+</p>
+
+`CacheOptions`에 지정된 값을 바탕으로 `Headers` 객체에 `Last-Modified` 및 `ETag` 헤더를 설정합니다.
+
+### `collectInvalidationTags()`
+
+<p>
+
+**타입:** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => string[]</code>
+</p>
+
+지정된 옵션을 무효화하는 데 필요한 모든 태그를 수집합니다. 이때 `options.path`가 설정되어 있다면 경로 태그도 함께 수집됩니다. 플랫폼이 자체적으로 제공하는 경로 삭제 기능 대신, 태그를 활용해 경로 무효화를 구현하는 프로바이더에서 주로 사용됩니다.
+
+### `normalizeTags()`
+
+<p>
+
+**타입:** `(tags: string | string[] | undefined) => string[]`
+</p>
+
+전달받은 태그 값을 하나의 1차원 문자열 배열로 정규화합니다.
+
+## 캐시 프로바이더 타입 참조
+
+다음 타입은 `astro` 모듈에서 가져올 수 있습니다:
+
+```ts
+import type {
+  CacheOptions,
+  CacheProvider,
+  CacheProviderConfig,
+  CacheProviderFactory,
+  InvalidateOptions,
+} from "astro";
+```
+
+### `CacheOptions`
+
+캐시 프로바이더에 전달되는 설정 옵션입니다.
+
+<ReadMore>캐싱 동작을 제어하기 위해 [캐시 옵션을 사용하는 방법](/ko/guides/caching/#캐시-옵션-설정)을 알아보세요.</ReadMore>
+
+#### `CacheOptions.maxAge`
+
+<p>
+
+**타입:** `number`
+</p>
+
+응답을 최신 상태로 간주할 시간을 초 단위로 정의합니다.
+
+#### `CacheOptions.swr`
+
+<p>
+
+**타입:** `number`
+</p>
+
+stale-while-revalidate 유효 기간을 초 단위로 지정합니다. 백그라운드에서 새로운 응답을 생성하는 동안 만료된 기존 콘텐츠를 먼저 반환합니다.
+
+#### `CacheOptions.tags`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+특정 대상을 지정해 무효화하기 위한 캐시 태그 목록입니다. 태그는 여러 번의 [`cache.set()`](/ko/reference/api-reference/#cacheset) 호출에 걸쳐 계속 누적됩니다.
+
+#### `CacheOptions.lastModified`
+
+<p>
+
+**타입:** `Date`
+</p>
+
+가장 최근의 수정 날짜를 나타냅니다. [`cache.set()`](/ko/reference/api-reference/#cacheset)을 여러 번 호출하면서 각기 다른 `lastModified` 값을 제공하는 경우, 가장 마지막에 호출된 값이 우선 적용됩니다.
+
+#### `CacheOptions.etag`
+
+<p>
+
+**타입:** `string`
+</p>
+
+조건부 요청을 처리하기 위한 엔티티 태그를 지정합니다.
+
+### `CacheProvider`
+
+캐시 프로바이더가 구현해야 하는 인터페이스입니다. `name`과 `invalidate()` 속성은 필수이며, 그 외의 속성들은 선택적으로 정의할 수 있습니다.
+
+#### `CacheProvider.name`
+
+<p>
+
+**타입:** `string`
+</p>
+
+로그 출력 및 프로바이더 식별에 사용하는 고유한 이름입니다.
+
+#### `CacheProvider.setHeaders()`
+<p>
+
+**타입:** <code>(options: <a href="#cacheoptions">CacheOptions</a>, request: Request) => Headers</code>
+</p>
+
+캐시 옵션을 응답 헤더로 변환합니다. 이 메서드는 응답이 렌더링된 후 클라이언트로 전송되기 전에 호출되며, 여기서 설정된 헤더들은 최종 응답이 사용자에게 도달하기 전에 제거됩니다.
+
+전달받은 `request` 객체는 프로바이더가 URL이나 요청 헤더를 읽을 수 있도록 두 번째 인자로 제공됩니다. 이는 경로 기반 무효화를 처리할 수 있도록 응답에 해당 경로 이름을 태그로 자동 추가하고 싶을 때 유용합니다.
+
+#### `CacheProvider.onRequest()`
+
+<p>
+
+**타입:** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void \}, next: <a href="/ko/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
+</p>
+
+런타임 캐싱을 구현하기 위해 요청을 가로챕니다. `context`에는 배포 환경의 런타임이 기능을 지원하는 경우, stale-while-revalidate와 같은 백그라운드 작업을 처리할 수 있는 `waitUntil()` 함수가 포함되어 있습니다.
+
+#### `CacheProvider.invalidate()`
+
+<p>
+
+**타입:** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => Promise\<void\></code>
+</p>
+
+태그나 경로별로 캐시 삭제 요청을 처리합니다.
+
+### `CacheProviderConfig`
+
+<p>
+
+**타입:** `{ entrypoint: string | URL; config?: Record<string, any> }`
+</p>
+
+`cache.provider`에 전달되는 설정 객체입니다. 타입 안정성이 보장된 설정을 위해 `memoryCache()`와 같은 헬퍼 함수를 사용하는 것이 좋습니다.
+
+### `CacheProviderFactory`
+
+<p>
+
+**타입:** <code>(config: Record\<string, any\> | undefined) => <a href="#cacheprovider">CacheProvider</a></code>
+</p>
+
+팩토리 함수의 타입입니다. Astro 설정 파일로부터 직렬화 가능한 프로바이더 설정 객체를 전달받습니다.
+
+### `InvalidateOptions`
+
+프로바이더의 `invalidate()` 메서드에 전달되는 설정 옵션입니다.
+
+#### `InvalidateOptions.path`
+
+<p>
+
+**타입:** `string`
+</p>
+
+무효화할 정확한 경로입니다. Glob 패턴이나 와일드카드는 지원하지 않습니다.
+
+#### `InvalidateOptions.tags`
+
+<p>
+
+**타입:** `string | string[]`
+</p>
+
+무효화할 태그 또는 태그 목록입니다. 지정된 태그와 일치하는 모든 캐시 항목이 삭제됩니다.

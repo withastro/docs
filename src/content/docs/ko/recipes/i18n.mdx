@@ -86,23 +86,21 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
 
 2. `src/content.config.ts` 파일을 만들고 각 콘텐츠 유형에 대한 컬렉션을 내보냅니다.
 
-    ```ts
-    //src/content.config.ts
-    import { defineCollection } from 'astro:content';
-    import { z } from 'astro/zod';
+    ```ts title="src/content.config.ts"
+    import { defineCollection } from "astro:content";
+    import { z } from "astro/zod";
 
     const blogCollection = defineCollection({
       schema: z.object({
         title: z.string(),
         author: z.string(),
-        date: z.date()
-      })
+        date: z.date(),
+      }),
     });
 
     export const collections = {
-      'blog': blogCollection
+      blog: blogCollection,
     };
-
     ```
     
     <ReadMore>[콘텐츠 컬렉션](/ko/guides/content-collections/)에 대해 자세히 알아보세요.</ReadMore>
@@ -113,17 +111,16 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
       <Fragment slot="static">
         정적 렌더링 모드에서는 `getStaticPaths`를 사용하여 각 콘텐츠 항목을 페이지에 매핑합니다.
 
-        ```astro
-        //src/pages/[lang]/blog/[...slug].astro
+        ```astro title="src/pages/[lang]/blog/[...slug].astro"
         ---
-        import { getCollection, render } from 'astro:content';
+        import { getCollection, render } from "astro:content";
 
         export async function getStaticPaths() {
-          const pages = await getCollection('blog');
+          const pages = await getCollection("blog");
 
-          const paths = pages.map(page => {
-            const [lang, ...slug] = page.id.split('/');
-            return { params: { lang, slug: slug.join('/') || undefined }, props: page };
+          const paths = pages.map((page) => {
+            const [lang, ...slug] = page.id.split("/");
+            return { params: { lang, slug: slug.join("/") || undefined }, props: page };
           });
 
           return paths;
@@ -132,36 +129,36 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
         const { lang, slug } = Astro.params;
         const page = Astro.props;
         const formattedDate = page.data.date.toLocaleString(lang);
-
         const { Content } = await render(page);
         ---
+
         <h1>{page.data.title}</h1>
         <p>by {page.data.author} • {formattedDate}</p>
-        <Content/>
+        <Content />
         ```
       </Fragment>
 
       <Fragment slot="ssr">
         [SSR 모드](/ko/guides/on-demand-rendering/)에서 요청된 항목을 직접 가져옵니다.
 
-        ```astro
-        //src/pages/[lang]/blog/[...slug].astro
+        ```astro title="src/pages/[lang]/blog/[...slug].astro"
         ---
-        import { getEntry, render } from 'astro:content';
+        import { getEntry, render } from "astro:content";
 
         const { lang, slug } = Astro.params;
-        const page = await getEntry('blog', `${lang}/${slug}`);
+        const page = await getEntry("blog", `${lang}/${slug}`);
 
         if (!page) {
-          return Astro.redirect('/404');
+          return Astro.redirect("/404");
         }
 
         const formattedDate = page.data.date.toLocaleString(lang);
         const { Content, headings } = await render(page);
         ---
+
         <h1>{page.data.title}</h1>
         <p>by {page.data.author} • {formattedDate}</p>
-        <Content/>
+        <Content />
         ```
       </Fragment>
     </StaticSsrTabs>
@@ -181,44 +178,43 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
 <Steps>
 1. 번역 문자열을 저장할 `src/i18n/ui.ts` 파일을 만듭니다.
 
-    ```ts
-    // src/i18n/ui.ts
+    ```ts title="src/i18n/ui.ts"
     export const languages = {
-      en: 'English',
-      fr: 'Français',
+      en: "English",
+      fr: "Français",
     };
 
-    export const defaultLang = 'en';
-    
+    export const defaultLang = "en";
+
     export const ui = {
       en: {
-        'nav.home': 'Home',
-        'nav.about': 'About',
-        'nav.twitter': 'Twitter',
+        "nav.home": "Home",
+        "nav.about": "About",
+        "nav.twitter": "Twitter",
       },
       fr: {
-        'nav.home': 'Accueil',
-        'nav.about': 'À propos',
+        "nav.home": "Accueil",
+        "nav.about": "À propos",
       },
     } as const;
     ```
     
 2. 두 개의 도우미 함수를 만듭니다. 하나는 현재 URL을 기반으로 페이지 언어를 감지하고, 다른 하나는 `src/i18n/utils.ts` 파일에서 UI의 다양한 부분에 대한 번역 문자열을 가져옵니다.
 
-    ```js
-    // src/i18n/utils.ts
-    import { ui, defaultLang } from './ui';
-    
+    ```ts title="src/i18n/utils.ts"
+    import { ui, defaultLang } from "./ui";
+
     export function getLangFromUrl(url: URL) {
-      const [, lang] = url.pathname.split('/');
+      const [, lang] = url.pathname.split("/");
       if (lang in ui) return lang as keyof typeof ui;
       return defaultLang;
     }
-    
+
     export function useTranslations(lang: keyof typeof ui) {
-      return function t(key: keyof typeof ui[typeof defaultLang]) {
-        return ui[lang][key] || ui[defaultLang][key];
-      }
+      const localizedUI: Record<string, string> = ui[lang];
+      return function t(key: keyof (typeof ui)[typeof defaultLang]) {
+        return key in localizedUI ? localizedUI[key] : ui[defaultLang][key];
+      };
     }
     ```
 
@@ -228,66 +224,65 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
     
 3. 필요한 경우 도우미를 가져오고 이를 사용하여 현재 언어에 해당하는 UI 문자열을 선택합니다. 예를 들어 nav 컴포넌트는 다음과 같습니다.
 
-    ```astro 
+    ```astro title="src/components/Nav.astro"
     ---
-    // src/components/Nav.astro
-    import { getLangFromUrl, useTranslations } from '../i18n/utils';
-    
+    import { getLangFromUrl, useTranslations } from "../i18n/utils";
+
     const lang = getLangFromUrl(Astro.url);
     const t = useTranslations(lang);
     ---
+
     <ul>
-        <li>
-            <a href={`/${lang}/home/`}>
-              {t('nav.home')}
-            </a>
-        </li>
-        <li>
-            <a href={`/${lang}/about/`}>
-              {t('nav.about')}
-            </a>
-        </li>
-        <li>
-            <a href="https://twitter.com/astrodotbuild">
-              {t('nav.twitter')}
-            </a>
-        </li>
+      <li>
+        <a href={`/${lang}/home/`}>
+          {t("nav.home")}
+        </a>
+      </li>
+      <li>
+        <a href={`/${lang}/about/`}>
+          {t("nav.about")}
+        </a>
+      </li>
+      <li>
+        <a href="https://twitter.com/astrodotbuild">
+          {t("nav.twitter")}
+        </a>
+      </li>
     </ul>
     ```
 
 4. 각 페이지에는 페이지의 언어와 일치하는 `<html>` 요소의 `lang` 속성이 있어야 합니다. 이 예시에서 [재사용 가능한 레이아웃](/ko/basics/layouts/)은 현재 경로에서 언어를 추출합니다.
 
-    ```astro
+    ```astro title="src/layouts/Base.astro"
     ---
-    // src/layouts/Base.astro
-    
-    import { getLangFromUrl } from '../i18n/utils';
-    
+    import { getLangFromUrl } from "../i18n/utils";
+
     const lang = getLangFromUrl(Astro.url);
     ---
+
     <html lang={lang}>
-        <head>
-            <meta charset="utf-8" />
-            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-            <meta name="viewport" content="width=device-width" />
-            <title>Astro</title>
-        </head>
-        <body>
-            <slot />
-        </body>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <slot />
+      </body>
     </html>
     ```
 
     그런 다음 이 기본 레이아웃을 사용하여 페이지가 올바른 `lang` 속성을 자동으로 사용하도록 할 수 있습니다.
     
-    ```astro
+    ```astro title="src/pages/en/about.astro"
     ---
-    // src/pages/en/about.astro
-    import Base from '../../layouts/Base.astro';
+    import Base from "../../layouts/Base.astro";
     ---
+
     <Base>
-        <h1>About me</h1>
-        ...
+      <h1>About me</h1>
+      ...
     </Base>
     ```
 </Steps>
@@ -299,43 +294,45 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
 <Steps>
 1. 각 언어에 대한 링크를 표시하는 컴포넌트를 만듭니다.
 
-    ```astro
+    ```astro title="src/components/LanguagePicker.astro"
     ---
-    // src/components/LanguagePicker.astro
-    import { languages } from '../i18n/ui';
+    import { languages } from "../i18n/ui";
     ---
+
     <ul>
-      {Object.entries(languages).map(([lang, label]) => (
-        <li>
-          <a href={`/${lang}/`}>{label}</a>
-        </li>
-      ))}
+      {
+        Object.entries(languages).map(([lang, label]) => (
+          <li>
+            <a href={`/${lang}/`}>{label}</a>
+          </li>
+        ))
+      }
     </ul>
     ```
 
 2. 모든 페이지에 표시되도록 `<LanguagePicker />`를 사이트에 추가하세요. 아래 예에서는 기본 레이아웃의 사이트 바닥글에 추가합니다.
 
-    ```astro ins={3,17-19}
+    ```astro ins={2,17-19} title="src/layouts/Base.astro"
     ---
-    // src/layouts/Base.astro
-    import LanguagePicker from '../components/LanguagePicker.astro';
-    import { getLangFromUrl } from '../i18n/utils';
-    
+    import LanguagePicker from "../components/LanguagePicker.astro";
+    import { getLangFromUrl } from "../i18n/utils";
+
     const lang = getLangFromUrl(Astro.url);
     ---
+
     <html lang={lang}>
-        <head>
-            <meta charset="utf-8" />
-            <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-            <meta name="viewport" content="width=device-width" />
-            <title>Astro</title>
-        </head>
-        <body>
-            <slot />
-            <footer>
-              <LanguagePicker />
-            </footer>
-        </body>
+      <head>
+        <meta charset="utf-8" />
+        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <meta name="viewport" content="width=device-width" />
+        <title>Astro</title>
+      </head>
+      <body>
+        <slot />
+        <footer>
+          <LanguagePicker />
+        </footer>
+      </body>
     </html>
     ```
 </Steps>
@@ -357,71 +354,75 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
 
 2. 기능을 전환하려면 `src/i18n/ui.ts` 파일에 다른 줄을 추가하세요.
 
-    ```ts
-    // src/i18n/ui.ts
+    ```ts title="src/i18n/ui.ts"
     export const showDefaultLang = false;
     ```
 
 3. 현재 언어를 기반으로 경로를 번역하려면 `src/i18n/utils.ts` 파일에 도우미 함수를 추가하세요.
 
-    ```js
-    // src/i18n/utils.ts
-    import { ui, defaultLang, showDefaultLang } from './ui';
+    ```ts title="src/i18n/utils.ts"
+    import { ui, defaultLang, showDefaultLang } from "./ui";
 
     export function useTranslatedPath(lang: keyof typeof ui) {
       return function translatePath(path: string, l: string = lang) {
-        return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`
-      }
+        return !showDefaultLang && l === defaultLang ? path : `/${l}${path}`;
+      };
     }
     ```
 
 4. 필요한 경우 도우미를 가져옵니다. 예를 들어 `nav` 컴포넌트는 다음과 같습니다.
 
-    ```astro 
+    ```astro title="src/components/Nav.astro"
     ---
-    // src/components/Nav.astro
-    import { getLangFromUrl, useTranslations, useTranslatedPath } from '../i18n/utils';
-    
+    import {
+      getLangFromUrl,
+      useTranslations,
+      useTranslatedPath,
+    } from "../i18n/utils";
+
     const lang = getLangFromUrl(Astro.url);
     const t = useTranslations(lang);
     const translatePath = useTranslatedPath(lang);
     ---
+
     <ul>
-        <li>
-            <a href={translatePath('/home/')}>
-              {t('nav.home')}
-            </a>
-        </li>
-        <li>
-            <a href={translatePath('/about/')}>
-              {t('nav.about')}
-            </a>
-        </li>
-        <li>
-            <a href="https://twitter.com/astrodotbuild">
-              {t('nav.twitter')}
-            </a>
-        </li>
+      <li>
+        <a href={translatePath("/home/")}>
+          {t("nav.home")}
+        </a>
+      </li>
+      <li>
+        <a href={translatePath("/about/")}>
+          {t("nav.about")}
+        </a>
+      </li>
+      <li>
+        <a href="https://twitter.com/astrodotbuild">
+          {t("nav.twitter")}
+        </a>
+      </li>
     </ul>
     ```
 
 5. 도우미 함수를 사용하여 특정 언어에 대한 경로를 번역할 수도 있습니다. 예를 들어 사용자가 언어를 전환하는 경우:
 
-    ```astro
+    ```astro title="src/components/LanguagePicker.astro"
     ---
-    // src/components/LanguagePicker.astro
-    import { languages } from '../i18n/ui';
-    import { getLangFromUrl, useTranslatedPath } from '../i18n/utils';
-    
+    import { languages } from "../i18n/ui";
+    import { getLangFromUrl, useTranslatedPath } from "../i18n/utils";
+
     const lang = getLangFromUrl(Astro.url);
     const translatePath = useTranslatedPath(lang);
     ---
+
     <ul>
-      {Object.entries(languages).map(([lang, label]) => (
-        <li>
-          <a href={translatePath('/', lang)}>{label}</a>
-        </li>
-      ))}
+      {
+        Object.entries(languages).map(([lang, label]) => (
+          <li>
+            <a href={translatePath("/", lang)}>{label}</a>
+          </li>
+        ))
+      }
     </ul>
     ```
 </Steps>
@@ -433,90 +434,99 @@ v4.0에서 Astro는 기본 및 지원되는 언어를 구성할 수 있게 해�
 <Steps>
 1. `src/i18n/ui.ts` 파일에 경로 매핑을 추가합니다.
 
-    ```ts
-    // src/i18n/ui.ts
+    ```ts title="src/i18n/ui.ts"
     export const routes = {
       de: {
-        'services': 'leistungen',
+        services: "leistungen",
       },
       fr: {
-        'services': 'prestations-de-service',
+        services: "prestations-de-service",
       },
-    }
+    };
     ```
 
 2. 라우터 변환 논리를 추가하려면 `src/i18n/utils.ts` 파일에서 `useTranslatedPath` 도우미 함수를 업데이트하세요.
 
-    ```js
-    // src/i18n/utils.ts
-    import { ui, defaultLang, showDefaultLang, routes } from './ui';
+    ```ts title="src/i18n/utils.ts"
+    import { ui, defaultLang, showDefaultLang, routes } from "./ui";
 
     export function useTranslatedPath(lang: keyof typeof ui) {
       return function translatePath(path: string, l: string = lang) {
-        const pathName = path.replaceAll('/', '')
-        const hasTranslation = defaultLang !== l && routes[l] !== undefined && routes[l][pathName] !== undefined
-        const translatedPath = hasTranslation ? '/' + routes[l][pathName] : path
-    
-        return !showDefaultLang && l === defaultLang ? translatedPath : `/${l}${translatedPath}`
-      }
+        const pathName = path.replaceAll("/", "");
+        const routeMap: Record<string, string> | undefined =
+          l !== defaultLang && l in routes
+            ? routes[l as keyof typeof routes]
+            : undefined;
+        const translatedPath = routeMap?.[pathName]
+          ? "/" + routeMap[pathName]
+          : path;
+
+        return !showDefaultLang && l === defaultLang
+          ? translatedPath
+          : `/${l}${translatedPath}`;
+      };
     }
     ```
 
 3. `src/i18n/utils.ts` 파일에 현재 URL을 기반으로 경로가 존재하는 경우 경로를 가져오는 도우미 함수를 만듭니다.
 
-    ```js
-    // src/i18n/utils.ts
-    import { ui, defaultLang, showDefaultLang, routes } from './ui';
-    
+    ```ts title="src/i18n/utils.ts"
+    import { ui, defaultLang, showDefaultLang, routes } from "./ui";
+
     export function getRouteFromUrl(url: URL): string | undefined {
       const pathname = new URL(url).pathname;
-      const parts = pathname?.split('/');
+      const parts = pathname?.split("/");
       const path = parts.pop() || parts.pop();
-    
+
       if (path === undefined) {
         return undefined;
       }
-      
+
       const currentLang = getLangFromUrl(url);
-    
+
       if (defaultLang === currentLang) {
-        const route = Object.values(routes)[0];
-        return route[path] !== undefined ? route[path] : undefined;
+        const route = Object.values(routes)[0] as Record<string, string>;
+        return route[path];
       }
-      
-      const getKeyByValue = (obj: Record<string, string>, value: string): string | undefined  => {
-          return Object.keys(obj).find((key) => obj[key] === value);
-      }
-    
+
+      const getKeyByValue = (
+        obj: Record<string, string>,
+        value: string,
+      ): string | undefined => {
+        return Object.keys(obj).find((key) => obj[key] === value);
+      };
+
       const reversedKey = getKeyByValue(routes[currentLang], path);
-    
+
       if (reversedKey !== undefined) {
         return reversedKey;
       }
-    
+
       return undefined;
     }
     ```
 
 4. 도우미 함수를 사용하여 번역된 경로를 얻을 수 있습니다. 예를 들어 번역된 경로가 정의되지 않은 경우 사용자는 홈 페이지로 리디렉션됩니다.
 
-    ```astro
+    ```astro title="src/components/LanguagePicker.astro"
     ---
-    // src/components/LanguagePicker.astro
-    import { languages } from '../i18n/ui';
-    import { getRouteFromUrl, useTranslatedPath } from '../i18n/utils';
+    import { languages } from "../i18n/ui";
+    import { getRouteFromUrl, useTranslatedPath } from "../i18n/utils";
 
     const route = getRouteFromUrl(Astro.url);
     ---
+
     <ul>
-      {Object.entries(languages).map(([lang, label]) => {
-        const translatePath = useTranslatedPath(lang);
-        return (
-          <li>
-            <a href={translatePath(`/${route ? route : ''}`)}>{label}</a>
-          </li>
-        )
-      })}
+      {
+        Object.entries(languages).map(([lang, label]) => {
+          const translatePath = useTranslatedPath(lang);
+          return (
+            <li>
+              <a href={translatePath(`/${route ? route : ""}`)}>{label}</a>
+            </li>
+          );
+        })
+      }
     </ul>
     ```
 </Steps>

@@ -34,7 +34,7 @@ For simple data fetching, you can also [define a loader as an async function](#d
 
 The `glob()` loader creates entries from directories of files from anywhere on the filesystem. The supported file types are Markdown, MDX, Markdoc, JSON, YAML, and TOML files.
 
-This loader accepts an object with the following properties: `pattern`, `base` (optional), `generateId` (optional), and `retainBody` (optional).
+This loader accepts an object with the following properties: `pattern`, `base` (optional), `generateId` (optional), `retainBody` (optional), and `deferRender` (optional).
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -123,6 +123,32 @@ Setting this property to `false` significantly reduces the deployed size of the 
 For Markdown files, the rendered body will still be available in the [`entry.rendered.html` property](#dataentryrenderedhtml), and the [`entry.filePath` property](#dataentryfilepath) will still point to the original file. 
 
 For MDX collections, this will dramatically reduce the size of the collection, as there will no longer be any body retained in the store.
+
+#### `deferRender`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`
+<Since v="7.1.0" />
+</p>
+
+Whether to defer rendering Markdown entries until they are rendered in a page. When `false` (the default), their rendering occurs eagerly during content sync. This option does not apply to MDX, Markdoc, and data entries (e.g., JSON, YAML).
+
+By default, the `glob()` loader renders each Markdown entry during sync and stores the resulting HTML in the data store. This allows the rendered content to be cached and reused across builds. However, for large collections whose rendered output is much larger than the source, storing all this rendered HTML in memory at once can cause your build to run out of memory.
+
+When `deferRender` is `true`, rendering is instead deferred until each entry is actually rendered in a page, using the same on-demand rendering path that `.mdx` files already use. This keeps memory usage bounded during `astro build` at the cost of the rendered HTML no longer being cached in the data store.
+
+```ts title="src/content.config.ts"
+const docs = defineCollection({
+  /* Defer rendering of a large Markdown collection to avoid running out of memory during the build. */
+  loader: glob({
+    pattern: '**/*.md',
+    base: './src/data/docs',
+    deferRender: true,
+  }),
+});
+```
 
 ### `file()` loader
 
@@ -609,7 +635,7 @@ export function myLoader(config): LiveLoader<Product, ProductEntryFilter, Produc
 }
 ```
 
-You can then use these hints in your pages. If you have [experimental route caching](/en/reference/experimental-flags/route-caching/) enabled, pass cache hints directly to `Astro.cache.set()`:
+You can then use these hints in your pages. If you have [configured a cache provider](/en/guides/caching/#configure-caching), pass cache hints directly to [`Astro.cache.set()`](/en/reference/api-reference/#cacheset):
 
 ```astro title="src/pages/store/[id].astro"
 ---
@@ -634,7 +660,7 @@ Astro.cache.set({ maxAge: 300 });
 <p>{entry.data.description}</p>
 ```
 
-Without route caching enabled, you can use cache hints to set response headers manually for your own caching strategy:
+Without a cache provider, you can use cache hints to set response headers manually for your own caching strategy:
 
 ```astro title="src/pages/store/[id].astro"
 ---
@@ -662,7 +688,7 @@ if (cacheHint?.lastModified) {
 ```
 
 :::note
-Cache hints do not automatically cause the response to be cached by Astro. They provide values you can pass to [route caching](/en/reference/experimental-flags/route-caching/) or use to implement your own caching strategy.
+Cache hints do not automatically cause the response to be cached by Astro. They provide values you can pass to [route caching](/en/guides/caching/) or use to implement your own caching strategy.
 :::
 
 ## Distributing your loader
@@ -687,7 +713,7 @@ This section shows the API for defining a [build-time object loader](#building-a
 
 A loader function returns an object with two required properties. In addition to providing a name for the loader, this object describes how to fetch the collection data.
 
-Optionally, you can return a third property defining a schema to validate your collection entries. Use the [Typescript `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator) instead of a return type annotation to provide type safety inside your loader object and to preserve type inference when your loader is used in a collection.
+Optionally, you can return a third property defining a schema to validate your collection entries. Use the [TypeScript `satisfies` operator](https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html#the-satisfies-operator) instead of a return type annotation to provide type safety inside your loader object and to preserve type inference when your loader is used in a collection.
 
 #### `Loader.name`
 
@@ -1305,7 +1331,7 @@ Specifies the list of headings present in this file. Each heading is described b
 **Type:** `Record<string, any>`
 </p>
 
-Describes the raw frontmatter, parsed from the file. This may include [programmatically injected data from remark plugins](/en/guides/markdown-content/#modifying-frontmatter-programmatically).
+Describes the raw frontmatter, parsed from the file. This may include [programmatically injected data from Markdown plugins](/en/guides/markdown-content/#modifying-frontmatter-programmatically).
 
 ## Live loader API
 
@@ -1460,6 +1486,8 @@ If the loader does not return a `rendered` property for an entry, the `<Content 
 
 An optional object to provide a hint for how to cache this specific entry.
 
+<ReadMore>See the content collection guide to learn how to [use cache hints at entry-level](/en/guides/content-collections/#entry-level-cache-hints).</ReadMore>
+
 ### `LiveDataCollection`
 
 <p>
@@ -1490,9 +1518,11 @@ An array of [`LiveDataEntry`](#livedataentry) objects.
 
 An optional object providing guidance on how to cache this collection. This object will be merged with the cache hints defined for each individual entry, if provided.
 
+<ReadMore>See the content collection guide to learn how to [use cache hints at collection-level](/en/guides/content-collections/#collection-level-cache-hints).</ReadMore>
+
 ### `CacheHint`
 
-An object that loaders can return through the `cacheHint` property in [`LiveDataCollection`](#livedatacollection) or [`LiveDataEntry`](#livedataentry) to provide hints to assist in caching the response. This contains the following properties: 
+An object that loaders can return through the `cacheHint` property in [`LiveDataCollection`](#livedatacollection) or [`LiveDataEntry`](#livedataentry) to provide hints to assist in [caching the response](/en/guides/caching/). This contains the following properties: 
 
 #### `CacheHint.tags`
 

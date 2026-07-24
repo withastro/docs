@@ -1,0 +1,384 @@
+---
+title: Mise à niveau vers Astro v7
+description: Comment mettre à niveau votre projet vers Astro v7.0.
+sidebar:
+  label: v7.0
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro'
+import SourcePR from '~/components/SourcePR.astro'
+
+:::tip[Vous utilisez un agent de codage ?]
+Copiez cette invite pour mettre à jour votre projet :
+
+```
+Met à jour mon projet Astro vers la v7. Suit le guide de migration à l'adresse
+https://docs.astro.build/fr/guides/upgrade-to/v7/
+```
+:::
+
+Ce guide vous aidera à migrer d'Astro v6 vers Astro v7.
+
+Vous devez d'abord mettre à niveau un ancien projet vers la v6 ? Consultez notre [précédent guide de migration](/fr/guides/upgrade-to/v6/).
+
+Vous avez besoin de consulter la documentation de la v6 ? Visitez cette [ancienne version du site de documentation (instantané de la v6 non maintenu)](https://v6.docs.astro.build/fr/).
+
+## Mettre à niveau Astro
+
+Mettez à jour la version d'Astro de votre projet vers la dernière version en utilisant votre gestionnaire de paquets :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  # Mettre à jour Astro et les intégrations officielles simultanément
+  npx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  # Mettre à jour Astro et les intégrations officielles simultanément
+  pnpm dlx @astrojs/upgrade
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  # Mettre à jour Astro et les intégrations officielles simultanément
+  yarn dlx @astrojs/upgrade
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Vous pouvez également [mettre à niveau vos intégrations Astro manuellement](/fr/guides/integrations/#mise-à-niveau-manuelle) si nécessaire, et vous devrez peut-être également mettre à niveau d'autres dépendances de votre projet.
+
+:::note[Devriez-vous continuer ?]
+Après la mise à niveau d'Astro, vous n'aurez peut-être même pas besoin d'apporter de modifications à votre projet !
+
+Mais, si vous remarquez des erreurs ou un comportement inattendu, veuillez vérifier ci-dessous ce qui a changé et qui pourrait nécessiter une mise à jour de votre code.
+:::
+
+Astro v7.0 inclut des [changements potentiellement non rétrocompatibles](#changements-non-rétrocompatibles), ainsi que la suppression de certaines fonctionnalités précédemment dépréciées.
+
+Si votre projet ne fonctionne pas comme prévu après la mise à jour vers v7.0, consultez ce guide pour obtenir un aperçu de tous les changements non rétrocompatibles et des instructions sur la façon de mettre à jour votre code.
+
+Consultez le [journal des modifications d'Astro](https://github.com/withastro/astro/blob/main/packages/astro/CHANGELOG.md) pour obtenir les notes de version complètes.
+
+## Changements non rétrocompatibles
+
+### Mise à jour des dépendances
+
+#### Vite 8
+
+Astro v7.0 est mis à niveau vers [Vite 8](https://vite.dev/blog/announcing-vite8) en tant que serveur de développement et outil de regroupement pour la production.
+
+##### Que dois-je faire ?
+
+Si vous utilisez des modules d'extension, une configuration ou des API spécifiques à Vite, consultez le [guide de migration vers Vite 8](https://vite.dev/guide/migration) pour connaître leurs changements non rétrocompatibles et mettre à jour votre projet si nécessaire.
+
+La plupart des utilisateurs d'Astro devraient pouvoir effectuer la mise à niveau sans apporter de modifications à leur code. Il s'agit principalement d'un changement non rétrocompatible pour les intégrations Astro et les modules d'extension qui dépendent des mécanismes internes de Vite.
+
+### Options expérimentales
+
+Les options expérimentales vous permettent d'activer des fonctionnalités encore en développement. Les options expérimentales suivantes ont été supprimées dans Astro 7.0 et sont désormais stables, ou le nouveau comportement par défaut.
+
+Supprimez ces options expérimentales de la configuration d'Astro si vous les utilisiez auparavant :
+
+```js del={5-16} ins={18-23} title="astro.config.mjs"
+import { defineConfig, logHandlers, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    logger: logHandlers.json({ pretty: true }),
+    queuedRendering: {
+      enabled: true,
+    },
+    rustCompiler: true,
+    advancedRouting: true,
+    cache: {
+      provider: memoryCache(),
+    },
+    routeRules: {
+      '/blog/[...path]': { maxAge: 300, swr: 60 },
+    },
+  },
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/blog/[...path]': { maxAge: 300, swr: 60 },
+  },
+})
+```
+
+#### Fonctionnalités expérimentales désormais stables :
+
+- `logger` : Le nouveau système de journalisation est désormais stable et l'option expérimentale n'est plus nécessaire pour l'utiliser. Si vous utilisiez cette option, vous pouvez maintenant définir votre journaliseur directement dans le champ `logger` de niveau supérieur de votre configuration d'Astro.
+
+- `queuedRendering` : Le rendu en file d'attente est désormais le comportement par défaut, et l'option expérimentale a été supprimée. Aucune action n'est requise pour activer cette fonctionnalité dans votre projet. Tous les projets bénéficient désormais des performances améliorées.
+
+- `rustCompiler` : Le compilateur d'Astro reposant sur Rust est désormais le compilateur par défaut et l'unique compilateur, remplaçant l'ancien compilateur reposant sur Go. Consultez la section [Compilateur Rust](#compilateur-rust) pour plus de détails sur les changements de comportement pouvant affecter votre projet.
+
+- `advancedRouting` : Le routage avancé est désormais activé par défaut. Consultez le [guide du routage avancé](/fr/guides/routing/#routage-avancé) pour plus d'informations. Notez que `src/fetch.ts` est désormais un [nom de fichier réservé](#nom-de-fichier-réservé-srcfetchts).
+
+- `cache` : La mise en cache des routes est désormais stable. Si vous utilisiez cette fonctionnalité, mettez à jour votre configuration pour déplacer `cache` et `routeRules` en dehors du bloc `experimental`.
+
+### Compilateur Rust
+
+<SourcePR number="16462" title="feat!: make Rust compiler the default and only compiler" />
+
+Astro v7.0 remplace l'ancien compilateur reposant sur Go par un nouveau compilateur reposant sur Rust. Le nouveau compilateur est plus rapide, mais il est également **plus strict concernant les syntaxes HTML invalides**. Les modèles qui étaient compilés auparavant sans erreurs pourraient désormais échouer.
+
+Le compilateur Rust impose deux changements clés :
+
+1. **Les balises non fermées produisent désormais des erreurs.** L'ancien compilateur acceptait silencieusement les balises HTML et les composants non fermés. Le compilateur Rust exige que tous les éléments non vides aient une balise de fermeture correspondante.
+
+2. **Le code HTML sémantiquement invalide n'est plus corrigé automatiquement.** L'ancien compilateur réorganisait ou restructurait silencieusement le code HTML invalide pour correspondre à la [spécification d'analyse syntaxique HTML](https://html.spec.whatwg.org/multipage/parsing.html) (par exemple, en déplaçant des éléments hors des balises `<p>` où les éléments de bloc ne sont pas autorisés). Le compilateur Rust ne tente pas de corriger votre balisage et le transmet tel quel, laissant le navigateur le gérer. Cela peut entraîner un rendu différent pour le balisage précédemment « toléré ».
+
+#### Que dois-je faire ?
+
+Exécutez la compilation après la mise à jour. Si vous rencontrez des erreurs de compilation concernant des jetons inattendus ou des balises non fermées, ajoutez les balises de fermeture manquantes :
+
+```astro del={2} ins={3}
+<!-- Avant : balises non fermées que le compilateur Go acceptait silencieusement -->
+<p>Hello world
+<p>Hello world</p>
+
+<!-- Les éléments vides tels que <br>, <img>, <input> et <hr> ne nécessitent pas de balises de fermeture -->
+```
+
+```astro del={4-5} ins={7-9}
+---
+import Layout from '../layouts/Layout.astro';
+---
+<Layout>
+  <p>Contenu ici
+
+<Layout>
+  <p>Contenu ici</p>
+</Layout>
+```
+
+Si le code HTML généré a changé après la mise à jour, vérifiez vos modèles à la recherche d'imbrications HTML invalides que l'ancien compilateur corrigeait silencieusement. Par exemple, placer une balise `<div>` à l'intérieur d'une balise `<p>` n'est pas valide en HTML. L'ancien compilateur restructurait le code pour vous, mais ce n'est pas le cas du compilateur Rust :
+
+```astro
+<!-- Imbrication invalide : <div> n'est pas autorisé à l'intérieur d'une balise <p> -->
+<!-- Le navigateur fermera la balise <p> prématurément, ce qui peut casser votre mise en page -->
+<p>
+  <div>Cela ne se trouvera pas à l'intérieur du paragraphe</div>
+</p>
+
+<!-- Correctif : utiliser un conteneur valide à la place -->
+<div>
+  <div>Ceci est correctement imbriqué</div>
+</div>
+```
+
+#### Différences de rendu CSS
+
+Le compilateur Rust traite le CSS différemment, ce qui peut entraîner de légères différences visuelles dans le résultat généré :
+
+- **Les valeurs de couleur peuvent être sérialisées différemment.** Les couleurs nommées comme `rebeccapurple` peuvent devenir des valeurs hexadécimales comme `#639` dans le CSS compilé. Cela ne change pas l'apparence visuelle de votre site.
+- **Les valeurs utilisées dans `url()` peuvent gagner ou perdre des guillemets.** Par exemple, `url(/path)` peut devenir `url('/path')` ou vice versa. Cela n'affecte pas la fonctionnalité.
+
+Ces différences sont d'ordre cosmétique et ne nécessitent aucune intervention, à moins que vous n'utilisiez des tests ou des outils reposant sur une correspondance exacte des chaînes de caractères CSS.
+
+### Nom de fichier réservé : `src/fetch.ts`
+
+Astro v7.0 introduit [le routage avancé](/fr/guides/routing/#routage-avancé), qui utilise `src/fetch.ts` (ou `src/fetch.js`) comme nom de fichier spécial, similaire à `src/middleware.ts`. Astro importera automatiquement ce fichier pour configurer le comportement du routage.
+
+Si votre projet possède déjà un fichier `src/fetch.ts` utilisé à d'autres fins, Astro tentera de le traiter comme une configuration de routage avancé, ce qui peut provoquer des erreurs inattendues.
+
+#### Que dois-je faire ?
+
+Si vous avez un fichier `src/fetch.ts` existant qui n'est pas lié au routage avancé, vous avez deux options :
+
+* **Configurer `fetchFile`** : vous pouvez spécifier un nom de fichier différent ou `null` pour désactiver le routage avancé. Cela est utile si vous souhaitez continuer à utiliser `src/fetch.ts` à d'autres fins, ou si vous n'avez pas besoin des fonctionnalités de routage avancé :
+
+    ```js title="astro.config.mjs" ins={5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // indiquer un fichier différent pour la configuration du routage avancé :
+      fetchFile: './src/router.ts',
+      // ou désactiver complètement le routage avancé :
+      // fetchFile: null,
+    });
+    ```
+
+* **Renommer votre fichier** (par exemple `src/fetcher.ts`, `src/main.ts`), et mettre à jour toutes les importations qui y font référence.
+
+### Nouveau processeur Markdown par défaut : Sätteri
+
+<SourcePR number="16966" title="feat: make Sätteri the default Markdown pipeline" />
+
+Astro traite désormais vos fichiers `.md` et `.mdx` avec [Sätteri](https://satteri.bruits.org/), son pipeline Markdown natif, au lieu du pipeline remark/rehype. Par conséquent, `@astrojs/markdown-remark` n'est plus installé par défaut.
+
+#### Que dois-je faire ?
+
+Si vous n'utilisez pas de modules d'extension remark ou rehype, vous n'avez rien à faire. Vos fichiers Markdown et MDX seront désormais rendus par Sätteri, qui applique GitHub-Flavored Markdown et SmartyPants comme auparavant.
+
+Si vous dépendez de modules d'extension remark et rehype, vous pouvez les convertir en [modules d'extension MDAST ou HAST pour Sätteri](https://satteri.bruits.org/docs/plugins/). Si vous dépendez de modules d'extension recma, ou si vous n'êtes pas encore prêt ou capable de convertir vos modules d'extension remark et rehype, vous pouvez [rester sur le pipeline `unified()`](/fr/guides/markdown-content/#basculer-vers-le-processeur-unified).
+
+Pour continuer à utiliser les modules d'extension unified :
+
+<Steps>
+
+1. Installez `@astrojs/markdown-remark` :
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add @astrojs/markdown-remark
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add @astrojs/markdown-remark
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Définissez [`unified()` en tant que processeur Markdown](/fr/guides/markdown-content/#basculer-vers-le-processeur-unified) :
+
+    ```js title="astro.config.mjs" ins={2,6}
+    import { defineConfig } from 'astro/config';
+    import { unified } from '@astrojs/markdown-remark';
+
+    export default defineConfig({
+      markdown: {
+        processor: unified(),
+      },
+    });
+    ```
+</Steps>
+
+Les options dépréciées `markdown.remarkPlugins`, `markdown.rehypePlugins` et `markdown.remarkRehype` fonctionnent toujours, mais nécessitent désormais également l'installation de `@astrojs/markdown-remark`.
+
+### Nouveau comportement par défaut pour la gestion des espaces : `compressHTML: 'jsx'`
+
+<SourcePR number="16965" title="feat: make jsx whitespace handling the default" />
+
+Dans Astro v6.x, la gestion des espaces utilisait par défaut une compression tenant compte des spécificités du HTML. Cela signifie qu'Astro préservait un seul espace entre les éléments en ligne, [en suivant les règles HTML](https://developer.mozilla.org/en-US/docs/Web/CSS/Guides/Text/Whitespace#how_does_html_process_whitespace).
+
+Dans Astro v7.0, la valeur par défaut de [`compressHTML`](/fr/reference/configuration-reference/#compresshtml) est passée de `true` à `'jsx'`. Désormais, Astro supprime par défaut les espaces superflus du code HTML en appliquant les règles de JSX, à l'instar de frameworks tels que React.
+
+L'exemple suivant serait affiché comme `helloworld` dans Astro v7.0, au lieu de `hello world` dans Astro v6.x :
+
+```astro title="src/components/Example.astro"
+<span>hello</span>
+<em>world</em>
+```
+
+#### Que dois-je faire ?
+
+Inspectez visuellement votre site web pour vous assurer que les espaces entre les éléments s'affichent comme prévu. Il est possible qu'aucune autre action ne soit nécessaire.
+
+Si vous remarquez que certains espaces sont manquants, identifiez les composants et les pages où vous utilisez des [éléments en ligne](https://developer.mozilla.org/fr/docs/Glossary/Inline-level_content). Ensuite, mettez-les à jour pour ajouter un espace explicite entre ces éléments en utilisant `{" "}` :
+
+```astro title="src/components/Example.astro" del={1-2} ins={3}
+<span>hello</span>
+<em>world</em>
+<span>hello</span> <em>world</em>
+```
+
+Si vous préférez conserver le comportement précédent, définissez `compressHTML` sur `true`. Vous pouvez également utiliser `compressHTML: false` pour préserver tous les espaces.
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  compressHTML: true,
+});
+```
+
+## Dépréciées
+
+Les fonctionnalités dépréciées suivantes ne sont plus prises en charge ni documentées. Veuillez mettre à jour votre projet en conséquence.
+
+Certaines fonctionnalités dépréciées peuvent continuer à fonctionner temporairement jusqu'à leur suppression complète. D'autres peuvent ne produire aucun effet ou générer une erreur vous invitant à mettre à jour votre code.
+
+### Dépréciée : `getContainerRenderer()` depuis la racine des paquets des intégrations
+
+<SourcePR number="17093" title="fix(integrations): Export container renderers from a dedicated export path to fix bundling issues" />
+
+Dans Astro 6.x, l'utilitaire [`getContainerRenderer()`](/fr/reference/container-reference/#ajout-dun-moteur-de-rendu-via-lapi-conteneur) utilisée avec l'API des conteneurs était importée depuis la racine du paquet d'une intégration officielle (par exemple `@astrojs/react`). Cela pouvait amener les outils de regroupement à inclure des exportations non pertinentes, utilisées uniquement lors de la compilation, depuis la racine du paquet, alors que seule l'API des conteneurs était nécessaire.
+
+Astro 7.0 déprécie l'importation de `getContainerRenderer()` depuis la racine du paquet d'une intégration au profit d'un point d'entrée dédié `container-renderer`.
+
+#### Que dois-je faire ?
+
+Mettez à jour vos importations de l'API des conteneurs pour utiliser le nouveau point d'entrée `container-renderer` pour chaque intégration officielle :
+
+```diff
+- import { getContainerRenderer } from '@astrojs/react';
++ import { getContainerRenderer } from '@astrojs/react/container-renderer';
+```
+
+Ce point d'entrée est disponible pour `@astrojs/react`, `@astrojs/preact`, `@astrojs/solid-js`, `@astrojs/svelte`, `@astrojs/vue` et `@astrojs/mdx`.
+
+## Supprimées
+
+Les fonctionnalités suivantes ont désormais été entièrement supprimées de la base de code et ne peuvent plus être utilisées. Certaines d'entre elles ont peut-être continué à fonctionner dans votre projet même après leur dépréciation. D'autres peuvent être restées silencieuses et sans effet.
+
+Les projets contenant désormais ces fonctionnalités supprimées ne pourront plus être compilés, et il n'y aura plus de documentation vous invitant à les supprimer.
+
+### Supprimé : `@astrojs/db`
+
+Le paquet `@astrojs/db` a été supprimé dans Astro v7.0 et n'est plus maintenu.
+
+#### Que dois-je faire ?
+
+Supprimez `@astrojs/db` des dépendances de votre projet et remplacez-le par l'une des alternatives suivantes :
+
+- **SQLite intégré à Node.js** : Node.js inclut désormais un module intégré [`node:sqlite`](https://nodejs.org/api/sqlite.html) (disponible depuis Node.js v22.5.0). C'est une bonne option si vous utilisez l'adaptateur Node.js et que vous aviez recours à `@astrojs/db` pour le stockage local avec SQLite.
+
+- **[Drizzle ORM](https://orm.drizzle.team/)** : Si vous utilisiez `@astrojs/db` pour son API de schéma et de requête reposant sur Drizzle, vous pouvez utiliser Drizzle directement avec n'importe quelle base de données prise en charge.
+
+- **Autres bibliothèques de bases de données** : Utilisez toute bibliothèque de base de données adaptée à votre plateforme de déploiement (par exemple [Turso](https://turso.tech/), [PlanetScale](https://planetscale.com/), [Neon](https://neon.tech/)).
+
+### Supprimée : exposition des mécanismes internes de `astro:transitions`
+
+<SourcePR number="16725" title="feat: remove deprecated astro:transitions internals" />
+
+Dans Astro 6.x, certaines fonctions utilitaires disponibles dans `astro:transitions` et `astro:transitions/client` ont été dépréciées.
+
+Dans Astro 7.0, les API suivantes ne peuvent plus être utilisées dans votre projet :
+- `TRANSITION_BEFORE_PREPARATION`
+- `TRANSITION_AFTER_PREPARATION`
+- `TRANSITION_BEFORE_SWAP`
+- `TRANSITION_AFTER_SWAP`
+- `TRANSITION_PAGE_LOAD`
+- `isTransitionBeforePreparationEvent()`
+- `isTransitionBeforeSwapEvent()`
+- `createAnimationScope()`
+
+#### Que dois-je faire ?
+
+Supprimez toute occurrence de `createAnimationScope()` :
+
+```diff
+-import { createAnimationScope } from 'astro:transitions';
+```
+
+Remplacez toute occurrence des autres API en utilisant directement les [noms des événements du cycle de vie](/fr/reference/modules/astro-transitions/#événements-du-cycle-de-vie) :
+
+```diff
+-import {
+-	TRANSITION_AFTER_SWAP,
+-	isTransitionBeforePreparationEvent,
+-} from 'astro:transitions/client';
+
+-console.log(isTransitionBeforePreparationEvent(event));
++console.log(event.type === 'astro:before-preparation');
+
+-console.log(TRANSITION_AFTER_SWAP);
++console.log('astro:after-swap');
+```
+
+<ReadMore>En savoir plus sur toutes les utilitaires disponibles dans la [référence de l'API du routeur des transitions de vue](/fr/reference/modules/astro-transitions/).</ReadMore>
