@@ -465,110 +465,69 @@ For more control over typography, you can instead specify a configuration object
   </TabItem>
 </Tabs>
 
-{/* TODO: rework the next sections and update "Modifying frontmatter programmatically" to include Sätteri */}
+### Extend capabilities with plugins
 
-### Using Sätteri plugins and features
+Markdown processor plugins allow you to extend your Markdown with new capabilities, like [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling). These plugins can modify the syntax tree at different stages of the processing pipeline.
 
-The default `satteri()` processor accepts its own plugins through `mdastPlugins` and `hastPlugins`, and toggles optional parser features through `features`. See the [Sätteri documentation](https://satteri.bruits.org/docs/) for the available plugins and features.
+Two types of plugins are supported:
 
-Import `satteri` from `@astrojs/markdown-satteri` and pass your options to it through `markdown.processor`. This example adds an mdast plugin and enables the `directive` parser feature:
+- **mdast plugins** operate on the [Markdown syntax tree (mdast)](https://github.com/syntax-tree/mdast) before it is transformed into HTML. In unified, these are called [remark plugins](https://github.com/remarkjs/remark). In Sätteri, these are called [mdast plugins](https://satteri.bruits.org/docs/plugins/#mdast-plugins).
+- **hast plugins** operate on the [HTML syntax tree (hast)](https://github.com/syntax-tree/hast) after the Markdown has been converted to HTML. In unified, these are called [rehype plugins](https://github.com/rehypejs/rehype). In Sätteri, these are called [hast plugins](https://satteri.bruits.org/docs/plugins/#hast-plugins).
 
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import { myMdastPlugin } from './my-satteri-plugin.mjs';
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+  When mdast or hast plugins accept options to configure their behavior, you can pass them as an options object to the plugin function.
 
-export default defineConfig({
-  markdown: {
-    processor: satteri({
-      mdastPlugins: [myMdastPlugin()],
-      features: { directive: true },
-    }),
-  },
-});
-```
+  The following example applies [`satteri-imgattr`](https://www.npmjs.com/package/satteri-imgattr) and [`satteri-callouts`](https://www.npmjs.com/package/satteri-callouts) to Markdown files:
 
-### Switching to the unified processor
+  ```js title="astro.config.mjs" {3-4,9-14}
+  import { defineConfig } from "astro/config";
+  import { satteri } from "@astrojs/markdown-satteri";
+  import imgAttr from "satteri-imgattr";
+  import satteriCallouts from "satteri-callouts";
 
-To use [remark and rehype](https://unifiedjs.com/) instead of Sätteri, install `@astrojs/markdown-remark`, then import `unified` and pass it to `markdown.processor`:
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm install @astrojs/markdown-remark
+  export default defineConfig({
+    markdown: {
+      processor: satteri({
+        mdastPlugins: [
+          imgAttr({
+            defaults: { loading: "lazy", decoding: "async" },
+          }),
+        ],
+        hastPlugins: [satteriCallouts()],
+      }),
+    },
+  });
   ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm add @astrojs/markdown-remark
+  </TabItem>
+  <TabItem label="Unified">
+  When remark or rehype plugins accept options to configure their behavior, you can pass them in a nested array. The first element is the plugin, and the second element is an options object.
+
+  The following example applies [`remark-imgattr`](https://www.npmjs.com/package/remark-imgattr) and [`rehype-github-alerts`](https://www.npmjs.com/package/rehype-github-alerts) to Markdown files:
+
+  ```js title="astro.config.mjs" {3-4,9-12}
+  import { defineConfig } from "astro/config";
+  import { unified } from "@astrojs/markdown-remark";
+  import remarkImgAttr from "remark-imgattr";
+  import rehypeGithubAlerts from "rehype-github-alerts";
+
+  export default defineConfig({
+    markdown: {
+      processor: unified({
+        remarkPlugins: [
+          [remarkImgAttr, { defaults: { width: 700, format: "avif" } }],
+        ],
+        rehypePlugins: [rehypeGithubAlerts],
+      }),
+    },
+  });
   ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn add @astrojs/markdown-remark
-  ```
-  </Fragment>
-</PackageManagerTabs>
 
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+  We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins! See each plugin's own README for specific installation instructions.
+  </TabItem>
+</Tabs>
 
-export default defineConfig({
-  markdown: {
-    processor: unified(),
-  },
-});
-```
-
-Switching processors replaces Sätteri for both `.md` and `.mdx` files. Any Sätteri plugins in your config will not apply. To use remark and rehype only for `.mdx` files, set the [`processor` option on the MDX integration](/en/guides/integrations-guide/mdx/#processor) instead.
-
-#### Using remark and rehype plugins
-
-The `unified()` processor accepts third-party [remark](https://github.com/remarkjs/remark) and [rehype](https://github.com/rehypejs/rehype) plugins. These plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling).
-
-We encourage you to browse [awesome-remark](https://github.com/remarkjs/awesome-remark) and [awesome-rehype](https://github.com/rehypejs/awesome-rehype) for popular plugins! See each plugin's own README for specific installation instructions.
-
-After [switching to the `unified()` processor](#switching-to-the-unified-processor), pass your plugins to it through `markdown.processor`. This example applies [`remark-toc`](https://github.com/remarkjs/remark-toc) and [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) to Markdown files:
-
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
-import remarkToc from 'remark-toc';
-import { rehypeAccessibleEmojis } from 'rehype-accessible-emojis';
-
-export default defineConfig({
-  markdown: {
-    processor: unified({
-      remarkPlugins: [[remarkToc, { heading: 'toc', maxDepth: 3 }]],
-      rehypePlugins: [rehypeAccessibleEmojis],
-    }),
-  },
-});
-```
-
-#### Customizing a remark or rehype plugin
-
-In order to customize a plugin, provide an options object after it in a nested array.
-
-The example below adds the [heading option to the `remarkToc` plugin](https://github.com/remarkjs/remark-toc#options) to change where the table of contents is placed, and the [`behavior` option to the `rehype-autolink-headings` plugin](https://github.com/rehypejs/rehype-autolink-headings#options) in order to add the anchor tag after the headline text.
-
-```js title="astro.config.mjs"
-import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
-import remarkToc from 'remark-toc';
-import rehypeSlug from 'rehype-slug';
-import rehypeAutolinkHeadings from 'rehype-autolink-headings';
-
-export default defineConfig({
-  markdown: {
-    processor: unified({
-      remarkPlugins: [[remarkToc, { heading: 'contents' }]],
-      rehypePlugins: [rehypeSlug, [rehypeAutolinkHeadings, { behavior: 'append' }]],
-    }),
-  },
-});
-```
+{/* TODO: rework the next sections/update "Modifying frontmatter programmatically" to include Sätteri */}
 
 ### Modifying frontmatter programmatically
 
