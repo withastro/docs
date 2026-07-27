@@ -531,57 +531,118 @@ Two types of plugins are supported:
 
 ### Modifying frontmatter programmatically
 
-When using the [remark/rehype processor](#using-remark-and-rehype-plugins), you can add frontmatter properties to all of your Markdown and MDX files with a remark or rehype plugin.
+You can add frontmatter properties to all of your Markdown and MDX files by using [processor plugins](#extend-capabilities-with-plugins).
 
-<Steps>
-1. Append a `customProperty` to the `data.astro.frontmatter` property from your plugin's `file` argument:
+<Tabs syncKey="markdown-processor">
+  <TabItem label="Sätteri">
+    <Steps>
+    1. Append a `customProperty` to the `data.astro.frontmatter` property from your plugin's `ctx` argument:
 
-    ```js title="example-remark-plugin.mjs"
-    export function exampleRemarkPlugin() {
-      // All remark and rehype plugins return a separate function
-      return function (tree, file) {
-        file.data.astro.frontmatter.customProperty = 'Generated property';
-      }
-    }
-    ```
+        ```ts title="example-mdast-plugin.ts"
+        import { defineMdastPlugin } from "satteri";
 
-    :::tip
-    <Since v="2.0.0" />
+        export const exampleMdastPlugin = defineMdastPlugin({
+          name: "example-mdast-plugin",
+          text(node, ctx) {
+            if (ctx.data.astro !== undefined) {
+              ctx.data.astro.frontmatter.customProperty = "Generated property";
+            }
+          },
+        });
+        ```
 
-    `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
-    :::
+        :::tip
+        <Since v="2.0.0" />
 
-2. Apply this plugin to your `markdown` or `mdx` integration config:
+        `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
+        :::
 
-    ```js title="astro.config.mjs" {2,3,7}
-    import { defineConfig } from 'astro/config';
-    import { unified } from '@astrojs/markdown-remark';
-    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+    2. Apply this plugin to your `markdown` or `mdx` integration config:
 
-    export default defineConfig({
-      markdown: {
-        processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
-      },
-    });
-    ```
+        ```js title="astro.config.mjs" {2,3,8}
+        import { defineConfig } from "astro/config";
+        import { satteri } from "@astrojs/markdown-satteri";
+        import { exampleMdastPlugin } from "./example-mdast-plugin";
 
-    or
+        export default defineConfig({
+          markdown: {
+            processor: satteri({
+              mdastPlugins: [exampleMdastPlugin()],
+            }),
+          },
+        });
+        ```
 
-    ```js title="astro.config.mjs" {3,4,9}
-    import { defineConfig } from 'astro/config';
-    import mdx from '@astrojs/mdx';
-    import { unified } from '@astrojs/markdown-remark';
-    import { exampleRemarkPlugin } from './example-remark-plugin.mjs';
+        or
 
-    export default defineConfig({
-      integrations: [
-        mdx({
-          processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
-        }),
-      ],
-    });
-    ```
-</Steps>
+        ```js title="astro.config.mjs" {3,4,9}
+        import { defineConfig } from "astro/config";
+        import mdx from "@astrojs/mdx";
+        import { satteri } from "@astrojs/markdown-satteri";
+        import { exampleMdastPlugin } from "./example-mdast-plugin";
+
+        export default defineConfig({
+          integrations: [
+            mdx({
+              processor: satteri({ mdastPlugins: [exampleMdastPlugin()] }),
+            }),
+          ],
+        });
+        ```
+    </Steps>
+  </TabItem>
+  <TabItem label="Unified">
+    <Steps>
+    1. Append a `customProperty` to the `data.astro.frontmatter` property from your plugin's `file` argument:
+
+        ```js title="example-remark-plugin.mjs"
+        export function exampleRemarkPlugin() {
+          // All remark and rehype plugins return a separate function
+          return function (tree, file) {
+            file.data.astro.frontmatter.customProperty = "Generated property";
+          };
+        }
+        ```
+
+        :::tip
+        <Since v="2.0.0" />
+
+        `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
+        :::
+
+    2. Apply this plugin to your `markdown` or `mdx` integration config:
+
+        ```js title="astro.config.mjs" {2,3,7}
+        import { defineConfig } from "astro/config";
+        import { unified } from "@astrojs/markdown-remark";
+        import { exampleRemarkPlugin } from "./example-remark-plugin.mjs";
+
+        export default defineConfig({
+          markdown: {
+            processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
+          },
+        });
+        ```
+
+        or
+
+        ```js title="astro.config.mjs" {3,4,9}
+        import { defineConfig } from "astro/config";
+        import mdx from "@astrojs/mdx";
+        import { unified } from "@astrojs/markdown-remark";
+        import { exampleRemarkPlugin } from "./example-remark-plugin.mjs";
+
+        export default defineConfig({
+          integrations: [
+            mdx({
+              processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
+            }),
+          ],
+        });
+        ```
+    </Steps>
+  </TabItem>
+</Tabs>
 
 Now, every Markdown or MDX file will have `customProperty` in its frontmatter, making it available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout-property).
 
