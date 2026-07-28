@@ -35,10 +35,15 @@ import {
 
 요청별 상태 객체입니다. `fetch` 메서드의 시작 부분에서 생성하세요:
 
-```ts
-import { FetchState } from 'astro/fetch';
+```ts {5} title="src/fetch.ts"
+import { FetchState } from "astro/fetch";
 
-const state = new FetchState(request);
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // 고급 라우팅 로직...
+  },
+};
 ```
 
 `FetchState`는 일치하는 라우트, 쿠키, 세션 프로바이더 및 기타 요청별 데이터를 추적합니다. 모든 핸들러 함수는 첫 번째 인자로 이 객체를 전달해야 합니다.
@@ -130,9 +135,17 @@ const state = new FetchState(request);
 
 렌더링 완료 후 핸들러에 의해 생성된 `Response`입니다. 이 값은 [`pages()`](#pages) 및 [`middleware()`](#middleware)에 의해 자동으로 설정되며, 파이프라인 후반부에서 응답을 검사하거나 사용할 수 있게 해줍니다:
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-// state.response는 이제 response와 동일한 객체입니다.
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    // 이제 state.response는 response와 동일한 객체입니다.
+    return response;
+  },
+};
 ```
 
 #### 메서드
@@ -146,8 +159,16 @@ const response = await middleware(state, (s) => pages(s));
 
 다른 라우트로 [리라이트](/ko/guides/routing/#url-재작성-rewrites)를 트리거합니다. `payload`는 경로명 문자열 (`'/other-page'`), URL, 또는 `Request`일 수 있습니다.
 
-```ts
-const response = await state.rewrite('/other-page');
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await state.rewrite("/other-page");
+    return response;
+  },
+};
 ```
 
 ### `astro()`
@@ -182,10 +203,17 @@ export default {
 
 [Astro 액션](/ko/guides/actions/) (RPC 및 폼 제출)을 처리합니다. RPC 액션의 경우 `Response`를 반환하고, 폼 액션이나 액션이 아닌 요청의 경우 `undefined`를 반환합니다. 반환 값을 확인하여 렌더링을 계속할지 결정하세요.
 
-```ts
-const actionResponse = await actions(state);
-if (actionResponse) return actionResponse;
-// 그렇지 않으면 페이지 렌더링을 계속 진행합니다.
+```ts {6,7} title="src/fetch.ts"
+import { actions, FetchState } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+    // 그렇지 않으면 페이지 렌더링을 계속합니다...
+  },
+};
 ```
 
 ### `cache()`
@@ -206,9 +234,16 @@ if (actionResponse) return actionResponse;
 
 [i18n 설정](/ko/guides/internationalization/)에 따라 응답을 후처리합니다. 로케일 리다이렉트, 잘못된 로케일에 대한 404 및 대체 라우팅을 처리합니다. 렌더링 후 이를 호출하세요:
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-return i18n(state, response);
+```ts {7} title="src/fetch.ts"
+import { FetchState, i18n, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
 ```
 
 ### `middleware()`
@@ -220,8 +255,16 @@ return i18n(state, response);
 
 Astro의 미들웨어 체인(`src/middleware.ts`)을 실행합니다. `next` 콜백은 체인의 가장 마지막에 호출되어 응답을 생성하며, 일반적으로 `pages()`를 호출하는 방식으로 동작합니다.
 
-```ts
-const response = await middleware(state, (s) => pages(s));
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return response;
+  },
+};
 ```
 
 ### `pages()`
@@ -251,9 +294,16 @@ const response = await middleware(state, (s) => pages(s));
 
 [세션](/ko/guides/sessions/) 프로바이더를 등록합니다. 세션은 코드가 `ctx.session`에 접근할 때 지연 생성되며, 요청이 끝날 때 자동으로 저장됩니다. 파이프라인 앞부분(미들웨어가 실행되기 전)에서 이를 호출하세요.
 
-```ts
-await sessions(state);
-// ...렌더링 파이프라인...
+```ts {6} title="src/fetch.ts"
+import { FetchState, sessions } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    await sessions(state);
+    // ...렌더링 파이프라인...
+  },
+};
 ```
 
 ### `trailingSlash()`
