@@ -661,7 +661,7 @@ export default defineConfig({
 
 <p>
 
-**타입:** `Array<CspHash>`<br />
+**타입:** `Array<CspHashEntry>`<br />
 **기본값:** `[]`<br />
 <Since v="6.0.0" />
 </p>
@@ -669,6 +669,13 @@ export default defineConfig({
 렌더링할 추가 해시 목록입니다.
 
 `sha384-`, `sha512-`, `sha256-`으로 시작하는 해시를 제공해야 합니다. 다른 값은 유효성 검사 오류를 발생시킵니다. 이 해시들은 모든 페이지에 추가됩니다.
+
+Astro v7.1부터 각 항목은 문자열 또는 객체가 될 수 있습니다. 객체를 사용하면 `kind` 필드를 통해 해시를 더 구체적인 지시어에 적용할 수 있습니다. `kind` 필드에서 사용할 수 있는 값은 다음과 같습니다.
+- `"element"`: 해시를 `style-src-elem` 지시어에 추가합니다.
+- `"attribute"`: 해시를 `style-src-attr` 지시어에 추가합니다.
+- `"default"`: 해시를 `style-src` 지시어에 추가합니다.
+
+`"default"` 해시는 `style-src`에 추가되며, `kind: "element"`를 사용하면 대신 `style-src-elem`에 추가됩니다. `style-src-attr`에는 추가되지 않습니다. Astro가 자동으로 생성한 해시도 동일한 규칙을 따릅니다.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -699,16 +706,53 @@ export default defineConfig({
 >
 ```
 
+해시를 `"element"`에 적용하면 `style-src` 대신 `style-src-elem` 지시어에 추가됩니다. Astro가 자동으로 생성한 해시도 함께 이동합니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      styleDirective: {
+        hashes: [{ hash: "sha256-styleHash", kind: "element" }]
+      }
+    }
+  }
+});
+```
+
+빌드가 완료되면 `<meta>` 요소에는 해당 해시가 `style-src` 대신 `style-src-elem` 지시어에 포함됩니다.
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    style-src 'self';
+    style-src-elem 'self' 'sha256-styleHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
 ###### security.csp.styleDirective.resources
 
 <p>
 
-**타입:** `Array<string>`<br />
+**타입:** `Array<CspResourceEntry>`<br />
 **기본값:** `[]`<br />
 <Since v="6.0.0" />
 </p>
 
 Astro의 기본 소스를 덮어쓰기 위한 `style-src` 지시어의 유효한 소스 목록입니다. 이 목록에는 기본적으로 `'self'`가 포함되지 않으므로, 유지하려면 이 목록에 포함해야 합니다. 이 리소스는 모든 페이지에 추가됩니다.
+
+Astro v7.1부터 각 항목은 문자열 또는 객체가 될 수 있습니다. 객체를 사용하면 `kind` 필드를 통해 소스를 더 구체적인 지시어에 적용할 수 있습니다. `kind` 필드에서 사용할 수 있는 값은 다음과 같습니다.
+- `"element"`: 소스를 `style-src-elem` 지시어에 추가합니다.
+- `"attribute"`: 소스를 `style-src-attr` 지시어에 추가합니다.
+- `"default"`: 소스를 `style-src` 지시어에 추가합니다.
+
+`"attribute"` 소스는 `'none'`, `'unsafe-hashes'`, `'unsafe-inline'`, `'report-sample'` 중 하나여야 하며, `'unsafe-hashes'`는 `"element"`와 함께 사용할 수 없습니다. 일반적인 사용 사례로는 `{ resource: "'unsafe-inline'", kind: "attribute" }`를 사용하여 `define:vars`나 Shiki에서 생성되는 인라인 `style` 속성을 허용하는 방법이 있습니다.
+
+해시와 달리 `"default"` 소스는 다른 지시어로 이동하지 않고 `style-src`에만 추가됩니다. `"default"` 소스와 구체적인 소스(예: `"element"` 또는 `"attribute"`)를 함께 사용하면 Astro는 경고를 출력합니다.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -740,6 +784,37 @@ export default defineConfig({
 </head>
 ```
 
+`"default"` 소스는 더 구체적인 지시어에 복사되지 않습니다. 다음 예제에서는 `"default"` 소스와 `"element"` 소스가 서로 다른 지시어에 추가됩니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      styleDirective: {
+        resources: [
+          "https://styles.cdn.example.com",
+          { resource: "https://elements.cdn.example.com", kind: "element" }
+        ]
+      }
+    }
+  }
+});
+```
+
+빌드가 완료되면 `<meta>` 요소는 `https://styles.cdn.example.com`을 `style-src`에만 유지합니다. 즉, 이 값은 `style-src-elem`에 추가되지 않으며 `<style>` 및 `<link>` 요소에는 적용되지 않습니다. (반면 Astro가 생성한 해시는 `style-src-elem`으로 이동합니다.)
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    style-src https://styles.cdn.example.com;
+    style-src-elem https://elements.cdn.example.com 'sha256-generatedByAstro';
+  "
+>
+```
+
 리소스가 여러 번 삽입되거나 여러 소스(예: `csp` 구성에 정의된 것과 [CSP 런타임 API](/ko/reference/api-reference/#csp)를 사용하여 추가된 것)에서 제공되는 경우, Astro는 모든 리소스를 병합하고 중복을 제거하여 `<meta>` 요소를 생성합니다.
 
 ##### security.csp.scriptDirective
@@ -757,7 +832,7 @@ export default defineConfig({
 
 <p>
 
-**타입:** `Array<CspHash>`<br />
+**타입:** `Array<CspHashEntry>`<br />
 **기본값:** `[]`<br />
 <Since v="6.0.0" />
 </p>
@@ -765,6 +840,13 @@ export default defineConfig({
 렌더링할 추가 해시 목록입니다.
 
 `sha384-`, `sha512-`, `sha256-`으로 시작하는 해시를 제공해야 합니다. 다른 값은 유효성 검사 오류를 발생시킵니다. 이 해시는 모든 페이지에 추가됩니다.
+
+Astro v7.1부터 각 항목은 문자열 또는 객체가 될 수 있습니다. 객체를 사용하면 `kind` 필드를 통해 해시를 더 구체적인 지시어에 적용할 수 있습니다. `kind` 필드에서 사용할 수 있는 값은 다음과 같습니다.
+- `"element"`: 해시를 `script-src-elem` 지시어에 추가합니다.
+- `"attribute"`: 해시를 `script-src-attr` 지시어에 추가합니다.
+- `"default"`: 해시를 `script-src` 지시어에 추가합니다.
+
+`"default"` 해시는 `script-src`에 추가되며, `kind: "element"`를 사용하면 대신 `script-src-elem`에 추가됩니다. `script-src-attr`에는 추가되지 않습니다. Astro가 자동으로 생성한 해시도 동일한 규칙을 따릅니다.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -795,16 +877,53 @@ export default defineConfig({
 >
 ```
 
+해시를 `"element"`에 적용하면 `script-src-elem` 지시어에 추가됩니다. Astro가 자동으로 생성한 해시도 함께 이동합니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        hashes: [{ hash: "sha256-scriptHash", kind: "element" }]
+      }
+    }
+  }
+});
+```
+
+빌드가 완료되면 `<meta>` 요소에는 해당 해시가 `script-src` 대신 `script-src-elem` 지시어에 포함됩니다.
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src 'self';
+    script-src-elem 'self' 'sha256-scriptHash' 'sha256-generatedByAstro';
+  "
+>
+```
+
 ###### security.csp.scriptDirective.resources
 
 <p>
 
-**타입:** `Array<string>`<br />
+**타입:** `Array<CspResourceEntry>`<br />
 **기본값:** `[]`<br />
 <Since v="6.0.0" />
 </p>
 
 `script-src` 지시어에 대한 유효한 소스 목록으로, Astro의 기본 소스를 재정의합니다. 기본적으로 `'self'`는 포함되지 않으므로, 이를 유지하려면 이 목록에 포함해야 합니다. 이러한 리소스는 모든 페이지에 추가됩니다.
+
+Astro v7.1부터 각 항목은 문자열 또는 객체가 될 수 있습니다. 객체를 사용하면 `kind` 필드를 통해 소스를 더 구체적인 지시어에 적용할 수 있습니다. `kind` 필드에서 사용할 수 있는 값은 다음과 같습니다.
+- `"element"`: 소스를 `script-src-elem` 지시어에 추가합니다.
+- `"attribute"`: 소스를 `script-src-attr` 지시어에 추가합니다.
+- `"default"`: 소스를 `script-src` 지시어에 추가합니다.
+
+`"attribute"` 소스는 `'none'`, `'unsafe-hashes'`, `'unsafe-inline'`, `'report-sample'` 중 하나여야 하며, `'unsafe-hashes'`는 `"element"`와 함께 사용할 수 없습니다.
+
+해시와 달리 `"default"` 소스는 이동하지 않으며 `script-src`에만 유지됩니다. 그러나 브라우저가 대체하지 않으므로 `"element"` 또는 `"attribute"` 소스도 함께 적용한 경우에는 이 규칙이 적용되지 않습니다. 이러한 상황이 발생하면 Astro는 경고를 출력합니다. 필요한 경우 더 구체적인 지시어에도 해당 소스를 추가하세요.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -835,6 +954,37 @@ export default defineConfig({
 </head>
 ```
 
+`"default"` 소스는 더 구체적인 지시어에 복사되지 않습니다. 다음 예제에서는 `"default"` 소스와 `"element"` 소스가 서로 다른 지시어에 추가됩니다.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  security: {
+    csp: {
+      scriptDirective: {
+        resources: [
+          "https://cdn.example.com",
+          { resource: "https://elements.cdn.example.com", kind: "element" }
+        ]
+      }
+    }
+  }
+});
+```
+
+빌드가 완료되면 `<meta>` 요소는 `https://cdn.example.com`을 `script-src`에만 유지합니다. 즉, 이 값은 `script-src-elem`에 추가되지 않으며 `<script>` 요소에는 적용되지 않습니다. (반면 Astro가 자동으로 생성한 해시는 `script-src-elem`으로 이동합니다.)
+
+```html
+<meta
+  http-equiv="content-security-policy"
+  content="
+    script-src https://cdn.example.com;
+    script-src-elem https://elements.cdn.example.com 'sha256-generatedByAstro';
+  "
+>
+```
+
 리소스가 여러 번 삽입되거나 여러 소스(예: `csp` 구성에 정의된 것과 [CSP 런타임 API](/ko/reference/api-reference/#csp)를 사용하여 추가된 것)에서 제공되는 경우, Astro는 모든 리소스를 병합하고 중복을 제거하여 `<meta>` 요소를 생성합니다.
 
 ###### security.csp.scriptDirective.strictDynamic
@@ -861,6 +1011,8 @@ export default defineConfig({
   }
 });
 ```
+
+이는 `script-src`에 적용됩니다. `kind: "element"`를 사용하여 `script` 리소스나 해시를 `script-src-elem`에도 적용한 경우, 동적으로 삽입된 `<script>` 요소가 계속 동작할 수 있도록 `strict-dynamic`이 `script-src-elem`에 상속됩니다.
 
 ## 빌드 옵션
 
@@ -1272,7 +1424,7 @@ export default defineConfig({
 
 <p>
 
-**타입:** `string`<br />
+**타입:** `string | URL`<br />
 <Since v="7.0.0" />
 </p>
 
