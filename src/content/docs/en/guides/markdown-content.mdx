@@ -237,7 +237,7 @@ Unified is the processor used by older versions of Astro. Use it when:
 
 ### Setting up a Markdown processor
 
-Astro provides [Markdown configuration options](/en/reference/configuration-reference/#markdown-options) that allow you to control [syntax highlighting](/en/guides/syntax-highlighting/) and the [Markdown processor](#choosing-a-markdown-processor). Additionally, each Markdown processor offers [configurable features](#built-in-features) and allows you to use plugins to customize the Markdown rendering.
+Astro provides [Markdown configuration options](/en/reference/configuration-reference/#markdown-options) that allow you to control [syntax highlighting](/en/guides/syntax-highlighting/) and the Markdown processor. Additionally, each Markdown processor offers [configurable features](#built-in-features) and allows you to [add plugins](#markdown-processor-plugins) to customize the Markdown rendering.
 
 <MarkdownProcessorTabs>
   <Fragment slot="satteri">
@@ -316,7 +316,7 @@ Astro provides [Markdown configuration options](/en/reference/configuration-refe
 
 ### Built-in features
 
-The two official Markdown processors provide the same features by default. You can disable them, customize them, or add plugins to introduce new features.
+The two official Markdown processors provide the same features by default. You can disable them, customize them, or [add plugins](#markdown-processor-plugins) to introduce new features.
 
 #### GitHub-Flavored Markdown
 
@@ -365,8 +365,8 @@ To configure footnotes, pass a configuration object to `gfm.footnotes` for Sätt
         gfm: {
           footnotes: {
             backContent: "↑",
-            label: "Notes de bas de page",
             backLabel: "Retour à la référence {reference}",
+            label: "Notes de bas de page",
           },
         },
       }),
@@ -386,7 +386,8 @@ To configure footnotes, pass a configuration object to `gfm.footnotes` for Sätt
       processor: unified({
         remarkRehype: {
           footnoteBackContent: "↑",
-          footnoteBackLabel: "Retour à la référence {reference}",
+          footnoteBackLabel: (referenceIndex) =>
+            `Retour à la référence ${referenceIndex + 1}`,
           footnoteLabel: "Notes de bas de page",
         },
       }),
@@ -527,7 +528,7 @@ export default defineConfig({
 
 ## Markdown processor plugins
 
-Markdown processor plugins allow you to extend your Markdown with new capabilities, like [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling). These plugins can modify the syntax tree at different stages of the processing pipeline.
+Markdown processor plugins allow you to extend your Markdown with new capabilities, like [auto-generating a table of contents](https://github.com/remarkjs/remark-toc), [applying accessible emoji labels](https://github.com/florianeckerstorfer/remark-a11y-emoji), and [styling your Markdown](/en/guides/styling/#markdown-styling). These plugins can modify the syntax tree at different stages of the processing pipeline.
 
 Two types of plugins are supported:
 
@@ -591,99 +592,93 @@ Two types of plugins are supported:
 
 You can add frontmatter properties to all of your Markdown and MDX files by using processor plugins.
 
-<MarkdownProcessorTabs>
-  <Fragment slot="satteri">
-    <Steps>
-    1. Append a `customProperty` to the `data.astro.frontmatter` property from your plugin's `ctx` argument:
+<Steps>
+1. Append a `customProperty` to the `data.astro.frontmatter` property:
 
-        ```ts title="example-mdast-plugin.ts"
-        import { defineMdastPlugin } from "satteri";
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+      ```ts title="example-mdast-plugin.ts"
+      import { defineMdastPlugin } from "satteri";
 
-        export const exampleMdastPlugin = defineMdastPlugin({
-          name: "example-mdast-plugin",
-          text(node, ctx) {
-            if (ctx.data.astro !== undefined) {
-              ctx.data.astro.frontmatter.customProperty = "Generated property";
-            }
-          },
-        });
-        ```
+      export const exampleMdastPlugin = defineMdastPlugin({
+        name: "example-mdast-plugin",
+        text(node, ctx) {
+          if (ctx.data.astro !== undefined) {
+            ctx.data.astro.frontmatter.customProperty = "Generated property";
+          }
+        },
+      });
+      ```
+      </Fragment>
+      <Fragment slot="unified">
+      ```js title="example-remark-plugin.mjs"
+      export function exampleRemarkPlugin() {
+        // All remark and rehype plugins return a separate function
+        return function (tree, file) {
+          file.data.astro.frontmatter.customProperty = "Generated property";
+        };
+      }
+      ```
+      </Fragment>
+    </MarkdownProcessorTabs>
 
-        :::tip
-        <Since v="2.0.0" />
+    :::tip
+    <Since v="2.0.0" />
 
-        `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
-        :::
+    `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
+    :::
 
-    2. Apply this plugin to your `markdown` or `mdx` integration config:
+2. Apply this plugin to your `markdown` or `mdx` integration config:
 
-        ```js title="astro.config.mjs" {2,3,8}
-        import { defineConfig } from "astro/config";
-        import { satteri } from "@astrojs/markdown-satteri";
-        import { exampleMdastPlugin } from "./example-mdast-plugin";
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+      ```js title="astro.config.mjs" {2,3,7}
+      import { defineConfig } from "astro/config";
+      import { satteri } from "@astrojs/markdown-satteri";
+      import { exampleMdastPlugin } from "./example-mdast-plugin";
 
-        export default defineConfig({
-          markdown: {
-            processor: satteri({
-              mdastPlugins: [exampleMdastPlugin()],
-            }),
-          },
-        });
-        ```
+      export default defineConfig({
+        markdown: {
+          processor: satteri({ mdastPlugins: [exampleMdastPlugin()] }),
+        },
+      });
+      ```
+      </Fragment>
+      <Fragment slot="unified">
+      ```js title="astro.config.mjs" {2,3,7}
+      import { defineConfig } from "astro/config";
+      import { unified } from "@astrojs/markdown-remark";
+      import { exampleRemarkPlugin } from "./example-remark-plugin.mjs";
 
-        or
+      export default defineConfig({
+        markdown: {
+          processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
+        },
+      });
+      ```
+      </Fragment>
+    </MarkdownProcessorTabs>
 
-        ```js title="astro.config.mjs" {3,4,9}
-        import { defineConfig } from "astro/config";
-        import mdx from "@astrojs/mdx";
-        import { satteri } from "@astrojs/markdown-satteri";
-        import { exampleMdastPlugin } from "./example-mdast-plugin";
+    or
 
-        export default defineConfig({
-          integrations: [
-            mdx({
-              processor: satteri({ mdastPlugins: [exampleMdastPlugin()] }),
-            }),
-          ],
-        });
-        ```
-    </Steps>
-  </Fragment>
-  <Fragment slot="unified">
-    <Steps>
-    1. Append a `customProperty` to the `data.astro.frontmatter` property from your plugin's `file` argument:
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+      ```js title="astro.config.mjs" {3,4,9}
+      import { defineConfig } from "astro/config";
+      import mdx from "@astrojs/mdx";
+      import { satteri } from "@astrojs/markdown-satteri";
+      import { exampleMdastPlugin } from "./example-mdast-plugin";
 
-        ```js title="example-remark-plugin.mjs"
-        export function exampleRemarkPlugin() {
-          // All remark and rehype plugins return a separate function
-          return function (tree, file) {
-            file.data.astro.frontmatter.customProperty = "Generated property";
-          };
-        }
-        ```
-
-        :::tip
-        <Since v="2.0.0" />
-
-        `data.astro.frontmatter` contains all properties from a given Markdown or MDX document. This allows you to modify existing frontmatter properties, or compute new properties from this existing frontmatter.
-        :::
-
-    2. Apply this plugin to your `markdown` or `mdx` integration config:
-
-        ```js title="astro.config.mjs" {2,3,7}
-        import { defineConfig } from "astro/config";
-        import { unified } from "@astrojs/markdown-remark";
-        import { exampleRemarkPlugin } from "./example-remark-plugin.mjs";
-
-        export default defineConfig({
-          markdown: {
-            processor: unified({ remarkPlugins: [exampleRemarkPlugin] }),
-          },
-        });
-        ```
-
-        or
-
+      export default defineConfig({
+        integrations: [
+          mdx({
+            processor: satteri({ mdastPlugins: [exampleMdastPlugin()] }),
+          }),
+        ],
+      });
+      ```
+      </Fragment>
+      <Fragment slot="unified">
         ```js title="astro.config.mjs" {3,4,9}
         import { defineConfig } from "astro/config";
         import mdx from "@astrojs/mdx";
@@ -698,9 +693,9 @@ You can add frontmatter properties to all of your Markdown and MDX files by usin
           ],
         });
         ```
-    </Steps>
-  </Fragment>
-</MarkdownProcessorTabs>
+      </Fragment>
+    </MarkdownProcessorTabs>
+</Steps>
 
 Now, every Markdown or MDX file will have `customProperty` in its frontmatter, making it available when [importing your markdown](#importing-markdown) and from [the `Astro.props.frontmatter` property in your layouts](#frontmatter-layout-property).
 
