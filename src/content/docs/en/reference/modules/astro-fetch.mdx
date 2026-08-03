@@ -35,10 +35,15 @@ import {
 
 The per-request state object. Create one at the start of your `fetch` method:
 
-```ts
-import { FetchState } from 'astro/fetch';
+```ts {5} title="src/fetch.ts"
+import { FetchState } from "astro/fetch";
 
-const state = new FetchState(request);
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // Your advanced routing logic...
+  },
+};
 ```
 
 `FetchState` tracks the matched route, cookies, session providers, and other per-request data. All handler functions require it as their first argument.
@@ -130,9 +135,17 @@ The HTTP status code for the response. You can set this before rendering to cont
 
 The `Response` produced by handlers after rendering completes. This is set automatically by [`pages()`](#pages) and [`middleware()`](#middleware), allowing you to inspect or use the response later in the pipeline:
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-// state.response is now the same object as response
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    // state.response is now the same object as response
+    return response;
+  },
+};
 ```
 
 #### Methods
@@ -146,8 +159,16 @@ const response = await middleware(state, (s) => pages(s));
 
 Triggers a [rewrite](/en/guides/routing/#rewrites) to a different route. The `payload` can be a pathname string (`'/other-page'`), a URL, or a `Request`:
 
-```ts
-const response = await state.rewrite('/other-page');
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await state.rewrite("/other-page");
+    return response;
+  },
+};
 ```
 
 ### `astro()`
@@ -182,10 +203,17 @@ export default {
 
 Handles [Astro Actions](/en/guides/actions/) (RPC and form submissions). Returns a `Response` for RPC actions, or `undefined` for form actions and non-action requests. Check the return value to decide whether to continue rendering:
 
-```ts
-const actionResponse = await actions(state);
-if (actionResponse) return actionResponse;
-// otherwise continue to page rendering...
+```ts {6,7} title="src/fetch.ts"
+import { actions, FetchState } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+    // otherwise continue to page rendering...
+  },
+};
 ```
 
 ### `cache()`
@@ -206,9 +234,16 @@ Wraps a render callback with [cache](/en/guides/caching/) provider logic. Handle
 
 Post-processes a response against your [i18n configuration](/en/guides/internationalization/). Handles locale redirects, 404s for invalid locales, and fallback routing. Call this after rendering:
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-return i18n(state, response);
+```ts {7} title="src/fetch.ts"
+import { FetchState, i18n, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
 ```
 
 ### `middleware()`
@@ -220,8 +255,16 @@ return i18n(state, response);
 
 Runs Astro's middleware chain (from `src/middleware.ts`). The `next` callback is called at the bottom of the chain to produce the response, typically by calling `pages()`:
 
-```ts
-const response = await middleware(state, (s) => pages(s));
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return response;
+  },
+};
 ```
 
 ### `pages()`
@@ -251,9 +294,16 @@ Handles redirect routes defined in your [Astro config](/en/reference/configurati
 
 Registers the [session](/en/guides/sessions/) provider. Sessions are created lazily when your code accesses `ctx.session` and persisted automatically at the end of the request. Call this early in the pipeline (before middleware runs):
 
-```ts
-await sessions(state);
-// ...render pipeline...
+```ts {6} title="src/fetch.ts"
+import { FetchState, sessions } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    await sessions(state);
+    // ...render pipeline...
+  },
+};
 ```
 
 ### `trailingSlash()`
