@@ -195,42 +195,46 @@ Astro 구성 객체와 유효한 Astro 구성 옵션 세트가 포함된 부분 
 - Vite 옵션은 기본 `isRoot` 플래그와 함께 [Vite의 `mergeConfig()` 함수](https://ko.vite.dev/guide/api-javascript#mergeconfig)를 사용하여 병합됩니다.
 - 함수로 제공될 수 있는 옵션은 이러한 동일한 규칙으로 두 구성의 반환 값을 재귀적으로 병합하는 새 함수로 래핑됩니다.
 - 다른 모든 옵션은 기존 구성을 재정의합니다.
-- 
+
 ```ts
+import mdx from "@astrojs/mdx";
+import partytown from "@astrojs/partytown";
+import type { AstroInlineConfig } from "astro";
 import { mergeConfig } from "astro/config";
 
-mergeConfig(
-  {
-    output: "static",
-    site: "https://example.com",
-    integrations: [partytown()],
-    server: ({command}) => ({
-      port: command === "dev" ? 4321 : 1234,
-    }),
-    build: {
-      client: "./custom-client",
-    },
+const defaultConfig: AstroInlineConfig = {
+  output: "static",
+  site: "https://example.com",
+  integrations: [partytown()],
+  server: ({ command }) => ({
+    port: command === "dev" ? 4321 : 1234,
+  }),
+  build: {
+    client: "./custom-client",
   },
-  {
-    output: "server",
-    base: "/astro",
-    integrations: [mdx()],
-    server: ({command}) => ({
-      host: command === "dev" ? "localhost" : "site.localhost",
-    }),
-    build: {
-      server: "./custom-server",
-    },
-  }
-);
+};
 
-// 결과는 다음과 같습니다.
+const overrideConfig: AstroInlineConfig = {
+  output: "server",
+  base: "/astro",
+  integrations: [mdx()],
+  server: ({ command }) => ({
+    host: command === "dev" ? "localhost" : "site.localhost",
+  }),
+  build: {
+    server: "./custom-server",
+  },
+};
+
+const finalConfig = mergeConfig(defaultConfig, overrideConfig);
+
+// `finalConfig`는 다음 객체와 동일합니다.
 {
   output: "server",
   site: "https://example.com",
   base: "/astro",
   integrations: [partytown(), mdx()],
-  server: ({command}) => ({
+  server: ({ command }) => ({
     port: command === "dev" ? 4321 : 1234,
     host: command === "dev" ? "localhost" : "site.localhost",
   }),
@@ -258,10 +262,14 @@ mergeConfig(
 
 ```ts
 import { validateConfig } from "astro/config";
+import partytown from "@astrojs/partytown";
+import { rm } from "node:fs/promises";
 
-const config = await validateConfig({
-  integrations: [partytown()],
-}, "./my-project", "build");
+const config = await validateConfig(
+  { integrations: [partytown()] },
+  "./my-project",
+  "build",
+);
 
 // 기본값이 적용됩니다.
 await rm(config.outDir, { recursive: true, force: true });
