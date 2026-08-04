@@ -81,6 +81,18 @@ Pages that are removed from `getStaticPaths()` between builds have their previou
 
 ## Preserving the cache between builds
 
-Astro writes a cache manifest to `node_modules/.astro/` and keeps the previous build output in `dist/` instead of emptying it at the start of each build.
+Astro stores the incremental cache in your project's [`cacheDir`](/en/reference/configuration-reference/#cachedir), which is `node_modules/.astro/` by default. This holds both the build manifest and the reusable output of previously-rendered pages. The output directory is emptied at the start of every build, and skipped pages are restored from `cacheDir`.
 
-For pages to be skipped in a continuous integration environment, both directories must be restored before running `astro build`. Cache `node_modules/.astro/` and restore `dist/` from your previous build. If `dist/` is missing, Astro has no output to reuse and re-renders every page even when the manifest is present.
+For pages to be skipped in a continuous integration environment, `cacheDir` must be restored before running `astro build`. Cache and restore this single directory between builds; nothing else needs to persist. If it is missing, Astro re-renders every page.
+
+To ignore the cache and re-render every page, run `astro build --force`. Astro still writes a fresh cache for the next build.
+
+## Limitations
+
+This experimental feature currently has the following limitations:
+
+- **`build.concurrency`**: The incremental cache is disabled when [`build.concurrency`](/en/reference/configuration-reference/#buildconcurrency) is greater than `1`. Astro logs a warning and re-renders every page.
+
+- **Server islands**: A page that renders a [server island](/en/guides/server-islands/) embeds props encrypted with a key that is [regenerated on each build by default](/en/guides/server-islands/#reusing-the-encryption-key). Set a stable `ASTRO_KEY` so these pages can be reused between builds; without one, they are re-rendered every time. Changing the key also invalidates them, so their embedded content stays decryptable.
+
+- **Middleware**: Changes to your [middleware](/en/guides/middleware/) do not invalidate cached pages. If your middleware changes the HTML of prerendered pages, run `astro build --force` after editing it.
