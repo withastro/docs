@@ -24,6 +24,7 @@ import {
   cache,
   i18n,
   middleware,
+  normalizePathname,
   pages,
   redirects,
   sessions,
@@ -49,6 +50,41 @@ export default {
 `FetchState` tracks the matched route, cookies, session providers, and other per-request data. All handler functions require it as their first argument.
 
 <ReadMore>Learn how to [compose handlers](/en/guides/routing/#composing-individual-handlers) with `FetchState` in the advanced routing guide.</ReadMore>
+
+#### Constructor options
+
+The `FetchState` constructor accepts an optional second argument to customize how the request is processed:
+
+```ts
+const state = new FetchState(request, {
+  normalizePathname: (pathname) => pathname,
+});
+```
+
+##### `normalizePathname` option
+
+<p>
+
+**Type:** `(pathname: string) => string`<br />
+**Default:** [`normalizePathname()`](#normalizepathname)<br />
+<Since v="7.1.0" />
+</p>
+
+An advanced option that controls how the incoming request's pathname is turned into the canonical pathname used for routing, route parameters, and the user-facing `Astro.url` / `context.url`.
+
+By default, Astro normalizes pathnames with the built-in [`normalizePathname()`](#normalizepathname) function, which iteratively decodes percent-encoded sequences. A side effect is that a sequence like `%25` is decoded to a bare `%`, so `state.url.pathname` can differ from `new URL(request.url).pathname`. Provide your own function to change this behavior. For example, a passthrough function keeps percent-encoded sequences intact so that `state.url.pathname` matches the raw request URL:
+
+```ts
+const state = new FetchState(request, {
+  normalizePathname: (pathname) => pathname,
+});
+```
+
+The value your function returns is used as-is, with no further decoding or slash normalization applied on top of it. This option only affects the incoming request; rewrite targets (from [`state.rewrite()`](#staterewrite), `Astro.rewrite()`, or middleware `next(payload)`) are always normalized with the default function.
+
+:::caution
+Replacing the default is potentially unsafe. Because your function's result is used verbatim, it takes over the security-relevant canonicalization the default performs: iteratively decoding multi-encoded paths (e.g. `/%2561dmin`) and collapsing duplicate slashes and backslashes (e.g. `//admin` or `/%5Cadmin`). This canonicalization prevents crafted URLs from slipping past middleware authorization checks. Only override it if you understand the routing and security implications, and consider delegating to the built-in [`normalizePathname()`](#normalizepathname) for the parts you don't need to change.
+:::
 
 #### Properties
 
@@ -169,6 +205,33 @@ export default {
     return response;
   },
 };
+```
+
+### `normalizePathname()`
+
+<p>
+
+**Type:** `(pathname: string) => string`<br />
+<Since v="7.1.0" />
+</p>
+
+Astro's built-in, security-hardened pathname normalizer, and the default used by [`FetchState`](#fetchstate)'s [`normalizePathname` option](#normalizepathname-option). It turns a raw request pathname into a single canonical form so that middleware and routing always agree on the same path. It performs three steps, in order:
+
+1. Iteratively decodes the pathname until it stops changing, throwing an error if the path is encoded too many times.
+2. Rewrites backslashes (`\`) to forward slashes (`/`), matching how the URL parser treats them for `http(s)` URLs.
+3. Collapses runs of duplicate slashes (`//` → `/`).
+
+Import it to reuse or delegate to the default when providing a custom [`normalizePathname` option](#normalizepathname-option):
+
+```ts
+import { FetchState, normalizePathname } from 'astro/fetch';
+
+const state = new FetchState(request, {
+  normalizePathname: (pathname) => {
+    // ...your custom handling, then fall back to the default:
+    return normalizePathname(pathname);
+  },
+});
 ```
 
 ### `astro()`
