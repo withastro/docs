@@ -212,23 +212,48 @@ app.listen(8080);
 Or, with Fastify (>4):
 
 ```js title="run-server.mjs"
+import { existsSync, statSync } from 'node:fs';
+import { isAbsolute, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import Fastify from 'fastify';
 import fastifyMiddie from '@fastify/middie';
 import fastifyStatic from '@fastify/static';
-import { fileURLToPath } from 'node:url';
 import { handler as ssrHandler } from './dist/server/entry.mjs';
 
 const app = Fastify({ logger: true });
+const clientRoot = fileURLToPath(new URL('./dist/client', import.meta.url));
 
 await app
   .register(fastifyStatic, {
-    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+    root: clientRoot,
   })
   .register(fastifyMiddie);
-app.use(ssrHandler);
+
+app.use((req, res, next) => {
+  const pathname = new URL(req.url ?? '/', 'http://localhost').pathname;
+  const assetPath = join(clientRoot, pathname);
+  const relativeAssetPath = relative(clientRoot, assetPath);
+  const isClientAsset =
+    relativeAssetPath &&
+    !relativeAssetPath.startsWith('..') &&
+    !isAbsolute(relativeAssetPath) &&
+    existsSync(assetPath) &&
+    statSync(assetPath).isFile();
+
+  if (isClientAsset || pathname.startsWith('/_astro/')) {
+    next();
+    return;
+  }
+
+  ssrHandler(req, res);
+});
 
 app.listen({ port: 8080 });
 ```
+
+The middleware checks whether the request matches a file in `./dist/client/` and lets Fastify serve it. It also lets Fastify handle requests for missing generated assets in `/_astro/`. Other requests are passed to Astro without calling `next()` so Astro can render pages, API routes, and custom error pages like `404.astro`.
+
+If you set a custom [`base`](/en/reference/configuration-reference/#base), update the static route and asset path check to match it.
 
 Additionally, you can also pass in an object to be accessed with `Astro.locals` or in Astro middleware:
 
