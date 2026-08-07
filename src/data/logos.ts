@@ -28,6 +28,7 @@ export const logos = LogoCheck({
 	cloudflare: { file: 'cloudflare-pages.svg', padding: '.1875em' },
 	cloudinary: { file: 'cloudinary.svg', padding: '.1875em' },
 	cloudray: { file: 'cloudray.svg', padding: '0' },
+	'cms-brew': { file: 'cms-brew.svg', padding: '.1em' },
 	contentful: { file: 'contentful.svg', padding: '.05em' },
 	cosmic: { file: 'cosmic.svg', padding: '.24em' },
 	'craft-cms': { file: 'craft-cms.svg', padding: '.225em' },
