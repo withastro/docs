@@ -116,7 +116,7 @@ It also accepts the following:
 ### `imageService`
 
 <p>
-**Type:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
+**Type:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile' | 'cloudflare-binding', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
 **Default:** `'cloudflare-binding'`
 </p>
 
@@ -128,7 +128,11 @@ Determines which image service is used by the adapter. The adapter will default 
 - **`compile`:** Uses the [configured image service](/en/reference/configuration-reference/#imageservice) or falls back to a combination of internal dependencies to transform images locally at build time for prerendered routes. The noop `passthrough` option is configured for on-demand rendered pages.
 - **`custom`:** Uses the [configured image service](/en/reference/configuration-reference/#imageservice) (defaults to Sharp) to process assets at build time for prerendered routes. Bundles the image service for runtime image handling, without checking its compatibility with Cloudflare's `workerd` runtime.
 
-It is also possible to configure your image service as an object, setting both a build time and runtime service independently. Currently, `'compile'` is the only available build-time option. The supported runtime options are `'passthrough'` (default) and `'cloudflare-binding'`:
+<p><Since v="14.2.0" pkg="@astrojs/cloudflare" /></p>
+
+You can also configure the image service as an object by providing a build-time service (`compile` or `cloudflare-binding`) and, optionally, a runtime service (`passthrough` or `cloudflare-binding`).
+
+When the runtime service is omitted, its default value depends on the configured build-time service. It falls back to `'passthrough'` for `build: 'compile'` and to `'cloudflare-binding'` for `build: 'cloudflare-binding'`.
 
 ```js title="astro.config.mjs" ins={6}
 import { defineConfig } from 'astro/config';
@@ -137,6 +141,21 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   adapter: cloudflare({
     imageService: { build: 'compile', runtime: 'cloudflare-binding' }
+  }),
+});
+```
+
+Using `imageService: 'cloudflare-binding'` enables image optimization using the [Cloudflare Images binding](https://developers.cloudflare.com/images/transform-images/bindings/) only at runtime.
+
+To opt in to build-time image optimization with the binding during `workerd` prerendering, set `build` to `'cloudflare-binding'`. If the binding fails to transform an image at build time, the adapter falls back to the [configured image service](/en/reference/configuration-reference/#imageservice) (defaults to Sharp).
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    imageService: { build: 'cloudflare-binding', runtime: 'cloudflare-binding' }
   }),
 });
 ```
@@ -353,6 +372,8 @@ const cart = await Astro.session?.get('cart');
 ```
 
 By default, the KV binding is named `SESSION`. To use a different name, set the [`sessionKVBindingName`](#sessionkvbindingname) option in the adapter config.
+
+If your project does not use sessions, you can set [`session: false`](/en/guides/sessions/#disabling-sessions) in your Astro config. The adapter will not configure a KV binding, no KV namespace will be provisioned when you deploy, and the session runtime will be excluded from your Worker bundle.
 
 :::note
 Writes to Cloudflare KV are [eventually consistent](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency) between regions. This means that changes are available immediately within the same region but may take up to 60 seconds to propagate globally. This won't affect most users as they are unlikely to switch regions between requests, but it may be a consideration for some use cases, such as VPN users.
