@@ -116,7 +116,7 @@ Il accepte également les options suivantes :
 ### `imageService`
 
 <p>
-**Type :** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
+**Type :** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile' | 'cloudflare-binding', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
 **Par défaut :** `'cloudflare-binding'`
 </p>
 
@@ -128,7 +128,11 @@ Détermine quel service d'image est utilisé par l'adaptateur. L'adaptateur util
 - **`compile` :** Utilise le [service d'image configuré](/fr/reference/configuration-reference/#imageservice) ou, à défaut, s'appuie sur une combinaison de dépendances internes pour transformer les images localement lors de la compilation pour les routes pré-rendues. L'option `passthrough` sans opération est configurée pour les pages rendues à la demande.
 - **`custom` :** Utilise le [service d'image configuré](/fr/reference/configuration-reference/#imageservice) (par défaut Sharp) pour traiter les ressources au moment de la compilation pour les routes pré-rendues. Ajoute le service d'image au regroupement pour la gestion des images à l'exécution, sans vérifier sa compatibilité avec l'environnement d'exécution `workerd` de Cloudflare.
 
-Il est également possible de configurer votre service d'images comme un objet, en définissant indépendamment un service pour la compilation et un service pour l'environnement d'exécution. Actuellement, `'compile'` est la seule option disponible au moment de la compilation. Les options de l'environnement d'exécution prises en charge sont `'passthrough'` (par défaut) et `'cloudflare-binding'`.
+<p><Since v="14.2.0" pkg="@astrojs/cloudflare" /></p>
+
+Vous pouvez également configurer le service d'images en tant qu'objet en fournissant un service de compilation (`compile` ou `cloudflare-binding`) et, éventuellement, un service pour l'environnement d'exécution (`passthrough` ou `cloudflare-binding`).
+
+Lorsque le service pour l'environnement d'exécution est omis, sa valeur par défaut dépend du service de compilation configuré. Il utilise `'passthrough'` pour `build: 'compile'` et `'cloudflare-binding'` pour `build: 'cloudflare-binding'`.
 
 ```js title="astro.config.mjs" ins={6}
 import { defineConfig } from 'astro/config';
@@ -137,6 +141,21 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   adapter: cloudflare({
     imageService: { build: 'compile', runtime: 'cloudflare-binding' }
+  }),
+});
+```
+
+L'utilisation de `imageService: 'cloudflare-binding'` permet l'optimisation des images en utilisant la [liaison Cloudflare Images](https://developers.cloudflare.com/images/transform-images/bindings/) uniquement à l'exécution.
+
+Pour activer l'optimisation des images à la compilation avec la liaison lors du pré-rendu `workerd`, définissez `build` sur `'cloudflare-binding'`. Si la liaison échoue à transformer une image lors de la compilation, l'adaptateur se replie vers le [service d'images configuré](/fr/reference/configuration-reference/#imageservice) (par défaut Sharp).
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    imageService: { build: 'cloudflare-binding', runtime: 'cloudflare-binding' }
   }),
 });
 ```
@@ -353,6 +372,8 @@ const cart = await Astro.session?.get('cart');
 ```
 
 Par défaut, la liaison KV est nommée `SESSION`. Pour utiliser un autre nom, définissez l'option [`sessionKVBindingName`](#sessionkvbindingname) dans la configuration de l'adaptateur.
+
+Si votre projet n'utilise pas de sessions, vous pouvez définir [`session: false`](/fr/guides/sessions/#désactivation-des-sessions) dans votre configuration d'Astro. L'adaptateur ne configurera pas de liaison KV, aucun espace de noms KV ne sera configuré lors du déploiement, et le moteur d'exécution des sessions sera exclu du regroupement pour votre Worker.
 
 :::note
 Les écritures dans Cloudflare KV sont [éventuellement cohérentes](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency) entre les régions. Cela signifie que les modifications sont immédiatement disponibles au sein d'une même région, mais leur propagation mondiale peut prendre jusqu'à 60 secondes. Cela n'affectera pas la plupart des utilisateurs, car ils sont peu susceptibles de changer de région entre les requêtes. Cependant, cela peut être un facteur à prendre en compte dans certains cas d'utilisation, comme les utilisateurs VPN.
