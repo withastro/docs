@@ -38,8 +38,8 @@ Elle accepte un objet avec les options suivantes :
 
 ```ts
 export type AstroContainerOptions = {
-	streaming?: boolean;
-	renderers?: AddServerRenderer[];
+  streaming?: boolean;
+  renderers?: AddServerRenderer[];
 };
 
 export type AddServerRenderer =
@@ -92,14 +92,19 @@ En dehors de `vite` ou pour une utilisation à la demande, vous devrez [charger 
 L'exemple suivant fournit l'objet nécessaire pour effectuer le rendu d'un composant Astro qui restitue un composant React et un composant Svelte :
 
 ```js
+import { experimental_AstroContainer } from "astro/container";
 import { getContainerRenderer as reactContainerRenderer } from "@astrojs/react/container-renderer";
 import { getContainerRenderer as svelteContainerRenderer } from "@astrojs/svelte/container-renderer";
 import { loadRenderers } from "astro:container";
+import ReactWrapper from "./ReactWrapper.astro";
 
-const renderers = await loadRenderers([reactContainerRenderer(), svelteContainerRenderer()]);
+const renderers = await loadRenderers([
+  reactContainerRenderer(),
+  svelteContainerRenderer(),
+]);
 const container = await experimental_AstroContainer.create({
-    renderers
-})
+  renderers,
+});
 const result = await container.renderToString(ReactWrapper);
 ```
 
@@ -114,6 +119,7 @@ Une seule instruction d'importation est nécessaire par framework. L'importation
 L'exemple suivant importe manuellement les moteurs de rendu serveur nécessaires à l'affichage des composants Vue statiques et des pages `.mdx`. Il ajoute également les moteurs de rendu serveur et client pour les composants React interactifs.
 
 ```js
+import { experimental_AstroContainer } from "astro/container";
 import reactRenderer from "@astrojs/react/server.js";
 import vueRenderer from "@astrojs/vue/server.js";
 import mdxRenderer from "@astrojs/mdx/server.js";
@@ -123,7 +129,10 @@ container.addServerRenderer({ renderer: vueRenderer });
 container.addServerRenderer({ renderer: mdxRenderer });
 
 container.addServerRenderer({ renderer: reactRenderer });
-container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/react/client.js" });
+container.addClientRenderer({
+  name: "@astrojs/react",
+  entrypoint: "@astrojs/react/client.js",
+});
 ```
 
 ## `renderToString()`
@@ -135,7 +144,7 @@ container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/reac
 
 Cette fonction restitue un composant spécifié à l'intérieur d'un conteneur. Elle prend un composant Astro comme argument et renvoie une chaîne de caractères qui représente le HTML/contenu rendu par le composant Astro.
 
-```js
+```js title="tests/Card.test.js"
 import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
@@ -156,7 +165,7 @@ Elle accepte également un objet comme deuxième argument pouvant contenir un [c
 
 Elle restitue un composant et renvoie un objet `Response`.
 
-```js
+```js title="tests/Card.test.js"
 import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
@@ -195,17 +204,19 @@ Une option pour transmettre du contenu à restituer avec [`<slots>`](/fr/basics/
 
 Si votre composant Astro restitue un slot par défaut, transmettez un objet avec `default` comme nom de propriété :
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
-  slots: { default: "Some value" }
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
+  slots: { default: "Une valeur" },
 });
 ```
 
 Si votre composant restitue des slots nommés, utilisez les noms de slots en tant que noms de propriété de l'objet :
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 ---
 <div>
@@ -214,20 +225,22 @@ Si votre composant restitue des slots nommés, utilisez les noms de slots en tan
 </div>
 ```
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
   slots: {
-    header: "Header content",
-    footer: "Footer"
-  }
+    header: "Contenu de l'en-tête",
+    footer: "Pied de page",
+  },
 });
 ```
 
 Vous pouvez également effectuer le rendu des composants en cascade :
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 ---
 <div>
@@ -236,16 +249,18 @@ Vous pouvez également effectuer le rendu des composants en cascade :
 </div>
 ```
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 import CardHeader from "../src/components/CardHeader.astro";
 import CardFooter from "../src/components/CardFooter.astro";
 
-const result = await container.renderToString(Card, { 
-  slots: { 
-    header: await container.renderToString(CardHeader), 
-    footer:  await container.renderToString(CardFooter)
-  }
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
+  slots: {
+    header: await container.renderToString(CardHeader),
+    footer: await container.renderToString(CardFooter),
+  },
 });
 ```
 
@@ -258,17 +273,19 @@ const result = await container.renderToString(Card, {
 
 Une option pour transmettre des [propriétés](/fr/basics/astro-components/#props-de-composant) aux composants Astro.
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
-  props: { name: "Hello, world!" }
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
+  props: { name: "Hello, world!" },
 });
 ```
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
-// Pour le support TypeScript
+// Pour la prise en charge de TypeScript
 interface Props {
   name: string;
 };
@@ -293,15 +310,17 @@ Utilisez cette option lorsque votre composant a besoin de lire des informations 
 
 Vous pouvez également injecter des en-têtes ou des cookies.
 
-```js file="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
   request: new Request("https://example.com/blog", {
     headers: {
-      "x-some-secret-header": "test-value"
-    }
-  })
+      "x-some-secret-header": "valeur-test",
+    },
+  }),
 });
 ```
 
@@ -316,21 +335,23 @@ Un objet permettant de transmettre des informations liées au chemin à un compo
 
 Utilisez cette option lorsque votre composant a besoin d'une valeur pour `Astro.params` afin de générer une route unique dynamiquement.
 
-```astro name="Card.astro"
+```astro title="src/pages/[locale]/[slug].astro"
 ---
 const { locale, slug } = Astro.params;
 ---
 <div></div>
 ```
 
-```js file="LocaleSlug.test.js"
-import LocaleSlug from "../src/components/[locale]/[slug].astro";
+```js title="tests/LocaleSlug.test.js"
+import { experimental_AstroContainer } from "astro/container";
+import LocaleSlug from "../src/pages/[locale]/[slug].astro";
 
-const result = await container.renderToString(LocaleSlug, { 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(LocaleSlug, {
   params: {
     locale: "en",
-    slug: "getting-started"
-  }
+    slug: "getting-started",
+  },
 });
 ```
 
@@ -345,36 +366,44 @@ Une option pour passer les informations de [`Astro.locals`](/fr/reference/api-re
 
 Utilisez cette option lorsque votre composant a besoin d'informations stockées pendant le cycle de vie d'une requête pour effectuer le rendu, comme le statut de connexion.
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 const { checkAuth } = Astro.locals;
 const isAuthenticated = checkAuth();
 ---
-{isAuthenticated ? <span>You're in</span> : <span>You're out</span> }
+
+{isAuthenticated ? <span>Vous êtes connecté</span> : <span>Vous êtes déconnecté</span>}
 ```
 
-```js file="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
+import test from "node:test";
 
-test("User is in", async () => {
-  const result = await container.renderToString(Card, { 
+const container = await experimental_AstroContainer.create();
+
+test("L'utilisateur est connecté", async () => {
+  const result = await container.renderToString(Card, {
     locals: {
-      checkAuth() { return true; }
-    }
+      checkAuth() {
+        return true;
+      },
+    },
   });
   
-  // affirmer que le résultat contient « You're in »
+  // affirmer que le résultat contient « Vous êtes connecté »
 });
 
-
-test("User is out", async () => {
-  const result = await container.renderToString(Card, { 
+test("L'utilisateur est déconnecté", async () => {
+  const result = await container.renderToString(Card, {
     locals: {
-      checkAuth() { return false; }
-    }
+      checkAuth() {
+        return false;
+      },
+    },
   });
   
-  // affirmer que le résultat contient « You're out »
+  // affirmer que le résultat contient « Vous êtes déconnecté »
 });
 ```
 
@@ -391,32 +420,36 @@ Une option disponible lors de l'utilisation de `renderToResponse()` pour spécif
 container.renderToString(Endpoint, { routeType: "endpoint" });
 ```
 
-```js file="endpoint.test.js"
+```js title="tests/endpoint.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import * as Endpoint from "../src/pages/api/endpoint.js";
 
-const response = await container.renderToResponse(Endpoint, { 
-  routeType: "endpoint"
+const container = await experimental_AstroContainer.create();
+const response = await container.renderToResponse(Endpoint, {
+  routeType: "endpoint",
 });
 const json = await response.json();
 ```
 
 Pour tester votre point d'accès avec des méthodes telles que `POST`, `PATCH`, etc., utilisez l'option `request` pour appeler la bonne fonction :
 
-```js file="endpoint.js"
+```js title="src/pages/api/endpoint.js"
 export function GET() {}
 
 // doit être testé
 export function POST() {}
 ```
 
-```js file="endpoint.test.js" ins={5-7}
+```js title="tests/endpoint.test.js" ins={7-9}
+import { experimental_AstroContainer } from "astro/container";
 import * as Endpoint from "../src/pages/api/endpoint.js";
 
-const response = await container.renderToResponse(Endpoint, { 
-    routeType: "endpoint",
-    request: new Request("https://example.com", {
-      method: "POST" // Spécifier la méthode POST pour les tests
-    })
+const container = await experimental_AstroContainer.create();
+const response = await container.renderToResponse(Endpoint, {
+  routeType: "endpoint",
+  request: new Request("https://example.com", {
+    method: "POST", // Spécifier la méthode POST pour les tests
+  }),
 });
 const json = await response.json();
 ```
@@ -435,11 +468,13 @@ Indique si l'API des conteneurs restitue les composants comme s'il s'agissait de
 Pour restituer un composant sous forme de page Astro complète, incluant `<!DOCTYPE html>`, vous pouvez désactiver ce comportement en définissant `partial` sur `false` :
 
 
-```js name="Card.test.js" ins={4}
+```js title="tests/Blog.test.js" ins={6}
+import { experimental_AstroContainer } from "astro/container";
 import Blog from "../src/pages/Blog.astro";
 
-const result = await container.renderToString(Card, {
-    partial: false 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Blog, {
+  partial: false,
 });
-console.log(result) // inclut `<!DOCTYPE html>` au début du code HTML
+console.log(result); // inclut `<!DOCTYPE html>` au début du code HTML
 ```

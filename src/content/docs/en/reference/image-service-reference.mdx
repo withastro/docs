@@ -65,6 +65,7 @@ To create your own local service, you can point to the [built-in endpoint](https
 
 ```ts
 import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
+import { mySuperLibraryThatEncodesImages } from "@example/my-super-library";
 
 const service: LocalImageService<AstroConfig["image"]> = {
   getURL(options: ImageTransform, imageConfig) {
@@ -135,22 +136,44 @@ To access the image service config ([`image.service.config`](/en/reference/confi
 
 ```ts title="src/api/my_custom_endpoint_that_transforms_images.ts"
 import type { APIRoute } from "astro";
-import { getConfiguredImageService, imageConfig } from 'astro:assets';
+import { isLocalService } from "astro/assets";
+import { getConfiguredImageService, imageConfig } from "astro:assets";
+import * as mime from "mrmime";
+import { getImageBuffer } from "./my-custom-image-fetcher.js";
 
 export const GET: APIRoute = async ({ request }) => {
   const imageService = await getConfiguredImageService();
 
-  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
-  // ... fetch the image from imageTransform.src and store it in inputBuffer
-  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
-  return new Response(data, {
-			status: 200,
-			headers: {
-				'Content-Type': mime.getType(format) || ''
-      }
-    }
+  if (!isLocalService(imageService)) {
+    return new Response(
+      "This endpoint only works with a local image service.",
+      { status: 400 },
+    );
+  }
+
+  const imageTransform = await imageService.parseURL(
+    new URL(request.url),
+    imageConfig,
   );
-}
+
+  if (!imageTransform) {
+    return new Response("Invalid image URL.", { status: 400 });
+  }
+
+  // ... fetch the image from imageTransform.src and store it in inputBuffer
+  const inputBuffer = await getImageBuffer(imageTransform.src);
+  const { data, format } = await imageService.transform(
+    inputBuffer,
+    imageTransform,
+    imageConfig,
+  );
+  return new Response(new Uint8Array(data), {
+    status: 200,
+    headers: {
+      "Content-Type": mime.lookup(format) || "",
+    },
+  });
+};
 ```
 
 [See the built-in endpoint](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) for a full example.
