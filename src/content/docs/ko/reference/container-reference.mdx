@@ -37,8 +37,8 @@ const container = await experimental_AstroContainer.create();
 
 ```ts
 export type AstroContainerOptions = {
-	streaming?: boolean;
-	renderers?: AddServerRenderer[];
+  streaming?: boolean;
+  renderers?: AddServerRenderer[];
 };
 
 export type AddServerRenderer =
@@ -91,14 +91,19 @@ export type AddServerRenderer =
 다음은 React 컴포넌트와 Svelte 컴포넌트를 렌더링하는 Astro 컴포넌트를 렌더링하는 데 필요한 객체를 제공하는 예시입니다.
 
 ```js
+import { experimental_AstroContainer } from "astro/container";
 import { getContainerRenderer as reactContainerRenderer } from "@astrojs/react/container-renderer";
 import { getContainerRenderer as svelteContainerRenderer } from "@astrojs/svelte/container-renderer";
 import { loadRenderers } from "astro:container";
+import ReactWrapper from "./ReactWrapper.astro";
 
-const renderers = await loadRenderers([reactContainerRenderer(), svelteContainerRenderer()]);
+const renderers = await loadRenderers([
+  reactContainerRenderer(),
+  svelteContainerRenderer(),
+]);
 const container = await experimental_AstroContainer.create({
-    renderers
-})
+  renderers,
+});
 const result = await container.renderToString(ReactWrapper);
 ```
 
@@ -113,6 +118,7 @@ const result = await container.renderToString(ReactWrapper);
 다음은 정적 Vue 컴포넌트와 `.mdx` 페이지를 표시하기 위해 필요한 서버 렌더러를 수동으로 직접 가져오는 예시입니다. 또한 상호작용 가능한 React 컴포넌트를 위해 서버 및 클라이언트 렌더러를 모두 추가합니다.
 
 ```js
+import { experimental_AstroContainer } from "astro/container";
 import reactRenderer from "@astrojs/react/server.js";
 import vueRenderer from "@astrojs/vue/server.js";
 import mdxRenderer from "@astrojs/mdx/server.js";
@@ -122,7 +128,10 @@ container.addServerRenderer({ renderer: vueRenderer });
 container.addServerRenderer({ renderer: mdxRenderer });
 
 container.addServerRenderer({ renderer: reactRenderer });
-container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/react/client.js" });
+container.addClientRenderer({
+  name: "@astrojs/react",
+  entrypoint: "@astrojs/react/client.js",
+});
 ```
 
 ## `renderToString()`
@@ -134,7 +143,7 @@ container.addClientRenderer({ name: "@astrojs/react", entrypoint: "@astrojs/reac
 
 이 함수는 컨테이너에서 특정 컴포넌트를 렌더링합니다. Astro 컴포넌트를 인수로 받아들이며, Astro 컴포넌트가 렌더링한 HTML/콘텐츠를 나타내는 문자열을 반환합니다.
 
-```js
+```js title="tests/Card.test.js"
 import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
@@ -155,7 +164,7 @@ const result = await container.renderToString(Card);
 
 컴포넌트를 렌더링하고, `Response` 객체를 반환합니다.
 
-```js
+```js title="tests/Card.test.js"
 import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
@@ -194,17 +203,19 @@ export type ContainerRenderOptions = {
 
 Astro 컴포넌트가 하나의 기본 슬롯을 렌더링하는 경우, `default`를 키로 사용하는 객체를 전달하세요.
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
-  slots: { default: "어떤 값" }
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
+  slots: { default: "특정 값" },
 });
 ```
 
 컴포넌트가 명명된 슬롯을 렌더링하는 경우, 슬롯 이름을 객체 키로 사용하세요.
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 ---
 <div>
@@ -213,20 +224,22 @@ const result = await container.renderToString(Card, {
 </div>
 ```
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
   slots: {
-    header: "Header content",
-    footer: "Footer"
-  }
+    header: "헤더 콘텐츠",
+    footer: "푸터",
+  },
 });
 ```
 
 컴포넌트를 계단식으로 렌더링할 수도 있습니다.
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 ---
 <div>
@@ -235,16 +248,18 @@ const result = await container.renderToString(Card, {
 </div>
 ```
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 import CardHeader from "../src/components/CardHeader.astro";
 import CardFooter from "../src/components/CardFooter.astro";
 
-const result = await container.renderToString(Card, { 
-  slots: { 
-    header: await container.renderToString(CardHeader), 
-    footer:  await container.renderToString(CardFooter)
-  }
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
+  slots: {
+    header: await container.renderToString(CardHeader),
+    footer: await container.renderToString(CardFooter),
+  },
 });
 ```
 
@@ -257,15 +272,17 @@ const result = await container.renderToString(Card, {
 
 Astro 컴포넌트에 [속성](/ko/basics/astro-components/#컴포넌트-props)을 전달하는 옵션입니다.
 
-```js name="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
-  props: { name: "환영합니다!" }
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
+  props: { name: "환영합니다!" },
 });
 ```
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 // TypeScript 지원을 위해 사용합니다.
 interface Props {
@@ -292,15 +309,17 @@ const { name } = Astro.props;
 
 가능한 헤더나 쿠키도 주입할 수 있습니다.
 
-```js file="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
 
-const result = await container.renderToString(Card, { 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Card, {
   request: new Request("https://example.com/blog", {
     headers: {
-      "x-some-secret-header": "test-value"
-    }
-  })
+      "x-some-secret-header": "test-value",
+    },
+  }),
 });
 ```
 
@@ -315,21 +334,23 @@ const result = await container.renderToString(Card, {
 
 컴포넌트가 단일 라우트를 동적으로 생성하기 위해 `Astro.params` 값이 필요한 경우 이 옵션을 사용합니다.
 
-```astro name="Card.astro"
+```astro title="src/pages/[locale]/[slug].astro"
 ---
 const { locale, slug } = Astro.params;
 ---
 <div></div>
 ```
 
-```js file="LocaleSlug.test.js"
-import LocaleSlug from "../src/components/[locale]/[slug].astro";
+```js title="tests/LocaleSlug.test.js"
+import { experimental_AstroContainer } from "astro/container";
+import LocaleSlug from "../src/pages/[locale]/[slug].astro";
 
-const result = await container.renderToString(LocaleSlug, { 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(LocaleSlug, {
   params: {
     locale: "en",
-    slug: "getting-started"
-  }
+    slug: "getting-started",
+  },
 });
 ```
 
@@ -344,36 +365,44 @@ const result = await container.renderToString(LocaleSlug, {
 
 로그인 상태와 같이 요청의 라이프사이클 동안 저장된 정보가 컴포넌트 렌더링에 필요한 경우 이 옵션을 사용합니다.
 
-```astro name="Card.astro"
+```astro title="src/components/Card.astro"
 ---
 const { checkAuth } = Astro.locals;
 const isAuthenticated = checkAuth();
 ---
-{isAuthenticated ? <span>로그인 되었습니다.</span> : <span>로그인하세요.</span> }
+
+{isAuthenticated ? <span>로그인 상태입니다.</span> : <span>로그아웃 상태입니다.</span>}
 ```
 
-```js file="Card.test.js"
+```js title="tests/Card.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import Card from "../src/components/Card.astro";
+import test from "node:test";
 
-test("User is in", async () => {
-  const result = await container.renderToString(Card, { 
+const container = await experimental_AstroContainer.create();
+
+test("사용자가 로그인 상태인 경우", async () => {
+  const result = await container.renderToString(Card, {
     locals: {
-      checkAuth() { return true; }
-    }
+      checkAuth() {
+        return true;
+      },
+    },
   });
-  
-  // 결과에 "로그인 되었습니다."라는 문자열이 포함되어야 합니다.
+
+  // 결과에 "로그인 상태입니다."가 포함되어 있는지 확인
 });
 
-
-test("User is out", async () => {
-  const result = await container.renderToString(Card, { 
+test("사용자가 로그아웃 상태인 경우", async () => {
+  const result = await container.renderToString(Card, {
     locals: {
-      checkAuth() { return false; }
-    }
+      checkAuth() {
+        return false;
+      },
+    },
   });
-  
-  // 결과에 "로그인하세요."라는 문자열이 포함되어야 합니다.
+
+  // 결과에 "로그아웃 상태입니다."가 포함되어 있는지 확인
 });
 ```
 
@@ -390,32 +419,36 @@ test("User is out", async () => {
 container.renderToString(Endpoint, { routeType: "endpoint" });
 ```
 
-```js file="endpoint.test.js"
+```js title="tests/endpoint.test.js"
+import { experimental_AstroContainer } from "astro/container";
 import * as Endpoint from "../src/pages/api/endpoint.js";
 
-const response = await container.renderToResponse(Endpoint, { 
-  routeType: "endpoint"
+const container = await experimental_AstroContainer.create();
+const response = await container.renderToResponse(Endpoint, {
+  routeType: "endpoint",
 });
 const json = await response.json();
 ```
 
 `POST`, `PATCH` 등 메서드에 대한 엔드포인트 테스트를 수행하려면 `request` 옵션을 사용하여 올바른 함수를 호출해야 합니다.
 
-```js file="endpoint.js"
+```js title="src/pages/api/endpoint.js"
 export function GET() {}
 
-// 이 코드를 테스트해야 합니다.
+// 테스트가 필요합니다.
 export function POST() {}
 ```
 
-```js file="endpoint.test.js" ins={5-7}
+```js title="tests/endpoint.test.js" ins={7-9}
+import { experimental_AstroContainer } from "astro/container";
 import * as Endpoint from "../src/pages/api/endpoint.js";
 
-const response = await container.renderToResponse(Endpoint, { 
-    routeType: "endpoint",
-    request: new Request("https://example.com", {
-      method: "POST" // 테스트를 위해 POST 메서드를 지정합니다.
-    })
+const container = await experimental_AstroContainer.create();
+const response = await container.renderToResponse(Endpoint, {
+  routeType: "endpoint",
+  request: new Request("https://example.com", {
+    method: "POST", // 테스트를 위해 POST 메서드 지정
+  }),
 });
 const json = await response.json();
 ```
@@ -433,11 +466,13 @@ const json = await response.json();
 
 `<!DOCTYPE html>`을 포함한 전체 Astro 페이지로 컴포넌트를 렌더링하려면 `partial`을 `false`로 설정하여 이 동작을 비활성화할 수 있습니다.
 
-```js name="Card.test.js" ins={4}
+```js title="tests/Blog.test.js" ins={6}
+import { experimental_AstroContainer } from "astro/container";
 import Blog from "../src/pages/Blog.astro";
 
-const result = await container.renderToString(Card, {
-    partial: false 
+const container = await experimental_AstroContainer.create();
+const result = await container.renderToString(Blog, {
+  partial: false,
 });
-console.log(result) // HTML의 시작 부분에 `<!DOCTYPE html>`를 포함합니다.
+console.log(result); // HTML 시작 부분에 `<!DOCTYPE html>`이 포함됩니다.
 ```
