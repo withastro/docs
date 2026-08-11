@@ -65,6 +65,7 @@ Pour créer votre propre service local, vous pouvez pointer vers le [point de te
 
 ```ts
 import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
+import { mySuperLibraryThatEncodesImages } from "@example/ma-super-bibliotheque";
 
 const service: LocalImageService<AstroConfig["image"]> = {
   getURL(options: ImageTransform, imageConfig) {
@@ -135,22 +136,44 @@ Pour accéder à la configuration du service d'image ([`image.service.config`](/
 
 ```ts title="src/api/mon_point_de_terminaison_personnalise_qui_transforme_les_images.ts"
 import type { APIRoute } from "astro";
-import { getConfiguredImageService, imageConfig } from 'astro:assets';
+import { isLocalService } from "astro/assets";
+import { getConfiguredImageService, imageConfig } from "astro:assets";
+import * as mime from "mrmime";
+import { getImageBuffer } from "./mon-recuperateur-d-images-personnalise.js";
 
 export const GET: APIRoute = async ({ request }) => {
   const imageService = await getConfiguredImageService();
 
-  const imageTransform = imageService.parseURL(new URL(request.url), imageConfig);
-  // ... récupère l'image à partir de imageTransform.src et la stocke dans inputBuffer
-  const { data, format } = await imageService.transform(inputBuffer, imageTransform, imageConfig);
-  return new Response(data, {
-			status: 200,
-			headers: {
-				'Content-Type': mime.getType(format) || ''
-      }
-    }
+  if (!isLocalService(imageService)) {
+    return new Response(
+      "Ce point de terminaison ne fonctionne qu'avec un service d'images local.",
+      { status: 400 },
+    );
+  }
+
+  const imageTransform = await imageService.parseURL(
+    new URL(request.url),
+    imageConfig,
   );
-}
+
+  if (!imageTransform) {
+    return new Response("URL d'image invalide.", { status: 400 });
+  }
+
+  // ... récupère l'image à partir de imageTransform.src et la stocke dans inputBuffer
+  const inputBuffer = await getImageBuffer(imageTransform.src);
+  const { data, format } = await imageService.transform(
+    inputBuffer,
+    imageTransform,
+    imageConfig,
+  );
+  return new Response(new Uint8Array(data), {
+    status: 200,
+    headers: {
+      "Content-Type": mime.lookup(format) || "",
+    },
+  });
+};
 ```
 
 [Voir le point de terminaison intégré](https://github.com/withastro/astro/blob/main/packages/astro/src/assets/endpoint/generic.ts) pour un exemple complet.
