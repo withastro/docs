@@ -159,33 +159,44 @@ Defines a function that removes session data by key.
 
 ## Unstorage compatibility
 
-Unstorage driver types are compatible with Astro's `SessionDriver` type.
+You can use an [unstorage](https://unstorage.unjs.io/) package export as a session driver [entrypoint](#entrypoint). For example:
 
-That means you can use an unstorage package export as an [entrypoint](#entrypoint). For example:
-
-```ts title="driver/config.ts" {5}
+```ts title="driver/config.ts" {5-7}
 import type { SessionDriverConfig } from 'astro'
 
 export function configuredRedisDriver(): SessionDriverConfig {
     return {
         entrypoint: 'unstorage/drivers/redis',
         config: {
-            tls: true
+            // Options are forwarded to the unstorage Redis driver (see its RedisOptions type)
+            ttl: 60 * 60 * 24 * 7, // 7 days
         }
     }
 }
 ```
 
-Alternatively, you can import and use an unstorage driver directly in the implementation. For example:
+Alternatively, you can import an unstorage driver in the implementation and adapt it to Astro's `SessionDriver` interface. For example:
 
-```ts title="driver/runtime.ts" {2}
+```ts title="driver/runtime.ts"
 import type { SessionDriver } from 'astro'
-import redisDriver from "unstorage/drivers/redis";
+import redisDriver, { type RedisOptions } from 'unstorage/drivers/redis'
 
-export default function(config): SessionDriver {
-    return redisDriver({
+export default function (config: RedisOptions): SessionDriver {
+    const driver = redisDriver({
         ...config,
-        tls: true
+        ttl: config.ttl ?? 60 * 60 * 24 * 7, // default to 7 days
     })
+
+    return {
+        async getItem(key) {
+            return await driver.getItem(key)
+        },
+        async setItem(key, value) {
+            await driver.setItem?.(key, value, {})
+        },
+        async removeItem(key) {
+            await driver.removeItem?.(key, {})
+        },
+    }
 }
 ```
