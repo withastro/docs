@@ -116,7 +116,7 @@ Cloudflare 어댑터는 [`@cloudflare/vite-plugin`](https://developers.cloudflar
 ### `imageService`
 
 <p>
-**타입:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
+**타입:** `'passthrough' | 'cloudflare' | 'cloudflare-binding' | 'compile' | 'custom' | { build: 'compile' | 'cloudflare-binding', runtime?: 'cloudflare-binding' | 'passthrough' }`<br />
 **기본값:** `'cloudflare-binding'`
 </p>
 
@@ -128,8 +128,11 @@ Cloudflare 어댑터는 [`@cloudflare/vite-plugin`](https://developers.cloudflar
 - **`compile`:** [구성된 이미지 서비스](/ko/reference/configuration-reference/#imageservice)를 사용하거나, 이미지 서비스가 구성되지 않은 경우 내부 의존성을 조합하여 사전 렌더링 경로의 이미지를 빌드 시점에 로컬에서 변환합니다. 주문형 렌더링 페이지에서는 아무 작업도 수행하지 않는 `passthrough` 옵션이 사용됩니다.
 - **`custom`:** [구성된 이미지 서비스](/ko/reference/configuration-reference/#imageservice)(기본값: Sharp)를 사용하여 사전 렌더링 경로의 에셋을 빌드 시점에 처리합니다. 또한 런타임 이미지 처리를 위해 이미지 서비스를 번들에 포함하지만, 해당 서비스가 Cloudflare의 `workerd` 런타임과 호환되는지는 검사하지 않습니다.
 
+<p><Since v="14.2.0" pkg="@astrojs/cloudflare" /></p>
 
-이미지 서비스를 객체로 구성하여 빌드 시점 서비스와 런타임 서비스를 각각 독립적으로 설정할 수도 있습니다. 현재 빌드 시점 옵션으로는 `'compile'`만 사용할 수 있습니다. 지원되는 런타임 옵션은 `'passthrough'` (기본값) 및 `'cloudflare-binding'`입니다.
+이미지 서비스를 객체로 구성하여 빌드 시점 서비스(`compile` 또는 `cloudflare-binding`)와 선택적으로 런타임 서비스(`passthrough` 또는 `cloudflare-binding`)를 지정할 수도 있습니다.
+
+런타임 서비스를 지정하지 않으면 빌드 시점 서비스에 따라 기본 런타임 서비스가 선택됩니다. `build: 'compile'`에는 `'passthrough'`가, `build: 'cloudflare-binding'`에는 `'cloudflare-binding'`이 기본값으로 사용됩니다.
 
 ```js title="astro.config.mjs" ins={6}
 import { defineConfig } from 'astro/config';
@@ -138,6 +141,21 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   adapter: cloudflare({
     imageService: { build: 'compile', runtime: 'cloudflare-binding' }
+  }),
+});
+```
+
+`imageService: 'cloudflare-binding'`을 사용하면 런타임에만 [Cloudflare Images 바인딩](https://developers.cloudflare.com/images/transform-images/bindings/)으로 이미지를 최적화할 수 있습니다.
+
+`workerd`에서 사전 렌더링하는 동안에도 바인딩을 사용해 빌드 시점 이미지 최적화를 수행하려면 `build`를 `'cloudflare-binding'`으로 설정하세요. 바인딩이 빌드 시점에 이미지를 변환하지 못하면 어댑터는 [구성된 이미지 서비스](/ko/reference/configuration-reference/#imageservice)(기본값: Sharp)로 대체합니다.
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+
+export default defineConfig({
+  adapter: cloudflare({
+    imageService: { build: 'cloudflare-binding', runtime: 'cloudflare-binding' }
   }),
 });
 ```
@@ -352,6 +370,8 @@ const cart = await Astro.session?.get('cart');
 ```
 
 기본적으로 KV 바인딩 이름은 `SESSION`입니다. 다른 이름을 사용하려면 어댑터 구성에서 [`sessionKVBindingName`](#sessionkvbindingname) 옵션을 설정하세요.
+
+프로젝트에서 세션을 사용하지 않는 경우 Astro 구성에서 [`session: false`](/ko/guides/sessions/#세션-비활성화)를 설정할 수 있습니다. 어댑터는 KV 바인딩을 구성하지 않으며, 배포 시 KV 네임스페이스도 프로비저닝하지 않습니다. 또한 세션 런타임이 Worker 번들에서 제외됩니다.
 
 :::note
 Cloudflare KV에 대한 쓰기는 리전 간에 [결과적 일관성](https://developers.cloudflare.com/kv/concepts/how-kv-works/#consistency)을 갖습니다. 즉, 동일한 리전 내에서는 변경 사항을 즉시 사용할 수 있지만 전 세계적으로 전파되는 데 최대 60초가 걸릴 수 있습니다. 대부분의 사용자는 요청 사이에 리전을 전환할 가능성이 낮으므로 영향을 받지 않지만, VPN 사용자 등 일부 사용 사례에서는 고려 사항이 될 수 있습니다.
