@@ -140,11 +140,14 @@ Markdown 엔트리의 렌더링을 페이지에서 실제로 렌더링될 때까
 `deferRender`가 `true`이면 `.mdx` 파일에서 이미 사용하는 것과 동일한 온디맨드 렌더링 방식을 사용하여, 각 엔트리가 페이지에서 실제로 렌더링될 때까지 렌더링을 미룹니다. 이렇게 하면 `astro build` 중 메모리 사용량을 일정하게 유지할 수 있지만, 렌더링된 HTML은 더 이상 데이터 저장소에 캐시되지 않습니다.
 
 ```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+
 const docs = defineCollection({
   /* 빌드 중 메모리 부족을 방지하기 위해 대규모 Markdown 컬렉션의 렌더링을 지연합니다. */
   loader: glob({
-    pattern: '**/*.md',
-    base: './src/data/docs',
+    pattern: "**/*.md",
+    base: "./src/data/docs",
     deferRender: true,
   }),
 });
@@ -314,7 +317,7 @@ const countries = defineCollection({
     const data = await response.json();
     // 반드시 id 속성을 가진 엔트리 배열을 반환하거나
     // ID를 키로 하고 엔트리를 값으로 하는 객체를 반환해야 합니다.
-    return data.map((country) => ({
+    return data.map((country: any) => ({
       id: country.cca3,
       ...country,
     }));
@@ -451,21 +454,25 @@ Astro는 라이브 로더의 응답에 따라 자체적으로 몇 가지 에러�
 - 컬렉션에 스키마가 정의되어 있고 데이터가 스키마와 일치하지 않으면 Astro는 `LiveCollectionValidationError`를 반환합니다.
 - 로더가 유효하지 않은 캐시 힌트를 반환하면 Astro는 `LiveCollectionCacheHintError`를 반환합니다. `cacheHint` 필드는 선택 사항이므로 반환할 유효한 데이터가 없는 경우 간단히 생략할 수 있습니다.
 
-```ts title="my-loader.ts" {10-12}
-import type { LiveLoader } from 'astro:loaders';
+```ts title="my-loader.ts" {11-14}
+import type { LiveLoader } from "astro/loaders";
 import type { MyData } from "./types";
-import { MyLoaderError } from './errors';
+import { MyLoaderError } from "./errors";
 
-export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<MyData, never, never, MyLoaderError> {
   return {
-    name: 'my-loader',
+    name: "my-loader",
     loadCollection: async () => {
       // 사용자 정의 에러 타입 반환
       return {
-        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+        error: new MyLoaderError("Failed to load", "LOAD_ERROR"),
       };
     },
-    // ...
+    loadEntry: async () => {
+      // ...
+    },
   };
 }
 ```
@@ -475,33 +482,40 @@ export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError
 [로더에서 반환되는 에러](#라이브-로더에서의-에러-처리)를 위해 사용자 정의 에러 타입을 만들고, 적절한 타이핑을 얻기 위해 제네릭으로 전달할 수 있습니다:
 
 ```ts title="my-loader.ts"
-import type { LiveLoader } from "astro:loaders";
-import type { MyData } from "./types"
+import type { LiveLoader } from "astro/loaders";
+import type { MyData } from "./types";
 
 export class MyLoaderError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string,
+  ) {
     super(message);
-    this.name = 'MyLoaderError';
+    this.name = "MyLoaderError";
   }
 }
 
-export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<MyData, never, never, MyLoaderError> {
   return {
-    name: 'my-loader',
+    name: "my-loader",
     loadCollection: async () => {
       // 사용자 정의 에러 타입 반환
       return {
-        error: new MyLoaderError('Failed to load', 'LOAD_ERROR'),
+        error: new MyLoaderError("Failed to load", "LOAD_ERROR"),
       };
     },
-    // ...
+    loadEntry: async () => {
+      // ...
+    },
   };
 }
 ```
 
 `getLiveCollection()` 또는 `getLiveEntry()`를 사용할 때 TypeScript는 사용자 정의 에러 타입을 유추하므로 이를 적절하게 처리할 수 있습니다:
 
-```astro
+```astro title="src/pages/store.astro"
 ---
 export const prerender = false; // 'server' 모드에서는 필요 없음
 
@@ -592,13 +606,23 @@ export function productLoader(config: {
 라이브 로더는 응답 캐싱을 돕기 위해 캐시 힌트를 제공할 수 있습니다. 이 데이터를 사용하여 HTTP 캐시 헤더를 보내거나 캐싱 전략에 정보를 제공할 수 있습니다.
 
 ```ts title="my-loader.ts"
-import type { LiveLoader } from "astro:loaders";
-import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
-import type { Product, ProductEntryFilter, ProductCollectionFilter } from "./types";
+import type { LiveLoader } from "astro/loaders";
+import {
+  loadStoreProduct,
+  loadStoreProducts,
+  getLastModifiedDate,
+} from "./store";
+import type {
+  Product,
+  ProductEntryFilter,
+  ProductCollectionFilter,
+} from "./types";
 
-export function myLoader(config): LiveLoader<Product, ProductEntryFilter, ProductCollectionFilter> {
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<Product, ProductEntryFilter, ProductCollectionFilter> {
   return {
-    name: 'cached-loader',
+    name: "cached-loader",
     loadCollection: async ({ filter }) => {
       const products = await loadStoreProducts(filter);
       return {
@@ -615,7 +639,7 @@ export function myLoader(config): LiveLoader<Product, ProductEntryFilter, Produc
           // tags는 모든 엔트리에서 병합됩니다.
           // lastModified는 모든 엔트리와 컬렉션 중 가장 최근의 lastModified입니다.
           lastModified: getLastModifiedDate(products),
-          tags: ['products'],
+          tags: ["products"],
         },
       };
     },
@@ -764,12 +788,11 @@ if (cacheHint?.lastModified) {
 
 반환된 `types` 내용은 TypeScript 파일에 기록되며, 반드시 `Entry` 타입 또는 인터페이스를 내보내야 합니다:
 
-```ts title="src/feed-loader.ts" ins={27-35}
-import type { Loader } from 'astro:loaders';
-import { z } from 'astro:zod';
+```ts title="src/feed-loader.ts" ins={26-34}
+import type { Loader } from "astro/loaders";
 import { loadFeedData, getSchema, getTypes } from "./feed.js";
 
-export function myLoader(options: { url: string, apiKey: string }) {
+export function myLoader(options: { url: string; apiKey: string }) {
   const feedUrl = new URL(options.url);
 
   return {
@@ -796,8 +819,8 @@ export function myLoader(options: { url: string, apiKey: string }) {
       const types = await getTypes();
 
       return {
-       schema,
-       types: `export type Entry = ${types}`,
+        schema,
+        types: `export type Entry = ${types}`,
       };
     },
   } satisfies Loader;
@@ -854,22 +877,28 @@ meta.set("lastModified", new Date().toISOString());
 
 콘솔에 메시지를 로깅하는 데 사용할 수 있는 로거입니다. `console.log` 대신 이를 사용하면 로그 메시지에 로더 이름이나 로딩 프로세스에 대한 정보와 같은 로더 관련 콘텐츠가 포함되어 더 유용한 로그를 제공할 수 있습니다. 자세한 내용은 [`AstroIntegrationLogger`](/ko/reference/integrations-reference/#astrointegrationlogger)를 참조하세요.
 
-```ts title="file() 로더의 추출 예시" {10} "logger"
-return {
-  name: 'file-loader',
-  load: async ({ config, store, logger, watcher }) => {
-    const url = new URL(fileName, config.root);
-    const filePath = fileURLToPath(url);
-    await syncData(filePath, store);
+```ts title="file() 로더의 추출 예시" {15} "logger"
+import type { Loader } from "astro/loaders";
+import { fileURLToPath } from "node:url";
+import { syncData } from "./helpers";
 
-    watcher?.on('change', async (changedPath) => {
-      if (changedPath === filePath) {
-        logger.info(`Reloading data from ${fileName}`);
-        await syncData(filePath, store);
-      }
-    });
-  },
-};
+export function file(fileName: string) {
+  return {
+    name: "file-loader",
+    load: async ({ config, store, logger, watcher }) => {
+      const url = new URL(fileName, config.root);
+      const filePath = fileURLToPath(url);
+      await syncData(filePath, store);
+
+      watcher?.on("change", async (changedPath) => {
+        if (changedPath === filePath) {
+          logger.info(`Reloading data from ${fileName}`);
+          await syncData(filePath, store);
+        }
+      });
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `LoaderContext.config`
@@ -882,22 +911,28 @@ return {
 
 모든 기본값이 적용된 확인된 전체 Astro 구성 객체입니다. 자세한 내용은 [구성 참조](/ko/reference/configuration-reference/)를 참조하세요.
 
-```ts title="file() 로더의 추출 예시" {4} "config"
-return {
-  name: 'file-loader',
-  load: async ({ config, store, logger, watcher }) => {
-    const url = new URL(fileName, config.root);
-    const filePath = fileURLToPath(url);
-    await syncData(filePath, store);
+```ts title="file() 로더의 추출 예시" {9} "config"
+import type { Loader } from "astro/loaders";
+import { fileURLToPath } from "node:url";
+import { syncData } from "./helpers";
 
-    watcher?.on('change', async (changedPath) => {
-      if (changedPath === filePath) {
-        logger.info(`Reloading data from ${fileName}`);
-        await syncData(filePath, store);
-      }
-    });
-  },
-};
+export function file(fileName: string) {
+  return {
+    name: "file-loader",
+    load: async ({ config, store, logger, watcher }) => {
+      const url = new URL(fileName, config.root);
+      const filePath = fileURLToPath(url);
+      await syncData(filePath, store);
+
+      watcher?.on("change", async (changedPath) => {
+        if (changedPath === filePath) {
+          logger.info(`Reloading data from ${fileName}`);
+          await syncData(filePath, store);
+        }
+      });
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `LoaderContext.parseData()`
@@ -914,11 +949,11 @@ return {
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }) {
+export function feedLoader({ url }: { url: string }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
-    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+    load: async ({ store, logger, parseData }) => {
       logger.info("Loading posts");
       const feed = loadFeed(feedUrl);
       store.clear();
@@ -954,14 +989,14 @@ Markdown 문자열을 HTML로 렌더링하여 `RenderedContent` 객체를 반환
 사용자가 [페이지에서 콘텐츠를 렌더링](/ko/guides/content-collections/#본문-콘텐츠-렌더링하기)할 수 있도록 이 객체를 [DataEntry](#dataentry) 객체의 [rendered](#dataentryrendered) 필드에 할당하세요. Markdown 콘텐츠에 프론트매터가 포함된 경우 파싱되어 `metadata.frontmatter`에서 사용할 수 있습니다. 프론트매터는 HTML 출력에서 제외됩니다.
 
 ```ts title=loader.ts {16-17}
-import type { Loader } from 'astro:loaders';
-import { loadFromCMS } from './cms.js';
+import type { Loader } from "astro/loaders";
+import { loadFromCMS } from "./cms.js";
 
-export function myLoader(settings) {
+export function myLoader(settings: { apiKey: string }) {
   return {
-    name: 'cms-loader',
+    name: "cms-loader",
     async load({ renderMarkdown, store }) {
-      const entries = await loadFromCMS();
+      const entries = await loadFromCMS(settings.apiKey);
 
       store.clear();
 
@@ -990,16 +1025,31 @@ Markdown 콘텐츠에서 상대 이미지 경로를 해석하는 데 사용할 �
 
 다음 예시는 [구성된 루트 디렉터리](/ko/reference/configuration-reference/#root)를 사용하여 이미지 경로를 해석합니다:
 
-```ts title=loader.ts {7}
-for (const file of files) {
-  const content = await readFile(file.path, 'utf8');
-  store.set({
-    id: file.id,
-    data: file.data,
-    rendered: await renderMarkdown(content, {
-      fileURL: new URL(file.path, config.root),
-    }),
-  });
+```ts title=loader.ts {19}
+import type { Loader } from "astro/loaders";
+import { readFile } from "node:fs/promises";
+import { loadLocalMarkdown } from "./helpers";
+
+export function myLoader() {
+  return {
+    name: "custom-loader",
+    async load({ config, renderMarkdown, store }) {
+      const files = await loadLocalMarkdown();
+
+      store.clear();
+
+      for (const file of files) {
+        const content = await readFile(file.path, "utf8");
+        store.set({
+          id: file.id,
+          data: file.data,
+          rendered: await renderMarkdown(content, {
+            fileURL: new URL(file.path, config.root),
+          }),
+        });
+      }
+    },
+  } satisfies Loader;
 }
 ```
 
@@ -1014,14 +1064,14 @@ for (const file of files) {
 객체나 문자열의 비암호화 콘텐츠 다이제스트를 생성합니다. 이는 엔트리의 [`digest` 필드](#dataentrydigest)를 설정하여 데이터가 변경되었는지 추적하는 데 사용할 수 있습니다.
 
 ```ts title=loader.ts {20,25}
-import type { Loader } from "astro:loaders";
+import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }) {
+export function feedLoader({ url }: { url: string }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
-    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+    load: async ({ store, logger, parseData, generateDigest }) => {
       logger.info("Loading posts");
       const feed = loadFeed(feedUrl);
       store.clear();
@@ -1056,22 +1106,28 @@ export function feedLoader({ url }) {
 
 개발 모드에서 실행 중일 때 업데이트를 트리거하는 데 사용할 수 있는 파일 시스템 감시자(watcher)입니다. 자세한 내용은 [`ViteDevServer`](https://ko.vite.dev/guide/api-javascript.html#vitedevserver)를 참조하세요.
 
-```ts title="file() 로더의 추출 예시" {8-13}
-return {
-  name: 'file-loader',
-  load: async ({ config, store, watcher }) => {
-    const url = new URL(fileName, config.root);
-    const filePath = fileURLToPath(url);
-    await syncData(filePath, store);
+```ts title="file() 로더의 추출 예시" {13-18}
+import type { Loader } from "astro/loaders";
+import { fileURLToPath } from "node:url";
+import { syncData } from "./helpers";
 
-    watcher?.on('change', async (changedPath) => {
-      if (changedPath === filePath) {
-        logger.info(`Reloading data from ${fileName}`);
-        await syncData(filePath, store);
-      }
-    });
-  },
-};
+export function file(fileName: string) {
+  return {
+    name: "file-loader",
+    load: async ({ config, logger, store, watcher }) => {
+      const url = new URL(fileName, config.root);
+      const filePath = fileURLToPath(url);
+      await syncData(filePath, store);
+
+      watcher?.on("change", async (changedPath) => {
+        if (changedPath === filePath) {
+          logger.info(`Reloading data from ${fileName}`);
+          await syncData(filePath, store);
+        }
+      });
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `LoaderContext.refreshContextData`
@@ -1132,23 +1188,38 @@ const existingEntry = store.get("my-entry");
 
 데이터가 [검증 및 파싱](#loadercontextparsedata)된 후 저장소에 엔트리를 추가하는 데 사용되며, 엔트리가 설정되면 `true`를 반환합니다. [`digest`](#dataentrydigest) 속성에 따라 엔트리가 변경되지 않았으며 업데이트되지 않아야 한다고 판단되면 `false`를 반환합니다.
 
-```ts title=loader.ts {8-15}
-    for (const item of feed.items) {
-      const id = item.guid;
-      const data = await parseData({
-        id,
-        data: item,
-      });
-      const digest = generateDigest(data);
-      store.set({
-        id,
-        data,
-        rendered: {
-          html: data.description ?? "",
-        },
-        digest,
-      });
-    }
+```ts title=loader.ts {20-27}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }: { url: string }) {
+  const feedUrl = new URL(url);
+  return {
+    name: "feed-loader",
+    load: async ({ store, logger, parseData, generateDigest }) => {
+      logger.info("Loading posts");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        const digest = generateDigest(data);
+        store.set({
+          id,
+          data,
+          rendered: {
+            html: data.description ?? "",
+          },
+          digest,
+        });
+      }
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `DataStore.entries()`
@@ -1330,7 +1401,7 @@ ID로 저장소에 엔트리가 존재하는지 확인합니다.
 **타입:** `Record<string, any>`
 </p>
 
-파일에서 파싱된 원본 프론트매터를 설명합니다. 여기에는 [Markdown 플러그인에서 프로그래밍 방식으로 주입된 데이터](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기)가 포함될 수 있습니다.
+파일에서 파싱된 원본 프론트매터를 설명합니다. 여기에는 [Markdown 프로세서 플러그인에서 프로그래밍 방식으로 주입된 데이터](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기)가 포함될 수 있습니다.
 
 ## 라이브 로더 API
 
@@ -1535,13 +1606,30 @@ ID로 저장소에 엔트리가 존재하는지 확인합니다.
 
 다음 예시는 작성자별로 필터링된 포스트 컬렉션에 대해 캐시 힌트 태그를 정의합니다:
 
-```ts
-return {
-  /* ... */
-  cacheHint: {
-    tags: ["posts", `posts-${filter.author}`],
-  },
-};
+```ts title="src/cms-loader.ts" collapse={1-4, 19-21} {14-16}
+import type { LiveLoader } from "astro/loaders";
+import { loadRemotePosts } from "./cms";
+import type { Post, PostEntryFilter, PostCollectionFilter } from "./types";
+
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<Post, PostEntryFilter, PostCollectionFilter> {
+  return {
+    name: "cms-loader",
+    loadCollection: async ({ filter }) => {
+      const posts = await loadRemotePosts(config.apiKey, filter);
+      return {
+        entries: posts,
+        cacheHint: {
+          tags: ["posts", `posts-${filter.author}`],
+        },
+      };
+    },
+    loadEntry: async () => {
+      /* ... */
+    },
+  };
+}
 ```
 
 #### `CacheHint.lastModified`
@@ -1556,11 +1644,38 @@ return {
 
 다음 예시는 제품의 최근 업데이트 날짜를 사용하여 단일 제품에 대한 캐시 힌트를 정의합니다:
 
-```ts
-return {
-  /* ... */
-  cacheHint: {
-    lastModified: new Date(product.updatedAt)
-  },
-};
+```ts title="src/store-loader.ts" collapse={1-8, 15-21} {27-29}
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts } from "./store";
+import type {
+  Product,
+  ProductEntryFilter,
+  ProductCollectionFilter,
+} from "./types";
+
+export function myLoader(): LiveLoader<
+  Product,
+  ProductEntryFilter,
+  ProductCollectionFilter
+> {
+  return {
+    name: "store-loader",
+    loadCollection: async ({ filter }) => {
+      const products = await loadStoreProducts(filter);
+      return {
+        entries: products,
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      const product = await loadStoreProduct(filter);
+      return {
+        id: product.id,
+        data: product,
+        cacheHint: {
+          lastModified: new Date(product.updatedAt),
+        },
+      };
+    },
+  };
+}
 ```
