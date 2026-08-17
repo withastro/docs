@@ -140,11 +140,14 @@ Par défaut, le chargeur `glob()` effectue le rendu de chaque entrée Markdown l
 Lorsque `deferRender` est définie sur `true`, le rendu est différé jusqu'à ce que chaque entrée soit effectivement affichée sur une page, en utilisant le même mécanisme de rendu à la demande que celui déjà employé par les fichiers `.mdx`. Cela permet de limiter l'utilisation de la mémoire pendant la commande `astro build`, au prix du fait que le HTML rendu n'est plus mis en cache dans le magasin de données.
 
 ```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { glob } from "astro/loaders";
+
 const docs = defineCollection({
   /* Différer le rendu d'une grande collection Markdown pour éviter une saturation de la mémoire pendant la compilation. */
   loader: glob({
-    pattern: '**/*.md',
-    base: './src/data/docs',
+    pattern: "**/*.md",
+    base: "./src/data/docs",
     deferRender: true,
   }),
 });
@@ -315,7 +318,7 @@ const countries = defineCollection({
     const data = await response.json();
     // Doit renvoyer un tableau d'entrées avec une propriété id
     // ou un objet dont les noms de propriétés sont les identifiants et les valeurs les entrées
-    return data.map((country) => ({
+    return data.map((country: any) => ({
       id: country.cca3,
       ...country,
     }));
@@ -452,21 +455,25 @@ Astro générera lui-même certaines erreurs, en fonction de la réponse du char
 - Si un schéma est défini pour la collection et que les données ne correspondent pas au schéma, Astro renverra une erreur `LiveCollectionValidationError`.
 - Si le chargeur renvoie une indication de cache invalide, Astro renverra une exception `LiveCollectionCacheHintError`. Le champ `cacheHint` est facultatif ; si vous n'avez pas de données valides à renvoyer, vous pouvez simplement l'omettre.
 
-```ts title="mon-chargeur.ts" {10-12}
-import type { LiveLoader } from 'astro/loaders';
+```ts title="mon-chargeur.ts" {11-14}
+import type { LiveLoader } from "astro/loaders";
 import type { MyData } from "./types";
-import { MyLoaderError } from './errors';
+import { MyLoaderError } from "./errors";
 
-export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<MyData, never, never, MyLoaderError> {
   return {
-    name: 'mon-chargeur',
+    name: "mon-chargeur",
     loadCollection: async () => {
       // Renvoyer votre type d'erreur personnalisé
       return {
-        error: new MyLoaderError('Échec du chargement', 'LOAD_ERROR'),
+        error: new MyLoaderError("Échec du chargement", "LOAD_ERROR"),
       };
     },
-    // ...
+    loadEntry: async () => {
+      // ...
+    },
   };
 }
 ```
@@ -477,39 +484,46 @@ Vous pouvez créer des types d'erreurs personnalisés pour les [erreurs renvoyé
 
 ```ts title="mon-chargeur.ts"
 import type { LiveLoader } from "astro/loaders";
-import type { MyData } from "./types"
+import type { MyData } from "./types";
 
 export class MyLoaderError extends Error {
-  constructor(message: string, public code?: string) {
+  constructor(
+    message: string,
+    public code?: string,
+  ) {
     super(message);
-    this.name = 'MyLoaderError';
+    this.name = "MyLoaderError";
   }
 }
 
-export function myLoader(config): LiveLoader<MyData, never, never, MyLoaderError> {
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<MyData, never, never, MyLoaderError> {
   return {
-    name: 'mon-chargeur',
+    name: "mon-chargeur",
     loadCollection: async () => {
       // Renvoyer votre type d'erreur personnalisé
       return {
-        error: new MyLoaderError('Échec du chargement', 'LOAD_ERROR'),
+        error: new MyLoaderError("Échec du chargement", "LOAD_ERROR"),
       };
     },
-    // ...
+    loadEntry: async () => {
+      // ...
+    },
   };
 }
 ```
 
 Lorsque vous utilisez `getLiveCollection()` ou `getLiveEntry()`, TypeScript déduira le type d'erreur personnalisé, vous permettant ainsi de gérer l'erreur de manière appropriée :
 
-```astro
+```astro title="src/pages/boutique.astro"
 ---
 export const prerender = false; // Pas nécessaire en mode `server`
 
 import { getLiveEntry } from 'astro:content';
-import { MyLoaderError } from "../my-loader";
+import { MyLoaderError } from "../mon-chargeur";
 
-const { entry, error } = await getLiveEntry('products', '123');
+const { entry, error } = await getLiveEntry('produits', '123');
 
 if (error) {
   if (error instanceof MyLoaderError) {
@@ -594,12 +608,22 @@ Les chargeurs en direct peuvent fournir des indications de cache pour faciliter 
 
 ```ts title="mon-chargeur.ts"
 import type { LiveLoader } from "astro/loaders";
-import { loadStoreProduct, loadStoreProducts, getLastModifiedDate } from "./store";
-import type { Product, ProductEntryFilter, ProductCollectionFilter } from "./types";
+import {
+  loadStoreProduct,
+  loadStoreProducts,
+  getLastModifiedDate,
+} from "./store";
+import type {
+  Product,
+  ProductEntryFilter,
+  ProductCollectionFilter,
+} from "./types";
 
-export function myLoader(config): LiveLoader<Product, ProductEntryFilter, ProductCollectionFilter> {
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<Product, ProductEntryFilter, ProductCollectionFilter> {
   return {
-    name: 'cached-loader',
+    name: "chargeur-mis-en-cache",
     loadCollection: async ({ filter }) => {
       const products = await loadStoreProducts(filter);
       return {
@@ -616,7 +640,7 @@ export function myLoader(config): LiveLoader<Product, ProductEntryFilter, Produc
           // Les étiquettes (`tags`) sont fusionnées à partir de toutes les entrées
           // `lastModified` est la dernière valeur de `lastModified` dans toutes les entrées et dans la collection
           lastModified: getLastModifiedDate(products),
-          tags: ['produits'],
+          tags: ["produits"],
         },
       };
     },
@@ -765,16 +789,15 @@ Si elle est présente, elle sera remplacée par tout schéma Zod défini pour la
 
 Le contenu de `types` renvoyé sera écrit dans un fichier TypeScript et devra exporter un type ou une interface `Entry` :
 
-```ts title="src/feed-loader.ts" ins={27-35}
-import type { Loader } from 'astro/loaders';
-import { z } from 'astro/zod';
+```ts title="src/chargeur-de-flux.ts" ins={27-35}
+import type { Loader } from "astro/loaders";
 import { loadFeedData, getSchema, getTypes } from "./feed.js";
 
-export function myLoader(options: { url: string, apiKey: string }) {
+export function myLoader(options: { url: string; apiKey: string }) {
   const feedUrl = new URL(options.url);
 
   return {
-    name: "feed-loader",
+    name: "chargeur-de-flux",
     load: async ({ store, parseData }) => {
       const feed = await loadFeedData(feedUrl, options.apiKey);
 
@@ -797,8 +820,8 @@ export function myLoader(options: { url: string, apiKey: string }) {
       const types = await getTypes();
 
       return {
-      	schema,
-      	types: `export type Entry = ${types}`,
+        schema,
+        types: `export type Entry = ${types}`,
       };
     },
   } satisfies Loader;
@@ -855,22 +878,28 @@ meta.set("lastModified", new Date().toISOString());
 
 Un outil de journalisation permettant d'enregistrer des messages dans la console. Utilisez-le plutôt que `console.log` pour obtenir des journaux plus détaillés contenant des informations spécifiques au chargeur, comme son nom ou des détails sur le processus de chargement. Consultez [`AstroIntegrationLogger`](/fr/reference/integrations-reference/#astrointegrationlogger) pour plus d'informations.
 
-```ts title="Extrait du chargeur file()" {10} "logger"
-return {
-  name: 'file-loader',
-  load: async ({ config, store, logger, watcher }) => {
-    const url = new URL(fileName, config.root);
-    const filePath = fileURLToPath(url);
-    await syncData(filePath, store);
+```ts title="Extrait du chargeur file()" {15} "logger"
+import type { Loader } from "astro/loaders";
+import { fileURLToPath } from "node:url";
+import { syncData } from "./helpers";
 
-    watcher?.on('change', async (changedPath) => {
-      if (changedPath === filePath) {
-        logger.info(`Reloading data from ${fileName}`);
-        await syncData(filePath, store);
-      }
-    });
-  },
-};
+export function file(fileName: string) {
+  return {
+    name: "file-loader",
+    load: async ({ config, store, logger, watcher }) => {
+      const url = new URL(fileName, config.root);
+      const filePath = fileURLToPath(url);
+      await syncData(filePath, store);
+
+      watcher?.on("change", async (changedPath) => {
+        if (changedPath === filePath) {
+          logger.info(`Reloading data from ${fileName}`);
+          await syncData(filePath, store);
+        }
+      });
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `LoaderContext.config`
@@ -883,22 +912,28 @@ return {
 
 L'objet de configuration d'Astro complet et résolu avec toutes les valeurs par défaut appliquées. Consultez [la référence de configuration](/fr/reference/configuration-reference/) pour plus d'informations.
 
-```ts title="Extrait du chargeur file()" {4} "config"
-return {
-  name: 'file-loader',
-  load: async ({ config, store, logger, watcher }) => {
-    const url = new URL(fileName, config.root);
-    const filePath = fileURLToPath(url);
-    await syncData(filePath, store);
+```ts title="Extrait du chargeur file()" {9} "config"
+import type { Loader } from "astro/loaders";
+import { fileURLToPath } from "node:url";
+import { syncData } from "./helpers";
 
-    watcher?.on('change', async (changedPath) => {
-      if (changedPath === filePath) {
-        logger.info(`Reloading data from ${fileName}`);
-        await syncData(filePath, store);
-      }
-    });
-  },
-};
+export function file(fileName: string) {
+  return {
+    name: "file-loader",
+    load: async ({ config, store, logger, watcher }) => {
+      const url = new URL(fileName, config.root);
+      const filePath = fileURLToPath(url);
+      await syncData(filePath, store);
+
+      watcher?.on("change", async (changedPath) => {
+        if (changedPath === filePath) {
+          logger.info(`Reloading data from ${fileName}`);
+          await syncData(filePath, store);
+        }
+      });
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `LoaderContext.parseData()`
@@ -915,11 +950,11 @@ Valide et analyse les données conformément au schéma de la collection. Transm
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }) {
+export function feedLoader({ url }: { url: string }) {
   const feedUrl = new URL(url);
   return {
     name: "feed-loader",
-    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+    load: async ({ store, logger, parseData }) => {
       logger.info("Chargement des articles");
       const feed = loadFeed(feedUrl);
       store.clear();
@@ -955,14 +990,14 @@ Cela vous permet de restituer le contenu Markdown directement dans vos chargeurs
 Attribuez cet objet au champ [`rendered`](#dataentryrendered) de l'objet [`DataEntry`](#dataentry) pour permettre aux utilisateurs d'[afficher le contenu dans une page](/fr/guides/content-collections/#restitution-du-contenu). Si le contenu Markdown inclut un frontmatter, celui-ci sera analysé et disponible dans `metadata.frontmatter`. Les métadonnées seront exclues du rendu HTML.
 
 ```ts title=loader.ts {16-17}
-import type { Loader } from 'astro/loaders';
-import { loadFromCMS } from './cms.js';
+import type { Loader } from "astro/loaders";
+import { loadFromCMS } from "./cms.js";
 
-export function myLoader(settings) {
+export function myLoader(settings: { apiKey: string }) {
   return {
-    name: 'cms-loader',
+    name: "chargeur-cms",
     async load({ renderMarkdown, store }) {
-      const entries = await loadFromCMS();
+      const entries = await loadFromCMS(settings.apiKey);
 
       store.clear();
 
@@ -991,16 +1026,31 @@ Spécifie le chemin d'accès vers le fichier à utiliser pour résoudre les chem
 
 L'exemple suivant utilise le [répertoire racine configuré](/fr/reference/configuration-reference/#root) pour résoudre les chemins d'accès aux images :
 
-```ts title=loader.ts {7}
-for (const file of files) {
-  const content = await readFile(file.path, 'utf8');
-  store.set({
-    id: file.id,
-    data: file.data,
-    rendered: await renderMarkdown(content, {
-      fileURL: new URL(file.path, config.root),
-    }),
-  });
+```ts title=loader.ts {19}
+import type { Loader } from "astro/loaders";
+import { readFile } from "node:fs/promises";
+import { loadLocalMarkdown } from "./helpers";
+
+export function myLoader() {
+  return {
+    name: "chargeur-personnalise",
+    async load({ config, renderMarkdown, store }) {
+      const files = await loadLocalMarkdown();
+
+      store.clear();
+
+      for (const file of files) {
+        const content = await readFile(file.path, "utf8");
+        store.set({
+          id: file.id,
+          data: file.data,
+          rendered: await renderMarkdown(content, {
+            fileURL: new URL(file.path, config.root),
+          }),
+        });
+      }
+    },
+  } satisfies Loader;
 }
 ```
 
@@ -1014,15 +1064,15 @@ for (const file of files) {
 
 Génère un résumé de contenu non cryptographique d'un objet ou d'une chaîne de caractères. Cela peut être utilisé pour suivre si les données ont changé en définissant [le champ `digest`](#dataentrydigest) d'une entrée.
 
-```ts title=loader.ts {19,24}
+```ts title=loader.ts {20,25}
 import type { Loader } from "astro/loaders";
 import { loadFeed } from "./feed.js";
 
-export function feedLoader({ url }) {
+export function feedLoader({ url }: { url: string }) {
   const feedUrl = new URL(url);
   return {
-    name: "feed-loader",
-    load: async ({ store, logger, parseData, meta, generateDigest }) => {
+    name: "chargeur-de-flux",
+    load: async ({ store, logger, parseData, generateDigest }) => {
       logger.info("Chargement des articles");
       const feed = loadFeed(feedUrl);
       store.clear();
@@ -1057,22 +1107,28 @@ export function feedLoader({ url }) {
 
 En mode dev, il s'agit d'un observateur de système de fichiers qui peut être utilisé pour déclencher des mises à jour. Voir [`ViteDevServer`](https://vite.dev/guide/api-javascript.html#vitedevserver) pour plus d'informations.
 
-```ts title="Extrait du chargeur file()" {8-13}
-return {
-  name: 'file-loader',
-  load: async ({ config, store, watcher }) => {
-    const url = new URL(fileName, config.root);
-    const filePath = fileURLToPath(url);
-    await syncData(filePath, store);
+```ts title="Extrait du chargeur file()" {13-18}
+import type { Loader } from "astro/loaders";
+import { fileURLToPath } from "node:url";
+import { syncData } from "./helpers";
 
-    watcher?.on('change', async (changedPath) => {
-      if (changedPath === filePath) {
-        logger.info(`Reloading data from ${fileName}`);
-        await syncData(filePath, store);
-      }
-    });
-  },
-};
+export function file(fileName: string) {
+  return {
+    name: "file-loader",
+    load: async ({ config, logger, store, watcher }) => {
+      const url = new URL(fileName, config.root);
+      const filePath = fileURLToPath(url);
+      await syncData(filePath, store);
+
+      watcher?.on("change", async (changedPath) => {
+        if (changedPath === filePath) {
+          logger.info(`Reloading data from ${fileName}`);
+          await syncData(filePath, store);
+        }
+      });
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `LoaderContext.refreshContextData`
@@ -1133,23 +1189,38 @@ L'objet renvoyé est un objet [`DataEntry`](#dataentry).
 
 Utilisé après que les données ont été [validées et analysées](#loadercontextparsedata) pour ajouter une entrée au magasin, renvoyant `true` si l'entrée a été définie. Renvoie `false` lorsque la propriété [`digest`](#dataentrydigest) détermine qu'une entrée n'a pas changé et ne doit pas être mise à jour.
 
-```ts title=loader.ts {8-15}
-    for (const item of feed.items) {
-      const id = item.guid;
-      const data = await parseData({
-        id,
-        data: item,
-      });
-      const digest = generateDigest(data);
-      store.set({
-        id,
-        data,
-        rendered: {
-          html: data.description ?? "",
-        },
-        digest,
-      });
-    }
+```ts title=loader.ts {20-27}
+import type { Loader } from "astro/loaders";
+import { loadFeed } from "./feed.js";
+
+export function feedLoader({ url }: { url: string }) {
+  const feedUrl = new URL(url);
+  return {
+    name: "chargeur-de-flux",
+    load: async ({ store, logger, parseData, generateDigest }) => {
+      logger.info("Chargement des articles");
+      const feed = loadFeed(feedUrl);
+      store.clear();
+
+      for (const item of feed.items) {
+        const id = item.guid;
+        const data = await parseData({
+          id,
+          data: item,
+        });
+        const digest = generateDigest(data);
+        store.set({
+          id,
+          data,
+          rendered: {
+            html: data.description ?? "",
+          },
+          digest,
+        });
+      }
+    },
+  } satisfies Loader;
+}
 ```
 
 #### `DataStore.entries()`
@@ -1331,7 +1402,7 @@ Spécifie la liste des titres présents dans ce fichier. Chaque titre est décri
 **Type :** `Record<string, any>`
 </p>
 
-Décrit le frontmatter brut, analysé à partir du fichier. Cela peut inclure [des données injectées par programmation à partir de modules d'extension pour Markdown](/fr/guides/markdown-content/#modification-programmatique-du-frontmatter).
+Décrit le frontmatter brut, analysé à partir du fichier. Cela peut inclure [des données injectées par programmation à partir de modules d'extension pour processeur Markdown](/fr/guides/markdown-content/#modification-programmatique-du-frontmatter).
 
 ## API des chargeurs en direct
 
@@ -1536,13 +1607,30 @@ Un tableau d'identifiants de chaînes de caractères permettant un contrôle pr�
 
 L'exemple suivant définit des étiquettes d'indication de cache pour une collection d'articles filtrés par auteur :
 
-```ts
-return {
-  /* ... */
-  cacheHint: {
-    tags: ["articles", `articles-${filter.author}`],
-  },
-};
+```ts title="src/cms-loader.ts" collapse={1-4, 19-21} {14-16}
+import type { LiveLoader } from "astro/loaders";
+import { loadRemotePosts } from "./cms";
+import type { Post, PostEntryFilter, PostCollectionFilter } from "./types";
+
+export function myLoader(config: {
+  apiKey: string;
+}): LiveLoader<Post, PostEntryFilter, PostCollectionFilter> {
+  return {
+    name: "chargeur-cms",
+    loadCollection: async ({ filter }) => {
+      const posts = await loadRemotePosts(config.apiKey, filter);
+      return {
+        entries: posts,
+        cacheHint: {
+          tags: ["articles", `articles-${filter.author}`],
+        },
+      };
+    },
+    loadEntry: async () => {
+      /* ... */
+    },
+  };
+}
 ```
 
 #### `CacheHint.lastModified`
@@ -1557,11 +1645,38 @@ La date de la dernière modification du contenu (par exemple, la dernière mise 
 
 L'exemple suivant définit une indication de cache pour un seul produit en utilisant sa date de dernière mise à jour :
 
-```ts
-return {
-  /* ... */
-  cacheHint: {
-    lastModified: new Date(product.updatedAt)
-  },
-};
+```ts title="src/store-loader.ts" collapse={1-8, 15-21} {27-29}
+import type { LiveLoader } from "astro/loaders";
+import { loadStoreProduct, loadStoreProducts } from "./store";
+import type {
+  Product,
+  ProductEntryFilter,
+  ProductCollectionFilter,
+} from "./types";
+
+export function myLoader(): LiveLoader<
+  Product,
+  ProductEntryFilter,
+  ProductCollectionFilter
+> {
+  return {
+    name: "chargeur-boutique",
+    loadCollection: async ({ filter }) => {
+      const products = await loadStoreProducts(filter);
+      return {
+        entries: products,
+      };
+    },
+    loadEntry: async ({ filter }) => {
+      const product = await loadStoreProduct(filter);
+      return {
+        id: product.id,
+        data: product,
+        cacheHint: {
+          lastModified: new Date(product.updatedAt),
+        },
+      };
+    },
+  };
+}
 ```
