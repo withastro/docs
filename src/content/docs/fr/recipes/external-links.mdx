@@ -1,13 +1,13 @@
 ---
 title: Ajouter des icônes aux liens externes
-description: Apprendre à installer un module d'extension rehype pour ajouter des icônes aux liens externes dans vos fichiers Markdown.
+description: Apprenez à utiliser un module d'extension pour le processeur Markdown afin d'ajouter des icônes aux liens externes dans vos fichiers Markdown.
 i18nReady: true
 type: recipe
 ---
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 
-En utilisant un module d'extension Rehype, vous pouvez identifier et modifier les liens dans vos fichiers Markdown qui pointent vers des sites externes. Cet exemple ajoute des icônes à la fin de chaque lien externe, afin que les visiteurs sachent qu'ils quittent votre site.
+En utilisant un [module d'extension hast](/fr/guides/markdown-content/#modules-dextension-pour-les-processeurs-markdown), vous pouvez identifier et modifier les liens dans vos fichiers Markdown qui pointent vers des sites externes. Cet exemple ajoute une icône à la fin de chaque lien externe, afin que les visiteurs sachent qu'ils quittent votre site.
 
 ## Prérequis
 
@@ -15,54 +15,122 @@ En utilisant un module d'extension Rehype, vous pouvez identifier et modifier le
 
 ## Méthode
 
-<Steps>
-1. Installez le module d'extension [`rehype-external-links`](https://www.npmjs.com/package/rehype-external-links) et [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark).
+<MarkdownProcessorTabs>
+  <Fragment slot="satteri">
+    <Steps>
+    1. Installez à la fois [`@astrojs/markdown-satteri`](https://www.npmjs.com/package/@astrojs/markdown-satteri) et [`satteri`](https://www.npmjs.com/package/satteri) :
 
-    <PackageManagerTabs>
-        <Fragment slot="npm">
-        ```shell
-        npm install rehype-external-links @astrojs/markdown-remark
-        ```
-        </Fragment>
-        <Fragment slot="pnpm">
-        ```shell
-        pnpm add rehype-external-links @astrojs/markdown-remark
-        ```
-        </Fragment>
-        <Fragment slot="yarn">
-        ```shell
-        yarn add rehype-external-links @astrojs/markdown-remark
-        ```
-        </Fragment>
-      </PackageManagerTabs>
+        <PackageManagerTabs>
+            <Fragment slot="npm">
+            ```shell
+            npm install @astrojs/markdown-satteri satteri
+            ```
+            </Fragment>
+            <Fragment slot="pnpm">
+            ```shell
+            pnpm add @astrojs/markdown-satteri satteri
+            ```
+            </Fragment>
+            <Fragment slot="yarn">
+            ```shell
+            yarn add @astrojs/markdown-satteri satteri
+            ```
+            </Fragment>
+          </PackageManagerTabs>
 
-2. Configurez le module d'extension dans votre fichier `astro.config.mjs`.
+    2. Créez un [module d'extension `hast` pour Sätteri](https://satteri.bruits.org/docs/plugins/#hast-plugins) qui ajoute une icône si le lien commence par `http` :
 
-    Importez `unified()` et définissez-le en tant que [processeur Markdown pour prendre en charge les modules d'extension remark](/fr/guides/markdown-content/#configurer-un-processeur-markdown). Ensuite, transmettez à `rehypePlugins` un tableau contenant votre module d'extension `rehypeExternalLinks` importé et un objet d'options avec une propriété `content`. Définissez le `type` de cette propriété sur `text` si vous souhaitez ajouter du texte brut à la fin du lien. Pour ajouter du HTML à la fin du lien, définissez la propriété `type` sur `raw`.
+        ```ts title="src/hast/hast-external-links.ts"
+        import { defineHastPlugin } from 'satteri';
 
-    ```js title="astro.config.mjs"
-    import { unified } from '@astrojs/markdown-remark';
-    import { defineConfig } from 'astro/config';
-    import rehypeExternalLinks from 'rehype-external-links';
-
-    export default defineConfig({
-      // ...
-      markdown: {
-        processor: unified({
-          rehypePlugins: [
-            [
-              rehypeExternalLinks,
-              {
-                content: { type: 'text', value: ' 🔗' }
+        export const hastExternalLinks = defineHastPlugin({
+          name: "hast-external-links",
+          element: {
+            filter: ["a"],
+            visit(node, context) {
+              if (node.properties.href?.startsWith("http")) {
+                context.appendChild(node, {
+                  type: "element",
+                  tagName: "span",
+                  properties: { ariaHidden: "true" },
+                  children: [
+                    {
+                      type: "text",
+                      value: "🔗",
+                    },
+                  ],
+                });
               }
-            ],
-          ]
-        }),
-      },
-    });
-    ```
-  
-      :::note
-        La valeur de la propriété `content` est [non représentée dans l'arbre d'accessibilité](https://developer.mozilla.org/fr-FR/docs/Web/CSS/content#accessibilité). Il est donc préférable d'indiquer clairement que le lien est externe dans le contenu qui l'entoure, plutôt que de se fier uniquement à l'icône.
-      :::
-</Steps>
+            },
+          },
+        });
+        ```
+
+    3. Configurez le module d'extension dans votre fichier `astro.config.mjs`.
+
+        Importez `satteri()` et [définissez-le en tant que processeur Markdown](/fr/guides/markdown-content/#configurer-un-processeur-markdown) pour ajouter des modules d'extension personnalisés à Sätteri. Ensuite, transmettez à `hastPlugins` un tableau contenant votre module d'extension `hastExternalLinks` importé.
+
+        ```js title="astro.config.mjs"
+        import { satteri } from '@astrojs/markdown-satteri';
+        import { defineConfig } from 'astro/config';
+        import { hastExternalLinks } from './src/hast/hast-external-links';
+
+        export default defineConfig({
+          markdown: {
+            processor: satteri({
+              hastPlugins: [hastExternalLinks],
+            }),
+          },
+        });
+        ```
+    </Steps>
+  </Fragment>
+  <Fragment slot="unified">
+    <Steps>
+    1. Installez à la fois le module d'extension [`rehype-external-links`](https://www.npmjs.com/package/rehype-external-links) et [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark).
+
+        <PackageManagerTabs>
+            <Fragment slot="npm">
+            ```shell
+            npm install rehype-external-links @astrojs/markdown-remark
+            ```
+            </Fragment>
+            <Fragment slot="pnpm">
+            ```shell
+            pnpm add rehype-external-links @astrojs/markdown-remark
+            ```
+            </Fragment>
+            <Fragment slot="yarn">
+            ```shell
+            yarn add rehype-external-links @astrojs/markdown-remark
+            ```
+            </Fragment>
+          </PackageManagerTabs>
+
+    2. Configurez le module d'extension dans votre fichier `astro.config.mjs`.
+
+        Importez `unified()` et [définissez-le en tant que processeur Markdown](/fr/guides/markdown-content/#configurer-un-processeur-markdown) pour prendre en charge les modules d'extension remark. Ensuite, transmettez à `rehypePlugins` un tableau contenant votre module d'extension `rehypeExternalLinks` importé et un objet d'options avec une propriété `content`. Définissez le `type` de cette propriété sur `text` si vous souhaitez ajouter du texte brut à la fin du lien. Pour ajouter du HTML à la fin du lien à la place, définissez la propriété `type` sur `raw`.
+
+        ```js title="astro.config.mjs"
+        import { unified } from '@astrojs/markdown-remark';
+        import { defineConfig } from 'astro/config';
+        import rehypeExternalLinks from 'rehype-external-links';
+
+        export default defineConfig({
+          markdown: {
+            processor: unified({
+              rehypePlugins: [
+                [
+                  rehypeExternalLinks,
+                  {
+                    content: { type: 'text', value: ' 🔗' }
+                  }
+                ],
+              ]
+            }),
+          },
+        });
+        ```
+    </Steps>
+  </Fragment>
+</MarkdownProcessorTabs>
