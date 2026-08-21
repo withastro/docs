@@ -648,9 +648,9 @@ You can do this in two ways:
 
 #### Running the full pipeline with `astro()`
 
-Use [`astro()`](/en/reference/modules/astro-fetch/#astro) when you want to keep Astro's built-in routing behavior, but need custom logic around it. This approach preserves the default pipeline order and lets you add pre-processing and post-processing in one place. For many use cases, such as adding auth guards, request logging, and custom headers, `astro()` is all you need.
+Use [`astro()`](/en/reference/modules/astro-fetch/#astro) when you want to keep Astro's built-in routing behavior, but need custom logic around it. This approach preserves the default pipeline order and lets you add pre-processing and post-processing in one place. For many use cases, such as request logging and custom headers, `astro()` is all you need.
 
-The following example checks if a user can access a dashboard before running the Astro pipeline, and adds a custom header to the response once Astro has finished running:
+The following example logs each incoming request before running the Astro pipeline, and adds a custom header to the response once Astro has finished running:
 
 ```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
@@ -660,16 +660,7 @@ export default {
     const state = new FetchState(request);
 
     // Custom pre-processing, runs before any Astro handler
-    const url = new URL(request.url);
-    if (url.pathname.startsWith('/dashboard')) {
-      const cookie = request.headers.get('cookie') ?? '';
-      if (!cookie.includes('session=')) {
-        return new Response(null, {
-          status: 302,
-          headers: { Location: '/login' },
-        });
-      }
-    }
+    console.log(`${request.method} ${new URL(request.url).pathname}`);
 
     const response = await astro(state);
 
@@ -679,6 +670,12 @@ export default {
   },
 };
 ```
+
+:::caution
+The pathname of the incoming request is not guaranteed to be the same as the route Astro matches internally, so a check such as `url.pathname.startsWith('/dashboard')` can be bypassed.
+
+Do not use pre-processing to authorize requests by matching the request pathname against a string. To guard routes, match them with a router that owns route matching, such as [Hono](#using-with-hono).
+:::
 
 #### Composing individual handlers
 
@@ -732,4 +729,32 @@ app.use(pages());
 app.use(i18n());
 
 export default app;
+```
+
+You can also guard protected routes by registering an authorization check on the Hono routes you want to protect:
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { isLoggedIn } from './lib/auth';
+
+const app = new Hono();
+
+// Guard every route under /dashboard.
+app.use('/dashboard', requireAuth);
+app.use('/dashboard/*', requireAuth);
+
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+
+async function requireAuth(c, next) {
+  if (!(await isLoggedIn(c.req.raw))) {
+    return c.redirect('/login');
+  }
+  return next();
+}
 ```
