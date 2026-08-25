@@ -149,23 +149,38 @@ const session = await auth.api.getSession({
 <p>{session.user?.name}</p>
 ```
 
-Vous pouvez également utiliser l'objet `auth` pour protéger vos routes à l'aide d'un middleware. L'exemple suivant vérifie si un utilisateur essayant d'accéder à une route du tableau de bord protégée est authentifié et le redirige vers la page d'accueil dans le cas contraire.
+Vous pouvez également utiliser l'objet `auth` pour protéger vos routes. L'exemple suivant utilise [le routage avancé d'Astro](/fr/guides/routing/#routage-avancé) avec [Hono](https://hono.dev/) pour exiger une session authentifiée pour chaque route sous `/dashboard`, en redirigeant vers la page d'accueil dans le cas contraire :
 
-```ts title="src/middleware.ts"
-import { auth } from "../../../auth"; // importe votre instance Better Auth
-import { defineMiddleware } from "astro:middleware";
- 
-export const onRequest = defineMiddleware(async (context, next) => {
-	const isAuthed = await auth.api
-		.getSession({
-			headers: context.request.headers,
-		})
-	if (context.url.pathname === "/dashboard" && !isAuthed) {
-		return context.redirect("/");
+```ts title="src/fetch.ts"
+import { Hono } from "hono";
+import { astro } from "astro/hono";
+import { auth } from "../auth"; // importez votre instance Better Auth
+
+const app = new Hono();
+
+// Protégez toutes les routes sous /dashboard.
+app.use("/dashboard", requireAuth);
+app.use("/dashboard/*", requireAuth);
+
+// Exécutez le pipeline intégré d'Astro pour toutes les autres requêtes.
+app.use(astro());
+
+export default app;
+
+async function requireAuth(c, next) {
+	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	if (!session) {
+		return c.redirect("/");
 	}
 	return next();
-});
+}
 ```
+
+:::caution
+Le chemin public perçu par un middleware n'est pas nécessairement identique à la route qu'Astro associe en interne : une `base` configurée, l'encodage des URL et des barres obliques en double peuvent tous entraîner des différences. Un attaquant peut exploiter cette faille pour atteindre une route protégée avec un chemin que votre vérification ne reconnaît pas.
+
+N'autorisez pas les requêtes en comparant `context.url.pathname` à une chaîne de caractères (p. ex. `context.url.pathname === "/dashboard"` ou `context.url.pathname.startsWith("/dashboard")`). Restreignez plutôt l'accès au niveau d'un routeur qui gère la correspondance des routes pour vous.
+:::
 
 ### Prochaines étapes
 
