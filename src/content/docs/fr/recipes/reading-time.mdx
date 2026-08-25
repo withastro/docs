@@ -1,88 +1,160 @@
 ---
 title: Ajout du temps de lecture
-description: Créez un module d'extension Remark pour ajouter le temps de lecture à vos fichiers Markdown ou MDX.
+description: Créez un module d'extension de processeur Markdown pour ajouter le temps de lecture à vos fichiers Markdown ou MDX.
 i18nReady: true
 type: recipe
 ---
 import { Steps } from '@astrojs/starlight/components';
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import MarkdownProcessorTabs from '~/components/tabs/MarkdownProcessorTabs.astro';
 
-Créez un [module d'extension Remark](https://github.com/remarkjs/remark) qui ajoute une propriété de temps de lecture au frontmatter de vos fichiers Markdown ou MDX. Utilisez cette propriété pour afficher le temps de lecture de chaque page.
+Créez un [module d'extension mdast](/fr/guides/markdown-content/#modules-dextension-pour-les-processeurs-markdown) qui ajoute une propriété de temps de lecture au frontmatter de vos fichiers Markdown ou MDX. Utilisez cette propriété pour afficher le temps de lecture de chaque page.
 
 ## Recette
 
 <Steps>
-1. Installer les paquets suivants :
-    - [`reading-time`](https://www.npmjs.com/package/reading-time) pour calculer les minutes de lecture
-    - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) pour extraire tout le texte de votre markdown
-    - [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark) pour utiliser [le processeur `unified()`](/fr/guides/markdown-content/#utilisation-des-modules-dextension-remark-et-rehype)
+1. Installez les paquets suivants en fonction du [processeur Markdown](/fr/guides/markdown-content/#processeurs-markdown) utilisé :
 
-    <PackageManagerTabs>
-      <Fragment slot="npm">
-      ```shell
-      npm install reading-time mdast-util-to-string @astrojs/markdown-remark
-      ```
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+        - [`reading-time`](https://www.npmjs.com/package/reading-time) pour calculer le temps de lecture
+        - [`@astrojs/markdown-satteri`](https://www.npmjs.com/package/@astrojs/markdown-satteri) pour configurer le [processeur `satteri()`](/fr/guides/markdown-content/#configurer-un-processeur-markdown)
+        - [`satteri`](https://www.npmjs.com/package/satteri) pour créer un [module d'extension `mdast` pour Sätteri](https://satteri.bruits.org/docs/plugins/#mdast-plugins)
+
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install reading-time @astrojs/markdown-satteri satteri
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add reading-time @astrojs/markdown-satteri satteri
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add reading-time @astrojs/markdown-satteri satteri
+          ```
+          </Fragment>
+        </PackageManagerTabs>
       </Fragment>
-      <Fragment slot="pnpm">
-      ```shell
-      pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
-      ```
+      <Fragment slot="unified">
+        - [`reading-time`](https://www.npmjs.com/package/reading-time) pour calculer le temps de lecture
+        - [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string) pour extraire tout le texte de votre Markdown
+        - [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark) pour utiliser le [processeur `unified()`](/fr/guides/markdown-content/#configurer-un-processeur-markdown)
+
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+        </PackageManagerTabs>
       </Fragment>
-      <Fragment slot="yarn">
-      ```shell
-      yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
-      ```
+    </MarkdownProcessorTabs>
+
+2. Créez un module d'extension mdast.
+
+    Ce module d'extension récupère le texte du fichier Markdown. Ce texte est ensuite transmis au paquet `reading-time` pour calculer le temps de lecture en minutes.
+
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+        ```js title="src/mdast/mdast-reading-time.ts"
+        import getReadingTime from "reading-time";
+        import { defineMdastPlugin } from "satteri";
+
+        export const mdastReadingTimePlugin = defineMdastPlugin({
+          name: "mdast-reading-time",
+          after(root, context) {
+            const textOnPage = context.textContent(root);
+            const readingTime = getReadingTime(textOnPage);
+
+            if (context.data.astro !== undefined) {
+              // readingTime.text donnera le temps de lecture sous forme de chaîne conviviale,
+              // c'est-à-dire "3 min de lecture"
+              context.data.astro.frontmatter.minutesRead = readingTime.text;
+            }
+          },
+        });
+        ```
       </Fragment>
-    </PackageManagerTabs>
+      <Fragment slot="unified">
+        ```js title="remark-reading-time.mjs"
+        import getReadingTime from "reading-time";
+        import { toString } from "mdast-util-to-string";
 
-2. Créer un module d'extension Remark.
+        export function remarkReadingTime() {
+          return function (tree, { data }) {
+            const textOnPage = toString(tree);
+            const readingTime = getReadingTime(textOnPage);
+            // readingTime.text donnera le temps de lecture sous la forme d'une chaîne de caractères conviviale (en anglais),
+            // c.-à-d. "1 min read"
+            data.astro.frontmatter.minutesRead = readingTime.text;
+          };
+        }
+        ```
+      </Fragment>
+    </MarkdownProcessorTabs>
 
-    Ce module d'extension utilise le paquet `mdast-util-to-string` pour obtenir le texte du fichier Markdown. Ce texte est ensuite transmis au paquet `reading-time` pour calculer le temps de lecture en minutes.
+3. Ajoutez le module d'extension à votre configuration :
 
-    ```js title="remark-reading-time.mjs"
-    import getReadingTime from 'reading-time';
-    import { toString } from 'mdast-util-to-string';
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+        ```js title="astro.config.mjs" {1,3,7-9}
+        import { satteri } from "@astrojs/markdown-satteri";
+        import { defineConfig } from "astro/config";
+        import { mdastReadingTimePlugin } from "./src/mdast/mdast-reading-time";
 
-    export function remarkReadingTime() {
-      return function (tree, { data }) {
-        const textOnPage = toString(tree);
-        const readingTime = getReadingTime(textOnPage);
-        // readingTime.text nous donnera le temps de lecture en minutes sous la forme d'une chaîne de caractères conviviale,
-        // Ex: "3 min read"
-        data.astro.frontmatter.minutesRead = readingTime.text;
-      };
-    }
-    ```
+        export default defineConfig({
+          markdown: {
+            processor: satteri({
+              mdastPlugins: [mdastReadingTimePlugin],
+            }),
+          },
+        });
+        ```
+      </Fragment>
+      <Fragment slot="unified">
+        ```js title="astro.config.mjs" {1,3,7-9}
+        import { unified } from "@astrojs/markdown-remark";
+        import { defineConfig } from "astro/config";
+        import { remarkReadingTime } from "./remark-reading-time.mjs";
 
-3. Ajouter le module d'extension à votre configuration :
+        export default defineConfig({
+          markdown: {
+            processor: unified({
+              remarkPlugins: [remarkReadingTime],
+            }),
+          },
+        });
+        ```
+      </Fragment>
+    </MarkdownProcessorTabs>
 
-    ```js title="astro.config.mjs" {1,3,7-9}
-    import { unified } from '@astrojs/markdown-remark';
-    import { defineConfig } from 'astro/config';
-    import { remarkReadingTime } from './remark-reading-time.mjs';
+    Désormais, tous les documents Markdown auront une propriété `minutesRead` calculée dans leur frontmatter.
 
-    export default defineConfig({
-      markdown: {
-        processor: unified({
-          remarkPlugins: [remarkReadingTime],
-        }),
-      },
-    });
-    ```
+4. Affichez le temps de lecture
 
-    Désormais, tous les documents Markdown auront une propriété `minutesRead` calculée dans leur frontmatter. 
-
-4. Afficher le temps de lecture
-
-    Si vos articles de blog sont stockés dans une [collection de contenu](/fr/guides/content-collections/), accédez au `remarkPluginFrontmatter` à partir de la fonction `render(entry)`. Ensuite, insérez `minutesRead` dans votre modèle à l'endroit où vous voulez qu'il apparaisse.
+    Si vos articles de blog sont stockés dans une [collection de contenu](/fr/guides/content-collections/), accédez à [`remarkPluginFrontmatter` depuis la fonction `render()`](/fr/reference/modules/astro-content/#render). Ensuite, affichez `minutesRead` dans votre modèle à l'endroit où vous souhaitez qu'il apparaisse.
 
     ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
     ---
-    import { getCollection, render } from 'astro:content';
+    import { getCollection, render } from "astro:content";
 
     export async function getStaticPaths() {
-      const blog = await getCollection('blog');
-      return blog.map(entry => ({
+      const blog = await getCollection("blog");
+      return blog.map((entry) => ({
         params: { slug: entry.id },
         props: { entry },
       }));
@@ -93,16 +165,19 @@ Créez un [module d'extension Remark](https://github.com/remarkjs/remark) qui aj
     ---
 
     <html>
-      <head>...</head>
+      <head>
+        <meta charset="utf-8" />
+        <title>{entry.data.title}</title>
+      </head>
       <body>
-        ...
+        <title>{entry.data.title}</title>
         <p>{remarkPluginFrontmatter.minutesRead}</p>
-        ...
+        <Content />
       </body>
     </html>
     ```
 
-    Si vous utilisez une [mise en page Markdown](/fr/basics/layouts/#mises-en-page-markdown), utilisez la propriété `minutesRead` du frontmatter accessible depuis `Astro.props` dans votre modèle.
+    Si vous utilisez une [mise en page Markdown](/fr/basics/layouts/#mises-en-page-markdown), utilisez la propriété `minutesRead` du frontmatter accessible depuis `Astro.props` dans votre modèle de mise en page.
 
     ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
     ---
@@ -110,7 +185,9 @@ Créez un [module d'extension Remark](https://github.com/remarkjs/remark) qui aj
     ---
 
     <html>
-      <head>...</head>
+      <head>
+        <meta charset="utf-8" />
+      </head>
       <body>
         <p>{minutesRead}</p>
         <slot />
