@@ -253,6 +253,8 @@ export default defineConfig({
 
 Note that ISR function requests do not include search params, similar to [requests](/en/reference/api-reference/#request) in static mode.
 
+By default, Astro bundles your [middleware](/en/guides/middleware/) into the ISR function. This means it only runs when that function runs: on a cache miss or a regeneration, not on a cache hit. If your middleware must run on every request, set [`middlewareMode` to `'edge'`](#running-astro-middleware-on-vercel-edge-functions) to deploy it in front of the cache. You can also add the relevant routes to [`exclude`](#excluding-paths-from-caching) so the cache never applies to them.
+
 #### ISR cache invalidation
 
 By default, an ISR function caches for the duration of your deployment. You can further control caching by setting an expiration time, or by excluding particular routes from caching entirely.
@@ -442,7 +444,9 @@ export default defineConfig({
 
 ### Running Astro middleware on Vercel Edge Functions
 
-The `@astrojs/vercel` adapter can create an [edge function](https://vercel.com/docs/functions/edge-functions) from an Astro middleware in your code base. When [`middlewareMode`](/en/reference/adapter-reference/#middlewaremode) is set to `'edge'`, an edge function will execute your middleware code for all requests, including static assets, prerendered pages, and on-demand rendered pages.
+The `@astrojs/vercel` adapter can create an [edge function](https://vercel.com/docs/functions/edge-functions) from an Astro middleware in your code base. When `middlewareMode` is set to `'edge'`, an edge function will execute your middleware code for every request to an [on-demand rendered route](/en/guides/on-demand-rendering/), including routes cached by [`isr`](#isr). Static assets and prerendered pages are served from Vercel's filesystem and do not invoke your middleware.
+
+By default, middleware bundled into the ISR function only runs on a cache miss or a regeneration. With `middlewareMode: 'edge'`, middleware runs in front of the ISR cache instead, so it also runs on cache hits. This means every request to a cached route triggers an edge function invocation.
 
 For on-demand rendered pages, the `context.locals` object is serialized using JSON and sent in a header for the serverless function, which performs the rendering. As a security measure, the serverless function will refuse to serve requests with a `403 Forbidden` response unless they come from the generated edge function.
 

@@ -1,88 +1,160 @@
 ---
 title: 읽기 시간 추가
-description: 마크다운 및 MDX 파일에 읽기 시간을 추가하기 위해 remark 플러그인을 구축합니다.
+description: Markdown 또는 MDX 파일에 읽기 시간을 추가하기 위해 Markdown 프로세서 플러그인을 빌드하세요.
 i18nReady: true
 type: recipe
 ---
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import MarkdownProcessorTabs from '~/components/tabs/MarkdownProcessorTabs.astro';
 
-Markdown 또는 MDX 파일의 프런트매터에 읽기 시간 속성을 추가하는 [remark 플러그인](https://github.com/remarkjs/remark)을 만듭니다. 이 속성을 사용하여 각 페이지의 읽기 시간을 표시합니다.
+Markdown 또는 MDX 파일의 프런트매터에 읽기 시간 속성을 추가하는 [mdast 플러그인](/ko/guides/markdown-content/#markdown-프로세서-플러그인)을 만듭니다. 이 속성을 사용하여 각 페이지의 읽기 시간을 표시합니다.
 
 ## 레시피
 
 <Steps>
-1. 다음 패키지들을 설치하세요:
-    - 읽기 시간을 계산하기 위한 [`reading-time`](https://www.npmjs.com/package/reading-time)
-    - Markdown에서 모든 텍스트를 추출하기 위한 [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string)
-    - [`unified()` 프로세서](/ko/guides/markdown-content/#remark-및-rehype-플러그인-사용하기)를 사용하기 위한 [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark)
+1. 사용하는 [Markdown 프로세서](/ko/guides/markdown-content/#markdown-프로세서)에 따라 다음 패키지를 설치합니다.
 
-    <PackageManagerTabs>
-      <Fragment slot="npm">
-      ```shell
-    npm install reading-time mdast-util-to-string @astrojs/markdown-remark
-      ```
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+        - 읽는 데 걸리는 시간을 계산하기 위한 [`reading-time`](https://www.npmjs.com/package/reading-time)
+        - [`satteri()` 프로세서](/ko/guides/markdown-content/#markdown-프로세서-설정하기)를 구성하기 위한 [`@astrojs/markdown-satteri`](https://www.npmjs.com/package/@astrojs/markdown-satteri)
+        - [Sätteri `mdast` 플러그인](https://satteri.bruits.org/docs/plugins/#mdast-plugins)을 만들기 위한 [`satteri`](https://www.npmjs.com/package/satteri)
+
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install reading-time @astrojs/markdown-satteri satteri
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add reading-time @astrojs/markdown-satteri satteri
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add reading-time @astrojs/markdown-satteri satteri
+          ```
+          </Fragment>
+        </PackageManagerTabs>
       </Fragment>
-      <Fragment slot="pnpm">
-      ```shell
-    pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
-      ```
+      <Fragment slot="unified">
+        - 읽는 데 걸리는 시간을 계산하기 위한 [`reading-time`](https://www.npmjs.com/package/reading-time)
+        - Markdown의 모든 텍스트를 추출하기 위한 [`mdast-util-to-string`](https://www.npmjs.com/package/mdast-util-to-string)
+        - [`unified()` 프로세서](/ko/guides/markdown-content/#markdown-프로세서-설정하기)를 사용하기 위한 [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark)
+
+        <PackageManagerTabs>
+          <Fragment slot="npm">
+          ```shell
+          npm install reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="pnpm">
+          ```shell
+          pnpm add reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+          <Fragment slot="yarn">
+          ```shell
+          yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
+          ```
+          </Fragment>
+        </PackageManagerTabs>
       </Fragment>
-      <Fragment slot="yarn">
-      ```shell
-    yarn add reading-time mdast-util-to-string @astrojs/markdown-remark
-      ```
+    </MarkdownProcessorTabs>
+
+2. mdast 플러그인을 만듭니다.
+
+    이 플러그인은 Markdown 파일의 텍스트를 가져옵니다. 그런 다음 이 텍스트를 `reading-time` 패키지에 전달하여 분 단위로 읽기 시간을 계산합니다.
+
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+        ```js title="src/mdast/mdast-reading-time.ts"
+        import getReadingTime from "reading-time";
+        import { defineMdastPlugin } from "satteri";
+
+        export const mdastReadingTimePlugin = defineMdastPlugin({
+          name: "mdast-reading-time",
+          after(root, context) {
+            const textOnPage = context.textContent(root);
+            const readingTime = getReadingTime(textOnPage);
+
+            if (context.data.astro !== undefined) {
+              // readingTime.text는 읽기 시간을 이해하기 쉬운 문자열로 제공합니다.
+              // 예: "3 min read"
+              context.data.astro.frontmatter.minutesRead = readingTime.text;
+            }
+          },
+        });
+        ```
       </Fragment>
-    </PackageManagerTabs>
+      <Fragment slot="unified">
+        ```js title="remark-reading-time.mjs"
+        import getReadingTime from "reading-time";
+        import { toString } from "mdast-util-to-string";
 
-2. remark 플러그인을 만듭니다.
+        export function remarkReadingTime() {
+          return function (tree, { data }) {
+            const textOnPage = toString(tree);
+            const readingTime = getReadingTime(textOnPage);
+            // readingTime.text는 읽기 시간을 이해하기 쉬운 문자열로 제공합니다.
+            // 예: "3 min read"
+            data.astro.frontmatter.minutesRead = readingTime.text;
+          };
+        }
+        ```
+      </Fragment>
+    </MarkdownProcessorTabs>
 
-    이 플러그인은 `mdast-util-to-string` 패키지를 사용하여 Markdown 파일의 텍스트를 가져옵니다. 그런 다음 이 텍스트를 `reading-time` 패키지에 전달하여 분 단위로 읽기 시간을 계산합니다.
+3. 구성에 플러그인을 추가합니다.
 
-    ```js title="remark-reading-time.mjs"
-    import getReadingTime from 'reading-time';
-    import { toString } from 'mdast-util-to-string';
+    <MarkdownProcessorTabs>
+      <Fragment slot="satteri">
+        ```js title="astro.config.mjs" {1,3,7-9}
+        import { satteri } from "@astrojs/markdown-satteri";
+        import { defineConfig } from "astro/config";
+        import { mdastReadingTimePlugin } from "./src/mdast/mdast-reading-time";
 
-    export function remarkReadingTime() {
-      return function (tree, { data }) {
-        const textOnPage = toString(tree);
-        const readingTime = getReadingTime(textOnPage);
-        // readingTime.text는 친숙한 문자열로 읽은 시간을 제공합니다.
-        // 예: "3 min read"
-        data.astro.frontmatter.minutesRead = readingTime.text;
-      };
-    }
-    ```
+        export default defineConfig({
+          markdown: {
+            processor: satteri({
+              mdastPlugins: [mdastReadingTimePlugin],
+            }),
+          },
+        });
+        ```
+      </Fragment>
+      <Fragment slot="unified">
+        ```js title="astro.config.mjs" {1,3,7-9}
+        import { unified } from "@astrojs/markdown-remark";
+        import { defineConfig } from "astro/config";
+        import { remarkReadingTime } from "./remark-reading-time.mjs";
 
-3. 구성에 플러그인을 추가하세요.
+        export default defineConfig({
+          markdown: {
+            processor: unified({
+              remarkPlugins: [remarkReadingTime],
+            }),
+          },
+        });
+        ```
+      </Fragment>
+    </MarkdownProcessorTabs>
 
-    ```js title="astro.config.mjs" {1,3,7-9}
-    import { unified } from '@astrojs/markdown-remark';
-    import { defineConfig } from 'astro/config';
-    import { remarkReadingTime } from './remark-reading-time.mjs';
+    이제 모든 Markdown 문서의 프런트매터에 계산된 `minutesRead` 속성이 포함됩니다.
 
-    export default defineConfig({
-      markdown: {
-        processor: unified({
-          remarkPlugins: [remarkReadingTime],
-        }),
-      },
-    });
-    ```
+4. 읽기 시간을 표시합니다.
 
-    이제 모든 Markdown 문서의 프런트매터에는 계산된 `minutesRead` 속성이 있습니다.
-
-4. 읽기 시간 표시
-
-    만약 블로그 게시물이 [콘텐츠 컬렉션](/ko/guides/content-collections/)에 저장되어 있다면, `render(entry)` 함수의 `remarkPluginFrontmatter`에 액세스하세요. 그런 다음 템플릿에서 표시하려는 위치마다 `minutesRead`를 렌더링하세요.
+    블로그 게시물이 [콘텐츠 컬렉션](/ko/guides/content-collections/)에 저장된 경우 [`render()` 함수에서 `remarkPluginFrontmatter`에 액세스](/ko/reference/modules/astro-content/#render)하세요. 그런 다음 템플릿에서 원하는 위치에 `minutesRead`를 렌더링하세요.
 
     ```astro title="src/pages/posts/[slug].astro" "const { Content, remarkPluginFrontmatter } = await render(entry);" "<p>{remarkPluginFrontmatter.minutesRead}</p>"
     ---
-    import { getCollection, render } from 'astro:content';
+    import { getCollection, render } from "astro:content";
 
     export async function getStaticPaths() {
-      const blog = await getCollection('blog');
-      return blog.map(entry => ({
+      const blog = await getCollection("blog");
+      return blog.map((entry) => ({
         params: { slug: entry.id },
         props: { entry },
       }));
@@ -93,16 +165,19 @@ Markdown 또는 MDX 파일의 프런트매터에 읽기 시간 속성을 추가�
     ---
 
     <html>
-      <head>...</head>
+      <head>
+        <meta charset="utf-8" />
+        <title>{entry.data.title}</title>
+      </head>
       <body>
-        ...
+        <title>{entry.data.title}</title>
         <p>{remarkPluginFrontmatter.minutesRead}</p>
-        ...
+        <Content />
       </body>
     </html>
     ```
 
-    [Markdown 레이아웃](/ko/basics/layouts/#markdown-레이아웃)을 사용하는 경우 레이아웃 템플릿에서 `Astro.props`의 `minutesRead` frontmatter 속성을 사용하세요.
+    [Markdown 레이아웃](/ko/basics/layouts/#markdown-레이아웃)을 사용하는 경우 레이아웃 템플릿에서 `Astro.props`의 `minutesRead` 프런트매터 속성을 사용하세요.
 
     ```astro title="src/layouts/BlogLayout.astro" "const { minutesRead } = Astro.props.frontmatter;" "<p>{minutesRead}</p>"
     ---
@@ -110,7 +185,9 @@ Markdown 또는 MDX 파일의 프런트매터에 읽기 시간 속성을 추가�
     ---
 
     <html>
-      <head>...</head>
+      <head>
+        <meta charset="utf-8" />
+      </head>
       <body>
         <p>{minutesRead}</p>
         <slot />
