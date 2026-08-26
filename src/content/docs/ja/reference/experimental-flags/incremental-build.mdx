@@ -1,0 +1,98 @@
+---
+title: 実験的なインクリメンタル静的ビルド
+sidebar:
+  label: インクリメンタルビルド
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="7.2.0" />
+</p>
+
+この実験的機能は以前のビルドの出力を再利用し、変更されていないページの再レンダリングを省略します。
+
+この機能を有効にすると、前回のビルド以降、データと依存するコードの両方が変更されていない場合、Astroは[`getStaticPaths()`](/ja/reference/routing-reference/#getstaticpaths)で生成された静的ページのレンダリングをスキップできます。ページのデータを識別する`cacheKey`を返すと、Astroはページのモジュール依存関係グラフをハッシュ化してコードを追跡します。両方が前回のビルドと一致した場合、Astroはページを再レンダリングせず、以前の出力をコピーします。
+
+ほとんどのページが頻繁に変更されない大規模なサイトでは、同一の出力を生成するページのレンダリングを省略できるため、ビルド時間を大幅に短縮できます。
+
+インクリメンタルビルドを有効にするには、Astroの設定に次のフラグを追加します。
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    incrementalBuild: true,
+  },
+});
+```
+
+## キャッシュキーを指定する
+
+`getStaticPaths()`から返されるページのうち、`cacheKey`を含むページのみレンダリングをスキップできます。`getStaticPaths()`を使用しない静的ページを含め、その他のすべてのページはビルドごとにレンダリングされます。
+
+`cacheKey`は、ページのレンダリングに使用するデータを識別する文字列です。コンテンツのハッシュ、バージョン番号、データソースの更新日時など、ページのコンテンツが変更されるたびに変わる値を選びます。`cacheKey`が前回のビルドと異なる場合、Astroはページを再レンダリングし、同じ場合は以前の出力を再利用します。
+
+```astro title="src/pages/blog/[slug].astro"
+---
+export async function getStaticPaths() {
+  const posts = await fetchPosts();
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+    cacheKey: post.updatedAt,
+  }));
+}
+---
+```
+
+[コンテンツコレクション](/ja/guides/content-collections/)からページを生成する場合、ローダーは各エントリーに[`digest`](/ja/reference/content-loader-reference/#dataentrydigest)を提供できます。ローダーは、エントリーのデータが変更されるたびにこの値を更新する必要があります。そのため、`digest`は`cacheKey`として利用するのに適しています。
+
+```astro title="src/pages/docs/[...slug].astro"
+---
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docs");
+
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+    cacheKey: String(entry.digest),
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+```
+
+## ページが無効化される仕組み
+
+`cacheKey`が一致するページでも、依存するコードが変更されると再レンダリングされます。Astroは、レイアウト、コンポーネント、インポートしたファイルの内容を含む、ページのモジュール依存関係グラフをハッシュ化します。そのため、いずれかを編集すると、それを使用するページが無効化されます。Astroの設定やプロジェクトの依存関係を変更すると、すべてのページの出力に影響する可能性があるため、キャッシュ全体が無効化されます。
+
+ビルド間で`getStaticPaths()`から削除されたページは、以前の出力も自動的に削除されます。
+
+## ビルド間でキャッシュを保持する
+
+Astroはインクリメンタルビルドのキャッシュをプロジェクトの[`cacheDir`](/ja/reference/configuration-reference/#cachedir)に保存します。デフォルトは`node_modules/.astro/`です。このディレクトリには、ビルドマニフェストと以前にレンダリングされたページの再利用可能な出力が保存されます。出力ディレクトリは各ビルドの開始時に空にされ、レンダリングをスキップしたページは`cacheDir`から復元されます。
+
+継続的インテグレーション環境でページのレンダリングをスキップするには、`astro build`を実行する前に`cacheDir`を復元する必要があります。ビルド間では、このディレクトリだけをキャッシュして復元してください。それ以外を保持する必要はありません。`cacheDir`がない場合、Astroはすべてのページを再レンダリングします。
+
+キャッシュを無視してすべてのページを再レンダリングするには、`astro build --force`を実行します。この場合も、Astroは次回のビルドに使用する新しいキャッシュを保存します。
+
+## 制限事項
+
+この実験的機能には、現在次の制限事項があります。
+
+- **`build.concurrency`**: [`build.concurrency`](/ja/reference/configuration-reference/#buildconcurrency)が`1`より大きい場合、インクリメンタルビルドのキャッシュは無効になります。Astroは警告を出力し、すべてのページを再レンダリングします。
+
+- **サーバーアイランド**: [サーバーアイランド](/ja/guides/server-islands/)をレンダリングするページでは、デフォルトで[ビルドごとに再生成されるキー](/ja/guides/server-islands/#暗号化キーの再利用)を使ってpropsが埋め込まれるため、毎回再レンダリングされます。これらのページをキャッシュしてビルド間で再利用するには、固定の`ASTRO_KEY`を設定します。キーを変更するとページが無効化され、埋め込まれたコンテンツを引き続き復号できる状態が保たれます。
+
+- **ミドルウェア**: [ミドルウェア](/ja/guides/middleware/)を変更しても、キャッシュされたページは無効化されません。ミドルウェアが事前レンダリングされたページのHTMLを変更する場合は、編集後に`astro build --force`を実行してください。
