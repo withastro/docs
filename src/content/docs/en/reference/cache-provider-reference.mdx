@@ -371,10 +371,31 @@ The incoming `request` is passed as a second argument so a provider can read the
 
 <p>
 
-**Type:** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void \}, next: <a href="/en/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
+**Type:** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void; logger: <a href="/en/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a> \}, next: <a href="/en/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
 </p>
 
 Intercepts requests to implement runtime caching. The `context` includes a `waitUntil()` function (when available in the runtime) for background work such as stale-while-revalidate.
+
+<p><Since v="7.3.0" /></p>
+
+The `context` also includes a [`logger`](/en/reference/logger-reference/#astroruntimelogger) object. Use it instead of `console` to write messages to the destination configured in your [`logger` config](/en/reference/configuration-reference/#logger-options) and to respect your configured log level:
+
+```ts title="my-provider/runtime.ts" ins="logger" ins={7}
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  return {
+    name: 'my-cache-provider',
+    async onRequest({ request, url, logger }, next) {
+      logger.warn(`Skipping cache for ${url.pathname} because the response sets a cookie.`);
+      return next();
+    },
+    // ...
+  };
+};
+
+export default factory;
+```
 
 #### `CacheProvider.invalidate()`
 

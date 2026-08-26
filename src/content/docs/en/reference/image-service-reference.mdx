@@ -89,7 +89,7 @@ const service: LocalImageService<AstroConfig["image"]> = {
       quality: params.get('q'),
     };
   },
-  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig) {
+  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig, logger) {
     const { buffer } = await mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
@@ -141,7 +141,7 @@ import { getConfiguredImageService, imageConfig } from "astro:assets";
 import * as mime from "mrmime";
 import { getImageBuffer } from "./my-custom-image-fetcher.js";
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, logger }) => {
   const imageService = await getConfiguredImageService();
 
   if (!isLocalService(imageService)) {
@@ -166,6 +166,7 @@ export const GET: APIRoute = async ({ request }) => {
     inputBuffer,
     imageTransform,
     imageConfig,
+    logger,
   );
   return new Response(new Uint8Array(data), {
     status: 200,
@@ -213,7 +214,7 @@ This hook parses the generated URLs by `getURL()` back into an object with the d
 
 <p>
 
-**Type:** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/en/reference/configuration-reference/#image-options">AstroConfig['image']</a>) => Promise\<\{ data: Uint8Array; format: <a href="/en/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
+**Type:** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/en/reference/configuration-reference/#image-options">AstroConfig['image']</a>, logger: <a href="/en/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Promise\<\{ data: Uint8Array; format: <a href="/en/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
 <Since v="2.1.0" />
 </p>
 
@@ -222,6 +223,22 @@ This hook parses the generated URLs by `getURL()` back into an object with the d
 This hook transforms and returns the image and is called during the build to create the final asset files.
 
 You must return a `format` to ensure that the proper MIME type is served to users for on-demand rendering and development mode.
+
+<p><Since v="7.3.0" /></p>
+
+A [`logger`](/en/reference/logger-reference/#astroruntimelogger) object is passed as a fourth argument. Use it instead of `console` to write messages to the destination configured in your [`logger` config](/en/reference/configuration-reference/#logger-options) and to respect your configured log level:
+
+```ts ins="logger" ins=/logger\.warn\(.*\);/
+import type { LocalImageService } from 'astro';
+
+const service: LocalImageService = {
+  // ...
+  async transform(inputBuffer, transform, imageConfig, logger) {
+    logger.warn(`Could not optimize "${transform.src}". Passing it through unchanged.`);
+    return { data: inputBuffer, format: 'png' };
+  },
+};
+```
 
 ### `getHTMLAttributes()`
 
