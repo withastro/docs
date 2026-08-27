@@ -171,6 +171,80 @@ export default {
 };
 ```
 
+##### `state.hasMatchedRoute()`
+
+<p>
+
+**Type:** `() => boolean`<br />
+<Since v="7.3.0" />
+</p>
+
+Reports whether the original request matched an Astro route. Unlike checking `state.routeData`, which can hold Astro's internal `/404` fallback for an unmatched request, `hasMatchedRoute()` returns `false` when no route matched:
+
+```ts {6-8} title="src/fetch.ts"
+import { astro, FetchState } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    if (!state.hasMatchedRoute()) {
+      // No Astro route matched; fall back to another handler.
+      return fallbackHandler(request);
+    }
+    return astro(state);
+  },
+};
+```
+
+##### `state.addResponseFinalizer()`
+
+<p>
+
+**Type:** `(finalizer: (response: Response) => Response) => void`<br />
+<Since v="7.3.0" />
+</p>
+
+Registers a finalizer that runs after Astro renders a response. Finalizers run in registration order and may mutate or replace the response. They apply automatically when the state is passed to [`astro()`](#astro):
+
+```ts {6-9} title="src/fetch.ts"
+import { astro, FetchState } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    state.addResponseFinalizer((response) => {
+      response.headers.set("X-Platform", "custom");
+      return response;
+    });
+    return astro(state);
+  },
+};
+```
+
+Pipelines that call individual handlers instead of `astro()` must apply registered finalizers explicitly with [`state.finalize()`](#statefinalize).
+
+##### `state.finalize()`
+
+<p>
+
+**Type:** `(response: Response) => Response`<br />
+<Since v="7.3.0" />
+</p>
+
+Applies the response finalizers registered with [`state.addResponseFinalizer()`](#stateaddresponsefinalizer) and returns the resulting response. Call this after your last response handler when composing a pipeline from individual handlers instead of `astro()`:
+
+```ts {6} title="src/fetch.ts"
+import { FetchState, i18n, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await i18n(state, await pages(state));
+    return state.finalize(response);
+  },
+};
+```
+
 ### `astro()`
 
 <p>
