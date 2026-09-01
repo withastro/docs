@@ -57,21 +57,21 @@ export default defineConfig({
 다음 예시는 [Unstorage 호환성](/ko/reference/session-driver-reference/#unstorage-호환성)을 활용하여 고유한 진입점에서 Redis 드라이버를 구성하는 방법을 보여줍니다.
 
 <Steps>
-1. [`unstorage` 패키지](https://unstorage.unjs.io/guide)를 설치합니다.
+1. [`unstorage`](https://www.npmjs.com/package/unstorage) 및 [`ioredis`](https://www.npmjs.com/package/ioredis) 패키지를 설치합니다.
     <PackageManagerTabs>
       <Fragment slot="npm">
         ```sh
-        npm install unstorage
+        npm install unstorage ioredis
         ```
       </Fragment>
       <Fragment slot="pnpm">
         ```sh
-        pnpm add unstorage
+        pnpm add unstorage ioredis
         ```
       </Fragment>
       <Fragment slot="yarn">
         ```sh
-        yarn add unstorage
+        yarn add unstorage ioredis
         ```
       </Fragment>
     </PackageManagerTabs>
@@ -83,29 +83,51 @@ export default defineConfig({
     import { REDIS_HOST, REDIS_PORT } from "astro:env";
 
     export default function (): SessionDriver {
-      return redisDriver({
+      const driver = redisDriver({
         host: REDIS_HOST,
         port: REDIS_PORT,
       });
+
+      return {
+        async getItem(key) {
+          return await driver.getItem(key);
+        },
+        async setItem(key, value) {
+          await driver.setItem?.(key, value, {});
+        },
+        async removeItem(key) {
+          await driver.removeItem?.(key, {});
+        },
+      };
     }
     ```
 
 3. Astro 설정에서 이 파일을 드라이버의 진입점으로 사용합니다.
-    ```js title="astro.config.mjs" {11-13}
+    ```js title="astro.config.mjs" {21-23}
     import { defineConfig, envField, sessionDrivers } from "astro/config";
     import vercel from "@astrojs/vercel";
 
     export default defineConfig({
       adapter: vercel(),
       env: {
-        REDIS_HOST: envField.string({ context: "server", access: "public", default: "localhost" }),
-        REDIS_PORT: envField.number({ context: "server", access: "public", default: 6379 }),
+        schema: {
+          REDIS_HOST: envField.string({
+            context: "server",
+            access: "public",
+            default: "localhost",
+          }),
+          REDIS_PORT: envField.number({
+            context: "server",
+            access: "public",
+            default: 6379,
+          }),
+        },
       },
       session: {
         driver: {
-          entrypoint: new URL('./src/session-driver.ts', import.meta.url),
-        }
-      }
+          entrypoint: new URL("./src/session-driver.ts", import.meta.url),
+        },
+      },
     });
     ```
 </Steps>
