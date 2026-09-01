@@ -95,7 +95,7 @@ export const logos = LogoCheck({
 	railway: { file: 'railway.svg', padding: '0' },
 	react: { file: 'react.svg', padding: '.2em' },
 	render: { file: 'render.svg', padding: '.1875em' },
-	sanity: { file: 'sanity.svg', padding: '.15em', bg: '#F03E2F' },
+	sanity: { file: 'sanity.svg', padding: '.15em' },
 	scalekit: { file: 'scalekit.svg', padding: '0' },
 	seenode: { file: 'seenode.svg', padding: '.2em' },
 	sentry: { file: 'sentry.svg', padding: '.1em' },
