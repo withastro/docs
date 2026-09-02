@@ -113,13 +113,16 @@ Markdocファイルは、コンテンツコレクション内でのみ使用で�
       - quick-start.mdoc
 </FileTree>
 
-次に、[コンテンツコレクションAPI](/ja/guides/content-collections/#querying-build-time-collections)を使用してコレクションをクエリします。
+次に、[投稿やコレクションをクエリして表示します](/ja/guides/content-collections/#querying-build-time-collections)
 
 ```astro title="src/pages/why-markdoc.astro"
 ---
-import { getEntry, render } from 'astro:content';
+import { getEntry, render } from "astro:content";
 
-const entry = await getEntry('docs', 'why-markdoc');
+const entry = await getEntry("docs", "why-markdoc");
+if (!entry) {
+  throw new Error("Entry not found");
+}
 const { Content } = await render(entry);
 ---
 
@@ -142,6 +145,9 @@ const { Content } = await render(entry);
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('docs', 'why-markdoc');
+if (!entry) {
+  throw new Error("Entry not found");
+}
 const { Content } = await render(entry);
 ---
 
@@ -180,6 +186,9 @@ export default defineMarkdocConfig({
 import { getEntry, render } from 'astro:content';
 
 const entry = await getEntry('docs', 'why-markdoc');
+if (!entry) {
+  throw new Error("Entry not found");
+}
 const { Content } = await render(entry);
 ---
 
@@ -500,8 +509,14 @@ Markdocの`image`タグを使用すると、`![]()`構文では不可能な追�
     const { src, alt, width, height, caption } = Astro.props;
     ---
     <figure>
-        <Image {src} {alt} {width} {height}  />
-        {caption && <figcaption>{caption}</figcaption>}
+       {
+        typeof src === "string" ? (
+          <img {src} {alt} {width} {height} />
+        ) : (
+          <Image {src} {alt} {width} {height} />
+        )
+      }
+      {caption && <figcaption>{caption}</figcaption>}
     </figure>
     ```
 
@@ -659,6 +674,37 @@ Markdocでネストされたタグを使用する場合、タグ内のコンテ�
 
 {% /custom-tag %}
 {% /custom-tag %}
+```
+
+### `typographer`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="0.11.2" pkg="@astrojs/markdoc" />
+</p>
+
+Markdocのスマートクォートの組み込みサポートを有効にします。通常のシングルクォートやダブルクォートを、適切なカーリークォートに置き換えられます。
+
+```js title="astro.config.mjs" ins={6}
+  import { defineConfig } from 'astro/config';
+  import markdoc from '@astrojs/markdoc';
+
+  export default defineConfig({
+    // ...
+    integrations: [markdoc({ typographer: true })],
+  });
+```
+
+```md title="src/content/docs/why-markdoc.mdoc"
+She continued, "You know what they said? They said, 'It's astonishing how fancy these smart quotes look!'. That's what they said."
+```
+
+通常の引用符は自動的に変換され、以下のようにレンダリングされます。
+
+```md
+She continued, “You know what they said? They said, ‘It’s astonishing how fancy these smart quotes look!’. That’s what they said.”
 ```
 
 ## 例
