@@ -465,16 +465,20 @@ When using these handlers in your worker entrypoint, they replace the functional
 
 For use with [`astro/fetch`](/en/reference/modules/astro-fetch/). The `cf()` function imported from `@astrojs/cloudflare/fetch` receives a [`FetchState`](/en/reference/modules/astro-fetch/#fetchstate), the Cloudflare `env`, and the `ExecutionContext`. It returns a `Response` for static asset hits, or `undefined` when the request should continue to Astro rendering:
 
+<p><Since v="14.3.0" pkg="@astrojs/cloudflare" /></p>
+
+Pass the response from your Astro pipeline and the same `FetchState` to `finalize()` before returning it. This applies cookies produced during rendering and the adapter's default Cloudflare CDN cache headers to the response.
+
 ```ts title="src/worker.ts"
 import { astro, FetchState } from 'astro/fetch';
-import { cf } from '@astrojs/cloudflare/fetch';
+import { cf, finalize } from '@astrojs/cloudflare/fetch';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const state = new FetchState(request);
     const asset = await cf(state, env, ctx);
     if (asset) return asset;
-    return astro(state);
+    return finalize(state, await astro(state));
   },
 };
 ```
@@ -484,6 +488,8 @@ export default {
 <p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
 
 For use with [`astro/hono`](/en/reference/modules/astro-hono/). The `cf()` function imported from `@astrojs/cloudflare/hono` returns a Hono middleware that reads `env` and `executionCtx` from the Hono context automatically:
+
+In `@astrojs/cloudflare` v14.3.0 and later, this middleware also finalizes the response after downstream Hono handlers run. Cookies produced during rendering and the adapter's default Cloudflare CDN cache headers are applied automatically.
 
 ```ts title="src/worker.ts"
 import { Hono } from 'hono';
