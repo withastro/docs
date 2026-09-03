@@ -32,21 +32,21 @@ Astro는 로컬과 외부라는 두 가지 유형의 이미지 서비스를 제�
 import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
 
 const service: ExternalImageService = {
-  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image'], logger) {
     const serviceConfig = imageConfig.service.config;
 
     // 사용자가 설정한 최대 너비를 적용합니다.
     if (options.width && options.width > serviceConfig.maxWidth) {
-      console.warn(`Image width ${options.width} exceeds max width ${serviceConfig.maxWidth}. Falling back to max width.`);
+      logger.warn(`Image width ${options.width} exceeds max width ${serviceConfig.maxWidth}. Falling back to max width.`);
       options.width = serviceConfig.maxWidth;
     }
 
     return options;
   },
-  getURL(options, imageConfig) {
+  getURL(options, imageConfig, logger) {
     return `https://mysupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
   },
-  getHTMLAttributes(options, imageConfig) {
+  getHTMLAttributes(options, imageConfig, logger) {
     const { src, format, quality, ...attributes } = options;
 		return {
 			...attributes,
@@ -69,7 +69,7 @@ import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
 import { mySuperLibraryThatEncodesImages } from "@example/my-super-library";
 
 const service: LocalImageService<AstroConfig["image"]> = {
-  getURL(options: ImageTransform, imageConfig) {
+  getURL(options: ImageTransform, imageConfig, logger) {
     const searchParams = new URLSearchParams();
 		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
 		options.width && searchParams.append('w', options.width.toString());
@@ -80,7 +80,7 @@ const service: LocalImageService<AstroConfig["image"]> = {
     // 또는 내장된 엔드포인트를 사용하여 parsURL 및 변환 함수를 호출합니다.
     // 이 함수는 `/_image?${searchParams}`를 반환합니다.
   },
-  parseURL(url: URL, imageConfig) {
+  parseURL(url: URL, imageConfig, logger) {
     const params = url.searchParams;
     return {
       src: params.get('href')!,
@@ -90,14 +90,14 @@ const service: LocalImageService<AstroConfig["image"]> = {
       quality: params.get('q'),
     };
   },
-  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig) {
+  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig, logger) {
     const { buffer } = await mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
       format: options.format,
     };
   },
-  getHTMLAttributes(options, imageConfig) {
+  getHTMLAttributes(options, imageConfig, logger) {
 		let targetWidth = options.width;
 		let targetHeight = options.height;
 		if (typeof options.src === "object") {
@@ -142,7 +142,7 @@ import { getConfiguredImageService, imageConfig } from "astro:assets";
 import * as mime from "mrmime";
 import { getImageBuffer } from "./my-custom-image-fetcher.js";
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, logger }) => {
   const imageService = await getConfiguredImageService();
 
   if (!isLocalService(imageService)) {
@@ -155,6 +155,7 @@ export const GET: APIRoute = async ({ request }) => {
   const imageTransform = await imageService.parseURL(
     new URL(request.url),
     imageConfig,
+    logger,
   );
 
   if (!imageTransform) {
@@ -167,6 +168,7 @@ export const GET: APIRoute = async ({ request }) => {
     inputBuffer,
     imageTransform,
     imageConfig,
+    logger,
   );
   return new Response(new Uint8Array(data), {
     status: 200,
@@ -185,7 +187,7 @@ export const GET: APIRoute = async ({ request }) => {
 
 <p>
 
-**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>) => string | Promise\<string\></code><br />
+**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => string | Promise\<string\></code><br />
 <Since v="2.1.0" />
 </p>
 
@@ -195,39 +197,51 @@ export const GET: APIRoute = async ({ request }) => {
 
 외부 서비스의 경우 이 훅은 이미지의 최종 URL을 반환합니다.
 
-두 서비스 유형 모두 `options`는 사용자가 `<Image />` 컴포넌트의 속성 또는 `getImage()`에 대한 옵션으로 전달한 속성입니다.
+두 서비스 유형 모두 `options`는 사용자가 `<Image />` 컴포넌트의 속성 또는 `getImage()`에 대한 옵션으로 전달한 속성입니다. 이 훅은 이미지 구성과 Astro v7.3.0부터 로거도 받습니다.
 
 ### `parseURL()`
 
 <p>
 
-**타입:** <code>(url: URL, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>) => \{ src: string, [key: string]: any \} | undefined | Promise\<\{ src: string, [key: string]: any \}\> | Promise\<undefined\></code><br />
+**타입:** <code>(url: URL, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => \{ src: string, [key: string]: any \} | undefined | Promise\<\{ src: string, [key: string]: any \}\> | Promise\<undefined\></code><br />
 <Since v="2.1.0" />
 </p>
 
 **로컬 서비스에만 필요합니다. 외부 서비스에 사용할 수 없음**
 
-이 훅은 `getURL()`에 의해 생성된 URL을 `transform` (요청 시 렌더링 및 개발 모드에서)에 사용되는 다른 속성을 가진 객체로 다시 구문 분석합니다. 빌드 중에는 사용되지 않습니다.
+이 훅은 `getURL()`에 의해 생성된 URL을 `transform` (요청 시 렌더링 및 개발 모드에서)에 사용되는 다른 속성을 가진 객체로 다시 구문 분석합니다. 이 훅은 세 가지 매개변수, 즉 구문 분석할 URL, 이미지 구성, Astro v7.3.0부터 로거를 받습니다. 빌드 중에는 사용되지 않습니다.
 
 ### `transform()`
 
 <p>
 
-**타입:** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>) => Promise\<\{ data: Uint8Array; format: <a href="/ko/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
+**타입:** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Promise\<\{ data: Uint8Array; format: <a href="/ko/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
 <Since v="2.1.0" />
 </p>
 
 **로컬 서비스에만 필요합니다. 외부 서비스에 사용할 수 없음**
 
-이 훅은 이미지를 변환하고 반환하며 빌드 중에 호출되어 최종 자산 파일을 생성합니다.
+이 훅은 이미지를 변환하고 반환하며 빌드 중에 호출되어 최종 자산 파일을 생성합니다. 이 훅은 네 가지 매개변수, 즉 입력 이미지, 옵션 객체, 이미지 구성, Astro v7.3.0부터 로거를 받습니다.
 
 요청 시 렌더링 및 개발 모드에서 사용자에게 적절한 MIME 유형이 제공되도록 하려면 `format`을 반환해야 합니다.
+
+```ts
+import type { LocalImageService } from 'astro';
+
+const service: LocalImageService = {
+  // ...
+  async transform(inputBuffer, transform, imageConfig, logger) {
+    logger.warn(`Could not optimize "${transform.src}". Passing it through unchanged.`);
+    return { data: inputBuffer, format: 'png' };
+  },
+};
+```
 
 ### `getHTMLAttributes()`
 
 <p>
 
-**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a> ) => Record\<string, any\> | Promise\<Record\<string, any\>\></code><br />
+**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Record\<string, any\> | Promise\<Record\<string, any\>\></code><br />
 <Since v="2.1.0" />
 </p>
 
@@ -235,17 +249,19 @@ export const GET: APIRoute = async ({ request }) => {
 
 이 훅은 사용자가 전달한 매개변수 (`options`)를 기반으로 이미지를 HTML로 렌더링하는 데 사용되는 모든 추가 속성을 반환합니다.
 
+이 훅은 이미지 구성과 Astro v7.3.0부터 로거도 받습니다.
+
 ### `getSrcSet()`
 
 <p>
 
-**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a> ) => UnresolvedSrcSetValue[] | Promise\<UnresolvedSrcSetValue[]\></code><br />
+**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => UnresolvedSrcSetValue[] | Promise\<UnresolvedSrcSetValue[]\></code><br />
 <Since v="3.3.0" />
 </p>
 
 **로컬 및 외부 서비스 모두 선택 사항입니다.**
 
-이 훅은 `<img>` 또는 `<picture>`의 `source`에 `srcset` 속성을 생성하기 위해 지정된 이미지의 여러 변형을 생성합니다.
+이 훅은 지정된 이미지의 여러 변형을 생성합니다. 예를 들어 `<img>` 또는 `<picture>`의 `source`에 `srcset` 속성을 생성할 수 있습니다. 이 훅은 세 가지 매개변수, 즉 옵션 객체, 이미지 구성, Astro v7.3.0부터 로거를 받습니다.
 
 이 훅은 다음 속성을 가진 객체 배열을 반환합니다.
 
@@ -261,13 +277,13 @@ export type UnresolvedSrcSetValue = {
 
 <p>
 
-**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a> ) => ImageTransform | Promise\<ImageTransform\></code>
+**타입:** <code>(options: <a href="/ko/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => ImageTransform | Promise\<ImageTransform\></code>
 <Since v="2.1.4" />
 </p>
 
 **로컬 및 외부 서비스 모두 선택 사항**
 
-이 훅을 사용하면 사용자가 전달한 옵션을 검증하고 강화할 수 있습니다. 이는 기본 옵션을 설정하거나 사용자에게 매개변수가 필요함을 알리는 데 유용합니다.
+이 훅을 사용하면 사용자가 전달한 옵션을 검증하고 강화할 수 있습니다. 이는 기본 옵션을 설정하거나 사용자에게 매개변수가 필요함을 알리는 데 유용합니다. 이 훅은 이미지 구성과 Astro v7.3.0부터 잘못된 옵션에 대해 사용자에게 경고하는 데 사용할 수 있는 로거도 받습니다.
 
 [Astro 내장 서비스에서 `validateOptions()`가 어떻게 사용되는지 확인하세요.](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124)
 
@@ -275,13 +291,15 @@ export type UnresolvedSrcSetValue = {
 
 <p>
 
-**Type:** <code>(url: string, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a> ) => Omit\<<a href="/ko/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\> | Promise\<Omit\<<a href="/ko/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\>\></code>
+**타입:** <code>(url: string, imageConfig: <a href="/ko/reference/configuration-reference/#이미지-옵션">AstroConfig['image']</a>, logger: <a href="/ko/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Omit\<<a href="/ko/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\> | Promise\<Omit\<<a href="/ko/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\>\></code>
 <Since v="6.0.0" />
 </p>
 
 **로컬 및 외부 서비스 모두 선택 사항**
 
 이 훅을 사용하면 [`inferRemoteSize()`](/ko/reference/modules/astro-assets/#inferremotesize)의 동작을 확장할 수 있습니다. 이는 이미지를 캐싱하여 네트워크 트래픽을 줄이거나, 이미지 URL에서 이미지 정보를 예측할 수 있는 경우에 유용합니다.
+
+이 훅은 세 가지 매개변수, 즉 이미지 URL, 이미지 구성, Astro v7.3.0부터 로거를 받습니다.
 
 ## 사용자 구성
 
