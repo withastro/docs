@@ -1,0 +1,255 @@
+---
+title: 路由缓存
+description: Astro 缓存功能简介。
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+<p><Since v="7.0.0" /></p>
+
+Astro 提供了一套平台无关的 API，用于缓存来自[按需渲染](/zh-cn/guides/on-demand-rendering/)页面和端点的响应。你在路由中设置的缓存指令，会根据所配置的缓存提供程序（cache provider）被转换为相应的响应头或运行时行为。
+
+路由缓存构建于标准的 [HTTP 缓存语义](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Caching)之上，包括 [`max-age`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Reference/Headers/Cache-Control#max-age) 和 [`stale-while-revalidate`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Reference/Headers/Cache-Control#stale-while-revalidate)，并支持基于标签和基于路径的失效、配置层级的路由规则，以及可由适配器自动设置的可插拔缓存提供程序。
+
+## 配置缓存
+
+路由缓存需要一个缓存提供程序来决定缓存在运行时如何实现。Astro 提供了[内置内存缓存提供程序](/zh-cn/reference/cache-provider-reference/#内置内存缓存提供程序)，你也可以为高级用例和特定运行时实现自定义提供程序。
+
+要启用此功能，请在你的 Astro 配置中设置一个[缓存提供程序](/zh-cn/reference/cache-provider-reference/)：
+
+```js title="astro.config.mjs" {6-8} "memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+});
+```
+
+然后，你可以在 `.astro` 页面中使用 [`Astro.cache`](/zh-cn/reference/api-reference/#cache)（在 API 路由和中间件中则使用 `context.cache`）来按请求控制缓存。也可以使用 [`routeRules`](#路由规则) 在配置中以声明方式为成组的路由定义缓存默认值。
+
+如果你部署到 Netlify、Vercel 或 Cloudflare，可以使用它们各自适配器的实验性[CDN 缓存提供程序](#适配器缓存提供程序)，而不是内存提供程序。
+
+## 适配器缓存提供程序
+
+Astro 为 Netlify、Vercel 和 Cloudflare 提供的第一方适配器，各自带有一个实验性的 CDN 缓存提供程序，可将缓存指令映射到平台原生的缓存响应头和失效 API。这些提供程序不会将响应存储在内存中，而是将你的缓存指令推送到托管平台的边缘网络；缓存命中时直接由 CDN 提供响应，无需调用你的服务器函数。
+
+在实验阶段，这些提供程序需要手动启用，如下所示。在未来的版本中，它们将由各自的适配器自动启用。
+
+每个提供程序都会自动用请求路径为缓存的响应打上标签，因此 [`cache.invalidate({ path })`](/zh-cn/reference/api-reference/#cacheinvalidate) 在仅支持基于标签清除的平台上也能正常工作。
+
+### Netlify
+
+<p>
+
+<Since pkg="@astrojs/netlify" v="8.0.0" />
+</p>
+
+从 `@astrojs/netlify/cache` 导入 `cacheNetlify()`，并将其设置为你的缓存提供程序：
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
+
+export default defineConfig({
+  adapter: netlify(),
+  cache: {
+    provider: cacheNetlify(),
+  },
+});
+```
+
+该提供程序会设置 `Netlify-CDN-Cache-Control` 和 `Netlify-Cache-Tag` 响应头。缓存的响应使用 Netlify 的[持久缓存（durable cache）](https://docs.netlify.com/platform/caching/#durable-directive)，因此在所有边缘节点之间共享，从而减少函数调用次数。基于标签和基于路径的失效均受支持。
+
+### Vercel
+
+<p>
+
+<Since pkg="@astrojs/vercel" v="11.0.0" />
+</p>
+
+从 `@astrojs/vercel/cache` 导入 `cacheVercel()`，并将其设置为你的缓存提供程序：
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+import { cacheVercel } from '@astrojs/vercel/cache';
+
+export default defineConfig({
+  adapter: vercel(),
+  cache: {
+    provider: cacheVercel(),
+  },
+});
+```
+
+该提供程序会设置 `Vercel-CDN-Cache-Control` 和 `Vercel-Cache-Tag` 响应头。基于标签和基于路径的失效均受支持。标签失效属于软失效：缓存的响应会被标记为过时（stale），并在后台通过 stale-while-revalidate 重新验证。
+
+### Cloudflare
+
+<p>
+
+<Since pkg="@astrojs/cloudflare" v="14.0.0" />
+</p>
+
+从 `@astrojs/cloudflare/cache` 导入 `cacheCloudflare()`，并将其设置为你的缓存提供程序：
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
+
+export default defineConfig({
+  adapter: cloudflare(),
+  cache: {
+    provider: cacheCloudflare(),
+  },
+});
+```
+
+该提供程序会设置 `Cloudflare-CDN-Cache-Control` 和 `Cache-Tag` 响应头。基于标签和基于路径的失效均受支持。
+
+使用 Cloudflare 缓存提供程序时，适配器会以默认设置启用 Cloudflare 的 [Workers Cache](https://developers.cloudflare.com/workers/cache/)。如有需要，你可以[更改配置](https://developers.cloudflare.com/workers/cache/configuration/)，例如在部署新版本网站时保留缓存。
+
+## 与缓存交互
+
+[`cache` 对象](/zh-cn/reference/api-reference/#cache)提供了用于设置缓存选项、使缓存条目失效以及检查当前缓存状态的方法。该对象在 `.astro` 页面中以 `Astro.cache` 的形式可用，在 API 路由和中间件中则以 `context.cache` 的形式可用。
+
+<ReadMore>更多细节请参阅 [Cache API 参考](/zh-cn/reference/api-reference/#cache)。</ReadMore>
+
+### 检查缓存是否已启用
+
+未配置缓存时，`cache.set()`、`cache.tags` 和 `cache.options` 会记录警告，而 `cache.invalidate()` 会抛出错误。为避免这种情况，请使用 [`cache.enabled`](/zh-cn/reference/api-reference/#cacheenabled) 将你的缓存逻辑包裹在条件检查中。在未配置提供程序或处于开发模式时，其值始终为 `false`。
+
+```astro title="src/pages/products/[id].astro" "Astro.cache.enabled"
+---
+if (Astro.cache.enabled) {
+  const tags = await getProductTags(Astro.params.id);
+  Astro.cache.set({ maxAge: 3600, tags });
+}
+---
+```
+
+### 设置缓存选项
+
+调用 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 并传入一个选项对象，即可为当前响应启用缓存。
+
+下面的示例将页面缓存 2 分钟，在重新验证期间提供 1 分钟的过时内容，并为响应打上标签以便定向失效：
+
+```astro title="src/pages/index.astro" {4-8}
+---
+export const prerender = false; // 在 'server' 模式下无需此项
+
+Astro.cache.set({
+  maxAge: 120,
+  swr: 60,
+  tags: ['home'],
+});
+---
+
+<html><body>Cached page</body></html>
+```
+
+在 API 路由和中间件中，使用 `context.cache`：
+
+```ts title="src/pages/api/data.ts" {2-5}
+export function GET(context) {
+  context.cache.set({
+    maxAge: 300,
+    tags: ['api', 'data'],
+  });
+  return Response.json({ ok: true });
+}
+```
+
+### 选择退出缓存
+
+调用 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 并传入 `false`，可以让某个请求显式退出缓存。当匹配到的[路由规则](#路由规则)原本会缓存该响应时，这一做法很有用：
+
+```astro title="src/pages/dashboard.astro"
+---
+if (isPersonalized) {
+  Astro.cache.set(false);
+}
+---
+```
+
+### 读取缓存状态
+
+你可以通过 [`cache.options`](/zh-cn/reference/api-reference/#cacheoptions) 访问当前累积的缓存选项。这在调试时，或当你想根据当前状态有条件地修改缓存时很有用：
+
+```ts title="src/pages/api/debug.ts"
+const { maxAge, swr, tags } = context.cache.options;
+```
+
+### 使缓存条目失效
+
+你可以使用 [`cache.invalidate()`](/zh-cn/reference/api-reference/#cacheinvalidate) 按标签或路径清除缓存条目。当缓存内容过时时（例如在内容更新或用户操作之后），这对于以编程方式清除缓存很有用。
+
+下面的示例创建了一个按标签和按路径使缓存失效的 API 路由：
+
+```ts title="src/pages/api/revalidate.ts"
+export async function POST(context) {
+  // 使所有带有 'data' 标签的条目失效
+  await context.cache.invalidate({ tags: ['data'] });
+
+  // 使指定路径失效
+  await context.cache.invalidate({ path: '/api/data' });
+
+  return Response.json({ purged: true });
+}
+```
+
+基于标签的失效会移除所有标签中包含任一指定标签的缓存条目。基于路径的失效仅支持精确匹配（不支持 [glob](/zh-cn/guides/imports/#glob-模式) 或通配符模式）。
+
+## 合并行为
+
+在单个请求中多次调用 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 时，会按以下规则合并：
+
+- **标量值**（`maxAge`、`swr`、`etag`）：以最后一次写入为准
+- **`lastModified`**：以最新的日期为准
+- **`tags`**：跨所有调用累积
+
+中间件、布局、内容加载器（content loader）和页面代码都可以各自独立地贡献缓存指令。
+
+## 开发模式下的行为
+
+在开发模式下，缓存 API 是可用的，因此路由代码无需条件检查，但不会发生实际的缓存。[`cache.enabled`](/zh-cn/reference/api-reference/#cacheenabled) 为 `false`，且 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 和 [`cache.invalidate()`](/zh-cn/reference/api-reference/#cacheinvalidate) 为空操作（no-op）。要在本地测试缓存，请先构建再预览你的网站。
+
+## 路由规则
+
+路由规则允许你在配置中以声明方式为成组的路由定义缓存行为。这对于一次性为大量路由应用缓存很有用。
+
+下面的示例为所有 API 路由启用了 stale-while-revalidate 缓存，将产品页面的新鲜期设为 1 小时，并将博客文章缓存 5 分钟：
+
+```js title="astro.config.mjs" {9-13}
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/api/[...path]': { swr: 600 },
+    '/products/[...slug]': { maxAge: 3600, tags: ['products'] },
+    '/blog/[...slug]': { maxAge: 300, swr: 60 },
+  },
+});
+```
+
+支持以下路由模式：
+
+- **静态路径**：`/about`、`/api/health`
+- **动态参数**：`/products/[id]`、`/blog/[slug]`
+- **剩余参数**：`/docs/[...path]`
+
+这些模式使用与 Astro [基于文件的路由](/zh-cn/guides/routing/#路由优先级顺序)相同的语法、匹配和优先级规则，因此更具体的模式优先。不支持 `*` 之类的 glob 通配符；请使用 `[...rest]` 参数来匹配一组路由（例如，用 `/api/[...path]` 匹配 `/api` 下的所有内容）。
+
+单个路由中的 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 调用会与配置层级的路由规则合并。路由代码可以覆盖或扩展配置中设置的默认值。例如，路由规则可以为所有产品页面设置默认的 `maxAge`，而各个页面也可以根据需要调用 `cache.set()` 来自定义或禁用缓存。
