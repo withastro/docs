@@ -4,12 +4,204 @@ description: Add content to your Astro project using EmDash as a CMS
 sidebar:
   label: EmDash
 type: cms
-stub: true
 logo: emdash
 i18nReady: true
 ---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
 
 [EmDash](https://emdashcms.com/) is an open-source, full-stack CMS built specifically for Astro, adding database-backed content, an admin UI, a media library, menus, and taxonomies to your site.
+
+Unlike a headless CMS, EmDash runs inside your Astro project: the admin UI is served at `/_emdash/admin`, content is stored in a database, and your pages query it at runtime through [live content collections](/en/guides/content-collections/#live-content-collections).
+
+:::tip
+To start a **new Astro + EmDash project from scratch**, use the EmDash CLI to generate a pre-wired project:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create emdash@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create emdash@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create emdash@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+:::
+
+## Prerequisites
+
+- An existing Astro project (Astro 6 or later) [with an adapter configured](/en/guides/on-demand-rendering/) for server output. This guide uses the [Node.js adapter](/en/guides/integrations-guide/node/).
+- Node.js v22.16.0 or higher.
+
+## Installing dependencies
+
+Install EmDash together with its required peer dependencies. React powers the admin UI and is required even if your site does not use React:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install emdash @astrojs/react react react-dom
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add emdash @astrojs/react react react-dom
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add emdash @astrojs/react react react-dom
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+By default, EmDash stores content in a local SQLite database, using the SQLite driver built into Node.js. It also supports libSQL, Cloudflare D1, and PostgreSQL.
+
+## Adding the integration
+
+Add the `react()` and `emdash()` integrations to your Astro config file, and configure a database and a media storage backend:
+
+```js title="astro.config.mjs" ins={3-5, 10-19}
+import { defineConfig } from "astro/config";
+import node from "@astrojs/node";
+import react from "@astrojs/react";
+import emdash, { local } from "emdash/astro";
+import { sqlite } from "emdash/db";
+
+export default defineConfig({
+  output: "server",
+  adapter: node({ mode: "standalone" }),
+  integrations: [
+    react(),
+    emdash({
+      database: sqlite({ url: "file:./data.db" }),
+      storage: local({
+        directory: "./uploads",
+        baseUrl: "/_emdash/api/media/file",
+      }),
+    }),
+  ],
+});
+```
+
+Registering `react()` is required: without it, the admin UI never hydrates and stays on its loading screen.
+
+## Adding the live collections loader
+
+Create a `src/live.config.ts` file so that Astro's content layer can resolve EmDash content:
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from "astro:content";
+import { emdashLoader } from "emdash/runtime";
+
+export const collections = {
+  _emdash: defineLiveCollection({ loader: emdashLoader() }),
+};
+```
+
+The `_emdash` collection internally routes to your content types (e.g. posts and pages). Any existing file-based collections in `src/content.config.ts` keep working alongside it.
+
+## Running EmDash locally
+
+Start Astro's dev server to initialize the database and launch the admin UI:
+
+```shell
+npm run dev
+```
+
+On first run, EmDash creates `data.db` with its schema and two default collections, `pages` and `posts`.
+
+Then, complete the setup wizard:
+
+<Steps>
+1. Visit `http://localhost:4321/_emdash/admin` in the browser. You will be redirected to the setup wizard.
+
+2. In the **Site** step, enter a site title and an optional tagline.
+
+3. In the **Account** step, enter your email address and name. This creates the administrator account.
+
+4. In the **Sign In** step, secure your account. Choose **Create Passkey** to register a passkey with your device's biometric authentication, security key, or PIN.
+
+5. Sign in with your new passkey to reach the dashboard.
+</Steps>
+
+:::note
+Complete the setup wizard before testing your own pages. Until setup is complete, there is no published content, so queries return empty results.
+:::
+
+## Creating your first post
+
+<Steps>
+1. In the dashboard, click the **+ Post** button.
+
+2. Add a title and some content. EmDash stores rich text as [Portable Text](https://github.com/portabletext/portabletext), edited in a block editor. A URL slug is generated from the title and can be edited in the sidebar.
+
+3. Click **Save**, then **Publish**. Only published posts are visible to site visitors.
+</Steps>
+
+## Rendering EmDash content
+
+Query your content with `getEmDashCollection()` and `getEmDashEntry()`. Both follow the live collections pattern and return results at request time, so published changes appear without a rebuild.
+
+### Displaying a list of posts
+
+The following example displays a list of all published post titles, each linking to an individual post page:
+
+```astro title="src/pages/blog.astro"
+---
+import { getEmDashCollection } from "emdash";
+
+const { entries: posts } = await getEmDashCollection("posts", {
+  status: "published",
+});
+---
+<ul>
+  {posts.map((post) => (
+    <li>
+      <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
+```
+
+### Displaying a single post
+
+To display content from an individual post, fetch it by its slug and render the Portable Text content with the `<PortableText />` component:
+
+```astro title="src/pages/posts/[...slug].astro"
+---
+import { getEmDashEntry } from "emdash";
+import { PortableText } from "emdash/ui";
+
+const { slug } = Astro.params;
+const { entry: post } = await getEmDashEntry("posts", slug);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+---
+<article>
+  <h1>{post.data.title}</h1>
+  <PortableText value={post.data.content} />
+</article>
+```
+
+<ReadMore>See the [EmDash querying guide](https://docs.emdashcms.com/guides/querying-content/) for filtering, pagination, previewing drafts, and visual editing.</ReadMore>
+
+## Deploying EmDash + Astro
+
+EmDash deploys together with your site as a single Astro project. Choose a host that supports your adapter, and provision a production database and media storage.
+
+<ReadMore>See the EmDash deployment guides for [Node.js](https://docs.emdashcms.com/deployment/nodejs/) and [Cloudflare](https://docs.emdashcms.com/deployment/cloudflare/) for provider-specific instructions, and Astro's own [deployment guides](/en/guides/deploy/) for your hosting provider.</ReadMore>
 
 ## Official Resources
 
