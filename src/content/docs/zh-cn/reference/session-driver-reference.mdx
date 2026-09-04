@@ -1,0 +1,191 @@
+---
+title: Astro 会话驱动 API
+sidebar:
+  label: 会话驱动 API
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+
+Astro [会话](/zh-cn/guides/sessions/)允许你为按需渲染的页面在请求之间共享数据。它们需要一个 Astro 会话驱动来存储会话数据。
+
+## 内置驱动
+
+Astro 从 `astro/config` 导出内置的会话驱动：
+
+```js
+import { sessionDrivers } from 'astro/config'
+```
+
+任何 [unstorage 驱动](https://unstorage.unjs.io/drivers) 都可以使用，例如：
+
+```js title="astro.config.mjs" ins={5-7} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+
+export default defineConfig({
+    session: {
+        driver: sessionDrivers.redis({
+            url: process.env.REDIS_URL
+        }),
+    }
+})
+```
+
+:::note
+某些驱动可能需要安装额外的包。某些驱动还可能需要设置环境变量或凭据。请参阅 [Unstorage 文档](https://unstorage.unjs.io/drivers)了解更多信息。
+:::
+
+## 构建会话驱动
+
+会话驱动由两部分组成：
+
+- [驱动配置](#会话驱动配置)，让 Astro 知道在运行时使用哪个实现以及转发哪些配置
+- [驱动实现](#会话驱动实现)，在运行时处理存储逻辑
+
+### 会话驱动配置
+
+`SessionDriverConfig` 是一个对象，包含必需的运行时 [`entrypoint`](#entrypoint) 和可选的 [`config`](#config)。实现它的首选方式是导出一个函数，该函数接受配置作为可选参数并返回此对象。
+
+以下示例定义了一个内存驱动配置：
+
+```ts title="driver/config.ts"
+import type { SessionDriverConfig } from 'astro'
+
+export interface Config {
+    max?: number;
+}
+
+export function memoryDriver(config: Config = {}): SessionDriverConfig {
+    return {
+        entrypoint: new URL('./runtime.js', import.meta.url),
+        config,
+    }
+}
+```
+
+然后在 Astro 配置中注册它：
+
+```ts title="astro.config.ts"
+import { defineConfig } from 'astro/config'
+import { memoryDriver } from './driver/config'
+
+export default defineConfig({
+    session: {
+        driver: memoryDriver({
+            max: 500
+        })
+    }
+})
+```
+
+#### `entrypoint`
+
+<p>
+
+**类型：** `string | URL`
+<Since v="6.0.0" />
+</p>
+
+定义[驱动实现](#会话驱动实现)的入口点。
+
+#### `config`
+
+<p>
+
+**类型：** `Record<string, any> | undefined`
+<Since v="6.0.0" />
+</p>
+
+定义在运行时传递给[驱动实现](#会话驱动实现)的可序列化配置。
+
+### 会话驱动实现
+
+`SessionDriver` 是一个对象，负责在[运行时使用会话](/zh-cn/reference/api-reference/#session)（例如 `context.session.set()`）时[存储](#setitem)、[检索](#getitem)和[删除](#removeitem)数据。你可以通过在会话驱动模块中导出一个默认函数来实现它，该函数接受[驱动配置](#config)作为参数。
+
+以下示例实现了一个内存驱动：
+
+```ts title="driver/runtime.ts"
+import type { SessionDriver } from 'astro'
+import type { Config } from './config'
+import { LRUCache } from 'lru-cache'
+
+export default function(config: Config): SessionDriver {
+    const cache = new LRUCache({ max: config.max })
+    return {
+        setItem: async (key, value) => {
+            cache.set(key, value)
+        },
+        getItem: async (key) => {
+            return cache.get(key)
+        },
+        removeItem: async (key) => {
+            cache.delete(key)
+        },
+    }
+}
+```
+
+#### `setItem()`
+
+<p>
+
+**类型：** `(key: string, value: any) => Promise<void>`
+<Since v="6.0.0" />
+</p>
+
+定义一个按键设置会话数据的函数。
+
+#### `getItem()`
+
+<p>
+
+**类型：** `(key: string) => Promise<any>`
+<Since v="6.0.0" />
+</p>
+
+定义一个按键检索会话数据的函数。
+
+#### `removeItem()`
+
+<p>
+
+**类型：** `(key: string) => Promise<void>`
+<Since v="6.0.0" />
+</p>
+
+定义一个按键删除会话数据的函数。
+
+## Unstorage 兼容性
+
+Unstorage 驱动的类型与 Astro 的 `SessionDriver` 类型兼容。
+
+这意味着你可以将 unstorage 包的导出用作[入口点](#entrypoint)。例如：
+
+```ts title="driver/config.ts" {5}
+import type { SessionDriverConfig } from 'astro'
+
+export function configuredRedisDriver(): SessionDriverConfig {
+    return {
+        entrypoint: 'unstorage/drivers/redis',
+        config: {
+            tls: true
+        }
+    }
+}
+```
+
+或者，你也可以直接在实现中导入并使用 unstorage 驱动。例如：
+
+```ts title="driver/runtime.ts" {2}
+import type { SessionDriver } from 'astro'
+import redisDriver from "unstorage/drivers/redis";
+
+export default function(config): SessionDriver {
+    return redisDriver({
+        ...config,
+        tls: true
+    })
+}
+```
