@@ -371,10 +371,45 @@ The incoming `request` is passed as a second argument so a provider can read the
 
 <p>
 
-**Type:** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void \}, next: <a href="/en/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
+**Type:** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void; logger: <a href="/en/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a> \}, next: <a href="/en/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
 </p>
 
-Intercepts requests to implement runtime caching. The `context` includes a `waitUntil()` function (when available in the runtime) for background work such as stale-while-revalidate.
+An optional hook that intercepts a request before Astro generates the matching route. It receives a `context` object as its first argument and a callback to call the `next()` middleware in the chain.
+
+The `context` contains the following properties:
+- `request`: the incoming [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request) object.
+- `url`: a normalized [URL](https://developer.mozilla.org/en-US/docs/Web/API/URL) derived from the request.
+- `waitUntil()`: when available in the runtime, a function to define background work, such as revalidating a stale cache entry.
+- `logger`: since Astro v7.3.0, a [`logger`](/en/reference/api-reference/#logger) instance that respects the [configured logging destination](/en/reference/configuration-reference/#logger-options)
+
+The following example implements a minimal `onRequest()` hook that logs each URL added to the cache:
+
+```ts title="my-provider/runtime.ts" ins={7-17}
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  const cache = new Map();
+  return {
+    name: 'my-cache-provider',
+    async onRequest({ request, url, waitUntil, logger }, next) {
+      if (request.method !== 'GET') return next();
+
+      const cached = cache.get(url);
+      if (cached) return cached;
+
+      const response = await next();
+      cache.set(url, response.clone());
+      logger.info(`Cached response for ${url}.`);
+      return response;
+    },
+    async invalidate() {
+      // ...
+    },
+  };
+};
+
+export default factory;
+```
 
 #### `CacheProvider.invalidate()`
 
