@@ -648,9 +648,9 @@ Vous pouvez le faire de deux manières :
 
 #### Exécution du pipeline complet avec `astro()`
 
-Utilisez [`astro()`](/fr/reference/modules/astro-fetch/#astro) lorsque vous souhaitez conserver le comportement de routage intégré d'Astro, mais avez besoin d'une logique personnalisée autour. Cette approche préserve l'ordre du pipeline par défaut et vous permet d'ajouter un pré-traitement et un post-traitement en un seul endroit. Pour de nombreux cas d'utilisation, tels que l'ajout de gardes d'authentification, la journalisation des requêtes et les en-têtes personnalisés, `astro()` est tout ce dont vous avez besoin.
+Utilisez [`astro()`](/fr/reference/modules/astro-fetch/#astro) lorsque vous souhaitez conserver le comportement de routage intégré d'Astro, mais avez besoin d'une logique personnalisée autour. Cette approche préserve l'ordre du pipeline par défaut et vous permet d'ajouter un pré-traitement et un post-traitement en un seul endroit. Pour de nombreux cas d'utilisation, tels que la journalisation des requêtes et les en-têtes personnalisés, `astro()` est tout ce dont vous avez besoin.
 
-L'exemple suivant vérifie si un utilisateur peut accéder à un tableau de bord avant d'exécuter le pipeline d'Astro, et ajoute un en-tête personnalisé à la réponse une fois qu'Astro a terminé l'exécution :
+L'exemple suivant affiche dans la console chaque requête entrante avant d'exécuter le pipeline d'Astro, et ajoute un en-tête personnalisé à la réponse une fois qu'Astro a terminé l'exécution :
 
 ```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
@@ -660,16 +660,7 @@ export default {
     const state = new FetchState(request);
 
     // Pré-traitement personnalisé, s'exécute avant tout gestionnaire d'Astro
-    const url = new URL(request.url);
-    if (url.pathname.startsWith('/tableau-de-bord')) {
-      const cookie = request.headers.get('cookie') ?? '';
-      if (!cookie.includes('session=')) {
-        return new Response(null, {
-          status: 302,
-          headers: { Location: '/connexion' },
-        });
-      }
-    }
+    console.log(`${request.method} ${new URL(request.url).pathname}`);
 
     const response = await astro(state);
 
@@ -679,6 +670,12 @@ export default {
   },
 };
 ```
+
+:::caution
+Il n'est pas garanti que le chemin de la requête entrante soit identique à la route qu'Astro fait correspondre en interne, donc une vérification telle que `url.pathname.startsWith('/dashboard')` peut être contournée.
+
+N'utilisez pas le pré-traitement pour autoriser les requêtes en comparant le chemin de la requête à une chaîne de caractères. Pour protéger les routes, utilisez un routeur qui gère la correspondance des routes, tel que [Hono](#utilisation-avec-hono).
+:::
 
 #### Composition de gestionnaires individuels
 
@@ -732,4 +729,32 @@ app.use(pages());
 app.use(i18n());
 
 export default app;
+```
+
+Vous pouvez également protéger des routes en enregistrant une vérification d'autorisation sur les routes Hono que vous souhaitez protéger :
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { isLoggedIn } from './lib/auth';
+
+const app = new Hono();
+
+// Protéger toutes les routes sous /tableau-de-bord.
+app.use('/tableau-de-bord', requireAuth);
+app.use('/tableau-de-bord/*', requireAuth);
+
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+
+async function requireAuth(c, next) {
+  if (!(await isLoggedIn(c.req.raw))) {
+    return c.redirect('/connexion');
+  }
+  return next();
+}
 ```

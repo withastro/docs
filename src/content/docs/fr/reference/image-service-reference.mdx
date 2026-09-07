@@ -31,21 +31,21 @@ Un service externe pointe vers une URL distante à utiliser comme attribut `src`
 import type { ExternalImageService, ImageTransform, AstroConfig } from "astro";
 
 const service: ExternalImageService = {
-  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image']) {
+  validateOptions(options: ImageTransform, imageConfig: AstroConfig['image'], logger) {
     const serviceConfig = imageConfig.service.config;
 
     // Appliquer la largeur maximale définie par l'utilisateur.
     if (options.width && options.width > serviceConfig.maxWidth) {
-      console.warn(`La largeur de l'image ${options.width} dépasse la largeur maximale ${serviceConfig.maxWidth}. Repli sur la largeur maximale.`);
+      logger.warn(`La largeur de l'image ${options.width} dépasse la largeur maximale ${serviceConfig.maxWidth}. Repli sur la largeur maximale.`);
       options.width = serviceConfig.maxWidth;
     }
 
     return options;
   },
-  getURL(options, imageConfig) {
+  getURL(options, imageConfig, logger) {
     return `https://monsupercdn.com/${options.src}?q=${options.quality}&w=${options.width}&h=${options.height}`;
   },
-  getHTMLAttributes(options, imageConfig) {
+  getHTMLAttributes(options, imageConfig, logger) {
     const { src, format, quality, ...attributes } = options;
 		return {
 			...attributes,
@@ -68,7 +68,7 @@ import type { ImageTransform, LocalImageService, AstroConfig } from "astro";
 import { mySuperLibraryThatEncodesImages } from "@example/ma-super-bibliotheque";
 
 const service: LocalImageService<AstroConfig["image"]> = {
-  getURL(options: ImageTransform, imageConfig) {
+  getURL(options: ImageTransform, imageConfig, logger) {
     const searchParams = new URLSearchParams();
 		searchParams.append('href', typeof options.src === "string" ? options.src : options.src.src);
 		options.width && searchParams.append('w', options.width.toString());
@@ -79,7 +79,7 @@ const service: LocalImageService<AstroConfig["image"]> = {
     // Ou utilisez le point de terminaison intégré, qui appellera vos fonctions parseURL et transform :
     // return `/_image?${searchParams}`;
   },
-  parseURL(url: URL, imageConfig) {
+  parseURL(url: URL, imageConfig, logger) {
     const params = url.searchParams;
     return {
       src: params.get('href')!,
@@ -89,14 +89,14 @@ const service: LocalImageService<AstroConfig["image"]> = {
       quality: params.get('q'),
     };
   },
-  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig) {
+  async transform(inputBuffer: Uint8Array, options: { src: string, [key: string]: any }, imageConfig, logger) {
     const { buffer } = await mySuperLibraryThatEncodesImages(options);
     return {
       data: buffer,
       format: options.format,
     };
   },
-  getHTMLAttributes(options, imageConfig) {
+  getHTMLAttributes(options, imageConfig, logger) {
 		let targetWidth = options.width;
 		let targetHeight = options.height;
 		if (typeof options.src === "object") {
@@ -141,7 +141,7 @@ import { getConfiguredImageService, imageConfig } from "astro:assets";
 import * as mime from "mrmime";
 import { getImageBuffer } from "./mon-recuperateur-d-images-personnalise.js";
 
-export const GET: APIRoute = async ({ request }) => {
+export const GET: APIRoute = async ({ request, logger }) => {
   const imageService = await getConfiguredImageService();
 
   if (!isLocalService(imageService)) {
@@ -154,6 +154,7 @@ export const GET: APIRoute = async ({ request }) => {
   const imageTransform = await imageService.parseURL(
     new URL(request.url),
     imageConfig,
+    logger,
   );
 
   if (!imageTransform) {
@@ -166,6 +167,7 @@ export const GET: APIRoute = async ({ request }) => {
     inputBuffer,
     imageTransform,
     imageConfig,
+    logger,
   );
   return new Response(new Uint8Array(data), {
     status: 200,
@@ -185,7 +187,7 @@ export const GET: APIRoute = async ({ request }) => {
 
 <p>
 
-**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>) => string | Promise\<string\></code><br />
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => string | Promise\<string\></code><br />
 <Since v="2.1.0" />
 </p>
 
@@ -195,57 +197,71 @@ Pour les services locaux, ce hook renvoie l'URL du point de terminaison qui gén
 
 Pour les services externes, ce hook renvoie l'URL finale de l'image.
 
-Pour les deux types de services, les `options` sont les propriétés passées par l'utilisateur comme attributs du composant `<Image />` ou comme options de `getImage()`.
+Pour les deux types de services, les `options` sont les propriétés passées par l'utilisateur comme attributs du composant `<Image />` ou comme options de `getImage()`. Ce hook reçoit également la configuration de l'image et, depuis Astro v7.3.0, un journaliseur.
 
 ### `parseURL()`
 
 <p>
 
-**Type :** <code>(url: URL, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>) => \{ src: string, [key: string]: any \} | undefined | Promise\<\{ src: string, [key: string]: any \}\> | Promise\<undefined\></code><br />
+**Type :** <code>(url: URL, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => \{ src: string, [key: string]: any \} | undefined | Promise\<\{ src: string, [key: string]: any \}\> | Promise\<undefined\></code><br />
 <Since v="2.1.0" />
 </p>
 
 **Requis pour les services locaux uniquement ; indisponible pour les services externes**
 
-Ce hook analyse les URLs générées par `getURL()` en un objet avec les différentes propriétés à utiliser par `transform` (en SSR et en mode dev). Il n'est pas utilisé pendant la compilation.
+Ce hook analyse les URLs générées par `getURL()` pour les transformer en un objet contenant les différentes propriétés à utiliser par `transform`. Il reçoit trois paramètres : l'URL à analyser, la configuration de l'image et, depuis Astro v7.3.0, un journaliseur.
+
+Ce hook est utilisé uniquement pour le rendu à la demande et en mode développement. Il n'est pas utilisé pendant la compilation.
 
 ### `transform()`
 
 <p>
 
-**Type :** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>) => Promise\<\{ data: Uint8Array; format: <a href="/fr/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
+**Type :** <code>(inputBuffer: Uint8Array, options: \{ src: string, [key: string]: any \}, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Promise\<\{ data: Uint8Array; format: <a href="/fr/reference/modules/astro-assets/#imageoutputformat">ImageOutputFormat</a> \}\></code><br />
 <Since v="2.1.0" />
 </p>
 
 **Requis pour les services locaux uniquement ; indisponible pour les services externes**
 
-Ce hook transforme et renvoie l'image et est appelé pendant la compilation pour créer les fichiers de ressources finaux.
+Ce hook transforme et renvoie l'image et est appelé pendant la compilation pour créer les fichiers de ressources finaux. Il reçoit quatre paramètres : l'image d'entrée, un objet d'options, la configuration de l'image et, depuis Astro v7.3.0, un journaliseur.
 
 Vous devez renvoyer un `format` pour garantir que le type MIME approprié est fourni aux utilisateurs pour le rendu à la demande et le mode de développement.
+
+```ts
+import type { LocalImageService } from 'astro';
+
+const service: LocalImageService = {
+  // ...
+  async transform(inputBuffer, transform, imageConfig, logger) {
+    logger.warn(`Impossible d'optimiser « ${transform.src} ». Transmission sans modification.`);
+    return { data: inputBuffer, format: 'png' };
+  },
+};
+```
 
 ### `getHTMLAttributes()`
 
 <p>
 
-**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => Record\<string, any\> | Promise\<Record\<string, any\>\></code><br />
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Record\<string, any\> | Promise\<Record\<string, any\>\></code><br />
 <Since v="2.1.0" />
 </p>
 
 **Facultatif pour les services locaux et externes**
 
-Ce hook renvoie tous les attributs supplémentaires utilisés pour restituer l'image en HTML, en fonction des paramètres transmis par l'utilisateur (`options`).
+Ce hook renvoie tous les attributs supplémentaires utilisés pour restituer l'image en HTML, en fonction des paramètres transmis par l'utilisateur (`options`). Il reçoit également la configuration de l'image et, depuis Astro v7.3.0, un journaliseur.
 
 ### `getSrcSet()`
 
 <p>
 
-**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => UnresolvedSrcSetValue[] | Promise\<UnresolvedSrcSetValue[]\></code><br />
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => UnresolvedSrcSetValue[] | Promise\<UnresolvedSrcSetValue[]\></code><br />
 <Since v="3.3.0" />
 </p>
 
 **Facultatif pour les services locaux et externes**
 
-Ce hook génère plusieurs variantes de l'image spécifiée, par exemple, pour générer un attribut `srcset` sur une `<img>` ou `source` sur `<picture>`.
+Ce hook génère plusieurs variantes de l'image spécifiée, par exemple, pour générer un attribut `srcset` sur une `<img>` ou `source` sur `<picture>`. Il reçoit trois paramètres : un objet d'options, la configuration de l'image et, depuis Astro v7.3.0, un journaliseur.
 
 Ce hook retourne un tableau d'objets avec les propriétés suivantes :
 
@@ -261,13 +277,13 @@ export type UnresolvedSrcSetValue = {
 
 <p>
 
-**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => ImageTransform | Promise\<ImageTransform\></code>
+**Type :** <code>(options: <a href="/fr/reference/modules/astro-assets/#imagetransform">ImageTransform</a>, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => ImageTransform | Promise\<ImageTransform\></code>
 <Since v="2.1.4" />
 </p>
 
 **Facultatif pour les services locaux et externes**
 
-Ce hook vous permet de valider et d'augmenter les options passées par l'utilisateur. C'est utile pour définir des options par défaut, ou pour indiquer à l'utilisateur qu'un paramètre est nécessaire.
+Ce hook vous permet de valider et d'augmenter les options passées par l'utilisateur. C'est utile pour définir des options par défaut, ou pour indiquer à l'utilisateur qu'un paramètre est nécessaire. Il reçoit également la configuration de l'image et, depuis Astro v7.3.0, un journaliseur que vous pouvez utiliser pour avertir l'utilisateur des options invalides.
 
 [Voir comment `validateOptions()` est utilisé dans les services intégrés d'Astro](https://github.com/withastro/astro/blob/0ab6bad7dffd413c975ab00e545f8bc150f6a92f/packages/astro/src/assets/services/service.ts#L124).
 
@@ -275,13 +291,13 @@ Ce hook vous permet de valider et d'augmenter les options passées par l'utilisa
 
 <p>
 
-**Type :** <code>(url: string, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a> ) => Omit\<<a href="/fr/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\> | Promise\<Omit\<<a href="/fr/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\>\></code>
+**Type :** <code>(url: string, imageConfig: <a href="/fr/reference/configuration-reference/#options-dimages">AstroConfig['image']</a>, logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a>) => Omit\<<a href="/fr/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\> | Promise\<Omit\<<a href="/fr/reference/modules/astro-assets/#imagemetadata-1">ImageMetadata</a>, 'src' | 'fsPath'\>\></code>
 <Since v="6.0.0" />
 </p>
 
 **Facultatif pour les services locaux et externes**
 
-Ce hook vous permet d'étendre le comportement de [`inferRemoteSize()`](/fr/reference/modules/astro-assets/#inferremotesize). Ceci est utile pour réduire le trafic réseau en mettant les images en cache, ou lorsque vous pouvez prédire les informations d'une image à partir de son URL.
+Ce hook vous permet d'étendre le comportement de [`inferRemoteSize()`](/fr/reference/modules/astro-assets/#inferremotesize). Ceci est utile pour réduire le trafic réseau en mettant les images en cache, ou lorsque vous pouvez prédire les informations d'une image à partir de son URL. Il reçoit trois paramètres : l'URL de l'image, la configuration de l'image et, depuis Astro v7.3.0, un journaliseur.
 
 ## Configuration de l'utilisateur
 
