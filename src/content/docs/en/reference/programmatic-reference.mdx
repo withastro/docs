@@ -197,40 +197,44 @@ Takes an Astro configuration object and a partial object containing any set of v
 - All other options override the existing config.
 
 ```ts
+import mdx from "@astrojs/mdx";
+import partytown from "@astrojs/partytown";
+import type { AstroInlineConfig } from "astro";
 import { mergeConfig } from "astro/config";
 
-mergeConfig(
-  {
-    output: "static",
-    site: "https://example.com",
-    integrations: [partytown()],
-    server: ({command}) => ({
-      port: command === "dev" ? 4321 : 1234,
-    }),
-    build: {
-      client: "./custom-client",
-    },
+const defaultConfig: AstroInlineConfig = {
+  output: "static",
+  site: "https://example.com",
+  integrations: [partytown()],
+  server: ({ command }) => ({
+    port: command === "dev" ? 4321 : 1234,
+  }),
+  build: {
+    client: "./custom-client",
   },
-  {
-    output: "server",
-    base: "/astro",
-    integrations: [mdx()],
-    server: ({command}) => ({
-      host: command === "dev" ? "localhost" : "site.localhost",
-    }),
-    build: {
-      server: "./custom-server",
-    },
-  }
-);
+};
 
-// Result is equivalent to:
+const overrideConfig: AstroInlineConfig = {
+  output: "server",
+  base: "/astro",
+  integrations: [mdx()],
+  server: ({ command }) => ({
+    host: command === "dev" ? "localhost" : "site.localhost",
+  }),
+  build: {
+    server: "./custom-server",
+  },
+};
+
+const finalConfig = mergeConfig(defaultConfig, overrideConfig);
+
+// `finalConfig` is equivalent to:
 {
   output: "server",
   site: "https://example.com",
   base: "/astro",
   integrations: [partytown(), mdx()],
-  server: ({command}) => ({
+  server: ({ command }) => ({
     port: command === "dev" ? 4321 : 1234,
     host: command === "dev" ? "localhost" : "site.localhost",
   }),
@@ -258,10 +262,14 @@ The returned promise resolves to the validated configuration, filled with all de
 
 ```ts
 import { validateConfig } from "astro/config";
+import partytown from "@astrojs/partytown";
+import { rm } from "node:fs/promises";
 
-const config = await validateConfig({
-  integrations: [partytown()],
-}, "./my-project", "build");
+const config = await validateConfig(
+  { integrations: [partytown()] },
+  "./my-project",
+  "build",
+);
 
 // defaults are applied
 await rm(config.outDir, { recursive: true, force: true });

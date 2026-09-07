@@ -1,0 +1,267 @@
+---
+title: Referencia de la API de enrutamiento de búsquedas
+sidebar:
+  label: 'astro/fetch'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+<p><Since v="7.0.0" /></p>
+
+El módulo `astro/fetch` ofrece controladores de [enrutamiento avanzado](/es/guides/routing/#enrutamiento-avanzado) basados en la API estándar de búsqueda.
+
+## Importaciones desde `astro/fetch`
+
+```ts
+import {
+  FetchState,
+  astro,
+  actions,
+  cache,
+  i18n,
+  middleware,
+  pages,
+  redirects,
+  sessions,
+  trailingSlash,
+} from 'astro/fetch';
+```
+
+### `FetchState`
+
+El objeto de estado por solicitud. Crea uno al inicio de tu método `fetch`:
+
+```ts
+import { FetchState } from 'astro/fetch';
+
+const state = new FetchState(request);
+```
+
+`FetchState` registra la ruta coincidente, las cookies, los proveedores de sesión y otros datos específicos de cada solicitud. Todas las funciones de gestión lo requieren como primer argumento.
+
+<ReadMore>Aprenda a [componer controladores](/es/guides/routing/#composición-de-controladores-individuales) con `FetchState` en la guía de enrutamiento avanzado.</ReadMore>
+
+#### Propiedades
+
+##### `state.request`
+
+<p>
+
+**Tipo:** `Request`
+</p>
+
+El objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) entrante.
+
+##### `state.url`
+
+<p>
+
+**Tipo:** `URL`
+</p>
+
+Una [URL](https://developer.mozilla.org/es/docs/Web/API/URL) normalizada derivada de la solicitud.
+
+##### `state.pathname`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+La ruta de la solicitud sin la base y descodificada (p. ej., `/sobre-mí` o `/blog/mi-artículo`).
+
+##### `state.routeData`
+
+<p>
+
+**Tipo:** <code><a href="/es/reference/integrations-reference/#routedata">RouteData</a> | undefined</code>
+</p>
+
+La ruta coincidente para esta solicitud, si la hay. Esto se resuelve automáticamente al crear el `FetchState`.
+
+##### `state.cookies`
+
+<p>
+
+**Tipo:** `AstroCookies`
+</p>
+
+Una instancia de [`AstroCookies`](/es/reference/api-reference/#cookies) para leer y configurar cookies en esta solicitud.
+
+##### `state.locals`
+
+<p>
+
+**Tipo:** `App.Locals`
+</p>
+
+Un objeto con ámbito de solicitud para almacenar datos personalizados. Se trata del mismo objeto [`locals`](/es/reference/api-reference/#locals) disponible en [middleware](/es/guides/middleware/) y en [rutas de la API](/es/guides/endpoints/#server-endpoints-api-routes).
+
+##### `state.params`
+
+<p>
+
+**Tipo:** `Params | undefined`
+</p>
+
+Parámetros de ruta derivados de la ruta y el nombre de ruta coincidentes (p. ej., `{ slug: 'mi-artículo' }` para una ruta `[slug].astro`).
+
+##### `state.status`
+
+<p>
+
+**Tipo:** `number`<br />
+**Por defecto:** `200`
+</p>
+
+El código de estado HTTP de la respuesta. Puedes establecerlo antes de la representación para controlar el estado de la respuesta (p. ej., `state.status = 404`).
+
+##### `state.response`
+
+<p>
+
+**Tipo:** `Response | undefined`<br />
+**Por defecto:** `undefined`
+</p>
+
+La `Response` generada por los controladores una vez finalizada la representación. Se establece automáticamente mediante [`pages()`](#pages) y [`middleware()`](#middleware), lo que te permite inspeccionar o utilizar la respuesta más adelante en el proceso:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+// state.response is now the same object as response
+```
+
+#### Métodos
+
+##### `state.rewrite()`
+
+<p>
+
+**Tipo:** <code>(payload: <a href="/es/reference/modules/astro-middleware/#rewritepayload">RewritePayload</a>) => Promise\<Response\></code>
+</p>
+
+Activa una [reescritura](/es/guides/routing/#reescrituras) a una ruta diferente. El `payload` puede ser una cadena de ruta (`'/otra-página'`), una URL o un objeto `Request`:
+
+```ts
+const response = await state.rewrite('/otra-página');
+```
+
+### `astro()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+El controlador todo en uno que ejecuta todo el proceso de Astro (sesiones, caché, redireccionamientos, barra final, acciones, middleware, páginas e i18n) en el orden predeterminado. Úsalo cuando quieras para añadir lógica antes o después de Astro sin modificar el orden interno del proceso:
+
+```ts title="src/fetch.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // preprocesamiento personalizado aquí...
+    const response = await astro(state);
+    // posprocesamiento personalizado aquí...
+    return response;
+  }
+};
+```
+
+### `actions()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response | undefined\> | undefined</code>
+</p>
+
+Gestiona las [acciones Astro](/es/guides/actions/) (RPC y envíos de formularios). Devuelve un `Response` para las acciones RPC, o `undefined` para las acciones de formularios y las solicitudes que no sean de acción. Comprueba el valor devuelto para decidir si continuar con la renderización:
+
+```ts
+const actionResponse = await actions(state);
+if (actionResponse) return actionResponse;
+// de lo contrario, continuar con la renderización de la página...
+```
+
+### `cache()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>, next: () => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Envuelve una llamada de retorno de renderizado con la lógica del proveedor de [cache](/es/guides/caching/). Gestiona el almacenamiento en caché en tiempo de ejecución, los proveedores basados en CDN y el caso en el que no se utiliza caché.
+
+### `i18n()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>, response: Response) => Promise\<Response\></code>
+</p>
+
+Procesa posteriormente una respuesta según tu [configuración de internacionalización](/es/guides/internationalization/). Gestiona las redirecciones de configuración regional, los errores 404 para configuraciones regionales no válidas y el enrutamiento fallback. Llama a esta función después de la renderización:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+return i18n(state, response);
+```
+
+### `middleware()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>, next: (state: FetchState) => Promise\<Response\>) => Promise\<Response\></code>
+</p>
+
+Ejecuta la cadena de middleware de Astro (desde `src/middleware.ts`). La función de llamada `next` se invoca al final de la cadena para generar la respuesta, normalmente llamando a `pages()`:
+
+```ts
+const response = await middleware(state, (s) => pages(s));
+```
+
+### `pages()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
+</p>
+
+Envía la solicitud a la ruta Astro correspondiente (página, punto final o fallback) . Este es el controlador de renderizado principal, y la mayoría de los flujos de trabajo personalizados lo incluirán.
+
+### `redirects()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
+</p>
+
+Gestiona las rutas de redirección definidas en tu [configuración de Astro](/es/reference/configuration-reference/#redirects). Devuelve una `Response` de redirección si la ruta coincidente es una redirección, o `undefined` si la función que la invoca debe continuar con el procesamiento.
+
+### `sessions()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
+</p>
+
+Registra el proveedor de una [sesión](/es/guides/sessions/). Las sesiones se crean de forma diferida cuando tu código accede a `ctx.session` y se guardan automáticamente al final de la solicitud. Llama a esta función al principio del proceso (antes de que se ejecute el middleware):
+
+```ts
+await sessions(state);
+// ...render pipeline...
+```
+
+### `trailingSlash()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Response | undefined</code>
+</p>
+
+Comprueba si la ruta de la solicitud necesita normalización con [barra final](/es/reference/configuration-reference/#trailingslash) y, en caso afirmativo, devuelve una `Respuesta` de redireccionamiento. Devuelve `undefined` cuando no es necesario ningún redireccionamiento.

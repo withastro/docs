@@ -163,6 +163,8 @@ export const sidebar = [
 					'reference/experimental-flags/content-intellisense',
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/svg-optimization',
+					'reference/experimental-flags/collection-storage',
+					'reference/experimental-flags/incremental-build',
 				],
 			}),
 			'reference/legacy-flags',

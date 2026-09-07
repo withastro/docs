@@ -133,11 +133,11 @@ Ou vous pouvez utiliser ce `title` exporté dans votre page en utilisant les ins
 
 ```astro title="src/pages/index.astro"
 ---
-const matches = import.meta.glob('./posts/*.mdx', { eager: true });
+const matches = import.meta.glob("./posts/*.mdx", { eager: true });
 const posts = Object.values(matches);
 ---
 
-{posts.map(post => <p>{post.title}</p>)}
+{posts.map((post: any) => <p>{post.title}</p>)}
 ```
 
 #### Propriétés exportées
@@ -238,13 +238,17 @@ Si votre fichier MDX est une entrée de collection de contenu, utilisez la fonct
 
 L'exemple suivant transmet un titre personnalisé au composant `<Content />` via la propriété `components` à utiliser à la place de tous les éléments HTML `<h1>` :
 
-```astro title="src/pages/blog/article-1.astro" ins="components={{ h1: CustomHeading }}"
+```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
 ---
-import { getEntry, render } from 'astro:content';
-import CustomHeading from '../../components/CustomHeading.astro';
-const entry = await getEntry('blog', 'article-1');
+import { getEntry, render } from "astro:content";
+import CustomHeading from "../../components/CustomHeading.astro";
+const entry = await getEntry("blog", "post-1");
+if (!entry) {
+  throw new Error("Entrée introuvable");
+}
 const { Content } = await render(entry);
 ---
+
 <Content components={{ h1: CustomHeading }} />
 ```
 
@@ -262,20 +266,26 @@ Vous pouvez configurer le rendu de votre MDX à l'aide des options suivantes :
 
 ### Options héritées de la configuration Markdown
 
-Toutes les [options de configuration `markdown`](/fr/reference/configuration-reference/#options-de-markdown) peuvent être configurées séparément dans l'intégration MDX, y compris le [processeur Markdown](#processor). Cela inclut les modules d'extension remark et rehype, la coloration syntaxique, et plus encore. Les options seront par défaut celles de votre configuration Markdown ([voir l'option `extendMarkdownConfig`](#extendmarkdownconfig) pour les modifier).
+Par défaut, toutes les [options de configuration `markdown`](/fr/reference/configuration-reference/#options-de-markdown) sont héritées par l'intégration MDX. Les options transmises à l'intégration MDX remplaceront la configuration `markdown` héritée. Pour ignorer complètement les options `markdown` héritées, utilisez l'option [`extendMarkdownConfig`](#extendmarkdownconfig).
 
-```js title="astro.config.mjs"
+L'exemple suivant configure l'intégration MDX pour utiliser un thème de [coloration syntaxique](/fr/guides/syntax-highlighting/) différent, ajouter un [module d'extension](/fr/guides/markdown-content/#modules-dextension-pour-les-processeurs-markdown), et désactiver [GitHub-flavored Markdown](/fr/guides/markdown-content/#github-flavored-markdown) :
+
+```js title="astro.config.mjs" {12-20}
 import { defineConfig } from 'astro/config';
 import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
-import { myMdastPlugin } from './my-satteri-plugin.mjs';
+import { myMdastPlugin } from './mon-module-extension-satteri.mjs';
 
 export default defineConfig({
   // ...
+  markdown: {
+    shikiConfig: { theme: 'rose-pine' },
+  },
   integrations: [
     mdx({
-      syntaxHighlight: 'shiki',
+      // Utiliser un thème de coloration syntaxique différent.
       shikiConfig: { theme: 'dracula' },
+      // Ajouter un module d'extension et désactiver GitHub-flavored Markdown.
       processor: satteri({
         mdastPlugins: [myMdastPlugin()],
         features: { gfm: false },
@@ -296,7 +306,7 @@ export default defineConfig({
 <Since v="6.0.0" pkg="@astrojs/mdx" />
 </p>
 
-Par défaut, les fichiers `.mdx` sont traités via le même [processeur Markdown](/fr/guides/markdown-content/#choisir-un-processeur-markdown) que vos fichiers `.md`. Définissez `processor` pour utiliser un processeur différent, ou le même processeur avec des options différentes, uniquement pour les fichiers `.mdx`.
+Par défaut, les fichiers `.mdx` sont traités via le même [processeur Markdown](/fr/guides/markdown-content/#processeurs-markdown) que vos fichiers `.md`. Vous pouvez configurer un processeur différent pour MDX ou utiliser le même processeur avec des options différentes.
 
 Par exemple, pour conserver [Sätteri](https://satteri.bruits.org/) comme processeur par défaut pour les fichiers `.md` tout en traitant les fichiers `.mdx` avec remark et rehype à l'aide de `@astrojs/markdown-remark` :
 
@@ -311,6 +321,31 @@ export default defineConfig({
   ],
 });
 ```
+
+#### Utilisation des modules d'extension Recma
+
+<p><Since v="8.0.0" pkg="@astrojs/mdx" /></p>
+
+Les modules d'extension Recma modifient directement la sortie [estree](https://github.com/estree/estree). Cela est utile pour modifier ou injecter des variables JavaScript dans vos fichiers MDX, et n'a aucun effet sur les fichiers `.md`.
+
+Les modules d'extension Recma ne sont pris en charge que par le [processeur Unified](/fr/guides/markdown-content/#quand-utiliser-unified). Transmettez-les à `unified()` depuis `@astrojs/markdown-remark` en utilisant l'option `recmaPlugins` :
+
+```js title="astro.config.mjs" {3-4,8}
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
+import myRecmaPlugin from './my-recma-plugin.mjs';
+
+export default defineConfig({
+  integrations: [
+    mdx({ processor: unified({ recmaPlugins: [myRecmaPlugin] }) }),
+  ],
+});
+```
+
+Vous pouvez également définir ces modules d'extension dans [`markdown.processor`](/fr/reference/configuration-reference/#markdownprocessor) à la place. Vos fichiers `.mdx` continueront de les utiliser, car MDX [étend votre configuration Markdown](#extendmarkdownconfig) par défaut.
+
+Nous vous suggérons d'[utiliser AST Explorer](https://astexplorer.net/) pour expérimenter avec les sorties estree, et d'essayer [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) pour rechercher dans les nœuds JavaScript.
 
 ### `extendMarkdownConfig`
 
@@ -327,20 +362,22 @@ Par exemple, supposons que vous avez besoin d'une coloration syntaxique différe
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin1 from "./src/mdast-plugin-1";
+import mdastPlugin2 from "./src/mdast-plugin-2";
 
 export default defineConfig({
   // ...
   markdown: {
-    syntaxHighlight: 'prism',
+    syntaxHighlight: "prism",
     processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
       // `syntaxHighlight` de Markdown remplacée,
       // les fichiers `.mdx` utilisent Shiki à la place.
-      syntaxHighlight: 'shiki',
+      syntaxHighlight: "shiki",
 
       // `markdown.processor` est remplacée pour les fichiers `.mdx` par cette option
       processor: satteri({ mdastPlugins: [mdastPlugin2] }),
@@ -353,8 +390,9 @@ Vous pouvez également avoir besoin de désactiver l'extension de la configurati
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin from "./src/mdast-plugin";
 
 export default defineConfig({
   // ...
@@ -373,6 +411,12 @@ export default defineConfig({
 
 ### `recmaPlugins`
 
+:::caution[Déprécié]
+Cette option est dépréciée et sera supprimée dans une future version majeure. Transmettez `recmaPlugins` au [`processor`](#processor) configuré à la place.
+
+En savoir plus sur [l'utilisation des modules d'extension recma](#utilisation-des-modules-dextension-recma).
+:::
+
 <p>
 
 **Type :** `PluggableList`<br />
@@ -382,7 +426,7 @@ export default defineConfig({
 
 Il s'agit de modules d'extension qui modifient directement la sortie [estree](https://github.com/estree/estree). Ceci est utile pour modifier ou injecter des variables JavaScript dans vos fichiers MDX.
 
-Depuis Astro v7, le processeur Markdown par défaut ne prend pas en charge les modules d'extension Recma. Si votre projet en dépend, vous pouvez [utiliser le processeur `unified()`](/fr/guides/markdown-content/#basculer-vers-le-processeur-unified).
+Depuis Astro v7, le processeur Markdown par défaut ne prend pas en charge les modules d'extension Recma. Si votre projet en dépend, vous pouvez [utiliser le processeur `unified()`](/fr/guides/markdown-content/#configurer-un-processeur-markdown).
 
 Nous vous suggérons [d'utiliser AST Explorer](https://astexplorer.net/) pour jouer avec les sorties d'estree, et d'essayer [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) pour effectuer des recherches dans les nœuds JavaScript.
 
@@ -429,10 +473,10 @@ Vous devrez exclure ces composants de l'optimisation, car l'optimiseur convertit
 
 Par exemple, la sortie MDX prévue pour ce qui suit est `<Heading>...</Heading>` à la place de chaque `"<h1>...</h1>"` :
 
-```astro
+```astro title="src/pages/une-page.astro"
 ---
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
+import { Content, components } from "../content.mdx";
+import Heading from "../components/Heading.astro";
 ---
 
 <Content components={{ ...components, h1: Heading }} />

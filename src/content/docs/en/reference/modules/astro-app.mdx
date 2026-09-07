@@ -42,14 +42,13 @@ Returns an [`App` instance](#the-app-instance) that includes methods to work wit
 
 ```js
 import { createApp } from "astro/app/entrypoint";
-import http from "http";
 
 const app = createApp();
 
-addEventListener("fetch", event => {
-  event.respondWith(
-    app.render(event.request)
-  );
+addEventListener("fetch", (event) => {
+  if (event instanceof FetchEvent) {
+    event.respondWith(app.render(event.request));
+  }
 });
 ```
 
@@ -90,8 +89,15 @@ The `createApp()` function returns a class instance with the following methods.
 
 Calls the Astro page that matches the [`Request`](https://developer.mozilla.org/en-US/docs/Web/API/Request), renders it, and returns a promise to a [`Response`](https://developer.mozilla.org/en-US/docs/Web/API/Response) object. This also works for [API routes](/en/guides/endpoints/#server-endpoints-api-routes) that do not render pages.
 
-```js
-const response = await app.render(request);
+```ts {6}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const response = await app.render(request);
+  return response;
+};
 ```
 
 ##### `app.match()`
@@ -103,33 +109,47 @@ const response = await app.render(request);
 
 Determines whether a request is matched by the Astro app's routing rules.
 
-```js
-if(app.match(request)) {
-  const response = await app.render(request);
-}
+```ts {6,11}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  if (app.match(request)) {
+    const response = await app.render(request);
+    return response;
+  } else {
+    return new Response("Not Found", { status: 404 });
+  }
+};
 ```
 
 You can usually call `app.render(request)` without using `.match` because Astro handles 404s if you provide a `404.astro` file. Use `app.match(request)` if you want to handle 404s in a different way.
 
 By default, prerendered routes aren't returned, even if they are matched. You can change this behavior by using `true` as the second argument.
 
-##### `app.getAdapterLogger()`
+##### `app.adapterLogger`
 
 <p>
 
-**Type:** <code>() => <a href="/en/reference/integrations-reference/#astrointegrationlogger">AstroIntegrationLogger</a></code><br />
-<Since v="v3.0.0" />
+**Type:** [AstroIntegrationLogger](/en/reference/integrations-reference/#astrointegrationlogger)<br />
+<Since v="v6.2.0" />
 </p>
 
 Returns an [instance of the Astro logger](/en/reference/integrations-reference/#astrointegrationlogger) available to the adapter's runtime environment.
 
-```js "logger"
-const logger = app.getAdapterLogger();
-try {
-  /* Some logic that can throw */
-} catch {
-  logger.error("Your custom error message using Astro logger.");
-}
+```ts {9}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async () => {
+  try {
+    /* Some logic that can throw */
+  } catch {
+    app.adapterLogger.error("Your custom error message using Astro logger.");
+  }
+};
 ```
 
 ##### `app.getAllowedDomains()`
@@ -164,10 +184,18 @@ Returns a generator that yields individual cookie header values from a `Response
 
 The following example appends a `Set-Cookie` header for each header obtained from a response:
 
-```js
-for (const setCookieHeader of app.setCookieHeaders(response)) {
-  response.headers.append('Set-Cookie', setCookieHeader);
-}
+```ts {7-9}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const response = await app.render(request);
+  for (const setCookieHeader of app.setCookieHeaders(response)) {
+    response.headers.append("Set-Cookie", setCookieHeader);
+  }
+  return response;
+};
 ```
 
 ## Imports from `astro/app/node`
@@ -195,7 +223,7 @@ Converts a NodeJS `IncomingMessage` into a standard `Request` object. An optiona
 
 The following example creates a `Request` and passes it to [`app.render()`](#apprender):
 
-```js {8}
+```js {2,8}
 import { createApp } from "astro/app/entrypoint";
 import { createRequest } from "astro/app/node";
 import { createServer } from "node:http";
@@ -205,7 +233,7 @@ const app = createApp();
 const server = createServer(async (req, res) => {
   const request = createRequest(req);
   const response = await app.render(request);
-})
+});
 ```
 
 ### `writeResponse()`
@@ -220,7 +248,7 @@ Streams a web-standard `Response` into a NodeJS server response. This function t
 
 The following example creates a `Request`, passes it to [`app.render()`](#apprender), and writes the response:
 
-```js {10}
+```js {10} /(?<=\s)writeResponse(?=\s)/
 import { createApp } from "astro/app/entrypoint";
 import { createRequest, writeResponse } from "astro/app/node";
 import { createServer } from "node:http";
@@ -231,7 +259,7 @@ const server = createServer(async (req, res) => {
   const request = createRequest(req);
   const response = await app.render(request);
   await writeResponse(response, res);
-})
+});
 ```
 
 ## `astro/app` types
@@ -265,8 +293,15 @@ Whether or not to automatically add all cookies written by [`Astro.cookie.set()`
 
 When set to `true`, they will be added to the `Set-Cookie` header of the response as comma-separated key-value pairs. You can use the standard `response.headers.getSetCookie()` API to read them individually.
 
-```js
-const response = await app.render(request, { addCookieHeader: true });
+```ts {6}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const response = await app.render(request, { addCookieHeader: true });
+  return response;
+};
 ```
 
 #### `RenderOptions.clientAddress`
@@ -281,9 +316,16 @@ The client IP address that will be made available as [`Astro.clientAddress`](/en
 
 The example below reads the `x-forwarded-for` header and passes it as `clientAddress`. This value becomes available to the user as `Astro.clientAddress`.
 
-```js "clientAddress"
-const clientAddress = request.headers.get("x-forwarded-for");
-const response = await app.render(request, { clientAddress });
+```ts "clientAddress"
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const clientAddress = request.headers.get("x-forwarded-for") ?? undefined;
+  const response = await app.render(request, { clientAddress });
+  return response;
+};
 ```
 
 #### `RenderOptions.locals`
@@ -297,16 +339,23 @@ The [`context.locals` object](/en/reference/api-reference/#locals) used to store
 
 The example below reads a header named `x-private-header`, attempts to parse it as an object, and passes it to `locals`, which can then be passed to any [middleware function](/en/guides/middleware/).
 
-```js "locals"
-const privateHeader = request.headers.get("x-private-header");
-let locals = {};
-try {
-  if (privateHeader) {
-    locals = JSON.parse(privateHeader);
+```ts "locals"
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const privateHeader = request.headers.get("x-private-header");
+  let locals = {};
+  try {
+    if (privateHeader) {
+      locals = JSON.parse(privateHeader);
+    }
+  } finally {
+    const response = await app.render(request, { locals });
+    return response;
   }
-} finally {
-  const response = await app.render(request, { locals });
-}
+};
 ```
 
 #### `RenderOptions.prerenderedErrorPageFetch()`
@@ -325,23 +374,30 @@ This is used to override the default `fetch()` behavior, for example, when `fetc
 The following example reads `500.html` and `404.html` from disk instead of performing an HTTP call:
 
 ```ts "prerenderedErrorPageFetch"
-return app.render(request, {
-  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
-    if (url.includes("/500")) {
-      const content = await fs.promises.readFile("500.html", "utf-8");
+import { createApp } from "astro/app/entrypoint";
+import fs from "node:fs";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  return app.render(request, {
+    prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+      if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      const content = await fs.promises.readFile("404.html", "utf-8");
       return new Response(content, {
-        status: 500,
+        status: 404,
         headers: { "Content-Type": "text/html" },
       });
-    }
-
-    const content = await fs.promises.readFile("404.html", "utf-8");
-    return new Response(content, {
-      status: 404,
-      headers: { "Content-Type": "text/html" },
-    });
-  }
-});
+    },
+  });
+};
 ```
 
 If not provided, Astro will fallback to its default behavior for fetching error pages.
@@ -360,14 +416,18 @@ Adapters can pass this through to let runtime cache providers schedule work such
 
 The following example forwards a runtime's `waitUntil()` implementation to [`app.render()`](#apprender) in an [adapter server entrypoint](/en/reference/adapter-reference/#building-a-server-entrypoint):
 
-```js {8}
-import { createApp } from 'astro/app/entrypoint';
+```ts {12}
+import { createApp } from "astro/app/entrypoint";
+
+// Context is provided by the runtime. This is a minimal example of what it can look like.
+type Context = {
+  waitUntil(promise: Promise<any>): void;
+};
 
 const app = createApp();
 
-export async function handler(event, context) {
-  // ...
-  return app.render(event.request, {
+export async function handler(request: Request, context: Context) {
+  return app.render(request, {
     waitUntil: context.waitUntil.bind(context),
   });
 }
@@ -383,12 +443,18 @@ export async function handler(event, context) {
 
 Defines the information about a route. This is useful when you already know the route to render. Doing so will bypass the internal call to [`app.match()`](#appmatch) to determine the route to render.
 
-```js "routeData"
-const routeData = app.match(request);
-if (routeData) {
-  return app.render(request, { routeData });
-} else {
-  /* adapter-specific 404 response */
-  return new Response(..., { status: 404 });
+```ts "routeData"
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export async function handler(request: Request) {
+  const routeData = app.match(request);
+  if (routeData) {
+    return app.render(request, { routeData });
+  } else {
+    /* adapter-specific 404 response */
+    return new Response("Not Found", { status: 404 });
+  }
 }
 ```

@@ -1,0 +1,736 @@
+---
+title: Enrutamiento
+description: Una introducción al enrutamiento con Astro.
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import RecipeLinks from '~/components/RecipeLinks.astro';
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro usa **enrutamiento basado en archivos** para generar las URL de compilación en función de la estructura de archivos del directorio `src/pages/` de tu proyecto.
+
+## Navegación entre páginas
+
+Astro usa elementos HTML estándar [`<a>`](https://developer.mozilla.org/es/docs/Web/HTML/Reference/Elements/a) para navegar entre rutas. No se proporciona ningún componente `<Link>` específico del framework.
+
+```astro title="src/pages/index.astro"
+<p>¡Lee más <a href="/about/">sobre</a> Astro!</p>
+
+<!-- Con `base: "/docs" configurado -->
+<p>¡Aprende más en nuestra sección de <a href="/docs/reference/">referencias</a>!</p> 
+```
+
+## Rutas estáticas
+
+Los [componentes de página](/es/basics/astro-pages/) `.astro`, así como los archivos Markdown y MDX (`.md`, `.mdx`) que se encuentren en el directorio `src/pages/`, **se convierten automáticamente en páginas de tu sitio web**. La ruta de cada página corresponde con su ruta y nombre de archivo dentro del directorio `src/pages/`.
+
+```diff
+# Ejemplo: Rutas estáticas
+src/pages/index.astro           -> misitio.com/
+src/pages/sobre-mí.astro        -> misitio.com/sobre-mí
+src/pages/sobre-mí/index.astro  -> misitio.com/sobre-mí
+src/pages/sobre-mí/yo.astro     -> misitio.com/sobre-mí/yo
+src/pages/artículos/1.md        -> misitio.com/artículos/1
+```
+
+:::tip
+¡En un proyecto Astro no hay que gestionar ninguna "configuración de rutas" por separado! Cuando añades un archivo al directorio `src/pages/`, se crea automáticamente una nueva ruta. En las compilaciones estáticas, puedes personalizar el formato de salida del archivo mediante la opción de configuración [`build.format`](/es/reference/configuration-reference/#buildformat).
+:::
+
+## Rutas dinámicas
+
+Un archivo de página Astro puede especificar parámetros de ruta dinámicos en su nombre para generar varias páginas coincidentes. Por ejemplo, `src/pages/authors/[author].astro` genera una página de biografía para cada autor de tu blog. `author` se convierte en un _parámetro_ al que puedes acceder desde dentro de la página.
+
+En el modo de salida estática predeterminado de Astro, estas páginas se generan en el momento de la compilación, por lo que debes establecer previamente la lista de autores (`author`) a los que se les asignará un archivo correspondiente. En el modo SSR, se generará una página al recibir una solicitud para cualquier ruta que coincida.
+
+### Modo estático (SSG)
+
+Dado que todas las rutas deben determinarse en el momento de la compilación, una ruta dinámica debe exportar un método `getStaticPaths()` que devuelva una lista de objetos con una propiedad `params`. Cada uno de estos objetos generará una ruta correspondiente.
+
+`[dog].astro` define el parámetro dinámico `dog` en su nombre de archivo, por lo que los objetos devueltos por `getStaticPaths()` deben incluir `dog` en sus `params`. De este modo, la página puede acceder a este parámetro usando `Astro.params`.
+
+```astro title="src/pages/dogs/[dog].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { dog: 'clifford' }},
+    { params: { dog: 'rover' }},
+    { params: { dog: 'spot' }},
+  ];
+}
+
+const { dog } = Astro.params;
+---
+<div>¡Buen perro, {dog}!</div>
+```
+
+Esto generará tres páginas: `/dogs/clifford`, `/dogs/rover` y `/dogs/spot`, cada una de las cuales mostrará el nombre del perro correspondiente.
+
+El nombre del archivo puede incluir varios parámetros, todos los cuales deben estar incluidos en los objetos `params` de `getStaticPaths()`:
+
+```astro title="src/pages/[lang]-[version]/info.astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'en', version: 'v1' }},
+    { params: { lang: 'fr', version: 'v2' }},
+  ];
+}
+
+const { lang, version } = Astro.params;
+---
+```
+
+Esto generará `/en-v1/info` y `/fr-v2/info`.
+
+Los parámetros se pueden incluir en distintas partes de la ruta. Por ejemplo, el archivo `src/pages/[lang]/[version]/info.astro`, con el mismo `getStaticPaths()` anterior, generará las rutas `/en/v1/info` y `/fr/v2/info`.
+
+#### Descodificación de `params`
+
+Los `params` devueltos por la función `getStaticPaths()` no se descodifican. Utiliza [`decodeURI()`](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) cuando necesites descodificar los valores de los parámetros.
+
+```astro title="src/pages/[slug].astro"
+--- 
+export function getStaticPaths() {
+  return [
+    { params: { slug: decodeURI('%5Bpage%5D') }}, // se descodifica como "[page]"
+  ]
+}
+---
+```
+
+<ReadMore>Aprende más sobre [`getStaticPaths()`](/es/reference/routing-reference/#getstaticpaths).</ReadMore>
+
+<RecipeLinks slugs={["es/recipes/i18n"]} />
+
+#### Parámetros REST
+
+Si necesitas más flexibilidad en el enrutamiento de tus URL, puedes utilizar un [parámetro rest](https://developer.mozilla.org/es/docs/Web/JavaScript/Reference/Functions/rest_parameters) (`[...path]`) en el nombre de tu archivo `.astro` para que coincida con rutas de archivo de cualquier profundidad:
+
+```astro title="src/pages/sequences/[...path].astro"
+---
+export function getStaticPaths() {
+  return [
+    { params: { path: 'one/two/three' }},
+    { params: { path: 'four' }},
+    { params: { path: undefined }}
+  ]
+}
+
+const { path } = Astro.params;
+---
+```
+
+Esto generará `/sequences/one/two/three`, `/sequences/four` y `/sequences`. (Al establecer el parámetro rest en `undefined`, permite que coincida con la página de nivel superior.)
+
+Los parámetros rest se pueden utilizar junto con **otros parámetros con nombre**. Por ejemplo, el navegador de archivos de GitHub se puede representar con la siguiente ruta dinámica:
+
+```
+/[org]/[repo]/tree/[branch]/[...file]
+```
+
+En este ejemplo, una solicitud para `/withastro/astro/tree/main/docs/public/favicon.svg` se dividiría en los siguientes parámetros con nombre:
+
+```js
+{
+	org: 'withastro',
+	repo: 'astro',
+	branch: 'main',
+	file: 'docs/public/favicon.svg'
+}
+```
+
+#### Ejemplo: Páginas dinámicas en varios niveles
+
+En el siguiente ejemplo, un parámetro rest (`[...slug]`) y la función [`props`](/es/reference/routing-reference/#data-passing-with-props) de `getStaticPaths()` generan páginas para slugs de diferentes profundidades.
+
+```astro title="src/pages/[...slug].astro"
+---
+export function getStaticPaths() {
+  const pages = [
+    {
+      slug: undefined,
+      title: 'Tienda Astro',
+      text: '¡Bienvenido a la tienda Astro!',
+    },
+    {
+      slug: 'productos',
+      title: 'Productos Astro',
+      text: 'Tenemos un montón de productos para ti',
+    },
+    {
+      slug: 'productos/manual-astro',
+      title: 'El manual definitivo de Astro',
+      text: 'Si quieres aprender Astro, tienes que leer este libro.',
+    },
+  ];
+  
+  return pages.map(({ slug, title, text }) => {
+    return {
+      params: { slug },
+      props: { title, text },
+    };
+  });
+}
+
+const { title, text } = Astro.props;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
+### Rutas dinámicas bajo demanda
+
+En el caso del [renderizado bajo demanda](/es/guides/on-demand-rendering/) con un adaptador, las rutas dinámicas se definen de la misma manera: incluye corchetes `[param]` o `[...path]` en los nombres de tus archivos para que coincidan con cadenas o rutas arbitrarias. Sin embargo, dado que las rutas ya no se crean por adelantado, la página se mostrará para cualquier ruta que coincida. Como no se trata de rutas "estáticas", no se debe utilizar `getStaticPaths`.
+
+En el caso de las rutas generadas bajo demanda, solo se puede utilizar un parámetro rest con notación de expansión en el nombre del archivo (p. ej., `src/pages/[locale]/[...slug].astro` o `src/pages/[...locale]/[slug].astro`, pero no `src/pages/[...locale]/[...slug].astro`).
+
+```astro title="src/pages/resources/[resource]/[id].astro"
+---
+export const prerender = false; // No es necesario en el modo 'servidor'
+const { resource, id } = Astro.params;
+---
+<h1>{resource}: {id}</h1>
+```
+
+Esta página se servirá para cualquier valor de `resource` e `id`: `resources/users/1`, `resources/colors/blue`, etc.
+
+#### Modificación del ejemplo `[...slug]` para SSR
+
+Dado que las páginas SSR no pueden utilizar `getStaticPaths()`, no pueden recibir props. El [ejemplo anterior](#ejemplo-páginas-dinámicas-en-varios-niveles) se puede adaptar al modo SSR buscando el valor del parámetro `slug` en un objeto. Si la ruta se encuentra en la raíz ("/"), el parámetro `slug` será `undefined`. Si el valor no existe en el objeto, redirigimos a una página 404.
+
+```astro title="src/pages/[...slug].astro"
+---
+const pages = [
+	{
+    slug: undefined,
+    title: 'Tienda Astro',
+    text: '¡Bienvenido a la tienda Astro!',
+  },
+  {
+    slug: 'productos',
+    title: 'Productos Astro',
+    text: 'Tenemos un montón de productos para ti',
+  },
+  {
+    slug: 'productos/manual-astro',
+    title: 'El manual definitivo de Astro',
+    text: 'Si quieres aprender Astro, tienes que leer este libro.',
+  },
+];
+
+const { slug } = Astro.params;
+const page = pages.find((page) => page.slug === slug);
+if (!page) return Astro.redirect('/404');
+const { title, text } = page;
+---
+<html>
+  <head>
+    <title>{title}</title>
+  </head>
+  <body>
+    <h1>{title}</h1>
+    <p>{text}</p>
+  </body>
+</html>
+```
+
+## Redireccionamientos
+
+En ocasiones, tendrás que redirigir a tus lectores a una nueva página, ya sea de forma permanente porque ha cambiado la estructura de tu sitio web o como respuesta a una acción, como iniciar sesión en una ruta que requiere autenticación.
+
+Puedes definir reglas para [redirigir a los usuarios a páginas que se han trasladado de forma permanente](#redireccionamientos-configurados) en la configuración de Astro. O bien, [redirigir a los usuarios de forma dinámica](#redireccionamientos-dinámicos) mientras navegan por tu sitio web.
+
+### Redireccionamientos configurados
+
+<p><Since v="2.9.0" /></p>
+
+Puedes especificar una asignación de redireccionamientos permanentes en tu configuración de Astro mediante el valor [`redirects`](/es/reference/configuration-reference/#redirects).
+
+En el caso de las redirecciones internas, se trata de una asignación de una ruta antigua a la nueva. A partir de la versión 5.2.0 de Astro, también es posible redirigir a URL externas que empiecen por `http` o `https` y [se puedan analizar](https://developer.mozilla.org/en-US/docs/Web/API/URL/canParse_static):
+
+```js title="astro.config.mjs" {4-7}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': '/new-page',
+    '/blog': 'https://example.com/blog'
+  }
+});
+```
+
+Estas redirecciones siguen [las mismas reglas de prioridad que las rutas basadas en archivos](#orden-de-prioridad-de-las-rutas) y siempre tendrán menor prioridad que un archivo de página existente con el mismo nombre en tu proyecto. Por ejemplo, `/old-page` no redirigirá a `/new-page` si tu proyecto contiene el archivo `src/pages/old-page.astro`.
+
+Se permiten rutas dinámicas siempre que tanto la nueva como la antigua contengan los mismos parámetros, por ejemplo:
+
+```js
+{
+  "/blog/[...slug]": "/articles/[...slug]"
+}
+```
+
+Si utilizas SSR o un adaptador estático, también puedes proporcionar un objeto como valor, lo que te permite especificar el código `status`, además del nuevo `destination`:
+
+```js title="astro.config.mjs" {5-8}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  redirects: {
+    '/old-page': {
+      status: 302,
+      destination: '/new-page'
+    },
+    '/news': {
+      status: 302,
+      destination: 'https://example.com/news'
+    }
+  }
+});
+```
+
+Al ejecutar `astro build`, Astro generará, por defecto, archivos HTML con la etiqueta [meta refresh](https://developer.mozilla.org/es/docs/Web/HTML/Reference/Elements/meta). En cambio, los adaptadores compatibles escribirán el archivo de configuración del host con las redirecciones.
+
+El código de estado es `301` por defecto. Si se genera en archivos HTML, el servidor no utiliza el código de estado.
+
+### Redireccionamientos dinámicos
+
+En la variable global `Astro`, el método `Astro.redirect` te permite redirigir a otra página de forma dinámica. Podrías hacerlo tras comprobar si el usuario ha iniciado sesión, obteniendo su sesión a partir de una cookie.
+
+```astro title="src/pages/account.astro" {8}
+---
+import { isLoggedIn } from '../utils';
+
+const cookie = Astro.request.headers.get('cookie');
+
+// Si el usuario no ha iniciado sesión, redirígelo a la página de inicio de sesión.
+if (!isLoggedIn(cookie)) {
+  return Astro.redirect('/login');
+}
+---
+```
+
+Dado que Astro usa [transmisión HTML](/es/guides/on-demand-rendering/#transmisión-de-html) en la renderización bajo demanda, las redirecciones deben realizarse a nivel de página, no dentro de los componentes secundarios.
+
+## Reescrituras
+
+<p><Since v="4.13.0" /></p>
+
+Una reescritura te permite servir una ruta diferente sin redirigir el navegador a otra página. El navegador mostrará la dirección original en la barra de direcciones, pero mostrará el contenido de la URL proporcionada a [`Astro.rewrite()`](/es/reference/api-reference/#rewrite).
+
+:::tip
+En el caso de contenidos que se hayan trasladado de forma permanente, o para redirigir al usuario a otra página con una nueva URL (p. ej., el panel de control del usuario tras iniciar sesión), usa en su lugar un [redireccionamiento](#redireccionamientos).
+:::
+
+Las reescrituras pueden resultar útiles para mostrar el mismo contenido en varias rutas (p. ej., `/products/shoes/men/` y `/products/men/shoes/`) sin necesidad de mantener dos archivos fuente diferentes.
+
+Las reescrituras también son útiles para el posicionamiento en buscadores (SEO) y la experiencia del usuario. Permiten mostrar contenido que, de otro modo, obligaría a redirigir al visitante a otra página o devolvería un código de estado 404. Un uso habitual de las reescrituras es mostrar el mismo contenido localizado para diferentes variantes de un idioma.
+
+En el siguiente ejemplo se utiliza una reescritura para mostrar la versión `/es/` de una página cuando se accede a la ruta URL `/es-CU/` (español de Cuba). Cuando un visitante accede a la URL `/es-cu/articles/introduction`, Astro mostrará el contenido generado por el archivo `src/pages/es/articles/introduction.astro`.
+
+```astro title="src/pages/es-cu/articles/introduction.astro"
+---
+return Astro.rewrite('/es/articles/introduction');
+---
+```
+
+Usa `context.rewrite()` en los archivos de tus endpoints para redirigir a otra página:
+
+```js title="src/pages/api.js"
+export function GET(context) {
+  if (!context.locals.allowed) {
+    return context.rewrite('/');
+  }
+}
+```
+
+Si la URL pasada a `Astro.rewrite()` genera un error en tiempo de ejecución, Astro mostrará el mensaje de error superpuesto en el modo de desarrollo y devolverá un código de estado 500 en el modo de producción. Si la URL no existe en tu proyecto, se devolverá un código de estado 404.
+
+Puedes crear deliberadamente una redirección para mostrar tu página `/404`, por ejemplo, para indicar que un producto de tu tienda de comercio electrónico ya no está disponible:
+
+```astro title="src/pages/[item].astro"
+---
+const { item } = Astro.params;
+
+if (!itemExists(item)) {
+  return Astro.rewrite('/404');
+}
+---
+``` 
+
+También puedes reescribir de forma condicional en función del estado de la respuesta HTTP, por ejemplo, para mostrar una página concreta de tu sitio web cuando se acceda a una URL que no existe:
+
+```js title="src/middleware.mjs"
+export const onRequest = async (context, next) => {
+  const response = await next();
+  if (response.status === 404) {
+    return context.rewrite('/');
+  }
+  return response;
+}
+``` 
+
+Antes de mostrar el contenido de la ruta de reescritura especificada, la función `Astro.rewrite()` iniciará una nueva fase de renderización completa. Esto hace que se vuelvan a ejecutar todos los componentes de middleware para la nueva ruta o solicitud.
+
+<ReadMore>Consulta la [referencia de la API de `Astro.rewrite()`](/es/reference/api-reference/#rewrite) para obtener más información.</ReadMore>
+
+## Orden de prioridad de las rutas
+
+Es posible que varias rutas definidas intenten construir la misma ruta URL. Por ejemplo, todas estas rutas podrían construir `/posts/create`:
+
+<FileTree>
+- src/pages/
+  - [...slug].astro
+  - posts/
+    - create.astro
+    - [page].astro
+    - [pid].ts
+    - [...slug].astro
+</FileTree>
+
+Astro necesita saber qué ruta debe usarse para generar la página. Para ello, las ordena según las siguientes reglas, en este orden:
+
+- [Rutas reservadas](#rutas-reservadas) de Astro.
+- Rutas con más segmentos tendrán prioridad sobre las rutas menos específicas. En el ejemplo anterior, todas las rutas bajo `/posts/` tienen prioridad sobre `/[...slug].astro` en la raíz.
+- Las rutas estáticas sin parámetros de ruta tendrán prioridad sobre las rutas dinámicas. Por ejemplo, `/posts/create.astro` tiene prioridad sobre todas las demás rutas del ejemplo.
+- Las rutas dinámicas que utilizan parámetros con nombre tienen prioridad sobre los parámetros rest. Por ejemplo, `/posts/[page].astro` tiene prioridad sobre `/posts/[...slug].astro`.
+- Las rutas dinámicas prerenderizadas tienen prioridad sobre las rutas dinámicas del servidor.
+- Los endpoints tienen prioridad sobre las páginas.
+- Las rutas basadas en archivos tienen prioridad sobre las redirecciones.
+- Si ninguna de las reglas anteriores determina el orden, las rutas se ordenan alfabéticamente según la configuración regional predeterminada de tu instalación de Node.
+
+Teniendo en cuenta el ejemplo anterior, a continuación se muestran algunos ejemplos de cómo las reglas asociarán una URL solicitada con la ruta utilizada para generar el HTML:
+
+- `pages/posts/create.astro` - Solo creará `/posts/create`
+- `pages/posts/[pid].ts` - Creará `/posts/abc`, `/posts/xyz`, etc. Pero no `/posts/create`
+- `pages/posts/[page].astro` - Creará `/posts/1`, `/posts/2`, etc. Pero no `/posts/create`, `/posts/abc` ni `/posts/xyz`
+- `pages/posts/[...slug].astro` - Creará `/posts/1/2`, `/posts/a/b/c`, etc. Pero no `/posts/create`, `/posts/1`, `/posts/abc`, etc.
+- `pages/[...slug].astro` - Creará `/abc`, `/xyz`, `/abc/xyz`, etc. Pero no `/posts/create`, `/posts/1`, `/posts/abc`, etc.
+
+### Rutas reservadas
+
+Las rutas internas tienen prioridad sobre cualquier ruta definida por el usuario o por la integración, ya que son necesarias para que funcionen las funciones de Astro. A continuación se enumeran las rutas reservadas de Astro:
+
+- `_astro/`: Sirve todos los recursos estáticos al cliente, incluidos los documentos CSS, los scripts de cliente agrupados, las imágenes optimizadas y cualquier recurso de Vite.
+- `_server_islands/`: Sirve los componentes dinámicos aplazados en una [isla de servidor](/es/guides/server-islands/).
+- `_actions/`: Sirve cualquier [acción](/es/guides/actions/) definida.
+
+## Paginación
+
+Astro soporta la paginación integrada para grandes conjuntos de datos que deben dividirse en varias páginas. Astro generará las propiedades habituales de paginación, como las URL de la página anterior y la siguiente, el número total de páginas y mucho más.
+
+Los nombres de las rutas paginadas deben utilizar la misma sintaxis `[corchete]` que una ruta dinámica estándar. Por ejemplo, el nombre de archivo `/astronauts/[page].astro` generará rutas para `/astronauts/1`, `/astronauts/2`, etc., donde `[page]` es el número de página generado.
+
+Puedes utilizar la función `paginate()` para generar estas páginas a partir de una lista de valores de la siguiente manera:
+
+```astro title="src/pages/astronauts/[page].astro" /{ (paginate) }/ /paginate\\(.*\\);/ /(?<=const.*)(page)/ /page\\.[a-zA-Z]+/
+---
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (({ paginate }) => {
+  const astronautPages = [
+    { astronaut: 'Neil Armstrong' },
+    { astronaut: 'Buzz Aldrin' },
+    { astronaut: 'Sally Ride' },
+    { astronaut: 'John Glenn' },
+  ];
+
+  // Crea páginas a partir de nuestra selección de astronautas, con dos por página
+  return paginate(astronautPages, { pageSize: 2 });
+}) satisfies GetStaticPaths;
+
+// Todos los datos paginados se transmiten a través de la propiedad "page"
+const { page } = Astro.props;
+---
+
+<!-- Muestra el número de página actual. ¡También se puede utilizar `Astro.params.page`! -->
+<h1>Page {page.currentPage}</h1>
+<ul>
+  <!-- Enumera la lista de datos sobre los astronautas -->
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+```
+
+Esto genera las siguientes páginas, con 2 elementos por página:
+
+- `/astronauts/1` - Página 1: Muestra "Neil Armstrong" y "Buzz Aldrin"
+- `/astronauts/2` - Página 2: Muestra "Sally Ride" y "John Glenn"
+
+### La propiedad `page`
+
+Cuando uses la función `paginate()`, cada página recibirá sus datos a través de la propiedad `page`. La propiedad `page` tiene muchas características útiles que puedes emplear para crear páginas y enlaces entre ellas:
+
+```ts
+interface Page<T = any> {
+	/** lista que contiene la porción de datos de la página que has pasado a la función paginate() */
+	data: T[];
+	/** metadatos */
+	/** el número del primer elemento de la página, empezando por 0 */
+	start: number;
+	/** el número del último elemento de la página, empezando por 0 */
+	end: number;
+	/** número total de resultados */
+	total: number;
+	/** el número de página actual, empezando por 1 */
+	currentPage: number;
+	/** número de elementos por página (por defecto: 10) */
+	size: number;
+	/** número de la última página */
+	lastPage: number;
+	url: {
+		/** url de la página actual */
+		current: string;
+		/** url de la página anterior (si la hay) */
+		prev: string | undefined;
+		/** url de la página siguiente (si la hay) */
+		next: string | undefined;
+		/** url de la primera página (si la página actual no es la primera) */
+		first: string | undefined;
+		/** url de la última página (si la página actual no es la última) */
+		last: string | undefined;
+	};
+}
+```
+
+El siguiente ejemplo muestra la información actual de la página, junto con enlaces para navegar entre páginas:
+
+```astro /(?<=const.*)(page)/ /page\\.[a-zA-Z]+(?:\\.(?:prev|next|first|last))?/
+---
+// src/pages/astronauts/[page].astro
+import type { GetStaticPaths } from 'astro';
+
+// Paginación de la misma lista de objetos `{ astronaut }` que en el ejemplo anterior
+export const getStaticPaths = (({ paginate }) => { /* ... */}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+---
+<h1>Página {page.currentPage}</h1>
+<ul>
+  {page.data.map(({ astronaut }) => <li>{astronaut}</li>)}
+</ul>
+{page.url.first ? <a href={page.url.first}>Primera</a> : null}
+{page.url.prev ? <a href={page.url.prev}>Anterior</a> : null}
+{page.url.next ? <a href={page.url.next}>Siguiente</a> : null}
+{page.url.last ? <a href={page.url.last}>Última</a> : null}
+```
+
+<ReadMore>Aprende más sobre [la propiedad `page` de paginación](/es/reference/routing-reference/#the-pagination-page-prop).</ReadMore>
+
+### Paginación anidada
+
+Un caso de uso más avanzado de la paginación es la **paginación anidada**. Se da cuando la paginación se combina con otros parámetros dinámicos de ruta. Puedes utilizar la paginación anidada para agrupar tu colección paginada según alguna propiedad o etiqueta.
+
+Por ejemplo, si quieres agrupar tus entradas de Markdown paginadas por una etiqueta determinada, tendrías que utilizar la paginación anidada creando una página `/src/pages/[tag]/[page].astro` que coincida con las siguientes URL:
+
+- `/rojo/1` (tag=rojo)
+- `/rojo/2` (tag=rojo)
+- `/azul/1` (tag=azul)
+- `/verde/1` (tag=verde)
+
+La paginación anidada funciona devolviendo un lista de resultados de `paginate()` desde `getStaticPaths()`, uno por cada agrupación.
+
+En el siguiente ejemplo, implementaremos la paginación anidada para generar las URL mencionadas anteriormente:
+
+```astro title="src/pages/[tag]/[page].astro" /(?:[(]|=== )(tag)/ "params: { tag }," /const [{ ]*(page|params)/
+---
+import type { GetStaticPaths } from 'astro';
+
+export const getStaticPaths = (({ paginate }) => {
+  const allTags = ['rojo', 'azul', 'verde'];
+  const allPosts = Object.values(
+    import.meta.glob('../pages/post/*.md', { eager: true }),
+  );
+  // Para cada etiqueta, devuelve un resultado de `paginate()`.
+  // Asegúrate de pasar `{ params: { tag }}` a `paginate()`
+  // para que Astro sepa a qué agrupación de etiquetas corresponde el resultado.
+  return allTags.flatMap((tag) => {
+    const filteredPosts = allPosts.filter(
+      (post: any) => post.frontmatter.tag === tag,
+    );
+    return paginate(filteredPosts, {
+      params: { tag },
+      pageSize: 10,
+    });
+  });
+}) satisfies GetStaticPaths;
+
+const { page } = Astro.props;
+const params = Astro.params;
+---
+```
+
+## Excluir páginas
+
+Puedes excluir páginas o directorios dentro de `src/pages` de la compilación añadiendo un guión bajo (`_`) al principio de sus nombres. Los archivos con el prefijo `_` no serán reconocidos por el enrutador y no se colocarán en el directorio `dist/`.
+
+Puedes utilizar esto para desactivar páginas de forma temporal, así como para colocar pruebas, utilidades y componentes en la misma carpeta que las páginas a las que corresponden. 
+
+En este ejemplo, solo se generarán `src/pages/index.astro` y `src/pages/proyectos/proyecto1.md` como rutas de página y archivos HTML.
+
+<FileTree>
+- src/pages/
+  - _directorio-oculto/
+    - página1.md
+    - página2.md
+  - _página-oculta.astro
+  - **index.astro**
+  - proyectos/
+    - _Componente.astro
+    - _utilidades.js
+    - **proyecto1.md**
+</FileTree>
+
+## Enrutamiento avanzado
+
+<p><Since v="7.0.0" /></p>
+
+Por defecto, Astro gestiona todas las solicitudes mediante un flujo integrado que ejecuta los controladores en un orden fijo: normalización de la barra final, redireccionamientos, sesiones, acciones, middleware de usuario, renderización de páginas, i18n y almacenamiento en caché. Este flujo está diseñado para cubrir los casos de uso más habituales en materia de enrutamiento y gestión de solicitudes, pero es posible que no se adapte a las necesidades de todos los proyectos.
+
+El sistema avanzado de enrutamiento de Astro te permite sustituir este flujo de trabajo por uno propio. Puedes elegir qué funciones integradas utilizar y dónde aplicarlas. También puedes añadir tu propia lógica personalizada en cualquier punto del flujo de trabajo. Esto te ofrece un control total sobre cómo gestiona Astro las solicitudes entrantes.
+
+### Creación de un entrypoint personalizado
+
+Cuando el proceso predeterminado no se ajuste a tus necesidades, puedes anularlo creando un archivo `src/fetch.ts` que exporte de forma predeterminada un objeto con un método `fetch()`. Este método recibe un objeto [Request](https://developer.mozilla.org/es/docs/Web/API/Request) estándar y debe devolver un objeto [Response](https://developer.mozilla.org/es/docs/Web/API/Response).
+
+```ts title="src/fetch.ts"
+import type { Fetchable } from 'astro';
+
+export default {
+  async fetch(request) {
+    // Aquí puedes incluir tu lógica personalizada para gestionar las solicitudes
+    return new Response('¡Hola desde enrutamiento avanzado!');
+  }
+} satisfies Fetchable;
+```
+
+Astro soporta varios formatos de archivo para su entrada de enrutamiento avanzada: `.ts`, `.js`, `.mjs` y `.mts`. Recomendamos utilizar `.js` en la mayoría de los casos o `.ts` si necesitas compatibilidad con TypeScript.
+
+### Cambiar el nombre del archivo del endpoint
+
+Por defecto, Astro busca `src/fetch.ts` como entrada de enrutamiento avanzado. Puedes cambiar esto configurando la opción [`fetchFile`](/es/reference/configuration-reference/#fetchfile) en tu archivo de configuración de Astro.
+
+El siguiente ejemplo indica a Astro que busque `src/handler.ts` en lugar de `src/fetch.ts`:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: 'handler',
+});
+```
+
+Establece `fetchFile` en `null` para desactivar por completo la entrada. Esto resulta útil si ya tienes un archivo `src/fetch.ts` que utilizas para otros fines:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  fetchFile: null,
+});
+```
+
+### Agregar lógica personalizada
+
+La principal ventaja del enrutamiento avanzado es la posibilidad de insertar lógica personalizada en el flujo de la solicitud. Puedes ejecutar código antes de que Astro procese la solicitud, entre las distintas etapas del flujo o después de que se genere la respuesta.
+
+Puedes hacerlo de dos maneras:
+
+- Usa el [controlador `astro()`](/es/reference/modules/astro-fetch/#astro) para ejecutar todo el proceso integrado y añadir lógica antes o después del mismo.
+- Crea controladores individuales a partir de [`astro/fetch`](/es/reference/modules/astro-fetch/) o [`astro/hono`](/es/reference/modules/astro-hono/) para tener un mayor control sobre el orden de ejecución.
+
+#### Ejecutar todo el proceso con `astro()`
+
+Usa [`astro()`](/es/reference/modules/astro-fetch/#astro) cuando quieras mantener el comportamiento de enrutamiento integrado de Astro, pero necesites aplicar una lógica personalizada en torno a él. Este enfoque conserva el orden predeterminado del proceso y te permite añadir el preprocesamiento y el posprocesamiento en un solo lugar. Para muchos casos de uso, como añadir controles de autenticación, registro de solicitudes y encabezados personalizados, `astro()` es todo lo que necesitas.
+
+El siguiente ejemplo comprueba si un usuario puede acceder a un panel de control antes de ejecutar el proceso de Astro y añade un encabezado personalizado a la respuesta una vez que Astro ha terminado de ejecutarse:
+
+```ts title="src/fetch.ts"
+import { FetchState, astro } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    // Preprocesamiento personalizado, que se ejecuta antes que cualquier controlador Astro
+    const url = new URL(request.url);
+    if (url.pathname.startsWith('/dashboard')) {
+      const cookie = request.headers.get('cookie') ?? '';
+      if (!cookie.includes('session=')) {
+        return new Response(null, {
+          status: 302,
+          headers: { Location: '/login' },
+        });
+      }
+    }
+
+    const response = await astro(state);
+
+    // Postprocesamiento personalizado, que se ejecuta tras el renderizado de Astro
+    response.headers.set('X-Powered-By', 'Astro');
+    return response;
+  },
+};
+```
+
+#### Composición de controladores individuales
+
+Cuando necesites un mayor control sobre el orden de ejecución del flujo de trabajo, o quieras omitir ciertas funciones, puedes combinar funciones de controlador individuales de [`astro/fetch`](/es/reference/modules/astro-fetch/). Cada controlador opera sobre un [objeto `FetchState`](/es/reference/modules/astro-fetch/#fetchstate) que realiza un seguimiento de los datos de cada solicitud, como la ruta coincidente, las cookies y la sesión. Puedes llamar a los controladores en cualquier orden e insertar lógica personalizada entre las etapas.
+
+El siguiente ejemplo ejecuta únicamente los controladores utilizados en el proyecto y añade lógica personalizada después de las acciones y antes de la renderización de la página:
+
+```ts title="src/fetch.ts"
+import {
+  FetchState,
+  actions,
+  middleware,
+  pages,
+  i18n,
+} from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+
+    // Lógica personalizada entre las acciones y la rederización de la página
+    console.log(`Rendering ${new URL(request.url).pathname}`);
+
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
+```
+
+### Uso con Hono
+
+Astro también proporciona envoltorios compatibles con Hono para todas las funciones de controlador a través de [`astro/hono`](/es/reference/modules/astro-hono/). Si prefieres utilizar [Hono](https://hono.dev/) como framework de enrutamiento, puedes exportar una aplicación Hono desde `src/fetch.ts`:
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { logger } from 'hono/logger';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+
+const app = new Hono();
+
+// Middleware de Hono
+app.use(logger());
+
+// Controladores Astro (como middleware de Hono)
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+```

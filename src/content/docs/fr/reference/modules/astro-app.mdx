@@ -42,14 +42,13 @@ Renvoie une [instance `App`](#linstance-app) qui inclut des méthodes pour trava
 
 ```js
 import { createApp } from "astro/app/entrypoint";
-import http from "http";
 
 const app = createApp();
 
-addEventListener("fetch", event => {
-  event.respondWith(
-    app.render(event.request)
-  );
+addEventListener("fetch", (event) => {
+  if (event instanceof FetchEvent) {
+    event.respondWith(app.render(event.request));
+  }
 });
 ```
 
@@ -90,8 +89,15 @@ La fonction `createApp()` renvoie une instance de classe avec les méthodes suiv
 
 Appelle la page Astro correspondant à la [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request), effectue son rendu et renvoie une promesse sous forme d'objet [`Response`](https://developer.mozilla.org/fr/docs/Web/API/Response). Elle fonctionne également pour les [routes d'API](/fr/guides/endpoints/#points-de-terminaison-du-serveur-routes-api) qui ne génèrent pas de pages.
 
-```js
-const response = await app.render(request);
+```ts {6}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const response = await app.render(request);
+  return response;
+};
 ```
 
 ##### `app.match()`
@@ -103,33 +109,47 @@ const response = await app.render(request);
 
 Détermine si une requête correspond aux règles de routage de l'application Astro.
 
-```js
-if(app.match(request)) {
-  const response = await app.render(request);
-}
+```ts {6,11}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  if (app.match(request)) {
+    const response = await app.render(request);
+    return response;
+  } else {
+    return new Response("Not Found", { status: 404 });
+  }
+};
 ```
 
 Vous pouvez généralement appeler `app.render(request)` sans utiliser `.match` car Astro gère les erreurs 404 si vous fournissez un fichier `404.astro`. Utilisez `app.match(request)` si vous souhaitez gérer les erreurs 404 différemment.
 
 Par défaut, les routes pré-rendues ne sont pas renvoyées, même si elles correspondent. Vous pouvez modifier ce comportement en utilisant `true` comme deuxième argument.
 
-##### `app.getAdapterLogger()`
+##### `app.adapterLogger`
 
 <p>
 
-**Type :** <code>() => <a href="/fr/reference/integrations-reference/#astrointegrationlogger">AstroIntegrationLogger</a></code><br />
-<Since v="v3.0.0" />
+**Type :** [AstroIntegrationLogger](/fr/reference/integrations-reference/#astrointegrationlogger)<br />
+<Since v="v6.2.0" />
 </p>
 
 Renvoie une [instance du journaliseur d'Astro](/fr/reference/integrations-reference/#astrointegrationlogger) disponible pour l'environnement d'exécution de l'adaptateur.
 
-```js "logger"
-const logger = app.getAdapterLogger();
-try {
-  /* Une logique qui peut émettre une erreur */
-} catch {
-  logger.error("Votre message d'erreur personnalisé utilisant le journaliseur d'Astro.");
-}
+```ts {9}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async () => {
+  try {
+    /* Une logique qui peut émettre une erreur */
+  } catch {
+    app.adapterLogger.error("Votre message d'erreur personnalisé utilisant le journaliseur d'Astro.");
+  }
+};
 ```
 
 ##### `app.getAllowedDomains()`
@@ -164,10 +184,18 @@ Renvoie un générateur qui produit les valeurs individuelles des en-têtes de c
 
 L'exemple suivant ajoute un en-tête `Set-Cookie` pour chaque en-tête obtenu à partir d'une réponse :
 
-```js
-for (const setCookieHeader of app.setCookieHeaders(response)) {
-  response.headers.append('Set-Cookie', setCookieHeader);
-}
+```ts {7-9}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const response = await app.render(request);
+  for (const setCookieHeader of app.setCookieHeaders(response)) {
+    response.headers.append("Set-Cookie", setCookieHeader);
+  }
+  return response;
+};
 ```
 
 ## Importations depuis `astro/app/node`
@@ -195,7 +223,7 @@ Convertit un message entrant NodeJS (`IncomingMessage`) en un objet `Request` st
 
 L'exemple suivant crée un objet `Request` et le transmet à [`app.render()`](#apprender) :
 
-```js {8}
+```js {2,8}
 import { createApp } from "astro/app/entrypoint";
 import { createRequest } from "astro/app/node";
 import { createServer } from "node:http";
@@ -205,7 +233,7 @@ const app = createApp();
 const server = createServer(async (req, res) => {
   const request = createRequest(req);
   const response = await app.render(request);
-})
+});
 ```
 
 ### `writeResponse()`
@@ -220,7 +248,7 @@ Convertit une réponse standard (`Response`) en une réponse de serveur NodeJS. 
 
 L'exemple suivant crée un objet `Request`, le transmet à [`app.render()`](#apprender), et écrit la réponse :
 
-```js {10}
+```js {10} /(?<=\s)writeResponse(?=\s)/
 import { createApp } from "astro/app/entrypoint";
 import { createRequest, writeResponse } from "astro/app/node";
 import { createServer } from "node:http";
@@ -231,7 +259,7 @@ const server = createServer(async (req, res) => {
   const request = createRequest(req);
   const response = await app.render(request);
   await writeResponse(response, res);
-})
+});
 ```
 
 ## Types d'`astro/app`
@@ -265,8 +293,15 @@ Définit s'il faut ou non ajouter automatiquement tous les cookies écrits par `
 
 Lorsque l'option est définie sur `true`, ils seront ajoutés à l'en-tête `Set-Cookie` de la réponse sous forme de paires clé-valeur séparées par des virgules. Vous pouvez utiliser l'API standard `response.headers.getSetCookie()` pour les lire individuellement.
 
-```js
-const response = await app.render(request, { addCookieHeader: true });
+```ts {6}
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const response = await app.render(request, { addCookieHeader: true });
+  return response;
+};
 ```
 
 #### `RenderOptions.clientAddress`
@@ -281,9 +316,16 @@ L'adresse IP du client qui sera disponible à l'aide d'[`Astro.clientAddress`](/
 
 L'exemple ci-dessous lit l'en-tête `x-forwarded-for` et le transmet en tant que `clientAddress`. Cette valeur devient disponible pour l'utilisateur à l'aide d'`Astro.clientAddress`.
 
-```js "clientAddress"
-const clientAddress = request.headers.get("x-forwarded-for");
-const response = await app.render(request, { clientAddress });
+```ts "clientAddress"
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const clientAddress = request.headers.get("x-forwarded-for") ?? undefined;
+  const response = await app.render(request, { clientAddress });
+  return response;
+};
 ```
 
 #### `RenderOptions.locals`
@@ -297,16 +339,23 @@ L'objet [`context.locals`](/fr/reference/api-reference/#locals) utilisé pour en
 
 L'exemple ci-dessous lit un en-tête nommé `x-private-header`, tente de l'analyser comme un objet et de le transmettre à `locals`, qui peut alors être transmis à n'importe quelle [fonction de middleware](/fr/guides/middleware/).
 
-```js "locals"
-const privateHeader = request.headers.get("x-private-header");
-let locals = {};
-try {
-  if (privateHeader) {
-    locals = JSON.parse(privateHeader);
+```ts "locals"
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  const privateHeader = request.headers.get("x-private-header");
+  let locals = {};
+  try {
+    if (privateHeader) {
+      locals = JSON.parse(privateHeader);
+    }
+  } finally {
+    const response = await app.render(request, { locals });
+    return response;
   }
-} finally {
-  const response = await app.render(request, { locals });
-}
+};
 ```
 
 #### `RenderOptions.prerenderedErrorPageFetch()`
@@ -325,23 +374,30 @@ Ceci est utilisé pour remplacer le comportement par défaut de `fetch()`, par e
 L'exemple suivant lit `500.html` et `404.html` à partir du disque au lieu d'effectuer un appel HTTP :
 
 ```ts "prerenderedErrorPageFetch"
-return app.render(request, {
-  prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
-    if (url.includes("/500")) {
-      const content = await fs.promises.readFile("500.html", "utf-8");
+import { createApp } from "astro/app/entrypoint";
+import fs from "node:fs";
+
+const app = createApp();
+
+export const handle = async (request: Request) => {
+  return app.render(request, {
+    prerenderedErrorPageFetch: async (url: string): Promise<Response> => {
+      if (url.includes("/500")) {
+        const content = await fs.promises.readFile("500.html", "utf-8");
+        return new Response(content, {
+          status: 500,
+          headers: { "Content-Type": "text/html" },
+        });
+      }
+
+      const content = await fs.promises.readFile("404.html", "utf-8");
       return new Response(content, {
-        status: 500,
+        status: 404,
         headers: { "Content-Type": "text/html" },
       });
-    }
-
-    const content = await fs.promises.readFile("404.html", "utf-8");
-    return new Response(content, {
-      status: 404,
-      headers: { "Content-Type": "text/html" },
-    });
-  }
-});
+    },
+  });
+};
 ```
 
 Si elle n'est pas fournie, Astro reviendra à son comportement par défaut pour récupérer les pages d'erreur.
@@ -360,14 +416,18 @@ Les adaptateurs peuvent le transmettre pour permettre aux fournisseurs de cache 
 
 L'exemple suivant transmet l'implémentation `waitUntil()` de l'environnement d'exécution à [`app.render()`](#apprender) dans un [point d'entrée du serveur de l'adaptateur](/fr/reference/adapter-reference/#création-dun-point-dentrée-de-serveur) :
 
-```js {8}
-import { createApp } from 'astro/app/entrypoint';
+```ts {12}
+import { createApp } from "astro/app/entrypoint";
+
+// Le contexte est fourni par l'environnement d'exécution. Voici un exemple minimal de ce à quoi cela peut ressembler.
+type Context = {
+  waitUntil(promise: Promise<any>): void;
+};
 
 const app = createApp();
 
-export async function handler(event, context) {
-  // ...
-  return app.render(event.request, {
+export async function handler(request: Request, context: Context) {
+  return app.render(request, {
     waitUntil: context.waitUntil.bind(context),
   });
 }
@@ -383,12 +443,18 @@ export async function handler(event, context) {
 
 Définit les informations relatives à une route. Celles-ci sont utiles lorsque vous connaissez déjà la route à afficher. Cela permettra de contourner l'appel interne à [`app.match()`](#appmatch) pour déterminer la route à afficher.
 
-```js "routeData"
-const routeData = app.match(request);
-if (routeData) {
-  return app.render(request, { routeData });
-} else {
-  /* Réponse 404 spécifique à l'adaptateur */
-  return new Response(..., { status: 404 });
+```ts "routeData"
+import { createApp } from "astro/app/entrypoint";
+
+const app = createApp();
+
+export async function handler(request: Request) {
+  const routeData = app.match(request);
+  if (routeData) {
+    return app.render(request, { routeData });
+  } else {
+    /* Réponse 404 spécifique à l'adaptateur */
+    return new Response("Not Found", { status: 404 });
+  }
 }
 ```

@@ -3,6 +3,7 @@ title: Resaltado de Sintaxis
 description: Aprende como resaltar tus bloques de código en Astro.
 i18nReady: true
 ---
+
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 import { Steps } from '@astrojs/starlight/components';
@@ -22,7 +23,7 @@ Un bloque de código en Markdown se indica con tres acentos graves \`\`\` al ini
 
 ``````markdown
 ```js
-// Código Javascript con resaltado de sintaxis.
+// Código JavaScript con resaltado de sintaxis.
 var fun = function lang(l) {
   dateformat.i18n = require('./lang/' + l);
   return true;
@@ -111,21 +112,24 @@ export default defineConfig({
 
 ### Personalización de temas en Shiki
 
-Puedes seguir la [documentación de temas de Shiki](https://shiki.style/themes) para más opciones de personalización, como alternar entre modo claro y oscuro o aplicar estilos mediante variables CSS.
+Puedes seguir la [documentación de temas de Shiki](https://shiki.style/themes) para más opciones de personalización, como alternar entre [modo claro y oscuro](https://shiki.style/guide/dual-themes) o aplicar estilos mediante [variables CSS](https://shiki.style/guide/theme-colors#css-variables-theme).
 
-Los bloques de código en Astro están estilizados con la clase `.astro-code`, por lo que debes reemplazar la clase `.shiki` en los ejemplos con `.astro-code`.
+Tendrás que adaptar los ejemplos de la documentación de Shiki a tu proyecto Astro realizando las siguientes sustituciones:
+
+- El estilo de los bloques de código se aplica mediante la clase `.astro-code` en lugar de `.shiki`.
+- Al usar el tema `css-variables`, las propiedades personalizadas llevan el prefijo `--astro-code-` en lugar de `--shiki-`.
 
 ## Componentes para bloques de código
 
 Hay dos componentes de Astro disponibles para archivos `.astro` y `.mdx` que permiten renderizar bloques de código: [`<Code />`](#code-) y [`<Prism />`](#prism-).
 
-Puedes consultar las `Props` de estos componentes utilizando la utilidad de [tipo `ComponentProps`](/es/guides/typescript/#componentprops-type).
+Puedes consultar las `Props` de estos componentes utilizando la utilidad de [tipo `ComponentProps`](/es/guides/typescript/#tipo-componentprops).
 
 ### `<Code />`
 
-Este componente utiliza internamente Shiki. Es compatible con todos los temas y lenguajes populares de Shiki, además de varias opciones adicionales, como temas personalizados, lenguajes, [transformadores](#transformadores), y colores predeterminados.
+Este componente utiliza internamente Shiki. Es compatible con todos los temas y lenguajes populares de Shiki, además de varias opciones adicionales, como temas personalizados, lenguajes, [transformadores](#transformers), y colores predeterminados.
 
-Estos valores se pasan al componente `<Code />` mediante los atributos `theme`, `lang`, `transformers`, y `defaultColor` respectivamente como props. El componente `<Code />` no heredará la configuración de `shikiConfig` aplicada a los bloques de código en Markdown.
+Estos valores se pasan al componente `<Code />` mediante los atributos `theme`, `lang`,  [`embeddedLangs`](#embeddedlangs), [`transformers`](#transformers), y `defaultColor` respectivamente como props. El componente `<Code />` no heredará la configuración de `shikiConfig` aplicada a los bloques de código en Markdown.
 
 ```astro 'theme="dark-plus"' /wrap\b/ /(inline) \/>/ 'defaultColor={false}'
 ---
@@ -146,18 +150,56 @@ import { Code } from 'astro:components';
 <Code code={`const foo = 'bar';`} lang="js" defaultColor={false} />
 ```
 
-#### Transformadores
+#### `embeddedLangs`
 
-<p><Since v="4.11.0" /></p>
+<p>
 
-Los [transformadores de Shiki](https://shiki.style/packages/transformers#shikijs-transformers) se pueden aplicar opcionalmente al código pasándolos a través de la propiedad `transformers` como un arreglo. Desde Astro v4.14.0, también puedes proporcionar una cadena de texto en el [atributo `meta` de Shiki](https://shiki.style/guide/transformers#meta) para pasar opciones a los transformadores.
+**Tipo:** `string[] | undefined`<br />
+<Since v="6.0.0" />
+</p>
+
+Cualquier idioma adicional que se deba incluir para el resaltado de sintaxis con Shiki.
+
+Un valor `lang` puede incluir soporte para resaltar algunos lenguajes adicionales de forma predeterminada (p. ej., `lang="svelte"` también proporcionará resaltado para `ts`). 
+
+Usa `embeddedLangs` para incluir compatibilidad con combinaciones de idiomas adicionales que no sean estándar (p. ej., compatibilidad con `jsx` cuando `lang="vue"`).
+
+```astro title="src/pages/index.astro" {15}
+---
+import { Code } from 'astro:components';
+
+const code = `<script setup lang="tsx">
+const Text = ({ text }: { text: string }) => <div>{text}</div>;
+</script>
+
+<template>
+  <Text text="Hello world" />
+</template>
+`
+---
+<Code
+  lang="vue"
+  embeddedLangs={["tsx"]}
+  code={code}
+/>
+```
+
+#### `transformers`
+
+<p>
+
+**Tipo:** `ShikiTransformer[] | undefined`<br />
+<Since v="4.11.0" />
+</p>
+
+Una lista de [transformadores Shiki](https://shiki.style/packages/transformers#shikijs-transformers) que se aplicarán a tu `code`. Desde Astro v4.14.0, también puedes proporcionar una cadena de texto para el [atributo `meta` de Shiki](https://shiki.style/guide/transformers#meta) con el fin de pasar opciones a los transformadores.
 
 Ten en cuenta que `transformers` solo aplica clases, por lo que debes proporcionar tus propias reglas CSS para dar estilo a los elementos de tu bloque de código.
 
 ```astro title="src/pages/index.astro" {12-13}
 ---
-import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers'
-import { Code } from 'astro:components'
+import { transformerNotationFocus, transformerMetaHighlight } from '@shikijs/transformers';
+import { Code } from 'astro:components';
 const code = `const foo = 'hello'
 const bar = ' world'
 console.log(foo + bar) // [!code focus]
