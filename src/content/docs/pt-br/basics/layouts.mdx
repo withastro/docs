@@ -1,6 +1,6 @@
 ---
 title: Layouts
-description: Uma introdução a layouts, um tipo de componente Astro que é compartilhado entre páginas para layouts comuns.
+description: Uma introdução aos layouts no Astro.
 i18nReady: true
 ---
 
@@ -8,15 +8,17 @@ import ReadMore from '~/components/ReadMore.astro';
 
 **Layouts** são [componentes Astro](/pt-br/basics/astro-components/) usados para fornecer uma estrutura de UI reutilizável, como um template de página.
 
-Nós convenientemente utilizamos o termo "layout" para componentes Astro que fornecem elementos comuns de UI compartilhados entre páginas como cabeçalhos, barras de navegação e rodapés. Um típico componente de layout Astro fornece [páginas Astro, Markdown ou MDX](/pt-br/basics/astro-pages/) com:
-- uma **casco da página** (tags `<html>`, `<head>` e `<body>`)
-- um [**`<slot />`**](/pt-br/basics/astro-components/#slots) para especificar onde o conteúdo individual da página deve ser injetado.
+Convencionalmente, usamos o termo "layout" para componentes Astro que fornecem elementos comuns de UI compartilhados entre páginas, como cabeçalhos, barras de navegação e rodapés. Um componente de layout Astro típico fornece às [páginas Astro, Markdown ou MDX](/pt-br/basics/astro-pages/):
+- uma **estrutura de página** (tags `<html>`, `<head>` e `<body>`)
+- um [**`<slot />`**](/pt-br/basics/astro-components/#slots) para especificar onde o conteúdo individual da página deve ser inserido.
 
- Porém, não há nada de especial sobre um componente de layout! Eles podem [receber props](/pt-br/basics/astro-components/#props-do-componente) e [importar e utilizar outros componentes](/pt-br/basics/astro-components/#estrutura-do-componente) como qualquer outro componente Astro. Eles podem incluir [componentes de frameworks de UI](/pt-br/guides/framework-components/) e [scripts no lado do cliente](/pt-br/guides/client-side-scripts/). Eles nem precisam fornecer uma casco completo da página, e podem ser utilizados como templates parciais de UI ao invés disso.
+ Porém, não há nada de especial em componentes de layout! Eles podem [receber props](/pt-br/basics/astro-components/#props-do-componente) e [importar e usar outros componentes](/pt-br/basics/astro-components/#estrutura-do-componente) como qualquer outro componente Astro. Eles podem incluir [componentes de frameworks de UI](/pt-br/guides/framework-components/) e [scripts no lado do cliente](/pt-br/guides/client-side-scripts/). Eles nem precisam fornecer uma estrutura de página completa e podem ser usados como templates parciais de UI.
 
-Componentes de layout são comumente inseridos em um diretório `src/layouts` no seu projeto por organização, mas isso não é uma obrigação; você pode escolher colocar eles em qualquer lugar em seu projeto. Você pode até colocar componentes de layout juntamente das suas páginas [prefixando os nomes dos layouts com `_`](/pt-br/guides/routing/#excluding-pages).
+No entanto, se um componente de layout contiver uma estrutura de página, seu elemento `<html>` deverá ser o pai de todos os outros elementos do componente.
 
-## Layout de Exemplo
+Componentes de layout são normalmente colocados em um diretório `src/layouts` no seu projeto para organização, mas isso não é obrigatório; você pode colocá-los onde preferir. Você pode até manter os componentes de layout junto às suas páginas ao [prefixar os nomes dos layouts com `_`](/pt-br/guides/routing/#excluding-pages).
+
+## Exemplo de layout
 
 ```astro "<slot />"
 ---
@@ -43,6 +45,11 @@ const { titulo } = Astro.props;
     </article>
     <Rodape />
   </body>
+  <style>
+    h1 {
+      font-size: 2rem;
+    }
+  </style>
 </html>
 ```
 
@@ -55,59 +62,93 @@ import LayoutDoMeuSite from '../layouts/LayoutDoMeuSite.astro';
 </LayoutDoMeuSite>
 ```
 
-
 <ReadMore>Aprenda mais sobre [slots](/pt-br/basics/astro-components/#slots).</ReadMore>
+
+## Usando TypeScript com layouts
+
+Qualquer layout Astro pode ser modificado para introduzir segurança de tipos e preenchimento automático ao fornecer os tipos de suas props:
+
+```astro ins={2-7} title="src/components/MeuLayout.astro"
+---
+interface Props {
+  titulo: string;
+  descricao: string;
+  dataPublicacao: string;
+  numeroVisualizacoes: number;
+}
+const { titulo, descricao, dataPublicacao, numeroVisualizacoes } = Astro.props;
+---
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="description" content={descricao}>
+    <title>{titulo}</title>
+  </head>
+  <body>
+    <header>
+      <p>Publicado em {dataPublicacao}</p>
+      <p>Visualizado por {numeroVisualizacoes} pessoas</p>
+    </header>
+    <main>
+      <slot />
+    </main>
+  </body>
+</html>
+```
 
 ## Layouts Markdown
 
-Layouts de páginas são especialmente úteis para [páginas Markdown e MDX](/pt-br/guides/markdown-content/#individual-markdown-pages) que caso contrário não teriam nenhuma formatação.
+Layouts de página são especialmente úteis para páginas Markdown individuais que, de outra forma, não teriam nenhuma formatação.
 
-Astro fornece a propriedade frontmatter especial `layout` para especificar qual componente `.astro` deve ser utilizado como o layout da página.
+O Astro fornece uma propriedade especial `layout` no frontmatter destinada a [arquivos `.md` individuais localizados em `src/pages/` que usam roteamento baseado em arquivos](/pt-br/guides/markdown-content/#individual-markdown-pages). Essa propriedade especifica qual componente `.astro` deve ser usado como layout da página. O componente permite fornecer conteúdo para o `<head>`, como metatags (por exemplo, `<meta charset="utf-8">`) e estilos para a página Markdown. Por padrão, esse componente especificado pode acessar automaticamente os dados do arquivo Markdown.
+
+Essa propriedade não é reconhecida como especial ao usar [coleções de conteúdo](/pt-br/guides/content-collections/) para consultar e renderizar seu conteúdo.
 
 ```markdown title="src/pages/pagina.md" {2}
 ---
-layout: ../layouts/LayoutBase.astro
+layout: ../layouts/LayoutPostagemBlog.astro
 titulo: "Olá, Mundo!"
 autor: "Matthew Phillips"
 data: "09 Ago 2022"
 ---
 Todas as propriedades do frontmatter estão disponíveis como props para um componente de layout Astro.
 
-A propriedade `layout` é a única especialmente fornecida pelo Astro.
+A propriedade `layout` é a única propriedade especial fornecida pelo Astro.
 
-Você pode usá-la em ambos arquivos Markdown e MDX localizados dentro de `src/pages/`.
+Você pode usá-la em arquivos Markdown localizados em `src/pages/`.
 
 ```
 
-Um layout típico para páginas Markdown ou MDX inclui:
+Um layout típico para uma página Markdown inclui:
 
-1. A prop `frontmatter` para acessar o frontmatter da página Markdown ou MDX e outros dados.
-2. Um slot [`<slot />`](/pt-br/basics/astro-components/#slots) padrão para indicar onde o conteúdo da página Markdown/MDX deve ser renderizado.
+1. A prop `frontmatter` para acessar o frontmatter da página Markdown e outros dados.
+2. Um [`<slot />`](/pt-br/basics/astro-components/#slots) padrão para indicar onde o conteúdo Markdown da página deve ser renderizado.
 
-```astro /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
+```astro title="src/layouts/LayoutPostagemBlog.astro" /(?<!//.*){?frontmatter(?:\\.\w+)?}?/ "<slot />"
 ---
-// src/layouts/LayoutBase.astro
-// 1. A prop frontmatter prop dá acesso ao frontmatter e outros dados
+// 1. A prop frontmatter dá acesso ao frontmatter e a outros dados
 const { frontmatter } = Astro.props;
 ---
 <html>
   <head>
-    <!-- Adicione outros elementos da head aqui, como estilos e tags de meta. -->
+    <!-- Adicione outros elementos de head aqui, como estilos e metatags. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
     <title>{frontmatter.titulo}</title>
   </head>
   <body>
     <!-- Adicione outros componentes de UI aqui, como cabeçalhos e rodapés comuns. -->
     <h1>{frontmatter.titulo} por {frontmatter.autor}</h1>
-    <!-- 2. HTML renderizado será passado para o slot padrão. -->
+    <!-- 2. O HTML renderizado será passado para o slot padrão. -->
     <slot />
     <p>Escrito em: {frontmatter.data}</p>
   </body>
 </html>
 ```
 
-Você pode definir o [tipo `Props`](/pt-br/guides/typescript/#component-props) de um layout com os tipos utilitários `MarkdownLayoutProps` ou `MDXLayoutProps`:
+Você pode definir o [tipo `Props`](/pt-br/guides/typescript/#component-props) de um layout com o tipo utilitário `MarkdownLayoutProps`:
 
-```astro title="src/layouts/LayoutBase.astro" ins={2,4-9}
+```astro title="src/layouts/LayoutPostagemBlog.astro" ins={2,4-9}
 ---
 import type { MarkdownLayoutProps } from 'astro';
 
@@ -118,12 +159,13 @@ type Props = MarkdownLayoutProps<{
   data: string;
 }>;
 
-// Agora, `frontmatter`, `url`, e outras propriedades do layout Markdown
+// Agora, `frontmatter`, `url` e outras propriedades do layout Markdown
 // são acessíveis com segurança de tipos
 const { frontmatter, url } = Astro.props;
 ---
 <html>
   <head>
+    <meta charset="utf-8">
     <link rel="canonical" href={new URL(url, Astro.site).pathname}>
     <title>{frontmatter.titulo}</title>
   </head>
@@ -137,125 +179,79 @@ const { frontmatter, url } = Astro.props;
 
 ### Props de Layout Markdown
 
-Um layout Markdown/MDX terá acesso as seguintes informações pelo `Astro.props`:
+Um layout Markdown terá acesso às seguintes informações por meio de `Astro.props`:
 
-- **`file`** - O caminho absoluto deste arquivo (e.x. `/home/usuario/projetos/.../arquivo.md`).
-- **`url`** - Se for uma página, a URL da página (e.x. `/pt-br/guides/markdown-content`).
-- **`frontmatter`** - todo o frontmatter do documento Markdown ou MDX.
-  - **`frontmatter.file`** - O mesmo que a propriedade superior `file`.
-  - **`frontmatter.url`** - O mesmo que a propriedade superior `url`.
-- **`headings`** - Uma lista dos títulos (`h1 -> h6`) no documento Markdown ou MDX com os metadados associados. Esta lista segue o tipo: `{ depth: number; slug: string; text: string }[]`.
-- **(Apenas Markdown) `rawContent()`** - Uma função que retorna o documento Markdown bruto como uma string.
-- **(Apenas Markdown) `compiledContent()`** - Uma função que retorna o documento Markdown compilado como uma string de HTML.
-
-Uma postagem de blog Markdown de exemplo pode passar o seguinte objeto `Astro.props` para seu layout:
-
-```js
-Astro.props = {
-  file: "/home/usuario/projetos/.../arquivo.md",
-  url: "/pt-br/guides/markdown-content/",
-  frontmatter: {
-    /** Frontmatter de uma postagem de blog */
-    title: "Lançamento do Astro 0.18",
-    date: "Terça-feira, 27 de Julho, 2021",
-    author: "Matthew Phillips",
-    description: "Astro 0.18 é o nosso maior lançamento desde o lançamento do Astro.",
-    /** Valores gerados */
-    file: "/home/usuario/projetos/.../arquivo.md",
-    url: "/pt-br/guides/markdown-content/"
-  },
-  headings: [
-    {
-      "depth": 1,
-      "text": "Lançamento do Astro 0.18",
-      "slug": "lançamento-astro-018"
-    },
-    {
-      "depth": 2,
-      "text": "Hidratação parcial responsiva",
-      "slug": "hidratação-partial-responsiva"
-    }
-    /* ... */
-  ],
-
-  /** Disponível apenas em Markdown */
-  rawContent: () => "# Lançamento do Astro 0.18\nA um pouco menos de um mês atrás, a primeira beta pública [...]",
-  compiledContent: () => "<h1>Lançamento do Astro 0.18</h1>\n<p>A um pouco menos de um mês atrás, a primeira beta pública [...]</p>",
-}
-```
+- **`file`** - O caminho absoluto desse arquivo (por exemplo, `/home/usuario/projetos/.../arquivo.md`).
+- **`url`** - A URL da página (por exemplo, `/pt-br/guides/markdown-content`).
+- **`frontmatter`** - Todo o frontmatter do documento Markdown ou MDX.
+  - **`frontmatter.file`** - O mesmo que a propriedade de nível superior `file`.
+  - **`frontmatter.url`** - O mesmo que a propriedade de nível superior `url`.
+- **`headings`** - Uma lista dos títulos (`h1 -> h6`) do documento Markdown ou MDX e seus metadados associados. Essa lista segue o tipo `{ depth: number; slug: string; text: string }[]`.
+- **`rawContent()`** - Uma função que retorna o documento Markdown bruto como uma string.
+- **`compiledContent()`** - Uma função assíncrona que retorna o documento Markdown compilado como uma string de HTML.
 
 :::note
-Um layout Markdown/MDX terá acesso a todas as [propriedades exportadas](/pt-br/guides/markdown-content/#importing-markdown) do arquivo pelo `Astro.props` **com algumas diferenças principais:**
+Um layout Markdown terá acesso a todas as [propriedades disponíveis](/pt-br/guides/markdown-content/#available-properties) do arquivo Markdown por meio de `Astro.props`, **com duas diferenças importantes:**
 
-* Informação de título (ou seja, elementos `h1 -> h6`) está disponível a partir do array `headings`, ao invés de pela função `getHeadings()`.
+*   As informações dos títulos (ou seja, elementos `h1 -> h6`) estão disponíveis no array `headings`, em vez de em uma função `getHeadings()`.
 
-* `file` e `url` *também* estão disponíveis como propriedades aninhadas de `frontmatter` (ou seja, `frontmatter.url` e `frontmatter.file`).
+*   `file` e `url` *também* estão disponíveis como propriedades aninhadas de `frontmatter` (ou seja, `frontmatter.url` e `frontmatter.file`).
 
-* Valores definidos fora do frontmatter (e.x. declarações de `export` no MDX) não estão disponíveis. Considere [importar um layout](#importando-layouts-manualmente-mdx) no lugar.
 :::
 
 ### Importando Layouts Manualmente (MDX)
 
-Você pode precisar passar informação para o seu layout MDX que não existe (ou não pode existir) no seu frontmatter. Neste caso, você pode importar e utilizar um [componente `<Layout />`](/pt-br/basics/layouts/) no lugar e passar props a ele como qualquer outro componente:
+Você também pode usar a propriedade especial de layout Markdown no frontmatter de arquivos MDX para passar as props `frontmatter` e `headings` diretamente a um componente de layout especificado, da mesma maneira.
 
-```mdx title="src/pages/postagens/primeira-postagem.mdx" ins={6} del={2} /</?LayoutBase>/ /</?LayoutBase titulo={frontmatter.titulo} utilitarioSofisticadoJS={utilitarioSofisticadoJS}>/
+Para passar ao seu layout MDX informações que não existem (ou não podem existir) no frontmatter, você pode importar e usar um componente `<Layout />`. Ele funciona como qualquer outro componente Astro e não recebe nenhuma prop automaticamente. Passe diretamente todas as props necessárias:
+
+```mdx title="src/pages/postagens/primeira-postagem.mdx" ins={6} del={2} /</?LayoutBase>/ /</?LayoutBase title={frontmatter.title} utilitarioSofisticadoJS={utilitarioSofisticadoJS}>/
 ---
 layout: ../../layouts/LayoutBase.astro
 title: 'Minha primeira postagem MDX'
-publishDate: '21 Setembro 2022'
+publishDate: '21 de Setembro de 2022'
 ---
 import LayoutBase from '../../layouts/LayoutBase.astro';
 
 export function utilitarioSofisticadoJS() {
-  return "Tenta fazer isso com YAML!";
+  return 'Tenta fazer isso com YAML!';
 }
 
-<LayoutBase titulo={frontmatter.titulo} utilitarioSofisticadoJS={utilitarioSofisticadoJS}>
+<LayoutBase title={frontmatter.title} utilitarioSofisticadoJS={utilitarioSofisticadoJS}>
   Bem-vindo ao meu novo blog Astro, usando MDX!
 </LayoutBase>
 ```
 
-Agora, seus valores estão disponíveis través do `Astro.props` em seu layout, e seu conteúdo MDX será injetado na página onde o `<slot />` do componente está escrito:
+Em seguida, seus valores estarão disponíveis por meio de `Astro.props` no layout, e o conteúdo MDX será inserido na página onde o componente `<slot />` estiver escrito:
 
-```astro /{?titulo}?/ "utilitarioSofisticadoJS" "{utilitarioSofisticadoJS()}"
+```astro title="src/layouts/LayoutBase.astro" /{?title}?/ "utilitarioSofisticadoJS" "{utilitarioSofisticadoJS()}"
 ---
-// src/layouts/LayoutBase.astro
-const { titulo, utilitarioSofisticadoJS } = Astro.props;
----
-<!-- -->
-<h1>{titulo}</h1>
-<slot /> <!-- seu conteúdo é injetado aqui -->
-<p>{utilitarioSofisticadoJS()}</p>
-<!-- -->
-```
-
-<ReadMore>Aprenda mais sobre o suporte para Markdown e MDDX do Astro em nosso [guia de Markdown/MDX](/pt-br/guides/markdown-content/).</ReadMore>
-
-## Usando um Layout para `.md`, `.mdx` e `.astro`
-
-Um único layout Astro pode ser escrito para receber o objeto `frontmatter` de arquivos `.md` e `.mdx`, assim como quaisquer props nomeadas passadas por arquivos `.astro`.
-
-No exemplo abaixo, o layout irá mostrar o título da página seja pela propriedade `title` do frontmatter YAML ou por um componente Astro passando o atributo `titulo`:
-
-```astro /{?titulo}?/ /Astro.props[.a-z]*/
----
-// src/components/MeuLayout.astro
-const { titulo } = Astro.props.frontmatter || Astro.props;
+const { title, utilitarioSofisticadoJS } = Astro.props;
 ---
 <html>
-  <head></head>
+  <head>
+    <!-- -->
+    <meta charset="utf-8">
+  </head>
   <body>
-    <h1>{titulo}</h1>
-    <slot />
+    <!-- -->
+    <h1>{title}</h1>
+    <slot /> <!-- seu conteúdo é inserido aqui -->
+    <p>{utilitarioSofisticadoJS()}</p>
+    <!-- -->
   </body>
 </html>
 ```
 
+Ao usar qualquer layout (pela propriedade `layout` do frontmatter ou pela importação de um layout), inclua a tag `<meta charset="utf-8">` no layout, pois o Astro não a adicionará mais automaticamente à sua página MDX.
+
+<ReadMore>Saiba mais sobre o suporte do Astro a Markdown e MDX em nosso [guia de Markdown](/pt-br/guides/markdown-content/).</ReadMore>
+
 ## Aninhando Layouts
 
-Componentes de layout não precisam conter uma página inteira de HTML. Você pode separar seus layouts em pequenos componentes e então, combinar componentes de layout para criar templates de páginas ainda mais flexíveis. Esse padrão é útil quando você quer compartilhar algum código através de múltiplos layouts.
+Componentes de layout não precisam conter uma página inteira de HTML. Você pode separar seus layouts em componentes menores e combiná-los para criar templates de página ainda mais flexíveis. Esse padrão é útil quando você quer compartilhar algum código através de múltiplos layouts.
 
-Por exemplo, um componente de layout `LayoutPostagemBlog.astro` pode estilizar um título de uma postagem, data e autor. Então, um `LayoutBase.astro` de todo o site poderia lidar com o resto do template da sua página, como navegação, rodapés, meta tags SEO, estilos globais e fontes. Você também pode passar props recebidas da sua postagem para outro layout, assim como em qualquer outro componente aninhado.
+Por exemplo, um componente de layout `LayoutPostagemBlog.astro` pode estilizar o título, a data e o autor de uma postagem. Então, um `LayoutBase.astro` de todo o site poderia lidar com o resto do template da sua página, como navegação, rodapés, metatags de SEO, estilos globais e fontes. Você também pode passar props recebidas da sua postagem para outro layout, assim como em qualquer outro componente aninhado.
 
 ```astro {3} /</?LayoutBase>/ /</?LayoutBase url={frontmatter.url}>/
 ---
