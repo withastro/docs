@@ -72,6 +72,7 @@ export const logos = LogoCheck({
 	keystonejs: { file: 'keystonejs.svg', padding: '.25em' },
 	'kontent-ai': { file: 'kontent-ai.svg', padding: '.15em' },
 	lit: { file: 'lit.svg', padding: '.1875em' },
+	lizard: { file: 'lizard.svg', padding: '.125em' },
 	markdoc: { file: 'markdoc.svg', padding: '.35em 0 .35em .1em' },
 	mdx: { file: 'mdx.svg', padding: '.1em' },
 	microcms: { file: 'microcms.svg', padding: '.2em' },
