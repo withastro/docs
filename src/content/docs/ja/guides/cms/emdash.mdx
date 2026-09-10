@@ -1,0 +1,238 @@
+---
+title: EmDash & Astro
+description: EmDashをCMSとして使ってAstroプロジェクトにコンテンツを追加する
+sidebar:
+  label: EmDash
+type: cms
+logo: emdash
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[EmDash](https://emdashcms.com/)は、Astro向けに開発されたオープンソースのフルスタックCMSです。データベースで管理するコンテンツ、管理UI、メディアライブラリ、メニュー、タクソノミーをサイトに追加できます。
+
+:::tip
+**Astro + EmDashのプロジェクトを新しく作成する**には、EmDash CLIを使って設定済みのプロジェクトを生成します。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create emdash@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create emdash@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create emdash@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+:::
+
+## Astroとの統合
+
+EmDashはAstroプロジェクト内で動作し、データベースを使用します。`/_emdash/admin`の管理画面にアクセスしてコンテンツを編集できます。ページでは、[ライブコンテンツコレクション](/ja/guides/content-collections/#live-content-collections)を使ってデータベースにクエリを実行し、コンテンツを表示します。
+
+このガイドでは、[Node.jsアダプター](/ja/guides/integrations-guide/node/)とローカルのSQLiteデータベースを使用します。対応するデータベースの一覧は、[EmDashのドキュメント](https://docs.emdashcms.com/deployment/database/)を参照してください。
+
+## 前提条件
+
+- [アダプター](/ja/guides/on-demand-rendering/)と[`output: "server"`](/ja/reference/configuration-reference/#output)が設定された既存のAstroプロジェクト（Astro 6以降）。
+- Node.js v22.16.0以降。
+
+## 依存関係のインストール
+
+EmDashの管理画面はReactで動作するため、Reactは必須の依存関係です。プロジェクトでReactを使用していない場合は、パッケージマネージャーに応じた`astro add`コマンドでインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+EmDashパッケージもインストールする必要があります。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install emdash
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add emdash
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add emdash
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## インテグレーションの追加
+
+Astro設定ファイルに`emdash()`インテグレーションを追加し、データベースとメディアの保存先を設定します。
+
+```js title="astro.config.mjs" ins={4-5, 12-18}
+import { defineConfig } from "astro/config";
+import node from "@astrojs/node";
+import react from "@astrojs/react";
+import emdash, { local } from "emdash/astro";
+import { sqlite } from "emdash/db";
+
+export default defineConfig({
+  output: "server",
+  adapter: node({ mode: "standalone" }),
+  integrations: [
+    react(),
+    emdash({
+      database: sqlite({ url: "file:./data.db" }),
+      storage: local({
+        directory: "./uploads",
+        baseUrl: "/_emdash/api/media/file",
+      }),
+    }),
+  ],
+});
+```
+
+## ライブコレクションローダーの追加
+
+AstroのコンテンツレイヤーでEmDashのコンテンツを取得できるように、`src/live.config.ts`ファイルを作成します。
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from "astro:content";
+import { emdashLoader } from "emdash/runtime";
+
+export const collections = {
+  _emdash: defineLiveCollection({ loader: emdashLoader() }),
+};
+```
+
+`_emdash`コレクションは、内部でコンテンツの種類（投稿やページなど）に応じて処理を振り分けます。`src/content.config.ts`にある既存のファイルベースのコレクションも引き続き併用できます。
+
+## EmDashをローカルで実行する
+
+EmDashでは、ページをテストする前にセットアップウィザードを完了する必要があります。セットアップが完了するまでは公開済みのコンテンツがないため、クエリの結果は空になります。
+
+<Steps>
+1. Astroの開発サーバーを起動して、データベースを初期化し、管理UIを立ち上げます。
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run dev
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm run dev
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn run dev
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    初回起動時に、EmDashはスキーマと2つのデフォルトコレクション（`pages`と`posts`）を持つ`data.db`を作成します。
+
+2. ブラウザーで`http://localhost:4321/_emdash/admin`にアクセスします。EmDashのセットアップウィザードにリダイレクトされます。
+
+3. **Site**ステップで、サイトのタイトルと任意のキャッチフレーズを入力します。
+
+4. **Account**ステップで、メールアドレスと名前を入力します。これで管理者アカウントが作成されます。
+
+5. **Sign In**ステップで、アカウントのセキュリティを設定します。**Create Passkey**を選択し、デバイスの生体認証、セキュリティキー、またはPINを使ってパスキーを登録します。
+
+6. 作成したパスキーでサインインし、ダッシュボードにアクセスします。
+</Steps>
+
+## 最初の投稿を作成する
+
+<Steps>
+1. ダッシュボードで**+ Post**ボタンをクリックします。
+
+2. タイトルと本文を追加します。EmDashは、ブロックエディターで編集したリッチテキストを[Portable Text](https://github.com/portabletext/portabletext)として保存します。URLのスラッグはタイトルから生成され、サイドバーで編集できます。
+
+3. **Save**をクリックしてから、**Publish**をクリックします。サイトの訪問者には公開済みの投稿のみが表示されます。
+</Steps>
+
+## EmDashのコンテンツをレンダリングする
+
+`getEmDashCollection()`と`getEmDashEntry()`を使ってコンテンツを取得します。どちらもライブコレクションと同じ仕組みでリクエスト時に結果を返すため、公開した変更は再ビルドなしで反映されます。
+
+### 投稿一覧の表示
+
+次の例では、公開済みのすべての投稿のタイトルを一覧表示し、それぞれの投稿ページへのリンクを設定しています。
+
+```astro title="src/pages/blog.astro"
+---
+import { getEmDashCollection } from "emdash";
+
+const { entries: posts } = await getEmDashCollection("posts", {
+  status: "published",
+});
+---
+<ul>
+  {posts.map((post) => (
+    <li>
+      <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
+```
+
+### 個別の投稿の表示
+
+個別の投稿のコンテンツを表示するには、スラッグで投稿を取得し、`<PortableText />`コンポーネントでPortable Textのコンテンツをレンダリングします。
+
+```astro title="src/pages/posts/[...slug].astro"
+---
+import { getEmDashEntry } from "emdash";
+import { PortableText } from "emdash/ui";
+
+const { slug } = Astro.params;
+const { entry: post } = await getEmDashEntry("posts", slug);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+---
+<article>
+  <h1>{post.data.title}</h1>
+  <PortableText value={post.data.content} />
+</article>
+```
+
+フィルタリング、ページネーション、下書きのプレビュー、ビジュアル編集の詳細は、[EmDashのクエリガイド](https://docs.emdashcms.com/guides/querying-content/)を参照してください。
+
+## EmDash + Astroのデプロイ
+
+EmDashは、サイトとともに1つのAstroプロジェクトとしてデプロイされます。使用するアダプターに対応したホスティングサービスを選び、本番用のデータベースとメディアストレージを用意してください。
+
+具体的な手順は、[EmDashのNode.js向けデプロイガイド](https://docs.emdashcms.com/deployment/nodejs/)と[Cloudflare向けデプロイガイド](https://docs.emdashcms.com/deployment/cloudflare/)を参照してください。Astroの[デプロイガイド](/ja/guides/deploy/)から、利用するホスティングプロバイダーの手順に従ってデプロイすることもできます。
+
+## 公式リソース
+
+- [Astro開発者向けのEmDashドキュメント](https://docs.emdashcms.com/coming-from/astro/)
+- [GitHub上のEmDash](https://github.com/emdash-cms/emdash)
