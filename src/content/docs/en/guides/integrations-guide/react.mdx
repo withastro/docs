@@ -264,7 +264,71 @@ The compiler targets your installed React version. For React 17 or 18, also inst
 
 You can pass compiler options instead of `true`, such as `compiler: { compilationMode: 'annotation' }`. The integration's `include` and `exclude` filters apply. Server rendering, dependencies, and `.astro` files are not compiled.
 
-Existing `babel` configuration continues to work. Do not enable `babel-plugin-react-compiler` on the same client components as the Oxc compiler.
+Do not enable `babel-plugin-react-compiler` on the same client components as the Oxc compiler. For other custom Babel transformations, see [Migrating custom Babel transforms](#migrating-custom-babel-transforms).
+
+### Migrating custom Babel transforms
+
+The integration uses `@vitejs/plugin-react` v6 and Oxc for JSX and Fast Refresh. The `babel` integration option has been removed.
+
+If you use custom Babel transforms, install `@rolldown/plugin-babel` and `@babel/core`, keeping your existing Babel plugins and presets installed:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Move your Babel plugins and presets from `react({ babel: ... })` to `babel()` in `vite.plugins`. For example, migrate a project using `babel-plugin-styled-components` from:
+
+```js title="astro.config.mjs"
+import react from '@astrojs/react';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [
+    react({
+      babel: {
+        plugins: ['babel-plugin-styled-components'],
+      },
+    }),
+  ],
+});
+```
+
+To:
+
+```js title="astro.config.mjs"
+import react from '@astrojs/react';
+import babel from '@rolldown/plugin-babel';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [react()],
+  vite: {
+    plugins: [
+      babel({
+        plugins: ['babel-plugin-styled-components'],
+      }),
+    ],
+  },
+});
+```
+
+This also works with `react({ compiler: true })`. Babel runs before Oxc transforms TypeScript and JSX. The Babel plugin automatically enables parsing for `.jsx`, `.ts`, and `.tsx` files. It does not load `babel.config.js` or `.babelrc` files; pass the options directly to `babel()`. The old `babel` callback is not supported; use the plugin's [`overrides` and preset hooks](https://github.com/rolldown/plugins/tree/main/packages/babel#options) for conditional transforms.
+
+Do not enable `babel-plugin-react-compiler` on the same components as the Oxc compiler.
 
 ### Children parsing
 
