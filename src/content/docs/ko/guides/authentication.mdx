@@ -149,23 +149,38 @@ const session = await auth.api.getSession({
 <p>{session.user?.name}</p>
 ```
 
-미들웨어와 `auth` 객체를 사용하여 경로를 보호할 수도 있습니다. 다음 예시는 로그인한 대시보드 경로에 액세스하려는 사용자가 인증되었는지 확인하고 인증되지 않은 경우 홈 페이지로 리디렉션합니다.
+`auth` 객체를 사용하여 경로를 보호할 수도 있습니다. 다음 예시는 [Astro의 고급 라우팅](/ko/guides/routing/#고급-라우팅)과 [Hono](https://hono.dev/)를 사용하여 `/dashboard` 아래의 모든 경로에 인증된 세션을 요구하고, 그렇지 않으면 홈 페이지로 리디렉션합니다:
 
-```ts title="src/middleware.ts"
-import { auth } from "../../../auth"; // Better Auth 인스턴스를 가져옵니다.
-import { defineMiddleware } from "astro:middleware";
- 
-export const onRequest = defineMiddleware(async (context, next) => {
-	const isAuthed = await auth.api
-		.getSession({
-			headers: context.request.headers,
-		})
-	if (context.url.pathname === "/dashboard" && !isAuthed) {
-		return context.redirect("/");
+```ts title="src/fetch.ts"
+import { Hono } from "hono";
+import { astro } from "astro/hono";
+import { auth } from "../auth"; // Better Auth 인스턴스를 가져옵니다.
+
+const app = new Hono();
+
+// /dashboard 아래의 모든 경로를 보호합니다.
+app.use("/dashboard", requireAuth);
+app.use("/dashboard/*", requireAuth);
+
+// 그 외의 모든 요청에는 Astro의 내장 파이프라인을 실행합니다.
+app.use(astro());
+
+export default app;
+
+async function requireAuth(c, next) {
+	const session = await auth.api.getSession({ headers: c.req.raw.headers });
+	if (!session) {
+		return c.redirect("/");
 	}
 	return next();
-});
+}
 ```
+
+:::caution
+미들웨어가 확인하는 공개 pathname이 Astro가 내부적으로 매칭하는 라우트와 항상 동일한 것은 아닙니다. 구성된 `base`, URL 인코딩, 중복 슬래시로 인해 두 값이 달라질 수 있습니다. 공격자는 이 차이를 악용하여 검사에서 인식하지 못하는 pathname으로 보호된 라우트에 접근할 수 있습니다.
+
+`context.url.pathname`을 문자열(예: `context.url.pathname === "/dashboard"` 또는 `context.url.pathname.startsWith("/dashboard")`)과 비교하여 요청을 승인하지 마세요. 대신 라우터에 경로 매칭을 맡겨 접근을 제한하세요.
+:::
 
 ### 다음 단계
 
