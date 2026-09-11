@@ -133,11 +133,11 @@ Ou vous pouvez utiliser ce `title` exporté dans votre page en utilisant les ins
 
 ```astro title="src/pages/index.astro"
 ---
-const matches = import.meta.glob('./posts/*.mdx', { eager: true });
+const matches = import.meta.glob("./posts/*.mdx", { eager: true });
 const posts = Object.values(matches);
 ---
 
-{posts.map(post => <p>{post.title}</p>)}
+{posts.map((post: any) => <p>{post.title}</p>)}
 ```
 
 #### Propriétés exportées
@@ -238,13 +238,17 @@ Si votre fichier MDX est une entrée de collection de contenu, utilisez la fonct
 
 L'exemple suivant transmet un titre personnalisé au composant `<Content />` via la propriété `components` à utiliser à la place de tous les éléments HTML `<h1>` :
 
-```astro title="src/pages/blog/article-1.astro" ins="components={{ h1: CustomHeading }}"
+```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
 ---
-import { getEntry, render } from 'astro:content';
-import CustomHeading from '../../components/CustomHeading.astro';
-const entry = await getEntry('blog', 'article-1');
+import { getEntry, render } from "astro:content";
+import CustomHeading from "../../components/CustomHeading.astro";
+const entry = await getEntry("blog", "post-1");
+if (!entry) {
+  throw new Error("Entrée introuvable");
+}
 const { Content } = await render(entry);
 ---
+
 <Content components={{ h1: CustomHeading }} />
 ```
 
@@ -318,6 +322,31 @@ export default defineConfig({
 });
 ```
 
+#### Utilisation des modules d'extension Recma
+
+<p><Since v="8.0.0" pkg="@astrojs/mdx" /></p>
+
+Les modules d'extension Recma modifient directement la sortie [estree](https://github.com/estree/estree). Cela est utile pour modifier ou injecter des variables JavaScript dans vos fichiers MDX, et n'a aucun effet sur les fichiers `.md`.
+
+Les modules d'extension Recma ne sont pris en charge que par le [processeur Unified](/fr/guides/markdown-content/#quand-utiliser-unified). Transmettez-les à `unified()` depuis `@astrojs/markdown-remark` en utilisant l'option `recmaPlugins` :
+
+```js title="astro.config.mjs" {3-4,8}
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
+import myRecmaPlugin from './my-recma-plugin.mjs';
+
+export default defineConfig({
+  integrations: [
+    mdx({ processor: unified({ recmaPlugins: [myRecmaPlugin] }) }),
+  ],
+});
+```
+
+Vous pouvez également définir ces modules d'extension dans [`markdown.processor`](/fr/reference/configuration-reference/#markdownprocessor) à la place. Vos fichiers `.mdx` continueront de les utiliser, car MDX [étend votre configuration Markdown](#extendmarkdownconfig) par défaut.
+
+Nous vous suggérons d'[utiliser AST Explorer](https://astexplorer.net/) pour expérimenter avec les sorties estree, et d'essayer [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) pour rechercher dans les nœuds JavaScript.
+
 ### `extendMarkdownConfig`
 
 <p>
@@ -333,20 +362,22 @@ Par exemple, supposons que vous avez besoin d'une coloration syntaxique différe
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin1 from "./src/mdast-plugin-1";
+import mdastPlugin2 from "./src/mdast-plugin-2";
 
 export default defineConfig({
   // ...
   markdown: {
-    syntaxHighlight: 'prism',
+    syntaxHighlight: "prism",
     processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
       // `syntaxHighlight` de Markdown remplacée,
       // les fichiers `.mdx` utilisent Shiki à la place.
-      syntaxHighlight: 'shiki',
+      syntaxHighlight: "shiki",
 
       // `markdown.processor` est remplacée pour les fichiers `.mdx` par cette option
       processor: satteri({ mdastPlugins: [mdastPlugin2] }),
@@ -359,8 +390,9 @@ Vous pouvez également avoir besoin de désactiver l'extension de la configurati
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin from "./src/mdast-plugin";
 
 export default defineConfig({
   // ...
@@ -378,6 +410,12 @@ export default defineConfig({
 ```
 
 ### `recmaPlugins`
+
+:::caution[Déprécié]
+Cette option est dépréciée et sera supprimée dans une future version majeure. Transmettez `recmaPlugins` au [`processor`](#processor) configuré à la place.
+
+En savoir plus sur [l'utilisation des modules d'extension recma](#utilisation-des-modules-dextension-recma).
+:::
 
 <p>
 
@@ -435,10 +473,10 @@ Vous devrez exclure ces composants de l'optimisation, car l'optimiseur convertit
 
 Par exemple, la sortie MDX prévue pour ce qui suit est `<Heading>...</Heading>` à la place de chaque `"<h1>...</h1>"` :
 
-```astro
+```astro title="src/pages/une-page.astro"
 ---
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
+import { Content, components } from "../content.mdx";
+import Heading from "../components/Heading.astro";
 ---
 
 <Content components={{ ...components, h1: Heading }} />
