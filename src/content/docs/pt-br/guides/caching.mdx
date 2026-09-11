@@ -1,0 +1,255 @@
+---
+title: Cache de rotas
+description: Uma introdução ao cache com Astro.
+i18nReady: true
+---
+import Since from '~/components/Since.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+<p><Since v="7.0.0" /></p>
+
+O Astro fornece uma API independente de plataforma para fazer cache das respostas de páginas e endpoints [renderizados sob demanda](/pt-br/guides/on-demand-rendering/). As diretivas de cache definidas em suas rotas são traduzidas para os cabeçalhos apropriados ou comportamento em tempo de execução, dependendo do provedor de cache configurado.
+
+O cache de rotas é baseado em [semânticas padrão de cache HTTP](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Guides/Caching), incluindo [`max-age`](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Reference/Headers/Cache-Control#max-agesegundos) e [`stale-while-revalidate`](https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Reference/Headers/Cache-Control#stale-while-revalidatesegundos), com suporte para invalidação baseada em tags e caminhos, regras de rota em nível de configuração e provedores de cache plugáveis que os adaptadores podem definir automaticamente.
+
+## Configurar cache
+
+O cache de rotas requer um provedor de cache para determinar como o cache é implementado em tempo de execução. Um [provedor integrado em memória](/pt-br/reference/cache-provider-reference/#built-in-memory-cache-provider) está disponível, e provedores personalizados podem ser implementados para casos de uso avançados e ambientes de execução específicos.
+
+Para ativar esse recurso, defina um [provedor de cache](/pt-br/reference/cache-provider-reference/) na sua configuração do Astro:
+
+```js title="astro.config.mjs" {6-8} "memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+});
+```
+
+Você pode então usar [`Astro.cache`](/pt-br/reference/api-reference/#cache) em suas páginas `.astro` (ou `context.cache` para rotas de API e middleware) para controlar o cache por requisição. Os padrões de cache para grupos de rotas também podem ser definidos declarativamente em sua configuração usando [`routeRules`](#regras-de-rota).
+
+Se você faz deploy na Netlify, Vercel ou Cloudflare, você pode usar os provedores de [cache de CDN experimentais](#provedores-de-cache-de-adaptadores) de seus respectivos adaptadores em vez do provedor em memória.
+
+## Provedores de cache de adaptadores
+
+Os adaptadores oficiais do Astro para Netlify, Vercel e Cloudflare fornecem, cada um, um provedor de cache de CDN experimental que mapeia diretivas de cache para os cabeçalhos de cache nativos e API de invalidação da plataforma. Em vez de armazenar respostas na memória, eles enviam suas diretivas de cache para a rede de borda (edge) da hospedagem, e os acertos de cache (hits) são servidos diretamente da CDN sem invocar sua função de servidor.
+
+Durante a fase experimental, esses provedores precisam ser ativados manualmente, conforme mostrado abaixo. Em uma versão futura, eles serão ativados automaticamente por seus adaptadores.
+
+Cada provedor adiciona tags automaticamente às respostas em cache com o caminho da requisição, para que [`cache.invalidate({ path })`](/pt-br/reference/api-reference/#cacheinvalidate) funcione em plataformas que suportam apenas limpezas baseadas em tags.
+
+### Netlify
+
+<p>
+
+<Since pkg="@astrojs/netlify" v="8.0.0" />
+</p>
+
+Importe `cacheNetlify()` de `@astrojs/netlify/cache` e defina-o como seu provedor de cache:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import netlify from '@astrojs/netlify';
+import { cacheNetlify } from '@astrojs/netlify/cache';
+
+export default defineConfig({
+  adapter: netlify(),
+  cache: {
+    provider: cacheNetlify(),
+  },
+});
+```
+
+O provedor define os cabeçalhos `Netlify-CDN-Cache-Control` e `Netlify-Cache-Tag`. As respostas em cache usam o [cache durável da Netlify](https://docs.netlify.com/platform/caching/#durable-directive) para que sejam compartilhadas em todos os nós de borda, reduzindo invocações de função. Tanto a invalidação baseada em tags quanto em caminhos são suportadas.
+
+### Vercel
+
+<p>
+
+<Since pkg="@astrojs/vercel" v="11.0.0" />
+</p>
+
+Importe `cacheVercel()` de `@astrojs/vercel/cache` e defina-o como seu provedor de cache:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import vercel from '@astrojs/vercel';
+import { cacheVercel } from '@astrojs/vercel/cache';
+
+export default defineConfig({
+  adapter: vercel(),
+  cache: {
+    provider: cacheVercel(),
+  },
+});
+```
+
+O provedor define os cabeçalhos `Vercel-CDN-Cache-Control` e `Vercel-Cache-Tag`. Tanto a invalidação baseada em tags quanto em caminhos são suportadas. A invalidação por tag é uma invalidação suave: as respostas em cache são marcadas como obsoletas e revalidadas em segundo plano usando stale-while-revalidate.
+
+### Cloudflare
+
+<p>
+
+<Since pkg="@astrojs/cloudflare" v="14.0.0" />
+</p>
+
+Importe `cacheCloudflare()` de `@astrojs/cloudflare/cache` e defina-o como seu provedor de cache:
+
+```js title="astro.config.mjs" ins={3, 7-9}
+import { defineConfig } from 'astro/config';
+import cloudflare from '@astrojs/cloudflare';
+import { cacheCloudflare } from '@astrojs/cloudflare/cache';
+
+export default defineConfig({
+  adapter: cloudflare(),
+  cache: {
+    provider: cacheCloudflare(),
+  },
+});
+```
+
+O provedor define os cabeçalhos `Cloudflare-CDN-Cache-Control` e `Cache-Tag`. Tanto a invalidação baseada em tags quanto em caminhos são suportadas.
+
+O adaptador ativa o [Cache do Workers](https://developers.cloudflare.com/workers/cache/) da Cloudflare com configurações padrão quando um provedor de cache da Cloudflare é usado. Você pode [alterar a configuração](https://developers.cloudflare.com/workers/cache/configuration/) se necessário, por exemplo se quiser preservar o cache ao fazer deploy de uma nova versão do site.
+
+## Interagindo com o cache
+
+O [objeto `cache`](/pt-br/reference/api-reference/#cache) fornece métodos para definir opções de cache, invalidar entradas e verificar o estado atual do cache. Esse objeto está disponível em suas páginas `.astro` com `Astro.cache`, e em rotas de API e middleware com `context.cache`.
+
+<ReadMore>Veja a [referência da API de Cache](/pt-br/reference/api-reference/#cache) para mais detalhes.</ReadMore>
+
+### Verificando se o cache está ativado
+
+Quando o cache não está configurado, `cache.set()`, `cache.tags` e `cache.options` registram um aviso no log, e `cache.invalidate()` lança um erro. Para evitar isso, envolva sua lógica de cache em uma verificação condicional usando [`cache.enabled`](/pt-br/reference/api-reference/#cacheenabled). Seu valor é sempre `false` quando nenhum provedor está configurado ou no modo de desenvolvimento.
+
+```astro title="src/pages/products/[id].astro" "Astro.cache.enabled"
+---
+if (Astro.cache.enabled) {
+  const tags = await getProductTags(Astro.params.id);
+  Astro.cache.set({ maxAge: 3600, tags });
+}
+---
+```
+
+### Definindo opções de cache
+
+Chame [`cache.set()`](/pt-br/reference/api-reference/#cacheset) com um objeto de opções para ativar o cache para a resposta atual.
+
+O exemplo a seguir armazena uma página em cache por 2 minutos, serve conteúdo obsoleto por 1 minuto enquanto revalida e adiciona uma tag à resposta para invalidação direcionada:
+
+```astro title="src/pages/index.astro" {4-8}
+---
+export const prerender = false; // Não é necessário no modo 'server'
+
+Astro.cache.set({
+  maxAge: 120,
+  swr: 60,
+  tags: ['home'],
+});
+---
+
+<html><body>Página em cache</body></html>
+```
+
+Em rotas de API e middleware, use `context.cache`:
+
+```ts title="src/pages/api/data.ts" {2-5}
+export function GET(context) {
+  context.cache.set({
+    maxAge: 300,
+    tags: ['api', 'data'],
+  });
+  return Response.json({ ok: true });
+}
+```
+
+### Optando por não usar cache
+
+Chame [`cache.set()`](/pt-br/reference/api-reference/#cacheset) com `false` para optar explicitamente por não usar cache em uma requisição. Isso é útil quando uma [regra de rota](#regras-de-rota) correspondente armazenaria a resposta em cache caso contrário:
+
+```astro title="src/pages/dashboard.astro"
+---
+if (paginaPersonalizada) {
+  Astro.cache.set(false);
+}
+---
+```
+
+### Lendo o estado do cache
+
+Você pode acessar as opções de cache acumuladas atualmente através de [`cache.options`](/pt-br/reference/api-reference/#cacheoptions). Isso é útil para depuração ou quando você deseja modificar condicionalmente o cache com base no estado atual:
+
+```ts title="src/pages/api/debug.ts"
+const { maxAge, swr, tags } = context.cache.options;
+```
+
+### Invalidando entradas de cache
+
+Você pode limpar entradas em cache por tag ou caminho usando [`cache.invalidate()`](/pt-br/reference/api-reference/#cacheinvalidate). Isso é útil para limpar programaticamente o conteúdo em cache quando ele se torna obsoleto, como após uma atualização de conteúdo ou ação do usuário.
+
+O exemplo a seguir cria uma rota de API que invalida por tag e por caminho:
+
+```ts title="src/pages/api/revalidate.ts"
+export async function POST(context) {
+  // Invalida todas as entradas com a tag 'data'
+  await context.cache.invalidate({ tags: ['data'] });
+
+  // Invalida um caminho específico
+  await context.cache.invalidate({ path: '/api/data' });
+
+  return Response.json({ purged: true });
+}
+```
+
+A invalidação baseada em tags remove todas as entradas em cache cujas tags incluem qualquer uma das tags fornecidas. A invalidação baseada em caminho é de correspondência exata apenas (sem [padrões glob](/pt-br/guides/imports/#glob-patterns) ou caracteres curinga).
+
+## Comportamento de mesclagem
+
+Múltiplas chamadas para [`cache.set()`](/pt-br/reference/api-reference/#cacheset) dentro de uma única requisição são mescladas de acordo com as seguintes regras:
+
+- **Valores escalares** (`maxAge`, `swr`, `etag`): a última gravação vence
+- **`lastModified`**: a data mais recente vence
+- **`tags`**: acumulam em todas as chamadas
+
+Middleware, layouts, carregadores de conteúdo e código da página podem, cada um, contribuir com diretivas de cache independentemente.
+
+## Comportamento no modo dev
+
+No modo dev, a API de cache está disponível para que o código da rota não precise de verificações condicionais, mas nenhum cache real ocorre. [`cache.enabled`](/pt-br/reference/api-reference/#cacheenabled) é `false`, e [`cache.set()`](/pt-br/reference/api-reference/#cacheset) e [`cache.invalidate()`](/pt-br/reference/api-reference/#cacheinvalidate) são no-ops (sem efeito). Para testar seu cache localmente, faça o build e visualize o seu site.
+
+## Regras de rota
+
+As regras de rota permitem definir o comportamento de cache para grupos de rotas de forma declarativa em sua configuração. Isso é útil para aplicar cache a grandes grupos de rotas de uma só vez.
+
+O exemplo a seguir armazena todas as rotas de API em cache com stale-while-revalidate (servir conteúdo desatualizado enquanto ele é revalidado), páginas de produtos com uma janela de atualização de 1 hora e postagens do blog por 5 minutos:
+
+```js title="astro.config.mjs" {9-13}
+import { defineConfig, memoryCache } from 'astro/config';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  cache: {
+    provider: memoryCache(),
+  },
+  routeRules: {
+    '/api/[...path]': { swr: 600 },
+    '/produtos/[...slug]': { maxAge: 3600, tags: ['produtos'] },
+    '/blog/[...slug]': { maxAge: 300, swr: 60 },
+  },
+});
+```
+
+Os seguintes padrões de rota são suportados:
+
+- **Caminhos estáticos**: `/about`, `/api/health`
+- **Parâmetros dinâmicos**: `/produtos/[id]`, `/blog/[slug]`
+- **Parâmetros rest**: `/docs/[...path]`
+
+Os padrões usam a mesma sintaxe, correspondência e regras de prioridade do [roteamento baseado em arquivos](/pt-br/guides/routing/#route-priority-order) do Astro, portanto, padrões mais específicos têm precedência. Caracteres curinga glob como `*` não são suportados; use um parâmetro `[...rest]` para corresponder a um grupo de rotas (por exemplo, `/api/[...path]` para corresponder a tudo em `/api`).
+
+Chamadas para [`cache.set()`](/pt-br/reference/api-reference/#cacheset) por rota são mescladas com as regras de rota em nível de configuração. O código da rota pode sobrescrever ou estender os padrões definidos na configuração. Por exemplo, uma regra de rota pode definir um `maxAge` padrão para todas as páginas de produtos, mas páginas individuais podem chamar `cache.set()` para personalizar ou desativar o cache conforme necessário.
