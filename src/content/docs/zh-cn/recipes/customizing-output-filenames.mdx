@@ -1,0 +1,108 @@
+---
+title: 自定义构建输出的文件名
+description: 了解如何使用 Vite 的 Rollup 选项，在 Astro 中更改 JavaScript、CSS 和图片等构建产物的默认命名模式。
+i18nReady: true
+type: recipe
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+默认情况下，`astro build` 命令会将来自[项目源代码](/zh-cn/basics/project-structure/#src)（如 `src/` 目录中的 JavaScript 和 CSS 文件）的构建产物，输出到一个使用哈希文件名的 `_astro` 目录中（例如 `_astro/index.DRf8L97S.js`），这对于长期缓存非常有利。
+
+虽然通常没有必要，但你可以在需要时自定义输出文件名。例如，当你的脚本名称可能触发广告拦截器（例如 `ads.js`），或者你想用特定的命名约定来组织资源时，这会很有帮助。通过自定义 Rollup 输出选项，你可以更好地控制项目的构建结构，从而满足特定的组织或部署需求。
+
+## 操作步骤
+
+本方案通过配置 `vite.environments.client.build.rollupOptions`，使构建产物按以下结构和命名模式输出：
+-   JavaScript 入口文件（例如与页面或布局直接关联的脚本）：`dist/js/[name]-[hash].js`
+-   JavaScript 代码分割 chunk（例如动态导入的组件或共享模块）：`dist/js/chunks/[name]-[hash].js`
+-   其他资源（例如 CSS、图片、字体）：`dist/static/[name]-[hash][extname]`（例如 `dist/static/styles-a1b2c3d4.css`、`dist/static/logo-e5f6g7h8.svg`）
+
+<Steps>
+
+1.  添加 Vite Rollup 输出选项。
+
+    修改你的 `astro.config.mjs`，加入以下 `vite.environments.client.build.rollupOptions.output` 配置。你可以在这里使用 Rollup 的 [`entryFileNames`](https://rollupjs.org/configuration-options/#output-entryfilenames)、[`chunkFileNames`](https://rollupjs.org/configuration-options/#output-chunkfilenames) 和 [`assetFileNames`](https://rollupjs.org/configuration-options/#output-assetfilenames) 为资源定义自定义命名模式：
+
+    ```javascript title="astro.config.mjs" ins
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      // ...
+      vite: {
+        environments: {
+          client: {
+            build: {
+              rollupOptions: {
+                output: {
+                  // 相对于 `outDir` 的路径名
+                  entryFileNames: 'js/[name]-[hash].js',
+                  chunkFileNames: 'js/chunks/[name]-[hash].js',
+                  assetFileNames: 'static/[name]-[hash][extname]',
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+    ```
+
+    此示例使用了以下文件名占位符：
+    *   `[name]`：文件的原始名称（不含扩展名和路径）。
+    *   `[hash]`：基于文件内容生成的哈希值，对缓存更新至关重要。你还可以指定长度，例如 `[hash:8]`。这能确保当你更新资源时文件名会发生变化，从而强制浏览器下载新版本，而不是继续提供过期的缓存版本。
+    *   `[extname]`：原始文件扩展名，包含前导点（例如 `.js`、`.css`、`.svg`）。
+
+    <ReadMore>
+    有关这些选项的全部可用占位符和高级模式，请参阅 [Rollup 配置文档](https://rollupjs.org/configuration-options/)。
+    </ReadMore>
+
+2.  构建你的项目。
+
+    由于这些文件名自定义仅应用于生产构建输出，你需要运行项目的构建命令：
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run build
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm build
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn build
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+3. 构建完成后，检查你的[输出目录](/zh-cn/reference/configuration-reference/#outdir)（默认为 `dist/`）。
+
+    确认来自项目 `src` 的构建产物是否按照新的模式命名和组织。（来自 [`public/` 目录](/zh-cn/basics/project-structure/#public)的文件会直接复制到输出目录，不受这些 Rollup 命名选项的影响。）
+
+    根据项目的具体内容，你的构建文件夹现在将类似于：
+
+    <FileTree>
+    - dist/
+      - js/
+        - index-a1b2c3d4.js
+        - chunks/
+          - common-e5f6g7h8.js
+      - img/
+        - logo-i9j0k1l2.png
+      - fonts/
+        - myfont-q2w3e4r5.woff2
+      - static_assets/
+        - styles-m3n4o5p6.css
+      - index.html
+      - about/
+        - index.html
+      - ...（其他 HTML 文件和 public 资源）
+    </FileTree>
+
+</Steps>
