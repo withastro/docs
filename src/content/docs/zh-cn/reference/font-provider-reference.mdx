@@ -1,0 +1,827 @@
+---
+title: Astro 字体提供程序 API
+sidebar:
+  label: 字体提供程序 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+
+<p>
+<Since v="6.0.0" />
+</p>
+
+[Fonts API](/zh-cn/guides/fonts/) 让你能够以统一的方式使用字体。每个字体系列都需要使用一个 Astro 字体提供程序，它要么从远程服务下载字体文件，要么从磁盘加载本地字体文件。
+
+## 内置字体提供程序
+
+Astro 从 `astro/config` 导出内置的字体提供程序：
+
+```js
+import { fontProviders } from 'astro/config'
+```
+
+要使用内置字体提供程序，请将 [`provider`](/zh-cn/reference/configuration-reference/#fontprovider) 设置为与所选字体提供程序对应的值：
+
+- [Adobe](#adobe)
+- [Bunny](#bunny)
+- [Fontshare](#fontshare)
+- [Fontsource](#fontsource)
+- [Google](#google)
+- [Google Icons](#google-icons)
+- [本地](#本地)
+- [NPM](#npm)
+
+### Adobe
+
+从 [Adobe](https://fonts.adobe.com/) 获取字体：
+
+```js
+provider: fontProviders.adobe({ id: "your-id" })
+```
+
+将作为 [Astro 配置文件中的环境变量](/zh-cn/guides/environment-variables/#在-astro-配置文件中)加载的 ID 传给 Adobe 字体提供程序。
+
+### Bunny
+
+从 [Bunny](https://fonts.bunny.net/) 获取字体：
+
+```js
+provider: fontProviders.bunny()
+```
+
+### Fontshare
+
+从 [Fontshare](https://www.fontshare.com/) 获取字体：
+
+```js
+provider: fontProviders.fontshare()
+```
+
+### Fontsource
+
+从 [Fontsource](https://fontsource.org/) 获取字体：
+
+```js
+provider: fontProviders.fontsource()
+```
+
+### Google
+
+从 [Google](https://fonts.google.com/) 获取字体：
+
+```js
+provider: fontProviders.google()
+```
+
+该提供程序提供了以下特定于字体系列的选项，可以添加到 [`font.options` 对象](/zh-cn/reference/configuration-reference/#fontoptions)中。
+
+#### `experimental.glyphs`
+
+<p>
+
+**类型：** `string[]`
+</p>
+
+允许为每个字体系列指定要包含在字体中的字形列表。这可以减小字体文件的大小：
+
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
+}
+```
+
+#### `experimental.variableAxis`
+
+<p>
+
+**类型：** `Partial<Record<VariableAxis, ([string, string] | string)[]>>`
+</p>
+
+允许设置可变轴配置：
+
+```js
+{
+  // ...
+  provider: fontProviders.google(),
+  options: {
+    experimental: {
+      variableAxis: {
+        slnt: [["-15", "0"]],
+        CASL: [["0", "1"]],
+        CRSV: ["1"],
+        MONO: [["0", "1"]],
+      }
+    }
+  }
+}
+```
+
+### Google Icons
+
+从 [Google Icons](https://fonts.google.com/icons) 获取字体：
+
+```js
+provider: fontProviders.googleicons()
+```
+
+该提供程序提供了以下特定于字体系列的选项，可以添加到 [`font.options` 对象](/zh-cn/reference/configuration-reference/#fontoptions)中。
+
+#### `experimental.glyphs`
+
+<p>
+
+**类型：** `string[]`
+</p>
+
+在解析新版 Material Symbols 图标时，允许为每个字体系列指定要包含在字体中的字形列表。这可以减小字体文件的大小：
+
+```js
+{
+  // ...
+  provider: fontProviders.googleicons(),
+  options: {
+    experimental: {
+      glyphs: ["a"]
+    }
+  }
+}
+```
+
+### 本地
+
+从磁盘获取字体：
+
+```js
+provider: fontProviders.local()
+```
+
+该提供程序要求在 [`font.options` 对象](/zh-cn/reference/configuration-reference/#fontoptions)中定义 [`variants`](#variants)。
+
+#### `variants`
+
+<p>
+
+**类型：** `LocalFontFamily["variants"]`
+</p>
+
+`options.variants` 属性是必需的。每个变体代表一个 [`@font-face` 声明](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face)，并且需要 [`src`](#src)。
+
+此外，每个变体中还可以指定[一些其他属性](#其他属性)。
+
+```js title="astro.config.mjs"
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Custom",
+    cssVariable: "--font-custom",
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: ["./src/assets/fonts/custom-400.woff2"]
+        },
+        {
+          weight: 700,
+          style: "normal",
+          src: ["./src/assets/fonts/custom-700.woff2"]
+        }
+        // ...
+      ]
+    }
+  }]
+});
+```
+
+##### `weight`
+
+<p>
+
+**类型：** `number | string`<br />
+**默认值：** `undefined`
+</p>
+
+一个[字重](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-weight)：
+
+```js
+weight: 200
+```
+
+如果对应的字体是[可变字体](https://developer.mozilla.org/zh-CN/docs/Web/CSS/CSS_fonts/Variable_fonts_guide)，你可以指定一个字重范围：
+
+```js
+weight: "100 900"
+```
+
+当未设置该值时，Astro 默认会尝试根据第一个 [`source`](#src) 推断该值。
+
+##### `style`
+
+<p>
+
+**类型：** `"normal" | "italic" | "oblique"`<br />
+**默认值：** `undefined`
+</p>
+
+一种[字体样式](https://developer.mozilla.org/zh-CN/docs/Web/CSS/font-style)：
+
+```js
+style: "normal"
+```
+
+当未设置该值时，Astro 默认会尝试根据第一个 [`source`](#src) 推断该值。
+
+##### `src`
+
+<p>
+
+**类型：** `(string | URL | { url: string | URL; tech?: string })[]`
+</p>
+
+字体[源](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face/src)。它可以是相对于根目录的路径、包导入或 URL。如果你通过集成注入本地字体，URL 会特别有用：
+
+<Tabs>
+
+<TabItem label="相对路径">
+
+```js
+src: ["./src/assets/fonts/MyFont.woff2", "./src/assets/fonts/MyFont.woff"]
+```
+
+</TabItem>
+
+<TabItem label="URL">
+
+```js
+src: [new URL("./custom.ttf", import.meta.url)]
+```
+
+</TabItem>
+
+<TabItem label="包导入">
+
+```js
+src: ["my-package/SomeFont.ttf"]
+```
+
+</TabItem>
+
+</Tabs>
+
+:::caution
+我们建议不要将字体文件放在 [`public/` 目录](/zh-cn/reference/configuration-reference/#publicdir)中。由于 Astro 会在构建时将这些文件复制到该文件夹，这将导致构建输出中出现重复的文件。请将它们存放在项目中的其他位置，例如 [`src/`](/zh-cn/reference/configuration-reference/#srcdir) 中。
+:::
+
+你也可以通过传入对象来指定 [tech](https://developer.mozilla.org/zh-CN/docs/Web/CSS/@font-face/src#tech)：
+
+```js
+src: [{ url:"./src/assets/fonts/MyFont.woff2", tech: "color-COLRv1" }]
+```
+
+##### 其他属性
+
+以下字体系列选项同样可用于本地字体系列的变体：
+
+- [display](/zh-cn/reference/configuration-reference/#fontdisplay)
+- [unicodeRange](/zh-cn/reference/configuration-reference/#fontunicoderange)
+- [stretch](/zh-cn/reference/configuration-reference/#fontstretch)
+- [featureSettings](/zh-cn/reference/configuration-reference/#fontfeaturesettings)
+- [variationSettings](/zh-cn/reference/configuration-reference/#fontvariationsettings)
+
+```js title="astro.config.mjs" {14}
+import { defineConfig, fontProviders } from "astro/config";
+
+export default defineConfig({
+  fonts: [{
+    provider: fontProviders.local(),
+    name: "Custom",
+    cssVariable: "--font-custom",
+    options: {
+      variants: [
+        {
+          weight: 400,
+          style: "normal",
+          src: ["./src/assets/fonts/custom-400.woff2"],
+          display: "block"
+        }
+      ]
+    }
+  }]
+});
+```
+
+### NPM
+
+从 NPM 包中获取字体，可以从 `node_modules` 中本地安装的包获取，也可以从 CDN 获取：
+
+```js
+provider: fontProviders.npm()
+```
+
+该提供程序会自动从你的 `package.json` 依赖中检测字体，并能够解析来自 `@fontsource/*`、`@fontsource-variable/*` 以及其他已知字体包的字体。
+
+#### 提供程序选项
+
+NPM 提供程序接受以下配置选项：
+
+##### `cdn`
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `'https://cdn.jsdelivr.net/npm'`
+</p>
+
+用于远程获取 npm 包的 CDN：
+
+```js
+provider: fontProviders.npm({ cdn: 'https://esm.sh' })
+```
+
+##### `remote`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`
+</p>
+
+本地解析失败时是否回退到从 CDN 获取。设置为 `false` 则仅从本地安装的包解析：
+
+```js
+provider: fontProviders.npm({ remote: false })
+```
+
+#### 系列选项
+
+该提供程序提供了以下特定于字体系列的选项，可以添加到 [`font.options` 对象](/zh-cn/reference/configuration-reference/#fontoptions)中。
+
+##### `package`
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** 自动检测或根据字体系列名称推断
+</p>
+
+NPM 包的名称。未指定时，提供程序会尝试在已知的字体包模式中查找该字体系列，或根据 Fontsource 的约定进行推断：
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    package: '@fontsource/roboto'
+  }
+}
+```
+
+##### `version`
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `'latest'`
+</p>
+
+包的版本（仅用于 CDN 解析）：
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    version: '5.0.0'
+  }
+}
+```
+
+##### `file`
+
+<p>
+
+**类型：** `string`<br />
+**默认值：** `'index.css'`
+</p>
+
+要从包中解析的入口 CSS 文件：
+
+```js
+{
+  // ...
+  provider: fontProviders.npm(),
+  options: {
+    file: 'latin.css'
+  }
+}
+```
+
+## 构建字体提供程序
+
+如果你不想使用任一[内置字体提供程序](#内置字体提供程序)（例如你想使用[第三方 unifont 提供程序](#支持第三方-unifont-提供程序)，或者[为私有注册表构建提供程序](#支持私有注册表)），你可以构建自己的字体提供程序。
+
+实现自定义字体提供程序的首选方式是导出一个函数，该函数返回 [`FontProvider` 对象](#字体提供程序对象)，并将[配置](#config)作为参数。
+
+### 字体提供程序对象
+
+`FontProvider` 是一个对象，包含必需的 [`name`](#name) 和 [`resolveFont()`](#resolvefont) 属性。它还具有可选的 [`config`](#config)、[`init()`](#init) 和 [`listFonts()`](#listfonts) 属性。
+
+`FontProvider` 类型接受一个用于字体系列[选项](/zh-cn/reference/configuration-reference/#fontoptions)的泛型。
+
+#### `name`
+
+<p>
+
+**类型：** `string`
+</p>
+
+提供程序的唯一名称，用于日志和标识。
+
+#### `resolveFont()`
+
+<p>
+
+**类型：** `(options: ResolveFontOptions) => Awaitable<{ fonts: FontFaceData[] } | undefined>`<br />
+</p>
+
+用于根据给定的选项检索并返回字体面（font face）数据。
+
+#### `config`
+
+<p>
+
+**类型：** `Record<string, any>`<br />
+**默认值：** `undefined`
+</p>
+
+一个可序列化的对象，用于标识。
+
+#### `init()`
+
+<p>
+
+**类型：** `(context: FontProviderInitContext) => Awaitable<void>`<br />
+**默认值：** `undefined`
+</p>
+
+可选的回调，用于执行任何初始化逻辑。
+
+##### `context.storage`
+
+<p>
+
+**类型：** `Storage`
+</p>
+
+可用于缓存。
+
+##### `context.root`
+
+<p>
+
+**类型：** `URL`
+</p>
+
+项目根目录，可用于解析本地文件路径。
+
+#### `listFonts()`
+
+<p>
+
+**类型：** `() => Awaitable<string[] | undefined>`<br />
+**默认值：** `undefined`
+</p>
+
+可选的回调，用于返回可用字体名称的列表。
+
+### 支持私有注册表
+
+以下示例为私有注册表定义了一个字体提供程序：
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="简单">
+
+```ts title="font-provider.ts"
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+export function registryFontProvider(): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="提供程序选项">
+
+```ts title="font-provider.ts" {4-6,8,13}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface Config {
+  token: string;
+}
+
+export function registryFontProvider(config: Config): FontProvider {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    config,
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    resolveFont: ({ familyName, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+<TabItem label="系列选项">
+
+```ts title="font-provider.ts" {4-6,8,20}
+import type { FontProvider } from "astro";
+import { retrieveFonts, type Fonts } from "./utils.js",
+
+interface FamilyOptions {
+  minimal?: boolean;
+}
+
+export function registryFontProvider(): FontProvider<FamilyOptions | undefined> {
+  let data: Fonts = {}
+
+  return {
+    name: "registry",
+    init: async () => {
+      data = await retrieveFonts(token);
+    },
+    listFonts: () => {
+      return Object.keys(data);
+    },
+    // options 的类型为 FamilyOptions | undefined
+    resolveFont: ({ familyName, options, ...rest }) => {
+      const fonts = data[familyName];
+      if (fonts) {
+        return { fonts };
+      }
+      return undefined;
+    },
+  };
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+然后，你可以在 Astro 配置中注册该字体提供程序：
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="简单">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider(),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="提供程序选项">
+
+```ts title="astro.config.ts" {7}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider({
+      token: "..."
+    }),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="系列选项">
+
+```ts title="astro.config.ts" {7-9}
+import { defineConfig } from "astro/config";
+import { registryFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: registryFontProvider(),
+    options: {
+      minimal: true
+    },
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+</Tabs>
+
+### 支持第三方 unifont 提供程序
+
+你可以在底层使用 unifont 提供程序来定义 Astro 字体提供程序：
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="简单">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="提供程序选项">
+
+```ts title="font-provider.ts" {3,5,6}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(config?: AcmeOptions): FontProvider {
+	const provider = acmeProvider(config);
+	let initializedProvider: InitializedProvider | undefined;
+	return {
+		name: provider._name,
+		config,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+<TabItem label="系列选项">
+
+```ts title="font-provider.ts" {3,5,6-7}
+import type { FontProvider } from "astro";
+import type { InitializedProvider } from "unifont";
+import { acmeProvider, type AcmeFamilyOptions } from "@acme/unifont-provider"
+
+export function acmeFontProvider(): FontProvider<AcmeFamilyOptions | undefined> {
+	const provider = acmeProvider();
+	let initializedProvider: InitializedProvider<AcmeFamilyOptions> | undefined;
+	return {
+		name: provider._name,
+		async init(context) {
+			initializedProvider = await provider(context);
+		},
+		async resolveFont({ familyName, ...rest }) {
+			return await initializedProvider?.resolveFont(familyName, rest);
+		},
+		async listFonts() {
+			return await initializedProvider?.listFonts?.();
+		},
+	};
+}
+```
+
+</TabItem>
+
+</Tabs>
+
+然后，你可以在 Astro 配置中注册该字体提供程序：
+
+<Tabs syncKey="font-provider">
+
+<TabItem label="简单">
+
+```ts title="astro.config.ts"
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider(),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="提供程序选项">
+
+```ts title="astro.config.ts" {7}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider({
+      token: "..."
+    }),
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+<TabItem label="系列选项">
+
+```ts title="astro.config.ts" {7-9}
+import { defineConfig } from "astro/config";
+import { acmeFontProvider } from "./font-provider";
+
+export default defineConfig({
+  fonts: [{
+    provider: acmeFontProvider(),
+    options: {
+      minimal: true
+    },
+    name: "Custom",
+    cssVariable: "--font-custom"
+  }]
+});
+```
+
+</TabItem>
+
+</Tabs>
