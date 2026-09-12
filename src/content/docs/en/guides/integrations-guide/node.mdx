@@ -230,6 +230,43 @@ app.use(ssrHandler);
 app.listen({ port: 8080 });
 ```
 
+When the handler is registered as middleware alongside static file serving, frameworks such as Fastify pass a `next` callback. If Astro does not match a route, it calls `next()` so another handler can respond. That prevents Astro from rendering custom error pages (for example `src/pages/404.astro`) for unmatched URLs. Error handling can also fail to load prerendered error pages from disk and return a blank response when every request is forwarded with `next`.
+
+To serve client assets and still let Astro render error pages, call `next()` only for static asset requests and invoke the handler without `next` for everything else:
+
+```js title="run-server.mjs"
+import { readdirSync } from 'node:fs';
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+const root = fileURLToPath(new URL('./dist/client', import.meta.url));
+
+await app
+  .register(fastifyStatic, { root })
+  .register(fastifyMiddie);
+
+const assetFilenames = readdirSync(root).map((name) => `/${name}`);
+
+app.use(async (req, res, next) => {
+  if (req.url) {
+    const isAsset = assetFilenames.includes(req.url);
+    if (isAsset || req.url.startsWith('/_astro')) {
+      next();
+      return;
+    }
+  }
+
+  await ssrHandler(req, res);
+});
+
+app.listen({ port: 8080 });
+```
+
 Additionally, you can also pass in an object to be accessed with `Astro.locals` or in Astro middleware:
 
 ```js title="run-server.mjs"
