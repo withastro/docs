@@ -1,0 +1,426 @@
+---
+title: Astro 缓存提供程序 API
+sidebar:
+  label: 缓存提供程序 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p>
+
+<Since v="7.0.0" />
+</p>
+
+Astro 缓存提供程序 API 允许你配置和管理[路由缓存](/zh-cn/guides/caching/)行为。该 API 内置支持内存缓存提供程序，并能够为各种缓存策略和运行时创建自定义提供程序。
+
+## 什么是缓存提供程序？
+
+缓存行为由配置的**缓存提供程序**决定。提供程序分为两类：
+
+### CDN 提供程序
+
+CDN 提供程序将缓存指令转换为响应头（例如 `CDN-Cache-Control`、`Cache-Tag`），并依赖 CDN 或反向代理来处理缓存。这些内部响应头会在响应到达客户端之前被移除。
+
+CDN 提供程序通过实现 `setHeaders()` 来生成相应的响应头。
+
+### 运行时提供程序
+
+运行时提供程序实现 `onRequest()` 来拦截请求并在进程内缓存响应。它们会添加 `X-Astro-Cache` 响应头以提供可观测性：
+
+- **`HIT`**：响应由缓存提供
+- **`MISS`**：响应为全新渲染并已存入缓存
+- **`STALE`**：在后台重新验证期间提供过时响应
+
+## 内置内存缓存提供程序
+
+Astro 内置了一个适用于单实例部署的内存 LRU 运行时缓存提供程序。从 `astro/config` 导入 `memoryCache()`：
+
+```js title="astro.config.mjs" ins="memoryCache"
+import { defineConfig, memoryCache } from 'astro/config';
+
+export default defineConfig({
+  cache: {
+    provider: memoryCache({ max: 500 }),
+  },
+});
+```
+
+### `memoryCache()` 选项
+
+<p>
+
+**类型：** `{ max?: number; query?: object }`<br />
+**默认值：** `{ max: 1000 }`
+</p>
+
+配置内存缓存提供程序。
+
+#### `max`
+
+<p>
+
+**类型：** `number`<br />
+**默认值：** `1000`
+</p>
+
+定义缓存中保留的最大条目数。当缓存超过此限制时，最近最少使用的条目将被移除。
+
+#### `query`
+
+<p>
+
+**类型：** `{ sort?: boolean; include?: string[]; exclude?: string[]; }`<br />
+</p>
+
+控制缓存键中查询参数的处理方式。
+
+##### `query.sort`
+
+<p>
+
+**类型：** `boolean`<br />
+**默认值：** `true`
+</p>
+
+确定是否应按字母顺序对查询参数进行排序。当参数顺序很重要时，这很有用，并且可以确保参数顺序不会影响缓存键。
+
+设置为 `false` 可禁用排序，并将查询参数顺序不同的 URL 分别缓存。
+
+##### `query.exclude`
+
+<p>
+
+**类型：** `string[]`<br />
+**默认值：** `['utm_*', 'fbclid', 'gclid', 'gbraid', 'wbraid', 'dclid', 'msclkid', 'twclid', 'li_fat_id', 'mc_cid', 'mc_eid', '_ga', '_gl', '_hsenc', '_hsmi', '_ke', 'oly_anon_id', 'oly_enc_id', 'rb_clickid', 's_cid', 'vero_id', 'wickedid', 'yclid', '__s', 'ref']`
+</p>
+
+列出要从缓存键中排除的查询参数。支持 glob 通配符（例如 `"utm_*"`），默认排除常见的跟踪和分析参数。
+
+设置为 `[]` 可将所有查询参数包含在缓存键中：
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { exclude: [] },
+});
+```
+
+与 [`include`](#queryinclude) 一起使用时会抛出错误。
+
+##### `query.include`
+
+<p>
+
+**类型：** `string[]`
+</p>
+
+列出要包含在缓存键中的查询参数名称。设置后，所有其他参数都将被忽略，包括默认的跟踪参数排除项。
+
+以下示例仅在缓存键中使用 `page` 和 `sort` 参数，忽略所有其他参数：
+
+```js title="astro.config.mjs"
+memoryCache({
+  query: { include: ['page', 'sort'] },
+});
+```
+
+与 [`exclude`](#queryexclude) 一起使用时会抛出错误。
+
+### 缓存键行为
+
+内存提供程序会自动规范化缓存键以获得更高的命中率：
+
+- **查询参数排序**：参数按字母顺序排序，因此 `/page?b=2&a=1` 和 `/page?a=1&b=2` 会解析到同一个缓存条目。
+- **跟踪参数排除**：常见的分析和跟踪参数（例如 `utm_source`、`fbclid`、`gclid`）默认从缓存键中排除。这可以防止营销链接造成缓存碎片化，同时不影响你的页面内容。
+- **`Vary` 头支持**：当响应包含 [`Vary`](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Headers/Vary) 头时，内存提供程序会使用指定请求头的值为每个变体创建单独的缓存条目。例如，带有 `Vary: Accept-Language` 的响应将为不同的语言缓存不同的版本。
+
+:::note
+在进行基于 `Vary` 的缓存键计算时，`Cookie` 头总是被忽略，因为它的基数极高（每个用户的 cookie 通常都不同），这使其实际上无法被缓存。
+:::
+
+## 编写自定义缓存提供程序
+
+缓存提供程序由两部分组成：
+
+1. **运行时模块**——一个**默认导出** `CacheProviderFactory` 函数的文件。该模块会被打包进你的 SSR 输出中，因此它必须与运行时无关：避免使用 Node.js 内置模块（例如 `node:fs`、`node:path`），除非你的目标运行时支持它们。
+
+2. **配置辅助函数**——一个导出供用户在 `astro.config.mjs` 中调用的函数。它返回一个 [`CacheProviderConfig` 对象](#cacheproviderconfig)，告诉 Astro 在哪里找到运行时模块以及向它传递哪些选项。这与内置的 [`memoryCache()` 提供程序](#内置内存缓存提供程序)使用的模式相同。
+
+以下示例展示了一个接受类型化选项并指向运行时模块的配置辅助函数：
+
+```ts title="my-provider/config.ts"
+import type { CacheProviderConfig } from 'astro';
+
+interface MyProviderOptions {
+  apiKey: string;
+  region?: string;
+}
+
+export function myCache(options: MyProviderOptions): CacheProviderConfig {
+  return {
+    entrypoint: 'my-provider/runtime', // 从项目根目录解析
+    config: options, // 在运行时传递给工厂函数
+  };
+}
+```
+
+然后在 Astro 配置中调用该配置辅助函数：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import { myCache } from 'my-provider/config';
+
+export default defineConfig({
+  cache: {
+    provider: myCache({ apiKey: '...' }),
+  },
+});
+```
+
+运行时模块默认导出一个工厂函数，它接收序列化后的 `config` 并返回一个 [`CacheProvider`](#cacheprovider)：
+
+```ts title="my-provider/runtime.ts"
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  return {
+    name: 'my-cache-provider',
+
+    // CDN 风格：将缓存选项转换为响应头
+    setHeaders(options) {
+      const headers = new Headers();
+      if (options.maxAge !== undefined) {
+        let value = `max-age=${options.maxAge}`;
+        if (options.swr !== undefined) {
+          value += `, stale-while-revalidate=${options.swr}`;
+        }
+        headers.set('CDN-Cache-Control', value);
+      }
+      if (options.tags?.length) {
+        headers.set('Cache-Tag', options.tags.join(','));
+      }
+      return headers;
+    },
+
+    // 运行时风格：拦截请求（可选）
+    async onRequest(context, next) {
+      // 检查缓存、调用 next()、存储响应……
+      return next();
+    },
+
+    // 处理失效请求
+    async invalidate(options) {
+      // 按标签或路径清除……
+    },
+  };
+};
+
+export default factory;
+```
+
+编写 CDN 提供程序时，Astro 提供了[共享实用工具](#缓存提供程序实用工具)，用于构建缓存控制头和基于路径的失效标签。
+
+## 缓存提供程序实用工具
+
+Astro 从 `astro/cache/provider-utils` 为 CDN 提供程序作者导出了共享辅助函数。这些也是第一方 Netlify、Vercel 和 Cloudflare 提供程序所使用的辅助函数。
+
+```ts
+import {
+  buildCacheControlDirectives,
+  pathTag,
+  setConditionalHeaders,
+  collectInvalidationTags,
+  normalizeTags,
+} from 'astro/cache/provider-utils';
+```
+
+### `buildCacheControlDirectives()`
+
+<p>
+
+**类型：** <code>(options: <a href="#cacheoptions">CacheOptions</a>, extraDirectives?: string[]) => string | undefined</code>
+</p>
+
+从 `CacheOptions` 构建缓存控制指令字符串（例如 `"public, max-age=300, stale-while-revalidate=60"`），不包含头名称，以便每个提供程序可以使用自己的头名称（如 `Netlify-CDN-Cache-Control` 或 `Cloudflare-CDN-Cache-Control`）。传入 `extraDirectives` 可以在前面追加平台指令，如 `public` 或 `durable`。当没有缓存指令时返回 `undefined`。
+
+### `pathTag()`
+
+<p>
+
+**类型：** `(path: string) => string`
+</p>
+
+为给定路径生成缓存标签（`astro-path:{path}`）。用于在只提供基于标签清除的平台上支持 [`invalidate({ path })`](/zh-cn/reference/api-reference/#cacheinvalidate)。
+
+### `setConditionalHeaders()`
+
+<p>
+
+**类型：** <code>(headers: Headers, options: <a href="#cacheoptions">CacheOptions</a>) => void</code>
+</p>
+
+根据相应的 `CacheOptions` 值在 `Headers` 对象上设置 `Last-Modified` 和 `ETag` 头。
+
+### `collectInvalidationTags()`
+
+<p>
+
+**类型：** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => string[]</code>
+</p>
+
+收集使给定选项失效所需的所有标签，包括设置了 `options.path` 时的路径标签。供那些通过标签而非原生路径清除来实现路径失效的提供程序使用。
+
+### `normalizeTags()`
+
+<p>
+
+**类型：** `(tags: string | string[] | undefined) => string[]`
+</p>
+
+将标签值规范化为扁平的字符串数组。
+
+## 缓存提供程序类型参考
+
+以下类型可以从 `astro` 模块导入：
+
+```ts
+import type {
+  CacheOptions,
+  CacheProvider,
+  CacheProviderConfig,
+  CacheProviderFactory,
+  InvalidateOptions,
+} from "astro";
+```
+
+### `CacheOptions`
+
+描述传递给缓存提供程序的选项。
+
+<ReadMore>了解如何[使用缓存选项](/zh-cn/guides/caching/#设置缓存选项)来控制缓存行为。</ReadMore>
+
+#### `CacheOptions.maxAge`
+
+<p>
+
+**类型：** `number`
+</p>
+
+定义响应被视为新鲜的时间（以秒为单位）。
+
+#### `CacheOptions.swr`
+
+<p>
+
+**类型：** `number`
+</p>
+
+指定以秒为单位的 stale-while-revalidate 时间窗口。在后台生成新响应的同时提供过时内容。
+
+#### `CacheOptions.tags`
+
+<p>
+
+**类型：** `string[]`
+</p>
+
+用于定向失效的缓存标签列表。标签会在多次 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 调用中累积。
+
+#### `CacheOptions.lastModified`
+
+<p>
+
+**类型：** `Date`
+</p>
+
+指示最近的修改日期。当多次调用 [`cache.set()`](/zh-cn/reference/api-reference/#cacheset) 提供 `lastModified` 时，以提供最近日期的调用为准。
+
+#### `CacheOptions.etag`
+
+<p>
+
+**类型：** `string`
+</p>
+
+指定用于条件请求的实体标签。
+
+### `CacheProvider`
+
+描述用于缓存的提供程序。它要求 `name` 和 `invalidate()` 属性，并接受可选属性。
+
+#### `CacheProvider.name`
+
+<p>
+
+**类型：** `string`
+</p>
+
+提供程序的唯一名称，用于日志记录和标识。
+
+#### `CacheProvider.setHeaders()`
+<p>
+
+**类型：** <code>(options: <a href="#cacheoptions">CacheOptions</a>, request: Request) => Headers</code>
+</p>
+
+将缓存选项转换为响应头。它在响应渲染之后、发送给客户端之前调用。这些响应头会从最终响应中移除。
+
+传入的 `request` 会作为第二个参数传递，以便提供程序可以读取 URL 或请求头。这对于用路径名自动为响应添加标签、实现基于路径的失效非常有用。
+
+#### `CacheProvider.onRequest()`
+
+<p>
+
+**类型：** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void \}, next: <a href="/zh-cn/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
+</p>
+
+拦截请求以实现运行时缓存。`context` 包含一个 `waitUntil()` 函数（当运行时可提供时），用于 stale-while-revalidate 等后台工作。
+
+#### `CacheProvider.invalidate()`
+
+<p>
+
+**类型：** <code>(options: <a href="#invalidateoptions">InvalidateOptions</a>) => Promise\<void\></code>
+</p>
+
+处理按标签或路径的清除请求。
+
+### `CacheProviderConfig`
+
+<p>
+
+**类型：** `{ entrypoint: string | URL; config?: Record<string, any> }`
+</p>
+
+传递给 `cache.provider` 的配置对象。使用辅助函数（例如 `memoryCache()`）进行类型安全的配置。
+
+### `CacheProviderFactory`
+
+<p>
+
+**类型：** <code>(config: Record\<string, any\> | undefined) => <a href="#cacheprovider">CacheProvider</a></code>
+</p>
+
+工厂函数类型。接收来自 Astro 配置的提供程序可序列化配置对象。
+
+### `InvalidateOptions`
+
+描述传递给提供程序的 `invalidate()` 方法的选项。
+
+#### `InvalidateOptions.path`
+
+<p>
+
+**类型：** `string`
+</p>
+
+要失效的确切路径。不支持 glob 或通配符。
+
+#### `InvalidateOptions.tags`
+
+<p>
+
+**类型：** `string | string[]`
+</p>
+
+要失效的一个或多个标签。所有带有匹配标签的条目都将被清除。
