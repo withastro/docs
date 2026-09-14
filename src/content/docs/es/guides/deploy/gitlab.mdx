@@ -1,0 +1,126 @@
+---
+title: Despliega tu sitio de Astro en GitLab Pages
+description: Cómo desplegar tu sitio de Astro en la web usando GitLab Pages.
+sidebar:
+  label: GitLab Pages
+type: deploy
+logo: gitlab
+supports: ['static']
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+Puedes usar [GitLab Pages](https://docs.gitlab.com/ee/user/project/pages/) para alojar un sitio de Astro para tus proyectos, grupos o cuenta de usuario de [GitLab](https://about.gitlab.com/).
+
+:::tip[¿Buscas un ejemplo?]
+¡Echa un vistazo al [proyecto de ejemplo oficial de Astro en GitLab Pages](https://gitlab.com/pages/astro)!
+:::
+
+## Cómo desplegar
+
+Puedes desplegar un sitio de Astro en GitLab Pages utilizando GitLab CI/CD para compilar y desplegar tu sitio automáticamente. Para hacer esto, tu código fuente debe estar alojado en GitLab y necesitas hacer los siguientes cambios en tu proyecto de Astro:
+
+<Steps>
+
+1. Configura las opciones [`site`](/es/reference/configuration-reference/#site) y [`base`](/es/reference/configuration-reference/#base) en `astro.config.mjs`.
+
+    ```js title="astro.config.mjs" ins={4-5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      site: 'https://<username>.gitlab.io',
+      base: '/<my-repo>',
+      outDir: 'public',
+      publicDir: 'static',
+    });
+    ```
+
+    `site`
+
+    El valor para `site` debe ser uno de los siguientes:
+
+    - La siguiente URL basada en tu nombre de usuario: `https://<username>.gitlab.io`
+    - La siguiente URL basada en el nombre de tu grupo: `https://<groupname>.gitlab.io`
+    - Tu dominio personalizado si lo tienes configurado en los ajustes de tu proyecto de GitLab: `https://example.com`
+
+    Para las instancias autogestionadas de GitLab, reemplaza `gitlab.io` con el dominio de Pages de tu instancia.
+
+    `base`
+
+    Puede que se requiera un valor para `base` para que Astro trate el nombre de tu repositorio (p. ej. `/my-repo`) como la raíz de tu sitio web.
+
+    :::note
+      No configures un parámetro `base`si tu página se sirve desde la carpeta raíz.
+    :::
+
+    El valor para `base` debe ser el nombre de tu repositorio comenzando con una barra diagonal, por ejemplo `/my-blog`. Esto es para que Astro entienda que la raíz de tu sitio web es `/my-repo`, en lugar del predeterminado `/`.
+
+    :::caution
+        Cuando este valor está configurado, todos los enlaces de tus páginas internas deben llevar como prefijo tu valor `base`:
+
+      ```astro ins="/my-repo"
+      <a href="/my-repo/about">About</a>
+      ```
+
+    Lee más sobre cómo [configurar un valor `base`](/es/reference/configuration-reference/#base)
+    :::
+
+
+2. Renombra el directorio `public/` a `static/`.
+
+3. Configura `outDir: 'public'` en `astro.config.mjs`. Esta configuración le indica a Astro que coloque el resultado de la compilación estática en una carpeta llamada `public`, que es la carpeta requerida por GitLab Pages para exponer los archivos.
+
+   Si estabas usando el [directorio `public/`](/es/basics/project-structure/#public) como fuente de archivos estáticos en tu proyecto de Astro, renómbralo y usa ese nuevo nombre de carpeta en `astro.config.mjs` como el valor de `publicDir`.
+
+   Por ejemplo, aquí tienes la configuración correcta en `astro.config.mjs` cuando el directorio `public/` se renombra a `static/`:
+
+   ```js title="astro.config.mjs" ins={4-5}
+   import { defineConfig } from 'astro/config';
+   
+   export default defineConfig({
+     outDir: 'public',
+     publicDir: 'static',
+   });
+   ```
+
+4. Cambia la carpeta de salida en `.gitignore`. En nuestro ejemplo necesitamos cambiar `dist/` a `public/`:
+
+    ```diff  title=".gitignore"
+    # salida de compilación
+    -dist/
+    +public/
+    ```
+
+5. Crea un archivo llamado `.gitlab-ci.yml` en la raíz de tu proyecto con el contenido a continuación. Esto compilará y desplegará tu sitio cada vez que realices cambios en tu contenido:
+
+   ```yaml title=".gitlab-ci.yml"
+   pages:
+     # La imagen de Docker que se usará para compilar tu aplicación
+     image: node:lts
+
+     before_script:
+       - npm ci
+
+     script:
+       # Especifica aquí los pasos necesarios para compilar tu aplicación
+       - npm run build
+
+     artifacts:
+       paths:
+         # La carpeta que contiene los archivos compilados que se publicarán.
+         # Esta debe llamarse "public".
+         - public
+
+     only:
+       # Desencadena una nueva compilación y despliegue solo
+       # cuando se hace un push a la(s) rama(s) a continuación
+       - main
+   ```
+
+6. Haz un commit con tus cambios y súbelos a GitLab.
+
+7. En GitLab, ve al menú **Deploy** de tu repositorio y selecciona **Pages**. Aquí verás la URL completa de tu sitio web de GitLab Pages. Para asegurarte de que estás usando el formato de URL `https://username.gitlab.io/my-repo`, desmarca la opción **Use unique domain** en esta página.
+
+</Steps>
+
+¡Tu sitio ya debería estar publicado! Cuando subas cambios al repositorio de tu proyecto de Astro, el pipeline de CI/CD de GitLab los desplegará automáticamente por ti.
