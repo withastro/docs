@@ -57,21 +57,21 @@ export default defineConfig({
 次の例では、[Unstorageとの互換性](/ja/reference/session-driver-reference/#unstorageとの互換性)を利用して、Redisドライバーを独自のエントリポイントで設定しています。
 
 <Steps>
-1. [`unstorage`パッケージ](https://unstorage.unjs.io/guide)をインストールします。
+1. [`unstorage`](https://www.npmjs.com/package/unstorage)と[`ioredis`](https://www.npmjs.com/package/ioredis)パッケージをインストールします。
     <PackageManagerTabs>
       <Fragment slot="npm">
         ```sh
-        npm install unstorage
+        npm install unstorage ioredis
         ```
       </Fragment>
       <Fragment slot="pnpm">
         ```sh
-        pnpm add unstorage
+        pnpm add unstorage ioredis
         ```
       </Fragment>
       <Fragment slot="yarn">
         ```sh
-        yarn add unstorage
+        yarn add unstorage ioredis
         ```
       </Fragment>
     </PackageManagerTabs>
@@ -83,32 +83,72 @@ export default defineConfig({
     import { REDIS_HOST, REDIS_PORT } from "astro:env";
 
     export default function (): SessionDriver {
-      return redisDriver({
+      const driver = redisDriver({
         host: REDIS_HOST,
         port: REDIS_PORT,
       });
+
+      return {
+        async getItem(key) {
+          return await driver.getItem(key);
+        },
+        async setItem(key, value) {
+          await driver.setItem?.(key, value, {});
+        },
+        async removeItem(key) {
+          await driver.removeItem?.(key, {});
+        },
+      };
     }
     ```
 
 3. このファイルをAstroの設定ファイルでドライバーのエントリポイントとして使用します。
-    ```js title="astro.config.mjs" {11-13}
+    ```js title="astro.config.mjs" {21-23}
     import { defineConfig, envField, sessionDrivers } from "astro/config";
     import vercel from "@astrojs/vercel";
 
     export default defineConfig({
       adapter: vercel(),
       env: {
-        REDIS_HOST: envField.string({ context: "server", access: "public", default: "localhost" }),
-        REDIS_PORT: envField.number({ context: "server", access: "public", default: 6379 }),
+        schema: {
+          REDIS_HOST: envField.string({
+            context: "server",
+            access: "public",
+            default: "localhost",
+          }),
+          REDIS_PORT: envField.number({
+            context: "server",
+            access: "public",
+            default: 6379,
+          }),
+        },
       },
       session: {
         driver: {
-          entrypoint: new URL('./src/session-driver.ts', import.meta.url),
-        }
-      }
+          entrypoint: new URL("./src/session-driver.ts", import.meta.url),
+        },
+      },
     });
     ```
 </Steps>
+
+### セッションの無効化
+
+<p>
+<Since v="7.2.0" />
+</p>
+
+セッションドライバーが設定されていない場合、自動的にセッションの実行環境がサーバーのバンドルから取り除かれます。追加で`session: false`を設定すると、アダプターにデフォルトのドライバーを提供しないように指示でき、プロジェクト全体でセッションを無効化できます。
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  session: false,
+});
+```
+
+通常はデフォルトのセッションドライバーを提供するアダプター（たとえば、[Node](/ja/guides/integrations-guide/node/#sessions)、[Cloudflare](/ja/guides/integrations-guide/cloudflare/#sessions)、[Netlify](/ja/guides/integrations-guide/netlify/#sessions)など）であっても、ドライバーを提供しないようになります。これは、バンドルサイズを小さくすることでコールドスタートを短縮できる、サーバーレスやエッジの実行環境において有用です。
 
 ## セッションデータの操作
 
@@ -140,9 +180,11 @@ const cart = await Astro.session?.get('cart');
 APIエンドポイントでは、`context`オブジェクトからセッションオブジェクトにアクセスできます。たとえば、ショッピングカートにアイテムを追加するには次のようにします。
 
 ```ts title="src/pages/api/addToCart.ts" "context.session"
+import type { APIContext } from "astro";
+
 export async function POST(context: APIContext) {
   const cart = await context.session?.get('cart') || [];
-	const data = await context.request.json<{ item: string }>();
+	const data = await context.request.json();
   if(!data?.item) {
     return new Response('Item is required', { status: 400 });
   }
