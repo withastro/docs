@@ -19,6 +19,8 @@ const site = previewSite || 'https://docs.astro.build/';
 
 // https://astro.build/config
 export default defineConfig({
+	experimental: { parallelPrerender: true },
+	build: { concurrency: 4 },
 	site,
 	integrations: [
 		devServerFileWatcher([
