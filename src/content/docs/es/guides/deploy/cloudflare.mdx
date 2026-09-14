@@ -1,0 +1,169 @@
+---
+title: Despliega tu sitio Astro en Cloudflare
+description: Cómo desplegar tu sitio Astro en la web usando Cloudflare
+sidebar:
+  label: Cloudflare
+type: deploy
+logo: cloudflare
+supports: ['ssr', 'static']
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import StaticSsrTabs from '~/components/tabs/StaticSsrTabs.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+
+Puedes desplegar aplicaciones full-stack, incluyendo recursos estáticos en el front-end y APIs en el back-end, así como sitios renderizados bajo demanda, en [Cloudflare Workers](https://developers.cloudflare.com/workers/static-assets/). 
+
+
+:::note
+
+Cloudflare recomienda usar Cloudflare Workers para proyectos nuevos. Para proyectos de Pages existentes, consulta la [guía de migración de Cloudflare](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/) y su [matriz de compatibilidad](https://developers.cloudflare.com/workers/static-assets/migration-guides/migrate-from-pages/#compatibility-matrix).
+
+:::
+
+<ReadMore>Lee más sobre el [uso del entorno de ejecución de Cloudflare](/es/guides/integrations-guide/cloudflare/) en tu proyecto de Astro.</ReadMore>
+## Requisitos previos
+
+Para empezar, necesitarás:
+
+- Una cuenta de Cloudflare. Si aún no tienes una, puedes crear una cuenta gratuita de Cloudflare durante el proceso.
+
+## Cloudflare Workers
+
+### Cómo desplegar con Wrangler
+
+<Steps>
+1. Instala [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/get-started/).
+
+    ```bash
+    npm install wrangler@latest --save-dev
+    ```
+
+2. Si tu sitio utiliza renderizado bajo demanda, instala el [adaptador `@astrojs/cloudflare`](/es/guides/integrations-guide/cloudflare/).
+
+    Esto instalará el adaptador y realizará los cambios correspondientes en tu archivo `astro.config.mjs` en un solo paso.
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```sh
+      npx astro add cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```sh
+      pnpm astro add cloudflare
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```sh
+      yarn astro add cloudflare
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    <ReadMore>Lee más sobre el [renderizado bajo demanda en Astro](/es/guides/on-demand-rendering/).</ReadMore>
+
+3. Crea un [archivo de configuración de Wrangler](https://developers.cloudflare.com/workers/wrangler/configuration/).
+
+    Ejecutar `astro add cloudflare` lo creará por ti; si no estás usando el adaptador, tendrás que crearlo tú mismo.
+
+    <StaticSsrTabs>
+      <Fragment slot="static">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // Actualiza al día en que realices el despliegue
+          "assets": {
+            "directory": "./dist",
+          }
+        }
+        ```
+      </Fragment>
+      <Fragment slot="ssr">
+        ```jsonc title="wrangler.jsonc"
+        {
+          "main": "@astrojs/cloudflare/entrypoints/server",
+          "name": "my-astro-app",
+          "compatibility_date": "YYYY-MM-DD", // Actualiza al día en que realices el despliegue
+          "compatibility_flags": [
+            "nodejs_compat",
+            "global_fetch_strictly_public"
+          ],
+          "assets": {
+            "binding": "ASSETS",
+            "directory": "./dist"
+          },
+          "observability": {
+            "enabled": true
+          }
+        }
+    ```
+      </Fragment>
+    </StaticSsrTabs>
+
+4. Previsualiza tu proyecto localmente con Wrangler.
+
+    ```bash
+    npx astro build && npx wrangler dev
+    ```
+
+5. Despliega usando `npx wrangler deploy`.
+
+    ```bash
+    npx astro build && npx wrangler deploy
+    ```
+</Steps>
+
+Una vez que tus recursos se hayan subido, Wrangler te proporcionará una URL de vista previa para inspeccionar tu sitio.
+
+<ReadMore>Lee más sobre el uso de las [APIs del entorno de ejecución de Cloudflare](/es/guides/integrations-guide/cloudflare/) como los bindings.</ReadMore>
+
+### Cómo desplegar con CI/CD
+
+También puedes usar un sistema de CI/CD como [Workers Builds](https://developers.cloudflare.com/workers/ci-cd/builds/) para compilar y desplegar automáticamente tu sitio al hacer push. 
+
+Si usas Workers Builds:
+
+<Steps>
+1. Sigue los pasos 1 al 3 de la sección de Wrangler anterior.
+
+2. Inicia sesión en el [panel de control de Cloudflare](https://dash.cloudflare.com/) y navega hasta `Compute > Workers & Pages`. Selecciona `Create application`.
+
+3. En la sección `Import a repository`, selecciona una cuenta de Git y luego el repositorio que contiene tu proyecto de Astro.
+
+4. Configura tu proyecto con:
+    - Comando de compilación: `npx astro build`
+    - Comando de despliegue: `npx wrangler deploy`
+    
+5. Haz clic en `Save and Deploy`. Ahora puedes previsualizar tu Worker en el subdominio `workers.dev` proporcionado.
+</Steps>
+
+## Solución de problemas
+
+### Comportamiento 404
+
+Para los proyectos de Workers, necesitarás configurar `not_found_handling` si deseas servir una página 404 personalizada. Puedes leer más sobre esto en la [sección de comportamiento de enrutamiento](https://developers.cloudflare.com/workers/static-assets/#routing-behavior) de la documentación de Cloudflare.
+
+```jsonc title="wrangler.jsonc"
+{
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "404-page"
+  }
+}
+```
+
+### Hidratación del lado del cliente
+
+La hidratación del lado del cliente puede fallar debido a la configuración Auto Minify de Cloudflare. Si ves el mensaje `Hydration completed but contains mismatches` en la consola, asegúrate de desactivar Auto Minify en la configuración de Cloudflare.
+
+### APIs del entorno de ejecución de Node.js
+
+Si estás construyendo un proyecto que utiliza renderizado bajo demanda con [el adaptador de Cloudflare](/es/guides/integrations-guide/cloudflare/) y el servidor falla al compilar con un mensaje de error como `[Error] Could not resolve "XXXX. The package "XXXX" wasn't found on the file system but is built into node.`:
+
+- Esto significa que un paquete o importación que estás utilizando en el entorno del lado del servidor no es compatible con las [APIs del entorno de ejecución de Cloudflare](https://developers.cloudflare.com/workers/runtime-apis/nodejs/). 
+
+- Si estás importando directamente una API del entorno de ejecución de Node.js, consulta la documentación de Astro sobre la [compatibilidad con Node.js](/es/guides/integrations-guide/cloudflare/#nodejs-compatibility) en Cloudflare para ver los siguientes pasos sobre cómo resolver esto.
+
+- Si estás importando un paquete que a su vez importa una API del entorno de ejecución de Node.js, comunícate con el autor del paquete para ver si admite la sintaxis de importación `node:*`. Si no lo hace, es posible que debas buscar un paquete alternativo.
