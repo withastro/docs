@@ -1,4 +1,4 @@
-import { defineRendererConfig, html } from '@lunariajs/core';
+import { html } from '@lunariajs/core';
 import { defineConfig } from '@lunariajs/core/config';
 
 export default defineConfig({
@@ -154,7 +154,7 @@ export default defineConfig({
 			'statusByFile.heading': 'Translation status by file',
 		},
 	},
-	renderer: defineRendererConfig({
+	renderer: {
 		slots: {
 			head: () => html`<meta property="last-build" content="${new Date().toString()}" />`,
 			afterTitle: () => html`
@@ -171,5 +171,5 @@ export default defineConfig({
 				</p>
 			`,
 		},
-	}),
+	},
 });
