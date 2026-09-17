@@ -434,7 +434,7 @@ The preferred method for implementing a custom font provider is to export a func
 
 ### The font provider object
 
-A `FontProvider` is an object containing required [`name`](#name) and [`resolveFont()`](#resolvefont) properties. It also has optional [`config`](#config), [`init()`](#init) and [`listFonts()`](#listfonts) properties available.
+A `FontProvider` is an object containing required [`name`](#name) and [`resolveFont()`](#resolvefont) properties. It also has optional [`config`](#config), [`init()`](#init), [`listFonts()`](#listfonts), and [`getFontProperties()`](#getfontproperties) properties available.
 
 The `FontProvider` type accepts a generic for family [options](/en/reference/configuration-reference/#fontoptions).
 
@@ -503,6 +503,89 @@ The project root, useful for resolving local files paths.
 </p>
 
 Optional callback, used to return the list of available font names.
+
+#### `getFontProperties()`
+
+<p>
+
+**Type:** `(options: GetFontPropertiesOptions) => Awaitable<FontProperties | undefined>`<br />
+**Default:** `undefined`<br />
+<Since v="7.3.0" />
+</p>
+
+Optional callback, used to return the properties a given font family actually supports. Astro compares the [configuration set by a user for the family](/en/reference/configuration-reference/#fontname) against these properties, and logs a warning when a provider cannot serve one of them (e.g. a weight that a family does not offer).
+
+Return `undefined` when the family is unknown to your provider. Astro will then skip the check for that family.
+
+```ts title="font-provider.ts" {6-11}
+import type { FontProvider } from "astro";
+
+export function registryFontProvider(): FontProvider {
+  return {
+    name: "registry",
+    getFontProperties: ({ familyName }) => ({
+      weights: ["400", "700"],
+      styles: ["normal", "italic"],
+      subsets: ["latin"],
+      formats: ["woff2"]
+    }),
+    // ...
+  };
+}
+```
+
+##### `options.familyName`
+
+<p>
+
+**Type:** `string`<br />
+</p>
+
+The font family name, as identified by your font provider.
+
+##### The `FontProperties` object
+
+The object returned by `getFontProperties()` describes what your provider can serve for the requested family.
+
+##### `FontProperties.weights`
+
+<p>
+
+**Type:** `Array<string> | undefined`<br />
+**Default:** `undefined`<br />
+</p>
+
+The [font weights](https://developer.mozilla.org/en-US/docs/Web/CSS/font-weight) available for the font family. Values are either individual weights (e.g. `"400"`), or ranges of weights for [variable fonts](https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_fonts/Variable_fonts_guide) written as `"<min> <max>"` (e.g. `"100 900"`).
+
+##### `FontProperties.styles`
+
+<p>
+
+**Type:** `Array<("normal"|"italic"|"oblique")> | undefined`<br />
+**Default:** `undefined`<br />
+</p>
+
+The [font styles](https://developer.mozilla.org/en-US/docs/Web/CSS/font-style) available for the font family.
+
+##### `FontProperties.subsets`
+
+<p>
+
+**Type:** `Array<string> | undefined`<br />
+**Default:** `undefined`<br />
+</p>
+
+The [font subsets](https://knaap.dev/posts/font-subsetting/) available for the font family.
+
+##### `FontProperties.formats`
+
+<p>
+
+**Type:** `Array<("woff2"|"woff"|"otf"|"ttf"|"eot")> | undefined`<br />
+**Default:** `undefined`<br />
+</p>
+
+The [font formats](https://developer.mozilla.org/en-US/docs/Web/CSS/Reference/At-rules/@font-face/src#font_formats) your provider can serve. This describes your provider's capabilities rather than a single family's, so some of these formats may not exist for every family.
 
 ### Supporting a private registry
 
@@ -701,6 +784,9 @@ export function acmeFontProvider(): FontProvider {
 		async listFonts() {
 			return await initializedProvider?.listFonts?.();
 		},
+		async getFontProperties({ familyName }) {
+			return await initializedProvider?.getFontProperties?.(familyName);
+		},
 	};
 }
 ```
@@ -729,6 +815,9 @@ export function acmeFontProvider(config?: AcmeOptions): FontProvider {
 		async listFonts() {
 			return await initializedProvider?.listFonts?.();
 		},
+		async getFontProperties({ familyName }) {
+			return await initializedProvider?.getFontProperties?.(familyName);
+		},
 	};
 }
 ```
@@ -755,6 +844,9 @@ export function acmeFontProvider(): FontProvider<AcmeFamilyOptions | undefined> 
 		},
 		async listFonts() {
 			return await initializedProvider?.listFonts?.();
+		},
+		async getFontProperties({ familyName }) {
+			return await initializedProvider?.getFontProperties?.(familyName);
 		},
 	};
 }
