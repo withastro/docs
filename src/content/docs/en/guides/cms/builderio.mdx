@@ -199,9 +199,8 @@ For more ideas, read [Builder's troubleshooting guide](https://www.builder.io/c/
 
 Add the following content to `src/pages/index.astro` in order to fetch and display a list of all post titles, each linking to its own page:
 
-```astro title="src/pages/index.astro" {9}
+```astro title="src/pages/index.astro" {8}
 ---
-
 const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
 const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
 
@@ -210,7 +209,7 @@ const { results: posts } = await fetch(
     apiKey: builderAPIpublicKey,
     fields: ["data.slug", "data.title"].join(","),
     cachebust: "true",
-  }).toString()}`
+  }).toString()}`,
 )
   .then((res) => res.json())
   .catch();
@@ -223,16 +222,15 @@ const { results: posts } = await fetch(
   <body>
     <ul>
       {
-        posts.flatMap(({ data: { slug, title } }) => (
+        posts.flatMap((post: any) => (
           <li>
-            <a href={`/posts/${slug}`}>{title}</a>
+            <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
           </li>
         ))
       }
     </ul>
   </body>
 </html>
-
 ```
 
 Fetching via the content API returns an array of objects containing data for each post. The `fields` query parameter tells Builder which data is included (see highlighted code). `slug` and `title` should match the names of the custom data fields you've added to your Builder model.
@@ -269,7 +267,7 @@ This file must contain:
 
 Each of these is highlighted in the following code snippet.  
 
-```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+```astro title="src/pages/posts/[slug].astro"  ins={2, 25, 32, 40, 51}
 ---
 export async function getStaticPaths() {
   const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
@@ -280,17 +278,17 @@ export async function getStaticPaths() {
         apiKey: builderAPIpublicKey,
         fields: ["data.slug", "data.title"].join(","),
         cachebust: "true",
-      }
-    ).toString()}`
+      },
+    ).toString()}`,
   )
     .then((res) => res.json())
     .catch
     // ...catch some errors...);
     ();
-  return posts.map(({ data: { slug, title } }) => ({
-    params: { slug },
-    props: { title },
-  }))
+  return posts.map((post: any) => ({
+    params: { slug: post.data.slug },
+    props: { title: post.data.title },
+  }));
 }
 const { slug } = Astro.params;
 const { title } = Astro.props;
@@ -304,11 +302,12 @@ const { html: postHTML } = await fetch(
     url: encodedUrl,
     "query.data.slug": slug,
     cachebust: "true",
-  }).toString()}`
+  }).toString()}`,
 )
   .then((res) => res.json())
   .catch();
 ---
+
 <html lang="en">
   <head>
     <title>{title}</title>
