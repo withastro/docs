@@ -133,11 +133,11 @@ Or you can use that exported `title` in your page using `import` and `import.met
 
 ```astro title="src/pages/index.astro"
 ---
-const matches = import.meta.glob('./posts/*.mdx', { eager: true });
+const matches = import.meta.glob("./posts/*.mdx", { eager: true });
 const posts = Object.values(matches);
 ---
 
-{posts.map(post => <p>{post.title}</p>)}
+{posts.map((post: any) => <p>{post.title}</p>)}
 ```
 
 #### Exported Properties
@@ -240,11 +240,15 @@ The following example passes a custom heading to the `<Content />` component via
 
 ```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
 ---
-import { getEntry, render } from 'astro:content';
-import CustomHeading from '../../components/CustomHeading.astro';
-const entry = await getEntry('blog', 'post-1');
+import { getEntry, render } from "astro:content";
+import CustomHeading from "../../components/CustomHeading.astro";
+const entry = await getEntry("blog", "post-1");
+if (!entry) {
+  throw new Error("Entry not found");
+}
 const { Content } = await render(entry);
 ---
+
 <Content components={{ h1: CustomHeading }} />
 ```
 
@@ -318,6 +322,31 @@ export default defineConfig({
 });
 ```
 
+#### Using recma plugins
+
+<p><Since v="8.0.0" pkg="@astrojs/mdx" /></p>
+
+Recma plugins modify the output [estree](https://github.com/estree/estree) directly. This is useful for modifying or injecting JavaScript variables in your MDX files, and has no effect on `.md` files.
+
+Recma plugins are only supported by the [Unified processor](/en/guides/markdown-content/#when-to-use-unified). Pass them to `unified()` from `@astrojs/markdown-remark` using the `recmaPlugins` option:
+
+```js title="astro.config.mjs" {3-4,8}
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
+import myRecmaPlugin from './my-recma-plugin.mjs';
+
+export default defineConfig({
+  integrations: [
+    mdx({ processor: unified({ recmaPlugins: [myRecmaPlugin] }) }),
+  ],
+});
+```
+
+You can also set these plugins on [`markdown.processor`](/en/reference/configuration-reference/#markdownprocessor) instead. Your `.mdx` files will still run them, because MDX [extends your Markdown configuration](#extendmarkdownconfig) by default.
+
+We suggest [using AST Explorer](https://astexplorer.net/) to play with estree outputs, and trying [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) for searching across JavaScript nodes.
+
 ### `extendMarkdownConfig`
 
 <p>
@@ -333,20 +362,22 @@ For example, say you need a different syntax highlighter and a different set of 
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin1 from "./src/mdast-plugin-1";
+import mdastPlugin2 from "./src/mdast-plugin-2";
 
 export default defineConfig({
   // ...
   markdown: {
-    syntaxHighlight: 'prism',
+    syntaxHighlight: "prism",
     processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
       // Markdown `syntaxHighlight` overridden,
       // `.mdx` files use Shiki instead.
-      syntaxHighlight: 'shiki',
+      syntaxHighlight: "shiki",
 
       // `markdown.processor` gets overridden for `.mdx` files by this option
       processor: satteri({ mdastPlugins: [mdastPlugin2] }),
@@ -359,8 +390,9 @@ You may also need to disable `markdown` config extension in MDX. For this, set `
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin from "./src/mdast-plugin";
 
 export default defineConfig({
   // ...
@@ -378,6 +410,12 @@ export default defineConfig({
 ```
 
 ### `recmaPlugins`
+
+:::caution[Deprecated]
+This option is deprecated and will be removed in a future major version. Pass `recmaPlugins` to the configured [`processor`](#processor) instead.
+
+Learn more about [using recma plugins](#using-recma-plugins).
+:::
 
 <p>
 
@@ -435,10 +473,10 @@ You will need to exclude these components from optimization as the optimizer eag
 
 For example, the intended MDX output of the following is `<Heading>...</Heading>` in place of every `"<h1>...</h1>"`:
 
-```astro
+```astro title="src/pages/any-page.astro"
 ---
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
+import { Content, components } from "../content.mdx";
+import Heading from "../components/Heading.astro";
 ---
 
 <Content components={{ ...components, h1: Heading }} />
