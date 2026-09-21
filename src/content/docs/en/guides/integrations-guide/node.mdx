@@ -189,16 +189,13 @@ export default defineConfig({
 
 <p>
 **Type:** `{ timeout?: number; exit?: boolean }` <br />
-**Default:** `{ timeout: 10000, exit: false }` (10 second timeout, process exits naturally)<br />
+**Default:** `{ timeout: 10000, exit: false }`<br />
 <Since pkg="@astrojs/node" v="11.2.0" />
 </p>
 
-Controls graceful shutdown of the [`standalone`](#mode) server when it receives a `SIGTERM` or `SIGINT` signal (for example, when your host stops or restarts the process). The server stops accepting new connections but waits for in-flight requests to finish before closing.
+Controls graceful shutdown behavior of the [`standalone`](#mode) server when it receives a `SIGTERM` or `SIGINT` signal (e.g. when a host stops or restarts the process). The server stops accepting new connections but waits for active requests to finish before closing.
 
-Configure the following:
-
-* **`timeout`** controls how long, in milliseconds, to wait for in-flight requests to finish before force-closing any remaining connections. Set to `0` to force-close immediately, or `Infinity` to wait indefinitely for in-flight requests to finish.
-* **`exit`** controls whether to call `process.exit()` once shutdown completes. By default, the adapter lets the process exit naturally once the event loop is empty, so any other `SIGTERM`/`SIGINT` listeners your app has registered (for example, to close a database connection) get a chance to finish first. Enable this only if you want a guaranteed exit even when something else in the process (a timer, an open connection) would otherwise keep it running.
+The following example configures a 30-second shutdown timeout and forces the process to exit once the shutdown is complete:
 
 ```js title="astro.config.mjs" {7-10}
 import { defineConfig } from 'astro/config';
@@ -214,6 +211,42 @@ export default defineConfig({
   }),
 });
 ```
+
+#### `shutdown.timeout`
+
+<p>
+**Type:** `number`<br />
+**Default:** `10000`
+</p>
+
+The duration in milliseconds to wait for active requests to finish before force-closing remaining connections. Set to `0` to force-close immediately, or `Infinity` to wait indefinitely.
+
+#### `shutdown.exit`
+
+<p>
+**Type:** `boolean`<br />
+**Default:** `false`
+</p>
+
+Controls whether to call `process.exit()` once shutdown completes. By default, the process exits naturally when the event loop is empty, allowing other signal listeners (e.g. database disconnect handlers) to finish before closing. Set to `true` to force the process to exit even if open timers or connections remain.
+
+If the process does not exit after receiving a shutdown signal, check the adapter's logs for a `Shutdown complete.` message. This confirms that the server itself closed successfully, so something else in the process is keeping the event loop active.
+
+Register a separate [`SIGTERM`/`SIGINT` listener](https://nodejs.org/api/process.html#signal-events) in the application to close any other open resources, such as a database connection, when the server shuts down:
+
+```js
+process.on('SIGINT', () => db.close());
+process.on('SIGTERM', () => db.close());
+```
+
+A `setInterval()` or `setTimeout()` also keeps the event loop open, and therefore the process running. This is often unintentional. Call `.unref()` on the timer so it does not block shutdown:
+
+```js
+setInterval(() => {}, 1000).unref();
+setTimeout(() => {}, 1000).unref();
+```
+
+To avoid tracking down every open resource, set `exit` to `true` and let the adapter force the process to exit once its own shutdown completes.
 
 ## Usage
 
@@ -358,7 +391,7 @@ When self-hosting, you can load environment variables through CLI commands or co
 
   ENV DB_HOST=...
   ENV DB_PASSWORD=...
-  CMD node ./dist/server/entry.mjs
+  CMD ["node", "./dist/server/entry.mjs"]
   ```
   </TabItem>
 </Tabs>
