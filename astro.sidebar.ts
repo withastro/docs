@@ -140,6 +140,9 @@ export const sidebar = [
 					'reference/modules/astro-zod',
 				],
 			}),
+			group('reference.processors', {
+				items: ['reference/markdown-processors/satteri', 'reference/markdown-processors/unified'],
+			}),
 			group('reference.other', {
 				items: [
 					'reference/integrations-reference',
