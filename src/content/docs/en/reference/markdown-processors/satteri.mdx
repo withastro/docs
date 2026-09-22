@@ -30,6 +30,87 @@ import {
 } from "@astrojs/markdown-satteri";
 ```
 
+### `createSatteriMarkdownProcessor()`
+
+<p>
+
+**Type:** <code>(opts?: <a href="#satterimarkdownprocessoroptions">SatteriMarkdownProcessorOptions</a> | undefined) => Promise\<<a href="/en/reference/markdown-processors/unified/#markdownrenderer">MarkdownRenderer</a>\></code>
+</p>
+
+Creates a standalone a standalone Sätteri-based Markdown renderer. This is useful when you need to render Markdown independently of a project's [configured `markdown.processor`](/en/reference/configuration-reference/#markdownprocessor).
+
+```ts title="src/utils/markdown.ts"
+import { createSatteriMarkdownProcessor } from "@astrojs/markdown-satteri";
+
+const processor = await createSatteriMarkdownProcessor();
+const { code } = await processor.render("# Hello world");
+```
+
+### `isSatteriProcessor()`
+
+<p>
+
+**Type:** `(p: { name: string; }) => boolean`
+</p>
+
+Determines whether the given processor is a Sätteri Markdown processor. This is useful when you need to check the type of a processor before applying Sätteri-specific logic.
+
+The following example checks, within an integration, whether the configured Markdown processor is a Sätteri processor:
+
+```ts
+import { isSatteriProcessor } from "@astrojs/markdown-satteri";
+
+export default function myIntegration() {
+  return {
+    name: "my-integration",
+    hooks: {
+      "astro:config:done": ({ config }) => {
+        if (isSatteriProcessor(config.markdown.processor)) {
+          // Apply Sätteri-specific logic here
+        }
+      },
+    },
+  };
+}
+```
+
+### `satteri()`
+
+<p>
+
+**Type:** <code>(opts?: <a href="#satteriprocessoroptions">SatteriProcessorOptions</a> | undefined) => <a href="/en/reference/markdown-processors/unified/#markdownprocessor">MarkdownProcessor</a>\<<a href="#satteriresolvedoptions">SatteriResolvedOptions</a>\></code>
+</p>
+
+Creates a Sätteri-based Markdown processor to render `.md` and `.mdx` files. Pass options to customize the processor's behavior, including [enabling or disabling features](/en/guides/markdown-content/#built-in-features) and [adding plugins](/en/guides/markdown-content/#markdown-processor-plugins).
+
+The following example configures the Sätteri processor with the `gfm` feature disabled:
+
+```js title="astro.config.mjs"
+import { defineConfig } from "astro/config";
+import { satteri } from "@astrojs/markdown-satteri";
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      features: { gfm: false },
+    }),
+  },
+});
+```
+
+<ReadMore>Learn more about [setting up a Markdown processor](/en/guides/markdown-content/#setting-up-a-markdown-processor) in the Markdown guide.</ReadMore>
+
+### `satteriHeadingIdsPlugin()`
+
+<p>
+
+**Type:** `() => HastPluginEntry`
+</p>
+
+A hast plugin that generates and collects heading IDs for all headings in the Markdown content. This makes them [available when importing or rendering Markdown content](/en/guides/markdown-content/#available-properties).
+
+<ReadMore>See [heading IDs and plugins](/en/guides/markdown-content/#heading-ids-and-plugins) in the Markdown guide for usage example.</ReadMore>
+
 ## `@astrojs/markdown-satteri` types
 
 The following types are imported from `@astrojs/markdown-satteri`:
@@ -43,3 +124,100 @@ import type {
   SatteriResolvedOptions,
 } from "@astrojs/markdown-satteri";
 ```
+
+### `SatteriAstroData`
+
+<p>
+
+**Type:** <code>\{ frontmatter: Record\<string, any\>; headings: <a href="/en/reference/markdown-processors/unified/#markdownheading">MarkdownHeading</a>[]; localImagePaths: Set\<string\>; remoteImagePaths: Set\<string\>; \}</code>
+</p>
+
+Describes the Astro-specific data available in a Sätteri plugin via `ctx.data.astro`. This includes the frontmatter, collected heading IDs, and local and remote image paths.
+
+#### `SatteriAstroData.frontmatter`
+
+<p>
+
+**Type:** `Record<string, any>`
+</p>
+
+Describes the properties defined in the frontmatter of the Markdown or MDX content.
+
+#### `SatteriAstroData.headings`
+
+<p>
+
+**Type:** `<a href="/en/reference/markdown-processors/unified/#markdownheading">MarkdownHeading</a>[]`
+</p>
+
+A list of collected headings in the Markdown content.
+
+#### `SatteriAstroData.localImagePaths`
+
+<p>
+
+**Type:** `Set<string>`
+</p>
+
+The local image paths referenced in the Markdown content.
+
+#### `SatteriAstroData.remoteImagePaths`
+
+<p>
+
+**Type:** `Set<string>`
+</p>
+
+The remote image paths referenced in the Markdown content.
+
+### `SatteriFeatures`
+
+<p>
+
+**Type:** `Omit<Features, 'smartPunctuation'> & { smartPunctuation?: Features['smartPunctuation']; }`
+</p>
+
+An object describing the [features available in Sätteri](https://satteri.bruits.org/docs/features/).
+
+The following properties use a different default in Astro.
+
+#### `SatteriFeatures.smartPunctuation`
+
+<p>
+
+**Type:** `Features['smartPunctuation']`<br />
+**Default:** `true`
+</p>
+
+Enables [smart punctuation](/en/guides/markdown-content/#smart-punctuation). This is useful for converting straight quotes to curly quotes, double hyphens to em dashes, and three dots to ellipses.
+
+See [Sätteri's documentation on customizing smart punctuation](https://satteri.bruits.org/docs/features/#smart-punctuation) for the full configuration object shape.
+
+### `SatteriMarkdownProcessorOptions`
+
+<p>
+
+**Type:** <code><a href="/en/reference/configuration-reference/#markdown-options">AstroMarkdownOptions</a> & \{ mdastPlugins?: MdastPluginList; hastPlugins?: HastPluginList; features?: Features; \}</code>
+</p>
+
+Represents the options that can be passed to the [Sätteri Markdown processor](#satteri) when configuring it in Astro. This includes Astro's built-in Markdown options along with additional plugin and feature options specific to Sätteri.
+
+### `SatteriProcessorOptions`
+
+<p>
+
+**Type:** <code>\{ mdastPlugins?: MdastPluginList; hastPlugins?: HastPluginList; features?: <a href="#satterifeatures">SatteriFeatures</a>; \}</code>
+</p>
+
+The options accepted by [`satteri()`](#satteri) when configuring `markdown.processor`.
+
+<ReadMore>Learn about [adding mdast and hast plugins](/en/guides/markdown-content/#markdown-processor-plugins) in the Markdown guide.</ReadMore>
+
+### `SatteriResolvedOptions`
+
+<p>
+
+**Type:** <code>\{ mdastPlugins: MdastPluginEntry[]; hastPlugins: HastPluginEntry[]; features: <a href="#satterifeatures">SatteriFeatures</a>; \}</code>
+</p>
+
+Describes the options passed to Sätteri after merging user-provided options with the defaults.
