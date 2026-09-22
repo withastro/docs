@@ -1,6 +1,7 @@
 name: Deploy Preview
 
 on:
+  # zizmor: ignore[dangerous-triggers]
   workflow_run:
     workflows: ["Deploy"]
     types: [completed]
@@ -41,17 +42,19 @@ jobs:
 
       - name: Comment deployment in progress
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ steps.metadata.outputs.pr_number }}
+          PREVIEW_URL: ${{ steps.metadata.outputs.preview_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         with:
           script: |
-            const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
-            const previewUrl = '${{ steps.metadata.outputs.preview_url }}';
-            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
-            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
             const body = `**Preview deployment**\n\n`
               + `🔄 Deployment in progress...\n\n`
-              + `- **Latest commit:** ${commitSHA}\n`
-              + `- **Preview:** ${previewUrl}\n`
-              + `- **Workflow run:** [View logs](${runUrl})`;
+              + `- **Latest commit:** ${process.env.HEAD_SHA}\n`
+              + `- **Preview:** ${process.env.PREVIEW_URL}\n`
+              + `- **Workflow run:** [View logs](${process.env.RUN_URL})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -92,17 +95,19 @@ jobs:
       - name: Comment deployment complete
         if: success()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ steps.metadata.outputs.pr_number }}
+          PREVIEW_URL: ${{ steps.metadata.outputs.preview_url }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         with:
           script: |
-            const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
-            const previewUrl = '${{ steps.metadata.outputs.preview_url }}';
-            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
-            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
             const body = `**Preview deployment**\n\n`
               + `✅ Deployment complete!\n\n`
-              + `- **Latest commit:** ${commitSHA}\n`
-              + `- **Preview:** ${previewUrl}\n`
-              + `- **Workflow run:** [View logs](${runUrl})`;
+              + `- **Latest commit:** ${process.env.HEAD_SHA}\n`
+              + `- **Preview:** ${process.env.PREVIEW_URL}\n`
+              + `- **Workflow run:** [View logs](${process.env.RUN_URL})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -121,15 +126,17 @@ jobs:
       - name: Comment deployment failed
         if: failure()
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ steps.metadata.outputs.pr_number }}
+          HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_URL: "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
         with:
           script: |
-            const prNumber = parseInt('${{ steps.metadata.outputs.pr_number }}', 10);
-            const commitSHA = '${{ github.event.workflow_run.head_sha }}';
-            const runUrl = '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}';
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
             const body = `**Preview deployment**\n\n`
               + `❌ Deployment failed!\n\n`
-              + `- **Latest commit:** ${commitSHA}\n`
-              + `- **Workflow run:** [View logs](${runUrl})`;
+              + `- **Latest commit:** ${process.env.HEAD_SHA}\n`
+              + `- **Workflow run:** [View logs](${process.env.RUN_URL})`;
             const { data: comments } = await github.rest.issues.listComments({
               owner: context.repo.owner,
               repo: context.repo.repo,
