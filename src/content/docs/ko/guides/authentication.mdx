@@ -4,12 +4,12 @@ description: Astro 인증 소개
 i18nReady: true
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
 
-인증 및 승인은 웹사이트 또는 앱에 대한 액세스를 관리하는 두 가지 보안 프로세스입니다. 인증은 방문자의 신원을 확인하는 반면, 승인은 보호 구역 및 자원에 대한 접근 권한을 부여합니다.
+인증 및 권한 부여는 웹사이트 또는 앱에 대한 액세스를 관리하는 두 가지 보안 프로세스입니다. 인증은 방문자의 신원을 확인하는 반면, 권한 부여는 보호 구역 및 자원에 대한 접근 권한을 부여합니다.
 
 인증을 사용하면 사이트의 특정 영역을 로그인한 개인에 맞춰 사용자 정의할 수 있으며 개인 정보 또는 비공개 정보를 최대한 보호할 수 있습니다. 인증 라이브러리 (예: [Better Auth](https://better-auth.com/), [Clerk](https://clerk.com))는 이메일 로그인 및 OAuth 공급자와 같은 다양한 인증 방법을 위한 유틸리티를 제공합니다.
 
@@ -17,13 +17,13 @@ import ReadMore from '~/components/ReadMore.astro'
 Astro에 대한 공식 인증 솔루션은 없지만 통합 디렉터리에서 [커뮤니티 "인증" 통합](https://astro.build/integrations/?search=auth)을 찾을 수 있습니다.
 :::
 
-<ReadMore>이러한 백엔드 서비스에 대한 전용 가이드에서 [Supabase로 인증을 추가](/ko/guides/backend/supabase/#supabase로-인증-추가)하거나 [Firebase로 인증을 추가](/ko/guides/backend/firebase/#firebase로-인증-추가), 또는 [Scalekit로 인증을 추가](/ko/guides/backend/scalekit/#scalekit로-인증-추가)하는 방법을 알아보세요.</ReadMore>
+<ReadMore>이러한 백엔드 서비스에 대한 전용 가이드에서 [Supabase로 인증을 추가](/ko/guides/backend/supabase/#supabase로-인증-추가)하거나 [Firebase로 인증을 추가](/ko/guides/backend/firebase/#firebase로-인증-추가), 또는 [Scalekit으로 인증을 추가](/ko/guides/backend/scalekit/#scalekit로-인증-추가)하는 방법을 알아보세요.</ReadMore>
 
 ## Better Auth
 
 Better Auth는 프레임워크에 구애받지 않는 TypeScript용 인증 (및 권한 부여) 프레임워크입니다. 기본적으로 포괄적인 기능 세트를 제공하며 고급 기능을 간편하게 추가할 수 있는 플러그인 생태계가 포함되어 있습니다.
 
-Astro를 즉시 지원하며, 이를 사용하여 Astro 프로젝트에 인증을 추가할 수 있습니다.
+Astro를 별도의 설정 없이 지원하며, 이를 사용하여 Astro 프로젝트에 인증을 추가할 수 있습니다.
 
 ### 설치
 
@@ -64,13 +64,11 @@ export const ALL: APIRoute = async (ctx) => {
 
 자세한 내용은 [Better Auth Astro 가이드](https://www.better-auth.com/docs/integrations/astro)를 참조하세요.
 
-
 ### 사용
 
-Better Auth는 Vanilla JS, React, Vue, Svelte, Solid를 포함한 다양한 프레임워크를 위한 `createAuthClient` 헬퍼를 제공합니다. 
+Better Auth는 Vanilla JS, React, Vue, Svelte, Solid를 포함한 다양한 프레임워크를 위한 `createAuthClient()` 헬퍼를 제공합니다.
 
 예를 들어, React용 클라이언트를 생성하려면 `better-auth/react`에서 헬퍼를 가져옵니다:
-
 
 <UIFrameworkTabs>
   <Fragment slot="react">
@@ -111,24 +109,31 @@ Better Auth는 Vanilla JS, React, Vue, Svelte, Solid를 포함한 다양한 프�
   </Fragment>
 </UIFrameworkTabs>
 
-클라이언트가 설정되면 이를 사용하여 Astro 컴포넌트 또는 프레임워크별 파일에서 사용자를 인증할 수 있습니다. 다음 예시에서는 구성된 `signIn()` 및 `signOut()` 함수를 사용하여 로그인 또는 로그아웃 기능을 추가합니다.
+클라이언트가 설정되면 이를 사용하여 Astro 컴포넌트 또는 모든 프레임워크별 파일에서 사용자를 인증할 수 있습니다. 다음 예시에서는 구성된 `signIn()` 및 `signOut()` 함수를 사용하여 로그인 또는 로그아웃 기능을 추가합니다.
 
 
 ```astro title="src/pages/index.astro"
 ---
-import Layout from 'src/layouts/Base.astro';
+import Layout from "../layouts/Base.astro";
 ---
+
 <Layout>
   <button id="login">Login</button>
   <button id="logout">Logout</button>
 
   <script>
-    const { signIn, signOut } = await import("./lib/auth-client")
-    document.querySelector("#login").onclick = () => signIn.social({
-      provider: "github",
-      callbackURL: "/dashboard",
-    })
-    document.querySelector("#logout").onclick = () => signOut()
+    const { signIn, signOut } = await import("../lib/auth-client");
+    const loginButton = document.querySelector<HTMLButtonElement>("#login");
+    const logoutButton = document.querySelector<HTMLButtonElement>("#logout");
+
+    if (!loginButton || !logoutButton) throw new Error("Buttons not found");
+
+    loginButton.onclick = () =>
+      signIn.social({
+        provider: "github",
+        callbackURL: "/dashboard",
+      });
+    logoutButton.onclick = () => signOut();
   </script>
 </Layout>
 ```
@@ -137,35 +142,52 @@ import Layout from 'src/layouts/Base.astro';
 
 ```astro title="src/pages/index.astro"
 ---
-import { auth } from "../../../lib/auth"; // Better Auth 인스턴스를 가져옵니다.
+import { auth } from "../lib/auth"; // Better Auth 인스턴스를 가져옵니다.
 
 export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
 
 const session = await auth.api.getSession({
-	headers: Astro.request.headers,
+  headers: Astro.request.headers,
 });
 ---
 
 <p>{session.user?.name}</p>
 ```
 
-미들웨어와 `auth` 객체를 사용하여 경로를 보호할 수도 있습니다. 다음 예시는 로그인한 대시보드 경로에 액세스하려는 사용자가 인증되었는지 확인하고 인증되지 않은 경우 홈 페이지로 리디렉션합니다.
+`auth` 객체를 사용하여 경로를 보호할 수도 있습니다. 다음 예시는 [Astro의 고급 라우팅](/ko/guides/routing/#고급-라우팅)과 [Hono](https://hono.dev/)를 사용하여 `/dashboard` 아래의 모든 경로에 인증된 세션을 요구하고, 그렇지 않으면 홈 페이지로 리디렉션합니다:
 
-```ts title="src/middleware.ts"
-import { auth } from "../../../auth"; // Better Auth 인스턴스를 가져옵니다.
-import { defineMiddleware } from "astro:middleware";
- 
-export const onRequest = defineMiddleware(async (context, next) => {
-	const isAuthed = await auth.api
-		.getSession({
-			headers: context.request.headers,
-		})
-	if (context.url.pathname === "/dashboard" && !isAuthed) {
-		return context.redirect("/");
-	}
-	return next();
-});
+```ts title="src/fetch.ts"
+import { Hono, type Context, type Next } from "hono";
+import { astro } from "astro/hono";
+import { auth } from "./lib/auth"; // Better Auth 인스턴스를 가져옵니다.
+
+const app = new Hono();
+
+// /dashboard 아래의 모든 경로를 보호합니다.
+app.use("/dashboard", requireAuth);
+app.use("/dashboard/*", requireAuth);
+
+// 그 외의 모든 요청에는 Astro의 내장 파이프라인을 실행합니다.
+app.use(astro());
+
+export default app;
+
+async function requireAuth(c: Context, next: Next) {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session) {
+    return c.redirect("/");
+  }
+  return next();
+}
 ```
+
+:::caution
+미들웨어가 확인하는 공개 pathname이 Astro가 내부적으로 매칭하는 라우트와 항상 동일한 것은 아닙니다. 구성된 `base`, URL 인코딩, 중복 슬래시로 인해 두 값이 달라질 수 있습니다. 공격자는 이 차이를 악용하여 검사에서 인식하지 못하는 pathname으로 보호된 라우트에 접근할 수 있습니다.
+
+`context.url.pathname`을 문자열(예: `context.url.pathname === "/dashboard"` 또는 `context.url.pathname.startsWith("/dashboard")`)과 비교하여 요청을 승인하지 마세요. 대신 라우터에 경로 매칭을 맡겨 접근을 제한하세요.
+:::
 
 ### 다음 단계
 
@@ -210,37 +232,67 @@ Clerk는 사용자의 인증 상태에 따라 페이지의 표시 여부를 제�
 
 ```astro title="src/pages/index.astro"
 ---
-import Layout from 'src/layouts/Base.astro';
-import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+import Layout from "../layouts/Base.astro";
+import { Show, UserButton, SignInButton } from "@clerk/astro/components";
 
 export const prerender = false; // 'server' 모드에서는 필요하지 않습니다.
 ---
+
 <Layout>
-    <SignedIn>
-        <UserButton />
-    </SignedIn>
-    <SignedOut>
-        <SignInButton />
-    </SignedOut>
+  <Show when="signed-in">
+    <UserButton />
+  </Show>
+  <Show when="signed-out">
+    <SignInButton />
+  </Show>
 </Layout>
 ```
 
-또한 Clerk를 사용하면 미들웨어를 통해 서버에서 경로를 보호할 수 있습니다. 보호할 경로를 지정하고 인증되지 않은 사용자에게 로그인하라는 메시지를 표시할 수 있습니다:
+또한 Clerk를 사용하면 미들웨어를 통해 서버에서 경로를 보호할 수 있습니다:
 
-```ts title="src/middleware.ts"
-import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+<Steps>
 
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/forum(.*)',
-]);
+1. 미들웨어에서 `onRequest` 핸들러로 `clerkMiddleware()`를 설정하세요:
 
-export const onRequest = clerkMiddleware((auth, context) => {
-  if (!auth().userId && isProtectedRoute(context.request)) {
-    return auth().redirectToSignIn();
-  }
-});
-```
+    ```ts title="src/middleware.ts"
+    import { clerkMiddleware } from "@clerk/astro/server";
+
+    export const onRequest = clerkMiddleware({
+      /* 옵션 */
+    });
+    ```
+
+2. 페이지와 API 라우트에서 `locals.auth()`로 인증 상태에 접근하세요. 이를 통해 사용자가 인증되었는지 확인하고 적절한 조치(예: 로그인 페이지로 리디렉션하거나 다른 응답 반환)를 취할 수 있습니다.
+
+    <Tabs>
+      <TabItem label="페이지">
+      ```astro title="src/pages/dashboard.astro"
+      ---
+      const { isAuthenticated, redirectToSignIn } = Astro.locals.auth();
+
+      if (!isAuthenticated) return redirectToSignIn();
+      ---
+
+      <h1>Dashboard</h1>
+      ```
+      </TabItem>
+      <TabItem label="API 라우트">
+      ```ts title="src/pages/api/data.ts"
+      import type { APIRoute } from "astro";
+
+      export const GET: APIRoute = ({ locals }) => {
+        const { isAuthenticated, userId } = locals.auth();
+
+        if (!isAuthenticated) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
+        return Response.json({ userId });
+      };
+      ```
+      </TabItem>
+    </Tabs>
+</Steps>
 
 ### 다음 단계
 
@@ -265,12 +317,14 @@ export const onRequest = clerkMiddleware((auth, context) => {
 
 - [Astro에서 GitHub OAuth를 구현하는 예시](https://github.com/lucia-auth/example-astro-github-oauth)
 - [Astro에서 Google OAuth를 구현하는 예시](https://github.com/lucia-auth/example-astro-google-oauth)
-- [Astro에서 2FA를 사용하여 이메일 및 비밀번호를 구현하는 예시 example](https://github.com/lucia-auth/example-astro-email-password-2fa)
+- [Astro에서 2FA를 사용하여 이메일 및 비밀번호를 구현하는 예시](https://github.com/lucia-auth/example-astro-email-password-2fa)
 - [Astro에서 2FA와 WebAuthn를 사용하여 이메일 및 비밀번호를 구현하는 예시](https://github.com/lucia-auth/example-astro-email-password-webauthn)
 
 ## Scalekit
 
-[Scalekit](https://scalekit.com/)은 B2B 및 AI 애플리케이션을 위해 구축된 인증 플랫폼입니다. 소셜 로그인, 엔터프라이즈 SSO, 매직 링크 등을 제공합니다 — 전체 OAuth 2.0 / OIDC 흐름을 관리하므로 로그인 UI를 구축할 필요 없이 토큰과 사용자 프로필을 얻을 수 있습니다. 단일 Scalekit 환경이 여러 애플리케이션을 지원하므로 사용자가 한 번 인증하면 모든 속성(예: `app.yourcompany.com` 및 `docs.yourcompany.com`)에서 동일한 세션을 공유합니다.
+[Scalekit](https://scalekit.com/)은 B2B 및 AI 애플리케이션을 위한 인증 플랫폼입니다. 전체 OAuth 2.0 및 OIDC 흐름을 관리하며, 소셜 로그인, 엔터프라이즈 SSO, 매직 링크 등의 방식을 지원합니다. 그런 다음 별도의 로그인 UI 없이도 토큰과 사용자 프로필을 반환합니다.
+
+단일 Scalekit 환경은 여러 애플리케이션을 지원할 수 있습니다. 이를 통해 한 번 인증하면 모든 속성(예: `app.yourcompany.com` 및 `docs.yourcompany.com`)에서 동일한 세션을 공유할 수 있습니다.
 
 ### 가이드
 

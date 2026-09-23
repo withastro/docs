@@ -17,13 +17,20 @@ Cette API inclut trois journaliseurs prêts à l'emploi et vous permet d'intégr
 
 ## Journaliseurs personnalisés
 
-Vous pouvez créer un journaliseur personnalisé en fournissant la configuration appropriée à l'option `logger`. Elle accepte un objet avec un point d'entrée (`entrypoint`) obligatoire, le module où le journaliseur est exporté, et une configuration optionnelle à transmettre au journaliseur. La configuration doit être sérialisable.
+Si vous ne souhaitez pas utiliser l'un des [journaliseurs intégrés](#journaliseurs-intégrés), vous pouvez créer le vôtre.
 
-La fonction du journaliseur doit être exportée en tant que `default`.
+Un journaliseur personnalisé se compose de deux parties :
+
+- La [configuration du journaliseur](#la-configuration-du-journaliseur), qui permet à Astro de savoir quelle implémentation utiliser et quelle configuration transmettre
+- L'[implémentation du journaliseur](#limplémentation-du-journaliseur), qui gère la logique de journalisation
 
 Lorsque vous définissez un journaliseur personnalisé, vous êtes responsable de tous les journaux, même ceux émis par Astro.
 
-L'exemple suivant définit un journaliseur personnalisé exporté par le paquet `@org/journaliseur-personnalise` et n'acceptant qu'un seul paramètre pour configurer le niveau (`level`) de journalisation :
+### La configuration du journaliseur
+
+La [configuration du journaliseur (`logger`)](/fr/reference/configuration-reference/#options-du-journaliseur) est un objet contenant un [point d'entrée (`entrypoint`)](/fr/reference/configuration-reference/#loggerentrypoint) obligatoire et une [`config`](/fr/reference/configuration-reference/#loggerconfig) facultative.
+
+L'exemple suivant configure un journaliseur personnalisé exporté par le paquet `@org/custom-logger` et lui transmet une option `level` :
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
@@ -38,26 +45,31 @@ export default defineConfig({
 });
 ```
 
-L'exemple suivant implémente un journaliseur minimal renvoyant un [objet `AstroLoggerDestination`](#astrologgerdestination) avec la fonction `write()` requise :
+### L'implémentation du journaliseur
 
-```ts title="@org/journaliseur-personnalise/index.ts"
-import type { AstroLoggerLevel, AstroLoggerDestination } from "astro";
-import { matchesLevel } from "astro/logger"; 
+L'implémentation du journaliseur gère la logique de journalisation. Vous l'implémentez dans votre module de journaliseur en exportant une fonction par défaut qui prend la [configuration du journaliseur](#la-configuration-du-journaliseur) en paramètre et renvoie un [objet `AstroLoggerDestination`](#astrologgerdestination) avec une fonction `write()` requise.
 
-type LoggerOptions = {
-  level: AstroLoggerLevel
-}
+L'exemple suivant implémente un journaliseur minimal qui prend en compte le niveau de journalisation (`level`) défini dans sa configuration :
 
-function orgLogger(options: LoggerOptions = {}): AstroLoggerDestination {
-  const { level = 'info' } = options;
+```ts title="@org/journaliseur-personnalise/index.js"
+import { matchesLevel } from "astro/logger";
+
+/**
+ * Exemple minimal d'une implémentation de journaliseur personnalisé.
+ *
+ * @param {Object} [options] - Les options du journaliseur.
+ * @param {import("astro").AstroLoggerLevel} [options.level] - Le niveau minimum des journaux. Par défaut "info".
+ * @returns {import("astro").AstroLoggerDestination} La destination du journaliseur personnalisé.
+ */
+function orgLogger({ level } = { level: "info" }) {
   return {
     write(message) {
       // Utilisez cet utilitaire pour comprendre si le message doit être affiché
       if (matchesLevel(message.level, level)) {
         // enregistrez le message quelque part en tenant compte du niveau
       }
-    }
-  }
+    },
+  };
 }
 
 export default orgLogger;

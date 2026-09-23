@@ -1,0 +1,362 @@
+---
+title: Despliega tu sitio de Astro en AWS
+description: Cómo desplegar tu sitio de Astro en la web usando AWS.
+sidebar:
+  label: AWS
+type: deploy
+logo: aws
+supports: ['ssr', 'static']
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[AWS](https://aws.amazon.com/) es una plataforma integral de alojamiento de aplicaciones web que puede utilizarse para desplegar un sitio de Astro.
+
+Desplegar tu proyecto en AWS requiere usar la [consola de AWS](https://aws.amazon.com/console/). (La mayoría de estas acciones también se pueden realizar mediante la [CLI de AWS](https://aws.amazon.com/cli/)). Esta guía te guiará paso a paso para desplegar tu sitio en AWS utilizando [AWS Amplify](https://aws.amazon.com/amplify/), [alojamiento de sitios web estáticos en S3](https://aws.amazon.com/s3/) y [CloudFront](https://aws.amazon.com/cloudfront/).
+
+## AWS Amplify 
+
+AWS Amplify es un conjunto de herramientas y funciones diseñadas específicamente para permitir a los desarrolladores web frontend y móviles construir aplicaciones full-stack en AWS de forma rápida y sencilla. Puedes desplegar tu proyecto de Astro como un sitio estático o como un sitio renderizado en el servidor.
+
+### Sitio estático
+
+Tu proyecto de Astro es un sitio estático por defecto.
+
+<Steps>
+1. Crea un nuevo proyecto en Amplify Hosting.
+
+2. Conecta tu repositorio a Amplify.
+
+3. Modifica tu configuración de compilación para que coincida con el proceso de compilación de tu proyecto.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci
+        build:
+          commands:
+            - npm run build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+      artifacts:
+        baseDirectory: /dist
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify desplegará automáticamente tu sitio web y lo actualizará cada vez que envíes un commit a tu repositorio.
+
+### Adaptador para renderizado bajo demanda
+
+Para desplegar tu proyecto como un sitio renderizado en el servidor, necesitarás usar el [adaptador de AWS Amplify mantenido por la comunidad](https://github.com/alexnguyennz/astro-aws-amplify) y realizar algunos cambios en tu configuración.
+
+Primero, instala el adaptador de Amplify.
+
+<PackageManagerTabs>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="npm">
+  ```shell
+  npm install astro-aws-amplify
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add astro-aws-amplify
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, en tu archivo `astro.config.*`, añade el adaptador y establece el output en `server`.
+
+```js title="astro.config.mjs" ins={2, 6, 7}
+import { defineConfig } from 'astro/config';
+import awsAmplify from 'astro-aws-amplify';
+
+export default defineConfig({
+  // ...
+  output: "server",
+  adapter: awsAmplify(),
+});
+```
+
+Una vez instalado el adaptador, puedes configurar tu proyecto de Amplify.
+
+<Steps>
+1. Crea un nuevo proyecto en Amplify Hosting.
+
+2. Conecta tu repositorio a Amplify.
+
+3. Modifica tu configuración de compilación para adaptarla al proceso de compilación del adaptador, ya sea editando los ajustes de compilación en la consola de AWS o añadiendo un archivo `amplify.yaml` en la raíz de tu proyecto.
+
+    <PackageManagerTabs>
+    <Fragment slot="pnpm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm i -g pnpm
+            - pnpm config set store-dir .pnpm-store
+            - pnpm i
+        build:
+          commands:
+            - pnpm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .pnpm-store/**/*
+    ```
+    </Fragment>
+    <Fragment slot="npm">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - npm ci --cache .npm --prefer-offline
+        build:
+          commands:
+            - npm run build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - .npm/**/*
+    ```
+    </Fragment>
+    <Fragment slot="yarn">
+    ```yaml
+    version: 1
+    frontend:
+      phases:
+        preBuild:
+          commands:
+            - yarn install
+        build:
+          commands:
+            - yarn build
+            - mv node_modules ./.amplify-hosting/compute/default
+      artifacts:
+        baseDirectory: .amplify-hosting
+        files:
+          - '**/*'
+      cache:
+        paths:
+          - node_modules/**/*
+    ```
+    </Fragment>
+    </PackageManagerTabs>
+</Steps>
+
+Amplify desplegará automáticamente tu sitio web y lo actualizará cada vez que envíes un commit a tu repositorio.
+
+<ReadMore>
+  Consulta la [guía de despliegue de Astro de AWS](https://docs.aws.amazon.com/amplify/latest/userguide/get-started-astro.html) para obtener más información.
+</ReadMore>
+
+## Alojamiento de sitios web estáticos en S3
+
+S3 es el punto de partida de cualquier aplicación. Es donde se almacenan los archivos de tu proyecto y otros recursos. S3 cobra por el almacenamiento de archivos y por la cantidad de solicitudes. Puedes encontrar más información sobre S3 en la [documentación de AWS](https://aws.amazon.com/s3/).
+
+<Steps>
+1. Crea un bucket de S3 con el nombre de tu proyecto.
+
+    :::tip
+    El nombre del bucket debe ser único a nivel global. Recomendamos una combinación del nombre de tu proyecto y el nombre de dominio de tu sitio.
+    :::
+
+2. Desactiva **"Bloquear todo el acceso público"**. Por defecto, AWS configura todos los buckets para que sean privados. Para hacerlo público, debes desmarcar la casilla "Bloquear acceso público" en las propiedades del bucket.
+
+3. Sube tus archivos compilados ubicados en `dist` a S3. Puedes hacerlo manualmente en la consola o usar la CLI de AWS. Si usas la CLI de AWS, utiliza el siguiente comando después de [autenticarte con tus credenciales de AWS](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html):
+
+    ```
+    aws s3 cp dist/ s3://<BUCKET_NAME>/ --recursive
+    ```
+
+4. Actualiza la política de tu bucket para permitir el acceso público. Puedes encontrar esta configuración en **Permisos > Política de bucket** dentro de las propiedades del bucket.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Sid": "PublicReadGetObject",
+          "Effect": "Allow",
+          "Principal": "*",
+          "Action": "s3:GetObject",
+          "Resource": "arn:aws:s3:::<BUCKET_NAME>/*"
+        }
+      ]
+    }
+    ```
+
+    :::caution
+    No olvides reemplazar `<BUCKET_NAME>` por el nombre de tu bucket.
+    :::
+
+5. Habilita el alojamiento de sitios web para tu bucket. Puedes encontrar esta configuración en **Propiedades > Alojamiento de sitios web estáticos** dentro de tu bucket. Configura tu documento de índice como `index.html` y tu documento de error como `404.html`. Finalmente, puedes encontrar la nueva URL de tu sitio web en  **Propiedades > Alojamiento de sitios web estáticos**.
+
+    :::note
+    Si estás desplegando una aplicación de página única (SPA), establece tu documento de error en `index.html`.
+    :::
+</Steps>
+
+## S3 con CloudFront
+
+CloudFront es un servicio web que proporciona capacidades de red de distribución de contenido (CDN). Se utiliza para almacenar en caché el contenido de un servidor web y distribuirlo a los usuarios finales. CloudFront cobra por la cantidad de datos transferidos. Añadir CloudFront a tu bucket de S3 es más rentable y ofrece una entrega más rápida.
+
+Para conectar S3 con CloudFront, crea una distribución de CloudFront con los siguientes valores:
+  - **Dominio de origen:** El endpoint del sitio web estático de tu bucket de S3. Puedes encontrar tu endpoint en **Propiedades > Alojamiento de sitios web estáticos** dentro de tu bucket de S3. Alternativamente, puedes seleccionar tu bucket de S3 y hacer clic en el aviso para reemplazar la dirección de tu bucket con el endpoint estático de tu bucket.
+  - **Política de protocolo de visor:** "Redirect to HTTPS"
+
+Esta configuración servirá tu sitio utilizando la red CDN de CloudFront. Puedes encontrar la URL de tu distribución de CloudFront en **Distributions > Domain name**.
+
+:::note
+Al conectar CloudFront a un endpoint de un sitio web estático de S3, dependes de las políticas del bucket de S3 para el control de acceso. Consulta la sección [Alojamiento de sitios web estáticos en S3](#alojamiento-de-sitios-web-estáticos-en-s3) para obtener más información sobre las políticas de los buckets.
+:::
+
+## Despliegue continuo con GitHub Actions
+
+Existen muchas formas de configurar el despliegue continuo para AWS. Una opción para el código alojado en GitHub es utilizar [GitHub Actions](https://github.com/features/actions) para desplegar tu sitio web cada vez que envíes un commit.
+
+<Steps>
+1. Crea una nueva política en tu cuenta de AWS usando [IAM](https://aws.amazon.com/iam/) con los siguientes permisos. Esta política te permitirá subir los archivos compilados a tu bucket de S3 e invalidar los archivos de la distribución de CloudFront cada vez que envíes un commit.
+
+    ```json
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+          {
+              "Sid": "VisualEditor0",
+              "Effect": "Allow",
+              "Action": [
+                  "s3:PutObject",
+                  "s3:ListBucket",
+                  "s3:DeleteObject",
+                  "cloudfront:CreateInvalidation"
+              ],
+              "Resource": [
+                  "<DISTRIBUTION_ARN>",
+                  "arn:aws:s3:::<BUCKET_NAME>/*",
+                  "arn:aws:s3:::<BUCKET_NAME>"
+              ]
+          }
+      ]
+    }
+    ```
+
+    :::caution
+    No olvides reemplazar `<DISTRIBUTION_ARN>` y `<BUCKET_NAME>`. Puedes encontrar el DISTRIBUTION_ARN en **CloudFront > Distributions > Details**.
+    :::
+
+2. Crea un nuevo usuario de IAM y adjúntale la política. Esto te proporcionará tu `AWS_SECRET_ACCESS_KEY` y `AWS_ACCESS_KEY_ID`.
+
+3. Añade este flujo de trabajo de ejemplo a tu repositorio en `.github/workflows/deploy.yml` y envíalo a GitHub. Necesitarás añadir `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `BUCKET_ID`, y `DISTRIBUTION_ID` como “secretos” en tu repositorio de GitHub dentro de **Settings** > **Secrets** > **Actions**. Haz clic en <kbd>New repository secret</kbd> para añadir cada uno.
+
+    ```yaml
+    name: Deploy Website
+
+    on:
+      push:
+        branches:
+          - main
+
+    jobs:
+      deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: Checkout
+            uses: actions/checkout@v7
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v6
+            with:
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+              aws-region: us-east-1
+          - name: Install modules
+            run: npm ci
+          - name: Build application
+            run: npm run build
+          - name: Deploy to S3
+            run: aws s3 sync --delete ./dist/ s3://${{ secrets.BUCKET_ID }}
+          - name: Create CloudFront invalidation
+            run: aws cloudfront create-invalidation --distribution-id ${{ secrets.DISTRIBUTION_ID }} --paths "/*"
+    ```
+
+    :::note
+    Tu `BUCKET_ID` es el nombre de tu bucket de S3. Tu `DISTRIBUTION_ID` es el ID de tu distribución de CloudFront. Puedes encontrar el ID de tu distribución de CloudFront en **CloudFront > Distributions > ID**
+    :::
+</Steps>
+
+## Recursos de la comunidad
+
+- [Desplegar Astro en AWS Amplify](https://www.launchfa.st/blog/deploy-astro-aws-amplify)
+- [Desplegar Astro en AWS Elastic Beanstalk](https://www.launchfa.st/blog/deploy-astro-aws-elastic-beanstalk)
+- [Desplegar Astro en Amazon ECS en AWS Fargate](https://www.launchfa.st/blog/deploy-astro-aws-fargate)
+- [Solución de problemas en despliegues SSR en Amplify](https://docs.aws.amazon.com/amplify/latest/userguide/troubleshooting-ssr-deployment.html)

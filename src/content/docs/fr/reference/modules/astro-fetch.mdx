@@ -35,10 +35,15 @@ import {
 
 L'objet d'état propre à la requête. Créez-en un au début de votre méthode `fetch` :
 
-```ts
-import { FetchState } from 'astro/fetch';
+```ts {5} title="src/fetch.ts"
+import { FetchState } from "astro/fetch";
 
-const state = new FetchState(request);
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // Votre logique de routage avancé...
+  },
+};
 ```
 
 `FetchState` assure le suivi de la route correspondante, des cookies, des fournisseurs de session et d'autres données propres à chaque requête. Toutes les fonctions de gestion exigent cet objet comme premier argument.
@@ -130,9 +135,17 @@ Le code de statut HTTP pour la réponse. Vous pouvez le définir avant le rendu 
 
 La réponse (`Response`) produite par les gestionnaires après la fin du rendu. Elle est définie automatiquement par [`pages()`](#pages) et [`middleware()`](#middleware), vous permettant d'inspecter ou d'utiliser la réponse plus tard dans le pipeline :
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-// `state.response` est maintenant le même objet que `response`
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    // `state.response` est maintenant le même objet que `response`
+    return response;
+  },
+};
 ```
 
 #### Méthodes
@@ -146,8 +159,16 @@ const response = await middleware(state, (s) => pages(s));
 
 Déclenche une [réécriture](/fr/guides/routing/#réécritures) vers une autre route. Le `payload` peut être une chaîne de caractères correspondant au chemin (`'/autre-page'`), une URL ou un objet `Request` :
 
-```ts
-const response = await state.rewrite('/autre-page');
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await state.rewrite("/autre-page");
+    return response;
+  },
+};
 ```
 
 ### `astro()`
@@ -182,10 +203,17 @@ export default {
 
 Gère les [actions d'Astro](/fr/guides/actions/) (RPC et soumissions de formulaires). Renvoie un objet `Response` pour les actions RPC, ou `undefined` pour les actions de formulaire et les requêtes ne constituant pas une action. Vérifiez la valeur de retour pour décider s'il faut poursuivre le rendu :
 
-```ts
-const actionResponse = await actions(state);
-if (actionResponse) return actionResponse;
-// sinon, poursuivre le rendu de la page...
+```ts {6,7} title="src/fetch.ts"
+import { actions, FetchState } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const actionResponse = await actions(state);
+    if (actionResponse) return actionResponse;
+    // sinon, poursuivre le rendu de la page...
+  },
+};
 ```
 
 ### `cache()`
@@ -206,9 +234,16 @@ Enveloppe une fonction de rappel de rendu avec la logique d'un fournisseur de [c
 
 Post-traite une réponse en fonction de votre [configuration i18n](/fr/guides/internationalization/). Gère les redirections de paramètres régionaux, les erreurs 404 pour les paramètres régionaux invalides et le routage de repli. Appelez-la après le rendu :
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-return i18n(state, response);
+```ts {7} title="src/fetch.ts"
+import { FetchState, i18n, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return i18n(state, response);
+  },
+};
 ```
 
 ### `middleware()`
@@ -220,8 +255,16 @@ return i18n(state, response);
 
 Exécute la chaîne de middleware d'Astro (à partir de `src/middleware.ts`). La fonction de rappel `next` est appelée en bas de la chaîne pour produire la réponse, généralement en appelant `pages()` :
 
-```ts
-const response = await middleware(state, (s) => pages(s));
+```ts {6} title="src/fetch.ts"
+import { FetchState, middleware, pages } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return response;
+  },
+};
 ```
 
 ### `pages()`
@@ -251,10 +294,19 @@ Gère les routes de redirection définies dans votre [configuration d'Astro](/fr
 
 Enregistre le fournisseur de [session](/fr/guides/sessions/). Les sessions sont créées de manière différée lorsque votre code accède à `ctx.session` et sont automatiquement conservées à la fin de la requête. Appelez cette fonction tôt dans le pipeline (avant l'exécution du middleware) :
 
-```ts
-await sessions(state);
-// ...pipeline de rendu...
+```ts {6} title="src/fetch.ts"
+import { FetchState, sessions } from "astro/fetch";
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    await sessions(state);
+    // ...pipeline de rendu...
+  },
+};
 ```
+
+Ce gestionnaire n'enregistre aucun fournisseur lorsqu'aucun pilote de session n'est configuré ou lorsque [les sessions sont désactivées](/fr/guides/sessions/#désactivation-des-sessions). Dans les deux cas, `ctx.session` sera `undefined`.
 
 ### `trailingSlash()`
 

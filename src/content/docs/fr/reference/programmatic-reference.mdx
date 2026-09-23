@@ -197,40 +197,44 @@ Accepte un objet de configuration Astro et un objet partiel contenant un ensembl
 - Toutes les autres options remplacent la configuration existante.
 
 ```ts
+import mdx from "@astrojs/mdx";
+import partytown from "@astrojs/partytown";
+import type { AstroInlineConfig } from "astro";
 import { mergeConfig } from "astro/config";
 
-mergeConfig(
-  {
-    output: "static",
-    site: "https://example.com",
-    integrations: [partytown()],
-    server: ({command}) => ({
-      port: command === "dev" ? 4321 : 1234,
-    }),
-    build: {
-      client: "./client-personnalise",
-    },
+const defaultConfig: AstroInlineConfig = {
+  output: "static",
+  site: "https://example.com",
+  integrations: [partytown()],
+  server: ({ command }) => ({
+    port: command === "dev" ? 4321 : 1234,
+  }),
+  build: {
+    client: "./client-personnalise",
   },
-  {
-    output: "server",
-    base: "/astro",
-    integrations: [mdx()],
-    server: ({command}) => ({
-      host: command === "dev" ? "localhost" : "site.localhost",
-    }),
-    build: {
-      server: "./serveur-personnalise",
-    },
-  }
-);
+};
 
-// Le résultat est équivalent à :
+const overrideConfig: AstroInlineConfig = {
+  output: "server",
+  base: "/astro",
+  integrations: [mdx()],
+  server: ({ command }) => ({
+    host: command === "dev" ? "localhost" : "site.localhost",
+  }),
+  build: {
+    server: "./serveur-personnalise",
+  },
+};
+
+const finalConfig = mergeConfig(defaultConfig, overrideConfig);
+
+// `finalConfig` est équivalent à :
 {
   output: "server",
   site: "https://example.com",
   base: "/astro",
   integrations: [partytown(), mdx()],
-  server: ({command}) => ({
+  server: ({ command }) => ({
     port: command === "dev" ? 4321 : 1234,
     host: command === "dev" ? "localhost" : "site.localhost",
   }),
@@ -258,10 +262,14 @@ La promesse renvoyée correspond à la configuration validée, remplie avec tout
 
 ```ts
 import { validateConfig } from "astro/config";
+import partytown from "@astrojs/partytown";
+import { rm } from "node:fs/promises";
 
-const config = await validateConfig({
-  integrations: [partytown()],
-}, "./mon-projet", "build");
+const config = await validateConfig(
+  { integrations: [partytown()] },
+  "./mon-projet",
+  "build",
+);
 
 // les valeurs par défaut sont appliquées
 await rm(config.outDir, { recursive: true, force: true });

@@ -1,0 +1,98 @@
+---
+title: 실험적 증분 정적 빌드
+sidebar:
+  label: 증분 빌드
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="7.2.0" />
+</p>
+
+이 실험적 기능은 이전 빌드의 출력물을 재사용하여 변경되지 않은 페이지를 다시 렌더링하지 않습니다.
+
+이 기능을 활성화하면 데이터와 페이지가 의존하는 코드가 마지막 빌드 이후 변경되지 않은 경우, Astro는 [`getStaticPaths()`](/ko/reference/routing-reference/#getstaticpaths)로 생성된 정적 페이지를 건너뛸 수 있습니다. 페이지 데이터의 식별자로 `cacheKey`를 반환하면 Astro는 페이지의 모듈 종속성 그래프를 해시하여 코드를 추적합니다. 두 값이 이전 빌드와 일치하면 Astro는 페이지를 다시 렌더링하는 대신 이전 출력물을 복사합니다.
+
+대부분의 페이지가 자주 변경되지 않는 대규모 사이트에서는 동일한 출력을 생성할 페이지를 렌더링하지 않으므로 빌드 시간을 크게 줄일 수 있습니다.
+
+증분 빌드를 활성화하려면 Astro 구성에 다음 플래그를 추가하세요.
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    incrementalBuild: true,
+  },
+});
+```
+
+## 캐시 키 제공하기
+
+`getStaticPaths()`에서 반환된 페이지 중 `cacheKey`를 포함하는 페이지만 건너뛸 수 있습니다. `getStaticPaths()`를 사용하지 않는 정적 페이지를 포함한 나머지 모든 페이지는 매 빌드마다 렌더링됩니다.
+
+`cacheKey`는 페이지를 렌더링하는 데 사용되는 데이터를 식별하는 문자열입니다. 페이지 콘텐츠가 변경될 때마다 함께 변경되는 값을 선택하세요. 콘텐츠 해시, 버전 번호 또는 데이터 소스의 업데이트 타임스탬프 등을 사용할 수 있습니다. Astro는 `cacheKey`가 이전 빌드와 다르면 페이지를 다시 렌더링하고, 같으면 이전 출력을 재사용합니다.
+
+```astro title="src/pages/blog/[slug].astro"
+---
+export async function getStaticPaths() {
+  const posts = await fetchPosts();
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+    cacheKey: post.updatedAt,
+  }));
+}
+---
+```
+
+[콘텐츠 컬렉션](/ko/guides/content-collections/)에서 페이지를 생성할 때 로더는 각 항목에 [`digest`](/ko/reference/content-loader-reference/#dataentrydigest)를 제공할 수 있습니다. 로더는 항목의 데이터가 변경될 때마다 이 값을 업데이트해야 합니다. 따라서 `digest`를 편리한 `cacheKey`로 사용할 수 있습니다.
+
+```astro title="src/pages/docs/[...slug].astro"
+---
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docs");
+
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+    cacheKey: String(entry.digest),
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+```
+
+## 페이지가 무효화되는 방식
+
+일치하는 `cacheKey`가 있는 페이지도 의존하는 코드가 변경되면 다시 렌더링됩니다. Astro는 레이아웃, 컴포넌트, 가져온 파일의 내용을 포함한 페이지의 모듈 종속성 그래프를 해시합니다. 따라서 이러한 파일을 수정하면 해당 파일을 사용하는 페이지가 무효화됩니다. Astro 구성이나 프로젝트의 종속성을 변경하면 모든 페이지의 출력에 영향을 줄 수 있으므로 전체 캐시가 무효화됩니다.
+
+빌드 사이에 `getStaticPaths()`에서 제거된 페이지의 이전 출력물은 자동으로 정리됩니다.
+
+## 빌드 간 캐시 유지하기
+
+Astro는 프로젝트의 [`cacheDir`](/ko/reference/configuration-reference/#cachedir)에 증분 캐시를 저장하며, 기본값은 `node_modules/.astro/`입니다. 이 디렉터리에는 빌드 매니페스트와 이전에 렌더링된 페이지의 재사용 가능한 출력물이 모두 저장됩니다. 각 빌드 시작 시 출력 디렉터리가 비워지고, 건너뛴 페이지는 `cacheDir`에서 복원됩니다.
+
+CI 환경에서 페이지를 건너뛰려면 `astro build`를 실행하기 전에 `cacheDir`을 복원해야 합니다. 빌드 사이에 이 디렉터리 하나만 캐시하고 복원하면 되며, 다른 항목은 유지할 필요가 없습니다. `cacheDir`이 없으면 Astro는 모든 페이지를 다시 렌더링합니다.
+
+캐시를 무시하고 모든 페이지를 다시 렌더링하려면 `astro build --force`를 실행하세요. Astro는 다음 빌드를 위해 새 캐시를 계속 기록합니다.
+
+## 제한 사항
+
+이 실험적 기능에는 현재 다음과 같은 제한 사항이 있습니다.
+
+- **`build.concurrency`**: [`build.concurrency`](/ko/reference/configuration-reference/#buildconcurrency)가 `1`보다 크면 증분 캐시가 비활성화됩니다. Astro는 경고를 기록하고 모든 페이지를 다시 렌더링합니다.
+
+- **서버 아일랜드**: [서버 아일랜드](/ko/guides/server-islands/)를 렌더링하는 페이지는 기본적으로 [각 빌드마다 재생성되는 키](/ko/guides/server-islands/#암호화-키-재사용)를 사용하여 props를 포함합니다. 따라서 매번 다시 렌더링됩니다. 이 페이지를 캐시하고 빌드 간에 재사용하려면 고정된 `ASTRO_KEY`를 설정하세요. 키를 변경하면 해당 페이지가 무효화되어 포함된 콘텐츠를 계속 복호화할 수 있습니다.
+
+- **미들웨어**: [미들웨어](/ko/guides/middleware/)의 변경 사항은 캐시된 페이지를 무효화하지 않습니다. 미들웨어가 사전 렌더링된 페이지의 HTML을 변경한다면, 수정 후 `astro build --force`를 실행하세요.

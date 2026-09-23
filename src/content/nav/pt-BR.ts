@@ -1,7 +1,9 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	guides: 'Guias e receitas',
+	tutorial: 'Tutorial',
+
+	guides: 'Guia',
 	'guides.welcome': 'Olá, mundo!',
 	'guides.newProject': 'Comece um novo projeto',
 	'guides.config': 'Configuração',
@@ -20,11 +22,12 @@ export default navDictionary({
 	'reference.syntax': 'Sintaxe de templates Astro',
 	'reference.experimental': 'Funcionalidades experimentais',
 
+	ecosystem: 'Ecossistema',
 	'ecosystem.integrations.ui': 'Frameworks de UI',
 	'ecosystem.integrations.adapters': 'Adaptadores',
 	'ecosystem.integrations.other': 'Outras integrações oficiais',
 	'ecosystem.deployment': 'Guias de implantação',
-	'ecosystem.cms': 'Sistemas de gerenciamendo de conteúdo',
+	'ecosystem.cms': 'Sistemas de gerenciamento de conteúdo',
 	'ecosystem.backend': 'Serviços backend',
-	'ecosystem.media': 'Mídia hospedada & DAM',
+	'ecosystem.media': 'Hospedagem de imagens e vídeos',
 });

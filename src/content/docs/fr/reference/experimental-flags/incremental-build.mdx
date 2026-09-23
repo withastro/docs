@@ -1,0 +1,98 @@
+---
+title: Compilations statiques incrémentales expérimentales
+sidebar:
+  label: Compilations incrémentales
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type :** `boolean`<br />
+**Par défaut :** `false`<br />
+<Since v="7.2.0" />
+</p>
+
+Cette fonctionnalité expérimentale réutilise le résultat d'une compilation précédente afin que les pages inchangées ne soient pas rendues à nouveau.
+
+Lorsqu'elle est activée, Astro peut ignorer une page statique générée par [`getStaticPaths()`](/fr/reference/routing-reference/#getstaticpaths) si ses données et le code dont elle dépend n'ont pas changé depuis la dernière compilation. Vous marquez les données d'une page en renvoyant une clé de cache (`cacheKey`) pour celle-ci, et Astro suit le code en hachant le graphe de dépendances des modules de la page. Lorsque les deux correspondent à la compilation précédente, Astro copie le résultat précédent au lieu d'effectuer un nouveau rendu de la page.
+
+Pour les sites volumineux où la plupart des pages changent rarement, cela peut réduire considérablement le temps de compilation, car le rendu est ignoré pour les pages qui produiraient un résultat identique.
+
+Pour activer les compilations incrémentales, ajoutez l'option dans votre configuration d'Astro :
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    incrementalBuild: true,
+  },
+});
+```
+
+## Fournir une clé de cache
+
+Seules les pages renvoyées par `getStaticPaths()` qui incluent une clé de cache (`cacheKey`) peuvent être ignorées. Toutes les autres pages, y compris les pages statiques qui n'utilisent pas `getStaticPaths()`, sont rendues à chaque compilation.
+
+Une clé de cache (`cacheKey`) est une chaîne de caractères qui identifie les données utilisées pour rendre une page. Choisissez une valeur qui change chaque fois que le contenu de la page change, comme un hachage de contenu, un numéro de version ou un horodatage mis à jour à partir de votre source de données. Astro effectue un nouveau rendu de la page lorsque sa clé de cache (`cacheKey`) diffère de la compilation précédente, et réutilise le résultat précédent lorsqu'elle est identique.
+
+```astro title="src/pages/blog/[slug].astro"
+---
+export async function getStaticPaths() {
+  const posts = await fetchPosts();
+
+  return posts.map((post) => ({
+    params: { slug: post.slug },
+    props: { post },
+    cacheKey: post.updatedAt,
+  }));
+}
+---
+```
+
+Lorsque vous générez des pages à partir d'une [collection de contenu](/fr/guides/content-collections/), un chargeur peut fournir un [`digest`](/fr/reference/content-loader-reference/#dataentrydigest) pour chaque entrée. Le chargeur est responsable de la mise à jour de cette valeur chaque fois que les données de l'entrée changent. Cela en fait une clé de cache (`cacheKey`) pratique :
+
+```astro title="src/pages/docs/[...slug].astro"
+---
+import { getCollection, render } from "astro:content";
+
+export async function getStaticPaths() {
+  const entries = await getCollection("docs");
+
+  return entries.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+    cacheKey: String(entry.digest),
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+```
+
+## Comment les pages sont invalidées
+
+Une page avec une clé de cache (`cacheKey`) correspondante est toujours rendue à nouveau lorsque le code dont elle dépend change. Astro hache le graphe de dépendances des modules de la page, y compris le contenu de ses mises en page, composants et fichiers importés, donc la modification de l'un d'entre eux invalide les pages qui les utilisent. Toute modification de la configuration d'Astro ou des dépendances du projet invalide l'intégralité du cache, car cela peut affecter le résultat final de chaque page.
+
+Les pages qui sont supprimées de `getStaticPaths()` entre les compilations voient leur sortie précédente nettoyée automatiquement.
+
+## Préservation du cache entre les compilations
+
+Astro stocke le cache incrémental dans le [`cacheDir`](/fr/reference/configuration-reference/#cachedir) de votre projet, qui est `node_modules/.astro/` par défaut. Il contient à la fois le manifeste de compilation et le résultat réutilisable des pages rendues précédemment. Le répertoire de sortie est vidé au début de chaque compilation, et les pages ignorées sont restaurées à partir de `cacheDir`.
+
+Pour que les pages soient ignorées dans un environnement d'intégration continue, `cacheDir` doit être restauré avant d'exécuter `astro build`. Mettez en cache et restaurez ce répertoire unique entre les compilations ; rien d'autre n'a besoin de persister. S'il est manquant, Astro effectue un nouveau rendu de chaque page.
+
+Pour ignorer le cache et effectuer un nouveau rendu de chaque page, exécutez `astro build --force`. Astro écrit toujours un nouveau cache pour la compilation suivante.
+
+## Limitations
+
+Cette fonctionnalité expérimentale présente actuellement les limitations suivantes :
+
+- **`build.concurrency`** : le cache incrémental est désactivé lorsque [`build.concurrency`](/fr/reference/configuration-reference/#buildconcurrency) est supérieur à `1`. Astro affiche un avertissement et effectue à nouveau le rendu de chaque page.
+
+- **Îlots de serveur** : les pages qui utilisent des [îlots de serveur](/fr/guides/server-islands/) intègrent des props avec une clé qui est [regénérée à chaque compilation par défaut](/fr/guides/server-islands/#réutilisation-de-la-clé-de-chiffrement). Elles sont rendues à nouveau à chaque fois. Pour mettre en cache ces pages et les réutiliser entre les compilations, définissez une clé `ASTRO_KEY` stable. La modification de la clé les invalide, garantissant que leur contenu intégré reste déchiffrable.
+
+- **Middleware** : les modifications apportées à votre [middleware](/fr/guides/middleware/) n'invalident pas les pages mises en cache. Si votre middleware modifie le HTML des pages pré-rendues, exécutez `astro build --force` après l'avoir modifié.

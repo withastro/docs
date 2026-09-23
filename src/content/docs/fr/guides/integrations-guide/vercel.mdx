@@ -251,7 +251,9 @@ export default defineConfig({
 });
 ```
 
-Notez que les demandes de fonctions de l'ISR ne comprennent pas de paramètres de recherche, comme [requests](/fr/reference/api-reference/#request) en mode statique.
+Notez que les requêtes des fonctions ISR n'incluent pas de paramètres de recherche, tout comme les [requêtes](/fr/reference/api-reference/#request) en mode statique.
+
+Par défaut, Astro intègre votre [middleware](/fr/guides/middleware/) dans la fonction ISR. Cela signifie qu'il ne s'exécute que lorsque cette fonction s'exécute : lors d'un défaut de cache ou d'une régénération, et non lors d'un accès au cache. Si votre middleware doit s'exécuter à chaque requête, définissez [`middlewareMode` sur `'edge'`](#exécution-du-middleware-astro-sur-les-fonctions-vercel-edge) pour le déployer en amont du cache. Vous pouvez également ajouter les routes concernées dans [`exclude`](#exclusion-des-chemins-daccès-de-la-mise-en-cache) afin que le cache ne s'applique jamais à celles-ci.
 
 #### Invalidation du cache de l'ISR
 
@@ -443,7 +445,9 @@ export default defineConfig({
 
 ### Exécution du middleware Astro sur les fonctions Vercel Edge
 
-L’adaptateur `@astrojs/vercel` peut créer une [fonction edge](https://vercel.com/docs/functions/edge-functions) à partir d’un middleware Astro dans votre base de code. Lorsque [`middlewareMode`](/fr/reference/adapter-reference/#middlewaremode) est défini sur `'edge'`, une fonction edge exécute votre code middleware pour toutes les requêtes, y compris les ressources statiques, les pages pré-rendues et les pages rendues à la demande.
+L'adaptateur `@astrojs/vercel` peut créer une [fonction edge](https://vercel.com/docs/functions/edge-functions) à partir d'un middleware Astro dans votre base de code. Lorsque [`middlewareMode` est défini sur `'edge'`, une fonction edge exécutera le code de votre middleware pour chaque requête vers une [route rendue à la demande](/fr/guides/on-demand-rendering/), y compris les routes mises en cache via [`isr`](#isr). Les ressources statiques et les pages pré-rendues sont diffusées depuis le système de fichiers de Vercel et n'invoquent pas votre middleware.
+
+Par défaut, le middleware intégré à la fonction ISR ne s'exécute qu'en cas de défaut de cache ou de régénération. Avec `middlewareMode: 'edge'`, le middleware s'exécute en amont du cache ISR, il s'exécute donc également lors des accès au cache. Cela signifie que chaque requête vers une route mise en cache déclenche une invocation de fonction edge.
 
 Pour les pages rendues à la demande, l'objet `context.locals` est sérialisé en utilisant du JSON et envoyé dans un en-tête pour la fonction serverless, qui effectue le rendu. Comme mesure de sécurité, la fonction serverless refusera de servir les requêtes avec une réponse `403 Forbidden` à moins qu'elles ne proviennent de la fonction edge générée.
 
