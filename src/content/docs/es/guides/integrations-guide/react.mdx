@@ -13,6 +13,10 @@ import Since from '~/components/Since.astro';
 
 Esta **[integración de Astro][astro-integration]** habilita el renderizado y la hidratación del lado del cliente para tus componentes de [React](https://es.react.dev/).
 
+:::tip[¿Actualizando a v7.0.0?]
+`@astrojs/react` v7.0.0 elimina la opción de integración `babel`. Consulta [Actualizar la integración de React a v7.0.0](#actualizar-la-integración-de-react-a-v700) para obtener instrucciones de migración.
+:::
+
 ## Instalación
 
 Astro incluye un comando `astro add` para automatizar la configuración de las integraciones oficiales. Si lo prefieres, puedes [instalar las integraciones manualmente](#instalación-manual) en su lugar.
@@ -223,6 +227,93 @@ export default defineConfig({
 });
 ```
 
+### React Compiler
+
+<p>
+
+**Tipo:** `boolean | object`<br />
+**Por defecto:** `false`<br />
+<Since v="7.0.0" pkg="@astrojs/react" />
+</p>
+
+Por defecto, `@astrojs/react` usa [Oxc](https://oxc.rs/) para compilar tu JSX y habilitar Fast Refresh. No memoiza tus componentes ni hooks.
+
+Establece `compiler: true` para memoizar automáticamente los componentes y hooks del cliente con el [compilador experimental de React de Oxc](https://oxc.rs/docs/guide/usage/transformer/react-compiler). Esto puede reducir los renderizados innecesarios sin tener que escribir `useMemo()`, `useCallback()`, o `React.memo()` tú mismo.
+
+El compilador requiere la instalación de [`oxc-transform-react`](https://www.npmjs.com/package/oxc-transform-react):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D oxc-transform-react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D oxc-transform-react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D oxc-transform-react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+El compilador apunta a la versión de React que tengas instalada. React 17 y 18 no incluyen los helpers de tiempo de ejecución del compilador. Si tu proyecto usa una de estas versiones, también instala [`react-compiler-runtime`](https://www.npmjs.com/package/react-compiler-runtime):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install react-compiler-runtime
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add react-compiler-runtime
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add react-compiler-runtime
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, habilita el compilador en tu integración de React:
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  integrations: [
+    react({ compiler: true }),
+  ],
+});
+```
+
+También puedes pasar un objeto para tener un control más preciso sobre la configuración del compilador.
+
+El siguiente ejemplo configura `compilationMode` para compilar solo los componentes y hooks marcados con una directiva `"use memo"`:
+
+```js title="astro.config.mjs" {7-9}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  integrations: [
+    react({
+      compiler: {
+        compilationMode: 'annotation',
+      },
+    }),
+  ],
+});
+```
+
+El compilador se aplica en cualquier lugar donde apliquen las [opciones `include` y `exclude`](#combining-multiple-jsx-frameworks) de la integración. Omite el renderizado en el servidor, las dependencias y los archivos `.astro`.
+
 ### Parseo de children
 
 Los children pasados a un componente de React desde un componente de Astro se parsean como cadenas de texto plano, no como nodos de React.
@@ -279,6 +370,66 @@ export default defineConfig({
   ]
 });
 ```
+
+## Actualizar la integración de React a v7.0.0
+
+`@astrojs/react` v7.0.0 reemplaza Babel con [Oxc](https://oxc.rs/) para compilar JSX y habilitar Fast Refresh y se actualiza a `@vitejs/plugin-react` v6.
+
+### Eliminada: opción `babel`
+
+Configura transformaciones personalizadas de Babel con [`@rolldown/plugin-babel`](https://github.com/rolldown/plugins/tree/main/packages/babel) en [`vite.plugins`](/es/reference/configuration-reference/#vite) en lugar de la opción `babel` eliminada.
+
+Instala `@rolldown/plugin-babel` y `@babel/core`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, mueve tus plugins y presets de Babel a un plugin `babel()` en `vite.plugins`.
+
+El siguiente ejemplo mueve `babel-plugin-styled-components` fuera de la opción `babel` eliminada:
+
+```js title="astro.config.mjs" del={7-11} ins={2,12,14-20}
+import react from '@astrojs/react';
+import babel from '@rolldown/plugin-babel';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [
+    react({
+      babel: {
+        plugins: ['babel-plugin-styled-components'],
+      },
+    }),
+    react(),
+  ],
+  vite: {
+    plugins: [
+      babel({
+        plugins: ['babel-plugin-styled-components'],
+      }),
+    ],
+  },
+});
+```
+
+Para las transformaciones condicionales configuradas previamente con un callback de `babel`, consulta los [`overrides` y hooks de presets de `@rolldown/plugin-babel`](https://github.com/rolldown/plugins/tree/main/packages/babel#options).
+
+Puedes combinar `babel()` con [`compiler: true`](#react-compiler). Si tu configuración de Babel incluye `babel-plugin-react-compiler`, elimínalo primero. Esto evita aplicar las transformaciones del React Compiler dos veces a los mismos componentes.
 
 [astro-integration]: /es/guides/integrations/
 
