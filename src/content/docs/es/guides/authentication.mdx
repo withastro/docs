@@ -4,7 +4,7 @@ description: Una introducción a la autenticación en Astro
 i18nReady: true
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
@@ -17,7 +17,7 @@ La autenticación te permite personalizar áreas de tu sitio para personas que h
 No hay una solución oficial de autenticación para Astro, pero puedes encontrar [integraciones de "auth" de la comunidad](https://astro.build/integrations/?search=auth) en el directorio de integraciones.
 :::
 
-<ReadMore>Consulta como [agregar autenticación con Supabase](/es/guides/backend/supabase/#agregar-autenticación-con-supabase) o [agregar autenticación con Firebase](/es/guides/backend/firebase/#agregando-autenticación-con-firebase) en nuestras guías dedicadas para estos servicios de backend.</ReadMore>
+<ReadMore>Consulta como [agregar autenticación con Supabase](/es/guides/backend/supabase/#agregar-autenticación-con-supabase) o [agregar autenticación con Firebase](/es/guides/backend/firebase/#agregando-autenticación-con-firebase) o [agregar autenticación con Scalekit](/es/guides/backend/scalekit/#adding-authentication-with-scalekit) en nuestras guías dedicadas para estos servicios de backend.</ReadMore>
 
 ## Better Auth
 
@@ -66,9 +66,9 @@ Sigue la [Guía de Better Auth en Astro](https://www.better-auth.com/docs/integr
 
 ### Uso
 
-Better Auth ofrece un asistente `createAuthClient` para varios frameworks, incluidos Vanilla JS, React, Vue, Svelte y Solid.
+Better Auth ofrece un helper `createAuthClient()` para varios frameworks, incluidos Vanilla JS, React, Vue, Svelte y Solid.
 
-Por ejemplo, para crear un cliente para React, importa el ayudante desde `'better-auth/react'`:
+Por ejemplo, para crear un cliente para React, importa el helper desde `'better-auth/react'`:
 
 <UIFrameworkTabs>
   <Fragment slot="react">
@@ -113,19 +113,26 @@ Una vez configurado el cliente, puedes utilizarlo para autenticar usuarios en tu
 
 ```astro title="src/pages/index.astro"
 ---
-import Layout from 'src/layouts/Base.astro';
+import Layout from "../layouts/Base.astro";
 ---
+
 <Layout>
   <button id="login">Login</button>
   <button id="logout">Logout</button>
 
   <script>
-    const { signIn, signOut } = await import("./lib/auth-client")
-    document.querySelector("#login").onclick = () => signIn.social({
-      provider: "github",
-      callbackURL: "/dashboard",
-    })
-    document.querySelector("#logout").onclick = () => signOut()
+    const { signIn, signOut } = await import("../lib/auth-client");
+    const loginButton = document.querySelector<HTMLButtonElement>("#login");
+    const logoutButton = document.querySelector<HTMLButtonElement>("#logout");
+
+    if (!loginButton || !logoutButton) throw new Error("Buttons not found");
+
+    loginButton.onclick = () =>
+      signIn.social({
+        provider: "github",
+        callbackURL: "/dashboard",
+      });
+    logoutButton.onclick = () => signOut();
   </script>
 </Layout>
 ```
@@ -134,35 +141,52 @@ A continuación, puedes utilizar el objeto `auth` para obtener los datos de sesi
 
 ```astro title="src/pages/index.astro"
 ---
-import { auth } from "../../../lib/auth"; // importa tu instancia de Better Auth
+import { auth } from "../lib/auth"; // importa tu instancia de Better Auth
 
 export const prerender = false; // Innecesario en modo 'server'
- 
+
 const session = await auth.api.getSession({
-	headers: Astro.request.headers,
+  headers: Astro.request.headers,
 });
 ---
 
 <p>{session.user?.name}</p>
 ```
 
-También puedes utilizar el objeto `auth` para proteger tus rutas mediante middleware. El siguiente ejemplo comprueba si un usuario que intenta acceder a una ruta del panel de control en la que ha iniciado sesión está autenticado y, si no es así, lo redirige a la página de inicio.
+También puedes utilizar el objeto `auth` para proteger tus rutas. El siguiente ejemplo utiliza [el enrutamiento avanzado de Astro](/es/guides/routing/#enrutamiento-avanzado) con [Hono](https://hono.dev/) para requerir una sesión autenticada en todas las rutas bajo `/dashboard`, redirigiendo a la página de inicio en caso contrario:
 
-```ts title="src/middleware.ts"
-import { auth } from "../../../auth"; // importa tu instancia de Better Auth
-import { defineMiddleware } from "astro:middleware";
- 
-export const onRequest = defineMiddleware(async (context, next) => {
-	const isAuthed = await auth.api
-		.getSession({
-			headers: context.request.headers,
-		})
-	if (context.url.pathname === "/dashboard" && !isAuthed) {
-		return context.redirect("/");
-	}
-	return next();
-});
+```ts title="src/fetch.ts"
+import { Hono, type Context, type Next } from "hono";
+import { astro } from "astro/hono";
+import { auth } from "./lib/auth"; // importa tu instancia de Better Auth
+
+const app = new Hono();
+
+// Protege todas las rutas bajo /dashboard.
+app.use("/dashboard", requireAuth);
+app.use("/dashboard/*", requireAuth);
+
+// Ejecuta el pipeline integrado de Astro para todas las demás solicitudes.
+app.use(astro());
+
+export default app;
+
+async function requireAuth(c: Context, next: Next) {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session) {
+    return c.redirect("/");
+  }
+  return next();
+}
 ```
+
+:::caution
+No hay garantía de que el pathname público que ve un middleware sea el mismo que la ruta que Astro resuelve internamente: una `base` configurada, la codificación de la URL y las barras duplicadas pueden hacer que difieran. Un atacante puede explotar esta brecha para acceder a una ruta protegida con un pathname que tu comprobación no reconozca.
+
+No autorices solicitudes comparando `context.url.pathname` con una cadena de texto (p. ej. `context.url.pathname === "/dashboard"` o `context.url.pathname.startsWith("/dashboard")`). En su lugar, restringe el acceso en un enrutador que resuelva las rutas por ti.
+:::
 
 ### Siguientes pasos
 
@@ -207,37 +231,67 @@ Clerk proporciona componentes que te permiten controlar la visibilidad de las p�
 
 ```astro title="src/pages/index.astro"
 ---
-import Layout from 'src/layouts/Base.astro';
-import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+import Layout from "../layouts/Base.astro";
+import { Show, UserButton, SignInButton } from "@clerk/astro/components";
 
 export const prerender = false; // Innecesario en modo 'server'
 ---
+
 <Layout>
-    <SignedIn>
-        <UserButton />
-    </SignedIn>
-    <SignedOut>
-        <SignInButton />
-    </SignedOut>
+  <Show when="signed-in">
+    <UserButton />
+  </Show>
+  <Show when="signed-out">
+    <SignInButton />
+  </Show>
 </Layout>
 ```
 
-Clerk también te permite proteger rutas en el servidor usando middleware. Especifica qué rutas están protegidas y pide a los usuarios no autenticados que inicien sesión:
+Clerk también te permite proteger rutas en el servidor usando middleware:
 
-```ts title="src/middleware.ts"
-import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+<Steps>
 
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/forum(.*)',
-]);
+1. Configura `clerkMiddleware()` como el manejador de `onRequest` en tu middleware:
 
-export const onRequest = clerkMiddleware((auth, context) => {
-  if (!auth().userId && isProtectedRoute(context.request)) {
-    return auth().redirectToSignIn();
-  }
-});
-```
+    ```ts title="src/middleware.ts"
+    import { clerkMiddleware } from "@clerk/astro/server";
+
+    export const onRequest = clerkMiddleware({
+      /* opciones */
+    });
+    ```
+
+2. Accede al estado de autenticación en tus páginas y rutas de API con `locals.auth()`. Esto te permite comprobar si un usuario está autenticado y tomar las acciones adecuadas (p. ej. redirigir a la página de inicio de sesión o devolver una respuesta diferente).
+
+    <Tabs>
+      <TabItem label="Pages">
+      ```astro title="src/pages/dashboard.astro"
+      ---
+      const { isAuthenticated, redirectToSignIn } = Astro.locals.auth();
+
+      if (!isAuthenticated) return redirectToSignIn();
+      ---
+
+      <h1>Dashboard</h1>
+      ```
+      </TabItem>
+      <TabItem label="API routes">
+      ```ts title="src/pages/api/data.ts"
+      import type { APIRoute } from "astro";
+
+      export const GET: APIRoute = ({ locals }) => {
+        const { isAuthenticated, userId } = locals.auth();
+
+        if (!isAuthenticated) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
+        return Response.json({ userId });
+      };
+      ```
+      </TabItem>
+    </Tabs>
+</Steps>
 
 ### Siguientes pasos
 
@@ -248,7 +302,7 @@ export const onRequest = clerkMiddleware((auth, context) => {
 
 [Lucia](https://lucia-auth.com/) es un recurso para implementar la autenticación basada en sesiones en varios frameworks, incluido Astro.
 
-### Guides
+### Guías
 
 <Steps>
 
@@ -265,6 +319,20 @@ export const onRequest = clerkMiddleware((auth, context) => {
 - [Ejemplo de correo electrónico y contraseña con 2FA en Astro](https://github.com/lucia-auth/example-astro-email-password-2fa)
 - [Ejemplo de correo electrónico y contraseña con 2FA y WebAuthn en Astro](https://github.com/lucia-auth/example-astro-email-password-webauthn)
 
+## Scalekit
+
+[Scalekit](https://scalekit.com/) es una plataforma de autenticación para aplicaciones B2B y de IA. Gestiona el flujo completo de OAuth 2.0 y OIDC, admitiendo métodos como el inicio de sesión social, SSO empresarial y enlaces mágicos. Luego, devuelve los tokens y un perfil de usuario sin requerir una UI de inicio de sesión personalizada.
+
+Un único entorno de Scalekit puede admitir múltiples aplicaciones. Esto te permite autenticarte una vez y compartir la misma sesión en todas tus propiedades (p. ej. `app.yourcompany.com` y `docs.yourcompany.com`).
+
+### Guía
+
+Sigue la [guía de Scalekit y Astro](/es/guides/backend/scalekit/) para agregar autenticación a tu proyecto SSR de Astro utilizando el inicio de sesión social, SSO empresarial y más.
+
+### Ejemplos
+
+- [Tutorial de un blog en Astro con autenticación de Scalekit (flujo de código de autorización)](https://github.com/scalekit-developers/astro-scalekit-auth-example)
+- [Código fuente del sitio de documentación para desarrolladores de Scalekit (flujo PKCE, sin SDK)](https://github.com/scalekit-inc/developer-docs)
 
 ## Recursos de la comunidad
 

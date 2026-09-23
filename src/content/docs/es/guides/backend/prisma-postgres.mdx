@@ -13,7 +13,7 @@ import ReadMore from '~/components/ReadMore.astro';
 
 [Prisma Postgres](https://www.prisma.io/) es una base de datos Postgres totalmente gestionada y sin servidor, diseñada para aplicaciones web modernas.
 
-## Conectar a través de Prisma ORM (recomendado)
+## Conectar con Prisma ORM (recomendado)
 
 [Prisma ORM](https://www.prisma.io/orm) es la forma recomendada de conectarse a tu base de datos Prisma Postgres. Proporciona consultas seguras en cuanto a tipos, migraciones y rendimiento global.
 
@@ -26,13 +26,13 @@ Ejecuta los siguientes comandos para instalar las dependencias necesarias de Pri
 
 ```bash
 npm install prisma tsx --save-dev
-npm install @prisma/extension-accelerate @prisma/client
+npm install @prisma/adapter-pg @prisma/client
 ```
 
 Una vez instalado, inicializa Prisma en tu proyecto con el siguiente comando:
 
 ```bash
-npx prisma init --db --output ../src/generated/prisma
+npx prisma init --db --output ./generated
 ```
 
 Deberás responder algunas preguntas mientras configuras tu base de datos Prisma Postgres. Selecciona la región más cercana a tu ubicación y un nombre fácil de recordar para tu base de datos, como "Mi proyecto Astro".
@@ -47,12 +47,10 @@ Aunque aún no necesites ningún modelo de datos específico, Prisma requiere al
 
 El siguiente ejemplo define un modelo `Post` como marcador. Añade el modelo a tu esquema para empezar. Puedes eliminarlo o sustituirlo más adelante por modelos que reflejen tus datos reales.
 
-Actualiza el proveedor del generador de `prisma-client-js` a `prisma-client` en tu archivo `prisma/schema.prisma`:
-
-```prisma title="prisma/schema.prisma" {2} ins={11-16}
+```prisma title="prisma/schema.prisma" ins={11-16}
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "./generated"
 }
 
 datasource db {
@@ -70,25 +68,33 @@ model Post {
 
 Más información sobre cómo configurar Prisma ORM en la [referencia del esquema de Prisma](https://www.prisma.io/docs/concepts/components/prisma-schema).
 
+### Generar cliente
+
+Ejecuta el siguiente comando para generar el Prisma Client a partir de tu esquema:
+
+```bash
+npx prisma generate
+```
+
 ### Generar archivos de migración
 
-Ejecuta el siguiente comando para crear las tablas de la base de datos y generar el cliente de Prisma a partir de tu esquema. Esto también creará un directorio `prisma/migrations/` con los archivos del historial de migraciones.
+Ejecuta el siguiente comando para crear las tablas de la base de datos y generar el Prisma Client a partir de tu esquema. Esto también creará un directorio `prisma/migrations/` con los archivos del historial de migraciones.
 
 ```bash
 npx prisma migrate dev --name init
 ```
 
-### Crear un cliente Prisma
+### Crear un Prisma Client
 
 Dentro de `/src/lib`, crea un archivo `prisma.ts`. Este archivo inicializará y exportará tu instancia de Prisma Client para que puedas consultar tu base de datos en todo tu proyecto de Astro.
 
 ```typescript title="src/lib/prisma.ts"
-import { PrismaClient } from "../generated/prisma/client";
-import { withAccelerate } from "@prisma/extension-accelerate";
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../../prisma/generated/client';
 
-const prisma = new PrismaClient({
-  datasourceUrl: import.meta.env.DATABASE_URL,
-}).$extends(withAccelerate());
+const connectionString = import.meta.env.DATABASE_URL;
+const adapter = new PrismaPg({ connectionString });
+const prisma = new PrismaClient({ adapter });
 
 export default prisma;
 ```
@@ -127,15 +133,17 @@ const posts = await prisma.post.findMany({
 
 Lo mejor es gestionar las consultas en una ruta API. Para obtener más información sobre cómo utilizar Prisma ORM en tu proyecto de Astro, consulta la [Guía de Astro + Prisma ORM](https://www.prisma.io/docs/guides/astro).
 
-## Conexión TCP directa
-Para conectarte a Prisma Postgres a través de TCP directo, puedes crear una cadena de conexión directa en tu consola de Prisma. Esto te permite conectar cualquier otro ORM, biblioteca de bases de datos o herramienta de tu elección.
+## Conectar con otros ORMs y bibliotecas
 
-### Prerrequisitos
-- Una base de datos [Prisma Postgres](https://pris.ly/ppg) con una cadena de conexión habilitada para TCP.
+Puedes conectarte a Prisma Postgres a través de TCP directo usando cualquier otro ORM, biblioteca de base de datos o herramienta de tu preferencia. Crea una cadena de conexión directa en tu Prisma Console para empezar.
 
-### Instalar dependecias
+### Requisitos previos
+- Un proyecto de Astro con un adaptador instalado para habilitar el [renderizado bajo demanda (SSR)](/es/guides/on-demand-rendering/).
+- Una base de datos de [Prisma Postgres](https://pris.ly/ppg) con una cadena de conexión con TCP habilitado.
 
-Este ejemplo establecerá una conexión TCP directa utilizando [`pg`, un cliente PostgreSQL para Node.js](https://github.com/brianc/node-postgres).
+### Instalar dependencias
+
+Este ejemplo usa [`pg`, un cliente PostgreSQL para Node.js](https://github.com/brianc/node-postgres) para realizar una conexión TCP directa.
 
 Ejecuta el siguiente comando para instalar el paquete `pg`:
 

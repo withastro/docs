@@ -465,16 +465,20 @@ Lorsque vous utilisez ces gestionnaires dans le point d'entrée de votre worker,
 
 Pour une utilisation avec [`astro/fetch`](/fr/reference/modules/astro-fetch/). La fonction `cf()` importée depuis `@astrojs/cloudflare/fetch` reçoit un objet [`FetchState`](/fr/reference/modules/astro-fetch/#fetchstate), l'environnement Cloudflare (`env`) et le contexte d'exécution (`ExecutionContext`). Elle renvoie une réponse (`Response`) pour les accès aux ressources statiques, ou `undefined` lorsque la requête doit se poursuivre avec le rendu Astro :
 
+<p><Since v="14.3.0" pkg="@astrojs/cloudflare" /></p>
+
+Transmettez le même `FetchState` et la réponse de votre pipeline Astro à `finalize()` avant de la renvoyer. Cela applique à la réponse les cookies produits lors du rendu et les en-têtes de cache par défaut de l'adaptateur pour le CDN de Cloudflare.
+
 ```ts title="src/worker.ts"
 import { astro, FetchState } from 'astro/fetch';
-import { cf } from '@astrojs/cloudflare/fetch';
+import { cf, finalize } from '@astrojs/cloudflare/fetch';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const state = new FetchState(request);
     const asset = await cf(state, env, ctx);
     if (asset) return asset;
-    return astro(state);
+    return finalize(state, await astro(state));
   },
 };
 ```
@@ -484,6 +488,8 @@ export default {
 <p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
 
 Pour une utilisation avec [`astro/hono`](/fr/reference/modules/astro-hono/). La fonction `cf()` importée depuis `@astrojs/cloudflare/hono` renvoie un middleware Hono qui lit automatiquement `env` et `executionCtx` depuis le contexte Hono :
+
+Dans la v14.3.0 et les versions ultérieures de `@astrojs/cloudflare`, ce middleware finalise également la réponse après l'exécution des gestionnaires Hono en aval. Les cookies produits lors du rendu et les en-têtes de cache par défaut de l'adaptateur pour le CDN de Cloudflare sont appliqués automatiquement.
 
 ```ts title="src/worker.ts"
 import { Hono } from 'hono';

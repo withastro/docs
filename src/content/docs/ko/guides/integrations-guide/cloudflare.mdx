@@ -389,12 +389,12 @@ Cloudflare `workerd` 런타임은 일부 [비표준 모듈 유형](https://devel
 
 다음은 요청의 숫자 매개변수를 함께 더하여 요청에 응답하는 Wasm 모듈을 가져오는 예시입니다.
 
-```js title="pages/add/[a]/[b].js"
+```js title="src/pages/add/[a]/[b].js"
 // WebAssembly 모듈 가져오기
 import mod from '../util/add.wasm';
 
 // 사용하려면 먼저 인스턴스화해야 합니다.
-const addModule: any = new WebAssembly.Instance(mod);
+const addModule = new WebAssembly.Instance(mod);
 
 export async function GET(context) {
   const a = Number.parseInt(context.params.a);
@@ -463,16 +463,20 @@ Cloudflare 어댑터는 [고급 라우팅 파이프라인](/ko/guides/routing/#�
 
 [`astro/fetch`](/ko/reference/modules/astro-fetch/)와 함께 사용하기 위한 API입니다. `@astrojs/cloudflare/fetch`에서 가져온 `cf()` 함수는 [`FetchState`](/ko/reference/modules/astro-fetch/#fetchstate), Cloudflare `env`, 그리고 `ExecutionContext`를 인자로 받습니다. 이 함수는 정적 자산과 일치할 때는 `Response`를 반환하고, 요청이 Astro 렌더링으로 계속 진행되어야 할 때는 `undefined`를 반환합니다.
 
+<p><Since v="14.3.0" pkg="@astrojs/cloudflare" /></p>
+
+같은 `FetchState`와 Astro 파이프라인에서 받은 응답을 반환하기 전에 `finalize()`에 전달하세요. 이렇게 하면 렌더링 중 생성된 쿠키와 어댑터의 기본 Cloudflare CDN 캐시 헤더가 응답에 적용됩니다.
+
 ```ts title="src/worker.ts"
 import { astro, FetchState } from 'astro/fetch';
-import { cf } from '@astrojs/cloudflare/fetch';
+import { cf, finalize } from '@astrojs/cloudflare/fetch';
 
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext) {
     const state = new FetchState(request);
     const asset = await cf(state, env, ctx);
     if (asset) return asset;
-    return astro(state);
+    return finalize(state, await astro(state));
   },
 };
 ```
@@ -482,6 +486,8 @@ export default {
 <p><Since v="13.6.0" pkg="@astrojs/cloudflare" /></p>
 
 [`astro/hono`](/ko/reference/modules/astro-hono/)와 함께 사용하기 위한 API입니다. `@astrojs/cloudflare/hono`에서 가져온 `cf()` 함수는 Hono 컨텍스트에서 `env`와 `executionCtx`를 자동으로 읽어오는 Hono 미들웨어를 반환합니다.
+
+`@astrojs/cloudflare` v14.3.0 이상에서는 이 미들웨어가 다운스트림 Hono 핸들러가 실행된 뒤 응답을 finalize합니다. 렌더링 중 생성된 쿠키와 어댑터의 기본 Cloudflare CDN 캐시 헤더가 자동으로 적용됩니다.
 
 ```ts title="src/worker.ts"
 import { Hono } from 'hono';
