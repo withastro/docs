@@ -64,16 +64,19 @@ Now, you can enable [on-demand rendering per page](/en/guides/on-demand-renderin
       <Fragment slot="npm">
       ```sh
       npm install @astrojs/cloudflare
+      npm install --save-dev cf
       ```
       </Fragment>
       <Fragment slot="pnpm">
       ```sh
       pnpm add @astrojs/cloudflare
+      pnpm add --save-dev cf
       ```
       </Fragment>
       <Fragment slot="yarn">
       ```sh
       yarn add @astrojs/cloudflare
+      yarn add --dev cf
       ```
       </Fragment>
     </PackageManagerTabs>
@@ -89,14 +92,20 @@ Now, you can enable [on-demand rendering per page](/en/guides/on-demand-renderin
    });
    ```
 
-3. Astro will automatically generate a default configuration, using the package.json name field or the folder name as the Worker name. You can optionally create a [Wrangler configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/) if you need custom settings. This example declares Cloudflare KV bindings:
+3. Astro will automatically generate a default configuration, using the package.json name field or the folder name as the Worker name. You can optionally create a [`cf` configuration file](https://developers.cloudflare.com/workers/wrangler/configuration/) if you need custom settings. This example declares Cloudflare KV bindings:
 
-   ```jsonc title="wrangler.jsonc"
-   {
-     "name": "my-astro-app",
-     // Add your bindings here, e.g.:
-     // "kv_namespaces": [{ "binding": "MY_KV", "id": "<namespace_id>" }]
-   }
+   ```ts title="cloudflare.config.ts"
+   import { bindings, defineConfig } from 'cf/config';
+
+   export default defineConfig({
+     worker: {
+       name: 'my-astro-app',
+       compatibilityDate: '2026-09-23',
+       env: {
+         MY_KV: bindings.kv(),
+       },
+     },
+   });
    ```
 </Steps>
 
@@ -168,7 +177,7 @@ export default defineConfig({
 <Since v="12.4.0" pkg="@astrojs/cloudflare" />
 </p>
 
-Sets the name of the KV binding used for session storage. By default, the KV namespace is automatically provisioned when you deploy, and is named `SESSION`. You can change this name by setting the binding manually in your wrangler config. See [Sessions](#sessions) for more information.
+Sets the name of the KV binding used for session storage. By default, the KV namespace is automatically provisioned when you deploy, and is named `SESSION`. You can change this name by setting the binding manually in your `cf` config. See [Sessions](#sessions) for more information.
 
 ```js title="astro.config.mjs" "MY_SESSION_BINDING"
 export default defineConfig({
@@ -178,14 +187,18 @@ export default defineConfig({
 });
 ```
 
-```jsonc title="wrangler.jsonc"
-{
-  "kv_namespaces": [
-    {
-      "binding": "MY_SESSION_BINDING",
-    }
-  ]
-}
+```ts title="cloudflare.config.ts"
+import { bindings, defineConfig } from 'cf/config';
+
+export default defineConfig({
+  worker: {
+    name: 'my-astro-app',
+    compatibilityDate: '2026-09-23',
+    env: {
+      MY_SESSION_BINDING: bindings.kv(),
+    },
+  },
+});
 ```
 
 ### `imagesBindingName`
@@ -195,7 +208,7 @@ export default defineConfig({
 **Default:** `IMAGES`
 </p>
 
-Sets the name of the Images binding used when [`imageService`](#imageservice) is set to `cloudflare-binding`. By default, the binding is automatically provisioned with the name `IMAGES` when you deploy. You can change it by setting the binding manually in your wrangler config:  
+Sets the name of the Images binding used when [`imageService`](#imageservice) is set to `cloudflare-binding`. By default, the binding is automatically provisioned with the name `IMAGES` when you deploy. You can change it by setting the binding manually in your `cf` config:
 
 ```js title="astro.config.mjs" "MY_IMAGES"
 export default defineConfig({
@@ -206,12 +219,18 @@ export default defineConfig({
 });
 ```
 
-```jsonc title="wrangler.jsonc"
-{
-  "images": {
-    "binding": "MY_IMAGES"
-  }
-}
+```ts title="cloudflare.config.ts"
+import { bindings, defineConfig } from 'cf/config';
+
+export default defineConfig({
+  worker: {
+    name: 'my-astro-app',
+    compatibilityDate: '2026-09-23',
+    env: {
+      MY_IMAGES: bindings.images(),
+    },
+  },
+});
 ```
 
 ### `prerenderEnvironment`
@@ -245,26 +264,32 @@ The Cloudflare runtime gives you access to environment variables, bindings to Cl
 
 ### Environment variables and bindings
 
-Environment variables and bindings are defined in your `wrangler.jsonc` configuration file.
+Environment variables and bindings are defined in your `cloudflare.config.ts` configuration file.
 
 
 
-Define [environment variables](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) that do not store sensitive information in `wrangler.jsonc`:
+Define [environment variables](https://developers.cloudflare.com/workers/configuration/environment-variables/#add-environment-variables-via-wrangler) that do not store sensitive information in `cloudflare.config.ts`:
 
-```jsonc title="wrangler.jsonc"
-{
-  "vars": {
-    "MY_VARIABLE": "test",
+```ts title="cloudflare.config.ts"
+import { bindings, defineConfig } from 'cf/config';
+
+export default defineConfig({
+  worker: {
+    name: 'my-astro-app',
+    compatibilityDate: '2026-09-23',
+    env: {
+      MY_VARIABLE: bindings.text('test'),
+    },
   },
-}
+});
 ```
 
-[Secrets](https://developers.cloudflare.com/workers/configuration/secrets/) are a special type of environment variable that allow you to attach encrypted text values to your Worker. They need to be defined differently to ensure they are not visible within Wrangler or Cloudflare dashboard after you set them.
+[Secrets](https://developers.cloudflare.com/workers/configuration/secrets/) are a special type of environment variable that allow you to attach encrypted text values to your Worker. They need to be defined differently to ensure they are not visible within `cf` or Cloudflare dashboard after you set them.
 
-To define `secrets`, add them through the [Wrangler CLI](https://developers.cloudflare.com/workers/wrangler/) rather than in your Wrangler config file:
+To define `secrets`, add them through the [`cf` CLI](https://developers.cloudflare.com/workers/wrangler/) rather than in your `cf` config file:
 
 ```bash
-npx wrangler secret put <KEY>
+npx cf deploy --secrets-file .secrets
 ```
 
 To set secrets for local development, add a `.dev.vars` file to the root of the Astro project:
@@ -290,7 +315,7 @@ They are also compatible with the [`astro:env` API](/en/guides/environment-varia
 import { MY_VARIABLE } from 'astro:env/server';
 ```
 
-See the [list of all supported bindings](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings) in the Cloudflare documentation.
+See the [list of all supported bindings](https://developers.cloudflare.com/workers/wrangler/api/#supported-bindings) in the `cf` documentation.
 
 ### The `cf` object
 
@@ -317,20 +342,20 @@ cfContext.waitUntil(someAsyncOperation());
 
 ### Typing
 
-`wrangler` provides a [`types`](https://developers.cloudflare.com/workers/wrangler/commands/#types) command to generate TypeScript types for your bindings. This allows you to type your environment without the need for manual type definitions.
+`cf` provides a [`types`](https://developers.cloudflare.com/workers/wrangler/commands/#types) command to generate TypeScript types for your bindings. This allows you to type your environment without the need for manual type definitions.
 
-Run `wrangler types` every time you change your configuration files (e.g. `wrangler.jsonc`, `.dev.vars`).
+Run `cf types` every time you change your configuration files (e.g. `cloudflare.config.ts`, `.dev.vars`).
 
 :::note
-The following example shows a script configuration to run `wrangler types` automatically before other commands:
+The following example shows a script configuration to run `cf types` automatically before other commands:
 
 ```json title="package.json"
 {
   "scripts": {
-    "dev": "wrangler types && astro dev",
-    "start": "wrangler types && astro dev",
-    "build": "wrangler types && astro check && astro build",
-    "preview": "wrangler types && astro preview",
+    "dev": "cf types && astro dev",
+    "start": "cf types && astro dev",
+    "build": "cf types && astro check && astro build",
+    "preview": "cf types && astro preview",
     "astro": "astro"
   }
 }
@@ -360,7 +385,7 @@ Routing for static assets is based on the file structure in the build directory 
 
 The Astro [Sessions API](/en/guides/sessions/) allows you to easily store user data between requests. This can be used for things like user data and preferences, shopping carts, and authentication credentials. Unlike cookie storage, there are no size limits on the data, and it can be restored on different devices.
 
-Astro automatically configures [Workers KV](https://developers.cloudflare.com/kv/) for session storage when using the Cloudflare adapter. Wrangler can [automatically provision](https://developers.cloudflare.com/workers/wrangler/configuration/#automatic-provisioning) the KV namespace when you deploy, so no manual setup is required. Alternatively, you can define the KV binding manually in your `wrangler.jsonc` file and set a custom binding name using the [`sessionKVBindingName`](#sessionkvbindingname) adapter option.
+Astro automatically configures [Workers KV](https://developers.cloudflare.com/kv/) for session storage when using the Cloudflare adapter. `cf` can [automatically provision](https://developers.cloudflare.com/workers/wrangler/configuration/#automatic-provisioning) the KV namespace when you deploy, so no manual setup is required. Alternatively, you can define the KV binding manually in your `cloudflare.config.ts` file and set a custom binding name using the [`sessionKVBindingName`](#sessionkvbindingname) adapter option.
 
 ```astro title="src/components/CartButton.astro"
 ---
@@ -411,12 +436,18 @@ While this example is trivial, Wasm can be used to accelerate computationally in
 
 Cloudflare Workers support most Node.js runtime APIs through the `nodejs_compat` compatibility flag. This includes commonly used modules like `node:buffer`, `node:crypto`, `node:path`, and many others. See the [full list of supported Node.js APIs](https://developers.cloudflare.com/workers/runtime-apis/nodejs) in Cloudflare's documentation.
 
-To enable Node.js compatibility, add the `nodejs_compat` flag to your Wrangler configuration:
+To enable Node.js compatibility, add the `nodejs_compat` flag to your `cf` configuration:
 
-```jsonc title="wrangler.jsonc"
-{
-  "compatibility_flags": ["nodejs_compat"],
-}
+```ts title="cloudflare.config.ts"
+import { defineConfig } from 'cf/config';
+
+export default defineConfig({
+  worker: {
+    name: 'my-astro-app',
+    compatibilityDate: '2026-09-23',
+    compatibilityFlags: ['nodejs_compat'],
+  },
+});
 ```
 
 Then use the `node:*` import syntax in your server-side code:
@@ -426,7 +457,7 @@ export const prerender = false; // Not needed in 'server' mode
 import { Buffer } from 'node:buffer';
 ```
 
-For Node.js APIs not yet supported in the Workers runtime, Wrangler can inject polyfills (requires `nodejs_compat` and a compatibility date of 2024-09-23 or later).
+For Node.js APIs not yet supported in the Workers runtime, `cf` can inject polyfills (requires `nodejs_compat` and a compatibility date of 2024-09-23 or later).
 
 <ReadMore>See the [Cloudflare documentation on Node.js compatibility](https://developers.cloudflare.com/workers/runtime-apis/nodejs/) for the complete list of supported APIs and configuration details.</ReadMore>
 
@@ -436,7 +467,7 @@ After building your project with `astro build`, use `astro preview` to test your
 
 ### Meaningful error messages
 
-By default, errors occurring while running your application in Wrangler are minified. For better debugging, add `vite.build.minify = false` to your `astro.config.mjs`:  
+By default, errors occurring while running your application in `cf` are minified. For better debugging, add `vite.build.minify = false` to your `astro.config.mjs`:
 
 ```js title="astro.config.mjs" ins={3-7}
 export default defineConfig({
@@ -505,6 +536,55 @@ app.use(pages());
 app.use(i18n());
 
 export default app;
+```
+
+## Upgrading to v14 and Astro 7.4.0
+
+The new version of the adapter drops the use of `wrangler` in favor of the new `cf` CLI.
+
+The v14 of the adapter requires Astro v7.4
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```shell
+    npm uninstall wrangler
+    npm install cf
+    npm install astro@v7.4.0.beta.0
+    npm install @astojs/cloudflare@v14.0.0-beta.0
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```shell
+    pnpm uninstall wrangler
+    pnpm add cf
+    pnpm add astro@v7.4.0.beta.0
+    pnpm add @astojs/cloudflare@v14.0.0-beta.0
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```shell
+    yarn uninstall wrangler
+    yarn add cf
+    yarn add astro@v7.4.0.beta.0
+    yarn add @astojs/cloudflare@v14.0.0-beta.0
+    ```
+  </Fragment>
+</PackageManagerTabs>
+
+Migrate the Wrangler configuration to the new `cloudflare.config.ts`
+
+```ts ins="cf/config" ins="bindings" ins="defineConfig"
+import { bindings, defineConfig } from 'cf/config';
+
+export default defineConfig({
+  worker: {
+    name: 'my-astro-app',
+    compatibilityDate: '2026-09-23',
+    env: {
+      MY_KV: bindings.kv(),
+    },
+  },
+});
 ```
 
 ## Upgrading to v13 and Astro 6
