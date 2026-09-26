@@ -164,33 +164,47 @@ export default function(config: Config): SessionDriver {
 
 ## Unstorageとの互換性
 
-Unstorageのドライバー型は、Astroの`SessionDriver`型と互換性があります。
+[ビルトインドライバー](#ビルトインドライバー)はUnstorageと同じドライバーを提供します。より高度なカスタマイズが必要な場合は、任意の[Unstorageドライバー](https://unstorage.unjs.io/drivers)を基にして、[独自のドライバーを構築](#セッションドライバーの構築)できます。
 
-つまり、Unstorageパッケージのエクスポートを[エントリポイント](#entrypoint)として使用できます。例：
+`unstorage`パッケージをインストールして、ドライバーの指定子を[エントリポイント](#entrypoint)として渡します。
 
 ```ts title="driver/config.ts" {5}
-import type { SessionDriverConfig } from 'astro'
+import type { SessionDriverConfig } from "astro";
 
 export function configuredRedisDriver(): SessionDriverConfig {
-    return {
-        entrypoint: 'unstorage/drivers/redis',
-        config: {
-            tls: true
-        }
-    }
+  return {
+    entrypoint: "unstorage/drivers/redis",
+    config: {
+      tls: true,
+    },
+  };
 }
 ```
 
-あるいは、実装の中でUnstorageドライバーを直接インポートして使用することも可能です。例：
+また、Unstorageドライバーをインポートして、自身の実装の中でラップすることもできます。これは、ドライバーに追加の処理を加えたり、[実行時に設定を上書き](/ja/guides/sessions/#実行時に設定を上書きする)したりする場合に便利です。
 
-```ts title="driver/runtime.ts" {2}
-import type { SessionDriver } from 'astro'
-import redisDriver from "unstorage/drivers/redis";
+以下の例では、Redisドライバーの`ttl`のデフォルト値を7日間に設定しています。
 
-export default function(config): SessionDriver {
-    return redisDriver({
-        ...config,
-        tls: true
-    })
+```ts title="driver/runtime.ts"
+import type { SessionDriver } from "astro";
+import redisDriver, { type RedisOptions } from "unstorage/drivers/redis";
+
+export default function (config: RedisOptions): SessionDriver {
+  const driver = redisDriver({
+    ...config,
+    ttl: config.ttl ?? 60 * 60 * 24 * 7, // デフォルト値を7日間に設定
+  });
+
+  return {
+    async getItem(key) {
+      return await driver.getItem(key);
+    },
+    async setItem(key, value) {
+      await driver.setItem?.(key, value, {});
+    },
+    async removeItem(key) {
+      await driver.removeItem?.(key, {});
+    },
+  };
 }
 ```
