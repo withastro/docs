@@ -1,0 +1,292 @@
+---
+title: Sätteri API Reference
+sidebar:
+  label: 'Sätteri'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="6.4.0" /></p>
+
+[Sätteri](https://satteri.bruits.org/) is the default Markdown processor in Astro. The `@astrojs/markdown-satteri` package is optional and can be installed to enable Sätteri-specific features and plugins. It also provides a set of helpers and types helpful when building integrations or plugins.
+
+For features and usage examples, see [Markdown processors](/en/guides/markdown-content/#markdown-processors) in the Markdown guide.
+
+## Imports from `@astrojs/markdown-satteri`
+
+The following helpers are imported from `@astrojs/markdown-satteri`:
+
+```ts
+import {
+  createSatteriMarkdownProcessor,
+  isSatteriProcessor,
+  satteri,
+  satteriHeadingIdsPlugin,
+} from "@astrojs/markdown-satteri";
+```
+
+### `createSatteriMarkdownProcessor()`
+
+<p>
+
+**Type:** <code>(opts?: <a href="#satterimarkdownprocessoroptions">SatteriMarkdownProcessorOptions</a> | undefined) => Promise\<<a href="/en/reference/markdown-processors/unified/#markdownrenderer">MarkdownRenderer</a>\></code>
+</p>
+
+Creates a standalone Sätteri-based Markdown renderer. This is useful when you need to render Markdown independently of a project's [configured `markdown.processor`](/en/reference/configuration-reference/#markdownprocessor).
+
+```ts title="src/utils/markdown.ts"
+import { createSatteriMarkdownProcessor } from "@astrojs/markdown-satteri";
+
+const processor = await createSatteriMarkdownProcessor();
+const { code, metadata } = await processor.render("# Hello world");
+```
+
+### `isSatteriProcessor()`
+
+<p>
+
+**Type:** `(p: { name: string; }) => boolean`
+</p>
+
+Determines whether the given processor is Sätteri. This is useful when you need to check the type of a processor before applying Sätteri-specific logic.
+
+The following example checks, within an integration, whether the configured Markdown processor is Sätteri:
+
+```ts title="src/integrations/my-integration.ts" {9-11}
+import { isSatteriProcessor } from "@astrojs/markdown-satteri";
+import type { AstroIntegration } from "astro";
+
+export default function myIntegration(): AstroIntegration {
+  return {
+    name: "my-integration",
+    hooks: {
+      "astro:config:done": ({ config }) => {
+        if (isSatteriProcessor(config.markdown.processor)) {
+          // Apply Sätteri-specific logic here
+        }
+      },
+    },
+  };
+}
+```
+
+### `satteri()`
+
+<p>
+
+**Type:** <code>(options?: <a href="#options">SatteriProcessorOptions</a>) => <a href="/en/reference/markdown-processors/unified/#markdownprocessor">MarkdownProcessor</a></code>
+</p>
+
+Creates a Sätteri-based Markdown processor to render `.md` and `.mdx` files. Pass it to [`markdown.processor`](/en/reference/configuration-reference/#markdownprocessor) to customize the Markdown rendering behavior.
+
+<ReadMore>Learn more about [setting up a Markdown processor](/en/guides/markdown-content/#setting-up-a-markdown-processor) and [using mdast and hast plugins](/en/guides/markdown-content/#markdown-processor-plugins) in the Markdown guide.</ReadMore>
+
+#### Options
+
+<p>
+
+**Type:** `SatteriProcessorOptions`
+</p>
+
+You can customize the Sätteri processor behavior with the following options.
+
+##### `options.mdastPlugins`
+
+<p>
+
+**Type:** `MdastPluginList | undefined`<br />
+**Default:** `[]`
+</p>
+
+Pass [Sätteri mdast plugins](https://satteri.bruits.org/docs/plugins/#mdast-plugins) to customize how your Markdown is built.
+
+The following example passes the [`satteri-emoji`](https://www.npmjs.com/package/satteri-emoji) plugin to the Sätteri processor:
+
+```js title="astro.config.mjs" {2,7}
+import { satteri } from "@astrojs/markdown-satteri";
+import { satteriEmoji } from "satteri-emoji";
+
+export default {
+  markdown: {
+    processor: satteri({
+      mdastPlugins: [satteriEmoji],
+    }),
+  },
+};
+```
+
+##### `options.hastPlugins`
+
+<p>
+
+**Type:** `HastPluginList | undefined`<br />
+**Default:** `[]`
+</p>
+
+Pass [Sätteri hast plugins](https://satteri.bruits.org/docs/plugins/#hast-plugins) to customize how your HTML is generated from the Markdown content.
+
+The following example passes the [`satteri-custom-header-id`](https://www.npmjs.com/package/satteri-custom-header-id) plugin to the Sätteri processor:
+
+```js title="astro.config.mjs" {2,7}
+import { satteri } from "@astrojs/markdown-satteri";
+import { satteriCustomHeaderId } from "satteri-custom-header-id";
+
+export default {
+  markdown: {
+    processor: satteri({
+      hastPlugins: [satteriCustomHeaderId],
+    }),
+  },
+};
+```
+
+##### `options.features`
+
+<p>
+
+**Type:** [`SatteriFeatures`](https://satteri.bruits.org/docs/features/)<br />
+**Default:** `{}`
+</p>
+
+Customize the [features available in Sätteri](https://satteri.bruits.org/docs/features/).
+
+The following properties use a different default in Astro.
+
+###### `options.features.smartPunctuation`
+
+<p>
+
+**Type:** `boolean | object`<br />
+**Default:** `true`
+</p>
+
+Whether to use [smart punctuation](/en/guides/markdown-content/#smart-punctuation) to convert straight quotes to curly quotes, double hyphens to em dashes, and three dots to ellipses.
+
+You can either disable it or provide a configuration object with the [properties supported by Sätteri](https://satteri.bruits.org/docs/features/#smart-punctuation) to customize its behavior.
+
+The following example disables smart punctuation support:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from "astro/config";
+import { satteri } from "@astrojs/markdown-satteri";
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      smartPunctuation: false,
+    }),
+  },
+});
+```
+
+<ReadMore>Learn more about configuring [smart punctuation](/en/guides/markdown-content/#smart-punctuation) in the Markdown guide.</ReadMore>
+
+### `satteriHeadingIdsPlugin()`
+
+<p>
+
+**Type:** `HastPluginEntry`
+</p>
+
+Generates and collects heading IDs for all headings in the Markdown content. This makes them [available when importing or rendering Markdown content](/en/guides/markdown-content/#available-properties).
+
+<ReadMore>See [heading IDs and plugins](/en/guides/markdown-content/#heading-ids-and-plugins) in the Markdown guide for usage example.</ReadMore>
+
+## `@astrojs/markdown-satteri` types
+
+The following types are imported from `@astrojs/markdown-satteri`:
+
+```ts
+import type {
+  SatteriAstroData,
+  SatteriMarkdownProcessorOptions,
+} from "@astrojs/markdown-satteri";
+```
+
+### `SatteriAstroData`
+
+<p>
+
+**Type:** <code>\{ frontmatter: Record\<string, any\>; headings: <a href="/en/reference/markdown-processors/unified/#markdownheading">MarkdownHeading</a>[]; localImagePaths: Set\<string\>; remoteImagePaths: Set\<string\>; \}</code><br />
+<Since v="0.3.1" pkg="@astrojs/markdown-satteri" />
+</p>
+
+Describes the Astro-specific data available in a Sätteri plugin via `ctx.data.astro`.
+
+#### `SatteriAstroData.frontmatter`
+
+<p>
+
+**Type:** `Record<string, any>`
+</p>
+
+Contains the properties injected by a plugin into the frontmatter of Markdown or MDX content.
+
+<ReadMore>Learn more about [modifying the frontmatter programmatically](/en/guides/markdown-content/#modifying-frontmatter-programmatically) in the Markdown guide.</ReadMore>
+
+#### `SatteriAstroData.headings`
+
+<p>
+
+**Type:** <code><a href="/en/reference/markdown-processors/unified/#markdownheading">MarkdownHeading</a>[]</code>
+</p>
+
+A list of collected headings in the Markdown content.
+
+#### `SatteriAstroData.localImagePaths`
+
+<p>
+
+**Type:** `Set<string>`
+</p>
+
+An array of local image paths referenced in the Markdown content itself.
+
+#### `SatteriAstroData.remoteImagePaths`
+
+<p>
+
+**Type:** `Set<string>`
+</p>
+
+An array of remote image paths referenced in the Markdown content itself.
+
+### `SatteriMarkdownProcessorOptions`
+
+<p>
+
+**Type:** <code><a href="/en/reference/configuration-reference/#markdown-options">AstroMarkdownOptions</a> & \{ mdastPlugins?: MdastPluginList; hastPlugins?: HastPluginList; features?: SatteriFeatures; \}</code>
+</p>
+
+Describes the Markdown processor configuration. This contains all the [`markdown` options](/en/reference/configuration-reference/#markdown-options) plus the following.
+
+#### `SatteriMarkdownProcessorOptions.mdastPlugins`
+
+<p>
+
+**Type:** `MdastPluginList`
+</p>
+
+A list of [Sätteri mdast plugins](https://satteri.bruits.org/docs/plugins/#mdast-plugins) to pass to the processor.
+
+#### `SatteriMarkdownProcessorOptions.hastPlugins`
+
+<p>
+
+**Type:** `HastPluginList`
+</p>
+
+A list of [Sätteri hast plugins](https://satteri.bruits.org/docs/plugins/#hast-plugins) to pass to the processor.
+
+#### `SatteriMarkdownProcessorOptions.features`
+
+<p>
+
+**Type:** [`SatteriFeatures`](https://satteri.bruits.org/docs/features/)
+</p>
+
+Contains the configuration of features to enable or disable in the Sätteri processor.
