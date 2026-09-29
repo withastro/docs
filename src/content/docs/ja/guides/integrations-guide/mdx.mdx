@@ -133,11 +133,11 @@ export const title = 'My first MDX post'
 
 ```astro title="src/pages/index.astro"
 ---
-const matches = import.meta.glob('./posts/*.mdx', { eager: true });
+const matches = import.meta.glob("./posts/*.mdx", { eager: true });
 const posts = Object.values(matches);
 ---
 
-{posts.map(post => <p>{post.title}</p>)}
+{posts.map((post: any) => <p>{post.title}</p>)}
 ```
 
 #### エクスポートされたプロパティ
@@ -147,7 +147,7 @@ const posts = Object.values(matches);
 - **`file`** - 絶対ファイルパス（例：`/home/user/projects/.../file.mdx`）。
 - **`url`** - ページのURL（例：`/ja/guides/markdown-content`）。
 - **`frontmatter`** - ファイルのYAML/TOMLフロントマターで指定されたデータが含まれています。
-- **`getHeadings()`** - ファイル内のすべての見出し（`<h1>`から`<h6>`）の配列を返す非同期関数。型は`{ depth: number; slug: string; text: string }[]`です。各見出しの`slug`は、特定の見出しに対して生成されたIDに対応し、アンカーリンクに使用できます。
+- **`getHeadings()`** - ファイル内のすべての見出し（`<h1>`から`<h6>`）の配列を返す非同期関数。型は`{ depth: number; slug: string; text: string }[]`です。各見出しの`slug`は、特定の見出しに対して生成されたIDに対応し、アンカーリンクに使用できます。ファイルからインポートされた見出しは含みません。
 - **`<Content />`** - ファイルの完全にレンダリングされたコンテンツを返すコンポーネント。
 - **（任意の`export`値）** - MDXファイルは、`export`ステートメントを使用してデータをエクスポートすることもできます。
 
@@ -240,11 +240,15 @@ MDXファイルがコンテンツコレクションのエントリである場�
 
 ```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
 ---
-import { getEntry, render } from 'astro:content';
-import CustomHeading from '../../components/CustomHeading.astro';
-const entry = await getEntry('blog', 'post-1');
+import { getEntry, render } from "astro:content";
+import CustomHeading from "../../components/CustomHeading.astro";
+const entry = await getEntry("blog", "post-1");
+if (!entry) {
+  throw new Error("Entry not found");
+}
 const { Content } = await render(entry);
 ---
+
 <Content components={{ h1: CustomHeading }} />
 ```
 
@@ -262,26 +266,29 @@ MDXインテグレーションをインストールすると、Astroプロジェ
 
 ### Markdown設定から継承されたオプション
 
-すべての[`markdown`設定オプション](/ja/reference/configuration-reference/#markdown-options)は、MDXインテグレーションで個別に設定できます。これには[Markdownプロセッサ](#processor)や構文ハイライトなどが含まれます。オプションは、Markdown設定のオプションにデフォルト設定されます（これを変更するには、[`extendMarkdownConfig`オプション](#extendmarkdownconfig)を参照してください）。
+デフォルトでは、すべての[`markdown`設定オプション](/ja/reference/configuration-reference/#markdown-options)は、MDXインテグレーションを継承します。MDXインテグレーションに渡されたオプションは、継承された`markdown`設定を上書きします。`markdown`オプションの継承を完全に無視するには、[`extendMarkdownConfig`](#extendmarkdownconfig)オプションを使用してください。
 
-```js title="astro.config.mjs"
+以下の例は、別の[シンタックスハイライティング](/ja/guides/syntax-highlighting/)テーマを使用し、[プラグイン](/ja/guides/markdown-content/#markdown-processor-plugins)を追加し、[GitHubのようなMarkdown](/ja/guides/markdown-content/#github-flavored-markdown)を無効にするために、MDXインテグレーションを設定しています。
+
+```js title="astro.config.mjs" {12-20}
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
+import { satteri } from '@astrojs/markdown-satteri';
 import mdx from '@astrojs/mdx';
-import remarkToc from 'remark-toc';
-import rehypePresetMinify from 'rehype-preset-minify';
+import { myMdastPlugin } from './my-satteri-plugin.mjs';
 
 export default defineConfig({
   // ...
+  markdown: {
+    shikiConfig: { theme: 'rose-pine' },
+  },
   integrations: [
     mdx({
-      syntaxHighlight: 'shiki',
+      // 別のシンタックスハイライティングテーマを使用します。
       shikiConfig: { theme: 'dracula' },
-      processor: unified({
-        remarkPlugins: [remarkToc],
-        rehypePlugins: [rehypePresetMinify],
-        remarkRehype: { footnoteLabel: 'Footnotes' },
-        gfm: false
+      // プラグインを追加して、GitHubのようなMarkdownを無効にします。
+      processor: satteri({
+        mdastPlugins: [myMdastPlugin()],
+        features: { gfm: false },
       }),
     }),
   ],
@@ -301,19 +308,44 @@ export default defineConfig({
 
 デフォルトでは、`.mdx`ファイルは`.md`ファイルと同じ[Markdownプロセッサ](/ja/guides/markdown-content/#markdownプロセッサの選択)でレンダリングされます。`.mdx`ファイルにのみ別のプロセッサ、または同じプロセッサを異なるオプションで使用したい場合は、`processor`を設定します。
 
-たとえば、`.md`ファイルにはデフォルトのremark/rehypeプロセッサを使い続けながら、`.mdx`ファイルは`@astrojs/markdown-satteri`を使って[Sätteri](https://satteri.bruits.org/)でレンダリングするには、次のようにします。
+たとえば、`.md`ファイルにはデフォルトのremarkおよびrehypeプロセッサを使い続けながら、`.mdx`ファイルは`@astrojs/markdown-remark`を使って[Sätteri](https://satteri.bruits.org/)でレンダリングするには、次のようにします。
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
+import { unified } from '@astrojs/markdown-remark';
 import mdx from '@astrojs/mdx';
 
 export default defineConfig({
   integrations: [
-    mdx({ processor: satteri() }),
+    mdx({ processor: unified() }),
   ],
 });
 ```
+
+#### recmaプラグインの使用
+
+<p><Since v="8.0.0" pkg="@astrojs/mdx" /></p>
+
+recmaプラグインは、[estree](https://github.com/estree/estree)の出力を直接変更します。これはMDXファイルにJavaScript変数を変更したり注入したりする場合に便利です。また、`.md`ファイルには影響を及ぼしません。
+
+recmaプラグインは、[Unifiedプロセッサ](/ja/guides/markdown-content/#when-to-use-unified)でのみサポートされます。`@astrojs/markdown-remark`からインポートした`unified()`の`recmaPlugins`オプションに渡してください。
+
+```js title="astro.config.mjs" {3-4,8}
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
+import myRecmaPlugin from './my-recma-plugin.mjs';
+
+export default defineConfig({
+  integrations: [
+    mdx({ processor: unified({ recmaPlugins: [myRecmaPlugin] }) }),
+  ],
+});
+```
+
+これらのプラグインは[`markdown.processor`](/ja/guides/markdown-content/#markdownprocessor)に対して設定することもできます。MDXはデフォルトで[Markdown設定を拡張](#extendmarkdownconfig)するため、`.mdx`ファイルは引き続きこれらのプラグインを実行します。
+
+[AST Explorer](https://astexplorer.net/)を使用してestreeの出力を操作したり、[`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit)を使ってJavaScriptノード全体にわたる検索を試したりすることをお勧めします。
 
 ### `extendMarkdownConfig`
 
@@ -330,23 +362,25 @@ MDXは、デフォルトで[プロジェクトの既存のMarkdown設定](/ja/re
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin1 from "./src/mdast-plugin-1";
+import mdastPlugin2 from "./src/mdast-plugin-2";
 
 export default defineConfig({
   // ...
   markdown: {
-    syntaxHighlight: 'prism',
-    processor: unified({ remarkPlugins: [remarkPlugin1] }),
+    syntaxHighlight: "prism",
+    processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
       // Markdownの`syntaxHighlight`が上書きされ、
       // `.mdx`ファイルでは代わりにShikiが使われます。
-      syntaxHighlight: 'shiki',
+      syntaxHighlight: "shiki",
 
       // `markdown.processor`は、このオプションによって`.mdx`ファイル用に上書きされます
-      processor: unified({ remarkPlugins: [remarkPlugin2] }),
+      processor: satteri({ mdastPlugins: [mdastPlugin2] }),
     }),
   ],
 });
@@ -356,25 +390,32 @@ MDXで`markdown`設定の拡張を無効にする必要がある場合もあり�
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { unified } from '@astrojs/markdown-remark';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin from "./src/mdast-plugin";
 
 export default defineConfig({
   // ...
   markdown: {
-    processor: unified({ remarkPlugins: [remarkPlugin] }),
+    processor: satteri({ mdastPlugins: [mdastPlugin] }),
   },
   integrations: [
     mdx({
       // Markdown設定は無視されるようになります
       extendMarkdownConfig: false,
-      // デフォルトの`unified()`プロセッサが使われます
+      // デフォルトの`satteri()`プロセッサが使われます
     }),
   ],
 });
 ```
 
 ### `recmaPlugins`
+
+:::caution[非推奨]
+このオプションは非推奨であり、将来のメジャーバージョンで削除される予定です。代わりに`recmaPlugins`を設定された[`processor`](#processor)に渡してください。
+
+詳細については[recmaプラグインの使用](#recmaプラグインの使用)を参照してください。
+:::
 
 <p>
 
@@ -384,6 +425,8 @@ export default defineConfig({
 </p>
 
 これらは、出力[estree](https://github.com/estree/estree)を直接変更するプラグインです。これは、MDXファイルでJavaScript変数を変更または挿入する場合に便利です。
+
+Astro v7以降、デフォルトのマークダウンプロセッサはrecmaプラグインをサポートしなくなりました。プロジェクトがこれに依存している場合、[`unified()`プロセッサ](/ja/guides/markdown-content/#setting-up-a-markdown-processor)を使用できます。
 
 [AST Explorer](https://astexplorer.net/)を使用してestree出力を試したり、[`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/)を使用してJavaScriptノードを検索したりすることをお勧めします。
 
@@ -430,10 +473,10 @@ export default defineConfig({
 
 たとえば、次の意図したMDX出力は、すべての`"<h1>...</h1>"`の代わりに`<Heading>...</Heading>`です。
 
-```astro
+```astro title="src/pages/any-page.astro"
 ---
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
+import { Content, components } from "../content.mdx";
+import Heading from "../components/Heading.astro";
 ---
 
 <Content components={{ ...components, h1: Heading }} />
