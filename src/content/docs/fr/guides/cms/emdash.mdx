@@ -4,14 +4,235 @@ description: Ajouter du contenu à votre projet Astro en utilisant EmDash comme 
 sidebar:
   label: EmDash
 type: cms
-stub: true
 logo: emdash
 i18nReady: true
 ---
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
 [EmDash](https://emdashcms.com/) est un CMS open-source full-stack conçu spécifiquement pour Astro, ajoutant du contenu reposant sur une base de données, une interface d'administration, une bibliothèque multimédia, des menus et des taxonomies à votre site.
 
+:::tip
+Pour démarrer un **nouveau projet Astro + EmDash à partir de zéro**, utilisez la CLI d'EmDash pour générer un projet préconfiguré :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm create emdash@latest
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm create emdash@latest
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn create emdash@latest
+  ```
+  </Fragment>
+</PackageManagerTabs>
+:::
+
+## Intégration avec Astro
+
+EmDash s'exécute au sein de votre projet Astro et s'appuie sur une base de données. Vous pouvez accéder à l'interface d'administration à l'adresse `/_emdash/admin` pour modifier le contenu. Vos pages l'afficheront en interrogeant la base de données à l'aide des [collections de contenu en direct](/fr/guides/content-collections/#collections-de-contenu-en-direct).
+
+Ce guide utilise l'[adaptateur Node.js](/fr/guides/integrations-guide/node/) et une base de données SQLite locale. Consultez la [documentation d'EmDash pour obtenir la liste des bases de données prises en charge](https://docs.emdashcms.com/deployment/database/).
+
+## Prérequis
+
+- Un projet Astro existant (Astro 6 ou une version ultérieure) configuré [avec un adaptateur](/fr/guides/on-demand-rendering/) et [`output: "server"`](/fr/reference/configuration-reference/#output).
+- Node.js v22.16.0 ou version ultérieure.
+
+## Installation des dépendances
+
+React propulse l'interface d'administration d'EmDash et est une dépendance requise. Si votre projet n'utilise pas React, installez-le à l'aide de la commande `astro add` pour votre gestionnaire de paquets :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Vous devez également installer le paquet EmDash :
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install emdash
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add emdash
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add emdash
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Ajout de l'intégration
+
+Ajoutez l'intégration `emdash()` à votre fichier de configuration d'Astro, puis configurez une base de données ainsi qu'un backend de stockage multimédia :
+
+```js title="astro.config.mjs" ins={4-5, 12-18}
+import { defineConfig } from "astro/config";
+import node from "@astrojs/node";
+import react from "@astrojs/react";
+import emdash, { local } from "emdash/astro";
+import { sqlite } from "emdash/db";
+
+export default defineConfig({
+  output: "server",
+  adapter: node({ mode: "standalone" }),
+  integrations: [
+    react(),
+    emdash({
+      database: sqlite({ url: "file:./data.db" }),
+      storage: local({
+        directory: "./uploads",
+        baseUrl: "/_emdash/api/media/file",
+      }),
+    }),
+  ],
+});
+```
+
+## Ajout du chargeur de collections en direct
+
+Créez un fichier `src/live.config.ts` afin que la couche de contenu d'Astro puisse résoudre le contenu d'EmDash :
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from "astro:content";
+import { emdashLoader } from "emdash/runtime";
+
+export const collections = {
+  _emdash: defineLiveCollection({ loader: emdashLoader() }),
+};
+```
+
+La collection `_emdash` redirige en interne vers vos types de contenu (par exemple, articles et pages). Toutes les collections existantes reposant sur des fichiers dans `src/content.config.ts` continuent de fonctionner parallèlement à celle-ci.
+
+## Exécution d'EmDash en local
+
+EmDash nécessite que vous complétiez l'assistant de configuration avant de tester vos propres pages. Tant que la configuration n'est pas terminée, aucun contenu n'est publié et les requêtes renvoient des résultats vides.
+
+<Steps>
+1. Démarrez le serveur de développement d'Astro pour initialiser la base de données et lancer l'interface d'administration :
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm run dev
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm run dev
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn run dev
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+
+    Lors de la première exécution, EmDash crée `data.db` avec son schéma et deux collections par défaut : `pages` et `posts`.
+
+2. Rendez-vous sur `http://localhost:4321/_emdash/admin` dans le navigateur. EmDash vous redirige vers l'assistant de configuration.
+
+3. Dans l'étape **Site**, saisissez un titre de site et un slogan facultatif.
+
+4. Dans l'étape **Compte**, saisissez votre adresse e-mail et votre nom. Cela crée le compte administrateur.
+
+5. Dans l'étape **Se connecter**, sécurisez votre compte. Choisissez **Créer une clé d'accès** pour enregistrer une clé d'accès avec l'authentification biométrique de votre appareil, une clé de sécurité ou un code PIN.
+
+6. Connectez-vous avec votre nouvelle clé d'accès pour accéder au tableau de bord.
+</Steps>
+
+## Création de votre premier article
+
+<Steps>
+1. Dans le tableau de bord, cliquez sur le bouton **+ Post**.
+
+2. Ajoutez un titre et du contenu. EmDash stocke le texte enrichi au format [Portable Text](https://github.com/portabletext/portabletext), modifié dans un éditeur de blocs. Un slug d'URL est généré à partir du titre et peut être modifié dans la barre latérale.
+
+3. Cliquez sur **Enregistrer**, puis sur **Publier**. Seuls les articles publiés sont visibles par les visiteurs du site.
+</Steps>
+
+## Affichage du contenu EmDash
+
+Interrogez votre contenu avec `getEmDashCollection()` et `getEmDashEntry()`. Les deux suivent le modèle des collections en direct et renvoient les résultats au moment de la requête, de sorte que les modifications publiées apparaissent sans nouvelle compilation.
+
+### Affichage d'une liste d'articles
+
+L'exemple suivant affiche une liste de tous les titres d'articles publiés, chacun étant lié à une page d'article individuelle :
+
+```astro title="src/pages/blog.astro"
+---
+import { getEmDashCollection } from "emdash";
+
+const { entries: posts } = await getEmDashCollection("posts", {
+  status: "published",
+});
+---
+<ul>
+  {posts.map((post) => (
+    <li>
+      <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
+    </li>
+  ))}
+</ul>
+```
+
+### Affichage d'un article individuel
+
+Pour afficher le contenu d'un article individuel, récupérez-le par son slug et affichez le contenu Portable Text avec le composant `<PortableText />` :
+
+```astro title="src/pages/posts/[...slug].astro"
+---
+import { getEmDashEntry } from "emdash";
+import { PortableText } from "emdash/ui";
+
+const { slug } = Astro.params;
+const { entry: post } = await getEmDashEntry("posts", slug);
+
+if (!post) {
+  return Astro.redirect("/404");
+}
+---
+<article>
+  <h1>{post.data.title}</h1>
+  <PortableText value={post.data.content} />
+</article>
+```
+
+Consultez le [guide d'interrogation d'EmDash](https://docs.emdashcms.com/guides/querying-content/) pour plus d'informations sur le filtrage, la pagination, l'aperçu des brouillons et l'édition visuelle.
+
+## Déploiement d'EmDash + Astro
+
+EmDash se déploie en même temps que votre site sous la forme d'un projet Astro unique. Choisissez un hébergeur prenant en charge votre adaptateur, puis configurez une base de données de production et un espace de stockage multimédia.
+
+Consultez le [guide de déploiement d'EmDash pour Node.js](https://docs.emdashcms.com/deployment/nodejs/) et le [guide de déploiement d'EmDash pour Cloudflare](https://docs.emdashcms.com/deployment/cloudflare/) pour obtenir des instructions détaillées. Vous pouvez également consulter les [guides de déploiement](/fr/guides/deploy/) d'Astro et suivre les instructions pour effectuer le déploiement auprès de l'hébergeur de votre choix.
+
 ## Ressources officielles
 
-- [Documentation EmDash pour les développeurs Astro](https://docs.emdashcms.com/coming-from/astro/)
+- [Documentation d'EmDash pour les développeurs Astro](https://docs.emdashcms.com/coming-from/astro/)
 - [EmDash sur GitHub](https://github.com/emdash-cms/emdash)

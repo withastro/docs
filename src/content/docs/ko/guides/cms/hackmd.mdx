@@ -1,0 +1,218 @@
+---
+title: HackMD & Astro
+description: HackMD를 CMS로 사용하여 Astro 프로젝트에 콘텐츠 추가
+sidebar:
+  label: HackMD
+type: cms
+stub: false
+logo: hackmd
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[HackMD](https://hackmd.io/)는 협업 Markdown 편집기이자 퍼블리싱 플랫폼입니다. HackMD에서 콘텐츠를 관리하고 Astro 프로젝트에 표시하기 위해 API를 사용할 수 있습니다.
+
+## Astro와 통합
+
+이 가이드는 노트를 가져오기 위해 공식 [`@hackmd/api`](https://github.com/hackmdio/api-client) 클라이언트를, Markdown 콘텐츠를 렌더링하기 위해 [`markdown-it`](https://github.com/markdown-it/markdown-it)을 사용합니다.
+
+### 전제 조건
+
+시작하려면 다음이 필요합니다.
+
+1. **Astro 프로젝트** - 아직 Astro 프로젝트가 없다면 [설치 가이드](/ko/install-and-setup/)를 참조하여 즉시 설치하고 실행할 수 있습니다.
+2. **HackMD 계정** - [무료로 가입](https://hackmd.io/join)할 수 있습니다.
+3. **HackMD 액세스 토큰** - [HackMD 설정](https://hackmd.io/settings#api)의 API 섹션에서 생성하세요.
+4. **공개적으로 읽을 수 있는 노트 최소 1개** - 예시가 사이트에 안전하게 게시할 수 있도록 노트의 읽기 권한을 **Everyone**으로 설정하세요.
+
+### 자격 증명 설정
+
+프로젝트 루트에 `.env` 파일을 만들고 HackMD 액세스 토큰을 추가하세요:
+
+```ini title=".env"
+HACKMD_API_ACCESS_TOKEN=<YOUR_ACCESS_TOKEN>
+```
+
+이 변수에 `PUBLIC_` 접두사를 붙이지 마세요. 이렇게 하면 토큰이 서버 측 코드에서만 사용 가능하도록 유지되어 Astro가 브라우저에 노출하는 것을 방지할 수 있습니다.
+
+<ReadMore>Astro의 [환경 변수](/ko/guides/environment-variables/) 및 `.env` 파일에 대해 자세히 알아보세요.</ReadMore>
+
+### 종속성 설치
+
+HackMD API 클라이언트와 Markdown 렌더러를 설치하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @hackmd/api markdown-it
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @hackmd/api markdown-it
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @hackmd/api markdown-it
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### HackMD 구성
+
+새 `src/lib/` 디렉터리에 `hackmd.ts` 파일을 만드세요. 이 파일은 API 클라이언트를 초기화하고, Markdown을 렌더링하며, 각 노트에 URL 친화적인 식별자를 생성합니다:
+
+```ts title="src/lib/hackmd.ts"
+import { API } from '@hackmd/api';
+import MarkdownIt from 'markdown-it';
+
+export const client = new API(import.meta.env.HACKMD_API_ACCESS_TOKEN);
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  typographer: true,
+});
+
+export function renderMarkdown(content: string) {
+  return md.render(content);
+}
+
+export function getNoteSlug(note: { permalink: string | null; shortId: string }) {
+  return note.permalink ?? note.shortId;
+}
+```
+
+`html: false` 옵션은 노트의 원시 HTML이 생성된 페이지에 직접 전달되는 것을 방지합니다. 표준 Markdown은 여전히 HTML로 렌더링됩니다.
+
+프로젝트에서 다음 파일들을 사용합니다:
+
+<FileTree title="Project Structure">
+- src/
+  - lib/
+    - **hackmd.ts**
+  - pages/
+    - **index.astro**
+    - notes/
+      - **[slug].astro**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Astro와 HackMD로 블로그 만들기
+
+이 예시는 공개적으로 읽을 수 있는 노트의 인덱스와 각 노트마다 정적으로 생성된 페이지를 만듭니다.
+
+### 노트 목록 표시하기
+
+`src/pages/index.astro`에서 `getNoteList()`를 사용하여 노트를 가져오세요. 공개 사이트에는 `guest` 읽기 권한이 있는 노트만 포함되도록 결과를 필터링합니다:
+
+```astro title="src/pages/index.astro"
+---
+import { client, getNoteSlug } from '../lib/hackmd';
+
+const notes = await client.getNoteList();
+const publicNotes = notes.filter((note) => note.readPermission === 'guest');
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro + HackMD</title>
+  </head>
+  <body>
+    <main>
+      <h1>My HackMD notes</h1>
+      <ul>
+        {
+          publicNotes.map((note) => (
+            <li>
+              <a href={`/notes/${getNoteSlug(note)}/`}>{note.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </main>
+  </body>
+</html>
+```
+
+:::caution
+액세스 토큰은 계정의 비공개 노트도 읽을 수 있습니다. 생성된 사이트에 다른 노트를 의도적으로 포함하려는 경우가 아니라면 `guest` 권한 필터를 유지하세요.
+:::
+
+### 노트 페이지 생성하기
+
+모든 공개 노트에 대한 정적 페이지를 생성하려면 `src/pages/notes/[slug].astro`를 만드세요. 노트 목록에서 경로와 노트 ID를 제공한 뒤, `getNote()`가 해당 페이지의 전체 Markdown 콘텐츠를 가져옵니다:
+
+```astro title="src/pages/notes/[slug].astro"
+---
+import { client, getNoteSlug, renderMarkdown } from '../../lib/hackmd';
+
+export async function getStaticPaths() {
+  const notes = await client.getNoteList();
+
+  return notes
+    .filter((note) => note.readPermission === 'guest')
+    .map((note) => ({
+      params: { slug: getNoteSlug(note) },
+      props: { noteId: note.id },
+    }));
+}
+
+interface Props {
+  noteId: string;
+}
+
+const { noteId } = Astro.props;
+const note = await client.getNote(noteId);
+const content = renderMarkdown(note.content);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{note.title}</title>
+  </head>
+  <body>
+    <main>
+      <article>
+        <Fragment set:html={content} />
+      </article>
+    </main>
+  </body>
+</html>
+```
+
+:::caution
+Astro의 [`set:html` 지시어](/ko/reference/directives-reference/#sethtml)는 HTML 문자열을 이스케이프하지 않고 삽입합니다. 이 예시는 먼저 원시 HTML이 비활성화된 상태로 `markdown-it`에 노트를 전달합니다. 신뢰할 수 있는 작성자를 위해 `html` 옵션을 활성화한다면 렌더링된 결과를 `set:html`에 전달하기 전에 새니타이즈하세요.
+:::
+
+### 추가 HackMD 구문 지원하기
+
+HackMD는 작업 목록, 각주, 컨테이너, 목차와 같은 기능을 위해 확장이 포함된 `markdown-it`을 사용합니다. 위의 최소 구성은 표준 Markdown을 처리합니다. 노트에 필요한 [`markdown-it` 플러그인](https://www.npmjs.com/search?q=keywords%3Amarkdown-it-plugin)만 설치하세요.
+
+### 사이트 게시
+
+웹사이트를 배포하려면 [배포 가이드](/ko/guides/deploy/)를 방문하여 선호하는 호스팅 제공업체의 지침을 따르세요.
+
+프로젝트가 Astro의 기본 정적 모드를 사용한다면 HackMD에서 변경한 내용을 게시하기 위해 새로 빌드해야 합니다. 호스팅 제공업체에서 지원한다면 HackMD가 [웹훅 이벤트](https://hackmd.io/@docs/webhooks-events)를 보낼 때 새 빌드를 자동으로 트리거하도록 웹훅 기능을 사용할 수 있습니다.
+
+## 공식 리소스
+
+- [HackMD API 문서](https://hackmd.io/@docs/developer-portal)
+- [HackMD OpenAPI 문서](https://api.hackmd.io/v1/docs)
+
+## 커뮤니티 자료
+
+- [`daily-oops`](https://github.com/Yukaii/daily-oops) - HackMD를 CMS로 사용하는 블로그
+- [`astro-hackmd`](https://github.com/EastSun5566/astro-hackmd) - HackMD를 CMS로 사용하는 최소 Astro 사이트

@@ -160,7 +160,7 @@ git checkout -b add/partial-hydration-typo-fix
 ```
 ### Opening a PR
 
-One you have made your changes using any of the above methods, you’re ready to create a “Pull Request!”
+Once you have made your changes using any of the above methods, you’re ready to create a “Pull Request!”
 
 This will let the Astro docs team know you have some changes to propose. At this point we can give you feedback and might request changes. For translations, we like to have at least one other person who knows the language you are translating into review the PR.
 

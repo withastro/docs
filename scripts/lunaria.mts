@@ -1,13 +1,12 @@
-import { createLunaria } from '@lunariajs/core';
+import { createLunaria, generateDashboard } from '@lunariajs/core';
 import { mkdirSync, writeFileSync } from 'node:fs';
-import { Page, SvgSummary } from './lunaria/components.ts';
+import { join } from 'node:path';
+import { SvgSummary } from './lunaria/summary.ts';
 
 const lunaria = await createLunaria();
 const status = await lunaria.getFullStatus();
 
-const html = Page(lunaria.config, status, lunaria);
-const svg = SvgSummary(lunaria.config, status);
-
-mkdirSync('dist/lunaria', { recursive: true });
-writeFileSync('dist/lunaria/index.html', html);
-writeFileSync('dist/lunaria/summary.svg', svg);
+const outDir = lunaria.config.outDir;
+mkdirSync(outDir, { recursive: true });
+writeFileSync(join(outDir, 'index.html'), generateDashboard(lunaria.config, status));
+writeFileSync(join(outDir, 'summary.svg'), SvgSummary(lunaria.config, status));

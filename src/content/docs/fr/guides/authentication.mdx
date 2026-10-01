@@ -4,7 +4,7 @@ description: Une introduction à l'authentification avec Astro
 i18nReady: true
 ---
 
-import { Steps } from '@astrojs/starlight/components'
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
 import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
 import ReadMore from '~/components/ReadMore.astro'
@@ -66,11 +66,9 @@ Suivez le [guide Astro de Better Auth](https://www.better-auth.com/docs/integrat
 
 ### Utilisation
 
-Better Auth propose un assistant `createAuthClient` pour divers frameworks, dont Vanilla JS, React, Vue, Svelte et Solid.
+Better Auth propose un assistant `createAuthClient()` pour divers frameworks, dont Vanilla JS, React, Vue, Svelte et Solid.
 
 Par exemple, pour créer un client pour React, importez l'assistant depuis `'better-auth/react'` :
-
-
 
 <UIFrameworkTabs>
   <Fragment slot="react">
@@ -116,19 +114,26 @@ Une fois votre client configuré, vous pouvez l'utiliser pour authentifier les u
 
 ```astro title="src/pages/index.astro"
 ---
-import Layout from 'src/layouts/Base.astro';
+import Layout from "../layouts/Base.astro";
 ---
+
 <Layout>
   <button id="login">Se connecter</button>
   <button id="logout">Se déconnecter</button>
 
   <script>
-    const { signIn, signOut } = await import("./lib/auth-client")
-    document.querySelector("#login").onclick = () => signIn.social({
-      provider: "github",
-      callbackURL: "/dashboard",
-    })
-    document.querySelector("#logout").onclick = () => signOut()
+    const { signIn, signOut } = await import("../lib/auth-client");
+    const loginButton = document.querySelector<HTMLButtonElement>("#login");
+    const logoutButton = document.querySelector<HTMLButtonElement>("#logout");
+
+    if (!loginButton || !logoutButton) throw new Error("Buttons not found");
+
+    loginButton.onclick = () =>
+      signIn.social({
+        provider: "github",
+        callbackURL: "/dashboard",
+      });
+    logoutButton.onclick = () => signOut();
   </script>
 </Layout>
 ```
@@ -137,12 +142,12 @@ Vous pouvez ensuite utiliser l'objet `auth` pour obtenir les données de session
 
 ```astro title="src/pages/index.astro"
 ---
-import { auth } from "../../../lib/auth"; // importe votre instance Better Auth
+import { auth } from "../lib/auth"; // importez votre instance Better Auth
 
 export const prerender = false; // Pas nécessaire en mode `server`
- 
+
 const session = await auth.api.getSession({
-	headers: Astro.request.headers,
+  headers: Astro.request.headers,
 });
 ---
 
@@ -152,9 +157,9 @@ const session = await auth.api.getSession({
 Vous pouvez également utiliser l'objet `auth` pour protéger vos routes. L'exemple suivant utilise [le routage avancé d'Astro](/fr/guides/routing/#routage-avancé) avec [Hono](https://hono.dev/) pour exiger une session authentifiée pour chaque route sous `/dashboard`, en redirigeant vers la page d'accueil dans le cas contraire :
 
 ```ts title="src/fetch.ts"
-import { Hono } from "hono";
+import { Hono, type Context, type Next } from "hono";
 import { astro } from "astro/hono";
-import { auth } from "../auth"; // importez votre instance Better Auth
+import { auth } from "./lib/auth"; // importez votre instance Better Auth
 
 const app = new Hono();
 
@@ -167,12 +172,14 @@ app.use(astro());
 
 export default app;
 
-async function requireAuth(c, next) {
-	const session = await auth.api.getSession({ headers: c.req.raw.headers });
-	if (!session) {
-		return c.redirect("/");
-	}
-	return next();
+async function requireAuth(c: Context, next: Next) {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session) {
+    return c.redirect("/");
+  }
+  return next();
 }
 ```
 
@@ -225,38 +232,67 @@ Clerk fournit des composants qui vous permettent de contrôler la visibilité de
 
 ```astro title="src/pages/index.astro"
 ---
-import Layout from 'src/layouts/Base.astro';
-import { SignedIn, SignedOut, UserButton, SignInButton } from '@clerk/astro/components';
+import Layout from "../layouts/Base.astro";
+import { Show, UserButton, SignInButton } from "@clerk/astro/components";
 
 export const prerender = false; // Pas nécessaire en mode `server`
 ---
 
 <Layout>
-    <SignedIn>
-        <UserButton />
-    </SignedIn>
-    <SignedOut>
-        <SignInButton />
-    </SignedOut>
+  <Show when="signed-in">
+    <UserButton />
+  </Show>
+  <Show when="signed-out">
+    <SignInButton />
+  </Show>
 </Layout>
 ```
 
-Clerk vous permet également de protéger les routes sur le serveur à l'aide d'un middleware. Spécifiez les routes protégées et invitez les utilisateurs non authentifiés à se connecter :
+Clerk vous permet également de protéger les routes sur le serveur à l'aide d'un middleware :
 
-```ts title="src/middleware.ts"
-import { clerkMiddleware, createRouteMatcher } from '@clerk/astro/server';
+<Steps>
 
-const isProtectedRoute = createRouteMatcher([
-  '/dashboard(.*)',
-  '/forum(.*)',
-]);
+1. Définissez `clerkMiddleware()` comme gestionnaire `onRequest` dans votre middleware :
 
-export const onRequest = clerkMiddleware((auth, context) => {
-  if (!auth().userId && isProtectedRoute(context.request)) {
-    return auth().redirectToSignIn();
-  }
-});
-```
+    ```ts title="src/middleware.ts"
+    import { clerkMiddleware } from "@clerk/astro/server";
+
+    export const onRequest = clerkMiddleware({
+      /* options */
+    });
+    ```
+
+2. Accédez à l'état d'authentification dans vos pages et vos routes d'API avec `locals.auth()`. Cela vous permet de vérifier si un utilisateur est authentifié et de prendre les mesures appropriées (par exemple, rediriger vers la page de connexion ou renvoyer une réponse différente).
+
+    <Tabs>
+      <TabItem label="Pages">
+      ```astro title="src/pages/dashboard.astro"
+      ---
+      const { isAuthenticated, redirectToSignIn } = Astro.locals.auth();
+
+      if (!isAuthenticated) return redirectToSignIn();
+      ---
+
+      <h1>Tableau de bord</h1>
+      ```
+      </TabItem>
+      <TabItem label="Routes d'API">
+      ```ts title="src/pages/api/data.ts"
+      import type { APIRoute } from "astro";
+
+      export const GET: APIRoute = ({ locals }) => {
+        const { isAuthenticated, userId } = locals.auth();
+
+        if (!isAuthenticated) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
+        return Response.json({ userId });
+      };
+      ```
+      </TabItem>
+    </Tabs>
+</Steps>
 
 ### Prochaines étapes
 
@@ -286,7 +322,9 @@ export const onRequest = clerkMiddleware((auth, context) => {
 
 ## Scalekit
 
-[Scalekit](https://scalekit.com/) est une plateforme d'authentification conçue pour les applications B2B et d'IA. Elle propose la connexion via les réseaux sociaux, l'authentification unique (SSO) d'entreprise, les liens magiques et bien plus encore, en gérant l'intégralité du flux OAuth 2.0 / OIDC afin que vous récupériez des jetons et un profil utilisateur sans avoir à créer d'interface utilisateur de connexion. Un seul environnement Scalekit prend en charge plusieurs applications, de sorte que les utilisateurs s'authentifient une seule fois et partagent la même session sur toutes vos plateformes (par exemple, `app.votreentreprise.com` et `doc.votreentreprise.com`).
+[Scalekit](https://scalekit.com/) est une plateforme d'authentification pour les applications B2B et d'IA. Elle gère l'intégralité du flux OAuth 2.0 et OIDC, prenant en charge des méthodes telles que la connexion via les réseaux sociaux, l'authentification unique d'entreprise (SSO) et les liens magiques. Elle renvoie ensuite des jetons ainsi qu'un profil utilisateur sans nécessiter d'interface de connexion personnalisée.
+
+Un seul environnement Scalekit peut prendre en charge plusieurs applications. Cela vous permet de vous authentifier une seule fois et de partager la même session sur toutes vos plateformes (par exemple, `app.votreentreprise.com` et `doc.votreentreprise.com`).
 
 ### Guide
 

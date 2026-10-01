@@ -133,11 +133,11 @@ export const title = 'My first MDX post'
 
 ```astro title="src/pages/index.astro"
 ---
-const matches = import.meta.glob('./posts/*.mdx', { eager: true });
+const matches = import.meta.glob("./posts/*.mdx", { eager: true });
 const posts = Object.values(matches);
 ---
 
-{posts.map(post => <p>{post.title}</p>)}
+{posts.map((post: any) => <p>{post.title}</p>)}
 ```
 
 #### 내보낸 속성
@@ -240,11 +240,15 @@ MDX 파일이 콘텐츠 컬렉션 항목인 경우, `astro:content`의 `render()
 
 ```astro title="src/pages/blog/post-1.astro" ins="components={{ h1: CustomHeading }}"
 ---
-import { getEntry, render } from 'astro:content';
-import CustomHeading from '../../components/CustomHeading.astro';
-const entry = await getEntry('blog', 'post-1');
+import { getEntry, render } from "astro:content";
+import CustomHeading from "../../components/CustomHeading.astro";
+const entry = await getEntry("blog", "post-1");
+if (!entry) {
+  throw new Error("항목을 찾을 수 없습니다.");
+}
 const { Content } = await render(entry);
 ---
+
 <Content components={{ h1: CustomHeading }} />
 ```
 
@@ -318,6 +322,31 @@ export default defineConfig({
 });
 ```
 
+#### recma 플러그인 사용하기
+
+<p><Since v="8.0.0" pkg="@astrojs/mdx" /></p>
+
+recma 플러그인은 출력되는 [estree](https://github.com/estree/estree)를 직접 수정합니다. 이는 MDX 파일에서 JavaScript 변수를 수정하거나 삽입하는 데 유용하며, `.md` 파일에는 영향을 주지 않습니다.
+
+recma 플러그인은 [Unified 프로세서](/ko/guides/markdown-content/#unified를-사용하는-경우)에서만 지원됩니다. `recmaPlugins` 옵션을 사용하여 `@astrojs/markdown-remark`의 `unified()`에 전달하세요.
+
+```js title="astro.config.mjs" {3-4,8}
+import { defineConfig } from 'astro/config';
+import mdx from '@astrojs/mdx';
+import { unified } from '@astrojs/markdown-remark';
+import myRecmaPlugin from './my-recma-plugin.mjs';
+
+export default defineConfig({
+  integrations: [
+    mdx({ processor: unified({ recmaPlugins: [myRecmaPlugin] }) }),
+  ],
+});
+```
+
+대신 [`markdown.processor`](/ko/reference/configuration-reference/#markdownprocessor)에 이러한 플러그인을 설정할 수도 있습니다. MDX는 기본적으로 Markdown 구성을 [확장](#extendmarkdownconfig)하므로 `.mdx` 파일에서도 해당 플러그인이 실행됩니다.
+
+estree 출력을 실험하려면 [AST Explorer를 사용](https://astexplorer.net/)하고, JavaScript 노드 전체에서 검색하려면 [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/)를 사용해 보세요.
+
 ### `extendMarkdownConfig`
 
 <p>
@@ -333,20 +362,22 @@ MDX는 기본적으로 [프로젝트의 기존 Markdown 구성](/ko/reference/co
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin1 from "./src/mdast-plugin-1";
+import mdastPlugin2 from "./src/mdast-plugin-2";
 
 export default defineConfig({
   // ...
   markdown: {
-    syntaxHighlight: 'prism',
+    syntaxHighlight: "prism",
     processor: satteri({ mdastPlugins: [mdastPlugin1] }),
   },
   integrations: [
     mdx({
       // Markdown `syntaxHighlight` 재정의
       // `.mdx` 파일은 대신 Shiki 사용
-      syntaxHighlight: 'shiki',
+      syntaxHighlight: "shiki",
 
       // 이 옵션은 `.mdx` 파일의 `markdown.processor`를 재정의함
       processor: satteri({ mdastPlugins: [mdastPlugin2] }),
@@ -359,8 +390,9 @@ MDX에서 `markdown` 구성 확장을 비활성화해야 할 수도 있습니다
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
-import { satteri } from '@astrojs/markdown-satteri';
-import mdx from '@astrojs/mdx';
+import { satteri } from "@astrojs/markdown-satteri";
+import mdx from "@astrojs/mdx";
+import mdastPlugin from "./src/mdast-plugin";
 
 export default defineConfig({
   // ...
@@ -378,6 +410,12 @@ export default defineConfig({
 ```
 
 ### `recmaPlugins`
+
+:::caution[지원 중단]
+이 옵션은 지원 중단되었으며 향후 메이저 버전에서 제거될 예정입니다. 구성된 [`processor`](#processor)에 대신 `recmaPlugins`를 전달하세요.
+
+[recma 플러그인 사용하기](#recma-플러그인-사용하기)에서 자세히 알아보세요.
+:::
 
 <p>
 
@@ -435,10 +473,10 @@ MDX 최적화 프로그램이 [컴포넌트 prop을 통해 가져온 MDX 콘텐�
 
 예를 들어 다음 의도된 MDX 출력은 모두 `"<h1>...</h1>"`이 아닌 `<Heading>...</Heading>`입니다.
 
-```astro
+```astro title="src/pages/any-page.astro"
 ---
-import { Content, components } from '../content.mdx';
-import Heading from '../Heading.astro';
+import { Content, components } from "../content.mdx";
+import Heading from "../components/Heading.astro";
 ---
 
 <Content components={{ ...components, h1: Heading }} />
