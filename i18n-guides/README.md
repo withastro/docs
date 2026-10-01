@@ -25,5 +25,6 @@ General information about the translation process can by found in our contributi
 - [Russian / Русский](./russian.md)
 - [Simplified Chinese / 简体中文](./简体中文.md)
 - [Traditional Chinese / 正體中文](./正體中文.md)
+- [Turkish / Türkçe](./türkçe.md)
 
 If your language does not currently have a guide, feel free to create one and link it in the list above.
