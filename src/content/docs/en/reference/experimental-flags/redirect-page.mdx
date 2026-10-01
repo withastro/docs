@@ -1,7 +1,7 @@
 ---
-title: Experimental redirect page
+title: Experimental static redirect page
 sidebar:
-  label: Redirect page
+  label: Static redirect page
 i18nReady: true
 ---
 
@@ -16,15 +16,11 @@ import Since from '~/components/Since.astro'
 
 This experimental feature lets you customize the HTML page Astro generates for redirects in static builds. Use it to add your own markup or translated text to these pages.
 
-Static sites cannot send an HTTP `Location` header. Astro instead generates an HTML page with a [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#examples) for each redirect. This feature replaces Astro's built-in page with your `src/pages/3xx.astro` page.
+Static sites cannot send an HTTP `Location` header. Instead, Astro generates an HTML page with a [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/meta#examples) for each redirect. This feature allows you to replace Astro's built-in page with your own `src/pages/3xx.astro` page.
 
-The custom page applies to redirects from [`redirects` configuration](/en/reference/configuration-reference/#redirects), `Astro.redirect()` calls in prerendered pages, and i18n redirects. It does not affect on-demand rendered redirects, which use an HTTP `Location` header.
+The custom page applies to [configured `redirects`](/en/reference/configuration-reference/#redirects), [`Astro.redirect()`](/en/reference/api-reference/#redirect) calls in prerendered pages, and i18n redirects. It does not affect on-demand rendered redirects, which use an HTTP `Location` header.
 
-Your page must include a `<meta http-equiv="refresh">` tag that points to `to`. In a static build, this tag performs the redirect because the page does not send a `Location` header. Astro warns during the build if the tag is missing or points to a different destination.
-
-If `src/pages/3xx.astro` is missing or fails to render, Astro uses its built-in redirect page. If you disable `experimental.redirectPage`, Astro treats `3xx.astro` as an ordinary page and uses its built-in redirect page for redirects.
-
-Astro also builds `3xx.astro` as the ordinary `/3xx` route, written to `3xx.html`. When someone visits that route directly, Astro does not pass redirect props.
+If you disable `experimental.redirectPage`, Astro treats `3xx.astro` as an ordinary page and uses its built-in redirect page for redirects.
 
 ## Enable the feature
 
@@ -42,7 +38,13 @@ export default defineConfig({
 
 ## Create a custom redirect page
 
-Create `src/pages/3xx.astro`. Astro renders this page for each static redirect and passes its details as props:
+When the [feature is enabled](#enable-the-feature), Astro looks for a `src/pages/3xx.astro` file to handle static redirects. If the file is missing or fails to render, Astro falls back to its built-in redirect page.
+
+Your custom page receives the redirect details as props. Use the `to` property to define the destination for the `<meta http-equiv="refresh" />` element. In a static build, this element performs the redirect because the page does not send a `Location` header. If this element is missing or points to a different destination, Astro warns you during the build.
+
+To get type inference, import [`RedirectPageProps`](#redirectpageprops) and assign it to the [`Props` type](/en/guides/typescript/#component-props).
+
+The following example creates a custom `src/pages/3xx.astro` page:
 
 ```astro title="src/pages/3xx.astro"
 ---
@@ -63,6 +65,8 @@ const { from, to, status, delay } = Astro.props;
 </html>
 ```
 
+Astro also builds `3xx.astro` as the ordinary `/3xx` route, written to `3xx.html`. When someone visits that route directly, Astro does not pass redirect props.
+
 ## `RedirectPageProps`
 
 Astro exports the `RedirectPageProps` type from `astro`. Import it to type the props for your custom page:
@@ -77,7 +81,7 @@ The pathname being redirected from.
 
 **Type:** `string`
 
-The destination from the redirect's `Location` header.
+The destination of the redirect.
 
 ### `status`
 
