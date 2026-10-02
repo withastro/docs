@@ -1,0 +1,291 @@
+---
+title: Middleware
+description: Узнайте как использовать middleware в Astro.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro';
+
+**Middleware** позволяет перехватывать запросы и ответы и динамически внедрять поведение каждый раз перед рендерингом страницы или эндпоинта. Этот рендеринг происходит во время сборки для всех предрендеренных страниц, но для страниц, которые рендерятся по запросу, он происходит в момент запроса маршрута, что делает доступными дополнительные [возможности SSR, такие как cookies и заголовки](/ru/guides/on-demand-rendering/#возможности-рендеринга-по-запросу).
+
+Middleware также позволяет задавать и совместно использовать информацию, специфичную для конкретного запроса, между эндпоинтами и страницами путём изменения объекта `locals`, который доступен во всех компонентах Astro и API-эндпоинтах. Этот объект доступен даже при выполнении middleware во время сборки.
+## Базовое использование
+
+<Steps>
+1. Создайте `src/middleware.js|ts` (В качестве альтернативы, вы можете создать `src/middleware/index.js|ts`.)
+
+2. Внутри этого файла экспортируйте функцию [`onRequest()`](/ru/reference/modules/astro-middleware/#onrequest), которая может передавать [объект `context`](#объект-context) и функцию `next()`. Это не должно быть экспортом по умолчанию.
+
+    ```js title="src/middleware.js"
+    export function onRequest (context, next) {
+        // Перехватить данные из запроса
+        // при необходимости, изменить свойства в `locals`
+        context.locals.title = "New title";
+        context.locals.property = "information";
+
+        // вернуть Response или результат вызова `next()`
+        return next();
+    };
+    ```
+
+3. Внутри любого файла с расширением `.astro` получить доступ к данным ответа с помощью `Astro.locals`.
+
+    ```astro title="src/components/Component.astro"
+    ---
+    const data = Astro.locals;
+    ---
+    <h1>{data.title}</h1>
+    <p>This {data.property} is from middleware.</p>
+    ```
+</Steps>
+
+### Объект `context`
+
+Объект [`context`](/ru/reference/api-reference/) содержит информацию, которая должна быть доступна другим middleware, API-маршрутам и `.astro`-маршрутам во время процесса рендеринга.
+
+Это необязательный аргумент, передаваемый в `onRequest()`, который может содержать объект `locals`, а также любые дополнительные свойства, предназначенные для совместного использования во время рендеринга. Например, объект `context` может включать cookies, используемые при аутентификации.
+
+### Сохранение данных в `context.locals`
+
+`context.locals` — это объект, которым можно управлять (манипулировать) внутри middleware.
+
+Этот `locals` объект передаётся по всему процессу обработки запроса и доступен как свойство в [`APIContext`](/ru/reference/api-reference/#locals) и [`AstroGlobal`](/en/reference/api-reference/#locals). Это позволяет обмениваться данными между middleware, API-маршрутами и `.astro`-страницами. Это полезно для хранения данных, специфичных для конкретного запроса, — например, данных пользователя — на протяжении всего этапа рендеринга.
+
+:::tip[Свойства интеграции]
+[Интеграции](/ru/guides/integrations/) могут задавать свойства и предоставлять функциональность через объект `locals` object. Если вы используете интеграцию, проверьте её документацию, чтобы убедиться, что вы не переопределяете какие-либо из её свойств и не выполняете лишнюю работу.
+:::
+
+Внутри `locals` можно хранить данные любого типа: строки, числа и даже сложные типы данных, такие как функции и коллекции (maps).
+
+```js title="src/middleware.js"
+export function onRequest (context, next) {
+    // Перехватить данные из запроса
+    // при необходимости, изменить свойства в `locals`
+    context.locals.user = { id: 1, name: "John Wick" };
+    context.locals.welcomeTitle = () => {
+        return "Welcome back " + context.locals.user.name;
+    };
+    context.locals.orders = new Map([["1", { product: "socks" }]]);
+    context.locals.property = "information";
+
+    // вернуть Response или результат вызова `next()`
+    return next();
+};
+```
+
+Позже вы можете использовать эту информацию внутри любого `.astro`-файла с `Astro.locals`.
+
+```astro title="src/pages/orders.astro"
+---
+const title = Astro.locals.welcomeTitle();
+const orders = Array.from(Astro.locals.orders.entries());
+const data = Astro.locals;
+---
+<h1>{title}</h1>
+<p>This {data.property} is from middleware.</p>
+<ul>
+    {orders.map(order => {
+        return <li>{/* делать что-то с каждым заказом */}</li>;
+    })}
+</ul>
+```
+
+`locals` это объект, который существует в пределах одного маршрута Astro; когда ваша страница маршрута отрендерена, `locals` больше не существует, и будет создан новый объект. Информацию, которая должна сохраняться между несколькими запросами страниц, следует хранить в другом месте.
+
+:::note
+Значение `locals`  нельзя переопределить во время выполнения. Это чревато риском потери всей информации, сохранённой пользователем.  Astro проводит проверку и выбросит ошибку, если значение `locals` будет переопределено.
+:::
+
+## Пример: редактирование чувствительной информации
+
+Пример ниже использует middleware для замены "PRIVATE INFO" словом "REDACTED", что позволяет отображать изменённый HTML на вашей странице:
+
+```js title="src/middleware.js"
+export const onRequest = async (context, next) => {
+    const response = await next();
+    const html = await response.text();
+    const redactedHtml = html.replaceAll("PRIVATE INFO", "REDACTED");
+    
+    return new Response(redactedHtml, {
+        status: 200,
+        headers: response.headers
+    });
+};
+```
+
+## Middleware типы
+
+Вы можете импортировать и использовать утилитарную функцию [`defineMiddleware()`](/ru/reference/modules/astro-middleware/#definemiddleware), чтобы воспользоваться безопасностью типов:
+
+```ts
+// src/middleware.ts
+import { defineMiddleware } from "astro:middleware";
+
+// `context` и `next` автоматически типизированы
+export const onRequest = defineMiddleware((context, next) => {
+
+});
+```
+
+Вместо этого, если вы используете JSDoc, для преимущества типобезопасности вы можете использовать `MiddlewareHandler`:
+
+```js
+// src/middleware.js
+/**
+ * @type {import("astro").MiddlewareHandler}
+ */
+// `context` и `next` автоматически типизированы
+export const onRequest = (context, next) => {
+
+};
+```
+
+Для типизации информации внутри `Astro.locals`, которая даёт вам автодополнение внутри файлов с расширением `.astro` и в коде middleware, [расширьте глобальные типы](/en/guides/typescript/#extending-global-types), объявив глобальное пространство имён в файле `env.d.ts`:
+
+```ts title="src/env.d.ts"
+type User = {
+  id: number;
+  name: string;
+};
+
+declare namespace App {
+  interface Locals {
+    user: User;
+    welcomeTitle: () => string;
+    orders: Map<string, object>;
+    session: import("./lib/server/session").Session | null;
+  }
+}
+```
+
+Затем, внутри файла middleware, вы можете воспользоваться автодополнением и типобезопасностью.
+
+## Объединение middleware в цепочку
+
+Несколько middlewares можно объединить в заданном порядке, используя [`sequence()`](/en/reference/modules/astro-middleware/#sequence):
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+async function validation(_, next) {
+    console.log("validation request");
+    const response = await next();
+    console.log("validation response");
+    return response;
+}
+
+async function auth(_, next) {
+    console.log("auth request");
+    const response = await next();
+    console.log("auth response");
+    return response;
+}
+
+async function greeting(_, next) {
+    console.log("greeting request");
+    const response = await next();
+    console.log("greeting response");
+    return response;
+}
+
+export const onRequest = sequence(validation, auth, greeting);
+```
+
+Это приведёт к следующему порядку вывода в консоль:
+
+```sh
+validation request
+auth request
+greeting request
+greeting response
+auth response
+validation response
+```
+
+## Перезапись
+
+<p><Since v="4.13.0" /></p>
+
+`APIContext` предоставляет метод под названием [`rewrite()`](/en/reference/api-reference/#rewrite), который работает так же, как [Astro.rewrite](/en/guides/routing/#rewrites).
+
+Используйте `context.rewrite()` внутри middleware, чтобы отобразить содержимое другой страницы, без [перенаправления](/en/guides/routing/#dynamic-redirects) посетителя на новую страницу. Это запустит новую фазу рендеринга, что приведёт к повторному выполнению любого middleware.
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // Если пользователь не авторизован, обновите Request, 
+    // чтобы отрендерить маршрут `/login`
+    // добавьте заголовок, который укажет, куда пользователь
+    // должен быть направлен после успешного входа.
+    // Повторно выполните middleware.
+    return context.rewrite(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+Вы также можете передать функции `next()` необязательный параметр пути URL, чтобы переписать текущий `Request`без повторного запуска новой фазы рендеринга. Расположение пути перезаписи можно указать в виде строки, URL или `Request`:
+
+```js title="src/middleware.js"
+import { isLoggedIn } from "~/auth.js"
+export function onRequest (context, next) {
+  if (!isLoggedIn(context)) {
+    // Если пользователь не авторизован, обновите Request,
+    // чтобы отрендерить маршрут `/login`
+    // добавьте заголовок, который укажет, куда пользователь
+    // должен быть направлен после успешного входа.
+    // Верните новый `context` любыми последующими middlewares.
+    return next(new Request("/login", {
+      headers: {
+        "x-redirect-to": context.url.pathname
+      }
+    }));
+  }
+
+  return next();
+};
+```
+
+Функция `next()` принимает тот же payload, что и [the `Astro.rewrite()` function](/en/reference/api-reference/#rewrite). Путь для перезаписи можно указать в виде строки, URL или `Request`.
+
+Когда у вас несколько middleware-функций, связанных через [sequence()](#chaining-middleware), передача пути в `next()` на месте перезапишет `Request`, и middleware не будет выполняться повторно. Следующая в цепочке middleware-функция получит новый `Request` с обновлённым объектом `context`.
+
+Вызов `next()` с этой сигнатурой создаст новый объект `Request`, использующий старый `ctx.request`. Это означает, что попытка прочитать `Request.body`, — как до, так и после этой перезаписи — вызовет ошибку во время выполнения. Эта ошибка часто возникает с [Astro Actions, которые используют HTML формы](/en/guides/actions/#call-actions-from-an-html-form-action). В таких случаях мы рекомендуем выполнять перезаписи (rewrite) из ваших шаблонов Astro с помощью `Astro.rewrite()`, вместо использования middleware.    
+
+```js title="src/middleware.js"
+import { sequence } from "astro:middleware";
+
+// Текущий URL https://example.com/blog
+
+// Первая middleware функция
+async function first(context, next) {
+  console.log(context.url.pathname) // это выведет в лог "/blog"
+  // Переписать на новый маршрут, домашнюю страницу 
+  // Вернуть обновлённый `context`, который передаётся в следующую функцию
+  return next("/")
+}
+
+// Текущий URL всё ещё https://example.com/blog
+
+// Вторая middleware функция
+async function second(context, next) {
+  // Получает обновлённый `context`
+  console.log(context.url.pathname) // это выведет в лог "/"    
+  return next()
+}
+
+export const onRequest = sequence(first, second);
+```
+
+## Страницы ошибок
+
+Middleware попытается выполниться для всех отрендеренных по запросу страниц, даже если подходящий маршрут не удаётся найти. Это включает стандартную (пустую) страницу 404 в Astro и любые пользовательские страницы 404. Однако решение о том, будет ли выполняться этот код, принимает [адаптер](/ru/guides/on-demand-rendering/). Некоторые адаптеры могут вместо этого отдавать специфическую для платформы страницу ошибок.
+
+Middleware также попытается выполниться перед отдачей страницы ошибки 500, включая пользовательскую страницу 500, если только серверная ошибка не возникла во время выполнения самого middleware. Если ваш middleware не выполнится успешно, у вас не будет доступа к Astro.locals для рендеринга страницы 500.
