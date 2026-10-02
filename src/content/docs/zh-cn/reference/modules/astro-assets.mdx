@@ -19,21 +19,22 @@ Astro 提供了内置组件和辅助函数来优化和显示图像。有关功�
 以下辅助函数从虚拟资源模块导入：
 
 ```js
-import { 
+import {
   Image,
   Picture,
+  Font,
   getImage,
   inferRemoteSize,
   getConfiguredImageService,
   imageConfig,
+  fontData,
+  experimental_getFontFileURL,
 } from 'astro:assets';
 ```
 
 ### `<Image />`
 
 `<Image />` 组件能优化并转换图像。
-
-该组件还可用于创建能根据容器尺寸或设备屏幕大小及分辨率自动调整的 [响应式图片](#响应式图片属性) 。
 
 ```astro title="src/components/MyComponent.astro"
 ---
@@ -59,7 +60,7 @@ import myImage from "../assets/my_image.png"; // 图片分辨率是 1600x900
 />
 ```
 
-`<Image />` 组件除接受 HTML `<img>` 标签的所有属性外，还支持以下列出的属性及 [响应式图片属性](#响应式图片属性)。
+`<Image />` 组件除接受 HTML `<img>` 标签的所有属性外，还支持以下列出的属性。
 
 #### `src` (必须)
 
@@ -144,7 +145,7 @@ import myImage from "../assets/my_image.png"; // 图片分辨率是 1600x900
 
 为图像生成的像素密度列表。
 
-`densities` 属性与设置了 `layout` 属性或 `image.layout` 配置的 [响应式图像](#响应式图片属性) 不兼容，若同时设置将被忽略。
+`densities` 属性与设置了 `layout` 属性或 `image.layout` 配置不兼容，若同时设置将被忽略。
 
 如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。在使用此值时，请不要提供 `widths` 的值。
 
@@ -191,7 +192,7 @@ import myImage from '../assets/my_image.png';
 
 如果提供了该值，将会在 `<img>` 标签上生成一个 `srcset` 属性。但还需提供一个 [`sizes` 属性](https://developer.mozilla.org/en-US/docs/Web/API/HTMLImageElement/sizes)。
 
-`widths` 和 `sizes` 属性将通过 `layout` 属性自动生成，用于响应式图像。通常无需提供这些值，但可用于覆盖任何自动生成的值。
+使用 `layout` 属性的图像会自动生成 `widths` 和 `sizes` 属性。通常无需提供这些值，但可用于覆盖任何自动生成的值。
 
 在使用该值时，请不要提供 `densities` 的值。这两个值只能选择一个来生成 `srcset` 属性。
 
@@ -244,7 +245,7 @@ import myImage from '../assets/my_image.png'; // Image is 1600x900
 
 指定图像在各类媒体查询条件下的布局宽度。在指定 `widths` 时必须提供此参数。
 
-响应式图片的 `widths` 和 `sizes` 属性将通过布局属性自动生成。通常无需手动提供这些值，但可用于覆盖任何自动生成的值。
+使用 `layout` 属性的图像会自动生成 `widths` 和 `sizes` 属性。通常无需手动提供这些值，但可用于覆盖任何自动生成的值。
 
 针对 `constrained` 和 `full-width` 图片自动生成的 `sizes` 属性，其计算前提是当视口宽度小于图片宽度时，图片会以接近屏幕全宽的方式显示。若实际布局与此存在显著差异（例如在小屏幕设备上采用多栏布局），则可能需要手动调整 `sizes` 属性以获得最佳效果。
 
@@ -292,7 +293,7 @@ import { Image } from 'astro:assets';
 <Image src="https://example.com/cat.png" inferSize alt="一只猫在阳光下睡觉。" />
 ```
 
-`inferSize` 能够获取来自未经授权域的 [远程图片的尺寸](/zh-cn/guides/images/#授权远程图像)，但图片本身将保持未处理状态。
+自 Astro 5.17.3 起，`inferSize` 只会获取[已授权的远程图像域名](/zh-cn/guides/images/#授权远程图像)的尺寸。白名单之外的远程图像不会被获取。
 
 
 #### `priority`
@@ -324,6 +325,120 @@ fetchpriority="high"
 
 如需进一步定制，这些独立属性仍可手动设置。
 
+#### `layout`
+
+<p>
+
+**类型：** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
+**默认值：** `image.layout | 'none'` <br />
+<Since v="5.10.0" />
+</p>
+
+确定当容器大小改变时图像应如何调整大小。可用于覆盖 [`image.layout`](/zh-cn/reference/configuration-reference/#imagelayout) 的默认配置值。
+
+```astro title=MyComponent.astro
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="我的图片描述。" layout='constrained' width={800} height={600} />
+```
+
+设置布局后，会根据图像的尺寸和布局类型自动生成 `srcset` 和 `sizes` 属性。前面的 `<Image />` 组件将生成以下 HTML 输出：
+
+```html
+<img
+  src="/_astro/my_image.hash3.webp"
+  srcset="/_astro/my_image.hash1.webp 640w,
+      /_astro/my_image.hash2.webp 750w,
+      /_astro/my_image.hash3.webp 800w,
+      /_astro/my_image.hash4.webp 828w,
+      /_astro/my_image.hash5.webp 1080w,
+      /_astro/my_image.hash6.webp 1280w,
+      /_astro/my_image.hash7.webp 1600w"
+  alt="我的图片描述"
+  sizes="(min-width: 800px) 800px, 100vw"
+  loading="lazy"
+  decoding="async"
+  fetchpriority="auto"
+  width="800"
+  height="600"
+  style="--fit: cover; --pos: center;"
+  data-astro-image="constrained"
+>
+```
+
+`layout` 支持以下值：
+
+- `constrained` - 图片将按比例缩小以适应容器，保持其宽高比，但不会放大超过指定的 `width` 和 `height` 或图片的原始尺寸。
+
+  如果你希望图片在可能的情况下以请求的尺寸显示，但在较小的屏幕上收缩以适应，请使用此选项。这与使用 Tailwind 时图片的默认行为相匹配。如果你不确定，这可能是你应该选择的布局。
+
+- `full-width` - 图片将按比例缩放以适应容器的宽度，保持其宽高比。
+
+  用于主视觉图片或其他应占据页面整个宽度的图片。
+
+- `fixed` - 图片将保持请求的尺寸并且不会调整大小。它会生成一个 `srcset` 以支持高密度显示，但不会为不同的屏幕尺寸生成。
+
+  如果图片不会调整大小，例如图标或小于任何屏幕宽度的徽标，或其他固定宽度容器中的图片，请使用此选项。
+
+- `none` - 图片将不是响应式的。不会自动生成 `srcset` 或 `sizes`，也不会应用任何样式。
+
+  如果你已启用默认布局，但希望为特定图片禁用它，这很有用。
+
+例如，将 `constrained` 设置为默认布局，你可以覆盖任何单个图片的 `layout` 属性：
+
+```astro title="src/components/MyComponent.astro"
+---
+import { Image } from 'astro:assets';
+import myImage from '../assets/my_image.png';
+---
+<Image src={myImage} alt="这将使用 constrained 布局" width={800} height={600} />
+<Image src={myImage} alt="这将使用 full-width 布局" layout="full-width" />
+<Image src={myImage} alt="这将禁用响应式图片" layout="none" />
+```
+
+`layout` 的值还定义了应用于 `<img>` 标签的默认样式，以确定图片应如何根据其容器调整大小：
+
+```css title="响应式图片样式"
+:where([data-astro-image]) {
+	object-fit: var(--fit);
+	object-position: var(--pos);
+}
+:where([data-astro-image='full-width']) {
+	width: 100%;
+}
+:where([data-astro-image='constrained']) {
+	max-width: 100%;
+}
+```
+
+#### `fit`
+
+<p>
+
+**类型：** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
+**默认值：** `image.objectFit | 'cover'` <br />
+<Since v="5.10.0" />
+</p>
+
+定义当图像的宽高比改变时应如何裁剪图像。
+
+值与 CSS `object-fit` 的值相匹配。默认为 `cover`，如果设置了，则为 [`image.objectFit`](/zh-cn/reference/configuration-reference/#imageobjectfit) 的值。可用于覆盖默认的 `object-fit` 样式。
+
+#### `position`
+
+<p>
+
+**类型：** `string` <br />
+**默认值：** `image.objectPosition | 'center'` <br />
+<Since v="5.10.0" />
+</p>
+
+定义当图像的宽高比改变时图像裁剪的位置。
+
+值与 CSS `object-position` 的值相匹配。默认为 `center`，如果设置了，则为 [`image.objectPosition`](/zh-cn/reference/configuration-reference/#imageobjectposition) 的值。可用于覆盖默认的 `object-position` 样式。
+
 #### `background`
 
 <p>
@@ -337,10 +452,6 @@ fetchpriority="high"
 默认情况下，Sharp 在将图像扁平化时使用黑色背景。指定不同的背景颜色在将具有透明背景的图像转换为不支持透明度的格式（例如 `.jpeg`）时尤其有用：
 
 ```astro title="src/components/MyComponent.astro" "background"
----
-import { Image } from 'astro:assets';
-import myImage from '../assets/my_image.png';
----
 <Image
   src={myImage}
   alt="A description of my image"
@@ -357,8 +468,6 @@ import myImage from '../assets/my_image.png';
 <p><Since v="3.3.0" /></p>
 
  `<Picture />` 组件可以生成具有多种格式和（或）尺寸的优化后的图像。
- 
-该组件还可用于创建能根据容器尺寸或设备屏幕大小及分辨率自动调整的 [响应式图片](#响应式图片属性) 。
 
 ```astro title="src/pages/index.astro"
 ---
@@ -386,7 +495,7 @@ import myImage from "../assets/my_image.png"; // 图像的分辨率为 1600x900
 </picture>
 ```
 
-`<Picture />` 接受 [`<Image />` 组件](#image-) 的所有属性（包括 [响应式图片属性](#响应式图片属性)），以及以下属性：
+`<Picture />` 接受 [`<Image />` 组件](#image-) 的所有属性，以及以下属性：
 
 #### `formats`
 
@@ -445,123 +554,81 @@ import myImage from "../my_image.png"; // Image 为 1600x900
 </picture>
 ```
 
-### 响应式图片属性
+### `<Font />`
 
-在 [`<Image />`](#image-) 或 [`<Picture />`](#picture-) 组件上设置 [`layout`](#layout) 属性会创建一个响应式图片，并启用其他属性设置。
+<p><Since v="6.0.0" /></p>
 
-```astro title="src/components/MyComponent.astro"
+`<Font />` 组件会为给定的字体系列输出样式标签，并且可以选择性地输出预加载链接。
+
+必须将其导入并添加到页面的 `<head>` 中。通常在通用站点布局所用的组件（例如 `Head.astro`）中添加以便全局使用，但也可以根据需要添加到单个页面中。
+
+使用该组件，你可以控制哪个页面使用哪个字体系列，以及预加载哪些字体。
+
+```astro title="src/components/Head.astro"
 ---
-import { Image } from 'astro:assets';
-import myImage from '../assets/my_image.png';
+import { Font } from "astro:assets";
 ---
-<Image src={myImage} alt="我的图片描述。" layout='constrained' width={800} height={600} />
+
+<Font cssVariable="--font-roboto" />
 ```
 
-设置布局后，会根据图片的尺寸和布局类型自动生成 `srcset` 和 `sizes` 属性。前面的 `<Image />` 组件将生成以下 HTML 输出：
+`<Font />` 组件接受以下属性：
 
-```html
-<img
-  src="/_astro/my_image.hash3.webp"
-  srcset="/_astro/my_image.hash1.webp 640w,
-      /_astro/my_image.hash2.webp 750w,
-      /_astro/my_image.hash3.webp 800w,
-      /_astro/my_image.hash4.webp 828w,
-      /_astro/my_image.hash5.webp 1080w,
-      /_astro/my_image.hash6.webp 1280w,
-      /_astro/my_image.hash7.webp 1600w"
-  alt="我的图片描述"
-  sizes="(min-width: 800px) 800px, 100vw"
-  loading="lazy"
-  decoding="async"
-  fetchpriority="auto"
-  width="800"
-  height="600"
-  style="--fit: cover; --pos: center;"
-  data-astro-image="constrained"
->
-```
-`layout` 的值还定义了应用于 `<img>` 标签的默认样式，以确定图片应如何根据其容器调整大小：
-
-```css title="响应式图片样式"
-:where([data-astro-image]) {
-	object-fit: var(--fit);
-	object-position: var(--pos);
-}
-:where([data-astro-image='full-width']) {
-	width: 100%;
-}
-:where([data-astro-image='constrained']) {
-	max-width: 100%;
-}
-```
-
-你可以通过在 `<Image />` 或 `<Picture />` 组件上设置 [`fit`](#fit) 和 [`position`](#position) 属性来覆盖默认的 `object-fit` 和 `object-position` 样式。
-
-
-##### `layout`
+#### `cssVariable` (必须)
 
 <p>
 
-**类型：** `'constrained' | 'full-width' | 'fixed' | 'none'` <br />
-**默认值：** `image.layout | 'none'` <br />
-<Since v="5.10.0" />
+**类型：** `CssVariable`<br />
+**示例类型：** `"--font-roboto" | "--font-comic-sans" | ...`
 </p>
 
-定义一个[响应式图片](#响应式图片属性)，并确定当容器大小改变时图片应如何调整大小。可用于覆盖 [`image.layout`](/zh-cn/reference/configuration-reference/#imagelayout) 的默认配置值。
+在你的 Astro 配置中注册的 [`cssVariable`](/zh-cn/reference/configuration-reference/#fontcssvariable)：
 
-- `constrained` - 图片将按比例缩小以适应容器，保持其宽高比，但不会放大超过指定的 `width` 和 `height` 或图片的原始尺寸。
-
-  如果你希望图片在可能的情况下以请求的尺寸显示，但在较小的屏幕上收缩以适应，请使用此选项。这与使用 Tailwind 时图片的默认行为相匹配。如果你不确定，这可能是你应该选择的布局。
-
-- `full-width` - 图片将按比例缩放以适应容器的宽度，保持其宽高比。
-
-  用于主视觉图片或其他应占据页面整个宽度的图片。
-
-- `fixed` - 图片将保持请求的尺寸并且不会调整大小。它会生成一个 `srcset` 以支持高密度显示，但不会为不同的屏幕尺寸生成。
-
-  如果图片不会调整大小，例如图标或小于任何屏幕宽度的徽标，或其他固定宽度容器中的图片，请使用此选项。
-
-- `none` - 图片将不是响应式的。不会自动生成 `srcset` 或 `sizes`，也不会应用任何样式。
-
-  如果你已启用默认布局，但希望为特定图片禁用它，这很有用。
-
-例如，将 `constrained` 设置为默认布局，你可以覆盖任何单个图片的 `layout` 属性：
-
-```astro title="src/components/MyComponent.astro"
+```astro title="src/components/Head.astro" "cssVariable"
 ---
-import { Image } from 'astro:assets';
-import myImage from '../assets/my_image.png';
+import { Font } from "astro:assets";
 ---
-<Image src={myImage} alt="这将使用 constrained 布局" width={800} height={600} />
-<Image src={myImage} alt="这将使用 full-width 布局" layout="full-width" />
-<Image src={myImage} alt="这将禁用响应式图片" layout="none" />
+
+<Font cssVariable="--font-roboto" />
 ```
 
-##### `fit`
+#### `preload`
 
 <p>
 
-**类型：** `'contain' | 'cover' | 'fill' | 'none' | 'scale-down'` <br />
-**默认值：** `image.objectFit | 'cover'` <br />
-<Since v="5.10.0" />
+**类型：** `boolean | { weight?: string | number; style?: string; subset?: string }[]`<br />
+**默认值：** `false`
 </p>
 
-当设置或配置了 [`layout`](#layout) 属性时启用。定义当宽高比改变时，响应式图片应如何裁剪。
+是否输出[预加载链接](https://web.dev/learn/performance/optimize-web-fonts#preload)。使用 `preload` 指令后，浏览器将在页面加载时立即开始下载所有可能的字体链接：
 
-值与 CSS `object-fit` 的值相匹配。默认为 `cover`，如果设置了，则为 [`image.objectFit`](/zh-cn/reference/configuration-reference/#imageobjectfit) 的值。可用于覆盖默认的 `object-fit` 样式。
+```astro title="src/components/Head.astro" "preload"
+---
+import { Font } from "astro:assets";
+---
 
-##### `position`
+<Font cssVariable="--font-roboto" preload />
+```
 
-<p>
+请谨慎选择要预加载的字体。预加载过多字体会影响性能，因为这可能会阻塞其他重要资源的加载，或者下载当前页面并不需要的字体。
 
-**类型：** `string` <br />
-**默认值：** `image.objectPosition | 'center'` <br />
-<Since v="5.10.0" />
-</p>
+要有选择地控制预加载哪些字体文件，你可以提供一个对象数组，描述要预加载的字体 `weight`、`style` 或 `subset` 的任意组合：
 
-当设置或配置了 [`layout`](#layout) 属性时启用。定义当宽高比改变时，响应式图片的裁剪位置。
+```astro title="src/components/Head.astro" {7-10}
+---
+import { Font } from "astro:assets";
+---
 
-值与 CSS `object-position` 的值相匹配。默认为 `center`，如果设置了，则为 [`image.objectPosition`](/zh-cn/reference/configuration-reference/#imageobjectposition) 的值。可用于覆盖默认的 `object-position` 样式。
+<Font
+  cssVariable="--font-roboto"
+  preload={[
+    { subset: "latin", style: "normal" },
+    { weight: "400" },
+  ]}
+/>
+```
+
+如果请求的字重在可变字体文件的字重范围内，该字体文件就会被预加载。例如，当在 `preload` 对象中指定 `400` 时，字重为 `100 900` 的字体文件也会被包含在内。
 
 ### `getImage()`
 
@@ -571,7 +638,9 @@ import myImage from '../assets/my_image.png';
 </p>
 
 :::caution
-`getImage()` 依赖于仅在服务器上可用的 API，当在客户端使用时会导致构建失败。
+`getImage()` 依赖于仅服务端可用的 API，在客户端使用时会抛出错误。
+
+如果你需要在客户端使用生成的图像 URL，可以[将服务端渲染的 `getImage()` 调用得到的 `src` 传递给客户端](/zh-cn/guides/images/#使用-getimage-生成图像)。
 :::
 
 `getImage()`函数旨在生成用于在 HTML 之外的其他地方所使用的图像，例如在 [API 路由](/zh-cn/guides/endpoints/#服务器端点api-路由) 中。它还允许你创建自定义的 `<Image />` 组件。
@@ -626,6 +695,60 @@ const { width, height } = await inferRemoteSize("https://example.com/cat.png");
 
 用户设置并与所有默认值合并后的 [图像配置选项](/zh-cn/reference/configuration-reference/#image-选项)。
 
+### `fontData`
+
+<p>
+
+**类型：** <code>Record\<CssVariable, Array\<<a href="#fontdata-1">FontData</a>\>\></code><br />
+<Since v="6.0.0" />
+</p>
+
+一个对象，其中每个键是一个 [`cssVariable`](/zh-cn/reference/configuration-reference/#fontcssvariable)，对应的值是一个描述所关联字体的数组。每个字体是一个对象，包含该字体可用的 `src` 数组，以及以下可选属性：`weight` 和 `style`：
+
+```ts
+import { fontData } from "astro:assets"
+
+const data = fontData["--font-roboto"]
+```
+
+### `experimental_getFontFileURL()`
+
+<p>
+
+**类型：** `(url: string, requestUrl?: URL) => Promise<string>`
+<Since v="6.2.0" />
+</p>
+
+解析从 [`fontData`](#fontdata) 获取的字体文件 URL：
+
+```ts " experimental_getFontFileURL " {9}
+import { fontData, experimental_getFontFileURL } from "astro:assets";
+
+const fontPath = fontData["--font-roboto"][0]?.src[0]?.url;
+
+if (fontPath === undefined) {
+  throw new Error("Cannot find the font path.");
+}
+
+const url = experimental_getFontFileURL(fontPath);
+const buffer = await fetch(url).then((res) => res.arrayBuffer());
+```
+
+当在[按需渲染](/zh-cn/guides/on-demand-rendering/)的路由上调用时，需要提供请求的 URL：
+
+```ts "context.url"
+import type { APIRoute } from "astro";
+import { fontData, experimental_getFontFileURL } from "astro:assets"
+
+export const prerender = false; // 在 'server' 模式下不需要
+
+export const GET: APIRoute = async (context) => {
+  // ...
+  const url = experimental_getFontFileURL(fontPath, context.url);
+  // ...
+};
+```
+
 ## `astro:assets` 类型
 
 以下类型从虚拟资源模块导入：
@@ -634,6 +757,7 @@ const { width, height } = await inferRemoteSize("https://example.com/cat.png");
 import type {
   LocalImageProps,
   RemoteImageProps,
+  FontData
 } from "astro/assets";
 ```
 
@@ -658,6 +782,53 @@ import type {
 </p>
 
 描述[远程图像的属性](#image-)。确保当 [`inferSize`](#infersize) 未提供或设置为 `false` 时，[`width` 和 `height`](#width-和-height对于-public-中的图像是必须的) 都是必需的。
+
+### `FontData`
+
+<p>
+
+**类型：** `{ src: Array<{ url: string; format?: string; tech?: string }>; weight?: string; style?: string; subset?: string; }`<br />
+<Since v="6.0.0" />
+</p>
+
+描述与给定字体系列关联的字体数据。
+
+#### `FontData.src`
+
+<p>
+
+**类型：** `Array<{ url: string; format?: string; tech?: string }>`
+</p>
+
+一个对象数组，描述给定字体系列可用的字体文件。每个对象包含一个 `url`，以及可选的关联 [`format`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/At-rules/@font-face/src#font_formats) 和 [`tech`](https://developer.mozilla.org/zh-CN/docs/Web/CSS/Reference/At-rules/@font-face/src#font_technologies)。
+
+#### `FontData.weight`
+
+<p>
+
+**类型：** `string`
+</p>
+
+指定字体的字重（例如 `400`、`600`）。
+
+#### `FontData.style`
+
+<p>
+
+**类型：** `string`
+</p>
+
+指定字体的样式（例如 `normal`、`italic`）。
+
+#### `FontData.subset`
+
+<p>
+
+**类型：** `string`
+<Since v="7.0.0" />
+</p>
+
+指定字体的子集（例如 `latin`、`cyrillic`）。
 
 ## 从 `astro/assets` 导入
 
@@ -752,12 +923,11 @@ import {
   resolveSrc,
   imageMetadata,
   emitImageMetadata,
+  emitClientAsset,
   getOrigQueryParams,
   inferRemoteSize,
   propsToFilename,
   hashTransform,
-  /* 以下已弃用： */
-  emitESMImage,
 } from "astro/assets/utils";
 ```
 
@@ -946,7 +1116,7 @@ isRemoteImage(localImage); // 输出：`false`
 
 <p>
 
-**类型：** <code>(src: <a href="#src-2">UnresolvedImageTransform['src']</a>) => Promise\<string | <a href="#imagemetadata-1">ImageMetadata</a>\></code><br />
+**类型：** <code>(src: <a href="#unresolvedimagetransformsrc">UnresolvedImageTransform['src']</a>) => Promise\<string | <a href="#imagemetadata-1">ImageMetadata</a>\></code><br />
 <Since v="4.0.0" />
 </p>
 
@@ -1015,6 +1185,37 @@ const metadata = await emitImageMetadata(imageId);
 //    format: 'jpg',
 //    contents: Uint8Array([...])
 // }
+```
+
+### `emitClientAsset()`
+
+<p>
+
+**类型：** <code>(pluginContext: <a href="https://rollupjs.org/plugin-development/#plugin-context">Rollup.PluginContext</a>, options: Rollup.EmitFile) => string</code><br />
+
+<Since v="6.0.0" />
+</p>
+
+生成一个客户端资源，该资源会在 SSR 构建期间被移动到客户端资源目录（例如 `dist/client/_astro/`）。此函数面向集成作者，用于从服务端渲染的内容中生成需要在客户端可用的资源（例如图像）。
+
+当你在 Vite 插件上下文中工作，并且需要让生成的资源被移动到客户端输出目录时，请使用此函数，而不是直接使用 [Rollup `pluginContext.emitFile()`](https://rollupjs.org/plugin-development/#this-emitfile)。
+
+```ts
+import { emitClientAsset } from 'astro/assets/utils';
+
+function myVitePlugin() {
+  return {
+    name: 'my-plugin',
+    transform(code, id) {
+      const handle = emitClientAsset(this, {
+        type: 'asset',
+        name: 'my-image.png',
+        source: imageBuffer,
+      });
+      // 返回的资源句柄类似于 `emitFile()`
+    }
+  }
+}
 ```
 
 ### `getOrigQueryParams()`
@@ -1119,38 +1320,6 @@ const hash = hashTransform(transform, imageService, propertiesToHash);
 // 示例值：'d41d8cd98f00b204e9800998ecf8427e'
 ```
 
-### `emitESMImage()`
-
-:::caution[已弃用]
-使用 [`emitImageMetadata`](#emitimagemetadata) 函数进行替代。
-:::
-
-<p>
-
-**类型：** <code>(id: string | undefined, _watchMode: boolean, experimentalSvgEnabled: boolean,  fileEmitter?: Rollup.EmitFile) => Promise\<(<a href="#imagemetadata-1">ImageMetadata</a> & \{ contents?: Buffer \}) | undefined\></code><br />
-<Since v="4.0.0" />
-</p>
-
-
-处理图像文件并生成其元数据及可选内容。在构建模式下，该函数使用 `fileEmitter` 以生成资源引用；在开发模式下，函数解析为本地文件 URL，并在 URL 中添加元数据相关的查询参数。
-
-```ts
-import { emitESMImage } from 'astro/assets/utils';
-
-const imageId = '/images/photo.jpg';
-const unusedWatchMode = false; // 已弃用，闲置
-const unusedExperimentalSvgEnabled = false; // 仅在你使用 SVG 并希望将文件数据嵌入时，设置为 `true`
-const image = await emitESMImage(imageId, unusedWatchMode, unusedExperimentalSvgEnabled);
-// 示例值：
-// {
-//    src: '/@fs/home/username/dev/astro-project/src/images/photo.jpg?origWidth=800&origHeight=600&origFormat=jpg',
-//    width: 800,
-//    height: 600,
-//    format: 'jpg',
-//    contents: Uint8Array([...])
-// }
-```
-
 ## `astro` 类型
 
 ```ts
@@ -1181,7 +1350,7 @@ import type {
 
 描述调用 [`getImage()`](/zh-cn/reference/modules/astro-assets/#getimage) 后转换的结果。
 
-#### `attributes`
+#### `GetImageResult.attributes`
 
 <p>
 
@@ -1190,7 +1359,7 @@ import type {
 
 定义渲染图像所需的附加 HTML 属性（例如 width、height、style）。
 
-#### `options`
+#### `GetImageResult.options`
 
 <p>
 
@@ -1199,7 +1368,7 @@ import type {
 
 描述校验后的转换设置。
 
-#### `rawOptions`
+#### `GetImageResult.rawOptions`
 
 <p>
 
@@ -1208,7 +1377,7 @@ import type {
 
 描述原始的转换设置。
 
-#### `src`
+#### `GetImageResult.src`
 
 <p>
 
@@ -1217,7 +1386,7 @@ import type {
 
 生成图像的路径。
 
-#### `srcSet`
+#### `GetImageResult.srcSet`
 
 <p>
 
@@ -1227,7 +1396,7 @@ import type {
 
 描述如何渲染 [`srcset` 属性](https://developer.mozilla.org/zh-CN/docs/Web/HTML/Reference/Elements/img#srcset)的对象。
 
-##### `values`
+##### `GetImageResult.srcSet.values`
 
 <p>
 
@@ -1236,7 +1405,7 @@ import type {
 
 生成值的数组，其中每个条目包含一个 URL 和一个尺寸描述符。可用于手动生成 `srcset` 属性的值。
 
-##### `attribute`
+##### `GetImageResult.srcSet.attribute`
 
 <p>
 
@@ -1254,7 +1423,7 @@ import type {
 
 定义图像转换服务接受的选项。包含必需的 `src` 属性、可选的预定义属性，以及图像服务所需的任何其他属性：
 
-#### `src`
+#### `ImageTransform.src`
 
 <p>
 
@@ -1263,7 +1432,7 @@ import type {
 
 定义 `public` 目录中本地图像的路径、远程图像的 URL 或导入图像的数据。
 
-#### `width`
+#### `ImageTransform.width`
 
 <p>
 
@@ -1272,7 +1441,7 @@ import type {
 
 图像的宽度。
 
-#### `height`
+#### `ImageTransform.height`
 
 <p>
 
@@ -1281,7 +1450,7 @@ import type {
 
 图像的高度。
 
-#### `widths`
+#### `ImageTransform.widths`
 
 <p>
 
@@ -1291,7 +1460,7 @@ import type {
 
 为图像生成的宽度列表。
 
-#### `densities`
+#### `ImageTransform.densities`
 
 <p>
 
@@ -1301,7 +1470,7 @@ import type {
 
 为图像生成的像素密度列表。
 
-#### `quality`
+#### `ImageTransform.quality`
 
 <p>
 
@@ -1310,7 +1479,7 @@ import type {
 
 输出图像的期望质量。
 
-#### `format`
+#### `ImageTransform.format`
 
 <p>
 
@@ -1319,7 +1488,7 @@ import type {
 
 输出图像的期望格式。
 
-#### `fit`
+#### `ImageTransform.fit`
 
 <p>
 
@@ -1329,7 +1498,7 @@ import type {
 
 定义 `object-fit` CSS 属性的允许值列表，可用任意字符串扩展。
 
-#### `position`
+#### `ImageTransform.position`
 
 <p>
 
@@ -1348,7 +1517,7 @@ import type {
 
 表示带有转换选项的图像。包含与 [`ImageTransform` 类型](#imagetransform)相同的属性，但有不同的 `src` 类型和额外的 `inferSize` 属性。
 
-#### `src`
+#### `UnresolvedImageTransform.src`
 
 <p>
 
@@ -1357,7 +1526,7 @@ import type {
 
 导入的或位于 `public` 目录中的图像路径，或远程图像的 URL。
 
-#### `inferSize`
+#### `UnresolvedImageTransform.inferSize`
 
 <p>
 
@@ -1378,7 +1547,7 @@ import type {
 
 描述图像导入期间收集的数据。包含以下属性：
 
-#### `src`
+#### `ImageMetadata.src`
 
 <p>
 
@@ -1387,7 +1556,7 @@ import type {
 
 图像在文件系统上的绝对路径。
 
-#### `width`
+#### `ImageMetadata.width`
 
 <p>
 
@@ -1396,7 +1565,7 @@ import type {
 
 图像的宽度。
 
-#### `height`
+#### `ImageMetadata.height`
 
 <p>
 
@@ -1405,7 +1574,7 @@ import type {
 
 图像的高度。
 
-#### `format`
+#### `ImageMetadata.format`
 
 <p>
 
@@ -1414,7 +1583,7 @@ import type {
 
 图像的格式。
 
-#### `orientation`
+#### `ImageMetadata.orientation`
 
 <p>
 
@@ -1515,7 +1684,7 @@ import type {
 
 描述图像服务的配置对象。包含以下属性：
 
-#### `entrypoint`
+#### `ImageServiceConfig.entrypoint`
 
 <p>
 
@@ -1524,7 +1693,7 @@ import type {
 
 图像服务模块的包或路径。可以是 Astro 内置的 Sharp 服务或第三方服务。
 
-#### `config`
+#### `ImageServiceConfig.config`
 
 <p>
 
