@@ -1575,19 +1575,45 @@ Defines an optional method that will be called once before the prerendering star
 
 <p>
 
-**Type:** <code>() => Promise\<Array\<\{ pathname: string; route: <a href="#routedata">RouteData</a>; \}\>\></code>
+**Type:** <code>() => Promise\<\{ paths: Array\<\{ pathname: string; route: <a href="#routedata">RouteData</a>; \}\>; metadata?: object; \}\></code>
 </p>
 
-Returns a list of objects describing the prerendered route path and its associated data.
+Returns an object with a `paths` list describing the prerendered route paths and their associated data, and an optional `metadata` object describing the images resolved while computing the paths (e.g. using [`getImage()`](/en/reference/modules/astro-assets/#getimage) inside [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths)). Astro uses this metadata to generate these images.
+
+When wrapping the default prerenderer, pass its `metadata` through unchanged, or the images it describes will not be generated.
+
+:::caution[Deprecated]
+Returning an array of paths directly is deprecated, but still supported. Return an object with a `paths` property instead.
+:::
 
 #### `AstroPrerenderer.render()`
 
 <p>
 
-**Type:** <code>(request: Request, options: \{ routeData: <a href="#routedata">RouteData</a> \}) => Promise\<Response\></code>
+**Type:** <code>(request: Request, options: \{ routeData: <a href="#routedata">RouteData</a> \}) => Promise\<\{ response: Response; metadata?: object; \}\></code>
 </p>
 
 Defines an optional method describing how to render a page. This will be called by Astro for each path returned by [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths).
+
+Returns an object with the rendered `response`, and an optional `metadata` object describing what the page used, such as images. Astro uses this metadata to generate these images.
+
+When wrapping the default prerenderer, pass its `metadata` through unchanged, or the images used by the page will not be generated.
+
+:::caution[Deprecated]
+Returning a `Response` directly is deprecated, but still supported. Return an object with a `response` property instead.
+:::
+
+#### `AstroPrerenderer.getImageService()`
+
+<p>
+
+**Type:** `() => Promise<ImageService>`<br />
+<Since v="7.4.0" />
+</p>
+
+Defines an optional method that returns the [image service](/en/reference/image-service-reference/) used to generate the images of prerendered pages. This is called once, before [`teardown()`](#astroprerendererteardown), when the first image that is not already cached is generated.
+
+By default, Astro loads the image service configured with [`image.service`](/en/reference/configuration-reference/#imageservice). A prerenderer that does not render pages with Astro's default prerender build must implement this method.
 
 #### `AstroPrerenderer.teardown()`
 
@@ -1596,7 +1622,7 @@ Defines an optional method describing how to render a page. This will be called 
 **Type:** `() => Promise<void>`
 </p>
 
-Defines an optional method called once all pages are pre-rendered. This is useful for performing cleanup tasks such as stopping a preview server.
+Defines an optional method called once all pages are pre-rendered and their images are generated. This is useful for performing cleanup tasks such as stopping a preview server.
 
 ### `ClientDirectiveConfig`
 
