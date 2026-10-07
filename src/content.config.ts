@@ -172,6 +172,8 @@ export const collections = {
 				'@astrojs/alpinejs',
 				'@astrojs/cloudflare',
 				'@astrojs/markdoc',
+				'@astrojs/markdown-remark',
+				'@astrojs/markdown-satteri',
 				'@astrojs/mdx',
 				'@astrojs/netlify',
 				'@astrojs/node',
