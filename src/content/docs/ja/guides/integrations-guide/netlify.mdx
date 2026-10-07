@@ -214,7 +214,9 @@ export default defineConfig({
 
 Astro [Sessions API](/ja/guides/sessions/)を使用すると、リクエスト間でユーザーデータを簡単に保存できます。これは、ユーザーデータや設定、ショッピングカート、認証情報などに使用できます。Cookieストレージとは異なり、データにサイズ制限はなく、別のデバイスで復元できます。
 
-Astroは、Netlifyアダプターを使用する場合、セッションストレージ用に[Netlify Blobs](https://docs.netlify.com/blobs/overview/)を自動的に設定します。別のセッションストレージドライバーを使用したい場合は、Astro設定で指定できます。詳細については、[ `session`設定リファレンス](/ja/reference/configuration-reference/#sessiondriver)を参照してください。
+Astroは、Netlifyアダプターを使用する場合、セッションストレージ用に[Netlify Blobs](https://docs.netlify.com/blobs/overview/)を自動的に設定します。別のセッションストレージドライバーを使用したい場合は、Astro設定で指定できます。詳細については、[`session`設定リファレンス](/ja/reference/configuration-reference/#sessiondriver)を参照してください。
+
+プロジェクトでセッションを使用しない場合は、Astro設定で[`session: false`](/ja/guides/sessions/#セッションの無効化)に設定できます。これにより、アダプターはセッションストレージ用のNetlify Blobsを設定せず、セッションランタイムは関数バンドルから除外されます。
 
 ### ページのキャッシュ
 
@@ -350,6 +352,7 @@ export default defineConfig({
 - ローカルの[Netlify Blobs](https://docs.netlify.com/build/data-and-storage/netlify-blobs/)サーバー。デフォルトで[セッション](#セッション)に使用されます。
 - Netlify設定の[リダイレクト、リライト](https://docs.netlify.com/manage/routing/redirects/overview/)および[ヘッダー](https://docs.netlify.com/manage/routing/headers/)。
 - オンデマンドページでの[Netlify Edge Context](#サイトからedge-contextにアクセスする)へのアクセス。
+- プロジェクト内の`netlify/edge-functions`ディレクトリで定義された[Netlify Edge Functions](https://docs.netlify.com/build/edge-functions/overview/)のエミュレーション。
 - Netlifyサイトの[環境変数](https://docs.netlify.com/build/environment-variables/overview/)。
 
 これらの機能は、`netlify link`を使用してローカルサイトを[Netlifyサイトにリンク](https://docs.netlify.com/api-and-cli-guides/cli-guides/get-started-with-cli/#link-and-unlink-sites)している場合に最も効果的に動作します。
@@ -360,13 +363,13 @@ export default defineConfig({
 
 <p>
 **Type:** `boolean | object`<br />
-**Default:** `{ images: true, environmentVariables: false }`<br />
+**Default:** `{ images: true, environmentVariables: false, edgeFunctions: true }`<br />
 <Since v="6.5.1" pkg="@astrojs/netlify"/>
 </p>
 
 `devFeatures`オプションには、すべての機能を有効または無効にする真偽値か、特定の機能を有効にするオブジェクトを指定できます。
 
-```js title="astro.config.mjs" ins={7-12}
+```js title="astro.config.mjs" ins={7-14}
 import { defineConfig } from 'astro/config';
 import netlify from '@astrojs/netlify';
 
@@ -378,6 +381,8 @@ export default defineConfig({
       images: false,
       // 開発時にNetlifyの環境変数を注入します。デフォルトはfalseです。
       environmentVariables: true,
+      // 開発時にNetlify Edge Functionsをエミュレートします。デフォルトはtrueです。
+      edgeFunctions: false,
     },
   }),
 });
@@ -406,6 +411,18 @@ export default defineConfig({
 Netlifyサイトの環境変数を開発環境に注入します。
 
 これにより、本番環境と同じ値を開発時に使用できます。環境ごとに異なる変数を使用する方法など、詳細については[Netlifyの環境変数に関するドキュメント](https://docs.netlify.com/build/environment-variables/overview/)を参照してください。
+
+##### `devFeatures.edgeFunctions`
+
+<p>
+**Type:** `boolean`<br />
+**Default:** `true`<br />
+<Since v="8.1.0" pkg="@astrojs/netlify"/>
+</p>
+
+開発時にプロジェクトの`netlify/edge-functions`ディレクトリで定義された[Netlify Edge Functions](https://docs.netlify.com/build/edge-functions/overview/)をエミュレートします。
+
+いくつかのnpmパッケージは、初期化時にファイルシステムにアクセスするため、Edge Functionsのサンドボックス内では動作せず、`Reading or writing files with Edge Functions is not supported yet`のようなエラーが発生します。これらのエラーが発生した場合は、`edgeFunctions`を`false`に設定してEdge Functionのエミュレーションを無効にし、代わりに`netlify dev`を使用してください。Edge Functionsは、本番ビルドでは引き続き動作します。
 
 ### `staticHeaders`
 
