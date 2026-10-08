@@ -70,7 +70,7 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:start'?: (options: {
       logger: AstroIntegrationLogger;
-      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
+      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer, context: { outputDirectories: AstroBuildOutputDirectories }) => AstroPrerenderer)) => void;
     }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: vite.InlineConfig;
@@ -898,7 +898,7 @@ The address, family and port number supplied by the [`server.address()` method o
 ```js
 'astro:build:start'?: (options: {
   logger: AstroIntegrationLogger;
-  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
+  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer, context: { outputDirectories: AstroBuildOutputDirectories }) => AstroPrerenderer)) => void;
 }) => void | Promise<void>;
 ```
 
@@ -907,7 +907,7 @@ The address, family and port number supplied by the [`server.address()` method o
 
 <p>
 
-**Type:** <code>(prerenderer: <a href="#astroprerenderer">AstroPrerenderer</a> | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void</code><br />
+**Type:** <code>(prerenderer: <a href="#astroprerenderer">AstroPrerenderer</a> | ((defaultPrerenderer: AstroPrerenderer, context: \{ outputDirectories: <a href="#astrobuildoutputdirectories">AstroBuildOutputDirectories</a> \}) => AstroPrerenderer)) => void</code><br />
 <Since v="6.0.0" />
 </p>
 
@@ -934,6 +934,28 @@ The function accepts either an [`AstroPrerenderer` object](#astroprerenderer) di
       // Optional: called after all pages are prerendered
     }
   }));
+}
+```
+
+<p><Since v="7.4.0" /></p>
+
+The factory function also receives a context object as its second argument. Its `outputDirectories` property contains the [client, server, and prerender output directories](#astrobuildoutputdirectories) resolved by Vite. Use these values instead of reading `build.client` or `build.server` from the Astro config, because integrations and Vite plugins can change where build output is written:
+
+```js
+'astro:build:start': ({ setPrerenderer }) => {
+  setPrerenderer((defaultPrerenderer, { outputDirectories }) => {
+    const { client, server, prerender } = outputDirectories;
+
+    return {
+      name: 'my-prerenderer',
+      async getStaticPaths() {
+        return defaultPrerenderer.getStaticPaths();
+      },
+      async render(request, { routeData }) {
+        // Render using the output in `client`, `server`, or `prerender`
+      },
+    };
+  });
 }
 ```
 
@@ -1300,7 +1322,7 @@ export default {
 **Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 </p>
 
-A URL path to the build output directory.
+A URL path to the client build output directory, as resolved by Vite. By default, this is [`outDir`](/en/reference/configuration-reference/#outdir) for static builds and [`build.client`](/en/reference/configuration-reference/#buildclient) for on-demand rendered builds, unless an integration or Vite plugin changes the output directory.
 
 The following example uses Node's built-in [`fileURLToPath()`](https://nodejs.org/api/url.html#urlfileurltopathurl-options) utility to compute a valid absolute path string for a file provided by the integration:
 
@@ -1341,7 +1363,7 @@ export default {
 **Type:** [`URL`](https://developer.mozilla.org/en-US/docs/Web/API/URL)
 </p>
 
-A URL path to the build output directory.
+A URL path to the client build output directory, as resolved by Vite. By default, this is [`outDir`](/en/reference/configuration-reference/#outdir) for static builds and [`build.client`](/en/reference/configuration-reference/#buildclient) for on-demand rendered builds, unless an integration or Vite plugin changes the output directory.
 
 The following example uses Node's built-in [`fileURLToPath()`](https://nodejs.org/api/url.html#urlfileurltopathurl-options) utility to compute a valid absolute path string for a file provided by the integration before writing to it:
 
@@ -1427,6 +1449,7 @@ The following types can be imported from the `astro` module:
 
 ```ts
 import type {
+  AstroBuildOutputDirectories,
   AstroIntegrationLogger,
   AstroIntegrationMiddleware,
   AstroMiddlewareInstance,
@@ -1443,6 +1466,43 @@ import type {
   ValidRedirectStatus,
 } from "astro";
 ```
+
+### `AstroBuildOutputDirectories`
+
+<p>
+
+**Type:** `{ client: URL; server: URL; prerender: URL; }`<br />
+<Since v="7.4.0" />
+</p>
+
+Describes the output directories resolved by Vite for each build environment. A [custom prerenderer factory](#setprerenderer-option) receives this object as `outputDirectories` in its context argument.
+
+#### `AstroBuildOutputDirectories.client`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+The resolved output directory for client-side build artifacts (e.g. JavaScript, CSS, and static pages).
+
+#### `AstroBuildOutputDirectories.server`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+The resolved output directory for server-side build artifacts.
+
+#### `AstroBuildOutputDirectories.prerender`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+The resolved output directory for the prerender build environment.
 
 ### `AstroIntegrationLogger`
 
@@ -2454,7 +2514,7 @@ Specifies the [configured directory for generated assets](/en/reference/configur
 <Since v="5.2.0" />
 </p>
 
-Determines the path where client-side build artifacts (e.g. JavaScript, CSS) are output within the build directory.
+Determines the path where client-side build artifacts (e.g. JavaScript, CSS) are output, as resolved by Vite. For on-demand rendered builds, this matches [`build.client`](/en/reference/configuration-reference/#buildclient) by default.
 
 #### `SSRManifest.buildServerDir`
 
@@ -2464,7 +2524,7 @@ Determines the path where client-side build artifacts (e.g. JavaScript, CSS) are
 <Since v="5.2.0" />
 </p>
 
-Determines the path where server-side build artifacts are output within the build directory.
+Determines the path where server-side build artifacts are output, as resolved by Vite. For on-demand rendered builds, this matches [`build.server`](/en/reference/configuration-reference/#buildserver) by default.
 
 #### `SSRManifest.csp`
 
