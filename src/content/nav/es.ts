@@ -18,6 +18,7 @@ export default navDictionary({
 
 	reference: 'Referencia',
 	'reference.runtime': 'API de ejecución',
+	'reference.processors': 'Procesadores de Markdown',
 	'reference.other': 'Otras APIs de desarrollo',
 	'reference.syntax': 'Sintaxis de Plantillas de Astro',
 	'reference.experimental': 'Características experimentales',
