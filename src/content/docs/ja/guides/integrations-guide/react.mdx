@@ -13,6 +13,10 @@ import Since from '~/components/Since.astro';
 
 この[**Astroインテグレーション**][astro-integration]は、[React](https://react.dev/)コンポーネントのレンダリングとクライアントサイドハイドレーションを有効にします。
 
+:::tip[v7.0.0にアップグレードするには?]
+`@astrojs/react`v7.0.0以降、`babel`インテグレーションオプションは削除されました。移行手順については、[Reactインテグレーションをv7.0.0にアップグレードする](#reactインテグレーションをv700にアップグレードする)を参照してください。
+:::
+
 ## インストール
 
 Astroには、公式インテグレーションのセットアップを自動化するための`astro add`コマンドが含まれています。もしよろしければ、[手動でインテグレーションをインストール](#手動インストール)できます。
@@ -223,6 +227,93 @@ export default defineConfig({
 });
 ```
 
+### Reactコンパイラ
+
+<p>
+
+**Type:** `boolean | object`<br />
+**Default:** `false`<br />
+<Since v="7.0.0" pkg="@astrojs/react" />
+</p>
+
+デフォルトでは、`@astrojs/react`は[Oxc](https://oxc.rs/)を使用してJSXをコンパイルし、Fast Refreshを有効にします。コンポーネントやフックのメモ化は行いません。
+
+`compiler: true`を設定すると、[実験的Oxc Reactコンパイラ](https://oxc.rs/docs/guide/usage/transformer/react-compiler)を使用して、クライアントコンポーネントとフックを自動的にメモ化します。これにより、`useMemo()`、`useCallback()`、または`React.memo()`を自分で書かなくても、不要な再レンダリングを減らすことができます。
+
+コンパイラを利用するには[`oxc-transform-react`](https://www.npmjs.com/package/oxc-transform-react)をインストールする必要があります。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D oxc-transform-react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D oxc-transform-react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D oxc-transform-react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+コンパイラはインストールされているReactのバージョンをターゲットにします。React 17および18にはコンパイラのランタイムヘルパーが含まれていません。いずれかのバージョンを使用している場合は、[`react-compiler-runtime`](https://www.npmjs.com/package/react-compiler-runtime)もインストールしてください。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install react-compiler-runtime
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add react-compiler-runtime
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add react-compiler-runtime
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、Reactインテグレーション設定内でコンパイラを有効にします。
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  integrations: [
+    react({ compiler: true }),
+  ],
+});
+```
+
+コンパイラの設定をより細かく制御するために、オブジェクトを渡すこともできます。
+
+以下の例では、`compilationMode`を設定して、`"use memo"`ディレクティブでマークされたコンポーネントとフックのみをコンパイルします。
+
+```js title="astro.config.mjs" {7-9}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  integrations: [
+    react({
+      compiler: {
+        compilationMode: 'annotation',
+      },
+    }),
+  ],
+});
+```
+
+コンパイラはインテグレーション設定内の[`include`および`exclude`オプション](#複数のjsxフレームワークの組み合わせ)で決定した場所でのみ適用されます。サーバーレンダリング、依存関係、および`.astro`ファイルは適用範囲から除外されます。
+
 ### 子要素のパース
 
 AstroコンポーネントからReactコンポーネントに渡された子要素は、Reactノードではなくプレーンな文字列としてパースされます。
@@ -279,6 +370,66 @@ export default defineConfig({
   ]
 });
 ```
+
+## Reactインテグレーションをv7.0.0にアップグレードする
+
+`@astrojs/react` v7.0.0以降、JSXのコンパイルとFast Refreshの有効化するためのBabelは[Oxc](https://oxc.rs/)に置き換えられました。また、`@vitejs/plugin-react`はv6にアップグレードされました。
+
+### 削除されました: `babel`オプション
+
+削除された`babel`オプションの代わりに、[`vite.plugins`](/ja/reference/configuration-reference/#vite)で[`@rolldown/plugin-babel`](https://github.com/rolldown/plugins/tree/main/packages/babel)を使用して、カスタムBabel変換を設定してください。
+
+`@rolldown/plugin-babel`および`@babel/core`をインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+次に、Babelプラグインとプリセットを`vite.plugins`配下の`babel()`に移動します。
+
+以下の例は、`babel-plugin-styled-components`を削除された`babel`オプションから移動しています。
+
+```js title="astro.config.mjs" del={7-11} ins={2,12,14-20}
+import react from '@astrojs/react';
+import babel from '@rolldown/plugin-babel';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [
+    react({
+      babel: {
+        plugins: ['babel-plugin-styled-components'],
+      },
+    }),
+    react(),
+  ],
+  vite: {
+    plugins: [
+      babel({
+        plugins: ['babel-plugin-styled-components'],
+      }),
+    ],
+  },
+});
+```
+
+`babel`コールバックで以前に設定された条件付き変換については、[`orverfides`と`@rolldown/plugin-babel`のプリセットフック](https://github.com/rolldown/plugins/tree/main/packages/babel#options)を参照してください。
+
+`babel()`は[`compiler: true`](#reactコンパイラ)と組み合わせることができます。Babel構成に`babel-plugin-react-compiler`が含まれている場合は、最初に削除してください。これにより、同じコンポーネントにReact Compiler変換が2回適用されるのを避けられます。
 
 [astro-integration]: /ja/guides/integrations/
 
