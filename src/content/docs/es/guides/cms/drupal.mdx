@@ -8,7 +8,6 @@ logo: drupal
 i18nReady: true
 stub: true
 ---
-
 import { FileTree, Steps, CardGrid, LinkCard } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import ReadMore from '~/components/ReadMore.astro';
@@ -71,9 +70,9 @@ DRUPAL_JWT_TOKEN="abc123"
 Tu directorio raíz ahora debería incluir estos nuevos archivos:
 
 <FileTree title="Estructura del proyecto">
--   **.env**
--   astro.config.mjs
--   package.json
+- **.env**
+- astro.config.mjs
+- package.json
 </FileTree>
 
 ### Instalación de dependencias
@@ -85,19 +84,19 @@ Las solicitudes y respuestas JSON:API a menudo pueden ser complejas y estar prof
 
 <PackageManagerTabs>
   <Fragment slot="npm">
-    ```shell
-    npm install jsona drupal-jsonapi-params
-    ```
+  ```shell
+  npm install jsona drupal-jsonapi-params
+  ```
   </Fragment>
   <Fragment slot="pnpm">
-    ```shell
-    pnpm add jsona drupal-jsonapi-params
-    ```
+  ```shell
+  pnpm add jsona drupal-jsonapi-params
+  ```
   </Fragment>
   <Fragment slot="yarn">
-    ```shell
-    yarn add jsona drupal-jsonapi-params
-    ```
+  ```shell
+  yarn add jsona drupal-jsonapi-params
+  ```
   </Fragment>
 </PackageManagerTabs>
 
@@ -110,7 +109,6 @@ Tu contenido se obtiene de una URL JSON:API.
 La estructura básica de la URL es: `/jsonapi/{entity_type_id}/{bundle_id}`
 
 La URL siempre está prefijada por `jsonapi`.
-
 - El `entity_type_id` se refiere al Tipo de entidad, como nodo, bloque, usuario, etc.
 - El `bundle_id` se refiere a los Paquetes de entidad. En el caso de un tipo de entidad Nodo, el paquete podría ser artículo.
 - En este caso, para obtener la lista de todos los artículos, la URL será `[DRUPAL_BASE_URL]/jsonapi/node/article`.
@@ -160,7 +158,11 @@ export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
 
 // Generar la consulta JSON:API. Obtener todos los títulos y cuerpos de los artículos publicados.
 const params: DrupalJsonApiParams = new DrupalJsonApiParams();
-params.addFields("node--article", ["title", "body"]).addFilter("status", "1");
+params.addFields("node--article", [
+        "title",
+        "body",
+    ])
+    .addFilter("status", "1");
 // Genera la cadena de consulta.
 const path: string = params.getQueryString();
 const url: string = baseUrl + "/jsonapi/node/article?" + path;
@@ -175,20 +177,12 @@ const articles = dataFormatter.deserialize(json);
 ---
 
 <body>
-  {
-    articles?.length ? (
-      articles.map((article: any) => (
-        <section>
-          <h2>{article.title}</h2>
-          <article set:html={article.body.value} />
-        </section>
-      ))
-    ) : (
-      <div>
-        <h1>No se encontró contenido</h1>
-      </div>
-    )
-  }
+ {articles?.length ? articles.map((article: any) => (
+    <section>
+      <h2>{article.title}</h2>
+      <article set:html={article.body.value}></article>
+    </section>
+ )): <div><h1>No se encontró contenido</h1></div> }
 </body>
 ```
 
@@ -215,28 +209,30 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
 ### Visualización de una lista de artículos
 
 <Steps>
+
 1. Crea `src/types.ts` si aún no existe y agrega dos nuevas interfaces llamadas `DrupalNode` y `Path` con el siguiente código. Estas interfaces coincidirán con los campos de tu tipo de contenido de artículo en Drupal y los campos Path. Las usarás para tipar tu respuesta de entradas de artículo.
 
     ```ts title="src/types.ts"
+
     export interface Path {
-      alias: string;
-      pid: number;
-      langcode: string;
+        alias: string
+        pid: number
+        langcode: string
     }
 
     export interface DrupalNode extends Record<string, any> {
-      id: string;
-      type: string;
-      langcode: string;
-      status: boolean;
-      drupal_internal__nid: number;
-      drupal_internal__vid: number;
-      changed: string;
-      created: string;
-      title: string;
-      default_langcode: boolean;
-      sticky: boolean;
-      path: Path;
+        id: string
+        type: string
+        langcode: string
+        status: boolean
+        drupal_internal__nid: number
+        drupal_internal__vid: number
+        changed: string
+        created: string
+        title: string
+        default_langcode: boolean
+        sticky: boolean
+        path: Path
     }
     ```
 
@@ -253,10 +249,10 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
 2. Crea un nuevo archivo llamado `drupal.ts` en `src/api` y agrega el siguiente código:
 
     ```ts title="src/api/drupal.ts"
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { DrupalNode } from "../types.ts";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
 
     // Obtener la URL base de Drupal.
     export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
@@ -279,65 +275,72 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
 3. En ese mismo archivo, crea la función `fetchUrl` para realizar la solicitud de obtención y deserializar la respuesta.
 
     ```ts title="src/api/drupal.ts" ins={9-23}
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { DrupalNode } from "../types.ts";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
 
     // Obtener la URL base de Drupal.
     export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
 
     /**
      * Obtener url de Drupal.
-      *
-      * @param url
-      *
-      * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
-      */
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> as Promise<any>
+     */
     export const fetchUrl = async (url: string): Promise<any> => {
-      const request: Response = await fetch(url);
-      const json: string | TJsonApiBody = await request.json();
-      const dataFormatter: Jsona = new Jsona();
-      return dataFormatter.deserialize(json);
-    };
+        const request: Response = await fetch(url);
+        const json: string | TJsonApiBody = await request.json();
+        const dataFormatter: Jsona = new Jsona();
+        return dataFormatter.deserialize(json);
+    }
     ```
 
 4. Crea la función `getArticles()` para obtener todos los artículos publicados.
 
     ```ts title="src/api/drupal.ts" ins={23-40}
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { DrupalNode } from "../types.ts";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {DrupalNode} from "../types.ts";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
 
     // Obtener la URL base de Drupal.
     export const baseUrl: string = import.meta.env.DRUPAL_BASE_URL;
 
     /**
      * Obtener url de Drupal.
-      *
-      * @param url
-      *
-      * @return Promise<TJsonaModel | TJsonaModel[]> como Promise<any>
-      */
+     *
+     * @param url
+     *
+     * @return Promise<TJsonaModel | TJsonaModel[]> as Promise<any>
+     */
     export const fetchUrl = async (url: string): Promise<any> => {
-      const request: Response = await fetch(url);
-      const json: string | TJsonApiBody = await request.json();
-      const dataFormatter: Jsona = new Jsona();
-      return dataFormatter.deserialize(json);
-    };
+        const request: Response = await fetch(url);
+        const json: string | TJsonApiBody = await request.json();
+        const dataFormatter: Jsona = new Jsona();
+        return dataFormatter.deserialize(json);
+    }
 
     /**
      * Obtener todos los artículos publicados.
-      *
-      * @return Promise<DrupalNode[]>
-      */
+     *
+     * @return Promise<DrupalNode[]>
+     */
     export const getArticles = async (): Promise<DrupalNode[]> => {
-      const params: DrupalJsonApiParams = new DrupalJsonApiParams();
-      params.addFields("node--article", ["title", "path", "body", "created"]).addFilter("status", "1");
-      const path: string = params.getQueryString();
-      return await fetchUrl(baseUrl + "/jsonapi/node/article?" + path);
-    };
+        const params: DrupalJsonApiParams = new DrupalJsonApiParams();
+        params
+            .addFields("node--article", [
+                "title",
+                "path",
+                "body",
+                "created",
+            ])
+            .addFilter("status", "1");
+        const path: string = params.getQueryString();
+        return await fetchUrl(baseUrl + '/jsonapi/node/article?' + path);
+    }
     ```
 
     Ahora puedes usar la función `getArticles()` en un componente `.astro` para obtener todos los artículos publicados con datos para cada título, cuerpo, ruta y fecha de creación.
@@ -348,12 +351,12 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
     
     ```astro title="src/pages/articles/index.astro"
     ---
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
     
     import type { DrupalNode } from "../../types";
-    import { getArticles } from "../../api/drupal";
+    import {getArticles} from "../../api/drupal";
     
     // Obtener todos los artículos publicados.
     const articles = await getArticles();
@@ -363,7 +366,6 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
     Esta llamada de obtención usando getArticles() devolverá una matriz tipada de entradas que se pueden usar en tu plantilla de página.
     
     Tu directorio `src/pages/` ahora debería incluir el nuevo archivo, si usaste el mismo archivo de página:
-
     <FileTree title="Estructura del proyecto">
     - .env
     - astro.config.mjs
@@ -381,30 +383,29 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
 
     ```astro title="src/pages/articles/index.astro" ins={12-29}
     ---
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
     
-    import type { DrupalNode } from "../types";
-    import { getArticles } from "../api/drupal";
+    import type { DrupalNode } from "../../types";
+    import { getArticles } from "../../api/drupal";
     
     // Obtener todos los artículos publicados.
     const articles = await getArticles();
     ---
-    
-    <html lang="en">
+    <html lang="es">
       <head>
-        <title>My news site</title>
+        <title>Mi sitio de noticias</title>
       </head>
       <body>
-        <h1>My news site</h1>
+        <h1>Mi sitio de noticias</h1>
         <ul>
           {
             articles.map((article: DrupalNode) => (
               <li>
                 <a href={article.path.alias.replace("internal:en/", "")}>
                   <h2>{article.title}</h2>
-                  <p>Published on {article.created}</p>
+                  <p>Publicado el {article.created}</p>
                 </a>
               </li>
             ))
@@ -413,6 +414,7 @@ Con la configuración anterior, ahora puedes crear un blog que use Drupal como C
       </body>
     </html>
     ```
+
 </Steps>
 
 ### Generación de publicaciones de blog individuales
@@ -422,16 +424,17 @@ Usa el mismo método para obtener tus datos de Drupal como arriba, pero esta vez
 Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archivo de página de enrutamiento dinámico](/es/guides/routing/#rutas-dinámicas) con la función `getStaticPaths()`. Esta función se llamará en tiempo de compilación para generar la lista de rutas que se convierten en páginas.
 
 <Steps>
+
 1. Crea un nuevo archivo `src/pages/articles/[path].astro` e importa la interfaz `DrupalNode` y `getArticle()` desde `src/api/drupal.ts`. Obtén tus datos dentro de una función `getStaticPaths()` para crear rutas para tu blog.
 
     ```astro title="src/pages/articles/[path].astro"
     ---
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
-    
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
     import type { DrupalNode } from "../../types";
-    import { getArticles } from "../../api/drupal";
+    import {getArticles} from "../../api/drupal";
     
     // Obtener todos los artículos publicados.
     export async function getStaticPaths() {
@@ -441,7 +444,6 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
     ```
     
     Tu directorio src/pages/articles ahora debería incluir el nuevo archivo:
-    
     <FileTree title="Estructura del proyecto">
     - .env
     - astro.config.mjs
@@ -460,33 +462,33 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
 
     ```astro title="src/pages/articles/[path].astro" ins={12-33}
     ---
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
-    
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
     import type { DrupalNode } from "../../types";
-    import { getArticles } from "../../api/drupal";
-    
+    import {getArticles} from "../../api/drupal";
+
     // Obtener todos los artículos publicados.
     export async function getStaticPaths() {
-      const articles = await getArticles();
-      return articles.map((article: DrupalNode) => {
-        return {
-          params: {
-            // Elige `path` para que coincida con el valor de enrutamiento `[path]`
-            path: article.path.alias.split("/")[2],
-          },
-          props: {
-            title: article.title,
-            body: article.body,
-            date: new Date(article.created).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }),
-          },
-        };
-      });
+        const articles = await getArticles();
+        return articles.map((article: DrupalNode) => {
+            return {
+                params: {
+                    // Elige `path` para que coincida con el valor de enrutamiento `[path]`
+                    path: article.path.alias.split('/')[2]
+                },
+                props: {
+                    title: article.title,
+                    body: article.body,
+                    date: new Date(article.created).toLocaleDateString('es-ES', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    })
+                }
+            }
+        });
     }
     ---
     ```
@@ -494,7 +496,6 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
     La propiedad dentro de `params` debe coincidir con el nombre de la ruta dinámica. Dado que el nombre del archivo es `[path].astro`, el nombre de la propiedad pasada a `params` debe ser `path`.
     
     En nuestro ejemplo, el objeto `props` pasa tres propiedades a la página:
-    
     - `title`: una cadena, que representa el título de tu publicación.
     - `body`: una cadena, que representa el contenido de tu entrada.
     - `date`: una marca de tiempo, basada en la fecha de creación de tu archivo.
@@ -503,38 +504,37 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
 
     ```astro title="src/pages/articles/[path].astro" ins={30, 32-42}
     ---
-    import { Jsona } from "jsona";
-    import { DrupalJsonApiParams } from "drupal-jsonapi-params";
-    import type { TJsonApiBody } from "jsona/lib/JsonaTypes";
-    
+    import {Jsona} from "jsona";
+    import {DrupalJsonApiParams} from "drupal-jsonapi-params";
+    import type {TJsonApiBody} from "jsona/lib/JsonaTypes";
+
     import type { DrupalNode } from "../../types";
-    import { getArticles } from "../../api/drupal";
-    
+    import {getArticles} from "../../api/drupal";
+
     // Obtener todos los artículos publicados.
     export async function getStaticPaths() {
-      const articles = await getArticles();
-      return articles.map((article: DrupalNode) => {
-        return {
-          params: {
-            path: article.path.alias.split("/")[2],
-          },
-          props: {
-            title: article.title,
-            body: article.body,
-            date: new Date(article.created).toLocaleDateString("es-ES", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            }),
-          },
-        };
-      });
+        const articles = await getArticles();
+        return articles.map((article: DrupalNode) => {
+            return {
+                params: {
+                    path: article.path.alias.split('/')[2]
+                },
+                props: {
+                    title: article.title,
+                    body: article.body,
+                    date: new Date(article.created).toLocaleDateString('es-ES', {
+                        day: "numeric",
+                        month: "long",
+                        year: "numeric"
+                    })
+                }
+            }
+        });
     }
-    
-    const { title, date, body } = Astro.props;
+
+    const {title, date, body} = Astro.props;
     ---
-    
-    <html lang="en">
+    <html lang="es">
       <head>
         <title>{title}</title>
       </head>
@@ -547,6 +547,7 @@ Este ejemplo utiliza el modo estático predeterminado de Astro y crea [un archiv
     ```
 
 4. Navega a la vista previa de tu servidor de desarrollo y haz clic en una de tus publicaciones para asegurarte de que tu ruta dinámica esté funcionando.
+
 </Steps>
 
 ### Publicación de tu sitio
@@ -557,10 +558,10 @@ Para desplegar tu sitio web, visita nuestras [guías de despliegue](/es/guides/d
 
 <CardGrid>
 
-<LinkCard title="Crea una aplicación web con Astro y Drupal" href="https://www.linkedin.com/pulse/create-web-application-astrojs-website-generator-using-gambino-kx6cf"/>
+  <LinkCard title="Crea una aplicación web con Astro y Drupal" href="https://www.linkedin.com/pulse/create-web-application-astrojs-website-generator-using-gambino-kx6cf"/>
 
 </CardGrid>
 
 :::note[¿Tienes un recurso para compartir?]
-Si encontraste (¡o hiciste\!) un video o una publicación de blog útil sobre el uso de Drupal con Astro, [agrégalo a esta lista](https://github.com/withastro/docs/edit/main/src/content/docs/es/guides/cms/drupal.mdx)\!
+Si encontraste (¡o hiciste!) un video o una publicación de blog útil sobre el uso de Drupal con Astro, ¡[agrégalo a esta lista](https://github.com/withastro/docs/edit/main/src/content/docs/es/guides/cms/drupal.mdx)!
 :::
