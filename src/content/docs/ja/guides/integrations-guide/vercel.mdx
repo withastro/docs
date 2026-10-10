@@ -253,6 +253,8 @@ export default defineConfig({
 
 ISR関数リクエストには、静的モードの[リクエスト](/ja/reference/api-reference/#request)と同様に、検索パラメーターは含まれないことに注意してください。
 
+デフォルトでは、Astroは[ミドルウェア](/ja/guides/middleware/)をISR関数にバンドルします。つまり、キャッシュヒットではなく、キャッシュミスまたは再生成時にその関数が実行されるときにのみ実行されます。ミドルウェアをすべてのリクエストで実行する必要がある場合は、[`middlewareMode`を`'edge'`](#vercel-edge-functionsでastroミドルウェアを実行する)に設定して、キャッシュの前にデプロイします。また、関連するルートを[`exclude`](#キャッシュからのパスの除外)に追加して、キャッシュがそれらに適用されないようにすることもできます。
+
 #### ISRキャッシュの無効化
 
 デフォルトでは、ISR関数はデプロイメントの期間中キャッシュします。有効期限を設定するか、特定のルートをキャッシュから完全に除外することで、キャッシュをさらに制御できます。
@@ -280,7 +282,6 @@ export default defineConfig({
 ##### オンデマンドの無効化
 
 キャッシュされたページをプログラムで無効化するには、バイパストークンを作成して`isr`設定に指定します。
-
 ```js title="astro.config.mjs" {6-9}
 import { defineConfig } from 'astro/config';
 import vercel from '@astrojs/vercel';
@@ -294,7 +295,6 @@ export default defineConfig({
     })
 })
 ```
-
 
 キャッシュされたページを無効化するには、`x-prerender-revalidate`ヘッダーにバイパストークンを設定したHEADまたはGETリクエストをページURLに対して送信します。詳細は[VercelのオンデマンドISRドキュメント](https://vercel.com/docs/build-output-api/v3/features#on-demand-incremental-static-regeneration-isr)を参照してください。
 
@@ -444,7 +444,9 @@ export default defineConfig({
 
 ### Vercel Edge FunctionsでAstroミドルウェアを実行する
 
-`@astrojs/vercel`アダプターは、コードベース内のAstroミドルウェアから[Edge functions](https://vercel.com/docs/functions/edge-functions)を作成できます。[`middlewareMode`](/ja/reference/adapter-reference/#middlewaremode)が`'edge'`に設定されている場合、エッジ関数は、静的アセット、事前レンダリングされたページ、オンデマンドでレンダリングされたページを含むすべてのリクエストに対してミドルウェアコードを実行します。
+`@astrojs/vercel`アダプターは、コードベース内のAstroミドルウェアから[Edge Function](https://vercel.com/docs/functions/edge-functions)を作成できます。`middlewareMode`が`'edge'`に設定されている場合、エッジ関数は[オンデマンドレンダリングされたルート](/ja/guides/on-demand-rendering/)へのすべてのリクエストに対してミドルウェアコードを実行します。これには、[`isr`](#isr)でキャッシュされたルートも含まれます。静的アセットと事前レンダリングされたページはVercelのファイルシステムから提供され、ミドルウェアは呼び出されません。
+
+デフォルトでは、ISR関数にバンドルされたミドルウェアは、キャッシュミスまたは再生成時にのみ実行されます。`middlewareMode: 'edge'`を使用すると、ミドルウェアはISRキャッシュの前で実行されるため、キャッシュヒットでも実行されます。つまり、キャッシュされたルートへのすべてのリクエストがエッジ関数の呼び出しをトリガーします。
 
 オンデマンドでレンダリングされたページの場合、`context.locals`オブジェクトはJSONを使用してシリアル化され、レンダリングを実行するサーバーレス関数にヘッダーで送信されます。セキュリティ対策として、サーバーレス関数は、生成されたエッジ関数からのリクエストでない限り、`403 Forbidden`レスポンスでリクエストを拒否します。
 
@@ -533,5 +535,6 @@ Vercelでセッションを使用する場合、セッションストレージ�
 `@astrojs/vercel`アダプターは、VercelでAstroプロジェクトをデプロイするために特定のNode.jsバージョンをサポートしています。VercelでサポートされているNode.jsバージョンを表示するには、プロジェクトの設定タブをクリックし、「Node.js Version」セクションまでスクロールダウンしてください。
 
 詳細は[Vercelのドキュメント](https://vercel.com/docs/functions/serverless-functions/runtimes/node-js#default-and-available-versions)をご覧ください。
+
 
 [astro-integration]: /ja/guides/integrations/
