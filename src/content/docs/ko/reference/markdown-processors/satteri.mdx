@@ -1,0 +1,292 @@
+---
+title: Sätteri API 참조
+sidebar:
+  label: 'Sätteri'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+<p><Since v="6.4.0" /></p>
+
+[Sätteri](https://satteri.bruits.org/)는 Astro의 기본 Markdown 프로세서입니다. `@astrojs/markdown-satteri` 패키지는 선택 사항이며, Sätteri 관련 기능과 플러그인을 활성화하기 위해 설치할 수 있습니다. 또한 통합이나 플러그인을 만들 때 유용한 헬퍼와 타입 집합을 제공합니다.
+
+기능과 사용 예시는 Markdown 가이드의 [Markdown 프로세서](/ko/guides/markdown-content/#markdown-프로세서)를 참조하세요.
+
+## `@astrojs/markdown-satteri`에서 가져오기
+
+다음 헬퍼는 `@astrojs/markdown-satteri`에서 가져옵니다:
+
+```ts
+import {
+  createSatteriMarkdownProcessor,
+  isSatteriProcessor,
+  satteri,
+  satteriHeadingIdsPlugin,
+} from "@astrojs/markdown-satteri";
+```
+
+### `createSatteriMarkdownProcessor()`
+
+<p>
+
+**타입:** <code>(opts?: <a href="#satterimarkdownprocessoroptions">SatteriMarkdownProcessorOptions</a> | undefined) => Promise\<<a href="/ko/reference/markdown-processors/unified/#markdownrenderer">MarkdownRenderer</a>\></code>
+</p>
+
+Sätteri 기반의 독립형 Markdown 렌더러를 생성합니다. 프로젝트에 구성된 [`markdown.processor`](/ko/reference/configuration-reference/#markdownprocessor)와 무관하게 Markdown을 렌더링해야 할 때 유용합니다.
+
+```ts title="src/utils/markdown.ts"
+import { createSatteriMarkdownProcessor } from "@astrojs/markdown-satteri";
+
+const processor = await createSatteriMarkdownProcessor();
+const { code, metadata } = await processor.render("# Hello world");
+```
+
+### `isSatteriProcessor()`
+
+<p>
+
+**타입:** `(p: { name: string; }) => boolean`
+</p>
+
+주어진 프로세서가 Sätteri인지 확인합니다. Sätteri 관련 로직을 적용하기 전에 프로세서의 유형을 확인할 때 유용합니다.
+
+다음 예시는 통합 내에서 구성된 Markdown 프로세서가 Sätteri인지 확인합니다:
+
+```ts title="src/integrations/my-integration.ts" {9-11}
+import { isSatteriProcessor } from "@astrojs/markdown-satteri";
+import type { AstroIntegration } from "astro";
+
+export default function myIntegration(): AstroIntegration {
+  return {
+    name: "my-integration",
+    hooks: {
+      "astro:config:done": ({ config }) => {
+        if (isSatteriProcessor(config.markdown.processor)) {
+          // 여기에 Sätteri 관련 로직을 적용합니다
+        }
+      },
+    },
+  };
+}
+```
+
+### `satteri()`
+
+<p>
+
+**타입:** <code>(options?: <a href="#옵션">SatteriProcessorOptions</a>) => <a href="/ko/reference/markdown-processors/unified/#markdownprocessor">MarkdownProcessor</a></code>
+</p>
+
+`.md`와 `.mdx` 파일을 렌더링하기 위한 Sätteri 기반 Markdown 프로세서를 생성합니다. Markdown 렌더링 동작을 사용자 지정하려면 [`markdown.processor`](/ko/reference/configuration-reference/#markdownprocessor)에 전달하세요.
+
+<ReadMore>Markdown 가이드에서 [Markdown 프로세서 설정하기](/ko/guides/markdown-content/#markdown-프로세서-설정하기) 및 [mdast와 hast 플러그인 사용하기](/ko/guides/markdown-content/#markdown-프로세서-플러그인)에 대해 자세히 알아보세요.</ReadMore>
+
+#### 옵션
+
+<p>
+
+**타입:** `SatteriProcessorOptions`
+</p>
+
+다음 옵션을 사용하여 Sätteri 프로세서의 동작을 사용자 지정할 수 있습니다.
+
+##### `options.mdastPlugins`
+
+<p>
+
+**타입:** `MdastPluginList | undefined`<br />
+**기본값:** `[]`
+</p>
+
+Markdown이 빌드되는 방식을 사용자 지정하려면 [Sätteri mdast 플러그인](https://satteri.bruits.org/docs/plugins/#mdast-plugins)을 전달하세요.
+
+다음 예시는 [`satteri-emoji`](https://www.npmjs.com/package/satteri-emoji) 플러그인을 Sätteri 프로세서에 전달합니다:
+
+```js title="astro.config.mjs" {2,7}
+import { satteri } from "@astrojs/markdown-satteri";
+import { satteriEmoji } from "satteri-emoji";
+
+export default {
+  markdown: {
+    processor: satteri({
+      mdastPlugins: [satteriEmoji],
+    }),
+  },
+};
+```
+
+##### `options.hastPlugins`
+
+<p>
+
+**타입:** `HastPluginList | undefined`<br />
+**기본값:** `[]`
+</p>
+
+Markdown 콘텐츠에서 HTML이 생성되는 방식을 사용자 지정하려면 [Sätteri hast 플러그인](https://satteri.bruits.org/docs/plugins/#hast-plugins)을 전달하세요.
+
+다음 예시는 [`satteri-custom-header-id`](https://www.npmjs.com/package/satteri-custom-header-id) 플러그인을 Sätteri 프로세서에 전달합니다:
+
+```js title="astro.config.mjs" {2,7}
+import { satteri } from "@astrojs/markdown-satteri";
+import { satteriCustomHeaderId } from "satteri-custom-header-id";
+
+export default {
+  markdown: {
+    processor: satteri({
+      hastPlugins: [satteriCustomHeaderId],
+    }),
+  },
+};
+```
+
+##### `options.features`
+
+<p>
+
+**타입:** [`SatteriFeatures`](https://satteri.bruits.org/docs/features/)<br />
+**기본값:** `{}`
+</p>
+
+[Sätteri에서 사용 가능한 기능](https://satteri.bruits.org/docs/features/)을 사용자 지정합니다.
+
+다음 속성은 Astro에서 다른 기본값을 사용합니다.
+
+###### `options.features.smartPunctuation`
+
+<p>
+
+**타입:** `boolean | object`<br />
+**기본값:** `true`
+</p>
+
+곧은 따옴표를 둥근 따옴표로, 하이픈 두 개를 em 대시로, 점 세 개를 줄임표로 변환하기 위해 [스마트 구두점](/ko/guides/markdown-content/#스마트-구두점)을 사용할지 여부입니다.
+
+비활성화하거나 [Sätteri에서 지원하는 속성](https://satteri.bruits.org/docs/features/#smart-punctuation)을 담은 구성 객체를 제공하여 동작을 사용자 지정할 수 있습니다.
+
+다음 예시는 스마트 구두점 지원을 비활성화합니다:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from "astro/config";
+import { satteri } from "@astrojs/markdown-satteri";
+
+export default defineConfig({
+  markdown: {
+    processor: satteri({
+      smartPunctuation: false,
+    }),
+  },
+});
+```
+
+<ReadMore>Markdown 가이드에서 [스마트 구두점 구성하기](/ko/guides/markdown-content/#스마트-구두점)에 대해 자세히 알아보세요.</ReadMore>
+
+### `satteriHeadingIdsPlugin()`
+
+<p>
+
+**타입:** `HastPluginEntry`
+</p>
+
+Markdown 콘텐츠의 모든 제목에 대한 제목 ID를 생성하고 수집합니다. 이를 통해 [Markdown 콘텐츠를 가져오거나 렌더링할 때](/ko/guides/markdown-content/#사용-가능한-속성) 사용할 수 있습니다.
+
+<ReadMore>사용 예시는 Markdown 가이드의 [제목 ID와 플러그인](/ko/guides/markdown-content/#제목-id와-플러그인)을 참조하세요.</ReadMore>
+
+## `@astrojs/markdown-satteri` 타입
+
+다음 타입은 `@astrojs/markdown-satteri`에서 가져옵니다:
+
+```ts
+import type {
+  SatteriAstroData,
+  SatteriMarkdownProcessorOptions,
+} from "@astrojs/markdown-satteri";
+```
+
+### `SatteriAstroData`
+
+<p>
+
+**타입:** <code>\{ frontmatter: Record\<string, any\>; headings: <a href="/ko/reference/markdown-processors/unified/#markdownheading">MarkdownHeading</a>[]; localImagePaths: Set\<string\>; remoteImagePaths: Set\<string\>; \}</code><br />
+<Since v="0.3.1" pkg="@astrojs/markdown-satteri" />
+</p>
+
+`ctx.data.astro`를 통해 Sätteri 플러그인에서 사용할 수 있는 Astro 관련 데이터를 설명합니다.
+
+#### `SatteriAstroData.frontmatter`
+
+<p>
+
+**타입:** `Record<string, any>`
+</p>
+
+플러그인이 Markdown 또는 MDX 콘텐츠의 프런트매터에 주입한 속성을 포함합니다.
+
+<ReadMore>Markdown 가이드에서 [프로그래밍 방식으로 프런트매터 수정하기](/ko/guides/markdown-content/#프로그래밍-방식으로-프런트매터-수정하기)에 대해 자세히 알아보세요.</ReadMore>
+
+#### `SatteriAstroData.headings`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/markdown-processors/unified/#markdownheading">MarkdownHeading</a>[]</code>
+</p>
+
+Markdown 콘텐츠에서 수집된 제목 목록입니다.
+
+#### `SatteriAstroData.localImagePaths`
+
+<p>
+
+**타입:** `Set<string>`
+</p>
+
+Markdown 콘텐츠 자체에서 참조된 로컬 이미지 경로의 배열입니다.
+
+#### `SatteriAstroData.remoteImagePaths`
+
+<p>
+
+**타입:** `Set<string>`
+</p>
+
+Markdown 콘텐츠 자체에서 참조된 원격 이미지 경로의 배열입니다.
+
+### `SatteriMarkdownProcessorOptions`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/configuration-reference/#markdown-옵션">AstroMarkdownOptions</a> & \{ mdastPlugins?: MdastPluginList; hastPlugins?: HastPluginList; features?: SatteriFeatures; \}</code>
+</p>
+
+Markdown 프로세서 구성을 설명합니다. 모든 [`markdown` 옵션](/ko/reference/configuration-reference/#markdown-옵션)과 다음 내용이 포함됩니다.
+
+#### `SatteriMarkdownProcessorOptions.mdastPlugins`
+
+<p>
+
+**타입:** `MdastPluginList`
+</p>
+
+프로세서에 전달할 [Sätteri mdast 플러그인](https://satteri.bruits.org/docs/plugins/#mdast-plugins) 목록입니다.
+
+#### `SatteriMarkdownProcessorOptions.hastPlugins`
+
+<p>
+
+**타입:** `HastPluginList`
+</p>
+
+프로세서에 전달할 [Sätteri hast 플러그인](https://satteri.bruits.org/docs/plugins/#hast-plugins) 목록입니다.
+
+#### `SatteriMarkdownProcessorOptions.features`
+
+<p>
+
+**타입:** [`SatteriFeatures`](https://satteri.bruits.org/docs/features/)
+</p>
+
+Sätteri 프로세서에서 활성화하거나 비활성화할 기능의 구성을 포함합니다.

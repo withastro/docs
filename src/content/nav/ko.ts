@@ -18,6 +18,7 @@ export default navDictionary({
 
 	reference: '참조',
 	'reference.runtime': '런타임 API',
+	'reference.processors': 'Markdown 프로세서',
 	'reference.other': '기타 개발 API',
 	'reference.syntax': 'Astro 템플릿 구문',
 	'reference.experimental': '실험적 기능',
