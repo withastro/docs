@@ -16,6 +16,7 @@ export default {
 
 	reference: 'Reference',
 	'reference.runtime': 'Runtime API',
+	'reference.processors': 'Markdown processors',
 	'reference.other': 'Other development APIs',
 	'reference.syntax': 'Astro Template Syntax',
 	'reference.experimental': 'Experimental features',

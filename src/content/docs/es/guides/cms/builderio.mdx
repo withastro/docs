@@ -10,6 +10,7 @@ i18nReady: true
 ---
 
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import ReadMore from '~/components/ReadMore.astro';
 import { FileTree } from '@astrojs/starlight/components';
 import { Steps } from '@astrojs/starlight/components';
 
@@ -58,6 +59,7 @@ Tu proyecto hasta este momento debería incluir estos archivos:
 - package.json
 </FileTree>
 
+<ReadMore>Aprende más sobre [variables de entorno](/es/guides/environment-variables/) y los archivos `.env` en Astro.</ReadMore>
 
 ## Creando un blog con Astro y Builder
 
@@ -65,7 +67,7 @@ Tu proyecto hasta este momento debería incluir estos archivos:
 
 Las instrucciones a continuación crean un blog de Astro usando un modelo de Builder (Tipo: "Sección") llamado `blogpost` que contiene dos campos de texto requeridos: `title` y `slug`.
 
-:::tipo[Para tipos visuales]
+:::tip[Para tipos visuales]
 Puedes encontrar videos que muestran este procedimiento en uno de los [tutoriales oficiales de Builder](https://www.builder.io/blog/creating-blog#creating-a-blog-article-model).
 :::
 
@@ -198,9 +200,8 @@ Para más ideas, lee [la guía de solución de problemas de Builder](https://www
 
 Agrega la siguiente información a `src/pages/index.astro` para poder obtener y mostrar una lista de todos los títulos de las entradas, cada uno enlazando a su propia página:
 
-```astro title="src/pages/index.astro" {9}
+```astro title="src/pages/index.astro" {8}
 ---
-
 const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
 const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
 
@@ -222,9 +223,9 @@ const { results: posts } = await fetch(
   <body>
     <ul>
       {
-        posts.flatMap(({ data: { slug, title } }) => (
+        posts.flatMap((post: any) => (
           <li>
-            <a href={`/posts/${slug}`}>{title}</a>
+            <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
           </li>
         ))
       }
@@ -268,7 +269,7 @@ Este archivo debe contener:
 
 Cada uno de estos se destaca en el siguiente fragmento de código.
 
-```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 41, 52}
 ---
 export async function getStaticPaths() {
   const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
@@ -279,16 +280,16 @@ export async function getStaticPaths() {
         apiKey: builderAPIpublicKey,
         fields: ["data.slug", "data.title"].join(","),
         cachebust: "true",
-      }
+      },
     ).toString()}`
   )
     .then((res) => res.json())
     .catch
     // ...atrapa algunos errores...);
     ();
-  return posts.map(({ data: { slug, title } }) => ({
-    params: { slug },
-    props: { title },
+  return posts.map((post: any) => ({
+    params: { slug: post.data.slug },
+    props: { title: post.data.title },
   }))
 }
 const { slug } = Astro.params;
@@ -303,11 +304,12 @@ const { html: postHTML } = await fetch(
     url: encodedUrl,
     "query.data.slug": slug,
     cachebust: "true",
-  }).toString()}`
+  }).toString()}`,
 )
   .then((res) => res.json())
   .catch();
 ---
+
 <html lang="es">
   <head>
     <title>{title}</title>
