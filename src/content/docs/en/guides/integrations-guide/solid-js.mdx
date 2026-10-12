@@ -225,6 +225,47 @@ Non-hydrating [`client:only` components][astro-client-only] are not automaticall
 
 Feel free to add additional Suspense boundaries according to your preference.
 
+### Sharing state across islands
+
+By default, each Astro [island](/en/concepts/islands/) hydrates independently with its own isolated state. To share reactive state between multiple Solid islands on the same page, use `createIslandSignal` from `@astrojs/solid-js/signals`:
+
+```astro
+---
+// src/pages/index.astro
+import { createIslandSignal } from '@astrojs/solid-js/signals';
+import Counter from '../components/Counter';
+import Display from '../components/Display';
+
+const [count, setCount] = createIslandSignal(0);
+---
+<Counter count={count} setCount={setCount} client:load />
+<Display count={count} client:load />
+```
+
+Both components receive the same signal. When `Counter` updates the value, `Display` will reactively re-render with the new value.
+
+Solid components consume the signal using the standard accessor/setter pattern:
+
+```tsx
+// src/components/Counter.tsx
+export default function Counter(props) {
+  return (
+    <div>
+      <button onClick={() => props.setCount((v) => v - 1)}>-</button>
+      <span>{props.count()}</span>
+      <button onClick={() => props.setCount((v) => v + 1)}>+</button>
+    </div>
+  );
+}
+```
+
+Signals can also be passed inside arrays and objects:
+
+```astro
+<MyComponent items={["text", count, 42]} client:load />
+<MyComponent config={{ label: "Count", value: count }} client:load />
+```
+
 [astro-integration]: /en/guides/integrations/
 
 [astro-ui-frameworks]: /en/guides/framework-components/#using-framework-components
