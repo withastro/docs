@@ -1,0 +1,65 @@
+---
+title: Experimental parallel prerendering
+sidebar:
+  label: Parallel prerendering
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `boolean | { workers?: number }`<br />
+**Default:** `false`<br />
+<Since v="7.4.0" />
+</p>
+
+This experimental feature renders static pages in a pool of Node.js [worker threads](https://nodejs.org/api/worker_threads.html) during `astro build`.
+
+By default, Astro renders prerendered pages on a single thread. When enabled, each worker loads its own copy of your server code and renders a share of your pages at the same time as the others. This can significantly reduce build times for sites with many pages that are expensive to render, at the cost of additional memory.
+
+To enable parallel prerendering, add the flag to your Astro config:
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: true,
+  },
+});
+```
+
+## Configuring the number of workers
+
+By default, Astro starts one worker per available CPU core, minus one for the main thread. Set `workers` to control the size of the pool:
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: {
+      workers: 4,
+    },
+  },
+});
+```
+
+Every worker increases the peak memory used by your build. Start with a small number of workers and measure the build time and memory usage of your project before increasing it.
+
+[`build.concurrency`](/en/reference/configuration-reference/#buildconcurrency) sets the number of pages rendered at once *within each worker*, so the maximum number of pages rendered at the same time is `workers × build.concurrency`. Raising it can help when your pages spend time waiting on I/O, such as `fetch()` calls.
+
+## Dynamic routes
+
+Each [`getStaticPaths()`](/en/reference/routing-reference/#getstaticpaths) function is still called once per build. The first worker calls it and passes the props of each path to the worker that renders it.
+
+Props are copied between workers using the [structured clone algorithm](https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Structured_clone_algorithm). Pages whose props can't be fully copied, such as props containing functions or class instances, are always rendered by the first worker. These pages still build correctly, but they do not benefit from parallel rendering.
+
+## Limitations
+
+This experimental feature currently has the following limitations:
+
+- **Module state**: Each worker loads its own copy of your code, so module-level variables are not shared between pages rendered on different workers. For example, an in-memory cache populated while rendering one page is not available to pages rendered by another worker.
+
+- **Adapters**: This feature has no effect when an adapter or integration provides its own prerenderer, such as [`@astrojs/cloudflare`](/en/guides/integrations-guide/cloudflare/). Astro logs a warning and renders your pages as usual.

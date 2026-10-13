@@ -168,6 +168,7 @@ export const sidebar = [
 					'reference/experimental-flags/svg-optimization',
 					'reference/experimental-flags/collection-storage',
 					'reference/experimental-flags/incremental-build',
+					'reference/experimental-flags/parallel-prerender',
 				],
 			}),
 			'reference/legacy-flags',
