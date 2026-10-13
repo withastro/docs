@@ -303,7 +303,7 @@ When [`withastro/astro`](https://github.com/withastro/astro) merges its `next` b
 
 ##### 5. After the final release
 
-Once both PRs are merged, update the subdomain redirects. They are managed in the Cloudflare dashboard, not in `worker.js`.
+Update the subdomain redirects in the Cloudflare dashboard.
 
 1. Remove the redirect from the previous version's subdomain (e.g. `v6.docs.astro.build`), so it serves the archived docs.
 2. Redirect the new version's subdomain (e.g. `v7.docs.astro.build`) to `docs.astro.build`.
