@@ -218,23 +218,7 @@ This section provides guidance for maintainers of the docs repository. For the r
 
 ### Automation overview
 
-All workflows are in the `.github/workflows/` directory:
-
-- `ci.yml`: Runs checks on PRs, such as linting and link checking.
-- `contributors.yml`: Opens a PR to update the list of contributors every Sunday at 03:00 UTC.
-- `deploy.yml`: Builds and deploys the docs site.
-- `deploy-lunaria.yml`: Deploys the translation status dashboard to [i18n.docs.astro.build](https://i18n.docs.astro.build/).
-- `deploy-preview.yml`: Deploys the PR preview and posts the "Preview deployment" comment.
-- `discord-congrats.yml`: Posts a congratulations message to Discord after each merge into `main`.
-- `discord-i18n-ping.yml`: Posts the pages that need translating to Discord every Tuesday at 10:00 UTC.
-- `format.yml`: Formats the code and commits the result to `main`.
-- `lint-ja-docs.yml`: Runs textlint on Japanese pages.
-- `lunaria.yml`: Posts a comment listing the translations affected by the PR.
-- `nightly.yml`: Opens PRs to update the generated reference pages every day at 12:00 UTC.
-- `pr-coauthor.yml`: Replies to a `!coauthor` comment with co-author lines for the merge commit.
-- `pr-labeler.yml`: Adds labels to PRs based on the changed files.
-- `welcome-bot.yml`: Posts a welcome comment on PRs from first-time contributors.
-- `zizmor.yml`: Checks the workflows for security issues.
+Each workflow in the `.github/workflows/` directory starts with a comment describing what it does. When you add or change a workflow, please add or update this comment.
 
 You can also run scheduled workflows manually, for example before a release: open the workflow in the Actions tab and select **Run workflow**.
 
