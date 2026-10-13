@@ -1,0 +1,656 @@
+---
+title: Unified API 참조
+sidebar:
+  label: 'Unified'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro는 `@astrojs/markdown-remark` 패키지를 통해 인기 있는 Markdown 생태계인 [unified](https://unifiedjs.com/)에 대한 선택적 지원을 제공합니다. 이를 통해 remark와 rehype 플러그인을 사용하여 렌더링 과정을 사용자 지정하고 확장할 수 있습니다. 또한 통합이나 플러그인을 빌드할 때 유용한 도우미와 타입 집합을 제공합니다.
+
+기능과 사용 예시는 Markdown 가이드의 [Markdown 프로세서](/ko/guides/markdown-content/#markdown-프로세서)를 참조하세요.
+
+## `@astrojs/markdown-remark`에서 가져오기
+
+다음 도우미는 `@astrojs/markdown-remark`에서 가져옵니다:
+
+```ts
+import {
+  createMarkdownProcessor,
+  isUnifiedProcessor,
+  parseFrontmatter,
+  rehypeHeadingIds,
+  unified,
+} from "@astrojs/markdown-remark";
+```
+
+### `createMarkdownProcessor()`
+
+<p>
+
+**타입:** <code>(opts?: <a href="#astromarkdownoptions">AstroMarkdownOptions</a>) => Promise\<<a href="#markdownrenderer">MarkdownRenderer</a>\></code><br />
+<Since v="3.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+독립 실행형 unified 기반 Markdown 렌더러를 생성합니다. 프로젝트에 구성된 [`markdown.processor`](/ko/reference/configuration-reference/#markdownprocessor)와 독립적으로 Markdown을 렌더링해야 할 때 유용합니다.
+
+```ts title="src/utils/markdown.ts"
+import { createMarkdownProcessor } from "@astrojs/markdown-remark";
+
+const processor = await createMarkdownProcessor();
+const { code, metadata } = await processor.render("# Hello world");
+```
+
+### `isUnifiedProcessor()`
+
+<p>
+
+**타입:** `(p: { name: string; }) => boolean`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+지정된 Markdown 프로세서가 unified인지 확인합니다. unified 전용 로직을 적용하기 전에 프로세서의 타입을 확인해야 할 때 유용합니다.
+
+다음 예시는 통합 내에서 구성된 Markdown 프로세서가 unified인지 확인합니다:
+
+```ts title="src/integrations/my-integration.ts" {9-11}
+import { isUnifiedProcessor } from "@astrojs/markdown-remark";
+import type { AstroIntegration } from "astro";
+
+export default function myIntegration(): AstroIntegration {
+  return {
+    name: "my-integration",
+    hooks: {
+      "astro:config:done": ({ config }) => {
+        if (isUnifiedProcessor(config.markdown.processor)) {
+          // 여기에 unified 전용 로직을 적용합니다
+        }
+      },
+    },
+  };
+}
+```
+
+### `rehypeHeadingIds()`
+
+<p>
+
+**타입:** <code><a href="#rehypeplugin">RehypePlugin</a></code><br />
+<Since v="1.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Markdown 콘텐츠의 모든 제목에 대한 제목 ID를 생성하고 수집합니다. 이를 통해 [Markdown 콘텐츠를 가져오거나 렌더링할 때](/ko/guides/markdown-content/#사용-가능한-속성) 사용할 수 있습니다.
+
+<ReadMore>사용 예시는 Markdown 가이드의 [제목 ID와 플러그인](/ko/guides/markdown-content/#제목-id와-플러그인)을 참조하세요.</ReadMore>
+
+### `unified()`
+
+<p>
+
+**타입:** <code>(options?: <a href="#옵션">UnifiedProcessorOptions</a>) => <a href="#markdownprocessor">MarkdownProcessor</a></code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+`.md`와 `.mdx` 파일을 렌더링하기 위한 unified 기반 프로세서를 생성합니다. unified를 기본 Markdown 프로세서로 사용하려면 [`markdown.processor`](/ko/reference/configuration-reference/#markdownprocessor)에 전달하세요.
+
+<ReadMore>예시와 함께 [Markdown 프로세서 설정하기](/ko/guides/markdown-content/#markdown-프로세서-설정하기)와 [remark 및 rehype 플러그인 사용하기](/ko/guides/markdown-content/#markdown-프로세서-플러그인)에 대해 자세히 알아보세요.</ReadMore>
+
+#### 옵션
+
+<p>
+
+**타입:** `UnifiedProcessorOptions`
+</p>
+
+다음 옵션을 사용하여 unified 프로세서 동작을 사용자 지정할 수 있습니다.
+
+##### `options.remarkPlugins`
+
+<p>
+
+**타입:** [`RemarkPlugins`](#remarkplugins)<br />
+**기본값:** `[]`
+</p>
+
+[remark 플러그인](https://github.com/remarkjs/remark#plugins)을 전달하여 Markdown이 빌드되는 방식을 사용자 지정합니다. 플러그인 함수를 가져와 적용하거나(권장), 플러그인 이름을 문자열로 전달할 수 있습니다.
+
+다음 예시는 사용자 지정 `heading` 옵션과 함께 [`remark-toc`](https://www.npmjs.com/package/remark-toc) 플러그인을 unified 프로세서에 전달합니다:
+
+```js title="astro.config.mjs" {3,8}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+import remarkToc from "remark-toc";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [[remarkToc, { heading: "contents" }]],
+    }),
+  },
+});
+```
+
+##### `options.rehypePlugins`
+
+<p>
+
+**타입:** [`RehypePlugins`](#rehypeplugins)<br />
+**기본값:** `[]`
+</p>
+
+[rehype 플러그인](https://github.com/rehypejs/rehype#plugins)을 전달하여 Markdown 콘텐츠에서 생성되는 HTML을 사용자 지정합니다. 플러그인 함수를 가져와 적용하거나(권장), 플러그인 이름을 문자열로 전달할 수 있습니다.
+
+다음 예시는 [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) 플러그인을 unified 프로세서에 전달합니다:
+
+```js title="astro.config.mjs" {3,8}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      rehypePlugins: [rehypeAccessibleEmojis],
+    }),
+  },
+});
+```
+
+##### `options.remarkRehype`
+
+<p>
+
+**타입:** [`RemarkRehype`](#remarkrehype)
+</p>
+
+[`remark-rehype`](https://github.com/remarkjs/remark-rehype) 플러그인에 옵션을 전달하여 Markdown이 HTML로 변환되는 방식을 제어합니다.
+
+다음 예시는 각주 레이블을 사용자 지정합니다:
+
+```js title="astro.config.mjs" {7-10}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkRehype: {
+        footnoteLabel: "Footnotes",
+        footnoteBackLabel: "Back to reference 1",
+      },
+    }),
+  },
+});
+```
+
+##### `options.recmaPlugins`
+
+<p>
+
+**타입:** `PluggableList`<br />
+**기본값:** `[]`
+</p>
+
+[recma 플러그인](https://github.com/mdx-js/recma#plugins)을 전달하여 [MDX 파일](/ko/guides/integrations-guide/mdx/)의 [estree](https://github.com/estree/estree) 출력을 사용자 지정합니다. 이는 JavaScript 변수를 수정하거나 주입할 때 유용합니다.
+
+```js title="astro.config.mjs" {3,8}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+import myRecmaPlugin from "./my-recma-plugin.mjs";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      recmaPlugins: [myRecmaPlugin],
+    }),
+  },
+});
+```
+
+[AST Explorer](https://astexplorer.net/)를 사용하여 estree 출력을 실험해 볼 수 있으며, JavaScript 노드를 검색하려면 [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/)을 사용해 보세요.
+
+##### `options.gfm`
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `true`
+</p>
+
+[GitHub-Flavored Markdown(GFM)](https://github.com/remarkjs/remark-gfm) 지원을 활성화할지 비활성화할지 여부입니다.
+
+이를 비활성화하려면 `gfm` 옵션을 `false`로 설정하세요:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      gfm: false,
+    }),
+  },
+});
+```
+
+<ReadMore>Astro에서 [GitHub-Flavored Markdown](/ko/guides/markdown-content/#github-flavored-markdown) 사용하기에 대해 자세히 알아보세요.</ReadMore>
+
+##### `options.smartypants`
+
+<p>
+
+**타입:** <code>boolean | <a href="#smartypants">Smartypants</a></code><br />
+**기본값:** `true`
+</p>
+
+[SmartyPants 포매터](https://daringfireball.net/projects/smartypants/)를 사용하여 곧은따옴표를 둥근따옴표로, 대시를 en/em 대시로, 점 세 개를 줄임표로 변환할지 여부입니다.
+
+비활성화하거나 [`retext-smartypants`에서 지원하는 속성](https://github.com/retextjs/retext-smartypants#fields)을 담은 구성 객체를 제공하여 동작을 사용자 지정할 수 있습니다.
+
+다음 예시는 스마트 구두점 지원을 비활성화합니다:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      smartypants: false,
+    }),
+  },
+});
+```
+
+<ReadMore>Markdown 가이드에서 [스마트 구두점](/ko/guides/markdown-content/#스마트-구두점) 구성하기에 대해 자세히 알아보세요.</ReadMore>
+
+## `@astrojs/markdown-remark` 타입
+
+다음 타입은 `@astrojs/markdown-remark`에서 가져옵니다:
+
+```ts
+import type {
+  AstroMarkdownOptions,
+  MarkdownHeading,
+  MarkdownProcessor,
+  MarkdownRenderOptions,
+  MarkdownRenderResult,
+  MarkdownRenderer,
+  RehypePlugin,
+  RehypePlugins,
+  RemarkPlugin,
+  RemarkPlugins,
+  RemarkRehype,
+  ShikiConfig,
+  Smartypants,
+  SyntaxHighlightConfig,
+  SyntaxHighlightConfigType,
+} from "@astrojs/markdown-remark";
+```
+
+### `AstroMarkdownOptions`
+
+<p>
+
+**타입:** `{ syntaxHighlight?: SyntaxHighlightConfig | SyntaxHighlightConfigType | false; shikiConfig?: ShikiConfig; image?: { domains?: string[]; remotePatterns?: RemotePattern[]; }; }`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Markdown 프로세서 구성을 설명합니다. 다음 내용과 함께 모든 [`markdown` 옵션](/ko/reference/configuration-reference/#markdown-옵션)을 포함합니다.
+
+#### `AstroMarkdownOptions.image`
+
+<p>
+
+**타입:** <code>\{ domains?: string[]; remotePatterns?: <a href="/ko/reference/modules/astro-assets/#remotepattern">RemotePattern[]</a>; \}</code>
+</p>
+
+Markdown 프로세서에 대한 이미지 구성을 지정합니다.
+
+##### `AstroMarkdownOptions.image.domains`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+구성 참조에서 [`image.domains`](/ko/reference/configuration-reference/#imagedomains)를 참조하세요.
+
+##### `AstroMarkdownOptions.image.remotePatterns`
+
+<p>
+
+**타입:** <code><a href="/ko/reference/modules/astro-assets/#remotepattern">RemotePattern[]</a></code>
+</p>
+
+구성 참조에서 [`image.remotePatterns`](/ko/reference/configuration-reference/#imageremotepatterns)를 참조하세요.
+
+### `MarkdownHeading`
+
+<p>
+
+**타입:** `{ depth: number; slug: string; text: string; }`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Markdown 또는 MDX 문서의 제목을 나타냅니다.
+
+#### `MarkdownHeading.depth`
+
+<p>
+
+**타입:** `number`
+</p>
+
+`1`(`<h1>`)부터 `6`(`<h6>`)까지의 제목 수준입니다.
+
+#### `MarkdownHeading.slug`
+
+<p>
+
+**타입:** `string`
+</p>
+
+앵커 링크의 `id` 속성으로 사용되는 생성된 슬러그를 지정합니다.
+
+#### `MarkdownHeading.text`
+
+<p>
+
+**타입:** `string`
+</p>
+
+제목의 렌더링된 텍스트 콘텐츠를 포함합니다.
+
+### `MarkdownProcessor`
+
+<p>
+
+**타입:** `object`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+구성된 [`markdown.processor`](/ko/reference/configuration-reference/#markdownprocessor)를 설명합니다. 변수가 [내장 Markdown 프로세서](/ko/guides/markdown-content/#markdown-프로세서) 중 하나를 허용함을 나타내려는 경우에 유용합니다.
+
+### `MarkdownRenderOptions`
+
+<p>
+
+**타입:** `{ fileURL?: URL; frontmatter?: Record<string, any>; }`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Markdown 콘텐츠를 렌더링할 때 사용할 수 있는 옵션을 설명합니다.
+
+#### `MarkdownRenderOptions.fileURL`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+렌더링 중인 Markdown 파일의 URL을 지정합니다.
+
+#### `MarkdownRenderOptions.frontmatter`
+
+<p>
+
+**타입:** `Record<string, any>`
+</p>
+
+Markdown 콘텐츠에 대한 프런트매터 데이터를 제공합니다.
+
+### `MarkdownRenderResult`
+
+<p>
+
+**타입:** <code>\{ code: string; metadata: \{ headings: <a href="#markdownheading">MarkdownHeading</a>[]; localImagePaths: string[]; remoteImagePaths: string[]; frontmatter: Record\<string, any\>; \}; \}</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+렌더링된 Markdown 파일을 설명합니다.
+
+#### `MarkdownRenderResult.code`
+
+<p>
+
+**타입:** `string`
+</p>
+
+렌더링된 HTML 코드를 포함합니다.
+
+#### `MarkdownRenderResult.metadata`
+
+<p>
+
+**타입:** <code>\{ headings: <a href="#markdownheading">MarkdownHeading</a>[]; localImagePaths: string[]; remoteImagePaths: string[]; frontmatter: Record\<string, any\>; \}</code>
+</p>
+
+렌더링된 콘텐츠와 관련된 메타데이터를 설명합니다.
+
+##### `MarkdownRenderResult.metadata.headings`
+
+<p>
+
+**타입:** <code><a href="#markdownheading">MarkdownHeading</a>[]</code>
+</p>
+
+추출된 제목 목록입니다.
+
+##### `MarkdownRenderResult.metadata.localImagePaths`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+렌더링된 콘텐츠에서 참조된 로컬 이미지 경로 배열입니다.
+
+##### `MarkdownRenderResult.metadata.remoteImagePaths`
+
+<p>
+
+**타입:** `string[]`
+</p>
+
+렌더링된 콘텐츠에서 참조된 원격 이미지 경로 배열입니다.
+
+##### `MarkdownRenderResult.metadata.frontmatter`
+
+<p>
+
+**타입:** `Record<string, any>`
+</p>
+
+렌더러에 전달된 프런트매터입니다.
+
+### `MarkdownRenderer`
+
+<p>
+
+**타입:** <code>\{ render: (content: string, opts?: <a href="#markdownrenderoptions">MarkdownRenderOptions</a>) => Promise\<<a href="#markdownrenderresult">MarkdownRenderResult</a>\>; \}</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+[독립 실행형 Markdown 프로세서](#createmarkdownprocessor)에서 구현하는 인터페이스를 지정합니다.
+
+#### `MarkdownRenderer.render()`
+
+<p>
+
+**타입:** <code>(content: string, opts?: <a href="#markdownrenderoptions">MarkdownRenderOptions</a>) => Promise\<<a href="#markdownrenderresult">MarkdownRenderResult</a>\></code>
+</p>
+
+지정된 Markdown 콘텐츠에 대한 렌더링된 HTML과 메타데이터를 생성합니다. 두 번째 인자로 옵션을 사용하여 렌더링 과정을 사용자 지정할 수 있습니다.
+
+### `RehypePlugin`
+
+<p>
+
+**타입:** <code>Plugin\<PluginParameters, <a href="https://github.com/syntax-tree/hast#root">HastRoot</a>\></code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+unified 생태계에서 [rehype 플러그인](https://github.com/rehypejs/rehype)을 정의합니다.
+
+### `RehypePlugins`
+
+<p>
+
+**타입:** <code>(string | [string, any] | <a href="#rehypeplugin">RehypePlugin</a> | [<a href="#rehypeplugin">RehypePlugin</a>, any])[]</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Markdown 콘텐츠에서 생성된 HTML 출력을 사용자 지정하기 위한 [rehype 플러그인](https://github.com/rehypejs/rehype) 목록입니다. 각 항목은 가져온 플러그인이거나 Astro가 자동으로 가져와야 하는 패키지 이름입니다.
+
+### `RemarkPlugin`
+
+<p>
+
+**타입:** <code>Plugin\<PluginParameters, <a href="https://github.com/syntax-tree/mdast#root">MdastRoot</a>\></code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+unified 생태계에서 [remark 플러그인](https://github.com/remarkjs/remark)을 정의합니다.
+
+### `RemarkPlugins`
+
+<p>
+
+**타입:** <code>(string | [string, any] | <a href="#remarkplugin">RemarkPlugin</a> | [<a href="#remarkplugin">RemarkPlugin</a>, any])[]</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Markdown 처리를 사용자 지정하기 위한 [remark 플러그인](https://github.com/remarkjs/remark) 목록입니다. 각 항목은 가져온 플러그인이거나 Astro가 자동으로 가져와야 하는 패키지 이름입니다.
+
+### `RemarkRehype`
+
+<p>
+
+**타입:** `Record<string, unknown>`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+[`remark-rehype`](https://github.com/remarkjs/remark-rehype) 플러그인에 전달되는 옵션을 지정합니다.
+
+### `ShikiConfig`
+
+<p>
+
+**타입:** `object`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+[Shiki 구문 강조기를 구성](/ko/reference/configuration-reference/#markdownshikiconfig)하기 위한 옵션을 설명합니다.
+
+<ReadMore>사용 예시와 함께 [구문 강조](/ko/guides/syntax-highlighting/)에 대해 자세히 알아보세요.</ReadMore>
+
+#### `ShikiConfig.langs`
+
+<p>
+
+**타입:** `LanguageRegistration[]`
+</p>
+
+구문 강조기에서 활성화할 [Shiki 언어](https://shiki.style/languages) 목록입니다.
+
+#### `ShikiConfig.langAlias`
+
+<p>
+
+**타입:** `Record<string, string>`
+</p>
+
+Shiki 언어 ID에 매핑할 사용자 지정 별칭을 정의합니다.
+
+[Shiki 언어 별칭](https://shiki.style/guide/load-lang#custom-language-aliases)에 대한 자세한 내용은 Shiki 문서를 참조하세요.
+
+#### `ShikiConfig.theme`
+
+<p>
+
+**타입:** `ThemePresets | ThemeRegistration | ThemeRegistrationRaw`
+</p>
+
+구문 강조를 위한 기본 테마를 지정합니다. [Shiki 번들 테마](https://shiki.style/themes#bundled-themes) 또는 [사용자 지정 Shiki 테마](https://shiki.style/guide/load-theme)일 수 있습니다.
+
+<ReadMore>사용 예시와 함께 [Shiki의 기본 테마 설정](/ko/guides/syntax-highlighting/#shiki의-기본-테마-설정)에 대해 자세히 알아보세요.</ReadMore>
+
+#### `ShikiConfig.themes`
+
+<p>
+
+**타입:** `Record<string, ThemePresets | ThemeRegistration | ThemeRegistrationRaw>`
+</p>
+
+테마 이름을 해당 Shiki 테마 구성에 매핑하는 객체입니다.
+
+<ReadMore>사용 예시와 함께 [라이트 및 다크 모드 테마 설정](/ko/guides/syntax-highlighting/#라이트-및-다크-모드-테마-설정) 방법을 알아보세요.</ReadMore>
+
+#### `ShikiConfig.defaultColor`
+
+<p>
+
+**타입:** `'light' | 'dark' | string | false`
+</p>
+
+[`ShikiConfig.themes`]가 정의되었을 때 사용할 기본 테마를 지정합니다.
+
+#### `ShikiConfig.wrap`
+
+<p>
+
+**타입:** `boolean | null`
+</p>
+
+긴 줄을 줄바꿈하여 가로 스크롤을 방지할지 여부입니다.
+
+#### `ShikiConfig.transformers`
+
+<p>
+
+**타입:** `ShikiTransformer[]`
+</p>
+
+생성된 HTML을 사용자 지정하기 위한 [Shiki 트랜스포머](https://shiki.style/guide/transformers) 목록입니다.
+
+<ReadMore>특정 코드 블록에만 필요한 경우 [`<Code />`에 `transformers` 적용하기](/ko/guides/syntax-highlighting/#transformers) 방법을 알아보세요.</ReadMore>
+
+### `Smartypants`
+
+<p>
+
+**타입:** `object`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+[`retext-smartypants`에 대한 구성 옵션](https://github.com/retextjs/retext-smartypants#options)을 설명합니다.
+
+<ReadMore>Astro에서 [스마트 구두점](/ko/guides/markdown-content/#스마트-구두점) 사용하기에 대해 자세히 알아보세요.</ReadMore>
+
+### `SyntaxHighlightConfig`
+
+<p>
+
+**타입:** <code>\{ type: <a href="#syntaxhighlightconfigtype">SyntaxHighlightConfigType</a>; excludeLangs?: string[]; \}</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+구성된 [구문 강조기](/ko/reference/configuration-reference/#markdownsyntaxhighlighttype)와 [강조 표시에서 제외할 언어](/ko/reference/configuration-reference/#markdownsyntaxhighlightexcludelangs)를 지정합니다.
+
+<ReadMore>사용 예시와 함께 [구문 강조](/ko/guides/syntax-highlighting/)에 대해 자세히 알아보세요.</ReadMore>
+
+### `SyntaxHighlightConfigType`
+
+<p>
+
+**타입:** `'shiki' | 'prism'`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Astro에서 지원하는 구문 강조기의 유니언입니다.
