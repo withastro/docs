@@ -204,28 +204,6 @@ In the terminal on your computer:
 2. Click <kbd>Install</kbd>
 3. Follow the instructions to select your fork
 
-## Creating a Version Branch
-
-When a new major version of Astro is released, the current `main` branch becomes a version branch (e.g. `v7`) to preserve the docs for that version. Since `main` already has the Cloudflare Workers deployment infrastructure, only a few changes are needed:
-
-### 1. On the new version branch
-
-After branching from `main`, update these files:
-
-- **`wrangler.jsonc`** — Change the `name` field to match the version (e.g. `"name": "docs-v7"`).
-- **`astro.config.ts`** — Change the `site` URL to the versioned subdomain (e.g. `'https://v7.docs.astro.build/'`).
-
-### 2. On `main`
-
-Update `.github/workflows/deploy.yml` to include the new version branch:
-
-- Add the branch name to the `push.branches` list (e.g. `[main, v4, v5, v6, v7]`).
-- Add a corresponding `github.ref == 'refs/heads/v7'` condition to the Deploy step's `if` block.
-
-### 3. In the Cloudflare dashboard
-
-- After the first successful deploy, go to the Worker's settings (e.g. `docs-v7`) -> **Domains & Routes** and add the custom domain (e.g. `v7.docs.astro.build`).
-
 ## Next Steps
 
 - [Read the docs](https://docs.astro.build/)
@@ -233,3 +211,105 @@ Update `.github/workflows/deploy.yml` to include the new version branch:
 - [Raise an issue](https://github.com/withastro/docs/issues/new)
 - [Discuss the docs](https://discord.gg/cZDZU3hJHc)
 - [Visit the Astro Docs Docs to see even more documentation about contributing to Astro docs!](https://contribute.docs.astro.build)
+
+## For maintainers
+
+This section provides guidance for maintainers of the docs repository. For the review process, merging, and how to use labels, see [Tips for Astro Maintainers](https://contribute.docs.astro.build/roles/maintainers/).
+
+### Automation overview
+
+Each workflow in the `.github/workflows/` directory starts with a comment describing what it does. When you add or change a workflow, please add or update this comment.
+
+You can also run scheduled workflows manually, for example before a release: open the workflow in the Actions tab and select **Run workflow**.
+
+### Dependency updates
+
+[Renovate](https://docs.renovatebot.com/) only updates the GitHub Actions used in workflows (`.github/renovate.json5`). npm dependencies, pnpm, and Node.js are updated by hand. The Node.js version used in CI is set in `.github/actions/install/action.yml`.
+
+### Release process
+
+This section describes how to handle the docs for patch, minor, and major releases of Astro.
+
+For every release, check whether the generated reference pages need a last-minute update. If they do, run the `nightly.yml` workflow manually.
+
+#### Patch releases
+
+There are usually only a few docs PRs for a patch release.
+
+1. Find the docs PRs for the release: they have the `merge-on-release` label, but no `minor-release` label or version label (e.g. `7.0`).
+2. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge each docs PR into `main`.
+
+#### Minor releases
+
+1. Label the docs PRs for the release with `minor-release`, and add them to the milestone for the new version (e.g. `7.3`).
+2. Before the release, create a temporary branch named after the new version (e.g. `v7.3`).
+3. Change the base branch of each docs PR to the temporary branch, rebase it if needed, and merge it.
+4. The docs lead opens a PR from the temporary branch to `main`, with the `minor-release` and `merge-on-release` labels.
+5. If this PR contains translations, prepare a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file) for the commit body (e.g. `@lunaria-track:src/content/docs/en/**.mdx`).
+6. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge this PR, adding the Lunaria directive to the commit body if needed.
+
+#### Major releases
+
+The process is similar to minor releases, but the docs for the new version live on their own branch until the release. The examples below use a release from `v6` to `v7`.
+
+##### 1. Preparing the repository
+
+When [`withastro/astro`](https://github.com/withastro/astro) enters prerelease mode for the new major version:
+
+1. [Create a version branch](#creating-a-version-branch) for the new version from `main` (e.g. `v7`).
+2. In `.github/workflows/nightly.yml`, uncomment the matrix entries that generate the reference pages from the `next` branch of `withastro/astro`, and update them for the new version (e.g. `TARGET_BRANCH: v7` and `LABEL: 7.0,ci`).
+3. Prepare an upgrade guide for the new version.
+
+##### 2. During the alpha and beta phase
+
+1. Make sure docs PRs for the new version target the new version branch.
+2. Label them with the new version (e.g. `7.0`), and add them to the milestone for that version.
+3. Review and approve them as usual.
+4. When a `[ci] release (next)` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge the docs PRs for the features included in that release into the new version branch. Docs PRs prepared in advance wait for the release that includes their feature.
+5. When the first docs PRs are merged into the new version branch, the docs lead opens a PR from the new version branch to `main`, with the version (e.g. `7.0`) and `merge-on-release` labels. This PR stays open until the final release.
+6. Keep following the [patch](#patch-releases) and [minor](#minor-releases) release processes for docs PRs matching a `[ci] release` PR: they are merged into `main`, including translations.
+7. Regularly merge `main` into the new version branch to keep it up to date.
+
+##### 3. Before the final release
+
+When [`withastro/astro`](https://github.com/withastro/astro) merges its `next` branch into `main` and leaves prerelease mode:
+
+1. Update the mentions of the alpha or beta in the docs (e.g. the upgrade command).
+2. Update the docs links in [`withastro/astro`](https://github.com/withastro/astro) to point to `docs.astro.build` instead of the version subdomain.
+3. In `.github/workflows/nightly.yml`, comment out the matrix entries added when preparing the repository.
+4. Update the branch for the current version (e.g. `v6`) to capture the final state of its docs: merge `main` into it and resolve any conflicts. If this branch doesn't exist, [create it](#creating-a-version-branch) from `main`.
+5. Stop merging PRs into `main`.
+
+##### 4. Releasing
+
+1. If the PR from the new version branch to `main` contains translations, prepare a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file) for the commit body.
+2. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge this PR, adding the Lunaria directive to the commit body if needed.
+
+##### 5. After the final release
+
+Update the subdomain redirects in the Cloudflare dashboard.
+
+1. Remove the redirect from the previous version's subdomain (e.g. `v6.docs.astro.build`), so it serves the archived docs.
+2. Redirect the new version's subdomain (e.g. `v7.docs.astro.build`) to `docs.astro.build`.
+
+### Creating a Version Branch
+
+When a new major version of Astro is released, the current `main` branch becomes a version branch (e.g. `v7`) to preserve the docs for that version. Since `main` already has the Cloudflare Workers deployment infrastructure, only a few changes are needed:
+
+#### 1. On the new version branch
+
+After branching from `main`, update these files:
+
+- **`wrangler.jsonc`** — Change the `name` field to match the version (e.g. `"name": "docs-v7"`).
+- **`astro.config.ts`** — Change the `site` URL to the versioned subdomain (e.g. `'https://v7.docs.astro.build/'`).
+
+#### 2. On `main`
+
+Update `.github/workflows/deploy.yml` to include the new version branch:
+
+- Add the branch name to the `push.branches` list (e.g. `[main, v4, v5, v6, v7]`).
+- Add a corresponding `github.ref == 'refs/heads/v7'` condition to the Deploy step's `if` block.
+
+#### 3. In the Cloudflare dashboard
+
+- After the first successful deploy, go to the Worker's settings (e.g. `docs-v7`) -> **Domains & Routes** and add the custom domain (e.g. `v7.docs.astro.build`).
