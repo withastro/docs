@@ -110,10 +110,8 @@ export async function run() {
 			legacyIntro = comment.description?.trim() ? `${comment.description.trim()}\n\n` : ``;
 		} else if (comment.longname.startsWith(LEGACY_PREFIX)) {
 			// Legacy flags get their own page, where each flag is a top-level section.
-			legacyResult += renderComment(
-				comment,
-				`## ${comment.longname.slice(LEGACY_PREFIX.length)}\n`
-			);
+			const heading = getHeading(comment, 2).replace(LEGACY_PREFIX, '');
+			legacyResult += renderComment(comment, heading);
 		} else {
 			configResult += renderComment(comment, getHeading(comment));
 		}
@@ -191,9 +189,10 @@ function h(headingLevel) {
 /**
  * Get a Markdown heading of the correct level for this comment.
  * @param {{ kind: string | undefined; longname: string }} comment
+ * @param {number} [defaultLevel] The heading level used when the comment has no `@kind` tag.
  */
-function getHeading(comment) {
-	let headingLevel = 3;
+function getHeading(comment, defaultLevel = 3) {
+	let headingLevel = defaultLevel;
 	const headingMatches = /^h(1|2|3|4|5|6)$/.exec(comment.kind || '');
 	if (headingMatches) {
 		headingLevel = parseInt(headingMatches[1]);
