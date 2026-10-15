@@ -229,7 +229,11 @@ function getCommentProperties(comment) {
 		throw new Error(`Missing @docs JSDoc tag: @type or @typeraw`);
 	}
 	const typesFormatted = (
-		typerawFlag ? typerawFlag.text.replace(/\{(.*)\}/, '$1') : comment.type?.names.join(' | ')
+		typerawFlag
+			? typerawFlag.text.replace(/\{(.*)\}/, '$1')
+			: // JSDoc names every inline object type `Object`, so a union of objects
+				// would otherwise be displayed as `Object | Object`.
+				comment.type && [...new Set(comment.type.names)].join(' | ')
 	)
 		// JSDoc represents types like objects and arrays using an old Closure-style notation,
 		// e.g. `Array.<string>` or `Record.<string, string>`. This `replace()` removes the `.` to match
