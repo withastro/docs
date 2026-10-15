@@ -7,13 +7,18 @@ import jsdoc from 'jsdoc-api';
 // Fill this in to test a response locally, with fetching.
 const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/types/public/config.ts', {encoding: 'utf-8'});
 
-const CONFIG_HEADER = `---
+/**
+ * Get the frontmatter, imports, and dev-only warning shared by all generated pages.
+ * @param {string} title
+ */
+function getHeader(title) {
+	return `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
-title: Configuration Reference
+title: ${title}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 ---
@@ -23,7 +28,10 @@ import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 
-The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
+`;
+}
+
+const CONFIG_INTRO = `The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 \`\`\`js
 // astro.config.mjs
@@ -33,24 +41,6 @@ export default defineConfig({
   // your configuration options here...
 })
 \`\`\`
-`;
-
-const LEGACY_HEADER = `---
-# NOTE: This file is auto-generated from 'scripts/docgen.mjs'
-# Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
-# Translators, please remove this note and the <DontEditWarning/> component.
-
-title: Legacy flags
-i18nReady: true
-githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
----
-
-import Since from '~/components/Since.astro'
-import DontEditWarning from '~/components/DontEditWarning.astro'
-
-<DontEditWarning />
-
 `;
 
 const FOOTER = ``;
@@ -126,7 +116,7 @@ export async function run() {
 
 	fs.writeFileSync(
 		'src/content/docs/en/reference/configuration-reference.mdx',
-		CONFIG_HEADER + configResult + FOOTER,
+		getHeader('Configuration Reference') + CONFIG_INTRO + configResult + FOOTER,
 		'utf8'
 	);
 
@@ -136,7 +126,7 @@ export async function run() {
 
 	fs.writeFileSync(
 		'src/content/docs/en/reference/legacy-flags.mdx',
-		LEGACY_HEADER + legacyResult + FOOTER,
+		getHeader('Legacy flags') + legacyResult + FOOTER,
 		'utf8'
 	);
 
