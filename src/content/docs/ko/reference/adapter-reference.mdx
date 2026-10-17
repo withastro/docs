@@ -350,14 +350,14 @@ export default function createIntegration() {
             // 미리보기 서버 시작
           },
           async getStaticPaths() {
-            // { pathname: string, route: RouteData }의 배열 반환
+            // { paths: Array<{ pathname: string, route: RouteData }>, metadata } 반환
             return defaultPrerenderer.getStaticPaths();
           },
           async render(request, { routeData }) {
             // request: Request, options: { routeData: RouteData }
             // 사용자 정의 렌더링 로직 (예: 미리보기 서버에 HTTP 요청 보내기)
             const response = await fetch(`http://localhost:4321${new URL(request.url).pathname}`);
-            return response;
+            return { response };
           },
           async teardown() {
             // 미리보기 서버 중단
@@ -377,6 +377,24 @@ export default function createIntegration() {
 ```
 
 팩토리 함수는 기본 사전 렌더러를 받으므로, 해당 동작을 래핑하거나 확장할 수 있습니다. 이는 사전 렌더링의 특정 측면만 사용자 정의해야 할 때 유용합니다.
+
+<p><Since v="7.4.0" /></p>
+
+팩토리 함수는 [Vite가 결정한 출력 디렉터리](/ko/reference/integrations-reference/#astrobuildoutputdirectories)가 포함된 컨텍스트 객체도 받습니다. Astro 구성에서 디렉터리를 읽는 대신 이 값을 사용하여 빌드 결과물의 위치를 찾으세요. 예를 들어, 빌드된 서버 코드를 사용하여 미리보기 서버를 시작할 때 유용합니다.
+
+```js title="my-adapter.mjs" "{ outputDirectories }"
+setPrerenderer((defaultPrerenderer, { outputDirectories }) => ({
+  name: 'my-prerenderer',
+  async setup() {
+    // 빌드 결과물을 사용하여 미리보기 서버 시작
+    await startPreviewServer({
+      client: outputDirectories.client,
+      server: outputDirectories.server,
+    });
+  },
+  // ...
+}));
+```
 
 ## 서버 엔트리포인트 만들기
 
