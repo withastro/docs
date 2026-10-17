@@ -1,0 +1,100 @@
+---
+title: 실험적 정적 리다이렉트 페이지
+sidebar:
+  label: 정적 리다이렉트 페이지
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean`<br />
+**기본값:** `false`<br />
+<Since v="7.4.0" />
+</p>
+
+이 실험적 기능을 사용하면 정적 빌드에서 Astro가 리다이렉트용으로 생성하는 HTML 페이지를 사용자 정의할 수 있습니다. 이 페이지에 원하는 마크업이나 번역된 텍스트를 추가할 때 사용하세요.
+
+정적 사이트는 HTTP `Location` 헤더를 보낼 수 없습니다. 대신 Astro는 각 리다이렉트에 대해 [meta refresh](https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/meta#setting_a_page_redirect)가 포함된 HTML 페이지를 생성합니다. 이 기능을 사용하면 Astro의 내장 페이지를 직접 만든 `src/pages/3xx.astro` 페이지로 대체할 수 있습니다.
+
+사용자 정의 페이지는 [구성에 지정된 `redirects`](/ko/reference/configuration-reference/#redirects), 사전 렌더링되는 페이지의 [`Astro.redirect()`](/ko/reference/api-reference/#redirect) 호출, i18n 리다이렉트에 적용됩니다. HTTP `Location` 헤더를 사용하는 요청 시 렌더링 리다이렉트에는 영향을 주지 않습니다.
+
+`experimental.redirectPage`를 비활성화하면 Astro는 `3xx.astro`를 일반 페이지로 취급하고 리다이렉트에는 내장 리다이렉트 페이지를 사용합니다.
+
+## 기능 활성화
+
+Astro 구성에서 `experimental.redirectPage`를 `true`로 설정하세요.
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    redirectPage: true,
+  },
+});
+```
+
+## 사용자 정의 리다이렉트 페이지 만들기
+
+[기능을 활성화](#기능-활성화)하면 Astro는 정적 리다이렉트를 처리할 `src/pages/3xx.astro` 파일을 찾습니다. 파일이 없거나 렌더링에 실패하면 Astro는 내장 리다이렉트 페이지를 대신 사용합니다.
+
+사용자 정의 페이지는 리다이렉트 세부 정보를 props로 받습니다. `to` 속성을 사용하여 `<meta http-equiv="refresh" />` 요소의 목적지를 지정하세요. 정적 빌드에서는 페이지가 `Location` 헤더를 보내지 않으므로 이 요소가 리다이렉트를 수행합니다. 이 요소가 없거나 다른 목적지를 가리키면 Astro는 빌드 중에 경고를 출력합니다.
+
+타입 추론을 사용하려면 [`RedirectPageProps`](#redirectpageprops)를 가져와 [`Props` 타입](/ko/guides/typescript/#컴포넌트-props)에 할당하세요.
+
+다음 예시는 사용자 정의 `src/pages/3xx.astro` 페이지를 만듭니다.
+
+```astro title="src/pages/3xx.astro"
+---
+import type { RedirectPageProps as Props } from 'astro';
+
+const { from, to, status, delay } = Astro.props;
+---
+
+<html lang="ko">
+  <head>
+    <meta http-equiv="refresh" content={`${delay};url=${to}`} />
+    <meta name="robots" content="noindex" />
+    <title>리다이렉트 중</title>
+  </head>
+  <body>
+    <p>이 페이지는 이동했습니다. <a href={to}>{to}(으)로 이동</a>.</p>
+  </body>
+</html>
+```
+
+Astro는 `3xx.astro`를 일반 `/3xx` 라우트로도 빌드하여 `3xx.html`에 저장합니다. 이 라우트에 직접 방문하면 Astro는 리다이렉트 props를 전달하지 않습니다.
+
+## `RedirectPageProps`
+
+Astro는 `astro`에서 `RedirectPageProps` 타입을 내보냅니다. 사용자 정의 페이지의 props에 타입을 지정하려면 이 타입을 가져오세요.
+
+### `from`
+
+**타입:** `string`
+
+리다이렉트되기 전의 경로명입니다.
+
+### `to`
+
+**타입:** `string`
+
+리다이렉트의 목적지입니다.
+
+### `status`
+
+**타입:** `number`
+
+`301` 또는 `302`와 같은 리다이렉트의 HTTP 상태 코드입니다.
+
+### `delay`
+
+**타입:** `number`
+
+meta refresh의 지연 시간 (초)입니다. Astro는 `302` 리다이렉트에는 `2`를 사용하고 다른 상태 코드에는 `0`을 사용합니다.
+
+---
+
+이 실험적 API의 제안과 논의는 [사용자 정의 3xx 리다이렉트 페이지 RFC](https://github.com/withastro/roadmap/pull/1444)를 확인하세요.
