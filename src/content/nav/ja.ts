@@ -18,6 +18,7 @@ export default navDictionary({
 
 	reference: 'リファレンス',
 	'reference.runtime': 'ランタイムAPI',
+	'reference.processors': 'Markdownプロセッサ',
 	'reference.other': 'その他の開発用API',
 	'reference.syntax': 'Astroテンプレート構文',
 	'reference.experimental': '実験的機能',
