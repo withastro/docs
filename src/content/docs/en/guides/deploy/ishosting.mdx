@@ -53,199 +53,106 @@ To enable on-demand rendering in your Astro project, add [the Node.js adapter](/
  - A domain name pointing to your VPS
 - A Node.js version that meets [Astro's minimum requirements](/en/install-and-setup/#prerequisites) installed on your VPS
 
- Connect to your VPS using SSH and update the installed packages:
+## How to deploy
 
- ```shell
- ssh root@YOUR_VPS_IP
- apt update && apt upgrade -y
- ```
+You can deploy to an is\*hosting VPS by building your site on the server and serving it with a web server.
 
- Install Node.js 22 and Nginx:
+The following instructions use [Nginx](https://nginx.org/) as the web server, and [PM2](https://pm2.keymetrics.io/) to keep the Node.js server of an on-demand rendered site running.
 
- ```shell
- curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
- apt install -y nodejs nginx
- ```
+### Set up your VPS
 
- Verify the Node.js installation:
+<Steps>
+1. Connect to your VPS using SSH and install both the web server and Git:
 
- ```shell
- node --version
- npm --version
- ```
+   ```shell
+   apt update
+   apt install nginx git
+   ```
 
- The server commands in this guide assume you are logged in as `root`. If you use another account, run administrative commands with `sudo`. The installation commands require `curl` to be available, and cloning a repository requires `git`.
+   The server commands in this guide assume you are logged in as `root`. If you use another account, run administrative commands with `sudo`.
 
- ## Deploy an SSR Astro Site
+2. Clone your Astro project to your VPS, install its dependencies, and build your site:
 
- For an Astro site using on-demand rendering, configure the Node.js adapter in `standalone` mode and run the generated server behind an Nginx reverse proxy.
+   ```shell
+   cd /var/www
+   git clone YOUR_REPOSITORY_URL astro
+   cd astro
+   npm install
+   npm run build
+   ```
+</Steps>
 
- 1. Add the Node.js adapter to your Astro project. Run the appropriate command in your local Astro project, then commit the configuration changes before deploying.
+### Deploy a static site
 
- 	Choose your package manager:
+<Steps>
+1. Create an Nginx configuration file at `/etc/nginx/sites-available/astro` to serve the generated `dist/` folder:
 
- 	**npm:**
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
 
- 	```shell
- 	npx astro add node
- 	```
+       root /var/www/astro/dist;
+       index index.html;
+       error_page 404 /404.html;
 
- 	**pnpm:**
+       location / {
+           try_files $uri $uri/ $uri.html =404;
+       }
+   }
+   ```
 
- 	```shell
- 	pnpm astro add node
- 	```
+2. Enable the Nginx configuration and reload Nginx:
 
- 	**yarn:**
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
 
- 	```shell
- 	yarn astro add node
- 	```
+### Deploy an on-demand rendered site
 
- 2. Configure the adapter to use `standalone` mode in `astro.config.mjs`:
+<Steps>
+1. Install PM2 and use it to start the Node.js server:
 
- 	```js
- 	import { defineConfig } from 'astro/config';
- 	import node from '@astrojs/node';
+   ```shell
+   npm install -g pm2
+   HOST=127.0.0.1 PORT=4321 pm2 start dist/server/entry.mjs --name astro-app
+   ```
 
- 	export default defineConfig({
-   	output: 'server',
-   	adapter: node({
-     	mode: 'standalone',
-   	}),
- 	});
- 	```
+2. Configure PM2 to restart the Node.js server after a reboot:
 
- 3. Copy or clone your Astro project to the VPS and install its dependencies:
+   ```shell
+   pm2 startup && pm2 save
+   ```
 
- 	```shell
- 	cd /var/www
- 	git clone YOUR_REPOSITORY_URL astro
- 	cd astro
- 	npm install
- 	```
+3. Create an Nginx configuration file at `/etc/nginx/sites-available/astro` to forward requests to the Node.js server:
 
- 	Replace `YOUR_REPOSITORY_URL` with the URL of your repository.
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
 
- 4. Build your Astro site:
+       location / {
+           proxy_pass http://127.0.0.1:4321;
+           proxy_http_version 1.1;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
 
- 	```shell
- 	npm run build
- 	```
+4. Enable the Nginx configuration and reload Nginx:
 
- 	The standalone Node.js server entry point will be generated at `dist/server/entry.mjs`.
-
- 5. Install PM2:
-
- 	```shell
- 	npm install -g pm2
- 	```
-
- 6. Start the Astro server with PM2:
-
- 	```shell
- 	HOST=127.0.0.1 PORT=4321 pm2 start dist/server/entry.mjs --name astro-app
- 	```
-
- 7. Verify that the process is running:
-
- 	```shell
- 	pm2 status
- 	```
-
- 8. Configure PM2 to restore the process after a server restart:
-
- 	```shell
- 	pm2 startup
- 	```
-
- 	Run the command printed by PM2, then save the current process list:
-
- 	```shell
- 	pm2 save
- 	```
-
- 9. Create an Nginx configuration for your Astro site:
-
- 	```shell
- 	nano /etc/nginx/sites-available/astro
- 	```
-
- 10. Add the following configuration, replacing `your.domain.com` with your domain:
-
- 	```nginx
- 	server {
-     	listen 80;
-     	server_name your.domain.com;
-
-     	location / {
-         	proxy_pass http://127.0.0.1:4321;
-         	proxy_http_version 1.1;
-         	proxy_set_header Host $host;
-         	proxy_set_header X-Real-IP $remote_addr;
-         	proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-         	proxy_set_header X-Forwarded-Proto $scheme;
-     	}
- 	}
- 	```
-
- 11. Enable the Nginx configuration and reload Nginx:
-
- 	```shell
- 	ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/astro
- 	nginx -t
- 	systemctl reload nginx
- 	```
-
-
- Your Astro SSR site is now served through Nginx, which forwards incoming requests to the Node.js process running on `127.0.0.1:4321`.
-
- ## Deploy a Static Astro Site
-
- For a static Astro site, build your project and serve the generated `dist/` directory directly with Nginx. A persistent Node.js process is not required.
-
- 1. Copy or clone your Astro project to the VPS, install its dependencies, and build the site:
-
- 	```shell
- 	cd /var/www
- 	git clone YOUR_REPOSITORY_URL astro
- 	cd astro
- 	npm install
- 	npm run build
- 	```
-
- 2. Create an Nginx configuration:
-
- 	```shell
- 	nano /etc/nginx/sites-available/astro
- 	```
-
- 3. Add the following configuration, replacing `your.domain.com` with your domain:
-
- 	```nginx
- 	server {
-     	listen 80;
-     	server_name your.domain.com;
-
-     	root /var/www/astro/dist;
-     	index index.html;
-
-     	location / {
-         	try_files $uri $uri/ $uri.html =404;
-     	}
- 	}
- 	```
-
- 4. Enable the configuration and reload Nginx:
-
- 	```shell
- 	ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/astro
- 	nginx -t
- 	systemctl reload nginx
- 	```
-
-
- Your static Astro site is now served directly from the generated `dist/` directory.
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
 
  ### Add HTTPS
 
