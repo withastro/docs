@@ -71,7 +71,7 @@ interface AstroIntegration {
     }) => void | Promise<void>;
     'astro:build:start'?: (options: {
       logger: AstroIntegrationLogger;
-      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
+      setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer, context: { outputDirectories: AstroBuildOutputDirectories }) => AstroPrerenderer)) => void;
     }) => void | Promise<void>;
     'astro:build:setup'?: (options: {
       vite: vite.InlineConfig;
@@ -900,7 +900,7 @@ export default {
 ```js
 'astro:build:start'?: (options: {
   logger: AstroIntegrationLogger;
-  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void;
+  setPrerenderer: (prerenderer: AstroPrerenderer | ((defaultPrerenderer: AstroPrerenderer, context: { outputDirectories: AstroBuildOutputDirectories }) => AstroPrerenderer)) => void;
 }) => void | Promise<void>;
 ```
 
@@ -908,7 +908,7 @@ export default {
 
 <p>
 
-**타입:** <code>(prerenderer: <a href="#astroprerenderer">AstroPrerenderer</a> | ((defaultPrerenderer: AstroPrerenderer) => AstroPrerenderer)) => void</code><br />
+**타입:** <code>(prerenderer: <a href="#astroprerenderer">AstroPrerenderer</a> | ((defaultPrerenderer: AstroPrerenderer, context: \{ outputDirectories: <a href="#astrobuildoutputdirectories">AstroBuildOutputDirectories</a> \}) => AstroPrerenderer)) => void</code><br />
 <Since v="6.0.0" />
 </p>
 
@@ -924,17 +924,41 @@ export default {
       // 선택적: 사전 렌더링이 시작되기 전에 한번 호출
     },
     async getStaticPaths() {
-      // { pathname: string, route: RouteData }의 배열을 반환
+      // { paths: Array<{ pathname: string, route: RouteData }>, metadata } 반환
       return defaultPrerenderer.getStaticPaths();
     },
     async render(request, { routeData }) {
       // request: Request, options: { routeData: RouteData }
-      // 반환: Response
+      // 반환: { response: Response, metadata?: object }
     },
     async teardown() {
-      // 선택적: 모든 페이지가 사전 렌더링된 후 호출
+      // 선택적: 모든 페이지가 사전 렌더링되고 이미지가 생성된 후 호출
     }
   }));
+}
+```
+
+<p><Since v="7.4.0" /></p>
+
+팩토리 함수는 두 번째 인자로 컨텍스트 객체도 받습니다. 이 객체의 `outputDirectories` 속성에는 Vite가 결정한 [클라이언트, 서버 및 사전 렌더링 출력 디렉터리](#astrobuildoutputdirectories)가 포함됩니다. 통합과 Vite 플러그인은 Astro가 빌드 결과물을 쓰는 위치를 변경할 수 있습니다. 구성에 지정된 [`build.client`](/ko/reference/configuration-reference/#buildclient) 또는 [`build.server`](/ko/reference/configuration-reference/#buildserver) 대신 이 값을 사용하세요.
+
+다음 예시는 사용자 정의 사전 렌더러 팩토리에서 출력 디렉터리를 읽습니다.
+
+```js
+'astro:build:start': ({ setPrerenderer }) => {
+  setPrerenderer((defaultPrerenderer, { outputDirectories }) => {
+    const { client, server, prerender } = outputDirectories;
+
+    return {
+      name: 'my-prerenderer',
+      async getStaticPaths() {
+        return defaultPrerenderer.getStaticPaths();
+      },
+      async render(request, { routeData }) {
+        // `client`, `server` 또는 `prerender`의 결과물을 사용하여 렌더링
+      },
+    };
+  });
 }
 ```
 
@@ -1302,7 +1326,7 @@ export default {
 **타입:** [`URL`](https://developer.mozilla.org/ko/docs/Web/API/URL)
 </p>
 
-빌드 출력 디렉터리에 대한 URL 경로입니다.
+Vite가 결정한 클라이언트 빌드 출력 디렉터리의 URL 경로입니다. 통합이나 Vite 플러그인이 출력 디렉터리를 변경하지 않는 한, 기본값은 정적 빌드의 경우 [`outDir`](/ko/reference/configuration-reference/#outdir)이고 요청 시 렌더링 빌드의 경우 [`build.client`](/ko/reference/configuration-reference/#buildclient)입니다.
 
 다음 예시는 Node.js의 내장 [`fileURLToPath()`](https://nodejs.org/api/url.html#urlfileurltopathurl-options) 유틸리티를 사용하여 통합에서 제공하는 파일의 유효한 절대 경로 문자열을 계산합니다.
 
@@ -1353,7 +1377,7 @@ export default {
 **타입:** [`URL`](https://developer.mozilla.org/ko/docs/Web/API/URL)
 </p>
 
-빌드 출력 디렉터리에 대한 URL 경로입니다.
+Vite가 결정한 클라이언트 빌드 출력 디렉터리의 URL 경로입니다. 통합이나 Vite 플러그인이 출력 디렉터리를 변경하지 않는 한, 기본값은 정적 빌드의 경우 [`outDir`](/ko/reference/configuration-reference/#outdir)이고 요청 시 렌더링 빌드의 경우 [`build.client`](/ko/reference/configuration-reference/#buildclient)입니다.
 
 다음 예시는 Node.js의 내장 [`fileURLToPath()`](https://nodejs.org/api/url.html#urlfileurltopathurl-options) 유틸리티를 사용하여 파일에 쓰기 전, 통합에서 제공하는 파일의 유효한 절대 경로 문자열을 계산합니다.
 
@@ -1439,6 +1463,7 @@ resolveId(id) {
 
 ```ts
 import type {
+  AstroBuildOutputDirectories,
   AstroIntegrationLogger,
   AstroIntegrationMiddleware,
   AstroMiddlewareInstance,
@@ -1456,6 +1481,43 @@ import type {
   ValidRedirectStatus,
 } from "astro";
 ```
+
+### `AstroBuildOutputDirectories`
+
+<p>
+
+**타입:** `{ client: URL; server: URL; prerender: URL; }`<br />
+<Since v="7.4.0" />
+</p>
+
+각 빌드 환경에 대해 Vite가 결정한 출력 디렉터리를 설명합니다. [사용자 정의 사전 렌더러 팩토리](#setprerenderer-옵션)는 컨텍스트 인자의 `outputDirectories`로 이 객체를 받습니다.
+
+#### `AstroBuildOutputDirectories.client`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+클라이언트 측 빌드 아티팩트 (예: JavaScript, CSS 및 정적 페이지)의 출력 디렉터리로 결정된 경로입니다.
+
+#### `AstroBuildOutputDirectories.server`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+서버 측 빌드 아티팩트의 출력 디렉터리로 결정된 경로입니다.
+
+#### `AstroBuildOutputDirectories.prerender`
+
+<p>
+
+**타입:** `URL`
+</p>
+
+사전 렌더링 빌드 환경의 출력 디렉터리로 결정된 경로입니다.
 
 ### `AstroIntegrationLogger`
 
@@ -1587,16 +1649,16 @@ export function formatIntegration(): AstroIntegration {
 
 <p>
 
-**타입:** <code>() => Promise\<Array\<\{ pathname: string; route: <a href="#routedata">RouteData</a>; \}\>\></code>
+**타입:** <code>() => Promise\<\{ paths: Array\<\{ pathname: string; route: <a href="#routedata">RouteData</a>; \}\>; metadata?: object; \}\></code>
 </p>
 
-사전 렌더링된 라우트 경로 및 관련 데이터를 설명하는 객체 목록을 반환합니다.
+사전 렌더링된 라우트 경로 및 관련 데이터를 설명하는 `paths` 목록이 포함된 객체를 반환합니다.
 
 #### `AstroPrerenderer.render()`
 
 <p>
 
-**타입:** <code>(request: Request, options: \{ routeData: <a href="#routedata">RouteData</a> \}) => Promise\<Response\></code>
+**타입:** <code>(request: Request, options: \{ routeData: <a href="#routedata">RouteData</a> \}) => Promise\<\{ response: Response; metadata?: object; \}\></code>
 </p>
 
 페이지를 렌더링하는 방법을 설명하는 선택적 메서드를 정의합니다. 이 메서드는 [`getStaticPaths()`](/ko/reference/routing-reference/#getstaticpaths)에서 반환된 각 경로에 대해 Astro에 의해 호출됩니다.
@@ -1608,7 +1670,7 @@ export function formatIntegration(): AstroIntegration {
 **타입:** `() => Promise<void>`
 </p>
 
-모든 페이지가 사전 렌더링된 후 한 번 호출되는 선택적 메서드를 정의합니다. 이는 미리보기 서버 중단과 같은 정리 작업을 수행하는 데 유용합니다.
+모든 페이지가 사전 렌더링되고 해당 페이지의 이미지가 생성된 후 한 번 호출되는 선택적 메서드를 정의합니다. 이는 미리보기 서버 중단과 같은 정리 작업을 수행하는 데 유용합니다.
 
 ### `ClientDirectiveConfig`
 
@@ -2494,7 +2556,7 @@ HTML 출력에 인라인으로 포함될 스크립트의 식별자와 해당 콘
 <Since v="5.2.0" />
 </p>
 
-빌드 경로 내에서 클라이언트 측 빌드 아티팩트(예: JavaScript, CSS)가 출력될 경로를 결정합니다.
+Vite가 결정한 클라이언트 측 빌드 아티팩트 (예: JavaScript, CSS)의 출력 경로를 나타냅니다. 요청 시 렌더링 빌드에서는 기본적으로 [`build.client`](/ko/reference/configuration-reference/#buildclient)와 일치합니다.
 
 #### `SSRManifest.buildServerDir`
 
@@ -2504,7 +2566,7 @@ HTML 출력에 인라인으로 포함될 스크립트의 식별자와 해당 콘
 <Since v="5.2.0" />
 </p>
 
-빌드 경로 내에서 서버 측 빌드 아티팩트가 출력될 경로를 결정합니다.
+Vite가 결정한 서버 측 빌드 아티팩트의 출력 경로를 나타냅니다. 요청 시 렌더링 빌드에서는 기본적으로 [`build.server`](/ko/reference/configuration-reference/#buildserver)와 일치합니다.
 
 #### `SSRManifest.csp`
 
