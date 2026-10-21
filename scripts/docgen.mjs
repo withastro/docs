@@ -107,6 +107,12 @@ export async function run() {
 		}
 	}
 
+	// Without an intro, the source is likely missing the legacy object entirely,
+	// so it should fail instead of overwriting the page with an empty one.
+	if (!legacyIntro) {
+		throw new Error(`Missing @docs JSDoc comment with a description for @name ${LEGACY_NAME}`);
+	}
+
 	configResult = formatLinks(configResult, 'configuration-reference');
 	legacyResult = formatLinks(legacyIntro + legacyResult, 'legacy-flags');
 
