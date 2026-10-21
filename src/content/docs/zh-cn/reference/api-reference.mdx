@@ -5,7 +5,7 @@ sidebar:
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
-  maxHeadingLevel: 4
+  maxHeadingLevel: 3
 ---
 import Since from '~/components/Since.astro';
 import { Tabs, TabItem } from '@astrojs/starlight/components';
@@ -164,9 +164,9 @@ if (!post) {
 <Since v="1.0.0" />
 </p>
 
-`url` 是一个从当前 `request.url` 值构造的 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL) 对象。它对于与请求 URL 的各个属性进行交互非常有用，例如 pathname 和 origin。
+`url` 是一个从当前 `request.url` 值派生的规范化 [URL](https://developer.mozilla.org/zh-CN/docs/Web/API/URL) 对象。它对于与请求 URL 的各个属性进行交互非常有用，例如 pathname 和 origin。
 
-`Astro.url` 相当于 `new URL(Astro.request.url)`。
+从 Astro v6 开始，pathname 可能会在路由规范化过程中被部分解码。这意味着对于经过百分号编码的路由段，`Astro.url.pathname` 可能与 `new URL(Astro.request.url).pathname` 不同，你可能需要使用 [`decodeURI()`](https://developer.mozilla.org/zh-CN/docs/Web/JavaScript/Reference/Global_Objects/decodeURI) 自行解码。
 
 在开发模式下 `url` 是一个 `localhost` URL。在构建站点时，预渲染路由将根据 [`site`](/zh-cn/reference/configuration-reference/#site) 和 [`base`](/zh-cn/reference/configuration-reference/#base) 选项生成 URL。如果未配置 `site`，构建期间预渲染页面将收到 `localhost` URL。
 
@@ -339,9 +339,14 @@ const socialImageURL = new URL('/images/preview.png', Astro.url);
 
 ```astro "Astro.response"
 ---
-if (condition) {
+import { getPost } from "../api";
+
+const post = await getPost(Astro.params.id);
+
+// 没有找到匹配 ID 的文章
+if (!post) {
   Astro.response.status = 404;
-  Astro.response.statusText = 'Not found';
+  Astro.response.statusText = "Not found";
 }
 ---
 ```
@@ -391,12 +396,13 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
   </TabItem>
   <TabItem label="context.redirect()">
     ```ts "redirect"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
+    import { isLoggedIn } from "../utils";
 
     export function GET({ redirect, request }: APIContext) {
-      const cookie = request.headers.get('cookie');
+      const cookie = request.headers.get("cookie");
       if (!isLoggedIn(cookie)) {
-        return redirect('/login', 302);
+        return redirect("/login", 302);
       } else {
         // 返回用户信息
       }
@@ -451,10 +457,10 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
   </TabItem>
   <TabItem label="context.rewrite()">
     ```ts
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
-    export function GET({ rewrite }: APIContext) {
-      return rewrite(new URL("../", Astro.url));
+    export function GET({ rewrite, url }: APIContext) {
+      return rewrite(new URL("../", url));
     }
     ```
   </TabItem>
@@ -476,14 +482,16 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
   </TabItem>
   <TabItem label="context.rewrite()">
     ```ts
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
-    export function GET({ rewrite }: APIContext) {
-      return rewrite(new Request(new URL("../", Astro.url), {
-        headers: {
-          "x-custom-header": JSON.stringify(Astro.locals.someValue)
-        }
-      }));
+    export function GET({ locals, rewrite, url }: APIContext) {
+      return rewrite(
+        new Request(new URL("../", url), {
+          headers: {
+            "x-custom-header": JSON.stringify(locals.someValue),
+          },
+        }),
+      );
     }
     ```
   </TabItem>
@@ -508,7 +516,8 @@ Astro.response.headers.set('Set-Cookie', 'a=b; Path=/;');
   </TabItem>
   <TabItem label="context.originPathname">
     ```ts title="src/middleware.ts"
-    import { defineMiddleware } from 'astro:middleware';
+    import { defineMiddleware } from "astro:middleware";
+    import { recordPageVisit } from "./utils/analytics";
 
     export const onRequest = defineMiddleware(async (context, next) => {
       // 在任何重写之前记录原始路径名
@@ -562,6 +571,8 @@ Astro 组件和 API 端点可以在渲染时从 `locals` 中读取值：
     ```
   </TabItem>
 </Tabs>
+
+<ReadMore>详细了解如何使用 Astro 中间件 [在 `locals` 中存储数据](/zh-cn/guides/middleware/#在-contextlocals-中存储数据)，同时受益于 [类型安全](/zh-cn/guides/middleware/#中间件类型)。</ReadMore>
 
 ### `preferredLocale`
 
@@ -725,11 +736,21 @@ const { data, error } = await Astro.callAction(actions.logout, { userId: '123' }
 
 获取将与响应一起发送的 `Set-Cookie` 的标头值。
 
+##### `cookies.consume()`
+
+<p>
+
+**类型：** `() => Iterator<string>`<br />
+<Since v="6.3.0" />
+</p>
+
+将 cookie 标记为已消费，并返回 `Set-Cookie` 标头值，与 [`cookies.headers()`](#cookiesheaders) 类似。调用 `consume()` 之后，任何后续对 `cookies.set()` 的调用都会记录警告，因为 cookie 标头已经发送到浏览器。适配器内部使用它来确保 cookie 只被序列化到响应中一次。
+
 #### `AstroCookie` 类型
 
 通过 `Astro.cookies.get()` 获取 cookie 返回的类型。它具有以下属性：
 
-##### `value`
+##### `AstroCookie.value`
 
 <p>
 
@@ -738,7 +759,7 @@ const { data, error } = await Astro.callAction(actions.logout, { userId: '123' }
 
 cookie 的原始字符串值。
 
-##### `json`
+##### `AstroCookie.json()`
 
 <p>
 
@@ -747,7 +768,7 @@ cookie 的原始字符串值。
 
 通过 `JSON.parse()` 解析 cookie 值，返回一个对象。如果 cookie 值不是有效的 JSON，则抛出异常。
 
-##### `number`
+##### `AstroCookie.number()`
 
 <p>
 
@@ -756,7 +777,7 @@ cookie 的原始字符串值。
 
 将 cookie 值解析为数字。如果不是有效的数字，则返回 NaN。
 
-##### `boolean`
+##### `AstroCookie.boolean()`
 
 <p>
 
@@ -771,7 +792,7 @@ cookie 的原始字符串值。
 
 `AstroCookieGetOption` 接口允许你在获取 cookie 时指定选项。
 
-##### `decode`
+##### `AstroCookieGetOptions.decode()`
 
 <p>
 **类型：** `(value: string) => string`
@@ -785,7 +806,7 @@ cookie 的原始字符串值。
 
 `AstroCookieSetOptions` 是一个对象，可以在设置 cookie 时传递给 `Astro.cookies.set()`，以自定义 cookie 的序列化方式。
 
-##### `domain`
+##### `AstroCookieSetOptions.domain`
 
 <p>
 
@@ -794,7 +815,7 @@ cookie 的原始字符串值。
 
 指定 domain。如果未设置 domain，大多数客户端将解释为应用于当前域。
 
-##### `expires`
+##### `AstroCookieSetOptions.expires`
 
 <p>
 
@@ -803,7 +824,7 @@ cookie 的原始字符串值。
 
 指定 cookie 过期的日期。
 
-##### `httpOnly`
+##### `AstroCookieSetOptions.httpOnly`
 
 <p>
 
@@ -812,7 +833,7 @@ cookie 的原始字符串值。
 
 如果设置为 `true`，则 cookie 将不会在客户端上可访问。
 
-##### `maxAge`
+##### `AstroCookieSetOptions.maxAge`
 
 <p>
 
@@ -821,7 +842,7 @@ cookie 的原始字符串值。
 
 指定一个以秒为单位的数字，表示 cookie 有效的时间。
 
-##### `path`
+##### `AstroCookieSetOptions.path`
 
 <p>
 
@@ -830,7 +851,7 @@ cookie 的原始字符串值。
 
 指定 cookie 应用的域的子路径。
 
-##### `partitioned`
+##### `AstroCookieSetOptions.partitioned`
 
 <p>
 
@@ -842,7 +863,7 @@ cookie 的原始字符串值。
 
 分区 cookie 必须设置 `secure: true`。
 
-##### `sameSite`
+##### `AstroCookieSetOptions.sameSite`
 
 <p>
 
@@ -851,7 +872,7 @@ cookie 的原始字符串值。
 
 指定 [SameSite](https://datatracker.ietf.org/doc/html/draft-ietf-httpbis-rfc6265bis-09#section-5.4.7) cookie 标头的值。
 
-##### `secure`
+##### `AstroCookieSetOptions.secure`
 
 <p>
 
@@ -860,7 +881,7 @@ cookie 的原始字符串值。
 
 如果为 `true`，则 cookie 仅在 https 站点上设置。
 
-##### `encode`
+##### `AstroCookieSetOptions.encode()`
 
 <p>
 
@@ -873,7 +894,7 @@ cookie 的原始字符串值。
 
 <p>
 
-**类型：** `AstroSession`
+**类型：** `AstroSession | undefined`
 
 <Since v="5.7.0" />
 
@@ -881,11 +902,11 @@ cookie 的原始字符串值。
 
 `session` 是一个允许在 [按需渲染路由](/zh-cn/guides/on-demand-rendering/) 的多个请求间存储数据的对象。其通过一个仅包含会话 ID 的 Cookie 实现关联，数据本身并不存储于 Cookie 中。
 
-会话（session）会在首次被使用时自动创建，并设置对应的会话 Cookie。如果未配置会话存储，又或者是当前路由为预渲染模式，`session` 对象都会是 `undefined`，当你尝试访问时，日志将会记录错误。
+会话（session）会在首次被使用时自动创建，并设置对应的会话 Cookie。在以下情况下，`session` 对象为 `undefined`，且在使用时会记录错误：未配置会话存储、[会话已禁用](/zh-cn/guides/sessions/)，或当前路由为预渲染。
 
 有关如何在你的 Astro 项目中使用会话，请参阅 [会话指南](/zh-cn/guides/sessions/) 以获取更多信息。
 
-#### `get()`
+#### `session.get()`
 
 <p>
 
@@ -906,10 +927,10 @@ cookie 的原始字符串值。
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/cart.ts" "session.get('cart')"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function GET({ session }: APIContext) {
-      const cart = await session.get('cart');
+      const cart = await session?.get("cart");
       return Response.json({ cart });
     }
     ```
@@ -917,7 +938,7 @@ cookie 的原始字符串值。
   </TabItem>
 </Tabs>
 
-#### `set()`
+#### `session.set()`
 
 <p>
 
@@ -925,7 +946,7 @@ cookie 的原始字符串值。
 
 </p>
 
-设置会话中给定键的值。该值可以是任何可序列化类型。该方法是同步的，该值可立即用于检索，但是直到请求结束之前，该方法才能保存到后端。
+设置会话中给定键的值。该值可以是任何可序列化类型。该方法是同步的，该值可立即用于检索，但是直到请求结束之前，该方法才能保存到后端。`ttl` 选项用于设置值的过期时间（以秒为单位）。
 
 <Tabs>
   <TabItem label="Astro.session">
@@ -938,14 +959,14 @@ cookie 的原始字符串值。
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/add-to-cart.ts" "session.set('cart', cart)"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function POST({ session, request }: APIContext) {
-      const cart = await session.get('cart');
+      const cart = (await session?.get("cart")) ?? [];
       const newItem = await request.json();
       cart.push(newItem);
       // 保存更新后的购物车至会话
-      session.set('cart', cart);
+      session?.set("cart", cart);
       return Response.json({ cart });
     }
     ```
@@ -953,7 +974,7 @@ cookie 的原始字符串值。
   </TabItem>
 </Tabs>
 
-#### `regenerate()`
+#### `session.regenerate()`
 
 <p>
 
@@ -973,13 +994,14 @@ cookie 的原始字符串值。
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/login.ts" "session.regenerate()"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
+    import { doLogin } from "../../lib/auth";
 
     export async function POST({ session }: APIContext) {
       // 对用户进行身份验证...
       doLogin();
       // 重新生成会话 ID 以防止会话固定攻击
-      session.regenerate();
+      session?.regenerate();
       return Response.json({ success: true });
     }
     ```
@@ -987,7 +1009,7 @@ cookie 的原始字符串值。
   </TabItem>
 </Tabs>
 
-#### `destroy()`
+#### `session.destroy()`
 
 <p>
 
@@ -1008,10 +1030,10 @@ cookie 的原始字符串值。
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/logout.ts" "session.destroy()"
-    import type { APIContext } from 'astro';
+    import type { APIContext } from "astro";
 
     export async function POST({ session }: APIContext) {
-      session.destroy();
+      session?.destroy();
       return Response.json({ success: true });
     }
     ```
@@ -1019,7 +1041,7 @@ cookie 的原始字符串值。
   </TabItem>
 </Tabs>
 
-#### `load()`
+#### `session.load()`
 
 <p>
 
@@ -1033,27 +1055,26 @@ cookie 的原始字符串值。
     ```astro title="src/pages/cart.astro" "Astro.session?.load('session-id')"
     ---
     // 从请求头而不是 Cookie 加载会话
-    const sessionId = Astro.request.headers.get('x-session-id');
-    await Astro.session?.load(sessionId);
-    const cart = await Astro.session?.get('cart');
+    const sessionId = Astro.request.headers.get("x-session-id");
+    await Astro.session?.load(sessionId ?? "fallback-session-id");
+    const cart = await Astro.session?.get("cart");
     ---
+
     <h1>你的购物车</h1>
     <ul>
-      {cart?.map((item) => (
-        <li>{item.name}</li>
-      ))}
+      {cart?.map((item: any) => <li>{item.name}</li>)}
     </ul>
     ```
   </TabItem>
   <TabItem label="context.session">
     ```ts title="src/pages/api/load-session.ts" "session.load('session-id')"
-    import type { APIRoute } from 'astro';
+    import type { APIRoute } from "astro";
 
     export const GET: APIRoute = async ({ session, request }) => {
       // 从请求头而不是 Cookie 加载会话
-      const sessionId = request.headers.get('x-session-id');
-      await session.load(sessionId);
-      const cart = await session.get('cart');
+      const sessionId = request.headers.get("x-session-id");
+      await session?.load(sessionId ?? "fallback-session-id");
+      const cart = await session?.get("cart");
       return Response.json({ cart });
     };
     ```
@@ -1062,117 +1083,371 @@ cookie 的原始字符串值。
 
 </Tabs>
 
-### 废弃的对象属性
+### `csp`
 
-#### `Astro.glob()`
 
-:::caution[在 v5.0 中废弃]
-使用 [Vite 的 `import.meta.glob`](https://cn.vite.dev/guide/features.html#glob-import) 查询项目文件。
+<p>
 
-`Astro.glob('../pages/post/*.md')` 可以替换为：
+**类型：** `object | undefined`
+<Since v="6.0.0" />
+</p>
 
-`Object.values(import.meta.glob('../pages/post/*.md', { eager: true }));`
+Astro 的 CSP 运行时 API 支持 [内容安全策略（CSP）](https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Guides/CSP)，通过控制文档允许加载哪些资源，帮助最大限度地减少某些类型的安全威胁。这为防御 [跨站脚本（XSS）](https://developer.mozilla.org/zh-CN/docs/Glossary/Cross-site_scripting) 攻击提供了额外的保护。
 
-更多信息和用法请参阅 [导入指南](/zh-cn/guides/imports/#importmetaglob)。
+你可以在 `.astro` 组件中通过 `Astro` 全局对象，或在端点和中间件中通过 `APIContext` 类型，按页面自定义 `<meta>` 元素。
+
+当资源被多次插入或来自多个来源时（例如在你的 [`csp` 配置](/zh-cn/reference/configuration-reference/#security) 中定义，并使用以下 CSP 运行时 API 添加），Astro 会合并并去重所有资源，以生成你的 `<meta>` 元素。
+
+:::caution[限定到更具体的指令]
+当你使用 `kind` 选项（`'element'` 或 `'attribute'`）将来源或哈希限定到更具体的指令时，浏览器会在该作用域内使用这个更具体的指令，而不是通用的 `script-src`/`style-src`，并且不会回退到通用指令。
+
+Astro 会自动把它为你的内联脚本和样式生成的哈希移到更具体的指令上，以保证它们继续生效。但是，它**不会**移动你的通用（`'default'`）资源。如果你在同一指令族中同时使用通用资源和更具体的资源或哈希，通用资源将不会应用于该特定作用域。Astro 检测到这种情况时会记录警告。
+
+要解决此问题，请将所有资源和哈希移到具体的指令上。
 :::
 
-`Astro.glob()` 是一种将许多本地文件加载到你的静态站点设置中的方法。
 
-```astro
----
-// src/components/my-component.astro
-const posts = await Astro.glob('../pages/post/*.md'); // 返回位于 ./src/pages/post/*.md 中的文章数组。
----
+#### `csp.insertDirective()`
 
-<div>
-{posts.slice(0, 3).map((post) => (
-  <article>
-    <h2>{post.frontmatter.title}</h2>
-    <p>{post.frontmatter.description}</p>
-    <a href={post.url}>Read more</a>
-  </article>
-))}
-</div>
+<p>
+
+**类型：** `(directive: CspDirective) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+向当前页面添加一条指令。你可以多次调用此方法以添加更多指令。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertDirective("default-src 'self'");
+Astro.csp?.insertDirective("img-src 'self' https://images.cdn.example.com");
+---
 ```
 
-`.glob()` 只有一个参数：你想导入的本地文件相对 glob URL。它是异步的，并返回匹配文件的导出数组。
+构建完成后，该页面的 `<meta>` 元素会在现有的 `script-src` 和 `style-src` 指令之外，并入你添加的指令：
 
-`.glob()` 不接受变量或字符串插值，因为它们无法静态分析。 (请参阅 [导入指南](/zh-cn/guides/imports/#支持的值) 了解解决方法。) 这是因为 `Astro.glob()` 是 Vite 的 [`import.meta.glob()`](https://cn.vite.dev/guide/features.html#glob-import) 的封装。
-
-:::note
-你可以在你的 Astro 项目中使用 `import.meta.glob()` 本身。你可能想在以下情况下这样做：
-
-- 你需要在不是 `.astro` 文件的文件中使用此功能，例如 API 路由。`Astro.glob()` 仅在 `.astro` 文件中可用，而 `import.meta.glob()` 可在项目中的任何地方使用。
-- 你不想立即加载每个文件。`import.meta.glob()` 可以返回导入文件内容的函数，而不是返回内容本身。请注意，此导入包括所有导入文件的样式和脚本。这些将被打包并添加到页面中，无论文件是否实际使用，因为这是通过静态分析决定的，而不是在运行时决定的。
-- 你想要访问每个文件的路径。`import.meta.glob()` 返回文件路径到内容的映射，而 `Astro.glob()` 返回内容列表。
-- 你想要传递多个模式；例如，你想要添加一个 “负模式”，用于过滤掉某些文件。`import.meta.glob()` 可以选择接受一个 glob 字符串数组，而不是一个字符串。
-
-在 [Vite 文档](https://cn.vite.dev/guide/features.html#glob-import) 中阅读更多。
-:::
-
-##### Markdown 文件
-
-使用 `Astro.glob()` 加载的 Markdown 文件返回以下 `MarkdownInstance` 接口：
-
-```ts
-export interface MarkdownInstance<T extends Record<string, any>> {
-  /* 在此文件的 YAML/TOML frontmatter 中指定的任何数据 */
- frontmatter: T;
-  /* 该文件的文件绝对路径 */
- file: string;
-  /* 该文件的渲染路径 */
- url: string | undefined;
-  /* 渲染此文件内容的 Astro 组件 */
- Content: AstroComponentFactory;
- /** (仅限 Markdown) Markdown 文件的原始内容，不包括布局 HTML 和 YAML/TOML frontmatter */
- rawContent(): string;
- /* (仅限 Markdown) Markdown 文件编译后的 HTML，不包括布局 HTML */
- compiledContent(): string;
- /* 返回该文件中 h1...h6 元素数组的函数 */
- getHeadings(): Promise<{ depth: number; slug: string; text: string }[]>;
- default: AstroComponentFactory;
-}
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  default-src 'self'; 
+  img-src 'self' https://images.cdn.example.com;
+  script-src 'self' 'sha256-somehash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
 ```
 
-你可以选择使用 TypeScript 泛型指定 `frontmatter` 变量类型：
+#### `csp.insertStyleResource()`
 
-```astro
----
-interface Frontmatter {
-  title: string;
-  description?: string;
-}
-const posts = await Astro.glob<Frontmatter>('../pages/post/*.md');
----
+<p>
 
-<ul>
-  {posts.map(post => <li>{post.frontmatter.title}</li>)}
-</ul>
+**类型：** `(resource: string | { resource: string; kind: 'element' | 'attribute' | 'default' }) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+向 `style-src` 指令插入一个新资源。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleResource("https://styles.cdn.example.com");
+---
 ```
 
-##### Astro 文件
+构建完成后，该页面的 `<meta>` 元素会将你的来源添加到默认的 `style-src` 指令中：
 
-Astro 文件具有以下接口：
-
-```ts
-export interface AstroInstance {
-  /* 此文件的文件路径 */
-  file: string;
-  /* 此文件的 URL（如果它在 pages 目录中）*/
-  url: string | undefined;
-  default: AstroComponentFactory;
-}
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src https://styles.cdn.example.com 'sha256-somehash';
+  "
+>
 ```
 
-##### 其他文件
+<p><Since v="7.1.0" /></p>
 
-其他文件可能有各种不同的接口，但如果你不知道文件类型包含什么，那么 `Astro.glob()` 可以接受 TypeScript 泛型。
+你还可以通过传入带有 `kind` 属性的对象，将来源限定到更具体的指令。使用 `'element'` 对应 `style-src-elem`，`'attribute'` 对应 `style-src-attr`，或使用 `'default'`（与裸字符串相同）对应 `style-src`。
 
-```ts
+```astro title="src/pages/index.astro"
 ---
-interface CustomDataFile {
-  default: Record<string, any>;
-}
-const data = await Astro.glob<CustomDataFile>('../data/**/*.js');
+Astro.csp?.insertStyleResource({ resource: "'unsafe-inline'", kind: "attribute" });
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的来源添加到 `style-src-attr` 指令中，该指令仅适用于内联 `style` 属性：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  style-src 'self';
+  style-src-attr 'unsafe-inline';
+  "
+>
+```
+
+#### `csp.insertStyleHash()`
+
+<p>
+
+**类型：** `(hash: CspHash | { hash: CspHash; kind: 'element' | 'attribute' | 'default' }) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+向 `style-src` 指令添加一个新的哈希。
+
+```astro  title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleHash("sha512-styleHash");
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的哈希添加到默认的 `style-src` 指令中：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
+<p><Since v="7.1.0" /></p>
+
+你还可以通过传入带有 `kind` 属性的对象，将哈希限定到更具体的指令。使用 `'element'` 对应 `style-src-elem`，`'attribute'` 对应 `style-src-attr`，或使用 `'default'`（与裸哈希相同）对应 `style-src`。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertStyleHash({ hash: "sha512-styleHash", kind: "element" });
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的哈希添加到 `style-src-elem` 指令中。Astro 自动生成的样式哈希也会移到那里，因为对于 `<style>` 和 `<link>` 元素，`style-src-elem` 优先于 `style-src`：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash';
+  style-src 'self';
+  style-src-elem 'self' 'sha256-somehash' 'sha512-styleHash';
+  "
+>
+```
+
+#### `csp.insertScriptResource()`
+
+<p>
+
+**类型：** `(resource: string | { resource: string; kind: 'element' | 'attribute' | 'default' }) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+向 `script-src` 指令插入一个新的有效来源。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptResource("https://scripts.cdn.example.com");
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的来源添加到默认的 `script-src` 指令中：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src https://scripts.cdn.example.com 'sha256-somehash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+<p><Since v="7.1.0" /></p>
+
+你还可以通过传入带有 `kind` 属性的对象，将来源限定到更具体的指令。使用 `'element'` 对应 `script-src-elem`，`'attribute'` 对应 `script-src-attr`，或使用 `'default'`（与裸字符串相同）对应 `script-src`。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptResource({ resource: "https://scripts.cdn.example.com", kind: "element" });
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的来源添加到 `script-src-elem` 指令中，该指令管辖 `<script>` 元素：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  script-src-elem https://scripts.cdn.example.com;
+  style-src 'self';
+  "
+>
+```
+
+#### `csp.insertScriptHash()`
+
+<p>
+
+**类型：** `(hash: CspHash | { hash: CspHash; kind: 'element' | 'attribute' | 'default' }) => void`<br />
+<Since v="6.0.0" />
+</p>
+
+向 `script-src` 指令添加一个新的哈希。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptHash("sha512-scriptHash");
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的哈希添加到默认的 `script-src` 指令中：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self' 'sha256-somehash' 'sha512-scriptHash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+<p><Since v="7.1.0" /></p>
+
+你还可以通过传入带有 `kind` 属性的对象，将哈希限定到更具体的指令。使用 `'element'` 对应 `script-src-elem`，`'attribute'` 对应 `script-src-attr`，或使用 `'default'`（与裸哈希相同）对应 `script-src`。
+
+```astro title="src/pages/index.astro"
+---
+Astro.csp?.insertScriptHash({ hash: "sha512-scriptHash", kind: "element" });
+---
+```
+
+构建完成后，该页面的 `<meta>` 元素会将你的哈希添加到 `script-src-elem` 指令中。Astro 自动生成的脚本哈希也会移到那里，因为对于 `<script>` 元素，`script-src-elem` 优先于 `script-src`：
+
+```html
+<meta
+http-equiv="content-security-policy"
+content="
+  script-src 'self';
+  script-src-elem 'self' 'sha256-somehash' 'sha512-scriptHash';
+  style-src 'self' 'sha256-somehash';
+  "
+>
+```
+
+### `cache`
+
+<p>
+
+**类型：** `object | undefined`
+<Since v="7.0.0" />
+</p>
+
+包含用于管理[按需渲染](/zh-cn/guides/on-demand-rendering/)页面和端点缓存行为的工具。
+
+<ReadMore>请参阅 [路由缓存指南](/zh-cn/guides/caching/)，了解更多关于如何在你的 Astro 项目中使用缓存的信息。</ReadMore>
+
+#### `cache.enabled`
+
+<p>
+
+**类型：** `boolean`
+</p>
+
+缓存是否处于激活状态。未配置缓存提供程序或处于开发模式时返回 `false`。已配置缓存提供程序且应用在生产环境中运行时返回 `true`。
+
+#### `cache.set()`
+
+<p>
+
+**类型：** <code>(options: <a href="/zh-cn/reference/cache-provider-reference/#cacheoptions">CacheOptions</a> | false) => void</code>
+</p>
+
+为当前请求设置缓存选项。传入 `false` 可退出缓存。
+
+#### `cache.options`
+
+<p>
+
+**类型：** <code>Readonly\<<a href="/zh-cn/reference/cache-provider-reference/#cacheoptions">CacheOptions</a>\></code>
+</p>
+
+提供当前累积的缓存选项的只读快照，包括所有合并后的 `maxAge`、`swr`、`etag`、`lastModified` 和 `tags` 值。
+
+#### `cache.tags`
+
+<p>
+
+**类型：** `string[]`
+</p>
+
+提供包含所有累积缓存标签的只读数组。
+
+#### `cache.invalidate()`
+
+<p>
+
+**类型：** <code>(options: <a href="/zh-cn/reference/cache-provider-reference/#invalidateoptions">InvalidateOptions</a>) => Promise\<void\></code>
+</p>
+
+清除缓存条目。需要配置缓存提供程序。
+
+### `logger`
+
+<p>
+
+  **类型：** [`AstroRuntimeLogger`](/zh-cn/reference/logger-reference/#astroruntimelogger)
+  <Since v="7.0.0" />
+</p>
+
+一个允许你在页面渲染期间添加额外日志的对象。这对于 [按需渲染的路由](/zh-cn/guides/on-demand-rendering/) 以及连接日志聚合服务（例如 Kibana、Grafana、Loki）特别有用。
+#### `logger.error()`
+<p>
+
+  **类型：** `(msg: string) => void`
+  <Since v="7.0.0" />
+</p>
+
+发出一条 `error` 级别的消息。
+
+```astro title="src/pages/index.astro"
+---
+Astro.logger.error("Can't find the checkout ID.");
+---
+```
+  
+#### `logger.warn()`
+<p>
+
+  **类型：** `(msg: string) => void`
+  <Since v="7.0.0" />
+</p>
+发出一条 `warn` 级别的消息。
+
+```astro title="src/pages/index.astro"
+---
+Astro.logger.warn("Can't find the checkout ID.");
+---
+```  
+  
+#### `logger.info()`
+<p>
+
+  **类型：** `(msg: string) => void`
+  <Since v="7.0.0" />
+</p>
+  
+发出一条 `info` 级别的消息。
+
+```astro title="src/pages/index.astro"
+---
+Astro.logger.info("Can't find the checkout ID.");
 ---
 ```
