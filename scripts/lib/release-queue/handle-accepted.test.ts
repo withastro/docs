@@ -1,27 +1,35 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
 import { GitHubError } from './github.ts';
-import {
-	handleAcceptedPullRequest,
-	needsBotToken,
-	type HandleOptions,
-	type Mode,
-} from './handle-accepted.ts';
-import { pullRequestResponse, REPO } from './testing/fixtures.ts';
+import { handleAcceptedPullRequest } from './handle-accepted.ts';
+import type { Mode } from './modes.ts';
+import { pullRequestResponse, REPO, umbrellaResponse } from './testing/fixtures.ts';
+import { ACTIONS_TOKEN, BOT_TOKEN, queueOptions } from './testing/queue-options.ts';
 import { stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
+import { getUmbrellaBody } from './umbrella.ts';
 
 const paths = {
+	pr: `repos/${REPO}/pulls/7`,
 	reviews: `repos/${REPO}/pulls/7/reviews`,
 	releasePullRequest:
 		'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/main',
 	mainUmbrella: `repos/${REPO}/pulls?state=open&head=withastro:release-queue/main`,
 };
 
-/** GET responses for PR #7, ready to join the umbrella of `base`. */
-function readyPullRequest({ base = 'main', label = 'minor-release' } = {}) {
+/**
+ * GET responses for PR #7, ready to join the open umbrella #42 of `base`. The
+ * umbrella is up to date but for its body.
+ */
+function readyPullRequest({ base = 'main', label = 'minor-release', umbrellaBody = '' } = {}) {
 	const umbrellaBranch = `release-queue/${base}`;
+	const umbrella = umbrellaResponse({
+		target: base,
+		title: base === 'main' ? '[ci] release astro@7.5.0 docs' : `[ci] release ${base} docs`,
+		labels: [{ name: 'merge-on-release' }, { name: label }],
+		body: umbrellaBody,
+	});
 	return {
-		[`repos/${REPO}/pulls/7`]: pullRequestResponse({
+		[paths.pr]: pullRequestResponse({
 			base: { ref: base },
 			labels: [{ name: 'accepted' }, { name: label }],
 		}),
@@ -39,10 +47,11 @@ function readyPullRequest({ base = 'main', label = 'minor-release' } = {}) {
 			},
 		],
 		[paths.releasePullRequest]: [{ number: 1, html_url: '', body: '## astro@7.5.0\n' }],
-		[`repos/${REPO}/pulls?state=open&head=withastro:${umbrellaBranch}`]: [
-			{ number: 42, html_url: `https://github.com/${REPO}/pull/42` },
-		],
+		[`repos/${REPO}/pulls?state=open&head=withastro:${umbrellaBranch}`]: [umbrella],
+		[`repos/${REPO}/pulls/42`]: umbrella,
 		[`repos/${REPO}/git/ref/heads/${base}`]: { object: { sha: 'base-sha' } },
+		[`repos/${REPO}/pulls?state=closed&base=${umbrellaBranch}`]: [],
+		[`repos/${REPO}/compare/${base}...${umbrellaBranch}`]: { ahead_by: 0, commits: [] },
 	};
 }
 
@@ -52,17 +61,15 @@ const unapprovedPullRequest = () => ({ ...readyPullRequest(), [paths.reviews]: [
 /** Responses for a PR that opens the `main` umbrella with its first join. */
 const firstJoin = () => ({ ...readyPullRequest(), [paths.mainUmbrella]: [] });
 
-// Distinct tokens tell the writes of each identity apart.
-const ACTIONS_TOKEN = 'actions-token';
-const BOT_TOKEN = 'bot-token';
-
-type StubbedGitHub = ReturnType<typeof stubGitHub>;
-
-const handleOptions = (github: StubbedGitHub, mode: Mode): HandleOptions => ({
-	actionsClient: github.client(ACTIONS_TOKEN),
-	botClient: github.client(BOT_TOKEN),
-	repo: REPO,
-	mode,
+/**
+ * Responses where the `main` umbrella #42 is settled: it links release PR
+ * #18405, merged, while #1 is the open one.
+ */
+const settledUmbrella = () => ({
+	...readyPullRequest({
+		umbrellaBody: getUmbrellaBody('main', { releasePullRequest: 18405, included: [] }),
+	}),
+	'repos/withastro/astro/pulls/18405': { number: 18405, merged: true },
 });
 
 /** Stubs GitHub with PR #7 ready to join, unless `options` say otherwise. */
@@ -72,7 +79,7 @@ const stubReadyPullRequest = (t: TestContext, options: StubOptions = {}) =>
 /** Handles PR #7, and returns the writes of each identity. */
 async function run(t: TestContext, mode: Mode, options: StubOptions = {}, sender = 'maintainer') {
 	const github = stubReadyPullRequest(t, options);
-	await handleAcceptedPullRequest(handleOptions(github, mode), 7, sender);
+	await handleAcceptedPullRequest(queueOptions(github, mode), 7, sender);
 	return { actionsWrites: github.writesBy(ACTIONS_TOKEN), botWrites: github.writesBy(BOT_TOKEN) };
 }
 
@@ -114,7 +121,36 @@ describe('handleAcceptedPullRequest', () => {
 			`PATCH repos/${REPO}/pulls/7`,
 			`PUT repos/${REPO}/pulls/7/merge`,
 			comment,
+			// The refresh: only the body of the umbrella is out of date.
+			`PATCH repos/${REPO}/pulls/42`,
 		]);
+	});
+
+	it('opens the umbrella PR with its first join, then labels it', async (t) => {
+		const { botWrites } = await run(t, 'main-only', {
+			getResponses: {
+				...firstJoin(),
+				[`repos/${REPO}/pulls/99`]: umbrellaResponse({
+					number: 99,
+					title: '[ci] release astro@7.5.0 docs',
+					body: 'Release umbrella for `main`, managed by the release queue.',
+					labels: [],
+				}),
+			},
+			writeResults: { [`POST repos/${REPO}/pulls`]: { number: 99 } },
+		});
+
+		assert.deepEqual(writtenPaths(botWrites), [
+			`POST repos/${REPO}/git/refs`,
+			`PATCH repos/${REPO}/pulls/7`,
+			`PUT repos/${REPO}/pulls/7/merge`,
+			`POST repos/${REPO}/pulls`,
+			comment,
+			`PATCH repos/${REPO}/pulls/99`,
+			`POST repos/${REPO}/issues/99/labels`,
+		]);
+		assert.match(commentBody(botWrites), /the branch of #99 into `main`/);
+		assert.deepEqual(botWrites.at(-1)?.body, { labels: ['merge-on-release', 'minor-release'] });
 	});
 
 	it('only comments on a PR shipping to a prerelease branch in main-only mode', async (t) => {
@@ -133,6 +169,8 @@ describe('handleAcceptedPullRequest', () => {
 			`PATCH repos/${REPO}/pulls/7`,
 			`PUT repos/${REPO}/pulls/7/merge`,
 			comment,
+			// The refresh: only the body of the umbrella is out of date.
+			`PATCH repos/${REPO}/pulls/42`,
 		]);
 	});
 
@@ -172,12 +210,81 @@ describe('handleAcceptedPullRequest', () => {
 		assert.match(commentBody(botWrites), /The open `main` umbrella \(#42\)/);
 	});
 
+	describe('while the main umbrella is settled', () => {
+		it('refuses a PR it would retarget, before changing it', async (t) => {
+			const { botWrites } = await run(t, 'main-only', { getResponses: settledUmbrella() });
+
+			assert.deepEqual(writtenPaths(botWrites), [removeAccepted, comment]);
+			assert.match(
+				commentBody(botWrites),
+				/#42 ships with withastro\/astro#18405, which is already merged\. Merge #42 first\./
+			);
+		});
+
+		it('shows the refusal in a dry run', async (t) => {
+			const { actionsWrites } = await run(t, 'dry-run', { getResponses: settledUmbrella() });
+
+			assert.match(commentBody(actionsWrites), /^\*\*Release queue \(dry run\)\*\*/);
+			assert.match(commentBody(actionsWrites), /- #42 ships with .*, which is already merged\./);
+		});
+
+		it('joins a PR against the umbrella branch', async (t) => {
+			const { botWrites } = await run(t, 'main-only', {
+				getResponses: {
+					...settledUmbrella(),
+					[paths.pr]: pullRequestResponse({
+						base: { ref: 'release-queue/main' },
+						labels: [{ name: 'accepted' }, { name: 'minor-release' }],
+					}),
+				},
+			});
+
+			assert.deepEqual(writtenPaths(botWrites).slice(0, 2), [
+				`PUT repos/${REPO}/pulls/7/merge`,
+				comment,
+			]);
+		});
+
+		const prsThatCantUseIt = {
+			'a PR against the umbrella branch': pullRequestResponse({
+				base: { ref: 'release-queue/main' },
+				labels: [{ name: 'accepted' }, { name: 'minor-release' }],
+			}),
+			'a closed PR': pullRequestResponse({ state: 'closed' }),
+		};
+		for (const [name, pr] of Object.entries(prsThatCantUseIt)) {
+			it(`doesn't read the state for ${name}`, async (t) => {
+				const github = stubReadyPullRequest(t, {
+					getResponses: { ...settledUmbrella(), [paths.pr]: pr },
+				});
+
+				await handleAcceptedPullRequest(queueOptions(github, 'dry-run'), 7, 'maintainer');
+
+				assert.equal(github.countReads('repos/withastro/astro/pulls/18405'), 0);
+			});
+		}
+
+		it("doesn't affect a PR shipping to a prerelease branch", async (t) => {
+			const github = stubReadyPullRequest(t, {
+				getResponses: {
+					...settledUmbrella(),
+					...readyPullRequest({ base: 'cloudflare-next', label: 'major-release' }),
+				},
+			});
+
+			await handleAcceptedPullRequest(queueOptions(github, 'all'), 7, 'maintainer');
+
+			assert.ok(writtenPaths(github.writes).includes(`PUT repos/${REPO}/pulls/7/merge`));
+			assert.equal(github.countReads('repos/withastro/astro/pulls/18405'), 0);
+		});
+	});
+
 	it('refuses a PR whose join is refused', async (t) => {
 		const { botWrites } = await run(t, 'main-only', {
 			getResponses: {
 				...firstJoin(),
 				[`repos/${REPO}/git/ref/heads/release-queue/main`]: { object: { sha: 'old-sha' } },
-				[`repos/${REPO}/compare/main...release-queue/main`]: { ahead_by: 3 },
+				[`repos/${REPO}/compare/main...release-queue/main`]: { ahead_by: 3, commits: [] },
 			},
 		});
 
@@ -194,7 +301,7 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		await assert.rejects(
-			handleAcceptedPullRequest(handleOptions(github, 'main-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(queueOptions(github, 'main-only'), 7, 'maintainer'),
 			(error: unknown) => {
 				assert.ok(error instanceof Error);
 				assert.match(error.message, /but the umbrella PR couldn't be opened\.$/);
@@ -209,23 +316,16 @@ describe('handleAcceptedPullRequest', () => {
 		);
 	});
 
-	it("comments, then fails, when the umbrella labels couldn't be set", async (t) => {
-		const github = stubReadyPullRequest(t, {
-			getResponses: firstJoin(),
-			writeResults: { [`POST repos/${REPO}/pulls`]: { number: 99 } },
-			writeFailures: {
-				[`POST repos/${REPO}/issues/99/labels`]: { status: 500, message: 'Server Error' },
-			},
-		});
+	it('comments on the join, then fails, when the refresh fails', async (t) => {
+		const responses: Record<string, unknown> = readyPullRequest();
+		delete responses[`repos/${REPO}/pulls?state=closed&base=release-queue/main`];
+		const github = stubReadyPullRequest(t, { getResponses: responses });
 
 		await assert.rejects(
-			handleAcceptedPullRequest(handleOptions(github, 'main-only'), 7, 'maintainer'),
-			/but the labels of the umbrella PR couldn't be set\.$/
+			handleAcceptedPullRequest(queueOptions(github, 'main-only'), 7, 'maintainer'),
+			{ name: 'GitHubError', status: 404 }
 		);
-		assert.match(
-			commentBody(github.writesBy(BOT_TOKEN)),
-			/the branch of #99 into `main`, but its labels/
-		);
+		assert.match(commentBody(github.writesBy(BOT_TOKEN)), /squash-merged into/);
 	});
 
 	it('ignores a sender without write access', async (t) => {
@@ -233,17 +333,5 @@ describe('handleAcceptedPullRequest', () => {
 
 		assert.deepEqual(actionsWrites, []);
 		assert.deepEqual(botWrites, []);
-	});
-});
-
-describe('needsBotToken', () => {
-	it('is required to write in a live mode', () => {
-		assert.equal(needsBotToken('main-only', true), true);
-		assert.equal(needsBotToken('all', true), true);
-	});
-
-	it('is not required in a dry run, or when writes are only printed', () => {
-		assert.equal(needsBotToken('dry-run', true), false);
-		assert.equal(needsBotToken('all', false), false);
 	});
 });

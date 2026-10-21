@@ -56,25 +56,32 @@ describe('getReleaseType', () => {
 });
 
 describe('getMainRelease', () => {
+	const pullRequest = (versions: { name: string; version: string }[]) => ({
+		number: 18459,
+		versions,
+	});
+
 	it('reads a patch when there is no release PR', () => {
-		assert.deepEqual(getMainRelease(), { type: 'patch', astroVersion: undefined });
+		assert.deepEqual(getMainRelease(), {
+			type: 'patch',
+			astroVersion: undefined,
+			pullRequest: undefined,
+		});
 	});
 
 	it('reads a patch when astro is not released', () => {
-		assert.deepEqual(getMainRelease([{ name: '@astrojs/vercel', version: '11.1.0' }]), {
-			type: 'patch',
-			astroVersion: undefined,
-		});
+		const release = getMainRelease(pullRequest([{ name: '@astrojs/vercel', version: '11.1.0' }]));
+		assert.equal(release.type, 'patch');
+		assert.equal(release.astroVersion, undefined);
 	});
 
-	it('reads the release type from the astro version', () => {
-		assert.deepEqual(getMainRelease([{ name: 'astro', version: '7.5.0' }]), {
+	it('reads the release type from the astro version, and keeps the PR', () => {
+		const minor = pullRequest([{ name: 'astro', version: '7.5.0' }]);
+		assert.deepEqual(getMainRelease(minor), {
 			type: 'minor',
 			astroVersion: '7.5.0',
+			pullRequest: minor,
 		});
-		assert.deepEqual(getMainRelease([{ name: 'astro', version: '8.0.0' }]), {
-			type: 'major',
-			astroVersion: '8.0.0',
-		});
+		assert.equal(getMainRelease(pullRequest([{ name: 'astro', version: '8.0.0' }])).type, 'major');
 	});
 });

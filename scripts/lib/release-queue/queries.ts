@@ -7,7 +7,7 @@ import {
 	type CommitStatus,
 	type Readiness,
 } from './readiness.ts';
-import { parseReleaseVersions, type PackageVersion } from './release.ts';
+import { parseReleaseVersions, type ReleasePullRequest } from './release.ts';
 import { MAIN_BRANCH, type DocsPullRequest } from './routing.ts';
 
 const FRAMEWORK_REPO = 'withastro/astro';
@@ -21,25 +21,22 @@ export interface PullRequest extends DocsPullRequest {
 	isMergeable: boolean | null;
 }
 
-export interface ReleasePullRequest {
-	number: number;
-	url: string;
-	versions: PackageVersion[];
-}
-
 // The fields the bot reads from GitHub API responses.
 
-interface PullRequestResponse {
+export interface PullRequestResponse {
 	number: number;
 	title: string;
 	html_url: string;
 	state: string;
 	draft: boolean;
 	mergeable: boolean | null;
+	merge_commit_sha: string | null;
 	base: { ref: string };
-	head: { ref: string; sha: string };
+	/** `repo` is `null` when the fork was deleted. */
+	head: { ref: string; sha: string; repo?: { full_name: string } | null };
 	labels: { name: string }[];
 	body: string | null;
+	merged?: boolean;
 }
 
 interface ReviewResponse {
@@ -84,15 +81,6 @@ function getPullRequestWithMergeability(gh: GitHubClient, repo: string, number: 
 	});
 }
 
-/** Finds the open PR whose head is `branch`, such as an umbrella PR. */
-export async function findOpenPullRequest(gh: GitHubClient, repo: string, branch: string) {
-	const [owner] = repo.split('/');
-	const [pr] = await gh.get<PullRequestResponse[]>(
-		`repos/${repo}/pulls?state=open&head=${owner}:${branch}`
-	);
-	return pr ? { number: pr.number, url: pr.html_url } : undefined;
-}
-
 /** Gets the commit a branch points to, or `undefined` if it doesn't exist. */
 export async function getBranchSha(
 	gh: GitHubClient,
@@ -117,10 +105,25 @@ export async function countCommitsAhead(
 	base: string,
 	head: string
 ) {
-	const { ahead_by } = await gh.get<{ ahead_by: number }>(
+	const { ahead_by } = await compare(gh, repo, base, head);
+	return ahead_by;
+}
+
+/** Lists the commits of `head` that aren't in `base`, oldest first. */
+export async function listCommitsAhead(
+	gh: GitHubClient,
+	repo: string,
+	base: string,
+	head: string
+): Promise<string[]> {
+	const { commits } = await compare(gh, repo, base, head);
+	return commits.map(({ sha }) => sha);
+}
+
+function compare(gh: GitHubClient, repo: string, base: string, head: string) {
+	return gh.get<{ ahead_by: number; commits: { sha: string }[] }>(
 		`repos/${repo}/compare/${base}...${head}`
 	);
-	return ahead_by;
 }
 
 export async function postComment(gh: GitHubClient, repo: string, number: number, body: string) {
@@ -209,5 +212,19 @@ export async function getReleasePullRequest(
 		`repos/${FRAMEWORK_REPO}/pulls?state=open&head=${owner}:changeset-release/main`
 	);
 	if (!pr) return undefined;
-	return { number: pr.number, url: pr.html_url, versions: parseReleaseVersions(pr.body ?? '') };
+	return { number: pr.number, versions: parseReleaseVersions(pr.body ?? '') };
+}
+
+/**
+ * Whether a PR of `withastro/astro`, such as a release PR, is merged. A PR
+ * that doesn't exist, for example from an edited marker, isn't.
+ */
+export async function isFrameworkPullRequestMerged(gh: GitHubClient, number: number) {
+	try {
+		const { merged } = await gh.get<PullRequestResponse>(`repos/${FRAMEWORK_REPO}/pulls/${number}`);
+		return merged === true;
+	} catch (error) {
+		if (error instanceof GitHubError && error.status === 404) return false;
+		throw error;
+	}
 }

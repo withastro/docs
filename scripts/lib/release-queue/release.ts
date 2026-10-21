@@ -5,10 +5,18 @@ export interface PackageVersion {
 
 export type ReleaseType = 'patch' | 'minor' | 'major';
 
+/** A `[ci] release` PR of `withastro/astro`. */
+export interface ReleasePullRequest {
+	number: number;
+	versions: PackageVersion[];
+}
+
 /** The next release from the `main` branch of `withastro/astro`. */
 export interface MainRelease {
 	type: ReleaseType;
-	astroVersion?: string;
+	astroVersion?: string | undefined;
+	/** The open release PR. Without one, the release is a patch. */
+	pullRequest?: ReleasePullRequest | undefined;
 }
 
 /** Reads the `## <package>@<version>` headings of a release PR body. */
@@ -36,11 +44,8 @@ export function getReleaseType(version: string | undefined): ReleaseType {
 	return minor === '0' ? 'major' : 'minor';
 }
 
-/**
- * Gets the next release from `main` from the versions of its release PR, or
- * from none when there is no open release PR.
- */
-export function getMainRelease(versions: PackageVersion[] = []): MainRelease {
-	const astroVersion = findVersion(versions, 'astro');
-	return { type: getReleaseType(astroVersion), astroVersion };
+/** Gets the next release from `main` from its open release PR, if any. */
+export function getMainRelease(pullRequest?: ReleasePullRequest): MainRelease {
+	const astroVersion = findVersion(pullRequest?.versions ?? [], 'astro');
+	return { type: getReleaseType(astroVersion), astroVersion, pullRequest };
 }

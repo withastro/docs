@@ -5,7 +5,7 @@ import {
 	describeRefusal,
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
-	formatIncompleteJoinComment,
+	formatUnopenedJoinComment,
 	formatJoinComment,
 	formatRefusalComment,
 } from './messages.ts';
@@ -29,6 +29,7 @@ describe('describeRefusal', () => {
 			{ code: 'mismatch', base: 'main', label: 'major-release' },
 			{ code: 'mismatch', base: 'v8', label: 'minor-release' },
 			{ code: 'major-on-main', astroVersion: '8.0.0' },
+			{ code: 'settled-umbrella', number: 42, releasePullRequest: 18405 },
 			{ code: 'not-approved' },
 			{ code: 'changes-requested', reviewers: ['alice'] },
 			{ code: 'failing-checks', checks: ['Check Links'] },
@@ -148,29 +149,18 @@ describe('formatJoinComment', () => {
 	});
 });
 
-describe('formatIncompleteJoinComment', () => {
+describe('formatUnopenedJoinComment', () => {
 	const error = new GitHubError({ status: 422, reason: 'Validation Failed', request: 'POST' });
 
 	it("asks a maintainer to open the umbrella PR that couldn't be opened", () => {
 		assert.equal(
-			formatIncompleteJoinComment(route, { status: 'unopened', error }),
+			formatUnopenedJoinComment(route, { status: 'unopened', error }),
 			"**Release queue**: squash-merged into `release-queue/main`, but the umbrella PR into `main` couldn't be opened: Validation Failed. A maintainer needs to open it from `release-queue/main`."
 		);
 	});
 
-	it("asks a maintainer to add the labels that couldn't be set", () => {
-		const comment = formatIncompleteJoinComment(route, {
-			status: 'unlabeled',
-			umbrella: { number: 99 },
-			labels: ['merge-on-release', 'patch-release'],
-			error,
-		});
-		assert.match(comment, /the branch of #99 into `main`, but its labels couldn't be set/);
-		assert.match(comment, /add `merge-on-release`, `patch-release`\.$/);
-	});
-
 	it('describes an error that is not from GitHub', () => {
-		const comment = formatIncompleteJoinComment(route, {
+		const comment = formatUnopenedJoinComment(route, {
 			status: 'unopened',
 			error: new TypeError('fetch failed'),
 		});

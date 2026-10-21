@@ -1,16 +1,15 @@
-import type { GitHubClient } from './github.ts';
 import { joinUmbrella } from './join.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
-	formatIncompleteJoinComment,
 	formatJoinComment,
 	formatRefusalComment,
+	formatUnopenedJoinComment,
 	type MessageContext,
 } from './messages.ts';
+import { isLiveFor, type QueueOptions } from './modes.ts';
 import {
 	canWrite,
-	findOpenPullRequest,
 	getPullRequest,
 	getReadiness,
 	getReleasePullRequest,
@@ -18,6 +17,7 @@ import {
 	removeLabel,
 	type PullRequest,
 } from './queries.ts';
+import { refreshUmbrella } from './refresh.ts';
 import { getMainRelease, type MainRelease } from './release.ts';
 import {
 	ACCEPTED_LABEL,
@@ -28,47 +28,22 @@ import {
 	type Decision,
 	type RefusedDecision,
 	type Route,
+	usesSettledUmbrella,
 } from './routing.ts';
-import { getUmbrellaReleaseLabel, getUmbrellaTitle, type Umbrella } from './umbrella.ts';
+import { findOpenUmbrella, getUmbrella } from './umbrella-queries.ts';
+import { getSettledMainUmbrella } from './umbrella-state.ts';
+import { getUmbrellaHeading, type Umbrella } from './umbrella.ts';
 
 /**
- * - `dry-run`: only comments with the umbrella a PR would join, or why not.
- * - `main-only`: acts on PRs shipping to `main`, dry run for the others.
- * - `all`: acts on every PR.
- */
-export const MODES = ['dry-run', 'main-only', 'all'] as const;
-
-export type Mode = (typeof MODES)[number];
-
-/**
- * Whether the bot token is required. Without it, merges would go through
- * `GITHUB_TOKEN`, and the umbrella PR would stop getting CI.
- */
-export function needsBotToken(mode: Mode, shouldWrite: boolean): boolean {
-	return mode !== 'dry-run' && shouldWrite;
-}
-
-export interface HandleOptions {
-	/**
-	 * Reads the PR and the release PR, and posts dry-run comments, as
-	 * `github-actions[bot]`.
-	 */
-	actionsClient: GitHubClient;
-	/** Joins and refuses PRs as the bot account, reads included. */
-	botClient: GitHubClient;
-	repo: string;
-	mode: Mode;
-}
-
-/**
- * Processes a docs PR labeled `accepted`: reads the PR and the release PR of
- * `withastro/astro`, decides, then comments as a dry run, refuses, or joins.
+ * Processes a docs PR labeled `accepted`: reads the PR, the release PR of
+ * `withastro/astro` and the state of the `main` umbrella, decides, then
+ * comments as a dry run, refuses, or joins.
  *
  * @param sender Who added the label. Without one, the write access check is
  * skipped.
  */
 export async function handleAcceptedPullRequest(
-	options: HandleOptions,
+	options: QueueOptions,
 	number: number,
 	sender?: string
 ) {
@@ -85,33 +60,32 @@ export async function handleAcceptedPullRequest(
 		getReadiness(actionsClient, repo, pr),
 		getReleasePullRequest(actionsClient),
 	]);
-	const mainRelease = getMainRelease(releasePullRequest?.versions);
-	const decision = decide(pr, readiness, mainRelease);
-	console.info(JSON.stringify({ pr: pr.url, readiness, mainRelease, decision }, null, 2));
+	const release = getMainRelease(releasePullRequest);
+	const target = getTarget(pr.base);
+	const settledMainUmbrella = usesSettledUmbrella(pr)
+		? await getSettledMainUmbrella(actionsClient, repo, release)
+		: undefined;
+	const decision = decide(pr, readiness, { release, settledMainUmbrella });
+	console.info(JSON.stringify({ pr: pr.url, readiness, release, decision }, null, 2));
 
-	if (!isLiveFor(options.mode, getTarget(pr.base))) {
-		await commentDryRun(options, number, decision, mainRelease);
+	if (!isLiveFor(options.mode, target)) {
+		await commentDryRun(options, number, decision, release);
 	} else if (decision.status === 'refuse') {
-		await refuse(options, number, decision, mainRelease);
+		await refuse(options, number, decision, release);
 	} else {
-		await join(options, pr, decision.route, mainRelease);
+		await join(options, pr, decision.route, release);
 	}
 }
 
-/** Whether the bot changes PRs shipping to `target`, rather than a dry run. */
-function isLiveFor(mode: Mode, target: string): boolean {
-	return mode === 'all' || (mode === 'main-only' && target === MAIN_BRANCH);
-}
-
 async function commentDryRun(
-	options: HandleOptions,
+	options: QueueOptions,
 	number: number,
 	decision: Decision,
-	mainRelease: MainRelease
+	release: MainRelease
 ) {
 	const { actionsClient, repo } = options;
 	if (decision.status === 'join') {
-		const umbrella = await findUmbrella(options, decision.route, mainRelease);
+		const umbrella = await findUmbrella(options, decision.route, release);
 		await postComment(
 			actionsClient,
 			repo,
@@ -120,79 +94,79 @@ async function commentDryRun(
 		);
 		return;
 	}
-	const context = await getMessageContext(options, decision, mainRelease);
+	const context = await getMessageContext(options, decision, release);
 	await postComment(actionsClient, repo, number, formatDryRunRefusalComment(decision, context));
 }
 
 async function refuse(
-	options: HandleOptions,
+	options: QueueOptions,
 	number: number,
 	decision: RefusedDecision,
-	mainRelease: MainRelease
+	release: MainRelease
 ) {
 	const { botClient, repo } = options;
-	const context = await getMessageContext(options, decision, mainRelease);
+	const context = await getMessageContext(options, decision, release);
 	// Removed first, so the comment is true once posted.
 	await removeLabel(botClient, repo, number, ACCEPTED_LABEL);
 	await postComment(botClient, repo, number, formatRefusalComment(decision, context));
 }
 
-async function join(
-	options: HandleOptions,
-	pr: PullRequest,
-	route: Route,
-	mainRelease: MainRelease
-) {
+async function join(options: QueueOptions, pr: PullRequest, route: Route, release: MainRelease) {
 	const { botClient, repo } = options;
-	const result = await joinUmbrella(botClient, repo, pr, route, {
-		title: getUmbrellaTitle(route.target, mainRelease.astroVersion),
-		releaseLabel: getUmbrellaReleaseLabel(route.target, mainRelease.type),
-	});
+	const { title } = getUmbrellaHeading(route.target, release);
+	const result = await joinUmbrella(botClient, repo, pr, route, title);
 
 	switch (result.status) {
-		case 'joined':
-			await postComment(botClient, repo, pr.number, formatJoinComment(route, result.umbrella));
-			return;
-		case 'refused': {
-			const decision: RefusedDecision = { status: 'refuse', route, refusals: [result.refusal] };
-			await refuse(options, pr.number, decision, mainRelease);
+		case 'joined': {
+			const { umbrella } = result;
+			await postComment(botClient, repo, pr.number, formatJoinComment(route, umbrella));
+			// Without a number, the umbrella creation was only printed.
+			if ('number' in umbrella) {
+				const openUmbrella = await getUmbrella(botClient, repo, umbrella.number);
+				await refreshUmbrella(botClient, repo, openUmbrella, release);
+			}
 			return;
 		}
+		case 'refused': {
+			const decision: RefusedDecision = { status: 'refuse', route, refusals: [result.refusal] };
+			await refuse(options, pr.number, decision, release);
+			return;
+		}
+		case 'unopened':
+			await postComment(botClient, repo, pr.number, formatUnopenedJoinComment(route, result));
+			// The PR is merged, but a maintainer needs to open the umbrella PR.
+			throw new Error(
+				`#${pr.number} was merged into ${route.umbrellaBranch}, but the umbrella PR couldn't be opened.`,
+				{ cause: result.error }
+			);
 		default: {
-			await postComment(botClient, repo, pr.number, formatIncompleteJoinComment(route, result));
-			// The PR is merged, but a maintainer needs to finish the join.
-			const missing =
-				result.status === 'unopened'
-					? "the umbrella PR couldn't be opened"
-					: "the labels of the umbrella PR couldn't be set";
-			throw new Error(`#${pr.number} was merged into ${route.umbrellaBranch}, but ${missing}.`, {
-				cause: result.error,
-			});
+			const unknown: never = result;
+			throw new Error(`Unknown join result: ${JSON.stringify(unknown)}`);
 		}
 	}
 }
 
 /** Finds the open umbrella PR of `route`, or names the one to create. */
 async function findUmbrella(
-	{ actionsClient, repo }: HandleOptions,
+	{ actionsClient, repo }: QueueOptions,
 	route: Route,
-	mainRelease: MainRelease
+	release: MainRelease
 ): Promise<Umbrella> {
-	const openUmbrella = await findOpenPullRequest(actionsClient, repo, route.umbrellaBranch);
+	const openUmbrella = await findOpenUmbrella(actionsClient, repo, route.umbrellaBranch);
 	if (openUmbrella) return { number: openUmbrella.number };
-	return { title: getUmbrellaTitle(route.target, mainRelease.astroVersion) };
+	return { title: getUmbrellaHeading(route.target, release).title };
 }
 
 async function getMessageContext(
-	options: HandleOptions,
+	options: QueueOptions,
 	decision: RefusedDecision,
-	mainRelease: MainRelease
+	release: MainRelease
 ): Promise<MessageContext> {
 	const context: MessageContext = {};
-	if (decision.route) context.umbrella = await findUmbrella(options, decision.route, mainRelease);
+	if (decision.route) context.umbrella = await findUmbrella(options, decision.route, release);
 	if (decision.refusals.some((refusal) => refusal.code === 'major-on-main')) {
 		const { actionsClient, repo } = options;
-		const mainUmbrella = await findOpenPullRequest(
+		const mainUmbrella = await findOpenUmbrella(
 			actionsClient,
 			repo,
 			`${UMBRELLA_PREFIX}${MAIN_BRANCH}`

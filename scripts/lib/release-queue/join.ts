@@ -1,51 +1,36 @@
 import { GitHubError, type GitHubClient } from './github.ts';
-import {
-	countCommitsAhead,
-	findOpenPullRequest,
-	getBranchSha,
-	getPullRequest,
-	type PullRequest,
-} from './queries.ts';
-import type { JoinRefusal, ReleaseLabel, Route } from './routing.ts';
+import { countCommitsAhead, getBranchSha, getPullRequest, type PullRequest } from './queries.ts';
+import type { JoinRefusal, Route } from './routing.ts';
+import { findOpenUmbrella } from './umbrella-queries.ts';
 import type { Umbrella } from './umbrella.ts';
 
-export const MERGE_ON_RELEASE_LABEL = 'merge-on-release';
-
-/** What the umbrella PR gets when the first join creates it. */
-export interface NewUmbrella {
-	title: string;
-	releaseLabel: ReleaseLabel;
-}
-
 /**
- * The outcome of a join. `unopened` and `unlabeled` mean the PR was merged
- * into the umbrella branch, but the umbrella PR couldn't be opened, or its
- * labels couldn't be set.
+ * The outcome of a join. `unopened` means the PR was merged into the umbrella
+ * branch, but the umbrella PR couldn't be opened.
  */
 export type JoinResult =
 	| { status: 'joined'; umbrella: Umbrella }
 	| { status: 'refused'; refusal: JoinRefusal }
-	| { status: 'unopened'; error: unknown }
-	| { status: 'unlabeled'; umbrella: { number: number }; labels: string[]; error: unknown };
+	| { status: 'unopened'; error: unknown };
 
-/** A join that merged the PR, but couldn't finish. */
-export type IncompleteJoin = Extract<JoinResult, { status: 'unopened' | 'unlabeled' }>;
+/** A join that merged the PR, but couldn't open the umbrella PR. */
+export type UnopenedJoin = Extract<JoinResult, { status: 'unopened' }>;
 
 /**
  * Squash-merges a docs PR into its umbrella branch. Prepares the branch before
  * changing the PR, then changes the PR base, merges, and opens the umbrella
- * PR if none is open: GitHub refuses a PR without commits. A refused merge
- * restores the PR base. Expected failures come back as a result, anything
- * else throws.
+ * PR titled `umbrellaTitle` if none is open: GitHub refuses a PR without
+ * commits. A refused merge restores the PR base. Expected failures come back
+ * as a result, anything else throws. The refresh sets the labels and body.
  */
 export async function joinUmbrella(
 	gh: GitHubClient,
 	repo: string,
 	pr: PullRequest,
 	route: Route,
-	newUmbrella: NewUmbrella
+	umbrellaTitle: string
 ): Promise<JoinResult> {
-	const openUmbrella = await findOpenPullRequest(gh, repo, route.umbrellaBranch);
+	const openUmbrella = await findOpenUmbrella(gh, repo, route.umbrellaBranch);
 	if (!openUmbrella) {
 		const refusal = await prepareUmbrellaBranch(gh, repo, route);
 		if (refusal) return { status: 'refused', refusal };
@@ -56,7 +41,7 @@ export async function joinUmbrella(
 	if (refusal) return { status: 'refused', refusal };
 
 	if (openUmbrella) return { status: 'joined', umbrella: { number: openUmbrella.number } };
-	return createUmbrella(gh, repo, route, newUmbrella);
+	return createUmbrella(gh, repo, route, umbrellaTitle);
 }
 
 /**
@@ -165,8 +150,8 @@ async function createUmbrella(
 	gh: GitHubClient,
 	repo: string,
 	{ target, umbrellaBranch }: Route,
-	{ title, releaseLabel }: NewUmbrella
-): Promise<Extract<JoinResult, { status: 'joined' }> | IncompleteJoin> {
+	title: string
+): Promise<Extract<JoinResult, { status: 'joined' }> | UnopenedJoin> {
 	let created: { number: number } | undefined;
 	try {
 		created = await gh.write<{ number: number }>('POST', `repos/${repo}/pulls`, {
@@ -178,14 +163,5 @@ async function createUmbrella(
 	} catch (error) {
 		return { status: 'unopened', error };
 	}
-	if (!created) return { status: 'joined', umbrella: { title } };
-
-	const umbrella = { number: created.number };
-	const labels = [MERGE_ON_RELEASE_LABEL, releaseLabel];
-	try {
-		await gh.write('POST', `repos/${repo}/issues/${umbrella.number}/labels`, { labels });
-	} catch (error) {
-		return { status: 'unlabeled', umbrella, labels, error };
-	}
-	return { status: 'joined', umbrella };
+	return { status: 'joined', umbrella: created ? { number: created.number } : { title } };
 }

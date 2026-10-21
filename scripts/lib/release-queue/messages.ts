@@ -1,5 +1,5 @@
 import { GitHubError } from './github.ts';
-import type { IncompleteJoin } from './join.ts';
+import type { UnopenedJoin } from './join.ts';
 import {
 	ACCEPTED_LABEL,
 	type Refusal,
@@ -45,6 +45,8 @@ const REFUSAL_DESCRIPTIONS: { [C in RefusalCode]: DescribeRefusal<C> } = {
 			: '';
 		return `The next \`astro\` release from \`main\` is a major${release}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to \`major-release\`.${umbrella}`;
 	},
+	'settled-umbrella': ({ number, releasePullRequest }) =>
+		`#${number} ships with withastro/astro#${releasePullRequest}, which is already merged. Merge #${number} first. If this PR documents that release, change its base to \`release-queue/main\` instead.`,
 	'not-approved': () => 'This PR has no approval from a maintainer. Ask a maintainer to review it.',
 	'changes-requested': ({ reviewers }) =>
 		`Changes are requested by ${reviewers.join(', ')}. Address them, then ask for a new review or dismiss the old one.`,
@@ -126,13 +128,9 @@ export function formatJoinComment(route: Route, umbrella: Umbrella): string {
 	return `**Release queue**: squash-merged into ${code(route.umbrellaBranch)}, the branch of ${describeUmbrella(route, umbrella)}. It ships when the umbrella PR is merged.`;
 }
 
-/** Writes the comment of a join that merged the PR, but couldn't finish. */
-export function formatIncompleteJoinComment(route: Route, result: IncompleteJoin): string {
+/** Writes the comment of a merged PR whose umbrella PR couldn't be opened. */
+export function formatUnopenedJoinComment(route: Route, { error }: UnopenedJoin): string {
 	const branch = code(route.umbrellaBranch);
-	const reason = sentence(describeError(result.error));
-	if (result.status === 'unopened') {
-		return `**Release queue**: squash-merged into ${branch}, but the umbrella PR into ${code(route.target)} couldn't be opened: ${reason} A maintainer needs to open it from ${branch}.`;
-	}
-	const umbrella = describeUmbrella(route, result.umbrella);
-	return `**Release queue**: squash-merged into ${branch}, the branch of ${umbrella}, but its labels couldn't be set: ${reason} A maintainer needs to add ${list(result.labels)}.`;
+	const reason = sentence(describeError(error));
+	return `**Release queue**: squash-merged into ${branch}, but the umbrella PR into ${code(route.target)} couldn't be opened: ${reason} A maintainer needs to open it from ${branch}.`;
 }
