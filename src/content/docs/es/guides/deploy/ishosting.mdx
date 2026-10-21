@@ -8,9 +8,196 @@ logo: ishosting
 supports: ['ssr', 'static']
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 [is\*hosting](https://ishosting.com/) es un proveedor de alojamiento que ofrece VPS y servidores dedicados en más de 40 ubicaciones que puedes utilizar para alojar por tu cuenta un sitio de Astro estático o renderizado en el servidor (SSR).
+ Un VPS es adecuado cuando tu sitio de Astro utiliza SSR y necesita un servidor persistente, conexiones a bases de datos, tareas en segundo plano, tareas programadas (cron) o rutas de API.
+
+ ## Requisitos previos
+
+ Para desplegar tu sitio de Astro en un VPS de is\*hosting VPS, necesitarás:
+
+ - Un proyecto de Astro
+ - Un VPS de is\*hosting ejecutando Ubuntu con acceso SSH y privilegios de `root` o `sudo`
+ - Un nombre de dominio que apunte a tu VPS
+- Una versión de Node.js que cumpla con los [requisitos mínimos de Astro](/es/install-and-setup/#prerequisites) instalada en tu VPS
+
+ ## Configuración del proyecto
+
+ Tu proyecto de Astro se puede desplegar en un VPS de is\*hosting como un sitio estático o como un sitio renderizado bajo demanda.
+
+ ### Sitio estático
+
+ Tu proyecto de Astro es un sitio estático de forma predeterminada. No necesitas ninguna configuración adicional de Astro para desplegar un sitio estático en un VPS de is\*hosting.
+
+ ### Adaptador para el renderizado bajo demanda
+
+Para habilitar el renderizado bajo demanda en tu proyecto de Astro, agrega [el adaptador de Node.js](/es/guides/integrations-guide/node/) mediante el comando `astro add`. Esto instalará el adaptador y lo configurará en modo `standalone` en tu archivo `astro.config.mjs` en un solo paso.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## Cómo desplegar
+
+Puedes desplegar tu sitio en un VPS de is\*hosting compilándolo en el servidor y sirviéndolo mediante un servidor web.
+
+Las siguientes instrucciones utilizan [Nginx](https://nginx.org/) como servidor web y [PM2](https://pm2.keymetrics.io/) para mantener en ejecución el servidor de Node.js de un sitio con renderizado bajo demanda.
+
+### Configurar tu VPS
+
+<Steps>
+1. Conéctate a tu VPS mediante SSH e instala tanto el servidor web como Git:
+
+   ```shell
+   apt update
+   apt install nginx git
+   ```
+
+   Los comandos del servidor de esta guía suponen que has iniciado sesión como `root`. Si utilizas otra cuenta, ejecuta los comandos administrativos con `sudo`.
+
+2. Clona tu proyecto de Astro en tu VPS, instala sus dependencias y compila tu sitio:
+
+   ```shell
+   cd /var/www
+   git clone YOUR_REPOSITORY_URL astro
+   cd astro
+   npm install
+   npm run build
+   ```
+</Steps>
+
+### Desplegar un sitio estático
+
+<Steps>
+1. Crea un archivo de configuración de Nginx en `/etc/nginx/sites-available/astro` para servir la carpeta `dist/` generada:
+
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
+
+       root /var/www/astro/dist;
+       index index.html;
+       error_page 404 /404.html;
+
+       location / {
+           try_files $uri $uri/ $uri.html =404;
+       }
+   }
+   ```
+
+2. Habilita la configuración de Nginx y recarga Nginx:
+
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
+
+### Desplegar un sitio con renderizado bajo demanda
+
+<Steps>
+1. Instala PM2 y utilízalo para iniciar el servidor de Node.js:
+
+   ```shell
+   npm install -g pm2
+   HOST=127.0.0.1 PORT=4321 pm2 start dist/server/entry.mjs --name astro-app
+   ```
+
+2. Configura PM2 para reiniciar el servidor de Node.js después de un reinicio:
+
+   ```shell
+   pm2 startup && pm2 save
+   ```
+
+3. Crea un archivo de configuración de Nginx en `/etc/nginx/sites-available/astro` para reenviar las solicitudes al servidor de Node.js:
+
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
+
+       location / {
+           proxy_pass http://127.0.0.1:4321;
+           proxy_http_version 1.1;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+
+4. Habilita la configuración de Nginx y recarga Nginx:
+
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
+
+ ### Agregar HTTPS
+
+ Una vez que tu dominio apunte al VPS, puedes utilizar Certbot para configurar HTTPS, tanto para un despliegue estático como para uno con SSR. Asegúrate de que los puertos 80 y 443 sean accesibles.
+
+<Steps>
+1. Instala Certbot y su complemento para Nginx:
+
+   ```shell
+   apt install -y certbot python3-certbot-nginx
+   ```
+
+2. Solicita un certificado para tu dominio:
+
+   ```shell
+   certbot --nginx -d your.domain.com
+   ```
+
+   Reemplaza `your.domain.com` con tu dominio y sigue las instrucciones.
+
+3. Prueba la renovación automática del certificado:
+
+   ```shell
+   certbot renew --dry-run
+   ```
+</Steps>
+
+### Actualizar tu sitio
+
+Para desplegar los cambios en tu sitio, descarga los últimos cambios del repositorio, instala las dependencias y vuelve a compilar el sitio:
+
+```shell
+cd /var/www/astro
+git pull
+npm install
+npm run build
+```
+
+Si tu sitio utiliza renderizado bajo demanda, reinicia el proceso de PM2 para que los cambios surtan efecto:
+
+```shell
+pm2 restart astro-app
+```
 
 ## Recursos Oficiales
 
 - [Guía de is\*hosting: despliega Astro en un VPS (estático y SSR)](https://blog.ishosting.com/en/astro-on-vps)
+- [Centro de ayuda de is\*hosting para VPS](https://help.ishosting.com/en/virtual-private-servers)
