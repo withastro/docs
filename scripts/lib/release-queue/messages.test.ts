@@ -1,6 +1,14 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { describeRefusal, formatDryRunComment } from './messages.ts';
+import { GitHubError } from './github.ts';
+import {
+	describeRefusal,
+	formatDryRunJoinComment,
+	formatDryRunRefusalComment,
+	formatIncompleteJoinComment,
+	formatJoinComment,
+	formatRefusalComment,
+} from './messages.ts';
 import type { Refusal, Route } from './routing.ts';
 
 const route: Route = {
@@ -27,6 +35,9 @@ describe('describeRefusal', () => {
 			{ code: 'pending-checks', checks: ['zizmor'] },
 			{ code: 'missing-checks', checks: ['zizmor'] },
 			{ code: 'conflict' },
+			{ code: 'umbrella-conflict', branch: 'release-queue/main' },
+			{ code: 'stale-umbrella-branch', branch: 'release-queue/main' },
+			{ code: 'merge-failed', reason: 'Pull Request is not mergeable' },
 		];
 		for (const refusal of refusals) {
 			assert.match(describeRefusal(refusal), /\.$/, refusal.code);
@@ -44,6 +55,14 @@ describe('describeRefusal', () => {
 		);
 	});
 
+	it("doesn't add a period after a reason that ends with one", () => {
+		const reason = 'Head branch was modified. Review and try the merge again.';
+		assert.equal(
+			describeRefusal({ code: 'merge-failed', reason }),
+			`GitHub refused the merge: ${reason}`
+		);
+	});
+
 	it('mentions the open main umbrella when the next astro release is a major', () => {
 		const refusal: Refusal = { code: 'major-on-main', astroVersion: '8.0.0' };
 		assert.match(describeRefusal(refusal), /`astro@8.0.0`/);
@@ -52,9 +71,9 @@ describe('describeRefusal', () => {
 	});
 });
 
-describe('formatDryRunComment', () => {
+describe('formatDryRunJoinComment', () => {
 	it('names the open umbrella a ready PR would join', () => {
-		const comment = formatDryRunComment({ route, refusals: [] }, { umbrella: { number: 42 } });
+		const comment = formatDryRunJoinComment(route, { number: 42 });
 		assert.match(comment, /^\*\*Release queue \(dry run\)\*\*/);
 		assert.match(
 			comment,
@@ -64,17 +83,19 @@ describe('formatDryRunComment', () => {
 	});
 
 	it('names the umbrella PR that would be created', () => {
-		const comment = formatDryRunComment(
-			{ route: { ...route, shouldRetarget: false }, refusals: [] },
-			{ umbrella: { title: '[ci] release astro@7.4.1 docs' } }
+		const comment = formatDryRunJoinComment(
+			{ ...route, shouldRetarget: false },
+			{ title: '[ci] release astro@7.4.1 docs' }
 		);
 		assert.match(comment, /a new umbrella PR \(`\[ci\] release astro@7.4.1 docs`\)/);
 		assert.doesNotMatch(comment, /base would change/);
 	});
+});
 
+describe('formatDryRunRefusalComment', () => {
 	it('lists every reason a PR would be refused, and the umbrella it would join', () => {
-		const comment = formatDryRunComment(
-			{ route, refusals: [{ code: 'draft' }, { code: 'not-approved' }] },
+		const comment = formatDryRunRefusalComment(
+			{ status: 'refuse', route, refusals: [{ code: 'draft' }, { code: 'not-approved' }] },
 			{ umbrella: { number: 42 } }
 		);
 		assert.match(comment, /wouldn't join #42 into `main` yet:\n\n- .*draft.*\n- .*approval/);
@@ -82,11 +103,77 @@ describe('formatDryRunComment', () => {
 	});
 
 	it("doesn't name an umbrella when the PR has none", () => {
-		const comment = formatDryRunComment({ refusals: [{ code: 'no-release-label' }] });
+		const comment = formatDryRunRefusalComment({
+			status: 'refuse',
+			refusals: [{ code: 'no-release-label' }],
+		});
 		assert.match(comment, /wouldn't join its release umbrella yet:/);
 	});
+});
 
-	it('throws when a PR without refusals has no umbrella', () => {
-		assert.throws(() => formatDryRunComment({ route, refusals: [] }));
+describe('formatRefusalComment', () => {
+	it('lists every reason, and says the label was removed', () => {
+		const comment = formatRefusalComment(
+			{ status: 'refuse', route, refusals: [{ code: 'not-approved' }] },
+			{ umbrella: { number: 42 } }
+		);
+		assert.match(comment, /^\*\*Release queue\*\*: this PR didn't join #42 into `main`:/);
+		assert.match(comment, /- .*approval/);
+		assert.match(comment, /The `accepted` label was removed\. Add it again after fixing\.$/);
+	});
+
+	it('names the umbrella to create by its title', () => {
+		const comment = formatRefusalComment(
+			{ status: 'refuse', route, refusals: [{ code: 'not-approved' }] },
+			{ umbrella: { title: '[ci] release astro@7.4.1 docs' } }
+		);
+		assert.match(comment, /didn't join a new umbrella PR \(`\[ci\] release astro@7.4.1 docs`\)/);
+	});
+
+	it("doesn't name an umbrella when the PR has none", () => {
+		const comment = formatRefusalComment({
+			status: 'refuse',
+			refusals: [{ code: 'no-release-label' }],
+		});
+		assert.match(comment, /didn't join its release umbrella:/);
+	});
+});
+
+describe('formatJoinComment', () => {
+	it('names the umbrella the PR joined', () => {
+		assert.equal(
+			formatJoinComment(route, { number: 42 }),
+			'**Release queue**: squash-merged into `release-queue/main`, the branch of #42 into `main`. It ships when the umbrella PR is merged.'
+		);
+	});
+});
+
+describe('formatIncompleteJoinComment', () => {
+	const error = new GitHubError({ status: 422, reason: 'Validation Failed', request: 'POST' });
+
+	it("asks a maintainer to open the umbrella PR that couldn't be opened", () => {
+		assert.equal(
+			formatIncompleteJoinComment(route, { status: 'unopened', error }),
+			"**Release queue**: squash-merged into `release-queue/main`, but the umbrella PR into `main` couldn't be opened: Validation Failed. A maintainer needs to open it from `release-queue/main`."
+		);
+	});
+
+	it("asks a maintainer to add the labels that couldn't be set", () => {
+		const comment = formatIncompleteJoinComment(route, {
+			status: 'unlabeled',
+			umbrella: { number: 99 },
+			labels: ['merge-on-release', 'patch-release'],
+			error,
+		});
+		assert.match(comment, /the branch of #99 into `main`, but its labels couldn't be set/);
+		assert.match(comment, /add `merge-on-release`, `patch-release`\.$/);
+	});
+
+	it('describes an error that is not from GitHub', () => {
+		const comment = formatIncompleteJoinComment(route, {
+			status: 'unopened',
+			error: new TypeError('fetch failed'),
+		});
+		assert.match(comment, /couldn't be opened: fetch failed\./);
 	});
 });

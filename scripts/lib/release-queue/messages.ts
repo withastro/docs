@@ -1,13 +1,13 @@
+import { GitHubError } from './github.ts';
+import type { IncompleteJoin } from './join.ts';
 import {
 	ACCEPTED_LABEL,
-	type Decision,
 	type Refusal,
 	type RefusalCode,
+	type RefusedDecision,
 	type Route,
 } from './routing.ts';
-
-/** An open umbrella PR, or the title of the one to create. */
-export type Umbrella = { number: number } | { title: string };
+import type { Umbrella } from './umbrella.ts';
 
 export interface MessageContext {
 	/** The umbrella PR the docs PR would join. */
@@ -18,6 +18,8 @@ export interface MessageContext {
 
 const code = (text: string) => `\`${text}\``;
 const list = (items: string[]) => items.map(code).join(', ');
+// GitHub's reasons sometimes end with a period already.
+const sentence = (text: string) => (/[.!?]$/.test(text) ? text : `${text}.`);
 
 type DescribeRefusal<C extends RefusalCode> = (
 	refusal: Refusal<C>,
@@ -53,6 +55,11 @@ const REFUSAL_DESCRIPTIONS: { [C in RefusalCode]: DescribeRefusal<C> } = {
 	'missing-checks': ({ checks }) =>
 		`These required checks haven't run: ${list(checks)}. If the workflow runs are waiting for approval, approve them.`,
 	conflict: () => 'This PR has merge conflicts. Resolve them.',
+	'umbrella-conflict': ({ branch }) =>
+		`This PR conflicts with changes already in ${code(branch)}. Resolve the conflicts with that branch.`,
+	'stale-umbrella-branch': ({ branch }) =>
+		`The branch ${code(branch)} has commits but no open umbrella PR. A maintainer needs to open the umbrella PR from it, or delete it if its commits already shipped.`,
+	'merge-failed': ({ reason }) => `GitHub refused the merge: ${sentence(reason)}`,
 };
 
 /** Describes a refusal and how to fix it. */
@@ -76,21 +83,56 @@ function describeRoute(route: Route, umbrella: Umbrella): string {
 	return `This PR would be squash-merged into ${code(route.umbrellaBranch)}, the branch of ${describeUmbrella(route, umbrella)}.${base}`;
 }
 
-/** Writes the comment of a dry run: what the bot would do, without doing it. */
-export function formatDryRunComment(
-	{ route, refusals }: Decision,
+function listRefusals(refusals: Refusal[], context: MessageContext): string {
+	return refusals.map((refusal) => `- ${describeRefusal(refusal, context)}`).join('\n');
+}
+
+function describeUmbrellaOrFallback(route?: Route, umbrella?: Umbrella): string {
+	return route && umbrella ? describeUmbrella(route, umbrella) : 'its release umbrella';
+}
+
+function describeError(error: unknown): string {
+	if (error instanceof GitHubError) return error.reason;
+	return error instanceof Error ? error.message : String(error);
+}
+
+const DRY_RUN_HEADING = '**Release queue (dry run)**: nothing was changed.';
+
+/** Writes the dry-run comment of a PR that would join `umbrella`. */
+export function formatDryRunJoinComment(route: Route, umbrella: Umbrella): string {
+	return `${DRY_RUN_HEADING}\n\n${describeRoute(route, umbrella)}`;
+}
+
+/** Writes the dry-run comment of a PR that would be refused. */
+export function formatDryRunRefusalComment(
+	{ route, refusals }: RefusedDecision,
 	context: MessageContext = {}
 ): string {
-	const heading = '**Release queue (dry run)**: nothing was changed.';
-	const { umbrella } = context;
-	if (refusals.length === 0) {
-		if (!route || !umbrella) {
-			throw new Error('A PR without refusals needs a route and an umbrella.');
-		}
-		return `${heading}\n\n${describeRoute(route, umbrella)}`;
-	}
+	const umbrella = describeUmbrellaOrFallback(route, context.umbrella);
+	return `${DRY_RUN_HEADING}\n\nThis PR wouldn't join ${umbrella} yet:\n\n${listRefusals(refusals, context)}\n\nOutside a dry run, the ${code(ACCEPTED_LABEL)} label would be removed. It would need to be added again after fixing.`;
+}
 
-	const reasons = refusals.map((refusal) => `- ${describeRefusal(refusal, context)}`).join('\n');
-	const target = route && umbrella ? describeUmbrella(route, umbrella) : 'its release umbrella';
-	return `${heading}\n\nThis PR wouldn't join ${target} yet:\n\n${reasons}\n\nOutside a dry run, the ${code(ACCEPTED_LABEL)} label would be removed. It would need to be added again after fixing.`;
+/** Writes the comment of a refusal, posted once `accepted` is removed. */
+export function formatRefusalComment(
+	{ route, refusals }: RefusedDecision,
+	context: MessageContext = {}
+): string {
+	const umbrella = describeUmbrellaOrFallback(route, context.umbrella);
+	return `**Release queue**: this PR didn't join ${umbrella}:\n\n${listRefusals(refusals, context)}\n\nThe ${code(ACCEPTED_LABEL)} label was removed. Add it again after fixing.`;
+}
+
+/** Writes the comment of a join: the umbrella the PR is now part of. */
+export function formatJoinComment(route: Route, umbrella: Umbrella): string {
+	return `**Release queue**: squash-merged into ${code(route.umbrellaBranch)}, the branch of ${describeUmbrella(route, umbrella)}. It ships when the umbrella PR is merged.`;
+}
+
+/** Writes the comment of a join that merged the PR, but couldn't finish. */
+export function formatIncompleteJoinComment(route: Route, result: IncompleteJoin): string {
+	const branch = code(route.umbrellaBranch);
+	const reason = sentence(describeError(result.error));
+	if (result.status === 'unopened') {
+		return `**Release queue**: squash-merged into ${branch}, but the umbrella PR into ${code(route.target)} couldn't be opened: ${reason} A maintainer needs to open it from ${branch}.`;
+	}
+	const umbrella = describeUmbrella(route, result.umbrella);
+	return `**Release queue**: squash-merged into ${branch}, the branch of ${umbrella}, but its labels couldn't be set: ${reason} A maintainer needs to add ${list(result.labels)}.`;
 }

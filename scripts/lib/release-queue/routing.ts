@@ -2,6 +2,7 @@ import type { Readiness } from './readiness.ts';
 import type { MainRelease } from './release.ts';
 
 export const ACCEPTED_LABEL = 'accepted';
+export const MAIN_BRANCH = 'main';
 export const UMBRELLA_PREFIX = 'release-queue/';
 export const RELEASE_LABELS = ['patch-release', 'minor-release', 'major-release'] as const;
 
@@ -39,6 +40,11 @@ interface RefusalDetails {
 	'pending-checks': { checks: string[] };
 	'missing-checks': { checks: string[] };
 	conflict: unknown;
+	// Found when joining (see `JoinRefusal`).
+	'umbrella-conflict': { branch: string };
+	/** The umbrella branch has commits but no open umbrella PR. */
+	'stale-umbrella-branch': { branch: string };
+	'merge-failed': { reason: string };
 }
 
 export type RefusalCode = keyof RefusalDetails;
@@ -48,20 +54,35 @@ export type Refusal<Code extends RefusalCode = RefusalCode> = {
 	[C in Code]: { code: C } & RefusalDetails[C];
 }[Code];
 
-/** The docs PR joins `route` when there are no refusals. */
-export interface Decision {
-	route?: Route;
-	refusals: Refusal[];
+/** The refusals found only while joining, after `decide` approved the PR. */
+export type JoinRefusal = Refusal<'umbrella-conflict' | 'stale-umbrella-branch' | 'merge-failed'>;
+
+/**
+ * A docs PR joins `route`, or is refused. A refused PR keeps its route when
+ * routing succeeded: comments use it to name the umbrella.
+ */
+export type Decision =
+	| { status: 'join'; route: Route }
+	| { status: 'refuse'; route?: Route; refusals: Refusal[] };
+
+export type RefusedDecision = Extract<Decision, { status: 'refuse' }>;
+
+export function isUmbrellaBranch(branch: string): boolean {
+	return branch.startsWith(UMBRELLA_PREFIX);
+}
+
+/** Gets the branch a docs PR ships to: its base, or its umbrella's base. */
+export function getTarget(base: string): string {
+	return isUmbrellaBranch(base) ? base.slice(UMBRELLA_PREFIX.length) : base;
 }
 
 /**
  * Decides whether a docs PR joins an umbrella, and which one. Returns every
- * refusal at once, except for a closed PR or an umbrella PR. Returns the route
- * even with readiness refusals: comments use it to name the umbrella.
+ * refusal at once, except for a closed PR or an umbrella PR.
  */
 export function decide(pr: DocsPullRequest, readiness: Readiness, release: MainRelease): Decision {
-	if (pr.state !== 'open') return { refusals: [{ code: 'closed' }] };
-	if (pr.head.startsWith(UMBRELLA_PREFIX)) return { refusals: [{ code: 'umbrella' }] };
+	if (pr.state !== 'open') return { status: 'refuse', refusals: [{ code: 'closed' }] };
+	if (isUmbrellaBranch(pr.head)) return { status: 'refuse', refusals: [{ code: 'umbrella' }] };
 
 	const refusals: Refusal[] = [];
 	if (pr.isDraft) refusals.push({ code: 'draft' });
@@ -71,7 +92,9 @@ export function decide(pr: DocsPullRequest, readiness: Readiness, release: MainR
 
 	refusals.push(...getReadinessRefusals(readiness));
 
-	return 'code' in route ? { refusals } : { route, refusals };
+	if ('code' in route) return { status: 'refuse', refusals };
+	if (refusals.length > 0) return { status: 'refuse', route, refusals };
+	return { status: 'join', route };
 }
 
 function getRoute(pr: DocsPullRequest, release: MainRelease): Route | Refusal {
@@ -80,13 +103,13 @@ function getRoute(pr: DocsPullRequest, release: MainRelease): Route | Refusal {
 	if (labels.length > 1) return { code: 'several-release-labels', labels };
 	const [label] = labels;
 
+	const target = getTarget(pr.base);
 	// A PR against an umbrella branch, to fix something already merged in it.
-	const shouldRetarget = !pr.base.startsWith(UMBRELLA_PREFIX);
-	const target = shouldRetarget ? pr.base : pr.base.slice(UMBRELLA_PREFIX.length);
+	const shouldRetarget = !isUmbrellaBranch(pr.base);
 
 	// Nothing marks a prerelease branch: any base other than `main` is one.
 	const isMajor = label === 'major-release';
-	const isMainTarget = target === 'main';
+	const isMainTarget = target === MAIN_BRANCH;
 	if (isMajor === isMainTarget) return { code: 'mismatch', base: pr.base, label };
 	// Every feature on `main` in `withastro/astro` now ships in the major,
 	// documented on a prerelease branch.

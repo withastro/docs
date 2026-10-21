@@ -4,21 +4,15 @@
 import { readFile } from 'node:fs/promises';
 import { parseArgs } from 'node:util';
 import { GitHubClient } from './lib/release-queue/github.ts';
-import { formatDryRunComment, type MessageContext } from './lib/release-queue/messages.ts';
 import {
-	canWrite,
-	findOpenPullRequest,
-	getPullRequest,
-	getReadiness,
-	getReleasePullRequest,
-} from './lib/release-queue/queries.ts';
-import { getMainRelease } from './lib/release-queue/release.ts';
-import { decide, UMBRELLA_PREFIX } from './lib/release-queue/routing.ts';
-import { getUmbrellaTitle } from './lib/release-queue/umbrella.ts';
+	MODES,
+	handleAcceptedPullRequest,
+	needsBotToken,
+} from './lib/release-queue/handle-accepted.ts';
 
-// `dry-run`: only comments with the umbrella a PR would join, or why not.
-const MODES = ['dry-run'];
-
+// In GitHub Actions, the PR and the sender come from the event.
+// `--sender`: who added the label, for the write access check.
+// `--write`: send the writes instead of printing them, outside GitHub Actions.
 const { values } = parseArgs({
 	options: {
 		pr: { type: 'string' },
@@ -28,14 +22,22 @@ const { values } = parseArgs({
 });
 
 const repo = process.env.GITHUB_REPOSITORY ?? 'withastro/docs';
-const mode = process.env.MODE ?? 'dry-run';
-if (!MODES.includes(mode)) throw new Error(`Unknown MODE: ${mode}. Expected one of: ${MODES}.`);
+const mode = MODES.find((value) => value === (process.env.MODE ?? 'dry-run'));
+if (!mode) throw new Error(`Unknown MODE: ${process.env.MODE}. Expected one of: ${MODES}.`);
 
 const token = process.env.GITHUB_TOKEN;
 if (!token) throw new Error('GITHUB_TOKEN is required.');
-// Outside GitHub Actions, only print the writes, unless `--write` is passed.
 const shouldWrite = process.env.GITHUB_ACTIONS === 'true' || values.write;
-const gh = new GitHubClient(token, { shouldPrintWrites: !shouldWrite });
+// Changes go through the bot account: unlike `GITHUB_TOKEN`, its merges into
+// an umbrella branch trigger the checks of the umbrella PR.
+const botToken = process.env.BOT_TOKEN;
+if (needsBotToken(mode, shouldWrite) && !botToken) {
+	throw new Error(`BOT_TOKEN is required in ${mode} mode.`);
+}
+
+const clientOptions = { shouldPrintWrites: !shouldWrite };
+const actionsClient = new GitHubClient(token, clientOptions);
+const botClient = new GitHubClient(botToken ?? token, clientOptions);
 
 const event = process.env.GITHUB_EVENT_PATH
 	? JSON.parse(await readFile(process.env.GITHUB_EVENT_PATH, 'utf-8'))
@@ -43,37 +45,8 @@ const event = process.env.GITHUB_EVENT_PATH
 const prNumber = Number(values.pr ?? event?.pull_request?.number);
 if (!prNumber) throw new Error('No PR to process: pass --pr <number>.');
 
-await processPullRequest(prNumber, values.sender ?? event?.sender?.login);
-
-async function processPullRequest(number: number, sender: string | undefined) {
-	if (sender === undefined) {
-		console.info('No sender: skipping the write access check.');
-	} else if (!(await canWrite(gh, repo, sender))) {
-		console.info(`Ignored: ${sender} can't write to ${repo}.`);
-		return;
-	}
-
-	const pr = await getPullRequest(gh, repo, number);
-	const [readiness, releasePullRequest] = await Promise.all([
-		getReadiness(gh, repo, pr),
-		getReleasePullRequest(gh),
-	]);
-	const mainRelease = getMainRelease(releasePullRequest?.versions);
-	const decision = decide(pr, readiness, mainRelease);
-	console.info(JSON.stringify({ pr: pr.url, readiness, mainRelease, decision }, null, 2));
-
-	const context: MessageContext = {};
-	if (decision.route) {
-		const { umbrellaBranch, target } = decision.route;
-		context.umbrella = (await findOpenPullRequest(gh, repo, umbrellaBranch)) ?? {
-			title: getUmbrellaTitle(target, mainRelease.astroVersion),
-		};
-	}
-	if (decision.refusals.some((refusal) => refusal.code === 'major-on-main')) {
-		context.mainUmbrella = await findOpenPullRequest(gh, repo, `${UMBRELLA_PREFIX}main`);
-	}
-
-	await gh.write('POST', `repos/${repo}/issues/${number}/comments`, {
-		body: formatDryRunComment(decision, context),
-	});
-}
+await handleAcceptedPullRequest(
+	{ actionsClient, botClient, repo, mode },
+	prNumber,
+	values.sender ?? event?.sender?.login
+);

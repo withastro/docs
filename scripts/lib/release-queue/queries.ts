@@ -1,4 +1,3 @@
-import { setTimeout } from 'node:timers/promises';
 import { GitHubError, type GitHubClient } from './github.ts';
 import {
 	getLatestReviewStates,
@@ -9,14 +8,14 @@ import {
 	type Readiness,
 } from './readiness.ts';
 import { parseReleaseVersions, type PackageVersion } from './release.ts';
-import type { DocsPullRequest } from './routing.ts';
+import { MAIN_BRANCH, type DocsPullRequest } from './routing.ts';
 
 const FRAMEWORK_REPO = 'withastro/astro';
 const MERGEABILITY_ATTEMPTS = 5;
-const MERGEABILITY_DELAY_MS = 2000;
 
 export interface PullRequest extends DocsPullRequest {
 	number: number;
+	title: string;
 	url: string;
 	headSha: string;
 	isMergeable: boolean | null;
@@ -32,6 +31,7 @@ export interface ReleasePullRequest {
 
 interface PullRequestResponse {
 	number: number;
+	title: string;
 	html_url: string;
 	state: string;
 	draft: boolean;
@@ -61,6 +61,7 @@ export async function getPullRequest(
 	const data = await getPullRequestWithMergeability(gh, repo, number);
 	return {
 		number: data.number,
+		title: data.title,
 		url: data.html_url,
 		state: data.state,
 		isDraft: data.draft,
@@ -76,13 +77,11 @@ export async function getPullRequest(
  * Gets a PR once GitHub has computed its mergeability. The first request
  * starts the computation.
  */
-async function getPullRequestWithMergeability(gh: GitHubClient, repo: string, number: number) {
-	for (let attempt = 1; ; attempt++) {
-		const data = await gh.get<PullRequestResponse>(`repos/${repo}/pulls/${number}`);
-		const isKnown = data.state !== 'open' || data.mergeable !== null;
-		if (isKnown || attempt === MERGEABILITY_ATTEMPTS) return data;
-		await setTimeout(MERGEABILITY_DELAY_MS);
-	}
+function getPullRequestWithMergeability(gh: GitHubClient, repo: string, number: number) {
+	return gh.poll<PullRequestResponse>(`repos/${repo}/pulls/${number}`, {
+		isReady: (data) => data.state !== 'open' || data.mergeable !== null,
+		attempts: MERGEABILITY_ATTEMPTS,
+	});
 }
 
 /** Finds the open PR whose head is `branch`, such as an umbrella PR. */
@@ -92,6 +91,49 @@ export async function findOpenPullRequest(gh: GitHubClient, repo: string, branch
 		`repos/${repo}/pulls?state=open&head=${owner}:${branch}`
 	);
 	return pr ? { number: pr.number, url: pr.html_url } : undefined;
+}
+
+/** Gets the commit a branch points to, or `undefined` if it doesn't exist. */
+export async function getBranchSha(
+	gh: GitHubClient,
+	repo: string,
+	branch: string
+): Promise<string | undefined> {
+	try {
+		const { object } = await gh.get<{ object: { sha: string } }>(
+			`repos/${repo}/git/ref/heads/${branch}`
+		);
+		return object.sha;
+	} catch (error) {
+		if (error instanceof GitHubError && error.status === 404) return undefined;
+		throw error;
+	}
+}
+
+/** Counts the commits of `head` that aren't in `base`. */
+export async function countCommitsAhead(
+	gh: GitHubClient,
+	repo: string,
+	base: string,
+	head: string
+) {
+	const { ahead_by } = await gh.get<{ ahead_by: number }>(
+		`repos/${repo}/compare/${base}...${head}`
+	);
+	return ahead_by;
+}
+
+export async function postComment(gh: GitHubClient, repo: string, number: number, body: string) {
+	await gh.write('POST', `repos/${repo}/issues/${number}/comments`, { body });
+}
+
+/** Removes a label from a PR. A label that is already gone is fine. */
+export async function removeLabel(gh: GitHubClient, repo: string, number: number, label: string) {
+	try {
+		await gh.write('DELETE', `repos/${repo}/issues/${number}/labels/${label}`);
+	} catch (error) {
+		if (!(error instanceof GitHubError && error.status === 404)) throw error;
+	}
 }
 
 export async function canWrite(gh: GitHubClient, repo: string, user: string): Promise<boolean> {
@@ -151,7 +193,7 @@ export async function getReadiness(
 
 /** Gets the checks required to merge into `main`. */
 async function getRequiredChecks(gh: GitHubClient, repo: string): Promise<string[]> {
-	const rules = await gh.getAll<RuleResponse>(`repos/${repo}/rules/branches/main`);
+	const rules = await gh.getAll<RuleResponse>(`repos/${repo}/rules/branches/${MAIN_BRANCH}`);
 	return rules
 		.filter((rule) => rule.type === 'required_status_checks')
 		.flatMap((rule) => rule.parameters?.required_status_checks ?? [])

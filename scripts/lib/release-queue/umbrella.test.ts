@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getUmbrellaTitle } from './umbrella.ts';
+import { getUmbrellaReleaseLabel, getUmbrellaTitle } from './umbrella.ts';
 
 describe('getUmbrellaTitle', () => {
 	it('uses the astro version for the main umbrella', () => {
@@ -16,5 +16,16 @@ describe('getUmbrellaTitle', () => {
 			getUmbrellaTitle('cloudflare-next', '7.4.0-beta.1'),
 			'[ci] release cloudflare-next docs'
 		);
+	});
+});
+
+describe('getUmbrellaReleaseLabel', () => {
+	it('labels the main umbrella from the astro release type', () => {
+		assert.equal(getUmbrellaReleaseLabel('main', 'minor'), 'minor-release');
+		assert.equal(getUmbrellaReleaseLabel('main', 'patch'), 'patch-release');
+	});
+
+	it('labels a prerelease umbrella as a major release', () => {
+		assert.equal(getUmbrellaReleaseLabel('v8', 'patch'), 'major-release');
 	});
 });
