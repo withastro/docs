@@ -1,0 +1,52 @@
+# Routes docs PRs labeled `accepted` to the umbrella PR of their release.
+# Dry run for now: only comments with the umbrella a PR would join, or why not.
+
+name: Release queue
+
+on:
+  # Needs a token that can comment on fork PRs. Never checks out the PR code.
+  # zizmor: ignore[dangerous-triggers]
+  pull_request_target:
+    types: [labeled]
+
+# Runs wait in a queue and execute one at a time, as joins update the same
+# umbrella PR. The docs only show `queue` at the workflow level: runs for
+# other labels are queued too.
+concurrency:
+  group: release-queue
+  queue: max
+
+permissions: {}
+
+jobs:
+  route:
+    name: Route to release umbrella
+    if: ${{ github.repository_owner == 'withastro' && github.event.label.name == 'accepted' }}
+    runs-on: ubuntu-latest
+    # The job takes seconds. A hung run would block every run queued behind it.
+    timeout-minutes: 5
+    permissions:
+      checks: read # Reads the checks of the PR.
+      contents: read
+      pull-requests: write # Comments on the PR.
+      statuses: read # Reads the commit statuses of the PR.
+    steps:
+      # The script always comes from `main`, whatever the base branch of the PR.
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: main
+          persist-credentials: false
+          sparse-checkout: scripts
+
+      # The script has no dependencies: Node.js is enough, no `pnpm install`.
+      - name: Setup Node
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Route the PR
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MODE: dry-run
+        run: node --experimental-transform-types ./scripts/release-queue.ts
