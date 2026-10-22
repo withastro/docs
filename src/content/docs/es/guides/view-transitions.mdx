@@ -1,9 +1,9 @@
 ---
 title: View Transitions
-description: >-
-  Habilita una navegación fluida entre páginas en Astro con las view transitions.
+description: Habilita una navegación fluida entre páginas en Astro con las view transitions.
 i18nReady: true
 ---
+import ReadMore from '~/components/ReadMore.astro'
 import Since from '~/components/Since.astro'
 import { Steps } from '@astrojs/starlight/components'
 
@@ -14,6 +14,7 @@ La compatibilidad de Astro con las transiciones de vista y el enrutamiento del l
 - Algunas [opciones de animación integradas](#directivas-de-animación-integradas), como `fade`, `slide` y `none`.
 - Soporte para animaciones de navegación hacia adelante y hacia atrás.
 - La capacidad de [personalizar completamente todos los aspectos de la animación de transición](#personalizando-animaciones) y crear tus propias animaciones.
+- Una manera de trasladar elementos HTML de la página actual a la siguiente durante la navegación.
 - La opción de [impedir la navegación del lado del cliente para enlaces que no sean de página](#previniendo-la-navegación-del-lado-del-cliente).
 - [Control sobre el comportamiento de respaldo](#control-de-respaldo) para navegadores que aún no admiten las API de View Transitions.
 - Soporte automático para [`prefers-reduced-motion`](#prefers-reduced-motion).
@@ -31,13 +32,11 @@ Para funciones mejoradas de enrutamiento del lado del cliente y transiciones de 
 Esto ofrece algunos beneficios, como el estado compartido entre páginas y elementos persistentes, pero también algunas desventajas, como la necesidad de reinicializar manualmente scripts o estado después de la navegación.
 
 Agregando el componente integrado `<ClientRouter />` de Astro:
-
-* [Interceptara la navegación entre páginas](#proceso-de-navegación-del-lado-del-cliente) y te da un control considerable sobre este proceso.
-* Amplía y mejora algunas características de la API de navegación/transiciones de vista.
-* Te permite [configurar estrategias de respaldo](#control-de-respaldo) para cuando [el soporte nativo del navegador sea limitado](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
+- [Interceptara la navegación entre páginas](#proceso-de-navegación-del-lado-del-cliente) y te da un control considerable sobre este proceso.
+- Amplía y mejora algunas características de la API de navegación/transiciones de vista.
+- Te permite [configurar estrategias de respaldo](#control-de-respaldo) para cuando [el soporte nativo del navegador sea limitado](https://developer.mozilla.org/en-US/docs/Web/API/View_Transition_API#browser_compatibility).
 
 Sin embargo, a medida que las APIs del navegador y los estándares web evolucionan, usar el `<ClientRouter />` de Astro para esta funcionalidad adicional [será cada vez menos necesario](https://astro.build/blog/future-of-astro-zero-js-view-transitions/). Recomendamos mantenerte al tanto del estado actual de las APIs del navegador para que puedas [decidir si aún necesitas el enrutamiento del lado del cliente de Astro](https://events-3bg.pages.dev/jotter/astro-view-transitions/) según las funciones específicas que utilices.
-Claro, aquí tienes la traducción al español:
 
 ## Activar transiciones de vista (modo SPA)
 
@@ -45,9 +44,13 @@ Importa y agrega el componente `<ClientRouter />` en tu `<head>` común o en un 
 
 El siguiente ejemplo muestra cómo agregar las animaciones de navegación predeterminadas de Astro en todo el sitio, incluyendo la opción de control de respaldo para navegadores no compatibles, importando y añadiendo este componente a un componente Astro llamado `<CommonHead />`:
 
-```astro title="src/components/CommonHead.astro" ins={2,12}
+```astro title="src/components/CommonHead.astro" ins={2,16}
 ---
 import { ClientRouter } from "astro:transitions";
+
+type Props = { title: string; description: string };
+
+const { title, description } = Astro.props;
 ---
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 <meta name="generator" content={Astro.generator} />
@@ -97,8 +100,11 @@ Puedes persistir componentes y elementos HTML (en lugar de reemplazarlos) a trav
 Por ejemplo, el siguiente `<video>` continuará reproduciéndose a medida que navegas a otra página que contiene el mismo elemento de video. Esto funciona tanto para la navegación hacia adelante como hacia atrás.
 
 ```astro title="src/components/Video.astro" "transition:persist"
-<video controls="" autoplay="" transition:persist>
-	<source src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4" type="video/mp4">
+<video controls muted autoplay transition:persist>
+  <source
+    src="https://ia804502.us.archive.org/33/items/GoldenGa1939_3/GoldenGa1939_3_512kb.mp4"
+    type="video/mp4"
+  />
 </video>
 ```
 
@@ -143,6 +149,7 @@ Una alternativa práctica, `transition:persist` puede tomar un nombre de transic
 ```
 
 #### `transition:persist-props`
+
 <p><Since v="4.5.0" /></p>
 
 Esto te permite controlar si laprops de una isla deben persistir o no tras la navegación.
@@ -197,7 +204,6 @@ El ejemplo a continuación personaliza la duración de la animación incorporada
 ---
 import { fade } from 'astro:transitions';
 ---
-
 <header transition:animate={fade({ duration: '0.4s' })}>
 ```
 
@@ -287,7 +293,7 @@ Tienes una gran flexibilidad al definir animaciones personalizadas. Para lograr 
 
 ## Controlar el enrutador
 
-El enrutador `<ViewTransitions />` maneja la navegación escuchando:
+El enrutador `<ClientRouter />` maneja la navegación escuchando:
 
 - Los clics en elementos `<a>`.
 - Eventos de navegación hacia atrás y hacia adelante.
@@ -321,14 +327,21 @@ Los enlaces con el atributo `data-astro-reload` serán ignorados por el enrutado
 También puedes desencadenar la navegación del lado del cliente a través de eventos que normalmente no son escuchados por el enrutador `<ViewTransitions />` utilizando `navigate`. Esta función del módulo `astro:transitions/client` se puede utilizar en scripts y en componentes del framework que se hidratan con una [directiva de cliente](/es/reference/directives-reference/#directivas-del-cliente).
 
 El siguiente ejemplo muestra un componente de Astro que lleva al visitante a otra página que selecciona desde un menú:
+
 ```astro title="src/components/Form.astro"
 <script>
   import { navigate } from 'astro:transitions/client';
+
+  const select = document.querySelector("select");
   // Navega a la opción seleccionada automáticamente.
-  document.querySelector('select').onchange = (ev) => {
-    let href = ev.target.value;
-    navigate(href);
-  };
+  if (select) {
+    select.onchange = (event) => {
+      if (event.target instanceof HTMLSelectElement) {
+        let href = event.target.value;
+        navigate(href);
+      }
+    };
+  }
 </script>
 <select>
   <option value="/play">Jugar</option>
@@ -337,20 +350,22 @@ El siguiente ejemplo muestra un componente de Astro que lleva al visitante a otr
   <option value="/contact">Contacto</option>
 </select>
 ```
+
 ```astro title="src/pages/index.astro"
 ---
 import Form from "../components/Form.astro";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 ---
 <html>
 	<head>
-		<ViewTransitions />
+		<ClientRouter />
 	</head>
 	<body>
 		<Form />
 	</body>
 </html>
 ```
+
 El siguiente ejemplo implementa lo mismo usando `navigate()` en un componente `<Form />` de React:
 
 ```js title="src/components/Form.jsx"
@@ -367,16 +382,17 @@ export default function Form() {
   );
 }
 ```
-El componente `<Form />` puede ser renderizado en una página de Astro que utiliza el enrutador `<ViewTransitions />`, con una directiva del cliente:
+
+El componente `<Form />` puede ser renderizado en una página de Astro que utiliza el enrutador `<ClientRouter />`, con una directiva del cliente:
 
 ```astro title="src/pages/index.astro"
 ---
 import Form from "../components/Form.jsx";
-import { ViewTransitions } from "astro:transitions";
+import { ClientRouter } from "astro:transitions";
 ---
 <html>
 	<head>
-		<ViewTransitions />
+		<ClientRouter />
 	</head>
 	<body>
 		<Form client:load />
@@ -384,27 +400,18 @@ import { ViewTransitions } from "astro:transitions";
 </html>
 ```
 
-El método `navigate` toma los siguientes argumentos:
-
-- `href` (obligatorio) - La nueva página a la que se va a navegar.
-- `options` - Un objeto opcional con las siguientes propiedades:
-	- `history`: `'push'` | `'replace'` | `'auto'`
-		- `'push'`: el enrutador utilizará `history.pushState` para crear una nueva entrada en el historial del navegador.
-		- `'replace'`: el enrutador utilizará `history.replaceState` para actualizar la URL sin agregar una nueva entrada en la navegación.
-		- `'auto'` (por defecto): el enrutador intentará utilizar `history.pushState`, pero si la URL no es una que se pueda transicionar, la URL actual permanecerá sin cambios en el historial del navegador.
-    - `formData`: Un objeto FormData para solicitudes `POST`.
-
 Para navegar hacia atrás y hacia delante por el historial del navegador, puedes combinar `navigate()` con las funciones integradas `history.back()`, `history.forward()` e `history.go()` del navegador. Si `navigate()` es llamado durante la renderización del lado del servidor de tu componente, no tendrá efecto alguno.
+
+<ReadMore>Consulta la referencia de `astro:transitions` para más información sobre las [opciones de `navigate()`](/es/reference/modules/astro-transitions/#navigate).</ReadMore>
 
 ### Reemplazar entradas en el historial del navegador
 
 Normalmente, cada vez que navegas, se crea una nueva entrada en el historial del navegador. Esto permite la navegación entre páginas utilizando los botones `atrás` y `adelante` del navegador.
 
-El enrutador `<ViewTransitions />` te permite sobrescribir las entradas del historial al agregar el atributo `data-astro-history` a cualquier etiqueta `<a>` individual.
+El enrutador `<ClientRouter />` te permite sobrescribir las entradas del historial al agregar el atributo `data-astro-history` a cualquier etiqueta `<a>` individual.
 
 El atributo `data-astro-history` puede establecerse en los mismos tres valores que la [opción `history` de la función `navigate()`](#desencadenar-la-navegación):
 
-`data-astro-history`: `'push'` | `'replace'` | `'auto'`
 - `'push'`: el enrutador utilizará `history.pushState` para crear una nueva entrada en el historial del navegador.
 - `'replace'`: el enrutador utilizará `history.replaceState` para actualizar la URL sin agregar una nueva entrada en la navegación.
 - `'auto'` (por defecto): el enrutador intentará utilizar `history.pushState`, pero si la URL no se puede transicionar, la URL actual se mantendrá sin cambios en el historial del navegador.
@@ -421,7 +428,7 @@ Esto tiene el efecto de que si retrocedes desde la página `/main`, el navegador
 
 <p><Since v="4.0.0" /></p>
 
-El enrutador `<ViewTransitions />` activará transiciones en la página desde elementos `<form>`, admitiendo tanto peticiones `GET` como `POST`.
+El enrutador `<ClientRouter />` activará transiciones en la página desde elementos `<form>`, admitiendo tanto peticiones `GET` como `POST`.
 
 Por defecto, Astro envía los datos de tu formulario como `multipart/form-data` cuando el atributo `method` está configurado como `POST`. Si deseas que coincida con el comportamiento predeterminado de los navegadores web, utiliza el atributo `enctype` para enviar tus datos codificados como `application/x-www-form-urlencoded`:
 
@@ -439,9 +446,35 @@ Puedes optar por excluir las transiciones del enrutador en formularios individua
 <form action="/contact" data-astro-reload>
 ```
 
+### Navegación con datos introducidos por el usuario
+
+La API de `navigate()` no sanitiza las URLs que se le pasan. Sí estáss usando datos introducidos por el usuario para determinar la URL a la que navegar, deberás de validar los datos antes de pasarlos a `navigate()`.
+
+Por ejemplo, un parámetro de consulta `?redirect` podría ser utilizado para navegar fuera de tu sitio (`?redirect=http://example.com`) o para ejecutar código arbitrario (`?redirect=javascript:alert('Evil code')`) si el valor no es sanitizado antes de usarlo.
+
+Una manera de implementar esto de forma segura, es asegurarse de que solo pueda ser redirigido a un conjunto de rutas conocidas:
+
+```astro title="src/pages/index.astro"
+<script>
+  import { navigate } from 'astro:transitions/client';
+
+  const params = new URLSearchParams(window.location.search);
+  const redirect = params.get('redirect');
+  const allowedPaths = ['/home', '/about', '/contact'];
+
+  if (redirect && allowedPaths.includes(redirect)) {
+    navigate(redirect);
+  }
+</script>
+```
+
+El tipo exacto de sanitización que necesitarás dependerá de tu sitido y que quieres permitir.
+
+<ReadMore>Considera habilitar la función de Astro de [Política de Seguridad de Contenido](/es/reference/configuration-reference/#securitycsp) para ayudar a protegerte contra riesgos de scripts entre sitios (XSS) si utilizas datos introducidos por el usuario con la API `navigate()`.</ReadMore>
+
 ## Control de respaldo
 
-El enrutador `<ViewTransitions />` funciona mejor en navegadores que admiten las View Transitions (p.ej. navegadores basados en Chromium), pero también incluye soporte predeterminado de respaldo para otros navegadores. Incluso si el navegador no admite la API de View Transitions, Astro seguirá proporcionando navegación en el navegador utilizando una de las opciones de respaldo para obtener una experiencia comparable.
+El enrutador `<ClientRouter />` funciona mejor en navegadores que admiten las View Transitions (p.ej. navegadores basados en Chromium), pero también incluye soporte predeterminado de respaldo para otros navegadores. Incluso si el navegador no admite la API de View Transitions, Astro seguirá proporcionando navegación en el navegador utilizando una de las opciones de respaldo para obtener una experiencia comparable.
 
 Dependiendo del soporte del navegador, es posible que necesites establecer explícitamente en las [directivas de transición](#directivas-de-transición) `name` o `animate` en los elementos que deseas animar para obtener una experiencia comparable en todos los navegadores:
 
@@ -452,7 +485,7 @@ import Layout from "../layouts/LayoutUsingClientRouter.astro";
 <title transition:animate="fade">About my site</title>
 ```
 
-Puedes sobreescribir el soporte de respaldo predeterminado de Astro agregando una propiedad `fallback` en el componente `<ViewTransitions />` y estableciéndolo en `swap` o `none`:
+Puedes sobreescribir el soporte de respaldo predeterminado de Astro agregando una propiedad `fallback` en el componente `<ClientRouter />` y estableciéndolo en `swap` o `none`:
 
 - `animate` (predeterminado, recomendado) - Astro simulará view transitions utilizando atributos personalizados antes de actualizar el contenido de la página.
 - `swap` - Astro no intentará animar la página. En su lugar, la página antigua será reemplazada inmediatamente por la nueva.
@@ -550,7 +583,6 @@ El siguiente ejemplo muestra una función que se ejecuta en respuesta al evento 
 
 Para forzar a los scripts inline a reejecutarse después de cada transición, añade la propiedad `data-astro-rerun`. Al añadir cualquier atributo a un script también se añade implícitamente `is:inline`, por lo que esto sólo está disponible para scripts que no están empaquetados y procesados por Astro.
 
-
 ```astro
 <script is:inline data-astro-rerun>...</script>
 ```
@@ -574,6 +606,7 @@ El enrutador `<ClientRouter />` proporciona varios eventos en el `document` dura
 El proceso de navegación implica una fase de **preparación**, cuando el nuevo contenido es cargado; una fase de **intercambio de DOM**, donde el contenido de la página antigua se sustituye por el de la nueva; y una fase de **finalización** donde los scripts son ejecutados, la carga se informa como completada y se realiza un trabajo de limpieza.
 
 Los eventos del ciclo de vida de la API de View Transitions de Astro, en orden, son:
+
 - [`astro:before-preparation`](#astrobefore-preparation)
 - [`astro:after-preparation`](#astroafter-preparation)
 - [`astro:before-swap`](#astrobefore-swap)
@@ -598,8 +631,7 @@ Este evento es usado:
 - Para modificar la carga, como cargar el contenido que has definido en una plantilla en lugar de una URL externa.
 - Para cambiar la `dirección` de la navegación (que suele ser `adelante` o `atrás`) para realizar una animación personalizada.
 
-Aquí hay un ejemplo usando el evento `astro:before-preparation` para cargar un spinner antes de que se cargue el contenido y pararlo inmediatamente depués la carga.
-Ten en cuenta que el uso del callback del loader de esta manera permite la ejecución asíncrona del código.
+Aquí hay un ejemplo usando el evento `astro:before-preparation` para cargar un spinner antes de que se cargue el contenido y pararlo inmediatamente depués la carga. Ten en cuenta que el uso del [callback del `loader`](/es/reference/modules/astro-transitions/#loader) de esta manera permite la ejecución asíncrona del código.
 
 ```astro
 <script is:inline>
@@ -669,6 +701,8 @@ En este punto del ciclo de vida, podrías optar por definir tu propia implementa
 
 #### Crear una función de intercambio personalizada
 
+<p><Since v="4.15.0" /></p>
+
 El objeto `swapFunctions` del módulo `astro:transitions/client` proporciona cinco funciones utilitarias que manejan tareas específicas relacionadas con el intercambio, incluyendo el manejo de atributos del documento, elementos de la página y ejecución de scripts. Estas funciones se pueden usar directamente para definir una implementación personalizada del intercambio.
 
 El siguiente ejemplo demuestra cómo usar estas funciones para recrear la implementación de intercambio incorporada de Astro:
@@ -703,12 +737,15 @@ Este evento, cuando se escucha en la **página saliente**, es útil para pasar y
 
 Este es el último punto en el ciclo de vida donde sigue siendo seguro para, por ejemplo, añadir un nombre de clase para el modo oscuro (`<html class="dark-mode">`), aunque podrías hacerlo en un evento anterior.
 
-El evento `astro:after-swap` ocurre inmediatamente después de que el historial del navegador haya sido actualizado y la posición del scroll haya sido establecida. Por lo tanto, un uso de este evento es sobreescribir la restauración predeterminada para la navegación en el historial. El siguiente ejemplo restablece la posición del scroll horizontal y vertical en la esquina superior izquierda de la página para cada navegación.
+El evento `astro:after-swap` ocurre inmediatamente después de que el historial del navegador haya sido actualizado y la posición del scroll haya sido establecida.
+Por lo tanto, un uso de este evento es sobreescribir la restauración predeterminada para la navegación en el historial. El siguiente ejemplo restablece la posición del scroll horizontal y vertical en la esquina superior izquierda de la página para cada navegación.
 
-```js
-document.addEventListener("astro:after-swap", () =>
-  window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
-);
+```astro
+<script>
+  document.addEventListener("astro:after-swap", () =>
+    window.scrollTo({ left: 0, top: 0, behavior: "instant" }),
+  );
+</script>
 ```
 
 ### `astro:page-load`
@@ -721,13 +758,14 @@ Puedes usar este evento para ejecutar código en cada navegación de página, o 
 
 ```astro
 <script>
+  import { setupStuff } from "../utils.ts";
+
   document.addEventListener("astro:page-load", () => {
     // Esto se ejecuta en la primera carga de la página y después de cada navegación
     setupStuff(); // por ejemplo, agregar escuchadores de eventos
   });
 </script>
 ```
-
 
 ## Accesibilidad
 
@@ -751,4 +789,4 @@ Recomendamos encarecidamente que siempre incluyas un elemento `<title>` en cada 
 
 ## `prefers-reduced-motion`
 
-El componente `<ViewTransitions />` de Astro incluye una media query de CSS que deshabilita *todas* las animaciones de transición de vista, incluida la animación de respaldo, siempre que se detecte la configuración [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion). En su lugar, el navegador simplemente intercambiará los elementos DOM sin una animación.
+El componente `<ClientRouter />` de Astro incluye una media query de CSS que deshabilita *todas* las animaciones de transición de vista, incluida la animación de respaldo, siempre que se detecte la configuración [`prefer-reduced-motion`](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-reduced-motion). En su lugar, el navegador simplemente intercambiará los elementos DOM sin una animación.
