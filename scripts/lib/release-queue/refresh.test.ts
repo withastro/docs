@@ -10,10 +10,7 @@ import { getUmbrellaBody } from './umbrella.ts';
 
 /** The next release from `main`, with release PR `number` open. */
 const releaseWith = (number: number, astroVersion: string) =>
-	getMainRelease({
-		number,
-		versions: [{ name: 'astro', version: astroVersion }],
-	});
+	getMainRelease({ number, versions: [{ name: 'astro', version: astroVersion }] });
 
 const noRelease = getMainRelease();
 
@@ -45,6 +42,16 @@ const history = (target = 'main') => ({
 const reviews = (number: number, target = 'main') => ({
 	[`repos/${REPO}/pulls/${number}/reviews`]: [],
 	[`repos/${REPO}/pulls?state=open&base=release-queue/${target}`]: [],
+});
+
+/** `next` in prerelease mode, with its release PR `number` open. */
+const prereleaseOf = (number: number) => ({
+	'repos/withastro/astro/contents/.changeset/pre.json?ref=next': {
+		content: Buffer.from('{"mode":"pre"}').toString('base64'),
+	},
+	'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/next': [
+		{ number, body: '' },
+	],
 });
 
 /** Answers whether release PR `number` of `withastro/astro` is merged. */
@@ -222,7 +229,9 @@ describe('refreshUmbrella', () => {
 	});
 
 	it('refreshes a prerelease umbrella, which always follows', async (t) => {
-		const github = stubGitHub(t, { getResponses: history('cloudflare-next') });
+		const github = stubGitHub(t, {
+			getResponses: { ...history('cloudflare-next'), ...prereleaseOf(18269) },
+		});
 		const prerelease: OpenUmbrella = {
 			number: 43,
 			title: 'Old title',
@@ -236,7 +245,7 @@ describe('refreshUmbrella', () => {
 
 		assert.deepEqual(patchOf(github.writes), {
 			title: '[ci] release cloudflare-next docs',
-			body: getUmbrellaBody('cloudflare-next', { included }),
+			body: getUmbrellaBody('cloudflare-next', { releasePullRequest: 18269, included }),
 		});
 		assert.deepEqual(labelWrites(github.writes), [
 			{
@@ -304,6 +313,8 @@ describe('refreshOpenUmbrellas', () => {
 		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42]);
 		// Without a join, no merge-block review is requested.
 		assert.deepEqual(github.writesBy(ACTIONS_TOKEN), []);
+		// The prerelease umbrella is skipped: nothing reads its release PR.
+		assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
 	});
 
 	it('updates an active merge-block review', async (t) => {

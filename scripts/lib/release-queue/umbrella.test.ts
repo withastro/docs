@@ -16,11 +16,10 @@ const releasePullRequest = (astroVersion?: string) => ({
 });
 
 describe('getUmbrellaHeading', () => {
-	it('names the main umbrella after the astro version, and links the release PR', () => {
+	it('names the main umbrella after the astro version', () => {
 		assert.deepEqual(getUmbrellaHeading('main', getMainRelease(releasePullRequest('7.4.1'))), {
 			title: '[ci] release astro@7.4.1 docs',
 			releaseLabel: 'patch-release',
-			releasePullRequest: 18459,
 		});
 	});
 
@@ -33,12 +32,11 @@ describe('getUmbrellaHeading', () => {
 		assert.deepEqual(getUmbrellaHeading('main', getMainRelease(releasePullRequest())), {
 			title: '[ci] release main docs',
 			releaseLabel: 'patch-release',
-			releasePullRequest: 18459,
 		});
 	});
 
 	it('names a prerelease umbrella after its branch, as a major', () => {
-		const release = getMainRelease(releasePullRequest('7.4.0-beta.1'));
+		const release = getMainRelease(releasePullRequest('7.4.1'));
 		assert.deepEqual(getUmbrellaHeading('cloudflare-next', release), {
 			title: '[ci] release cloudflare-next docs',
 			releaseLabel: 'major-release',
@@ -94,10 +92,16 @@ describe('getUmbrellaBody', () => {
 		assert.equal(parseReleaseMarker(body), undefined);
 	});
 
-	it('says a prerelease umbrella ships with its branch', () => {
+	it('links the release PR of a prerelease umbrella, with a marker', () => {
+		const body = getUmbrellaBody('cloudflare-next', { releasePullRequest: 18269, included });
+		assert.match(body, /^Ships with withastro\/astro#18269\. This includes:/);
+		assert.equal(parseReleaseMarker(body), 18269);
+	});
+
+	it('says when no prerelease PR is open', () => {
 		assert.match(
 			getUmbrellaBody('cloudflare-next', { included }),
-			/^Ships with the prerelease branch\. This includes:/
+			/^Ships with the next prerelease of `withastro\/astro`, once its `\[ci\] release` PR is open\. This includes:/
 		);
 	});
 

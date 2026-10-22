@@ -17,17 +17,15 @@ export type Umbrella = { number: number } | { title: string };
 export interface UmbrellaHeading {
 	title: string;
 	releaseLabel: ReleaseLabel;
-	/** The release PR of `withastro/astro` the umbrella links. */
-	releasePullRequest?: number | undefined;
 }
 
 /**
  * Gets what the umbrella PR merging into `target` takes from the next release
  * from `main`. The `main` umbrella is named after the `astro` version, as
- * merged PRs are posted to Discord, and links the release PR. A prerelease
- * umbrella uses its branch name, which says what it is for, and is a major.
- * On `main`, anything but a minor is a patch, including a release without
- * `astro`. A major never gets here: `decide` refuses `main` PRs before one.
+ * merged PRs are posted to Discord. On `main`, anything but a minor is a
+ * patch, including a release without `astro`. A major never gets here:
+ * `decide` refuses `main` PRs before one. A prerelease umbrella uses its
+ * branch name, which says what it is for, and is a major.
  */
 export function getUmbrellaHeading(target: string, release: MainRelease): UmbrellaHeading {
 	if (target !== MAIN_BRANCH) {
@@ -37,7 +35,6 @@ export function getUmbrellaHeading(target: string, release: MainRelease): Umbrel
 	return {
 		title: `[ci] release ${name} docs`,
 		releaseLabel: release.type === 'minor' ? 'minor-release' : FALLBACK_RELEASE_LABEL,
-		releasePullRequest: release.pullRequest?.number,
 	};
 }
 
@@ -95,12 +92,9 @@ export function getUmbrellaBody(
 }
 
 function describeShipping(target: string, releasePullRequest: number | undefined): string {
-	// The PR header and the title already name the branch.
-	if (target !== MAIN_BRANCH) return 'Ships with the prerelease branch.';
-	if (releasePullRequest === undefined) {
-		return 'Ships with the next release of `withastro/astro`, once its `[ci] release` PR is open.';
-	}
-	return `Ships with withastro/astro#${releasePullRequest}.`;
+	if (releasePullRequest !== undefined) return `Ships with withastro/astro#${releasePullRequest}.`;
+	const release = target === MAIN_BRANCH ? 'release' : 'prerelease';
+	return `Ships with the next ${release} of \`withastro/astro\`, once its \`[ci] release\` PR is open.`;
 }
 
 /**

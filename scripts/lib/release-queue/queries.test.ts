@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getPullRequest } from './queries.ts';
+import { GitHubClient } from './github.ts';
+import { getPrereleasePullRequest, getPullRequest } from './queries.ts';
 import { pullRequestResponse, REPO } from './testing/fixtures.ts';
 import { stubGitHub } from './testing/stub-github.ts';
 
@@ -40,5 +41,68 @@ describe('getPullRequest', () => {
 		await getPullRequest(github.client(), REPO, 7);
 
 		assert.equal(github.countReads(PR_PATH), 1);
+	});
+});
+
+describe('getPrereleasePullRequest', () => {
+	const preJson = 'repos/withastro/astro/contents/.changeset/pre.json?ref=next';
+	const nextPullRequests =
+		'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/next';
+	const mainPullRequest = { number: 18405, versions: [] };
+	const preMode = (mode: string) => ({
+		content: Buffer.from(JSON.stringify({ mode, tag: 'beta' })).toString('base64'),
+	});
+
+	it('links the release PR of next while it is in prerelease mode', async (t) => {
+		const github = stubGitHub(t, {
+			getResponses: {
+				[preJson]: preMode('pre'),
+				[nextPullRequests]: [{ number: 18269, body: '## @astrojs/cloudflare@15.0.0-beta.2\n' }],
+			},
+		});
+
+		const pr = await getPrereleasePullRequest(github.client(), mainPullRequest);
+
+		assert.deepEqual(pr, {
+			number: 18269,
+			versions: [{ name: '@astrojs/cloudflare', version: '15.0.0-beta.2' }],
+		});
+	});
+
+	it('finds no release PR while next has none open', async (t) => {
+		const github = stubGitHub(t, {
+			getResponses: { [preJson]: preMode('pre'), [nextPullRequests]: [] },
+		});
+
+		assert.equal(await getPrereleasePullRequest(github.client(), mainPullRequest), undefined);
+	});
+
+	it('fails on an error other than a missing pre.json', async (t) => {
+		t.mock.method(globalThis, 'fetch', async () => new Response('{}', { status: 500 }));
+
+		await assert.rejects(getPrereleasePullRequest(new GitHubClient('token'), mainPullRequest), {
+			name: 'GitHubError',
+			status: 500,
+		});
+	});
+
+	it('fails on a pre.json that is not JSON', async (t) => {
+		const github = stubGitHub(t, {
+			getResponses: { [preJson]: { content: Buffer.from('{ mode: pre').toString('base64') } },
+		});
+
+		await assert.rejects(getPrereleasePullRequest(github.client(), mainPullRequest), SyntaxError);
+	});
+
+	it('links the release PR of main once next left prerelease mode', async (t) => {
+		for (const getResponses of [{ [preJson]: preMode('exit') }, {}]) {
+			const github = stubGitHub(t, { getResponses });
+
+			assert.equal(
+				await getPrereleasePullRequest(github.client(), mainPullRequest),
+				mainPullRequest
+			);
+			assert.equal(github.countReads(nextPullRequests), 0);
+		}
 	});
 });

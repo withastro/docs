@@ -203,16 +203,46 @@ async function getRequiredChecks(gh: GitHubClient, repo: string): Promise<string
 		.map((check) => check.context);
 }
 
-/** Gets the open `[ci] release` PR of `main` in `withastro/astro`. */
+/**
+ * Gets the open `[ci] release` PR of a branch of `withastro/astro`: `main`, or
+ * `next` for its alpha and beta releases.
+ */
 export async function getReleasePullRequest(
-	gh: GitHubClient
+	gh: GitHubClient,
+	branch: 'main' | 'next' = 'main'
 ): Promise<ReleasePullRequest | undefined> {
 	const [owner] = FRAMEWORK_REPO.split('/');
 	const [pr] = await gh.get<PullRequestResponse[]>(
-		`repos/${FRAMEWORK_REPO}/pulls?state=open&head=${owner}:changeset-release/main`
+		`repos/${FRAMEWORK_REPO}/pulls?state=open&head=${owner}:changeset-release/${branch}`
 	);
 	if (!pr) return undefined;
 	return { number: pr.number, versions: parseReleaseVersions(pr.body ?? '') };
+}
+
+/** Whether `next` in `withastro/astro` is in changesets prerelease mode. */
+async function isNextInPreMode(gh: GitHubClient): Promise<boolean> {
+	try {
+		const { content } = await gh.get<{ content: string }>(
+			`repos/${FRAMEWORK_REPO}/contents/.changeset/pre.json?ref=next`
+		);
+		// `exit` means the prerelease ends: `next` is then merged into `main`.
+		return JSON.parse(Buffer.from(content, 'base64').toString()).mode === 'pre';
+	} catch (error) {
+		if (error instanceof GitHubError && error.status === 404) return false;
+		throw error;
+	}
+}
+
+/**
+ * Gets the release PR a prerelease umbrella ships with: the alpha or beta
+ * release PR of `next` while it's in prerelease mode, then the release PR of
+ * `main`, which `next` was merged into.
+ */
+export async function getPrereleasePullRequest(
+	gh: GitHubClient,
+	mainPullRequest: ReleasePullRequest | undefined
+): Promise<ReleasePullRequest | undefined> {
+	return (await isNextInPreMode(gh)) ? getReleasePullRequest(gh, 'next') : mainPullRequest;
 }
 
 /**

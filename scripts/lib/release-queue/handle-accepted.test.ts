@@ -194,6 +194,56 @@ describe('handleAcceptedPullRequest', () => {
 		]);
 	});
 
+	it('links the release PR of next in a prerelease umbrella', async (t) => {
+		const { botWrites } = await run(t, 'all', {
+			getResponses: {
+				...readyPullRequest({ base: 'cloudflare-next', label: 'major-release' }),
+				'repos/withastro/astro/contents/.changeset/pre.json?ref=next': {
+					content: Buffer.from('{"mode":"pre"}').toString('base64'),
+				},
+				'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/next': [
+					{ number: 18269, body: '' },
+				],
+			},
+		});
+
+		const refresh = botWrites.find(({ path }) => path === `repos/${REPO}/pulls/42`);
+		assert.match((refresh?.body as { body: string }).body, /^Ships with withastro\/astro#18269\./);
+	});
+
+	it("doesn't read the prerelease line for a PR shipping to main", async (t) => {
+		const github = stubReadyPullRequest(t);
+
+		await handleAcceptedPullRequest(queueOptions(github, 'main-only'), 7, 'maintainer');
+
+		assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
+	});
+
+	for (const [name, mode, getResponses] of [
+		[
+			'a dry-run comment',
+			'dry-run',
+			readyPullRequest({ base: 'cloudflare-next', label: 'major-release' }),
+		],
+		[
+			'a refusal',
+			'all',
+			{
+				...readyPullRequest({ base: 'cloudflare-next', label: 'major-release' }),
+				[paths.reviews]: [],
+			},
+		],
+	] as const) {
+		it(`doesn't read the prerelease line for ${name} of a prerelease PR`, async (t) => {
+			const github = stubReadyPullRequest(t, { getResponses });
+
+			await handleAcceptedPullRequest(queueOptions(github, mode), 7, 'maintainer');
+
+			assert.ok(github.writes.some(({ path }) => path.endsWith('/comments')));
+			assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
+		});
+	}
+
 	it('keeps the accepted label after a join, and names the umbrella', async (t) => {
 		const { botWrites } = await run(t, 'main-only');
 

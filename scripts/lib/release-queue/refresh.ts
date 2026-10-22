@@ -1,8 +1,8 @@
 import type { GitHubClient } from './github.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
 import { isLiveFor, type QueueOptions } from './modes.ts';
-import { getReleasePullRequest, removeLabel } from './queries.ts';
-import { getMainRelease, type MainRelease } from './release.ts';
+import { getPrereleasePullRequest, getReleasePullRequest, removeLabel } from './queries.ts';
+import { getMainRelease, type MainRelease, type ReleasePullRequest } from './release.ts';
 import { MAIN_BRANCH } from './routing.ts';
 import { getUmbrellaHistory, listOpenUmbrellas, type OpenUmbrella } from './umbrella-queries.ts';
 import { getReleaseState } from './umbrella-state.ts';
@@ -16,11 +16,12 @@ import {
 
 /**
  * Brings an umbrella PR up to date, writing only what changed. Its body
- * always lists the included docs PRs. Its title, release label and linked
- * release PR follow the open release PR, unless the umbrella is `kept` or
- * `settled`. Leaves the `main` umbrella as it is before a major: a
- * maintainer moves it to the prerelease branch. Returns the umbrella as it is
- * after the refresh.
+ * always lists the included docs PRs. The `main` umbrella takes its title,
+ * release label and link from the open release PR of `main`, unless it is
+ * `kept` or `settled`. A prerelease umbrella takes its title and label from
+ * its branch, and links the release PR of its prerelease. Leaves the `main`
+ * umbrella as it is before a major: a maintainer moves it to the prerelease
+ * branch. Returns the umbrella as it is after the refresh.
  */
 export async function refreshUmbrella(
 	gh: GitHubClient,
@@ -36,9 +37,12 @@ export async function refreshUmbrella(
 		return umbrella;
 	}
 
+	const linked = isFollowing
+		? (await getLinkedReleasePullRequest(gh, umbrella, release))?.number
+		: state.releasePullRequest;
 	const { commits, merged } = await getUmbrellaHistory(gh, repo, umbrella);
 	const body = getUmbrellaBody(umbrella.target, {
-		releasePullRequest: isFollowing ? heading.releasePullRequest : state.releasePullRequest,
+		releasePullRequest: linked,
 		included: selectIncludedPullRequests(merged, commits),
 	});
 
@@ -61,6 +65,19 @@ export async function refreshUmbrella(
 	const removed = new Set<string>(toRemove);
 	const labels = [...umbrella.labels, ...toAdd].filter((label) => !removed.has(label));
 	return { ...umbrella, ...changes, labels };
+}
+
+/**
+ * Gets the release PR an umbrella that follows its release links: the one of
+ * `main`, or the one of the prerelease the umbrella ships with.
+ */
+async function getLinkedReleasePullRequest(
+	gh: GitHubClient,
+	umbrella: OpenUmbrella,
+	release: MainRelease
+): Promise<ReleasePullRequest | undefined> {
+	if (umbrella.target === MAIN_BRANCH) return release.pullRequest;
+	return getPrereleasePullRequest(gh, release.pullRequest);
 }
 
 /** Refreshes every open umbrella PR, for example after a release PR change. */
