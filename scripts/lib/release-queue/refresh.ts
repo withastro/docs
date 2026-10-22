@@ -1,4 +1,5 @@
 import type { GitHubClient } from './github.ts';
+import { syncMergeBlockReview } from './merge-block.ts';
 import { isLiveFor, type QueueOptions } from './modes.ts';
 import { getReleasePullRequest, removeLabel } from './queries.ts';
 import { getMainRelease, type MainRelease } from './release.ts';
@@ -18,20 +19,21 @@ import {
  * always lists the included docs PRs. Its title, release label and linked
  * release PR follow the open release PR, unless the umbrella is `kept` or
  * `settled`. Leaves the `main` umbrella as it is before a major: a
- * maintainer moves it to the prerelease branch.
+ * maintainer moves it to the prerelease branch. Returns the umbrella as it is
+ * after the refresh.
  */
 export async function refreshUmbrella(
 	gh: GitHubClient,
 	repo: string,
 	umbrella: OpenUmbrella,
 	release: MainRelease
-) {
+): Promise<OpenUmbrella> {
 	const state = await getReleaseState(gh, umbrella, release);
 	const heading = getUmbrellaHeading(umbrella.target, release);
 	const isFollowing = state.status === 'follows';
 	if (isFollowing && umbrella.target === MAIN_BRANCH && release.type === 'major') {
 		console.info(`Skipped #${umbrella.number}: the next release from main is a major.`);
-		return;
+		return umbrella;
 	}
 
 	const { commits, merged } = await getUmbrellaHistory(gh, repo, umbrella);
@@ -55,6 +57,10 @@ export async function refreshUmbrella(
 		await gh.write('POST', `repos/${repo}/issues/${umbrella.number}/labels`, { labels: toAdd });
 	}
 	await Promise.all(toRemove.map((label) => removeLabel(gh, repo, umbrella.number, label)));
+
+	const removed = new Set<string>(toRemove);
+	const labels = [...umbrella.labels, ...toAdd].filter((label) => !removed.has(label));
+	return { ...umbrella, ...changes, labels };
 }
 
 /** Refreshes every open umbrella PR, for example after a release PR change. */
@@ -72,6 +78,8 @@ export async function refreshOpenUmbrellas({ actionsClient, botClient, repo, mod
 			console.info(`Skipped #${umbrella.number}: dry run for ${umbrella.target}.`);
 			continue;
 		}
-		await refreshUmbrella(botClient, repo, umbrella, release);
+		const refreshed = await refreshUmbrella(botClient, repo, umbrella, release);
+		// Without a join, a dismissed review still covers the included PRs.
+		await syncMergeBlockReview(actionsClient, repo, refreshed, { shouldBlock: false });
 	}
 }

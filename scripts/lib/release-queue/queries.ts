@@ -39,7 +39,7 @@ export interface PullRequestResponse {
 	merged?: boolean;
 }
 
-interface ReviewResponse {
+export interface ReviewResponse {
 	/** `null` for a deleted account. */
 	user: { login: string } | null;
 	state: string;

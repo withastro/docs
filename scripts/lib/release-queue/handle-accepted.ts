@@ -1,4 +1,5 @@
 import { joinUmbrella } from './join.ts';
+import { syncMergeBlockReview } from './merge-block.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
@@ -112,7 +113,7 @@ async function refuse(
 }
 
 async function join(options: QueueOptions, pr: PullRequest, route: Route, release: MainRelease) {
-	const { botClient, repo } = options;
+	const { actionsClient, botClient, repo } = options;
 	const { title } = getUmbrellaHeading(route.target, release);
 	const result = await joinUmbrella(botClient, repo, pr, route, title);
 
@@ -123,7 +124,8 @@ async function join(options: QueueOptions, pr: PullRequest, route: Route, releas
 			// Without a number, the umbrella creation was only printed.
 			if ('number' in umbrella) {
 				const openUmbrella = await getUmbrella(botClient, repo, umbrella.number);
-				await refreshUmbrella(botClient, repo, openUmbrella, release);
+				const refreshed = await refreshUmbrella(botClient, repo, openUmbrella, release);
+				await syncMergeBlockReview(actionsClient, repo, refreshed, { shouldBlock: true });
 			}
 			return;
 		}

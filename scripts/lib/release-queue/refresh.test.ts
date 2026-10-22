@@ -3,7 +3,7 @@ import { describe, it, type TestContext } from 'node:test';
 import { refreshOpenUmbrellas, refreshUmbrella } from './refresh.ts';
 import { getMainRelease } from './release.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from './testing/fixtures.ts';
-import { BOT_TOKEN, queueOptions } from './testing/queue-options.ts';
+import { ACTIONS_TOKEN, BOT_TOKEN, queueOptions } from './testing/queue-options.ts';
 import { stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
 import type { OpenUmbrella } from './umbrella-queries.ts';
 import { getUmbrellaBody } from './umbrella.ts';
@@ -39,6 +39,12 @@ const history = (target = 'main') => ({
 		ahead_by: 1,
 		commits: [{ sha: 'sha-7' }],
 	},
+});
+
+/** No merge-block review on umbrella `number`, and no PR on its branch. */
+const reviews = (number: number, target = 'main') => ({
+	[`repos/${REPO}/pulls/${number}/reviews`]: [],
+	[`repos/${REPO}/pulls?state=open&base=release-queue/${target}`]: [],
 });
 
 /** Answers whether release PR `number` of `withastro/astro` is merged. */
@@ -110,9 +116,21 @@ describe('refreshUmbrella', () => {
 				labels: ['merge-on-release', 'patch-release'],
 			};
 
-			await refreshUmbrella(github.client(), REPO, patchUmbrella, releaseWith(18405, '7.5.0'));
+			const refreshed = await refreshUmbrella(
+				github.client(),
+				REPO,
+				patchUmbrella,
+				releaseWith(18405, '7.5.0')
+			);
 
 			assert.equal(patchOf(github.writes)?.title, '[ci] release astro@7.5.0 docs');
+			// The merge-block review reads the umbrella as it is after the refresh.
+			assert.deepEqual(refreshed, {
+				...patchUmbrella,
+				title: '[ci] release astro@7.5.0 docs',
+				body: umbrellaBody(18405),
+				labels: ['merge-on-release', 'minor-release'],
+			});
 			assert.deepEqual(labelWrites(github.writes), [
 				{
 					method: 'POST',
@@ -148,9 +166,15 @@ describe('refreshUmbrella', () => {
 		it('leaves the main umbrella as it is before a major', async (t) => {
 			const github = stub(t);
 
-			await refreshUmbrella(github.client(), REPO, umbrella, releaseWith(18405, '8.0.0'));
+			const refreshed = await refreshUmbrella(
+				github.client(),
+				REPO,
+				umbrella,
+				releaseWith(18405, '8.0.0')
+			);
 
 			assert.deepEqual(github.calls, []);
+			assert.equal(refreshed, umbrella);
 		});
 	});
 
@@ -255,6 +279,8 @@ describe('refreshOpenUmbrellas', () => {
 		],
 		...history(),
 		...history('cloudflare-next'),
+		...reviews(42),
+		...reviews(43, 'cloudflare-next'),
 	};
 
 	const refreshedUmbrellas = (writes: Write[]) =>
@@ -276,6 +302,31 @@ describe('refreshOpenUmbrellas', () => {
 		await refreshOpenUmbrellas(queueOptions(github, 'main-only'));
 
 		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42]);
+		// Without a join, no merge-block review is requested.
+		assert.deepEqual(github.writesBy(ACTIONS_TOKEN), []);
+	});
+
+	it('updates an active merge-block review', async (t) => {
+		const github = stubGitHub(t, {
+			getResponses: {
+				...openPullRequests,
+				[`repos/${REPO}/pulls/42/reviews`]: [
+					{
+						id: 1,
+						user: { login: 'github-actions[bot]' },
+						state: 'CHANGES_REQUESTED',
+						body: 'Old',
+					},
+				],
+			},
+		});
+
+		await refreshOpenUmbrellas(queueOptions(github, 'main-only'));
+
+		assert.deepEqual(
+			github.writesBy(ACTIONS_TOKEN).map(({ method, path }) => `${method} ${path}`),
+			[`PUT repos/${REPO}/pulls/42/reviews/1`]
+		);
 	});
 
 	it('refreshes every umbrella in all mode, but not a fork or another base', async (t) => {

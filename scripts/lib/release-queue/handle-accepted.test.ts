@@ -52,6 +52,9 @@ function readyPullRequest({ base = 'main', label = 'minor-release', umbrellaBody
 		[`repos/${REPO}/git/ref/heads/${base}`]: { object: { sha: 'base-sha' } },
 		[`repos/${REPO}/pulls?state=closed&base=${umbrellaBranch}`]: [],
 		[`repos/${REPO}/compare/${base}...${umbrellaBranch}`]: { ahead_by: 0, commits: [] },
+		// No merge-block review yet, and no other PR on the umbrella branch.
+		[`repos/${REPO}/pulls/42/reviews`]: [],
+		[`repos/${REPO}/pulls?state=open&base=${umbrellaBranch}`]: [],
 	};
 }
 
@@ -116,7 +119,8 @@ describe('handleAcceptedPullRequest', () => {
 	it('joins a PR shipping to main in main-only mode', async (t) => {
 		const { actionsWrites, botWrites } = await run(t, 'main-only');
 
-		assert.deepEqual(actionsWrites, []);
+		// The merge-block review comes from `github-actions[bot]`.
+		assert.deepEqual(writtenPaths(actionsWrites), [`POST repos/${REPO}/pulls/42/reviews`]);
 		assert.deepEqual(writtenPaths(botWrites), [
 			`PATCH repos/${REPO}/pulls/7`,
 			`PUT repos/${REPO}/pulls/7/merge`,
@@ -126,10 +130,26 @@ describe('handleAcceptedPullRequest', () => {
 		]);
 	});
 
+	it('lists the PRs still on the umbrella branch in the review', async (t) => {
+		const { actionsWrites } = await run(t, 'main-only', {
+			getResponses: {
+				...readyPullRequest(),
+				[`repos/${REPO}/pulls?state=open&base=release-queue/main`]: [{ number: 14590 }],
+			},
+		});
+
+		const review = actionsWrites.find(({ path }) => path.endsWith('/reviews'));
+		assert.match(
+			(review?.body as { body: string }).body,
+			/These PRs still target `release-queue\/main`: #14590\./
+		);
+	});
+
 	it('opens the umbrella PR with its first join, then labels it', async (t) => {
 		const { botWrites } = await run(t, 'main-only', {
 			getResponses: {
 				...firstJoin(),
+				[`repos/${REPO}/pulls/99/reviews`]: [],
 				[`repos/${REPO}/pulls/99`]: umbrellaResponse({
 					number: 99,
 					title: '[ci] release astro@7.5.0 docs',
