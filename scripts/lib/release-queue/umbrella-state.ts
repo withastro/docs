@@ -1,9 +1,10 @@
-import type { GitHubClient } from './github.ts';
 import { isFrameworkPullRequestMerged } from './queries.ts';
 import type { MainRelease } from './release.ts';
-import { MAIN_BRANCH, UMBRELLA_PREFIX, type SettledUmbrella } from './routing.ts';
+import { MAIN_BRANCH, MAIN_UMBRELLA_BRANCH } from './config.ts';
+import type { SettledUmbrella } from './routing.ts';
+import type { Repositories, Repository } from './repository.ts';
 import { findOpenUmbrella, type OpenUmbrella } from './umbrella-queries.ts';
-import { parseReleaseMarker } from './umbrella.ts';
+import { parseReleaseMarker } from './umbrella-body.ts';
 
 /**
  * How an umbrella relates to the release PRs of `withastro/astro`:
@@ -22,7 +23,7 @@ type ReleaseState =
  * their branch has continuous betas.
  */
 export async function getReleaseState(
-	gh: GitHubClient,
+	framework: Repository,
 	umbrella: OpenUmbrella,
 	release: MainRelease
 ): Promise<ReleaseState> {
@@ -30,7 +31,11 @@ export async function getReleaseState(
 	const linked = parseReleaseMarker(umbrella.body);
 	const open = release.pullRequest?.number;
 	// A release PR closed without merging settles nothing.
-	if (linked !== undefined && linked !== open && (await isFrameworkPullRequestMerged(gh, linked))) {
+	if (
+		linked !== undefined &&
+		linked !== open &&
+		(await isFrameworkPullRequestMerged(framework, linked))
+	) {
 		return { status: 'settled', releasePullRequest: linked };
 	}
 	return open === undefined
@@ -38,15 +43,14 @@ export async function getReleaseState(
 		: { status: 'follows' };
 }
 
-/** Gets the open `main` umbrella if it's settled, for `decide`. */
+/** Gets the open `main` umbrella if it's settled, for `decideJoin`. */
 export async function getSettledMainUmbrella(
-	gh: GitHubClient,
-	repo: string,
+	{ docs, framework }: Repositories,
 	release: MainRelease
 ): Promise<SettledUmbrella | undefined> {
-	const umbrella = await findOpenUmbrella(gh, repo, `${UMBRELLA_PREFIX}${MAIN_BRANCH}`);
+	const umbrella = await findOpenUmbrella(docs, MAIN_UMBRELLA_BRANCH);
 	if (!umbrella) return undefined;
-	const state = await getReleaseState(gh, umbrella, release);
+	const state = await getReleaseState(framework, umbrella, release);
 	return state.status === 'settled'
 		? { number: umbrella.number, releasePullRequest: state.releasePullRequest }
 		: undefined;

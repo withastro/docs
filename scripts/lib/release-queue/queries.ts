@@ -1,16 +1,29 @@
-import { GitHubError, type GitHubClient } from './github.ts';
+import { FRAMEWORK_PRERELEASE_BRANCH, MAIN_BRANCH } from './config.ts';
+import { GitHubError } from './github-error.ts';
+import type {
+	CheckRunResponse,
+	CommitStatusResponse,
+	PullRequestResponse,
+	ReviewResponse,
+	RuleResponse,
+} from './github-types.ts';
+import { isRecord, parseJson } from './json.ts';
 import {
+	classifyChecks,
+	classifyReviewers,
 	getLatestReviewStates,
-	summarizeChecks,
-	summarizeReviews,
-	type CheckRun,
-	type CommitStatus,
 	type Readiness,
+	type Review,
 } from './readiness.ts';
 import { parseReleaseVersions, type ReleasePullRequest } from './release.ts';
-import { MAIN_BRANCH, type DocsPullRequest } from './routing.ts';
+import type { Repository } from './repository.ts';
+import type { DocsPullRequest } from './routing.ts';
 
-const FRAMEWORK_REPO = 'withastro/astro';
+/** The branch prefix of the release PRs that changesets opens. */
+const RELEASE_BRANCH_PREFIX = 'changeset-release/';
+/** The changesets file that holds the prerelease mode of a branch. */
+const PRE_STATE_PATH = '.changeset/pre.json';
+
 const MERGEABILITY_ATTEMPTS = 5;
 
 export interface PullRequest extends DocsPullRequest {
@@ -21,41 +34,9 @@ export interface PullRequest extends DocsPullRequest {
 	isMergeable: boolean | null;
 }
 
-// The fields the bot reads from GitHub API responses.
-
-export interface PullRequestResponse {
-	number: number;
-	title: string;
-	html_url: string;
-	state: string;
-	draft: boolean;
-	mergeable: boolean | null;
-	merge_commit_sha: string | null;
-	base: { ref: string };
-	/** `repo` is `null` when the fork was deleted. */
-	head: { ref: string; sha: string; repo?: { full_name: string } | null };
-	labels: { name: string }[];
-	body: string | null;
-	merged?: boolean;
-}
-
-export interface ReviewResponse {
-	/** `null` for a deleted account. */
-	user: { login: string } | null;
-	state: string;
-}
-
-interface RuleResponse {
-	type: string;
-	parameters?: { required_status_checks?: { context: string }[] };
-}
-
-export async function getPullRequest(
-	gh: GitHubClient,
-	repo: string,
-	number: number
-): Promise<PullRequest> {
-	const data = await getPullRequestWithMergeability(gh, repo, number);
+/** Gets a docs PR for routing, once GitHub knows if it's mergeable. */
+export async function getPullRequest(repo: Repository, prNumber: number): Promise<PullRequest> {
+	const data = await getPullRequestWithMergeability(repo, prNumber);
 	return {
 		number: data.number,
 		title: data.title,
@@ -74,23 +55,17 @@ export async function getPullRequest(
  * Gets a PR once GitHub has computed its mergeability. The first request
  * starts the computation.
  */
-function getPullRequestWithMergeability(gh: GitHubClient, repo: string, number: number) {
-	return gh.poll<PullRequestResponse>(`repos/${repo}/pulls/${number}`, {
+function getPullRequestWithMergeability(repo: Repository, prNumber: number) {
+	return repo.poll<PullRequestResponse>(`pulls/${prNumber}`, {
 		isReady: (data) => data.state !== 'open' || data.mergeable !== null,
 		attempts: MERGEABILITY_ATTEMPTS,
 	});
 }
 
 /** Gets the commit a branch points to, or `undefined` if it doesn't exist. */
-export async function getBranchSha(
-	gh: GitHubClient,
-	repo: string,
-	branch: string
-): Promise<string | undefined> {
+export async function getBranchSha(repo: Repository, branch: string): Promise<string | undefined> {
 	try {
-		const { object } = await gh.get<{ object: { sha: string } }>(
-			`repos/${repo}/git/ref/heads/${branch}`
-		);
+		const { object } = await repo.get<{ object: { sha: string } }>(`git/ref/heads/${branch}`);
 		return object.sha;
 	} catch (error) {
 		if (error instanceof GitHubError && error.status === 404) return undefined;
@@ -99,50 +74,44 @@ export async function getBranchSha(
 }
 
 /** Counts the commits of `head` that aren't in `base`. */
-export async function countCommitsAhead(
-	gh: GitHubClient,
-	repo: string,
-	base: string,
-	head: string
-) {
-	const { ahead_by } = await compare(gh, repo, base, head);
+export async function countCommitsAhead(repo: Repository, base: string, head: string) {
+	const { ahead_by } = await compare(repo, base, head);
 	return ahead_by;
 }
 
 /** Lists the commits of `head` that aren't in `base`, oldest first. */
 export async function listCommitsAhead(
-	gh: GitHubClient,
-	repo: string,
+	repo: Repository,
 	base: string,
 	head: string
 ): Promise<string[]> {
-	const { commits } = await compare(gh, repo, base, head);
+	const { commits } = await compare(repo, base, head);
 	return commits.map(({ sha }) => sha);
 }
 
-function compare(gh: GitHubClient, repo: string, base: string, head: string) {
-	return gh.get<{ ahead_by: number; commits: { sha: string }[] }>(
-		`repos/${repo}/compare/${base}...${head}`
-	);
+function compare(repo: Repository, base: string, head: string) {
+	return repo.get<{ ahead_by: number; commits: { sha: string }[] }>(`compare/${base}...${head}`);
 }
 
-export async function postComment(gh: GitHubClient, repo: string, number: number, body: string) {
-	await gh.write('POST', `repos/${repo}/issues/${number}/comments`, { body });
+/** Comments on a PR. */
+export async function postComment(repo: Repository, prNumber: number, body: string) {
+	await repo.write('POST', `issues/${prNumber}/comments`, { body });
 }
 
 /** Removes a label from a PR. A label that is already gone is fine. */
-export async function removeLabel(gh: GitHubClient, repo: string, number: number, label: string) {
+export async function removeLabel(repo: Repository, prNumber: number, label: string) {
 	try {
-		await gh.write('DELETE', `repos/${repo}/issues/${number}/labels/${label}`);
+		await repo.write('DELETE', `issues/${prNumber}/labels/${label}`);
 	} catch (error) {
 		if (!(error instanceof GitHubError && error.status === 404)) throw error;
 	}
 }
 
-export async function canWrite(gh: GitHubClient, repo: string, user: string): Promise<boolean> {
+/** Whether `user` can write to the repository, from their permission on it. */
+export async function canWrite(repo: Repository, user: string): Promise<boolean> {
 	try {
-		const { permission } = await gh.get<{ permission: string }>(
-			`repos/${repo}/collaborators/${user}/permission`
+		const { permission } = await repo.get<{ permission: string }>(
+			`collaborators/${user}/permission`
 		);
 		// The legacy `permission` field maps `maintain` to `write`,
 		// and `triage` to `read`.
@@ -158,45 +127,46 @@ export async function canWrite(gh: GitHubClient, repo: string, user: string): Pr
  * `main` ruleset: only reviewers with write access count, and only the checks
  * required on `main`.
  */
-export async function getReadiness(
-	gh: GitHubClient,
-	repo: string,
-	pr: PullRequest
-): Promise<Readiness> {
-	const [reviews, checkRuns, combinedStatus, required] = await Promise.all([
-		gh.getAll<ReviewResponse>(`repos/${repo}/pulls/${pr.number}/reviews`),
-		gh.getAll<CheckRun, { check_runs: CheckRun[] }>(
-			`repos/${repo}/commits/${pr.headSha}/check-runs`,
+export async function getReadiness(repo: Repository, pr: PullRequest): Promise<Readiness> {
+	const [reviews, checkRuns, statuses, required] = await Promise.all([
+		repo.getAll<ReviewResponse>(`pulls/${pr.number}/reviews`),
+		repo.getAll<CheckRunResponse, { check_runs: CheckRunResponse[] }>(
+			`commits/${pr.headSha}/check-runs`,
 			(data) => data.check_runs
 		),
-		gh.get<{ statuses: CommitStatus[] }>(`repos/${repo}/commits/${pr.headSha}/status`),
-		getRequiredChecks(gh, repo),
+		repo.getAll<CommitStatusResponse, { statuses: CommitStatusResponse[] }>(
+			`commits/${pr.headSha}/status`,
+			(data) => data.statuses
+		),
+		getRequiredChecks(repo),
 	]);
 
-	const states = getLatestReviewStates(
-		reviews.flatMap(({ user, state }) => (user ? [{ user: user.login, state }] : []))
-	);
-	const writers = new Set<string>();
-	await Promise.all(
-		[...states.keys()].map(async (user) => {
-			if (await canWrite(gh, repo, user)) writers.add(user);
-		})
-	);
-
-	const checks = summarizeChecks(required, checkRuns, combinedStatus.statuses);
-
+	const states = getLatestReviewStates(toReviews(reviews));
+	const writers = await getWriters(repo, [...states.keys()]);
 	return {
-		...summarizeReviews(states, writers),
-		failingChecks: checks.failing,
-		pendingChecks: checks.pending,
-		missingChecks: checks.missing,
+		...classifyReviewers(states, writers),
+		...classifyChecks(required, checkRuns, statuses),
 		isMergeable: pr.isMergeable,
 	};
 }
 
-/** Gets the checks required to merge into `main`. */
-async function getRequiredChecks(gh: GitHubClient, repo: string): Promise<string[]> {
-	const rules = await gh.getAll<RuleResponse>(`repos/${repo}/rules/branches/${MAIN_BRANCH}`);
+/** Keeps the reviews whose author still has an account. */
+function toReviews(responses: ReviewResponse[]): Review[] {
+	return responses.flatMap(({ user, state }) => (user ? [{ user: user.login, state }] : []));
+}
+
+/** Gets the users who can write to the repository among `users`. */
+async function getWriters(repo: Repository, users: string[]): Promise<Set<string>> {
+	const canEachWrite = await Promise.all(users.map((user) => canWrite(repo, user)));
+	return new Set(users.filter((_, index) => canEachWrite[index]));
+}
+
+/**
+ * Gets the checks the ruleset of `main` requires. They apply to every docs
+ * PR, whatever its base.
+ */
+async function getRequiredChecks(repo: Repository): Promise<string[]> {
+	const rules = await repo.getAll<RuleResponse>(`rules/branches/${MAIN_BRANCH}`);
 	return rules
 		.filter((rule) => rule.type === 'required_status_checks')
 		.flatMap((rule) => rule.parameters?.required_status_checks ?? [])
@@ -208,29 +178,40 @@ async function getRequiredChecks(gh: GitHubClient, repo: string): Promise<string
  * `next` for its alpha and beta releases.
  */
 export async function getReleasePullRequest(
-	gh: GitHubClient,
-	branch: 'main' | 'next' = 'main'
+	framework: Repository,
+	branch: string
 ): Promise<ReleasePullRequest | undefined> {
-	const [owner] = FRAMEWORK_REPO.split('/');
-	const [pr] = await gh.get<PullRequestResponse[]>(
-		`repos/${FRAMEWORK_REPO}/pulls?state=open&head=${owner}:changeset-release/${branch}`
+	const [pr] = await framework.get<PullRequestResponse[]>(
+		`pulls?state=open&head=${framework.owner}:${RELEASE_BRANCH_PREFIX}${branch}`
 	);
 	if (!pr) return undefined;
 	return { number: pr.number, versions: parseReleaseVersions(pr.body ?? '') };
 }
 
 /** Whether `next` in `withastro/astro` is in changesets prerelease mode. */
-async function isNextInPreMode(gh: GitHubClient): Promise<boolean> {
+async function isNextInPreMode(framework: Repository): Promise<boolean> {
 	try {
-		const { content } = await gh.get<{ content: string }>(
-			`repos/${FRAMEWORK_REPO}/contents/.changeset/pre.json?ref=next`
+		const { content } = await framework.get<{ content: string }>(
+			`contents/${PRE_STATE_PATH}?ref=${FRAMEWORK_PRERELEASE_BRANCH}`
 		);
 		// `exit` means the prerelease ends: `next` is then merged into `main`.
-		return JSON.parse(Buffer.from(content, 'base64').toString()).mode === 'pre';
+		return readPreMode(Buffer.from(content, 'base64').toString()) === 'pre';
 	} catch (error) {
 		if (error instanceof GitHubError && error.status === 404) return false;
 		throw error;
 	}
+}
+
+/** Reads the `mode` of the `.changeset/pre.json` of `next`. */
+function readPreMode(json: string): string {
+	const source = `The \`${PRE_STATE_PATH}\` of \`${FRAMEWORK_PRERELEASE_BRANCH}\``;
+	const preState = parseJson(json, source);
+	if (!isPreState(preState)) throw new Error(`${source} has no \`mode\`.`);
+	return preState.mode;
+}
+
+function isPreState(value: unknown): value is { mode: string } {
+	return isRecord(value) && typeof value.mode === 'string';
 }
 
 /**
@@ -239,19 +220,21 @@ async function isNextInPreMode(gh: GitHubClient): Promise<boolean> {
  * `main`, which `next` was merged into.
  */
 export async function getPrereleasePullRequest(
-	gh: GitHubClient,
+	framework: Repository,
 	mainPullRequest: ReleasePullRequest | undefined
 ): Promise<ReleasePullRequest | undefined> {
-	return (await isNextInPreMode(gh)) ? getReleasePullRequest(gh, 'next') : mainPullRequest;
+	return (await isNextInPreMode(framework))
+		? getReleasePullRequest(framework, FRAMEWORK_PRERELEASE_BRANCH)
+		: mainPullRequest;
 }
 
 /**
  * Whether a PR of `withastro/astro`, such as a release PR, is merged. A PR
  * that doesn't exist, for example from an edited marker, isn't.
  */
-export async function isFrameworkPullRequestMerged(gh: GitHubClient, number: number) {
+export async function isFrameworkPullRequestMerged(framework: Repository, prNumber: number) {
 	try {
-		const { merged } = await gh.get<PullRequestResponse>(`repos/${FRAMEWORK_REPO}/pulls/${number}`);
+		const { merged } = await framework.get<PullRequestResponse>(`pulls/${prNumber}`);
 		return merged === true;
 	} catch (error) {
 		if (error instanceof GitHubError && error.status === 404) return false;

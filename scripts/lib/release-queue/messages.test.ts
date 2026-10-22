@@ -1,13 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { GitHubError } from './github.ts';
+import { GitHubError } from './github-error.ts';
 import {
-	describeRefusal,
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
 	formatUnopenedJoinComment,
 	formatJoinComment,
 	formatRefusalComment,
+	type MessageContext,
 } from './messages.ts';
 import type { Refusal, Route } from './routing.ts';
 
@@ -18,7 +18,15 @@ const route: Route = {
 	shouldRetarget: true,
 };
 
-describe('describeRefusal', () => {
+/** Gets the line of a refusal comment that describes `refusal`. */
+function describeRefusal(refusal: Refusal, context: MessageContext = {}): string {
+	const comment = formatRefusalComment({ status: 'refuse', refusals: [refusal] }, context);
+	const line = comment.split('\n').find((text) => text.startsWith('- '));
+	assert.ok(line, comment);
+	return line.slice('- '.length);
+}
+
+describe('refusal descriptions', () => {
 	it('describes every refusal', () => {
 		const refusals: Refusal[] = [
 			{ code: 'closed' },
@@ -74,7 +82,7 @@ describe('describeRefusal', () => {
 
 describe('formatDryRunJoinComment', () => {
 	it('names the open umbrella a ready PR would join', () => {
-		const comment = formatDryRunJoinComment(route, { number: 42 });
+		const comment = formatDryRunJoinComment(route, { status: 'open', number: 42 });
 		assert.match(comment, /^\*\*Release queue \(dry run\)\*\*/);
 		assert.match(
 			comment,
@@ -86,7 +94,7 @@ describe('formatDryRunJoinComment', () => {
 	it('names the umbrella PR that would be created', () => {
 		const comment = formatDryRunJoinComment(
 			{ ...route, shouldRetarget: false },
-			{ title: '[ci] release astro@7.4.1 docs' }
+			{ status: 'planned', title: '[ci] release astro@7.4.1 docs' }
 		);
 		assert.match(comment, /a new umbrella PR \(`\[ci\] release astro@7.4.1 docs`\)/);
 		assert.doesNotMatch(comment, /base would change/);
@@ -97,17 +105,17 @@ describe('formatDryRunRefusalComment', () => {
 	it('lists every reason a PR would be refused, and the umbrella it would join', () => {
 		const comment = formatDryRunRefusalComment(
 			{ status: 'refuse', route, refusals: [{ code: 'draft' }, { code: 'not-approved' }] },
-			{ umbrella: { number: 42 } }
+			{ umbrella: { status: 'open', number: 42 } }
 		);
 		assert.match(comment, /wouldn't join #42 into `main` yet:\n\n- .*draft.*\n- .*approval/);
 		assert.match(comment, /`accepted` label would be removed/);
 	});
 
 	it("doesn't name an umbrella when the PR has none", () => {
-		const comment = formatDryRunRefusalComment({
-			status: 'refuse',
-			refusals: [{ code: 'no-release-label' }],
-		});
+		const comment = formatDryRunRefusalComment(
+			{ status: 'refuse', refusals: [{ code: 'no-release-label' }] },
+			{}
+		);
 		assert.match(comment, /wouldn't join its release umbrella yet:/);
 	});
 });
@@ -116,7 +124,7 @@ describe('formatRefusalComment', () => {
 	it('lists every reason, and says the label was removed', () => {
 		const comment = formatRefusalComment(
 			{ status: 'refuse', route, refusals: [{ code: 'not-approved' }] },
-			{ umbrella: { number: 42 } }
+			{ umbrella: { status: 'open', number: 42 } }
 		);
 		assert.match(comment, /^\*\*Release queue\*\*: this PR didn't join #42 into `main`:/);
 		assert.match(comment, /- .*approval/);
@@ -126,16 +134,16 @@ describe('formatRefusalComment', () => {
 	it('names the umbrella to create by its title', () => {
 		const comment = formatRefusalComment(
 			{ status: 'refuse', route, refusals: [{ code: 'not-approved' }] },
-			{ umbrella: { title: '[ci] release astro@7.4.1 docs' } }
+			{ umbrella: { status: 'planned', title: '[ci] release astro@7.4.1 docs' } }
 		);
 		assert.match(comment, /didn't join a new umbrella PR \(`\[ci\] release astro@7.4.1 docs`\)/);
 	});
 
 	it("doesn't name an umbrella when the PR has none", () => {
-		const comment = formatRefusalComment({
-			status: 'refuse',
-			refusals: [{ code: 'no-release-label' }],
-		});
+		const comment = formatRefusalComment(
+			{ status: 'refuse', refusals: [{ code: 'no-release-label' }] },
+			{}
+		);
 		assert.match(comment, /didn't join its release umbrella:/);
 	});
 });
@@ -143,14 +151,18 @@ describe('formatRefusalComment', () => {
 describe('formatJoinComment', () => {
 	it('names the umbrella the PR joined', () => {
 		assert.equal(
-			formatJoinComment(route, { number: 42 }),
+			formatJoinComment(route, { status: 'open', number: 42 }),
 			'**Release queue**: squash-merged into `release-queue/main`, the branch of #42 into `main`. It ships when the umbrella PR is merged.'
 		);
 	});
 });
 
 describe('formatUnopenedJoinComment', () => {
-	const error = new GitHubError({ status: 422, reason: 'Validation Failed', request: 'POST' });
+	const error = new GitHubError({
+		status: 422,
+		githubReason: 'Validation Failed',
+		request: 'POST',
+	});
 
 	it("asks a maintainer to open the umbrella PR that couldn't be opened", () => {
 		assert.equal(

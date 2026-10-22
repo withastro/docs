@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { findVersion, getMainRelease, getReleaseType, parseReleaseVersions } from './release.ts';
+import { getMainRelease, parseReleaseVersions } from './release.ts';
 
 const body = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action.
 
@@ -32,34 +32,28 @@ describe('parseReleaseVersions', () => {
 	});
 });
 
-describe('findVersion', () => {
-	it('finds a package by its exact name', () => {
-		const versions = parseReleaseVersions(body);
-		assert.equal(findVersion(versions, 'astro'), '7.4.1');
-		assert.equal(findVersion(versions, '@astrojs/node'), undefined);
+describe('getMainRelease', () => {
+	const pullRequest = (versions: { name: string; version: string }[]) => ({
+		number: 18459,
+		versions,
 	});
-});
 
-describe('getReleaseType', () => {
+	it('takes the version of the astro package by its exact name', () => {
+		const release = getMainRelease(pullRequest(parseReleaseVersions(body)));
+		assert.equal(release.astroVersion, '7.4.1');
+	});
+
 	for (const [version, type] of [
 		['7.4.1', 'patch'],
 		['7.4.0', 'minor'],
 		['8.0.0', 'major'],
 		['8.0.0-beta.1', 'patch'],
 		['7.5.0-alpha.0', 'patch'],
-		[undefined, 'patch'],
 	] as const) {
-		it(`reads ${version} as a ${type} release`, () => {
-			assert.equal(getReleaseType(version), type);
+		it(`reads astro@${version} as a ${type} release`, () => {
+			assert.equal(getMainRelease(pullRequest([{ name: 'astro', version }])).type, type);
 		});
 	}
-});
-
-describe('getMainRelease', () => {
-	const pullRequest = (versions: { name: string; version: string }[]) => ({
-		number: 18459,
-		versions,
-	});
 
 	it('reads a patch when there is no release PR', () => {
 		assert.deepEqual(getMainRelease(), {

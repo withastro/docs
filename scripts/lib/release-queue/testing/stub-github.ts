@@ -1,5 +1,8 @@
 import type { TestContext } from 'node:test';
 import { GitHubClient } from '../github.ts';
+import { PrintingGitHubClient } from '../printing-github-client.ts';
+import { Repository } from '../repository.ts';
+import { REPO } from './fixtures.ts';
 
 const API_URL = 'https://api.github.com/';
 
@@ -103,7 +106,11 @@ export function stubGitHub(
 		countReads: (path: string) =>
 			calls.filter((call) => call.method === 'GET' && call.path === path).length,
 		/** A client of the stubbed API, which doesn't wait between polls. */
-		client: (token = 'token', { shouldPrintWrites = false } = {}) =>
-			new GitHubClient(token, { shouldPrintWrites, pollDelayMs: 0 }),
+		client: (token = 'token') => new GitHubClient(token, { pollDelayMs: 0 }),
+		/** A repository of the stubbed API, which doesn't wait between polls. */
+		repository: (name = REPO, { token = 'token', shouldPrintWrites = false } = {}) => {
+			const Client = shouldPrintWrites ? PrintingGitHubClient : GitHubClient;
+			return new Repository(new Client(token, { pollDelayMs: 0 }), name);
+		},
 	};
 }

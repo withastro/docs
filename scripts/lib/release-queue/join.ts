@@ -1,8 +1,17 @@
-import { GitHubError, type GitHubClient } from './github.ts';
+import { GitHubError } from './github-error.ts';
 import { countCommitsAhead, getBranchSha, getPullRequest, type PullRequest } from './queries.ts';
+import type { Repository } from './repository.ts';
 import type { JoinRefusal, Route } from './routing.ts';
+import type { Umbrella } from './umbrella-heading.ts';
 import { findOpenUmbrella } from './umbrella-queries.ts';
-import type { Umbrella } from './umbrella.ts';
+
+/** A docs PR to join to the umbrella of `route`. */
+export interface Join {
+	pr: PullRequest;
+	route: Route;
+	/** The title of the umbrella PR, if the join opens it. */
+	umbrellaTitle: string;
+}
 
 /**
  * The outcome of a join. `unopened` means the PR was merged into the umbrella
@@ -17,87 +26,103 @@ export type JoinResult =
 export type UnopenedJoin = Extract<JoinResult, { status: 'unopened' }>;
 
 /**
+ * The umbrella branch before a join that opens the umbrella PR: missing, left
+ * over without commits (for example after a failed first merge), or left over
+ * with commits, which a maintainer has to look at.
+ */
+type UmbrellaBranch = { state: 'missing' | 'empty'; targetSha: string } | { state: 'stale' };
+
+/**
  * Squash-merges a docs PR into its umbrella branch. Prepares the branch before
  * changing the PR, then changes the PR base, merges, and opens the umbrella
- * PR titled `umbrellaTitle` if none is open: GitHub refuses a PR without
- * commits. A refused merge restores the PR base. Expected failures come back
- * as a result, anything else throws. The refresh sets the labels and body.
+ * PR if none is open: GitHub refuses a PR without commits. A refused merge
+ * restores the PR base. Expected failures come back as a result, anything
+ * else throws. The refresh sets the labels and body.
+ *
+ * @param {Repository} repo - The docs repository, written as the bot account.
+ * @param {Join} join - The PR to merge, its route, and the umbrella title.
  */
 export async function joinUmbrella(
-	gh: GitHubClient,
-	repo: string,
-	pr: PullRequest,
-	route: Route,
-	umbrellaTitle: string
+	repo: Repository,
+	{ pr, route, umbrellaTitle }: Join
 ): Promise<JoinResult> {
-	const openUmbrella = await findOpenUmbrella(gh, repo, route.umbrellaBranch);
+	const openUmbrella = await findOpenUmbrella(repo, route.umbrellaBranch);
 	if (!openUmbrella) {
-		const refusal = await prepareUmbrellaBranch(gh, repo, route);
-		if (refusal) return { status: 'refused', refusal };
+		const branch = await readUmbrellaBranch(repo, route);
+		if (branch.state === 'stale') {
+			const refusal: JoinRefusal = { code: 'stale-umbrella-branch', branch: route.umbrellaBranch };
+			return { status: 'refused', refusal };
+		}
+		await startUmbrellaBranch(repo, route, branch);
 	}
 
-	if (route.shouldRetarget) await setBase(gh, repo, pr.number, route.umbrellaBranch);
-	const refusal = await mergeOrRestoreBase(gh, repo, pr, route);
+	const refusal = route.shouldRetarget
+		? await retargetAndMerge(repo, pr, route)
+		: await squashMerge(repo, pr, route);
 	if (refusal) return { status: 'refused', refusal };
 
-	if (openUmbrella) return { status: 'joined', umbrella: { number: openUmbrella.number } };
-	return createUmbrella(gh, repo, route, umbrellaTitle);
+	if (openUmbrella)
+		return {
+			status: 'joined',
+			umbrella: { status: 'open', number: openUmbrella.number },
+		};
+	return createUmbrella(repo, route, umbrellaTitle);
 }
 
-/**
- * Makes sure the umbrella branch starts from its target. A branch left over
- * without commits, for example after a failed first merge, is reset. One with
- * commits is left to a maintainer. Returns a refusal, or `undefined` when the
- * branch is ready.
- */
-async function prepareUmbrellaBranch(
-	gh: GitHubClient,
-	repo: string,
+async function readUmbrellaBranch(
+	repo: Repository,
 	{ target, umbrellaBranch }: Route
-): Promise<JoinRefusal | undefined> {
-	const targetSha = await getBranchSha(gh, repo, target);
-	if (!targetSha) throw new Error(`The branch ${target} doesn't exist in ${repo}.`);
+): Promise<UmbrellaBranch> {
+	const targetSha = await getBranchSha(repo, target);
+	if (!targetSha) throw new Error(`The branch ${target} doesn't exist in ${repo.name}.`);
+	if ((await getBranchSha(repo, umbrellaBranch)) === undefined) {
+		return { state: 'missing', targetSha };
+	}
+	const commitsAhead = await countCommitsAhead(repo, target, umbrellaBranch);
+	return commitsAhead > 0 ? { state: 'stale' } : { state: 'empty', targetSha };
+}
 
-	const umbrellaSha = await getBranchSha(gh, repo, umbrellaBranch);
-	if (umbrellaSha === undefined) {
-		await gh.write('POST', `repos/${repo}/git/refs`, {
+/** Creates the umbrella branch from its target, or resets an empty one. */
+async function startUmbrellaBranch(
+	repo: Repository,
+	{ umbrellaBranch }: Route,
+	branch: Extract<UmbrellaBranch, { state: 'missing' | 'empty' }>
+) {
+	if (branch.state === 'missing') {
+		await repo.write('POST', 'git/refs', {
 			ref: `refs/heads/${umbrellaBranch}`,
-			sha: targetSha,
+			sha: branch.targetSha,
 		});
-		return undefined;
+		return;
 	}
-	if ((await countCommitsAhead(gh, repo, target, umbrellaBranch)) > 0) {
-		return { code: 'stale-umbrella-branch', branch: umbrellaBranch };
-	}
-	await gh.write('PATCH', `repos/${repo}/git/refs/heads/${umbrellaBranch}`, {
-		sha: targetSha,
+	await repo.write('PATCH', `git/refs/heads/${umbrellaBranch}`, {
+		sha: branch.targetSha,
 		force: true,
 	});
-	return undefined;
 }
 
-function setBase(gh: GitHubClient, repo: string, number: number, base: string) {
-	return gh.write('PATCH', `repos/${repo}/pulls/${number}`, { base });
+function setBase(repo: Repository, prNumber: number, base: string) {
+	return repo.write('PATCH', `pulls/${prNumber}`, { base });
 }
 
 /**
- * Squash-merges the PR, and restores its base when the merge is refused or
- * throws. Returns a refusal, or `undefined` once merged.
+ * Changes the PR base to the umbrella branch, then squash-merges the PR. The
+ * base is restored when the merge is refused or throws. Returns a refusal, or
+ * `undefined` once merged.
  */
-async function mergeOrRestoreBase(
-	gh: GitHubClient,
-	repo: string,
+async function retargetAndMerge(
+	repo: Repository,
 	pr: PullRequest,
 	route: Route
 ): Promise<JoinRefusal | undefined> {
-	let refusal: JoinRefusal | undefined;
-	try {
-		refusal = await squashMerge(gh, repo, pr, route);
-	} catch (error) {
-		await restoreBase(gh, repo, pr, route, error);
+	await setBase(repo, pr.number, route.umbrellaBranch);
+	// Not a `try` around both paths: a failed restore after a refusal would
+	// then restore the base a second time.
+	const refusal = await squashMerge(repo, pr, route).catch(async (error: unknown) => {
+		await restoreBase(repo, pr, error);
 		throw error;
-	}
-	if (refusal) await restoreBase(gh, repo, pr, route, refusal);
+	});
+	if (refusal) await restoreBase(repo, pr, refusal);
 	return refusal;
 }
 
@@ -105,33 +130,25 @@ async function mergeOrRestoreBase(
  * Changes the PR base back. If that fails too, the error keeps both: the
  * failure to restore, and `cause`, the reason for restoring.
  */
-async function restoreBase(
-	gh: GitHubClient,
-	repo: string,
-	pr: PullRequest,
-	route: Route,
-	cause: unknown
-) {
-	if (!route.shouldRetarget) return;
+async function restoreBase(repo: Repository, pr: PullRequest, cause: unknown) {
 	try {
-		await setBase(gh, repo, pr.number, pr.base);
+		await setBase(repo, pr.number, pr.base);
 	} catch (error) {
 		throw new AggregateError([error], `Couldn't restore the base of #${pr.number}.`, { cause });
 	}
 }
 
 async function squashMerge(
-	gh: GitHubClient,
-	repo: string,
+	repo: Repository,
 	pr: PullRequest,
 	route: Route
 ): Promise<JoinRefusal | undefined> {
 	// GitHub computes the mergeability again after a base change.
-	const { isMergeable } = await getPullRequest(gh, repo, pr.number);
+	const { isMergeable } = await getPullRequest(repo, pr.number);
 	if (isMergeable === false) return { code: 'umbrella-conflict', branch: route.umbrellaBranch };
 
 	try {
-		await gh.write('PUT', `repos/${repo}/pulls/${pr.number}/merge`, {
+		await repo.write('PUT', `pulls/${pr.number}/merge`, {
 			merge_method: 'squash',
 			// Refuses the merge if the PR changed since its checks were read.
 			sha: pr.headSha,
@@ -141,27 +158,29 @@ async function squashMerge(
 		});
 		return undefined;
 	} catch (error) {
-		if (error instanceof GitHubError) return { code: 'merge-failed', reason: error.reason };
+		if (error instanceof GitHubError) return { code: 'merge-failed', reason: error.githubReason };
 		throw error;
 	}
 }
 
 async function createUmbrella(
-	gh: GitHubClient,
-	repo: string,
+	repo: Repository,
 	{ target, umbrellaBranch }: Route,
 	title: string
 ): Promise<Extract<JoinResult, { status: 'joined' }> | UnopenedJoin> {
-	let created: { number: number } | undefined;
 	try {
-		created = await gh.write<{ number: number }>('POST', `repos/${repo}/pulls`, {
+		const created = await repo.write<{ number: number }>('POST', 'pulls', {
 			title,
 			head: umbrellaBranch,
 			base: target,
 			body: `Release umbrella for \`${target}\`, managed by the release queue.`,
 		});
+		// Without an answer, the request was only printed.
+		const umbrella: Umbrella = created
+			? { status: 'open', number: created.number }
+			: { status: 'planned', title };
+		return { status: 'joined', umbrella };
 	} catch (error) {
 		return { status: 'unopened', error };
 	}
-	return { status: 'joined', umbrella: created ? { number: created.number } : { title } };
 }

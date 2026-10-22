@@ -2,12 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { Readiness } from './readiness.ts';
 import {
-	decide,
+	decideJoin,
 	getTarget,
-	type DecideContext,
+	type DecisionContext,
 	type Decision,
 	type DocsPullRequest,
-	usesSettledUmbrella,
+	isRetargetedFromMain,
 } from './routing.ts';
 
 const pr = (overrides: Partial<DocsPullRequest> = {}): DocsPullRequest => ({
@@ -28,21 +28,21 @@ const ready: Readiness = {
 	isMergeable: true,
 };
 
-const patch: DecideContext = { release: { type: 'patch', astroVersion: '7.4.1' } };
-const major: DecideContext = { release: { type: 'major', astroVersion: '8.0.0' } };
+const patch: DecisionContext = { release: { type: 'patch', astroVersion: '7.4.1' } };
+const major: DecisionContext = { release: { type: 'major', astroVersion: '8.0.0' } };
 /** The `main` umbrella #42 ships with a merged release PR. */
-const settled: DecideContext = {
+const settled: DecisionContext = {
 	...patch,
 	settledMainUmbrella: { number: 42, releasePullRequest: 18405 },
 };
 
 const refusalsOf = (decision: Decision) => (decision.status === 'refuse' ? decision.refusals : []);
 
-describe('decide', () => {
+describe('decideJoin', () => {
 	describe('routes a ready docs PR', () => {
 		for (const label of ['patch-release', 'minor-release']) {
 			it(`to the main umbrella with ${label}`, () => {
-				assert.deepEqual(decide(pr({ labels: [label] }), ready, patch), {
+				assert.deepEqual(decideJoin(pr({ labels: [label] }), ready, patch), {
 					status: 'join',
 					route: {
 						target: 'main',
@@ -55,7 +55,7 @@ describe('decide', () => {
 		}
 
 		it('to a prerelease umbrella with major-release', () => {
-			const decision = decide(
+			const decision = decideJoin(
 				pr({ base: 'cloudflare-next', labels: ['major-release'] }),
 				ready,
 				major
@@ -72,7 +72,7 @@ describe('decide', () => {
 		});
 
 		it('to the umbrella it already targets, without retargeting', () => {
-			assert.deepEqual(decide(pr({ base: 'release-queue/main' }), ready, patch), {
+			assert.deepEqual(decideJoin(pr({ base: 'release-queue/main' }), ready, patch), {
 				status: 'join',
 				route: {
 					target: 'main',
@@ -86,49 +86,49 @@ describe('decide', () => {
 
 	describe('refuses', () => {
 		it('a closed PR, and nothing else', () => {
-			const decision = decide(pr({ state: 'closed', isDraft: true }), ready, patch);
+			const decision = decideJoin(pr({ state: 'closed', isDraft: true }), ready, patch);
 			assert.deepEqual(decision, { status: 'refuse', refusals: [{ code: 'closed' }] });
 		});
 
 		it('an umbrella PR, and nothing else', () => {
-			const decision = decide(pr({ head: 'release-queue/main' }), ready, patch);
+			const decision = decideJoin(pr({ head: 'release-queue/main' }), ready, patch);
 			assert.deepEqual(decision, { status: 'refuse', refusals: [{ code: 'umbrella' }] });
 		});
 
 		it('a draft PR', () => {
-			assert.deepEqual(refusalsOf(decide(pr({ isDraft: true }), ready, patch)), [
+			assert.deepEqual(refusalsOf(decideJoin(pr({ isDraft: true }), ready, patch)), [
 				{ code: 'draft' },
 			]);
 		});
 
 		it('a PR without a release label', () => {
-			const decision = decide(pr({ labels: ['accepted'] }), ready, patch);
+			const decision = decideJoin(pr({ labels: ['accepted'] }), ready, patch);
 			assert.deepEqual(decision, { status: 'refuse', refusals: [{ code: 'no-release-label' }] });
 		});
 
 		it('a PR with several release labels', () => {
-			const decision = decide(pr({ labels: ['minor-release', 'patch-release'] }), ready, patch);
+			const decision = decideJoin(pr({ labels: ['minor-release', 'patch-release'] }), ready, patch);
 			assert.deepEqual(refusalsOf(decision), [
 				{ code: 'several-release-labels', labels: ['patch-release', 'minor-release'] },
 			]);
 		});
 
 		it('a major-release PR against main', () => {
-			const decision = decide(pr({ labels: ['major-release'] }), ready, patch);
+			const decision = decideJoin(pr({ labels: ['major-release'] }), ready, patch);
 			assert.deepEqual(refusalsOf(decision), [
 				{ code: 'mismatch', base: 'main', label: 'major-release' },
 			]);
 		});
 
 		it('a minor-release PR against a prerelease branch', () => {
-			const decision = decide(pr({ base: 'v8', labels: ['minor-release'] }), ready, patch);
+			const decision = decideJoin(pr({ base: 'v8', labels: ['minor-release'] }), ready, patch);
 			assert.deepEqual(refusalsOf(decision), [
 				{ code: 'mismatch', base: 'v8', label: 'minor-release' },
 			]);
 		});
 
 		it('a major-release PR against the main umbrella branch', () => {
-			const decision = decide(
+			const decision = decideJoin(
 				pr({ base: 'release-queue/main', labels: ['major-release'] }),
 				ready,
 				patch
@@ -139,12 +139,12 @@ describe('decide', () => {
 		});
 
 		it('a main PR when the next astro release from main is a major', () => {
-			const decision = decide(pr(), ready, major);
+			const decision = decideJoin(pr(), ready, major);
 			assert.deepEqual(refusalsOf(decision), [{ code: 'major-on-main', astroVersion: '8.0.0' }]);
 		});
 
 		it('a PR that is not ready, with every reason', () => {
-			const decision = decide(
+			const decision = decideJoin(
 				pr(),
 				{
 					isApproved: false,
@@ -167,7 +167,7 @@ describe('decide', () => {
 		});
 
 		it('a PR with both a routing and a readiness problem, with both reasons', () => {
-			const decision = decide(pr({ labels: [] }), { ...ready, isApproved: false }, patch);
+			const decision = decideJoin(pr({ labels: [] }), { ...ready, isApproved: false }, patch);
 			assert.deepEqual(decision, {
 				status: 'refuse',
 				refusals: [{ code: 'no-release-label' }, { code: 'not-approved' }],
@@ -175,29 +175,29 @@ describe('decide', () => {
 		});
 
 		it('a main PR while the main umbrella is settled', () => {
-			assert.deepEqual(refusalsOf(decide(pr(), ready, settled)), [
+			assert.deepEqual(refusalsOf(decideJoin(pr(), ready, settled)), [
 				{ code: 'settled-umbrella', number: 42, releasePullRequest: 18405 },
 			]);
 		});
 
 		it('a routed PR that is not ready, keeping its route', () => {
-			const decision = decide(pr(), { ...ready, isApproved: false }, patch);
+			const decision = decideJoin(pr(), { ...ready, isApproved: false }, patch);
 			assert.equal(decision.status, 'refuse');
 			assert.equal(decision.route?.umbrellaBranch, 'release-queue/main');
 		});
 	});
 
 	it('routes a PR against the settled umbrella branch, which says where it belongs', () => {
-		assert.equal(decide(pr({ base: 'release-queue/main' }), ready, settled).status, 'join');
+		assert.equal(decideJoin(pr({ base: 'release-queue/main' }), ready, settled).status, 'join');
 	});
 
 	it('routes a prerelease PR while the main umbrella is settled', () => {
 		const prerelease = pr({ base: 'cloudflare-next', labels: ['major-release'] });
-		assert.equal(decide(prerelease, ready, settled).status, 'join');
+		assert.equal(decideJoin(prerelease, ready, settled).status, 'join');
 	});
 
 	it('lets the merge decide while mergeability is unknown', () => {
-		assert.equal(decide(pr(), { ...ready, isMergeable: null }, patch).status, 'join');
+		assert.equal(decideJoin(pr(), { ...ready, isMergeable: null }, patch).status, 'join');
 	});
 });
 
@@ -213,14 +213,14 @@ describe('getTarget', () => {
 	});
 });
 
-describe('usesSettledUmbrella', () => {
+describe('isRetargetedFromMain', () => {
 	it('applies to an open PR against main', () => {
-		assert.equal(usesSettledUmbrella(pr()), true);
+		assert.equal(isRetargetedFromMain(pr()), true);
 	});
 
 	it("doesn't apply to a PR against the umbrella branch, a prerelease, or a closed PR", () => {
-		assert.equal(usesSettledUmbrella(pr({ base: 'release-queue/main' })), false);
-		assert.equal(usesSettledUmbrella(pr({ base: 'cloudflare-next' })), false);
-		assert.equal(usesSettledUmbrella(pr({ state: 'closed' })), false);
+		assert.equal(isRetargetedFromMain(pr({ base: 'release-queue/main' })), false);
+		assert.equal(isRetargetedFromMain(pr({ base: 'cloudflare-next' })), false);
+		assert.equal(isRetargetedFromMain(pr({ state: 'closed' })), false);
 	});
 });

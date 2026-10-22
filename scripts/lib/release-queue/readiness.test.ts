@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getLatestReviewStates, summarizeChecks, summarizeReviews } from './readiness.ts';
+import { getLatestReviewStates, classifyChecks, classifyReviewers } from './readiness.ts';
 
 describe('getLatestReviewStates', () => {
 	it('keeps the latest approval or change request of each reviewer', () => {
@@ -35,10 +35,10 @@ describe('getLatestReviewStates', () => {
 	});
 });
 
-describe('summarizeReviews', () => {
+describe('classifyReviewers', () => {
 	it('counts the approval of a reviewer with write access', () => {
 		const states = new Map([['alice', 'APPROVED' as const]]);
-		assert.deepEqual(summarizeReviews(states, new Set(['alice'])), {
+		assert.deepEqual(classifyReviewers(states, new Set(['alice'])), {
 			isApproved: true,
 			changesRequestedBy: [],
 		});
@@ -46,7 +46,7 @@ describe('summarizeReviews', () => {
 
 	it("doesn't count the approval of a reviewer without write access", () => {
 		const states = new Map([['bob', 'APPROVED' as const]]);
-		assert.deepEqual(summarizeReviews(states, new Set()), {
+		assert.deepEqual(classifyReviewers(states, new Set()), {
 			isApproved: false,
 			changesRequestedBy: [],
 		});
@@ -58,18 +58,18 @@ describe('summarizeReviews', () => {
 			['bob', 'CHANGES_REQUESTED' as const],
 			['carol', 'APPROVED' as const],
 		]);
-		assert.deepEqual(summarizeReviews(states, new Set(['alice', 'carol'])), {
+		assert.deepEqual(classifyReviewers(states, new Set(['alice', 'carol'])), {
 			isApproved: true,
 			changesRequestedBy: ['alice'],
 		});
 	});
 });
 
-describe('summarizeChecks', () => {
+describe('classifyChecks', () => {
 	const required = ['eslint', 'lint-ja', 'links', 'check', 'deploy', 'external', 'zizmor'];
 
 	it('lists unfinished and unsuccessful required check runs and statuses', () => {
-		const summary = summarizeChecks(
+		const checks = classifyChecks(
 			required,
 			[
 				{ name: 'eslint', status: 'completed', conclusion: 'success' },
@@ -83,15 +83,15 @@ describe('summarizeChecks', () => {
 				{ context: 'external', state: 'error' },
 			]
 		);
-		assert.deepEqual(summary, {
-			failing: ['links', 'external'],
-			pending: ['check', 'deploy'],
-			missing: [],
+		assert.deepEqual(checks, {
+			failingChecks: ['links', 'external'],
+			pendingChecks: ['check', 'deploy'],
+			missingChecks: [],
 		});
 	});
 
 	it('ignores checks that are not required', () => {
-		const summary = summarizeChecks(
+		const checks = classifyChecks(
 			['eslint'],
 			[
 				{ name: 'eslint', status: 'completed', conclusion: 'success' },
@@ -100,18 +100,22 @@ describe('summarizeChecks', () => {
 			],
 			[]
 		);
-		assert.deepEqual(summary, { failing: [], pending: [], missing: [] });
+		assert.deepEqual(checks, { failingChecks: [], pendingChecks: [], missingChecks: [] });
 	});
 
 	it('lists required checks that are not reported', () => {
-		assert.deepEqual(summarizeChecks(['eslint'], [], []), {
-			failing: [],
-			pending: [],
-			missing: ['eslint'],
+		assert.deepEqual(classifyChecks(['eslint'], [], []), {
+			failingChecks: [],
+			pendingChecks: [],
+			missingChecks: ['eslint'],
 		});
 	});
 
 	it('accepts a commit when no check is required', () => {
-		assert.deepEqual(summarizeChecks([], [], []), { failing: [], pending: [], missing: [] });
+		assert.deepEqual(classifyChecks([], [], []), {
+			failingChecks: [],
+			pendingChecks: [],
+			missingChecks: [],
+		});
 	});
 });

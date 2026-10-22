@@ -1,3 +1,5 @@
+import { FRAMEWORK_PACKAGE } from './config.ts';
+
 export interface PackageVersion {
 	name: string;
 	version: string;
@@ -27,7 +29,8 @@ export function parseReleaseVersions(body: string): PackageVersion[] {
 	}));
 }
 
-export function findVersion(versions: PackageVersion[], name: string): string | undefined {
+/** Finds the version of the package `name` among the released `versions`. */
+function findVersion(versions: PackageVersion[], name: string): string | undefined {
 	return versions.find((pkg) => pkg.name === name)?.version;
 }
 
@@ -36,7 +39,7 @@ export function findVersion(versions: PackageVersion[], name: string): string | 
  * versions count as patches: only a new stable minor or major changes how docs
  * PRs are routed.
  */
-export function getReleaseType(version: string | undefined): ReleaseType {
+function getReleaseType(version: string | undefined): ReleaseType {
 	const match = version?.match(/^\d+\.(\d+)\.(\d+)$/);
 	if (!match) return 'patch';
 	const [, minor, patch] = match;
@@ -46,6 +49,6 @@ export function getReleaseType(version: string | undefined): ReleaseType {
 
 /** Gets the next release from `main` from its open release PR, if any. */
 export function getMainRelease(pullRequest?: ReleasePullRequest): MainRelease {
-	const astroVersion = findVersion(pullRequest?.versions ?? [], 'astro');
+	const astroVersion = findVersion(pullRequest?.versions ?? [], FRAMEWORK_PACKAGE);
 	return { type: getReleaseType(astroVersion), astroVersion, pullRequest };
 }

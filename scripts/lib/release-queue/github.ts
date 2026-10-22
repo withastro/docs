@@ -1,22 +1,13 @@
 import { setTimeout } from 'node:timers/promises';
+import { GitHubError } from './github-error.ts';
 
+const API_URL = 'https://api.github.com';
+const API_VERSION = '2022-11-28';
+const USER_AGENT = 'astro-docs/1.0';
 const PAGE_SIZE = 100;
 const POLL_DELAY_MS = 2000;
 
-export class GitHubError extends Error {
-	name = 'GitHubError';
-	readonly status: number;
-	/** The reason GitHub gives, without the request. */
-	readonly reason: string;
-
-	constructor({ status, reason, request }: { status: number; reason: string; request: string }) {
-		super(`${request} failed (${status}): ${reason}`);
-		this.status = status;
-		this.reason = reason;
-	}
-}
-
-type WriteMethod = 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+export type WriteMethod = 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 /** An error body from GitHub. A validation error details it in `errors`. */
 interface ErrorBody {
@@ -25,20 +16,20 @@ interface ErrorBody {
 }
 
 /**
- * A minimal GitHub REST client. It can print the requests that change GitHub
- * instead of sending them.
+ * A minimal GitHub REST client. Callers declare the shape of the answers they
+ * read, which isn't checked: the API version is pinned, and the queries map
+ * each answer to the types the bot works with.
  */
 export class GitHubClient {
 	#token: string;
-	#shouldPrintWrites: boolean;
 	#pollDelayMs: number;
 
-	constructor(token: string, { shouldPrintWrites = false, pollDelayMs = POLL_DELAY_MS } = {}) {
+	constructor(token: string, { pollDelayMs = POLL_DELAY_MS } = {}) {
 		this.#token = token;
-		this.#shouldPrintWrites = shouldPrintWrites;
 		this.#pollDelayMs = pollDelayMs;
 	}
 
+	/** Gets `path`, relative to the API root. */
 	get<T>(path: string): Promise<T> {
 		return this.#request<T>('GET', path);
 	}
@@ -61,7 +52,9 @@ export class GitHubClient {
 	/**
 	 * Gets every page of a list endpoint.
 	 *
-	 * @param pick Extracts the items when the endpoint wraps them in an object.
+	 * @param {string} path - The endpoint, relative to the API root.
+	 * @param {(data: R) => T[]} [pick] - Extracts the items when the endpoint
+	 *   wraps them in an object.
 	 */
 	async getAll<T, R = T[]>(
 		path: string,
@@ -79,38 +72,39 @@ export class GitHubClient {
 	}
 
 	/**
-	 * Sends a request that changes GitHub. Resolves to `undefined` when the
-	 * request was only printed, or when GitHub answers without a body (204).
+	 * Sends a request that changes GitHub. Resolves to `undefined` when GitHub
+	 * answers without a body (204), or when the writes are only printed
+	 * (`PrintingGitHubClient`).
 	 */
 	async write<T>(method: WriteMethod, path: string, body?: unknown): Promise<T | undefined> {
-		if (this.#shouldPrintWrites) {
-			console.info(`[print] ${method} ${path}`);
-			if (body) console.info(JSON.stringify(body, null, 2));
-			return undefined;
-		}
 		return this.#request<T>(method, path, body);
 	}
 
 	async #request<T>(method: string, path: string, body?: unknown): Promise<T> {
-		const res = await fetch(`https://api.github.com/${path}`, {
+		const response = await fetch(`${API_URL}/${path}`, {
 			method,
 			headers: {
 				Accept: 'application/vnd.github+json',
 				Authorization: `Bearer ${this.#token}`,
-				'User-Agent': 'astro-docs/1.0',
-				'X-GitHub-Api-Version': '2022-11-28',
+				'User-Agent': USER_AGENT,
+				'X-GitHub-Api-Version': API_VERSION,
 			},
 			body: body === undefined ? undefined : JSON.stringify(body),
 		});
 
-		if (res.status === 204) return undefined as T;
+		if (response.status === 204) return undefined as T;
 		// Error pages from a proxy (e.g. a 502) are HTML.
-		const isJson = res.headers.get('content-type')?.includes('application/json');
-		const data = isJson ? await res.json() : await res.text();
-		if (!res.ok) {
-			const reason = (isJson && getErrorReason(data)) || res.statusText;
-			throw new GitHubError({ status: res.status, reason, request: `${method} ${path}` });
+		const isJson = response.headers.get('content-type')?.includes('application/json');
+		const data = isJson ? await response.json() : await response.text();
+		if (!response.ok) {
+			const reason = (isJson && getErrorReason(data)) || response.statusText;
+			throw new GitHubError({
+				status: response.status,
+				githubReason: reason,
+				request: `${method} ${path}`,
+			});
 		}
+		if (!isJson) throw new Error(`${method} ${path} answered ${response.status} without JSON.`);
 		return data;
 	}
 }

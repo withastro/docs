@@ -1,18 +1,19 @@
-import type { GitHubClient } from './github.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
 import { isLiveFor, type QueueOptions } from './modes.ts';
 import { getPrereleasePullRequest, getReleasePullRequest, removeLabel } from './queries.ts';
 import { getMainRelease, type MainRelease, type ReleasePullRequest } from './release.ts';
-import { MAIN_BRANCH } from './routing.ts';
+import { FRAMEWORK_MAIN_BRANCH, MAIN_BRANCH } from './config.ts';
 import { getUmbrellaHistory, listOpenUmbrellas, type OpenUmbrella } from './umbrella-queries.ts';
+import type { Repositories, Repository } from './repository.ts';
 import { getReleaseState } from './umbrella-state.ts';
+import { formatUmbrellaBody, selectIncludedPullRequests } from './umbrella-body.ts';
+import { getUmbrellaHeading } from './umbrella-heading.ts';
 import {
+	applyToLabels,
 	getKeptLabelChanges,
 	getLabelChanges,
-	getUmbrellaBody,
-	getUmbrellaHeading,
-	selectIncludedPullRequests,
-} from './umbrella.ts';
+	type LabelChanges,
+} from './umbrella-labels.ts';
 
 /**
  * Brings an umbrella PR up to date, writing only what changed. Its body
@@ -24,47 +25,66 @@ import {
  * branch. Returns the umbrella as it is after the refresh.
  */
 export async function refreshUmbrella(
-	gh: GitHubClient,
-	repo: string,
+	{ docs, framework }: Repositories,
 	umbrella: OpenUmbrella,
 	release: MainRelease
 ): Promise<OpenUmbrella> {
-	const state = await getReleaseState(gh, umbrella, release);
-	const heading = getUmbrellaHeading(umbrella.target, release);
+	const state = await getReleaseState(framework, umbrella, release);
 	const isFollowing = state.status === 'follows';
-	if (isFollowing && umbrella.target === MAIN_BRANCH && release.type === 'major') {
-		console.info(`Skipped #${umbrella.number}: the next release from main is a major.`);
+	if (isFollowing && isBeforeMajor(umbrella, release)) {
+		console.info(
+			`Skipped #${umbrella.number}: the next release from ${FRAMEWORK_MAIN_BRANCH} is a major.`
+		);
 		return umbrella;
 	}
 
+	const heading = getUmbrellaHeading(umbrella.target, release);
 	const linked = isFollowing
-		? (await getLinkedReleasePullRequest(gh, umbrella, release))?.number
+		? (await getLinkedReleasePullRequest(framework, umbrella, release))?.number
 		: state.releasePullRequest;
-	const { commits, merged } = await getUmbrellaHistory(gh, repo, umbrella);
-	const body = getUmbrellaBody(umbrella.target, {
-		releasePullRequest: linked,
-		included: selectIncludedPullRequests(merged, commits),
+	const { commits, closed } = await getUmbrellaHistory(docs, umbrella);
+	const textChanges = getTextChanges(umbrella, {
+		title: isFollowing ? heading.title : umbrella.title,
+		body: formatUmbrellaBody(umbrella.target, {
+			releasePullRequest: linked,
+			included: selectIncludedPullRequests(closed, commits),
+		}),
 	});
-
-	const changes: { title?: string; body?: string } = {};
-	if (isFollowing && heading.title !== umbrella.title) changes.title = heading.title;
-	// GitHub keeps the line endings of a description edited in the browser.
-	if (body !== umbrella.body.replaceAll('\r\n', '\n')) changes.body = body;
-	if (Object.keys(changes).length > 0) {
-		await gh.write('PATCH', `repos/${repo}/pulls/${umbrella.number}`, changes);
+	if (Object.keys(textChanges).length > 0) {
+		await docs.write('PATCH', `pulls/${umbrella.number}`, textChanges);
 	}
 
-	const { toAdd, toRemove } = isFollowing
+	const labelChanges = isFollowing
 		? getLabelChanges(umbrella.labels, heading.releaseLabel)
 		: getKeptLabelChanges(umbrella.labels);
-	if (toAdd.length > 0) {
-		await gh.write('POST', `repos/${repo}/issues/${umbrella.number}/labels`, { labels: toAdd });
-	}
-	await Promise.all(toRemove.map((label) => removeLabel(gh, repo, umbrella.number, label)));
+	await applyLabelChanges(docs, umbrella.number, labelChanges);
+	return { ...umbrella, ...textChanges, labels: applyToLabels(umbrella.labels, labelChanges) };
+}
 
-	const removed = new Set<string>(toRemove);
-	const labels = [...umbrella.labels, ...toAdd].filter((label) => !removed.has(label));
-	return { ...umbrella, ...changes, labels };
+/**
+ * Whether the `main` umbrella waits for a major: the bot leaves it to a
+ * maintainer.
+ */
+function isBeforeMajor(umbrella: OpenUmbrella, release: MainRelease): boolean {
+	return umbrella.target === MAIN_BRANCH && release.type === 'major';
+}
+
+/** Gets the title and body of `wanted` that differ from the umbrella's. */
+function getTextChanges(
+	umbrella: OpenUmbrella,
+	wanted: { title: string; body: string }
+): { title?: string; body?: string } {
+	return {
+		...(wanted.title === umbrella.title ? {} : { title: wanted.title }),
+		...(wanted.body === umbrella.body ? {} : { body: wanted.body }),
+	};
+}
+
+async function applyLabelChanges(docs: Repository, umbrellaNumber: number, changes: LabelChanges) {
+	if (changes.toAdd.length > 0) {
+		await docs.write('POST', `issues/${umbrellaNumber}/labels`, { labels: changes.toAdd });
+	}
+	await Promise.all(changes.toRemove.map((label) => removeLabel(docs, umbrellaNumber, label)));
 }
 
 /**
@@ -72,19 +92,19 @@ export async function refreshUmbrella(
  * `main`, or the one of the prerelease the umbrella ships with.
  */
 async function getLinkedReleasePullRequest(
-	gh: GitHubClient,
+	framework: Repository,
 	umbrella: OpenUmbrella,
 	release: MainRelease
 ): Promise<ReleasePullRequest | undefined> {
 	if (umbrella.target === MAIN_BRANCH) return release.pullRequest;
-	return getPrereleasePullRequest(gh, release.pullRequest);
+	return getPrereleasePullRequest(framework, release.pullRequest);
 }
 
 /** Refreshes every open umbrella PR, for example after a release PR change. */
-export async function refreshOpenUmbrellas({ actionsClient, botClient, repo, mode }: QueueOptions) {
+export async function refreshOpenUmbrellas({ actions, bot, framework, mode }: QueueOptions) {
 	const [umbrellas, releasePullRequest] = await Promise.all([
-		listOpenUmbrellas(actionsClient, repo),
-		getReleasePullRequest(actionsClient),
+		listOpenUmbrellas(actions),
+		getReleasePullRequest(framework, FRAMEWORK_MAIN_BRANCH),
 	]);
 	const release = getMainRelease(releasePullRequest);
 	const numbers = umbrellas.map(({ number }) => `#${number}`).join(', ');
@@ -95,8 +115,8 @@ export async function refreshOpenUmbrellas({ actionsClient, botClient, repo, mod
 			console.info(`Skipped #${umbrella.number}: dry run for ${umbrella.target}.`);
 			continue;
 		}
-		const refreshed = await refreshUmbrella(botClient, repo, umbrella, release);
+		const refreshed = await refreshUmbrella({ docs: bot, framework }, umbrella, release);
 		// Without a join, a dismissed review still covers the included PRs.
-		await syncMergeBlockReview(actionsClient, repo, refreshed, { shouldBlock: false });
+		await syncMergeBlockReview(actions, refreshed, { shouldBlock: false });
 	}
 }

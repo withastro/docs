@@ -1,15 +1,16 @@
+import {
+	ALL_RELEASE_LABELS,
+	MAIN_BRANCH,
+	RELEASE_LABELS,
+	UMBRELLA_PREFIX,
+	type ReleaseLabel,
+} from './config.ts';
+import type { PullRequestState } from './github-types.ts';
 import type { Readiness } from './readiness.ts';
 import type { MainRelease } from './release.ts';
 
-export const ACCEPTED_LABEL = 'accepted';
-export const MAIN_BRANCH = 'main';
-export const UMBRELLA_PREFIX = 'release-queue/';
-export const RELEASE_LABELS = ['patch-release', 'minor-release', 'major-release'] as const;
-
-export type ReleaseLabel = (typeof RELEASE_LABELS)[number];
-
 export interface DocsPullRequest {
-	state: string;
+	state: PullRequestState;
 	isDraft: boolean;
 	base: string;
 	head: string;
@@ -35,28 +36,28 @@ export interface SettledUmbrella {
 	releasePullRequest: number;
 }
 
-/** What `decide` needs besides the PR. */
-export interface DecideContext {
+/** What `decideJoin` needs besides the PR. */
+export interface DecisionContext {
 	release: MainRelease;
 	settledMainUmbrella?: SettledUmbrella | undefined;
 }
 
 /** The details of each refusal, by code. */
 interface RefusalDetails {
-	closed: unknown;
-	umbrella: unknown;
-	draft: unknown;
-	'no-release-label': unknown;
+	closed: Record<never, never>;
+	umbrella: Record<never, never>;
+	draft: Record<never, never>;
+	'no-release-label': Record<never, never>;
 	'several-release-labels': { labels: ReleaseLabel[] };
 	mismatch: { base: string; label: ReleaseLabel };
 	'major-on-main': { astroVersion?: string | undefined };
 	'settled-umbrella': SettledUmbrella;
-	'not-approved': unknown;
+	'not-approved': Record<never, never>;
 	'changes-requested': { reviewers: string[] };
 	'failing-checks': { checks: string[] };
 	'pending-checks': { checks: string[] };
 	'missing-checks': { checks: string[] };
-	conflict: unknown;
+	conflict: Record<never, never>;
 	// Found when joining (see `JoinRefusal`).
 	'umbrella-conflict': { branch: string };
 	/** The umbrella branch has commits but no open umbrella PR. */
@@ -71,7 +72,7 @@ export type Refusal<Code extends RefusalCode = RefusalCode> = {
 	[C in Code]: { code: C } & RefusalDetails[C];
 }[Code];
 
-/** The refusals found only while joining, after `decide` approved the PR. */
+/** The refusals found only while joining, once `decideJoin` approved the PR. */
 export type JoinRefusal = Refusal<'umbrella-conflict' | 'stale-umbrella-branch' | 'merge-failed'>;
 
 /**
@@ -84,16 +85,18 @@ export type Decision =
 
 export type RefusedDecision = Extract<Decision, { status: 'refuse' }>;
 
+/** Whether `branch` is an umbrella branch, by its reserved prefix. */
 export function isUmbrellaBranch(branch: string): boolean {
 	return branch.startsWith(UMBRELLA_PREFIX);
 }
 
 /**
- * Whether a settled `main` umbrella refuses this PR: an open PR the bot would
- * retarget from `main`. A PR against the umbrella branch says it belongs to
- * that umbrella. The handler reads the settled state only for these PRs.
+ * Whether the bot would retarget this open PR from `main`: the only PRs a
+ * settled `main` umbrella refuses. A PR against the umbrella branch says it
+ * belongs to that umbrella. The handler reads the settled state only for
+ * these PRs.
  */
-export function usesSettledUmbrella(pr: DocsPullRequest): boolean {
+export function isRetargetedFromMain(pr: DocsPullRequest): boolean {
 	return pr.state === 'open' && pr.base === MAIN_BRANCH;
 }
 
@@ -106,10 +109,10 @@ export function getTarget(base: string): string {
  * Decides whether a docs PR joins an umbrella, and which one. Returns every
  * refusal at once, except for a closed PR or an umbrella PR.
  */
-export function decide(
+export function decideJoin(
 	pr: DocsPullRequest,
 	readiness: Readiness,
-	context: DecideContext
+	context: DecisionContext
 ): Decision {
 	if (pr.state !== 'open') return { status: 'refuse', refusals: [{ code: 'closed' }] };
 	if (isUmbrellaBranch(pr.head)) return { status: 'refuse', refusals: [{ code: 'umbrella' }] };
@@ -129,9 +132,9 @@ export function decide(
 
 function getRoute(
 	pr: DocsPullRequest,
-	{ release, settledMainUmbrella }: DecideContext
+	{ release, settledMainUmbrella }: DecisionContext
 ): Route | Refusal {
-	const labels = RELEASE_LABELS.filter((label) => pr.labels.includes(label));
+	const labels = ALL_RELEASE_LABELS.filter((label) => pr.labels.includes(label));
 	if (labels.length === 0) return { code: 'no-release-label' };
 	if (labels.length > 1) return { code: 'several-release-labels', labels };
 	const [label] = labels;
@@ -141,7 +144,7 @@ function getRoute(
 	const shouldRetarget = !isUmbrellaBranch(pr.base);
 
 	// Nothing marks a prerelease branch: any base other than `main` is one.
-	const isMajor = label === 'major-release';
+	const isMajor = label === RELEASE_LABELS.major;
 	const isMainTarget = target === MAIN_BRANCH;
 	if (isMajor === isMainTarget) return { code: 'mismatch', base: pr.base, label };
 	// Every feature on `main` in `withastro/astro` now ships in the major,
@@ -149,7 +152,7 @@ function getRoute(
 	if (isMainTarget && release.type === 'major') {
 		return { code: 'major-on-main', astroVersion: release.astroVersion };
 	}
-	if (settledMainUmbrella && usesSettledUmbrella(pr)) {
+	if (settledMainUmbrella && isRetargetedFromMain(pr)) {
 		return { code: 'settled-umbrella', ...settledMainUmbrella };
 	}
 

@@ -1,3 +1,4 @@
+import { FRAMEWORK_REPO } from '../config.ts';
 import type { Mode, QueueOptions } from '../modes.ts';
 import { REPO } from './fixtures.ts';
 import type { stubGitHub } from './stub-github.ts';
@@ -6,12 +7,12 @@ import type { stubGitHub } from './stub-github.ts';
 export const ACTIONS_TOKEN = 'actions-token';
 export const BOT_TOKEN = 'bot-token';
 
-/** Options for both entry points, with a client per identity of the stub. */
+/** Options for both entry points, with a repository per identity. */
 export function queueOptions(github: ReturnType<typeof stubGitHub>, mode: Mode): QueueOptions {
 	return {
-		actionsClient: github.client(ACTIONS_TOKEN),
-		botClient: github.client(BOT_TOKEN),
-		repo: REPO,
+		actions: github.repository(REPO, { token: ACTIONS_TOKEN }),
+		bot: github.repository(REPO, { token: BOT_TOKEN }),
+		framework: github.repository(FRAMEWORK_REPO, { token: ACTIONS_TOKEN }),
 		mode,
 	};
 }

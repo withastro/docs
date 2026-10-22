@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
-import { GitHubClient, GitHubError } from './github.ts';
+import { GitHubClient } from './github.ts';
+import { GitHubError } from './github-error.ts';
+import { PrintingGitHubClient } from './printing-github-client.ts';
 import { json, stubGitHub } from './testing/stub-github.ts';
 
 /** Replaces `fetch` with one answering `response` to every request. */
@@ -45,7 +47,7 @@ describe('GitHubClient', () => {
 			(error: unknown) => {
 				assert.ok(error instanceof GitHubError);
 				assert.equal(error.status, 422);
-				assert.equal(error.reason, 'Validation Failed: No commits between main and x');
+				assert.equal(error.githubReason, 'Validation Failed: No commits between main and x');
 				return true;
 			}
 		);
@@ -55,7 +57,7 @@ describe('GitHubClient', () => {
 		answer(t, json({ message: 'Not Found' }, 404));
 
 		await assert.rejects(new GitHubClient('token').get('repos/withastro/docs/pulls/0'), {
-			reason: 'Not Found',
+			githubReason: 'Not Found',
 		});
 	});
 
@@ -73,7 +75,7 @@ describe('GitHubClient', () => {
 			await assert.rejects(new GitHubClient('token').get('repos/withastro/docs/pulls/7'), {
 				name: 'GitHubError',
 				status: 502,
-				reason: 'Bad Gateway',
+				githubReason: 'Bad Gateway',
 			});
 		});
 	}
@@ -82,15 +84,24 @@ describe('GitHubClient', () => {
 		answer(t, new Response('<html>Bad gateway</html>', { status: 502, statusText: 'Bad Gateway' }));
 
 		await assert.rejects(new GitHubClient('token').get('repos/withastro/docs/pulls/7'), {
-			reason: 'Bad Gateway',
+			githubReason: 'Bad Gateway',
 		});
+	});
+
+	it('refuses a successful answer that is not JSON', async (t) => {
+		answer(t, new Response('<html>Hello</html>', { status: 200 }));
+
+		await assert.rejects(
+			new GitHubClient('token').get('repos/withastro/docs/pulls/7'),
+			/^Error: GET repos\/withastro\/docs\/pulls\/7 answered 200 without JSON\.$/
+		);
 	});
 
 	it('prints writes without sending them when asked to', async (t) => {
 		const fetch = answer(t, json({}));
 		t.mock.method(console, 'info', () => {});
 
-		const data = await new GitHubClient('token', { shouldPrintWrites: true }).write(
+		const data = await new PrintingGitHubClient('token').write(
 			'POST',
 			'repos/withastro/docs/issues/7/comments',
 			{ body: 'Hello' }
