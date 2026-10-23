@@ -1,42 +1,41 @@
+import type { PullRequestResponse } from '../github-types.ts';
+
 export const REPO = 'withastro/docs';
 
-const pullRequest = {
+const pullRequest: PullRequestResponse = {
 	number: 7,
 	title: 'Document the new option',
 	html_url: `https://github.com/${REPO}/pull/7`,
 	state: 'open',
 	draft: false,
-	mergeable: true as boolean | null,
-	merge_commit_sha: null as string | null,
+	mergeable: true,
 	base: { ref: 'main' },
-	head: {
-		ref: 'feat/option',
-		sha: 'head-sha',
-		repo: { full_name: REPO } as { full_name: string } | null,
-	},
-	labels: [] as { name: string }[],
-	body: null as string | null,
+	head: { ref: 'feat/option', sha: 'head-sha', repo: { full_name: REPO } },
+	labels: [],
+	body: null,
 };
 
 /** A `GET /pulls/7` answer: an open docs PR against `main`, mergeable. */
-export function pullRequestResponse(overrides: Partial<typeof pullRequest> = {}) {
+export function pullRequestResponse(
+	overrides: Partial<PullRequestResponse> = {}
+): PullRequestResponse {
 	return { ...pullRequest, ...overrides };
 }
 
 /**
- * A `GET /pulls/<number>` answer for the open umbrella PR into `target`, with
- * `merge-on-release`.
+ * A `GET /pulls/<number>` answer for the open umbrella PR into `umbrellaBase`,
+ * with `merge-on-release`.
  */
 export function umbrellaResponse({
-	target = 'main',
+	umbrellaBase = 'main',
 	...overrides
-}: { target?: string } & Partial<typeof pullRequest> = {}) {
+}: { umbrellaBase?: string } & Partial<PullRequestResponse> = {}): PullRequestResponse {
 	return pullRequestResponse({
 		number: 42,
-		title: `[ci] release ${target} docs`,
+		title: `[ci] release ${umbrellaBase} docs`,
 		html_url: `https://github.com/${REPO}/pull/42`,
-		base: { ref: target },
-		head: { ref: `release-queue/${target}`, sha: 'umbrella-sha', repo: { full_name: REPO } },
+		base: { ref: umbrellaBase },
+		head: { ref: `release-queue/${umbrellaBase}`, sha: 'umbrella-sha', repo: { full_name: REPO } },
 		labels: [{ name: 'merge-on-release' }],
 		...overrides,
 	});

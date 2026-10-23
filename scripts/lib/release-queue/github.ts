@@ -1,5 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { GitHubError } from './github-error.ts';
+import { isRecord, parseJson } from './json.ts';
 
 const API_URL = 'https://api.github.com';
 const API_VERSION = '2022-11-28';
@@ -9,34 +10,51 @@ const POLL_DELAY_MS = 2000;
 
 export type WriteMethod = 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
-/** An error body from GitHub. A validation error details it in `errors`. */
-interface ErrorBody {
-	message?: string;
-	errors?: (string | { message?: string })[];
-}
-
 /**
- * A minimal GitHub REST client. Callers declare the shape of the answers they
- * read, which isn't checked: the API version is pinned, and the queries map
- * each answer to the types the bot works with.
+ * A minimal GitHub REST client.
+ *
+ * Callers declare the shape of the answers they read, which isn't checked:
+ * the API version is pinned, and the queries map each answer to the types the
+ * bot works with.
  */
 export class GitHubClient {
 	#token: string;
 	#pollDelayMs: number;
 
+	/**
+	 * Creates a client that authenticates with a token.
+	 *
+	 * @param {string} token - The token sent with each request.
+	 * @param {object} [options] - How the client waits.
+	 * @param {number} [options.pollDelayMs] - The delay between two reads of
+	 *   `poll`. Two seconds by default.
+	 */
 	constructor(token: string, { pollDelayMs = POLL_DELAY_MS } = {}) {
 		this.#token = token;
 		this.#pollDelayMs = pollDelayMs;
 	}
 
-	/** Gets `path`, relative to the API root. */
+	/**
+	 * Reads an endpoint.
+	 *
+	 * @param {string} path - The endpoint, relative to the API root.
+	 * @returns {Promise<T>} The JSON answer.
+	 * @throws {GitHubError} When GitHub answers with an error.
+	 */
 	get<T>(path: string): Promise<T> {
 		return this.#request<T>('GET', path);
 	}
 
 	/**
-	 * Gets `path` until `isReady` accepts the answer, or the attempts run out,
-	 * for data GitHub computes in the background. Returns the last answer.
+	 * Reads an endpoint until its answer is ready, for data GitHub computes in
+	 * the background.
+	 *
+	 * @param {string} path - The endpoint, relative to the API root.
+	 * @param {object} options - When to stop.
+	 * @param {(data: T) => boolean} options.isReady - Whether an answer is ready.
+	 * @param {number} options.attempts - How many times to read at most.
+	 * @returns {Promise<T>} The first ready answer, or the last one once the
+	 *   attempts run out.
 	 */
 	async poll<T>(
 		path: string,
@@ -55,6 +73,7 @@ export class GitHubClient {
 	 * @param {string} path - The endpoint, relative to the API root.
 	 * @param {(data: R) => T[]} [pick] - Extracts the items when the endpoint
 	 *   wraps them in an object.
+	 * @returns {Promise<T[]>} The items of every page.
 	 */
 	async getAll<T, R = T[]>(
 		path: string,
@@ -72,9 +91,15 @@ export class GitHubClient {
 	}
 
 	/**
-	 * Sends a request that changes GitHub. Resolves to `undefined` when GitHub
-	 * answers without a body (204), or when the writes are only printed
-	 * (`PrintingGitHubClient`).
+	 * Sends a request that changes GitHub.
+	 *
+	 * @param {WriteMethod} method - The HTTP method.
+	 * @param {string} path - The endpoint, relative to the API root.
+	 * @param {unknown} [body] - The JSON body of the request.
+	 * @returns {Promise<T | undefined>} The JSON answer. `undefined` when GitHub
+	 *   answers without a body, or when `PrintingGitHubClient` only prints the
+	 *   request.
+	 * @throws {GitHubError} When GitHub answers with an error.
 	 */
 	async write<T>(method: WriteMethod, path: string, body?: unknown): Promise<T | undefined> {
 		return this.#request<T>(method, path, body);
@@ -92,33 +117,43 @@ export class GitHubClient {
 			body: body === undefined ? undefined : JSON.stringify(body),
 		});
 
+		const request = `${method} ${path}`;
 		if (response.status === 204) return undefined as T;
-		// Error pages from a proxy (e.g. a 502) are HTML.
+		// Error pages from a proxy, such as a 502, are HTML.
 		const isJson = response.headers.get('content-type')?.includes('application/json');
-		const data = isJson ? await response.json() : await response.text();
+		const text = await response.text();
 		if (!response.ok) {
-			const reason = (isJson && getErrorReason(data)) || response.statusText;
-			throw new GitHubError({
-				status: response.status,
-				githubReason: reason,
-				request: `${method} ${path}`,
-			});
+			const reason = (isJson && getErrorReason(text)) || response.statusText;
+			throw new GitHubError({ status: response.status, githubReason: reason, request });
 		}
-		if (!isJson) throw new Error(`${method} ${path} answered ${response.status} without JSON.`);
-		return data;
+		if (!isJson) throw new Error(`${request} answered ${response.status} without JSON.`);
+		return parseJson(text, request) as T;
 	}
 }
 
 /**
  * Gets the reason of an error body, with its details: a 422 only says
- * "Validation Failed" in `message`.
+ * "Validation Failed" in `message`, and details it in `errors`.
  */
-function getErrorReason(body: ErrorBody | null): string | undefined {
-	// A proxy could answer JSON that isn't an object.
-	if (typeof body !== 'object' || !body?.message) return undefined;
+function getErrorReason(text: string): string | undefined {
+	const body = parseErrorBody(text);
+	if (!isRecord(body) || typeof body.message !== 'string' || !body.message) return undefined;
 	const errors = Array.isArray(body.errors) ? body.errors : [];
 	const details = errors
-		.map((error) => (typeof error === 'string' ? error : error?.message))
+		.map((error: unknown) => (typeof error === 'string' ? error : readErrorMessage(error)))
 		.filter((detail) => detail !== undefined);
 	return details.length > 0 ? `${body.message}: ${details.join('; ')}` : body.message;
+}
+
+/** Parses an error body. A malformed one has no reason to read. */
+function parseErrorBody(text: string): unknown {
+	try {
+		return JSON.parse(text);
+	} catch {
+		return undefined;
+	}
+}
+
+function readErrorMessage(error: unknown): string | undefined {
+	return isRecord(error) && typeof error.message === 'string' ? error.message : undefined;
 }

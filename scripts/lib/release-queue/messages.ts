@@ -1,22 +1,22 @@
 import {
 	ACCEPTED_LABEL,
-	FRAMEWORK_MAIN_BRANCH,
+	FRAMEWORK_STABLE_BRANCH,
 	FRAMEWORK_PACKAGE,
-	MAIN_BRANCH,
-	MAIN_UMBRELLA_BRANCH,
+	STABLE_BRANCH,
+	STABLE_UMBRELLA_BRANCH,
 	RELEASE_LABELS,
 } from './config.ts';
 import { GitHubError } from './github-error.ts';
-import { formatFrameworkReference } from './github-links.ts';
+import { formatFrameworkReference } from './github-text.ts';
 import type { UnopenedJoin } from './join.ts';
 import type { Refusal, RefusalCode, RefusedDecision, Route } from './routing.ts';
-import type { Umbrella } from './umbrella-heading.ts';
+import type { Umbrella } from './umbrella-queries.ts';
 
 export interface MessageContext {
 	/** The umbrella PR the docs PR would join. */
-	umbrella?: Umbrella;
-	/** The open `main` umbrella PR, named when the next release is a major. */
-	mainUmbrella?: { number: number };
+	umbrella?: Umbrella | undefined;
+	/** The open stable umbrella PR, named when the next release is a major. */
+	stableUmbrella?: { number: number } | undefined;
 }
 
 const wrapInCode = (text: string) => `\`${text}\``;
@@ -34,22 +34,24 @@ const REFUSAL_DESCRIPTIONS: { [C in RefusalCode]: DescribeRefusal<C> } = {
 	umbrella: () => 'This PR is a release umbrella. Merge it when the release is out.',
 	draft: () => 'This PR is a draft. Mark it as ready for review.',
 	'no-release-label': () =>
-		`This PR has no release label. Add ${wrapInCode(RELEASE_LABELS.patch)} or ${wrapInCode(RELEASE_LABELS.minor)} for a PR against ${wrapInCode(MAIN_BRANCH)}, or ${wrapInCode(RELEASE_LABELS.major)} for a PR against a prerelease branch.`,
+		`This PR has no release label. Add ${wrapInCode(RELEASE_LABELS.patch)} or ${wrapInCode(RELEASE_LABELS.minor)} for a PR against ${wrapInCode(STABLE_BRANCH)}, or ${wrapInCode(RELEASE_LABELS.major)} for a PR against a prerelease branch.`,
 	'several-release-labels': ({ labels }) =>
 		`This PR has several release labels (${joinAsCode(labels)}). Keep only one.`,
 	mismatch: ({ base, label }) =>
 		label === RELEASE_LABELS.major
 			? `${wrapInCode(RELEASE_LABELS.major)} PRs target a prerelease branch, but this one targets ${wrapInCode(base)}. Change the base to the prerelease branch, or the label to ${wrapInCode(RELEASE_LABELS.patch)} or ${wrapInCode(RELEASE_LABELS.minor)}.`
-			: `${wrapInCode(label)} PRs target ${wrapInCode(MAIN_BRANCH)}, but this one targets ${wrapInCode(base)}. Change the base to ${wrapInCode(MAIN_BRANCH)}, or the label to ${wrapInCode(RELEASE_LABELS.major)}.`,
-	'major-on-main': ({ astroVersion }, { mainUmbrella }) => {
-		const release = astroVersion ? ` (${wrapInCode(`${FRAMEWORK_PACKAGE}@${astroVersion}`)})` : '';
-		const umbrella = mainUmbrella
-			? ` The open ${wrapInCode(MAIN_BRANCH)} umbrella (#${mainUmbrella.number}) needs to be squashed into the prerelease branch by a maintainer.`
+			: `${wrapInCode(label)} PRs target ${wrapInCode(STABLE_BRANCH)}, but this one targets ${wrapInCode(base)}. Change the base to ${wrapInCode(STABLE_BRANCH)}, or the label to ${wrapInCode(RELEASE_LABELS.major)}.`,
+	'major-on-stable': ({ frameworkVersion }, { stableUmbrella }) => {
+		const release = frameworkVersion
+			? ` (${wrapInCode(`${FRAMEWORK_PACKAGE}@${frameworkVersion}`)})`
 			: '';
-		return `The next ${wrapInCode(FRAMEWORK_PACKAGE)} release from ${wrapInCode(FRAMEWORK_MAIN_BRANCH)} is a major${release}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to ${wrapInCode(RELEASE_LABELS.major)}.${umbrella}`;
+		const umbrella = stableUmbrella
+			? ` The open ${wrapInCode(STABLE_BRANCH)} umbrella (#${stableUmbrella.number}) needs to be squashed into the prerelease branch by a maintainer.`
+			: '';
+		return `The next ${wrapInCode(FRAMEWORK_PACKAGE)} release from ${wrapInCode(FRAMEWORK_STABLE_BRANCH)} is a major${release}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to ${wrapInCode(RELEASE_LABELS.major)}.${umbrella}`;
 	},
-	'settled-umbrella': ({ number, releasePullRequest }) =>
-		`#${number} ships with ${formatFrameworkReference(releasePullRequest)}, which is already merged. Merge #${number} first. If this PR documents that release, change its base to ${wrapInCode(MAIN_UMBRELLA_BRANCH)} instead.`,
+	'settled-umbrella': ({ number, releasePrNumber }) =>
+		`#${number} ships with ${formatFrameworkReference(releasePrNumber)}, which is already merged. Merge #${number} first. If this PR documents that release, change its base to ${wrapInCode(STABLE_UMBRELLA_BRANCH)} instead.`,
 	'not-approved': () => 'This PR has no approval from a maintainer. Ask a maintainer to review it.',
 	'changes-requested': ({ reviewers }) =>
 		`Changes are requested by ${reviewers.join(', ')}. Address them, then ask for a new review or dismiss the old one.`,
@@ -80,7 +82,7 @@ function describeUmbrella(route: Route, umbrella: Umbrella): string {
 		umbrella.status === 'open'
 			? `#${umbrella.number}`
 			: `a new umbrella PR (${wrapInCode(umbrella.title)})`;
-	return `${name} into ${wrapInCode(route.target)}`;
+	return `${name} into ${wrapInCode(route.umbrellaBase)}`;
 }
 
 function describeRoute(route: Route, umbrella: Umbrella): string {
@@ -105,12 +107,24 @@ function describeError(error: unknown): string {
 
 const DRY_RUN_HEADING = '**Release queue (dry run)**: nothing was changed.';
 
-/** Writes the dry-run comment of a PR that would join `umbrella`. */
+/**
+ * Writes the dry-run comment of a PR that would join an umbrella.
+ *
+ * @param {Route} route - The umbrella branch and base the PR goes to.
+ * @param {Umbrella} umbrella - The umbrella PR it would join.
+ * @returns {string} The comment, in Markdown.
+ */
 export function formatDryRunJoinComment(route: Route, umbrella: Umbrella): string {
 	return `${DRY_RUN_HEADING}\n\n${describeRoute(route, umbrella)}`;
 }
 
-/** Writes the dry-run comment of a PR that would be refused. */
+/**
+ * Writes the dry-run comment of a PR that would be refused.
+ *
+ * @param {RefusedDecision} decision - The refusals, and the route if any.
+ * @param {MessageContext} context - The umbrellas the refusals name.
+ * @returns {string} The comment, in Markdown.
+ */
 export function formatDryRunRefusalComment(
 	{ route, refusals }: RefusedDecision,
 	context: MessageContext
@@ -119,7 +133,13 @@ export function formatDryRunRefusalComment(
 	return `${DRY_RUN_HEADING}\n\nThis PR wouldn't join ${umbrella} yet:\n\n${listRefusals(refusals, context)}\n\nOutside a dry run, the ${wrapInCode(ACCEPTED_LABEL)} label would be removed. It would need to be added again after fixing.`;
 }
 
-/** Writes the comment of a refusal, posted once `accepted` is removed. */
+/**
+ * Writes the comment of a refusal, posted once the accepted label is removed.
+ *
+ * @param {RefusedDecision} decision - The refusals, and the route if any.
+ * @param {MessageContext} context - The umbrellas the refusals name.
+ * @returns {string} The comment, in Markdown.
+ */
 export function formatRefusalComment(
 	{ route, refusals }: RefusedDecision,
 	context: MessageContext
@@ -128,14 +148,26 @@ export function formatRefusalComment(
 	return `**Release queue**: this PR didn't join ${umbrella}:\n\n${listRefusals(refusals, context)}\n\nThe ${wrapInCode(ACCEPTED_LABEL)} label was removed. Add it again after fixing.`;
 }
 
-/** Writes the comment of a join: the umbrella the PR is now part of. */
+/**
+ * Writes the comment of a join: the umbrella the PR is now part of.
+ *
+ * @param {Route} route - The umbrella branch and base the PR goes to.
+ * @param {Umbrella} umbrella - The umbrella PR it joined.
+ * @returns {string} The comment, in Markdown.
+ */
 export function formatJoinComment(route: Route, umbrella: Umbrella): string {
 	return `**Release queue**: squash-merged into ${wrapInCode(route.umbrellaBranch)}, the branch of ${describeUmbrella(route, umbrella)}. It ships when the umbrella PR is merged.`;
 }
 
-/** Writes the comment of a merged PR whose umbrella PR couldn't be opened. */
+/**
+ * Writes the comment of a merged PR whose umbrella PR couldn't be opened.
+ *
+ * @param {Route} route - The umbrella branch and base the PR goes to.
+ * @param {UnopenedJoin} join - The join, with the error that stopped it.
+ * @returns {string} The comment, in Markdown.
+ */
 export function formatUnopenedJoinComment(route: Route, { error }: UnopenedJoin): string {
 	const branch = wrapInCode(route.umbrellaBranch);
 	const reason = endWithPeriod(describeError(error));
-	return `**Release queue**: squash-merged into ${branch}, but the umbrella PR into ${wrapInCode(route.target)} couldn't be opened: ${reason} A maintainer needs to open it from ${branch}.`;
+	return `**Release queue**: squash-merged into ${branch}, but the umbrella PR into ${wrapInCode(route.umbrellaBase)} couldn't be opened: ${reason} A maintainer needs to open it from ${branch}.`;
 }

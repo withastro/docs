@@ -16,7 +16,7 @@ describe('chooseAction', () => {
 
 	it('refreshes on a workflow_dispatch, or with --refresh', () => {
 		assert.deepEqual(chooseAction({ eventName: 'workflow_dispatch' }), { type: 'refresh' });
-		assert.deepEqual(chooseAction({ refresh: true }), { type: 'refresh' });
+		assert.deepEqual(chooseAction({ isRefreshRequested: true }), { type: 'refresh' });
 	});
 
 	it('refuses a missing PR number, instead of refreshing', () => {
@@ -30,7 +30,7 @@ describe('chooseAction', () => {
 	});
 
 	it('refuses --refresh with --pr', () => {
-		assert.throws(() => chooseAction({ pr: '7', refresh: true }), /not both/);
+		assert.throws(() => chooseAction({ pr: '7', isRefreshRequested: true }), /not both/);
 	});
 });
 
@@ -45,14 +45,14 @@ describe('parseEvent', () => {
 		};
 		assert.deepEqual(parseEvent(JSON.stringify(event), path), {
 			pullRequest: 7,
-			sender: 'maintainer',
+			labelSender: 'maintainer',
 		});
 	});
 
 	it('reads neither from a workflow_dispatch event', () => {
 		assert.deepEqual(parseEvent('{"inputs":{}}', path), {
 			pullRequest: undefined,
-			sender: undefined,
+			labelSender: undefined,
 		});
 	});
 

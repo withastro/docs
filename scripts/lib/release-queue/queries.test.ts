@@ -50,7 +50,7 @@ describe('getPrereleasePullRequest', () => {
 	const preJson = 'repos/withastro/astro/contents/.changeset/pre.json?ref=next';
 	const nextPullRequests =
 		'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/next';
-	const mainPullRequest = { number: 18405, versions: [] };
+	const stablePullRequest = { number: 18405, versions: [] };
 	const preMode = (mode: string) => ({
 		content: Buffer.from(JSON.stringify({ mode, tag: 'beta' })).toString('base64'),
 	});
@@ -63,7 +63,7 @@ describe('getPrereleasePullRequest', () => {
 			},
 		});
 
-		const pr = await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), mainPullRequest);
+		const pr = await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest);
 
 		assert.deepEqual(pr, {
 			number: 18269,
@@ -77,7 +77,7 @@ describe('getPrereleasePullRequest', () => {
 		});
 
 		assert.equal(
-			await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), mainPullRequest),
+			await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
 			undefined
 		);
 	});
@@ -88,7 +88,7 @@ describe('getPrereleasePullRequest', () => {
 		await assert.rejects(
 			getPrereleasePullRequest(
 				new Repository(new GitHubClient('token'), FRAMEWORK_REPO),
-				mainPullRequest
+				stablePullRequest
 			),
 			{
 				name: 'GitHubError',
@@ -103,7 +103,7 @@ describe('getPrereleasePullRequest', () => {
 		});
 
 		await assert.rejects(
-			getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), mainPullRequest),
+			getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
 			(error: unknown) => {
 				assert.ok(error instanceof Error);
 				assert.match(error.message, /`\.changeset\/pre\.json` of `next` isn't valid JSON/);
@@ -120,7 +120,7 @@ describe('getPrereleasePullRequest', () => {
 			});
 
 			await assert.rejects(
-				getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), mainPullRequest),
+				getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
 				/`\.changeset\/pre\.json` of `next` has no `mode`/
 			);
 		});
@@ -131,8 +131,8 @@ describe('getPrereleasePullRequest', () => {
 			const github = stubGitHub(t, { getResponses });
 
 			assert.equal(
-				await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), mainPullRequest),
-				mainPullRequest
+				await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
+				stablePullRequest
 			);
 			assert.equal(github.countReads(nextPullRequests), 0);
 		}

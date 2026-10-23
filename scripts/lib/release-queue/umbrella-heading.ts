@@ -1,19 +1,11 @@
 import {
-	FALLBACK_RELEASE_LABEL,
 	FRAMEWORK_PACKAGE,
-	MAIN_BRANCH,
 	RELEASE_LABELS,
 	RELEASE_TITLE_PREFIX,
+	STABLE_BRANCH,
 	type ReleaseLabel,
 } from './config.ts';
-import type { MainRelease } from './release.ts';
-
-/**
- * An umbrella PR: an open one, or a planned one that a join would create,
- * named by its title. An umbrella whose creation was only printed stays
- * planned.
- */
-export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
+import type { StableRelease } from './release.ts';
 
 /** What an umbrella PR takes from the release it ships with. */
 export interface UmbrellaHeading {
@@ -22,20 +14,38 @@ export interface UmbrellaHeading {
 }
 
 /**
- * Gets what the umbrella PR merging into `target` takes from the next release
- * from `main`. The `main` umbrella is named after the `astro` version, as
- * merged PRs are posted to Discord. On `main`, anything but a minor is a
- * patch, including a release without `astro`. A major never gets here:
- * `decideJoin` refuses `main` PRs before one. A prerelease umbrella uses its
- * branch name, which says what it is for, and is a major.
+ * Gets the title and release label of the umbrella PR merging into
+ * `umbrellaBase`.
+ *
+ * @param {string} umbrellaBase - The branch the umbrella PR merges into.
+ * @param {StableRelease} release - The next release from the stable branch.
+ * @returns {UmbrellaHeading} The heading of the stable umbrella, or of a
+ *   prerelease umbrella for any other base.
  */
-export function getUmbrellaHeading(target: string, release: MainRelease): UmbrellaHeading {
-	if (target !== MAIN_BRANCH) {
-		return { title: `${RELEASE_TITLE_PREFIX} ${target} docs`, releaseLabel: RELEASE_LABELS.major };
-	}
-	const name = release.astroVersion ? `${FRAMEWORK_PACKAGE}@${release.astroVersion}` : target;
+export function getUmbrellaHeading(umbrellaBase: string, release: StableRelease): UmbrellaHeading {
+	return umbrellaBase === STABLE_BRANCH
+		? getStableUmbrellaHeading(release)
+		: getPrereleaseUmbrellaHeading(umbrellaBase);
+}
+
+/**
+ * Names the stable umbrella after the version of the framework package, as
+ * merged PRs are posted to Discord. Expects a release that isn't a major.
+ */
+function getStableUmbrellaHeading(release: StableRelease): UmbrellaHeading {
+	const name = release.frameworkVersion
+		? `${FRAMEWORK_PACKAGE}@${release.frameworkVersion}`
+		: STABLE_BRANCH;
 	return {
 		title: `${RELEASE_TITLE_PREFIX} ${name} docs`,
-		releaseLabel: release.type === 'minor' ? RELEASE_LABELS.minor : FALLBACK_RELEASE_LABEL,
+		releaseLabel: RELEASE_LABELS[release.type],
+	};
+}
+
+/** Names a prerelease umbrella after its branch, which says what it is for. */
+function getPrereleaseUmbrellaHeading(umbrellaBase: string): UmbrellaHeading {
+	return {
+		title: `${RELEASE_TITLE_PREFIX} ${umbrellaBase} docs`,
+		releaseLabel: RELEASE_LABELS.major,
 	};
 }

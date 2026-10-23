@@ -12,7 +12,7 @@ import {
 import type { Refusal, Route } from './routing.ts';
 
 const route: Route = {
-	target: 'main',
+	umbrellaBase: 'main',
 	umbrellaBranch: 'release-queue/main',
 	label: 'patch-release',
 	shouldRetarget: true,
@@ -36,8 +36,8 @@ describe('refusal descriptions', () => {
 			{ code: 'several-release-labels', labels: ['patch-release', 'minor-release'] },
 			{ code: 'mismatch', base: 'main', label: 'major-release' },
 			{ code: 'mismatch', base: 'v8', label: 'minor-release' },
-			{ code: 'major-on-main', astroVersion: '8.0.0' },
-			{ code: 'settled-umbrella', number: 42, releasePullRequest: 18405 },
+			{ code: 'major-on-stable', frameworkVersion: '8.0.0' },
+			{ code: 'settled-umbrella', number: 42, releasePrNumber: 18405 },
 			{ code: 'not-approved' },
 			{ code: 'changes-requested', reviewers: ['alice'] },
 			{ code: 'failing-checks', checks: ['Check Links'] },
@@ -73,10 +73,10 @@ describe('refusal descriptions', () => {
 	});
 
 	it('mentions the open main umbrella when the next astro release is a major', () => {
-		const refusal: Refusal = { code: 'major-on-main', astroVersion: '8.0.0' };
+		const refusal: Refusal = { code: 'major-on-stable', frameworkVersion: '8.0.0' };
 		assert.match(describeRefusal(refusal), /`astro@8.0.0`/);
 		assert.doesNotMatch(describeRefusal(refusal), /umbrella/);
-		assert.match(describeRefusal(refusal, { mainUmbrella: { number: 42 } }), /umbrella \(#42\)/);
+		assert.match(describeRefusal(refusal, { stableUmbrella: { number: 42 } }), /umbrella \(#42\)/);
 	});
 });
 

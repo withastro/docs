@@ -3,23 +3,21 @@ import { describe, it } from 'node:test';
 import {
 	formatUmbrellaBody,
 	parseReleaseMarker,
-	selectIncludedPullRequests,
+	parseIncludedPullRequests,
 } from './umbrella-body.ts';
 
-describe('selectIncludedPullRequests', () => {
-	it('keeps the PRs whose squash commit is on the branch, in commit order', () => {
-		const included = selectIncludedPullRequests(
-			[
-				{ number: 3, title: 'Third', mergeCommitSha: 'c' },
-				{ number: 1, title: 'First', mergeCommitSha: 'a' },
-				{ number: 9, title: 'From an earlier release', mergeCommitSha: 'old' },
-				{ number: 5, title: 'Closed without merging', mergeCommitSha: null },
-			],
-			['a', 'main-merge', 'c']
-		);
+describe('parseIncludedPullRequests', () => {
+	it('reads the PR of each squash commit, in commit order', () => {
+		const included = parseIncludedPullRequests([
+			'Document the new option (#7)',
+			"Merge branch 'main' into release-queue/main",
+			'Fix (a typo) in the guide (#3)',
+			'Revert the option (#12) (#15)',
+		]);
 		assert.deepEqual(included, [
-			{ number: 1, title: 'First' },
-			{ number: 3, title: 'Third' },
+			{ number: 7, title: 'Document the new option' },
+			{ number: 3, title: 'Fix (a typo) in the guide' },
+			{ number: 15, title: 'Revert the option (#12)' },
 		]);
 	});
 });
@@ -32,14 +30,14 @@ describe('formatUmbrellaBody', () => {
 
 	it('links the release PR of the main umbrella, and lists the included PRs', () => {
 		assert.equal(
-			formatUmbrellaBody('main', { releasePullRequest: 18459, included }),
+			formatUmbrellaBody('main', { releasePrNumber: 18459, included }),
 			[
 				'Ships with withastro/astro#18459. This includes:',
 				'',
 				'- Document remote image fetch retries (#14580)',
 				'- Fix a typo (#14581)',
 				'',
-				'<sub>Managed by the release queue: the bot rewrites this description after each join.</sub>',
+				'<sub>Managed by the release queue: the bot rewrites this description after each join and each manual run.</sub>',
 				'<!-- release-queue:release-pr=18459 -->',
 			].join('\n')
 		);
@@ -55,7 +53,7 @@ describe('formatUmbrellaBody', () => {
 	});
 
 	it('links the release PR of a prerelease umbrella, with a marker', () => {
-		const body = formatUmbrellaBody('cloudflare-next', { releasePullRequest: 18269, included });
+		const body = formatUmbrellaBody('cloudflare-next', { releasePrNumber: 18269, included });
 		assert.match(body, /^Ships with withastro\/astro#18269\. This includes:/);
 		assert.equal(parseReleaseMarker(body), 18269);
 	});
@@ -69,7 +67,7 @@ describe('formatUmbrellaBody', () => {
 
 	it('says when no PR is included yet', () => {
 		assert.match(
-			formatUmbrellaBody('main', { releasePullRequest: 18459, included: [] }),
+			formatUmbrellaBody('main', { releasePrNumber: 18459, included: [] }),
 			/^Ships with withastro\/astro#18459\. No docs PR is included yet\.\n\n<sub>/
 		);
 	});
@@ -77,11 +75,24 @@ describe('formatUmbrellaBody', () => {
 
 describe('parseReleaseMarker', () => {
 	it('reads the release PR from the body the bot wrote', () => {
-		const body = formatUmbrellaBody('main', { releasePullRequest: 18405, included: [] });
+		const body = formatUmbrellaBody('main', { releasePrNumber: 18405, included: [] });
 		assert.equal(parseReleaseMarker(body), 18405);
 	});
 
 	it('finds no release PR in a body without a marker', () => {
 		assert.equal(parseReleaseMarker('Release umbrella for `main`.'), undefined);
+	});
+
+	describe('ignores a marker in the title of an included PR', () => {
+		const included = [{ number: 7, title: 'Fix <!-- release-queue:release-pr=1 -->' }];
+
+		it('when the umbrella links a release PR', () => {
+			const body = formatUmbrellaBody('main', { releasePrNumber: 18405, included });
+			assert.equal(parseReleaseMarker(body), 18405);
+		});
+
+		it("when the umbrella doesn't link one", () => {
+			assert.equal(parseReleaseMarker(formatUmbrellaBody('main', { included })), undefined);
+		});
 	});
 });

@@ -2,17 +2,17 @@ import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
 import { syncMergeBlockReview } from './merge-block.ts';
 import { REPO } from './testing/fixtures.ts';
-import { stubGitHub } from './testing/stub-github.ts';
+import { readBody, stubGitHub } from './testing/stub-github.ts';
 import { formatUmbrellaBody } from './umbrella-body.ts';
-import type { OpenUmbrella } from './umbrella-queries.ts';
+import type { UmbrellaPullRequest } from './umbrella-queries.ts';
 
 /** The `main` umbrella #42, linked to release PR #18405. */
-const umbrella: OpenUmbrella = {
+const umbrella: UmbrellaPullRequest = {
 	number: 42,
 	title: '[ci] release astro@7.5.0 docs',
-	body: formatUmbrellaBody('main', { releasePullRequest: 18405, included: [] }),
+	body: formatUmbrellaBody('main', { releasePrNumber: 18405, included: [] }),
 	labels: ['merge-on-release', 'minor-release'],
-	target: 'main',
+	base: 'main',
 	branch: 'release-queue/main',
 };
 
@@ -43,12 +43,12 @@ function stub(t: TestContext, reviews: unknown[], openPullRequests: number[] = [
 /** Submits the review of `reviewedUmbrella`, and returns its body. */
 async function submittedChecklist(
 	t: TestContext,
-	reviewedUmbrella: OpenUmbrella,
+	reviewedUmbrella: UmbrellaPullRequest,
 	openPullRequests: number[] = []
 ): Promise<string> {
 	const github = stub(t, [], openPullRequests);
 	await syncMergeBlockReview(github.repository(), reviewedUmbrella, { shouldBlock: true });
-	return (github.writes[0].body as { body: string }).body;
+	return readBody(github.writes[0]);
 }
 
 describe('syncMergeBlockReview', () => {

@@ -12,8 +12,14 @@ export interface LabelChanges {
 }
 
 /**
- * Gets the label changes that give an umbrella PR `merge-on-release` and its
- * release label. Other labels, like `i18n`, stay.
+ * Gets the label changes that give an umbrella PR the label that marks
+ * umbrella PRs, and its release label. Other labels, such as the translations
+ * label, stay.
+ *
+ * @param {string[]} current - The labels of the umbrella PR.
+ * @param {ReleaseLabel} releaseLabel - The label of the release it ships with.
+ * @returns {LabelChanges} The labels to add, and the other release labels to
+ *   remove.
  */
 export function getLabelChanges(current: string[], releaseLabel: ReleaseLabel): LabelChanges {
 	const wanted = [MERGE_ON_RELEASE_LABEL, releaseLabel];
@@ -26,8 +32,12 @@ export function getLabelChanges(current: string[], releaseLabel: ReleaseLabel): 
 }
 
 /**
- * Gets the label changes of an umbrella whose release can't be followed: it
- * keeps its release label, and gets the fallback one only if it has none.
+ * Gets the label changes of an umbrella whose release can't be followed.
+ *
+ * @param {string[]} current - The labels of the umbrella PR.
+ * @returns {LabelChanges} The label that marks umbrella PRs if missing, and
+ *   the fallback release label only when the umbrella has none. Nothing to
+ *   remove.
  */
 export function getKeptLabelChanges(current: string[]): LabelChanges {
 	const hasReleaseLabel = ALL_RELEASE_LABELS.some((label) => current.includes(label));
@@ -40,7 +50,13 @@ export function getKeptLabelChanges(current: string[]): LabelChanges {
 	};
 }
 
-/** Gets the labels of an umbrella PR once `changes` are applied. */
+/**
+ * Gets the labels of an umbrella PR once label changes are applied.
+ *
+ * @param {string[]} current - The labels of the umbrella PR.
+ * @param {LabelChanges} changes - The labels to add and to remove.
+ * @returns {string[]} The new labels.
+ */
 export function applyToLabels(current: string[], { toAdd, toRemove }: LabelChanges): string[] {
 	return [...current, ...toAdd].filter((label) => !toRemove.includes(label));
 }

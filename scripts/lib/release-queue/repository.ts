@@ -1,9 +1,24 @@
 import type { GitHubClient, WriteMethod } from './github.ts';
+import type { Mode } from './modes.ts';
 
-/** The docs repository, and `withastro/astro` for its release PRs. */
+/** The docs repository, and the framework repository for its release PRs. */
 export interface Repositories {
 	docs: Repository;
 	framework: Repository;
+}
+
+/** What the bot runs with, whether it handles a PR or refreshes umbrellas. */
+export interface QueueOptions {
+	/**
+	 * The docs repository through `GITHUB_TOKEN`: reads the PR, posts dry-run
+	 * comments, and submits merge-block reviews.
+	 */
+	actions: Repository;
+	/** The docs repository as the bot account: joins, refuses, and refreshes. */
+	bot: Repository;
+	/** The framework repository, read for its release PRs. */
+	framework: Repository;
+	mode: Mode;
 }
 
 /**
@@ -15,7 +30,12 @@ export class Repository {
 	readonly owner: string;
 	#client: GitHubClient;
 
-	/** Binds `client` to the repository `name`, such as `withastro/docs`. */
+	/**
+	 * Binds a client to a repository.
+	 *
+	 * @param {GitHubClient} client - The client, with its token.
+	 * @param {string} name - The repository, as `<owner>/<name>`.
+	 */
 	constructor(client: GitHubClient, name: string) {
 		this.#client = client;
 		this.name = name;

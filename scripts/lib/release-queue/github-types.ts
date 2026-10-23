@@ -9,13 +9,18 @@ export interface PullRequestResponse {
 	state: PullRequestState;
 	draft: boolean;
 	mergeable: boolean | null;
-	merge_commit_sha: string | null;
 	base: { ref: string };
 	/** `repo` is `null` when the fork was deleted. */
 	head: { ref: string; sha: string; repo?: { full_name: string } | null };
 	labels: { name: string }[];
 	body: string | null;
 	merged?: boolean;
+}
+
+export interface CompareResponse {
+	ahead_by: number;
+	/** At most 250 commits, oldest first. */
+	commits: { commit: { message: string } }[];
 }
 
 export type ReviewResponseState =

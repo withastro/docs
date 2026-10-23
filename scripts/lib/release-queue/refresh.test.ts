@@ -2,47 +2,43 @@ import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
 import { FRAMEWORK_REPO } from './config.ts';
 import { refreshOpenUmbrellas, refreshUmbrella } from './refresh.ts';
-import { getMainRelease } from './release.ts';
+import { getStableRelease } from './release.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from './testing/fixtures.ts';
 import { ACTIONS_TOKEN, BOT_TOKEN, queueOptions } from './testing/queue-options.ts';
 import { stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
-import type { OpenUmbrella } from './umbrella-queries.ts';
+import type { UmbrellaPullRequest } from './umbrella-queries.ts';
 import { formatUmbrellaBody } from './umbrella-body.ts';
 
 /** The next release from `main`, with release PR `number` open. */
-const releaseWith = (number: number, astroVersion: string) =>
-	getMainRelease({ number, versions: [{ name: 'astro', version: astroVersion }] });
+const releaseWith = (number: number, frameworkVersion: string) =>
+	getStableRelease({ number, versions: [{ name: 'astro', version: frameworkVersion }] });
 
-const noRelease = getMainRelease();
+const noRelease = getStableRelease();
 
 const included = [{ number: 7, title: 'Document the new option' }];
 
 /** The `main` umbrella, up to date with release PR #18405 (`astro@7.5.0`). */
-const umbrella: OpenUmbrella = {
+const umbrella: UmbrellaPullRequest = {
 	number: 42,
 	title: '[ci] release astro@7.5.0 docs',
-	body: formatUmbrellaBody('main', { releasePullRequest: 18405, included: [] }),
+	body: formatUmbrellaBody('main', { releasePrNumber: 18405, included: [] }),
 	labels: ['merge-on-release', 'minor-release', 'i18n'],
-	target: 'main',
+	base: 'main',
 	branch: 'release-queue/main',
 };
 
-/** #7 is on the umbrella branch. #3 had the same base in an earlier release. */
-const history = (target = 'main') => ({
-	[`repos/${REPO}/pulls?state=closed&base=release-queue/${target}`]: [
-		pullRequestResponse({ number: 3, title: 'Earlier release', merge_commit_sha: 'old-sha' }),
-		pullRequestResponse({ number: 7, title: 'Document the new option', merge_commit_sha: 'sha-7' }),
-	],
-	[`repos/${REPO}/compare/${target}...release-queue/${target}`]: {
+/** The squash commit of #7 is on the umbrella branch. */
+const history = (umbrellaBase = 'main') => ({
+	[`repos/${REPO}/compare/${umbrellaBase}...release-queue/${umbrellaBase}`]: {
 		ahead_by: 1,
-		commits: [{ sha: 'sha-7' }],
+		commits: [{ commit: { message: 'Document the new option (#7)\n\nDetails.' } }],
 	},
 });
 
 /** No merge-block review on umbrella `number`, and no PR on its branch. */
-const reviews = (number: number, target = 'main') => ({
+const reviews = (number: number, umbrellaBase = 'main') => ({
 	[`repos/${REPO}/pulls/${number}/reviews`]: [],
-	[`repos/${REPO}/pulls?state=open&base=release-queue/${target}`]: [],
+	[`repos/${REPO}/pulls?state=open&base=release-queue/${umbrellaBase}`]: [],
 });
 
 /** `next` in prerelease mode, with its release PR `number` open. */
@@ -76,8 +72,8 @@ const patchOf = (writes: Write[]) =>
 		| undefined;
 const labelWrites = (writes: Write[]) => writes.filter(({ method }) => method !== 'PATCH');
 
-const umbrellaBody = (releasePullRequest?: number) =>
-	formatUmbrellaBody('main', { releasePullRequest, included });
+const umbrellaBody = (releasePrNumber?: number) =>
+	formatUmbrellaBody('main', { releasePrNumber, included });
 
 describe('refreshUmbrella', () => {
 	describe('with a release PR open', () => {
@@ -237,12 +233,12 @@ describe('refreshUmbrella', () => {
 		const github = stubGitHub(t, {
 			getResponses: { ...history('cloudflare-next'), ...prereleaseOf(18269) },
 		});
-		const prerelease: OpenUmbrella = {
+		const prerelease: UmbrellaPullRequest = {
 			number: 43,
 			title: 'Old title',
 			body: '',
 			labels: [],
-			target: 'cloudflare-next',
+			base: 'cloudflare-next',
 			branch: 'release-queue/cloudflare-next',
 		};
 
@@ -250,7 +246,7 @@ describe('refreshUmbrella', () => {
 
 		assert.deepEqual(patchOf(github.writes), {
 			title: '[ci] release cloudflare-next docs',
-			body: formatUmbrellaBody('cloudflare-next', { releasePullRequest: 18269, included }),
+			body: formatUmbrellaBody('cloudflare-next', { releasePrNumber: 18269, included }),
 		});
 		assert.deepEqual(labelWrites(github.writes), [
 			{
@@ -279,7 +275,7 @@ describe('refreshOpenUmbrellas', () => {
 	const openPullRequests = {
 		[`repos/${REPO}/pulls?state=open`]: [
 			umbrellaResponse(),
-			umbrellaResponse({ number: 43, target: 'cloudflare-next' }),
+			umbrellaResponse({ number: 43, umbrellaBase: 'cloudflare-next' }),
 			umbrellaResponse({
 				number: 44,
 				head: { ref: 'release-queue/main', sha: 'fork-sha', repo: { full_name: 'someone/docs' } },
@@ -302,7 +298,7 @@ describe('refreshOpenUmbrellas', () => {
 		);
 
 	it('reads a description edited in the browser as up to date', async (t) => {
-		const body = formatUmbrellaBody('main', { releasePullRequest: 1, included });
+		const body = formatUmbrellaBody('main', { releasePrNumber: 1, included });
 		const github = stubGitHub(t, {
 			getResponses: {
 				...openPullRequests,
@@ -317,7 +313,7 @@ describe('refreshOpenUmbrellas', () => {
 			},
 		});
 
-		await refreshOpenUmbrellas(queueOptions(github, 'main-only'));
+		await refreshOpenUmbrellas(queueOptions(github, 'stable-only'));
 
 		assert.deepEqual(github.writes, []);
 	});
@@ -330,10 +326,10 @@ describe('refreshOpenUmbrellas', () => {
 		assert.deepEqual(github.writes, []);
 	});
 
-	it('refreshes only the main umbrella in main-only mode', async (t) => {
+	it('refreshes only the main umbrella in stable-only mode', async (t) => {
 		const github = stubGitHub(t, { getResponses: openPullRequests });
 
-		await refreshOpenUmbrellas(queueOptions(github, 'main-only'));
+		await refreshOpenUmbrellas(queueOptions(github, 'stable-only'));
 
 		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42]);
 		// Without a join, no merge-block review is requested.
@@ -357,7 +353,7 @@ describe('refreshOpenUmbrellas', () => {
 			},
 		});
 
-		await refreshOpenUmbrellas(queueOptions(github, 'main-only'));
+		await refreshOpenUmbrellas(queueOptions(github, 'stable-only'));
 
 		assert.deepEqual(
 			github.writesBy(ACTIONS_TOKEN).map(({ method, path }) => `${method} ${path}`),
@@ -370,6 +366,21 @@ describe('refreshOpenUmbrellas', () => {
 
 		await refreshOpenUmbrellas(queueOptions(github, 'all'));
 
+		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42, 43]);
+	});
+
+	it('refreshes the other umbrellas when one fails, then reports it', async (t) => {
+		const github = stubGitHub(t, {
+			getResponses: openPullRequests,
+			writeFailures: { [`PATCH repos/${REPO}/pulls/42`]: { status: 500, message: 'Oops' } },
+		});
+
+		await assert.rejects(refreshOpenUmbrellas(queueOptions(github, 'all')), (error) => {
+			assert.ok(error instanceof AggregateError);
+			assert.equal(error.message, "Couldn't refresh 1 of 2 umbrella PRs.");
+			assert.match(String(error.errors[0]), /Couldn't refresh #42\./);
+			return true;
+		});
 		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42, 43]);
 	});
 });

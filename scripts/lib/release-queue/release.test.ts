@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { getMainRelease, parseReleaseVersions } from './release.ts';
+import { getStableRelease, parseReleaseVersions } from './release.ts';
 
 const body = `This PR was opened by the [Changesets release](https://github.com/changesets/action) GitHub action.
 
@@ -32,15 +32,15 @@ describe('parseReleaseVersions', () => {
 	});
 });
 
-describe('getMainRelease', () => {
+describe('getStableRelease', () => {
 	const pullRequest = (versions: { name: string; version: string }[]) => ({
 		number: 18459,
 		versions,
 	});
 
 	it('takes the version of the astro package by its exact name', () => {
-		const release = getMainRelease(pullRequest(parseReleaseVersions(body)));
-		assert.equal(release.astroVersion, '7.4.1');
+		const release = getStableRelease(pullRequest(parseReleaseVersions(body)));
+		assert.equal(release.frameworkVersion, '7.4.1');
 	});
 
 	for (const [version, type] of [
@@ -51,31 +51,34 @@ describe('getMainRelease', () => {
 		['7.5.0-alpha.0', 'patch'],
 	] as const) {
 		it(`reads astro@${version} as a ${type} release`, () => {
-			assert.equal(getMainRelease(pullRequest([{ name: 'astro', version }])).type, type);
+			assert.equal(getStableRelease(pullRequest([{ name: 'astro', version }])).type, type);
 		});
 	}
 
 	it('reads a patch when there is no release PR', () => {
-		assert.deepEqual(getMainRelease(), {
+		assert.deepEqual(getStableRelease(), {
 			type: 'patch',
-			astroVersion: undefined,
+			frameworkVersion: undefined,
 			pullRequest: undefined,
 		});
 	});
 
 	it('reads a patch when astro is not released', () => {
-		const release = getMainRelease(pullRequest([{ name: '@astrojs/vercel', version: '11.1.0' }]));
+		const release = getStableRelease(pullRequest([{ name: '@astrojs/vercel', version: '11.1.0' }]));
 		assert.equal(release.type, 'patch');
-		assert.equal(release.astroVersion, undefined);
+		assert.equal(release.frameworkVersion, undefined);
 	});
 
 	it('reads the release type from the astro version, and keeps the PR', () => {
 		const minor = pullRequest([{ name: 'astro', version: '7.5.0' }]);
-		assert.deepEqual(getMainRelease(minor), {
+		assert.deepEqual(getStableRelease(minor), {
 			type: 'minor',
-			astroVersion: '7.5.0',
+			frameworkVersion: '7.5.0',
 			pullRequest: minor,
 		});
-		assert.equal(getMainRelease(pullRequest([{ name: 'astro', version: '8.0.0' }])).type, 'major');
+		assert.equal(
+			getStableRelease(pullRequest([{ name: 'astro', version: '8.0.0' }])).type,
+			'major'
+		);
 	});
 });

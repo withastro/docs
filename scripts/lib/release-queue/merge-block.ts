@@ -3,15 +3,14 @@ import {
 	LUNARIA_DIRECTIVE,
 	LUNARIA_DIRECTIVE_DOCS,
 	RELEASE_TITLE_PREFIX,
-	REVIEWER_LOGIN,
+	MERGE_BLOCK_REVIEWER_LOGIN,
 	TRANSLATIONS_LABEL,
 } from './config.ts';
-import { formatFrameworkReference } from './github-links.ts';
 import type { ReviewResponse } from './github-types.ts';
 import type { Repository } from './repository.ts';
-import { normalizeLineEndings } from './text.ts';
+import { formatFrameworkReference, normalizeLineEndings } from './github-text.ts';
 import { parseReleaseMarker } from './umbrella-body.ts';
-import type { OpenUmbrella } from './umbrella-queries.ts';
+import type { UmbrellaPullRequest } from './umbrella-queries.ts';
 
 interface SubmittedReview extends ReviewResponse {
 	id: number;
@@ -23,7 +22,7 @@ interface SubmittedReview extends ReviewResponse {
  * through before merging an umbrella PR with `openPullRequests` still on its
  * branch, and the dismissal that lifts the block.
  */
-function formatMergeBlockBody(umbrella: OpenUmbrella, openPullRequests: number[]): string {
+function formatMergeBlockBody(umbrella: UmbrellaPullRequest, openPullRequests: number[]): string {
 	const items = [
 		describeReleaseItem(umbrella),
 		describeBranchItem(umbrella, openPullRequests),
@@ -33,22 +32,25 @@ function formatMergeBlockBody(umbrella: OpenUmbrella, openPullRequests: number[]
 	return `**Before merging**, check:\n\n${checklist}\n\nThen dismiss this review. The release queue requests changes again if more docs PRs join.`;
 }
 
-function describeReleaseItem(umbrella: OpenUmbrella): string {
-	const releasePullRequest = parseReleaseMarker(umbrella.body);
-	return releasePullRequest === undefined
+function describeReleaseItem(umbrella: UmbrellaPullRequest): string {
+	const releasePrNumber = parseReleaseMarker(umbrella.body);
+	return releasePrNumber === undefined
 		? `The \`${RELEASE_TITLE_PREFIX}\` PR of \`${FRAMEWORK_REPO}\` this umbrella ships with is merged.`
-		: `${formatFrameworkReference(releasePullRequest)} is merged.`;
+		: `${formatFrameworkReference(releasePrNumber)} is merged.`;
 }
 
-function describeBranchItem({ branch, target }: OpenUmbrella, openPullRequests: number[]): string {
+function describeBranchItem(
+	{ branch, base }: UmbrellaPullRequest,
+	openPullRequests: number[]
+): string {
 	if (openPullRequests.length === 0) return `No open PR targets \`${branch}\`.`;
 	const list = openPullRequests.map((prNumber) => `#${prNumber}`).join(', ');
-	return `These PRs still target \`${branch}\`: ${list}. Merge them into the umbrella, or change their base to \`${target}\` and update them after the umbrella is merged.`;
+	return `These PRs still target \`${branch}\`: ${list}. Merge them into the umbrella, or change their base to \`${base}\` and update them after the umbrella is merged.`;
 }
 
 /**
- * Names the `i18n` label instead of reading it: `pr-labeler.yml` adds it after
- * the merge, with `GITHUB_TOKEN`, which doesn't trigger this workflow.
+ * Names the translations label instead of reading it: `pr-labeler.yml` adds it
+ * after the merge, with `GITHUB_TOKEN`, which doesn't trigger this workflow.
  */
 function describeLunariaItem(): string {
 	return `If the umbrella has the \`${TRANSLATIONS_LABEL}\` label, the commit body has a [Lunaria directive](${LUNARIA_DIRECTIVE_DOCS}), for example \`${LUNARIA_DIRECTIVE}\`. The squash commit body is empty by default: add it in the merge dialog.`;
@@ -60,19 +62,26 @@ function describeLunariaItem(): string {
  */
 function findActiveReview(reviews: SubmittedReview[]): SubmittedReview | undefined {
 	return reviews.findLast(
-		({ user, state }) => user?.login === REVIEWER_LOGIN && state === 'CHANGES_REQUESTED'
+		({ user, state }) => user?.login === MERGE_BLOCK_REVIEWER_LOGIN && state === 'CHANGES_REQUESTED'
 	);
 }
 
 /**
- * Keeps the merge-block review of an umbrella PR up to date. Updates the
- * active review when there is one. Otherwise, submits a new one when
- * `shouldBlock`: after a join, as a dismissed review no longer covers the PRs
- * that joined since.
+ * Keeps the merge-block review of an umbrella PR up to date.
+ *
+ * Updates the active review when there is one. Otherwise, submits a new one
+ * when `shouldBlock` is set.
+ *
+ * @param {Repository} repo - The docs repository, through `GITHUB_TOKEN`.
+ * @param {UmbrellaPullRequest} umbrella - The umbrella PR, as refreshed.
+ * @param {object} options - When to block the merge again.
+ * @param {boolean} options.shouldBlock - Whether to submit a review when none
+ *   is active: after a join, as a dismissed review doesn't cover the PRs that
+ *   joined since.
  */
 export async function syncMergeBlockReview(
 	repo: Repository,
-	umbrella: OpenUmbrella,
+	umbrella: UmbrellaPullRequest,
 	{ shouldBlock }: { shouldBlock: boolean }
 ) {
 	const [reviews, openPullRequests] = await Promise.all([

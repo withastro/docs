@@ -1,57 +1,81 @@
 import { isFrameworkPullRequestMerged } from './queries.ts';
-import type { MainRelease } from './release.ts';
-import { MAIN_BRANCH, MAIN_UMBRELLA_BRANCH } from './config.ts';
+import type { StableRelease } from './release.ts';
+import { STABLE_BRANCH, STABLE_UMBRELLA_BRANCH } from './config.ts';
 import type { SettledUmbrella } from './routing.ts';
 import type { Repositories, Repository } from './repository.ts';
-import { findOpenUmbrella, type OpenUmbrella } from './umbrella-queries.ts';
+import { findOpenUmbrella, type UmbrellaPullRequest } from './umbrella-queries.ts';
 import { parseReleaseMarker } from './umbrella-body.ts';
 
 /**
- * How an umbrella relates to the release PRs of `withastro/astro`:
+ * How an umbrella relates to the release PRs of the framework repository:
  * - `follows`: it takes its title, label and link from the open release PR.
  * - `kept`: no release PR is open. It keeps what it has, and its link if any.
  * - `settled`: the release PR it links is merged. It keeps everything until a
  *   maintainer merges it, even when the next release PR opens.
  */
-type ReleaseState =
+export type ReleaseState =
 	| { status: 'follows' }
-	| { status: 'kept'; releasePullRequest?: number | undefined }
-	| { status: 'settled'; releasePullRequest: number };
+	| { status: 'kept'; releasePrNumber?: number | undefined }
+	| { status: 'settled'; releasePrNumber: number };
 
 /**
- * Gets the release state of an umbrella. Prerelease umbrellas always follow:
- * their branch has continuous betas.
+ * Gets how an umbrella relates to the release PRs.
+ *
+ * @param {Repository} framework - The framework repository.
+ * @param {UmbrellaPullRequest} umbrella - The umbrella PR, with the release PR
+ *   its body links.
+ * @param {StableRelease} release - The next release from the stable branch.
+ * @returns {Promise<ReleaseState>} The release state. A prerelease umbrella
+ *   always follows: its branch has continuous betas.
  */
 export async function getReleaseState(
 	framework: Repository,
-	umbrella: OpenUmbrella,
-	release: MainRelease
+	umbrella: UmbrellaPullRequest,
+	release: StableRelease
 ): Promise<ReleaseState> {
-	if (umbrella.target !== MAIN_BRANCH) return { status: 'follows' };
-	const linked = parseReleaseMarker(umbrella.body);
-	const open = release.pullRequest?.number;
-	// A release PR closed without merging settles nothing.
+	if (umbrella.base !== STABLE_BRANCH) return { status: 'follows' };
+	const linkedReleasePrNumber = parseReleaseMarker(umbrella.body);
+	const openReleasePrNumber = release.pullRequest?.number;
 	if (
-		linked !== undefined &&
-		linked !== open &&
-		(await isFrameworkPullRequestMerged(framework, linked))
+		linkedReleasePrNumber !== undefined &&
+		(await isLinkedReleaseMerged(framework, linkedReleasePrNumber, openReleasePrNumber))
 	) {
-		return { status: 'settled', releasePullRequest: linked };
+		return { status: 'settled', releasePrNumber: linkedReleasePrNumber };
 	}
-	return open === undefined
-		? { status: 'kept', releasePullRequest: linked }
+	return openReleasePrNumber === undefined
+		? { status: 'kept', releasePrNumber: linkedReleasePrNumber }
 		: { status: 'follows' };
 }
 
-/** Gets the open `main` umbrella if it's settled, for `decideJoin`. */
-export async function getSettledMainUmbrella(
+/**
+ * Whether the linked release PR is merged. A release PR closed without
+ * merging settles nothing, and the open one isn't merged yet.
+ */
+async function isLinkedReleaseMerged(
+	framework: Repository,
+	linkedReleasePrNumber: number,
+	openReleasePrNumber: number | undefined
+): Promise<boolean> {
+	if (linkedReleasePrNumber === openReleasePrNumber) return false;
+	return isFrameworkPullRequestMerged(framework, linkedReleasePrNumber);
+}
+
+/**
+ * Gets the open stable umbrella if it's settled.
+ *
+ * @param {Repositories} repositories - The docs and framework repositories.
+ * @param {StableRelease} release - The next release from the stable branch.
+ * @returns {Promise<SettledUmbrella | undefined>} The settled umbrella, or
+ *   `undefined` when none is open or it isn't settled.
+ */
+export async function getSettledStableUmbrella(
 	{ docs, framework }: Repositories,
-	release: MainRelease
+	release: StableRelease
 ): Promise<SettledUmbrella | undefined> {
-	const umbrella = await findOpenUmbrella(docs, MAIN_UMBRELLA_BRANCH);
+	const umbrella = await findOpenUmbrella(docs, STABLE_UMBRELLA_BRANCH);
 	if (!umbrella) return undefined;
 	const state = await getReleaseState(framework, umbrella, release);
 	return state.status === 'settled'
-		? { number: umbrella.number, releasePullRequest: state.releasePullRequest }
+		? { number: umbrella.number, releasePrNumber: state.releasePrNumber }
 		: undefined;
 }

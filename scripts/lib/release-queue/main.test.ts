@@ -59,6 +59,20 @@ describe('runReleaseQueue', () => {
 		);
 	});
 
+	it('refuses an event without a sender in GitHub Actions', async (t) => {
+		const github = stubGitHub(t, {});
+		const path = await writeEvent({ pull_request: { number: 7 } });
+
+		await assert.rejects(
+			runReleaseQueue({
+				flags: noFlags,
+				env: { ...env, GITHUB_ACTIONS: 'true', GITHUB_EVENT_PATH: path },
+			}),
+			/^Error: The event has no sender: the write access check needs one\.$/
+		);
+		assert.deepEqual(github.calls, []);
+	});
+
 	it('requires the bot token to write outside a dry run', async () => {
 		await assert.rejects(
 			runReleaseQueue({

@@ -19,7 +19,7 @@ describe('GitHubClient', () => {
 		assert.deepEqual(data, { number: 7 });
 		const [url, init] = fetch.mock.calls[0].arguments;
 		assert.equal(url, 'https://api.github.com/repos/withastro/docs/pulls/7');
-		assert.equal((init?.headers as Record<string, string>).Authorization, 'Bearer token');
+		assert.equal(new Headers(init?.headers).get('authorization'), 'Bearer token');
 	});
 
 	it('answers `undefined` without a body', async (t) => {
@@ -50,6 +50,15 @@ describe('GitHubClient', () => {
 				assert.equal(error.githubReason, 'Validation Failed: No commits between main and x');
 				return true;
 			}
+		);
+	});
+
+	it('names the request when a JSON answer is malformed', async (t) => {
+		answer(t, new Response('{', { headers: { 'content-type': 'application/json' } }));
+
+		await assert.rejects(
+			new GitHubClient('token').get('repos/withastro/docs/pulls/7'),
+			/^Error: GET repos\/withastro\/docs\/pulls\/7 isn't valid JSON\.$/
 		);
 	});
 

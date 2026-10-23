@@ -1,8 +1,9 @@
-import { FRAMEWORK_PRERELEASE_BRANCH, MAIN_BRANCH } from './config.ts';
+import { FRAMEWORK_PRERELEASE_BRANCH, STABLE_BRANCH } from './config.ts';
 import { GitHubError } from './github-error.ts';
 import type {
 	CheckRunResponse,
 	CommitStatusResponse,
+	CompareResponse,
 	PullRequestResponse,
 	ReviewResponse,
 	RuleResponse,
@@ -34,7 +35,14 @@ export interface PullRequest extends DocsPullRequest {
 	isMergeable: boolean | null;
 }
 
-/** Gets a docs PR for routing, once GitHub knows if it's mergeable. */
+/**
+ * Gets a docs PR for routing, once GitHub knows if it's mergeable.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {number} prNumber - The number of the docs PR.
+ * @returns {Promise<PullRequest>} The PR. Its mergeability stays `null` when
+ *   GitHub hasn't computed it after a few attempts.
+ */
 export async function getPullRequest(repo: Repository, prNumber: number): Promise<PullRequest> {
 	const data = await getPullRequestWithMergeability(repo, prNumber);
 	return {
@@ -62,7 +70,14 @@ function getPullRequestWithMergeability(repo: Repository, prNumber: number) {
 	});
 }
 
-/** Gets the commit a branch points to, or `undefined` if it doesn't exist. */
+/**
+ * Gets the commit a branch points to.
+ *
+ * @param {Repository} repo - The repository of the branch.
+ * @param {string} branch - The branch name.
+ * @returns {Promise<string | undefined>} The commit SHA, or `undefined` when
+ *   the branch doesn't exist.
+ */
 export async function getBranchSha(repo: Repository, branch: string): Promise<string | undefined> {
 	try {
 		const { object } = await repo.get<{ object: { sha: string } }>(`git/ref/heads/${branch}`);
@@ -73,32 +88,63 @@ export async function getBranchSha(repo: Repository, branch: string): Promise<st
 	}
 }
 
-/** Counts the commits of `head` that aren't in `base`. */
-export async function countCommitsAhead(repo: Repository, base: string, head: string) {
-	const { ahead_by } = await compare(repo, base, head);
+/**
+ * Counts the commits of a branch that aren't in another.
+ *
+ * @param {Repository} repo - The repository of both branches.
+ * @param {string} base - The branch to compare with.
+ * @param {string} head - The branch whose commits are counted.
+ * @returns {Promise<number>} The number of commits of `head` missing in `base`.
+ */
+export async function countCommitsAhead(
+	repo: Repository,
+	base: string,
+	head: string
+): Promise<number> {
+	const { ahead_by } = await compareBranches(repo, base, head);
 	return ahead_by;
 }
 
-/** Lists the commits of `head` that aren't in `base`, oldest first. */
-export async function listCommitsAhead(
+/**
+ * Lists the titles of the commits of a branch that aren't in another.
+ *
+ * @param {Repository} repo - The repository of both branches.
+ * @param {string} base - The branch to compare with.
+ * @param {string} head - The branch whose commits are listed.
+ * @returns {Promise<string[]>} The first line of the message of each commit
+ *   of `head` missing in `base`, oldest first.
+ */
+export async function listCommitTitlesAhead(
 	repo: Repository,
 	base: string,
 	head: string
 ): Promise<string[]> {
-	const { commits } = await compare(repo, base, head);
-	return commits.map(({ sha }) => sha);
+	const { commits } = await compareBranches(repo, base, head);
+	return commits.map(({ commit }) => commit.message.split('\n', 1)[0] ?? '');
 }
 
-function compare(repo: Repository, base: string, head: string) {
-	return repo.get<{ ahead_by: number; commits: { sha: string }[] }>(`compare/${base}...${head}`);
+function compareBranches(repo: Repository, base: string, head: string) {
+	return repo.get<CompareResponse>(`compare/${base}...${head}`);
 }
 
-/** Comments on a PR. */
+/**
+ * Comments on a PR.
+ *
+ * @param {Repository} repo - The repository of the PR.
+ * @param {number} prNumber - The number of the PR.
+ * @param {string} body - The comment, in Markdown.
+ */
 export async function postComment(repo: Repository, prNumber: number, body: string) {
 	await repo.write('POST', `issues/${prNumber}/comments`, { body });
 }
 
-/** Removes a label from a PR. A label that is already gone is fine. */
+/**
+ * Removes a label from a PR. A label that is already gone is fine.
+ *
+ * @param {Repository} repo - The repository of the PR.
+ * @param {number} prNumber - The number of the PR.
+ * @param {string} label - The label to remove.
+ */
 export async function removeLabel(repo: Repository, prNumber: number, label: string) {
 	try {
 		await repo.write('DELETE', `issues/${prNumber}/labels/${label}`);
@@ -107,7 +153,14 @@ export async function removeLabel(repo: Repository, prNumber: number, label: str
 	}
 }
 
-/** Whether `user` can write to the repository, from their permission on it. */
+/**
+ * Whether a user can write to the repository, from their permission on it.
+ *
+ * @param {Repository} repo - The repository.
+ * @param {string} user - The login of the user.
+ * @returns {Promise<boolean>} `true` for the admin, maintain and write
+ *   permissions. `false` for a user who isn't a collaborator.
+ */
 export async function canWrite(repo: Repository, user: string): Promise<boolean> {
 	try {
 		const { permission } = await repo.get<{ permission: string }>(
@@ -123,9 +176,15 @@ export async function canWrite(repo: Repository, user: string): Promise<boolean>
 }
 
 /**
- * Gets what decides whether a PR is ready to merge, with the rules of the
- * `main` ruleset: only reviewers with write access count, and only the checks
- * required on `main`.
+ * Gets what decides whether a docs PR is ready to merge, with the rules of
+ * the ruleset of the stable branch.
+ *
+ * Only reviewers with write access count, and only the checks the ruleset
+ * requires.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {PullRequest} pr - The docs PR.
+ * @returns {Promise<Readiness>} Its reviews, checks, and mergeability.
  */
 export async function getReadiness(repo: Repository, pr: PullRequest): Promise<Readiness> {
 	const [reviews, checkRuns, statuses, required] = await Promise.all([
@@ -162,11 +221,11 @@ async function getWriters(repo: Repository, users: string[]): Promise<Set<string
 }
 
 /**
- * Gets the checks the ruleset of `main` requires. They apply to every docs
- * PR, whatever its base.
+ * Gets the checks the ruleset of the stable branch requires. They apply to
+ * every docs PR, whatever its base.
  */
 async function getRequiredChecks(repo: Repository): Promise<string[]> {
-	const rules = await repo.getAll<RuleResponse>(`rules/branches/${MAIN_BRANCH}`);
+	const rules = await repo.getAll<RuleResponse>(`rules/branches/${STABLE_BRANCH}`);
 	return rules
 		.filter((rule) => rule.type === 'required_status_checks')
 		.flatMap((rule) => rule.parameters?.required_status_checks ?? [])
@@ -174,8 +233,13 @@ async function getRequiredChecks(repo: Repository): Promise<string[]> {
 }
 
 /**
- * Gets the open `[ci] release` PR of a branch of `withastro/astro`: `main`, or
- * `next` for its alpha and beta releases.
+ * Gets the open release PR of a branch of the framework repository.
+ *
+ * @param {Repository} framework - The framework repository.
+ * @param {string} branch - The stable branch, or the prerelease branch for
+ *   alpha and beta releases.
+ * @returns {Promise<ReleasePullRequest | undefined>} The release PR with its
+ *   package versions, or `undefined` when none is open.
  */
 export async function getReleasePullRequest(
 	framework: Repository,
@@ -188,13 +252,14 @@ export async function getReleasePullRequest(
 	return { number: pr.number, versions: parseReleaseVersions(pr.body ?? '') };
 }
 
-/** Whether `next` in `withastro/astro` is in changesets prerelease mode. */
-async function isNextInPreMode(framework: Repository): Promise<boolean> {
+/** Whether the prerelease branch of the framework is in prerelease mode. */
+async function isPrereleaseBranchInPreMode(framework: Repository): Promise<boolean> {
 	try {
 		const { content } = await framework.get<{ content: string }>(
 			`contents/${PRE_STATE_PATH}?ref=${FRAMEWORK_PRERELEASE_BRANCH}`
 		);
-		// `exit` means the prerelease ends: `next` is then merged into `main`.
+		// `exit` means the prerelease ends: the branch is then merged into the
+		// stable branch.
 		return readPreMode(Buffer.from(content, 'base64').toString()) === 'pre';
 	} catch (error) {
 		if (error instanceof GitHubError && error.status === 404) return false;
@@ -202,7 +267,7 @@ async function isNextInPreMode(framework: Repository): Promise<boolean> {
 	}
 }
 
-/** Reads the `mode` of the `.changeset/pre.json` of `next`. */
+/** Reads the prerelease mode from the changesets file of the branch. */
 function readPreMode(json: string): string {
 	const source = `The \`${PRE_STATE_PATH}\` of \`${FRAMEWORK_PRERELEASE_BRANCH}\``;
 	const preState = parseJson(json, source);
@@ -215,24 +280,36 @@ function isPreState(value: unknown): value is { mode: string } {
 }
 
 /**
- * Gets the release PR a prerelease umbrella ships with: the alpha or beta
- * release PR of `next` while it's in prerelease mode, then the release PR of
- * `main`, which `next` was merged into.
+ * Gets the release PR a prerelease umbrella ships with.
+ *
+ * @param {Repository} framework - The framework repository.
+ * @param {ReleasePullRequest} [stablePullRequest] - The open release PR of the
+ *   stable branch.
+ * @returns {Promise<ReleasePullRequest | undefined>} The alpha or beta release
+ *   PR while the prerelease branch is in prerelease mode. Then the release PR
+ *   of the stable branch, which the prerelease branch was merged into.
  */
 export async function getPrereleasePullRequest(
 	framework: Repository,
-	mainPullRequest: ReleasePullRequest | undefined
+	stablePullRequest: ReleasePullRequest | undefined
 ): Promise<ReleasePullRequest | undefined> {
-	return (await isNextInPreMode(framework))
+	return (await isPrereleaseBranchInPreMode(framework))
 		? getReleasePullRequest(framework, FRAMEWORK_PRERELEASE_BRANCH)
-		: mainPullRequest;
+		: stablePullRequest;
 }
 
 /**
- * Whether a PR of `withastro/astro`, such as a release PR, is merged. A PR
- * that doesn't exist, for example from an edited marker, isn't.
+ * Whether a PR of the framework repository, such as a release PR, is merged.
+ *
+ * @param {Repository} framework - The framework repository.
+ * @param {number} prNumber - The number of the PR.
+ * @returns {Promise<boolean>} `false` for a PR that doesn't exist, for example
+ *   from an edited marker.
  */
-export async function isFrameworkPullRequestMerged(framework: Repository, prNumber: number) {
+export async function isFrameworkPullRequestMerged(
+	framework: Repository,
+	prNumber: number
+): Promise<boolean> {
 	try {
 		const { merged } = await framework.get<PullRequestResponse>(`pulls/${prNumber}`);
 		return merged === true;

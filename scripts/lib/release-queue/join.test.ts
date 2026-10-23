@@ -21,7 +21,7 @@ const pr: PullRequest = {
 };
 
 const route: Route = {
-	target: 'main',
+	umbrellaBase: 'main',
 	umbrellaBranch: 'release-queue/main',
 	label: 'minor-release',
 	shouldRetarget: true,
@@ -31,7 +31,7 @@ const umbrellaTitle = '[ci] release astro@7.5.0 docs';
 
 const paths = {
 	openUmbrella: `repos/${REPO}/pulls?state=open&head=withastro:release-queue/main`,
-	mainRef: `repos/${REPO}/git/ref/heads/main`,
+	stableRef: `repos/${REPO}/git/ref/heads/main`,
 	umbrellaRef: `repos/${REPO}/git/ref/heads/release-queue/main`,
 	compare: `repos/${REPO}/compare/main...release-queue/main`,
 	pr: `repos/${REPO}/pulls/7`,
@@ -43,7 +43,7 @@ const prResponse = (mergeable: boolean | null) =>
 /** Responses without an open umbrella, for a PR that merges cleanly. */
 const withoutUmbrella = {
 	[paths.openUmbrella]: [],
-	[paths.mainRef]: { object: { sha: 'main-sha' } },
+	[paths.stableRef]: { object: { sha: 'main-sha' } },
 	[paths.pr]: prResponse(true),
 };
 
@@ -195,9 +195,9 @@ describe('joinUmbrella', () => {
 	});
 
 	it('throws when the target branch is missing, without touching the PR', async (t) => {
-		const withoutMain: Record<string, unknown> = { ...withoutUmbrella };
-		delete withoutMain[paths.mainRef];
-		const github = stubGitHub(t, { getResponses: withoutMain });
+		const withoutStable: Record<string, unknown> = { ...withoutUmbrella };
+		delete withoutStable[paths.stableRef];
+		const github = stubGitHub(t, { getResponses: withoutStable });
 
 		await assert.rejects(
 			joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),

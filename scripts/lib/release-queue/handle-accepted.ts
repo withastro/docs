@@ -1,4 +1,4 @@
-import { ACCEPTED_LABEL, FRAMEWORK_MAIN_BRANCH, MAIN_UMBRELLA_BRANCH } from './config.ts';
+import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH, STABLE_UMBRELLA_BRANCH } from './config.ts';
 import { joinUmbrella } from './join.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
 import {
@@ -9,7 +9,7 @@ import {
 	formatUnopenedJoinComment,
 	type MessageContext,
 } from './messages.ts';
-import { isLiveFor, type QueueOptions } from './modes.ts';
+import { isLiveFor } from './modes.ts';
 import {
 	canWrite,
 	getPullRequest,
@@ -20,52 +20,52 @@ import {
 	type PullRequest,
 } from './queries.ts';
 import { refreshUmbrella } from './refresh.ts';
-import { getMainRelease, type MainRelease } from './release.ts';
-import type { Repository } from './repository.ts';
+import { getStableRelease, type StableRelease } from './release.ts';
+import type { QueueOptions, Repository } from './repository.ts';
 import {
 	decideJoin,
-	getTarget,
+	getUmbrellaBase,
 	type Decision,
 	type RefusedDecision,
 	type Route,
-	isRetargetedFromMain,
+	wouldRetargetFromStable,
 } from './routing.ts';
-import { getUmbrellaHeading, type Umbrella } from './umbrella-heading.ts';
-import { findOpenUmbrella, getUmbrella } from './umbrella-queries.ts';
-import { getSettledMainUmbrella } from './umbrella-state.ts';
+import { getUmbrellaHeading } from './umbrella-heading.ts';
+import { findOpenUmbrella, getUmbrella, type Umbrella } from './umbrella-queries.ts';
+import { getSettledStableUmbrella } from './umbrella-state.ts';
 
 /**
- * A docs PR labeled `accepted`, with the release it ships with and the
+ * A docs PR labeled as accepted, with the release it ships with and the
  * decision on it.
  */
 interface AcceptedPullRequest<D extends Decision = Decision> {
 	pr: PullRequest;
-	release: MainRelease;
+	release: StableRelease;
 	decision: D;
 }
 
 type JoinDecision = Extract<Decision, { status: 'join' }>;
 
 /**
- * Handles a docs PR labeled `accepted`: comments on it as a dry run, refuses
- * it, or joins it to its umbrella.
+ * Joins a docs PR labeled as accepted to its umbrella, refuses it, or
+ * comments on it as a dry run.
  *
  * @param {QueueOptions} options - The repositories and the mode of the run.
  * @param {number} prNumber - The number of the docs PR.
- * @param {string} [sender] - Who added the label. Without it, the write
+ * @param {string} [labelSender] - Who added the label. Without it, the write
  *   access check is skipped, as in a local run.
  */
 export async function handleAcceptedPullRequest(
 	options: QueueOptions,
 	prNumber: number,
-	sender?: string
+	labelSender?: string
 ) {
-	if (!(await isSenderAllowed(options.actions, sender))) return;
+	if (!(await isSenderAllowed(options.actions, labelSender))) return;
 
 	const accepted = await readAcceptedPullRequest(options, prNumber);
 	const { pr, release, decision } = accepted;
 	console.info(JSON.stringify({ pr: pr.url, release, decision }, null, 2));
-	if (!isLiveFor(options.mode, getTarget(pr.base))) {
+	if (!isLiveFor(options.mode, getUmbrellaBase(pr.base))) {
 		await commentDryRun(options, accepted);
 	} else if (decision.status === 'refuse') {
 		await refuse(options, { ...accepted, decision });
@@ -74,20 +74,23 @@ export async function handleAcceptedPullRequest(
 	}
 }
 
-/** Whether `sender` can write to the repository, like maintainers do. */
-async function isSenderAllowed(repo: Repository, sender: string | undefined): Promise<boolean> {
-	if (sender === undefined) {
-		console.info('No sender: skipping the write access check.');
+/** Whether `labelSender` can write to the repository, like maintainers do. */
+async function isSenderAllowed(
+	repo: Repository,
+	labelSender: string | undefined
+): Promise<boolean> {
+	if (labelSender === undefined) {
+		console.info('No label sender: skipping the write access check.');
 		return true;
 	}
-	if (await canWrite(repo, sender)) return true;
-	console.info(`Ignored: ${sender} can't write to ${repo.name}.`);
+	if (await canWrite(repo, labelSender)) return true;
+	console.info(`Ignored: ${labelSender} can't write to ${repo.name}.`);
 	return false;
 }
 
 /**
- * Reads the PR, the release PR of `withastro/astro` and the state of the
- * `main` umbrella, then decides.
+ * Reads a docs PR with what decides its join: its readiness, the next stable
+ * release, and the settled stable umbrella.
  */
 async function readAcceptedPullRequest(
 	{ actions, framework }: QueueOptions,
@@ -96,13 +99,13 @@ async function readAcceptedPullRequest(
 	const pr = await getPullRequest(actions, prNumber);
 	const [readiness, releasePullRequest] = await Promise.all([
 		getReadiness(actions, pr),
-		getReleasePullRequest(framework, FRAMEWORK_MAIN_BRANCH),
+		getReleasePullRequest(framework, FRAMEWORK_STABLE_BRANCH),
 	]);
-	const release = getMainRelease(releasePullRequest);
-	const settledMainUmbrella = isRetargetedFromMain(pr)
-		? await getSettledMainUmbrella({ docs: actions, framework }, release)
+	const release = getStableRelease(releasePullRequest);
+	const settledStableUmbrella = wouldRetargetFromStable(pr)
+		? await getSettledStableUmbrella({ docs: actions, framework }, release)
 		: undefined;
-	const decision = decideJoin(pr, readiness, { release, settledMainUmbrella });
+	const decision = decideJoin(pr, readiness, { release, settledStableUmbrella });
 	return { pr, release, decision };
 }
 
@@ -111,7 +114,7 @@ async function commentDryRun(
 	{ pr, release, decision }: AcceptedPullRequest
 ) {
 	if (decision.status === 'join') {
-		const umbrella = await findUmbrella(options, decision.route, release);
+		const umbrella = await findOrPlanUmbrella(options, decision.route, release);
 		await postComment(
 			options.actions,
 			pr.number,
@@ -137,7 +140,7 @@ async function refuse(
 async function joinAndAnnounce(options: QueueOptions, accepted: AcceptedPullRequest<JoinDecision>) {
 	const { pr, release, decision } = accepted;
 	const { route } = decision;
-	const { title } = getUmbrellaHeading(route.target, release);
+	const { title } = getUmbrellaHeading(route.umbrellaBase, release);
 	const result = await joinUmbrella(options.bot, { pr, route, umbrellaTitle: title });
 
 	switch (result.status) {
@@ -181,26 +184,37 @@ async function announceJoin(
 }
 
 /** Finds the open umbrella PR of `route`, or names the one to create. */
-async function findUmbrella(
+async function findOrPlanUmbrella(
 	{ actions }: QueueOptions,
 	route: Route,
-	release: MainRelease
+	release: StableRelease
 ): Promise<Umbrella> {
 	const openUmbrella = await findOpenUmbrella(actions, route.umbrellaBranch);
 	if (openUmbrella) return { status: 'open', number: openUmbrella.number };
-	return { status: 'planned', title: getUmbrellaHeading(route.target, release).title };
+	return { status: 'planned', title: getUmbrellaHeading(route.umbrellaBase, release).title };
 }
 
 async function getMessageContext(
 	options: QueueOptions,
 	decision: RefusedDecision,
-	release: MainRelease
+	release: StableRelease
 ): Promise<MessageContext> {
-	const context: MessageContext = {};
-	if (decision.route) context.umbrella = await findUmbrella(options, decision.route, release);
-	if (decision.refusals.some((refusal) => refusal.code === 'major-on-main')) {
-		const mainUmbrella = await findOpenUmbrella(options.actions, MAIN_UMBRELLA_BRANCH);
-		if (mainUmbrella) context.mainUmbrella = { number: mainUmbrella.number };
-	}
-	return context;
+	const [umbrella, stableUmbrella] = await Promise.all([
+		decision.route && findOrPlanUmbrella(options, decision.route, release),
+		findStableUmbrellaToMove(options.actions, decision),
+	]);
+	return { umbrella, stableUmbrella };
+}
+
+/**
+ * Finds the open stable umbrella that a maintainer moves to the prerelease
+ * branch before a major, when the decision refuses a PR for that major.
+ */
+async function findStableUmbrellaToMove(
+	repo: Repository,
+	decision: RefusedDecision
+): Promise<{ number: number } | undefined> {
+	if (!decision.refusals.some((refusal) => refusal.code === 'major-on-stable')) return undefined;
+	const stableUmbrella = await findOpenUmbrella(repo, STABLE_UMBRELLA_BRANCH);
+	return stableUmbrella && { number: stableUmbrella.number };
 }

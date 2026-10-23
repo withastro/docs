@@ -5,7 +5,7 @@ import { handleAcceptedPullRequest } from './handle-accepted.ts';
 import type { Mode } from './modes.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from './testing/fixtures.ts';
 import { ACTIONS_TOKEN, BOT_TOKEN, queueOptions } from './testing/queue-options.ts';
-import { stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
+import { readBody, stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
 import { formatUmbrellaBody } from './umbrella-body.ts';
 
 const paths = {
@@ -13,7 +13,7 @@ const paths = {
 	reviews: `repos/${REPO}/pulls/7/reviews`,
 	releasePullRequest:
 		'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/main',
-	mainUmbrella: `repos/${REPO}/pulls?state=open&head=withastro:release-queue/main`,
+	stableUmbrella: `repos/${REPO}/pulls?state=open&head=withastro:release-queue/main`,
 };
 
 /**
@@ -23,7 +23,7 @@ const paths = {
 function readyPullRequest({ base = 'main', label = 'minor-release', umbrellaBody = '' } = {}) {
 	const umbrellaBranch = `release-queue/${base}`;
 	const umbrella = umbrellaResponse({
-		target: base,
+		umbrellaBase: base,
 		title: base === 'main' ? '[ci] release astro@7.5.0 docs' : `[ci] release ${base} docs`,
 		labels: [{ name: 'merge-on-release' }, { name: label }],
 		body: umbrellaBody,
@@ -50,7 +50,6 @@ function readyPullRequest({ base = 'main', label = 'minor-release', umbrellaBody
 		[`repos/${REPO}/pulls?state=open&head=withastro:${umbrellaBranch}`]: [umbrella],
 		[`repos/${REPO}/pulls/42`]: umbrella,
 		[`repos/${REPO}/git/ref/heads/${base}`]: { object: { sha: 'base-sha' } },
-		[`repos/${REPO}/pulls?state=closed&base=${umbrellaBranch}`]: [],
 		[`repos/${REPO}/compare/${base}...${umbrellaBranch}`]: { ahead_by: 0, commits: [] },
 		// No merge-block review yet, and no other PR on the umbrella branch.
 		[`repos/${REPO}/pulls/42/reviews`]: [],
@@ -62,7 +61,7 @@ function readyPullRequest({ base = 'main', label = 'minor-release', umbrellaBody
 const unapprovedPullRequest = () => ({ ...readyPullRequest(), [paths.reviews]: [] });
 
 /** Responses for a PR that opens the `main` umbrella with its first join. */
-const firstJoin = () => ({ ...readyPullRequest(), [paths.mainUmbrella]: [] });
+const firstJoin = () => ({ ...readyPullRequest(), [paths.stableUmbrella]: [] });
 
 /**
  * Responses where the `main` umbrella #42 is settled: it links release PR
@@ -70,7 +69,7 @@ const firstJoin = () => ({ ...readyPullRequest(), [paths.mainUmbrella]: [] });
  */
 const settledUmbrella = () => ({
 	...readyPullRequest({
-		umbrellaBody: formatUmbrellaBody('main', { releasePullRequest: 18405, included: [] }),
+		umbrellaBody: formatUmbrellaBody('main', { releasePrNumber: 18405, included: [] }),
 	}),
 	'repos/withastro/astro/pulls/18405': { number: 18405, merged: true },
 });
@@ -91,7 +90,7 @@ const writtenPaths = (writes: Write[]) => writes.map(({ method, path }) => `${me
 /** The body of the last comment in `writes`. */
 function commentBody(writes: Write[]): string {
 	const write = writes.findLast(({ path }) => path.endsWith('/comments'));
-	return (write?.body as { body: string } | undefined)?.body ?? '';
+	return readBody(write);
 }
 
 const comment = `POST repos/${REPO}/issues/7/comments`;
@@ -116,8 +115,8 @@ describe('handleAcceptedPullRequest', () => {
 		assert.deepEqual(botWrites, []);
 	});
 
-	it('joins a PR shipping to main in main-only mode', async (t) => {
-		const { actionsWrites, botWrites } = await run(t, 'main-only');
+	it('joins a PR shipping to main in stable-only mode', async (t) => {
+		const { actionsWrites, botWrites } = await run(t, 'stable-only');
 
 		// The merge-block review comes from `github-actions[bot]`.
 		assert.deepEqual(writtenPaths(actionsWrites), [`POST repos/${REPO}/pulls/42/reviews`]);
@@ -131,7 +130,7 @@ describe('handleAcceptedPullRequest', () => {
 	});
 
 	it('lists the PRs still on the umbrella branch in the review', async (t) => {
-		const { actionsWrites } = await run(t, 'main-only', {
+		const { actionsWrites } = await run(t, 'stable-only', {
 			getResponses: {
 				...readyPullRequest(),
 				[`repos/${REPO}/pulls?state=open&base=release-queue/main`]: [{ number: 14590 }],
@@ -139,14 +138,11 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		const review = actionsWrites.find(({ path }) => path.endsWith('/reviews'));
-		assert.match(
-			(review?.body as { body: string }).body,
-			/These PRs still target `release-queue\/main`: #14590\./
-		);
+		assert.match(readBody(review), /These PRs still target `release-queue\/main`: #14590\./);
 	});
 
 	it('opens the umbrella PR with its first join, then labels it', async (t) => {
-		const { botWrites } = await run(t, 'main-only', {
+		const { botWrites } = await run(t, 'stable-only', {
 			getResponses: {
 				...firstJoin(),
 				[`repos/${REPO}/pulls/99/reviews`]: [],
@@ -173,9 +169,9 @@ describe('handleAcceptedPullRequest', () => {
 		assert.deepEqual(botWrites.at(-1)?.body, { labels: ['merge-on-release', 'minor-release'] });
 	});
 
-	it('only comments on a PR shipping to a prerelease branch in main-only mode', async (t) => {
+	it('only comments on a PR shipping to a prerelease branch in stable-only mode', async (t) => {
 		const getResponses = readyPullRequest({ base: 'cloudflare-next', label: 'major-release' });
-		const { actionsWrites, botWrites } = await run(t, 'main-only', { getResponses });
+		const { actionsWrites, botWrites } = await run(t, 'stable-only', { getResponses });
 
 		assert.deepEqual(writtenPaths(actionsWrites), [comment]);
 		assert.deepEqual(botWrites, []);
@@ -208,13 +204,13 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		const refresh = botWrites.find(({ path }) => path === `repos/${REPO}/pulls/42`);
-		assert.match((refresh?.body as { body: string }).body, /^Ships with withastro\/astro#18269\./);
+		assert.match(readBody(refresh), /^Ships with withastro\/astro#18269\./);
 	});
 
 	it("doesn't read the prerelease line for a PR shipping to main", async (t) => {
 		const github = stubReadyPullRequest(t);
 
-		await handleAcceptedPullRequest(queueOptions(github, 'main-only'), 7, 'maintainer');
+		await handleAcceptedPullRequest(queueOptions(github, 'stable-only'), 7, 'maintainer');
 
 		assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
 	});
@@ -245,21 +241,21 @@ describe('handleAcceptedPullRequest', () => {
 	}
 
 	it('keeps the accepted label after a join, and names the umbrella', async (t) => {
-		const { botWrites } = await run(t, 'main-only');
+		const { botWrites } = await run(t, 'stable-only');
 
 		assert.ok(!writtenPaths(botWrites).includes(removeAccepted));
 		assert.match(commentBody(botWrites), /the branch of #42 into `main`/);
 	});
 
 	it('removes the label, then comments, when refusing a PR', async (t) => {
-		const { botWrites } = await run(t, 'main-only', { getResponses: unapprovedPullRequest() });
+		const { botWrites } = await run(t, 'stable-only', { getResponses: unapprovedPullRequest() });
 
 		assert.deepEqual(writtenPaths(botWrites), [removeAccepted, comment]);
 		assert.match(commentBody(botWrites), /no approval/);
 	});
 
 	it('still comments when the label is already gone', async (t) => {
-		const { botWrites } = await run(t, 'main-only', {
+		const { botWrites } = await run(t, 'stable-only', {
 			getResponses: unapprovedPullRequest(),
 			writeFailures: { [removeAccepted]: { status: 404, message: 'Label does not exist' } },
 		});
@@ -268,7 +264,7 @@ describe('handleAcceptedPullRequest', () => {
 	});
 
 	it('names the open main umbrella when the next astro release is a major', async (t) => {
-		const { botWrites } = await run(t, 'main-only', {
+		const { botWrites } = await run(t, 'stable-only', {
 			getResponses: {
 				...readyPullRequest(),
 				[paths.releasePullRequest]: [{ number: 1, html_url: '', body: '## astro@8.0.0\n' }],
@@ -282,7 +278,7 @@ describe('handleAcceptedPullRequest', () => {
 
 	describe('while the main umbrella is settled', () => {
 		it('refuses a PR it would retarget, before changing it', async (t) => {
-			const { botWrites } = await run(t, 'main-only', { getResponses: settledUmbrella() });
+			const { botWrites } = await run(t, 'stable-only', { getResponses: settledUmbrella() });
 
 			assert.deepEqual(writtenPaths(botWrites), [removeAccepted, comment]);
 			assert.match(
@@ -299,7 +295,7 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		it('joins a PR against the umbrella branch', async (t) => {
-			const { botWrites } = await run(t, 'main-only', {
+			const { botWrites } = await run(t, 'stable-only', {
 				getResponses: {
 					...settledUmbrella(),
 					[paths.pr]: pullRequestResponse({
@@ -350,7 +346,7 @@ describe('handleAcceptedPullRequest', () => {
 	});
 
 	it('refuses a PR whose join is refused', async (t) => {
-		const { botWrites } = await run(t, 'main-only', {
+		const { botWrites } = await run(t, 'stable-only', {
 			getResponses: {
 				...firstJoin(),
 				[`repos/${REPO}/git/ref/heads/release-queue/main`]: { object: { sha: 'old-sha' } },
@@ -371,7 +367,7 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		await assert.rejects(
-			handleAcceptedPullRequest(queueOptions(github, 'main-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(queueOptions(github, 'stable-only'), 7, 'maintainer'),
 			(error: unknown) => {
 				assert.ok(error instanceof Error);
 				assert.match(error.message, /but the umbrella PR couldn't be opened\.$/);
@@ -388,18 +384,18 @@ describe('handleAcceptedPullRequest', () => {
 
 	it('comments on the join, then fails, when the refresh fails', async (t) => {
 		const responses: Record<string, unknown> = readyPullRequest();
-		delete responses[`repos/${REPO}/pulls?state=closed&base=release-queue/main`];
+		delete responses[`repos/${REPO}/compare/main...release-queue/main`];
 		const github = stubReadyPullRequest(t, { getResponses: responses });
 
 		await assert.rejects(
-			handleAcceptedPullRequest(queueOptions(github, 'main-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(queueOptions(github, 'stable-only'), 7, 'maintainer'),
 			{ name: 'GitHubError', status: 404 }
 		);
 		assert.match(commentBody(github.writesBy(BOT_TOKEN)), /squash-merged into/);
 	});
 
 	it('ignores a sender without write access', async (t) => {
-		const { actionsWrites, botWrites } = await run(t, 'main-only', {}, 'contributor');
+		const { actionsWrites, botWrites } = await run(t, 'stable-only', {}, 'contributor');
 
 		assert.deepEqual(actionsWrites, []);
 		assert.deepEqual(botWrites, []);

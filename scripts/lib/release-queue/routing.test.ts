@@ -3,11 +3,11 @@ import { describe, it } from 'node:test';
 import type { Readiness } from './readiness.ts';
 import {
 	decideJoin,
-	getTarget,
+	getUmbrellaBase,
 	type DecisionContext,
 	type Decision,
 	type DocsPullRequest,
-	isRetargetedFromMain,
+	wouldRetargetFromStable,
 } from './routing.ts';
 
 const pr = (overrides: Partial<DocsPullRequest> = {}): DocsPullRequest => ({
@@ -28,12 +28,12 @@ const ready: Readiness = {
 	isMergeable: true,
 };
 
-const patch: DecisionContext = { release: { type: 'patch', astroVersion: '7.4.1' } };
-const major: DecisionContext = { release: { type: 'major', astroVersion: '8.0.0' } };
+const patch: DecisionContext = { release: { type: 'patch', frameworkVersion: '7.4.1' } };
+const major: DecisionContext = { release: { type: 'major', frameworkVersion: '8.0.0' } };
 /** The `main` umbrella #42 ships with a merged release PR. */
 const settled: DecisionContext = {
 	...patch,
-	settledMainUmbrella: { number: 42, releasePullRequest: 18405 },
+	settledStableUmbrella: { number: 42, releasePrNumber: 18405 },
 };
 
 const refusalsOf = (decision: Decision) => (decision.status === 'refuse' ? decision.refusals : []);
@@ -45,7 +45,7 @@ describe('decideJoin', () => {
 				assert.deepEqual(decideJoin(pr({ labels: [label] }), ready, patch), {
 					status: 'join',
 					route: {
-						target: 'main',
+						umbrellaBase: 'main',
 						umbrellaBranch: 'release-queue/main',
 						label,
 						shouldRetarget: true,
@@ -63,7 +63,7 @@ describe('decideJoin', () => {
 			assert.deepEqual(decision, {
 				status: 'join',
 				route: {
-					target: 'cloudflare-next',
+					umbrellaBase: 'cloudflare-next',
 					umbrellaBranch: 'release-queue/cloudflare-next',
 					label: 'major-release',
 					shouldRetarget: true,
@@ -75,7 +75,7 @@ describe('decideJoin', () => {
 			assert.deepEqual(decideJoin(pr({ base: 'release-queue/main' }), ready, patch), {
 				status: 'join',
 				route: {
-					target: 'main',
+					umbrellaBase: 'main',
 					umbrellaBranch: 'release-queue/main',
 					label: 'patch-release',
 					shouldRetarget: false,
@@ -140,7 +140,9 @@ describe('decideJoin', () => {
 
 		it('a main PR when the next astro release from main is a major', () => {
 			const decision = decideJoin(pr(), ready, major);
-			assert.deepEqual(refusalsOf(decision), [{ code: 'major-on-main', astroVersion: '8.0.0' }]);
+			assert.deepEqual(refusalsOf(decision), [
+				{ code: 'major-on-stable', frameworkVersion: '8.0.0' },
+			]);
 		});
 
 		it('a PR that is not ready, with every reason', () => {
@@ -176,7 +178,7 @@ describe('decideJoin', () => {
 
 		it('a main PR while the main umbrella is settled', () => {
 			assert.deepEqual(refusalsOf(decideJoin(pr(), ready, settled)), [
-				{ code: 'settled-umbrella', number: 42, releasePullRequest: 18405 },
+				{ code: 'settled-umbrella', number: 42, releasePrNumber: 18405 },
 			]);
 		});
 
@@ -201,26 +203,26 @@ describe('decideJoin', () => {
 	});
 });
 
-describe('getTarget', () => {
+describe('getUmbrellaBase', () => {
 	it('is the base of a PR against a branch', () => {
-		assert.equal(getTarget('main'), 'main');
-		assert.equal(getTarget('cloudflare-next'), 'cloudflare-next');
+		assert.equal(getUmbrellaBase('main'), 'main');
+		assert.equal(getUmbrellaBase('cloudflare-next'), 'cloudflare-next');
 	});
 
 	it('is the base of the umbrella for a PR against an umbrella branch', () => {
-		assert.equal(getTarget('release-queue/main'), 'main');
-		assert.equal(getTarget('release-queue/cloudflare-next'), 'cloudflare-next');
+		assert.equal(getUmbrellaBase('release-queue/main'), 'main');
+		assert.equal(getUmbrellaBase('release-queue/cloudflare-next'), 'cloudflare-next');
 	});
 });
 
-describe('isRetargetedFromMain', () => {
+describe('wouldRetargetFromStable', () => {
 	it('applies to an open PR against main', () => {
-		assert.equal(isRetargetedFromMain(pr()), true);
+		assert.equal(wouldRetargetFromStable(pr()), true);
 	});
 
 	it("doesn't apply to a PR against the umbrella branch, a prerelease, or a closed PR", () => {
-		assert.equal(isRetargetedFromMain(pr({ base: 'release-queue/main' })), false);
-		assert.equal(isRetargetedFromMain(pr({ base: 'cloudflare-next' })), false);
-		assert.equal(isRetargetedFromMain(pr({ state: 'closed' })), false);
+		assert.equal(wouldRetargetFromStable(pr({ base: 'release-queue/main' })), false);
+		assert.equal(wouldRetargetFromStable(pr({ base: 'cloudflare-next' })), false);
+		assert.equal(wouldRetargetFromStable(pr({ state: 'closed' })), false);
 	});
 });

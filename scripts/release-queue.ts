@@ -1,4 +1,4 @@
-// Routes docs PRs labeled `accepted` to the umbrella PR of their release.
+// Routes docs PRs labeled as accepted to the umbrella PR of their release.
 // Locally: `GITHUB_TOKEN=$(gh auth token) node --experimental-transform-types ./scripts/release-queue.ts --pr <number>`.
 
 import { parseArgs } from 'node:util';

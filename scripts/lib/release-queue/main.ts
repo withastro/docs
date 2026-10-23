@@ -3,26 +3,27 @@ import { chooseAction, parseEvent, type RunEvent } from './cli.ts';
 import { DOCS_REPO, FRAMEWORK_REPO } from './config.ts';
 import { GitHubClient } from './github.ts';
 import { handleAcceptedPullRequest } from './handle-accepted.ts';
-import { needsBotToken, parseMode, type QueueOptions } from './modes.ts';
+import { isDryRun, parseMode } from './modes.ts';
 import { PrintingGitHubClient } from './printing-github-client.ts';
 import { refreshOpenUmbrellas } from './refresh.ts';
-import { Repository } from './repository.ts';
+import { Repository, type QueueOptions } from './repository.ts';
 
 /** The command-line flags of `scripts/release-queue.ts`. */
 export interface Flags {
 	pr?: string | undefined;
 	refresh: boolean;
+	/** Who added the label, for the write access check. */
 	sender?: string | undefined;
 	write: boolean;
 }
 
 /** The environment variables the release queue reads. */
 export interface Env {
-	/** Reads, dry-run comments and merge-block reviews. */
+	/** For reads, dry-run comments and merge-block reviews. */
 	GITHUB_TOKEN?: string | undefined;
-	/** The bot account, for joins, refusals and refreshes. */
+	/** The token of the bot account, for joins, refusals and refreshes. */
 	BOT_TOKEN?: string | undefined;
-	/** `dry-run` by default: see `Mode`. */
+	/** A dry run by default: see `Mode`. */
 	MODE?: string | undefined;
 	// Set by GitHub Actions.
 	GITHUB_ACTIONS?: string | undefined;
@@ -32,17 +33,23 @@ export interface Env {
 }
 
 /**
- * Routes a docs PR labeled `accepted`, or refreshes the open umbrella PRs.
- * In GitHub Actions, the event says which, and the writes are sent. In a
- * local run, the flags say which, and the writes are printed unless `write`.
+ * Routes a docs PR labeled as accepted, or refreshes the open umbrella PRs.
+ *
+ * In GitHub Actions, the event says which, and the writes are sent. In a local
+ * run, the flags say which, and the writes are printed unless `write` is set.
+ *
+ * @param {object} input - The input of the run.
+ * @param {Flags} input.flags - The command-line flags.
+ * @param {Env} input.env - The environment variables.
+ * @throws {Error} When a token or the label sender is missing, or when the
+ *   flags and the event don't say what to do.
  */
 export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }) {
-	const shouldWrite = env.GITHUB_ACTIONS === 'true' || flags.write;
-	const options = createOptions(env, shouldWrite);
+	const options = createOptions(flags, env);
 	const event = await readEvent(env.GITHUB_EVENT_PATH);
 	const action = chooseAction({
 		pr: flags.pr,
-		refresh: flags.refresh,
+		isRefreshRequested: flags.refresh,
 		eventName: env.GITHUB_EVENT_NAME,
 		eventPullRequest: event.pullRequest,
 	});
@@ -50,18 +57,22 @@ export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }
 	if (action.type === 'refresh') {
 		await refreshOpenUmbrellas(options);
 	} else {
-		await handleAcceptedPullRequest(options, action.prNumber, flags.sender ?? event.sender);
+		const labelSender = getLabelSender(flags, env, event);
+		await handleAcceptedPullRequest(options, action.prNumber, labelSender);
 	}
 }
 
-function createOptions(env: Env, shouldWrite: boolean): QueueOptions {
+const isGitHubActions = (env: Env) => env.GITHUB_ACTIONS === 'true';
+
+function createOptions(flags: Flags, env: Env): QueueOptions {
 	const mode = parseMode(env.MODE);
 	const token = env.GITHUB_TOKEN;
 	if (!token) throw new Error('GITHUB_TOKEN is required.');
+	const shouldWrite = isGitHubActions(env) || flags.write;
 	// Changes go through the bot account: unlike `GITHUB_TOKEN`, its merges into
 	// an umbrella branch trigger the checks of the umbrella PR.
 	const botToken = env.BOT_TOKEN;
-	if (needsBotToken(mode, shouldWrite) && !botToken) {
+	if (shouldWrite && !isDryRun(mode) && !botToken) {
 		throw new Error(`BOT_TOKEN is required in ${mode} mode.`);
 	}
 
@@ -78,4 +89,16 @@ function createOptions(env: Env, shouldWrite: boolean): QueueOptions {
 
 async function readEvent(path: string | undefined): Promise<RunEvent> {
 	return path ? parseEvent(await readFile(path, 'utf-8'), path) : {};
+}
+
+/**
+ * Gets who added the label. Only a local run can go without one, which skips
+ * the write access check.
+ */
+function getLabelSender(flags: Flags, env: Env, event: RunEvent): string | undefined {
+	const labelSender = flags.sender ?? event.labelSender;
+	if (labelSender === undefined && isGitHubActions(env)) {
+		throw new Error('The event has no sender: the write access check needs one.');
+	}
+	return labelSender;
 }

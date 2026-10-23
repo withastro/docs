@@ -1,29 +1,24 @@
 import type { Repository } from './repository.ts';
 import type { PullRequestResponse } from './github-types.ts';
-import { listCommitsAhead } from './queries.ts';
-import { getTarget, isUmbrellaBranch } from './routing.ts';
-import { normalizeLineEndings } from './text.ts';
+import { getUmbrellaBase, isUmbrellaBranch } from './routing.ts';
+import { normalizeLineEndings } from './github-text.ts';
 
-/** An open umbrella PR, as the refresh reads it. */
-export interface OpenUmbrella {
+/** An umbrella PR, with what the refresh reads from it. */
+export interface UmbrellaPullRequest {
 	number: number;
 	title: string;
 	body: string;
 	labels: string[];
-	/** The branch the umbrella PR merges into. */
-	target: string;
+	base: string;
 	branch: string;
 }
 
 /**
- * A PR closed on an umbrella branch, in this release or an earlier one. Only
- * a merged PR has a squash commit on the branch.
+ * An umbrella PR: an open one, or a planned one that a join would create,
+ * named by its title. An umbrella whose creation was only printed stays
+ * planned.
  */
-export interface ClosedPullRequest {
-	number: number;
-	title: string;
-	mergeCommitSha: string | null;
-}
+export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
 
 /**
  * Whether a PR is an umbrella PR: from an umbrella branch of `repo` into the
@@ -33,64 +28,63 @@ function isUmbrellaPullRequest({ base, head }: PullRequestResponse, repo: Reposi
 	return (
 		isUmbrellaBranch(head.ref) &&
 		head.repo?.full_name === repo.name &&
-		getTarget(head.ref) === base.ref
+		getUmbrellaBase(head.ref) === base.ref
 	);
 }
 
-function toOpenUmbrella(data: PullRequestResponse): OpenUmbrella {
+function toUmbrellaPullRequest(data: PullRequestResponse): UmbrellaPullRequest {
 	return {
 		number: data.number,
 		title: data.title,
 		body: normalizeLineEndings(data.body ?? ''),
 		labels: data.labels.map((label) => label.name),
-		target: data.base.ref,
+		base: data.base.ref,
 		branch: data.head.ref,
 	};
 }
 
-/** Gets the umbrella PR `umbrellaNumber`, open or not. */
-export async function getUmbrella(repo: Repository, umbrellaNumber: number) {
-	return toOpenUmbrella(await repo.get<PullRequestResponse>(`pulls/${umbrellaNumber}`));
+/**
+ * Gets an umbrella PR, open or not.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {number} umbrellaNumber - The number of the umbrella PR.
+ * @returns {Promise<UmbrellaPullRequest>} The umbrella PR.
+ */
+export async function getUmbrella(
+	repo: Repository,
+	umbrellaNumber: number
+): Promise<UmbrellaPullRequest> {
+	return toUmbrellaPullRequest(await repo.get<PullRequestResponse>(`pulls/${umbrellaNumber}`));
 }
 
-/** Finds the open umbrella PR of `branch`, if any. */
+/**
+ * Finds the open umbrella PR of an umbrella branch.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {string} branch - The umbrella branch.
+ * @returns {Promise<UmbrellaPullRequest | undefined>} The open umbrella PR, or
+ *   `undefined` when none is open.
+ */
 export async function findOpenUmbrella(
 	repo: Repository,
 	branch: string
-): Promise<OpenUmbrella | undefined> {
+): Promise<UmbrellaPullRequest | undefined> {
 	const pullRequests = await repo.get<PullRequestResponse[]>(
 		`pulls?state=open&head=${repo.owner}:${branch}`
 	);
 	const umbrella = pullRequests.find((pr) => isUmbrellaPullRequest(pr, repo));
-	return umbrella && toOpenUmbrella(umbrella);
+	return umbrella && toUmbrellaPullRequest(umbrella);
 }
 
 /**
- * Lists the open umbrella PRs: PRs from an umbrella branch of `repo` into
- * the branch it names.
+ * Lists the open umbrella PRs: PRs from an umbrella branch of the repository
+ * into the branch it names.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @returns {Promise<UmbrellaPullRequest[]>} The open umbrella PRs. A PR from a
+ *   fork or into another base isn't one.
  */
-export async function listOpenUmbrellas(repo: Repository): Promise<OpenUmbrella[]> {
+export async function listOpenUmbrellas(repo: Repository): Promise<UmbrellaPullRequest[]> {
 	const pullRequests = await repo.getAll<PullRequestResponse>(`pulls?state=open`);
-	return pullRequests.filter((pr) => isUmbrellaPullRequest(pr, repo)).map(toOpenUmbrella);
-}
-
-/**
- * Gets what makes up an umbrella: the commits of its branch, and the PRs ever
- * closed on that branch. The closed PRs of the branch build up over the
- * releases, about one page of 100 for 100 merged PRs.
- */
-export async function getUmbrellaHistory(
-	repo: Repository,
-	{ target, branch }: OpenUmbrella
-): Promise<{ commits: string[]; closed: ClosedPullRequest[] }> {
-	const [commits, closedResponses] = await Promise.all([
-		listCommitsAhead(repo, target, branch),
-		repo.getAll<PullRequestResponse>(`pulls?state=closed&base=${branch}`),
-	]);
-	const closed = closedResponses.map(({ number, title, merge_commit_sha }) => ({
-		number,
-		title,
-		mergeCommitSha: merge_commit_sha,
-	}));
-	return { commits, closed };
+	return pullRequests.filter((pr) => isUmbrellaPullRequest(pr, repo)).map(toUmbrellaPullRequest);
 }

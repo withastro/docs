@@ -1,5 +1,6 @@
 import type { TestContext } from 'node:test';
 import { GitHubClient } from '../github.ts';
+import { isRecord } from '../json.ts';
 import { PrintingGitHubClient } from '../printing-github-client.ts';
 import { Repository } from '../repository.ts';
 import { REPO } from './fixtures.ts';
@@ -11,6 +12,16 @@ export interface Write {
 	method: string;
 	path: string;
 	body?: unknown;
+}
+
+/**
+ * Reads the text of a write that sends one, such as a comment, a review, or a
+ * PR description.
+ */
+export function readBody(write: Write | undefined): string {
+	const body = write?.body;
+	if (isRecord(body) && typeof body.body === 'string') return body.body;
+	throw new Error(`No body text in the write: ${JSON.stringify(write)}`);
 }
 
 export interface Call extends Write {
