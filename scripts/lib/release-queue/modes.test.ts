@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { isDryRun, isLiveFor, parseMode } from './modes.ts';
+import { canActOn, isDryRun, parseMode } from './modes.ts';
 
 describe('parseMode', () => {
 	it('defaults to a dry run', () => {
@@ -13,15 +13,15 @@ describe('parseMode', () => {
 	});
 });
 
-describe('isLiveFor', () => {
+describe('canActOn', () => {
 	it('acts on the stable branch only in stable-only mode', () => {
-		assert.equal(isLiveFor('stable-only', 'main'), true);
-		assert.equal(isLiveFor('stable-only', 'cloudflare-next'), false);
+		assert.equal(canActOn('stable-only', 'main'), true);
+		assert.equal(canActOn('stable-only', 'cloudflare-next'), false);
 	});
 
 	it('acts on every umbrella base in all mode, and none in a dry run', () => {
-		assert.equal(isLiveFor('all', 'cloudflare-next'), true);
-		assert.equal(isLiveFor('dry-run', 'main'), false);
+		assert.equal(canActOn('all', 'cloudflare-next'), true);
+		assert.equal(canActOn('dry-run', 'main'), false);
 	});
 });
 

@@ -15,7 +15,7 @@ const releaseWith = (number: number, frameworkVersion: string) =>
 
 const noRelease = getStableRelease();
 
-const included = [{ number: 7, title: 'Document the new option' }];
+const included = [7];
 
 /** The `main` umbrella, up to date with release PR #18405 (`astro@7.5.0`). */
 const umbrella: UmbrellaPullRequest = {

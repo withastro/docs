@@ -1,12 +1,11 @@
 import { GitHubError } from '../github/error.ts';
 import type { Repository } from '../github/repository.ts';
-import { formatSquashTitle } from '../umbrella/body.ts';
 import { findOpenUmbrella, type Umbrella } from '../umbrella/queries.ts';
 import { countCommitsAhead, getBranchSha, getPullRequest, type PullRequest } from './queries.ts';
 import type { JoinRefusal, Route } from './routing.ts';
 
 /** A docs PR to join to the umbrella of `route`. */
-export interface Join {
+interface Join {
 	pr: PullRequest;
 	route: Route;
 	/** The title of the umbrella PR, if the join opens it. */
@@ -17,7 +16,7 @@ export interface Join {
  * The outcome of a join. `unopened` means the PR was merged into the umbrella
  * branch, but the umbrella PR couldn't be opened.
  */
-export type JoinResult =
+type JoinResult =
 	| { status: 'joined'; umbrella: Umbrella }
 	| { status: 'refused'; refusal: JoinRefusal }
 	| { status: 'unopened'; error: unknown };
@@ -164,10 +163,10 @@ async function squashMerge(
 			merge_method: 'squash',
 			// Refuses the merge if the PR changed since its checks were read.
 			sha: pr.headSha,
-			// Set here rather than relying on how the API applies the squash
-			// title setting of the repository. The included PRs are read from
-			// this title.
-			commit_title: formatSquashTitle(pr),
+			// The title GitHub gives a squash merge in the browser. Set here, as
+			// the included PRs are read from it, whatever the squash setting of
+			// the repository.
+			commit_title: `${pr.title} (#${pr.number})`,
 		});
 		return undefined;
 	} catch (error) {

@@ -3,7 +3,7 @@ import { isRecord, parseJson } from './github/json.ts';
 /** A positive integer, written with digits only. */
 const PR_NUMBER = /^[1-9]\d*$/;
 
-export type Action = { type: 'handle'; prNumber: number } | { type: 'refresh' };
+type Action = { type: 'handle'; prNumber: number } | { type: 'refresh' };
 
 /**
  * Chooses what a run does, from an explicit signal.
@@ -37,11 +37,13 @@ export function chooseAction({
 	if (shouldRefresh && pr !== undefined) throw new Error('Pass --pr or --refresh, not both.');
 	if (shouldRefresh) return { type: 'refresh' };
 
-	const value = pr ?? eventPullRequest?.toString();
-	if (value === undefined) throw new Error('No PR to handle: pass --pr <number>.');
+	const rawPrNumber = pr ?? eventPullRequest?.toString();
+	if (rawPrNumber === undefined) throw new Error('No PR to handle: pass --pr <number>.');
 	// Digits only: `Number()` would also read `1e3`, `0x10` or ` 7 `.
-	if (!PR_NUMBER.test(value)) throw new Error(`Invalid PR number: ${value}. Pass --pr <number>.`);
-	return { type: 'handle', prNumber: Number(value) };
+	if (!PR_NUMBER.test(rawPrNumber)) {
+		throw new Error(`Invalid PR number: ${rawPrNumber}. Pass --pr <number>.`);
+	}
+	return { type: 'handle', prNumber: Number(rawPrNumber) };
 }
 
 /** What a run reads from the event of GitHub Actions. */
@@ -55,8 +57,7 @@ export interface RunEvent {
  *
  * @param {string} json - The content of the event file.
  * @param {string} path - The path of the event file, for the errors.
- * @returns {RunEvent} What the event holds. A `workflow_dispatch` event has
- *   neither field.
+ * @returns {RunEvent} What the event holds.
  * @throws {Error} When the event isn't a JSON object, or a field is malformed.
  */
 export function parseEvent(json: string, path: string): RunEvent {

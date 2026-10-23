@@ -10,7 +10,7 @@ export interface Review {
 	state: ReviewResponseState;
 }
 
-export type ReviewState = Extract<ReviewResponseState, 'APPROVED' | 'CHANGES_REQUESTED'>;
+type ReviewState = Extract<ReviewResponseState, 'APPROVED' | 'CHANGES_REQUESTED'>;
 
 export interface Readiness {
 	/** At least one reviewer with write access approved the PR. */
@@ -31,8 +31,8 @@ type ClassifiedChecks = Pick<Readiness, 'failingChecks' | 'pendingChecks' | 'mis
 /**
  * Gets the latest review state of each reviewer.
  *
- * Comments don't replace an earlier state. A dismissed review clears it: an
- * earlier review from the same reviewer doesn't count again.
+ * A comment keeps the earlier state of its reviewer. A dismissed review clears
+ * the state, and an earlier review from the same reviewer no longer counts.
  *
  * @param {Review[]} reviews - The reviews, in the chronological order of the
  *   GitHub API.

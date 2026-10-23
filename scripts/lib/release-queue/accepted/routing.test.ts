@@ -5,7 +5,6 @@ import {
 	decideJoin,
 	wouldRetargetFromStable,
 	type Decision,
-	type DecisionContext,
 	type DocsPullRequest,
 } from './routing.ts';
 
@@ -26,6 +25,9 @@ const ready: Readiness = {
 	missingChecks: [],
 	isMergeable: true,
 };
+
+/** The context `decideJoin` takes, besides the PR and its readiness. */
+type DecisionContext = Parameters<typeof decideJoin>[2];
 
 const patch: DecisionContext = { release: { type: 'patch', frameworkVersion: '7.4.1' } };
 const major: DecisionContext = { release: { type: 'major', frameworkVersion: '8.0.0' } };

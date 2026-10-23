@@ -2,6 +2,9 @@ import { compareBranches, type Repository } from '../github/repository.ts';
 import type { PullRequestResponse, ReviewResponse } from '../github/types.ts';
 import { getUmbrellaBase, isUmbrellaBranch } from './branch.ts';
 
+/** The title GitHub gives a squash commit: the PR title, then its number. */
+const SQUASH_TITLE = / \(#(\d+)\)$/;
+
 /** An umbrella PR, with what the refresh reads from it. */
 export interface UmbrellaPullRequest {
 	number: number;
@@ -13,9 +16,8 @@ export interface UmbrellaPullRequest {
 }
 
 /**
- * An umbrella PR: an open one, or a planned one that a join would create,
- * named by its title. An umbrella whose creation was only printed stays
- * planned.
+ * An open umbrella PR, or a planned one that a join would create. A planned
+ * umbrella has no number yet: its title names it.
  */
 export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
 
@@ -25,10 +27,7 @@ export interface SubmittedReview extends ReviewResponse {
 	body: string;
 }
 
-/**
- * Whether a PR is an umbrella PR: from an umbrella branch of `repo` into the
- * branch the name implies.
- */
+/** Whether a PR is an umbrella PR of the repository. */
 function isUmbrellaPullRequest({ base, head }: PullRequestResponse, repo: Repository): boolean {
 	return (
 		isUmbrellaBranch(head.ref) &&
@@ -93,12 +92,10 @@ export async function findOpenUmbrella(
 }
 
 /**
- * Lists the open umbrella PRs: PRs from an umbrella branch of the repository
- * into the branch it names.
+ * Lists the open umbrella PRs.
  *
  * @param {Repository} repo - The docs repository.
- * @returns {Promise<UmbrellaPullRequest[]>} The open umbrella PRs. A PR from a
- *   fork or into another base isn't one.
+ * @returns {Promise<UmbrellaPullRequest[]>} The open umbrella PRs.
  */
 export async function listOpenUmbrellas(repo: Repository): Promise<UmbrellaPullRequest[]> {
 	const pullRequests = await repo.getAll<PullRequestResponse>(`pulls?state=open`);
@@ -106,21 +103,26 @@ export async function listOpenUmbrellas(repo: Repository): Promise<UmbrellaPullR
 }
 
 /**
- * Lists the titles of the commits of a branch that aren't in another.
+ * Lists the docs PRs merged into an umbrella branch.
  *
- * @param {Repository} repo - The repository of both branches.
- * @param {string} base - The branch to compare with.
- * @param {string} head - The branch whose commits are listed.
- * @returns {Promise<string[]>} The first line of the message of each commit
- *   of `head` missing in `base`, oldest first.
+ * Reads the PR number at the end of each commit title, which a rebase of the
+ * branch keeps. A commit without one, such as a merge of the base, is skipped.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {UmbrellaPullRequest} umbrella - The umbrella PR.
+ * @returns {Promise<number[]>} The numbers of the included PRs, in the order
+ *   of the commits.
  */
-export async function listCommitTitlesAhead(
+export async function listIncludedPullRequests(
 	repo: Repository,
-	base: string,
-	head: string
-): Promise<string[]> {
-	const { commits } = await compareBranches(repo, base, head);
-	return commits.map(({ commit }) => commit.message.split('\n', 1)[0] ?? '');
+	{ base, branch }: UmbrellaPullRequest
+): Promise<number[]> {
+	const { commits } = await compareBranches(repo, base, branch);
+	return commits.flatMap(({ commit }) => {
+		const [commitTitle = ''] = commit.message.split('\n', 1);
+		const match = commitTitle.match(SQUASH_TITLE);
+		return match ? [Number(match[1])] : [];
+	});
 }
 
 /**

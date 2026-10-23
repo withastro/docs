@@ -1,28 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { formatUmbrellaBody, parseIncludedPullRequests, parseReleaseMarker } from './body.ts';
-
-describe('parseIncludedPullRequests', () => {
-	it('reads the PR of each squash commit, in commit order', () => {
-		const included = parseIncludedPullRequests([
-			'Document the new option (#7)',
-			"Merge branch 'main' into release-queue/main",
-			'Fix (a typo) in the guide (#3)',
-			'Revert the option (#12) (#15)',
-		]);
-		assert.deepEqual(included, [
-			{ number: 7, title: 'Document the new option' },
-			{ number: 3, title: 'Fix (a typo) in the guide' },
-			{ number: 15, title: 'Revert the option (#12)' },
-		]);
-	});
-});
+import { formatUmbrellaBody, parseReleaseMarker } from './body.ts';
 
 describe('formatUmbrellaBody', () => {
-	const included = [
-		{ number: 14580, title: 'Document remote image fetch retries' },
-		{ number: 14581, title: 'Fix a typo' },
-	];
+	const included = [14580, 14581];
 
 	it('links the release PR of the main umbrella, and lists the included PRs', () => {
 		assert.equal(
@@ -30,8 +11,8 @@ describe('formatUmbrellaBody', () => {
 			[
 				'Ships with withastro/astro#18459. This includes:',
 				'',
-				'- Document remote image fetch retries (#14580)',
-				'- Fix a typo (#14581)',
+				'- #14580',
+				'- #14581',
 				'',
 				'<sub>Managed by the release queue: the bot rewrites this description after each join and each manual run.</sub>',
 				'<!-- release-queue:release-pr=18459 -->',
@@ -79,16 +60,9 @@ describe('parseReleaseMarker', () => {
 		assert.equal(parseReleaseMarker('Release umbrella for `main`.'), undefined);
 	});
 
-	describe('ignores a marker in the title of an included PR', () => {
-		const included = [{ number: 7, title: 'Fix <!-- release-queue:release-pr=1 -->' }];
-
-		it('when the umbrella links a release PR', () => {
-			const body = formatUmbrellaBody('main', { releasePrNumber: 18405, included });
-			assert.equal(parseReleaseMarker(body), 18405);
-		});
-
-		it("when the umbrella doesn't link one", () => {
-			assert.equal(parseReleaseMarker(formatUmbrellaBody('main', { included })), undefined);
-		});
+	it('reads only the marker at the end of the body', () => {
+		const body = formatUmbrellaBody('main', { releasePrNumber: 18405, included: [] });
+		assert.equal(parseReleaseMarker(`<!-- release-queue:release-pr=1 -->\n${body}`), 18405);
+		assert.equal(parseReleaseMarker(`${body}\nEdited after the marker.`), undefined);
 	});
 });

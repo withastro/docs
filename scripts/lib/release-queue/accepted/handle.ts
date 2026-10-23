@@ -1,11 +1,11 @@
 import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from '../config.ts';
 import { removeLabel, type Repository } from '../github/repository.ts';
-import { isLiveFor } from '../modes.ts';
+import { canActOn } from '../modes.ts';
 import { getReleasePullRequest } from '../release/queries.ts';
 import { getStableRelease, type StableRelease } from '../release/release.ts';
 import type { RunContext } from '../run-context.ts';
 import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from '../umbrella/branch.ts';
-import { getUmbrellaHeading } from '../umbrella/heading.ts';
+import { getUmbrellaTitle } from '../umbrella/heading.ts';
 import { syncMergeBlockReview } from '../umbrella/merge-block.ts';
 import { findOpenUmbrella, getUmbrella, type Umbrella } from '../umbrella/queries.ts';
 import { refreshUmbrella } from '../umbrella/refresh.ts';
@@ -65,7 +65,7 @@ export async function handleAcceptedPullRequest(
 	const accepted = await readAcceptedPullRequest(run, prNumber);
 	const { pr, release, decision } = accepted;
 	console.info(JSON.stringify({ pr: pr.url, release, decision }, null, 2));
-	if (!isLiveFor(run.mode, getUmbrellaBase(pr.base))) {
+	if (!canActOn(run.mode, getUmbrellaBase(pr.base))) {
 		await commentDryRun(run, accepted);
 	} else if (decision.status === 'refuse') {
 		await refuse(run, { ...accepted, decision });
@@ -133,7 +133,7 @@ async function refuse(
 async function joinAndAnnounce(run: RunContext, accepted: AcceptedPullRequest<JoinDecision>) {
 	const { pr, release, decision } = accepted;
 	const { route } = decision;
-	const { title } = getUmbrellaHeading(route.umbrellaBase, release);
+	const title = getUmbrellaTitle(route.umbrellaBase, release);
 	const result = await joinUmbrella(run.bot, { pr, route, umbrellaTitle: title });
 
 	switch (result.status) {
@@ -184,7 +184,7 @@ async function findOrPlanUmbrella(
 ): Promise<Umbrella> {
 	const openUmbrella = await findOpenUmbrella(actions, route.umbrellaBranch);
 	if (openUmbrella) return { status: 'open', number: openUmbrella.number };
-	return { status: 'planned', title: getUmbrellaHeading(route.umbrellaBase, release).title };
+	return { status: 'planned', title: getUmbrellaTitle(route.umbrellaBase, release) };
 }
 
 async function getMessageContext(

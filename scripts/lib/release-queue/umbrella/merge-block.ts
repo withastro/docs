@@ -48,7 +48,10 @@ function describeBranchItem(
 }
 
 /**
- * Names the translations label instead of reading it: `pr-labeler.yml` adds it
+ * Describes the Lunaria directive to add when the umbrella has the
+ * translations label.
+ *
+ * The item names the label instead of reading it: `pr-labeler.yml` adds it
  * after the merge, with `GITHUB_TOKEN`, which doesn't trigger this workflow.
  */
 function describeLunariaItem(): string {
@@ -75,8 +78,7 @@ function findActiveReview(reviews: SubmittedReview[]): SubmittedReview | undefin
  * @param {UmbrellaPullRequest} umbrella - The umbrella PR, as refreshed.
  * @param {object} options - When to block the merge again.
  * @param {boolean} options.shouldBlock - Whether to submit a review when none
- *   is active: after a join, as a dismissed review doesn't cover the PRs that
- *   joined since.
+ *   is active.
  */
 export async function syncMergeBlockReview(
 	repo: Repository,

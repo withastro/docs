@@ -12,9 +12,10 @@ export interface LabelChanges {
 }
 
 /**
- * Gets the label changes that give an umbrella PR the label that marks
- * umbrella PRs, and its release label. Other labels, such as the translations
- * label, stay.
+ * Gets the label changes of an umbrella that follows its release.
+ *
+ * The umbrella gets `MERGE_ON_RELEASE_LABEL` and the label of its release,
+ * and loses the other release labels. Its other labels stay.
  *
  * @param {string[]} current - The labels of the umbrella PR.
  * @param {ReleaseLabel} releaseLabel - The label of the release it ships with.
@@ -35,9 +36,8 @@ export function getLabelChanges(current: string[], releaseLabel: ReleaseLabel): 
  * Gets the label changes of an umbrella whose release can't be followed.
  *
  * @param {string[]} current - The labels of the umbrella PR.
- * @returns {LabelChanges} The label that marks umbrella PRs if missing, and
- *   the fallback release label only when the umbrella has none. Nothing to
- *   remove.
+ * @returns {LabelChanges} `MERGE_ON_RELEASE_LABEL` if missing, and the
+ *   fallback release label only when the umbrella has none.
  */
 export function getKeptLabelChanges(current: string[]): LabelChanges {
 	const hasReleaseLabel = ALL_RELEASE_LABELS.some((label) => current.includes(label));

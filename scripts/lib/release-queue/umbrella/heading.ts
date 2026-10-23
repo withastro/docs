@@ -1,5 +1,5 @@
 import {
-	FRAMEWORK_PACKAGE,
+	FRAMEWORK_CORE_PACKAGE,
 	RELEASE_LABELS,
 	RELEASE_TITLE_PREFIX,
 	STABLE_BRANCH,
@@ -7,45 +7,42 @@ import {
 } from '../config.ts';
 import type { StableRelease } from '../release/release.ts';
 
-/** What an umbrella PR takes from the release it ships with. */
-export interface UmbrellaHeading {
-	title: string;
-	releaseLabel: ReleaseLabel;
-}
-
 /**
- * Gets the title and release label of the umbrella PR merging into
- * `umbrellaBase`.
+ * Gets the title of the umbrella PR merging into a branch.
+ *
+ * The stable umbrella is named after the version of the core package, as
+ * merged PRs are posted to Discord. A prerelease umbrella is named after its
+ * branch.
  *
  * @param {string} umbrellaBase - The branch the umbrella PR merges into.
  * @param {StableRelease} release - The next release from the stable branch.
- * @returns {UmbrellaHeading} The heading of the stable umbrella, or of a
- *   prerelease umbrella for any other base.
+ * @returns {string} The title of the umbrella PR.
  */
-export function getUmbrellaHeading(umbrellaBase: string, release: StableRelease): UmbrellaHeading {
-	return umbrellaBase === STABLE_BRANCH
-		? getStableUmbrellaHeading(release)
-		: getPrereleaseUmbrellaHeading(umbrellaBase);
+export function getUmbrellaTitle(umbrellaBase: string, release: StableRelease): string {
+	if (umbrellaBase !== STABLE_BRANCH) return formatUmbrellaTitle(umbrellaBase);
+	return formatUmbrellaTitle(
+		release.frameworkVersion
+			? `${FRAMEWORK_CORE_PACKAGE}@${release.frameworkVersion}`
+			: STABLE_BRANCH
+	);
+}
+
+function formatUmbrellaTitle(name: string): string {
+	return `${RELEASE_TITLE_PREFIX} ${name} docs`;
 }
 
 /**
- * Names the stable umbrella after the version of the framework package, as
- * merged PRs are posted to Discord. Expects a release that isn't a major.
+ * Gets the release label of the umbrella PR merging into a branch.
+ *
+ * @param {string} umbrellaBase - The branch the umbrella PR merges into.
+ * @param {StableRelease} release - The next release from the stable branch.
+ *   Expected not to be a major for the stable umbrella.
+ * @returns {ReleaseLabel} The label of the release type for the stable
+ *   umbrella, and the major label for a prerelease umbrella.
  */
-function getStableUmbrellaHeading(release: StableRelease): UmbrellaHeading {
-	const name = release.frameworkVersion
-		? `${FRAMEWORK_PACKAGE}@${release.frameworkVersion}`
-		: STABLE_BRANCH;
-	return {
-		title: `${RELEASE_TITLE_PREFIX} ${name} docs`,
-		releaseLabel: RELEASE_LABELS[release.type],
-	};
-}
-
-/** Names a prerelease umbrella after its branch, which says what it is for. */
-function getPrereleaseUmbrellaHeading(umbrellaBase: string): UmbrellaHeading {
-	return {
-		title: `${RELEASE_TITLE_PREFIX} ${umbrellaBase} docs`,
-		releaseLabel: RELEASE_LABELS.major,
-	};
+export function getUmbrellaReleaseLabel(
+	umbrellaBase: string,
+	release: StableRelease
+): ReleaseLabel {
+	return umbrellaBase === STABLE_BRANCH ? RELEASE_LABELS[release.type] : RELEASE_LABELS.major;
 }

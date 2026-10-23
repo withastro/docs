@@ -96,9 +96,8 @@ export class GitHubClient {
 	 * @param {WriteMethod} method - The HTTP method.
 	 * @param {string} path - The endpoint, relative to the API root.
 	 * @param {unknown} [body] - The JSON body of the request.
-	 * @returns {Promise<T | undefined>} The JSON answer. `undefined` when GitHub
-	 *   answers without a body, or when `PrintingGitHubClient` only prints the
-	 *   request.
+	 * @returns {Promise<T | undefined>} The JSON answer, or `undefined` when
+	 *   GitHub answers without a body.
 	 * @throws {GitHubError} When GitHub answers with an error.
 	 */
 	async write<T>(method: WriteMethod, path: string, body?: unknown): Promise<T | undefined> {
@@ -155,9 +154,7 @@ function getErrorReason(text: string): string | undefined {
 	const body = parseErrorBody(text);
 	if (!isRecord(body) || typeof body.message !== 'string' || !body.message) return undefined;
 	const errors = Array.isArray(body.errors) ? body.errors : [];
-	const details = errors
-		.map((error: unknown) => (typeof error === 'string' ? error : readErrorMessage(error)))
-		.filter((detail) => detail !== undefined);
+	const details = errors.map(readErrorMessage).filter((detail) => detail !== undefined);
 	return details.length > 0 ? `${body.message}: ${details.join('; ')}` : body.message;
 }
 
@@ -170,6 +167,8 @@ function parseErrorBody(text: string): unknown {
 	}
 }
 
+/** Reads an item of `errors`: a message, or an object with one. */
 function readErrorMessage(error: unknown): string | undefined {
+	if (typeof error === 'string') return error;
 	return isRecord(error) && typeof error.message === 'string' ? error.message : undefined;
 }

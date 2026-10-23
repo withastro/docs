@@ -9,7 +9,7 @@ import type { RunContext } from './run-context.ts';
 import { refreshOpenUmbrellas } from './umbrella/refresh.ts';
 
 /** The command-line flags of `scripts/release-queue.ts`. */
-export interface Flags {
+interface Flags {
 	pr?: string | undefined;
 	refresh: boolean;
 	/** Who added the label, for the write access check. */
@@ -18,14 +18,14 @@ export interface Flags {
 }
 
 /** The environment variables the release queue reads. */
-export interface Env {
+interface Env {
 	/** For reads, dry-run comments and merge-block reviews. */
 	GITHUB_TOKEN?: string | undefined;
 	/** The token of the bot account, for joins, refusals and refreshes. */
 	BOT_TOKEN?: string | undefined;
-	/** A dry run by default: see `Mode`. */
+	/** The mode of the bot. */
 	MODE?: string | undefined;
-	// Set by GitHub Actions.
+	// The variables below are set by GitHub Actions.
 	GITHUB_ACTIONS?: string | undefined;
 	GITHUB_EVENT_NAME?: string | undefined;
 	GITHUB_EVENT_PATH?: string | undefined;
@@ -69,8 +69,8 @@ function createRunContext(flags: Flags, env: Env): RunContext {
 	const token = env.GITHUB_TOKEN;
 	if (!token) throw new Error('GITHUB_TOKEN is required.');
 	const shouldWrite = isGitHubActions(env) || flags.write;
-	// Changes go through the bot account: unlike `GITHUB_TOKEN`, its merges into
-	// an umbrella branch trigger the checks of the umbrella PR.
+	// Changes go through the bot account, as its merges into an umbrella branch
+	// trigger the checks of the umbrella PR.
 	const botToken = env.BOT_TOKEN;
 	if (shouldWrite && !isDryRun(mode) && !botToken) {
 		throw new Error(`BOT_TOKEN is required in ${mode} mode.`);

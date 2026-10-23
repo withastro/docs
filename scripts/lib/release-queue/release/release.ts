@@ -1,19 +1,16 @@
-import { FRAMEWORK_PACKAGE, FRAMEWORK_REPO, RELEASE_LABELS } from '../config.ts';
+import {
+	FRAMEWORK_CORE_PACKAGE,
+	FRAMEWORK_REPO,
+	RELEASE_TYPES,
+	type ReleaseType,
+} from '../config.ts';
 
 /** A `## <package>@<version>` heading of a release PR body. */
 const RELEASE_HEADING = /^## (\S+)@(\d+\.\d+\.\d+\S*)\s*$/gm;
 /** A stable version, without a prerelease suffix: its minor and patch. */
 const STABLE_VERSION = /^\d+\.(\d+)\.(\d+)$/;
 
-export type ReleaseType = keyof typeof RELEASE_LABELS;
-
-export const RELEASE_TYPES = {
-	patch: 'patch',
-	minor: 'minor',
-	major: 'major',
-} as const satisfies { [Type in ReleaseType]: Type };
-
-export interface PackageVersion {
+interface PackageVersion {
 	name: string;
 	version: string;
 }
@@ -71,7 +68,7 @@ function getReleaseType(version: string | undefined): ReleaseType {
  * @returns {StableRelease} The type and version of the release, with its PR.
  */
 export function getStableRelease(pullRequest?: ReleasePullRequest): StableRelease {
-	const frameworkVersion = findVersion(pullRequest?.versions ?? [], FRAMEWORK_PACKAGE);
+	const frameworkVersion = findVersion(pullRequest?.versions ?? [], FRAMEWORK_CORE_PACKAGE);
 	return { type: getReleaseType(frameworkVersion), frameworkVersion, pullRequest };
 }
 

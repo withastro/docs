@@ -3,12 +3,9 @@
 
 export const DOCS_REPO = 'withastro/docs';
 export const FRAMEWORK_REPO = 'withastro/astro';
-/** The package of the framework repository that names its releases. */
-export const FRAMEWORK_PACKAGE = 'astro';
+export const FRAMEWORK_CORE_PACKAGE = 'astro';
 export const FRAMEWORK_STABLE_BRANCH = 'main';
-/** The branch of the framework repository for its alpha and beta releases. */
 export const FRAMEWORK_PRERELEASE_BRANCH = 'next';
-/** The title prefix of the framework's release PRs, shared by umbrellas. */
 export const RELEASE_TITLE_PREFIX = '[ci] release';
 
 export const STABLE_BRANCH = 'main';
@@ -19,11 +16,15 @@ export const ACCEPTED_LABEL = 'accepted';
 export const MERGE_ON_RELEASE_LABEL = 'merge-on-release';
 /** Added by `pr-labeler.yml` when translations change. */
 export const TRANSLATIONS_LABEL = 'i18n';
+export const RELEASE_TYPES = { patch: 'patch', minor: 'minor', major: 'major' } as const;
+
+export type ReleaseType = (typeof RELEASE_TYPES)[keyof typeof RELEASE_TYPES];
+
 export const RELEASE_LABELS = {
-	patch: 'patch-release',
-	minor: 'minor-release',
-	major: 'major-release',
-} as const;
+	patch: `${RELEASE_TYPES.patch}-release`,
+	minor: `${RELEASE_TYPES.minor}-release`,
+	major: `${RELEASE_TYPES.major}-release`,
+} as const satisfies { [Type in ReleaseType]: `${Type}-release` };
 
 export type ReleaseLabel = (typeof RELEASE_LABELS)[keyof typeof RELEASE_LABELS];
 

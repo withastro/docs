@@ -24,7 +24,7 @@ export function getUmbrellaBase(base: string): string {
 }
 
 /**
- * Gets the umbrella branch of the umbrella PR merging into a branch.
+ * Gets the umbrella branch for a base branch.
  *
  * @param {string} umbrellaBase - The branch the umbrella PR merges into.
  * @returns {string} The umbrella branch, with its reserved prefix.

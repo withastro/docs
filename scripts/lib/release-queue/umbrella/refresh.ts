@@ -1,11 +1,11 @@
-import { FRAMEWORK_STABLE_BRANCH, STABLE_BRANCH } from '../config.ts';
+import { FRAMEWORK_STABLE_BRANCH, RELEASE_TYPES, STABLE_BRANCH } from '../config.ts';
 import { removeLabel, type Repository } from '../github/repository.ts';
-import { isLiveFor } from '../modes.ts';
+import { canActOn } from '../modes.ts';
 import { getPrereleasePullRequest, getReleasePullRequest } from '../release/queries.ts';
-import { getStableRelease, RELEASE_TYPES, type StableRelease } from '../release/release.ts';
+import { getStableRelease, type StableRelease } from '../release/release.ts';
 import type { Repositories, RunContext } from '../run-context.ts';
-import { formatUmbrellaBody, parseIncludedPullRequests } from './body.ts';
-import { getUmbrellaHeading } from './heading.ts';
+import { formatUmbrellaBody } from './body.ts';
+import { getUmbrellaReleaseLabel, getUmbrellaTitle } from './heading.ts';
 import {
 	applyToLabels,
 	getKeptLabelChanges,
@@ -13,8 +13,12 @@ import {
 	type LabelChanges,
 } from './labels.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
-import { listCommitTitlesAhead, listOpenUmbrellas, type UmbrellaPullRequest } from './queries.ts';
-import { getReleaseState, type ReleaseState } from './state.ts';
+import {
+	listIncludedPullRequests,
+	listOpenUmbrellas,
+	type UmbrellaPullRequest,
+} from './queries.ts';
+import { getReleaseState } from './state.ts';
 
 /**
  * Brings an umbrella PR up to date with its release and its included PRs,
@@ -31,30 +35,31 @@ export async function refreshUmbrella(
 	umbrella: UmbrellaPullRequest,
 	release: StableRelease
 ): Promise<UmbrellaPullRequest> {
-	const state = await getReleaseState(framework, umbrella, release);
-	if (state.status === 'follows' && isBeforeMajor(umbrella, release)) {
+	const releaseState = await getReleaseState(framework, umbrella, release);
+	const isFollowing = releaseState.status === 'follows';
+	if (isFollowing && isBeforeMajor(umbrella, release)) {
 		console.info(`Skipped #${umbrella.number}: the next stable release is a major.`);
 		return umbrella;
 	}
 
-	const heading = getUmbrellaHeading(umbrella.base, release);
-	const linkedReleasePrNumber = await getLinkedReleasePrNumber(framework, umbrella, {
-		state,
-		release,
-	});
-	const wanted = await getWantedText(docs, umbrella, {
-		title: state.status === 'follows' ? heading.title : umbrella.title,
-		linkedReleasePrNumber,
-	});
-	const textChanges = getTextChanges(umbrella, wanted);
+	const linkedReleasePrNumber = isFollowing
+		? await getFollowedReleasePrNumber(framework, umbrella, release)
+		: releaseState.releasePrNumber;
+	const wantedText = {
+		title: isFollowing ? getUmbrellaTitle(umbrella.base, release) : umbrella.title,
+		body: formatUmbrellaBody(umbrella.base, {
+			releasePrNumber: linkedReleasePrNumber,
+			included: await listIncludedPullRequests(docs, umbrella),
+		}),
+	};
+	const textChanges = getTextChanges(umbrella, wantedText);
 	if (Object.keys(textChanges).length > 0) {
 		await docs.write('PATCH', `pulls/${umbrella.number}`, textChanges);
 	}
 
-	const labelChanges =
-		state.status === 'follows'
-			? getLabelChanges(umbrella.labels, heading.releaseLabel)
-			: getKeptLabelChanges(umbrella.labels);
+	const labelChanges = isFollowing
+		? getLabelChanges(umbrella.labels, getUmbrellaReleaseLabel(umbrella.base, release))
+		: getKeptLabelChanges(umbrella.labels);
 	await applyLabelChanges(docs, umbrella.number, labelChanges);
 	return { ...umbrella, ...textChanges, labels: applyToLabels(umbrella.labels, labelChanges) };
 }
@@ -68,15 +73,15 @@ function isBeforeMajor(umbrella: UmbrellaPullRequest, release: StableRelease): b
 }
 
 /**
- * Gets the release PR to link in an umbrella: the open one when it follows
- * its release, or the one it already links.
+ * Gets the release PR an umbrella that follows its release links: the open
+ * release PR of the stable branch, or of the prerelease of a prerelease
+ * umbrella.
  */
-async function getLinkedReleasePrNumber(
+async function getFollowedReleasePrNumber(
 	framework: Repository,
 	umbrella: UmbrellaPullRequest,
-	{ state, release }: { state: ReleaseState; release: StableRelease }
+	release: StableRelease
 ): Promise<number | undefined> {
-	if (state.status !== 'follows') return state.releasePrNumber;
 	const releasePullRequest =
 		umbrella.base === STABLE_BRANCH
 			? release.pullRequest
@@ -84,28 +89,14 @@ async function getLinkedReleasePrNumber(
 	return releasePullRequest?.number;
 }
 
-/** Gets the title and body the umbrella PR should have. */
-async function getWantedText(
-	docs: Repository,
-	umbrella: UmbrellaPullRequest,
-	{ title, linkedReleasePrNumber }: { title: string; linkedReleasePrNumber: number | undefined }
-): Promise<{ title: string; body: string }> {
-	const commitTitles = await listCommitTitlesAhead(docs, umbrella.base, umbrella.branch);
-	const body = formatUmbrellaBody(umbrella.base, {
-		releasePrNumber: linkedReleasePrNumber,
-		included: parseIncludedPullRequests(commitTitles),
-	});
-	return { title, body };
-}
-
-/** Gets the title and body of `wanted` that differ from the umbrella's. */
+/** Gets the title and body of `wantedText` that differ from the umbrella's. */
 function getTextChanges(
 	umbrella: UmbrellaPullRequest,
-	wanted: { title: string; body: string }
+	wantedText: { title: string; body: string }
 ): { title?: string; body?: string } {
 	return {
-		...(wanted.title === umbrella.title ? {} : { title: wanted.title }),
-		...(wanted.body === umbrella.body ? {} : { body: wanted.body }),
+		...(wantedText.title === umbrella.title ? {} : { title: wantedText.title }),
+		...(wantedText.body === umbrella.body ? {} : { body: wantedText.body }),
 	};
 }
 
@@ -135,7 +126,7 @@ export async function refreshOpenUmbrellas(run: RunContext) {
 	console.info(`Open umbrellas: ${numbers || 'none'}.`);
 
 	const { live: liveUmbrellas = [], skipped = [] } = Object.groupBy(umbrellas, (umbrella) =>
-		isLiveFor(mode, umbrella.base) ? 'live' : 'skipped'
+		canActOn(mode, umbrella.base) ? 'live' : 'skipped'
 	);
 	for (const umbrella of skipped) {
 		console.info(`Skipped #${umbrella.number}: dry run for ${umbrella.base}.`);

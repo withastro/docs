@@ -1,38 +1,45 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { getStableRelease } from '../release/release.ts';
-import { getUmbrellaHeading } from './heading.ts';
+import { getUmbrellaReleaseLabel, getUmbrellaTitle } from './heading.ts';
 
 const releasePullRequest = (frameworkVersion?: string) => ({
 	number: 18459,
 	versions: frameworkVersion ? [{ name: 'astro', version: frameworkVersion }] : [],
 });
 
-describe('getUmbrellaHeading', () => {
+describe('getUmbrellaTitle', () => {
 	it('names the main umbrella after the astro version', () => {
-		assert.deepEqual(getUmbrellaHeading('main', getStableRelease(releasePullRequest('7.4.1'))), {
-			title: '[ci] release astro@7.4.1 docs',
-			releaseLabel: 'patch-release',
-		});
-	});
-
-	it('labels the main umbrella of a minor release', () => {
-		const heading = getUmbrellaHeading('main', getStableRelease(releasePullRequest('7.5.0')));
-		assert.equal(heading.releaseLabel, 'minor-release');
-	});
-
-	it('falls back to the branch name and a patch when astro is not released', () => {
-		assert.deepEqual(getUmbrellaHeading('main', getStableRelease(releasePullRequest())), {
-			title: '[ci] release main docs',
-			releaseLabel: 'patch-release',
-		});
-	});
-
-	it('names a prerelease umbrella after its branch, as a major', () => {
 		const release = getStableRelease(releasePullRequest('7.4.1'));
-		assert.deepEqual(getUmbrellaHeading('cloudflare-next', release), {
-			title: '[ci] release cloudflare-next docs',
-			releaseLabel: 'major-release',
-		});
+		assert.equal(getUmbrellaTitle('main', release), '[ci] release astro@7.4.1 docs');
+	});
+
+	it('falls back to the branch name when astro is not released', () => {
+		const release = getStableRelease(releasePullRequest());
+		assert.equal(getUmbrellaTitle('main', release), '[ci] release main docs');
+	});
+
+	it('names a prerelease umbrella after its branch', () => {
+		const release = getStableRelease(releasePullRequest('7.4.1'));
+		assert.equal(getUmbrellaTitle('cloudflare-next', release), '[ci] release cloudflare-next docs');
+	});
+});
+
+describe('getUmbrellaReleaseLabel', () => {
+	it('labels the main umbrella after the release type', () => {
+		const patch = getStableRelease(releasePullRequest('7.4.1'));
+		const minor = getStableRelease(releasePullRequest('7.5.0'));
+		assert.equal(getUmbrellaReleaseLabel('main', patch), 'patch-release');
+		assert.equal(getUmbrellaReleaseLabel('main', minor), 'minor-release');
+	});
+
+	it('labels the main umbrella as a patch when astro is not released', () => {
+		const release = getStableRelease(releasePullRequest());
+		assert.equal(getUmbrellaReleaseLabel('main', release), 'patch-release');
+	});
+
+	it('labels a prerelease umbrella as a major', () => {
+		const release = getStableRelease(releasePullRequest('7.4.1'));
+		assert.equal(getUmbrellaReleaseLabel('cloudflare-next', release), 'major-release');
 	});
 });

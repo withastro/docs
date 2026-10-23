@@ -1,6 +1,6 @@
 import {
 	ACCEPTED_LABEL,
-	FRAMEWORK_PACKAGE,
+	FRAMEWORK_CORE_PACKAGE,
 	FRAMEWORK_STABLE_BRANCH,
 	RELEASE_LABELS,
 	STABLE_BRANCH,
@@ -29,29 +29,55 @@ type DescribeRefusal<C extends RefusalCode> = (
 	context: MessageContext
 ) => string;
 
+const PATCH_LABEL = wrapInCode(RELEASE_LABELS.patch);
+const MINOR_LABEL = wrapInCode(RELEASE_LABELS.minor);
+const MAJOR_LABEL = wrapInCode(RELEASE_LABELS.major);
+
+function describeMissingReleaseLabel(): string {
+	const stableBranch = wrapInCode(STABLE_BRANCH);
+	return `This PR has no release label. Add ${PATCH_LABEL} or ${MINOR_LABEL} for a PR against ${stableBranch}, or ${MAJOR_LABEL} for a PR against a prerelease branch.`;
+}
+
+function describeMismatch({ base, label }: Refusal<'mismatch'>): string {
+	const stableBranch = wrapInCode(STABLE_BRANCH);
+	const currentBase = wrapInCode(base);
+	if (label === RELEASE_LABELS.major) {
+		return `${MAJOR_LABEL} PRs target a prerelease branch, but this one targets ${currentBase}. Change the base to the prerelease branch, or the label to ${PATCH_LABEL} or ${MINOR_LABEL}.`;
+	}
+	return `${wrapInCode(label)} PRs target ${stableBranch}, but this one targets ${currentBase}. Change the base to ${stableBranch}, or the label to ${MAJOR_LABEL}.`;
+}
+
+function describeMajorOnStable(
+	{ frameworkVersion }: Refusal<'major-on-stable'>,
+	{ stableUmbrella }: MessageContext
+): string {
+	const corePackage = wrapInCode(FRAMEWORK_CORE_PACKAGE);
+	const stableBranch = wrapInCode(FRAMEWORK_STABLE_BRANCH);
+	const version = frameworkVersion
+		? ` (${wrapInCode(`${FRAMEWORK_CORE_PACKAGE}@${frameworkVersion}`)})`
+		: '';
+	const umbrellaToMove = stableUmbrella
+		? ` The open ${wrapInCode(STABLE_BRANCH)} umbrella (#${stableUmbrella.number}) needs to be squashed into the prerelease branch by a maintainer.`
+		: '';
+	return `The next ${corePackage} release from ${stableBranch} is a major${version}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to ${MAJOR_LABEL}.${umbrellaToMove}`;
+}
+
+function describeSettledUmbrella({ number, releasePrNumber }: Refusal<'settled-umbrella'>): string {
+	const releasePr = formatFrameworkReference(releasePrNumber);
+	const umbrellaBranch = wrapInCode(STABLE_UMBRELLA_BRANCH);
+	return `#${number} ships with ${releasePr}, which is already merged. Merge #${number} first. If this PR documents that release, change its base to ${umbrellaBranch} instead.`;
+}
+
 const REFUSAL_DESCRIPTIONS: { [C in RefusalCode]: DescribeRefusal<C> } = {
 	closed: () => 'This PR is closed.',
 	umbrella: () => 'This PR is a release umbrella. Merge it when the release is out.',
 	draft: () => 'This PR is a draft. Mark it as ready for review.',
-	'no-release-label': () =>
-		`This PR has no release label. Add ${wrapInCode(RELEASE_LABELS.patch)} or ${wrapInCode(RELEASE_LABELS.minor)} for a PR against ${wrapInCode(STABLE_BRANCH)}, or ${wrapInCode(RELEASE_LABELS.major)} for a PR against a prerelease branch.`,
+	'no-release-label': describeMissingReleaseLabel,
 	'several-release-labels': ({ labels }) =>
 		`This PR has several release labels (${joinAsCode(labels)}). Keep only one.`,
-	mismatch: ({ base, label }) =>
-		label === RELEASE_LABELS.major
-			? `${wrapInCode(RELEASE_LABELS.major)} PRs target a prerelease branch, but this one targets ${wrapInCode(base)}. Change the base to the prerelease branch, or the label to ${wrapInCode(RELEASE_LABELS.patch)} or ${wrapInCode(RELEASE_LABELS.minor)}.`
-			: `${wrapInCode(label)} PRs target ${wrapInCode(STABLE_BRANCH)}, but this one targets ${wrapInCode(base)}. Change the base to ${wrapInCode(STABLE_BRANCH)}, or the label to ${wrapInCode(RELEASE_LABELS.major)}.`,
-	'major-on-stable': ({ frameworkVersion }, { stableUmbrella }) => {
-		const release = frameworkVersion
-			? ` (${wrapInCode(`${FRAMEWORK_PACKAGE}@${frameworkVersion}`)})`
-			: '';
-		const umbrella = stableUmbrella
-			? ` The open ${wrapInCode(STABLE_BRANCH)} umbrella (#${stableUmbrella.number}) needs to be squashed into the prerelease branch by a maintainer.`
-			: '';
-		return `The next ${wrapInCode(FRAMEWORK_PACKAGE)} release from ${wrapInCode(FRAMEWORK_STABLE_BRANCH)} is a major${release}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to ${wrapInCode(RELEASE_LABELS.major)}.${umbrella}`;
-	},
-	'settled-umbrella': ({ number, releasePrNumber }) =>
-		`#${number} ships with ${formatFrameworkReference(releasePrNumber)}, which is already merged. Merge #${number} first. If this PR documents that release, change its base to ${wrapInCode(STABLE_UMBRELLA_BRANCH)} instead.`,
+	mismatch: describeMismatch,
+	'major-on-stable': describeMajorOnStable,
+	'settled-umbrella': describeSettledUmbrella,
 	'not-approved': () => 'This PR has no approval from a maintainer. Ask a maintainer to review it.',
 	'changes-requested': ({ reviewers }) =>
 		`Changes are requested by ${reviewers.join(', ')}. Address them, then ask for a new review or dismiss the old one.`,

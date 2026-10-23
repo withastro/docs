@@ -1,6 +1,12 @@
-import { ALL_RELEASE_LABELS, RELEASE_LABELS, STABLE_BRANCH, type ReleaseLabel } from '../config.ts';
+import {
+	ALL_RELEASE_LABELS,
+	RELEASE_LABELS,
+	RELEASE_TYPES,
+	STABLE_BRANCH,
+	type ReleaseLabel,
+} from '../config.ts';
 import type { PullRequestState } from '../github/types.ts';
-import { RELEASE_TYPES, type StableRelease } from '../release/release.ts';
+import type { StableRelease } from '../release/release.ts';
 import { getUmbrellaBase, getUmbrellaBranch, isUmbrellaBranch } from '../umbrella/branch.ts';
 import type { SettledUmbrella } from '../umbrella/state.ts';
 import type { Readiness } from './readiness.ts';
@@ -22,7 +28,7 @@ export interface Route {
 }
 
 /** What `decideJoin` needs besides the PR. */
-export interface DecisionContext {
+interface DecisionContext {
 	release: StableRelease;
 	settledStableUmbrella?: SettledUmbrella | undefined;
 }

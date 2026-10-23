@@ -8,8 +8,8 @@ import { STABLE_UMBRELLA_BRANCH } from './branch.ts';
 import { findOpenUmbrella, type UmbrellaPullRequest } from './queries.ts';
 
 /**
- * The open stable umbrella once the release PR it ships with is merged, until
- * the umbrella itself is merged.
+ * An open stable umbrella whose release PR is already merged. It stays settled
+ * until a maintainer merges it.
  */
 export interface SettledUmbrella {
 	number: number;
@@ -24,7 +24,7 @@ export interface SettledUmbrella {
  * - `settled`: the release PR it links is merged. It keeps everything until a
  *   maintainer merges it, even when the next release PR opens.
  */
-export type ReleaseState =
+type ReleaseState =
 	| { status: 'follows' }
 	| { status: 'kept'; releasePrNumber?: number | undefined }
 	| { status: 'settled'; releasePrNumber: number };
@@ -36,14 +36,14 @@ export type ReleaseState =
  * @param {UmbrellaPullRequest} umbrella - The umbrella PR, with the release PR
  *   its body links.
  * @param {StableRelease} release - The next release from the stable branch.
- * @returns {Promise<ReleaseState>} The release state. A prerelease umbrella
- *   always follows: its branch has continuous betas.
+ * @returns {Promise<ReleaseState>} The release state.
  */
 export async function getReleaseState(
 	framework: Repository,
 	umbrella: UmbrellaPullRequest,
 	release: StableRelease
 ): Promise<ReleaseState> {
+	// A prerelease umbrella always follows: its branch has continuous betas.
 	if (umbrella.base !== STABLE_BRANCH) return { status: 'follows' };
 	const linkedReleasePrNumber = parseReleaseMarker(umbrella.body);
 	const openReleasePrNumber = release.pullRequest?.number;
