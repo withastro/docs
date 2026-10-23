@@ -1,4 +1,4 @@
-import { isRecord, parseJson } from './json.ts';
+import { isRecord, parseJson } from './github/json.ts';
 
 /** A positive integer, written with digits only. */
 const PR_NUMBER = /^[1-9]\d*$/;

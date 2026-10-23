@@ -1,8 +1,8 @@
 import type { TestContext } from 'node:test';
-import { GitHubClient } from '../github.ts';
-import { isRecord } from '../json.ts';
-import { PrintingGitHubClient } from '../printing-github-client.ts';
-import { Repository } from '../repository.ts';
+import { GitHubClient } from '../github/client.ts';
+import { isRecord } from '../github/json.ts';
+import { PrintingGitHubClient } from '../github/printing-client.ts';
+import { Repository } from '../github/repository.ts';
 import { REPO } from './fixtures.ts';
 
 const API_URL = 'https://api.github.com/';
@@ -37,7 +37,7 @@ export interface StubOptions {
 	 * Answers to GET requests, by path, without the paging parameters. Other
 	 * paths answer with a 404. A function is called on each request, for
 	 * answers that change over time. Lists must have fewer than 100 items: the
-	 * stub answers one page (paging is tested in `github.test.ts`).
+	 * stub answers one page (paging is tested in `github/client.test.ts`).
 	 */
 	getResponses?: Record<string, unknown>;
 	/** JSON answers to writes, by `<method> <path>`. Others answer with a 204. */

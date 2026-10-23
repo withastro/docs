@@ -1,6 +1,6 @@
 import { FRAMEWORK_REPO } from '../config.ts';
 import type { Mode } from '../modes.ts';
-import type { QueueOptions } from '../repository.ts';
+import type { QueueOptions } from '../options.ts';
 import { REPO } from './fixtures.ts';
 import type { stubGitHub } from './stub-github.ts';
 

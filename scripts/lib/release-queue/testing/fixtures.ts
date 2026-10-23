@@ -1,4 +1,4 @@
-import type { PullRequestResponse } from '../github-types.ts';
+import type { PullRequestResponse } from '../github/types.ts';
 
 export const REPO = 'withastro/docs';
 
