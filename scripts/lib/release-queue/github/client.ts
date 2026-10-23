@@ -132,6 +132,22 @@ export class GitHubClient {
 }
 
 /**
+ * A GitHub client that prints the requests that change GitHub instead of
+ * sending them, for local runs. Reads still go to GitHub.
+ */
+export class PrintingGitHubClient extends GitHubClient {
+	override async write<T>(
+		method: WriteMethod,
+		path: string,
+		body?: unknown
+	): Promise<T | undefined> {
+		console.info(`[print] ${method} ${path}`);
+		if (body) console.info(JSON.stringify(body, null, 2));
+		return undefined;
+	}
+}
+
+/**
  * Gets the reason of an error body, with its details: a 422 only says
  * "Validation Failed" in `message`, and details it in `errors`.
  */
@@ -156,15 +172,4 @@ function parseErrorBody(text: string): unknown {
 
 function readErrorMessage(error: unknown): string | undefined {
 	return isRecord(error) && typeof error.message === 'string' ? error.message : undefined;
-}
-
-/**
- * Replaces the `\r\n` line endings GitHub keeps from a description or review
- * edited in the browser with `\n`.
- *
- * @param {string} text - A description or a review body read from GitHub.
- * @returns {string} The text with `\n` line endings only.
- */
-export function normalizeLineEndings(text: string): string {
-	return text.replaceAll('\r\n', '\n');
 }

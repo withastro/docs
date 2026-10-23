@@ -4,10 +4,10 @@ import {
 	FRAMEWORK_STABLE_BRANCH,
 	RELEASE_LABELS,
 	STABLE_BRANCH,
-	STABLE_UMBRELLA_BRANCH,
 } from '../config.ts';
 import { GitHubError } from '../github/error.ts';
 import { formatFrameworkReference } from '../release/release.ts';
+import { STABLE_UMBRELLA_BRANCH } from '../umbrella/branch.ts';
 import type { Umbrella } from '../umbrella/queries.ts';
 import type { UnopenedJoin } from './join.ts';
 import type { Refusal, RefusalCode, RefusedDecision, Route } from './routing.ts';

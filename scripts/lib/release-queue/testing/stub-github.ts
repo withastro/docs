@@ -1,7 +1,6 @@
 import type { TestContext } from 'node:test';
-import { GitHubClient } from '../github/client.ts';
+import { GitHubClient, PrintingGitHubClient } from '../github/client.ts';
 import { isRecord } from '../github/json.ts';
-import { PrintingGitHubClient } from '../github/printing-client.ts';
 import { Repository } from '../github/repository.ts';
 import { REPO } from './fixtures.ts';
 

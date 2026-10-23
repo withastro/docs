@@ -13,7 +13,6 @@ export const RELEASE_TITLE_PREFIX = '[ci] release';
 
 export const STABLE_BRANCH = 'main';
 export const UMBRELLA_BRANCH_PREFIX = 'release-queue/';
-export const STABLE_UMBRELLA_BRANCH = `${UMBRELLA_BRANCH_PREFIX}${STABLE_BRANCH}`;
 
 /** The label meaning a docs PR ships with the next release. */
 export const ACCEPTED_LABEL = 'accepted';

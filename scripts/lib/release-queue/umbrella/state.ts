@@ -1,9 +1,10 @@
-import { STABLE_BRANCH, STABLE_UMBRELLA_BRANCH } from '../config.ts';
+import { STABLE_BRANCH } from '../config.ts';
 import type { Repository } from '../github/repository.ts';
-import type { Repositories } from '../options.ts';
 import { isFrameworkPullRequestMerged } from '../release/queries.ts';
 import type { StableRelease } from '../release/release.ts';
+import type { Repositories } from '../run-context.ts';
 import { parseReleaseMarker } from './body.ts';
+import { STABLE_UMBRELLA_BRANCH } from './branch.ts';
 import { findOpenUmbrella, type UmbrellaPullRequest } from './queries.ts';
 
 /**

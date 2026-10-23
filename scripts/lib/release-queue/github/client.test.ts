@@ -1,9 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
 import { json, stubGitHub } from '../testing/stub-github.ts';
-import { GitHubClient } from './client.ts';
+import { GitHubClient, PrintingGitHubClient } from './client.ts';
 import { GitHubError } from './error.ts';
-import { PrintingGitHubClient } from './printing-client.ts';
 
 /** Replaces `fetch` with one answering `response` to every request. */
 function answer(t: TestContext, response: Response) {

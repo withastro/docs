@@ -1,12 +1,11 @@
 import { readFile } from 'node:fs/promises';
+import { handleAcceptedPullRequest } from './accepted/handle.ts';
 import { chooseAction, parseEvent, type RunEvent } from './cli.ts';
 import { DOCS_REPO, FRAMEWORK_REPO } from './config.ts';
-import { GitHubClient } from './github/client.ts';
-import { PrintingGitHubClient } from './github/printing-client.ts';
+import { GitHubClient, PrintingGitHubClient } from './github/client.ts';
 import { Repository } from './github/repository.ts';
-import { handleAcceptedPullRequest } from './accepted/handle.ts';
 import { isDryRun, parseMode } from './modes.ts';
-import type { QueueOptions } from './options.ts';
+import type { RunContext } from './run-context.ts';
 import { refreshOpenUmbrellas } from './umbrella/refresh.ts';
 
 /** The command-line flags of `scripts/release-queue.ts`. */
@@ -46,7 +45,7 @@ export interface Env {
  *   flags and the event don't say what to do.
  */
 export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }) {
-	const options = createOptions(flags, env);
+	const run = createRunContext(flags, env);
 	const event = await readEvent(env.GITHUB_EVENT_PATH);
 	const action = chooseAction({
 		pr: flags.pr,
@@ -56,16 +55,16 @@ export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }
 	});
 
 	if (action.type === 'refresh') {
-		await refreshOpenUmbrellas(options);
+		await refreshOpenUmbrellas(run);
 	} else {
 		const labelSender = getLabelSender(flags, env, event);
-		await handleAcceptedPullRequest(options, action.prNumber, labelSender);
+		await handleAcceptedPullRequest(run, action.prNumber, labelSender);
 	}
 }
 
 const isGitHubActions = (env: Env) => env.GITHUB_ACTIONS === 'true';
 
-function createOptions(flags: Flags, env: Env): QueueOptions {
+function createRunContext(flags: Flags, env: Env): RunContext {
 	const mode = parseMode(env.MODE);
 	const token = env.GITHUB_TOKEN;
 	if (!token) throw new Error('GITHUB_TOKEN is required.');

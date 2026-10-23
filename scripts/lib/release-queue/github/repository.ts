@@ -50,7 +50,8 @@ export class Repository {
  * @param {Repository} repo - The repository of both branches.
  * @param {string} base - The branch to compare with.
  * @param {string} head - The branch compared to `base`.
- * @returns {Promise<CompareResponse>} The commits of `head` missing in `base`.
+ * @returns {Promise<CompareResponse>} The commits of `head` missing in
+ *   `base`, and their count.
  */
 export function compareBranches(
 	repo: Repository,

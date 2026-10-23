@@ -1,6 +1,5 @@
-import { normalizeLineEndings } from '../github/client.ts';
 import { compareBranches, type Repository } from '../github/repository.ts';
-import type { PullRequestResponse } from '../github/types.ts';
+import type { PullRequestResponse, ReviewResponse } from '../github/types.ts';
 import { getUmbrellaBase, isUmbrellaBranch } from './branch.ts';
 
 /** An umbrella PR, with what the refresh reads from it. */
@@ -20,6 +19,12 @@ export interface UmbrellaPullRequest {
  */
 export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
 
+/** A review of an umbrella PR, with its body. */
+export interface SubmittedReview extends ReviewResponse {
+	id: number;
+	body: string;
+}
+
 /**
  * Whether a PR is an umbrella PR: from an umbrella branch of `repo` into the
  * branch the name implies.
@@ -30,6 +35,17 @@ function isUmbrellaPullRequest({ base, head }: PullRequestResponse, repo: Reposi
 		head.repo?.full_name === repo.name &&
 		getUmbrellaBase(head.ref) === base.ref
 	);
+}
+
+/**
+ * Replaces the `\r\n` line endings GitHub keeps from a description or review
+ * edited in the browser with `\n`.
+ *
+ * @param {string} text - A description or a review body read from GitHub.
+ * @returns {string} The text with `\n` line endings only.
+ */
+function normalizeLineEndings(text: string): string {
+	return text.replaceAll('\r\n', '\n');
 }
 
 function toUmbrellaPullRequest(data: PullRequestResponse): UmbrellaPullRequest {
@@ -105,4 +121,35 @@ export async function listCommitTitlesAhead(
 ): Promise<string[]> {
 	const { commits } = await compareBranches(repo, base, head);
 	return commits.map(({ commit }) => commit.message.split('\n', 1)[0] ?? '');
+}
+
+/**
+ * Lists the reviews of an umbrella PR.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {number} umbrellaNumber - The number of the umbrella PR.
+ * @returns {Promise<SubmittedReview[]>} The reviews in chronological order,
+ *   with `\n` line endings in their bodies.
+ */
+export async function listUmbrellaReviews(
+	repo: Repository,
+	umbrellaNumber: number
+): Promise<SubmittedReview[]> {
+	const reviews = await repo.getAll<SubmittedReview>(`pulls/${umbrellaNumber}/reviews`);
+	return reviews.map((review) => ({ ...review, body: normalizeLineEndings(review.body) }));
+}
+
+/**
+ * Lists the open PRs that target a branch.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {string} branch - The base of the PRs, such as an umbrella branch.
+ * @returns {Promise<number[]>} The numbers of the open PRs.
+ */
+export async function listOpenPullRequestsTargeting(
+	repo: Repository,
+	branch: string
+): Promise<number[]> {
+	const pullRequests = await repo.getAll<{ number: number }>(`pulls?state=open&base=${branch}`);
+	return pullRequests.map(({ number }) => number);
 }

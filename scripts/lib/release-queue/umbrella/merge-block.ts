@@ -6,17 +6,15 @@ import {
 	RELEASE_TITLE_PREFIX,
 	TRANSLATIONS_LABEL,
 } from '../config.ts';
-import { normalizeLineEndings } from '../github/client.ts';
 import type { Repository } from '../github/repository.ts';
-import type { ReviewResponse } from '../github/types.ts';
 import { formatFrameworkReference } from '../release/release.ts';
 import { parseReleaseMarker } from './body.ts';
-import type { UmbrellaPullRequest } from './queries.ts';
-
-interface SubmittedReview extends ReviewResponse {
-	id: number;
-	body: string;
-}
+import {
+	listOpenPullRequestsTargeting,
+	listUmbrellaReviews,
+	type SubmittedReview,
+	type UmbrellaPullRequest,
+} from './queries.ts';
 
 /**
  * Writes the body of the merge-block review: the checklist a maintainer goes
@@ -86,16 +84,13 @@ export async function syncMergeBlockReview(
 	{ shouldBlock }: { shouldBlock: boolean }
 ) {
 	const [reviews, openPullRequests] = await Promise.all([
-		repo.getAll<SubmittedReview>(`pulls/${umbrella.number}/reviews`),
-		repo.getAll<{ number: number }>(`pulls?state=open&base=${umbrella.branch}`),
+		listUmbrellaReviews(repo, umbrella.number),
+		listOpenPullRequestsTargeting(repo, umbrella.branch),
 	]);
-	const body = formatMergeBlockBody(
-		umbrella,
-		openPullRequests.map(({ number }) => number)
-	);
+	const body = formatMergeBlockBody(umbrella, openPullRequests);
 	const active = findActiveReview(reviews);
 	if (active) {
-		if (normalizeLineEndings(active.body) !== body) {
+		if (active.body !== body) {
 			await repo.write('PUT', `pulls/${umbrella.number}/reviews/${active.id}`, { body });
 		}
 	} else if (shouldBlock) {

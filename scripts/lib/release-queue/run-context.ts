@@ -7,8 +7,11 @@ export interface Repositories {
 	framework: Repository;
 }
 
-/** What the bot runs with, whether it handles a PR or refreshes umbrellas. */
-export interface QueueOptions {
+/**
+ * What a run works with, whether it handles a PR or refreshes umbrellas: the
+ * repositories it acts through, and the mode.
+ */
+export interface RunContext {
 	/**
 	 * The docs repository through `GITHUB_TOKEN`: reads the PR, posts dry-run
 	 * comments, and submits merge-block reviews.

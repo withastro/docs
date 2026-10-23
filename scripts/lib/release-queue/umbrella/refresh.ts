@@ -1,9 +1,9 @@
 import { FRAMEWORK_STABLE_BRANCH, STABLE_BRANCH } from '../config.ts';
 import { removeLabel, type Repository } from '../github/repository.ts';
 import { isLiveFor } from '../modes.ts';
-import type { QueueOptions, Repositories } from '../options.ts';
 import { getPrereleasePullRequest, getReleasePullRequest } from '../release/queries.ts';
 import { getStableRelease, RELEASE_TYPES, type StableRelease } from '../release/release.ts';
+import type { Repositories, RunContext } from '../run-context.ts';
 import { formatUmbrellaBody, parseIncludedPullRequests } from './body.ts';
 import { getUmbrellaHeading } from './heading.ts';
 import {
@@ -120,12 +120,12 @@ async function applyLabelChanges(docs: Repository, umbrellaNumber: number, chang
  * Refreshes every open umbrella PR the mode acts on, for example after a
  * change to a release PR.
  *
- * @param {QueueOptions} options - The repositories and the mode of the run.
+ * @param {RunContext} run - The repositories and the mode of the run.
  * @throws {AggregateError} Once every umbrella was tried, when some of them
  *   couldn't be refreshed.
  */
-export async function refreshOpenUmbrellas(options: QueueOptions) {
-	const { actions, framework, mode } = options;
+export async function refreshOpenUmbrellas(run: RunContext) {
+	const { actions, framework, mode } = run;
 	const [umbrellas, releasePullRequest] = await Promise.all([
 		listOpenUmbrellas(actions),
 		getReleasePullRequest(framework, FRAMEWORK_STABLE_BRANCH),
@@ -134,17 +134,17 @@ export async function refreshOpenUmbrellas(options: QueueOptions) {
 	const numbers = umbrellas.map(({ number }) => `#${number}`).join(', ');
 	console.info(`Open umbrellas: ${numbers || 'none'}.`);
 
-	const liveUmbrellas = umbrellas.filter((umbrella) => isLiveFor(mode, umbrella.base));
-	for (const umbrella of umbrellas) {
-		if (!liveUmbrellas.includes(umbrella)) {
-			console.info(`Skipped #${umbrella.number}: dry run for ${umbrella.base}.`);
-		}
+	const { live: liveUmbrellas = [], skipped = [] } = Object.groupBy(umbrellas, (umbrella) =>
+		isLiveFor(mode, umbrella.base) ? 'live' : 'skipped'
+	);
+	for (const umbrella of skipped) {
+		console.info(`Skipped #${umbrella.number}: dry run for ${umbrella.base}.`);
 	}
 	const failures: Error[] = [];
 	// One after the other, as GitHub advises for writes: concurrent ones can
 	// hit its secondary rate limits.
 	for (const umbrella of liveUmbrellas) {
-		const failure = await refreshAndSyncReview(options, umbrella, release);
+		const failure = await refreshAndSyncReview(run, umbrella, release);
 		if (failure) failures.push(failure);
 	}
 	if (failures.length > 0) {
@@ -160,7 +160,7 @@ export async function refreshOpenUmbrellas(options: QueueOptions) {
  * the other umbrellas still get refreshed.
  */
 async function refreshAndSyncReview(
-	{ actions, bot, framework }: QueueOptions,
+	{ actions, bot, framework }: RunContext,
 	umbrella: UmbrellaPullRequest,
 	release: StableRelease
 ): Promise<Error | undefined> {

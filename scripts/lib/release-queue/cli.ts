@@ -9,8 +9,8 @@ export type Action = { type: 'handle'; prNumber: number } | { type: 'refresh' };
  * Chooses what a run does, from an explicit signal.
  *
  * A `workflow_dispatch` event, or `isRefreshRequested` in a local run,
- * refreshes the open
- * umbrellas. Otherwise, the run handles `pr`, or the PR of the event.
+ * refreshes the open umbrellas. Otherwise, the run handles `pr`, or the PR of
+ * the event.
  *
  * @param {object} signals - The flags and the event of the run.
  * @param {string} [signals.pr] - The value of `--pr`.
