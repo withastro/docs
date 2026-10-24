@@ -1,0 +1,228 @@
+---
+title: スクリプトとイベント処理
+description: >-
+  ブラウザー標準のJavaScript APIを使って、Astroコンポーネントにクライアントサイドのインタラクティブな機能を追加する方法。
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+コンポーネントテンプレートに`<script>`タグを記述すると、ブラウザーにJavaScriptを送信し、Astroコンポーネントに機能を追加できます。
+
+スクリプトを使えば、React、Svelte、Vueなどの[UIフレームワーク](/ja/guides/framework-components/)を使わずに、イベント処理やコンテンツの動的な更新といったインタラクティブな機能をサイトに追加できます。フレームワークのJavaScriptを送信する負荷を避けられ、追加のフレームワークを学ばなくても、機能が充実したWebサイトやアプリケーションを作成できます。
+
+## クライアントサイドスクリプト
+
+イベントリスナーの追加、解析データの送信、アニメーションの再生など、Web上でJavaScriptができることはすべてスクリプトで実行できます。
+
+Astroは、標準HTMLの`<script>`タグに、バンドル処理やTypeScriptサポートなどの機能を自動的に追加します。詳細は[Astroによるスクリプトの処理](#スクリプトの処理)を参照してください。
+
+```astro title="src/components/ConfettiButton.astro"
+<button data-confetti-button>お祝いしよう！</button>
+
+<script>
+  // npmパッケージからインポートします。
+  import confetti from 'canvas-confetti';
+
+  // ページ内にあるコンポーネントのDOM要素を取得します。
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // ボタンをクリックすると紙吹雪が出るようにイベントリスナーを追加します。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+<ReadMore>スクリプトの動作に問題がある場合や、意図的に処理を無効にしたい場合は、[スクリプトが処理されない条件](#処理されないスクリプト)を確認してください。</ReadMore>
+
+
+## スクリプトの処理
+
+デフォルトでは、Astroは`src`以外の属性を持たない`<script>`タグを次のように処理します。
+
+- **TypeScriptサポート:** すべてのスクリプトはデフォルトでTypeScriptとして扱われます。
+- **インポートのバンドル:** ローカルファイルやnpmモジュールをインポートすると、まとめてバンドルされます。
+- **モジュール形式:** 処理されたスクリプトには、自動的に[`type="module"`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules)が指定されます。
+- **重複排除:** `<script>`を含むコンポーネントをページ内で複数回使っても、スクリプトは一度だけ含まれます。
+- **自動インライン化:** スクリプトのサイズが十分に小さい場合、Astroはリクエスト数を減らすためにHTML内に直接埋め込みます。
+```astro title="src/components/Example.astro"
+<script>
+  // Astroが処理・バンドルし、TypeScriptも使えます。
+  // ローカルスクリプトやnpmパッケージからのインポートも可能です。
+</script>
+```
+
+### 処理されないスクリプト
+
+`<script>`タグに`src`以外の属性がある場合、Astroはそのタグを処理しません。
+
+[`is:inline`](/ja/reference/directives-reference/#isinline)ディレクティブを追加すると、意図的にスクリプトの処理を無効にできます。
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // 記述したとおりの内容がHTMLにレンダリングされます。
+  // 変換されないため、AstroによるTypeScriptの処理やインポートの解決は行われません。
+  // コンポーネント内で使うと、インスタンスごとにこのコードが複製されます。
+</script>
+```
+
+### ページにJavaScriptファイルを読み込む
+
+スクリプトを別の`.js`や`.ts`ファイルに記述したり、別のサーバーにある外部スクリプトを参照したりしたい場合は、`<script>`タグの`src`属性でそのファイルを指定できます。
+
+#### ローカルスクリプトのインポート
+
+**この方法を使う場面:** スクリプトが`src/`内にある場合。
+
+Astroはこれらのスクリプトを[スクリプトの処理ルール](#スクリプトの処理)に従って処理します。
+
+```astro title="src/components/LocalScripts.astro"
+<!-- `src/scripts/local.js`にあるスクリプトへの相対パス -->
+<script src="../scripts/local.js"></script>
+
+<!-- ローカルのTypeScriptファイルにも対応しています -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### 外部スクリプトの読み込み
+
+**この方法を使う場面:** JavaScriptファイルが`public/`内やCDN上にある場合。
+
+プロジェクトの`src/`フォルダーの外にあるスクリプトを読み込むには、`is:inline`ディレクティブを追加します。この方法では、前述の方法でスクリプトをインポートしたときにAstroが行うJavaScriptの処理、バンドル、最適化が省略されます。
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- `public/my-script.js`にあるスクリプトへの絶対パス -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- 外部サーバーにあるスクリプトの完全なURL -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## よく使うスクリプトのパターン
+
+### `onclick`などのイベントの処理
+
+UIフレームワークには、`onClick={...}`（React/Preact）や`@click="..."`（Vue）のように、イベント処理に独自の構文を使うものがあります。Astroは標準HTMLに沿っており、イベントに独自の構文を使いません。
+
+ユーザーの操作を処理するには、`<script>`タグ内で[`addEventListener`](https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener)を使います。
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">クリックしてね！</button>
+
+<script>
+  // ページ内にある`alert`クラスを持つボタンをすべて取得します。
+  const buttons = document.querySelectorAll('button.alert');
+
+  // 各ボタンのクリックを処理します。
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('ボタンがクリックされました！');
+    });
+  });
+</script>
+```
+
+ページ内に複数の`<AlertButton />`コンポーネントがあっても、Astroはスクリプトを複数回実行しません。スクリプトはバンドルされ、ページごとに一度だけ含まれます。`querySelectorAll`を使うことで、ページ内にある`alert`クラスを持つすべてのボタンにイベントリスナーを追加できます。
+
+
+### カスタム要素を使ったWeb Components
+
+Web Components標準を使うと、独自の動作を持つHTML要素を作成できます。`.astro`コンポーネント内で[カスタム要素](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements)を定義すれば、UIフレームワークのライブラリを使わずにインタラクティブなコンポーネントを作成できます。
+
+この例では、新しいHTML要素`<astro-heart>`を定義します。ハートボタンをクリックした回数を記録し、`<span>`を最新の回数で更新します。
+
+```astro title="src/components/AstroHeart.astro"
+<!-- コンポーネントの要素をカスタム要素「astro-heart」で囲みます。 -->
+<astro-heart>
+  <button aria-label="ハート">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // 新しい種類のHTML要素の動作を定義します。
+  class AstroHeart extends HTMLElement {
+    connectedCallback() {
+      let count = 0;
+
+      const heartButton = this.querySelector("button");
+      const countSpan = this.querySelector("span");
+
+      // ボタンがクリックされるたびに回数を更新します。
+      if (heartButton && countSpan) {
+        heartButton.addEventListener("click", () => {
+          count++;
+          countSpan.textContent = count.toString();
+        });
+      }
+    }
+  }
+
+  // <astro-heart>要素にAstroHeartクラスを使うようにブラウザーに伝えます。
+  customElements.define("astro-heart", AstroHeart);
+</script>
+```
+
+ここでカスタム要素を使う利点は2つあります。
+
+1. `document.querySelector()`でページ全体を検索する代わりに、現在のカスタム要素のインスタンス内だけを検索する`this.querySelector()`を使えます。これにより、1つのコンポーネントインスタンスの子要素だけを扱いやすくなります。
+
+2. `<script>`は一度だけ実行されますが、ブラウザーはページ内の`<astro-heart>`を見つけるたびに、カスタム要素の`connectedCallback()`メソッドを実行します。そのため、ページ内でコンポーネントを複数回使う場合も、1つのコンポーネントだけを対象にしたコードを安全に書けます。
+
+<ReadMore>カスタム要素の詳細は、[web.devの再利用可能なWeb Componentsガイド](https://web.dev/custom-elements-v1/)や[MDNのカスタム要素の入門記事](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements)を参照してください。</ReadMore>
+
+
+### フロントマターの変数をスクリプトに渡す
+
+Astroコンポーネントの[フロントマター](/ja/basics/astro-components/#コンポーネントスクリプト)（`---`で囲まれた部分）にあるコードはサーバー上で実行されるため、ブラウザーでは使えません。
+
+サーバーサイドの変数をクライアントサイドのスクリプトに渡すには、HTML要素の[`data-*`属性](https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes)に値を保存します。スクリプトは`dataset`プロパティを使ってその値にアクセスできます。
+
+このコンポーネントの例では、`message` propの値を`data-message`属性に保存します。これにより、カスタム要素が`this.dataset.message`を読み取り、ブラウザー内でpropの値を取得できます。
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'ようこそ、世界へ！' } = Astro.props;
+---
+
+<!-- message propの値をdata属性に保存します。 -->
+<astro-greet data-message={message}>
+  <button>あいさつする</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    connectedCallback() {
+      // data属性からメッセージを読み取ります。
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button?.addEventListener('click', () => {
+        alert(message);
+      });
+    }
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+これでコンポーネントを複数回使い、それぞれ異なるメッセージを表示できます。
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- デフォルトのメッセージ「ようこそ、世界へ！」を使います -->
+<AstroGreet />
+
+<!-- propsとして渡した独自のメッセージを使います。 -->
+<AstroGreet message="コンポーネント作りにぴったりの日ですね！" />
+<AstroGreet message="来てくれてうれしいです！👋" />
+```
+
+:::tip[知っていましたか？]
+実は、ReactなどのUIフレームワークで書かれたコンポーネントにpropsを渡すときも、Astroは内部で同じことをしています！`client:*`ディレクティブを持つコンポーネントに対して、Astroは`<astro-island>`というカスタム要素を作成し、その`props`属性にサーバーサイドのpropsを保存してHTMLを出力します。
+:::
+
+### スクリプトとUIフレームワークの組み合わせ
+
+UIフレームワークがレンダリングする要素は、`<script>`タグの実行時にはまだ存在しない場合があります。スクリプトで[UIフレームワークのコンポーネント](/ja/guides/framework-components/)も扱う必要がある場合は、カスタム要素の使用をおすすめします。
