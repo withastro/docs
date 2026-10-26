@@ -1,5 +1,4 @@
 import { FRAMEWORK_PRERELEASE_BRANCH } from '../config.ts';
-import { GitHubError } from '../github/error.ts';
 import { isRecord, parseJson } from '../json.ts';
 import type { Repository } from '../github/repository.ts';
 import type { PullRequestResponse } from '../github/types.ts';
@@ -32,17 +31,13 @@ export async function getReleasePullRequest(
 
 /** Whether the prerelease branch of the framework is in prerelease mode. */
 async function isPrereleaseBranchInPreMode(framework: Repository): Promise<boolean> {
-	try {
-		const { content } = await framework.get<{ content: string }>(
-			`contents/${PRE_STATE_PATH}?ref=${FRAMEWORK_PRERELEASE_BRANCH}`
-		);
-		// `exit` means the prerelease ends: the branch is then merged into the
-		// stable branch.
-		return readPreMode(Buffer.from(content, 'base64').toString()) === 'pre';
-	} catch (error) {
-		if (error instanceof GitHubError && error.status === 404) return false;
-		throw error;
-	}
+	const preState = await framework.find<{ content: string }>(
+		`contents/${PRE_STATE_PATH}?ref=${FRAMEWORK_PRERELEASE_BRANCH}`
+	);
+	if (!preState) return false;
+	// `exit` means the prerelease ends: the branch is then merged into the
+	// stable branch.
+	return readPreMode(Buffer.from(preState.content, 'base64').toString()) === 'pre';
 }
 
 /** Reads the prerelease mode from the changesets file of the branch. */
@@ -87,11 +82,6 @@ export async function isFrameworkPullRequestMerged(
 	framework: Repository,
 	prNumber: number
 ): Promise<boolean> {
-	try {
-		const { merged } = await framework.get<PullRequestResponse>(`pulls/${prNumber}`);
-		return merged === true;
-	} catch (error) {
-		if (error instanceof GitHubError && error.status === 404) return false;
-		throw error;
-	}
+	const pr = await framework.find<PullRequestResponse>(`pulls/${prNumber}`);
+	return pr?.merged === true;
 }

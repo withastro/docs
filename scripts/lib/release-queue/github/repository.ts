@@ -1,5 +1,5 @@
 import type { GitHubClient, WriteMethod } from './client.ts';
-import { GitHubError } from './error.ts';
+import { isNotFound } from './error.ts';
 import type { CompareResponse } from './types.ts';
 
 /**
@@ -26,6 +26,22 @@ export class Repository {
 
 	get<T>(path: string): Promise<T> {
 		return this.#client.get<T>(this.#url(path));
+	}
+
+	/**
+	 * Reads an endpoint whose resource may not exist.
+	 *
+	 * @param {string} path - The endpoint, relative to the repository.
+	 * @returns {Promise<T | undefined>} The JSON answer, or `undefined` when
+	 *   GitHub answers that the resource doesn't exist.
+	 */
+	async find<T>(path: string): Promise<T | undefined> {
+		try {
+			return await this.get<T>(path);
+		} catch (error) {
+			if (isNotFound(error)) return undefined;
+			throw error;
+		}
 	}
 
 	getAll<T, R = T[]>(path: string, pick?: (data: R) => T[]): Promise<T[]> {
@@ -73,13 +89,8 @@ export class Repository {
 	 *   the branch doesn't exist.
 	 */
 	async getBranchSha(branch: string): Promise<string | undefined> {
-		try {
-			const { object } = await this.get<{ object: { sha: string } }>(`git/ref/heads/${branch}`);
-			return object.sha;
-		} catch (error) {
-			if (error instanceof GitHubError && error.status === 404) return undefined;
-			throw error;
-		}
+		const ref = await this.find<{ object: { sha: string } }>(`git/ref/heads/${branch}`);
+		return ref?.object.sha;
 	}
 
 	/**
@@ -102,7 +113,7 @@ export class Repository {
 		try {
 			await this.write('DELETE', `issues/${prNumber}/labels/${label}`);
 		} catch (error) {
-			if (!(error instanceof GitHubError && error.status === 404)) throw error;
+			if (!isNotFound(error)) throw error;
 		}
 	}
 
@@ -114,17 +125,10 @@ export class Repository {
 	 *   permissions. `false` for a user who isn't a collaborator.
 	 */
 	async canWrite(user: string): Promise<boolean> {
-		try {
-			const { permission } = await this.get<{ permission: string }>(
-				`collaborators/${user}/permission`
-			);
-			// The legacy `permission` field maps `maintain` to `write`,
-			// and `triage` to `read`.
-			return permission === 'admin' || permission === 'write';
-		} catch (error) {
-			if (error instanceof GitHubError && error.status === 404) return false;
-			throw error;
-		}
+		const answer = await this.find<{ permission: string }>(`collaborators/${user}/permission`);
+		// The legacy `permission` field maps `maintain` to `write`,
+		// and `triage` to `read`.
+		return answer?.permission === 'admin' || answer?.permission === 'write';
 	}
 
 	#url(path: string): string {
