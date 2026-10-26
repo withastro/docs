@@ -1,5 +1,5 @@
 import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from './config.ts';
-import { canWrite, postComment, removeLabel, type Repository } from './github/repository.ts';
+import type { Repository } from './github/repository.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
@@ -76,7 +76,7 @@ async function isSenderAllowed(
 		console.info('No label sender: skipping the write access check.');
 		return true;
 	}
-	if (await canWrite(repo, labelSender)) return true;
+	if (await repo.canWrite(labelSender)) return true;
 	console.info(`Ignored: ${labelSender} can't write to ${repo.name}.`);
 	return false;
 }
@@ -105,11 +105,11 @@ async function readAcceptedPullRequest(
 async function commentDryRun(run: RunContext, { pr, release, decision }: AcceptedPullRequest) {
 	if (decision.status === 'join') {
 		const umbrella = await findOrPlanUmbrella(run, decision.route, release);
-		await postComment(run.actions, pr.number, formatDryRunJoinComment(decision.route, umbrella));
+		await run.actions.postComment(pr.number, formatDryRunJoinComment(decision.route, umbrella));
 		return;
 	}
 	const context = await getMessageContext(run, decision, release);
-	await postComment(run.actions, pr.number, formatDryRunRefusalComment(decision, context));
+	await run.actions.postComment(pr.number, formatDryRunRefusalComment(decision, context));
 }
 
 async function refuse(
@@ -118,8 +118,8 @@ async function refuse(
 ) {
 	const context = await getMessageContext(run, decision, release);
 	// Removed first, so the comment is true once posted.
-	await removeLabel(run.bot, pr.number, ACCEPTED_LABEL);
-	await postComment(run.bot, pr.number, formatRefusalComment(decision, context));
+	await run.bot.removeLabel(pr.number, ACCEPTED_LABEL);
+	await run.bot.postComment(pr.number, formatRefusalComment(decision, context));
 }
 
 /** Joins the PR to its umbrella, then says how it went on the PR. */
@@ -140,7 +140,7 @@ async function joinAndAnnounce(run: RunContext, accepted: AcceptedPullRequest<Jo
 			return;
 		}
 		case 'unopened':
-			await postComment(run.bot, pr.number, formatUnopenedJoinComment(route, result));
+			await run.bot.postComment(pr.number, formatUnopenedJoinComment(route, result));
 			// The PR is merged, but a maintainer needs to open the umbrella PR.
 			throw new Error(
 				`#${pr.number} was merged into ${route.umbrellaBranch}, but the umbrella PR couldn't be opened.`,
@@ -162,7 +162,7 @@ async function announceJoin(
 	{ pr, release, decision }: AcceptedPullRequest<JoinDecision>,
 	umbrella: Umbrella
 ) {
-	await postComment(run.bot, pr.number, formatJoinComment(decision.route, umbrella));
+	await run.bot.postComment(pr.number, formatJoinComment(decision.route, umbrella));
 	// A planned umbrella was only printed.
 	if (umbrella.status === 'planned') return;
 	const openUmbrella = await getUmbrella(run.bot, umbrella.number);

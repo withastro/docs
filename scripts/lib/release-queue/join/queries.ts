@@ -1,5 +1,5 @@
 import { DOCS_STABLE_BRANCH } from '../config.ts';
-import { canWrite, type Repository } from '../github/repository.ts';
+import type { Repository } from '../github/repository.ts';
 import type {
 	CheckRunResponse,
 	CommitStatusResponse,
@@ -111,7 +111,7 @@ function toReviews(responses: ReviewResponse[]): Review[] {
 
 /** Gets the users who can write to the repository among `users`. */
 async function getWriters(repo: Repository, users: string[]): Promise<Set<string>> {
-	const canEachWrite = await Promise.all(users.map((user) => canWrite(repo, user)));
+	const canEachWrite = await Promise.all(users.map((user) => repo.canWrite(user)));
 	return new Set(users.filter((_, index) => canEachWrite[index]));
 }
 

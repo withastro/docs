@@ -1,4 +1,4 @@
-import { compareBranches, type Repository } from '../github/repository.ts';
+import type { Repository } from '../github/repository.ts';
 import type { PullRequestResponse, ReviewResponse } from '../github/types.ts';
 import { getUmbrellaBase, isUmbrellaBranch } from './branch.ts';
 
@@ -110,7 +110,7 @@ export async function listIncludedPullRequests(
 	repo: Repository,
 	{ base, branch }: UmbrellaPullRequest
 ): Promise<number[]> {
-	const { commits } = await compareBranches(repo, base, branch);
+	const { commits } = await repo.compareBranches(base, branch);
 	return commits.flatMap(({ commit }) => {
 		const [commitTitle = ''] = commit.message.split('\n', 1);
 		const match = commitTitle.match(SQUASH_TITLE);

@@ -1,5 +1,5 @@
 import { DOCS_STABLE_BRANCH, RELEASE_TYPES } from '../config.ts';
-import { removeLabel, type Repository } from '../github/repository.ts';
+import type { Repository } from '../github/repository.ts';
 import { getPrereleasePullRequest } from '../release/queries.ts';
 import type { StableRelease } from '../release/release.ts';
 import type { Repositories, RunContext } from '../run-context.ts';
@@ -115,5 +115,5 @@ async function applyLabelChanges(docs: Repository, umbrellaNumber: number, chang
 	if (changes.toAdd.length > 0) {
 		await docs.write('POST', `issues/${umbrellaNumber}/labels`, { labels: changes.toAdd });
 	}
-	await Promise.all(changes.toRemove.map((label) => removeLabel(docs, umbrellaNumber, label)));
+	await Promise.all(changes.toRemove.map((label) => docs.removeLabel(umbrellaNumber, label)));
 }

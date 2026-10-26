@@ -1,5 +1,5 @@
 import { GitHubError } from '../github/error.ts';
-import { countCommitsAhead, getBranchSha, type Repository } from '../github/repository.ts';
+import type { Repository } from '../github/repository.ts';
 import { findOpenUmbrella } from '../umbrella/queries.ts';
 import { getPullRequest, type PullRequest } from './queries.ts';
 import type { JoinRefusal, Route } from './routing.ts';
@@ -103,14 +103,14 @@ export class UmbrellaJoin {
 
 	async #readUmbrellaBranch(): Promise<UmbrellaBranch> {
 		const { umbrellaBase, umbrellaBranch } = this.#route;
-		const umbrellaBaseSha = await getBranchSha(this.#repo, umbrellaBase);
+		const umbrellaBaseSha = await this.#repo.getBranchSha(umbrellaBase);
 		if (!umbrellaBaseSha) {
 			throw new Error(`The branch ${umbrellaBase} doesn't exist in ${this.#repo.name}.`);
 		}
-		if ((await getBranchSha(this.#repo, umbrellaBranch)) === undefined) {
+		if ((await this.#repo.getBranchSha(umbrellaBranch)) === undefined) {
 			return { state: 'missing', umbrellaBaseSha };
 		}
-		const commitsAhead = await countCommitsAhead(this.#repo, umbrellaBase, umbrellaBranch);
+		const commitsAhead = await this.#repo.countCommitsAhead(umbrellaBase, umbrellaBranch);
 		return commitsAhead > 0 ? { state: 'stale' } : { state: 'empty', umbrellaBaseSha };
 	}
 
