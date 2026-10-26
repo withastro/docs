@@ -31,13 +31,11 @@ import { getSettledStableUmbrella } from './umbrella/state.ts';
  * A docs PR labeled as accepted, with the release it ships with and the
  * decision on it.
  */
-interface AcceptedPullRequest<D extends Decision = Decision> {
+interface DecidedPullRequest {
 	pr: PullRequest;
 	release: StableRelease;
-	decision: D;
+	decision: Decision;
 }
-
-type JoinDecision = Extract<Decision, { status: 'join' }>;
 
 /**
  * Joins a docs PR labeled as accepted to its umbrella, refuses it, or
@@ -55,15 +53,15 @@ export async function handleAcceptedPullRequest(
 ) {
 	if (!(await isSenderAllowed(run.actions, labelSender))) return;
 
-	const accepted = await readAcceptedPullRequest(run, prNumber);
-	const { pr, release, decision } = accepted;
+	const { pr, release, decision } = await readAcceptedPullRequest(run, prNumber);
 	console.info(JSON.stringify({ pr: pr.url, release, decision }, null, 2));
+	const accepted = new AcceptedPullRequest(run, { pr, release });
 	if (!canActOn(run.mode, getUmbrellaBase(pr.base))) {
-		await commentDryRun(run, accepted);
+		await accepted.commentDryRun(decision);
 	} else if (decision.status === 'refuse') {
-		await refuse(run, { ...accepted, decision });
+		await accepted.refuse(decision);
 	} else {
-		await joinAndAnnounce(run, { ...accepted, decision });
+		await accepted.join(decision.route);
 	}
 }
 
@@ -88,7 +86,7 @@ async function isSenderAllowed(
 async function readAcceptedPullRequest(
 	{ actions, framework }: RunContext,
 	prNumber: number
-): Promise<AcceptedPullRequest> {
+): Promise<DecidedPullRequest> {
 	const pr = await getPullRequest(actions, prNumber);
 	const [readiness, releasePullRequest] = await Promise.all([
 		getReadiness(actions, pr),
@@ -102,94 +100,120 @@ async function readAcceptedPullRequest(
 	return { pr, release, decision };
 }
 
-async function commentDryRun(run: RunContext, { pr, release, decision }: AcceptedPullRequest) {
-	if (decision.status === 'join') {
-		const umbrella = await findOrPlanUmbrella(run, decision.route, release);
-		await run.actions.postComment(pr.number, formatDryRunJoinComment(decision.route, umbrella));
-		return;
-	}
-	const context = await getMessageContext(run, decision, release);
-	await run.actions.postComment(pr.number, formatDryRunRefusalComment(decision, context));
-}
-
-async function refuse(
-	run: RunContext,
-	{ pr, release, decision }: AcceptedPullRequest<RefusedDecision>
-) {
-	const context = await getMessageContext(run, decision, release);
-	// Removed first, so the comment is true once posted.
-	await run.bot.removeLabel(pr.number, ACCEPTED_LABEL);
-	await run.bot.postComment(pr.number, formatRefusalComment(decision, context));
-}
-
-/** Joins the PR to its umbrella, then says how it went on the PR. */
-async function joinAndAnnounce(run: RunContext, accepted: AcceptedPullRequest<JoinDecision>) {
-	const { pr, release, decision } = accepted;
-	const { route } = decision;
-	const umbrellaTitle = getUmbrellaTitle(route.umbrellaBase, release);
-	const join = new UmbrellaJoin(run.bot, { pr, route, umbrellaTitle });
-	const result = await join.mergePullRequest();
-
-	switch (result.status) {
-		case 'joined':
-			await announceJoin(run, accepted, result.umbrella);
-			return;
-		case 'refused': {
-			const refused: RefusedDecision = { status: 'refuse', route, refusals: [result.refusal] };
-			await refuse(run, { ...accepted, decision: refused });
-			return;
-		}
-		case 'unopened':
-			await run.bot.postComment(pr.number, formatUnopenedJoinComment(route, result));
-			// The PR is merged, but a maintainer needs to open the umbrella PR.
-			throw new Error(
-				`#${pr.number} was merged into ${route.umbrellaBranch}, but the umbrella PR couldn't be opened.`,
-				{ cause: result.error }
-			);
-		default: {
-			const unknown: never = result;
-			throw new Error(`Unknown join result: ${JSON.stringify(unknown)}`);
-		}
-	}
-}
-
 /**
- * Comments on the PR that joined `umbrella`, then refreshes the umbrella and
- * blocks its merge until a maintainer checks it.
+ * A docs PR labeled as accepted, and what the bot does with it in a run: a
+ * dry-run comment, a refusal, or a join.
  */
-async function announceJoin(
-	run: RunContext,
-	{ pr, release, decision }: AcceptedPullRequest<JoinDecision>,
-	umbrella: Umbrella
-) {
-	await run.bot.postComment(pr.number, formatJoinComment(decision.route, umbrella));
-	// A planned umbrella was only printed.
-	if (umbrella.status === 'planned') return;
-	const openUmbrella = await getUmbrella(run.bot, umbrella.number);
-	await refreshUmbrella(run, openUmbrella, { release, shouldBlock: true });
-}
+class AcceptedPullRequest {
+	#run: RunContext;
+	#pr: PullRequest;
+	#release: StableRelease;
 
-/** Finds the open umbrella PR of `route`, or names the one to create. */
-async function findOrPlanUmbrella(
-	{ actions }: RunContext,
-	route: Route,
-	release: StableRelease
-): Promise<Umbrella> {
-	const openUmbrella = await findOpenUmbrella(actions, route.umbrellaBranch);
-	if (openUmbrella) return { status: 'open', number: openUmbrella.number };
-	return { status: 'planned', title: getUmbrellaTitle(route.umbrellaBase, release) };
-}
+	/**
+	 * Prepares what the bot does with an accepted docs PR.
+	 *
+	 * @param {RunContext} run - The repositories of the run.
+	 * @param {object} accepted - The docs PR and the release it ships with.
+	 * @param {PullRequest} accepted.pr - The docs PR.
+	 * @param {StableRelease} accepted.release - The next release from the
+	 *   stable branch.
+	 */
+	constructor(run: RunContext, { pr, release }: { pr: PullRequest; release: StableRelease }) {
+		this.#run = run;
+		this.#pr = pr;
+		this.#release = release;
+	}
 
-async function getMessageContext(
-	run: RunContext,
-	decision: RefusedDecision,
-	release: StableRelease
-): Promise<MessageContext> {
-	const [umbrella, stableUmbrella] = await Promise.all([
-		decision.route && findOrPlanUmbrella(run, decision.route, release),
-		findStableUmbrellaToMove(run.actions, decision),
-	]);
-	return { umbrella, stableUmbrella };
+	/**
+	 * Comments on the PR with what a join would do, or why it would be refused.
+	 *
+	 * @param {Decision} decision - The decision on the PR.
+	 */
+	async commentDryRun(decision: Decision) {
+		const { actions } = this.#run;
+		if (decision.status === 'join') {
+			const umbrella = await this.#findOrPlanUmbrella(decision.route);
+			await actions.postComment(this.#pr.number, formatDryRunJoinComment(decision.route, umbrella));
+			return;
+		}
+		const context = await this.#getMessageContext(decision);
+		await actions.postComment(this.#pr.number, formatDryRunRefusalComment(decision, context));
+	}
+
+	/**
+	 * Removes the accepted label, then says why on the PR.
+	 *
+	 * @param {RefusedDecision} decision - The refusals, and the route if any.
+	 */
+	async refuse(decision: RefusedDecision) {
+		const { bot } = this.#run;
+		const context = await this.#getMessageContext(decision);
+		// Removed first, so the comment is true once posted.
+		await bot.removeLabel(this.#pr.number, ACCEPTED_LABEL);
+		await bot.postComment(this.#pr.number, formatRefusalComment(decision, context));
+	}
+
+	/**
+	 * Joins the PR to the umbrella of `route`, then says how it went on the PR.
+	 *
+	 * @param {Route} route - The umbrella branch and base the PR goes to.
+	 * @throws {Error} When the PR was merged, but the umbrella PR couldn't be
+	 *   opened.
+	 */
+	async join(route: Route) {
+		const pr = this.#pr;
+		const umbrellaTitle = getUmbrellaTitle(route.umbrellaBase, this.#release);
+		const join = new UmbrellaJoin(this.#run.bot, { pr, route, umbrellaTitle });
+		const result = await join.mergePullRequest();
+
+		switch (result.status) {
+			case 'joined':
+				await this.#announceJoin(route, result.umbrella);
+				return;
+			case 'refused':
+				await this.refuse({ status: 'refuse', route, refusals: [result.refusal] });
+				return;
+			case 'unopened':
+				await this.#run.bot.postComment(pr.number, formatUnopenedJoinComment(route, result));
+				// The PR is merged, but a maintainer needs to open the umbrella PR.
+				throw new Error(
+					`#${pr.number} was merged into ${route.umbrellaBranch}, but the umbrella PR couldn't be opened.`,
+					{ cause: result.error }
+				);
+			default: {
+				const unknown: never = result;
+				throw new Error(`Unknown join result: ${JSON.stringify(unknown)}`);
+			}
+		}
+	}
+
+	/**
+	 * Comments on the PR that joined `umbrella`, then refreshes the umbrella and
+	 * blocks its merge until a maintainer checks it.
+	 */
+	async #announceJoin(route: Route, umbrella: Umbrella) {
+		const { bot } = this.#run;
+		await bot.postComment(this.#pr.number, formatJoinComment(route, umbrella));
+		// A planned umbrella was only printed.
+		if (umbrella.status === 'planned') return;
+		const openUmbrella = await getUmbrella(bot, umbrella.number);
+		await refreshUmbrella(this.#run, openUmbrella, { release: this.#release, shouldBlock: true });
+	}
+
+	/** Finds the open umbrella PR of `route`, or names the one to create. */
+	async #findOrPlanUmbrella(route: Route): Promise<Umbrella> {
+		const openUmbrella = await findOpenUmbrella(this.#run.actions, route.umbrellaBranch);
+		if (openUmbrella) return { status: 'open', number: openUmbrella.number };
+		return { status: 'planned', title: getUmbrellaTitle(route.umbrellaBase, this.#release) };
+	}
+
+	async #getMessageContext(decision: RefusedDecision): Promise<MessageContext> {
+		const [umbrella, stableUmbrella] = await Promise.all([
+			decision.route && this.#findOrPlanUmbrella(decision.route),
+			findStableUmbrellaToMove(this.#run.actions, decision),
+		]);
+		return { umbrella, stableUmbrella };
+	}
 }
 
 /**
