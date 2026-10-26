@@ -36,31 +36,21 @@ export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }
 	const event = await readEvent(env.GITHUB_EVENT_PATH);
 	const action = chooseAction({
 		pr: flags.pr,
+		sender: flags.sender,
 		isRefreshRequested: flags['preview-refresh'],
 		eventName: env.GITHUB_EVENT_NAME,
 		eventPullRequest: event.pullRequest,
+		eventSender: event.labelSender,
+		isSenderRequired: isGitHubActions(env),
 	});
 
 	if (action.type === 'refresh') {
 		await refreshOpenUmbrellas(run);
 	} else {
-		const labelSender = getLabelSender(flags, env, event);
-		await handleAcceptedPullRequest(run, action.prNumber, labelSender);
+		await handleAcceptedPullRequest(run, action);
 	}
 }
 
 async function readEvent(path: string | undefined): Promise<RunEvent> {
 	return path ? parseEvent(await readFile(path, 'utf-8'), path) : {};
-}
-
-/**
- * Gets who added the label. Only a local run can go without one, which skips
- * the write access check.
- */
-function getLabelSender(flags: Flags, env: Env, event: RunEvent): string | undefined {
-	const labelSender = flags.sender ?? event.labelSender;
-	if (labelSender === undefined && isGitHubActions(env)) {
-		throw new Error('The event has no sender: the write access check needs one.');
-	}
-	return labelSender;
 }

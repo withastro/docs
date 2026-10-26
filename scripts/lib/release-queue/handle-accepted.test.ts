@@ -81,7 +81,10 @@ const stubReadyPullRequest = (t: TestContext, options: StubOptions = {}) =>
 /** Handles PR #7, and returns the writes of each identity. */
 async function run(t: TestContext, mode: Mode, options: StubOptions = {}, sender = 'maintainer') {
 	const github = stubReadyPullRequest(t, options);
-	await handleAcceptedPullRequest(stubRunContext(github, mode), 7, sender);
+	await handleAcceptedPullRequest(stubRunContext(github, mode), {
+		prNumber: 7,
+		labelSender: sender,
+	});
 	return { actionsWrites: github.writesBy(ACTIONS_TOKEN), botWrites: github.writesBy(BOT_TOKEN) };
 }
 
@@ -210,7 +213,10 @@ describe('handleAcceptedPullRequest', () => {
 	it("doesn't read the prerelease line for a PR shipping to main", async (t) => {
 		const github = stubReadyPullRequest(t);
 
-		await handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), 7, 'maintainer');
+		await handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), {
+			prNumber: 7,
+			labelSender: 'maintainer',
+		});
 
 		assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
 	});
@@ -233,7 +239,10 @@ describe('handleAcceptedPullRequest', () => {
 		it(`doesn't read the prerelease line for ${name} of a prerelease PR`, async (t) => {
 			const github = stubReadyPullRequest(t, { getResponses });
 
-			await handleAcceptedPullRequest(stubRunContext(github, mode), 7, 'maintainer');
+			await handleAcceptedPullRequest(stubRunContext(github, mode), {
+				prNumber: 7,
+				labelSender: 'maintainer',
+			});
 
 			assert.ok(github.writes.some(({ path }) => path.endsWith('/comments')));
 			assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
@@ -344,7 +353,10 @@ describe('handleAcceptedPullRequest', () => {
 					getResponses: { ...settledUmbrella(), [paths.pr]: pr },
 				});
 
-				await handleAcceptedPullRequest(stubRunContext(github, 'dry-run'), 7, 'maintainer');
+				await handleAcceptedPullRequest(stubRunContext(github, 'dry-run'), {
+					prNumber: 7,
+					labelSender: 'maintainer',
+				});
 
 				assert.equal(github.countReads('repos/withastro/astro/pulls/18405'), 0);
 			});
@@ -358,7 +370,10 @@ describe('handleAcceptedPullRequest', () => {
 				},
 			});
 
-			await handleAcceptedPullRequest(stubRunContext(github, 'all'), 7, 'maintainer');
+			await handleAcceptedPullRequest(stubRunContext(github, 'all'), {
+				prNumber: 7,
+				labelSender: 'maintainer',
+			});
 
 			assert.ok(writtenPaths(github.writes).includes(`PUT repos/${REPO}/pulls/7/merge`));
 			assert.equal(github.countReads('repos/withastro/astro/pulls/18405'), 0);
@@ -387,7 +402,10 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		await assert.rejects(
-			handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), {
+				prNumber: 7,
+				labelSender: 'maintainer',
+			}),
 			(error: unknown) => {
 				assert.ok(error instanceof Error);
 				assert.match(error.message, /but the umbrella PR couldn't be opened\.$/);
@@ -408,7 +426,10 @@ describe('handleAcceptedPullRequest', () => {
 		const github = stubReadyPullRequest(t, { getResponses: responses });
 
 		await assert.rejects(
-			handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), {
+				prNumber: 7,
+				labelSender: 'maintainer',
+			}),
 			{ name: 'GitHubError', status: 404 }
 		);
 		assert.match(commentBody(github.writesBy(BOT_TOKEN)), /squash-merged into/);

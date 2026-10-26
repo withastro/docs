@@ -36,19 +36,23 @@ interface DecidedPullRequest {
 	decision: Decision;
 }
 
+/** A docs PR labeled as accepted, by its number, and who added the label. */
+export interface LabeledPullRequest {
+	prNumber: number;
+	/** Without it, the write access check is skipped, as in a local run. */
+	labelSender?: string | undefined;
+}
+
 /**
  * Joins a docs PR labeled as accepted to its umbrella, refuses it, or
  * comments on it as a dry run.
  *
  * @param {RunContext} run - The repositories and the mode of the run.
- * @param {number} prNumber - The number of the docs PR.
- * @param {string} [labelSender] - Who added the label. Without it, the write
- *   access check is skipped, as in a local run.
+ * @param {LabeledPullRequest} labeled - The docs PR, and who added the label.
  */
 export async function handleAcceptedPullRequest(
 	run: RunContext,
-	prNumber: number,
-	labelSender?: string
+	{ prNumber, labelSender }: LabeledPullRequest
 ) {
 	if (!(await isSenderAllowed(run.actions, labelSender))) return;
 

@@ -1,37 +1,48 @@
 import { isRecord, parseJson } from './formats/json.ts';
+import type { LabeledPullRequest } from './handle-accepted.ts';
 
 /** A positive integer, written with digits only. */
 const PR_NUMBER = /^[1-9]\d*$/;
 
-type Action = { type: 'handle'; prNumber: number } | { type: 'refresh' };
+type Action = ({ type: 'handle' } & LabeledPullRequest) | { type: 'refresh' };
 
 /**
  * Chooses what a run does, from an explicit signal.
  *
  * A `workflow_dispatch` event, or `isRefreshRequested` in a local run,
  * refreshes the open umbrellas. Otherwise, the run handles `pr`, or the PR of
- * the event.
+ * the event, labeled by `sender`, or by the sender of the event.
  *
  * @param {object} signals - The flags and the event of the run.
  * @param {string} [signals.pr] - The value of `--pr`.
+ * @param {string} [signals.sender] - The value of `--sender`.
  * @param {boolean} [signals.isRefreshRequested] - Whether
  *   `--preview-refresh` was passed.
  * @param {string} [signals.eventName] - The event that triggered the run.
  * @param {number} [signals.eventPullRequest] - The PR of that event.
- * @returns {Action} The refresh, or the PR to handle.
- * @throws {Error} When both a PR and a refresh are asked for, or when the PR
- *   number is missing or invalid.
+ * @param {string} [signals.eventSender] - Who triggered that event.
+ * @param {boolean} [signals.isSenderRequired] - Whether the write access
+ *   check must run, as in GitHub Actions.
+ * @returns {Action} The refresh, or the PR to handle with who labeled it.
+ * @throws {Error} When both a PR and a refresh are asked for, when the PR
+ *   number is missing or invalid, or when a required sender is missing.
  */
 export function chooseAction({
 	pr,
+	sender,
 	isRefreshRequested = false,
 	eventName,
 	eventPullRequest,
+	eventSender,
+	isSenderRequired = false,
 }: {
 	pr?: string | undefined;
+	sender?: string | undefined;
 	isRefreshRequested?: boolean | undefined;
 	eventName?: string | undefined;
 	eventPullRequest?: number | undefined;
+	eventSender?: string | undefined;
+	isSenderRequired?: boolean | undefined;
 }): Action {
 	const shouldRefresh = isRefreshRequested || eventName === 'workflow_dispatch';
 	if (shouldRefresh && pr !== undefined)
@@ -44,7 +55,12 @@ export function chooseAction({
 	if (!PR_NUMBER.test(rawPrNumber)) {
 		throw new Error(`Invalid PR number: ${rawPrNumber}. Pass --pr <number>.`);
 	}
-	return { type: 'handle', prNumber: Number(rawPrNumber) };
+
+	const labelSender = sender ?? eventSender;
+	if (labelSender === undefined && isSenderRequired) {
+		throw new Error('The event has no sender: the write access check needs one.');
+	}
+	return { type: 'handle', prNumber: Number(rawPrNumber), labelSender };
 }
 
 /** What a run reads from the event of GitHub Actions. */

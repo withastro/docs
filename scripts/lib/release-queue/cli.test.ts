@@ -4,14 +4,35 @@ import { chooseAction, parseEvent } from './cli.ts';
 
 describe('chooseAction', () => {
 	it('handles the PR of the event', () => {
-		assert.deepEqual(chooseAction({ eventName: 'pull_request_target', eventPullRequest: 7 }), {
+		const action = chooseAction({
+			eventName: 'pull_request_target',
+			eventPullRequest: 7,
+			eventSender: 'maintainer',
+		});
+		assert.deepEqual(action, { type: 'handle', prNumber: 7, labelSender: 'maintainer' });
+	});
+
+	it('handles the PR passed with --pr, labeled by --sender', () => {
+		assert.deepEqual(chooseAction({ pr: '14580', sender: 'maintainer' }), {
 			type: 'handle',
-			prNumber: 7,
+			prNumber: 14580,
+			labelSender: 'maintainer',
 		});
 	});
 
-	it('handles the PR passed with --pr', () => {
-		assert.deepEqual(chooseAction({ pr: '14580' }), { type: 'handle', prNumber: 14580 });
+	it('handles a PR without a sender in a local run', () => {
+		assert.deepEqual(chooseAction({ pr: '14580' }), {
+			type: 'handle',
+			prNumber: 14580,
+			labelSender: undefined,
+		});
+	});
+
+	it('refuses a PR without a sender when the write access check must run', () => {
+		assert.throws(
+			() => chooseAction({ eventPullRequest: 7, isSenderRequired: true }),
+			/^Error: The event has no sender: the write access check needs one\.$/
+		);
 	});
 
 	it('refreshes on a workflow_dispatch, or with --preview-refresh', () => {
