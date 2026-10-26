@@ -10,7 +10,7 @@ import { syncMergeBlockReview } from '../umbrella/merge-block.ts';
 import { findOpenUmbrella, getUmbrella, type Umbrella } from '../umbrella/queries.ts';
 import { refreshUmbrella } from '../umbrella/refresh.ts';
 import { getSettledStableUmbrella } from '../umbrella/state.ts';
-import { joinUmbrella } from './join.ts';
+import { UmbrellaJoin } from './join.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
@@ -134,7 +134,8 @@ async function joinAndAnnounce(run: RunContext, accepted: AcceptedPullRequest<Jo
 	const { pr, release, decision } = accepted;
 	const { route } = decision;
 	const umbrellaTitle = getUmbrellaTitle(route.umbrellaBase, release);
-	const result = await joinUmbrella(run.bot, { pr, route, umbrellaTitle });
+	const join = new UmbrellaJoin(run.bot, { pr, route, umbrellaTitle });
+	const result = await join.mergePullRequest();
 
 	switch (result.status) {
 		case 'joined':

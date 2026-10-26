@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { GitHubError } from '../github/error.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from '../testing/fixtures.ts';
 import { stubGitHub, type Write } from '../testing/stub-github.ts';
-import { joinUmbrella } from './join.ts';
+import { UmbrellaJoin } from './join.ts';
 import type { PullRequest } from './queries.ts';
 import type { Route } from './routing.ts';
 
@@ -87,11 +87,19 @@ const openUmbrella: Write = {
 
 const createdUmbrella = { [`POST repos/${REPO}/pulls`]: { number: 99 } };
 
-describe('joinUmbrella', () => {
+/** Joins a docs PR to its umbrella, as the handler does. */
+const mergeIntoUmbrella = (...args: ConstructorParameters<typeof UmbrellaJoin>) =>
+	new UmbrellaJoin(...args).mergePullRequest();
+
+describe('UmbrellaJoin', () => {
 	it('creates the branch, merges the PR, then opens the umbrella PR', async (t) => {
 		const github = stubGitHub(t, { getResponses: withoutUmbrella, writeResults: createdUmbrella });
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.deepEqual(result, { status: 'joined', umbrella: { status: 'open', number: 99 } });
 		assert.deepEqual(github.writes, [
@@ -105,7 +113,11 @@ describe('joinUmbrella', () => {
 	it('joins the open umbrella PR', async (t) => {
 		const github = stubGitHub(t, { getResponses: withUmbrella });
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.deepEqual(result, { status: 'joined', umbrella: { status: 'open', number: 42 } });
 		assert.deepEqual(github.writes, [setBase('release-queue/main'), merge]);
@@ -120,7 +132,11 @@ describe('joinUmbrella', () => {
 			writeResults: createdUmbrella,
 		});
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.deepEqual(result, { status: 'joined', umbrella: { status: 'open', number: 99 } });
 		assert.deepEqual(github.writes[0], createBranch);
@@ -130,7 +146,7 @@ describe('joinUmbrella', () => {
 		const github = stubGitHub(t, { getResponses: withUmbrella });
 		const umbrellaPr = { ...pr, base: 'release-queue/main' };
 
-		await joinUmbrella(github.repository(), {
+		await mergeIntoUmbrella(github.repository(), {
 			pr: umbrellaPr,
 			route: { ...route, shouldRetarget: false },
 			umbrellaTitle,
@@ -143,7 +159,7 @@ describe('joinUmbrella', () => {
 		const github = stubGitHub(t, { getResponses: withoutUmbrella, writeResults: createdUmbrella });
 		const umbrellaPr = { ...pr, base: 'release-queue/main' };
 
-		await joinUmbrella(github.repository(), {
+		await mergeIntoUmbrella(github.repository(), {
 			pr: umbrellaPr,
 			route: { ...route, shouldRetarget: false },
 			umbrellaTitle,
@@ -162,7 +178,7 @@ describe('joinUmbrella', () => {
 			writeResults: createdUmbrella,
 		});
 
-		await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		await mergeIntoUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
 
 		assert.deepEqual(github.writes, [
 			{
@@ -185,7 +201,11 @@ describe('joinUmbrella', () => {
 			},
 		});
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.deepEqual(result, {
 			status: 'refused',
@@ -200,7 +220,7 @@ describe('joinUmbrella', () => {
 		const github = stubGitHub(t, { getResponses: withoutStable });
 
 		await assert.rejects(
-			joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),
+			mergeIntoUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),
 			/doesn't exist/
 		);
 		assert.deepEqual(github.writes, []);
@@ -211,7 +231,11 @@ describe('joinUmbrella', () => {
 			getResponses: { ...withUmbrella, [paths.pr]: prResponse(null) },
 		});
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.equal(result.status, 'joined');
 		assert.deepEqual(github.writes, [setBase('release-queue/main'), merge]);
@@ -222,7 +246,11 @@ describe('joinUmbrella', () => {
 			getResponses: { ...withUmbrella, [paths.pr]: prResponse(false) },
 		});
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.deepEqual(result, {
 			status: 'refused',
@@ -242,7 +270,11 @@ describe('joinUmbrella', () => {
 			},
 		});
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.deepEqual(result, {
 			status: 'refused',
@@ -258,7 +290,7 @@ describe('joinUmbrella', () => {
 		});
 
 		await assert.rejects(
-			joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),
+			mergeIntoUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),
 			TypeError
 		);
 		assert.deepEqual(github.writes, [setBase('release-queue/main'), merge, setBase('main')]);
@@ -272,7 +304,7 @@ describe('joinUmbrella', () => {
 		});
 
 		await assert.rejects(
-			joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),
+			mergeIntoUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle }),
 			(error: unknown) => {
 				assert.ok(error instanceof AggregateError);
 				assert.deepEqual(error.errors, [restoreError]);
@@ -294,7 +326,11 @@ describe('joinUmbrella', () => {
 			},
 		});
 
-		const result = await joinUmbrella(github.repository(), { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(github.repository(), {
+			pr: pr,
+			route: route,
+			umbrellaTitle,
+		});
 
 		assert.equal(result.status, 'unopened');
 		assert.ok(result.error instanceof GitHubError);
@@ -312,7 +348,7 @@ describe('joinUmbrella', () => {
 		t.mock.method(console, 'info', () => {});
 		const printingClient = github.repository(REPO, { shouldPrintWrites: true });
 
-		const result = await joinUmbrella(printingClient, { pr: pr, route: route, umbrellaTitle });
+		const result = await mergeIntoUmbrella(printingClient, { pr: pr, route: route, umbrellaTitle });
 
 		assert.deepEqual(result, {
 			status: 'joined',
