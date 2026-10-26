@@ -1,4 +1,4 @@
-import { STABLE_BRANCH } from '../config.ts';
+import { DOCS_STABLE_BRANCH } from '../config.ts';
 import { GitHubError } from '../github/error.ts';
 import { compareBranches, type Repository } from '../github/repository.ts';
 import type {
@@ -180,7 +180,7 @@ async function getWriters(repo: Repository, users: string[]): Promise<Set<string
  * every docs PR, whatever its base.
  */
 async function getRequiredChecks(repo: Repository): Promise<string[]> {
-	const rules = await repo.getAll<RuleResponse>(`rules/branches/${STABLE_BRANCH}`);
+	const rules = await repo.getAll<RuleResponse>(`rules/branches/${DOCS_STABLE_BRANCH}`);
 	return rules
 		.filter((rule) => rule.type === 'required_status_checks')
 		.flatMap((rule) => rule.parameters?.required_status_checks ?? [])

@@ -8,7 +8,7 @@ import type { JoinRefusal, Route } from './routing.ts';
 interface Join {
 	pr: PullRequest;
 	route: Route;
-	/** The title of the umbrella PR, if the join opens it. */
+	/** The title given to the umbrella PR when the join opens it. */
 	umbrellaTitle: string;
 }
 
@@ -26,8 +26,8 @@ export type UnopenedJoin = Extract<JoinResult, { status: 'unopened' }>;
 
 /**
  * The umbrella branch before a join that opens the umbrella PR: missing, left
- * over without commits, for example after a failed first merge, or left over
- * with commits, which a maintainer has to look at.
+ * over without commits (e.g. after a failed first merge) or left over with
+ * commits, which a maintainer has to look at.
  */
 type UmbrellaBranch = { state: 'missing' | 'empty'; umbrellaBaseSha: string } | { state: 'stale' };
 

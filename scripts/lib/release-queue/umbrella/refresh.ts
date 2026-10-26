@@ -1,4 +1,4 @@
-import { FRAMEWORK_STABLE_BRANCH, RELEASE_TYPES, STABLE_BRANCH } from '../config.ts';
+import { FRAMEWORK_STABLE_BRANCH, RELEASE_TYPES, DOCS_STABLE_BRANCH } from '../config.ts';
 import { removeLabel, type Repository } from '../github/repository.ts';
 import { canActOn } from '../modes.ts';
 import { getPrereleasePullRequest, getReleasePullRequest } from '../release/queries.ts';
@@ -69,7 +69,7 @@ export async function refreshUmbrella(
  * maintainer, who moves it to the prerelease branch.
  */
 function isBeforeMajor(umbrella: UmbrellaPullRequest, release: StableRelease): boolean {
-	return umbrella.base === STABLE_BRANCH && release.type === RELEASE_TYPES.major;
+	return umbrella.base === DOCS_STABLE_BRANCH && release.type === RELEASE_TYPES.major;
 }
 
 /**
@@ -83,7 +83,7 @@ async function getFollowedReleasePrNumber(
 	release: StableRelease
 ): Promise<number | undefined> {
 	const releasePullRequest =
-		umbrella.base === STABLE_BRANCH
+		umbrella.base === DOCS_STABLE_BRANCH
 			? release.pullRequest
 			: await getPrereleasePullRequest(framework, release.pullRequest);
 	return releasePullRequest?.number;

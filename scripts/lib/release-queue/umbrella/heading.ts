@@ -2,7 +2,7 @@ import {
 	FRAMEWORK_CORE_PACKAGE,
 	RELEASE_LABELS,
 	RELEASE_TITLE_PREFIX,
-	STABLE_BRANCH,
+	DOCS_STABLE_BRANCH,
 	type ReleaseLabel,
 } from '../config.ts';
 import type { StableRelease } from '../release/release.ts';
@@ -10,20 +10,20 @@ import type { StableRelease } from '../release/release.ts';
 /**
  * Gets the title of the umbrella PR merging into a branch.
  *
- * The stable umbrella is named after the version of the core package, as
- * merged PRs are posted to Discord. A prerelease umbrella is named after its
- * branch.
+ * The stable umbrella is named after the version of the core package or, if
+ * unavailable, the stable branch. A prerelease umbrella is always named after
+ * its branch.
  *
  * @param {string} umbrellaBase - The branch the umbrella PR merges into.
  * @param {StableRelease} release - The next release from the stable branch.
  * @returns {string} The title of the umbrella PR.
  */
 export function getUmbrellaTitle(umbrellaBase: string, release: StableRelease): string {
-	if (umbrellaBase !== STABLE_BRANCH) return formatUmbrellaTitle(umbrellaBase);
+	if (umbrellaBase !== DOCS_STABLE_BRANCH) return formatUmbrellaTitle(umbrellaBase);
 	return formatUmbrellaTitle(
 		release.frameworkVersion
 			? `${FRAMEWORK_CORE_PACKAGE}@${release.frameworkVersion}`
-			: STABLE_BRANCH
+			: DOCS_STABLE_BRANCH
 	);
 }
 
@@ -44,5 +44,5 @@ export function getUmbrellaReleaseLabel(
 	umbrellaBase: string,
 	release: StableRelease
 ): ReleaseLabel {
-	return umbrellaBase === STABLE_BRANCH ? RELEASE_LABELS[release.type] : RELEASE_LABELS.major;
+	return umbrellaBase === DOCS_STABLE_BRANCH ? RELEASE_LABELS[release.type] : RELEASE_LABELS.major;
 }

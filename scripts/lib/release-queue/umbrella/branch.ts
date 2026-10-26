@@ -1,6 +1,6 @@
 // What the reserved prefix of umbrella branches means.
 
-import { STABLE_BRANCH, UMBRELLA_BRANCH_PREFIX } from '../config.ts';
+import { DOCS_STABLE_BRANCH, UMBRELLA_BRANCH_PREFIX } from '../config.ts';
 
 /**
  * Whether a branch is an umbrella branch, by its reserved prefix.
@@ -29,8 +29,10 @@ export function getUmbrellaBase(base: string): string {
  * @param {string} umbrellaBase - The branch the umbrella PR merges into.
  * @returns {string} The umbrella branch, with its reserved prefix.
  */
-export function getUmbrellaBranch(umbrellaBase: string): string {
-	return `${UMBRELLA_BRANCH_PREFIX}${umbrellaBase}`;
+export function getUmbrellaBranch<T extends string>(
+	umbrellaBase: T
+): `${typeof UMBRELLA_BRANCH_PREFIX}${T}` {
+	return `${UMBRELLA_BRANCH_PREFIX}${umbrellaBase}` as const;
 }
 
-export const STABLE_UMBRELLA_BRANCH = getUmbrellaBranch(STABLE_BRANCH);
+export const STABLE_UMBRELLA_BRANCH = getUmbrellaBranch(DOCS_STABLE_BRANCH);

@@ -133,8 +133,8 @@ async function refuse(
 async function joinAndAnnounce(run: RunContext, accepted: AcceptedPullRequest<JoinDecision>) {
 	const { pr, release, decision } = accepted;
 	const { route } = decision;
-	const title = getUmbrellaTitle(route.umbrellaBase, release);
-	const result = await joinUmbrella(run.bot, { pr, route, umbrellaTitle: title });
+	const umbrellaTitle = getUmbrellaTitle(route.umbrellaBase, release);
+	const result = await joinUmbrella(run.bot, { pr, route, umbrellaTitle });
 
 	switch (result.status) {
 		case 'joined':

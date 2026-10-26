@@ -1,17 +1,17 @@
 import { FRAMEWORK_PRERELEASE_BRANCH } from '../config.ts';
 import { GitHubError } from '../github/error.ts';
-import { isRecord, parseJson } from '../github/json.ts';
+import { isRecord, parseJson } from '../json.ts';
 import type { Repository } from '../github/repository.ts';
 import type { PullRequestResponse } from '../github/types.ts';
 import { parseReleaseVersions, type ReleasePullRequest } from './release.ts';
 
-/** The branch prefix of the release PRs that changesets opens. */
+/** The branch prefix of the changesets release PRs. */
 const RELEASE_BRANCH_PREFIX = 'changeset-release/';
 /** The changesets file that holds the prerelease mode of a branch. */
 const PRE_STATE_PATH = '.changeset/pre.json';
 
 /**
- * Gets the open release PR of a branch of the framework repository.
+ * Gets the open release PR of a framework repository branch.
  *
  * @param {Repository} framework - The framework repository.
  * @param {string} branch - The stable branch, or the prerelease branch for
@@ -81,8 +81,7 @@ export async function getPrereleasePullRequest(
  *
  * @param {Repository} framework - The framework repository.
  * @param {number} prNumber - The number of the PR.
- * @returns {Promise<boolean>} `false` for a PR that doesn't exist, for example
- *   from an edited marker.
+ * @returns {Promise<boolean>} `false` for a PR that doesn't exist.
  */
 export async function isFrameworkPullRequestMerged(
 	framework: Repository,

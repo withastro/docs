@@ -105,20 +105,6 @@ describe('GitHubClient', () => {
 		);
 	});
 
-	it('prints writes without sending them when asked to', async (t) => {
-		const fetch = answer(t, json({}));
-		t.mock.method(console, 'info', () => {});
-
-		const data = await new PrintingGitHubClient('token').write(
-			'POST',
-			'repos/withastro/docs/issues/7/comments',
-			{ body: 'Hello' }
-		);
-
-		assert.equal(data, undefined);
-		assert.equal(fetch.mock.callCount(), 0);
-	});
-
 	it('gets every page of a list', async (t) => {
 		const items = Array.from({ length: 130 }, (_, index) => index);
 		const fetch = t.mock.method(globalThis, 'fetch', async (url: string) => {
@@ -162,5 +148,21 @@ describe('GitHubClient', () => {
 			});
 			assert.equal(github.countReads(path), 2);
 		});
+	});
+});
+
+describe('PrintingGitHubClient', () => {
+	it('prints writes without sending them', async (t) => {
+		const fetch = answer(t, json({}));
+		t.mock.method(console, 'info', () => {});
+
+		const data = await new PrintingGitHubClient('token').write(
+			'POST',
+			'repos/withastro/docs/issues/7/comments',
+			{ body: 'Hello' }
+		);
+
+		assert.equal(data, undefined);
+		assert.equal(fetch.mock.callCount(), 0);
 	});
 });

@@ -1,4 +1,4 @@
-import { FRAMEWORK_REPO, RELEASE_TITLE_PREFIX, STABLE_BRANCH } from '../config.ts';
+import { FRAMEWORK_REPO, RELEASE_TITLE_PREFIX, DOCS_STABLE_BRANCH } from '../config.ts';
 import { formatFrameworkReference } from '../release/release.ts';
 
 /** Writes the hidden marker that keeps the release PR an umbrella links. */
@@ -58,6 +58,6 @@ function describeShipping(umbrellaBase: string, releasePrNumber: number | undefi
 	if (releasePrNumber !== undefined) {
 		return `Ships with ${formatFrameworkReference(releasePrNumber)}.`;
 	}
-	const release = umbrellaBase === STABLE_BRANCH ? 'release' : 'prerelease';
+	const release = umbrellaBase === DOCS_STABLE_BRANCH ? 'release' : 'prerelease';
 	return `Ships with the next ${release} of \`${FRAMEWORK_REPO}\`, once its \`${RELEASE_TITLE_PREFIX}\` PR is open.`;
 }

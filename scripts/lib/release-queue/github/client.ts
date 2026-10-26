@@ -1,6 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
 import { GitHubError } from './error.ts';
-import { isRecord, parseJson } from './json.ts';
+import { isRecord, parseJson } from '../json.ts';
 
 const API_URL = 'https://api.github.com';
 const API_VERSION = '2022-11-28';
@@ -40,9 +40,12 @@ export class GitHubClient {
 	 * @param {string} path - The endpoint, relative to the API root.
 	 * @returns {Promise<T>} The JSON answer.
 	 * @throws {GitHubError} When GitHub answers with an error.
+	 * @throws {Error} When the answer has no body.
 	 */
-	get<T>(path: string): Promise<T> {
-		return this.#request<T>('GET', path);
+	async get<T>(path: string): Promise<T> {
+		const data = await this.#request<T>('GET', path);
+		if (data === undefined) throw new Error(`GET ${path} answered without a body.`);
+		return data;
 	}
 
 	/**
@@ -104,7 +107,7 @@ export class GitHubClient {
 		return this.#request<T>(method, path, body);
 	}
 
-	async #request<T>(method: string, path: string, body?: unknown): Promise<T> {
+	async #request<T>(method: string, path: string, body?: unknown): Promise<T | undefined> {
 		const response = await fetch(`${API_URL}/${path}`, {
 			method,
 			headers: {
@@ -117,7 +120,7 @@ export class GitHubClient {
 		});
 
 		const request = `${method} ${path}`;
-		if (response.status === 204) return undefined as T;
+		if (response.status === 204) return undefined;
 		// Error pages from a proxy, such as a 502, are HTML.
 		const isJson = response.headers.get('content-type')?.includes('application/json');
 		const text = await response.text();

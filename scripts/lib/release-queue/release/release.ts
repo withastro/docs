@@ -26,7 +26,7 @@ export interface StableRelease {
 	type: ReleaseType;
 	/** The version of the framework package, if the release includes it. */
 	frameworkVersion?: string | undefined;
-	/** The open release PR. Without one, the release is a patch. */
+	/** The open release PR, if any. */
 	pullRequest?: ReleasePullRequest | undefined;
 }
 

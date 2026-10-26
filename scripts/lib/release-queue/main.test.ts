@@ -79,7 +79,7 @@ describe('runReleaseQueue', () => {
 				flags: { ...noFlags, refresh: true },
 				env: { ...env, GITHUB_ACTIONS: 'true', MODE: 'all' },
 			}),
-			/^Error: BOT_TOKEN is required in all mode\.$/
+			/^Error: BOT_TOKEN is required when MODE is all\.$/
 		);
 	});
 });

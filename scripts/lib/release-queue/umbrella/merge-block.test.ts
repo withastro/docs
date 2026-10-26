@@ -23,7 +23,7 @@ const checklist = [
 	'',
 	'- [ ] withastro/astro#18405 is merged.',
 	'- [ ] No open PR targets `release-queue/main`.',
-	'- [ ] If the umbrella has the `i18n` label, the commit body has a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file), for example `@lunaria-track:src/content/docs/en/**.mdx`. The squash commit body is empty by default: add it in the merge dialog.',
+	'- [ ] If the umbrella has the `i18n` label, add a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file) to the commit body in the merge dialog. For example: `@lunaria-track:src/content/docs/en/**.mdx`.',
 	'',
 	'Then dismiss this review. The release queue requests changes again if more docs PRs join.',
 ].join('\n');
@@ -77,7 +77,7 @@ describe('syncMergeBlockReview', () => {
 			assert.doesNotMatch(umbrella.labels.join(), /i18n/);
 			assert.match(
 				await submittedChecklist(t, umbrella),
-				/- \[ \] If the umbrella has the `i18n` label, the commit body has a \[Lunaria directive\]/
+				/- \[ \] If the umbrella has the `i18n` label, add a \[Lunaria directive\]/
 			);
 		});
 	});

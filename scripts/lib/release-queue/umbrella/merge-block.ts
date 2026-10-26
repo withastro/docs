@@ -55,7 +55,7 @@ function describeBranchItem(
  * after the merge, with `GITHUB_TOKEN`, which doesn't trigger this workflow.
  */
 function describeLunariaItem(): string {
-	return `If the umbrella has the \`${TRANSLATIONS_LABEL}\` label, the commit body has a [Lunaria directive](${LUNARIA_DIRECTIVE_DOCS}), for example \`${LUNARIA_DIRECTIVE}\`. The squash commit body is empty by default: add it in the merge dialog.`;
+	return `If the umbrella has the \`${TRANSLATIONS_LABEL}\` label, add a [Lunaria directive](${LUNARIA_DIRECTIVE_DOCS}) to the commit body in the merge dialog. For example: \`${LUNARIA_DIRECTIVE}\`.`;
 }
 
 /**

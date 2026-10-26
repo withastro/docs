@@ -19,11 +19,11 @@ interface Flags {
 
 /** The environment variables the release queue reads. */
 interface Env {
-	/** For reads, dry-run comments and merge-block reviews. */
+	/** Used for reads, dry-run comments and merge-block reviews. */
 	GITHUB_TOKEN?: string | undefined;
-	/** The token of the bot account, for joins, refusals and refreshes. */
+	/** Used for joins, refusals and refreshes. */
 	BOT_TOKEN?: string | undefined;
-	/** The mode of the bot. */
+	/** The bot mode. */
 	MODE?: string | undefined;
 	// The variables below are set by GitHub Actions.
 	GITHUB_ACTIONS?: string | undefined;
@@ -73,7 +73,7 @@ function createRunContext(flags: Flags, env: Env): RunContext {
 	// trigger the checks of the umbrella PR.
 	const botToken = env.BOT_TOKEN;
 	if (shouldWrite && !isDryRun(mode) && !botToken) {
-		throw new Error(`BOT_TOKEN is required in ${mode} mode.`);
+		throw new Error(`BOT_TOKEN is required when MODE is ${mode}.`);
 	}
 
 	const Client = shouldWrite ? GitHubClient : PrintingGitHubClient;

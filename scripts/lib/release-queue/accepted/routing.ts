@@ -2,7 +2,7 @@ import {
 	ALL_RELEASE_LABELS,
 	RELEASE_LABELS,
 	RELEASE_TYPES,
-	STABLE_BRANCH,
+	DOCS_STABLE_BRANCH,
 	type ReleaseLabel,
 } from '../config.ts';
 import type { PullRequestState } from '../github/types.ts';
@@ -83,14 +83,11 @@ type Routing = { status: 'routed'; route: Route } | { status: 'refused'; refusal
  * Whether the bot would change the base of an open docs PR from the stable
  * branch to the stable umbrella branch.
  *
- * These are the only PRs a settled stable umbrella refuses: a PR against the
- * umbrella branch says it belongs to that umbrella.
- *
  * @param {DocsPullRequest} pr - The docs PR.
  * @returns {boolean} `true` for an open PR against the stable branch.
  */
 export function wouldRetargetFromStable(pr: DocsPullRequest): boolean {
-	return pr.state === 'open' && pr.base === STABLE_BRANCH;
+	return pr.state === 'open' && pr.base === DOCS_STABLE_BRANCH;
 }
 
 /**
@@ -140,7 +137,7 @@ function getRoute(
 
 	// Nothing marks a prerelease branch: any base but the stable branch is one.
 	const isMajor = label === RELEASE_LABELS.major;
-	const isStableTarget = umbrellaBase === STABLE_BRANCH;
+	const isStableTarget = umbrellaBase === DOCS_STABLE_BRANCH;
 	if (isMajor === isStableTarget) return refuseRoute({ code: 'mismatch', base: pr.base, label });
 	// Every feature on the stable branch of the framework now ships in the
 	// major, documented on a prerelease branch.

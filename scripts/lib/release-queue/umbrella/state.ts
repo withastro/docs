@@ -1,4 +1,4 @@
-import { STABLE_BRANCH } from '../config.ts';
+import { DOCS_STABLE_BRANCH } from '../config.ts';
 import type { Repository } from '../github/repository.ts';
 import { isFrameworkPullRequestMerged } from '../release/queries.ts';
 import type { StableRelease } from '../release/release.ts';
@@ -44,7 +44,7 @@ export async function getReleaseState(
 	release: StableRelease
 ): Promise<ReleaseState> {
 	// A prerelease umbrella always follows: its branch has continuous betas.
-	if (umbrella.base !== STABLE_BRANCH) return { status: 'follows' };
+	if (umbrella.base !== DOCS_STABLE_BRANCH) return { status: 'follows' };
 	const linkedReleasePrNumber = parseReleaseMarker(umbrella.body);
 	const openReleasePrNumber = release.pullRequest?.number;
 	if (

@@ -3,7 +3,7 @@ import {
 	FRAMEWORK_CORE_PACKAGE,
 	FRAMEWORK_STABLE_BRANCH,
 	RELEASE_LABELS,
-	STABLE_BRANCH,
+	DOCS_STABLE_BRANCH,
 } from '../config.ts';
 import { GitHubError } from '../github/error.ts';
 import { formatFrameworkReference } from '../release/release.ts';
@@ -29,22 +29,21 @@ type DescribeRefusal<C extends RefusalCode> = (
 	context: MessageContext
 ) => string;
 
-const PATCH_LABEL = wrapInCode(RELEASE_LABELS.patch);
-const MINOR_LABEL = wrapInCode(RELEASE_LABELS.minor);
-const MAJOR_LABEL = wrapInCode(RELEASE_LABELS.major);
+const PATCH_LABEL_CODE = wrapInCode(RELEASE_LABELS.patch);
+const MINOR_LABEL_CODE = wrapInCode(RELEASE_LABELS.minor);
+const MAJOR_LABEL_CODE = wrapInCode(RELEASE_LABELS.major);
+const STABLE_BRANCH_CODE = wrapInCode(DOCS_STABLE_BRANCH);
 
 function describeMissingReleaseLabel(): string {
-	const stableBranch = wrapInCode(STABLE_BRANCH);
-	return `This PR has no release label. Add ${PATCH_LABEL} or ${MINOR_LABEL} for a PR against ${stableBranch}, or ${MAJOR_LABEL} for a PR against a prerelease branch.`;
+	return `This PR has no release label. Add ${PATCH_LABEL_CODE} or ${MINOR_LABEL_CODE} for a PR against ${STABLE_BRANCH_CODE}, or ${MAJOR_LABEL_CODE} for a PR against a prerelease branch.`;
 }
 
 function describeMismatch({ base, label }: Refusal<'mismatch'>): string {
-	const stableBranch = wrapInCode(STABLE_BRANCH);
 	const currentBase = wrapInCode(base);
 	if (label === RELEASE_LABELS.major) {
-		return `${MAJOR_LABEL} PRs target a prerelease branch, but this one targets ${currentBase}. Change the base to the prerelease branch, or the label to ${PATCH_LABEL} or ${MINOR_LABEL}.`;
+		return `${MAJOR_LABEL_CODE} PRs target a prerelease branch, but this one targets ${currentBase}. Change the base to the prerelease branch, or the label to ${PATCH_LABEL_CODE} or ${MINOR_LABEL_CODE}.`;
 	}
-	return `${wrapInCode(label)} PRs target ${stableBranch}, but this one targets ${currentBase}. Change the base to ${stableBranch}, or the label to ${MAJOR_LABEL}.`;
+	return `${wrapInCode(label)} PRs target ${STABLE_BRANCH_CODE}, but this one targets ${currentBase}. Change the base to ${STABLE_BRANCH_CODE}, or the label to ${MAJOR_LABEL_CODE}.`;
 }
 
 function describeMajorOnStable(
@@ -52,14 +51,14 @@ function describeMajorOnStable(
 	{ stableUmbrella }: MessageContext
 ): string {
 	const corePackage = wrapInCode(FRAMEWORK_CORE_PACKAGE);
-	const stableBranch = wrapInCode(FRAMEWORK_STABLE_BRANCH);
+	const frameworkBranch = wrapInCode(FRAMEWORK_STABLE_BRANCH);
 	const version = frameworkVersion
 		? ` (${wrapInCode(`${FRAMEWORK_CORE_PACKAGE}@${frameworkVersion}`)})`
 		: '';
 	const umbrellaToMove = stableUmbrella
-		? ` The open ${wrapInCode(STABLE_BRANCH)} umbrella (#${stableUmbrella.number}) needs to be squashed into the prerelease branch by a maintainer.`
+		? ` The open ${STABLE_BRANCH_CODE} umbrella (#${stableUmbrella.number}) needs to be squashed into the prerelease branch by a maintainer.`
 		: '';
-	return `The next ${corePackage} release from ${stableBranch} is a major${version}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to ${MAJOR_LABEL}.${umbrellaToMove}`;
+	return `The next ${corePackage} release from ${frameworkBranch} is a major${version}: docs for it belong on the prerelease branch. Change the base to the prerelease branch and the label to ${MAJOR_LABEL_CODE}.${umbrellaToMove}`;
 }
 
 function describeSettledUmbrella({ number, releasePrNumber }: Refusal<'settled-umbrella'>): string {

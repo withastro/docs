@@ -5,7 +5,6 @@ import { getUmbrellaBase, isUmbrellaBranch } from './branch.ts';
 /** The title GitHub gives a squash commit: the PR title, then its number. */
 const SQUASH_TITLE = / \(#(\d+)\)$/;
 
-/** An umbrella PR, with what the refresh reads from it. */
 export interface UmbrellaPullRequest {
 	number: number;
 	title: string;
