@@ -14,8 +14,8 @@ type Action = { type: 'handle'; prNumber: number } | { type: 'refresh' };
  *
  * @param {object} signals - The flags and the event of the run.
  * @param {string} [signals.pr] - The value of `--pr`.
- * @param {boolean} [signals.isRefreshRequested] - Whether `--refresh` was
- *   passed.
+ * @param {boolean} [signals.isRefreshRequested] - Whether
+ *   `--preview-refresh` was passed.
  * @param {string} [signals.eventName] - The event that triggered the run.
  * @param {number} [signals.eventPullRequest] - The PR of that event.
  * @returns {Action} The refresh, or the PR to handle.
@@ -34,7 +34,8 @@ export function chooseAction({
 	eventPullRequest?: number | undefined;
 }): Action {
 	const shouldRefresh = isRefreshRequested || eventName === 'workflow_dispatch';
-	if (shouldRefresh && pr !== undefined) throw new Error('Pass --pr or --refresh, not both.');
+	if (shouldRefresh && pr !== undefined)
+		throw new Error('Pass --pr or --preview-refresh, not both.');
 	if (shouldRefresh) return { type: 'refresh' };
 
 	const rawPrNumber = pr ?? eventPullRequest?.toString();

@@ -14,7 +14,7 @@ describe('chooseAction', () => {
 		assert.deepEqual(chooseAction({ pr: '14580' }), { type: 'handle', prNumber: 14580 });
 	});
 
-	it('refreshes on a workflow_dispatch, or with --refresh', () => {
+	it('refreshes on a workflow_dispatch, or with --preview-refresh', () => {
 		assert.deepEqual(chooseAction({ eventName: 'workflow_dispatch' }), { type: 'refresh' });
 		assert.deepEqual(chooseAction({ isRefreshRequested: true }), { type: 'refresh' });
 	});
@@ -29,7 +29,7 @@ describe('chooseAction', () => {
 		}
 	});
 
-	it('refuses --refresh with --pr', () => {
+	it('refuses --preview-refresh with --pr', () => {
 		assert.throws(() => chooseAction({ pr: '7', isRefreshRequested: true }), /not both/);
 	});
 });

@@ -7,7 +7,7 @@ import { runReleaseQueue } from './main.ts';
 import { REPO, umbrellaResponse } from './testing/fixtures.ts';
 import { stubGitHub } from './testing/stub-github.ts';
 
-const noFlags = { refresh: false };
+const noFlags = { 'preview-refresh': false };
 const env = { GITHUB_TOKEN: 'actions-token', GITHUB_REPOSITORY: REPO };
 
 /** Writes `event` to a temporary file, as GitHub Actions does. */
@@ -20,7 +20,7 @@ async function writeEvent(event: unknown): Promise<string> {
 const silence = (t: TestContext) => t.mock.method(console, 'info', () => {});
 
 describe('runReleaseQueue', () => {
-	it('refreshes the open umbrellas with --refresh', async (t) => {
+	it('previews the refresh of the open umbrellas with --preview-refresh', async (t) => {
 		silence(t);
 		const github = stubGitHub(t, {
 			getResponses: {
@@ -29,7 +29,7 @@ describe('runReleaseQueue', () => {
 			},
 		});
 
-		await runReleaseQueue({ flags: { ...noFlags, refresh: true }, env });
+		await runReleaseQueue({ flags: { 'preview-refresh': true }, env });
 
 		assert.equal(github.countReads(`repos/${REPO}/pulls?state=open`), 1);
 		assert.deepEqual(github.writes, []);
@@ -85,7 +85,7 @@ describe('runReleaseQueue', () => {
 			},
 		});
 
-		await runReleaseQueue({ flags: { refresh: true }, env: { ...env, MODE: 'all' } });
+		await runReleaseQueue({ flags: { 'preview-refresh': true }, env: { ...env, MODE: 'all' } });
 
 		assert.ok(github.calls.length > 0);
 		assert.deepEqual(github.writes, []);
@@ -94,7 +94,7 @@ describe('runReleaseQueue', () => {
 	it('requires the bot token to write outside a dry run', async () => {
 		await assert.rejects(
 			runReleaseQueue({
-				flags: { ...noFlags, refresh: true },
+				flags: { 'preview-refresh': true },
 				env: { ...env, GITHUB_ACTIONS: 'true', MODE: 'all' },
 			}),
 			/^Error: BOT_TOKEN is required when MODE is all\.$/

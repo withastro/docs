@@ -4,14 +4,16 @@
 import { parseArgs } from 'node:util';
 import { runReleaseQueue } from './lib/release-queue/main.ts';
 
-// In GitHub Actions, the PR and the sender come from the event, and a
+// The flags are for local runs, which only print what they would write. In
+// GitHub Actions, the PR and the sender come from the event, and a
 // `workflow_dispatch` refreshes every open umbrella PR.
 const { values: flags } = parseArgs({
 	options: {
 		// The docs PR to route.
 		pr: { type: 'string' },
-		// Refresh every open umbrella PR, instead of routing `--pr`.
-		refresh: { type: 'boolean', default: false },
+		// Print what a refresh of every open umbrella PR would change, instead of
+		// routing `--pr`.
+		'preview-refresh': { type: 'boolean', default: false },
 		// Who added the label, for the write access check.
 		sender: { type: 'string' },
 	},

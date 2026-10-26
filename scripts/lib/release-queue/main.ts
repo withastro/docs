@@ -11,7 +11,7 @@ import { refreshOpenUmbrellas } from './umbrella/refresh.ts';
 /** The command-line flags of `scripts/release-queue.ts`. */
 interface Flags {
 	pr?: string | undefined;
-	refresh: boolean;
+	'preview-refresh': boolean;
 	/** Who added the label, for the write access check. */
 	sender?: string | undefined;
 }
@@ -48,7 +48,7 @@ export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }
 	const event = await readEvent(env.GITHUB_EVENT_PATH);
 	const action = chooseAction({
 		pr: flags.pr,
-		isRefreshRequested: flags.refresh,
+		isRefreshRequested: flags['preview-refresh'],
 		eventName: env.GITHUB_EVENT_NAME,
 		eventPullRequest: event.pullRequest,
 	});
