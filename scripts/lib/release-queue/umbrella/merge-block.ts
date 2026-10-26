@@ -6,15 +6,18 @@ import {
 	RELEASE_TITLE_PREFIX,
 	TRANSLATIONS_LABEL,
 } from '../config.ts';
+import { normalizeLineEndings } from '../formats/markdown.ts';
 import type { Repository } from '../github/repository.ts';
+import type { ReviewResponse } from '../github/types.ts';
 import { formatFrameworkReference } from '../release/release.ts';
 import { parseReleaseMarker } from './body.ts';
-import {
-	listOpenPullRequestsTargeting,
-	listUmbrellaReviews,
-	type SubmittedReview,
-	type UmbrellaPullRequest,
-} from './queries.ts';
+import type { UmbrellaPullRequest } from './queries.ts';
+
+/** A review of an umbrella PR, with its body. */
+interface SubmittedReview extends ReviewResponse {
+	id: number;
+	body: string;
+}
 
 /**
  * Writes the body of the merge-block review: the checklist a maintainer goes
@@ -56,6 +59,34 @@ function describeBranchItem(
  */
 function describeLunariaItem(): string {
 	return `If the umbrella has the \`${TRANSLATIONS_LABEL}\` label, add a [Lunaria directive](${LUNARIA_DIRECTIVE_DOCS}) to the commit body in the merge dialog. For example: \`${LUNARIA_DIRECTIVE}\`.`;
+}
+
+/**
+ * Lists the reviews of an umbrella PR.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {number} umbrellaNumber - The number of the umbrella PR.
+ * @returns {Promise<SubmittedReview[]>} The reviews in chronological order,
+ *   with `\n` line endings in their bodies.
+ */
+async function listUmbrellaReviews(
+	repo: Repository,
+	umbrellaNumber: number
+): Promise<SubmittedReview[]> {
+	const reviews = await repo.getAll<SubmittedReview>(`pulls/${umbrellaNumber}/reviews`);
+	return reviews.map((review) => ({ ...review, body: normalizeLineEndings(review.body) }));
+}
+
+/**
+ * Lists the open PRs that target a branch.
+ *
+ * @param {Repository} repo - The docs repository.
+ * @param {string} branch - The base of the PRs, such as an umbrella branch.
+ * @returns {Promise<number[]>} The numbers of the open PRs.
+ */
+async function listOpenPullRequestsTargeting(repo: Repository, branch: string): Promise<number[]> {
+	const pullRequests = await repo.listOpenPullRequests({ base: branch });
+	return pullRequests.map(({ number }) => number);
 }
 
 /**

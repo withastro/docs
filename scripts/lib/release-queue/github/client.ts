@@ -1,6 +1,6 @@
 import { setTimeout } from 'node:timers/promises';
+import { isRecord, parseJson } from '../formats/json.ts';
 import { GitHubError } from './error.ts';
-import { isRecord, parseJson } from '../json.ts';
 
 const API_URL = 'https://api.github.com';
 const API_VERSION = '2022-11-28';

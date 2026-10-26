@@ -1,6 +1,6 @@
 import type { TestContext } from 'node:test';
+import { isRecord } from '../formats/json.ts';
 import { GitHubClient, PrintingGitHubClient } from '../github/client.ts';
-import { isRecord } from '../json.ts';
 import { Repository } from '../github/repository.ts';
 import { REPO } from './fixtures.ts';
 

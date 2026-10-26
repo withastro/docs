@@ -1,7 +1,7 @@
 import { FRAMEWORK_PRERELEASE_BRANCH, FRAMEWORK_STABLE_BRANCH } from '../config.ts';
+import { isRecord, parseJson } from '../formats/json.ts';
 import type { Repository } from '../github/repository.ts';
 import type { PullRequestResponse } from '../github/types.ts';
-import { isRecord, parseJson } from '../json.ts';
 import {
 	getStableRelease,
 	parseReleaseVersions,
