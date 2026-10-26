@@ -73,6 +73,35 @@ export function classifyReviewers(
 
 const SUCCESSFUL_CONCLUSIONS = new Set<CheckConclusion>(['success', 'neutral', 'skipped']);
 
+/** A check reported on a commit, by a check run or a commit status. */
+export interface Check {
+	name: string;
+	state: 'pending' | 'failing' | 'passing';
+}
+
+/**
+ * Reads the state of a check run. A neutral or skipped run passes.
+ *
+ * @param {CheckRunResponse} checkRun - A check run of the commit.
+ * @returns {Check} The check, by the name of the run.
+ */
+export function readCheckRun({ name, status, conclusion }: CheckRunResponse): Check {
+	if (status !== 'completed') return { name, state: 'pending' };
+	const isSuccessful = conclusion !== null && SUCCESSFUL_CONCLUSIONS.has(conclusion);
+	return { name, state: isSuccessful ? 'passing' : 'failing' };
+}
+
+/**
+ * Reads the state of a commit status. An error fails, like a failure.
+ *
+ * @param {CommitStatusResponse} status - A commit status.
+ * @returns {Check} The check, by the context of the status.
+ */
+export function readCommitStatus({ context, state }: CommitStatusResponse): Check {
+	if (state === 'pending') return { name: context, state: 'pending' };
+	return { name: context, state: state === 'success' ? 'passing' : 'failing' };
+}
+
 /**
  * Lists the required checks of a commit that are failing, pending, or missing.
  *
@@ -80,33 +109,18 @@ const SUCCESSFUL_CONCLUSIONS = new Set<CheckConclusion>(['success', 'neutral', '
  * runs of a first-time contributor wait for approval.
  *
  * @param {string[]} required - The names of the required checks.
- * @param {CheckRunResponse[]} checkRuns - The check runs of the commit.
- * @param {CommitStatusResponse[]} statuses - The commit statuses.
+ * @param {Check[]} checks - The checks reported on the commit.
  * @returns {ClassifiedChecks} The required checks in each state.
  */
-export function classifyChecks(
-	required: string[],
-	checkRuns: CheckRunResponse[],
-	statuses: CommitStatusResponse[]
-): ClassifiedChecks {
-	const failing = new Set<string>();
-	const pending = new Set<string>();
-	const reported = new Set<string>();
-
-	for (const run of checkRuns) {
-		reported.add(run.name);
-		if (run.status !== 'completed') pending.add(run.name);
-		else if (!run.conclusion || !SUCCESSFUL_CONCLUSIONS.has(run.conclusion)) failing.add(run.name);
-	}
-	for (const status of statuses) {
-		reported.add(status.context);
-		if (status.state === 'pending') pending.add(status.context);
-		else if (status.state !== 'success') failing.add(status.context);
-	}
-
+export function classifyChecks(required: string[], checks: Check[]): ClassifiedChecks {
+	const namesIn = (state: Check['state']) =>
+		new Set(checks.filter((check) => check.state === state).map(({ name }) => name));
+	const failing = namesIn('failing');
+	const pending = namesIn('pending');
+	const reported = new Set(checks.map(({ name }) => name));
 	return {
-		failingChecks: required.filter((check) => failing.has(check)),
-		pendingChecks: required.filter((check) => pending.has(check)),
-		missingChecks: required.filter((check) => !reported.has(check)),
+		failingChecks: required.filter((name) => failing.has(name)),
+		pendingChecks: required.filter((name) => pending.has(name)),
+		missingChecks: required.filter((name) => !reported.has(name)),
 	};
 }

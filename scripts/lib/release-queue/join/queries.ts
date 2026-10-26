@@ -12,6 +12,8 @@ import {
 	classifyChecks,
 	classifyReviewers,
 	getLatestReviewStates,
+	readCheckRun,
+	readCommitStatus,
 	type Readiness,
 	type Review,
 } from './readiness.ts';
@@ -99,7 +101,10 @@ export async function getReadiness(repo: Repository, pr: PullRequest): Promise<R
 	const writers = await getWriters(repo, [...states.keys()]);
 	return {
 		...classifyReviewers(states, writers),
-		...classifyChecks(required, checkRuns, statuses),
+		...classifyChecks(required, [
+			...checkRuns.map(readCheckRun),
+			...statuses.map(readCommitStatus),
+		]),
 		isMergeable: pr.isMergeable,
 	};
 }

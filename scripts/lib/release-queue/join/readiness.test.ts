@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { classifyChecks, classifyReviewers, getLatestReviewStates } from './readiness.ts';
+import {
+	classifyChecks,
+	classifyReviewers,
+	getLatestReviewStates,
+	readCheckRun,
+	readCommitStatus,
+} from './readiness.ts';
 
 describe('getLatestReviewStates', () => {
 	it('keeps the latest approval or change request of each reviewer', () => {
@@ -65,24 +71,57 @@ describe('classifyReviewers', () => {
 	});
 });
 
-describe('classifyChecks', () => {
-	const required = ['eslint', 'lint-ja', 'links', 'check', 'deploy', 'external', 'zizmor'];
+describe('readCheckRun', () => {
+	it('passes a successful, neutral or skipped run', () => {
+		for (const conclusion of ['success', 'neutral', 'skipped'] as const) {
+			const check = readCheckRun({ name: 'eslint', status: 'completed', conclusion });
+			assert.deepEqual(check, { name: 'eslint', state: 'passing' });
+		}
+	});
 
-	it('lists unfinished and unsuccessful required check runs and statuses', () => {
-		const checks = classifyChecks(
-			required,
-			[
-				{ name: 'eslint', status: 'completed', conclusion: 'success' },
-				{ name: 'lint-ja', status: 'completed', conclusion: 'skipped' },
-				{ name: 'links', status: 'completed', conclusion: 'failure' },
-				{ name: 'check', status: 'in_progress', conclusion: null },
-				{ name: 'zizmor', status: 'completed', conclusion: 'neutral' },
-			],
-			[
-				{ context: 'deploy', state: 'pending' },
-				{ context: 'external', state: 'error' },
-			]
-		);
+	it('fails a completed run with any other conclusion, or none', () => {
+		for (const conclusion of ['failure', 'cancelled', 'timed_out', null] as const) {
+			const check = readCheckRun({ name: 'links', status: 'completed', conclusion });
+			assert.deepEqual(check, { name: 'links', state: 'failing' });
+		}
+	});
+
+	it('keeps an unfinished run pending', () => {
+		const check = readCheckRun({ name: 'check', status: 'in_progress', conclusion: null });
+		assert.deepEqual(check, { name: 'check', state: 'pending' });
+	});
+});
+
+describe('readCommitStatus', () => {
+	it('reads a status by its context', () => {
+		assert.deepEqual(readCommitStatus({ context: 'deploy', state: 'pending' }), {
+			name: 'deploy',
+			state: 'pending',
+		});
+		assert.deepEqual(readCommitStatus({ context: 'deploy', state: 'success' }), {
+			name: 'deploy',
+			state: 'passing',
+		});
+	});
+
+	it('fails an error, like a failure', () => {
+		for (const state of ['error', 'failure'] as const) {
+			assert.equal(readCommitStatus({ context: 'external', state }).state, 'failing');
+		}
+	});
+});
+
+describe('classifyChecks', () => {
+	const required = ['eslint', 'links', 'check', 'deploy', 'external'];
+
+	it('lists the failing and pending required checks', () => {
+		const checks = classifyChecks(required, [
+			{ name: 'eslint', state: 'passing' },
+			{ name: 'links', state: 'failing' },
+			{ name: 'check', state: 'pending' },
+			{ name: 'deploy', state: 'pending' },
+			{ name: 'external', state: 'failing' },
+		]);
 		assert.deepEqual(checks, {
 			failingChecks: ['links', 'external'],
 			pendingChecks: ['check', 'deploy'],
@@ -94,17 +133,16 @@ describe('classifyChecks', () => {
 		const checks = classifyChecks(
 			['eslint'],
 			[
-				{ name: 'eslint', status: 'completed', conclusion: 'success' },
-				{ name: 'triage', status: 'in_progress', conclusion: null },
-				{ name: 'Generate Lunaria Overview', status: 'completed', conclusion: 'failure' },
-			],
-			[]
+				{ name: 'eslint', state: 'passing' },
+				{ name: 'triage', state: 'pending' },
+				{ name: 'Generate Lunaria Overview', state: 'failing' },
+			]
 		);
 		assert.deepEqual(checks, { failingChecks: [], pendingChecks: [], missingChecks: [] });
 	});
 
 	it('lists required checks that are not reported', () => {
-		assert.deepEqual(classifyChecks(['eslint'], [], []), {
+		assert.deepEqual(classifyChecks(['eslint'], []), {
 			failingChecks: [],
 			pendingChecks: [],
 			missingChecks: ['eslint'],
@@ -112,7 +150,7 @@ describe('classifyChecks', () => {
 	});
 
 	it('accepts a commit when no check is required', () => {
-		assert.deepEqual(classifyChecks([], [], []), {
+		assert.deepEqual(classifyChecks([], []), {
 			failingChecks: [],
 			pendingChecks: [],
 			missingChecks: [],
