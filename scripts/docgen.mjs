@@ -7,13 +7,18 @@ import jsdoc from 'jsdoc-api';
 // Fill this in to test a response locally, with fetching.
 const STUB = ``; // fs.readFileSync('/PATH/TO/MONOREPO/astro/packages/astro/src/types/public/config.ts', {encoding: 'utf-8'});
 
-const HEADER = `---
+/**
+ * Get the frontmatter, imports, and dev-only warning shared by all generated pages.
+ * @param {string} title
+ */
+function getHeader(title) {
+	return `---
 # NOTE: This file is auto-generated from 'scripts/docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
 # Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
-title: Configuration Reference
+title: ${title}
 i18nReady: true
 githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/types/public/config.ts
 ---
@@ -23,7 +28,10 @@ import DontEditWarning from '~/components/DontEditWarning.astro'
 
 <DontEditWarning />
 
-The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
+`;
+}
+
+const CONFIG_INTRO = `The following reference covers all supported configuration options in Astro. To learn more about configuring Astro, read our guide on [Configuring Astro](/en/guides/configuring-astro/).
 
 \`\`\`js
 // astro.config.mjs
@@ -36,6 +44,13 @@ export default defineConfig({
 `;
 
 const FOOTER = ``;
+
+/**
+ * The `@name` tag (parsed as `longname`) of the heading introducing the legacy flags page.
+ * Options prefixed with `legacy.` are documented on that page instead of the configuration reference.
+ */
+const LEGACY_NAME = 'legacy';
+const LEGACY_PREFIX = `${LEGACY_NAME}.`;
 
 /**
  * The simple demo does not rely on the TypeScript compiler API; instead, it parses the
@@ -71,32 +86,35 @@ export async function run() {
 		(/** @type {any} */ data) => data.tags
 	);
 
-	let result = ``;
+	let configResult = ``;
+	let legacyIntro = ``;
+	let legacyResult = ``;
 
 	for (const comment of allParsedComments) {
 		if (!comment.name) {
 			throw new Error(`Missing @docs JSDoc tag: @name`);
 		}
 
-		result += [
-			getHeading(comment),
-			getDeprecatedAside(comment.deprecated),
-			getCommentProperties(comment),
-			comment.description?.trim() || undefined,
-			comment.see
-				? `**See Also:**\n${comment.see.map((/** @type {any} */ s) => `- ${s}`.trim()).join('\n')}`
-				: undefined,
-			`\n`,
-		]
-			.filter((l) => l !== undefined)
-			.join('\n');
+		if (comment.longname === LEGACY_NAME) {
+			// The page title comes from the frontmatter, so only the description is used, as an intro.
+			legacyIntro = comment.description?.trim() ? `${comment.description.trim()}\n\n` : ``;
+		} else if (comment.longname.startsWith(LEGACY_PREFIX)) {
+			// Legacy flags get their own page, where each flag is a top-level section.
+			const heading = getHeading(comment, 2).replace(LEGACY_PREFIX, '');
+			legacyResult += renderComment(comment, heading);
+		} else {
+			configResult += renderComment(comment, getHeading(comment));
+		}
 	}
 
-	// Make any links to docs relative instead of absolute.
-	result = result.replace(/https:\/\/docs\.astro\.build\//g, '/');
+	// Without an intro, the source is likely missing the legacy object entirely,
+	// so it should fail instead of overwriting the page with an empty one.
+	if (!legacyIntro) {
+		throw new Error(`Missing @docs JSDoc comment with a description for @name ${LEGACY_NAME}`);
+	}
 
-	// Make self-referencing anchor links relative
-	result = result.replace(/(?<=\]\()\/en\/reference\/configuration-reference\/#([^)\s]+)/g, '#$1');
+	configResult = formatLinks(configResult, 'configuration-reference');
+	legacyResult = formatLinks(legacyIntro + legacyResult, 'legacy-flags');
 
 	console.timeEnd(task);
 	task = 'Update configuration-reference.mdx';
@@ -104,11 +122,56 @@ export async function run() {
 
 	fs.writeFileSync(
 		'src/content/docs/en/reference/configuration-reference.mdx',
-		HEADER + result + FOOTER,
+		getHeader('Configuration Reference') + CONFIG_INTRO + configResult + FOOTER,
 		'utf8'
 	);
 
 	console.timeEnd(task);
+	task = 'Update legacy-flags.mdx';
+	console.time(task);
+
+	fs.writeFileSync(
+		'src/content/docs/en/reference/legacy-flags.mdx',
+		getHeader('Legacy flags') + legacyResult + FOOTER,
+		'utf8'
+	);
+
+	console.timeEnd(task);
+}
+
+/**
+ * Render a parsed `@docs` comment as a Markdown section.
+ * @param {any} comment
+ * @param {string} heading
+ */
+function renderComment(comment, heading) {
+	return [
+		heading,
+		getDeprecatedAside(comment.deprecated),
+		getCommentProperties(comment),
+		comment.description?.trim() || undefined,
+		comment.see
+			? `**See Also:**\n${comment.see.map((/** @type {any} */ s) => `- ${s}`.trim()).join('\n')}`
+			: undefined,
+		`\n`,
+	]
+		.filter((l) => l !== undefined)
+		.join('\n');
+}
+
+/**
+ * Make links to docs relative, and links to anchors on the current page self-referencing.
+ * @param {string} content
+ * @param {string} page The slug of the generated page in `src/content/docs/en/reference/`.
+ */
+function formatLinks(content, page) {
+	return (
+		content
+			// Make any links to docs relative instead of absolute.
+			.replace(/https:\/\/docs\.astro\.build\//g, '/')
+			// Make self-referencing anchor links relative
+			.replace(new RegExp(`(?<=\\]\\()\\/en\\/reference\\/${page}\\/#([^)\\s]+)`, 'g'), '#$1')
+	);
 }
 
 /**
@@ -122,9 +185,10 @@ function h(headingLevel) {
 /**
  * Get a Markdown heading of the correct level for this comment.
  * @param {{ kind: string | undefined; longname: string }} comment
+ * @param {number} [defaultLevel] The heading level used when the comment has no `@kind` tag.
  */
-function getHeading(comment) {
-	let headingLevel = 3;
+function getHeading(comment, defaultLevel = 3) {
+	let headingLevel = defaultLevel;
 	const headingMatches = /^h(1|2|3|4|5|6)$/.exec(comment.kind || '');
 	if (headingMatches) {
 		headingLevel = parseInt(headingMatches[1]);
