@@ -1,4 +1,4 @@
-import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from './config.ts';
+import { ACCEPTED_LABEL } from './config.ts';
 import type { Repository } from './github/repository.ts';
 import {
 	formatDryRunJoinComment,
@@ -18,8 +18,7 @@ import {
 } from './join/routing.ts';
 import { UmbrellaJoin, type Umbrella } from './join/umbrella-join.ts';
 import { canActOn } from './modes.ts';
-import { getReleasePullRequest } from './release/queries.ts';
-import { getStableRelease, type StableRelease } from './release/release.ts';
+import { readFrameworkReleases, type FrameworkReleases } from './release/queries.ts';
 import type { RunContext } from './run-context.ts';
 import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from './umbrella/branch.ts';
 import { getUmbrellaTitle } from './umbrella/heading.ts';
@@ -33,7 +32,7 @@ import { getSettledStableUmbrella } from './umbrella/state.ts';
  */
 interface DecidedPullRequest {
 	pr: PullRequest;
-	release: StableRelease;
+	releases: FrameworkReleases;
 	decision: Decision;
 }
 
@@ -53,9 +52,9 @@ export async function handleAcceptedPullRequest(
 ) {
 	if (!(await isSenderAllowed(run.actions, labelSender))) return;
 
-	const { pr, release, decision } = await readAcceptedPullRequest(run, prNumber);
-	console.info(JSON.stringify({ pr: pr.url, release, decision }, null, 2));
-	const accepted = new AcceptedPullRequest(run, { pr, release });
+	const { pr, releases, decision } = await readAcceptedPullRequest(run, prNumber);
+	console.info(JSON.stringify({ pr: pr.url, release: releases.stable, decision }, null, 2));
+	const accepted = new AcceptedPullRequest(run, { pr, releases });
 	if (!canActOn(run.mode, getUmbrellaBase(pr.base))) {
 		await accepted.commentDryRun(decision);
 	} else if (decision.status === 'refuse') {
@@ -88,16 +87,15 @@ async function readAcceptedPullRequest(
 	prNumber: number
 ): Promise<DecidedPullRequest> {
 	const pr = await getPullRequest(actions, prNumber);
-	const [readiness, releasePullRequest] = await Promise.all([
+	const [readiness, releases] = await Promise.all([
 		getReadiness(actions, pr),
-		getReleasePullRequest(framework, FRAMEWORK_STABLE_BRANCH),
+		readFrameworkReleases(framework),
 	]);
-	const release = getStableRelease(releasePullRequest);
 	const settledStableUmbrella = wouldRetargetFromStable(pr)
-		? await getSettledStableUmbrella({ docs: actions, framework }, release)
+		? await getSettledStableUmbrella(actions, releases)
 		: undefined;
-	const decision = decideJoin(pr, readiness, { release, settledStableUmbrella });
-	return { pr, release, decision };
+	const decision = decideJoin(pr, readiness, { release: releases.stable, settledStableUmbrella });
+	return { pr, releases, decision };
 }
 
 /**
@@ -107,21 +105,21 @@ async function readAcceptedPullRequest(
 class AcceptedPullRequest {
 	#run: RunContext;
 	#pr: PullRequest;
-	#release: StableRelease;
+	#releases: FrameworkReleases;
 
 	/**
 	 * Prepares what the bot does with an accepted docs PR.
 	 *
 	 * @param {RunContext} run - The repositories of the run.
-	 * @param {object} accepted - The docs PR and the release it ships with.
+	 * @param {object} accepted - The docs PR, and the releases of the framework.
 	 * @param {PullRequest} accepted.pr - The docs PR.
-	 * @param {StableRelease} accepted.release - The next release from the
-	 *   stable branch.
+	 * @param {FrameworkReleases} accepted.releases - The releases of the
+	 *   framework.
 	 */
-	constructor(run: RunContext, { pr, release }: { pr: PullRequest; release: StableRelease }) {
+	constructor(run: RunContext, { pr, releases }: { pr: PullRequest; releases: FrameworkReleases }) {
 		this.#run = run;
 		this.#pr = pr;
-		this.#release = release;
+		this.#releases = releases;
 	}
 
 	/**
@@ -162,7 +160,7 @@ class AcceptedPullRequest {
 	 */
 	async join(route: Route) {
 		const pr = this.#pr;
-		const umbrellaTitle = getUmbrellaTitle(route.umbrellaBase, this.#release);
+		const umbrellaTitle = getUmbrellaTitle(route.umbrellaBase, this.#releases.stable);
 		const join = new UmbrellaJoin(this.#run.bot, { pr, route, umbrellaTitle });
 		const result = await join.mergePullRequest();
 
@@ -197,14 +195,17 @@ class AcceptedPullRequest {
 		// A planned umbrella was only printed.
 		if (umbrella.status === 'planned') return;
 		const openUmbrella = await getUmbrella(bot, umbrella.number);
-		await refreshUmbrella(this.#run, openUmbrella, { release: this.#release, shouldBlock: true });
+		await refreshUmbrella(this.#run, openUmbrella, { releases: this.#releases, shouldBlock: true });
 	}
 
 	/** Finds the open umbrella PR of `route`, or names the one to create. */
 	async #findOrPlanUmbrella(route: Route): Promise<Umbrella> {
 		const openUmbrella = await findOpenUmbrella(this.#run.actions, route.umbrellaBranch);
 		if (openUmbrella) return { status: 'open', number: openUmbrella.number };
-		return { status: 'planned', title: getUmbrellaTitle(route.umbrellaBase, this.#release) };
+		return {
+			status: 'planned',
+			title: getUmbrellaTitle(route.umbrellaBase, this.#releases.stable),
+		};
 	}
 
 	async #getMessageContext(decision: RefusedDecision): Promise<MessageContext> {

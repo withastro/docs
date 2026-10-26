@@ -1,11 +1,6 @@
 import type { Repository } from './github/repository.ts';
 import type { Mode } from './modes.ts';
 
-export interface Repositories {
-	docs: Repository;
-	framework: Repository;
-}
-
 /** The repositories a run acts through, and its mode. */
 export interface RunContext {
 	/**

@@ -1,8 +1,8 @@
 import { DOCS_STABLE_BRANCH, RELEASE_TYPES } from '../config.ts';
 import type { Repository } from '../github/repository.ts';
-import { getPrereleasePullRequest } from '../release/queries.ts';
+import type { FrameworkReleases } from '../release/queries.ts';
 import type { StableRelease } from '../release/release.ts';
-import type { Repositories, RunContext } from '../run-context.ts';
+import type { RunContext } from '../run-context.ts';
 import { formatUmbrellaBody } from './body.ts';
 import { getUmbrellaReleaseLabel, getUmbrellaTitle } from './heading.ts';
 import {
@@ -23,17 +23,17 @@ import { getReleaseState } from './state.ts';
  * @param {UmbrellaPullRequest} umbrella - The umbrella PR to refresh.
  * @param {object} options - What the umbrella follows, and when to block its
  *   merge.
- * @param {StableRelease} options.release - The next release from the stable
- *   branch.
+ * @param {FrameworkReleases} options.releases - The releases of the
+ *   framework.
  * @param {boolean} options.shouldBlock - Whether to submit a merge-block
  *   review when none is active.
  */
 export async function refreshUmbrella(
-	{ actions, bot, framework }: RunContext,
+	{ actions, bot }: RunContext,
 	umbrella: UmbrellaPullRequest,
-	{ release, shouldBlock }: { release: StableRelease; shouldBlock: boolean }
+	{ releases, shouldBlock }: { releases: FrameworkReleases; shouldBlock: boolean }
 ) {
-	const refreshed = await refreshTitleBodyAndLabels({ docs: bot, framework }, umbrella, release);
+	const refreshed = await refreshTitleBodyAndLabels(bot, umbrella, releases);
 	await syncMergeBlockReview(actions, refreshed, { shouldBlock });
 }
 
@@ -42,22 +42,22 @@ export async function refreshUmbrella(
  * returns the umbrella as it is after.
  */
 async function refreshTitleBodyAndLabels(
-	{ docs, framework }: Repositories,
+	docs: Repository,
 	umbrella: UmbrellaPullRequest,
-	release: StableRelease
+	releases: FrameworkReleases
 ): Promise<UmbrellaPullRequest> {
-	const releaseState = await getReleaseState(framework, umbrella, release);
+	const releaseState = await getReleaseState(umbrella, releases);
 	const isFollowing = releaseState.status === 'follows';
-	if (isFollowing && isBeforeMajor(umbrella, release)) {
+	if (isFollowing && isBeforeMajor(umbrella, releases.stable)) {
 		console.info(`Skipped #${umbrella.number}: the next stable release is a major.`);
 		return umbrella;
 	}
 
 	const linkedReleasePrNumber = isFollowing
-		? await getFollowedReleasePrNumber(framework, umbrella, release)
+		? await getFollowedReleasePrNumber(umbrella, releases)
 		: releaseState.releasePrNumber;
 	const wantedText = {
-		title: isFollowing ? getUmbrellaTitle(umbrella.base, release) : umbrella.title,
+		title: isFollowing ? getUmbrellaTitle(umbrella.base, releases.stable) : umbrella.title,
 		body: formatUmbrellaBody(umbrella.base, {
 			releasePrNumber: linkedReleasePrNumber,
 			included: await listIncludedPullRequests(docs, umbrella),
@@ -69,7 +69,7 @@ async function refreshTitleBodyAndLabels(
 	}
 
 	const labelChanges = isFollowing
-		? getLabelChanges(umbrella.labels, getUmbrellaReleaseLabel(umbrella.base, release))
+		? getLabelChanges(umbrella.labels, getUmbrellaReleaseLabel(umbrella.base, releases.stable))
 		: getKeptLabelChanges(umbrella.labels);
 	await applyLabelChanges(docs, umbrella.number, labelChanges);
 	return { ...umbrella, ...textChanges, labels: applyToLabels(umbrella.labels, labelChanges) };
@@ -89,14 +89,13 @@ function isBeforeMajor(umbrella: UmbrellaPullRequest, release: StableRelease): b
  * umbrella.
  */
 async function getFollowedReleasePrNumber(
-	framework: Repository,
 	umbrella: UmbrellaPullRequest,
-	release: StableRelease
+	releases: FrameworkReleases
 ): Promise<number | undefined> {
 	const releasePullRequest =
 		umbrella.base === DOCS_STABLE_BRANCH
-			? release.pullRequest
-			: await getPrereleasePullRequest(framework, release.pullRequest);
+			? releases.stable.pullRequest
+			: await releases.getPrereleasePullRequest();
 	return releasePullRequest?.number;
 }
 

@@ -1,7 +1,5 @@
-import { FRAMEWORK_STABLE_BRANCH } from './config.ts';
 import { canActOn } from './modes.ts';
-import { getReleasePullRequest } from './release/queries.ts';
-import { getStableRelease, type StableRelease } from './release/release.ts';
+import { readFrameworkReleases, type FrameworkReleases } from './release/queries.ts';
 import type { RunContext } from './run-context.ts';
 import { listOpenUmbrellas, type UmbrellaPullRequest } from './umbrella/queries.ts';
 import { refreshUmbrella } from './umbrella/refresh.ts';
@@ -16,11 +14,10 @@ import { refreshUmbrella } from './umbrella/refresh.ts';
  */
 export async function refreshOpenUmbrellas(run: RunContext) {
 	const { actions, framework, mode } = run;
-	const [umbrellas, releasePullRequest] = await Promise.all([
+	const [umbrellas, releases] = await Promise.all([
 		listOpenUmbrellas(actions),
-		getReleasePullRequest(framework, FRAMEWORK_STABLE_BRANCH),
+		readFrameworkReleases(framework),
 	]);
-	const release = getStableRelease(releasePullRequest);
 	const numbers = umbrellas.map(({ number }) => `#${number}`).join(', ');
 	console.info(`Open umbrellas: ${numbers || 'none'}.`);
 
@@ -34,7 +31,7 @@ export async function refreshOpenUmbrellas(run: RunContext) {
 	// One after the other, as GitHub advises for writes: concurrent ones can
 	// hit its secondary rate limits.
 	for (const umbrella of liveUmbrellas) {
-		const failure = await tryRefreshUmbrella(run, umbrella, release);
+		const failure = await tryRefreshUmbrella(run, umbrella, releases);
 		if (failure) failures.push(failure);
 	}
 	if (failures.length > 0) {
@@ -52,11 +49,11 @@ export async function refreshOpenUmbrellas(run: RunContext) {
 async function tryRefreshUmbrella(
 	run: RunContext,
 	umbrella: UmbrellaPullRequest,
-	release: StableRelease
+	releases: FrameworkReleases
 ): Promise<Error | undefined> {
 	try {
 		// Without a join, a dismissed review still covers the included PRs.
-		await refreshUmbrella(run, umbrella, { release, shouldBlock: false });
+		await refreshUmbrella(run, umbrella, { releases, shouldBlock: false });
 		return undefined;
 	} catch (error) {
 		return new Error(`Couldn't refresh #${umbrella.number}.`, { cause: error });

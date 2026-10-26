@@ -4,13 +4,20 @@ import { FRAMEWORK_REPO } from '../config.ts';
 import { GitHubClient } from '../github/client.ts';
 import { Repository } from '../github/repository.ts';
 import { stubGitHub } from '../testing/stub-github.ts';
-import { getPrereleasePullRequest } from './queries.ts';
+import { FrameworkReleases } from './queries.ts';
+import { getStableRelease } from './release.ts';
 
-describe('getPrereleasePullRequest', () => {
+describe('FrameworkReleases.getPrereleasePullRequest', () => {
 	const preJson = 'repos/withastro/astro/contents/.changeset/pre.json?ref=next';
 	const nextPullRequests =
 		'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/next';
 	const stablePullRequest = { number: 18405, versions: [] };
+	/** Gets the prerelease PR, with `stablePullRequest` open on the stable branch. */
+	const getPrereleasePullRequest = (framework: Repository) =>
+		new FrameworkReleases(
+			framework,
+			getStableRelease(stablePullRequest)
+		).getPrereleasePullRequest();
 	const preMode = (mode: string) => ({
 		content: Buffer.from(JSON.stringify({ mode, tag: 'beta' })).toString('base64'),
 	});
@@ -23,7 +30,7 @@ describe('getPrereleasePullRequest', () => {
 			},
 		});
 
-		const pr = await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest);
+		const pr = await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO));
 
 		assert.deepEqual(pr, {
 			number: 18269,
@@ -36,20 +43,14 @@ describe('getPrereleasePullRequest', () => {
 			getResponses: { [preJson]: preMode('pre'), [nextPullRequests]: [] },
 		});
 
-		assert.equal(
-			await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
-			undefined
-		);
+		assert.equal(await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO)), undefined);
 	});
 
 	it('fails on an error other than a missing pre.json', async (t) => {
 		t.mock.method(globalThis, 'fetch', async () => new Response('{}', { status: 500 }));
 
 		await assert.rejects(
-			getPrereleasePullRequest(
-				new Repository(new GitHubClient('token'), FRAMEWORK_REPO),
-				stablePullRequest
-			),
+			getPrereleasePullRequest(new Repository(new GitHubClient('token'), FRAMEWORK_REPO)),
 			{
 				name: 'GitHubError',
 				status: 500,
@@ -63,7 +64,7 @@ describe('getPrereleasePullRequest', () => {
 		});
 
 		await assert.rejects(
-			getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
+			getPrereleasePullRequest(github.repository(FRAMEWORK_REPO)),
 			(error: unknown) => {
 				assert.ok(error instanceof Error);
 				assert.match(error.message, /`\.changeset\/pre\.json` of `next` isn't valid JSON/);
@@ -80,7 +81,7 @@ describe('getPrereleasePullRequest', () => {
 			});
 
 			await assert.rejects(
-				getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
+				getPrereleasePullRequest(github.repository(FRAMEWORK_REPO)),
 				/`\.changeset\/pre\.json` of `next` has no `mode`/
 			);
 		});
@@ -91,7 +92,7 @@ describe('getPrereleasePullRequest', () => {
 			const github = stubGitHub(t, { getResponses });
 
 			assert.equal(
-				await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO), stablePullRequest),
+				await getPrereleasePullRequest(github.repository(FRAMEWORK_REPO)),
 				stablePullRequest
 			);
 			assert.equal(github.countReads(nextPullRequests), 0);

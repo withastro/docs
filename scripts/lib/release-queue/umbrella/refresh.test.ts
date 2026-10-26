@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
+import { FrameworkReleases } from '../release/queries.ts';
 import { getStableRelease, type StableRelease } from '../release/release.ts';
 import { emptyMergeBlockResponses, REPO, umbrellaCommitResponses } from '../testing/fixtures.ts';
 import { ACTIONS_TOKEN, createRunContext } from '../testing/run-context.ts';
@@ -37,15 +38,15 @@ const prereleaseOf = (number: number) => ({
 });
 
 /** Refreshes an umbrella as a refresh run does: without blocking its merge. */
-const refresh = (
+function refresh(
 	github: ReturnType<typeof stubGitHub>,
 	umbrellaToRefresh: UmbrellaPullRequest,
 	release: StableRelease
-) =>
-	refreshUmbrella(createRunContext(github, 'all'), umbrellaToRefresh, {
-		release,
-		shouldBlock: false,
-	});
+) {
+	const run = createRunContext(github, 'all');
+	const releases = new FrameworkReleases(run.framework, release);
+	return refreshUmbrella(run, umbrellaToRefresh, { releases, shouldBlock: false });
+}
 
 /** Answers whether release PR `number` of `withastro/astro` is merged. */
 const releaseMerged = (number: number, merged: boolean) => ({
@@ -245,10 +246,10 @@ describe('refreshUmbrella', () => {
 		const github = stub(t);
 		const unlinked = { ...umbrella, body: 'Release umbrella for `main`.' };
 
-		await refreshUmbrella(createRunContext(github, 'all'), unlinked, {
-			release: releaseWith(18405, '7.5.0'),
-			shouldBlock: true,
-		});
+		const run = createRunContext(github, 'all');
+		const releases = new FrameworkReleases(run.framework, releaseWith(18405, '7.5.0'));
+
+		await refreshUmbrella(run, unlinked, { releases, shouldBlock: true });
 
 		const [review] = github.writesBy(ACTIONS_TOKEN);
 		assert.equal(review?.path, `repos/${REPO}/pulls/42/reviews`);
