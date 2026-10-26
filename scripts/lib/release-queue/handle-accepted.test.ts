@@ -254,6 +254,26 @@ describe('handleAcceptedPullRequest', () => {
 		assert.match(commentBody(botWrites), /no approval/);
 	});
 
+	it('refuses a PR whose required check is a pending commit status', async (t) => {
+		const { botWrites } = await run(t, 'stable-only', {
+			getResponses: {
+				...readyPullRequest(),
+				[`repos/${REPO}/rules/branches/main`]: [
+					{
+						type: 'required_status_checks',
+						parameters: { required_status_checks: [{ context: 'eslint' }, { context: 'deploy' }] },
+					},
+				],
+				[`repos/${REPO}/commits/head-sha/status`]: {
+					statuses: [{ context: 'deploy', state: 'pending' }],
+				},
+			},
+		});
+
+		assert.deepEqual(writtenPaths(botWrites), [removeAccepted, comment]);
+		assert.match(commentBody(botWrites), /haven't finished yet: `deploy`\./);
+	});
+
 	it('still comments when the label is already gone', async (t) => {
 		const { botWrites } = await run(t, 'stable-only', {
 			getResponses: unapprovedPullRequest(),
