@@ -1,8 +1,8 @@
 import { canActOn } from './modes.ts';
-import { readFrameworkReleases, type FrameworkReleases } from './release/queries.ts';
+import { readFrameworkReleases } from './release/queries.ts';
 import type { RunContext } from './run-context.ts';
 import { listOpenUmbrellas, type UmbrellaPullRequest } from './umbrella/queries.ts';
-import { refreshUmbrella } from './umbrella/refresh.ts';
+import { UmbrellaRefresher } from './umbrella/refresh.ts';
 
 /**
  * Refreshes every open umbrella PR the mode acts on, for example after a
@@ -27,11 +27,12 @@ export async function refreshOpenUmbrellas(run: RunContext) {
 	for (const umbrella of skipped) {
 		console.info(`Skipped #${umbrella.number}: dry run for ${umbrella.base}.`);
 	}
+	const refresher = new UmbrellaRefresher(run, releases);
 	const failures: Error[] = [];
 	// One after the other, as GitHub advises for writes: concurrent ones can
 	// hit its secondary rate limits.
 	for (const umbrella of liveUmbrellas) {
-		const failure = await tryRefreshUmbrella(run, umbrella, releases);
+		const failure = await tryRefreshUmbrella(refresher, umbrella);
 		if (failure) failures.push(failure);
 	}
 	if (failures.length > 0) {
@@ -47,13 +48,12 @@ export async function refreshOpenUmbrellas(run: RunContext) {
  * umbrellas still get refreshed.
  */
 async function tryRefreshUmbrella(
-	run: RunContext,
-	umbrella: UmbrellaPullRequest,
-	releases: FrameworkReleases
+	refresher: UmbrellaRefresher,
+	umbrella: UmbrellaPullRequest
 ): Promise<Error | undefined> {
 	try {
 		// Without a join, a dismissed review still covers the included PRs.
-		await refreshUmbrella(run, umbrella, { releases, shouldBlock: false });
+		await refresher.refresh(umbrella, { shouldBlock: false });
 		return undefined;
 	} catch (error) {
 		return new Error(`Couldn't refresh #${umbrella.number}.`, { cause: error });

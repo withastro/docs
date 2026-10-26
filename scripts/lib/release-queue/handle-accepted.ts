@@ -23,7 +23,7 @@ import type { RunContext } from './run-context.ts';
 import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from './umbrella/branch.ts';
 import { getUmbrellaTitle } from './umbrella/heading.ts';
 import { findOpenUmbrella, getUmbrella } from './umbrella/queries.ts';
-import { refreshUmbrella } from './umbrella/refresh.ts';
+import { UmbrellaRefresher } from './umbrella/refresh.ts';
 import { getSettledStableUmbrella } from './umbrella/state.ts';
 
 /**
@@ -195,7 +195,8 @@ class AcceptedPullRequest {
 		// A planned umbrella was only printed.
 		if (umbrella.status === 'planned') return;
 		const openUmbrella = await getUmbrella(bot, umbrella.number);
-		await refreshUmbrella(this.#run, openUmbrella, { releases: this.#releases, shouldBlock: true });
+		const refresher = new UmbrellaRefresher(this.#run, this.#releases);
+		await refresher.refresh(openUmbrella, { shouldBlock: true });
 	}
 
 	/** Finds the open umbrella PR of `route`, or names the one to create. */

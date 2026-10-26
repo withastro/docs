@@ -7,7 +7,7 @@ import { ACTIONS_TOKEN, stubRunContext } from '../testing/run-context.ts';
 import { readBody, stubGitHub, type StubOptions, type Write } from '../testing/stub-github.ts';
 import { formatUmbrellaBody } from './body.ts';
 import type { UmbrellaPullRequest } from './queries.ts';
-import { refreshUmbrella } from './refresh.ts';
+import { UmbrellaRefresher } from './refresh.ts';
 
 /** The next release from `main`, with release PR `number` open. */
 const releaseWith = (number: number, frameworkVersion: string) =>
@@ -45,7 +45,7 @@ function refresh(
 ) {
 	const run = stubRunContext(github, 'all');
 	const releases = new FrameworkReleases(run.framework, release);
-	return refreshUmbrella(run, umbrellaToRefresh, { releases, shouldBlock: false });
+	return new UmbrellaRefresher(run, releases).refresh(umbrellaToRefresh, { shouldBlock: false });
 }
 
 /** Answers whether release PR `number` of `withastro/astro` is merged. */
@@ -72,7 +72,7 @@ const labelWrites = (writes: Write[]) => writes.filter(({ method }) => method !=
 const umbrellaBody = (releasePrNumber?: number) =>
 	formatUmbrellaBody('main', { releasePrNumber, included });
 
-describe('refreshUmbrella', () => {
+describe('UmbrellaRefresher.refresh', () => {
 	describe('with a release PR open', () => {
 		it('links the open release PR of an umbrella without a link', async (t) => {
 			const github = stub(t);
@@ -249,7 +249,7 @@ describe('refreshUmbrella', () => {
 		const run = stubRunContext(github, 'all');
 		const releases = new FrameworkReleases(run.framework, releaseWith(18405, '7.5.0'));
 
-		await refreshUmbrella(run, unlinked, { releases, shouldBlock: true });
+		await new UmbrellaRefresher(run, releases).refresh(unlinked, { shouldBlock: true });
 
 		const [review] = github.writesBy(ACTIONS_TOKEN);
 		assert.equal(review?.path, `repos/${REPO}/pulls/42/reviews`);
