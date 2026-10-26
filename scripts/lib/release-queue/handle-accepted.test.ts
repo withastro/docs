@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
 import { GitHubError } from './github/error.ts';
+import { handleAcceptedPullRequest } from './handle-accepted.ts';
 import type { Mode } from './modes.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from './testing/fixtures.ts';
-import { ACTIONS_TOKEN, BOT_TOKEN, createRunContext } from './testing/run-context.ts';
+import { ACTIONS_TOKEN, BOT_TOKEN, stubRunContext } from './testing/run-context.ts';
 import { readBody, stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
 import { formatUmbrellaBody } from './umbrella/body.ts';
-import { handleAcceptedPullRequest } from './handle-accepted.ts';
 
 const paths = {
 	pr: `repos/${REPO}/pulls/7`,
@@ -81,7 +81,7 @@ const stubReadyPullRequest = (t: TestContext, options: StubOptions = {}) =>
 /** Handles PR #7, and returns the writes of each identity. */
 async function run(t: TestContext, mode: Mode, options: StubOptions = {}, sender = 'maintainer') {
 	const github = stubReadyPullRequest(t, options);
-	await handleAcceptedPullRequest(createRunContext(github, mode), 7, sender);
+	await handleAcceptedPullRequest(stubRunContext(github, mode), 7, sender);
 	return { actionsWrites: github.writesBy(ACTIONS_TOKEN), botWrites: github.writesBy(BOT_TOKEN) };
 }
 
@@ -210,7 +210,7 @@ describe('handleAcceptedPullRequest', () => {
 	it("doesn't read the prerelease line for a PR shipping to main", async (t) => {
 		const github = stubReadyPullRequest(t);
 
-		await handleAcceptedPullRequest(createRunContext(github, 'stable-only'), 7, 'maintainer');
+		await handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), 7, 'maintainer');
 
 		assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
 	});
@@ -233,7 +233,7 @@ describe('handleAcceptedPullRequest', () => {
 		it(`doesn't read the prerelease line for ${name} of a prerelease PR`, async (t) => {
 			const github = stubReadyPullRequest(t, { getResponses });
 
-			await handleAcceptedPullRequest(createRunContext(github, mode), 7, 'maintainer');
+			await handleAcceptedPullRequest(stubRunContext(github, mode), 7, 'maintainer');
 
 			assert.ok(github.writes.some(({ path }) => path.endsWith('/comments')));
 			assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
@@ -324,7 +324,7 @@ describe('handleAcceptedPullRequest', () => {
 					getResponses: { ...settledUmbrella(), [paths.pr]: pr },
 				});
 
-				await handleAcceptedPullRequest(createRunContext(github, 'dry-run'), 7, 'maintainer');
+				await handleAcceptedPullRequest(stubRunContext(github, 'dry-run'), 7, 'maintainer');
 
 				assert.equal(github.countReads('repos/withastro/astro/pulls/18405'), 0);
 			});
@@ -338,7 +338,7 @@ describe('handleAcceptedPullRequest', () => {
 				},
 			});
 
-			await handleAcceptedPullRequest(createRunContext(github, 'all'), 7, 'maintainer');
+			await handleAcceptedPullRequest(stubRunContext(github, 'all'), 7, 'maintainer');
 
 			assert.ok(writtenPaths(github.writes).includes(`PUT repos/${REPO}/pulls/7/merge`));
 			assert.equal(github.countReads('repos/withastro/astro/pulls/18405'), 0);
@@ -367,7 +367,7 @@ describe('handleAcceptedPullRequest', () => {
 		});
 
 		await assert.rejects(
-			handleAcceptedPullRequest(createRunContext(github, 'stable-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), 7, 'maintainer'),
 			(error: unknown) => {
 				assert.ok(error instanceof Error);
 				assert.match(error.message, /but the umbrella PR couldn't be opened\.$/);
@@ -388,7 +388,7 @@ describe('handleAcceptedPullRequest', () => {
 		const github = stubReadyPullRequest(t, { getResponses: responses });
 
 		await assert.rejects(
-			handleAcceptedPullRequest(createRunContext(github, 'stable-only'), 7, 'maintainer'),
+			handleAcceptedPullRequest(stubRunContext(github, 'stable-only'), 7, 'maintainer'),
 			{ name: 'GitHubError', status: 404 }
 		);
 		assert.match(commentBody(github.writesBy(BOT_TOKEN)), /squash-merged into/);

@@ -1,12 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { chooseAction, parseEvent, type RunEvent } from './cli.ts';
-import { DOCS_REPO, FRAMEWORK_REPO } from './config.ts';
-import { GitHubClient, PrintingGitHubClient } from './github/client.ts';
-import { Repository } from './github/repository.ts';
 import { handleAcceptedPullRequest } from './handle-accepted.ts';
-import { isDryRun, parseMode } from './modes.ts';
 import { refreshOpenUmbrellas } from './refresh-umbrellas.ts';
-import type { RunContext } from './run-context.ts';
+import { createRunContext, isGitHubActions, type RunEnv } from './run-context.ts';
 
 /** The command-line flags of `scripts/release-queue.ts`. */
 interface Flags {
@@ -17,18 +13,10 @@ interface Flags {
 }
 
 /** The environment variables the release queue reads. */
-interface Env {
-	/** Used for reads, dry-run comments and merge-block reviews. */
-	GITHUB_TOKEN?: string | undefined;
-	/** Used for joins, refusals and refreshes. */
-	BOT_TOKEN?: string | undefined;
-	/** The bot mode. */
-	MODE?: string | undefined;
+interface Env extends RunEnv {
 	// The variables below are set by GitHub Actions.
-	GITHUB_ACTIONS?: string | undefined;
 	GITHUB_EVENT_NAME?: string | undefined;
 	GITHUB_EVENT_PATH?: string | undefined;
-	GITHUB_REPOSITORY?: string | undefined;
 }
 
 /**
@@ -59,32 +47,6 @@ export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }
 		const labelSender = getLabelSender(flags, env, event);
 		await handleAcceptedPullRequest(run, action.prNumber, labelSender);
 	}
-}
-
-const isGitHubActions = (env: Env) => env.GITHUB_ACTIONS === 'true';
-
-function createRunContext(env: Env): RunContext {
-	const mode = parseMode(env.MODE);
-	const token = env.GITHUB_TOKEN;
-	if (!token) throw new Error('GITHUB_TOKEN is required.');
-	// A local run never changes GitHub: it prints what it would write.
-	const shouldWrite = isGitHubActions(env);
-	// Changes go through the bot account, as its merges into an umbrella branch
-	// trigger the checks of the umbrella PR.
-	const botToken = env.BOT_TOKEN;
-	if (shouldWrite && !isDryRun(mode) && !botToken) {
-		throw new Error(`BOT_TOKEN is required when MODE is ${mode}.`);
-	}
-
-	const Client = shouldWrite ? GitHubClient : PrintingGitHubClient;
-	const actionsClient = new Client(token);
-	const repo = env.GITHUB_REPOSITORY ?? DOCS_REPO;
-	return {
-		actions: new Repository(actionsClient, repo),
-		bot: new Repository(new Client(botToken ?? token), repo),
-		framework: new Repository(actionsClient, FRAMEWORK_REPO),
-		mode,
-	};
 }
 
 async function readEvent(path: string | undefined): Promise<RunEvent> {

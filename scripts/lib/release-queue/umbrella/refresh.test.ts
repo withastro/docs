@@ -3,7 +3,7 @@ import { describe, it, type TestContext } from 'node:test';
 import { FrameworkReleases } from '../release/queries.ts';
 import { getStableRelease, type StableRelease } from '../release/release.ts';
 import { emptyMergeBlockResponses, REPO, umbrellaCommitResponses } from '../testing/fixtures.ts';
-import { ACTIONS_TOKEN, createRunContext } from '../testing/run-context.ts';
+import { ACTIONS_TOKEN, stubRunContext } from '../testing/run-context.ts';
 import { readBody, stubGitHub, type StubOptions, type Write } from '../testing/stub-github.ts';
 import { formatUmbrellaBody } from './body.ts';
 import type { UmbrellaPullRequest } from './queries.ts';
@@ -43,7 +43,7 @@ function refresh(
 	umbrellaToRefresh: UmbrellaPullRequest,
 	release: StableRelease
 ) {
-	const run = createRunContext(github, 'all');
+	const run = stubRunContext(github, 'all');
 	const releases = new FrameworkReleases(run.framework, release);
 	return refreshUmbrella(run, umbrellaToRefresh, { releases, shouldBlock: false });
 }
@@ -246,7 +246,7 @@ describe('refreshUmbrella', () => {
 		const github = stub(t);
 		const unlinked = { ...umbrella, body: 'Release umbrella for `main`.' };
 
-		const run = createRunContext(github, 'all');
+		const run = stubRunContext(github, 'all');
 		const releases = new FrameworkReleases(run.framework, releaseWith(18405, '7.5.0'));
 
 		await refreshUmbrella(run, unlinked, { releases, shouldBlock: true });

@@ -9,7 +9,7 @@ export const ACTIONS_TOKEN = 'actions-token';
 export const BOT_TOKEN = 'bot-token';
 
 /** A run context for both entry points, with a repository per identity. */
-export function createRunContext(github: ReturnType<typeof stubGitHub>, mode: Mode): RunContext {
+export function stubRunContext(github: ReturnType<typeof stubGitHub>, mode: Mode): RunContext {
 	return {
 		actions: github.repository(REPO, { token: ACTIONS_TOKEN }),
 		bot: github.repository(REPO, { token: BOT_TOKEN }),

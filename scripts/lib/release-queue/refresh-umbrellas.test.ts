@@ -8,7 +8,7 @@ import {
 	umbrellaCommitResponses,
 	umbrellaResponse,
 } from './testing/fixtures.ts';
-import { ACTIONS_TOKEN, BOT_TOKEN, createRunContext } from './testing/run-context.ts';
+import { ACTIONS_TOKEN, BOT_TOKEN, stubRunContext } from './testing/run-context.ts';
 import { stubGitHub, type Write } from './testing/stub-github.ts';
 import { formatUmbrellaBody } from './umbrella/body.ts';
 
@@ -60,7 +60,7 @@ describe('refreshOpenUmbrellas', () => {
 			},
 		});
 
-		await refreshOpenUmbrellas(createRunContext(github, 'stable-only'));
+		await refreshOpenUmbrellas(stubRunContext(github, 'stable-only'));
 
 		assert.deepEqual(github.writes, []);
 	});
@@ -68,7 +68,7 @@ describe('refreshOpenUmbrellas', () => {
 	it("doesn't change anything in a dry run", async (t) => {
 		const github = stubGitHub(t, { getResponses: openPullRequests });
 
-		await refreshOpenUmbrellas(createRunContext(github, 'dry-run'));
+		await refreshOpenUmbrellas(stubRunContext(github, 'dry-run'));
 
 		assert.deepEqual(github.writes, []);
 	});
@@ -76,7 +76,7 @@ describe('refreshOpenUmbrellas', () => {
 	it('refreshes only the main umbrella in stable-only mode', async (t) => {
 		const github = stubGitHub(t, { getResponses: openPullRequests });
 
-		await refreshOpenUmbrellas(createRunContext(github, 'stable-only'));
+		await refreshOpenUmbrellas(stubRunContext(github, 'stable-only'));
 
 		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42]);
 		// Without a join, no merge-block review is requested.
@@ -100,7 +100,7 @@ describe('refreshOpenUmbrellas', () => {
 			},
 		});
 
-		await refreshOpenUmbrellas(createRunContext(github, 'stable-only'));
+		await refreshOpenUmbrellas(stubRunContext(github, 'stable-only'));
 
 		assert.deepEqual(
 			github.writesBy(ACTIONS_TOKEN).map(({ method, path }) => `${method} ${path}`),
@@ -111,7 +111,7 @@ describe('refreshOpenUmbrellas', () => {
 	it('refreshes every umbrella in all mode, but not a fork or another base', async (t) => {
 		const github = stubGitHub(t, { getResponses: openPullRequests });
 
-		await refreshOpenUmbrellas(createRunContext(github, 'all'));
+		await refreshOpenUmbrellas(stubRunContext(github, 'all'));
 
 		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42, 43]);
 	});
@@ -122,7 +122,7 @@ describe('refreshOpenUmbrellas', () => {
 			writeFailures: { [`PATCH repos/${REPO}/pulls/42`]: { status: 500, message: 'Oops' } },
 		});
 
-		await assert.rejects(refreshOpenUmbrellas(createRunContext(github, 'all')), (error) => {
+		await assert.rejects(refreshOpenUmbrellas(stubRunContext(github, 'all')), (error) => {
 			assert.ok(error instanceof AggregateError);
 			assert.equal(error.message, "Couldn't refresh 1 of 2 umbrella PRs.");
 			assert.match(String(error.errors[0]), /Couldn't refresh #42\./);
