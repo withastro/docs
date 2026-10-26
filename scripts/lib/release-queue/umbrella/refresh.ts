@@ -1,4 +1,4 @@
-import { DOCS_STABLE_BRANCH, RELEASE_TYPES } from '../config.ts';
+import { DOCS_STABLE_BRANCH, RELEASE_TYPES, type ReleaseLabel } from '../config.ts';
 import type { FrameworkReleases } from '../release/queries.ts';
 import type { StableRelease } from '../release/release.ts';
 import type { RunContext } from '../run-context.ts';
@@ -8,6 +8,16 @@ import { applyToLabels, getKeptLabelChanges, getLabelChanges } from './labels.ts
 import { syncMergeBlockReview } from './merge-block.ts';
 import { listIncludedPullRequests, type UmbrellaPullRequest } from './queries.ts';
 import { getReleaseState } from './state.ts';
+
+/**
+ * What an umbrella PR shows of its release: its title, its release label, and
+ * the release PR it links. Without a label, it keeps the one it has.
+ */
+interface ShownRelease {
+	title: string;
+	releaseLabel?: ReleaseLabel | undefined;
+	releasePrNumber?: number | undefined;
+}
 
 /**
  * Brings umbrella PRs up to date in a run: their title, body and labels with
@@ -48,48 +58,67 @@ export class UmbrellaRefresher {
 	 * returns the umbrella as it is after.
 	 */
 	async #refreshTitleBodyAndLabels(umbrella: UmbrellaPullRequest): Promise<UmbrellaPullRequest> {
-		const docs = this.#run.bot;
-		const { stable } = this.#releases;
 		const releaseState = await getReleaseState(umbrella, this.#releases);
 		const isFollowing = releaseState.status === 'follows';
-		if (isFollowing && isBeforeMajor(umbrella, stable)) {
+		if (isFollowing && isBeforeMajor(umbrella, this.#releases.stable)) {
 			console.info(`Skipped #${umbrella.number}: the next stable release is a major.`);
 			return umbrella;
 		}
 
-		const linkedReleasePrNumber = isFollowing
-			? await this.#getFollowedReleasePrNumber(umbrella)
-			: releaseState.releasePrNumber;
-		const wantedText = {
-			title: isFollowing ? getUmbrellaTitle(umbrella.base, stable) : umbrella.title,
-			body: formatUmbrellaBody(umbrella.base, {
-				releasePrNumber: linkedReleasePrNumber,
-				included: await listIncludedPullRequests(docs, umbrella),
-			}),
-		};
-		const textChanges = getTextChanges(umbrella, wantedText);
-		if (Object.keys(textChanges).length > 0) {
-			await docs.write('PATCH', `pulls/${umbrella.number}`, textChanges);
-		}
+		// An umbrella that doesn't follow keeps its title and release label.
+		const shown: ShownRelease = isFollowing
+			? await this.#getFollowedRelease(umbrella)
+			: { title: umbrella.title, releasePrNumber: releaseState.releasePrNumber };
+		const text = await this.#writeText(umbrella, shown);
+		const labels = await this.#writeLabels(umbrella, shown.releaseLabel);
+		return { ...umbrella, ...text, labels };
+	}
 
-		const labelChanges = isFollowing
-			? getLabelChanges(umbrella.labels, getUmbrellaReleaseLabel(umbrella.base, stable))
-			: getKeptLabelChanges(umbrella.labels);
-		await docs.updateLabels(umbrella.number, labelChanges);
-		return { ...umbrella, ...textChanges, labels: applyToLabels(umbrella.labels, labelChanges) };
+	/** Gets what an umbrella that follows its release shows. */
+	async #getFollowedRelease(umbrella: UmbrellaPullRequest): Promise<ShownRelease> {
+		const { stable } = this.#releases;
+		const releasePullRequest =
+			umbrella.base === DOCS_STABLE_BRANCH
+				? stable.pullRequest
+				: await this.#releases.getPrereleasePullRequest();
+		return {
+			title: getUmbrellaTitle(umbrella.base, stable),
+			releaseLabel: getUmbrellaReleaseLabel(umbrella.base, stable),
+			releasePrNumber: releasePullRequest?.number,
+		};
 	}
 
 	/**
-	 * Gets the release PR an umbrella that follows its release links: the open
-	 * release PR of the stable branch, or of the prerelease of a prerelease
-	 * umbrella.
+	 * Writes the title and the body of an umbrella PR when they differ from what
+	 * it shows, and returns them.
 	 */
-	async #getFollowedReleasePrNumber(umbrella: UmbrellaPullRequest): Promise<number | undefined> {
-		const releasePullRequest =
-			umbrella.base === DOCS_STABLE_BRANCH
-				? this.#releases.stable.pullRequest
-				: await this.#releases.getPrereleasePullRequest();
-		return releasePullRequest?.number;
+	async #writeText(
+		umbrella: UmbrellaPullRequest,
+		{ title, releasePrNumber }: ShownRelease
+	): Promise<{ title: string; body: string }> {
+		const docs = this.#run.bot;
+		const included = await listIncludedPullRequests(docs, umbrella);
+		const text = { title, body: formatUmbrellaBody(umbrella.base, { releasePrNumber, included }) };
+		const textChanges = getTextChanges(umbrella, text);
+		if (Object.keys(textChanges).length > 0) {
+			await docs.write('PATCH', `pulls/${umbrella.number}`, textChanges);
+		}
+		return text;
+	}
+
+	/**
+	 * Gives an umbrella PR its release label, or keeps the one it has without
+	 * `releaseLabel`, and returns its labels after.
+	 */
+	async #writeLabels(
+		umbrella: UmbrellaPullRequest,
+		releaseLabel: ReleaseLabel | undefined
+	): Promise<string[]> {
+		const labelChanges = releaseLabel
+			? getLabelChanges(umbrella.labels, releaseLabel)
+			: getKeptLabelChanges(umbrella.labels);
+		await this.#run.bot.updateLabels(umbrella.number, labelChanges);
+		return applyToLabels(umbrella.labels, labelChanges);
 	}
 }
 
