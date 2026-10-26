@@ -1,6 +1,6 @@
 import type { GitHubClient, WriteMethod } from './client.ts';
 import { isNotFound } from './error.ts';
-import type { CompareResponse } from './types.ts';
+import type { CompareResponse, PullRequestResponse } from './types.ts';
 
 /**
  * A GitHub repository, read and changed through a client: the requests of
@@ -54,6 +54,27 @@ export class Repository {
 
 	write<T>(method: WriteMethod, path: string, body?: unknown): Promise<T | undefined> {
 		return this.#client.write<T>(method, this.#url(path), body);
+	}
+
+	/**
+	 * Lists the open PRs of the repository, every page of them.
+	 *
+	 * @param {object} [filter] - Which open PRs to keep.
+	 * @param {string} [filter.head] - The branch the PRs come from, in this
+	 *   repository.
+	 * @param {string} [filter.base] - The branch the PRs merge into.
+	 * @returns {Promise<PullRequestResponse[]>} The open PRs.
+	 */
+	listOpenPullRequests({ head, base }: { head?: string; base?: string } = {}): Promise<
+		PullRequestResponse[]
+	> {
+		const filters = [
+			'state=open',
+			// GitHub reads a head without an owner as no filter at all.
+			...(head === undefined ? [] : [`head=${this.owner}:${head}`]),
+			...(base === undefined ? [] : [`base=${base}`]),
+		];
+		return this.getAll<PullRequestResponse>(`pulls?${filters.join('&')}`);
 	}
 
 	/**

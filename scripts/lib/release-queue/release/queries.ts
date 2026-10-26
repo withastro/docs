@@ -85,9 +85,8 @@ async function getReleasePullRequest(
 	framework: Repository,
 	branch: string
 ): Promise<ReleasePullRequest | undefined> {
-	const [pr] = await framework.get<PullRequestResponse[]>(
-		`pulls?state=open&head=${framework.owner}:${RELEASE_BRANCH_PREFIX}${branch}`
-	);
+	// Changesets keeps one release PR open per branch, and updates it.
+	const [pr] = await framework.listOpenPullRequests({ head: `${RELEASE_BRANCH_PREFIX}${branch}` });
 	if (!pr) return undefined;
 	return { number: pr.number, versions: parseReleaseVersions(pr.body ?? '') };
 }

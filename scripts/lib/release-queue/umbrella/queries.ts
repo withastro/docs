@@ -77,9 +77,7 @@ export async function findOpenUmbrella(
 	repo: Repository,
 	branch: string
 ): Promise<UmbrellaPullRequest | undefined> {
-	const pullRequests = await repo.get<PullRequestResponse[]>(
-		`pulls?state=open&head=${repo.owner}:${branch}`
-	);
+	const pullRequests = await repo.listOpenPullRequests({ head: branch });
 	const umbrella = pullRequests.find((pr) => isUmbrellaPullRequest(pr, repo));
 	return umbrella && toUmbrellaPullRequest(umbrella);
 }
@@ -91,7 +89,7 @@ export async function findOpenUmbrella(
  * @returns {Promise<UmbrellaPullRequest[]>} The open umbrella PRs.
  */
 export async function listOpenUmbrellas(repo: Repository): Promise<UmbrellaPullRequest[]> {
-	const pullRequests = await repo.getAll<PullRequestResponse>(`pulls?state=open`);
+	const pullRequests = await repo.listOpenPullRequests();
 	return pullRequests.filter((pr) => isUmbrellaPullRequest(pr, repo)).map(toUmbrellaPullRequest);
 }
 
@@ -145,6 +143,6 @@ export async function listOpenPullRequestsTargeting(
 	repo: Repository,
 	branch: string
 ): Promise<number[]> {
-	const pullRequests = await repo.getAll<{ number: number }>(`pulls?state=open&base=${branch}`);
+	const pullRequests = await repo.listOpenPullRequests({ base: branch });
 	return pullRequests.map(({ number }) => number);
 }
