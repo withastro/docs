@@ -1,6 +1,6 @@
 import { GitHubError } from '../github/error.ts';
 import { countCommitsAhead, getBranchSha, type Repository } from '../github/repository.ts';
-import { findOpenUmbrella, type Umbrella } from '../umbrella/queries.ts';
+import { findOpenUmbrella } from '../umbrella/queries.ts';
 import { getPullRequest, type PullRequest } from './queries.ts';
 import type { JoinRefusal, Route } from './routing.ts';
 
@@ -11,6 +11,12 @@ interface JoinRequest {
 	/** The title given to the umbrella PR when the join opens it. */
 	umbrellaTitle: string;
 }
+
+/**
+ * An open umbrella PR, or a planned one that a join would create. A planned
+ * umbrella has no number yet: its title names it.
+ */
+export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
 
 /**
  * The outcome of a join. `unopened` means the PR was merged into the umbrella

@@ -1,4 +1,4 @@
-import { UmbrellaJoin } from './accepted/join.ts';
+import { UmbrellaJoin, type Umbrella } from './accepted/join.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
@@ -23,7 +23,7 @@ import { getStableRelease, type StableRelease } from './release/release.ts';
 import type { RunContext } from './run-context.ts';
 import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from './umbrella/branch.ts';
 import { getUmbrellaTitle } from './umbrella/heading.ts';
-import { findOpenUmbrella, getUmbrella, type Umbrella } from './umbrella/queries.ts';
+import { findOpenUmbrella, getUmbrella } from './umbrella/queries.ts';
 import { refreshUmbrella } from './umbrella/refresh.ts';
 import { getSettledStableUmbrella } from './umbrella/state.ts';
 

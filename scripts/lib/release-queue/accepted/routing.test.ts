@@ -1,12 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import type { DocsPullRequest } from './queries.ts';
 import type { Readiness } from './readiness.ts';
-import {
-	decideJoin,
-	wouldRetargetFromStable,
-	type Decision,
-	type DocsPullRequest,
-} from './routing.ts';
+import { decideJoin, wouldRetargetFromStable, type Decision } from './routing.ts';
 
 const pr = (overrides: Partial<DocsPullRequest> = {}): DocsPullRequest => ({
 	state: 'open',

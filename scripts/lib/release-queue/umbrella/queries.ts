@@ -14,12 +14,6 @@ export interface UmbrellaPullRequest {
 	branch: string;
 }
 
-/**
- * An open umbrella PR, or a planned one that a join would create. A planned
- * umbrella has no number yet: its title names it.
- */
-export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
-
 /** A review of an umbrella PR, with its body. */
 export interface SubmittedReview extends ReviewResponse {
 	id: number;

@@ -4,6 +4,7 @@ import type {
 	CheckRunResponse,
 	CommitStatusResponse,
 	PullRequestResponse,
+	PullRequestState,
 	ReviewResponse,
 	RuleResponse,
 } from '../github/types.ts';
@@ -14,9 +15,17 @@ import {
 	type Readiness,
 	type Review,
 } from './readiness.ts';
-import type { DocsPullRequest } from './routing.ts';
 
 const MERGEABILITY_ATTEMPTS = 5;
+
+/** What routing reads from a docs PR. */
+export interface DocsPullRequest {
+	state: PullRequestState;
+	isDraft: boolean;
+	base: string;
+	head: string;
+	labels: string[];
+}
 
 export interface PullRequest extends DocsPullRequest {
 	number: number;

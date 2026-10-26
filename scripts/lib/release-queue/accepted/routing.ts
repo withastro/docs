@@ -1,23 +1,15 @@
 import {
 	ALL_RELEASE_LABELS,
+	DOCS_STABLE_BRANCH,
 	RELEASE_LABELS,
 	RELEASE_TYPES,
-	DOCS_STABLE_BRANCH,
 	type ReleaseLabel,
 } from '../config.ts';
-import type { PullRequestState } from '../github/types.ts';
 import type { StableRelease } from '../release/release.ts';
 import { getUmbrellaBase, getUmbrellaBranch, isUmbrellaBranch } from '../umbrella/branch.ts';
 import type { SettledUmbrella } from '../umbrella/state.ts';
+import type { DocsPullRequest } from './queries.ts';
 import type { Readiness } from './readiness.ts';
-
-export interface DocsPullRequest {
-	state: PullRequestState;
-	isDraft: boolean;
-	base: string;
-	head: string;
-	labels: string[];
-}
 
 export interface Route {
 	umbrellaBase: string;
