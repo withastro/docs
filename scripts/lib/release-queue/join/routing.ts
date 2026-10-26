@@ -86,7 +86,7 @@ export function wouldRetargetFromStable(pr: DocsPullRequest): boolean {
  * Decides whether a docs PR joins an umbrella, and which one.
  *
  * @param {DocsPullRequest} pr - The docs PR labeled as accepted.
- * @param {Readiness} readiness - Its reviews, checks, and mergeability.
+ * @param {Readiness} readiness - Its reviews and checks.
  * @param {DecisionContext} context - The next release, and the settled stable
  *   umbrella if there is one.
  * @returns {Decision} The route to join, or every refusal at once. A closed
@@ -105,6 +105,7 @@ export function decideJoin(
 		...(pr.isDraft ? [{ code: 'draft' } as const] : []),
 		...(routing.status === 'refused' ? [routing.refusal] : []),
 		...getReadinessRefusals(readiness),
+		...(pr.isMergeable === false ? [{ code: 'conflict' } as const] : []),
 	];
 
 	if (routing.status === 'refused') return { status: 'refuse', refusals };
@@ -159,6 +160,5 @@ function getReadinessRefusals(readiness: Readiness): Refusal[] {
 	if (readiness.missingChecks.length > 0) {
 		refusals.push({ code: 'missing-checks', checks: readiness.missingChecks });
 	}
-	if (readiness.isMergeable === false) refusals.push({ code: 'conflict' });
 	return refusals;
 }

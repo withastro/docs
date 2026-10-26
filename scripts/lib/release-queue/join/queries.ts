@@ -27,6 +27,8 @@ export interface DocsPullRequest {
 	base: string;
 	head: string;
 	labels: string[];
+	/** `null` while GitHub hasn't computed it yet. */
+	isMergeable: boolean | null;
 }
 
 export interface PullRequest extends DocsPullRequest {
@@ -34,7 +36,6 @@ export interface PullRequest extends DocsPullRequest {
 	title: string;
 	url: string;
 	headSha: string;
-	isMergeable: boolean | null;
 }
 
 /**
@@ -81,7 +82,7 @@ function getPullRequestWithMergeability(repo: Repository, prNumber: number) {
  *
  * @param {Repository} repo - The docs repository.
  * @param {PullRequest} pr - The docs PR.
- * @returns {Promise<Readiness>} Its reviews, checks, and mergeability.
+ * @returns {Promise<Readiness>} Its reviews and checks.
  */
 export async function getReadiness(repo: Repository, pr: PullRequest): Promise<Readiness> {
 	const [reviews, checkRuns, statuses, required] = await Promise.all([
@@ -105,7 +106,6 @@ export async function getReadiness(repo: Repository, pr: PullRequest): Promise<R
 			...checkRuns.map(readCheckRun),
 			...statuses.map(readCommitStatus),
 		]),
-		isMergeable: pr.isMergeable,
 	};
 }
 

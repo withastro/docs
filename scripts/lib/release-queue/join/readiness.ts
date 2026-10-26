@@ -21,8 +21,6 @@ export interface Readiness {
 	pendingChecks: string[];
 	/** Required checks not reported on the PR. */
 	missingChecks: string[];
-	/** `null` while GitHub hasn't computed it yet. */
-	isMergeable: boolean | null;
 }
 
 type ClassifiedReviewers = Pick<Readiness, 'isApproved' | 'changesRequestedBy'>;

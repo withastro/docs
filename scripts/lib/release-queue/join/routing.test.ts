@@ -10,6 +10,7 @@ const pr = (overrides: Partial<DocsPullRequest> = {}): DocsPullRequest => ({
 	base: 'main',
 	head: 'feat/docs',
 	labels: ['accepted', 'patch-release'],
+	isMergeable: true,
 	...overrides,
 });
 
@@ -19,7 +20,6 @@ const ready: Readiness = {
 	failingChecks: [],
 	pendingChecks: [],
 	missingChecks: [],
-	isMergeable: true,
 };
 
 /** The context `decideJoin` takes, besides the PR and its readiness. */
@@ -141,14 +141,13 @@ describe('decideJoin', () => {
 
 	it('refuses a PR that is not ready, with every reason', () => {
 		const decision = decideJoin(
-			pr(),
+			pr({ isMergeable: false }),
 			{
 				isApproved: false,
 				changesRequestedBy: ['alice'],
 				failingChecks: ['links'],
 				pendingChecks: ['check'],
 				missingChecks: ['zizmor'],
-				isMergeable: false,
 			},
 			patch
 		);
@@ -192,7 +191,7 @@ describe('decideJoin', () => {
 	});
 
 	it('lets the merge decide while mergeability is unknown', () => {
-		assert.equal(decideJoin(pr(), { ...ready, isMergeable: null }, patch).status, 'join');
+		assert.equal(decideJoin(pr({ isMergeable: null }), ready, patch).status, 'join');
 	});
 });
 
