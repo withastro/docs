@@ -14,8 +14,6 @@ const { values: flags } = parseArgs({
 		refresh: { type: 'boolean', default: false },
 		// Who added the label, for the write access check.
 		sender: { type: 'string' },
-		// Send the writes instead of printing them, in a local run.
-		write: { type: 'boolean', default: false },
 	},
 });
 

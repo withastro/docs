@@ -4,10 +4,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, it, type TestContext } from 'node:test';
 import { runReleaseQueue } from './main.ts';
-import { REPO } from './testing/fixtures.ts';
+import { REPO, umbrellaResponse } from './testing/fixtures.ts';
 import { stubGitHub } from './testing/stub-github.ts';
 
-const noFlags = { refresh: false, write: false };
+const noFlags = { refresh: false };
 const env = { GITHUB_TOKEN: 'actions-token', GITHUB_REPOSITORY: REPO };
 
 /** Writes `event` to a temporary file, as GitHub Actions does. */
@@ -71,6 +71,24 @@ describe('runReleaseQueue', () => {
 			/^Error: The event has no sender: the write access check needs one\.$/
 		);
 		assert.deepEqual(github.calls, []);
+	});
+
+	it('only prints the writes of a local run, without the bot token', async (t) => {
+		silence(t);
+		const github = stubGitHub(t, {
+			getResponses: {
+				[`repos/${REPO}/pulls?state=open`]: [umbrellaResponse()],
+				'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/main': [],
+				[`repos/${REPO}/compare/main...release-queue/main`]: { ahead_by: 0, commits: [] },
+				[`repos/${REPO}/pulls/42/reviews`]: [],
+				[`repos/${REPO}/pulls?state=open&base=release-queue/main`]: [],
+			},
+		});
+
+		await runReleaseQueue({ flags: { refresh: true }, env: { ...env, MODE: 'all' } });
+
+		assert.ok(github.calls.length > 0);
+		assert.deepEqual(github.writes, []);
 	});
 
 	it('requires the bot token to write outside a dry run', async () => {

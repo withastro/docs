@@ -14,7 +14,6 @@ interface Flags {
 	refresh: boolean;
 	/** Who added the label, for the write access check. */
 	sender?: string | undefined;
-	write: boolean;
 }
 
 /** The environment variables the release queue reads. */
@@ -36,7 +35,7 @@ interface Env {
  * Routes a docs PR labeled as accepted, or refreshes the open umbrella PRs.
  *
  * In GitHub Actions, the event says which, and the writes are sent. In a local
- * run, the flags say which, and the writes are printed unless `write` is set.
+ * run, the flags say which, and the writes are only printed.
  *
  * @param {object} input - The input of the run.
  * @param {Flags} input.flags - The command-line flags.
@@ -45,7 +44,7 @@ interface Env {
  *   flags and the event don't say what to do.
  */
 export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }) {
-	const run = createRunContext(flags, env);
+	const run = createRunContext(env);
 	const event = await readEvent(env.GITHUB_EVENT_PATH);
 	const action = chooseAction({
 		pr: flags.pr,
@@ -64,11 +63,12 @@ export async function runReleaseQueue({ flags, env }: { flags: Flags; env: Env }
 
 const isGitHubActions = (env: Env) => env.GITHUB_ACTIONS === 'true';
 
-function createRunContext(flags: Flags, env: Env): RunContext {
+function createRunContext(env: Env): RunContext {
 	const mode = parseMode(env.MODE);
 	const token = env.GITHUB_TOKEN;
 	if (!token) throw new Error('GITHUB_TOKEN is required.');
-	const shouldWrite = isGitHubActions(env) || flags.write;
+	// A local run never changes GitHub: it prints what it would write.
+	const shouldWrite = isGitHubActions(env);
 	// Changes go through the bot account, as its merges into an umbrella branch
 	// trigger the checks of the umbrella PR.
 	const botToken = env.BOT_TOKEN;
