@@ -19,10 +19,7 @@ interface JoinRequest {
  */
 export type Umbrella = { status: 'open'; number: number } | { status: 'planned'; title: string };
 
-/**
- * The outcome of a join. `unopened` means the PR was merged into the umbrella
- * branch, but the umbrella PR couldn't be opened.
- */
+/** The outcome of a join. */
 type JoinResult =
 	| { status: 'joined'; umbrella: Umbrella }
 	| { status: 'refused'; refusal: JoinRefusal }
@@ -33,7 +30,7 @@ export type UnopenedJoin = Extract<JoinResult, { status: 'unopened' }>;
 
 /**
  * The umbrella branch before a join that opens the umbrella PR: missing, left
- * over without commits (e.g. after a failed first merge) or left over with
+ * over without commits (e.g. after a failed first merge), or left over with
  * commits, which a maintainer has to look at.
  */
 type UmbrellaBranch = { state: 'missing' | 'empty'; umbrellaBaseSha: string } | { state: 'stale' };
@@ -63,12 +60,9 @@ export class UmbrellaJoin {
 	}
 
 	/**
-	 * Squash-merges the docs PR into its umbrella branch.
-	 *
-	 * Prepares the branch before changing the PR, then changes the PR base,
-	 * merges, and opens the umbrella PR if none is open: GitHub refuses a PR
-	 * without commits. A refused merge restores the PR base. The refresh sets
-	 * the labels and the body of the umbrella PR.
+	 * Squash-merges the docs PR into its umbrella branch, then opens the
+	 * umbrella PR if none is open, because GitHub refuses a PR without commits.
+	 * The refresh sets the labels and the body of a new umbrella PR.
 	 *
 	 * @returns {Promise<JoinResult>} The umbrella the PR joined, or the expected
 	 *   failure that stopped the join.
@@ -151,9 +145,7 @@ export class UmbrellaJoin {
 		return refusal;
 	}
 
-	/**
-	 * Changes the PR base back.
-	 */
+	/** Changes the PR base back. */
 	async #restoreBase(cause: unknown) {
 		try {
 			await this.#setBase(this.#pr.base);

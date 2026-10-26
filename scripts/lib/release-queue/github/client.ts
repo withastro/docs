@@ -13,9 +13,8 @@ export type WriteMethod = 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 /**
  * A minimal GitHub REST client.
  *
- * Callers declare the shape of the answers they read, which isn't checked:
- * the API version is pinned, and the queries map each answer to the types the
- * bot works with.
+ * The shapes callers declare for the answers aren't checked, because the API
+ * version is pinned and the queries map each answer to the bot's own types.
  */
 export class GitHubClient {
 	#token: string;
@@ -150,8 +149,8 @@ export class PrintingGitHubClient extends GitHubClient {
 }
 
 /**
- * Gets the reason of an error body, with its details: a 422 only says
- * "Validation Failed" in `message`, and details it in `errors`.
+ * Gets the reason of an error body, with its details, because a 422 only says
+ * "Validation Failed" in `message` and puts the details in `errors`.
  */
 function getErrorReason(text: string): string | undefined {
 	const body = parseErrorBody(text);

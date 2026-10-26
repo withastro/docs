@@ -19,11 +19,7 @@ interface ShownRelease {
 	releasePrNumber?: number | undefined;
 }
 
-/**
- * Brings umbrella PRs up to date in a run: their title, body and labels with
- * the releases of the framework and their included PRs, then their
- * merge-block review.
- */
+/** Brings the umbrella PRs of a run up to date. */
 export class UmbrellaRefresher {
 	#run: RunContext;
 	#releases: FrameworkReleases;
@@ -89,8 +85,8 @@ export class UmbrellaRefresher {
 	}
 
 	/**
-	 * Writes the title and the body of an umbrella PR when they differ from what
-	 * it shows, and returns them.
+	 * Writes the title and the body of an umbrella PR when they changed, and
+	 * returns them.
 	 */
 	async #writeText(
 		umbrella: UmbrellaPullRequest,
@@ -107,8 +103,8 @@ export class UmbrellaRefresher {
 	}
 
 	/**
-	 * Gives an umbrella PR its release label, or keeps the one it has without
-	 * `releaseLabel`, and returns its labels after.
+	 * Gives an umbrella PR its release label, or keeps its own without one, and
+	 * returns its labels after.
 	 */
 	async #writeLabels(
 		umbrella: UmbrellaPullRequest,

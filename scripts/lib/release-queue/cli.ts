@@ -7,11 +7,9 @@ const PR_NUMBER = /^[1-9]\d*$/;
 type Action = ({ type: 'handle' } & LabeledPullRequest) | { type: 'refresh' };
 
 /**
- * Chooses what a run does, from an explicit signal.
- *
- * A `workflow_dispatch` event, or `isRefreshRequested` in a local run,
- * refreshes the open umbrellas. Otherwise, the run handles `pr`, or the PR of
- * the event, labeled by `sender`, or by the sender of the event.
+ * Chooses what a run does. A `workflow_dispatch` event, or
+ * `--preview-refresh` in a local run, refreshes the open umbrellas. Otherwise,
+ * the run handles a PR. For the PR and its sender, a flag wins over the event.
  *
  * @param {object} signals - The flags and the event of the run.
  * @param {string} [signals.pr] - The value of `--pr`.

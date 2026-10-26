@@ -1,8 +1,9 @@
 /**
- * Whether a parsed JSON value is an object, and not an array.
+ * Whether a value is an object whose fields can be read, and not `null` or an
+ * array.
  *
- * @param {unknown} value - The parsed value.
- * @returns {boolean} `true` for an object whose fields can be read.
+ * @param {unknown} value - The value to check, such as parsed JSON.
+ * @returns {boolean} `true` for an object.
  */
 export function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value);

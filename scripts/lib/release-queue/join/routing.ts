@@ -19,7 +19,7 @@ export interface Route {
 	shouldRetarget: boolean;
 }
 
-/** What `decideJoin` needs besides the PR. */
+/** What `decideJoin` needs besides the PR and its readiness. */
 interface DecisionContext {
 	release: StableRelease;
 	settledStableUmbrella?: SettledUmbrella | undefined;

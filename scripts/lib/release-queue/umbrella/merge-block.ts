@@ -19,11 +19,7 @@ interface SubmittedReview extends ReviewResponse {
 	body: string;
 }
 
-/**
- * Writes the body of the merge-block review: the checklist a maintainer goes
- * through before merging an umbrella PR with `openPullRequests` still on its
- * branch, and the dismissal that lifts the block.
- */
+/** Writes the checklist to go through before merging the umbrella PR. */
 function formatMergeBlockBody(umbrella: UmbrellaPullRequest, openPullRequests: number[]): string {
 	const items = [
 		describeReleaseItem(umbrella),
@@ -90,8 +86,8 @@ async function listOpenPullRequestsTargeting(repo: Repository, branch: string): 
 }
 
 /**
- * Finds the bot's review that still requests changes: a dismissal changes its
- * state.
+ * Finds the bot's review that still requests changes, as a dismissal changes
+ * its state.
  */
 function findActiveReview(reviews: SubmittedReview[]): SubmittedReview | undefined {
 	return reviews.findLast(
@@ -101,9 +97,6 @@ function findActiveReview(reviews: SubmittedReview[]): SubmittedReview | undefin
 
 /**
  * Keeps the merge-block review of an umbrella PR up to date.
- *
- * Updates the active review when there is one. Otherwise, submits a new one
- * when `shouldBlock` is set.
  *
  * @param {Repository} repo - The docs repository, through `GITHUB_TOKEN`.
  * @param {UmbrellaPullRequest} umbrella - The umbrella PR, as refreshed.

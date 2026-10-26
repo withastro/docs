@@ -8,11 +8,7 @@ export interface LabelChanges {
 	toRemove: string[];
 }
 
-/**
- * A GitHub repository, read and changed through a client: the requests of
- * `GitHubClient` with paths relative to the repository, and the operations
- * the bot runs on any repository.
- */
+/** A GitHub client bound to a repository, with paths relative to it. */
 export class Repository {
 	readonly name: string;
 	readonly owner: string;
@@ -38,8 +34,8 @@ export class Repository {
 	 * Reads an endpoint whose resource may not exist.
 	 *
 	 * @param {string} path - The endpoint, relative to the repository.
-	 * @returns {Promise<T | undefined>} The JSON answer, or `undefined` when
-	 *   GitHub answers that the resource doesn't exist.
+	 * @returns {Promise<T | undefined>} The JSON answer, or `undefined` for a
+	 *   404.
 	 */
 	async find<T>(path: string): Promise<T | undefined> {
 		try {
@@ -156,7 +152,7 @@ export class Repository {
 	}
 
 	/**
-	 * Whether a user can write to the repository, from their permission on it.
+	 * Whether a user can write to the repository.
 	 *
 	 * @param {string} user - The login of the user.
 	 * @returns {Promise<boolean>} `true` for the admin, maintain and write

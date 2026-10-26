@@ -28,8 +28,8 @@ export function parseReleaseMarker(body: string): number | undefined {
  * Writes the description of an umbrella PR: what it ships with, and the docs
  * PRs it includes.
  *
- * A linked release PR is also kept in a hidden marker at the end, as the
- * refresh needs it.
+ * A linked release PR is also kept in a hidden marker at the end, for the
+ * refresh to read it back.
  *
  * @param {string} umbrellaBase - The branch the umbrella PR merges into.
  * @param {object} content - What the description says.

@@ -29,10 +29,10 @@ export class GitHubError extends Error {
 }
 
 /**
- * Whether an error is GitHub's answer that the resource doesn't exist.
+ * Whether an error is a 404 answer from the GitHub API.
  *
  * @param {unknown} error - A caught error.
- * @returns {boolean} `true` for a 404 answer from the GitHub API.
+ * @returns {boolean} `true` when the resource doesn't exist.
  */
 export function isNotFound(error: unknown): error is GitHubError {
 	return error instanceof GitHubError && error.status === 404;

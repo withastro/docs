@@ -14,8 +14,7 @@ import type { LabelChanges } from '../github/repository.ts';
  *
  * @param {string[]} current - The labels of the umbrella PR.
  * @param {ReleaseLabel} releaseLabel - The label of the release it ships with.
- * @returns {LabelChanges} The labels to add, and the other release labels to
- *   remove.
+ * @returns {LabelChanges} The labels to add and to remove.
  */
 export function getLabelChanges(current: string[], releaseLabel: ReleaseLabel): LabelChanges {
 	const wanted = [MERGE_ON_RELEASE_LABEL, releaseLabel];

@@ -1,8 +1,8 @@
 // The Markdown text of PR descriptions, comments and reviews.
 
 /**
- * Replaces the `\r\n` line endings GitHub keeps from a description or review
- * edited in the browser with `\n`.
+ * Replaces with `\n` the `\r\n` line endings that GitHub keeps when a
+ * description or a review is edited in the browser.
  *
  * @param {string} text - A description or a review body read from GitHub.
  * @returns {string} The text with `\n` line endings only.

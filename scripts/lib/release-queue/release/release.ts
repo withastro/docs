@@ -49,8 +49,8 @@ function findVersion(versions: PackageVersion[], name: string): string | undefin
 
 /**
  * Gets the type of a stable release from its version. Prereleases and missing
- * versions count as patches: only a new stable minor or major changes how docs
- * PRs are routed.
+ * versions count as patches, because only a new stable minor or major changes
+ * how docs PRs are routed.
  */
 function getReleaseType(version: string | undefined): ReleaseType {
 	const match = version?.match(STABLE_VERSION);

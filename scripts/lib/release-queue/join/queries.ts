@@ -74,11 +74,8 @@ function getPullRequestWithMergeability(repo: Repository, prNumber: number) {
 }
 
 /**
- * Gets what decides whether a docs PR is ready to merge, with the rules of
- * the ruleset of the stable branch.
- *
- * Only reviewers with write access count, and only the checks the ruleset
- * requires.
+ * Gets the reviews and the checks of a docs PR that the ruleset of the stable
+ * branch counts: those of reviewers with write access, and the required checks.
  *
  * @param {Repository} repo - The docs repository.
  * @param {PullRequest} pr - The docs PR.

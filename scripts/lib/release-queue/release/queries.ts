@@ -18,8 +18,7 @@ const PRE_STATE_PATH = '.changeset/pre.json';
  * Reads the next release from the stable branch of the framework repository.
  *
  * @param {Repository} framework - The framework repository.
- * @returns {Promise<FrameworkReleases>} The releases of the framework, with
- *   the next stable release read.
+ * @returns {Promise<FrameworkReleases>} The releases of the framework.
  */
 export async function readFrameworkReleases(framework: Repository): Promise<FrameworkReleases> {
 	const stablePullRequest = await getReleasePullRequest(framework, FRAMEWORK_STABLE_BRANCH);
@@ -50,9 +49,9 @@ export class FrameworkReleases {
 	 * Gets the release PR a prerelease umbrella ships with.
 	 *
 	 * @returns {Promise<ReleasePullRequest | undefined>} The alpha or beta
-	 *   release PR while the prerelease branch is in prerelease mode. Then the
-	 *   release PR of the stable branch, which the prerelease branch was merged
-	 *   into.
+	 *   release PR while the prerelease branch is in prerelease mode. Once that
+	 *   branch is merged into the stable branch, the release PR of the stable
+	 *   branch.
 	 */
 	async getPrereleasePullRequest(): Promise<ReleasePullRequest | undefined> {
 		return (await isPrereleaseBranchInPreMode(this.#framework))

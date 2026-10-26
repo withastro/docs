@@ -26,17 +26,14 @@ import { findOpenUmbrella, getUmbrella } from './umbrella/queries.ts';
 import { UmbrellaRefresher } from './umbrella/refresh.ts';
 import { getSettledStableUmbrella } from './umbrella/state.ts';
 
-/**
- * A docs PR labeled as accepted, with the release it ships with and the
- * decision on it.
- */
+/** A docs PR labeled as accepted, with the decision on it. */
 interface DecidedPullRequest {
 	pr: PullRequest;
 	releases: FrameworkReleases;
 	decision: Decision;
 }
 
-/** A docs PR labeled as accepted, by its number, and who added the label. */
+/** A docs PR labeled as accepted, and who added the label. */
 export interface LabeledPullRequest {
 	prNumber: number;
 	/** Without it, the write access check is skipped, as in a local run. */
@@ -82,10 +79,7 @@ async function isSenderAllowed(
 	return false;
 }
 
-/**
- * Reads a docs PR with what decides its join: its readiness, the next stable
- * release, and the settled stable umbrella.
- */
+/** Reads a docs PR, and decides its join. */
 async function readAcceptedPullRequest(
 	{ actions, framework }: RunContext,
 	prNumber: number
@@ -102,10 +96,7 @@ async function readAcceptedPullRequest(
 	return { pr, releases, decision };
 }
 
-/**
- * A docs PR labeled as accepted, and what the bot does with it in a run: a
- * dry-run comment, a refusal, or a join.
- */
+/** What the bot does with a docs PR labeled as accepted. */
 class AcceptedPullRequest {
 	#run: RunContext;
 	#pr: PullRequest;

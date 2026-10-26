@@ -173,7 +173,7 @@ export function formatRefusalComment(
 }
 
 /**
- * Writes the comment of a join: the umbrella the PR is now part of.
+ * Writes the comment of a join.
  *
  * @param {Route} route - The umbrella branch and base the PR goes to.
  * @param {Umbrella} umbrella - The umbrella PR it joined.
