@@ -1,5 +1,5 @@
 import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from '../config.ts';
-import { removeLabel, type Repository } from '../github/repository.ts';
+import { canWrite, postComment, removeLabel, type Repository } from '../github/repository.ts';
 import { canActOn } from '../modes.ts';
 import { getReleasePullRequest } from '../release/queries.ts';
 import { getStableRelease, type StableRelease } from '../release/release.ts';
@@ -19,13 +19,7 @@ import {
 	formatUnopenedJoinComment,
 	type MessageContext,
 } from './messages.ts';
-import {
-	canWrite,
-	getPullRequest,
-	getReadiness,
-	postComment,
-	type PullRequest,
-} from './queries.ts';
+import { getPullRequest, getReadiness, type PullRequest } from './queries.ts';
 import {
 	decideJoin,
 	wouldRetargetFromStable,

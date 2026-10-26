@@ -1,7 +1,7 @@
 import { GitHubError } from '../github/error.ts';
-import type { Repository } from '../github/repository.ts';
+import { countCommitsAhead, getBranchSha, type Repository } from '../github/repository.ts';
 import { findOpenUmbrella, type Umbrella } from '../umbrella/queries.ts';
-import { countCommitsAhead, getBranchSha, getPullRequest, type PullRequest } from './queries.ts';
+import { getPullRequest, type PullRequest } from './queries.ts';
 import type { JoinRefusal, Route } from './routing.ts';
 
 /** A docs PR to join to the umbrella of `route`. */
