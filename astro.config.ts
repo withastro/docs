@@ -87,6 +87,9 @@ export default defineConfig({
 			mdastPlugins: [fallbackLangPlugin()],
 		}),
 	},
+	experimental: {
+		parallelPrerender: true,
+	},
 	image: {
 		domains: ['avatars.githubusercontent.com'],
 		service: sharpImageService(),
