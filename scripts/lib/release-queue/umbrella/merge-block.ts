@@ -6,7 +6,7 @@ import {
 	RELEASE_TITLE_PREFIX,
 	TRANSLATIONS_LABEL,
 } from '../config.ts';
-import { normalizeLineEndings } from '../formats/markdown.ts';
+import { normalizeLineEndings, wrapInCode } from '../formats/markdown.ts';
 import type { Repository } from '../github/repository.ts';
 import type { ReviewResponse } from '../github/types.ts';
 import { formatFrameworkReference } from '../release/release.ts';
@@ -37,7 +37,7 @@ function formatMergeBlockBody(umbrella: UmbrellaPullRequest, openPullRequests: n
 function describeReleaseItem(umbrella: UmbrellaPullRequest): string {
 	const releasePrNumber = parseReleaseMarker(umbrella.body);
 	return releasePrNumber === undefined
-		? `The \`${RELEASE_TITLE_PREFIX}\` PR of \`${FRAMEWORK_REPO}\` this umbrella ships with is merged.`
+		? `The ${wrapInCode(RELEASE_TITLE_PREFIX)} PR of ${wrapInCode(FRAMEWORK_REPO)} this umbrella ships with is merged.`
 		: `${formatFrameworkReference(releasePrNumber)} is merged.`;
 }
 
@@ -45,9 +45,9 @@ function describeBranchItem(
 	{ branch, base }: UmbrellaPullRequest,
 	openPullRequests: number[]
 ): string {
-	if (openPullRequests.length === 0) return `No open PR targets \`${branch}\`.`;
+	if (openPullRequests.length === 0) return `No open PR targets ${wrapInCode(branch)}.`;
 	const list = openPullRequests.map((prNumber) => `#${prNumber}`).join(', ');
-	return `These PRs still target \`${branch}\`: ${list}. Merge them into the umbrella, or change their base to \`${base}\` and update them after the umbrella is merged.`;
+	return `These PRs still target ${wrapInCode(branch)}: ${list}. Merge them into the umbrella, or change their base to ${wrapInCode(base)} and update them after the umbrella is merged.`;
 }
 
 /**
@@ -58,7 +58,7 @@ function describeBranchItem(
  * after the merge, with `GITHUB_TOKEN`, which doesn't trigger this workflow.
  */
 function describeLunariaItem(): string {
-	return `If the umbrella has the \`${TRANSLATIONS_LABEL}\` label, add a [Lunaria directive](${LUNARIA_DIRECTIVE_DOCS}) to the commit body in the merge dialog. For example: \`${LUNARIA_DIRECTIVE}\`.`;
+	return `If the umbrella has the ${wrapInCode(TRANSLATIONS_LABEL)} label, add a [Lunaria directive](${LUNARIA_DIRECTIVE_DOCS}) to the commit body in the merge dialog. For example: ${wrapInCode(LUNARIA_DIRECTIVE)}.`;
 }
 
 /**

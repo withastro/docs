@@ -5,6 +5,7 @@ import {
 	FRAMEWORK_STABLE_BRANCH,
 	RELEASE_LABELS,
 } from '../config.ts';
+import { wrapInCode } from '../formats/markdown.ts';
 import { GitHubError } from '../github/error.ts';
 import { formatFrameworkReference } from '../release/release.ts';
 import { STABLE_UMBRELLA_BRANCH } from '../umbrella/branch.ts';
@@ -18,7 +19,6 @@ export interface MessageContext {
 	stableUmbrella?: { number: number } | undefined;
 }
 
-const wrapInCode = (text: string) => `\`${text}\``;
 const joinAsCode = (items: string[]) => items.map(wrapInCode).join(', ');
 // GitHub's reasons sometimes end with a period already.
 const endWithPeriod = (text: string) => (/[.!?]$/.test(text) ? text : `${text}.`);

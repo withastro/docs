@@ -125,6 +125,16 @@ export class Repository {
 	}
 
 	/**
+	 * Adds labels to a PR. The labels it already has stay.
+	 *
+	 * @param {number} prNumber - The number of the PR.
+	 * @param {string[]} labels - The labels to add.
+	 */
+	async addLabels(prNumber: number, labels: string[]) {
+		await this.write('POST', `issues/${prNumber}/labels`, { labels });
+	}
+
+	/**
 	 * Removes a label from a PR. A label that is already gone is fine.
 	 *
 	 * @param {number} prNumber - The number of the PR.

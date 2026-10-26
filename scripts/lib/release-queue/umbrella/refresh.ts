@@ -111,8 +111,6 @@ function getTextChanges(
 }
 
 async function applyLabelChanges(docs: Repository, umbrellaNumber: number, changes: LabelChanges) {
-	if (changes.toAdd.length > 0) {
-		await docs.write('POST', `issues/${umbrellaNumber}/labels`, { labels: changes.toAdd });
-	}
+	if (changes.toAdd.length > 0) await docs.addLabels(umbrellaNumber, changes.toAdd);
 	await Promise.all(changes.toRemove.map((label) => docs.removeLabel(umbrellaNumber, label)));
 }

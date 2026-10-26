@@ -1,3 +1,4 @@
+import { wrapInCode } from '../formats/markdown.ts';
 import { GitHubError } from '../github/error.ts';
 import type { Repository } from '../github/repository.ts';
 import { findOpenUmbrella } from '../umbrella/queries.ts';
@@ -196,7 +197,7 @@ export class UmbrellaJoin {
 				title,
 				head: umbrellaBranch,
 				base: umbrellaBase,
-				body: `Release umbrella for \`${umbrellaBase}\`, managed by the release queue.`,
+				body: `Release umbrella for ${wrapInCode(umbrellaBase)}, managed by the release queue.`,
 			});
 			// Without an answer, the request was only printed.
 			const umbrella: Umbrella = created

@@ -10,3 +10,13 @@
 export function normalizeLineEndings(text: string): string {
 	return text.replaceAll('\r\n', '\n');
 }
+
+/**
+ * Writes text as inline code.
+ *
+ * @param {string} text - A name, such as a branch or a label.
+ * @returns {string} The text between backticks.
+ */
+export function wrapInCode(text: string): string {
+	return `\`${text}\``;
+}
