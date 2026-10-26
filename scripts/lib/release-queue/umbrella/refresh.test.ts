@@ -1,10 +1,9 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
-import { FRAMEWORK_REPO } from '../config.ts';
-import { getStableRelease } from '../release/release.ts';
+import { getStableRelease, type StableRelease } from '../release/release.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from '../testing/fixtures.ts';
 import { ACTIONS_TOKEN, BOT_TOKEN, createRunContext } from '../testing/run-context.ts';
-import { stubGitHub, type StubOptions, type Write } from '../testing/stub-github.ts';
+import { readBody, stubGitHub, type StubOptions, type Write } from '../testing/stub-github.ts';
 import { formatUmbrellaBody } from './body.ts';
 import type { UmbrellaPullRequest } from './queries.ts';
 import { refreshOpenUmbrellas, refreshUmbrella } from './refresh.ts';
@@ -51,11 +50,16 @@ const prereleaseOf = (number: number) => ({
 	],
 });
 
-/** The repositories a refresh reads, from the stub. */
-const repositories = (github: ReturnType<typeof stubGitHub>) => ({
-	docs: github.repository(),
-	framework: github.repository(FRAMEWORK_REPO),
-});
+/** Refreshes an umbrella as a refresh run does: without blocking its merge. */
+const refresh = (
+	github: ReturnType<typeof stubGitHub>,
+	umbrellaToRefresh: UmbrellaPullRequest,
+	release: StableRelease
+) =>
+	refreshUmbrella(createRunContext(github, 'all'), umbrellaToRefresh, {
+		release,
+		shouldBlock: false,
+	});
 
 /** Answers whether release PR `number` of `withastro/astro` is merged. */
 const releaseMerged = (number: number, merged: boolean) => ({
@@ -63,7 +67,7 @@ const releaseMerged = (number: number, merged: boolean) => ({
 });
 
 function stub(t: TestContext, getResponses: StubOptions['getResponses'] = {}) {
-	return stubGitHub(t, { getResponses: { ...history(), ...getResponses } });
+	return stubGitHub(t, { getResponses: { ...history(), ...reviews(42), ...getResponses } });
 }
 
 const patchOf = (writes: Write[]) =>
@@ -81,7 +85,7 @@ describe('refreshUmbrella', () => {
 			const github = stub(t);
 			const unlinked = { ...umbrella, body: 'Release umbrella for `main`.' };
 
-			await refreshUmbrella(repositories(github), unlinked, releaseWith(18405, '7.5.0'));
+			await refresh(github, unlinked, releaseWith(18405, '7.5.0'));
 
 			assert.deepEqual(patchOf(github.writes), { body: umbrellaBody(18405) });
 		});
@@ -89,7 +93,7 @@ describe('refreshUmbrella', () => {
 		it('refreshes an umbrella that links the open release PR', async (t) => {
 			const github = stub(t);
 
-			await refreshUmbrella(repositories(github), umbrella, releaseWith(18405, '7.5.0'));
+			await refresh(github, umbrella, releaseWith(18405, '7.5.0'));
 
 			assert.deepEqual(github.writes, [
 				{ method: 'PATCH', path: `repos/${REPO}/pulls/42`, body: { body: umbrellaBody(18405) } },
@@ -100,7 +104,7 @@ describe('refreshUmbrella', () => {
 		it('moves to the open release PR when the linked one is not merged', async (t) => {
 			const github = stub(t, releaseMerged(18405, false));
 
-			await refreshUmbrella(repositories(github), umbrella, releaseWith(18460, '7.6.0'));
+			await refresh(github, umbrella, releaseWith(18460, '7.6.0'));
 
 			assert.deepEqual(patchOf(github.writes), {
 				title: '[ci] release astro@7.6.0 docs',
@@ -111,7 +115,7 @@ describe('refreshUmbrella', () => {
 		it('keeps a settled umbrella as it is, but for the list', async (t) => {
 			const github = stub(t, releaseMerged(18405, true));
 
-			await refreshUmbrella(repositories(github), umbrella, releaseWith(18460, '7.6.0'));
+			await refresh(github, umbrella, releaseWith(18460, '7.6.0'));
 
 			assert.deepEqual(github.writes, [
 				{ method: 'PATCH', path: `repos/${REPO}/pulls/42`, body: { body: umbrellaBody(18405) } },
@@ -126,20 +130,9 @@ describe('refreshUmbrella', () => {
 				labels: ['merge-on-release', 'patch-release'],
 			};
 
-			const refreshed = await refreshUmbrella(
-				repositories(github),
-				patchUmbrella,
-				releaseWith(18405, '7.5.0')
-			);
+			await refresh(github, patchUmbrella, releaseWith(18405, '7.5.0'));
 
 			assert.equal(patchOf(github.writes)?.title, '[ci] release astro@7.5.0 docs');
-			// The merge-block review reads the umbrella as it is after the refresh.
-			assert.deepEqual(refreshed, {
-				...patchUmbrella,
-				title: '[ci] release astro@7.5.0 docs',
-				body: umbrellaBody(18405),
-				labels: ['merge-on-release', 'minor-release'],
-			});
 			assert.deepEqual(labelWrites(github.writes), [
 				{
 					method: 'POST',
@@ -154,7 +147,7 @@ describe('refreshUmbrella', () => {
 			// No answer for #18405: GitHub says 404.
 			const github = stub(t);
 
-			await refreshUmbrella(repositories(github), umbrella, releaseWith(18460, '7.6.0'));
+			await refresh(github, umbrella, releaseWith(18460, '7.6.0'));
 
 			assert.deepEqual(patchOf(github.writes), {
 				title: '[ci] release astro@7.6.0 docs',
@@ -165,7 +158,7 @@ describe('refreshUmbrella', () => {
 		it('keeps a settled umbrella when the next release is a major', async (t) => {
 			const github = stub(t, releaseMerged(18405, true));
 
-			await refreshUmbrella(repositories(github), umbrella, releaseWith(18460, '8.0.0'));
+			await refresh(github, umbrella, releaseWith(18460, '8.0.0'));
 
 			assert.deepEqual(github.writes, [
 				{ method: 'PATCH', path: `repos/${REPO}/pulls/42`, body: { body: umbrellaBody(18405) } },
@@ -175,14 +168,9 @@ describe('refreshUmbrella', () => {
 		it('leaves the main umbrella as it is before a major', async (t) => {
 			const github = stub(t);
 
-			const refreshed = await refreshUmbrella(
-				repositories(github),
-				umbrella,
-				releaseWith(18405, '8.0.0')
-			);
+			await refresh(github, umbrella, releaseWith(18405, '8.0.0'));
 
-			assert.deepEqual(github.calls, []);
-			assert.equal(refreshed, umbrella);
+			assert.deepEqual(github.writes, []);
 		});
 	});
 
@@ -190,7 +178,7 @@ describe('refreshUmbrella', () => {
 		it('keeps the title, label and link, and rewrites the list', async (t) => {
 			const github = stub(t, releaseMerged(18405, true));
 
-			await refreshUmbrella(repositories(github), umbrella, noRelease);
+			await refresh(github, umbrella, noRelease);
 
 			assert.deepEqual(github.writes, [
 				{ method: 'PATCH', path: `repos/${REPO}/pulls/42`, body: { body: umbrellaBody(18405) } },
@@ -200,7 +188,7 @@ describe('refreshUmbrella', () => {
 		it('keeps an umbrella whose release PR was closed without merging', async (t) => {
 			const github = stub(t, releaseMerged(18405, false));
 
-			await refreshUmbrella(repositories(github), umbrella, noRelease);
+			await refresh(github, umbrella, noRelease);
 
 			assert.deepEqual(github.writes, [
 				{ method: 'PATCH', path: `repos/${REPO}/pulls/42`, body: { body: umbrellaBody(18405) } },
@@ -216,7 +204,7 @@ describe('refreshUmbrella', () => {
 				labels: [],
 			};
 
-			await refreshUmbrella(repositories(github), newUmbrella, noRelease);
+			await refresh(github, newUmbrella, noRelease);
 
 			assert.deepEqual(patchOf(github.writes), { body: umbrellaBody() });
 			assert.deepEqual(labelWrites(github.writes), [
@@ -231,7 +219,11 @@ describe('refreshUmbrella', () => {
 
 	it('refreshes a prerelease umbrella, which always follows', async (t) => {
 		const github = stubGitHub(t, {
-			getResponses: { ...history('cloudflare-next'), ...prereleaseOf(18269) },
+			getResponses: {
+				...history('cloudflare-next'),
+				...reviews(43, 'cloudflare-next'),
+				...prereleaseOf(18269),
+			},
 		});
 		const prerelease: UmbrellaPullRequest = {
 			number: 43,
@@ -242,7 +234,7 @@ describe('refreshUmbrella', () => {
 			branch: 'release-queue/cloudflare-next',
 		};
 
-		await refreshUmbrella(repositories(github), prerelease, releaseWith(18405, '7.5.0'));
+		await refresh(github, prerelease, releaseWith(18405, '7.5.0'));
 
 		assert.deepEqual(patchOf(github.writes), {
 			title: '[ci] release cloudflare-next docs',
@@ -257,11 +249,26 @@ describe('refreshUmbrella', () => {
 		]);
 	});
 
+	it('blocks the merge with a review of the refreshed umbrella', async (t) => {
+		const github = stub(t);
+		const unlinked = { ...umbrella, body: 'Release umbrella for `main`.' };
+
+		await refreshUmbrella(createRunContext(github, 'all'), unlinked, {
+			release: releaseWith(18405, '7.5.0'),
+			shouldBlock: true,
+		});
+
+		const [review] = github.writesBy(ACTIONS_TOKEN);
+		assert.equal(review?.path, `repos/${REPO}/pulls/42/reviews`);
+		// The link the refresh just added.
+		assert.match(readBody(review), /withastro\/astro#18405 is merged\./);
+	});
+
 	it("doesn't write an umbrella that is up to date", async (t) => {
 		const github = stub(t);
 		const upToDate = { ...umbrella, body: umbrellaBody(18405) };
 
-		await refreshUmbrella(repositories(github), upToDate, releaseWith(18405, '7.5.0'));
+		await refresh(github, upToDate, releaseWith(18405, '7.5.0'));
 
 		assert.deepEqual(github.writes, []);
 	});

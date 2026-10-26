@@ -6,7 +6,6 @@ import { getStableRelease, type StableRelease } from '../release/release.ts';
 import type { RunContext } from '../run-context.ts';
 import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from '../umbrella/branch.ts';
 import { getUmbrellaTitle } from '../umbrella/heading.ts';
-import { syncMergeBlockReview } from '../umbrella/merge-block.ts';
 import { findOpenUmbrella, getUmbrella, type Umbrella } from '../umbrella/queries.ts';
 import { refreshUmbrella } from '../umbrella/refresh.ts';
 import { getSettledStableUmbrella } from '../umbrella/state.ts';
@@ -159,16 +158,15 @@ async function joinAndAnnounce(run: RunContext, accepted: AcceptedPullRequest<Jo
  * blocks its merge until a maintainer checks it.
  */
 async function announceJoin(
-	{ actions, bot, framework }: RunContext,
+	run: RunContext,
 	{ pr, release, decision }: AcceptedPullRequest<JoinDecision>,
 	umbrella: Umbrella
 ) {
-	await postComment(bot, pr.number, formatJoinComment(decision.route, umbrella));
+	await postComment(run.bot, pr.number, formatJoinComment(decision.route, umbrella));
 	// A planned umbrella was only printed.
 	if (umbrella.status === 'planned') return;
-	const openUmbrella = await getUmbrella(bot, umbrella.number);
-	const refreshed = await refreshUmbrella({ docs: bot, framework }, openUmbrella, release);
-	await syncMergeBlockReview(actions, refreshed, { shouldBlock: true });
+	const openUmbrella = await getUmbrella(run.bot, umbrella.number);
+	await refreshUmbrella(run, openUmbrella, { release, shouldBlock: true });
 }
 
 /** Finds the open umbrella PR of `route`, or names the one to create. */

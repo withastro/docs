@@ -22,15 +22,31 @@ import { getReleaseState } from './state.ts';
 
 /**
  * Brings an umbrella PR up to date with its release and its included PRs,
- * writing only what changed.
+ * then its merge-block review.
  *
- * @param {Repositories} repositories - The docs repository to write, and the
- *   framework repository.
+ * @param {RunContext} run - The repositories of the run.
  * @param {UmbrellaPullRequest} umbrella - The umbrella PR to refresh.
- * @param {StableRelease} release - The next release from the stable branch.
- * @returns {Promise<UmbrellaPullRequest>} The umbrella PR after the refresh.
+ * @param {object} options - What the umbrella follows, and when to block its
+ *   merge.
+ * @param {StableRelease} options.release - The next release from the stable
+ *   branch.
+ * @param {boolean} options.shouldBlock - Whether to submit a merge-block
+ *   review when none is active.
  */
 export async function refreshUmbrella(
+	{ actions, bot, framework }: RunContext,
+	umbrella: UmbrellaPullRequest,
+	{ release, shouldBlock }: { release: StableRelease; shouldBlock: boolean }
+) {
+	const refreshed = await refreshTitleBodyAndLabels({ docs: bot, framework }, umbrella, release);
+	await syncMergeBlockReview(actions, refreshed, { shouldBlock });
+}
+
+/**
+ * Writes what changed in the title, body and labels of an umbrella PR, and
+ * returns the umbrella as it is after.
+ */
+async function refreshTitleBodyAndLabels(
 	{ docs, framework }: Repositories,
 	umbrella: UmbrellaPullRequest,
 	release: StableRelease
@@ -135,7 +151,7 @@ export async function refreshOpenUmbrellas(run: RunContext) {
 	// One after the other, as GitHub advises for writes: concurrent ones can
 	// hit its secondary rate limits.
 	for (const umbrella of liveUmbrellas) {
-		const failure = await refreshAndSyncReview(run, umbrella, release);
+		const failure = await tryRefreshUmbrella(run, umbrella, release);
 		if (failure) failures.push(failure);
 	}
 	if (failures.length > 0) {
@@ -147,18 +163,17 @@ export async function refreshOpenUmbrellas(run: RunContext) {
 }
 
 /**
- * Refreshes an umbrella PR and its merge-block review. Catches a failure, so
- * the other umbrellas still get refreshed.
+ * Refreshes an umbrella PR without a join. Catches a failure, so the other
+ * umbrellas still get refreshed.
  */
-async function refreshAndSyncReview(
-	{ actions, bot, framework }: RunContext,
+async function tryRefreshUmbrella(
+	run: RunContext,
 	umbrella: UmbrellaPullRequest,
 	release: StableRelease
 ): Promise<Error | undefined> {
 	try {
-		const refreshed = await refreshUmbrella({ docs: bot, framework }, umbrella, release);
 		// Without a join, a dismissed review still covers the included PRs.
-		await syncMergeBlockReview(actions, refreshed, { shouldBlock: false });
+		await refreshUmbrella(run, umbrella, { release, shouldBlock: false });
 		return undefined;
 	} catch (error) {
 		return new Error(`Couldn't refresh #${umbrella.number}.`, { cause: error });
