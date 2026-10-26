@@ -1,15 +1,4 @@
-import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from '../config.ts';
-import { canWrite, postComment, removeLabel, type Repository } from '../github/repository.ts';
-import { canActOn } from '../modes.ts';
-import { getReleasePullRequest } from '../release/queries.ts';
-import { getStableRelease, type StableRelease } from '../release/release.ts';
-import type { RunContext } from '../run-context.ts';
-import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from '../umbrella/branch.ts';
-import { getUmbrellaTitle } from '../umbrella/heading.ts';
-import { findOpenUmbrella, getUmbrella, type Umbrella } from '../umbrella/queries.ts';
-import { refreshUmbrella } from '../umbrella/refresh.ts';
-import { getSettledStableUmbrella } from '../umbrella/state.ts';
-import { UmbrellaJoin } from './join.ts';
+import { UmbrellaJoin } from './accepted/join.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
@@ -17,15 +6,26 @@ import {
 	formatRefusalComment,
 	formatUnopenedJoinComment,
 	type MessageContext,
-} from './messages.ts';
-import { getPullRequest, getReadiness, type PullRequest } from './queries.ts';
+} from './accepted/messages.ts';
+import { getPullRequest, getReadiness, type PullRequest } from './accepted/queries.ts';
 import {
 	decideJoin,
 	wouldRetargetFromStable,
 	type Decision,
 	type RefusedDecision,
 	type Route,
-} from './routing.ts';
+} from './accepted/routing.ts';
+import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from './config.ts';
+import { canWrite, postComment, removeLabel, type Repository } from './github/repository.ts';
+import { canActOn } from './modes.ts';
+import { getReleasePullRequest } from './release/queries.ts';
+import { getStableRelease, type StableRelease } from './release/release.ts';
+import type { RunContext } from './run-context.ts';
+import { getUmbrellaBase, STABLE_UMBRELLA_BRANCH } from './umbrella/branch.ts';
+import { getUmbrellaTitle } from './umbrella/heading.ts';
+import { findOpenUmbrella, getUmbrella, type Umbrella } from './umbrella/queries.ts';
+import { refreshUmbrella } from './umbrella/refresh.ts';
+import { getSettledStableUmbrella } from './umbrella/state.ts';
 
 /**
  * A docs PR labeled as accepted, with the release it ships with and the

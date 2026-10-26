@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
-import { GitHubError } from '../github/error.ts';
-import type { Mode } from '../modes.ts';
-import { pullRequestResponse, REPO, umbrellaResponse } from '../testing/fixtures.ts';
-import { ACTIONS_TOKEN, BOT_TOKEN, createRunContext } from '../testing/run-context.ts';
-import { readBody, stubGitHub, type StubOptions, type Write } from '../testing/stub-github.ts';
-import { formatUmbrellaBody } from '../umbrella/body.ts';
-import { handleAcceptedPullRequest } from './handle.ts';
+import { GitHubError } from './github/error.ts';
+import type { Mode } from './modes.ts';
+import { pullRequestResponse, REPO, umbrellaResponse } from './testing/fixtures.ts';
+import { ACTIONS_TOKEN, BOT_TOKEN, createRunContext } from './testing/run-context.ts';
+import { readBody, stubGitHub, type StubOptions, type Write } from './testing/stub-github.ts';
+import { formatUmbrellaBody } from './umbrella/body.ts';
+import { handleAcceptedPullRequest } from './handle-accepted.ts';
 
 const paths = {
 	pr: `repos/${REPO}/pulls/7`,

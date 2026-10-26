@@ -40,3 +40,23 @@ export function umbrellaResponse({
 		...overrides,
 	});
 }
+
+/**
+ * The GET answer for the commits of the umbrella branch of `umbrellaBase`: the
+ * squash commit of #7.
+ */
+export const umbrellaCommitResponses = (umbrellaBase = 'main') => ({
+	[`repos/${REPO}/compare/${umbrellaBase}...release-queue/${umbrellaBase}`]: {
+		ahead_by: 1,
+		commits: [{ commit: { message: 'Document the new option (#7)\n\nDetails.' } }],
+	},
+});
+
+/**
+ * The GET answers of the merge-block review of umbrella `number`: no review
+ * yet, and no open PR on its branch.
+ */
+export const emptyMergeBlockResponses = (number: number, umbrellaBase = 'main') => ({
+	[`repos/${REPO}/pulls/${number}/reviews`]: [],
+	[`repos/${REPO}/pulls?state=open&base=release-queue/${umbrellaBase}`]: [],
+});

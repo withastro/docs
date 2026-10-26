@@ -1,12 +1,12 @@
 import { readFile } from 'node:fs/promises';
-import { handleAcceptedPullRequest } from './accepted/handle.ts';
 import { chooseAction, parseEvent, type RunEvent } from './cli.ts';
 import { DOCS_REPO, FRAMEWORK_REPO } from './config.ts';
 import { GitHubClient, PrintingGitHubClient } from './github/client.ts';
 import { Repository } from './github/repository.ts';
+import { handleAcceptedPullRequest } from './handle-accepted.ts';
 import { isDryRun, parseMode } from './modes.ts';
+import { refreshOpenUmbrellas } from './refresh-umbrellas.ts';
 import type { RunContext } from './run-context.ts';
-import { refreshOpenUmbrellas } from './umbrella/refresh.ts';
 
 /** The command-line flags of `scripts/release-queue.ts`. */
 interface Flags {

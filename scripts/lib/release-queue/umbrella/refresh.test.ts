@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it, type TestContext } from 'node:test';
 import { getStableRelease, type StableRelease } from '../release/release.ts';
-import { pullRequestResponse, REPO, umbrellaResponse } from '../testing/fixtures.ts';
-import { ACTIONS_TOKEN, BOT_TOKEN, createRunContext } from '../testing/run-context.ts';
+import { emptyMergeBlockResponses, REPO, umbrellaCommitResponses } from '../testing/fixtures.ts';
+import { ACTIONS_TOKEN, createRunContext } from '../testing/run-context.ts';
 import { readBody, stubGitHub, type StubOptions, type Write } from '../testing/stub-github.ts';
 import { formatUmbrellaBody } from './body.ts';
 import type { UmbrellaPullRequest } from './queries.ts';
-import { refreshOpenUmbrellas, refreshUmbrella } from './refresh.ts';
+import { refreshUmbrella } from './refresh.ts';
 
 /** The next release from `main`, with release PR `number` open. */
 const releaseWith = (number: number, frameworkVersion: string) =>
@@ -25,20 +25,6 @@ const umbrella: UmbrellaPullRequest = {
 	base: 'main',
 	branch: 'release-queue/main',
 };
-
-/** The squash commit of #7 is on the umbrella branch. */
-const history = (umbrellaBase = 'main') => ({
-	[`repos/${REPO}/compare/${umbrellaBase}...release-queue/${umbrellaBase}`]: {
-		ahead_by: 1,
-		commits: [{ commit: { message: 'Document the new option (#7)\n\nDetails.' } }],
-	},
-});
-
-/** No merge-block review on umbrella `number`, and no PR on its branch. */
-const reviews = (number: number, umbrellaBase = 'main') => ({
-	[`repos/${REPO}/pulls/${number}/reviews`]: [],
-	[`repos/${REPO}/pulls?state=open&base=release-queue/${umbrellaBase}`]: [],
-});
 
 /** `next` in prerelease mode, with its release PR `number` open. */
 const prereleaseOf = (number: number) => ({
@@ -67,7 +53,13 @@ const releaseMerged = (number: number, merged: boolean) => ({
 });
 
 function stub(t: TestContext, getResponses: StubOptions['getResponses'] = {}) {
-	return stubGitHub(t, { getResponses: { ...history(), ...reviews(42), ...getResponses } });
+	return stubGitHub(t, {
+		getResponses: {
+			...umbrellaCommitResponses(),
+			...emptyMergeBlockResponses(42),
+			...getResponses,
+		},
+	});
 }
 
 const patchOf = (writes: Write[]) =>
@@ -220,8 +212,8 @@ describe('refreshUmbrella', () => {
 	it('refreshes a prerelease umbrella, which always follows', async (t) => {
 		const github = stubGitHub(t, {
 			getResponses: {
-				...history('cloudflare-next'),
-				...reviews(43, 'cloudflare-next'),
+				...umbrellaCommitResponses('cloudflare-next'),
+				...emptyMergeBlockResponses(43, 'cloudflare-next'),
 				...prereleaseOf(18269),
 			},
 		});
@@ -271,123 +263,5 @@ describe('refreshUmbrella', () => {
 		await refresh(github, upToDate, releaseWith(18405, '7.5.0'));
 
 		assert.deepEqual(github.writes, []);
-	});
-});
-
-describe('refreshOpenUmbrellas', () => {
-	/**
-	 * Open PRs: the `main` and `cloudflare-next` umbrellas, a fork, a PR from an
-	 * umbrella branch into another base, and a docs PR.
-	 */
-	const openPullRequests = {
-		[`repos/${REPO}/pulls?state=open`]: [
-			umbrellaResponse(),
-			umbrellaResponse({ number: 43, umbrellaBase: 'cloudflare-next' }),
-			umbrellaResponse({
-				number: 44,
-				head: { ref: 'release-queue/main', sha: 'fork-sha', repo: { full_name: 'someone/docs' } },
-			}),
-			umbrellaResponse({ number: 45, base: { ref: 'v6' } }),
-			pullRequestResponse(),
-		],
-		'repos/withastro/astro/pulls?state=open&head=withastro:changeset-release/main': [
-			{ number: 1, html_url: '', body: '## astro@7.5.0\n' },
-		],
-		...history(),
-		...history('cloudflare-next'),
-		...reviews(42),
-		...reviews(43, 'cloudflare-next'),
-	};
-
-	const refreshedUmbrellas = (writes: Write[]) =>
-		[...new Set(writes.map(({ path }) => path.match(/\/(?:pulls|issues)\/(\d+)/)?.[1]))].map(
-			Number
-		);
-
-	it('reads a description edited in the browser as up to date', async (t) => {
-		const body = formatUmbrellaBody('main', { releasePrNumber: 1, included });
-		const github = stubGitHub(t, {
-			getResponses: {
-				...openPullRequests,
-				[`repos/${REPO}/pulls?state=open`]: [
-					umbrellaResponse({
-						title: '[ci] release astro@7.5.0 docs',
-						labels: [{ name: 'merge-on-release' }, { name: 'minor-release' }],
-						// GitHub keeps the line endings of the browser.
-						body: body.replaceAll('\n', '\r\n'),
-					}),
-				],
-			},
-		});
-
-		await refreshOpenUmbrellas(createRunContext(github, 'stable-only'));
-
-		assert.deepEqual(github.writes, []);
-	});
-
-	it("doesn't change anything in a dry run", async (t) => {
-		const github = stubGitHub(t, { getResponses: openPullRequests });
-
-		await refreshOpenUmbrellas(createRunContext(github, 'dry-run'));
-
-		assert.deepEqual(github.writes, []);
-	});
-
-	it('refreshes only the main umbrella in stable-only mode', async (t) => {
-		const github = stubGitHub(t, { getResponses: openPullRequests });
-
-		await refreshOpenUmbrellas(createRunContext(github, 'stable-only'));
-
-		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42]);
-		// Without a join, no merge-block review is requested.
-		assert.deepEqual(github.writesBy(ACTIONS_TOKEN), []);
-		// The prerelease umbrella is skipped: nothing reads its release PR.
-		assert.ok(!github.calls.some(({ path }) => path.includes('.changeset/pre.json')));
-	});
-
-	it('updates an active merge-block review', async (t) => {
-		const github = stubGitHub(t, {
-			getResponses: {
-				...openPullRequests,
-				[`repos/${REPO}/pulls/42/reviews`]: [
-					{
-						id: 1,
-						user: { login: 'github-actions[bot]' },
-						state: 'CHANGES_REQUESTED',
-						body: 'Old',
-					},
-				],
-			},
-		});
-
-		await refreshOpenUmbrellas(createRunContext(github, 'stable-only'));
-
-		assert.deepEqual(
-			github.writesBy(ACTIONS_TOKEN).map(({ method, path }) => `${method} ${path}`),
-			[`PUT repos/${REPO}/pulls/42/reviews/1`]
-		);
-	});
-
-	it('refreshes every umbrella in all mode, but not a fork or another base', async (t) => {
-		const github = stubGitHub(t, { getResponses: openPullRequests });
-
-		await refreshOpenUmbrellas(createRunContext(github, 'all'));
-
-		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42, 43]);
-	});
-
-	it('refreshes the other umbrellas when one fails, then reports it', async (t) => {
-		const github = stubGitHub(t, {
-			getResponses: openPullRequests,
-			writeFailures: { [`PATCH repos/${REPO}/pulls/42`]: { status: 500, message: 'Oops' } },
-		});
-
-		await assert.rejects(refreshOpenUmbrellas(createRunContext(github, 'all')), (error) => {
-			assert.ok(error instanceof AggregateError);
-			assert.equal(error.message, "Couldn't refresh 1 of 2 umbrella PRs.");
-			assert.match(String(error.errors[0]), /Couldn't refresh #42\./);
-			return true;
-		});
-		assert.deepEqual(refreshedUmbrellas(github.writesBy(BOT_TOKEN)), [42, 43]);
 	});
 });
