@@ -2,6 +2,12 @@ import type { GitHubClient, WriteMethod } from './client.ts';
 import { isNotFound } from './error.ts';
 import type { CompareResponse, PullRequestResponse } from './types.ts';
 
+/** Labels to add to a PR, and labels to remove from it. */
+export interface LabelChanges {
+	toAdd: string[];
+	toRemove: string[];
+}
+
 /**
  * A GitHub repository, read and changed through a client: the requests of
  * `GitHubClient` with paths relative to the repository, and the operations
@@ -125,13 +131,14 @@ export class Repository {
 	}
 
 	/**
-	 * Adds labels to a PR. The labels it already has stay.
+	 * Adds and removes labels on a PR. Its other labels stay.
 	 *
 	 * @param {number} prNumber - The number of the PR.
-	 * @param {string[]} labels - The labels to add.
+	 * @param {LabelChanges} changes - The labels to add and to remove.
 	 */
-	async addLabels(prNumber: number, labels: string[]) {
-		await this.write('POST', `issues/${prNumber}/labels`, { labels });
+	async updateLabels(prNumber: number, { toAdd, toRemove }: LabelChanges) {
+		if (toAdd.length > 0) await this.write('POST', `issues/${prNumber}/labels`, { labels: toAdd });
+		await Promise.all(toRemove.map((label) => this.removeLabel(prNumber, label)));
 	}
 
 	/**

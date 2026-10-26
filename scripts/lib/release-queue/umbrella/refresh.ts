@@ -5,12 +5,7 @@ import type { StableRelease } from '../release/release.ts';
 import type { RunContext } from '../run-context.ts';
 import { formatUmbrellaBody } from './body.ts';
 import { getUmbrellaReleaseLabel, getUmbrellaTitle } from './heading.ts';
-import {
-	applyToLabels,
-	getKeptLabelChanges,
-	getLabelChanges,
-	type LabelChanges,
-} from './labels.ts';
+import { applyToLabels, getKeptLabelChanges, getLabelChanges } from './labels.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
 import { listIncludedPullRequests, type UmbrellaPullRequest } from './queries.ts';
 import { getReleaseState } from './state.ts';
@@ -71,7 +66,7 @@ async function refreshTitleBodyAndLabels(
 	const labelChanges = isFollowing
 		? getLabelChanges(umbrella.labels, getUmbrellaReleaseLabel(umbrella.base, releases.stable))
 		: getKeptLabelChanges(umbrella.labels);
-	await applyLabelChanges(docs, umbrella.number, labelChanges);
+	await docs.updateLabels(umbrella.number, labelChanges);
 	return { ...umbrella, ...textChanges, labels: applyToLabels(umbrella.labels, labelChanges) };
 }
 
@@ -108,9 +103,4 @@ function getTextChanges(
 		...(wantedText.title === umbrella.title ? {} : { title: wantedText.title }),
 		...(wantedText.body === umbrella.body ? {} : { body: wantedText.body }),
 	};
-}
-
-async function applyLabelChanges(docs: Repository, umbrellaNumber: number, changes: LabelChanges) {
-	if (changes.toAdd.length > 0) await docs.addLabels(umbrellaNumber, changes.toAdd);
-	await Promise.all(changes.toRemove.map((label) => docs.removeLabel(umbrellaNumber, label)));
 }

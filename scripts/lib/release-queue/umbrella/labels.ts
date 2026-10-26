@@ -4,12 +4,7 @@ import {
 	MERGE_ON_RELEASE_LABEL,
 	type ReleaseLabel,
 } from '../config.ts';
-
-/** Labels to add to an umbrella PR, and release labels to remove from it. */
-export interface LabelChanges {
-	toAdd: string[];
-	toRemove: string[];
-}
+import type { LabelChanges } from '../github/repository.ts';
 
 /**
  * Gets the label changes of an umbrella that follows its release.
