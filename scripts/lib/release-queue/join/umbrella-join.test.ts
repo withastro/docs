@@ -3,7 +3,7 @@ import { describe, it } from 'node:test';
 import { GitHubError } from '../github/error.ts';
 import { pullRequestResponse, REPO, umbrellaResponse } from '../testing/fixtures.ts';
 import { stubGitHub, type Write } from '../testing/stub-github.ts';
-import { UmbrellaJoin } from './join.ts';
+import { UmbrellaJoin } from './umbrella-join.ts';
 import type { PullRequest } from './queries.ts';
 import type { Route } from './routing.ts';
 

@@ -8,7 +8,7 @@ import {
 import { GitHubError } from '../github/error.ts';
 import { formatFrameworkReference } from '../release/release.ts';
 import { STABLE_UMBRELLA_BRANCH } from '../umbrella/branch.ts';
-import type { Umbrella, UnopenedJoin } from './join.ts';
+import type { Umbrella, UnopenedJoin } from './umbrella-join.ts';
 import type { Refusal, RefusalCode, RefusedDecision, Route } from './routing.ts';
 
 export interface MessageContext {

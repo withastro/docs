@@ -1,4 +1,5 @@
-import { UmbrellaJoin, type Umbrella } from './accepted/join.ts';
+import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from './config.ts';
+import { canWrite, postComment, removeLabel, type Repository } from './github/repository.ts';
 import {
 	formatDryRunJoinComment,
 	formatDryRunRefusalComment,
@@ -6,17 +7,16 @@ import {
 	formatRefusalComment,
 	formatUnopenedJoinComment,
 	type MessageContext,
-} from './accepted/messages.ts';
-import { getPullRequest, getReadiness, type PullRequest } from './accepted/queries.ts';
+} from './join/messages.ts';
+import { getPullRequest, getReadiness, type PullRequest } from './join/queries.ts';
 import {
 	decideJoin,
 	wouldRetargetFromStable,
 	type Decision,
 	type RefusedDecision,
 	type Route,
-} from './accepted/routing.ts';
-import { ACCEPTED_LABEL, FRAMEWORK_STABLE_BRANCH } from './config.ts';
-import { canWrite, postComment, removeLabel, type Repository } from './github/repository.ts';
+} from './join/routing.ts';
+import { UmbrellaJoin, type Umbrella } from './join/umbrella-join.ts';
 import { canActOn } from './modes.ts';
 import { getReleasePullRequest } from './release/queries.ts';
 import { getStableRelease, type StableRelease } from './release/release.ts';
