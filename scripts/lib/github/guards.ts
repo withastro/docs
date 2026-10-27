@@ -6,7 +6,7 @@ export type Guard<T> = (value: unknown) => value is T;
  *
  * @template T - The object type the guards check.
  */
-type FieldGuards<T> = { [K in keyof T]-?: Guard<T[K]> };
+export type FieldGuards<T> = { [K in keyof T]-?: Guard<T[K]> };
 
 /** Tells whether a value is a string. */
 export function isString(value: unknown): value is string {

@@ -8,6 +8,7 @@ import {
 	listOf,
 	orNull,
 	shapeOf,
+	type FieldGuards,
 	type Guard,
 } from './guards.ts';
 import {
@@ -73,6 +74,12 @@ export type PullRequest = {
 	labels: { name: string }[];
 };
 
+/** A pull request with the fields only the endpoint for a single pull request sends. */
+export type PullRequestDetails = PullRequest & {
+	/** `null` while GitHub checks for conflicts, a check that the first request starts. */
+	mergeable: boolean | null;
+};
+
 export type NewPullRequest = {
 	title: string;
 	/** The branch to merge. */
@@ -119,7 +126,7 @@ const isReview = shapeOf<Review>({
 	commit_id: orNull(isString),
 });
 
-const isPullRequest = shapeOf<PullRequest>({
+const pullRequestFieldGuards = {
 	number: isNumber,
 	title: isString,
 	body: orNull(isString),
@@ -129,6 +136,13 @@ const isPullRequest = shapeOf<PullRequest>({
 	head: shapeOf({ ref: isString, sha: isString, repo: orNull(isRepository) }),
 	base: shapeOf({ ref: isString }),
 	labels: listOf(shapeOf({ name: isString })),
+} satisfies FieldGuards<PullRequest>;
+
+const isPullRequest = shapeOf<PullRequest>(pullRequestFieldGuards);
+
+const isPullRequestDetails = shapeOf<PullRequestDetails>({
+	...pullRequestFieldGuards,
+	mergeable: orNull(isBoolean),
 });
 
 const isCreatedPullRequest = shapeOf<CreatedPullRequest>({
@@ -205,13 +219,13 @@ export class GitHubRepository {
 	 * Gets a pull request.
 	 *
 	 * @param {number} prNumber - The number of the pull request.
-	 * @returns {Promise<PullRequest>} The pull request, whatever its state.
+	 * @returns {Promise<PullRequestDetails>} The pull request, whatever its state.
 	 * @throws {GitHubError} When GitHub answers with an error status (e.g. a missing pull request).
 	 * @throws {Error} When the pull request does not have the expected shape.
 	 */
-	async getPullRequest(prNumber: number): Promise<PullRequest> {
-		const pullRequest = await this.#get(`/pulls/${prNumber}`, isPullRequest);
-		return toPullRequest(pullRequest);
+	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
+		const pullRequest = await this.#get(`/pulls/${prNumber}`, isPullRequestDetails);
+		return toPullRequestDetails(pullRequest);
 	}
 
 	/**
@@ -456,6 +470,10 @@ function toPullRequest(pullRequest: PullRequest): PullRequest {
 		base: { ref: base.ref },
 		labels: labels.map(({ name }) => ({ name })),
 	};
+}
+
+function toPullRequestDetails(pullRequest: PullRequestDetails): PullRequestDetails {
+	return { ...toPullRequest(pullRequest), mergeable: pullRequest.mergeable };
 }
 
 function toComparison({ ahead_by, commits }: Comparison): Comparison {

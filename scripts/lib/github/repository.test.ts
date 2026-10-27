@@ -105,17 +105,35 @@ describe('GitHubRepository', () => {
 	});
 
 	describe('getPullRequest', () => {
-		it('should get a pull request', async (t) => {
-			const fetchMock = mockFetch(t, jsonResponse(pullRequestResponse));
+		const pullRequestDetails = { ...pullRequest, mergeable: true };
+		const pullRequestDetailsResponse = {
+			...pullRequestResponse,
+			mergeable: true,
+			mergeable_state: 'clean',
+		};
+
+		it('should get a pull request, with its mergeability', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse(pullRequestDetailsResponse));
 
 			const result = await createRepository().getPullRequest(7);
 
-			assert.deepEqual(result, pullRequest);
+			assert.deepEqual(result, pullRequestDetails);
 			assert.deepEqual(getRequestedUrls(fetchMock), [`${REPOSITORY_URL}/pulls/7`]);
 		});
 
+		it('should accept a mergeability GitHub has not computed yet', async (t) => {
+			mockFetch(t, jsonResponse({ ...pullRequestDetailsResponse, mergeable: null }));
+
+			const result = await createRepository().getPullRequest(7);
+
+			assert.equal(result.mergeable, null);
+		});
+
 		it('should accept a pull request whose head repository was deleted', async (t) => {
-			const fromDeletedFork = { ...pullRequest, head: { ...pullRequest.head, repo: null } };
+			const fromDeletedFork = {
+				...pullRequestDetails,
+				head: { ...pullRequestDetails.head, repo: null },
+			};
 			mockFetch(t, jsonResponse(fromDeletedFork));
 
 			const result = await createRepository().getPullRequest(7);
@@ -124,7 +142,13 @@ describe('GitHubRepository', () => {
 		});
 
 		it('should throw when the pull request does not have the expected shape', async (t) => {
-			mockFetch(t, jsonResponse({ ...pullRequest, labels: null }));
+			mockFetch(t, jsonResponse({ ...pullRequestDetails, labels: null }));
+
+			await assert.rejects(createRepository().getPullRequest(7), /pulls\/7/);
+		});
+
+		it('should throw when the pull request has no mergeability', async (t) => {
+			mockFetch(t, jsonResponse(pullRequestResponse));
 
 			await assert.rejects(createRepository().getPullRequest(7), /pulls\/7/);
 		});
