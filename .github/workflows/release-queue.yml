@@ -1,0 +1,45 @@
+# Comments on docs PRs labeled `accepted` with the release umbrella PR they would join.
+# See `scripts/release-queue.ts`.
+
+name: Release Queue
+
+on:
+  # Needed to comment on PRs from forks. The job never checks out or runs code from the PR.
+  # zizmor: ignore[dangerous-triggers]
+  pull_request_target:
+    types: [labeled]
+
+permissions: {}
+
+# One run at a time, so that two runs never act on the same umbrella.
+concurrency:
+  group: release-queue
+  cancel-in-progress: false
+
+jobs:
+  release-queue:
+    name: Release queue
+    if: github.repository_owner == 'withastro' && github.event.label.name == 'accepted'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      # The default branch, not the PR's base branch, which can be a prerelease branch without
+      # the latest scripts.
+      - name: Check out the default branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Run the release queue
+        env:
+          BOT_TOKEN: ${{ secrets.FREDKBOT_GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node --experimental-transform-types ./scripts/release-queue.ts
