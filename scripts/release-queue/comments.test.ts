@@ -5,10 +5,19 @@ import { OUTCOMES, REFUSAL_REASONS } from './decision.ts';
 
 describe('renderRefusalComment', () => {
 	it('should give the reason, then how to retry', () => {
-		const comment = renderRefusalComment(REFUSAL_REASONS.missingReleaseLabel);
+		const comment = renderRefusalComment([REFUSAL_REASONS.missingReleaseLabel]);
 
 		assert.match(comment, /^This PR has no release label\./);
 		assert.match(comment, /add `accepted` again\.$/);
+	});
+
+	it('should list several reasons', () => {
+		const comment = renderRefusalComment([
+			REFUSAL_REASONS.missingApproval,
+			REFUSAL_REASONS.failingChecks,
+		]);
+
+		assert.match(comment, /^This PR can't join its umbrella yet:\n\n- .+\n- .+\n\n/);
 	});
 });
 
@@ -27,9 +36,9 @@ describe('renderDryRunComment', () => {
 	it('should quote the comment a refused PR would get', () => {
 		const comment = renderDryRunComment({
 			outcome: OUTCOMES.refuse,
-			reason: REFUSAL_REASONS.severalReleaseLabels,
+			reasons: [REFUSAL_REASONS.severalReleaseLabels],
 		});
-		const refusalComment = renderRefusalComment(REFUSAL_REASONS.severalReleaseLabels);
+		const refusalComment = renderRefusalComment([REFUSAL_REASONS.severalReleaseLabels]);
 		const quotedRefusalComment = refusalComment.replaceAll(/^/gm, '> ').replaceAll('> \n', '>\n');
 
 		assert.match(comment, /^\*\*Dry run\*\*/);

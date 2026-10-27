@@ -12,6 +12,13 @@ export const REFUSAL_REASONS = {
 	severalReleaseLabels: 'several-release-labels',
 	majorReleaseOnStableBranch: 'major-release-on-stable-branch',
 	stableReleaseOnPrereleaseBranch: 'stable-release-on-prerelease-branch',
+	draft: 'draft',
+	changesRequested: 'changes-requested',
+	missingApproval: 'missing-approval',
+	mergeConflict: 'merge-conflict',
+	unknownMergeability: 'unknown-mergeability',
+	failingChecks: 'failing-checks',
+	pendingChecks: 'pending-checks',
 } as const;
 
 export type RefusalReason = (typeof REFUSAL_REASONS)[keyof typeof REFUSAL_REASONS];
@@ -24,7 +31,7 @@ export type Route = {
 
 export type Decision =
 	| { outcome: typeof OUTCOMES.join; route: Route }
-	| { outcome: typeof OUTCOMES.refuse; reason: RefusalReason };
+	| { outcome: typeof OUTCOMES.refuse; reasons: RefusalReason[] };
 
 /**
  * Finds the umbrella a docs PR belongs to, from its base branch and its release label.
@@ -60,5 +67,5 @@ function getReleaseTypes({ labels }: Pick<PullRequest, 'labels'>): ReleaseType[]
 }
 
 function refuse(reason: RefusalReason): Decision {
-	return { outcome: OUTCOMES.refuse, reason };
+	return { outcome: OUTCOMES.refuse, reasons: [reason] };
 }

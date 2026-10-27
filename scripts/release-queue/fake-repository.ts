@@ -1,6 +1,13 @@
-import type { PullRequestDetails } from '../lib/github/repository.ts';
+import { CHECK_STATES, type Check } from '../lib/github/checks.ts';
+import {
+	REVIEW_STATES,
+	type PullRequestDetails,
+	type Review,
+	type ReviewState,
+} from '../lib/github/repository.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
+export const MAINTAINER = 'example-maintainer';
 
 type PullRequestFixture = {
 	number?: number;
@@ -9,6 +16,16 @@ type PullRequestFixture = {
 	/** `null` for a deleted fork. Defaults to the fake repository. */
 	headRepository?: string | null;
 	labels?: string[];
+	isDraft?: boolean;
+	mergeable?: boolean | null;
+};
+
+type FakeRepositoryState = {
+	pullRequests?: PullRequestDetails[];
+	reviewsByPrNumber?: Record<number, Review[]>;
+	/** Users with write access. Defaults to `MAINTAINER`. */
+	maintainers?: string[];
+	checksByRef?: Record<string, Check[]>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -25,13 +42,15 @@ export function buildPullRequest({
 	headBranch = 'docs-feature',
 	headRepository = FAKE_REPOSITORY_NAME,
 	labels = [],
+	isDraft = false,
+	mergeable = true,
 }: PullRequestFixture = {}): PullRequestDetails {
 	return {
 		number,
 		title: `Document feature ${number}`,
 		body: null,
 		html_url: `https://github.com/${FAKE_REPOSITORY_NAME}/pull/${number}`,
-		draft: false,
+		draft: isDraft,
 		user: { login: 'example-user' },
 		head: {
 			ref: headBranch,
@@ -40,28 +59,70 @@ export function buildPullRequest({
 		},
 		base: { ref: baseBranch },
 		labels: labels.map((name) => ({ name })),
-		mergeable: true,
+		mergeable,
 		merged: false,
 	};
 }
 
-/** An in-memory repository for tests: it serves the pull requests it holds and records writes. */
+/**
+ * Builds a review, for tests.
+ *
+ * @param {string | null} login - The reviewer, or `null` for a deleted account.
+ * @param {ReviewState} state - The state of the review.
+ * @returns {Review} The review.
+ */
+export function buildReview(login: string | null, state: ReviewState): Review {
+	return { id: 1, user: login === null ? null : { login }, state, commit_id: 'sha-1', body: '' };
+}
+
+/**
+ * Builds the state of a docs PR that can join its umbrella.
+ *
+ * @param {PullRequestDetails} pullRequest - The pull request.
+ * @returns {FakeRepositoryState} The state of the repository holding it.
+ */
+export function buildReadyState(pullRequest: PullRequestDetails): FakeRepositoryState {
+	return {
+		pullRequests: [pullRequest],
+		reviewsByPrNumber: { [pullRequest.number]: [buildReview(MAINTAINER, REVIEW_STATES.approved)] },
+		checksByRef: { [pullRequest.head.sha]: [{ name: 'build', state: CHECK_STATES.success }] },
+	};
+}
+
+/** An in-memory repository for tests: it serves the state it was given and records writes. */
 export class FakeRepository {
 	readonly fullName = FAKE_REPOSITORY_NAME;
 	readonly writes: Write[] = [];
-	#pullRequests: PullRequestDetails[];
+	#state: Required<FakeRepositoryState>;
 
 	/**
-	 * @param {PullRequestDetails[]} pullRequests - The pull requests of the repository.
+	 * @param {FakeRepositoryState} state - The pull requests, reviews, maintainers, and checks.
 	 */
-	constructor(pullRequests: PullRequestDetails[]) {
-		this.#pullRequests = pullRequests;
+	constructor({
+		pullRequests = [],
+		reviewsByPrNumber = {},
+		maintainers = [MAINTAINER],
+		checksByRef = {},
+	}: FakeRepositoryState) {
+		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef };
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
-		const pullRequest = this.#pullRequests.find(({ number }) => number === prNumber);
+		const pullRequest = this.#state.pullRequests.find(({ number }) => number === prNumber);
 		if (!pullRequest) throw new Error(`The fake repository has no pull request #${prNumber}.`);
 		return pullRequest;
+	}
+
+	async getReviews(prNumber: number): Promise<Review[]> {
+		return this.#state.reviewsByPrNumber[prNumber] ?? [];
+	}
+
+	async hasWriteAccess(login: string): Promise<boolean> {
+		return this.#state.maintainers.includes(login);
+	}
+
+	async getChecks(ref: string): Promise<Check[]> {
+		return this.#state.checksByRef[ref] ?? [];
 	}
 
 	async createComment(prNumber: number, body: string): Promise<void> {

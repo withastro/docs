@@ -1,5 +1,6 @@
 // Comments on a docs PR labeled `accepted` with the release umbrella PR it would join.
-// Run by `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `BOT_TOKEN`, and `PR_NUMBER`.
+// Run by `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN`,
+// and `PR_NUMBER`.
 // Locally, add `--read-only` to log the writes instead of sending them.
 
 import { parseArgs } from 'node:util';
@@ -11,7 +12,8 @@ const { values: flags } = parseArgs({
 	options: { 'read-only': { type: 'boolean', default: false } },
 });
 const docs = createDocsRepository({ isReadOnly: flags['read-only'] });
-await previewJoin({ docs, log: console.info }, readPrNumber('PR_NUMBER'));
+const jobName = process.env.GITHUB_JOB || null;
+await previewJoin({ docs, log: console.info, jobName }, readPrNumber('PR_NUMBER'));
 
 function createDocsRepository({ isReadOnly }: { isReadOnly: boolean }) {
 	const options = {
