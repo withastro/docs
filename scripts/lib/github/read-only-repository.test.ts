@@ -16,6 +16,7 @@ const READ_METHODS = [
 	'getChecks',
 	'compare',
 	'hasWriteAccess',
+	'getFileContent',
 ];
 
 function getMethodNames(prototype: object) {

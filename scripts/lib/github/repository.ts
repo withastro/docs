@@ -28,6 +28,9 @@ const UNSAFE_SEGMENTS = ['', '.', '..'];
 const REQUEST_CHANGES_EVENT = 'REQUEST_CHANGES';
 /** GitHub's message when the label to remove is not on the issue or pull request. */
 const MISSING_LABEL_MESSAGE = 'Label does not exist';
+const FILE_CONTENT_TYPE = 'file';
+/** The encoding of file contents up to 1 MB. Larger files come without their content. */
+const FILE_CONTENT_ENCODING = 'base64';
 
 export const REVIEW_STATES = {
 	approved: 'APPROVED',
@@ -157,6 +160,12 @@ const isComparison = shapeOf<Comparison>({
 
 const isPermission = shapeOf<{ permission: string }>({ permission: isString });
 
+const isFileContent = shapeOf<{ type: string; encoding: string; content: string }>({
+	type: isOneOf([FILE_CONTENT_TYPE]),
+	encoding: isOneOf([FILE_CONTENT_ENCODING]),
+	content: isString,
+});
+
 export type RepositoryOptions = {
 	/** As `owner/repo`. */
 	fullName: string;
@@ -241,7 +250,7 @@ export class GitHubRepository {
 	 * @throws {Error} When a list has more than one page.
 	 */
 	async getChecks(ref: string): Promise<Check[]> {
-		const commitPath = `/commits/${encodeRef(ref)}`;
+		const commitPath = `/commits/${encodePathSegments(ref)}`;
 		const [checkRunList, combinedStatus] = await Promise.all([
 			this.#get(`${commitPath}/check-runs?per_page=${MAX_PAGE_SIZE}`, isCheckRunList),
 			this.#get(`${commitPath}/status?per_page=${MAX_PAGE_SIZE}`, isCombinedStatus),
@@ -262,7 +271,7 @@ export class GitHubRepository {
 	 */
 	async compare(base: string, head: string): Promise<Comparison> {
 		const comparison = await this.#get(
-			`/compare/${encodeRef(base)}...${encodeRef(head)}`,
+			`/compare/${encodePathSegments(base)}...${encodePathSegments(head)}`,
 			isComparison
 		);
 		return toComparison(comparison);
@@ -286,6 +295,30 @@ export class GitHubRepository {
 			return WRITE_PERMISSIONS.includes(permission);
 		} catch (error) {
 			if (error instanceof GitHubError && error.isNotFound) return false;
+			throw error;
+		}
+	}
+
+	/**
+	 * Gets the text of a file.
+	 *
+	 * @param {string} path - The file path in the repository, without a leading slash.
+	 * @param {string} ref - The SHA, branch, or tag to read the file from.
+	 * @returns {Promise<string | null>} The file text, decoded as UTF-8, or `null` when GitHub answers "Not Found" (e.g. a missing file, ref, or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 * @throws {Error} When the path has an unsafe path segment.
+	 * @throws {Error} When the path is not a file.
+	 * @throws {Error} When the file is larger than 1 MB.
+	 */
+	async getFileContent(path: string, ref: string): Promise<string | null> {
+		try {
+			const { content } = await this.#get(
+				`/contents/${encodePathSegments(path)}?ref=${encodeURIComponent(ref)}`,
+				isFileContent
+			);
+			return Buffer.from(content, FILE_CONTENT_ENCODING).toString('utf8');
+		} catch (error) {
+			if (error instanceof GitHubError && error.isNotFound) return null;
 			throw error;
 		}
 	}
@@ -420,9 +453,12 @@ export class GitHubRepository {
 	}
 }
 
-/** Encodes each segment of a ref, keeping its slashes, so the ref cannot change the endpoint. */
-function encodeRef(ref: string) {
-	return ref.split('/').map(encodePathSegment).join('/');
+/**
+ * Encodes each segment of a ref or a file path, keeping its slashes, so it
+ * cannot change the endpoint.
+ */
+function encodePathSegments(path: string) {
+	return path.split('/').map(encodePathSegment).join('/');
 }
 
 /**

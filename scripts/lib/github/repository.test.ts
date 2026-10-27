@@ -303,6 +303,84 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getFileContent', () => {
+		function fileResponse(text: string) {
+			return jsonResponse({
+				type: 'file',
+				encoding: 'base64',
+				content: Buffer.from(text).toString('base64'),
+				sha: 'abc123',
+			});
+		}
+
+		it('should get the text of a file on a branch', async (t) => {
+			const fetchMock = mockFetch(t, fileResponse('{ "mode": "pre" }\n'));
+
+			const content = await createRepository().getFileContent('.changeset/pre.json', 'next');
+
+			assert.equal(content, '{ "mode": "pre" }\n');
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/contents/.changeset/pre.json?ref=next`,
+			]);
+		});
+
+		it('should decode content wrapped in lines, as GitHub sends it', async (t) => {
+			const text = '{ "mode": "pre", "tag": "beta", "initialVersions": {} }\n';
+			const wrapped = Buffer.from(text).toString('base64').replace(/.{60}/g, '$&\n');
+			mockFetch(t, jsonResponse({ type: 'file', encoding: 'base64', content: wrapped }));
+
+			const content = await createRepository().getFileContent('.changeset/pre.json', 'next');
+
+			assert.equal(content, text);
+		});
+
+		it('should encode each part of the path, and the ref, in the URL', async (t) => {
+			const fetchMock = mockFetch(t, fileResponse(''));
+
+			await createRepository().getFileContent('docs/a#b.md', 'fix#12');
+
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/contents/docs/a%23b.md?ref=fix%2312`,
+			]);
+		});
+
+		it('should return null when the file or the ref does not exist', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Not Found' }, { status: 404 }));
+
+			assert.equal(await createRepository().getFileContent('.changeset/pre.json', 'next'), null);
+		});
+
+		it('should throw on other errors', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Bad credentials' }, { status: 401 }));
+
+			await assert.rejects(
+				createRepository().getFileContent('.changeset/pre.json', 'next'),
+				/Bad credentials/
+			);
+		});
+
+		it('should throw for a directory', async (t) => {
+			mockFetch(t, jsonResponse([{ type: 'file', name: 'pre.json' }]));
+
+			await assert.rejects(createRepository().getFileContent('.changeset', 'next'), /contents/);
+		});
+
+		it('should throw for a file too large to be sent in base64', async (t) => {
+			mockFetch(t, jsonResponse({ type: 'file', encoding: 'none', content: '' }));
+
+			await assert.rejects(
+				createRepository().getFileContent('large.json', 'next'),
+				/contents\/large\.json/
+			);
+		});
+
+		it('should refuse a path with a ".." segment, without a request', async (t) => {
+			mockFetch(t);
+
+			await assert.rejects(createRepository().getFileContent('../secrets', 'next'), /"\.\."/);
+		});
+	});
+
 	describe('createPullRequest', () => {
 		it('should create a pull request and return its number and URL', async (t) => {
 			const fetchMock = mockFetch(t, jsonResponse(pullRequestResponse, { status: 201 }));
