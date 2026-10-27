@@ -48,6 +48,8 @@ export type MergeMethod = (typeof MERGE_METHODS)[keyof typeof MERGE_METHODS];
 
 type User = { login: string };
 
+type Repository = { full_name: string };
+
 export type Review = {
 	id: number;
 	/** `null` when the account was deleted. */
@@ -65,7 +67,8 @@ export type PullRequest = {
 	draft: boolean;
 	/** `null` when the account was deleted. */
 	user: User | null;
-	head: { ref: string; sha: string };
+	/** `repo` is `null` when the repository of the head branch was deleted. */
+	head: { ref: string; sha: string; repo: Repository | null };
 	base: { ref: string };
 	labels: { name: string }[];
 };
@@ -107,6 +110,8 @@ type RepositoryRequest = {
 
 const isUser = shapeOf<User>({ login: isString });
 
+const isRepository = shapeOf<Repository>({ full_name: isString });
+
 const isReview = shapeOf<Review>({
 	id: isNumber,
 	user: orNull(isUser),
@@ -121,7 +126,7 @@ const isPullRequest = shapeOf<PullRequest>({
 	html_url: isString,
 	draft: isBoolean,
 	user: orNull(isUser),
-	head: shapeOf({ ref: isString, sha: isString }),
+	head: shapeOf({ ref: isString, sha: isString, repo: orNull(isRepository) }),
 	base: shapeOf({ ref: isString }),
 	labels: listOf(shapeOf({ name: isString })),
 });
@@ -194,6 +199,19 @@ export class GitHubRepository {
 	async getOpenPullRequests(): Promise<PullRequest[]> {
 		const pullRequests = await this.#getList('/pulls?state=open', isPullRequest);
 		return pullRequests.map(toPullRequest);
+	}
+
+	/**
+	 * Gets a pull request.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<PullRequest>} The pull request, whatever its state.
+	 * @throws {GitHubError} When GitHub answers with an error status (e.g. a missing pull request).
+	 * @throws {Error} When the pull request does not have the expected shape.
+	 */
+	async getPullRequest(prNumber: number): Promise<PullRequest> {
+		const pullRequest = await this.#get(`/pulls/${prNumber}`, isPullRequest);
+		return toPullRequest(pullRequest);
 	}
 
 	/**
@@ -417,6 +435,10 @@ function toUser(user: User | null): User | null {
 	return user && { login: user.login };
 }
 
+function toRepository(repository: Repository | null): Repository | null {
+	return repository && { full_name: repository.full_name };
+}
+
 function toReview({ id, user, state, commit_id }: Review): Review {
 	return { id, user: toUser(user), state, commit_id };
 }
@@ -430,7 +452,7 @@ function toPullRequest(pullRequest: PullRequest): PullRequest {
 		html_url,
 		draft,
 		user: toUser(user),
-		head: { ref: head.ref, sha: head.sha },
+		head: { ref: head.ref, sha: head.sha, repo: toRepository(head.repo) },
 		base: { ref: base.ref },
 		labels: labels.map(({ name }) => ({ name })),
 	};

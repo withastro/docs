@@ -39,7 +39,7 @@ const pullRequest = {
 	html_url: 'https://github.com/example-org/example-repo/pull/7',
 	draft: false,
 	user: { login: 'example-user' },
-	head: { ref: 'fix-typo', sha: 'abc123' },
+	head: { ref: 'fix-typo', sha: 'abc123', repo: { full_name: 'example-user/example-repo' } },
 	base: { ref: 'main' },
 	labels: [{ name: 'i18n' }],
 };
@@ -49,7 +49,11 @@ const pullRequestResponse = {
 	...pullRequest,
 	node_id: 'PR_7',
 	user: { ...pullRequest.user, id: 1 },
-	head: { ...pullRequest.head, label: 'example-user:fix-typo' },
+	head: {
+		...pullRequest.head,
+		label: 'example-user:fix-typo',
+		repo: { ...pullRequest.head.repo, id: 2 },
+	},
 	base: { ...pullRequest.base, label: 'example-org:main' },
 	labels: [{ name: 'i18n', color: 'ffffff' }],
 };
@@ -97,6 +101,32 @@ describe('GitHubRepository', () => {
 			assert.deepEqual(getRequestedUrls(fetchMock), [
 				`${REPOSITORY_URL}/pulls?state=open&per_page=100`,
 			]);
+		});
+	});
+
+	describe('getPullRequest', () => {
+		it('should get a pull request', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse(pullRequestResponse));
+
+			const result = await createRepository().getPullRequest(7);
+
+			assert.deepEqual(result, pullRequest);
+			assert.deepEqual(getRequestedUrls(fetchMock), [`${REPOSITORY_URL}/pulls/7`]);
+		});
+
+		it('should accept a pull request whose head repository was deleted', async (t) => {
+			const fromDeletedFork = { ...pullRequest, head: { ...pullRequest.head, repo: null } };
+			mockFetch(t, jsonResponse(fromDeletedFork));
+
+			const result = await createRepository().getPullRequest(7);
+
+			assert.deepEqual(result, fromDeletedFork);
+		});
+
+		it('should throw when the pull request does not have the expected shape', async (t) => {
+			mockFetch(t, jsonResponse({ ...pullRequest, labels: null }));
+
+			await assert.rejects(createRepository().getPullRequest(7), /pulls\/7/);
 		});
 	});
 
