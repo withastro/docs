@@ -143,7 +143,7 @@ const isComparison = shapeOf<Comparison>({
 
 const isPermission = shapeOf<{ permission: string }>({ permission: isString });
 
-type RepositoryOptions = {
+export type RepositoryOptions = {
 	/** As `owner/repo`. */
 	fullName: string;
 	token: string;
