@@ -8,18 +8,22 @@ import { describeReleaseState, startRun, type ReleaseQueueContext } from './run.
  *
  * The umbrellas are refreshed even when some PRs failed, so the PRs that joined are listed.
  *
- * @param {ReleaseQueueContext} context - The repositories to read and write, where to log, and the
- * job running the release queue.
- * @throws {GitHubError} When GitHub answers with an error status outside a single PR.
- * @throws {AggregateError} When some PRs failed, after refreshing the umbrellas.
+ * @param {ReleaseQueueContext} context - The repositories, and where to log.
+ * @throws {GitHubError} When reading the state or refreshing the umbrellas fails.
+ * @throws {Error} When the framework's release PR or pre mode file can't be read.
+ * @throws {AggregateError} When some PRs could not join, or when the joins and the refresh both
+ * failed.
  */
 export async function runReleaseQueue(context: ReleaseQueueContext): Promise<void> {
 	const run = await startRun(context);
 	run.log(describeReleaseState(run.state, run.astro.fullName));
 
-	try {
-		await joinAcceptedPullRequests(run);
-	} finally {
-		await refreshOpenUmbrellas(run);
+	const errors: unknown[] = [];
+	await joinAcceptedPullRequests(run).catch((error: unknown) => errors.push(error));
+	await refreshOpenUmbrellas(run).catch((error: unknown) => errors.push(error));
+
+	if (errors.length > 1) {
+		throw new AggregateError(errors, 'Both the joins and the refresh of the umbrellas failed.');
 	}
+	if (errors.length === 1) throw errors[0];
 }

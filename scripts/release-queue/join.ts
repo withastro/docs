@@ -106,7 +106,7 @@ async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
 		return;
 	}
 
-	await mergeIntoUmbrella(run, { pullRequest, branches: decision.branches });
+	await joinUmbrella(run, { pullRequest, branches: decision.branches });
 }
 
 /**
@@ -134,30 +134,11 @@ async function refuseJoin(docs: DocsRepository, prNumber: number, comment: strin
 	await docs.createComment(prNumber, comment);
 }
 
-async function mergeIntoUmbrella(run: ReleaseQueueRun, request: JoinRequest) {
-	const { docs, log } = run;
-	const { pullRequest, branches } = request;
-	await createUmbrellaBranchIfMissing(docs, branches);
-	const mergeError = await squashIntoUmbrella(docs, pullRequest, branches).then(
-		() => null,
-		returnGitHubError
-	);
-	if (mergeError) {
-		await refuseJoin(
-			docs,
-			pullRequest.number,
-			renderMergeFailureComment(branches, mergeError.apiMessage)
-		);
-		log(`#${pullRequest.number} not merged: ${mergeError.apiMessage}.`);
-		return;
-	}
-
-	const umbrellaPrNumber =
-		(await findUmbrellaPrNumber(docs, branches)) ?? (await openUmbrella(run, request));
-	if (umbrellaPrNumber === null) return;
-
-	await docs.createComment(pullRequest.number, renderJoinedComment(branches, umbrellaPrNumber));
-	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
+/** Moves a docs PR into its umbrella, then tells the PR which umbrella it joined. */
+async function joinUmbrella(run: ReleaseQueueRun, request: JoinRequest) {
+	await createUmbrellaBranchIfMissing(run.docs, request.branches);
+	const isMerged = await mergeOrRefuse(run, request);
+	if (isMerged) await announceJoin(run, request);
 }
 
 async function createUmbrellaBranchIfMissing(docs: DocsRepository, branches: UmbrellaBranches) {
@@ -168,12 +149,27 @@ async function createUmbrellaBranchIfMissing(docs: DocsRepository, branches: Umb
 	await docs.createBranch(branches.head, baseSha);
 }
 
+/**
+ * Squash-merges a docs PR into its umbrella branch, and tells whether it did. When GitHub refuses,
+ * refuses the PR with GitHub's message instead.
+ */
+async function mergeOrRefuse({ docs, log }: ReleaseQueueRun, request: JoinRequest) {
+	const { pullRequest, branches } = request;
+	try {
+		await squashIntoUmbrella(docs, request);
+		return true;
+	} catch (error) {
+		if (!(error instanceof GitHubError)) throw error;
+
+		const comment = renderMergeFailureComment(branches, error.apiMessage);
+		await refuseJoin(docs, pullRequest.number, comment);
+		log(`#${pullRequest.number} not merged: ${error.apiMessage}.`);
+		return false;
+	}
+}
+
 /** Changes the base of a docs PR to the umbrella branch, then squash-merges it. */
-async function squashIntoUmbrella(
-	docs: DocsRepository,
-	pullRequest: PullRequestDetails,
-	branches: UmbrellaBranches
-) {
+async function squashIntoUmbrella(docs: DocsRepository, { pullRequest, branches }: JoinRequest) {
 	const { number, base, head } = pullRequest;
 	const isBaseChangeNeeded = base.ref !== branches.head;
 	if (isBaseChangeNeeded) await docs.updatePullRequest(number, { base: branches.head });
@@ -186,9 +182,37 @@ async function squashIntoUmbrella(
 		});
 	} catch (error) {
 		// A PR that can't join is left as it was.
-		if (isBaseChangeNeeded) await docs.updatePullRequest(number, { base: base.ref });
+		if (isBaseChangeNeeded) await changeBaseBack(docs, pullRequest, error);
 		throw error;
 	}
+}
+
+/** Changes the base of a docs PR back after a failed merge, keeping both errors if that fails. */
+async function changeBaseBack(
+	docs: DocsRepository,
+	{ number, base }: Pick<PullRequestDetails, 'number' | 'base'>,
+	mergeError: unknown
+) {
+	try {
+		await docs.updatePullRequest(number, { base: base.ref });
+	} catch (error) {
+		throw new AggregateError(
+			[mergeError, error],
+			`Could not merge #${number}, then could not change its base back to ${base.ref}.`
+		);
+	}
+}
+
+/** Comments on a merged docs PR with its umbrella PR, opened first when there is none. */
+async function announceJoin(run: ReleaseQueueRun, request: JoinRequest) {
+	const { docs, log } = run;
+	const { pullRequest, branches } = request;
+	const umbrellaPrNumber =
+		(await findUmbrellaPrNumber(docs, branches)) ?? (await openUmbrella(run, request));
+	if (umbrellaPrNumber === null) return;
+
+	await docs.createComment(pullRequest.number, renderJoinedComment(branches, umbrellaPrNumber));
+	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
 }
 
 async function findUmbrellaPrNumber(docs: DocsRepository, branches: UmbrellaBranches) {
@@ -197,8 +221,7 @@ async function findUmbrellaPrNumber(docs: DocsRepository, branches: UmbrellaBran
 }
 
 /**
- * Opens the umbrella PR, or comments on the docs PR when GitHub refuses. Its labels come with the
- * refresh that ends the run.
+ * Opens the umbrella PR without labels, or comments on the docs PR when GitHub refuses.
  *
  * GitHub only opens a PR from a branch with commits that its base lacks, so the umbrella PR is
  * opened after the first docs PR is merged.
@@ -212,27 +235,17 @@ async function openUmbrella(
 		release: getUmbrellaRelease(state.releases, branches.base),
 		includedPrNumbers: [pullRequest.number],
 	});
-	const umbrella = await docs
-		.createPullRequest({ title, ...branches, body })
-		.catch(returnGitHubError);
-	if (umbrella instanceof GitHubError) {
-		await docs.createComment(
-			pullRequest.number,
-			renderUmbrellaFailureComment(branches, umbrella.apiMessage)
-		);
-		log(
-			`#${pullRequest.number} joined ${branches.head}, but no umbrella PR: ${umbrella.apiMessage}.`
-		);
+	try {
+		const umbrella = await docs.createPullRequest({ title, ...branches, body });
+		return umbrella.number;
+	} catch (error) {
+		if (!(error instanceof GitHubError)) throw error;
+
+		const comment = renderUmbrellaFailureComment(branches, error.apiMessage);
+		await docs.createComment(pullRequest.number, comment);
+		log(`#${pullRequest.number} joined ${branches.head}, but no umbrella PR: ${error.apiMessage}.`);
 		return null;
 	}
-
-	return umbrella.number;
-}
-
-/** Returns a GitHub error, a refusal the caller reports, and throws any other error. */
-function returnGitHubError(error: unknown): GitHubError {
-	if (error instanceof GitHubError) return error;
-	throw error;
 }
 
 function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {

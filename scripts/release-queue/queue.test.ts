@@ -47,4 +47,24 @@ describe('runReleaseQueue', () => {
 
 		assert.ok(docs.writes.some(({ method, args }) => method === 'addLabels' && args[0] === 50));
 	});
+
+	it('should fail with both errors when the joins and the refresh fail', async (t) => {
+		const docs = buildDocs();
+		const joinError = new Error('Network error while joining');
+		const refreshError = new Error('Network error while refreshing');
+		t.mock.method(docs, 'mergePullRequest', async () => {
+			throw joinError;
+		});
+		t.mock.method(docs, 'compare', async () => {
+			throw refreshError;
+		});
+		const { context } = createContext(docs);
+
+		await assert.rejects(runReleaseQueue(context), ({ errors }: AggregateError) => {
+			assert.equal(errors.length, 2);
+			assert.ok(errors[0] instanceof AggregateError);
+			assert.equal(errors[1], refreshError);
+			return true;
+		});
+	});
 });

@@ -335,6 +335,40 @@ describe('joinAcceptedPullRequests', () => {
 		]);
 	});
 
+	it('should fail with both errors when the base cannot be changed back', async (t) => {
+		const docs = buildReadyRepository([buildAcceptedPullRequest(7), buildUmbrellaPullRequest(50)], {
+			main: 'sha-main',
+			'release-queue/main': 'sha-umbrella',
+		});
+		const mergeError = new GitHubError({
+			message: 'PUT /merge failed with 405: Pull Request is not mergeable',
+			status: 405,
+			apiMessage: 'Pull Request is not mergeable',
+		});
+		const restoreError = new Error('Network error');
+		t.mock.method(docs, 'mergePullRequest', async () => {
+			throw mergeError;
+		});
+		const updatePullRequest = t.mock.method(docs, 'updatePullRequest');
+		updatePullRequest.mock.mockImplementationOnce(async () => {
+			throw restoreError;
+		}, 1);
+		const { context, logs } = createContext(docs);
+
+		const join = joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
+
+		await assert.rejects(join, ({ errors: [error] }: AggregateError) => {
+			assert.ok(error instanceof AggregateError);
+			assert.deepEqual(error.errors, [mergeError, restoreError]);
+			return true;
+		});
+		assert.ok(!docs.writes.some(({ method }) => method === 'createComment'));
+		assert.match(
+			logs.join('\n'),
+			/^#7 failed: Could not merge #7, then could not change its base back/m
+		);
+	});
+
 	it('should comment on the merged PR when the umbrella PR cannot be opened', async (t) => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7)]);
 		t.mock.method(docs, 'createPullRequest', async () => {
