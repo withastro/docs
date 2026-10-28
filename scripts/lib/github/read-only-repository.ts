@@ -71,6 +71,10 @@ export class ReadOnlyRepository extends GitHubRepository {
 		this.#logWrite('requestChanges', [prNumber, body]);
 	}
 
+	override async updateReview(prNumber: number, reviewId: number, body: string): Promise<void> {
+		this.#logWrite('updateReview', [prNumber, reviewId, body]);
+	}
+
 	#logWrite(method: string, args: unknown[]) {
 		this.#log(`Read-only: ${method} ${JSON.stringify(args)}`);
 	}

@@ -26,6 +26,7 @@ const review = {
 	id: 1,
 	user: { login: 'example-user' },
 	state: REVIEW_STATES.approved,
+	body: 'Looks good.',
 	commit_id: 'abc123',
 };
 
@@ -630,6 +631,26 @@ describe('GitHubRepository', () => {
 				method: 'POST',
 				body: { event: 'REQUEST_CHANGES', body: 'Wait for the release.' },
 			});
+		});
+	});
+
+	describe('updateReview', () => {
+		it('should change the text of a review', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse({ ...review, id: 3 }));
+
+			await createRepository().updateReview(7, 3, 'Wait for the release of #8.');
+
+			assert.deepEqual(getSentRequest(fetchMock), {
+				url: `${REPOSITORY_URL}/pulls/7/reviews/3`,
+				method: 'PUT',
+				body: { body: 'Wait for the release of #8.' },
+			});
+		});
+
+		it('should throw when GitHub refuses the change', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Forbidden' }, { status: 403 }));
+
+			await assert.rejects(createRepository().updateReview(7, 3, 'Updated.'), /403: Forbidden/);
 		});
 	});
 });

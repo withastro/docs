@@ -59,6 +59,8 @@ export type Review = {
 	/** `null` when the account was deleted. */
 	user: User | null;
 	state: ReviewState;
+	/** The text of the review, in Markdown. Empty when the reviewer wrote none. */
+	body: string;
 	/** The head commit when the review was submitted. */
 	commit_id: string | null;
 };
@@ -126,6 +128,7 @@ const isReview = shapeOf<Review>({
 	id: isNumber,
 	user: orNull(isUser),
 	state: isOneOf(Object.values(REVIEW_STATES)),
+	body: isString,
 	commit_id: orNull(isString),
 });
 
@@ -489,6 +492,24 @@ export class GitHubRepository {
 		});
 	}
 
+	/**
+	 * Changes the text of a review, keeping its state.
+	 *
+	 * The token's account must be the author of the review.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {number} reviewId - The ID of the review.
+	 * @param {string} body - The new text, in Markdown.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async updateReview(prNumber: number, reviewId: number, body: string): Promise<void> {
+		await this.#send({
+			method: 'PUT',
+			path: `/pulls/${prNumber}/reviews/${reviewId}`,
+			body: { body },
+		});
+	}
+
 	async #get<T>(path: string, guard: Guard<T>): Promise<T> {
 		return this.#request({ method: 'GET', path }, guard);
 	}
@@ -547,8 +568,8 @@ function toRepository(repository: Repository | null): Repository | null {
 	return repository && { full_name: repository.full_name };
 }
 
-function toReview({ id, user, state, commit_id }: Review): Review {
-	return { id, user: toUser(user), state, commit_id };
+function toReview({ id, user, state, body, commit_id }: Review): Review {
+	return { id, user: toUser(user), state, body, commit_id };
 }
 
 function toPullRequest(pullRequest: PullRequest): PullRequest {
