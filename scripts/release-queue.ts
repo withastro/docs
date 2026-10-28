@@ -1,18 +1,35 @@
-// Moves docs PRs labeled `accepted` into their release umbrella PR and refreshes the umbrellas, or
-// with `MODE=dry-run`, comments on the PR `PR_NUMBER` with what it would do. Run by
-// `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN` (writes
-// on the docs repository), and `GITHUB_TOKEN` (reads the framework repository and reviews the
-// umbrellas). Locally, add `--read-only` to log the writes instead.
+// Moves the docs PRs with the accepted label into their release umbrella PR, then refreshes the
+// umbrellas. In dry-run mode (`RELEASE_QUEUE_MODE` in `release-queue/config.ts`), only comments on
+// the PR that triggered the run. Run by `.github/workflows/release-queue.yml`.
+//
+// Environment variables:
+// - `GITHUB_REPOSITORY`: the docs repository, as `owner/repo`.
+// - `BOT_TOKEN`: writes on the docs repository, through the bot account.
+// - `GITHUB_TOKEN`: reads the framework repository, and reviews the umbrellas.
+// - `GITHUB_JOB`: the job to leave out of the PR's checks. Optional.
+// - `PR_NUMBER`: the PR to comment on in dry-run mode. Empty on a manual run.
+//
+// Flags, for local runs:
+// - `--read-only`: logs the writes instead of sending them.
+// - `--mode <mode>`: runs in another mode than `RELEASE_QUEUE_MODE`.
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
 import { GitHubRepository } from './lib/github/repository.ts';
-import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-queue/config.ts';
+import {
+	FRAMEWORK_REPOSITORY,
+	MODES,
+	RELEASE_QUEUE_MODE,
+	type Mode,
+} from './release-queue/config.ts';
 import { previewJoin } from './release-queue/join.ts';
 import { runReleaseQueue } from './release-queue/queue.ts';
 
 const { values: flags } = parseArgs({
-	options: { 'read-only': { type: 'boolean', default: false } },
+	options: {
+		'read-only': { type: 'boolean', default: false },
+		mode: { type: 'string', default: RELEASE_QUEUE_MODE },
+	},
 });
 const isReadOnly = flags['read-only'];
 const workflowToken = readRequiredVariable('GITHUB_TOKEN');
@@ -22,7 +39,7 @@ const astro = new GitHubRepository({ fullName: FRAMEWORK_REPOSITORY, token: work
 const jobName = process.env.GITHUB_JOB || null;
 const context = { docs, astro, reviewer, log: console.info, jobName };
 const prNumber = readOptionalPrNumber('PR_NUMBER');
-if (readMode('MODE') === MODES.live) await runReleaseQueue(context);
+if (parseMode(flags.mode) === MODES.live) await runReleaseQueue(context);
 else if (prNumber) await previewJoin(context, prNumber);
 else console.info('Dry run: no PR to preview.');
 
@@ -39,11 +56,10 @@ function readRequiredVariable(name: string) {
 	return value;
 }
 
-function readMode(name: string): Mode {
-	const value = readRequiredVariable(name);
+function parseMode(value: string): Mode {
 	const mode = Object.values(MODES).find((knownMode) => knownMode === value);
 	if (!mode) {
-		throw new Error(`${name} must be one of: ${Object.values(MODES).join(', ')}. Got: "${value}".`);
+		throw new Error(`--mode must be one of: ${Object.values(MODES).join(', ')}. Got: "${value}".`);
 	}
 	return mode;
 }
