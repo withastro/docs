@@ -25,6 +25,7 @@ import {
 import {
 	getUmbrellaRelease,
 	isUmbrellaPullRequest,
+	renderSquashCommitTitle,
 	renderUmbrellaBody,
 	renderUmbrellaTitle,
 	type Route,
@@ -39,6 +40,7 @@ type DocsRepository = Pick<
 	| 'getReviews'
 	| 'hasWriteAccess'
 	| 'getChecks'
+	| 'compare'
 	| 'getBranchSha'
 	| 'createBranch'
 	| 'createPullRequest'
@@ -237,6 +239,7 @@ async function squashIntoUmbrella(
 		await docs.mergePullRequest(number, {
 			method: MERGE_METHODS.squash,
 			expectedHeadSha: head.sha,
+			commitTitle: renderSquashCommitTitle(pullRequest),
 		});
 	} catch (error) {
 		// A PR that can't join is left as it was.
@@ -261,14 +264,15 @@ async function openUmbrella(
 	{ pullRequest, route, releases }: Join
 ): Promise<Umbrella | null> {
 	const baseBranch = route.umbrellaBaseBranch;
-	const title = renderUmbrellaTitle(baseBranch, getUmbrellaRelease(releases, baseBranch));
+	const release = getUmbrellaRelease(releases, baseBranch);
+	const title = renderUmbrellaTitle(baseBranch, release);
+	const body = renderUmbrellaBody({
+		route,
+		releasePrNumber: release?.prNumber ?? null,
+		includedPrNumbers: [pullRequest.number],
+	});
 	const umbrella = await docs
-		.createPullRequest({
-			title,
-			head: route.umbrellaBranch,
-			base: baseBranch,
-			body: renderUmbrellaBody(route),
-		})
+		.createPullRequest({ title, head: route.umbrellaBranch, base: baseBranch, body })
 		.catch(returnGitHubError);
 	if (umbrella instanceof GitHubError) {
 		await docs.createComment(
@@ -281,7 +285,7 @@ async function openUmbrella(
 		return null;
 	}
 
-	return { number: umbrella.number, title, labels: [], base: { ref: baseBranch } };
+	return { number: umbrella.number, title, body, labels: [], base: { ref: baseBranch } };
 }
 
 /** Returns a GitHub error, a refusal the caller reports, and throws any other error. */

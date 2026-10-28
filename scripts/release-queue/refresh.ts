@@ -1,18 +1,26 @@
-import type { GitHubRepository, PullRequest } from '../lib/github/repository.ts';
+import type {
+	GitHubRepository,
+	PullRequest,
+	PullRequestChanges,
+} from '../lib/github/repository.ts';
 import type { FrameworkReleases } from './release.ts';
-import { planUmbrellaUpdate } from './umbrella.ts';
+import { getIncludedPrNumbers, getUmbrellaBranch, planUmbrellaUpdate } from './umbrella.ts';
 
-type UmbrellaRepository = Pick<GitHubRepository, 'updatePullRequest' | 'addLabels' | 'removeLabel'>;
+type UmbrellaRepository = Pick<
+	GitHubRepository,
+	'compare' | 'updatePullRequest' | 'addLabels' | 'removeLabel'
+>;
 
 type RefreshContext = {
 	docs: UmbrellaRepository;
 	log: (message: string) => void;
 };
 
-export type Umbrella = Pick<PullRequest, 'number' | 'title' | 'labels' | 'base'>;
+export type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels' | 'base'>;
 
 /**
- * Updates the title and the labels of an umbrella PR from the release it ships with.
+ * Updates the title, the description, and the labels of an umbrella PR from the release it ships
+ * with and the PRs merged into its branch.
  *
  * Sends nothing for what is already up to date.
  *
@@ -26,16 +34,29 @@ export async function refreshUmbrella(
 	umbrella: Umbrella,
 	releases: FrameworkReleases
 ): Promise<void> {
-	const { title, labelsToAdd, labelsToRemove } = planUmbrellaUpdate(umbrella, releases);
-	const isTitleChanged = title !== umbrella.title;
-	if (isTitleChanged) await docs.updatePullRequest(umbrella.number, { title });
-	if (labelsToAdd.length > 0) await docs.addLabels(umbrella.number, labelsToAdd);
-	for (const label of labelsToRemove) await docs.removeLabel(umbrella.number, label);
+	const baseBranch = umbrella.base.ref;
+	const comparison = await docs.compare(baseBranch, getUmbrellaBranch(baseBranch));
+	const update = planUmbrellaUpdate(umbrella, releases, getIncludedPrNumbers(comparison));
+	const changes = getChangedFields(umbrella, update);
+	const hasChanges = Object.keys(changes).length > 0;
+	if (hasChanges) await docs.updatePullRequest(umbrella.number, changes);
+	if (update.labelsToAdd.length > 0) await docs.addLabels(umbrella.number, update.labelsToAdd);
+	for (const label of update.labelsToRemove) await docs.removeLabel(umbrella.number, label);
 
-	const isChanged = isTitleChanged || labelsToAdd.length > 0 || labelsToRemove.length > 0;
+	const isChanged = hasChanges || update.labelsToAdd.length > 0 || update.labelsToRemove.length > 0;
 	log(
 		isChanged
 			? `Umbrella #${umbrella.number} refreshed.`
 			: `Umbrella #${umbrella.number} is up to date.`
 	);
+}
+
+function getChangedFields(
+	umbrella: Pick<Umbrella, 'title' | 'body'>,
+	{ title, body }: Pick<PullRequestChanges, 'title' | 'body'>
+): PullRequestChanges {
+	return {
+		...(title !== umbrella.title && { title }),
+		...(body !== umbrella.body && { body }),
+	};
 }

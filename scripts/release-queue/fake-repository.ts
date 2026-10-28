@@ -1,6 +1,7 @@
 import { CHECK_STATES, type Check } from '../lib/github/checks.ts';
 import {
 	REVIEW_STATES,
+	type Comparison,
 	type CreatedPullRequest,
 	type MergeOptions,
 	type NewPullRequest,
@@ -37,6 +38,8 @@ type FakeRepositoryState = {
 	branchShas?: Record<string, string>;
 	/** The text of each file, by `<ref>:<path>`. */
 	files?: Record<string, string>;
+	/** The comparison of two branches, by `<base>...<head>`. Defaults to no commits. */
+	comparisons?: Record<string, Comparison>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -117,8 +120,17 @@ export class FakeRepository {
 		checksByRef = {},
 		branchShas = { main: 'sha-main' },
 		files = {},
+		comparisons = {},
 	}: FakeRepositoryState) {
-		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef, branchShas, files };
+		this.#state = {
+			pullRequests,
+			reviewsByPrNumber,
+			maintainers,
+			checksByRef,
+			branchShas,
+			files,
+			comparisons,
+		};
 	}
 
 	async getOpenPullRequests(): Promise<PullRequestDetails[]> {
@@ -147,6 +159,10 @@ export class FakeRepository {
 
 	async getChecks(ref: string): Promise<Check[]> {
 		return this.#state.checksByRef[ref] ?? [];
+	}
+
+	async compare(base: string, head: string): Promise<Comparison> {
+		return this.#state.comparisons[`${base}...${head}`] ?? { ahead_by: 0, commits: [] };
 	}
 
 	async getFileContent(path: string, ref: string): Promise<string | null> {

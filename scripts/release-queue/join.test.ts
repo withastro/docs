@@ -142,18 +142,46 @@ describe('previewJoin', () => {
 	});
 });
 
-/** Builds a repository where every given PR is approved by a maintainer, with passing checks. */
+/**
+ * Builds a repository where every given PR is approved by a maintainer, with passing checks. The
+ * main umbrella branch has a squash commit for each accepted PR, as after the joins.
+ */
 function buildReadyRepository(
 	pullRequests: PullRequestDetails[],
 	branchShas: Record<string, string> = { main: 'sha-main' }
 ) {
 	const states = pullRequests.map(buildReadyState);
+	const commits = pullRequests
+		.filter(({ labels }) => labels.some(({ name }) => name === 'accepted'))
+		.map(({ number, title }) => ({
+			sha: `sha-${number}`,
+			commit: { message: `${title} (#${number})` },
+		}));
 	return new FakeRepository({
 		pullRequests,
 		reviewsByPrNumber: Object.assign({}, ...states.map((state) => state.reviewsByPrNumber)),
 		checksByRef: Object.assign({}, ...states.map((state) => state.checksByRef)),
 		branchShas,
+		comparisons: { 'main...release-queue/main': { ahead_by: commits.length, commits } },
 	});
+}
+
+function buildMergeWrite(prNumber: number) {
+	return {
+		method: 'mergePullRequest',
+		args: [
+			prNumber,
+			{
+				method: 'squash',
+				expectedHeadSha: `sha-${prNumber}`,
+				commitTitle: `Document feature ${prNumber} (#${prNumber})`,
+			},
+		],
+	};
+}
+
+function buildMainUmbrellaBody(includedPrNumbers: number[]) {
+	return renderUmbrellaBody({ route: MAIN_ROUTE, releasePrNumber: null, includedPrNumbers });
 }
 
 function buildAcceptedPullRequest(number: number, baseBranch = 'main') {
@@ -178,7 +206,7 @@ describe('joinAcceptedPullRequests', () => {
 		assert.deepEqual(docs.writes, [
 			{ method: 'createBranch', args: ['release-queue/main', 'sha-main'] },
 			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
-			{ method: 'mergePullRequest', args: [7, { method: 'squash', expectedHeadSha: 'sha-7' }] },
+			buildMergeWrite(7),
 			{
 				method: 'createPullRequest',
 				args: [
@@ -186,7 +214,7 @@ describe('joinAcceptedPullRequests', () => {
 						title: '[ci] release main docs',
 						head: 'release-queue/main',
 						base: 'main',
-						body: renderUmbrellaBody(MAIN_ROUTE),
+						body: buildMainUmbrellaBody([7]),
 					},
 				],
 			},
@@ -206,8 +234,9 @@ describe('joinAcceptedPullRequests', () => {
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
-			{ method: 'mergePullRequest', args: [7, { method: 'squash', expectedHeadSha: 'sha-7' }] },
+			buildMergeWrite(7),
 			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_ROUTE, 50)] },
+			{ method: 'updatePullRequest', args: [50, { body: buildMainUmbrellaBody([7]) }] },
 		]);
 	});
 
@@ -222,7 +251,7 @@ describe('joinAcceptedPullRequests', () => {
 
 		assert.deepEqual(
 			docs.writes.map(({ method }) => method),
-			['mergePullRequest', 'createComment']
+			['mergePullRequest', 'createComment', 'updatePullRequest']
 		);
 	});
 

@@ -1,7 +1,8 @@
-import type { PullRequest } from '../lib/github/repository.ts';
+import type { Comparison, PullRequest } from '../lib/github/repository.ts';
 import {
 	DOCS_STABLE_BRANCH,
 	FRAMEWORK_PACKAGE,
+	FRAMEWORK_REPOSITORY,
 	RELEASE_LABELS,
 	RELEASE_TYPES,
 	UMBRELLA_BRANCH_PREFIX,
@@ -9,6 +10,12 @@ import {
 	type ReleaseType,
 } from './config.ts';
 import type { FrameworkRelease, FrameworkReleases } from './release.ts';
+
+/** Names the hidden line recording the release PR an umbrella ships with, in its description. */
+const RELEASE_PR_MARKER_NAME = 'release-queue:release-pr';
+const RELEASE_PR_MARKER = new RegExp(`^<!-- ${RELEASE_PR_MARKER_NAME}=(\\d+) -->$`, 'm');
+/** The end of the subject of a squash commit, such as `Fix a typo (#123)`. */
+const SQUASH_COMMIT_PR_NUMBER = /\(#(\d+)\)$/;
 
 /** Where a docs PR goes: an umbrella branch, and the branch its umbrella PR merges into. */
 export type Route = {
@@ -18,8 +25,16 @@ export type Route = {
 
 export type UmbrellaUpdate = {
 	title: string;
+	body: string;
 	labelsToAdd: string[];
 	labelsToRemove: string[];
+};
+
+type UmbrellaBodyContent = {
+	route: Route;
+	/** The framework release PR the umbrella ships with, or `null` when none is known. */
+	releasePrNumber: number | null;
+	includedPrNumbers: number[];
 };
 
 /**
@@ -98,23 +113,45 @@ export function getUmbrellaRelease(
 }
 
 /**
- * Plans the title and the labels of an umbrella PR from the release it ships with.
+ * Plans the title, the description, and the labels of an umbrella PR from the release it ships
+ * with and the PRs it includes.
  *
- * Without a release, keeps the title and the release label, since nothing tells what the next
- * release is.
+ * Without a release, keeps the title, the release label, and the linked release PR, since nothing
+ * tells what the next release is.
  *
- * @param {Pick<PullRequest, 'title' | 'labels' | 'base'>} umbrella - The umbrella PR.
+ * @param {Pick<PullRequest, 'title' | 'body' | 'labels' | 'base'>} umbrella - The umbrella PR.
  * @param {FrameworkReleases} releases - The open releases of the framework.
- * @returns {UmbrellaUpdate} The title, and the labels to add and to remove.
+ * @param {number[]} includedPrNumbers - The docs PRs merged into the umbrella branch.
+ * @returns {UmbrellaUpdate} The title, the description, and the labels to add and to remove.
  */
 export function planUmbrellaUpdate(
-	umbrella: Pick<PullRequest, 'title' | 'labels' | 'base'>,
-	releases: FrameworkReleases
+	umbrella: Pick<PullRequest, 'title' | 'body' | 'labels' | 'base'>,
+	releases: FrameworkReleases,
+	includedPrNumbers: number[]
 ): UmbrellaUpdate {
 	const baseBranch = umbrella.base.ref;
 	const release = getUmbrellaRelease(releases, baseBranch);
-	const releaseType = getUmbrellaReleaseType(baseBranch, release);
-	const currentLabels = umbrella.labels.map(({ name }) => name);
+	const route = { umbrellaBranch: getUmbrellaBranch(baseBranch), umbrellaBaseBranch: baseBranch };
+	const releasePrNumber = release?.prNumber ?? readReleasePrMarker(umbrella.body);
+
+	return {
+		title: release ? renderUmbrellaTitle(baseBranch, release) : umbrella.title,
+		body: renderUmbrellaBody({ route, releasePrNumber, includedPrNumbers }),
+		...planReleaseLabels(umbrella, getUmbrellaReleaseType(baseBranch, release)),
+	};
+}
+
+function readReleasePrMarker(body: string | null) {
+	const match = body?.match(RELEASE_PR_MARKER);
+	return match ? Number(match[1]) : null;
+}
+
+/** Plans the umbrella label and the label of the release type, when it is known. */
+function planReleaseLabels(
+	{ labels }: Pick<PullRequest, 'labels'>,
+	releaseType: ReleaseType | null
+): Pick<UmbrellaUpdate, 'labelsToAdd' | 'labelsToRemove'> {
+	const currentLabels = labels.map(({ name }) => name);
 	const expectedLabels = releaseType
 		? [UMBRELLA_LABEL, RELEASE_LABELS[releaseType]]
 		: [UMBRELLA_LABEL];
@@ -123,7 +160,6 @@ export function planUmbrellaUpdate(
 		: [];
 
 	return {
-		title: release ? renderUmbrellaTitle(baseBranch, release) : umbrella.title,
 		labelsToAdd: expectedLabels.filter((label) => !currentLabels.includes(label)),
 		labelsToRemove: staleLabels.filter((label) => currentLabels.includes(label)),
 	};
@@ -139,11 +175,53 @@ function getUmbrellaReleaseType(
 }
 
 /**
- * Renders the description of an umbrella PR.
+ * Renders the description of an umbrella PR: the release PR it ships with, and the docs PRs it
+ * includes.
  *
- * @param {Route} route - The umbrella branch and its base branch.
+ * @param {UmbrellaBodyContent} content - The umbrella branch, the release PR, and the included PRs.
  * @returns {string} The description, in Markdown.
  */
-export function renderUmbrellaBody({ umbrellaBranch, umbrellaBaseBranch }: Route): string {
-	return `This PR collects the docs PRs for the next release into \`${umbrellaBaseBranch}\`. The release queue merges them into \`${umbrellaBranch}\` and keeps this PR up to date.`;
+export function renderUmbrellaBody({
+	route,
+	releasePrNumber,
+	includedPrNumbers,
+}: UmbrellaBodyContent): string {
+	const marker =
+		releasePrNumber === null ? '' : `<!-- ${RELEASE_PR_MARKER_NAME}=${releasePrNumber} -->\n`;
+	const release =
+		releasePrNumber === null
+			? 'no release PR is open yet.'
+			: `${FRAMEWORK_REPOSITORY}#${releasePrNumber}`;
+	const includedPrList =
+		includedPrNumbers.length > 0
+			? includedPrNumbers.map((prNumber) => `- #${prNumber}`).join('\n')
+			: 'None yet.';
+
+	return `${marker}The docs for the next release into \`${route.umbrellaBaseBranch}\`, collected in \`${route.umbrellaBranch}\`. The release queue keeps this description and the title up to date: edits to them are overwritten.\n\n**Ships with:** ${release}\n\n## Included PRs\n\n${includedPrList}\n`;
+}
+
+/**
+ * Renders the title of the squash commit of a docs PR merged into an umbrella.
+ *
+ * @param {Pick<PullRequest, 'number' | 'title'>} pullRequest - The docs PR.
+ * @returns {string} The title, ending with the PR number, as the umbrella lists its PRs from it.
+ */
+export function renderSquashCommitTitle({ number, title }: Pick<PullRequest, 'number' | 'title'>) {
+	return `${title} (#${number})`;
+}
+
+/**
+ * Gets the docs PRs merged into an umbrella branch, from the subjects of their squash commits.
+ *
+ * @param {Pick<Comparison, 'commits'>} comparison - The commits of the umbrella branch that its
+ * base lacks.
+ * @returns {number[]} The PR numbers, once each, in the order of the commits.
+ */
+export function getIncludedPrNumbers({ commits }: Pick<Comparison, 'commits'>): number[] {
+	const prNumbers = commits.flatMap(({ commit }) => {
+		const [subject] = commit.message.split('\n');
+		const match = subject.match(SQUASH_COMMIT_PR_NUMBER);
+		return match ? [Number(match[1])] : [];
+	});
+	return [...new Set(prNumbers)];
 }
