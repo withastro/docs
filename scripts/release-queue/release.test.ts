@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { RELEASE_TYPES } from './config.ts';
 import { buildPullRequest, FakeRepository } from './fake-repository.ts';
-import { readFrameworkReleases } from './release.ts';
+import { describeReleases, readFrameworkReleases } from './release.ts';
 
 const PRE_MODE_FILE = 'next:.changeset/pre.json';
 
@@ -133,5 +133,32 @@ describe('readFrameworkReleases', () => {
 					error instanceof Error && String(error.cause).includes('`mode` should be a string')
 			);
 		});
+	});
+});
+
+describe('describeReleases', () => {
+	const stable = {
+		prNumber: 100,
+		packages: [{ name: 'astro', version: '7.4.1' }],
+		type: RELEASE_TYPES.patch,
+	};
+	const prerelease = {
+		prNumber: 200,
+		packages: [{ name: '@astrojs/cloudflare', version: '15.0.0-beta.2' }],
+		type: RELEASE_TYPES.patch,
+	};
+
+	it('should describe the stable release, and a prerelease that is the same', () => {
+		assert.equal(
+			describeReleases({ stable, prerelease: stable }, 'withastro/astro'),
+			'stable withastro/astro#100 (astro@7.4.1, patch), prerelease the same'
+		);
+	});
+
+	it('should describe both releases', () => {
+		assert.equal(
+			describeReleases({ stable: null, prerelease }, 'withastro/astro'),
+			'stable none open, prerelease withastro/astro#200 (without astro, patch)'
+		);
 	});
 });

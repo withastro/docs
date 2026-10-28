@@ -106,3 +106,26 @@ function getReleaseType(version: string): ReleaseType {
 	if (Number(minor) > 0) return RELEASE_TYPES.minor;
 	return RELEASE_TYPES.major;
 }
+
+/**
+ * Describes the open releases of the framework, for the logs.
+ *
+ * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @param {string} frameworkFullName - The framework repository, as `owner/repo`.
+ * @returns {string} The release PR, the `astro` version, and the release type of each line.
+ */
+export function describeReleases(
+	{ stable, prerelease }: FrameworkReleases,
+	frameworkFullName: string
+): string {
+	const prereleaseDescription =
+		prerelease === stable ? 'the same' : describeRelease(prerelease, frameworkFullName);
+	return `stable ${describeRelease(stable, frameworkFullName)}, prerelease ${prereleaseDescription}`;
+}
+
+function describeRelease(release: FrameworkRelease | null, frameworkFullName: string) {
+	if (!release) return 'none open';
+	const astro = release.packages.find(({ name }) => name === FRAMEWORK_PACKAGE);
+	const version = astro ? `${astro.name}@${astro.version}` : 'without astro';
+	return `${frameworkFullName}#${release.prNumber} (${version}, ${release.type})`;
+}

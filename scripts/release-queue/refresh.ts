@@ -4,11 +4,16 @@ import type {
 	PullRequestChanges,
 } from '../lib/github/repository.ts';
 import type { FrameworkReleases } from './release.ts';
-import { getIncludedPrNumbers, getUmbrellaBranch, planUmbrellaUpdate } from './umbrella.ts';
+import {
+	getIncludedPrNumbers,
+	getUmbrellaBranch,
+	isUmbrellaPullRequest,
+	planUmbrellaUpdate,
+} from './umbrella.ts';
 
 type UmbrellaRepository = Pick<
 	GitHubRepository,
-	'compare' | 'updatePullRequest' | 'addLabels' | 'removeLabel'
+	'fullName' | 'getOpenPullRequests' | 'compare' | 'updatePullRequest' | 'addLabels' | 'removeLabel'
 >;
 
 type RefreshContext = {
@@ -16,7 +21,27 @@ type RefreshContext = {
 	log: (message: string) => void;
 };
 
-export type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels' | 'base'>;
+type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels' | 'base'>;
+
+/**
+ * Refreshes every open umbrella PR of the docs repository.
+ *
+ * @param {RefreshContext} context - The docs repository, and where to log.
+ * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @throws {GitHubError} When GitHub answers with an error status.
+ */
+export async function refreshOpenUmbrellas(
+	context: RefreshContext,
+	releases: FrameworkReleases
+): Promise<void> {
+	const { docs, log } = context;
+	const pullRequests = await docs.getOpenPullRequests();
+	const umbrellas = pullRequests.filter((pullRequest) =>
+		isUmbrellaPullRequest(pullRequest, docs.fullName)
+	);
+	log(`Open umbrellas: ${umbrellas.map(({ number }) => `#${number}`).join(', ') || 'none'}.`);
+	for (const umbrella of umbrellas) await refreshUmbrella(context, umbrella, releases);
+}
 
 /**
  * Updates the title, the description, and the labels of an umbrella PR from the release it ships
@@ -29,7 +54,7 @@ export type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels' 
  * @param {FrameworkReleases} releases - The open releases of the framework.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
-export async function refreshUmbrella(
+async function refreshUmbrella(
 	{ docs, log }: RefreshContext,
 	umbrella: Umbrella,
 	releases: FrameworkReleases

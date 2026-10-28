@@ -20,6 +20,7 @@ import { joinAcceptedPullRequests, previewJoin } from './join.ts';
 import { renderUmbrellaBody } from './umbrella.ts';
 
 const MAIN_ROUTE = { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' };
+const NO_RELEASES = { stable: null, prerelease: null };
 
 function createContext(docs: FakeRepository, astro = new FakeRepository({})) {
 	const logs: string[] = [];
@@ -201,7 +202,7 @@ describe('joinAcceptedPullRequests', () => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7)]);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'createBranch', args: ['release-queue/main', 'sha-main'] },
@@ -219,7 +220,6 @@ describe('joinAcceptedPullRequests', () => {
 				],
 			},
 			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_ROUTE, CREATED_PR_NUMBER)] },
-			{ method: 'addLabels', args: [CREATED_PR_NUMBER, ['merge-on-release']] },
 		]);
 	});
 
@@ -230,13 +230,12 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
 			buildMergeWrite(7),
 			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_ROUTE, 50)] },
-			{ method: 'updatePullRequest', args: [50, { body: buildMainUmbrellaBody([7]) }] },
 		]);
 	});
 
@@ -247,11 +246,11 @@ describe('joinAcceptedPullRequests', () => {
 		);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		assert.deepEqual(
 			docs.writes.map(({ method }) => method),
-			['mergePullRequest', 'createComment', 'updatePullRequest']
+			['mergePullRequest', 'createComment']
 		);
 	});
 
@@ -260,7 +259,7 @@ describe('joinAcceptedPullRequests', () => {
 		const docs = buildReadyRepository([pullRequest]);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'removeLabel', args: [7, 'accepted'] },
@@ -285,7 +284,7 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
@@ -309,7 +308,7 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		assert.deepEqual(docs.writes.at(-1), {
 			method: 'createComment',
@@ -331,7 +330,7 @@ describe('joinAcceptedPullRequests', () => {
 		);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context);
+		await joinAcceptedPullRequests(context, NO_RELEASES);
 
 		const mergedPrNumbers = docs.writes
 			.filter(({ method }) => method === 'mergePullRequest')
@@ -351,7 +350,7 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context, logs } = createContext(docs);
 
-		await assert.rejects(joinAcceptedPullRequests(context), AggregateError);
+		await assert.rejects(joinAcceptedPullRequests(context, NO_RELEASES), AggregateError);
 
 		assert.ok(
 			docs.writes.some(({ method, args }) => method === 'mergePullRequest' && args[0] === 9)
