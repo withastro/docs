@@ -1,4 +1,5 @@
 import { CHECK_STATES, type Check } from '../lib/github/checks.ts';
+import { GitHubError } from '../lib/github/request.ts';
 import {
 	REVIEW_STATES,
 	type Comparison,
@@ -148,7 +149,13 @@ export class FakeRepository {
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
 		const pullRequest = this.#state.pullRequests.find(({ number }) => number === prNumber);
-		if (!pullRequest) throw new Error(`The fake repository has no pull request #${prNumber}.`);
+		if (!pullRequest) {
+			throw new GitHubError({
+				message: `GET /pulls/${prNumber} failed with 404: Not Found`,
+				status: 404,
+				apiMessage: 'Not Found',
+			});
+		}
 		return pullRequest;
 	}
 

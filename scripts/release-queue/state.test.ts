@@ -60,4 +60,13 @@ describe('readReleaseState', () => {
 
 		assert.deepEqual(settledBaseBranches, ['main']);
 	});
+
+	it('should not count an umbrella whose marker names a release PR that does not exist', async () => {
+		const docs = new FakeRepository({ pullRequests: [buildUmbrella(50, 'main', 404)] });
+		const astro = new FakeRepository({});
+
+		const { settledBaseBranches } = await readReleaseState({ docs, astro });
+
+		assert.deepEqual(settledBaseBranches, []);
+	});
 });

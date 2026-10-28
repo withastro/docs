@@ -1,4 +1,5 @@
 import type { GitHubRepository } from '../lib/github/repository.ts';
+import { GitHubError } from '../lib/github/request.ts';
 import {
 	describeReleases,
 	readFrameworkReleases,
@@ -62,10 +63,23 @@ async function readSettledBaseBranches({ docs, astro }: StateContext) {
 		isUmbrellaPullRequest(pullRequest, docs.fullName)
 	);
 	const settledFlags = await Promise.all(
-		umbrellas.map(async ({ body }) => {
-			const releasePrNumber = readReleasePrMarker(body);
-			return releasePrNumber !== null && (await astro.getPullRequest(releasePrNumber)).merged;
-		})
+		umbrellas.map(({ body }) => isMarkedReleaseMerged(astro, body))
 	);
 	return umbrellas.filter((_, index) => settledFlags[index]).map(({ base }) => base.ref);
+}
+
+/**
+ * Tells whether the release PR in the marker of an umbrella is merged. A marker naming a PR that
+ * does not exist, after a hand edit, counts as not merged, so it does not stop every run.
+ */
+async function isMarkedReleaseMerged(astro: StateFrameworkRepository, body: string | null) {
+	const releasePrNumber = readReleasePrMarker(body);
+	if (releasePrNumber === null) return false;
+
+	try {
+		return (await astro.getPullRequest(releasePrNumber)).merged;
+	} catch (error) {
+		if (error instanceof GitHubError && error.isNotFound) return false;
+		throw error;
+	}
 }
