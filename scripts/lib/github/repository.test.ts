@@ -59,6 +59,17 @@ const pullRequestResponse = {
 	labels: [{ name: 'i18n', color: 'ffffff' }],
 };
 
+const pullRequestDetails = { ...pullRequest, mergeable: true, merged: false };
+
+/** A single pull request as GitHub sends it, with fields the client does not read. */
+const pullRequestDetailsResponse = {
+	...pullRequestResponse,
+	mergeable: true,
+	mergeable_state: 'clean',
+	merged: false,
+	merged_at: null,
+};
+
 describe('GitHubRepository', () => {
 	it('should refuse a name that is not "owner/repo"', () => {
 		const token = 'test-token';
@@ -135,15 +146,6 @@ describe('GitHubRepository', () => {
 	});
 
 	describe('getPullRequest', () => {
-		const pullRequestDetails = { ...pullRequest, mergeable: true, merged: false };
-		const pullRequestDetailsResponse = {
-			...pullRequestResponse,
-			mergeable: true,
-			mergeable_state: 'clean',
-			merged: false,
-			merged_at: null,
-		};
-
 		it('should get a pull request, with its mergeability', async (t) => {
 			const fetchMock = mockFetch(t, jsonResponse(pullRequestDetailsResponse));
 
@@ -191,6 +193,29 @@ describe('GitHubRepository', () => {
 			mockFetch(t, jsonResponse(pullRequestResponse));
 
 			await assert.rejects(createRepository().getPullRequest(7), /pulls\/7/);
+		});
+	});
+
+	describe('findPullRequest', () => {
+		it('should get a pull request', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse(pullRequestDetailsResponse));
+
+			const result = await createRepository().findPullRequest(7);
+
+			assert.deepEqual(result, pullRequestDetails);
+			assert.deepEqual(getRequestedUrls(fetchMock), [`${REPOSITORY_URL}/pulls/7`]);
+		});
+
+		it('should return null for a pull request that does not exist', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Not Found' }, { status: 404 }));
+
+			assert.equal(await createRepository().findPullRequest(7), null);
+		});
+
+		it('should throw on other errors', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Bad credentials' }, { status: 401 }));
+
+			await assert.rejects(createRepository().findPullRequest(7), /Bad credentials/);
 		});
 	});
 

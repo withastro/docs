@@ -230,6 +230,19 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Gets a pull request that may not exist.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<PullRequestDetails | null>} The pull request, or `null`
+	 * when GitHub answers "Not Found" (e.g. a missing pull request or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 * @throws {Error} When the pull request does not have the expected shape.
+	 */
+	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
+		return this.#getOrNull(`/pulls/${prNumber}`, pullRequestDetailsShape);
+	}
+
+	/**
 	 * Gets the checks of a commit: its check runs, then its commit statuses.
 	 *
 	 * Only the latest run of each check counts.
@@ -278,16 +291,11 @@ export class GitHubRepository {
 	 * @throws {Error} When the permission does not have the expected shape.
 	 */
 	async hasWriteAccess(login: string): Promise<boolean> {
-		try {
-			const { permission } = await this.#get(
-				`/collaborators/${encodePathSegment(login)}/permission`,
-				permissionShape
-			);
-			return WRITE_PERMISSIONS.includes(permission);
-		} catch (error) {
-			if (error instanceof GitHubError && error.isNotFound) return false;
-			throw error;
-		}
+		const collaborator = await this.#getOrNull(
+			`/collaborators/${encodePathSegment(login)}/permission`,
+			permissionShape
+		);
+		return collaborator !== null && WRITE_PERMISSIONS.includes(collaborator.permission);
 	}
 
 	/**
@@ -302,16 +310,11 @@ export class GitHubRepository {
 	 * @throws {Error} When the file is larger than 1 MB.
 	 */
 	async getFileContent(path: string, ref: string): Promise<string | null> {
-		try {
-			const { content } = await this.#get(
-				`/contents/${encodePathSegments(path)}?ref=${encodeURIComponent(ref)}`,
-				fileContentShape
-			);
-			return Buffer.from(content, FILE_CONTENT_ENCODING).toString('utf8');
-		} catch (error) {
-			if (error instanceof GitHubError && error.isNotFound) return null;
-			throw error;
-		}
+		const file = await this.#getOrNull(
+			`/contents/${encodePathSegments(path)}?ref=${encodeURIComponent(ref)}`,
+			fileContentShape
+		);
+		return file && Buffer.from(file.content, FILE_CONTENT_ENCODING).toString('utf8');
 	}
 
 	/**
@@ -324,16 +327,11 @@ export class GitHubRepository {
 	 * @throws {Error} When the ref does not have the expected shape.
 	 */
 	async getBranchSha(branch: string): Promise<string | null> {
-		try {
-			const { object } = await this.#get(
-				`/git/ref/heads/${encodePathSegments(branch)}`,
-				branchRefShape
-			);
-			return object.sha;
-		} catch (error) {
-			if (error instanceof GitHubError && error.isNotFound) return null;
-			throw error;
-		}
+		const branchRef = await this.#getOrNull(
+			`/git/ref/heads/${encodePathSegments(branch)}`,
+			branchRefShape
+		);
+		return branchRef && branchRef.object.sha;
 	}
 
 	/**
@@ -478,6 +476,16 @@ export class GitHubRepository {
 
 	async #get<T>(path: string, responseShape: shape.Shape<T>): Promise<T> {
 		return this.#request({ method: 'GET', path }, responseShape);
+	}
+
+	/** Gets a resource, or `null` when GitHub answers "Not Found". */
+	async #getOrNull<T>(path: string, responseShape: shape.Shape<T>): Promise<T | null> {
+		try {
+			return await this.#get(path, responseShape);
+		} catch (error) {
+			if (error instanceof GitHubError && error.isNotFound) return null;
+			throw error;
+		}
 	}
 
 	async #getList<T>(path: string, itemShape: shape.Shape<T>): Promise<T[]> {

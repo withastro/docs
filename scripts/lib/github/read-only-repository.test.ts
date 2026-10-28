@@ -14,6 +14,7 @@ const READ_METHODS = [
 	'getOpenPullRequests',
 	'getOpenPullRequestsFromBranch',
 	'getPullRequest',
+	'findPullRequest',
 	'getChecks',
 	'compare',
 	'hasWriteAccess',
