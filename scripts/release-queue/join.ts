@@ -62,6 +62,8 @@ export type ReleaseQueueContext = {
 	docs: DocsRepository;
 	/** The framework repository, read for its release PRs. */
 	astro: StateFrameworkRepository;
+	/** The docs repository through another account than `docs`, to review the umbrellas it opens. */
+	reviewer: Pick<GitHubRepository, 'getReviews' | 'requestChanges' | 'updateReview'>;
 	log: (message: string) => void;
 	/** The job running the release queue, from `GITHUB_JOB`. `null` outside GitHub Actions. */
 	jobName: string | null;

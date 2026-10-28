@@ -16,7 +16,8 @@ function buildDocs() {
 function createContext(docs: FakeRepository) {
 	const logs: string[] = [];
 	const log = (message: string) => logs.push(message);
-	return { context: { docs, astro: new FakeRepository({}), log, jobName: null }, logs };
+	const reviewer = new FakeRepository({});
+	return { context: { docs, astro: new FakeRepository({}), reviewer, log, jobName: null }, logs };
 }
 
 describe('runReleaseQueue', () => {

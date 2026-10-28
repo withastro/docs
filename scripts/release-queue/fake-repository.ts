@@ -9,6 +9,7 @@ import {
 	type PullRequestDetails,
 	type Review,
 	type ReviewState,
+	type ReviewUpdate,
 } from '../lib/github/repository.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
@@ -205,5 +206,13 @@ export class FakeRepository {
 
 	async createComment(prNumber: number, body: string): Promise<void> {
 		this.writes.push({ method: 'createComment', args: [prNumber, body] });
+	}
+
+	async requestChanges(prNumber: number, body: string): Promise<void> {
+		this.writes.push({ method: 'requestChanges', args: [prNumber, body] });
+	}
+
+	async updateReview(prNumber: number, update: ReviewUpdate): Promise<void> {
+		this.writes.push({ method: 'updateReview', args: [prNumber, update] });
 	}
 }

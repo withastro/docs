@@ -26,6 +26,8 @@ export type Route = {
 export type UmbrellaUpdate = {
 	title: string;
 	body: string;
+	/** The framework release PR the umbrella ships with, or `null` when none is linked yet. */
+	releasePrNumber: number | null;
 	labelsToAdd: string[];
 	labelsToRemove: string[];
 };
@@ -136,6 +138,7 @@ export function planUmbrellaUpdate(
 	return {
 		title: release ? renderUmbrellaTitle(baseBranch, release) : umbrella.title,
 		body: renderUmbrellaBody({ route, releasePrNumber, includedPrNumbers }),
+		releasePrNumber,
 		...planReleaseLabels(umbrella, getUmbrellaReleaseType(baseBranch, release)),
 	};
 }

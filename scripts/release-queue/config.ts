@@ -41,3 +41,8 @@ export const FRAMEWORK_STABLE_RELEASE_BRANCH = 'changeset-release/main';
 export const FRAMEWORK_PRERELEASE_RELEASE_BRANCH = 'changeset-release/next';
 /** Changesets writes this file on the framework's prerelease branch while it is in pre mode. */
 export const FRAMEWORK_PRE_MODE_FILE = { path: '.changeset/pre.json', ref: 'next' };
+
+/** Set by the labeler on PRs that change translations. Their umbrella needs a Lunaria directive. */
+export const I18N_LABEL = 'i18n';
+/** The directive that tells Lunaria to track the English pages changed by an umbrella. */
+export const LUNARIA_DIRECTIVE = '@lunaria-track:src/content/docs/en/**.mdx';

@@ -1,8 +1,8 @@
 // Moves docs PRs labeled `accepted` into their release umbrella PR and refreshes the umbrellas, or
 // with `MODE=dry-run`, comments on the PR `PR_NUMBER` with what it would do. Run by
 // `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN` (writes
-// on the docs repository), and `GITHUB_TOKEN` (reads the framework repository). Locally, add
-// `--read-only` to log the writes instead.
+// on the docs repository), and `GITHUB_TOKEN` (reads the framework repository and reviews the
+// umbrellas). Locally, add `--read-only` to log the writes instead.
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
@@ -14,22 +14,20 @@ import { runReleaseQueue } from './release-queue/queue.ts';
 const { values: flags } = parseArgs({
 	options: { 'read-only': { type: 'boolean', default: false } },
 });
-const docs = createDocsRepository({ isReadOnly: flags['read-only'] });
-const astro = new GitHubRepository({
-	fullName: FRAMEWORK_REPOSITORY,
-	token: readRequiredVariable('GITHUB_TOKEN'),
-});
-const context = { docs, astro, log: console.info, jobName: process.env.GITHUB_JOB || null };
+const isReadOnly = flags['read-only'];
+const workflowToken = readRequiredVariable('GITHUB_TOKEN');
+const docs = createDocsRepository({ token: readRequiredVariable('BOT_TOKEN'), isReadOnly });
+const reviewer = createDocsRepository({ token: workflowToken, isReadOnly });
+const astro = new GitHubRepository({ fullName: FRAMEWORK_REPOSITORY, token: workflowToken });
+const jobName = process.env.GITHUB_JOB || null;
+const context = { docs, astro, reviewer, log: console.info, jobName };
 const prNumber = readOptionalPrNumber('PR_NUMBER');
 if (readMode('MODE') === MODES.live) await runReleaseQueue(context);
 else if (prNumber) await previewJoin(context, prNumber);
 else console.info('Dry run: no PR to preview.');
 
-function createDocsRepository({ isReadOnly }: { isReadOnly: boolean }) {
-	const options = {
-		fullName: readRequiredVariable('GITHUB_REPOSITORY'),
-		token: readRequiredVariable('BOT_TOKEN'),
-	};
+function createDocsRepository({ token, isReadOnly }: { token: string; isReadOnly: boolean }) {
+	const options = { fullName: readRequiredVariable('GITHUB_REPOSITORY'), token };
 	return isReadOnly
 		? new ReadOnlyRepository({ ...options, log: console.info })
 		: new GitHubRepository(options);

@@ -44,9 +44,11 @@ async function refreshWithState(state: ReleaseState, ...pullRequests: PullReques
 			},
 		},
 	});
+	const reviewer = new FakeRepository({});
 	const logs: string[] = [];
-	await refreshOpenUmbrellas({ docs, log: (message) => logs.push(message) }, state);
-	return { writes: docs.writes, logs };
+	const log = (message: string) => logs.push(message);
+	await refreshOpenUmbrellas({ docs, reviewer, log }, state);
+	return { writes: docs.writes, reviews: reviewer.writes, logs };
 }
 
 describe('refreshOpenUmbrellas', () => {
@@ -58,7 +60,11 @@ describe('refreshOpenUmbrellas', () => {
 			{ method: 'addLabels', args: [50, ['merge-on-release', 'minor-release']] },
 			{ method: 'removeLabel', args: [50, 'patch-release'] },
 		]);
-		assert.deepEqual(logs, ['Open umbrellas: #50.', 'Umbrella #50 refreshed.']);
+		assert.deepEqual(logs, [
+			'Open umbrellas: #50.',
+			'Umbrella #50 refreshed.',
+			'Umbrella #50: merge blocked by a review.',
+		]);
 	});
 
 	it('should only send what changed', async () => {
@@ -82,7 +88,7 @@ describe('refreshOpenUmbrellas', () => {
 		const { writes, logs } = await refresh(umbrella);
 
 		assert.deepEqual(writes, []);
-		assert.equal(logs.at(-1), 'Umbrella #50 is up to date.');
+		assert.equal(logs[1], 'Umbrella #50 is up to date.');
 	});
 
 	it('should refresh every open umbrella, and only umbrellas', async () => {
@@ -140,5 +146,25 @@ describe('refreshOpenUmbrellas', () => {
 
 		assert.deepEqual(writes, []);
 		assert.match(logs.at(-1) ?? '', /^Umbrella #50 skipped: /);
+	});
+
+	it('should fill the merge checklist of each umbrella', async () => {
+		const { reviews } = await refreshWithState(
+			{ releases: RELEASES, settledBaseBranches: ['main'] },
+			buildUmbrella([], {
+				body: renderUmbrellaBody({
+					route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+					releasePrNumber: 100,
+					includedPrNumbers: [],
+				}),
+			}),
+			buildPullRequest({ number: 11, baseBranch: 'release-queue/main' })
+		);
+
+		assert.equal(reviews.length, 1);
+		const [checklist] = reviews.map(({ args }) => String(args[1]));
+		assert.match(checklist, /included=7 -->/);
+		assert.match(checklist, /- \[x\] withastro\/astro#100, /);
+		assert.match(checklist, /Still open: #11\./);
 	});
 });

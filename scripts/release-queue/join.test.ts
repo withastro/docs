@@ -25,7 +25,8 @@ const NO_STATE = { releases: { stable: null, prerelease: null }, settledBaseBran
 function createContext(docs: FakeRepository, astro = new FakeRepository({})) {
 	const logs: string[] = [];
 	const log = (message: string) => logs.push(message);
-	return { context: { docs, astro, log, jobName: 'release-queue' }, logs };
+	const reviewer = new FakeRepository({});
+	return { context: { docs, astro, reviewer, log, jobName: 'release-queue' }, logs };
 }
 
 function buildComment(prNumber: number, decision: Decision) {
