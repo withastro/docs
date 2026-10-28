@@ -83,6 +83,7 @@ export type PullRequest = {
 export type PullRequestDetails = PullRequest & {
 	/** `null` while GitHub checks for conflicts, a check that the first request starts. */
 	mergeable: boolean | null;
+	merged: boolean;
 };
 
 export type NewPullRequest = {
@@ -97,6 +98,7 @@ export type NewPullRequest = {
 export type CreatedPullRequest = Pick<PullRequest, 'number' | 'html_url'>;
 
 export type PullRequestChanges = {
+	title?: string;
 	/** The branch to merge into. */
 	base?: string;
 	body?: string;
@@ -105,6 +107,8 @@ export type PullRequestChanges = {
 export type MergeOptions = {
 	method: MergeMethod;
 	expectedHeadSha: string;
+	/** Defaults to the title the repository settings give. */
+	commitTitle?: string;
 };
 
 export type Comparison = {
@@ -149,6 +153,7 @@ const isPullRequest = shapeOf<PullRequest>(pullRequestFieldGuards);
 const isPullRequestDetails = shapeOf<PullRequestDetails>({
 	...pullRequestFieldGuards,
 	mergeable: orNull(isBoolean),
+	merged: isBoolean,
 });
 
 const isCreatedPullRequest = shapeOf<CreatedPullRequest>({
@@ -432,7 +437,7 @@ export class GitHubRepository {
 	}
 
 	/**
-	 * Changes the base branch or the description of a pull request.
+	 * Changes the title, the base branch, or the description of a pull request.
 	 *
 	 * @param {number} prNumber - The number of the pull request.
 	 * @param {PullRequestChanges} changes - The fields to change. Omitted fields stay as they are.
@@ -449,17 +454,17 @@ export class GitHubRepository {
 	 * pushed after them is not merged.
 	 *
 	 * @param {number} prNumber - The number of the pull request.
-	 * @param {MergeOptions} options - The merge method and the expected head SHA.
+	 * @param {MergeOptions} options - How to merge.
 	 * @throws {GitHubError} When GitHub refuses the merge, for example when the head changed.
 	 */
 	async mergePullRequest(
 		prNumber: number,
-		{ method, expectedHeadSha }: MergeOptions
+		{ method, expectedHeadSha, commitTitle }: MergeOptions
 	): Promise<void> {
 		await this.#send({
 			method: 'PUT',
 			path: `/pulls/${prNumber}/merge`,
-			body: { merge_method: method, sha: expectedHeadSha },
+			body: { merge_method: method, sha: expectedHeadSha, commit_title: commitTitle },
 		});
 	}
 
@@ -588,7 +593,8 @@ function toPullRequest(pullRequest: PullRequest): PullRequest {
 }
 
 function toPullRequestDetails(pullRequest: PullRequestDetails): PullRequestDetails {
-	return { ...toPullRequest(pullRequest), mergeable: pullRequest.mergeable };
+	const { mergeable, merged } = pullRequest;
+	return { ...toPullRequest(pullRequest), mergeable, merged };
 }
 
 function toComparison({ ahead_by, commits }: Comparison): Comparison {

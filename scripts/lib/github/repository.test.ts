@@ -135,11 +135,13 @@ describe('GitHubRepository', () => {
 	});
 
 	describe('getPullRequest', () => {
-		const pullRequestDetails = { ...pullRequest, mergeable: true };
+		const pullRequestDetails = { ...pullRequest, mergeable: true, merged: false };
 		const pullRequestDetailsResponse = {
 			...pullRequestResponse,
 			mergeable: true,
 			mergeable_state: 'clean',
+			merged: false,
+			merged_at: null,
 		};
 
 		it('should get a pull request, with its mergeability', async (t) => {
@@ -149,6 +151,14 @@ describe('GitHubRepository', () => {
 
 			assert.deepEqual(result, pullRequestDetails);
 			assert.deepEqual(getRequestedUrls(fetchMock), [`${REPOSITORY_URL}/pulls/7`]);
+		});
+
+		it('should tell whether the pull request is merged', async (t) => {
+			mockFetch(t, jsonResponse({ ...pullRequestDetailsResponse, merged: true, mergeable: null }));
+
+			const result = await createRepository().getPullRequest(7);
+
+			assert.equal(result.merged, true);
 		});
 
 		it('should accept a mergeability GitHub has not computed yet', async (t) => {
@@ -544,6 +554,14 @@ describe('GitHubRepository', () => {
 				body: { base: 'release/v6', body: 'Updated' },
 			});
 		});
+
+		it('should change the title of a pull request', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse(pullRequest));
+
+			await createRepository().updatePullRequest(7, { title: 'Fix typos' });
+
+			assert.deepEqual(getSentRequest(fetchMock).body, { title: 'Fix typos' });
+		});
 	});
 
 	describe('mergePullRequest', () => {
@@ -559,6 +577,22 @@ describe('GitHubRepository', () => {
 				url: `${REPOSITORY_URL}/pulls/7/merge`,
 				method: 'PUT',
 				body: { merge_method: 'squash', sha: 'abc123' },
+			});
+		});
+
+		it('should set the title of the merge commit', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse({ merged: true, sha: 'def456', message: '' }));
+
+			await createRepository().mergePullRequest(7, {
+				method: MERGE_METHODS.squash,
+				expectedHeadSha: 'abc123',
+				commitTitle: 'Fix a typo (#7)',
+			});
+
+			assert.deepEqual(getSentRequest(fetchMock).body, {
+				merge_method: 'squash',
+				sha: 'abc123',
+				commit_title: 'Fix a typo (#7)',
 			});
 		});
 
