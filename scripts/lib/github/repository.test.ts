@@ -479,7 +479,7 @@ describe('GitHubRepository', () => {
 
 			await assert.rejects(
 				createRepository().createPullRequest(newPullRequest),
-				/Unexpected response from POST \/repos\/example-org\/example-repo\/pulls\./
+				/Unexpected response from POST \/repos\/example-org\/example-repo\/pulls: `number` should be a number/
 			);
 		});
 	});

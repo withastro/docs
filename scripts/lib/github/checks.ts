@@ -1,4 +1,4 @@
-import { isNumber, isOneOf, isString, listOf, orNull, shapeOf } from './guards.ts';
+import * as shape from './shape.ts';
 
 const COMPLETED_CHECK_RUN_STATUS = 'completed';
 /** The conclusions GitHub accepts for a check required by branch protection. */
@@ -26,27 +26,31 @@ const CHECK_STATES_BY_COMMIT_STATUS_STATE: Record<CommitStatusState, CheckState>
 /** A check run or a commit status, with GitHub's states reduced to the outcome. */
 export type Check = { name: string; state: CheckState };
 
-type CheckRun = { name: string; status: string; conclusion: string | null };
-type CheckRunList = { total_count: number; check_runs: CheckRun[] };
-type CommitStatus = { context: string; state: CommitStatusState };
-type CombinedStatus = { total_count: number; statuses: CommitStatus[] };
-
-export const isCheckRunList = shapeOf<CheckRunList>({
-	total_count: isNumber,
-	check_runs: listOf(
-		shapeOf<CheckRun>({ name: isString, status: isString, conclusion: orNull(isString) })
-	),
+const checkRunShape = shape.object({
+	name: shape.string,
+	status: shape.string,
+	conclusion: shape.nullable(shape.string),
 });
 
-export const isCombinedStatus = shapeOf<CombinedStatus>({
-	total_count: isNumber,
-	statuses: listOf(
-		shapeOf<CommitStatus>({
-			context: isString,
-			state: isOneOf(COMMIT_STATUS_STATES),
-		})
-	),
+const commitStatusShape = shape.object({
+	context: shape.string,
+	state: shape.oneOf(COMMIT_STATUS_STATES),
 });
+
+export const checkRunListShape = shape.object({
+	total_count: shape.number,
+	check_runs: shape.list(checkRunShape),
+});
+
+export const combinedStatusShape = shape.object({
+	total_count: shape.number,
+	statuses: shape.list(commitStatusShape),
+});
+
+type CheckRun = shape.Infer<typeof checkRunShape>;
+type CheckRunList = shape.Infer<typeof checkRunListShape>;
+type CommitStatus = shape.Infer<typeof commitStatusShape>;
+type CombinedStatus = shape.Infer<typeof combinedStatusShape>;
 
 /**
  * Reduces the check runs and the commit statuses of a commit to their outcomes.

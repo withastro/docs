@@ -1,4 +1,4 @@
-import { ensureShape, isList, isRecord } from './guards.ts';
+import * as shape from './shape.ts';
 
 const API_URL = 'https://api.github.com';
 const API_VERSION = '2026-03-10';
@@ -80,7 +80,8 @@ export async function getAllPages(options: Pick<RequestOptions, 'token' | 'path'
 	while (url) {
 		const requestLine = `GET ${url.pathname}`;
 		const response = await sendToUrl(url, { ...options, method: 'GET' });
-		const page = ensureShape(await readJsonBody(response, requestLine), isList, requestLine);
+		const body = await readJsonBody(response, requestLine);
+		const page = shape.parseResponse(body, shape.list(shape.unknown), requestLine);
 		items.push(...page);
 		url = getNextPageUrl(response);
 	}
@@ -127,7 +128,7 @@ async function readJsonBody(response: Response, requestLine: string): Promise<un
 /** Reads the message and the validation errors GitHub sends with an error status. */
 async function readErrorBody(response: Response) {
 	const body: unknown = await response.json().catch(() => null);
-	if (!isRecord(body) || typeof body.message !== 'string') {
+	if (!shape.isRecord(body) || typeof body.message !== 'string') {
 		return { apiMessage: response.statusText, details: response.statusText };
 	}
 
@@ -136,7 +137,7 @@ async function readErrorBody(response: Response) {
 }
 
 function formatValidationError(error: unknown) {
-	return isRecord(error) && typeof error.message === 'string'
+	return shape.isRecord(error) && typeof error.message === 'string'
 		? error.message
 		: JSON.stringify(error);
 }

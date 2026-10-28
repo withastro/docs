@@ -160,6 +160,9 @@ describe('getAllPages', () => {
 
 		const request = getAllPages({ token: TOKEN, path: '/repos/a/b/pulls' });
 
-		await assert.rejects(request, /Unexpected response from GET \/repos\/a\/b\/pulls\./);
+		await assert.rejects(
+			request,
+			/Unexpected response from GET \/repos\/a\/b\/pulls: the body should be a list, got object\./
+		);
 	});
 });

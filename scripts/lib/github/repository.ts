@@ -1,16 +1,4 @@
-import { isCheckRunList, isCombinedStatus, toChecks, type Check } from './checks.ts';
-import {
-	ensureShape,
-	isBoolean,
-	isNumber,
-	isOneOf,
-	isString,
-	listOf,
-	orNull,
-	shapeOf,
-	type FieldGuards,
-	type Guard,
-} from './guards.ts';
+import { checkRunListShape, combinedStatusShape, toChecks, type Check } from './checks.ts';
 import {
 	getAllPages,
 	GitHubError,
@@ -18,6 +6,7 @@ import {
 	sendRequest,
 	type HttpMethod,
 } from './request.ts';
+import * as shape from './shape.ts';
 
 /** `owner/repo`, where neither part is made only of dots, so the endpoint stays in `/repos`. */
 const REPOSITORY_FULL_NAME = /^(?!\.+\/)[\w.-]+\/(?!\.+$)[\w.-]+$/;
@@ -50,41 +39,79 @@ export const MERGE_METHODS = {
 
 export type MergeMethod = (typeof MERGE_METHODS)[keyof typeof MERGE_METHODS];
 
-type User = { login: string };
+const userShape = shape.object({ login: shape.string });
 
-type Repository = { full_name: string };
-
-export type Review = {
-	id: number;
+const reviewShape = shape.object({
+	id: shape.number,
 	/** `null` when the account was deleted. */
-	user: User | null;
-	state: ReviewState;
+	user: shape.nullable(userShape),
+	state: shape.oneOf(Object.values(REVIEW_STATES)),
 	/** The text of the review, in Markdown. Empty when the reviewer wrote none. */
-	body: string;
+	body: shape.string,
 	/** The head commit when the review was submitted. */
-	commit_id: string | null;
+	commit_id: shape.nullable(shape.string),
+});
+
+const pullRequestFieldShapes = {
+	number: shape.number,
+	title: shape.string,
+	body: shape.nullable(shape.string),
+	html_url: shape.string,
+	draft: shape.boolean,
+	/** `null` when the account was deleted. */
+	user: shape.nullable(userShape),
+	head: shape.object({
+		ref: shape.string,
+		sha: shape.string,
+		/** `null` when the repository of the head branch was deleted. */
+		repo: shape.nullable(shape.object({ full_name: shape.string })),
+	}),
+	base: shape.object({ ref: shape.string }),
+	labels: shape.list(shape.object({ name: shape.string })),
 };
 
-export type PullRequest = {
-	number: number;
-	title: string;
-	body: string | null;
-	html_url: string;
-	draft: boolean;
-	/** `null` when the account was deleted. */
-	user: User | null;
-	/** `repo` is `null` when the repository of the head branch was deleted. */
-	head: { ref: string; sha: string; repo: Repository | null };
-	base: { ref: string };
-	labels: { name: string }[];
-};
+const pullRequestShape = shape.object(pullRequestFieldShapes);
+
+const pullRequestDetailsShape = shape.object({
+	...pullRequestFieldShapes,
+	/**
+	 * `null` until GitHub has checked the pull request for conflicts. The first
+	 * request for the pull request starts that check.
+	 */
+	mergeable: shape.nullable(shape.boolean),
+	merged: shape.boolean,
+});
+
+const createdPullRequestShape = shape.object({ number: shape.number, html_url: shape.string });
+
+const comparisonShape = shape.object({
+	ahead_by: shape.number,
+	/** At most 250 commits, oldest first. */
+	commits: shape.list(
+		shape.object({ sha: shape.string, commit: shape.object({ message: shape.string }) })
+	),
+});
+
+const permissionShape = shape.object({ permission: shape.string });
+
+const branchRefShape = shape.object({ object: shape.object({ sha: shape.string }) });
+
+const fileContentShape = shape.object({
+	type: shape.oneOf([FILE_CONTENT_TYPE]),
+	encoding: shape.oneOf([FILE_CONTENT_ENCODING]),
+	content: shape.string,
+});
+
+export type Review = shape.Infer<typeof reviewShape>;
+
+export type PullRequest = shape.Infer<typeof pullRequestShape>;
 
 /** A pull request with the fields only the endpoint for a single pull request sends. */
-export type PullRequestDetails = PullRequest & {
-	/** `null` while GitHub checks for conflicts, a check that the first request starts. */
-	mergeable: boolean | null;
-	merged: boolean;
-};
+export type PullRequestDetails = shape.Infer<typeof pullRequestDetailsShape>;
+
+export type CreatedPullRequest = shape.Infer<typeof createdPullRequestShape>;
+
+export type Comparison = shape.Infer<typeof comparisonShape>;
 
 export type NewPullRequest = {
 	title: string;
@@ -94,8 +121,6 @@ export type NewPullRequest = {
 	base: string;
 	body: string;
 };
-
-export type CreatedPullRequest = Pick<PullRequest, 'number' | 'html_url'>;
 
 export type PullRequestChanges = {
 	title?: string;
@@ -111,70 +136,12 @@ export type MergeOptions = {
 	commitTitle?: string;
 };
 
-export type Comparison = {
-	ahead_by: number;
-	/** At most 250 commits, oldest first. */
-	commits: { sha: string; commit: { message: string } }[];
-};
-
 type RepositoryRequest = {
 	method: HttpMethod;
 	/** The endpoint inside the repository, starting with a slash. */
 	path: string;
 	body?: Record<string, unknown>;
 };
-
-const isUser = shapeOf<User>({ login: isString });
-
-const isRepository = shapeOf<Repository>({ full_name: isString });
-
-const isReview = shapeOf<Review>({
-	id: isNumber,
-	user: orNull(isUser),
-	state: isOneOf(Object.values(REVIEW_STATES)),
-	body: isString,
-	commit_id: orNull(isString),
-});
-
-const pullRequestFieldGuards = {
-	number: isNumber,
-	title: isString,
-	body: orNull(isString),
-	html_url: isString,
-	draft: isBoolean,
-	user: orNull(isUser),
-	head: shapeOf({ ref: isString, sha: isString, repo: orNull(isRepository) }),
-	base: shapeOf({ ref: isString }),
-	labels: listOf(shapeOf({ name: isString })),
-} satisfies FieldGuards<PullRequest>;
-
-const isPullRequest = shapeOf<PullRequest>(pullRequestFieldGuards);
-
-const isPullRequestDetails = shapeOf<PullRequestDetails>({
-	...pullRequestFieldGuards,
-	mergeable: orNull(isBoolean),
-	merged: isBoolean,
-});
-
-const isCreatedPullRequest = shapeOf<CreatedPullRequest>({
-	number: isNumber,
-	html_url: isString,
-});
-
-const isComparison = shapeOf<Comparison>({
-	ahead_by: isNumber,
-	commits: listOf(shapeOf({ sha: isString, commit: shapeOf({ message: isString }) })),
-});
-
-const isPermission = shapeOf<{ permission: string }>({ permission: isString });
-
-const isBranchRef = shapeOf<{ object: { sha: string } }>({ object: shapeOf({ sha: isString }) });
-
-const isFileContent = shapeOf<{ type: string; encoding: string; content: string }>({
-	type: isOneOf([FILE_CONTENT_TYPE]),
-	encoding: isOneOf([FILE_CONTENT_ENCODING]),
-	content: isString,
-});
 
 export type RepositoryOptions = {
 	/** As `owner/repo`. */
@@ -220,8 +187,7 @@ export class GitHubRepository {
 	 * @throws {Error} When a review does not have the expected shape.
 	 */
 	async getReviews(prNumber: number): Promise<Review[]> {
-		const reviews = await this.#getList(`/pulls/${prNumber}/reviews`, isReview);
-		return reviews.map(toReview);
+		return this.#getList(`/pulls/${prNumber}/reviews`, reviewShape);
 	}
 
 	/**
@@ -232,8 +198,7 @@ export class GitHubRepository {
 	 * @throws {Error} When a pull request does not have the expected shape.
 	 */
 	async getOpenPullRequests(): Promise<PullRequest[]> {
-		const pullRequests = await this.#getList('/pulls?state=open', isPullRequest);
-		return pullRequests.map(toPullRequest);
+		return this.#getList('/pulls?state=open', pullRequestShape);
 	}
 
 	/**
@@ -249,8 +214,7 @@ export class GitHubRepository {
 	 */
 	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequest[]> {
 		const head = encodeURIComponent(`${this.#owner}:${branch}`);
-		const pullRequests = await this.#getList(`/pulls?state=open&head=${head}`, isPullRequest);
-		return pullRequests.map(toPullRequest);
+		return this.#getList(`/pulls?state=open&head=${head}`, pullRequestShape);
 	}
 
 	/**
@@ -262,8 +226,7 @@ export class GitHubRepository {
 	 * @throws {Error} When the pull request does not have the expected shape.
 	 */
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
-		const pullRequest = await this.#get(`/pulls/${prNumber}`, isPullRequestDetails);
-		return toPullRequestDetails(pullRequest);
+		return this.#get(`/pulls/${prNumber}`, pullRequestDetailsShape);
 	}
 
 	/**
@@ -281,8 +244,8 @@ export class GitHubRepository {
 	async getChecks(ref: string): Promise<Check[]> {
 		const commitPath = `/commits/${encodePathSegments(ref)}`;
 		const [checkRunList, combinedStatus] = await Promise.all([
-			this.#get(`${commitPath}/check-runs?per_page=${MAX_PAGE_SIZE}`, isCheckRunList),
-			this.#get(`${commitPath}/status?per_page=${MAX_PAGE_SIZE}`, isCombinedStatus),
+			this.#get(`${commitPath}/check-runs?per_page=${MAX_PAGE_SIZE}`, checkRunListShape),
+			this.#get(`${commitPath}/status?per_page=${MAX_PAGE_SIZE}`, combinedStatusShape),
 		]);
 
 		return toChecks(checkRunList, combinedStatus, ref);
@@ -299,11 +262,10 @@ export class GitHubRepository {
 	 * @throws {Error} When the comparison does not have the expected shape.
 	 */
 	async compare(base: string, head: string): Promise<Comparison> {
-		const comparison = await this.#get(
+		return this.#get(
 			`/compare/${encodePathSegments(base)}...${encodePathSegments(head)}`,
-			isComparison
+			comparisonShape
 		);
-		return toComparison(comparison);
 	}
 
 	/**
@@ -319,7 +281,7 @@ export class GitHubRepository {
 		try {
 			const { permission } = await this.#get(
 				`/collaborators/${encodePathSegment(login)}/permission`,
-				isPermission
+				permissionShape
 			);
 			return WRITE_PERMISSIONS.includes(permission);
 		} catch (error) {
@@ -343,7 +305,7 @@ export class GitHubRepository {
 		try {
 			const { content } = await this.#get(
 				`/contents/${encodePathSegments(path)}?ref=${encodeURIComponent(ref)}`,
-				isFileContent
+				fileContentShape
 			);
 			return Buffer.from(content, FILE_CONTENT_ENCODING).toString('utf8');
 		} catch (error) {
@@ -365,7 +327,7 @@ export class GitHubRepository {
 		try {
 			const { object } = await this.#get(
 				`/git/ref/heads/${encodePathSegments(branch)}`,
-				isBranchRef
+				branchRefShape
 			);
 			return object.sha;
 		} catch (error) {
@@ -383,11 +345,10 @@ export class GitHubRepository {
 	 * @throws {Error} When the created pull request does not have the expected shape.
 	 */
 	async createPullRequest(pullRequest: NewPullRequest): Promise<CreatedPullRequest> {
-		const { number, html_url } = await this.#request(
+		return this.#request(
 			{ method: 'POST', path: '/pulls', body: pullRequest },
-			isCreatedPullRequest
+			createdPullRequestShape
 		);
-		return { number, html_url };
 	}
 
 	/**
@@ -515,20 +476,20 @@ export class GitHubRepository {
 		});
 	}
 
-	async #get<T>(path: string, guard: Guard<T>): Promise<T> {
-		return this.#request({ method: 'GET', path }, guard);
+	async #get<T>(path: string, responseShape: shape.Shape<T>): Promise<T> {
+		return this.#request({ method: 'GET', path }, responseShape);
 	}
 
-	async #getList<T>(path: string, guard: Guard<T>): Promise<T[]> {
+	async #getList<T>(path: string, itemShape: shape.Shape<T>): Promise<T[]> {
 		const endpoint = `${this.#endpoint}${path}`;
 		const items = await getAllPages({ token: this.#token, path: endpoint });
-		return ensureShape(items, listOf(guard), `GET ${endpoint}`);
+		return shape.parseResponse(items, shape.list(itemShape), `GET ${endpoint}`);
 	}
 
-	async #request<T>(request: RepositoryRequest, guard: Guard<T>): Promise<T> {
+	async #request<T>(request: RepositoryRequest, responseShape: shape.Shape<T>): Promise<T> {
 		const endpoint = `${this.#endpoint}${request.path}`;
 		const response = await sendRequest({ ...request, token: this.#token, path: endpoint });
-		return ensureShape(response, guard, `${request.method} ${endpoint}`);
+		return shape.parseResponse(response, responseShape, `${request.method} ${endpoint}`);
 	}
 
 	async #send(request: RepositoryRequest): Promise<void> {
@@ -563,43 +524,4 @@ function isMissingLabel(error: unknown) {
 	return (
 		error instanceof GitHubError && error.isNotFound && error.apiMessage === MISSING_LABEL_MESSAGE
 	);
-}
-
-function toUser(user: User | null): User | null {
-	return user && { login: user.login };
-}
-
-function toRepository(repository: Repository | null): Repository | null {
-	return repository && { full_name: repository.full_name };
-}
-
-function toReview({ id, user, state, body, commit_id }: Review): Review {
-	return { id, user: toUser(user), state, body, commit_id };
-}
-
-function toPullRequest(pullRequest: PullRequest): PullRequest {
-	const { number, title, body, html_url, draft, user, head, base, labels } = pullRequest;
-	return {
-		number,
-		title,
-		body,
-		html_url,
-		draft,
-		user: toUser(user),
-		head: { ref: head.ref, sha: head.sha, repo: toRepository(head.repo) },
-		base: { ref: base.ref },
-		labels: labels.map(({ name }) => ({ name })),
-	};
-}
-
-function toPullRequestDetails(pullRequest: PullRequestDetails): PullRequestDetails {
-	const { mergeable, merged } = pullRequest;
-	return { ...toPullRequest(pullRequest), mergeable, merged };
-}
-
-function toComparison({ ahead_by, commits }: Comparison): Comparison {
-	return {
-		ahead_by,
-		commits: commits.map(({ sha, commit }) => ({ sha, commit: { message: commit.message } })),
-	};
 }
