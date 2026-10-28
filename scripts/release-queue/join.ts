@@ -7,6 +7,7 @@ import { renderDryRunComment } from './comments.ts';
 import { ACCEPTED_LABEL } from './config.ts';
 import { OUTCOMES, routePullRequest, type Decision } from './decision.ts';
 import { findReadinessProblems, readReadiness } from './readiness.ts';
+import { readStableRelease, type FrameworkRelease, type FrameworkRepository } from './release.ts';
 import { isUmbrellaPullRequest } from './umbrella.ts';
 
 type DocsRepository = Pick<
@@ -16,6 +17,8 @@ type DocsRepository = Pick<
 
 type ReleaseQueueContext = {
 	docs: DocsRepository;
+	/** The framework repository, read for its release PRs. */
+	astro: FrameworkRepository;
 	log: (message: string) => void;
 	/** The job running the release queue, from `GITHUB_JOB`. `null` outside GitHub Actions. */
 	jobName: string | null;
@@ -27,13 +30,13 @@ type ReleaseQueueContext = {
  *
  * Skips a PR that no longer has the label, and umbrella PRs.
  *
- * @param {ReleaseQueueContext} context - The docs repository, where to log, and the job running
- * the release queue.
+ * @param {ReleaseQueueContext} context - The docs and framework repositories, where to log, and
+ * the job running the release queue.
  * @param {number} prNumber - The number of the docs PR.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
 export async function previewJoin(
-	{ docs, log, jobName }: ReleaseQueueContext,
+	{ docs, astro, log, jobName }: ReleaseQueueContext,
 	prNumber: number
 ): Promise<void> {
 	const pullRequest = await docs.getPullRequest(prNumber);
@@ -43,18 +46,29 @@ export async function previewJoin(
 		return;
 	}
 
-	const decision = await decideJoin(docs, pullRequest, jobName);
+	const stableRelease = await readStableRelease(astro);
+	log(`Stable release: ${describeRelease(stableRelease, astro.fullName)}.`);
+
+	const decision = await decideJoin({ docs, pullRequest, stableRelease, jobName });
 	await docs.createComment(prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
 
+type JoinFacts = {
+	docs: DocsRepository;
+	pullRequest: PullRequestDetails;
+	stableRelease: FrameworkRelease | null;
+	jobName: string | null;
+};
+
 /** Routes a docs PR to its umbrella, then checks that it can be merged. */
-async function decideJoin(
-	docs: DocsRepository,
-	pullRequest: PullRequestDetails,
-	jobName: string | null
-): Promise<Decision> {
-	const routing = routePullRequest(pullRequest);
+async function decideJoin({
+	docs,
+	pullRequest,
+	stableRelease,
+	jobName,
+}: JoinFacts): Promise<Decision> {
+	const routing = routePullRequest(pullRequest, stableRelease);
 	if (routing.outcome === OUTCOMES.refuse) return routing;
 
 	const problems = findReadinessProblems(await readReadiness(docs, pullRequest, jobName));
@@ -67,6 +81,12 @@ function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {
 	}
 	if (isUmbrellaPullRequest(pullRequest, repositoryFullName)) return 'it is an umbrella PR';
 	return null;
+}
+
+function describeRelease(release: FrameworkRelease | null, repositoryFullName: string) {
+	if (!release) return 'none open';
+	const version = release.astroVersion ? `astro@${release.astroVersion}` : 'without astro';
+	return `${repositoryFullName}#${release.prNumber} (${version}, ${release.type})`;
 }
 
 function describeDecision(decision: Decision) {

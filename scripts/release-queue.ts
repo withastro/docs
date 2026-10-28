@@ -1,19 +1,24 @@
 // Comments on a docs PR labeled `accepted` with the release umbrella PR it would join.
-// Run by `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN`,
-// and `PR_NUMBER`.
+// Run by `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN`
+// (writes on the docs repository), `GITHUB_TOKEN` (reads the framework repository), and `PR_NUMBER`.
 // Locally, add `--read-only` to log the writes instead of sending them.
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
 import { GitHubRepository } from './lib/github/repository.ts';
+import { FRAMEWORK_REPOSITORY } from './release-queue/config.ts';
 import { previewJoin } from './release-queue/join.ts';
 
 const { values: flags } = parseArgs({
 	options: { 'read-only': { type: 'boolean', default: false } },
 });
 const docs = createDocsRepository({ isReadOnly: flags['read-only'] });
+const astro = new GitHubRepository({
+	fullName: FRAMEWORK_REPOSITORY,
+	token: readRequiredVariable('GITHUB_TOKEN'),
+});
 const jobName = process.env.GITHUB_JOB || null;
-await previewJoin({ docs, log: console.info, jobName }, readPrNumber('PR_NUMBER'));
+await previewJoin({ docs, astro, log: console.info, jobName }, readPrNumber('PR_NUMBER'));
 
 function createDocsRepository({ isReadOnly }: { isReadOnly: boolean }) {
 	const options = {

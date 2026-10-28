@@ -1,5 +1,6 @@
 import type { PullRequest } from '../lib/github/repository.ts';
 import { DOCS_STABLE_BRANCH, RELEASE_LABELS, RELEASE_TYPES, type ReleaseType } from './config.ts';
+import type { FrameworkRelease } from './release.ts';
 import { getUmbrellaBaseBranch, getUmbrellaBranch } from './umbrella.ts';
 
 export const OUTCOMES = {
@@ -12,6 +13,7 @@ export const REFUSAL_REASONS = {
 	severalReleaseLabels: 'several-release-labels',
 	majorReleaseOnStableBranch: 'major-release-on-stable-branch',
 	stableReleaseOnPrereleaseBranch: 'stable-release-on-prerelease-branch',
+	majorReleasePending: 'major-release-pending',
 	draft: 'draft',
 	changesRequested: 'changes-requested',
 	missingApproval: 'missing-approval',
@@ -40,10 +42,19 @@ export type Decision =
  * other branch needs the major release label. A PR based on an umbrella branch belongs to that
  * umbrella, with the same rule for the umbrella's base.
  *
+ * While the next stable release of the framework is a major, the stable umbrella takes no PR:
+ * everything merged in the framework then ships in the major, so its docs belong to the
+ * prerelease branch.
+ *
  * @param {Pick<PullRequest, 'base' | 'labels'>} pullRequest - The docs PR.
- * @returns {Decision} The umbrella to join, or why the base and the labels don't agree.
+ * @param {Pick<FrameworkRelease, 'type'> | null} stableRelease - The next stable release of the
+ * framework, or `null` when none is open.
+ * @returns {Decision} The umbrella to join, or why the PR can't join it.
  */
-export function routePullRequest(pullRequest: Pick<PullRequest, 'base' | 'labels'>): Decision {
+export function routePullRequest(
+	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
+	stableRelease: Pick<FrameworkRelease, 'type'> | null
+): Decision {
 	const releaseTypes = getReleaseTypes(pullRequest);
 	if (releaseTypes.length === 0) return refuse(REFUSAL_REASONS.missingReleaseLabel);
 	if (releaseTypes.length > 1) return refuse(REFUSAL_REASONS.severalReleaseLabels);
@@ -54,6 +65,9 @@ export function routePullRequest(pullRequest: Pick<PullRequest, 'base' | 'labels
 	const isMajor = releaseTypes[0] === RELEASE_TYPES.major;
 	if (isStable && isMajor) return refuse(REFUSAL_REASONS.majorReleaseOnStableBranch);
 	if (!isStable && !isMajor) return refuse(REFUSAL_REASONS.stableReleaseOnPrereleaseBranch);
+	if (isStable && stableRelease?.type === RELEASE_TYPES.major) {
+		return refuse(REFUSAL_REASONS.majorReleasePending);
+	}
 
 	return {
 		outcome: OUTCOMES.join,

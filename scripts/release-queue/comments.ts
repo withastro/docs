@@ -8,6 +8,7 @@ const REFUSAL_MESSAGES: Record<RefusalReason, string> = {
 	[REFUSAL_REASONS.severalReleaseLabels]: `This PR has several release labels. Keep only the one for the release it ships in.`,
 	[REFUSAL_REASONS.majorReleaseOnStableBranch]: `This PR has \`${major}\`, but its base branch is \`${DOCS_STABLE_BRANCH}\`. Change its base to the prerelease branch it ships with, or replace \`${major}\` with \`${patch}\` or \`${minor}\`.`,
 	[REFUSAL_REASONS.stableReleaseOnPrereleaseBranch]: `This PR has \`${patch}\` or \`${minor}\`, but its base branch is a prerelease branch. Change its base to \`${DOCS_STABLE_BRANCH}\`, or replace its release label with \`${major}\`.`,
+	[REFUSAL_REASONS.majorReleasePending]: `The next stable release of Astro is a major: everything merged now ships with it, so this PR belongs to its prerelease branch. Change its base to that branch, and replace its release label with \`${major}\`.`,
 	[REFUSAL_REASONS.draft]: `This PR is a draft. Mark it as ready for review first.`,
 	[REFUSAL_REASONS.changesRequested]: `A maintainer requested changes. Address them, then ask for a new review.`,
 	[REFUSAL_REASONS.missingApproval]: `This PR needs an approval from a maintainer.`,

@@ -16,6 +16,7 @@ type PullRequestFixture = {
 	/** `null` for a deleted fork. Defaults to the fake repository. */
 	headRepository?: string | null;
 	labels?: string[];
+	body?: string | null;
 	isDraft?: boolean;
 	mergeable?: boolean | null;
 };
@@ -42,13 +43,14 @@ export function buildPullRequest({
 	headBranch = 'docs-feature',
 	headRepository = FAKE_REPOSITORY_NAME,
 	labels = [],
+	body = null,
 	isDraft = false,
 	mergeable = true,
 }: PullRequestFixture = {}): PullRequestDetails {
 	return {
 		number,
 		title: `Document feature ${number}`,
-		body: null,
+		body,
 		html_url: `https://github.com/${FAKE_REPOSITORY_NAME}/pull/${number}`,
 		draft: isDraft,
 		user: { login: 'example-user' },
@@ -105,6 +107,12 @@ export class FakeRepository {
 		checksByRef = {},
 	}: FakeRepositoryState) {
 		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef };
+	}
+
+	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequestDetails[]> {
+		return this.#state.pullRequests.filter(
+			({ head }) => head.ref === branch && head.repo?.full_name === this.fullName
+		);
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {

@@ -5,10 +5,10 @@ import { OUTCOMES, REFUSAL_REASONS, type Decision } from './decision.ts';
 import { buildPullRequest, buildReadyState, FakeRepository } from './fake-repository.ts';
 import { previewJoin } from './join.ts';
 
-function createContext(docs: FakeRepository) {
+function createContext(docs: FakeRepository, astro = new FakeRepository({})) {
 	const logs: string[] = [];
 	const log = (message: string) => logs.push(message);
-	return { context: { docs, log, jobName: 'release-queue' }, logs };
+	return { context: { docs, astro, log, jobName: 'release-queue' }, logs };
 }
 
 function buildComment(prNumber: number, decision: Decision) {
@@ -29,7 +29,32 @@ describe('previewJoin', () => {
 				route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
 			}),
 		]);
-		assert.deepEqual(logs, ['Dry run: #7 would join release-queue/main.']);
+		assert.deepEqual(logs, [
+			'Stable release: none open.',
+			'Dry run: #7 would join release-queue/main.',
+		]);
+	});
+
+	it('should comment that a PR for the stable umbrella would wait for the major release', async () => {
+		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
+		const docs = new FakeRepository(buildReadyState(pullRequest));
+		const releasePullRequest = buildPullRequest({
+			number: 100,
+			headBranch: 'changeset-release/main',
+			body: '# Releases\n\n## astro@8.0.0\n\n### Major Changes\n',
+		});
+		const astro = new FakeRepository({ pullRequests: [releasePullRequest] });
+		const { context, logs } = createContext(docs, astro);
+
+		await previewJoin(context, 7);
+
+		assert.deepEqual(docs.writes, [
+			buildComment(7, {
+				outcome: OUTCOMES.refuse,
+				reasons: [REFUSAL_REASONS.majorReleasePending],
+			}),
+		]);
+		assert.equal(logs[0], `Stable release: ${astro.fullName}#100 (astro@8.0.0, major).`);
 	});
 
 	it('should comment with the reason a PR with the wrong labels would be refused', async () => {
@@ -64,9 +89,10 @@ describe('previewJoin', () => {
 				reasons: [REFUSAL_REASONS.draft, REFUSAL_REASONS.missingApproval],
 			}),
 		]);
-		assert.deepEqual(logs, [
-			`Dry run: #7 would be refused (${REFUSAL_REASONS.draft}, ${REFUSAL_REASONS.missingApproval}).`,
-		]);
+		assert.equal(
+			logs.at(-1),
+			`Dry run: #7 would be refused (${REFUSAL_REASONS.draft}, ${REFUSAL_REASONS.missingApproval}).`
+		);
 	});
 
 	it('should skip a PR that no longer has the accepted label', async () => {
@@ -78,7 +104,7 @@ describe('previewJoin', () => {
 		await previewJoin(context, 7);
 
 		assert.deepEqual(docs.writes, []);
-		assert.match(logs.join('\n'), /^#7 skipped:/);
+		assert.match(logs.join('\n'), /^#7 skipped:/m);
 	});
 
 	it('should skip an umbrella PR', async () => {
@@ -93,6 +119,6 @@ describe('previewJoin', () => {
 		await previewJoin(context, 7);
 
 		assert.deepEqual(docs.writes, []);
-		assert.match(logs.join('\n'), /^#7 skipped:/);
+		assert.match(logs.join('\n'), /^#7 skipped:/m);
 	});
 });
