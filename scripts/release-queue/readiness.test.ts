@@ -3,7 +3,6 @@ import { describe, it, type TestContext } from 'node:test';
 import { setImmediate } from 'node:timers/promises';
 import { CHECK_STATES } from '../lib/github/checks.ts';
 import { REVIEW_STATES } from '../lib/github/repository.ts';
-import { REFUSAL_REASONS } from './decision.ts';
 import {
 	buildPullRequest,
 	buildReadyState,
@@ -11,7 +10,7 @@ import {
 	FakeRepository,
 	MAINTAINER,
 } from './fake-repository.ts';
-import { findReadinessProblems, readReadiness, type Readiness } from './readiness.ts';
+import { readReadiness, type Readiness } from './readiness.ts';
 
 const READY: Readiness = {
 	isDraft: false,
@@ -45,38 +44,6 @@ async function runWithTimers<T>(t: TestContext, operation: () => Promise<T>): Pr
 	}
 	return promise;
 }
-
-describe('findReadinessProblems', () => {
-	it('should find no problem in a PR ready to join', () => {
-		assert.deepEqual(findReadinessProblems(READY), []);
-	});
-
-	it('should find every problem of a PR', () => {
-		const problems = findReadinessProblems({
-			isDraft: true,
-			isApprovedByMaintainer: false,
-			hasChangesRequestedByMaintainer: true,
-			isMergeable: false,
-			hasFailingChecks: true,
-			hasPendingChecks: true,
-		});
-
-		assert.deepEqual(problems, [
-			REFUSAL_REASONS.draft,
-			REFUSAL_REASONS.changesRequested,
-			REFUSAL_REASONS.missingApproval,
-			REFUSAL_REASONS.mergeConflict,
-			REFUSAL_REASONS.failingChecks,
-			REFUSAL_REASONS.pendingChecks,
-		]);
-	});
-
-	it('should refuse a PR whose mergeability is still unknown', () => {
-		const problems = findReadinessProblems({ ...READY, isMergeable: null });
-
-		assert.deepEqual(problems, [REFUSAL_REASONS.unknownMergeability]);
-	});
-});
 
 describe('readReadiness', () => {
 	it('should read a PR ready to join', async () => {

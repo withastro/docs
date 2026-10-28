@@ -1,5 +1,6 @@
 import type { PullRequest } from '../lib/github/repository.ts';
 import { RELEASE_LABELS, RELEASE_TYPES, type ReleaseType } from './config.ts';
+import type { Readiness } from './readiness.ts';
 import { isMajorRelease, type FrameworkRelease } from './release.ts';
 import { isSettled } from './run.ts';
 import {
@@ -38,78 +39,112 @@ type RoutingState = {
 	settledBaseBranches: readonly string[];
 };
 
+type DecisionFacts = {
+	state: RoutingState;
+	readiness: Readiness;
+};
+
+/** What decides whether a docs PR can go to the umbrella of its base branch. */
+type Routing = {
+	releaseLabelCount: number;
+	/** `null` without a single release label, which skips the checks on the base branch. */
+	releaseType: ReleaseType | null;
+	isStableUmbrella: boolean;
+	isBasedOnUmbrella: boolean;
+	isMajorReleasePending: boolean;
+	isUmbrellaSettled: boolean;
+};
+
+type Problems<T> = [RefusalReason, (facts: T) => boolean][];
+
+const ROUTING_PROBLEMS: Problems<Routing> = [
+	[REFUSAL_REASONS.missingReleaseLabel, ({ releaseLabelCount }) => releaseLabelCount === 0],
+	[REFUSAL_REASONS.severalReleaseLabels, ({ releaseLabelCount }) => releaseLabelCount > 1],
+	[
+		REFUSAL_REASONS.majorReleaseOnStableBranch,
+		({ releaseType, isStableUmbrella }) => isStableUmbrella && releaseType === RELEASE_TYPES.major,
+	],
+	[
+		REFUSAL_REASONS.stableReleaseOnPrereleaseBranch,
+		({ releaseType, isStableUmbrella }) =>
+			!isStableUmbrella && releaseType !== null && releaseType !== RELEASE_TYPES.major,
+	],
+	[
+		REFUSAL_REASONS.majorReleasePending,
+		({ isStableUmbrella, isMajorReleasePending }) => isStableUmbrella && isMajorReleasePending,
+	],
+	[
+		REFUSAL_REASONS.settledUmbrella,
+		({ isBasedOnUmbrella, isUmbrellaSettled }) => !isBasedOnUmbrella && isUmbrellaSettled,
+	],
+];
+
+const READINESS_PROBLEMS: Problems<Readiness> = [
+	[REFUSAL_REASONS.draft, ({ isDraft }) => isDraft],
+	[REFUSAL_REASONS.changesRequested, (readiness) => readiness.hasChangesRequestedByMaintainer],
+	[REFUSAL_REASONS.missingApproval, ({ isApprovedByMaintainer }) => !isApprovedByMaintainer],
+	[REFUSAL_REASONS.mergeConflict, ({ isMergeable }) => isMergeable === false],
+	[REFUSAL_REASONS.unknownMergeability, ({ isMergeable }) => isMergeable === null],
+	[REFUSAL_REASONS.failingChecks, ({ hasFailingChecks }) => hasFailingChecks],
+	[REFUSAL_REASONS.pendingChecks, ({ hasPendingChecks }) => hasPendingChecks],
+];
+
 export type Decision =
 	| { outcome: typeof OUTCOMES.join; branches: UmbrellaBranches }
 	| { outcome: typeof OUTCOMES.refuse; reasons: RefusalReason[] };
 
 /**
- * Finds the umbrella a docs PR belongs to, from its base branch and its release label.
+ * Decides whether a docs PR joins the umbrella of its base branch, or gives every reason it can't.
  *
  * A PR based on an umbrella branch belongs to that umbrella.
  *
  * @param {Pick<PullRequest, 'base' | 'labels'>} pullRequest - The docs PR.
- * @param {RoutingState} state - The next stable release of the framework, and the base branches
- * of the settled umbrellas.
- * @returns {Decision} The umbrella to join, or why the PR can't join it.
+ * @param {DecisionFacts} facts - The state of the run, and whether the PR can be merged.
+ * @returns {Decision} The umbrella to join, or the reasons, first about where the PR goes, then
+ * about whether it can be merged.
  */
-export function routePullRequest(
+export function decideJoin(
+	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
+	{ state, readiness }: DecisionFacts
+): Decision {
+	const reasons = [
+		...findProblems(ROUTING_PROBLEMS, readRouting(pullRequest, state)),
+		...findProblems(READINESS_PROBLEMS, readiness),
+	];
+	if (reasons.length > 0) return { outcome: OUTCOMES.refuse, reasons };
+
+	return {
+		outcome: OUTCOMES.join,
+		branches: getUmbrellaBranches(getTargetBaseBranch(pullRequest)),
+	};
+}
+
+function readRouting(
 	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
 	state: RoutingState
-): Decision {
+): Routing {
 	const releaseTypes = getReleaseTypes(pullRequest);
-	const baseBranch = pullRequest.base.ref;
-	const umbrellaBaseBranch = getUmbrellaBaseBranch(baseBranch) ?? baseBranch;
-	const reason =
-		findLabelProblem(releaseTypes) ??
-		findBaseProblem(releaseTypes[0], umbrellaBaseBranch) ??
-		findUmbrellaProblem(baseBranch, umbrellaBaseBranch, state);
-
-	return reason
-		? { outcome: OUTCOMES.refuse, reasons: [reason] }
-		: { outcome: OUTCOMES.join, branches: getUmbrellaBranches(umbrellaBaseBranch) };
+	const targetBaseBranch = getTargetBaseBranch(pullRequest);
+	return {
+		releaseLabelCount: releaseTypes.length,
+		releaseType: releaseTypes.length === 1 ? releaseTypes[0] : null,
+		isStableUmbrella: isStableBranch(targetBaseBranch),
+		isBasedOnUmbrella: getUmbrellaBaseBranch(pullRequest.base.ref) !== null,
+		isMajorReleasePending: isMajorRelease(state.releases.stable),
+		isUmbrellaSettled: isSettled(state, targetBaseBranch),
+	};
 }
 
-/** A docs PR needs a single release label: the release it ships in. */
-function findLabelProblem(releaseTypes: ReleaseType[]): RefusalReason | null {
-	if (releaseTypes.length === 0) return REFUSAL_REASONS.missingReleaseLabel;
-	if (releaseTypes.length > 1) return REFUSAL_REASONS.severalReleaseLabels;
-	return null;
-}
-
-/** The stable branch takes patch and minor releases, and any other branch the major release. */
-function findBaseProblem(
-	releaseType: ReleaseType,
-	umbrellaBaseBranch: string
-): RefusalReason | null {
-	const isStable = isStableBranch(umbrellaBaseBranch);
-	const isMajor = releaseType === RELEASE_TYPES.major;
-	if (isStable && isMajor) return REFUSAL_REASONS.majorReleaseOnStableBranch;
-	if (!isStable && !isMajor) return REFUSAL_REASONS.stableReleaseOnPrereleaseBranch;
-	return null;
-}
-
-/**
- * While the next stable release of the framework is a major, the stable umbrella takes no PR:
- * everything merged in the framework then ships in the major, so its docs belong to the
- * prerelease branch. A settled umbrella only takes the PRs based on its branch: the others belong
- * to the next release.
- */
-function findUmbrellaProblem(
-	baseBranch: string,
-	umbrellaBaseBranch: string,
-	state: RoutingState
-): RefusalReason | null {
-	if (isStableBranch(umbrellaBaseBranch) && isMajorRelease(state.releases.stable)) {
-		return REFUSAL_REASONS.majorReleasePending;
-	}
-	const isBasedOnUmbrella = baseBranch !== umbrellaBaseBranch;
-	if (!isBasedOnUmbrella && isSettled(state, umbrellaBaseBranch)) {
-		return REFUSAL_REASONS.settledUmbrella;
-	}
-	return null;
+/** Gets the base branch of the umbrella a PR belongs to: its own base, or its umbrella's base. */
+function getTargetBaseBranch({ base }: Pick<PullRequest, 'base'>) {
+	return getUmbrellaBaseBranch(base.ref) ?? base.ref;
 }
 
 function getReleaseTypes({ labels }: Pick<PullRequest, 'labels'>): ReleaseType[] {
 	const labelNames = labels.map(({ name }) => name);
 	return Object.values(RELEASE_TYPES).filter((type) => labelNames.includes(RELEASE_LABELS[type]));
+}
+
+function findProblems<T>(problems: Problems<T>, facts: T): RefusalReason[] {
+	return problems.filter(([, isProblem]) => isProblem(facts)).map(([reason]) => reason);
 }

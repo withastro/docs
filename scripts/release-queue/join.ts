@@ -12,8 +12,8 @@ import {
 	renderUmbrellaFailureComment,
 } from './comments.ts';
 import { ACCEPTED_LABEL } from './config.ts';
-import { OUTCOMES, routePullRequest, type Decision } from './decision.ts';
-import { findReadinessProblems, readReadiness } from './readiness.ts';
+import { decideJoin, OUTCOMES, type Decision } from './decision.ts';
+import { readReadiness } from './readiness.ts';
 import {
 	describeReleaseState,
 	startRun,
@@ -49,7 +49,7 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
 
 	const run = await startRun(context);
 	log(describeReleaseState(run.state, context.astro.fullName));
-	const decision = await decideJoin(run, pullRequest);
+	const decision = await readDecision(run, pullRequest);
 	await docs.createComment(prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
@@ -99,7 +99,7 @@ async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
 	const pullRequest = await readPullRequestToJoin(run, prNumber);
 	if (!pullRequest) return;
 
-	const decision = await decideJoin(run, pullRequest);
+	const decision = await readDecision(run, pullRequest);
 	if (decision.outcome === OUTCOMES.refuse) {
 		await refuseJoin(docs, prNumber, renderRefusalComment(decision.reasons));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
@@ -122,16 +122,10 @@ async function readPullRequestToJoin({ docs, log }: ReleaseQueueContext, prNumbe
 	return null;
 }
 
-/** Routes a docs PR to its umbrella, then checks that it can be merged. */
-async function decideJoin(
-	run: ReleaseQueueRun,
-	pullRequest: PullRequestDetails
-): Promise<Decision> {
-	const routing = routePullRequest(pullRequest, run.state);
-	if (routing.outcome === OUTCOMES.refuse) return routing;
-
-	const problems = findReadinessProblems(await readReadiness(run, pullRequest));
-	return problems.length > 0 ? { outcome: OUTCOMES.refuse, reasons: problems } : routing;
+/** Reads whether a docs PR can be merged, then decides whether it joins its umbrella. */
+async function readDecision(run: ReleaseQueueRun, pullRequest: PullRequestDetails) {
+	const readiness = await readReadiness(run, pullRequest);
+	return decideJoin(pullRequest, { state: run.state, readiness });
 }
 
 async function refuseJoin(docs: DocsRepository, prNumber: number, comment: string) {

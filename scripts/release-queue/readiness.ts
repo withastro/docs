@@ -8,7 +8,6 @@ import {
 	type ReviewState,
 } from '../lib/github/repository.ts';
 import { MERGEABILITY_RETRY_COUNT, MERGEABILITY_RETRY_DELAY_MS } from './config.ts';
-import { REFUSAL_REASONS, type RefusalReason } from './decision.ts';
 
 /** The review states that replace a reviewer's earlier ones. A comment changes nothing. */
 const DECISIVE_REVIEW_STATES: ReviewState[] = [
@@ -35,16 +34,6 @@ export type Readiness = {
 	hasFailingChecks: boolean;
 	hasPendingChecks: boolean;
 };
-
-const READINESS_PROBLEMS: [RefusalReason, (readiness: Readiness) => boolean][] = [
-	[REFUSAL_REASONS.draft, ({ isDraft }) => isDraft],
-	[REFUSAL_REASONS.changesRequested, (readiness) => readiness.hasChangesRequestedByMaintainer],
-	[REFUSAL_REASONS.missingApproval, ({ isApprovedByMaintainer }) => !isApprovedByMaintainer],
-	[REFUSAL_REASONS.mergeConflict, ({ isMergeable }) => isMergeable === false],
-	[REFUSAL_REASONS.unknownMergeability, ({ isMergeable }) => isMergeable === null],
-	[REFUSAL_REASONS.failingChecks, ({ hasFailingChecks }) => hasFailingChecks],
-	[REFUSAL_REASONS.pendingChecks, ({ hasPendingChecks }) => hasPendingChecks],
-];
 
 /**
  * Reads what decides whether a docs PR can be merged.
@@ -76,18 +65,6 @@ export async function readReadiness(
 		hasFailingChecks: checks.some(({ state }) => state === CHECK_STATES.failure),
 		hasPendingChecks: checks.some(({ state }) => state === CHECK_STATES.pending),
 	};
-}
-
-/**
- * Finds what prevents a docs PR from being merged.
- *
- * @param {Readiness} readiness - The state of the PR, its reviews, and its checks.
- * @returns {RefusalReason[]} Every problem, or an empty list when the PR can be merged.
- */
-export function findReadinessProblems(readiness: Readiness): RefusalReason[] {
-	return READINESS_PROBLEMS.filter(([, isProblem]) => isProblem(readiness)).map(
-		([reason]) => reason
-	);
 }
 
 /** Gets the latest decisive state of each maintainer's reviews, dismissed ones excluded. */
