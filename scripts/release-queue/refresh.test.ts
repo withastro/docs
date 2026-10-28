@@ -2,10 +2,10 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { PullRequestDetails } from '../lib/github/repository.ts';
 import { RELEASE_TYPES } from './config.ts';
-import { buildPullRequest, FakeRepository } from './fake-repository.ts';
+import { buildPullRequest, buildRelease, FakeRepository } from './fake-repository.ts';
 import { refreshOpenUmbrellas } from './refresh.ts';
-import type { ReleaseState } from './state.ts';
-import { renderUmbrellaBody } from './umbrella.ts';
+import type { ReleaseState } from './run.ts';
+import { renderUmbrella } from './umbrella-update.ts';
 
 const RELEASES = {
 	stable: {
@@ -17,11 +17,11 @@ const RELEASES = {
 };
 
 const EXPECTED_TITLE = '[ci] release astro@7.5.0 docs';
-const EXPECTED_BODY = renderUmbrellaBody({
-	route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
-	releasePrNumber: 100,
+const EXPECTED_BODY = renderUmbrella({
+	branches: { head: 'release-queue/main', base: 'main' },
+	release: buildRelease({ prNumber: 100 }),
 	includedPrNumbers: [7],
-});
+}).body;
 
 function buildUmbrella(labels: string[], changes: Partial<PullRequestDetails> = {}) {
 	return {
@@ -47,7 +47,12 @@ async function refreshWithState(state: ReleaseState, ...pullRequests: PullReques
 	const reviewer = new FakeRepository({});
 	const logs: string[] = [];
 	const log = (message: string) => logs.push(message);
-	await refreshOpenUmbrellas({ docs, reviewer, log }, state);
+	await refreshOpenUmbrellas({
+		docs,
+		reviewer,
+		log,
+		state: { ...state, openPullRequests: [] },
+	});
 	return { writes: docs.writes, reviews: reviewer.writes, logs };
 }
 
@@ -104,11 +109,11 @@ describe('refreshOpenUmbrellas', () => {
 	});
 
 	it('should only update the included PRs of a settled umbrella', async () => {
-		const settledBody = renderUmbrellaBody({
-			route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
-			releasePrNumber: 90,
+		const settledBody = renderUmbrella({
+			branches: { head: 'release-queue/main', base: 'main' },
+			release: buildRelease({ prNumber: 90 }),
 			includedPrNumbers: [],
-		});
+		}).body;
 		const umbrella = buildUmbrella(['merge-on-release', 'patch-release'], {
 			title: '[ci] release astro@7.4.9 docs',
 			body: settledBody,
@@ -125,11 +130,11 @@ describe('refreshOpenUmbrellas', () => {
 				args: [
 					50,
 					{
-						body: renderUmbrellaBody({
-							route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
-							releasePrNumber: 90,
+						body: renderUmbrella({
+							branches: { head: 'release-queue/main', base: 'main' },
+							release: buildRelease({ prNumber: 90 }),
 							includedPrNumbers: [7],
-						}),
+						}).body,
 					},
 				],
 			},
@@ -152,18 +157,18 @@ describe('refreshOpenUmbrellas', () => {
 		const { reviews } = await refreshWithState(
 			{ releases: RELEASES, settledBaseBranches: ['main'] },
 			buildUmbrella([], {
-				body: renderUmbrellaBody({
-					route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
-					releasePrNumber: 100,
+				body: renderUmbrella({
+					branches: { head: 'release-queue/main', base: 'main' },
+					release: buildRelease({ prNumber: 100 }),
 					includedPrNumbers: [],
-				}),
+				}).body,
 			}),
 			buildPullRequest({ number: 11, baseBranch: 'release-queue/main' })
 		);
 
 		assert.equal(reviews.length, 1);
 		const [checklist] = reviews.map(({ args }) => String(args[1]));
-		assert.match(checklist, /included=7 -->/);
+		assert.match(checklist, /covered-prs=7 -->/);
 		assert.match(checklist, /- \[x\] withastro\/astro#100, /);
 		assert.match(checklist, /Still open: #11\./);
 	});

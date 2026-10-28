@@ -31,7 +31,7 @@ describe('renderDryRunComment', () => {
 	it('should name the umbrella branch a PR would join, and its base branch', () => {
 		const comment = renderDryRunComment({
 			outcome: OUTCOMES.join,
-			route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+			branches: { head: 'release-queue/main', base: 'main' },
 		});
 
 		assert.match(comment, /^\*\*Dry run\*\*/);
@@ -52,11 +52,11 @@ describe('renderDryRunComment', () => {
 	});
 });
 
-const ROUTE = { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' };
+const BRANCHES = { head: 'release-queue/main', base: 'main' };
 
 describe('renderJoinedComment', () => {
 	it('should name the umbrella branch and link the umbrella PR', () => {
-		const comment = renderJoinedComment(ROUTE, 1000);
+		const comment = renderJoinedComment(BRANCHES, 1000);
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /#1000/);
@@ -65,7 +65,7 @@ describe('renderJoinedComment', () => {
 
 describe('renderMergeFailureComment', () => {
 	it("should give GitHub's reason, then how to retry", () => {
-		const comment = renderMergeFailureComment(ROUTE, 'Merge conflict');
+		const comment = renderMergeFailureComment(BRANCHES, 'Merge conflict');
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /Merge conflict/);
@@ -75,7 +75,7 @@ describe('renderMergeFailureComment', () => {
 
 describe('renderUmbrellaFailureComment', () => {
 	it("should say the PR is merged, give GitHub's reason, and ask for the umbrella by hand", () => {
-		const comment = renderUmbrellaFailureComment(ROUTE, 'Validation Failed');
+		const comment = renderUmbrellaFailureComment(BRANCHES, 'Validation Failed');
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /Validation Failed/);

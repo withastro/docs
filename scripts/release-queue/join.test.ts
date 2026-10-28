@@ -13,14 +13,24 @@ import { OUTCOMES, REFUSAL_REASONS, type Decision } from './decision.ts';
 import {
 	buildPullRequest,
 	buildReadyState,
+	buildRelease,
 	CREATED_PR_NUMBER,
 	FakeRepository,
 } from './fake-repository.ts';
 import { joinAcceptedPullRequests, previewJoin } from './join.ts';
-import { renderUmbrellaBody } from './umbrella.ts';
+import { renderUmbrella } from './umbrella-update.ts';
 
-const MAIN_ROUTE = { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' };
-const NO_STATE = { releases: { stable: null, prerelease: null }, settledBaseBranches: [] };
+const MAIN_BRANCHES = { head: 'release-queue/main', base: 'main' };
+const NO_RELEASES = { stable: null, prerelease: null };
+
+/** Builds the state of a run starting with the open PRs of the fake repository. */
+async function buildState(docs: FakeRepository) {
+	return {
+		releases: NO_RELEASES,
+		settledBaseBranches: [],
+		openPullRequests: await docs.getOpenPullRequests(),
+	};
+}
 
 function createContext(docs: FakeRepository, astro = new FakeRepository({})) {
 	const logs: string[] = [];
@@ -44,7 +54,7 @@ describe('previewJoin', () => {
 		assert.deepEqual(docs.writes, [
 			buildComment(7, {
 				outcome: OUTCOMES.join,
-				route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+				branches: { head: 'release-queue/main', base: 'main' },
 			}),
 		]);
 		assert.deepEqual(logs, [
@@ -121,7 +131,11 @@ describe('previewJoin', () => {
 		const settledUmbrella = buildPullRequest({
 			number: 50,
 			headBranch: 'release-queue/main',
-			body: renderUmbrellaBody({ route: MAIN_ROUTE, releasePrNumber: 100, includedPrNumbers: [] }),
+			body: renderUmbrella({
+				branches: MAIN_BRANCHES,
+				release: buildRelease({ prNumber: 100 }),
+				includedPrNumbers: [],
+			}).body,
 		});
 		const docs = new FakeRepository({
 			...buildReadyState(pullRequest),
@@ -206,7 +220,7 @@ function buildMergeWrite(prNumber: number) {
 }
 
 function buildMainUmbrellaBody(includedPrNumbers: number[]) {
-	return renderUmbrellaBody({ route: MAIN_ROUTE, releasePrNumber: null, includedPrNumbers });
+	return renderUmbrella({ branches: MAIN_BRANCHES, release: null, includedPrNumbers }).body;
 }
 
 function buildAcceptedPullRequest(number: number, baseBranch = 'main') {
@@ -226,7 +240,7 @@ describe('joinAcceptedPullRequests', () => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7)]);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'createBranch', args: ['release-queue/main', 'sha-main'] },
@@ -243,7 +257,7 @@ describe('joinAcceptedPullRequests', () => {
 					},
 				],
 			},
-			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_ROUTE, CREATED_PR_NUMBER)] },
+			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_BRANCHES, CREATED_PR_NUMBER)] },
 		]);
 	});
 
@@ -254,12 +268,12 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
 			buildMergeWrite(7),
-			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_ROUTE, 50)] },
+			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_BRANCHES, 50)] },
 		]);
 	});
 
@@ -270,7 +284,7 @@ describe('joinAcceptedPullRequests', () => {
 		);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(
 			docs.writes.map(({ method }) => method),
@@ -283,7 +297,7 @@ describe('joinAcceptedPullRequests', () => {
 		const docs = buildReadyRepository([pullRequest]);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'removeLabel', args: [7, 'accepted'] },
@@ -308,7 +322,7 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
 			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
@@ -316,7 +330,7 @@ describe('joinAcceptedPullRequests', () => {
 			{ method: 'removeLabel', args: [7, 'accepted'] },
 			{
 				method: 'createComment',
-				args: [7, renderMergeFailureComment(MAIN_ROUTE, 'Pull Request is not mergeable')],
+				args: [7, renderMergeFailureComment(MAIN_BRANCHES, 'Pull Request is not mergeable')],
 			},
 		]);
 	});
@@ -332,13 +346,26 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes.at(-1), {
 			method: 'createComment',
-			args: [7, renderUmbrellaFailureComment(MAIN_ROUTE, 'Validation Failed')],
+			args: [7, renderUmbrellaFailureComment(MAIN_BRANCHES, 'Validation Failed')],
 		});
 		assert.ok(!docs.writes.some(({ method }) => method === 'addLabels'));
+	});
+
+	it('should take the accepted PRs from the state of the run, without listing them again', async (t) => {
+		const docs = buildReadyRepository([buildAcceptedPullRequest(7)]);
+		const state = await buildState(docs);
+		t.mock.method(docs, 'getOpenPullRequests', async () => {
+			throw new Error('Listed the open PRs again.');
+		});
+		const { context } = createContext(docs);
+
+		await joinAcceptedPullRequests({ ...context, state });
+
+		assert.ok(docs.writes.some(({ method }) => method === 'mergePullRequest'));
 	});
 
 	it('should handle every accepted PR, oldest first, and skip the others', async () => {
@@ -354,7 +381,7 @@ describe('joinAcceptedPullRequests', () => {
 		);
 		const { context } = createContext(docs);
 
-		await joinAcceptedPullRequests(context, NO_STATE);
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		const mergedPrNumbers = docs.writes
 			.filter(({ method }) => method === 'mergePullRequest')
@@ -374,7 +401,10 @@ describe('joinAcceptedPullRequests', () => {
 		});
 		const { context, logs } = createContext(docs);
 
-		await assert.rejects(joinAcceptedPullRequests(context, NO_STATE), AggregateError);
+		await assert.rejects(
+			joinAcceptedPullRequests({ ...context, state: await buildState(docs) }),
+			AggregateError
+		);
 
 		assert.ok(
 			docs.writes.some(({ method, args }) => method === 'mergePullRequest' && args[0] === 9)

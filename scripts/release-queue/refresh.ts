@@ -1,40 +1,16 @@
-import type {
-	GitHubRepository,
-	PullRequest,
-	PullRequestChanges,
-} from '../lib/github/repository.ts';
-import { DOCS_STABLE_BRANCH, RELEASE_TYPES } from './config.ts';
-import { syncMergeBlockReview, type MergeChecklist } from './merge-block.ts';
-import type { FrameworkRelease } from './release.ts';
-import type { ReleaseState } from './state.ts';
+import { syncMergeBlockReview } from './merge-block.ts';
+import { isMajorRelease } from './release.ts';
+import { isSettled, type ReleaseQueueRun, type ReleaseState, type RunState } from './run.ts';
 import {
 	getIncludedPrNumbers,
-	getUmbrellaBranch,
-	getUmbrellaRelease,
-	isUmbrellaPullRequest,
+	getUmbrellaReleasePrNumber,
+	hasUmbrellaChanges,
 	planUmbrellaUpdate,
-	type UmbrellaUpdate,
-} from './umbrella.ts';
+	type UmbrellaChanges,
+} from './umbrella-update.ts';
+import { findUmbrellas, getUmbrellaRelease, isStableBranch, type Umbrella } from './umbrella.ts';
 
-type UmbrellaRepository = Pick<
-	GitHubRepository,
-	'fullName' | 'getOpenPullRequests' | 'compare' | 'updatePullRequest' | 'addLabels' | 'removeLabel'
->;
-
-type RefreshContext = {
-	docs: UmbrellaRepository;
-	/** The repository to review umbrellas with, from another account than the one opening them. */
-	reviewer: Pick<GitHubRepository, 'getReviews' | 'requestChanges' | 'updateReview'>;
-	log: (message: string) => void;
-};
-
-/** What the refresh of an umbrella reads besides the umbrella itself. */
-type UmbrellaFacts = Pick<MergeChecklist, 'isReleaseMerged' | 'openPrNumbers'> & {
-	/** The release to apply, or `null` to keep the current one. */
-	release: FrameworkRelease | null;
-};
-
-type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels' | 'base'>;
+type RefreshRun = Pick<ReleaseQueueRun, 'docs' | 'reviewer' | 'log' | 'state'>;
 
 /**
  * Refreshes every open umbrella PR of the docs repository, and the review that blocks its merge.
@@ -43,54 +19,34 @@ type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels' | 'base
  * release is a major, the stable umbrella is left to maintainers, who merge it into the
  * prerelease branch.
  *
- * @param {RefreshContext} context - The docs repository, the repository to review with, and where
- * to log.
- * @param {ReleaseState} state - The open releases, and the settled umbrellas.
+ * @param {RefreshRun} run - The run, whose state gives the releases and the settled umbrellas. The
+ * open PRs are listed again, since the joins of the run may have opened an umbrella.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
-export async function refreshOpenUmbrellas(
-	context: RefreshContext,
-	state: ReleaseState
-): Promise<void> {
-	const { docs, log } = context;
-	const pullRequests = await docs.getOpenPullRequests();
-	const umbrellas = pullRequests.filter((pullRequest) =>
-		isUmbrellaPullRequest(pullRequest, docs.fullName)
-	);
+export async function refreshOpenUmbrellas(run: RefreshRun): Promise<void> {
+	const { docs, log } = run;
+	const openPullRequests = await docs.getOpenPullRequests();
+	const refreshRun = { ...run, state: { ...run.state, openPullRequests } };
+	const umbrellas = findUmbrellas(openPullRequests, docs.fullName);
 	log(`Open umbrellas: ${umbrellas.map(({ number }) => `#${number}`).join(', ') || 'none'}.`);
 	for (const umbrella of umbrellas) {
-		if (isWaitingForMajorRelease(umbrella, state)) {
+		if (isWaitingForMajorRelease(umbrella, run.state)) {
 			log(
 				`Umbrella #${umbrella.number} skipped: the next stable release is a major, so a maintainer merges it into the prerelease branch.`
 			);
 			continue;
 		}
-		await refreshUmbrella(context, umbrella, readUmbrellaFacts(umbrella, pullRequests, state));
+		await refreshUmbrella(refreshRun, umbrella);
 	}
 }
 
-function readUmbrellaFacts(
-	umbrella: Umbrella,
-	openPullRequests: Pick<PullRequest, 'number' | 'base'>[],
-	state: ReleaseState
-): UmbrellaFacts {
-	const umbrellaBranch = getUmbrellaBranch(umbrella.base.ref);
-	return {
-		release: getReleaseToApply(umbrella, state),
-		isReleaseMerged: state.settledBaseBranches.includes(umbrella.base.ref),
-		openPrNumbers: openPullRequests
-			.filter(({ base }) => base.ref === umbrellaBranch)
-			.map(({ number }) => number),
-	};
-}
-
-function isWaitingForMajorRelease({ base }: Umbrella, { releases }: ReleaseState) {
-	return base.ref === DOCS_STABLE_BRANCH && releases.stable?.type === RELEASE_TYPES.major;
+function isWaitingForMajorRelease({ branches }: Umbrella, { releases }: ReleaseState) {
+	return isStableBranch(branches.base) && isMajorRelease(releases.stable);
 }
 
 /** Gets the release an umbrella ships with, or `null` to keep the one of a settled umbrella. */
-function getReleaseToApply({ base }: Umbrella, { releases, settledBaseBranches }: ReleaseState) {
-	return settledBaseBranches.includes(base.ref) ? null : getUmbrellaRelease(releases, base.ref);
+function getReleaseToApply({ branches }: Umbrella, state: ReleaseState) {
+	return isSettled(state, branches.base) ? null : getUmbrellaRelease(state.releases, branches.base);
 }
 
 /**
@@ -99,62 +55,46 @@ function getReleaseToApply({ base }: Umbrella, { releases, settledBaseBranches }
  *
  * Sends nothing for what is already up to date.
  *
- * @param {RefreshContext} context - The docs repository, the repository to review with, and where
- * to log.
+ * @param {RefreshRun} run - The run.
  * @param {Umbrella} umbrella - The umbrella PR.
- * @param {UmbrellaFacts} facts - The release to apply, and what the checklist needs.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
-async function refreshUmbrella(
-	context: RefreshContext,
-	umbrella: Umbrella,
-	{ release, isReleaseMerged, openPrNumbers }: UmbrellaFacts
-): Promise<void> {
-	const { docs, log } = context;
-	const route = {
-		umbrellaBranch: getUmbrellaBranch(umbrella.base.ref),
-		umbrellaBaseBranch: umbrella.base.ref,
-	};
-	const comparison = await docs.compare(route.umbrellaBaseBranch, route.umbrellaBranch);
+async function refreshUmbrella(run: RefreshRun, umbrella: Umbrella): Promise<void> {
+	const { docs, log, state } = run;
+	const { branches } = umbrella;
+	const comparison = await docs.compare(branches.base, branches.head);
 	const includedPrNumbers = getIncludedPrNumbers(comparison);
-	const update = planUmbrellaUpdate(umbrella, release, includedPrNumbers);
-	const isChanged = await applyUmbrellaUpdate(docs, umbrella, update);
+	const release = getReleaseToApply(umbrella, state);
+	const changes = planUmbrellaUpdate(umbrella, { release, includedPrNumbers });
+	await applyUmbrellaChanges(docs, changes);
 	log(
-		isChanged
+		hasUmbrellaChanges(changes)
 			? `Umbrella #${umbrella.number} refreshed.`
 			: `Umbrella #${umbrella.number} is up to date.`
 	);
 
-	await syncMergeBlockReview(context, umbrella.number, {
-		route,
-		releasePrNumber: update.releasePrNumber,
-		isReleaseMerged,
-		openPrNumbers,
+	await syncMergeBlockReview(run, {
+		umbrella,
+		releasePrNumber: getUmbrellaReleasePrNumber(umbrella, release),
+		isReleaseMerged: isSettled(state, branches.base),
+		openPrNumbers: getOpenPrNumbers(state, branches.head),
 		includedPrNumbers,
 	});
 }
 
-/** Sends the changes of an umbrella update, and tells whether there were any. */
-async function applyUmbrellaUpdate(
-	docs: UmbrellaRepository,
-	umbrella: Umbrella,
-	update: UmbrellaUpdate
+/** Gets the open PRs based on a branch. */
+function getOpenPrNumbers(
+	{ openPullRequests }: Pick<RunState, 'openPullRequests'>,
+	branch: string
 ) {
-	const changes = getChangedFields(umbrella, update);
-	const hasFieldChanges = Object.keys(changes).length > 0;
-	if (hasFieldChanges) await docs.updatePullRequest(umbrella.number, changes);
-	if (update.labelsToAdd.length > 0) await docs.addLabels(umbrella.number, update.labelsToAdd);
-	for (const label of update.labelsToRemove) await docs.removeLabel(umbrella.number, label);
-
-	return hasFieldChanges || update.labelsToAdd.length > 0 || update.labelsToRemove.length > 0;
+	return openPullRequests.filter(({ base }) => base.ref === branch).map(({ number }) => number);
 }
 
-function getChangedFields(
-	umbrella: Pick<Umbrella, 'title' | 'body'>,
-	{ title, body }: Pick<PullRequestChanges, 'title' | 'body'>
-): PullRequestChanges {
-	return {
-		...(title !== umbrella.title && { title }),
-		...(body !== umbrella.body && { body }),
-	};
+async function applyUmbrellaChanges(
+	docs: RefreshRun['docs'],
+	{ prNumber, fields, labelsToAdd, labelsToRemove }: UmbrellaChanges
+) {
+	if (Object.keys(fields).length > 0) await docs.updatePullRequest(prNumber, fields);
+	if (labelsToAdd.length > 0) await docs.addLabels(prNumber, labelsToAdd);
+	for (const label of labelsToRemove) await docs.removeLabel(prNumber, label);
 }

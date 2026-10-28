@@ -69,6 +69,32 @@ export async function readFrameworkReleases(
 	return { stable, prerelease };
 }
 
+/**
+ * Describes the open releases of the framework, for the logs.
+ *
+ * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @param {string} frameworkFullName - The framework repository, as `owner/repo`.
+ * @returns {string} The release PR, the `astro` version, and the release type of each line.
+ */
+export function describeReleases(
+	{ stable, prerelease }: FrameworkReleases,
+	frameworkFullName: string
+): string {
+	const prereleaseDescription =
+		prerelease === stable ? 'the same' : describeRelease(prerelease, frameworkFullName);
+	return `stable ${describeRelease(stable, frameworkFullName)}, prerelease ${prereleaseDescription}`;
+}
+
+/**
+ * Tells whether a release of the framework is a major release of the framework package.
+ *
+ * @param {Pick<FrameworkRelease, 'type'> | null} release - A release, or `null` when none is open.
+ * @returns {boolean} `false` without a release.
+ */
+export function isMajorRelease(release: Pick<FrameworkRelease, 'type'> | null): boolean {
+	return release?.type === RELEASE_TYPES.major;
+}
+
 async function readRelease(framework: FrameworkRepository, releaseBranch: string) {
 	const [releasePullRequest] = await framework.getOpenPullRequestsFromBranch(releaseBranch);
 	return releasePullRequest ? toFrameworkRelease(releasePullRequest) : null;
@@ -98,29 +124,14 @@ function toFrameworkRelease({ number, body }: Pick<PullRequest, 'number' | 'body
 
 function getReleaseType(version: string): ReleaseType {
 	const match = version.match(SEMVER_CORE);
-	if (!match)
+	if (!match) {
 		throw new Error(`Expected a semantic version for ${FRAMEWORK_PACKAGE}, got "${version}".`);
+	}
 
 	const [, , minor, patch] = match;
 	if (Number(patch) > 0) return RELEASE_TYPES.patch;
 	if (Number(minor) > 0) return RELEASE_TYPES.minor;
 	return RELEASE_TYPES.major;
-}
-
-/**
- * Describes the open releases of the framework, for the logs.
- *
- * @param {FrameworkReleases} releases - The open releases of the framework.
- * @param {string} frameworkFullName - The framework repository, as `owner/repo`.
- * @returns {string} The release PR, the `astro` version, and the release type of each line.
- */
-export function describeReleases(
-	{ stable, prerelease }: FrameworkReleases,
-	frameworkFullName: string
-): string {
-	const prereleaseDescription =
-		prerelease === stable ? 'the same' : describeRelease(prerelease, frameworkFullName);
-	return `stable ${describeRelease(stable, frameworkFullName)}, prerelease ${prereleaseDescription}`;
 }
 
 function describeRelease(release: FrameworkRelease | null, frameworkFullName: string) {

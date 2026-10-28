@@ -5,7 +5,7 @@ import {
 	UMBRELLA_BRANCH_PREFIX,
 } from './config.ts';
 import { OUTCOMES, REFUSAL_REASONS, type Decision, type RefusalReason } from './decision.ts';
-import type { Route } from './umbrella.ts';
+import type { UmbrellaBranches } from './umbrella.ts';
 
 const { patch, minor, major } = RELEASE_LABELS;
 const RETRY_INSTRUCTION = `Once fixed, add \`${ACCEPTED_LABEL}\` again.`;
@@ -46,42 +46,42 @@ export function renderRefusalComment(reasons: RefusalReason[]): string {
 /**
  * Renders the comment telling a docs PR it joined its umbrella.
  *
- * @param {Route} route - The umbrella branch the PR was merged into, and its base branch.
+ * @param {UmbrellaBranches} branches - The umbrella branches the PR was merged into.
  * @param {number} umbrellaPrNumber - The number of the umbrella PR.
  * @returns {string} The comment, in Markdown.
  */
 export function renderJoinedComment(
-	{ umbrellaBranch, umbrellaBaseBranch }: Route,
+	{ head, base }: UmbrellaBranches,
 	umbrellaPrNumber: number
 ): string {
-	return `Merged into \`${umbrellaBranch}\`, the umbrella branch for the next release into \`${umbrellaBaseBranch}\`. It ships with #${umbrellaPrNumber}.`;
+	return `Merged into \`${head}\`, the umbrella branch for the next release into \`${base}\`. It ships with #${umbrellaPrNumber}.`;
 }
 
 /**
  * Renders the comment telling a docs PR that GitHub refused to merge it into
  * its umbrella.
  *
- * @param {Route} route - The umbrella branch the PR was to be merged into.
+ * @param {UmbrellaBranches} branches - The umbrella branches the PR was to be merged into.
  * @param {string} apiMessage - GitHub's reason.
  * @returns {string} The comment, in Markdown.
  */
-export function renderMergeFailureComment({ umbrellaBranch }: Route, apiMessage: string): string {
-	return `GitHub refused to merge this PR into \`${umbrellaBranch}\`, with this message:\n\n${quote(apiMessage)}\n\n${RETRY_INSTRUCTION}`;
+export function renderMergeFailureComment({ head }: UmbrellaBranches, apiMessage: string): string {
+	return `GitHub refused to merge this PR into \`${head}\`, with this message:\n\n${quote(apiMessage)}\n\n${RETRY_INSTRUCTION}`;
 }
 
 /**
  * Renders the comment telling a docs PR it was merged, but its umbrella PR
  * could not be opened.
  *
- * @param {Route} route - The umbrella branch the PR was merged into, and its base branch.
+ * @param {UmbrellaBranches} branches - The umbrella branches the PR was merged into.
  * @param {string} apiMessage - GitHub's reason.
  * @returns {string} The comment, in Markdown.
  */
 export function renderUmbrellaFailureComment(
-	{ umbrellaBranch, umbrellaBaseBranch }: Route,
+	{ head, base }: UmbrellaBranches,
 	apiMessage: string
 ): string {
-	return `Merged into \`${umbrellaBranch}\`, but the release queue couldn't open the umbrella PR into \`${umbrellaBaseBranch}\`, with this message from GitHub:\n\n${quote(apiMessage)}\n\nA maintainer needs to open it by hand.`;
+	return `Merged into \`${head}\`, but the release queue couldn't open the umbrella PR into \`${base}\`, with this message from GitHub:\n\n${quote(apiMessage)}\n\nA maintainer needs to open it by hand.`;
 }
 
 /**
@@ -94,7 +94,7 @@ export function renderUmbrellaFailureComment(
 export function renderDryRunComment(decision: Decision): string {
 	const outcome =
 		decision.outcome === OUTCOMES.join
-			? `will merge this PR into \`${decision.route.umbrellaBranch}\`, the umbrella branch for the next release into \`${decision.route.umbrellaBaseBranch}\`.`
+			? `will merge this PR into \`${decision.branches.head}\`, the umbrella branch for the next release into \`${decision.branches.base}\`.`
 			: `will remove \`${ACCEPTED_LABEL}\` and reply:\n\n${quote(renderRefusalComment(decision.reasons))}`;
 
 	return `**Dry run**: once the release queue is live, it ${outcome}\n\nNothing has changed yet: handle this PR as usual.`;

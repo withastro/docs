@@ -22,7 +22,7 @@ describe('routePullRequest', () => {
 	it('should route a patch or minor PR based on main to the main umbrella', () => {
 		const expected = {
 			outcome: OUTCOMES.join,
-			route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+			branches: { head: 'release-queue/main', base: 'main' },
 		};
 
 		assert.deepEqual(route('main', ['patch-release']), expected);
@@ -32,9 +32,9 @@ describe('routePullRequest', () => {
 	it('should route a major PR based on a prerelease branch to the umbrella of that branch', () => {
 		assert.deepEqual(route('cloudflare-next', ['major-release']), {
 			outcome: OUTCOMES.join,
-			route: {
-				umbrellaBranch: 'release-queue/cloudflare-next',
-				umbrellaBaseBranch: 'cloudflare-next',
+			branches: {
+				head: 'release-queue/cloudflare-next',
+				base: 'cloudflare-next',
 			},
 		});
 	});
@@ -42,11 +42,11 @@ describe('routePullRequest', () => {
 	it('should route a PR based on an umbrella branch to that umbrella', () => {
 		assert.deepEqual(route('release-queue/main', ['minor-release']), {
 			outcome: OUTCOMES.join,
-			route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+			branches: { head: 'release-queue/main', base: 'main' },
 		});
 		assert.deepEqual(route('release-queue/v8', ['major-release']), {
 			outcome: OUTCOMES.join,
-			route: { umbrellaBranch: 'release-queue/v8', umbrellaBaseBranch: 'v8' },
+			branches: { head: 'release-queue/v8', base: 'v8' },
 		});
 	});
 

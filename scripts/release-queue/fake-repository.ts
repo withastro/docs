@@ -1,5 +1,4 @@
 import { CHECK_STATES, type Check } from '../lib/github/checks.ts';
-import { GitHubError } from '../lib/github/request.ts';
 import {
 	REVIEW_STATES,
 	type Comparison,
@@ -12,6 +11,9 @@ import {
 	type ReviewState,
 	type ReviewUpdate,
 } from '../lib/github/repository.ts';
+import { GitHubError } from '../lib/github/request.ts';
+import { RELEASE_TYPES, type ReleaseType } from './config.ts';
+import type { FrameworkRelease } from './release.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 export const MAINTAINER = 'example-maintainer';
@@ -29,6 +31,13 @@ type PullRequestFixture = {
 	isDraft?: boolean;
 	mergeable?: boolean | null;
 	isMerged?: boolean;
+};
+
+type ReleaseFixture = {
+	prNumber?: number;
+	/** As `name@version`, such as `@astrojs/node@10.0.1`. */
+	versions?: string[];
+	type?: ReleaseType;
 };
 
 type FakeRepositoryState = {
@@ -81,6 +90,27 @@ export function buildPullRequest({
 		mergeable,
 		merged: isMerged,
 	};
+}
+
+/**
+ * Builds a release of the framework, for tests.
+ *
+ * @param {ReleaseFixture} fixture - The fields that matter to the test.
+ * @returns {FrameworkRelease} The release.
+ */
+export function buildRelease({
+	prNumber = 100,
+	versions = [],
+	type = RELEASE_TYPES.patch,
+}: ReleaseFixture = {}): FrameworkRelease {
+	const packages = versions.map((packageVersion) => {
+		const separatorIndex = packageVersion.lastIndexOf('@');
+		return {
+			name: packageVersion.slice(0, separatorIndex),
+			version: packageVersion.slice(separatorIndex + 1),
+		};
+	});
+	return { prNumber, packages, type };
 }
 
 /**

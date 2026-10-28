@@ -1,6 +1,5 @@
 import {
 	MERGE_METHODS,
-	type GitHubRepository,
 	type PullRequest,
 	type PullRequestDetails,
 } from '../lib/github/repository.ts';
@@ -15,58 +14,21 @@ import {
 import { ACCEPTED_LABEL } from './config.ts';
 import { OUTCOMES, routePullRequest, type Decision } from './decision.ts';
 import { findReadinessProblems, readReadiness } from './readiness.ts';
-import type { FrameworkReleases } from './release.ts';
 import {
 	describeReleaseState,
-	readReleaseState,
-	type ReleaseState,
-	type StateFrameworkRepository,
-} from './state.ts';
-import {
-	getUmbrellaRelease,
-	isUmbrellaPullRequest,
-	renderSquashCommitTitle,
-	renderUmbrellaBody,
-	renderUmbrellaTitle,
-	type Route,
-} from './umbrella.ts';
+	startRun,
+	type ReleaseQueueContext,
+	type ReleaseQueueRun,
+} from './run.ts';
+import { renderSquashCommitTitle, renderUmbrella } from './umbrella-update.ts';
+import { getUmbrellaRelease, isUmbrellaPullRequest, type UmbrellaBranches } from './umbrella.ts';
 
-type DocsRepository = Pick<
-	GitHubRepository,
-	| 'fullName'
-	| 'getOpenPullRequests'
-	| 'getOpenPullRequestsFromBranch'
-	| 'getPullRequest'
-	| 'getReviews'
-	| 'hasWriteAccess'
-	| 'getChecks'
-	| 'compare'
-	| 'getBranchSha'
-	| 'createBranch'
-	| 'createPullRequest'
-	| 'updatePullRequest'
-	| 'mergePullRequest'
-	| 'addLabels'
-	| 'removeLabel'
-	| 'createComment'
->;
+type DocsRepository = ReleaseQueueContext['docs'];
 
-/** A docs PR accepted in its umbrella, and the releases its umbrella can ship with. */
-type Join = {
+/** A docs PR that can join its umbrella, and the branches of that umbrella. */
+type JoinRequest = {
 	pullRequest: PullRequestDetails;
-	route: Route;
-	releases: FrameworkReleases;
-};
-
-export type ReleaseQueueContext = {
-	docs: DocsRepository;
-	/** The framework repository, read for its release PRs. */
-	astro: StateFrameworkRepository;
-	/** The docs repository through another account than `docs`, to review the umbrellas it opens. */
-	reviewer: Pick<GitHubRepository, 'getReviews' | 'requestChanges' | 'updateReview'>;
-	log: (message: string) => void;
-	/** The job running the release queue, from `GITHUB_JOB`. `null` outside GitHub Actions. */
-	jobName: string | null;
+	branches: UmbrellaBranches;
 };
 
 /**
@@ -75,23 +37,19 @@ export type ReleaseQueueContext = {
  *
  * Skips a PR that no longer has the label, and umbrella PRs.
  *
- * @param {ReleaseQueueContext} context - The docs and framework repositories, where to log, and
- * the job running the release queue.
+ * @param {ReleaseQueueContext} context - The repositories, and where to log.
  * @param {number} prNumber - The number of the docs PR.
  * @throws {GitHubError} When GitHub answers with an error status.
+ * @throws {Error} When the framework's release PR or pre mode file can't be read.
  */
 export async function previewJoin(context: ReleaseQueueContext, prNumber: number): Promise<void> {
 	const { docs, log } = context;
-	const pullRequest = await docs.getPullRequest(prNumber);
-	const skipReason = getSkipReason(pullRequest, docs.fullName);
-	if (skipReason) {
-		log(`#${prNumber} skipped: ${skipReason}.`);
-		return;
-	}
+	const pullRequest = await readPullRequestToJoin(context, prNumber);
+	if (!pullRequest) return;
 
-	const state = await readReleaseState(context);
-	log(describeReleaseState(state, context.astro.fullName));
-	const decision = await decideJoin(context, pullRequest, state);
+	const run = await startRun(context);
+	log(describeReleaseState(run.state, context.astro.fullName));
+	const decision = await decideJoin(run, pullRequest);
 	await docs.createComment(prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
@@ -102,24 +60,18 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
  * Handles the PRs one at a time, oldest first, since each join changes the umbrella the next PR
  * joins. A PR that fails does not stop the others.
  *
- * @param {ReleaseQueueContext} context - The docs and framework repositories, where to log, and
- * the job running the release queue.
- * @param {ReleaseState} state - The open releases, and the settled umbrellas.
- * @throws {GitHubError} When reading the accepted PRs fails.
+ * @param {ReleaseQueueRun} run - The run.
  * @throws {AggregateError} When some PRs failed, after handling the others.
  */
-export async function joinAcceptedPullRequests(
-	context: ReleaseQueueContext,
-	state: ReleaseState
-): Promise<void> {
-	const { docs, log } = context;
-	const prNumbers = await findAcceptedPrNumbers(docs);
+export async function joinAcceptedPullRequests(run: ReleaseQueueRun): Promise<void> {
+	const { docs, log, state } = run;
+	const prNumbers = findAcceptedPrNumbers(state.openPullRequests, docs.fullName);
 	log(`Accepted PRs: ${prNumbers.map((prNumber) => `#${prNumber}`).join(', ') || 'none'}.`);
 
 	const errors: unknown[] = [];
 	for (const prNumber of prNumbers) {
 		try {
-			await joinPullRequest(context, prNumber, state);
+			await joinPullRequest(run, prNumber);
 		} catch (error) {
 			log(`#${prNumber} failed: ${error instanceof Error ? error.message : String(error)}`);
 			errors.push(error);
@@ -134,52 +86,51 @@ export async function joinAcceptedPullRequests(
 	}
 }
 
-async function findAcceptedPrNumbers(docs: DocsRepository) {
-	const pullRequests = await docs.getOpenPullRequests();
-	return pullRequests
-		.filter((pullRequest) => !getSkipReason(pullRequest, docs.fullName))
+function findAcceptedPrNumbers(openPullRequests: PullRequest[], repositoryFullName: string) {
+	return openPullRequests
+		.filter((pullRequest) => !getSkipReason(pullRequest, repositoryFullName))
 		.map(({ number }) => number)
 		.toSorted((first, second) => first - second);
 }
 
-async function joinPullRequest(
-	context: ReleaseQueueContext,
-	prNumber: number,
-	state: ReleaseState
-) {
-	const { docs, log } = context;
+async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
+	const { docs, log } = run;
 	// Read again: the list has no mergeability, and the PR may have changed since.
-	const pullRequest = await docs.getPullRequest(prNumber);
-	const skipReason = getSkipReason(pullRequest, docs.fullName);
-	if (skipReason) {
-		log(`#${prNumber} skipped: ${skipReason}.`);
-		return;
-	}
+	const pullRequest = await readPullRequestToJoin(run, prNumber);
+	if (!pullRequest) return;
 
-	const decision = await decideJoin(context, pullRequest, state);
+	const decision = await decideJoin(run, pullRequest);
 	if (decision.outcome === OUTCOMES.refuse) {
 		await refuseJoin(docs, prNumber, renderRefusalComment(decision.reasons));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
 		return;
 	}
 
-	await mergeIntoUmbrella(context, {
-		pullRequest,
-		route: decision.route,
-		releases: state.releases,
-	});
+	await mergeIntoUmbrella(run, { pullRequest, branches: decision.branches });
+}
+
+/**
+ * Reads a docs PR to join its umbrella, or gives `null` after logging why it is skipped: it no
+ * longer has the accepted label, or it is an umbrella.
+ */
+async function readPullRequestToJoin({ docs, log }: ReleaseQueueContext, prNumber: number) {
+	const pullRequest = await docs.getPullRequest(prNumber);
+	const skipReason = getSkipReason(pullRequest, docs.fullName);
+	if (!skipReason) return pullRequest;
+
+	log(`#${prNumber} skipped: ${skipReason}.`);
+	return null;
 }
 
 /** Routes a docs PR to its umbrella, then checks that it can be merged. */
 async function decideJoin(
-	{ docs, jobName }: ReleaseQueueContext,
-	pullRequest: PullRequestDetails,
-	state: ReleaseState
+	run: ReleaseQueueRun,
+	pullRequest: PullRequestDetails
 ): Promise<Decision> {
-	const routing = routePullRequest(pullRequest, state);
+	const routing = routePullRequest(pullRequest, run.state);
 	if (routing.outcome === OUTCOMES.refuse) return routing;
 
-	const problems = findReadinessProblems(await readReadiness(docs, pullRequest, jobName));
+	const problems = findReadinessProblems(await readReadiness(run, pullRequest));
 	return problems.length > 0 ? { outcome: OUTCOMES.refuse, reasons: problems } : routing;
 }
 
@@ -189,11 +140,11 @@ async function refuseJoin(docs: DocsRepository, prNumber: number, comment: strin
 	await docs.createComment(prNumber, comment);
 }
 
-async function mergeIntoUmbrella(context: ReleaseQueueContext, join: Join) {
-	const { docs, log } = context;
-	const { pullRequest, route } = join;
-	await createUmbrellaBranchIfMissing(docs, route);
-	const mergeError = await squashIntoUmbrella(docs, pullRequest, route).then(
+async function mergeIntoUmbrella(run: ReleaseQueueRun, request: JoinRequest) {
+	const { docs, log } = run;
+	const { pullRequest, branches } = request;
+	await createUmbrellaBranchIfMissing(docs, branches);
+	const mergeError = await squashIntoUmbrella(docs, pullRequest, branches).then(
 		() => null,
 		returnGitHubError
 	);
@@ -201,37 +152,37 @@ async function mergeIntoUmbrella(context: ReleaseQueueContext, join: Join) {
 		await refuseJoin(
 			docs,
 			pullRequest.number,
-			renderMergeFailureComment(route, mergeError.apiMessage)
+			renderMergeFailureComment(branches, mergeError.apiMessage)
 		);
 		log(`#${pullRequest.number} not merged: ${mergeError.apiMessage}.`);
 		return;
 	}
 
 	const umbrellaPrNumber =
-		(await findUmbrellaPrNumber(docs, route)) ?? (await openUmbrella(context, join));
+		(await findUmbrellaPrNumber(docs, branches)) ?? (await openUmbrella(run, request));
 	if (umbrellaPrNumber === null) return;
 
-	await docs.createComment(pullRequest.number, renderJoinedComment(route, umbrellaPrNumber));
-	log(`#${pullRequest.number} joined ${route.umbrellaBranch} (#${umbrellaPrNumber}).`);
+	await docs.createComment(pullRequest.number, renderJoinedComment(branches, umbrellaPrNumber));
+	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
 }
 
-async function createUmbrellaBranchIfMissing(docs: DocsRepository, route: Route) {
-	if (await docs.getBranchSha(route.umbrellaBranch)) return;
+async function createUmbrellaBranchIfMissing(docs: DocsRepository, branches: UmbrellaBranches) {
+	if (await docs.getBranchSha(branches.head)) return;
 
-	const baseSha = await docs.getBranchSha(route.umbrellaBaseBranch);
-	if (!baseSha) throw new Error(`The branch "${route.umbrellaBaseBranch}" does not exist.`);
-	await docs.createBranch(route.umbrellaBranch, baseSha);
+	const baseSha = await docs.getBranchSha(branches.base);
+	if (!baseSha) throw new Error(`The branch "${branches.base}" does not exist.`);
+	await docs.createBranch(branches.head, baseSha);
 }
 
 /** Changes the base of a docs PR to the umbrella branch, then squash-merges it. */
 async function squashIntoUmbrella(
 	docs: DocsRepository,
 	pullRequest: PullRequestDetails,
-	route: Route
+	branches: UmbrellaBranches
 ) {
 	const { number, base, head } = pullRequest;
-	const isBaseChangeNeeded = base.ref !== route.umbrellaBranch;
-	if (isBaseChangeNeeded) await docs.updatePullRequest(number, { base: route.umbrellaBranch });
+	const isBaseChangeNeeded = base.ref !== branches.head;
+	if (isBaseChangeNeeded) await docs.updatePullRequest(number, { base: branches.head });
 
 	try {
 		await docs.mergePullRequest(number, {
@@ -246,9 +197,9 @@ async function squashIntoUmbrella(
 	}
 }
 
-async function findUmbrellaPrNumber(docs: DocsRepository, route: Route) {
-	const pullRequests = await docs.getOpenPullRequestsFromBranch(route.umbrellaBranch);
-	return pullRequests.find(({ base }) => base.ref === route.umbrellaBaseBranch)?.number ?? null;
+async function findUmbrellaPrNumber(docs: DocsRepository, branches: UmbrellaBranches) {
+	const pullRequests = await docs.getOpenPullRequestsFromBranch(branches.head);
+	return pullRequests.find(({ base }) => base.ref === branches.base)?.number ?? null;
 }
 
 /**
@@ -259,27 +210,24 @@ async function findUmbrellaPrNumber(docs: DocsRepository, route: Route) {
  * opened after the first docs PR is merged.
  */
 async function openUmbrella(
-	{ docs, log }: ReleaseQueueContext,
-	{ pullRequest, route, releases }: Join
+	{ docs, log, state }: ReleaseQueueRun,
+	{ pullRequest, branches }: JoinRequest
 ): Promise<number | null> {
-	const baseBranch = route.umbrellaBaseBranch;
-	const release = getUmbrellaRelease(releases, baseBranch);
-	const title = renderUmbrellaTitle(baseBranch, release);
-	const body = renderUmbrellaBody({
-		route,
-		releasePrNumber: release?.prNumber ?? null,
+	const { title, body } = renderUmbrella({
+		branches,
+		release: getUmbrellaRelease(state.releases, branches.base),
 		includedPrNumbers: [pullRequest.number],
 	});
 	const umbrella = await docs
-		.createPullRequest({ title, head: route.umbrellaBranch, base: baseBranch, body })
+		.createPullRequest({ title, ...branches, body })
 		.catch(returnGitHubError);
 	if (umbrella instanceof GitHubError) {
 		await docs.createComment(
 			pullRequest.number,
-			renderUmbrellaFailureComment(route, umbrella.apiMessage)
+			renderUmbrellaFailureComment(branches, umbrella.apiMessage)
 		);
 		log(
-			`#${pullRequest.number} joined ${route.umbrellaBranch}, but no umbrella PR: ${umbrella.apiMessage}.`
+			`#${pullRequest.number} joined ${branches.head}, but no umbrella PR: ${umbrella.apiMessage}.`
 		);
 		return null;
 	}
@@ -303,6 +251,6 @@ function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {
 
 function describeDecision(decision: Decision) {
 	return decision.outcome === OUTCOMES.join
-		? `would join ${decision.route.umbrellaBranch}`
+		? `would join ${decision.branches.head}`
 		: `would be refused (${decision.reasons.join(', ')})`;
 }

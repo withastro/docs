@@ -5,7 +5,7 @@ import { FakeRepository } from './fake-repository.ts';
 import { syncMergeBlockReview, type MergeChecklist } from './merge-block.ts';
 
 const CHECKLIST: MergeChecklist = {
-	route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+	umbrella: { number: 50, branches: { head: 'release-queue/main', base: 'main' } },
 	releasePrNumber: 100,
 	isReleaseMerged: false,
 	openPrNumbers: [],
@@ -20,7 +20,7 @@ function buildBotReview(id: number, state: ReviewState, body: string): Review {
 async function sync(reviews: Review[], checklist = CHECKLIST) {
 	const reviewer = new FakeRepository({ reviewsByPrNumber: { 50: reviews } });
 	const logs: string[] = [];
-	await syncMergeBlockReview({ reviewer, log: (message) => logs.push(message) }, 50, checklist);
+	await syncMergeBlockReview({ reviewer, log: (message) => logs.push(message) }, checklist);
 	return { writes: reviewer.writes, logs };
 }
 

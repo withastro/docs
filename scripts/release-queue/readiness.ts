@@ -17,10 +17,13 @@ const DECISIVE_REVIEW_STATES: ReviewState[] = [
 	REVIEW_STATES.dismissed,
 ];
 
-type ReadinessRepository = Pick<
-	GitHubRepository,
-	'getPullRequest' | 'getReviews' | 'hasWriteAccess' | 'getChecks'
->;
+type ReadinessContext = {
+	docs: Pick<GitHubRepository, 'getPullRequest' | 'getReviews' | 'hasWriteAccess' | 'getChecks'>;
+	/** The job running the release queue, left out of the checks since it runs on the PR. */
+	jobName: string | null;
+};
+
+type ReadinessRepository = ReadinessContext['docs'];
 
 /** What decides whether a docs PR can be merged. Reviews count only from maintainers. */
 export type Readiness = {
@@ -46,24 +49,21 @@ const READINESS_PROBLEMS: [RefusalReason, (readiness: Readiness) => boolean][] =
 /**
  * Reads what decides whether a docs PR can be merged.
  *
- * Asks for the PR again while GitHub checks it for conflicts.
+ * Can take a few seconds while GitHub checks the PR for conflicts.
  *
- * @param {ReadinessRepository} docs - The docs repository.
+ * @param {ReadinessContext} context - The docs repository, and the job to leave out of the checks.
  * @param {PullRequestDetails} pullRequest - The docs PR.
- * @param {string | null} jobName - The job running the release queue, left out of the checks
- * since it runs on the PR. `null` outside GitHub Actions.
  * @returns {Promise<Readiness>} The state of the PR, its reviews, and its checks.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
 export async function readReadiness(
-	docs: ReadinessRepository,
-	pullRequest: PullRequestDetails,
-	jobName: string | null
+	{ docs, jobName }: ReadinessContext,
+	pullRequest: PullRequestDetails
 ): Promise<Readiness> {
 	const [maintainerReviewStates, isMergeable, checks] = await Promise.all([
 		getMaintainerReviewStates(docs, pullRequest.number),
 		waitForMergeability(docs, pullRequest),
-		getChecksOfOtherJobs(docs, pullRequest.head.sha, jobName),
+		getChecksOfOtherJobs({ docs, jobName }, pullRequest.head.sha),
 	]);
 
 	return {
@@ -118,9 +118,8 @@ async function waitForMergeability(docs: ReadinessRepository, pullRequest: PullR
 }
 
 async function getChecksOfOtherJobs(
-	docs: ReadinessRepository,
-	ref: string,
-	jobName: string | null
+	{ docs, jobName }: ReadinessContext,
+	ref: string
 ): Promise<Check[]> {
 	const checks = await docs.getChecks(ref);
 	return checks.filter(({ name }) => name !== jobName);

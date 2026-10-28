@@ -1,24 +1,25 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { buildPullRequest, FakeRepository } from './fake-repository.ts';
-import { readReleaseState } from './state.ts';
-import { renderUmbrellaBody } from './umbrella.ts';
+import { buildPullRequest, buildRelease, FakeRepository } from './fake-repository.ts';
+import { startRun } from './run.ts';
+import { renderUmbrella } from './umbrella-update.ts';
+import { getUmbrellaBranches } from './umbrella.ts';
 
 function buildUmbrella(number: number, baseBranch: string, releasePrNumber: number | null) {
-	const umbrellaBranch = `release-queue/${baseBranch}`;
+	const branches = getUmbrellaBranches(baseBranch);
 	return buildPullRequest({
 		number,
 		baseBranch,
-		headBranch: umbrellaBranch,
-		body: renderUmbrellaBody({
-			route: { umbrellaBranch, umbrellaBaseBranch: baseBranch },
-			releasePrNumber,
+		headBranch: branches.head,
+		body: renderUmbrella({
+			branches,
+			release: releasePrNumber === null ? null : buildRelease({ prNumber: releasePrNumber }),
 			includedPrNumbers: [],
-		}),
+		}).body,
 	});
 }
 
-describe('readReleaseState', () => {
+describe('startRun', () => {
 	it('should read the releases of the framework', async () => {
 		const releasePullRequest = buildPullRequest({
 			number: 100,
@@ -28,7 +29,7 @@ describe('readReleaseState', () => {
 		const docs = new FakeRepository({});
 		const astro = new FakeRepository({ pullRequests: [releasePullRequest] });
 
-		const { releases } = await readReleaseState({ docs, astro });
+		const { releases } = (await startRun({ docs, astro })).state;
 
 		assert.equal(releases.stable?.prNumber, 100);
 	});
@@ -41,11 +42,11 @@ describe('readReleaseState', () => {
 				buildUmbrella(70, 'v8', null),
 				{
 					...buildPullRequest({ number: 7 }),
-					body: renderUmbrellaBody({
-						route: { umbrellaBranch: 'release-queue/v9', umbrellaBaseBranch: 'v9' },
-						releasePrNumber: 100,
+					body: renderUmbrella({
+						branches: { head: 'release-queue/v9', base: 'v9' },
+						release: buildRelease({ prNumber: 100 }),
 						includedPrNumbers: [],
-					}),
+					}).body,
 				},
 			],
 		});
@@ -56,7 +57,7 @@ describe('readReleaseState', () => {
 			],
 		});
 
-		const { settledBaseBranches } = await readReleaseState({ docs, astro });
+		const { settledBaseBranches } = (await startRun({ docs, astro })).state;
 
 		assert.deepEqual(settledBaseBranches, ['main']);
 	});
@@ -65,8 +66,18 @@ describe('readReleaseState', () => {
 		const docs = new FakeRepository({ pullRequests: [buildUmbrella(50, 'main', 404)] });
 		const astro = new FakeRepository({});
 
-		const { settledBaseBranches } = await readReleaseState({ docs, astro });
+		const { settledBaseBranches } = (await startRun({ docs, astro })).state;
 
 		assert.deepEqual(settledBaseBranches, []);
+	});
+
+	it('should keep the open PRs of the docs repository', async () => {
+		const pullRequest = buildPullRequest({ number: 7 });
+		const docs = new FakeRepository({ pullRequests: [pullRequest] });
+		const astro = new FakeRepository({});
+
+		const { openPullRequests } = (await startRun({ docs, astro })).state;
+
+		assert.deepEqual(openPullRequests, [pullRequest]);
 	});
 });

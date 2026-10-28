@@ -29,7 +29,7 @@ const JOB_NAME = 'release-queue';
 async function readReadinessWith(changes: Partial<ReturnType<typeof buildReadyState>> = {}) {
 	const pullRequest = buildPullRequest({ number: 1 });
 	const docs = new FakeRepository({ ...buildReadyState(pullRequest), ...changes });
-	return readReadiness(docs, pullRequest, JOB_NAME);
+	return readReadiness({ docs, jobName: JOB_NAME }, pullRequest);
 }
 
 /** Runs `operation` while answering each timer it sets, until it settles. */
@@ -87,7 +87,7 @@ describe('readReadiness', () => {
 		const pullRequest = buildPullRequest({ number: 1, isDraft: true });
 		const docs = new FakeRepository(buildReadyState(pullRequest));
 
-		const readiness = await readReadiness(docs, pullRequest, JOB_NAME);
+		const readiness = await readReadiness({ docs, jobName: JOB_NAME }, pullRequest);
 
 		assert.equal(readiness.isDraft, true);
 	});
@@ -171,7 +171,9 @@ describe('readReadiness', () => {
 				1
 			);
 
-			const readiness = await runWithTimers(t, () => readReadiness(docs, pullRequest, JOB_NAME));
+			const readiness = await runWithTimers(t, () =>
+				readReadiness({ docs, jobName: JOB_NAME }, pullRequest)
+			);
 
 			assert.equal(readiness.isMergeable, false);
 			assert.equal(getPullRequest.mock.callCount(), 2);
@@ -181,7 +183,9 @@ describe('readReadiness', () => {
 			const pullRequest = buildPullRequest({ number: 1, mergeable: null });
 			const docs = new FakeRepository(buildReadyState(pullRequest));
 
-			const readiness = await runWithTimers(t, () => readReadiness(docs, pullRequest, JOB_NAME));
+			const readiness = await runWithTimers(t, () =>
+				readReadiness({ docs, jobName: JOB_NAME }, pullRequest)
+			);
 
 			assert.equal(readiness.isMergeable, null);
 		});
@@ -223,7 +227,7 @@ describe('readReadiness', () => {
 				checksByRef: { 'sha-1': [{ name: JOB_NAME, state: CHECK_STATES.pending }] },
 			});
 
-			const readiness = await readReadiness(docs, pullRequest, null);
+			const readiness = await readReadiness({ docs, jobName: null }, pullRequest);
 
 			assert.equal(readiness.hasPendingChecks, true);
 		});
