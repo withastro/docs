@@ -14,6 +14,7 @@ export const REFUSAL_REASONS = {
 	majorReleaseOnStableBranch: 'major-release-on-stable-branch',
 	stableReleaseOnPrereleaseBranch: 'stable-release-on-prerelease-branch',
 	majorReleasePending: 'major-release-pending',
+	settledUmbrella: 'settled-umbrella',
 	draft: 'draft',
 	changesRequested: 'changes-requested',
 	missingApproval: 'missing-approval',
@@ -24,6 +25,12 @@ export const REFUSAL_REASONS = {
 } as const;
 
 export type RefusalReason = (typeof REFUSAL_REASONS)[keyof typeof REFUSAL_REASONS];
+
+/** What routing reads from the release state. */
+type RoutingState = {
+	releases: { stable: Pick<FrameworkRelease, 'type'> | null };
+	settledBaseBranches: readonly string[];
+};
 
 export type Decision =
 	| { outcome: typeof OUTCOMES.join; route: Route }
@@ -40,14 +47,17 @@ export type Decision =
  * everything merged in the framework then ships in the major, so its docs belong to the
  * prerelease branch.
  *
+ * A settled umbrella only takes the PRs based on its branch: the others belong to the next
+ * release.
+ *
  * @param {Pick<PullRequest, 'base' | 'labels'>} pullRequest - The docs PR.
- * @param {Pick<FrameworkRelease, 'type'> | null} stableRelease - The next stable release of the
- * framework, or `null` when none is open.
+ * @param {RoutingState} state - The next stable release of the framework, and the base branches
+ * of the settled umbrellas.
  * @returns {Decision} The umbrella to join, or why the PR can't join it.
  */
 export function routePullRequest(
 	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
-	stableRelease: Pick<FrameworkRelease, 'type'> | null
+	{ releases, settledBaseBranches }: RoutingState
 ): Decision {
 	const releaseTypes = getReleaseTypes(pullRequest);
 	if (releaseTypes.length === 0) return refuse(REFUSAL_REASONS.missingReleaseLabel);
@@ -59,8 +69,12 @@ export function routePullRequest(
 	const isMajor = releaseTypes[0] === RELEASE_TYPES.major;
 	if (isStable && isMajor) return refuse(REFUSAL_REASONS.majorReleaseOnStableBranch);
 	if (!isStable && !isMajor) return refuse(REFUSAL_REASONS.stableReleaseOnPrereleaseBranch);
-	if (isStable && stableRelease?.type === RELEASE_TYPES.major) {
+	if (isStable && releases.stable?.type === RELEASE_TYPES.major) {
 		return refuse(REFUSAL_REASONS.majorReleasePending);
+	}
+	const isBaseChangeNeeded = umbrellaBaseBranch === baseBranch;
+	if (isBaseChangeNeeded && settledBaseBranches.includes(umbrellaBaseBranch)) {
+		return refuse(REFUSAL_REASONS.settledUmbrella);
 	}
 
 	return {

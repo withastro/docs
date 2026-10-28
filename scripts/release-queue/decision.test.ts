@@ -4,9 +4,18 @@ import { RELEASE_TYPES, type ReleaseType } from './config.ts';
 import { routePullRequest, OUTCOMES, REFUSAL_REASONS } from './decision.ts';
 import { buildPullRequest } from './fake-repository.ts';
 
-function route(baseBranch: string, labels: string[], stableReleaseType?: ReleaseType) {
-	const stableRelease = stableReleaseType ? { type: stableReleaseType } : null;
-	return routePullRequest(buildPullRequest({ baseBranch, labels }), stableRelease);
+type RoutingStateFixture = { stableReleaseType?: ReleaseType; settledBaseBranches?: string[] };
+
+function route(
+	baseBranch: string,
+	labels: string[],
+	{ stableReleaseType, settledBaseBranches = [] }: RoutingStateFixture = {}
+) {
+	const stable = stableReleaseType ? { type: stableReleaseType } : null;
+	return routePullRequest(buildPullRequest({ baseBranch, labels }), {
+		releases: { stable },
+		settledBaseBranches,
+	});
 }
 
 describe('routePullRequest', () => {
@@ -81,18 +90,41 @@ describe('routePullRequest', () => {
 			reasons: [REFUSAL_REASONS.majorReleasePending],
 		};
 
-		assert.deepEqual(route('main', ['minor-release'], RELEASE_TYPES.major), expected);
-		assert.deepEqual(route('release-queue/main', ['patch-release'], RELEASE_TYPES.major), expected);
+		const state = { stableReleaseType: RELEASE_TYPES.major };
+		assert.deepEqual(route('main', ['minor-release'], state), expected);
+		assert.deepEqual(route('release-queue/main', ['patch-release'], state), expected);
 	});
 
 	it('should route a PR for the stable umbrella during a patch or minor release', () => {
-		assert.equal(route('main', ['patch-release'], RELEASE_TYPES.patch).outcome, OUTCOMES.join);
-		assert.equal(route('main', ['patch-release'], RELEASE_TYPES.minor).outcome, OUTCOMES.join);
+		const patch = { stableReleaseType: RELEASE_TYPES.patch };
+		const minor = { stableReleaseType: RELEASE_TYPES.minor };
+		assert.equal(route('main', ['patch-release'], patch).outcome, OUTCOMES.join);
+		assert.equal(route('main', ['patch-release'], minor).outcome, OUTCOMES.join);
 	});
 
 	it('should route a PR for a prerelease umbrella while a major release is pending', () => {
-		const decision = route('cloudflare-next', ['major-release'], RELEASE_TYPES.major);
+		const decision = route('cloudflare-next', ['major-release'], {
+			stableReleaseType: RELEASE_TYPES.major,
+		});
 
 		assert.equal(decision.outcome, OUTCOMES.join);
+	});
+
+	it('should refuse a PR it would move into a settled umbrella', () => {
+		const expected = { outcome: OUTCOMES.refuse, reasons: [REFUSAL_REASONS.settledUmbrella] };
+		const state = { settledBaseBranches: ['main', 'cloudflare-next'] };
+
+		assert.deepEqual(route('main', ['minor-release'], state), expected);
+		assert.deepEqual(route('cloudflare-next', ['major-release'], state), expected);
+	});
+
+	it('should route a PR based on the branch of a settled umbrella', () => {
+		const state = { settledBaseBranches: ['main', 'cloudflare-next'] };
+
+		assert.equal(route('release-queue/main', ['minor-release'], state).outcome, OUTCOMES.join);
+		assert.equal(
+			route('release-queue/cloudflare-next', ['major-release'], state).outcome,
+			OUTCOMES.join
+		);
 	});
 });

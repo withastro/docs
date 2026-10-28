@@ -116,21 +116,20 @@ export function getUmbrellaRelease(
  * Plans the title, the description, and the labels of an umbrella PR from the release it ships
  * with and the PRs it includes.
  *
- * Without a release, keeps the title, the release label, and the linked release PR, since nothing
- * tells what the next release is.
+ * Without a release, keeps the title, the release label, and the linked release PR.
  *
  * @param {Pick<PullRequest, 'title' | 'body' | 'labels' | 'base'>} umbrella - The umbrella PR.
- * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @param {FrameworkRelease | null} release - The release the umbrella ships with, or `null` when
+ * it is unknown or must not change.
  * @param {number[]} includedPrNumbers - The docs PRs merged into the umbrella branch.
  * @returns {UmbrellaUpdate} The title, the description, and the labels to add and to remove.
  */
 export function planUmbrellaUpdate(
 	umbrella: Pick<PullRequest, 'title' | 'body' | 'labels' | 'base'>,
-	releases: FrameworkReleases,
+	release: FrameworkRelease | null,
 	includedPrNumbers: number[]
 ): UmbrellaUpdate {
 	const baseBranch = umbrella.base.ref;
-	const release = getUmbrellaRelease(releases, baseBranch);
 	const route = { umbrellaBranch: getUmbrellaBranch(baseBranch), umbrellaBaseBranch: baseBranch };
 	const releasePrNumber = release?.prNumber ?? readReleasePrMarker(umbrella.body);
 
@@ -141,7 +140,13 @@ export function planUmbrellaUpdate(
 	};
 }
 
-function readReleasePrMarker(body: string | null) {
+/**
+ * Reads the release PR recorded in the description of an umbrella PR.
+ *
+ * @param {string | null} body - The description of the umbrella PR.
+ * @returns {number | null} The number of the release PR, or `null` without a marker.
+ */
+export function readReleasePrMarker(body: string | null): number | null {
 	const match = body?.match(RELEASE_PR_MARKER);
 	return match ? Number(match[1]) : null;
 }

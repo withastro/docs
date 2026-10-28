@@ -15,13 +15,13 @@ import {
 import { ACCEPTED_LABEL } from './config.ts';
 import { OUTCOMES, routePullRequest, type Decision } from './decision.ts';
 import { findReadinessProblems, readReadiness } from './readiness.ts';
+import type { FrameworkReleases } from './release.ts';
 import {
-	describeReleases,
-	readFrameworkReleases,
-	type FrameworkRelease,
-	type FrameworkReleases,
-	type FrameworkRepository,
-} from './release.ts';
+	describeReleaseState,
+	readReleaseState,
+	type ReleaseState,
+	type StateFrameworkRepository,
+} from './state.ts';
 import {
 	getUmbrellaRelease,
 	isUmbrellaPullRequest,
@@ -61,7 +61,7 @@ type Join = {
 export type ReleaseQueueContext = {
 	docs: DocsRepository;
 	/** The framework repository, read for its release PRs. */
-	astro: FrameworkRepository;
+	astro: StateFrameworkRepository;
 	log: (message: string) => void;
 	/** The job running the release queue, from `GITHUB_JOB`. `null` outside GitHub Actions. */
 	jobName: string | null;
@@ -87,9 +87,9 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
 		return;
 	}
 
-	const releases = await readFrameworkReleases(context.astro);
-	log(`Releases: ${describeReleases(releases, context.astro.fullName)}.`);
-	const decision = await decideJoin(context, pullRequest, releases.stable);
+	const state = await readReleaseState(context);
+	log(describeReleaseState(state, context.astro.fullName));
+	const decision = await decideJoin(context, pullRequest, state);
 	await docs.createComment(prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
@@ -102,13 +102,13 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
  *
  * @param {ReleaseQueueContext} context - The docs and framework repositories, where to log, and
  * the job running the release queue.
- * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @param {ReleaseState} state - The open releases, and the settled umbrellas.
  * @throws {GitHubError} When reading the accepted PRs fails.
  * @throws {AggregateError} When some PRs failed, after handling the others.
  */
 export async function joinAcceptedPullRequests(
 	context: ReleaseQueueContext,
-	releases: FrameworkReleases
+	state: ReleaseState
 ): Promise<void> {
 	const { docs, log } = context;
 	const prNumbers = await findAcceptedPrNumbers(docs);
@@ -117,7 +117,7 @@ export async function joinAcceptedPullRequests(
 	const errors: unknown[] = [];
 	for (const prNumber of prNumbers) {
 		try {
-			await joinPullRequest(context, prNumber, releases);
+			await joinPullRequest(context, prNumber, state);
 		} catch (error) {
 			log(`#${prNumber} failed: ${error instanceof Error ? error.message : String(error)}`);
 			errors.push(error);
@@ -143,7 +143,7 @@ async function findAcceptedPrNumbers(docs: DocsRepository) {
 async function joinPullRequest(
 	context: ReleaseQueueContext,
 	prNumber: number,
-	releases: FrameworkReleases
+	state: ReleaseState
 ) {
 	const { docs, log } = context;
 	// Read again: the list has no mergeability, and the PR may have changed since.
@@ -154,23 +154,27 @@ async function joinPullRequest(
 		return;
 	}
 
-	const decision = await decideJoin(context, pullRequest, releases.stable);
+	const decision = await decideJoin(context, pullRequest, state);
 	if (decision.outcome === OUTCOMES.refuse) {
 		await refuseJoin(docs, prNumber, renderRefusalComment(decision.reasons));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
 		return;
 	}
 
-	await mergeIntoUmbrella(context, { pullRequest, route: decision.route, releases });
+	await mergeIntoUmbrella(context, {
+		pullRequest,
+		route: decision.route,
+		releases: state.releases,
+	});
 }
 
 /** Routes a docs PR to its umbrella, then checks that it can be merged. */
 async function decideJoin(
 	{ docs, jobName }: ReleaseQueueContext,
 	pullRequest: PullRequestDetails,
-	stableRelease: FrameworkRelease | null
+	state: ReleaseState
 ): Promise<Decision> {
-	const routing = routePullRequest(pullRequest, stableRelease);
+	const routing = routePullRequest(pullRequest, state);
 	if (routing.outcome === OUTCOMES.refuse) return routing;
 
 	const problems = findReadinessProblems(await readReadiness(docs, pullRequest, jobName));

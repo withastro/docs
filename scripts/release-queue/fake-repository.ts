@@ -26,6 +26,7 @@ type PullRequestFixture = {
 	body?: string | null;
 	isDraft?: boolean;
 	mergeable?: boolean | null;
+	isMerged?: boolean;
 };
 
 type FakeRepositoryState = {
@@ -59,6 +60,7 @@ export function buildPullRequest({
 	body = null,
 	isDraft = false,
 	mergeable = true,
+	isMerged = false,
 }: PullRequestFixture = {}): PullRequestDetails {
 	return {
 		number,
@@ -75,7 +77,7 @@ export function buildPullRequest({
 		base: { ref: baseBranch },
 		labels: labels.map((name) => ({ name })),
 		mergeable,
-		merged: false,
+		merged: isMerged,
 	};
 }
 

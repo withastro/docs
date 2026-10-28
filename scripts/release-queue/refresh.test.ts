@@ -4,6 +4,7 @@ import type { PullRequestDetails } from '../lib/github/repository.ts';
 import { RELEASE_TYPES } from './config.ts';
 import { buildPullRequest, FakeRepository } from './fake-repository.ts';
 import { refreshOpenUmbrellas } from './refresh.ts';
+import type { ReleaseState } from './state.ts';
 import { renderUmbrellaBody } from './umbrella.ts';
 
 const RELEASES = {
@@ -30,6 +31,10 @@ function buildUmbrella(labels: string[], changes: Partial<PullRequestDetails> = 
 }
 
 async function refresh(...pullRequests: PullRequestDetails[]) {
+	return refreshWithState({ releases: RELEASES, settledBaseBranches: [] }, ...pullRequests);
+}
+
+async function refreshWithState(state: ReleaseState, ...pullRequests: PullRequestDetails[]) {
 	const docs = new FakeRepository({
 		pullRequests,
 		comparisons: {
@@ -40,7 +45,7 @@ async function refresh(...pullRequests: PullRequestDetails[]) {
 		},
 	});
 	const logs: string[] = [];
-	await refreshOpenUmbrellas({ docs, log: (message) => logs.push(message) }, RELEASES);
+	await refreshOpenUmbrellas({ docs, log: (message) => logs.push(message) }, state);
 	return { writes: docs.writes, logs };
 }
 
@@ -90,5 +95,50 @@ describe('refreshOpenUmbrellas', () => {
 		const refreshedPrNumbers = new Set(writes.map(({ args }) => args[0]));
 		assert.deepEqual([...refreshedPrNumbers], [50, 60]);
 		assert.equal(logs[0], 'Open umbrellas: #50, #60.');
+	});
+
+	it('should only update the included PRs of a settled umbrella', async () => {
+		const settledBody = renderUmbrellaBody({
+			route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+			releasePrNumber: 90,
+			includedPrNumbers: [],
+		});
+		const umbrella = buildUmbrella(['merge-on-release', 'patch-release'], {
+			title: '[ci] release astro@7.4.9 docs',
+			body: settledBody,
+		});
+
+		const { writes } = await refreshWithState(
+			{ releases: RELEASES, settledBaseBranches: ['main'] },
+			umbrella
+		);
+
+		assert.deepEqual(writes, [
+			{
+				method: 'updatePullRequest',
+				args: [
+					50,
+					{
+						body: renderUmbrellaBody({
+							route: { umbrellaBranch: 'release-queue/main', umbrellaBaseBranch: 'main' },
+							releasePrNumber: 90,
+							includedPrNumbers: [7],
+						}),
+					},
+				],
+			},
+		]);
+	});
+
+	it('should leave the stable umbrella to maintainers while a major release is pending', async () => {
+		const majorRelease = { ...RELEASES.stable, type: RELEASE_TYPES.major };
+
+		const { writes, logs } = await refreshWithState(
+			{ releases: { stable: majorRelease, prerelease: null }, settledBaseBranches: [] },
+			buildUmbrella([])
+		);
+
+		assert.deepEqual(writes, []);
+		assert.match(logs.at(-1) ?? '', /^Umbrella #50 skipped: /);
 	});
 });

@@ -1,6 +1,6 @@
 import { joinAcceptedPullRequests, type ReleaseQueueContext } from './join.ts';
 import { refreshOpenUmbrellas } from './refresh.ts';
-import { describeReleases, readFrameworkReleases } from './release.ts';
+import { describeReleaseState, readReleaseState } from './state.ts';
 
 /**
  * Moves the docs PRs labeled `accepted` into their umbrella, then refreshes every open umbrella.
@@ -14,12 +14,12 @@ import { describeReleases, readFrameworkReleases } from './release.ts';
  */
 export async function runReleaseQueue(context: ReleaseQueueContext): Promise<void> {
 	const { astro, log } = context;
-	const releases = await readFrameworkReleases(astro);
-	log(`Releases: ${describeReleases(releases, astro.fullName)}.`);
+	const state = await readReleaseState(context);
+	log(describeReleaseState(state, astro.fullName));
 
 	try {
-		await joinAcceptedPullRequests(context, releases);
+		await joinAcceptedPullRequests(context, state);
 	} finally {
-		await refreshOpenUmbrellas(context, releases);
+		await refreshOpenUmbrellas(context, state);
 	}
 }

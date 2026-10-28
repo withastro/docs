@@ -1,4 +1,9 @@
-import { ACCEPTED_LABEL, DOCS_STABLE_BRANCH, RELEASE_LABELS } from './config.ts';
+import {
+	ACCEPTED_LABEL,
+	DOCS_STABLE_BRANCH,
+	RELEASE_LABELS,
+	UMBRELLA_BRANCH_PREFIX,
+} from './config.ts';
 import { OUTCOMES, REFUSAL_REASONS, type Decision, type RefusalReason } from './decision.ts';
 import type { Route } from './umbrella.ts';
 
@@ -11,6 +16,7 @@ const REFUSAL_MESSAGES: Record<RefusalReason, string> = {
 	[REFUSAL_REASONS.majorReleaseOnStableBranch]: `This PR has \`${major}\`, but its base branch is \`${DOCS_STABLE_BRANCH}\`. Change its base to the prerelease branch it ships with, or replace \`${major}\` with \`${patch}\` or \`${minor}\`.`,
 	[REFUSAL_REASONS.stableReleaseOnPrereleaseBranch]: `This PR has \`${patch}\` or \`${minor}\`, but its base branch is a prerelease branch. Change its base to \`${DOCS_STABLE_BRANCH}\`, or replace its release label with \`${major}\`.`,
 	[REFUSAL_REASONS.majorReleasePending]: `The next stable release of Astro is a major: everything merged now ships with it, so this PR belongs to its prerelease branch. Change its base to that branch, and replace its release label with \`${major}\`.`,
+	[REFUSAL_REASONS.settledUmbrella]: `The release of this PR's umbrella is out, so this PR belongs to the next release: add \`${ACCEPTED_LABEL}\` again once a maintainer has merged the umbrella PR. If this PR documents the release that is out, change its base to the \`${UMBRELLA_BRANCH_PREFIX}\` branch of the umbrella first.`,
 	[REFUSAL_REASONS.draft]: `This PR is a draft. Mark it as ready for review first.`,
 	[REFUSAL_REASONS.changesRequested]: `A maintainer requested changes. Address them, then ask for a new review.`,
 	[REFUSAL_REASONS.missingApproval]: `This PR needs an approval from a maintainer.`,

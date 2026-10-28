@@ -29,7 +29,10 @@ describe('runReleaseQueue', () => {
 		const methods = docs.writes.map(({ method }) => method);
 		assert.ok(methods.indexOf('mergePullRequest') < methods.indexOf('addLabels'));
 		assert.ok(docs.writes.some(({ method, args }) => method === 'addLabels' && args[0] === 50));
-		assert.equal(logs[0], 'Releases: stable none open, prerelease the same.');
+		assert.equal(
+			logs[0],
+			'Releases: stable none open, prerelease the same. Settled umbrellas: none.'
+		);
 	});
 
 	it('should refresh the open umbrellas when a join fails, then fail', async (t) => {

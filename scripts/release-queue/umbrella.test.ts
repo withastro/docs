@@ -112,7 +112,7 @@ describe('planUmbrellaUpdate', () => {
 	it('should title and label the stable umbrella after the stable release', () => {
 		const umbrella = buildUmbrella('main', ['patch-release', 'i18n']);
 
-		assert.deepEqual(planTitleAndLabels(umbrella, { stable, prerelease }, []), {
+		assert.deepEqual(planTitleAndLabels(umbrella, stable, []), {
 			title: '[ci] release astro@7.5.0 docs',
 			labelsToAdd: ['merge-on-release', 'minor-release'],
 			labelsToRemove: ['patch-release'],
@@ -122,7 +122,7 @@ describe('planUmbrellaUpdate', () => {
 	it('should keep the title and the release label of the stable umbrella without a release', () => {
 		const umbrella = buildUmbrella('main', ['merge-on-release', 'patch-release']);
 
-		assert.deepEqual(planTitleAndLabels(umbrella, { stable: null, prerelease: null }, []), {
+		assert.deepEqual(planTitleAndLabels(umbrella, null, []), {
 			title: 'Umbrella',
 			labelsToAdd: [],
 			labelsToRemove: [],
@@ -132,7 +132,7 @@ describe('planUmbrellaUpdate', () => {
 	it('should title a prerelease umbrella after the prerelease, and label it as a major', () => {
 		const umbrella = buildUmbrella('v8', ['minor-release']);
 
-		assert.deepEqual(planTitleAndLabels(umbrella, { stable, prerelease }, []), {
+		assert.deepEqual(planTitleAndLabels(umbrella, prerelease, []), {
 			title: '[ci] release astro@8.0.0-beta.1 docs',
 			labelsToAdd: ['merge-on-release', 'major-release'],
 			labelsToRemove: ['minor-release'],
@@ -142,7 +142,7 @@ describe('planUmbrellaUpdate', () => {
 	it('should label a prerelease umbrella as a major without a release', () => {
 		const umbrella = buildUmbrella('v8', ['merge-on-release']);
 
-		assert.deepEqual(planTitleAndLabels(umbrella, { stable: null, prerelease: null }, []), {
+		assert.deepEqual(planTitleAndLabels(umbrella, null, []), {
 			title: 'Umbrella',
 			labelsToAdd: ['major-release'],
 			labelsToRemove: [],
@@ -156,7 +156,7 @@ describe('planUmbrellaUpdate', () => {
 			'[ci] release astro@7.5.0 docs'
 		);
 
-		assert.deepEqual(planTitleAndLabels(umbrella, { stable, prerelease }, []), {
+		assert.deepEqual(planTitleAndLabels(umbrella, stable, []), {
 			title: '[ci] release astro@7.5.0 docs',
 			labelsToAdd: [],
 			labelsToRemove: [],
@@ -166,7 +166,7 @@ describe('planUmbrellaUpdate', () => {
 	it('should list the included PRs and link the release in the description', () => {
 		const umbrella = buildUmbrella('main', []);
 
-		const { body } = planUmbrellaUpdate(umbrella, { stable, prerelease }, [7, 9]);
+		const { body } = planUmbrellaUpdate(umbrella, stable, [7, 9]);
 
 		assert.equal(
 			body,
@@ -185,7 +185,7 @@ describe('planUmbrellaUpdate', () => {
 			body: renderUmbrellaBody({ route, releasePrNumber: 100, includedPrNumbers: [7] }),
 		};
 
-		const { body } = planUmbrellaUpdate(umbrella, { stable: null, prerelease: null }, [7, 9]);
+		const { body } = planUmbrellaUpdate(umbrella, null, [7, 9]);
 
 		assert.equal(
 			body,
