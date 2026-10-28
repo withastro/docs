@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { CHECK_STATES } from './checks.ts';
 import { jsonResponse, mockFetch } from './fetch-mock.ts';
-import { GitHubRepository, MERGE_METHODS, REVIEW_STATES } from './repository.ts';
+import { GitHubRepository, hasLabel, MERGE_METHODS, REVIEW_STATES } from './repository.ts';
 
 const REPOSITORY_URL = 'https://api.github.com/repos/example-org/example-repo';
 
@@ -711,5 +711,18 @@ describe('GitHubRepository', () => {
 
 			await assert.rejects(createRepository().updateReview(7, 3, 'Updated.'), /403: Forbidden/);
 		});
+	});
+});
+
+describe('hasLabel', () => {
+	const pullRequestWithLabels = { labels: [{ name: 'i18n' }, { name: 'merge-queue' }] };
+
+	it('should be true for a label of the pull request', () => {
+		assert.equal(hasLabel(pullRequestWithLabels, 'merge-queue'), true);
+	});
+
+	it('should be false for a label the pull request does not have', () => {
+		assert.equal(hasLabel(pullRequestWithLabels, 'i18n: fr'), false);
+		assert.equal(hasLabel({ labels: [] }, 'i18n'), false);
 	});
 });

@@ -507,6 +507,25 @@ export class GitHubRepository {
 }
 
 /**
+ * The `GitHubRepository` public methods and fields, without its private fields.
+ *
+ * A class with private fields only matches its own instances. A test fake
+ * should implement this type instead.
+ */
+export type Repository = Pick<GitHubRepository, keyof GitHubRepository>;
+
+/**
+ * Tells whether a pull request has a label.
+ *
+ * @param {Pick<PullRequest, 'labels'>} pullRequest - The pull request, or an object with labels.
+ * @param {string} label - The name of the label.
+ * @returns {boolean} `true` when one of the labels has this name.
+ */
+export function hasLabel(pullRequest: Pick<PullRequest, 'labels'>, label: string): boolean {
+	return pullRequest.labels.some(({ name }) => name === label);
+}
+
+/**
  * Encodes each segment of a ref or a file path, keeping its slashes, so it
  * cannot change the endpoint.
  */
