@@ -160,6 +160,8 @@ const isComparison = shapeOf<Comparison>({
 
 const isPermission = shapeOf<{ permission: string }>({ permission: isString });
 
+const isBranchRef = shapeOf<{ object: { sha: string } }>({ object: shapeOf({ sha: isString }) });
+
 const isFileContent = shapeOf<{ type: string; encoding: string; content: string }>({
 	type: isOneOf([FILE_CONTENT_TYPE]),
 	encoding: isOneOf([FILE_CONTENT_ENCODING]),
@@ -324,6 +326,28 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Gets the commit at the head of a branch.
+	 *
+	 * @param {string} branch - The name of the branch, without `refs/heads/`.
+	 * @returns {Promise<string | null>} The SHA of the commit, or `null` when GitHub answers "Not Found" (e.g. a missing branch or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 * @throws {Error} When the branch has an unsafe path segment.
+	 * @throws {Error} When the ref does not have the expected shape.
+	 */
+	async getBranchSha(branch: string): Promise<string | null> {
+		try {
+			const { object } = await this.#get(
+				`/git/ref/heads/${encodePathSegments(branch)}`,
+				isBranchRef
+			);
+			return object.sha;
+		} catch (error) {
+			if (error instanceof GitHubError && error.isNotFound) return null;
+			throw error;
+		}
+	}
+
+	/**
 	 * Opens a pull request.
 	 *
 	 * @param {NewPullRequest} pullRequest - The pull request to open.
@@ -337,6 +361,21 @@ export class GitHubRepository {
 			isCreatedPullRequest
 		);
 		return { number, html_url };
+	}
+
+	/**
+	 * Creates a branch.
+	 *
+	 * @param {string} branch - The name of the branch, without `refs/heads/`.
+	 * @param {string} sha - The commit the branch starts at.
+	 * @throws {GitHubError} When GitHub answers with an error status (e.g. an existing branch).
+	 */
+	async createBranch(branch: string, sha: string): Promise<void> {
+		await this.#send({
+			method: 'POST',
+			path: '/git/refs',
+			body: { ref: `refs/heads/${branch}`, sha },
+		});
 	}
 
 	/**

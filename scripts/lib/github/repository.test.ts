@@ -303,6 +303,43 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getBranchSha', () => {
+		it('should get the SHA of the commit at the head of a branch', async (t) => {
+			const fetchMock = mockFetch(
+				t,
+				jsonResponse({
+					ref: 'refs/heads/release-queue/main',
+					object: { sha: 'abc123', type: 'commit' },
+				})
+			);
+
+			const sha = await createRepository().getBranchSha('release-queue/main');
+
+			assert.equal(sha, 'abc123');
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/git/ref/heads/release-queue/main`,
+			]);
+		});
+
+		it('should return null for a branch that does not exist', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Not Found' }, { status: 404 }));
+
+			assert.equal(await createRepository().getBranchSha('release-queue/main'), null);
+		});
+
+		it('should throw on other errors', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Bad credentials' }, { status: 401 }));
+
+			await assert.rejects(createRepository().getBranchSha('main'), /Bad credentials/);
+		});
+
+		it('should refuse a branch name with a ".." segment, without a request', async (t) => {
+			mockFetch(t);
+
+			await assert.rejects(createRepository().getBranchSha('main/..'), /"\.\."/);
+		});
+	});
+
 	describe('getFileContent', () => {
 		function fileResponse(text: string) {
 			return jsonResponse({
@@ -510,6 +547,32 @@ describe('GitHubRepository', () => {
 			});
 
 			await assert.rejects(merge, /Head branch was modified/);
+		});
+	});
+
+	describe('createBranch', () => {
+		it('should create a branch at a commit', async (t) => {
+			const fetchMock = mockFetch(
+				t,
+				jsonResponse({ ref: 'refs/heads/release-queue/main' }, { status: 201 })
+			);
+
+			await createRepository().createBranch('release-queue/main', 'abc123');
+
+			assert.deepEqual(getSentRequest(fetchMock), {
+				url: `${REPOSITORY_URL}/git/refs`,
+				method: 'POST',
+				body: { ref: 'refs/heads/release-queue/main', sha: 'abc123' },
+			});
+		});
+
+		it('should throw when the branch already exists', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Reference already exists' }, { status: 422 }));
+
+			await assert.rejects(
+				createRepository().createBranch('main', 'abc123'),
+				/Reference already exists/
+			);
 		});
 	});
 

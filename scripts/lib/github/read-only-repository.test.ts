@@ -17,6 +17,7 @@ const READ_METHODS = [
 	'compare',
 	'hasWriteAccess',
 	'getFileContent',
+	'getBranchSha',
 ];
 
 function getMethodNames(prototype: object) {

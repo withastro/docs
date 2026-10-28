@@ -43,6 +43,10 @@ export class ReadOnlyRepository extends GitHubRepository {
 		return { number: 0, html_url: '' };
 	}
 
+	override async createBranch(branch: string, sha: string): Promise<void> {
+		this.#logWrite('createBranch', [branch, sha]);
+	}
+
 	override async addLabels(prNumber: number, labels: readonly string[]): Promise<void> {
 		this.#logWrite('addLabels', [prNumber, labels]);
 	}
