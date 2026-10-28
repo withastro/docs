@@ -6,7 +6,6 @@ function checkRun(name: string, status: string, conclusion: string | null) {
 	return { name, status, conclusion };
 }
 
-const noCheckRuns = { total_count: 0, check_runs: [] };
 const noStatuses = { total_count: 0, statuses: [] };
 
 describe('toChecks', () => {
@@ -29,7 +28,7 @@ describe('toChecks', () => {
 			],
 		};
 
-		const checks = toChecks(checkRunList, combinedStatus, 'abc123');
+		const checks = toChecks(checkRunList, combinedStatus);
 
 		assert.deepEqual(checks, [
 			{ name: 'build', state: CHECK_STATES.success },
@@ -45,26 +44,8 @@ describe('toChecks', () => {
 	it('should count a conclusion GitHub adds later as a failure', () => {
 		const checkRunList = { total_count: 1, check_runs: [checkRun('build', 'completed', 'new')] };
 
-		const checks = toChecks(checkRunList, noStatuses, 'abc123');
+		const checks = toChecks(checkRunList, noStatuses);
 
 		assert.deepEqual(checks, [{ name: 'build', state: CHECK_STATES.failure }]);
-	});
-
-	it('should throw when the commit has more check runs than one page', () => {
-		const checkRunList = {
-			total_count: 101,
-			check_runs: [checkRun('build', 'completed', 'success')],
-		};
-
-		assert.throws(() => toChecks(checkRunList, noStatuses, 'abc123'), /101 check runs on abc123/);
-	});
-
-	it('should throw when the commit has more statuses than one page', () => {
-		const combinedStatus = {
-			total_count: 101,
-			statuses: [{ context: 'preview', state: 'success' as const }],
-		};
-
-		assert.throws(() => toChecks(noCheckRuns, combinedStatus, 'abc123'), /101 statuses on abc123/);
 	});
 });

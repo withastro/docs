@@ -61,27 +61,13 @@ type CombinedStatus = shape.Infer<typeof combinedStatusShape>;
  *
  * @param {CheckRunList} checkRunList - The check runs of the commit.
  * @param {CombinedStatus} combinedStatus - The commit statuses of the commit.
- * @param {string} ref - The ref of the commit, for the error.
  * @returns {Check[]} The check runs, then the commit statuses.
- * @throws {Error} When a list has more than one page.
  */
-export function toChecks(
-	checkRunList: CheckRunList,
-	combinedStatus: CombinedStatus,
-	ref: string
-): Check[] {
-	const checkRuns = checkRunList.check_runs;
-	const { statuses } = combinedStatus;
-	ensureSinglePage(checkRuns, checkRunList.total_count, `check runs on ${ref}`);
-	ensureSinglePage(statuses, combinedStatus.total_count, `statuses on ${ref}`);
-
-	return [...checkRuns.map(toCheckFromRun), ...statuses.map(toCheckFromStatus)];
-}
-
-function ensureSinglePage(items: unknown[], totalCount: number, itemsName: string) {
-	if (totalCount > items.length) {
-		throw new Error(`Found ${totalCount} ${itemsName}, but one page only holds ${items.length}.`);
-	}
+export function toChecks(checkRunList: CheckRunList, combinedStatus: CombinedStatus): Check[] {
+	return [
+		...checkRunList.check_runs.map(toCheckFromRun),
+		...combinedStatus.statuses.map(toCheckFromStatus),
+	];
 }
 
 function toCheckFromRun({ name, status, conclusion }: CheckRun): Check {

@@ -381,6 +381,29 @@ describe('GitHubRepository', () => {
 
 			await assert.rejects(createRepository().getChecks('abc123'), /check-runs/);
 		});
+
+		it('should throw when the commit has more check runs than one page', async (t) => {
+			mockFetch(
+				t,
+				jsonResponse({
+					total_count: 101,
+					check_runs: [{ name: 'build', status: 'completed', conclusion: 'success' }],
+				}),
+				jsonResponse({ total_count: 0, statuses: [] })
+			);
+
+			await assert.rejects(createRepository().getChecks('abc123'), /101 check runs on abc123/);
+		});
+
+		it('should throw when the commit has more statuses than one page', async (t) => {
+			mockFetch(
+				t,
+				jsonResponse({ total_count: 0, check_runs: [] }),
+				jsonResponse({ total_count: 101, statuses: [{ context: 'preview', state: 'success' }] })
+			);
+
+			await assert.rejects(createRepository().getChecks('abc123'), /101 statuses on abc123/);
+		});
 	});
 
 	describe('compare', () => {

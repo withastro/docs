@@ -324,7 +324,15 @@ export class GitHubRepository {
 			this.#get(`${commitPath}/status?per_page=${MAX_PAGE_SIZE}`, combinedStatusShape),
 		]);
 
-		return toChecks(checkRunList, combinedStatus, ref);
+		ensureSinglePage(
+			{ items: checkRunList.check_runs, totalCount: checkRunList.total_count },
+			`check runs on ${ref}`
+		);
+		ensureSinglePage(
+			{ items: combinedStatus.statuses, totalCount: combinedStatus.total_count },
+			`statuses on ${ref}`
+		);
+		return toChecks(checkRunList, combinedStatus);
 	}
 
 	/**
@@ -607,6 +615,15 @@ function encodePathSegment(segment: string) {
 		throw new Error(`Cannot use "${segment}" as a segment of a URL path.`);
 	}
 	return encodeURIComponent(segment);
+}
+
+/** A page of a list, with the size of the whole list. */
+type CountedPage = { items: unknown[]; totalCount: number };
+
+function ensureSinglePage({ items, totalCount }: CountedPage, itemsName: string) {
+	if (totalCount > items.length) {
+		throw new Error(`Found ${totalCount} ${itemsName}, but one page only holds ${items.length}.`);
+	}
 }
 
 function isMissingLabel(error: unknown) {
