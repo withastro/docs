@@ -1,3 +1,4 @@
+import { setTimeout } from 'node:timers/promises';
 import { checkRunListShape, combinedStatusShape, toChecks, type Check } from './checks.ts';
 import {
 	getAllPages,
@@ -20,6 +21,8 @@ const MISSING_LABEL_MESSAGE = 'Label does not exist';
 const FILE_CONTENT_TYPE = 'file';
 /** The encoding of file contents up to 1 MB. Larger files come without their content. */
 const FILE_CONTENT_ENCODING = 'base64';
+const MERGEABILITY_RETRY_COUNT = 5;
+const MERGEABILITY_RETRY_DELAY_MS = 2000;
 
 export const REVIEW_STATES = {
 	approved: 'APPROVED',
@@ -147,6 +150,8 @@ export type RepositoryOptions = {
 	/** As `owner/repo`. */
 	fullName: string;
 	token: string;
+	/** Waits between two requests that poll GitHub. Defaults to a timer. */
+	wait?: (delayMs: number) => Promise<void>;
 };
 
 /**
@@ -160,13 +165,14 @@ export class GitHubRepository {
 	#owner: string;
 	#token: string;
 	#endpoint: string;
+	#wait: (delayMs: number) => Promise<void>;
 
 	/**
-	 * @param {RepositoryOptions} options - The repository and the token to act on it with.
+	 * @param {RepositoryOptions} options - How to reach the repository.
 	 * @throws {Error} When the name is not `owner/repo`.
 	 * @throws {Error} When the token is empty.
 	 */
-	constructor({ fullName, token }: RepositoryOptions) {
+	constructor({ fullName, token, wait = setTimeout }: RepositoryOptions) {
 		if (!REPOSITORY_FULL_NAME.test(fullName)) {
 			throw new Error(`Expected a repository name like "owner/repo", got "${fullName}".`);
 		}
@@ -176,6 +182,7 @@ export class GitHubRepository {
 		[this.#owner] = fullName.split('/');
 		this.#token = token;
 		this.#endpoint = `/repos/${fullName}`;
+		this.#wait = wait;
 	}
 
 	/**
@@ -240,6 +247,29 @@ export class GitHubRepository {
 	 */
 	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
 		return this.#getOrNull(`/pulls/${prNumber}`, pullRequestDetailsShape);
+	}
+
+	/**
+	 * Gets whether a pull request can be merged without conflicts.
+	 *
+	 * GitHub checks in the background after the first request for the pull
+	 * request, so its `mergeable` is `null` until then. This asks again, a few
+	 * times, a few seconds apart.
+	 *
+	 * @param {Pick<PullRequestDetails, 'number' | 'mergeable'>} pullRequest - The pull request, as last read.
+	 * @returns {Promise<boolean | null>} Whether it can be merged, or `null` when GitHub took too long to check.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 * @throws {Error} When the pull request does not have the expected shape.
+	 */
+	async waitForMergeability(
+		pullRequest: Pick<PullRequestDetails, 'number' | 'mergeable'>
+	): Promise<boolean | null> {
+		let { mergeable } = pullRequest;
+		for (let retry = 0; mergeable === null && retry < MERGEABILITY_RETRY_COUNT; retry++) {
+			await this.#wait(MERGEABILITY_RETRY_DELAY_MS);
+			({ mergeable } = await this.getPullRequest(pullRequest.number));
+		}
+		return mergeable;
 	}
 
 	/**

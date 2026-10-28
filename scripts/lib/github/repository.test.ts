@@ -196,6 +196,64 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('waitForMergeability', () => {
+		/** A repository whose waits resolve at once, recording each delay. */
+		function createWaitingRepository() {
+			const delaysMs: number[] = [];
+			const repository = new GitHubRepository({
+				fullName: 'example-org/example-repo',
+				token: 'test-token',
+				wait: async (delayMs) => {
+					delaysMs.push(delayMs);
+				},
+			});
+			return { repository, delaysMs };
+		}
+
+		function mergeabilityResponse(mergeable: boolean | null) {
+			return jsonResponse({ ...pullRequestDetailsResponse, mergeable });
+		}
+
+		it('should answer at once when the mergeability is known', async (t) => {
+			mockFetch(t);
+			const { repository, delaysMs } = createWaitingRepository();
+
+			assert.equal(await repository.waitForMergeability({ number: 7, mergeable: false }), false);
+			assert.deepEqual(delaysMs, []);
+		});
+
+		it('should ask again until GitHub has checked for conflicts', async (t) => {
+			const fetchMock = mockFetch(t, mergeabilityResponse(null), mergeabilityResponse(true));
+			const { repository, delaysMs } = createWaitingRepository();
+
+			assert.equal(await repository.waitForMergeability({ number: 7, mergeable: null }), true);
+			assert.deepEqual(delaysMs, [2000, 2000]);
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/pulls/7`,
+				`${REPOSITORY_URL}/pulls/7`,
+			]);
+		});
+
+		it('should return null when GitHub takes too long', async (t) => {
+			const responses = Array.from({ length: 5 }, () => mergeabilityResponse(null));
+			mockFetch(t, ...responses);
+			const { repository, delaysMs } = createWaitingRepository();
+
+			assert.equal(await repository.waitForMergeability({ number: 7, mergeable: null }), null);
+			assert.equal(delaysMs.length, 5);
+		});
+
+		it('should throw on an error', async (t) => {
+			mockFetch(t, jsonResponse({ message: 'Bad credentials' }, { status: 401 }));
+			const { repository } = createWaitingRepository();
+
+			await assert.rejects(
+				repository.waitForMergeability({ number: 7, mergeable: null }),
+				/Bad credentials/
+			);
+		});
+	});
+
 	describe('findPullRequest', () => {
 		it('should get a pull request', async (t) => {
 			const fetchMock = mockFetch(t, jsonResponse(pullRequestDetailsResponse));

@@ -15,6 +15,7 @@ const READ_METHODS = [
 	'getOpenPullRequestsFromBranch',
 	'getPullRequest',
 	'findPullRequest',
+	'waitForMergeability',
 	'getChecks',
 	'compare',
 	'hasWriteAccess',
