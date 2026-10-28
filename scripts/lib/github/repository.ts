@@ -559,20 +559,17 @@ export class GitHubRepository {
 	}
 
 	async #getList<T>(path: string, itemShape: shape.Shape<T>): Promise<T[]> {
-		const endpoint = `${this.#endpoint}${path}`;
-		const items = await getAllPages({ token: this.#token, path: endpoint });
-		return shape.parseResponse(items, shape.list(itemShape), `GET ${endpoint}`);
+		return getAllPages({ token: this.#token, path: `${this.#endpoint}${path}` }, itemShape);
 	}
 
 	async #request<T>(request: RepositoryRequest, responseShape: shape.Shape<T>): Promise<T> {
-		const endpoint = `${this.#endpoint}${request.path}`;
-		const response = await sendRequest({ ...request, token: this.#token, path: endpoint });
-		return shape.parseResponse(response, responseShape, `${request.method} ${endpoint}`);
+		const path = `${this.#endpoint}${request.path}`;
+		return sendRequest({ ...request, token: this.#token, path }, responseShape);
 	}
 
+	/** Sends a request whose response is not read. */
 	async #send(request: RepositoryRequest): Promise<void> {
-		const endpoint = `${this.#endpoint}${request.path}`;
-		await sendRequest({ ...request, token: this.#token, path: endpoint });
+		await this.#request(request, shape.unknown);
 	}
 }
 

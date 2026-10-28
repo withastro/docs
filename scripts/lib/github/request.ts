@@ -49,17 +49,23 @@ export class GitHubError extends Error {
 }
 
 /**
- * Sends a request to the GitHub REST API.
+ * Sends a request to the GitHub REST API, and reads its response with a shape.
  *
- * @param {RequestOptions} options - The token, the method, the endpoint, and the body to send.
- * @returns {Promise<unknown>} The parsed JSON body, or `undefined` for a response without content.
+ * @param {RequestOptions} options - What to send, and where.
+ * @param {shape.Shape<T>} responseShape - The expected shape of the body. A response without
+ * content reads as `undefined`.
+ * @returns {Promise<T>} A copy of the body with only the fields of the shape.
  * @throws {GitHubError} When GitHub answers with an error status.
  * @throws {Error} When a successful response is not JSON.
+ * @throws {Error} When the body does not match the shape.
  */
-export async function sendRequest(options: RequestOptions): Promise<unknown> {
+export async function sendRequest<T>(
+	options: RequestOptions,
+	responseShape: shape.Shape<T>
+): Promise<T> {
 	const url = new URL(options.path, API_URL);
 	const response = await sendToUrl(url, options);
-	return readJsonBody(response, `${options.method} ${url.pathname}`);
+	return readBody(response, responseShape, formatRequestLine(options.method, url));
 }
 
 /**
@@ -68,21 +74,23 @@ export async function sendRequest(options: RequestOptions): Promise<unknown> {
  * Requests the largest page size, then follows the `next` links one page after
  * the other.
  *
- * @param {Pick<RequestOptions, 'token' | 'path'>} options - The token and the endpoint of the list.
- * @returns {Promise<unknown[]>} The items of all pages, in order.
+ * @param {Pick<RequestOptions, 'token' | 'path'>} options - Where the list is.
+ * @param {shape.Shape<T>} itemShape - The expected shape of each item.
+ * @returns {Promise<T[]>} The items of all pages, in order, each with only the fields of the shape.
  * @throws {GitHubError} When GitHub answers with an error status.
  * @throws {Error} When a page is not a JSON list.
+ * @throws {Error} When an item does not match the shape.
  */
-export async function getAllPages(options: Pick<RequestOptions, 'token' | 'path'>) {
-	const items: unknown[] = [];
+export async function getAllPages<T>(
+	options: Pick<RequestOptions, 'token' | 'path'>,
+	itemShape: shape.Shape<T>
+): Promise<T[]> {
+	const items: T[] = [];
 	let url: URL | null = getFirstPageUrl(options.path);
 
 	while (url) {
-		const requestLine = `GET ${url.pathname}`;
 		const response = await sendToUrl(url, { ...options, method: 'GET' });
-		const body = await readJsonBody(response, requestLine);
-		const page = shape.parseResponse(body, shape.list(shape.unknown), requestLine);
-		items.push(...page);
+		items.push(...(await readBody(response, shape.list(itemShape), formatRequestLine('GET', url))));
 		url = getNextPageUrl(response);
 	}
 
@@ -105,13 +113,27 @@ async function sendToUrl(url: URL, { token, method, body }: Omit<RequestOptions,
 	if (!response.ok) {
 		const { apiMessage, details } = await readErrorBody(response);
 		throw new GitHubError({
-			message: `${method} ${url.pathname} failed with ${response.status}: ${details}`,
+			message: `${formatRequestLine(method, url)} failed with ${response.status}: ${details}`,
 			status: response.status,
 			apiMessage,
 		});
 	}
 
 	return response;
+}
+
+/** The method and the path of a request, without its query, to name it in errors. */
+function formatRequestLine(method: HttpMethod, url: URL) {
+	return `${method} ${url.pathname}`;
+}
+
+async function readBody<T>(
+	response: Response,
+	bodyShape: shape.Shape<T>,
+	requestLine: string
+): Promise<T> {
+	const body = await readJsonBody(response, requestLine);
+	return shape.parseResponse(body, bodyShape, requestLine);
 }
 
 async function readJsonBody(response: Response, requestLine: string): Promise<unknown> {

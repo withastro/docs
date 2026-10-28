@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { jsonResponse, mockFetch } from './fetch-mock.ts';
 import { getAllPages, GitHubError, sendRequest } from './request.ts';
+import * as shape from './shape.ts';
 
 const TOKEN = 'test-token';
 
@@ -9,7 +10,10 @@ describe('sendRequest', () => {
 	it('should send the request with the GitHub headers', async (t) => {
 		const fetchMock = mockFetch(t, jsonResponse({ id: 1 }));
 
-		await sendRequest({ token: TOKEN, method: 'POST', path: '/repos/a/b/issues', body: { x: 1 } });
+		await sendRequest(
+			{ token: TOKEN, method: 'POST', path: '/repos/a/b/issues', body: { x: 1 } },
+			shape.unknown
+		);
 		const [url, init] = fetchMock.mock.calls[0].arguments;
 		const headers = new Headers(init?.headers);
 
@@ -26,7 +30,7 @@ describe('sendRequest', () => {
 	it('should send no body when none is given', async (t) => {
 		const fetchMock = mockFetch(t, jsonResponse({}));
 
-		await sendRequest({ token: TOKEN, method: 'GET', path: '/repos/a/b' });
+		await sendRequest({ token: TOKEN, method: 'GET', path: '/repos/a/b' }, shape.unknown);
 		const [, init] = fetchMock.mock.calls[0].arguments;
 
 		assert.equal(init?.body, undefined);
@@ -35,7 +39,10 @@ describe('sendRequest', () => {
 	it('should return the parsed JSON body', async (t) => {
 		mockFetch(t, jsonResponse({ number: 7 }));
 
-		const result = await sendRequest({ token: TOKEN, method: 'GET', path: '/repos/a/b/pulls/7' });
+		const result = await sendRequest(
+			{ token: TOKEN, method: 'GET', path: '/repos/a/b/pulls/7' },
+			shape.unknown
+		);
 
 		assert.deepEqual(result, { number: 7 });
 	});
@@ -43,9 +50,34 @@ describe('sendRequest', () => {
 	it('should return undefined for a response without content', async (t) => {
 		mockFetch(t, new Response(null, { status: 204 }));
 
-		const result = await sendRequest({ token: TOKEN, method: 'DELETE', path: '/x' });
+		const result = await sendRequest({ token: TOKEN, method: 'DELETE', path: '/x' }, shape.unknown);
 
 		assert.equal(result, undefined);
+	});
+
+	it('should return a copy of the body with only the fields of the shape', async (t) => {
+		mockFetch(t, jsonResponse({ number: 7, node_id: 'PR_7' }));
+
+		const result = await sendRequest(
+			{ token: TOKEN, method: 'GET', path: '/repos/a/b/pulls/7' },
+			shape.object({ number: shape.number })
+		);
+
+		assert.deepEqual(result, { number: 7 });
+	});
+
+	it('should name the request, without its query, when the body does not match', async (t) => {
+		mockFetch(t, jsonResponse({ number: '7' }));
+
+		const request = sendRequest(
+			{ token: TOKEN, method: 'GET', path: '/repos/a/b/pulls/7?per_page=1' },
+			shape.object({ number: shape.number })
+		);
+
+		await assert.rejects(
+			request,
+			/^Error: Unexpected response from GET \/repos\/a\/b\/pulls\/7: `number` should be a number/
+		);
 	});
 
 	it('should throw a GitHubError with the status and the message from GitHub', async (t) => {
@@ -60,7 +92,10 @@ describe('sendRequest', () => {
 			)
 		);
 
-		const request = sendRequest({ token: TOKEN, method: 'POST', path: '/repos/a/b/pulls' });
+		const request = sendRequest(
+			{ token: TOKEN, method: 'POST', path: '/repos/a/b/pulls' },
+			shape.unknown
+		);
 
 		await assert.rejects(request, (error) => {
 			assert.ok(error instanceof GitHubError);
@@ -77,7 +112,7 @@ describe('sendRequest', () => {
 	it('should throw a GitHubError that tells a "Not Found" answer', async (t) => {
 		mockFetch(t, jsonResponse({ message: 'Not Found' }, { status: 404 }));
 
-		const request = sendRequest({ token: TOKEN, method: 'GET', path: '/repos/a/b' });
+		const request = sendRequest({ token: TOKEN, method: 'GET', path: '/repos/a/b' }, shape.unknown);
 
 		await assert.rejects(request, (error) => {
 			assert.ok(error instanceof GitHubError);
@@ -89,7 +124,7 @@ describe('sendRequest', () => {
 	it('should throw a GitHubError with the status text when the error has no JSON body', async (t) => {
 		mockFetch(t, new Response('<html>', { status: 502, statusText: 'Bad Gateway' }));
 
-		const request = sendRequest({ token: TOKEN, method: 'GET', path: '/x' });
+		const request = sendRequest({ token: TOKEN, method: 'GET', path: '/x' }, shape.unknown);
 
 		await assert.rejects(request, (error) => {
 			assert.ok(error instanceof GitHubError);
@@ -103,7 +138,7 @@ describe('sendRequest', () => {
 	it('should throw when a successful response is not JSON', async (t) => {
 		mockFetch(t, new Response('<html>', { status: 200, headers: { 'Content-Type': 'text/html' } }));
 
-		const request = sendRequest({ token: TOKEN, method: 'GET', path: '/x' });
+		const request = sendRequest({ token: TOKEN, method: 'GET', path: '/x' }, shape.unknown);
 
 		await assert.rejects(request, /from GET \/x, got text\/html/);
 	});
@@ -113,7 +148,7 @@ describe('getAllPages', () => {
 	it('should request the largest page size and keep the existing query', async (t) => {
 		const fetchMock = mockFetch(t, jsonResponse([]));
 
-		await getAllPages({ token: TOKEN, path: '/repos/a/b/pulls?state=open' });
+		await getAllPages({ token: TOKEN, path: '/repos/a/b/pulls?state=open' }, shape.unknown);
 		const [url] = fetchMock.mock.calls[0].arguments;
 
 		assert.equal(url, 'https://api.github.com/repos/a/b/pulls?state=open&per_page=100');
@@ -131,7 +166,10 @@ describe('getAllPages', () => {
 			})
 		);
 
-		const items = await getAllPages({ token: TOKEN, path: '/repos/a/b/pulls?state=open' });
+		const items = await getAllPages(
+			{ token: TOKEN, path: '/repos/a/b/pulls?state=open' },
+			shape.unknown
+		);
 
 		assert.deepEqual(items, [1, 2, 3]);
 		assert.equal(fetchMock.mock.callCount(), 2);
@@ -150,15 +188,29 @@ describe('getAllPages', () => {
 			jsonResponse([3])
 		);
 
-		const items = await getAllPages({ token: TOKEN, path: '/repositories/1/pulls?page=2' });
+		const items = await getAllPages(
+			{ token: TOKEN, path: '/repositories/1/pulls?page=2' },
+			shape.unknown
+		);
 
 		assert.deepEqual(items, [2, 3]);
+	});
+
+	it('should parse each item with the item shape', async (t) => {
+		mockFetch(t, jsonResponse([{ number: 7, node_id: 'PR_7' }]));
+
+		const items = await getAllPages(
+			{ token: TOKEN, path: '/repos/a/b/pulls?state=open' },
+			shape.object({ number: shape.number })
+		);
+
+		assert.deepEqual(items, [{ number: 7 }]);
 	});
 
 	it('should throw when a page is not a list', async (t) => {
 		mockFetch(t, jsonResponse({ total_count: 0 }));
 
-		const request = getAllPages({ token: TOKEN, path: '/repos/a/b/pulls' });
+		const request = getAllPages({ token: TOKEN, path: '/repos/a/b/pulls' }, shape.unknown);
 
 		await assert.rejects(
 			request,
