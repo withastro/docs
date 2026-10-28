@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { GitHubError } from '../lib/github/request.ts';
 import type { PullRequestDetails } from '../lib/github/repository.ts';
+import { GitHubError } from '../lib/github/request.ts';
 import {
 	renderDryRunComment,
 	renderJoinedComment,
@@ -46,7 +46,7 @@ describe('previewJoin', () => {
 			}),
 		]);
 		assert.deepEqual(logs, [
-			'Stable release: none open.',
+			'Releases: stable none open, prerelease the same.',
 			'Dry run: #7 would join release-queue/main.',
 		]);
 	});
@@ -70,7 +70,10 @@ describe('previewJoin', () => {
 				reasons: [REFUSAL_REASONS.majorReleasePending],
 			}),
 		]);
-		assert.equal(logs[0], `Stable release: ${astro.fullName}#100 (astro@8.0.0, major).`);
+		assert.equal(
+			logs[0],
+			`Releases: stable ${astro.fullName}#100 (astro@8.0.0, major), prerelease the same.`
+		);
 	});
 
 	it('should comment with the reason a PR with the wrong labels would be refused', async () => {
@@ -187,8 +190,8 @@ describe('joinAcceptedPullRequests', () => {
 					},
 				],
 			},
-			{ method: 'addLabels', args: [CREATED_PR_NUMBER, ['merge-on-release']] },
 			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_ROUTE, CREATED_PR_NUMBER)] },
+			{ method: 'addLabels', args: [CREATED_PR_NUMBER, ['merge-on-release']] },
 		]);
 	});
 

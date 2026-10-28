@@ -35,6 +35,8 @@ type FakeRepositoryState = {
 	checksByRef?: Record<string, Check[]>;
 	/** The SHA at the head of each branch. Defaults to the stable branch only. */
 	branchShas?: Record<string, string>;
+	/** The text of each file, by `<ref>:<path>`. */
+	files?: Record<string, string>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -114,8 +116,9 @@ export class FakeRepository {
 		maintainers = [MAINTAINER],
 		checksByRef = {},
 		branchShas = { main: 'sha-main' },
+		files = {},
 	}: FakeRepositoryState) {
-		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef, branchShas };
+		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef, branchShas, files };
 	}
 
 	async getOpenPullRequests(): Promise<PullRequestDetails[]> {
@@ -144,6 +147,10 @@ export class FakeRepository {
 
 	async getChecks(ref: string): Promise<Check[]> {
 		return this.#state.checksByRef[ref] ?? [];
+	}
+
+	async getFileContent(path: string, ref: string): Promise<string | null> {
+		return this.#state.files[`${ref}:${path}`] ?? null;
 	}
 
 	async getBranchSha(branch: string): Promise<string | null> {

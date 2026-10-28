@@ -1,10 +1,25 @@
 import type { PullRequest } from '../lib/github/repository.ts';
-import { UMBRELLA_BRANCH_PREFIX } from './config.ts';
+import {
+	DOCS_STABLE_BRANCH,
+	FRAMEWORK_PACKAGE,
+	RELEASE_LABELS,
+	RELEASE_TYPES,
+	UMBRELLA_BRANCH_PREFIX,
+	UMBRELLA_LABEL,
+	type ReleaseType,
+} from './config.ts';
+import type { FrameworkRelease, FrameworkReleases } from './release.ts';
 
 /** Where a docs PR goes: an umbrella branch, and the branch its umbrella PR merges into. */
 export type Route = {
 	umbrellaBranch: string;
 	umbrellaBaseBranch: string;
+};
+
+export type UmbrellaUpdate = {
+	title: string;
+	labelsToAdd: string[];
+	labelsToRemove: string[];
 };
 
 /**
@@ -48,11 +63,79 @@ export function isUmbrellaPullRequest(
 /**
  * Renders the title of an umbrella PR, after the framework's `[ci] release` PRs.
  *
+ * Names the `astro` version when the release includes `astro`, or else its only package. Names
+ * the base branch otherwise, since one package out of several could be the wrong one.
+ *
  * @param {string} baseBranch - The branch the umbrella PR merges into.
+ * @param {Pick<FrameworkRelease, 'packages'> | null} release - The release the umbrella ships
+ * with, or `null` when none is open.
  * @returns {string} The title.
  */
-export function renderUmbrellaTitle(baseBranch: string): string {
-	return `[ci] release ${baseBranch} docs`;
+export function renderUmbrellaTitle(
+	baseBranch: string,
+	release: Pick<FrameworkRelease, 'packages'> | null
+): string {
+	const packages = release?.packages ?? [];
+	const namedPackage =
+		packages.find(({ name }) => name === FRAMEWORK_PACKAGE) ??
+		(packages.length === 1 ? packages[0] : null);
+	const subject = namedPackage ? `${namedPackage.name}@${namedPackage.version}` : baseBranch;
+	return `[ci] release ${subject} docs`;
+}
+
+/**
+ * Gets the release an umbrella PR ships with.
+ *
+ * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @param {string} baseBranch - The branch the umbrella PR merges into.
+ * @returns {FrameworkRelease | null} The release, or `null` when none is open.
+ */
+export function getUmbrellaRelease(
+	releases: FrameworkReleases,
+	baseBranch: string
+): FrameworkRelease | null {
+	return baseBranch === DOCS_STABLE_BRANCH ? releases.stable : releases.prerelease;
+}
+
+/**
+ * Plans the title and the labels of an umbrella PR from the release it ships with.
+ *
+ * Without a release, keeps the title and the release label, since nothing tells what the next
+ * release is.
+ *
+ * @param {Pick<PullRequest, 'title' | 'labels' | 'base'>} umbrella - The umbrella PR.
+ * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @returns {UmbrellaUpdate} The title, and the labels to add and to remove.
+ */
+export function planUmbrellaUpdate(
+	umbrella: Pick<PullRequest, 'title' | 'labels' | 'base'>,
+	releases: FrameworkReleases
+): UmbrellaUpdate {
+	const baseBranch = umbrella.base.ref;
+	const release = getUmbrellaRelease(releases, baseBranch);
+	const releaseType = getUmbrellaReleaseType(baseBranch, release);
+	const currentLabels = umbrella.labels.map(({ name }) => name);
+	const expectedLabels = releaseType
+		? [UMBRELLA_LABEL, RELEASE_LABELS[releaseType]]
+		: [UMBRELLA_LABEL];
+	const staleLabels = releaseType
+		? Object.values(RELEASE_LABELS).filter((label) => label !== RELEASE_LABELS[releaseType])
+		: [];
+
+	return {
+		title: release ? renderUmbrellaTitle(baseBranch, release) : umbrella.title,
+		labelsToAdd: expectedLabels.filter((label) => !currentLabels.includes(label)),
+		labelsToRemove: staleLabels.filter((label) => currentLabels.includes(label)),
+	};
+}
+
+/** Prerelease umbrellas are always majors. Returns `null` when nothing tells the type. */
+function getUmbrellaReleaseType(
+	baseBranch: string,
+	release: FrameworkRelease | null
+): ReleaseType | null {
+	if (baseBranch !== DOCS_STABLE_BRANCH) return RELEASE_TYPES.major;
+	return release?.type ?? null;
 }
 
 /**

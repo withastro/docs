@@ -12,11 +12,18 @@ import {
 	renderRefusalComment,
 	renderUmbrellaFailureComment,
 } from './comments.ts';
-import { ACCEPTED_LABEL, UMBRELLA_LABEL } from './config.ts';
+import { ACCEPTED_LABEL, FRAMEWORK_PACKAGE } from './config.ts';
 import { OUTCOMES, routePullRequest, type Decision } from './decision.ts';
 import { findReadinessProblems, readReadiness } from './readiness.ts';
-import { readStableRelease, type FrameworkRelease, type FrameworkRepository } from './release.ts';
+import { refreshUmbrella, type Umbrella } from './refresh.ts';
 import {
+	readFrameworkReleases,
+	type FrameworkRelease,
+	type FrameworkReleases,
+	type FrameworkRepository,
+} from './release.ts';
+import {
+	getUmbrellaRelease,
 	isUmbrellaPullRequest,
 	renderUmbrellaBody,
 	renderUmbrellaTitle,
@@ -41,6 +48,13 @@ type DocsRepository = Pick<
 	| 'removeLabel'
 	| 'createComment'
 >;
+
+/** A docs PR accepted in its umbrella, and the releases its umbrella can ship with. */
+type Join = {
+	pullRequest: PullRequestDetails;
+	route: Route;
+	releases: FrameworkReleases;
+};
 
 type ReleaseQueueContext = {
 	docs: DocsRepository;
@@ -71,8 +85,8 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
 		return;
 	}
 
-	const stableRelease = await readAndLogStableRelease(context);
-	const decision = await decideJoin(context, pullRequest, stableRelease);
+	const releases = await readAndLogReleases(context);
+	const decision = await decideJoin(context, pullRequest, releases.stable);
 	await docs.createComment(prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
@@ -94,11 +108,11 @@ export async function joinAcceptedPullRequests(context: ReleaseQueueContext): Pr
 	log(`Accepted PRs: ${prNumbers.map((prNumber) => `#${prNumber}`).join(', ') || 'none'}.`);
 	if (prNumbers.length === 0) return;
 
-	const stableRelease = await readAndLogStableRelease(context);
+	const releases = await readAndLogReleases(context);
 	const errors: unknown[] = [];
 	for (const prNumber of prNumbers) {
 		try {
-			await joinPullRequest(context, prNumber, stableRelease);
+			await joinPullRequest(context, prNumber, releases);
 		} catch (error) {
 			log(`#${prNumber} failed: ${error instanceof Error ? error.message : String(error)}`);
 			errors.push(error);
@@ -121,16 +135,21 @@ async function findAcceptedPrNumbers(docs: DocsRepository) {
 		.toSorted((first, second) => first - second);
 }
 
-async function readAndLogStableRelease({ astro, log }: ReleaseQueueContext) {
-	const stableRelease = await readStableRelease(astro);
-	log(`Stable release: ${describeRelease(stableRelease, astro.fullName)}.`);
-	return stableRelease;
+async function readAndLogReleases({ astro, log }: ReleaseQueueContext) {
+	const releases = await readFrameworkReleases(astro);
+	const stable = describeRelease(releases.stable, astro.fullName);
+	const prerelease =
+		releases.prerelease === releases.stable
+			? 'the same'
+			: describeRelease(releases.prerelease, astro.fullName);
+	log(`Releases: stable ${stable}, prerelease ${prerelease}.`);
+	return releases;
 }
 
 async function joinPullRequest(
 	context: ReleaseQueueContext,
 	prNumber: number,
-	stableRelease: FrameworkRelease | null
+	releases: FrameworkReleases
 ) {
 	const { docs, log } = context;
 	// Read again: the list has no mergeability, and the PR may have changed since.
@@ -141,14 +160,14 @@ async function joinPullRequest(
 		return;
 	}
 
-	const decision = await decideJoin(context, pullRequest, stableRelease);
+	const decision = await decideJoin(context, pullRequest, releases.stable);
 	if (decision.outcome === OUTCOMES.refuse) {
 		await refuseJoin(docs, prNumber, renderRefusalComment(decision.reasons));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
 		return;
 	}
 
-	await mergeIntoUmbrella(context, pullRequest, decision.route);
+	await mergeIntoUmbrella(context, { pullRequest, route: decision.route, releases });
 }
 
 /** Routes a docs PR to its umbrella, then checks that it can be merged. */
@@ -170,12 +189,9 @@ async function refuseJoin(docs: DocsRepository, prNumber: number, comment: strin
 	await docs.createComment(prNumber, comment);
 }
 
-async function mergeIntoUmbrella(
-	context: ReleaseQueueContext,
-	pullRequest: PullRequestDetails,
-	route: Route
-) {
+async function mergeIntoUmbrella(context: ReleaseQueueContext, join: Join) {
 	const { docs, log } = context;
+	const { pullRequest, route, releases } = join;
 	await createUmbrellaBranchIfMissing(docs, route);
 	const mergeError = await squashIntoUmbrella(docs, pullRequest, route).then(
 		() => null,
@@ -191,12 +207,12 @@ async function mergeIntoUmbrella(
 		return;
 	}
 
-	const umbrellaPrNumber =
-		(await findUmbrellaPrNumber(docs, route)) ?? (await openUmbrella(context, pullRequest, route));
-	if (umbrellaPrNumber === null) return;
+	const umbrella = (await findUmbrella(docs, route)) ?? (await openUmbrella(context, join));
+	if (umbrella === null) return;
 
-	await docs.createComment(pullRequest.number, renderJoinedComment(route, umbrellaPrNumber));
-	log(`#${pullRequest.number} joined ${route.umbrellaBranch} (#${umbrellaPrNumber}).`);
+	await docs.createComment(pullRequest.number, renderJoinedComment(route, umbrella.number));
+	log(`#${pullRequest.number} joined ${route.umbrellaBranch} (#${umbrella.number}).`);
+	await refreshUmbrella(context, umbrella, releases);
 }
 
 async function createUmbrellaBranchIfMissing(docs: DocsRepository, route: Route) {
@@ -229,9 +245,9 @@ async function squashIntoUmbrella(
 	}
 }
 
-async function findUmbrellaPrNumber(docs: DocsRepository, route: Route) {
+async function findUmbrella(docs: DocsRepository, route: Route) {
 	const pullRequests = await docs.getOpenPullRequestsFromBranch(route.umbrellaBranch);
-	return pullRequests.find(({ base }) => base.ref === route.umbrellaBaseBranch)?.number ?? null;
+	return pullRequests.find(({ base }) => base.ref === route.umbrellaBaseBranch) ?? null;
 }
 
 /**
@@ -242,14 +258,15 @@ async function findUmbrellaPrNumber(docs: DocsRepository, route: Route) {
  */
 async function openUmbrella(
 	{ docs, log }: ReleaseQueueContext,
-	pullRequest: PullRequestDetails,
-	route: Route
-) {
+	{ pullRequest, route, releases }: Join
+): Promise<Umbrella | null> {
+	const baseBranch = route.umbrellaBaseBranch;
+	const title = renderUmbrellaTitle(baseBranch, getUmbrellaRelease(releases, baseBranch));
 	const umbrella = await docs
 		.createPullRequest({
-			title: renderUmbrellaTitle(route.umbrellaBaseBranch),
+			title,
 			head: route.umbrellaBranch,
-			base: route.umbrellaBaseBranch,
+			base: baseBranch,
 			body: renderUmbrellaBody(route),
 		})
 		.catch(returnGitHubError);
@@ -264,8 +281,7 @@ async function openUmbrella(
 		return null;
 	}
 
-	await docs.addLabels(umbrella.number, [UMBRELLA_LABEL]);
-	return umbrella.number;
+	return { number: umbrella.number, title, labels: [], base: { ref: baseBranch } };
 }
 
 /** Returns a GitHub error, a refusal the caller reports, and throws any other error. */
@@ -284,7 +300,8 @@ function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {
 
 function describeRelease(release: FrameworkRelease | null, repositoryFullName: string) {
 	if (!release) return 'none open';
-	const version = release.astroVersion ? `astro@${release.astroVersion}` : 'without astro';
+	const astro = release.packages.find(({ name }) => name === FRAMEWORK_PACKAGE);
+	const version = astro ? `${astro.name}@${astro.version}` : 'without astro';
 	return `${repositoryFullName}#${release.prNumber} (${version}, ${release.type})`;
 }
 
