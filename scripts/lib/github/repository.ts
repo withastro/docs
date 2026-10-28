@@ -34,6 +34,13 @@ export const REVIEW_STATES = {
 
 export type ReviewState = (typeof REVIEW_STATES)[keyof typeof REVIEW_STATES];
 
+/** The review states that replace a reviewer's earlier ones. */
+const DECISIVE_REVIEW_STATES: ReviewState[] = [
+	REVIEW_STATES.approved,
+	REVIEW_STATES.changesRequested,
+	REVIEW_STATES.dismissed,
+];
+
 export const MERGE_METHODS = {
 	merge: 'merge',
 	rebase: 'rebase',
@@ -195,6 +202,26 @@ export class GitHubRepository {
 	 */
 	async getReviews(prNumber: number): Promise<Review[]> {
 		return this.#getList(`/pulls/${prNumber}/reviews`, reviewShape);
+	}
+
+	/**
+	 * Gets the current review state of each reviewer of a pull request.
+	 *
+	 * A reviewer's latest approval, change request, or dismissal is their state.
+	 * Comments and pending reviews change nothing. The reviews of a deleted
+	 * account are left out.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<Map<string, ReviewState>>} The state of each reviewer, by login.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 * @throws {Error} When a review does not have the expected shape.
+	 */
+	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
+		const statesByLogin = new Map<string, ReviewState>();
+		for (const { user, state } of await this.getReviews(prNumber)) {
+			if (user && DECISIVE_REVIEW_STATES.includes(state)) statesByLogin.set(user.login, state);
+		}
+		return statesByLogin;
 	}
 
 	/**

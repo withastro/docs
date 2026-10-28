@@ -103,6 +103,59 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getLatestReviewStates', () => {
+		function reviewBy(login: string | null, state: string) {
+			return { ...reviewResponse, user: login === null ? null : { login }, state };
+		}
+
+		it('should keep the latest approval, change request, or dismissal of each reviewer', async (t) => {
+			const fetchMock = mockFetch(
+				t,
+				jsonResponse([
+					reviewBy('reviewer-a', REVIEW_STATES.changesRequested),
+					reviewBy('reviewer-b', REVIEW_STATES.approved),
+					reviewBy('reviewer-a', REVIEW_STATES.approved),
+					reviewBy('reviewer-b', REVIEW_STATES.dismissed),
+				])
+			);
+
+			const states = await createRepository().getLatestReviewStates(7);
+
+			assert.deepEqual(
+				states,
+				new Map([
+					['reviewer-a', REVIEW_STATES.approved],
+					['reviewer-b', REVIEW_STATES.dismissed],
+				])
+			);
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/pulls/7/reviews?per_page=100`,
+			]);
+		});
+
+		it('should not let a comment or a pending review replace a state', async (t) => {
+			mockFetch(
+				t,
+				jsonResponse([
+					reviewBy('reviewer-a', REVIEW_STATES.changesRequested),
+					reviewBy('reviewer-a', REVIEW_STATES.commented),
+					reviewBy('reviewer-a', REVIEW_STATES.pending),
+					reviewBy('reviewer-b', REVIEW_STATES.commented),
+				])
+			);
+
+			const states = await createRepository().getLatestReviewStates(7);
+
+			assert.deepEqual(states, new Map([['reviewer-a', REVIEW_STATES.changesRequested]]));
+		});
+
+		it('should skip the reviews of a deleted account', async (t) => {
+			mockFetch(t, jsonResponse([reviewBy(null, REVIEW_STATES.approved)]));
+
+			assert.deepEqual(await createRepository().getLatestReviewStates(7), new Map());
+		});
+	});
+
 	describe('getOpenPullRequests', () => {
 		it('should get the open pull requests', async (t) => {
 			const fetchMock = mockFetch(t, jsonResponse([pullRequestResponse]));
