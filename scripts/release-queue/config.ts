@@ -1,4 +1,14 @@
+export const MODES = {
+	/** Comments on the PR that triggered the run with what the release queue would do. */
+	dryRun: 'dry-run',
+	live: 'live',
+} as const;
+
+export type Mode = (typeof MODES)[keyof typeof MODES];
+
 export const ACCEPTED_LABEL = 'accepted';
+/** Set on umbrella PRs only, to find them in the PR list. */
+export const UMBRELLA_LABEL = 'merge-on-release';
 
 export const RELEASE_TYPES = {
 	patch: 'patch',

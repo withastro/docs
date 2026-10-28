@@ -1,7 +1,7 @@
 import type { PullRequest } from '../lib/github/repository.ts';
 import { DOCS_STABLE_BRANCH, RELEASE_LABELS, RELEASE_TYPES, type ReleaseType } from './config.ts';
 import type { FrameworkRelease } from './release.ts';
-import { getUmbrellaBaseBranch, getUmbrellaBranch } from './umbrella.ts';
+import { getUmbrellaBaseBranch, getUmbrellaBranch, type Route } from './umbrella.ts';
 
 export const OUTCOMES = {
 	join: 'join',
@@ -24,12 +24,6 @@ export const REFUSAL_REASONS = {
 } as const;
 
 export type RefusalReason = (typeof REFUSAL_REASONS)[keyof typeof REFUSAL_REASONS];
-
-export type Route = {
-	umbrellaBranch: string;
-	/** The branch the umbrella PR merges into. */
-	umbrellaBaseBranch: string;
-};
 
 export type Decision =
 	| { outcome: typeof OUTCOMES.join; route: Route }

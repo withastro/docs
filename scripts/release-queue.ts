@@ -1,13 +1,13 @@
-// Comments on a docs PR labeled `accepted` with the release umbrella PR it would join.
-// Run by `.github/workflows/release-queue.yml`, with `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN`
-// (writes on the docs repository), `GITHUB_TOKEN` (reads the framework repository), and `PR_NUMBER`.
-// Locally, add `--read-only` to log the writes instead of sending them.
+// Moves docs PRs labeled `accepted` into their release umbrella PR, or with `MODE=dry-run`, comments
+// on the PR `PR_NUMBER` with what it would do. Run by `.github/workflows/release-queue.yml`, with
+// `GITHUB_REPOSITORY`, `GITHUB_JOB`, `BOT_TOKEN` (writes on the docs repository), and `GITHUB_TOKEN`
+// (reads the framework repository). Locally, add `--read-only` to log the writes instead.
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
 import { GitHubRepository } from './lib/github/repository.ts';
-import { FRAMEWORK_REPOSITORY } from './release-queue/config.ts';
-import { previewJoin } from './release-queue/join.ts';
+import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-queue/config.ts';
+import { joinAcceptedPullRequests, previewJoin } from './release-queue/join.ts';
 
 const { values: flags } = parseArgs({
 	options: { 'read-only': { type: 'boolean', default: false } },
@@ -17,8 +17,9 @@ const astro = new GitHubRepository({
 	fullName: FRAMEWORK_REPOSITORY,
 	token: readRequiredVariable('GITHUB_TOKEN'),
 });
-const jobName = process.env.GITHUB_JOB || null;
-await previewJoin({ docs, astro, log: console.info, jobName }, readPrNumber('PR_NUMBER'));
+const context = { docs, astro, log: console.info, jobName: process.env.GITHUB_JOB || null };
+if (readMode('MODE') === MODES.live) await joinAcceptedPullRequests(context);
+else await previewJoin(context, readPrNumber('PR_NUMBER'));
 
 function createDocsRepository({ isReadOnly }: { isReadOnly: boolean }) {
 	const options = {
@@ -34,6 +35,15 @@ function readRequiredVariable(name: string) {
 	const value = process.env[name];
 	if (!value) throw new Error(`The ${name} environment variable is required.`);
 	return value;
+}
+
+function readMode(name: string): Mode {
+	const value = readRequiredVariable(name);
+	const mode = Object.values(MODES).find((knownMode) => knownMode === value);
+	if (!mode) {
+		throw new Error(`${name} must be one of: ${Object.values(MODES).join(', ')}. Got: "${value}".`);
+	}
+	return mode;
 }
 
 function readPrNumber(name: string) {

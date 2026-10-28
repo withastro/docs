@@ -1,7 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { buildPullRequest, FAKE_REPOSITORY_NAME } from './fake-repository.ts';
-import { getUmbrellaBaseBranch, getUmbrellaBranch, isUmbrellaPullRequest } from './umbrella.ts';
+import {
+	getUmbrellaBaseBranch,
+	getUmbrellaBranch,
+	isUmbrellaPullRequest,
+	renderUmbrellaTitle,
+} from './umbrella.ts';
 
 describe('getUmbrellaBranch', () => {
 	it('should reserve one umbrella branch per base branch', () => {
@@ -45,5 +50,11 @@ describe('isUmbrellaPullRequest', () => {
 		const docsPullRequest = buildPullRequest({ headBranch: 'docs-feature' });
 
 		assert.equal(isUmbrellaPullRequest(docsPullRequest, FAKE_REPOSITORY_NAME), false);
+	});
+});
+
+describe('renderUmbrellaTitle', () => {
+	it('should follow the convention of the framework release PRs, with the base branch', () => {
+		assert.equal(renderUmbrellaTitle('main'), '[ci] release main docs');
 	});
 });

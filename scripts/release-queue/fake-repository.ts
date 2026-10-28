@@ -1,6 +1,10 @@
 import { CHECK_STATES, type Check } from '../lib/github/checks.ts';
 import {
 	REVIEW_STATES,
+	type CreatedPullRequest,
+	type MergeOptions,
+	type NewPullRequest,
+	type PullRequestChanges,
 	type PullRequestDetails,
 	type Review,
 	type ReviewState,
@@ -8,6 +12,8 @@ import {
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 export const MAINTAINER = 'example-maintainer';
+/** The number the fake repository gives to the pull requests it creates. */
+export const CREATED_PR_NUMBER = 1000;
 
 type PullRequestFixture = {
 	number?: number;
@@ -27,6 +33,8 @@ type FakeRepositoryState = {
 	/** Users with write access. Defaults to `MAINTAINER`. */
 	maintainers?: string[];
 	checksByRef?: Record<string, Check[]>;
+	/** The SHA at the head of each branch. Defaults to the stable branch only. */
+	branchShas?: Record<string, string>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -98,15 +106,20 @@ export class FakeRepository {
 	#state: Required<FakeRepositoryState>;
 
 	/**
-	 * @param {FakeRepositoryState} state - The pull requests, reviews, maintainers, and checks.
+	 * @param {FakeRepositoryState} state - The pull requests, reviews, maintainers, checks, and branches.
 	 */
 	constructor({
 		pullRequests = [],
 		reviewsByPrNumber = {},
 		maintainers = [MAINTAINER],
 		checksByRef = {},
+		branchShas = { main: 'sha-main' },
 	}: FakeRepositoryState) {
-		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef };
+		this.#state = { pullRequests, reviewsByPrNumber, maintainers, checksByRef, branchShas };
+	}
+
+	async getOpenPullRequests(): Promise<PullRequestDetails[]> {
+		return this.#state.pullRequests;
 	}
 
 	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequestDetails[]> {
@@ -131,6 +144,38 @@ export class FakeRepository {
 
 	async getChecks(ref: string): Promise<Check[]> {
 		return this.#state.checksByRef[ref] ?? [];
+	}
+
+	async getBranchSha(branch: string): Promise<string | null> {
+		return this.#state.branchShas[branch] ?? null;
+	}
+
+	async createBranch(branch: string, sha: string): Promise<void> {
+		this.writes.push({ method: 'createBranch', args: [branch, sha] });
+	}
+
+	async createPullRequest(pullRequest: NewPullRequest): Promise<CreatedPullRequest> {
+		this.writes.push({ method: 'createPullRequest', args: [pullRequest] });
+		return {
+			number: CREATED_PR_NUMBER,
+			html_url: `https://github.com/${FAKE_REPOSITORY_NAME}/pull/${CREATED_PR_NUMBER}`,
+		};
+	}
+
+	async updatePullRequest(prNumber: number, changes: PullRequestChanges): Promise<void> {
+		this.writes.push({ method: 'updatePullRequest', args: [prNumber, changes] });
+	}
+
+	async mergePullRequest(prNumber: number, options: MergeOptions): Promise<void> {
+		this.writes.push({ method: 'mergePullRequest', args: [prNumber, options] });
+	}
+
+	async addLabels(prNumber: number, labels: readonly string[]): Promise<void> {
+		this.writes.push({ method: 'addLabels', args: [prNumber, labels] });
+	}
+
+	async removeLabel(prNumber: number, label: string): Promise<void> {
+		this.writes.push({ method: 'removeLabel', args: [prNumber, label] });
 	}
 
 	async createComment(prNumber: number, body: string): Promise<void> {
