@@ -182,6 +182,7 @@ export type RepositoryOptions = {
  */
 export class GitHubRepository {
 	readonly fullName: string;
+	#owner: string;
 	#token: string;
 	#endpoint: string;
 
@@ -197,6 +198,7 @@ export class GitHubRepository {
 		if (!token) throw new Error(`GitHubRepository needs a token to act on ${fullName}.`);
 
 		this.fullName = fullName;
+		[this.#owner] = fullName.split('/');
 		this.#token = token;
 		this.#endpoint = `/repos/${fullName}`;
 	}
@@ -223,6 +225,23 @@ export class GitHubRepository {
 	 */
 	async getOpenPullRequests(): Promise<PullRequest[]> {
 		const pullRequests = await this.#getList('/pulls?state=open', isPullRequest);
+		return pullRequests.map(toPullRequest);
+	}
+
+	/**
+	 * Gets the open pull requests from a repository's owner branch, newest first.
+	 *
+	 * GitHub filters by owner and branch, so a fork's branch with the same name
+	 * is left out.
+	 *
+	 * @param {string} branch - The name of the head branch.
+	 * @returns {Promise<PullRequest[]>} The open pull requests from the branch.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 * @throws {Error} When a pull request does not have the expected shape.
+	 */
+	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequest[]> {
+		const head = encodeURIComponent(`${this.#owner}:${branch}`);
+		const pullRequests = await this.#getList(`/pulls?state=open&head=${head}`, isPullRequest);
 		return pullRequests.map(toPullRequest);
 	}
 

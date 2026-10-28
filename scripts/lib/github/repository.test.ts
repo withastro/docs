@@ -104,6 +104,35 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getOpenPullRequestsFromBranch', () => {
+		it('should filter the open pull requests by a branch of the owner', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse([pullRequestResponse]));
+
+			const pullRequests = await createRepository().getOpenPullRequestsFromBranch('fix-typo');
+
+			assert.deepEqual(pullRequests, [pullRequest]);
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/pulls?state=open&head=example-org%3Afix-typo&per_page=100`,
+			]);
+		});
+
+		it('should encode the branch name in the query', async (t) => {
+			const fetchMock = mockFetch(t, jsonResponse([]));
+
+			await createRepository().getOpenPullRequestsFromBranch('fix#12&base=main');
+
+			assert.deepEqual(getRequestedUrls(fetchMock), [
+				`${REPOSITORY_URL}/pulls?state=open&head=example-org%3Afix%2312%26base%3Dmain&per_page=100`,
+			]);
+		});
+
+		it('should return an empty list when no pull request is open from the branch', async (t) => {
+			mockFetch(t, jsonResponse([]));
+
+			assert.deepEqual(await createRepository().getOpenPullRequestsFromBranch('fix-typo'), []);
+		});
+	});
+
 	describe('getPullRequest', () => {
 		const pullRequestDetails = { ...pullRequest, mergeable: true };
 		const pullRequestDetailsResponse = {

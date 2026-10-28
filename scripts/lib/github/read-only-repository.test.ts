@@ -12,6 +12,7 @@ import { GitHubRepository } from './repository.ts';
 const READ_METHODS = [
 	'getReviews',
 	'getOpenPullRequests',
+	'getOpenPullRequestsFromBranch',
 	'getPullRequest',
 	'getChecks',
 	'compare',
