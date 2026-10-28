@@ -146,6 +146,12 @@ export type MergeOptions = {
 	commitTitle?: string;
 };
 
+export type ReviewUpdate = {
+	reviewId: number;
+	/** The new text, in Markdown. */
+	body: string;
+};
+
 type RepositoryRequest = {
 	method: HttpMethod;
 	/** The endpoint inside the repository, starting with a slash. */
@@ -519,11 +525,10 @@ export class GitHubRepository {
 	 * The token's account must be the author of the review.
 	 *
 	 * @param {number} prNumber - The number of the pull request.
-	 * @param {number} reviewId - The ID of the review.
-	 * @param {string} body - The new text, in Markdown.
+	 * @param {ReviewUpdate} update - The review to change, and its new text.
 	 * @throws {GitHubError} When GitHub answers with an error status.
 	 */
-	async updateReview(prNumber: number, reviewId: number, body: string): Promise<void> {
+	async updateReview(prNumber: number, { reviewId, body }: ReviewUpdate): Promise<void> {
 		await this.#send({
 			method: 'PUT',
 			path: `/pulls/${prNumber}/reviews/${reviewId}`,

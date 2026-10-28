@@ -5,6 +5,7 @@ import {
 	type NewPullRequest,
 	type PullRequestChanges,
 	type RepositoryOptions,
+	type ReviewUpdate,
 } from './repository.ts';
 
 type ReadOnlyRepositoryOptions = RepositoryOptions & {
@@ -71,8 +72,8 @@ export class ReadOnlyRepository extends GitHubRepository {
 		this.#logWrite('requestChanges', [prNumber, body]);
 	}
 
-	override async updateReview(prNumber: number, reviewId: number, body: string): Promise<void> {
-		this.#logWrite('updateReview', [prNumber, reviewId, body]);
+	override async updateReview(prNumber: number, update: ReviewUpdate): Promise<void> {
+		this.#logWrite('updateReview', [prNumber, update]);
 	}
 
 	#logWrite(method: string, args: unknown[]) {
