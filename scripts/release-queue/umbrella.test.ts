@@ -1,13 +1,15 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { buildPullRequest, buildRelease, FAKE_REPOSITORY_NAME } from './fake-repository.ts';
+import { renderMarker } from './markers.ts';
+import { renderUmbrella } from './umbrella-update.ts';
 import {
 	findUmbrellas,
 	getUmbrellaBaseBranch,
 	getUmbrellaBranches,
 	isUmbrellaPullRequest,
+	RELEASE_PR_MARKER,
 } from './umbrella.ts';
-import { renderUmbrella } from './umbrella-update.ts';
 
 describe('getUmbrellaBranches', () => {
 	it('should reserve one umbrella branch per base branch', () => {
@@ -97,6 +99,23 @@ describe('findUmbrellas', () => {
 					labels: [],
 				},
 			]
+		);
+	});
+
+	it('should read a release PR marker that is not a PR number as no release PR', () => {
+		const pullRequests = ['', 'abc', '0', '-1', '1.5'].map((value, index) =>
+			buildPullRequest({
+				number: 50 + index,
+				headBranch: 'release-queue/main',
+				body: renderMarker(RELEASE_PR_MARKER, value),
+			})
+		);
+
+		const umbrellas = findUmbrellas(pullRequests, FAKE_REPOSITORY_NAME);
+
+		assert.deepEqual(
+			umbrellas.map(({ releasePrNumber }) => releasePrNumber),
+			[null, null, null, null, null]
 		);
 	});
 });

@@ -70,17 +70,24 @@ export function isUmbrellaPullRequest(
 export function findUmbrellas(pullRequests: PullRequest[], repositoryFullName: string): Umbrella[] {
 	return pullRequests
 		.filter((pullRequest) => isUmbrellaPullRequest(pullRequest, repositoryFullName))
-		.map(({ number, title, body, labels, base }) => {
-			const releasePrNumber = readMarker(RELEASE_PR_MARKER, body);
-			return {
-				number,
-				title,
-				body,
-				labels,
-				branches: getUmbrellaBranches(base.ref),
-				releasePrNumber: releasePrNumber === null ? null : Number(releasePrNumber),
-			};
-		});
+		.map(({ number, title, body, labels, base }) => ({
+			number,
+			title,
+			body,
+			labels,
+			branches: getUmbrellaBranches(base.ref),
+			releasePrNumber: readReleasePrNumber(body),
+		}));
+}
+
+/**
+ * Reads the release PR recorded in an umbrella description. A value that is
+ * not a PR number (e.g. after a marker hand edit) counts as no release PR.
+ */
+function readReleasePrNumber(body: string | null) {
+	const value = readMarker(RELEASE_PR_MARKER, body);
+	const prNumber = Number(value);
+	return value !== null && Number.isSafeInteger(prNumber) && prNumber > 0 ? prNumber : null;
 }
 
 /**
