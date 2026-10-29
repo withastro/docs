@@ -23,7 +23,14 @@ export type Infer<S> = S extends Shape<infer T> ? T : never;
 
 type FieldShapes = Record<string, Shape<unknown>>;
 
-type ObjectOf<F extends FieldShapes> = { [K in keyof F]: Infer<F[K]> };
+/**
+ * Flattens an object type to list its fields instead of the alias.
+ *
+ * @template T - The object type to show.
+ */
+type Simplify<T> = { [K in keyof T]: T[K] } & {};
+
+type ObjectOf<F extends FieldShapes> = Simplify<{ [K in keyof F]: Infer<F[K]> }>;
 
 /** Tells whether a value is an object whatever its fields. */
 export function isRecord(value: unknown): value is Record<string, unknown> {
@@ -98,7 +105,7 @@ export function list<T>(itemShape: Shape<T>): Shape<T[]> {
  * });
  * ```
  */
-export function object<const F extends FieldShapes>(fieldShapes: F): Shape<ObjectOf<F>> {
+export function object<F extends FieldShapes>(fieldShapes: F): Shape<ObjectOf<F>> {
 	const entries = Object.entries(fieldShapes);
 	return (value, path) => {
 		if (!isRecord(value)) return fail(path, 'an object', value);
