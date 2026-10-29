@@ -1,17 +1,9 @@
 // Moves the docs PRs with the accepted label into their release umbrella PR, then refreshes the
-// umbrellas. In dry-run mode (`RELEASE_QUEUE_MODE` in `release-queue/config.ts`), only comments on
-// the PR that triggered the run. Run by `.github/workflows/release-queue.yml`.
+// umbrellas. Run by `.github/workflows/release-queue.yml`.
 //
-// Environment variables:
-// - `GITHUB_REPOSITORY`: the docs repository, as `owner/repo`.
-// - `BOT_TOKEN`: writes on the docs repository, through the bot account.
-// - `GITHUB_TOKEN`: reads the framework repository, and reviews the umbrellas.
-// - `GITHUB_JOB`: the job to leave out of the PR's checks. Optional.
-// - `PR_NUMBER`: the PR to comment on in dry-run mode. Empty on a manual run.
-//
-// Flags, for local runs:
-// - `--read-only`: logs the writes instead of sending them.
-// - `--mode <mode>`: runs in another mode than `RELEASE_QUEUE_MODE`.
+// To preview a docs PR locally, without writing to GitHub:
+// GITHUB_REPOSITORY=withastro/docs BOT_TOKEN=<token> GITHUB_TOKEN=<token> PR_NUMBER=<number> \
+//   node --experimental-transform-types scripts/release-queue.ts --read-only
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
@@ -22,35 +14,51 @@ import {
 	RELEASE_QUEUE_MODE,
 	type Mode,
 } from './release-queue/config.ts';
-import { previewJoin } from './release-queue/join.ts';
-import { runReleaseQueue } from './release-queue/queue.ts';
+import { runDryRun, runLiveMode } from './release-queue/run-modes.ts';
+import type { ReleaseQueueContext } from './release-queue/run-state.ts';
 
-const { values: flags } = parseArgs({
-	options: {
-		'read-only': { type: 'boolean', default: false },
-		mode: { type: 'string', default: RELEASE_QUEUE_MODE },
-	},
-});
-const isReadOnly = flags['read-only'];
-const workflowToken = readRequiredVariable('GITHUB_TOKEN');
-const docs = createDocsRepository({ token: readRequiredVariable('BOT_TOKEN'), isReadOnly });
-const reviewer = createDocsRepository({ token: workflowToken, isReadOnly });
-const astro = new GitHubRepository({ fullName: FRAMEWORK_REPOSITORY, token: workflowToken });
-const jobName = process.env.GITHUB_JOB || null;
-const context = { docs, astro, reviewer, log: console.info, jobName };
-if (parseMode(flags.mode) === MODES.live) {
-	await runReleaseQueue(context);
-} else {
+async function run() {
+	const { values: flags } = parseArgs({
+		options: {
+			// Logs the writes instead of sending them.
+			'read-only': { type: 'boolean', default: false },
+			// `dry-run` or `live`.
+			mode: { type: 'string', default: RELEASE_QUEUE_MODE },
+		},
+	});
+	const context = createContext(flags['read-only']);
+
+	if (parseMode(flags.mode) === MODES.live) {
+		await runLiveMode(context);
+		return;
+	}
+
+	// The PR that triggered the run, empty on a manual run.
 	const prNumber = readOptionalPrNumber('PR_NUMBER');
-	if (prNumber) await previewJoin(context, prNumber);
+	if (prNumber) await runDryRun(context, prNumber);
 	else console.info('Dry run: no PR to preview.');
 }
 
-function createDocsRepository({ token, isReadOnly }: { token: string; isReadOnly: boolean }) {
-	const options = { fullName: readRequiredVariable('GITHUB_REPOSITORY'), token };
-	return isReadOnly
-		? new ReadOnlyRepository({ ...options, log: console.info })
-		: new GitHubRepository(options);
+function createContext(isReadOnly: boolean): ReleaseQueueContext {
+	// The docs repository, as `owner/repo`.
+	const docsFullName = readRequiredVariable('GITHUB_REPOSITORY');
+	// The bot account, which merges docs PRs and opens the umbrellas.
+	const botToken = readRequiredVariable('BOT_TOKEN');
+	// The workflow's own token, which reads the framework and reviews the umbrellas.
+	const workflowToken = readRequiredVariable('GITHUB_TOKEN');
+	const createDocsRepository = (token: string) =>
+		isReadOnly
+			? new ReadOnlyRepository({ fullName: docsFullName, token, log: console.info })
+			: new GitHubRepository({ fullName: docsFullName, token });
+
+	return {
+		docs: createDocsRepository(botToken),
+		astro: new GitHubRepository({ fullName: FRAMEWORK_REPOSITORY, token: workflowToken }),
+		reviewer: createDocsRepository(workflowToken),
+		log: console.info,
+		// Set by GitHub Actions.
+		jobName: process.env.GITHUB_JOB || null,
+	};
 }
 
 function readRequiredVariable(name: string) {
@@ -67,7 +75,7 @@ function parseMode(value: string): Mode {
 	return mode;
 }
 
-/** Reads a PR number, or `null` when the variable is empty, as on a manual run. */
+/** Reads a PR number, or `null` when the variable is empty. */
 function readOptionalPrNumber(name: string) {
 	const value = process.env[name];
 	if (!value) return null;
@@ -78,3 +86,5 @@ function readOptionalPrNumber(name: string) {
 	}
 	return prNumber;
 }
+
+await run();

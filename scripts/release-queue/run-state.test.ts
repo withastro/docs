@@ -6,8 +6,8 @@ import {
 	createContext,
 	FakeRepository,
 } from './fake-repository.ts';
-import { startRun } from './run.ts';
-import { renderUmbrella } from './umbrella-update.ts';
+import { startRun } from './run-state.ts';
+import { renderUmbrella } from './umbrella-content.ts';
 import { getUmbrellaBranches } from './umbrella.ts';
 
 function buildUmbrella(number: number, baseBranch: string, releasePrNumber: number | null) {

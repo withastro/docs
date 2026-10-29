@@ -1,7 +1,7 @@
 import type { PullRequest } from '../lib/github/repository.ts';
 import { DOCS_STABLE_BRANCH, UMBRELLA_BRANCH_PREFIX } from './config.ts';
+import type { FrameworkRelease, FrameworkReleases } from './framework-release.ts';
 import { readMarker } from './markers.ts';
-import type { FrameworkRelease, FrameworkReleases } from './release.ts';
 
 /** In the umbrella description. */
 export const RELEASE_PR_MARKER_NAME = 'release-queue:release-pr';

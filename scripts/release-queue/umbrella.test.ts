@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { buildPullRequest, buildRelease, FAKE_REPOSITORY_NAME } from './fake-repository.ts';
 import { renderMarker } from './markers.ts';
-import { renderUmbrella } from './umbrella-update.ts';
+import { renderUmbrella } from './umbrella-content.ts';
 import {
 	findUmbrellas,
 	getUmbrellaBaseBranch,

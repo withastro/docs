@@ -5,7 +5,7 @@ import {
 	type Repository,
 } from '../lib/github/repository.ts';
 import { filterAsync } from './filter-async.ts';
-import type { ReleaseQueueContext } from './run.ts';
+import type { ReleaseQueueContext } from './run-state.ts';
 
 type ReadinessContext = Pick<ReleaseQueueContext, 'docs' | 'jobName'>;
 

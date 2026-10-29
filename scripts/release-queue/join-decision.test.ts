@@ -1,8 +1,8 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { RELEASE_TYPES, type ReleaseType } from './config.ts';
-import { decideJoin, OUTCOMES, REFUSAL_REASONS } from './decision.ts';
 import { buildPullRequest, MAIN_BRANCHES } from './fake-repository.ts';
+import { decideJoin, OUTCOMES, REFUSAL_REASONS } from './join-decision.ts';
 import type { Readiness } from './readiness.ts';
 import { getUmbrellaBranches } from './umbrella.ts';
 

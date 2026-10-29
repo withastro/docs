@@ -8,7 +8,7 @@ import {
 	hasUmbrellaChanges,
 	planUmbrellaUpdate,
 	renderUmbrella,
-} from './umbrella-update.ts';
+} from './umbrella-content.ts';
 import { getUmbrellaBranches, type Umbrella } from './umbrella.ts';
 
 function buildUmbrella(baseBranch: string, labels: string[], changes: Partial<Umbrella> = {}) {

@@ -8,9 +8,9 @@ import {
 	FakeRepository,
 	MAIN_BRANCHES,
 } from './fake-repository.ts';
-import { refreshOpenUmbrellas } from './refresh.ts';
-import type { ReleaseState } from './run.ts';
-import { renderUmbrella } from './umbrella-update.ts';
+import type { ReleaseState } from './run-state.ts';
+import { renderUmbrella } from './umbrella-content.ts';
+import { refreshOpenUmbrellas } from './umbrella-refresh.ts';
 
 const RELEASES = {
 	stable: {

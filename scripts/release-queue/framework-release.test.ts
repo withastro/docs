@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { RELEASE_TYPES } from './config.ts';
 import { buildPullRequest, FakeRepository } from './fake-repository.ts';
-import { describeReleases, readFrameworkReleases } from './release.ts';
+import { describeReleases, readFrameworkReleases } from './framework-release.ts';
 
 const PRE_MODE_FILE = 'next:.changeset/pre.json';
 

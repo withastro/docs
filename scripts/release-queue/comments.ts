@@ -5,7 +5,7 @@ import {
 	type Decision,
 	type Refusal,
 	type RefusalReason,
-} from './decision.ts';
+} from './join-decision.ts';
 import type { UmbrellaBranches } from './umbrella.ts';
 
 const { patch, minor, major } = RELEASE_LABELS;

@@ -2,7 +2,7 @@ import { REVIEW_STATES, type Review } from '../lib/github/repository.ts';
 import { formatPrNumbers } from './comments.ts';
 import { FRAMEWORK_REPOSITORY, I18N_LABEL, LUNARIA_DIRECTIVE } from './config.ts';
 import { readMarker, renderMarker } from './markers.ts';
-import type { ReleaseQueueContext } from './run.ts';
+import type { ReleaseQueueContext } from './run-state.ts';
 import type { Umbrella } from './umbrella.ts';
 
 /** In the checklist review. */

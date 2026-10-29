@@ -7,8 +7,8 @@ import {
 	renderRefusalComment,
 	renderUmbrellaFailureComment,
 } from './comments.ts';
-import { OUTCOMES, REFUSAL_REASONS } from './decision.ts';
 import { MAIN_BRANCHES } from './fake-repository.ts';
+import { OUTCOMES, REFUSAL_REASONS } from './join-decision.ts';
 
 describe('renderRefusalComment', () => {
 	it('should give the reason, then how to retry', () => {

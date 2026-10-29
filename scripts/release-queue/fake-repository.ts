@@ -14,7 +14,7 @@ import {
 } from '../lib/github/repository.ts';
 import { GitHubError } from '../lib/github/request.ts';
 import { RELEASE_TYPES, type ReleaseType } from './config.ts';
-import type { FrameworkRelease } from './release.ts';
+import type { FrameworkRelease } from './framework-release.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 /** The branches of the umbrella of the stable docs branch. */
