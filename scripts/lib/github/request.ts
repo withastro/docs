@@ -8,6 +8,9 @@ const NO_CONTENT_STATUS = 204;
 const NOT_FOUND_STATUS = 404;
 const NEXT_PAGE_LINK = /<([^>]+)>;\s*rel="next"/;
 
+const errorMessageShape = shape.object({ message: shape.string });
+const validationErrorsShape = shape.object({ errors: shape.list(shape.unknown) });
+
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
 
 type RequestOptions = {
@@ -155,18 +158,18 @@ async function readJsonBody(response: Response, requestLine: string): Promise<un
 /** Reads the message and the validation errors GitHub sends with an error status. */
 async function readErrorBody(response: Response) {
 	const body: unknown = await response.json().catch(() => null);
-	if (!shape.isRecord(body) || typeof body.message !== 'string') {
+	if (!shape.matches(errorMessageShape, body)) {
 		return { apiMessage: response.statusText, details: response.statusText };
 	}
 
-	const errors = Array.isArray(body.errors) ? body.errors.map(formatValidationError) : [];
+	const errors = shape.matches(validationErrorsShape, body)
+		? body.errors.map(formatValidationError)
+		: [];
 	return { apiMessage: body.message, details: [body.message, ...errors].join('; ') };
 }
 
 function formatValidationError(error: unknown) {
-	return shape.isRecord(error) && typeof error.message === 'string'
-		? error.message
-		: JSON.stringify(error);
+	return shape.matches(errorMessageShape, error) ? error.message : JSON.stringify(error);
 }
 
 function getFirstPageUrl(path: string) {

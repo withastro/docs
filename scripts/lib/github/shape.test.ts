@@ -100,10 +100,10 @@ describe('unknown', () => {
 	});
 });
 
-describe('isRecord', () => {
-	it('should accept objects but not arrays or null', () => {
-		assert.equal(shape.isRecord({}), true);
-		assert.equal(shape.isRecord([]), false);
-		assert.equal(shape.isRecord(null), false);
+describe('matches', () => {
+	it('should tell whether a value matches a shape, without throwing', () => {
+		assert.equal(shape.matches(userShape, { id: 1, login: 'example-user', extra: true }), true);
+		assert.equal(shape.matches(userShape, { id: 1 }), false);
+		assert.equal(shape.matches(userShape, null), false);
 	});
 });

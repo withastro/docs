@@ -109,6 +109,23 @@ describe('sendRequest', () => {
 		});
 	});
 
+	it('should name a validation error without a message by its fields', async (t) => {
+		mockFetch(
+			t,
+			jsonResponse(
+				{ message: 'Validation Failed', errors: [{ resource: 'Label', code: 'invalid' }] },
+				{ status: 422 }
+			)
+		);
+
+		const request = sendRequest(
+			{ token: TOKEN, method: 'POST', path: '/repos/a/b/labels' },
+			shape.unknown
+		);
+
+		await assert.rejects(request, /Validation Failed; \{"resource":"Label","code":"invalid"\}/);
+	});
+
 	it('should throw a GitHubError that tells a "Not Found" answer', async (t) => {
 		mockFetch(t, jsonResponse({ message: 'Not Found' }, { status: 404 }));
 

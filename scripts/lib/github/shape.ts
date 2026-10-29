@@ -32,11 +32,6 @@ type Simplify<T> = { [K in keyof T]: T[K] } & {};
 
 type ObjectOf<F extends FieldShapes> = Simplify<{ [K in keyof F]: Infer<F[K]> }>;
 
-/** Tells whether a value is an object whatever its fields. */
-export function isRecord(value: unknown): value is Record<string, unknown> {
-	return typeof value === 'object' && value !== null && !Array.isArray(value);
-}
-
 /** Reads a string. */
 export const string: Shape<string> = (value, path) =>
 	typeof value === 'string' ? value : fail(path, 'a string', value);
@@ -116,6 +111,26 @@ export function object<F extends FieldShapes>(fieldShapes: F): Shape<ObjectOf<F>
 		// The loop sets every key of `fieldShapes`, which TypeScript cannot follow.
 		return copy as ObjectOf<F>;
 	};
+}
+
+/**
+ * Tells whether a value matches a shape, without throwing.
+ *
+ * @param {Shape<T>} valueShape - The shape to check the value against.
+ * @param {unknown} value - The value to check.
+ * @returns {boolean} `true` when the shape reads the value without an error.
+ */
+export function matches<T>(valueShape: Shape<T>, value: unknown): value is T {
+	try {
+		valueShape(value);
+		return true;
+	} catch {
+		return false;
+	}
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 function fail(path: string | undefined, expected: string, value: unknown): never {
