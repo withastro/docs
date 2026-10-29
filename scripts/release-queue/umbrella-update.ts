@@ -15,7 +15,7 @@ import { renderMarker } from './markers.ts';
 import { findFrameworkPackage, type FrameworkRelease } from './release.ts';
 import {
 	isStableBranch,
-	RELEASE_PR_MARKER,
+	RELEASE_PR_MARKER_NAME,
 	type Umbrella,
 	type UmbrellaBranches,
 } from './umbrella.ts';
@@ -39,7 +39,13 @@ type UmbrellaContent = {
 	includedPrNumbers: number[];
 };
 
-type UmbrellaUpdateInputs = Omit<UmbrellaContent, 'branches'>;
+/** What a refresh applies to an umbrella PR. */
+type UmbrellaRefresh = {
+	/** The release to apply, or `null` to keep the umbrella's. */
+	release: FrameworkRelease | null;
+	/** The docs PRs merged into the umbrella branch. */
+	includedPrNumbers: number[];
+};
 
 /**
  * Renders the title and the description of an umbrella PR.
@@ -53,7 +59,11 @@ export function renderUmbrella({ branches, release, includedPrNumbers }: Umbrell
 } {
 	return {
 		title: renderUmbrellaTitle(branches.base, release),
-		body: renderUmbrellaBody(branches, release?.prNumber ?? null, includedPrNumbers),
+		body: renderUmbrellaBody({
+			branches,
+			releasePrNumber: release?.prNumber ?? null,
+			includedPrNumbers,
+		}),
 	};
 }
 
@@ -78,18 +88,17 @@ export function getUmbrellaReleasePrNumber(
  * Without a release, keeps the title, the release label, and the recorded release PR.
  *
  * @param {Umbrella} umbrella - The umbrella PR.
- * @param {UmbrellaUpdateInputs} inputs - The release to apply, or `null` to keep the current one,
- * and the docs PRs merged into the umbrella branch.
+ * @param {UmbrellaRefresh} refresh - What the refresh applies.
  * @returns {UmbrellaChanges} Only what differs from the umbrella PR.
  */
 export function planUmbrellaUpdate(
 	umbrella: Umbrella,
-	{ release, includedPrNumbers }: UmbrellaUpdateInputs
+	{ release, includedPrNumbers }: UmbrellaRefresh
 ): UmbrellaChanges {
 	const { branches } = umbrella;
 	const title = release ? renderUmbrellaTitle(branches.base, release) : umbrella.title;
 	const releasePrNumber = getUmbrellaReleasePrNumber(umbrella, release);
-	const body = renderUmbrellaBody(branches, releasePrNumber, includedPrNumbers);
+	const body = renderUmbrellaBody({ branches, releasePrNumber, includedPrNumbers });
 
 	return {
 		prNumber: umbrella.number,
@@ -112,7 +121,17 @@ export function hasUmbrellaChanges({
 	labelsToAdd,
 	labelsToRemove,
 }: UmbrellaChanges): boolean {
-	return Object.keys(fields).length > 0 || labelsToAdd.length > 0 || labelsToRemove.length > 0;
+	return hasFieldChanges(fields) || labelsToAdd.length > 0 || labelsToRemove.length > 0;
+}
+
+/**
+ * Tells whether a refresh changes the title or the description of an umbrella PR.
+ *
+ * @param {PullRequestChanges} fields - The planned changes of the fields.
+ * @returns {boolean} `false` when both are up to date.
+ */
+export function hasFieldChanges(fields: PullRequestChanges): boolean {
+	return Object.keys(fields).length > 0;
 }
 
 /**
@@ -162,13 +181,15 @@ function findTitlePackage(release: FrameworkRelease) {
 }
 
 /** Renders the description of an umbrella PR: the release PR it ships with, and its docs PRs. */
-function renderUmbrellaBody(
-	branches: UmbrellaBranches,
-	releasePrNumber: number | null,
-	includedPrNumbers: number[]
-) {
+function renderUmbrellaBody({
+	branches,
+	releasePrNumber,
+	includedPrNumbers,
+}: Omit<UmbrellaContent, 'release'> & { releasePrNumber: number | null }) {
 	const marker =
-		releasePrNumber === null ? '' : `${renderMarker(RELEASE_PR_MARKER, String(releasePrNumber))}\n`;
+		releasePrNumber === null
+			? ''
+			: `${renderMarker(RELEASE_PR_MARKER_NAME, String(releasePrNumber))}\n`;
 	const release =
 		releasePrNumber === null
 			? 'no release PR is open yet.'
@@ -179,8 +200,10 @@ function renderUmbrellaBody(
 			: 'None yet.';
 
 	const paragraphs = [
-		`${marker}The docs for the next release into \`${branches.base}\`, collected in \`${branches.head}\`.` +
-			' The release queue keeps this description and the title up to date: edits to them are overwritten.',
+		`${marker}The docs for the next release into \`${branches.base}\`,` +
+			` collected in \`${branches.head}\`.` +
+			' The release queue keeps this description and the title up to date:' +
+			' edits to them are overwritten.',
 		`**Ships with:** ${release}`,
 		'## Included PRs',
 		includedPrList,

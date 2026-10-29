@@ -4,6 +4,7 @@ import {
 	type PullRequestDetails,
 	type Repository,
 } from '../lib/github/repository.ts';
+import { filterAsync } from './filter-async.ts';
 import type { ReleaseQueueContext } from './run.ts';
 
 type ReadinessContext = Pick<ReleaseQueueContext, 'docs' | 'jobName'>;
@@ -55,10 +56,10 @@ export async function readReadiness(
 async function getMaintainerReviewStates(docs: Repository, prNumber: number) {
 	const latestStates = await docs.getLatestReviewStates(prNumber);
 	const activeReviews = [...latestStates].filter(([, state]) => state !== REVIEW_STATES.dismissed);
-	const reviewerWriteAccesses = await Promise.all(
-		activeReviews.map(([login]) => docs.hasWriteAccess(login))
+	const maintainerReviews = await filterAsync(activeReviews, ([login]) =>
+		docs.hasWriteAccess(login)
 	);
-	return activeReviews.filter((_, index) => reviewerWriteAccesses[index]).map(([, state]) => state);
+	return maintainerReviews.map(([, state]) => state);
 }
 
 async function getChecksOfOtherJobs(

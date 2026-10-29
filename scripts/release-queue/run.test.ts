@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { buildPullRequest, buildRelease, FakeRepository } from './fake-repository.ts';
+import {
+	buildPullRequest,
+	buildRelease,
+	createContext,
+	FakeRepository,
+} from './fake-repository.ts';
 import { startRun } from './run.ts';
 import { renderUmbrella } from './umbrella-update.ts';
 import { getUmbrellaBranches } from './umbrella.ts';
@@ -29,7 +34,7 @@ describe('startRun', () => {
 		const docs = new FakeRepository({});
 		const astro = new FakeRepository({ pullRequests: [releasePullRequest] });
 
-		const { releases } = (await startRun({ docs, astro })).state;
+		const { releases } = (await startRun(createContext(docs, astro).context)).state;
 
 		assert.equal(releases.stable?.prNumber, 100);
 	});
@@ -57,7 +62,7 @@ describe('startRun', () => {
 			],
 		});
 
-		const { settledBaseBranches } = (await startRun({ docs, astro })).state;
+		const { settledBaseBranches } = (await startRun(createContext(docs, astro).context)).state;
 
 		assert.deepEqual(settledBaseBranches, ['main']);
 	});
@@ -66,7 +71,7 @@ describe('startRun', () => {
 		const docs = new FakeRepository({ pullRequests: [buildUmbrella(50, 'main', 404)] });
 		const astro = new FakeRepository({});
 
-		const { settledBaseBranches } = (await startRun({ docs, astro })).state;
+		const { settledBaseBranches } = (await startRun(createContext(docs, astro).context)).state;
 
 		assert.deepEqual(settledBaseBranches, []);
 	});
@@ -76,7 +81,7 @@ describe('startRun', () => {
 		const docs = new FakeRepository({ pullRequests: [pullRequest] });
 		const astro = new FakeRepository({});
 
-		const { openPullRequests } = (await startRun({ docs, astro })).state;
+		const { openPullRequests } = (await startRun(createContext(docs, astro).context)).state;
 
 		assert.deepEqual(openPullRequests, [pullRequest]);
 	});

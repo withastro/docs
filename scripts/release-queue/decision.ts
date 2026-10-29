@@ -45,7 +45,7 @@ type DecisionFacts = {
 };
 
 /** What decides whether a docs PR can go to the umbrella of its base branch. */
-type Routing = {
+type RoutingFacts = {
 	releaseLabelCount: number;
 	/** `null` without a single release label, which skips the checks on the base branch. */
 	releaseType: ReleaseType | null;
@@ -55,9 +55,9 @@ type Routing = {
 	isUmbrellaSettled: boolean;
 };
 
-type Problems<T> = [RefusalReason, (facts: T) => boolean][];
+type ProblemChecks<T> = [RefusalReason, (facts: T) => boolean][];
 
-const ROUTING_PROBLEMS: Problems<Routing> = [
+const ROUTING_PROBLEM_CHECKS: ProblemChecks<RoutingFacts> = [
 	[REFUSAL_REASONS.missingReleaseLabel, ({ releaseLabelCount }) => releaseLabelCount === 0],
 	[REFUSAL_REASONS.severalReleaseLabels, ({ releaseLabelCount }) => releaseLabelCount > 1],
 	[
@@ -79,7 +79,7 @@ const ROUTING_PROBLEMS: Problems<Routing> = [
 	],
 ];
 
-const READINESS_PROBLEMS: Problems<Readiness> = [
+const READINESS_PROBLEM_CHECKS: ProblemChecks<Readiness> = [
 	[REFUSAL_REASONS.draft, ({ isDraft }) => isDraft],
 	[REFUSAL_REASONS.changesRequested, (readiness) => readiness.hasChangesRequestedByMaintainer],
 	[REFUSAL_REASONS.missingApproval, ({ isApprovedByMaintainer }) => !isApprovedByMaintainer],
@@ -113,8 +113,8 @@ export function decideJoin(
 	{ state, readiness }: DecisionFacts
 ): Decision {
 	const reasons = [
-		...findProblems(ROUTING_PROBLEMS, readRouting(pullRequest, state)),
-		...findProblems(READINESS_PROBLEMS, readiness),
+		...findProblems(ROUTING_PROBLEM_CHECKS, readRoutingFacts(pullRequest, state)),
+		...findProblems(READINESS_PROBLEM_CHECKS, readiness),
 	];
 	const branches = getUmbrellaBranches(getTargetBaseBranch(pullRequest));
 	return reasons.length > 0
@@ -122,10 +122,10 @@ export function decideJoin(
 		: { outcome: OUTCOMES.join, branches };
 }
 
-function readRouting(
+function readRoutingFacts(
 	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
 	state: RoutingState
-): Routing {
+): RoutingFacts {
 	const releaseTypes = getReleaseTypes(pullRequest);
 	const targetBaseBranch = getTargetBaseBranch(pullRequest);
 	return {
@@ -147,6 +147,6 @@ function getReleaseTypes(pullRequest: Pick<PullRequest, 'labels'>): ReleaseType[
 	return Object.values(RELEASE_TYPES).filter((type) => hasLabel(pullRequest, RELEASE_LABELS[type]));
 }
 
-function findProblems<T>(problems: Problems<T>, facts: T): RefusalReason[] {
-	return problems.filter(([, isProblem]) => isProblem(facts)).map(([reason]) => reason);
+function findProblems<T>(checks: ProblemChecks<T>, facts: T): RefusalReason[] {
+	return checks.filter(([, isProblem]) => isProblem(facts)).map(([reason]) => reason);
 }

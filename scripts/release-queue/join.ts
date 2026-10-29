@@ -135,11 +135,23 @@ async function refuseJoin(docs: Repository, prNumber: number, comment: string) {
 	await docs.createComment(prNumber, comment);
 }
 
-/** Moves a docs PR into its umbrella, then tells the PR which umbrella it joined. */
+/**
+ * Moves a docs PR into its umbrella, opens the umbrella PR when there is none, then tells the PR
+ * which umbrella it joined.
+ */
 async function joinUmbrella(run: ReleaseQueueRun, request: JoinRequest) {
-	await createUmbrellaBranchIfMissing(run.docs, request.branches);
+	const { docs, log } = run;
+	const { pullRequest, branches } = request;
+	await createUmbrellaBranchIfMissing(docs, branches);
 	const isMerged = await mergeOrRefuse(run, request);
-	if (isMerged) await announceJoin(run, request);
+	if (!isMerged) return;
+
+	const umbrellaPrNumber =
+		(await findUmbrellaPrNumber(docs, branches)) ?? (await openUmbrella(run, request));
+	if (umbrellaPrNumber === null) return;
+
+	await docs.createComment(pullRequest.number, renderJoinedComment(branches, umbrellaPrNumber));
+	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
 }
 
 async function createUmbrellaBranchIfMissing(docs: Repository, branches: UmbrellaBranches) {
@@ -181,39 +193,18 @@ async function squashIntoUmbrella(docs: Repository, { pullRequest, branches }: J
 			expectedHeadSha: head.sha,
 			commitTitle: renderSquashCommitTitle(pullRequest),
 		});
-	} catch (error) {
+	} catch (mergeError) {
 		// A PR that can't join is left as it was.
-		if (isBaseChangeNeeded) await changeBaseBack(docs, pullRequest, error);
-		throw error;
+		if (isBaseChangeNeeded) {
+			await docs.updatePullRequest(number, { base: base.ref }).catch((baseError: unknown) => {
+				throw new AggregateError(
+					[mergeError, baseError],
+					`Could not merge #${number}, then could not change its base back to ${base.ref}.`
+				);
+			});
+		}
+		throw mergeError;
 	}
-}
-
-/** Changes the base of a docs PR back after a failed merge, keeping both errors if that fails. */
-async function changeBaseBack(
-	docs: Repository,
-	{ number, base }: Pick<PullRequestDetails, 'number' | 'base'>,
-	mergeError: unknown
-) {
-	try {
-		await docs.updatePullRequest(number, { base: base.ref });
-	} catch (error) {
-		throw new AggregateError(
-			[mergeError, error],
-			`Could not merge #${number}, then could not change its base back to ${base.ref}.`
-		);
-	}
-}
-
-/** Comments on a merged docs PR with its umbrella PR, opened first when there is none. */
-async function announceJoin(run: ReleaseQueueRun, request: JoinRequest) {
-	const { docs, log } = run;
-	const { pullRequest, branches } = request;
-	const umbrellaPrNumber =
-		(await findUmbrellaPrNumber(docs, branches)) ?? (await openUmbrella(run, request));
-	if (umbrellaPrNumber === null) return;
-
-	await docs.createComment(pullRequest.number, renderJoinedComment(branches, umbrellaPrNumber));
-	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
 }
 
 async function findUmbrellaPrNumber(docs: Repository, branches: UmbrellaBranches) {

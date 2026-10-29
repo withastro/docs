@@ -3,8 +3,8 @@ import { DOCS_STABLE_BRANCH, UMBRELLA_BRANCH_PREFIX } from './config.ts';
 import { readMarker } from './markers.ts';
 import type { FrameworkRelease, FrameworkReleases } from './release.ts';
 
-/** Names the marker recording the release PR an umbrella ships with, in its description. */
-export const RELEASE_PR_MARKER = 'release-queue:release-pr';
+/** In the umbrella description. */
+export const RELEASE_PR_MARKER_NAME = 'release-queue:release-pr';
 
 /** The reserved umbrella PR's head branch and the base it merges into. */
 export type UmbrellaBranches = { head: string; base: string };
@@ -85,7 +85,7 @@ export function findUmbrellas(pullRequests: PullRequest[], repositoryFullName: s
  * not a PR number (e.g. after a marker hand edit) counts as no release PR.
  */
 function readReleasePrNumber(body: string | null) {
-	const value = readMarker(RELEASE_PR_MARKER, body);
+	const value = readMarker(RELEASE_PR_MARKER_NAME, body);
 	const prNumber = Number(value);
 	return value !== null && Number.isSafeInteger(prNumber) && prNumber > 0 ? prNumber : null;
 }

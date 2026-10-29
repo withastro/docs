@@ -5,6 +5,7 @@ import { isSettled, type ReleaseQueueRun, type ReleaseState, type RunState } fro
 import {
 	getIncludedPrNumbers,
 	getUmbrellaReleasePrNumber,
+	hasFieldChanges,
 	hasUmbrellaChanges,
 	planUmbrellaUpdate,
 	type UmbrellaChanges,
@@ -28,9 +29,11 @@ export async function refreshOpenUmbrellas(run: RefreshRun): Promise<void> {
 	const umbrellas = findUmbrellas(openPullRequests, docs.fullName);
 	log(`Open umbrellas: ${formatPrNumbers(umbrellas.map(({ number }) => number))}.`);
 	for (const umbrella of umbrellas) {
-		if (isWaitingForMajorRelease(umbrella, run.state)) {
-			const reason = 'the next stable release is a major, so a maintainer merges it';
-			log(`Umbrella #${umbrella.number} skipped: ${reason} into the prerelease branch.`);
+		if (isWaitingForMajorRelease(umbrella, refreshRun.state)) {
+			log(
+				`Umbrella #${umbrella.number} skipped: the next stable release is a major,` +
+					' so a maintainer merges it into the prerelease branch.'
+			);
 			continue;
 		}
 		await refreshUmbrella(refreshRun, umbrella);
@@ -83,19 +86,18 @@ async function refreshUmbrella(run: RefreshRun, umbrella: Umbrella): Promise<voi
 	});
 }
 
-/** Gets the open PRs based on a branch. */
 function getOpenPrNumbers(
 	{ openPullRequests }: Pick<RunState, 'openPullRequests'>,
-	branch: string
+	baseBranch: string
 ) {
-	return openPullRequests.filter(({ base }) => base.ref === branch).map(({ number }) => number);
+	return openPullRequests.filter(({ base }) => base.ref === baseBranch).map(({ number }) => number);
 }
 
 async function applyUmbrellaChanges(
 	docs: RefreshRun['docs'],
 	{ prNumber, fields, labelsToAdd, labelsToRemove }: UmbrellaChanges
 ) {
-	if (Object.keys(fields).length > 0) await docs.updatePullRequest(prNumber, fields);
+	if (hasFieldChanges(fields)) await docs.updatePullRequest(prNumber, fields);
 	if (labelsToAdd.length > 0) await docs.addLabels(prNumber, labelsToAdd);
 	for (const label of labelsToRemove) await docs.removeLabel(prNumber, label);
 }

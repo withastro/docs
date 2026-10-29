@@ -8,7 +8,7 @@ import {
 	getUmbrellaBaseBranch,
 	getUmbrellaBranches,
 	isUmbrellaPullRequest,
-	RELEASE_PR_MARKER,
+	RELEASE_PR_MARKER_NAME,
 } from './umbrella.ts';
 
 describe('getUmbrellaBranches', () => {
@@ -107,7 +107,7 @@ describe('findUmbrellas', () => {
 			buildPullRequest({
 				number: 50 + index,
 				headBranch: 'release-queue/main',
-				body: renderMarker(RELEASE_PR_MARKER, value),
+				body: renderMarker(RELEASE_PR_MARKER_NAME, value),
 			})
 		);
 

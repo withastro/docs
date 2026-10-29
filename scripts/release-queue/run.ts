@@ -1,4 +1,5 @@
 import type { PullRequest, Repository } from '../lib/github/repository.ts';
+import { filterAsync } from './filter-async.ts';
 import { describeReleases, readFrameworkReleases, type FrameworkReleases } from './release.ts';
 import { findUmbrellas } from './umbrella.ts';
 
@@ -43,14 +44,12 @@ type RunStateContext = Pick<ReleaseQueueContext, 'docs' | 'astro'>;
 /**
  * Starts a run: reads what is true when it starts.
  *
- * @param {T} context - The repositories to read, and what the run passes on.
- * @returns {Promise<T & { state: RunState }>} The context, with the state of the run.
+ * @param {ReleaseQueueContext} context - The repositories to read.
+ * @returns {Promise<ReleaseQueueRun>} The context, with the state of the run.
  * @throws {GitHubError} When GitHub answers with an error status.
  * @throws {Error} When the framework's release PR or pre mode file can't be read.
  */
-export async function startRun<T extends RunStateContext>(
-	context: T
-): Promise<T & { state: RunState }> {
+export async function startRun(context: ReleaseQueueContext): Promise<ReleaseQueueRun> {
 	const [releases, openPullRequests] = await Promise.all([
 		readFrameworkReleases(context.astro),
 		context.docs.getOpenPullRequests(),
@@ -92,10 +91,10 @@ async function readSettledBaseBranches(
 	openPullRequests: PullRequest[]
 ) {
 	const umbrellas = findUmbrellas(openPullRequests, docs.fullName);
-	const settledFlags = await Promise.all(
-		umbrellas.map(({ releasePrNumber }) => isReleaseMerged(astro, releasePrNumber))
+	const settledUmbrellas = await filterAsync(umbrellas, ({ releasePrNumber }) =>
+		isReleaseMerged(astro, releasePrNumber)
 	);
-	return umbrellas.filter((_, index) => settledFlags[index]).map(({ branches }) => branches.base);
+	return settledUmbrellas.map(({ branches }) => branches.base);
 }
 
 /**

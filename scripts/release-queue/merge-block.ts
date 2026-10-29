@@ -5,8 +5,8 @@ import { readMarker, renderMarker } from './markers.ts';
 import type { ReleaseQueueContext } from './run.ts';
 import type { Umbrella } from './umbrella.ts';
 
-/** Names the marker of the checklist review, which records the PRs the review covered. */
-const COVERED_PRS_MARKER = 'release-queue:covered-prs';
+/** In the checklist review. */
+const COVERED_PRS_MARKER_NAME = 'release-queue:covered-prs';
 
 type MergeBlockContext = Pick<ReleaseQueueContext, 'reviewer' | 'log'>;
 
@@ -36,24 +36,29 @@ export async function syncMergeBlockReview(
 	checklist: MergeChecklist
 ): Promise<void> {
 	const umbrellaPrNumber = checklist.umbrella.number;
-	const body = renderChecklistReview(checklist);
+	const checklistBody = renderChecklistReview(checklist);
 	const reviews = await reviewer.getReviews(umbrellaPrNumber);
 	const latestReview = reviews.filter(({ body }) => readCoveredPrNumbers(body) !== null).at(-1);
 
 	if (shouldBlockAgain(latestReview, checklist.includedPrNumbers)) {
-		await reviewer.requestChanges(umbrellaPrNumber, body);
+		await reviewer.requestChanges(umbrellaPrNumber, checklistBody);
 		log(`Umbrella #${umbrellaPrNumber}: merge blocked by a review.`);
 		return;
 	}
 
-	if (latestReview && shouldUpdateChecklist(latestReview, body)) {
-		await reviewer.updateReview(umbrellaPrNumber, { reviewId: latestReview.id, body });
+	if (latestReview && shouldUpdateChecklist(latestReview, checklistBody)) {
+		await reviewer.updateReview(umbrellaPrNumber, {
+			reviewId: latestReview.id,
+			body: checklistBody,
+		});
 		log(`Umbrella #${umbrellaPrNumber}: merge checklist updated.`);
 	}
 }
 
-function shouldUpdateChecklist(latestReview: Review, body: string) {
-	return latestReview.state === REVIEW_STATES.changesRequested && latestReview.body !== body;
+function shouldUpdateChecklist(latestReview: Review, checklistBody: string) {
+	return (
+		latestReview.state === REVIEW_STATES.changesRequested && latestReview.body !== checklistBody
+	);
 }
 
 /** Tells whether to request changes: without a checklist review, or after new PRs joined. */
@@ -67,13 +72,13 @@ function shouldBlockAgain(latestReview: Review | undefined, includedPrNumbers: n
 
 /** Reads the PRs a checklist review covered, or gives `null` for any other review. */
 function readCoveredPrNumbers(body: string) {
-	const prNumbers = readMarker(COVERED_PRS_MARKER, body);
+	const prNumbers = readMarker(COVERED_PRS_MARKER_NAME, body);
 	return prNumbers === null ? null : prNumbers.split(',').filter(Boolean).map(Number);
 }
 
 function renderChecklistReview(checklist: MergeChecklist) {
 	const items = [renderReleaseItem(checklist), renderOpenPrsItem(checklist), renderLunariaItem()];
-	const marker = renderMarker(COVERED_PRS_MARKER, checklist.includedPrNumbers.join(','));
+	const marker = renderMarker(COVERED_PRS_MARKER_NAME, checklist.includedPrNumbers.join(','));
 	const paragraphs = [
 		`${marker}\nBefore merging this umbrella PR, check the following, then dismiss this review.`,
 		items.join('\n'),
@@ -99,7 +104,8 @@ function renderOpenPrsItem({ umbrella, openPrNumbers }: MergeChecklist) {
 	const requirement = `No open PRs target \`${branches.head}\`.`;
 	if (openPrNumbers.length === 0) return renderItem(true, requirement);
 
-	const instruction = `Merge them into this umbrella, or change their base to \`${branches.base}\` and rebase them once this umbrella is merged.`;
+	const instruction =
+		`Merge them into this umbrella, or change their base to \`${branches.base}\` and rebase them once this umbrella is merged.`;
 	return renderItem(
 		false,
 		`${requirement} Still open: ${formatPrNumbers(openPrNumbers)}. ${instruction}`
