@@ -1,3 +1,4 @@
+import { formatPrNumbers } from './comments.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
 import { isMajorRelease } from './release.ts';
 import { isSettled, type ReleaseQueueRun, type ReleaseState, type RunState } from './run.ts';
@@ -15,12 +16,9 @@ type RefreshRun = Pick<ReleaseQueueRun, 'docs' | 'reviewer' | 'log' | 'state'>;
 /**
  * Refreshes every open umbrella PR of the docs repository, and the review that blocks its merge.
  *
- * A settled umbrella keeps its release, and only its list of PRs changes. While the next stable
- * release is a major, the stable umbrella is left to maintainers, who merge it into the
- * prerelease branch.
+ * Lists the open PRs again, since the joins of the run may have opened an umbrella.
  *
- * @param {RefreshRun} run - The run, whose state gives the releases and the settled umbrellas. The
- * open PRs are listed again, since the joins of the run may have opened an umbrella.
+ * @param {RefreshRun} run - The run.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
 export async function refreshOpenUmbrellas(run: RefreshRun): Promise<void> {
@@ -28,18 +26,21 @@ export async function refreshOpenUmbrellas(run: RefreshRun): Promise<void> {
 	const openPullRequests = await docs.getOpenPullRequests();
 	const refreshRun = { ...run, state: { ...run.state, openPullRequests } };
 	const umbrellas = findUmbrellas(openPullRequests, docs.fullName);
-	log(`Open umbrellas: ${umbrellas.map(({ number }) => `#${number}`).join(', ') || 'none'}.`);
+	log(`Open umbrellas: ${formatPrNumbers(umbrellas.map(({ number }) => number))}.`);
 	for (const umbrella of umbrellas) {
 		if (isWaitingForMajorRelease(umbrella, run.state)) {
-			log(
-				`Umbrella #${umbrella.number} skipped: the next stable release is a major, so a maintainer merges it into the prerelease branch.`
-			);
+			const reason = 'the next stable release is a major, so a maintainer merges it';
+			log(`Umbrella #${umbrella.number} skipped: ${reason} into the prerelease branch.`);
 			continue;
 		}
 		await refreshUmbrella(refreshRun, umbrella);
 	}
 }
 
+/**
+ * Tells whether the stable umbrella waits for a major: a maintainer then merges it into the
+ * prerelease branch, and the refresh leaves it as it is.
+ */
 function isWaitingForMajorRelease({ branches }: Umbrella, { releases }: ReleaseState) {
 	return isStableBranch(branches.base) && isMajorRelease(releases.stable);
 }

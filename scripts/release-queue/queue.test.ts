@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { buildPullRequest, buildReadyState, FakeRepository } from './fake-repository.ts';
+import {
+	buildPullRequest,
+	buildReadyState,
+	createContext,
+	FakeRepository,
+} from './fake-repository.ts';
 import { runReleaseQueue } from './queue.ts';
 
 function buildDocs() {
@@ -11,13 +16,6 @@ function buildDocs() {
 		pullRequests: [accepted, umbrella],
 		branchShas: { main: 'sha-main', 'release-queue/main': 'sha-umbrella' },
 	});
-}
-
-function createContext(docs: FakeRepository) {
-	const logs: string[] = [];
-	const log = (message: string) => logs.push(message);
-	const reviewer = new FakeRepository({});
-	return { context: { docs, astro: new FakeRepository({}), reviewer, log, jobName: null }, logs };
 }
 
 describe('runReleaseQueue', () => {

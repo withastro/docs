@@ -1,11 +1,11 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { REVIEW_STATES, type Review, type ReviewState } from '../lib/github/repository.ts';
-import { FakeRepository } from './fake-repository.ts';
+import { FakeRepository, MAIN_BRANCHES } from './fake-repository.ts';
 import { syncMergeBlockReview, type MergeChecklist } from './merge-block.ts';
 
 const CHECKLIST: MergeChecklist = {
-	umbrella: { number: 50, branches: { head: 'release-queue/main', base: 'main' } },
+	umbrella: { number: 50, branches: MAIN_BRANCHES },
 	releasePrNumber: 100,
 	isReleaseMerged: false,
 	openPrNumbers: [],

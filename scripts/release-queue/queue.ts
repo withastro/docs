@@ -16,7 +16,7 @@ import { describeReleaseState, startRun, type ReleaseQueueContext } from './run.
  */
 export async function runReleaseQueue(context: ReleaseQueueContext): Promise<void> {
 	const run = await startRun(context);
-	run.log(describeReleaseState(run.state, run.astro.fullName));
+	run.log(describeReleaseState(run.state));
 
 	const errors: unknown[] = [];
 	await joinAcceptedPullRequests(run).catch((error: unknown) => errors.push(error));

@@ -2,8 +2,11 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { RELEASE_TYPES, type ReleaseType } from './config.ts';
 import { decideJoin, OUTCOMES, REFUSAL_REASONS } from './decision.ts';
-import { buildPullRequest } from './fake-repository.ts';
+import { buildPullRequest, MAIN_BRANCHES } from './fake-repository.ts';
 import type { Readiness } from './readiness.ts';
+import { getUmbrellaBranches } from './umbrella.ts';
+
+const CLOUDFLARE_NEXT_BRANCHES = getUmbrellaBranches('cloudflare-next');
 
 const READY: Readiness = {
 	isDraft: false,
@@ -37,7 +40,7 @@ describe('decideJoin', () => {
 	it('should route a patch or minor PR based on main to the main umbrella', () => {
 		const expected = {
 			outcome: OUTCOMES.join,
-			branches: { head: 'release-queue/main', base: 'main' },
+			branches: MAIN_BRANCHES,
 		};
 
 		assert.deepEqual(route('main', ['patch-release']), expected);
@@ -57,7 +60,7 @@ describe('decideJoin', () => {
 	it('should route a PR based on an umbrella branch to that umbrella', () => {
 		assert.deepEqual(route('release-queue/main', ['minor-release']), {
 			outcome: OUTCOMES.join,
-			branches: { head: 'release-queue/main', base: 'main' },
+			branches: MAIN_BRANCHES,
 		});
 		assert.deepEqual(route('release-queue/v8', ['major-release']), {
 			outcome: OUTCOMES.join,
@@ -68,6 +71,7 @@ describe('decideJoin', () => {
 	it('should refuse a PR without a release label', () => {
 		assert.deepEqual(route('main', ['accepted']), {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.missingReleaseLabel],
 		});
 	});
@@ -75,6 +79,7 @@ describe('decideJoin', () => {
 	it('should refuse a PR with several release labels', () => {
 		assert.deepEqual(route('main', ['patch-release', 'minor-release']), {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.severalReleaseLabels],
 		});
 	});
@@ -82,6 +87,7 @@ describe('decideJoin', () => {
 	it('should refuse a major PR based on the stable branch or its umbrella', () => {
 		const expected = {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.majorReleaseOnStableBranch],
 		};
 
@@ -92,6 +98,7 @@ describe('decideJoin', () => {
 	it('should refuse a patch or minor PR based on a prerelease branch or its umbrella', () => {
 		const expected = {
 			outcome: OUTCOMES.refuse,
+			branches: CLOUDFLARE_NEXT_BRANCHES,
 			reasons: [REFUSAL_REASONS.stableReleaseOnPrereleaseBranch],
 		};
 
@@ -102,6 +109,7 @@ describe('decideJoin', () => {
 	it('should refuse a PR for the stable umbrella while a major release is pending', () => {
 		const expected = {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.majorReleasePending],
 		};
 
@@ -126,11 +134,17 @@ describe('decideJoin', () => {
 	});
 
 	it('should refuse a PR it would move into a settled umbrella', () => {
-		const expected = { outcome: OUTCOMES.refuse, reasons: [REFUSAL_REASONS.settledUmbrella] };
+		const refusal = { outcome: OUTCOMES.refuse, reasons: [REFUSAL_REASONS.settledUmbrella] };
 		const state = { settledBaseBranches: ['main', 'cloudflare-next'] };
 
-		assert.deepEqual(route('main', ['minor-release'], state), expected);
-		assert.deepEqual(route('cloudflare-next', ['major-release'], state), expected);
+		assert.deepEqual(route('main', ['minor-release'], state), {
+			...refusal,
+			branches: MAIN_BRANCHES,
+		});
+		assert.deepEqual(route('cloudflare-next', ['major-release'], state), {
+			...refusal,
+			branches: CLOUDFLARE_NEXT_BRANCHES,
+		});
 	});
 
 	it('should route a PR based on the branch of a settled umbrella', () => {
@@ -148,6 +162,7 @@ describe('decideJoin', () => {
 
 		assert.deepEqual(decision, {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.missingReleaseLabel, REFUSAL_REASONS.majorReleasePending],
 		});
 	});
@@ -155,6 +170,7 @@ describe('decideJoin', () => {
 	it('should skip the checks on the base branch without a single release label', () => {
 		assert.deepEqual(route('cloudflare-next', ['patch-release', 'minor-release']), {
 			outcome: OUTCOMES.refuse,
+			branches: CLOUDFLARE_NEXT_BRANCHES,
 			reasons: [REFUSAL_REASONS.severalReleaseLabels],
 		});
 	});
@@ -164,6 +180,7 @@ describe('decideJoin', () => {
 
 		assert.deepEqual(decision, {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.missingReleaseLabel, REFUSAL_REASONS.draft],
 		});
 	});
@@ -182,6 +199,7 @@ describe('decideJoin', () => {
 
 		assert.deepEqual(decision, {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [
 				REFUSAL_REASONS.draft,
 				REFUSAL_REASONS.changesRequested,
@@ -200,6 +218,7 @@ describe('decideJoin', () => {
 
 		assert.deepEqual(decision, {
 			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
 			reasons: [REFUSAL_REASONS.unknownMergeability],
 		});
 	});

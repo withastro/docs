@@ -150,14 +150,14 @@ describe('describeReleases', () => {
 
 	it('should describe the stable release, and a prerelease that is the same', () => {
 		assert.equal(
-			describeReleases({ stable, prerelease: stable }, 'withastro/astro'),
+			describeReleases({ stable, prerelease: stable }),
 			'stable withastro/astro#100 (astro@7.4.1, patch), prerelease the same'
 		);
 	});
 
 	it('should describe both releases', () => {
 		assert.equal(
-			describeReleases({ stable: null, prerelease }, 'withastro/astro'),
+			describeReleases({ stable: null, prerelease }),
 			'stable none open, prerelease withastro/astro#200 (without astro, patch)'
 		);
 	});

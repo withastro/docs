@@ -45,9 +45,11 @@ export const MERGEABILITY_RETRY_DELAY_MS = 2000;
 
 export const FRAMEWORK_REPOSITORY = 'withastro/astro';
 export const FRAMEWORK_PACKAGE = 'astro';
-/** Changesets opens the release PR of each framework branch from these branches. */
-export const FRAMEWORK_STABLE_RELEASE_BRANCH = 'changeset-release/main';
-export const FRAMEWORK_PRERELEASE_RELEASE_BRANCH = 'changeset-release/next';
+/** For each release line, the branch Changesets opens its release PR from. */
+export const FRAMEWORK_RELEASE_BRANCHES = {
+	stable: 'changeset-release/main',
+	prerelease: 'changeset-release/next',
+};
 /** Changesets writes this file on the framework's prerelease branch while it is in pre mode. */
 export const FRAMEWORK_PRE_MODE_FILE = { path: '.changeset/pre.json', ref: 'next' };
 

@@ -16,11 +16,12 @@ import {
 	buildRelease,
 	CREATED_PR_NUMBER,
 	FakeRepository,
+	createContext,
+	MAIN_BRANCHES,
 } from './fake-repository.ts';
 import { joinAcceptedPullRequests, previewJoin } from './join.ts';
 import { renderUmbrella } from './umbrella-update.ts';
 
-const MAIN_BRANCHES = { head: 'release-queue/main', base: 'main' };
 const NO_RELEASES = { stable: null, prerelease: null };
 
 /** Builds the state of a run starting with the open PRs of the fake repository. */
@@ -30,13 +31,6 @@ async function buildState(docs: FakeRepository) {
 		settledBaseBranches: [],
 		openPullRequests: await docs.getOpenPullRequests(),
 	};
-}
-
-function createContext(docs: FakeRepository, astro = new FakeRepository({})) {
-	const logs: string[] = [];
-	const log = (message: string) => logs.push(message);
-	const reviewer = new FakeRepository({});
-	return { context: { docs, astro, reviewer, log, jobName: 'release-queue' }, logs };
 }
 
 function buildComment(prNumber: number, decision: Decision) {
@@ -54,7 +48,7 @@ describe('previewJoin', () => {
 		assert.deepEqual(docs.writes, [
 			buildComment(7, {
 				outcome: OUTCOMES.join,
-				branches: { head: 'release-queue/main', base: 'main' },
+				branches: MAIN_BRANCHES,
 			}),
 		]);
 		assert.deepEqual(logs, [
@@ -80,11 +74,12 @@ describe('previewJoin', () => {
 			buildComment(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.majorReleasePending],
+				branches: MAIN_BRANCHES,
 			}),
 		]);
 		assert.equal(
 			logs[0],
-			`Releases: stable ${astro.fullName}#100 (astro@8.0.0, major), prerelease the same. Settled umbrellas: none.`
+			'Releases: stable withastro/astro#100 (astro@8.0.0, major), prerelease the same. Settled umbrellas: none.'
 		);
 	});
 
@@ -99,6 +94,7 @@ describe('previewJoin', () => {
 			buildComment(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.missingReleaseLabel],
+				branches: MAIN_BRANCHES,
 			}),
 		]);
 	});
@@ -118,6 +114,7 @@ describe('previewJoin', () => {
 			buildComment(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.draft, REFUSAL_REASONS.missingApproval],
+				branches: MAIN_BRANCHES,
 			}),
 		]);
 		assert.equal(
@@ -149,7 +146,11 @@ describe('previewJoin', () => {
 		await previewJoin(context, 7);
 
 		assert.deepEqual(docs.writes, [
-			buildComment(7, { outcome: OUTCOMES.refuse, reasons: [REFUSAL_REASONS.settledUmbrella] }),
+			buildComment(7, {
+				outcome: OUTCOMES.refuse,
+				reasons: [REFUSAL_REASONS.settledUmbrella],
+				branches: MAIN_BRANCHES,
+			}),
 		]);
 	});
 
@@ -303,7 +304,13 @@ describe('joinAcceptedPullRequests', () => {
 			{ method: 'removeLabel', args: [7, 'accepted'] },
 			{
 				method: 'createComment',
-				args: [7, renderRefusalComment([REFUSAL_REASONS.missingReleaseLabel])],
+				args: [
+					7,
+					renderRefusalComment({
+						reasons: [REFUSAL_REASONS.missingReleaseLabel],
+						branches: MAIN_BRANCHES,
+					}),
+				],
 			},
 		]);
 	});

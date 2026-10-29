@@ -2,7 +2,12 @@ import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import type { PullRequestDetails } from '../lib/github/repository.ts';
 import { RELEASE_TYPES } from './config.ts';
-import { buildPullRequest, buildRelease, FakeRepository } from './fake-repository.ts';
+import {
+	buildPullRequest,
+	buildRelease,
+	FakeRepository,
+	MAIN_BRANCHES,
+} from './fake-repository.ts';
 import { refreshOpenUmbrellas } from './refresh.ts';
 import type { ReleaseState } from './run.ts';
 import { renderUmbrella } from './umbrella-update.ts';
@@ -18,7 +23,7 @@ const RELEASES = {
 
 const EXPECTED_TITLE = '[ci] release astro@7.5.0 docs';
 const EXPECTED_BODY = renderUmbrella({
-	branches: { head: 'release-queue/main', base: 'main' },
+	branches: MAIN_BRANCHES,
 	release: buildRelease({ prNumber: 100 }),
 	includedPrNumbers: [7],
 }).body;
@@ -110,7 +115,7 @@ describe('refreshOpenUmbrellas', () => {
 
 	it('should only update the included PRs of a settled umbrella', async () => {
 		const settledBody = renderUmbrella({
-			branches: { head: 'release-queue/main', base: 'main' },
+			branches: MAIN_BRANCHES,
 			release: buildRelease({ prNumber: 90 }),
 			includedPrNumbers: [],
 		}).body;
@@ -131,7 +136,7 @@ describe('refreshOpenUmbrellas', () => {
 					50,
 					{
 						body: renderUmbrella({
-							branches: { head: 'release-queue/main', base: 'main' },
+							branches: MAIN_BRANCHES,
 							release: buildRelease({ prNumber: 90 }),
 							includedPrNumbers: [7],
 						}).body,
@@ -158,7 +163,7 @@ describe('refreshOpenUmbrellas', () => {
 			{ releases: RELEASES, settledBaseBranches: ['main'] },
 			buildUmbrella([], {
 				body: renderUmbrella({
-					branches: { head: 'release-queue/main', base: 'main' },
+					branches: MAIN_BRANCHES,
 					release: buildRelease({ prNumber: 100 }),
 					includedPrNumbers: [],
 				}).body,

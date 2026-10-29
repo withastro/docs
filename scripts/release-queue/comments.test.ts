@@ -8,20 +8,24 @@ import {
 	renderUmbrellaFailureComment,
 } from './comments.ts';
 import { OUTCOMES, REFUSAL_REASONS } from './decision.ts';
+import { MAIN_BRANCHES } from './fake-repository.ts';
 
 describe('renderRefusalComment', () => {
 	it('should give the reason, then how to retry', () => {
-		const comment = renderRefusalComment([REFUSAL_REASONS.missingReleaseLabel]);
+		const comment = renderRefusalComment({
+			reasons: [REFUSAL_REASONS.missingReleaseLabel],
+			branches: MAIN_BRANCHES,
+		});
 
 		assert.match(comment, /^This PR has no release label\./);
 		assert.match(comment, /add `accepted` again\.$/);
 	});
 
 	it('should list several reasons', () => {
-		const comment = renderRefusalComment([
-			REFUSAL_REASONS.missingApproval,
-			REFUSAL_REASONS.failingChecks,
-		]);
+		const comment = renderRefusalComment({
+			reasons: [REFUSAL_REASONS.missingApproval, REFUSAL_REASONS.failingChecks],
+			branches: MAIN_BRANCHES,
+		});
 
 		assert.match(comment, /^This PR can't join its umbrella yet:\n\n- .+\n- .+\n\n/);
 	});
@@ -31,7 +35,7 @@ describe('renderDryRunComment', () => {
 	it('should name the umbrella branch a PR would join, and its base branch', () => {
 		const comment = renderDryRunComment({
 			outcome: OUTCOMES.join,
-			branches: { head: 'release-queue/main', base: 'main' },
+			branches: MAIN_BRANCHES,
 		});
 
 		assert.match(comment, /^\*\*Dry run\*\*/);
@@ -43,8 +47,12 @@ describe('renderDryRunComment', () => {
 		const comment = renderDryRunComment({
 			outcome: OUTCOMES.refuse,
 			reasons: [REFUSAL_REASONS.severalReleaseLabels],
+			branches: MAIN_BRANCHES,
 		});
-		const refusalComment = renderRefusalComment([REFUSAL_REASONS.severalReleaseLabels]);
+		const refusalComment = renderRefusalComment({
+			reasons: [REFUSAL_REASONS.severalReleaseLabels],
+			branches: MAIN_BRANCHES,
+		});
 		const quotedRefusalComment = refusalComment.replaceAll(/^/gm, '> ').replaceAll('> \n', '>\n');
 
 		assert.match(comment, /^\*\*Dry run\*\*/);
@@ -52,11 +60,9 @@ describe('renderDryRunComment', () => {
 	});
 });
 
-const BRANCHES = { head: 'release-queue/main', base: 'main' };
-
 describe('renderJoinedComment', () => {
 	it('should name the umbrella branch and link the umbrella PR', () => {
-		const comment = renderJoinedComment(BRANCHES, 1000);
+		const comment = renderJoinedComment(MAIN_BRANCHES, 1000);
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /#1000/);
@@ -65,7 +71,7 @@ describe('renderJoinedComment', () => {
 
 describe('renderMergeFailureComment', () => {
 	it("should give GitHub's reason, then how to retry", () => {
-		const comment = renderMergeFailureComment(BRANCHES, 'Merge conflict');
+		const comment = renderMergeFailureComment(MAIN_BRANCHES, 'Merge conflict');
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /Merge conflict/);
@@ -75,7 +81,7 @@ describe('renderMergeFailureComment', () => {
 
 describe('renderUmbrellaFailureComment', () => {
 	it("should say the PR is merged, give GitHub's reason, and ask for the umbrella by hand", () => {
-		const comment = renderUmbrellaFailureComment(BRANCHES, 'Validation Failed');
+		const comment = renderUmbrellaFailureComment(MAIN_BRANCHES, 'Validation Failed');
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /Validation Failed/);

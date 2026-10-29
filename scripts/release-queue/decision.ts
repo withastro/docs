@@ -89,9 +89,14 @@ const READINESS_PROBLEMS: Problems<Readiness> = [
 	[REFUSAL_REASONS.pendingChecks, ({ hasPendingChecks }) => hasPendingChecks],
 ];
 
-export type Decision =
-	| { outcome: typeof OUTCOMES.join; branches: UmbrellaBranches }
-	| { outcome: typeof OUTCOMES.refuse; reasons: RefusalReason[] };
+export type Refusal = {
+	outcome: typeof OUTCOMES.refuse;
+	reasons: RefusalReason[];
+	/** The branches of the umbrella the PR would join. */
+	branches: UmbrellaBranches;
+};
+
+export type Decision = { outcome: typeof OUTCOMES.join; branches: UmbrellaBranches } | Refusal;
 
 /**
  * Decides whether a docs PR joins the umbrella of its base branch, or gives every reason it can't.
@@ -100,8 +105,8 @@ export type Decision =
  *
  * @param {Pick<PullRequest, 'base' | 'labels'>} pullRequest - The docs PR.
  * @param {DecisionFacts} facts - The state of the run, and whether the PR can be merged.
- * @returns {Decision} The umbrella to join, or the reasons, first about where the PR goes, then
- * about whether it can be merged.
+ * @returns {Decision} The umbrella to join, or a refusal with every reason: where the PR goes
+ * first, then whether it can be merged.
  */
 export function decideJoin(
 	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
@@ -111,12 +116,10 @@ export function decideJoin(
 		...findProblems(ROUTING_PROBLEMS, readRouting(pullRequest, state)),
 		...findProblems(READINESS_PROBLEMS, readiness),
 	];
-	if (reasons.length > 0) return { outcome: OUTCOMES.refuse, reasons };
-
-	return {
-		outcome: OUTCOMES.join,
-		branches: getUmbrellaBranches(getTargetBaseBranch(pullRequest)),
-	};
+	const branches = getUmbrellaBranches(getTargetBaseBranch(pullRequest));
+	return reasons.length > 0
+		? { outcome: OUTCOMES.refuse, reasons, branches }
+		: { outcome: OUTCOMES.join, branches };
 }
 
 function readRouting(

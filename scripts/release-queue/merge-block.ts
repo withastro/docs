@@ -1,4 +1,5 @@
 import { REVIEW_STATES, type GitHubRepository, type Review } from '../lib/github/repository.ts';
+import { formatPrNumbers } from './comments.ts';
 import { FRAMEWORK_REPOSITORY, I18N_LABEL, LUNARIA_DIRECTIVE } from './config.ts';
 import { readMarker, renderMarker } from './markers.ts';
 import type { Umbrella } from './umbrella.ts';
@@ -26,10 +27,7 @@ export type MergeChecklist = {
  * Blocks the merge of an umbrella PR with a review requesting changes, which
  * holds the checklist to go through before merging.
  *
- * A maintainer dismisses the review to merge. Requests changes when the
- * umbrella has no checklist review, or when PRs joined it since the last one
- * was dismissed. Updates the checklist of an active review. Otherwise, changes
- * nothing, so a run without new PRs never blocks the merge again.
+ * A run without new PRs never blocks the merge again.
  *
  * @param {MergeBlockContext} context - The repository to review with, and where to log.
  * @param {MergeChecklist} checklist - The umbrella, and what its checklist says.
@@ -50,11 +48,14 @@ export async function syncMergeBlockReview(
 		return;
 	}
 
-	const isActive = latestReview?.state === REVIEW_STATES.changesRequested;
-	if (isActive && latestReview.body !== body) {
+	if (latestReview && shouldUpdateChecklist(latestReview, body)) {
 		await reviewer.updateReview(umbrellaPrNumber, { reviewId: latestReview.id, body });
 		log(`Umbrella #${umbrellaPrNumber}: merge checklist updated.`);
 	}
+}
+
+function shouldUpdateChecklist(latestReview: Review, body: string) {
+	return latestReview.state === REVIEW_STATES.changesRequested && latestReview.body !== body;
 }
 
 /** Tells whether to request changes: without a checklist review, or after new PRs joined. */
@@ -75,7 +76,11 @@ function readCoveredPrNumbers(body: string) {
 function renderChecklistReview(checklist: MergeChecklist) {
 	const items = [renderReleaseItem(checklist), renderOpenPrsItem(checklist), renderLunariaItem()];
 	const marker = renderMarker(COVERED_PRS_MARKER, checklist.includedPrNumbers.join(','));
-	return `${marker}\nBefore merging this umbrella PR, check the following, then dismiss this review.\n\n${items.join('\n')}\n`;
+	const paragraphs = [
+		`${marker}\nBefore merging this umbrella PR, check the following, then dismiss this review.`,
+		items.join('\n'),
+	];
+	return `${paragraphs.join('\n\n')}\n`;
 }
 
 function renderReleaseItem({ releasePrNumber, isReleaseMerged }: MergeChecklist) {
@@ -96,10 +101,10 @@ function renderOpenPrsItem({ umbrella, openPrNumbers }: MergeChecklist) {
 	const requirement = `No open PRs target \`${branches.head}\`.`;
 	if (openPrNumbers.length === 0) return renderItem(true, requirement);
 
-	const openPrs = openPrNumbers.map((prNumber) => `#${prNumber}`).join(', ');
+	const instruction = `Merge them into this umbrella, or change their base to \`${branches.base}\` and rebase them once this umbrella is merged.`;
 	return renderItem(
 		false,
-		`${requirement} Still open: ${openPrs}. Merge them into this umbrella, or change their base to \`${branches.base}\` and rebase them once this umbrella is merged.`
+		`${requirement} Still open: ${formatPrNumbers(openPrNumbers)}. ${instruction}`
 	);
 }
 

@@ -5,6 +5,7 @@ import {
 } from '../lib/github/repository.ts';
 import { GitHubError } from '../lib/github/request.ts';
 import {
+	formatPrNumbers,
 	renderDryRunComment,
 	renderJoinedComment,
 	renderMergeFailureComment,
@@ -48,7 +49,7 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
 	if (!pullRequest) return;
 
 	const run = await startRun(context);
-	log(describeReleaseState(run.state, context.astro.fullName));
+	log(describeReleaseState(run.state));
 	const decision = await readDecision(run, pullRequest);
 	await docs.createComment(prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
@@ -66,7 +67,7 @@ export async function previewJoin(context: ReleaseQueueContext, prNumber: number
 export async function joinAcceptedPullRequests(run: ReleaseQueueRun): Promise<void> {
 	const { docs, log, state } = run;
 	const prNumbers = findAcceptedPrNumbers(state.openPullRequests, docs.fullName);
-	log(`Accepted PRs: ${prNumbers.map((prNumber) => `#${prNumber}`).join(', ') || 'none'}.`);
+	log(`Accepted PRs: ${formatPrNumbers(prNumbers)}.`);
 
 	const errors: unknown[] = [];
 	for (const prNumber of prNumbers) {
@@ -88,7 +89,7 @@ export async function joinAcceptedPullRequests(run: ReleaseQueueRun): Promise<vo
 
 function findAcceptedPrNumbers(openPullRequests: PullRequest[], repositoryFullName: string) {
 	return openPullRequests
-		.filter((pullRequest) => !getSkipReason(pullRequest, repositoryFullName))
+		.filter((pullRequest) => isJoinCandidate(pullRequest, repositoryFullName))
 		.map(({ number }) => number)
 		.toSorted((first, second) => first - second);
 }
@@ -101,7 +102,7 @@ async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
 
 	const decision = await readDecision(run, pullRequest);
 	if (decision.outcome === OUTCOMES.refuse) {
-		await refuseJoin(docs, prNumber, renderRefusalComment(decision.reasons));
+		await refuseJoin(docs, prNumber, renderRefusalComment(decision));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
 		return;
 	}
@@ -246,6 +247,10 @@ async function openUmbrella(
 		log(`#${pullRequest.number} joined ${branches.head}, but no umbrella PR: ${error.apiMessage}.`);
 		return null;
 	}
+}
+
+function isJoinCandidate(pullRequest: PullRequest, repositoryFullName: string) {
+	return getSkipReason(pullRequest, repositoryFullName) === null;
 }
 
 function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {

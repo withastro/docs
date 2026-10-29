@@ -1,6 +1,5 @@
 import type { Comparison, PullRequest, PullRequestChanges } from '../lib/github/repository.ts';
 import {
-	FRAMEWORK_PACKAGE,
 	FRAMEWORK_REPOSITORY,
 	RELEASE_LABELS,
 	RELEASE_TYPES,
@@ -8,7 +7,7 @@ import {
 	type ReleaseType,
 } from './config.ts';
 import { renderMarker } from './markers.ts';
-import type { FrameworkRelease } from './release.ts';
+import { findFrameworkPackage, type FrameworkRelease } from './release.ts';
 import {
 	isStableBranch,
 	RELEASE_PR_MARKER,
@@ -140,19 +139,21 @@ export function getIncludedPrNumbers({ commits }: Pick<Comparison, 'commits'>): 
 	return [...new Set(prNumbers)];
 }
 
-/**
- * Renders the title of an umbrella PR, after the framework's `[ci] release` PRs.
- *
- * Names the `astro` version when the release includes `astro`, or else its only package. Names
- * the base branch otherwise, since one package out of several could be the wrong one.
- */
+/** Renders the title of an umbrella PR, named like the framework's `[ci] release` PRs. */
 function renderUmbrellaTitle(baseBranch: string, release: FrameworkRelease | null) {
-	const packages = release?.packages ?? [];
-	const namedPackage =
-		packages.find(({ name }) => name === FRAMEWORK_PACKAGE) ??
-		(packages.length === 1 ? packages[0] : null);
-	const subject = namedPackage ? `${namedPackage.name}@${namedPackage.version}` : baseBranch;
+	const titlePackage = release ? findTitlePackage(release) : undefined;
+	const subject = titlePackage ? `${titlePackage.name}@${titlePackage.version}` : baseBranch;
 	return `[ci] release ${subject} docs`;
+}
+
+/**
+ * Finds the package an umbrella title names: the framework package, or else the only package of
+ * the release. Finds none when the release has several packages without the framework one, since
+ * naming one of them could be wrong.
+ */
+function findTitlePackage(release: FrameworkRelease) {
+	const { packages } = release;
+	return findFrameworkPackage(release) ?? (packages.length === 1 ? packages[0] : undefined);
 }
 
 /** Renders the description of an umbrella PR: the release PR it ships with, and its docs PRs. */
@@ -172,7 +173,14 @@ function renderUmbrellaBody(
 			? includedPrNumbers.map((prNumber) => `- #${prNumber}`).join('\n')
 			: 'None yet.';
 
-	return `${marker}The docs for the next release into \`${branches.base}\`, collected in \`${branches.head}\`. The release queue keeps this description and the title up to date: edits to them are overwritten.\n\n**Ships with:** ${release}\n\n## Included PRs\n\n${includedPrList}\n`;
+	const paragraphs = [
+		`${marker}The docs for the next release into \`${branches.base}\`, collected in \`${branches.head}\`.` +
+			' The release queue keeps this description and the title up to date: edits to them are overwritten.',
+		`**Ships with:** ${release}`,
+		'## Included PRs',
+		includedPrList,
+	];
+	return `${paragraphs.join('\n\n')}\n`;
 }
 
 /** Plans the umbrella label and the label of the release type, when it is known. */

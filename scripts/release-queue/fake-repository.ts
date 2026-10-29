@@ -16,6 +16,8 @@ import { RELEASE_TYPES, type ReleaseType } from './config.ts';
 import type { FrameworkRelease } from './release.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
+/** The branches of the umbrella of the stable docs branch. */
+export const MAIN_BRANCHES = { head: 'release-queue/main', base: 'main' };
 export const MAINTAINER = 'example-maintainer';
 /** The number the fake repository gives to the pull requests it creates. */
 export const CREATED_PR_NUMBER = 1000;
@@ -252,4 +254,18 @@ export class FakeRepository {
 	async updateReview(prNumber: number, update: ReviewUpdate): Promise<void> {
 		this.writes.push({ method: 'updateReview', args: [prNumber, update] });
 	}
+}
+
+/**
+ * Creates the context of a run on fake repositories, for tests.
+ *
+ * @param {FakeRepository} docs - The docs repository.
+ * @param {FakeRepository} [astro] - The framework repository. Defaults to an empty one.
+ * @returns The context, and the lines it logged.
+ */
+export function createContext(docs: FakeRepository, astro = new FakeRepository({})) {
+	const logs: string[] = [];
+	const log = (message: string) => logs.push(message);
+	const reviewer = new FakeRepository({});
+	return { context: { docs, astro, reviewer, log, jobName: 'release-queue' }, logs };
 }

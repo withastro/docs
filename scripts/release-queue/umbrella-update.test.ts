@@ -1,8 +1,7 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { RELEASE_TYPES } from './config.ts';
-import { buildRelease } from './fake-repository.ts';
-import { getUmbrellaBranches, type Umbrella } from './umbrella.ts';
+import { buildRelease, MAIN_BRANCHES } from './fake-repository.ts';
 import {
 	getIncludedPrNumbers,
 	getUmbrellaReleasePrNumber,
@@ -10,8 +9,7 @@ import {
 	planUmbrellaUpdate,
 	renderUmbrella,
 } from './umbrella-update.ts';
-
-const MAIN_BRANCHES = getUmbrellaBranches('main');
+import { getUmbrellaBranches, type Umbrella } from './umbrella.ts';
 
 function buildUmbrella(baseBranch: string, labels: string[], changes: Partial<Umbrella> = {}) {
 	return {

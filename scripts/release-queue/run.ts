@@ -87,16 +87,13 @@ export async function startRun<T extends RunStateContext>(
 /**
  * Describes what a run knows about the releases, for the logs.
  *
- * @param {ReleaseState} state - The open releases, and the settled umbrellas.
- * @param {string} frameworkFullName - The framework repository, as `owner/repo`.
- * @returns {string} The release PR of each line, and the base branches of the settled umbrellas.
+ * @param {ReleaseState} state - The state to describe.
+ * @returns {string} The release PR of each release line, and the base branches of the settled
+ * umbrellas.
  */
-export function describeReleaseState(
-	{ releases, settledBaseBranches }: ReleaseState,
-	frameworkFullName: string
-): string {
+export function describeReleaseState({ releases, settledBaseBranches }: ReleaseState): string {
 	const settled = settledBaseBranches.join(', ') || 'none';
-	return `Releases: ${describeReleases(releases, frameworkFullName)}. Settled umbrellas: ${settled}.`;
+	return `Releases: ${describeReleases(releases)}. Settled umbrellas: ${settled}.`;
 }
 
 /**

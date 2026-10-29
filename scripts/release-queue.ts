@@ -38,10 +38,13 @@ const reviewer = createDocsRepository({ token: workflowToken, isReadOnly });
 const astro = new GitHubRepository({ fullName: FRAMEWORK_REPOSITORY, token: workflowToken });
 const jobName = process.env.GITHUB_JOB || null;
 const context = { docs, astro, reviewer, log: console.info, jobName };
-const prNumber = readOptionalPrNumber('PR_NUMBER');
-if (parseMode(flags.mode) === MODES.live) await runReleaseQueue(context);
-else if (prNumber) await previewJoin(context, prNumber);
-else console.info('Dry run: no PR to preview.');
+if (parseMode(flags.mode) === MODES.live) {
+	await runReleaseQueue(context);
+} else {
+	const prNumber = readOptionalPrNumber('PR_NUMBER');
+	if (prNumber) await previewJoin(context, prNumber);
+	else console.info('Dry run: no PR to preview.');
+}
 
 function createDocsRepository({ token, isReadOnly }: { token: string; isReadOnly: boolean }) {
 	const options = { fullName: readRequiredVariable('GITHUB_REPOSITORY'), token };

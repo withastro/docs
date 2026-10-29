@@ -3,8 +3,8 @@ import * as shape from '../lib/github/shape.ts';
 import {
 	FRAMEWORK_PACKAGE,
 	FRAMEWORK_PRE_MODE_FILE,
-	FRAMEWORK_PRERELEASE_RELEASE_BRANCH,
-	FRAMEWORK_STABLE_RELEASE_BRANCH,
+	FRAMEWORK_RELEASE_BRANCHES,
+	FRAMEWORK_REPOSITORY,
 	RELEASE_TYPES,
 	type ReleaseType,
 } from './config.ts';
@@ -60,11 +60,11 @@ export async function readFrameworkReleases(
 	framework: FrameworkRepository
 ): Promise<FrameworkReleases> {
 	const [stable, isInPreMode] = await Promise.all([
-		readRelease(framework, FRAMEWORK_STABLE_RELEASE_BRANCH),
+		readRelease(framework, FRAMEWORK_RELEASE_BRANCHES.stable),
 		readPreMode(framework),
 	]);
 	const prerelease = isInPreMode
-		? await readRelease(framework, FRAMEWORK_PRERELEASE_RELEASE_BRANCH)
+		? await readRelease(framework, FRAMEWORK_RELEASE_BRANCHES.prerelease)
 		: stable;
 	return { stable, prerelease };
 }
@@ -73,16 +73,26 @@ export async function readFrameworkReleases(
  * Describes the open releases of the framework, for the logs.
  *
  * @param {FrameworkReleases} releases - The open releases of the framework.
- * @param {string} frameworkFullName - The framework repository, as `owner/repo`.
- * @returns {string} The release PR, the `astro` version, and the release type of each line.
+ * @returns {string} The release PR, the version of the framework package, and the release type of
+ * each release line.
  */
-export function describeReleases(
-	{ stable, prerelease }: FrameworkReleases,
-	frameworkFullName: string
-): string {
+export function describeReleases({ stable, prerelease }: FrameworkReleases): string {
 	const prereleaseDescription =
-		prerelease === stable ? 'the same' : describeRelease(prerelease, frameworkFullName);
-	return `stable ${describeRelease(stable, frameworkFullName)}, prerelease ${prereleaseDescription}`;
+		prerelease?.prNumber === stable?.prNumber ? 'the same' : describeRelease(prerelease);
+	return `stable ${describeRelease(stable)}, prerelease ${prereleaseDescription}`;
+}
+
+/**
+ * Finds the framework package among the packages of a release.
+ *
+ * @param {Pick<FrameworkRelease, 'packages'>} release - A release of the framework.
+ * @returns {PackageVersion | undefined} The package and its version, or `undefined` when the
+ * release does not include it.
+ */
+export function findFrameworkPackage({
+	packages,
+}: Pick<FrameworkRelease, 'packages'>): PackageVersion | undefined {
+	return packages.find(({ name }) => name === FRAMEWORK_PACKAGE);
 }
 
 /**
@@ -117,8 +127,8 @@ function toFrameworkRelease({ number, body }: Pick<PullRequest, 'number' | 'body
 		name,
 		version,
 	}));
-	const astro = packages.find(({ name }) => name === FRAMEWORK_PACKAGE);
-	const type = astro ? getReleaseType(astro.version) : RELEASE_TYPES.patch;
+	const frameworkPackage = findFrameworkPackage({ packages });
+	const type = frameworkPackage ? getReleaseType(frameworkPackage.version) : RELEASE_TYPES.patch;
 	return { prNumber: number, packages, type };
 }
 
@@ -134,9 +144,11 @@ function getReleaseType(version: string): ReleaseType {
 	return RELEASE_TYPES.major;
 }
 
-function describeRelease(release: FrameworkRelease | null, frameworkFullName: string) {
+function describeRelease(release: FrameworkRelease | null) {
 	if (!release) return 'none open';
-	const astro = release.packages.find(({ name }) => name === FRAMEWORK_PACKAGE);
-	const version = astro ? `${astro.name}@${astro.version}` : 'without astro';
-	return `${frameworkFullName}#${release.prNumber} (${version}, ${release.type})`;
+	const frameworkPackage = findFrameworkPackage(release);
+	const version = frameworkPackage
+		? `${frameworkPackage.name}@${frameworkPackage.version}`
+		: `without ${FRAMEWORK_PACKAGE}`;
+	return `${FRAMEWORK_REPOSITORY}#${release.prNumber} (${version}, ${release.type})`;
 }
