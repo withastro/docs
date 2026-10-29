@@ -3,11 +3,11 @@
  * keeps only the fields `T` declares.
  *
  * `path` locates the value in the response (e.g. `head.repo`), so an error can
- * name the field.
+ * name the field. Without it, the value is the whole body.
  *
  * @template T - The type the shape reads.
  */
-export type Shape<T> = (value: unknown, path: string) => T;
+export type Shape<T> = (value: unknown, path?: string) => T;
 
 /**
  * Gets the type a shape reads.
@@ -84,7 +84,7 @@ export function nullable<T>(valueShape: Shape<T>): Shape<T | null> {
 export function list<T>(itemShape: Shape<T>): Shape<T[]> {
 	return (value, path) => {
 		if (!Array.isArray(value)) return fail(path, 'a list', value);
-		return value.map((item, index) => itemShape(item, `${path}[${index}]`));
+		return value.map((item, index) => itemShape(item, `${path ?? ''}[${index}]`));
 	};
 }
 
@@ -118,7 +118,7 @@ export function object<F extends FieldShapes>(fieldShapes: F): Shape<ObjectOf<F>
 	};
 }
 
-function fail(path: string, expected: string, value: unknown): never {
+function fail(path: string | undefined, expected: string, value: unknown): never {
 	const subject = path ? `\`${path}\`` : 'the body';
 	throw new Error(`${subject} should be ${expected}, got ${describeType(value)}.`);
 }
