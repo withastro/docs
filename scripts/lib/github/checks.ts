@@ -37,20 +37,46 @@ const commitStatusShape = shape.object({
 	state: shape.oneOf(COMMIT_STATUS_STATES),
 });
 
-export const checkRunListShape = shape.object({
-	total_count: shape.number,
-	check_runs: shape.list(checkRunShape),
-});
+export const checkRunListShape = singlePage(
+	shape.object({ total_count: shape.number, check_runs: shape.list(checkRunShape) }),
+	'check_runs'
+);
 
-export const combinedStatusShape = shape.object({
-	total_count: shape.number,
-	statuses: shape.list(commitStatusShape),
-});
+export const combinedStatusShape = singlePage(
+	shape.object({ total_count: shape.number, statuses: shape.list(commitStatusShape) }),
+	'statuses'
+);
 
 type CheckRun = shape.Infer<typeof checkRunShape>;
 type CheckRunList = shape.Infer<typeof checkRunListShape>;
 type CommitStatus = shape.Infer<typeof commitStatusShape>;
 type CombinedStatus = shape.Infer<typeof combinedStatusShape>;
+
+/**
+ * Creates a shape that refuses a list response with more items than its page
+ * holds.
+ *
+ * GitHub sends some lists in a field, with the size of the whole list in
+ * `total_count`.
+ *
+ * @param {shape.Shape<T>} listShape - The shape of the response.
+ * @param {K} itemsKey - The field that holds the items.
+ * @returns {shape.Shape<T>} A shape reading the response when all its items fit in one page.
+ */
+function singlePage<K extends string, T extends { total_count: number } & Record<K, unknown[]>>(
+	listShape: shape.Shape<T>,
+	itemsKey: K
+): shape.Shape<T> {
+	return (value, path) => {
+		const list = listShape(value, path);
+		const itemCount = list[itemsKey].length;
+		if (list.total_count > itemCount) {
+			const holds = `\`${itemsKey}\` holds ${itemCount} of ${list.total_count} items`;
+			throw new Error(`${holds}, the others are on later pages.`);
+		}
+		return list;
+	};
+}
 
 /**
  * Reduces the check runs and the commit statuses of a commit to their outcomes.
