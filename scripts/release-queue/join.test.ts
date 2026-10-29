@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import type { PullRequestDetails } from '../lib/github/repository.ts';
+import { hasLabel, type PullRequestDetails } from '../lib/github/repository.ts';
 import { GitHubError } from '../lib/github/request.ts';
 import {
 	renderDryRunComment,
@@ -14,9 +14,9 @@ import {
 	buildPullRequest,
 	buildReadyState,
 	buildRelease,
+	createContext,
 	CREATED_PR_NUMBER,
 	FakeRepository,
-	createContext,
 	MAIN_BRANCHES,
 } from './fake-repository.ts';
 import { joinAcceptedPullRequests, previewJoin } from './join.ts';
@@ -192,14 +192,17 @@ function buildReadyRepository(
 ) {
 	const states = pullRequests.map(buildReadyState);
 	const commits = pullRequests
-		.filter(({ labels }) => labels.some(({ name }) => name === 'accepted'))
+		.filter((pullRequest) => hasLabel(pullRequest, 'accepted'))
 		.map(({ number, title }) => ({
 			sha: `sha-${number}`,
 			commit: { message: `${title} (#${number})` },
 		}));
 	return new FakeRepository({
 		pullRequests,
-		reviewsByPrNumber: Object.assign({}, ...states.map((state) => state.reviewsByPrNumber)),
+		reviewStatesByPrNumber: Object.assign(
+			{},
+			...states.map((state) => state.reviewStatesByPrNumber)
+		),
 		checksByRef: Object.assign({}, ...states.map((state) => state.checksByRef)),
 		branchShas,
 		comparisons: { 'main...release-queue/main': { ahead_by: commits.length, commits } },

@@ -1,7 +1,9 @@
 import {
+	hasLabel,
 	MERGE_METHODS,
 	type PullRequest,
 	type PullRequestDetails,
+	type Repository,
 } from '../lib/github/repository.ts';
 import { GitHubError } from '../lib/github/request.ts';
 import {
@@ -23,8 +25,6 @@ import {
 } from './run.ts';
 import { renderSquashCommitTitle, renderUmbrella } from './umbrella-update.ts';
 import { getUmbrellaRelease, isUmbrellaPullRequest, type UmbrellaBranches } from './umbrella.ts';
-
-type DocsRepository = ReleaseQueueContext['docs'];
 
 /** A docs PR that can join its umbrella, and the branches of that umbrella. */
 type JoinRequest = {
@@ -129,7 +129,7 @@ async function readDecision(run: ReleaseQueueRun, pullRequest: PullRequestDetail
 	return decideJoin(pullRequest, { state: run.state, readiness });
 }
 
-async function refuseJoin(docs: DocsRepository, prNumber: number, comment: string) {
+async function refuseJoin(docs: Repository, prNumber: number, comment: string) {
 	// Removed first, so the comment is true once posted.
 	await docs.removeLabel(prNumber, ACCEPTED_LABEL);
 	await docs.createComment(prNumber, comment);
@@ -142,7 +142,7 @@ async function joinUmbrella(run: ReleaseQueueRun, request: JoinRequest) {
 	if (isMerged) await announceJoin(run, request);
 }
 
-async function createUmbrellaBranchIfMissing(docs: DocsRepository, branches: UmbrellaBranches) {
+async function createUmbrellaBranchIfMissing(docs: Repository, branches: UmbrellaBranches) {
 	if (await docs.getBranchSha(branches.head)) return;
 
 	const baseSha = await docs.getBranchSha(branches.base);
@@ -170,7 +170,7 @@ async function mergeOrRefuse({ docs, log }: ReleaseQueueRun, request: JoinReques
 }
 
 /** Changes the base of a docs PR to the umbrella branch, then squash-merges it. */
-async function squashIntoUmbrella(docs: DocsRepository, { pullRequest, branches }: JoinRequest) {
+async function squashIntoUmbrella(docs: Repository, { pullRequest, branches }: JoinRequest) {
 	const { number, base, head } = pullRequest;
 	const isBaseChangeNeeded = base.ref !== branches.head;
 	if (isBaseChangeNeeded) await docs.updatePullRequest(number, { base: branches.head });
@@ -190,7 +190,7 @@ async function squashIntoUmbrella(docs: DocsRepository, { pullRequest, branches 
 
 /** Changes the base of a docs PR back after a failed merge, keeping both errors if that fails. */
 async function changeBaseBack(
-	docs: DocsRepository,
+	docs: Repository,
 	{ number, base }: Pick<PullRequestDetails, 'number' | 'base'>,
 	mergeError: unknown
 ) {
@@ -216,7 +216,7 @@ async function announceJoin(run: ReleaseQueueRun, request: JoinRequest) {
 	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
 }
 
-async function findUmbrellaPrNumber(docs: DocsRepository, branches: UmbrellaBranches) {
+async function findUmbrellaPrNumber(docs: Repository, branches: UmbrellaBranches) {
 	const pullRequests = await docs.getOpenPullRequestsFromBranch(branches.head);
 	return pullRequests.find(({ base }) => base.ref === branches.base)?.number ?? null;
 }
@@ -254,7 +254,7 @@ function isJoinCandidate(pullRequest: PullRequest, repositoryFullName: string) {
 }
 
 function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {
-	if (!pullRequest.labels.some(({ name }) => name === ACCEPTED_LABEL)) {
+	if (!hasLabel(pullRequest, ACCEPTED_LABEL)) {
 		return `it no longer has the "${ACCEPTED_LABEL}" label`;
 	}
 	if (isUmbrellaPullRequest(pullRequest, repositoryFullName)) return 'it is an umbrella PR';

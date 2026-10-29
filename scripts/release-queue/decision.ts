@@ -1,4 +1,4 @@
-import type { PullRequest } from '../lib/github/repository.ts';
+import { hasLabel, type PullRequest } from '../lib/github/repository.ts';
 import { RELEASE_LABELS, RELEASE_TYPES, type ReleaseType } from './config.ts';
 import type { Readiness } from './readiness.ts';
 import { isMajorRelease, type FrameworkRelease } from './release.ts';
@@ -143,9 +143,8 @@ function getTargetBaseBranch({ base }: Pick<PullRequest, 'base'>) {
 	return getUmbrellaBaseBranch(base.ref) ?? base.ref;
 }
 
-function getReleaseTypes({ labels }: Pick<PullRequest, 'labels'>): ReleaseType[] {
-	const labelNames = labels.map(({ name }) => name);
-	return Object.values(RELEASE_TYPES).filter((type) => labelNames.includes(RELEASE_LABELS[type]));
+function getReleaseTypes(pullRequest: Pick<PullRequest, 'labels'>): ReleaseType[] {
+	return Object.values(RELEASE_TYPES).filter((type) => hasLabel(pullRequest, RELEASE_LABELS[type]));
 }
 
 function findProblems<T>(problems: Problems<T>, facts: T): RefusalReason[] {

@@ -1,43 +1,18 @@
-import type { GitHubRepository, PullRequest } from '../lib/github/repository.ts';
-import { GitHubError } from '../lib/github/request.ts';
-import {
-	describeReleases,
-	readFrameworkReleases,
-	type FrameworkReleases,
-	type FrameworkRepository,
-} from './release.ts';
+import type { PullRequest, Repository } from '../lib/github/repository.ts';
+import { describeReleases, readFrameworkReleases, type FrameworkReleases } from './release.ts';
 import { findUmbrellas } from './umbrella.ts';
-
-type DocsRepository = Pick<
-	GitHubRepository,
-	| 'fullName'
-	| 'getOpenPullRequests'
-	| 'getOpenPullRequestsFromBranch'
-	| 'getPullRequest'
-	| 'getReviews'
-	| 'hasWriteAccess'
-	| 'getChecks'
-	| 'compare'
-	| 'getBranchSha'
-	| 'createBranch'
-	| 'createPullRequest'
-	| 'updatePullRequest'
-	| 'mergePullRequest'
-	| 'addLabels'
-	| 'removeLabel'
-	| 'createComment'
->;
-
-type RunFrameworkRepository = FrameworkRepository & Pick<GitHubRepository, 'getPullRequest'>;
 
 /** The repositories a run works with, and where it reports. */
 export type ReleaseQueueContext = {
 	/** The docs repository, through the bot account that merges PRs and opens umbrellas. */
-	docs: DocsRepository;
+	docs: Repository;
 	/** The framework repository, read for its release PRs. */
-	astro: RunFrameworkRepository;
-	/** The docs repository through another account than `docs`, to review the umbrellas it opens. */
-	reviewer: Pick<GitHubRepository, 'getReviews' | 'requestChanges' | 'updateReview'>;
+	astro: Repository;
+	/**
+	 * The docs repository through a second account, since GitHub refuses a review from the account
+	 * that opened the umbrella.
+	 */
+	reviewer: Repository;
 	/** Where the run reports what it does, one line at a time. */
 	log: (message: string) => void;
 	/** The job running the release queue, from `GITHUB_JOB`. `null` outside GitHub Actions. */
@@ -125,15 +100,12 @@ async function readSettledBaseBranches(
 
 /**
  * Tells whether the release PR recorded by an umbrella is merged. A recorded PR that does not
- * exist, after a hand edit, counts as not merged, so it does not stop every run.
+ * exist, such as after a hand edit of the marker, counts as not merged instead of failing every
+ * run.
  */
-async function isReleaseMerged(astro: RunFrameworkRepository, releasePrNumber: number | null) {
+async function isReleaseMerged(astro: Repository, releasePrNumber: number | null) {
 	if (releasePrNumber === null) return false;
 
-	try {
-		return (await astro.getPullRequest(releasePrNumber)).merged;
-	} catch (error) {
-		if (error instanceof GitHubError && error.isNotFound) return false;
-		throw error;
-	}
+	const releasePullRequest = await astro.findPullRequest(releasePrNumber);
+	return releasePullRequest?.merged ?? false;
 }

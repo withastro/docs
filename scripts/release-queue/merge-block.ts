@@ -1,16 +1,14 @@
-import { REVIEW_STATES, type GitHubRepository, type Review } from '../lib/github/repository.ts';
+import { REVIEW_STATES, type Review } from '../lib/github/repository.ts';
 import { formatPrNumbers } from './comments.ts';
 import { FRAMEWORK_REPOSITORY, I18N_LABEL, LUNARIA_DIRECTIVE } from './config.ts';
 import { readMarker, renderMarker } from './markers.ts';
+import type { ReleaseQueueContext } from './run.ts';
 import type { Umbrella } from './umbrella.ts';
 
 /** Names the marker of the checklist review, which records the PRs the review covered. */
 const COVERED_PRS_MARKER = 'release-queue:covered-prs';
 
-type MergeBlockContext = {
-	reviewer: Pick<GitHubRepository, 'getReviews' | 'requestChanges' | 'updateReview'>;
-	log: (message: string) => void;
-};
+type MergeBlockContext = Pick<ReleaseQueueContext, 'reviewer' | 'log'>;
 
 /** What a maintainer checks before merging an umbrella PR. */
 export type MergeChecklist = {

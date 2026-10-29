@@ -7,6 +7,7 @@ import {
 	type NewPullRequest,
 	type PullRequestChanges,
 	type PullRequestDetails,
+	type Repository,
 	type Review,
 	type ReviewState,
 	type ReviewUpdate,
@@ -45,6 +46,8 @@ type ReleaseFixture = {
 type FakeRepositoryState = {
 	pullRequests?: PullRequestDetails[];
 	reviewsByPrNumber?: Record<number, Review[]>;
+	/** The current review state of each reviewer, by login, as GitHub counts it. */
+	reviewStatesByPrNumber?: Record<number, Record<string, ReviewState>>;
 	/** Users with write access. Defaults to `MAINTAINER`. */
 	maintainers?: string[];
 	checksByRef?: Record<string, Check[]>;
@@ -116,17 +119,6 @@ export function buildRelease({
 }
 
 /**
- * Builds a review, for tests.
- *
- * @param {string | null} login - The reviewer, or `null` for a deleted account.
- * @param {ReviewState} state - The state of the review.
- * @returns {Review} The review.
- */
-export function buildReview(login: string | null, state: ReviewState): Review {
-	return { id: 1, user: login === null ? null : { login }, state, commit_id: 'sha-1', body: '' };
-}
-
-/**
  * Builds the state of a docs PR that can join its umbrella.
  *
  * @param {PullRequestDetails} pullRequest - The pull request.
@@ -135,13 +127,13 @@ export function buildReview(login: string | null, state: ReviewState): Review {
 export function buildReadyState(pullRequest: PullRequestDetails): FakeRepositoryState {
 	return {
 		pullRequests: [pullRequest],
-		reviewsByPrNumber: { [pullRequest.number]: [buildReview(MAINTAINER, REVIEW_STATES.approved)] },
+		reviewStatesByPrNumber: { [pullRequest.number]: { [MAINTAINER]: REVIEW_STATES.approved } },
 		checksByRef: { [pullRequest.head.sha]: [{ name: 'build', state: CHECK_STATES.success }] },
 	};
 }
 
 /** An in-memory repository for tests: it serves the state it was given and records writes. */
-export class FakeRepository {
+export class FakeRepository implements Repository {
 	readonly fullName = FAKE_REPOSITORY_NAME;
 	readonly writes: Write[] = [];
 	#state: Required<FakeRepositoryState>;
@@ -152,6 +144,7 @@ export class FakeRepository {
 	constructor({
 		pullRequests = [],
 		reviewsByPrNumber = {},
+		reviewStatesByPrNumber = {},
 		maintainers = [MAINTAINER],
 		checksByRef = {},
 		branchShas = { main: 'sha-main' },
@@ -161,6 +154,7 @@ export class FakeRepository {
 		this.#state = {
 			pullRequests,
 			reviewsByPrNumber,
+			reviewStatesByPrNumber,
 			maintainers,
 			checksByRef,
 			branchShas,
@@ -180,7 +174,7 @@ export class FakeRepository {
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
-		const pullRequest = this.#state.pullRequests.find(({ number }) => number === prNumber);
+		const pullRequest = await this.findPullRequest(prNumber);
 		if (!pullRequest) {
 			throw new GitHubError({
 				message: `GET /pulls/${prNumber} failed with 404: Not Found`,
@@ -191,8 +185,24 @@ export class FakeRepository {
 		return pullRequest;
 	}
 
+	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
+		return this.#state.pullRequests.find(({ number }) => number === prNumber) ?? null;
+	}
+
+	/** Asks for the pull request again when GitHub had not checked it yet, without waiting. */
+	async waitForMergeability(
+		pullRequest: Pick<PullRequestDetails, 'number' | 'mergeable'>
+	): Promise<boolean | null> {
+		if (pullRequest.mergeable !== null) return pullRequest.mergeable;
+		return (await this.getPullRequest(pullRequest.number)).mergeable;
+	}
+
 	async getReviews(prNumber: number): Promise<Review[]> {
 		return this.#state.reviewsByPrNumber[prNumber] ?? [];
+	}
+
+	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
+		return new Map(Object.entries(this.#state.reviewStatesByPrNumber[prNumber] ?? {}));
 	}
 
 	async hasWriteAccess(login: string): Promise<boolean> {

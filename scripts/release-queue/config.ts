@@ -39,10 +39,6 @@ export const DOCS_STABLE_BRANCH = 'main';
 /** Branches starting with this prefix are reserved for umbrellas, one per base branch. */
 export const UMBRELLA_BRANCH_PREFIX = 'release-queue/';
 
-/** GitHub checks a PR for conflicts on the first request for it, which takes a few seconds. */
-export const MERGEABILITY_RETRY_COUNT = 5;
-export const MERGEABILITY_RETRY_DELAY_MS = 2000;
-
 export const FRAMEWORK_REPOSITORY = 'withastro/astro';
 export const FRAMEWORK_PACKAGE = 'astro';
 /** For each release line, the branch Changesets opens its release PR from. */

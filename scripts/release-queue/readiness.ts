@@ -1,28 +1,12 @@
-import { setTimeout as wait } from 'node:timers/promises';
 import { CHECK_STATES, type Check } from '../lib/github/checks.ts';
 import {
 	REVIEW_STATES,
-	type GitHubRepository,
 	type PullRequestDetails,
-	type Review,
-	type ReviewState,
+	type Repository,
 } from '../lib/github/repository.ts';
-import { MERGEABILITY_RETRY_COUNT, MERGEABILITY_RETRY_DELAY_MS } from './config.ts';
+import type { ReleaseQueueContext } from './run.ts';
 
-/** The review states that replace a reviewer's earlier ones. A comment changes nothing. */
-const DECISIVE_REVIEW_STATES: ReviewState[] = [
-	REVIEW_STATES.approved,
-	REVIEW_STATES.changesRequested,
-	REVIEW_STATES.dismissed,
-];
-
-type ReadinessContext = {
-	docs: Pick<GitHubRepository, 'getPullRequest' | 'getReviews' | 'hasWriteAccess' | 'getChecks'>;
-	/** The job running the release queue, left out of the checks since it runs on the PR. */
-	jobName: string | null;
-};
-
-type ReadinessRepository = ReadinessContext['docs'];
+type ReadinessContext = Pick<ReleaseQueueContext, 'docs' | 'jobName'>;
 
 /** What decides whether a docs PR can be merged. Reviews count only from maintainers. */
 export type Readiness = {
@@ -51,7 +35,7 @@ export async function readReadiness(
 ): Promise<Readiness> {
 	const [maintainerReviewStates, isMergeable, checks] = await Promise.all([
 		getMaintainerReviewStates(docs, pullRequest.number),
-		waitForMergeability(docs, pullRequest),
+		docs.waitForMergeability(pullRequest),
 		getChecksOfOtherJobs({ docs, jobName }, pullRequest.head.sha),
 	]);
 
@@ -67,31 +51,14 @@ export async function readReadiness(
 	};
 }
 
-/** Gets the latest decisive state of each maintainer's reviews, dismissed ones excluded. */
-async function getMaintainerReviewStates(docs: ReadinessRepository, prNumber: number) {
-	const latestStates = getLatestReviewStates(await docs.getReviews(prNumber));
+/** Gets the review state of each maintainer, dismissed reviews excluded. */
+async function getMaintainerReviewStates(docs: Repository, prNumber: number) {
+	const latestStates = await docs.getLatestReviewStates(prNumber);
 	const activeReviews = [...latestStates].filter(([, state]) => state !== REVIEW_STATES.dismissed);
 	const reviewerWriteAccesses = await Promise.all(
 		activeReviews.map(([login]) => docs.hasWriteAccess(login))
 	);
 	return activeReviews.filter((_, index) => reviewerWriteAccesses[index]).map(([, state]) => state);
-}
-
-function getLatestReviewStates(reviews: Review[]) {
-	const statesByLogin = new Map<string, ReviewState>();
-	for (const { user, state } of reviews) {
-		if (user && DECISIVE_REVIEW_STATES.includes(state)) statesByLogin.set(user.login, state);
-	}
-	return statesByLogin;
-}
-
-async function waitForMergeability(docs: ReadinessRepository, pullRequest: PullRequestDetails) {
-	let { mergeable } = pullRequest;
-	for (let retry = 0; mergeable === null && retry < MERGEABILITY_RETRY_COUNT; retry++) {
-		await wait(MERGEABILITY_RETRY_DELAY_MS);
-		({ mergeable } = await docs.getPullRequest(pullRequest.number));
-	}
-	return mergeable;
 }
 
 async function getChecksOfOtherJobs(

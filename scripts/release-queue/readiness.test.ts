@@ -1,12 +1,10 @@
 import assert from 'node:assert/strict';
-import { describe, it, type TestContext } from 'node:test';
-import { setImmediate } from 'node:timers/promises';
+import { describe, it } from 'node:test';
 import { CHECK_STATES } from '../lib/github/checks.ts';
 import { REVIEW_STATES } from '../lib/github/repository.ts';
 import {
 	buildPullRequest,
 	buildReadyState,
-	buildReview,
 	FakeRepository,
 	MAINTAINER,
 } from './fake-repository.ts';
@@ -31,20 +29,6 @@ async function readReadinessWith(changes: Partial<ReturnType<typeof buildReadySt
 	return readReadiness({ docs, jobName: JOB_NAME }, pullRequest);
 }
 
-/** Runs `operation` while answering each timer it sets, until it settles. */
-async function runWithTimers<T>(t: TestContext, operation: () => Promise<T>): Promise<T> {
-	t.mock.timers.enable({ apis: ['setTimeout'] });
-	let isSettled = false;
-	const promise = operation().finally(() => {
-		isSettled = true;
-	});
-	while (!isSettled) {
-		await setImmediate();
-		t.mock.timers.runAll();
-	}
-	return promise;
-}
-
 describe('readReadiness', () => {
 	it('should read a PR ready to join', async () => {
 		assert.deepEqual(await readReadinessWith(), READY);
@@ -62,11 +46,11 @@ describe('readReadiness', () => {
 	describe('reviews', () => {
 		it('should only count the reviews of maintainers', async () => {
 			const readiness = await readReadinessWith({
-				reviewsByPrNumber: {
-					1: [
-						buildReview(OUTSIDER, REVIEW_STATES.approved),
-						buildReview(OUTSIDER, REVIEW_STATES.changesRequested),
-					],
+				reviewStatesByPrNumber: {
+					1: {
+						[OUTSIDER]: REVIEW_STATES.approved,
+						'example-other-outsider': REVIEW_STATES.changesRequested,
+					},
 				},
 			});
 
@@ -74,30 +58,15 @@ describe('readReadiness', () => {
 			assert.equal(readiness.hasChangesRequestedByMaintainer, false);
 		});
 
-		it("should count each maintainer's latest approval or request for changes", async () => {
-			const readiness = await readReadinessWith({
-				reviewsByPrNumber: {
-					1: [
-						buildReview(MAINTAINER, REVIEW_STATES.changesRequested),
-						buildReview(MAINTAINER, REVIEW_STATES.approved),
-						buildReview(MAINTAINER, REVIEW_STATES.commented),
-					],
-				},
-			});
-
-			assert.equal(readiness.isApprovedByMaintainer, true);
-			assert.equal(readiness.hasChangesRequestedByMaintainer, false);
-		});
-
 		it('should count a request for changes from one maintainer next to an approval', async () => {
 			const otherMaintainer = 'example-other-maintainer';
 			const readiness = await readReadinessWith({
 				maintainers: [MAINTAINER, otherMaintainer],
-				reviewsByPrNumber: {
-					1: [
-						buildReview(MAINTAINER, REVIEW_STATES.approved),
-						buildReview(otherMaintainer, REVIEW_STATES.changesRequested),
-					],
+				reviewStatesByPrNumber: {
+					1: {
+						[MAINTAINER]: REVIEW_STATES.approved,
+						[otherMaintainer]: REVIEW_STATES.changesRequested,
+					},
 				},
 			});
 
@@ -107,52 +76,30 @@ describe('readReadiness', () => {
 
 		it('should not count a dismissed review', async () => {
 			const readiness = await readReadinessWith({
-				reviewsByPrNumber: {
-					1: [
-						buildReview(MAINTAINER, REVIEW_STATES.changesRequested),
-						buildReview(MAINTAINER, REVIEW_STATES.dismissed),
-					],
-				},
-			});
-
-			assert.equal(readiness.hasChangesRequestedByMaintainer, false);
-		});
-
-		it('should skip the reviews of deleted accounts', async () => {
-			const readiness = await readReadinessWith({
-				reviewsByPrNumber: { 1: [buildReview(null, REVIEW_STATES.approved)] },
+				reviewStatesByPrNumber: { 1: { [MAINTAINER]: REVIEW_STATES.dismissed } },
 			});
 
 			assert.equal(readiness.isApprovedByMaintainer, false);
+			assert.equal(readiness.hasChangesRequestedByMaintainer, false);
 		});
 	});
 
 	describe('mergeability', () => {
-		it('should ask again while GitHub checks for conflicts', async (t) => {
+		it('should take the mergeability GitHub gives once it has checked for conflicts', async () => {
 			const pullRequest = buildPullRequest({ number: 1, mergeable: null });
-			const docs = new FakeRepository(buildReadyState(pullRequest));
-			const getPullRequest = t.mock.method(docs, 'getPullRequest');
-			getPullRequest.mock.mockImplementationOnce(async () => pullRequest, 0);
-			getPullRequest.mock.mockImplementationOnce(
-				async () => ({ ...pullRequest, mergeable: false }),
-				1
-			);
+			const checkedPullRequest = { ...pullRequest, mergeable: false };
+			const docs = new FakeRepository(buildReadyState(checkedPullRequest));
 
-			const readiness = await runWithTimers(t, () =>
-				readReadiness({ docs, jobName: JOB_NAME }, pullRequest)
-			);
+			const readiness = await readReadiness({ docs, jobName: JOB_NAME }, pullRequest);
 
 			assert.equal(readiness.isMergeable, false);
-			assert.equal(getPullRequest.mock.callCount(), 2);
 		});
 
-		it('should give up when GitHub takes too long to check for conflicts', async (t) => {
+		it('should give no mergeability when GitHub takes too long to check for conflicts', async () => {
 			const pullRequest = buildPullRequest({ number: 1, mergeable: null });
 			const docs = new FakeRepository(buildReadyState(pullRequest));
 
-			const readiness = await runWithTimers(t, () =>
-				readReadiness({ docs, jobName: JOB_NAME }, pullRequest)
-			);
+			const readiness = await readReadiness({ docs, jobName: JOB_NAME }, pullRequest);
 
 			assert.equal(readiness.isMergeable, null);
 		});

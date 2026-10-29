@@ -1,4 +1,4 @@
-import type { GitHubRepository, PullRequest } from '../lib/github/repository.ts';
+import type { PullRequest, Repository } from '../lib/github/repository.ts';
 import * as shape from '../lib/github/shape.ts';
 import {
 	FRAMEWORK_PACKAGE,
@@ -16,11 +16,6 @@ const SEMVER_CORE = /^(\d+)\.(\d+)\.(\d+)/;
 const PRE_MODE = 'pre';
 /** The field of the pre mode file the release queue reads. */
 const preModeFileShape = shape.object({ mode: shape.string });
-
-export type FrameworkRepository = Pick<
-	GitHubRepository,
-	'fullName' | 'getOpenPullRequestsFromBranch' | 'getFileContent'
->;
 
 type PackageVersion = { name: string; version: string };
 
@@ -49,16 +44,14 @@ export type FrameworkReleases = {
 /**
  * Reads the open `[ci] release` PRs of the framework.
  *
- * @param {FrameworkRepository} framework - The framework repository.
+ * @param {Repository} framework - The framework repository.
  * @returns {Promise<FrameworkReleases>} The releases, `null` when no release PR is open, such as
  * right after a release.
  * @throws {GitHubError} When GitHub answers with an error status.
  * @throws {Error} When the pre mode file is not valid JSON or has no mode, or a release PR gives a
  * version of the framework package that is not semantic.
  */
-export async function readFrameworkReleases(
-	framework: FrameworkRepository
-): Promise<FrameworkReleases> {
+export async function readFrameworkReleases(framework: Repository): Promise<FrameworkReleases> {
 	const [stable, isInPreMode] = await Promise.all([
 		readRelease(framework, FRAMEWORK_RELEASE_BRANCHES.stable),
 		readPreMode(framework),
@@ -105,12 +98,12 @@ export function isMajorRelease(release: Pick<FrameworkRelease, 'type'> | null): 
 	return release?.type === RELEASE_TYPES.major;
 }
 
-async function readRelease(framework: FrameworkRepository, releaseBranch: string) {
+async function readRelease(framework: Repository, releaseBranch: string) {
 	const [releasePullRequest] = await framework.getOpenPullRequestsFromBranch(releaseBranch);
 	return releasePullRequest ? toFrameworkRelease(releasePullRequest) : null;
 }
 
-async function readPreMode(framework: FrameworkRepository) {
+async function readPreMode(framework: Repository) {
 	const { path, ref } = FRAMEWORK_PRE_MODE_FILE;
 	const content = await framework.getFileContent(path, ref);
 	if (content === null) return false;

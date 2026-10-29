@@ -1,4 +1,9 @@
-import type { Comparison, PullRequest, PullRequestChanges } from '../lib/github/repository.ts';
+import {
+	hasLabel,
+	type Comparison,
+	type PullRequest,
+	type PullRequestChanges,
+} from '../lib/github/repository.ts';
 import {
 	FRAMEWORK_REPOSITORY,
 	RELEASE_LABELS,
@@ -185,10 +190,9 @@ function renderUmbrellaBody(
 
 /** Plans the umbrella label and the label of the release type, when it is known. */
 function planReleaseLabels(
-	{ labels }: Pick<PullRequest, 'labels'>,
+	umbrella: Pick<PullRequest, 'labels'>,
 	releaseType: ReleaseType | null
 ): Pick<UmbrellaChanges, 'labelsToAdd' | 'labelsToRemove'> {
-	const currentLabels = labels.map(({ name }) => name);
 	const expectedLabels = releaseType
 		? [UMBRELLA_LABEL, RELEASE_LABELS[releaseType]]
 		: [UMBRELLA_LABEL];
@@ -197,8 +201,8 @@ function planReleaseLabels(
 		: [];
 
 	return {
-		labelsToAdd: expectedLabels.filter((label) => !currentLabels.includes(label)),
-		labelsToRemove: staleLabels.filter((label) => currentLabels.includes(label)),
+		labelsToAdd: expectedLabels.filter((label) => !hasLabel(umbrella, label)),
+		labelsToRemove: staleLabels.filter((label) => hasLabel(umbrella, label)),
 	};
 }
 
