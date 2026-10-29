@@ -118,24 +118,6 @@ export function object<F extends FieldShapes>(fieldShapes: F): Shape<ObjectOf<F>
 	};
 }
 
-/**
- * Reads a response body with a shape.
- *
- * @param {unknown} body - The parsed JSON body of the response.
- * @param {Shape<T>} bodyShape - The expected shape of the body.
- * @param {string} requestLine - The method and the endpoint of the request, for the error.
- * @returns {T} A copy of the body with only the fields of the shape.
- * @throws {Error} When the body does not match, naming the request and the field.
- */
-export function parseResponse<T>(body: unknown, bodyShape: Shape<T>, requestLine: string): T {
-	try {
-		return bodyShape(body, '');
-	} catch (error) {
-		const reason = error instanceof Error ? error.message : String(error);
-		throw new Error(`Unexpected response from ${requestLine}: ${reason}`, { cause: error });
-	}
-}
-
 function fail(path: string, expected: string, value: unknown): never {
 	const subject = path ? `\`${path}\`` : 'the body';
 	throw new Error(`${subject} should be ${expected}, got ${describeType(value)}.`);

@@ -107,19 +107,3 @@ describe('isRecord', () => {
 		assert.equal(shape.isRecord(null), false);
 	});
 });
-
-describe('parseResponse', () => {
-	it('should return the parsed value', () => {
-		assert.deepEqual(shape.parseResponse({ id: 1, login: 'a', extra: 1 }, userShape, 'GET /x'), {
-			id: 1,
-			login: 'a',
-		});
-	});
-
-	it('should throw with the request line and the field', () => {
-		assert.throws(
-			() => shape.parseResponse({ id: 1 }, userShape, 'GET /x'),
-			/^Error: Unexpected response from GET \/x: `login` should be a string, got undefined\.$/
-		);
-	});
-});

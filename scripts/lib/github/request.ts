@@ -133,7 +133,12 @@ async function readBody<T>(
 	requestLine: string
 ): Promise<T> {
 	const body = await readJsonBody(response, requestLine);
-	return shape.parseResponse(body, bodyShape, requestLine);
+	try {
+		return bodyShape(body, '');
+	} catch (error) {
+		const reason = error instanceof Error ? error.message : String(error);
+		throw new Error(`Unexpected response from ${requestLine}: ${reason}`, { cause: error });
+	}
 }
 
 async function readJsonBody(response: Response, requestLine: string): Promise<unknown> {
