@@ -1,0 +1,74 @@
+---
+title: Referencia de la API de Rutas Estáticas
+sidebar:
+  label: 'astro:static-paths'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 6
+---
+import ReadMore from '~/components/ReadMore.astro';
+import Since from '~/components/Since.astro';
+
+<p><Since v="6.0.0" /></p>
+
+Este modulo proporciona utilidades para ayudar a los adaptadores a recopilar las rutas estáticas desde su entorno de ejecución de destino (ejemplo, `workerd`). Solo proporciona una implementación real en el entorno de Vite `prerender`. En otros entornos, devuelve una implementación que no realiza ninguna operación.
+
+## Importaciones desde `astro:static-paths`
+
+```js
+import { 
+  StaticPaths,
+} from 'astro:static-paths';
+```
+
+### `StaticPaths`
+
+Permite a los adaptadores recopilar todas las rutas que necesita para prerenderizarlas desde su entorno de ejecución de destino. Esto es útil al [implementar un prerenderizado personalizado](/es/reference/adapter-reference/#custom-prerenderer) que se ejecuta en un entorno que no sea Node:
+
+El constructor de  `StaticPaths` acepta un [SSR manifiesto](/es/reference/integrations-reference/#ssrmanifest) obligatorio y un objeto que describe la cache de rutas y proporciona un método para acceder al componente utilizado para renderizar la ruta. El método de preferencia para inicializar una instancia de `StaticPaths` es mandarle una [instancia de la aplicación](/es/reference/modules/astro-app/#the-app-instance).
+
+El siguiente ejemplo inicializa una instancia de `StaticPaths` desde una aplicación en un entrypoint del servidor del adaptador:
+
+```js title="my-adapter/server.js"
+import { createApp } from 'astro/app/entrypoint';
+import { StaticPaths } from 'astro:static-paths';
+
+const app = createApp();
+const staticPaths = new StaticPaths(app);
+
+export const handler = (event, context) => {
+  // hacer algo con `staticPaths`
+};
+```
+
+#### `StaticPaths.getAll()`
+
+<p>
+
+**Tipo:** <code>() => Promise\<Array\<\{ pathname: string, route: <a href="/es/reference/integrations-reference/#routedata">RouteData</a> \}\>\></code>
+</p>
+
+Recupera todas las rutas que deben prerenderizarse. Esto devuelve una promesa que se resuelve en un arreglo de objetos que describen la ruta y sus datos.
+
+El siguiente ejemplo recopila todas las rutas estáticas para ser prerenderizadas antes de devolverlas como `Response` en un controlador del adaptador:
+
+```js title="my-adapter/handler.js"
+import { StaticPaths } from 'astro:static-paths';
+
+export function createHandler(app) {
+  return async (request) => {
+    const { pathname } = new URL(request.url);
+    
+    // Endpoint que recopila las rutas estáticas durante el build
+    if (pathname === '/__astro_static_paths') {
+      const staticPaths = new StaticPaths(app);
+      const paths = await staticPaths.getAll();
+      // Devuelve un arreglo de { pathname: string, route: RouteData }
+      return new Response(JSON.stringify({ paths }));
+    }
+    
+    // ... maneja otras solicitudes
+  };
+}
+```
