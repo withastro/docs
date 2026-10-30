@@ -7,7 +7,6 @@ tableOfContents:
   minHeadingLevel: 2
   maxHeadingLevel: 4
 ---
-
 import ReadMore from '~/components/ReadMore.astro';
 import Since from '~/components/Since.astro';
 
@@ -21,10 +20,10 @@ El módulo `astro/fetch` ofrece controladores de [enrutamiento avanzado](/es/gui
 import {
   FetchState,
   astro,
-  actions,
   cache,
   i18n,
   middleware,
+  notFound,
   pages,
   redirects,
   sessions,
@@ -36,15 +35,20 @@ import {
 
 El objeto de estado por solicitud. Crea uno al inicio de tu método `fetch`:
 
-```ts
+```ts {5} title="src/fetch.ts"
 import { FetchState } from 'astro/fetch';
 
-const state = new FetchState(request);
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    // Tu lógica de enrutamiento avanzado...
+  },
+};
 ```
 
-`FetchState` registra la ruta coincidente, las cookies, los proveedores de sesión y otros datos específicos de cada solicitud. Todas las funciones de gestión lo requieren como primer argumento.
+`FetchState` registra la ruta coincidente, las cookies, los proveedores de sesión y otros datos específicos de cada solicitud. Todas las funciones de control lo requieren como primer argumento.
 
-<ReadMore>Aprenda a [componer controladores](/es/guides/routing/#composición-de-controladores-individuales) con `FetchState` en la guía de enrutamiento avanzado.</ReadMore>
+<ReadMore>Aprende a [componer controladores](/es/guides/routing/#composición-de-controladores-individuales) con `FetchState` en la guía de enrutamiento avanzado.</ReadMore>
 
 #### Propiedades
 
@@ -109,47 +113,16 @@ Un objeto con ámbito de solicitud para almacenar datos personalizados. Se trata
 **Tipo:** `Params | undefined`
 </p>
 
-Parámetros de ruta derivados de la ruta y el nombre de ruta coincidentes (p. ej., `{ slug: 'mi-artículo' }` para una ruta `[slug].astro`).
+Parámetros de ruta derivados de la ruta y el nombre de ruta coincidentes (p. ej., `{ slug: 'mi-artículo' }`). `undefined` cuando la ruta no coincide o no tiene parámetros.
 
-##### `state.status`
-
-<p>
-
-**Tipo:** `number`<br />
-**Por defecto:** `200`
-</p>
-
-El código de estado HTTP de la respuesta. Puedes establecerlo antes de la representación para controlar el estado de la respuesta (p. ej., `state.status = 404`).
-
-##### `state.response`
+##### `state.session`
 
 <p>
 
-**Tipo:** `Response | undefined`<br />
-**Por defecto:** `undefined`
+**Tipo:** <code><a href="/es/reference/api-reference/#session">AstroSession</a> | undefined</code>
 </p>
 
-La `Response` generada por los controladores una vez finalizada la representación. Se establece automáticamente mediante [`pages()`](#pages) y [`middleware()`](#middleware), lo que te permite inspeccionar o utilizar la respuesta más adelante en el proceso:
-
-```ts
-const response = await middleware(state, (s) => pages(s));
-// state.response is now the same object as response
-```
-
-#### Métodos
-
-##### `state.rewrite()`
-
-<p>
-
-**Tipo:** <code>(payload: <a href="/es/reference/modules/astro-middleware/#rewritepayload">RewritePayload</a>) => Promise\<Response\></code>
-</p>
-
-Activa una [reescritura](/es/guides/routing/#reescrituras) a una ruta diferente. El `payload` puede ser una cadena de ruta (`'/otra-página'`), una URL o un objeto `Request`:
-
-```ts
-const response = await state.rewrite('/otra-página');
-```
+El objeto de sesión para esta solicitud. Solo está disponible después de llamar al controlador [`sessions()`](#sessions).
 
 ### `astro()`
 
@@ -158,58 +131,50 @@ const response = await state.rewrite('/otra-página');
 **Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
 </p>
 
-El controlador todo en uno que ejecuta todo el proceso de Astro (sesiones, caché, redireccionamientos, barra final, acciones, middleware, páginas e i18n) en el orden predeterminado. Úsalo cuando quieras para añadir lógica antes o después de Astro sin modificar el orden interno del proceso:
+El controlador de enrutamiento predeterminado. Gestiona la caché, las redirecciones, las barras diagonales finales, la internacionalización, las sesiones y el renderizado en el orden estándar de Astro:
 
-```ts title="src/fetch.ts"
+```ts {6} title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
 
 export default {
   async fetch(request: Request): Promise<Response> {
     const state = new FetchState(request);
-    // preprocesamiento personalizado aquí...
-    const response = await astro(state);
-    // posprocesamiento personalizado aquí...
-    return response;
-  }
+    return astro(state);
+  },
 };
 ```
 
-### `actions()`
-
-<p>
-
-**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response | undefined\> | undefined</code>
-</p>
-
-Gestiona las [acciones Astro](/es/guides/actions/) (RPC y envíos de formularios). Devuelve un `Response` para las acciones RPC, o `undefined` para las acciones de formularios y las solicitudes que no sean de acción. Comprueba el valor devuelto para decidir si continuar con la renderización:
-
-```ts
-const actionResponse = await actions(state);
-if (actionResponse) return actionResponse;
-// de lo contrario, continuar con la renderización de la página...
-```
+`astro()` equivale a encadenar manualmente todos los controladores individuales en el orden recomendado. Usa controladores individuales cuando necesites insertar lógica personalizada entre los pasos de enrutamiento.
 
 ### `cache()`
 
 <p>
 
-**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>, next: () => Promise\<Response\>) => Promise\<Response\></code>
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
 </p>
 
-Envuelve una llamada de retorno de renderizado con la lógica del proveedor de [cache](/es/guides/caching/). Gestiona el almacenamiento en caché en tiempo de ejecución, los proveedores basados en CDN y el caso en el que no se utiliza caché.
+Comprueba si la solicitud entrante puede ser atendida por la caché. Si es así, devuelve una `Response` en caché. Si la ruta es dinámica o la página no está en caché, devuelve `undefined`.
 
 ### `i18n()`
 
 <p>
 
-**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>, response: Response) => Promise\<Response\></code>
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code>
 </p>
 
-Procesa posteriormente una respuesta según tu [configuración de internacionalización](/es/guides/internationalization/). Gestiona las redirecciones de configuración regional, los errores 404 para configuraciones regionales no válidas y el enrutamiento fallback. Llama a esta función después de la renderización:
+Gestiona la redirección y el enrutamiento [i18n](/es/guides/internationalization/). Devuelve una respuesta de redirección si la solicitud coincide con una regla de redirección de idioma (p. ej., redirigir a un prefijo de idioma predeterminado), o `undefined` si el procesamiento de la solicitud debe continuar. Llama a esta función al principio de tu pipeline (después de `cache()`):
 
-```ts
-const response = await middleware(state, (s) => pages(s));
-return i18n(state, response);
+```ts {6} title="src/fetch.ts"
+import { FetchState, i18n } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const redirect = await i18n(state);
+    if (redirect) return redirect;
+    // ...resto del pipeline...
+  },
+};
 ```
 
 ### `middleware()`
@@ -219,10 +184,43 @@ return i18n(state, response);
 **Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>, next: (state: FetchState) => Promise\<Response\>) => Promise\<Response\></code>
 </p>
 
-Ejecuta la cadena de middleware de Astro (desde `src/middleware.ts`). La función de llamada `next` se invoca al final de la cadena para generar la respuesta, normalmente llamando a `pages()`:
+Ejecuta el [middleware](/es/guides/middleware/) del proyecto. Acepta la función `FetchState` y una función `next` que se llama con el estado (potencialmente modificado) para continuar con el pipeline. Normalmente, envolverías `pages(state)`:
 
-```ts
-const response = await middleware(state, (s) => pages(s));
+```ts {7} title="src/fetch.ts"
+import { FetchState, middleware, pages } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const response = await middleware(state, (s) => pages(s));
+    return response;
+  },
+};
+```
+
+### `notFound()`
+
+<p>
+
+**Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code><br />
+<Since v="7.4.0" />
+</p>
+
+Renderiza tu [página 404 personalizada](/es/basics/astro-pages/#página-de-error-404-personalizada), incluyendo un `404.astro` prerenderizado, cuando ninguna ruta coincide. Esto devuelve `undefined` para una ruta coincidente o una respuesta `400` vacía para una ruta de solicitud con codificación excesiva. La función que la invoca puede decidir entonces si continuar con el procesamiento.
+
+[`astro()`](#astro) ya incluye este manejo. Cuando compongas controladores individuales en su lugar, añade `notFound()` antes de [`middleware()`](#middleware) y [`pages()`](#pages) para renderizar la página 404 para rutas no coincidentes:
+
+```ts {6,7} title="src/fetch.ts"
+import { FetchState, middleware, notFound, pages } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const notFoundResponse = await notFound(state);
+    if (notFoundResponse) return notFoundResponse;
+    return middleware(state, (s) => pages(s));
+  },
+};
 ```
 
 ### `pages()`
@@ -232,7 +230,9 @@ const response = await middleware(state, (s) => pages(s));
 **Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\></code>
 </p>
 
-Envía la solicitud a la ruta Astro correspondiente (página, punto final o fallback) . Este es el controlador de renderizado principal, y la mayoría de los flujos de trabajo personalizados lo incluirán.
+Envía la solicitud a la ruta de Astro correspondiente (página, endpoint o fallback). Este es el controlador de renderizado principal, y la mayoría de los pipelines personalizados lo incluirán.
+
+Añade [`notFound()`](#notfound) antes de `pages()` para renderizar tu página 404 personalizada para rutas no coincidentes.
 
 ### `redirects()`
 
@@ -250,12 +250,21 @@ Gestiona las rutas de redirección definidas en tu [configuración de Astro](/es
 **Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<void\> | void</code>
 </p>
 
-Registra el proveedor de una [sesión](/es/guides/sessions/). Las sesiones se crean de forma diferida cuando tu código accede a `ctx.session` y se guardan automáticamente al final de la solicitud. Llama a esta función al principio del proceso (antes de que se ejecute el middleware):
+Registra el proveedor de una [sesión](/es/guides/sessions/). Las sesiones se crean de forma diferida cuando tu código accede a `ctx.session` y se guardan automáticamente al final de la solicitud. Llama a esta función al principio del pipeline (antes de que se ejecute el middleware):
 
-```ts
-await sessions(state);
-// ...render pipeline...
+```ts {6} title="src/fetch.ts"
+import { FetchState, sessions } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    await sessions(state);
+    // ...pipeline de renderizado...
+  },
+};
 ```
+
+Este controlador no registra ningún proveedor cuando no hay ningún controlador de sesión configurado, o cuando [las sesiones están deshabilitadas](/es/guides/sessions/#disabling-sessions). En ambos casos, `ctx.session` será `undefined`.
 
 ### `trailingSlash()`
 
@@ -264,4 +273,4 @@ await sessions(state);
 **Tipo:** <code>(state: <a href="#fetchstate">FetchState</a>) => Response | undefined</code>
 </p>
 
-Comprueba si la ruta de la solicitud necesita normalización con [barra final](/es/reference/configuration-reference/#trailingslash) y, en caso afirmativo, devuelve una `Respuesta` de redireccionamiento. Devuelve `undefined` cuando no es necesario ningún redireccionamiento.
+Comprueba si la ruta de la solicitud necesita normalización con [barra final](/es/reference/configuration-reference/#trailingslash) y, en caso afirmativo, devuelve una `Response` de redireccionamiento. Devuelve `undefined` cuando no es necesario ningún redireccionamiento.
