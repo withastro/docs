@@ -8,20 +8,15 @@
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
 import { GitHubRepository } from './lib/github/repository.ts';
-import {
-	FRAMEWORK_REPOSITORY,
-	MODES,
-	RELEASE_QUEUE_MODE,
-	type Mode,
-} from './release-queue/config.ts';
+import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-queue/config.ts';
 import { runDryRun, runLiveMode } from './release-queue/run-modes.ts';
 import type { ReleaseQueueContext } from './release-queue/run-state.ts';
 
 async function run() {
 	const { values: flags } = parseArgs({
 		options: {
-			// `dry-run` or `live`.
-			mode: { type: 'string', default: RELEASE_QUEUE_MODE },
+			// `dry-run` or `live`, set by the workflow.
+			mode: { type: 'string', default: MODES.dryRun },
 		},
 	});
 	// Set by GitHub Actions.

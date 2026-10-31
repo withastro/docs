@@ -6,15 +6,6 @@ export const MODES = {
 
 export type Mode = (typeof MODES)[keyof typeof MODES];
 
-/**
- * The mode of every run.
- *
- * Set in the script instead of the workflow file, because the workflow file
- * may be outdated (e.g. it may not have the latest changes from the default
- * branch).
- */
-export const RELEASE_QUEUE_MODE: Mode = MODES.dryRun;
-
 export const ACCEPTED_LABEL = 'accepted';
 /** Set on umbrella PRs only, so maintainers can filter them in the PR list. */
 export const UMBRELLA_LABEL = 'merge-on-release';
