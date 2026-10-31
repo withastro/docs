@@ -1,9 +1,9 @@
-// Moves the docs PRs with the accepted label into their release umbrella PR, then refreshes the
-// umbrellas. Run by `.github/workflows/release-queue.yml`.
+// Moves the docs PRs with the accepted label into their release umbrella PR,
+// then refreshes the umbrellas. Run by `.github/workflows/release-queue.yml`.
 //
-// To preview a docs PR locally, without writing to GitHub:
-// GITHUB_REPOSITORY=withastro/docs BOT_TOKEN=<token> GITHUB_TOKEN=<token> PR_NUMBER=<number> \
-//   node --experimental-transform-types scripts/release-queue.ts --read-only
+// Outside GitHub Actions, the run is read-only and logs the writes instead of
+// sending them. To preview a docs PR locally:
+// GITHUB_REPOSITORY=withastro/docs BOT_TOKEN=<token> GITHUB_TOKEN=<token> PR_NUMBER=<number> node --experimental-transform-types scripts/release-queue.ts
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
@@ -20,13 +20,14 @@ import type { ReleaseQueueContext } from './release-queue/run-state.ts';
 async function run() {
 	const { values: flags } = parseArgs({
 		options: {
-			// Logs the writes instead of sending them.
-			'read-only': { type: 'boolean', default: false },
 			// `dry-run` or `live`.
 			mode: { type: 'string', default: RELEASE_QUEUE_MODE },
 		},
 	});
-	const context = createContext(flags['read-only']);
+	// Set by GitHub Actions.
+	const isReadOnly = process.env.GITHUB_ACTIONS !== 'true';
+	if (isReadOnly) console.info('Read-only run: the writes are logged, not sent.');
+	const context = createContext(isReadOnly);
 
 	if (parseMode(flags.mode) === MODES.live) {
 		await runLiveMode(context);
