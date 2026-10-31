@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { renderDryRunComment } from './comments.ts';
+import { renderAcceptedUmbrellaComment, renderDryRunComment } from './comments.ts';
 import {
 	buildPullRequest,
 	buildReadyState,
@@ -213,7 +213,7 @@ describe('runDryRun', () => {
 		assert.match(logs.join('\n'), /^#7 skipped:/m);
 	});
 
-	it('should skip an umbrella PR', async () => {
+	it('should remove the accepted label from an umbrella PR, with a comment', async () => {
 		const umbrella = buildPullRequest({
 			number: 7,
 			headBranch: 'release-queue/main',
@@ -224,7 +224,10 @@ describe('runDryRun', () => {
 
 		await runDryRun(context, 7);
 
-		assert.deepEqual(docs.writes, []);
-		assert.match(logs.join('\n'), /^#7 skipped:/m);
+		assert.deepEqual(docs.writes, [
+			{ method: 'removeLabel', args: [7, 'accepted'] },
+			{ method: 'createComment', args: [7, renderAcceptedUmbrellaComment()] },
+		]);
+		assert.equal(logs.at(-1), '#7 refused (umbrella PR).');
 	});
 });

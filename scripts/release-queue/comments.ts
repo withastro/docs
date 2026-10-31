@@ -106,6 +106,16 @@ export function renderUmbrellaFailureComment(
 }
 
 /**
+ * Renders the comment telling an umbrella PR with the accepted label that a
+ * maintainer merges it.
+ *
+ * @returns {string} The comment, in Markdown.
+ */
+export function renderAcceptedUmbrellaComment(): string {
+	return `This is an umbrella PR: \`${ACCEPTED_LABEL}\` only applies to the docs PRs that join it. A maintainer merges it by hand once its release is out, after going through the checklist.`;
+}
+
+/**
  * Renders the comment telling what the release queue would do with a docs PR
  * once live.
  *

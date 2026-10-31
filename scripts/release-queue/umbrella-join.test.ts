@@ -3,6 +3,7 @@ import { describe, it } from 'node:test';
 import { hasLabel, type PullRequestDetails } from '../lib/github/repository.ts';
 import { GitHubError } from '../lib/github/request.ts';
 import {
+	renderAcceptedUmbrellaComment,
 	renderJoinedComment,
 	renderMergeFailureComment,
 	renderRefusalComment,
@@ -263,13 +264,11 @@ describe('joinAcceptedPullRequests', () => {
 	});
 
 	it('should handle every accepted PR, oldest first, and skip the others', async () => {
-		const acceptedUmbrella = { ...buildUmbrellaPullRequest(50), labels: [{ name: 'accepted' }] };
 		const docs = buildReadyRepository(
 			[
 				buildAcceptedPullRequest(9),
 				buildPullRequest({ number: 8, labels: ['minor-release'] }),
 				buildAcceptedPullRequest(7),
-				acceptedUmbrella,
 			],
 			{ main: 'sha-main', 'release-queue/main': 'sha-umbrella' }
 		);
@@ -281,6 +280,22 @@ describe('joinAcceptedPullRequests', () => {
 			.filter(({ method }) => method === 'mergePullRequest')
 			.map(({ args }) => args[0]);
 		assert.deepEqual(mergedPrNumbers, [7, 9]);
+	});
+
+	it('should remove the accepted label from an umbrella PR, with a comment', async () => {
+		const acceptedUmbrella = { ...buildUmbrellaPullRequest(50), labels: [{ name: 'accepted' }] };
+		const docs = buildReadyRepository([acceptedUmbrella], {
+			main: 'sha-main',
+			'release-queue/main': 'sha-umbrella',
+		});
+		const { context } = createContext(docs);
+
+		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
+
+		assert.deepEqual(docs.writes, [
+			{ method: 'removeLabel', args: [50, 'accepted'] },
+			{ method: 'createComment', args: [50, renderAcceptedUmbrellaComment()] },
+		]);
 	});
 
 	it('should handle the other PRs when one fails, then fail', async (t) => {

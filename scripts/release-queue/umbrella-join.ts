@@ -8,6 +8,7 @@ import {
 import { GitHubError } from '../lib/github/request.ts';
 import {
 	formatPrNumbers,
+	renderAcceptedUmbrellaComment,
 	renderDryRunComment,
 	renderJoinedComment,
 	renderMergeFailureComment,
@@ -32,7 +33,7 @@ type JoinRequest = {
  * with it, and removes the label. Otherwise, the PRs previewed in dry-run mode
  * would all join their umbrella in the first live run.
  *
- * Skips a PR that no longer has the label, and umbrella PRs.
+ * Skips a PR that no longer has the label, and refuses umbrella PRs.
  *
  * @param {ReleaseQueueRun} run - The run.
  * @param {number} prNumber - The docs PR number.
@@ -40,10 +41,10 @@ type JoinRequest = {
  */
 export async function previewJoin(run: ReleaseQueueRun, prNumber: number): Promise<void> {
 	const { docs, log } = run;
-	const pullRequest = await readPullRequestToJoin(run, prNumber);
-	if (!pullRequest) return;
+	const candidate = await decideAcceptedPullRequest(run, prNumber);
+	if (!candidate) return;
 
-	const decision = await readDecision(run, pullRequest);
+	const { decision } = candidate;
 	await removeLabelAndComment(docs, prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
@@ -59,8 +60,8 @@ export async function previewJoin(run: ReleaseQueueRun, prNumber: number): Promi
  * @throws {AggregateError} When some PRs failed, after handling the others.
  */
 export async function joinAcceptedPullRequests(run: ReleaseQueueRun): Promise<void> {
-	const { docs, log, state } = run;
-	const prNumbers = findAcceptedPrNumbers(state.openPullRequests, docs.fullName);
+	const { log, state } = run;
+	const prNumbers = findAcceptedPrNumbers(state.openPullRequests);
 	log(`Accepted PRs: ${formatPrNumbers(prNumbers)}.`);
 
 	const errors: unknown[] = [];
@@ -81,20 +82,19 @@ export async function joinAcceptedPullRequests(run: ReleaseQueueRun): Promise<vo
 	}
 }
 
-function findAcceptedPrNumbers(openPullRequests: PullRequest[], repositoryFullName: string) {
+function findAcceptedPrNumbers(openPullRequests: PullRequest[]) {
 	return openPullRequests
-		.filter((pullRequest) => isJoinCandidate(pullRequest, repositoryFullName))
+		.filter((pullRequest) => hasLabel(pullRequest, ACCEPTED_LABEL))
 		.map(({ number }) => number)
 		.toSorted((first, second) => first - second);
 }
 
 async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
 	const { docs, log } = run;
-	// Read again: the list has no mergeability, and the PR may have changed since.
-	const pullRequest = await readPullRequestToJoin(run, prNumber);
-	if (!pullRequest) return;
+	const candidate = await decideAcceptedPullRequest(run, prNumber);
+	if (!candidate) return;
 
-	const decision = await readDecision(run, pullRequest);
+	const { pullRequest, decision } = candidate;
 	if (decision.outcome === OUTCOMES.refuse) {
 		await removeLabelAndComment(docs, prNumber, renderRefusalComment(decision));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
@@ -105,22 +105,31 @@ async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
 }
 
 /**
- * Reads a docs PR to join its umbrella, or gives `null` after logging why it
- * is skipped: it no longer has the accepted label, or it is an umbrella.
+ * Reads an accepted docs PR, then decides whether it joins its umbrella.
+ *
+ * This returns `null` when there is nothing to decide: the PR no longer has the
+ * label, or it is an umbrella PR, refused with a comment.
  */
-async function readPullRequestToJoin({ docs, log }: ReleaseQueueContext, prNumber: number) {
+async function decideAcceptedPullRequest(run: ReleaseQueueRun, prNumber: number) {
+	const { docs, log, state } = run;
 	const pullRequest = await docs.getPullRequest(prNumber);
-	const skipReason = getSkipReason(pullRequest, docs.fullName);
-	if (!skipReason) return pullRequest;
+	if (!hasLabel(pullRequest, ACCEPTED_LABEL)) {
+		log(`#${prNumber} skipped: it no longer has the "${ACCEPTED_LABEL}" label.`);
+		return null;
+	}
+	if (isUmbrellaPullRequest(pullRequest, docs.fullName)) {
+		await refuseUmbrella(run, prNumber);
+		return null;
+	}
 
-	log(`#${prNumber} skipped: ${skipReason}.`);
-	return null;
+	const readiness = await readReadiness(run, pullRequest);
+	return { pullRequest, decision: decideJoin(pullRequest, { state, readiness }) };
 }
 
-/** Reads whether a docs PR can be merged, then decides whether it joins its umbrella. */
-async function readDecision(run: ReleaseQueueRun, pullRequest: PullRequestDetails) {
-	const readiness = await readReadiness(run, pullRequest);
-	return decideJoin(pullRequest, { state: run.state, readiness });
+/** Tells an umbrella PR with the accepted label that a maintainer merges it. */
+async function refuseUmbrella({ docs, log }: ReleaseQueueContext, prNumber: number) {
+	await removeLabelAndComment(docs, prNumber, renderAcceptedUmbrellaComment());
+	log(`#${prNumber} refused (umbrella PR).`);
 }
 
 async function removeLabelAndComment(docs: Repository, prNumber: number, comment: string) {
@@ -233,18 +242,6 @@ async function openUmbrella(
 		log(`#${pullRequest.number} joined ${branches.head}, but no umbrella PR: ${error.apiMessage}.`);
 		return null;
 	}
-}
-
-function isJoinCandidate(pullRequest: PullRequest, repositoryFullName: string) {
-	return getSkipReason(pullRequest, repositoryFullName) === null;
-}
-
-function getSkipReason(pullRequest: PullRequest, repositoryFullName: string) {
-	if (!hasLabel(pullRequest, ACCEPTED_LABEL)) {
-		return `it no longer has the "${ACCEPTED_LABEL}" label`;
-	}
-	if (isUmbrellaPullRequest(pullRequest, repositoryFullName)) return 'it is an umbrella PR';
-	return null;
 }
 
 function describeDecision(decision: Decision) {
