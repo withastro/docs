@@ -120,7 +120,7 @@ export function renderDryRunComment(decision: Decision): string {
 
 	return [
 		`**Dry run**: once the release queue is live, it ${outcome}`,
-		'Nothing has changed yet: handle this PR as usual.',
+		`\`${ACCEPTED_LABEL}\` was removed, so that this PR doesn't join its umbrella when the release queue goes live. Nothing else has changed: handle this PR as usual.`,
 	].join('\n\n');
 }
 

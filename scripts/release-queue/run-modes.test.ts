@@ -72,8 +72,11 @@ describe('runLiveMode', () => {
 	});
 });
 
-function buildComment(prNumber: number, decision: Decision) {
-	return { method: 'createComment', args: [prNumber, renderDryRunComment(decision)] };
+function buildDryRunWrites(prNumber: number, decision: Decision) {
+	return [
+		{ method: 'removeLabel', args: [prNumber, 'accepted'] },
+		{ method: 'createComment', args: [prNumber, renderDryRunComment(decision)] },
+	];
 }
 
 describe('runDryRun', () => {
@@ -84,12 +87,13 @@ describe('runDryRun', () => {
 
 		await runDryRun(context, 7);
 
-		assert.deepEqual(docs.writes, [
-			buildComment(7, {
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
 				outcome: OUTCOMES.join,
 				branches: MAIN_BRANCHES,
-			}),
-		]);
+			})
+		);
 		assert.deepEqual(logs, [
 			'Releases: stable none open, prerelease the same. Settled umbrellas: none.',
 			'Dry run: #7 would join release-queue/main.',
@@ -109,13 +113,14 @@ describe('runDryRun', () => {
 
 		await runDryRun(context, 7);
 
-		assert.deepEqual(docs.writes, [
-			buildComment(7, {
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.majorReleasePending],
 				branches: MAIN_BRANCHES,
-			}),
-		]);
+			})
+		);
 		assert.equal(
 			logs[0],
 			'Releases: stable withastro/astro#100 (astro@8.0.0, major), prerelease the same. Settled umbrellas: none.'
@@ -129,13 +134,14 @@ describe('runDryRun', () => {
 
 		await runDryRun(context, 7);
 
-		assert.deepEqual(docs.writes, [
-			buildComment(7, {
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.missingReleaseLabel],
 				branches: MAIN_BRANCHES,
-			}),
-		]);
+			})
+		);
 	});
 
 	it('should comment with the reasons a PR not ready to merge would be refused', async () => {
@@ -149,13 +155,14 @@ describe('runDryRun', () => {
 
 		await runDryRun(context, 7);
 
-		assert.deepEqual(docs.writes, [
-			buildComment(7, {
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.draft, REFUSAL_REASONS.missingApproval],
 				branches: MAIN_BRANCHES,
-			}),
-		]);
+			})
+		);
 		assert.equal(
 			logs.at(-1),
 			`Dry run: #7 would be refused (${REFUSAL_REASONS.draft}, ${REFUSAL_REASONS.missingApproval}).`
@@ -184,13 +191,14 @@ describe('runDryRun', () => {
 
 		await runDryRun(context, 7);
 
-		assert.deepEqual(docs.writes, [
-			buildComment(7, {
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
 				outcome: OUTCOMES.refuse,
 				reasons: [REFUSAL_REASONS.settledUmbrella],
 				branches: MAIN_BRANCHES,
-			}),
-		]);
+			})
+		);
 	});
 
 	it('should skip a PR that no longer has the accepted label', async () => {

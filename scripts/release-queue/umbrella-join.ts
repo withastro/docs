@@ -29,7 +29,8 @@ type JoinRequest = {
 
 /**
  * Tells, in a comment on an accepted docs PR, what the release queue would do
- * with it, and changes nothing else.
+ * with it, and removes the label. Otherwise, the PRs previewed in dry-run mode
+ * would all join their umbrella in the first live run.
  *
  * Skips a PR that no longer has the label, and umbrella PRs.
  *
@@ -43,7 +44,7 @@ export async function previewJoin(run: ReleaseQueueRun, prNumber: number): Promi
 	if (!pullRequest) return;
 
 	const decision = await readDecision(run, pullRequest);
-	await docs.createComment(prNumber, renderDryRunComment(decision));
+	await removeLabelAndComment(docs, prNumber, renderDryRunComment(decision));
 	log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
 }
 
@@ -95,7 +96,7 @@ async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
 
 	const decision = await readDecision(run, pullRequest);
 	if (decision.outcome === OUTCOMES.refuse) {
-		await refuseJoin(docs, prNumber, renderRefusalComment(decision));
+		await removeLabelAndComment(docs, prNumber, renderRefusalComment(decision));
 		log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
 		return;
 	}
@@ -122,7 +123,7 @@ async function readDecision(run: ReleaseQueueRun, pullRequest: PullRequestDetail
 	return decideJoin(pullRequest, { state: run.state, readiness });
 }
 
-async function refuseJoin(docs: Repository, prNumber: number, comment: string) {
+async function removeLabelAndComment(docs: Repository, prNumber: number, comment: string) {
 	// Removed first, so the comment is true once posted.
 	await docs.removeLabel(prNumber, ACCEPTED_LABEL);
 	await docs.createComment(prNumber, comment);
@@ -168,7 +169,7 @@ async function mergeOrRefuse({ docs, log }: ReleaseQueueRun, request: JoinReques
 		if (!(error instanceof GitHubError)) throw error;
 
 		const comment = renderMergeFailureComment(branches, error.apiMessage);
-		await refuseJoin(docs, pullRequest.number, comment);
+		await removeLabelAndComment(docs, pullRequest.number, comment);
 		log(`#${pullRequest.number} not merged: ${error.apiMessage}.`);
 		return false;
 	}
