@@ -15,11 +15,11 @@ import { renderUmbrella } from './umbrella-content.ts';
 
 function buildDocs() {
 	const accepted = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
-	const umbrella = buildPullRequest({ number: 50, headBranch: 'release-queue/main' });
+	const umbrella = buildPullRequest({ number: 50, headBranch: 'umbrella/main' });
 	return new FakeRepository({
 		...buildReadyState(accepted),
 		pullRequests: [accepted, umbrella],
-		branchShas: { main: 'sha-main', 'release-queue/main': 'sha-umbrella' },
+		branchShas: { main: 'sha-main', 'umbrella/main': 'sha-umbrella' },
 	});
 }
 
@@ -96,7 +96,7 @@ describe('runDryRun', () => {
 		);
 		assert.deepEqual(logs, [
 			'Releases: stable none open, prerelease the same. Settled umbrellas: none.',
-			'Dry run: #7 would join release-queue/main.',
+			'Dry run: #7 would join umbrella/main.',
 		]);
 	});
 
@@ -173,7 +173,7 @@ describe('runDryRun', () => {
 		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
 		const settledUmbrella = buildPullRequest({
 			number: 50,
-			headBranch: 'release-queue/main',
+			headBranch: 'umbrella/main',
 			body: renderUmbrella({
 				branches: MAIN_BRANCHES,
 				release: buildRelease({ prNumber: 100 }),
@@ -216,7 +216,7 @@ describe('runDryRun', () => {
 	it('should remove the accepted label from an umbrella PR, with a comment', async () => {
 		const umbrella = buildPullRequest({
 			number: 7,
-			headBranch: 'release-queue/main',
+			headBranch: 'umbrella/main',
 			labels: ['accepted', 'minor-release'],
 		});
 		const docs = new FakeRepository({ pullRequests: [umbrella] });

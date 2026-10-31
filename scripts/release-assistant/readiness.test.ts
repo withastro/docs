@@ -120,7 +120,7 @@ describe('readReadiness', () => {
 			assert.equal(readiness.hasPendingChecks, true);
 		});
 
-		it('should ignore the job running the release queue', async () => {
+		it('should ignore the job running the release assistant', async () => {
 			const readiness = await readReadinessWith({
 				checksByRef: {
 					'sha-1': [

@@ -1,7 +1,12 @@
 import { formatPrNumbers } from './comments.ts';
 import { isMajorRelease } from './framework-release.ts';
 import { syncMergeBlockReview } from './merge-block.ts';
-import { isSettled, type ReleaseQueueRun, type ReleaseState, type RunState } from './run-state.ts';
+import {
+	isSettled,
+	type ReleaseAssistantRun,
+	type ReleaseState,
+	type RunState,
+} from './run-state.ts';
 import {
 	getIncludedPrNumbers,
 	getUmbrellaReleasePrNumber,
@@ -12,7 +17,7 @@ import {
 } from './umbrella-content.ts';
 import { findUmbrellas, getUmbrellaRelease, isStableBranch, type Umbrella } from './umbrella.ts';
 
-type RefreshRun = Pick<ReleaseQueueRun, 'docs' | 'reviewer' | 'log' | 'state'>;
+type RefreshRun = Pick<ReleaseAssistantRun, 'docs' | 'reviewer' | 'log' | 'state'>;
 
 /**
  * Refreshes every open umbrella PR, and the review that blocks its merge.

@@ -5,9 +5,9 @@ import {
 	type Repository,
 } from '../lib/github/repository.ts';
 import { filterAsync } from './filter-async.ts';
-import type { ReleaseQueueContext } from './run-state.ts';
+import type { ReleaseAssistantContext } from './run-state.ts';
 
-type ReadinessContext = Pick<ReleaseQueueContext, 'docs' | 'jobName'>;
+type ReadinessContext = Pick<ReleaseAssistantContext, 'docs' | 'jobName'>;
 
 /** What decides whether a docs PR can be merged. Reviews count only from maintainers. */
 export type Readiness = {

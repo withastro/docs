@@ -63,7 +63,7 @@ describe('renderUmbrella', () => {
 			includedPrNumbers: [7, 9],
 		});
 
-		assert.match(body, /^<!-- release-queue:release-pr=100 -->\n/);
+		assert.match(body, /^<!-- release-assistant:release-pr=100 -->\n/);
 		assert.match(body, /withastro\/astro#100/);
 		assert.match(body, /This includes:\n\n- #7\n- #9\n\n/);
 	});
@@ -75,7 +75,7 @@ describe('renderUmbrella', () => {
 			includedPrNumbers: [],
 		});
 
-		assert.doesNotMatch(body, /release-queue:release-pr/);
+		assert.doesNotMatch(body, /release-assistant:release-pr/);
 		assert.match(body, /No release PR is open in `withastro\/astro` yet\./);
 		assert.match(body, /This includes no docs PRs yet\./);
 	});
@@ -156,7 +156,7 @@ describe('planUmbrellaUpdate', () => {
 
 		const { fields } = planUmbrellaUpdate(umbrella, { release: null, includedPrNumbers: [7] });
 
-		assert.match(fields.body ?? '', /^<!-- release-queue:release-pr=100 -->\n/);
+		assert.match(fields.body ?? '', /^<!-- release-assistant:release-pr=100 -->\n/);
 	});
 
 	it('should change nothing on an umbrella that is up to date', () => {
@@ -181,7 +181,7 @@ describe('getIncludedPrNumbers', () => {
 		const prNumbers = getIncludedPrNumbers({
 			commits: [
 				buildCommit('Document feature 7 (#7)'),
-				buildCommit("Merge branch 'main' into release-queue/main"),
+				buildCommit("Merge branch 'main' into umbrella/main"),
 				buildCommit('Fix a typo (#9)\n\nFollows #7 (#7)'),
 				buildCommit('Document feature 7 again (#7)'),
 			],

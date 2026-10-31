@@ -14,11 +14,11 @@ import {
 describe('getUmbrellaBranches', () => {
 	it('should reserve one umbrella branch per base branch', () => {
 		assert.deepEqual(getUmbrellaBranches('main'), {
-			head: 'release-queue/main',
+			head: 'umbrella/main',
 			base: 'main',
 		});
 		assert.deepEqual(getUmbrellaBranches('cloudflare-next'), {
-			head: 'release-queue/cloudflare-next',
+			head: 'umbrella/cloudflare-next',
 			base: 'cloudflare-next',
 		});
 	});
@@ -26,7 +26,7 @@ describe('getUmbrellaBranches', () => {
 
 describe('getUmbrellaBaseBranch', () => {
 	it('should get the base branch of an umbrella branch', () => {
-		assert.equal(getUmbrellaBaseBranch('release-queue/cloudflare-next'), 'cloudflare-next');
+		assert.equal(getUmbrellaBaseBranch('umbrella/cloudflare-next'), 'cloudflare-next');
 	});
 
 	it('should return null for a branch that is not an umbrella branch', () => {
@@ -36,18 +36,18 @@ describe('getUmbrellaBaseBranch', () => {
 
 describe('isUmbrellaPullRequest', () => {
 	it('should accept a PR from an umbrella branch of the repository', () => {
-		const umbrella = buildPullRequest({ headBranch: 'release-queue/main' });
+		const umbrella = buildPullRequest({ headBranch: 'umbrella/main' });
 
 		assert.equal(isUmbrellaPullRequest(umbrella, FAKE_REPOSITORY_NAME), true);
 	});
 
 	it('should refuse a PR from a fork branch named like an umbrella branch', () => {
 		const fromFork = buildPullRequest({
-			headBranch: 'release-queue/main',
+			headBranch: 'umbrella/main',
 			headRepository: 'example-user/docs',
 		});
 		const fromDeletedFork = buildPullRequest({
-			headBranch: 'release-queue/main',
+			headBranch: 'umbrella/main',
 			headRepository: null,
 		});
 
@@ -78,7 +78,7 @@ describe('findUmbrellas', () => {
 				labels: ['merge-on-release'],
 				body,
 			}),
-			buildPullRequest({ number: 60, headBranch: 'release-queue/v8', baseBranch: 'v8' }),
+			buildPullRequest({ number: 60, headBranch: 'umbrella/v8', baseBranch: 'v8' }),
 		];
 
 		const umbrellas = findUmbrellas(pullRequests, FAKE_REPOSITORY_NAME);
@@ -106,7 +106,7 @@ describe('findUmbrellas', () => {
 		const pullRequests = ['', 'abc', '0', '-1', '1.5'].map((value, index) =>
 			buildPullRequest({
 				number: 50 + index,
-				headBranch: 'release-queue/main',
+				headBranch: 'umbrella/main',
 				body: renderMarker(RELEASE_PR_MARKER_NAME, value),
 			})
 		);

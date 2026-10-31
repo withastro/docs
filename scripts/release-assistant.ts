@@ -1,16 +1,16 @@
-// Moves the docs PRs with the accepted label into their release umbrella PR,
-// then refreshes the umbrellas. Run by `.github/workflows/release-queue.yml`.
+// Moves the docs PRs with the accepted label into their umbrella PR, then
+// refreshes the umbrellas. Run by `.github/workflows/release-assistant.yml`.
 //
 // Outside GitHub Actions, the run is read-only and logs the writes instead of
 // sending them. To preview a docs PR locally:
-// GITHUB_REPOSITORY=withastro/docs BOT_TOKEN=<token> GITHUB_TOKEN=<token> PR_NUMBER=<number> node --experimental-transform-types scripts/release-queue.ts
+// GITHUB_REPOSITORY=withastro/docs BOT_TOKEN=<token> GITHUB_TOKEN=<token> PR_NUMBER=<number> node --experimental-transform-types scripts/release-assistant.ts
 
 import { parseArgs } from 'node:util';
 import { ReadOnlyRepository } from './lib/github/read-only-repository.ts';
 import { GitHubRepository } from './lib/github/repository.ts';
-import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-queue/config.ts';
-import { runDryRun, runLiveMode } from './release-queue/run-modes.ts';
-import type { ReleaseQueueContext } from './release-queue/run-state.ts';
+import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-assistant/config.ts';
+import { runDryRun, runLiveMode } from './release-assistant/run-modes.ts';
+import type { ReleaseAssistantContext } from './release-assistant/run-state.ts';
 
 async function run() {
 	const { values: flags } = parseArgs({
@@ -35,7 +35,7 @@ async function run() {
 	else console.info('Dry run: no PR to preview.');
 }
 
-function createContext(isReadOnly: boolean): ReleaseQueueContext {
+function createContext(isReadOnly: boolean): ReleaseAssistantContext {
 	// The docs repository, as `owner/repo`.
 	const docsFullName = readRequiredVariable('GITHUB_REPOSITORY');
 	// The bot account, which merges docs PRs and opens the umbrellas.

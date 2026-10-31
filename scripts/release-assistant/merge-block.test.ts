@@ -100,7 +100,7 @@ describe('syncMergeBlockReview', () => {
 			assert.doesNotMatch(await renderReview(), /Still open/);
 			assert.match(
 				await renderReview({ ...CHECKLIST, openPrNumbers: [11, 12] }),
-				/\)\.\n\nStill open and based on `release-queue\/main`: #11, #12\. .+\n$/
+				/\)\.\n\nStill open and based on `umbrella\/main`: #11, #12\. .+\n$/
 			);
 		});
 

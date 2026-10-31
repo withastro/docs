@@ -18,7 +18,7 @@ import {
 import { ACCEPTED_LABEL } from './config.ts';
 import { decideJoin, OUTCOMES, type Decision } from './join-decision.ts';
 import { readReadiness } from './readiness.ts';
-import type { ReleaseQueueContext, ReleaseQueueRun } from './run-state.ts';
+import type { ReleaseAssistantContext, ReleaseAssistantRun } from './run-state.ts';
 import { renderSquashCommitTitle, renderUmbrella } from './umbrella-content.ts';
 import { getUmbrellaRelease, isUmbrellaPullRequest, type UmbrellaBranches } from './umbrella.ts';
 
@@ -29,17 +29,17 @@ type JoinRequest = {
 };
 
 /**
- * Tells, in a comment on an accepted docs PR, what the release queue would do
- * with it, and removes the label. Otherwise, the PRs previewed in dry-run mode
- * would all join their umbrella in the first live run.
+ * Tells, in a comment on an accepted docs PR, what the release assistant would
+ * do with it, and removes the label. Otherwise, the PRs previewed in dry-run
+ * mode would all join their umbrella in the first live run.
  *
  * Skips a PR that no longer has the label, and refuses umbrella PRs.
  *
- * @param {ReleaseQueueRun} run - The run.
+ * @param {ReleaseAssistantRun} run - The run.
  * @param {number} prNumber - The docs PR number.
  * @throws {GitHubError} When GitHub answers with an error status.
  */
-export async function previewJoin(run: ReleaseQueueRun, prNumber: number): Promise<void> {
+export async function previewJoin(run: ReleaseAssistantRun, prNumber: number): Promise<void> {
 	const { docs, log } = run;
 	const candidate = await decideAcceptedPullRequest(run, prNumber);
 	if (!candidate) return;
@@ -56,10 +56,10 @@ export async function previewJoin(run: ReleaseQueueRun, prNumber: number): Promi
  * Handles the PRs one at a time, oldest first, since each join changes the
  * umbrella the next PR joins. A PR that fails does not stop the others.
  *
- * @param {ReleaseQueueRun} run - The run.
+ * @param {ReleaseAssistantRun} run - The run.
  * @throws {AggregateError} When some PRs failed, after handling the others.
  */
-export async function joinAcceptedPullRequests(run: ReleaseQueueRun): Promise<void> {
+export async function joinAcceptedPullRequests(run: ReleaseAssistantRun): Promise<void> {
 	const { log, state } = run;
 	const prNumbers = findAcceptedPrNumbers(state.openPullRequests);
 	log(`Accepted PRs: ${formatPrNumbers(prNumbers)}.`);
@@ -89,7 +89,7 @@ function findAcceptedPrNumbers(openPullRequests: PullRequest[]) {
 		.toSorted((first, second) => first - second);
 }
 
-async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
+async function joinPullRequest(run: ReleaseAssistantRun, prNumber: number) {
 	const { docs, log } = run;
 	const candidate = await decideAcceptedPullRequest(run, prNumber);
 	if (!candidate) return;
@@ -110,7 +110,7 @@ async function joinPullRequest(run: ReleaseQueueRun, prNumber: number) {
  * This returns `null` when there is nothing to decide: the PR no longer has the
  * label, or it is an umbrella PR, refused with a comment.
  */
-async function decideAcceptedPullRequest(run: ReleaseQueueRun, prNumber: number) {
+async function decideAcceptedPullRequest(run: ReleaseAssistantRun, prNumber: number) {
 	const { docs, log, state } = run;
 	const pullRequest = await docs.getPullRequest(prNumber);
 	if (!hasLabel(pullRequest, ACCEPTED_LABEL)) {
@@ -127,7 +127,7 @@ async function decideAcceptedPullRequest(run: ReleaseQueueRun, prNumber: number)
 }
 
 /** Tells an umbrella PR with the accepted label that a maintainer merges it. */
-async function refuseUmbrella({ docs, log }: ReleaseQueueContext, prNumber: number) {
+async function refuseUmbrella({ docs, log }: ReleaseAssistantContext, prNumber: number) {
 	await removeLabelAndComment(docs, prNumber, renderAcceptedUmbrellaComment());
 	log(`#${prNumber} refused (umbrella PR).`);
 }
@@ -142,7 +142,7 @@ async function removeLabelAndComment(docs: Repository, prNumber: number, comment
  * Moves a docs PR into its umbrella, opens the umbrella PR when there is none,
  * then tells the PR which umbrella it joined.
  */
-async function joinUmbrella(run: ReleaseQueueRun, request: JoinRequest) {
+async function joinUmbrella(run: ReleaseAssistantRun, request: JoinRequest) {
 	const { docs, log } = run;
 	const { pullRequest, branches } = request;
 	await createUmbrellaBranchIfMissing(docs, branches);
@@ -169,7 +169,7 @@ async function createUmbrellaBranchIfMissing(docs: Repository, branches: Umbrell
  * Squash-merges a docs PR into its umbrella branch, and tells whether it did.
  * When GitHub refuses, declines the PR with GitHub's message instead.
  */
-async function mergeOrRefuse({ docs, log }: ReleaseQueueRun, request: JoinRequest) {
+async function mergeOrRefuse({ docs, log }: ReleaseAssistantRun, request: JoinRequest) {
 	const { pullRequest, branches } = request;
 	try {
 		await squashIntoUmbrella(docs, request);
@@ -223,7 +223,7 @@ async function findUmbrellaPrNumber(docs: Repository, branches: UmbrellaBranches
  * the umbrella PR is opened after the first docs PR is merged.
  */
 async function openUmbrella(
-	{ docs, log, state }: ReleaseQueueRun,
+	{ docs, log, state }: ReleaseAssistantRun,
 	{ pullRequest, branches }: JoinRequest
 ): Promise<number | null> {
 	const { title, body } = renderUmbrella({

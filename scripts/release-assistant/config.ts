@@ -1,5 +1,5 @@
 export const MODES = {
-	/** Comments on the PR that triggered the run with what the release queue would do. */
+	/** Comments on the PR that triggered the run with what the release assistant would do. */
 	dryRun: 'dry-run',
 	live: 'live',
 } as const;
@@ -28,7 +28,7 @@ export const RELEASE_LABELS = {
 export const DOCS_STABLE_BRANCH = 'main';
 
 /** Branches starting with this prefix are reserved for umbrellas, one per base branch. */
-export const UMBRELLA_BRANCH_PREFIX = 'release-queue/';
+export const UMBRELLA_BRANCH_PREFIX = 'umbrella/';
 
 export const FRAMEWORK_REPOSITORY = 'withastro/astro';
 export const FRAMEWORK_PACKAGE = 'astro';

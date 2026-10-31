@@ -14,7 +14,7 @@ const PACKAGE_HEADING = /^## ((?:@[^/\s]+\/)?[^@\s]+)@(\S+)\s*$/gm;
 const SEMVER_CORE = /^(\d+)\.(\d+)\.(\d+)/;
 /** The mode Changesets records in its pre mode file until the prerelease line exits pre mode. */
 const PRE_MODE = 'pre';
-/** The field of the pre mode file the release queue reads. */
+/** The field of the pre mode file the release assistant reads. */
 const preModeFileShape = shape.object({ mode: shape.string });
 
 type PackageVersion = { name: string; version: string };
@@ -87,7 +87,7 @@ export function findFrameworkPackage({
 }
 
 /**
- * Tells whether a release of the framework is a major release of the framework package.
+ * Tells whether a framework release is a major release of the core package.
  *
  * @param {Pick<FrameworkRelease, 'type'> | null} release - A release, or `null` when none is open.
  * @returns {boolean} `false` without a release.

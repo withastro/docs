@@ -1,5 +1,6 @@
 /**
- * Keeps the items an async predicate accepts, in their order. Checks every item at once.
+ * Keeps the items an async predicate accepts, in their order. Checks every
+ * item at once.
  *
  * @param {readonly T[]} items - The items to filter.
  * @param {(item: T) => Promise<boolean>} predicate - Tells whether to keep an item.

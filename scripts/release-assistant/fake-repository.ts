@@ -18,9 +18,9 @@ import type { FrameworkRelease } from './framework-release.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 /** The branches of the umbrella of the stable docs branch. */
-export const MAIN_BRANCHES = { head: 'release-queue/main', base: 'main' };
+export const MAIN_BRANCHES = { head: 'umbrella/main', base: 'main' };
 export const MAINTAINER = 'example-maintainer';
-/** The job running the release queue, as in `.github/workflows/release-queue.yml`. */
+/** The job running the release assistant, as in `.github/workflows/release-assistant.yml`. */
 export const JOB_NAME = 'join-umbrella';
 /** The number the fake repository gives to the pull requests it creates. */
 export const CREATED_PR_NUMBER = 1000;

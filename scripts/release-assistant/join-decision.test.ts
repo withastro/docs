@@ -51,20 +51,20 @@ describe('decideJoin', () => {
 		assert.deepEqual(route('cloudflare-next', ['major-release']), {
 			outcome: OUTCOMES.join,
 			branches: {
-				head: 'release-queue/cloudflare-next',
+				head: 'umbrella/cloudflare-next',
 				base: 'cloudflare-next',
 			},
 		});
 	});
 
 	it('should route a PR based on an umbrella branch to that umbrella', () => {
-		assert.deepEqual(route('release-queue/main', ['minor-release']), {
+		assert.deepEqual(route('umbrella/main', ['minor-release']), {
 			outcome: OUTCOMES.join,
 			branches: MAIN_BRANCHES,
 		});
-		assert.deepEqual(route('release-queue/v8', ['major-release']), {
+		assert.deepEqual(route('umbrella/v8', ['major-release']), {
 			outcome: OUTCOMES.join,
-			branches: { head: 'release-queue/v8', base: 'v8' },
+			branches: { head: 'umbrella/v8', base: 'v8' },
 		});
 	});
 
@@ -92,7 +92,7 @@ describe('decideJoin', () => {
 		};
 
 		assert.deepEqual(route('main', ['major-release']), expected);
-		assert.deepEqual(route('release-queue/main', ['major-release']), expected);
+		assert.deepEqual(route('umbrella/main', ['major-release']), expected);
 	});
 
 	it('should refuse a patch or minor PR based on a prerelease branch or its umbrella', () => {
@@ -103,7 +103,7 @@ describe('decideJoin', () => {
 		};
 
 		assert.deepEqual(route('cloudflare-next', ['minor-release']), expected);
-		assert.deepEqual(route('release-queue/cloudflare-next', ['patch-release']), expected);
+		assert.deepEqual(route('umbrella/cloudflare-next', ['patch-release']), expected);
 	});
 
 	it('should refuse a PR for the stable umbrella while a major release is pending', () => {
@@ -115,7 +115,7 @@ describe('decideJoin', () => {
 
 		const state = { stableReleaseType: RELEASE_TYPES.major };
 		assert.deepEqual(route('main', ['minor-release'], state), expected);
-		assert.deepEqual(route('release-queue/main', ['patch-release'], state), expected);
+		assert.deepEqual(route('umbrella/main', ['patch-release'], state), expected);
 	});
 
 	it('should route a PR for the stable umbrella during a patch or minor release', () => {
@@ -150,9 +150,9 @@ describe('decideJoin', () => {
 	it('should route a PR based on the branch of a settled umbrella', () => {
 		const state = { settledBaseBranches: ['main', 'cloudflare-next'] };
 
-		assert.equal(route('release-queue/main', ['minor-release'], state).outcome, OUTCOMES.join);
+		assert.equal(route('umbrella/main', ['minor-release'], state).outcome, OUTCOMES.join);
 		assert.equal(
-			route('release-queue/cloudflare-next', ['major-release'], state).outcome,
+			route('umbrella/cloudflare-next', ['major-release'], state).outcome,
 			OUTCOMES.join
 		);
 	});

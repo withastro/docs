@@ -4,7 +4,7 @@ import type { FrameworkRelease, FrameworkReleases } from './framework-release.ts
 import { readMarker } from './markers.ts';
 
 /** In the umbrella description. */
-export const RELEASE_PR_MARKER_NAME = 'release-queue:release-pr';
+export const RELEASE_PR_MARKER_NAME = 'release-assistant:release-pr';
 
 /** The reserved umbrella PR's head branch and the base it merges into. */
 export type UmbrellaBranches = { head: string; base: string };
@@ -63,8 +63,7 @@ export function isUmbrellaPullRequest(
  * Finds the umbrella PRs among pull requests, and reads them.
  *
  * @param {PullRequest[]} pullRequests - Any pull requests.
- * @param {string} repositoryFullName - The repository holding the umbrella branches, as
- * `owner/repo`.
+ * @param {string} repositoryFullName - The repository holding the umbrella branches, as `owner/repo`.
  * @returns {Umbrella[]} The umbrellas, in the order of the pull requests.
  */
 export function findUmbrellas(pullRequests: PullRequest[], repositoryFullName: string): Umbrella[] {

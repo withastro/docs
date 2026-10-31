@@ -30,7 +30,7 @@ const EXPECTED_BODY = renderUmbrella({
 
 function buildUmbrella(labels: string[], changes: Partial<PullRequestDetails> = {}) {
 	return {
-		...buildPullRequest({ number: 50, headBranch: 'release-queue/main', labels }),
+		...buildPullRequest({ number: 50, headBranch: 'umbrella/main', labels }),
 		...changes,
 	};
 }
@@ -43,7 +43,7 @@ async function refreshWithState(state: ReleaseState, ...pullRequests: PullReques
 	const docs = new FakeRepository({
 		pullRequests,
 		comparisons: {
-			'main...release-queue/main': {
+			'main...umbrella/main': {
 				ahead_by: 1,
 				commits: [{ sha: 'sha-7', commit: { message: 'Document feature 7 (#7)' } }],
 			},
@@ -105,7 +105,7 @@ describe('refreshOpenUmbrellas', () => {
 		const { writes, logs } = await refresh(
 			buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] }),
 			buildUmbrella([]),
-			buildPullRequest({ number: 60, headBranch: 'release-queue/v8', baseBranch: 'v8' })
+			buildPullRequest({ number: 60, headBranch: 'umbrella/v8', baseBranch: 'v8' })
 		);
 
 		const refreshedPrNumbers = new Set(writes.map(({ args }) => args[0]));
@@ -168,13 +168,13 @@ describe('refreshOpenUmbrellas', () => {
 					includedPrNumbers: [],
 				}).body,
 			}),
-			buildPullRequest({ number: 11, baseBranch: 'release-queue/main' })
+			buildPullRequest({ number: 11, baseBranch: 'umbrella/main' })
 		);
 
 		assert.equal(reviews.length, 1);
 		const [checklist] = reviews.map(({ args }) => String(args[1]));
 		assert.match(checklist, /covered-prs=7 -->/);
 		assert.match(checklist, /- \[x\] The release withastro\/astro#100 is merged\./);
-		assert.match(checklist, /Still open and based on `release-queue\/main`: #11\./);
+		assert.match(checklist, /Still open and based on `umbrella\/main`: #11\./);
 	});
 });

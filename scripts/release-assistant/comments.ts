@@ -116,8 +116,8 @@ export function renderAcceptedUmbrellaComment(): string {
 }
 
 /**
- * Renders the comment telling what the release queue would do with a docs PR
- * once live.
+ * Renders the comment telling what the release assistant would do with a docs
+ * PR once live.
  *
  * @param {Decision} decision - The umbrella the PR would join, or why it would be refused.
  * @returns {string} The comment, in Markdown.

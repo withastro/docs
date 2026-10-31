@@ -56,7 +56,7 @@ function buildReadyRepository(
 		),
 		checksByRef: Object.assign({}, ...states.map((state) => state.checksByRef)),
 		branchShas,
-		comparisons: { 'main...release-queue/main': { ahead_by: commits.length, commits } },
+		comparisons: { 'main...umbrella/main': { ahead_by: commits.length, commits } },
 	});
 }
 
@@ -85,7 +85,7 @@ function buildAcceptedPullRequest(number: number, baseBranch = 'main') {
 function buildUmbrellaPullRequest(number: number) {
 	return buildPullRequest({
 		number,
-		headBranch: 'release-queue/main',
+		headBranch: 'umbrella/main',
 		labels: ['merge-on-release'],
 	});
 }
@@ -98,15 +98,15 @@ describe('joinAcceptedPullRequests', () => {
 		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
-			{ method: 'createBranch', args: ['release-queue/main', 'sha-main'] },
-			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
+			{ method: 'createBranch', args: ['umbrella/main', 'sha-main'] },
+			{ method: 'updatePullRequest', args: [7, { base: 'umbrella/main' }] },
 			buildMergeWrite(7),
 			{
 				method: 'createPullRequest',
 				args: [
 					{
 						title: '[ci] release main docs',
-						head: 'release-queue/main',
+						head: 'umbrella/main',
 						base: 'main',
 						body: buildMainUmbrellaBody([7]),
 					},
@@ -119,14 +119,14 @@ describe('joinAcceptedPullRequests', () => {
 	it('should merge the PR into the open umbrella', async () => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7), buildUmbrellaPullRequest(50)], {
 			main: 'sha-main',
-			'release-queue/main': 'sha-umbrella',
+			'umbrella/main': 'sha-umbrella',
 		});
 		const { context } = createContext(docs);
 
 		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
-			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
+			{ method: 'updatePullRequest', args: [7, { base: 'umbrella/main' }] },
 			buildMergeWrite(7),
 			{ method: 'createComment', args: [7, renderJoinedComment(MAIN_BRANCHES, 50)] },
 		]);
@@ -134,8 +134,8 @@ describe('joinAcceptedPullRequests', () => {
 
 	it('should keep the base of a PR based on the umbrella branch', async () => {
 		const docs = buildReadyRepository(
-			[buildAcceptedPullRequest(7, 'release-queue/main'), buildUmbrellaPullRequest(50)],
-			{ main: 'sha-main', 'release-queue/main': 'sha-umbrella' }
+			[buildAcceptedPullRequest(7, 'umbrella/main'), buildUmbrellaPullRequest(50)],
+			{ main: 'sha-main', 'umbrella/main': 'sha-umbrella' }
 		);
 		const { context } = createContext(docs);
 
@@ -172,7 +172,7 @@ describe('joinAcceptedPullRequests', () => {
 	it('should restore the base of a PR GitHub refuses to merge, then refuse it', async (t) => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7), buildUmbrellaPullRequest(50)], {
 			main: 'sha-main',
-			'release-queue/main': 'sha-umbrella',
+			'umbrella/main': 'sha-umbrella',
 		});
 		t.mock.method(docs, 'mergePullRequest', async () => {
 			throw new GitHubError({
@@ -186,7 +186,7 @@ describe('joinAcceptedPullRequests', () => {
 		await joinAcceptedPullRequests({ ...context, state: await buildState(docs) });
 
 		assert.deepEqual(docs.writes, [
-			{ method: 'updatePullRequest', args: [7, { base: 'release-queue/main' }] },
+			{ method: 'updatePullRequest', args: [7, { base: 'umbrella/main' }] },
 			{ method: 'updatePullRequest', args: [7, { base: 'main' }] },
 			{ method: 'removeLabel', args: [7, 'accepted'] },
 			{
@@ -199,7 +199,7 @@ describe('joinAcceptedPullRequests', () => {
 	it('should fail with both errors when the base cannot be changed back', async (t) => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7), buildUmbrellaPullRequest(50)], {
 			main: 'sha-main',
-			'release-queue/main': 'sha-umbrella',
+			'umbrella/main': 'sha-umbrella',
 		});
 		const mergeError = new GitHubError({
 			message: 'PUT /merge failed with 405: Pull Request is not mergeable',
@@ -270,7 +270,7 @@ describe('joinAcceptedPullRequests', () => {
 				buildPullRequest({ number: 8, labels: ['minor-release'] }),
 				buildAcceptedPullRequest(7),
 			],
-			{ main: 'sha-main', 'release-queue/main': 'sha-umbrella' }
+			{ main: 'sha-main', 'umbrella/main': 'sha-umbrella' }
 		);
 		const { context } = createContext(docs);
 
@@ -286,7 +286,7 @@ describe('joinAcceptedPullRequests', () => {
 		const acceptedUmbrella = { ...buildUmbrellaPullRequest(50), labels: [{ name: 'accepted' }] };
 		const docs = buildReadyRepository([acceptedUmbrella], {
 			main: 'sha-main',
-			'release-queue/main': 'sha-umbrella',
+			'umbrella/main': 'sha-umbrella',
 		});
 		const { context } = createContext(docs);
 
@@ -301,7 +301,7 @@ describe('joinAcceptedPullRequests', () => {
 	it('should handle the other PRs when one fails, then fail', async (t) => {
 		const docs = buildReadyRepository([buildAcceptedPullRequest(7), buildAcceptedPullRequest(9)], {
 			main: 'sha-main',
-			'release-queue/main': 'sha-umbrella',
+			'umbrella/main': 'sha-umbrella',
 		});
 		const getPullRequest = docs.getPullRequest.bind(docs);
 		t.mock.method(docs, 'getPullRequest', async (prNumber: number) => {

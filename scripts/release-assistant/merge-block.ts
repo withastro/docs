@@ -8,13 +8,13 @@ import {
 	LUNARIA_DIRECTIVE_GUIDE,
 } from './config.ts';
 import { readMarker, renderMarker } from './markers.ts';
-import type { ReleaseQueueContext } from './run-state.ts';
+import type { ReleaseAssistantContext } from './run-state.ts';
 import type { Umbrella } from './umbrella.ts';
 
 /** In the checklist review. */
-const COVERED_PRS_MARKER_NAME = 'release-queue:covered-prs';
+const COVERED_PRS_MARKER_NAME = 'release-assistant:covered-prs';
 
-type MergeBlockContext = Pick<ReleaseQueueContext, 'reviewer' | 'log'>;
+type MergeBlockContext = Pick<ReleaseAssistantContext, 'reviewer' | 'log'>;
 
 /** What a maintainer checks before merging an umbrella PR. */
 export type MergeChecklist = {

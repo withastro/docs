@@ -45,7 +45,7 @@ describe('renderDryRunComment', () => {
 		});
 
 		assert.match(comment, /^\*\*Dry run\*\*/);
-		assert.match(comment, /`release-queue\/main`/);
+		assert.match(comment, /`umbrella\/main`/);
 		assert.match(comment, /into `main`/);
 	});
 
@@ -70,7 +70,7 @@ describe('renderJoinedComment', () => {
 	it('should name the umbrella branch and link the umbrella PR', () => {
 		const comment = renderJoinedComment(MAIN_BRANCHES, 1000);
 
-		assert.match(comment, /`release-queue\/main`/);
+		assert.match(comment, /`umbrella\/main`/);
 		assert.match(comment, /#1000/);
 	});
 });
@@ -79,7 +79,7 @@ describe('renderMergeFailureComment', () => {
 	it("should give GitHub's reason, then how to retry", () => {
 		const comment = renderMergeFailureComment(MAIN_BRANCHES, 'Merge conflict');
 
-		assert.match(comment, /`release-queue\/main`/);
+		assert.match(comment, /`umbrella\/main`/);
 		assert.match(comment, /Merge conflict/);
 		assert.match(comment, /a maintainer can add `accepted` again\.$/);
 	});
@@ -89,7 +89,7 @@ describe('renderUmbrellaFailureComment', () => {
 	it("should say the PR is merged, give GitHub's reason, and ask for the umbrella by hand", () => {
 		const comment = renderUmbrellaFailureComment(MAIN_BRANCHES, 'Validation Failed');
 
-		assert.match(comment, /`release-queue\/main`/);
+		assert.match(comment, /`umbrella\/main`/);
 		assert.match(comment, /Validation Failed/);
 		assert.match(comment, /into `main`/);
 	});

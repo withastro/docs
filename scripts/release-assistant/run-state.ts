@@ -8,7 +8,7 @@ import {
 import { findUmbrellas } from './umbrella.ts';
 
 /** The repositories a run works with, and where it reports. */
-export type ReleaseQueueContext = {
+export type ReleaseAssistantContext = {
 	/** The docs repository, through the bot account that merges PRs and opens umbrellas. */
 	docs: Repository;
 	/** The framework repository, read for its release PRs. */
@@ -20,7 +20,7 @@ export type ReleaseQueueContext = {
 	reviewer: Repository;
 	/** Where the run reports what it does, one line at a time. */
 	log: (message: string) => void;
-	/** The job running the release queue, from `GITHUB_JOB`. `null` outside GitHub Actions. */
+	/** The job running the release assistant, from `GITHUB_JOB`. `null` outside GitHub Actions. */
 	jobName: string | null;
 };
 
@@ -41,20 +41,20 @@ export type RunState = ReleaseState & {
 	openPullRequests: PullRequest[];
 };
 
-/** A run of the release queue: its context, and what was true when it started. */
-export type ReleaseQueueRun = ReleaseQueueContext & { state: RunState };
+/** A run of the release assistant: its context, and what was true when it started. */
+export type ReleaseAssistantRun = ReleaseAssistantContext & { state: RunState };
 
-type RunStateContext = Pick<ReleaseQueueContext, 'docs' | 'astro'>;
+type RunStateContext = Pick<ReleaseAssistantContext, 'docs' | 'astro'>;
 
 /**
  * Starts a run: reads what is true when it starts.
  *
- * @param {ReleaseQueueContext} context - The repositories to read.
- * @returns {Promise<ReleaseQueueRun>} The context, with the state of the run.
+ * @param {ReleaseAssistantContext} context - The repositories to read.
+ * @returns {Promise<ReleaseAssistantRun>} The context, with the state of the run.
  * @throws {GitHubError} When GitHub answers with an error status.
  * @throws {Error} When the framework's release PR or pre mode file can't be read.
  */
-export async function startRun(context: ReleaseQueueContext): Promise<ReleaseQueueRun> {
+export async function startRun(context: ReleaseAssistantContext): Promise<ReleaseAssistantRun> {
 	const [releases, openPullRequests] = await Promise.all([
 		readFrameworkReleases(context.astro),
 		context.docs.getOpenPullRequests(),

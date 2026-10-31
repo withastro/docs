@@ -48,7 +48,7 @@ describe('startRun', () => {
 				{
 					...buildPullRequest({ number: 7 }),
 					body: renderUmbrella({
-						branches: { head: 'release-queue/v9', base: 'v9' },
+						branches: { head: 'umbrella/v9', base: 'v9' },
 						release: buildRelease({ prNumber: 100 }),
 						includedPrNumbers: [],
 					}).body,
