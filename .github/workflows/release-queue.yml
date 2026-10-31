@@ -1,6 +1,6 @@
 # Moves accepted docs PRs into the umbrella PR of their release, and refreshes the umbrella PRs.
 
-name: Release Queue
+name: Release assistant
 
 on:
   # Needed to comment on PRs from forks. The job never checks out or runs code from the PR.
@@ -11,18 +11,18 @@ on:
 
 permissions: {}
 
-# One run at a time, so that two runs never act on the same umbrella.
-concurrency:
-  group: release-queue
-  cancel-in-progress: false
-
 jobs:
   # No `name`: the check of a job is then named after its ID, which the script gets from
   # `GITHUB_JOB` to leave this job out of the PR's checks.
-  release-queue:
+  join-umbrella:
     if: >-
       github.repository_owner == 'withastro' &&
       (github.event_name == 'workflow_dispatch' || github.event.label.name == 'accepted')
+    # One run at a time, so that two runs never act on the same umbrella. Set on the job: on the
+    # workflow, a run skipped for another label would cancel a pending run.
+    concurrency:
+      group: release-queue
+      cancel-in-progress: false
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -30,12 +30,10 @@ jobs:
       # `GITHUB_TOKEN` submits the review that blocks the merge of an umbrella PR.
       pull-requests: write
     steps:
-      # The default branch, not the PR's base branch, which can be a prerelease branch without
-      # the latest scripts.
+      # On `pull_request_target`, GitHub checks out the default branch, never the PR's branches.
       - name: Check out the default branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
 
       - name: Set up Node.js

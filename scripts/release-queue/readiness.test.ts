@@ -6,6 +6,7 @@ import {
 	buildPullRequest,
 	buildReadyState,
 	FakeRepository,
+	JOB_NAME,
 	MAINTAINER,
 } from './fake-repository.ts';
 import { readReadiness, type Readiness } from './readiness.ts';
@@ -20,7 +21,6 @@ const READY: Readiness = {
 };
 
 const OUTSIDER = 'example-outsider';
-const JOB_NAME = 'release-queue';
 
 /** Reads the readiness of PR #1, approved and with passing checks unless `changes` say otherwise. */
 async function readReadinessWith(changes: Partial<ReturnType<typeof buildReadyState>> = {}) {
