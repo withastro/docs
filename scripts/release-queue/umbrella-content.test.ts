@@ -65,7 +65,7 @@ describe('renderUmbrella', () => {
 
 		assert.match(body, /^<!-- release-queue:release-pr=100 -->\n/);
 		assert.match(body, /withastro\/astro#100/);
-		assert.match(body, /## Included PRs\n\n- #7\n- #9\n$/);
+		assert.match(body, /This includes:\n\n- #7\n- #9\n\n/);
 	});
 
 	it('should say when no release PR is open, without a marker', () => {
@@ -76,7 +76,8 @@ describe('renderUmbrella', () => {
 		});
 
 		assert.doesNotMatch(body, /release-queue:release-pr/);
-		assert.match(body, /no release PR is open yet/);
+		assert.match(body, /No release PR is open in `withastro\/astro` yet\./);
+		assert.match(body, /This includes no docs PRs yet\./);
 	});
 });
 

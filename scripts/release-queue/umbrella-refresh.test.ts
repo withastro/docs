@@ -174,7 +174,7 @@ describe('refreshOpenUmbrellas', () => {
 		assert.equal(reviews.length, 1);
 		const [checklist] = reviews.map(({ args }) => String(args[1]));
 		assert.match(checklist, /covered-prs=7 -->/);
-		assert.match(checklist, /- \[x\] withastro\/astro#100, /);
-		assert.match(checklist, /Still open: #11\./);
+		assert.match(checklist, /- \[x\] The release withastro\/astro#100 is merged\./);
+		assert.match(checklist, /Still open and based on `release-queue\/main`: #11\./);
 	});
 });

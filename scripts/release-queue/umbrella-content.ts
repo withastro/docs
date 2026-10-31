@@ -59,11 +59,7 @@ export function renderUmbrella({ branches, release, includedPrNumbers }: Umbrell
 } {
 	return {
 		title: renderUmbrellaTitle(branches.base, release),
-		body: renderUmbrellaBody({
-			branches,
-			releasePrNumber: release?.prNumber ?? null,
-			includedPrNumbers,
-		}),
+		body: renderUmbrellaBody({ releasePrNumber: release?.prNumber ?? null, includedPrNumbers }),
 	};
 }
 
@@ -99,7 +95,7 @@ export function planUmbrellaUpdate(
 	const { branches } = umbrella;
 	const title = release ? renderUmbrellaTitle(branches.base, release) : umbrella.title;
 	const releasePrNumber = getUmbrellaReleasePrNumber(umbrella, release);
-	const body = renderUmbrellaBody({ branches, releasePrNumber, includedPrNumbers });
+	const body = renderUmbrellaBody({ releasePrNumber, includedPrNumbers });
 
 	return {
 		prNumber: umbrella.number,
@@ -184,28 +180,23 @@ function findTitlePackage(release: FrameworkRelease) {
 
 /** Renders the description of an umbrella PR: the release PR it ships with, and its docs PRs. */
 function renderUmbrellaBody({
-	branches,
 	releasePrNumber,
 	includedPrNumbers,
-}: Omit<UmbrellaContent, 'release'> & { releasePrNumber: number | null }) {
-	const marker =
-		releasePrNumber === null
-			? ''
-			: `${renderMarker(RELEASE_PR_MARKER_NAME, String(releasePrNumber))}\n`;
+}: Pick<UmbrellaContent, 'includedPrNumbers'> & { releasePrNumber: number | null }) {
 	const release =
 		releasePrNumber === null
-			? 'no release PR is open yet.'
-			: `${FRAMEWORK_REPOSITORY}#${releasePrNumber}`;
-	const includedPrList =
+			? `The docs for the next release. No release PR is open in \`${FRAMEWORK_REPOSITORY}\` yet.`
+			: `${renderMarker(RELEASE_PR_MARKER_NAME, String(releasePrNumber))}\nThe docs for the next release: ${FRAMEWORK_REPOSITORY}#${releasePrNumber}`;
+	const includedPrs =
 		includedPrNumbers.length > 0
-			? includedPrNumbers.map((prNumber) => `- #${prNumber}`).join('\n')
-			: 'None yet.';
+			? `This includes:\n\n${includedPrNumbers.map((prNumber) => `- #${prNumber}`).join('\n')}`
+			: 'This includes no docs PRs yet.';
 
 	const paragraphs = [
-		`${marker}The docs for the next release into \`${branches.base}\`, collected in \`${branches.head}\`. The release queue keeps this description and the title up to date: edits to them are overwritten.`,
-		`**Ships with:** ${release}`,
-		'## Included PRs',
-		includedPrList,
+		release,
+		includedPrs,
+		'A maintainer will merge this umbrella PR once the release is out.',
+		'_Managed by the release assistant. Do not make manual edits to its title and description._',
 	];
 	return `${paragraphs.join('\n\n')}\n`;
 }

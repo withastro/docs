@@ -82,32 +82,32 @@ describe('syncMergeBlockReview', () => {
 
 	describe('checklist', () => {
 		it('should link the release, and tick it once it is merged', async () => {
-			assert.match(await renderReview(), /- \[ \] withastro\/astro#100, /);
+			assert.match(await renderReview(), /- \[ \] The release withastro\/astro#100 is merged\./);
 			assert.match(
 				await renderReview({ ...CHECKLIST, isReleaseMerged: true }),
-				/- \[x\] withastro\/astro#100, /
+				/- \[x\] The release withastro\/astro#100 is merged\./
 			);
 		});
 
 		it('should say when no release PR is linked yet', async () => {
 			assert.match(
 				await renderReview({ ...CHECKLIST, releasePrNumber: null }),
-				/- \[ \] The release this umbrella ships with is merged\. No release PR is linked yet\./
+				/- \[ \] An associated release PR is open in `withastro\/astro`\./
 			);
 		});
 
-		it('should list the open PRs that target the umbrella branch', async () => {
-			assert.match(await renderReview(), /- \[x\] No open PRs target `release-queue\/main`\./);
+		it('should list the open PRs based on the umbrella branch, after the items', async () => {
+			assert.doesNotMatch(await renderReview(), /Still open/);
 			assert.match(
 				await renderReview({ ...CHECKLIST, openPrNumbers: [11, 12] }),
-				/- \[ \] No open PRs target `release-queue\/main`\. Still open: #11, #12\./
+				/\)\.\n\nStill open and based on `release-queue\/main`: #11, #12\. .+\n$/
 			);
 		});
 
-		it('should always ask to check for translations, with the usual Lunaria directive', async () => {
+		it('should always ask to check for translations, with an example Lunaria directive', async () => {
 			assert.match(
 				await renderReview(),
-				/- \[ \] If this PR has the `i18n` label, add the Lunaria directive to the commit body, usually `@lunaria-track:src\/content\/docs\/en\/\*\*\.mdx`\.\n$/
+				/- \[ \] If this PR has the `i18n` label, add a \[Lunaria directive\]\(https:\/\/lunaria\.dev\/.+\) to the commit body when merging \(e\.g\. `@lunaria-track:src\/content\/docs\/en\/\*\*\.mdx`\)\.\n$/
 			);
 		});
 	});

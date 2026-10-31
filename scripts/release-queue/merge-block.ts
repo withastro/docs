@@ -1,6 +1,12 @@
 import { REVIEW_STATES, type Review } from '../lib/github/repository.ts';
 import { formatPrNumbers } from './comments.ts';
-import { FRAMEWORK_REPOSITORY, I18N_LABEL, LUNARIA_DIRECTIVE } from './config.ts';
+import {
+	ACCEPTED_LABEL,
+	FRAMEWORK_REPOSITORY,
+	I18N_LABEL,
+	LUNARIA_DIRECTIVE_EXAMPLE,
+	LUNARIA_DIRECTIVE_GUIDE,
+} from './config.ts';
 import { readMarker, renderMarker } from './markers.ts';
 import type { ReleaseQueueContext } from './run-state.ts';
 import type { Umbrella } from './umbrella.ts';
@@ -77,46 +83,45 @@ function readCoveredPrNumbers(body: string) {
 }
 
 function renderChecklistReview(checklist: MergeChecklist) {
-	const items = [renderReleaseItem(checklist), renderOpenPrsItem(checklist), renderLunariaItem()];
+	const items = [renderReleaseItem(checklist), renderDocsPrsItem(), renderLunariaItem()];
 	const marker = renderMarker(COVERED_PRS_MARKER_NAME, checklist.includedPrNumbers.join(','));
 	const paragraphs = [
-		`${marker}\nBefore merging this umbrella PR, check the following, then dismiss this review.`,
+		`${marker}\nReview each item, then dismiss this review before merging.`,
 		items.join('\n'),
+		...renderOpenPrsWarning(checklist),
 	];
 	return `${paragraphs.join('\n\n')}\n`;
 }
 
 function renderReleaseItem({ releasePrNumber, isReleaseMerged }: MergeChecklist) {
 	if (releasePrNumber === null) {
-		return renderItem(
-			false,
-			'The release this umbrella ships with is merged. No release PR is linked yet.'
-		);
+		return renderItem(false, `An associated release PR is open in \`${FRAMEWORK_REPOSITORY}\`.`);
 	}
 	return renderItem(
 		isReleaseMerged,
-		`${FRAMEWORK_REPOSITORY}#${releasePrNumber}, the release this umbrella ships with, is merged.`
+		`The release ${FRAMEWORK_REPOSITORY}#${releasePrNumber} is merged.`
 	);
 }
 
-function renderOpenPrsItem({ umbrella, openPrNumbers }: MergeChecklist) {
-	const { branches } = umbrella;
-	const requirement = `No open PRs target \`${branches.head}\`.`;
-	if (openPrNumbers.length === 0) return renderItem(true, requirement);
-
-	const instruction =
-		`Merge them into this umbrella, or change their base to \`${branches.base}\` and rebase them once this umbrella is merged.`;
-	return renderItem(
-		false,
-		`${requirement} Still open: ${formatPrNumbers(openPrNumbers)}. ${instruction}`
-	);
+function renderDocsPrsItem() {
+	return renderItem(false, 'Every docs PR related to the release is merged.');
 }
 
 function renderLunariaItem() {
 	return renderItem(
 		false,
-		`If this PR has the \`${I18N_LABEL}\` label, add the Lunaria directive to the commit body, usually \`${LUNARIA_DIRECTIVE}\`.`
+		`If this PR has the \`${I18N_LABEL}\` label, add a [Lunaria directive](${LUNARIA_DIRECTIVE_GUIDE}) to the commit body when merging (e.g. \`${LUNARIA_DIRECTIVE_EXAMPLE}\`).`
 	);
+}
+
+/** Lists the open PRs based on the umbrella branch, or nothing when there is none. */
+function renderOpenPrsWarning({ umbrella, openPrNumbers }: MergeChecklist) {
+	if (openPrNumbers.length === 0) return [];
+
+	const { head, base } = umbrella.branches;
+	return [
+		`Still open and based on \`${head}\`: ${formatPrNumbers(openPrNumbers)}. Add \`${ACCEPTED_LABEL}\` to merge them into this umbrella PR, or change their base to \`${base}\`.`,
+	];
 }
 
 function renderItem(isChecked: boolean, text: string) {

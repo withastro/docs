@@ -17,8 +17,11 @@ describe('renderRefusalComment', () => {
 			branches: MAIN_BRANCHES,
 		});
 
-		assert.match(comment, /^This PR has no release label\./);
-		assert.match(comment, /add `accepted` again\.$/);
+		assert.match(
+			comment,
+			/^`accepted` was removed\. This PR can't join its umbrella PR yet:\n\n- It has no release label\./
+		);
+		assert.match(comment, /a maintainer can add `accepted` again\.$/);
 	});
 
 	it('should list several reasons', () => {
@@ -27,7 +30,10 @@ describe('renderRefusalComment', () => {
 			branches: MAIN_BRANCHES,
 		});
 
-		assert.match(comment, /^This PR can't join its umbrella yet:\n\n- .+\n- .+\n\n/);
+		assert.match(
+			comment,
+			/^`accepted` was removed\. This PR can't join its umbrella PR yet:\n\n- .+\n- .+\n\n/
+		);
 	});
 });
 
@@ -75,7 +81,7 @@ describe('renderMergeFailureComment', () => {
 
 		assert.match(comment, /`release-queue\/main`/);
 		assert.match(comment, /Merge conflict/);
-		assert.match(comment, /add `accepted` again\.$/);
+		assert.match(comment, /a maintainer can add `accepted` again\.$/);
 	});
 });
 
