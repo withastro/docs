@@ -1,0 +1,51 @@
+# Moves accepted docs PRs into the umbrella PR of their release, and refreshes the umbrella PRs.
+
+name: Release assistant
+
+on:
+  # Needed to comment on PRs from forks. The job never checks out or runs code from the PR.
+  # zizmor: ignore[dangerous-triggers]
+  pull_request_target:
+    types: [labeled]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  # No `name`: the check of a job is then named after its ID, which the script gets from
+  # `GITHUB_JOB` to leave this job out of the PR's checks.
+  join-umbrella:
+    if: >-
+      github.repository_owner == 'withastro' &&
+      (github.event_name == 'workflow_dispatch' || github.event.label.name == 'accepted')
+    # One run at a time, so that two runs never act on the same umbrella. Set on the job: on the
+    # workflow, a run skipped for another label would cancel a pending run.
+    concurrency:
+      group: release-assistant
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # `GITHUB_TOKEN` submits the review that blocks the merge of an umbrella PR.
+      pull-requests: write
+    steps:
+      # On `pull_request_target`, GitHub checks out the default branch, never the PR's branches.
+      - name: Check out the default branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version-file: .nvmrc
+
+      - name: Run the release assistant
+        env:
+          BOT_TOKEN: ${{ secrets.FREDKBOT_GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        # `dry-run` comments on the PR with what the release assistant would do. `live` joins
+        # the PRs.
+        run: node --experimental-transform-types ./scripts/release-assistant.ts --mode dry-run
