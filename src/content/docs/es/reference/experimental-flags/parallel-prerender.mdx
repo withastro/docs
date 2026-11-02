@@ -1,0 +1,55 @@
+---
+title: Prerenderizado experimental en paralelo
+sidebar:
+  label: Prerenderizado en paralelo
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Tipo:** `boolean | { workers?: number }`<br />
+**Predeterminado:** `false`<br />
+<Since v="7.4.0" />
+</p>
+
+Esta funcionalidad experimental hace que `astro build` renderice tus páginas estáticas en paralelo, utilizando múltiples núcleos de CPU a la vez en lugar de uno solo. En sitios con muchas páginas, esto puede reducir significativamente los tiempos de compilación.
+
+Para habilitar el prerenderizado en paralelo, añade la opción a tu configuración de Astro:
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: true,
+  },
+});
+```
+
+## Elegir el número de workers
+
+Por defecto, Astro utiliza todos los núcleos de CPU disponibles excepto uno. Para usar menos, establece `workers` en el número de núcleos de CPU que Astro debe usar:
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: {
+      workers: 4,
+    },
+  },
+});
+```
+
+Cada worker adicional aumenta la memoria utilizada por tu compilación. Si tu compilación se queda sin memoria, o no se vuelve más rápida, prueba con un número menor.
+
+## Limitaciones
+
+El prerenderizado en paralelo tiene actualmente las siguientes limitaciones:
+
+- Las páginas renderizadas en paralelo no comparten variables a nivel de módulo. Por ejemplo, un valor almacenado en caché en una variable mientras se renderiza una página puede no estar necesariamente disponible al renderizar otra.
+- Las páginas cuyas props de [`getStaticPaths()`](/es/reference/routing-reference/#getstaticpaths) contengan valores no serializables como funciones o instancias de clase no se pueden renderizar en paralelo.
+- Esta funcionalidad no tiene efecto cuando tu adaptador proporciona su propia forma de prerenderizar páginas. Entre los adaptadores oficiales, esto solo se aplica a [`@astrojs/cloudflare`](/es/guides/integrations-guide/cloudflare/). Astro registra una advertencia durante la compilación cuando se ignora la opción.
