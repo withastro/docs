@@ -63,6 +63,7 @@ export const sidebar = [
 					'guides/syntax-highlighting',
 					'guides/client-side-scripts',
 					'guides/framework-components',
+					'guides/vite-plugin-astro',
 				],
 			}),
 			group('guides.content', {
