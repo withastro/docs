@@ -1,0 +1,300 @@
+---
+title: Astro 日志记录器 API
+sidebar:
+  label: 日志记录器 API
+i18nReady: true
+---
+import Since from '~/components/Since.astro';
+
+<p>
+  <Since v="7.0.0" />
+</p>
+
+
+日志记录器 API 提供了对 Astro 日志基础设施更强的控制力。这使你可以用自定义的日志实现替换默认的控制台输出，并连接到日志聚合服务。
+
+该 API 包含三个开箱即用的日志记录器，并允许你集成自己的日志记录器并将它们组合起来。
+
+## 自定义日志记录器
+
+如果你不想使用任何一个[内置日志记录器](#内置日志记录器)，你可以构建自己的日志记录器。
+
+自定义日志记录器由两部分组成：
+
+- [logger 配置](#logger-配置)，让 Astro 知道要使用哪种实现以及要转发什么配置
+- [logger 实现](#logger-实现)，负责处理日志记录逻辑
+
+当你定义了自定义日志记录器时，你将负责所有日志，包括 Astro 自己发出的日志。
+
+### logger 配置
+
+[`logger` 配置](/zh-cn/reference/configuration-reference/#logger-options) 是一个对象，包含必需的 [`entrypoint`](/zh-cn/reference/configuration-reference/#loggerentrypoint) 和可选的 [`config`](/zh-cn/reference/configuration-reference/#loggerconfig)。
+
+以下示例配置了由 `@org/custom-logger` 包导出的自定义日志记录器，并向其传递了一个 `level` 选项：
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  logger: {
+    entrypoint: "@org/custom-logger",
+    config: {
+      level: "warn"
+    }
+  }
+});
+```
+
+### logger 实现
+
+日志记录器实现负责处理日志记录逻辑。你需要在日志记录器模块中实现它：导出一个默认函数，该函数接受 [config](#logger-配置) 作为参数，并返回一个带有必需的 `write()` 函数的 [`AstroLoggerDestination` 对象](#astrologgerdestination)。
+
+以下示例实现了一个最小化的日志记录器，它会考虑其配置中的日志 `level`：
+
+```ts title="@org/custom-logger/index.js"
+import { matchesLevel } from "astro/logger";
+
+/**
+ * 自定义日志记录器实现的最小示例。
+ *
+ * @param {Object} [options] - 日志记录器选项。
+ * @param {import("astro").AstroLoggerLevel} [options.level] - 日志的最低级别。默认为 "info"。
+ * @returns {import("astro").AstroLoggerDestination} 自定义日志记录器目标。
+ */
+function orgLogger({ level } = { level: "info" }) {
+  return {
+    write(message) {
+      // 使用该工具函数判断消息是否应该被打印
+      if (matchesLevel(message.level, level)) {
+        // 在某处记录消息，并将级别纳入考量
+      }
+    },
+  };
+}
+
+export default orgLogger;
+```
+
+现在，你可以使用[运行时 API](/zh-cn/reference/api-reference/#logger) 在页面渲染期间添加你自己的日志。
+
+## 日志级别
+
+级别是分配给每条消息的内部、任意的分数。当日志记录器配置了某个级别时，只有级别等于或高于该级别的消息才会被打印。
+
+共有三个级别，从最高分到最低分依次为：
+1. `error`
+2. `warn`
+3. `info`
+
+以下示例配置 JSON 日志记录器，仅打印具有 `warn` 或更高级别的消息：
+
+```js title="astro.config.mjs" {4} ins='level: "warn"'
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ level: "warn" })
+});
+```
+
+`astro/logger` 包暴露了一个 [`matchesLevel()`](#matcheslevel) 辅助函数来检查日志级别。这在[构建自定义日志记录器](#自定义日志记录器)时非常有用。
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info");
+```
+
+## 内置日志记录器
+
+Astro 提供了可供应用使用的内置日志记录器。
+
+### `logHandlers.json()`
+
+一个以 JSON 格式输出消息的日志记录器。日志看起来像这样：
+
+```json
+{ "message": "<the message>", "label": "router", "level": "info", "time": "<UNIX timestamp>"  }
+```
+
+#### JSON 日志记录器选项
+
+<p>
+  **类型：** `{ pretty: boolean; level: AstroLoggerLevel; }`<br />
+  **默认值：** `{ pretty: false, level: 'info' }`
+  <Since v="7.0.0" />
+</p>
+
+`json` 日志记录器接受以下选项：
+
+- `pretty`：为 `true` 时，JSON 日志会打印为多行。默认为 `false`。
+- `level`：应打印的日志[级别](#日志级别)。
+
+```js title="astro.config.mjs" {4} ins="json"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.json({ pretty: true })
+});
+```
+
+### `logHandlers.console()`
+
+一个以 `console` 作为目标来打印消息的日志记录器。它会根据消息的级别使用不同的通道：
+
+- `error` 消息使用 `console.error()` 打印。
+- `warn` 消息使用 `console.warn()` 打印。
+- `info` 消息使用 `console.info()` 打印。
+
+#### Console 日志记录器选项
+
+<p>
+  **类型：** `{ level: AstroLoggerLevel }`<br />
+  **默认值：** `{ level: 'info' }`
+  <Since v="7.0.0" />
+</p>
+
+`console` 日志记录器接受以下选项：
+
+- `level`：应打印的日志[级别](#日志级别)。
+
+```js title="astro.config.mjs" {4} ins="console"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.console({ level: 'warn' })
+});
+```
+
+### `logHandlers.node()`
+
+一个将消息打印到 [`process.stdout`](https://nodejs.org/api/process.html#processstdout) 和 [`process.stderr`](https://nodejs.org/api/process.html#processstderr) 的日志记录器。`error` 级别的消息打印到 `stderr`，其他消息打印到 `stdout`。
+
+这是 Astro 的默认日志记录器。
+
+#### Node 日志记录器选项
+
+<p>
+  **类型：** `{ level: AstroLoggerLevel }`<br />
+  **默认值：** `{ level: 'info' }`
+  <Since v="7.0.0" />
+</p>
+
+`node` 日志记录器接受以下选项：
+
+- `level`：应打印的日志[级别](#日志级别)。
+
+```js title="astro.config.mjs" {4} ins="node"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.node({ level: 'warn' })
+});
+```
+
+### `logHandlers.compose()`
+
+一个特殊的函数，允许以任意顺序配置多个日志记录器。同一条消息会被广播到所有日志记录器。
+
+以下示例使用默认日志级别组合了 console 日志记录器和 JSON 日志记录器：
+
+```js title="astro.config.mjs"
+import { defineConfig, logHandlers } from 'astro/config';
+
+export default defineConfig({
+  logger: logHandlers.compose(
+    logHandlers.console(),
+    logHandlers.json()
+  )
+});
+```
+
+## 类型参考
+
+以下类型可以从 `astro` 指定符导入。
+
+### `AstroRuntimeLogger`
+
+<p>
+
+**类型：** `{ info: (message: string) => void; warn: (message: string) => void; error: (message: string) => void; }`<br />
+<Since v="7.0.8" />
+</p>
+
+描述[运行时可用的 `logger` 方法](/zh-cn/reference/api-reference/#logger)，用于在页面渲染期间添加额外的日志。
+
+### `AstroLoggerDestination`
+
+这是自定义日志记录器必须实现的接口。
+
+#### `AstroLoggerDestination.write()`
+
+<p>
+
+  **类型：** `(message: AstroLoggerMessage) => void`
+</p>
+
+一个必需的方法，每条日志都会调用它，并接受一个 [`AstroLoggerMessage`](#astrologgermessage)。
+
+#### `AstroLoggerDestination.flush()`
+
+<p>
+
+  **类型：** `() => Promise<void> | void`
+</p>
+
+一个可选函数，在每个请求结束时调用。这对于需要在保持与目标连接存活的同时刷新日志消息的高级日志记录器非常有用。
+
+#### `AstroLoggerDestination.close()`
+
+<p>
+
+  **类型：** `() => Promise<void> | void`
+</p>
+
+一个可选函数，在服务器关闭之前调用。该函数通常由诸如 `@astrojs/node` 之类的适配器调用。
+
+### `AstroLoggerLevel`
+
+<p>
+
+**类型：** `'debug' |'info' |'warn' | 'error' | 'silent'`
+</p>
+
+指定日志的详细程度：
+- `info`、`warn` 和 `error`：定义要打印的最低[日志级别](#日志级别)。
+- `silent`：等同于 [`--silent` CLI 标志](/zh-cn/reference/cli-reference/#--silent)，启用静默日志记录。
+- `debug`：等同于 [`--debug` CLI 标志](/zh-cn/reference/cli-reference/#--verbose)，启用详细日志记录，包括 Vite 日志。
+
+### `AstroLoggerMessage`
+
+<p>
+
+  **类型：** `{ label: string | null; level: AstroLoggerLevel; message: string;	newLine: boolean; }`
+</p>
+
+传入 [`AstroLoggerDestination.write()`](#astrologgerdestinationwrite) 函数的对象：
+- `message`：被记录的消息。
+- `level`：消息的级别。
+- `label`：分配给日志消息的任意标签。
+- `newLine`：此消息是否应添加尾随换行符。
+
+## API 参考
+
+以下 API 可以从 `astro/logger` 指定符导入。
+
+### `matchesLevel()`
+
+<p>
+
+  **类型：** `matchesLevel(messageLevel: AstroLoggerLevel, configuredLevel: AstroLoggerLevel) => boolean`
+</p>
+
+给定两个[日志级别](#日志级别)，返回第一个级别是否匹配第二个级别。
+
+```js
+import { matchesLevel } from "astro/logger";
+
+matchesLevel("error", "info"); // true
+matchesLevel("info", "error"); // false
+
+```
