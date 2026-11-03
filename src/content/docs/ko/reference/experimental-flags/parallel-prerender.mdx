@@ -1,0 +1,55 @@
+---
+title: 실험적 병렬 사전 렌더링
+sidebar:
+  label: 병렬 사전 렌더링
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**타입:** `boolean | { workers?: number }`<br />
+**기본값:** `false`<br />
+<Since v="7.4.0" />
+</p>
+
+이 실험적 기능은 `astro build`가 하나의 CPU 코어 대신 여러 코어를 동시에 사용하여 정적 페이지를 병렬로 렌더링하도록 합니다. 페이지가 많은 사이트에서는 빌드 시간을 크게 줄일 수 있습니다.
+
+병렬 사전 렌더링을 활성화하려면 Astro 구성에 다음 플래그를 추가하세요.
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: true,
+  },
+});
+```
+
+## 워커 수 선택
+
+기본적으로 Astro는 사용 가능한 CPU 코어 중 하나를 제외한 모든 코어를 사용합니다. 더 적은 코어를 사용하려면 `workers`를 Astro가 사용할 CPU 코어 수로 설정하세요.
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: {
+      workers: 4,
+    },
+  },
+});
+```
+
+워커를 추가할 때마다 빌드에 사용되는 메모리가 늘어납니다. 빌드 중 메모리가 부족해지거나 빌드 속도가 빨라지지 않는다면 워커 수를 줄여 보세요.
+
+## 제한 사항
+
+병렬 사전 렌더링에는 현재 다음과 같은 제한 사항이 있습니다.
+
+- 병렬로 렌더링되는 페이지는 모듈 수준의 변수를 공유하지 않습니다. 예를 들어, 한 페이지를 렌더링하는 동안 변수에 캐시한 값을 다른 페이지를 렌더링할 때 사용할 수 있다는 보장은 없습니다.
+- [`getStaticPaths()`](/ko/reference/routing-reference/#getstaticpaths)의 props에 함수나 클래스 인스턴스처럼 직렬화할 수 없는 값이 포함된 페이지는 병렬로 렌더링할 수 없습니다.
+- 어댑터가 자체적인 페이지 사전 렌더링 방식을 제공하는 경우 이 기능은 효과가 없습니다. 공식 어댑터 중에서는 [`@astrojs/cloudflare`](/ko/guides/integrations-guide/cloudflare/)만 여기에 해당합니다. Astro는 플래그가 무시될 때 빌드 중에 경고를 출력합니다.

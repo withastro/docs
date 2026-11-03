@@ -1,0 +1,656 @@
+---
+title: Unified API Reference
+sidebar:
+  label: 'Unified'
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro offers optional support for [unified](https://unifiedjs.com/), a popular Markdown ecosystem, via the `@astrojs/markdown-remark` package. This allows you to customize and extend the rendering process using remark and rehype plugins. It also provides a set of helpers and types helpful when building integrations or plugins.
+
+For features and usage examples, see [Markdown processors](/en/guides/markdown-content/#markdown-processors) in the Markdown guide.
+
+## Imports from `@astrojs/markdown-remark`
+
+The following helpers are imported from `@astrojs/markdown-remark`:
+
+```ts
+import {
+  createMarkdownProcessor,
+  isUnifiedProcessor,
+  parseFrontmatter,
+  rehypeHeadingIds,
+  unified,
+} from "@astrojs/markdown-remark";
+```
+
+### `createMarkdownProcessor()`
+
+<p>
+
+**Type:** <code>(opts?: <a href="#astromarkdownoptions">AstroMarkdownOptions</a>) => Promise\<<a href="#markdownrenderer">MarkdownRenderer</a>\></code><br />
+<Since v="3.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Creates a standalone unified-based Markdown renderer. This is useful when you need to render Markdown independently of a project's [configured `markdown.processor`](/en/reference/configuration-reference/#markdownprocessor).
+
+```ts title="src/utils/markdown.ts"
+import { createMarkdownProcessor } from "@astrojs/markdown-remark";
+
+const processor = await createMarkdownProcessor();
+const { code, metadata } = await processor.render("# Hello world");
+```
+
+### `isUnifiedProcessor()`
+
+<p>
+
+**Type:** `(p: { name: string; }) => boolean`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Determines whether the given Markdown processor is unified. This is useful when you need to check the type of a processor before applying unified-specific logic.
+
+The following example checks, within an integration, whether the configured Markdown processor is unified:
+
+```ts title="src/integrations/my-integration.ts" {9-11}
+import { isUnifiedProcessor } from "@astrojs/markdown-remark";
+import type { AstroIntegration } from "astro";
+
+export default function myIntegration(): AstroIntegration {
+  return {
+    name: "my-integration",
+    hooks: {
+      "astro:config:done": ({ config }) => {
+        if (isUnifiedProcessor(config.markdown.processor)) {
+          // Apply unified-specific logic here
+        }
+      },
+    },
+  };
+}
+```
+
+### `rehypeHeadingIds()`
+
+<p>
+
+**Type:** <code><a href="#rehypeplugin">RehypePlugin</a></code><br />
+<Since v="1.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Generates and collects heading IDs for all headings in the Markdown content. This makes them [available when importing or rendering Markdown content](/en/guides/markdown-content/#available-properties).
+
+<ReadMore>See [heading IDs and plugins](/en/guides/markdown-content/#heading-ids-and-plugins) in the Markdown guide for usage example.</ReadMore>
+
+### `unified()`
+
+<p>
+
+**Type:** <code>(options?: <a href="#options">UnifiedProcessorOptions</a>) => <a href="#markdownprocessor">MarkdownProcessor</a></code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Creates a unified-based processor to render `.md` and `.mdx` files. Pass it to [`markdown.processor`](/en/reference/configuration-reference/#markdownprocessor) to use unified as the default Markdown processor.
+
+<ReadMore>Learn more about [setting up a Markdown processor](/en/guides/markdown-content/#setting-up-a-markdown-processor) and [using remark and rehype plugins](/en/guides/markdown-content/#markdown-processor-plugins) with examples.</ReadMore>
+
+#### Options
+
+<p>
+
+**Type:** `UnifiedProcessorOptions`
+</p>
+
+You can customize the unified processor behavior with the following options.
+
+##### `options.remarkPlugins`
+
+<p>
+
+**Type:** [`RemarkPlugins`](#remarkplugins)<br />
+**Default:** `[]`
+</p>
+
+Pass [remark plugins](https://github.com/remarkjs/remark#plugins) to customize how your Markdown is built. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
+
+The following example passes the [`remark-toc`](https://www.npmjs.com/package/remark-toc) plugin, with a custom `heading` option, to the unified processor:
+
+```js title="astro.config.mjs" {3,8}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+import remarkToc from "remark-toc";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkPlugins: [[remarkToc, { heading: "contents" }]],
+    }),
+  },
+});
+```
+
+##### `options.rehypePlugins`
+
+<p>
+
+**Type:** [`RehypePlugins`](#rehypeplugins)<br />
+**Default:** `[]`
+</p>
+
+Pass [rehype plugins](https://github.com/rehypejs/rehype#plugins) to customize how your HTML is generated from the Markdown content. You can import and apply the plugin function (recommended), or pass the plugin name as a string.
+
+The following example passes the [`rehype-accessible-emojis`](https://www.npmjs.com/package/rehype-accessible-emojis) plugin to the unified processor:
+
+```js title="astro.config.mjs" {3,8}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+import { rehypeAccessibleEmojis } from "rehype-accessible-emojis";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      rehypePlugins: [rehypeAccessibleEmojis],
+    }),
+  },
+});
+```
+
+##### `options.remarkRehype`
+
+<p>
+
+**Type:** [`RemarkRehype`](#remarkrehype)
+</p>
+
+Pass options to the [ `remark-rehype`](https://github.com/remarkjs/remark-rehype) plugin to control how Markdown is transformed into HTML.
+
+The following example customizes the footnote labels:
+
+```js title="astro.config.mjs" {7-10}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      remarkRehype: {
+        footnoteLabel: "Footnotes",
+        footnoteBackLabel: "Back to reference 1",
+      },
+    }),
+  },
+});
+```
+
+##### `options.recmaPlugins`
+
+<p>
+
+**Type:** `PluggableList`<br />
+**Default:** `[]`
+</p>
+
+Pass [recma plugins](https://github.com/mdx-js/recma#plugins) to customize the [estree](https://github.com/estree/estree) output of your [MDX files](/en/guides/integrations-guide/mdx/). This is useful for modifying or injecting JavaScript variables.
+
+```js title="astro.config.mjs" {3,8}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+import myRecmaPlugin from "./my-recma-plugin.mjs";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      recmaPlugins: [myRecmaPlugin],
+    }),
+  },
+});
+```
+
+You can [use AST Explorer](https://astexplorer.net/) to play with estree outputs, and try [`estree-util-visit`](https://unifiedjs.com/explore/package/estree-util-visit/) for searching across JavaScript nodes.
+
+##### `options.gfm`
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`
+</p>
+
+Whether to enable or disable [GitHub-flavored Markdown (GFM)](https://github.com/remarkjs/remark-gfm) support.
+
+To disable this, set the `gfm` option to `false`:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      gfm: false,
+    }),
+  },
+});
+```
+
+<ReadMore>Learn more about using [GitHub Flavored Markdown](/en/guides/markdown-content/#github-flavored-markdown) in Astro.</ReadMore>
+
+##### `options.smartypants`
+
+<p>
+
+**Type:** <code>boolean | <a href="#smartypants">Smartypants</a></code><br />
+**Default:** `true`
+</p>
+
+Whether to use the [SmartyPants formatter](https://daringfireball.net/projects/smartypants/) to transform straight quotes into smart quotes, dashes into en/em dashes, and triple dots into ellipses.
+
+You can either disable it or provide a configuration object with the [properties supported by `retext-smartypants`](https://github.com/retextjs/retext-smartypants#fields) to customize its behavior.
+
+The following example disables smart punctuation support:
+
+```js title="astro.config.mjs" {7}
+import { defineConfig } from "astro/config";
+import { unified } from "@astrojs/markdown-remark";
+
+export default defineConfig({
+  markdown: {
+    processor: unified({
+      smartypants: false,
+    }),
+  },
+});
+```
+
+<ReadMore>Learn more about configuring [smart punctuation](/en/guides/markdown-content/#smart-punctuation) in the Markdown guide.</ReadMore>
+
+## `@astrojs/markdown-remark` types
+
+The following types are imported from `@astrojs/markdown-remark`:
+
+```ts
+import type {
+  AstroMarkdownOptions,
+  MarkdownHeading,
+  MarkdownProcessor,
+  MarkdownRenderOptions,
+  MarkdownRenderResult,
+  MarkdownRenderer,
+  RehypePlugin,
+  RehypePlugins,
+  RemarkPlugin,
+  RemarkPlugins,
+  RemarkRehype,
+  ShikiConfig,
+  Smartypants,
+  SyntaxHighlightConfig,
+  SyntaxHighlightConfigType,
+} from "@astrojs/markdown-remark";
+```
+
+### `AstroMarkdownOptions`
+
+<p>
+
+**Type:** `{ syntaxHighlight?: SyntaxHighlightConfig | SyntaxHighlightConfigType | false; shikiConfig?: ShikiConfig; image?: { domains?: string[]; remotePatterns?: RemotePattern[]; }; }`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Describes the Markdown processor configuration. This contains all the [`markdown` options](/en/reference/configuration-reference/#markdown-options) plus the following.
+
+#### `AstroMarkdownOptions.image`
+
+<p>
+
+**Type:** <code>\{ domains?: string[]; remotePatterns?: <a href="/en/reference/modules/astro-assets/#remotepattern">RemotePattern[]</a>; \}</code>
+</p>
+
+Specifies the image configuration for the Markdown processor.
+
+##### `AstroMarkdownOptions.image.domains`
+
+<p>
+
+**Type:** `string[]`
+</p>
+
+See [`image.domains`](/en/reference/configuration-reference/#imagedomains) in the configuration reference.
+
+##### `AstroMarkdownOptions.image.remotePatterns`
+
+<p>
+
+**Type:** <code><a href="/en/reference/modules/astro-assets/#remotepattern">RemotePattern[]</a></code>
+</p>
+
+See [`image.remotePatterns`](/en/reference/configuration-reference/#imageremotepatterns) in the configuration reference.
+
+### `MarkdownHeading`
+
+<p>
+
+**Type:** `{ depth: number; slug: string; text: string; }`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Represents a heading in a Markdown or MDX document.
+
+#### `MarkdownHeading.depth`
+
+<p>
+
+**Type:** `number`
+</p>
+
+The heading level, from `1` (`<h1>`) to `6` (`<h6>`).
+
+#### `MarkdownHeading.slug`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Specifies the generated slug used as the `id` attribute for anchor links.
+
+#### `MarkdownHeading.text`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Contains the heading's rendered text content.
+
+### `MarkdownProcessor`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Describes the [configured `markdown.processor`](/en/reference/configuration-reference/#markdownprocessor). This is useful when you want to indicate that a variable accepts any [built-in Markdown processor](/en/guides/markdown-content/#markdown-processors).
+
+### `MarkdownRenderOptions`
+
+<p>
+
+**Type:** `{ fileURL?: URL; frontmatter?: Record<string, any>; }`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Describes the options available when rendering Markdown content.
+
+#### `MarkdownRenderOptions.fileURL`
+
+<p>
+
+**Type:** `URL`
+</p>
+
+Specifies the URL of the Markdown file being rendered.
+
+#### `MarkdownRenderOptions.frontmatter`
+
+<p>
+
+**Type:** `Record<string, any>`
+</p>
+
+Provides the frontmatter data for the Markdown content.
+
+### `MarkdownRenderResult`
+
+<p>
+
+**Type:** <code>\{ code: string; metadata: \{ headings: <a href="#markdownheading">MarkdownHeading</a>[]; localImagePaths: string[]; remoteImagePaths: string[]; frontmatter: Record\<string, any\>; \}; \}</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Describes a rendered Markdown file.
+
+#### `MarkdownRenderResult.code`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Contains the rendered HTML code.
+
+#### `MarkdownRenderResult.metadata`
+
+<p>
+
+**Type:** <code>\{ headings: <a href="#markdownheading">MarkdownHeading</a>[]; localImagePaths: string[]; remoteImagePaths: string[]; frontmatter: Record\<string, any\>; \}</code>
+</p>
+
+Describes the metadata associated with the rendered content.
+
+##### `MarkdownRenderResult.metadata.headings`
+
+<p>
+
+**Type:** <code><a href="#markdownheading">MarkdownHeading</a>[]</code>
+</p>
+
+A list of extracted headings.
+
+##### `MarkdownRenderResult.metadata.localImagePaths`
+
+<p>
+
+**Type:** `string[]`
+</p>
+
+An array of local image paths referenced in the rendered content.
+
+##### `MarkdownRenderResult.metadata.remoteImagePaths`
+
+<p>
+
+**Type:** `string[]`
+</p>
+
+An array of remote image paths referenced in the rendered content.
+
+##### `MarkdownRenderResult.metadata.frontmatter`
+
+<p>
+
+**Type:** `Record<string, any>`
+</p>
+
+The frontmatter passed to the renderer.
+
+### `MarkdownRenderer`
+
+<p>
+
+**Type:** <code>\{ render: (content: string, opts?: <a href="#markdownrenderoptions">MarkdownRenderOptions</a>) => Promise\<<a href="#markdownrenderresult">MarkdownRenderResult</a>\>; \}</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Specifies the interface implemented by a [standalone Markdown processor](#createmarkdownprocessor).
+
+#### `MarkdownRenderer.render()`
+
+<p>
+
+**Type:** <code>(content: string, opts?: <a href="#markdownrenderoptions">MarkdownRenderOptions</a>) => Promise\<<a href="#markdownrenderresult">MarkdownRenderResult</a>\></code>
+</p>
+
+Generates the rendered HTML and metadata for the given Markdown content. You can customize the rendering process using options as second argument.
+
+### `RehypePlugin`
+
+<p>
+
+**Type:** <code>Plugin\<PluginParameters, <a href="https://github.com/syntax-tree/hast#root">HastRoot</a>\></code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Defines a [rehype plugin](https://github.com/rehypejs/rehype) in the unified ecosystem.
+
+### `RehypePlugins`
+
+<p>
+
+**Type:** <code>(string | [string, any] | <a href="#rehypeplugin">RehypePlugin</a> | [<a href="#rehypeplugin">RehypePlugin</a>, any])[]</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+A list of [rehype plugins](https://github.com/rehypejs/rehype) to customize the HTML output generated from Markdown content. Each entry is either an imported plugin or the package name that Astro should automatically import.
+
+### `RemarkPlugin`
+
+<p>
+
+**Type:** <code>Plugin\<PluginParameters, <a href="https://github.com/syntax-tree/mdast#root">MdastRoot</a>\></code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Defines a [remark plugin](https://github.com/remarkjs/remark) in the unified ecosystem.
+
+### `RemarkPlugins`
+
+<p>
+
+**Type:** <code>(string | [string, any] | <a href="#remarkplugin">RemarkPlugin</a> | [<a href="#remarkplugin">RemarkPlugin</a>, any])[]</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+A list of [remark plugins](https://github.com/remarkjs/remark) to customize the Markdown processing. Each entry is either an imported plugin or the package name that Astro should automatically import.
+
+### `RemarkRehype`
+
+<p>
+
+**Type:** `Record<string, unknown>`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Specifies the options passed to the [`remark-rehype`](https://github.com/remarkjs/remark-rehype) plugin.
+
+### `ShikiConfig`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Describes the options to [configure the Shiki syntax highlighter](/en/reference/configuration-reference/#markdownshikiconfig).
+
+<ReadMore>Learn more about [syntax highlighting](/en/guides/syntax-highlighting/) with example usage.</ReadMore>
+
+#### `ShikiConfig.langs`
+
+<p>
+
+**Type:** `LanguageRegistration[]`
+</p>
+
+A list of [Shiki languages](https://shiki.style/languages) to enable in the syntax highlighter.
+
+#### `ShikiConfig.langAlias`
+
+<p>
+
+**Type:** `Record<string, string>`
+</p>
+
+Defines custom aliases to map to a Shiki language ID.
+
+See [Shiki language aliases](https://shiki.style/guide/load-lang#custom-language-aliases) for more information.
+
+#### `ShikiConfig.theme`
+
+<p>
+
+**Type:** `ThemePresets | ThemeRegistration | ThemeRegistrationRaw`
+</p>
+
+Specifies the default theme for syntax highlighting. This can be a [Shiki bundled theme](https://shiki.style/themes#bundled-themes) or a [custom Shiki theme](https://shiki.style/guide/load-theme).
+
+<ReadMore>Learn more about [setting a default Shiki theme](/en/guides/syntax-highlighting/#setting-a-default-shiki-theme) with example usage.</ReadMore>
+
+#### `ShikiConfig.themes`
+
+<p>
+
+**Type:** `Record<string, ThemePresets | ThemeRegistration | ThemeRegistrationRaw>`
+</p>
+
+An object mapping theme names to their corresponding Shiki theme configurations.
+
+<ReadMore>Learn how to [set dark and light themes](/en/guides/syntax-highlighting/#setting-light-and-dark-mode-themes) with example usage.</ReadMore>
+
+#### `ShikiConfig.defaultColor`
+
+<p>
+
+**Type:** `'light' | 'dark' | string | false`
+</p>
+
+Specifies the default theme to use when [`ShikiConfig.themes`] is defined.
+
+#### `ShikiConfig.wrap`
+
+<p>
+
+**Type:** `boolean | null`
+</p>
+
+Whether to prevent horizontal scrolling by wrapping long lines.
+
+#### `ShikiConfig.transformers`
+
+<p>
+
+**Type:** `ShikiTransformer[]`
+</p>
+
+A list of [Shiki transformers](https://shiki.style/guide/transformers) to customize the generated HTML.
+
+<ReadMore>Learn how to [apply `transformers` to `<Code />`](/en/guides/syntax-highlighting/#transformers) when you only need them for specific code blocks.</ReadMore>
+
+### `Smartypants`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Describes the [configuration options for `retext-smartypants`](https://github.com/retextjs/retext-smartypants#options).
+
+<ReadMore>Learn more about using [smart punctuation](/en/guides/markdown-content/#smart-punctuation) in Astro.</ReadMore>
+
+### `SyntaxHighlightConfig`
+
+<p>
+
+**Type:** <code>\{ type: <a href="#syntaxhighlightconfigtype">SyntaxHighlightConfigType</a>; excludeLangs?: string[]; \}</code><br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+Specifies the [configured syntax highlighter](/en/reference/configuration-reference/#markdownsyntaxhighlighttype) and the [languages to exclude from highlighting](/en/reference/configuration-reference/#markdownsyntaxhighlightexcludelangs).
+
+<ReadMore>Learn more about using [syntax highlighting](/en/guides/syntax-highlighting/) with example usage.</ReadMore>
+
+### `SyntaxHighlightConfigType`
+
+<p>
+
+**Type:** `'shiki' | 'prism'`<br />
+<Since v="7.2.0" pkg="@astrojs/markdown-remark" />
+</p>
+
+A union of supported syntax highlighter in Astro.
