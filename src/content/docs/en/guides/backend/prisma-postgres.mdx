@@ -17,47 +17,42 @@ import ReadMore from '~/components/ReadMore.astro';
 
 [Prisma ORM](https://www.prisma.io/orm) is the recommended way to connect to your Prisma Postgres database. It provides type-safe queries, migrations, and global performance.
 
+:::note
+This guide uses Prisma ORM 8, the version `npm install prisma` resolves to. Prisma ORM 8 is a release candidate until its final release; see Prisma's [release status](https://www.prisma.io/docs/orm/release-status) page. If you are on Prisma ORM 7, follow Prisma's [Prisma ORM 7 guide for Astro](https://www.prisma.io/docs/guides/v7/frameworks/astro) instead.
+:::
+
 ### Prerequisites
 - An Astro project with an adapter installed to enable [on-demand rendering (SSR)](/en/guides/on-demand-rendering/).
-- Prisma ORM 7. Prisma ORM 8 uses a different setup and is not covered by this guide.
+- Node.js 22.18 or newer on the 22 line, 24.11 or newer on the 24 line, or 26 or newer.
 
 ### Install dependencies and initialize Prisma
 
-Run the following commands to install the necessary Prisma dependencies:
+Run the following command in your project to install Prisma ORM and create its starter files:
 
 ```bash
-npm install prisma@7 tsx dotenv --save-dev
-npm install @prisma/adapter-pg@7 @prisma/client@7
+npx prisma@latest orm init --target postgres --authoring psl
 ```
 
-Once installed, initialize Prisma in your project with the following command:
+This installs the `prisma` CLI, `@prisma/orm-postgres`, and `dotenv`, and creates:
+- A `prisma.config.ts` file that loads your `DATABASE_URL` from `.env`
+- A `src/prisma/contract.prisma` file with a starter data model
+- A `src/prisma/db.ts` file that exports the Prisma ORM client
+- A `.env.example` file
+
+Next, create a Prisma Postgres database and write its connection string to `.env`:
 
 ```bash
-npx prisma init --db --output ./generated
+npx create-db@latest --env .env
 ```
 
-You'll need to answer a few questions while setting up your Prisma Postgres database. Select the region closest to your location and a memorable name for your database, like "My Astro Project."
-
-This will create:
-- A `prisma/` directory with a `schema.prisma` file
-- A `prisma7.config.ts` file that loads your `DATABASE_URL` from `.env`
-- A `.env` file with a `DATABASE_URL` already set
+The command prints a claim URL. Open it and sign in to keep the database; an unclaimed database is deleted after 24 hours. If you already have a Prisma Postgres database, add its connection string to `.env` as `DATABASE_URL` instead.
 
 ### Define a Model
 
-Even if you don't need any specific data models yet, Prisma requires at least one model in the schema in order to generate a client and apply migrations.
+Prisma requires at least one model in the contract to create the database tables. The following example defines a `Post` model as a placeholder. Replace the contents of `src/prisma/contract.prisma` with it to get started. You can safely delete or replace it later with models that reflect your actual data.
 
-The following example defines a `Post` model as a placeholder. Add the model to your schema to get started. You can safely delete or replace it later with models that reflect your actual data.
-
-```prisma title="prisma/schema.prisma" ins={10-15}
-generator client {
-  provider = "prisma-client"
-  output   = "./generated"
-}
-
-datasource db {
-  provider = "postgresql"
-}
+```prisma title="src/prisma/contract.prisma"
+// use prisma-8
 
 model Post {
   id        Int     @id @default(autoincrement())
@@ -67,51 +62,40 @@ model Post {
 }
 ```
 
-Learn more about configuring your Prisma ORM setup in the [Prisma schema reference](https://www.prisma.io/docs/orm/v7/prisma-schema/overview).
+Keep the `// use prisma-8` line at the top of the file: it tells Prisma which contract syntax the file uses. Learn more about configuring your Prisma ORM setup in the [Prisma contract reference](https://www.prisma.io/docs/orm/contract-authoring/psl-syntax).
 
-### Generate client
+### Emit the contract
 
-Run the following command to generate the Prisma Client from your schema:
-
-```bash
-npx prisma generate
-```
-
-### Generate migration files
-
-Run the following command to create the database tables from your schema. This will also create a `prisma/migrations/` directory with migration history files.
+Run the following command to generate the typed files that `src/prisma/db.ts` imports. Run it again whenever you change your contract:
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma contract emit
 ```
 
-### Create a Prisma Client
+### Create the database tables
 
-Inside of `/src/lib`, create a `prisma.ts` file. This file will initialize and export your Prisma Client instance so you can query your database throughout your Astro project.
+Run the following command to create the tables from your contract. This also creates a `migrations/` directory that records the state of your database:
 
-```typescript title="src/lib/prisma.ts"
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../prisma/generated/client';
-
-const connectionString = import.meta.env.DATABASE_URL;
-const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
-
-export default prisma;
+```bash
+npx prisma db init
 ```
+
+If the command stops with `Connection terminated unexpectedly`, a database you just created is still starting. Wait a few seconds and run it again. After you change your contract later, run `npx prisma db update` to apply the change.
 
 ### Querying and displaying data
 
-The following example shows fetching only your published posts with the Prisma Client sorted by `id`, and then displaying titles and post content in your Astro template:
+The `db` client exported from `src/prisma/db.ts` is created once and reused across your project. Models are grouped by their PostgreSQL schema, so the `Post` model is available as `db.orm.public.Post`.
+
+The following example shows fetching only your published posts, sorted by `id`, and then displaying titles and post content in your Astro template:
 
 ```astro title="src/pages/posts.astro" {2, 4-7}
 ---
-import prisma from '../lib/prisma';
+import { db } from '../prisma/db';
 
-const posts = await prisma.post.findMany({
-  where: { published: true },
-  orderBy: { id: 'desc' }
-});
+const posts = await db.orm.public.Post
+  .where({ published: true })
+  .orderBy((post) => post.id.desc())
+  .all();
 ---
 
 <html>
@@ -132,7 +116,7 @@ const posts = await prisma.post.findMany({
 </html>
 ```
 
-It is best practice to handle queries in an API route. For more information on how to use Prisma ORM in your Astro project, see the [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/astro).
+It is best practice to handle queries in an API route. For more information on how to use Prisma ORM in your Astro project, see the [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/frameworks/astro) and Prisma's guide to [reading data](https://www.prisma.io/docs/orm/fundamentals/reading-data).
 
 ## Connect with Other ORMs and Libraries
 
@@ -189,4 +173,4 @@ await client.end();
 
 ## Official Resources
 
-- [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/astro)
+- [Astro + Prisma ORM Guide](https://www.prisma.io/docs/guides/frameworks/astro)
