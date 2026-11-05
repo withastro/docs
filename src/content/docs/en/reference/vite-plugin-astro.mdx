@@ -1,5 +1,5 @@
 ---
-title: Astro components in a Vite project
+title: Experimental Astro Vite plugin
 sidebar:
   label: Vite plugin
 description: Render Astro components, including islands, from any server in a Vite project with the Astro Vite plugin.
@@ -54,7 +54,9 @@ You can now import `.astro` files from your server code.
 
 ## Rendering a component
 
-Import a component and render it with `renderToResponse()` or `renderToString()` from `@astrojs/runtime`:
+Import a component in your server code, and render it with `renderToResponse()` or `renderToString()` from `@astrojs/runtime`.
+
+The following example uses a Hono route to render a `Page.astro` component, with a `name` prop taken from the URL:
 
 ```ts title="src/app.ts"
 import { renderToResponse } from '@astrojs/runtime';
@@ -69,6 +71,8 @@ app.get('/hello/:name', (c) =>
 
 export default app;
 ```
+
+`Page.astro` receives the `name` prop, and can use [component props](/en/basics/astro-components/#component-props) as in any Astro project:
 
 ```astro title="src/components/Page.astro"
 ---
@@ -89,11 +93,14 @@ const { name } = Astro.props;
 </style>
 ```
 
-`renderToResponse()` returns a `Response` with a `Content-Type: text/html` header. `renderToString()` returns the HTML as a string.
+By default, the result is a full HTML document: `<!DOCTYPE html>` is added, and the stylesheets of the component and its children are added to the `<head>`. To render part of a page, such as a fragment for [htmx](https://htmx.org/) or a component inside a page your server renders some other way, pass `partial: true`.
 
-By default, the result is a full HTML document: `<!DOCTYPE html>` is added, and the stylesheets of the component and its children are added to the `<head>`. To render part of a page, such as a fragment for [htmx](https://htmx.org/) or a component inside a page your server renders some other way, pass `partial: true`:
+The following example renders a `Card.astro` component as an HTML fragment:
 
-```ts
+```ts title="src/app.ts"
+import { renderToString } from '@astrojs/runtime';
+import Card from './components/Card.astro';
+
 const html = await renderToString(Card, { props: { title: 'Hello' }, partial: true });
 ```
 
@@ -101,7 +108,9 @@ Rendering happens on the server only: call these functions from server code that
 
 ## Adding islands
 
-To render components from a UI framework, pass its renderer to `astro()` and add the framework's own Vite plugin. For React:
+To render components from a UI framework, pass its renderer to `astro()` and add the framework's own Vite plugin.
+
+The following example installs the React renderer, the React Vite plugin, and React:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
@@ -121,6 +130,8 @@ To render components from a UI framework, pass its renderer to `astro()` and add
   </Fragment>
 </PackageManagerTabs>
 
+Then, add the renderer and the Vite plugin to your Vite configuration file:
+
 ```js title="vite.config.js" ins={1,3,7}
 import react from '@astrojs/react-renderer';
 import astro from '@astrojs/vite-plugin-astro';
@@ -134,7 +145,7 @@ export default defineConfig({
 
 The renderer tells Astro how to render and hydrate the framework's components. The framework's Vite plugin compiles its files, as it would in any Vite project.
 
-Components can then be used with any [client directive](/en/reference/directives-reference/#client-directives):
+You can now use the framework components with any [client directive](/en/reference/directives-reference/#client-directives). The following example adds a React `Counter` to an Astro component, and hydrates it as soon as the page loads:
 
 ```astro title="src/components/Page.astro" ins={2,7}
 ---
@@ -149,7 +160,7 @@ const { name } = Astro.props;
 
 The rendered HTML includes everything needed to hydrate the island: you don't need to add any scripts yourself.
 
-Each framework has its own renderer package:
+The following table lists the renderer and the Vite plugin to use for each framework:
 
 | Framework | Renderer | Vite plugin |
 | --- | --- | --- |
@@ -159,9 +170,28 @@ Each framework has its own renderer package:
 | Svelte | `svelte()` from `@astrojs/svelte-renderer` | `@sveltejs/vite-plugin-svelte` |
 | Vue | `vue()` from `@astrojs/vue-renderer` | `@vitejs/plugin-vue` |
 
-The order of the plugins doesn't matter. To use several JSX frameworks together (for example, React and Preact), pass an `include` option to each renderer and to each framework's Vite plugin, so that each one handles only its own files, as you would with [their integrations](/en/guides/integrations-guide/react/#combining-multiple-jsx-frameworks).
+The order of the plugins doesn't matter.
 
-<ReadMore>See [Framework components](/en/guides/framework-components/) for how to use framework components in Astro components. In a Vite project, skip the `astro add` step: add the renderer and the Vite plugin as shown above instead.</ReadMore>
+To use several JSX frameworks together, tell each one which files are its own with an `include` option. Pass it to each framework's Vite plugin, and also to the `react()` and `preact()` renderers. `solid()` takes no options. The following example uses React and Solid components from separate folders:
+
+```js title="vite.config.js"
+import react from '@astrojs/react-renderer';
+import solid from '@astrojs/solid-js-renderer';
+import astro from '@astrojs/vite-plugin-astro';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import viteSolid from 'vite-plugin-solid';
+
+export default defineConfig({
+  plugins: [
+    astro({ renderers: [react({ include: ['**/react/*'] }), solid()] }),
+    viteReact({ include: ['**/react/*'] }),
+    viteSolid({ include: ['**/solid/*'], ssr: true }),
+  ],
+});
+```
+
+<ReadMore>See how to use [framework components](/en/guides/framework-components/) in Astro components. In a Vite project, skip the installing integrations step.</ReadMore>
 
 ## Developing
 
@@ -171,7 +201,9 @@ Editing a component updates the page in the browser: style changes are applied w
 
 ## Building
 
-Tell Vite where your server code starts with the build input of the `ssr` environment. Optionally, choose where each build is written:
+To build your project, tell Vite where your server code starts with the build input of the `ssr` environment. You can also choose the output directory of each build.
+
+The following example sets `src/app.ts` as the entrypoint of the server build, and writes the server and client builds to separate folders:
 
 ```js title="vite.config.js" ins={6-14}
 import astro from '@astrojs/vite-plugin-astro';
@@ -191,7 +223,7 @@ export default defineConfig({
 });
 ```
 
-`vite build` then builds your server code to `dist/server/`, and the browser code of your components to `dist/client/`: the stylesheets, the islands, the framework's client code, and the components' `<script>` tags. The rendered HTML links to these files.
+Running `vite build` then writes your server code to `dist/server/`, and the browser code of your components to `dist/client/`. The client build contains the stylesheets, the islands, the framework's client code, and the components' `<script>` tags. The rendered HTML links to these files.
 
 Serve `dist/client/` as static files, as you would for any Vite project with a server. Hosting platforms that deploy a Vite project's client output as static assets do this for you.
 
@@ -220,7 +252,7 @@ app.get('/profile', async (c) => {
 
 ## Limitations
 
-The following Astro features are available in Astro projects, and not in components rendered with `@astrojs/vite-plugin-astro`:
+The following Astro features are not available in components rendered with `@astrojs/vite-plugin-astro`:
 
 - Pages and routing: `src/pages/`, `getStaticPaths()`, and prerendering. Your server decides which component to render for each request.
 - Request-level APIs: `Astro.cookies`, `Astro.params`, `Astro.redirect()`, `Astro.locals`, [actions](/en/guides/actions/), [sessions](/en/guides/sessions/), and [internationalization](/en/guides/internationalization/) helpers.
@@ -244,11 +276,11 @@ declare module '*.astro' {
 }
 ```
 
-{/* TODO(draft): verify editor support for `.astro` files (Astro VS Code extension / language server) in a project without the `astro` package, and document it here. */}
-
 ## Reference
 
 ### `astro()` options
+
+The `astro()` plugin accepts an optional configuration object whose properties are all also optional.
 
 ```js
 astro({
@@ -256,8 +288,6 @@ astro({
   renderers: [react()],
 });
 ```
-
-All options are optional.
 
 #### `site`
 
@@ -309,12 +339,27 @@ The project root, relative to Vite's `root`.
 
 The base URL is Vite's [`base`](https://vite.dev/config/shared-options.html#base): `astro()` has no `base` option.
 
-### `renderToResponse()` and `renderToString()`
+### `renderToResponse()`
 
-```ts
-function renderToResponse(Component, options?: RenderOptions): Promise<Response>;
-function renderToString(Component, options?: RenderOptions): Promise<string>;
-```
+<p>
+
+**Type:** <code>(Component: AstroComponentFactory, options?: <a href="#renderoptions">RenderOptions</a>) => Promise\<Response\></code>
+</p>
+
+Renders a component to a `Response` with a `Content-Type: text/html` header.
+
+### `renderToString()`
+
+<p>
+
+**Type:** <code>(Component: AstroComponentFactory, options?: <a href="#renderoptions">RenderOptions</a>) => Promise\<string\></code>
+</p>
+
+Renders a component to an HTML string.
+
+### `RenderOptions`
+
+[`renderToResponse()`](#rendertoresponse) and [`renderToString()`](#rendertostring) accept an optional object with the following properties.
 
 #### `props`
 
