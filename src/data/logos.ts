@@ -125,6 +125,7 @@ export const logos = LogoCheck({
 	vercel: { file: 'vercel.svg', padding: '.3em .3em .35em' },
 	vue: { file: 'vue.svg', padding: '.3em .2em .2em' },
 	vuepress: { file: 'vuepress.png', padding: '.2em .175em .175em' },
+	wix: { file: 'wix.svg', padding: '.2em' },
 	wordpress: { file: 'wordpress.svg', padding: '.2em' },
 	xata: { file: 'xata.svg', padding: '0.234em 0.234em 0.1875em' },
 	zeabur: { file: 'zeabur.svg', padding: '.2em' },
