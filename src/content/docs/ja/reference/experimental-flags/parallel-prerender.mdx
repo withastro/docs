@@ -1,0 +1,55 @@
+---
+title: 実験的な並列事前レンダリング
+sidebar:
+  label: 並列事前レンダリング
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Type:** `boolean | { workers?: number }`<br />
+**Default:** `false`<br />
+<Since v="7.4.0" />
+</p>
+
+この実験的機能を有効にすると、`astro build`は1つのCPUコアの代わりに複数のCPUコアを同時に使用し、静的ページを並列にレンダリングします。ページ数が多いサイトでは、これによりビルド時間を大幅に短縮できます。
+
+並列事前レンダリングを有効にするには、Astroの設定に次のフラグを追加します。
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: true,
+  },
+});
+```
+
+## ワーカー数の選択
+
+デフォルトでは、Astroは利用可能なCPUコアを1つ残してすべて使用します。使用するCPUコアを減らすには、Astroで使用するCPUコア数を`workers`に設定します。
+
+```js title="astro.config.mjs" ins={5-7}
+import { defineConfig } from "astro/config";
+
+export default defineConfig({
+  experimental: {
+    parallelPrerender: {
+      workers: 4,
+    },
+  },
+});
+```
+
+ワーカーを1つ追加するごとに、ビルドで使用するメモリが増えます。ビルド中にメモリが不足する場合や、ビルドが速くならない場合は、ワーカー数を減らしてみてください。
+
+## 制約
+
+並列事前レンダリングには、現在次の制約があります。
+
+- 並列にレンダリングされるページ間では、モジュールレベルの変数は共有されません。たとえば、あるページのレンダリング中に変数にキャッシュされた値が、別のページのレンダリング時に利用できるとは限りません。
+- [`getStaticPaths()`](/ja/reference/routing-reference/#getstaticpaths)のpropsに、関数やクラスのインスタンスなど、シリアライズできない値が含まれるページは、並列にレンダリングできません。
+- アダプターがページを事前レンダリングする独自の方法を提供している場合、この機能は効果がありません。公式アダプターの中では、[`@astrojs/cloudflare`](/ja/guides/integrations-guide/cloudflare/)のみが該当します。このフラグが無視される場合、Astroはビルド中に警告を出力します。
