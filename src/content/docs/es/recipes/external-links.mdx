@@ -1,13 +1,14 @@
 ---
 title: Añadir iconos a enlaces externos
-description: Aprende a instalar un plugin de rehype para añadir iconos a enlaces externos en tus archivos Markdown.
+description: Aprende a usar un plugin de procesador de Markdown para añadir iconos a enlaces externos en tus archivos Markdown.
 i18nReady: true
 type: recipe
 ---
 import { Steps } from '@astrojs/starlight/components';
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import MarkdownProcessorTabs from '~/components/tabs/MarkdownProcessorTabs.astro';
 
-Usando un plugin de rehype, puedes identificar y modificar enlaces en tus archivos Markdown que apuntan a sitios externos. Este ejemplo añade iconos al final de cada enlace externo para que los visitantes sepan que están saliendo de tu sitio.
+Usando un [plugin de hast](/es/guides/markdown-content/#markdown-processor-plugins), puedes identificar y modificar enlaces en tus archivos Markdown que apuntan a sitios externos. Este ejemplo añade un icono al final de cada enlace externo para que los visitantes sepan que están saliendo de tu sitio.
 
 ## Requisitos previos
 
@@ -15,55 +16,122 @@ Usando un plugin de rehype, puedes identificar y modificar enlaces en tus archiv
 
 ## Receta
 
-<Steps>
-1. Instala el plugin `rehype-external-links`.
+<MarkdownProcessorTabs>
+  <Fragment slot="satteri">
+    <Steps>
+    1. Instala tanto [`@astrojs/markdown-satteri`](https://www.npmjs.com/package/@astrojs/markdown-satteri) como [`satteri`](https://www.npmjs.com/package/satteri):
 
-    <PackageManagerTabs>
-        <Fragment slot="npm">
-        ```shell
-        npm install rehype-external-links
+        <PackageManagerTabs>
+            <Fragment slot="npm">
+            ```shell
+            npm install @astrojs/markdown-satteri satteri
+            ```
+            </Fragment>
+            <Fragment slot="pnpm">
+            ```shell
+            pnpm add @astrojs/markdown-satteri satteri
+            ```
+            </Fragment>
+            <Fragment slot="yarn">
+            ```shell
+            yarn add @astrojs/markdown-satteri satteri
+            ```
+            </Fragment>
+          </PackageManagerTabs>
+
+    2. Crea un [plugin de `hast` de Sätteri](https://satteri.bruits.org/docs/plugins/#hast-plugins) que añada un icono si el enlace empieza con `http`:
+
+        ```ts title="src/hast/hast-external-links.ts"
+        import { defineHastPlugin } from 'satteri';
+
+        export const hastExternalLinks = defineHastPlugin({
+          name: "hast-external-links",
+          element: {
+            filter: ["a"],
+            visit(node, context) {
+              if (node.properties.href?.startsWith("http")) {
+                context.appendChild(node, {
+                  type: "element",
+                  tagName: "span",
+                  properties: { ariaHidden: "true" },
+                  children: [
+                    {
+                      type: "text",
+                      value: "🔗",
+                    },
+                  ],
+                });
+              }
+            },
+          },
+        });
         ```
-        </Fragment>
-        <Fragment slot="pnpm">
-        ```shell
-        pnpm add rehype-external-links
+
+    3. Configura el plugin en tu archivo `astro.config.mjs`.
+
+        Importa `satteri()` y [defínelo como el procesador de Markdown](/es/guides/markdown-content/#setting-up-a-markdown-processor) para añadir plugins personalizados de Sätteri. Luego, pasa a `hastPlugins` un array que contenga tu plugin `hastExternalLinks` importado.
+
+        ```js title="astro.config.mjs"
+        import { satteri } from '@astrojs/markdown-satteri';
+        import { defineConfig } from 'astro/config';
+        import { hastExternalLinks } from './src/hast/hast-external-links';
+
+        export default defineConfig({
+          markdown: {
+            processor: satteri({
+              hastPlugins: [hastExternalLinks],
+            }),
+          },
+        });
         ```
-        </Fragment>
-        <Fragment slot="yarn">
-        ```shell
-        yarn add rehype-external-links
+    </Steps>
+  </Fragment>
+  <Fragment slot="unified">
+    <Steps>
+    1. Instala tanto el plugin [`rehype-external-links`](https://www.npmjs.com/package/rehype-external-links) como [`@astrojs/markdown-remark`](https://www.npmjs.com/package/@astrojs/markdown-remark).
+
+        <PackageManagerTabs>
+            <Fragment slot="npm">
+            ```shell
+            npm install rehype-external-links @astrojs/markdown-remark
+            ```
+            </Fragment>
+            <Fragment slot="pnpm">
+            ```shell
+            pnpm add rehype-external-links @astrojs/markdown-remark
+            ```
+            </Fragment>
+            <Fragment slot="yarn">
+            ```shell
+            yarn add rehype-external-links @astrojs/markdown-remark
+            ```
+            </Fragment>
+          </PackageManagerTabs>
+
+    2. Configura el plugin en tu archivo `astro.config.mjs`.
+
+        Importa `unified()` y [defínelo como el procesador de Markdown](/es/guides/markdown-content/#setting-up-a-markdown-processor) para dar soporte a plugins de remark. Luego, pasa a `rehypePlugins` un array que contenga tu plugin `rehypeExternalLinks` importado y un objeto de opciones con una propiedad `content`. Establece el `type` de esta propiedad en `text` si quieres añadir texto plano al final del enlace. Para añadir HTML al final del enlace en su lugar, establece la propiedad `type` en `raw`.
+
+        ```js title="astro.config.mjs"
+        import { unified } from '@astrojs/markdown-remark';
+        import { defineConfig } from 'astro/config';
+        import rehypeExternalLinks from 'rehype-external-links';
+
+        export default defineConfig({
+          markdown: {
+            processor: unified({
+              rehypePlugins: [
+                [
+                  rehypeExternalLinks,
+                  {
+                    content: { type: 'text', value: ' 🔗' }
+                  }
+                ],
+              ]
+            }),
+          },
+        });
         ```
-        </Fragment>
-      </PackageManagerTabs>
-
-2. Importa el plugin en tu archivo `astro.config.mjs`.
-
-	Pasa `rehypeExternalLinks` al array `rehypePlugins`, junto con un objeto de opciones que incluya una propiedad `content`. Establece la propiedad `type` en `text` si quieres añadir texto plano al final del enlace. Para añadir HTML al final del enlace, establece la propiedad `type` en `raw`.
-
-    ```ts
-    // ...
-    import rehypeExternalLinks from 'rehype-external-links';
-
-    export default defineConfig({
-      // ...
-      markdown: {
-        rehypePlugins: [
-          [
-            rehypeExternalLinks,
-            {
-              content: { type: 'text', value: ' 🔗' }
-            }
-          ],
-        ]
-      },
-    });
-    ```
-
-    :::note
-      El valor de la propiedad `content` [no se representa en el árbol de accesibilidad](https://developer.mozilla.org/en-US/docs/Web/CSS/content#accessibility_concerns). Por ello, es mejor dejar claro en el contenido que rodea al enlace que se trata de un enlace externo, en lugar de depender solo del icono.
-    :::
-</Steps>
-
-
-## Recursos
-- [rehype-external-links](https://www.npmjs.com/package/rehype-external-links)
+    </Steps>
+  </Fragment>
+</MarkdownProcessorTabs>
