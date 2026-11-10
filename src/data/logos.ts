@@ -59,6 +59,7 @@ export const logos = LogoCheck({
 	gitlab: { file: 'gitlab.svg' },
 	'google-cloud': { file: 'google-cloud.svg', padding: '.1875em' },
 	gridsome: { file: 'gridsome.svg', padding: '.15em' },
+	hackmd: { file: 'hackmd.svg', padding: '0' },
 	hashnode: { file: 'hashnode.png', padding: '.1875em' },
 	heroku: { file: 'heroku.svg', padding: '.25em' },
 	hostinger: { file: 'hostinger.svg', padding: '.2em' },

@@ -24,6 +24,7 @@ import {
   cache,
   i18n,
   middleware,
+  notFound,
   pages,
   redirects,
   sessions,
@@ -267,6 +268,31 @@ export default {
 };
 ```
 
+### `notFound()`
+
+<p>
+
+**타입:** <code>(state: <a href="#fetchstate">FetchState</a>) => Promise\<Response\> | undefined</code><br />
+<Since v="7.4.0" />
+</p>
+
+일치하는 라우트가 없을 때 사전 렌더링된 `404.astro`를 포함한 [사용자 정의 404 페이지](/ko/basics/astro-pages/#사용자-정의-404-오류-페이지)를 렌더링합니다. 일치하는 라우트가 있으면 `undefined`를 반환하고, 요청 경로가 과도하게 인코딩된 경우에는 빈 `400` 응답을 반환합니다. 호출 측에서는 반환 값을 확인하여 처리를 계속할지 결정할 수 있습니다.
+
+[`astro()`](#astro)에는 이미 이 처리가 포함되어 있습니다. 대신 개별 핸들러를 조합하는 경우, [`middleware()`](#middleware)와 [`pages()`](#pages) 앞에 `notFound()`를 추가하여 일치하는 라우트가 없는 요청에 대해 404 페이지를 렌더링하세요.
+
+```ts {6,7} title="src/fetch.ts"
+import { FetchState, middleware, notFound, pages } from 'astro/fetch';
+
+export default {
+  async fetch(request: Request): Promise<Response> {
+    const state = new FetchState(request);
+    const notFoundResponse = await notFound(state);
+    if (notFoundResponse) return notFoundResponse;
+    return middleware(state, (s) => pages(s));
+  },
+};
+```
+
 ### `pages()`
 
 <p>
@@ -275,6 +301,8 @@ export default {
 </p>
 
 요청을 일치하는 Astro 라우트(페이지, 엔드포인트, 또는 폴백)로 전달합니다. 이는 핵심 렌더링 핸들러로, 대부분의 커스텀 파이프라인에 포함됩니다.
+
+일치하는 라우트가 없는 요청에 대해 사용자 정의 404 페이지를 렌더링하려면 `pages()` 앞에 [`notFound()`](#notfound)를 추가하세요.
 
 ### `redirects()`
 

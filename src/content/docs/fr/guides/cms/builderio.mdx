@@ -199,9 +199,8 @@ Pour plus d'informations, consultez [le guide de dépannage de Builder](https://
 
 Ajoutez le contenu suivant à `src/pages/index.astro` afin de récupérer et d'afficher une liste de tous les titres d'articles, chacun renvoyant à sa propre page :
 
-```astro title="src/pages/index.astro" {9}
+```astro title="src/pages/index.astro" {8}
 ---
-
 const builderAPIpublicKey = import.meta.env.BUILDER_API_PUBLIC_KEY;
 const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
 
@@ -223,16 +222,15 @@ const { results: posts } = await fetch(
   <body>
     <ul>
       {
-        posts.flatMap(({ data: { slug, title } }) => (
+        posts.flatMap((post: any) => (
           <li>
-            <a href={`/posts/${slug}`}>{title}</a>
+            <a href={`/posts/${post.data.slug}`}>{post.data.title}</a>
           </li>
         ))
       }
     </ul>
   </body>
 </html>
-
 ```
 
 La récupération via l'API de contenu renvoie un tableau d'objets contenant les données de chaque article. Le paramètre de requête `fields` indique à Builder quelles données sont incluses (voir le code surligné). Les paramètres `slug` et `title` doivent correspondre aux noms des champs de données personnalisés que vous avez ajoutés à votre modèle Builder.
@@ -269,7 +267,7 @@ Ce fichier doit contenir :
 
 Chacun de ces éléments est mis en évidence dans l'extrait de code suivant.
 
-```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 40, 51}
+```astro title="src/pages/posts/[slug].astro"  ins={2, 26, 33, 41, 52}
 ---
 export async function getStaticPaths() {
   const builderModel = import.meta.env.BUILDER_BLOGPOST_MODEL;
@@ -280,17 +278,17 @@ export async function getStaticPaths() {
         apiKey: builderAPIpublicKey,
         fields: ["data.slug", "data.title"].join(","),
         cachebust: "true",
-      }
+      },
     ).toString()}`
   )
     .then((res) => res.json())
     .catch
     // ...détecter quelques erreurs...);
     ();
-  return posts.map(({ data: { slug, title } }) => ({
-    params: { slug },
-    props: { title },
-  }))
+  return posts.map((post: any) => ({
+    params: { slug: post.data.slug },
+    props: { title: post.data.title },
+  }));
 }
 const { slug } = Astro.params;
 const { title } = Astro.props;
@@ -304,11 +302,12 @@ const { html: postHTML } = await fetch(
     url: encodedUrl,
     "query.data.slug": slug,
     cachebust: "true",
-  }).toString()}`
+  }).toString()}`,
 )
   .then((res) => res.json())
   .catch();
 ---
+
 <html lang="fr">
   <head>
     <title>{title}</title>
