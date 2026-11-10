@@ -8,9 +8,9 @@ const currentLocalesConfig = process.env.PUBLIC_TWO_LANG ? twoLocalesConfig : lo
 export const allLanguages = Object.keys(currentLocalesConfig);
 
 /** The pages to generate for `/[lang]/` dynamic routes. */
-export const getStaticPaths: GetStaticPaths = () => {
+export const getStaticPaths = (() => {
 	return allLanguages.map((lang) => ({ params: { lang } }));
-};
+}) satisfies GetStaticPaths;
 
 /** A set of all RTL languages currently configured. */
 export const rtlLanguages = new Set(

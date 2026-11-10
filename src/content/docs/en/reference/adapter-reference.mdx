@@ -350,14 +350,14 @@ export default function createIntegration() {
             // Start a preview server
           },
           async getStaticPaths() {
-            // Returns array of { pathname: string, route: RouteData }
+            // Returns { paths: Array<{ pathname: string, route: RouteData }>, metadata }
             return defaultPrerenderer.getStaticPaths();
           },
           async render(request, { routeData }) {
             // request: Request, options: { routeData: RouteData }
             // Custom rendering logic, e.g. make HTTP requests to a preview server
             const response = await fetch(`http://localhost:4321${new URL(request.url).pathname}`);
-            return response;
+            return { response };
           },
           async teardown() {
             // Stop the preview server
@@ -377,6 +377,24 @@ export default function createIntegration() {
 ```
 
 The factory function receives the default prerenderer, allowing you to wrap or extend its behavior. This is useful when you only need to customize specific aspects of prerendering.
+
+<p><Since v="7.4.0" /></p>
+
+The factory function also receives a context object with the [output directories resolved by Vite](/en/reference/integrations-reference/#astrobuildoutputdirectories). Use these to locate build output instead of reading directories from the Astro config. For example, this is useful to start a preview server against the built server code:
+
+```js title="my-adapter.mjs" "{ outputDirectories }"
+setPrerenderer((defaultPrerenderer, { outputDirectories }) => ({
+  name: 'my-prerenderer',
+  async setup() {
+    // Start a preview server using the built output
+    await startPreviewServer({
+      client: outputDirectories.client,
+      server: outputDirectories.server,
+    });
+  },
+  // ...
+}));
+```
 
 ## Building a server entrypoint
 

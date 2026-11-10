@@ -1,0 +1,91 @@
+---
+title: Despliega tu sitio Astro en Google Cloud
+description: Cómo desplegar tu sitio Astro en la web usando Google Cloud.
+sidebar:
+  label: Google Cloud
+type: deploy
+logo: google-cloud
+supports: ['ssr', 'static']
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[Google Cloud](https://cloud.google.com/) es una plataforma de alojamiento de aplicaciones web con todas las funciones que se puede utilizar para desplegar un sitio Astro.
+
+## Cómo desplegar
+
+### Cloud Storage (solo estático)
+
+<Steps>
+1. [Crea un nuevo proyecto de GCP](https://console.cloud.google.com/projectcreate), o selecciona uno que ya tengas.
+
+2. Crea un nuevo bucket en [Cloud Storage](https://cloud.google.com/storage).
+
+3. Asígnale un nombre y ajusta las otras configuraciones requeridas.
+
+4. Sube tu carpeta `dist` allí o súbela usando [Cloud Build](https://cloud.google.com/build).
+
+5. Habilita el acceso público agregando un nuevo permiso a `allUsers` llamado `Storage Object Viewer`.
+
+6. Edita la configuración del sitio web y agrega `index.html` como punto de entrada y `404.html` como página de error.
+</Steps>
+
+### Cloud Run (SSR y estático)
+
+Cloud Run es una plataforma serverless que te permite ejecutar un contenedor sin tener que gestionar ninguna infraestructura. Se puede utilizar para desplegar tanto sitios estáticos como SSR.
+
+#### Prepara el Servicio
+
+<Steps>
+1. [Crea un nuevo proyecto de GCP](https://console.cloud.google.com/projectcreate), o selecciona uno que ya tengas.
+
+2. Asegúrate de que la [API de Cloud Run](https://console.cloud.google.com/apis/library/run.googleapis.com) esté habilitada.
+
+3. Crea un nuevo servicio.
+</Steps>
+
+#### Crea el Dockerfile y Construye el Contenedor
+
+Antes de que puedas desplegar tu sitio Astro en Cloud Run, necesitas crear un Dockerfile que se utilizará para construir el contenedor. Encuentra más información sobre [cómo usar Docker con Astro](/es/recipes/docker/#creating-a-dockerfile) en nuestra sección de recetas.
+
+Una vez que el Dockerfile esté creado, constrúyelo como una imagen y súbela a Google Cloud. Hay algunas formas de lograr esto:
+
+**Construir localmente usando Docker**:
+
+Usa el comando `docker build` para construir la imagen, `docker tag` para asignarle una etiqueta, y luego `docker push` para subirla a un registro. En el caso de Google Cloud, [`Artifact Registry`](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling) es la opción más sencilla, pero también puedes usar [Docker Hub](https://hub.docker.com/).
+
+```bash
+# construye tu contenedor
+docker build .
+
+docker tag SOURCE_IMAGE HOSTNAME/PROJECT-ID/TARGET-IMAGE:TAG
+
+# Sube tu imagen a un registro
+docker push HOSTNAME/PROJECT-ID/IMAGE:TAG
+```
+
+Cambia los siguientes valores en los comandos anteriores para que coincidan con tu proyecto:
+
+- `SOURCE_IMAGE`: el nombre de la imagen local o el ID de la imagen.
+- `HOSTNAME`: el host del registro (`gcr.io`, `eu.gcr.io`, `asia.gcr.io`, `us.gcr.io`, `docker.io`).
+- `PROJECT`: el ID de tu proyecto de Google Cloud.
+- `TARGET-IMAGE`: el nombre de la imagen cuando se almacena en el registro.
+- `TAG` es la versión asociada con la imagen.
+
+[Lee más en la documentación de Google Cloud.](https://cloud.google.com/artifact-registry/docs/docker/pushing-and-pulling)
+
+**Usando otra herramienta**:
+
+Puedes usar una herramienta de CI/CD que soporte Docker, como [GitHub Actions](https://github.com/marketplace/actions/push-to-gcr-github-action).
+
+**Construir usando [Cloud Build](https://cloud.google.com/build)**:
+
+En lugar de construir el Dockerfile localmente, puedes indicarle a Google Cloud que construya la imagen de forma remota. Consulta la [documentación de Google Cloud Build aquí](https://cloud.google.com/build/docs/build-push-docker-image).
+
+#### Desplegar el contenedor
+
+El despliegue se puede manejar manualmente en tu terminal [usando `gcloud`](https://cloud.google.com/run/docs/deploying#service) o automáticamente usando [Cloud Build](https://cloud.google.com/build) o cualquier otro sistema de CI/CD.
+
+:::note[¿Necesitas acceso público?]
+¡No olvides agregar el permiso `Cloud Run Invoker` al grupo `allUsers` en la configuración de permisos de Cloud Run!
+:::
