@@ -1,7 +1,9 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
-	guides: 'Przewodniki i przykłady', // Guides and recipes
+	tutorial: 'Samouczek', // Tutorial
+
+	guides: 'Przewodnik', // Guide
 	'guides.welcome': 'Witaj, świecie!', // Welcome, world!
 	'guides.newProject': 'Rozpocznij nowy projekt', // Start a new project
 	'guides.config': 'Konfiguracja', // Configuration
@@ -16,10 +18,12 @@ export default navDictionary({
 
 	reference: 'Odniesienia', // Reference
 	'reference.runtime': 'API Runtime', // Runtime API
+	'reference.processors': 'Procesory Markdown', // Markdown processors
 	'reference.other': 'Inne API dla programistów', // Other development APIs
 	'reference.syntax': 'Składnia szablonów Astro', // Astro Template Syntax
 	'reference.experimental': 'Funkcje eksperymentalne', // Experimental features
 
+	ecosystem: 'Ekosystem', // Ecosystem
 	'ecosystem.integrations.ui': 'Frameworki UI', // UI frameworks
 	'ecosystem.integrations.adapters': 'Adaptery', // Adapters
 	'ecosystem.integrations.other': 'Inne oficjalne integracje', // Other official integrations
