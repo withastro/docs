@@ -371,10 +371,45 @@ La requête (`request`) entrante est transmise en tant que second argument, ce q
 
 <p>
 
-**Type :** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void \}, next: <a href="/fr/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
+**Type :** <code>(context: \{ request: Request; url: URL; waitUntil?: (promise: Promise\<unknown\>) => void; logger: <a href="/fr/reference/logger-reference/#astroruntimelogger">AstroRuntimeLogger</a> \}, next: <a href="/fr/reference/modules/astro-middleware/#middlewarenext">MiddlewareNext</a>) => Promise\<Response\></code>
 </p>
 
-Intercepte les requêtes pour mettre en œuvre la mise en cache à l'exécution. L'objet `context` inclut une fonction `waitUntil()` (lorsqu'elle est disponible dans l'environnement d'exécution) pour les tâches en arrière-plan, telles que la stratégie « stale-while-revalidate ».
+Un hook optionnel qui intercepte une requête avant qu'Astro ne génère la route correspondante. Il reçoit un objet `context` en tant que premier argument et une fonction de rappel pour appeler le prochain middleware (`next()`) dans la chaîne.
+
+- Le contexte (`context`) contient les propriétés suivantes :
+- `request` : l'objet [`Request`](https://developer.mozilla.org/fr/docs/Web/API/Request) entrant.
+- `url` : une [URL](https://developer.mozilla.org/fr/docs/Web/API/URL) normalisée dérivée de la requête.
+- `waitUntil() `: lorsqu'elle est disponible dans l'environnement d'exécution, une fonction pour définir des tâches en arrière-plan, telles que la revalidation d'une entrée de cache obsolète.
+- `logger` : depuis Astro v7.3.0, une instance du [journaliseur (`logger`)](/fr/reference/api-reference/#logger) qui respecte la [destination de journalisation configurée](/fr/reference/configuration-reference/#options-du-journaliseur)
+
+L'exemple suivant implémente un hook `onRequest()` minimal qui journalise chaque URL ajoutée au cache :
+
+```ts title="mon-fournisseur/runtime.ts" ins={7-17}
+import type { CacheProviderFactory } from 'astro';
+
+const factory: CacheProviderFactory = (config) => {
+  const cache = new Map();
+  return {
+    name: 'mon-fournisseur-cache',
+    async onRequest({ request, url, waitUntil, logger }, next) {
+      if (request.method !== 'GET') return next();
+
+      const cached = cache.get(url);
+      if (cached) return cached;
+
+      const response = await next();
+      cache.set(url, response.clone());
+      logger.info(`Réponse mise en cache pour ${url}.`);
+      return response;
+    },
+    async invalidate() {
+      // ...
+    },
+  };
+};
+
+export default factory;
+```
 
 #### `CacheProvider.invalidate()`
 
