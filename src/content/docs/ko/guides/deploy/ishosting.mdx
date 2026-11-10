@@ -8,9 +8,195 @@ logo: ishosting
 supports: ['ssr', 'static']
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
 
-[is\*hosting](https://ishosting.com/)은 40개 이상의 지역에서 VPS 및 전용 서버를 제공하는 호스팅 제공업체로, 정적 또는 서버 렌더링(SSR) Astro 사이트를 셀프 호스팅하는 데 사용할 수 있습니다.
+[is\*hosting](https://ishosting.com/)은 40개 이상의 지역에서 VPS 및 전용 서버를 제공하는 호스팅 제공업체로, 정적 또는 서버 렌더링(SSR) Astro 사이트를 셀프 호스팅하는 데 사용할 수 있습니다. Astro 사이트가 SSR을 사용하며 상시 실행되는 서버, 데이터베이스 연결, 백그라운드 작업, 크론 작업 또는 API 라우트가 필요한 경우에는 VPS가 적합합니다.
+
+## 전제 조건
+
+Astro 사이트를 is\*hosting VPS에 배포하려면 다음이 필요합니다.
+
+- Astro 프로젝트
+- SSH 액세스와 `root` 또는 `sudo` 권한이 있는 Ubuntu가 실행 중인 is\*hosting VPS
+- VPS를 가리키는 도메인 이름
+- VPS에 설치된, [Astro의 최소 요구 사항](/ko/install-and-setup/#사전-준비-사항)을 충족하는 Node.js 버전
+
+## 프로젝트 구성
+
+Astro 프로젝트는 정적 사이트로 또는 요청 시 렌더링되는 사이트로 is\*hosting VPS에 배포할 수 있습니다.
+
+### 정적 사이트
+
+Astro 프로젝트는 기본적으로 정적 사이트입니다. 정적 사이트를 is\*hosting VPS에 배포하는 데는 추가 Astro 구성이 필요하지 않습니다.
+
+### 요청 시 렌더링을 위한 어댑터
+
+Astro 프로젝트에서 요청 시 렌더링을 활성화하려면 다음 `astro add` 명령으로 [Node.js 어댑터](/ko/guides/integrations-guide/node/)를 추가하세요. 이 명령은 어댑터를 설치하고 `astro.config.mjs` 파일에서 `standalone` 모드로 구성하는 작업을 한 번에 수행합니다.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## 배포 방법
+
+서버에서 사이트를 빌드하고 웹 서버로 제공하여 is\*hosting VPS에 배포할 수 있습니다.
+
+다음 안내에서는 웹 서버로 [Nginx](https://nginx.org/)를 사용하고, 요청 시 렌더링되는 사이트의 Node.js 서버를 계속 실행하기 위해 [PM2](https://pm2.keymetrics.io/)를 사용합니다.
+
+### VPS 설정
+
+<Steps>
+1. SSH로 VPS에 연결하고 웹 서버와 Git을 모두 설치합니다:
+
+   ```shell
+   apt update
+   apt install nginx git
+   ```
+
+   이 안내서의 서버 명령은 `root`로 로그인했다고 가정합니다. 다른 계정을 사용하는 경우 관리 명령을 `sudo`와 함께 실행하세요.
+
+2. Astro 프로젝트를 VPS에 복제하고, 의존성을 설치하고, 사이트를 빌드합니다:
+
+   ```shell
+   cd /var/www
+   git clone YOUR_REPOSITORY_URL astro
+   cd astro
+   npm install
+   npm run build
+   ```
+</Steps>
+
+### 정적 사이트 배포
+
+<Steps>
+1. 생성된 `dist/` 폴더를 제공하기 위해 `/etc/nginx/sites-available/astro`에 Nginx 구성 파일을 만듭니다:
+
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
+
+       root /var/www/astro/dist;
+       index index.html;
+       error_page 404 /404.html;
+
+       location / {
+           try_files $uri $uri/ $uri.html =404;
+       }
+   }
+   ```
+
+2. Nginx 구성을 활성화하고 Nginx를 다시 로드합니다:
+
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
+
+### 요청 시 렌더링되는 사이트 배포
+
+<Steps>
+1. PM2를 설치하고 이를 사용하여 Node.js 서버를 시작합니다:
+
+   ```shell
+   npm install -g pm2
+   HOST=127.0.0.1 PORT=4321 pm2 start dist/server/entry.mjs --name astro-app
+   ```
+
+2. 재부팅 후 Node.js 서버가 다시 시작되도록 PM2를 구성합니다:
+
+   ```shell
+   pm2 startup && pm2 save
+   ```
+
+3. 요청을 Node.js 서버로 전달하기 위해 `/etc/nginx/sites-available/astro`에 Nginx 구성 파일을 만듭니다:
+
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
+
+       location / {
+           proxy_pass http://127.0.0.1:4321;
+           proxy_http_version 1.1;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+
+4. Nginx 구성을 활성화하고 Nginx를 다시 로드합니다:
+
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
+
+### HTTPS 추가
+
+도메인이 VPS를 가리키게 되면 Certbot을 사용하여 정적 배포 또는 SSR 배포에 HTTPS를 구성할 수 있습니다. 포트 80과 443에 액세스할 수 있는지 확인하세요.
+
+<Steps>
+1. Certbot과 Nginx 플러그인을 설치합니다:
+
+   ```shell
+   apt install -y certbot python3-certbot-nginx
+   ```
+
+2. 도메인에 대한 인증서를 요청합니다:
+
+   ```shell
+   certbot --nginx -d your.domain.com
+   ```
+
+   `your.domain.com`을 사용하는 도메인으로 바꾸고 안내에 따라 진행하세요.
+
+3. 인증서 자동 갱신을 테스트합니다:
+
+   ```shell
+   certbot renew --dry-run
+   ```
+</Steps>
+
+### 사이트 업데이트
+
+사이트 변경 사항을 배포하려면 최신 변경 사항을 가져오고, 의존성을 설치하고, 사이트를 다시 빌드합니다:
+
+```shell
+cd /var/www/astro
+git pull
+npm install
+npm run build
+```
+
+사이트가 요청 시 렌더링되는 경우 변경 사항이 적용되도록 PM2 프로세스를 다시 시작합니다:
+
+```shell
+pm2 restart astro-app
+```
 
 ## 공식 리소스
 
 - [is\*hosting 가이드: VPS에 Astro 배포하기(정적 및 SSR)](https://blog.ishosting.com/en/astro-on-vps)
+- [is\*hosting VPS 도움말 센터](https://help.ishosting.com/en/virtual-private-servers)

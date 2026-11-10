@@ -649,9 +649,9 @@ Puedes hacerlo de dos maneras:
 
 #### Ejecutar todo el proceso con `astro()`
 
-Usa [`astro()`](/es/reference/modules/astro-fetch/#astro) cuando quieras mantener el comportamiento de enrutamiento integrado de Astro, pero necesites aplicar una lógica personalizada en torno a él. Este enfoque conserva el orden predeterminado del proceso y te permite añadir el preprocesamiento y el posprocesamiento en un solo lugar. Para muchos casos de uso, como añadir controles de autenticación, registro de solicitudes y encabezados personalizados, `astro()` es todo lo que necesitas.
+Usa [`astro()`](/es/reference/modules/astro-fetch/#astro) cuando quieras mantener el comportamiento de enrutamiento integrado de Astro, pero necesites aplicar una lógica personalizada en torno a él. Este enfoque conserva el orden predeterminado del proceso y te permite añadir el preprocesamiento y el posprocesamiento en un solo lugar. Para muchos casos de uso, como el registro de solicitudes y los encabezados personalizados, `astro()` es todo lo que necesitas.
 
-El siguiente ejemplo comprueba si un usuario puede acceder a un panel de control antes de ejecutar el proceso de Astro y añade un encabezado personalizado a la respuesta una vez que Astro ha terminado de ejecutarse:
+El siguiente ejemplo registra cada solicitud entrante antes de ejecutar el proceso de Astro y añade un encabezado personalizado a la respuesta una vez que Astro ha terminado de ejecutarse:
 
 ```ts title="src/fetch.ts"
 import { FetchState, astro } from 'astro/fetch';
@@ -661,16 +661,7 @@ export default {
     const state = new FetchState(request);
 
     // Preprocesamiento personalizado, que se ejecuta antes que cualquier controlador Astro
-    const url = new URL(request.url);
-    if (url.pathname.startsWith('/dashboard')) {
-      const cookie = request.headers.get('cookie') ?? '';
-      if (!cookie.includes('session=')) {
-        return new Response(null, {
-          status: 302,
-          headers: { Location: '/login' },
-        });
-      }
-    }
+    console.log(`${request.method} ${new URL(request.url).pathname}`);
 
     const response = await astro(state);
 
@@ -680,6 +671,12 @@ export default {
   },
 };
 ```
+
+:::caution
+El pathname de la solicitud entrante no garantiza ser el mismo que la ruta que Astro empareja internamente, por lo que una comprobación como `url.pathname.startsWith('/dashboard')` puede eludirse.
+
+No utilices el preprocesamiento para autorizar solicitudes comparando el pathname de la solicitud con una cadena de texto. Para proteger las rutas, compáralas con un enrutador que gestione la coincidencia de rutas, como [Hono](#uso-con-hono).
+:::
 
 #### Composición de controladores individuales
 
@@ -733,4 +730,32 @@ app.use(pages());
 app.use(i18n());
 
 export default app;
+```
+
+También puedes proteger las rutas protegidas registrando una comprobación de autorización en las rutas de Hono que quieras proteger:
+
+```ts title="src/fetch.ts"
+import { Hono } from 'hono';
+import { actions, middleware, pages, i18n } from 'astro/hono';
+import { isLoggedIn } from './lib/auth';
+
+const app = new Hono();
+
+// Protege todas las rutas bajo /dashboard.
+app.use('/dashboard', requireAuth);
+app.use('/dashboard/*', requireAuth);
+
+app.use(actions());
+app.use(middleware());
+app.use(pages());
+app.use(i18n());
+
+export default app;
+
+async function requireAuth(c, next) {
+  if (!(await isLoggedIn(c.req.raw))) {
+    return c.redirect('/login');
+  }
+  return next();
+}
 ```

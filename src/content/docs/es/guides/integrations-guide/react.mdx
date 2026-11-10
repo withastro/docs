@@ -1,0 +1,438 @@
+---
+type: integration
+title: '@astrojs/react'
+description: Aprende a usar la integración del framework @astrojs/react para extender el soporte de componentes en tu proyecto de Astro.
+sidebar:
+  label: React
+githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/react/'
+category: renderer
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import Since from '~/components/Since.astro';
+
+Esta **[integración de Astro][astro-integration]** habilita el renderizado y la hidratación del lado del cliente para tus componentes de [React](https://es.react.dev/).
+
+:::tip[¿Vas a actualizar a v7.0.0?]
+`@astrojs/react` v7.0.0 elimina la opción de integración `babel`. Consulta [Actualizar la integración de React a v7.0.0](#actualizar-la-integración-de-react-a-v700) para obtener instrucciones de migración.
+:::
+
+## Instalación
+
+Astro incluye un comando `astro add` para automatizar la configuración de las integraciones oficiales. Si lo prefieres, puedes [instalar las integraciones manualmente](#instalación-manual) en su lugar.
+
+Para instalar `@astrojs/react`, ejecuta lo siguiente desde el directorio de tu proyecto y sigue las instrucciones:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npx astro add react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm astro add react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn astro add react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Si encuentras algún problema, [no dudes en reportarlo en GitHub](https://github.com/withastro/astro/issues) y prueba los pasos de instalación manual a continuación.
+
+### Instalación manual
+
+Primero, instala el paquete `@astrojs/react`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+La mayoría de los gestores de paquetes también instalarán las dependencias de pares asociadas. Si ves una advertencia como `Cannot find package 'react'` (o similar) al iniciar Astro, necesitarás instalar `react` y `react-dom` con sus definiciones de tipos:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install react react-dom @types/react @types/react-dom
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add react react-dom @types/react @types/react-dom
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add react react-dom @types/react @types/react-dom
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, aplica la integración en tu archivo `astro.config.*` usando la propiedad `integrations`:
+
+```js ins="react()" ins={2} title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [react()],
+});
+```
+
+Y agrega el siguiente código al archivo `tsconfig.json`.
+
+```json title="tsconfig.json" ins={5-8}
+{
+  "extends": "astro/tsconfigs/strict",
+  "include": [".astro/types.d.ts", "**/*"],
+  "exclude": ["dist"],
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "jsxImportSource": "react"
+  }
+}
+```
+
+## Primeros pasos
+
+Para usar tu primer componente de React en Astro, dirígete a nuestra [documentación de frameworks de UI][astro-ui-frameworks]. Explorarás:
+
+* 📦 cómo se cargan los componentes del framework,
+* 💧 opciones de hidratación del lado del cliente y
+* 🤝 oportunidades para mezclar y anidar frameworks
+
+## Integrar Acciones con `useActionState()`
+
+La integración de `@astrojs/react` proporciona dos funciones para usar con las [Acciones de Astro][astro-actions]: `withState()` y `getActionState()`.
+
+Estas se utilizan con el [hook useActionState() de React](https://es.react.dev/reference/react/useActionState) para leer y actualizar el estado del lado del cliente al ejecutar acciones durante el envío de formularios.
+
+### `withState()`
+
+<p>
+
+**Tipo:** `(action: FormFn<T>) => (state: T, formData: FormData) => FormFn<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Puedes pasar `withState()` y la acción que deseas ejecutar al hook `useActionState()` de React como la función de acción del formulario. El siguiente ejemplo pasa una acción `like` para incrementar un contador, junto con un estado inicial de `0` likes.
+
+```jsx title="Like.tsx" ins={2,7} "useActionState"
+import { actions } from 'astro:actions';
+import { withState } from '@astrojs/react/actions';
+import { useActionState } from "react";
+
+export function Like({ postId }: { postId: string }) {
+  const [state, action, pending] = useActionState(
+    withState(actions.like),
+    { data: 0, error: undefined }, // likes y errores iniciales
+  );
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="postId" value={postId} />
+      <button disabled={pending}>{state.data} ❤️</button>
+    </form>
+  );
+}
+```
+
+La función `withState()` hará coincidir los tipos de la acción con las expectativas de React y conservará los metadatos utilizados para la mejora progresiva, permitiendo que funcione incluso cuando JavaScript esté deshabilitado en el dispositivo del usuario.
+
+### `getActionState()`
+
+<p>
+
+**Tipo:** `(context: ActionAPIContext) => Promise<T>`<br />
+<Since v="4.4.0" pkg="@astrojs/react" />
+</p>
+
+Puedes acceder al estado almacenado por `useActionState()` en el servidor dentro del `handler` de tu acción con `getActionState()`. Este acepta [contexto de la API de Astro](/es/reference/api-reference/#the-context-object), y opcionalmente, puedes aplicar un tipo al resultado. 
+
+El siguiente ejemplo obtiene el valor actual de likes de un contador, tipado como número, para crear una acción `like` de incremento:
+
+```ts title="actions.ts" ins={3,11}
+import { defineAction, type SafeResult } from 'astro:actions';
+import { z } from 'astro/zod';
+import { getActionState } from '@astrojs/react/actions';
+
+export const server = {
+  like: defineAction({
+    input: z.object({
+      postId: z.string(),
+    }),
+    handler: async ({ postId }, ctx) => {
+      const { data: currentLikes = 0, error } = await getActionState<SafeResult<any, number>>(ctx);
+      
+      // manejar errores
+      if (error) throw error;
+
+      // escribir en la base de datos
+      return currentLikes + 1;
+    },
+  })
+};
+```
+
+## Opciones
+
+### Combinar múltiples frameworks JSX
+
+Cuando utilizas múltiples frameworks JSX (React, Preact, Solid) en el mismo proyecto, Astro necesita determinar qué transformaciones específicas de cada framework JSX deben usarse para cada uno de tus componentes. Si solo has añadido una integración de framework JSX a tu proyecto, no es necesaria ninguna configuración adicional.
+
+Utiliza las opciones de configuración `include` (requerido) y `exclude` (opcional) para especificar qué archivos pertenecen a qué framework. Proporciona un arreglo de archivos y/o carpetas en `include` para cada framework que estés utilizando. Se pueden usar comodines para incluir múltiples rutas de archivos.
+
+Recomendamos colocar los componentes de cada framework en la misma carpeta (p. ej. `/components/react/` y `/components/solid/`) para facilitar la especificación de tus inclusiones, pero esto no es obligatorio:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import preact from '@astrojs/preact';
+import react from '@astrojs/react';
+import svelte from '@astrojs/svelte';
+import vue from '@astrojs/vue';
+import solid from '@astrojs/solid-js';
+
+export default defineConfig({
+  // Habilita múltiples frameworks para soportar todo tipo de componentes.
+  // ¡No se necesita `include` si solo estás utilizando un único framework JSX!
+  integrations: [
+    preact({
+      include: ['**/preact/*'],
+    }),
+    react({
+      include: ['**/react/*'],
+    }),
+    solid({
+      include: ['**/solid/*'],
+    }),
+  ],
+});
+```
+
+### React Compiler
+
+<p>
+
+**Tipo:** `boolean | object`<br />
+**Predeterminado:** `false`<br />
+<Since v="7.0.0" pkg="@astrojs/react" />
+</p>
+
+Por defecto, `@astrojs/react` usa [Oxc](https://oxc.rs/) para compilar tu JSX y habilitar Fast Refresh. No memoiza tus componentes ni hooks.
+
+Establece `compiler: true` para memoizar automáticamente los componentes y hooks del cliente con el [compilador experimental de React de Oxc](https://oxc.rs/docs/guide/usage/transformer/react-compiler). Esto puede reducir los renderizados innecesarios sin tener que escribir `useMemo()`, `useCallback()`, o `React.memo()` tú mismo.
+
+El compilador requiere la instalación de [`oxc-transform-react`](https://www.npmjs.com/package/oxc-transform-react):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D oxc-transform-react
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D oxc-transform-react
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D oxc-transform-react
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+El compilador apunta a la versión de React que tengas instalada. React 17 y 18 no incluyen los helpers de tiempo de ejecución del compilador. Si tu proyecto usa una de estas versiones, también instala [`react-compiler-runtime`](https://www.npmjs.com/package/react-compiler-runtime):
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install react-compiler-runtime
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add react-compiler-runtime
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add react-compiler-runtime
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, habilita el compilador en tu integración de React:
+
+```js title="astro.config.mjs" ins={6}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  integrations: [
+    react({ compiler: true }),
+  ],
+});
+```
+
+También puedes pasar un objeto para tener un control más preciso sobre la configuración del compilador.
+
+El siguiente ejemplo configura `compilationMode` para compilar solo los componentes y hooks marcados con una directiva `"use memo"`:
+
+```js title="astro.config.mjs" {7-9}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  integrations: [
+    react({
+      compiler: {
+        compilationMode: 'annotation',
+      },
+    }),
+  ],
+});
+```
+
+El compilador se aplica en cualquier lugar donde apliquen las [opciones `include` y `exclude`](#combinar-múltiples-frameworks-jsx) de la integración. Omite el renderizado en el servidor, las dependencias y los archivos `.astro`.
+
+### Parseo de children
+
+Los children pasados a un componente de React desde un componente de Astro se parsean como cadenas de texto plano, no como nodos de React.
+
+Por ejemplo, el `<ReactComponent />` a continuación solo recibirá un único elemento hijo:
+
+```astro
+---
+import ReactComponent from './ReactComponent';
+---
+
+<ReactComponent>
+  <div>uno</div>
+  <div>dos</div>
+</ReactComponent>
+```
+
+Si estás utilizando una biblioteca que espera recibir más de un elemento hijo, por ejemplo, para poder ubicar ciertos elementos en diferentes lugares, es posible que esto represente un obstáculo.
+
+Puedes configurar el flag experimental `experimentalReactChildren` para indicarle a Astro que siempre pase los children a React como nodos del DOM virtual de React. Esto tiene cierto costo en tiempo de ejecución, pero puede ayudar con la compatibilidad.
+
+Puedes habilitar esta opción en la configuración de la integración de React:
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      experimentalReactChildren: true,
+    }),
+  ],
+});
+```
+
+### Deshabilitar streaming (experimental)
+
+Astro hace streaming de la salida de los componentes de React por defecto. Sin embargo, puedes deshabilitar este comportamiento activando la opción `experimentalDisableStreaming`. Esto es particularmente útil para soportar bibliotecas que no funcionan bien con el streaming, como algunas soluciones CSS-in-JS.
+
+Para deshabilitar el streaming en todos los componentes de React en tu proyecto, configura `@astrojs/react` con `experimentalDisableStreaming: true`:
+
+```js title="astro.config.mjs" ins={8}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+
+export default defineConfig({
+  // ...
+  integrations: [
+    react({
+      experimentalDisableStreaming: true,
+    })
+  ]
+});
+```
+
+## Actualizar la integración de React a v7.0.0
+
+`@astrojs/react` v7.0.0 reemplaza Babel con [Oxc](https://oxc.rs/) para compilar JSX, habilitar Fast Refresh y se actualiza a `@vitejs/plugin-react` v6.
+
+### Eliminada: opción `babel`
+
+Configura transformaciones personalizadas de Babel con [`@rolldown/plugin-babel`](https://github.com/rolldown/plugins/tree/main/packages/babel) en [`vite.plugins`](/es/reference/configuration-reference/#vite) en lugar de la opción `babel` eliminada.
+
+Instala `@rolldown/plugin-babel` y `@babel/core`:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add -D @rolldown/plugin-babel @babel/core
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, mueve tus plugins y presets de Babel a un plugin `babel()` en `vite.plugins`.
+
+El siguiente ejemplo mueve `babel-plugin-styled-components` fuera de la opción `babel` eliminada:
+
+```js title="astro.config.mjs" del={7-11} ins={2,12,14-20}
+import react from '@astrojs/react';
+import babel from '@rolldown/plugin-babel';
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  integrations: [
+    react({
+      babel: {
+        plugins: ['babel-plugin-styled-components'],
+      },
+    }),
+    react(),
+  ],
+  vite: {
+    plugins: [
+      babel({
+        plugins: ['babel-plugin-styled-components'],
+      }),
+    ],
+  },
+});
+```
+
+Para las transformaciones condicionales configuradas previamente con un callback de `babel`, consulta los [`overrides` y hooks de presets de `@rolldown/plugin-babel`](https://github.com/rolldown/plugins/tree/main/packages/babel#options).
+
+Puedes combinar `babel()` con [`compiler: true`](#react-compiler). Si tu configuración de Babel incluye `babel-plugin-react-compiler`, elimínalo primero. Esto evita aplicar las transformaciones del React Compiler dos veces a los mismos componentes.
+
+[astro-integration]: /es/guides/integrations/
+
+[astro-ui-frameworks]: /es/guides/framework-components/#uso-de-componentes-de-frameworks
+
+[astro-actions]: /es/guides/actions/
