@@ -8,9 +8,195 @@ logo: ishosting
 supports: ['ssr', 'static']
 i18nReady: true
 ---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import { Steps } from '@astrojs/starlight/components';
 
 [is\*hosting](https://ishosting.com/) is a hosting provider offering VPS and dedicated servers in 40+ locations that you can use to self-host a static or server-rendered (SSR) Astro site.
+ A VPS is suitable when your Astro site uses SSR and requires a persistent server, database connections, background jobs, cron jobs, or API routes.
 
+ ## Prerequisites
+
+ To deploy your Astro site to an is\*hosting VPS, you will need:
+
+ - An Astro project
+ - An is\*hosting VPS running Ubuntu with SSH access and `root` or `sudo` privileges
+ - A domain name pointing to your VPS
+- A Node.js version that meets [Astro's minimum requirements](/en/install-and-setup/#prerequisites) installed on your VPS
+
+ ## Project configuration
+
+ Your Astro project can be deployed to an is\*hosting VPS as a static site or as an on-demand rendered site.
+
+ ### Static site
+
+ Your Astro project is a static site by default. You don't need any extra Astro configuration to deploy a static site to an is\*hosting VPS.
+
+ ### Adapter for on-demand rendering
+
+To enable on-demand rendering in your Astro project, add [the Node.js adapter](/en/guides/integrations-guide/node/) with the following `astro add` command. This will install the adapter and configure it in `standalone` mode in your `astro.config.mjs` file in one step.
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npx astro add node
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm astro add node
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn astro add node
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+## How to deploy
+
+You can deploy to an is\*hosting VPS by building your site on the server and serving it with a web server.
+
+The following instructions use [Nginx](https://nginx.org/) as the web server, and [PM2](https://pm2.keymetrics.io/) to keep the Node.js server of an on-demand rendered site running.
+
+### Set up your VPS
+
+<Steps>
+1. Connect to your VPS using SSH and install both the web server and Git:
+
+   ```shell
+   apt update
+   apt install nginx git
+   ```
+
+   The server commands in this guide assume you are logged in as `root`. If you use another account, run administrative commands with `sudo`.
+
+2. Clone your Astro project to your VPS, install its dependencies, and build your site:
+
+   ```shell
+   cd /var/www
+   git clone YOUR_REPOSITORY_URL astro
+   cd astro
+   npm install
+   npm run build
+   ```
+</Steps>
+
+### Deploy a static site
+
+<Steps>
+1. Create an Nginx configuration file at `/etc/nginx/sites-available/astro` to serve the generated `dist/` folder:
+
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
+
+       root /var/www/astro/dist;
+       index index.html;
+       error_page 404 /404.html;
+
+       location / {
+           try_files $uri $uri/ $uri.html =404;
+       }
+   }
+   ```
+
+2. Enable the Nginx configuration and reload Nginx:
+
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
+
+### Deploy an on-demand rendered site
+
+<Steps>
+1. Install PM2 and use it to start the Node.js server:
+
+   ```shell
+   npm install -g pm2
+   HOST=127.0.0.1 PORT=4321 pm2 start dist/server/entry.mjs --name astro-app
+   ```
+
+2. Configure PM2 to restart the Node.js server after a reboot:
+
+   ```shell
+   pm2 startup && pm2 save
+   ```
+
+3. Create an Nginx configuration file at `/etc/nginx/sites-available/astro` to forward requests to the Node.js server:
+
+   ```nginx title="/etc/nginx/sites-available/astro"
+   server {
+       listen 80;
+       server_name your.domain.com;
+
+       location / {
+           proxy_pass http://127.0.0.1:4321;
+           proxy_http_version 1.1;
+           proxy_set_header Host $host;
+           proxy_set_header X-Real-IP $remote_addr;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+           proxy_set_header X-Forwarded-Proto $scheme;
+       }
+   }
+   ```
+
+4. Enable the Nginx configuration and reload Nginx:
+
+   ```shell
+   ln -s /etc/nginx/sites-available/astro /etc/nginx/sites-enabled/
+   nginx -t
+   systemctl reload nginx
+   ```
+</Steps>
+
+ ### Add HTTPS
+
+ After your domain points to the VPS, you can use Certbot to configure HTTPS for either a static or SSR deployment. Make sure ports 80 and 443 are accessible.
+
+<Steps>
+1. Install Certbot and its Nginx plugin:
+
+   ```shell
+   apt install -y certbot python3-certbot-nginx
+   ```
+
+2. Request a certificate for your domain:
+
+   ```shell
+   certbot --nginx -d your.domain.com
+   ```
+
+   Replace `your.domain.com` with your domain and follow the prompts.
+
+3. Test automatic certificate renewal:
+
+   ```shell
+   certbot renew --dry-run
+   ```
+</Steps>
+
+### Update your site
+
+To deploy changes to your site, pull the latest changes, install dependencies, and rebuild your site:
+
+```shell
+cd /var/www/astro
+git pull
+npm install
+npm run build
+```
+
+If your site is on-demand rendered, restart the PM2 process for the changes to take effect:
+
+```shell
+pm2 restart astro-app
+```
 ## Official Resources
 
 - [is\*hosting guide: deploy Astro on a VPS (static and SSR)](https://blog.ishosting.com/en/astro-on-vps)
+- [is\*hosting help center for VPS](https://help.ishosting.com/en/virtual-private-servers)

@@ -6,11 +6,11 @@ sidebar:
   label: Partytown
 githubIntegrationURL: 'https://github.com/withastro/astro/tree/main/packages/integrations/partytown/'
 category: other
-i18nReady: false
+i18nReady: true
 ---
 import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-この[**Astroインテグレーション**][astro-integration]は、Astroプロジェクトで[Partytown](https://partytown.builder.io/)を有効にします。
+この[**Astroインテグレーション**][astro-integration]は、Astroプロジェクトで[Partytown](https://partytown.qwik.dev/)を有効にします。
 
 ## Astro Partytownを選ぶ理由
 
@@ -100,18 +100,19 @@ export default defineConfig({
   integrations: [
     partytown({
       config: {
-        // options go here
+        // ここにオプションを設定します
       },
     }),
   ],
 });
 ```
 
-これは[Partytown設定オブジェクト](https://partytown.builder.io/configuration)をミラーリングします。
+このオブジェクトは、[Partytown設定オブジェクト](https://partytown.qwik.dev/configuration/)を模倣しており、すべてのオプションを`partytown.config`で設定できます。Astroプロジェクトの一般的な設定オプションについては、このページで説明します。
 
-### config.debug
 
-Partytownには`debug`モードが付属しています。`config.debug`に`true`または`false`を渡すことで有効または無効にできます。[`debug`モード](https://partytown.builder.io/debugging)が有効になっている場合、詳細なログがブラウザコンソールに出力されます。
+### デバッグモードを有効にする
+
+Partytownには`debug`モードが付属しています。`config.debug`に`true`または`false`を渡すことで有効または無効にできます。[`debug`モード](https://partytown.qwik.dev/debugging)が有効になっている場合、詳細なログがブラウザコンソールに出力されます。
 
 このオプションが設定されていない場合、`debug`モードは[dev](/ja/reference/cli-reference/#astro-dev)または[preview](/ja/reference/cli-reference/#astro-preview)モードでデフォルトでオンになります。
 
@@ -127,13 +128,13 @@ export default defineConfig({
 });
 ```
 
-### config.forward
+### 変数を転送する
 
 サードパーティのスクリプトは通常、`window`オブジェクトに変数を追加して、サイト全体でそれらと通信できるようにします。しかし、スクリプトがWeb Workerで読み込まれると、そのグローバルな`window`オブジェクトにアクセスできなくなります。
 
 これを解決するために、Partytownは変数をグローバル`window`オブジェクトに「パッチ」して、適切なスクリプトに転送できます。
 
-`config.forward`オプションを使用して、転送する変数を指定できます。[Partytownのドキュメントで詳細を読む](https://partytown.builder.io/forwarding-events)。
+`config.forward`オプションを使用して、転送する変数を指定できます。[Partytownのドキュメントで詳細を読む](https://partytown.qwik.dev/forwarding-events)。
 
 ```js title="astro.config.mjs" {7}
 export default defineConfig({
@@ -149,8 +150,66 @@ export default defineConfig({
 });
 ```
 
+### リクエストをプロキシする
+
+サードパーティスクリプトの中には、サービスワーカー内で実行される`config.resolveUrl()`を介して[プロキシ](https://partytown.qwik.dev/proxying-requests/)する必要があるものがあります。このオプションを設定することで、特定のURLをチェックし、必要に応じてプロキシされたURLを返すことができます。
+
+```js title="astro.config.mjs" {10-15}
+import { defineConfig } from 'astro/config';
+import partytown from "@astrojs/partytown";
+
+export default defineConfig({
+  // ...
+  integrations: [
+    partytown({
+      // 例: Facebookの分析スクリプトをプロキシします
+      config: {
+        resolveUrl: (url) => {
+          const proxyMap = new Map([["connect.facebook.net", "my-proxy.com"]]);
+          const proxiedHost = proxyMap.get(url.hostname);
+          if (proxiedHost) url.hostname = proxiedHost;
+          return url;
+        },
+      },
+    }),
+  ],
+});
+```
+
+ただし、`config`オブジェクトはクライアントに送信される際にシリアル化されるため、設定に渡される関数にはいくつかの制限が適用されます。
+
+- 関数のスコープ外にあるものを参照できません。
+- JavaScriptでのみ記述できます。
+
+一部の高度な利用シーンでは、Partytownを初期化する際にこの関数にデータを渡す必要がある場合があります。その場合は、インテグレーション設定ではなく、`window.partytown`の`resolveUrl()`で設定できます。
+
+```astro title="Head.astro" {8-14}
+---
+const proxyMap = {
+  "connect.facebook.net": "my-proxy.com"
+};
+---
+
+<script is:inline set:html={`
+  window.partytown = {
+    resolveUrl: (url) => {
+      const proxyMap = ${JSON.stringify(proxyMap)};
+      url.hostname = proxyMap[url.hostname] || url.hostname;
+      return url;
+    },
+  };
+`} />
+```
+
+両方を設定した場合、インテグレーション設定が`window.partytown`より優先されることに注意してください。
+
 ## 例
 
 * [GitHubでAstro Partytownを使用したプロジェクトを閲覧する](https://github.com/search?q=%22%40astrojs%2Fpartytown%22+path%3A**%2Fpackage.json\&type=code)でその他の例をご覧ください！
+
+## コミュニティリソース
+
+* [AstroでPartytown.jsを使ってGoogleタグマネージャーを実装する方法](https://medium.com/@tagperfect/implementing-google-tag-manager-with-partytown-js-in-astro-my-modest-experience-983388907b35)
+* [AstroでPartytownを使用してGoogle Analyticsを最適化する方法](https://ricostacruz.com/posts/google-analytics-in-astro)
 
 [astro-integration]: /ja/guides/integrations/

@@ -496,7 +496,7 @@ Astro 웹사이트에 대한 보안 조치를 활성화합니다.
 
 이러한 기능은 `server` 모드를 사용하여 요청 시 렌더링된 페이지 (SSR) 또는 `static` 모드에서 사전 렌더링을 선택 해제한 페이지에만 존재합니다.
 
-기본적으로 Astro는 요청 시 렌더링된 페이지의 각 요청에서 전송된 URL과 "origin" 헤더가 일치하는지 확인합니다. `checkOrigin`을 `false`로 설정하여 이 동작을 비활성화할 수 있습니다:
+기본적으로 Astro는 브라우저 요청 메타데이터를 확인하여 요청 시 렌더링된 페이지에 대한 양식 제출이 동일한 출처에서 이루어졌는지 보장합니다. 이 동작을 비활성화하려면 `checkOrigin`을 `false`로 설정하세요:
 
 ```js
 // astro.config.mjs
@@ -519,11 +519,11 @@ export default defineConfig({
 <Since v="4.9.0" />
 </p>
 
-모든 최신 브라우저에서 자동으로 전달되는 "origin" 헤더가 각 `Request`에서 보낸 URL과 일치하는지 확인합니다. 이는 CSRF (Cross-Site Request Forgery) 보호를 위해 사용됩니다.
+브라우저에서 보낸 헤더를 `Request` URL과 대조하여 [CSRF (Cross-Site Request Forgery)](https://developer.mozilla.org/en-US/docs/Web/Security/Attacks/CSRF) 보호를 제공합니다. 최신 브라우저에서는 `Sec-Fetch-Site` 헤더를 사용하고, 사용할 수 없을 때는 `Origin` 헤더로 대체합니다.
 
-"origin" 확인은 요청 시 렌더링된 페이지에 대해서만 실행되며, `content-type` 헤더가 `'application/x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'` 중 하나인 `POST`, `PATCH`, `DELETE`, `PUT` 요청에 대해서만 실행됩니다.
+이 확인은 요청 시 렌더링된 페이지에 대해서만 실행되며, `content-type` 헤더가 없거나 다음 값 중 하나인 `'application/x-www-form-urlencoded'`, `'multipart/form-data'`, `'text/plain'`의 `POST`, `PATCH`, `DELETE`, `PUT`과 같은 안전하지 않은 요청에 대해서만 실행됩니다.
 
-"origin" 헤더가 요청의 `pathname`과 일치하지 않으면 Astro는 403 상태 코드를 반환하며 페이지를 렌더링하지 않습니다.
+요청이 크로스 오리진으로 식별되면 Astro는 403 상태 코드를 반환하며 페이지를 렌더링하지 않습니다.
 
 #### security.allowedDomains
 
@@ -1867,7 +1867,7 @@ export default defineConfig({
 
 <p>
 
-**타입:** `Object`<br />
+**타입:** `{entrypoint: 'astro/assets/services/sharp' | string, config: Record<string, any>} | {build: ImageServiceConfig, runtime: ImageServiceConfig}`<br />
 **기본값:** `{entrypoint: 'astro/assets/services/sharp', config?: {}}`<br />
 
 <Since v="2.1.0" />
@@ -1902,6 +1902,26 @@ export default defineConfig({
   },
 });
 ```
+
+Astro v7.4부터는 `build`와 `runtime` 서비스를 각각 다르게 설정할 수도 있습니다. `build` 서비스는 사이트를 빌드할 때 사전 렌더링되는 페이지의 이미지를 최적화하며, 개발 중에도 사용됩니다. `runtime` 서비스는 배포된 사이트에서 온디맨드 렌더링되는 페이지의 이미지와 [이미지 엔드포인트](#imageendpoint)를 처리합니다.
+
+다음 예시는 사전 렌더링되는 페이지의 이미지를 최적화하는 데 Sharp를 사용하고, 온디맨드 렌더링되는 페이지에는 이미지 CDN을 사용합니다.
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  image: {
+    service: {
+      build: { entrypoint: 'astro/assets/services/sharp' },
+      runtime: { entrypoint: 'my-image-cdn-service' },
+    },
+  },
+});
+```
+
+사전 렌더링되는 페이지의 이미지는 빌드 중에 항상 Node에서 생성됩니다. 따라서 어댑터가 다른 런타임 (예: Cloudflare의 `workerd`)에서 페이지를 사전 렌더링하더라도 `build` 서비스로 Sharp를 사용할 수 있습니다.
 
 #### image.service.config.limitInputPixels
 
