@@ -1,0 +1,427 @@
+---
+title: Experimental collection metadata
+sidebar:
+  label: Collection metadata
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="7.5.0" />
+</p>
+
+Enables listing the [content collections](/en/guides/content-collections/) of your project, with their descriptors: data that a loader, or you, attach to a collection.
+
+To read a collection, your code needs its name: `getCollection('docs')`. That works well in your own project, because you chose the names. But a library, like a documentation theme, can't know what you called your collections.
+
+With this flag, a library can ask Astro for the list of your collections, and find the ones it cares about by reading their descriptors.
+
+## Basic usage
+
+<Steps>
+
+1. Add the `experimental.collectionMetadata` flag to your Astro config:
+
+    ```js title="astro.config.mjs" ins={5}
+    import { defineConfig } from 'astro/config';
+
+    export default defineConfig({
+      experimental: {
+        collectionMetadata: true,
+      },
+    });
+    ```
+
+2. Add descriptors to a collection with the [`descriptors` option](#descriptors) of `defineCollection()`. The following example marks the `guides` collection as documentation, and leaves the `blog` collection without descriptors:
+
+    ```ts title="src/content.config.ts" ins={6}
+    import { defineCollection } from 'astro:content';
+    import { glob } from 'astro/loaders';
+
+    const guides = defineCollection({
+      loader: glob({ pattern: '**/*.md', base: './src/guides' }),
+      descriptors: { myDocs: 'docs' },
+    });
+
+    const blog = defineCollection({
+      loader: glob({ pattern: '**/*.md', base: './src/blog' }),
+    });
+
+    export const collections = { guides, blog };
+    ```
+
+    A loader can also add descriptors to every collection that uses it. See [Collection descriptors](#collection-descriptors).
+
+3. Call [`getCollectionsMetadata()`](#getcollectionsmetadata) from `astro:content` to get the list of your collections, with their descriptors:
+
+    ```ts
+    import { getCollectionsMetadata } from 'astro:content';
+
+    const collections = await getCollectionsMetadata();
+    // [
+    //   { name: 'guides', type: 'build-time', loader: { name: 'glob-loader' }, descriptors: { myDocs: 'docs' } },
+    //   { name: 'blog', type: 'build-time', loader: { name: 'glob-loader' }, descriptors: {} },
+    // ]
+    ```
+
+4. To find the collections with a descriptor, filter the list, and read each collection by its name:
+
+    ```ts
+    import { getCollection, getCollectionsMetadata } from 'astro:content';
+
+    const docs = (await getCollectionsMetadata())
+      .filter((collection) => collection.type === 'build-time')
+      .filter((collection) => collection.descriptors.myDocs === 'docs');
+
+    for (const { name } of docs) {
+      const entries = await getCollection(name);
+    }
+    ```
+
+</Steps>
+
+## What collection metadata contains
+
+Each item of the list describes one collection, with:
+
+- its `name`, the one you use with `getCollection()`;
+- its `type`: `'build-time'` for the collections of `src/content.config.ts`, loaded when you build, or `'live'` for the collections of `src/live.config.ts`, loaded each time someone visits a page;
+- the name of its `loader`;
+- its `descriptors`.
+
+The list never includes the entries of your collections.
+
+## Collection descriptors
+
+Descriptors are an object attached to a collection, but you can't define JavaScript types such as functions, `Date`, etc. The data must survive `JSON.stringify`. You can define descriptors in:
+
+- The loader of the collection via the [`descriptors`](#loaderdescriptors) option.
+- The configuration of the collection via the [`descriptors` option](#descriptors) of `defineCollection()` and `defineLiveCollection()`.
+
+:::note
+When a collection and its loader define descriptors, Astro shallow-merge them, and the data defined in the collection has priority:
+
+```ts title="src/content.config.ts"
+// The loader adds { myDocs: 'docs', version: 1 }
+const api = defineCollection({
+  loader: docsLoader('./src/api'),
+  descriptors: { myDocs: 'api', section: 'api' },
+});
+
+// getCollectionsMetadata() returns:
+// descriptors: { myDocs: 'api', version: 1, section: 'api' }
+```
+:::
+
+### Naming descriptors
+
+As with [`Astro.locals`](/en/reference/api-reference/#locals), choose a unique key for your descriptors, so they don't clash with the ones of other libraries. If you write a library, use a single descriptor named after it, like `myDocs` or `starlight`, and put the kind of collection in its value: `'docs'`, `'api'`, `'changelog'`, and so on. This way, your library can mark several kinds of collections with one key.
+
+## Type safety
+
+The `Loader` type accepts a generic where you can define the type of your descriptor:
+
+```ts title="src/loaders/docs-loader.ts" ins="<{ myDocs: 'docs' }>"
+import { glob, type Loader } from 'astro/loaders';
+
+export function docsLoader(base: string): Loader<{ myDocs: 'docs' }> {
+  return {
+    ...glob({ pattern: '**/*.md', base }),
+    name: 'docs-loader',
+    descriptors: { myDocs: 'docs' },
+  };
+}
+```
+
+Live loaders do the same with the last type parameter of `LiveLoader`.
+
+`getCollectionsMetadata()` returns the descriptors of each collection with their types, merged from the loader and the config. You can read a descriptor on any collection, even on a collection that doesn't set it: `collection.descriptors.myDocs` is `'docs'` for a collection known to set it.
+
+TypeScript can't narrow a list with `filter()` when the check is on a nested value, like `collection.descriptors.myDocs`. To know which collections you found, and get typed entries when you read them, write a type guard with the [`CollectionMetadataWith`](#collectionmetadatawith) type. It keeps the collections that have the descriptors you pass, and optionally one type of collection:
+
+```ts title="src/docs.ts" ins="isDocsCollection"
+import {
+  type CollectionMetadata,
+  type CollectionMetadataWith,
+  getCollection,
+  getCollectionsMetadata,
+} from 'astro:content';
+
+type DocsCollection = CollectionMetadataWith<{ myDocs: 'docs' }, 'build-time'>;
+
+function isDocsCollection(collection: CollectionMetadata): collection is DocsCollection {
+  return collection.type === 'build-time' && collection.descriptors.myDocs === 'docs';
+}
+
+for (const { name } of (await getCollectionsMetadata()).filter(isDocsCollection)) {
+  // Typed as the entries of the collections marked as docs
+  const entries = await getCollection(name);
+}
+```
+
+## Using collections in integrations
+
+Integrations can work with your collections at two moments: before Astro loads them, and after a build.
+
+### Before Astro loads your collections
+
+The [`astro:collections:resolved` hook](#astrocollectionsresolved) receives the metadata of your build-time collections as soon as Astro has read `src/content.config.ts`, before any loader runs. A library can use it to set itself up for the collections it recognizes:
+
+```ts title="my-docs/integration.ts"
+import type { AstroIntegration } from 'astro';
+
+export default function myDocs(): AstroIntegration {
+  return {
+    name: 'my-docs',
+    hooks: {
+      'astro:collections:resolved': ({ collections, logger }) => {
+        const docs = collections.filter((collection) => collection.descriptors.myDocs === 'docs');
+        logger.info(`Found ${docs.length} docs collections`);
+      },
+    },
+  };
+}
+```
+
+The hook is called after `astro:config:done`:
+
+- **When you build**, it is called on every build, before `astro:build:start`. Vite hasn't loaded any file of your site yet, so your integration can prepare what its Vite plugins provide, like virtual modules, from your collections. The only files loaded before are the ones `src/content.config.ts` imports, which Astro loads to read it.
+- **In development**, it is called after `astro:server:setup` and before `astro:server:start`, and again each time you change `src/content.config.ts`.
+
+Live collections aren't included, because Astro doesn't read `src/live.config.ts` at that moment.
+
+### After a build
+
+With this flag, the [`astro:build:done` hook](/en/reference/integrations-reference/#astrobuilddone) receives [`collections`](#collections-in-astrobuilddone), with the metadata and the entries of your build-time collections. A library can use it to check or process your content once your site is built.
+
+`collections.entries()` returns your entries as plain data: images and references to other entries are not resolved, and you can't render them. Each call reads one collection, and keeps nothing afterwards, so reading collections one at a time keeps memory low. The following example counts the pages of every docs collection:
+
+```ts title="my-docs/integration.ts"
+'astro:build:done': async ({ collections, logger }) => {
+  // Both are only present when the experimental flag is enabled
+  if (!collections.metadata || !collections.entries) return;
+  const docs = collections.metadata.filter((collection) => collection.descriptors.myDocs === 'docs');
+  for (const { name } of docs) {
+    // The titles are enough, so the entries are read without their content
+    const entries = await collections.entries(name, { content: false });
+    logger.info(`${name}: ${entries.length} pages`);
+  }
+},
+```
+
+## Markdown plugins
+
+Markdown plugins can tell which collection an entry belongs to while they process it. Remark and rehype plugins find its metadata in `file.data.astro.collection`, and [Sätteri](/en/reference/markdown-processors/satteri/) plugins in `ctx.data.astro.collection`.
+
+The following remark plugin only changes the entries of collections marked as docs:
+
+```js title="my-docs/remark-plugin.js"
+export function remarkMyDocs() {
+  return (tree, file) => {
+    if (file.data.astro?.collection?.descriptors.myDocs !== 'docs') return;
+    // Change the entries of docs collections here
+  };
+}
+```
+
+`file.data.astro.collection` is set for:
+
+- Markdown files loaded with the `glob()` loader;
+- Markdown rendered by a loader with [`renderMarkdown()`](/en/reference/content-loader-reference/#loadercontextrendermarkdown);
+- MDX files;
+- Markdown loaded with `deferRender: true`.
+
+It is `undefined` for:
+
+- Markdown that is not part of a collection;
+- a file used by more than one collection, because Astro turns it into HTML once for all of them;
+- live collections, whose loaders render their own content.
+
+## Limitations
+
+- `astro:collections:resolved` doesn't include live collections. Astro doesn't read `src/live.config.ts` before loading your collections.
+- Descriptors are a convention. Recognizing a collection by its descriptors only works if the library and the loader agree on their names and values.
+- Rendered Markdown can keep old descriptors. Astro reuses the HTML of Markdown entries between builds, until `src/content.config.ts`, your Astro config or your version of Astro changes. If a library changes the descriptors of its loader in an update, Markdown plugins keep seeing the old descriptors on entries that were already rendered. Run `astro build --force` to render them again.
+
+## Collection metadata API reference
+
+### `getCollectionsMetadata()`
+
+<p>
+
+**Type:** <code>() => Promise&lt;<a href="#collectionmetadata">CollectionMetadata</a>[]&gt;</code><br />
+<Since v="7.5.0" />
+</p>
+
+Returns the metadata of every collection of the project, from `astro:content`: the build-time collections first, then the live collections. Each call returns new objects, so changing them doesn't change what other code receives.
+
+It throws an error when the `experimental.collectionMetadata` flag is disabled.
+
+### `CollectionMetadata`
+
+<p>
+
+**Type:** `{ name: string; type: 'build-time' | 'live'; loader: { name: string }; descriptors: Record<string, JSONValue> }`<br />
+<Since v="7.5.0" />
+</p>
+
+Facts about one collection, never its entries. In `astro:content`, the type is a union of the metadata of each collection of the project, with their descriptors typed.
+
+#### `CollectionMetadata.name`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The name of the collection, as used with `getCollection()` or `getLiveCollection()`.
+
+#### `CollectionMetadata.type`
+
+<p>
+
+**Type:** `'build-time' | 'live'`
+</p>
+
+`'build-time'` for the collections of `src/content.config.ts`, read with `getCollection()`, and `'live'` for the collections of `src/live.config.ts`, read with `getLiveCollection()`.
+
+#### `CollectionMetadata.loader`
+
+<p>
+
+**Type:** `{ name: string }`
+</p>
+
+The loader of the collection. Its `name` is the [`name`](/en/reference/content-loader-reference/#loadername) of the loader, or `'inline'` for a loader defined as a function.
+
+#### `CollectionMetadata.descriptors`
+
+<p>
+
+**Type:** `Record<string, JSONValue>`
+</p>
+
+The descriptors of the collection: the ones of its loader, merged with the ones of its config. When both set the same descriptor, the config wins.
+
+### `CollectionMetadataWith`
+
+<p>
+
+**Type:** `CollectionMetadataWith<D extends CollectionDescriptors, T extends 'build-time' | 'live' = 'build-time' | 'live'>`<br />
+<Since v="7.5.0" />
+</p>
+
+A type from `astro:content`: the [`CollectionMetadata`](#collectionmetadata) of the collections that have the descriptors `D`, and, when you set `T`, the type `T`. Use it in a type guard, to narrow the result of [`getCollectionsMetadata()`](#getcollectionsmetadata) with `filter()`, as shown in [Type safety](#type-safety).
+
+### `Loader.descriptors`
+
+<p>
+
+**Type:** `Record<string, JSONValue>`<br />
+<Since v="7.5.0" />
+</p>
+
+An optional property of [loaders](/en/reference/content-loader-reference/#the-loader-object) and live loaders. It adds descriptors to every collection that uses the loader.
+
+Declare their type with the type parameter of `Loader`, like `Loader<{ myDocs: 'docs' }>`, or with the last type parameter of `LiveLoader`.
+
+### `descriptors`
+
+<p>
+
+**Type:** `Record<string, JSONValue>`<br />
+<Since v="7.5.0" />
+</p>
+
+An option of `defineCollection()` and `defineLiveCollection()`. It adds descriptors to the collection, or replaces the descriptors of its loader that have the same name.
+
+### `astro:collections:resolved`
+
+<p><Since v="7.5.0" /></p>
+
+**Previous hook:** [`astro:config:done`](/en/reference/integrations-reference/#astroconfigdone) during a build, [`astro:server:setup`](/en/reference/integrations-reference/#astroserversetup) in development
+
+**Next hook:** [`astro:build:start`](/en/reference/integrations-reference/#astrobuildstart) during a build, [`astro:server:start`](/en/reference/integrations-reference/#astroserverstart) in development
+
+**When:** After Astro has read `src/content.config.ts`, and before any loader runs. During a build, it is called on every build, before Vite loads any file of the site, except the files `src/content.config.ts` imports. In development, it is called again each time `src/content.config.ts` changes.
+
+**Why:** To set up the integration for the collections it recognizes, before they are loaded, for example to prepare the content of a virtual module.
+
+```ts
+'astro:collections:resolved'?: (options: {
+  collections: CollectionMetadata[];
+  logger: AstroIntegrationLogger;
+}) => void | Promise<void>;
+```
+
+#### `collections`
+
+<p>
+
+**Type:** [`CollectionMetadata[]`](#collectionmetadata)
+</p>
+
+The metadata of the build-time collections. Each integration receives its own copy.
+
+#### `logger`
+
+<p>
+
+**Type:** [`AstroIntegrationLogger`](/en/reference/integrations-reference/#astrointegrationlogger)
+</p>
+
+An instance of the Astro integration logger, to write logs.
+
+### `collections` in `astro:build:done`
+
+<p>
+
+**Type:** <code>\{ metadata?: CollectionMetadata[]; entries?: (name: string, options?: \{ content?: boolean \}) => Promise&lt;DataEntry[]&gt; \}</code><br />
+<Since v="7.5.0" />
+</p>
+
+With this flag, the [`astro:build:done` hook](/en/reference/integrations-reference/#astrobuilddone) receives a `collections` option, with the metadata and the entries of the build-time collections.
+
+The same `collections` option also lists the snapshots of the build, with the [experimental collection storage drivers flag](/en/reference/experimental-flags/collection-storage-drivers/#collections-in-astrobuilddone).
+
+#### `collections.metadata`
+
+<p>
+
+**Type:** [`CollectionMetadata[]`](#collectionmetadata)
+</p>
+
+The metadata of the build-time collections. Each integration receives its own copy.
+
+#### `collections.entries()`
+
+<p>
+
+**Type:** `(name: string, options?: { content?: boolean }) => Promise<DataEntry[]>`
+</p>
+
+Returns the entries of a build-time collection, as the build saved them. It returns an empty array for live collections, and for names that aren't collections.
+
+The entries are plain data: images and references to other entries are not resolved, and they can't be rendered. With `{ content: false }`, the entries are returned without `body` and `rendered`.
+
+Each call reads the collection from disk, returns new objects, and keeps nothing afterwards.
+
+### `file.data.astro.collection`
+
+<p>
+
+**Type:** [`CollectionMetadata`](#collectionmetadata) ` | undefined`<br />
+<Since v="7.5.0" />
+</p>
+
+The metadata of the collection an entry belongs to, for remark and rehype plugins. In Sätteri plugins, it is `ctx.data.astro.collection`.
+
+It is `undefined` for Markdown that is not part of a collection, for files used by more than one collection, and for live collections.
+
+<ReadMore>Share your feedback on this feature in the [enhanced content collections RFC](https://github.com/withastro/roadmap/pull/1459).</ReadMore>
