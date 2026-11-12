@@ -17,47 +17,40 @@ import ReadMore from '~/components/ReadMore.astro';
 
 [Prisma ORM](https://www.prisma.io/orm)은 Prisma Postgres 데이터베이스에 연결하는 데 권장되는 방법입니다. 타입 안전 쿼리, 마이그레이션 및 글로벌 성능을 제공합니다.
 
+이 가이드는 Prisma ORM 8을 사용합니다. Prisma ORM 7을 사용 중이라면 대신 Prisma 문서의 [Astro용 Prisma ORM 7 가이드](https://www.prisma.io/docs/guides/v7/frameworks/astro)를 따르세요.
+
 ### 전제 조건
 - [요청 시 렌더링 (SSR)](/ko/guides/on-demand-rendering/)을 활성화하기 위해 어댑터가 설치된 Astro 프로젝트가 필요합니다.
-- Prisma ORM 7이 필요합니다. Prisma ORM 8은 설정 방법이 다르므로 이 가이드에서 다루지 않습니다.
+- [Astro의 최소 요구 사항](/ko/install-and-setup/#사전-준비-사항)을 충족하는 Node.js 버전이 필요합니다. Node.js v24를 사용 중이라면 Prisma ORM 8의 요구 사항에 맞게 `v24.11.0` 이상을 사용해야 합니다.
 
 ### 의존성 설치 및 Prisma 초기화
 
-다음 명령을 실행하여 필수 Prisma 의존성을 설치합니다.
+프로젝트에서 다음 명령을 실행하여 Prisma ORM을 설치하고 시작 파일을 생성합니다.
 
 ```bash
-npm install prisma@7 tsx dotenv --save-dev
-npm install @prisma/adapter-pg@7 @prisma/client@7
+npx prisma@latest orm init --target postgres --authoring psl
 ```
 
-설치가 완료되면 프로젝트에서 다음 명령어를 사용하여 Prisma를 초기화합니다.
+이 명령은 `prisma` CLI, `@prisma/orm-postgres`, `dotenv`를 설치하고 다음 파일을 생성합니다.
+- `.env`에서 `DATABASE_URL`을 불러오는 `prisma.config.ts` 파일
+- 시작 데이터 모델이 포함된 `src/prisma/contract.prisma` 파일
+- Prisma ORM 클라이언트를 내보내는 `src/prisma/db.ts` 파일
+- `.env.example` 파일
+
+이미 Prisma Postgres 데이터베이스가 있다면 연결 문자열을 `.env`에 `DATABASE_URL`로 추가하세요. 그렇지 않다면 다음 명령을 실행하여 데이터베이스를 생성하고 연결 문자열을 자동으로 기록하세요.
 
 ```bash
-npx prisma init --db --output ./generated
+npx create-db@latest --env .env
 ```
 
-Prisma Postgres 데이터베이스를 설정하는 동안 몇 가지 질문에 답해야 합니다. 현재 위치에서 가장 가까운 지역을 선택하고 데이터베이스의 이름을 "My Astro Project"와 같이 기억할 수 있는 이름으로 설정합니다.
-
-이렇게 하면 다음 항목이 생성됩니다.
-- `schema.prisma` 파일을 포함하는 `prisma/` 디렉터리
-- `.env`에서 `DATABASE_URL`을 불러오는 `prisma7.config.ts` 파일
-- `DATABASE_URL`이 설정된 `.env` 파일
+이 명령은 클레임 URL을 출력합니다. 데이터베이스를 계속 사용하려면 해당 URL을 열고 로그인하세요. Prisma는 클레임되지 않은 데이터베이스를 24시간 후에 삭제합니다.
 
 ### 모델 정의하기
 
-아직 데이터 모델이 필요하지 않더라도 Prisma가 클라이언트를 생성하고 마이그레이션을 적용하기 위해 스키마에 적어도 하나의 모델이 필요합니다.
+Prisma는 데이터베이스 테이블을 생성하기 위해 컨트랙트에 최소 하나의 모델이 필요합니다. 다음 예시에서는 `Post` 모델을 임시로 정의합니다. 시작하려면 `src/prisma/contract.prisma`의 내용을 이 예시로 바꾸세요. 나중에 안전하게 삭제하거나 실제 데이터를 반영하는 모델로 대체할 수 있습니다.
 
-다음 예시에서는 `Post` 모델을 임시로 정의합니다. 시작하려면 스키마에 모델을 추가하세요. 나중에 안전하게 삭제하거나 실제 데이터를 반영하는 모델로 대체할 수 있습니다.
-
-```prisma title="prisma/schema.prisma" ins={10-15}
-generator client {
-  provider = "prisma-client"
-  output   = "./generated"
-}
-
-datasource db {
-  provider = "postgresql"
-}
+```prisma title="src/prisma/contract.prisma"
+// use prisma-8
 
 model Post {
   id        Int     @id @default(autoincrement())
@@ -67,51 +60,42 @@ model Post {
 }
 ```
 
-[Prisma 스키마 참조](https://www.prisma.io/docs/orm/v7/prisma-schema/overview)에서 Prisma ORM 설정 구성에 대해 자세히 알아보세요.
+`// use prisma-8` 줄은 파일 맨 위에 유지하세요. 이 줄은 파일이 어떤 컨트랙트 구문을 사용하는지 Prisma에 알려줍니다. Prisma ORM 설정 구성에 대한 자세한 내용은 [Prisma 컨트랙트 참조](https://www.prisma.io/docs/orm/contract-authoring/psl-syntax)에서 알아보세요.
 
-### 클라이언트 생성하기
+### 컨트랙트 출력하기
 
-스키마로부터 Prisma 클라이언트를 생성하려면 다음 명령을 실행하세요.
-
-```bash
-npx prisma generate
-```
-
-### 마이그레이션 파일 생성하기
-
-다음 명령을 실행하여 스키마로부터 데이터베이스 테이블을 생성합니다. 그러면 마이그레이션 기록 파일이 포함된 `prisma/migrations/` 디렉터리도 함께 생성됩니다.
+다음 명령을 실행하여 `src/prisma/db.ts`가 가져오는 타입이 지정된 파일을 생성합니다. 컨트랙트를 변경할 때마다 이 명령을 다시 실행하세요.
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma contract emit
 ```
 
-### Prisma 클라이언트 만들기
+### 데이터베이스 테이블 생성하기
 
-`/src/lib`에 `prisma.ts` 파일을 생성합니다. 이 파일은 Prisma 클라이언트 인스턴스를 초기화하고 내보내 Astro 프로젝트 전체에서 데이터베이스를 쿼리할 수 있도록 합니다.
+다음 명령을 실행하여 컨트랙트로부터 테이블을 생성합니다. 그러면 데이터베이스의 상태를 기록하는 `migrations/` 디렉터리도 함께 생성됩니다.
 
-```typescript title="src/lib/prisma.ts"
-import { PrismaPg } from '@prisma/adapter-pg';
-import { PrismaClient } from '../../prisma/generated/client';
-
-const connectionString = import.meta.env.DATABASE_URL;
-const adapter = new PrismaPg({ connectionString });
-const prisma = new PrismaClient({ adapter });
-
-export default prisma;
+```bash
+npx prisma db init
 ```
+
+`Connection terminated unexpectedly` 메시지와 함께 명령이 중단되면, 방금 생성한 데이터베이스가 아직 시작 중인 것입니다. 몇 초 기다린 후 다시 실행하세요.
+
+컨트랙트를 변경한 후에는 `npx prisma db update`를 다시 실행하여 변경 사항을 데이터베이스에 적용하세요.
 
 ### 데이터 쿼리 및 표시하기
 
-다음 예시는 Prisma 클라이언트를 사용하여 공개된 게시물만 `id`별로 정렬하여 가져온 다음, Astro 템플릿에서 제목과 게시물 내용을 표시하는 방법을 보여줍니다.
+`src/prisma/db.ts`에서 내보낸 `db` 클라이언트는 한 번 생성되어 프로젝트 전체에서 재사용됩니다. 모델은 PostgreSQL 스키마별로 그룹화되므로 `Post` 모델은 `db.orm.public.Post`로 사용할 수 있습니다.
+
+다음 예시는 공개된 게시물만 `id`별로 정렬하여 가져온 다음, Astro 템플릿에서 제목과 게시물 내용을 표시하는 방법을 보여줍니다.
 
 ```astro title="src/pages/posts.astro" {2, 4-7}
 ---
-import prisma from '../lib/prisma';
+import { db } from '../prisma/db';
 
-const posts = await prisma.post.findMany({
-  where: { published: true },
-  orderBy: { id: 'desc' }
-});
+const posts = await db.orm.public.Post
+  .where({ published: true })
+  .orderBy((post) => post.id.desc())
+  .all();
 ---
 
 <html>
@@ -132,7 +116,7 @@ const posts = await prisma.post.findMany({
 </html>
 ```
 
-API 라우트에서 쿼리를 처리하는 것이 가장 좋습니다. Astro 프로젝트에서 Prisma ORM을 사용하는 방법에 대한 자세한 내용은 [Astro + Prisma ORM 가이드](https://www.prisma.io/docs/guides/astro)를 참조하세요.
+API 라우트에서 쿼리를 처리하는 것이 가장 좋습니다. Astro 프로젝트에서 Prisma ORM을 사용하는 방법에 대한 자세한 내용은 [Astro + Prisma ORM 가이드](https://www.prisma.io/docs/guides/frameworks/astro)와 [Prisma의 데이터 읽기 가이드](https://www.prisma.io/docs/orm/fundamentals/reading-data)를 참조하세요.
 
 ## 다른 ORM 및 라이브러리와 연결하기
 
@@ -189,4 +173,4 @@ await client.end();
 
 ## 공식 리소스
 
-- [Astro + Prisma ORM 가이드](https://www.prisma.io/docs/guides/astro)
+- [Astro + Prisma ORM 가이드](https://www.prisma.io/docs/guides/frameworks/astro)
