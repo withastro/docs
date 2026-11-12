@@ -92,6 +92,7 @@ export const logos = LogoCheck({
 	preact: { file: 'preact.svg', padding: '.1875em' },
 	prefetch: { file: 'prefetch.svg', padding: '.25em' },
 	preprcms: { file: 'preprcms.svg', padding: '0' },
+	'prisma-compute': { file: 'prisma-postgres.svg', padding: '.20em' },
 	'prisma-postgres': { file: 'prisma-postgres.svg', padding: '.20em' },
 	prismic: { file: 'prismic.svg', padding: '.25em' },
 	railway: { file: 'railway.svg', padding: '0' },
