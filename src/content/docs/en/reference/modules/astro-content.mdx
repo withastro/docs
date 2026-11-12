@@ -82,11 +82,11 @@ Either an object or a function that allows you to load data from any source, loc
 
 <p>
 
-**Type:** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+**Type:** <code>StandardSchemaV1 | (context: <a href="#schemacontext">SchemaContext</a>) => StandardSchemaV1</code>
 <Since v="2.0.0" />
 </p>
 
-An optional Zod object or function that returns a Zod object to configure the type and shape of document frontmatter for a collection. Each value must use [a Zod validator](/en/reference/modules/astro-zod/#common-data-type-validators). (For live collections, see the [live `schema`](#schema-1) property.)
+An optional [Standard Schema](https://standardschema.dev)-compatible validator or function that returns one. The schema configures the type and shape of document frontmatter for a collection. (For live collections, see the [live `schema`](#schema-1) property.)
 
 <ReadMore>Learn about [defining a collection schema](/en/guides/content-collections/#defining-the-collection-schema) using Zod with guided explanations, example usage, and common datatypes.</ReadMore>
 
@@ -148,11 +148,11 @@ When you define a schema, it will take precedence over the [live loader’s type
 
 <p>
 
-**Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>) => ZodEffects\<ZodString, \{ collection: CollectionKey, id: string \}\></code><br />
+**Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>, id: string | number | Reference) => Reference</code><br />
 <Since v="2.5.0" />
 </p>
 
-A function used in the content config to define a relationship, or "reference", from one collection to another. This accepts a collection name and transforms the reference into an object containing the collection name and the reference id.
+A function used in the content config to create a reference to an entry in another collection. Pass the collection name and an entry ID. Use it inside your validator's transform so the validator can parse the input ID:
 
 This example defines references from a blog author to the `authors` collection and an array of related posts to the same `blog` collection:
 
@@ -164,10 +164,10 @@ import { glob, file } from 'astro/loaders';
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: z.object({
-    // Reference a single author from the `authors` collection by `id`
-    author: reference('authors'),
+     // Reference a single author from the `authors` collection by `id`
+    author: z.string().transform((id) => reference('authors', id)),
     // Reference an array of related posts from the `blog` collection by `slug`
-    relatedPosts: z.array(reference('blog')),
+    relatedPosts: z.array(z.string().transform((id) => reference('blog', id))),
   })
 });
 
@@ -473,27 +473,26 @@ export async function queryCollection(collection: CollectionKey) {
 
 The `context` object that `defineCollection` uses for the function shape of `schema`. This type can be useful when building reusable schemas for multiple collections.
 
-This includes the following property:
-
-- `image` - The `image()` schema helper that allows you [to use local images in Content Collections](/en/guides/images/#images-in-content-collections)
+Use the `context` parameter to pass collection context to helpers such as [`image()`](/en/guides/images/#images-in-content-collections).
 
 ```ts title="src/content.config.ts" "SchemaContext" {5-9,13,16}
 import { defineCollection, type SchemaContext } from "astro:content";
+import { image } from 'astro/content/image';
 import { z } from 'astro/zod';
 import { glob } from 'astro/loaders';
 
-export const imageSchema = ({ image }: SchemaContext) =>
+export const imageSchema = (context: SchemaContext) =>
     z.object({
-        image: image(),
+        image: z.string().transform((src) => image(context, { src })),
         description: z.string().optional(),
     });
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
-  schema: ({ image }) => z.object({
+  schema: (context) => z.object({
     title: z.string(),
     permalink: z.string().optional(),
-    image: imageSchema({ image })
+    image: imageSchema(context)
   }),
 });
 ```

@@ -5,6 +5,7 @@ i18nReady: true
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
@@ -14,11 +15,27 @@ Astro Actions allow you to define and call backend functions with type-safety. A
 
 Use actions instead of API endpoints for seamless communication between your client and server code and to:
 
-- Automatically validate JSON and form data inputs using [Zod validation](/en/reference/modules/astro-zod/).
+- Automatically validate JSON and form action inputs with a Standard Schema-compatible validator, such as Zod, Valibot, or ArkType.
 - Generate type-safe functions to call your backend from the client and even [from HTML form actions](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
 - Standardize backend errors with the [`ActionError`](/en/reference/modules/astro-actions/#actionerror) object.
 
 ## Basic usage
+
+### Use Standard Schema validators
+
+JSON action `input` validators can use any library that implements [Standard Schema](https://standardschema.dev), including Zod, Valibot, and ArkType. Astro validates the input and passes the parsed output to your handler. The following example uses Valibot instead of Zod:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import * as v from 'valibot';
+
+export const server = {
+  subscribe: defineAction({
+    input: v.object({ channel: v.string() }),
+    handler: async ({ channel }) => channel,
+  }),
+};
+```
 
 Actions are defined in a `server` object exported from `src/actions/index.ts`:
 
@@ -73,7 +90,7 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     }
     ```
 
-3. Use the `defineAction()` utility to define a `getGreeting` action. The `input` property will be used to validate input parameters with a [Zod schema](/en/reference/modules/astro-zod/#common-data-type-validators) and the `handler()` function includes the backend logic to run on the server.
+3. Use the `defineAction()` utility to define a `getGreeting` action. The `input` property validates input parameters with a Standard Schema-compatible validator, and the `handler()` function includes the backend logic to run on the server.
 
     ```ts ins={5-12} title="src/actions/index.ts"
     import { defineAction } from 'astro:actions';
@@ -301,60 +318,61 @@ export const server = {
 }
 ```
 
-### Using validators with form inputs
+### Validating form data
 
-When your action is [configured to accept form data](/en/reference/modules/astro-actions/#accept-property), you can use any Zod validators to validate your fields (e.g. `z.coerce.date()` for date inputs). Extension functions including `.refine()`, `.transform()`, and `.pipe()` are also supported on the `z.object()` validator.
+Actions pass the submitted `FormData` object to the handler. You can parse it with any approach that fits your application. For example, use [`@standard-community/standard-form`](https://github.com/standard-community/standard-form) with a Standard Schema validator to convert form fields and handle validation issues.
 
-Additionally, Astro provides special handling under the hood for your convenience to validate the following types of field inputs:
+Install `@standard-community/standard-form`:
 
-- Inputs of type `number` can be validated using `z.number()`
-- Inputs of type `checkbox` can be validated using `z.coerce.boolean()`
-- Inputs of type `file` can be validated using `z.instanceof(File)`
-- Multiple inputs of the same `name` can be validated using `z.array(/* validator */)`
-- All other inputs can be validated using `z.string()`
+<PackageManagerTabs>
+  <Fragment slot="npm">
+    ```sh
+    npm install @standard-community/standard-form
+    ```
+  </Fragment>
+  <Fragment slot="pnpm">
+    ```sh
+    pnpm add @standard-community/standard-form
+    ```
+  </Fragment>
+  <Fragment slot="yarn">
+    ```sh
+    yarn add @standard-community/standard-form
+    ```
+  </Fragment>
+</PackageManagerTabs>
 
-When your form is submitted with empty inputs, the output type may not match your `input` validator. Empty values are converted to `null` except when validating arrays or booleans. For example, if an input of type `text` is submitted with an empty value, the result will be `null` instead of an empty string (`""`).
+The following action parses form data for either creating or updating a user:
 
-To apply a union of different validators, use the `z.discriminatedUnion()` wrapper to narrow the type based on a specific form field. This example accepts a form submission to either "create" or "update" a user, using the form field with the name `type` to determine which object to validate against:
-
-```ts title="src/actions/index.ts" {7-21} "create" "update"
-import { defineAction } from 'astro:actions';
+```ts title="src/actions/index.ts"
+import { parseFormData } from '@standard-community/standard-form';
+import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
+
+const schema = z.discriminatedUnion('type', [
+  z.object({ type: z.literal('create'), name: z.string(), email: z.email() }),
+  z.object({ type: z.literal('update'), id: z.number(), name: z.string(), email: z.email() }),
+]);
 
 export const server = {
   changeUser: defineAction({
     accept: 'form',
-    input: z.discriminatedUnion('type', [
-      z.object({
-        // Matches when the `type` field has the value `create`
-        type: z.literal('create'),
-        name: z.string(),
-        email: z.email(),
-      }),
-      z.object({
-        // Matches when the `type` field has the value `update`
-        type: z.literal('update'),
-        id: z.number(),
-        name: z.string(),
-        email: z.email(),
-      }),
-    ]),
-    async handler(input) {
-      if (input.type === 'create') {
-        // input is { type: 'create', name: string, email: string }
+    handler: async (formData) => {
+      const result = await parseFormData(schema, formData);
+      if (result.issues) {
+        throw new ActionError({ code: 'BAD_REQUEST', message: result.issues[0].message });
+      }
+      if (result.value.type === 'create') {
+        const { name, email } = result.value;
       } else {
-        // input is { type: 'update', id: number, name: string, email: string }
+        const { id, name, email } = result.value;
       }
     },
   }),
 };
 ```
 
-### Validating form data
-
-Actions will parse submitted form data to an object, using the value of each input’s `name` attribute as the object keys. For example, a form containing `<input name="search">` will be parsed to an object like `{ search: 'user input' }`. Your action's `input` schema will be used to validate this object.
-
-To receive the raw `FormData` object in your action handler instead of a parsed object, omit the `input` property in your action definition.
+`parseFormData()` returns either the parsed `value` or a list of `issues`. The example turns the first issue into an `ActionError`. You can choose a different error response or return the issues to the caller.
 
 The following example shows a validated newsletter registration form that accepts a user's email and requires a "terms of service" agreement checkbox.
 
@@ -374,25 +392,31 @@ The following example shows a validated newsletter registration form that accept
     </form>
     ```
 
-2. Define a `newsletter` action to handle the submitted form. Validate the `email` field using the `z.email()` validator, and the `terms` checkbox using `z.boolean()`:
+2. Define a `newsletter` action to handle the submitted form. Parse and validate the fields in the handler:
 
     ```ts title="src/actions/index.ts" ins={5-12}
-    import { defineAction } from 'astro:actions';
+    import { parseFormData } from '@standard-community/standard-form';
+    import { ActionError, defineAction } from 'astro:actions';
     import { z } from 'astro/zod';
+
+    const newsletterSchema = z.object({ email: z.email(), terms: z.boolean() });
 
     export const server = {
       newsletter: defineAction({
         accept: 'form',
-        input: z.object({
-          email: z.email(),
-          terms: z.boolean(),
-        }),
-        handler: async ({ email, terms }) => { /* ... */ },
+        handler: async (formData) => {
+          const result = await parseFormData(newsletterSchema, formData);
+          if (result.issues) {
+            throw new ActionError({ code: 'BAD_REQUEST', message: result.issues[0].message });
+          }
+          const { email, terms } = result.value;
+          /* ... */
+        },
       })
     }
     ```
 
-    <ReadMore>See the [`input` API reference](/en/reference/modules/astro-actions/#input-validator) for all available form validators.</ReadMore>
+    <ReadMore>See the [`input` API reference](/en/reference/modules/astro-actions/#input-validator) for details about validating action inputs.</ReadMore>
 
 3. Add a `<script>` to the HTML form to submit the user input. This example overrides the form's default submit behavior to call `actions.newsletter()`, and redirects to `/confirmation` using the `navigate()` function:
 

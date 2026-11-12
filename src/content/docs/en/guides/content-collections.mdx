@@ -108,7 +108,7 @@ Collections may not be your solution if:
 
 ## TypeScript configuration for collections
 
-Content collections rely on TypeScript to provide Zod validation, Intellisense, and type checking in your editor. By default, Astro configures a [`strict` TypeScript template](/en/guides/typescript/#tsconfig-templates) when you create a new project using the `create astro` CLI command. Both of Astro's `strict` and `strictest` templates include the TypeScript settings your project needs for content collections.
+Content collections rely on TypeScript to provide schema validation, Intellisense, and type checking in your editor. By default, Astro configures a [`strict` TypeScript template](/en/guides/typescript/#tsconfig-templates) when you create a new project using the `create astro` CLI command. Both of Astro's `strict` and `strictest` templates include the TypeScript settings your project needs for content collections.
 
 If you changed this setting to `base` because you are not writing TypeScript in your project, or are not using any of Astro's built-in templates, you will need to also add the following `compilerOptions` in your `tsconfig.json` to use content collections:
 
@@ -138,7 +138,7 @@ import { defineCollection } from 'astro:content';
 // 2. Import loader(s)
 import { glob, file } from 'astro/loaders';
 
-// 3. Import Zod
+// 3. Import a Standard Schema-compatible validator
 import { z } from 'astro/zod';
 
 // 4. Define a `loader` and `schema` for each collection
@@ -327,7 +327,7 @@ Similar to creating an Astro integration or Vite plugin, you can [distribute you
 
 ## Defining the collection schema
 
-Schemas enforce consistent frontmatter or entry data within a collection through Zod validation. A schema **guarantees** that this data exists in a predictable form when you need to reference or query it. If any file violates its collection schema, Astro will provide a helpful error to let you know.
+Schemas enforce consistent frontmatter or entry data within a collection. Astro accepts any validator that implements [Standard Schema](https://standardschema.dev), including Zod, Valibot, and ArkType. A schema **guarantees** that this data exists in a predictable form when you reference or query it. If any file violates its collection schema, Astro reports a validation error.
 
 Schemas also power Astro's automatic TypeScript typings for your content. When you define a schema for your collection, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your collection, including property autocompletion and type-checking.
 
@@ -335,7 +335,7 @@ Schemas also power Astro's automatic TypeScript typings for your content. When y
 In order for Astro to recognize a new or updated schema, you may need to restart the dev server or [sync the content layer](/en/reference/cli-reference/#astro-dev) (<code>s + enter</code>) to define the `astro:content` module.
 :::
 
-Providing a `schema` is optional, but highly recommended! If you choose to use a schema, then every frontmatter or data property of your collection entries must be defined using a [Zod data type](/en/reference/modules/astro-zod/#common-data-type-validators):
+Providing a `schema` is optional, but highly recommended. If you choose to use a schema, define each frontmatter or data property with your validator's data types. The validator must implement Standard Schema:
 
 ```ts title="src/content.config.ts" {7-12,16-20}
 import { defineCollection } from "astro:content";
@@ -363,17 +363,13 @@ const dogs = defineCollection({
 export const collections = { blog, dogs };
 ```
 
-### Defining datatypes with Zod
+### Using Zod
 
-Astro uses [Zod](https://github.com/colinhacks/zod) to power its content schemas. With Zod, Astro is able to validate every file's data within a collection *and* provide automatic TypeScript types when you query content from inside your project.
+You can use [Zod](https://github.com/colinhacks/zod) for content schemas. Astro validates each entry and infers TypeScript types from the schema. Astro also supports other Standard Schema-compatible validators.
 
 To use Zod in Astro, import the `z` utility from `"astro/zod"`. This is a re-export of the Zod library, and it supports all of the features of Zod 4.
 
 <ReadMore>See the [`z` utility reference](/en/reference/modules/astro-zod/) for a cheatsheet of common datatypes and to learn how Zod works and what features are available.</ReadMore>
-
-#### Zod schema methods
-
-All [Zod schema methods](/en/reference/modules/astro-zod/#using-zod-methods) (e.g. `.parse()`, `.transform()`) are available, with some limitations. Notably, performing custom validation checks on images using `image().refine()` is unsupported.
 
 ### Defining collection references
 
@@ -393,9 +389,9 @@ const blog = defineCollection({
   schema: z.object({
     title: z.string(),
     // Reference a single author from the `authors` collection by `id`
-    author: reference("authors"),
+    author: z.string().transform((id) => reference("authors", id)),
     // Reference an array of related posts from the `blog` collection by `id`
-    relatedPosts: z.array(reference("blog")),
+    relatedPosts: z.array(z.string().transform((id) => reference("blog", id))),
   }),
 });
 
