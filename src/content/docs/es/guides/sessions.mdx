@@ -4,6 +4,8 @@ description: Comparte datos entre solicitudes para páginas renderizadas bajo de
 i18nReady: true
 ---
 
+import { Steps } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
 
@@ -11,65 +13,158 @@ import ReadMore from '~/components/ReadMore.astro';
 <Since v="5.7.0" />
 </p>
 
-Las sesiones se utilizan para compartir datos entre solicitudes para [páginas renderizadas bajo demanda](/es/guides/on-demand-rendering/).
+Las sesiones se utilizan para compartir datos entre solicitudes para [páginas renderizadas bajo demanda](/es/guides/on-demand-rendering/). 
 
-En tercera persona y en español:
-
-A diferencia de las [`cookies`](/es/guides/on-demand-rendering/#cookies), las sesiones se almacenan en el servidor, por lo que es posible guardar cantidades mayores de datos sin preocuparse por los límites de tamaño o problemas de seguridad. Son útiles para almacenar cosas como datos de usuario, carritos de compra y el estado de formularios, y funcionan sin necesidad de JavaScript del lado del cliente:
+A diferencia de las [`cookies`](/es/guides/on-demand-rendering/#cookies), las sesiones se almacenan en el servidor, por lo que puedes guardar cantidades mayores de datos sin preocuparte por los límites de tamaño o problemas de seguridad. Son útiles para almacenar cosas como datos de usuario, carritos de compra y el estado de formularios, y funcionan sin necesidad de JavaScript del lado del cliente:
 
 ```astro title="src/components/CartButton.astro" {3}
 ---
-export const prerender = false; // No es necesario con la salida `'server'`
-
+export const prerender = false; // No es necesario con la salida 'server'
 const cart = await Astro.session?.get('cart');
 ---
 
 <a href="/checkout">🛒 {cart?.length ?? 0} artículos</a>
 ```
 
-## Configurando de sesiones
+## Configurar sesiones
 
-{/* TODO: add link to 
- - Node: /es/guides/integrations-guide/node/#sesiones, 
- - cloudflare: /es/guides/integrations-guide/cloudflare/#sesiones
- - netlify: /es/guides/integrations-guide/netlify/#sessions
- - controlador: /es/reference/configuration-reference/#sessiondriver
-*/}
-Las sesiones requieren un controlador de almacenamiento para guardar los datos de la sesión. Los adaptadores de Node, Cloudflare y Netlify configuran automáticamente un controlador predeterminado para ti, pero otros adaptadores actualmente requieren que especifiques un controlador manualmente.
+Las sesiones requieren un controlador de almacenamiento para guardar los datos de la sesión. Los adaptadores de [Node](/es/guides/integrations-guide/node/#sessions), [Cloudflare](/es/guides/integrations-guide/cloudflare/#sessions) y [Netlify](/es/guides/integrations-guide/netlify/#sessions) configuran automáticamente un controlador predeterminado para ti, pero otros adaptadores actualmente requieren que [especifiques un controlador manualmente](/es/reference/configuration-reference/#sessiondriver). 
 
-```js title="astro.config.mjs" ins={4}
-  {
-    adapter: vercel(),
-    session: {
-      driver: "redis",
-    },
+```js title="astro.config.mjs" ins={7-9} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+import vercel from '@astrojs/vercel'
+
+export default defineConfig({
+  adapter: vercel(),
+  session: {
+    driver: sessionDrivers.lruCache({
+      max: 800,
+    }),
   }
+})
 ```
 
-{/* TODO: add link to session options /en/reference/configuration-reference/#session-options*/}
 <ReadMore>
-  Consulta las opciones de configuración de `session` para más detalles sobre cómo establecer un controlador de almacenamiento y otras opciones configurables.
+Consulta [la opción de configuración `session`](/es/reference/configuration-reference/#session-options) para más detalles sobre cómo establecer un controlador de almacenamiento y otras opciones configurables.
 </ReadMore>
 
-## Interactuando con los datos de la sesión
+### Sobrescribir la configuración en tiempo de ejecución
 
-{/* TODO: add link to /en/reference/api-reference/#session*/}
-El `objeto session` te permite interactuar con el estado almacenado del usuario (por ejemplo, agregar artículos a un carrito de compras) y con el ID de la sesión (por ejemplo, eliminar la cookie del ID de sesión al cerrar sesión). El objeto es accesible como `Astro.session` en tus componentes y páginas de Astro, y como `context.session` en endpoints API, middleware y acciones.
+Por defecto, los controladores de sesiones se configuran en el momento de la compilación, y cualquier [variable de entorno](/es/guides/environment-variables/) utilizada se incluirá directamente en la compilación. Esto significa que no puedes sobrescribir la configuración en tiempo de ejecución.
 
-{/* TODO: add link to /en/reference/api-reference/#regenerate and /es/reference/api-reference/#destroy */}
-La sesión se genera automáticamente cuando se usa por primera vez y puede regenerarse en cualquier momento con `session.regenerate()` o destruirse con `session.destroy()`.
+Cuando necesites una configuración diferente (por ejemplo, para conectarte a un servicio externo), defínela en un archivo separado. Luego, usa ese archivo como el [punto de entrada del controlador](/es/reference/session-driver-reference/#entrypoint).
 
-{/* TODO: add link to /en/reference/api-reference/#get and /en/reference/api-reference/#set*/}
-Para muchos casos de uso, solo necesitarás usar `session.get()` y `session.set()`.
+El siguiente ejemplo aprovecha la [compatibilidad con Unstorage](/es/reference/session-driver-reference/#unstorage-compatibility) para configurar el controlador de Redis en su propio punto de entrada:
+
+<Steps>
+1. Instala los paquetes [`unstorage`](https://www.npmjs.com/package/unstorage) y [`ioredis`](https://www.npmjs.com/package/ioredis):
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npm install unstorage ioredis
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm add unstorage ioredis
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn add unstorage ioredis
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Crea un archivo para la configuración del controlador (por ejemplo, `src/session-driver.ts`) y exporta una función por defecto que devuelva la instancia del controlador:
+    ```ts title="src/session-driver.ts"
+    import type { SessionDriver } from "astro";
+    import redisDriver from "unstorage/drivers/redis";
+    import { REDIS_HOST, REDIS_PORT } from "astro:env/server";
+
+    export default function (): SessionDriver {
+      const driver = redisDriver({
+        host: REDIS_HOST,
+        port: REDIS_PORT,
+      });
+
+      return {
+        async getItem(key) {
+          return await driver.getItem(key);
+        },
+        async setItem(key, value) {
+          await driver.setItem?.(key, value, {});
+        },
+        async removeItem(key) {
+          await driver.removeItem?.(key, {});
+        },
+      };
+    }
+    ```
+
+3. Usa este archivo como el punto de entrada del controlador en tu configuración de Astro:
+    ```js title="astro.config.mjs" {21-23}
+    import { defineConfig, envField, sessionDrivers } from "astro/config";
+    import vercel from "@astrojs/vercel";
+
+    export default defineConfig({
+      adapter: vercel(),
+      env: {
+        schema: {
+          REDIS_HOST: envField.string({
+            context: "server",
+            access: "public",
+            default: "localhost",
+          }),
+          REDIS_PORT: envField.number({
+            context: "server",
+            access: "public",
+            default: 6379,
+          }),
+        },
+      },
+      session: {
+        driver: {
+          entrypoint: new URL("./src/session-driver.ts", import.meta.url),
+        },
+      },
+    });
+    ```
+</Steps>
+
+### Deshabilitar sesiones
+
+<p>
+<Since v="7.2.0" />
+</p>
+
+El runtime de sesiones se excluye automáticamente de tu bundle del servidor siempre que no se configure ningún controlador de sesiones. Configurar `session: false` le indica además a tu adaptador que no proporcione su controlador predeterminado, deshabilitando completamente el soporte de sesiones en tu proyecto:
+
+```js title="astro.config.mjs" ins={4}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  session: false,
+});
+```
+
+Los adaptadores que normalmente proporcionan un controlador de sesiones predeterminado (por ejemplo, [Node](/es/guides/integrations-guide/node/#sessions), [Cloudflare](/es/guides/integrations-guide/cloudflare/#sessions) y [Netlify](/es/guides/integrations-guide/netlify/#sessions)) no configurarán ninguno. Esto puede ser útil para runtimes serverless y edge, donde un bundle más pequeño reduce el tiempo de arranque en frío.
+
+## Interactuar con los datos de la sesión
+
+El [objeto `session`](/es/reference/api-reference/#session) te permite interactuar con el estado de usuario almacenado (por ejemplo, añadir artículos a un carrito de compras) y con el ID de sesión (por ejemplo, eliminar la cookie del ID de sesión al cerrar sesión). El objeto está disponible como `Astro.session` en tus componentes y páginas de Astro y como el objeto `context.session` en endpoints de la API, middleware y acciones.
+
+La sesión se genera automáticamente cuando se usa por primera vez y se puede regenerar en cualquier momento con [`session.regenerate()`](/es/reference/api-reference/#sessionregenerate) o destruir con [`session.destroy()`](/es/reference/api-reference/#sessiondestroy).
+
+Para muchos casos de uso, solo necesitarás usar [`session.get()`](/es/reference/api-reference/#sessionget) y [`session.set()`](/es/reference/api-reference/#sessionset). 
 
 <ReadMore>
-{/* TODO: add link to /en/reference/api-reference/#session*/}
-Consulta la referencia de la API de Sesiones para más detalles.
+Consulta [la referencia de la API de Sesiones](/es/reference/api-reference/#session) para más detalles.
 </ReadMore>
 
 ### Componentes y páginas de Astro
 
-En los componentes y páginas `.astro`, puedes acceder al objeto sesión a través del objeto global `Astro`. Por ejemplo, para mostrar el número de artículos en un carrito de compras:
+En componentes y páginas `.astro`, puedes acceder al objeto de sesión a través del objeto global `Astro`. Por ejemplo, para mostrar el número de artículos en un carrito de compras:
 
 ```astro title="src/components/CartButton.astro" "Astro.session"
 ---
@@ -80,14 +175,16 @@ const cart = await Astro.session?.get('cart');
 <a href="/checkout">🛒 {cart?.length ?? 0} artículos</a>
 ```
 
-### Endpoints API
+### Endpoints de la API
 
-En los endpoints de la API, el objeto sesión está disponible en el objeto `context`. Por ejemplo, para agregar un artículo a un carrito de compras:
+En endpoints de la API, el objeto de sesión está disponible en el objeto `context`. Por ejemplo, para añadir un artículo a un carrito de compras:
 
 ```ts title="src/pages/api/addToCart.ts" "context.session"
+import type { APIContext } from "astro";
+
 export async function POST(context: APIContext) {
   const cart = await context.session?.get('cart') || [];
-	const data = await context.request.json<{ item: string }>();
+  const data = await context.request.json();
   if(!data?.item) {
     return new Response('Item is required', { status: 400 });
   }
@@ -99,11 +196,11 @@ export async function POST(context: APIContext) {
 
 ### Acciones
 
-En las acciones, el objeto sesión está disponible en el objeto `context`. Por ejemplo, para agregar un artículo a un carrito de compras:
+En acciones, el objeto de sesión está disponible en el objeto `context`. Por ejemplo, para añadir un artículo a un carrito de compras:
 
 ```ts title="src/actions/addToCart.ts" "context.session"
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   addToCart: defineAction({
@@ -121,10 +218,10 @@ export const server = {
 ### Middleware
 
 :::note
-Las sesiones no son compatibles con middleware en el edge.
+Las sesiones no son compatibles en middleware en el edge.
 :::
 
-En el middleware, el objeto sesión está disponible en el objeto `context`. Por ejemplo, para establecer la hora de la última visita en la sesión:
+En middleware, el objeto de sesión está disponible en el objeto `context`. Por ejemplo, para establecer la hora de la última visita en la sesión:
 
 ```ts title="src/middleware.ts" "context.session"
 import { defineMiddleware } from 'astro:middleware';
@@ -137,9 +234,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 ## Tipos de datos de la sesión
 
-Por defecto, los datos de la sesión no tienen un tipo específico, y puedes almacenar datos arbitrarios en cualquier clave. Los valores se serializan y deserializan usando [devalue](https://github.com/Rich-Harris/devalue), que es la misma biblioteca utilizada en colecciones de contenido y acciones. Esto significa que los tipos compatibles son los mismos, e incluyen cadenas, números, `Date`, `Map`, `Set`, `URL`, arreglos y objetos simples.
+Por defecto, los datos de la sesión no tienen tipos definidos y puedes almacenar datos arbitrarios en cualquier clave. Los valores se serializan y deserializan usando [devalue](https://github.com/Rich-Harris/devalue), que es la misma biblioteca utilizada en las colecciones de contenido y las acciones. Esto significa que los tipos compatibles son los mismos e incluyen cadenas, números, `Date`, `Map`, `Set`, `URL`, arrays y objetos simples.
 
-Opcionalmente, puedes definir tipos TypeScript para tus datos de sesión creando un archivo `src/env.d.ts` y agregando una declaración para el tipo `App.SessionData`:
+Opcionalmente, puedes [definir tipos de TypeScript](/es/guides/typescript/#extender-tipos-globales) para tus datos de sesión creando un archivo `src/env.d.ts` y agregando una declaración para el tipo `App.SessionData`:
 
 ```ts title="src/env.d.ts"
 declare namespace App {
