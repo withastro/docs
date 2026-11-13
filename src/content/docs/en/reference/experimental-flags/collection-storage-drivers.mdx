@@ -189,7 +189,7 @@ An online database usually needs a token to connect. Pass the name of the enviro
 
 ```ts title="src/content.config.ts" "authTokenEnv: 'DOCS_DATABASE_TOKEN'"
 import { sqlite } from '@astrojs/collection-storage-sqlite';
-import { defineConfig } from 'astro/config';
+import { defineCollection } from 'astro:content';
 import { glob } from 'astro/loaders';
 
 const docs = defineCollection({
@@ -266,7 +266,7 @@ Follow these rules when you implement a driver:
 - Don't cache entries in the reader. Astro keeps the same reader for as long as your site runs, so cached entries add up until they fill the memory a storage driver is meant to save.
 - Return the strings of a [`StoredEntry`](#storedentry) unchanged. When Astro asks for an entry without its content, skip reading `content`.
 
-The following example implements the driver described above. It saves each snapshot in its own folder, with one file per collection, and then a small file that marks the snapshot as saved. Its reader reads the file of a collection each time Astro asks for its entries. To keep the example short, it reads a whole collection to find one entry: a driver backed by a database, like the SQLite driver, can read just the entry Astro asks for:
+The following example implements the JSON files driver. It saves each snapshot in its own folder, with one file per collection and a file that marks the snapshot as complete. Each time Astro asks for entries, it reads the file for the collection again, even to find a single entry:
 
 ```ts title="src/drivers/json-files/driver.ts"
 import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -486,7 +486,7 @@ An object that saves and reads the entries of collections.
 **Type:** <code>(context: \{ snapshot: string; dev: boolean \}) => Promise&lt;<a href="#collectionstoragewriter">CollectionStorageWriter</a>&gt;</code>
 </p>
 
-Opens a snapshot, to save the collections that use this driver. The [writer](#collectionstoragewriter) it returns receives each collection, with its entries, through [`write()`](#collectionstoragewriterwrite). Astro calls it once per build, after loading all entries. In development, Astro calls it again after each change, with `dev` set to `true`.
+Opens a snapshot to save the collections that use this driver. The [writer](#collectionstoragewriter) it returns receives each collection, with its entries, through [`write()`](#collectionstoragewriterwrite). Astro calls it once per build, after loading all entries. In development, Astro calls it again after each change, with `dev` set to `true`.
 
 ##### `CollectionStorageDriver.openReader()`
 
@@ -574,6 +574,8 @@ Returned by [`openReader()`](#collectionstoragedriveropenreader), to read the en
 </p>
 
 Returns one entry of a collection, or `undefined` when the collection has no entry with this ID. When `options.content` is `false`, the entry can be returned without its `content`.
+
+When your storage allows it (e.g. a database), only read this entry so that pages that call `getEntry()` do not load the whole collection.
 
 ##### `CollectionStorageReader.entries()`
 
