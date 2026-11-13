@@ -121,7 +121,7 @@ const intro = await getEntry('docs', 'intro', { content: false });
 const related = await getEntries(intro.data.related, { content: false });
 ```
 
-If you attempt to render an entry retrieved with `content: false` via `render()`, it will an error.
+Passing an entry read with `content: false` to `render()` throws an error.
 
 The `content` option works for every collection, including the collections that don't use a storage driver, but it requires the `experimental.collectionStorageDrivers` flag.
 
@@ -185,6 +185,10 @@ Astro protects the snapshot the build just saved. Astro can't protect the snapsh
 An online database usually needs a token to connect. Pass the name of the environment variable to the `authTokenEnv` field. The driver reads the variable with [`getSecret()`](/en/reference/modules/astro-env/#getsecret) from `astro:env/server`:
 
 ```ts title="src/content.config.ts" "authTokenEnv: 'DOCS_DATABASE_TOKEN'"
+import { sqlite } from '@astrojs/collection-storage-sqlite';
+import { defineConfig } from 'astro/config';
+import { glob } from 'astro/loaders';
+
 const docs = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/docs' }),
   storage: sqlite({
@@ -249,7 +253,7 @@ Astro uses your driver in two steps:
 1. **Saving**, once per build. Astro calls [`openWriter()`](#collectionstoragedriveropenwriter), [`write()`](#collectionstoragewriterwrite) for each collection, then [`commit()`](#collectionstoragewritercommit).
 2. **Reading**, each time a page needs an entry. Astro calls [`openReader()`](#collectionstoragedriveropenreader) once, then [`get()`](#collectionstoragereaderget) or [`entries()`](#collectionstoragereaderentries).
 
-Your driver must:
+Follow these rules when you implement a driver:
 
 - Save everything in the storage. Astro loads your driver twice, so the writer and the reader don't share memory.
 - Store entries by snapshot ID. Otherwise, a new build could replace the entries of a previous deployment.
@@ -363,7 +367,7 @@ describe('JSON files driver', () => {
 
 - The SQLite driver only runs in Node.js. Runtimes like Cloudflare Workers need a driver made for them.
 - MDX entries and entries with `deferRender` are only partly read from the driver. Astro turns their content into code when it builds, and loads that code like the rest of your site, whatever their storage.
-- Development can be slower with large collections. Each change in development saves every collection that uses a stNo orage driver again, including the collections that didn't change.
+- Development can be slower with large collections. Each change in development saves every collection that uses a storage driver again, including the collections that didn't change.
 - Build snapshots add up until something [deletes them](#deleting-old-snapshots).
 
 ## Collection storage API reference
@@ -416,7 +420,7 @@ const intro = await getEntry('docs', 'intro', { content: false });
 <Since v="7.5.0" />
 </p>
 
-The type of an entry read with `content: false`, exported from `astro:content`. It is the type of a [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) of the same collection, without `body` and `rendered`.
+Describes a [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) read with `content: false`.
 
 ### `CollectionStorageDescriptor`
 
@@ -464,7 +468,7 @@ The default export of a driver's [`entrypoint`](#collectionstoragedescriptorentr
 <Since v="7.5.0" />
 </p>
 
-A storage driver: the object that saves and reads the entries of collections.
+An object that saves and reads the entries of collections.
 
 #### `CollectionStorageDriver.openWriter()`
 
@@ -473,7 +477,7 @@ A storage driver: the object that saves and reads the entries of collections.
 **Type:** <code>(context: \{ snapshot: string; dev: boolean \}) => Promise&lt;<a href="#collectionstoragewriter">CollectionStorageWriter</a>&gt;</code>
 </p>
 
-Opens a snapshot to save entries in it. Astro calls it once per build, after all the entries are loaded. `dev` is `true` when the snapshot is the `dev` snapshot of development. In development, Astro opens the `dev` snapshot again after each change: the entries written then replace the entries the snapshot had.
+Opens a snapshot to save entries in it. Astro calls it after loading all entries, once per build. In development, Astro calls it after each change with `dev` set to `true`, and the new entries replace those already in the snapshot.
 
 #### `CollectionStorageDriver.openReader()`
 
@@ -530,7 +534,7 @@ Save the entries in `write()`. Use `commit()` for what needs the whole snapshot,
 **Type:** <code>(collection: string, entries: <a href="#storedentry">StoredEntry</a>[]) => Promise&lt;void&gt;</code>
 </p>
 
-Save the entries of one collection. Astro calls it at most once per collection, and waits for it to finish before writing the next collection.
+Saves the entries of one collection. Astro calls it at most once per collection, and waits for it to finish before writing the next collection.
 
 #### `CollectionStorageWriter.commit()`
 
@@ -539,7 +543,7 @@ Save the entries of one collection. Astro calls it at most once per collection, 
 **Type:** `() => Promise<void>`
 </p>
 
-Do the work that needs the whole snapshot, if any. It can be empty.
+Finishes saving the snapshot. Use it for the work that needs the whole snapshot, if any. It can be empty.
 
 If your driver implements [`listSnapshots()`](#collectionstoragedriverlistsnapshots), record the snapshot and the current date here. `listSnapshots()` returns these snapshots, with this date as `committedAt`.
 
