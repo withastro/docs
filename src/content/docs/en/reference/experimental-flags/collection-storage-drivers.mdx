@@ -2,6 +2,9 @@
 title: Experimental collection storage drivers
 sidebar:
   label: Collection storage drivers
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
 i18nReady: true
 ---
 
@@ -372,9 +375,11 @@ describe('JSON files driver', () => {
 
 ## Collection storage API reference
 
-The following APIs are part of `astro`.
+### Storing and reading entries
 
-### `storage`
+The following options and type are added to the [`astro:content` module](/en/reference/modules/astro-content/).
+
+#### `storage`
 
 <p>
 
@@ -386,7 +391,7 @@ An option of `defineCollection()` for build-time collections. It sets the storag
 
 Collections that share the same driver and options share one snapshot per build.
 
-### `content` option
+#### `content` option
 
 <p>
 
@@ -395,7 +400,7 @@ Collections that share the same driver and options share one snapshot per build.
 <Since v="7.5.0" />
 </p>
 
-An option to return the entries of a collection, or a single entry, without their content: without `body` and `rendered`. These entries have the type [`CollectionEntryWithoutContent`](#collectionentrywithoutcontent), and can't be passed to `render()`.
+An option to return the entries of a collection, or a single entry, without `body` and `rendered`. These entries have the type [`CollectionEntryWithoutContent`](#collectionentrywithoutcontent), and can't be passed to `render()`.
 
 The following functions support it:
 
@@ -412,7 +417,7 @@ const docs = await getCollection({ name: 'docs', content: false });
 const intro = await getEntry('docs', 'intro', { content: false });
 ```
 
-### `CollectionEntryWithoutContent`
+#### `CollectionEntryWithoutContent`
 
 <p>
 
@@ -422,7 +427,11 @@ const intro = await getEntry('docs', 'intro', { content: false });
 
 Describes a [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) read with `content: false`.
 
-### `CollectionStorageDescriptor`
+### Driver types
+
+The following types can be imported from the `astro` module.
+
+#### `CollectionStorageDescriptor`
 
 <p>
 
@@ -430,18 +439,18 @@ Describes a [`CollectionEntry`](/en/reference/modules/astro-content/#collectione
 <Since v="7.5.0" />
 </p>
 
-Describes a storage driver: where to find it, and which options to give it. Driver packages return it from a function, like [`sqlite()`](#sqlite).
+Definition of a storage. Driver packages return it from a function, like [`sqlite()`](#sqlite).
 
-#### `CollectionStorageDescriptor.entrypoint`
+##### `CollectionStorageDescriptor.entrypoint`
 
 <p>
 
 **Type:** `string | URL`
 </p>
 
-The file that contains the driver: a package name, or a URL such as `new URL('./driver.js', import.meta.url)`. Its default export must be a [`CollectionStorageDriverFactory`](#collectionstoragedriverfactory).
+The file that contains the driver, such as `new URL('./driver.js', import.meta.url)`. Its default export must be a [`CollectionStorageDriverFactory`](#collectionstoragedriverfactory).
 
-#### `CollectionStorageDescriptor.config`
+##### `CollectionStorageDescriptor.config`
 
 <p>
 
@@ -450,7 +459,7 @@ The file that contains the driver: a package name, or a URL such as `new URL('./
 
 The options passed to the driver. Astro copies them into the built site, so they must only contain values that can be written as JSON, and never secrets.
 
-### `CollectionStorageDriverFactory`
+#### `CollectionStorageDriverFactory`
 
 <p>
 
@@ -460,7 +469,7 @@ The options passed to the driver. Astro copies them into the built site, so they
 
 The default export of a driver's [`entrypoint`](#collectionstoragedescriptorentrypoint). Astro calls it with the [`config`](#collectionstoragedescriptorconfig) of the descriptor, once in each program that saves or reads the entries, and uses the [driver](#collectionstoragedriver) it returns.
 
-### `CollectionStorageDriver`
+#### `CollectionStorageDriver`
 
 <p>
 
@@ -470,34 +479,34 @@ The default export of a driver's [`entrypoint`](#collectionstoragedescriptorentr
 
 An object that saves and reads the entries of collections.
 
-#### `CollectionStorageDriver.openWriter()`
+##### `CollectionStorageDriver.openWriter()`
 
 <p>
 
 **Type:** <code>(context: \{ snapshot: string; dev: boolean \}) => Promise&lt;<a href="#collectionstoragewriter">CollectionStorageWriter</a>&gt;</code>
 </p>
 
-Opens a snapshot to save entries in it. Astro calls it after loading all entries, once per build. In development, Astro calls it after each change with `dev` set to `true`, and the new entries replace those already in the snapshot.
+Opens a snapshot, to save the collections that use this driver. The [writer](#collectionstoragewriter) it returns receives each collection, with its entries, through [`write()`](#collectionstoragewriterwrite). Astro calls it once per build, after loading all entries. In development, Astro calls it again after each change, with `dev` set to `true`.
 
-#### `CollectionStorageDriver.openReader()`
+##### `CollectionStorageDriver.openReader()`
 
 <p>
 
 **Type:** <code>(context: \{ snapshot: string \}) => Promise&lt;<a href="#collectionstoragereader">CollectionStorageReader</a>&gt;</code>
 </p>
 
-Opens a snapshot to read its entries. Astro only opens snapshots that were saved.
+Opens a snapshot that was saved by the driver, to read the entries of its collections.
 
-#### `CollectionStorageDriver.createSnapshotId()`
+##### `CollectionStorageDriver.createSnapshotId()`
 
 <p>
 
 **Type:** `() => string | Promise<string>`
 </p>
 
-Optional. Returns the name of the snapshot a build is about to save, for example the ID of a deployment. When a driver doesn't implement it, Astro uses a random name. Astro doesn't call it in development, where the snapshot is always named `dev`.
+Optional. Returns the name of the snapshot a build is about to save, for example the ID of a deployment. When a driver doesn't implement it, Astro uses a random name. Astro doesn't call it in development, where the snapshot is always one.
 
-#### `CollectionStorageDriver.listSnapshots()`
+##### `CollectionStorageDriver.listSnapshots()`
 
 <p>
 
@@ -506,7 +515,7 @@ Optional. Returns the name of the snapshot a build is about to save, for example
 
 Optional. Returns every snapshot you recorded in `commit()`, including the snapshots of earlier builds, in any order. Implement it if your storage keeps data between builds.
 
-#### `CollectionStorageDriver.deleteSnapshot()`
+##### `CollectionStorageDriver.deleteSnapshot()`
 
 <p>
 
@@ -515,7 +524,7 @@ Optional. Returns every snapshot you recorded in `commit()`, including the snaps
 
 Optional. Deletes a snapshot and its entries from your storage. Implement it together with `listSnapshots()`.
 
-### `CollectionStorageWriter`
+#### `CollectionStorageWriter`
 
 <p>
 
@@ -523,11 +532,11 @@ Optional. Deletes a snapshot and its entries from your storage. Implement it tog
 <Since v="7.5.0" />
 </p>
 
-Returned by [`openWriter()`](#collectionstoragedriveropenwriter), to save the entries of a snapshot. Astro calls `write()` once for each collection, then `commit()` once, after the last `write()`.
+Returned by [`openWriter()`](#collectionstoragedriveropenwriter), to save the collections of a snapshot. Astro calls `write()` once for each collection, then `commit()` once, after the last `write()`.
 
-Save the entries in `write()`. Use `commit()` for what needs the whole snapshot, like recording that the snapshot is complete. For example, the SQLite driver saves each collection in `write()`, and adds the snapshot to a list of complete snapshots in `commit()`.
+Save the entries in `write()`. Use `commit()` to handle the snapshot, like recording that the snapshot is complete. For example, the SQLite driver saves each collection in `write()`, and adds the snapshot to a list of complete snapshots in `commit()`.
 
-#### `CollectionStorageWriter.write()`
+##### `CollectionStorageWriter.write()`
 
 <p>
 
@@ -536,7 +545,7 @@ Save the entries in `write()`. Use `commit()` for what needs the whole snapshot,
 
 Saves the entries of one collection. Astro calls it at most once per collection, and waits for it to finish before writing the next collection.
 
-#### `CollectionStorageWriter.commit()`
+##### `CollectionStorageWriter.commit()`
 
 <p>
 
@@ -547,7 +556,7 @@ Finishes saving the snapshot. Use it for the work that needs the whole snapshot,
 
 If your driver implements [`listSnapshots()`](#collectionstoragedriverlistsnapshots), record the snapshot and the current date here. `listSnapshots()` returns these snapshots, with this date as `committedAt`.
 
-### `CollectionStorageReader`
+#### `CollectionStorageReader`
 
 <p>
 
@@ -557,7 +566,7 @@ If your driver implements [`listSnapshots()`](#collectionstoragedriverlistsnapsh
 
 Returned by [`openReader()`](#collectionstoragedriveropenreader), to read the entries of a snapshot.
 
-#### `CollectionStorageReader.get()`
+##### `CollectionStorageReader.get()`
 
 <p>
 
@@ -566,7 +575,7 @@ Returned by [`openReader()`](#collectionstoragedriveropenreader), to read the en
 
 Returns one entry of a collection, or `undefined` when the collection has no entry with this ID. When `options.content` is `false`, the entry can be returned without its `content`.
 
-#### `CollectionStorageReader.entries()`
+##### `CollectionStorageReader.entries()`
 
 <p>
 
@@ -575,7 +584,7 @@ Returns one entry of a collection, or `undefined` when the collection has no ent
 
 Returns every entry of a collection, in any order. When `options.content` is `false`, the entries can be returned without their `content`.
 
-### `StoredEntry`
+#### `StoredEntry`
 
 <p>
 
@@ -585,7 +594,7 @@ Returns every entry of a collection, in any order. When `options.content` is `fa
 
 An entry as a driver saves it. Astro prepares `metadata` and `content`, and drivers save them and return them unchanged.
 
-#### `StoredEntry.id`
+##### `StoredEntry.id`
 
 <p>
 
@@ -594,7 +603,7 @@ An entry as a driver saves it. Astro prepares `metadata` and `content`, and driv
 
 The ID of the entry, unique in its collection.
 
-#### `StoredEntry.metadata`
+##### `StoredEntry.metadata`
 
 <p>
 
@@ -603,16 +612,16 @@ The ID of the entry, unique in its collection.
 
 Everything about the entry except its content, such as its data.
 
-#### `StoredEntry.content`
+##### `StoredEntry.content`
 
 <p>
 
 **Type:** `string | undefined`
 </p>
 
-The content of the entry: its `body` and `rendered` fields. It is missing when the entry has neither.
+The content of the entry with `body` and `rendered` fields.
 
-### `CollectionStorageSnapshot`
+#### `CollectionStorageSnapshot`
 
 <p>
 
@@ -622,7 +631,7 @@ The content of the entry: its `body` and `rendered` fields. It is missing when t
 
 A saved snapshot, as listed by [`listSnapshots()`](#collectionstoragedriverlistsnapshots).
 
-#### `CollectionStorageSnapshot.snapshot`
+##### `CollectionStorageSnapshot.snapshot`
 
 <p>
 
@@ -631,7 +640,7 @@ A saved snapshot, as listed by [`listSnapshots()`](#collectionstoragedriverlists
 
 The name of the snapshot.
 
-#### `CollectionStorageSnapshot.committedAt`
+##### `CollectionStorageSnapshot.committedAt`
 
 <p>
 
@@ -640,7 +649,7 @@ The name of the snapshot.
 
 When the snapshot was saved.
 
-#### `CollectionStorageSnapshot.dev`
+##### `CollectionStorageSnapshot.dev`
 
 <p>
 
@@ -649,7 +658,27 @@ When the snapshot was saved.
 
 Whether this is the `dev` snapshot of development.
 
-### `collections` in `astro:build:done`
+### Driver tests
+
+The following function can be imported from `astro/content/storage-driver-tests`.
+
+#### `createStorageDriverTests()`
+
+<p>
+
+**Type:** <code>(createDriver: () => <a href="#collectionstoragedriver">CollectionStorageDriver</a> | Promise&lt;CollectionStorageDriver&gt;) => \{ name: string; run: () => Promise&lt;void&gt; \}[]</code><br />
+<Since v="7.5.0" />
+</p>
+
+Returns the tests every storage driver must pass. Each test has a `name`, and a `run()` function that rejects when the test fails, so any test runner can run them.
+
+`createDriver` is called once per test, and must return a driver with no snapshots.
+
+### Integration hooks
+
+The following hook option and its type are added to the [integration hooks](/en/reference/integrations-reference/#hooks).
+
+#### `collections` in `astro:build:done`
 
 <p>
 
@@ -661,7 +690,7 @@ With this flag, the [`astro:build:done` hook](/en/reference/integrations-referen
 
 The same `collections` option also gives integrations the metadata and the entries of the collections, with the [experimental collection metadata flag](/en/reference/experimental-flags/collection-metadata/#collections-in-astrobuilddone).
 
-### `CollectionStorageHandle`
+#### `CollectionStorageHandle`
 
 <p>
 
@@ -671,7 +700,7 @@ The same `collections` option also gives integrations the metadata and the entri
 
 The snapshot a build saved with one storage driver, in [`collections.storage`](#collections-in-astrobuilddone).
 
-#### `CollectionStorageHandle.collections`
+##### `CollectionStorageHandle.collections`
 
 <p>
 
@@ -680,7 +709,7 @@ The snapshot a build saved with one storage driver, in [`collections.storage`](#
 
 The names of the collections kept with this driver.
 
-#### `CollectionStorageHandle.snapshot`
+##### `CollectionStorageHandle.snapshot`
 
 <p>
 
@@ -689,7 +718,7 @@ The names of the collections kept with this driver.
 
 The name of the snapshot this build saved.
 
-#### `CollectionStorageHandle.readAtRuntime`
+##### `CollectionStorageHandle.readAtRuntime`
 
 <p>
 
@@ -698,7 +727,7 @@ The name of the snapshot this build saved.
 
 Whether pages rendered on demand read [`snapshot`](#collectionstoragehandlesnapshot). When it is `false`, nothing reads the snapshot after the build.
 
-#### `CollectionStorageHandle.listSnapshots()`
+##### `CollectionStorageHandle.listSnapshots()`
 
 <p>
 
@@ -707,7 +736,7 @@ Whether pages rendered on demand read [`snapshot`](#collectionstoragehandlesnaps
 
 Returns the saved snapshots of the driver. It is only present when the driver implements [`listSnapshots()`](#collectionstoragedriverlistsnapshots).
 
-#### `CollectionStorageHandle.deleteSnapshot()`
+##### `CollectionStorageHandle.deleteSnapshot()`
 
 <p>
 
@@ -718,23 +747,11 @@ Deletes a snapshot and its entries. It is only present when the driver implement
 
 It throws an error when asked to delete [`snapshot`](#collectionstoragehandlesnapshot) while [`readAtRuntime`](#collectionstoragehandlereadatruntime) is `true`, because the site this build created reads it.
 
-### `createStorageDriverTests()`
+### SQLite driver
 
-<p>
+The following API can be imported from `@astrojs/collection-storage-sqlite`.
 
-**Type:** <code>(createDriver: () => <a href="#collectionstoragedriver">CollectionStorageDriver</a> | Promise&lt;CollectionStorageDriver&gt;) => \{ name: string; run: () => Promise&lt;void&gt; \}[]</code><br />
-<Since v="7.5.0" />
-</p>
-
-Returns the tests every storage driver must pass, from `astro/content/storage-driver-tests`. Each test has a `name`, and a `run()` function that rejects when the test fails, so any test runner can run them.
-
-`createDriver` is called once per test, and must return a driver with no snapshots.
-
-## SQLite driver API reference
-
-The following APIs are part of the `@astrojs/collection-storage-sqlite` package.
-
-### `sqlite()`
+#### `sqlite()`
 
 <p>
 
@@ -743,7 +760,7 @@ The following APIs are part of the `@astrojs/collection-storage-sqlite` package.
 
 Returns the storage descriptor of the SQLite driver. Pass the result to the [`storage`](#storage) option of a collection.
 
-#### `url`
+##### `url`
 
 <p>
 
@@ -752,7 +769,7 @@ Returns the storage descriptor of the SQLite driver. Pass the result to the [`st
 
 The database to keep the entries in: `file:` followed by the path of a local file, or the `libsql://` or `https://` URL of an online database. Relative paths start from the folder where Astro runs.
 
-#### `authTokenEnv`
+##### `authTokenEnv`
 
 <p>
 
