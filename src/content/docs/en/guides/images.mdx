@@ -591,7 +591,7 @@ coverAlt: "A photograph of a sunset behind a mountain range."
 This is a blog post
 ```
 
-The `image` helper for the content collections schema lets you validate and import the image.
+The `image()` helper from `astro/content/image` lets you validate and import the image. Use it in a validator transform with the schema context:
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -599,11 +599,11 @@ import { image } from 'astro/content/image';
 import { z } from 'astro/zod';
 
 const blogCollection = defineCollection({
- schema: z.object({
-		title: z.string(),
-  cover: z.string().transform((src) => image(src)),
-		coverAlt: z.string(),
-	}),
+  schema: z.object({
+    title: z.string(),
+    cover: z.string().transform((src) => image(src)),
+    coverAlt: z.string(),
+  }),
 });
 
 export const collections = {
@@ -612,33 +612,6 @@ export const collections = {
 ```
 
 The image will be imported and transformed into metadata, allowing you to pass it as a `src` to `<Image/>`, `<img>`, or `getImage()` in an Astro component.
-
-### Manage content image context
-
-The `astro/content/image` module also exports `getContentImageContext()` and `runWithContentImageContext()` for code that needs to inspect or provide the active content entry context.
-
-`getContentImageContext()` returns the current context, which contains the entry's `filePath` when available. It returns `undefined` when no content entry context is active.
-
-`runWithContentImageContext()` runs a callback with the supplied context. Use it in tests that exercise schema transforms or `image()` without running Astro's content pipeline. Provide an absolute path when you want `image()` to resolve relative image paths against a content entry file:
-
-```ts
-import assert from 'node:assert/strict';
-import { test } from 'node:test';
-import { getContentImageContext, runWithContentImageContext } from 'astro/content/image';
-
-test('provides the content entry context during schema validation', async () => {
-  const context = { filePath: '/project/src/content/blog/post.md' };
-
-  const result = await runWithContentImageContext(context, async () => {
-    await Promise.resolve();
-    return getContentImageContext();
-  });
-
-  assert.equal(result, context);
-});
-```
-
-Both functions use asynchronous context propagation, so the supplied context remains available throughout asynchronous work started by the callback.
 
 The example below shows a blog index page that renders the cover photo and title of each blog post from the previous schema:
 

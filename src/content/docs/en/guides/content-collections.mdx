@@ -327,7 +327,7 @@ Similar to creating an Astro integration or Vite plugin, you can [distribute you
 
 ## Defining the collection schema
 
-Schemas enforce consistent frontmatter or entry data within a collection. Astro accepts any validator that implements [Standard Schema](https://standardschema.dev), including Zod, Valibot, and ArkType. A schema **guarantees** that this data exists in a predictable form when you reference or query it. If any file violates its collection schema, Astro reports a validation error.
+Schemas enforce consistent frontmatter or entry data within a collection. A schema **guarantees** that this data exists in a predictable form when you reference or query it. If any file violates its collection schema, Astro reports a validation error.
 
 Schemas also power Astro's automatic TypeScript typings for your content. When you define a schema for your collection, Astro will automatically generate and apply a TypeScript interface to it. The result is full TypeScript support when you query your collection, including property autocompletion and type-checking.
 
@@ -335,7 +335,7 @@ Schemas also power Astro's automatic TypeScript typings for your content. When y
 In order for Astro to recognize a new or updated schema, you may need to restart the dev server or [sync the content layer](/en/reference/cli-reference/#astro-dev) (<code>s + enter</code>) to define the `astro:content` module.
 :::
 
-Providing a `schema` is optional, but highly recommended. If you choose to use a schema, define each frontmatter or data property with your validator's data types. The validator must implement Standard Schema:
+Providing a `schema` is optional, but highly recommended. If you choose to use a schema, each frontmatter or data property must use a type from a validator that implements [Standard Schema](https://standardschema.dev/).
 
 ```ts title="src/content.config.ts" {7-12,16-20}
 import { defineCollection } from "astro:content";
@@ -365,11 +365,40 @@ export const collections = { blog, dogs };
 
 ### Using Zod
 
-You can use [Zod](https://github.com/colinhacks/zod) for content schemas. Astro validates each entry and infers TypeScript types from the schema. Astro also supports other Standard Schema-compatible validators.
+[Zod](https://github.com/colinhacks/zod) is a TypeScript-first validation library. Astro uses it to validate each entry and infer TypeScript types when you query content.
 
 To use Zod in Astro, import the `z` utility from `"astro/zod"`. This is a re-export of the Zod library, and it supports all of the features of Zod 4.
 
 <ReadMore>See the [`z` utility reference](/en/reference/modules/astro-zod/) for a cheatsheet of common datatypes and to learn how Zod works and what features are available.</ReadMore>
+
+### Using other validators
+
+<p><Since v="7.5.0" /></p>
+
+Collection schemas can use any validator that implements [Standard Schema](https://standardschema.dev/), such as Zod, Valibot, or ArkType. Astro validates every entry with your schema and infers the entry types from it.
+
+The following example defines a `blog` collection with a [Valibot](https://valibot.dev/) schema:
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import * as v from 'valibot';
+
+const blog = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
+  schema: v.object({
+    title: v.string(),
+    draft: v.optional(v.boolean(), false),
+  }),
+});
+
+export const collections = { blog };
+```
+
+Some Astro features depend on your validator's capabilities:
+
+- [Validating images](/en/guides/images/#images-in-content-collections) requires support for asynchronous transforms. ArkType does not support them.
+- [Generating JSON Schema files](#using-json-schema-files-in-your-editor) requires support for [Standard JSON Schema](https://standardschema.dev/json-schema). Astro skips `.schema.json` generation for validators without this support.
 
 ### Defining collection references
 
@@ -697,7 +726,7 @@ Each individual collection configures:
 
 Unlike for build-time collections, there are no built-in live loaders available. You will need to [create a custom live loader](#creating-a-live-loader) for your specific data source or find a third-party loader to pass to your live collection's `loader` property.
 
-You can optionally [include type safety in your live loaders](/en/reference/content-loader-reference/#the-liveloader-object). Therefore, [defining a Zod `schema`](#using-zod-schemas-with-live-collections) for live collections is optional. However, if you provide one, it will take precedence over the live loader's types.
+You can optionally [include type safety in your live loaders](/en/reference/content-loader-reference/#the-liveloader-object). Therefore, [defining a `schema`](#using-zod-schemas-with-live-collections) for live collections is optional. However, if you provide one, it takes precedence over the live loader's types.
 
 ```ts title="src/live.config.ts"
 // Define live collections for accessing real-time data
@@ -733,7 +762,7 @@ Find community-built and third-party live loaders in the [Astro integrations dir
 
 ### Using Zod schemas with live collections
 
-You can use Zod schemas with live collections to validate and transform data at runtime. This Zod validation works the same way as [schemas for build-time collections](#defining-the-collection-schema).
+You can use schemas with live collections to validate and transform data at runtime. This validation works the same way as [schemas for build-time collections](#defining-the-collection-schema), and [supports validators other than Zod](#using-other-validators).
 
 When you define a schema for a live collection, it takes precedence over [the live loader's types](/en/reference/content-loader-reference/#the-liveloader-object) when you query the collection:
 
@@ -764,7 +793,7 @@ const products = defineLiveCollection({
 export const collections = { products };
 ```
 
-When using Zod schemas with live collections, validation errors are automatically caught and returned as `AstroError` objects:
+When a live collection schema validation fails, the error is returned as an `AstroError` object:
 
 ```astro title="src/pages/store/index.astro"
 ---
@@ -994,6 +1023,8 @@ export async function POST(context) {
 <p><Since v="4.13.0" /></p>
 
 Astro auto-generates [JSON Schema](https://json-schema.org/) files for collections, which you can use in your editor to get IntelliSense and type-checking for data files.
+
+Astro generates these files only when your validator supports [Standard JSON Schema](https://standardschema.dev/json-schema). If the validator does not support it, Astro skips the `.schema.json` file.
 
 A JSON Schema file is generated for each collection in your project and output to the `.astro/collections/` directory.
 For example, if you have two collections, one named `authors` and another named `posts`, Astro will generate `.astro/collections/authors.schema.json` and `.astro/collections/posts.schema.json`.

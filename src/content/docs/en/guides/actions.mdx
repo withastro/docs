@@ -15,33 +15,16 @@ Astro Actions allow you to define and call backend functions with type-safety. A
 
 Use actions instead of API endpoints for seamless communication between your client and server code and to:
 
-- Automatically validate JSON and form action inputs with a Standard Schema-compatible validator, such as Zod, Valibot, or ArkType.
+- Automatically validate JSON action inputs with a [Standard Schema-compatible validator](#supported-validators), such as Zod, Valibot, or ArkType.
 - Generate type-safe functions to call your backend from the client and even [from HTML form actions](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
 - Standardize backend errors with the [`ActionError`](/en/reference/modules/astro-actions/#actionerror) object.
 
 ## Basic usage
 
-### Use Standard Schema validators
-
-JSON action `input` validators can use any library that implements [Standard Schema](https://standardschema.dev), including Zod, Valibot, and ArkType. Astro validates the input and passes the parsed output to your handler. The following example uses Valibot instead of Zod:
-
-```ts title="src/actions/index.ts"
-import { defineAction } from 'astro:actions';
-import * as v from 'valibot';
-
-export const server = {
-  subscribe: defineAction({
-    input: v.object({ channel: v.string() }),
-    handler: async ({ channel }) => channel,
-  }),
-};
-```
-
 Actions are defined in a `server` object exported from `src/actions/index.ts`:
 
 ```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
-import { z } from 'astro/zod';
 
 export const server = {
   myAction: defineAction({ /* ... */ })
@@ -145,6 +128,30 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
     ```
 
 </Steps>
+
+### Supported validators
+
+<p><Since v="7.5.0" /></p>
+
+The `input` of an action that accepts JSON data can use any validator that implements [Standard Schema](https://standardschema.dev/), such as Zod, Valibot, or ArkType. Astro validates the input and passes the parsed output to your handler.
+
+The following example defines the same `getGreeting` action as above, using [Valibot](https://valibot.dev/) to validate its input:
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import * as v from 'valibot';
+
+export const server = {
+  getGreeting: defineAction({
+    input: v.object({
+      name: v.string(),
+    }),
+    handler: async (input) => {
+      return `Hello, ${input.name}!`
+    }
+  })
+}
+```
 
 <ReadMore>See the full Actions API documentation for details on [`defineAction()`](/en/reference/modules/astro-actions/#defineaction) and its properties.</ReadMore>
 
@@ -303,24 +310,24 @@ export function LogoutButton() {
 
 ## Accepting form data from an action
 
-Actions accept JSON data by default. To accept form data from an HTML form, set `accept: 'form'` in your `defineAction()` call:
+Actions accept JSON data by default. To accept form data from an HTML form, set `accept: 'form'` in your `defineAction()` call. Your `handler()` receives the submitted `FormData` object as its first argument:
 
 ```ts title="src/actions/index.ts" ins={6}
 import { defineAction } from 'astro:actions';
-import { z } from 'astro/zod';
 
 export const server = {
   comment: defineAction({
     accept: 'form',
-    input: z.object(/* ... */),
-    handler: async (input) => { /* ... */ },
+    handler: async (formData) => { /* ... */ },
   })
 }
 ```
 
-### Validating form data
+### Using validators with form inputs
 
-Actions pass the submitted `FormData` object to the handler. You can parse it with any approach that fits your application. For example, use [`@standard-community/standard-form`](https://github.com/standard-community/standard-form) with a Standard Schema validator to convert form fields and handle validation issues.
+Parse and validate the submitted `FormData` object in your action `handler()`. This lets you choose how form fields are converted and how validation errors are reported.
+
+To convert form fields and validate them with a Standard Schema validator, use [`@standard-community/standard-form`](https://github.com/standard-community/standard-form).
 
 Install `@standard-community/standard-form`:
 
@@ -342,7 +349,9 @@ Install `@standard-community/standard-form`:
   </Fragment>
 </PackageManagerTabs>
 
-The following action parses form data for either creating or updating a user:
+`parseFormData()` converts the submitted form data to an object, using each input's `name` attribute as an object key. For example, `<input name="search">` becomes `{ search: 'user input' }`. The schema validates this object.
+
+The following action parses form data for either creating or updating a user, and validates it with a Zod schema:
 
 ```ts title="src/actions/index.ts"
 import { parseFormData } from '@standard-community/standard-form';
@@ -416,7 +425,6 @@ The following example shows a validated newsletter registration form that accept
     }
     ```
 
-    <ReadMore>See the [`input` API reference](/en/reference/modules/astro-actions/#input-validator) for details about validating action inputs.</ReadMore>
 
 3. Add a `<script>` to the HTML form to submit the user input. This example overrides the form's default submit behavior to call `actions.newsletter()`, and redirects to `/confirmation` using the `navigate()` function:
 
@@ -451,11 +459,26 @@ The following example shows a validated newsletter registration form that accept
 
 ### Displaying form input errors
 
-You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. For more complex `input` validation on the backend, you can use the provided [`isInputError()`](/en/reference/modules/astro-actions/#isinputerror) utility function.
+You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. Astro creates an input error when an action's `input` validator fails. Use [`isInputError()`](/en/reference/modules/astro-actions/#isinputerror) to identify these errors. Form actions that use `input` rely on deprecated Zod-only behavior.
 
-To retrieve input errors, use the `isInputError()` utility to check whether an error was caused by invalid input. Input errors contain a `fields` object with messages for each input name that failed to validate. You can use these messages to prompt your user to correct their submission.
+To retrieve input errors, use `isInputError()` to check whether an error was caused by invalid input. Input errors contain a `fields` object with messages for each input name that failed to validate. You can use these messages to prompt your user to correct their submission.
 
-The following example checks the error with `isInputError()`, then checks whether the error is in the email field, before finally creating a message from the errors. You can use JavaScript DOM manipulation or your preferred UI framework to display this message to users.
+The following legacy example defines a form action with an `input` validator. Astro parses and validates the form data, then creates an input error if validation fails. Use JavaScript DOM manipulation or your preferred UI framework to display the error.
+
+```ts title="src/actions/index.ts"
+import { defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
+
+export const server = {
+  newsletter: defineAction({
+    accept: 'form',
+    input: z.object({ email: z.email() }),
+    handler: async ({ email }) => email,
+  }),
+};
+```
+
+Call the action and inspect the field errors:
 
 ```js /isInputError(?= )/ {5-12}
 import { actions, isInputError } from 'astro:actions';
@@ -574,24 +597,23 @@ const result = Astro.getActionResult(actions.newsletter);
 </form>
 ```
 
-For more customization, you can [use the `isInputError()` utility](#displaying-form-input-errors) to check whether an error is caused by invalid input.
+The `isInputError()` utility applies to validation performed by the action's `input` property. It does not identify validation errors that you create manually in the handler, such as the `ActionError` thrown by the `newsletter` example. For `input` validation errors, see the [`isInputError()` API reference](/en/reference/modules/astro-actions/#isinputerror).
 
-The following example renders an error banner under the `email` input field when an invalid email is submitted:
+The following example displays the error message thrown by the `newsletter` action:
 
-```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
+```astro title="src/pages/index.astro"
 ---
-import { actions, isInputError } from 'astro:actions';
+import { actions } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.newsletter);
-const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 ---
 
+{result?.error && <p class="error">{result.error.message}</p>}
 <form method="POST" action={actions.newsletter}>
   <label>
     E-mail
-    <input required type="email" name="email" aria-describedby="error" />
+    <input required type="email" name="email" />
   </label>
-  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
   <button>Sign up</button>
 </form>
 ```
