@@ -5,7 +5,7 @@ sidebar:
 i18nReady: true
 tableOfContents:
   minHeadingLevel: 2
-  maxHeadingLevel: 6
+  maxHeadingLevel: 3
 ---
 import Since from '~/components/Since.astro';
 import ReadMore from '~/components/ReadMore.astro';
@@ -19,26 +19,30 @@ Las Acciones te ayudan a construir un backend con tipado seguro que puedes llama
 ## Importaciones desde `astro:actions`
 
 ```js
-import { 
+import {
+  ACTION_QUERY_PARAMS,
+  ActionError,
   actions,
   defineAction,
-  isInputError,
+  getActionContext,
+  getActionPath,
   isActionError,
-  ActionError,
+  isInputError,
  } from 'astro:actions';
 ```
 
 ### `defineAction()`
 
 <p>
-<Since v="4.15.0" />
+
+**Tipo:** <code>(\{ accept, input, handler \}) => <a href="#actionclient">ActionClient</a></code>
 </p>
 
 La utilidad `defineAction()` se usa para definir nuevas acciones desde el archivo `src/actions/index.ts`. Acepta una función [`handler()`](#propiedad-handler) que contiene la lógica del servidor a ejecutar, y una propiedad opcional [`input`](#validador-del-input) para validar los parámetros de entrada en tiempo de ejecución.
 
 ```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+import { z } from 'astro/zod';
 
 export const server = {
   getGreeting: defineAction({
@@ -56,12 +60,12 @@ export const server = {
 
 <p>
 
-**Tipo:** `(input, context) => any`
+**Tipo:** <code>(input: TInputSchema, context: <a href="#actionapicontext">ActionAPIContext</a>) => TOutput | Promise\<TOutput\></code>
 </p>
 
-`defineAction()` requiere una función `handler()` que contenga la lógica del servidor a ejecutar cuando se llama a la acción. Los datos devueltos por el handler se serializan automáticamente y se envían al llamador.
+`defineAction()` requiere una función `handler()` que contenga la lógica del servidor a ejecutar cuando se llama a la acción. Los datos devueltos por el `handler()` se serializan automáticamente y se envían al llamador.
 
-El `handler()` recibe como primer argumento la entrada del usuario. Si se establece un validador [`input`](#validador-del-input), la entrada del usuario se validará antes de ser pasada al handler. El segundo argumento es un objeto `context` que contiene la mayoría del contexto estándar de los endpoints de Astro (/es/reference/api-reference/), excluyendo `getActionResult()`, `callAction()` y `redirect()`.
+El `handler()` recibe como primer argumento la entrada del usuario. Si se establece un validador [`input`](#validador-del-input), la entrada del usuario se validará antes de ser pasada al handler. El segundo argumento es [un subconjunto del objeto `context` de Astro](#actionapicontext).
 
 Los valores devueltos se procesan usando la [biblioteca devalue](https://github.com/Rich-Harris/devalue). Esto soporta valores JSON y las instancias de `Date()`, `Map()`, `Set()` y `URL()`.
 
@@ -72,66 +76,58 @@ Los valores devueltos se procesan usando la [biblioteca devalue](https://github.
 **Tipo:** `ZodType | undefined`
 </p>
 
-La propiedad opcional `input` acepta un validador Zod (por ejemplo, un objeto Zod o una unión discriminada Zod) para validar las entradas del handler en tiempo de ejecución. Si la acción no pasa la validación, se devuelve un error [`BAD_REQUEST`](#actionerror) y el `handler` no se ejecuta.
+La propiedad opcional `input` acepta un [validador Zod](/es/reference/modules/astro-zod/#validadores-comunes-de-tipos-de-datos) (por ejemplo, un objeto Zod o una unión discriminada Zod) para validar las entradas del handler en tiempo de ejecución. Si la acción no pasa la validación, se devuelve [un error `BAD_REQUEST`](#actionerror) y el `handler` no se ejecuta.
 
 Si se omite `input`, el `handler` recibirá una entrada de tipo `unknown` para solicitudes JSON y tipo `FormData` para solicitudes de formulario.
 
-##### Uso con `accept: 'form'`
+#### Propiedad `accept`
 
-Si tu acción acepta entradas de formulario, usa el validador `z.object()` para parsear automáticamente los datos del formulario a un objeto tipado. Todos los validadores Zod son compatibles con campos de datos de formulario (por ejemplo, `z.coerce.date()`). Astro provee manejo especial interno para validar cómodamente los siguientes tipos de entradas:
+<p>
 
-* Entradas de tipo `number` pueden validarse con `z.number()`
-* Entradas tipo `checkbox` con `z.coerce.boolean()`
-* Entradas tipo `file` con `z.instanceof(File)`
-* Múltiples entradas con el mismo `name` pueden validarse con `z.array(/* validador */)`
-* Todas las demás entradas pueden validarse con `z.string()`
+**Tipo:** `"form" | "json"`<br />
+**Por defecto:** `json`
+</p>
 
-Funciones de extensión como `.refine()`, `.transform()` y `.pipe()` también son compatibles en el validador `z.object()`.
+Define el formato esperado por una acción:
+* Usa `form` cuando tu acción acepte `FormData`.
+* Usa `json`, por defecto, para todos los demás casos.
 
-Para aplicar una unión de diferentes validadores, usa el wrapper `z.discriminatedUnion()` para delimitar el tipo basado en un campo específico del formulario. Este ejemplo acepta una sumisión de formulario para "crear" o "actualizar" un usuario, usando el campo del formulario llamado `type` para determinar contra qué objeto validar:
+Cuando tu acción acepta entradas de formulario, el validador `z.object()` parseará automáticamente los `FormData` a un objeto tipado. Todos los validadores Zod son compatibles para validar tus entradas.
 
-```ts
-import { defineAction } from 'astro:actions';
-import { z } from 'astro:schema';
+<ReadMore>Aprende más sobre [el uso de validadores con entradas de formularios](/es/guides/actions/#uso-de-validadores-con-entradas-de-formulario) en la guía de Acciones, incluyendo ejemplos de uso y manejo especial de entradas.</ReadMore>
 
-export const server = {
-  changeUser: defineAction({
-    accept: 'form',
-    input: z.discriminatedUnion('type', [
-      z.object({
-        // Coincide cuando el campo `type` tiene el valor `create`
-        type: z.literal('create'),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-      z.object({
-        // Coincide cuando el campo `type` tiene el valor `update`
-        type: z.literal('update'),
-        id: z.number(),
-        name: z.string(),
-        email: z.string().email(),
-      }),
-    ]),
-    async handler(input) {
-      if (input.type === 'create') {
-        // entrada es { type: 'create', name: string, email: string }
-      } else {
-        // entrada es { type: 'update', id: number, name: string, email: string }
-      }
-    },
-  }),
-};
+### `actions`
+
+<p>
+
+**Tipo:** <code>Record\<string, <a href="#actionclient">ActionClient</a>\></code>
+</p>
+
+Un objeto que contiene todas tus acciones con el nombre de la acción como clave asociada a una función para llamar a esta acción.
+
+```astro title="src/pages/index.astro" {5,8}
+---
+---
+
+<script>
+import { actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+}
+</script>
 ```
+
+Para que Astro reconozca esta propiedad, es posible que necesites reiniciar el servidor de desarrollo o [ejecutar el comando `astro sync`](/es/reference/cli-reference/#astro-sync) (`s + enter`).
 
 ### `isInputError()`
 
 <p>
 
-**Tipo:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
-<Since v="4.15.0" />
+**Tipo:** `(error?: unknown) => boolean`
 </p>
 
-La utilidad isInputError() se usa para verificar si un ActionError es un error de validación de entrada. Cuando el validador input es un z.object(), los errores de entrada incluyen un objeto fields con mensajes de error agrupados por nombre.
+La utilidad `isInputError()` se usa para verificar si [un `ActionError`](#actionerror) es un error de validación de entrada. Cuando el validador `input` es un `z.object()`, los errores de entrada incluyen un objeto `fields` con mensajes de error agrupados por nombre.
 
 <ReadMore>Consulta la [guía de errores de entrada en formularios](/es/guides/actions/#mostrar-errores-de-validación-en-el-formulario) para más información sobre cómo usar `isInputError()`.</ReadMore>
 
@@ -139,66 +135,109 @@ La utilidad isInputError() se usa para verificar si un ActionError es un error d
 
 <p>
 
-**Tipo:** <code>(error?: unknown | <a href="#actionerror">ActionError</a>) => boolean</code><br/>
-<Since v="4.15.0" />
+**Tipo:** `(error?: unknown) => boolean`
 </p>
 
-La utilidad `isActionError()` se usa para verificar si tu acción lanzó un `ActionError` dentro de la [propiedad handler](/es/reference/modules/astro-actions/#propiedad-handler). Esto es útil para precisar el tipo de un error genérico dentro de un bloque `try / catch`.
+La utilidad `isActionError()` se usa para verificar si tu acción lanzó [un `ActionError`](#actionerror) dentro de la [propiedad handler](#propiedad-handler). Esto es útil para precisar el tipo de un error genérico.
+
+```astro title="src/pages/index.astro" {9-12} "isActionError"
+---
+---
+
+<script>
+import { isActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (isActionError(error)) {
+    // Manejar errores específicos de la acción
+    console.log(error.code);
+  }
+}
+</script>
+```
 
 ### `ActionError`
 
-<p>
-<Since v="4.15.0" />
-</p>
-
 El constructor `ActionError()` se utiliza para crear errores que son lanzados por el `handler` de una acción. Este acepta una propiedad `code` que describe el error ocurrido (por ejemplo: `"UNAUTHORIZED"`), y una propiedad opcional `message` con detalles adicionales.
+
+El siguiente ejemplo crea un nuevo `ActionError` cuando el usuario no ha iniciado sesión:
+
+```ts title="src/actions/index.ts" {8-11} "ActionError"
+import { defineAction, ActionError } from "astro:actions";
+
+export const server = {
+  getUserOrThrow: defineAction({
+    accept: 'form',
+    handler: async (_, { locals }) => {
+      if (locals.user?.name !== 'florian') {
+        throw new ActionError({
+          code: 'UNAUTHORIZED',
+          message: 'Not logged in',
+        });
+      }
+      return locals.user;
+    },
+  }),
+}
+```
+
+
+También puedes usar `ActionError` para precisar el tipo de error al manejar los resultados de una acción:
+
+```astro title="src/pages/index.astro" {9-12} "ActionError"
+---
+---
+
+<script>
+import { ActionError, actions } from 'astro:actions';
+
+async () => {
+  const { data, error } = await actions.myAction({ /* ... */ });
+  if (error instanceof ActionError) {
+    // Manejar errores específicos de la acción
+    console.log(error.code);
+  }
+}
+</script>
+```
 
 #### `code`
 
 <p>
-<Since v="4.15.0" />
+
+**Tipo:** <code><a href="#actionerrorcode">ActionErrorCode</a></code>
 </p>
 
-La propiedad `code` acepta versiones legibles para humanos de todos los códigos de estado HTTP. Los siguientes códigos son compatibles:
-
-* `BAD_REQUEST` (400): El cliente envió datos inválidos. Este error se lanza cuando el validador `input` de una acción no valida correctamente.
-* `UNAUTHORIZED` (401): El cliente carece de credenciales de autenticación válidas.
-* `FORBIDDEN` (403): El cliente no está autorizado para acceder a un recurso.
-* `NOT_FOUND` (404): El servidor no puede encontrar el recurso solicitado.
-* `METHOD_NOT_SUPPORTED` (405): El servidor no soporta el método solicitado.
-* `TIMEOUT` (408): El servidor agotó el tiempo mientras procesaba la solicitud.
-* `CONFLICT` (409): El servidor no puede actualizar un recurso debido a un conflicto.
-* `PRECONDITION_FAILED` (412): El servidor no cumple una precondición de la solicitud.
-* `PAYLOAD_TOO_LARGE` (413): El servidor no puede procesar la solicitud porque la carga es demasiado grande.
-* `UNSUPPORTED_MEDIA_TYPE` (415): El servidor no soporta el tipo de medio de la solicitud. Nota: Las acciones ya verifican el encabezado [`Content-Type`](https://developer.mozilla.org/es/docs/Web/HTTP/Reference/Headers/Content-Type) para solicitudes JSON y de formularios, por lo que probablemente no necesites usar este código manualmente.
-* `UNPROCESSABLE_CONTENT` (422): El servidor no puede procesar la solicitud debido a errores semánticos.
-* `TOO_MANY_REQUESTS` (429): El servidor ha excedido un límite de tasa especificado.
-* `CLIENT_CLOSED_REQUEST` (499): El cliente cerró la solicitud antes de que el servidor pudiera responder.
-* `INTERNAL_SERVER_ERROR` (500): El servidor falló inesperadamente.
-* `NOT_IMPLEMENTED` (501): El servidor no soporta la característica solicitada.
-* `BAD_GATEWAY` (502): El servidor recibió una respuesta inválida de un servidor upstream.
-* `SERVICE_UNAVAILABLE` (503): El servidor está temporalmente no disponible.
-* `GATEWAY_TIMEOUT` (504): El servidor recibió un tiempo de espera de un servidor upstream.
+Define una versión legible para humanos de un [código de estado HTTP](#actionerrorcode).
 
 #### `message`
 
 <p>
-<Since v="4.15.0" />
+
+**Tipo:** `string`
 </p>
 
-La propiedad `message` acepta una cadena de texto. (por ejemplo: "El usuario debe iniciar sesión.")
+La propiedad opcional `message` acepta una cadena de texto (por ejemplo, "El usuario debe iniciar sesión.").
+
+#### `stack`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Una propiedad opcional para pasar el seguimiento de la pila.
 
 ### `getActionContext()`
 
 <p>
 
-**Tipo:** `(context: APIContext) => ActionMiddlewareContext`
+**Tipo:** <code>(context: <a href="/es/reference/api-reference/">APIContext</a>) => AstroActionContext</code><br />
 <Since v="5.0.0" />
 </p>
 
-`getActionContext()` es una función que se llama desde el manejador de tu middleware para obtener información sobre las solicitudes de acciones entrantes.
-
-Esta función devuelve un objeto `action` con información sobre la solicitud, además de las funciones `setActionResult()` y `serializeActionResult()` para establecer programáticamente el valor que retorna `Astro.getActionResult()`.
+`getActionContext()` es una función que se llama desde el manejador de tu middleware para obtener información sobre las solicitudes de acciones entrantes. Esta función devuelve un objeto `action` con información sobre la solicitud, un método `deserializeActionResult()`, y las funciones `setActionResult()` y `serializeActionResult()` para establecer programáticamente el valor retornado por `Astro.getActionResult()`.
 
 `getActionContext()` te permite obtener y establecer resultados de acciones de forma programática usando middleware, lo que facilita persistir resultados de acciones provenientes de formularios HTML, restringir solicitudes de acciones con verificaciones de seguridad adicionales, y más.
 
@@ -220,12 +259,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**Tipo:** `{ calledFrom: 'rpc' | 'form', name: string, handler: () => Promise<SafeResult<any, any>> } | undefined`
+**Tipo:** <code>\{ calledFrom: "rpc" | "form"; name: string; handler: () => Promise\<<a href="#saferesult">SafeResult</a>\>; \} | undefined</code>
 </p>
 
-`action` es un objeto que contiene información sobre una solicitud de acción entrante.
-
-Está disponible a través de `getActionContext()`, y proporciona el nombre de la acción, el manejador, y si la acción fue llamada desde una función RPC del lado cliente (por ejemplo, `actions.newsletter()`) o desde una acción de formulario HTML.
+`action` es un objeto que contiene información sobre una solicitud de acción entrante. Está disponible a través de [`getActionContext()`](#getactioncontext), y proporciona el nombre de la acción, el manejador, y si la acción fue llamada desde una función RPC del lado cliente (por ejemplo, `actions.newsletter()`) o desde una acción de formulario HTML.
 
 ```ts title="src/middleware.ts" {6}
 import { defineMiddleware } from 'astro:middleware';
@@ -240,6 +277,33 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 ```
 
+##### `action.calledFrom`
+
+<p>
+
+**Tipo:** `"rpc" | "form"`
+</p>
+
+Si una acción fue llamada usando una función RPC o una acción de formulario HTML.
+
+##### `action.name`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+El nombre de la acción. Útil para rastrear la fuente del resultado de una acción durante una redirección.
+
+##### `action.handler()`
+
+<p>
+
+**Tipo:** <code>() => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+</p>
+
+Un método para llamar programáticamente a una acción y obtener el resultado.
+
 #### `setActionResult()`
 
 <p>
@@ -247,7 +311,7 @@ export const onRequest = defineMiddleware(async (context, next) => {
 **Tipo:** `(actionName: string, actionResult: SerializedActionResult) => void`
 </p>
 
-`setActionResult()` es una función para establecer programáticamente el valor que retorna `Astro.getActionResult()` en middleware. Se le pasa el nombre de la acción y un resultado de acción serializado mediante [`serializeActionResult()`](#serializeactionresult).
+`setActionResult()` es una función para establecer programáticamente el valor que retorna `Astro.getActionResult()` en middleware. Se le pasa el nombre de la acción y un resultado de acción serializado mediante [`serializeActionResult()`](#serializeactionresult). Llamar a esta función desde el middleware desactivará el manejo del resultado de la acción propio de Astro.
 
 Esto es útil cuando se llaman las acciones desde un formulario HTML para persistir y cargar resultados desde una sesión.
 
@@ -270,7 +334,8 @@ export const onRequest = defineMiddleware(async (context, next) => {
 #### `serializeActionResult()`
 
 <p>
-**Tipo:** `(result: SafeResult<any, any>) => SerializedActionResult`
+
+**Tipo:** <code>(res: <a href="#saferesult">SafeResult</a>) => SerializedActionResult</code>
 </p>
 
 `serializeActionResult()` serializa el resultado de una acción a JSON para su persistencia. Esto es necesario para manejar correctamente valores de retorno que no son JSON, como `Map` o `Date`, así como el objeto `ActionError`.
@@ -295,21 +360,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
 
 <p>
 
-**Tipo:** `(result: SerializedActionResult) => SafeResult<any, any>`
+**Tipo:** <code>(res: SerializedActionResult) => <a href="#saferesult">SafeResult</a></code>
 </p>
 
-"`deserializeActionResult()` revierte el efecto de `serializeActionResult()` y devuelve un resultado de acción a su estado original. Esto es útil para acceder a los objetos `data` y `error` en un resultado de acción serializado.
-
+`deserializeActionResult()` revierte el efecto de [`serializeActionResult()`](#serializeactionresult) y devuelve un resultado de acción a su estado original. Esto es útil para acceder a los objetos `data` y `error` en un resultado de acción serializado.
 
 ### `getActionPath()`
 
 <p>
 
-**Tipo:** `(action: ActionClient<any, any, any>) => string`
+**Tipo:** <code>(action: <a href="#actionclient">ActionClient</a>) => string</code>
 <Since v="5.1.0" />
 </p>
 
-La utilidad `getActionPath()` acepta una acción y devuelve una ruta URL para que puedas ejecutar una llamada a la acción usando `fetch()` directamente. Esto te permite proporcionar detalles como encabezados personalizados cuando llamas a tu acción. Luego, puedes [manejar los datos devueltos con formato personalizado](/es/guides/actions/#manejo-de-los-datos-retornados) según sea necesario, como si hubieras llamado a la acción directamente.
+La utilidad `getActionPath()` acepta una acción y devuelve una ruta URL para que puedas ejecutar una llamada a la acción como una operación `fetch()` directamente. Esto te permite proporcionar detalles como encabezados personalizados cuando llamas a tu acción. Luego, puedes [manejar los datos devueltos con formato personalizado](/es/guides/actions/#manejo-de-los-datos-retornados) según sea necesario, como si hubieras llamado a una acción directamente.
 
 Este ejemplo muestra cómo llamar a una acción definida como `like` pasando el encabezado `Authorization` y la opción [`keepalive`](https://developer.mozilla.org/en-US/docs/Web/API/Request/keepalive):
 
@@ -343,3 +407,198 @@ navigator.sendBeacon(
 )
 </script>
 ```
+
+### `ACTION_QUERY_PARAMS`
+
+<p>
+
+**Tipo:** `{ actionName: string, actionPayload: string }`
+</p>
+
+Un objeto que contiene los nombres de los parámetros de consulta utilizados internamente por Astro al manejar envíos de acciones de formularios.
+
+Cuando envías un formulario utilizando una acción, se agregan los siguientes parámetros de consulta a la URL para rastrear la llamada a la acción:
+* `actionName` - El parámetro de consulta que contiene el nombre de la acción que se está llamando
+* `actionPayload` - El parámetro de consulta que contiene los datos del formulario serializados
+
+Esta constante puede ser útil cuando necesitas limpiar las URLs después de enviar un formulario. Por ejemplo, es posible que desees eliminar los parámetros de consulta relacionados con la acción durante una redirección:
+
+```ts title="src/pages/api/contact.ts" "ACTION_QUERY_PARAMS"
+import type { APIRoute } from "astro";
+import { ACTION_QUERY_PARAMS } from "astro:actions";
+
+export const GET: APIRoute = ({ redirect, request }) => {
+  const link = new URL(request.url).searchParams;
+  link.delete(ACTION_QUERY_PARAMS.actionName);
+  link.delete(ACTION_QUERY_PARAMS.actionPayload);
+
+  return redirect(link.toString(), 303);
+};
+```
+
+## Tipos de `astro:actions`
+
+```ts
+import type {
+  ActionAPIContext,
+  ActionClient,
+  ActionErrorCode,
+  ActionInputSchema,
+  ActionReturnType,
+  SafeResult,
+ } from 'astro:actions';
+```
+
+### `ActionAPIContext`
+
+Un subconjunto del [objeto de contexto de Astro](/es/reference/api-reference/). Las siguientes propiedades no están disponibles: `callAction`, `getActionResult`, `props` y `redirect`.
+
+### `ActionClient`
+
+<p>
+
+**Tipos:**
+* <code>(input?: any) => Promise\<<a href="#saferesult">SafeResult</a>\></code>
+* `{ queryString?: string; orThrow: (input?: any) => Promise<Awaited<TOutput>>; }`
+</p>
+
+Representa una acción que se llamará en el cliente. Puedes usarla como una función que acepta datos de entrada y devuelve una Promesa con un [objeto `SafeResult`](#saferesult) que contiene el resultado de la acción o errores de validación.
+
+El siguiente ejemplo muestra cómo puedes proporcionar manejo de errores con una declaración `if` cuando falla el incremento del contador de likes:
+
+```astro title="src/pages/posts/post-1.astro" "data" "error"
+---
+---
+
+<!-- tu plantilla -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const { data: updatedLikes, error } = await actions.likePost({ postId: post?.id });
+  if (error) {
+    /* manejar errores */
+  }
+})
+</script>
+```
+
+Alternativamente, puedes usarlo como un objeto que te da acceso a la propiedad `queryString` y a un método alternativo `orThrow()`.
+
+#### `ActionClient.queryString`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Una representación en cadena de la acción que se puede utilizar para construir URLs de acciones de formularios. Esto puede ser útil cuando tu componente de formulario se usa en varios lugares pero necesitas redirigir a una URL diferente al enviar.
+
+El siguiente ejemplo utiliza `queryString` para construir una URL que se pasará al atributo `action` del formulario a través de una prop personalizada:
+
+```astro title="src/pages/postal-service.astro" "queryString"
+---
+import { actions } from 'astro:actions';
+import FeedbackForm from "../components/FeedbackForm.astro";
+
+const feedbackUrl = new URL('/feedback', Astro.url);
+feedbackUrl.search = actions.myAction.queryString;
+---
+<FeedbackForm sendTo={feedbackUrl.pathname} />
+```
+
+#### `ActionClient.orThrow()`
+
+<p>
+
+**Tipo:** `(input?: any) => Promise<Awaited<TOutput>>`
+</p>
+
+Un método que lanza un error al fallar en lugar de devolver los errores. Esto es útil cuando prefieres excepciones en lugar del manejo tradicional de errores.
+
+El siguiente ejemplo utiliza `orThrow()` para omitir el manejo de errores cuando falla el incremento del contador de likes:
+
+```astro title="src/pages/posts/post-1.astro" "orThrow"
+---
+---
+
+<!-- tu plantilla -->
+
+<script>
+import { actions } from 'astro:actions';
+
+const post = document.querySelector('article');
+const button = document.querySelector('button');
+button?.addEventListener('click', async () => {
+  const updatedLikes = await actions.likePost.orThrow({ postId: post?.id });
+})
+</script>
+```
+
+### `ActionErrorCode`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Un tipo de unión de códigos de estado HTTP estándar [definidos por la IANA](https://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml) utilizando las versiones legibles para humanos como cadenas en mayúsculas separadas por un guion bajo (por ejemplo, `BAD_REQUEST` o `PAYLOAD_TOO_LARGE`).
+
+### `ActionInputSchema`
+
+<p>
+
+**Tipo:** `ZodType`
+<Since v="5.16.0" />
+</p>
+
+Un tipo de utilidad que infiere automáticamente el tipo de TypeScript de la entrada de una acción basado en su esquema Zod. Esto puede ser útil para hacer referencia al [tipo de validador `input`](#validador-del-input) de una acción como un objeto en tus propias definiciones de tipos.
+
+Devuelve `never` cuando se omite el [validador `input`](#validador-del-input).
+
+El siguiente ejemplo utiliza `ActionInputSchema` en una acción llamada `contact` para:
+* Obtener el tipo de esquema Zod para la entrada de la acción.
+* Obtener el tipo de entrada esperado del validador de la acción.
+
+```astro title="src/components/Form.astro" {5}
+---
+import { actions, type ActionInputSchema } from "astro:actions";
+import { z } from "astro/zod";
+
+type ContactSchema = ActionInputSchema<typeof actions.contact>;
+type ContactInput = z.input<ContactSchema>;
+---
+```
+
+### `ActionReturnType`
+
+<p>
+
+**Tipo:** <code>Awaited\<ReturnType\<ActionHandler\>\></code>
+</p>
+
+Un tipo de utilidad que extrae el tipo de salida de [un manejador de acción](#defineaction). Esto desenvuelve tanto la `Promise` (si el manejador es asíncrono) como el `ReturnType` para darte el [tipo de salida real](#saferesult). Esto puede ser útil si necesitas hacer referencia al tipo de salida de una acción en tus propias definiciones de tipos.
+
+El siguiente ejemplo utiliza `ActionReturnType` para obtener el tipo de salida esperado para una acción llamada `contact`:
+
+```astro title="src/components/Form.astro" {4}
+---
+import { actions, type ActionReturnType } from "astro:actions";
+
+type ContactResult = ActionReturnType<typeof actions.contact>;
+---
+```
+
+### `SafeResult`
+
+<p>
+
+**Tipo:** `{ data: TOutput, error: undefined } | { data: undefined, error: ActionError }`
+</p>
+
+Representa el resultado de una llamada a una acción:
+* en caso de éxito, `data` contiene la salida de la acción y `error` es `undefined`.
+* en caso de fallo, `error` contiene un [`ActionError`](#actionerror) con errores de validación o errores en tiempo de ejecución, y `data` es `undefined`.
