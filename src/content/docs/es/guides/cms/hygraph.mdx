@@ -1,0 +1,128 @@
+---
+title: Hygraph y Astro
+description: Añade contenido a tu proyecto de Astro utilizando Hygraph como CMS
+sidebar:
+  label: Hygraph
+type: cms
+logo: hygraph
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+
+[Hygraph](https://hygraph.com/) es una plataforma federada de gestión de contenido. Expone un endpoint de GraphQL para obtener contenido.
+
+## Integración con Astro
+
+En esta sección, crearás un endpoint de GraphQL de [Hygraph](https://hygraph.com/) para obtener contenido de Astro.
+
+### Prerrequisitos
+
+Para comenzar, necesitarás tener lo siguiente:
+
+1. **Una cuenta y proyecto de Hygraph**. Si no tienes una cuenta, puedes [registrarte gratis](https://app.hygraph.com/signup) y crear un nuevo proyecto. 
+
+2. **Permisos de acceso de Hygraph** - en `Project Settings > API Access`, configura los permisos de Public Content API para permitir solicitudes de lectura sin autenticación. Si no has configurado ningún permiso, puedes dar clic en **Yes, initialize defaults** para añadir los permisos requeridos para usar la "High Performance Content API".
+
+### Configurar el endpoint
+
+Para añadir tu endpoint de Hygraph a Astro, crea un archivo `.env` en la raíz de tu proyecto con la siguiente variable:
+
+```ini title=".env"
+HYGRAPH_ENDPOINT=YOUR_HIGH_PERFORMANCE_API
+```
+
+Ahora deberías poder utilizar esta variable de entorno en tu proyecto. 
+
+Si quieres tener IntelliSense para tus variables de entorno, puedes crear un archivo `env.d.ts` en tu directorio `src/` y configurar `ImportMetaEnv` de la siguiente manera:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly HYGRAPH_ENDPOINT: string;
+}
+```
+
+:::note
+Lee más sobre el [uso de las variables de entorno](/es/guides/environment-variables/) y archivos `.env` en Astro.
+:::
+
+Tu directorio raíz deberá incluir ahora los siguientes archivos:
+
+<FileTree title="Project Structure">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+### Fetching data
+
+Obtén datos de tu proyecto de Hygraph utilizando `HYGRAPH_ENDPOINT`. 
+
+Por ejemplo, para obtener entradas de un tipo de contenido `blogPosts` que contenga un campo de tipo string `title`, crea una consulta de GraphQL para obtener ese contenido. Después, define el tipo del contenido y establécelo como el tipo de la respuesta.
+
+```astro title="src/pages/index.astro"
+---
+interface Post {
+	title: string;
+}
+
+const query = {
+	method: "POST",
+	headers: { "Content-Type": "application/json" },
+	body: JSON.stringify({
+		query: `
+      {
+        blogPosts {
+          title
+        }
+      }`,
+	}),
+};
+
+const response = await fetch(import.meta.env.HYGRAPH_ENDPOINT, query);
+const json = await response.json();
+const posts: Post[] = json.data.blogPosts;
+---
+
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+		<meta name="viewport" content="width=device-width" />
+		<meta name="generator" content={Astro.generator} />
+		<title>Astro</title>
+	</head>
+	<body>
+		<h1>Astro</h1>
+		{
+			posts.map((post) => (
+				<div>
+					<h2>{post.title}</h2>
+				</div>
+			))
+		}
+	</body>
+</html>
+```
+
+## Despliegue
+
+### Configuración de un Webhook en Netlify 
+
+Para configurar un `webhook` en Netlify:
+
+<Steps>
+1. Despliega tu sitio en Netlify con [esta guía](/es/guides/deploy/netlify/). Recuerda agregar `HYGRAPH_ENDPOINT` a las variables de entorno.
+
+2. A continuación, ve al panel de tu proyecto de Hygraph y haz clic en **Apps**. 
+
+3. Ve al marketplace, busca Netlify y sigue las instrucciones proporcionadas.
+
+4. Si todo ha salido bien, ahora podrás desplegar tu sitio web con un solo clic desde la interfaz de Hygraph.
+</Steps>
+
+## Recursos de la Comunidad
+
+- [Ejemplo de Hygraph + Astro con `marked` para analizar markdown](https://github.com/camunoz2/example-astrowithhygraph)
