@@ -2,6 +2,9 @@
 title: Experimental collection metadata
 sidebar:
   label: Collection metadata
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
 i18nReady: true
 ---
 
@@ -251,7 +254,11 @@ It is `undefined` for:
 
 ## Collection metadata API reference
 
-### `getCollectionsMetadata()`
+### Metadata functions and types
+
+The following APIs can be imported from [`astro:content`](/en/reference/modules/astro-content/).
+
+#### `getCollectionsMetadata()`
 
 <p>
 
@@ -259,11 +266,9 @@ It is `undefined` for:
 <Since v="7.5.0" />
 </p>
 
-Returns the metadata of every collection of the project: the build-time collections first, then the live collections. Each call returns new objects, so changing them doesn't change what other code receives.
+Returns the metadata of every collection of the project. It throws an error when the `experimental.collectionMetadata` flag is disabled.
 
-It throws an error when the `experimental.collectionMetadata` flag is disabled.
-
-### `CollectionMetadata`
+#### `CollectionMetadata`
 
 <p>
 
@@ -271,9 +276,15 @@ It throws an error when the `experimental.collectionMetadata` flag is disabled.
 <Since v="7.5.0" />
 </p>
 
-Facts about one collection, never its entries. In `astro:content`, the type is a union of the metadata of each collection of the project, with their descriptors typed.
+`CollectionMetadata` has one variant for each collection of your project, with its exact `name` and `descriptors`. For example, with a `guides` collection marked as docs, and a `blog` collection:
 
-#### `CollectionMetadata.name`
+```ts
+type CollectionMetadata =
+  | { name: 'guides'; type: 'build-time'; loader: { name: string }; descriptors: { myDocs: 'docs' } }
+  | { name: 'blog'; type: 'build-time'; loader: { name: string }; descriptors: {} };
+```
+
+##### `CollectionMetadata.name`
 
 <p>
 
@@ -282,16 +293,16 @@ Facts about one collection, never its entries. In `astro:content`, the type is a
 
 The name of the collection, as used with `getCollection()` or `getLiveCollection()`.
 
-#### `CollectionMetadata.type`
+##### `CollectionMetadata.type`
 
 <p>
 
 **Type:** `'build-time' | 'live'`
 </p>
 
-`'build-time'` for the collections of `src/content.config.ts`, read with `getCollection()`, and `'live'` for the collections of `src/live.config.ts`, read with `getLiveCollection()`.
+`'build-time'` for the collections of `src/content.config.ts`, and `'live'` for the collections of `src/live.config.ts`.
 
-#### `CollectionMetadata.loader`
+##### `CollectionMetadata.loader`
 
 <p>
 
@@ -300,7 +311,7 @@ The name of the collection, as used with `getCollection()` or `getLiveCollection
 
 The loader of the collection. Its `name` is the [`name`](/en/reference/content-loader-reference/#loadername) of the loader, or `'inline'` for a loader defined as a function.
 
-#### `CollectionMetadata.descriptors`
+##### `CollectionMetadata.descriptors`
 
 <p>
 
@@ -309,7 +320,7 @@ The loader of the collection. Its `name` is the [`name`](/en/reference/content-l
 
 The descriptors of the collection: the ones of its loader, merged with the ones of its config. When both set the same descriptor, the config wins.
 
-### `CollectionMetadataWith`
+#### `CollectionMetadataWith`
 
 <p>
 
@@ -319,7 +330,11 @@ The descriptors of the collection: the ones of its loader, merged with the ones 
 
 The [`CollectionMetadata`](#collectionmetadata) of the collections that have the descriptors `D`, and, when you set `T`, the type `T`. Use it in a type guard to narrow the result of [`getCollectionsMetadata()`](#getcollectionsmetadata) with `filter()`, as shown in [Type safety](#type-safety).
 
-### `Loader.descriptors`
+### Defining descriptors
+
+The following properties add descriptors to the [`Loader` object](/en/reference/content-loader-reference/#the-loader-object), and to the options of [`defineCollection()`](/en/reference/modules/astro-content/#definecollection) and [`defineLiveCollection()`](/en/reference/modules/astro-content/#definelivecollection).
+
+#### `Loader.descriptors`
 
 <p>
 
@@ -331,7 +346,7 @@ An optional property of [loaders](/en/reference/content-loader-reference/#the-lo
 
 Declare their type with the type parameter of `Loader`, like `Loader<{ myDocs: 'docs' }>`, or with the last type parameter of `LiveLoader`.
 
-### `descriptors`
+#### `descriptors`
 
 <p>
 
@@ -339,9 +354,13 @@ Declare their type with the type parameter of `Loader`, like `Loader<{ myDocs: '
 <Since v="7.5.0" />
 </p>
 
-An option of `defineCollection()` and `defineLiveCollection()`. It adds descriptors to the collection, or replaces the descriptors of its loader that have the same name.
+An option of `defineCollection()` and `defineLiveCollection()`. It adds descriptors to the collection. Astro shallow-merges them with the descriptors of its loader. In case of same keys, the collection descriptor wins.
 
-### `astro:collections:resolved`
+### Integration hooks
+
+The following hook and hook option are added to the [integration hooks](/en/reference/integrations-reference/#hooks).
+
+#### `astro:collections:resolved`
 
 <p><Since v="7.5.0" /></p>
 
@@ -360,7 +379,7 @@ An option of `defineCollection()` and `defineLiveCollection()`. It adds descript
 }) => void | Promise<void>;
 ```
 
-#### `collections`
+##### `collections`
 
 <p>
 
@@ -369,7 +388,7 @@ An option of `defineCollection()` and `defineLiveCollection()`. It adds descript
 
 The metadata of the build-time collections. Each integration receives its own copy.
 
-#### `logger`
+##### `logger`
 
 <p>
 
@@ -378,7 +397,7 @@ The metadata of the build-time collections. Each integration receives its own co
 
 An instance of the Astro integration logger, to write logs.
 
-### `collections` in `astro:build:done`
+#### `collections` in `astro:build:done`
 
 <p>
 
@@ -390,7 +409,7 @@ With this flag, the [`astro:build:done` hook](/en/reference/integrations-referen
 
 The same `collections` option also lists the snapshots of the build, with the [experimental collection storage drivers flag](/en/reference/experimental-flags/collection-storage-drivers/#collections-in-astrobuilddone).
 
-#### `collections.metadata`
+##### `collections.metadata`
 
 <p>
 
@@ -399,7 +418,7 @@ The same `collections` option also lists the snapshots of the build, with the [e
 
 The metadata of the build-time collections. Each integration receives its own copy.
 
-#### `collections.entries()`
+##### `collections.entries()`
 
 <p>
 
@@ -412,7 +431,11 @@ The entries are plain data: images and references to other entries are not resol
 
 Each call reads the collection from disk, returns new objects, and keeps nothing afterwards.
 
-### `file.data.astro.collection`
+### Markdown plugin data
+
+The following data is available to [Markdown processor plugins](/en/guides/markdown-content/#markdown-processor-plugins).
+
+#### `file.data.astro.collection`
 
 <p>
 
