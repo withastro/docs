@@ -19,7 +19,11 @@ const NO_RELEASES = { stable: null, prerelease: null };
 
 /** Builds the state of a run starting with the open PRs of the fake repository. */
 async function buildState(docs: FakeRepository) {
-	return { releases: NO_RELEASES, openPullRequests: await docs.getOpenPullRequests() };
+	return {
+		releases: NO_RELEASES,
+		settledBaseBranches: [],
+		openPullRequests: await docs.getOpenPullRequests(),
+	};
 }
 
 /**

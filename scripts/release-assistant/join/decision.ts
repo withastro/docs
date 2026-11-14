@@ -4,6 +4,7 @@ import { hasLabel, type PullRequest } from '../github/repository.ts';
 import {
 	getUmbrellaBaseBranch,
 	getUmbrellaBranches,
+	isSettled,
 	isStableBranch,
 	type UmbrellaBranches,
 } from '../umbrella/umbrella.ts';
@@ -20,6 +21,7 @@ export const REFUSAL_REASONS = {
 	majorReleaseOnStableBranch: 'major-release-on-stable-branch',
 	stableReleaseOnPrereleaseBranch: 'stable-release-on-prerelease-branch',
 	majorReleasePending: 'major-release-pending',
+	settledUmbrella: 'settled-umbrella',
 	draft: 'draft',
 	changesRequested: 'changes-requested',
 	missingApproval: 'missing-approval',
@@ -35,6 +37,7 @@ export type RefusalReason = (typeof REFUSAL_REASONS)[keyof typeof REFUSAL_REASON
 /** What routing reads from the release state. */
 type RoutingState = {
 	releases: { stable: Pick<FrameworkRelease, 'type'> | null };
+	settledBaseBranches: readonly string[];
 };
 
 type DecisionFacts = {
@@ -48,7 +51,9 @@ type RoutingFacts = {
 	/** `null` without exactly one release label. The base branch checks then don't apply. */
 	releaseType: ReleaseType | null;
 	isStableUmbrella: boolean;
+	isBasedOnUmbrella: boolean;
 	isMajorReleasePending: boolean;
+	isUmbrellaSettled: boolean;
 };
 
 type ProblemChecks<T> = [RefusalReason, (facts: T) => boolean][];
@@ -68,6 +73,10 @@ const ROUTING_PROBLEM_CHECKS: ProblemChecks<RoutingFacts> = [
 	[
 		REFUSAL_REASONS.majorReleasePending,
 		({ isStableUmbrella, isMajorReleasePending }) => isStableUmbrella && isMajorReleasePending,
+	],
+	[
+		REFUSAL_REASONS.settledUmbrella,
+		({ isBasedOnUmbrella, isUmbrellaSettled }) => !isBasedOnUmbrella && isUmbrellaSettled,
 	],
 ];
 
@@ -122,11 +131,14 @@ function readRoutingFacts(
 	state: RoutingState
 ): RoutingFacts {
 	const releaseTypes = getReleaseTypes(pullRequest);
+	const targetBaseBranch = getTargetBaseBranch(pullRequest);
 	return {
 		releaseLabelCount: releaseTypes.length,
 		releaseType: releaseTypes.length === 1 ? releaseTypes[0] : null,
-		isStableUmbrella: isStableBranch(getTargetBaseBranch(pullRequest)),
+		isStableUmbrella: isStableBranch(targetBaseBranch),
+		isBasedOnUmbrella: getUmbrellaBaseBranch(pullRequest.base.ref) !== null,
 		isMajorReleasePending: isMajorRelease(state.releases.stable),
+		isUmbrellaSettled: isSettled(state.settledBaseBranches, targetBaseBranch),
 	};
 }
 

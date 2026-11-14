@@ -6,6 +6,8 @@ import {
 import type { PullRequest, Repository } from './github/repository.ts';
 import { joinAcceptedPullRequests, previewAcceptedPullRequests } from './join/accepted-prs.ts';
 import { refreshOpenUmbrellas } from './umbrella/refresh.ts';
+import { findUmbrellas } from './umbrella/umbrella.ts';
+import { filterAsync } from './utils/filter-async.ts';
 
 /** The repositories a run works with, and where it reports. */
 export type ReleaseAssistantContext = {
@@ -17,9 +19,15 @@ export type ReleaseAssistantContext = {
 	log: (message: string) => void;
 };
 
-/** The open releases of the framework. */
+/** The open releases, and the base branches of the settled umbrellas. */
 export type ReleaseState = {
 	releases: FrameworkReleases;
+	/**
+	 * The base branches of the umbrellas whose release PR is merged. Such an
+	 * umbrella waits for a maintainer to merge it, and ships with no other
+	 * release.
+	 */
+	settledBaseBranches: string[];
 };
 
 /** What a run knows when it starts. */
@@ -30,6 +38,8 @@ export type RunState = ReleaseState & {
 
 /** The context of a run, with its state when it started. */
 export type ReleaseAssistantRun = ReleaseAssistantContext & { state: RunState };
+
+type RunStateContext = Pick<ReleaseAssistantContext, 'docs' | 'astro'>;
 
 /**
  * Moves the docs PRs with the accepted label into their umbrella, then
@@ -75,16 +85,42 @@ export async function runDryRun(context: ReleaseAssistantContext): Promise<void>
 	await previewAcceptedPullRequests(run);
 }
 
-/** Reads the framework releases and the open docs PRs. */
+/**
+ * Reads the framework releases, the open docs PRs, and the settled umbrellas.
+ */
 async function startRun(context: ReleaseAssistantContext): Promise<ReleaseAssistantRun> {
 	const [releases, openPullRequests] = await Promise.all([
 		readFrameworkReleases(context.astro),
 		context.docs.getOpenPullRequests(),
 	]);
-	return { ...context, state: { releases, openPullRequests } };
+	const settledBaseBranches = await readSettledBaseBranches(context, openPullRequests);
+	return { ...context, state: { releases, openPullRequests, settledBaseBranches } };
 }
 
 /** Describes what a run knows about the releases. */
-function describeReleaseState({ releases }: ReleaseState): string {
-	return `Releases: ${describeReleases(releases)}.`;
+function describeReleaseState({ releases, settledBaseBranches }: ReleaseState): string {
+	const settled = settledBaseBranches.join(', ') || 'none';
+	return `Releases: ${describeReleases(releases)}. Settled umbrellas: ${settled}.`;
+}
+
+async function readSettledBaseBranches(
+	{ docs, astro }: RunStateContext,
+	openPullRequests: PullRequest[]
+) {
+	const umbrellas = findUmbrellas(openPullRequests, docs.fullName);
+	const settledUmbrellas = await filterAsync(umbrellas, ({ releasePrNumber }) =>
+		isReleaseMerged(astro, releasePrNumber)
+	);
+	return settledUmbrellas.map(({ branches }) => branches.base);
+}
+
+/**
+ * A recorded PR that doesn't exist (e.g. after a hand edit of the marker) counts
+ * as not merged, so it doesn't fail every run.
+ */
+async function isReleaseMerged(astro: Repository, releasePrNumber: number | null) {
+	if (releasePrNumber === null) return false;
+
+	const releasePullRequest = await astro.findPullRequest(releasePrNumber);
+	return releasePullRequest?.merged ?? false;
 }

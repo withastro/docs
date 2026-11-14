@@ -118,7 +118,7 @@ export class FakeRepository implements Repository {
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
-		const pullRequest = this.#state.pullRequests.find(({ number }) => number === prNumber);
+		const pullRequest = await this.findPullRequest(prNumber);
 		if (!pullRequest) {
 			throw new GitHubError({
 				message: `GET /repos/${FAKE_REPOSITORY_NAME}/pulls/${prNumber} failed with 404: Not Found`,
@@ -127,6 +127,10 @@ export class FakeRepository implements Repository {
 			});
 		}
 		return pullRequest;
+	}
+
+	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
+		return this.#state.pullRequests.find(({ number }) => number === prNumber) ?? null;
 	}
 
 	/** Asks for the pull request again when GitHub had not checked it yet, without waiting. */

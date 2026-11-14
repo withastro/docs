@@ -142,6 +142,17 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Gets a pull request that may not exist.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<PullRequestDetails | null>} The pull request, or `null` when GitHub answers "Not Found" (e.g. a missing pull request or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 */
+	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
+		return orNullWhenNotFound(() => this.getPullRequest(prNumber));
+	}
+
+	/**
 	 * Gets the open pull requests from a branch of the repository's owner,
 	 * newest first. GitHub filters by owner and branch, so a fork's branch with
 	 * the same name is left out.

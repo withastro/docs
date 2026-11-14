@@ -1,10 +1,12 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { buildReadyState, createContext, MAIN_BRANCHES } from './fixtures.ts';
+import { buildReadyState, buildRelease, createContext, MAIN_BRANCHES } from './fixtures.ts';
 import { buildPullRequest, FakeRepository } from './github/fake-repository.ts';
 import { renderAcceptedUmbrellaComment, renderDryRunComment } from './join/comments.ts';
 import { OUTCOMES, REFUSAL_REASONS, type Decision } from './join/decision.ts';
 import { runDryRun, runLiveMode } from './run.ts';
+import { renderUmbrella } from './umbrella/content.ts';
+import { getUmbrellaBranches } from './umbrella/umbrella.ts';
 
 function buildDocs() {
 	const accepted = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
@@ -26,7 +28,10 @@ describe('runLiveMode', () => {
 		const methods = docs.writes.map(({ method }) => method);
 		assert.ok(methods.indexOf('squashMergePullRequest') < methods.indexOf('addLabels'));
 		assert.ok(docs.writes.some(({ method, args }) => method === 'addLabels' && args[0] === 50));
-		assert.equal(logs[0], 'Releases: stable none open, prerelease the same.');
+		assert.equal(
+			logs[0],
+			'Releases: stable none open, prerelease the same. Settled umbrellas: none.'
+		);
 	});
 
 	it('should refresh the open umbrellas when a join fails, then fail', async (t) => {
@@ -68,6 +73,20 @@ describe('runLiveMode', () => {
 	});
 });
 
+function buildUmbrella(number: number, baseBranch: string, releasePrNumber: number | null) {
+	const branches = getUmbrellaBranches(baseBranch);
+	return buildPullRequest({
+		number,
+		baseBranch,
+		headBranch: branches.head,
+		body: renderUmbrella({
+			branches,
+			release: releasePrNumber === null ? null : buildRelease({ prNumber: releasePrNumber }),
+			includedPrNumbers: [],
+		}).body,
+	});
+}
+
 function buildDryRunWrites(prNumber: number, decision: Decision) {
 	return [
 		{ method: 'removeLabel', args: [prNumber, 'accepted'] },
@@ -91,7 +110,7 @@ describe('runDryRun', () => {
 			})
 		);
 		assert.deepEqual(logs, [
-			'Releases: stable none open, prerelease the same.',
+			'Releases: stable none open, prerelease the same. Settled umbrellas: none.',
 			'Accepted PRs: #7.',
 			'Dry run: #7 would join umbrella/main.',
 		]);
@@ -137,7 +156,7 @@ describe('runDryRun', () => {
 		);
 		assert.equal(
 			logs[0],
-			'Releases: stable withastro/astro#100 (astro@8.0.0, major), prerelease the same.'
+			'Releases: stable withastro/astro#100 (astro@8.0.0, major), prerelease the same. Settled umbrellas: none.'
 		);
 	});
 
@@ -183,6 +202,38 @@ describe('runDryRun', () => {
 		);
 	});
 
+	it('should comment that a PR would wait for its settled umbrella to be merged', async () => {
+		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
+		const settledUmbrella = buildPullRequest({
+			number: 50,
+			headBranch: 'umbrella/main',
+			body: renderUmbrella({
+				branches: MAIN_BRANCHES,
+				release: buildRelease({ prNumber: 100 }),
+				includedPrNumbers: [],
+			}).body,
+		});
+		const docs = new FakeRepository({
+			...buildReadyState(pullRequest),
+			pullRequests: [pullRequest, settledUmbrella],
+		});
+		const astro = new FakeRepository({
+			pullRequests: [buildPullRequest({ number: 100, isMerged: true })],
+		});
+		const { context } = createContext(docs, astro);
+
+		await runDryRun(context);
+
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
+				outcome: OUTCOMES.refuse,
+				reasons: [REFUSAL_REASONS.settledUmbrella],
+				branches: MAIN_BRANCHES,
+			})
+		);
+	});
+
 	it('should skip a PR that lost the accepted label since the start of the run', async (t) => {
 		const docs = new FakeRepository({
 			pullRequests: [buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] })],
@@ -214,5 +265,49 @@ describe('runDryRun', () => {
 			{ method: 'createComment', args: [7, renderAcceptedUmbrellaComment()] },
 		]);
 		assert.equal(logs.at(-1), '#7 refused (umbrella PR).');
+	});
+
+	it('should log the base branches of the umbrellas whose release PR is merged', async () => {
+		const docs = new FakeRepository({
+			pullRequests: [
+				buildUmbrella(50, 'main', 100),
+				buildUmbrella(60, 'cloudflare-next', 200),
+				buildUmbrella(70, 'v8', null),
+				{
+					...buildPullRequest({ number: 7 }),
+					body: renderUmbrella({
+						branches: { head: 'umbrella/v9', base: 'v9' },
+						release: buildRelease({ prNumber: 100 }),
+						includedPrNumbers: [],
+					}).body,
+				},
+			],
+		});
+		const astro = new FakeRepository({
+			pullRequests: [
+				buildPullRequest({ number: 100, isMerged: true }),
+				buildPullRequest({ number: 200 }),
+			],
+		});
+		const { context, logs } = createContext(docs, astro);
+
+		await runDryRun(context);
+
+		assert.equal(
+			logs[0],
+			'Releases: stable none open, prerelease the same. Settled umbrellas: main.'
+		);
+	});
+
+	it('should not settle an umbrella whose marker names a release PR that does not exist', async () => {
+		const docs = new FakeRepository({ pullRequests: [buildUmbrella(50, 'main', 404)] });
+		const { context, logs } = createContext(docs);
+
+		await runDryRun(context);
+
+		assert.equal(
+			logs[0],
+			'Releases: stable none open, prerelease the same. Settled umbrellas: none.'
+		);
 	});
 });

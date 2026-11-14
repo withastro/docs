@@ -32,7 +32,7 @@ function buildUmbrella(labels: string[], changes: Partial<PullRequestDetails> = 
 }
 
 async function refresh(...pullRequests: PullRequestDetails[]) {
-	return refreshWithState({ releases: RELEASES }, ...pullRequests);
+	return refreshWithState({ releases: RELEASES, settledBaseBranches: [] }, ...pullRequests);
 }
 
 async function refreshWithState(state: ReleaseState, ...pullRequests: PullRequestDetails[]) {
@@ -64,7 +64,7 @@ describe('refreshOpenUmbrellas', () => {
 			if (base === 'main') throw refreshError;
 			return compare(base, head);
 		});
-		const state = { releases: RELEASES, openPullRequests: [] };
+		const state = { releases: RELEASES, settledBaseBranches: [], openPullRequests: [] };
 
 		await assert.rejects(
 			refreshOpenUmbrellas({ docs, log: () => {}, state }),
@@ -126,11 +126,44 @@ describe('refreshOpenUmbrellas', () => {
 		assert.equal(logs[0], 'Open umbrellas: #50, #60.');
 	});
 
+	it('should only update the included PRs of a settled umbrella', async () => {
+		const settledBody = renderUmbrella({
+			branches: MAIN_BRANCHES,
+			release: buildRelease({ prNumber: 90 }),
+			includedPrNumbers: [],
+		}).body;
+		const umbrella = buildUmbrella(['merge-on-release', 'patch-release'], {
+			title: '[ci] release astro@7.4.9 docs',
+			body: settledBody,
+		});
+
+		const { writes } = await refreshWithState(
+			{ releases: RELEASES, settledBaseBranches: ['main'] },
+			umbrella
+		);
+
+		assert.deepEqual(writes, [
+			{
+				method: 'updatePullRequest',
+				args: [
+					50,
+					{
+						body: renderUmbrella({
+							branches: MAIN_BRANCHES,
+							release: buildRelease({ prNumber: 90 }),
+							includedPrNumbers: [7],
+						}).body,
+					},
+				],
+			},
+		]);
+	});
+
 	it('should leave the stable umbrella to maintainers while a major release is pending', async () => {
 		const majorRelease = { ...RELEASES.stable, type: RELEASE_TYPES.major };
 
 		const { writes, logs } = await refreshWithState(
-			{ releases: { stable: majorRelease, prerelease: null } },
+			{ releases: { stable: majorRelease, prerelease: null }, settledBaseBranches: [] },
 			buildUmbrella([])
 		);
 

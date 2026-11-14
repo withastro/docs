@@ -76,6 +76,41 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('findPullRequest', () => {
+		it('should get a pull request', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls/7': {
+					status: 200,
+					body: { ...PULL_REQUEST_DATA, merged: true },
+				},
+			});
+
+			const pullRequest = await new GitHubRepository(octokit, NAME).findPullRequest(7);
+
+			assert.equal(pullRequest?.merged, true);
+		});
+
+		it('should return null for a pull request that does not exist', async () => {
+			const { octokit } = createFakeOctokit({});
+
+			assert.equal(await new GitHubRepository(octokit, NAME).findPullRequest(7), null);
+		});
+
+		it('should throw on other errors', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls/7': {
+					status: 401,
+					body: { message: 'Bad credentials' },
+				},
+			});
+
+			await assert.rejects(
+				new GitHubRepository(octokit, NAME).findPullRequest(7),
+				/Bad credentials/
+			);
+		});
+	});
+
 	describe('getOpenPullRequestsFromBranch', () => {
 		it('should filter the open pull requests by a branch of the owner', async () => {
 			const { octokit } = createFakeOctokit({

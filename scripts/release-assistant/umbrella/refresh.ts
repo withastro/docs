@@ -9,7 +9,13 @@ import {
 	planUmbrellaUpdate,
 	type UmbrellaChanges,
 } from './content.ts';
-import { findUmbrellas, getUmbrellaRelease, isStableBranch, type Umbrella } from './umbrella.ts';
+import {
+	findUmbrellas,
+	getUmbrellaRelease,
+	isSettled,
+	isStableBranch,
+	type Umbrella,
+} from './umbrella.ts';
 
 type RefreshRun = Pick<ReleaseAssistantRun, 'docs' | 'log' | 'state'>;
 
@@ -61,6 +67,16 @@ function isWaitingForMajorRelease({ branches }: Umbrella, { releases }: ReleaseS
 }
 
 /**
+ * Gets the release an umbrella ships with, or `null` for a settled umbrella,
+ * which keeps its recorded release.
+ */
+function getReleaseToApply({ branches }: Umbrella, state: ReleaseState) {
+	return isSettled(state.settledBaseBranches, branches.base)
+		? null
+		: getUmbrellaRelease(state.releases, branches.base);
+}
+
+/**
  * Updates the title, description, and labels of an umbrella PR.
  *
  * Sends nothing for what is already up to date.
@@ -74,7 +90,7 @@ async function refreshUmbrella(run: RefreshRun, umbrella: Umbrella): Promise<voi
 	const { branches } = umbrella;
 	const comparison = await docs.compare(branches.base, branches.head);
 	const includedPrNumbers = getIncludedPrNumbers(comparison);
-	const release = getUmbrellaRelease(state.releases, branches.base);
+	const release = getReleaseToApply(umbrella, state);
 	const changes = planUmbrellaUpdate(umbrella, { release, includedPrNumbers });
 	await applyUmbrellaChanges(docs, changes);
 	log(

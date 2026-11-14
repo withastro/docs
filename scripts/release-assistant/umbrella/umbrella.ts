@@ -103,3 +103,15 @@ export function getUmbrellaRelease(
 ): FrameworkRelease | null {
 	return isStableBranch(baseBranch) ? releases.stable : releases.prerelease;
 }
+
+/**
+ * Tells whether the umbrella of a base branch is settled. A settled umbrella
+ * has its release PR merged, and waits for a maintainer to merge it.
+ *
+ * @param {readonly string[]} settledBaseBranches - The base branches of the settled umbrellas.
+ * @param {string} baseBranch - The branch the umbrella merges into.
+ * @returns {boolean} `false` for a branch without an open umbrella.
+ */
+export function isSettled(settledBaseBranches: readonly string[], baseBranch: string): boolean {
+	return settledBaseBranches.includes(baseBranch);
+}
