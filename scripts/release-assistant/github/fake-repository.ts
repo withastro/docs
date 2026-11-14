@@ -10,7 +10,7 @@ import type {
 	Repository,
 	SquashMergeOptions,
 } from './repository.ts';
-import type { ReviewState } from './reviews.ts';
+import type { Review, ReviewState, ReviewUpdate } from './reviews.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 export const MAINTAINER = 'example-maintainer';
@@ -32,6 +32,7 @@ type PullRequestFixture = {
 
 export type FakeRepositoryState = {
 	pullRequests?: PullRequestDetails[];
+	reviewsByPrNumber?: Record<number, Review[]>;
 	/** The current review state of each reviewer, by login, as GitHub counts it. */
 	reviewStatesByPrNumber?: Record<number, Record<string, ReviewState>>;
 	/** Users with write access. */
@@ -89,6 +90,7 @@ export class FakeRepository implements Repository {
 
 	constructor({
 		pullRequests = [],
+		reviewsByPrNumber = {},
 		reviewStatesByPrNumber = {},
 		maintainers = [MAINTAINER],
 		checksByRef = {},
@@ -98,6 +100,7 @@ export class FakeRepository implements Repository {
 	}: FakeRepositoryState) {
 		this.#state = {
 			pullRequests,
+			reviewsByPrNumber,
 			reviewStatesByPrNumber,
 			maintainers,
 			checksByRef,
@@ -139,6 +142,10 @@ export class FakeRepository implements Repository {
 	): Promise<boolean | null> {
 		if (pullRequest.mergeable !== null) return pullRequest.mergeable;
 		return (await this.getPullRequest(pullRequest.number)).mergeable;
+	}
+
+	async getReviews(prNumber: number): Promise<Review[]> {
+		return this.#state.reviewsByPrNumber[prNumber] ?? [];
 	}
 
 	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
@@ -192,5 +199,13 @@ export class FakeRepository implements Repository {
 
 	async createComment(prNumber: number, body: string): Promise<void> {
 		this.writes.push({ method: 'createComment', args: [prNumber, body] });
+	}
+
+	async requestChanges(prNumber: number, body: string): Promise<void> {
+		this.writes.push({ method: 'requestChanges', args: [prNumber, body] });
+	}
+
+	async updateReview(prNumber: number, update: ReviewUpdate): Promise<void> {
+		this.writes.push({ method: 'updateReview', args: [prNumber, update] });
 	}
 }

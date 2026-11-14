@@ -66,5 +66,6 @@ export function createContext(
 	const log = (message: string) => {
 		logs.push(message);
 	};
-	return { context: { docs, astro, log }, logs };
+	const reviewer = new FakeRepository({});
+	return { context: { docs, astro, reviewer, log }, logs };
 }

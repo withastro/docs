@@ -1,14 +1,16 @@
 import { isMajorRelease } from '../framework-release.ts';
-import type { ReleaseAssistantRun, ReleaseState } from '../run.ts';
+import type { ReleaseAssistantRun, ReleaseState, RunState } from '../run.ts';
 import { describeError } from '../utils/errors.ts';
 import { formatPrNumbers } from '../utils/pr-numbers.ts';
 import {
 	getIncludedPrNumbers,
+	getUmbrellaReleasePrNumber,
 	hasFieldChanges,
 	hasUmbrellaChanges,
 	planUmbrellaUpdate,
 	type UmbrellaChanges,
 } from './content.ts';
+import { syncMergeBlockReview } from './merge-block.ts';
 import {
 	findUmbrellas,
 	getUmbrellaRelease,
@@ -17,10 +19,10 @@ import {
 	type Umbrella,
 } from './umbrella.ts';
 
-type RefreshRun = Pick<ReleaseAssistantRun, 'docs' | 'log' | 'state'>;
+type RefreshRun = Pick<ReleaseAssistantRun, 'docs' | 'reviewer' | 'log' | 'state'>;
 
 /**
- * Refreshes every open umbrella PR.
+ * Refreshes every open umbrella PR, and the review that blocks its merge.
  *
  * Lists the open PRs again, since the joins of the run may have opened an
  * umbrella. An umbrella that fails does not stop the others.
@@ -77,7 +79,8 @@ function getReleaseToApply({ branches }: Umbrella, state: ReleaseState) {
 }
 
 /**
- * Updates the title, description, and labels of an umbrella PR.
+ * Updates the title, description, and labels of an umbrella PR, then its
+ * merge-block review.
  *
  * Sends nothing for what is already up to date.
  *
@@ -98,6 +101,21 @@ async function refreshUmbrella(run: RefreshRun, umbrella: Umbrella): Promise<voi
 			? `Umbrella #${umbrella.number} refreshed.`
 			: `Umbrella #${umbrella.number} is up to date.`
 	);
+
+	await syncMergeBlockReview(run, {
+		umbrella,
+		releasePrNumber: getUmbrellaReleasePrNumber(umbrella, release),
+		isReleaseMerged: isSettled(state.settledBaseBranches, branches.base),
+		openPrNumbers: getOpenPrNumbers(state, branches.head),
+		includedPrNumbers,
+	});
+}
+
+function getOpenPrNumbers(
+	{ openPullRequests }: Pick<RunState, 'openPullRequests'>,
+	baseBranch: string
+) {
+	return openPullRequests.filter(({ base }) => base.ref === baseBranch).map(({ number }) => number);
 }
 
 async function applyUmbrellaChanges(

@@ -200,6 +200,28 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getReviews', () => {
+		it('should get the reviews as GitHub sends them', async () => {
+			const review = {
+				id: 1,
+				user: { login: 'github-actions[bot]', id: 2 },
+				state: 'CHANGES_REQUESTED',
+				body: 'Checklist',
+				commit_id: 'sha-50',
+			};
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls/50/reviews?per_page=100': {
+					status: 200,
+					body: [review],
+				},
+			});
+
+			const reviews = await new GitHubRepository(octokit, NAME).getReviews(50);
+
+			assert.deepEqual(reviews, [review]);
+		});
+	});
+
 	describe('getLatestReviewStates', () => {
 		const ROUTE = 'GET /repos/example-org/docs/pulls/7/reviews?per_page=100';
 
@@ -598,6 +620,33 @@ describe('GitHubRepository', () => {
 			]);
 
 			assert.deepEqual(requests[0].body, { labels: ['merge-on-release', 'minor-release'] });
+		});
+	});
+
+	describe('requestChanges', () => {
+		it('should submit a review requesting changes', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'POST /repos/example-org/docs/pulls/50/reviews': { status: 200, body: { id: 1 } },
+			});
+
+			await new GitHubRepository(octokit, NAME).requestChanges(50, 'Checklist');
+
+			assert.deepEqual(requests[0].body, { event: 'REQUEST_CHANGES', body: 'Checklist' });
+		});
+	});
+
+	describe('updateReview', () => {
+		it('should change the text of the review', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'PUT /repos/example-org/docs/pulls/50/reviews/1': { status: 200, body: { id: 1 } },
+			});
+
+			await new GitHubRepository(octokit, NAME).updateReview(50, {
+				reviewId: 1,
+				body: 'Checklist',
+			});
+
+			assert.deepEqual(requests[0].body, { body: 'Checklist' });
 		});
 	});
 

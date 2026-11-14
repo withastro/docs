@@ -44,10 +44,16 @@ async function refreshWithState(state: ReleaseState, ...pullRequests: PullReques
 			},
 		},
 	});
+	const reviewer = new FakeRepository({});
 	const logs: string[] = [];
 	const log = (message: string) => logs.push(message);
-	await refreshOpenUmbrellas({ docs, log, state: { ...state, openPullRequests: [] } });
-	return { writes: docs.writes, logs };
+	await refreshOpenUmbrellas({
+		docs,
+		reviewer,
+		log,
+		state: { ...state, openPullRequests: [] },
+	});
+	return { writes: docs.writes, reviews: reviewer.writes, logs };
 }
 
 describe('refreshOpenUmbrellas', () => {
@@ -67,7 +73,7 @@ describe('refreshOpenUmbrellas', () => {
 		const state = { releases: RELEASES, settledBaseBranches: [], openPullRequests: [] };
 
 		await assert.rejects(
-			refreshOpenUmbrellas({ docs, log: () => {}, state }),
+			refreshOpenUmbrellas({ docs, reviewer: new FakeRepository({}), log: () => {}, state }),
 			({ errors }: AggregateError) => {
 				assert.equal(errors.length, 1);
 				assert.equal(errors[0].message, 'Umbrella #50 failed: Network error');
@@ -87,7 +93,11 @@ describe('refreshOpenUmbrellas', () => {
 			{ method: 'addLabels', args: [50, ['merge-on-release', 'minor-release']] },
 			{ method: 'removeLabel', args: [50, 'patch-release'] },
 		]);
-		assert.deepEqual(logs, ['Open umbrellas: #50.', 'Umbrella #50 refreshed.']);
+		assert.deepEqual(logs, [
+			'Open umbrellas: #50.',
+			'Umbrella #50 refreshed.',
+			'Umbrella #50: merge blocked by a review.',
+		]);
 	});
 
 	it('should only send what changed', async () => {
@@ -169,5 +179,25 @@ describe('refreshOpenUmbrellas', () => {
 
 		assert.deepEqual(writes, []);
 		assert.match(logs.at(-1) ?? '', /^Umbrella #50 skipped: /);
+	});
+
+	it('should fill the merge checklist of each umbrella', async () => {
+		const { reviews } = await refreshWithState(
+			{ releases: RELEASES, settledBaseBranches: ['main'] },
+			buildUmbrella([], {
+				body: renderUmbrella({
+					branches: MAIN_BRANCHES,
+					release: buildRelease({ prNumber: 100 }),
+					includedPrNumbers: [],
+				}).body,
+			}),
+			buildPullRequest({ number: 11, baseBranch: 'umbrella/main' })
+		);
+
+		assert.equal(reviews.length, 1);
+		const [checklist] = reviews.map(({ args }) => String(args[1]));
+		assert.match(checklist, /covered-prs=7 -->/);
+		assert.match(checklist, /- \[x\] The release withastro\/astro#100 is merged\./);
+		assert.match(checklist, /Still open and based on `umbrella\/main`: #11\./);
 	});
 });

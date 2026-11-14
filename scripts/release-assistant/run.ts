@@ -11,10 +11,15 @@ import { filterAsync } from './utils/filter-async.ts';
 
 /** The repositories a run works with, and where it reports. */
 export type ReleaseAssistantContext = {
-	/** The docs repository, through the bot account. */
+	/** The docs repository, through the bot account that merges PRs and opens umbrellas. */
 	docs: Repository;
 	/** The framework repository, read for its release PRs. */
 	astro: Repository;
+	/**
+	 * The docs repository through a second account. GitHub refuses a review from
+	 * the account that opened the umbrella.
+	 */
+	reviewer: Repository;
 	/** Where the run reports what it does, one line at a time. */
 	log: (message: string) => void;
 };

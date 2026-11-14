@@ -2,7 +2,12 @@ import { setTimeout } from 'node:timers/promises';
 import type { getOctokit } from '@actions/github';
 import { toChecks, type Check } from './checks.ts';
 import { GitHubError, orNullWhenNotFound, send } from './errors.ts';
-import { isDecisiveReviewState, type ReviewState } from './reviews.ts';
+import {
+	isDecisiveReviewState,
+	type Review,
+	type ReviewState,
+	type ReviewUpdate,
+} from './reviews.ts';
 
 /** The client `actions/github-script` gives its script. */
 export type Octokit = ReturnType<typeof getOctokit>;
@@ -22,6 +27,7 @@ const FILE_CONTENT_ENCODING = 'base64';
 const MERGEABILITY_RETRY_COUNT = 5;
 const MERGEABILITY_RETRY_DELAY_MS = 2000;
 const SQUASH_MERGE_METHOD = 'squash';
+const REQUEST_CHANGES_EVENT = 'REQUEST_CHANGES';
 
 /** The fields of a pull request the release assistant reads, as GitHub names them. */
 export type PullRequest = {
@@ -195,6 +201,23 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Gets all the reviews of a pull request, oldest first.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<Review[]>} The reviews, pending ones included.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async getReviews(prNumber: number): Promise<Review[]> {
+		return send(() =>
+			this.#octokit.paginate(this.#octokit.rest.pulls.listReviews, {
+				...this.#name,
+				pull_number: prNumber,
+				per_page: MAX_PAGE_SIZE,
+			})
+		);
+	}
+
+	/**
 	 * Gets the current review state of each reviewer of a pull request.
 	 *
 	 * A reviewer's latest approval, change request, or dismissal is their state.
@@ -206,15 +229,8 @@ export class GitHubRepository {
 	 * @throws {GitHubError} When GitHub answers with an error status.
 	 */
 	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
-		const reviews = await send(() =>
-			this.#octokit.paginate(this.#octokit.rest.pulls.listReviews, {
-				...this.#name,
-				pull_number: prNumber,
-				per_page: MAX_PAGE_SIZE,
-			})
-		);
 		const statesByLogin = new Map<string, ReviewState>();
-		for (const { user, state } of reviews) {
+		for (const { user, state } of await this.getReviews(prNumber)) {
 			if (user && isDecisiveReviewState(state)) statesByLogin.set(user.login, state);
 		}
 		return statesByLogin;
@@ -416,6 +432,44 @@ export class GitHubRepository {
 				...this.#name,
 				issue_number: prNumber,
 				labels: [...labels],
+			})
+		);
+	}
+
+	/**
+	 * Submits a review requesting changes, which blocks the merge when the base
+	 * branch requires approvals. The token's account can't be the author of
+	 * the pull request.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {string} body - Why the pull request can't be merged, in Markdown.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async requestChanges(prNumber: number, body: string): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.pulls.createReview({
+				...this.#name,
+				pull_number: prNumber,
+				event: REQUEST_CHANGES_EVENT,
+				body,
+			})
+		);
+	}
+
+	/**
+	 * Changes the text of a review.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {ReviewUpdate} update - The review to change, and its new text.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async updateReview(prNumber: number, { reviewId, body }: ReviewUpdate): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.pulls.updateReview({
+				...this.#name,
+				pull_number: prNumber,
+				review_id: reviewId,
+				body,
 			})
 		);
 	}
