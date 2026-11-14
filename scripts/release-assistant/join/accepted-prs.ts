@@ -95,7 +95,7 @@ async function readAcceptedPullRequest(
 	run: ReleaseAssistantRun,
 	prNumber: number
 ): Promise<AcceptedPullRequest> {
-	const { docs } = run;
+	const { docs, state } = run;
 	const pullRequest = await docs.getPullRequest(prNumber);
 	if (!hasLabel(pullRequest, ACCEPTED_LABEL)) return { kind: ACCEPTED_PR_KINDS.skipped };
 	if (isUmbrellaPullRequest(pullRequest, docs.fullName)) {
@@ -106,7 +106,7 @@ async function readAcceptedPullRequest(
 	return {
 		kind: ACCEPTED_PR_KINDS.docs,
 		pullRequest,
-		decision: decideJoin(pullRequest, { readiness }),
+		decision: decideJoin(pullRequest, { state, readiness }),
 	};
 }
 

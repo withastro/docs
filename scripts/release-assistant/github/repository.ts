@@ -16,6 +16,9 @@ const MISSING_LABEL_MESSAGE = 'Label does not exist';
 const MAX_PAGE_SIZE = 100;
 /** The permissions that allow pushing. The endpoint reports the maintain role as `write`. */
 const WRITE_PERMISSIONS = ['admin', 'write'];
+const FILE_CONTENT_TYPE = 'file';
+/** The encoding of file contents up to 1 MB. Larger files come without their content. */
+const FILE_CONTENT_ENCODING = 'base64';
 const MERGEABILITY_RETRY_COUNT = 5;
 const MERGEABILITY_RETRY_DELAY_MS = 2000;
 
@@ -105,6 +108,26 @@ export class GitHubRepository {
 			this.#octokit.rest.pulls.get({ ...this.#name, pull_number: prNumber })
 		);
 		return data;
+	}
+
+	/**
+	 * Gets the open pull requests from a branch of the repository's owner,
+	 * newest first. GitHub filters by owner and branch, so a fork's branch with
+	 * the same name is left out.
+	 *
+	 * @param {string} branch - The name of the head branch.
+	 * @returns {Promise<PullRequest[]>} The open pull requests from the branch.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequest[]> {
+		return send(() =>
+			this.#octokit.paginate(this.#octokit.rest.pulls.list, {
+				...this.#name,
+				state: 'open',
+				head: `${this.#name.owner}:${branch}`,
+				per_page: MAX_PAGE_SIZE,
+			})
+		);
 	}
 
 	/**
@@ -211,6 +234,34 @@ export class GitHubRepository {
 			);
 		}
 		return toChecks(checkRuns, statuses, waitingRuns);
+	}
+
+	/**
+	 * Gets the text of a file, decoded as UTF-8.
+	 *
+	 * @param {string} path - The file path in the repository, without a leading slash.
+	 * @param {string} ref - The SHA, branch, or tag to read the file from.
+	 * @returns {Promise<string | null>} The text, or `null` when GitHub answers "Not Found" (e.g. a missing file, ref, or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 * @throws {Error} When the path is a directory.
+	 * @throws {Error} When the file is too large to come with its content.
+	 */
+	async getFileContent(path: string, ref: string): Promise<string | null> {
+		const response = await orNullWhenNotFound(() =>
+			this.#octokit.rest.repos.getContent({ ...this.#name, path, ref })
+		);
+		if (response === null) return null;
+
+		const { data } = response;
+		if (Array.isArray(data) || data.type !== FILE_CONTENT_TYPE) {
+			throw new Error(`${path} on ${ref} in ${this.fullName} is not a file.`);
+		}
+		if (!('encoding' in data) || data.encoding !== FILE_CONTENT_ENCODING) {
+			throw new Error(
+				`${path} on ${ref} in ${this.fullName} is too large to come with its content.`
+			);
+		}
+		return Buffer.from(data.content, FILE_CONTENT_ENCODING).toString('utf8');
 	}
 
 	/**

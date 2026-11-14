@@ -1,4 +1,5 @@
 import { RELEASE_LABELS, RELEASE_TYPES, type ReleaseType } from '../config.ts';
+import { isMajorRelease, type FrameworkRelease } from '../framework-release.ts';
 import { hasLabel, type PullRequest } from '../github/repository.ts';
 import {
 	getUmbrellaBaseBranch,
@@ -18,6 +19,7 @@ export const REFUSAL_REASONS = {
 	severalReleaseLabels: 'several-release-labels',
 	majorReleaseOnStableBranch: 'major-release-on-stable-branch',
 	stableReleaseOnPrereleaseBranch: 'stable-release-on-prerelease-branch',
+	majorReleasePending: 'major-release-pending',
 	draft: 'draft',
 	changesRequested: 'changes-requested',
 	missingApproval: 'missing-approval',
@@ -30,7 +32,13 @@ export const REFUSAL_REASONS = {
 
 export type RefusalReason = (typeof REFUSAL_REASONS)[keyof typeof REFUSAL_REASONS];
 
+/** What routing reads from the release state. */
+type RoutingState = {
+	releases: { stable: Pick<FrameworkRelease, 'type'> | null };
+};
+
 type DecisionFacts = {
+	state: RoutingState;
 	readiness: Readiness;
 };
 
@@ -40,6 +48,7 @@ type RoutingFacts = {
 	/** `null` without exactly one release label. The base branch checks then don't apply. */
 	releaseType: ReleaseType | null;
 	isStableUmbrella: boolean;
+	isMajorReleasePending: boolean;
 };
 
 type ProblemChecks<T> = [RefusalReason, (facts: T) => boolean][];
@@ -55,6 +64,10 @@ const ROUTING_PROBLEM_CHECKS: ProblemChecks<RoutingFacts> = [
 		REFUSAL_REASONS.stableReleaseOnPrereleaseBranch,
 		({ releaseType, isStableUmbrella }) =>
 			!isStableUmbrella && releaseType !== null && releaseType !== RELEASE_TYPES.major,
+	],
+	[
+		REFUSAL_REASONS.majorReleasePending,
+		({ isStableUmbrella, isMajorReleasePending }) => isStableUmbrella && isMajorReleasePending,
 	],
 ];
 
@@ -87,15 +100,15 @@ export type Decision = { outcome: typeof OUTCOMES.join; branches: UmbrellaBranch
  * A PR based on an umbrella branch belongs to that umbrella.
  *
  * @param {Pick<PullRequest, 'base' | 'labels'>} pullRequest - The docs PR.
- * @param {DecisionFacts} facts - Whether the PR can be merged.
+ * @param {DecisionFacts} facts - The state of the run, and whether the PR can be merged.
  * @returns {Decision} The umbrella to join, or a refusal that lists the routing reasons, then the readiness ones.
  */
 export function decideJoin(
 	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
-	{ readiness }: DecisionFacts
+	{ state, readiness }: DecisionFacts
 ): Decision {
 	const reasons = [
-		...findProblems(ROUTING_PROBLEM_CHECKS, readRoutingFacts(pullRequest)),
+		...findProblems(ROUTING_PROBLEM_CHECKS, readRoutingFacts(pullRequest, state)),
 		...findProblems(READINESS_PROBLEM_CHECKS, readiness),
 	];
 	const branches = getUmbrellaBranches(getTargetBaseBranch(pullRequest));
@@ -104,12 +117,16 @@ export function decideJoin(
 		: { outcome: OUTCOMES.join, branches };
 }
 
-function readRoutingFacts(pullRequest: Pick<PullRequest, 'base' | 'labels'>): RoutingFacts {
+function readRoutingFacts(
+	pullRequest: Pick<PullRequest, 'base' | 'labels'>,
+	state: RoutingState
+): RoutingFacts {
 	const releaseTypes = getReleaseTypes(pullRequest);
 	return {
 		releaseLabelCount: releaseTypes.length,
 		releaseType: releaseTypes.length === 1 ? releaseTypes[0] : null,
 		isStableUmbrella: isStableBranch(getTargetBaseBranch(pullRequest)),
+		isMajorReleasePending: isMajorRelease(state.releases.stable),
 	};
 }
 

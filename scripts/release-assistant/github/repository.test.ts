@@ -76,6 +76,39 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getOpenPullRequestsFromBranch', () => {
+		it('should filter the open pull requests by a branch of the owner', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls?state=open&head=example-org%3Achangeset-release%2Fmain&per_page=100':
+					{ status: 200, body: [PULL_REQUEST_DATA] },
+			});
+
+			const pullRequests = await new GitHubRepository(octokit, NAME).getOpenPullRequestsFromBranch(
+				'changeset-release/main'
+			);
+
+			assert.deepEqual(
+				pullRequests.map(({ number }) => number),
+				[7]
+			);
+		});
+
+		it('should encode the branch name in the query', async () => {
+			const { octokit, requests } = createFakeOctokit({});
+
+			await assert.rejects(
+				new GitHubRepository(octokit, NAME).getOpenPullRequestsFromBranch('fix#12&base=main')
+			);
+
+			assert.deepEqual(
+				requests.map(({ route }) => route),
+				[
+					'GET /repos/example-org/docs/pulls?state=open&head=example-org%3Afix%2312%26base%3Dmain&per_page=100',
+				]
+			);
+		});
+	});
+
 	describe('waitForMergeability', () => {
 		const ROUTE = 'GET /repos/example-org/docs/pulls/7';
 
@@ -297,6 +330,54 @@ describe('GitHubRepository', () => {
 				new GitHubRepository(octokit, NAME).getChecks('abc123'),
 				/Could not read every status of abc123 in example-org\/docs: 101 statuses, 100 per page\.$/
 			);
+		});
+	});
+
+	describe('getFileContent', () => {
+		const ROUTE = 'GET /repos/example-org/docs/contents/.changeset/pre.json?ref=next';
+
+		async function getFileContent(response: { status: number; body: unknown }) {
+			const { octokit } = createFakeOctokit({ [ROUTE]: response });
+			return new GitHubRepository(octokit, NAME).getFileContent('.changeset/pre.json', 'next');
+		}
+
+		function fileResponse(content: string, encoding = 'base64') {
+			return { status: 200, body: { type: 'file', encoding, content, sha: 'abc123' } };
+		}
+
+		it('should get the text of a file on a branch', async () => {
+			const content = Buffer.from('{ "mode": "pre" }\n').toString('base64');
+
+			assert.equal(await getFileContent(fileResponse(content)), '{ "mode": "pre" }\n');
+		});
+
+		it('should decode content wrapped in lines, as GitHub sends it', async () => {
+			const text = '{ "mode": "pre", "tag": "beta", "initialVersions": {} }\n';
+			const wrapped = Buffer.from(text).toString('base64').replace(/.{60}/g, '$&\n');
+
+			assert.equal(await getFileContent(fileResponse(wrapped)), text);
+		});
+
+		it('should return null when the file or the ref does not exist', async () => {
+			assert.equal(await getFileContent({ status: 404, body: { message: 'Not Found' } }), null);
+		});
+
+		it('should throw on other errors', async () => {
+			await assert.rejects(
+				getFileContent({ status: 401, body: { message: 'Bad credentials' } }),
+				/Bad credentials/
+			);
+		});
+
+		it('should throw for a directory', async () => {
+			await assert.rejects(
+				getFileContent({ status: 200, body: [{ type: 'file', name: 'pre.json' }] }),
+				/is not a file/
+			);
+		});
+
+		it('should throw for a file too large to be sent in base64', async () => {
+			await assert.rejects(getFileContent(fileResponse('', 'none')), /too large/);
 		});
 	});
 

@@ -22,6 +22,8 @@ const REFUSAL_MESSAGES: Record<RefusalReason, RefusalMessage> = {
 		`It has \`${major}\`, but its base branch is \`${DOCS_STABLE_BRANCH}\`. Change its base to the prerelease branch, or use \`${patch}\` or \`${minor}\` instead.`,
 	[REFUSAL_REASONS.stableReleaseOnPrereleaseBranch]: () =>
 		`It has \`${patch}\` or \`${minor}\`, but its base branch is a prerelease branch. Change its base to \`${DOCS_STABLE_BRANCH}\`, or use \`${major}\` instead.`,
+	[REFUSAL_REASONS.majorReleasePending]: () =>
+		`The next release of Astro is a major that stabilizes a prerelease, so its docs are collected on the prerelease branch. Change this PR's base to that branch, and use \`${major}\` instead.`,
 	[REFUSAL_REASONS.draft]: () => "It's a draft. Mark it as ready for review.",
 	[REFUSAL_REASONS.changesRequested]: () =>
 		'A maintainer requested changes. Address them, then ask for a new review.',

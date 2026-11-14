@@ -22,18 +22,19 @@ export function buildReadyState(pullRequest: PullRequestDetails): FakeRepository
 }
 
 /**
- * Creates the context of a run on a fake repository.
+ * Creates the context of a run on fake repositories.
  *
  * @param {FakeRepository} docs - The docs repository.
+ * @param {FakeRepository} [astro] - The framework repository.
  * @returns {{ context: ReleaseAssistantContext; logs: string[] }} The context, and the lines it logged.
  */
-export function createContext(docs: FakeRepository): {
-	context: ReleaseAssistantContext;
-	logs: string[];
-} {
+export function createContext(
+	docs: FakeRepository,
+	astro = new FakeRepository({})
+): { context: ReleaseAssistantContext; logs: string[] } {
 	const logs: string[] = [];
 	const log = (message: string) => {
 		logs.push(message);
 	};
-	return { context: { docs, log }, logs };
+	return { context: { docs, astro, log }, logs };
 }

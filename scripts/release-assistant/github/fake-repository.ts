@@ -1,6 +1,6 @@
 import type { Check } from './checks.ts';
 import { GitHubError } from './errors.ts';
-import type { PullRequestDetails, Repository } from './repository.ts';
+import type { PullRequest, PullRequestDetails, Repository } from './repository.ts';
 import type { ReviewState } from './reviews.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
@@ -26,6 +26,8 @@ export type FakeRepositoryState = {
 	/** Users with write access. */
 	maintainers?: string[];
 	checksByRef?: Record<string, Check[]>;
+	/** The text of each file, by `<ref>:<path>`. */
+	files?: Record<string, string>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -75,17 +77,25 @@ export class FakeRepository implements Repository {
 		reviewStatesByPrNumber = {},
 		maintainers = [MAINTAINER],
 		checksByRef = {},
+		files = {},
 	}: FakeRepositoryState) {
 		this.#state = {
 			pullRequests,
 			reviewStatesByPrNumber,
 			maintainers,
 			checksByRef,
+			files,
 		};
 	}
 
 	async getOpenPullRequests(): Promise<PullRequestDetails[]> {
 		return this.#state.pullRequests;
+	}
+
+	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequest[]> {
+		return this.#state.pullRequests.filter(
+			({ head }) => head.ref === branch && head.repo?.full_name === this.fullName
+		);
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
@@ -118,6 +128,10 @@ export class FakeRepository implements Repository {
 
 	async getChecks(sha: string): Promise<Check[]> {
 		return this.#state.checksByRef[sha] ?? [];
+	}
+
+	async getFileContent(path: string, ref: string): Promise<string | null> {
+		return this.#state.files[`${ref}:${path}`] ?? null;
 	}
 
 	async removeLabel(prNumber: number, label: string): Promise<void> {

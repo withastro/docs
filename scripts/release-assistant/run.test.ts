@@ -28,7 +28,11 @@ describe('runDryRun', () => {
 				branches: MAIN_BRANCHES,
 			})
 		);
-		assert.deepEqual(logs, ['Accepted PRs: #7.', 'Dry run: #7 would join umbrella/main.']);
+		assert.deepEqual(logs, [
+			'Releases: stable none open, prerelease the same.',
+			'Accepted PRs: #7.',
+			'Dry run: #7 would join umbrella/main.',
+		]);
 	});
 
 	it('should comment on every accepted PR, oldest first, and on no other PR', async () => {
@@ -46,6 +50,33 @@ describe('runDryRun', () => {
 			.filter(({ method }) => method === 'createComment')
 			.map(({ args }) => args[0]);
 		assert.deepEqual(commentedPrNumbers, [7, 9]);
+	});
+
+	it('should comment that a PR for the stable umbrella would wait for the major release', async () => {
+		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
+		const docs = new FakeRepository(buildReadyState(pullRequest));
+		const releasePullRequest = buildPullRequest({
+			number: 100,
+			headBranch: 'changeset-release/main',
+			body: '# Releases\n\n## astro@8.0.0\n\n### Major Changes\n',
+		});
+		const astro = new FakeRepository({ pullRequests: [releasePullRequest] });
+		const { context, logs } = createContext(docs, astro);
+
+		await runDryRun(context);
+
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
+				outcome: OUTCOMES.refuse,
+				reasons: [REFUSAL_REASONS.majorReleasePending],
+				branches: MAIN_BRANCHES,
+			})
+		);
+		assert.equal(
+			logs[0],
+			'Releases: stable withastro/astro#100 (astro@8.0.0, major), prerelease the same.'
+		);
 	});
 
 	it('should comment with the reason a PR with the wrong labels would be refused', async () => {

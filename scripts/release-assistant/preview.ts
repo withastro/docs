@@ -24,7 +24,8 @@ async function preview() {
 	const context = {
 		repo: DOCS_REPOSITORY,
 	};
-	await runReleaseAssistant({ github, context, mode: flags.mode });
+	// Locally, one token serves both clients.
+	await runReleaseAssistant({ github, workflowGithub: github, context, mode: flags.mode });
 }
 
 await preview();
