@@ -1,0 +1,783 @@
+---
+title: Experimental collection storage drivers
+sidebar:
+  label: Collection storage drivers
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `false`<br />
+<Since v="7.5.0" />
+</p>
+
+Enables reading the entries of [build-time content collections](/en/guides/content-collections/) from a storage driver, such as a SQLite database, when a page asks for them, instead of loading all of them in memory.
+
+By default, Astro saves the entries of your build-time collections together with your site. The first time a page asks for an entry, Astro loads every entry of every collection into memory, and keeps them there. For most sites, this is fast and simple. But a site with thousands of entries uses a lot of memory, even to show a single page.
+
+A storage driver is a medium that saves your entries, for example in a database or in a folder of files, and reads them back when Astro asks for them. When a collection uses a storage driver, Astro doesn't load it in advance: it reads entries from the driver each time a page asks for them. `getEntry()` reads one entry. `getCollection()` still reads every entry of the collection, but Astro doesn't keep them in memory after your page is done with them.
+
+:::note
+This flag is not the same as [`experimental.collectionStorage`](/en/reference/experimental-flags/collection-storage/), which changes how Astro saves the collections that don't use a storage driver.
+:::
+
+## Basic usage
+
+To enable the feature, add the `experimental.collectionStorageDrivers` flag to your Astro config:
+
+```js title="astro.config.mjs" ins={5}
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    collectionStorageDrivers: true,
+  },
+});
+```
+
+Then, install a storage driver. Astro provides a driver for SQLite databases, `@astrojs/collection-storage-sqlite`. Install it together with `@libsql/client`, the database client it uses:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```sh
+  npm install @astrojs/collection-storage-sqlite @libsql/client
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```sh
+  pnpm add @astrojs/collection-storage-sqlite @libsql/client
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```sh
+  yarn add @astrojs/collection-storage-sqlite @libsql/client
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Finally, add the [`storage` option](#storage) to the collections you want to keep in the database. Collections without `storage` work as before:
+
+```ts title="src/content.config.ts" ins={4,8}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
+import { sqlite } from '@astrojs/collection-storage-sqlite';
+
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/docs' }),
+  storage: sqlite({ url: 'file:collections.db' }),
+  schema: z.object({ title: z.string() }),
+});
+
+export const collections = { docs };
+```
+
+`getCollection()`, `getEntry()`, `getEntries()` and `render()` keep working the same way for every collection, wherever its entries are saved.
+
+## When to use a storage driver
+
+A storage driver helps most when:
+
+- **You have large collections.** Their entries only take memory while a page uses them, instead of all the time. Pages that read one entry with `getEntry()` benefit the most.
+- **You render pages on demand.** A page [rendered on demand](/en/guides/on-demand-rendering/) reads only the entries it needs, at the moment someone visits it.
+
+For a small site, a storage driver adds a step without much benefit: keeping all your entries in memory is simpler and fast enough.
+
+## Reading entries without their content
+
+Some pages only need the data of your entries, for example their IDs or slugs to build a list of links. They don't need the content of each entry: its text (`body`) and its HTML (`rendered`).
+
+With this flag, the functions that read entries accept a [`content` option](#content-option). When you set it to `false`, Astro returns your entries without `body` and `rendered`, so a storage driver doesn't even need to load them.
+
+This matters most in `getStaticPaths()`, which often reads every entry of a collection only to list your pages. Without their content, these entries take much less memory.
+
+`getCollection()` accepts the option in an object, together with the `name` of the collection and an optional `filter`. In the following example, `getStaticPaths()` only needs the ID of each page, so it reads the collection `docs` without pulling its content. The page then reads the `id` via `Astro.params.id`:
+
+```astro title="src/pages/docs/[id].astro" {5} ins="content: false"
+---
+import { getCollection, getEntry, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const docs = await getCollection({ name: 'docs', content: false });
+  return docs.map((doc) => ({ params: { id: doc.id } }));
+}
+
+const entry = await getEntry('docs', Astro.params.id);
+const { Content } = await render(entry);
+---
+
+<Content />
+```
+
+`getEntry()` and `getEntries()` accept the option as their last argument:
+
+```ts
+const intro = await getEntry('docs', 'intro', { content: false });
+const related = await getEntries(intro.data.related, { content: false });
+```
+
+Passing an entry read with `content: false` to `render()` throws an error.
+
+The `content` option works for every collection, including the collections that don't use a storage driver, but it requires the `experimental.collectionStorageDrivers` flag.
+
+## How Astro saves your entries
+
+Astro saves your entries in copies called **snapshots**.
+
+- **When you build**, Astro saves a new snapshot with all the entries of the collections that use a storage driver. Every build has its own snapshot.
+- **In development**, there is a single snapshot, called `dev`. Astro overwrites it every time you start `astro dev` and every time you change your content.
+- **`astro sync` and `astro check`** read your collections to generate types, but don't save any snapshot.
+
+A site you deploy only reads the snapshot of the build that created it. For example:
+
+1. You build your site and deploy it. The build saved a first snapshot, and your site reads its entries from it.
+2. You edit a doc, and build again. This build saves a second snapshot, with the new version of the doc.
+3. Your site online still reads the first snapshot, and still shows the old version of the doc. It shows the new version once you deploy the second build.
+
+This way, the content a site shows always matches the pages and images it was built with. It also means that two sites using the same database, like your live site and a preview of a change, never overwrite each other's content.
+
+## Deleting old snapshots
+
+Snapshots of earlier builds stay in your storage until something deletes them. Astro never deletes them by itself, because it doesn't know where snapshots are saved, and which ones the app still needs. For example, a deploy preview, or an older deployment you might roll back to, reads its own snapshot.
+
+You can delete them from an [integration](/en/guides/integrations/), in the [`astro:build:done` hook](/en/reference/integrations-reference/#astrobuilddone). With this flag, the hook receives [`collections.storage`](#collections-in-astrobuilddone): a list with an [object](#collectionstoragehandle) for each storage driver your build used, to list and delete snapshots.
+
+The following integration keeps the 5 most recent build snapshots, and deletes the older ones at the end of each build:
+
+```ts title="src/integrations/keep-snapshots.ts"
+import type { AstroIntegration } from 'astro';
+
+export default function keepSnapshots(): AstroIntegration {
+  return {
+    name: 'keep-snapshots',
+    hooks: {
+      'astro:build:done': async ({ collections }) => {
+        for (const storage of collections.storage ?? []) {
+          if (!storage.listSnapshots || !storage.deleteSnapshot) continue;
+          const builds = (await storage.listSnapshots())
+            // Keep the snapshot of development
+            .filter((snapshot) => !snapshot.dev)
+            .sort((a, b) => b.committedAt.getTime() - a.committedAt.getTime());
+          for (const { snapshot } of builds.slice(5)) {
+            await storage.deleteSnapshot(snapshot);
+          }
+        }
+      },
+    },
+  };
+}
+```
+
+Astro protects the snapshot the build just saved. Astro can't protect the snapshots that older deployments still use. Only delete snapshots you know are no longer needed.
+
+## The SQLite driver
+
+`@astrojs/collection-storage-sqlite` keeps your entries in a SQLite database. Pass the database to the [`sqlite()`](#sqlite) function with its `url`:
+
+- **A file on your computer**, with `file:` followed by its path, for example `file:collections.db`. Relative paths start from the folder where you run Astro, so always run Astro from the same folder.
+- **An online database**, such as a [Turso](https://turso.tech) database, with its `libsql://` or `https://` URL.
+
+An online database usually needs a token to connect. Pass the name of the environment variable to the `authTokenEnv` field. The driver reads the variable with [`getSecret()`](/en/reference/modules/astro-env/#getsecret) from `astro:env/server`:
+
+```ts title="src/content.config.ts" "authTokenEnv: 'DOCS_DATABASE_TOKEN'"
+import { sqlite } from '@astrojs/collection-storage-sqlite';
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const docs = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/docs' }),
+  storage: sqlite({
+    url: 'libsql://docs-example.turso.io',
+    authTokenEnv: 'DOCS_DATABASE_TOKEN',
+  }),
+});
+```
+
+`@libsql/client` must be installed in your own project. The SQLite driver only runs in Node.js. Runtimes like Cloudflare Workers need a driver made for them.
+
+## Creating a storage driver
+
+You can write a storage driver to save entries anywhere you like. A driver has two parts: a storage descriptor, and the driver itself.
+
+A [storage descriptor](#collectionstoragedescriptor) is an object that you set as the `storage` option of a collection in `src/content.config.ts`. It has two properties:
+
+- [`entrypoint`](#collectionstoragedescriptorentrypoint): the location of the file that contains the driver. It can be a package name, or a URL such as `new URL('./driver.ts', import.meta.url)`.
+- [`config`](#collectionstoragedescriptorconfig): the options that Astro gives the driver when it creates it.
+
+Drivers usually provide a function that returns the descriptor, like `sqlite()`. The following example describes a driver that saves each snapshot in JSON files, in a folder. You can then use it like any driver, with `storage: jsonFiles({ dir: './json-storage' })`:
+
+```ts title="src/drivers/json-files/index.ts"
+import type { CollectionStorageDescriptor } from 'astro';
+
+export type JsonFilesConfig = { dir: string };
+
+export function jsonFiles(config: JsonFilesConfig): CollectionStorageDescriptor<JsonFilesConfig> {
+  return {
+    entrypoint: new URL('./driver.ts', import.meta.url),
+    config,
+  };
+}
+```
+
+The driver itself lives in the file that `entrypoint` points to. That file's default export is a [function that creates the driver](#collectionstoragedriverfactory) from the options in `config`. The driver it returns has two methods: [`openWriter()`](#collectionstoragedriveropenwriter) saves a snapshot of your entries, and [`openReader()`](#collectionstoragedriveropenreader) reads one.
+
+The following example shows the outline of the JSON files driver:
+
+```ts title="src/drivers/json-files/driver.ts"
+import type { CollectionStorageDriverFactory } from 'astro';
+import type { JsonFilesConfig } from './index.ts';
+
+const createDriver: CollectionStorageDriverFactory<JsonFilesConfig> = (config) => {
+  return {
+    async openWriter({ snapshot, dev }) {
+      // Returns a writer that saves the entries of a snapshot
+    },
+    async openReader({ snapshot }) {
+      // Returns a reader that reads the entries of a snapshot
+    },
+  };
+};
+
+export default createDriver;
+```
+
+### Saving and reading entries
+
+Astro uses your driver in two steps:
+
+1. **Saving**, once per build. Astro calls [`openWriter()`](#collectionstoragedriveropenwriter), [`write()`](#collectionstoragewriterwrite) for each collection, then [`commit()`](#collectionstoragewritercommit).
+2. **Reading**, each time a page needs an entry. Astro calls [`openReader()`](#collectionstoragedriveropenreader) once, then [`get()`](#collectionstoragereaderget) or [`entries()`](#collectionstoragereaderentries).
+
+Follow these rules when you implement a driver:
+
+- Save everything in the storage. Astro loads your driver twice, so the writer and the reader don't share memory.
+- Store entries by snapshot ID. Otherwise, a new build could replace the entries of a previous deployment.
+- Use a storage your server can reach, for pages rendered on demand. The JSON files driver in the following example only works on the machine that built your site.
+- Implement `commit()`, even if it's empty. Use it for what needs the whole snapshot, like recording that it's complete.
+- Let Astro overwrite the `dev` snapshot. In development, Astro keeps one snapshot per collection.
+- Don't cache entries in the reader. Astro keeps the same reader for as long as your site runs, so cached entries add up until they fill the memory a storage driver is meant to save.
+- Return the strings of a [`StoredEntry`](#storedentry) unchanged. When Astro asks for an entry without its content, skip reading `content`.
+
+The following example implements the JSON files driver. It saves each snapshot in its own folder, with one file per collection and a file that marks the snapshot as complete. Each time Astro asks for entries, it reads the file for the collection again, even to find a single entry:
+
+```ts title="src/drivers/json-files/driver.ts"
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import type { CollectionStorageDriverFactory, StoredEntry } from 'astro';
+import type { JsonFilesConfig } from './index.ts';
+
+const createDriver: CollectionStorageDriverFactory<JsonFilesConfig> = (config) => {
+  const { dir } = config!;
+  const collectionFile = (snapshot: string, collection: string) =>
+    join(dir, snapshot, `${collection}.json`);
+  const savedFile = (snapshot: string) => join(dir, snapshot, 'saved.json');
+
+  return {
+    async openWriter({ snapshot, dev }) {
+      const collections: Record<string, StoredEntry[]> = {};
+      return {
+        async write(collection, entries) {
+          collections[collection] = entries;
+        },
+        async commit() {
+          // In development, the `dev` snapshot is written again: start from an empty folder
+          rmSync(join(dir, snapshot), { recursive: true, force: true });
+          mkdirSync(join(dir, snapshot), { recursive: true });
+          for (const [collection, entries] of Object.entries(collections)) {
+            writeFileSync(collectionFile(snapshot, collection), JSON.stringify(entries));
+          }
+          // The snapshot only exists once this file is written
+          writeFileSync(savedFile(snapshot), JSON.stringify({ savedAt: Date.now(), dev }));
+        },
+      };
+    },
+    async openReader({ snapshot }) {
+      if (!existsSync(savedFile(snapshot))) {
+        throw new Error(`The snapshot ${snapshot} doesn't exist.`);
+      }
+      // Reads a collection when Astro asks for it, without keeping it
+      const read = (collection: string): StoredEntry[] => {
+        const file = collectionFile(snapshot, collection);
+        return existsSync(file) ? JSON.parse(readFileSync(file, 'utf-8')) : [];
+      };
+      // Leaves out the content when Astro doesn't need it
+      const select = (entry: StoredEntry, content: boolean): StoredEntry =>
+        content ? entry : { id: entry.id, metadata: entry.metadata };
+      return {
+        async get(collection, id, { content }) {
+          const entry = read(collection).find((entry) => entry.id === id);
+          return entry && select(entry, content);
+        },
+        async entries(collection, { content }) {
+          return read(collection).map((entry) => select(entry, content));
+        },
+      };
+    },
+  };
+};
+
+export default createDriver;
+```
+
+### Working with multiple snapshots
+
+Your driver saves one snapshot per build. If your storage keeps its data between builds, like a database, the snapshots will grow.
+
+Without help, these snapshots add up. To let [integrations delete the old ones](#deleting-old-snapshots), implement two more methods:
+
+- [`listSnapshots()`](#collectionstoragedriverlistsnapshots): return the snapshots you recorded in `commit()`, with the date you recorded them, and whether they are `dev`.
+- [`deleteSnapshot()`](#collectionstoragedriverdeletesnapshot): delete a snapshot and its entries.
+
+If your storage doesn't keep data between builds, like a temporary folder, skip both.
+
+You can also choose the ID of each snapshot with [`createSnapshotId()`](#collectionstoragedrivercreatesnapshotid), for example to match the ID of a deployment. Otherwise, Astro uses a random ID.
+
+### Testing your driver
+
+Astro provides a utility to test your driver. [`createStorageDriverTests()`](#createstoragedrivertests) returns a list of tests. Each test has a `run()` function, which rejects when your driver breaks one of the rules. The following example runs each test with `node:test`, and checks that `run()` doesn't reject:
+
+```ts title="test/driver.test.ts"
+import assert from 'node:assert/strict';
+import { mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { describe, it } from 'node:test';
+import { createStorageDriverTests } from 'astro/content/storage-driver-tests';
+import createDriver from '../src/drivers/json-files/driver.ts';
+
+describe('JSON files driver', () => {
+  // Each test needs a driver with no snapshots: here, a new empty folder
+  const tests = createStorageDriverTests(() =>
+    createDriver({ dir: mkdtempSync(join(tmpdir(), 'json-files-')) }),
+  );
+  for (const test of tests) {
+    it(test.name, async () => {
+      await assert.doesNotReject(test.run());
+    });
+  }
+});
+```
+
+## Limitations
+
+- The SQLite driver only runs in Node.js. Runtimes like Cloudflare Workers need a driver made for them.
+- MDX entries and entries with `deferRender` are only partly read from the driver. Astro turns their content into code when it builds, and loads that code like the rest of your site, whatever their storage.
+- Development can be slower with large collections. Each change in development saves every collection that uses a storage driver again, including the collections that didn't change.
+- Build snapshots add up until something [deletes them](#deleting-old-snapshots).
+
+## Collection storage API reference
+
+### Storing and reading entries
+
+The following options and type are added to the [`astro:content` module](/en/reference/modules/astro-content/).
+
+#### `storage`
+
+<p>
+
+**Type:** [`CollectionStorageDescriptor`](#collectionstoragedescriptor)<br />
+<Since v="7.5.0" />
+</p>
+
+An option of `defineCollection()` for build-time collections. It sets the storage driver that keeps the entries of the collection. Pass it the result of a driver function, such as [`sqlite()`](#sqlite).
+
+Collections that share the same driver and options share one snapshot per build.
+
+#### `content` option
+
+<p>
+
+**Type:** `boolean`<br />
+**Default:** `true`<br />
+<Since v="7.5.0" />
+</p>
+
+An option to return the entries of a collection, or a single entry, without `body` and `rendered`. These entries have the type [`CollectionEntryWithoutContent`](#collectionentrywithoutcontent), and can't be passed to `render()`.
+
+The following functions support it:
+
+- `getCollection()`, in its object form: `getCollection({ name, filter, content })`
+- `getEntry()`, as the last argument
+- `getEntries()`, as the last argument
+
+The following example reads the `docs` collection, and one of its entries, without their content:
+
+```ts
+import { getCollection, getEntry } from 'astro:content';
+
+const docs = await getCollection({ name: 'docs', content: false });
+const intro = await getEntry('docs', 'intro', { content: false });
+```
+
+#### `CollectionEntryWithoutContent`
+
+<p>
+
+**Type:** `Omit<CollectionEntry<C>, 'body' | 'rendered'>`<br />
+<Since v="7.5.0" />
+</p>
+
+Describes a [`CollectionEntry`](/en/reference/modules/astro-content/#collectionentry) read with `content: false`.
+
+### Driver types
+
+The following types can be imported from the `astro` module.
+
+#### `CollectionStorageDescriptor`
+
+<p>
+
+**Type:** `{ entrypoint: string | URL; config?: Record<string, unknown> }`<br />
+<Since v="7.5.0" />
+</p>
+
+Definition of a storage. Driver packages return it from a function, like [`sqlite()`](#sqlite).
+
+##### `CollectionStorageDescriptor.entrypoint`
+
+<p>
+
+**Type:** `string | URL`
+</p>
+
+The file that contains the driver, such as `new URL('./driver.js', import.meta.url)`. Its default export must be a [`CollectionStorageDriverFactory`](#collectionstoragedriverfactory).
+
+##### `CollectionStorageDescriptor.config`
+
+<p>
+
+**Type:** `Record<string, unknown>`
+</p>
+
+The options passed to the driver. Astro copies them into the built site, so they must only contain values that can be written as JSON, and never secrets.
+
+#### `CollectionStorageDriverFactory`
+
+<p>
+
+**Type:** `(config: TConfig | undefined) => CollectionStorageDriver | Promise<CollectionStorageDriver>`<br />
+<Since v="7.5.0" />
+</p>
+
+The default export of a driver's [`entrypoint`](#collectionstoragedescriptorentrypoint). Astro calls it with the [`config`](#collectionstoragedescriptorconfig) of the descriptor, once in each program that saves or reads the entries, and uses the [driver](#collectionstoragedriver) it returns.
+
+#### `CollectionStorageDriver`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.5.0" />
+</p>
+
+An object that saves and reads the entries of collections.
+
+##### `CollectionStorageDriver.openWriter()`
+
+<p>
+
+**Type:** <code>(context: \{ snapshot: string; dev: boolean \}) => Promise&lt;<a href="#collectionstoragewriter">CollectionStorageWriter</a>&gt;</code>
+</p>
+
+Opens a snapshot to save the collections that use this driver. The [writer](#collectionstoragewriter) it returns receives each collection, with its entries, through [`write()`](#collectionstoragewriterwrite). Astro calls it once per build, after loading all entries. In development, Astro calls it again after each change, with `dev` set to `true`.
+
+##### `CollectionStorageDriver.openReader()`
+
+<p>
+
+**Type:** <code>(context: \{ snapshot: string \}) => Promise&lt;<a href="#collectionstoragereader">CollectionStorageReader</a>&gt;</code>
+</p>
+
+Opens a snapshot that was saved by the driver, to read the entries of its collections.
+
+##### `CollectionStorageDriver.createSnapshotId()`
+
+<p>
+
+**Type:** `() => string | Promise<string>`
+</p>
+
+Optional. Returns the name of the snapshot a build is about to save, for example the ID of a deployment. When a driver doesn't implement it, Astro uses a random name. Astro doesn't call it in development, where the snapshot is always one.
+
+##### `CollectionStorageDriver.listSnapshots()`
+
+<p>
+
+**Type:** <code>() => Promise&lt;<a href="#collectionstoragesnapshot">CollectionStorageSnapshot</a>[]&gt;</code>
+</p>
+
+Optional. Returns every snapshot you recorded in `commit()`, including the snapshots of earlier builds, in any order. Implement it if your storage keeps data between builds.
+
+##### `CollectionStorageDriver.deleteSnapshot()`
+
+<p>
+
+**Type:** `(snapshot: string) => Promise<void>`
+</p>
+
+Optional. Deletes a snapshot and its entries from your storage. Implement it together with `listSnapshots()`.
+
+#### `CollectionStorageWriter`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.5.0" />
+</p>
+
+Returned by [`openWriter()`](#collectionstoragedriveropenwriter), to save the collections of a snapshot. Astro calls `write()` once for each collection, then `commit()` once, after the last `write()`.
+
+Save the entries in `write()`. Use `commit()` to handle the snapshot, like recording that the snapshot is complete. For example, the SQLite driver saves each collection in `write()`, and adds the snapshot to a list of complete snapshots in `commit()`.
+
+##### `CollectionStorageWriter.write()`
+
+<p>
+
+**Type:** <code>(collection: string, entries: <a href="#storedentry">StoredEntry</a>[]) => Promise&lt;void&gt;</code>
+</p>
+
+Saves the entries of one collection. Astro calls it at most once per collection, and waits for it to finish before writing the next collection.
+
+##### `CollectionStorageWriter.commit()`
+
+<p>
+
+**Type:** `() => Promise<void>`
+</p>
+
+Finishes saving the snapshot. Use it for the work that needs the whole snapshot, if any. It can be empty.
+
+If your driver implements [`listSnapshots()`](#collectionstoragedriverlistsnapshots), record the snapshot and the current date here. `listSnapshots()` returns these snapshots, with this date as `committedAt`.
+
+#### `CollectionStorageReader`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.5.0" />
+</p>
+
+Returned by [`openReader()`](#collectionstoragedriveropenreader), to read the entries of a snapshot.
+
+##### `CollectionStorageReader.get()`
+
+<p>
+
+**Type:** <code>(collection: string, id: string, options: \{ content: boolean \}) => Promise&lt;<a href="#storedentry">StoredEntry</a> | undefined&gt;</code>
+</p>
+
+Returns one entry of a collection, or `undefined` when the collection has no entry with this ID. When `options.content` is `false`, the entry can be returned without its `content`.
+
+When your storage allows it (e.g. a database), only read this entry so that pages that call `getEntry()` do not load the whole collection.
+
+##### `CollectionStorageReader.entries()`
+
+<p>
+
+**Type:** <code>(collection: string, options: \{ content: boolean \}) => Promise&lt;<a href="#storedentry">StoredEntry</a>[]&gt;</code>
+</p>
+
+Returns every entry of a collection, in any order. When `options.content` is `false`, the entries can be returned without their `content`.
+
+#### `StoredEntry`
+
+<p>
+
+**Type:** `{ id: string; metadata: string; content?: string }`<br />
+<Since v="7.5.0" />
+</p>
+
+An entry as a driver saves it. Astro prepares `metadata` and `content`, and drivers save them and return them unchanged.
+
+##### `StoredEntry.id`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The ID of the entry, unique in its collection.
+
+##### `StoredEntry.metadata`
+
+<p>
+
+**Type:** `string`
+</p>
+
+Everything about the entry except its content, such as its data.
+
+##### `StoredEntry.content`
+
+<p>
+
+**Type:** `string | undefined`
+</p>
+
+The content of the entry with `body` and `rendered` fields.
+
+#### `CollectionStorageSnapshot`
+
+<p>
+
+**Type:** `{ snapshot: string; committedAt: Date; dev: boolean }`<br />
+<Since v="7.5.0" />
+</p>
+
+A saved snapshot, as listed by [`listSnapshots()`](#collectionstoragedriverlistsnapshots).
+
+##### `CollectionStorageSnapshot.snapshot`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The name of the snapshot.
+
+##### `CollectionStorageSnapshot.committedAt`
+
+<p>
+
+**Type:** `Date`
+</p>
+
+When the snapshot was saved.
+
+##### `CollectionStorageSnapshot.dev`
+
+<p>
+
+**Type:** `boolean`
+</p>
+
+Whether this is the `dev` snapshot of development.
+
+### Driver tests
+
+The following function can be imported from `astro/content/storage-driver-tests`.
+
+#### `createStorageDriverTests()`
+
+<p>
+
+**Type:** <code>(createDriver: () => <a href="#collectionstoragedriver">CollectionStorageDriver</a> | Promise&lt;CollectionStorageDriver&gt;) => \{ name: string; run: () => Promise&lt;void&gt; \}[]</code><br />
+<Since v="7.5.0" />
+</p>
+
+Returns the tests every storage driver must pass. Each test has a `name`, and a `run()` function that rejects when the test fails, so any test runner can run them.
+
+`createDriver` is called once per test, and must return a driver with no snapshots.
+
+### Integration hooks
+
+The following hook option and its type are added to the [integration hooks](/en/reference/integrations-reference/#hooks).
+
+#### `collections` in `astro:build:done`
+
+<p>
+
+**Type:** `{ storage?: CollectionStorageHandle[] }`<br />
+<Since v="7.5.0" />
+</p>
+
+With this flag, the [`astro:build:done` hook](/en/reference/integrations-reference/#astrobuilddone) receives a `collections` option. Its `storage` property is a list of [objects](#collectionstoragehandle), one for each storage driver the build used, to [delete old snapshots](#deleting-old-snapshots).
+
+The same `collections` option also gives integrations the metadata and the entries of the collections, with the [experimental collection metadata flag](/en/reference/experimental-flags/collection-metadata/#collections-in-astrobuilddone).
+
+#### `CollectionStorageHandle`
+
+<p>
+
+**Type:** `object`<br />
+<Since v="7.5.0" />
+</p>
+
+The snapshot a build saved with one storage driver, in [`collections.storage`](#collections-in-astrobuilddone).
+
+##### `CollectionStorageHandle.collections`
+
+<p>
+
+**Type:** `string[]`
+</p>
+
+The names of the collections kept with this driver.
+
+##### `CollectionStorageHandle.snapshot`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The name of the snapshot this build saved.
+
+##### `CollectionStorageHandle.readAtRuntime`
+
+<p>
+
+**Type:** `boolean`
+</p>
+
+Whether pages rendered on demand read [`snapshot`](#collectionstoragehandlesnapshot). When it is `false`, nothing reads the snapshot after the build.
+
+##### `CollectionStorageHandle.listSnapshots()`
+
+<p>
+
+**Type:** <code>() => Promise&lt;<a href="#collectionstoragesnapshot">CollectionStorageSnapshot</a>[]&gt; | undefined</code>
+</p>
+
+Returns the saved snapshots of the driver. It is only present when the driver implements [`listSnapshots()`](#collectionstoragedriverlistsnapshots).
+
+##### `CollectionStorageHandle.deleteSnapshot()`
+
+<p>
+
+**Type:** `((snapshot: string) => Promise<void>) | undefined`
+</p>
+
+Deletes a snapshot and its entries. It is only present when the driver implements [`deleteSnapshot()`](#collectionstoragedriverdeletesnapshot).
+
+It throws an error when asked to delete [`snapshot`](#collectionstoragehandlesnapshot) while [`readAtRuntime`](#collectionstoragehandlereadatruntime) is `true`, because the site this build created reads it.
+
+### SQLite driver
+
+The following API can be imported from `@astrojs/collection-storage-sqlite`.
+
+#### `sqlite()`
+
+<p>
+
+**Type:** `(config: { url: string; authTokenEnv?: string }) => CollectionStorageDescriptor`
+</p>
+
+Returns the storage descriptor of the SQLite driver. Pass the result to the [`storage`](#storage) option of a collection.
+
+##### `url`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The database to keep the entries in: `file:` followed by the path of a local file, or the `libsql://` or `https://` URL of an online database. Relative paths start from the folder where Astro runs.
+
+##### `authTokenEnv`
+
+<p>
+
+**Type:** `string`
+</p>
+
+The name of the environment variable that holds the token of an online database. The driver reads it with [`getSecret()`](/en/reference/modules/astro-env/#getsecret) when it starts, so the token is never copied into the built site.
+
+<ReadMore>Share your feedback on this feature in the [enhanced content collections RFC](https://github.com/withastro/roadmap/pull/1459).</ReadMore>
