@@ -420,6 +420,22 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('compare', () => {
+		it('should get the commits of head missing in base', async () => {
+			const commit = { sha: 'sha-7', commit: { message: 'Document feature 7 (#7)', tree: {} } };
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/compare/main...umbrella/main': {
+					status: 200,
+					body: { ahead_by: 1, behind_by: 0, files: [], commits: [commit] },
+				},
+			});
+
+			const comparison = await new GitHubRepository(octokit, NAME).compare('main', 'umbrella/main');
+
+			assert.deepEqual(comparison.commits, [commit]);
+		});
+	});
+
 	describe('createBranch', () => {
 		it('should create the branch at a commit', async () => {
 			const { octokit, requests } = createFakeOctokit({
@@ -532,6 +548,21 @@ describe('GitHubRepository', () => {
 				new GitHubRepository(octokit, NAME).squashMergePullRequest(7, { expectedHeadSha: 'sha-7' }),
 				(error) => error instanceof GitHubError && error.apiMessage === 'Head branch was modified.'
 			);
+		});
+	});
+
+	describe('addLabels', () => {
+		it('should add the labels to the pull request', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'POST /repos/example-org/docs/issues/50/labels': { status: 200, body: [] },
+			});
+
+			await new GitHubRepository(octokit, NAME).addLabels(50, [
+				'merge-on-release',
+				'minor-release',
+			]);
+
+			assert.deepEqual(requests[0].body, { labels: ['merge-on-release', 'minor-release'] });
 		});
 	});
 

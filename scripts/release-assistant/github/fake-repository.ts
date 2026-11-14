@@ -1,6 +1,7 @@
 import type { Check } from './checks.ts';
 import { GitHubError } from './errors.ts';
 import type {
+	Comparison,
 	CreatedPullRequest,
 	NewPullRequest,
 	PullRequest,
@@ -40,6 +41,8 @@ export type FakeRepositoryState = {
 	branchShas?: Record<string, string>;
 	/** The text of each file, by `<ref>:<path>`. */
 	files?: Record<string, string>;
+	/** The comparison of two branches, by `<base>...<head>`. */
+	comparisons?: Record<string, Comparison>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -91,6 +94,7 @@ export class FakeRepository implements Repository {
 		checksByRef = {},
 		branchShas = { main: 'sha-main' },
 		files = {},
+		comparisons = {},
 	}: FakeRepositoryState) {
 		this.#state = {
 			pullRequests,
@@ -99,6 +103,7 @@ export class FakeRepository implements Repository {
 			checksByRef,
 			branchShas,
 			files,
+			comparisons,
 		};
 	}
 
@@ -152,6 +157,10 @@ export class FakeRepository implements Repository {
 		return this.#state.branchShas[branch] ?? null;
 	}
 
+	async compare(base: string, head: string): Promise<Comparison> {
+		return this.#state.comparisons[`${base}...${head}`] ?? { commits: [] };
+	}
+
 	async createBranch(branch: string, sha: string): Promise<void> {
 		this.writes.push({ method: 'createBranch', args: [branch, sha] });
 	}
@@ -167,6 +176,10 @@ export class FakeRepository implements Repository {
 
 	async squashMergePullRequest(prNumber: number, options: SquashMergeOptions): Promise<void> {
 		this.writes.push({ method: 'squashMergePullRequest', args: [prNumber, options] });
+	}
+
+	async addLabels(prNumber: number, labels: readonly string[]): Promise<void> {
+		this.writes.push({ method: 'addLabels', args: [prNumber, labels] });
 	}
 
 	async removeLabel(prNumber: number, label: string): Promise<void> {

@@ -6,18 +6,65 @@ import { renderAcceptedUmbrellaComment, renderDryRunComment } from './join/comme
 import { OUTCOMES, REFUSAL_REASONS, type Decision } from './join/decision.ts';
 import { runDryRun, runLiveMode } from './run.ts';
 
+function buildDocs() {
+	const accepted = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
+	const umbrella = buildPullRequest({ number: 50, headBranch: 'umbrella/main' });
+	return new FakeRepository({
+		...buildReadyState(accepted),
+		pullRequests: [accepted, umbrella],
+		branchShas: { main: 'sha-main', 'umbrella/main': 'sha-umbrella' },
+	});
+}
+
 describe('runLiveMode', () => {
-	it('should log the releases, then join the accepted PRs', async () => {
-		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
-		const docs = new FakeRepository(buildReadyState(pullRequest));
+	it('should join the accepted PRs, then refresh the open umbrellas', async () => {
+		const docs = buildDocs();
 		const { context, logs } = createContext(docs);
 
 		await runLiveMode(context);
 
-		assert.ok(
-			docs.writes.some(({ method, args }) => method === 'squashMergePullRequest' && args[0] === 7)
-		);
+		const methods = docs.writes.map(({ method }) => method);
+		assert.ok(methods.indexOf('squashMergePullRequest') < methods.indexOf('addLabels'));
+		assert.ok(docs.writes.some(({ method, args }) => method === 'addLabels' && args[0] === 50));
 		assert.equal(logs[0], 'Releases: stable none open, prerelease the same.');
+	});
+
+	it('should refresh the open umbrellas when a join fails, then fail', async (t) => {
+		const docs = buildDocs();
+		t.mock.method(docs, 'squashMergePullRequest', async () => {
+			throw new Error('Network error');
+		});
+		const { context } = createContext(docs);
+
+		await assert.rejects(runLiveMode(context), AggregateError);
+
+		assert.ok(docs.writes.some(({ method, args }) => method === 'addLabels' && args[0] === 50));
+	});
+
+	it('should fail with both errors when the joins and the refresh fail', async (t) => {
+		const docs = buildDocs();
+		const joinError = new Error('Network error while joining');
+		const refreshError = new Error('Network error while refreshing');
+		t.mock.method(docs, 'squashMergePullRequest', async () => {
+			throw joinError;
+		});
+		t.mock.method(docs, 'compare', async () => {
+			throw refreshError;
+		});
+		const { context } = createContext(docs);
+
+		await assert.rejects(runLiveMode(context), ({ errors }: AggregateError) => {
+			assert.deepEqual(
+				errors.map(({ message }: Error) => message),
+				[
+					'#7 failed: Network error while joining',
+					'Umbrella #50 failed: Network error while refreshing',
+				]
+			);
+			assert.equal(errors[0].cause, joinError);
+			assert.equal(errors[1].cause, refreshError);
+			return true;
+		});
 	});
 });
 

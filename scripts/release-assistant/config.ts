@@ -7,6 +7,7 @@ export const MODES = {
 export type Mode = (typeof MODES)[keyof typeof MODES];
 
 export const ACCEPTED_LABEL = 'accepted';
+export const UMBRELLA_LABEL = 'merge-on-release';
 
 /** The name of `.github/workflows/release-assistant-trigger.yml`. */
 export const TRIGGER_WORKFLOW_NAME = 'Release assistant trigger';

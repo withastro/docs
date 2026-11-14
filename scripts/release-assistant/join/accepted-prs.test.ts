@@ -258,6 +258,7 @@ describe('joinAcceptedPullRequests', () => {
 			method: 'createComment',
 			args: [7, renderUmbrellaFailureComment(MAIN_BRANCHES, reason)],
 		});
+		assert.ok(!docs.writes.some(({ method }) => method === 'addLabels'));
 	});
 
 	it('should take the accepted PRs from the state of the run, without listing them again', async (t) => {

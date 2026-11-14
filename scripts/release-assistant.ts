@@ -1,5 +1,6 @@
-// Moves the docs PRs with the accepted label into their umbrella PR. Run by
-// `.github/workflows/release-assistant.yml`, through `actions/github-script`.
+// Moves the docs PRs with the accepted label into their umbrella PR, and
+// refreshes the umbrella PRs. Run by `.github/workflows/release-assistant.yml`,
+// through `actions/github-script`.
 
 import type { context as actionsContext } from '@actions/github';
 import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-assistant/config.ts';

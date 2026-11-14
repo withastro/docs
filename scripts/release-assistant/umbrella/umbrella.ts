@@ -1,12 +1,20 @@
 import { DOCS_STABLE_BRANCH, UMBRELLA_BRANCH_PREFIX } from '../config.ts';
 import type { FrameworkRelease, FrameworkReleases } from '../framework-release.ts';
 import type { PullRequest } from '../github/repository.ts';
+import { readMarker } from './markers.ts';
 
 /** Records the release PR in the umbrella description. */
 export const RELEASE_PR_MARKER_NAME = 'release-assistant:release-pr';
 
 /** The head and base branches of an umbrella PR. */
 export type UmbrellaBranches = { head: string; base: string };
+
+/** An open umbrella PR, with its branches and the release PR it records. */
+export type Umbrella = Pick<PullRequest, 'number' | 'title' | 'body' | 'labels'> & {
+	branches: UmbrellaBranches;
+	/** The framework release PR recorded in the description, or `null` when there is none yet. */
+	releasePrNumber: number | null;
+};
 
 /**
  * Gets the branches of the umbrella of a base branch.
@@ -49,6 +57,36 @@ export function isUmbrellaPullRequest(
 ): boolean {
 	const { ref, repo } = pullRequest.head;
 	return repo?.full_name === repositoryFullName && getUmbrellaBaseBranch(ref) !== null;
+}
+
+/**
+ * Finds the umbrella PRs among pull requests, with their branches and recorded release PR.
+ *
+ * @param {PullRequest[]} pullRequests - Any pull requests.
+ * @param {string} repositoryFullName - The repository holding the umbrella branches, as `owner/repo`.
+ * @returns {Umbrella[]} The umbrellas, in the order of the pull requests.
+ */
+export function findUmbrellas(pullRequests: PullRequest[], repositoryFullName: string): Umbrella[] {
+	return pullRequests
+		.filter((pullRequest) => isUmbrellaPullRequest(pullRequest, repositoryFullName))
+		.map(({ number, title, body, labels, base }) => ({
+			number,
+			title,
+			body,
+			labels,
+			branches: getUmbrellaBranches(base.ref),
+			releasePrNumber: readReleasePrNumber(body),
+		}));
+}
+
+/**
+ * Reads the release PR recorded in an umbrella description. A value that is
+ * not a PR number (e.g. after a marker hand edit) counts as no release PR.
+ */
+function readReleasePrNumber(body: string | null) {
+	const value = readMarker(RELEASE_PR_MARKER_NAME, body);
+	const prNumber = Number(value);
+	return value !== null && Number.isSafeInteger(prNumber) && prNumber > 0 ? prNumber : null;
 }
 
 /**

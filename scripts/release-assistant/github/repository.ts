@@ -52,6 +52,12 @@ export type PullRequestDetails = PullRequest & {
 	merged: boolean;
 };
 
+/** The commits of a branch that its base lacks. */
+export type Comparison = {
+	/** At most 250 commits, oldest first. */
+	commits: { sha: string; commit: { message: string } }[];
+};
+
 /** The number of a pull request the release assistant opened. */
 export type CreatedPullRequest = Pick<PullRequest, 'number'>;
 
@@ -304,6 +310,24 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Compares two branches of the repository.
+	 *
+	 * @param {string} base - The branch to compare with.
+	 * @param {string} head - The branch compared to `base`.
+	 * @returns {Promise<Comparison>} The commits of `head` missing in `base`.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async compare(base: string, head: string): Promise<Comparison> {
+		const { data } = await send(() =>
+			this.#octokit.rest.repos.compareCommitsWithBasehead({
+				...this.#name,
+				basehead: `${base}...${head}`,
+			})
+		);
+		return data;
+	}
+
+	/**
 	 * Creates a branch.
 	 *
 	 * @param {string} branch - The name of the branch, without `refs/heads/`.
@@ -364,6 +388,23 @@ export class GitHubRepository {
 				merge_method: SQUASH_MERGE_METHOD,
 				sha: expectedHeadSha,
 				commit_title: commitTitle,
+			})
+		);
+	}
+
+	/**
+	 * Adds labels to a pull request, keeping the labels it already has.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {readonly string[]} labels - The names of the labels.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async addLabels(prNumber: number, labels: readonly string[]): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.issues.addLabels({
+				...this.#name,
+				issue_number: prNumber,
+				labels: [...labels],
 			})
 		);
 	}
