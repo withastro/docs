@@ -7,6 +7,11 @@ export type Mode = (typeof MODES)[keyof typeof MODES];
 
 export const ACCEPTED_LABEL = 'accepted';
 
+/** The name of `.github/workflows/release-assistant-trigger.yml`. */
+export const TRIGGER_WORKFLOW_NAME = 'Release assistant trigger';
+/** The check `.github/workflows/release-assistant-trigger.yml` adds to labeled PRs. */
+export const TRIGGER_CHECK_NAME = 'Trigger the release assistant';
+
 export const RELEASE_TYPES = {
 	patch: 'patch',
 	minor: 'minor',

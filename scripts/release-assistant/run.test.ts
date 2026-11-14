@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
-import { createContext, MAIN_BRANCHES } from './fixtures.ts';
+import { buildReadyState, createContext, MAIN_BRANCHES } from './fixtures.ts';
 import { buildPullRequest, FakeRepository } from './github/fake-repository.ts';
 import { renderAcceptedUmbrellaComment, renderDryRunComment } from './join/comments.ts';
 import { OUTCOMES, REFUSAL_REASONS, type Decision } from './join/decision.ts';
@@ -14,9 +14,9 @@ function buildDryRunWrites(prNumber: number, decision: Decision) {
 }
 
 describe('runDryRun', () => {
-	it('should comment with the umbrella a PR would join', async () => {
+	it('should comment with the umbrella a ready PR would join', async () => {
 		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
-		const docs = new FakeRepository({ pullRequests: [pullRequest] });
+		const docs = new FakeRepository(buildReadyState(pullRequest));
 		const { context, logs } = createContext(docs);
 
 		await runDryRun(context);
@@ -37,7 +37,7 @@ describe('runDryRun', () => {
 			buildPullRequest({ number: 8, labels: ['minor-release'] }),
 			buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] }),
 		];
-		const docs = new FakeRepository({ pullRequests });
+		const docs = new FakeRepository({ ...buildReadyState(pullRequests[0]), pullRequests });
 		const { context } = createContext(docs);
 
 		await runDryRun(context);
@@ -50,7 +50,7 @@ describe('runDryRun', () => {
 
 	it('should comment with the reason a PR with the wrong labels would be refused', async () => {
 		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted'] });
-		const docs = new FakeRepository({ pullRequests: [pullRequest] });
+		const docs = new FakeRepository(buildReadyState(pullRequest));
 		const { context } = createContext(docs);
 
 		await runDryRun(context);
@@ -62,6 +62,31 @@ describe('runDryRun', () => {
 				reasons: [REFUSAL_REASONS.missingReleaseLabel],
 				branches: MAIN_BRANCHES,
 			})
+		);
+	});
+
+	it('should comment with the reasons a PR not ready to merge would be refused', async () => {
+		const pullRequest = buildPullRequest({
+			number: 7,
+			labels: ['accepted', 'minor-release'],
+			isDraft: true,
+		});
+		const docs = new FakeRepository({ pullRequests: [pullRequest] });
+		const { context, logs } = createContext(docs);
+
+		await runDryRun(context);
+
+		assert.deepEqual(
+			docs.writes,
+			buildDryRunWrites(7, {
+				outcome: OUTCOMES.refuse,
+				reasons: [REFUSAL_REASONS.draft, REFUSAL_REASONS.missingApproval],
+				branches: MAIN_BRANCHES,
+			})
+		);
+		assert.equal(
+			logs.at(-1),
+			`Dry run: #7 would be refused (${REFUSAL_REASONS.draft}, ${REFUSAL_REASONS.missingApproval}).`
 		);
 	});
 

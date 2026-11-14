@@ -52,6 +52,22 @@ export async function send<T>(request: () => Promise<T>): Promise<T> {
 }
 
 /**
+ * Sends a request for something that may not exist.
+ *
+ * @param {() => Promise<T>} request - The Octokit call.
+ * @returns {Promise<T | null>} Octokit's response, or `null` when GitHub answers "Not Found".
+ * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+ */
+export async function orNullWhenNotFound<T>(request: () => Promise<T>): Promise<T | null> {
+	try {
+		return await send(request);
+	} catch (error) {
+		if (error instanceof GitHubError && error.isNotFound) return null;
+		throw error;
+	}
+}
+
+/**
  * Reads Octokit's `RequestError` by its fields: the class `actions/github-script`
  * bundles is not the one a local run imports.
  */

@@ -20,7 +20,7 @@ describe('renderRefusalComment', () => {
 
 	it('should list several reasons', () => {
 		const comment = renderRefusalComment({
-			reasons: [REFUSAL_REASONS.missingReleaseLabel, REFUSAL_REASONS.severalReleaseLabels],
+			reasons: [REFUSAL_REASONS.missingApproval, REFUSAL_REASONS.failingChecks],
 			branches: MAIN_BRANCHES,
 		});
 

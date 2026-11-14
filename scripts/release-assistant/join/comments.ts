@@ -22,6 +22,17 @@ const REFUSAL_MESSAGES: Record<RefusalReason, RefusalMessage> = {
 		`It has \`${major}\`, but its base branch is \`${DOCS_STABLE_BRANCH}\`. Change its base to the prerelease branch, or use \`${patch}\` or \`${minor}\` instead.`,
 	[REFUSAL_REASONS.stableReleaseOnPrereleaseBranch]: () =>
 		`It has \`${patch}\` or \`${minor}\`, but its base branch is a prerelease branch. Change its base to \`${DOCS_STABLE_BRANCH}\`, or use \`${major}\` instead.`,
+	[REFUSAL_REASONS.draft]: () => "It's a draft. Mark it as ready for review.",
+	[REFUSAL_REASONS.changesRequested]: () =>
+		'A maintainer requested changes. Address them, then ask for a new review.',
+	[REFUSAL_REASONS.missingApproval]: () => 'It needs an approval from a maintainer.',
+	[REFUSAL_REASONS.mergeConflict]: () => 'It has conflicts with its base branch. Resolve them.',
+	[REFUSAL_REASONS.unknownMergeability]: () =>
+		'GitHub is still checking it for conflicts. Try again in a few minutes.',
+	[REFUSAL_REASONS.failingChecks]: () => 'Some checks are failing. Fix them.',
+	[REFUSAL_REASONS.pendingChecks]: () => 'Some checks are still running. Wait for them to finish.',
+	[REFUSAL_REASONS.checksAwaitingApproval]: () =>
+		"Some workflows are waiting for a maintainer's approval. Approve them, then wait for them to finish.",
 };
 
 /**

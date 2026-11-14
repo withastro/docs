@@ -1,8 +1,25 @@
-import { FakeRepository } from './github/fake-repository.ts';
+import { CHECK_STATES } from './github/checks.ts';
+import { FakeRepository, MAINTAINER, type FakeRepositoryState } from './github/fake-repository.ts';
+import type { PullRequestDetails } from './github/repository.ts';
+import { REVIEW_STATES } from './github/reviews.ts';
 import type { ReleaseAssistantContext } from './run.ts';
 
 /** The branches of the umbrella of the stable docs branch. */
 export const MAIN_BRANCHES = { head: 'umbrella/main', base: 'main' };
+
+/**
+ * Builds the state of a docs PR that can join its umbrella.
+ *
+ * @param {PullRequestDetails} pullRequest - The pull request.
+ * @returns {FakeRepositoryState} The state of the repository holding it.
+ */
+export function buildReadyState(pullRequest: PullRequestDetails): FakeRepositoryState {
+	return {
+		pullRequests: [pullRequest],
+		reviewStatesByPrNumber: { [pullRequest.number]: { [MAINTAINER]: REVIEW_STATES.approved } },
+		checksByRef: { [pullRequest.head.sha]: [{ name: 'build', state: CHECK_STATES.success }] },
+	};
+}
 
 /**
  * Creates the context of a run on a fake repository.

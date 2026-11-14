@@ -11,6 +11,7 @@ import { describeError } from '../utils/errors.ts';
 import { formatPrNumbers } from '../utils/pr-numbers.ts';
 import { renderAcceptedUmbrellaComment, renderDryRunComment } from './comments.ts';
 import { decideJoin, OUTCOMES, type Decision } from './decision.ts';
+import { readReadiness } from './readiness.ts';
 
 /** What an accepted PR is when read again before acting on it. */
 const ACCEPTED_PR_KINDS = {
@@ -101,7 +102,12 @@ async function readAcceptedPullRequest(
 		return { kind: ACCEPTED_PR_KINDS.umbrella };
 	}
 
-	return { kind: ACCEPTED_PR_KINDS.docs, pullRequest, decision: decideJoin(pullRequest) };
+	const readiness = await readReadiness(run, pullRequest);
+	return {
+		kind: ACCEPTED_PR_KINDS.docs,
+		pullRequest,
+		decision: decideJoin(pullRequest, { readiness }),
+	};
 }
 
 function logSkipped({ log }: ReleaseAssistantContext, prNumber: number) {

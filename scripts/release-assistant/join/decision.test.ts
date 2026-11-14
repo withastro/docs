@@ -4,11 +4,31 @@ import { MAIN_BRANCHES } from '../fixtures.ts';
 import { buildPullRequest } from '../github/fake-repository.ts';
 import { getUmbrellaBranches } from '../umbrella/umbrella.ts';
 import { decideJoin, OUTCOMES, REFUSAL_REASONS } from './decision.ts';
+import type { Readiness } from './readiness.ts';
 
 const CLOUDFLARE_NEXT_BRANCHES = getUmbrellaBranches('cloudflare-next');
 
-function route(baseBranch: string, labels: string[]) {
-	return decideJoin(buildPullRequest({ baseBranch, labels }));
+const READY: Readiness = {
+	isDraft: false,
+	isApprovedByMaintainer: true,
+	hasChangesRequestedByMaintainer: false,
+	isMergeable: true,
+	hasFailingChecks: false,
+	hasPendingChecks: false,
+	hasChecksAwaitingApproval: false,
+};
+
+type RoutingStateFixture = {
+	readiness?: Readiness;
+};
+
+/** Decides for a PR ready to merge, unless the fixture says otherwise. */
+function route(
+	baseBranch: string,
+	labels: string[],
+	{ readiness = READY }: RoutingStateFixture = {}
+) {
+	return decideJoin(buildPullRequest({ baseBranch, labels }), { readiness });
 }
 
 describe('decideJoin', () => {
@@ -86,6 +106,56 @@ describe('decideJoin', () => {
 			outcome: OUTCOMES.refuse,
 			branches: CLOUDFLARE_NEXT_BRANCHES,
 			reasons: [REFUSAL_REASONS.severalReleaseLabels],
+		});
+	});
+
+	it('should give the routing reasons, then the readiness reasons', () => {
+		const decision = route('main', [], { readiness: { ...READY, isDraft: true } });
+
+		assert.deepEqual(decision, {
+			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
+			reasons: [REFUSAL_REASONS.missingReleaseLabel, REFUSAL_REASONS.draft],
+		});
+	});
+
+	it('should give every readiness reason of a PR', () => {
+		const decision = route('main', ['minor-release'], {
+			readiness: {
+				isDraft: true,
+				isApprovedByMaintainer: false,
+				hasChangesRequestedByMaintainer: true,
+				isMergeable: false,
+				hasFailingChecks: true,
+				hasPendingChecks: true,
+				hasChecksAwaitingApproval: true,
+			},
+		});
+
+		assert.deepEqual(decision, {
+			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
+			reasons: [
+				REFUSAL_REASONS.draft,
+				REFUSAL_REASONS.changesRequested,
+				REFUSAL_REASONS.missingApproval,
+				REFUSAL_REASONS.mergeConflict,
+				REFUSAL_REASONS.failingChecks,
+				REFUSAL_REASONS.pendingChecks,
+				REFUSAL_REASONS.checksAwaitingApproval,
+			],
+		});
+	});
+
+	it('should refuse a PR whose mergeability is still unknown', () => {
+		const decision = route('main', ['minor-release'], {
+			readiness: { ...READY, isMergeable: null },
+		});
+
+		assert.deepEqual(decision, {
+			outcome: OUTCOMES.refuse,
+			branches: MAIN_BRANCHES,
+			reasons: [REFUSAL_REASONS.unknownMergeability],
 		});
 	});
 });
