@@ -4,7 +4,22 @@ import { buildReadyState, createContext, MAIN_BRANCHES } from './fixtures.ts';
 import { buildPullRequest, FakeRepository } from './github/fake-repository.ts';
 import { renderAcceptedUmbrellaComment, renderDryRunComment } from './join/comments.ts';
 import { OUTCOMES, REFUSAL_REASONS, type Decision } from './join/decision.ts';
-import { runDryRun } from './run.ts';
+import { runDryRun, runLiveMode } from './run.ts';
+
+describe('runLiveMode', () => {
+	it('should log the releases, then join the accepted PRs', async () => {
+		const pullRequest = buildPullRequest({ number: 7, labels: ['accepted', 'minor-release'] });
+		const docs = new FakeRepository(buildReadyState(pullRequest));
+		const { context, logs } = createContext(docs);
+
+		await runLiveMode(context);
+
+		assert.ok(
+			docs.writes.some(({ method, args }) => method === 'squashMergePullRequest' && args[0] === 7)
+		);
+		assert.equal(logs[0], 'Releases: stable none open, prerelease the same.');
+	});
+});
 
 function buildDryRunWrites(prNumber: number, decision: Decision) {
 	return [

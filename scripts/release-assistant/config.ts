@@ -1,6 +1,7 @@
 export const MODES = {
 	/** Removes the accepted label from each PR and comments with what a live run would do. */
 	dryRun: 'dry-run',
+	live: 'live',
 } as const;
 
 export type Mode = (typeof MODES)[keyof typeof MODES];

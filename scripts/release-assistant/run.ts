@@ -4,7 +4,7 @@ import {
 	type FrameworkReleases,
 } from './framework-release.ts';
 import type { PullRequest, Repository } from './github/repository.ts';
-import { previewAcceptedPullRequests } from './join/accepted-prs.ts';
+import { joinAcceptedPullRequests, previewAcceptedPullRequests } from './join/accepted-prs.ts';
 
 /** The repositories a run works with, and where it reports. */
 export type ReleaseAssistantContext = {
@@ -29,6 +29,20 @@ export type RunState = ReleaseState & {
 
 /** The context of a run, with its state when it started. */
 export type ReleaseAssistantRun = ReleaseAssistantContext & { state: RunState };
+
+/**
+ * Moves the docs PRs with the accepted label into their umbrella.
+ *
+ * @param {ReleaseAssistantContext} context - The repositories, and where to log.
+ * @throws {GitHubError} When reading the state fails.
+ * @throws {Error} When the framework's release PR or pre mode file can't be read.
+ * @throws {AggregateError} When some PRs could not join.
+ */
+export async function runLiveMode(context: ReleaseAssistantContext): Promise<void> {
+	const run = await startRun(context);
+	run.log(describeReleaseState(run.state));
+	await joinAcceptedPullRequests(run);
+}
 
 /**
  * Previews the join of every docs PR with the accepted label.

@@ -1,5 +1,9 @@
 import { DOCS_STABLE_BRANCH, UMBRELLA_BRANCH_PREFIX } from '../config.ts';
+import type { FrameworkRelease, FrameworkReleases } from '../framework-release.ts';
 import type { PullRequest } from '../github/repository.ts';
+
+/** Records the release PR in the umbrella description. */
+export const RELEASE_PR_MARKER_NAME = 'release-assistant:release-pr';
 
 /** The head and base branches of an umbrella PR. */
 export type UmbrellaBranches = { head: string; base: string };
@@ -45,4 +49,19 @@ export function isUmbrellaPullRequest(
 ): boolean {
 	const { ref, repo } = pullRequest.head;
 	return repo?.full_name === repositoryFullName && getUmbrellaBaseBranch(ref) !== null;
+}
+
+/**
+ * Chooses the release an umbrella PR ships with: the stable release for the
+ * stable branch, the prerelease for any other branch.
+ *
+ * @param {FrameworkReleases} releases - The open releases of the framework.
+ * @param {string} baseBranch - The branch the umbrella PR merges into.
+ * @returns {FrameworkRelease | null} The release, or `null` when none is open.
+ */
+export function getUmbrellaRelease(
+	releases: FrameworkReleases,
+	baseBranch: string
+): FrameworkRelease | null {
+	return isStableBranch(baseBranch) ? releases.stable : releases.prerelease;
 }

@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
 import { MAIN_BRANCHES } from '../fixtures.ts';
-import { renderDryRunComment, renderRefusalComment } from './comments.ts';
+import {
+	renderDryRunComment,
+	renderJoinedComment,
+	renderMergeFailureComment,
+	renderRefusalComment,
+	renderUmbrellaFailureComment,
+} from './comments.ts';
 import { OUTCOMES, REFUSAL_REASONS } from './decision.ts';
 
 describe('renderRefusalComment', () => {
@@ -57,5 +63,34 @@ describe('renderDryRunComment', () => {
 
 		assert.match(comment, /^\*\*Dry run\*\*/);
 		assert.ok(comment.includes(quotedRefusalComment));
+	});
+});
+
+describe('renderJoinedComment', () => {
+	it('should name the umbrella branch and link the umbrella PR', () => {
+		const comment = renderJoinedComment(MAIN_BRANCHES, 1000);
+
+		assert.match(comment, /`umbrella\/main`/);
+		assert.match(comment, /#1000/);
+	});
+});
+
+describe('renderMergeFailureComment', () => {
+	it("should give GitHub's reason, then how to retry", () => {
+		const comment = renderMergeFailureComment(MAIN_BRANCHES, 'Merge conflict');
+
+		assert.match(comment, /`umbrella\/main`/);
+		assert.match(comment, /Merge conflict/);
+		assert.match(comment, /a maintainer can add `accepted` again\.$/);
+	});
+});
+
+describe('renderUmbrellaFailureComment', () => {
+	it("should say the PR is merged, give GitHub's reason, and ask for the umbrella by hand", () => {
+		const comment = renderUmbrellaFailureComment(MAIN_BRANCHES, 'Validation Failed');
+
+		assert.match(comment, /`umbrella\/main`/);
+		assert.match(comment, /Validation Failed/);
+		assert.match(comment, /into `main`/);
 	});
 });
