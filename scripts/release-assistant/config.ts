@@ -24,3 +24,5 @@ export const RELEASE_LABELS = {
 export const DOCS_STABLE_BRANCH = 'main';
 
 export const UMBRELLA_BRANCH_PREFIX = 'umbrella/';
+
+export const DOCS_REPOSITORY = { owner: 'withastro', repo: 'docs' };
