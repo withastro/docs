@@ -1,0 +1,100 @@
+---
+title: Despliega tu sitio de Astro en Sevalla
+description: Cómo desplegar tu sitio de Astro en la web usando Sevalla.
+type: deploy
+logo: sevalla
+i18nReady: true
+sidebar:
+  label: Sevalla
+supports: ['ssr', 'static']
+---
+import { Steps } from '@astrojs/starlight/components';
+
+[Sevalla](https://sevalla.com/) es una plataforma todo en uno de alojamiento y gestión para sitios estáticos, aplicaciones y bases de datos.
+
+Esta guía detalla cómo desplegar tu proyecto de Astro en Sevalla.
+
+## Prerrequisitos
+
+- Una [cuenta de **Sevalla**](https://sevalla.com/signup/).
+- Tu proyecto de Astro subido a un [repositorio de Git público o privado compatible](https://docs.sevalla.com/applications/git/overview) (GitHub, GitLab o Bitbucket).
+
+## Despliegue de sitios estáticos
+
+El alojamiento de sitios estáticos de Sevalla despliega tu sitio directamente en una red global en el borde (edge network).
+
+<Steps>
+1. Crea un nuevo [**Static Site**](https://docs.sevalla.com/static-sites/get-started/add-a-static-site) en el panel de control de Sevalla.
+
+2. Conecta tu repositorio de Git (GitHub, GitLab o Bitbucket).
+
+3. Selecciona tu repositorio y rama (por ejemplo, `main`).
+
+4. Configura los ajustes de compilación:
+
+   - **Build command:** `npm run build`
+   - **Publish directory:** `dist`
+
+5. Haz clic en **Create Static Site** para desplegar.
+</Steps>
+
+:::note
+Astro usa `output: 'static'` por defecto, por lo que no se requiere configuración adicional para el despliegue estático.
+:::
+
+## Despliegue de SSR
+
+El alojamiento de aplicaciones de Sevalla admite aplicaciones full-stack. Puedes desplegar proyectos de Astro utilizando [renderizado bajo demanda](/es/guides/on-demand-rendering/) (renderizado en el servidor) a través del adaptador de Node.js.
+
+<Steps>
+1. Agrega el [adaptador `@astrojs/node`](/es/guides/integrations-guide/node/) a tu proyecto de Astro.
+
+   ```bash
+   npx astro add node
+   ```
+
+2. Configura el adaptador en `astro.config.mjs`. Establece `mode: 'standalone'` y asegúrate de que `host: true` esté configurado para que el servidor escuche en todas las direcciones (requerido para entornos en contenedores).
+
+   ```js title="astro.config.mjs" {5,6-8,10}
+   import { defineConfig } from 'astro/config';
+   import node from '@astrojs/node';
+
+   export default defineConfig({
+     output: 'server',
+     adapter: node({
+       mode: 'standalone'
+     }),
+     server: {
+       host: true
+     }
+   });
+   ```
+
+3. Asegúrate de que tu `package.json` tenga un script `start` que ejecute el servidor compilado:
+
+   ```json title="package.json" {2}
+   "scripts": {
+     "start": "node ./dist/server/entry.mjs"
+   }
+   ```
+
+4. Crea una nueva [**Application**](https://docs.sevalla.com/applications/get-started/add-an-application) en el panel de control de Sevalla.
+
+5. Conecta tu repositorio de Git.
+
+6. Configura los ajustes de compilación:
+
+   - **Build Method:** Sevalla detecta automáticamente los proyectos de Node.js (a través de Nixpacks).
+   - **Build command:** `npm run build`
+   - **Start command:** `npm run start`
+
+7. Haz clic en **Create Application** para desplegar.
+</Steps>
+
+## Solución de problemas
+
+### Fallos de compilación
+Revisa los [**Build Logs**](https://docs.sevalla.com/applications/runtime-logs) en el panel de control de Sevalla para ver los mensajes de error. Asegúrate de que todas las dependencias estén en `dependencies` (no en `devDependencies` si se necesitan en el runtime).
+
+### Versión de Node
+Asegúrate de que la versión de Node.js seleccionada en Sevalla coincida con tu versión de desarrollo local (comprueba con `node -v`).
