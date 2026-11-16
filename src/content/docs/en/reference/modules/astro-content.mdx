@@ -152,13 +152,13 @@ When you define a schema, it will take precedence over the [live loader’s type
 
 <p>
 
-**Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>, id: string | number | Reference) => Reference</code><br />
+**Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>) => ZodEffects\<ZodString, \{ collection: CollectionKey, id: string \}\></code><br />
 <Since v="2.5.0" />
 </p>
 
-A function used in the content config to create a reference to an entry in another collection. Pass the collection name and an entry identifier. An identifier can be an entry ID or a reference object returned by an earlier call to `reference()`.
+A function used in the content config to define a relationship, or "reference", from one collection to another. This accepts a collection name and transforms the reference into an object containing the collection name and the reference id.
 
-Since Astro 7.5, calling `reference()` with only a collection name returns a Zod schema and only works with Zod. To use references with other validators, pass the entry identifier as a second argument from the validator's transform method.
+This helper is deprecated in favor of [`reference()` from `astro/content/fields`](#imports-from-astrocontentfields).
 
 This example defines references from a blog author to the `authors` collection and an array of related posts to the same `blog` collection:
 
@@ -171,9 +171,9 @@ const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: z.object({
     // Reference a single author from the `authors` collection by `id`
-    author: z.string().transform((id) => reference('authors', id)),
+    author: reference('authors'),
     // Reference an array of related posts from the `blog` collection by `slug`
-    relatedPosts: z.array(z.string().transform((id) => reference('blog', id))),
+    relatedPosts: z.array(reference('blog')),
   })
 });
 
@@ -509,17 +509,29 @@ export async function queryCollection(collection: CollectionKey) {
 }
 ```
 
-## Imports from `astro/content/image`
+## Imports from `astro/content/fields`
 
-The following helpers are imported from the `image` directory in the content module:
+Import content field helpers from `astro/content/fields`:
 
 ```js
 import {
-  getContentImageContext,
   image,
-  runWithContentImageContext,
+  reference,
   type ContentImageField,
-} from 'astro/content/image';
+} from 'astro/content/fields';
+```
+
+### `reference()`
+
+**Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>, lookup: string | number | Reference) => Reference</code>
+
+Creates a reference to an entry in a collection. Unlike `reference()` from `astro:content`, this function takes both the collection name and entry identifier, so you can use it in transforms with any validator. The `reference()` schema factory from `astro:content` remains available for Zod schemas.
+
+```ts
+import { reference } from 'astro/content/fields';
+import { z } from 'astro/zod';
+
+const author = z.string().transform((id) => reference('authors', id));
 ```
 
 ### `image()`
@@ -536,7 +548,7 @@ The following example validates a cover image and requires it to be at least 800
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
-import { image } from 'astro/content/image';
+import { image } from 'astro/content/fields';
 import { glob } from 'astro/loaders';
 import { z } from 'astro/zod';
 
@@ -552,18 +564,6 @@ const blog = defineCollection({
 ```
 
 <ReadMore>Learn how to use [images in content collections](/en/guides/images/#images-in-content-collections) with examples.</ReadMore>
-
-### `getContentImageContext()`
-
-**Type:** `() => { filePath?: string } | undefined`
-
-Returns the active content entry context. The context includes `filePath` when Astro can identify the entry file. Returns `undefined` when no content entry context is active.
-
-### `runWithContentImageContext()`
-
-**Type:** `<T>(context: { filePath?: string }, callback: () => T) => T`
-
-Runs a callback with the supplied content entry context. The context remains available during asynchronous work started by the callback. Use this helper in tests that call `image()` without Astro's content pipeline. Provide an absolute `filePath` when `image()` must resolve a relative source against an entry file.
 
 ## `astro` types
 
