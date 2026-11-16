@@ -22,6 +22,7 @@ Actions help you build a type-safe backend you can call from client code and HTM
 import {
   ACTION_QUERY_PARAMS,
   ActionError,
+  ActionInputError,
   actions,
   defineAction,
   getActionContext,
@@ -129,9 +130,34 @@ In order for Astro to recognize this property, you may need to restart the dev s
 **Type:** `(error?: unknown) => boolean`
 </p>
 
-A utility used to check whether [an `ActionError`](#actionerror) is an input validation error. When the `input` validator is an object schema, input errors include a `fields` object with error messages grouped by name. This applies to JSON validators implementing Standard Schema and to the deprecated Zod `input` support for form actions. It does not apply to validation you perform manually in the handler.
+A utility used to check whether [an `ActionError`](#actionerror) is an input validation error. When the `input` validator is an object schema, input errors include a `fields` object with error messages grouped by name. This applies to JSON validators implementing Standard Schema and to the deprecated Zod `input` support for form actions. For validation you perform manually in a form action handler, throw an [`ActionInputError`](#actioninputerror).
 
 <ReadMore>See the [form input errors guide](/en/guides/actions/#displaying-form-input-errors) for more on using `isInputError()`.</ReadMore>
+
+### `ActionInputError`
+
+<p><Since v="7.5.0" /></p>
+
+`ActionInputError` represents validation issues raised by a form action handler. Pass the issues returned by a Standard Schema-compatible validator. Use [`isInputError()`](#isinputerror) to identify the error when handling the action result.
+
+```ts title="src/actions/index.ts"
+import { ActionInputError, defineAction } from 'astro:actions';
+import { parseFormData } from '@standard-community/standard-form';
+import { z } from 'astro/zod';
+
+const schema = z.object({ email: z.email() });
+
+export const server = {
+  newsletter: defineAction({
+    accept: 'form',
+    handler: async (formData) => {
+      const result = await parseFormData(schema, formData);
+      if (result.issues) throw new ActionInputError(result.issues);
+      return result.value;
+    },
+  }),
+};
+```
 
 ### `isActionError()`
 

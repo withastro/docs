@@ -371,7 +371,7 @@ The following example shows a validated newsletter registration form that accept
 
     ```ts title="src/actions/index.ts" ins={5-12}
     import { parseFormData } from '@standard-community/standard-form';
-    import { ActionError, defineAction } from 'astro:actions';
+    import { ActionInputError, defineAction } from 'astro:actions';
     import { z } from 'astro/zod';
 
     const newsletterSchema = z.object({ email: z.email(), terms: z.boolean() });
@@ -382,7 +382,7 @@ The following example shows a validated newsletter registration form that accept
         handler: async (formData) => {
           const result = await parseFormData(newsletterSchema, formData);
           if (result.issues) {
-            throw new ActionError({ code: 'BAD_REQUEST', message: result.issues[0].message });
+            throw new ActionInputError(result.issues);
           }
           const { email, terms } = result.value;
           /* ... */
@@ -563,23 +563,24 @@ const result = Astro.getActionResult(actions.newsletter);
 </form>
 ```
 
-The `isInputError()` utility applies to validation performed by the action's `input` property. It does not identify validation errors that you create manually in the handler, such as the `ActionError` thrown by the `newsletter` example. For `input` validation errors, see the [`isInputError()` API reference](/en/reference/modules/astro-actions/#isinputerror).
+For more customization, you can [use the `isInputError()` utility](#displaying-form-input-errors) to check whether an error is caused by invalid input.
 
-The following example displays the error message thrown by the `newsletter` action:
+The following example renders an error banner under the `email` input field when an invalid email is submitted:
 
-```astro title="src/pages/index.astro"
+```astro title="src/pages/index.astro" ins={5,13} ins='aria-describedby="error"'
 ---
-import { actions } from 'astro:actions';
+import { actions, isInputError } from 'astro:actions';
 
 const result = Astro.getActionResult(actions.newsletter);
+const inputErrors = isInputError(result?.error) ? result.error.fields : {};
 ---
 
-{result?.error && <p class="error">{result.error.message}</p>}
 <form method="POST" action={actions.newsletter}>
   <label>
     E-mail
-    <input required type="email" name="email" />
+    <input required type="email" name="email" aria-describedby="error" />
   </label>
+  {inputErrors.email && <p id="error">{inputErrors.email.join(',')}</p>}
   <button>Sign up</button>
 </form>
 ```
