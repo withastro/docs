@@ -15,7 +15,7 @@ Astro Actions allow you to define and call backend functions with type-safety. A
 
 Use actions instead of API endpoints for seamless communication between your client and server code and to:
 
-- Automatically validate JSON action inputs with a [Standard Schema-compatible validator](#supported-validators), such as Zod, Valibot, or ArkType.
+- Automatically validate JSON action inputs with a [Standard Schema-compatible validator](#supported-validators) (e.g. Zod, Valibot, or ArkType).
 - Generate type-safe functions to call your backend from the client and even [from HTML form actions](#call-actions-from-an-html-form-action). No need for manual `fetch()` calls.
 - Standardize backend errors with the [`ActionError`](/en/reference/modules/astro-actions/#actionerror) object.
 
@@ -129,11 +129,13 @@ Follow these steps to define an action and call it in a `script` tag in your Ast
 
 </Steps>
 
+<ReadMore>See the full Actions API documentation for details on [`defineAction()`](/en/reference/modules/astro-actions/#defineaction) and its properties.</ReadMore>
+
 ### Supported validators
 
 <p><Since v="7.5.0" /></p>
 
-The `input` of an action that accepts JSON data can use any validator that implements [Standard Schema](https://standardschema.dev/), such as Zod, Valibot, or ArkType. Astro validates the input and passes the parsed output to your handler.
+The `input` of an action that accepts JSON data can use any validator that implements [Standard Schema](https://standardschema.dev/) (e.g. Zod, Valibot, or ArkType). Astro validates the input and passes the parsed output to your handler.
 
 The following example defines the same `getGreeting` action as above, using [Valibot](https://valibot.dev/) to validate its input:
 
@@ -152,8 +154,6 @@ export const server = {
   })
 }
 ```
-
-<ReadMore>See the full Actions API documentation for details on [`defineAction()`](/en/reference/modules/astro-actions/#defineaction) and its properties.</ReadMore>
 
 ## Organizing actions
 
@@ -312,7 +312,7 @@ export function LogoutButton() {
 
 Actions accept JSON data by default. To accept form data from an HTML form, set `accept: 'form'` in your `defineAction()` call. Your `handler()` receives the submitted `FormData` object as its first argument:
 
-```ts title="src/actions/index.ts" ins={6}
+```ts title="src/actions/index.ts" ins={5}
 import { defineAction } from 'astro:actions';
 
 export const server = {
@@ -327,67 +327,33 @@ export const server = {
 
 Parse and validate the submitted `FormData` object in your action `handler()`. This lets you choose how form fields are converted and how validation errors are reported.
 
-To convert form fields and validate them with a Standard Schema validator, use [`@standard-community/standard-form`](https://github.com/standard-community/standard-form).
-
-Install `@standard-community/standard-form`:
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-    ```sh
-    npm install @standard-community/standard-form
-    ```
-  </Fragment>
-  <Fragment slot="pnpm">
-    ```sh
-    pnpm add @standard-community/standard-form
-    ```
-  </Fragment>
-  <Fragment slot="yarn">
-    ```sh
-    yarn add @standard-community/standard-form
-    ```
-  </Fragment>
-</PackageManagerTabs>
-
-`parseFormData()` converts the submitted form data to an object, using each input's `name` attribute as an object key. For example, `<input name="search">` becomes `{ search: 'user input' }`. The schema validates this object.
-
-The following action parses form data for either creating or updating a user, and validates it with a Zod schema:
-
-```ts title="src/actions/index.ts"
-import { parseFormData } from '@standard-community/standard-form';
-import { ActionError, defineAction } from 'astro:actions';
-import { z } from 'astro/zod';
-
-const schema = z.discriminatedUnion('type', [
-  z.object({ type: z.literal('create'), name: z.string(), email: z.email() }),
-  z.object({ type: z.literal('update'), id: z.number(), name: z.string(), email: z.email() }),
-]);
-
-export const server = {
-  changeUser: defineAction({
-    accept: 'form',
-    handler: async (formData) => {
-      const result = await parseFormData(schema, formData);
-      if (result.issues) {
-        throw new ActionError({ code: 'BAD_REQUEST', message: result.issues[0].message });
-      }
-      if (result.value.type === 'create') {
-        const { name, email } = result.value;
-      } else {
-        const { id, name, email } = result.value;
-      }
-    },
-  }),
-};
-```
-
-`parseFormData()` returns either the parsed `value` or a list of `issues`. The example turns the first issue into an `ActionError`. You can choose a different error response or return the issues to the caller.
+To convert form fields and validate them with a Standard Schema validator, use [`@standard-community/standard-form`](https://github.com/standard-community/standard-form). Its `parseFormData()` function converts the submitted form data to an object, using each input's `name` attribute as an object key, and validates this object with your schema. For example, `<input name="search">` becomes `{ search: 'user input' }`.
 
 The following example shows a validated newsletter registration form that accepts a user's email and requires a "terms of service" agreement checkbox.
 
 <Steps>
 
-1. Create an HTML form component with unique `name` attributes on each input:
+1. Install `@standard-community/standard-form`:
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+        ```sh
+        npm install @standard-community/standard-form
+        ```
+      </Fragment>
+      <Fragment slot="pnpm">
+        ```sh
+        pnpm add @standard-community/standard-form
+        ```
+      </Fragment>
+      <Fragment slot="yarn">
+        ```sh
+        yarn add @standard-community/standard-form
+        ```
+      </Fragment>
+    </PackageManagerTabs>
+
+2. Create an HTML form component with unique `name` attributes on each input:
 
     ```astro title="src/components/Newsletter.astro" /name="\w+"/
     <form>
@@ -401,7 +367,7 @@ The following example shows a validated newsletter registration form that accept
     </form>
     ```
 
-2. Define a `newsletter` action to handle the submitted form. Parse and validate the fields in the handler:
+3. Define a `newsletter` action to handle the submitted form. Parse and validate the fields in the handler:
 
     ```ts title="src/actions/index.ts" ins={5-12}
     import { parseFormData } from '@standard-community/standard-form';
@@ -426,7 +392,7 @@ The following example shows a validated newsletter registration form that accept
     ```
 
 
-3. Add a `<script>` to the HTML form to submit the user input. This example overrides the form's default submit behavior to call `actions.newsletter()`, and redirects to `/confirmation` using the `navigate()` function:
+4. Add a `<script>` to the HTML form to submit the user input. This example overrides the form's default submit behavior to call `actions.newsletter()`, and redirects to `/confirmation` using the `navigate()` function:
 
     ```astro title=src/components/Newsletter.astro ins={11-22} collapse={2-8}
     <form>

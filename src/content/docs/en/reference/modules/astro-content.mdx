@@ -86,9 +86,9 @@ Either an object or a function that allows you to load data from any source, loc
 <Since v="2.0.0" />
 </p>
 
-An optional [Standard Schema](https://standardschema.dev/)-compatible validator or function that returns one. The schema configures the type and shape of document frontmatter for a collection. (For live collections, see the [live `schema`](#schema-1) property.)
+An optional [Standard Schema](https://standardschema.dev/)-compatible object or function that returns one. The schema configures the type and shape of document frontmatter for a collection. (For live collections, see the [live `schema`](#schema-1) property.)
 
-Since Astro 7.5, this property accepts validators that implement Standard Schema.
+Since Astro 7.5, passing a function that returns a schema is deprecated. Pass the schema directly, and use [the `image()` function](#image) to validate images.
 
 <ReadMore>Learn about [defining a collection schema](/en/guides/content-collections/#defining-the-collection-schema) with guided explanations and examples.</ReadMore>
 
@@ -140,9 +140,9 @@ An object that allows you to load data at runtime from a remote source into a li
 <Since v="6.0.0" />
 </p>
 
-An optional schema to configure the type and shape of your data for a live collection. The schema must use a validator implementing [Standard Schema](https://standardschema.dev/) such as Zod or Valibot. (For build-time collections, see the [build-time `schema`](#schema) property.)
+An optional schema to configure the type and shape of your data for a live collection. (For build-time collections, see the [build-time `schema`](#schema) property.)
 
-Since Astro 7.5, this property accepts validators that implement Standard Schema.
+Since Astro v7.5, the schema can use any validator implementing [Standard Schema](https://standardschema.dev/) (e.g. Zod, Valibot). Previously, only Zod schemas were supported.
 
 When you define a schema, it will take precedence over the [live loader’s types](/en/reference/content-loader-reference/#live-loader-api) when you query the collection.
 
@@ -158,7 +158,7 @@ When you define a schema, it will take precedence over the [live loader’s type
 
 A function used in the content config to define a relationship, or "reference", from one collection to another. This accepts a collection name and transforms the reference into an object containing the collection name and the reference id.
 
-This helper is deprecated in favor of [`reference()` from `astro/content/fields`](#imports-from-astrocontentfields).
+Since Astro v7.5, this helper is deprecated in favor of [`reference()` from `astro/content/fields`](#imports-from-astrocontentfields).
 
 This example defines references from a blog author to the `authors` collection and an array of related posts to the same `blog` collection:
 
@@ -509,15 +509,22 @@ export async function queryCollection(collection: CollectionKey) {
 }
 ```
 
+### `SchemaContext`
+
+:::caution[Deprecated]
+Pass your schema directly to the [`schema`](#schema) property instead of a function, and use [the `image()` function](#image) to validate images. This will be removed in a future major version.
+:::
+
+The `context` object that `defineCollection` uses for the function shape of `schema`. This includes the `image()` schema helper that allows you [to use local images in content collections](/en/guides/images/#images-in-content-collections) with Zod.
+
 ## Imports from `astro/content/fields`
 
-Import content field helpers from `astro/content/fields`:
+The following helpers are imported from the `fields` directory in the regular content module:
 
 ```js
 import {
   image,
   reference,
-  type ContentImageField,
 } from 'astro/content/fields';
 ```
 
@@ -525,7 +532,7 @@ import {
 
 **Type:**: <code>(collection: <a href="#collectionkey">CollectionKey</a>, lookup: string | number | Reference) => ReferenceDataEntry</code>
 
-Creates a reference to an entry in a collection. Unlike `reference()` from `astro:content`, this function takes both the collection name and entry identifier, so you can use it in transforms with any validator. The `reference()` schema factory from `astro:content` remains available for Zod schemas.
+A function used in the content config to create a reference to an entry in another collection. Call it from your validator's transform method (e.g. `.transform()` in Zod) with the collection name and an entry identifier. An identifier can be an entry ID or a reference object returned by an earlier call to `reference()`.
 
 ```ts
 import { reference } from 'astro/content/fields';
@@ -538,11 +545,11 @@ const author = z.string().transform((id) => reference('authors', id));
 
 <p>
 
-**Type:** `(src: string) => Promise<ContentImageField>`<br />
+**Type:** `(src: string) => Promise<{ src: string, width?: number, height?: number, format?: string }>`<br />
 <Since v="7.5.0" />
 </p>
 
-A function used in the content config to validate and import an image referenced in a collection entry. Pass the image path to `image()` from your validator's transform method. It returns a `ContentImageField` with the image metadata.
+A function used in the content config to validate and import an image referenced in a collection entry. Pass the image path to `image()` from your validator's transform method. It returns an object containing the image metadata.
 
 The following example validates a cover image and requires it to be at least 800 pixels wide:
 
