@@ -5,20 +5,28 @@ import ts from 'typescript';
 const sourceBranch = process.env.SOURCE_BRANCH || 'main';
 const sourceRepo = process.env.SOURCE_REPO || 'withastro/astro';
 
-const errorURL = `https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/packages/astro/src/core/errors/errors-data.ts`;
+// `errors-data.ts` moved to `@astrojs/runtime` in withastro/astro#18609. Older branches still have it
+// in `packages/astro`, so try the new location first and fall back to the old one.
+const errorPaths = [
+	'packages/runtime/src/internal/core/errors/errors-data.ts',
+	'packages/astro/src/core/errors/errors-data.ts',
+];
+const errorURLs = errorPaths.map(
+	(path) => `https://raw.githubusercontent.com/${sourceRepo}/${sourceBranch}/${path}`
+);
 
 // Fill this in to test a response locally, without fetching.
-const STUB = undefined; // fs.readFileSync('../astro/packages/astro/src/core/errors/errors-data.ts', {encoding: 'utf-8',});
+const STUB = undefined; // fs.readFileSync('../astro/packages/runtime/src/internal/core/errors/errors-data.ts', {encoding: 'utf-8',});
 
 const HEADER = `---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/runtime/src/internal/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 title: Error reference
 i18nReady: true
-githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+githubURL: https://github.com/withastro/astro/blob/main/packages/runtime/src/internal/core/errors/errors-data.ts
 ---
 
 import DontEditWarning from '~/components/DontEditWarning.astro'
@@ -187,8 +195,16 @@ export async function run() {
 	}
 }
 
+async function fetchErrorsData() {
+	for (const url of errorURLs) {
+		const response = await fetch(url);
+		if (response.ok) return response.text();
+	}
+	throw new Error(`Could not fetch errors-data.ts. Tried:\n${errorURLs.join('\n')}`);
+}
+
 async function getAstroErrorsData() {
-	const inputBuffer = STUB || (await fetch(errorURL).then((r) => r.text()));
+	const inputBuffer = STUB || (await fetchErrorsData());
 
 	const compiledResult = ts.transpileModule(inputBuffer, {
 		compilerOptions: {
@@ -230,12 +246,12 @@ function getErrorReferenceEntryHeader(errorTitle) {
 ---
 # NOTE: This file is auto-generated from 'scripts/error-docgen.mjs'
 # Do not make edits to it directly, they will be overwritten.
-# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+# Instead, change this file: https://github.com/withastro/astro/blob/main/packages/runtime/src/internal/core/errors/errors-data.ts
 # Translators, please remove this note and the <DontEditWarning/> component.
 
 title: ${sanitizedTitle}
 i18nReady: true
-githubURL: https://github.com/withastro/astro/blob/main/packages/astro/src/core/errors/errors-data.ts
+githubURL: https://github.com/withastro/astro/blob/main/packages/runtime/src/internal/core/errors/errors-data.ts
 ---
 import DontEditWarning from '~/components/DontEditWarning.astro'
 
