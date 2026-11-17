@@ -1,17 +1,20 @@
 ---
 import { Icon } from '@astrojs/starlight/components';
 import { z } from 'astro/zod';
+import { linkIntent } from '~/util/intent';
 type IconName = Parameters<typeof Icon>[0]['name'];
 
 interface Props {
 	variant: 'primary' | 'secondary' | 'minimal';
 	link: string;
+	intent?: string;
 	icon?: undefined | { type: 'icon'; name: IconName } | { type: 'raw'; html: string };
 }
 
 const propsSchema = z.object({
 	variant: z.enum(['primary', 'secondary', 'minimal']).default('primary'),
 	link: z.string(),
+	intent: z.string().optional(),
 	icon: z
 		.union([
 			z.object({ type: z.literal('icon'), name: z.custom<IconName>(z.string().parse) }),
@@ -20,10 +23,14 @@ const propsSchema = z.object({
 		.optional(),
 });
 
-const { link, variant, icon } = propsSchema.parse(Astro.props);
+const { link, variant, icon, intent } = propsSchema.parse(Astro.props);
 ---
 
-<a class:list={['sl-flex action', variant]} href={link}>
+<a
+	class:list={['sl-flex action', variant]}
+	href={link}
+	data-intent={intent || linkIntent(link) || undefined}
+>
 	<slot />
 	{icon?.type === 'icon' && <Icon name={icon.name} size="1.5em" />}
 	{icon?.type === 'raw' && <Fragment set:html={icon.html} />}

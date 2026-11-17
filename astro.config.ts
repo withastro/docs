@@ -2,6 +2,7 @@ import { defineConfig, sharpImageService } from 'astro/config';
 import { makeLocalesConfig } from './config/locales';
 import { makeSidebar } from './config/sidebar';
 import { rehypeAutolink } from './plugins/rehype-autolink';
+import { rehypeIntentLinks } from './plugins/rehype-intent-links';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
 import { sitemap } from './integrations/sitemap';
@@ -88,6 +89,7 @@ export default defineConfig({
 			...rehypeAutolink(),
 			// Tweak GFM task list syntax
 			rehypeTasklistEnhancer(),
+			rehypeIntentLinks(),
 		],
 	},
 	image: {
