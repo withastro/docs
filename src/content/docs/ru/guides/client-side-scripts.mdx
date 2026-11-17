@@ -1,0 +1,229 @@
+---
+title: Скрипты и управление событиями
+description: >-
+  Как добавить клиентское взаимодействие в компоненты Astro используя нативные браузерные
+  JavaScript API.
+i18nReady: true
+---
+import ReadMore from '~/components/ReadMore.astro'
+
+Вы можете отправить JavaScript в браузер и добавить функциональность компонентам Astro, используя теги `<script>` в шаблоне компонента.
+
+Скрипты добавляют интерактивность вашему сайту, такую как управление событиями или обновление контента динамически, без использования таких [UI-фреймворков](/ru/guides/framework-components/), как React, Svelte, или Vue. Это позволяет избежать накладных расходов на загрузку JavaScript фреймворка и не требует знания какого-либо дополнительного фреймворка для создания полноценного сайта или приложения.
+
+## Скрипты клиентской стороны
+
+Скрипты можно использовать для добавления слушателей событий, отправления данных аналитики, анимаций и всего, что делает JavaScript в вебе.
+
+Astro автоматически связывает стандартный тег HTML `<script>` с бандлингом, TypeScript и так далее. Посмотрите [как выполняются скрипты astro](#выполнение скриптов), чтобы узнать больше деталей.
+
+```astro title="src/components/ConfettiButton.astro"
+<button data-confetti-button>Celebrate!</button>
+
+<script>
+  // Импортируйте из npm пакета.
+  import confetti from 'canvas-confetti';
+
+  // Найдите DOM-компонент на странице.
+  const buttons = document.querySelectorAll('[data-confetti-button]');
+
+  // Добавьте слушатели событий, чтобы выпускать конфетти при нажатии кнопки.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => confetti());
+  });
+</script>
+```
+
+<ReadMore>Посмотрите [когда скрипты не выполняются](#невыполняемые скрипты) для того, чтобы отладить поведение скриптов или выучить как управлять выполнением.</ReadMore>
+
+
+## Выполнение скриптов
+
+По дефолту, Astro выполняет теги `<script>`, которые не содержат (кроме `src`), следующими способами:
+
+- **Поддержка TypeScript:** Все скрипты изначально на TypeScript.
+- **Бандлинг импортов:** Импортируйте локальные файлы или npm модули, которые будут связаны.
+- **Тип модуль:** Запущенные скрипты станут [`type="module"`](https://developer.mozilla.org/ru/docs/Web/JavaScript/Guide/Modules) автоматически.
+- **Дедупликация:** Если компонент, который содержит `<script>`, использовать несколько раз на странице, скрипт будет включён только один раз.
+- **Автоматический инлайнинг** Если скрипт достаточно мал, Astro встроится прямо в HTML-разметку, чтобы уменьшить количество запросов.
+```astro title="src/components/Example.astro"
+<script>
+  // Выполнен! Связан! TypeScript!
+  // Импорт локальных скриптов и npm пакетов осуществлён.
+</script>
+```
+
+### Невыполняемые скрипты
+
+Astro не выполнит тег `<script>` если у него любой атрибут кроме `src`.
+
+Вы можете добавить директиву [`is:inline`](/ru/reference/directives-reference/#isinline), чтобы намеренно отказаться от обработки скрипта.
+
+```astro title="src/components/InlineScript.astro" "is:inline"
+<script is:inline>
+  // Будет отрисовываться в HTML-разметку в точности как написано!
+  // Не трансформируется: нет TypeScript и нет импортов Astro.
+  // Если используется внутри компонента, этот код дублируется для каждого инстанса.
+</script>
+```
+
+### Включите JavaScript файлы на странице
+
+Возможно, вы хотите написать ваши скрипты как отдельные `.js`/`.ts` файлы или вам нужны образцы внешних скриптов на другом сервере. Вы можете взять за образец те, что имеют атрибут `src` в теге `<script>`.
+
+#### Импортируйте локальные скрипты
+
+**Когда это использовать:** когда скрипт выполняется внутри директории`src/`.
+
+Astro будет выполнять эти скрипты соответственно с [правилами выполнения скриптов](#выполнение-скриптов).
+
+```astro title="src/components/LocalScripts.astro"
+<!-- относительный путь к скрипту в `src/scripts/local.js` -->
+<script src="../scripts/local.js"></script>
+
+<!-- также работает для локальных TypeScript файлов -->
+<script src="./script-with-types.ts"></script>
+```
+
+#### Загрузка внешних скриптов
+
+**Когда это использовать:** когда JavaScript файл выполняется внутри директории `public/` или на CDN.
+
+Для загрузки скриптов снаружи проектной папки `src/`, включите директиву `is:inline`. Этот подход пропускает обработку, сборку и оптимизацию JavaScript, которые Astro предоставляет при импорте скриптов, как описано выше.
+
+```astro title="src/components/ExternalScripts.astro" "is:inline"
+<!-- абсолютный путь к скрипту `public/my-script.js` -->
+<script is:inline src="/my-script.js"></script>
+
+<!-- полный URL к скрипту на удалённом сервере -->
+<script is:inline src="https://my-analytics.com/script.js"></script>
+```
+
+## Общие паттерны скриптов
+
+### Управление событием `onclick` и другими событиями
+
+Некоторые UI-фреймворки используют пользовательский синтаксис для обработки событий, как `onClick={...}` (React/Preact) или `@click="..."` (Vue). Astro больше следует стандартам HTML и не использует пользовательский синтаксис для событий.
+
+Вместо этого вы можете использовать [`addEventListener`](https://developer.mozilla.org/ru/docs/Web/API/EventTarget/addEventListener) в теге `<script>` для управления пользовательским взаимодействием.
+
+```astro title="src/components/AlertButton.astro"
+<button class="alert">Click me!</button>
+
+<script>
+  // Найдите все кнопки с классом `alert` на странице.
+  const buttons = document.querySelectorAll('button.alert');
+
+  // Управляйте кликами на каждой кнопке.
+  buttons.forEach((button) => {
+    button.addEventListener('click', () => {
+      alert('Button was clicked!');
+    });
+  });
+</script>
+```
+
+Если у вас несколько компонентов `<AlertButton />` на странице, Astro не выполнит скрипт несколько раз. Скрипты связываются и выполняются на странице только раз. Использование `querySelectorAll` гарантирует, что этот скрипт прикрепляет слушатель событий к каждой кнопке с классом `alert`, находящимся на странице.
+
+
+### Веб-компоненты с пользовательскими элементами
+
+Вы можете создать свои собственные HTML элементы с пользовательским поведением, используя стандарты веб-компонентов. Определение [пользовательского элемента](https://developer.mozilla.org/en-US/docs/Web/Web_Components/Using_custom_elements) в компоненте `.astro` позволяет вам создать интерактивные компоненты без использования библиотек UI-фреймворков.
+
+В этом примере мы определяем новый HTML-элемент `<astro-heart>`, который отслеживает, сколько раз вы кликнете кнопку с сердечком, и обновляет `<span>` с последним значением.
+
+```astro title="src/components/AstroHeart.astro"
+<!-- Оберните элементы компонента в пользовательский элемент “astro-heart”. -->
+<astro-heart>
+  <button aria-label="Heart">💜</button> × <span>0</span>
+</astro-heart>
+
+<script>
+  // Определите поведение для нового типа HTML элемента.
+  class AstroHeart extends HTMLElement {
+    connectedCallback() {
+      let count = 0;
+
+      const heartButton = this.querySelector("button");
+      const countSpan = this.querySelector("span");
+
+      // Каждый раз при нажатии кнопки обновляйте счётчик.
+      if (heartButton && countSpan) {
+        heartButton.addEventListener("click", () => {
+          count++;
+          countSpan.textContent = count.toString();
+        });
+      }
+    }
+  }
+
+  // Сообщаете браузеру, чтобы он использовал класс AstroHeart для <astro-heart> элементов.
+  customElements.define("astro-heart", AstroHeart);
+</script>
+```
+
+Здесь два преимущества использования пользовательских элементов:
+
+1. Вместо поиска по всей странице, используя `document.querySelector()`, вы можете использовать `this.querySelector()`, который ищет только внутри текущего пользовательского инстанса элемента. Это упрощает работу только с потомками одного экземпляра компонента за раз.
+
+2. Хотя `<script>` запускается только один раз, браузер будет запускать метод `connectedCallback()` пользовательского элемента каждый раз, когда обнаруживает `<astro-heart>` на странице. Это значит, что вы можете безопасно писать код для одного компонента за раз, даже если собираетесь использовать этот компонент несколько раз на одной странице.
+
+<ReadMore>Вы можете узнать больше о пользовательских элементах в [руководство web.dev по переиспользуемым веб-компонентам](https://web.dev/custom-elements-v1/) и [Введение в пользовательские элементы от MDN](https://developer.mozilla.org/ru/docs/Web/Web_Components/Using_custom_elements).</ReadMore>
+
+
+### Передача frontmatter переменных в скрипты
+
+В компонентах Astro код в блоке [frontmatter](/ru/basics/astro-components/#скрипт-компонента) (между разделителями `---`) запускается на сервере и недоступен в браузере.
+
+чтобы передать серверные переменные клиентским скриптам, сохраните их в [`data-*` атрибутах](https://developer.mozilla.org/ru/docs/Learn/HTML/Howto/Use_data_attributes) на HTML элементах. Затем скрипты могут получить доступ к этим значениям, используя свойство `dataset`.
+
+В этом примере компонента проп `message` сохраняется в атрибуте `data-message`, так что пользовательский компонент может прочитать `this.dataset.message` и получить значение пропа в браузере.
+
+```astro title="src/components/AstroGreet.astro" {2} /data-message={.+}/ "this.dataset.message"
+---
+const { message = 'Привет, мир!' } = Astro.props;
+---
+
+<!-- Сохрани проп сообщения как data-атрибут. -->
+<astro-greet data-message={message}>
+  <button>Скажи привет!</button>
+</astro-greet>
+
+<script>
+  class AstroGreet extends HTMLElement {
+    connectedCallback() {
+      // Прочитать сообщение data-атрибут.
+      const message = this.dataset.message;
+      const button = this.querySelector('button');
+      button?.addEventListener('click', () => {
+        alert(message);
+      });
+    }
+  }
+
+  customElements.define('astro-greet', AstroGreet);
+</script>
+```
+
+Теперь мы можем использовать компонент несколько раз, и каждый раз нас будет приветствовать другое сообщение.
+
+```astro title="src/pages/example.astro"
+---
+import AstroGreet from '../components/AstroGreet.astro';
+---
+
+<!-- Используйте сообщение по умолчанию: “Привет, мир!” -->
+<AstroGreet />
+
+<!-- Используйте пользовательское сообщение, переданное как пропс. -->
+<AstroGreet message="Отличный день для создания компонентов!" />
+<AstroGreet message="Рады, что вы это делаете! 👋" />
+```
+
+:::tip[А вы знали?]
+Это то, что в действительности Astro делает под капотом, когда вы передаёте пропсы в компонент, написанный с использованием UI-фреймворка, такого, как React! Для компонентов с директивой `client:*` Astro создаёт кастомный элемент`<astro-островка>` с атрибутом `props`, который хранит серверные пропсы в HTML-вывода.
+:::
+
+### Комбинирование скриптов и UI-фреймворков
+
+Элементы, отрендеренные с помощью UI-фреймворков, могут быть ещё недоступными, если исполняется тег `<script>`. Если ваш скрипт также нуждается в управлении [компонентами UI-фреймворков](/ru/guides/framework-components/), использование кастомных элементов рекомендовано.
