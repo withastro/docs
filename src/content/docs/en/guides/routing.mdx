@@ -679,7 +679,7 @@ Do not use pre-processing to authorize requests by matching the request pathname
 
 #### Composing individual handlers
 
-When you need more control over the pipeline execution order, or want to omit certain features, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/). Each handler operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data, such as the matched route, cookies, and session. You can call handlers in any order and insert custom logic between stages.
+When you need more control over the pipeline execution order, or want to omit certain features, you can compose individual handler functions from [`astro/fetch`](/en/reference/modules/astro-fetch/). Each handler operates on a [`FetchState` object](/en/reference/modules/astro-fetch/#fetchstate) that tracks per-request data, such as the matched route, cookies, and session. You can call handlers in the order that fits your project and insert custom logic between stages. Some handlers depend on the output of others. For example, `i18n()` post-processes the response returned by `pages()`, so it must be called after `pages()`.
 
 The following example runs only the handlers used in the project and adds custom logic after actions and before page rendering:
 
@@ -715,7 +715,7 @@ Astro also provides Hono-compatible wrappers for all handler functions via [`ast
 ```ts title="src/fetch.ts"
 import { Hono } from 'hono';
 import { logger } from 'hono/logger';
-import { actions, middleware, pages, i18n } from 'astro/hono';
+import { actions, middleware, i18n, pages } from 'astro/hono';
 
 const app = new Hono();
 
@@ -725,17 +725,22 @@ app.use(logger());
 // Astro handlers (as Hono middleware)
 app.use(actions());
 app.use(middleware());
-app.use(pages());
 app.use(i18n());
+app.use(pages());
 
 export default app;
 ```
+
+The order in which you mount handlers matters. Most handlers call `next()` to pass the request along, but some return a response without calling `next()`, which ends the chain:
+
+- `pages()` always returns a response, so it should usually be mounted last. Any handler mounted after `pages()` never runs. Handlers that post-process the response, such as `i18n()`, must be mounted before it.
+- `actions()` returns the response for action RPC requests without calling `next()`. If your middleware needs to run for these requests, mount `middleware()` before `actions()`.
 
 You can also guard protected routes by registering an authorization check on the Hono routes you want to protect:
 
 ```ts title="src/fetch.ts"
 import { Hono } from 'hono';
-import { actions, middleware, pages, i18n } from 'astro/hono';
+import { actions, middleware, i18n, pages } from 'astro/hono';
 import { isLoggedIn } from './lib/auth';
 
 const app = new Hono();
@@ -746,8 +751,8 @@ app.use('/dashboard/*', requireAuth);
 
 app.use(actions());
 app.use(middleware());
-app.use(pages());
 app.use(i18n());
+app.use(pages());
 
 export default app;
 
