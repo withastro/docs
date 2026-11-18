@@ -125,6 +125,7 @@ Requires the **Access Rules** feature. The concepts (fields, operators, policies
 |---|---|---|---|
 | `POST /access-control/get` | `getRules` | `{ page?, limit?, ruleGroupId?, sortBy?, sortOrder? }` | `{ rules, ruleCount, ruleGroupsAndCounts, page, pages }` |
 | `POST /access-control/create` | `createRule` | `{ rule }` | `{ status: "Added new rule" }` |
+| `POST /access-control/group/create` | `createRuleGroup` | `{ rule, conditionSets, ruleGroupId? }` | `{ status: "Added rule group", ruleGroupId, ruleCount }` |
 | `POST /access-control/delete` | `deleteRule` | `{ userScopeHash }` | `{ status: "Deleted rule" }` |
 | `POST /access-control/group/delete` | `deleteRuleGroup` | `{ ruleGroupId }` | `{ status: "Group removal pending. Job ID: …" }` |
 
@@ -171,12 +172,12 @@ comes back with its `conditions` rebuilt, so a read round-trips into the shape `
 
 Pull the numbers behind the portal's charts into your own dashboards or billing reconciliation.
 
-Requires the **Traffic** feature and the `getTraffic` permission.
+Requires the **Traffic** feature and the permission listed against each endpoint.
 
-| Endpoint | Body | Returns |
-|---|---|---|
-| `POST /gettrafficdata` | `{ token, accountId, siteKeys?, startDate?, endDate?, month?, year?, domain?, bucket? }` | Array of per-period count rows |
-| `POST /getlivesessions` | `{ token, accountId, siteKeys, windowMinutes?, bucketSeconds?, topIpsLimit?, range? }` | `{ points, windowMinutes, bucketSeconds, uniqueIps, topIps }` |
+| Endpoint | Permission | Body | Returns |
+|---|---|---|---|
+| `POST /gettrafficdata` | `getTraffic` | `{ token, accountId, siteKeys?, startDate?, endDate?, month?, year?, domain?, bucket? }` | Array of per-period count rows |
+| `POST /getlivesessions` | `getLiveSessions` | `{ token, accountId, siteKeys, windowMinutes?, bucketSeconds?, topIpsLimit?, range? }` | `{ points, windowMinutes, bucketSeconds, uniqueIps, topIps }` |
 
 - `token` and `accountId` are required by the schema but ignored — the account comes from your API key.
   Send any non-empty string.
@@ -290,27 +291,33 @@ full permission list.
 Configure and observe edge protection: manage instances, read the verdict log and maintain the edge access
 rules. See [Prosopo Protect](/en/protect-edge/) for what the product does.
 
-Requires the **Protect** feature. Every endpoint in the first table takes the `updateProtectSettings`
-permission.
+Requires the **Protect** feature. Each endpoint has its own permission, listed against it, so a key can be
+limited to reading verdicts, say, without being able to change an instance or block a session. In the portal's
+Create API Key dialog the Protect permissions are grouped, and each group can be selected at once.
 
-| Endpoint | Body | Purpose |
-|---|---|---|
-| `POST /protect/instances` | `{}` | List instances |
-| `POST /protect/instances/create` | `{ name, cname, globalSiteKey, ipCategoryRules, … }` | Create an instance |
-| `POST /protect/instances/update` | `{ id, … }` | Update an instance |
-| `POST /protect/instances/delete` | `{ id }` | Delete an instance |
-| `POST /protect/client-jwt/generate` | `{ protectInstanceId, expiresInWeeks }` | Issue the JWT the edge worker authenticates with (`0` weeks = effectively unlimited) |
-| `POST /protect/verdicts` | `{ siteKey?, since?, until?, limit?, offset?, decision?, sources?, firedRules?, asn?, deviceType?, requestPath?, minRulesFired? }` | Page the verdict log |
-| `POST /protect/verdicts/search` | `{ ip?, jti?, asn?, siteKey? }` | Find verdicts for one client |
-| `POST /protect/verdicts/distinct-sources` | `{ since, until?, siteKey? }` | Distinct verdict sources in a window |
-| `POST /protect/verdicts/distinct-fired-rules` | `{ since, until?, siteKey? }` | Distinct fired rule ids in a window |
-| `POST /protect/risk-history` | `{ jti, siteKey? }` | Risk score history for one session |
-| `POST /protect/session-telemetry` | `{ jti, siteKey? }` | Telemetry for one session |
-| `POST /protect/traffic-summary` | `{ siteKey?, since?, bucket?, source? }` | Bucketed traffic totals |
-| `POST /protect/traffic-by-dimension` | `{ groupBy, siteKey?, since?, until?, bucket?, topN?, … }` | Time series split by `decision`, `source`, `country`, `asn`, `ip_category`, `ja4`, `user_agent`, `request_path`, `fired_rule`, `device_type`, `enforcement_policy` or `none` |
-| `POST /protect/access-rules` | `{ siteKey? }` | List edge access rules |
-| `POST /protect/access-rules/create` | `{ rules: [{ type, value, verdict }] }` | Add edge access rules |
-| `POST /protect/access-rules/delete` | `{ conditions: [{ type, value }] }` | Remove edge access rules |
+| Endpoint | Permission | Body | Purpose |
+|---|---|---|---|
+| `POST /protect/instances` | `getProtectInstances` | `{}` | List instances |
+| `POST /protect/instances/create` | `createProtectInstance` | `{ name, cname, globalSiteKey, ipCategoryRules, … }` | Create an instance |
+| `POST /protect/instances/update` | `updateProtectInstance` | `{ id, … }` | Update an instance |
+| `POST /protect/instances/delete` | `deleteProtectInstance` | `{ id }` | Delete an instance |
+| `POST /protect/client-jwt/generate` | `generateProtectClientJwt` | `{ protectInstanceId, expiresInWeeks }` | Issue the JWT the edge worker authenticates with (`0` weeks = effectively unlimited) |
+| `POST /protect/verdicts` | `getProtectVerdicts` | `{ siteKey?, since?, until?, limit?, offset?, decision?, sources?, firedRules?, asn?, deviceType?, requestPath?, minRulesFired? }` | Page the verdict log |
+| `POST /protect/verdicts/search` | `searchProtectVerdicts` | `{ ip?, jti?, asn?, siteKey? }` | Find verdicts for one client |
+| `POST /protect/verdicts/distinct-sources` | `getDistinctVerdictSources` | `{ since, until?, siteKey? }` | Distinct verdict sources in a window |
+| `POST /protect/verdicts/distinct-fired-rules` | `getDistinctVerdictFiredRules` | `{ since, until?, siteKey? }` | Distinct fired rule ids in a window |
+| `POST /protect/risk-history` | `getProtectRiskHistory` | `{ jti, siteKey? }` | Risk score history for one session |
+| `POST /protect/session-telemetry` | `getProtectSessionTelemetry` | `{ jti, siteKey? }` | Telemetry for one session |
+| `POST /protect/sessions/block` | `blockProtectSession` | `{ jti, hours, reason?, siteKey? }` | Block one session |
+| `POST /protect/sessions/unblock` | `unblockProtectSession` | `{ jti, siteKey? }` | Lift a session block |
+| `POST /protect/traffic-summary` | `getProtectTrafficSummary` | `{ siteKey?, since?, bucket?, source? }` | Bucketed traffic totals |
+| `POST /protect/traffic-by-dimension` | `getProtectTrafficByDimension` | `{ groupBy, siteKey?, since?, until?, bucket?, topN?, … }` | Time series split by `decision`, `source`, `country`, `asn`, `ip_category`, `ja4`, `user_agent`, `request_path`, `fired_rule`, `device_type`, `enforcement_policy` or `none` |
+| `POST /protect/traffic-report` | `getProtectTrafficReport` | `{ siteKey?, since?, until?, bucket?, endpoints? }` | The portal's traffic report |
+| `POST /protect/traffic-endpoints` | `getProtectTrafficEndpoints` | `{ siteKey?, since?, until?, bucket?, endpoints? }` | Traffic per protected endpoint |
+| `POST /protect/challenge-outcomes` | `getProtectChallengeOutcomes` | `{ siteKey?, since?, until?, bucket?, endpoints? }` | How challenged visitors got on |
+| `POST /protect/access-rules` | `getProtectAccessRules` | `{ siteKey? }` | List edge access rules |
+| `POST /protect/access-rules/create` | `createProtectAccessRule` | `{ rules: [{ type, value, verdict }] }` | Add edge access rules |
+| `POST /protect/access-rules/delete` | `deleteProtectAccessRule` | `{ conditions: [{ type, value }] }` | Remove edge access rules |
 
 - Omit `siteKey` and the endpoint uses your account's active instance; with no matching instance the response
   is `404` with `{ "error": "No active protect instance found" }`.
@@ -320,17 +327,16 @@ permission.
 
 ### Client events
 
-Report events from your own systems to Protect. These endpoints take only the `ingestClientEvents`
-permission, which is kept separate from `updateProtectSettings` so the credential a log shipper holds cannot
-change what Protect enforces.
+Report events from your own systems to Protect. Each endpoint has a permission that reports events and
+does nothing else, so the credential a log shipper holds cannot change what Protect enforces.
 
-| Endpoint | Body | Returns |
-|---|---|---|
-| `POST /protect/client-events` | `{ protectInstanceId, entries }` (1–1000 entries) | `{ received, inserted, duplicates, outOfWindow }` |
-| `POST /protect/client-events/logs?token=…&instanceId=…&format=…` | Your logging system's webhook payload, unchanged | `{ received, parsed, skipped, inserted, duplicates, outOfWindow, truncated }` |
+| Endpoint | Permission | Body | Returns |
+|---|---|---|---|
+| `POST /protect/client-events` | `ingestClientEvents` | `{ protectInstanceId, entries }` (1–1000 entries) | `{ received, inserted, duplicates, outOfWindow }` |
+| `POST /protect/client-events/logs?token=…&instanceId=…&format=…` | `ingestClientEventLogs` | Your logging system's webhook payload, unchanged | `{ received, parsed, skipped, inserted, duplicates, outOfWindow, truncated }` |
 
 - `/protect/client-events/logs` takes the API key in the `token` query parameter, for webhooks that cannot set
-  headers. Query strings end up in request logs, so give that key `ingestClientEvents` and nothing else.
+  headers. Query strings end up in request logs, so give that key `ingestClientEventLogs` and nothing else.
 - `format` names the log feed and must be one Prosopo supports. The portal's client event feed setup builds the
   full URL for you.
 - Resending a batch is safe: rows already stored are counted under `duplicates` rather than inserted twice.
