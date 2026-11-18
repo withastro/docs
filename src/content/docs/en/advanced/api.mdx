@@ -175,17 +175,47 @@ Requires the **Traffic** feature and the `getTraffic` permission.
 
 | Endpoint | Body | Returns |
 |---|---|---|
-| `POST /gettrafficdata` | `{ token, accountId, siteKeys?, startDate?, endDate?, month?, year? }` | Array of per-period count rows |
-| `POST /getlivesessions` | `{ token, accountId, siteKey, windowMinutes?, bucketSeconds? }` | `{ points, windowMinutes, bucketSeconds, uniqueIps, topIps }` |
+| `POST /gettrafficdata` | `{ token, accountId, siteKeys?, startDate?, endDate?, month?, year?, domain?, bucket? }` | Array of per-period count rows |
+| `POST /getlivesessions` | `{ token, accountId, siteKeys, windowMinutes?, bucketSeconds?, topIpsLimit?, range? }` | `{ points, windowMinutes, bucketSeconds, uniqueIps, topIps }` |
 
 - `token` and `accountId` are required by the schema but ignored — the account comes from your API key.
   Send any non-empty string.
 - `/gettrafficdata` takes either an ISO `startDate`/`endDate` pair or a `month` (1–12) and `year`, defaulting
   to the current month. Omit `siteKeys` for every site on the account; naming a site key you do not own is a
-  `404`. Ranges longer than seven days are aggregated per day rather than per hour.
-- `/getlivesessions` reads raw sessions, so it is capped: `windowMinutes` 5–360 (default 60) and
-  `bucketSeconds` 30–3600 (default 60). `points` only contains buckets that saw traffic — gap-fill client-side.
-  `topIps` is annotated with country, ASN and VPN/proxy/datacenter flags on Professional and Enterprise plans.
+  `404`. `domain` narrows the counts to requests from that domain and its subdomains.
+- `/gettrafficdata` returns hourly rows by default; ranges longer than seven days are aggregated per day. Send
+  `bucket: "5_minute"` for 5-minute rows instead. They are kept for 7 days and are not split by domain, so
+  `bucket: "5_minute"` with a `domain` is an error.
+- `/getlivesessions` reads raw sessions for one or more of your site keys. `siteKeys` is required; naming one you
+  do not own is a `404`. It covers the last `windowMinutes` (5–360, default 60) in `bucketSeconds` buckets
+  (30–3600, default 60). `points` only contains buckets that saw traffic, so gap-fill client-side. Each point
+  counts `pow`, `image`, `puzzle`, `iconOrder`, `audio`, `blocked` and `frictionless` (sessions that were
+  never shown a challenge) sessions.
+
+### Top IPs
+
+The portal's Top IPs report is `/getlivesessions`: `topIps` lists the IP addresses with the most sessions in
+the period, busiest first, and `uniqueIps` is how many distinct IPs there were in total.
+
+- `topIpsLimit` sets how many IPs come back, 1–500 (default 10).
+- Each entry has `ip`, `total` (sessions), `blocked` and `challenged` (sessions given a CAPTCHA). On
+  Professional and Enterprise plans it also has `countryCode`, `asn`, `asnName`, `isVpn`, `isTor`, `isProxy`,
+  `isDatacenter` and `isAbuser`.
+- To look at a fixed period instead of the last `windowMinutes`, send `range: { from, to }` as ISO
+  timestamps. `from` is included and `to` is not, and a range can cover at most 6 hours.
+
+```bash
+curl -X POST https://api.prosopo.io/getlivesessions \
+  -H "Authorization: Bearer YOUR_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "token": "-",
+    "accountId": "-",
+    "siteKeys": ["YOUR_SITE_KEY"],
+    "topIpsLimit": 50,
+    "range": { "from": "2026-11-18T12:00:00Z", "to": "2026-11-18T13:00:00Z" }
+  }'
+```
 
 ## Audit records
 
