@@ -76,6 +76,41 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('findPullRequest', () => {
+		it('should get a pull request', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls/7': {
+					status: 200,
+					body: { ...PULL_REQUEST_DATA, merged: true },
+				},
+			});
+
+			const pullRequest = await new GitHubRepository(octokit, NAME).findPullRequest(7);
+
+			assert.equal(pullRequest?.merged, true);
+		});
+
+		it('should return null for a pull request that does not exist', async () => {
+			const { octokit } = createFakeOctokit({});
+
+			assert.equal(await new GitHubRepository(octokit, NAME).findPullRequest(7), null);
+		});
+
+		it('should throw on other errors', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls/7': {
+					status: 401,
+					body: { message: 'Bad credentials' },
+				},
+			});
+
+			await assert.rejects(
+				new GitHubRepository(octokit, NAME).findPullRequest(7),
+				/Bad credentials/
+			);
+		});
+	});
+
 	describe('getOpenPullRequestsFromBranch', () => {
 		it('should filter the open pull requests by a branch of the owner', async () => {
 			const { octokit } = createFakeOctokit({
@@ -162,6 +197,28 @@ describe('GitHubRepository', () => {
 				repository.waitForMergeability({ number: 7, mergeable: null }),
 				/Bad credentials/
 			);
+		});
+	});
+
+	describe('getReviews', () => {
+		it('should get the reviews as GitHub sends them', async () => {
+			const review = {
+				id: 1,
+				user: { login: 'github-actions[bot]', id: 2 },
+				state: 'CHANGES_REQUESTED',
+				body: 'Checklist',
+				commit_id: 'sha-50',
+			};
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/pulls/50/reviews?per_page=100': {
+					status: 200,
+					body: [review],
+				},
+			});
+
+			const reviews = await new GitHubRepository(octokit, NAME).getReviews(50);
+
+			assert.deepEqual(reviews, [review]);
 		});
 	});
 
@@ -420,6 +477,22 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('compare', () => {
+		it('should get the commits of head missing in base', async () => {
+			const commit = { sha: 'sha-7', commit: { message: 'Document feature 7 (#7)', tree: {} } };
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/compare/main...umbrella/main': {
+					status: 200,
+					body: { ahead_by: 1, behind_by: 0, files: [], commits: [commit] },
+				},
+			});
+
+			const comparison = await new GitHubRepository(octokit, NAME).compare('main', 'umbrella/main');
+
+			assert.deepEqual(comparison.commits, [commit]);
+		});
+	});
+
 	describe('createBranch', () => {
 		it('should create the branch at a commit', async () => {
 			const { octokit, requests } = createFakeOctokit({
@@ -532,6 +605,48 @@ describe('GitHubRepository', () => {
 				new GitHubRepository(octokit, NAME).squashMergePullRequest(7, { expectedHeadSha: 'sha-7' }),
 				(error) => error instanceof GitHubError && error.apiMessage === 'Head branch was modified.'
 			);
+		});
+	});
+
+	describe('addLabels', () => {
+		it('should add the labels to the pull request', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'POST /repos/example-org/docs/issues/50/labels': { status: 200, body: [] },
+			});
+
+			await new GitHubRepository(octokit, NAME).addLabels(50, [
+				'merge-on-release',
+				'minor-release',
+			]);
+
+			assert.deepEqual(requests[0].body, { labels: ['merge-on-release', 'minor-release'] });
+		});
+	});
+
+	describe('requestChanges', () => {
+		it('should submit a review requesting changes', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'POST /repos/example-org/docs/pulls/50/reviews': { status: 200, body: { id: 1 } },
+			});
+
+			await new GitHubRepository(octokit, NAME).requestChanges(50, 'Checklist');
+
+			assert.deepEqual(requests[0].body, { event: 'REQUEST_CHANGES', body: 'Checklist' });
+		});
+	});
+
+	describe('updateReview', () => {
+		it('should change the text of the review', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'PUT /repos/example-org/docs/pulls/50/reviews/1': { status: 200, body: { id: 1 } },
+			});
+
+			await new GitHubRepository(octokit, NAME).updateReview(50, {
+				reviewId: 1,
+				body: 'Checklist',
+			});
+
+			assert.deepEqual(requests[0].body, { body: 'Checklist' });
 		});
 	});
 

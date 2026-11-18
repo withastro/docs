@@ -19,7 +19,11 @@ const NO_RELEASES = { stable: null, prerelease: null };
 
 /** Builds the state of a run starting with the open PRs of the fake repository. */
 async function buildState(docs: FakeRepository) {
-	return { releases: NO_RELEASES, openPullRequests: await docs.getOpenPullRequests() };
+	return {
+		releases: NO_RELEASES,
+		settledBaseBranches: [],
+		openPullRequests: await docs.getOpenPullRequests(),
+	};
 }
 
 /**
@@ -258,6 +262,7 @@ describe('joinAcceptedPullRequests', () => {
 			method: 'createComment',
 			args: [7, renderUmbrellaFailureComment(MAIN_BRANCHES, reason)],
 		});
+		assert.ok(!docs.writes.some(({ method }) => method === 'addLabels'));
 	});
 
 	it('should take the accepted PRs from the state of the run, without listing them again', async (t) => {

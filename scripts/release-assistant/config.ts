@@ -7,6 +7,7 @@ export const MODES = {
 export type Mode = (typeof MODES)[keyof typeof MODES];
 
 export const ACCEPTED_LABEL = 'accepted';
+export const UMBRELLA_LABEL = 'merge-on-release';
 
 /** The name of `.github/workflows/release-assistant-trigger.yml`. */
 export const TRIGGER_WORKFLOW_NAME = 'Release assistant trigger';
@@ -43,3 +44,10 @@ export const FRAMEWORK_RELEASE_BRANCHES = {
 };
 /** Changesets writes this file on the framework's prerelease branch while it is in pre mode. */
 export const FRAMEWORK_PRE_MODE_FILE = { path: '.changeset/pre.json', ref: 'next' };
+
+/** Set by the labeler on PRs that change translations. */
+export const I18N_LABEL = 'i18n';
+/** Tells Lunaria to track the English pages an umbrella changes. */
+export const LUNARIA_DIRECTIVE_EXAMPLE = '@lunaria-track:src/content/docs/en/**.mdx';
+export const LUNARIA_DIRECTIVE_GUIDE =
+	'https://lunaria.dev/guides/tracking/#triggering-changes-per-file';

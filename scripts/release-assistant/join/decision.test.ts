@@ -21,6 +21,7 @@ const READY: Readiness = {
 
 type RoutingStateFixture = {
 	stableReleaseType?: ReleaseType;
+	settledBaseBranches?: string[];
 	readiness?: Readiness;
 };
 
@@ -28,11 +29,11 @@ type RoutingStateFixture = {
 function route(
 	baseBranch: string,
 	labels: string[],
-	{ stableReleaseType, readiness = READY }: RoutingStateFixture = {}
+	{ stableReleaseType, settledBaseBranches = [], readiness = READY }: RoutingStateFixture = {}
 ) {
 	const stable = stableReleaseType ? { type: stableReleaseType } : null;
 	return decideJoin(buildPullRequest({ baseBranch, labels }), {
-		state: { releases: { stable } },
+		state: { releases: { stable }, settledBaseBranches },
 		readiness,
 	});
 }
@@ -132,6 +133,30 @@ describe('decideJoin', () => {
 		});
 
 		assert.equal(decision.outcome, OUTCOMES.join);
+	});
+
+	it('should refuse a PR it would move into a settled umbrella', () => {
+		const refusal = { outcome: OUTCOMES.refuse, reasons: [REFUSAL_REASONS.settledUmbrella] };
+		const state = { settledBaseBranches: ['main', 'cloudflare-next'] };
+
+		assert.deepEqual(route('main', ['minor-release'], state), {
+			...refusal,
+			branches: MAIN_BRANCHES,
+		});
+		assert.deepEqual(route('cloudflare-next', ['major-release'], state), {
+			...refusal,
+			branches: CLOUDFLARE_NEXT_BRANCHES,
+		});
+	});
+
+	it('should route a PR based on the branch of a settled umbrella', () => {
+		const state = { settledBaseBranches: ['main', 'cloudflare-next'] };
+
+		assert.equal(route('umbrella/main', ['minor-release'], state).outcome, OUTCOMES.join);
+		assert.equal(
+			route('umbrella/cloudflare-next', ['major-release'], state).outcome,
+			OUTCOMES.join
+		);
 	});
 
 	it('should give every routing reason at once', () => {

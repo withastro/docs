@@ -256,7 +256,8 @@ async function findUmbrellaPrNumber(docs: Repository, branches: UmbrellaBranches
 }
 
 /**
- * Opens the umbrella PR, or comments on the docs PR when GitHub refuses.
+ * Opens the umbrella PR, or comments on the docs PR when GitHub refuses. The
+ * refresh adds the labels.
  *
  * GitHub only opens a PR from a branch with commits that its base lacks, so
  * the umbrella PR is opened after the first docs PR is merged.

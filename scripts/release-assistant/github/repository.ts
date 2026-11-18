@@ -2,7 +2,12 @@ import { setTimeout } from 'node:timers/promises';
 import type { getOctokit } from '@actions/github';
 import { toChecks, type Check } from './checks.ts';
 import { GitHubError, orNullWhenNotFound, send } from './errors.ts';
-import { isDecisiveReviewState, type ReviewState } from './reviews.ts';
+import {
+	isDecisiveReviewState,
+	type Review,
+	type ReviewState,
+	type ReviewUpdate,
+} from './reviews.ts';
 
 /** The client `actions/github-script` gives its script. */
 export type Octokit = ReturnType<typeof getOctokit>;
@@ -22,6 +27,7 @@ const FILE_CONTENT_ENCODING = 'base64';
 const MERGEABILITY_RETRY_COUNT = 5;
 const MERGEABILITY_RETRY_DELAY_MS = 2000;
 const SQUASH_MERGE_METHOD = 'squash';
+const REQUEST_CHANGES_EVENT = 'REQUEST_CHANGES';
 
 /** The fields of a pull request the release assistant reads, as GitHub names them. */
 export type PullRequest = {
@@ -50,6 +56,12 @@ export type PullRequestDetails = PullRequest & {
 	 */
 	mergeable: boolean | null;
 	merged: boolean;
+};
+
+/** The commits of a branch that its base lacks. */
+export type Comparison = {
+	/** At most 250 commits, oldest first. */
+	commits: { sha: string; commit: { message: string } }[];
 };
 
 /** The number of a pull request the release assistant opened. */
@@ -136,6 +148,17 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Gets a pull request that may not exist.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<PullRequestDetails | null>} The pull request, or `null` when GitHub answers "Not Found" (e.g. a missing pull request or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 */
+	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
+		return orNullWhenNotFound(() => this.getPullRequest(prNumber));
+	}
+
+	/**
 	 * Gets the open pull requests from a branch of the repository's owner,
 	 * newest first. GitHub filters by owner and branch, so a fork's branch with
 	 * the same name is left out.
@@ -178,6 +201,23 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Gets all the reviews of a pull request, oldest first.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<Review[]>} The reviews, pending ones included.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async getReviews(prNumber: number): Promise<Review[]> {
+		return send(() =>
+			this.#octokit.paginate(this.#octokit.rest.pulls.listReviews, {
+				...this.#name,
+				pull_number: prNumber,
+				per_page: MAX_PAGE_SIZE,
+			})
+		);
+	}
+
+	/**
 	 * Gets the current review state of each reviewer of a pull request.
 	 *
 	 * A reviewer's latest approval, change request, or dismissal is their state.
@@ -189,15 +229,8 @@ export class GitHubRepository {
 	 * @throws {GitHubError} When GitHub answers with an error status.
 	 */
 	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
-		const reviews = await send(() =>
-			this.#octokit.paginate(this.#octokit.rest.pulls.listReviews, {
-				...this.#name,
-				pull_number: prNumber,
-				per_page: MAX_PAGE_SIZE,
-			})
-		);
 		const statesByLogin = new Map<string, ReviewState>();
-		for (const { user, state } of reviews) {
+		for (const { user, state } of await this.getReviews(prNumber)) {
 			if (user && isDecisiveReviewState(state)) statesByLogin.set(user.login, state);
 		}
 		return statesByLogin;
@@ -304,6 +337,24 @@ export class GitHubRepository {
 	}
 
 	/**
+	 * Compares two branches of the repository.
+	 *
+	 * @param {string} base - The branch to compare with.
+	 * @param {string} head - The branch compared to `base`.
+	 * @returns {Promise<Comparison>} The commits of `head` missing in `base`.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async compare(base: string, head: string): Promise<Comparison> {
+		const { data } = await send(() =>
+			this.#octokit.rest.repos.compareCommitsWithBasehead({
+				...this.#name,
+				basehead: `${base}...${head}`,
+			})
+		);
+		return data;
+	}
+
+	/**
 	 * Creates a branch.
 	 *
 	 * @param {string} branch - The name of the branch, without `refs/heads/`.
@@ -364,6 +415,61 @@ export class GitHubRepository {
 				merge_method: SQUASH_MERGE_METHOD,
 				sha: expectedHeadSha,
 				commit_title: commitTitle,
+			})
+		);
+	}
+
+	/**
+	 * Adds labels to a pull request, keeping the labels it already has.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {readonly string[]} labels - The names of the labels.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async addLabels(prNumber: number, labels: readonly string[]): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.issues.addLabels({
+				...this.#name,
+				issue_number: prNumber,
+				labels: [...labels],
+			})
+		);
+	}
+
+	/**
+	 * Submits a review requesting changes, which blocks the merge when the base
+	 * branch requires approvals. The token's account can't be the author of
+	 * the pull request.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {string} body - Why the pull request can't be merged, in Markdown.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async requestChanges(prNumber: number, body: string): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.pulls.createReview({
+				...this.#name,
+				pull_number: prNumber,
+				event: REQUEST_CHANGES_EVENT,
+				body,
+			})
+		);
+	}
+
+	/**
+	 * Changes the text of a review.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {ReviewUpdate} update - The review to change, and its new text.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async updateReview(prNumber: number, { reviewId, body }: ReviewUpdate): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.pulls.updateReview({
+				...this.#name,
+				pull_number: prNumber,
+				review_id: reviewId,
+				body,
 			})
 		);
 	}

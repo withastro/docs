@@ -1,6 +1,7 @@
 import type { Check } from './checks.ts';
 import { GitHubError } from './errors.ts';
 import type {
+	Comparison,
 	CreatedPullRequest,
 	NewPullRequest,
 	PullRequest,
@@ -9,7 +10,7 @@ import type {
 	Repository,
 	SquashMergeOptions,
 } from './repository.ts';
-import type { ReviewState } from './reviews.ts';
+import type { Review, ReviewState, ReviewUpdate } from './reviews.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 export const MAINTAINER = 'example-maintainer';
@@ -31,6 +32,7 @@ type PullRequestFixture = {
 
 export type FakeRepositoryState = {
 	pullRequests?: PullRequestDetails[];
+	reviewsByPrNumber?: Record<number, Review[]>;
 	/** The current review state of each reviewer, by login, as GitHub counts it. */
 	reviewStatesByPrNumber?: Record<number, Record<string, ReviewState>>;
 	/** Users with write access. */
@@ -40,6 +42,8 @@ export type FakeRepositoryState = {
 	branchShas?: Record<string, string>;
 	/** The text of each file, by `<ref>:<path>`. */
 	files?: Record<string, string>;
+	/** The comparison of two branches, by `<base>...<head>`. */
+	comparisons?: Record<string, Comparison>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -86,19 +90,23 @@ export class FakeRepository implements Repository {
 
 	constructor({
 		pullRequests = [],
+		reviewsByPrNumber = {},
 		reviewStatesByPrNumber = {},
 		maintainers = [MAINTAINER],
 		checksByRef = {},
 		branchShas = { main: 'sha-main' },
 		files = {},
+		comparisons = {},
 	}: FakeRepositoryState) {
 		this.#state = {
 			pullRequests,
+			reviewsByPrNumber,
 			reviewStatesByPrNumber,
 			maintainers,
 			checksByRef,
 			branchShas,
 			files,
+			comparisons,
 		};
 	}
 
@@ -113,7 +121,7 @@ export class FakeRepository implements Repository {
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
-		const pullRequest = this.#state.pullRequests.find(({ number }) => number === prNumber);
+		const pullRequest = await this.findPullRequest(prNumber);
 		if (!pullRequest) {
 			throw new GitHubError({
 				message: `GET /repos/${FAKE_REPOSITORY_NAME}/pulls/${prNumber} failed with 404: Not Found`,
@@ -124,12 +132,20 @@ export class FakeRepository implements Repository {
 		return pullRequest;
 	}
 
+	async findPullRequest(prNumber: number): Promise<PullRequestDetails | null> {
+		return this.#state.pullRequests.find(({ number }) => number === prNumber) ?? null;
+	}
+
 	/** Asks for the pull request again when GitHub had not checked it yet, without waiting. */
 	async waitForMergeability(
 		pullRequest: Pick<PullRequestDetails, 'number' | 'mergeable'>
 	): Promise<boolean | null> {
 		if (pullRequest.mergeable !== null) return pullRequest.mergeable;
 		return (await this.getPullRequest(pullRequest.number)).mergeable;
+	}
+
+	async getReviews(prNumber: number): Promise<Review[]> {
+		return this.#state.reviewsByPrNumber[prNumber] ?? [];
 	}
 
 	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
@@ -152,6 +168,10 @@ export class FakeRepository implements Repository {
 		return this.#state.branchShas[branch] ?? null;
 	}
 
+	async compare(base: string, head: string): Promise<Comparison> {
+		return this.#state.comparisons[`${base}...${head}`] ?? { commits: [] };
+	}
+
 	async createBranch(branch: string, sha: string): Promise<void> {
 		this.writes.push({ method: 'createBranch', args: [branch, sha] });
 	}
@@ -169,11 +189,23 @@ export class FakeRepository implements Repository {
 		this.writes.push({ method: 'squashMergePullRequest', args: [prNumber, options] });
 	}
 
+	async addLabels(prNumber: number, labels: readonly string[]): Promise<void> {
+		this.writes.push({ method: 'addLabels', args: [prNumber, labels] });
+	}
+
 	async removeLabel(prNumber: number, label: string): Promise<void> {
 		this.writes.push({ method: 'removeLabel', args: [prNumber, label] });
 	}
 
 	async createComment(prNumber: number, body: string): Promise<void> {
 		this.writes.push({ method: 'createComment', args: [prNumber, body] });
+	}
+
+	async requestChanges(prNumber: number, body: string): Promise<void> {
+		this.writes.push({ method: 'requestChanges', args: [prNumber, body] });
+	}
+
+	async updateReview(prNumber: number, update: ReviewUpdate): Promise<void> {
+		this.writes.push({ method: 'updateReview', args: [prNumber, update] });
 	}
 }

@@ -1,4 +1,4 @@
-# Moves accepted docs PRs into the umbrella PR of their release.
+# Moves accepted docs PRs into the umbrella PR of their release, and refreshes the umbrella PRs.
 
 name: Release assistant
 
@@ -8,6 +8,7 @@ on:
   workflow_run:
     workflows: [Release assistant trigger]
     types: [completed]
+  workflow_dispatch:
 
 permissions: {}
 
@@ -15,7 +16,8 @@ jobs:
   release-assistant:
     name: Run the release assistant
     if: >-
-      github.repository_owner == 'withastro' && github.event.workflow_run.conclusion == 'success'
+      github.repository_owner == 'withastro' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
     # One run at a time, so that two runs never act on the same umbrella.
     # Set on the job, so that a skipped run doesn't cancel a pending one.
     concurrency:
@@ -25,6 +27,8 @@ jobs:
     timeout-minutes: 10
     permissions:
       contents: read
+      # `GITHUB_TOKEN` submits the review that blocks the merge of an umbrella PR.
+      pull-requests: write
     steps:
       - name: Check out the default branch
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -35,6 +39,7 @@ jobs:
       - name: Run `scripts/release-assistant.ts`
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
+          # GitHub doesn't let the bot review the umbrella PRs it opens.
           GITHUB_TOKEN: ${{ github.token }}
         with:
           github-token: ${{ secrets.FREDKBOT_GITHUB_TOKEN }}

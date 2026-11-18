@@ -1,5 +1,6 @@
-// Moves the docs PRs with the accepted label into their umbrella PR. Run by
-// `.github/workflows/release-assistant.yml`, through `actions/github-script`.
+// Moves the docs PRs with the accepted label into their umbrella PR, and
+// refreshes the umbrella PRs. Run by `.github/workflows/release-assistant.yml`,
+// through `actions/github-script`.
 
 import type { context as actionsContext } from '@actions/github';
 import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-assistant/config.ts';
@@ -9,7 +10,10 @@ import { runDryRun, runLiveMode, type ReleaseAssistantContext } from './release-
 type RunOptions = {
 	/** The client `actions/github-script` creates, with the bot token. */
 	github: Octokit;
-	/** A client with the workflow's `GITHUB_TOKEN`. It reads the framework repository. */
+	/**
+	 * A client with the workflow's `GITHUB_TOKEN`. It reads the framework
+	 * repository and reviews the umbrella PRs.
+	 */
 	workflowGithub: Octokit;
 	/** The workflow run, as `actions/github-script` gives it. */
 	context: Pick<typeof actionsContext, 'repo'>;
@@ -33,6 +37,7 @@ export async function runReleaseAssistant({
 	const runContext: ReleaseAssistantContext = {
 		docs: new GitHubRepository(github, context.repo),
 		astro: new GitHubRepository(workflowGithub, FRAMEWORK_REPOSITORY),
+		reviewer: new GitHubRepository(workflowGithub, context.repo),
 		log: console.info,
 	};
 

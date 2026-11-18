@@ -14,6 +14,23 @@ const DECISIVE_REVIEW_STATES: string[] = [
 	REVIEW_STATES.dismissed,
 ];
 
+/** The fields of a review the release assistant reads, as GitHub names them. */
+export type Review = {
+	id: number;
+	/** `null` when the account was deleted. */
+	user: { login: string } | null;
+	/** One of `REVIEW_STATES`. */
+	state: string;
+	/** The text of the review, in Markdown. Empty when the reviewer wrote none. */
+	body: string;
+};
+
+export type ReviewUpdate = {
+	reviewId: number;
+	/** The new text, in Markdown. */
+	body: string;
+};
+
 /**
  * Tells whether a review state replaces the reviewer's earlier ones.
  *
