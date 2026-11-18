@@ -1,5 +1,8 @@
+import { setTimeout } from 'node:timers/promises';
 import type { getOctokit } from '@actions/github';
-import { GitHubError, send } from './errors.ts';
+import { toChecks, type Check } from './checks.ts';
+import { GitHubError, orNullWhenNotFound, send } from './errors.ts';
+import { isDecisiveReviewState, type ReviewState } from './reviews.ts';
 
 /** The client `actions/github-script` gives its script. */
 export type Octokit = ReturnType<typeof getOctokit>;
@@ -11,6 +14,13 @@ export type RepositoryName = { owner: string; repo: string };
 const MISSING_LABEL_MESSAGE = 'Label does not exist';
 /** The largest page GitHub sends. */
 const MAX_PAGE_SIZE = 100;
+/** The permissions that allow pushing. The endpoint reports the maintain role as `write`. */
+const WRITE_PERMISSIONS = ['admin', 'write'];
+const FILE_CONTENT_TYPE = 'file';
+/** The encoding of file contents up to 1 MB. Larger files come without their content. */
+const FILE_CONTENT_ENCODING = 'base64';
+const MERGEABILITY_RETRY_COUNT = 5;
+const MERGEABILITY_RETRY_DELAY_MS = 2000;
 
 /** The fields of a pull request the release assistant reads, as GitHub names them. */
 export type PullRequest = {
@@ -41,21 +51,33 @@ export type PullRequestDetails = PullRequest & {
 	merged: boolean;
 };
 
+type RepositoryOptions = {
+	/** Waits between two requests that poll GitHub. */
+	wait?: (delayMs: number) => Promise<void>;
+};
+
 /** Reads and changes a GitHub repository through an Octokit client. */
 export class GitHubRepository {
 	/** As `owner/repo`. */
 	readonly fullName: string;
 	readonly #octokit: Octokit;
 	readonly #name: RepositoryName;
+	readonly #wait: (delayMs: number) => Promise<void>;
 
 	/**
 	 * @param {Octokit} octokit - The client, authenticated with the token that acts on the repository.
 	 * @param {RepositoryName} name - The owner and the name of the repository.
+	 * @param {RepositoryOptions} [options] - How to wait between two requests that poll GitHub.
 	 */
-	constructor(octokit: Octokit, name: RepositoryName) {
+	constructor(
+		octokit: Octokit,
+		name: RepositoryName,
+		{ wait = setTimeout }: RepositoryOptions = {}
+	) {
 		this.fullName = `${name.owner}/${name.repo}`;
 		this.#octokit = octokit;
 		this.#name = name;
+		this.#wait = wait;
 	}
 
 	/**
@@ -86,6 +108,160 @@ export class GitHubRepository {
 			this.#octokit.rest.pulls.get({ ...this.#name, pull_number: prNumber })
 		);
 		return data;
+	}
+
+	/**
+	 * Gets the open pull requests from a branch of the repository's owner,
+	 * newest first. GitHub filters by owner and branch, so a fork's branch with
+	 * the same name is left out.
+	 *
+	 * @param {string} branch - The name of the head branch.
+	 * @returns {Promise<PullRequest[]>} The open pull requests from the branch.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequest[]> {
+		return send(() =>
+			this.#octokit.paginate(this.#octokit.rest.pulls.list, {
+				...this.#name,
+				state: 'open',
+				head: `${this.#name.owner}:${branch}`,
+				per_page: MAX_PAGE_SIZE,
+			})
+		);
+	}
+
+	/**
+	 * Gets whether a pull request can be merged without conflicts.
+	 *
+	 * GitHub checks in the background after the first request for the pull
+	 * request, so its `mergeable` is `null` until then. This asks again, a few
+	 * times, a few seconds apart.
+	 *
+	 * @param {Pick<PullRequestDetails, 'number' | 'mergeable'>} pullRequest - The pull request, as last read.
+	 * @returns {Promise<boolean | null>} Whether it can be merged, or `null` when GitHub took too long to check.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async waitForMergeability(
+		pullRequest: Pick<PullRequestDetails, 'number' | 'mergeable'>
+	): Promise<boolean | null> {
+		let { mergeable } = pullRequest;
+		for (let retry = 0; mergeable === null && retry < MERGEABILITY_RETRY_COUNT; retry++) {
+			await this.#wait(MERGEABILITY_RETRY_DELAY_MS);
+			({ mergeable } = await this.getPullRequest(pullRequest.number));
+		}
+		return mergeable;
+	}
+
+	/**
+	 * Gets the current review state of each reviewer of a pull request.
+	 *
+	 * A reviewer's latest approval, change request, or dismissal is their state.
+	 * Comments and pending reviews change nothing. The reviews of a deleted
+	 * account are left out.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @returns {Promise<Map<string, ReviewState>>} The state of each reviewer, by login.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
+		const reviews = await send(() =>
+			this.#octokit.paginate(this.#octokit.rest.pulls.listReviews, {
+				...this.#name,
+				pull_number: prNumber,
+				per_page: MAX_PAGE_SIZE,
+			})
+		);
+		const statesByLogin = new Map<string, ReviewState>();
+		for (const { user, state } of reviews) {
+			if (user && isDecisiveReviewState(state)) statesByLogin.set(user.login, state);
+		}
+		return statesByLogin;
+	}
+
+	/**
+	 * Tells whether a user can push to the repository.
+	 *
+	 * @param {string} login - The login of the user.
+	 * @returns {Promise<boolean>} `true` for the write, maintain, and admin roles. `false` for a user GitHub does not find.
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 */
+	async hasWriteAccess(login: string): Promise<boolean> {
+		const response = await orNullWhenNotFound(() =>
+			this.#octokit.rest.repos.getCollaboratorPermissionLevel({ ...this.#name, username: login })
+		);
+		return response !== null && WRITE_PERMISSIONS.includes(response.data.permission);
+	}
+
+	/**
+	 * Gets the checks of a commit: its check runs, its commit statuses, then its
+	 * workflow runs waiting for approval. Only the latest run of each check counts.
+	 *
+	 * @param {string} sha - The SHA of the commit, usually the head SHA of a PR.
+	 * @returns {Promise<Check[]>} The checks with their outcome.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 * @throws {Error} When the commit has more statuses than one page.
+	 */
+	async getChecks(sha: string): Promise<Check[]> {
+		const [checkRuns, combinedStatus, waitingRuns] = await Promise.all([
+			send(() =>
+				this.#octokit.paginate(this.#octokit.rest.checks.listForRef, {
+					...this.#name,
+					ref: sha,
+					per_page: MAX_PAGE_SIZE,
+				})
+			),
+			send(() =>
+				this.#octokit.rest.repos.getCombinedStatusForRef({
+					...this.#name,
+					ref: sha,
+					per_page: MAX_PAGE_SIZE,
+				})
+			),
+			send(() =>
+				this.#octokit.paginate(this.#octokit.rest.actions.listWorkflowRunsForRepo, {
+					...this.#name,
+					head_sha: sha,
+					status: 'action_required',
+					per_page: MAX_PAGE_SIZE,
+				})
+			),
+		]);
+		// The combined status has one status per context, without the links to later pages.
+		const { statuses, total_count } = combinedStatus.data;
+		if (total_count > statuses.length) {
+			throw new Error(
+				`Could not read every status of ${sha} in ${this.fullName}: ${total_count} statuses, ${MAX_PAGE_SIZE} per page.`
+			);
+		}
+		return toChecks(checkRuns, statuses, waitingRuns);
+	}
+
+	/**
+	 * Gets the text of a file, decoded as UTF-8.
+	 *
+	 * @param {string} path - The file path in the repository, without a leading slash.
+	 * @param {string} ref - The SHA, branch, or tag to read the file from.
+	 * @returns {Promise<string | null>} The text, or `null` when GitHub answers "Not Found" (e.g. a missing file, ref, or repository).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 * @throws {Error} When the path is a directory.
+	 * @throws {Error} When the file is too large to come with its content.
+	 */
+	async getFileContent(path: string, ref: string): Promise<string | null> {
+		const response = await orNullWhenNotFound(() =>
+			this.#octokit.rest.repos.getContent({ ...this.#name, path, ref })
+		);
+		if (response === null) return null;
+
+		const { data } = response;
+		if (Array.isArray(data) || data.type !== FILE_CONTENT_TYPE) {
+			throw new Error(`${path} on ${ref} in ${this.fullName} is not a file.`);
+		}
+		if (!('encoding' in data) || data.encoding !== FILE_CONTENT_ENCODING) {
+			throw new Error(
+				`${path} on ${ref} in ${this.fullName} is too large to come with its content.`
+			);
+		}
+		return Buffer.from(data.content, FILE_CONTENT_ENCODING).toString('utf8');
 	}
 
 	/**

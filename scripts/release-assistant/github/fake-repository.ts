@@ -1,7 +1,10 @@
+import type { Check } from './checks.ts';
 import { GitHubError } from './errors.ts';
-import type { PullRequestDetails, Repository } from './repository.ts';
+import type { PullRequest, PullRequestDetails, Repository } from './repository.ts';
+import type { ReviewState } from './reviews.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
+export const MAINTAINER = 'example-maintainer';
 
 type PullRequestFixture = {
 	number?: number;
@@ -16,8 +19,15 @@ type PullRequestFixture = {
 	isMerged?: boolean;
 };
 
-type FakeRepositoryState = {
+export type FakeRepositoryState = {
 	pullRequests?: PullRequestDetails[];
+	/** The current review state of each reviewer, by login, as GitHub counts it. */
+	reviewStatesByPrNumber?: Record<number, Record<string, ReviewState>>;
+	/** Users with write access. */
+	maintainers?: string[];
+	checksByRef?: Record<string, Check[]>;
+	/** The text of each file, by `<ref>:<path>`. */
+	files?: Record<string, string>;
 };
 
 type Write = { method: string; args: unknown[] };
@@ -62,12 +72,30 @@ export class FakeRepository implements Repository {
 	readonly writes: Write[] = [];
 	#state: Required<FakeRepositoryState>;
 
-	constructor({ pullRequests = [] }: FakeRepositoryState) {
-		this.#state = { pullRequests };
+	constructor({
+		pullRequests = [],
+		reviewStatesByPrNumber = {},
+		maintainers = [MAINTAINER],
+		checksByRef = {},
+		files = {},
+	}: FakeRepositoryState) {
+		this.#state = {
+			pullRequests,
+			reviewStatesByPrNumber,
+			maintainers,
+			checksByRef,
+			files,
+		};
 	}
 
 	async getOpenPullRequests(): Promise<PullRequestDetails[]> {
 		return this.#state.pullRequests;
+	}
+
+	async getOpenPullRequestsFromBranch(branch: string): Promise<PullRequest[]> {
+		return this.#state.pullRequests.filter(
+			({ head }) => head.ref === branch && head.repo?.full_name === this.fullName
+		);
 	}
 
 	async getPullRequest(prNumber: number): Promise<PullRequestDetails> {
@@ -80,6 +108,30 @@ export class FakeRepository implements Repository {
 			});
 		}
 		return pullRequest;
+	}
+
+	/** Asks for the pull request again when GitHub had not checked it yet, without waiting. */
+	async waitForMergeability(
+		pullRequest: Pick<PullRequestDetails, 'number' | 'mergeable'>
+	): Promise<boolean | null> {
+		if (pullRequest.mergeable !== null) return pullRequest.mergeable;
+		return (await this.getPullRequest(pullRequest.number)).mergeable;
+	}
+
+	async getLatestReviewStates(prNumber: number): Promise<Map<string, ReviewState>> {
+		return new Map(Object.entries(this.#state.reviewStatesByPrNumber[prNumber] ?? {}));
+	}
+
+	async hasWriteAccess(login: string): Promise<boolean> {
+		return this.#state.maintainers.includes(login);
+	}
+
+	async getChecks(sha: string): Promise<Check[]> {
+		return this.#state.checksByRef[sha] ?? [];
+	}
+
+	async getFileContent(path: string, ref: string): Promise<string | null> {
+		return this.#state.files[`${ref}:${path}`] ?? null;
 	}
 
 	async removeLabel(prNumber: number, label: string): Promise<void> {
