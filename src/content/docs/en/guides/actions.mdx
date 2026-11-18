@@ -369,7 +369,7 @@ The following example shows a validated newsletter registration form that accept
 
 3. Define a `newsletter` action to handle the submitted form. Parse and validate the fields in the handler:
 
-    ```ts title="src/actions/index.ts" ins={5-12}
+    ```ts title="src/actions/index.ts" ins={8-17}
     import { parseFormData } from '@standard-community/standard-form';
     import { ActionInputError, defineAction } from 'astro:actions';
     import { z } from 'astro/zod';
@@ -425,11 +425,11 @@ The following example shows a validated newsletter registration form that accept
 
 ### Displaying form input errors
 
-You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`. Astro creates an input error when an action's `input` validator fails. Use [`isInputError()`](/en/reference/modules/astro-actions/#isinputerror) to identify these errors. Form actions that use `input` rely on deprecated Zod-only behavior.
+You can validate form inputs before submission using [native HTML form validation attributes](https://developer.mozilla.org/en-US/docs/Learn/Forms/Form_validation#using_built-in_form_validation) like `required`, `type="email"`, and `pattern`.
 
-To retrieve input errors, use `isInputError()` to check whether an error was caused by invalid input. Input errors contain a `fields` object with messages for each input name that failed to validate. You can use these messages to prompt your user to correct their submission.
+For more complex validation on the backend, throw an [`ActionInputError`](/en/reference/modules/astro-actions/#actioninputerror) from your handler. You can then check whether an error was caused by invalid input with [`isInputError()`](/en/reference/modules/astro-actions/#isinputerror). Input errors contain a `fields` object with messages for each input name that failed to validate. You can use these messages to prompt your user to correct their submission.
 
-The following legacy example defines a form action with an `input` validator. Astro parses and validates the form data, then creates an input error if validation fails. Use JavaScript DOM manipulation or your preferred UI framework to display the error.
+The following example checks the error with `isInputError()`, then checks whether the error is in the email field, before finally creating a message from the errors. You can use JavaScript DOM manipulation or your preferred UI framework to display this message to users.
 
 ```ts title="src/actions/index.ts"
 import { defineAction } from 'astro:actions';
@@ -484,7 +484,7 @@ import { actions } from 'astro:actions';
 </form>
 ```
 
-Additional attributes on the `<form>` element may be necessary for proper schema validation with Zod. For example, to include file uploads, add `enctype="multipart/form-data"` to ensure that files are sent in a format correctly recognized by `z.instanceof(File)`:
+Additional attributes on the `<form>` element may be necessary for proper schema validation. For example, to include file uploads, add `enctype="multipart/form-data"` to ensure that files are sent in a format correctly recognized by `z.instanceof(File)`:
 
 ```astro title="src/components/FileUploadForm.astro"
 ---
@@ -503,16 +503,20 @@ If you need to redirect to a new route on success, you can use an action’s res
 
 For example, say you have a `createProduct` action that returns the generated product id:
 
-```ts title="src/actions/index.ts" mark={10}
-import { defineAction } from 'astro:actions';
+```ts title="src/actions/index.ts" mark={14}
+import { parseFormData } from '@standard-community/standard-form';
+import { ActionInputError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
+
+const productSchema = z.object({ /* ... */ });
 
 export const server = {
   createProduct: defineAction({
     accept: 'form',
-    input: z.object({ /* ... */ }),
-    handler: async (input) => {
-      const product = await persistToDatabase(input);
+    handler: async (formData) => {
+      const result = await parseFormData(productSchema, formData);
+      if (result.issues) throw new ActionInputError(result.issues);
+      const product = await persistToDatabase(result.value);
       return { id: product.id };
     },
   })
