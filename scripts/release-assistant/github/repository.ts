@@ -21,6 +21,7 @@ const FILE_CONTENT_TYPE = 'file';
 const FILE_CONTENT_ENCODING = 'base64';
 const MERGEABILITY_RETRY_COUNT = 5;
 const MERGEABILITY_RETRY_DELAY_MS = 2000;
+const SQUASH_MERGE_METHOD = 'squash';
 
 /** The fields of a pull request the release assistant reads, as GitHub names them. */
 export type PullRequest = {
@@ -49,6 +50,30 @@ export type PullRequestDetails = PullRequest & {
 	 */
 	mergeable: boolean | null;
 	merged: boolean;
+};
+
+/** The number of a pull request the release assistant opened. */
+export type CreatedPullRequest = Pick<PullRequest, 'number'>;
+
+export type NewPullRequest = {
+	title: string;
+	/** The branch to merge. */
+	head: string;
+	/** The branch to merge into. */
+	base: string;
+	body: string;
+};
+
+export type PullRequestChanges = {
+	title?: string;
+	/** The branch to merge into. */
+	base?: string;
+	body?: string;
+};
+
+export type SquashMergeOptions = {
+	expectedHeadSha: string;
+	commitTitle?: string;
 };
 
 type RepositoryOptions = {
@@ -262,6 +287,85 @@ export class GitHubRepository {
 			);
 		}
 		return Buffer.from(data.content, FILE_CONTENT_ENCODING).toString('utf8');
+	}
+
+	/**
+	 * Gets the commit at the head of a branch.
+	 *
+	 * @param {string} branch - The name of the branch, without `refs/heads/`.
+	 * @returns {Promise<string | null>} The SHA of the commit, or `null` when GitHub answers "Not Found" (e.g. a missing branch).
+	 * @throws {GitHubError} When GitHub answers with an error status other than "Not Found".
+	 */
+	async getBranchSha(branch: string): Promise<string | null> {
+		const response = await orNullWhenNotFound(() =>
+			this.#octokit.rest.git.getRef({ ...this.#name, ref: `heads/${branch}` })
+		);
+		return response && response.data.object.sha;
+	}
+
+	/**
+	 * Creates a branch.
+	 *
+	 * @param {string} branch - The name of the branch, without `refs/heads/`.
+	 * @param {string} sha - The commit the branch starts at.
+	 * @throws {GitHubError} When GitHub answers with an error status (e.g. an existing branch).
+	 */
+	async createBranch(branch: string, sha: string): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.git.createRef({ ...this.#name, ref: `refs/heads/${branch}`, sha })
+		);
+	}
+
+	/**
+	 * Opens a pull request.
+	 *
+	 * @param {NewPullRequest} pullRequest - The pull request to open.
+	 * @returns {Promise<CreatedPullRequest>} The number of the new pull request.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async createPullRequest(pullRequest: NewPullRequest): Promise<CreatedPullRequest> {
+		const { data } = await send(() =>
+			this.#octokit.rest.pulls.create({ ...this.#name, ...pullRequest })
+		);
+		return data;
+	}
+
+	/**
+	 * Changes the title, the base branch, or the description of a pull request.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {PullRequestChanges} changes - The fields to change. Omitted fields stay as they are.
+	 * @throws {GitHubError} When GitHub answers with an error status.
+	 */
+	async updatePullRequest(prNumber: number, changes: PullRequestChanges): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.pulls.update({ ...this.#name, pull_number: prNumber, ...changes })
+		);
+	}
+
+	/**
+	 * Squash-merges a pull request, if its head is still the expected commit.
+	 *
+	 * The expected head is usually the one whose checks passed, so a commit
+	 * pushed after them is not merged.
+	 *
+	 * @param {number} prNumber - The number of the pull request.
+	 * @param {SquashMergeOptions} options - The expected head, and the title of the commit.
+	 * @throws {GitHubError} When GitHub refuses the merge, for example when the head changed.
+	 */
+	async squashMergePullRequest(
+		prNumber: number,
+		{ expectedHeadSha, commitTitle }: SquashMergeOptions
+	): Promise<void> {
+		await send(() =>
+			this.#octokit.rest.pulls.merge({
+				...this.#name,
+				pull_number: prNumber,
+				merge_method: SQUASH_MERGE_METHOD,
+				sha: expectedHeadSha,
+				commit_title: commitTitle,
+			})
+		);
 	}
 
 	/**

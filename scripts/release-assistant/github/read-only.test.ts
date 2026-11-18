@@ -20,6 +20,22 @@ describe('addReadOnlyHook', () => {
 		assert.equal(requests.length, 1);
 	});
 
+	it('should answer a pull request it does not open with the number 0', async () => {
+		const { octokit, requests } = createFakeOctokit({});
+		addReadOnlyHook(octokit, () => {});
+
+		const { data } = await octokit.rest.pulls.create({
+			owner: 'example-org',
+			repo: 'docs',
+			title: 'Umbrella',
+			head: 'umbrella/main',
+			base: 'main',
+		});
+
+		assert.deepEqual(requests, []);
+		assert.equal(data.number, 0);
+	});
+
 	it('should log writes instead of sending them', async () => {
 		const { octokit, requests } = createFakeOctokit({});
 		const logs: string[] = [];

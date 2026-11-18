@@ -1,10 +1,20 @@
 import type { Check } from './checks.ts';
 import { GitHubError } from './errors.ts';
-import type { PullRequest, PullRequestDetails, Repository } from './repository.ts';
+import type {
+	CreatedPullRequest,
+	NewPullRequest,
+	PullRequest,
+	PullRequestChanges,
+	PullRequestDetails,
+	Repository,
+	SquashMergeOptions,
+} from './repository.ts';
 import type { ReviewState } from './reviews.ts';
 
 export const FAKE_REPOSITORY_NAME = 'example-org/docs';
 export const MAINTAINER = 'example-maintainer';
+/** The number the fake repository gives to the pull requests it creates. */
+export const CREATED_PR_NUMBER = 1000;
 
 type PullRequestFixture = {
 	number?: number;
@@ -26,6 +36,8 @@ export type FakeRepositoryState = {
 	/** Users with write access. */
 	maintainers?: string[];
 	checksByRef?: Record<string, Check[]>;
+	/** The SHA at the head of each branch. */
+	branchShas?: Record<string, string>;
 	/** The text of each file, by `<ref>:<path>`. */
 	files?: Record<string, string>;
 };
@@ -77,6 +89,7 @@ export class FakeRepository implements Repository {
 		reviewStatesByPrNumber = {},
 		maintainers = [MAINTAINER],
 		checksByRef = {},
+		branchShas = { main: 'sha-main' },
 		files = {},
 	}: FakeRepositoryState) {
 		this.#state = {
@@ -84,6 +97,7 @@ export class FakeRepository implements Repository {
 			reviewStatesByPrNumber,
 			maintainers,
 			checksByRef,
+			branchShas,
 			files,
 		};
 	}
@@ -132,6 +146,27 @@ export class FakeRepository implements Repository {
 
 	async getFileContent(path: string, ref: string): Promise<string | null> {
 		return this.#state.files[`${ref}:${path}`] ?? null;
+	}
+
+	async getBranchSha(branch: string): Promise<string | null> {
+		return this.#state.branchShas[branch] ?? null;
+	}
+
+	async createBranch(branch: string, sha: string): Promise<void> {
+		this.writes.push({ method: 'createBranch', args: [branch, sha] });
+	}
+
+	async createPullRequest(pullRequest: NewPullRequest): Promise<CreatedPullRequest> {
+		this.writes.push({ method: 'createPullRequest', args: [pullRequest] });
+		return { number: CREATED_PR_NUMBER };
+	}
+
+	async updatePullRequest(prNumber: number, changes: PullRequestChanges): Promise<void> {
+		this.writes.push({ method: 'updatePullRequest', args: [prNumber, changes] });
+	}
+
+	async squashMergePullRequest(prNumber: number, options: SquashMergeOptions): Promise<void> {
+		this.writes.push({ method: 'squashMergePullRequest', args: [prNumber, options] });
 	}
 
 	async removeLabel(prNumber: number, label: string): Promise<void> {

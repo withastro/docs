@@ -381,6 +381,160 @@ describe('GitHubRepository', () => {
 		});
 	});
 
+	describe('getBranchSha', () => {
+		it('should get the SHA of the commit at the head of a branch', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/git/ref/heads/umbrella/main': {
+					status: 200,
+					body: {
+						ref: 'refs/heads/umbrella/main',
+						object: { sha: 'sha-umbrella', type: 'commit' },
+					},
+				},
+			});
+
+			assert.equal(
+				await new GitHubRepository(octokit, NAME).getBranchSha('umbrella/main'),
+				'sha-umbrella'
+			);
+		});
+
+		it('should return null for a branch that does not exist', async () => {
+			const { octokit } = createFakeOctokit({});
+
+			assert.equal(await new GitHubRepository(octokit, NAME).getBranchSha('umbrella/main'), null);
+		});
+
+		it('should throw on other errors', async () => {
+			const { octokit } = createFakeOctokit({
+				'GET /repos/example-org/docs/git/ref/heads/umbrella/main': {
+					status: 401,
+					body: { message: 'Bad credentials' },
+				},
+			});
+
+			await assert.rejects(
+				new GitHubRepository(octokit, NAME).getBranchSha('umbrella/main'),
+				/Bad credentials/
+			);
+		});
+	});
+
+	describe('createBranch', () => {
+		it('should create the branch at a commit', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'POST /repos/example-org/docs/git/refs': { status: 201, body: {} },
+			});
+
+			await new GitHubRepository(octokit, NAME).createBranch('umbrella/main', 'sha-main');
+
+			assert.deepEqual(requests, [
+				{
+					route: 'POST /repos/example-org/docs/git/refs',
+					body: { ref: 'refs/heads/umbrella/main', sha: 'sha-main' },
+				},
+			]);
+		});
+	});
+
+	describe('createPullRequest', () => {
+		it('should open a pull request and return its number', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'POST /repos/example-org/docs/pulls': {
+					status: 201,
+					body: { ...PULL_REQUEST_DATA, number: 50, html_url: 'https://example.com/50' },
+				},
+			});
+			const pullRequest = { title: 'Umbrella', head: 'umbrella/main', base: 'main', body: 'Docs' };
+
+			const created = await new GitHubRepository(octokit, NAME).createPullRequest(pullRequest);
+
+			assert.equal(created.number, 50);
+			assert.deepEqual(requests[0].body, pullRequest);
+		});
+
+		it('should give the reason of each error GitHub lists', async () => {
+			const { octokit } = createFakeOctokit({
+				'POST /repos/example-org/docs/pulls': {
+					status: 422,
+					body: {
+						message: 'Validation Failed',
+						errors: [
+							{
+								resource: 'PullRequest',
+								code: 'custom',
+								message: 'A pull request already exists for example-org:umbrella/main.',
+							},
+							{ resource: 'PullRequest', field: 'head', code: 'invalid' },
+						],
+					},
+				},
+			});
+			const pullRequest = { title: 'Umbrella', head: 'umbrella/main', base: 'main', body: 'Docs' };
+
+			await assert.rejects(
+				new GitHubRepository(octokit, NAME).createPullRequest(pullRequest),
+				(error) => {
+					assert.ok(error instanceof GitHubError);
+					assert.equal(error.apiMessage, 'Validation Failed');
+					assert.equal(
+						error.reason,
+						'Validation Failed; A pull request already exists for example-org:umbrella/main.; {"resource":"PullRequest","field":"head","code":"invalid"}'
+					);
+					assert.equal(
+						error.message,
+						`POST /repos/example-org/docs/pulls failed with 422: ${error.reason}`
+					);
+					return true;
+				}
+			);
+		});
+	});
+
+	describe('updatePullRequest', () => {
+		it('should send only the fields to change', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				'PATCH /repos/example-org/docs/pulls/7': { status: 200, body: PULL_REQUEST_DATA },
+			});
+
+			await new GitHubRepository(octokit, NAME).updatePullRequest(7, { base: 'umbrella/main' });
+
+			assert.deepEqual(requests[0].body, { base: 'umbrella/main' });
+		});
+	});
+
+	describe('squashMergePullRequest', () => {
+		const ROUTE = 'PUT /repos/example-org/docs/pulls/7/merge';
+
+		it('should squash-merge the expected head with the commit title', async () => {
+			const { octokit, requests } = createFakeOctokit({
+				[ROUTE]: { status: 200, body: { merged: true } },
+			});
+
+			await new GitHubRepository(octokit, NAME).squashMergePullRequest(7, {
+				expectedHeadSha: 'sha-7',
+				commitTitle: 'Document feature 7 (#7)',
+			});
+
+			assert.deepEqual(requests[0].body, {
+				merge_method: 'squash',
+				sha: 'sha-7',
+				commit_title: 'Document feature 7 (#7)',
+			});
+		});
+
+		it("should throw a GitHubError with GitHub's reason when GitHub refuses", async () => {
+			const { octokit } = createFakeOctokit({
+				[ROUTE]: { status: 409, body: { message: 'Head branch was modified.' } },
+			});
+
+			await assert.rejects(
+				new GitHubRepository(octokit, NAME).squashMergePullRequest(7, { expectedHeadSha: 'sha-7' }),
+				(error) => error instanceof GitHubError && error.apiMessage === 'Head branch was modified.'
+			);
+		});
+	});
+
 	describe('removeLabel', () => {
 		it('should remove the label', async () => {
 			const { octokit, requests } = createFakeOctokit({

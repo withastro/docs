@@ -3,6 +3,12 @@ import type { Octokit } from './repository.ts';
 /** The methods that only read. Octokit sends every page of a list with `GET`. */
 const READ_METHODS = ['GET', 'HEAD'];
 /**
+ * The response to every write. The release assistant only reads the number of
+ * a new umbrella PR.
+ */
+const WRITE_RESPONSE_DATA = { number: 0 };
+
+/**
  * Makes an Octokit client read-only. It sends reads, and logs each write as
  * `Read-only: <METHOD> <path> <JSON body>` instead of sending it.
  *
@@ -16,6 +22,6 @@ export function addReadOnlyHook(octokit: Octokit, log: (message: string) => void
 		const { method, url, body } = octokit.request.endpoint(options);
 		const { pathname } = new URL(url);
 		log(`Read-only: ${method} ${pathname} ${JSON.stringify(body ?? null)}`);
-		return { status: 200, url, headers: {}, data: {} };
+		return { status: 200, url, headers: {}, data: WRITE_RESPONSE_DATA };
 	});
 }

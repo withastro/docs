@@ -57,6 +57,55 @@ export function renderRefusalComment({
 }
 
 /**
+ * Renders the comment telling a docs PR it joined its umbrella.
+ *
+ * @param {UmbrellaBranches} branches - The umbrella branches the PR was merged into.
+ * @param {number} umbrellaPrNumber - The number of the umbrella PR.
+ * @returns {string} The comment, in Markdown.
+ */
+export function renderJoinedComment({ head }: UmbrellaBranches, umbrellaPrNumber: number): string {
+	return [
+		`Merged into the umbrella PR that collects the docs for the next release. These changes will be live once #${umbrellaPrNumber} is merged.`,
+		`For any last-minute fixes, please open a PR against \`${head}\`.`,
+	].join('\n\n');
+}
+
+/**
+ * Renders the comment telling a docs PR that GitHub refused to change its base
+ * or to merge it.
+ *
+ * @param {UmbrellaBranches} branches - The umbrella branches the PR was to be merged into.
+ * @param {string} reason - GitHub's reason.
+ * @returns {string} The comment, in Markdown.
+ */
+export function renderMergeFailureComment({ head }: UmbrellaBranches, reason: string): string {
+	return [
+		`\`${ACCEPTED_LABEL}\` was removed because GitHub refused to move this PR into \`${head}\`, with this message:`,
+		quote(reason),
+		RETRY_INSTRUCTION,
+	].join('\n\n');
+}
+
+/**
+ * Renders the comment telling a docs PR it was merged, but its umbrella PR
+ * could not be opened.
+ *
+ * @param {UmbrellaBranches} branches - The umbrella branches the PR was merged into.
+ * @param {string} reason - GitHub's reason.
+ * @returns {string} The comment, in Markdown.
+ */
+export function renderUmbrellaFailureComment(
+	{ head, base }: UmbrellaBranches,
+	reason: string
+): string {
+	return [
+		`Merged into \`${head}\`, but GitHub refused to open its umbrella PR, with this message:`,
+		quote(reason),
+		`A maintainer needs to open a PR from \`${head}\` into \`${base}\`. The release assistant then keeps it up to date.`,
+	].join('\n\n');
+}
+
+/**
  * Renders the comment telling an umbrella PR with the accepted label that a
  * maintainer merges it.
  *

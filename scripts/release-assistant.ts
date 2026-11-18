@@ -4,7 +4,7 @@
 import type { context as actionsContext } from '@actions/github';
 import { FRAMEWORK_REPOSITORY, MODES, type Mode } from './release-assistant/config.ts';
 import { GitHubRepository, type Octokit } from './release-assistant/github/repository.ts';
-import { runDryRun, type ReleaseAssistantContext } from './release-assistant/run.ts';
+import { runDryRun, runLiveMode, type ReleaseAssistantContext } from './release-assistant/run.ts';
 
 type RunOptions = {
 	/** The client `actions/github-script` creates, with the bot token. */
@@ -29,14 +29,15 @@ export async function runReleaseAssistant({
 	context,
 	mode,
 }: RunOptions): Promise<void> {
-	parseMode(mode);
+	const runMode = parseMode(mode);
 	const runContext: ReleaseAssistantContext = {
 		docs: new GitHubRepository(github, context.repo),
 		astro: new GitHubRepository(workflowGithub, FRAMEWORK_REPOSITORY),
 		log: console.info,
 	};
 
-	await runDryRun(runContext);
+	if (runMode === MODES.live) await runLiveMode(runContext);
+	else await runDryRun(runContext);
 }
 
 function parseMode(value: string): Mode {
