@@ -1,4 +1,5 @@
 import starlight from '@astrojs/starlight';
+import starlightDocSearch from '@astrojs/starlight-docsearch';
 import { satteri } from '@astrojs/markdown-satteri';
 import { pluginCollapsibleSections } from '@expressive-code/plugin-collapsible-sections';
 import { defineConfig, sharpImageService } from 'astro/config';
@@ -55,7 +56,6 @@ export default defineConfig({
 				{ icon: 'github', label: 'GitHub', href: 'https://github.com/withastro/astro' },
 				{ icon: 'discord', label: 'Discord', href: 'https://astro.build/chat' },
 			],
-			pagefind: false,
 			head: [
 				// Add ICO favicon fallback for Safari.
 				{
@@ -68,7 +68,10 @@ export default defineConfig({
 				},
 			],
 			disable404Route: true,
-			plugins: [starlightPluginSmokeTest()],
+			plugins: [
+				starlightPluginSmokeTest(),
+				starlightDocSearch({ clientOptionsModule: './src/docsearch.ts' }),
+			],
 		}),
 		sitemap(),
 	],
