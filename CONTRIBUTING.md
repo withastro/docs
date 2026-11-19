@@ -240,6 +240,8 @@ We collect docs PRs into umbrella PRs to make it easier to merge the documentati
 - `minor-release`: the docs PR is based on `main` and ships with an Astro minor release.
 - `major-release`: the docs PR is based on a [version branch](#creating-a-version-branch) and ships with an Astro major release, including prereleases (e.g. a patch for a major beta).
 
+The label follows the release of the `astro` package, even for docs of another package (e.g. `minor-release` for the new major of an integration released with an Astro minor). The release assistant only checks that the label matches the base branch, so `patch-release` and `minor-release` join the same umbrella.
+
 Umbrella PRs are labeled `merge-on-release` to easily find them in the PRs list.
 
 #### Adding a docs PR to its umbrella
