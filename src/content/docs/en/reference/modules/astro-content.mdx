@@ -82,13 +82,15 @@ Either an object or a function that allows you to load data from any source, loc
 
 <p>
 
-**Type:** <code>ZodType | (context: <a href="#schemacontext">SchemaContext</a>) => ZodType</code>
+**Type:** `StandardSchemaV1`
 <Since v="2.0.0" />
 </p>
 
-An optional Zod object or function that returns a Zod object to configure the type and shape of document frontmatter for a collection. Each value must use [a Zod validator](/en/reference/modules/astro-zod/#common-data-type-validators). (For live collections, see the [live `schema`](#schema-1) property.)
+An optional [Standard Schema](https://standardschema.dev/)-compatible object or function that returns one. The schema configures the type and shape of document frontmatter for a collection. (For live collections, see the [live `schema`](#schema-1) property.)
 
-<ReadMore>Learn about [defining a collection schema](/en/guides/content-collections/#defining-the-collection-schema) using Zod with guided explanations, example usage, and common datatypes.</ReadMore>
+Since Astro 7.5, passing a function that returns a schema is deprecated. Pass the schema directly, and use [the `image()` function](#image) to validate images.
+
+<ReadMore>Learn about [defining a collection schema](/en/guides/content-collections/#defining-the-collection-schema) with guided explanations and examples.</ReadMore>
 
 ### `defineLiveCollection()`
 
@@ -134,11 +136,13 @@ An object that allows you to load data at runtime from a remote source into a li
 
 <p>
 
-**Type:** <code>ZodType</code>
+**Type:** `StandardSchemaV1`
 <Since v="6.0.0" />
 </p>
 
-An optional Zod object to configure the type and shape of your data for a live collection. Each value must use [a Zod validator](https://github.com/colinhacks/zod). (For build-time collections, see the [build-time `schema`](#schema) property.)
+An optional schema to configure the type and shape of your data for a live collection. (For build-time collections, see the [build-time `schema`](#schema) property.)
+
+Since Astro v7.5, the schema can use any validator implementing [Standard Schema](https://standardschema.dev/) (e.g. Zod, Valibot). Previously, only Zod schemas were supported.
 
 When you define a schema, it will take precedence over the [live loader’s types](/en/reference/content-loader-reference/#live-loader-api) when you query the collection.
 
@@ -153,6 +157,8 @@ When you define a schema, it will take precedence over the [live loader’s type
 </p>
 
 A function used in the content config to define a relationship, or "reference", from one collection to another. This accepts a collection name and transforms the reference into an object containing the collection name and the reference id.
+
+Since Astro v7.5, this helper is deprecated in favor of [`reference()` from `astro/content/fields`](#imports-from-astrocontentfields).
 
 This example defines references from a blog author to the `authors` collection and an array of related posts to the same `blog` collection:
 
@@ -376,7 +382,6 @@ const { Content, headings, remarkPluginFrontmatter } = await render(entry);
 import type {
   CollectionEntry,
   CollectionKey,
-  SchemaContext,
 } from 'astro:content';
 ```
 
@@ -471,32 +476,66 @@ export async function queryCollection(collection: CollectionKey) {
 
 ### `SchemaContext`
 
-The `context` object that `defineCollection` uses for the function shape of `schema`. This type can be useful when building reusable schemas for multiple collections.
+:::caution[Deprecated]
+Pass your schema directly to the [`schema`](#schema) property instead of a function, and use [the `image()` function](#image) to validate images. This will be removed in a future major version.
+:::
 
-This includes the following property:
+The `context` object that `defineCollection` uses for the function shape of `schema`. This includes the `image()` schema helper that allows you [to use local images in content collections](/en/guides/images/#images-in-content-collections) with Zod.
 
-- `image` - The `image()` schema helper that allows you [to use local images in Content Collections](/en/guides/images/#images-in-content-collections)
+## Imports from `astro/content/fields`
 
-```ts title="src/content.config.ts" "SchemaContext" {5-9,13,16}
-import { defineCollection, type SchemaContext } from "astro:content";
+The following helpers are imported from the `fields` directory in the regular content module:
+
+```js
+import {
+  image,
+  reference,
+} from 'astro/content/fields';
+```
+
+### `reference()`
+
+**Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>, lookup: string | number | Reference) => ReferenceDataEntry</code>
+
+A function used in the content config to create a reference to an entry in another collection. Call it from your validator's transform method (e.g. `.transform()` in Zod) with the collection name and an entry identifier. An identifier can be an entry ID or a reference object returned by an earlier call to `reference()`.
+
+```ts
+import { reference } from 'astro/content/fields';
 import { z } from 'astro/zod';
-import { glob } from 'astro/loaders';
 
-export const imageSchema = ({ image }: SchemaContext) =>
-    z.object({
-        image: image(),
-        description: z.string().optional(),
-    });
+const author = z.string().transform((id) => reference('authors', id));
+```
+
+### `image()`
+
+<p>
+
+**Type:** `(src: string) => Promise<{ src: string, width?: number, height?: number, format?: string }>`<br />
+<Since v="7.5.0" />
+</p>
+
+A function used in the content config to validate and import an image referenced in a collection entry. Pass the image path to `image()` from your validator's transform method. It returns an object containing the image metadata.
+
+The following example validates a cover image and requires it to be at least 800 pixels wide:
+
+```ts title="src/content.config.ts"
+import { defineCollection } from 'astro:content';
+import { image } from 'astro/content/fields';
+import { glob } from 'astro/loaders';
+import { z } from 'astro/zod';
 
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
-  schema: ({ image }) => z.object({
-    title: z.string(),
-    permalink: z.string().optional(),
-    image: imageSchema({ image })
+  schema: z.object({
+    cover: z
+      .string()
+      .transform((src) => image(src))
+      .refine((cover) => (cover.width ?? 0) >= 800, 'The cover image must be at least 800px wide.'),
   }),
 });
 ```
+
+<ReadMore>Learn how to use [images in content collections](/en/guides/images/#images-in-content-collections) with examples.</ReadMore>
 
 ## `astro` types
 
@@ -717,4 +756,48 @@ if (cacheHint?.lastModified) {
   );
 }
 ---
+```
+
+## Typing collection data
+
+Astro infers the types of your collections from your content configuration. It uses the schema of each collection, or its loader when no schema is defined.
+
+When Astro cannot infer the types you need, you can declare them yourself by [extending global types](/en/guides/typescript/#extending-global-types) in a type declaration file (e.g. `src/env.d.ts`).
+
+### `DataMap`
+
+<p><Since v="7.5.0" /></p>
+
+Augment the `DataMap` interface to extend build-time collection types. Each property name is a collection name, and its value is the type of the `data` property of its entries.
+
+```ts title="src/env.d.ts"
+declare module 'astro:content' {
+  interface DataMap {
+    changelog: { version: string; date: Date };
+  }
+}
+```
+
+### `LiveDataMap`
+
+<p><Since v="7.5.0" /></p>
+
+Augment the `LiveDataMap` interface to extend live collection types. Each property of this object is optional:
+
+- `data`: the type of the `data` property of the collection entries.
+- `entryFilter`: the type of the filter accepted by [`getLiveEntry()`](#getliveentry).
+- `collectionFilter`: the type of the filter accepted by [`getLiveCollection()`](#getlivecollection).
+- `error`: the type of the error the loader can return.
+
+The following example declares the entry data type and the filter accepted by `getLiveEntry()` for a `products` live collection:
+
+```ts title="src/env.d.ts"
+declare module 'astro:content' {
+  interface LiveDataMap {
+    products: {
+      data: { name: string; price: number };
+      entryFilter: { sku: string };
+    };
+  }
+}
 ```
