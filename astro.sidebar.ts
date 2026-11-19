@@ -167,6 +167,8 @@ export const sidebar = [
 					'reference/experimental-flags/chrome-devtools-workspace',
 					'reference/experimental-flags/svg-optimization',
 					'reference/experimental-flags/collection-storage',
+					'reference/experimental-flags/collection-storage-drivers',
+					'reference/experimental-flags/collection-metadata',
 					'reference/experimental-flags/incremental-build',
 					'reference/experimental-flags/parallel-prerender',
 					'reference/experimental-flags/redirect-page',
