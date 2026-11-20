@@ -17,6 +17,7 @@ export const logos = LogoCheck({
 	apostrophecms: { file: 'apostrophecms.svg', padding: '.15em .15em' },
 	appwrite: { file: 'appwriteio.svg', padding: '.2em' },
 	aws: { file: 'aws.svg', padding: '.1875em' },
+	axiom: { file: 'axiom.svg', padding: '.2em' },
 	azion: { file: 'azion.svg', padding: '.1875em' },
 	buddy: { file: 'buddy.svg', padding: '.1625em' },
 	builderio: { file: 'builderio.svg', padding: '.25em' },
