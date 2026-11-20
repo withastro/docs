@@ -8,8 +8,175 @@ logo: prisma
 supports: ['ssr', 'static']
 i18nReady: true
 ---
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 [Prisma Compute](https://www.prisma.io/compute) is a hosting platform for TypeScript applications that runs your Astro site as a server, using the Node.js adapter to serve prerendered pages and on-demand rendered routes.
+
+This guide includes instructions for deploying to Prisma Compute from your terminal using the Prisma CLI.
+
+## Prerequisites
+
+To deploy your Astro site to Prisma Compute, you will need:
+
+- An Astro project
+- A [Prisma Data Platform account](https://console.prisma.io)
+- npm or pnpm as your package manager
+
+## Project configuration
+
+### Adapter
+
+Prisma Compute runs a server process instead of hosting a folder of files. Add [the Node.js adapter](/en/guides/integrations-guide/node/) with the following `astro add` command, even if all of your pages are prerendered. This will install the adapter and configure it in `standalone` mode in your `astro.config.mjs` file in one step.
+
+<Tabs syncKey="package-managers">
+  <TabItem label="npm">
+  ```shell
+  npx astro add node
+  ```
+  </TabItem>
+  <TabItem label="pnpm">
+  ```shell
+  pnpm astro add node
+  ```
+  </TabItem>
+</Tabs>
+
+Your pages are still prerendered by default, and the server created by the adapter serves them as static files. To render a page or endpoint on demand, [opt it out of prerendering](/en/guides/on-demand-rendering/#enabling-on-demand-rendering).
+
+### Prisma Composer
+
+A deployment to Prisma Compute is described in TypeScript files that are read by [Prisma Composer](https://www.prisma.io/docs/composer).
+
+<Steps>
+1. Install the Prisma Composer packages and the Prisma CLI:
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npm install @prisma/composer @prisma/composer-prisma-cloud
+      npm install -D prisma
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm add @prisma/composer @prisma/composer-prisma-cloud
+      pnpm add -D prisma
+      ```
+      </TabItem>
+    </Tabs>
+
+2. Create a `service.ts` file in the root of your project that points to the server entry file built by Astro. Set `dependencies: 'external'` so that the deployment includes the packages this file imports:
+
+    ```ts title="service.ts"
+    import node from '@prisma/composer/node';
+    import { compute } from '@prisma/composer-prisma-cloud';
+
+    export default compute({
+      name: 'web',
+      deps: {},
+      build: node({
+        module: import.meta.url,
+        dir: './dist',
+        entry: 'server/entry.mjs',
+        dependencies: 'external',
+      }),
+    });
+    ```
+
+3. Create a `module.ts` file in the root of your project to add your service to a Prisma Compute project. Pass the name of your project (e.g. `my-astro-site`) as the first argument of `module()`:
+
+    ```ts title="module.ts"
+    import { module } from '@prisma/composer';
+    import web from './service.ts';
+
+    export default module('my-astro-site', ({ provision }) => {
+      provision(web);
+    });
+    ```
+
+4. Create a `prisma.config.ts` file in the root of your project. The `region` option sets where the project is created on the first deployment. See the [regions supported by Prisma Compute](https://www.prisma.io/docs/compute/limitations#runtime) for the available values.
+
+    ```ts title="prisma.config.ts"
+    import { defineConfig as composer } from '@prisma/composer/config';
+    import { nodeBuild } from '@prisma/composer/node/control';
+    import { prismaCloud, prismaState } from '@prisma/composer-prisma-cloud/control';
+    import { definePrismaConfig } from 'prisma/config';
+
+    export default definePrismaConfig({
+      composer: composer({
+        entry: './module.ts',
+        extensions: [prismaCloud({ region: 'us-east-1' }), nodeBuild()],
+        state: prismaState(),
+      }),
+    });
+    ```
+
+5. Add the local state folders created by Prisma Composer to your `.gitignore` file:
+
+    ```txt title=".gitignore"
+    /.alchemy
+    /.prisma-composer
+    ```
+</Steps>
+
+## How to deploy
+
+<Steps>
+1. Sign in to your Prisma Data Platform account. This command opens your browser.
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npx prisma auth login
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm prisma auth login
+      ```
+      </TabItem>
+    </Tabs>
+
+2. Build your site:
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npm run build
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm run build
+      ```
+      </TabItem>
+    </Tabs>
+
+3. Deploy your site:
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npx prisma deploy
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm prisma deploy
+      ```
+      </TabItem>
+    </Tabs>
+
+    The first deployment creates the project. When the command finishes, it prints the URL of your site:
+
+    ```txt
+    my-astro-site
+    └─ web   compute-service cps_abc123
+             https://abc123.ewr.prisma.build
+    ```
+
+4. To publish changes, build your site and run the `deploy` command again.
+</Steps>
 
 ## Official Resources
 
