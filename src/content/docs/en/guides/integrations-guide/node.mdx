@@ -251,6 +251,53 @@ app.listen(8080);
 
 Note that middleware mode does not do file serving. You'll need to configure your HTTP framework to do that for you. By default the client assets are written to `./dist/client/`.
 
+:::note[Rendering custom 404 error pages]
+When using middleware mode, unmatched routes are passed to `next()` by default so your host HTTP framework can handle them. If you want Astro to render your project's custom `404.astro` error page instead of the host framework's default 404 response, add a fallback handler that forwards unmatched requests to `ssrHandler`:
+
+<Tabs>
+  <TabItem label="Express">
+```js title="run-server.mjs" ins={7}
+import express from 'express';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = express();
+app.use(express.static('dist/client/'));
+app.use(ssrHandler);
+// Fallback to render Astro's 404 page for unmatched routes
+app.use((req, res) => ssrHandler(req, res));
+
+app.listen(8080);
+```
+  </TabItem>
+  <TabItem label="Fastify">
+```js title="run-server.mjs" ins={17-21}
+import Fastify from 'fastify';
+import fastifyMiddie from '@fastify/middie';
+import fastifyStatic from '@fastify/static';
+import { fileURLToPath } from 'node:url';
+import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+const app = Fastify({ logger: true });
+
+await app
+  .register(fastifyStatic, {
+    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+  })
+  .register(fastifyMiddie);
+app.use(ssrHandler);
+
+// Fallback to render Astro's 404 page for unmatched routes
+app.setNotFoundHandler((request, reply) => {
+  reply.hijack();
+  ssrHandler(request.raw, reply.raw);
+});
+
+app.listen({ port: 8080 });
+```
+  </TabItem>
+</Tabs>
+:::
+
 ### Standalone
 
 In standalone mode a server starts when the server entrypoint is run. By default it is built to `./dist/server/entry.mjs`. You can run it with:
