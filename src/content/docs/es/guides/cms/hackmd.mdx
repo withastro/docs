@@ -1,0 +1,218 @@
+---
+title: HackMD y Astro
+description: Agrega contenido a tu proyecto de Astro usando HackMD como CMS
+sidebar:
+  label: HackMD
+type: cms
+stub: false
+logo: hackmd
+i18nReady: true
+---
+
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+
+[HackMD](https://hackmd.io/) es un editor de Markdown colaborativo y una plataforma de publicación. Puedes usar su API para gestionar tu contenido en HackMD y mostrarlo en tu proyecto de Astro.
+
+## Integración con Astro
+
+Esta guía utiliza el cliente oficial [`@hackmd/api`](https://github.com/hackmdio/api-client) para obtener tus notas y [`markdown-it`](https://github.com/markdown-it/markdown-it) para renderizar el contenido Markdown.
+
+### Prerrequisitos
+
+Para empezar, necesitarás lo siguiente:
+
+1. **Un proyecto de Astro** - Si aún no tienes un proyecto de Astro, la [guía de instalación](/es/install-and-setup/) te ayudará a ponerte en marcha.
+2. **Una cuenta de HackMD** - Puedes [registrarte gratis](https://hackmd.io/join).
+3. **Un token de acceso de HackMD** - Crea uno desde la sección API de tu [configuración de HackMD](https://hackmd.io/settings#api).
+4. **Al menos una nota de lectura pública** - Establece el permiso de lectura de la nota en **Everyone** para que el ejemplo pueda publicarla de forma segura en tu sitio.
+
+### Configuración de credenciales
+
+Crea un archivo `.env` en la raíz de tu proyecto y agrega tu token de acceso de HackMD:
+
+```ini title=".env"
+HACKMD_API_ACCESS_TOKEN=<YOUR_ACCESS_TOKEN>
+```
+
+No antepongas `PUBLIC_` a esta variable. Así el token queda disponible solo para tu código en el servidor y Astro no lo expone al navegador.
+
+<ReadMore>Lee más sobre las [variables de entorno](/es/guides/environment-variables/) y los archivos `.env` en Astro.</ReadMore>
+
+### Instalación de dependencias
+
+Instala el cliente de la API de HackMD y el renderizador de Markdown:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @hackmd/api markdown-it
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @hackmd/api markdown-it
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @hackmd/api markdown-it
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### Configuración de HackMD
+
+Crea un archivo `hackmd.ts` en un nuevo directorio `src/lib/`. Este archivo inicializa el cliente de la API, renderiza Markdown y crea un identificador apto para URL para cada nota:
+
+```ts title="src/lib/hackmd.ts"
+import { API } from '@hackmd/api';
+import MarkdownIt from 'markdown-it';
+
+export const client = new API(import.meta.env.HACKMD_API_ACCESS_TOKEN);
+
+const md = new MarkdownIt({
+  html: false,
+  linkify: true,
+  typographer: true,
+});
+
+export function renderMarkdown(content: string) {
+  return md.render(content);
+}
+
+export function getNoteSlug(note: { permalink: string | null; shortId: string }) {
+  return note.permalink ?? note.shortId;
+}
+```
+
+La opción `html: false` evita que el HTML sin procesar de una nota se pase directamente a tu página generada. El Markdown estándar se sigue renderizando como HTML.
+
+Tu proyecto usará los siguientes archivos:
+
+<FileTree title="Estructura del proyecto">
+- src/
+  - lib/
+    - **hackmd.ts**
+  - pages/
+    - **index.astro**
+    - notes/
+      - **[slug].astro**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+## Creando un blog con Astro y HackMD
+
+Este ejemplo crea un índice de notas de lectura pública y una página generada estáticamente para cada nota.
+
+### Mostrando una lista de notas
+
+Usa `getNoteList()` en `src/pages/index.astro` para obtener tus notas. Filtra los resultados para que solo se incluyan en el sitio público las notas con el permiso de lectura `guest`:
+
+```astro title="src/pages/index.astro"
+---
+import { client, getNoteSlug } from '../lib/hackmd';
+
+const notes = await client.getNoteList();
+const publicNotes = notes.filter((note) => note.readPermission === 'guest');
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Astro + HackMD</title>
+  </head>
+  <body>
+    <main>
+      <h1>Mis notas de HackMD</h1>
+      <ul>
+        {
+          publicNotes.map((note) => (
+            <li>
+              <a href={`/notes/${getNoteSlug(note)}/`}>{note.title}</a>
+            </li>
+          ))
+        }
+      </ul>
+    </main>
+  </body>
+</html>
+```
+
+:::caution
+El token de acceso puede leer las notas privadas de tu cuenta. Mantén el filtro del permiso `guest`, a menos que quieras incluir otras notas en el sitio generado de forma intencionada.
+:::
+
+### Generando páginas de notas
+
+Crea `src/pages/notes/[slug].astro` para generar una página estática por cada nota pública. La lista de notas proporciona la ruta y el ID de la nota, y luego `getNote()` obtiene el contenido Markdown completo de esa página:
+
+```astro title="src/pages/notes/[slug].astro"
+---
+import { client, getNoteSlug, renderMarkdown } from '../../lib/hackmd';
+
+export async function getStaticPaths() {
+  const notes = await client.getNoteList();
+
+  return notes
+    .filter((note) => note.readPermission === 'guest')
+    .map((note) => ({
+      params: { slug: getNoteSlug(note) },
+      props: { noteId: note.id },
+    }));
+}
+
+interface Props {
+  noteId: string;
+}
+
+const { noteId } = Astro.props;
+const note = await client.getNote(noteId);
+const content = renderMarkdown(note.content);
+---
+
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>{note.title}</title>
+  </head>
+  <body>
+    <main>
+      <article>
+        <Fragment set:html={content} />
+      </article>
+    </main>
+  </body>
+</html>
+```
+
+:::caution
+La [directiva `set:html`](/es/reference/directives-reference/#sethtml) de Astro inserta una cadena de texto HTML sin escaparla. Este ejemplo primero pasa la nota por `markdown-it` con el HTML sin procesar deshabilitado. Si habilitas la opción `html` para autores de confianza, sanitiza el resultado renderizado antes de pasarlo a `set:html`.
+:::
+
+### Compatibilidad con más sintaxis de HackMD
+
+HackMD usa `markdown-it` con extensiones para funciones como listas de tareas, notas al pie, contenedores y una tabla de contenidos. La configuración mínima anterior maneja Markdown estándar. Instala solo los [plugins de `markdown-it`](https://www.npmjs.com/search?q=keywords%3Amarkdown-it-plugin) que requieran tus notas.
+
+### Publicando tu sitio
+
+Para desplegar tu sitio web, visita nuestras [guías de despliegue](/es/guides/deploy/) y sigue las instrucciones de tu proveedor de alojamiento preferido.
+
+Si tu proyecto usa el modo estático predeterminado de Astro, debes ejecutar una nueva compilación para publicar los cambios realizados en HackMD. Si tu proveedor de alojamiento lo admite, puedes usar su función de webhook para activar automáticamente una nueva compilación cuando HackMD envíe un [evento de webhook](https://hackmd.io/@docs/webhooks-events).
+
+## Recursos Oficiales
+
+- [Documentación de la API de HackMD](https://hackmd.io/@docs/developer-portal)
+- [Documentación de OpenAPI de HackMD](https://api.hackmd.io/v1/docs)
+
+## Recursos de la Comunidad
+
+- [`daily-oops`](https://github.com/Yukaii/daily-oops) - Un blog que usa HackMD como su CMS
+- [`astro-hackmd`](https://github.com/EastSun5566/astro-hackmd) - Un sitio mínimo de Astro que usa HackMD como su CMS
