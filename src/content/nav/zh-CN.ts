@@ -1,6 +1,8 @@
 import { navDictionary } from '../../util/navDictionary';
 
 export default navDictionary({
+	tutorial: '教程',
+	
 	guides: '指南',
 	'guides.welcome': '欢迎，世界！',
 	'guides.newProject': '开始新项目',
@@ -16,10 +18,12 @@ export default navDictionary({
 
 	reference: '参考',
 	'reference.runtime': '运行时 API',
+	'reference.processors': 'Markdown 处理器',
 	'reference.other': '其他开发 API',
 	'reference.syntax': 'Astro 模板语法',
 	'reference.experimental': '实验性功能',
 
+	ecosystem: '生态系统',
 	'ecosystem.integrations.ui': 'UI 框架',
 	'ecosystem.integrations.adapters': '适配器',
 	'ecosystem.integrations.other': '其他官方集成',
