@@ -8,8 +8,175 @@ logo: prisma
 supports: ['ssr', 'static']
 i18nReady: true
 ---
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components';
 
 [Prisma Compute](https://www.prisma.io/compute)는 TypeScript 애플리케이션을 위한 호스팅 플랫폼으로, Node.js 어댑터를 사용하여 Astro 사이트를 서버로 실행하고 사전 렌더링된 페이지와 요청 시 렌더링되는 경로를 제공합니다.
+
+이 가이드에는 Prisma CLI를 사용하여 터미널에서 Prisma Compute에 배포하는 방법이 포함되어 있습니다.
+
+## 전제 조건
+
+Astro 사이트를 Prisma Compute에 배포하려면 다음이 필요합니다:
+
+- Astro 프로젝트
+- [Prisma Data Platform 계정](https://console.prisma.io)
+- 패키지 관리자로 npm 또는 pnpm
+
+## 프로젝트 구성
+
+### 어댑터
+
+Prisma Compute는 파일 폴더를 호스팅하는 대신 서버 프로세스를 실행합니다. 모든 페이지가 사전 렌더링되더라도 다음 `astro add` 명령으로 [Node.js 어댑터](/ko/guides/integrations-guide/node/)를 추가하세요. 이 명령은 어댑터를 설치하고 `astro.config.mjs` 파일에서 `standalone` 모드로 구성하는 작업을 한 번에 수행합니다.
+
+<Tabs syncKey="package-managers">
+  <TabItem label="npm">
+  ```shell
+  npx astro add node
+  ```
+  </TabItem>
+  <TabItem label="pnpm">
+  ```shell
+  pnpm astro add node
+  ```
+  </TabItem>
+</Tabs>
+
+페이지는 기본적으로 여전히 사전 렌더링되며, 어댑터가 생성한 서버가 이를 정적 파일로 제공합니다. 페이지나 엔드포인트를 요청 시 렌더링하려면 [사전 렌더링에서 제외](/ko/guides/on-demand-rendering/#요청-시-렌더링-활성화)하세요.
+
+### Prisma Composer
+
+Prisma Compute 배포는 [Prisma Composer](https://www.prisma.io/docs/composer)가 읽는 TypeScript 파일에 정의됩니다.
+
+<Steps>
+1. Prisma Composer 패키지와 Prisma CLI를 설치합니다:
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npm install @prisma/composer @prisma/composer-prisma-cloud
+      npm install -D prisma
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm add @prisma/composer @prisma/composer-prisma-cloud
+      pnpm add -D prisma
+      ```
+      </TabItem>
+    </Tabs>
+
+2. Astro가 빌드한 서버 진입 파일을 가리키는 `service.ts` 파일을 프로젝트 루트에 생성합니다. 이 파일이 가져오는 패키지가 배포에 포함되도록 `dependencies: 'external'`로 설정합니다:
+
+    ```ts title="service.ts"
+    import node from '@prisma/composer/node';
+    import { compute } from '@prisma/composer-prisma-cloud';
+
+    export default compute({
+      name: 'web',
+      deps: {},
+      build: node({
+        module: import.meta.url,
+        dir: './dist',
+        entry: 'server/entry.mjs',
+        dependencies: 'external',
+      }),
+    });
+    ```
+
+3. 서비스를 Prisma Compute 프로젝트에 추가하려면 프로젝트 루트에 `module.ts` 파일을 생성합니다. `module()`의 첫 번째 인수로 프로젝트 이름(예: `my-astro-site`)을 전달합니다:
+
+    ```ts title="module.ts"
+    import { module } from '@prisma/composer';
+    import web from './service.ts';
+
+    export default module('my-astro-site', ({ provision }) => {
+      provision(web);
+    });
+    ```
+
+4. 프로젝트 루트에 `prisma.config.ts` 파일을 생성합니다. `region` 옵션은 첫 배포 시 프로젝트가 생성될 위치를 설정합니다. 사용 가능한 값은 [Prisma Compute에서 지원하는 지역](https://www.prisma.io/docs/compute/limitations#runtime)을 참조하세요.
+
+    ```ts title="prisma.config.ts"
+    import { defineConfig as composer } from '@prisma/composer/config';
+    import { nodeBuild } from '@prisma/composer/node/control';
+    import { prismaCloud, prismaState } from '@prisma/composer-prisma-cloud/control';
+    import { definePrismaConfig } from 'prisma/config';
+
+    export default definePrismaConfig({
+      composer: composer({
+        entry: './module.ts',
+        extensions: [prismaCloud({ region: 'us-east-1' }), nodeBuild()],
+        state: prismaState(),
+      }),
+    });
+    ```
+
+5. Prisma Composer가 생성하는 로컬 상태 폴더를 `.gitignore` 파일에 추가합니다:
+
+    ```txt title=".gitignore"
+    /.alchemy
+    /.prisma-composer
+    ```
+</Steps>
+
+## 배포 방법
+
+<Steps>
+1. Prisma Data Platform 계정에 로그인합니다. 이 명령은 브라우저를 엽니다.
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npx prisma auth login
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm prisma auth login
+      ```
+      </TabItem>
+    </Tabs>
+
+2. 사이트를 빌드합니다:
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npm run build
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm run build
+      ```
+      </TabItem>
+    </Tabs>
+
+3. 사이트를 배포합니다:
+
+    <Tabs syncKey="package-managers">
+      <TabItem label="npm">
+      ```shell
+      npx prisma deploy
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```shell
+      pnpm prisma deploy
+      ```
+      </TabItem>
+    </Tabs>
+
+    첫 배포 시 프로젝트가 생성됩니다. 명령이 완료되면 사이트 URL을 출력합니다:
+
+    ```txt
+    my-astro-site
+    └─ web   compute-service cps_abc123
+             https://abc123.ewr.prisma.build
+    ```
+
+4. 변경 사항을 게시하려면 사이트를 다시 빌드하고 `deploy` 명령을 다시 실행합니다.
+</Steps>
 
 ## 공식 리소스
 
