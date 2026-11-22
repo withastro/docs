@@ -1,0 +1,339 @@
+---
+title: 認証
+description: Astroでの認証の基礎
+i18nReady: true
+---
+
+import { Steps, Tabs, TabItem } from '@astrojs/starlight/components'
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro'
+import UIFrameworkTabs from '~/components/tabs/UIFrameworkTabs.astro'
+import ReadMore from '~/components/ReadMore.astro'
+
+認証と認可は、ウェブサイトやアプリへのアクセスを管理する2つのセキュリティプロセスです。認証では訪問者の本人確認を行い、認可では保護された領域やリソースへのアクセスを許可します。
+
+認証を導入することで、ログイン済みのユーザーに合わせてサイトの表示や機能をカスタマイズできるようになり、個人情報や非公開情報に対して強固な保護を提供できます。[Better Auth](https://better-auth.com/)や[Clerk](https://clerk.com)などの認証ライブラリを利用すると、メールサインインやOAuthプロバイダーといった複数の認証方式に対応したユーティリティを利用できます。
+
+:::tip
+Astroには公式の認証ソリューションは用意されていませんが、インテグレーションディレクトリから[コミュニティ製の「auth」インテグレーション](https://astro.build/integrations/?search=auth)を見つけることができます。
+:::
+
+<ReadMore>各バックエンドサービスの専用ガイドで、[Supabaseを使用した認証の追加](/ja/guides/backend/supabase/#supabaseで認証を追加する)、[Firebaseを使用した認証の追加](/ja/guides/backend/firebase/#firebaseで認証を追加する)、または[Scalekitを使用した認証の追加](/ja/guides/backend/scalekit/#adding-authentication-with-scalekit)の方法を確認してください。</ReadMore>
+
+## Better Auth
+
+Better Authは、特定のフレームワークに依存しないTypeScript向けの認証（および認可）フレームワークです。包括的な機能セットが標準で備わっているほか、高度な機能を簡単に追加できるプラグインエコシステムも提供しています。
+
+Astroに標準で対応しているため、Astroプロジェクトに認証機能を導入する際に活用できます。
+
+### インストール
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install better-auth
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add better-auth
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add better-auth
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+詳細なセットアップ手順については、[Better Authインストールガイド](https://www.better-auth.com/docs/installation)を参照してください。
+
+### 設定
+
+[Better Authインストールガイド](https://www.better-auth.com/docs/installation#configure-database)の手順に従い、ユーザーデータを保存するためのデータベーステーブルと、使用する認証方式を設定します。その後、AstroプロジェクトにBetter Authのハンドラーをマウントする必要があります。
+
+```ts title="src/pages/api/auth/[...all].ts"
+import { auth } from "../../../lib/auth"; // Better Authインスタンスをインポートする
+import type { APIRoute } from "astro";
+
+export const prerender = false; // 'server'モードでは不要
+
+export const ALL: APIRoute = async (ctx) => {
+	return auth.handler(ctx.request);
+};
+```
+
+詳細については、[Better Auth Astroガイド](https://www.better-auth.com/docs/integrations/astro)を参照してください。
+
+### 使い方
+
+Better Authでは、Vanilla JS、React、Vue、Svelte、Solidなど、さまざまなフレームワーク向けの`createAuthClient()`ヘルパーが用意されています。
+
+たとえば、React用のクライアントを作成するには、`'better-auth/react'`からヘルパーをインポートします。
+
+<UIFrameworkTabs>
+  <Fragment slot="react">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/react';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="solid">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/solid';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="svelte">
+   ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/svelte';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+  <Fragment slot="vue">
+  ```ts title="src/lib/auth-client.ts"
+  import { createAuthClient } from 'better-auth/vue';
+
+  export const authClient = createAuthClient();
+
+  export const { signIn, signOut } = authClient;
+  ```
+  </Fragment>
+</UIFrameworkTabs>
+
+クライアントのセットアップが完了すると、Astroコンポーネントや各フレームワーク固有のファイル内でユーザー認証を行えるようになります。次の例では、設定済みの`signIn()`および`signOut()`関数を使用してログインおよびログアウトする機能を追加しています。
+
+
+```astro title="src/pages/index.astro"
+---
+import Layout from "../layouts/Base.astro";
+---
+
+<Layout>
+  <button id="login">Login</button>
+  <button id="logout">Logout</button>
+
+  <script>
+    const { signIn, signOut } = await import("../lib/auth-client");
+    const loginButton = document.querySelector<HTMLButtonElement>("#login");
+    const logoutButton = document.querySelector<HTMLButtonElement>("#logout");
+
+    if (!loginButton || !logoutButton) throw new Error("Buttons not found");
+
+    loginButton.onclick = () =>
+      signIn.social({
+        provider: "github",
+        callbackURL: "/dashboard",
+      });
+    logoutButton.onclick = () => signOut();
+  </script>
+</Layout>
+```
+
+その後、サーバーサイドのコード内で`auth`オブジェクトを使用して、ユーザーのセッションデータを取得できます。次の例では、認証済みユーザーの名前を表示することでページコンテンツをパーソナライズしています。
+
+```astro title="src/pages/index.astro"
+---
+import { auth } from "../lib/auth"; // Better Authインスタンスをインポートする
+
+export const prerender = false; // 'server'モードでは不要
+
+const session = await auth.api.getSession({
+  headers: Astro.request.headers,
+});
+---
+
+<p>{session.user?.name}</p>
+```
+
+`auth`オブジェクトを使用してルートを保護することもできます。次の例では、[Astroの高度なルーティング](/ja/guides/routing/#高度なルーティング)と[Hono](https://hono.dev/)を組み合わせて、`/dashboard`配下のすべてのルートに認証済みセッションを必須とし、未認証の場合はホームページへリダイレクトしています。
+
+```ts title="src/fetch.ts"
+import { Hono, type Context, type Next } from "hono";
+import { astro } from "astro/hono";
+import { auth } from "./lib/auth"; // Better Authインスタンスをインポートする
+
+const app = new Hono();
+
+// /dashboard配下のすべてのルートを保護します。
+app.use("/dashboard", requireAuth);
+app.use("/dashboard/*", requireAuth);
+
+// その他のすべてのリクエストに対してAstroの組み込みパイプラインを実行します。
+app.use(astro());
+
+export default app;
+
+async function requireAuth(c: Context, next: Next) {
+  const session = await auth.api.getSession({
+    headers: c.req.raw.headers,
+  });
+  if (!session) {
+    return c.redirect("/");
+  }
+  return next();
+}
+```
+
+:::caution
+ミドルウェアが受け取る公開パス名は、Astroが内部でマッチさせるルートと必ずしも一致するとは限りません。設定された`base`、URLエンコーディング、重複するスラッシュなどによって両者に差異が生じる場合があるためです。攻撃者はこの差異を悪用し、チェック処理が認識できないパス名を使って保護されたルートへ不正にアクセスする可能性があります。
+
+そのため、`context.url.pathname`を文字列と直接照合してリクエストの認可を行うこと（例：`context.url.pathname === "/dashboard"`や`context.url.pathname.startsWith("/dashboard")`）は避けてください。代わりに、ルーティングのマッチング処理を行うルーター上でアクセス制限を行ってください。
+:::
+
+### 次のステップ
+
+- [Better Auth Astroガイド](https://www.better-auth.com/docs/integrations/astro)
+- [Better Auth Astroサンプル](https://github.com/better-auth/examples/tree/main/astro-example)
+- [Better Authドキュメント](https://www.better-auth.com/docs)
+- [Better Auth GitHubリポジトリ](https://github.com/better-auth/better-auth)
+
+## Clerk
+
+Clerkは、ユーザーの認証および管理を行うための埋め込み可能なUI、柔軟なAPI、管理ダッシュボード一式を提供するサービスです。[Astro向けの公式Clerk SDK](https://clerk.com/docs/references/astro/overview)が利用できます。
+
+### インストール
+
+任意のパッケージマネージャーを使用して`@clerk/astro`をインストールします。
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @clerk/astro
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @clerk/astro
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+### 設定
+
+[Clerk公式のAstroクイックスタートガイド](https://clerk.com/docs/quickstarts/astro)に従い、AstroプロジェクトにClerkインテグレーションとミドルウェアをセットアップします。
+
+### 使い方
+
+Clerkには、ユーザーの認証状態に基づいてページの表示を制御できるコンポーネントが用意されています。ログイン済みユーザー向けのコンテンツを表示する代わりに、ログアウト状態のユーザーにはサインインボタンを表示できます。
+
+```astro title="src/pages/index.astro"
+---
+import Layout from "../layouts/Base.astro";
+import { Show, UserButton, SignInButton } from "@clerk/astro/components";
+
+export const prerender = false; // 'server'モードでは不要
+---
+
+<Layout>
+  <Show when="signed-in">
+    <UserButton />
+  </Show>
+  <Show when="signed-out">
+    <SignInButton />
+  </Show>
+</Layout>
+```
+
+Clerkでは、ミドルウェアを使用してサーバー側でルートを保護することもできます。
+
+<Steps>
+
+1. ミドルウェアの`onRequest`ハンドラーとして`clerkMiddleware()`を設定します。
+
+    ```ts title="src/middleware.ts"
+    import { clerkMiddleware } from "@clerk/astro/server";
+
+    export const onRequest = clerkMiddleware({
+      /* オプション */
+    });
+    ```
+
+2. ページやAPIルート内で`locals.auth()`を使用して認証状態にアクセスします。これにより、ユーザーが認証済みかどうかを確認し、適切な処理（サインインページへのリダイレクトや別のレスポンスの返却など）を実行できます。
+
+    <Tabs>
+      <TabItem label="ページ">
+      ```astro title="src/pages/dashboard.astro"
+      ---
+      const { isAuthenticated, redirectToSignIn } = Astro.locals.auth();
+
+      if (!isAuthenticated) return redirectToSignIn();
+      ---
+
+      <h1>Dashboard</h1>
+      ```
+      </TabItem>
+      <TabItem label="APIルート">
+      ```ts title="src/pages/api/data.ts"
+      import type { APIRoute } from "astro";
+
+      export const GET: APIRoute = ({ locals }) => {
+        const { isAuthenticated, userId } = locals.auth();
+
+        if (!isAuthenticated) {
+          return new Response("Unauthorized", { status: 401 });
+        }
+
+        return Response.json({ userId });
+      };
+      ```
+      </TabItem>
+    </Tabs>
+</Steps>
+
+### 次のステップ
+
+- [公式`@clerk/astro`ドキュメント](https://clerk.com/docs/references/astro/overview)を読む
+- [Clerk + Astroクイックスタートプロジェクト](https://github.com/clerk/clerk-astro-quickstart)のテンプレートから始める
+
+## Lucia
+
+[Lucia](https://lucia-auth.com/)は、Astroを含むさまざまなフレームワークでセッションベースの認証を実装するためのリソースです。
+
+### ガイド
+
+<Steps>
+
+1. 任意のデータベースを使用して、[基本的なセッションAPI](https://lucia-auth.com/sessions/basic-api/)を作成します。
+2. エンドポイントとミドルウェアを使用して、[セッションCookie](https://lucia-auth.com/sessions/cookies/astro)を追加します。
+3. 実装したAPIを使用して、[GitHub OAuth](https://lucia-auth.com/tutorials/github-oauth/astro)を実装します。
+
+</Steps>
+
+### サンプル
+
+- [AstroでのGitHub OAuthサンプル](https://github.com/lucia-auth/example-astro-github-oauth)
+- [AstroでのGoogle OAuthサンプル](https://github.com/lucia-auth/example-astro-google-oauth)
+- [Astroでの2FA付きメール・パスワード認証のサンプル](https://github.com/lucia-auth/example-astro-email-password-2fa)
+- [Astroでの2FAおよびWebAuthn付きメール・パスワード認証のサンプル](https://github.com/lucia-auth/example-astro-email-password-webauthn)
+
+## Scalekit
+
+[Scalekit](https://scalekit.com/)は、B2BおよびAIアプリケーション向けの認証プラットフォームです。OAuth 2.0とOIDCのフロー全体を管理し、ソーシャルログイン、エンタープライズSSO、マジックリンクなどの認証方式をサポートしています。カスタムログインUIを用意することなく、トークンとユーザープロファイルを取得できます。
+
+単一のScalekit環境で複数のアプリケーションをサポートできます。これにより、一度認証するだけで自社が運営するすべてのサイト（例：`app.yourcompany.com`や`docs.yourcompany.com`）間で同じセッションを共有できます。
+
+### ガイド
+
+ソーシャルログインやエンタープライズSSOなどを使用してAstro SSRプロジェクトに認証機能を追加するには、[Scalekit & Astroガイド](/ja/guides/backend/scalekit/)を参照してください。
+
+### サンプル
+
+- [Scalekit認証を使用したAstroブログチュートリアル（認可コードフロー）](https://github.com/scalekit-developers/astro-scalekit-auth-example)
+
+## コミュニティリソース
+
+- [AstroとAzure Static Web AppsでMicrosoft Entra ID EasyAuthを使用する](https://agramont.net/blog/entra-id-easyauth-with-astro/)
