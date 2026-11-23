@@ -1,147 +1,573 @@
+mkdir -p arquivo-feminista-aberto/{public/midia/{imagens,documentos},src/content/acervo/{pt,en,es},src/pages/{pt/obras,en/works,es/obras}} && \
+cd arquivo-feminista-aberto && \
+cat << 'EOF' > package.json
+{
+  "name": "arquivo-feminista-aberto",
+  "type": "module",
+  "version": "0.2.0",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0"
+  }
+}
+EOF
+cat << 'EOF' > astro.config.mjs
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  i18n: {
+    defaultLocale: 'pt',
+    locales: ['pt', 'en', 'es'],
+    routing: {
+      prefixDefaultLocale: true,
+      redirectToDefaultLocale: true
+    }
+  }
+});
+EOF
+cat << 'EOF' > src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const acervo = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/acervo' }),
+  schema: z.object({
+    titulo: z.string(),
+    autora: z.string(),
+    idioma: z.enum(['pt', 'en', 'es']),
+    ano: z.number().optional(),
+    corrente: z.string().optional(),
+    tipo: z.enum(['texto', 'video-longo', 'misto']).default('misto'),
+    imagemCapa: z.string().optional(),
+    arquivoAnexo: z.string().optional(),
+    videoUrl: z.string().url().optional(),
+    legendaVttUrl: z.string().optional(),
+    resumo: z.string(),
+  }),
+});
+
+export const collections = { acervo };
+EOF
+cat << 'EOF' > public/midia/imagens/capa-exemplo.svg
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <rect width="800" height="400" fill="#7a1c3b"/>
+  <text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="#faf7f2" font-family="Georgia, serif" font-size="28">
+    Arquivo Feminista Aberto — Acervo Histórico
+  </text>
+</svg>
+EOF
+cat << 'EOF' > public/midia/documentos/manifesto-exemplo.txt
+Arquivo Feminista Aberto (Licença MIT)
+Exemplo de arquivo hospedado localmente na pasta public/midia/documentos/.
+Substitua ou adicione arquivos PDF, EPUB, TXT e imagens nesta pasta.
+EOF
+cat << 'EOF' > src/content/acervo/pt/trabalho-reprodutivo.md
 ---
-title: Develop and build
-description: 'How to start working on a new project.'
-i18nReady: true
+titulo: "Trabalho Reprodutivo e Memória Coletiva"
+autora: "Autora do Acervo"
+idioma: "pt"
+ano: 2024
+corrente: "Feminismo Materialista"
+tipo: "misto"
+imagemCapa: "/midia/imagens/capa-exemplo.svg"
+arquivoAnexo: "/midia/documentos/manifesto-exemplo.txt"
+videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+resumo: "Registro audiovisual integral acompanhado de texto, imagem e documento para download."
 ---
-import { Tabs, TabItem, FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
-import ReadMore from '~/components/ReadMore.astro';
-import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 
-Once you have an Astro project, now you're ready to build with Astro! 🚀
+## Transcrição e Notas
 
-## Edit your project
+Este registro reúne vídeo de longa duração, imagem histórica e documento anexado em formato aberto.
+EOF
+cat << 'EOF' > src/content/acervo/en/reproductive-labor.md
+---
+titulo: "Reproductive Labor and Collective Memory"
+autora: "Archive Author"
+idioma: "en"
+ano: 2024
+corrente: "Materialist Feminism"
+tipo: "misto"
+imagemCapa: "/midia/imagens/capa-exemplo.svg"
+arquivoAnexo: "/midia/documentos/manifesto-exemplo.txt"
+videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+resumo: "Full-length audiovisual lecture accompanied by annotated transcript and downloadable archive file."
+---
 
-To make changes to your project, open your project folder in your code editor. Working in development mode with the dev server running allows you to see updates to your site as you edit the code.
+## Transcript and Historical Notes
 
-You can also [customize aspects of your development environment](#configure-your-dev-environment) such as configuring TypeScript or installing the official Astro editor extensions.
+This entry preserves long-form video alongside primary text and downloadable historical files.
+EOF
+cat << 'EOF' > src/content/acervo/es/trabajo-reproductivo.md
+---
+titulo: "Trabajo Reproductivo y Memoria Colectiva"
+autora: "Autora del Archivo"
+idioma: "es"
+ano: 2024
+corrente: "Feminismo Materialista"
+tipo: "misto"
+imagemCapa: "/midia/imagens/capa-exemplo.svg"
+arquivoAnexo: "/midia/documentos/manifesto-exemplo.txt"
+videoUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
+resumo: "Registro audiovisual íntegro acompañado de transcripción anotada y documento descargable."
+---
 
-### Start the Astro dev server
+## Transcripción y Notas del Archivo
 
-Astro comes with a built-in development server that has everything you need for project development. The `astro dev` CLI command will start the local development server so that you can see your new website in action for the very first time.
+Este espacio reúne video de larga duración, imágenes de archivo y documentos descargables en acceso abierto.
+EOF
+cat << 'EOF' > src/pages/index.astro
+---
+return Astro.redirect('/pt/');
+---
+EOF
+cat << 'EOF' > src/pages/[lang]/index.astro
+---
+import { getCollection } from 'astro:content';
 
-Every starter template comes with a pre-configured script that will run `astro dev` for you. After navigating into your project directory, use your favorite package manager to run this command and start the Astro development server.
+export function getStaticPaths() {
+  return [
+    { params: { lang: 'pt' } },
+    { params: { lang: 'en' } },
+    { params: { lang: 'es' } },
+  ];
+}
 
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm run dev
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm run dev
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn run dev
-  ```
-  </Fragment>
-</PackageManagerTabs>
+const { lang } = Astro.params;
+const todasObras = await getCollection('acervo', ({ data }) => data.idioma === lang);
+
+const textosUI = {
+  pt: {
+    titulo: 'Acervo Feminista Aberto',
+    subtitulo: 'Biblioteca livre de textos, imagens, documentos e vídeos longos (MIT)',
+    acervo: 'Acervo em Português',
+    redigir: 'Redigir Novo Texto',
+    lerObra: 'Abrir obra e vídeo →'
+  },
+  en: {
+    titulo: 'Open Feminist Archive',
+    subtitulo: 'Free library of texts, images, documents, and long-form videos (MIT)',
+    acervo: 'Archive in English',
+    redigir: 'Write New Text',
+    lerObra: 'Open work & video →'
+  },
+  es: {
+    titulo: 'Archivo Feminista Abierto',
+    subtitulo: 'Biblioteca libre de textos, imágenes, documentos y videos largos (MIT)',
+    acervo: 'Archivo en Español',
+    redigir: 'Redactar Nuevo Texto',
+    lerObra: 'Abrir obra y video →'
+  }
+}[lang as 'pt' | 'en' | 'es'];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{textosUI.titulo}</title>
+    <style>
+      :root {
+        --bg: #faf7f2;
+        --surface: #ffffff;
+        --ink: #1e1b18;
+        --muted: #5c534a;
+        --accent: #7a1c3b;
+        --border: #dfd6c9;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background: var(--bg);
+        color: var(--ink);
+        line-height: 1.6;
+      }
+      header {
+        border-bottom: 2px solid var(--accent);
+        background: var(--surface);
+        padding: 1.25rem 0;
+      }
+      .container { max-width: 960px; margin: 0 auto; padding: 0 1rem; }
+      .topbar {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 0.75rem;
+      }
+      nav.idiomas a, nav.acoes a {
+        margin-right: 0.75rem;
+        text-decoration: none;
+        font-weight: bold;
+        color: var(--accent);
+      }
+      nav.idiomas a.ativo { text-decoration: underline; }
+      .btn-redigir {
+        background: var(--accent);
+        color: #fff !important;
+        padding: 0.45rem 0.85rem;
+        border-radius: 3px;
+      }
+      h1 { margin: 0 0 0.25rem; color: var(--accent); }
+      .sub { margin: 0; color: var(--muted); }
+      main { padding: 2rem 0 4rem; }
+      .obra {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        gap: 1.25rem;
+        background: var(--surface);
+        border: 1px solid var(--border);
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      @media (max-width: 640px) {
+        .obra { grid-template-columns: 1fr; }
+      }
+      .obra img {
+        width: 100%;
+        height: 120px;
+        object-fit: cover;
+        border: 1px solid var(--border);
+      }
+      .meta { font-size: 0.85rem; color: var(--muted); }
+      a { color: var(--accent); }
+    </style>
+  </head>
+  <body>
+    <header>
+      <div class="container">
+        <div class="topbar">
+          <nav class="idiomas" aria-label="Idiomas">
+            <a href="/pt/" class={lang === 'pt' ? 'ativo' : ''}>Português</a>
+            <a href="/en/" class={lang === 'en' ? 'ativo' : ''}>English</a>
+            <a href="/es/" class={lang === 'es' ? 'ativo' : ''}>Español</a>
+          </nav>
+          <nav class="acoes">
+            <a class="btn-redigir" href="/redigir/">✎ {textosUI.redigir}</a>
+          </nav>
+        </div>
+        <h1>{textosUI.titulo}</h1>
+        <p class="sub">{textosUI.subtitulo}</p>
+      </div>
+    </header>
+    <main class="container">
+      <h2>{textosUI.acervo}</h2>
+      {todasObras.map((obra) => {
+        const slugLimpo = obra.id.replace(/^(pt|en|es)\//, '');
+        return (
+          <article class="obra">
+            {obra.data.imagemCapa && (
+              <img src={obra.data.imagemCapa} alt={obra.data.titulo} loading="lazy" />
+            )}
+            <div>
+              <div class="meta">
+                <strong>{obra.data.autora}</strong>
+                {obra.data.ano ? ` · ${obra.data.ano}` : ''}
+                {obra.data.corrente ? ` · ${obra.data.corrente}` : ''}
+              </div>
+              <h3><a href={`/${lang}/obra/${slugLimpo}/`}>{obra.data.titulo}</a></h3>
+              <p>{obra.data.resumo}</p>
+              <a href={`/${lang}/obra/${slugLimpo}/`}>{textosUI.lerObra}</a>
+            </div>
+          </article>
+        );
+      })}
+    </main>
+  </body>
+</html>
+EOF
+cat << 'EOF' > src/pages/[lang]/obra/[slug].astro
+---
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const obras = await getCollection('acervo');
+  return obras.map((obra) => {
+    const lang = obra.data.idioma;
+    const slug = obra.id.replace(/^(pt|en|es)\//, '');
+    return {
+      params: { lang, slug },
+      props: { obra },
+    };
+  });
+}
+
+const { lang } = Astro.params;
+const { obra } = Astro.props;
+const { Content } = await render(obra);
+
+const labels = {
+  pt: { voltar: '← Voltar ao acervo', baixar: '⬇ Baixar documento anexo' },
+  en: { voltar: '← Back to archive', baixar: '⬇ Download attached document' },
+  es: { voltar: '← Volver al archivo', baixar: '⬇ Descargar documento adjunto' }
+}[lang as 'pt' | 'en' | 'es'];
+---
+
+<!doctype html>
+<html lang={lang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{obra.data.titulo} — {obra.data.autora}</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background: #faf7f2;
+        color: #1e1b18;
+        line-height: 1.65;
+      }
+      .container { max-width: 840px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+      .capa { width: 100%; max-height: 320px; object-fit: cover; border: 1px solid #dfd6c9; margin: 1rem 0; }
+      video { width: 100%; max-height: 70vh; background: #000; margin: 1.5rem 0; }
+      .anexo {
+        display: inline-block;
+        background: #ffffff;
+        border: 1px solid #7a1c3b;
+        color: #7a1c3b;
+        padding: 0.5rem 0.9rem;
+        text-decoration: none;
+        font-weight: bold;
+        margin: 0.5rem 0 1.5rem;
+      }
+      a { color: #7a1c3b; }
+      .meta { color: #5c534a; font-size: 0.9rem; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href={`/${lang}/`}>{labels.voltar}</a>
+      <h1>{obra.data.titulo}</h1>
+      <p class="meta">
+        <strong>{obra.data.autora}</strong>
+        {obra.data.ano ? ` (${obra.data.ano})` : ''}
+        {obra.data.corrente ? ` · ${obra.data.corrente}` : ''}
+      </p>
+
+      {obra.data.imagemCapa && (
+        <img class="capa" src={obra.data.imagemCapa} alt={obra.data.titulo} />
+      )}
+
+      {obra.data.arquivoAnexo && (
+        <div>
+          <a class="anexo" href={obra.data.arquivoAnexo} download>{labels.baixar}</a>
+        </div>
+      )}
+
+      {obra.data.videoUrl && (
+        <section aria-label="Vídeo longo">
+          <video controls preload="metadata" playsinline>
+            <source src={obra.data.videoUrl} />
+            {obra.data.legendaVttUrl && (
+              <track kind="subtitles" src={obra.data.legendaVttUrl} srclang={lang} label={lang.toUpperCase()} default />
+            )}
+          </video>
+        </section>
+      )}
+
+      <article>
+        <Content />
+      </article>
+    </div>
+  </body>
+</html>
+EOF
+cat << 'EOF' > src/pages/redigir.astro
+---
+---
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redigir Texto para o Acervo — Arquivo Feminista Aberto</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: Georgia, "Times New Roman", serif;
+        background: #faf7f2;
+        color: #1e1b18;
+        line-height: 1.6;
+      }
+      .container { max-width: 900px; margin: 0 auto; padding: 2rem 1rem 4rem; }
+      h1 { color: #7a1c3b; margin-top: 0.5rem; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+      @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+      label { display: block; font-weight: bold; margin-top: 0.85rem; font-size: 0.9rem; }
+      input, select, textarea {
+        width: 100%;
+        padding: 0.55rem;
+        margin-top: 0.25rem;
+        border: 1px solid #cfc4b4;
+        font-family: inherit;
+        font-size: 1rem;
+        background: #fff;
+      }
+      textarea { min-height: 240px; font-family: monospace; }
+      button {
+        margin-top: 1.25rem;
+        background: #7a1c3b;
+        color: #fff;
+        border: none;
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+        cursor: pointer;
+        font-family: inherit;
+      }
+      pre {
+        background: #1e1b18;
+        color: #faf7f2;
+        padding: 1rem;
+        overflow-x: auto;
+        font-size: 0.85rem;
+      }
+      .dica {
+        background: #fff;
+        border-left: 4px solid #7a1c3b;
+        padding: 0.75rem 1rem;
+        margin: 1rem 0;
+        font-size: 0.92rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <a href="/pt/" style="color:#7a1c3b;">← Voltar ao acervo</a>
+      <h1>Estação de Redação do Acervo</h1>
+      <p class="dica">
+        Escreva ou traduza o texto abaixo. O rascunho fica salvo automaticamente no seu navegador. Ao finalizar, clique em <strong>Baixar arquivo .md</strong> e coloque-o na pasta <code>src/content/acervo/[idioma]/</code>.
+      </p>
+
+      <div class="grid">
+        <div>
+          <label>Idioma da publicação</label>
+          <select id="idioma">
+            <option value="pt">Português (pt)</option>
+            <option value="en">English (en)</option>
+            <option value="es">Español (es)</option>
+          </select>
+        </div>
+        <div>
+          <label>Ano</label>
+          <input id="ano" type="number" value="2026" />
+        </div>
+        <div>
+          <label>Título da obra</label>
+          <input id="titulo" type="text" placeholder="Ex.: Manifesto pela Memória Histórica" />
+        </div>
+        <div>
+          <label>Autora / Coletivo</label>
+          <input id="autora" type="text" placeholder="Ex.: Nome da Autora" />
+        </div>
+        <div>
+          <label>Corrente / Tema</label>
+          <input id="corrente" type="text" placeholder="Ex.: Feminismo Negro, Materialista..." />
+        </div>
+        <div>
+          <label>Caminho da imagem (em /public/midia/imagens/)</label>
+          <input id="imagemCapa" type="text" value="/midia/imagens/capa-exemplo.svg" />
+        </div>
+        <div>
+          <label>Caminho do arquivo anexo (PDF/TXT em /public/midia/documentos/)</label>
+          <input id="arquivoAnexo" type="text" placeholder="/midia/documentos/texto.pdf" />
+        </div>
+        <div>
+          <label>URL do vídeo longo (opcional)</label>
+          <input id="videoUrl" type="url" placeholder="https://archive.org/download/..." />
+        </div>
+      </div>
+
+      <label>Resumo curto</label>
+      <input id="resumo" type="text" placeholder="Breve descrição bibliográfica para a listagem" />
+
+      <label>Corpo do texto / Transcrição (Markdown)</label>
+      <textarea id="corpo" placeholder="## Introdução&#10;&#10;Escreva aqui o texto completo, notas de rodapé ou transcrição do vídeo..."></textarea>
+
+      <button id="baixarBtn" type="button">⬇ Baixar arquivo .md pronto para o acervo</button>
+
+      <h3>Pré-visualização do arquivo Markdown gerado</h3>
+      <pre id="preview"></pre>
+    </div>
+
+    <script>
+      const campos = ['idioma', 'ano', 'titulo', 'autora', 'corrente', 'imagemCapa', 'arquivoAnexo', 'videoUrl', 'resumo', 'corpo'];
+      const preview = document.getElementById('preview');
+
+      function slugify(texto) {
+        return (texto || 'novo-texto')
+          .toLowerCase()
+          .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/(^-|-$)/g, '');
+      }
+
+      function gerarMarkdown() {
+        const val = (id) => document.getElementById(id).value.trim();
+        const linhas = [
+          '---',
+          `titulo: "${val('titulo').replace(/"/g, '\\"') || 'Sem título'}"`,
+          `autora: "${val('autora').replace(/"/g, '\\"') || 'Autora Desconhecida'}"`,
+          `idioma: "${val('idioma')}"`,
+          val('ano') ? `ano: ${val('ano')}` : null,
+          val('corrente') ? `corrente: "${val('corrente').replace(/"/g, '\\"')}"` : null,
+          `tipo: "misto"`,
+          val('imagemCapa') ? `imagemCapa: "${val('imagemCapa')}"` : null,
+          val('arquivoAnexo') ? `arquivoAnexo: "${val('arquivoAnexo')}"` : null,
+          val('videoUrl') ? `videoUrl: "${val('videoUrl')}"` : null,
+          `resumo: "${val('resumo').replace(/"/g, '\\"') || 'Documento do acervo.'}"`,
+          '---',
+          '',
+          val('corpo')
+        ].filter((l) => l !== null);
+
+        const md = linhas.join('\n');
+        preview.textContent = md;
+
+        const rascunho = {};
+        campos.forEach((c) => rascunho[c] = document.getElementById(c).value);
+        localStorage.setItem('rascunho_arquivo_feminista', JSON.stringify(rascunho));
+        return md;
+      }
+
+      const salvo = localStorage.getItem('rascunho_arquivo_feminista');
+      if (salvo) {
+        const dados = JSON.parse(salvo);
+        campos.forEach((c) => { if (dados[c]) document.getElementById(c).value = dados[c]; });
+      }
+
+      campos.forEach((c) => document.getElementById(c).addEventListener('input', gerarMarkdown));
+      gerarMarkdown();
+
+      document.getElementById('baixarBtn').addEventListener('click', () => {
+        const md = gerarMarkdown();
+        const nomeArquivo = `${slugify(document.getElementById('titulo').value)}.md`;
+        const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = nomeArquivo;
+        a.click();
+        URL.revokeObjectURL(url);
+      });
+    </script>
+  </body>
+</html>
+EOF
+npm install && npm run dev
 
 
-If all goes well, Astro will now be serving your project on [http://localhost:4321/](http://localhost:4321/). Visit that link in your browser and see your new site!
 
-### Work in development mode
 
-Astro will listen for live file changes in your `src/` directory and update your site preview as you build, so you will not need to restart the server as you make changes during development. You will always be able to see an up-to-date version of your site in your browser when the dev server is running.
 
-When viewing your site in the browser, you'll have access to the [Astro dev toolbar](/en/guides/dev-toolbar/). As you build, it will help you inspect your [islands](/en/concepts/islands/), spot accessibility issues, and more.
 
-If you aren't able to open your project in the browser after starting the dev server, go back to the terminal where you ran the `dev` command and check the message displayed. It should tell you if an error occurred, or if your project is being served at a different URL than [http://localhost:4321/](http://localhost:4321/).
 
-## Build and preview your site
+   
 
-To check the version of your site that will be created at build time, quit the dev server (<kbd>Ctrl</kbd> + <kbd>C</kbd>) and run the appropriate build command for your package manager in your terminal:
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```shell
-  npm run build
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```shell
-  pnpm build
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```shell
-  yarn run build
-  ```
-  </Fragment>
-</PackageManagerTabs>
-
-Astro will build a deploy-ready version of your site in a separate folder (`dist/` by default) and you can watch its progress in the terminal. This will alert you to any build errors in your project before you deploy to production. If TypeScript is configured to `strict` or `strictest`, the `build` script will also check your project for type errors.
-
-When the build is finished, run the appropriate `preview` command (e.g. `npm run preview`) in your terminal and you can view the built version of your site locally in the same browser preview window.
-
-Note that this previews your code as it existed when the build command was last run. This is meant to give you a preview of how your site will look when it is deployed to the web. Any later changes you make to your code after building will **not** be reflected while you preview your site until you run the build command again.
-
-Use (<kbd>Ctrl</kbd> + <kbd>C</kbd>) to quit the preview and run another terminal command, such as restarting the dev server to go back to [working in development mode](#work-in-development-mode) which does update as you edit to show a live preview of your code changes.
-
-<ReadMore>Read more about [the Astro CLI](/en/reference/cli-reference/) and the terminal commands you will use as you build with Astro.</ReadMore>
-
-:::tip 
-You may wish to [deploy your new site right away](/en/guides/deploy/), before you begin to add or change too much code. This is helpful to get a minimal, working version of your site published and can save you extra time and effort troubleshooting your deployment later.
-:::
-
-## Next Steps
-
-Success! You are now ready to start building with Astro! 🥳
-
-Here are a few things that we recommend exploring next. You can read them in any order. You can even leave our documentation for a bit and go play in your new Astro project codebase, coming back here whenever you run into trouble or have a question.
-
-### Configure your dev environment
-
-Explore the guides below to customize your development experience.
-
-<CardGrid>
-  <LinkCard
-    title="Editor Setup"
-    description="Customize your code editor to improve the Astro developer experience and unlock new features."
-    href="/en/editor-setup/"
-  />
-  <LinkCard
-    title="Dev Toolbar"
-    description="Explore the helpful features of the dev toolbar."
-    href="/en/guides/dev-toolbar/"
-  />
-  <LinkCard
-    title="TypeScript Configuration"
-    description="Configure options for type-checking, IntelliSense, and more."
-    href="/en/guides/typescript/"
-  />
-</CardGrid>
-
-### Explore Astro's Features
-
-<CardGrid>
-  <LinkCard
-    title="Understand your codebase"
-    description="Learn about Astro’s file structure in our Project Structure guide."
-    href="/en/basics/project-structure/"
-  />
-  <LinkCard
-    title="Create content collections"
-    description="Add content to your new site with frontmatter validation and automatic type-safety."
-    href="/en/guides/content-collections/"
-  />
-    <LinkCard
-    title="Add view transitions"
-    description="Create seamless page transitions and animations."
-    href="/en/guides/view-transitions/"
-  />
-  <LinkCard
-    title="Learn about Islands"
-    description="Read about Astro's islands architecture."
-    href="/en/concepts/islands/"
-  />
-</CardGrid>
-
-### Take the introductory tutorial
-
-Build a fully functional Astro blog starting from a single blank page in our [introductory tutorial](/en/tutorial/0-introduction/).
-
-This is a great way to see how Astro works and walks you through the basics of pages, layouts, components, routing, islands, and more. It also includes an optional, beginner-friendly unit for those newer to web development concepts in general, which will guide you through installing the necessary applications on your computer, creating a GitHub account, and deploying your site.
 
