@@ -1,0 +1,148 @@
+---
+title: Decap CMS y Astro
+description: Añade contenido a tu proyecto de Astro usando Decap como CMS
+sidebar:
+  label: Decap CMS
+type: cms
+stub: true
+logo: decap-cms
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+
+[Decap CMS](https://www.decapcms.org/) (anteriormente Netlify CMS) es un sistema de gestión de contenidos de código abierto basado en Git.
+
+Decap te permite aprovechar al máximo todas las funciones de Astro, incluyendo la optimización de imágenes y las colecciones de contenido.
+
+Decap añade una ruta (normalmente `/admin`) a tu proyecto que cargará una aplicación de React para permitir a los usuarios autorizados gestionar contenido directamente desde el sitio web desplegado. Decap hará commit de los cambios directamente en el repositorio de origen de tu proyecto de Astro.
+
+## Instalando DecapCMS
+
+Hay dos opciones para añadir Decap a Astro:
+
+1. [Instala Decap mediante un gestor de paquetes](https://decapcms.org/docs/install-decap-cms/#installing-with-npm) con el siguiente comando:
+
+
+    <PackageManagerTabs>
+      <Fragment slot="npm">
+      ```shell
+      npm install decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="pnpm">
+      ```shell
+      pnpm add decap-cms-app
+      ```
+      </Fragment>
+      <Fragment slot="yarn">
+      ```shell
+      yarn add decap-cms-app
+      ```
+      </Fragment>
+    </PackageManagerTabs>
+ 
+ 
+2. Importa el paquete en una etiqueta `<script>` en el `<body>` de tu página
+
+	```html title='/admin'
+    <body>
+      <!-- Incluye el script que compila la página y hace funcionar Decap CMS -->
+      <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+    </body>
+	```
+ 
+
+## Configuración
+
+<Steps>
+1. Crea una carpeta estática de administración en `public/admin/`
+
+2. Añade `config.yml` a `public/admin/`:
+    <FileTree>
+      - public
+        - admin
+          - config.yml
+    </FileTree>
+
+3. Para añadir soporte para colecciones de contenido, configura cada esquema en `config.yml`. El siguiente ejemplo configura una colección `blog`, definiendo un `label` para la propiedad del frontmatter de cada entrada:
+
+    ```yml title="/public/admin/config.yml"
+    collections:
+      - name: "blog" # Usado en rutas, p. ej., /admin/collections/blog
+        label: "Blog" # Usado en la interfaz de usuario
+        folder: "src/content/blog" # La ruta a la carpeta donde se almacenan los documentos
+        create: true # Permite a los usuarios crear nuevos documentos en esta colección
+        fields: # Los campos para cada documento, generalmente en el frontmatter
+          - { label: "Diseño", name: "layout", widget: "hidden", default: "blog" }
+          - { label: "Título", name: "title", widget: "string" }
+          - { label: "Fecha de publicación", name: "date", widget: "datetime" }
+          - { label: "Imagen destacada", name: "thumbnail", widget: "image" }
+          - { label: "Calificación (escala del 1 al 5)", name: "rating", widget: "number" }
+          - { label: "Cuerpo", name: "body", widget: "markdown" }
+    ```
+
+4. Añade la ruta `admin` para tu aplicación de React en `src/pages/admin.html`.
+    <FileTree>
+    - public
+      - admin
+         - config.yml
+    - src
+      - pages
+        - admin.html
+    </FileTree>
+
+    ```html title="/src/pages/admin.html" {7, 11}
+    <!doctype html>
+    <html lang="es">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="noindex" />
+        <link href="config.yml" type="text/yaml" rel="cms-config-url" />
+        <title>Gestor de contenido</title>
+      </head>
+      <body>
+        <script src="https://unpkg.com/decap-cms@^3.1.2/dist/decap-cms.js"></script>
+      </body>
+    </html>
+    ```
+
+5. Para habilitar la subida de archivos multimedia a una carpeta específica a través del editor de Decap, añade una ruta apropiada:
+    ```yml title="/public/admin/config.yml"
+    media_folder: "src/assets/images" # Ubicación donde se almacenarán los archivos en el repositorio
+    public_folder: "src/assets/images" # El atributo src para los archivos multimedia subidos
+    ```
+</Steps>
+
+Consulta [la documentación de configuración de Decap CMS](https://decapcms.org/docs/configure-decap-cms/) para obtener instrucciones completas y opciones.
+
+## Uso
+Navega a `tusitio.com/admin/` para usar el editor de Decap CMS.
+
+## Autenticación
+
+### Decap CMS con Netlify Identity
+
+Decap CMS fue desarrollado originalmente por Netlify y cuenta con soporte de primer nivel para [Netlify Identity](https://docs.netlify.com/security/secure-access-to-sites/identity/).
+
+Al desplegar en Netlify, configura Identity para tu proyecto a través del panel de control de Netlify e incluye el [Netlify Identity Widget](https://github.com/netlify/netlify-identity-widget) en la ruta `admin` de tu proyecto. Opcionalmente, incluye el Identity Widget en la página de inicio de tu sitio si planeas invitar a nuevos usuarios por correo electrónico.
+
+### Decap CMS con clientes OAuth externos
+
+Al desplegar en proveedores de alojamiento distintos de Netlify, debes crear tus propias rutas OAuth.
+
+En Astro, esto se puede hacer con rutas renderizadas bajo demanda en tu proyecto configuradas con [un adaptador](/es/guides/on-demand-rendering/) habilitado.
+
+Consulta la [documentación de OAuth de Decap](https://decapcms.org/docs/external-oauth-clients/) para ver una lista de clientes OAuth compatibles y mantenidos por la comunidad.
+
+## Recursos de la Comunidad 
+
+- Plantilla de Netlify Identity: [astro-decap-ssg-netlify](https://github.com/OliverSpeir/astro-decap-ssg-netlify-identity)
+
+- Plantilla de Astro con rutas OAuth renderizadas bajo demanda: [astro-decap-starter-ssr](https://github.com/OliverSpeir/astro-decap-starter-ssr)
+
+- Artículo de blog: [Crea el contenido de tu sitio de Astro con CMS basados en Git](https://aalam.vercel.app/blog/astro-and-git-cms-netlify) por Aftab Alam 
+
+- Tutorial de YouTube: [¡Crea un blog personalizado con Astro y NetlifyCMS en MINUTOS!](https://www.youtube.com/watch?v=3yip2wSRX_4) por Kumail Pirzada
