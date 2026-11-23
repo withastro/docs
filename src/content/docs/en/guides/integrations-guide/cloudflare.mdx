@@ -123,7 +123,7 @@ It also accepts the following:
 Determines which image service is used by the adapter. The adapter will default to `cloudflare-binding` mode when an incompatible image service is configured. Otherwise, it will use the globally configured image service:
 
 - **`cloudflare`:** Uses the [Cloudflare Image Resizing](https://developers.cloudflare.com/images/image-resizing/) service.
-- **`cloudflare-binding`:** Uses the [Cloudflare Images binding](https://developers.cloudflare.com/images/transform-images/bindings/) for image transformation. The binding is automatically provisioned when you deploy.
+- **`cloudflare-binding`:** Uses the [Cloudflare Images binding](https://developers.cloudflare.com/images/transform-images/bindings/) to transform images at build time for prerendered routes and at runtime for on-demand rendered pages. The binding is automatically provisioned when you deploy.
 - **`passthrough`:** Uses the existing [`noop`](/en/guides/images/#configure-no-op-passthrough-service) service.
 - **`compile`:** Uses the [configured image service](/en/reference/configuration-reference/#imageservice) or falls back to a combination of internal dependencies to transform images locally at build time for prerendered routes. The noop `passthrough` option is configured for on-demand rendered pages.
 - **`custom`:** Uses the [configured image service](/en/reference/configuration-reference/#imageservice) (defaults to Sharp) to process assets at build time for prerendered routes. Bundles the image service for runtime image handling, without checking its compatibility with Cloudflare's `workerd` runtime.
@@ -145,9 +145,9 @@ export default defineConfig({
 });
 ```
 
-Using `imageService: 'cloudflare-binding'` enables image optimization using the [Cloudflare Images binding](https://developers.cloudflare.com/images/transform-images/bindings/) only at runtime.
+With `cloudflare-binding`, the default, images on prerendered routes are transformed with the binding during `workerd` prerendering and written to the build output. If the binding fails to transform an image at build time, the adapter falls back to Sharp.
 
-To opt in to build-time image optimization with the binding during `workerd` prerendering, set `build` to `'cloudflare-binding'`. If the binding fails to transform an image at build time, the adapter falls back to the [configured image service](/en/reference/configuration-reference/#imageservice) (defaults to Sharp).
+To keep build-time optimization with the binding but serve images on on-demand rendered pages unchanged, set `runtime` to `'passthrough'`:
 
 ```js title="astro.config.mjs" ins={6}
 import { defineConfig } from 'astro/config';
@@ -155,7 +155,7 @@ import cloudflare from '@astrojs/cloudflare';
 
 export default defineConfig({
   adapter: cloudflare({
-    imageService: { build: 'cloudflare-binding', runtime: 'cloudflare-binding' }
+    imageService: { build: 'cloudflare-binding', runtime: 'passthrough' }
   }),
 });
 ```
