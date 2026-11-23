@@ -1,0 +1,215 @@
+---
+title: DatoCMS y Astro
+description: Agrega contenido a tu proyecto de Astro usando DatoCMS
+sidebar:
+  label: DatoCMS
+type: cms
+stub: false
+logo: datocms
+i18nReady: true
+---
+import { Steps } from '@astrojs/starlight/components';
+import { FileTree } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+[DatoCMS](https://datocms.com/) es un CMS headless basado en la web para gestionar contenido digital para tus sitios y aplicaciones.
+
+## Integración con Astro
+
+En esta guía, obtendrás datos de contenido de DatoCMS en tu proyecto de Astro y luego los mostrarás en una página.
+
+## Prerrequisitos
+
+Para empezar, necesitarás tener lo siguiente:
+
+- **Un proyecto de Astro** - Si aún no tienes un proyecto de Astro, puedes seguir las instrucciones en nuestra [guía de instalación](/es/install-and-setup/).
+- **Una cuenta y un proyecto de DatoCMS** - Si no tienes una cuenta, puedes [registrarte para obtener una cuenta gratuita](https://dashboard.datocms.com/signup).
+- **La clave de API de solo lectura para tu proyecto de DatoCMS** - Puedes encontrarla en el panel de administración de tu proyecto, en "Settings" > "API Tokens".
+
+## Configuración de las credenciales
+
+Crea un nuevo archivo (si aún no existe) llamado `.env` en la raíz de tu proyecto de Astro. Añade una nueva variable de entorno de la siguiente manera, utilizando la clave de API que se encuentra en el panel de administración de DatoCMS: 
+
+```ini title=".env"
+DATOCMS_API_KEY=YOUR_API_KEY
+```
+
+Para soporte de TypeScript, declara el tipado de esta variable de entorno en el archivo `env.d.ts` en la carpeta `src/`. Si este archivo no existe, puedes crearlo y agregar lo siguiente:
+
+```ts title="src/env.d.ts"
+interface ImportMetaEnv {
+  readonly DATOCMS_API_KEY: string;
+}
+```
+
+Tu directorio raíz ahora debería incluir estos archivos:
+
+<FileTree title="Estructura del Proyecto">
+- src/
+  - **env.d.ts**
+- **.env**
+- astro.config.mjs
+- package.json
+</FileTree>
+
+<ReadMore>Aprende más sobre las [variables de entorno](/es/guides/environment-variables/) y los archivos `.env` en Astro.</ReadMore>
+
+## Crear un modelo en DatoCMS
+
+En el panel de administración de DatoCMS de tu proyecto, navega a "Settings" > "Models" y crea un nuevo modelo llamado "Home" con la opción "Single Instance" seleccionada. Esto creará una página de inicio para tu proyecto. En este modelo, añade un nuevo campo de texto para el título de la página.
+
+Navega a la pestaña "Content" en tu proyecto y haz clic en tu página de inicio recién creada. Ahora puedes añadir un título. Guarda la página y continúa.
+
+## Obteniendo datos
+
+En tu proyecto de Astro, navega a la página que obtendrá y mostrará el contenido de tu CMS. Añade la siguiente consulta para obtener el contenido de `home` usando la API GraphQL de DatoCMS.
+
+Este ejemplo muestra el título de la página desde DatoCMS en `src/pages/index.astro`:
+
+```astro title="src/pages/index.astro"
+---
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+```
+
+Esta consulta GraphQL obtendrá el campo `title` en la página `home` de tu proyecto de DatoCMS. Al actualizar tu navegador, deberías ver el título en tu página.
+
+## Añadiendo bloques dinámicos de contenido modular
+
+Si tu proyecto de DatoCMS incluye [contenido modular](https://www.datocms.com/docs/content-modelling/modular-content), entonces necesitarás construir un componente `.astro` correspondiente para cada bloque de contenido (p. ej., una sección de texto, un video, un bloque de citas, etc.) que el campo modular permita en tu proyecto.
+
+El siguiente ejemplo es un componente de Astro `<Text />` para mostrar un bloque de "Texto de múltiples párrafos" de DatoCMS. 
+
+```astro title="src/components/Text.astro"
+---
+export interface TextProps {
+	text: string
+}
+
+export interface Props {
+	item: TextProps
+}
+
+const { item } = Astro.props;
+---
+
+<div set:html={item.text} />
+
+```
+Para obtener estos bloques, edita tu consulta GraphQL para incluir el bloque de contenido modular que creaste en DatoCMS. 
+
+En este ejemplo, el bloque de contenido modular se llama **content** en DatoCMS. Esta consulta también incluye el `_modelApiKey` único de cada elemento para verificar qué bloque se debe mostrar en el campo modular, según el bloque elegido por el autor del contenido en el editor de DatoCMS. Usa una declaración switch en la plantilla de Astro para permitir el renderizado dinámico basado en los datos recibidos de la consulta.
+
+El siguiente ejemplo representa un bloque de contenido modular de DatoCMS que permite al autor elegir entre un campo de texto (`<Text />`) y una imagen (`<Image />`) renderizados en la página de inicio:
+
+```astro title="src/pages/index.astro" ins={2,3, 16-27, 39-50}
+---
+import Image from '../components/Image.astro';
+import Text from '../components/Text.astro';
+
+const response = await fetch('https://graphql.datocms.com/', {
+	method: 'POST',
+	headers: {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		Authorization: `Bearer ${import.meta.env.DATOCMS_API_KEY}`,
+	},
+	body: JSON.stringify({
+		query: `query Homepage {
+          home {
+            title
+            content {
+              ... on ImageRecord {
+                _modelApiKey
+               image{
+                url
+               }
+              }
+              ... on TextRecord {
+                _modelApiKey
+                text(markdown: true)
+              }
+            }
+          }
+        }
+      `,
+	}),
+});
+
+const json = await response.json();
+const data = json.data.home;
+---
+
+<h1>{data.title}</h1>
+{
+  data.content.map((item: any) => {
+    switch (item._modelApiKey) {
+      case 'image':
+        return <Image item={item} />;
+      case 'text':
+        return <Text item={item} />;
+      default:
+        return null;
+    }
+  })
+}
+```
+
+## Publicando tu sitio
+
+Para desplegar tu sitio web, visita nuestras [guías de despliegue](/es/guides/deploy/) y sigue las instrucciones de tu proveedor de alojamiento preferido.
+
+## Publicar ante cambios de contenido en DatoCMS
+
+Si tu proyecto está utilizando el modo estático predeterminado de Astro, deberás configurar un webhook para desencadenar una nueva compilación cuando cambie tu contenido. Si estás utilizando Netlify o Vercel como tu proveedor de alojamiento, puedes utilizar su función de webhook para activar una nueva compilación cuando modifiques contenido en DatoCMS.
+
+### Netlify
+
+Para configurar un webhook en Netlify:
+
+<Steps>
+1. Ve al panel de control de tu sitio y haz clic en **Build & deploy**.
+
+2. En la pestaña **Continuous Deployment**, busca la sección **Build hooks** y haz clic en **Add build hook**.
+
+3. Proporciona un nombre para tu webhook y selecciona la rama en la que deseas desencadenar la compilación. Haz clic en **Save** y copia la URL generada.
+</Steps>
+
+### Vercel
+
+Para configurar un webhook en Vercel:
+
+<Steps>
+1. Ve al panel de control de tu proyecto y haz clic en **Settings**.
+
+2. En la pestaña **Git**, busca la sección **Deploy Hooks**.
+
+3. Proporciona un nombre para tu webhook y la rama en la que deseas activar la compilación. Haz clic en **Add** y copia la URL generada.
+</Steps>
+
+### Añadiendo un webhook a DatoCMS
+
+En el panel de administración de tu proyecto en DatoCMS, navega a la pestaña **Settings** y haz clic en **Webhooks**. Haz clic en el ícono más para crear un nuevo webhook y asígnale un nombre. En el campo URL, pega la URL generada por tu servicio de alojamiento preferido. Como Trigger, selecciona la opción que mejor se adapte a tus necesidades. (Por ejemplo: compilar cada vez que se publique un nuevo registro).
+
+## Proyecto inicial
+También puedes consultar el [Astro Starter Kit](https://www.datocms.com/marketplace/starters/astro-starter-kit) en el marketplace de DatoCMS para aprender cómo crear un sitio con Astro y DatoCMS.
