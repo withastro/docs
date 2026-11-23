@@ -1,0 +1,100 @@
+---
+title: Página de redirección estática experimental
+sidebar:
+  label: Página de redirección estática
+i18nReady: true
+---
+
+import Since from '~/components/Since.astro'
+
+<p>
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`<br />
+<Since v="7.4.0" />
+</p>
+
+Esta funcionalidad experimental te permite personalizar la página HTML que Astro genera para redirecciones en compilaciones estáticas. Úsala para añadir tu propio marcado o texto traducido a estas páginas.
+
+Los sitios estáticos no pueden enviar una cabecera HTTP `Location`. En su lugar, Astro genera una página HTML con una etiqueta [meta refresh](https://developer.mozilla.org/es/docs/Web/HTML/Reference/Elements/meta) para cada redirección. Esta funcionalidad te permite reemplazar la página integrada de Astro por tu propia página `src/pages/3xx.astro`.
+
+La página personalizada se aplica a las [redirecciones configuradas](/es/reference/configuration-reference/#redirects), a las llamadas a [`Astro.redirect()`](/es/reference/api-reference/#redirect) en páginas prerenderizadas y a las redirecciones de i18n. No afecta a las redirecciones renderizadas bajo demanda, que utilizan una cabecera HTTP `Location`.
+
+Si desactivas `experimental.redirectPage`, Astro tratará a `3xx.astro` como una página ordinaria y usará su página de redirección integrada para las redirecciones.
+
+## Habilitar la funcionalidad
+
+Establece `experimental.redirectPage` en `true` en tu configuración de Astro:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+
+export default defineConfig({
+  experimental: {
+    redirectPage: true,
+  },
+});
+```
+
+## Crear una página de redirección personalizada
+
+Cuando la [funcionalidad está habilitada](#habilitar-la-funcionalidad), Astro busca un archivo `src/pages/3xx.astro` para gestionar las redirecciones estáticas. Si el archivo no existe o falla al renderizarse, Astro recurre a su página de redirección integrada.
+
+Tu página personalizada recibe los detalles de la redirección como props. Usa la propiedad `to` para definir el destino del elemento `<meta http-equiv="refresh" />`. En una compilación estática, este elemento realiza la redirección porque la página no envía una cabecera `Location`. Si este elemento falta o apunta a un destino diferente, Astro te avisará durante la compilación.
+
+Para obtener inferencia de tipos, importa [`RedirectPageProps`](#redirectpageprops) y asígnalo al [tipo `Props`](/es/guides/typescript/#propiedades-de-componente).
+
+El siguiente ejemplo crea una página `src/pages/3xx.astro` personalizada:
+
+```astro title="src/pages/3xx.astro"
+---
+import type { RedirectPageProps as Props } from 'astro';
+
+const { from, to, status, delay } = Astro.props;
+---
+
+<html lang="es">
+  <head>
+    <meta http-equiv="refresh" content={`${delay};url=${to}`} />
+    <meta name="robots" content="noindex" />
+    <title>Redireccionando</title>
+  </head>
+  <body>
+    <p>Esta página se ha movido. <a href={to}>Continuar a {to}</a>.</p>
+  </body>
+</html>
+```
+
+Astro también compila `3xx.astro` como la ruta ordinaria `/3xx`, escrita en `3xx.html`. Cuando alguien visita esa ruta directamente, Astro no pasa props de redirección.
+
+## `RedirectPageProps`
+
+Astro exporta el tipo `RedirectPageProps` desde `astro`. Impórtalo para tipar las props de tu página personalizada:
+
+### `from`
+
+**Tipo:** `string`
+
+El pathname desde el que se está redirigiendo.
+
+### `to`
+
+**Tipo:** `string`
+
+El destino de la redirección.
+
+### `status`
+
+**Tipo:** `number`
+
+El código de estado HTTP de la redirección, como `301` o `302`.
+
+### `delay`
+
+**Tipo:** `number`
+
+El retraso de la actualización meta en segundos. Astro usa `2` para redirecciones `302` y `0` para otros estados.
+
+---
+
+Para ver la propuesta y la discusión detrás de esta API experimental, consulta el [RFC de la página de redirección 3xx personalizada](https://github.com/withastro/roadmap/pull/1444).

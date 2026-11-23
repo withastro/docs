@@ -170,6 +170,7 @@ export const sidebar = [
 					'reference/experimental-flags/incremental-build',
 					'reference/experimental-flags/parallel-prerender',
 					'reference/experimental-flags/redirect-page',
+					'reference/vite-plugin-astro',
 				],
 			}),
 			'reference/legacy-flags',
