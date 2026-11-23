@@ -1,0 +1,390 @@
+---
+title: 실험적 Astro Vite 플러그인
+sidebar:
+  label: Vite 플러그인
+description: Astro Vite 플러그인을 사용하여 Vite 프로젝트의 모든 서버에서 아일랜드를 포함한 Astro 컴포넌트를 렌더링하세요.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+`@astrojs/vite-plugin-astro`를 사용하면 Astro 프로젝트 없이도 모든 Vite 프로젝트에서 [Astro 컴포넌트](/ko/basics/astro-components/)를 사용할 수 있습니다. 무엇을 렌더링할지는 여러분의 서버가 결정합니다. [Hono](https://hono.dev/) 라우트, Express 핸들러, 또는 컴포넌트를 렌더링하고 HTML을 반환하는 워커의 `fetch()` 등이 될 수 있습니다.
+
+컴포넌트는 Astro에서와 동일하게 동작합니다. 범위가 지정된 스타일과 `<script>` 태그를 사용할 수 있고, 브라우저에서 하이드레이션되는 React, Preact, Solid, Svelte 또는 Vue 컴포넌트로 만든 [아일랜드](/ko/concepts/islands/)도 사용할 수 있습니다.
+
+:::caution[실험적]
+`@astrojs/vite-plugin-astro`와 `@astrojs/runtime`은 실험적입니다. 1.0에 도달할 때까지 마이너 릴리스에서 API가 변경될 수 있습니다.
+:::
+
+## 설치
+
+플러그인과 런타임을 설치하세요:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/vite-plugin-astro @astrojs/runtime
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/vite-plugin-astro @astrojs/runtime
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/vite-plugin-astro @astrojs/runtime
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 Vite 구성에 플러그인을 추가하세요:
+
+```js title="vite.config.js"
+import astro from '@astrojs/vite-plugin-astro';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [astro()],
+});
+```
+
+이제 서버 코드에서 `.astro` 파일을 가져올 수 있습니다.
+
+## 컴포넌트 렌더링하기
+
+서버 코드에서 컴포넌트를 가져온 다음 `@astrojs/runtime`의 `renderToResponse()` 또는 `renderToString()`으로 렌더링하세요.
+
+다음 예시는 Hono 라우트를 사용하여 URL에서 가져온 `name` prop과 함께 `Page.astro` 컴포넌트를 렌더링합니다:
+
+```ts title="src/app.ts"
+import { renderToResponse } from '@astrojs/runtime';
+import { Hono } from 'hono';
+import Page from './components/Page.astro';
+
+const app = new Hono();
+
+app.get('/hello/:name', (c) =>
+  renderToResponse(Page, { props: { name: c.req.param('name') } }),
+);
+
+export default app;
+```
+
+`Page.astro`는 `name` prop을 받으며, 다른 Astro 프로젝트에서와 마찬가지로 [컴포넌트 props](/ko/basics/astro-components/#컴포넌트-props)를 사용할 수 있습니다:
+
+```astro title="src/components/Page.astro"
+---
+const { name } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello, {name}</title>
+  </head>
+  <body>
+    <h1>Hello, {name}!</h1>
+  </body>
+</html>
+
+<style>
+  h1 { color: rebeccapurple; }
+</style>
+```
+
+기본적으로 결과는 완전한 HTML 문서입니다. `<!DOCTYPE html>`이 추가되고, 컴포넌트와 그 하위 컴포넌트의 스타일시트가 `<head>`에 추가됩니다. [htmx](https://htmx.org/)용 조각이나 서버가 다른 방식으로 렌더링하는 페이지 내부의 컴포넌트처럼 페이지의 일부만 렌더링하려면 `partial: true`를 전달하세요.
+
+다음 예시는 `Card.astro` 컴포넌트를 HTML 조각으로 렌더링합니다:
+
+```ts title="src/app.ts"
+import { renderToString } from '@astrojs/runtime';
+import Card from './components/Card.astro';
+
+const html = await renderToString(Card, { props: { title: 'Hello' }, partial: true });
+```
+
+렌더링은 서버에서만 이루어집니다. 브라우저에서 실행되는 코드가 아니라, Vite가 로드하는 서버 코드에서 이 함수들을 호출하세요.
+
+## 아일랜드 추가하기
+
+UI 프레임워크의 컴포넌트를 렌더링하려면 해당 렌더러를 `astro()`에 전달하고, 프레임워크 자체의 Vite 플러그인을 추가하세요.
+
+다음 예시는 React 렌더러, React Vite 플러그인, React를 설치합니다:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/react-renderer @vitejs/plugin-react react react-dom
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/react-renderer @vitejs/plugin-react react react-dom
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/react-renderer @vitejs/plugin-react react react-dom
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+그런 다음 Vite 구성 파일에 렌더러와 Vite 플러그인을 추가하세요:
+
+```js title="vite.config.js" ins={1,3,7}
+import react from '@astrojs/react-renderer';
+import astro from '@astrojs/vite-plugin-astro';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [astro({ renderers: [react()] }), viteReact()],
+});
+```
+
+렌더러는 Astro에 프레임워크 컴포넌트를 렌더링하고 하이드레이션하는 방법을 알려줍니다. 프레임워크의 Vite 플러그인은 다른 Vite 프로젝트에서와 마찬가지로 해당 파일을 컴파일합니다.
+
+이제 모든 [클라이언트 지시어](/ko/reference/directives-reference/#클라이언트-지시어)와 함께 프레임워크 컴포넌트를 사용할 수 있습니다. 다음 예시는 Astro 컴포넌트에 React `Counter`를 추가하고 페이지가 로드되는 즉시 하이드레이션합니다:
+
+```astro title="src/components/Page.astro" ins={2,7}
+---
+import Counter from './Counter.tsx';
+const { name } = Astro.props;
+---
+<body>
+  <h1>Hello, {name}!</h1>
+  <Counter client:load />
+</body>
+```
+
+렌더링된 HTML에는 아일랜드를 하이드레이션하는 데 필요한 모든 것이 포함됩니다. 직접 스크립트를 추가할 필요가 없습니다.
+
+다음 표는 각 프레임워크에 사용할 렌더러와 Vite 플러그인을 나열합니다:
+
+| 프레임워크 | 렌더러 | Vite 플러그인 |
+| --- | --- | --- |
+| React | `@astrojs/react-renderer`의 `react()` | `@vitejs/plugin-react` |
+| Preact | `@astrojs/preact-renderer`의 `preact()` | `@preact/preset-vite` |
+| Solid | `@astrojs/solid-js-renderer`의 `solid()` | `vite-plugin-solid`, `ssr: true` 사용 |
+| Svelte | `@astrojs/svelte-renderer`의 `svelte()` | `@sveltejs/vite-plugin-svelte` |
+| Vue | `@astrojs/vue-renderer`의 `vue()` | `@vitejs/plugin-vue` |
+
+플러그인 순서는 중요하지 않습니다.
+
+여러 JSX 프레임워크를 함께 사용하려면 `include` 옵션으로 각 프레임워크가 처리할 파일을 알려주세요. 각 프레임워크의 Vite 플러그인과 `react()` 및 `preact()` 렌더러에 이 옵션을 전달하세요. `solid()`은 옵션을 받지 않습니다. 다음 예시는 별도의 폴더에 있는 React 및 Solid 컴포넌트를 사용합니다:
+
+```js title="vite.config.js"
+import react from '@astrojs/react-renderer';
+import solid from '@astrojs/solid-js-renderer';
+import astro from '@astrojs/vite-plugin-astro';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import viteSolid from 'vite-plugin-solid';
+
+export default defineConfig({
+  plugins: [
+    astro({ renderers: [react({ include: ['**/react/*'] }), solid()] }),
+    viteReact({ include: ['**/react/*'] }),
+    viteSolid({ include: ['**/solid/*'], ssr: true }),
+  ],
+});
+```
+
+<ReadMore>Astro 컴포넌트에서 [프레임워크 컴포넌트](/ko/guides/framework-components/)를 사용하는 방법을 참조하세요. Vite 프로젝트에서는 통합 설치 단계를 건너뛰세요.</ReadMore>
+
+## 개발
+
+다른 Vite 프로젝트에서와 마찬가지로 `vite dev`로 서버를 실행하세요. 예를 들어 [`@hono/vite-dev-server`](https://github.com/honojs/vite-plugins/tree/main/packages/dev-server) 또는 플랫폼의 Vite 플러그인을 사용할 수 있습니다. 컴포넌트는 요청될 때 컴파일되며, 개발 서버는 아일랜드의 클라이언트 코드를 제공합니다.
+
+컴포넌트를 편집하면 브라우저의 페이지가 업데이트됩니다. 스타일 변경은 다시 로드하지 않고 적용되며, 다른 변경 사항은 페이지를 다시 로드합니다.
+
+## 빌드
+
+프로젝트를 빌드하려면 `ssr` 환경의 빌드 입력으로 서버 코드가 시작되는 위치를 Vite에 알려주세요. 각 빌드의 출력 디렉터리도 선택할 수 있습니다.
+
+다음 예시는 `src/app.ts`를 서버 빌드의 진입점으로 설정하고, 서버 빌드와 클라이언트 빌드를 별도의 폴더에 기록합니다:
+
+```js title="vite.config.js" ins={6-14}
+import astro from '@astrojs/vite-plugin-astro';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [astro()],
+  environments: {
+    ssr: {
+      build: {
+        outDir: 'dist/server',
+        rolldownOptions: { input: { app: 'src/app.ts' } },
+      },
+    },
+    client: { build: { outDir: 'dist/client' } },
+  },
+});
+```
+
+`vite build`를 실행하면 서버 코드가 `dist/server/`에, 컴포넌트의 브라우저 코드가 `dist/client/`에 기록됩니다. 클라이언트 빌드에는 스타일시트, 아일랜드, 프레임워크의 클라이언트 코드, 컴포넌트의 `<script>` 태그가 포함됩니다. 렌더링된 HTML은 이러한 파일을 참조합니다.
+
+서버가 있는 모든 Vite 프로젝트에서처럼 `dist/client/`를 정적 파일로 제공하세요. Vite 프로젝트의 클라이언트 출력을 정적 자산으로 배포하는 호스팅 플랫폼은 이 작업을 대신 처리합니다.
+
+## `Astro` 전역
+
+`renderToResponse()` 또는 `renderToString()`으로 렌더링된 컴포넌트에서 [`Astro` 전역](/ko/reference/api-reference/)은 컴포넌트와 렌더 호출에만 의존하는 다음 속성들을 가집니다:
+
+| 속성 | 값 |
+| --- | --- |
+| `Astro.props` | 렌더 함수나 부모 컴포넌트에서 전달된 `props`입니다. |
+| `Astro.slots` | 컴포넌트의 [슬롯](/ko/basics/astro-components/#슬롯)입니다. |
+| `Astro.self` | [재귀 컴포넌트](/ko/reference/astro-syntax/#astroself)를 위한 컴포넌트 자체입니다. |
+| `Astro.request` | 렌더 함수에 전달된 `request`입니다. 기본값은 `http://localhost/`에 대한 `GET` 요청입니다. |
+| `Astro.url` | `Astro.request`의 URL입니다. |
+| `Astro.site` | `URL`로 나타낸 `astro()`의 `site` 옵션입니다. |
+| `Astro.generator` | Astro 버전입니다. |
+
+요청 데이터를 컴포넌트에서 사용할 수 있게 하려면 요청을 전달하거나 데이터를 props로 전달하세요:
+
+```ts
+app.get('/profile', async (c) => {
+  const user = await getUser(c);
+  return renderToResponse(Profile, { request: c.req.raw, props: { user } });
+});
+```
+
+## 제한 사항
+
+다음 Astro 기능은 `@astrojs/vite-plugin-astro`로 렌더링된 컴포넌트에서 사용할 수 없습니다:
+
+- 페이지 및 라우팅: `src/pages/`, `getStaticPaths()`, 사전 렌더링. 각 요청에 렌더링할 컴포넌트는 서버가 결정합니다.
+- 요청 수준 API: `Astro.cookies`, `Astro.params`, `Astro.redirect()`, `Astro.locals`, [액션](/ko/guides/actions/), [세션](/ko/guides/sessions/), [국제화](/ko/guides/internationalization/) 도우미.
+- [서버 아일랜드](/ko/guides/server-islands/) (`server:defer`).
+- [뷰 전환](/ko/guides/view-transitions/) (`<ClientRouter />`).
+- `astro:assets`, `astro:content`, `astro:env`와 같은 Astro의 내장 모듈.
+- [콘텐츠 보안 정책](/ko/reference/configuration-reference/#securitycsp), 스크립트 및 스타일시트 인라인, `build.assetsPrefix`.
+- 통합. 대신 Vite 플러그인을 사용하세요.
+
+스타일시트는 프로덕션에서 항상 링크되며, 범위가 지정된 스타일은 `attribute` [전략](/ko/reference/configuration-reference/#scopedstylestrategy)을 사용합니다.
+
+## TypeScript
+
+TypeScript에서 `.astro` 파일을 가져오려면 해당 타입을 선언하세요:
+
+```ts title="src/env.d.ts"
+declare module '*.astro' {
+  import type { AstroComponentFactory } from '@astrojs/runtime/types';
+  const Component: AstroComponentFactory;
+  export default Component;
+}
+```
+
+## 참조
+
+### `astro()` 옵션
+
+`astro()` 플러그인은 선택적 구성 객체를 받으며, 이 객체의 모든 속성도 선택 사항입니다.
+
+```js
+astro({
+  site: 'https://example.com',
+  renderers: [react()],
+});
+```
+
+#### `site`
+
+**타입:** `string`
+
+사이트가 배포되는 URL이며, `Astro.site`로 사용할 수 있습니다.
+
+#### `renderers`
+
+**타입:** `AstroRenderer[]`<br />
+**기본값:** `[]`
+
+컴포넌트에서 사용하는 UI 프레임워크의 렌더러입니다. 컴포넌트를 둘 이상의 렌더러가 처리할 수 있는 경우, 이 순서대로 시도됩니다.
+
+#### `clientDirectives`
+
+**타입:** `{ name: string; entrypoint: string | URL }[]`<br />
+**기본값:** `[]`
+
+통합 API의 `addClientDirective()`와 동일한 형태의 [사용자 정의 클라이언트 지시어](/ko/reference/directives-reference/#사용자-정의-클라이언트-지시어)입니다.
+
+#### `compressHTML`
+
+**타입:** `boolean | 'jsx'`<br />
+**기본값:** `'jsx'`
+
+컴포넌트 템플릿의 공백이 압축되는 방식입니다. [`compressHTML`](/ko/reference/configuration-reference/#compresshtml)을 참조하세요.
+
+#### `trailingSlash`
+
+**타입:** `'always' | 'never' | 'ignore'`<br />
+**기본값:** `'ignore'`
+
+[`trailingSlash`](/ko/reference/configuration-reference/#trailingslash)를 참조하세요.
+
+#### `publicDir`
+
+**타입:** `string`<br />
+**기본값:** `'./public'`
+
+`root`를 기준으로 그대로 제공되는 파일의 디렉터리입니다. 이 디렉터리에 있는 파일을 가리키는 `<script src>`는 [`is:inline`](/ko/reference/directives-reference/#isinline)을 사용해야 합니다.
+
+#### `root`
+
+**타입:** `string`<br />
+**기본값:** Vite의 `root`
+
+Vite의 `root`를 기준으로 한 프로젝트 루트입니다.
+
+기본 URL은 Vite의 [`base`](https://vite.dev/config/shared-options.html#base)입니다. `astro()`에는 `base` 옵션이 없습니다.
+
+### `renderToResponse()`
+
+<p>
+
+**타입:** <code>(Component: AstroComponentFactory, options?: <a href="#renderoptions">RenderOptions</a>) => Promise\<Response\></code>
+</p>
+
+컴포넌트를 `Content-Type: text/html` 헤더가 있는 `Response`로 렌더링합니다.
+
+### `renderToString()`
+
+<p>
+
+**타입:** <code>(Component: AstroComponentFactory, options?: <a href="#renderoptions">RenderOptions</a>) => Promise\<string\></code>
+</p>
+
+컴포넌트를 HTML 문자열로 렌더링합니다.
+
+### `RenderOptions`
+
+[`renderToResponse()`](#rendertoresponse)와 [`renderToString()`](#rendertostring)은 다음 속성을 가진 선택적 객체를 받습니다.
+
+#### `props`
+
+**타입:** `Record<string, any>`<br />
+**기본값:** `{}`
+
+컴포넌트의 props이며, `Astro.props`로 사용할 수 있습니다.
+
+#### `slots`
+
+**타입:** `Record<string, string>`<br />
+**기본값:** `{}`
+
+슬롯 이름별로 각 슬롯의 HTML을 지정합니다. 기본 슬롯에는 `default`를 사용하세요.
+
+#### `request`
+
+**타입:** `Request`<br />
+**기본값:** `http://localhost/`에 대한 `GET` 요청
+
+`Astro.request` 및 `Astro.url`로 사용할 수 있습니다.
+
+#### `partial`
+
+**타입:** `boolean`<br />
+**기본값:** `false`
+
+`false`이면 전체 문서를 렌더링합니다. `<!DOCTYPE html>`이 추가되고 컴포넌트 트리의 스타일시트가 `<head>`에 추가됩니다. `true`이면 컴포넌트의 HTML만 렌더링합니다.

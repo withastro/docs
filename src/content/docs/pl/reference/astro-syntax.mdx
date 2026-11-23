@@ -37,6 +37,7 @@ Zmienne lokalne mogą być użyte w nawiasach klamrowych do przekazywania warto�
 
 ```astro title="src/components/DynamicAttributes.astro" "{name}" "${name}"
 ---
+import MyComponent from "./MyComponent.astro";
 const name = "Astro";
 ---
 <h1 class={name}>Wyrażenia atrybutów są wspierane</h1>
@@ -68,7 +69,7 @@ Zamiast tego, użyj skryptu po stronie klienta, aby dodać obsługę zdarzeń. Z
   function handleClick () {
     console.log("Przycisk został kliknięty!");
   }
-  document.getElementById("button").addEventListener("click", handleClick);
+  document.getElementById("button")?.addEventListener("click", handleClick);
 </script>
 ```
 :::
@@ -116,7 +117,7 @@ const Component = MyComponent;
 Kiedy używasz dynamicznych tagów, pamiętaj o kilku rzeczach:
 
 - **Nazwy zmiennych pisz z dużej litery.** Na przykład, użyj `Element`, a nie `element`. W przeciwnym razie Astro wyrenderuje Twoją nazwę zmiennej jako zwykły tag HTML.
-{/* TODO: Gdy pojawi się tłumaczenie trzeba zmienić ścieżkę */}
+
 - **Dyrektywy nawadniania nie są wspierane** Jeśli korzystasz z [dyrektyw nawadniania `client:*`](/pl/guides/framework-components/#hydrating-interactive-components), Astro musi wiedzieć, który komponent zapakować na produkcję, a wzór dynamicznego tagu zapobiega jemu działaniu.
 
 - **[Dyrektywa define:vars](/pl/reference/directives-reference/#definevars) nie jest wspierana.** Jeśli nie możesz owinąć elementów potomnych dodatkowym elementem (np. `<div>`), możesz ręcznie dodać ``style={`--myVar:${value}`}`` do swojego elementu. 
@@ -173,3 +174,141 @@ W Astro możesz używać standardowych komentarzy HTML lub komentarza w stylu Ja
 :::caution
 Komentarze w stylu HTML zostaną dołączone do DOM przeglądarki, podczas gdy te w stylu JS zostaną pominięte. Aby zostawić wiadomości TODO lub inne wyjaśnienia tylko dla deweloperów, możesz użyć komentarzy w stylu JavaScript.
 :::
+
+
+## Narzędzia komponentów
+
+### `Astro.slots`
+
+`Astro.slots` zawiera funkcje pomocnicze do modyfikowania dzieci przekazanych do slotów komponentu Astro.
+
+#### `Astro.slots.has()`
+
+<p>
+
+**Typ:** `(slotName: string) => boolean`
+</p>
+
+Za pomocą `Astro.slots.has()` możesz sprawdzić, czy istnieje treść dla slotu o podanej nazwie. Przydaje się to, gdy chcesz wrappować zawartość slotu, ale renderować elementy wrappera tylko wtedy, gdy slot jest używany.
+
+```astro  title="src/pages/index.astro"
+---
+---
+<slot />
+
+{Astro.slots.has('more') && (
+  <aside>
+    <h2>Więcej</h2>
+    <slot name="more" />
+  </aside>
+)}
+```
+
+#### `Astro.slots.render()`
+
+<p>
+
+**Typ:** `(slotName: string, args?: any[]) => Promise<string>`
+</p>
+
+Za pomocą `Astro.slots.render()` możesz asynchronicznie wyrenderować zawartość slotu do ciągu HTML.
+
+```astro
+---
+const html = await Astro.slots.render('default');
+---
+<Fragment set:html={html} />
+```
+
+:::note
+To rozwiązanie dla zaawansowanych przypadków! W większości sytuacji prościej jest renderować zawartość slotu [elementem `<slot />`](/pl/basics/astro-components/#sloty).
+:::
+
+`Astro.slots.render()` przyjmuje opcjonalnie drugi argument: tablicę parametrów przekazywanych do dzieci będących funkcjami. Przydaje się to w niestandardowych komponentach pomocniczych.
+
+Na przykład ten komponent `<Shout />` zamienia prop `message` na wielkie litery i przekazuje go do domyślnego slotu:
+
+```astro title="src/components/Shout.astro" "await Astro.slots.render('default', [message])"
+---
+const message = Astro.props.message.toUpperCase();
+let html = '';
+if (Astro.slots.has('default')) {
+  html = await Astro.slots.render('default', [message]);
+}
+---
+<Fragment set:html={html} />
+```
+
+Funkcja zwrotna przekazana jako dziecko `<Shout />` otrzyma parametr `message` zapisany wielkimi literami:
+
+```astro title="src/pages/index.astro"
+---
+import Shout from "../components/Shout.astro";
+---
+<Shout message="slots!">
+  {(message: string) => <div>{message}</div>}
+</Shout>
+
+<!-- renderuje się jako <div>SLOTS!</div> -->
+```
+
+Funkcje zwrotne można przekazać do nazwanych slotów wewnątrz otaczającego tagu HTML z atrybutem `slot`. Ten element służy wyłącznie do przekazania funkcji do nazwanego slotu i nie zostanie wyrenderowany na stronie.
+
+```astro
+<Shout message="slots!">
+  <fragment slot="message">
+    {(message: string) => <div>{message}</div>}
+  </fragment>
+</Shout>
+```
+
+Jako tagu otaczającego użyj zwykłego elementu HTML albo dowolnego tagu pisanego małymi literami (np. `<fragment>` zamiast `<Fragment />`), który nie zostanie zinterpretowany jako komponent. Nie używaj elementu HTML `<slot>`, ponieważ zostanie on zinterpretowany jako slot Astro.
+
+### `Astro.self`
+
+`Astro.self` pozwala wywoływać komponenty Astro rekurencyjnie. Dzięki temu możesz wyrenderować komponent Astro wewnątrz niego samego, używając `<Astro.self>` w szablonie komponentu. Pomaga to przechodzić przez duże zbiory danych i zagnieżdżone struktury.
+
+```astro title="src/components/NestedList.astro" {14}
+---
+type Props = {
+  items: (string | string[])[];
+};
+const { items } = Astro.props;
+---
+
+<ul class="nested-list">
+  {
+    items.map((item) => (
+      <li>
+        {/* Jeśli dane są zagnieżdżone, renderujemy `<Astro.self>` */}
+        {/* i możemy przekazać propy w wywołaniu rekurencyjnym */}
+        {Array.isArray(item) ? <Astro.self items={item} /> : item}
+      </li>
+    ))
+  }
+</ul>
+```
+
+Tego komponentu można następnie użyć w ten sposób:
+
+```astro
+---
+import NestedList from './NestedList.astro';
+---
+<NestedList items={['A', ['B', 'C'], 'D']} />
+```
+
+Wyrenderuje on taki HTML:
+
+```html
+<ul class="nested-list">
+  <li>A</li>
+  <li>
+    <ul class="nested-list">
+      <li>B</li>
+      <li>C</li>
+    </ul>
+  </li>
+  <li>D</li>
+</ul>
+```
