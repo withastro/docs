@@ -5,6 +5,7 @@ import { rehypeAutolink } from './plugins/rehype-autolink';
 import { rehypeIntentLinks } from './plugins/rehype-intent-links';
 import { rehypeTasklistEnhancer } from './plugins/rehype-tasklist-enhancer';
 import { remarkFallbackLang } from './plugins/remark-fallback-lang';
+import { elementIds } from './integrations/elementIds';
 import { sitemap } from './integrations/sitemap';
 import rehypeSlug from 'rehype-slug';
 import remarkSmartypants from 'remark-smartypants';
@@ -69,7 +70,7 @@ export default defineConfig({
 			configFiles: ['./tailwind.config.mjs'],
 		}),
 		sitemap(),
-
+		elementIds(),
 	],
 	trailingSlash: 'always',
 	build: { assets: '_assets' },
