@@ -14,7 +14,7 @@ General information about the translation process can by found in our contributi
 
 - [Arabic / العربية](./العربية.md)
 - [German / Deutsch](./deutsch.md)
-- Spanish / Español
+- [Spanish / Español](./español.md)
 - [French / Français](./français.md)
 - Hindi / हिन्दी
 - [Italian / Italiano](./italiano.md)
