@@ -195,8 +195,41 @@ on the element is ignored.
 
 ## 5. Verify tokens on your server
 
-When a user solves the challenge your form receives a `procaptcha-response` token. Verify it with
-[`@prosopo/server`](/en/basics/server-side-verification/), configured against your own provider:
+When a user solves the challenge your form receives a `procaptcha-response` token. Your provider checks it at
+`POST /siteverify`, the same call as Prosopo's hosted `https://api.prosopo.io/siteverify`. Send the token and your site
+key's secret, which is `PROSOPO_SITE_PRIVATE_KEY` in the `.env` from step 1:
+
+```bash
+curl -X POST https://captcha.example.com/siteverify \
+  -H 'Content-Type: application/json' \
+  -d '{"token":"<procaptcha-response>","secret":"<PROSOPO_SITE_PRIVATE_KEY>","ip":"<visitor IP>"}'
+```
+
+```json
+{"status":"ok","verified":true}
+```
+
+Check `verified`. `ip`, `email` and `clientSessionId` are optional, and form-encoded bodies work too.
+
+- An unreadable, expired or already-used token gets `"verified":false`.
+- A missing secret, or one that does not belong to the token's site key, gets a 400.
+- If verification hasn't finished within 5 seconds, the answer is `"verified":true`, so a stalled provider can't hold
+  your logins open.
+
+Anything built for the hosted siteverify, such as a plugin or an integration, works with your provider once you change
+its URL.
+
+<aside>
+This needs provider 3.11.16 or newer, and `PROSOPO_SITEVERIFY_ENABLED=1`, which the self-hosted compose file sets for
+you. A provider started without it answers 404. Calls are limited to 15,000 a minute per caller IP, or per site key
+when the request carries a `Prosopo-Site-Key` header. Change that with `PROSOPO_SITE_VERIFY_LIMIT` and
+`PROSOPO_SITE_VERIFY_WINDOW` (milliseconds).
+</aside>
+
+### Or verify with `@prosopo/server`
+
+If you'd rather not send the secret over the network, verify with
+[`@prosopo/server`](/en/basics/server-side-verification/) instead. It signs each request with the private key locally:
 
 ```bash
 PROSOPO_DEFAULT_ENVIRONMENT=production
@@ -205,10 +238,8 @@ PROSOPO_SITE_KEY=5Fpd...
 PROSOPO_SITE_PRIVATE_KEY="..."
 ```
 
-All four are already in the `.env` you generated in step 1 — copy them across, or point your app at the
-same file.
-
-This is read at runtime, so no rebuild is needed if you add a provider later.
+All four are already in the `.env` you generated in step 1. Copy them across, or point your app at the same file. They
+are read at runtime, so you don't need to rebuild anything if you add a provider later.
 
 Every URL must match its `CADDY_DOMAIN` exactly. A token carries the provider URL it was minted against and the
 verifier finds the issuer by exact string match, so a provider missing from this list makes its tokens unverifiable.
