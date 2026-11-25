@@ -61,22 +61,22 @@ First, install the `@astrojs/solid-js` package:
   </Fragment>
 </PackageManagerTabs>
 
-Most package managers will install associated peer dependencies as well. If you see a `Cannot find package 'solid-js'` (or similar) warning when you start up Astro, you'll need to install SolidJS:
+Most package managers will install associated peer dependencies as well. If you see a `Cannot find package 'solid-js'` or `Cannot find package '@solidjs/web'` warning when you start up Astro, you'll need to install SolidJS and its web renderer:
 
 <PackageManagerTabs>
   <Fragment slot="npm">
   ```sh
-  npm install solid-js
+  npm install solid-js @solidjs/web
   ```
   </Fragment>
   <Fragment slot="pnpm">
   ```sh
-  pnpm add solid-js
+  pnpm add solid-js @solidjs/web
   ```
   </Fragment>
   <Fragment slot="yarn">
   ```sh
-  yarn add solid-js
+  yarn add solid-js @solidjs/web
   ```
   </Fragment>
 </PackageManagerTabs>
@@ -102,7 +102,7 @@ And add the following code to the `tsconfig.json` file.
   "exclude": ["dist"],
   "compilerOptions": {
     "jsx": "preserve",
-    "jsxImportSource": "solid-js"
+    "jsxImportSource": "@solidjs/web"
   }
 }
 ```
@@ -117,41 +117,46 @@ To use your first SolidJS component in Astro, head to our [UI framework document
 
 ## Configuration
 
-### `devtools`
+### `compiler`
 
 <p>
 
-**Type:** `boolean`<br />
-<Since pkg="@astrojs/solid-js" v="4.2.0" />
+**Type:** `"babel" | "native"`<br />
+**Default:** `"native"`<br />
+<Since pkg="@astrojs/solid-js" v="8.0.0" />
 </p>
 
-You can enable [Solid DevTools](https://github.com/thetarnav/solid-devtools) in development by passing an object with `devtools: true` to your `solid()` integration config and adding `solid-devtools` to your project dependencies:
-
-<PackageManagerTabs>
-  <Fragment slot="npm">
-  ```sh
-  npm install solid-devtools
-  ```
-  </Fragment>
-  <Fragment slot="pnpm">
-  ```sh
-  pnpm add solid-devtools
-  ```
-  </Fragment>
-  <Fragment slot="yarn">
-  ```sh
-  yarn add solid-devtools
-  ```
-  </Fragment>
-</PackageManagerTabs>
+Selects the compiler that transforms your Solid JSX. See Solid's [`compiler` documentation](https://docs.solidjs.com/reference/vite-plugin-solid/options#compiler) for each compiler and its requirements.
 
 ```js title="astro.config.mjs"
 import { defineConfig } from 'astro/config';
 import solid from '@astrojs/solid-js';
 
 export default defineConfig({
-  // ...
-  integrations: [solid({ devtools: true })],
+  integrations: [solid({ compiler: 'babel' })],
+});
+```
+
+### `serverFunctions`
+
+<p>
+
+**Type:** `boolean | object`<br />
+<Since pkg="@astrojs/solid-js" v="8.0.0" />
+</p>
+
+Enables Solid's experimental server functions using the `"use server"` directive. Set this to `true` to use the defaults, or pass an options object to customize their behavior. Server functions require [an adapter](/en/guides/on-demand-rendering/#server-adapters) to handle requests at runtime. See Solid's [`serverFunctions` documentation](https://docs.solidjs.com/reference/vite-plugin-solid/options#serverfunctions) for the available options.
+
+The following example enables server functions in a project using the Node adapter:
+
+```js title="astro.config.mjs"
+import { defineConfig } from 'astro/config';
+import solid from '@astrojs/solid-js';
+import node from '@astrojs/node';
+
+export default defineConfig({
+  adapter: node({ mode: 'standalone' }),
+  integrations: [solid({ serverFunctions: true })],
 });
 ```
 
@@ -194,36 +199,36 @@ export default defineConfig({
 
 Use a SolidJS component as you would any [UI framework component](/en/guides/framework-components/).
 
-### Suspense Boundaries
+### Loading boundaries
 
-In order to support Solid Resources and Lazy Components without excessive configuration, server-only and hydrating components are automatically wrapped in top-level Suspense boundaries and rendered on the server using the [`renderToStringAsync`][solid-render-to-string-async] function. Therefore, you do not need to add a top-level Suspense boundary around async components.
+Server-only and hydrating Solid components are rendered on the server using [`renderToStream`][solid-render-to-stream]. Astro waits for their async work to settle before including the resulting HTML in the page. The integration does not automatically wrap components in a boundary.
 
-For example, you can use Solid's [`createResource`][solid-create-resource] to fetch async remote data on the server. The remote data will be included in the initial server-rendered HTML from Astro:
+For example, you can use Solid's [`createMemo`][solid-create-memo] to fetch async remote data on the server and read it inside a [`Loading`][solid-loading] boundary. The resolved data will be included in the server-rendered HTML from Astro:
 
 ```tsx
 // CharacterName.tsx
+import { createMemo, Loading } from 'solid-js';
+
 function CharacterName() {
-  const [name] = createResource(() =>
+  const name = createMemo(() =>
     fetch('https://swapi.dev/api/people/1')
       .then((result) => result.json())
       .then((data) => data.name)
   );
 
   return (
-    <>
+    <Loading fallback={<p>Loading character...</p>}>
       <h2>Name:</h2>
       {/* Luke Skywalker */}
       <div>{name()}</div>
-    </>
+    </Loading>
   );
 }
 ```
 
 Similarly, Solid's [Lazy Components][solid-lazy-components] will also be resolved and their HTML will be included in the initial server-rendered page.
 
-Non-hydrating [`client:only` components][astro-client-only] are not automatically wrapped in Suspense boundaries.
-
-Feel free to add additional Suspense boundaries according to your preference.
+[`client:only` components][astro-client-only] skip server rendering. Use a `Loading` boundary to display a fallback while their async data loads in the browser.
 
 [astro-integration]: /en/guides/integrations/
 
@@ -231,8 +236,10 @@ Feel free to add additional Suspense boundaries according to your preference.
 
 [astro-client-only]: /en/reference/directives-reference/#clientonly
 
-[solid-render-to-string-async]: https://docs.solidjs.com/reference/rendering/render-to-string-async
+[solid-render-to-stream]: https://docs.solidjs.com/reference/solid-web/rendering-ssr/render-to-stream
 
-[solid-create-resource]: https://docs.solidjs.com/reference/basic-reactivity/create-resource
+[solid-create-memo]: https://docs.solidjs.com/reference/solid-js/reactivity/create-memo
 
-[solid-lazy-components]: https://docs.solidjs.com/reference/component-apis/lazy
+[solid-loading]: https://docs.solidjs.com/reference/solid-js/components-jsx/loading
+
+[solid-lazy-components]: https://docs.solidjs.com/reference/solid-js/components-context/lazy
