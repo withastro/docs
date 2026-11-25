@@ -71,6 +71,7 @@ Errors come back as:
 | `401` | `Authorization` header missing, malformed, or the key has expired |
 | `403` | Key lacks the permission, the feature is not enabled on the account, the account is disabled, or a write was attempted on an account that still owes a payment method |
 | `404` | Account, site key or Protect instance not found |
+| `429` | Too many [Protect data requests](#reading-protect-data); wait for the number of seconds in the `Retry-After` header |
 | `500` | Unhandled server error |
 
 The `key` is stable and never translated, so log that rather than the message. Errors the widget itself
@@ -324,6 +325,43 @@ Create API Key dialog the Protect permissions are grouped, and each group can be
 - Edge rule `verdict` is `allow`, `challenge` or `block`, and `type` is one of the fields Protect matches on:
   `ip`, `ipMask`, `ja4Hash`, `userAgent`, `countryCode` or `asn`.
 - The read endpoints proxy the verdict-log service and return its payload unchanged.
+
+### Reading Protect data
+
+Seven of the read endpoints also answer `GET`, so a dashboard, SIEM or script can pull verdicts, sessions and
+traffic with a plain URL. Each takes the same permission as its `POST` form.
+
+| Endpoint | Permission | Query parameters |
+|---|---|---|
+| `GET /protect/verdicts` | `getProtectVerdicts` | `siteKey`, `since`, `until`, `limit` (1–500), `offset`, `decision`, `sources`, `firedRules`, `endpoints`, `countries`, `platforms`, `asn`, `deviceType`, `requestPath`, `minRulesFired`, `population` |
+| `GET /protect/verdicts/search` | `searchProtectVerdicts` | `ip`, `jti`, `asn`, `siteKey`, `limit` |
+| `GET /protect/risk-history` | `getProtectRiskHistory` | `jti` (required), `siteKey` |
+| `GET /protect/session-telemetry` | `getProtectSessionTelemetry` | `jti` (required), `siteKey` |
+| `GET /protect/traffic-summary` | `getProtectTrafficSummary` | `siteKey`, `since`, `bucket`, `source` |
+| `GET /protect/traffic-by-dimension` | `getProtectTrafficByDimension` | `groupBy`, `siteKey`, `since`, `until`, `bucket`, `topN`, and the same filters as `/protect/verdicts` |
+| `GET /protect/traffic-report` | `getProtectTrafficReport` | `siteKey`, `since`, `until`, `bucket`, `endpoints` |
+
+```bash
+curl "https://api.prosopo.io/protect/traffic-summary?since=2026-11-24T00:00:00Z&bucket=5_minute" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+
+curl "https://api.prosopo.io/protect/verdicts?decision=block&countries=GB,FR&limit=100" \
+  -H "Authorization: Bearer YOUR_API_KEY"
+```
+
+- Times are ISO 8601 (`2026-11-24T00:00:00Z`). URL-encode a `+` in a time zone offset as `%2B`, or use `Z`.
+- A list parameter (`sources`, `firedRules`, `endpoints`, `countries`, `platforms`) takes comma-separated
+  values, or the same parameter repeated: `countries=GB&countries=FR`.
+- `bucket` is `minute`, `5_minute`, `15_minute`, `hour` or `day`. A request that needs more than 2,016 buckets
+  (a week of 5-minute buckets) is refused with `400`: use a shorter window or a larger bucket. Hourly buckets
+  cover 30 days.
+- **Rate limit.** API-key calls to the Protect data endpoints (everything above, plus the distinct-sources,
+  distinct-fired-rules, traffic-endpoints and challenge-outcomes endpoints, by `GET` or `POST`) share a limit of
+  30 requests per minute for each account. Every key on the account counts towards the same limit. Over the limit
+  the response is `429` with a `Retry-After` header giving the seconds until the next minute starts. The limit
+  does not apply to the portal.
+- The responses are the same as the portal sees, and may change as Protect develops. Read the fields you need and
+  ignore ones you don't recognise.
 
 ### Client events
 
