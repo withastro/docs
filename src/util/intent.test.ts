@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
 import { describe, it } from 'node:test';
 import type { Element, Root } from 'hast';
 import { tagIntentLinks } from '../../plugins/rehype-intent-links';
@@ -79,6 +81,27 @@ describe('docsIntent', () => {
 	it('tags every page from the shipped rules', () => {
 		assert.match(docsIntent('/en/basics/captcha-types/'), /implementing:/);
 		assert.notEqual(docsIntent('/'), '');
+	});
+
+	it('tags every English page with the product it is about', () => {
+		const root = join(process.cwd(), 'src/content/docs/en');
+		const pages = readdirSync(root, { recursive: true, encoding: 'utf8' })
+			.filter((file) => /\.mdx?$/.test(file))
+			.map((file) => `/${relative(root, join(root, file)).replace(/(\/index)?\.mdx?$/, '')}`);
+		assert.ok(pages.length > 50);
+		for (const page of pages) {
+			const tags = intentForPath(intentRules, page);
+			assert.ok('procaptcha' in tags || 'protect' in tags, `${page} has no product tag`);
+		}
+	});
+
+	it('tags Protect pages as Protect only', () => {
+		assert.deepEqual(
+			Object.keys(intentForPath(intentRules, '/protect-edge/lambda-edge')).filter((t) =>
+				['procaptcha', 'protect'].includes(t)
+			),
+			['protect']
+		);
 	});
 });
 
