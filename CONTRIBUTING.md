@@ -232,58 +232,88 @@ This section describes how to handle the docs for patch, minor, and major releas
 
 For every release, check whether the generated reference pages need a last-minute update. If they do, run the `nightly.yml` workflow manually.
 
-#### Patch releases
+#### Umbrella PRs
 
-There are usually only a few docs PRs for a patch release.
+We collect docs PRs into umbrella PRs to make it easier to merge the documentation associated with a new release. Each release type has a matching label:
 
-1. Find the docs PRs for the release: they have the `merge-on-release` label, but no `minor-release` label or version label (e.g. `7.0`).
-2. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge each docs PR into `main`.
+- `patch-release`: the docs PR is based on `main` and ships with an Astro patch release.
+- `minor-release`: the docs PR is based on `main` and ships with an Astro minor release.
+- `major-release`: the docs PR is based on a [version branch](#creating-a-version-branch) and ships with an Astro major release, including prereleases (e.g. a patch for a major beta).
 
-#### Minor releases
+The label follows the release of the `astro` package, even for docs of another package (e.g. `minor-release` for the new major of an integration released with an Astro minor). The release assistant only checks that the label matches the base branch, so `patch-release` and `minor-release` join the same umbrella.
 
-1. Label the docs PRs for the release with `minor-release`, and add them to the milestone for the new version (e.g. `7.3`).
-2. Before the release, create a temporary branch named after the new version (e.g. `v7.3`).
-3. Change the base branch of each docs PR to the temporary branch, rebase it if needed, and merge it.
-4. The docs lead opens a PR from the temporary branch to `main`, with the `minor-release` and `merge-on-release` labels.
-5. If this PR contains translations, prepare a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file) for the commit body (e.g. `@lunaria-track:src/content/docs/en/**.mdx`).
-6. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge this PR, adding the Lunaria directive to the commit body if needed.
+Umbrella PRs are labeled `merge-on-release` to easily find them in the PRs list.
+
+#### Adding a docs PR to its umbrella
+
+1. Approve the PR and label it for the release (e.g. `minor-release`).
+2. Optionally, add it to the milestone for the new version (e.g. `7.3`).
+3. When the PR is ready for the release, add the `accepted` label.
+4. First-time contributor PRs require a second workflow approval after adding `accepted`.
+
+The release assistant (`.github/workflows/release-assistant.yml`) then makes several checks to ensure that the pull request can be merged: the PR is approved, the branch matches the label, and there are no requested changes, no conflicts, and no pending or failed checks.
+
+- If it can, the release assistant squash-merges the PR into the umbrella branch of its base (e.g. `umbrella/main` for `main`), and opens the umbrella PR if none is open.
+- If it can't, it comments with the reasons and removes `accepted`. Fix them, then add `accepted` again.
+
+Once the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), the docs PR can no longer join the umbrella:
+
+- If the PR is for the same release (e.g. last-minute fixes), change its base to its umbrella branch (e.g. `umbrella/main`), then add `accepted`.
+- If not, [merge the umbrella PR](#merging-an-umbrella-pr) first, then add `accepted` to create a new umbrella.
+
+#### Refreshing an umbrella PR
+
+The release assistant updates the title, labels, and description of each umbrella PR when a new PR is added to it. Changes made to these elements are overwritten.
+
+You can also refresh the umbrella PRs by running the `release-assistant.yml` workflow manually. This can be helpful when the release PR changed or when the umbrella has not been updated due to a GitHub outage.
+
+#### Merging an umbrella PR
+
+The release assistant blocks the merge with a checklist. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro):
+
+1. Go through the checklist, then dismiss the review.
+2. Squash-merge the umbrella PR. If it is labeled `i18n`, add a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file) to the commit body (e.g. `@lunaria-track:src/content/docs/en/**.mdx`).
 
 #### Major releases
 
-The process is similar to minor releases, but the docs for the new version live on their own branch until the release. The examples below use a release from `v6` to `v7`.
+Docs PRs for a major release follow the same process. They are based on the version branch (e.g. `v7`) and labeled `major-release`.
+
+The examples below use a release from `v6` to `v7`.
 
 ##### 1. Preparing the repository
 
 When [`withastro/astro`](https://github.com/withastro/astro) enters prerelease mode for the new major version:
 
 1. [Create a version branch](#creating-a-version-branch) for the new version from `main` (e.g. `v7`).
-2. In `.github/workflows/nightly.yml`, uncomment the matrix entries that generate the reference pages from the `next` branch of `withastro/astro`, and update them for the new version (e.g. `TARGET_BRANCH: v7` and `LABEL: 7.0,ci`).
+2. In `.github/workflows/nightly.yml`, uncomment the matrix entries that generate the reference pages from the `next` branch of `withastro/astro`, and update their target branch for the new version (e.g. `TARGET_BRANCH: v7`).
 3. Prepare an upgrade guide for the new version.
 
 ##### 2. During the alpha and beta phase
 
 1. Make sure docs PRs for the new version target the new version branch.
-2. Label them with the new version (e.g. `7.0`), and add them to the milestone for that version.
+2. Add them to the milestone for that version (e.g. `7.0`).
 3. Review and approve them as usual.
-4. When a `[ci] release (next)` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge the docs PRs for the features included in that release into the new version branch. Docs PRs prepared in advance wait for the release that includes their feature.
-5. When the first docs PRs are merged into the new version branch, the docs lead opens a PR from the new version branch to `main`, with the version (e.g. `7.0`) and `merge-on-release` labels. This PR stays open until the final release.
-6. Keep following the [patch](#patch-releases) and [minor](#minor-releases) release processes for docs PRs matching a `[ci] release` PR: they are merged into `main`, including translations.
+4. When the implementations are merged, label their docs PR with `accepted`. They'll join their own umbrella PR (e.g. `umbrella/v7`).
+5. When a `[ci] release (next)` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge the associated umbrella PR.
+6. When the first umbrella PR is merged into the new version branch, the docs lead opens a PR from the new version branch to `main`, with the `major-release` label. This PR stays open until the final release.
 7. Regularly merge `main` into the new version branch to keep it up to date.
 
 ##### 3. Before the final release
 
-When [`withastro/astro`](https://github.com/withastro/astro) merges its `next` branch into `main` and leaves prerelease mode:
+When [`withastro/astro`](https://github.com/withastro/astro) merges its `next` branch into `main` and leaves prerelease mode, the release assistant refuses docs PRs based on `main`.
 
-1. Update the mentions of the alpha or beta in the docs (e.g. the upgrade command).
-2. Update the docs links in [`withastro/astro`](https://github.com/withastro/astro) to point to `docs.astro.build` instead of the version subdomain.
-3. In `.github/workflows/nightly.yml`, comment out the matrix entries added when preparing the repository.
-4. Update the branch for the current version (e.g. `v6`) to capture the final state of its docs: merge `main` into it and resolve any conflicts. If this branch doesn't exist, [create it](#creating-a-version-branch) from `main`.
-5. Stop merging PRs into `main`.
+1. If a `main` umbrella PR is still open, change its base to the new version branch, and squash-merge it.
+2. Update the mentions of the alpha or beta in the docs (e.g. the upgrade command).
+3. Update the docs links in [`withastro/astro`](https://github.com/withastro/astro) to point to `docs.astro.build` instead of the version subdomain.
+4. In `.github/workflows/nightly.yml`, comment out the matrix entries added when preparing the repository.
+5. Update the branch for the current version (e.g. `v6`) to capture the final state of its docs: merge `main` into it and resolve any conflicts. If this branch doesn't exist, [create it](#creating-a-version-branch) from `main`.
+6. Stop merging PRs into `main`.
 
 ##### 4. Releasing
 
 1. If the PR from the new version branch to `main` contains translations, prepare a [Lunaria directive](https://lunaria.dev/guides/tracking/#triggering-changes-per-file) for the commit body.
-2. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), merge this PR, adding the Lunaria directive to the commit body if needed.
+2. When the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/withastro/astro), [merge the umbrella PR](#merging-an-umbrella-pr) of the new version branch (e.g. `umbrella/v7`), if one is open.
+3. Merge the PR from the new version branch to `main`, adding the Lunaria directive to the commit body if needed.
 
 ##### 5. After the final release
 

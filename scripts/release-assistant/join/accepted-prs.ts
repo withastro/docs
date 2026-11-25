@@ -1,0 +1,291 @@
+import { ACCEPTED_LABEL } from '../config.ts';
+import { GitHubError } from '../github/errors.ts';
+import {
+	hasLabel,
+	type PullRequest,
+	type PullRequestDetails,
+	type Repository,
+} from '../github/repository.ts';
+import type { ReleaseAssistantContext, ReleaseAssistantRun } from '../run.ts';
+import { renderSquashCommitTitle, renderUmbrella } from '../umbrella/content.ts';
+import {
+	getUmbrellaRelease,
+	isUmbrellaPullRequest,
+	type UmbrellaBranches,
+} from '../umbrella/umbrella.ts';
+import { describeError } from '../utils/errors.ts';
+import { formatPrNumbers } from '../utils/pr-numbers.ts';
+import {
+	renderAcceptedUmbrellaComment,
+	renderDryRunComment,
+	renderJoinedComment,
+	renderMergeFailureComment,
+	renderRefusalComment,
+	renderUmbrellaFailureComment,
+} from './comments.ts';
+import { decideJoin, OUTCOMES, type Decision } from './decision.ts';
+import { readReadiness } from './readiness.ts';
+
+/** A docs PR that can join its umbrella, and the branches of that umbrella. */
+type JoinRequest = {
+	pullRequest: PullRequestDetails;
+	branches: UmbrellaBranches;
+};
+
+/** What an accepted PR is when read again before acting on it. */
+const ACCEPTED_PR_KINDS = {
+	/** It no longer has the accepted label. */
+	skipped: 'skipped',
+	umbrella: 'umbrella',
+	docs: 'docs',
+} as const;
+
+type AcceptedPullRequest =
+	| { kind: typeof ACCEPTED_PR_KINDS.skipped }
+	| { kind: typeof ACCEPTED_PR_KINDS.umbrella }
+	| { kind: typeof ACCEPTED_PR_KINDS.docs; pullRequest: PullRequestDetails; decision: Decision };
+
+/**
+ * Removes the accepted label from each docs PR that has it, and comments with
+ * what a live run would do. Without the label, the PR doesn't join its umbrella
+ * at the first live run.
+ *
+ * @param {ReleaseAssistantRun} run - The run.
+ * @throws {AggregateError} When some PRs failed, once the others are done.
+ */
+export async function previewAcceptedPullRequests(run: ReleaseAssistantRun): Promise<void> {
+	await forEachAcceptedPullRequest(run, previewPullRequest);
+}
+
+/**
+ * Moves every open docs PR with the accepted label into its umbrella, or
+ * refuses it with a comment.
+ *
+ * @param {ReleaseAssistantRun} run - The run.
+ * @throws {AggregateError} When some PRs failed, once the others are done.
+ */
+export async function joinAcceptedPullRequests(run: ReleaseAssistantRun): Promise<void> {
+	await forEachAcceptedPullRequest(run, joinPullRequest);
+}
+
+/**
+ * Acts on each open PR with the accepted label. A PR that fails doesn't stop
+ * the others.
+ *
+ * GitHub cancels a pending run when another one is queued, so a run acts on
+ * every accepted PR, not only the one whose label started it. Each join
+ * changes the umbrella the next PR joins, so the PRs go one at a time.
+ */
+async function forEachAcceptedPullRequest(
+	run: ReleaseAssistantRun,
+	actOnPullRequest: (run: ReleaseAssistantRun, prNumber: number) => Promise<void>
+) {
+	const prNumbers = findAcceptedPrNumbers(run.state.openPullRequests);
+	run.log(`Accepted PRs: ${formatPrNumbers(prNumbers)}.`);
+
+	const errors: Error[] = [];
+	for (const prNumber of prNumbers) {
+		try {
+			await actOnPullRequest(run, prNumber);
+		} catch (error) {
+			errors.push(new Error(`#${prNumber} failed: ${describeError(error)}`, { cause: error }));
+		}
+	}
+
+	if (errors.length > 0) {
+		throw new AggregateError(
+			errors,
+			`${errors.length} of ${prNumbers.length} accepted PRs failed.`
+		);
+	}
+}
+
+/** Finds the numbers of the open PRs with the accepted label, oldest first. */
+function findAcceptedPrNumbers(openPullRequests: PullRequest[]) {
+	return openPullRequests
+		.filter((pullRequest) => hasLabel(pullRequest, ACCEPTED_LABEL))
+		.map(({ number }) => number)
+		.toSorted((first, second) => first - second);
+}
+
+async function previewPullRequest(run: ReleaseAssistantRun, prNumber: number) {
+	const accepted = await readAcceptedPullRequest(run, prNumber);
+	if (accepted.kind === ACCEPTED_PR_KINDS.skipped) return logSkipped(run, prNumber);
+	if (accepted.kind === ACCEPTED_PR_KINDS.umbrella) return refuseUmbrella(run, prNumber);
+
+	const { decision } = accepted;
+	await removeLabelAndComment(run.docs, prNumber, renderDryRunComment(decision));
+	run.log(`Dry run: #${prNumber} ${describeDecision(decision)}.`);
+}
+
+async function joinPullRequest(run: ReleaseAssistantRun, prNumber: number) {
+	const accepted = await readAcceptedPullRequest(run, prNumber);
+	if (accepted.kind === ACCEPTED_PR_KINDS.skipped) return logSkipped(run, prNumber);
+	if (accepted.kind === ACCEPTED_PR_KINDS.umbrella) return refuseUmbrella(run, prNumber);
+
+	const { pullRequest, decision } = accepted;
+	if (decision.outcome === OUTCOMES.refuse) {
+		await removeLabelAndComment(run.docs, prNumber, renderRefusalComment(decision));
+		run.log(`#${prNumber} refused (${decision.reasons.join(', ')}).`);
+		return;
+	}
+
+	await joinUmbrella(run, { pullRequest, branches: decision.branches });
+}
+
+/**
+ * Reads an accepted PR again, because the list of open PRs may be outdated.
+ * Then decides whether a docs PR joins its umbrella.
+ */
+async function readAcceptedPullRequest(
+	run: ReleaseAssistantRun,
+	prNumber: number
+): Promise<AcceptedPullRequest> {
+	const { docs, state } = run;
+	const pullRequest = await docs.getPullRequest(prNumber);
+	if (!hasLabel(pullRequest, ACCEPTED_LABEL)) return { kind: ACCEPTED_PR_KINDS.skipped };
+	if (isUmbrellaPullRequest(pullRequest, docs.fullName)) {
+		return { kind: ACCEPTED_PR_KINDS.umbrella };
+	}
+
+	const readiness = await readReadiness(run, pullRequest);
+	return {
+		kind: ACCEPTED_PR_KINDS.docs,
+		pullRequest,
+		decision: decideJoin(pullRequest, { state, readiness }),
+	};
+}
+
+function logSkipped({ log }: ReleaseAssistantContext, prNumber: number) {
+	log(`#${prNumber} skipped: it no longer has the "${ACCEPTED_LABEL}" label.`);
+}
+
+/** Removes the accepted label from an umbrella PR, and comments that a maintainer merges it. */
+async function refuseUmbrella({ docs, log }: ReleaseAssistantContext, prNumber: number) {
+	await removeLabelAndComment(docs, prNumber, renderAcceptedUmbrellaComment());
+	log(`#${prNumber} refused (umbrella PR).`);
+}
+
+async function removeLabelAndComment(docs: Repository, prNumber: number, comment: string) {
+	// The comment says the label was removed, so remove it first.
+	await docs.removeLabel(prNumber, ACCEPTED_LABEL);
+	await docs.createComment(prNumber, comment);
+}
+
+/**
+ * Merges a docs PR into its umbrella branch, and opens the umbrella PR when
+ * there is none. Then comments on the docs PR with the umbrella PR it joined.
+ */
+async function joinUmbrella(run: ReleaseAssistantRun, request: JoinRequest) {
+	const { docs, log } = run;
+	const { pullRequest, branches } = request;
+	await createUmbrellaBranchIfMissing(docs, branches);
+	const isMerged = await mergeOrRefuse(run, request);
+	if (!isMerged) return;
+
+	const umbrellaPrNumber =
+		(await findUmbrellaPrNumber(docs, branches)) ?? (await openUmbrella(run, request));
+	if (umbrellaPrNumber === null) return;
+
+	await docs.createComment(pullRequest.number, renderJoinedComment(branches, umbrellaPrNumber));
+	log(`#${pullRequest.number} joined ${branches.head} (#${umbrellaPrNumber}).`);
+}
+
+async function createUmbrellaBranchIfMissing(docs: Repository, { head, base }: UmbrellaBranches) {
+	if (await docs.getBranchSha(head)) return;
+
+	const baseSha = await docs.getBranchSha(base);
+	if (!baseSha) {
+		throw new Error(`Could not create ${head}: its base branch ${base} does not exist.`);
+	}
+	await docs.createBranch(head, baseSha);
+}
+
+/**
+ * Squashes a docs PR into its umbrella branch. When GitHub refuses, removes the
+ * accepted label and comments with GitHub's reason.
+ */
+async function mergeOrRefuse({ docs, log }: ReleaseAssistantRun, request: JoinRequest) {
+	const { pullRequest, branches } = request;
+	try {
+		await squashIntoUmbrella(docs, request);
+		return true;
+	} catch (error) {
+		if (!(error instanceof GitHubError)) throw error;
+
+		const comment = renderMergeFailureComment(branches, error.reason);
+		await removeLabelAndComment(docs, pullRequest.number, comment);
+		log(`#${pullRequest.number} not merged: ${error.reason}.`);
+		return false;
+	}
+}
+
+/** Changes the base of a docs PR to the umbrella branch, then squash-merges it. */
+async function squashIntoUmbrella(docs: Repository, { pullRequest, branches }: JoinRequest) {
+	const { number, base, head } = pullRequest;
+	const isBaseChangeNeeded = base.ref !== branches.head;
+	if (isBaseChangeNeeded) await docs.updatePullRequest(number, { base: branches.head });
+
+	try {
+		await docs.squashMergePullRequest(number, {
+			expectedHeadSha: head.sha,
+			commitTitle: renderSquashCommitTitle(pullRequest),
+		});
+	} catch (mergeError) {
+		// A PR that can't join is left as it was.
+		if (isBaseChangeNeeded) await restoreBase(docs, pullRequest, mergeError);
+		throw mergeError;
+	}
+}
+
+/** Changes the base of a docs PR back, after GitHub refused to merge it. */
+async function restoreBase(docs: Repository, { number, base }: PullRequest, mergeError: unknown) {
+	try {
+		await docs.updatePullRequest(number, { base: base.ref });
+	} catch (baseError) {
+		throw new AggregateError(
+			[mergeError, baseError],
+			`Could not merge #${number}, then could not change its base back to ${base.ref}: ${describeError(mergeError)}; ${describeError(baseError)}`
+		);
+	}
+}
+
+async function findUmbrellaPrNumber(docs: Repository, branches: UmbrellaBranches) {
+	const pullRequests = await docs.getOpenPullRequestsFromBranch(branches.head);
+	return pullRequests.find(({ base }) => base.ref === branches.base)?.number ?? null;
+}
+
+/**
+ * Opens the umbrella PR, or comments on the docs PR when GitHub refuses. The
+ * refresh adds the labels.
+ *
+ * GitHub only opens a PR from a branch with commits that its base lacks, so
+ * the umbrella PR is opened after the first docs PR is merged.
+ */
+async function openUmbrella(
+	{ docs, log, state }: ReleaseAssistantRun,
+	{ pullRequest, branches }: JoinRequest
+): Promise<number | null> {
+	const { title, body } = renderUmbrella({
+		branches,
+		release: getUmbrellaRelease(state.releases, branches.base),
+		includedPrNumbers: [pullRequest.number],
+	});
+	try {
+		const umbrella = await docs.createPullRequest({ title, ...branches, body });
+		return umbrella.number;
+	} catch (error) {
+		if (!(error instanceof GitHubError)) throw error;
+
+		const comment = renderUmbrellaFailureComment(branches, error.reason);
+		await docs.createComment(pullRequest.number, comment);
+		log(`#${pullRequest.number} joined ${branches.head}, but no umbrella PR: ${error.reason}.`);
+		return null;
+	}
+}
+
+function describeDecision(decision: Decision) {
+	return decision.outcome === OUTCOMES.join
+		? `would join ${decision.branches.head}`
+		: `would be refused (${decision.reasons.join(', ')})`;
+}

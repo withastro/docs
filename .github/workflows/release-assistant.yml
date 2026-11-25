@@ -1,0 +1,49 @@
+# Moves accepted docs PRs into the umbrella PR of their release, and refreshes the umbrella PRs.
+
+name: Release assistant
+
+on:
+  # The job never checks out or runs the PR's code.
+  # zizmor: ignore[dangerous-triggers]
+  workflow_run:
+    workflows: [Release assistant trigger]
+    types: [completed]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  release-assistant:
+    name: Run the release assistant
+    if: >-
+      github.repository_owner == 'withastro' &&
+      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    # One run at a time, so that two runs never act on the same umbrella.
+    # Set on the job, so that a skipped run doesn't cancel a pending one.
+    concurrency:
+      group: release-assistant
+      cancel-in-progress: false
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      # `GITHUB_TOKEN` submits the review that blocks the merge of an umbrella PR.
+      pull-requests: write
+    steps:
+      - name: Check out the default branch
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          persist-credentials: false
+
+      # `actions/github-script` runs on Node.js 24, which reads TypeScript files without a flag.
+      - name: Run `scripts/release-assistant.ts`
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          # GitHub doesn't let the bot review the umbrella PRs it opens.
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          github-token: ${{ secrets.FREDKBOT_GITHUB_TOKEN }}
+          script: |
+            const { runReleaseAssistant } = await import(`${process.env.GITHUB_WORKSPACE}/scripts/release-assistant.ts`);
+            const workflowGithub = getOctokit(process.env.GITHUB_TOKEN);
+            await runReleaseAssistant({ github, workflowGithub, context, mode: 'live' });
