@@ -25,12 +25,12 @@ export const validateIntent = (tags: IntentTags): IntentTags => {
 	return tags;
 };
 
-const stripLocale = (path: string): string => {
+export const stripLocale = (path: string): string => {
 	const [, first = '', ...rest] = path.split('/');
 	return first in languages ? `/${rest.join('/')}` : path;
 };
 
-const matchesPrefix = (path: string, prefix: string): boolean =>
+export const matchesPrefix = (path: string, prefix: string): boolean =>
 	prefix === '/' || path === prefix || path.startsWith(`${prefix.replace(/\/$/, '')}/`);
 
 /** Rules broadest first, then the page's frontmatter; a weight of 0 removes a tag. */
@@ -65,6 +65,7 @@ export const docsIntent = (path: string, pageIntent?: IntentTags): string =>
 
 const LINK_TARGETS: ReadonlyArray<{ host: string; path: string; intent: IntentTags }> = [
 	{ host: 'prosopo.io', path: '/pricing', intent: { buying: 1, pricing: 1 } },
+	{ host: 'prosopo.io', path: '/register', intent: { signup: 1 } },
 	{ host: 'prosopo.io', path: '/contact', intent: { 'contact-sales': 1 } },
 	{ host: 'prosopo.io', path: '/enterprise-form', intent: { enterprise: 1, 'contact-sales': 1 } },
 	{ host: 'portal.prosopo.io', path: '/', intent: { signup: 0.9, onboarding: 0.8 } },
