@@ -2,11 +2,11 @@
 
 Esta guía está pensada para quienes colaboran en la traducción al español de la documentación de Astro.
 
-Su objetivo es mantener una traducción homogénea dentro de Astro Docs y del resto del ecosistema de Astro (por ejemplo, [Starlight](https://starlight.astro.build/)).
+Su objetivo es mantener una traducción homogénea dentro de Astro Docs y del resto del ecosistema de Astro (p. ej., [Starlight](https://starlight.astro.build/)).
 
 ## 🧩 Participar en la traducción
 
-Únete al [servidor oficial de Discord de Astro](https://astro.build/chat) y, en particular, al hilo [`#i18n-es`](https://discord.com/channels/830184174198718474/971767750496227328) para resolver dudas, pedir opinión y coordinarte con otras personas que traducen.
+Antes de realizar cualquier contribución, te recomendamos unirte al [servidor oficial de Discord de Astro](https://astro.build/chat). Una vez dentro, ve al menú "Canales y roles" ("Channels & Roles") y selecciona tu idioma; esto hará que aparezca el canal `#docs-i18n`. Envía un mensaje de saludo allí indicando que te interesa colaborar con la traducción al español para que el equipo te añada al hilo propio de trabajo ([`i18n-crew-es`](https://discord.com/channels/830184174198718474/971767750496227328)), donde resolvemos dudas, pedimos opinión y nos coordinamos.
 
 Antes de empezar una página, comprueba que no tenga ya un pull request abierto. Para el proceso general, consulta las guías de contribución:
 
@@ -17,10 +17,10 @@ Antes de empezar una página, comprueba que no tenga ya un pull request abierto.
 
 - **Conserva la intención y el tono del original.** La documentación de Astro es cercana y amigable. Adapta las frases para que mantengan ese tono en español, sin añadir ni omitir información.
 - **Prioriza la claridad sobre la literalidad.** Evita los calcos del inglés cuando suenen artificiales. Si una traducción literal dificulta la comprensión, reformula la frase.
-- **Mantén la paridad con el original.** Conserva la misma estructura: número de líneas, encabezados, listas, bloques de código y componentes. Así las revisiones y las actualizaciones posteriores son más sencillas.
+- **Mantén la paridad con el original.** Conserva la misma estructura: encabezados, párrafos, listas, bloques de código y componentes. Así las revisiones y las actualizaciones posteriores son más sencillas.
 - **Apóyate en usos ya establecidos.** Antes de traducir un término, comprueba cómo se ha traducido en otras páginas de Astro Docs y en documentación técnica de referencia en español (MDN, Vue, React). Si dos términos conviven, usa el que ya predomina en la página o en el repositorio.
-- **Trata a Astro como una marca.** Escribe «proyecto de Astro» o «proyecto Astro» según suene más natural, pero no traduzcas ni modifiques el nombre.
-- **Dirígete a la persona lectora de tú.** Usa la segunda persona del singular («puedes», «necesitas», «tu proyecto»). No uses «usted», «ustedes» ni «vosotros».
+- **Trata a Astro como una marca.** Escribe "proyecto de Astro" o "proyecto Astro" según suene más natural, pero no traduzcas ni modifiques el nombre.
+- **Dirígete a la persona lectora de tú.** Usa la segunda persona del singular ("puedes", "necesitas", "tu proyecto"). No uses "usted", "ustedes" ni "vosotros".
 
 ## 📖 Glosario
 
@@ -44,11 +44,12 @@ Los nombres de tecnologías, lenguajes, bibliotecas y frameworks no se traducen 
 | endpoint | Siempre. | Es el término de uso predominante en la documentación. |
 | slug | Siempre. | Es el nombre de una propiedad y un término habitual del desarrollo web. |
 | middleware | Siempre. | No existe una traducción de uso extendido. |
-| hook | Siempre. | «Gancho» no aporta suficiente significado y casi no se usa. |
-| framework | Siempre. | «Marco de trabajo» casi no se usa en la documentación técnica. |
+| hook | Siempre. | "Gancho" no aporta suficiente significado y casi no se usa. |
+| framework | Siempre. | "Marco de trabajo" casi no se usa en la documentación técnica. |
 | headless | Al hablar de arquitecturas que separan el contenido de su presentación (p. ej., un CMS headless). | No existe una traducción establecida. |
-| runtime | Al hacer referencia a un entorno de ejecución concreto (p. ej., el runtime de Node.js). | Es el término de uso predominante. En otros contextos, usa «tiempo de ejecución». |
+| runtime | Al hacer referencia a un entorno de ejecución concreto (p. ej., el runtime de Node.js). | Es el término de uso predominante. En otros contextos, usa "tiempo de ejecución". |
 | serverless | Siempre. | Es el término de uso predominante. |
+| handler | Siempre. | Es el término habitual en desarrollo web (p. ej., event handler, route handler). "Manejador" suena poco natural. |
 
 ### 🔤 Traducciones habituales
 
@@ -70,7 +71,7 @@ Los nombres de tecnologías, lenguajes, bibliotecas y frameworks no se traducen 
 | Routing | enrutamiento | |
 | Adapter | adaptador | |
 | Integration | integración | |
-| Starter template | plantilla de inicio | Con «oficial»: «plantilla oficial de inicio». |
+| Starter template | plantilla de inicio | Con "oficial": "plantilla oficial de inicio". |
 | Environment variables | variables de entorno | |
 
 #### Vocabulario técnico general
@@ -84,7 +85,7 @@ Los nombres de tecnologías, lenguajes, bibliotecas y frameworks no se traducen 
 | package | paquete | |
 | to deploy / deployment | desplegar / despliegue | |
 | hosting | alojamiento | |
-| default | predeterminado | «Por defecto» es válido, sobre todo en la ficha de una propiedad (**por defecto:**). |
+| default | predeterminado | "Por defecto" es válido, sobre todo en la ficha de una propiedad (**por defecto:**). |
 | deprecated | obsoleto | |
 | removed | eliminado | |
 | breaking changes | cambios importantes / cambios incompatibles | Conserva la idea de que algo puede dejar de funcionar. |
@@ -95,6 +96,9 @@ Los nombres de tecnologías, lenguajes, bibliotecas y frameworks no se traducen 
 | file | archivo | |
 | icon | icono | |
 | template | plantilla | |
+| promise | promesa | |
+| string | cadena de texto | En prosa también es válido "cadena". |
+| display / to display | mostrar / pantalla | Depende del contexto: como verbo ("mostrar"), como dispositivo ("pantalla") y como propiedad de CSS o API se mantiene `display`. |
 
 > [!NOTE]
 > Estas traducciones son recomendaciones. Si el contexto lo justifica, puedes elegir otra, siempre que la página siga siendo coherente.
@@ -115,7 +119,7 @@ Excepción acordada en revisión: los títulos de sección de recursos se escrib
 - `## Recursos Oficiales` (Official Resources)
 - `## Recursos de la Comunidad` (Community Resources)
 
-Los títulos del inglés en gerundio («Fetching data») admiten en español tanto el gerundio («Obteniendo datos») como el sustantivo («Obtención de datos»). Usa la misma forma en todos los títulos de una página.
+Los títulos del inglés en gerundio ("Fetching data") admiten en español tanto el gerundio ("Obteniendo datos") como el sustantivo ("Obtención de datos"). Usa la misma forma en todos los títulos de una página.
 
 ### Abreviaturas
 
@@ -128,6 +132,21 @@ En el repositorio se usan las comillas dobles rectas (`"texto"`) y no las comill
 ### Código usado como palabra dentro de una frase
 
 Cuando el inglés usa una palabra de código dentro de una frase, conserva la versión en código solo si hace referencia a la API. Si no, usa la palabra en español y, si ayuda a la comprensión, añade el código entre paréntesis.
+
+Por ejemplo, ``The file `path`...`` puede traducirse como ``La ruta del archivo (`path`)...``.
+
+### Remisiones a otras páginas o secciones
+
+Usa estas formas habituales para remitir a la persona lectora a otra página, guía o sección:
+
+| Inglés | Español recomendado |
+| ------ | ------------------- |
+| `See [x]` | `Consulta [x]` |
+| `See [x] for more details` | `Consulta [x] para más detalles` |
+| `Read more about [x]` | `Lee más sobre [x]` |
+| `Learn more about [x]` | `Aprende más sobre [x]` |
+| `For more information, see [x]` | `Para obtener más información, consulta [x]` |
+| `More information about [x]` | `Más información sobre [x]` |
 
 ### Enlaces
 
@@ -150,16 +169,16 @@ Traduce el título y la descripción para que sean coherentes entre sí. No trad
 
 ### Código y ejemplos
 
-- Traduce los comentarios de los ejemplos para que se entiendan sin dominar el inglés.
-- Puedes adaptar el contenido visible de los ejemplos (textos, nombres de archivos de ejemplo) si facilita la comprensión. No modifiques palabras clave, nombres de API ni nombres de propiedades.
-- Si modificas el número de líneas de un ejemplo, actualiza las directivas de resaltado (`ins={...}`, `del={...}`, `{3-13}`) para que sigan apuntando a las líneas correctas. Consulta la [documentación de Expressive Code](https://expressive-code.com/key-features/text-markers/#usage-in-markdown--mdx).
-- Mantén los nombres de la interfaz de los productos de terceros tal como aparecen en el producto (p. ej., «Settings» > «Models»). Si la interfaz del producto está disponible en español, usa esa traducción.
+- **No modifiques los fragmentos de código.** Conserva intactos la lógica, las variables, las rutas, los nombres de archivos, las palabras clave, los nombres de API y las propiedades tal como aparecen en inglés.
+- **Traduce únicamente los comentarios** (y los textos puramente descriptivos pensados para la persona lectora que no alteren el funcionamiento del ejemplo).
+- **Conserva la estructura de líneas de los ejemplos** para que las directivas de resaltado (`ins={...}`, `del={...}`, `{3-13}`) sigan apuntando exactamente a las mismas líneas. Consulta la [documentación de Expressive Code](https://expressive-code.com/key-features/text-markers/#usage-in-markdown--mdx) si necesitas comprobar cómo funcionan.
+- **Mantén los nombres de la interfaz de los productos de terceros** tal como aparecen en el producto (p. ej., "Settings" > "Models"). Si la interfaz del producto está disponible en español, usa esa traducción.
 
 ### Imágenes
 
 Mantén la URL de la imagen y escribe el texto alternativo (`alt`) en español, describiendo el contenido para quienes usan lectores de pantalla.
 
-### Avisos (`:::note`, `:::tip`, `:::caution`)
+### Avisos (`:::note`, `:::tip`, `:::caution`, `:::danger`)
 
 Conserva el tipo de aviso y traduce el título entre corchetes. Para `:::caution[Deprecated]`, usa `:::caution[Obsoleto]`.
 
