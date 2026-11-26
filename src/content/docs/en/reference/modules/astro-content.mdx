@@ -497,7 +497,7 @@ import {
 
 **Type:** <code>(collection: <a href="#collectionkey">CollectionKey</a>, lookup: string | number | Reference) => ReferenceDataEntry</code>
 
-A function used in the content config to create a reference to an entry in another collection. Call it from your validator's transform method (e.g. `.transform()` in Zod) with the collection name and an entry identifier. An identifier can be an entry ID or a reference object returned by an earlier call to `reference()`.
+A function used in the content config to create a reference to an entry in another collection. Call it from your validator's transform method (e.g. `.transform()` in Zod) with the collection name and an entry identifier. An identifier can be an entry ID or a reference object returned by an earlier call to `reference()`. If an existing reference belongs to a different collection, `reference()` throws an `InvalidContentReferenceError`.
 
 ```ts
 import { reference } from 'astro/content/fields';
@@ -516,7 +516,7 @@ const author = z.string().transform((id) => reference('authors', id));
 
 A function used in the content config to validate and import an image referenced in a collection entry. Pass the image path to `image()` from your validator's transform method. It returns an object containing the image metadata.
 
-The following example validates a cover image and requires it to be at least 800 pixels wide:
+The following example validates a cover image. Astro resolves local image dimensions and format after schema validation, so check the width on the queried entry:
 
 ```ts title="src/content.config.ts"
 import { defineCollection } from 'astro:content';
@@ -527,11 +527,18 @@ import { z } from 'astro/zod';
 const blog = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/data/blog' }),
   schema: z.object({
-    cover: z
-      .string()
-      .transform((src) => image(src)),
+    cover: z.string().transform((src) => image(src)),
   }),
 });
+
+```
+
+```astro
+---
+import { getCollection } from 'astro:content';
+
+const posts = await getCollection('blog', (data) => data.cover.width >= 800);
+---
 ```
 
 <ReadMore>Learn how to use [images in content collections](/en/guides/images/#images-in-content-collections) with examples.</ReadMore>
