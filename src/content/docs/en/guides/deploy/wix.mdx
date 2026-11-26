@@ -8,8 +8,90 @@ logo: wix
 supports: ['ssr', 'static']
 i18nReady: true
 ---
+import { Steps } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
 
 [Wix Headless](https://www.wix.com/headless) can host Astro sites on a managed infrastructure and connects them to Wix business services (e.g. bookings, online stores).
+
+This guide uses [Wix-managed headless](https://dev.wix.com/docs/go-headless/wix-managed-headless/about-wix-managed-headless): Wix hosts your Astro site and handles environment variables, authentication and the domain, while your Astro code reaches Wix business services (bookings, stores, CMS collections, members, forms and payments) through the Wix JavaScript SDK.
+
+Both prerendered pages and on-demand rendered pages are supported. The Wix adapter wraps [`@astrojs/cloudflare`](/en/guides/integrations-guide/cloudflare/), so on-demand pages run on Cloudflare Workers managed by Wix.
+
+## Prerequisites
+
+To get started, you will need:
+
+- A [Wix account](https://manage.wix.com/account/custom-apps).
+- Node.js v24.22.1 or higher.
+- An Astro 5 or Astro 7 project. Astro 6 is not supported.
+
+## Project configuration
+
+Run the link command in the root folder of your Astro project. It provisions a Wix business and site, adds a `wix.config.json` file with the new `siteId` and `appId`, installs `@wix/astro`, `@wix/astro-wix-hosting-adapter`, `@astrojs/react` and the Wix CLI, and updates your project for Wix:
+
+```bash
+npm create @wix/new@latest -- headless link
+```
+
+Enter a business name when prompted, or pass it with `--business-name <name>` to run without prompts.
+
+After linking, your configuration file will look something like this:
+
+```js title="astro.config.mjs" ins={2-4, 7-10}
+import { defineConfig } from 'astro/config';
+import react from '@astrojs/react';
+import wix from '@wix/astro';
+import wixHostingAdapter from '@wix/astro-wix-hosting-adapter';
+
+export default defineConfig({
+  output: 'server',
+  integrations: [wix(), react()],
+  adapter: wixHostingAdapter(),
+  image: { domains: ['static.wixstatic.com'] },
+});
+```
+
+:::caution
+`wixHostingAdapter()` belongs on the top-level `adapter` key, not in the `integrations` array. Placed in `integrations` it appears to work in development, but the production build fails with a `NoAdapterInstalled` error.
+:::
+
+The command also replaces the `dev`, `build`, `preview` and `release` scripts in `package.json` with Wix CLI equivalents, so `npm run dev` starts the local environment with Wix authentication in place.
+
+<ReadMore>Read more about [connecting an existing Astro project](https://dev.wix.com/docs/go-headless/wix-managed-headless/full-integration-astro/get-started/connect-an-existing-astro-project) in Wix's documentation, or start a new project with `npm create @wix/new@latest -- headless`.</ReadMore>
+
+### Environment variables
+
+Environment variables are stored on Wix's servers rather than in your repository. Set one from the project folder with `npx wix env set --key <KEY> --value <value>`, and merge them all into a local `.env.local` file with `npx wix env pull`. Secrets added in the dashboard's Secrets Manager are pulled too. A variable that exists only in your local `.env.local` is not available to a released site.
+
+## How to deploy
+
+Deploys are made with the [Wix CLI](https://dev.wix.com/docs/wix-cli/cli-for-headless/command-reference/project-commands/release). Each upload is a snapshot of your build output, so build first after every change.
+
+<Steps>
+1. Build your site.
+
+    ```bash
+    npx wix build
+    ```
+
+2. Upload a preview. This returns links you can share for testing, and does not change the published site.
+
+    ```bash
+    npx wix preview
+    ```
+
+3. Release. This uploads the build, publishes it as the site's live version and clears the site's cache.
+
+    ```bash
+    npx wix release
+    ```
+</Steps>
+
+A preview or release can contain at most 5,000 static files.
+
+### Custom domain
+
+A new headless site is served on a `*.wixsite.com` address until you connect a domain in the Wix dashboard, under **Settings → Domains**. Redirects from old URLs can be declared with Astro's [`redirects`](/en/reference/configuration-reference/#redirects) option and are served as HTTP 301 responses.
 
 ## Official Resources
 
@@ -18,4 +100,4 @@ i18nReady: true
 
 ## Community Resources
 
-- [Wix headless with Astro: what rebuilding four sites taught me](https://www.simonabrahamworks.com/work/wix-headless-astro) by Simón Abraham
+- [Wix Headless with Astro: before and after, measured](https://www.simonabrahamworks.com/work/wix-headless-astro) by Simón Abraham
