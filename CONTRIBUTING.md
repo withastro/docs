@@ -261,6 +261,8 @@ Once the `[ci] release` PR is merged in [`withastro/astro`](https://github.com/w
 - If the PR is for the same release (e.g. last-minute fixes), change its base to its umbrella branch (e.g. `umbrella/main`), then add `accepted`.
 - If not, [merge the umbrella PR](#merging-an-umbrella-pr) first, then add `accepted` to create a new umbrella.
 
+PRs opened by `nightly.yml` target the open umbrella branch (e.g. `umbrella/main`), so they only hold the changes the umbrella doesn't have yet. They can join the umbrella even after the `[ci] release` PR is merged. Before adding `accepted`, check that their changes belong to that release.
+
 #### Refreshing an umbrella PR
 
 The release assistant updates the title, labels, and description of each umbrella PR when a new PR is added to it. Changes made to these elements are overwritten.
