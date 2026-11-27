@@ -1,0 +1,390 @@
+---
+title: Plugin experimental de Astro para Vite
+sidebar:
+  label: Plugin de Vite
+description: Renderiza componentes de Astro, incluyendo islas, desde cualquier servidor en un proyecto de Vite con el plugin de Astro para Vite.
+i18nReady: true
+---
+import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
+import ReadMore from '~/components/ReadMore.astro';
+import { Steps } from '@astrojs/starlight/components';
+
+`@astrojs/vite-plugin-astro` te permite usar [componentes de Astro](/es/basics/astro-components/) en cualquier proyecto de Vite, sin necesidad de un proyecto completo de Astro a su alrededor. Tu propio servidor decide qué renderizar: una ruta de [Hono](https://hono.dev/), un manejador de Express o el `fetch()` de un worker que renderiza un componente y devuelve el HTML.
+
+Los componentes funcionan igual que en Astro: estilos con ámbito (scoped), etiquetas `<script>` e [islas](/es/concepts/islands/) de componentes de React, Preact, Solid, Svelte o Vue que se hidratan en el navegador.
+
+:::caution[Experimental]
+`@astrojs/vite-plugin-astro` y `@astrojs/runtime` son experimentales. Sus APIs pueden cambiar en cualquier versión menor hasta que alcancen la versión 1.0.
+:::
+
+## Instalación
+
+Instala el plugin y el runtime:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/vite-plugin-astro @astrojs/runtime
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/vite-plugin-astro @astrojs/runtime
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/vite-plugin-astro @astrojs/runtime
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego agrega el plugin a tu configuración de Vite:
+
+```js title="vite.config.js"
+import astro from '@astrojs/vite-plugin-astro';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [astro()],
+});
+```
+
+Ahora puedes importar archivos `.astro` desde el código de tu servidor.
+
+## Renderizando un componente
+
+Importa un componente en el código de tu servidor y renderízalo con `renderToResponse()` o `renderToString()` desde `@astrojs/runtime`.
+
+El siguiente ejemplo usa una ruta de Hono para renderizar un componente `Page.astro`, con una prop `name` tomada de la URL:
+
+```ts title="src/app.ts"
+import { renderToResponse } from '@astrojs/runtime';
+import { Hono } from 'hono';
+import Page from './components/Page.astro';
+
+const app = new Hono();
+
+app.get('/hello/:name', (c) =>
+  renderToResponse(Page, { props: { name: c.req.param('name') } }),
+);
+
+export default app;
+```
+
+`Page.astro` recibe la prop `name` y puede usar [propiedades de componente](/es/basics/astro-components/#propiedades-de-componente) como en cualquier proyecto de Astro:
+
+```astro title="src/components/Page.astro"
+---
+const { name } = Astro.props;
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Hello, {name}</title>
+  </head>
+  <body>
+    <h1>Hello, {name}!</h1>
+  </body>
+</html>
+
+<style>
+  h1 { color: rebeccapurple; }
+</style>
+```
+
+Por defecto, el resultado es un documento HTML completo: se agrega `<!DOCTYPE html>` y las hojas de estilo del componente y sus hijos se añaden al `<head>`. Para renderizar parte de una página, como un fragmento para [htmx](https://htmx.org/) o un componente dentro de una página que tu servidor renderiza de otra manera, pasa `partial: true`.
+
+El siguiente ejemplo renderiza un componente `Card.astro` como un fragmento HTML:
+
+```ts title="src/app.ts"
+import { renderToString } from '@astrojs/runtime';
+import Card from './components/Card.astro';
+
+const html = await renderToString(Card, { props: { title: 'Hello' }, partial: true });
+```
+
+El renderizado ocurre únicamente en el servidor: llama a estas funciones desde código de servidor que cargue Vite, no desde código que se ejecute en el navegador.
+
+## Añadiendo islas
+
+Para renderizar componentes de un framework de UI, pasa su renderizador a `astro()` y agrega el plugin de Vite propio del framework.
+
+El siguiente ejemplo instala el renderizador de React, el plugin de Vite para React y React:
+
+<PackageManagerTabs>
+  <Fragment slot="npm">
+  ```shell
+  npm install @astrojs/react-renderer @vitejs/plugin-react react react-dom
+  ```
+  </Fragment>
+  <Fragment slot="pnpm">
+  ```shell
+  pnpm add @astrojs/react-renderer @vitejs/plugin-react react react-dom
+  ```
+  </Fragment>
+  <Fragment slot="yarn">
+  ```shell
+  yarn add @astrojs/react-renderer @vitejs/plugin-react react react-dom
+  ```
+  </Fragment>
+</PackageManagerTabs>
+
+Luego, agrega el renderizador y el plugin de Vite a tu archivo de configuración de Vite:
+
+```js title="vite.config.js" ins={1,3,7}
+import react from '@astrojs/react-renderer';
+import astro from '@astrojs/vite-plugin-astro';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [astro({ renderers: [react()] }), viteReact()],
+});
+```
+
+El renderizador le indica a Astro cómo renderizar e hidratar los componentes del framework. El plugin de Vite del framework compila sus archivos, tal como lo haría en cualquier proyecto de Vite.
+
+Ahora puedes usar los componentes del framework con cualquier [directiva del cliente](/es/reference/directives-reference/#directivas-del-cliente). El siguiente ejemplo agrega un componente `Counter` de React a un componente de Astro y lo hidrata tan pronto como carga la página:
+
+```astro title="src/components/Page.astro" ins={2,7}
+---
+import Counter from './Counter.tsx';
+const { name } = Astro.props;
+---
+<body>
+  <h1>Hello, {name}!</h1>
+  <Counter client:load />
+</body>
+```
+
+El HTML renderizado incluye todo lo necesario para hidratar la isla: no necesitas agregar ningún script por tu cuenta.
+
+La siguiente tabla lista el renderizador y el plugin de Vite que debes usar para cada framework:
+
+| Framework | Renderizador | Plugin de Vite |
+| --- | --- | --- |
+| React | `react()` de `@astrojs/react-renderer` | `@vitejs/plugin-react` |
+| Preact | `preact()` de `@astrojs/preact-renderer` | `@preact/preset-vite` |
+| Solid | `solid()` de `@astrojs/solid-js-renderer` | `vite-plugin-solid`, con `ssr: true` |
+| Svelte | `svelte()` de `@astrojs/svelte-renderer` | `@sveltejs/vite-plugin-svelte` |
+| Vue | `vue()` de `@astrojs/vue-renderer` | `@vitejs/plugin-vue` |
+
+El orden de los plugins no importa.
+
+Para usar varios frameworks de JSX juntos, indícale a cada uno qué archivos le pertenecen con una opción `include`. Pásala al plugin de Vite de cada framework, y también a los renderizadores `react()` y `preact()`. `solid()` no toma opciones. El siguiente ejemplo usa componentes de React y Solid desde carpetas separadas:
+
+```js title="vite.config.js"
+import react from '@astrojs/react-renderer';
+import solid from '@astrojs/solid-js-renderer';
+import astro from '@astrojs/vite-plugin-astro';
+import viteReact from '@vitejs/plugin-react';
+import { defineConfig } from 'vite';
+import viteSolid from 'vite-plugin-solid';
+
+export default defineConfig({
+  plugins: [
+    astro({ renderers: [react({ include: ['**/react/*'] }), solid()] }),
+    viteReact({ include: ['**/react/*'] }),
+    viteSolid({ include: ['**/solid/*'], ssr: true }),
+  ],
+});
+```
+
+<ReadMore>Consulta cómo usar [componentes de framework](/es/guides/framework-components/) en componentes de Astro. En un proyecto de Vite, omite el paso de instalar integraciones.</ReadMore>
+
+## En desarrollo
+
+Ejecuta tu servidor con `vite dev`, de la misma manera que en cualquier proyecto de Vite, por ejemplo con [`@hono/vite-dev-server`](https://github.com/honojs/vite-plugins/tree/main/packages/dev-server) o el plugin de Vite de tu plataforma. Los componentes se compilan cuando se solicitan, y el servidor de desarrollo sirve el código del cliente de tus islas.
+
+Editar un componente actualiza la página en el navegador: los cambios de estilos se aplican sin recargar, y otros cambios recargan la página.
+
+## Compilando
+
+Para compilar tu proyecto, indícale a Vite dónde comienza el código de tu servidor con la entrada de compilación del entorno `ssr`. También puedes elegir el directorio de salida de cada compilación.
+
+El siguiente ejemplo establece `src/app.ts` como el punto de entrada de la compilación del servidor y escribe las compilaciones del servidor y del cliente en carpetas separadas:
+
+```js title="vite.config.js" ins={6-14}
+import astro from '@astrojs/vite-plugin-astro';
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+  plugins: [astro()],
+  environments: {
+    ssr: {
+      build: {
+        outDir: 'dist/server',
+        rolldownOptions: { input: { app: 'src/app.ts' } },
+      },
+    },
+    client: { build: { outDir: 'dist/client' } },
+  },
+});
+```
+
+Ejecutar `vite build` escribe el código de tu servidor en `dist/server/` y el código del navegador de tus componentes en `dist/client/`. La compilación del cliente contiene las hojas de estilo, las islas, el código del cliente del framework y las etiquetas `<script>` de los componentes. El HTML renderizado enlaza a estos archivos.
+
+Sirve `dist/client/` como archivos estáticos, tal como lo harías para cualquier proyecto de Vite con un servidor. Las plataformas de alojamiento que despliegan la salida del cliente de un proyecto de Vite como recursos estáticos lo hacen por ti.
+
+## El objeto global `Astro`
+
+En un componente renderizado por `renderToResponse()` o `renderToString()`, el [objeto global `Astro`](/es/reference/api-reference/) tiene las propiedades que solo dependen del componente y de la llamada de renderizado:
+
+| Propiedad | Valor |
+| --- | --- |
+| `Astro.props` | Las `props` pasadas a la función de renderizado o por el componente padre. |
+| `Astro.slots` | Los [slots](/es/basics/astro-components/#slots) del componente. |
+| `Astro.self` | El componente en sí mismo, para [componentes recursivos](/es/reference/astro-syntax/#astroself). |
+| `Astro.request` | La `request` pasada a la función de renderizado. Por defecto es una solicitud `GET` a `http://localhost/`. |
+| `Astro.url` | La URL de `Astro.request`. |
+| `Astro.site` | La opción `site` de `astro()`, como una `URL`. |
+| `Astro.generator` | La versión de Astro. |
+
+Para hacer que los datos de la solicitud estén disponibles para un componente, pasa la solicitud o pasa los datos como props:
+
+```ts
+app.get('/profile', async (c) => {
+  const user = await getUser(c);
+  return renderToResponse(Profile, { request: c.req.raw, props: { user } });
+});
+```
+
+## Limitaciones
+
+Las siguientes características de Astro no están disponibles en componentes renderizados con `@astrojs/vite-plugin-astro`:
+
+- Páginas y enrutamiento: `src/pages/`, `getStaticPaths()` y prerenderizado. Tu servidor decide qué componente renderizar para cada solicitud.
+- APIs a nivel de solicitud: `Astro.cookies`, `Astro.params`, `Astro.redirect()`, `Astro.locals`, [acciones](/es/guides/actions/), [sesiones](/es/guides/sessions/) y ayudantes de [internacionalización](/es/guides/internationalization/).
+- [Islas del servidor](/es/guides/server-islands/) (`server:defer`).
+- [Transiciones de vista](/es/guides/view-transitions/) (`<ClientRouter />`).
+- Módulos integrados de Astro, como `astro:assets`, `astro:content` y `astro:env`.
+- [Política de Seguridad de Contenido](/es/reference/configuration-reference/#securitycsp), incrustación en línea (inlining) de scripts y hojas de estilo, y `build.assetsPrefix`.
+- Integraciones. En su lugar, usa plugins de Vite.
+
+Las hojas de estilo siempre se enlazan en producción, y los estilos con ámbito usan la [estrategia](/es/reference/configuration-reference/#scopedstylestrategy) `attribute`.
+
+## TypeScript
+
+Para importar archivos `.astro` desde TypeScript, declara su tipo:
+
+```ts title="src/env.d.ts"
+declare module '*.astro' {
+  import type { AstroComponentFactory } from '@astrojs/runtime/types';
+  const Component: AstroComponentFactory;
+  export default Component;
+}
+```
+
+## Referencia
+
+### Opciones de `astro()`
+
+El plugin `astro()` acepta un objeto de configuración opcional cuyas propiedades también son todas opcionales.
+
+```js
+astro({
+  site: 'https://example.com',
+  renderers: [react()],
+});
+```
+
+#### `site`
+
+**Tipo:** `string`
+
+La URL donde se despliega tu sitio, disponible como `Astro.site`.
+
+#### `renderers`
+
+**Tipo:** `AstroRenderer[]`<br />
+**Por defecto:** `[]`
+
+Los renderizadores de los frameworks de UI que usan tus componentes. Cuando un componente puede ser manejado por más de un renderizador, se prueban en este orden.
+
+#### `clientDirectives`
+
+**Tipo:** `{ name: string; entrypoint: string | URL }[]`<br />
+**Por defecto:** `[]`
+
+[Directivas de cliente personalizadas](/es/reference/directives-reference/#directivas-de-cliente-personalizadas), con la misma forma que `addClientDirective()` de la API de integraciones.
+
+#### `compressHTML`
+
+**Tipo:** `boolean | 'jsx'`<br />
+**Por defecto:** `'jsx'`
+
+Cómo se comprime el espacio en blanco en las plantillas de los componentes. Consulta [`compressHTML`](/es/reference/configuration-reference/#compresshtml).
+
+#### `trailingSlash`
+
+**Tipo:** `'always' | 'never' | 'ignore'`<br />
+**Por defecto:** `'ignore'`
+
+Consulta [`trailingSlash`](/es/reference/configuration-reference/#trailingslash).
+
+#### `publicDir`
+
+**Tipo:** `string`<br />
+**Por defecto:** `'./public'`
+
+El directorio de archivos servidos tal cual, relativo a `root`. Una etiqueta `<script src>` que apunte a un archivo en este directorio debe usar [`is:inline`](/es/reference/directives-reference/#isinline).
+
+#### `root`
+
+**Tipo:** `string`<br />
+**Por defecto:** `root` de Vite
+
+La raíz del proyecto, relativa a `root` de Vite.
+
+La URL base es [`base`](https://vite.dev/config/shared-options.html#base) de Vite: `astro()` no tiene opción `base`.
+
+### `renderToResponse()`
+
+<p>
+
+**Tipo:** <code>(Component: AstroComponentFactory, options?: <a href="#renderoptions">RenderOptions</a>) => Promise\<Response\></code>
+</p>
+
+Renderiza un componente a una `Response` con una cabecera `Content-Type: text/html`.
+
+### `renderToString()`
+
+<p>
+
+**Tipo:** <code>(Component: AstroComponentFactory, options?: <a href="#renderoptions">RenderOptions</a>) => Promise\<string\></code>
+</p>
+
+Renderiza un componente a una cadena HTML.
+
+### `RenderOptions`
+
+[`renderToResponse()`](#rendertoresponse) y [`renderToString()`](#rendertostring) aceptan un objeto opcional con las siguientes propiedades.
+
+#### `props`
+
+**Tipo:** `Record<string, any>`<br />
+**Por defecto:** `{}`
+
+Las props del componente, disponibles como `Astro.props`.
+
+#### `slots`
+
+**Tipo:** `Record<string, string>`<br />
+**Por defecto:** `{}`
+
+HTML para cada slot, por nombre del slot. Usa `default` para el slot por defecto.
+
+#### `request`
+
+**Tipo:** `Request`<br />
+**Por defecto:** una solicitud `GET` a `http://localhost/`
+
+Disponible como `Astro.request` y `Astro.url`.
+
+#### `partial`
+
+**Tipo:** `boolean`<br />
+**Por defecto:** `false`
+
+Cuando es `false`, renderiza un documento completo: se agrega `<!DOCTYPE html>` y las hojas de estilo del árbol de componentes se añaden al `<head>`. Cuando es `true`, renderiza solo el HTML del componente.
