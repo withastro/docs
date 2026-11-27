@@ -1,0 +1,205 @@
+---
+title: API de drivers de sesión de Astro
+sidebar:
+  label: API de drivers de sesión
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 4
+---
+import Since from '~/components/Since.astro';
+
+Las [sesiones](/es/guides/sessions/) de Astro permiten compartir datos entre solicitudes de páginas renderizadas bajo demanda. Requieren un driver de sesión de Astro para almacenar los datos de la sesión.
+
+## Drivers integrados
+
+Astro exporta drivers de sesión integrados desde `astro/config`:
+
+```js
+import { sessionDrivers } from 'astro/config'
+```
+
+Se puede usar cualquier [driver de unstorage](https://unstorage.unjs.io/drivers), por ejemplo:
+
+```js title="astro.config.mjs" ins={5-7} ins=" sessionDrivers "
+import { defineConfig, sessionDrivers } from 'astro/config'
+
+export default defineConfig({
+    session: {
+        driver: sessionDrivers.redis({
+            url: process.env.REDIS_URL
+        }),
+    }
+})
+```
+
+:::note
+Algunos drivers pueden requerir la instalación de paquetes adicionales. Algunos también pueden requerir que se configuren variables de entorno o credenciales. Consulta la [documentación de Unstorage](https://unstorage.unjs.io/drivers) para más información.
+:::
+
+## Crear un driver de sesión
+
+Un driver de sesión se compone de dos partes:
+
+- La [configuración del driver](#la-configuración-del-driver-de-sesión), que le indica a Astro qué implementación usar en tiempo de ejecución y qué configuración reenviarle
+- La [implementación del driver](#la-implementación-del-driver-de-sesión), que gestiona la lógica de almacenamiento en tiempo de ejecución
+
+### La configuración del driver de sesión
+
+Un `SessionDriverConfig` es un objeto que contiene un [`entrypoint`](#entrypoint) obligatorio para el tiempo de ejecución y una [`config`](#config) opcional. El método preferido para implementarlo es exportar una función que devuelva este objeto y reciba la configuración como parámetro opcional.
+
+El siguiente ejemplo define la configuración de un driver de memoria:
+
+```ts title="driver/config.ts"
+import type { SessionDriverConfig } from 'astro'
+
+export interface Config {
+    max?: number;
+}
+
+export function memoryDriver(config: Config = {}): SessionDriverConfig {
+    return {
+        entrypoint: new URL('./runtime.js', import.meta.url),
+        config,
+    }
+}
+```
+
+Después se registra en la configuración de Astro:
+
+```ts title="astro.config.ts"
+import { defineConfig } from 'astro/config'
+import { memoryDriver } from './driver/config'
+
+export default defineConfig({
+    session: {
+        driver: memoryDriver({
+            max: 500
+        })
+    }
+})
+```
+
+#### `entrypoint`
+
+<p>
+
+**Tipo:** `string | URL`
+<Since v="6.0.0" />
+</p>
+
+Define el punto de entrada de la [implementación del driver](#la-implementación-del-driver-de-sesión).
+
+#### `config`
+
+<p>
+
+**Tipo:** `Record<string, any> | undefined`
+<Since v="6.0.0" />
+</p>
+
+Define la configuración serializable que se pasa a la [implementación del driver](#la-implementación-del-driver-de-sesión) en tiempo de ejecución.
+
+### La implementación del driver de sesión
+
+Un `SessionDriver` es un objeto responsable de [almacenar](#setitem), [recuperar](#getitem) y [eliminar](#removeitem) datos al [usar sesiones en tiempo de ejecución](/es/reference/api-reference/#session) (p. ej., `context.session.set()`). Puedes implementarlo en el módulo de tu driver de sesión exportando una función por defecto que reciba la [configuración del driver](#config) como parámetro.
+
+El siguiente ejemplo implementa un driver de memoria:
+
+```ts title="driver/runtime.ts"
+import type { SessionDriver } from 'astro'
+import type { Config } from './config'
+import { LRUCache } from 'lru-cache'
+
+export default function(config: Config): SessionDriver {
+    const cache = new LRUCache({ max: config.max })
+    return {
+        setItem: async (key, value) => {
+            cache.set(key, value)
+        },
+        getItem: async (key) => {
+            return cache.get(key)
+        },
+        removeItem: async (key) => {
+            cache.delete(key)
+        },
+    }
+}
+```
+
+#### `setItem()`
+
+<p>
+
+**Tipo:** `(key: string, value: any) => Promise<void>`
+<Since v="6.0.0" />
+</p>
+
+Define una función que establece los datos de la sesión por clave.
+
+#### `getItem()`
+
+<p>
+
+**Tipo:** `(key: string) => Promise<any>`
+<Since v="6.0.0" />
+</p>
+
+Define una función que recupera los datos de la sesión por clave.
+
+#### `removeItem()`
+
+<p>
+
+**Tipo:** `(key: string) => Promise<void>`
+<Since v="6.0.0" />
+</p>
+
+Define una función que elimina los datos de la sesión por clave.
+
+## Compatibilidad con Unstorage
+
+Los [drivers integrados](#drivers-integrados) ofrecen los mismos drivers que Unstorage. Cuando necesites mayor personalización, puedes [crear tu propio driver](#crear-un-driver-de-sesión) basado en cualquier [driver de Unstorage](https://unstorage.unjs.io/drivers).
+
+Instala el paquete `unstorage` y pasa el especificador del driver como [entrypoint](#entrypoint):
+
+```ts title="driver/config.ts" {5}
+import type { SessionDriverConfig } from "astro";
+
+export function configuredRedisDriver(): SessionDriverConfig {
+  return {
+    entrypoint: "unstorage/drivers/redis",
+    config: {
+      tls: true,
+    },
+  };
+}
+```
+
+También puedes importar un driver de Unstorage y envolverlo en tu propia implementación. Esto puede ser útil si quieres añadir lógica adicional al driver o [sobrescribir la configuración en tiempo de ejecución](/es/guides/sessions/#overriding-the-configuration-at-runtime).
+
+El siguiente ejemplo implementa un driver de Redis con un `ttl` por defecto de 7 días:
+
+```ts title="driver/runtime.ts"
+import type { SessionDriver } from "astro";
+import redisDriver, { type RedisOptions } from "unstorage/drivers/redis";
+
+export default function (config: RedisOptions): SessionDriver {
+  const driver = redisDriver({
+    ...config,
+    ttl: config.ttl ?? 60 * 60 * 24 * 7, // 7 días por defecto
+  });
+
+  return {
+    async getItem(key) {
+      return await driver.getItem(key);
+    },
+    async setItem(key, value) {
+      await driver.setItem?.(key, value, {});
+    },
+    async removeItem(key) {
+      await driver.removeItem?.(key, {});
+    },
+  };
+}
+```
