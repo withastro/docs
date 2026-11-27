@@ -7,16 +7,18 @@ import PackageManagerTabs from '~/components/tabs/PackageManagerTabs.astro';
 import { Steps } from '@astrojs/starlight/components';
 import Since from '~/components/Since.astro';
 
-**Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. This rendering occurs at build time for all prerendered pages, but occurs when the route is requested for pages rendered on demand, making [additional SSR features like cookies and headers](/en/guides/on-demand-rendering/#on-demand-rendering-features) available.
+**Middleware** allows you to intercept requests and responses and inject behaviors dynamically every time a page or endpoint is about to be rendered. This rendering occurs at build time for all prerendered pages, but occurs when the route is requested for pages rendered on demand, making [additional on-demand rendering features like cookies and headers](/en/guides/on-demand-rendering/#on-demand-rendering-features) available.
 
 Middleware also allows you to set and share request-specific information across endpoints and pages by mutating a `locals` object that is available in all Astro components and API endpoints. This object is available even when this middleware runs at build time.
 
-## Basic Usage
+If you replace Astro's built-in request pipeline with [advanced routing](/en/guides/routing/#advanced-routing), your `src/fetch.ts` entrypoint decides whether and when your middleware runs.
+
+## Basic usage
 
 <Steps>
 1. Create `src/middleware.js|ts` (Alternatively, you can create `src/middleware/index.js|ts`.)
 
-2. Inside this file, export an [`onRequest()`](/en/reference/modules/astro-middleware/#onrequest) function that can be passed a [`context` object](#the-context-object) and `next()` function. This must not be a default export.
+2. Inside this file, export an [`onRequest()`](/en/reference/modules/astro-middleware/#onrequest) function that receives a [`context` object](#the-context-object) and a `next()` function. This must not be a default export.
 
     ```js title="src/middleware.js"
     export function onRequest (context, next) {
@@ -43,15 +45,15 @@ Middleware also allows you to set and share request-specific information across 
 
 ### The `context` object
 
-The [`context`](/en/reference/api-reference/) object includes information to be made available to other middleware, API routes and `.astro` routes during the rendering process.
+The [`context`](/en/reference/api-reference/) object includes information to be made available to other middleware, endpoints, and `.astro` routes during the rendering process.
 
-This is an optional argument passed to `onRequest()` that may contain the `locals` object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
+Using this argument is optional. It gives you access to the `locals` object as well as any additional properties to be shared during rendering. For example, the `context` object may include cookies used in authentication.
 
 ### Storing data in `context.locals`
 
 `context.locals` is an object that can be manipulated inside the middleware.
 
-This `locals` object is forwarded across the request handling process and is available as a property to [`APIContext`](/en/reference/api-reference/#locals) and [`AstroGlobal`](/en/reference/api-reference/#locals). This allows data to be shared between middlewares, API routes, and `.astro` pages. This is useful for storing request-specific data, such as user data, across the rendering step.
+This `locals` object is forwarded across the request handling process and is available as a property to [`APIContext`](/en/reference/api-reference/#locals) and [`AstroGlobal`](/en/reference/api-reference/#locals). This allows data to be shared between middlewares, endpoints, and `.astro` pages. This is useful for storing request-specific data, such as user data, across the rendering step.
 
 :::tip[Integration properties]
 [Integrations](/en/guides/integrations/) may set properties and provide functionality through the `locals` object. If you are using an integration, check its documentation to ensure you are not overriding any of its properties or doing unnecessary work.
@@ -119,8 +121,7 @@ export const onRequest = async (context, next) => {
 
 You can import and use the utility function [`defineMiddleware()`](/en/reference/modules/astro-middleware/#definemiddleware) to take advantage of type safety:
 
-```ts
-// src/middleware.ts
+```ts title="src/middleware.ts"
 import { defineMiddleware } from "astro:middleware";
 
 // `context` and `next` are automatically typed
@@ -129,10 +130,9 @@ export const onRequest = defineMiddleware((context, next) => {
 });
 ```
 
-Instead, if you're using JsDoc to take advantage of type safety, you can use `MiddlewareHandler`:
+Instead, if you're using JSDoc to take advantage of type safety, you can use `MiddlewareHandler`:
 
-```js
-// src/middleware.js
+```js title="src/middleware.js"
 /**
  * @type {import("astro").MiddlewareHandler}
  */
@@ -250,11 +250,11 @@ export function onRequest (context, next) {
 };
 ```
 
-The `next()` function accepts the same payload as [the `Astro.rewrite()` function](/en/reference/api-reference/#rewrite). The location of the rewrite path can be provided as a string, URL, or `Request`.
+The `next()` function accepts the same payload as [the `Astro.rewrite()` function](/en/reference/api-reference/#rewrite).
 
 When you have multiple middleware functions chained via [sequence()](#chaining-middleware), submitting a path to `next()` will rewrite the `Request` in place and the middleware will not execute again. The next middleware function in the chain will receive the new `Request` with its updated `context`.
 
-Calling `next()` with this signature will create a new `Request` object using the old `ctx.request`. This means that trying to consume `Request.body`, either before or after this rewrite, will throw a runtime error. This error is often raised with [Astro Actions that use HTML forms](/en/guides/actions/#call-actions-from-an-html-form-action). In these cases, we recommend handling rewrites from your Astro templates using `Astro.rewrite()` instead of using middleware.    
+Calling `next()` with this signature will create a new `Request` object using the old `ctx.request`. This means that trying to consume `Request.body`, either before or after this rewrite, will throw a runtime error. This error is often raised with [Astro Actions that use HTML forms](/en/guides/actions/#call-actions-from-an-html-form-action). In these cases, handle rewrites from your Astro templates using `Astro.rewrite()` instead of using middleware.
 
 ```js title="src/middleware.js"
 import { sequence } from "astro:middleware";
