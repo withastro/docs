@@ -1,0 +1,1061 @@
+---
+title: Colecciones de contenido
+description: >-
+  Administra tu contenido con seguridad de tipos.
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+import ReadMore from "~/components/ReadMore.astro"
+
+<p><Since v="2.0.0" /></p>
+
+Las **colecciones de contenido** son la mejor manera de administrar conjuntos de contenido en cualquier proyecto de Astro: publicaciones de blog, descripciones de productos, perfiles de personajes, recetas o cualquier contenido estructurado. Las colecciones ayudan a organizar y consultar tus documentos, habilitan Intellisense y verificación de tipos en tu editor, y proporcionan seguridad de tipos automática de TypeScript para todo tu contenido.
+
+Astro proporciona APIs escalables y de alto rendimiento para cargar, consultar y renderizar contenido desde cualquier lugar: almacenado localmente en tu proyecto, alojado de forma remota o recuperado en vivo desde fuentes que se actualizan frecuentemente.
+
+## ¿Qué son las colecciones de contenido?
+
+Una colección de contenido es un conjunto de datos relacionados y estructuralmente idénticos. Estos datos pueden almacenarse localmente en uno o varios archivos (por ejemplo, una carpeta de archivos Markdown individuales de publicaciones de blog, un único archivo JSON de descripciones de productos) o recuperarse de fuentes remotas como una base de datos, CMS o punto de conexión de API. Cada miembro de la colección se denomina entrada.
+
+<FileTree>
+- src/
+- **newsletter/** la colección "newsletter"
+  - week-1.md una entrada de la colección
+  - week-2.md una entrada de la colección
+  - week-3.md una entrada de la colección
+- **authors/** la colección "author"
+  - authors.json un único archivo que contiene todas las entradas de la colección
+</FileTree>
+
+Las colecciones se definen por la ubicación y la forma de sus entradas y proporcionan una manera conveniente de consultar y renderizar tu contenido y sus metadatos asociados. Puedes crear una colección en cualquier momento en que tengas un grupo de datos o contenido relacionado, almacenado en la misma ubicación, que comparta una estructura común.
+
+Hay [dos tipos de colecciones de contenido](#tipos-de-colecciones) disponibles que te permiten trabajar con datos recuperados en tiempo de compilación o en el momento de la solicitud. Tanto las colecciones en tiempo de compilación como las colecciones que se actualizan en vivo utilizan:
+
+- Un `loader` obligatorio para recuperar tu contenido y metadatos desde donde estén almacenados y hacerlos disponibles para tu proyecto a través de APIs enfocadas en contenido.
+- Un `schema` de colección opcional que te permite definir la forma esperada de cada entrada para seguridad de tipos, autocompletado y validación en tu editor.
+
+Las colecciones almacenadas localmente en tu proyecto o en tu sistema de archivos pueden usar uno de los [loaders en tiempo de compilación proporcionados](#loaders-de-colección-en-tiempo-de-compilación) por Astro para recuperar datos de archivos Markdown, MDX, Markdoc, YAML, TOML o JSON. Apunta Astro a la ubicación de tu contenido, define la forma de tus datos, ¡y estarás listo para comenzar con un blog o un sitio similar con mucho contenido y mayormente estático en poco tiempo!
+
+Con los [loaders creados por la comunidad](https://astro.build/integrations/?search=&categories%5B%5D=loaders) o construyendo un [loader de colección personalizado en tiempo de compilación](#loaders-personalizados-en-tiempo-de-compilación) o un [loader en vivo](#creando-un-loader-en-vivo) tú mismo, puedes recuperar datos remotos de cualquier fuente externa, como un CMS, base de datos o sistema de pago headless, ya sea en tiempo de compilación o en vivo bajo demanda.
+
+### Tipos de colecciones
+
+Las [colecciones de contenido en tiempo de compilación](#definiendo-colecciones-de-contenido-en-tiempo-de-compilación) se actualizan en el momento de la compilación, y los datos se guardan en una capa de almacenamiento. Esto proporciona un rendimiento excelente para la mayoría del contenido, pero puede no ser adecuado para fuentes de datos que se actualizan frecuentemente y requieren datos frescos al instante, como los precios de las acciones en vivo.
+
+Para obtener el mejor rendimiento y escalabilidad, usa colecciones de contenido en tiempo de compilación cuando se cumpla una o más de las siguientes condiciones:
+
+- **El rendimiento es crítico** y deseas prerenderizar los datos en tiempo de compilación.
+- **Tus datos son relativamente estáticos** (por ejemplo, publicaciones de blog, documentación, descripciones de productos).
+- **Deseas beneficiarte de la optimización y el almacenamiento en caché** en tiempo de compilación.
+- **Necesitas procesar MDX** o **realizar optimización de imágenes**.
+- **Tus datos pueden recuperarse una vez y reutilizarse** a través de múltiples compilaciones.
+
+:::tip[Inicio rápido]
+Consulta la [plantilla de inicio oficial del blog de Astro](https://github.com/withastro/astro/tree/latest/examples/blog) para comenzar rápidamente con un ejemplo del uso del [loader `glob()` integrado](#el-loader-glob) y la [definición de un esquema](#definiendo-el-esquema-de-la-colección) para una colección de publicaciones de blog locales en Markdown o MDX.
+:::
+
+Las [colecciones de contenido en vivo](#colecciones-de-contenido-en-vivo) obtienen sus datos en tiempo de ejecución en lugar de en tiempo de compilación. Esto te permite acceder a datos frecuentemente actualizados desde CMSs, APIs, bases de datos u otras fuentes mediante una API unificada, sin necesidad de reconstruir tu sitio cuando los datos cambian. Sin embargo, esto puede tener un costo de rendimiento ya que los datos se recuperan en cada solicitud y se devuelven directamente sin persistencia en el almacén de datos.
+
+Las colecciones de contenido en vivo están diseñadas para datos que cambian frecuentemente y necesitan estar actualizados cuando se solicita una página. Considera usarlas cuando se cumpla una o más de las siguientes condiciones:
+
+- **Necesitas información en tiempo real** (por ejemplo, datos específicos del usuario, niveles de stock actuales).
+- **Deseas evitar reconstrucciones constantes** para contenido que cambia con frecuencia.
+- **Tus datos se actualizan con frecuencia** (por ejemplo, inventario de productos, precios o disponibilidad al minuto).
+- **Necesitas pasar filtros dinámicos** a tu fuente de datos según la entrada del usuario o los parámetros de la solicitud.
+- **Estás construyendo una funcionalidad de vista previa** para un CMS donde los editores necesitan ver el contenido en borrador de inmediato.
+
+Ambos tipos de colecciones pueden coexistir en el mismo proyecto, por lo que siempre puedes elegir el mejor tipo de colección para cada fuente de datos individual. Por ejemplo, una colección en tiempo de compilación puede gestionar las descripciones de productos, mientras que una colección en vivo puede gestionar el inventario del contenido.
+
+Ambos tipos de colecciones utilizan APIs similares (por ejemplo, `getCollection()` y `getLiveCollection()`), para que trabajar con colecciones te resulte familiar sin importar cuál elijas, garantizando al mismo tiempo que siempre sepas con qué tipo de colección estás trabajando.
+
+Sugerimos usar colecciones de contenido en tiempo de compilación siempre que sea posible, y usar colecciones en vivo cuando tu contenido necesite actualizarse en tiempo real y las compensaciones de rendimiento sean aceptables. Además, las colecciones de contenido en vivo tienen algunas limitaciones en comparación con las colecciones en tiempo de compilación:
+
+- **Sin soporte para MDX**: MDX no se puede renderizar en tiempo de ejecución
+- **Sin optimización de imágenes**: Las imágenes no se pueden procesar en tiempo de ejecución
+- **Consideraciones de rendimiento**: Los datos se recuperan en cada solicitud (a menos que estén en caché)
+- **Sin persistencia en el almacén de datos**: Los datos no se guardan en el almacén de datos de la capa de contenido
+
+### Cuándo crear una colección
+
+Define tus datos como una colección cuando:
+
+- Tengas múltiples archivos o datos para organizar que compartan la misma estructura general (por ejemplo, un directorio de publicaciones de blog escritas en Markdown que tengan todas las mismas propiedades de frontmatter).
+- Tengas contenido existente almacenado de forma remota, como en un CMS, y desees aprovechar las funciones auxiliares de colecciones en lugar de usar `fetch()` o SDKs.
+- Necesites recuperar (decenas de) miles de piezas de datos relacionados en tiempo de compilación, y necesites un método de consulta y almacenamiento en caché que maneje el escalado.
+
+Gran parte del beneficio de usar colecciones proviene de:
+
+- Definir una forma de datos común para validar que una entrada individual sea "correcta" o "completa", evitando errores en producción.
+- APIs enfocadas en contenido diseñadas para hacer que las consultas sean intuitivas (por ejemplo, `getCollection()` en lugar de `import.meta.glob()`) al importar y renderizar contenido en tus páginas.
+- Acceso tanto a loaders integrados como a la [API de Content Loader](/es/reference/content-loader-reference/) de bajo nivel para recuperar tu contenido. Además, hay varios loaders de terceros y creados por la comunidad disponibles, y puedes construir tu propio loader personalizado para recuperar datos desde cualquier lugar.
+- Rendimiento y escalabilidad. Los datos de las colecciones de contenido en tiempo de compilación se pueden almacenar en caché entre compilaciones y son adecuados para decenas de miles de entradas de contenido.
+
+### Cuándo no crear una colección
+
+Las colecciones proporcionan una excelente estructura, seguridad y organización cuando tienes múltiples piezas de contenido que deben compartir las mismas propiedades.
+
+Es posible que las colecciones no sean tu solución si:
+
+- Solo tienes una o un número reducido de páginas de contenido diferentes. Considera [crear componentes de página individuales](/es/basics/astro-pages/) como `src/pages/about.astro` con tu contenido directamente en su lugar.
+- Estás mostrando archivos que no son procesados por Astro, como PDFs. Coloca estos recursos estáticos en el [directorio `public/`](/es/basics/project-structure/#public) de tu proyecto en su lugar.
+- Tu fuente de datos tiene su propio SDK/biblioteca de cliente para importaciones que es incompatible o no ofrece un loader de contenido, y prefieres usarlo directamente.
+
+## Configuración de TypeScript para colecciones
+
+Las colecciones de contenido dependen de TypeScript para proporcionar validación con Zod, Intellisense y verificación de tipos en tu editor. Por defecto, Astro configura una [plantilla de TypeScript `strict`](/es/guides/typescript/#plantillas-de-tsconfig) cuando creas un nuevo proyecto usando el comando CLI `create astro`. Tanto la plantilla `strict` como `strictest` de Astro incluyen las configuraciones de TypeScript que tu proyecto necesita para las colecciones de contenido.
+
+Si cambiaste esta configuración a `base` porque no estás escribiendo TypeScript en tu proyecto, o no estás usando ninguna de las plantillas integradas de Astro, también necesitarás agregar las siguientes `compilerOptions` en tu `tsconfig.json` para usar colecciones de contenido:
+
+```json title="tsconfig.json" ins={4-7}
+{
+  "extends": "astro/tsconfigs/base",
+  // no es necesario para `strict` o `strictest`
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+## Definiendo colecciones de contenido en tiempo de compilación
+
+Todas tus colecciones de contenido en tiempo de compilación se definen en un archivo especial `src/content.config.ts` (las extensiones `.js` y `.mjs` también son compatibles) usando `defineCollection()`, y luego se exporta un único objeto de colecciones para su uso en tu proyecto.
+
+Cada colección individual configura:
+- [un `loader` en tiempo de compilación](#loaders-de-colección-en-tiempo-de-compilación) para una fuente de datos (obligatorio)
+- [un `schema` en tiempo de compilación](#definiendo-el-esquema-de-la-colección) para seguridad de tipos (opcional, ¡pero altamente recomendado!)
+
+```ts title="src/content.config.ts"
+// 1. Importa utilidades desde `astro:content`
+import { defineCollection } from 'astro:content';
+
+// 2. Importa loader(s)
+import { glob, file } from 'astro/loaders';
+
+// 3. Importa Zod
+import { z } from 'astro/zod';
+
+// 4. Define un `loader` y un `schema` para cada colección
+const blog = defineCollection({
+  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+
+// 5. Exporta un único objeto `collections` para registrar tus colecciones
+export const collections = { blog };
+```
+
+Luego puedes usar las funciones dedicadas `getCollection()` y `getEntry()` para [consultar los datos de tus colecciones de contenido](#consultando-colecciones-en-tiempo-de-compilación) y renderizar tu contenido.
+
+Puedes optar por [generar rutas de página](#generando-rutas-desde-el-contenido) a partir de las entradas de tu colección en tiempo de compilación para un sitio completamente estático y prerenderizado. O bien, puedes renderizar tus colecciones en tiempo de compilación bajo demanda, eligiendo retrasar la compilación de tu página hasta que se solicite por primera vez. Esto es útil cuando tienes una gran cantidad de páginas (por ejemplo, miles o decenas de miles) y deseas retrasar la compilación de una página estática hasta que sea necesaria.
+
+## Loaders de colección en tiempo de compilación
+
+Astro proporciona dos loaders integrados (`glob()` y `file()`) para recuperar tu contenido local en tiempo de compilación. Pasa la ubicación de tus datos en tu proyecto o en tu sistema de archivos, y estos loaders manejarán automáticamente tus datos y actualizarán la capa de contenido del almacén de datos persistente.
+
+Para recuperar datos remotos en tiempo de compilación, puedes [construir un loader personalizado](#loaders-personalizados-en-tiempo-de-compilación) para recuperar tus datos y actualizar el almacén de datos. O bien, puedes usar cualquier [integración de loader de terceros o publicada por la comunidad](https://astro.build/integrations/2/?search=&categories%5B%5D=loaders). Ya existen varias para sistemas de gestión de contenido populares, así como para fuentes de datos comunes como bóvedas de Obsidian, repositorios de GitHub o publicaciones de Bluesky.
+
+### El loader `glob()`
+
+El [loader `glob()`](/es/reference/content-loader-reference/#glob-loader) recupera entradas de directorios de archivos Markdown, MDX, Markdoc, JSON, YAML o TOML desde cualquier lugar del sistema de archivos. Si almacenas tus entradas de contenido localmente como archivos separados, como un directorio de publicaciones de blog, entonces el loader `glob()` es todo lo que necesitas para acceder a tu contenido.
+
+Este loader requiere un `pattern` de archivos de entrada para coincidir usando patrones glob compatibles con [micromatch](https://github.com/micromatch/micromatch#matching-features), y una ruta de archivo `base` de dónde se encuentran tus archivos. Se generará automáticamente un `id` único para cada entrada a partir de su nombre de archivo, pero puedes [definir IDs personalizados](#definiendo-ids-personalizados) si es necesario.
+
+```ts  title="src/content.config.ts" {5}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+});
+
+export const collections = { blog };
+```
+
+#### Definiendo IDs personalizados
+
+Al usar el [loader `glob()`](#el-loader-glob) con archivos Markdown, MDX, Markdoc, JSON o TOML, cada [`id`](/es/reference/modules/astro-content/#collectionentryid) de entrada de contenido se genera automáticamente en un formato compatible con URLs basado en el nombre de archivo del contenido. Este `id` único se utiliza para consultar la entrada directamente desde tu colección. También es útil al [crear nuevas páginas y URLs a partir de tu contenido](#generando-rutas-desde-el-contenido).
+
+Puedes anular el `id` generado de una entrada individual agregando tu propia propiedad `slug` al frontmatter del archivo o al objeto de datos para archivos JSON. Esto es similar a la función "permalink" de otros frameworks web.
+
+```md title="src/blog/1.md" {3}
+---
+title: My Blog Post
+slug: my-custom-id/supports/slashes
+---
+Your blog post content here.
+```
+
+```json title="src/categories/1.json" {3}
+{
+  "title": "My Category",
+  "slug": "my-custom-id/supports/slashes",
+  "description": "Your category description here."
+}
+```
+
+También puedes pasar opciones a la [función auxiliar `generateID()`](/es/reference/content-loader-reference/#generateid) del loader `glob()` al definir tu colección en tiempo de compilación para ajustar cómo se generan los `id`. Por ejemplo, es posible que desees revertir el comportamiento predeterminado de convertir letras mayúsculas a minúsculas para cada entrada de la colección:
+
+```js title="src/content.config.ts"
+import { glob } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
+const authors = defineCollection({
+  /* Recupera todos los archivos JSON en tu directorio de autores manteniendo
+   * las letras mayúsculas en el ID. */
+  loader: glob({
+    pattern: "**/*.json",
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ""),
+  }),
+});
+```
+
+### El loader `file()`
+
+El [loader `file()`](/es/reference/content-loader-reference/#file-loader) recupera múltiples entradas de un único archivo local definido en tu colección. El loader `file()` detectará y analizará automáticamente (según la extensión del archivo) un único arreglo de objetos de archivos JSON y YAML, y tratará cada tabla de nivel superior como una entrada independiente en archivos TOML.
+
+```ts  title="src/content.config.ts" {5}
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+});
+
+export const collections = { dogs };
+```
+
+Cada objeto de entrada en el archivo debe tener una propiedad de clave `id` única para que la entrada pueda ser identificada y consultada. A diferencia del loader `glob()`, el loader `file()` no generará IDs automáticamente para cada entrada.
+
+Puedes proporcionar tus entradas como un arreglo de objetos con una propiedad `id`, o en forma de objeto donde el `id` único sea la clave:
+
+```json title="src/data/dogs.json"
+// Especifica una propiedad `id` en cada objeto de un arreglo
+[
+  { "id": "poodle", "coat": "curly", "shedding": "low" },
+  { "id": "afghan", "coat": "short", "shedding": "low" }
+]
+```
+
+```json title="src/data/dogs.json"
+// Cada clave se usará como el `id`
+{
+  "poodle": { "coat": "curly", "shedding": "low" },
+  "afghan": { "coat": "silky", "shedding": "low" }
+}
+```
+
+#### Analizando otros formatos de datos
+
+El soporte para analizar archivos individuales JSON, YAML y TOML en entradas de colección con el loader `file()` está integrado (a menos que tengas un [documento JSON anidado](#documentos-json-anidados)). Para cargar tu colección desde tipos de archivos no admitidos, como `.csv`, deberás crear una [función de parser](/es/reference/content-loader-reference/#parser). Esta función puede ser asíncrona si es necesario (por ejemplo, para recuperar archivos de la web, o si tu parser es asíncrono).
+
+El siguiente ejemplo muestra la importación de un parser CSV de terceros y el posterior paso de una función `parser` personalizada al loader `file()`:
+
+```typescript title="src/content.config.ts" {3} "parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })"
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+import { parse as parseCsv } from "csv-parse/sync";
+
+const cats = defineCollection({
+  loader: file("src/data/cats.csv", {
+    parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true }),
+  }),
+});
+```
+
+##### Documentos `.json` anidados
+
+El argumento `parser()` se puede usar para cargar una única colección desde un documento JSON anidado. Por ejemplo, este archivo JSON contiene múltiples colecciones:
+
+```json title="src/data/pets.json"
+{"dogs": [{}], "cats": [{}]}
+```
+
+Puedes separar estas colecciones pasando una función `parser()` personalizada al loader `file()` para cada colección, utilizando el analizador JSON integrado de Astro:
+
+```typescript title="src/content.config.ts"
+import { file } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
+const dogs = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
+});
+const cats = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).cats })
+});
+```
+
+### Loaders personalizados en tiempo de compilación
+
+Puedes [construir un loader personalizado](/es/reference/content-loader-reference/#building-a-loader) usando la API de Content Loader para recuperar contenido remoto de cualquier fuente de datos, como un CMS, una base de datos o un punto de conexión de API.
+
+Luego puedes importar y definir tu loader personalizado en la configuración de tus colecciones, pasando los valores requeridos:
+
+```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { myLoader } from "./loader.ts";
+
+const blog = defineCollection({
+  loader: myLoader({
+    url: "https://api.example.com/posts",
+    apiKey: "my-secret",
+  }),
+});
+```
+
+:::tip
+Encuentra loaders creados por la comunidad y de terceros en el [directorio de integraciones de Astro](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
+:::
+
+El uso de un loader personalizado para recuperar tus datos creará automáticamente una colección a partir de tus datos remotos. Esto te brinda todos los beneficios de las colecciones locales, incluidas las funciones auxiliares de API específicas de la colección como `getCollection()` y `render()` para [consultar y mostrar tus datos](#consultando-colecciones-en-tiempo-de-compilación), así como la validación de esquemas.
+
+Al igual que al crear una integración de Astro o un plugin de Vite, puedes [distribuir tu loader como un paquete npm](/es/guides/integrations/) para que otros puedan usarlo en sus proyectos.
+
+<ReadMore>Consulta la [API de Content Loader](/es/reference/content-loader-reference/) completa para ver ejemplos de cómo construir tu propio loader.</ReadMore>
+
+## Definiendo el esquema de la colección
+
+Los esquemas garantizan un frontmatter o datos de entrada coherentes dentro de una colección mediante la validación de Zod. Un esquema **garantiza** que estos datos existan en una forma predecible cuando necesites hacer referencia a ellos o consultarlos. Si algún archivo viola el esquema de su colección, Astro proporcionará un error útil para informarte.
+
+Los esquemas también impulsan los tipos automáticos de TypeScript de Astro para tu contenido. Cuando defines un esquema para tu colección, Astro generará y aplicará automáticamente una interfaz de TypeScript a la misma. El resultado es soporte completo de TypeScript al consultar tu colección, incluido el autocompletado de propiedades y la verificación de tipos.
+
+:::tip
+Para que Astro reconozca un esquema nuevo o actualizado, es posible que debas reiniciar el servidor de desarrollo o [sincronizar la capa de contenido](/es/reference/cli-reference/#astro-dev) (<code>s + enter</code>) para definir el módulo `astro:content`.
+:::
+
+Proporcionar un `schema` es opcional, ¡pero altamente recomendado! Si decides usar un esquema, cada propiedad de frontmatter o de datos de las entradas de tu colección debe definirse utilizando un [tipo de datos de Zod](/es/reference/modules/astro-zod/#validadores-comunes-de-tipos-de-datos):
+
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
+import { glob, file } from "astro/loaders";
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+### Definiendo tipos de datos con Zod
+
+Astro utiliza [Zod](https://github.com/colinhacks/zod) para potenciar sus esquemas de contenido. Con Zod, Astro puede validar los datos de cada archivo dentro de una colección *y* proporcionar tipos automáticos de TypeScript cuando consultas contenido desde dentro de tu proyecto.
+
+Para usar Zod en Astro, importa la utilidad `z` desde `"astro/zod"`. Esta es una reexportación de la biblioteca Zod y admite todas las características de Zod 4.
+
+<ReadMore>Consulta la [referencia de la utilidad `z`](/es/reference/modules/astro-zod/) para obtener una hoja de trucos de los tipos de datos comunes y aprender cómo funciona Zod y qué características están disponibles.</ReadMore>
+
+#### Métodos de esquemas de Zod
+
+Todos los [métodos de esquema de Zod](/es/reference/modules/astro-zod/#uso-de-los-métodos-de-zod) (por ejemplo, `.parse()`, `.transform()`) están disponibles, con algunas limitaciones. Cabe destacar que realizar comprobaciones de validación personalizadas en imágenes utilizando `image().refine()` no es compatible.
+
+### Definiendo referencias de colección
+
+Las entradas de colección también pueden "hacer referencia" a otras entradas relacionadas.
+
+Con la [función `reference()`](/es/reference/modules/astro-content/#reference), puedes definir una propiedad en el esquema de una colección como una entrada de otra colección. Por ejemplo, puedes requerir que cada entrada de `space-shuttle` incluya una propiedad `pilot` que use el propio esquema de la colección `pilot` para verificación de tipos, autocompletado y validación.
+
+Un ejemplo común es una publicación de blog que hace referencia a perfiles de autor reutilizables almacenados como JSON, o URLs de publicaciones relacionadas almacenadas en la misma colección:
+
+```ts title="src/content.config.ts"
+import { defineCollection, reference } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
+
+const blog = defineCollection({
+  loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
+  schema: z.object({
+    title: z.string(),
+    // Hace referencia a un único autor de la colección `authors` por `id`
+    author: reference("authors"),
+    // Hace referencia a un arreglo de publicaciones relacionadas de la colección `blog` por `id`
+    relatedPosts: z.array(reference("blog")),
+  }),
+});
+
+const authors = defineCollection({
+  loader: glob({ pattern: "**/*.json", base: "./src/data/authors" }),
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.url(),
+  }),
+});
+
+export const collections = { blog, authors };
+```
+
+Este ejemplo de publicación de blog especifica los `id` de las publicaciones relacionadas y el `id` del autor de la publicación:
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "Welcome to my blog"
+author: ben-holmes # hace referencia a `src/data/authors/ben-holmes.json`
+relatedPosts:
+- about-me # hace referencia a `src/content/blog/about-me.md`
+- my-year-in-review # hace referencia a `src/content/blog/my-year-in-review.md`
+---
+```
+
+Estas referencias se transformarán en objetos que contienen una clave `collection` y una clave `id`, lo que te permitirá [consultarlas fácilmente en tus plantillas](#accediendo-a-los-datos-referenciados).
+
+## Consultando colecciones en tiempo de compilación
+
+Astro proporciona funciones auxiliares para consultar una colección en tiempo de compilación y devolver una o más entradas de contenido.
+
+- [`getCollection()`](/es/reference/modules/astro-content/#getcollection) recupera una colección completa y devuelve un arreglo de entradas.
+- [`getEntry()`](/es/reference/modules/astro-content/#getentry) recupera una sola entrada de una colección.
+
+Estas funciones devuelven entradas con un `id` único, un objeto `data` con todas las propiedades definidas, y también devolverán un `body` que contiene el cuerpo sin procesar y sin compilar de un documento Markdown, MDX o Markdoc.
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection, getEntry } from 'astro:content';
+
+// Obtiene todas las entradas de una colección.
+// Requiere el nombre de la colección como argumento.
+const allBlogPosts = await getCollection('blog');
+
+// Obtiene una sola entrada de una colección.
+// Requiere el nombre de la colección y el `id`
+const poodleData = await getEntry('dogs', 'poodle');
+---
+```
+
+El orden de clasificación de las colecciones generadas no es determinista y depende de la plataforma. Esto significa que si estás llamando a `getCollection()` y necesitas que tus entradas se devuelvan en un orden específico (por ejemplo, publicaciones de blog ordenadas por fecha), debes ordenar las entradas de la colección tú mismo:
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
+<ReadMore>Consulta la lista completa de propiedades devueltas por el [tipo `CollectionEntry`](/es/reference/modules/astro-content/#collectionentry).</ReadMore>
+
+### Usando contenido en plantillas de Astro
+
+Después de consultar tus colecciones, puedes acceder al contenido y los metadatos de cada entrada directamente dentro de la plantilla de tu componente Astro.
+
+Por ejemplo, puedes crear una lista de enlaces a tus publicaciones de blog, mostrando información del frontmatter de tu entrada mediante la propiedad `data`:
+
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+---
+<h1>My posts</h1>
+<ul>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
+  ))}
+</ul>
+```
+
+### Renderizando el contenido del cuerpo
+
+Una vez consultadas, puedes renderizar entradas de Markdown y MDX a HTML utilizando la función [`render()`](/es/reference/modules/astro-content/#render) de `astro:content`. Llamar a esta función te da acceso al contenido HTML renderizado, que incluye tanto un componente `<Content />` como una lista de todos los encabezados renderizados.
+
+```astro title="src/pages/blog/post-1.astro" {2,6,10}
+---
+import { getEntry, render } from "astro:content";
+
+const entry = await getEntry("blog", "post-1");
+
+if (!entry) {
+  throw new Error("Entry not found");
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<p>Published on: {entry.data.pubDate.toDateString()}</p>
+<Content />
+```
+
+<ReadMore>Cuando trabajes con entradas MDX, también puedes [pasar tus propios componentes a `<Content />`](/es/guides/integrations-guide/mdx/#passing-components-to-mdx-content) para reemplazar elementos HTML con alternativas personalizadas.</ReadMore>
+
+#### Pasando contenido como props
+
+Un componente también puede pasar una entrada de colección completa como prop.
+
+Puedes usar la utilidad [`CollectionEntry`](/es/reference/modules/astro-content/#collectionentry) para tipar correctamente las props de tu componente usando TypeScript. Esta utilidad toma un argumento de cadena que coincide con el nombre del esquema de tu colección y heredará todas las propiedades del esquema de esa colección.
+
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` coincidirá con el tipo de esquema de tu colección 'blog'
+const { post } = Astro.props;
+---
+```
+
+### Filtrando consultas de colección
+
+`getCollection()` toma una función de devolución de llamada opcional "filter" que te permite filtrar tu consulta según las propiedades `id` o `data` de una entrada.
+
+Puedes usar esto para filtrar por cualquier criterio de contenido que desees. Por ejemplo, puedes filtrar por propiedades como `draft` para evitar que las publicaciones de blog en borrador se publiquen en tu blog:
+
+```astro title="src/pages/blog.astro"
+---
+// Ejemplo: Filtrar entradas de contenido con `draft: true`
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+---
+```
+
+También puedes crear páginas de borrador que estén disponibles al ejecutar el servidor de desarrollo, pero que no se compilen en producción:
+
+```astro title="src/pages/blog.astro"
+---
+// Ejemplo: Filtrar entradas de contenido con `draft: true` solo al compilar para producción
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+---
+```
+
+El argumento filter también admite el filtrado por directorios anidados dentro de una colección. Dado que el `id` incluye la ruta anidada completa, puedes filtrar por el inicio de cada `id` para devolver solo elementos de un directorio anidado específico:
+
+```astro title="src/pages/blog.astro"
+---
+// Ejemplo: Filtrar entradas por subdirectorio en la colección
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+---
+```
+
+### Accediendo a los datos referenciados
+
+Para acceder a las [referencias definidas en tu esquema](#definiendo-referencias-de-colección), primero consulta la entrada de tu colección. Tus referencias estarán disponibles en el objeto `data` devuelto. (por ejemplo, `entry.data.author` y `entry.data.relatedPosts`)
+
+Luego, puedes usar la función `getEntry()` nuevamente (o `getEntries()` para recuperar múltiples entradas referenciadas) pasando esos valores devueltos. La función `reference()` en tu esquema transforma esos valores en uno o más objetos `collection` e `id` como una forma conveniente de consultar estos datos relacionados.
+
+
+```astro title="src/pages/blog/adventures-in-space.astro"
+---
+import { getEntry, getEntries } from "astro:content";
+
+// Primero, consulta una publicación de blog
+const blogPost = await getEntry("blog", "Adventures in Space");
+
+// Si la publicación de blog no existe, lanza un error
+if (!blogPost) {
+  throw new Error("Blog post not found");
+}
+
+// Recupera un único elemento de referencia: el autor de la publicación de blog
+// Equivalente a consultar `{collection: "authors", id: "ben-holmes"}`
+const author = await getEntry(blogPost.data.author);
+
+// Recupera un arreglo de elementos referenciados: todas las publicaciones relacionadas
+// Equivalente a consultar `[{collection: "blog", id: "visiting-mars"}, {collection: "blog", id: "leaving-earth-for-the-first-time"}]`
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>Author: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>You might also like:</h2>
+{relatedPosts.map((post) => <a href={post.id}>{post.data.title}</a>)}
+```
+
+## Generando rutas desde el contenido
+
+Las colecciones de contenido se almacenan fuera del directorio `src/pages/`. Esto significa que el [enrutamiento basado en archivos](/es/guides/routing/) de Astro no genera páginas ni rutas para los elementos de tu colección de forma predeterminada.
+
+Deberás crear manualmente una nueva [ruta dinámica](/es/guides/routing/#rutas-dinámicas) si deseas generar páginas HTML para cada una de las entradas de tu colección, como publicaciones de blog individuales. Tu ruta dinámica asignará el parámetro de solicitud entrante (por ejemplo, `Astro.params.id` en `src/pages/blog/[...id].astro`) para recuperar la entrada correcta para cada página.
+
+El método exacto para generar rutas dependerá de si tus páginas están prerenderizadas (por defecto) o si un servidor las renderiza bajo demanda.
+
+### Construyendo para salida estática (por defecto)
+
+Si estás construyendo un sitio web estático (el comportamiento predeterminado de Astro) con colecciones en tiempo de compilación, usa la función [`getStaticPaths()`](/es/reference/routing-reference/#getstaticpaths) para crear múltiples páginas a partir de un solo componente de página (por ejemplo, `src/pages/[id].astro`) durante la compilación.
+
+Llama a `getCollection()` dentro de `getStaticPaths()` para tener los datos de tu colección disponibles para construir rutas estáticas. Luego, crea las rutas de URL individuales usando la propiedad `id` de cada entrada de contenido. Cada página recibe la entrada completa de la colección como prop para [usarla en la plantilla de tu página](#usando-contenido-en-plantillas-de-astro).
+
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
+---
+import { getCollection, render } from 'astro:content';
+// 1. Genera una nueva ruta para cada entrada de la colección
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+// 2. Para tu plantilla, puedes obtener la entrada directamente de la prop
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+Esto generará una ruta de página para cada entrada en la colección `blog`. Por ejemplo, una entrada en `src/blog/hello-world.md` tendrá un `id` de `hello-world` y, por lo tanto, su URL final será `/posts/hello-world/`.
+
+:::note
+Si tus slugs personalizados contienen el carácter `/` para producir URLs con múltiples segmentos de ruta, debes usar un [parámetro rest (por ejemplo, `[...id]`)](/es/guides/routing/#parámetros-rest) en el nombre de archivo `.astro` para esta página de enrutamiento dinámico.
+:::
+
+### Construyendo rutas bajo demanda en el momento de la solicitud
+
+Con un adaptador instalado para [renderizado bajo demanda](/es/guides/on-demand-rendering/), puedes generar tus rutas de página dinámicas en el momento de la solicitud. Primero, examina la solicitud (usando `Astro.request` o `Astro.params`) para encontrar el slug bajo demanda y luego recupéralo usando una de las funciones auxiliares de colecciones de contenido de Astro:
+
+- [`getEntry()`](/es/reference/modules/astro-content/#getentry) para colecciones en tiempo de compilación, donde los datos se recuperan una vez y se reutilizan en todas las solicitudes.
+- [`getLiveEntry()`](/es/reference/modules/astro-content/#getliveentry) para páginas de colecciones en vivo donde los datos se (re)recuperan en cada momento de solicitud.
+
+
+```astro title="src/pages/posts/[id].astro"
+---
+export const prerender = false; // No es necesario en modo 'server'
+
+import { getEntry, render } from "astro:content";
+
+// 1. Obtén el slug de la solicitud entrante del servidor
+const { id } = Astro.params;
+if (id === undefined) {
+	return Astro.redirect("/404");
+}
+
+// 2. Consulta la entrada directamente usando el slug de la solicitud
+const post = await getEntry("blog", id);
+
+// 3. Redirige si la entrada no existe
+if (post === undefined) {
+	return Astro.redirect("/404");
+}
+
+// 4. Renderiza la entrada a HTML en la plantilla
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+:::tip
+¡Explora la carpeta `src/pages/` del [código de demostración del tutorial del blog en GitHub](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages) para ver ejemplos completos de creación de páginas dinámicas a partir de tus colecciones para funciones de blog como una lista de publicaciones, páginas de etiquetas y más!
+:::
+
+## Colecciones de contenido en vivo
+
+Las colecciones en vivo utilizan una API diferente a la de las colecciones de contenido en tiempo de compilación, aunque la configuración y las funciones auxiliares están diseñadas para que resulten familiares.
+
+Las diferencias clave incluyen:
+
+1. **Momento de ejecución**: Se ejecutan en el momento de la solicitud en lugar del momento de compilación
+2. **Archivo de configuración**: Usan `src/live.config.ts` en lugar de `src/content.config.ts`
+3. **Definición de colección**: Usan `defineLiveCollection()` en lugar de `defineCollection()`
+4. **API de Loader**: Implementan los métodos `loadCollection` y `loadEntry` en lugar del método `load`
+5. **Retorno de datos**: Devuelven datos directamente en lugar de almacenarlos en el almacén de datos
+6. **Funciones orientadas al usuario**: Usan `getLiveCollection()`/`getLiveEntry()` en lugar de `getCollection()`/`getEntry()`
+
+Además, debes tener un adaptador configurado para el [renderizado bajo demanda](/es/guides/on-demand-rendering/) de los datos de las colecciones en vivo.
+
+Define tus colecciones en vivo en el archivo especial `src/live.config.ts` (separado de tu `src/content.config.ts` para colecciones en tiempo de compilación, si tienes uno).
+
+Cada colección individual configura:
+- un [loader en vivo](#creando-un-loader-en-vivo) para tu fuente de datos y, opcionalmente, para la seguridad de tipos (obligatorio)
+- un [esquema de colección en vivo](#usando-esquemas-de-zod-con-colecciones-en-vivo) para la seguridad de tipos (opcional)
+
+A diferencia de las colecciones en tiempo de compilación, no hay loaders en vivo integrados disponibles. Deberás [crear un loader en vivo personalizado](#creando-un-loader-en-vivo) para tu fuente de datos específica o buscar un loader de terceros para pasarlo a la propiedad `loader` de tu colección en vivo.
+
+Opcionalmente, puedes [incluir seguridad de tipos en tus loaders en vivo](/es/reference/content-loader-reference/#the-liveloader-object). Por lo tanto, [definir un `schema` de Zod](#usando-esquemas-de-zod-con-colecciones-en-vivo) para colecciones en vivo es opcional. Sin embargo, si proporcionas uno, tendrá prioridad sobre los tipos del loader en vivo.
+
+```ts title="src/live.config.ts"
+// Define colecciones en vivo para acceder a datos en tiempo real
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+// Exporta un único objeto `collections` para registrar tus colecciones
+export const collections = { products };
+```
+
+Luego puedes usar las funciones dedicadas `getLiveCollection()` y `getLiveEntry()` para [acceder a tus datos en vivo](#accediendo-a-datos-en-vivo) y renderizar tu contenido.
+
+Puedes [generar rutas de página](#generando-rutas-desde-el-contenido) a partir de las entradas de tu colección en vivo bajo demanda, recuperando tus datos nuevos en tiempo de ejecución en cada solicitud sin necesidad de reconstruir tu sitio como lo hacen las [colecciones en tiempo de compilación](#definiendo-colecciones-de-contenido-en-tiempo-de-compilación). Esto es útil cuando acceder a datos en vivo al minuto es más importante que tener tu contenido disponible en una capa de almacenamiento de datos de alto rendimiento que persiste entre compilaciones del sitio.
+
+### Creando un loader en vivo
+
+Puedes construir un [loader en vivo](/es/reference/content-loader-reference/#live-loaders) personalizado usando la API de Live Loader para recuperar contenido remoto nuevo a petición desde cualquier fuente de datos, como un CMS, una base de datos o un punto de conexión de API. Tendrás que indicarle a tu loader en vivo cómo recuperar y devolver entradas de contenido desde tu fuente de datos deseada, así como proporcionar manejo de errores para solicitudes de datos fallidas.
+
+El uso de un loader en vivo para recuperar tus datos creará automáticamente una colección a partir de tus datos remotos. Esto te brinda todos los beneficios de las colecciones de contenido de Astro, incluidas las funciones auxiliares de API específicas de la colección como `getLiveCollection()` y `render()` para [consultar y mostrar tus datos](#consultando-colecciones-en-tiempo-de-compilación), así como un manejo de errores útil.
+
+:::tip
+Encuentra loaders en vivo creados por la comunidad y de terceros en el [directorio de integraciones de Astro](https://astro.build/integrations/?search=&categories%5B%5D=loaders).
+:::
+
+<ReadMore>Consulta los conceptos básicos sobre la [creación de un loader en vivo](/es/reference/content-loader-reference/#building-a-live-loader) usando la API de Live Loader</ReadMore>
+
+### Usando esquemas de Zod con colecciones en vivo
+
+Puedes usar esquemas de Zod con colecciones en vivo para validar y transformar datos en tiempo de ejecución. Esta validación de Zod funciona de la misma manera que los [esquemas para colecciones en tiempo de compilación](#definiendo-el-esquema-de-la-colección).
+
+Cuando defines un esquema para una colección en vivo, tiene prioridad sobre [los tipos del loader en vivo](/es/reference/content-loader-reference/#the-liveloader-object) al consultar la colección:
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transforma el formato de categoría de la API
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Convierte la fecha a un objeto Date
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Agrega un campo de precio formateado
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+Al usar esquemas de Zod con colecciones en vivo, los errores de validación se capturan automáticamente y se devuelven como objetos `AstroError`:
+
+```astro title="src/pages/store/index.astro"
+---
+export const prerender = false; // No es necesario en modo 'server'
+
+import { LiveCollectionValidationError } from 'astro/content/runtime';
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// Puedes manejar errores de validación específicamente
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript sabe que entry.data coincide con tu esquema de Zod, no con el tipo del loader
+console.log(entry?.data.displayPrice); // p. ej., "$29.99"
+---
+```
+
+<ReadMore>Consulta el [README de Zod](https://github.com/colinhacks/zod) para obtener documentación completa sobre cómo funciona Zod y qué características están disponibles.</ReadMore>
+
+
+### Accediendo a datos en vivo
+
+Astro proporciona funciones auxiliares de colecciones en vivo para acceder a datos en vivo en cada solicitud y devolver una (o más) entradas de contenido. Estas se pueden usar de manera similar a sus [contrapartes de colecciones en tiempo de compilación](#consultando-colecciones-en-tiempo-de-compilación).
+
+- [`getLiveCollection()`](/es/reference/modules/astro-content/#getlivecollection) recupera una colección completa y devuelve un arreglo de entradas.
+- [`getLiveEntry()`](/es/reference/modules/astro-content/#getliveentry) recupera una sola entrada de una colección.
+
+Estas funciones devuelven entradas con un `id` único y un objeto `data` con todas las propiedades definidas del loader en vivo. Al usar loaders de terceros o de la comunidad distribuidos como paquetes npm, consulta su propia documentación para conocer la forma esperada de los datos devueltos.
+
+Puedes usar estas funciones para acceder a tus datos en vivo, pasando el nombre de la colección y opcionalmente condiciones de filtrado.
+
+```astro title="src/pages/store/[slug].astro"
+---
+export const prerender = false; // No es necesario en modo 'server'
+
+import { getLiveCollection, getLiveEntry } from "astro:content";
+
+if (!Astro.params.slug) {
+  return Astro.redirect('/404');
+}
+
+// Usa filtros específicos del loader
+const { entries: draftArticles } = await getLiveCollection("articles", {
+  status: "draft",
+  author: "john-doe",
+});
+
+// Obtiene un producto específico por ID
+const { entry: product } = await getLiveEntry("products", Astro.params.slug);
+---
+```
+
+#### Renderizando contenido
+
+Si tu loader en vivo [devuelve una propiedad `rendered`](/es/reference/content-loader-reference/#livedataentryrendered), puedes usar [la función `render()` y el componente `<Content />`](#renderizando-el-contenido-del-cuerpo) para renderizar tu contenido directamente en tus páginas, utilizando el mismo método que en las colecciones en tiempo de compilación.
+
+También tienes acceso a cualquier [error devuelto por el loader en vivo](/es/reference/content-loader-reference/#error-handling-in-live-loaders), por ejemplo, para reescribir a una página 404 cuando el contenido no se puede mostrar:
+
+```astro title="src/pages/store/[id].astro" "render(entry)" "<Content />"
+---
+export const prerender = false; // No es necesario en modo 'server'
+
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+import { getLiveEntry, render } from "astro:content";
+const { entry, error } = await getLiveEntry("articles", Astro.params.id);
+if (!entry || error) {
+  return Astro.rewrite("/404");
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+#### Manejo de errores
+
+Los loaders en vivo pueden fallar debido a problemas de red, errores de API o problemas de validación. La API está diseñada para hacer que el manejo de errores sea explícito.
+
+Cuando llamas a `getLiveCollection()` o `getLiveEntry()`, el error será uno de los siguientes:
+
+- El tipo de error definido por el loader (si devolvió un error)
+- Un `LiveEntryNotFoundError` si la entrada no fue encontrada
+- Un `LiveCollectionValidationError` si los datos de la colección no coinciden con el esquema esperado
+- Un `LiveCollectionCacheHintError` si la indicación de caché no es válida
+- Un `LiveCollectionError` para otros errores, como errores no capturados lanzados en el loader
+
+Puedes usar `instanceof` para verificar el tipo de un error en tiempo de ejecución:
+
+```astro title="src/pages/store/[id].astro" "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // No es necesario en modo 'server'
+
+import { LiveEntryNotFoundError } from "astro/content/runtime";
+import { getLiveEntry } from "astro:content";
+
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+const { entry, error } = await getLiveEntry("products", Astro.params.id);
+
+if (error) {
+  if (error instanceof LiveEntryNotFoundError) {
+    console.error(`Product not found: ${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`Error loading product: ${error.message}`);
+    return Astro.redirect("/500");
+  }
+}
+---
+```
+
+### Almacenando datos en vivo en caché
+
+<p><Since v="7.0.0" /></p>
+
+Cuando los loaders en vivo proporcionan [indicaciones de caché](/es/reference/content-loader-reference/#live-loaders), `getLiveEntry()` y `getLiveCollection()` devuelven un objeto `cacheHint`. Esto te permite controlar el [comportamiento de almacenamiento en caché](/es/guides/caching/) de tus rutas sin configurar encabezados manualmente.
+
+Las indicaciones de caché incluyen [`tags`](/es/reference/content-loader-reference/#cachehinttags) para invalidación dirigida y [`lastModified`](/es/reference/content-loader-reference/#cachehintlastmodified) para mantener actualizados los datos en caché. También puedes combinar las indicaciones de caché con tus propias [opciones de caché](/es/reference/cache-provider-reference/#cacheoptions) para personalizar aún más el comportamiento de almacenamiento en caché.
+
+<ReadMore>
+Consulta la [referencia de Content Loader](/es/reference/content-loader-reference/) para obtener más información sobre la implementación de indicaciones de caché en tus loaders en vivo.
+</ReadMore>
+
+#### Indicaciones de caché a nivel de entrada
+
+Pasa el `cacheHint` devuelto por `getLiveEntry()` a [`Astro.cache.set()`](/es/reference/api-reference/#cacheset) para aplicar la estrategia de almacenamiento en caché recomendada por el loader.
+
+El siguiente ejemplo pasa la indicación de caché del loader y agrega un `maxAge` para controlar cuánto tiempo permanece fresca la respuesta:
+
+```astro title="src/pages/products/[id].astro" {4,10-12}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+También puedes pasar un [`LiveDataEntry`](/es/reference/content-loader-reference/#livedataentry) directamente para permitir que Astro extraiga su `cacheHint` automáticamente:
+
+```astro title="src/pages/products/[id].astro" {4,10}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+Astro.cache.set(entry);
+Astro.cache.set({ maxAge: 300, swr: 60 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+#### Indicaciones de caché a nivel de colección
+
+Al recuperar una colección completa con `getLiveCollection()`, Astro combina las indicaciones de caché de la respuesta de la colección y de todas las entradas individuales: las etiquetas se acumulan y gana la fecha `lastModified` más reciente.
+
+El siguiente ejemplo pasa la indicación de caché combinada de una colección y establece una ventana de frescura de 10 minutos:
+
+```astro title="src/pages/products/index.astro" {4,10-12}
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries, error, cacheHint } = await getLiveCollection('products');
+
+if (error) {
+  return new Response('Error loading products', { status: 500 });
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+
+<ul>
+  {entries.map((p) => <li>{p.data.name}</li>)}
+</ul>
+```
+
+#### Invalidando por entrada
+
+Puedes invalidar entradas en caché pasando un `LiveDataEntry` a [`cache.invalidate()`](/es/reference/api-reference/#cacheinvalidate). Esto te permite apuntar a respuestas en caché específicas para su invalidación según las etiquetas de caché de la entrada, sin necesidad de borrar toda la caché.
+
+El siguiente ejemplo invalida la respuesta en caché para una entrada de producto específica:
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('products', 'featured');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
+```
+
+## Usando archivos de esquema JSON en tu editor
+
+<p><Since v="4.13.0" /></p>
+
+Astro genera automáticamente archivos de [esquema JSON](https://json-schema.org/) para las colecciones, que puedes usar en tu editor para obtener IntelliSense y verificación de tipos para archivos de datos.
+
+Se genera un archivo de esquema JSON para cada colección en tu proyecto y se envía al directorio `.astro/collections/`.
+Por ejemplo, si tienes dos colecciones, una llamada `authors` y otra llamada `posts`, Astro generará `.astro/collections/authors.schema.json` y `.astro/collections/posts.schema.json`.
+
+<h3>Usa esquemas JSON en archivos JSON</h3>
+
+Puedes apuntar manualmente a un esquema generado por Astro configurando el campo `$schema` en tu archivo JSON.
+El valor debe ser una ruta de archivo relativa desde el archivo de datos hasta el esquema.
+En el siguiente ejemplo, un archivo de datos en `src/data/authors/` utiliza el esquema generado para la colección `authors`:
+
+```json title="src/data/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+<h4>Usa un esquema para un grupo de archivos JSON en VS Code</h4>
+
+En VS Code, puedes configurar un esquema para aplicarlo a todos los archivos de una colección utilizando la [configuración `json.schemas`](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings).
+En el siguiente ejemplo, todos los archivos en el directorio `src/data/authors/` usarán el esquema generado para la colección `authors`:
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/data/authors/**"],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
+<h3>Usa esquemas en archivos YAML en VS Code</h3>
+
+En VS Code, puedes agregar soporte para usar esquemas JSON en archivos YAML usando la extensión [Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml).
+Con esta extensión instalada, puedes hacer referencia a un esquema en un archivo YAML usando una sintaxis de comentario especial:
+
+```yaml title="src/data/authors/armand.yml" ins={1}
+# yaml-language-server: $schema=../../../.astro/collections/authors.schema.json
+name: Armand
+skills:
+  - Astro
+  - Starlight
+```
+
+<h4>Usa esquemas para un grupo de archivos YAML en VS Code</h4>
+
+Con la extensión Red Hat YAML, puedes configurar un esquema para aplicarlo a todos los archivos YAML de una colección utilizando la configuración `yaml.schemas`.
+En el siguiente ejemplo, todos los archivos YAML en el directorio `src/data/authors/` usarán el esquema generado para la colección `authors`:
+
+```json
+{
+  "yaml.schemas": {
+    "./.astro/collections/authors.schema.json": ["/src/content/authors/*.yml"]
+  }
+}
+```
+
+Consulta [“Asociando esquemas”](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas) en la documentación de la extensión Red Hat YAML para obtener más detalles.
