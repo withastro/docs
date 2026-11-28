@@ -191,65 +191,110 @@ First, [performing a build](/en/guides/deploy/#building-your-site-locally). Depe
 
 ### Middleware
 
-The server entrypoint is built to `./dist/server/entry.mjs` by default. This module exports a `handler` function that can be used with any framework that supports the Node `request` and `response` objects.
+The [middleware mode](#mode) builds a server entrypoint that exports a [`handler()` function](#handler). This allows you to integrate an Astro project into an existing Node.js server (e.g. Express, Fastify) to render your on-demand routes.
 
-For example, with Express:
+The handler forwards all other requests to your server. This means your server must send the files located in your [configured client directory](/en/reference/configuration-reference/#buildclient) (e.g. prerendered pages or images). You must also handle requests that do not match any route, or [call the handler without `next()`](#handler) to render your custom 404 page.
 
-```js title="run-server.mjs"
-import express from 'express';
-import { handler as ssrHandler } from './dist/server/entry.mjs';
+The following example shows a server that serves the client files, and uses the handler as middleware for all other requests:
 
-const app = express();
-// Change this based on your astro.config.mjs, `base` option.
-// They should match. The default value is "/".
-const base = '/';
-app.use(base, express.static('dist/client/'));
-app.use(ssrHandler);
+<Tabs syncKey="node-server">
+  <TabItem label="Express">
+  ```js title="run-server.mjs"
+  import express from 'express';
+  import { handler as ssrHandler } from './dist/server/entry.mjs';
 
-app.listen(8080);
-```
+  const app = express();
+  // Use the same value as the `base` option in your Astro config.
+  const base = '/';
+  app.use(base, express.static('dist/client/'));
+  app.use(ssrHandler);
 
-Or, with Fastify (>4):
+  app.listen(8080);
+  ```
+  </TabItem>
+  <TabItem label="Fastify">
+  ```js title="run-server.mjs"
+  import Fastify from 'fastify';
+  import fastifyMiddie from '@fastify/middie';
+  import fastifyStatic from '@fastify/static';
+  import { fileURLToPath } from 'node:url';
+  import { handler as ssrHandler } from './dist/server/entry.mjs';
 
-```js title="run-server.mjs"
-import Fastify from 'fastify';
-import fastifyMiddie from '@fastify/middie';
-import fastifyStatic from '@fastify/static';
-import { fileURLToPath } from 'node:url';
-import { handler as ssrHandler } from './dist/server/entry.mjs';
+  const app = Fastify({ logger: true });
 
-const app = Fastify({ logger: true });
+  await app
+    .register(fastifyStatic, {
+      root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+    })
+    .register(fastifyMiddie);
+  app.use(ssrHandler);
 
-await app
-  .register(fastifyStatic, {
-    root: fileURLToPath(new URL('./dist/client', import.meta.url)),
-  })
-  .register(fastifyMiddie);
-app.use(ssrHandler);
+  app.listen({ port: 8080 });
+  ```
+  </TabItem>
+</Tabs>
 
-app.listen({ port: 8080 });
-```
+#### `handler()`
 
-Additionally, you can also pass in an object to be accessed with `Astro.locals` or in Astro middleware:
+<p>
 
-```js title="run-server.mjs"
-import express from 'express';
-import { handler as ssrHandler } from './dist/server/entry.mjs';
+**Type:** `(req: IncomingMessage, res: ServerResponse, next?: (err?: unknown) => void, locals?: object) => void | Promise<void>`
+</p>
 
-const app = express();
-app.use(express.static('dist/client/'));
-app.use((req, res, next) => {
-  const locals = {
-    title: 'New title',
-  };
+A function that renders the route of your project matching the request, and writes the response. This takes the Node.js [`IncomingMessage`](https://nodejs.org/api/http.html#class-httpincomingmessage) and [`ServerResponse`](https://nodejs.org/api/http.html#class-httpserverresponse) of the request as its first two arguments.
 
-  ssrHandler(req, res, next, locals);
-});
+You can optionally provide a `next()` function as the third argument. This allows your server to handle requests that do not match any route in your Astro project. Without it, the handler renders your [custom 404 page](/en/basics/astro-pages/#custom-404-error-page) instead.
 
-app.listen(8080);
-```
+The optional fourth argument is an object available as [`Astro.locals` or `context.locals`](/en/reference/api-reference/#locals) in your routes and [Astro middleware](/en/guides/middleware/).
 
-Note that middleware mode does not do file serving. You'll need to configure your HTTP framework to do that for you. By default the client assets are written to `./dist/client/`.
+The following example forwards `next()` and provides a `locals` object to the handler:
+
+<Tabs syncKey="node-server">
+  <TabItem label="Express">
+  ```js title="run-server.mjs" "next" {7-9,11}
+  import express from 'express';
+  import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+  const app = express();
+  app.use(express.static('dist/client/'));
+  app.use((req, res, next) => {
+    const locals = {
+      title: 'New title',
+    };
+
+    ssrHandler(req, res, next, locals);
+  });
+
+  app.listen(8080);
+  ```
+  </TabItem>
+  <TabItem label="Fastify">
+  ```js title="run-server.mjs" "next" {15-17,19}
+  import Fastify from 'fastify';
+  import fastifyMiddie from '@fastify/middie';
+  import fastifyStatic from '@fastify/static';
+  import { fileURLToPath } from 'node:url';
+  import { handler as ssrHandler } from './dist/server/entry.mjs';
+
+  const app = Fastify({ logger: true });
+
+  await app
+    .register(fastifyStatic, {
+      root: fileURLToPath(new URL('./dist/client', import.meta.url)),
+    })
+    .register(fastifyMiddie);
+  app.use((req, res, next) => {
+    const locals = {
+      title: 'New title',
+    };
+
+    ssrHandler(req, res, next, locals);
+  });
+
+  app.listen({ port: 8080 });
+  ```
+  </TabItem>
+</Tabs>
 
 ### Standalone
 
