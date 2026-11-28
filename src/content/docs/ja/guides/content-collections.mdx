@@ -1,0 +1,1073 @@
+---
+title: コンテンツコレクション
+description: >-
+  型安全にコンテンツを管理します。
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import { FileTree, CardGrid, LinkCard, Steps } from '@astrojs/starlight/components';
+import Since from '~/components/Since.astro'
+import RecipeLinks from "~/components/RecipeLinks.astro"
+import Badge from "~/components/Badge.astro"
+import ReadMore from "~/components/ReadMore.astro"
+
+<p><Since v="2.0.0" /></p>
+
+**コンテンツコレクション**は、Astroプロジェクトでブログ記事、商品説明、キャラクターのプロフィール、レシピなど、構造化されたコンテンツのまとまりを管理するのに最適な方法です。コレクションを使うと、ドキュメントの整理とクエリ、エディターでのIntelliSenseと型チェック、すべてのコンテンツに対する自動的なTypeScriptの型安全性を利用できます。
+
+Astroは、高性能でスケーラブルなAPIを提供し、プロジェクト内に保存したコンテンツ、リモートでホストされたコンテンツ、頻繁に更新されるソースからリアルタイムに取得するコンテンツなど、あらゆる場所のコンテンツを読み込み、クエリし、レンダリングできます。
+
+## コンテンツコレクションとは？
+
+コンテンツコレクションは、同じ構造を持つ関連データの集まりです。データはローカルの1つまたは複数のファイル（ブログ記事ごとのMarkdownファイルをまとめたフォルダーや、商品説明をまとめた単一のJSONファイルなど）に保存することも、データベース、CMS、APIエンドポイントなどのリモートソースから取得することもできます。コレクションの各要素をエントリーと呼びます。
+
+<FileTree>
+- src/
+- **newsletter/** 「newsletter」コレクション
+  - week-1.md コレクションのエントリー
+  - week-2.md コレクションのエントリー
+  - week-3.md コレクションのエントリー
+- **authors/** 「author」コレクション
+  - authors.json すべてのコレクションエントリーを含む単一のファイル
+</FileTree>
+
+コレクションは、エントリーの場所とデータ構造によって定義され、コンテンツと関連するメタデータを手軽にクエリしてレンダリングする方法を提供します。同じ場所に保存され、共通の構造を持つ関連データやコンテンツの集まりがあれば、コレクションを作成できます。
+
+ビルド時またはリクエスト時に取得するデータを扱うために、[2種類のコンテンツコレクション](#コレクションの種類)が用意されています。ビルド時コレクションとリアルタイムに更新されるコレクションは、どちらも次のものを使用します。
+
+- 必須の`loader`。保存場所からコンテンツとメタデータを取得し、コンテンツ向けのAPIを通じてプロジェクトで利用できるようにします。
+- 任意のコレクション`schema`。各エントリーに期待するデータ構造を定義し、エディターでの型安全性、自動補完、バリデーションを利用できるようにします。
+
+プロジェクト内やファイルシステム上に保存されたコレクションでは、[Astroが提供するビルド時ローダー](#ビルド時コレクションのローダー)を使って、Markdown、MDX、Markdoc、YAML、TOML、JSONファイルからデータを取得できます。Astroにコンテンツの場所を指定し、データ構造を定義すれば、ブログなどのコンテンツが多い、主に静的なサイトをすぐに作成できます。
+
+[コミュニティが作成したローダー](https://astro.build/integrations/?search=&categories%5B%5D=loaders)を使うか、[カスタムのビルド時コレクションローダー](#カスタムのビルド時ローダー)や[ライブローダー](#ライブローダーの作成)を作成すると、CMS、データベース、ヘッドレス決済システムなど、あらゆる外部ソースからリモートデータをビルド時またはオンデマンドでリアルタイムに取得できます。
+
+### コレクションの種類
+
+[ビルド時コンテンツコレクション](#ビルド時コンテンツコレクションの定義)はビルド時に更新され、データはストレージレイヤーに保存されます。ほとんどのコンテンツで優れたパフォーマンスを得られますが、リアルタイムの株価など、頻繁に更新され、常に最新のデータが必要なデータソースには適さない場合があります。
+
+次のいずれかに当てはまる場合は、ビルド時コンテンツコレクションを使うと、パフォーマンスとスケーラビリティを最大限に活かせます。
+
+- **パフォーマンスが重要**であり、ビルド時にデータをプリレンダリングしたい。
+- **データが比較的静的**である（ブログ記事、ドキュメント、商品説明など）。
+- **ビルド時の最適化**とキャッシュを活用したい。
+- **MDXの処理**または**画像の最適化**が必要である。
+- **一度取得したデータを、複数回のビルドで再利用できる**。
+
+:::tip[クイックスタート]
+[Astro公式のブログスターターテンプレート](https://github.com/withastro/astro/tree/latest/examples/blog)を使うと、すぐに始められます。ローカルのMarkdownやMDXのブログ記事をコレクションにするための、[組み込みの`glob()`ローダー](#globローダー)の使用例と[スキーマの定義](#コレクションスキーマの定義)の例を確認できます。
+:::
+
+[ライブコンテンツコレクション](#ライブコンテンツコレクション)は、ビルド時ではなく実行時にデータを取得します。CMS、API、データベースなどのソースから頻繁に更新されるデータに、統一されたAPIでアクセスできます。データが変わってもサイトの再ビルドは不要です。ただし、リクエストごとにデータを取得し、データストアに永続化せずに直接返すため、パフォーマンスに影響する場合があります。
+
+ライブコンテンツコレクションは、頻繁に変化し、ページがリクエストされた時点で最新である必要があるデータ向けに設計されています。次のいずれかに当てはまる場合は、利用を検討してください。
+
+- **リアルタイムの情報が必要**である（ユーザー固有のデータ、現在の在庫数など）。
+- 頻繁に変わるコンテンツのために、**何度も再ビルドするのを避けたい**。
+- **データが頻繁に更新される**（最新の商品在庫、価格、在庫の有無など）。
+- ユーザー入力やリクエストパラメーターに応じて、データソースに**動的なフィルターを渡す必要がある**。
+- 編集者が下書きをすぐに確認できる、**CMSのプレビュー機能を作成している**。
+
+両方のコレクションを同じプロジェクトで使用できるため、データソースごとに最適な種類を選べます。たとえば、商品説明はビルド時コレクションで、在庫情報はライブコレクションで管理できます。
+
+どちらのコレクションも似たAPI（`getCollection()`と`getLiveCollection()`など）を使用します。そのため、どちらを選んでも同じような操作感で扱え、使用しているコレクションの種類も常に把握できます。
+
+できる限りビルド時コンテンツコレクションを使うことをおすすめします。コンテンツをリアルタイムに更新する必要があり、パフォーマンスとのトレードオフを許容できる場合は、ライブコレクションを使ってください。また、ライブコンテンツコレクションには、ビルド時コレクションと比べて次の制限があります。
+
+- **MDX非対応**。実行時にMDXをレンダリングできません。
+- **画像最適化なし**。実行時に画像を処理できません。
+- **パフォーマンスへの配慮**。キャッシュされていない限り、リクエストごとにデータを取得します。
+- **データストアへの永続化なし**。コンテンツレイヤーのデータストアにデータは保存されません。
+
+### コレクションを作成するタイミング
+
+次の場合は、データをコレクションとして定義してください。
+
+- 同じ全体構造を持つ複数のファイルやデータを整理する場合（フロントマターに同じプロパティを持つMarkdownのブログ記事をまとめたディレクトリなど）。
+- CMSなどのリモートソースに既存のコンテンツがあり、`fetch()`やSDKの代わりにコレクションのヘルパー関数を使いたい場合。
+- 数千から数万件の関連データをビルド時に取得する必要があり、その規模に対応できるクエリとキャッシュの方法が必要な場合。
+
+コレクションを使う主な利点は次のとおりです。
+
+- 共通のデータ構造を定義して各エントリーが「正しい」「完全である」ことを検証し、本番環境でのエラーを防げます。
+- ページにコンテンツをインポートしてレンダリングする際、コンテンツ向けのAPIで直感的にクエリできます（`import.meta.glob()`の代わりに`getCollection()`を使うなど）。
+- コンテンツの取得に、組み込みローダーと低レベルの[Content Loader API](/ja/reference/content-loader-reference/)の両方を利用できます。サードパーティやコミュニティが作成したローダーも複数あり、あらゆる場所からデータを取得する独自のカスタムローダーも作成できます。
+- パフォーマンスとスケーラビリティ。ビルド時コンテンツコレクションのデータはビルド間でキャッシュでき、数万件のコンテンツエントリーにも適しています。
+
+### コレクションを作成しないほうがよい場合
+
+同じプロパティを持つ必要がある複数のコンテンツを扱う場合、コレクションは優れた構造、安全性、整理の仕組みを提供します。
+
+次の場合は、コレクションが適さない可能性があります。
+
+- コンテンツページが1つだけ、または構造の異なるページが少数しかない場合。代わりに、`src/pages/about.astro`などの[個別のページコンポーネントを作成し](/ja/basics/astro-pages/)、そこにコンテンツを直接記述することを検討してください。
+- PDFなど、Astroで処理しないファイルを表示する場合。これらの静的アセットは、プロジェクトの[`public/`ディレクトリ](/ja/basics/project-structure/#public)に配置してください。
+- データソースにインポート用の独自のSDKやクライアントライブラリがあり、コンテンツローダーと互換性がない、またはコンテンツローダーが提供されておらず、そのライブラリを直接使いたい場合。
+
+## コレクション用のTypeScript設定
+
+コンテンツコレクションはTypeScriptを利用して、エディターでのZodバリデーション、IntelliSense、型チェックを提供します。`create astro`のCLIコマンドで新しいプロジェクトを作成すると、デフォルトで[`strict`のTypeScriptテンプレート](/ja/guides/typescript/#tsconfigのテンプレート)が設定されます。Astroの`strict`と`strictest`のどちらのテンプレートにも、コンテンツコレクションに必要なTypeScript設定が含まれています。
+
+プロジェクトでTypeScriptを書かないためにこの設定を`base`に変更した場合や、Astroの組み込みテンプレートを使っていない場合は、コンテンツコレクションを使うために、`tsconfig.json`に次の`compilerOptions`も追加する必要があります。
+
+```json title="tsconfig.json" ins={4-7}
+{
+  "extends": "astro/tsconfigs/base",
+  // not needed for `strict` or `strictest`
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "allowJs": true
+  }
+}
+```
+
+## ビルド時コンテンツコレクションの定義
+
+ビルド時コンテンツコレクションはすべて、特別なファイル`src/content.config.ts`（拡張子`.js`と`.mjs`もサポート）で`defineCollection()`を使って定義します。その後、プロジェクトで使うために、コレクションをまとめた単一のオブジェクトをエクスポートします。
+
+各コレクションには、次のものを設定します。
+- データソース用の[ビルド時`loader`](#ビルド時コレクションのローダー)（必須）
+- 型安全性のための[ビルド時`schema`](#コレクションスキーマの定義)（任意ですが、強く推奨します！）
+
+```ts title="src/content.config.ts"
+// 1. Import utilities from `astro:content`
+import { defineCollection } from 'astro:content';
+
+// 2. Import loader(s)
+import { glob, file } from 'astro/loaders';
+
+// 3. Import Zod
+import { z } from 'astro/zod';
+
+// 4. Define a `loader` and `schema` for each collection
+const blog = defineCollection({
+  loader: glob({ base: './src/content/blog', pattern: '**/*.{md,mdx}' }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+
+// 5. Export a single `collections` object to register your collection(s)
+export const collections = { blog };
+```
+
+その後、専用の`getCollection()`関数と`getEntry()`関数を使って、[コンテンツコレクションのデータをクエリ](#ビルド時コレクションのクエリ)し、コンテンツをレンダリングできます。
+
+ビルド時コレクションのエントリーから、ビルド時に[ページのルーティングを生成](#コンテンツからのルーティング生成)し、完全に静的なプリレンダリング済みのサイトを作成できます。また、ビルド時コレクションをオンデマンドでレンダリングし、ページが最初にリクエストされるまでビルドを遅らせることもできます。数千から数万など、ページ数が多く、必要になるまで静的ページのビルドを遅らせたい場合に便利です。
+
+## ビルド時コレクションのローダー
+
+Astroは、ビルド時にローカルのコンテンツを取得するために、2つの組み込みローダー（`glob()`と`file()`）を提供しています。プロジェクト内またはファイルシステム上のデータの場所を渡すと、これらのローダーがデータを自動的に処理し、コンテンツレイヤーの永続データストアを更新します。
+
+ビルド時にリモートデータを取得するには、データを取得してデータストアを更新する[カスタムローダーを作成](#カスタムのビルド時ローダー)できます。または、[サードパーティやコミュニティが公開しているローダーインテグレーション](https://astro.build/integrations/2/?search=&categories%5B%5D=loaders)を使うこともできます。主要なCMSのほか、Obsidianの保管庫、GitHubリポジトリ、Blueskyの投稿など、よく使われるデータソース向けのローダーがすでに複数あります。
+
+### `glob()`ローダー
+
+[`glob()`ローダー](/ja/reference/content-loader-reference/#glob-loader)は、ファイルシステム上の任意の場所にある、Markdown、MDX、Markdoc、JSON、YAML、TOMLファイルのディレクトリからエントリーを取得します。ブログ記事のディレクトリなど、コンテンツエントリーをローカルに個別のファイルとして保存している場合は、`glob()`ローダーだけでコンテンツにアクセスできます。
+
+このローダーには、[micromatch](https://github.com/micromatch/micromatch#matching-features)がサポートするglobパターンでエントリーファイルを指定する`pattern`と、ファイルの場所を示す`base`のファイルパスが必要です。各エントリーに固有の`id`がファイル名から自動生成されますが、必要に応じて[カスタムIDを定義](#カスタムidの定義)することもできます。
+
+```ts  title="src/content.config.ts" {5}
+import { defineCollection } from 'astro:content';
+import { glob } from 'astro/loaders';
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+});
+
+export const collections = { blog };
+```
+
+#### カスタムIDの定義
+
+Markdown、MDX、Markdoc、JSON、TOMLファイルで[`glob()`ローダー](#globローダー)を使うと、各コンテンツエントリーの[`id`](/ja/reference/modules/astro-content/#collectionentryid)は、コンテンツのファイル名にもとづいてURLに適した形式で自動生成されます。この一意の`id`を使って、コレクションからエントリーを直接クエリできます。[コンテンツから新しいページとURLを作成](#コンテンツからのルーティング生成)する際にも便利です。
+
+ファイルのフロントマター、またはJSONファイルのデータオブジェクトに独自の`slug`プロパティを追加すると、単一のエントリーに対して生成された`id`を上書きできます。これは、他のWebフレームワークの「パーマリンク」機能に似ています。
+
+```md title="src/blog/1.md" {3}
+---
+title: My Blog Post
+slug: my-custom-id/supports/slashes
+---
+Your blog post content here.
+```
+
+```json title="src/categories/1.json" {3}
+{
+  "title": "My Category",
+  "slug": "my-custom-id/supports/slashes",
+  "description": "Your category description here."
+}
+```
+
+ビルド時コレクションを定義する際、`glob()`ローダーの[`generateId()`ヘルパー関数](/ja/reference/content-loader-reference/#generateid)にオプションを渡し、`id`の生成方法を調整することもできます。たとえば、各コレクションエントリーの大文字を小文字に変換するデフォルトの動作を変更し、大文字を保持したい場合があります。
+
+```js title="src/content.config.ts"
+import { glob } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
+const authors = defineCollection({
+  /* Retrieve all JSON files in your authors directory while retaining
+   * uppercase letters in the ID. */
+  loader: glob({
+    pattern: "**/*.json",
+    base: "./src/data/authors",
+    generateId: ({ entry }) => entry.replace(/\.json$/, ""),
+  }),
+});
+```
+
+### `file()`ローダー
+
+[`file()`ローダー](/ja/reference/content-loader-reference/#file-loader)は、コレクションで指定した単一のローカルファイルから複数のエントリーを取得します。JSONファイルとYAMLファイルでは、オブジェクトの配列を1つ自動検出し、ファイルの拡張子にもとづいて解析します。TOMLファイルでは、各トップレベルテーブルを独立したエントリーとして扱います。
+
+```ts  title="src/content.config.ts" {5}
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+});
+
+export const collections = { dogs };
+```
+
+ファイル内の各エントリーオブジェクトには、識別とクエリのために、一意の`id`キープロパティが必要です。`glob()`ローダーと異なり、`file()`ローダーは各エントリーのIDを自動生成しません。
+
+エントリーは、`id`プロパティを持つオブジェクトの配列、または一意の`id`をキーとするオブジェクト形式で指定できます。
+
+```json title="src/data/dogs.json"
+// Specify an `id` property in each object of an array
+[
+  { "id": "poodle", "coat": "curly", "shedding": "low" },
+  { "id": "afghan", "coat": "short", "shedding": "low" }
+]
+```
+
+```json title="src/data/dogs.json"
+// Each key will be used as the `id`
+{
+  "poodle": { "coat": "curly", "shedding": "low" },
+  "afghan": { "coat": "silky", "shedding": "low" }
+}
+```
+
+#### 他のデータ形式の解析
+
+`file()`ローダーには、単一のJSON、YAML、TOMLファイルをコレクションエントリーとして解析する機能が組み込まれています（[ネストされたJSONドキュメント](#ネストされたjsonドキュメント)の場合を除く）。`.csv`など、サポートされていないファイル形式からコレクションを読み込むには、[パーサー関数](/ja/reference/content-loader-reference/#parser)を作成する必要があります。この関数は、必要に応じて非同期にできます（Webからファイルを取得する場合や、パーサーが非同期の場合など）。
+
+次の例では、サードパーティのCSVパーサーをインポートし、カスタムの`parser`関数を`file()`ローダーに渡しています。
+
+```typescript title="src/content.config.ts" {3} "parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true })"
+import { defineCollection } from "astro:content";
+import { file } from "astro/loaders";
+import { parse as parseCsv } from "csv-parse/sync";
+
+const cats = defineCollection({
+  loader: file("src/data/cats.csv", {
+    parser: (text) => parseCsv(text, { columns: true, skipEmptyLines: true }),
+  }),
+});
+```
+
+##### ネストされた`.json`ドキュメント
+
+`parser()`引数を使うと、ネストされたJSONドキュメントから単一のコレクションを読み込めます。たとえば、次のJSONファイルには複数のコレクションが含まれています。
+
+```json title="src/data/pets.json"
+{"dogs": [{}], "cats": [{}]}
+```
+
+各コレクションの`file()`ローダーにカスタムの`parser()`関数を渡し、Astro組み込みのJSON解析を使うことで、これらのコレクションを分離できます。
+
+```typescript title="src/content.config.ts"
+import { file } from "astro/loaders";
+import { defineCollection } from "astro:content";
+
+const dogs = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).dogs })
+});
+const cats = defineCollection({
+  loader: file("src/data/pets.json", { parser: (text) => JSON.parse(text).cats })
+});
+```
+
+### カスタムのビルド時ローダー
+
+Content Loader APIを使って[カスタムローダーを作成](/ja/reference/content-loader-reference/#building-a-loader)し、CMS、データベース、APIエンドポイントなど、あらゆるデータソースからリモートコンテンツを取得できます。
+
+作成したカスタムローダーをインポートし、必要な値を渡してコレクション設定で定義できます。
+
+```ts title="src/content.config.ts"
+import { defineCollection } from "astro:content";
+import { myLoader } from "./loader.ts";
+
+const blog = defineCollection({
+  loader: myLoader({
+    url: "https://api.example.com/posts",
+    apiKey: "my-secret",
+  }),
+});
+```
+
+:::tip
+コミュニティやサードパーティが作成したローダーは、[Astroのインテグレーションディレクトリ](https://astro.build/integrations/?search=&categories%5B%5D=loaders)で探せます。
+:::
+
+カスタムローダーでデータを取得すると、リモートデータからコレクションが自動的に作成されます。これにより、スキーマのバリデーションに加えて、[データをクエリして表示](#ビルド時コレクションのクエリ)するための`getCollection()`や`render()`など、コレクション専用のAPIヘルパーを含む、ローカルコレクションのすべての利点を利用できます。
+
+AstroインテグレーションやViteプラグインと同じように、[ローダーをnpmパッケージとして配布](/ja/guides/integrations/)し、他の人が自分のプロジェクトで使えるようにできます。
+
+<ReadMore>
+独自のローダーを作成する例は、[Content Loader API](/ja/reference/content-loader-reference/)のリファレンスを確認してください。
+</ReadMore>
+
+## コレクションスキーマの定義
+
+スキーマはZodのバリデーションにより、コレクション内のフロントマターやエントリーデータの一貫性を保ちます。参照やクエリが必要なときに、データが予測可能な形式で存在することを**保証**します。コレクションのスキーマに違反するファイルがあると、Astroがわかりやすいエラーで知らせます。
+
+スキーマは、コンテンツに対するAstroの自動的なTypeScriptの型付けにも使われます。コレクションにスキーマを定義すると、AstroがTypeScriptのインターフェイスを自動生成して適用します。その結果、コレクションをクエリするときに、プロパティの自動補完や型チェックを含む、TypeScriptの完全なサポートを得られます。
+
+:::tip
+Astroが新規または更新されたスキーマを認識するには、開発サーバーを再起動するか、[コンテンツレイヤーを同期](/ja/reference/cli-reference/#astro-dev)（<code>s + enter</code>）して`astro:content`モジュールを定義する必要がある場合があります。
+:::
+
+`schema`の指定は任意ですが、強くおすすめします！スキーマを使う場合は、コレクションエントリーのすべてのフロントマターやデータのプロパティを、[Zodのデータ型](/ja/reference/modules/astro-zod/#common-data-type-validators)で定義する必要があります。
+
+```ts title="src/content.config.ts" {7-12,16-20}
+import { defineCollection } from "astro:content";
+import { z } from "astro/zod";
+import { glob, file } from "astro/loaders";
+
+const blog = defineCollection({
+  loader: glob({ pattern: "**/*.md", base: "./src/data/blog" }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    updatedDate: z.coerce.date().optional(),
+  }),
+});
+const dogs = defineCollection({
+  loader: file("src/data/dogs.json"),
+  schema: z.object({
+    id: z.string(),
+    breed: z.string(),
+    temperament: z.array(z.string()),
+  }),
+});
+
+export const collections = { blog, dogs };
+```
+
+### Zodによるデータ型の定義
+
+Astroはコンテンツスキーマに[Zod](https://github.com/colinhacks/zod)を使用しています。Zodにより、コレクション内の各ファイルのデータを検証し、プロジェクト内でコンテンツをクエリするときにTypeScriptの型を自動的に提供できます。
+
+AstroでZodを使うには、`"astro/zod"`から`z`ユーティリティをインポートします。これはZodライブラリの再エクスポートであり、Zod 4のすべての機能をサポートしています。
+
+<ReadMore>
+よく使うデータ型の早見表、Zodの仕組みや利用できる機能については、[`z`ユーティリティのリファレンス](/ja/reference/modules/astro-zod/)を確認してください。
+</ReadMore>
+
+#### Zodのスキーマメソッド
+
+一部の制限はありますが、すべての[Zodのスキーマメソッド](/ja/reference/modules/astro-zod/#using-zod-methods)（`.parse()`、`.transform()`など）を利用できます。特に、`image().refine()`を使って画像にカスタムのバリデーションチェックを行うことはサポートされていません。
+
+### コレクションの参照の定義
+
+コレクションのエントリーは、関連する他のエントリーを「参照」することもできます。
+
+[`reference()`関数](/ja/reference/modules/astro-content/#reference)を使うと、コレクションスキーマのプロパティを、別のコレクションのエントリーとして定義できます。たとえば、すべての`space-shuttle`エントリーに`pilot`プロパティを必須とし、`pilot`コレクション自身のスキーマを型チェック、自動補完、バリデーションに利用できます。
+
+よくある例として、JSONで保存された再利用可能な著者プロフィールや、同じコレクション内に保存された関連記事のURLを参照するブログ記事があります。
+
+```ts title="src/content.config.ts"
+import { defineCollection, reference } from "astro:content";
+import { glob } from "astro/loaders";
+import { z } from "astro/zod";
+
+const blog = defineCollection({
+  loader: glob({ base: "./src/content/blog", pattern: "**/*.{md,mdx}" }),
+  schema: z.object({
+    title: z.string(),
+    // Reference a single author from the `authors` collection by `id`
+    author: reference("authors"),
+    // Reference an array of related posts from the `blog` collection by `id`
+    relatedPosts: z.array(reference("blog")),
+  }),
+});
+
+const authors = defineCollection({
+  loader: glob({ pattern: "**/*.json", base: "./src/data/authors" }),
+  schema: z.object({
+    name: z.string(),
+    portfolio: z.url(),
+  }),
+});
+
+export const collections = { blog, authors };
+```
+
+次のブログ記事の例では、関連記事の`id`と、記事の著者の`id`を指定しています。
+
+```yaml title="src/content/blog/welcome.md"
+---
+title: "Welcome to my blog"
+author: ben-holmes # references `src/data/authors/ben-holmes.json`
+relatedPosts:
+- about-me # references `src/content/blog/about-me.md`
+- my-year-in-review # references `src/content/blog/my-year-in-review.md`
+---
+```
+
+これらの参照は、`collection`キーと`id`キーを持つオブジェクトに変換され、[テンプレートから簡単にクエリ](#参照先データへのアクセス)できるようになります。
+
+## ビルド時コレクションのクエリ
+
+Astroは、ビルド時コレクションをクエリして1つ以上のコンテンツエントリーを返すヘルパー関数を提供しています。
+
+- [`getCollection()`](/ja/reference/modules/astro-content/#getcollection)は、コレクション全体を取得し、エントリーの配列を返します。
+- [`getEntry()`](/ja/reference/modules/astro-content/#getentry)は、コレクションから単一のエントリーを取得します。
+
+返されるエントリーには、一意の`id`と、定義されたすべてのプロパティを持つ`data`オブジェクトが含まれます。また、Markdown、MDX、Markdocドキュメントの場合は、コンパイル前の生の本文を含む`body`も返されます。
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection, getEntry } from 'astro:content';
+
+// Get all entries from a collection.
+// Requires the name of the collection as an argument.
+const allBlogPosts = await getCollection('blog');
+
+// Get a single entry from a collection.
+// Requires the name of the collection and `id`
+const poodleData = await getEntry('dogs', 'poodle');
+---
+```
+
+生成されるコレクションの並び順は不定で、プラットフォームによって異なります。そのため、`getCollection()`でエントリーを特定の順序（ブログ記事を日付順にするなど）で取得するには、コレクションエントリーを自分でソートする必要があります。
+
+```astro title="src/pages/blog.astro"
+---
+import { getCollection } from 'astro:content';
+
+const posts = (await getCollection('blog')).sort(
+  (a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf(),
+);
+---
+```
+
+<ReadMore>
+[`CollectionEntry`型](/ja/reference/modules/astro-content/#collectionentry)が返すプロパティの一覧を確認してください。
+</ReadMore>
+
+### Astroテンプレートでのコンテンツの使用
+
+コレクションをクエリした後は、Astroコンポーネントのテンプレート内で、各エントリーのコンテンツとメタデータに直接アクセスできます。
+
+たとえば、`data`プロパティを使ってエントリーのフロントマターの情報を表示し、ブログ記事へのリンク一覧を作成できます。
+
+
+```astro title="src/pages/index.astro"
+---
+import { getCollection } from 'astro:content';
+const posts = await getCollection('blog');
+---
+<h1>My posts</h1>
+<ul>
+  {posts.map(post => (
+    <li><a href={`/blog/${post.id}`}>{post.data.title}</a></li>
+  ))}
+</ul>
+```
+
+### 本文コンテンツのレンダリング
+
+クエリしたMarkdownやMDXのエントリーは、`astro:content`の[`render()`関数](/ja/reference/modules/astro-content/#render)を使ってHTMLにレンダリングできます。この関数を呼び出すと、`<Content />`コンポーネントと、レンダリングされたすべての見出しの一覧を含む、レンダリング済みのHTMLコンテンツにアクセスできます。
+
+```astro title="src/pages/blog/post-1.astro" {2,6,10}
+---
+import { getEntry, render } from "astro:content";
+
+const entry = await getEntry("blog", "post-1");
+
+if (!entry) {
+  throw new Error("Entry not found");
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<p>Published on: {entry.data.pubDate.toDateString()}</p>
+<Content />
+```
+
+<ReadMore>
+MDXのエントリーを扱う場合は、[`<Content />`に独自のコンポーネントを渡し](/ja/guides/integrations-guide/mdx/#componentsをmdxコンテンツに渡す)、HTML要素をカスタムの要素に置き換えることもできます。
+</ReadMore>
+
+#### コンテンツをpropsとして渡す
+
+コンポーネントは、コレクションのエントリー全体をpropとして渡すこともできます。
+
+[`CollectionEntry`](/ja/reference/modules/astro-content/#collectionentry)ユーティリティを使うと、TypeScriptでコンポーネントのpropsに正しく型を付けられます。このユーティリティは、コレクションスキーマの名前に一致する文字列を引数として受け取り、そのコレクションのスキーマのすべてのプロパティを継承します。
+
+```astro title="src/components/BlogCard.astro" /CollectionEntry(?:<.+>)?/
+---
+import type { CollectionEntry } from 'astro:content';
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+// `post` will match your 'blog' collection schema type
+const { post } = Astro.props;
+---
+```
+
+### コレクションのクエリのフィルタリング
+
+`getCollection()`は、任意の「フィルター」コールバックを受け取ります。このコールバックを使って、エントリーの`id`や`data`プロパティにもとづいてクエリをフィルタリングできます。
+
+任意のコンテンツ条件でフィルタリングできます。たとえば、`draft`のようなプロパティでフィルタリングすれば、下書きのブログ記事がブログに公開されないようにできます。
+
+```astro title="src/pages/blog.astro"
+---
+// Example: Filter out content entries with `draft: true`
+import { getCollection } from 'astro:content';
+const publishedBlogEntries = await getCollection('blog', ({ data }) => {
+  return data.draft !== true;
+});
+---
+```
+
+開発サーバーの実行中には表示でき、本番環境のビルドには含まれない下書きページを作成することもできます。
+
+```astro title="src/pages/blog.astro"
+---
+// Example: Filter out content entries with `draft: true` only when building for production
+import { getCollection } from 'astro:content';
+const blogEntries = await getCollection('blog', ({ data }) => {
+  return import.meta.env.PROD ? data.draft !== true : true;
+});
+---
+```
+
+フィルター引数は、コレクション内のネストされたディレクトリによるフィルタリングもサポートしています。`id`にはネストされたパス全体が含まれるため、各`id`の先頭でフィルタリングすれば、特定のネストされたディレクトリにある項目だけを返せます。
+
+```astro title="src/pages/blog.astro"
+---
+// Example: Filter entries by sub-directory in the collection
+import { getCollection } from 'astro:content';
+const englishDocsEntries = await getCollection('docs', ({ id }) => {
+  return id.startsWith('en/');
+});
+---
+```
+
+### 参照先データへのアクセス
+
+[スキーマで定義した参照](#コレクションの参照の定義)にアクセスするには、まずコレクションのエントリーをクエリします。返された`data`オブジェクトで参照を利用できます（`entry.data.author`や`entry.data.relatedPosts`など）。
+
+次に、返された値を渡して`getEntry()`関数を再度使います（複数の参照先エントリーを取得するには`getEntries()`を使います）。スキーマ内の`reference()`関数は、これらの値を1つ以上の`collection`と`id`を持つオブジェクトに変換し、関連データを手軽にクエリできるようにします。
+
+
+```astro title="src/pages/blog/adventures-in-space.astro"
+---
+import { getEntry, getEntries } from "astro:content";
+
+// First, query a blog post
+const blogPost = await getEntry("blog", "Adventures in Space");
+
+// If the blog post doesn't exist, throw an error
+if (!blogPost) {
+  throw new Error("Blog post not found");
+}
+
+// Retrieve a single reference item: the blog post's author
+// Equivalent to querying `{collection: "authors", id: "ben-holmes"}`
+const author = await getEntry(blogPost.data.author);
+
+// Retrieve an array of referenced items: all the related posts
+// Equivalent to querying `[{collection: "blog", id: "visiting-mars"}, {collection: "blog", id: "leaving-earth-for-the-first-time"}]`
+const relatedPosts = await getEntries(blogPost.data.relatedPosts);
+---
+
+<h1>{blogPost.data.title}</h1>
+<p>Author: {author.data.name}</p>
+
+<!-- ... -->
+
+<h2>You might also like:</h2>
+{relatedPosts.map((post) => <a href={post.id}>{post.data.title}</a>)}
+```
+
+## コンテンツからのルーティング生成
+
+コンテンツコレクションは、`src/pages/`ディレクトリの外に保存されます。そのため、Astroの[ファイルベースルーティング](/ja/guides/routing/)によって、コレクションの項目からページやルーティングがデフォルトで生成されることはありません。
+
+個々のブログ記事など、コレクションの各エントリーに対してHTMLページを生成したい場合は、新しい[動的ルーティング](/ja/guides/routing/#動的ルーティング)を手動で作成する必要があります。動的ルーティングでは、受信したリクエストのパラメーター（`src/pages/blog/[...id].astro`の`Astro.params.id`など）を対応付け、各ページに適したエントリーを取得します。
+
+ルーティングを生成する具体的な方法は、ページをプリレンダリングする場合（デフォルト）と、サーバーでオンデマンドレンダリングする場合で異なります。
+
+### 静的出力用のビルド（デフォルト）
+
+ビルド時コレクションを使って静的なウェブサイト（Astroのデフォルトの動作）をビルドする場合は、[`getStaticPaths()`関数](/ja/reference/routing-reference/#getstaticpaths)を使い、ビルド中に単一のページコンポーネント（`src/pages/[id].astro`など）から複数のページを作成します。
+
+`getStaticPaths()`内で`getCollection()`を呼び出すと、静的なルーティングのビルドにコレクションのデータを利用できます。次に、各コンテンツエントリーの`id`プロパティを使って個々のURLパスを作成します。各ページは、[ページテンプレートで使う](#astroテンプレートでのコンテンツの使用)ために、コレクションのエントリー全体をpropとして受け取ります。
+
+```astro title="src/pages/posts/[id].astro" "{ id: post.id }" "{ post }"
+---
+import { getCollection, render } from 'astro:content';
+// 1. Generate a new path for every collection entry
+export async function getStaticPaths() {
+  const posts = await getCollection('blog');
+  return posts.map(post => ({
+    params: { id: post.id },
+    props: { post },
+  }));
+}
+// 2. For your template, you can get the entry directly from the prop
+const { post } = Astro.props;
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+これにより、`blog`コレクションの各エントリーに対してページのルーティングが生成されます。たとえば、`src/blog/hello-world.md`のエントリーの`id`は`hello-world`となり、最終的なURLは`/posts/hello-world/`になります。
+
+:::note
+カスタムのスラッグに`/`文字を含め、複数のパスセグメントを持つURLを生成する場合は、この動的ルーティングのページの`.astro`ファイル名に[レストパラメーター（`[...id]`など）](/ja/guides/routing/#レストパラメーター)を使う必要があります。
+:::
+
+### リクエスト時にオンデマンドでルーティングをビルドする
+
+[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)用のアダプターをインストールすると、リクエスト時に動的なページのルーティングを生成できます。まず、リクエストを調べ（`Astro.request`や`Astro.params`を使います）、その時点でスラッグを特定します。次に、Astroのコンテンツコレクションのヘルパー関数を使って取得します。
+
+- [`getEntry()`](/ja/reference/modules/astro-content/#getentry)。最初のリクエスト時に一度生成される、ビルド時コレクションのページに使います。
+- [`getLiveEntry()`](/ja/reference/modules/astro-content/#getliveentry)。リクエストのたびにデータを取得し直す、ライブコレクションのページに使います。
+
+
+```astro title="src/pages/posts/[id].astro"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getEntry, render } from "astro:content";
+
+// 1. Get the slug from the incoming server request
+const { id } = Astro.params;
+if (id === undefined) {
+	return Astro.redirect("/404");
+}
+
+// 2. Query for the entry directly using the request slug
+const post = await getEntry("blog", id);
+
+// 3. Redirect if the entry does not exist
+if (post === undefined) {
+	return Astro.redirect("/404");
+}
+
+// 4. Render the entry to HTML in the template
+const { Content } = await render(post);
+---
+<h1>{post.data.title}</h1>
+<Content />
+```
+
+:::tip
+[GitHubのブログチュートリアルのデモコード](https://github.com/withastro/blog-tutorial-demo/tree/content-collections/src/pages)の`src/pages/`フォルダーを確認してください。ブログ記事の一覧やタグページなど、コレクションから動的なページを作成する完全な例を見ることができます！
+:::
+
+## ライブコンテンツコレクション
+
+ライブコレクションは、ビルド時コンテンツコレクションとは異なるAPIを使います。ただし、設定やヘルパー関数は、同じような操作感で使えるように設計されています。
+
+主な違いは次のとおりです。
+
+1. **実行タイミング**。ビルド時ではなくリクエスト時に実行します。
+2. **設定ファイル**。`src/content.config.ts`の代わりに`src/live.config.ts`を使います。
+3. **コレクションの定義**。`defineCollection()`の代わりに`defineLiveCollection()`を使います。
+4. **Loader API**。`load`メソッドの代わりに`loadCollection`と`loadEntry`メソッドを実装します。
+5. **データの返し方**。データストアに保存せず、直接データを返します。
+6. **利用者向けの関数**。`getCollection()`/`getEntry()`の代わりに`getLiveCollection()`/`getLiveEntry()`を使います。
+
+また、ライブコレクションのデータを[オンデマンドレンダリング](/ja/guides/on-demand-rendering/)するには、アダプターの設定が必要です。
+
+ライブコレクションは、特別なファイル`src/live.config.ts`で定義します（ビルド時コレクション用の`src/content.config.ts`がある場合は、それとは別のファイルです）。
+
+各コレクションには、次のものを設定します。
+- データソース用の[ライブ`loader`](#ライブローダーの作成)。任意で型安全性も提供します（ローダー自体は必須）。
+- 型安全性のための[ライブコレクションの`schema`](#ライブコレクションでのzodスキーマの使用)（任意）。
+
+ビルド時コレクションと異なり、組み込みのライブローダーはありません。特定のデータソース向けに[カスタムのライブローダーを作成](#ライブローダーの作成)するか、サードパーティのローダーを探し、ライブコレクションの`loader`プロパティに渡す必要があります。
+
+任意で[ライブローダーに型安全性を組み込む](/ja/reference/content-loader-reference/#the-liveloader-object)ことができます。そのため、ライブコレクションの[Zodの`schema`の定義](#ライブコレクションでのzodスキーマの使用)は任意です。ただし、スキーマを指定すると、ライブローダーの型よりも優先されます。
+
+```ts title="src/live.config.ts"
+// Define live collections for accessing real-time data
+import { defineLiveCollection } from 'astro:content';
+import { storeLoader } from '@mystore/astro-loader';
+
+const products = defineLiveCollection({
+  loader: storeLoader({
+    apiKey: process.env.STORE_API_KEY,
+    endpoint: 'https://api.mystore.com/v1',
+  }),
+});
+
+// Export a single `collections` object to register your collection(s)
+export const collections = { products };
+```
+
+その後、専用の`getLiveCollection()`関数と`getLiveEntry()`関数を使って、[ライブデータにアクセス](#ライブデータへのアクセス)し、コンテンツをレンダリングできます。
+
+ライブコレクションのエントリーから、オンデマンドで[ページのルーティングを生成](#コンテンツからのルーティング生成)できます。[ビルド時コレクション](#ビルド時コンテンツコレクションの定義)のようにサイトを再ビルドする必要はなく、リクエストのたびに実行時に最新のデータを取得します。サイトのビルド間で保持される高性能なデータストレージレイヤーを利用することよりも、常に最新のデータにアクセスすることが重要な場合に便利です。
+
+### ライブローダーの作成
+
+Live Loader APIを使ってカスタムの[ライブローダー](/ja/reference/content-loader-reference/#live-loaders)を作成し、リクエストに応じてCMS、データベース、APIエンドポイントなど、あらゆるデータソースから最新のリモートコンテンツを取得できます。ライブローダーには、目的のデータソースからコンテンツエントリーを取得して返す方法と、データリクエストが失敗した場合のエラー処理を定義する必要があります。
+
+ライブローダーでデータを取得すると、リモートデータからコレクションが自動的に作成されます。これにより、[データをクエリして表示](#ビルド時コレクションのクエリ)するための`getLiveCollection()`や`render()`など、コレクション専用のAPIヘルパーに加えて、便利なエラー処理を含む、Astroのコンテンツコレクションのすべての利点を利用できます。
+
+:::tip
+コミュニティやサードパーティが作成したライブローダーは、[Astroのインテグレーションディレクトリ](https://astro.build/integrations/?search=&categories%5B%5D=loaders)で探せます。
+:::
+
+<ReadMore>
+Live Loader APIを使った[ライブローダーの作成](/ja/reference/content-loader-reference/#building-a-live-loader)の基本を確認してください。
+</ReadMore>
+
+### ライブコレクションでのZodスキーマの使用
+
+ライブコレクションではZodスキーマを使い、実行時にデータを検証・変換できます。このZodのバリデーションは、[ビルド時コレクションのスキーマ](#コレクションスキーマの定義)と同じように動作します。
+
+ライブコレクションにスキーマを定義すると、コレクションのクエリ時に、[ライブローダーの型](/ja/reference/content-loader-reference/#the-liveloader-object)よりも優先されます。
+
+```ts title="src/live.config.ts"
+import { defineLiveCollection } from 'astro:content';
+import { z } from 'astro/zod';
+import { apiLoader } from './loaders/api-loader';
+
+const products = defineLiveCollection({
+  loader: apiLoader({ endpoint: process.env.API_URL }),
+  schema: z
+    .object({
+      id: z.string(),
+      name: z.string(),
+      price: z.number(),
+      // Transform the API's category format
+      category: z.string().transform((str) => str.toLowerCase().replace(/\s+/g, '-')),
+      // Coerce the date to a Date object
+      createdAt: z.coerce.date(),
+    })
+    .transform((data) => ({
+      ...data,
+      // Add a formatted price field
+      displayPrice: `$${data.price.toFixed(2)}`,
+    })),
+});
+
+export const collections = { products };
+```
+
+ライブコレクションでZodスキーマを使うと、バリデーションエラーは自動的に捕捉され、`AstroError`オブジェクトとして返されます。
+
+```astro title="src/pages/store/index.astro"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { LiveCollectionValidationError } from 'astro/content/runtime';
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', '123');
+
+// You can handle validation errors specifically
+if (LiveCollectionValidationError.is(error)) {
+  console.error(error.message);
+  return Astro.rewrite('/500');
+}
+
+// TypeScript knows entry.data matches your Zod schema, not the loader's type
+console.log(entry?.data.displayPrice); // e.g., "$29.99"
+---
+```
+
+<ReadMore>
+Zodの仕組みや利用できる機能の完全なドキュメントは、[ZodのREADME](https://github.com/colinhacks/zod)を確認してください。
+</ReadMore>
+
+
+### ライブデータへのアクセス
+
+Astroは、リクエストのたびにライブデータにアクセスし、1つ以上のコンテンツエントリーを返す、ライブコレクションのヘルパー関数を提供しています。[ビルド時コレクション用の関数](#ビルド時コレクションのクエリ)と同じように使えます。
+
+- [`getLiveCollection()`](/ja/reference/modules/astro-content/#getlivecollection)は、コレクション全体を取得し、エントリーの配列を返します。
+- [`getLiveEntry()`](/ja/reference/modules/astro-content/#getliveentry)は、コレクションから単一のエントリーを取得します。
+
+返されるエントリーには、一意の`id`と、ライブローダーで定義されたすべてのプロパティを持つ`data`オブジェクトが含まれます。npmパッケージとして配布されているサードパーティやコミュニティのローダーを使う場合は、返されるデータの構造をそのローダーのドキュメントで確認してください。
+
+これらの関数にコレクション名と任意のフィルタリング条件を渡すと、ライブデータにアクセスできます。
+
+```astro title="src/pages/store/[slug].astro"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { getLiveCollection, getLiveEntry } from "astro:content";
+
+if (!Astro.params.slug) {
+  return Astro.redirect('/404');
+}
+
+// Use loader-specific filters
+const { entries: draftArticles } = await getLiveCollection("articles", {
+  status: "draft",
+  author: "john-doe",
+});
+
+// Get a specific product by ID
+const { entry: product } = await getLiveEntry("products", Astro.params.slug);
+---
+```
+
+#### コンテンツのレンダリング
+
+ライブローダーが[`rendered`プロパティを返す](/ja/reference/content-loader-reference/#livedataentryrendered)場合は、ビルド時コレクションと同じ方法で、[`render()`関数と`<Content />`コンポーネント](#本文コンテンツのレンダリング)を使ってページ内にコンテンツを直接レンダリングできます。
+
+[ライブローダーが返すエラー](/ja/reference/content-loader-reference/#error-handling-in-live-loaders)にもアクセスできます。たとえば、コンテンツを表示できない場合に404ページへリライトできます。
+
+```astro title="src/pages/store/[id].astro" "render(entry)" "<Content />"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+import { getLiveEntry, render } from "astro:content";
+const { entry, error } = await getLiveEntry("articles", Astro.params.id);
+if (!entry || error) {
+  return Astro.rewrite("/404");
+}
+
+const { Content } = await render(entry);
+---
+
+<h1>{entry.data.title}</h1>
+<Content />
+```
+
+#### エラー処理
+
+ライブローダーは、ネットワークの問題、APIエラー、バリデーションの問題により失敗することがあります。このAPIは、明示的にエラー処理できるように設計されています。
+
+`getLiveCollection()`や`getLiveEntry()`を呼び出したときのエラーは、次のいずれかになります。
+
+- ローダーが定義したエラー型（ローダーがエラーを返した場合）
+- エントリーが見つからない場合の`LiveEntryNotFoundError`
+- コレクションのデータが期待するスキーマに一致しない場合の`LiveCollectionValidationError`
+- キャッシュヒントが無効な場合の`LiveCollectionCacheHintError`
+- ローダー内で捕捉されずにスローされたエラーなど、その他のエラーに対する`LiveCollectionError`
+
+`instanceof`を使うと、実行時にエラーの型を確認できます。
+
+```astro title="src/pages/store/[id].astro" "LiveEntryNotFoundError.is(error)"
+---
+export const prerender = false; // Not needed in 'server' mode
+
+import { LiveEntryNotFoundError } from "astro/content/runtime";
+import { getLiveEntry } from "astro:content";
+
+if (!Astro.params.id) {
+  return Astro.redirect("/404");
+}
+
+const { entry, error } = await getLiveEntry("products", Astro.params.id);
+
+if (error) {
+  if (error instanceof LiveEntryNotFoundError) {
+    console.error(`Product not found: ${error.message}`);
+    Astro.response.status = 404;
+  } else {
+    console.error(`Error loading product: ${error.message}`);
+    return Astro.redirect("/500");
+  }
+}
+---
+```
+
+### ライブデータのキャッシュ
+
+<p><Since v="7.0.0" /></p>
+
+ライブローダーが[キャッシュヒント](/ja/reference/content-loader-reference/#live-loaders)を提供する場合、`getLiveEntry()`と`getLiveCollection()`は`cacheHint`オブジェクトを返します。これにより、ヘッダーを手動で設定せずに、ルーティングの[キャッシュ動作](/ja/guides/caching/)を制御できます。
+
+キャッシュヒントには、特定の対象を無効化するための[`tags`](/ja/reference/content-loader-reference/#cachehinttags)と、キャッシュしたデータを最新に保つための[`lastModified`](/ja/reference/content-loader-reference/#cachehintlastmodified)が含まれます。独自の[キャッシュオプション](/ja/reference/cache-provider-reference/#cacheoptions)と組み合わせて、キャッシュ動作をさらにカスタマイズすることもできます。
+
+<ReadMore>
+ライブローダーでのキャッシュヒントの実装については、[Content Loaderのリファレンス](/ja/reference/content-loader-reference/)を確認してください。
+</ReadMore>
+
+#### エントリー単位のキャッシュヒント
+
+`getLiveEntry()`が返す`cacheHint`を[`Astro.cache.set()`](/ja/reference/api-reference/#cacheset)に渡すと、ローダーが推奨するキャッシュ戦略を適用できます。
+
+次の例では、ローダーのキャッシュヒントを渡し、`maxAge`を追加してレスポンスを最新として扱う期間を制御しています。
+
+```astro title="src/pages/products/[id].astro" {4,10-12}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error, cacheHint } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+
+Astro.cache.set({ maxAge: 300 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+[`LiveDataEntry`](/ja/reference/content-loader-reference/#livedataentry)を直接渡し、Astroがその`cacheHint`を自動的に取り出すようにすることもできます。
+
+```astro title="src/pages/products/[id].astro" {4,10}
+---
+import { getLiveEntry } from 'astro:content';
+
+const { entry, error } = await getLiveEntry('products', Astro.params.id);
+
+if (error) {
+  return Astro.redirect('/404');
+}
+
+Astro.cache.set(entry);
+Astro.cache.set({ maxAge: 300, swr: 60 });
+---
+
+<h1>{entry.data.name}</h1>
+```
+
+#### コレクション単位のキャッシュヒント
+
+`getLiveCollection()`でコレクション全体を取得すると、Astroはコレクションのレスポンスと個々のすべてのエントリーのキャッシュヒントを統合します。タグはまとめられ、`lastModified`には最も新しい値が使われます。
+
+次の例では、統合されたコレクションのキャッシュヒントを渡し、データを最新として扱う期間を10分に設定しています。
+
+```astro title="src/pages/products/index.astro" {4,10-12}
+---
+import { getLiveCollection } from 'astro:content';
+
+const { entries, error, cacheHint } = await getLiveCollection('products');
+
+if (error) {
+  return new Response('Error loading products', { status: 500 });
+}
+
+if (cacheHint) {
+  Astro.cache.set(cacheHint);
+}
+Astro.cache.set({ maxAge: 600 });
+---
+
+<ul>
+  {entries.map((p) => <li>{p.data.name}</li>)}
+</ul>
+```
+
+#### エントリー単位での無効化
+
+[`cache.invalidate()`](/ja/reference/api-reference/#cacheinvalidate)に`LiveDataEntry`を渡すと、キャッシュしたエントリーを無効化できます。これにより、キャッシュ全体を消去せずに、エントリーのキャッシュタグにもとづいて特定のキャッシュ済みレスポンスを無効化できます。
+
+次の例では、特定の商品エントリーのキャッシュ済みレスポンスを無効化しています。
+
+```ts title="src/pages/api/revalidate.ts"
+import { getLiveEntry } from 'astro:content';
+
+export async function POST(context) {
+  const { entry } = await getLiveEntry('products', 'featured');
+  if (entry) {
+    await context.cache.invalidate(entry);
+  }
+  return Response.json({ ok: true });
+}
+```
+
+## エディターでのJSON Schemaファイルの使用
+
+<p><Since v="4.13.0" /></p>
+
+Astroはコレクション用の[JSON Schema](https://json-schema.org/)ファイルを自動生成します。これをエディターで使うと、データファイルでIntelliSenseと型チェックを利用できます。
+
+プロジェクトの各コレクションに対してJSON Schemaファイルが生成され、`.astro/collections/`ディレクトリに出力されます。
+たとえば、`authors`と`posts`という2つのコレクションがある場合、Astroは`.astro/collections/authors.schema.json`と`.astro/collections/posts.schema.json`を生成します。
+
+<h3>JSONファイルでJSON Schemaを使う</h3>
+
+JSONファイルに`$schema`フィールドを設定すると、Astroが生成したスキーマを手動で指定できます。
+値には、データファイルからスキーマへの相対ファイルパスを指定します。
+次の例では、`src/data/authors/`内のデータファイルで、`authors`コレクション用に生成されたスキーマを使用しています。
+
+```json title="src/data/authors/armand.json" ins={2}
+{
+  "$schema": "../../../.astro/collections/authors.schema.json",
+  "name": "Armand",
+  "skills": ["Astro", "Starlight"]
+}
+```
+
+<h4>VS Codeで複数のJSONファイルにスキーマを適用する</h4>
+
+VS Codeでは、[`json.schemas`設定](https://code.visualstudio.com/docs/languages/json#_json-schemas-and-settings)を使って、コレクション内のすべてのファイルにスキーマを適用できます。
+次の例では、`src/data/authors/`ディレクトリ内のすべてのファイルで、`authors`コレクション用に生成されたスキーマを使用します。
+
+```json
+{
+  "json.schemas": [
+    {
+      "fileMatch": ["/src/data/authors/**"],
+      "url": "./.astro/collections/authors.schema.json"
+    }
+  ]
+}
+```
+
+<h3>VS CodeでYAMLファイルにスキーマを使う</h3>
+
+VS Codeでは、[Red Hat YAML](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml)拡張機能を使って、YAMLファイルでJSON Schemaを利用できるようにできます。
+この拡張機能をインストールすると、特別なコメント構文で、YAMLファイルからスキーマを参照できます。
+
+```yaml title="src/data/authors/armand.yml" ins={1}
+# yaml-language-server: $schema=../../../.astro/collections/authors.schema.json
+name: Armand
+skills:
+  - Astro
+  - Starlight
+```
+
+<h4>VS Codeで複数のYAMLファイルにスキーマを適用する</h4>
+
+Red Hat YAML拡張機能では、`yaml.schemas`設定を使って、コレクション内のすべてのYAMLファイルにスキーマを適用できます。
+次の例では、`src/data/authors/`ディレクトリ内のすべてのYAMLファイルで、`authors`コレクション用に生成されたスキーマを使用します。
+
+```json
+{
+  "yaml.schemas": {
+    "./.astro/collections/authors.schema.json": ["/src/content/authors/*.yml"]
+  }
+}
+```
+
+詳細は、Red Hat YAML拡張機能のドキュメントの[「Associating schemas」](https://marketplace.visualstudio.com/items?itemName=redhat.vscode-yaml#associating-schemas)を確認してください。
