@@ -1,0 +1,229 @@
+---
+title: トラブルシューティング
+description: お困りですか？問題が解決しませんか？Astroがサポートします。
+i18nReady: true
+---
+
+Astroには、コードのトラブルシューティングやデバッグに役立つさまざまなツールが用意されています。
+
+## ヒントとコツ
+
+### `console.log()`を使ったデバッグ
+
+`console.log()`は、Astroコードをデバッグするためのシンプルで一般的な方法です。`console.log()`ステートメントをどこに記述するかによって、デバッグ出力が表示される場所が決まります。
+
+```astro
+---
+console.log('こんにちは！サーバー側です。Astroが実行されているターミナルに出力されます。');
+---
+
+<script>
+console.log('こんにちは！クライアント側です。ブラウザの開発者コンソールに出力されます。');
+</script>
+```
+
+Astroのフロントマター内に記述された`console.log()`ステートメントは、常にAstro CLIを実行している**ターミナル**に出力されます。これは、Astroがサーバー上で実行され、ブラウザ上では実行されないためです。
+
+Astroの`<script>`タグ内に記述またはインポートされたコードは、ブラウザ上で実行されます。そのため、`console.log()`ステートメントやその他のデバッグ出力は**ブラウザのコンソール**に表示されます。
+
+### フレームワークコンポーネントのデバッグ
+
+[フレームワークコンポーネント](/ja/guides/framework-components/)（ReactやSvelteなど）には独特の特徴があります。デフォルトではサーバーサイドでレンダリングされるため、`console.log()`のデバッグ出力はターミナルに表示されます。ただし、ブラウザ向けにハイドレーションされることもあるため、デバッグログがブラウザにも表示される場合があります。
+
+この動作は、サーバー側の出力とブラウザ上でハイドレーションされたコンポーネントの違いをデバッグする際に役立ちます。
+
+### Astroの`<Debug />`コンポーネント
+
+Astroコンポーネントのデバッグを支援するため、任意の値をコンポーネントのHTMLテンプレートに直接レンダリングする組み込みの`<Debug />`コンポーネントが用意されています。
+
+このコンポーネントを使用すると、JavaScriptを使わずにクライアントサイドで値を検査できます。ターミナルとブラウザを何度も行き来することなく、ブラウザ上で手軽にデバッグしたい場合に便利です。
+
+```astro {2,7}
+---
+import { Debug } from "astro:components";
+const sum = (a: any, b: any) => a + b;
+---
+
+<!-- 例: ブラウザに{answer: 6}と出力されます -->
+<Debug answer={sum(2, 4)} />
+```
+
+Debugコンポーネントはさまざまな構文オプションをサポートしており、より柔軟かつ簡潔にデバッグできます。
+
+```astro {2,8-10}
+---
+import { Debug } from "astro:components";
+const sum = (a: any, b: any) => a + b;
+const answer = sum(2, 4);
+---
+
+<!-- 例: 以下の3つはすべて同じ結果になります -->
+<Debug answer={sum(2, 4)} />
+<Debug {...{ answer: sum(2, 4) }} />
+<Debug {answer} />
+```
+
+## よくあるエラーメッセージ
+
+ターミナルに表示される可能性のある一般的なエラーメッセージと、その意味および対処法を紹介します。発生する可能性のあるAstroエラーの完全な一覧については、[エラーリファレンスガイド](/ja/reference/error-reference/)を参照してください。
+
+### Cannot use import statement outside a module
+
+Astroコンポーネントでは、`<script>`タグはデフォルトで[JSモジュール](https://developer.mozilla.org/ja/docs/Web/JavaScript/Guide/Modules)として読み込まれます。タグに[`is:inline`ディレクティブ](/ja/reference/directives-reference/#isinline)やその他の属性を含めると、このデフォルトの挙動は無効になります。
+
+**解決策**: `<script>`タグに何らかの属性を追加した場合は、import文を使用できるように`type="module"`属性もあわせて追加してください。
+
+**状態**: Astroの仕様どおりの正常な動作です。
+
+**これが原因かどうかわからない場合**  
+他のユーザーが[この問題](https://github.com/withastro/astro/issues?q=is%3Aissue+is%3Aopen+Cannot+use+import+statement)を報告していないか確認してみてください。
+
+### `document` (or `window`) is not defined
+
+このエラーは、サーバー上で`document`や`window`にアクセスしようとしたときに発生します。
+
+Astroコンポーネントはサーバー上で実行されるため、フロントマター内でこれらのブラウザ固有のオブジェクトにアクセスすることはできません。
+
+フレームワークコンポーネントもデフォルトではサーバー上で実行されるため、レンダリング中に`document`や`window`にアクセスするとこのエラーが発生する可能性があります。
+
+**解決策**: `document`または`window`を呼び出しているコードを特定してください。自身で直接`document`や`window`を使用していないにもかかわらずこのエラーが発生する場合は、インポートしているパッケージの中にクライアント側で実行されることを前提としたものがないか確認してください。
+
+- コードがAstroコンポーネント内にある場合は、フロントマターの外にある`<script>`タグに移動します。これにより、`document`と`window`が利用可能なクライアント側でコードを実行するようAstroに指示できます。
+
+- コードがフレームワークコンポーネント内にある場合は、ライフサイクルメソッド（Reactの[`useEffect()`](https://ja.react.dev/reference/react/useEffect)、Vueの[`onMounted()`](https://ja.vuejs.org/api/composition-api-lifecycle.html#onmounted)、Svelteの[`onMount()`](https://svelte.dev/docs#run-time-svelte-onmount)など）を使用してレンダリング後にこれらのオブジェクトへアクセスしてください。また、これらのライフサイクルメソッドを実行するために、`client:load`などの[client:](/ja/reference/directives-reference/#クライアントディレクティブ)ディレクティブを使用してクライアントサイドでハイドレーションするよう指示します。[`client:only`](/ja/reference/directives-reference/#clientonly)ディレクティブを追加して、サーバー上でのレンダリングを完全に防ぐこともできます。
+
+**状態**: Astroの仕様どおりの正常な動作です。
+
+### Expected a default export
+
+このエラーは、無効なコンポーネントや正常に動作していないコンポーネントをインポートまたはレンダリングしようとしたときにスローされることがあります（この特定のメッセージは、AstroにおけるUIコンポーネントのインポートの仕組みに起因して発生します）。
+
+**解決策**: インポートおよびレンダリングしているコンポーネントにエラーがないか確認し、正しく動作していることを確かめてください。[astro.new](https://astro.new)からAstroのスターターテンプレートを開き、最小構成のAstroプロジェクトで該当コンポーネントだけをテストしてトラブルシューティングを行うことも検討してください。
+
+**状態**: Astroの仕様どおりの正常な動作です。
+
+### Refused to execute inline script
+
+ブラウザのコンソールに次のようなエラーが記録されることがあります。
+
+> Refused to execute inline script because it violates the following Content Security Policy directive: …
+
+これは、サイトの[コンテンツセキュリティポリシー](https://developer.mozilla.org/ja/docs/Web/HTTP/CSP)（CSP）によって、Astroがデフォルトで出力するインライン`<script>`タグの実行が禁止されていることを意味します。
+
+**解決策:** インラインスクリプトの実行を許可するために、CSPを更新して`script-src: 'unsafe-inline'`を含めてください。あるいは、[`astro-shield`](https://github.com/KindSpells/astro-shield)などのサードパーティ製インテグレーションを使用してCSPヘッダーを自動生成することもできます。
+
+## よくある落とし穴
+
+### コンポーネントがレンダリングされない
+
+まず、[`.astro`コンポーネントスクリプト](/ja/basics/astro-components/#コンポーネントスクリプト)または[`.mdx`ファイル](/ja/guides/integrations-guide/mdx/#mdxでコンポーネントを使用する)で**コンポーネントをインポートしているか**確認してください。
+
+次に、インポート文を確認します。
+
+- インポート先が間違っていませんか？（インポートパスを確認してください）
+
+- インポートした名前とコンポーネント名が一致していますか？（コンポーネント名および[`.astro`構文に従っているか](/ja/reference/astro-syntax/#astroとjsxの違い)を確認してください）
+
+- インポートパスに拡張子を含めていますか？（インポートするファイルに`.astro`、`.md`、`.vue`、`.svelte`などの拡張子が含まれているか確認してください。注:`.js(x)`および`.ts(x)`ファイルに限り、拡張子は**不要**です）
+
+### コンポーネントがインタラクティブにならない
+
+コンポーネントがレンダリングされている（上記参照）にもかかわらずユーザー操作に反応しない場合は、コンポーネントをハイドレーションするための [`client:*`ディレクティブ](/ja/reference/directives-reference/#クライアントディレクティブ)が抜けている可能性があります。
+
+デフォルトでは、[UIフレームワークコンポーネントはクライアント側でハイドレーションされません](/ja/guides/framework-components/#インタラクティブなコンポーネントのハイドレーション)。`client:*`ディレクティブが指定されていない場合、JavaScriptなしでHTMLのみがページにレンダリングされます。
+
+:::tip
+[Astroコンポーネント](/ja/basics/astro-components/)は、クライアントサイドのランタイムを持たないHTML専用のテンプレートコンポーネントです。ただし、Astroコンポーネントのテンプレート内で`<script>`タグを使用すれば、グローバルスコープで実行されるJavaScriptをブラウザに送信できます。
+:::
+
+### Cannot find package 'X'
+
+Astroの起動時に`"Cannot find package 'react'"`（または同様の）警告が表示された場合は、そのパッケージをプロジェクトにインストールする必要があります。すべてのパッケージマネージャーがピア依存関係を自動的にインストールしてくれるわけではありません。Node v16以降でnpmを使用している場合は、通常この問題について心配する必要はありません。
+
+たとえば、Reactは`@astrojs/react`インテグレーションのピア依存関係です。つまり、インテグレーションと一緒に公式の`react`および`react-dom`パッケージをインストールする必要があります。これにより、インテグレーションはこれらのパッケージを自動的に参照します。
+
+```shell ins="react react-dom"
+# 例: インテグレーションとフレームワークを一緒にインストールする
+npm install @astrojs/react react react-dom
+```
+AstroにフレームワークレンダラーやCSSツール、その他のパッケージを追加する手順については、[Astroのインテグレーションガイド](/ja/guides/integrations/)を参照してください。
+
+### Yarn 2+（Berry）でAstroを使用する
+
+Yarn 2+（別名 Berry）は、Nodeモジュールの保存と管理に[Plug'n'Play (PnP)](https://yarnpkg.com/features/pnp)と呼ばれる仕組みを使用しており、`create astro`を使って新しいAstroプロジェクトを初期化する際やAstroでの作業中に[問題を引き起こす](https://github.com/withastro/astro/issues/3450)ことがあります。回避策として、`.yarnrc.yml`の[`nodeLinker`プロパティ](https://yarnpkg.com/configuration/yarnrc#nodeLinker)を`node-modules`に設定してください。
+
+```yaml title=".yarnrc.yml"
+nodeLinker: "node-modules"
+```
+
+### モノレポ環境でAstroに依存関係を追加する
+
+モノレポ構成でAstroを使用する場合、プロジェクトの依存関係は各プロジェクト固有の`package.json`ファイルに追加する必要があります。
+
+ただし、モノレポのルートでAstroを使用したい場合もあります（たとえば、[Nxプロジェクトではルートに依存関係をインストールすることが推奨されています](https://github.com/nrwl/nx/issues/3023#issuecomment-630558318)）。この場合、これらの依存関係が適切にインストールおよびバンドルされるように、Astro設定ファイルの`vite.ssr.noExternal`にAstro関連の依存関係（`@astrojs/vue`、`astro-component-lib`など）を手動で追加してください。
+
+```js
+// astro.config.mjs
+import { defineConfig } from 'astro/config'
+export default defineConfig({
+  vite: {
+    ssr: {
+      noExternal: [
+        '@astrojs/vue',
+        'astro-component-lib',
+      ]
+    }
+  }
+})
+```
+
+### コンポーネント内での`<head>`の使用
+
+Astroでは、`<head>`タグは他のHTMLタグと同じように機能します。つまり、ページの先頭に移動されたり、既存の`<head>`とマージされたりすることはありません。そのため、通常はページ全体を通して`<head>`タグを1つだけ含めるようにします。この単一の`<head>`とその中身は、[レイアウトコンポーネント](/ja/basics/layouts/)内に記述することをお勧めします。
+
+### 意図しない`<style>`が含まれる
+
+最終的な出力に表示されないコンポーネントであっても、インポートされたコンポーネントの`<style>`タグがHTMLソースに含まれていることに気づくかもしれません。たとえば、[条件付きレンダリング](/ja/reference/astro-syntax/#動的html)によって非表示になっているコンポーネントなどでこの現象が発生します。
+
+Astroのビルドプロセスはモジュールグラフに基づいて動作するため、テンプレートに一度含まれたコンポーネントの`<style>`タグは、最終的な出力に表示されるかどうかにかかわらず、処理・最適化・バンドルされます。
+
+### Markdownでの特殊文字のエスケープ
+
+特定の文字はMarkdownにおいて特別な意味を持ちます。これらの文字を表示したい場合は、別の構文を使用する必要があります。これを行うには、該当する文字の代わりに[HTMLエンティティ](https://developer.mozilla.org/ja/docs/Glossary/Entity)を使用します。
+
+たとえば、`<`がHTML要素の開始として解釈されるのを防ぐには、`&lt;`と記述します。
+
+## 最小再現環境の作成
+
+コードのトラブルシューティングを行う際、共有可能な問題の**最小再現環境**を作成すると非常に役立ちます。これは、発生している問題を再現するための小規模で簡略化されたAstroプロジェクトです。新しいプロジェクトで再現可能な状態を作ることで、それが再現性のある問題であり、個人の環境や既存プロジェクトの別の要因によるものではないことを確認できます。
+
+最小再現環境を共有することは、サポートスレッドで助けを求める際に役立ち、Astroにバグレポートを提出する際には多くの場合必須となります。
+
+### [astro.new](https://astro.new/repro)からStackBlitzを作成する
+
+[astro.new](https://astro.new/repro)を使用すると、ワンクリックで新しいAstroプロジェクトを作成できます。最小再現環境を作成する場合は、[StackBlitz](https://stackblitz.com)上で動作する最小構成（空）のサンプルから始め、余分なコードをできる限り少なくすることを強くお勧めします。
+
+StackBlitzはローカル環境の外部であるブラウザ上でこのAstroプロジェクトを実行します。また、共有可能なリンクが発行されるため、Astroのメンテナーやサポートチームのメンバーが自身のローカル環境に依存せず最小再現環境を確認できます。これにより、全員がまったく同じ設定・依存関係を持つ同じプロジェクトを閲覧できるため、他の人がトラブルシューティングを手助けしやすくなります。問題が再現できれば、原因がAstro自体のコードにあることを検証でき、自信を持ってバグレポートを提出できます。
+
+なお、すべての問題がStackBlitzで再現できるわけではありません。たとえば、特定の環境やパッケージマネージャーに依存する問題や、StackBlitzでサポートされていないHTMLストリーミングが関わる問題などが該当します。このような場合は、CLIを使用して新しい最小構成（空）のAstroプロジェクトを作成して問題を再現し、GitHubリポジトリにアップロードしてください。StackBlitzのURLを共有する代わりに、最小再現環境のGitHubリポジトリへのリンクを提供してください。
+### 最小限のコード
+
+空のプロジェクトをセットアップしたら、問題を再現するための手順を実行します。これにはパッケージの追加、設定の変更、コードの記述などが含まれます。
+
+問題を再現するために必要な最小限のコードのみを追加してください。既存プロジェクトの他の要素は再現せず、問題に直接関係のないコードはすべて削除してください。
+
+### Issueの作成
+
+問題が再現できたら、Issueを作成してバグレポートを提出しましょう！
+
+GitHub上の適切なAstroリポジトリに移動し、新しいIssueを作成します。ほとんどのリポジトリには、提出時に質問への回答や情報の入力を求めるIssueテンプレートが用意されています。必要な情報が提供されない場合、開発チームから改めて質問しなければならず、その間誰も問題に取り組めなくなってしまうため、テンプレートに従って記述することが重要です！
+
+StackBlitz（または必要に応じてGitHubリポジトリ）上の最小再現環境へのリンクを含めてください。問題の背景を伝えるため、最初に「期待される動作」と「実際の動作」の説明を記述してください。続いて、Astroプロジェクトで問題を再現するための明確なステップバイステップの手順を記載してください。
+
+## さらにサポートが必要な場合
+
+[Discord](https://astro.build/chat)に参加し、`#support`フォーラムチャンネルで問題を説明してみてください。[GitHub](https://github.com/withastro/community-support/discussions)で直接質問することもできます。いつでも喜んでお手伝いします！
+
+既知の問題に遭遇していないか確認したり、バグレポートを提出したりするには、現在オープンになっている[AstroのIssue一覧](https://github.com/withastro/astro/issues/)をご覧ください。
+
+また、Astroの既知の制限事項に該当するかどうかを確認したり、ユースケースに関連する現在の提案をチェックしたりするには、[ロードマップのディスカッション](https://github.com/withastro/roadmap/discussions)も参照できます。
