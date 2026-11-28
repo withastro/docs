@@ -1,0 +1,338 @@
+---
+title: API de renderizadores de Astro
+sidebar:
+  label: API de renderizadores
+i18nReady: true
+tableOfContents:
+  minHeadingLevel: 2
+  maxHeadingLevel: 3
+---
+import Since from '~/components/Since.astro';
+import { Tabs, TabItem } from '@astrojs/starlight/components';
+import ReadMore from '~/components/ReadMore.astro';
+
+Astro está diseñado para admitir cualquier framework de UI. Esta capacidad se basa en los renderizadores, que son [integraciones](/es/reference/integrations-reference/). Consulta la [guía de frameworks front-end](/es/guides/framework-components/) para aprender a usar componentes de UI de distintos frameworks en Astro.
+
+## ¿Qué es un renderizador?
+
+Un renderizador es un tipo especial de [integración](/es/reference/integrations-reference/) que indica a Astro cómo detectar y renderizar sintaxis de componentes que no gestiona de forma nativa, como los [componentes de frameworks de UI](/es/guides/framework-components/). Un renderizador consta de dos partes:
+- un módulo de servidor que se importa durante el desarrollo y las compilaciones de producción para renderizar los componentes a HTML.
+- un módulo de cliente opcional que se importa en el navegador para hidratar los componentes con [directivas de cliente](/es/reference/directives-reference/#directivas-del-cliente).
+
+## Crear un renderizador
+
+Cuando necesites añadir compatibilidad con una nueva sintaxis de componentes en Astro, crea una integración y llama a `addRenderer()` en el hook [`astro:config:setup`](/es/reference/integrations-reference/#astroconfigsetup). Esto te permite definir el [punto de entrada del servidor](#crear-un-punto-de-entrada-del-servidor) que Astro debe usar para renderizar los componentes. De forma opcional, también puedes definir el [punto de entrada del cliente](#crear-un-punto-de-entrada-del-cliente) que se usa para la hidratación.
+
+El siguiente ejemplo muestra cómo registrar un renderizador en una integración de Astro:
+
+```ts title="my-renderer/index.js" {5-11}
+export default function createIntegration() {
+  return {
+    name: "@example/my-renderer",
+    hooks: {
+      "astro:config:setup": ({ addRenderer }) => {
+        addRenderer({
+          name: "@example/my-renderer",
+          clientEntrypoint: "@example/my-renderer/client.js",
+          serverEntrypoint: "@example/my-renderer/server.js",
+        });
+      },
+    },
+  };
+}
+```
+
+## Crear un punto de entrada del servidor
+
+Necesitarás crear un archivo que se ejecute durante el renderizado en el servidor y defina cómo renderizar la sintaxis de los componentes. El módulo de servidor debe exportar por defecto un objeto que implemente la interfaz [`SSRLoadedRendererValue`](#ssrloadedrenderervalue).
+
+El siguiente ejemplo muestra un renderizador mínimo del lado del servidor que implementa `check()` y `renderToStaticMarkup()`:
+
+```ts title="my-renderer/server.ts"
+import type { AstroComponentMetadata, NamedSSRLoadedRendererValue } from 'astro';
+
+async function check(Component: unknown) {
+  return typeof Component === 'function' && Component.name === 'MyCustomComponent';
+}
+
+async function renderToStaticMarkup(
+  Component: any,
+  props: Record<string, unknown>,
+  slots: Record<string, string>,
+  metadata?: AstroComponentMetadata,
+) {
+  const rendered = Component(props);
+
+  return {
+    attrs: metadata?.hydrate ? { 'data-my-renderer': 'true' } : undefined,
+    html: `<${rendered.tag}>${rendered.text}${slots.default ?? ''}</${rendered.tag}>`,
+  };
+}
+
+const renderer: NamedSSRLoadedRendererValue = {
+  name: 'my-renderer',
+  check,
+  renderToStaticMarkup,
+};
+
+export default renderer;
+```
+
+## Crear un punto de entrada del cliente
+
+Cuando tu renderizador admita [directivas de cliente](/es/reference/directives-reference/#directivas-del-cliente), crea un punto de entrada del cliente que defina cómo hidratar los componentes en el navegador. El módulo de cliente debe exportar por defecto una función que reciba el elemento de la isla y devuelva una función de hidratación asíncrona.
+
+Astro emite un evento personalizado `astro:unmount` en el elemento raíz de la isla cada vez que una isla se elimina de la página. Puedes escuchar este evento en tu punto de entrada del cliente para limpiar cualquier estado de la aplicación montada.
+
+El siguiente ejemplo muestra un punto de entrada del cliente mínimo que hidrata componentes en el navegador:
+
+```ts title="my-renderer/client.ts"
+export default (element: HTMLElement) =>
+  async (
+    Component: any,
+    props: Record<string, unknown>,
+    slots: Record<string, string>,
+    { client }: { client: string },
+  ) => {
+    const rendered = Component({ ...props, slots });
+
+    if (client === 'only') {
+      element.innerHTML = '';
+    }
+
+    const node = document.createElement(rendered.tag);
+    node.textContent = rendered.text;
+    element.appendChild(node);
+
+    element.addEventListener('astro:unmount', () => node.remove(), { once: true });
+  };
+```
+
+## Referencia de tipos del renderizador
+
+Los siguientes tipos se pueden importar desde el módulo `astro`:
+
+```ts
+import type {
+  AstroComponentMetadata,
+  AstroRenderer,
+  NamedSSRLoadedRendererValue,
+  SSRLoadedRenderer,
+  SSRLoadedRendererValue,
+} from "astro";
+```
+
+### `AstroComponentMetadata`
+
+<p>
+
+**Tipo:** `{ displayName: string; hydrate?: 'load' | 'idle' | 'visible' | 'media' | 'only'; hydrateArgs?: any; componentUrl?: string; componentExport?: { value: string; namespace?: boolean }; astroStaticSlot: true; }`
+</p>
+
+Contiene información sobre el componente que se está renderizando, incluida su directiva de hidratación.
+
+#### `AstroComponentMetadata.displayName`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Define el nombre del componente, que se usa en los mensajes de error y en la depuración.
+
+#### `AstroComponentMetadata.hydrate`
+
+<p>
+
+**Tipo:** `'load' | 'idle' | 'visible' | 'media' | 'only'`
+</p>
+
+Define la [directiva de cliente](/es/reference/directives-reference/#directivas-del-cliente) usada en el componente. Si no se proporciona ningún valor, el componente no se hidratará en el cliente.
+
+Los renderizadores pueden usar este valor para incluir de forma condicional el estado de hidratación del lado del cliente. Por ejemplo, un renderizador puede omitir la serialización del estado de transferencia para los componentes que no se van a hidratar:
+
+```ts title="my-renderer/server.ts"
+import type { AstroComponentMetadata } from 'astro';
+import { render } from './custom-render';
+
+async function renderToStaticMarkup(
+  Component: any,
+  props: Record<string, unknown>,
+  slots: Record<string, string>,
+  metadata?: AstroComponentMetadata,
+) {
+  const willHydrate = !!metadata?.hydrate;
+  // Omite la serialización del estado de hidratación si el componente no se va a hidratar
+  return render(Component, props, { includeTransferState: willHydrate });
+}
+```
+
+#### `AstroComponentMetadata.hydrateArgs`
+
+<p>
+
+**Tipo:** `any`
+</p>
+
+Especifica los argumentos adicionales que se pasan a la directiva de hidratación.
+
+Por ejemplo, puede ser la cadena de la media query para `client:media` (es decir, `"(max-width: 768px)"`) o la indicación del renderizador para `client:only` (es decir, `"react"`).
+
+#### `AstroComponentMetadata.componentUrl`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Define la URL del archivo fuente del componente.
+
+#### `AstroComponentMetadata.componentExport`
+
+<p>
+
+**Tipo:** `{ value: string; namespace?: boolean }`
+</p>
+
+Describe la exportación del componente que Astro cargará en el cliente para los componentes hidratados.
+
+##### `AstroComponentMetadata.componentExport.namespace`
+
+<p>
+
+**Tipo:** `boolean`
+</p>
+
+Indica si la exportación es una exportación de espacio de nombres.
+
+##### `AstroComponentMetadata.componentExport.value`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Define el nombre de la exportación (p. ej., `"default"` para las exportaciones por defecto).
+
+#### `AstroComponentMetadata.astroStaticSlot`
+
+<p>
+
+**Tipo:** `true`
+</p>
+
+Indica que Astro admite la optimización de slots estáticos para este componente. Los renderizadores que establecen [`supportsAstroStaticSlot`](#ssrloadedrenderervaluesupportsastrostaticslot) en `true` pueden usarlo junto con [`hydrate`](#astrocomponentmetadatahydrate) para determinar cómo renderizar los slots.
+
+### `AstroRenderer`
+
+<p>
+
+**Tipo:** `{ name: string; clientEntrypoint?: string | URL; serverEntrypoint: string | URL; }`
+</p>
+
+Describe un [renderizador de componentes añadido por una integración](/es/reference/integrations-reference/#addrenderer-option).
+
+#### `AstroRenderer.name`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Define el nombre público único del renderizador.
+
+#### `AstroRenderer.clientEntrypoint`
+
+<p>
+
+**Tipo:** `string | URL`
+</p>
+
+Define la ruta de importación del renderizador que se ejecuta en el cliente cada vez que se usa tu componente.
+
+#### `AstroRenderer.serverEntrypoint`
+
+<p>
+
+**Tipo:** `string | URL`
+</p>
+
+Define la ruta de importación del renderizador que se ejecuta durante las peticiones en el servidor o las compilaciones estáticas cada vez que se usa tu componente.
+
+### `NamedSSRLoadedRendererValue`
+
+Extiende [`SSRLoadedRendererValue`](#ssrloadedrenderervalue) con una propiedad `name` obligatoria.
+
+### `SSRLoadedRenderer`
+
+<p>
+
+**Tipo:** <code>Pick\<<a href="#astrorenderer">AstroRenderer</a>, 'name' | 'clientEntrypoint'\> & \{ ssr: <a href="#ssrloadedrenderervalue">SSRLoadedRendererValue</a>; \}</code>
+</p>
+
+Describe un renderizador disponible para el servidor. Es un subconjunto de [`AstroRenderer`](#astrorenderer) con propiedades adicionales.
+
+#### `SSRLoadedRenderer.ssr`
+
+<p>
+
+**Tipo:** [`SSRLoadedRendererValue`](#ssrloadedrenderervalue)
+</p>
+
+Define las funciones y la configuración que usa el servidor para este framework.
+
+### `SSRLoadedRendererValue`
+
+<p>
+
+**Tipo:** `object`
+</p>
+
+Contiene las funciones y la configuración necesarias para renderizar en el servidor los componentes de un framework de UI específico.
+
+#### `SSRLoadedRendererValue.name`
+
+<p>
+
+**Tipo:** `string`
+</p>
+
+Especifica el nombre identificador del renderizador.
+
+#### `SSRLoadedRendererValue.check()`
+
+<p>
+
+**Tipo:** <code>(Component: any, props: any, slots: Record\<string, string\>, metadata?: <a href="#astrocomponentmetadata">AstroComponentMetadata</a>) => Promise\<boolean\></code>
+</p>
+
+Determina si el renderizador puede gestionar un componente. Esta función se llama para cada renderizador registrado hasta que uno devuelve `true`.
+
+#### `SSRLoadedRendererValue.renderToStaticMarkup()`
+
+<p>
+
+**Tipo:** <code>(Component: any, props: any, slots: Record\<string, string\>, metadata?: <a href="#astrocomponentmetadata">AstroComponentMetadata</a>) => Promise\<\{ html: string; attrs?: Record\<string, string\>; \}\></code>
+</p>
+
+Renderiza un componente de framework en el servidor y devuelve la cadena HTML resultante junto con los atributos opcionales que se pasarán al punto de entrada del cliente.
+
+#### `SSRLoadedRendererValue.supportsAstroStaticSlot`
+
+<p>
+
+**Tipo:** `boolean`<br />
+<Since v="2.5.0" />
+</p>
+
+Indica si el renderizador admite la optimización de slots estáticos de Astro. Cuando es `true`, Astro evita que se eliminen los slots anidados dentro de las islas.
+
+#### `SSRLoadedRendererValue.renderHydrationScript()`
+
+<p>
+
+**Tipo:** `() => string`<br />
+<Since v="4.1.0" />
+</p>
+
+Devuelve una cadena HTML que se inyecta una vez por página antes del primer componente hidratado que gestiona este renderizador. Es útil para los renderizadores que necesitan una configuración de hidratación a nivel de página.
